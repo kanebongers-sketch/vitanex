@@ -8,11 +8,13 @@ import { supabase } from '@/lib/supabase/supabase'
 import Link from 'next/link'
 import { Check, Settings } from 'lucide-react'
 import { AuthKaart } from '@/components/ui/AuthKaart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Stap = 'controleer' | 'token' | 'bezig' | 'klaar' | 'fout'
 
 export default function Setup() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [stap, setStap] = useState<Stap>('controleer')
   const [mgmtToken, setMgmtToken] = useState('')
   const [resultaat, setResultaat] = useState<Record<string, string> | null>(null)
@@ -55,7 +57,7 @@ export default function Setup() {
       setResultaat(data)
       setStap('klaar')
     } else {
-      setFoutmelding(data.error ?? 'Er ging iets mis')
+      setFoutmelding(taal === 'nl' && typeof data.error === 'string' ? data.error : t('account.setup.fout'))
       setStap('fout')
     }
   }
@@ -71,10 +73,10 @@ export default function Setup() {
   if (isAdmin === false) {
     return (
       <AuthKaart className="text-center">
-        <h1 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Geen toegang</h1>
-        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Alleen admins kunnen de setup uitvoeren.</p>
+        <h1 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.setup.geenToegang')}</h1>
+        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>{t('account.setup.alleenAdmins')}</p>
         <Link href="/admin" className="text-sm underline transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
-          ← Terug naar admin
+          <span aria-hidden>← </span>{t('account.setup.terugAdmin')}
         </Link>
       </AuthKaart>
     )
@@ -89,18 +91,17 @@ export default function Setup() {
             <Settings size={20} aria-hidden style={{ color: 'var(--mf-green)' }} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>Documenten setup</h1>
-            <p className="text-xs" style={{ color: 'var(--text-3)' }}>Eenmalig uitvoeren om het dossier-systeem te activeren</p>
+            <h1 className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>{t('account.setup.kop')}</h1>
+            <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('account.setup.intro')}</p>
           </div>
         </div>
 
         {stap === 'token' && (
           <>
             <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
-              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Supabase Management Token nodig</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.setup.tokenNodig')}</p>
               <p className="text-xs leading-relaxed" style={{ color: 'var(--text-2)' }}>
-                Dit token geeft eenmalig toestemming om de database-tabel aan te maken.
-                Het wordt nergens opgeslagen.
+                {t('account.setup.tokenUitleg')}
               </p>
             </div>
 
@@ -108,17 +109,17 @@ export default function Setup() {
               <li className="flex gap-2">
                 <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
                   style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>1</span>
-                <span>Ga naar <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener noreferrer" className="underline font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>supabase.com/dashboard/account/tokens</a></span>
+                <span>{t('account.setup.stap1')} <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener noreferrer" className="underline font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>supabase.com/dashboard/account/tokens</a></span>
               </li>
               <li className="flex gap-2">
                 <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
                   style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>2</span>
-                <span>Klik <strong>Generate new token</strong> → naam bijv. &quot;MentaForce setup&quot;</span>
+                <span>{t('account.setup.stap2Voor')} <strong>Generate new token</strong>{t('account.setup.stap2Na')}</span>
               </li>
               <li className="flex gap-2">
                 <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
                   style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>3</span>
-                <span>Kopieer het token en plak het hieronder</span>
+                <span>{t('account.setup.stap3')}</span>
               </li>
             </ol>
 
@@ -140,7 +141,7 @@ export default function Setup() {
               className="w-full py-3.5 rounded-2xl text-sm font-semibold transition disabled:opacity-40"
               style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
-              Setup uitvoeren
+              {t('account.setup.uitvoeren')}
             </button>
           </>
         )}
@@ -148,7 +149,7 @@ export default function Setup() {
         {stap === 'bezig' && (
           <div className="text-center py-8">
             <span className="mf-spinner mx-auto mb-4" aria-hidden style={{ width: 32, height: 32, display: 'block' }} />
-            <p className="text-sm" style={{ color: 'var(--text-3)' }}>Tabel en bucket aanmaken...</p>
+            <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('account.setup.bezig')}</p>
           </div>
         )}
 
@@ -156,7 +157,7 @@ export default function Setup() {
           <>
             <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
               <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: 'var(--mf-green)' }}>
-                <Check size={14} strokeWidth={3} aria-hidden /> Setup voltooid!
+                <Check size={14} strokeWidth={3} aria-hidden /> {t('account.setup.voltooid')}
               </p>
               {resultaat && Object.entries(resultaat).filter(([k]) => k !== 'ok').map(([k, v]) => (
                 <p key={k} className="text-xs" style={{ color: 'var(--text-2)' }}>{v}</p>
@@ -165,7 +166,7 @@ export default function Setup() {
             <Link href="/admin"
               className="block w-full py-3.5 rounded-2xl text-sm font-semibold text-center transition hover:opacity-90"
               style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-              Terug naar admin
+              {t('account.setup.terugAdmin')}
             </Link>
           </>
         )}
@@ -173,13 +174,13 @@ export default function Setup() {
         {stap === 'fout' && (
           <>
             <div role="alert" aria-live="assertive" className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid var(--mf-red)' }}>
-              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-red)' }}>{t('account.setup.fout')}</p>
               <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{foutmelding}</p>
             </div>
             <button onClick={() => setStap('token')}
               className="w-full py-3.5 rounded-2xl text-sm font-medium transition hover:opacity-70"
               style={{ border: '1px solid var(--border-strong)', color: 'var(--text-2)', background: 'transparent' }}>
-              Probeer opnieuw
+              {t('account.setup.opnieuw')}
             </button>
           </>
         )}

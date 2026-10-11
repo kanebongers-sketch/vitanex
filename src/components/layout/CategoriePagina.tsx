@@ -15,6 +15,21 @@ import {
 } from 'lucide-react'
 import type { CategorieDef } from '@/lib/navigatie/categorie-nav'
 import type { LucideIcon } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import type { Params } from '@/lib/i18n/vertaal'
+
+type Vertaal = (sleutel: string, params?: Params) => string
+
+/** '/mijn-rapport' -> 'mijnRapport': sleutel per menu-item, los van de Nederlandse tekst. */
+function slug(href: string): string {
+  return href.replace(/^\//, '').replace(/-(\w)/g, (_, c: string) => c.toUpperCase())
+}
+
+/** Vertaalt een sleutel; ontbreekt hij in het woordenboek, dan blijft de bron-tekst staan. */
+function vertaalOf(t: Vertaal, sleutel: string, terugval: string): string {
+  const tekst = t(sleutel)
+  return tekst === sleutel ? terugval : tekst
+}
 
 const ICOON_MAP: Record<string, LucideIcon> = {
   // categorie
@@ -68,6 +83,7 @@ function Laden() {
 export default function CategoriePagina({ categorie }: { categorie: CategorieDef }) {
   const router = useRouter()
   const [klaar, setKlaar] = useState(false)
+  const { t } = useVertaling()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -79,6 +95,7 @@ export default function CategoriePagina({ categorie }: { categorie: CategorieDef
   if (!klaar) return <Laden />
 
   const Icon = ICOON_MAP[categorie.icoon] ?? Layers
+  const titel = vertaalOf(t, `account.categorie.titel.${categorie.titel}`, categorie.titel)
   // De categorie-kleur komt altijd als token binnen (var(--mf-*)); we mengen
   // hem via color-mix met tokens, nooit met hardcoded hex of var()+hex-alpha.
   const accentVars = {
@@ -122,12 +139,12 @@ export default function CategoriePagina({ categorie }: { categorie: CategorieDef
             letterSpacing: '-0.03em',
             margin: 0,
           }}>
-            {categorie.titel}
+            {titel}
           </h1>
         </header>
 
         {/* Items */}
-        <nav aria-label={categorie.titel} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <nav aria-label={titel} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {categorie.items.map((item) => {
             const ItemIcon = item.icoon ? ICOON_MAP[item.icoon] : null
             return (
@@ -142,7 +159,7 @@ export default function CategoriePagina({ categorie }: { categorie: CategorieDef
                   </span>
                 )}
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>
-                  {item.label}
+                  {vertaalOf(t, `account.categorie.item.${slug(item.href)}`, item.label)}
                 </span>
                 <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} aria-hidden />
               </Link>

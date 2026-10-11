@@ -2,12 +2,14 @@ import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
 import FfLaden from '@/app/FitFactoryPT/loading'
+import { huidigeTaalset } from '@/lib/i18n/server'
 
 export default async function Loading() {
   // Dit scherm staat vóór elke pagina, ook vóór de PT-app (bij verversen zie je
   // het even). Op fitfactorypt.nl dus het Fit Factory-laadscherm, nooit dit.
   const h = await headers()
   if (isPtHost(h.get('x-forwarded-host') ?? h.get('host'))) return <FfLaden />
+  const { t } = await huidigeTaalset()
 
   return (
     <div
@@ -35,7 +37,7 @@ export default async function Loading() {
           letterSpacing: '0.01em',
         }}
       >
-        Laden…
+        {t('site.laden.tekst')}
       </p>
     </div>
   )

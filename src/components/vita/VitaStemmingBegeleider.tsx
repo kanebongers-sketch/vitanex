@@ -23,6 +23,7 @@
 import { useEffect, useState } from 'react'
 import VitaBubbel from './VitaBubbel'
 import { type EmotionState } from './PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type StemmingFase = 'uitnodiging' | 'reactie'
 
@@ -36,18 +37,9 @@ interface VitaStemmingBegeleiderProps {
 }
 
 // Rustige, korte uitnodiging. Eén tik, geen druk. Geen jargon, geen emoji.
-const UITNODIGING_ZIN =
-  'Hoe voel je je nu? Eén tik, meer niet — ik houd het even bij voor je.'
 
 // Empathische reactie per stemmingswaarde. Steunend en erkennend bij laag (nooit
 // toxisch-positief), meelevend-blij bij hoog. Eerlijk en menselijk, één zin.
-const REACTIE_ZIN: Record<number, string> = {
-  1: 'Zwaar moment? Ik ben er. Fijn dat je het toch even aangaf — dat telt.',
-  2: 'Niet je beste dag, hoor ik. Dank dat je het deelt; je hoeft het niet weg te lachen.',
-  3: 'Gewoon oké mag ook. Fijn dat je even incheckte.',
-  4: 'Mooi dat het goed zit vandaag. Geniet er rustig van.',
-  5: 'Wat fijn dat je je zo voelt — koester dit moment even.',
-}
 
 // Vita's gezichtsemotie beweegt mee met de stemming: steunend/bezorgd bij laag,
 // motiverend/trots bij hoog.
@@ -64,6 +56,7 @@ export default function VitaStemmingBegeleider({
   stemming,
   size = 48,
 }: VitaStemmingBegeleiderProps) {
+  const { t } = useVertaling()
   // Lazy init: op de client meteen de juiste waarde (voorkomt een frame breathing
   // onder reduce). Op de server is matchMedia niet beschikbaar → false; .mf-fade-in
   // dekt de rest van de beweging al af via CSS.
@@ -82,7 +75,10 @@ export default function VitaStemmingBegeleider({
   }, [])
 
   if (fase === 'reactie') {
-    const zin = (stemming ? REACTIE_ZIN[stemming] : undefined) ?? 'Fijn dat je even incheckte.'
+    // Reactiezinnen per stemming 1..5 staan in vita.stemming.reactie.*
+    const zin = stemming && REACTIE_EMOTIE[stemming]
+      ? t(`vita.stemming.reactie.${stemming}`)
+      : t('vita.stemming.reactieStandaard')
     const emotie = (stemming ? REACTIE_EMOTIE[stemming] : undefined) ?? 'supportive'
     return (
       <VitaBubbel emotion={emotie} animate={!reduceMotion} size={size + 8}>
@@ -94,7 +90,7 @@ export default function VitaStemmingBegeleider({
   // fase === 'uitnodiging'
   return (
     <VitaBubbel emotion="curious" animate={!reduceMotion} size={size}>
-      {UITNODIGING_ZIN}
+      {t('vita.stemming.uitnodiging')}
     </VitaBubbel>
   )
 }

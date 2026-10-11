@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { COLORS } from '../theme'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
@@ -44,6 +45,7 @@ function PulseVisual() {
 }
 
 export default function LiquidFeature() {
+  const { t } = useVertaling()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -66,10 +68,9 @@ export default function LiquidFeature() {
 
           <div className="absolute bottom-0 left-0 right-0 flex flex-col items-start gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-10">
             <div className="liquid-glass max-w-md rounded-2xl p-6 md:p-8">
-              <p className="mb-3 text-xs uppercase tracking-widest text-white/60">Onze aanpak</p>
+              <p className="mb-3 text-xs uppercase tracking-widest text-white/60">{t('site.aanpak.label')}</p>
               <p className="text-sm leading-relaxed text-white md:text-base">
-                Voorkomen begint met zien. MentaForce meet welzijn anoniem over zes
-                pijlers, zodat signalen bespreekbaar worden vóór ze verzuim worden.
+                {t('site.aanpak.tekst')}
               </p>
             </div>
             <motion.div
@@ -78,7 +79,7 @@ export default function LiquidFeature() {
               transition={{ duration: 0.2, ease: EASE }}
             >
               <Link href="/contact" className="liquid-glass inline-block rounded-full px-8 py-3 text-sm font-medium text-white">
-                Ontdek meer
+                {t('site.aanpak.ontdekMeer')}
               </Link>
             </motion.div>
           </div>

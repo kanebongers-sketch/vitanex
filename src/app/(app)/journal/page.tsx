@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/Dialog'
 import { vitaEvent } from '@/lib/vita/events'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
 const STEMMING_GLOW: Record<number, string> = {
   1: 'var(--mf-red-light)',
@@ -50,29 +52,24 @@ interface Stemming {
   waarde: number
   kleur: string
   bg: string
-  label: string
+  /** Sleutel onder mentaal.journal.stemming. */
+  sleutel: string
   icoon: LucideIcon
 }
 
 const STEMMINGEN: Stemming[] = [
-  { waarde: 1, kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', label: 'Slecht', icoon: Frown },
-  { waarde: 2, kleur: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)', label: 'Matig', icoon: Meh },
-  { waarde: 3, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', label: 'Oké', icoon: Meh },
-  { waarde: 4, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Goed', icoon: Smile },
-  { waarde: 5, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Super', icoon: Laugh },
+  { waarde: 1, kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', sleutel: 'slecht', icoon: Frown },
+  { waarde: 2, kleur: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)', sleutel: 'matig', icoon: Meh },
+  { waarde: 3, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', sleutel: 'gaatWel', icoon: Meh },
+  { waarde: 4, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', sleutel: 'goed', icoon: Smile },
+  { waarde: 5, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', sleutel: 'super', icoon: Laugh },
 ]
 
-const PROMPTS = [
-  'Hoe was mijn dag werkelijk?',
-  'Waar maak ik me zorgen over?',
-  'Wat gaf me energie vandaag?',
-  'Wat nam energie weg?',
-  'Wat ben ik dankbaar voor?',
-  'Wat wil ik morgen anders doen?',
-]
+// Schrijftips: teksten onder mentaal.journal.prompt.<sleutel>.
+const PROMPTS = ['dag', 'zorgen', 'energieGaf', 'energieWeg', 'dankbaar', 'morgen'] as const
 
-function formatDatum(iso: string) {
-  return new Date(iso).toLocaleDateString('nl-BE', {
+function formatDatum(iso: string, taal: Taal) {
+  return new Date(iso).toLocaleDateString(INTL_LOCALE[taal], {
     weekday: 'long', day: 'numeric', month: 'long',
   })
 }
@@ -93,6 +90,7 @@ function maandagVan(d: Date): Date {
 }
 
 function StemmingDot({ waarde }: { waarde: number }) {
+  const { t } = useVertaling()
   const s = STEMMINGEN.find(m => m.waarde === waarde)
   if (!s) return null
   const Icoon = s.icoon
@@ -103,7 +101,7 @@ function StemmingDot({ waarde }: { waarde: number }) {
       background: s.bg, borderRadius: 100, padding: '2px 9px',
     }}>
       <Icoon size={12} aria-hidden style={{ flexShrink: 0 }} />
-      {s.label}
+      {t(`mentaal.journal.stemming.${s.sleutel}`)}
     </span>
   )
 }
@@ -112,6 +110,7 @@ function StemmingDot({ waarde }: { waarde: number }) {
  *  Reikt de reeks tot aan de oudst geladen entry, dan kan ze in werkelijkheid
  *  langer zijn — dat tonen we eerlijk als "N+". */
 function ActiviteitStrip({ entries }: { entries: Entry[] }) {
+  const { t, taal } = useVertaling()
   const vandaag = new Date()
   const vandaagKey = dagKey(vandaag)
   const datumSet = new Set(entries.map(e => dagKey(new Date(e.aangemaakt_op))))
@@ -121,7 +120,7 @@ function ActiviteitStrip({ entries }: { entries: Entry[] }) {
     const ds = dagKey(d)
     return {
       ds,
-      dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2),
+      dag: d.toLocaleDateString(INTL_LOCALE[taal], { weekday: 'short' }).slice(0, 2),
       actief: datumSet.has(ds),
       isVandaag: ds === vandaagKey,
     }
@@ -154,7 +153,7 @@ function ActiviteitStrip({ entries }: { entries: Entry[] }) {
               outlineOffset: 2,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              {actief && <PenLine size={12} aria-label="Geschreven op deze dag" style={{ color: 'var(--bg-app)' }} />}
+              {actief && <PenLine size={12} aria-label={t('mentaal.journal.geschreven')} style={{ color: 'var(--bg-app)' }} />}
             </div>
             <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
           </div>
@@ -163,7 +162,7 @@ function ActiviteitStrip({ entries }: { entries: Entry[] }) {
       {streak > 0 && (
         <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
           <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{afgekapt ? `${Math.min(streak, 30)}+` : streak}</p>
-          <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
+          <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('mentaal.journal.streakRegel1')}<br />{t('mentaal.journal.streakRegel2')}</p>
         </div>
       )}
     </div>
@@ -179,6 +178,7 @@ interface EntryKaartProps {
 }
 
 function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: EntryKaartProps) {
+  const { t, taal } = useVertaling()
   const preview = entry.inhoud.length > 160 ? entry.inhoud.slice(0, 160) + '...' : entry.inhoud
   const knopStijl = {
     background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)',
@@ -190,15 +190,15 @@ function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: Entry
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {entry.stemming !== null && <StemmingDot waarde={entry.stemming} />}
-          <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(entry.aangemaakt_op)}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(entry.aangemaakt_op, taal)}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '-5px -5px -5px 0' }}>
           <button
             onClick={onBewerk}
             className="mf-journal-edit"
             style={knopStijl}
-            aria-label="Bewerken"
-            title="Bewerk"
+            aria-label={t('mentaal.journal.bewerken')}
+            title={t('mentaal.journal.bewerk')}
           >
             <Pencil size={14} aria-hidden />
           </button>
@@ -206,8 +206,8 @@ function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: Entry
             onClick={onVerwijderVraag}
             className="mf-journal-del"
             style={knopStijl}
-            aria-label="Aantekening verwijderen"
-            title="Verwijder"
+            aria-label={t('mentaal.journal.verwijderLabel')}
+            title={t('mentaal.journal.verwijder')}
           >
             <Trash2 size={14} aria-hidden />
           </button>
@@ -222,7 +222,7 @@ function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: Entry
           className="mf-journal-meer"
           style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: 'var(--mf-green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          {open ? 'Minder tonen' : 'Meer tonen'}
+          {open ? t('mentaal.journal.minderTonen') : t('mentaal.journal.meerTonen')}
         </button>
       )}
     </article>
@@ -232,6 +232,7 @@ function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: Entry
 export default function JournalPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const tekstId = useId()
   const veldRef = useRef<HTMLTextAreaElement | null>(null)
   const schrijfkaartRef = useRef<HTMLElement | null>(null)
@@ -266,13 +267,13 @@ export default function JournalPagina() {
         .order('aangemaakt_op', { ascending: false })
         .limit(50)
       if (error) {
-        toast({ title: 'Laden mislukt', description: 'Je aantekeningen konden niet worden opgehaald.', variant: 'error' })
+        toast({ title: t('mentaal.journal.ladenMislukt'), description: t('mentaal.journal.ladenMisluktTekst'), variant: 'error' })
       }
       setEntries(data || [])
       setLaden(false)
     }
     laad()
-  }, [router, toast])
+  }, [router, toast, t])
 
   // Direct kunnen typen: focus het veld zodra de pagina er staat — alleen op
   // brede schermen, zodat op mobiel het toetsenbord niet ongevraagd opent.
@@ -331,7 +332,7 @@ export default function JournalPagina() {
       setOpgeslagen('nieuw')
       vitaEvent('data_logged', { kind: 'journal' })
     } else {
-      toast({ title: 'Opslaan mislukt', description: 'Je aantekening kon niet worden opgeslagen. Probeer het opnieuw — je tekst staat er nog.', variant: 'error' })
+      toast({ title: t('mentaal.journal.opslaanMislukt'), description: t('mentaal.journal.opslaanMisluktTekst'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -354,7 +355,7 @@ export default function JournalPagina() {
       setOpgeslagen('bewerkt')
     } else {
       setEntries(prev => prev.map(e => (e.id === origineel.id ? origineel : e)))
-      toast({ title: 'Opslaan mislukt', description: 'Je wijziging kon niet worden opgeslagen. Probeer het opnieuw — je tekst staat er nog.', variant: 'error' })
+      toast({ title: t('mentaal.journal.opslaanMislukt'), description: t('mentaal.journal.wijzigingMisluktTekst'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -366,7 +367,7 @@ export default function JournalPagina() {
       // Werd precies deze entry bewerkt? Dan terug naar nieuw-schrijven.
       if (id === bewerkId) herstelConcept()
     } else {
-      toast({ title: 'Verwijderen mislukt', description: 'De aantekening kon niet worden verwijderd.', variant: 'error' })
+      toast({ title: t('mentaal.journal.verwijderenMislukt'), description: t('mentaal.journal.verwijderenMisluktTekst'), variant: 'error' })
     }
     setVerwijderId(null)
   }
@@ -379,10 +380,10 @@ export default function JournalPagina() {
         const d = await res.json() as { prompt: string | null }
         setAiPrompt(d.prompt)
       } else {
-        toast({ title: 'Geen reflectievraag', description: 'De AI-reflectievraag kon niet worden geladen.', variant: 'warning' })
+        toast({ title: t('mentaal.journal.geenVraag'), description: t('mentaal.journal.vraagNietGeladen'), variant: 'warning' })
       }
     } catch {
-      toast({ title: 'Geen verbinding', description: 'De AI-reflectievraag kon niet worden geladen.', variant: 'warning' })
+      toast({ title: t('mentaal.journal.geenVerbinding'), description: t('mentaal.journal.vraagNietGeladen'), variant: 'warning' })
     } finally {
       setAiPromptLaden(false)
     }
@@ -395,16 +396,16 @@ export default function JournalPagina() {
   const dezeWeekAantal = entries.filter(e => dagKey(new Date(e.aangemaakt_op)) >= maandagKey).length
   // Een bewerking is geen nieuwe aantekening: geen weektelling, gewoon neutraal.
   const bevestiging = opgeslagen === 'bewerkt'
-    ? 'Opgeslagen.'
+    ? t('mentaal.journal.opgeslagen')
     : dezeWeekAantal >= 2
-      ? `Opgeslagen — je ${dezeWeekAantal}e aantekening deze week.`
-      : 'Opgeslagen — alleen zichtbaar voor jou.'
+      ? t('mentaal.journal.opgeslagenWeek', { aantal: dezeWeekAantal })
+      : t('mentaal.journal.opgeslagenPrive')
 
   // Historie scanbaar per dag/week: vandaag / eerder deze week / eerder.
   const groepen = [
-    { label: 'Vandaag', items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) === vandaagKey) },
-    { label: 'Eerder deze week', items: entries.filter(e => { const k = dagKey(new Date(e.aangemaakt_op)); return k >= maandagKey && k !== vandaagKey }) },
-    { label: 'Eerder', items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) < maandagKey) },
+    { id: 'vandaag', label: t('mentaal.journal.groepVandaag'), items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) === vandaagKey) },
+    { id: 'week', label: t('mentaal.journal.groepWeek'), items: entries.filter(e => { const k = dagKey(new Date(e.aangemaakt_op)); return k >= maandagKey && k !== vandaagKey }) },
+    { id: 'eerder', label: t('mentaal.journal.groepEerder'), items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) < maandagKey) },
   ].filter(g => g.items.length > 0)
 
   return (
@@ -440,8 +441,8 @@ export default function JournalPagina() {
             </div>
           </div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
-            <p style={{ color: 'var(--text-4)', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>{t('mentaal.journal.titel')}</h1>
+            <p style={{ color: 'var(--text-4)', fontSize: 13 }}>{t('mentaal.journal.intro')}</p>
           </div>
         </div>
 
@@ -450,23 +451,23 @@ export default function JournalPagina() {
             scrollMarginTop houdt de kaart onder de vaste mobiele topbar. */}
         <section
           ref={schrijfkaartRef}
-          aria-label={bewerkId ? 'Aantekening bewerken' : 'Nieuwe aantekening'}
+          aria-label={bewerkId ? t('mentaal.journal.bewerkTitel') : t('mentaal.journal.nieuw')}
           style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20, scrollMarginTop: 64 }}
         >
 
-          <Field label={bewerkId ? 'Aantekening bewerken' : 'Vandaag'} htmlFor={tekstId} hint="Eén of twee zinnen is genoeg — het hoeft nergens heen.">
+          <Field label={bewerkId ? t('mentaal.journal.bewerkTitel') : t('mentaal.journal.vandaag')} htmlFor={tekstId} hint={t('mentaal.journal.hint')}>
             <Textarea
               ref={veldRef}
               rows={5}
               value={tekst}
               onChange={e => wijzigTekst(e.target.value)}
-              placeholder="Begin te schrijven..."
+              placeholder={t('mentaal.journal.placeholder')}
               style={{ lineHeight: 1.7 }}
             />
           </Field>
 
           {/* Stemming (optioneel) */}
-          <p id={`${tekstId}-stemming-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
+          <p id={`${tekstId}-stemming-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('mentaal.journal.hoeVoel')}</p>
           <div role="group" aria-labelledby={`${tekstId}-stemming-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {STEMMINGEN.map(s => {
               const actief = stemming === s.waarde
@@ -486,14 +487,14 @@ export default function JournalPagina() {
                   }}
                 >
                   <Icoon size={14} aria-hidden />
-                  {s.label}
+                  {t(`mentaal.journal.stemming.${s.sleutel}`)}
                 </button>
               )
             })}
           </div>
 
           {/* Schrijftips — rustige hulp, onder het hoofdmoment */}
-          <p id={`${tekstId}-schrijftip-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Even geen idee?</p>
+          <p id={`${tekstId}-schrijftip-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('mentaal.journal.geenIdee')}</p>
           <div role="group" aria-labelledby={`${tekstId}-schrijftip-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button
               type="button"
@@ -508,11 +509,13 @@ export default function JournalPagina() {
               }}
             >
               {aiPrompt ? <RefreshCw size={12} aria-hidden /> : <Sparkles size={13} aria-hidden />}
-              {aiPromptLaden ? 'Laden...' : aiPrompt ? 'Nieuwe AI-vraag' : 'AI-reflectievraag'}
+              {aiPromptLaden ? t('mentaal.journal.laden') : aiPrompt ? t('mentaal.journal.nieuweAiVraag') : t('mentaal.journal.aiVraag')}
             </button>
-            {PROMPTS.map(p => (
+            {PROMPTS.map(sleutel => {
+              const p = t(`mentaal.journal.prompt.${sleutel}`)
+              return (
               <button
-                key={p}
+                key={sleutel}
                 type="button"
                 onClick={() => wijzigTekst(tekst ? `${tekst}\n\n${p}\n` : `${p}\n`)}
                 className="mf-journal-chip"
@@ -523,7 +526,8 @@ export default function JournalPagina() {
               >
                 {p}
               </button>
-            ))}
+              )
+            })}
           </div>
           {aiPrompt && (
             <button
@@ -555,7 +559,7 @@ export default function JournalPagina() {
                 className="mf-journal-annuleer"
                 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', background: 'none', border: 'none', cursor: opslaan ? 'default' : 'pointer', padding: '4px 8px', opacity: opslaan ? 0.5 : 1 }}
               >
-                Annuleren
+                {t('mentaal.journal.annuleren')}
               </button>
             )}
             <Button
@@ -563,7 +567,7 @@ export default function JournalPagina() {
               loading={opslaan}
               disabled={!tekst.trim() || opslaan}
             >
-              {opslaan ? 'Opslaan...' : bewerkId !== null ? 'Wijzigingen opslaan' : 'Opslaan'}
+              {opslaan ? t('mentaal.journal.opslaanBezig') : bewerkId !== null ? t('mentaal.journal.wijzigingenOpslaan') : t('mentaal.journal.opslaan')}
             </Button>
           </div>
         </section>
@@ -576,15 +580,15 @@ export default function JournalPagina() {
         ) : entries.length === 0 ? (
           <VitaLeegScherm
             emotion="curious"
-            titel="Je eerste paar regels"
-            boodschap="Begin hierboven met wat er nu in je opkomt — een gedachte, je dag, waar je mee zit. Alleen jij leest dit terug."
+            titel={t('mentaal.journal.leegTitel')}
+            boodschap={t('mentaal.journal.leegTekst')}
           />
         ) : (
           <>
             <ActiviteitStrip entries={entries} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {groepen.map(groep => (
-                <section key={groep.label} aria-label={groep.label}>
+                <section key={groep.id} aria-label={groep.label}>
                   <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 2px' }}>
                     {groep.label}
                   </h2>
@@ -610,14 +614,14 @@ export default function JournalPagina() {
       {/* Verwijder-bevestiging — toegankelijke dialog i.p.v. native confirm() */}
       <DialogRoot open={!!verwijderId} onOpenChange={(open) => { if (!open) setVerwijderId(null) }}>
         <DialogContent>
-          <DialogTitle>Aantekening verwijderen?</DialogTitle>
-          <DialogDescription>Dit kan niet ongedaan worden gemaakt.</DialogDescription>
+          <DialogTitle>{t('mentaal.journal.verwijderVraag')}</DialogTitle>
+          <DialogDescription>{t('mentaal.journal.nietOngedaan')}</DialogDescription>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
             <Button variant="secondary" onClick={() => setVerwijderId(null)}>
-              Behouden
+              {t('mentaal.journal.behouden')}
             </Button>
             <Button variant="danger" onClick={() => { if (verwijderId) verwijder(verwijderId) }}>
-              Verwijderen
+              {t('mentaal.journal.verwijderen')}
             </Button>
           </div>
         </DialogContent>

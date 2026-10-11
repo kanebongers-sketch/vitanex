@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { DOEL_CONFIG, type FitnessDoel } from '@/lib/health/gezondheid-berekeningen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,8 +55,8 @@ type TrainingLog = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtDatum(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+function fmtDatum(d: string, locale: string) {
+  return new Date(d).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
 function beginVanWeek(): string {
@@ -73,11 +75,14 @@ const NIVEAU_TONE: Record<string, NiveauTone> = {
   gevorderd: { kleur: 'var(--mf-red)',   achtergrond: 'var(--mf-red-light)',   rand: 'color-mix(in srgb, var(--mf-red) 35%, transparent)' },
 }
 const NIVEAU_FALLBACK: NiveauTone = { kleur: 'var(--text-2)', achtergrond: 'var(--bg-subtle)', rand: 'var(--border-strong)' }
+/** Bekende niveaus staan in het woordenboek (lichaam.sport.niveau.*); onbekend tonen we zoals het is. */
+const BEKENDE_NIVEAUS = new Set(['beginner', 'gemiddeld', 'gevorderd'])
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function SportPagina() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [laden, setLaden]                       = useState(true)
   const [schema, setSchema]                     = useState<FitnessSchema | null>(null)
   const [logs, setLogs]                         = useState<TrainingLog[]>([])
@@ -121,7 +126,7 @@ export default function SportPagina() {
 
   if (laden) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="mf-spinner" role="status" aria-label="Laden" />
+      <div className="mf-spinner" role="status" aria-label={t('lichaam.sport.laden')} />
     </div>
   )
 
@@ -142,15 +147,15 @@ export default function SportPagina() {
           <div>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mentaforce-primary)', flexShrink: 0 }} aria-hidden />
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--mentaforce-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Fysiek</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--mentaforce-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('lichaam.sport.fysiek')}</span>
             </span>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>Sport & Fitness</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>Jouw trainingen deze week</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>{t('lichaam.sport.titel')}</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>{t('lichaam.sport.intro')}</p>
           </div>
           {fitnessDoel && DOEL_CONFIG[fitnessDoel] && (
             <Badge variant="neutral" style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: DOEL_CONFIG[fitnessDoel].kleur, flexShrink: 0 }} aria-hidden />
-              {DOEL_CONFIG[fitnessDoel].label}
+              {t(`lichaam.sport.doel.${fitnessDoel}`)}
             </Badge>
           )}
         </header>
@@ -164,12 +169,12 @@ export default function SportPagina() {
             }}>
               <div aria-hidden style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'var(--mentaforce-primary-light)' }} />
               <Sparkles size={28} strokeWidth={1.5} style={{ color: 'var(--mentaforce-primary)', marginBottom: 12, position: 'relative' }} aria-hidden />
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6, position: 'relative' }}>Maak jouw AI-schema</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6, position: 'relative' }}>{t('lichaam.sport.maakSchema')}</div>
               <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 18, position: 'relative' }}>
-                Gepersonaliseerd op jouw doel, niveau en beschikbare tijd.
+                {t('lichaam.sport.maakSchemaTekst')}
               </div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontWeight: 700, fontSize: 14, padding: '10px 20px', borderRadius: 'var(--radius-btn)', position: 'relative' }}>
-                <Sparkles size={15} aria-hidden /> Genereer schema
+                <Sparkles size={15} aria-hidden /> {t('lichaam.sport.genereer')}
               </div>
             </Card>
           </Link>
@@ -181,11 +186,11 @@ export default function SportPagina() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, position: 'relative' }}>
                 <div>
-                  <div className="mf-overline" style={{ marginBottom: 4 }}>Actief schema</div>
+                  <div className="mf-overline" style={{ marginBottom: 4 }}>{t('lichaam.sport.actiefSchema')}</div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{schema.naam}</div>
                 </div>
                 <span style={{ background: niveauTone.achtergrond, color: niveauTone.kleur, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, border: `1px solid ${niveauTone.rand}`, textTransform: 'capitalize' }}>
-                  {schema.niveau}
+                  {BEKENDE_NIVEAUS.has(schema.niveau) ? t(`lichaam.sport.niveau.${schema.niveau}`) : schema.niveau}
                 </span>
               </div>
 
@@ -193,8 +198,8 @@ export default function SportPagina() {
               <div style={{ marginBottom: 16, position: 'relative' }}>
                 <Progress
                   value={weekPct}
-                  label={`Voortgang deze week`}
-                  ariaLabel={`Voortgang deze week: ${trainingsDezeWeek} van ${schema.sessies_per_week} trainingen`}
+                  label={t('lichaam.sport.voortgangWeek')}
+                  ariaLabel={t('lichaam.sport.voortgangAria', { aantal: trainingsDezeWeek, doel: schema.sessies_per_week })}
                   thickness={6}
                 />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
@@ -205,12 +210,12 @@ export default function SportPagina() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 <Link href="/sport/training" style={{ textDecoration: 'none' }}>
                   <div className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 'var(--radius-btn)' }}>
-                    <Play size={14} fill="currentColor" aria-hidden /> Training starten
+                    <Play size={14} fill="currentColor" aria-hidden /> {t('lichaam.sport.start')}
                   </div>
                 </Link>
                 <Link href="/sport/genereer" style={{ textDecoration: 'none' }}>
                   <div className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-subtle)', color: 'var(--text-1)', fontWeight: 600, fontSize: 13, padding: '11px 16px', borderRadius: 'var(--radius-btn)', border: '1px solid var(--border-strong)' }}>
-                    <Sparkles size={13} aria-hidden /> Wijzig plan
+                    <Sparkles size={13} aria-hidden /> {t('lichaam.voeding.wijzigPlan')}
                   </div>
                 </Link>
               </div>
@@ -218,7 +223,7 @@ export default function SportPagina() {
 
             {/* ── Training dagkaarten ── */}
             <section style={{ marginBottom: 20 }}>
-              <h2 className="mf-overline" style={{ margin: '0 0 10px' }}>Jouw schema</h2>
+              <h2 className="mf-overline" style={{ margin: '0 0 10px' }}>{t('lichaam.sport.jouwSchema')}</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {schema.schema_json.map((dag, i) => {
                   const isVandaag = i === vandaagDagIndex
@@ -235,7 +240,7 @@ export default function SportPagina() {
                         position: 'relative',
                       }}>
                         {isVandaag && (
-                          <Badge variant="accent" style={{ position: 'absolute', top: 10, right: 44, fontSize: 9, padding: '2px 8px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Vandaag</Badge>
+                          <Badge variant="accent" style={{ position: 'absolute', top: 10, right: 44, fontSize: 9, padding: '2px 8px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('lichaam.datum.vandaag')}</Badge>
                         )}
 
                         {/* Dag-nummer cirkel */}
@@ -275,11 +280,11 @@ export default function SportPagina() {
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-3)' }}>
                             <Clock size={10} aria-hidden />
-                            {dag.geschatte_duur} min
+                            {t('lichaam.duur.min', { min: dag.geschatte_duur })}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-3)' }}>
                             <Dumbbell size={10} aria-hidden />
-                            {dag.oefeningen.length} oef.
+                            {t('lichaam.sport.oefKort', { aantal: dag.oefeningen.length })}
                           </div>
                         </div>
                         <ChevronRight size={14} strokeWidth={2} style={{ color: isVandaag ? 'var(--mentaforce-primary)' : 'var(--text-4)', flexShrink: 0 }} aria-hidden />
@@ -295,9 +300,9 @@ export default function SportPagina() {
         {/* ── Stats strip ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
           {[
-            { label: 'Deze week', waarde: trainingsDezeWeek, icon: <Flame size={14} aria-hidden />, kleur: 'var(--mf-orange)' },
-            { label: 'Totaal', waarde: logs.length, icon: <BarChart2 size={14} aria-hidden />, kleur: 'var(--mf-purple)' },
-            { label: 'Per week', waarde: schema ? `${schema.sessies_per_week}×` : '—', icon: <Calendar size={14} aria-hidden />, kleur: 'var(--mf-blue)' },
+            { label: t('lichaam.sport.dezeWeek'), waarde: trainingsDezeWeek, icon: <Flame size={14} aria-hidden />, kleur: 'var(--mf-orange)' },
+            { label: t('lichaam.sport.totaal'), waarde: logs.length, icon: <BarChart2 size={14} aria-hidden />, kleur: 'var(--mf-purple)' },
+            { label: t('lichaam.sport.perWeek'), waarde: schema ? `${schema.sessies_per_week}×` : '-', icon: <Calendar size={14} aria-hidden />, kleur: 'var(--mf-blue)' },
           ].map(({ label, waarde, icon, kleur }) => (
             <Card key={label} style={{ padding: '14px 12px' }}>
               <div style={{ color: kleur, marginBottom: 6 }}>{icon}</div>
@@ -310,15 +315,15 @@ export default function SportPagina() {
         {/* ── Recente trainingen ── */}
         <Card style={{ overflow: 'hidden', marginBottom: 20 }}>
           <div style={{ padding: '16px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Recente trainingen</span>
-            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{logs.length} sessies</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{t('lichaam.workout.titel')}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('lichaam.sport.sessies', { aantal: logs.length })}</span>
           </div>
 
           {logs.length === 0 ? (
             <EmptyState
               icon={Dumbbell}
-              title="Nog geen trainingen"
-              description="Start je eerste training!"
+              title={t('lichaam.sport.leegTitel')}
+              description={t('lichaam.sport.leegTekst')}
             />
           ) : (
             logs.map((log, i) => (
@@ -331,14 +336,14 @@ export default function SportPagina() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {log.naam ?? 'Training'}
+                    {log.naam ?? t('lichaam.workout.soort.training')}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{fmtDatum(log.datum, INTL_LOCALE[taal])}</div>
                 </div>
                 {log.duur_minuten && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>
                     <Clock size={11} aria-hidden />
-                    {log.duur_minuten} min
+                    {t('lichaam.duur.min', { min: log.duur_minuten })}
                   </div>
                 )}
               </div>
@@ -347,14 +352,14 @@ export default function SportPagina() {
         </Card>
 
         {/* ── Acties ── */}
-        <nav aria-label="Sport-acties" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <nav aria-label={t('lichaam.sport.actiesAria')} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
-            { href: '/sport/genereer', label: 'Nieuw schema', sub: 'AI-gegenereerd', icon: <Sparkles size={18} aria-hidden /> },
-            { href: '/sport/bouwen', label: 'Eigen workout', sub: 'Zelf samenstellen', icon: <Plus size={18} aria-hidden /> },
-            { href: '/sport/cardio', label: 'Cardio', sub: 'Hardlopen, fietsen…', icon: <HeartPulse size={18} aria-hidden /> },
-            { href: '/sport/voortgang', label: 'Voortgang', sub: 'Statistieken', icon: <TrendingUp size={18} aria-hidden /> },
-            { href: '/sport/oefeningen', label: 'Oefeningen', sub: 'Bibliotheek', icon: <Dumbbell size={18} aria-hidden /> },
-            { href: '/sport/training', label: 'Training starten', sub: 'Direct beginnen', icon: <Zap size={18} aria-hidden /> },
+            { href: '/sport/genereer', label: t('lichaam.sport.actie.nieuw'), sub: t('lichaam.sport.actie.nieuwSub'), icon: <Sparkles size={18} aria-hidden /> },
+            { href: '/sport/bouwen', label: t('lichaam.sport.actie.eigen'), sub: t('lichaam.sport.actie.eigenSub'), icon: <Plus size={18} aria-hidden /> },
+            { href: '/sport/cardio', label: t('lichaam.sport.actie.cardio'), sub: t('lichaam.sport.actie.cardioSub'), icon: <HeartPulse size={18} aria-hidden /> },
+            { href: '/sport/voortgang', label: t('lichaam.sport.actie.voortgang'), sub: t('lichaam.sport.actie.voortgangSub'), icon: <TrendingUp size={18} aria-hidden /> },
+            { href: '/sport/oefeningen', label: t('lichaam.sport.actie.oefeningen'), sub: t('lichaam.sport.actie.oefeningenSub'), icon: <Dumbbell size={18} aria-hidden /> },
+            { href: '/sport/training', label: t('lichaam.sport.start'), sub: t('lichaam.sport.actie.startSub'), icon: <Zap size={18} aria-hidden /> },
           ].map(({ href, label, sub, icon }) => (
             <Link key={href} href={href} style={{ textDecoration: 'none' }}>
               <Card interactive style={{ padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>

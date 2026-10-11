@@ -3,6 +3,9 @@
 // pagina toch al ophaalt (laatste 30 dagen per bron). Geen verzonnen data —
 // bij te weinig historie zeggen we dat gewoon.
 
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_VOORTGANG } from '@/lib/pijlers/teksten'
+
 export interface WeekStats {
   week: string
   stemming: number | null
@@ -80,7 +83,7 @@ function weekGemiddelde(waarden: readonly number[]): number | null {
  * Weekgemiddelden voor de laatste 4 weken (oudste eerst, laatste = huidige
  * lopende week). Zelfde vensterlogica als voorheen: maandag t/m zondag.
  */
-export function berekenWeekStats(bronnen: TrendBronnen): WeekStats[] {
+export function berekenWeekStats(bronnen: TrendBronnen, locale = 'nl-BE'): WeekStats[] {
   const weeks: WeekStats[] = []
   for (let w = 3; w >= 0; w--) {
     const weekStart = new Date()
@@ -98,7 +101,7 @@ export function berekenWeekStats(bronnen: TrendBronnen): WeekStats[] {
     const ciWeek = bronnen.checkinDatums.filter(d => inWeek(d.slice(0, 10)))
 
     weeks.push({
-      week: weekStart.toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' }),
+      week: weekStart.toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
       stemming: weekGemiddelde(stLogs.map(l => l.stemming)),
       slaap: weekGemiddelde(slLogs.map(l => l.uren_slaap)),
       stress: weekGemiddelde(stressLogs.map(l => l.stress_niveau)),
@@ -114,9 +117,9 @@ export function berekenWeekStats(bronnen: TrendBronnen): WeekStats[] {
  * Vergelijkt de laatste vólledige week met de twee weken ervoor — de lopende
  * week is nog niet af en telt dus niet mee als "daling". Nooit schuld-framing.
  */
-export function bepaalRichting(weekStats: readonly WeekStats[]): TrendRichting {
+export function bepaalRichting(weekStats: readonly WeekStats[], ts: Taalset = NL_VOORTGANG): TrendRichting {
   if (weekStats.length < 4) {
-    return { label: null, tekst: 'Nog te weinig historie voor een trend — die bouwt zich vanzelf op.' }
+    return { label: null, tekst: ts.t('voortgang.richting.teWeinig') }
   }
   const checkins = weekStats.map(w => w.checkins)
   const [drieTerug, tweeTerug, vorige, huidige] = checkins
@@ -124,18 +127,18 @@ export function bepaalRichting(weekStats: readonly WeekStats[]): TrendRichting {
 
   if (vorige === 0 && eerder === 0) {
     return huidige > 0
-      ? { label: 'Net gestart', tekst: 'Je bent deze week begonnen — vanaf hier bouwt je trend zich op.' }
-      : { label: null, tekst: 'Nog geen check-ins in de afgelopen weken — je trend begint bij je eerstvolgende check-in.' }
+      ? { label: ts.t('voortgang.richting.gestartLabel'), tekst: ts.t('voortgang.richting.gestart') }
+      : { label: null, tekst: ts.t('voortgang.richting.geenCheckins') }
   }
   if (vorige > eerder + 0.5) {
-    return { label: 'Stijgend', tekst: 'De lijn loopt op: vorige week was je actiever dan de weken ervoor.' }
+    return { label: ts.t('voortgang.richting.stijgendLabel'), tekst: ts.t('voortgang.richting.stijgend') }
   }
   if (vorige >= eerder - 0.5) {
-    return { label: 'Stabiel', tekst: 'Een stabiel ritme over de afgelopen weken — consistentie is de basis.' }
+    return { label: ts.t('voortgang.richting.stabielLabel'), tekst: ts.t('voortgang.richting.stabiel') }
   }
-  return { label: 'Wisselend', tekst: 'De afgelopen weken wisselden in ritme — elke actieve dag telt gewoon mee.' }
+  return { label: ts.t('voortgang.richting.wisselendLabel'), tekst: ts.t('voortgang.richting.wisselend') }
 }
 
-export function dagWoord(n: number): string {
-  return n === 1 ? 'dag' : 'dagen'
+export function dagWoord(n: number, ts: Taalset = NL_VOORTGANG): string {
+  return ts.t(n === 1 ? 'voortgang.richting.dag' : 'voortgang.richting.dagen')
 }

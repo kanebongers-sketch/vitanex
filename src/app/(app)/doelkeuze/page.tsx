@@ -20,10 +20,12 @@ import { useToast } from '@/components/ui/Toast'
 import { CheckinInsight } from '@/components/checkin/CheckinInsight'
 import VitaDoelbegeleider from '@/components/vita/VitaDoelbegeleider'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function DoelKeuzeInhoud() {
+  const { t } = useVertaling()
   const params = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -56,10 +58,10 @@ function DoelKeuzeInhoud() {
   const focusLabel = topDrie.length > 0 ? CAT[topDrie[0]].label : null
 
   function toonXPToast(xp: number, level: number | undefined, achievements: Achievement[]) {
-    const titel = level ? `Level ${level} — ${LEVEL_NAMEN[level]}!` : `+${xp} XP verdiend!`
+    const titel = level ? t('vita.doelen.xpLevel', { level, naam: LEVEL_NAMEN[level] }) : t('vita.doelen.xpVerdiendUitroep', { xp })
     const beschrijving = achievements.length > 0
-      ? `Nieuwe badge: ${achievements.map(a => a.naam).join(', ')}`
-      : level ? `+${xp} XP verdiend` : undefined
+      ? t('vita.doelen.nieuweBadge', { namen: achievements.map(a => a.naam).join(', ') })
+      : level ? t('vita.doelen.xpVerdiend', { xp }) : undefined
     toast({ title: titel, description: beschrijving, variant: 'success' })
   }
 
@@ -139,7 +141,7 @@ function DoelKeuzeInhoud() {
         body: JSON.stringify({ vlak_scores, antwoorden: antwoorden ?? [] }),
       })
       if (!res.ok) {
-        toast({ title: 'Analyse niet beschikbaar', description: 'Je doelen zijn opgeslagen, maar de AI-analyse kon niet worden gemaakt.', variant: 'warning' })
+        toast({ title: t('vita.doelkeuze.analyseNiet'), description: t('vita.doelkeuze.analyseNietTekst'), variant: 'warning' })
         return
       }
 
@@ -155,7 +157,7 @@ function DoelKeuzeInhoud() {
         gedeeld_met_hr: false,
       })
     } catch {
-      toast({ title: 'Analyse niet beschikbaar', description: 'Je doelen zijn opgeslagen, maar de AI-analyse kon niet worden gemaakt.', variant: 'warning' })
+      toast({ title: t('vita.doelkeuze.analyseNiet'), description: t('vita.doelkeuze.analyseNietTekst'), variant: 'warning' })
     }
   }
 
@@ -170,9 +172,9 @@ function DoelKeuzeInhoud() {
       }}>
         <div style={{ maxWidth: 640, margin: '0 auto', paddingTop: 40 }}>
           <VitaLeegScherm
-            titel="Geen check-in gevonden"
-            boodschap="Ik kan hier alleen doelen voorstellen direct na je check-in. Doe (of hervat) eerst je wekelijkse check-in, dan gaan we samen verder."
-            actieLabel="Start check-in"
+            titel={t('vita.doelkeuze.geenCheckinTitel')}
+            boodschap={t('vita.doelkeuze.geenCheckinTekst')}
+            actieLabel={t('vita.doelen.startCheckin')}
             actieHref="/checkin"
             emotion="supportive"
           />
@@ -204,10 +206,10 @@ function DoelKeuzeInhoud() {
             </div>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-            Check-in ingevuld!
+            {t('vita.doelkeuze.titel')}
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
-            Kies voor elk aandachtsgebied één doel dat je deze week wil aanpakken.
+            {t('vita.doelkeuze.sub')}
           </p>
         </div>
 
@@ -224,7 +226,7 @@ function DoelKeuzeInhoud() {
         {ALLE_VLAKKEN.some(v => scores[v] > 0) && (
           <Card style={{ borderRadius: 20, padding: '18px 20px', marginBottom: 20 }}>
             <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
-              Jouw welzijnsscan
+              {t('vita.doelkeuze.welzijnsscan')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {ALLE_VLAKKEN.filter(v => scores[v] > 0).map(vlak => {
@@ -232,7 +234,7 @@ function DoelKeuzeInhoud() {
                 const score = scores[vlak]
                 const pct = Math.round(((score - 4) / 16) * 100)
                 const kleur = pct >= 75 ? 'var(--mf-green)' : pct >= 50 ? 'var(--mf-amber)' : 'var(--mf-red)'
-                const label = pct >= 75 ? 'Goed' : pct >= 50 ? 'Matig' : 'Lastig'
+                const label = pct >= 75 ? t('vita.doelkeuze.goed') : pct >= 50 ? t('vita.doelkeuze.matig') : t('vita.doelkeuze.lastig')
                 const isAandacht = topDrie.includes(vlak)
                 return (
                   <div key={vlak} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -244,7 +246,7 @@ function DoelKeuzeInhoud() {
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>{score}/20</span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'var(--text-4)', width: 52, flexShrink: 0 }}>
-                      {label}{isAandacht ? <AlertTriangle size={10} aria-label="aandachtsgebied" /> : ''}
+                      {label}{isAandacht ? <AlertTriangle size={10} aria-label={t('vita.doelkeuze.aandachtsgebiedLabel')} /> : ''}
                     </span>
                   </div>
                 )
@@ -279,10 +281,10 @@ function DoelKeuzeInhoud() {
                 </div>
                 <div>
                   <p style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                    Aandachtsgebied {idx + 1}
+                    {t('vita.doelkeuze.aandachtsgebied', { nummer: idx + 1 })}
                   </p>
                   <p style={{ fontSize: 14, fontWeight: 700, color: c.kleur }}>
-                    {c.label} — {scores[vlak]}/20
+                    {t('vita.doelkeuze.vlakScore', { vlak: c.label, score: scores[vlak] })}
                   </p>
                 </div>
                 {gekozen !== undefined && (
@@ -299,7 +301,7 @@ function DoelKeuzeInhoud() {
               {/* Goal options */}
               <div
                 role="radiogroup"
-                aria-label={`Kies een doel voor ${c.label}`}
+                aria-label={t('vita.doelkeuze.kiesVoor', { vlak: c.label })}
                 style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
               >
                 {opties.map((opt, i) => {
@@ -351,11 +353,17 @@ function DoelKeuzeInhoud() {
           size="lg"
           style={{ width: '100%', marginTop: 4 }}
         >
-          {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : resterend > 0 ? `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}` : 'Kies je doelen'}
+          {opgeslagen
+            ? t('vita.doelkeuze.bezig')
+            : alleGekozen
+              ? t('vita.doelkeuze.start')
+              : resterend > 0
+                ? t(resterend > 1 ? 'vita.doelkeuze.kiesNogMeer' : 'vita.doelkeuze.kiesNogEen', { aantal: resterend })
+                : t('vita.doelkeuze.kiesDoelen')}
         </Button>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 14 }}>
-          Je kunt je doelen later aanpassen via het Doelen-menu.
+          {t('vita.doelkeuze.later')}
         </p>
 
       </div>

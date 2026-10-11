@@ -11,6 +11,8 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Activity, AlertTriangle, ChevronLeft } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 interface Metrics {
   totaalGebruikers: number
@@ -39,6 +41,8 @@ function StatKaart({ label, waarde, sub }: { label: string; waarde: string; sub?
 
 export default function AdminMetricsPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<Metrics | null>(null)
 
@@ -56,7 +60,7 @@ export default function AdminMetricsPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" role="status" aria-label="Metrics laden" />
+        <div className="mf-spinner" role="status" aria-label={t('werk.adminMetrics.laden')} />
       </div>
     </div>
   )
@@ -71,15 +75,15 @@ export default function AdminMetricsPage() {
           display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13,
           color: 'var(--text-3)', textDecoration: 'none', marginBottom: 16,
         }}>
-          <ChevronLeft size={15} aria-hidden /> Terug naar admin
+          <ChevronLeft size={15} aria-hidden /> {t('werk.adminMetrics.terug')}
         </Link>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Product-metrics
+            {t('werk.adminMetrics.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Gebruik, retentie en client-fouten — intern gemeten, EU-gehost, zonder third-party trackers.
-            {data?.meetVanaf && <> Meting loopt sinds {new Date(data.meetVanaf).toLocaleDateString('nl-NL')}.</>}
+            {t('werk.adminMetrics.intro')}
+            {data?.meetVanaf && <> {t('werk.adminMetrics.meetVanaf', { datum: new Date(data.meetVanaf).toLocaleDateString(locale) })}</>}
           </p>
         </div>
 
@@ -87,28 +91,28 @@ export default function AdminMetricsPage() {
           <Card>
             <EmptyState
               icon={Activity}
-              title="Nog geen metingen"
-              description="Zodra gebruikers de app gebruiken verschijnen hier de eerste events."
+              title={t('werk.adminMetrics.leegTitel')}
+              description={t('werk.adminMetrics.leegOmschrijving')}
             />
           </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-              <StatKaart label="Actief vandaag" waarde={String(data.actievenVandaag)} />
-              <StatKaart label="Actief (7 dagen)" waarde={String(data.actieven7d)} />
-              <StatKaart label="Actief (30 dagen)" waarde={String(data.actieven30d)} sub={`van ${data.totaalGebruikers} accounts`} />
+              <StatKaart label={t('werk.adminMetrics.actiefVandaag')} waarde={String(data.actievenVandaag)} />
+              <StatKaart label={t('werk.adminMetrics.actief7')} waarde={String(data.actieven7d)} />
+              <StatKaart label={t('werk.adminMetrics.actief30')} waarde={String(data.actieven30d)} sub={t('werk.adminMetrics.vanAccounts', { aantal: data.totaalGebruikers })} />
               <StatKaart
-                label="Week-op-week terugkeer"
+                label={t('werk.adminMetrics.terugkeer')}
                 waarde={data.weekRetentiePct === null ? '—' : `${data.weekRetentiePct}%`}
-                sub={data.weekRetentiePct === null ? 'nog te weinig historie' : 'actief vorige én deze week'}
+                sub={data.weekRetentiePct === null ? t('werk.adminMetrics.weinigHistorie') : t('werk.adminMetrics.beideWeken')}
               />
             </div>
 
             <Card>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>
-                Actieve gebruikers per dag (14 dagen)
+                {t('werk.adminMetrics.perDagTitel')}
               </h2>
-              <div role="img" aria-label={`Actieve gebruikers per dag, maximum ${maxActieven}`}
+              <div role="img" aria-label={t('werk.adminMetrics.perDagLabel', { max: maxActieven })}
                 style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120 }}>
                 {data.perDag.map((d) => (
                   <div key={d.datum} title={`${d.datum}: ${d.actieven}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
@@ -128,10 +132,10 @@ export default function AdminMetricsPage() {
 
             <Card>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>
-                Gebruik per feature (30 dagen)
+                {t('werk.adminMetrics.perFeature')}
               </h2>
               {data.eventsPerType.length === 0 ? (
-                <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Nog geen events geregistreerd.</p>
+                <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.adminMetrics.geenEvents')}</p>
               ) : (
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {data.eventsPerType.map((e) => (
@@ -148,17 +152,17 @@ export default function AdminMetricsPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                 <AlertTriangle size={16} color="var(--mf-amber)" aria-hidden />
                 <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>
-                  Client-fouten (30 dagen): {data.clientFouten.aantal30d}
+                  {t('werk.adminMetrics.fouten', { aantal: data.clientFouten.aantal30d })}
                 </h2>
               </div>
               {data.clientFouten.recent.length === 0 ? (
-                <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Geen fouten gemeld — mooi zo.</p>
+                <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.adminMetrics.geenFouten')}</p>
               ) : (
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {data.clientFouten.recent.map((f, i) => (
                     <li key={`${f.wanneer}-${i}`} style={{ fontSize: 13, borderLeft: '2px solid var(--mf-amber)', paddingLeft: 10 }}>
                       <span style={{ color: 'var(--text-1)' }}>{f.melding}</span>
-                      <span style={{ color: 'var(--text-4)' }}> — {f.pad} · {new Date(f.wanneer).toLocaleString('nl-NL')}</span>
+                      <span style={{ color: 'var(--text-4)' }}> · {f.pad} · {new Date(f.wanneer).toLocaleString(locale)}</span>
                     </li>
                   ))}
                 </ul>

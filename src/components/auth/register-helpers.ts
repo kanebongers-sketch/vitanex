@@ -9,25 +9,26 @@ export type GebruikerType = 'gebruiker' | 'hr'
 
 export interface Voordeel {
   icon: LucideIcon
-  tekst: string
+  /** Sleutel onder account.register.voordeel.* */
+  sleutel: string
 }
 
 export const VOORDELEN_WERKNEMER: Voordeel[] = [
-  { icon: TrendingUp,  tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
-  { icon: Bot,         tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
-  { icon: NotebookPen, tekst: 'Privé journal voor reflectie en notities' },
-  { icon: Lock,        tekst: 'Volledig anoniem tegenover je werkgever' },
-  { icon: Flame,       tekst: 'Gewoontetracker met dagelijkse streaks' },
-  { icon: Target,      tekst: 'Focus- en hersteltools voor op het werk' },
+  { icon: TrendingUp,  sleutel: 'verloop' },
+  { icon: Bot,         sleutel: 'coach' },
+  { icon: NotebookPen, sleutel: 'journal' },
+  { icon: Lock,        sleutel: 'anoniem' },
+  { icon: Flame,       sleutel: 'gewoontes' },
+  { icon: Target,      sleutel: 'focus' },
 ]
 
 export const VOORDELEN_HR: Voordeel[] = [
-  { icon: BarChart3,     tekst: 'Realtime welzijnsdata van je hele team' },
-  { icon: AlertTriangle, tekst: 'Vroege signalen bij burn-out-risico’s' },
-  { icon: Lightbulb,     tekst: 'AI-inzichten en concrete HR-adviezen' },
-  { icon: ClipboardList, tekst: 'Anonieme pulse surveys met templates' },
-  { icon: FileText,      tekst: 'Exporteerbare rapporten voor management' },
-  { icon: ShieldCheck,   tekst: 'Privacy-by-design - AVG-conform' },
+  { icon: BarChart3,     sleutel: 'realtime' },
+  { icon: AlertTriangle, sleutel: 'signalen' },
+  { icon: Lightbulb,     sleutel: 'inzichten' },
+  { icon: ClipboardList, sleutel: 'surveys' },
+  { icon: FileText,      sleutel: 'rapporten' },
+  { icon: ShieldCheck,   sleutel: 'privacy' },
 ]
 
 /** Formaat van een HR-code, bv. FIT-X2K */
@@ -40,7 +41,8 @@ export function isEmailGeldig(email: string): boolean {
 
 export interface WachtwoordSterkte {
   niveau: number
-  tekst: string
+  /** Sleutel onder account.register.sterkte.* */
+  sleutel: string
   kleur: string
 }
 
@@ -48,7 +50,7 @@ export function berekenWachtwoordSterkte(wachtwoord: string): WachtwoordSterkte 
   const niveau = wachtwoord.length < 8 ? 0 : wachtwoord.length < 12 ? 1 : wachtwoord.length < 16 ? 2 : 3
   return {
     niveau,
-    tekst: ['Te kort', 'Matig', 'Goed', 'Sterk'][niveau],
+    sleutel: ['teKort', 'matig', 'goed', 'sterk'][niveau],
     kleur: ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)', 'var(--mf-green)'][niveau],
   }
 }

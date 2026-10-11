@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type BedrijfInfo = {
   id: string
@@ -45,6 +46,8 @@ const infoRijStijl: React.CSSProperties = {
 
 export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const serverFout = (bericht: string) => (taal === 'nl' ? bericht : t('werk.algemeen.ietsMis'))
   const [gekopieerd, setGekopieerd] = useState(false)
   const [vernieuwBezig, setVernieuwBezig] = useState(false)
   const [bewerkenActief, setBewerkenActief] = useState(false)
@@ -59,7 +62,7 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
         setTimeout(() => setGekopieerd(false), 2000)
       },
       () => {
-        toast({ title: 'Kopiëren mislukt', description: 'Kopieer de code handmatig.', variant: 'error' })
+        toast({ title: t('werk.hrSnel.kopierenMislukt'), description: t('werk.hrSnel.kopieerHandmatig'), variant: 'error' })
       },
     )
   }
@@ -74,11 +77,11 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       .eq('id', bedrijf.id)
     setVernieuwBezig(false)
     if (error) {
-      toast({ title: 'Vernieuwen mislukt', description: error.message, variant: 'error' })
+      toast({ title: t('werk.bedrijfTab.vernieuwenMislukt'), description: serverFout(error.message), variant: 'error' })
       return
     }
     onCodeVernieuwd(nieuweCode)
-    toast({ title: 'Nieuwe HR-code gegenereerd', variant: 'success' })
+    toast({ title: t('werk.bedrijfTab.nieuweCode'), variant: 'success' })
   }
 
   async function slaaNaamOp(e: React.FormEvent) {
@@ -91,11 +94,11 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       .eq('id', bedrijf.id)
     setOpslaanBezig(false)
     if (error) {
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      toast({ title: t('werk.bedrijfTab.opslaanMislukt'), description: serverFout(error.message), variant: 'error' })
       return
     }
     setBewerkenActief(false)
-    toast({ title: 'Naam opgeslagen', variant: 'success' })
+    toast({ title: t('werk.bedrijfTab.naamOpgeslagen'), variant: 'success' })
   }
 
   // Bereken stats uit team data
@@ -112,9 +115,9 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
   )].sort()
 
   const stats: { label: string; value: string }[] = [
-    { label: 'Medewerkers', value: String(team.length) },
-    { label: 'Gem. score', value: gemScore > 0 ? `${gemScore}/5` : '—' },
-    { label: 'Participatie', value: `${participatie}%` },
+    { label: t('werk.bedrijfTab.medewerkers'), value: String(team.length) },
+    { label: t('werk.bedrijfTab.gemScore'), value: gemScore > 0 ? `${gemScore}/5` : '—' },
+    { label: t('werk.hrKpi.participatie'), value: `${participatie}%` },
   ]
 
   return (
@@ -132,9 +135,9 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
 
       {/* HR Code card */}
       <Card style={{ padding: 24 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>HR-code</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{t('werk.bedrijfTab.hrCode')}</p>
         <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16 }}>
-          Medewerkers gebruiken deze code om lid te worden van jouw bedrijf in MentaForce.
+          {t('werk.bedrijfTab.hrCodeUitleg')}
         </p>
         <div style={{ marginBottom: 16 }}>
           <div style={{ borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-strong)', background: 'var(--bg-subtle)', padding: '12px 16px', textAlign: 'center' }}>
@@ -145,62 +148,62 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Button onClick={kopieerCode} variant="secondary" style={{ flex: 1 }}>
-            {gekopieerd ? 'Gekopieerd!' : 'Kopieer code'}
+            {gekopieerd ? t('werk.hrSnel.gekopieerd') : t('werk.bedrijfTab.kopieerCode')}
           </Button>
           <Button onClick={vernieuwCode} variant="ghost" loading={vernieuwBezig}>
-            Vernieuwen
+            {t('werk.bedrijfTab.vernieuwen')}
           </Button>
         </div>
         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
-          Let op: bij vernieuwen werkt de oude code niet meer.
+          {t('werk.bedrijfTab.letOpVernieuwen')}
         </p>
       </Card>
 
       {/* Bedrijfsinfo */}
       <Card style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Bedrijfsinformatie</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{t('werk.bedrijfTab.bedrijfsinformatie')}</p>
           <Button onClick={() => setBewerkenActief(a => !a)} variant="ghost" size="sm">
-            {bewerkenActief ? 'Annuleren' : 'Bewerken'}
+            {bewerkenActief ? t('werk.algemeen.annuleren') : t('werk.bedrijfTab.bewerken')}
           </Button>
         </div>
 
         {bewerkenActief ? (
           <form onSubmit={slaaNaamOp} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Field label="Bedrijfsnaam">
+            <Field label={t('werk.bedrijfTab.bedrijfsnaam')}>
               <Input value={bedrijfsnaam} onChange={e => setBedrijfsnaam(e.target.value)} />
             </Field>
             <Button type="submit" loading={opslaanBezig} style={{ width: '100%' }}>
-              Opslaan
+              {t('werk.documenten.opslaan')}
             </Button>
           </form>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={infoRijStijl}>
-              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Naam</span>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.naam')}</span>
               <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf?.naam || '—'}</span>
             </div>
             {bedrijf?.sector && (
               <div style={infoRijStijl}>
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Sector</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.sector')}</span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.sector}</span>
               </div>
             )}
             {bedrijf?.grootte && (
               <div style={infoRijStijl}>
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Teamgrootte</span>
-                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.grootte} medewerkers</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.teamgrootte')}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{t('werk.bedrijfTab.grootteMedewerkers', { grootte: bedrijf.grootte })}</span>
               </div>
             )}
             {bedrijf?.stad && (
               <div style={infoRijStijl}>
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Stad</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.stad')}</span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.stad}</span>
               </div>
             )}
             {bedrijf?.website && (
               <div style={infoRijStijl}>
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Website</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.website')}</span>
                 <a
                   href={bedrijf.website.startsWith('http') ? bedrijf.website : `https://${bedrijf.website}`}
                   target="_blank"
@@ -212,11 +215,11 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
               </div>
             )}
             <div style={infoRijStijl}>
-              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Actieve medewerkers</span>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.actieveMedewerkers')}</span>
               <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{team.length}</span>
             </div>
             <div style={{ ...infoRijStijl, borderBottom: 'none' }}>
-              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Bedrijf-ID</span>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.bedrijfTab.bedrijfId')}</span>
               <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--text-3)' }}>{bedrijf?.id?.slice(0, 8)}...</span>
             </div>
           </div>
@@ -226,7 +229,7 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       {/* Afdelingen overzicht */}
       {afdelingen.length > 0 && (
         <Card style={{ padding: 24 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>Afdelingen ({afdelingen.length})</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>{t('werk.bedrijfTab.afdelingen', { aantal: afdelingen.length })}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {afdelingen.map(afd => {
               const aantalInAfd = team.filter(l => l.afdeling === afd).length

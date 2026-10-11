@@ -22,14 +22,14 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Ring } from '@/components/ui/Ring'
 import { Progress } from '@/components/ui/Progress'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Moeilijkheid = 'Makkelijk' | 'Gemiddeld' | 'Uitdagend'
 
+/** Titel en uitleg staan in het woordenboek: vita.uitdagingen.lijst.<id>.titel/sub. */
 type Uitdaging = {
   id: string
   icon: LucideIcon
-  titel: string
-  sub: string
   duur: number
   categorie: string
   moeilijkheid: Moeilijkheid
@@ -41,14 +41,19 @@ type ActieveUitdaging = {
 }
 
 const UITDAGINGEN: Uitdaging[] = [
-  { id: '10slaap',    icon: Moon,        titel: '10 dagen beter slapen',  sub: 'Ga elke dag op hetzelfde tijdstip naar bed',  duur: 10, categorie: 'slaap',   moeilijkheid: 'Makkelijk' },
-  { id: '21beweging', icon: Footprints,  titel: '21 dagen bewegen',       sub: '20 minuten per dag actief zijn',              duur: 21, categorie: 'fysiek',  moeilijkheid: 'Gemiddeld' },
-  { id: '7focus',     icon: Target,      titel: '7 dagen deep focus',     sub: 'Elke dag 90 min ononderbroken werken',        duur: 7,  categorie: 'werk',    moeilijkheid: 'Uitdagend' },
-  { id: '14stress',   icon: Leaf,        titel: '14 dagen minder stress', sub: 'Dagelijkse ademhaling + reflectie',           duur: 14, categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
-  { id: '30water',    icon: Droplets,    titel: '30 dagen 2L water',      sub: '2 liter water per dag drinken',               duur: 30, categorie: 'fysiek',  moeilijkheid: 'Makkelijk' },
-  { id: '7journaal',  icon: NotebookPen, titel: '7 dagen journalen',      sub: 'Elke avond 5 minuten schrijven',              duur: 7,  categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
+  { id: '10slaap',    icon: Moon,        duur: 10, categorie: 'slaap',   moeilijkheid: 'Makkelijk' },
+  { id: '21beweging', icon: Footprints,  duur: 21, categorie: 'fysiek',  moeilijkheid: 'Gemiddeld' },
+  { id: '7focus',     icon: Target,      duur: 7,  categorie: 'werk',    moeilijkheid: 'Uitdagend' },
+  { id: '14stress',   icon: Leaf,        duur: 14, categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
+  { id: '30water',    icon: Droplets,    duur: 30, categorie: 'fysiek',  moeilijkheid: 'Makkelijk' },
+  { id: '7journaal',  icon: NotebookPen, duur: 7,  categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
 ]
 
+const MOEILIJKHEID_SLEUTEL: Record<Moeilijkheid, string> = {
+  Makkelijk: 'makkelijk',
+  Gemiddeld: 'gemiddeld',
+  Uitdagend: 'uitdagend',
+}
 // Moeilijkheid is nooit kleur-alleen: elke graad krijgt ook een Badge-variant
 // én het label blijft zichtbaar. Variant geeft enkel extra (niet-essentiële) hint.
 const MOEILIJKHEID_VARIANT: Record<Moeilijkheid, 'success' | 'warning' | 'danger'> = {
@@ -79,6 +84,8 @@ function dagenVerstreken(startDatum: string): number {
 }
 
 export default function UitdagingenPage() {
+  const { t } = useVertaling()
+  const titelVan = (u: Uitdaging) => t(`vita.uitdagingen.lijst.${u.id}.titel`)
   const router = useRouter()
   const [klaar, setKlaar] = useState(false)
   const [actieven, setActieven] = useState<ActieveUitdaging[]>([])
@@ -129,14 +136,14 @@ export default function UitdagingenPage() {
 
         {/* Header */}
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Uitdagingen</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Doe mee aan een wellness-uitdaging</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('vita.uitdagingen.titel')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{t('vita.uitdagingen.sub')}</p>
         </header>
 
         {/* Active challenges */}
         {actieven.length > 0 && (
           <section style={{ marginBottom: 24 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Actief bezig</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('vita.uitdagingen.actiefBezig')}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {actieven.map(actief => {
                 const uitdaging = UITDAGINGEN.find(u => u.id === actief.id)
@@ -151,7 +158,7 @@ export default function UitdagingenPage() {
                     {/* Progress ring */}
                     <Ring
                       value={procent}
-                      ariaLabel={`${uitdaging.titel}: ${verstreken} van ${uitdaging.duur} dagen (${procent}%)`}
+                      ariaLabel={t('vita.uitdagingen.ringLabel', { titel: titelVan(uitdaging), verstreken, duur: uitdaging.duur, procent })}
                       size={52}
                       thickness={5}
                       color={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
@@ -169,23 +176,23 @@ export default function UitdagingenPage() {
                         <div>
                           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 7 }}>
                             <Icon size={16} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
-                            {uitdaging.titel}
+                            {titelVan(uitdaging)}
                           </p>
-                          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{verstreken}/{uitdaging.duur} dagen</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{t('vita.uitdagingen.dagenVan', { verstreken, duur: uitdaging.duur })}</p>
                         </div>
                         {voltooid ? (
                           <Badge variant="success" style={{ flexShrink: 0 }}>
-                            <Check size={12} aria-hidden /> Voltooid
+                            <Check size={12} aria-hidden /> {t('vita.uitdagingen.voltooid')}
                           </Badge>
                         ) : (
                           <Button variant="ghost" size="sm" onClick={() => stopUitdaging(actief.id)} style={{ flexShrink: 0, padding: '4px 8px' }}>
-                            Stoppen
+                            {t('vita.uitdagingen.stoppen')}
                           </Button>
                         )}
                       </div>
                       <Progress
                         value={procent}
-                        ariaLabel={`Voortgang ${uitdaging.titel}`}
+                        ariaLabel={t('vita.uitdagingen.voortgangLabel', { titel: titelVan(uitdaging) })}
                         thickness={5}
                         color={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
                       />
@@ -199,7 +206,7 @@ export default function UitdagingenPage() {
 
         {/* Available challenges */}
         <section>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Beschikbare uitdagingen</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{t('vita.uitdagingen.beschikbaar')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
             {UITDAGINGEN.map(uitdaging => {
               const isActief = actieveIds.has(uitdaging.id)
@@ -226,27 +233,27 @@ export default function UitdagingenPage() {
                     <Icon size={20} />
                   </span>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.3 }}>{uitdaging.titel}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4, lineHeight: 1.4 }}>{uitdaging.sub}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.3 }}>{titelVan(uitdaging)}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4, lineHeight: 1.4 }}>{t(`vita.uitdagingen.lijst.${uitdaging.id}.sub`)}</p>
                   </div>
 
                   {/* Badges */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     <Badge variant="neutral">
-                      <CalendarDays size={12} aria-hidden /> {uitdaging.duur} dagen
+                      <CalendarDays size={12} aria-hidden /> {t('vita.uitdagingen.aantalDagen', { aantal: uitdaging.duur })}
                     </Badge>
                     <Badge variant={MOEILIJKHEID_VARIANT[uitdaging.moeilijkheid]}>
-                      {uitdaging.moeilijkheid}
+                      {t(`vita.uitdagingen.moeilijkheid.${MOEILIJKHEID_SLEUTEL[uitdaging.moeilijkheid]}`)}
                     </Badge>
                   </div>
 
                   {isActief ? (
                     <Badge variant="success" style={{ justifyContent: 'center', padding: '8px' }}>
-                      <Check size={14} aria-hidden /> Actief
+                      <Check size={14} aria-hidden /> {t('vita.uitdagingen.actief')}
                     </Badge>
                   ) : (
                     <Button onClick={() => startUitdaging(uitdaging.id)} style={{ width: '100%' }}>
-                      Starten
+                      {t('vita.uitdagingen.starten')}
                     </Button>
                   )}
                 </Card>

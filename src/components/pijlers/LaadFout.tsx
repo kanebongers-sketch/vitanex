@@ -1,5 +1,7 @@
 'use client'
 
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+
 interface LaadFoutProps {
   /** Wat er niet geladen kon worden, in de woorden van de gebruiker. */
   wat?: string
@@ -15,7 +17,8 @@ interface LaadFoutProps {
  * in de app. `role="alert"` zodat screenreaders de statuswijziging horen
  * (WCAG 4.1.3).
  */
-export function LaadFout({ wat = 'je overzicht', onOpnieuw }: LaadFoutProps) {
+export function LaadFout({ wat, onOpnieuw }: LaadFoutProps) {
+  const { t } = useVertaling()
   return (
     <div
       role="alert"
@@ -28,8 +31,7 @@ export function LaadFout({ wat = 'je overzicht', onOpnieuw }: LaadFoutProps) {
       }}
     >
       <p style={{ margin: '0 0 14px', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
-        We konden {wat} niet laden. Controleer je verbinding en probeer het opnieuw —
-        je gegevens zijn niet kwijt.
+        {t('voortgang.laadFout.tekst', { wat: wat ?? t('voortgang.laadFout.standaardWat') })}
       </p>
       <button
         onClick={onOpnieuw}
@@ -46,7 +48,7 @@ export function LaadFout({ wat = 'je overzicht', onOpnieuw }: LaadFoutProps) {
           cursor: 'pointer',
         }}
       >
-        Opnieuw proberen
+        {t('voortgang.laadFout.opnieuw')}
       </button>
       <style>{`
         .mf-fout-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

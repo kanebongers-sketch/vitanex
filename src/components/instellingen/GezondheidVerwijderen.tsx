@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { DialogClose, DialogContent, DialogDescription, DialogRoot, DialogTitle, DialogTrigger } from '@/components/ui/Dialog'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export function GezondheidVerwijderen() {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [open, setOpen] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [gewist, setGewist] = useState(false)
@@ -25,9 +27,9 @@ export function GezondheidVerwijderen() {
       try { localStorage.removeItem('mf-health-sync') } catch { /* geen opslag beschikbaar */ }
       setOpen(false)
       setGewist(true)
-      toast({ title: 'Je gezondheidsdata is verwijderd.', description: 'Trek ook de toegang in bij Health Connect of Apple Health, anders komt nieuwe data weer binnen.', variant: 'success' })
+      toast({ title: t('account.gezondheidWissen.gewistTitel'), description: t('account.gezondheidWissen.gewistTekst'), variant: 'success' })
     } catch {
-      toast({ title: 'Verwijderen lukte niet.', description: 'Probeer het opnieuw of mail info@mentaforce.nl.', variant: 'error' })
+      toast({ title: t('account.gezondheidWissen.foutTitel'), description: t('account.gezondheidWissen.foutTekst'), variant: 'error' })
     } finally {
       setBezig(false)
     }
@@ -35,28 +37,27 @@ export function GezondheidVerwijderen() {
 
   return (
     <Card style={{ padding: 24 }}>
-      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Gezondheidsdata wissen</h2>
+      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.gezondheidWissen.kop')}</h2>
       <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>
-        Verwijdert alles wat je telefoon of horloge aanleverde: stappen, slaap, hartslag, trainingen. Wat je zelf invoerde blijft staan.
+        {t('account.gezondheidWissen.uitleg')}
       </p>
       <DialogRoot open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="danger" leftIcon={<Trash2 size={15} aria-hidden />}>Gezondheidsdata wissen</Button>
+          <Button variant="danger" leftIcon={<Trash2 size={15} aria-hidden />}>{t('account.gezondheidWissen.kop')}</Button>
         </DialogTrigger>
         <DialogContent>
-          <DialogTitle>Gezondheidsdata wissen?</DialogTitle>
+          <DialogTitle>{t('account.gezondheidWissen.vraag')}</DialogTitle>
           <DialogDescription>
-            Alle dagwaarden en trainingen uit Health Connect en Apple Health worden definitief verwijderd. Dit kun je niet ongedaan maken.
-            Wil je dat de app ook stopt met ophalen, trek dan daarna de toegang in bij Health Connect of Apple Health.
+            {t('account.gezondheidWissen.dialoog')}
           </DialogDescription>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20, flexWrap: 'wrap' }}>
-            <DialogClose asChild><Button variant="secondary">Annuleren</Button></DialogClose>
-            <Button variant="danger" loading={bezig} onClick={() => void verwijder()}>Definitief wissen</Button>
+            <DialogClose asChild><Button variant="secondary">{t('account.gezondheidWissen.annuleren')}</Button></DialogClose>
+            <Button variant="danger" loading={bezig} onClick={() => void verwijder()}>{t('account.gezondheidWissen.definitief')}</Button>
           </div>
         </DialogContent>
       </DialogRoot>
       <p role="status" className="text-xs mt-3" style={{ color: 'var(--text-2)' }}>
-        {gewist ? 'Gewist. Trek nu ook de toegang in bij Health Connect of Apple Health, anders komt er nieuwe data binnen.' : ''}
+        {gewist ? t('account.gezondheidWissen.status') : ''}
       </p>
     </Card>
   )

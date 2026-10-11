@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { FileText, ChevronDown, ChevronUp, Upload, Printer } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; gedeeld_met_hr: boolean; categorie: string }
@@ -15,17 +17,19 @@ interface Rapport { id: string; type: string; titel: string; inhoud: string; aan
 interface DiscInzending { primair_profiel: string; d_score: number; i_score: number; s_score: number; c_score: number; aangemaakt_op: string }
 
 const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
+// Labels zijn woordenboek-sleutels.
 const TYPE_GROEPEN: { key: string; label: string }[] = [
-  { key: 'disc', label: 'DISC' },
-  { key: 'checkin', label: 'Check-in' },
-  { key: 'onboarding', label: 'Onboarding' },
-  { key: 'algemeen', label: 'Algemeen' },
+  { key: 'disc', label: 'werk.rapportenTab.typeDisc' },
+  { key: 'checkin', label: 'werk.rapportenTab.typeCheckin' },
+  { key: 'onboarding', label: 'werk.rapportenTab.typeOnboarding' },
+  { key: 'algemeen', label: 'werk.rapportenTab.typeAlgemeen' },
 ]
 
 const DISC_KLEUR: Record<string, string> = { D: 'var(--mf-red)', I: 'var(--mf-amber)', S: 'var(--mf-green)', C: 'var(--mf-blue)' }
 
 export default function BestandenPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [geladen, setGeladen] = useState(false)
   const [userId, setUserId] = useState('')
   const [actieveTab, setActieveTab] = useState<'bestanden' | 'rapporten'>('bestanden')
@@ -54,14 +58,14 @@ export default function BestandenPage() {
         const json = await res.json() as { documenten?: Bestand[] }
         setBestanden(json.documenten ?? [])
       }
-    } catch { setFout("Bestanden laden mislukt") }
+    } catch { setFout(t('werk.bestanden.bestandenMislukt')) }
   }
 
   async function laadRapporten(uid: string) {
     try {
       const { data } = await supabase.from('ai_rapporten').select('id, type, titel, inhoud, aangemaakt_op').eq('user_id', uid).order('aangemaakt_op', { ascending: false })
       setRapporten(data ?? [])
-    } catch { setFout("Rapporten laden mislukt") }
+    } catch { setFout(t('werk.bestanden.rapportenMislukt')) }
   }
 
   async function laadDiscProfiel(uid: string) {
@@ -91,13 +95,13 @@ export default function BestandenPage() {
       form.append('bestand', file); form.append('userId', userId)
       const res = await authFetch('/api/documenten/upload', { method: 'POST', body: form })
       if (res.ok) await laadBestanden(userId)
-      else setFout("Upload mislukt")
-    } catch { setFout("Upload mislukt") }
+      else setFout(t('werk.bestanden.uploadMislukt'))
+    } catch { setFout(t('werk.bestanden.uploadMislukt')) }
     finally { setUploaden(false) }
   }
 
   function datumLabel(d: string) {
-    return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+    return new Date(d).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   const rapportenPerType = TYPE_GROEPEN.map(g => ({
@@ -108,7 +112,7 @@ export default function BestandenPage() {
 
   if (!geladen) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: 'var(--text-2)' }}>Laden...</span>
+      <span style={{ color: 'var(--text-2)' }}>{t('werk.bestanden.laden')}</span>
     </div>
   )
 
@@ -132,8 +136,8 @@ export default function BestandenPage() {
       `}</style>
       <Navbar />
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Mijn bestanden &amp; rapporten</h1>
-        <p style={{ color: 'var(--text-2)', marginBottom: 28 }}>Beheer je documenten en bekijk je persoonlijke rapporten.</p>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('werk.bestanden.titel')}</h1>
+        <p style={{ color: 'var(--text-2)', marginBottom: 28 }}>{t('werk.bestanden.intro')}</p>
         {fout && (
           <div style={{ background: 'color-mix(in srgb, var(--mf-red) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--mf-red) 32%, transparent)', borderRadius: 8, padding: 12, color: 'var(--mf-red)', marginBottom: 16 }}>{fout}</div>
         )}
@@ -142,7 +146,7 @@ export default function BestandenPage() {
         {discProfiel && (
           <div style={{ background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-subtle) 100%)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-blue)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Jouw DISC profiel</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-blue)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t('werk.bestanden.discProfiel')}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
                 <span style={{ fontSize: 36, fontWeight: 800, color: DISC_KLEUR[discProfiel.primair_profiel] ?? 'var(--text-1)', position: 'relative', display: 'inline-block' }}>
                 <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
@@ -150,7 +154,7 @@ export default function BestandenPage() {
                 </span>
                 <span style={{ position: 'relative', zIndex: 1 }}>{discProfiel.primair_profiel}</span>
               </span>
-                <span style={{ fontSize: 15, color: 'var(--text-3)' }}>primair profiel</span>
+                <span style={{ fontSize: 15, color: 'var(--text-3)' }}>{t('werk.bestanden.primair')}</span>
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(discProfiel.aangemaakt_op)}</div>
             </div>
@@ -167,7 +171,7 @@ export default function BestandenPage() {
             </div>
             <div style={{ flexShrink: 0 }}>
               <button onClick={() => router.push('/disc')} className="mf-pressable" style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                Test opnieuw doen
+                {t('werk.bestanden.opnieuw')}
               </button>
             </div>
           </div>
@@ -175,11 +179,11 @@ export default function BestandenPage() {
         {!discProfiel && (
           <div style={{ background: 'var(--bg-card)', border: '1px dashed var(--border)', borderRadius: 16, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Jouw DISC profiel</div>
-              <div style={{ color: 'var(--text-3)' }}>Je hebt de DISC-test nog niet gedaan.</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>{t('werk.bestanden.discProfiel')}</div>
+              <div style={{ color: 'var(--text-3)' }}>{t('werk.bestanden.nogNiet')}</div>
             </div>
             <button onClick={() => router.push('/disc')} className="mf-pressable" style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              Test doen
+              {t('werk.bestanden.testDoen')}
             </button>
           </div>
         )}
@@ -187,7 +191,7 @@ export default function BestandenPage() {
         <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg-card)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
           {(['bestanden', 'rapporten'] as const).map(tab => (
             <button key={tab} onClick={() => setActieveTab(tab)} style={{ background: actieveTab === tab ? 'var(--mentaforce-primary)' : 'transparent', color: actieveTab === tab ? 'var(--bg-app)' : 'var(--text-3)', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              {tab === 'bestanden' ? 'Mijn bestanden' : 'Mijn rapporten'}
+              {tab === 'bestanden' ? t('werk.bestanden.tabBestanden') : t('werk.bestanden.tabRapporten')}
             </button>
           ))}
         </div>
@@ -196,15 +200,15 @@ export default function BestandenPage() {
           <div>
             <div style={{ marginBottom: 16 }}>
               <label className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: uploaden ? 'not-allowed' : 'pointer' }}>
-                <Upload size={16} aria-hidden /> {uploaden ? 'Uploaden...' : 'Bestand uploaden'}
+                <Upload size={16} aria-hidden /> {uploaden ? t('werk.bestanden.uploaden') : t('werk.bestanden.uploadKnop')}
                 <input type="file" onChange={uploadBestand} style={{ display: "none" }} disabled={uploaden} />
               </label>
             </div>
             {bestanden.length === 0 ? (
               <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} aria-hidden="true"><Upload size={32} strokeWidth={1.5} color="var(--text-3)" /></div>
-                <div style={{ fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>Nog geen bestanden</div>
-                <div style={{ fontSize: 14 }}>Upload je eerste document via de knop hierboven.</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{t('werk.bestanden.geenBestanden')}</div>
+                <div style={{ fontSize: 14 }}>{t('werk.bestanden.eersteUpload')}</div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -215,8 +219,8 @@ export default function BestandenPage() {
                       <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(b.aangemaakt_op)}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Deel met HR</span>
-                      <button onClick={() => toggleDelen(b.id, b.gedeeld_met_hr)} role="switch" aria-checked={b.gedeeld_met_hr} aria-label={`Deel "${b.bestandsnaam}" met HR`} style={{ width: 44, height: 24, borderRadius: 12, background: b.gedeeld_met_hr ? 'var(--mentaforce-primary)' : 'var(--border-strong)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.bestanden.deelMetHr')}</span>
+                      <button onClick={() => toggleDelen(b.id, b.gedeeld_met_hr)} role="switch" aria-checked={b.gedeeld_met_hr} aria-label={t('werk.bestanden.deelLabel', { naam: b.bestandsnaam })} style={{ width: 44, height: 24, borderRadius: 12, background: b.gedeeld_met_hr ? 'var(--mentaforce-primary)' : 'var(--border-strong)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
                         <span style={{ display: 'block', width: 18, height: 18, borderRadius: '50%', background: b.gedeeld_met_hr ? 'var(--bg-app)' : 'var(--text-1)', position: 'absolute', top: 3, left: 3, transform: b.gedeeld_met_hr ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s var(--ease)' }} />
                       </button>
                     </div>
@@ -232,16 +236,16 @@ export default function BestandenPage() {
             {rapporten.length === 0 ? (
               <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} aria-hidden="true"><FileText size={32} strokeWidth={1.5} color="var(--text-3)" /></div>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>Nog geen rapporten</div>
-                <div style={{ fontSize: 14 }}>Je rapporten verschijnen hier na een check-in of DISC-test.</div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('werk.bestanden.geenRapporten')}</div>
+                <div style={{ fontSize: 14 }}>{t('werk.bestanden.rapportenUitleg')}</div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {rapportenPerType.map(groep => (
                   <div key={groep.key}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                      <span style={{ background: `color-mix(in srgb, ${TYPE_KLEUR[groep.key] ?? 'var(--text-2)'} 12%, transparent)`, color: TYPE_KLEUR[groep.key] ?? 'var(--text-2)', border: `1px solid color-mix(in srgb, ${TYPE_KLEUR[groep.key] ?? 'var(--text-2)'} 25%, transparent)`, borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>{groep.label}</span>
-                      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{groep.items.length} {groep.items.length === 1 ? 'rapport' : 'rapporten'}</span>
+                      <span style={{ background: `color-mix(in srgb, ${TYPE_KLEUR[groep.key] ?? 'var(--text-2)'} 12%, transparent)`, color: TYPE_KLEUR[groep.key] ?? 'var(--text-2)', border: `1px solid color-mix(in srgb, ${TYPE_KLEUR[groep.key] ?? 'var(--text-2)'} 25%, transparent)`, borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>{t(groep.label)}</span>
+                      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{groep.items.length === 1 ? t('werk.bestanden.rapportEen') : t('werk.bestanden.rapportMeer', { aantal: groep.items.length })}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {groep.items.map(r => (
@@ -253,7 +257,7 @@ export default function BestandenPage() {
                 {overige.length > 0 && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                      <span style={{ background: 'color-mix(in srgb, var(--text-2) 12%, transparent)', color: 'var(--text-2)', border: '1px solid color-mix(in srgb, var(--text-2) 25%, transparent)', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>Overig</span>
+                      <span style={{ background: 'color-mix(in srgb, var(--text-2) 12%, transparent)', color: 'var(--text-2)', border: '1px solid color-mix(in srgb, var(--text-2) 25%, transparent)', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>{t('werk.bestanden.overig')}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {overige.map(r => (
@@ -273,24 +277,25 @@ export default function BestandenPage() {
 
 function RapportRij({ r, open, onToggle, datumLabel }: { r: Rapport; open: boolean; onToggle: () => void; datumLabel: (d: string) => string }) {
   const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
-  const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
+  const { t } = useVertaling()
+  const typeLabel = TYPE_GROEPEN.find(g => g.key === r.type)?.label
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
       <button onClick={onToggle} style={{ width: '100%', background: 'transparent', border: 'none', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-          <span style={{ background: `color-mix(in srgb, ${TYPE_KLEUR[r.type] ?? 'var(--text-2)'} 12%, transparent)`, color: TYPE_KLEUR[r.type] ?? 'var(--text-2)', border: `1px solid color-mix(in srgb, ${TYPE_KLEUR[r.type] ?? 'var(--text-2)'} 25%, transparent)`, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
+          <span style={{ background: `color-mix(in srgb, ${TYPE_KLEUR[r.type] ?? 'var(--text-2)'} 12%, transparent)`, color: TYPE_KLEUR[r.type] ?? 'var(--text-2)', border: `1px solid color-mix(in srgb, ${TYPE_KLEUR[r.type] ?? 'var(--text-2)'} 25%, transparent)`, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{typeLabel ? t(typeLabel) : r.type}</span>
           <span style={{ fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(r.aangemaakt_op)}</span>
-          <span style={{ color: 'var(--text-2)', display: 'inline-flex' }}>{open ? <ChevronUp size={16} aria-label="Inklappen" /> : <ChevronDown size={16} aria-label="Uitklappen" />}</span>
+          <span style={{ color: 'var(--text-2)', display: 'inline-flex' }}>{open ? <ChevronUp size={16} aria-label={t('werk.bestanden.inklappen')} /> : <ChevronDown size={16} aria-label={t('werk.bestanden.uitklappen')} />}</span>
         </div>
       </button>
       {open && (
         <div style={{ padding: '0 20px 20px', borderTop: '1px solid var(--border)' }}>
           <div style={{ paddingTop: 16, color: 'var(--text-2)', fontSize: 15, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
           <button onClick={() => window.print()} className="mf-pressable" style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1px solid var(--border-strong)', color: 'var(--text-3)', borderRadius: 7, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
-            <Printer size={14} aria-hidden /> Download als PDF
+            <Printer size={14} aria-hidden /> {t('werk.bestanden.pdf')}
           </button>
         </div>
       )}

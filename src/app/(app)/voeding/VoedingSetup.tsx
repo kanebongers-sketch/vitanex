@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import {
   ACTIVITEIT_CONFIG,
   DOEL_CONFIG,
@@ -40,31 +41,24 @@ function bepaalActiviteitsniveau(werktype: string, sport: number): Activiteitsni
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const GESLACHT_OPTIES: { value: Geslacht; label: string }[] = [
-  { value: 'man', label: 'Man' },
-  { value: 'vrouw', label: 'Vrouw' },
-  { value: 'anders', label: 'Anders' },
-]
+/** Labels staan in het woordenboek: lichaam.voedingSetup.geslacht.<value>. */
+const GESLACHT_OPTIES: Geslacht[] = ['man', 'vrouw', 'anders']
 
+/** Labels: lichaam.voedingSetup.werk.<value>.label/sub. */
 const WERK_OPTIES = [
-  { value: 'kantoor', icon: '💼', label: 'Kantoor / zittend', sub: 'Bureau, auto, weinig bewegen' },
-  { value: 'licht',   icon: '🚶', label: 'Licht actief',      sub: 'Leraar, winkelier, verpleging' },
-  { value: 'fysiek',  icon: '🏗️', label: 'Fysiek werk',       sub: 'Bouw, horeca, bezorger' },
+  { value: 'kantoor', icon: '💼' },
+  { value: 'licht',   icon: '🚶' },
+  { value: 'fysiek',  icon: '🏗️' },
 ]
 
-const SPORT_OPTIES = [
-  { value: 0, label: '0×',   sub: 'Niet / nauwelijks' },
-  { value: 1, label: '1–2×', sub: 'Per week' },
-  { value: 3, label: '3–4×', sub: 'Per week' },
-  { value: 5, label: '5+×',  sub: 'Per week' },
-]
+/** Labels: lichaam.voedingSetup.sport.s<value> (+ Sub). */
+const SPORT_OPTIES = [0, 1, 3, 5] as const
 
+/** Naam en beschrijving: lichaam.voedingSetup.schema.<id>.naam/beschrijving. */
 interface SchemaOptie {
   id: string
   icon: string
   bgGlyph: string
-  naam: string
-  beschrijving: string
   fitness_doel: FitnessDoel
   dieetvoorkeur?: string
   manueel?: true
@@ -75,50 +69,36 @@ interface SchemaOptie {
 const SCHEMA_OPTIES: SchemaOptie[] = [
   {
     id: 'afvallen', icon: '🔥', bgGlyph: '🔥',
-    naam: 'Vet verbranden',
-    beschrijving: 'Eet 500 kcal onder je dagverbruik. Hoog eiwit voorkomt spierverlies terwijl je effectief vet verbrandt.',
     fitness_doel: 'afvallen',
     kleur: 'var(--mf-red)', kleurLight: 'var(--mf-red-light)',
   },
   {
     id: 'spiermassa', icon: '💪', bgGlyph: '💪',
-    naam: 'Spiermassa opbouwen',
-    beschrijving: 'Een surplus van 350 kcal geeft je lichaam de energie voor spiergroei. Combineer met krachtraining.',
     fitness_doel: 'aankomen',
     kleur: 'var(--mf-purple)', kleurLight: 'var(--mf-purple-light)',
   },
   {
     id: 'cardio', icon: '❤️', bgGlyph: '❤️',
-    naam: 'Cardio & Conditie',
-    beschrijving: 'Onderhoud je gewicht en voed je spieren optimaal voor uithoudingssport en energieke trainingen.',
     fitness_doel: 'fitter',
     kleur: 'var(--mf-red)', kleurLight: 'var(--mf-red-light)',
   },
   {
     id: 'onderhouden', icon: '⚖️', bgGlyph: '⚖️',
-    naam: 'Gewicht onderhouden',
-    beschrijving: 'Eet precies wat je verbrandt. Gebalanceerde macro\'s houden je gewicht en energieniveau stabiel.',
     fitness_doel: 'onderhouden',
     kleur: 'var(--mf-blue)', kleurLight: 'var(--mf-blue-light)',
   },
   {
     id: 'eiwitrijk', icon: '🥩', bgGlyph: '🥩',
-    naam: 'Eiwitrijk',
-    beschrijving: 'Maximale eiwitinname met een licht tekort. Ideaal voor spierbehoud en verzadiging bij afvallen.',
     fitness_doel: 'afvallen', dieetvoorkeur: 'eiwitrijk',
     kleur: 'var(--mf-amber)', kleurLight: 'var(--mf-amber-light)',
   },
   {
     id: 'clean', icon: '🌱', bgGlyph: '🌱',
-    naam: 'Clean Eating',
-    beschrijving: 'Focus op onbewerkte, voedzame producten. Verbetering van energie, huid en algehele gezondheid.',
     fitness_doel: 'fitter', dieetvoorkeur: 'gebalanceerd',
     kleur: 'var(--mf-green)', kleurLight: 'var(--mf-green-light)',
   },
   {
     id: 'manueel', icon: '🎛️', bgGlyph: '🎛️',
-    naam: 'Eigen Macro\'s',
-    beschrijving: 'Stel zelf in hoe je calorieën verdeeld zijn over eiwit, koolhydraten en vet.',
     fitness_doel: 'onderhouden', manueel: true,
     kleur: 'var(--text-3)', kleurLight: 'var(--bg-subtle)',
   },
@@ -132,6 +112,7 @@ interface Props {
 }
 
 export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
+  const { t } = useVertaling()
   const [stap, setStap]     = useState(1)
   const [laden, setLaden]   = useState(true)
   const [opslaan, setOpslaan] = useState(false)
@@ -223,7 +204,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
     setOpslaan(true); setFout(null)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Niet ingelogd')
+      if (!user) throw new Error(t('lichaam.voedingSetup.nietIngelogd'))
       const geboortejaar = new Date().getFullYear() - parseInt(leeftijd)
       const { error } = await supabase.from('profiles').update({
         gewicht_kg:       parseFloat(gewicht),
@@ -239,7 +220,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
       if (error) throw error
       onComplete()
     } catch (e) {
-      setFout((e as Error).message || 'Opslaan mislukt')
+      setFout((e as Error).message || t('lichaam.voeding.opslaanMislukt'))
     } finally {
       setOpslaan(false)
     }
@@ -280,13 +261,13 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         <div style={{ marginBottom: 24 }}>
           <button onClick={onOverslaan}
             style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 13, padding: 0, marginBottom: 14 }}>
-            Sla over →
+            {t('lichaam.voedingSetup.overslaan')} →
           </button>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-            Voeding instellen
+            {t('lichaam.voedingSetup.titel')}
           </h1>
           <p style={{ color: 'var(--text-3)', fontSize: 14, margin: 0 }}>
-            Stel in voor een persoonlijk calorie- en macrodoel
+            {t('lichaam.voedingSetup.intro')}
           </p>
         </div>
 
@@ -306,43 +287,43 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
             </div>
           ))}
           <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>
-            {stap === 1 ? 'Jouw lichaam' : stap === 2 ? 'Werk & sport' : 'Kies schema'}
+            {t(stap === 1 ? 'lichaam.voedingSetup.stapLichaam' : stap === 2 ? 'lichaam.voedingSetup.stapWerk' : 'lichaam.voedingSetup.stapSchema')}
           </span>
         </div>
 
         {/* ── Stap 1: Lichaam ── */}
         {stap === 1 && (
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 18 }}>Jouw lichaam</h2>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 18 }}>{t('lichaam.voedingSetup.stapLichaam')}</h2>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Geslacht</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>{t('lichaam.voedingSetup.geslachtLabel')}</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
               {GESLACHT_OPTIES.map(g => (
-                <button key={g.value} onClick={() => setGeslacht(g.value)}
+                <button key={g} onClick={() => setGeslacht(g)}
                   style={{
                     flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer',
-                    background: geslacht === g.value ? 'var(--mf-green)' : 'var(--bg-card)',
-                    color: geslacht === g.value ? 'var(--bg-app)' : 'var(--text-2)',
-                    border: `1.5px solid ${geslacht === g.value ? 'var(--mf-green)' : 'var(--border)'}`,
+                    background: geslacht === g ? 'var(--mf-green)' : 'var(--bg-card)',
+                    color: geslacht === g ? 'var(--bg-app)' : 'var(--text-2)',
+                    border: `1.5px solid ${geslacht === g ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}>
-                  {g.label}
+                  {t(`lichaam.voedingSetup.geslacht.${g}`)}
                 </button>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-              {numInput('Gewicht', gewicht, setGewicht, 'kg', '75')}
-              {numInput('Lengte', lengte, setLengte, 'cm', '175')}
-              {numInput('Leeftijd', leeftijd, setLeeftijd, 'jaar', '30')}
+              {numInput(t('lichaam.voedingSetup.gewicht'), gewicht, setGewicht, 'kg', '75')}
+              {numInput(t('lichaam.voedingSetup.lengte'), lengte, setLengte, 'cm', '175')}
+              {numInput(t('lichaam.voedingSetup.leeftijd'), leeftijd, setLeeftijd, t('lichaam.voedingSetup.jaar'), '30')}
             </div>
 
             <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
-              Doelgewicht <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(optioneel)</span>
+              {t('lichaam.voedingSetup.doelgewicht')} <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>{t('lichaam.voedingSetup.optioneel')}</span>
             </label>
             <div style={{ background: 'var(--bg-card)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <input
                 type="number" value={doelgewicht} onChange={e => setDoelgewicht(e.target.value)}
-                placeholder="Bijv. 70"
+                placeholder={t('lichaam.voedingSetup.doelPlaceholder')}
                 style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontSize: 16, fontWeight: 600, color: 'var(--text-1)' }}
               />
               <span style={{ fontSize: 13, color: 'var(--text-4)', fontWeight: 600 }}>kg</span>
@@ -353,9 +334,9 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         {/* ── Stap 2: Werk & sport ── */}
         {stap === 2 && (
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 18 }}>Werk & sport</h2>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 18 }}>{t('lichaam.voedingSetup.stapWerk')}</h2>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Wat doe je overdag?</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>{t('lichaam.voedingSetup.overdag')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {WERK_OPTIES.map(w => (
                 <button key={w.value} onClick={() => setWerktype(w.value)}
@@ -367,25 +348,25 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                   }}>
                   <span style={{ fontSize: 22 }}>{w.icon}</span>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: werktype === w.value ? 700 : 500, color: werktype === w.value ? 'var(--mf-green)' : 'var(--text-1)' }}>{w.label}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{w.sub}</div>
+                    <div style={{ fontSize: 14, fontWeight: werktype === w.value ? 700 : 500, color: werktype === w.value ? 'var(--mf-green)' : 'var(--text-1)' }}>{t(`lichaam.voedingSetup.werk.${w.value}.label`)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{t(`lichaam.voedingSetup.werk.${w.value}.sub`)}</div>
                   </div>
                 </button>
               ))}
             </div>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Hoe vaak sport je per week?</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>{t('lichaam.voedingSetup.hoeVaak')}</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
               {SPORT_OPTIES.map(s => (
-                <button key={s.value} onClick={() => setSportPerWeek(s.value)}
+                <button key={s} onClick={() => setSportPerWeek(s)}
                   style={{
                     flex: 1, padding: '12px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
-                    background: sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--bg-card)',
-                    color: sportPerWeek === s.value ? 'var(--bg-app)' : 'var(--text-2)',
-                    border: `1.5px solid ${sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--border)'}`,
+                    background: sportPerWeek === s ? 'var(--mf-green)' : 'var(--bg-card)',
+                    color: sportPerWeek === s ? 'var(--bg-app)' : 'var(--text-2)',
+                    border: `1.5px solid ${sportPerWeek === s ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{s.label}</div>
-                  <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>{s.sub}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{t(`lichaam.voedingSetup.sport.s${s}`)}</div>
+                  <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>{t(`lichaam.voedingSetup.sport.s${s}Sub`)}</div>
                 </button>
               ))}
             </div>
@@ -393,20 +374,20 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
             {tdee ? (
               <div style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', borderRadius: 14, padding: '18px 20px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 6 }}>
-                  Jouw dagelijkse energiebehoefte (TDEE)
+                  {t('lichaam.voedingSetup.tdee')}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 38, fontWeight: 900, color: 'var(--mf-green)', letterSpacing: '-0.03em' }}>{tdee}</span>
-                  <span style={{ fontSize: 15, color: 'var(--mf-green)', fontWeight: 600 }}>kcal/dag</span>
+                  <span style={{ fontSize: 15, color: 'var(--mf-green)', fontWeight: 600 }}>{t('lichaam.voedingSetup.kcalDag')}</span>
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
-                  Activiteitsniveau: <strong>{ACTIVITEIT_CONFIG[activiteitsniveau].label}</strong>
-                  <span style={{ color: 'var(--text-3)' }}> · {ACTIVITEIT_CONFIG[activiteitsniveau].sub}</span>
+                  {t('lichaam.voedingSetup.activiteitsniveau')} <strong>{t(`lichaam.activiteit.${activiteitsniveau}.label`)}</strong>
+                  <span style={{ color: 'var(--text-3)' }}> · {t(`lichaam.activiteit.${activiteitsniveau}.sub`)}</span>
                 </div>
               </div>
             ) : (
               <div style={{ background: 'var(--bg-subtle)', borderRadius: 12, padding: '14px 16px', fontSize: 13, color: 'var(--text-3)' }}>
-                Vul stap 1 volledig in om je TDEE te berekenen
+                {t('lichaam.voedingSetup.vulStap1')}
               </div>
             )}
           </div>
@@ -415,10 +396,10 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         {/* ── Stap 3: Schema kiezen ── */}
         {stap === 3 && (
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Kies je voedingsschema</h2>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t('lichaam.voedingSetup.kiesSchema')}</h2>
             {tdee && (
               <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 18 }}>
-                Gebaseerd op jouw behoefte van <strong style={{ color: 'var(--text-2)' }}>{tdee} kcal/dag</strong>
+                {t('lichaam.voedingSetup.gebaseerdOp')} <strong style={{ color: 'var(--text-2)' }}>{tdee} {t('lichaam.voedingSetup.kcalDag')}</strong>
               </p>
             )}
 
@@ -461,19 +442,19 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                     <div style={{ position: 'relative' }}>
                       <div style={{ fontSize: 26, marginBottom: 4 }}>{s.icon}</div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: actief ? s.kleur : 'var(--text-1)', lineHeight: 1.2, marginBottom: 4 }}>
-                        {s.naam}
+                        {t(`lichaam.voedingSetup.schema.${s.id}.naam`)}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 8 }}>
-                        {s.beschrijving}
+                        {t(`lichaam.voedingSetup.schema.${s.id}.beschrijving`)}
                       </div>
 
                       {/* Manuele macro sliders (alleen als geselecteerd) */}
                       {s.manueel && actief && (
                         <div style={{ marginBottom: 12 }}>
                           {[
-                            { label: 'Eiwit', pct: eiwitPct, setPct: setEiwitPct, kleur: 'var(--mf-red)', kcalPerG: 4 },
-                            { label: 'Vet',   pct: vetPct,   setPct: setVetPct,   kleur: 'var(--mf-purple)', kcalPerG: 9 },
-                            { label: 'Koolhydraten', pct: koolhPct, setPct: null,  kleur: 'var(--mf-amber)', kcalPerG: 4 },
+                            { label: t('lichaam.voeding.macro.eiwit'), pct: eiwitPct, setPct: setEiwitPct, kleur: 'var(--mf-red)', kcalPerG: 4 },
+                            { label: t('lichaam.voeding.macro.vet'),   pct: vetPct,   setPct: setVetPct,   kleur: 'var(--mf-purple)', kcalPerG: 9 },
+                            { label: t('lichaam.voeding.macro.koolhydraten'), pct: koolhPct, setPct: null,  kleur: 'var(--mf-amber)', kcalPerG: 4 },
                           ].map(m => (
                             <div key={m.label} style={{ marginBottom: 10 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -506,11 +487,11 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                           ))}
                           {koolhPct < 0 && (
                             <p style={{ fontSize: 11, color: 'var(--mf-red)', margin: '4px 0 0', fontWeight: 600 }}>
-                              Eiwit + vet overschrijdt 100% — verlaag één van de twee
+                              {t('lichaam.voedingSetup.teVeel')}
                             </p>
                           )}
                           <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '8px 0 0', lineHeight: 1.4 }}>
-                            Calorieën worden opgeslagen als TDEE. Macro-targets zijn indicatief.
+                            {t('lichaam.voedingSetup.indicatief')}
                           </p>
                         </div>
                       )}
@@ -522,13 +503,13 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                           background: actief ? `color-mix(in srgb, ${s.kleur} 10%, transparent)` : 'var(--bg-subtle)',
                         }}>
                           <div style={{ fontSize: 15, fontWeight: 800, color: actief ? s.kleur : 'var(--text-1)' }}>
-                            {kcal} kcal/dag
+                            {kcal} {t('lichaam.voedingSetup.kcalDag')}
                           </div>
                           {macros && (
                             <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3, display: 'flex', gap: 10 }}>
-                              <span>E <strong style={{ color: 'var(--mf-red)' }}>{macros.eiwit}g</strong></span>
-                              <span>K <strong style={{ color: 'var(--mf-amber)' }}>{macros.koolh}g</strong></span>
-                              <span>V <strong style={{ color: 'var(--mf-purple)' }}>{macros.vet}g</strong></span>
+                              <span>{t('lichaam.voedingSetup.letterE')} <strong style={{ color: 'var(--mf-red)' }}>{macros.eiwit}g</strong></span>
+                              <span>{t('lichaam.voedingSetup.letterK')} <strong style={{ color: 'var(--mf-amber)' }}>{macros.koolh}g</strong></span>
+                              <span>{t('lichaam.voedingSetup.letterV')} <strong style={{ color: 'var(--mf-purple)' }}>{macros.vet}g</strong></span>
                             </div>
                           )}
                         </div>
@@ -538,7 +519,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                       {s.manueel && !actief && (
                         <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--bg-subtle)' }}>
                           <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                            {tdee ? `${tdee} kcal/dag · stel macro % zelf in` : 'Selecteer om macros in te stellen'}
+                            {tdee ? t('lichaam.voedingSetup.manueelHint', { kcal: tdee }) : t('lichaam.voedingSetup.selecteer')}
                           </div>
                         </div>
                       )}
@@ -561,7 +542,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
           {stap > 1 && (
             <button onClick={() => setStap(s => s - 1)}
               style={{ flex: 1, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 600, background: 'var(--bg-subtle)', color: 'var(--text-2)', border: 'none', cursor: 'pointer' }}>
-              Vorige
+              {t('lichaam.voedingSetup.vorige')}
             </button>
           )}
           {stap < 3 ? (
@@ -572,7 +553,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 color: kanVerder() ? 'var(--bg-app)' : 'var(--text-3)',
                 cursor: kanVerder() ? 'pointer' : 'not-allowed',
               }}>
-              Volgende
+              {t('lichaam.voedingSetup.volgende')}
             </button>
           ) : (
             <button onClick={slaOp} disabled={!kanVerder() || opslaan}
@@ -582,7 +563,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 color: kanVerder() ? 'var(--bg-app)' : 'var(--text-3)',
                 cursor: kanVerder() ? 'pointer' : 'not-allowed',
               }}>
-              {opslaan ? 'Opslaan...' : '✅ Start met tracken'}
+              {opslaan ? t('lichaam.voeding.opslaanBezig') : `✅ ${t('lichaam.voedingSetup.start')}`}
             </button>
           )}
         </div>

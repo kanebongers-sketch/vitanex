@@ -5,113 +5,102 @@ export type HoofdTab = 'timer' | 'adem' | 'beweging' | 'voeding' | 'slaap' | 'me
 export type AdemTab = 'box' | '478' | 'coherentie' | 'wim'
 export type TimerTab = 'focus' | 'pauze' | 'micro'
 
+// Teksten staan in het woordenboek (gebied mentaal, sleutels mentaal.focus.*);
+// hier alleen structuur, duur en kleur.
+
+export type AdemFaseSoort = 'inademen' | 'vasthouden' | 'uitademen' | 'inNeus' | 'extraInNeus' | 'langUitademen'
+
 export interface AdemFase {
-  label: string
+  /** Label: mentaal.focus.fase.<soort>. */
+  soort: AdemFaseSoort
   duur: number
   kleur: string
 }
 
 export interface AdemTechniek {
-  naam: string
-  beschrijving: string
+  /** Teksten: mentaal.focus.adem.<tab>.naam / .beschrijving / .voordeel<n>. */
   fases: AdemFase[]
-  voordelen: string[]
+  aantalVoordelen: number
 }
 
 export const ADEM: Record<AdemTab, AdemTechniek> = {
   box: {
-    naam: 'Box breathing',
-    beschrijving: 'Gebruikt door Navy SEALs en topsporters om stress snel te verlagen en focus te herwinnen.',
-    voordelen: ['Verlaagt cortisol', 'Verbetert concentratie', 'Kalmeert het zenuwstelsel'],
+    aantalVoordelen: 3,
     fases: [
-      { label: 'Inademen', duur: 4, kleur: 'var(--mf-green)' },
-      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-blue)' },
-      { label: 'Uitademen', duur: 4, kleur: 'var(--mf-purple)' },
-      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-amber)' },
+      { soort: 'inademen', duur: 4, kleur: 'var(--mf-green)' },
+      { soort: 'vasthouden', duur: 4, kleur: 'var(--mf-blue)' },
+      { soort: 'uitademen', duur: 4, kleur: 'var(--mf-purple)' },
+      { soort: 'vasthouden', duur: 4, kleur: 'var(--mf-amber)' },
     ],
   },
   '478': {
-    naam: '4-7-8 methode',
-    beschrijving: 'Ontwikkeld door Dr. Andrew Weil. Kalmeert het autonome zenuwstelsel en helpt bij angst en inslapen.',
-    voordelen: ['Vermindert angst', 'Helpt bij inslapen', 'Verlaagt hartslag'],
+    aantalVoordelen: 3,
     fases: [
-      { label: 'Inademen', duur: 4, kleur: 'var(--mf-green)' },
-      { label: 'Vasthouden', duur: 7, kleur: 'var(--mf-blue)' },
-      { label: 'Uitademen', duur: 8, kleur: 'var(--mf-purple)' },
+      { soort: 'inademen', duur: 4, kleur: 'var(--mf-green)' },
+      { soort: 'vasthouden', duur: 7, kleur: 'var(--mf-blue)' },
+      { soort: 'uitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
   coherentie: {
-    naam: 'Hartcoherentie',
-    beschrijving: 'Synchroniseert de ademhaling met het hart. 5-5 ritme activeert de herstelrespons.',
-    voordelen: ['Balanceert hart & geest', 'Verlaagt bloeddruk', 'Verbetert emotieregulatie'],
+    aantalVoordelen: 3,
     fases: [
-      { label: 'Inademen', duur: 5, kleur: 'var(--mf-green)' },
-      { label: 'Uitademen', duur: 5, kleur: 'var(--mf-purple)' },
+      { soort: 'inademen', duur: 5, kleur: 'var(--mf-green)' },
+      { soort: 'uitademen', duur: 5, kleur: 'var(--mf-purple)' },
     ],
   },
   wim: {
-    naam: 'Fysiologische snik',
-    beschrijving: 'Dubbele inademing door de neus gevolgd door een lange uitademing. Stamt uit neurowetenschappelijk onderzoek van Stanford.',
-    voordelen: ['Snelste stressverlichting', 'Activeert parasympathisch stelsel', 'Werkt binnen 1 minuut'],
+    aantalVoordelen: 3,
     fases: [
-      { label: 'In (neus)', duur: 2, kleur: 'var(--mf-green)' },
-      { label: 'Extra in (neus)', duur: 1, kleur: 'var(--mf-blue)' },
-      { label: 'Lang uitademen', duur: 8, kleur: 'var(--mf-purple)' },
+      { soort: 'inNeus', duur: 2, kleur: 'var(--mf-green)' },
+      { soort: 'extraInNeus', duur: 1, kleur: 'var(--mf-blue)' },
+      { soort: 'langUitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
 }
 
 export interface AdemAdvies {
-  when: string
-  use: string
-  reden: string
+  /** Teksten: mentaal.focus.advies.<sleutel>.wanneer / .reden. */
+  sleutel: string
+  techniek: AdemTab
 }
 
 export const ADEM_ADVIES: AdemAdvies[] = [
-  { when: 'Acuut gestrest of overprikkeld', use: 'Fysiologische snik', reden: 'Snelste resultaat, werkt in 1-2 ademhalingen' },
-  { when: 'Aankomende presentatie of gesprek', use: 'Box breathing', reden: '5 minuten voor een stressvolle situatie' },
-  { when: 'Niet kunnen slapen', use: '4-7-8 methode', reden: '3-4 rondes ontspant het parasympathisch stelsel' },
-  { when: 'Mentale vermoeidheid overdag', use: 'Hartcoherentie', reden: 'Herstelt energiebalans bij langdurige stress' },
+  { sleutel: 'acuut', techniek: 'wim' },
+  { sleutel: 'presentatie', techniek: 'box' },
+  { sleutel: 'slapen', techniek: '478' },
+  { sleutel: 'vermoeid', techniek: 'coherentie' },
 ]
 
 export interface TimerConfig {
-  naam: string
+  /** Teksten: mentaal.focus.timer.<tab>.naam / .tip. */
   duur: number
   kleur: string
   afk: string
-  tip: string
 }
 
 export const TIMERS: Record<TimerTab, TimerConfig> = {
-  focus: { naam: 'Diepe focus', duur: 25 * 60, kleur: 'var(--mf-green)', afk: '25', tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
-  pauze: { naam: 'Pauze', duur: 5 * 60, kleur: 'var(--mf-blue)', afk: '5', tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
-  micro: { naam: 'Micro-break', duur: 90, kleur: 'var(--mf-purple)', afk: '90s', tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
+  focus: { duur: 25 * 60, kleur: 'var(--mf-green)', afk: '25' },
+  pauze: { duur: 5 * 60, kleur: 'var(--mf-blue)', afk: '5' },
+  micro: { duur: 90, kleur: 'var(--mf-purple)', afk: '90s' },
 }
 
-export const MICRO_IDEEEN: string[] = [
-  'Kijk 20 sec naar iets op 6 meter (20-20-20 regel)',
-  'Rek je nek links en rechts, 3x per kant',
-  'Drink een glas water',
-  'Loop een rondje door het kantoor',
-  'Doe 3 diepe buikademhalingen',
-  'Schud je handen en polsen los',
-  'Stuur een berichtje naar iemand die je energie geeft',
-]
+/** Sleutels onder mentaal.focus.micro. */
+export const MICRO_IDEEEN = ['kijkVer', 'nek', 'water', 'rondje', 'buikadem', 'handen', 'bericht'] as const
 
 export interface PomodoroBlok {
-  label: string
+  minuten: number
   soort: 'focus' | 'pauze' | 'lang'
 }
 
 export const POMODORO_BLOKKEN: PomodoroBlok[] = [
-  { label: '25m focus', soort: 'focus' },
-  { label: '5m pauze', soort: 'pauze' },
-  { label: '25m focus', soort: 'focus' },
-  { label: '5m pauze', soort: 'pauze' },
-  { label: '25m focus', soort: 'focus' },
-  { label: '5m pauze', soort: 'pauze' },
-  { label: '25m focus', soort: 'focus' },
-  { label: '20m pauze', soort: 'lang' },
+  { minuten: 25, soort: 'focus' },
+  { minuten: 5, soort: 'pauze' },
+  { minuten: 25, soort: 'focus' },
+  { minuten: 5, soort: 'pauze' },
+  { minuten: 25, soort: 'focus' },
+  { minuten: 5, soort: 'pauze' },
+  { minuten: 25, soort: 'focus' },
+  { minuten: 20, soort: 'lang' },
 ]
 
 export function formatTijd(s: number): string {

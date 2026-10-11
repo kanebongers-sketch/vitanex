@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
-import { laadXPData, berekenLevel, xpVoortgang, LEVEL_NAMEN, type XPData } from '@/lib/xp/xp'
+import { laadXPData, berekenLevel, xpVoortgang, type XPData } from '@/lib/xp/xp'
 import { laadXPVanServer } from '@/lib/xp/xp-sync'
 import VitaVoortgangViering from '@/components/vita/VitaVoortgangViering'
 import { berekenWeekOverzicht, laatsteWeken } from './voortgang'
@@ -18,18 +18,21 @@ import WeekOverzicht from './WeekOverzicht'
 import NiveauDetail from './NiveauDetail'
 import Mijlpalen from './Mijlpalen'
 import XPDetails from './XPDetails'
+import { levelNaam } from './xpTeksten'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 function PaginaKader({ children }: { children: React.ReactNode }) {
+  const { t } = useVertaling()
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 64px' }}>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-            Voortgang
+            {t('voortgang.niveauPagina.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 3 }}>
-            Je week, je gewoontes en je niveau — op basis van wat je echt deed.
+            {t('voortgang.niveauPagina.intro')}
           </p>
         </div>
         {children}
@@ -41,6 +44,7 @@ function PaginaKader({ children }: { children: React.ReactNode }) {
 
 /** Skeleton met dezelfde bloklayout als de geladen pagina — geen layout-shift. */
 function LaadStaat() {
+  const { t } = useVertaling()
   const blokken = [
     { hoogte: 236, label: 'week' },
     { hoogte: 264, label: 'niveau' },
@@ -48,7 +52,7 @@ function LaadStaat() {
   ]
   return (
     <div aria-busy="true">
-      <p className="sr-only" role="status">Je voortgang wordt geladen.</p>
+      <p className="sr-only" role="status">{t('voortgang.niveauPagina.laden')}</p>
       {blokken.map(blok => (
         <div key={blok.label} className="nv-skelet" aria-hidden="true"
           style={{ height: blok.hoogte, marginBottom: 16 }} />
@@ -58,6 +62,7 @@ function LaadStaat() {
 }
 
 export default function VoortgangPagina() {
+  const { t } = useVertaling()
   const [xpData, setXpData] = useState<XPData | null>(null)
   // Voortgangsvullingen (balken/ring) starten op 0 en vullen pas ná de eerste
   // paint — zo loopt alles zacht in (0.4s, alleen transform/stroke).
@@ -112,8 +117,8 @@ export default function VoortgangPagina() {
         <VitaVoortgangViering
           variant="level"
           level={level}
-          levelNaam={LEVEL_NAMEN[level]}
-          volgendeNaam={level < 10 ? LEVEL_NAMEN[level + 1] : null}
+          levelNaam={levelNaam(level, t)}
+          volgendeNaam={level < 10 ? levelNaam(level + 1, t) : null}
           xpTotVolgende={level >= 10 ? 0 : voortgang.nodig}
           isMax={level >= 10}
         />
@@ -136,7 +141,7 @@ export default function VoortgangPagina() {
           color: 'var(--bg-app)', borderRadius: 12, padding: '14px 20px',
           fontSize: 14, fontWeight: 700, textDecoration: 'none',
         }}>
-          Check-in doen
+          {t('voortgang.niveauPagina.checkinDoen')}
         </Link>
         <Link href="/doelen" className="nv-cta" style={{
           flex: 1, textAlign: 'center',
@@ -145,7 +150,7 @@ export default function VoortgangPagina() {
           fontSize: 14, fontWeight: 700, textDecoration: 'none',
           border: '1px solid var(--border-strong)',
         }}>
-          Doelen bekijken
+          {t('voortgang.niveauPagina.doelenBekijken')}
         </Link>
       </div>
     </PaginaKader>

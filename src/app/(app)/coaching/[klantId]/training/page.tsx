@@ -17,8 +17,7 @@ import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/componen
 import {
   DOEL_OPTIES,
   NIVEAUS,
-  NIVEAU_LABELS,
-  schemaSamenvatting,
+  isNiveau,
   type FitnessSchemaRij,
   type NieuwSchemaInput,
   type TrainingLogRij,
@@ -27,6 +26,11 @@ import {
 import {
   Dumbbell, Plus, Trash2, Power, ClipboardList, Flame, Clock, ShieldAlert,
 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
+
+type Vertaler = (sleutel: string, params?: Params) => string
 
 // ── Concept-state (het formulier bouwt hierin op) ─────────────────────────────
 interface OefeningConcept {
@@ -46,8 +50,8 @@ interface DagConcept {
 const LEGE_OEFENING: OefeningConcept = {
   naam: '', sets: 3, herhalingen: '8-12', heeft_gewicht: true, uitvoering_tip: '',
 }
-function legeDag(nummer: number): DagConcept {
-  return { naam: `Dag ${nummer}`, spiergroepen: '', coaching_tekst: '', oefeningen: [{ ...LEGE_OEFENING }] }
+function legeDag(nummer: number, t: Vertaler): DagConcept {
+  return { naam: t('coaching.training.dagNaam', { nummer }), spiergroepen: '', coaching_tekst: '', oefeningen: [{ ...LEGE_OEFENING }] }
 }
 
 const SELECT_STYLE: CSSProperties = {
@@ -57,8 +61,8 @@ const SELECT_STYLE: CSSProperties = {
   outline: 'none', cursor: 'pointer',
 }
 
-function fmtDatum(d: string): string {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+function fmtDatum(d: string, taal: Taal): string {
+  return new Date(d).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short' })
 }
 
 // ── Oefening-rij ──────────────────────────────────────────────────────────────
@@ -70,26 +74,28 @@ interface OefeningRijProps {
   onRemove: () => void
 }
 function OefeningRij({ oef, index, canRemove, onChange, onRemove }: OefeningRijProps) {
+  const { t } = useVertaling()
+  const nummer = index + 1
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
       <div style={{ flex: '1 1 160px', minWidth: 0 }}>
         <Input
-          aria-label={`Oefening ${index + 1} naam`}
-          placeholder="Bijv. Bankdrukken"
+          aria-label={t('coaching.training.oefNaamAria', { nummer })}
+          placeholder={t('coaching.training.oefPlaceholder')}
           value={oef.naam}
           maxLength={80}
           onChange={e => onChange({ naam: e.target.value })}
         />
       </div>
       <Input
-        aria-label={`Oefening ${index + 1} aantal sets`}
+        aria-label={t('coaching.training.oefSetsAria', { nummer })}
         type="number" inputMode="numeric" min={1} max={20}
         value={oef.sets || ''}
         onChange={e => onChange({ sets: parseInt(e.target.value) || 0 })}
         style={{ width: 62, textAlign: 'center', flexShrink: 0 }}
       />
       <Input
-        aria-label={`Oefening ${index + 1} herhalingen`}
+        aria-label={t('coaching.training.oefHerhAria', { nummer })}
         placeholder="8-12"
         value={oef.herhalingen}
         maxLength={24}
@@ -101,7 +107,7 @@ function OefeningRij({ oef, index, canRemove, onChange, onRemove }: OefeningRijP
           type="checkbox"
           checked={oef.heeft_gewicht}
           onChange={e => onChange({ heeft_gewicht: e.target.checked })}
-          aria-label={`Oefening ${index + 1} met gewicht`}
+          aria-label={t('coaching.training.oefGewichtAria', { nummer })}
           style={{ accentColor: 'var(--mf-green)', width: 15, height: 15 }}
         />
         kg
@@ -110,7 +116,7 @@ function OefeningRij({ oef, index, canRemove, onChange, onRemove }: OefeningRijP
         variant="ghost" size="sm"
         onClick={onRemove}
         disabled={!canRemove}
-        aria-label={`Oefening ${index + 1} verwijderen`}
+        aria-label={t('coaching.training.oefVerwijderAria', { nummer })}
         style={{ color: 'var(--mf-red)', padding: '6px 8px', flexShrink: 0 }}
       >
         <Trash2 size={14} aria-hidden />
@@ -131,6 +137,8 @@ interface DagKaartProps {
   onRemove: () => void
 }
 function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOefRemove, onRemove }: DagKaartProps) {
+  const { t } = useVertaling()
+  const nummer = index + 1
   return (
     <Card style={{ padding: '16px 18px', background: 'var(--bg-subtle)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -139,8 +147,8 @@ function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOe
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Input
-            aria-label={`Dag ${index + 1} naam`}
-            placeholder={`Dag ${index + 1} — bijv. Push (borst & triceps)`}
+            aria-label={t('coaching.training.dagNaamAria', { nummer })}
+            placeholder={t('coaching.training.dagPlaceholder', { nummer })}
             value={dag.naam}
             maxLength={80}
             onChange={e => onChange({ naam: e.target.value })}
@@ -150,7 +158,7 @@ function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOe
           variant="ghost" size="sm"
           onClick={onRemove}
           disabled={!canRemove}
-          aria-label={`Dag ${index + 1} verwijderen`}
+          aria-label={t('coaching.training.dagVerwijderAria', { nummer })}
           style={{ color: 'var(--mf-red)', padding: '6px 8px', flexShrink: 0 }}
         >
           <Trash2 size={15} aria-hidden />
@@ -159,8 +167,8 @@ function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOe
 
       <div style={{ marginBottom: 12 }}>
         <Input
-          aria-label={`Dag ${index + 1} spiergroepen`}
-          placeholder="Spiergroepen, komma-gescheiden (bijv. Borst, Triceps)"
+          aria-label={t('coaching.training.dagSpiergroepenAria', { nummer })}
+          placeholder={t('coaching.training.spiergroepenPlaceholder')}
           value={dag.spiergroepen}
           maxLength={120}
           onChange={e => onChange({ spiergroepen: e.target.value })}
@@ -168,10 +176,10 @@ function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOe
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        <span style={{ flex: '1 1 160px' }}>Oefening</span>
-        <span style={{ width: 62, textAlign: 'center' }}>Sets</span>
-        <span style={{ width: 78, textAlign: 'center' }}>Herh.</span>
-        <span style={{ width: 58 }}>Gewicht</span>
+        <span style={{ flex: '1 1 160px' }}>{t('coaching.training.kolOefening')}</span>
+        <span style={{ width: 62, textAlign: 'center' }}>{t('coaching.training.kolSets')}</span>
+        <span style={{ width: 78, textAlign: 'center' }}>{t('coaching.training.kolHerh')}</span>
+        <span style={{ width: 58 }}>{t('coaching.training.kolGewicht')}</span>
         <span style={{ width: 30 }} />
       </div>
 
@@ -194,13 +202,13 @@ function DagKaart({ dag, index, canRemove, onChange, onOefChange, onOefAdd, onOe
         className="mf-pressable"
         style={{ marginTop: 10, width: '100%', background: 'none', border: '1.5px dashed var(--border-strong)', color: 'var(--text-3)', borderRadius: 10, padding: '8px 0', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
       >
-        <Plus size={13} aria-hidden /> Oefening toevoegen
+        <Plus size={13} aria-hidden /> {t('coaching.training.oefToevoegen')}
       </button>
 
       <div style={{ marginTop: 12 }}>
         <Textarea
-          aria-label={`Dag ${index + 1} coaching-tekst`}
-          placeholder="Motiverende coaching-tekst voor deze sessie (optioneel)"
+          aria-label={t('coaching.training.dagCoachingAria', { nummer })}
+          placeholder={t('coaching.training.coachingPlaceholder')}
           value={dag.coaching_tekst}
           rows={2}
           maxLength={400}
@@ -219,10 +227,11 @@ interface SchemaBuilderProps {
   fout: string | null
 }
 function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
+  const { t } = useVertaling()
   const [titel, setTitel] = useState('')
   const [doel, setDoel] = useState<string>(DOEL_OPTIES[0].value)
   const [niveau, setNiveau] = useState<TrainingNiveau>('beginner')
-  const [dagen, setDagen] = useState<DagConcept[]>([legeDag(1)])
+  const [dagen, setDagen] = useState<DagConcept[]>(() => [legeDag(1, t)])
 
   const patchDag = (di: number, patch: Partial<DagConcept>) =>
     setDagen(prev => prev.map((d, i) => (i === di ? { ...d, ...patch } : d)))
@@ -232,7 +241,7 @@ function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
     setDagen(prev => prev.map((d, i) => (i !== di ? d : { ...d, oefeningen: [...d.oefeningen, { ...LEGE_OEFENING }] })))
   const removeOef = (di: number, oi: number) =>
     setDagen(prev => prev.map((d, i) => (i !== di ? d : { ...d, oefeningen: d.oefeningen.filter((_, j) => j !== oi) })))
-  const addDag = () => setDagen(prev => (prev.length >= 7 ? prev : [...prev, legeDag(prev.length + 1)]))
+  const addDag = () => setDagen(prev => (prev.length >= 7 ? prev : [...prev, legeDag(prev.length + 1, t)]))
   const removeDag = (di: number) => setDagen(prev => prev.filter((_, i) => i !== di))
 
   const geldig = titel.trim().length >= 2 && dagen.every(d => d.oefeningen.some(o => o.naam.trim().length >= 2))
@@ -263,15 +272,15 @@ function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
       setTitel('')
       setDoel(DOEL_OPTIES[0].value)
       setNiveau('beginner')
-      setDagen([legeDag(1)])
+      setDagen([legeDag(1, t)])
     }
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Field label="Titel van het schema" error={fout ?? undefined}>
+      <Field label={t('coaching.training.schemaTitel')} error={fout ?? undefined}>
         <Input
-          placeholder="Bijv. Kracht-opbouw 3-daags"
+          placeholder={t('coaching.training.schemaTitelPlaceholder')}
           value={titel}
           maxLength={120}
           onChange={e => setTitel(e.target.value)}
@@ -279,14 +288,14 @@ function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
       </Field>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Field label="Doel">
+        <Field label={t('coaching.training.doel')}>
           <select style={SELECT_STYLE} value={doel} onChange={e => setDoel(e.target.value)}>
-            {DOEL_OPTIES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {DOEL_OPTIES.map(o => <option key={o.value} value={o.value}>{t(`coaching.labels.doel.${o.value}`)}</option>)}
           </select>
         </Field>
-        <Field label="Niveau">
+        <Field label={t('coaching.training.niveau')}>
           <select style={SELECT_STYLE} value={niveau} onChange={e => setNiveau(e.target.value as TrainingNiveau)}>
-            {NIVEAUS.map(n => <option key={n} value={n}>{NIVEAU_LABELS[n]}</option>)}
+            {NIVEAUS.map(n => <option key={n} value={n}>{t(`coaching.labels.niveau.${n}`)}</option>)}
           </select>
         </Field>
       </div>
@@ -314,9 +323,9 @@ function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
           disabled={dagen.length >= 7}
           leftIcon={<Plus size={15} aria-hidden />}
         >
-          Dag toevoegen
+          {t('coaching.training.dagToevoegen')}
         </Button>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{dagen.length}/7 dagen</span>
+        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('coaching.training.dagenTeller', { aantal: dagen.length })}</span>
         <Button
           onClick={verstuur}
           loading={bezig}
@@ -324,7 +333,7 @@ function SchemaBuilder({ onSubmit, bezig, fout }: SchemaBuilderProps) {
           leftIcon={<Dumbbell size={15} aria-hidden />}
           style={{ marginLeft: 'auto' }}
         >
-          Schema toewijzen
+          {t('coaching.training.toewijzen')}
         </Button>
       </div>
     </div>
@@ -338,7 +347,16 @@ interface SchemaItemProps {
   onDeactiveer: () => void
 }
 function SchemaItem({ schema, bezig, onDeactiveer }: SchemaItemProps) {
+  const { t } = useVertaling()
   const doorCoach = schema.toegewezen_door != null
+  const aantalDagen = schema.sessies_per_week ?? schema.schema_json.length
+  const aantalOefeningen = schema.schema_json.reduce((n, d) => n + d.oefeningen.length, 0)
+  const samenvatting = [
+    t(aantalDagen === 1 ? 'coaching.training.dagEen' : 'coaching.training.dagenMeer', { aantal: aantalDagen }),
+    t(aantalOefeningen === 1 ? 'coaching.training.oefeningEen' : 'coaching.training.oefeningenMeer', { aantal: aantalOefeningen }),
+  ].join(' · ')
+  const niveauTekst = schema.niveau && isNiveau(schema.niveau) ? t(`coaching.labels.niveau.${schema.niveau}`) : schema.niveau
+  const doelTekst = schema.doel && DOEL_OPTIES.some(o => o.value === schema.doel) ? t(`coaching.labels.doel.${schema.doel}`) : schema.doel
   return (
     <Card className={schema.actief ? 'mf-card-glow' : undefined} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: schema.actief ? 1 : 0.6 }}>
       <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
@@ -348,16 +366,16 @@ function SchemaItem({ schema, bezig, onDeactiveer }: SchemaItemProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{schema.naam}</p>
           {schema.actief
-            ? <Badge variant="success" style={{ fontSize: 10, padding: '2px 8px' }}>Actief</Badge>
-            : <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>Inactief</Badge>}
+            ? <Badge variant="success" style={{ fontSize: 10, padding: '2px 8px' }}>{t('coaching.labels.trajectStatus.actief')}</Badge>
+            : <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>{t('coaching.takenBeheer.inactief')}</Badge>}
           <Badge variant={doorCoach ? 'accent' : 'neutral'} style={{ fontSize: 10, padding: '2px 8px' }}>
-            {doorCoach ? 'Door jou toegewezen' : 'Door klant zelf'}
+            {doorCoach ? t('coaching.training.doorJou') : t('coaching.training.doorKlant')}
           </Badge>
         </div>
         <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginTop: 4 }}>
-          {schemaSamenvatting(schema)}
-          {schema.niveau ? ` · ${schema.niveau}` : ''}
-          {schema.doel ? ` · ${schema.doel}` : ''}
+          {samenvatting}
+          {niveauTekst ? ` · ${niveauTekst}` : ''}
+          {doelTekst ? ` · ${doelTekst}` : ''}
         </p>
       </div>
       {doorCoach && schema.actief && (
@@ -366,9 +384,9 @@ function SchemaItem({ schema, bezig, onDeactiveer }: SchemaItemProps) {
           loading={bezig}
           onClick={onDeactiveer}
           leftIcon={<Power size={14} aria-hidden />}
-          aria-label={`${schema.naam} deactiveren`}
+          aria-label={t('coaching.takenBeheer.deactiverenAria', { titel: schema.naam })}
         >
-          Deactiveer
+          {t('coaching.training.deactiveer')}
         </Button>
       )}
     </Card>
@@ -377,6 +395,7 @@ function SchemaItem({ schema, bezig, onDeactiveer }: SchemaItemProps) {
 
 // ── Pagina ────────────────────────────────────────────────────────────────────
 export default function KlantTrainingPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { klantId } = useParams<{ klantId: string }>()
 
@@ -421,7 +440,7 @@ export default function KlantTrainingPagina() {
     const data = await res.json() as { error?: string }
     setBezig(false)
     if (res.ok) { await laadTraining(); return true }
-    setFout(data.error ?? 'Schema toewijzen mislukt.')
+    setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.training.mislukt'))
     return false
   }
 
@@ -438,11 +457,11 @@ export default function KlantTrainingPagina() {
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
 
         <CoachHeader
-          eyebrow="Coaching · Training"
-          titel="Trainingsschema"
-          subtitel="Stel een schema samen. Je klant volgt het in de sport-app; een nieuw schema vervangt het actieve."
+          eyebrow={t('coaching.training.eyebrow')}
+          titel={t('coaching.training.titel')}
+          subtitel={t('coaching.training.subtitel')}
           backHref={`/coaching/${klantId}`}
-          backLabel="Terug naar klant"
+          backLabel={t('coaching.algemeen.terugNaarKlant')}
         />
 
         {laden ? (
@@ -450,25 +469,25 @@ export default function KlantTrainingPagina() {
         ) : nietGevonden ? (
           <CoachEmpty
             icon={ShieldAlert}
-            titel="Klant niet gevonden"
-            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            titel={t('coaching.klant.nietGevondenTitel')}
+            tekst={t('coaching.klant.nietActief')}
             toon="wacht"
           />
         ) : (
           <>
             <Card className="mf-animate-up mf-delay-1" style={{ padding: '20px 22px', marginBottom: 28 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ClipboardList size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> Nieuw schema samenstellen
+                <ClipboardList size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.training.nieuw')}
               </h2>
               <SchemaBuilder onSubmit={wijsToe} bezig={bezig} fout={fout} />
             </Card>
 
-            <CoachSection titel="Schema's van deze klant">
+            <CoachSection titel={t('coaching.training.lijst')}>
               {schemas.length === 0 ? (
                 <CoachEmpty
                   icon={Dumbbell}
-                  titel="Nog geen schema"
-                  tekst="Stel hierboven het eerste trainingsschema samen voor deze klant."
+                  titel={t('coaching.training.leegTitel')}
+                  tekst={t('coaching.training.leegTekst')}
                 />
               ) : (
                 <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -481,12 +500,12 @@ export default function KlantTrainingPagina() {
               )}
             </CoachSection>
 
-            <CoachSection titel="Recente trainingen">
+            <CoachSection titel={t('coaching.training.recent')}>
               {logs.length === 0 ? (
                 <CoachEmpty
                   icon={Flame}
-                  titel="Nog geen trainingen gelogd"
-                  tekst="Zodra je klant een training afrondt, verschijnt die hier."
+                  titel={t('coaching.training.geenLogsTitel')}
+                  tekst={t('coaching.training.geenLogsTekst')}
                 />
               ) : (
                 <Card style={{ overflow: 'hidden' }}>
@@ -497,13 +516,13 @@ export default function KlantTrainingPagina() {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {log.naam ?? 'Training'}
+                          {log.naam ?? t('coaching.tabs.training')}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{fmtDatum(log.datum, taal)}</div>
                       </div>
                       {log.duur_minuten != null && (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-2)', fontWeight: 600, flexShrink: 0 }}>
-                          <Clock size={11} aria-hidden /> {log.duur_minuten} min
+                          <Clock size={11} aria-hidden /> {t('coaching.training.minuten', { aantal: log.duur_minuten })}
                         </div>
                       )}
                     </div>

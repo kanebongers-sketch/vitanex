@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 import WeekRoosterView from '@/components/rooster/WeekRoosterView'
 import DienstKaart, { type Dienst } from '@/components/rooster/DienstKaart'
@@ -25,16 +27,21 @@ function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-function weekLabel(ma: Date): string {
+function weekLabel(ma: Date, locale: string): { van: string; tot: string } {
   const zo = new Date(ma)
   zo.setDate(ma.getDate() + 6)
-  return `${ma.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} – ${zo.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}`
+  return {
+    van: ma.toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+    tot: zo.toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+  }
 }
 
-const WEEK_TITELS = ['Deze week', 'Volgende week', 'Over 2 weken']
+const WEEK_TITELS = ['werk.rooster.weekDeze', 'werk.rooster.weekVolgende', 'werk.rooster.weekOver2']
 
 export default function RoosterPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [geladen, setGeladen] = useState(false)
   const [naam, setNaam] = useState('')
   const [diensten, setDiensten] = useState<Dienst[]>([])
@@ -59,14 +66,14 @@ export default function RoosterPage() {
         return
       }
 
-      setNaam(profiel.naam ?? 'Medewerker')
+      setNaam(profiel.naam ?? t('werk.rooster.medewerker'))
 
       // Haal diensten op voor de komende 3 weken
       const vanDatum = toYMD(ma)
       const totDatum = (() => {
-        const t = new Date(ma)
-        t.setDate(ma.getDate() + 21)
-        return toYMD(t)
+        const eind = new Date(ma)
+        eind.setDate(ma.getDate() + 21)
+        return toYMD(eind)
       })()
 
       const { data: raw } = await supabase
@@ -87,7 +94,7 @@ export default function RoosterPage() {
   const wekenLabels = [0, 1, 2].map(i => {
     const m = new Date(ma)
     m.setDate(ma.getDate() + i * 7)
-    return weekLabel(m)
+    return t('werk.algemeen.bereik', weekLabel(m, locale))
   })
 
   // Komende diensten (buiten gekozen week) voor de lijst onderaan
@@ -110,7 +117,7 @@ export default function RoosterPage() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Rooster laden…</p>
+          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>{t('werk.rooster.laden')}</p>
         </div>
       </div>
     )
@@ -123,12 +130,12 @@ export default function RoosterPage() {
 
         {/* Header */}
         <header style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Mijn rooster</h1>
-          <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 4 }}>Hallo {naam}, hier zijn je geplande diensten.</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{t('werk.rooster.titel')}</h1>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 4 }}>{t('werk.rooster.groet', { naam })}</p>
         </header>
 
         {/* Week-keuze */}
-        <div role="group" aria-label="Week kiezen" style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div role="group" aria-label={t('werk.rooster.weekKiezen')} style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {WEEK_TITELS.map((titel, i) => {
             const actief = weekOffset === i
             return (
@@ -151,7 +158,7 @@ export default function RoosterPage() {
                   transition: 'opacity 0.15s var(--ease)',
                 }}
               >
-                {titel}
+                {t(titel)}
                 <span style={{ display: 'block', fontSize: 10, opacity: 0.8 }}>{wekenLabels[i]}</span>
               </button>
             )
@@ -162,17 +169,17 @@ export default function RoosterPage() {
         <Card style={{ padding: '14px 20px', marginBottom: 20, display: 'flex', gap: 32, flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{dienstenDezePeriode.length}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>diensten</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{t('werk.rooster.diensten')}</div>
           </div>
           <div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{aantalUren.toFixed(1)}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>uur gepland</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{t('werk.rooster.uurGepland')}</div>
           </div>
           <div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>
-              {weekLabel(gekozenMa).split('–')[0].trim()}
+              {weekLabel(gekozenMa, locale).van}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>week van</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{t('werk.rooster.weekVan')}</div>
           </div>
         </Card>
 
@@ -184,14 +191,14 @@ export default function RoosterPage() {
         {/* Lijst komende diensten */}
         <section>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>
-            Diensten deze periode
+            {t('werk.rooster.dezePeriode')}
           </h2>
           {dienstenDezePeriode.length === 0 ? (
             <Card>
               <EmptyState
                 icon={CalendarRange}
-                title="Geen diensten gepland"
-                description="Er zijn geen diensten gepland voor deze week."
+                title={t('werk.rooster.leegTitel')}
+                description={t('werk.rooster.leegOmschrijving')}
               />
             </Card>
           ) : (

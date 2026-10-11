@@ -13,8 +13,6 @@
 import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { Droplet, Footprints, Flame } from 'lucide-react'
 import {
-  ACTIVITEIT_CONFIG,
-  DOEL_CONFIG,
   berekenWaterDoelMl,
   standaardStappenDoel,
   berekenCalorieDoel,
@@ -25,6 +23,8 @@ import {
 } from '@/lib/health/gezondheid-berekeningen'
 import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
 import { VitaVeld, VitaInput, VitaKaartKeuze, GesprekKnoppen, type KaartOptie } from './VitaKeuze'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // Re-export types + component from split file so consumers get one import point
 export type { BaselineMeting } from './BaselineMetingStap'
@@ -56,16 +56,17 @@ type SetGebr = Dispatch<SetStateAction<GebrForm>>
 
 // ─── BMI-strookje (twee-tonig: cyan accent + neutrale tekst) ─────────────────
 function BmiStrook({ lengteCm, gewichtKg }: { lengteCm: string; gewichtKg: string }) {
+  const { t } = useVertaling()
   if (!lengteCm || !gewichtKg) return null
   const h = parseInt(lengteCm) / 100
   const w = parseFloat(gewichtKg.replace(',', '.'))
   if (!h || !w) return null
   const bmi = w / (h * h)
   const label =
-    bmi < 18.5 ? 'Ondergewicht' :
-    bmi < 25   ? 'Gezond gewicht' :
-    bmi < 30   ? 'Overgewicht' :
-                 'Obesitas'
+    bmi < 18.5 ? t('account.intake.bmi.onder') :
+    bmi < 25   ? t('account.intake.bmi.gezond') :
+    bmi < 30   ? t('account.intake.bmi.over') :
+                 t('account.intake.bmi.obesitas')
   return (
     <div
       style={{
@@ -75,7 +76,7 @@ function BmiStrook({ lengteCm, gewichtKg }: { lengteCm: string; gewichtKg: strin
       }}
     >
       <span style={{ fontSize: 13, color: 'var(--text-3)' }}>
-        BMI: <strong style={{ color: 'var(--text-1)' }}>{bmi.toFixed(1)}</strong>
+        {t('account.intake.bmiLabel')} <strong style={{ color: 'var(--text-1)' }}>{bmi.toFixed(1)}</strong>
       </span>
       <span
         style={{
@@ -99,6 +100,7 @@ export function LichaamStap({
   onTerug: () => void; onVolgende: () => void
   hrSlot?: ReactNode
 }) {
+  const { t } = useVertaling()
   return (
     <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div
@@ -107,10 +109,10 @@ export function LichaamStap({
           background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
         }}
       >
-        Nooit gedeeld met HR — alleen voor jouw persoonlijke dashboard.
+        {t('account.intake.nooitGedeeld')}
       </div>
 
-      <VitaVeld label="Geboortedatum" htmlFor="vita-geboortedatum">
+      <VitaVeld label={t('account.intake.geboortedatum')} htmlFor="vita-geboortedatum">
         <VitaInput
           id="vita-geboortedatum"
           type="date"
@@ -121,7 +123,7 @@ export function LichaamStap({
       </VitaVeld>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <VitaVeld label="Lengte (cm)" htmlFor="vita-lengte">
+        <VitaVeld label={t('account.intake.lengte')} htmlFor="vita-lengte">
           <VitaInput
             id="vita-lengte" type="number" inputMode="numeric"
             value={gebr.lengte_cm}
@@ -129,7 +131,7 @@ export function LichaamStap({
             placeholder="175" min={100} max={250}
           />
         </VitaVeld>
-        <VitaVeld label="Gewicht (kg)" htmlFor="vita-gewicht">
+        <VitaVeld label={t('account.intake.gewicht')} htmlFor="vita-gewicht">
           <VitaInput
             id="vita-gewicht" type="number" inputMode="decimal"
             value={gebr.gewicht_kg}
@@ -141,12 +143,12 @@ export function LichaamStap({
 
       <BmiStrook lengteCm={gebr.lengte_cm} gewichtKg={gebr.gewicht_kg} />
 
-      <VitaVeld label="Vetpercentage (%)" sub="Bijv. van een slimme weegschaal — laat leeg als je het niet weet" htmlFor="vita-vet">
+      <VitaVeld label={t('account.intake.vet')} sub={t('account.intake.vetSub')} htmlFor="vita-vet">
         <VitaInput
           id="vita-vet" type="number" inputMode="decimal"
           value={gebr.vetpercentage}
           onChange={e => setGebr(f => ({ ...f, vetpercentage: e.target.value }))}
-          placeholder="bijv. 22" min={3} max={70} step={0.1}
+          placeholder={t('account.intake.bijvoorbeeld', { waarde: 22 })} min={3} max={70} step={0.1}
         />
       </VitaVeld>
 
@@ -173,6 +175,7 @@ export function DoelStap({
   onVolgende: () => void
   analyse?: OnboardingAiAnalyse | null
 }) {
+  const { t } = useVertaling()
   const toontStreefgewicht = gebr.fitness_doel === 'afvallen' || gebr.fitness_doel === 'aankomen'
 
   // Pre-fill AI-suggesties eenmalig als velden nog leeg zijn
@@ -195,15 +198,15 @@ export function DoelStap({
 
   const activiteitOpties: KaartOptie<Activiteitsniveau>[] = ACTIVITEIT_VOLGORDE.map(niveau => ({
     value: niveau,
-    titel: ACTIVITEIT_CONFIG[niveau].label,
-    sub: ACTIVITEIT_CONFIG[niveau].sub,
+    titel: t(`account.intake.activiteit.${niveau}.titel`),
+    sub: t(`account.intake.activiteit.${niveau}.sub`),
     aanbevolen: analyse?.activiteitsniveau_suggestie === niveau,
   }))
 
   const doelOpties: KaartOptie<FitnessDoel>[] = DOEL_VOLGORDE.map(doel => ({
     value: doel,
-    titel: DOEL_CONFIG[doel].label,
-    sub: DOEL_CONFIG[doel].sub,
+    titel: t(`account.intake.doel.${doel}.titel`),
+    sub: t(`account.intake.doel.${doel}.sub`),
     aanbevolen: analyse?.fitness_doel_suggestie === doel,
   }))
 
@@ -218,13 +221,13 @@ export function DoelStap({
             fontSize: 13, color: 'var(--text-1)', lineHeight: 1.5,
           }}
         >
-          <strong style={{ color: 'var(--mentaforce-primary)' }}>Jouw waarom:</strong> {eersteMotivator}
+          <strong style={{ color: 'var(--mentaforce-primary)' }}>{t('account.intake.waarom')}</strong> {eersteMotivator}
         </div>
       )}
 
-      <VitaVeld label="Hoe actief ben je?" sub="Inclusief werk en sport">
+      <VitaVeld label={t('account.intake.hoeActief')} sub={t('account.intake.hoeActiefSub')}>
         <VitaKaartKeuze
-          legenda="Activiteitsniveau"
+          legenda={t('account.intake.activiteitsniveau')}
           opties={activiteitOpties}
           waarde={gebr.activiteitsniveau}
           onKies={v => setGebr(f => ({ ...f, activiteitsniveau: v }))}
@@ -232,9 +235,9 @@ export function DoelStap({
         />
       </VitaVeld>
 
-      <VitaVeld label="Wat wil je bereiken?">
+      <VitaVeld label={t('account.intake.watBereiken')}>
         <VitaKaartKeuze
-          legenda="Fitnessdoel"
+          legenda={t('account.intake.fitnessdoel')}
           opties={doelOpties}
           waarde={gebr.fitness_doel}
           onKies={v => setGebr(f => ({ ...f, fitness_doel: v }))}
@@ -245,15 +248,15 @@ export function DoelStap({
       {toontStreefgewicht && (
         <div className="mf-fade-in">
           <VitaVeld
-            label="Streefgewicht (kg)"
-            sub={gebr.fitness_doel === 'afvallen' ? 'Naar welk gewicht wil je toe?' : 'Welk gewicht wil je bereiken?'}
+            label={t('account.intake.streefgewicht')}
+            sub={gebr.fitness_doel === 'afvallen' ? t('account.intake.streefAfvallen') : t('account.intake.streefAankomen')}
             htmlFor="vita-streefgewicht"
           >
             <VitaInput
               id="vita-streefgewicht" type="number" inputMode="decimal"
               value={gebr.streefgewicht_kg}
               onChange={e => setGebr(f => ({ ...f, streefgewicht_kg: e.target.value }))}
-              placeholder="bijv. 68" min={30} max={300} step={0.1}
+              placeholder={t('account.intake.bijvoorbeeld', { waarde: 68 })} min={30} max={300} step={0.1}
             />
           </VitaVeld>
         </div>
@@ -268,7 +271,7 @@ export function DoelStap({
               textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10,
             }}
           >
-            Jouw top verbeterpunten
+            {t('account.intake.verbeterpunten')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {analyse.top_verbeterpunten.map(vp => (
@@ -289,7 +292,7 @@ export function DoelStap({
         </div>
       )}
 
-      <GesprekKnoppen onTerug={onTerug} onVolgende={onVolgende} volgendeLabel="Rond mijn intake af" />
+      <GesprekKnoppen onTerug={onTerug} onVolgende={onVolgende} volgendeLabel={t('account.intake.afronden')} />
     </div>
   )
 }
@@ -302,8 +305,10 @@ export function DoelenPayoff({ profiel }: { profiel: GezondheidProfiel }) {
   const stappen = standaardStappenDoel(profiel.fitness_doel)
   const calorie = berekenCalorieDoel(profiel)
   const macros = berekenMacros(profiel)
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
 
-  const stappenLabel = stappen.toLocaleString('nl-NL')
+  const stappenLabel = stappen.toLocaleString(locale)
 
   return (
     <div
@@ -319,27 +324,27 @@ export function DoelenPayoff({ profiel }: { profiel: GezondheidProfiel }) {
           textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12,
         }}
       >
-        Jouw persoonlijke dagdoelen
+        {t('account.intake.dagdoelen')}
       </p>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: macros ? 14 : 0 }}>
-        <Pil Icon={Droplet} waarde={`${water.toLocaleString('nl-NL')} ml`} label="water" />
-        <Pil Icon={Footprints} waarde={stappenLabel} label="stappen" />
+        <Pil Icon={Droplet} waarde={`${water.toLocaleString(locale)} ml`} label={t('account.intake.water')} />
+        <Pil Icon={Footprints} waarde={stappenLabel} label={t('account.intake.stappen')} />
         {calorie !== null && (
-          <Pil Icon={Flame} waarde={`${calorie.toLocaleString('nl-NL')} kcal`} label="per dag" />
+          <Pil Icon={Flame} waarde={`${calorie.toLocaleString(locale)} kcal`} label={t('account.intake.perDag')} />
         )}
       </div>
 
       {macros && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          <MacroVak label="Eiwit" waarde={`${macros.eiwit_g}g`} />
-          <MacroVak label="Koolh." waarde={`${macros.koolhydraten_g}g`} />
-          <MacroVak label="Vet" waarde={`${macros.vet_g}g`} />
+          <MacroVak label={t('account.intake.eiwit')} waarde={`${macros.eiwit_g}g`} />
+          <MacroVak label={t('account.intake.koolhydraten')} waarde={`${macros.koolhydraten_g}g`} />
+          <MacroVak label={t('account.intake.vetMacro')} waarde={`${macros.vet_g}g`} />
         </div>
       )}
 
       <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5, marginTop: 14 }}>
-        Deze doelen pas ik automatisch aan zodra je meer bijhoudt. Je kunt ze altijd zelf instellen.
+        {t('account.intake.doelenUitleg')}
       </p>
     </div>
   )

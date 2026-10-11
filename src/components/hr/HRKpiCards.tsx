@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
 
@@ -36,46 +37,49 @@ export default function HRKpiCards({
   discIngevuld,
   onTabSwitch,
 }: Props) {
+  const { t } = useVertaling()
   const kpis: KpiDef[] = [
     {
-      label: 'Participatie',
+      label: t('werk.hrKpi.participatie'),
       value: `${participatieRate}%`,
-      sub: `${ingevuld}/${teamGrootte} check-ins`,
+      sub: t('werk.hrKpi.checkIns', { ingevuld, totaal: teamGrootte }),
       variant: participatieRate >= 70 ? 'success' : participatieRate >= 40 ? 'warning' : 'danger',
       tab: null,
     },
     {
-      label: 'Team signalen',
+      label: t('werk.hrKpi.teamSignalen'),
       value: String(signaalCount),
-      sub: signaalCount === 0 ? 'Geen aandachtspunten' : `${signaalCount} risico${signaalCount !== 1 ? "'s" : ''}`,
+      sub: signaalCount === 0
+        ? t('werk.hrKpi.geenAandachtspunten')
+        : signaalCount === 1 ? t('werk.hrKpi.risicoEen') : t('werk.hrKpi.risicoMeer', { aantal: signaalCount }),
       variant: signaalCount > 0 ? 'danger' : 'success',
       tab: 'signalen',
     },
     {
-      label: 'Open verlof',
+      label: t('werk.hrKpi.openVerlof'),
       value: String(pendingVerlof),
-      sub: pendingVerlof === 0 ? 'Alles behandeld' : `${pendingVerlof} te behandelen`,
+      sub: pendingVerlof === 0 ? t('werk.hrKpi.allesBehandeld') : t('werk.hrKpi.teBehandelen', { aantal: pendingVerlof }),
       variant: pendingVerlof > 0 ? 'warning' : 'success',
       tab: 'verlof',
     },
     {
-      label: 'Open declaraties',
+      label: t('werk.hrKpi.openDeclaraties'),
       value: String(pendingDeclaraties),
-      sub: pendingDeclaraties === 0 ? 'Alles behandeld' : `${pendingDeclaraties} te behandelen`,
+      sub: pendingDeclaraties === 0 ? t('werk.hrKpi.allesBehandeld') : t('werk.hrKpi.teBehandelen', { aantal: pendingDeclaraties }),
       variant: pendingDeclaraties > 0 ? 'accent' : 'success',
       tab: 'declaraties',
     },
     {
-      label: 'Gesprekken',
+      label: t('werk.hrKpi.gesprekken'),
       value: String(gesprekkenDezeMaand),
-      sub: 'deze maand gepland',
+      sub: t('werk.hrKpi.dezeMaandGepland'),
       variant: gesprekkenDezeMaand > 0 ? 'accent' : 'neutral',
       tab: 'gesprekken',
     },
     ...(discIngevuld !== undefined ? [{
-      label: 'DISC ingevuld',
+      label: t('werk.hrKpi.discIngevuld'),
       value: teamGrootte > 0 ? `${Math.round((discIngevuld / teamGrootte) * 100)}%` : '—',
-      sub: `${discIngevuld}/${teamGrootte} medewerkers`,
+      sub: t('werk.hrKpi.medewerkersTelling', { ingevuld: discIngevuld, totaal: teamGrootte }),
       variant: (teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? 'success' : discIngevuld > 0 ? 'warning' : 'neutral') as BadgeVariant,
       tab: null,
     } satisfies KpiDef] : []),
@@ -110,7 +114,7 @@ export default function HRKpiCards({
               key={kpi.label}
               interactive
               role="button"
-              aria-label={`${accessibleValue}. Open tabblad.`}
+              aria-label={t('werk.hrKpi.openTabblad', { waarde: accessibleValue })}
               onClick={() => onTabSwitch(kpi.tab as string)}
               onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {

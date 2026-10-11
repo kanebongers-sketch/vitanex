@@ -1,6 +1,9 @@
+'use client'
+
 import type { CSSProperties } from 'react'
 import { Dumbbell, Brain, Target, type LucideIcon } from 'lucide-react'
 import { PIJLERS, type Pijler } from '@/lib/coaching/pijlers'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // Klein herbruikbaar pijler-label. Kleur + icoon + tekst komen samen zodat de
 // pijler nooit alléén op kleur wordt onderscheiden (toegankelijkheid).
@@ -19,6 +22,7 @@ export interface PijlerBadgeProps {
 }
 
 export function PijlerBadge({ pijler, compact = false, style }: PijlerBadgeProps) {
+  const { t } = useVertaling()
   const info = PIJLERS[pijler]
   const Icoon = PIJLER_ICOON[pijler]
 
@@ -41,7 +45,7 @@ export function PijlerBadge({ pijler, compact = false, style }: PijlerBadgeProps
       }}
     >
       <Icoon size={13} aria-hidden />
-      {!compact && info.label}
+      {!compact && t(`coaching.labels.pijler.${pijler}`)}
     </span>
   )
 }

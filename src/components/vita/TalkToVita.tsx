@@ -1,6 +1,7 @@
 'use client'
 
 import { MessageCircle, ChevronRight } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // Rustige, duidelijke affordance om vanuit de companion een echt gesprek met
 // Vita te starten (navigeert naar /coach). Zo is de companion op elke pagina
@@ -12,6 +13,7 @@ interface TalkToVitaProps {
 }
 
 export default function TalkToVita({ onStart }: TalkToVitaProps) {
+  const { t } = useVertaling()
   return (
     <div style={{ padding: '0 14px 14px' }}>
       <button
@@ -51,10 +53,10 @@ export default function TalkToVita({ onStart }: TalkToVitaProps) {
         </span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
-            Praat met Vita
+            {t('vita.algemeen.praatMetVita')}
           </span>
           <span style={{ display: 'block', fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
-            Stel een vraag over jouw welzijn
+            {t('vita.algemeen.praatMetVitaSub')}
           </span>
         </span>
         <ChevronRight size={16} color="var(--mentaforce-primary)" aria-hidden="true" style={{ flexShrink: 0 }} />

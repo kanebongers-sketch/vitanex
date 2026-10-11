@@ -15,9 +15,11 @@ import { Field } from '@/components/ui/Field'
 import { Avatar } from '@/components/ui/Avatar'
 import { CoachHeader, CoachStat, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { KOPPEL_STATUS_STIJL, type KlantOverzicht } from '@/lib/coaching/relatie'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { UserPlus, Users, ChevronRight, ShieldCheck, ShieldAlert, MailPlus } from 'lucide-react'
 
 export default function CoachingPortaal() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [klanten, setKlanten] = useState<KlantOverzicht[]>([])
@@ -52,10 +54,10 @@ export default function CoachingPortaal() {
     const res = await authFetch('/api/coaching/klanten', { method: 'POST', body: JSON.stringify({ email: email.trim() }) })
     const data = await res.json() as { error?: string }
     if (res.ok) {
-      setSucces('Klant gekoppeld. Vraag de klant om inzage te bevestigen.')
+      setSucces(t('coaching.overzicht.gekoppeld'))
       setEmail(''); await laadKlanten()
     } else {
-      setFout(data.error ?? 'Koppelen mislukt.')
+      setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.overzicht.koppelenMislukt'))
     }
     setKoppelBezig(false)
   }
@@ -68,12 +70,12 @@ export default function CoachingPortaal() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 1000, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Coaching"
-          titel="Je klanten"
-          subtitel="Voortgang, welzijn en trajecten van je 1-op-1 coachingklanten — op één plek."
+          eyebrow={t('coaching.overzicht.eyebrow')}
+          titel={t('coaching.overzicht.titel')}
+          subtitel={t('coaching.overzicht.subtitel')}
           rechts={
             <Link href="/coaching/uitnodigen" style={{ textDecoration: 'none' }}>
-              <Button leftIcon={<MailPlus size={15} aria-hidden />}>Klant uitnodigen</Button>
+              <Button leftIcon={<MailPlus size={15} aria-hidden />}>{t('coaching.overzicht.uitnodigen')}</Button>
             </Link>
           }
         />
@@ -83,32 +85,32 @@ export default function CoachingPortaal() {
         ) : (
           <>
             <div className="mf-animate-up mf-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
-              <CoachStat label="Klanten" waarde={klanten.length} glow={klanten.length > 0} />
-              <CoachStat label="Actief" waarde={actief} accent="var(--mf-green)" />
-              <CoachStat label="Wacht op inzage" waarde={wachtInzage} accent={wachtInzage > 0 ? 'var(--mf-amber)' : 'var(--text-1)'} />
+              <CoachStat label={t('coaching.overzicht.statKlanten')} waarde={klanten.length} glow={klanten.length > 0} />
+              <CoachStat label={t('coaching.overzicht.statActief')} waarde={actief} accent="var(--mf-green)" />
+              <CoachStat label={t('coaching.overzicht.wachtOpInzage')} waarde={wachtInzage} accent={wachtInzage > 0 ? 'var(--mf-amber)' : 'var(--text-1)'} />
             </div>
 
             {/* Klant koppelen */}
             <Card className="mf-animate-up mf-delay-2" style={{ padding: '20px 22px', marginBottom: 28 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <UserPlus size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> Bestaande klant koppelen
+                <UserPlus size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.overzicht.koppelTitel')}
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14, lineHeight: 1.5 }}>
-                Koppel een bestaand account op e-mailadres, of{' '}
-                <Link href="/coaching/uitnodigen" style={{ color: 'var(--mf-green)', fontWeight: 600, textDecoration: 'none' }}>nodig een nieuwe klant uit</Link>.
+                {t('coaching.overzicht.koppelTekst')}{' '}
+                <Link href="/coaching/uitnodigen" style={{ color: 'var(--mf-green)', fontWeight: 600, textDecoration: 'none' }}>{t('coaching.overzicht.koppelLink')}</Link>.
               </p>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>
-                  <Field label="E-mailadres klant" error={fout ?? undefined}>
+                  <Field label={t('coaching.overzicht.emailLabel')} error={fout ?? undefined}>
                     <input
-                      type="email" className="mf-input" placeholder="klant@voorbeeld.nl" value={email} autoComplete="off"
+                      type="email" className="mf-input" placeholder={t('coaching.overzicht.emailPlaceholder')} value={email} autoComplete="off"
                       onChange={e => { setEmail(e.target.value); setFout(null); setSucces(null) }}
                       onKeyDown={e => e.key === 'Enter' && koppelKlant()}
                       style={{ borderRadius: 12, padding: '11px 14px', width: '100%' }}
                     />
                   </Field>
                 </div>
-                <Button onClick={koppelKlant} loading={koppelBezig} disabled={!email.trim()} leftIcon={<UserPlus size={15} aria-hidden />}>Koppelen</Button>
+                <Button onClick={koppelKlant} loading={koppelBezig} disabled={!email.trim()} leftIcon={<UserPlus size={15} aria-hidden />}>{t('coaching.overzicht.koppelen')}</Button>
               </div>
               {succes && <p role="status" style={{ fontSize: 12.5, color: 'var(--mf-green)', marginTop: 12, fontWeight: 600 }}>{succes}</p>}
             </Card>
@@ -117,9 +119,9 @@ export default function CoachingPortaal() {
             {klanten.length === 0 ? (
               <CoachEmpty
                 icon={Users}
-                titel="Nog geen klanten"
-                tekst="Koppel je eerste coachingklant, of stuur een uitnodiging naar hun e-mailadres."
-                actie={<Link href="/coaching/uitnodigen" style={{ textDecoration: 'none' }}><Button variant="secondary" leftIcon={<MailPlus size={15} aria-hidden />}>Klant uitnodigen</Button></Link>}
+                titel={t('coaching.overzicht.leegTitel')}
+                tekst={t('coaching.overzicht.leegTekst')}
+                actie={<Link href="/coaching/uitnodigen" style={{ textDecoration: 'none' }}><Button variant="secondary" leftIcon={<MailPlus size={15} aria-hidden />}>{t('coaching.overzicht.uitnodigen')}</Button></Link>}
               />
             ) : (
               <div className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -136,13 +138,13 @@ export default function CoachingPortaal() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                           {k.status === 'actief' && (
                             k.inzage_toestemming ? (
-                              <Badge variant="success" style={{ fontSize: 10, padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><ShieldCheck size={11} aria-hidden /> Inzage</Badge>
+                              <Badge variant="success" style={{ fontSize: 10, padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><ShieldCheck size={11} aria-hidden /> {t('coaching.overzicht.inzage')}</Badge>
                             ) : (
-                              <Badge variant="warning" style={{ fontSize: 10, padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><ShieldAlert size={11} aria-hidden /> Wacht op inzage</Badge>
+                              <Badge variant="warning" style={{ fontSize: 10, padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><ShieldAlert size={11} aria-hidden /> {t('coaching.overzicht.wachtOpInzage')}</Badge>
                             )
                           )}
                           {k.status !== 'actief' && (
-                            <Badge variant="neutral" style={{ fontSize: 10, padding: '3px 9px', background: stijl.bg, color: stijl.color }}>{stijl.label}</Badge>
+                            <Badge variant="neutral" style={{ fontSize: 10, padding: '3px 9px', background: stijl.bg, color: stijl.color }}>{t(`coaching.labels.koppelStatus.${k.status}`)}</Badge>
                           )}
                           <ChevronRight size={17} aria-hidden style={{ color: 'var(--text-4)' }} />
                         </div>

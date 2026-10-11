@@ -1,17 +1,19 @@
 'use client'
 
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+
 interface RadarChartProps {
   scores: Record<string, number>
   size?: number
 }
 
 const DOMEINEN = [
-  { key: 'slaap', label: 'Slaap' },
-  { key: 'stress', label: 'Stress' },
-  { key: 'energie', label: 'Energie' },
-  { key: 'focus', label: 'Focus' },
-  { key: 'balans', label: 'Balans' },
-  { key: 'motivatie', label: 'Motivatie' },
+  { key: 'slaap' },
+  { key: 'stress' },
+  { key: 'energie' },
+  { key: 'focus' },
+  { key: 'balans' },
+  { key: 'motivatie' },
 ]
 
 function polarToCartesian(
@@ -28,6 +30,7 @@ function normaliseer(rawScore: number): number {
 }
 
 export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
+  const { t } = useVertaling()
   const cx = size / 2
   const cy = size / 2
   const maxRadius = size * 0.36
@@ -57,7 +60,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      aria-label="Radar chart van welzijnsdomeinen"
+      aria-label={t('account.ui.radarLabel')}
     >
       {/* Grid ringen */}
       {webPaths.map((path, i) => (
@@ -124,7 +127,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
             fontWeight={500}
             fill="var(--text-3)"
           >
-            {d.label}
+            {t(`account.ui.radar.${d.key}`)}
           </text>
         )
       })}

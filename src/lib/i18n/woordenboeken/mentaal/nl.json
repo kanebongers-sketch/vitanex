@@ -1,3 +1,1237 @@
 {
-  "mentaal": {}
+  "mentaal": {
+    "checkin": {
+      "resultaatLabel": "Resultaat van je check-in",
+      "compleet": "Check-in compleet",
+      "weekbeeld": "Dit is je weekbeeld: zo stond je er de afgelopen week voor.",
+      "scorePerVlak": "Jouw score per vlak",
+      "kiesFocus": "Kies je focus voor deze week",
+      "beveiligdOpgeslagen": "Je antwoorden zijn beveiligd opgeslagen.",
+      "schaalLabel": "{vraag}: {waarde} van 5",
+      "sectie": {
+        "slaap": "Slaap",
+        "stress": "Stress",
+        "energie": "Energie",
+        "focus": "Focus",
+        "balans": "Balans",
+        "motivatie": "Motivatie"
+      },
+      "vraag": {
+        "slaap_kwaliteit": {
+          "label": "Hoe heb je deze week geslapen?",
+          "min": "Zeer slecht",
+          "max": "Uitstekend"
+        },
+        "slaap_fris": {
+          "label": "Hoe uitgerust voelde je je bij het opstaan?",
+          "min": "Volledig uitgeput",
+          "max": "Fris en energiek"
+        },
+        "stress_niveau": {
+          "label": "Hoe stressvrij voelde je je deze week?",
+          "min": "Extreem gestrest",
+          "max": "Volledig ontspannen"
+        },
+        "stress_controle": {
+          "label": "Had je het gevoel controle te hebben over je dag?",
+          "min": "Geen controle",
+          "max": "Volledig in controle"
+        },
+        "energie_niveau": {
+          "label": "Hoe was je energieniveau deze week?",
+          "min": "Uitgeput",
+          "max": "Vol energie"
+        },
+        "energie_beweging": {
+          "label": "Hoe actief was je buiten het werk?",
+          "min": "Totaal inactief",
+          "max": "Zeer actief"
+        },
+        "focus_concentratie": {
+          "label": "Hoe goed kon je je concentreren op je werk?",
+          "min": "Totaal niet",
+          "max": "Uitstekend"
+        },
+        "focus_helderheid": {
+          "label": "Hoe helder was je hoofd deze week?",
+          "min": "Wazig en traag",
+          "max": "Scherp en helder"
+        },
+        "balans_werk_prive": {
+          "label": "Ervaarde je een goede balans tussen werk en privé?",
+          "min": "Helemaal niet",
+          "max": "Perfecte balans"
+        },
+        "balans_herstel": {
+          "label": "Had je voldoende tijd voor herstel na het werk?",
+          "min": "Nauwelijks",
+          "max": "Meer dan genoeg"
+        },
+        "motivatie_werk": {
+          "label": "Hoe gemotiveerd was je om je werk goed te doen?",
+          "min": "Helemaal niet",
+          "max": "Zeer gemotiveerd"
+        },
+        "motivatie_zinvol": {
+          "label": "In welke mate vond je je werk zinvol?",
+          "min": "Zinloos",
+          "max": "Zeer zinvol"
+        }
+      },
+      "opnieuwMislukt": "Opnieuw invullen mislukt",
+      "opnieuwMisluktTekst": "Probeer het zo nog eens. Je antwoorden blijven bewaard.",
+      "opslaanMisluktMet": "Opslaan mislukt: {fout}",
+      "opslaanMislukt": "Opslaan mislukt. Probeer het opnieuw.",
+      "laden": "Laden",
+      "gedaanTitel": "Check-in gedaan!",
+      "gedaanTekst": "Je antwoorden zijn ontvangen. Tot volgende week.",
+      "volgende": "Volgende check-in:",
+      "aanpassen": "Aanpassen?",
+      "aanpassenTekst": "Je kan opnieuw invullen binnen 4 uur na het indienen.",
+      "bezig": "Bezig...",
+      "opnieuwInvullen": "Opnieuw invullen",
+      "naarDashboard": "Naar dashboard",
+      "bekijkRapport": "Bekijk mijn rapport",
+      "banner": "Je wekelijkse check-in: {aantal} vragen, klaar in zo'n 2 minuten.",
+      "voortgangLabel": "Voortgang: {beantwoord} van {totaal} vragen beantwoord",
+      "sectieStatus": "Sectie {nummer} van {totaal}: {naam}",
+      "sectieVan": "{nummer} van {totaal}",
+      "vorige": "Vorige",
+      "opslaan": "Opslaan...",
+      "volgendeBezig": "Volgende...",
+      "afronden": "Afronden",
+      "volgendeKnop": "Volgende",
+      "beantwoordBeide": "Beantwoord beide vragen om door te gaan.",
+      "toetsTip": "Tip: toets 1 tot 5 beantwoordt de open vraag.",
+      "beveiligd": "Je antwoorden worden beveiligd opgeslagen."
+    },
+    "geschiedenis": {
+      "ladenMislukt": "Geschiedenis laden mislukt",
+      "ladenMisluktTekst": "We konden je check-ins niet ophalen. Probeer het later opnieuw.",
+      "terug": "Check-in",
+      "titel": "Check-in geschiedenis",
+      "laden": "Geschiedenis laden…",
+      "aantalEen": "{aantal} check-in in de afgelopen tijd",
+      "aantalMeer": "{aantal} check-ins in de afgelopen tijd",
+      "voortgang": "Voortgang",
+      "leegTitel": "Nog geen check-ins",
+      "leegTekst": "Je wekelijkse check-ins verschijnen hier als tijdlijn, zodat je je welzijn over de weken kunt volgen.",
+      "eerste": "Eerste check-in",
+      "detailsLabel": "Details {datum}, score {score} van 100",
+      "domeinenEen": "{aantal} domein",
+      "domeinenMeer": "{aantal} domeinen",
+      "score": "score",
+      "domeinLabel": "{domein}: {score} van 20"
+    },
+    "inzicht": {
+      "leadSterk": "Sterke week, je staat er goed voor.",
+      "leadSolide": "Een solide basis om op verder te bouwen.",
+      "leadEerlijk": "Fijn dat je eerlijk incheckt. Juist nu telt elke kleine stap.",
+      "bodySterk": "Je sterkste vlak is {sterkste} ({pct}%). Je grootste kans deze week ligt bij {focus}. Daar helpen de doelen hieronder je gericht mee.",
+      "bodyKans": "Je grootste kans deze week ligt bij {focus}. De doelen hieronder zijn precies daarop gericht, een stap tegelijk.",
+      "label": "Persoonlijk inzicht na je check-in",
+      "moment": "Jouw moment",
+      "vitaliteit": "vitaliteit",
+      "patroon": "Je coach zag een patroon: {titel}",
+      "bespreek": "Bespreek deze week met je coach"
+    },
+    "reflectie": {
+      "geenEerdere": "Nog geen eerdere reflecties",
+      "weekVan": "Week van {datum}",
+      "vragenVan": "{aantal} van {totaal} vragen",
+      "vraagVan": "Vraag {nummer} van {totaal}",
+      "navLabel": "Reflectievragen",
+      "stap": "Vraag {nummer}: {vraag}",
+      "stapBeantwoord": "Vraag {nummer}: {vraag} (beantwoord)",
+      "hint": "Een of twee zinnen is al genoeg.",
+      "vorige": "Vorige",
+      "volgende": "Volgende",
+      "vraag": {
+        "hoogtepunt": "Wat was het hoogtepunt van deze week?",
+        "uitdaging": "Wat was de grootste uitdaging?",
+        "leermoment": "Wat heb ik geleerd of ontdekt over mezelf?",
+        "energie": "Wat gaf me energie? Wat kostte energie?",
+        "volgende_week": "Wat wil ik volgende week anders doen?",
+        "dankbaarheid": "Waar ben ik dankbaar voor deze week?"
+      },
+      "placeholder": {
+        "hoogtepunt": "Het moment dat me het meest energiek maakte...",
+        "uitdaging": "Iets wat me moeilijk afging of stress gaf...",
+        "leermoment": "Een inzicht, patroon of nieuwe vaardigheid...",
+        "energie": "Activiteiten, mensen of situaties die...",
+        "volgende_week": "Een concrete verandering of intentie...",
+        "dankbaarheid": "Klein of groot, persoonlijk of professioneel..."
+      },
+      "opslaanMislukt": "Opslaan mislukt",
+      "opslaanMisluktTekst": "Je reflectie kon niet worden opgeslagen. Probeer het opnieuw, je antwoorden staan er nog.",
+      "wekenOpRij": "{aantal} weken op rij",
+      "titel": "Wekelijkse reflectie",
+      "status": "Week van {datum} · {aantal} van {totaal} beantwoord",
+      "huidigeWeek": "Huidige week",
+      "historie": "Historie ({aantal})",
+      "opslaan": "Opslaan...",
+      "opgeslagen": "Opgeslagen",
+      "opslaanKnop": "Reflectie opslaan",
+      "naarJournal": "Naar journal",
+      "opgeslagenAanvullen": "Opgeslagen. Je kunt altijd nog aanvullen.",
+      "naarHome": "Naar home"
+    },
+    "welzijn": {
+      "promptDruk": "Wat gaf vandaag de meeste druk?",
+      "promptSpeelde": "Wat speelde er vandaag mee?",
+      "promptGoed": "Wat ging er vandaag goed?",
+      "promptOnthouden": "Wat wil je onthouden van vandaag?",
+      "signaalStress": "Je stress ligt de laatste tijd hoog. Dit is geen diagnose, wel een seintje om echt even rust te pakken, en hulp te zoeken als het aanhoudt.",
+      "signaalStemming": "Je stemming zit al een paar dagen laag. Wees mild voor jezelf. Praten met iemand die je vertrouwt kan helpen, je hoeft het niet alleen te dragen.",
+      "asStemming": "Stemming",
+      "asEnergie": "Energie",
+      "asStress": "Stress",
+      "stemming1": "Heel slecht",
+      "stemming2": "Niet zo goed",
+      "stemming3": "Gaat wel",
+      "stemming4": "Goed",
+      "stemming5": "Heel goed",
+      "energie1": "Leeg",
+      "energie2": "Laag",
+      "energie3": "Gemiddeld",
+      "energie4": "Fit",
+      "energie5": "Vol",
+      "stress1": "Kalm",
+      "stress2": "Rustig",
+      "stress3": "Wat druk",
+      "stress4": "Gespannen",
+      "stress5": "Overspoeld",
+      "keuzeLabel": "{as}: {optie}",
+      "kiesStemmingTitel": "Kies je stemming",
+      "kiesStemmingTekst": "Stemming is het minimum om te loggen.",
+      "opslaanMislukt": "Opslaan mislukt",
+      "probeerOpnieuw": "Probeer het opnieuw.",
+      "kicker": "Mentaal",
+      "titel": "Mentaal welzijn",
+      "intro": "Hoe gaat het nu? Een korte check van je stemming, energie en stress.",
+      "vita": "Vita",
+      "optioneel": "(optioneel)",
+      "notitiePlaceholder": "Een zin voor jezelf…",
+      "notitieLabel": "Reflectie (optioneel)",
+      "opgeslagen": "Opgeslagen!",
+      "loggen": "Loggen",
+      "toolsLabel": "Mentale tools",
+      "toolAdem": "Ademhaling",
+      "toolAdemSub": "Verlaag je spanning",
+      "toolJournal": "Journal",
+      "toolJournalSub": "Schrijf van je af",
+      "toolMeditatie": "Meditatie",
+      "toolMeditatieSub": "Rust je hoofd",
+      "trendsLabel": "Trends",
+      "afgelopenWeken": "Afgelopen weken",
+      "trend": "Trend"
+    },
+    "journal": {
+      "stemming": {
+        "slecht": "Slecht",
+        "matig": "Matig",
+        "gaatWel": "Gaat wel",
+        "goed": "Goed",
+        "super": "Super"
+      },
+      "prompt": {
+        "dag": "Hoe was mijn dag werkelijk?",
+        "zorgen": "Waar maak ik me zorgen over?",
+        "energieGaf": "Wat gaf me energie vandaag?",
+        "energieWeg": "Wat nam energie weg?",
+        "dankbaar": "Wat ben ik dankbaar voor?",
+        "morgen": "Wat wil ik morgen anders doen?"
+      },
+      "geschreven": "Geschreven op deze dag",
+      "streakRegel1": "daagse",
+      "streakRegel2": "streak",
+      "bewerken": "Bewerken",
+      "bewerk": "Bewerk",
+      "verwijderLabel": "Aantekening verwijderen",
+      "verwijder": "Verwijder",
+      "minderTonen": "Minder tonen",
+      "meerTonen": "Meer tonen",
+      "ladenMislukt": "Laden mislukt",
+      "ladenMisluktTekst": "Je aantekeningen konden niet worden opgehaald.",
+      "opslaanMislukt": "Opslaan mislukt",
+      "opslaanMisluktTekst": "Je aantekening kon niet worden opgeslagen. Probeer het opnieuw, je tekst staat er nog.",
+      "wijzigingMisluktTekst": "Je wijziging kon niet worden opgeslagen. Probeer het opnieuw, je tekst staat er nog.",
+      "verwijderenMislukt": "Verwijderen mislukt",
+      "verwijderenMisluktTekst": "De aantekening kon niet worden verwijderd.",
+      "geenVraag": "Geen reflectievraag",
+      "vraagNietGeladen": "De AI-reflectievraag kon niet worden geladen.",
+      "geenVerbinding": "Geen verbinding",
+      "opgeslagen": "Opgeslagen.",
+      "opgeslagenWeek": "Opgeslagen. Dit is je {aantal}e aantekening deze week.",
+      "opgeslagenPrive": "Opgeslagen, alleen zichtbaar voor jou.",
+      "groepVandaag": "Vandaag",
+      "groepWeek": "Eerder deze week",
+      "groepEerder": "Eerder",
+      "titel": "Journal",
+      "intro": "Schrijf vrij, alleen zichtbaar voor jou.",
+      "bewerkTitel": "Aantekening bewerken",
+      "nieuw": "Nieuwe aantekening",
+      "vandaag": "Vandaag",
+      "hint": "Een of twee zinnen is genoeg, het hoeft nergens heen.",
+      "placeholder": "Begin te schrijven...",
+      "hoeVoel": "Hoe voel je je?",
+      "geenIdee": "Even geen idee?",
+      "laden": "Laden...",
+      "nieuweAiVraag": "Nieuwe AI-vraag",
+      "aiVraag": "AI-reflectievraag",
+      "annuleren": "Annuleren",
+      "opslaanBezig": "Opslaan...",
+      "wijzigingenOpslaan": "Wijzigingen opslaan",
+      "opslaan": "Opslaan",
+      "leegTitel": "Je eerste paar regels",
+      "leegTekst": "Begin hierboven met wat er nu in je opkomt: een gedachte, je dag, waar je mee zit. Alleen jij leest dit terug.",
+      "verwijderVraag": "Aantekening verwijderen?",
+      "nietOngedaan": "Dit kan niet ongedaan worden gemaakt.",
+      "behouden": "Behouden",
+      "verwijderen": "Verwijderen"
+    },
+    "dankbaarheid": {
+      "placeholder": {
+        "samenwerking": "Een fijne samenwerking vandaag…",
+        "genoot": "Een moment waarvan ik genoot…",
+        "energie": "Iets wat me energie gaf…",
+        "overwinning": "Een kleine overwinning…",
+        "persoon": "Een persoon die me hielp…"
+      },
+      "suggestie": {
+        "gezondheid": "Mijn gezondheid",
+        "gesprek": "Een gesprek met…",
+        "rust": "De rust van vandaag",
+        "overwinning": "Een kleine overwinning",
+        "energie": "Mijn energie",
+        "hielp": "Iemand die hielp",
+        "gegeten": "Lekker gegeten",
+        "geslapen": "Goed geslapen",
+        "wandeling": "Een mooie wandeling",
+        "mezelf": "Tijd voor mezelf",
+        "team": "Mijn team of collega's",
+        "buiten": "Buiten zijn geweest",
+        "geleerd": "Iets geleerd",
+        "thuis": "Thuis en veiligheid",
+        "lach": "Een grapje of lach"
+      },
+      "ladenMislukt": "Laden mislukt",
+      "ladenMisluktTekst": "Je eerdere entries konden niet worden opgehaald.",
+      "geenVerbinding": "Geen verbinding",
+      "opslaanMislukt": "Opslaan mislukt",
+      "opslaanMisluktTekst": "Je dankbaarheid kon niet worden opgeslagen. Probeer het opnieuw.",
+      "opslaanVerbinding": "Je dankbaarheid kon niet worden opgeslagen. Controleer je verbinding.",
+      "titel": "Dankbaarheidslogboek",
+      "intro": "Drie dingen per dag. Een gewoonte uit de positieve psychologie.",
+      "stripLabel": "Dankbaarheid afgelopen 7 dagen: op {aantal} van de 7 dagen ingevuld",
+      "streakRegel1": "daagse",
+      "streakRegel2": "streak",
+      "aanpassen": "Aanpassen",
+      "vandaagDankbaar": "Vandaag dankbaar voor…",
+      "itemLabel": "Dankbaar voor, item {nummer}",
+      "wisVeld": "Wis veld",
+      "opgeslagen": "Opgeslagen!",
+      "opslaanBezig": "Opslaan…",
+      "bijwerken": "Bijwerken",
+      "opslaan": "Opslaan",
+      "recent": "Recente entries ({aantal})",
+      "vandaag": "vandaag"
+    },
+    "meditatie": {
+      "sessie": {
+        "ademReset": {
+          "titel": "Korte adem reset",
+          "beschrijving": "Kalm je zenuwstelsel in 3 minuten",
+          "stap1": "Ga comfortabel zitten. Sluit je ogen.",
+          "stap2": "Adem diep in door je neus, 4 tellen.",
+          "stap3": "Houd je adem vast, 4 tellen.",
+          "stap4": "Adem langzaam uit door je mond, 6 tellen.",
+          "stap5": "Herhaal dit ritme rustig..."
+        },
+        "bodyScan": {
+          "titel": "Body scan",
+          "beschrijving": "Scan je lichaam op spanning",
+          "stap1": "Leg je handen op je knieën. Sluit je ogen.",
+          "stap2": "Voel je voeten op de grond. Ontspan.",
+          "stap3": "Ga omhoog via je benen. Laat spanning los.",
+          "stap4": "Ontspan je buik en je borst.",
+          "stap5": "Je schouders en nek. Laat alles los.",
+          "stap6": "Je gezicht, je kaak. Volledige ontspanning.",
+          "stap7": "Blijf even zo. Adem rustig."
+        },
+        "dankbaarheid": {
+          "titel": "Dankbaarheidsmeditatie",
+          "beschrijving": "Focus op wat goed gaat",
+          "stap1": "Sluit je ogen. Haal diep adem.",
+          "stap2": "Denk aan iemand voor wie je dankbaar bent.",
+          "stap3": "Denk aan iets wat goed ging vandaag.",
+          "stap4": "Denk aan je lichaam, dat het voor jou werkt.",
+          "stap5": "Voel de warmte van dankbaarheid in je borst."
+        },
+        "focusReset": {
+          "titel": "Focus reset",
+          "beschrijving": "Herstel je concentratie",
+          "stap1": "Sluit alle tabs in je hoofd.",
+          "stap2": "Adem in, tel: 1. Uit, tel: 2.",
+          "stap3": "Blijf tellen tot 10. Begin opnieuw bij afleiding.",
+          "stap4": "Als je afgeleid wordt, constateer dat en ga terug.",
+          "stap5": "Nog een ronde van 1 tot 10.",
+          "stap6": "Open je ogen. Je bent klaar om te focussen."
+        }
+      },
+      "geschiedenisMislukt": "Kon je geschiedenis niet laden",
+      "probeerLater": "Probeer het later opnieuw.",
+      "nietOpgeslagen": "Sessie niet opgeslagen",
+      "nietOpgeslagenTekst": "Je oefening telt nog steeds, we konden hem alleen niet vastleggen.",
+      "titel": "Mindfulness & Meditatie",
+      "stripLabel": "Meditatie afgelopen 7 dagen: op {aantal} van de 7 dagen geoefend",
+      "min": "min",
+      "week": "week",
+      "sessies": "sessies",
+      "actief": "Actieve sessie: {titel}",
+      "resterend": "Resterende tijd: {tijd}",
+      "stapVan": "Stap {nummer} van {totaal}",
+      "stoppenLabel": "Sessie stoppen (of druk op Escape)",
+      "stoppen": "Stoppen",
+      "voltooid": "Sessie voltooid",
+      "goedGedaan": "Goed gedaan!",
+      "geoefend": "Je hebt {duur} minuten {titel} geoefend.",
+      "nieuweSessie": "Nieuwe sessie",
+      "startLabel": "Start {titel}, {duur} minuten",
+      "minuten": "{duur} min"
+    },
+    "ademhaling": {
+      "techniek": {
+        "ontspanning478": {
+          "naam": "4-7-8 ontspanning",
+          "beschrijving": "Kalmeert het zenuwstelsel, helpt bij stress en slaap.",
+          "doel": "Ontspanning & slaap"
+        },
+        "box": {
+          "naam": "Box breathing",
+          "beschrijving": "Gelijkmatig 4-4-4-4 ritme. Verbetert focus en kalmte onder druk.",
+          "doel": "Focus & stressreductie"
+        },
+        "coherent": {
+          "naam": "Coherente ademhaling",
+          "beschrijving": "5 ademhalingen per minuut; ondersteunt hartritmevariabiliteit en balans.",
+          "doel": "Hart-brein coherentie"
+        },
+        "power": {
+          "naam": "Powerademhaling",
+          "beschrijving": "Energiegevende hyperventilatie gevolgd door retentie.",
+          "doel": "Energie & vitaliteit",
+          "waarschuwing": "Doe deze oefening altijd zittend of liggend, nooit in het water of achter het stuur. Niet doen bij zwangerschap, epilepsie of hartklachten. Stop direct als je je duizelig voelt."
+        }
+      },
+      "fase": {
+        "inademen": "Inademen",
+        "vasthouden": "Vasthouden",
+        "uitademen": "Uitademen",
+        "snelInademen": "Snel inademen",
+        "loslaten": "Loslaten",
+        "retentie": "Retentie"
+      },
+      "nietOpgeslagen": "Sessie niet opgeslagen",
+      "nietOpgeslagenTekst": "Je oefening telt nog steeds, we konden hem alleen niet vastleggen.",
+      "titel": "Ademhalingsoefeningen",
+      "intro": "Bewezen technieken om stress te verminderen en focus te verbeteren.",
+      "kiesLabel": "Kies {naam}: {doel}",
+      "rondesMin": "{rondes} rondes · {min} min",
+      "fasen": "Fasen van {naam}",
+      "veiligheid": "Veiligheid:",
+      "startLabel": "Start {naam}",
+      "kiesEerst": "Kies eerst een techniek",
+      "start": "Start oefening",
+      "voltooid": "Oefening voltooid",
+      "goedGedaan": "Goed gedaan!",
+      "voltooidTekst": "Je hebt {rondes} rondes {naam} voltooid.",
+      "voelRust": "Neem even de tijd om de rust te voelen.",
+      "andere": "Andere oefening",
+      "herhalen": "Herhalen",
+      "actief": "Actieve oefening: {naam}",
+      "faseSr": "{fase}, {seconden} seconden",
+      "ronde": "Ronde {nummer} van {totaal}",
+      "cirkelLabel": "{fase}, nog {seconden} seconden, ronde {nummer} van {totaal}",
+      "faseVan": "Fase {nummer} van {totaal}",
+      "stoppenLabel": "Oefening stoppen (of druk op Escape)",
+      "stoppen": "Stoppen"
+    },
+    "focus": {
+      "adem": {
+        "478": {
+          "naam": "4-7-8 methode",
+          "beschrijving": "Ontwikkeld door Dr. Andrew Weil. Kalmeert het autonome zenuwstelsel en helpt bij angst en inslapen.",
+          "voordeel1": "Vermindert angst",
+          "voordeel2": "Helpt bij inslapen",
+          "voordeel3": "Verlaagt hartslag"
+        },
+        "box": {
+          "naam": "Box breathing",
+          "beschrijving": "Gebruikt door Navy SEALs en topsporters om stress snel te verlagen en focus te herwinnen.",
+          "voordeel1": "Verlaagt cortisol",
+          "voordeel2": "Verbetert concentratie",
+          "voordeel3": "Kalmeert het zenuwstelsel"
+        },
+        "coherentie": {
+          "naam": "Hartcoherentie",
+          "beschrijving": "Synchroniseert de ademhaling met het hart. 5-5 ritme activeert de herstelrespons.",
+          "voordeel1": "Balanceert hart & geest",
+          "voordeel2": "Verlaagt bloeddruk",
+          "voordeel3": "Verbetert emotieregulatie"
+        },
+        "wim": {
+          "naam": "Fysiologische snik",
+          "beschrijving": "Dubbele inademing door de neus gevolgd door een lange uitademing. Stamt uit neurowetenschappelijk onderzoek van Stanford.",
+          "voordeel1": "Snelste stressverlichting",
+          "voordeel2": "Activeert parasympathisch stelsel",
+          "voordeel3": "Werkt binnen 1 minuut"
+        }
+      },
+      "fase": {
+        "inademen": "Inademen",
+        "vasthouden": "Vasthouden",
+        "uitademen": "Uitademen",
+        "inNeus": "In (neus)",
+        "extraInNeus": "Extra in (neus)",
+        "langUitademen": "Lang uitademen"
+      },
+      "advies": {
+        "acuut": {
+          "wanneer": "Acuut gestrest of overprikkeld",
+          "reden": "Snelste resultaat, werkt in 1 tot 2 ademhalingen"
+        },
+        "presentatie": {
+          "wanneer": "Aankomende presentatie of gesprek",
+          "reden": "5 minuten voor een stressvolle situatie"
+        },
+        "slapen": {
+          "wanneer": "Niet kunnen slapen",
+          "reden": "3 tot 4 rondes ontspant het parasympathisch stelsel"
+        },
+        "vermoeid": {
+          "wanneer": "Mentale vermoeidheid overdag",
+          "reden": "Herstelt energiebalans bij langdurige stress"
+        }
+      },
+      "timer": {
+        "focus": {
+          "naam": "Diepe focus",
+          "tip": "Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil."
+        },
+        "pauze": {
+          "naam": "Pauze",
+          "tip": "Sta op, rek je uit, kijk even naar buiten. Geen scherm."
+        },
+        "micro": {
+          "naam": "Micro-break",
+          "tip": "Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders."
+        }
+      },
+      "micro": {
+        "kijkVer": "Kijk 20 sec naar iets op 6 meter (20-20-20 regel)",
+        "nek": "Rek je nek links en rechts, 3x per kant",
+        "water": "Drink een glas water",
+        "rondje": "Loop een rondje door het kantoor",
+        "buikadem": "Doe 3 diepe buikademhalingen",
+        "handen": "Schud je handen en polsen los",
+        "bericht": "Stuur een berichtje naar iemand die je energie geeft"
+      },
+      "kiesTechniek": "Kies techniek",
+      "kiesLabel": "Kies {naam}",
+      "voordelen": "Voordelen",
+      "faseLabel": "{fase}, nog {seconden} seconden",
+      "rondeVoltooid": "{aantal} ronde voltooid",
+      "rondenVoltooid": "{aantal} ronden voltooid",
+      "ademStoppen": "Ademhaling stoppen",
+      "ademStarten": "Ademhaling starten",
+      "stop": "Stop",
+      "startAdem": "Start ademhaling",
+      "wanneer": "Wanneer gebruik je wat?",
+      "presetLabel": "{naam}, {tijd}",
+      "resterend": "{naam}: {tijd} resterend",
+      "voltooid": "{naam} voltooid",
+      "vandaagEen": "+{plus} min · vandaag {minuten} min in {sessies} sessie",
+      "vandaagMeer": "+{plus} min · vandaag {minuten} min in {sessies} sessies",
+      "nieuweStarten": "Nieuwe sessie starten",
+      "pauzeren": "Timer pauzeren",
+      "naamStarten": "{naam} starten",
+      "hervatten": "Timer hervatten",
+      "nieuweSessie": "Nieuwe sessie",
+      "pauzeer": "Pauzeer",
+      "startNaam": "Start {naam}",
+      "hervat": "Hervat",
+      "resetten": "Timer resetten",
+      "reset": "Reset",
+      "microTitel": "Ideeën voor je micro-break",
+      "pomodoroTitel": "Pomodoro methode",
+      "pomodoroTekst": "Werk in blokken van 25 minuten gefocust werk, gevolgd door 5 minuten pauze. Na 4 blokken een lange pauze van 15 tot 30 minuten.",
+      "blokFocus": "{minuten}m focus",
+      "blokPauze": "{minuten}m pauze",
+      "nietOpgeslagen": "Sessie niet opgeslagen",
+      "nietOpgeslagenTekst": "Je focusblok telt nog steeds, we konden hem alleen niet vastleggen.",
+      "statsMislukt": "Kon je focus-statistieken niet laden",
+      "probeerLater": "Probeer het later opnieuw.",
+      "minFocus": "min focus",
+      "sessie": "sessie",
+      "sessies": "sessies",
+      "top": "Top!",
+      "goed": "Goed",
+      "bezig": "Bezig",
+      "vandaag": "vandaag",
+      "titel": "Focus & Welzijn",
+      "intro": "Ademhaling, beweging, voeding, slaap en mentale reset.",
+      "tabsLabel": "Welzijnscategorieën",
+      "tab": {
+        "adem": "Ademhaling",
+        "beweging": "Beweging",
+        "voeding": "Voeding",
+        "slaap": "Slaap",
+        "mentaal": "Mentaal",
+        "timer": "Timer"
+      }
+    },
+    "kennis": {
+      "minuten": "{aantal} min",
+      "subStappen": "{duur} · {aantal} stappen",
+      "subTips": "{aantal} tips",
+      "intensiteit": {
+        "laag": "Laag",
+        "gemiddeld": "Gemiddeld",
+        "hoog": "Hoog"
+      },
+      "intensiteitAantal": "{label} ({aantal})",
+      "bewegingIntroVoor": "Elke 50-90 minuten even bewegen",
+      "bewegingIntroNadruk": "kan helpen je focus te verbeteren",
+      "bewegingIntroNa": "en rugklachten te verlichten.",
+      "schemaTitel": "Snel bewegingsschema",
+      "voedingIntro": "Voeding kan invloed hebben op cortisol, serotonine en dopamine, de stofjes die meespelen bij je stress en energie.",
+      "dagritmeTitel": "Ideale werkdag qua eten",
+      "winddownTitel": "Slaap-wind-down routine",
+      "mentaalIntro": "Mentale technieken kunnen je helpen rustiger te worden en stress te verlagen door je aandacht bewust te sturen.",
+      "signalenTitel": "Stress signalen herkennen",
+      "signalenIntro": "Fysieke en mentale tekenen dat je een reset nodig hebt:",
+      "oefening": {
+        "nekSchouder": {
+          "naam": "Nek- en schouderrol",
+          "waarom": "Vermindert spanning door langdurig naar een scherm kijken.",
+          "stap1": "Kantel je hoofd langzaam naar rechts, houd 10 sec vast",
+          "stap2": "Rol je kin naar je borst en naar links, houd 10 sec vast",
+          "stap3": "Rol je schouders 5x naar achteren, daarna 5x naar voren",
+          "stap4": "Knijp je schouderbladen 3x samen voor 5 seconden"
+        },
+        "rugstrek": {
+          "naam": "Zittende rugstrek",
+          "waarom": "Verlicht rugpijn en verbetert de houding.",
+          "stap1": "Ga rechtop zitten op de rand van je stoel",
+          "stap2": "Kruis je rechterarm voor je lichaam en draai de romp naar rechts",
+          "stap3": "Houd 15 seconden vast, adem rustig door",
+          "stap4": "Herhaal links",
+          "stap5": "Stretch je armen boven je hoofd en rek 10 seconden"
+        },
+        "standingDesk": {
+          "naam": "Standing desk reset",
+          "waarom": "Verbetert bloedsomloop na lang zitten.",
+          "stap1": "Sta op en doe 10 kuitraises (op je tenen gaan staan)",
+          "stap2": "Doe 10 squats (langzaam, houd 2 sec vast onderaan)",
+          "stap3": "Loop 1 minuut rustig door het kantoor of op de plek",
+          "stap4": "Doe 5 heupwippen per kant terwijl je staat"
+        },
+        "polsHand": {
+          "naam": "Pols & hand workout",
+          "waarom": "Voorkomt RSI en pijnlijke polsen bij toetsenbordgebruik.",
+          "stap1": "Strek je rechterarm en buig je pols omhoog, houd 10 sec vast",
+          "stap2": "Buig je pols omlaag, houd 10 sec vast",
+          "stap3": "Maak vuisten, dan waaier je vingers zo wijd mogelijk uit (10x)",
+          "stap4": "Draai je polsen 5x per kant in cirkels"
+        },
+        "core": {
+          "naam": "Core activatie",
+          "waarom": "Versterkt de buikspieren die je rug ondersteunen.",
+          "stap1": "Ga zitten met voeten plat op de grond",
+          "stap2": "Trek je navel in en span je buik aan voor 10 seconden (4x)",
+          "stap3": "Doe zittende knieheffers: til afwisselend je knie op (20x per been)",
+          "stap4": "Leun 45 graden achterover en houd 20 seconden een hollow-hold vast"
+        },
+        "oogKaak": {
+          "naam": "Oog & kaak ontspanning",
+          "waarom": "Verlaagt oogvermoeidheid en kaakspanning door stress.",
+          "stap1": "Wrijf je handpalmen warm en leg ze 30 sec over je gesloten ogen (palming)",
+          "stap2": "Kijk 20 seconden naar een punt op 6 meter (20-20-20 regel)",
+          "stap3": "Beweeg je ogen langzaam in een grote cirkel (3x per kant)",
+          "stap4": "Laat je kaak los hangen, masseer je kaakspieren 30 seconden"
+        },
+        "energieboost": {
+          "naam": "Snelle energieboost",
+          "waarom": "Verhoogt hartslag en alertheid bij een middagdip.",
+          "stap1": "20 jumping jacks (of arm-zwaai als je niet wilt springen)",
+          "stap2": "10 push-ups (of op de muur als dat makkelijker is)",
+          "stap3": "15 seconden snel ter plekke stappen",
+          "stap4": "10 tricep dips op je stoel",
+          "stap5": "Eindig met 5 diepe buikademhalingen"
+        },
+        "spierontspanning": {
+          "naam": "Progressieve spierontspanning",
+          "waarom": "Wetenschappelijk bewezen methode om spierspanning en angst te verlagen.",
+          "stap1": "Span je voeten aan voor 5 sec, laat los. Voel het verschil.",
+          "stap2": "Span je kuiten aan, houd 5 sec, laat los.",
+          "stap3": "Dijen en billen: span aan, houd 5 sec, laat los.",
+          "stap4": "Buik en borst: inademen, alles aanspannen, 5 sec, uitademen & loslaten.",
+          "stap5": "Handen en armen: vuisten, biceps aanspannen, 5 sec, loslaten.",
+          "stap6": "Schouders optrekken naar oren, 5 sec, dan helemaal loslaten.",
+          "stap7": "Gezichtsspieren samenknijpen, 5 sec, dan alles ontspannen."
+        }
+      },
+      "schema": {
+        "rij1": "Sta op, doe 10 squats voor je begint",
+        "rij2": "Sta 10 min (of loop naar een collega in plaats van te mailen)",
+        "rij3": "Loop 10 min buiten tijdens de lunch",
+        "rij4": "Snelle energieboost (4 min desk workout)",
+        "rij5": "Rek & strek: nek, schouders, polsen (2 min)"
+      },
+      "voeding": {
+        "hydratatie": {
+          "titel": "Hydratatie",
+          "tip1": {
+            "titel": "Drink voor je dorst voelt",
+            "tekst": "Zodra je dorstig bent, ben je al 1-2% uitgedroogd. Dit verlaagt je concentratie meetbaar. Houd een fles water op je bureau."
+          },
+          "tip2": {
+            "titel": "Koffieregel: 1 op 1",
+            "tekst": "Drink bij elke kop koffie ook een glas water. Koffie werkt licht vochtafdrijvend. Zo blijf je gehydrateerd zonder cafeinegehalte te verlagen."
+          },
+          "tip3": {
+            "titel": "Groene thee als alternatief",
+            "tekst": "Groene thee bevat L-theanine, wat samen met cafeïne zorgt voor rustige, gestage focus zonder de jittery bijwerking van koffie."
+          },
+          "tip4": {
+            "titel": "Kokoswatershot bij stress",
+            "tekst": "Kokoswater bevat elektrolyten die verloren gaan bij stress (zweten, gespannen spieren). Een kleine portie helpt bij aanhoudende spanning."
+          }
+        },
+        "focusEten": {
+          "titel": "Focus eten",
+          "tip1": {
+            "titel": "Blauwe bessen: het hersenfruit",
+            "tekst": "Rijk aan antioxidanten (flavonoiden) die de bloedtoevoer naar de prefrontale cortex verhogen. Een handje voor je werk bevordert aandacht en werkgeheugen."
+          },
+          "tip2": {
+            "titel": "Noten als snack",
+            "tekst": "Walnoten bevatten omega-3 vetzuren die de verbinding tussen neuronen versterken. Amandelen geven langzame energie. Ideaal als bureausnack."
+          },
+          "tip3": {
+            "titel": "Donkere chocolade (>70%)",
+            "tekst": "Bevat theobromine en flavonoiden die de bloedstroom naar de hersenen verbeteren. Een stuk na de lunch vermindert de middagdip."
+          },
+          "tip4": {
+            "titel": "Avocado bij de lunch",
+            "tekst": "Onverzadigde vetten in avocado ondersteunen de myeline-laag om zenuwbanen. Dit verbetert de signaaloverdracht in de hersenen."
+          },
+          "tip5": {
+            "titel": "Eieren als ontbijt",
+            "tekst": "Choline in eidooiers is een bouwsteen voor acetylcholine, de neurotransmitter van leren en geheugen. Geassocieerd met betere cognitieve prestaties."
+          }
+        },
+        "energie": {
+          "titel": "Energieniveaus",
+          "tip1": {
+            "titel": "Vermijd suikerpieken",
+            "tekst": "Na een snelle suikerpiek (snoep, frisdrank) volgt een even snelle dip, met verminderde concentratie. Kies voor complexe koolhydraten zoals havermout of volkorenbrood."
+          },
+          "tip2": {
+            "titel": "Eiwitrijk ontbijt",
+            "tekst": "Eiwitten (eieren, kwark, noten) stabiliseren de bloedsuiker en zorgen voor een lang gevoel van verzadiging. Dit voorkomt de ochtend-concentratieproblemen."
+          },
+          "tip3": {
+            "titel": "Cafeïnetiming is alles",
+            "tekst": "Drink je eerste koffie pas 90 minuten na het opstaan. Dan is de cortisol-piek al voorbij. Koffie werkt dan veel effectiever en de crash is kleiner."
+          },
+          "tip4": {
+            "titel": "Lunch: licht maar vullend",
+            "tekst": "Een te zware lunch (koolhydraatrijke pasta, aardappels) activeert je spijsvertering maximaal, wat energie wegtrekt van je hersenen. Kies voor salade met proteinen."
+          },
+          "tip5": {
+            "titel": "Magnesium tegen stress",
+            "tekst": "Langdurige stress put magnesiumreserves uit. Magnesiumrijke voedingsmiddelen (pompoenpitten, spinazie, donkere chocolade) helpen de stressrespons te temperen."
+          }
+        },
+        "antiStress": {
+          "titel": "Anti-stress voeding",
+          "tip1": {
+            "titel": "Adaptogenen: Ashwagandha",
+            "tekst": "Ashwagandha (in supplementvorm of thee) is een klinisch onderzochte adaptogeen die de cortisolaanmaak bij chronische stress significant verlaagt."
+          },
+          "tip2": {
+            "titel": "Gefermenteerd voedsel",
+            "tekst": "Yoghurt, kefir en zuurkool bevatten probiotica die de darm-hersenverbinding ondersteunen. Gut health is direct gekoppeld aan stressgevoeligheid en stemming."
+          },
+          "tip3": {
+            "titel": "Omega-3 vetzuren",
+            "tekst": "Vette vis (zalm, makreel) 2x per week verlaagt ontstekingswaarden die samengaan met burn-out en depressie. Visolie supplement als alternatief."
+          },
+          "tip4": {
+            "titel": "Vermijd alcohol bij stress",
+            "tekst": "Hoewel alcohol ontspanning geeft, verstoort het REM-slaap en verhoogt het de volgende dag de cortisolspiegel. Dit maakt stress chronisch."
+          }
+        }
+      },
+      "dagritme": {
+        "ochtend": {
+          "tijd": "Ochtend",
+          "item1": "Eiwitrijk ontbijt (eieren, kwark)",
+          "item2": "Eerste koffie 90 min na het opstaan",
+          "item3": "500ml water voor 10:00"
+        },
+        "middag": {
+          "tijd": "Middag",
+          "item1": "Lichte lunch (proteinen + groenten)",
+          "item2": "Noten of bessen als snack",
+          "item3": "Koffie stop om 14:00"
+        },
+        "avond": {
+          "tijd": "Avond",
+          "item1": "Magnesiumrijke groenten (spinazie)",
+          "item2": "Geen alcohol als je wil slapen",
+          "item3": "Kamille- of valeriaanthee"
+        }
+      },
+      "slaap": {
+        "routine": {
+          "titel": "Slaaproutine opbouwen",
+          "tip1": {
+            "titel": "Vaste slaaptijden",
+            "tekst": "Je lichaam heeft een interne klok (circadiaan ritme). Elke dag op dezelfde tijd naar bed gaan en opstaan, ook in het weekend, verbetert slaapkwaliteit dramatisch na 2-3 weken."
+          },
+          "tip2": {
+            "titel": "Wind-down ritueel",
+            "tekst": "Begin 60 minuten voor slaaptijd met dimmen: geen schermen, zachte verlichting, rustige activiteit (lezen, stretchen, warme douche). Dit activeert melatonineproductie."
+          },
+          "tip3": {
+            "titel": "Slaapomgeving optimaliseren",
+            "tekst": "De ideale slaapkamer is koel (16-18°C), volledig donker en stil. Investeer in verduisterende gordijnen en oordoppen als dat nodig is."
+          },
+          "tip4": {
+            "titel": "Geen schermen 1 uur voor bed",
+            "tekst": "Blauw licht van schermen onderdrukt melatonine met tot 50%. Gebruik nacht-modus of bluelight-bril als je het niet kunt vermijden."
+          }
+        },
+        "stress": {
+          "titel": "Slaap en stress",
+          "tip1": {
+            "titel": "Schrijf zorgen van je af",
+            "tekst": "Maak voor het slapen een \"worry dump\": schrijf alles op wat je bezighoudt. Dit ontlaadt je werkgeheugen en voorkomt piekeren in bed."
+          },
+          "tip2": {
+            "titel": "Piekertijd overdag inplannen",
+            "tekst": "Reserveer 15-20 minuten overdag specifiek om te piekeren. Als je in bed begint te piekeren, herinner jezelf: dat doe ik morgen tijdens mijn piekertijd."
+          },
+          "tip3": {
+            "titel": "Diafragmatische ademhaling in bed",
+            "tekst": "Buikademhaling activeert het parasympathische zenuwstelsel. Leg je hand op je buik, adem 4 tel in, 6 tel uit. Herhaal 5-10 minuten."
+          },
+          "tip4": {
+            "titel": "Cognitieve shuffle",
+            "tekst": "Een techniek van Dr. Luc Beaulieu: stel je willekeurige, niet-emotionele beelden voor (bijv. een anker, dan een banaan, dan een vuurwerk). Dit voorkomt het analytische denken dat wakker houdt."
+          }
+        },
+        "powernap": {
+          "titel": "Powernap wetenschap",
+          "tip1": {
+            "titel": "De ideale nap: 10-20 minuten",
+            "tekst": "Korte naps van 10-20 minuten verbeteren alertheid, stemming en cognitieve prestaties zonder de slaapkwaliteit 's nachts te verstoren. NASA-onderzoek bevestigt dit."
+          },
+          "tip2": {
+            "titel": "Koffiedutje truc",
+            "tekst": "Drink een espresso net voor je dutje. Cafeïne werkt na 20-25 minuten: je wordt wakker precies als de cafeïne begint te werken. Extra alert op twee manieren tegelijk."
+          },
+          "tip3": {
+            "titel": "Nooit nappen na 15:00",
+            "tekst": "Naps na 15:00 verstoren je slaapdruk (adenosine) en maken het moeilijker om op tijd in slaap te vallen. Plan je nap in de vroege middag."
+          },
+          "tip4": {
+            "titel": "Slaapschuld is cumulatief",
+            "tekst": "Elke nacht een uur te kort slapen is na een week equivalent aan een nacht geen slaap. Een weekend \"uitslapen\" maakt maar een deel van de schade goed."
+          }
+        },
+        "supplementen": {
+          "titel": "Melatonine & supplementen",
+          "tip1": {
+            "titel": "Melatonine: minder is meer",
+            "tekst": "De effectieve dosis melatonine is 0.5-1 mg, niet de 5-10 mg die in de meeste supplementen zit. Lagere doses werken even goed met minder bijeffecten."
+          },
+          "tip2": {
+            "titel": "Magnesium glycinaat voor slaap",
+            "tekst": "Magnesium glycinaat (niet oxide) ontspant spieren en zenuwstelsel. 200-400 mg 30 min voor bed helpt bij in- en doorslapen."
+          },
+          "tip3": {
+            "titel": "L-theanine bij piekeren",
+            "tekst": "L-theanine (aminozuur uit groene thee) verhoogt GABA en bevordert ontspanning zonder slaperigheid. Goed bij mentale onrust voor het slapen."
+          },
+          "tip4": {
+            "titel": "Geen alcohol als slaaphulp",
+            "tekst": "Alcohol verstoort de REM-slaapfase disproportioneel. Je valt sneller in slaap maar wordt vaker wakker en de slaap is minder herstellend."
+          }
+        }
+      },
+      "feit": {
+        "slaapduur": {
+          "label": "Ideale slaapduur",
+          "waarde": "7-9u"
+        },
+        "nap": {
+          "label": "Ideale nap",
+          "waarde": "10-20m"
+        },
+        "schermen": {
+          "label": "Geen schermen",
+          "waarde": "60m voor bed"
+        }
+      },
+      "winddown": {
+        "t60": {
+          "tijd": "T-60 min",
+          "actie": "Schermen weg of blauwlichtfilter aan"
+        },
+        "t45": {
+          "tijd": "T-45 min",
+          "actie": "Warme douche of bad (kerntemperatuur daalt daarna)"
+        },
+        "t30": {
+          "tijd": "T-30 min",
+          "actie": "Schrijf morgenlijst + worry dump"
+        },
+        "t20": {
+          "tijd": "T-20 min",
+          "actie": "Lees boek (geen tablet) of doe lichte stretch"
+        },
+        "t10": {
+          "tijd": "T-10 min",
+          "actie": "Verduister de kamer, stel temperatuur in op 17-18°C"
+        },
+        "inBed": {
+          "tijd": "In bed",
+          "actie": "Diafragmatische ademhaling of 4-7-8 methode"
+        }
+      },
+      "techniek": {
+        "grounding": {
+          "naam": "5-4-3-2-1 grounding",
+          "beschrijving": "Een evidence-based techniek tegen angst en een overweldigd gevoel.",
+          "stap1": "5 dingen die je KAN ZIEN: benoem ze in je hoofd",
+          "stap2": "4 dingen die je KAN AANRAKEN: voel ze even aan",
+          "stap3": "3 dingen die je KAN HOREN: luister actief",
+          "stap4": "2 dingen die je KAN RUIKEN: ook fantasie telt",
+          "stap5": "1 ding dat je KAN PROEVEN: neem een slokje water"
+        },
+        "ontluchting": {
+          "naam": "Mentale ontluchting",
+          "beschrijving": "Schrijf alles uit je hoofd. Geen oordeel, geen structuur.",
+          "stap1": "Pak een leeg blad of open een leeg document",
+          "stap2": "Stel een timer op 5 minuten",
+          "stap3": "Schrijf alles op wat in je hoofd zit, zonder censuur",
+          "stap4": "Schrijf ook fysieke gevoelens op: spanning, vermoeidheid",
+          "stap5": "Als de timer afgaat, sluit je het document. Klaar."
+        },
+        "herstructurering": {
+          "naam": "Cognitieve herstructurering",
+          "beschrijving": "Stel de gedachte die je stress geeft in vraag.",
+          "stap1": "Identificeer de stressvolle gedachte: \"Ik ga dit niet afkrijgen.\"",
+          "stap2": "Vraag: Is dit 100% zeker waar?",
+          "stap3": "Vraag: Wat zijn bewijzen voor EN tegen deze gedachte?",
+          "stap4": "Vraag: Wat zou je zeggen tegen een vriend in deze situatie?",
+          "stap5": "Formuleer een realistischere gedachte: \"Ik doe wat ik kan.\""
+        },
+        "bodyscan": {
+          "naam": "Bodyscan meditatie",
+          "beschrijving": "Scan je lichaam van voeten tot hoofd en laat spanning los.",
+          "stap1": "Sluit je ogen en adem 3x diep in en uit",
+          "stap2": "Richt je aandacht op je voeten: voel het contact met de grond",
+          "stap3": "Beweeg langzaam omhoog: kuiten, dijen, heupen",
+          "stap4": "Buik, borst: voel je ademhaling van binnenuit",
+          "stap5": "Rug, schouders: laat bewust los bij elke uitademing",
+          "stap6": "Nek, kaak, gezicht: ontspan elk spiergroepje",
+          "stap7": "Observeer je hele lichaam als een geheel. Adem nog 3x."
+        },
+        "dankbaarheid": {
+          "naam": "Dankbaarheidsscan",
+          "beschrijving": "Wetenschappelijk bewezen: dankbaarheid verhoogt dopamine en verlaagt cortisol.",
+          "stap1": "Denk aan 3 specifieke dingen die goed gingen vandaag",
+          "stap2": "Geen grote zaken: \"koffie was lekker\" telt",
+          "stap3": "Schrijf elk punt op, want schrijven versterkt het effect",
+          "stap4": "Noteer bij elk punt: waarom ben je hier dankbaar voor?",
+          "stap5": "Sluit af met: \"Dit is wat vandaag goed was.\""
+        },
+        "stresscheck": {
+          "naam": "Snelle stresscheck",
+          "beschrijving": "Beoordeel je stressniveau eerlijk en plan een actie.",
+          "stap1": "Geef je stressniveau een cijfer van 1 tot 10",
+          "stap2": "Lokaliseer de spanning in je lichaam. Waar voel je het?",
+          "stap3": "Noem 1 ding dat je stress geeft",
+          "stap4": "Vraag: kan ik dit NU oplossen of niet?",
+          "stap5": "Als ja: plan de eerste kleine stap. Als nee: laat het bewust los."
+        }
+      },
+      "signaal": {
+        "kortaf": "Kortaf reageren op collega's",
+        "kaken": "Kaken op elkaar zetten",
+        "focus": "Moeite om te focussen",
+        "adem": "Ondiep ademen",
+        "leeg": "Leeg gevoel, geen motivatie",
+        "groot": "Kleine dingen groot maken",
+        "slapen": "Vermoeid maar niet kunnen slapen",
+        "scrollen": "Constant scherm scrollen"
+      }
+    },
+    "mentaleSterkte": {
+      "vraag": {
+        "tegenslag": "Als ik een tegenslag ervaar, herstel ik me snel.",
+        "onzekerheid": "Ik kan omgaan met onzekerheid zonder overmatige stress.",
+        "prioriteiten": "Ik stel prioriteiten goed en voorkom overbelasting.",
+        "grenzen": "Ik durf nee te zeggen als mijn grenzen worden overschreden.",
+        "motivatie": "Ik heb een duidelijk gevoel van wat mij motiveert.",
+        "steun": "Ik heb goede sociale steun om op terug te vallen.",
+        "slaap": "Ik slaap voldoende en herstel goed van inspanning.",
+        "gedachten": "Ik houd mijn negatieve gedachten goed onder controle."
+      },
+      "schaal": {
+        "nooit": "Nooit",
+        "zelden": "Zelden",
+        "soms": "Soms",
+        "vaak": "Vaak",
+        "altijd": "Altijd"
+      },
+      "niveau": {
+        "sterk": "Sterk",
+        "gemiddeld": "Gemiddeld",
+        "kwetsbaar": "Kwetsbaar",
+        "aandacht": "Aandacht nodig"
+      },
+      "analyseNietOpgehaald": "De analyse kon niet worden opgehaald.",
+      "analyseMislukt": "Analyse mislukt",
+      "probeerLater": "Probeer het later opnieuw.",
+      "titel": "Mentale veerkracht quiz",
+      "sub": "{aantal} vragen · AI-analyse · 2 minuten",
+      "voortgang": "Voortgang quiz",
+      "beantwoord": "{aantal}/{totaal} beantwoord",
+      "schaalLabel": "{waarde}: {label}",
+      "analyseert": "AI analyseert…",
+      "bekijk": "Bekijk mijn analyse",
+      "score": "Score: {score}/100",
+      "scoreLabel": "Veerkrachtscore: {score} van 100, niveau {niveau}",
+      "aiAnalyse": "AI-analyse",
+      "perVraag": "Jouw scores per vraag",
+      "opnieuw": "Opnieuw doen",
+      "bespreek": "Bespreek met coach"
+    },
+    "burnout": {
+      "vraag": {
+        "u1": "Ik voel me emotioneel uitgeput door mijn werk.",
+        "u2": "Ik voel me vermoeid als ik 's ochtends opsta en aan de werkdag denk.",
+        "u3": "Werken de hele dag kost me echt veel energie.",
+        "u4": "Ik voel me opgebrand na mijn werk.",
+        "c1": "Ik ben minder enthousiast over mijn werk geworden.",
+        "c2": "Ik twijfel steeds vaker aan het belang van mijn werk.",
+        "c3": "Ik raak minder betrokken bij wat er op het werk speelt.",
+        "c4": "Ik distantieer me van collega's of klanten om mijn energie te bewaren.",
+        "e1": "Ik voel me competent in mijn werk.",
+        "e2": "Ik bereik de dingen die ik wil bereiken in mijn functie.",
+        "e3": "Ik heb het gevoel dat ik een positieve bijdrage lever.",
+        "e4": "In mijn beleving doe ik goed werk."
+      },
+      "schaal": {
+        "nooit": "Nooit",
+        "zelden": "Zelden",
+        "soms": "Soms",
+        "vaak": "Vaak",
+        "altijd": "Altijd"
+      },
+      "risicoHoog": "Hoog risico",
+      "risicoMatig": "Matig risico",
+      "risicoLaag": "Laag risico",
+      "adviesHoog1": "Overweeg een gesprek met je leidinggevende of HR over je werkbelasting.",
+      "adviesHoog2": "Zoek professionele begeleiding. Een coach of psycholoog kan goed helpen.",
+      "adviesHoog3": "Plan bewust rustmomenten in je dag en week.",
+      "adviesMatig1": "Let op je energiepeil en kaart knelpunten aan bij je team of leidinggevende.",
+      "adviesMatig2": "Probeer micro-pauzes in te bouwen tussen intensieve taken.",
+      "adviesLaag": "Goed bezig! Blijf inzetten op je herstel en energie.",
+      "adviesUitputting": "Je scoort hoog op uitputting, dus slaap en herstel zijn extra belangrijk voor jou.",
+      "adviesDistantie": "Je voelt wat distantie. Praten met de coach of een collega kan helpen die motivatie terug te vinden.",
+      "adviesEffectiviteit": "Je twijfelt aan je effectiviteit. Bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.",
+      "nietOpgeslagen": "Scan niet opgeslagen",
+      "geenBedrijf": "Je account is nog niet aan een bedrijf gekoppeld. Je resultaat zie je wel hieronder.",
+      "opslaanMislukt": "Opslaan lukte niet. Je resultaat zie je wel, probeer het later opnieuw.",
+      "titel": "Burn-out risicoscan",
+      "intro": "{aantal} vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.",
+      "privacy": "Resultaten zijn alleen voor jou, niet zichtbaar voor HR of je leidinggevende.",
+      "start": "Start de scan",
+      "eerdereBekijken": "Bekijk eerdere scans",
+      "terug": "Terug",
+      "beantwoord": "{aantal} van {totaal} beantwoord",
+      "voortgangLabel": "Voortgang: {aantal} van {totaal} beantwoord",
+      "groepUitputting": "Energie & uitputting",
+      "groepBetrokkenheid": "Betrokkenheid",
+      "groepEffectiviteit": "Effectiviteit",
+      "schaalLabel": "{waarde}: {label}",
+      "bezig": "Bezig…",
+      "bekijkResultaat": "Bekijk mijn resultaat",
+      "resultaat": "Jouw resultaat",
+      "scores": "Scores",
+      "uitputting": "Uitputting",
+      "distantie": "Distantie",
+      "effectiviteit": "Effectiviteit",
+      "effectKort": "Effect.",
+      "lagerBeter": "Lager is beter",
+      "hogerBeter": "Hoger is beter",
+      "advies": "Persoonlijk advies",
+      "praatCoach": "Praat met de coach",
+      "opnieuw": "Opnieuw scannen",
+      "eerdere": "Eerdere scans",
+      "geenScans": "Nog geen scans gedaan.",
+      "verbetering": "Verbetering",
+      "verslechtering": "Verslechtering",
+      "stabiel": "Stabiel",
+      "trend": "Trend over tijd",
+      "laag": "Laag",
+      "matig": "Matig",
+      "hoog": "Hoog"
+    },
+    "disc": {
+      "vraag": {
+        "v1": "Ik neem graag het voortouw in nieuwe situaties.",
+        "v2": "Ik stel hoge eisen aan mezelf en anderen.",
+        "v3": "Ik ga direct op mijn doel af, zonder omwegen.",
+        "v4": "Ik neem snel beslissingen, ook zonder alle informatie.",
+        "v5": "Ik daag bestaande situaties en regels graag uit.",
+        "v6": "Ik werk hard om de beste te zijn in wat ik doe.",
+        "v7": "Ik maak makkelijk nieuwe contacten en vrienden.",
+        "v8": "Ik ben enthousiast en positief ingesteld.",
+        "v9": "Ik weet mensen te overtuigen en te inspireren.",
+        "v10": "Ik ben graag het middelpunt van de aandacht.",
+        "v11": "Ik deel mijn gevoelens en ervaringen open met anderen.",
+        "v12": "Ik breng energie en positiviteit in een groep.",
+        "v13": "Mensen kunnen op mij rekenen: ik ben betrouwbaar en consistent.",
+        "v14": "Ik werk het liefst in een stabiele, voorspelbare omgeving.",
+        "v15": "Ik ben een goede luisteraar en geef anderen ruimte.",
+        "v16": "Ik werk graag samen met anderen aan een gemeenschappelijk doel.",
+        "v17": "Ik blijf geduldig in stressvolle of onduidelijke situaties.",
+        "v18": "Ik streef naar harmonie en goede relaties in mijn omgeving.",
+        "v19": "Nauwkeurigheid en kwaliteit zijn voor mij erg belangrijk.",
+        "v20": "Ik analyseer situaties grondig voordat ik actie onderneem.",
+        "v21": "Ik volg graag vaste procedures en richtlijnen.",
+        "v22": "Ik controleer mijn werk meerdere keren om fouten te vermijden.",
+        "v23": "Ik werk op een systematische en gestructureerde manier.",
+        "v24": "Ik houd hoge kwaliteitsstandaarden aan in alles wat ik doe."
+      },
+      "dim": {
+        "d": {
+          "label": "Dominantie",
+          "beschrijving": "Resultaatgericht, direct en besluitvaardig. Je neemt graag de leiding en stelt hoge eisen.",
+          "kern1": "Leidend",
+          "kern2": "Besluitvaardig",
+          "kern3": "Resultaatgericht",
+          "kern4": "Direct"
+        },
+        "i": {
+          "label": "Invloed",
+          "beschrijving": "Enthousiast, sociaal en overtuigend. Je inspireert anderen en brengt energie in het team.",
+          "kern1": "Enthousiast",
+          "kern2": "Sociaal",
+          "kern3": "Overtuigend",
+          "kern4": "Inspirerend"
+        },
+        "s": {
+          "label": "Stabiliteit",
+          "beschrijving": "Betrouwbaar, geduldig en samenwerkingsgericht. Je zorgt voor stabiliteit en harmonie.",
+          "kern1": "Betrouwbaar",
+          "kern2": "Geduldig",
+          "kern3": "Harmonieus",
+          "kern4": "Teamgericht"
+        },
+        "c": {
+          "label": "Conscientieusheid",
+          "beschrijving": "Nauwkeurig, analytisch en kwaliteitsgericht. Je werkt systematisch en grondig.",
+          "kern1": "Nauwkeurig",
+          "kern2": "Analytisch",
+          "kern3": "Systematisch",
+          "kern4": "Kwaliteitsgericht"
+        }
+      },
+      "dimNaam": "{letter} · {label}",
+      "schaal1": "Helemaal niet",
+      "schaal2": "Nauwelijks",
+      "schaal3": "Soms",
+      "schaal4": "Vaak",
+      "schaal5": "Volledig",
+      "schaalLabel": "{waarde}: {label}",
+      "samen": {
+        "dd": {
+          "label": "Krachtig duo",
+          "beschrijving": "Hoge energie en ambitie, maar let op: beide willen leiden. Spreek rollen duidelijk af."
+        },
+        "di": {
+          "label": "Energieke combinatie",
+          "beschrijving": "D brengt focus en richting, I zorgt voor enthousiasme en draagvlak. Sterk team."
+        },
+        "ds": {
+          "label": "Daadkracht & rust",
+          "beschrijving": "D drijft vooruit, S zorgt voor stabiliteit. Goede balans als er respect is voor elkaars tempo."
+        },
+        "dc": {
+          "label": "Resultaat & precisie",
+          "beschrijving": "D wil snel, C wil grondig. Kan wrijving geven, maar levert kwalitatief sterke resultaten."
+        },
+        "ii": {
+          "label": "Bruisend en creatief",
+          "beschrijving": "Veel energie en ideeën, maar wie bewaakt de uitvoering? Zorg voor structuur erbij."
+        },
+        "is": {
+          "label": "Warm en harmonieus",
+          "beschrijving": "I inspireert, S ondersteunt. Mensen voelen zich gewaardeerd in dit team."
+        },
+        "ic": {
+          "label": "Creativiteit & kwaliteit",
+          "beschrijving": "I genereert ideeën, C verfijnt ze. Complementair als ze elkaars stijl respecteren."
+        },
+        "ss": {
+          "label": "Stabiel en betrouwbaar",
+          "beschrijving": "Hoge harmonie en loyaliteit. Sterk in uitvoering, maar pas op voor vermijding van conflict."
+        },
+        "sc": {
+          "label": "Stabiel analytisch team",
+          "beschrijving": "Geduldig, grondig en betrouwbaar. Uitstekend voor complexe, zorgvuldige taken."
+        },
+        "cc": {
+          "label": "Kwaliteitsgedreven duo",
+          "beschrijving": "Hoge standaarden en precisie. Sterk in analyse, maar bewaar oog voor de grote lijn."
+        }
+      },
+      "radarDeel": "{label} {score} van 30",
+      "radarLabel": "Radar-diagram van jouw DISC-scores: {beschrijving}.",
+      "verwerkingMislukt": "Verwerking mislukt",
+      "ietsMis": "Er ging iets mis",
+      "titel": "DISC Persoonlijkheidstest",
+      "sub": "Ontdek jouw dominante gedragsstijl",
+      "alIngevuld": "Je hebt deze test al ingevuld",
+      "gedaanOp": "Gedaan op {datum}",
+      "laatste": "Jouw laatste resultaat",
+      "bekijkRapport": "Bekijk je rapport",
+      "opnieuw": "Doe de test opnieuw",
+      "watIs": "Wat is DISC?",
+      "uitleg": "DISC is een model dat gedragsstijlen beschrijft aan de hand van vier dimensies. Er is geen goed of fout profiel: elke stijl heeft unieke sterke punten. De test bestaat uit {aantal} stellingen en duurt ongeveer 5 minuten.",
+      "start": "Start de test",
+      "vraagVan": "Vraag {nummer} van {totaal}",
+      "voortgang": "Voortgang DISC-test",
+      "vorige": "Vorige vraag",
+      "volgende": "Volgende",
+      "profiel": "Jouw DISC-profiel",
+      "primair": "Primair:",
+      "opslaan": "Opslaan…",
+      "opslaanKnop": "Resultaat opslaan & rapport genereren",
+      "samenTitel": "Samenwerking met andere profielen",
+      "samenSub": "Hoe werkt jouw {profiel}-profiel samen met andere DISC-typen?",
+      "opgeslagen": "Resultaat opgeslagen!",
+      "opgeslagenTekst": "Je DISC-profiel en rapport zijn opgeslagen.",
+      "scoreLabel": "{label}: {score} van 30"
+    }
+  }
 }

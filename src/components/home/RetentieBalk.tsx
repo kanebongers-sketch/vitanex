@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Flame, CheckCircle2, ChevronRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { huidigeMijlpaal, volgendeMijlpaal, dagenTotVolgende } from '@/lib/streak/mijlpaal'
 
 // De dagelijkse lus op de home: je (vergevende) streak + de check-in-CTA. Dit is de
@@ -25,6 +26,7 @@ function leesStreak(ruw: unknown): StreakData | null {
 }
 
 export function RetentieBalk() {
+  const { t } = useVertaling()
   const [data, setData] = useState<StreakData | null>(null)
 
   const laad = useCallback((): Promise<void> => {
@@ -54,23 +56,23 @@ export function RetentieBalk() {
       )}
 
       {/* De daglus als één rustige rij: streak links, check-in rechts. */}
-      <section aria-label="Je dagelijkse lus" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      <section aria-label={t('voortgang.retentie.label')} style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, minWidth: 0, padding: '0 2px' }}>
           <Flame size={18} aria-hidden style={{ color: streak > 0 ? 'var(--mf-amber)' : 'var(--text-4)', flexShrink: 0 }} />
           <span style={{ fontSize: 13.5, color: 'var(--text-2)' }}>
             <strong style={{ fontWeight: 900, color: 'var(--text-1)' }}>{streak}</strong>{' '}
-            {tot !== null && volgende ? `— nog ${tot} tot ${volgende.emoji}` : (streak === 1 ? 'dag op rij' : 'dagen op rij')}
+            {tot !== null && volgende ? t('voortgang.retentie.nogTot', { n: tot, emoji: volgende.emoji }) : t(streak === 1 ? 'voortgang.retentie.dagOpRij' : 'voortgang.retentie.dagenOpRij')}
           </span>
         </span>
 
         {actiefVandaag ? (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700, color: 'var(--brand, var(--mf-green))', padding: '0 2px' }}>
-            <CheckCircle2 size={16} aria-hidden style={{ flexShrink: 0 }} /> Vandaag bij
+            <CheckCircle2 size={16} aria-hidden style={{ flexShrink: 0 }} /> {t('voortgang.retentie.vandaagBij')}
           </span>
         ) : (
-          <Link href="/checkin" aria-label="Doe je dagelijkse check-in"
+          <Link href="/checkin" aria-label={t('voortgang.retentie.checkinLabel')}
             style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', borderRadius: 12, padding: '9px 12px 9px 14px' }}>
-            <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--bg-app)' }}>Check-in</span>
+            <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--bg-app)' }}>{t('voortgang.retentie.checkin')}</span>
             <ChevronRight size={17} aria-hidden style={{ color: 'var(--bg-app)', flexShrink: 0 }} />
           </Link>
         )}

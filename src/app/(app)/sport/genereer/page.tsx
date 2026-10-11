@@ -14,28 +14,23 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'
 
-const DOELEN: { value: string; label: string; icon: LucideIcon }[] = [
-  { value: 'spiermassa', label: 'Spiermassa opbouwen', icon: Dumbbell },
-  { value: 'afvallen', label: 'Afvallen / vet verbranden', icon: Flame },
-  { value: 'conditie', label: 'Conditie verbeteren', icon: Heart },
-  { value: 'kracht', label: 'Kracht opbouwen', icon: Zap },
-  { value: 'flexibiliteit', label: 'Flexibiliteit', icon: Star },
+/** Labels: lichaam.genereer.doel.<value>. */
+const DOELEN: { value: string; icon: LucideIcon }[] = [
+  { value: 'spiermassa', icon: Dumbbell },
+  { value: 'afvallen', icon: Flame },
+  { value: 'conditie', icon: Heart },
+  { value: 'kracht', icon: Zap },
+  { value: 'flexibiliteit', icon: Star },
 ]
 
-const NIVEAUS = ['Beginner', 'Gemiddeld', 'Gevorderd']
-const TRAININGSDAGEN = [
-  { value: 'maandag', label: 'Ma' },
-  { value: 'dinsdag', label: 'Di' },
-  { value: 'woensdag', label: 'Wo' },
-  { value: 'donderdag', label: 'Do' },
-  { value: 'vrijdag', label: 'Vr' },
-  { value: 'zaterdag', label: 'Za' },
-  { value: 'zondag', label: 'Zo' },
-]
+/** Waarden voor de API; labels uit lichaam.sport.niveau.* en lichaam.genereer.dag(Kort).*. */
+const NIVEAUS = ['beginner', 'gemiddeld', 'gevorderd']
+const TRAININGSDAGEN = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
 const SESSIES_NAAR_DAGEN: Record<number, string[]> = {
   2: ['maandag', 'donderdag'],
   3: ['maandag', 'woensdag', 'vrijdag'],
@@ -43,13 +38,8 @@ const SESSIES_NAAR_DAGEN: Record<number, string[]> = {
   5: ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
 }
 const TIJD_OPTIES = [30, 45, 60, 90]
-const MATERIAAL_OPTIES = [
-  { value: 'geen', label: 'Geen (bodyweight)' },
-  { value: 'dumbbells', label: 'Dumbbells / halters' },
-  { value: 'barbell', label: 'Barbell + rack' },
-  { value: 'kabels', label: 'Kabelmachines' },
-  { value: 'volledig', label: 'Volledig gym' },
-]
+/** Labels: lichaam.genereer.materiaal.<waarde>. */
+const MATERIAAL_OPTIES = ['geen', 'dumbbells', 'barbell', 'kabels', 'volledig']
 
 // Intake fitness_doel → formulier-doel (de waarden die deze pagina gebruikt).
 const INTAKE_DOEL_NAAR_FORM: Record<string, string> = {
@@ -70,6 +60,7 @@ const INTAKE_ACTIVITEIT_NAAR_TRAINING: Record<string, { niveau: string; sessies:
 
 export default function GenereerSchemaPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [stap, setStap] = useState(1)
   const [doel, setDoel] = useState('')
   const [niveau, setNiveau] = useState('beginner')
@@ -121,7 +112,7 @@ export default function GenereerSchemaPage() {
       const healthRes = await authFetch('/api/fitness/health')
       if (!healthRes.ok) {
         const h = await healthRes.json().catch(() => ({}))
-        throw new Error(h.error || 'Server niet beschikbaar')
+        throw new Error((taal === 'nl' && h.error) || t('lichaam.genereer.server'))
       }
 
       const { data: disc } = await supabase
@@ -164,7 +155,7 @@ export default function GenereerSchemaPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || `Genereren mislukt (HTTP ${res.status})`)
+        throw new Error((taal === 'nl' && data.error) || t('lichaam.genereer.mislukt', { status: res.status }))
       }
 
       setAgentStatus({ agent1: 'klaar', agent2: 'klaar', agent3: 'klaar' })
@@ -172,8 +163,8 @@ export default function GenereerSchemaPage() {
       router.push('/sport')
     } catch (e: unknown) {
       const msg = e instanceof Error
-        ? (e.name === 'AbortError' ? 'Tijdsoverschrijding — probeer het opnieuw' : e.message)
-        : 'Er ging iets mis'
+        ? (e.name === 'AbortError' ? t('lichaam.genereer.timeout') : e.message)
+        : t('lichaam.genereer.ietsMis')
       setFout(msg)
       setLaden(false)
       setAgentStatus({ agent1: 'wachten', agent2: 'wachten', agent3: 'wachten' })
@@ -223,9 +214,9 @@ export default function GenereerSchemaPage() {
   }, [stap])
 
   const agentLabels = [
-    { key: 'agent1', label: 'Schema planner aan het werk…' },
-    { key: 'agent2', label: 'Oefeningen worden samengesteld…' },
-    { key: 'agent3', label: 'Coach voegt persoonlijk advies toe…' },
+    { key: 'agent1', label: t('lichaam.genereer.agent1') },
+    { key: 'agent2', label: t('lichaam.genereer.agent2') },
+    { key: 'agent3', label: t('lichaam.genereer.agent3') },
   ] as const
 
   return (
@@ -239,13 +230,13 @@ export default function GenereerSchemaPage() {
             onClick={() => router.push('/sport')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 16 }}
           >
-            <ArrowLeft size={15} aria-hidden /> Annuleren
+            <ArrowLeft size={15} aria-hidden /> {t('lichaam.stappen.annuleren')}
           </button>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>
-            AI Schema Generator
+            {t('lichaam.genereer.titel')}
           </h1>
           <p style={{ color: 'var(--text-3)', marginTop: 4, fontSize: 14 }}>
-            Beantwoord 3 vragen — wij maken jouw schema
+            {t('lichaam.genereer.intro')}
           </p>
         </header>
 
@@ -257,7 +248,7 @@ export default function GenereerSchemaPage() {
           }}>
             <Sparkles size={18} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.4 }}>
-              We hebben je doel en niveau alvast ingevuld op basis van je intake. Je kunt alles nog aanpassen.
+              {t('lichaam.genereer.intake')}
             </span>
           </div>
         )}
@@ -279,14 +270,14 @@ export default function GenereerSchemaPage() {
                 {n < 3 && <div style={{ height: 2, width: 32, background: stap > n ? 'var(--mentaforce-primary)' : 'var(--border)' }} />}
               </div>
             ))}
-            <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-3)' }}>Stap {stap} van 3</span>
+            <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-3)' }}>{t('lichaam.genereer.stap', { stap })}</span>
           </div>
         )}
 
         {/* Stap 1: Doel */}
         {stap === 1 && (
           <div>
-            <h2 id="doel-label" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Wat is jouw doel?</h2>
+            <h2 id="doel-label" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>{t('lichaam.genereer.doelVraag')}</h2>
             <div role="radiogroup" aria-labelledby="doel-label" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {DOELEN.map(d => {
                 const actief = doel === d.value
@@ -316,7 +307,7 @@ export default function GenereerSchemaPage() {
                       <Icon size={20} aria-hidden />
                     </span>
                     <span style={{ fontSize: 15, fontWeight: actief ? 700 : 600, color: actief ? 'var(--text-1)' : 'var(--text-2)' }}>
-                      {d.label}
+                      {t(`lichaam.genereer.doel.${d.value}`)}
                     </span>
                   </button>
                 )
@@ -328,19 +319,19 @@ export default function GenereerSchemaPage() {
         {/* Stap 2: Niveau & Tijd */}
         {stap === 2 && (
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 20 }}>Niveau en beschikbaarheid</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 20 }}>{t('lichaam.genereer.niveauTitel')}</h2>
 
-            <p id="niveau-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Jouw niveau</p>
+            <p id="niveau-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>{t('lichaam.genereer.jouwNiveau')}</p>
             <div role="radiogroup" aria-labelledby="niveau-label" style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
               {NIVEAUS.map(n => {
-                const actief = niveau === n.toLowerCase()
+                const actief = niveau === n
                 return (
                   <button
                     key={n}
                     type="button"
                     role="radio"
                     aria-checked={actief}
-                    onClick={() => setNiveau(n.toLowerCase())}
+                    onClick={() => setNiveau(n)}
                     className="mf-pressable"
                     style={{
                       flex: 1, padding: '10px 0', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -349,25 +340,25 @@ export default function GenereerSchemaPage() {
                       border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
                     }}
                   >
-                    {n}
+                    {t(`lichaam.sport.niveau.${n}`)}
                   </button>
                 )
               })}
             </div>
 
             <p id="dagen-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
-              Welke dagen train je? <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>({gekozenDagen.length} geselecteerd)</span>
+              {t('lichaam.genereer.welkeDagen')} <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>{t('lichaam.genereer.geselecteerd', { aantal: gekozenDagen.length })}</span>
             </p>
             <div role="group" aria-labelledby="dagen-label" style={{ display: 'flex', gap: 8, marginBottom: gekozenDagen.length < 2 ? 4 : 24 }}>
               {TRAININGSDAGEN.map(dag => {
-                const actief = gekozenDagen.includes(dag.value)
+                const actief = gekozenDagen.includes(dag)
                 return (
                   <button
-                    key={dag.value}
+                    key={dag}
                     type="button"
                     aria-pressed={actief}
-                    aria-label={dag.value}
-                    onClick={() => toggleDag(dag.value)}
+                    aria-label={t(`lichaam.genereer.dag.${dag}`)}
+                    onClick={() => toggleDag(dag)}
                     className="mf-pressable"
                     style={{
                       flex: 1, padding: '12px 0', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -377,31 +368,31 @@ export default function GenereerSchemaPage() {
                       transition: 'background 0.12s var(--ease), color 0.12s var(--ease), border-color 0.12s var(--ease)',
                     }}
                   >
-                    {dag.label}
+                    {t(`lichaam.genereer.dagKort.${dag}`)}
                   </button>
                 )
               })}
             </div>
             {gekozenDagen.length < 2 && (
               <p role="alert" style={{ fontSize: 12, color: 'var(--mf-red)', marginBottom: 24, marginTop: 0 }}>
-                Kies minimaal 2 trainingsdagen
+                {t('lichaam.genereer.minDagen')}
               </p>
             )}
 
             <p id="tijd-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
-              Tijd per sessie
+              {t('lichaam.genereer.tijd')}
             </p>
             <div role="radiogroup" aria-labelledby="tijd-label" style={{ display: 'flex', gap: 8 }}>
-              {TIJD_OPTIES.map(t => {
-                const actief = beschikbareTijd === t
+              {TIJD_OPTIES.map(min => {
+                const actief = beschikbareTijd === min
                 return (
                   <button
-                    key={t}
+                    key={min}
                     type="button"
                     role="radio"
                     aria-checked={actief}
-                    aria-label={`${t} minuten`}
-                    onClick={() => setBeschikbareTijd(t)}
+                    aria-label={t('lichaam.genereer.minuten', { min })}
+                    onClick={() => setBeschikbareTijd(min)}
                     className="mf-pressable"
                     style={{
                       flex: 1, padding: '10px 0', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -410,7 +401,7 @@ export default function GenereerSchemaPage() {
                       border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
                     }}
                   >
-                    {t}m
+                    {t('lichaam.genereer.minKort', { min })}
                   </button>
                 )
               })}
@@ -421,19 +412,19 @@ export default function GenereerSchemaPage() {
         {/* Stap 3: Materiaal */}
         {stap === 3 && (
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Materiaal & beperkingen</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 18 }}>Selecteer wat je beschikbaar hebt</p>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>{t('lichaam.genereer.materiaalTitel')}</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 18 }}>{t('lichaam.genereer.materiaalIntro')}</p>
 
-            <div role="group" aria-label="Beschikbaar materiaal" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+            <div role="group" aria-label={t('lichaam.genereer.materiaalAria')} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {MATERIAAL_OPTIES.map(m => {
-                const actief = benodigdheden.includes(m.value)
+                const actief = benodigdheden.includes(m)
                 return (
                   <button
-                    key={m.value}
+                    key={m}
                     type="button"
                     role="checkbox"
                     aria-checked={actief}
-                    onClick={() => toggleMateriaal(m.value)}
+                    onClick={() => toggleMateriaal(m)}
                     className="mf-pressable"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
@@ -450,18 +441,18 @@ export default function GenereerSchemaPage() {
                     }}>
                       {actief && <Check size={13} strokeWidth={3} />}
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: actief ? 'var(--text-1)' : 'var(--text-2)' }}>{m.label}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: actief ? 'var(--text-1)' : 'var(--text-2)' }}>{t(`lichaam.genereer.materiaal.${m}`)}</span>
                   </button>
                 )
               })}
             </div>
 
-            <Field label="Blessures of beperkingen" hint="Optioneel — bijv. knieklachten, rugproblemen" htmlFor="blessures">
+            <Field label={t('lichaam.genereer.blessures')} hint={t('lichaam.genereer.blessuresHint')} htmlFor="blessures">
               <Textarea
                 id="blessures"
                 value={blessures}
                 onChange={e => setBlessures(e.target.value)}
-                placeholder="bijv. knieklachten, rugproblemen"
+                placeholder={t('lichaam.genereer.blessuresPlaceholder')}
                 rows={3}
                 style={{ resize: 'none' }}
               />
@@ -479,8 +470,8 @@ export default function GenereerSchemaPage() {
                 </div>
                 <Bot size={36} aria-hidden style={{ color: 'var(--mentaforce-primary)', position: 'relative', zIndex: 1 }} />
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em' }}>Schema wordt gemaakt</h2>
-              <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 6 }}>Onze AI agents zijn bezig voor jou</p>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em' }}>{t('lichaam.genereer.bezigTitel')}</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 6 }}>{t('lichaam.genereer.bezigTekst')}</p>
             </div>
 
             <div role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -526,7 +517,7 @@ export default function GenereerSchemaPage() {
                 borderRadius: 'var(--radius-md)', color: 'var(--text-1)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15, marginBottom: 4, color: 'var(--mf-red)' }}>
-                  <AlertTriangle size={16} aria-hidden /> Fout bij genereren
+                  <AlertTriangle size={16} aria-hidden /> {t('lichaam.genereer.fout')}
                 </div>
                 <div style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word', color: 'var(--text-2)' }}>{fout}</div>
                 <button
@@ -539,7 +530,7 @@ export default function GenereerSchemaPage() {
                     border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 14,
                   }}
                 >
-                  Opnieuw proberen
+                  {t('lichaam.opnieuw')}
                 </button>
               </div>
             )}
@@ -563,7 +554,7 @@ export default function GenereerSchemaPage() {
                   background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border-strong)', cursor: 'pointer',
                 }}
               >
-                Vorige
+                {t('lichaam.voedingSetup.vorige')}
               </button>
             )}
             <button
@@ -580,7 +571,7 @@ export default function GenereerSchemaPage() {
                 transition: 'background 0.15s var(--ease)',
               }}
             >
-              {stap === 3 ? <><Sparkles size={16} aria-hidden /> Schema genereren</> : 'Volgende'}
+              {stap === 3 ? <><Sparkles size={16} aria-hidden /> {t('lichaam.genereer.genereren')}</> : t('lichaam.voedingSetup.volgende')}
             </button>
           </div>
         )}

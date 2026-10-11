@@ -4,14 +4,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/supabase'
 import { Paperclip, FileText, Image as ImageIcon, X, Info } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 const CATEGORIEËN = [
-  { id: 'gesprek',       label: 'Pop-up gesprek',  kleur: 'var(--mf-blue)',   bg: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)' },
-  { id: 'evaluatie',     label: 'Evaluatie',        kleur: 'var(--mf-green)',  bg: 'color-mix(in srgb, var(--mf-green) 12%, transparent)' },
-  { id: 'loonsverhoging',label: 'Loonsverhoging',   kleur: 'var(--mf-amber)',  bg: 'color-mix(in srgb, var(--mf-amber) 12%, transparent)' },
-  { id: 'contract',      label: 'Contract',         kleur: 'var(--mf-purple)', bg: 'color-mix(in srgb, var(--mf-purple) 12%, transparent)' },
-  { id: 'waarschuwing',  label: 'Waarschuwing',     kleur: 'var(--mf-red)',    bg: 'color-mix(in srgb, var(--mf-red) 12%, transparent)' },
-  { id: 'overig',        label: 'Overig',           kleur: 'var(--text-3)',    bg: 'var(--bg-subtle)' },
+  { id: 'gesprek',       label: 'gesprek',         kleur: 'var(--mf-blue)',   bg: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)' },
+  { id: 'evaluatie',     label: 'evaluatie',        kleur: 'var(--mf-green)',  bg: 'color-mix(in srgb, var(--mf-green) 12%, transparent)' },
+  { id: 'loonsverhoging',label: 'loonsverhoging',   kleur: 'var(--mf-amber)',  bg: 'color-mix(in srgb, var(--mf-amber) 12%, transparent)' },
+  { id: 'contract',      label: 'contract',         kleur: 'var(--mf-purple)', bg: 'color-mix(in srgb, var(--mf-purple) 12%, transparent)' },
+  { id: 'waarschuwing',  label: 'waarschuwing',     kleur: 'var(--mf-red)',    bg: 'color-mix(in srgb, var(--mf-red) 12%, transparent)' },
+  { id: 'overig',        label: 'overig',           kleur: 'var(--text-3)',    bg: 'var(--bg-subtle)' },
 ]
 
 type Document = {
@@ -52,6 +54,7 @@ function bestandsIcoon(mime: string | null): LucideIcon {
 }
 
 export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props) {
+  const { t, taal } = useVertaling()
   const [documenten, setDocumenten] = useState<Document[]>([])
   const [laden, setLaden] = useState(true)
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -108,7 +111,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
     })
     const data = await res.json()
     if (!res.ok) {
-      setFout(data.error ?? 'Upload mislukt')
+      setFout((taal === 'nl' ? data.error : null) ?? t('werk.documenten.uploadMislukt'))
     } else {
       setUploadOpen(false)
       setBestand(null)
@@ -116,7 +119,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
       setIntern(false)
       if (fileRef.current) fileRef.current.value = ''
       await laadDocumenten()
-      setMelding('Document opgeslagen')
+      setMelding(t('werk.documenten.opgeslagen'))
       setTimeout(() => setMelding(null), 3000)
     }
     setUploadBezig(false)
@@ -140,7 +143,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
   }
 
   async function verwijder(id: string) {
-    if (!confirm('Weet je zeker dat je dit document permanent wilt verwijderen?')) return
+    if (!confirm(t('werk.documenten.verwijderBevestig'))) return
     const res = await fetch(`/api/documenten/verwijder?id=${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${await token()}` },
@@ -156,12 +159,12 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>
-            {isHR ? `Dossier${naamMedewerker ? ` — ${naamMedewerker}` : ''}` : 'Mijn documenten'}
+            {isHR
+              ? (naamMedewerker ? t('werk.documenten.dossierVan', { naam: naamMedewerker }) : t('werk.documenten.dossier'))
+              : t('werk.documenten.mijnDocumenten')}
           </p>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-            {isHR
-              ? 'Alleen jij en andere HR-medewerkers van dit bedrijf hebben toegang.'
-              : 'Zichtbaar voor jou en HR van jouw bedrijf. Nooit voor collega\'s.'}
+            {isHR ? t('werk.documenten.toegangHr') : t('werk.documenten.toegangMedewerker')}
           </p>
         </div>
         <button
@@ -169,7 +172,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
           className="text-xs font-medium px-3 py-1.5 rounded-lg transition"
           style={{ background: uploadOpen ? 'var(--bg-subtle)' : 'var(--mentaforce-primary)', color: uploadOpen ? 'var(--text-2)' : 'var(--bg-app)' }}
         >
-          {uploadOpen ? 'Annuleer' : '+ Toevoegen'}
+          {uploadOpen ? t('werk.documenten.annuleer') : t('werk.documenten.toevoegen')}
         </button>
       </div>
 
@@ -178,15 +181,14 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
         style={{ background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--mf-blue) 25%, transparent)' }}>
         <Info size={14} strokeWidth={1.6} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--mf-blue)' }} aria-hidden />
         <p className="text-xs leading-relaxed" style={{ color: 'var(--mf-blue)' }}>
-          <strong>AVG:</strong> Bestanden worden versleuteld opgeslagen en zijn uitsluitend toegankelijk voor
-          {isHR ? ' HR-medewerkers van dit bedrijf.' : ' jou en HR van jouw bedrijf. Collega\'s hebben nooit toegang.'}
+          <strong>{t('werk.documenten.avgLabel')}</strong> {isHR ? t('werk.documenten.avgHr') : t('werk.documenten.avgMedewerker')}
         </p>
       </div>
 
       {/* Upload form */}
       {uploadOpen && (
         <div className="mx-6 mt-4 p-4 rounded-xl border border-dashed" style={{ borderColor: 'var(--border-strong)', background: 'var(--bg-subtle)' }}>
-          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-2)' }}>Nieuw document</p>
+          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-2)' }}>{t('werk.documenten.nieuwDocument')}</p>
 
           {/* Categorie */}
           <div className="flex flex-wrap gap-1.5 mb-3">
@@ -202,7 +204,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
                   fontWeight: categorie === c.id ? 600 : 400,
                 }}
               >
-                {c.label}
+                {t(`werk.documenten.categorie.${c.label}`)}
               </button>
             ))}
           </div>
@@ -224,13 +226,13 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
                   onClick={e => { e.stopPropagation(); setBestand(null); if (fileRef.current) fileRef.current.value = '' }}
                   className="ml-2 inline-flex items-center"
                   style={{ color: 'var(--text-4)' }}
-                  aria-label="Bestand verwijderen"
+                  aria-label={t('werk.documenten.bestandVerwijderen')}
                 ><X size={14} strokeWidth={2} /></button>
               </div>
             ) : (
               <>
-                <p className="text-xs" style={{ color: 'var(--text-3)' }}>Klik om bestand te kiezen</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>PDF, afbeelding of Word · max 10 MB</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.documenten.kiesBestand')}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>{t('werk.documenten.bestandTypes')}</p>
               </>
             )}
           </div>
@@ -245,7 +247,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
           {/* Beschrijving */}
           <input
             type="text"
-            placeholder="Korte omschrijving (optioneel)"
+            placeholder={t('werk.documenten.omschrijvingPlaceholder')}
             value={beschrijving}
             onChange={e => setBeschrijving(e.target.value)}
             className="w-full rounded-xl px-3 py-2 text-xs outline-none mb-3"
@@ -266,7 +268,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
                 />
               </div>
               <span className="text-xs" style={{ color: 'var(--text-2)' }}>
-                Intern (niet zichtbaar voor medewerker)
+                {t('werk.documenten.internToggle')}
               </span>
             </label>
           )}
@@ -279,7 +281,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
             className="w-full py-2.5 rounded-xl text-xs font-semibold transition disabled:opacity-40"
             style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
           >
-            {uploadBezig ? 'Uploaden...' : 'Opslaan'}
+            {uploadBezig ? t('werk.documenten.uploaden') : t('werk.documenten.opslaan')}
           </button>
         </div>
       )}
@@ -301,7 +303,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
           </div>
         ) : zichtbareDocumenten.length === 0 ? (
           <p className="text-xs text-center py-4" style={{ color: 'var(--text-4)' }}>
-            {documenten.length === 0 ? 'Nog geen documenten.' : 'Geen zichtbare documenten.'}
+            {documenten.length === 0 ? t('werk.documenten.nogGeen') : t('werk.documenten.geenZichtbaar')}
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -325,21 +327,21 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
                       </p>
                       <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
                         style={{ background: cat.bg, color: cat.kleur }}>
-                        {cat.label}
+                        {t(`werk.documenten.categorie.${cat.label}`)}
                       </span>
                       {doc.intern && isHR && (
                         <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
                           style={{ background: 'color-mix(in srgb, var(--mf-red) 12%, transparent)', color: 'var(--mf-red)' }}>
-                          Intern
+                          {t('werk.documenten.intern')}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <p className="text-xs" style={{ color: 'var(--text-4)' }}>
-                        {new Date(doc.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(doc.aangemaakt_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                       {doc.uploader_rol !== 'medewerker' && (
-                        <span className="text-xs" style={{ color: 'var(--text-4)' }}>· Geüpload door HR</span>
+                        <span className="text-xs" style={{ color: 'var(--text-4)' }}>· {t('werk.documenten.doorHr')}</span>
                       )}
                       {doc.beschrijving && (
                         <span className="text-xs truncate max-w-[140px]" style={{ color: 'var(--text-4)' }}>· {doc.beschrijving}</span>
@@ -354,15 +356,16 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
                       className="text-xs rounded-lg px-2.5 py-1.5 transition disabled:opacity-40"
                       style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                     >
-                      {downloadBezig === doc.id ? '...' : 'Download'}
+                      {downloadBezig === doc.id ? '...' : t('werk.documenten.download')}
                     </button>
                     {isHR && (
                       <button
                         onClick={() => verwijder(doc.id)}
                         className="text-xs rounded-lg px-2 py-1.5 transition inline-flex items-center"
                         style={{ border: '1px solid color-mix(in srgb, var(--mf-red) 35%, transparent)', color: 'var(--mf-red)' }}
-                        title="Verwijder"
-                        aria-label="Verwijder document"
+                        title={t('werk.documenten.verwijder')}
+                        aria-label={t('werk.documenten.verwijderDocument')}
+
                       >
                         <X size={13} strokeWidth={2} />
                       </button>

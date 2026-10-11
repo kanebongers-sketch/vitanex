@@ -3,8 +3,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { MetriekDetail } from '@/components/gezondheid/MetriekDetail'
-import { METRIEKEN } from '@/lib/health/gezondheid-metrics'
+import { metriekLabel } from '@/lib/health/gezondheid-metrics'
 import { isMetriekSleutel } from '@/lib/gezondheid/types'
+import { huidigeTaalset } from '@/lib/i18n/server'
 
 interface MetriekPaginaProps {
   params: Promise<{ metriek: string }>
@@ -12,11 +13,12 @@ interface MetriekPaginaProps {
 
 export async function generateMetadata({ params }: MetriekPaginaProps): Promise<Metadata> {
   const { metriek } = await params
-  if (!isMetriekSleutel(metriek)) return { title: 'Gezondheid – MentaForce' }
-  const cfg = METRIEKEN[metriek]
+  const ts = await huidigeTaalset()
+  if (!isMetriekSleutel(metriek)) return { title: ts.t('lichaam.meta.gezondheidTitel') }
+  const label = metriekLabel(metriek, ts)
   return {
-    title: `${cfg.label} – Gezondheid – MentaForce`,
-    description: `${cfg.label} per dag, week en maand, naast je eigen normaal.`,
+    title: ts.t('lichaam.meta.metriekTitel', { label }),
+    description: ts.t('lichaam.meta.metriekOmschrijving', { label }),
     robots: { index: false, follow: false },
   }
 }

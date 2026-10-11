@@ -9,6 +9,7 @@
 import { type ReactNode } from 'react'
 import { ArrowRight, ArrowLeft } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Gedeelde knoppenrij (terug / volgende / overslaan). Token-based, cyan focus.
@@ -16,7 +17,7 @@ import type { LucideIcon } from 'lucide-react'
 // zonder een circulaire import met VitaIntakeGesprek.
 // ════════════════════════════════════════════════════════════════════════════
 export function GesprekKnoppen({
-  onTerug, onVolgende, volgendeLabel = 'Volgende', volgendeDisabled, bezig, overslaan, verbergTerug,
+  onTerug, onVolgende, volgendeLabel, volgendeDisabled, bezig, overslaan, verbergTerug,
 }: {
   onTerug?: () => void
   onVolgende: () => void
@@ -26,11 +27,12 @@ export function GesprekKnoppen({
   overslaan?: { onClick: () => void; label: string }
   verbergTerug?: boolean
 }) {
+  const { t } = useVertaling()
   return (
     <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
       {verbergTerug ? <span /> : (
         <button type="button" onClick={onTerug} className="vita-knop vita-knop-ghost">
-          <ArrowLeft size={16} strokeWidth={2} aria-hidden /> Terug
+          <ArrowLeft size={16} strokeWidth={2} aria-hidden /> {t('account.vita.terug')}
         </button>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
@@ -41,7 +43,7 @@ export function GesprekKnoppen({
           className="vita-knop vita-knop-primary"
         >
           {bezig && <span className="mf-spinner-white" aria-hidden style={{ marginRight: 2 }} />}
-          {volgendeLabel}
+          {volgendeLabel ?? t('account.vita.volgende')}
           {!bezig && <ArrowRight size={16} strokeWidth={2.25} aria-hidden />}
         </button>
         {overslaan && (
@@ -76,6 +78,7 @@ interface VitaKaartKeuzeProps<T extends string> {
 export function VitaKaartKeuze<T extends string>({
   opties, waarde, onKies, kolommen = 1, legenda,
 }: VitaKaartKeuzeProps<T>) {
+  const { t } = useVertaling()
   return (
     <div
       role="radiogroup"
@@ -96,7 +99,7 @@ export function VitaKaartKeuze<T extends string>({
             data-actief={actief}
           >
             {opt.aanbevolen && (
-              <span className="vita-kaart-badge">Aanbevolen</span>
+              <span className="vita-kaart-badge">{t('account.vita.aanbevolen')}</span>
             )}
             <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {opt.Icon && (
@@ -127,10 +130,12 @@ interface VitaChipsProps {
   multi?: boolean
   max?: number
   legenda: string
+  /** Zichtbare labels per optie (zelfde volgorde); zonder labels toont hij de optie zelf. */
+  labels?: readonly string[]
 }
 
 export function VitaChips({
-  opties, geselecteerd, onToggle, multi = false, max, legenda,
+  opties, geselecteerd, onToggle, multi = false, max, legenda, labels,
 }: VitaChipsProps) {
   function isActief(opt: string, index: number): boolean {
     if (multi) return Array.isArray(geselecteerd) && geselecteerd.includes(opt)
@@ -161,7 +166,7 @@ export function VitaChips({
             data-actief={actief}
             style={{ opacity: limietBereikt ? 0.4 : 1, cursor: limietBereikt ? 'not-allowed' : 'pointer' }}
           >
-            {opt}
+            {labels?.[i] ?? opt}
           </button>
         )
       })}
@@ -179,12 +184,13 @@ interface VitaSchaalProps {
 }
 
 export function VitaSchaal({ emojis, labels, waarde, onKies, legenda }: VitaSchaalProps) {
+  const { t } = useVertaling()
   return (
     <div role="radiogroup" aria-label={legenda} style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
       {emojis.map((emoji, i) => {
         const val = i + 1
         const actief = waarde === val
-        const label = labels?.[i] ?? `Optie ${val}`
+        const label = labels?.[i] ?? t('account.vita.optie', { nummer: val })
         return (
           <button
             key={val}

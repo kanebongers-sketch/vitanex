@@ -20,6 +20,7 @@ import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { Progress } from '@/components/ui/Progress'
 import { Button } from '@/components/ui/Button'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 interface Patroon {
@@ -56,13 +57,11 @@ interface PatronenData {
   mijlpalen: Mijlpaal[]
 }
 
-const BETROUWBAARHEID_VARIANT: Record<
-  Patroon['betrouwbaarheid'],
-  { label: string; variant: 'warning' | 'accent' | 'success' }
-> = {
-  laag: { label: 'Weinig data', variant: 'warning' },
-  middel: { label: 'Groeiend beeld', variant: 'accent' },
-  hoog: { label: 'Sterk patroon', variant: 'success' },
+/** Badge-variant per betrouwbaarheid; het label staat in voortgang.patronen.betrouwbaarheid.<niveau>. */
+const BETROUWBAARHEID_VARIANT: Record<Patroon['betrouwbaarheid'], 'warning' | 'accent' | 'success'> = {
+  laag: 'warning',
+  middel: 'accent',
+  hoog: 'success',
 }
 
 /** Stabiele icon-keys uit /api/patronen → lucide-componenten. */
@@ -91,8 +90,8 @@ function mijlpaalIcon(key: string): LucideIcon {
 }
 
 function BetrouwbaarheidBadge({ niveau }: { niveau: Patroon['betrouwbaarheid'] }) {
-  const config = BETROUWBAARHEID_VARIANT[niveau]
-  return <Badge variant={config.variant}>{config.label}</Badge>
+  const { t } = useVertaling()
+  return <Badge variant={BETROUWBAARHEID_VARIANT[niveau]}>{t(`voortgang.patronen.betrouwbaarheid.${niveau}`)}</Badge>
 }
 
 function StatKaart({ label, waarde, delta, kleur }: {
@@ -101,6 +100,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
   delta: string | null
   kleur: string
 }) {
+  const { t } = useVertaling()
   const isPositief = delta?.startsWith('+')
   const isNegatief = delta?.startsWith('-')
 
@@ -119,7 +119,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
           marginTop: 4,
           color: isPositief ? 'var(--mf-green)' : isNegatief ? 'var(--mf-red)' : 'var(--text-4)',
         }}>
-          {delta} vs. vorige periode
+          {t('voortgang.patronen.vsVorige', { delta })}
         </div>
       )}
     </Card>
@@ -128,6 +128,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
 
 export default function PatronenPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [data, setData] = useState<PatronenData | null>(null)
   const [laden, setLaden] = useState(true)
   const [fout, setFout] = useState<string | null>(null)
@@ -145,11 +146,11 @@ export default function PatronenPage() {
       if (!res.ok) throw new Error()
       setData(await res.json())
     } catch {
-      setFout('Kon patronen niet ophalen. Probeer het opnieuw.')
+      setFout(t('voortgang.patronen.fout'))
     } finally {
       setLaden(false)
     }
-  }, [router])
+  }, [router, t])
 
   useEffect(() => { void laad() }, [laad])
 
@@ -184,35 +185,35 @@ export default function PatronenPage() {
           {/* Header */}
           <div style={{ marginBottom: 24 }}>
             <Link href="/home" style={{ fontSize: 13, color: 'var(--text-4)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-              <ArrowLeft size={14} aria-hidden /> Terug
+              <ArrowLeft size={14} aria-hidden /> {t('voortgang.patronen.terug')}
             </Link>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 6px', letterSpacing: '-0.5px' }}>
-              Jouw patronen
+              {t('voortgang.patronen.titel')}
             </h1>
             <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-              Wat verandert er écht in jouw leven? Gebaseerd op jouw eigen data.
+              {t('voortgang.patronen.intro')}
             </p>
           </div>
 
           {premiumNodig && (
             <PremiumSlot
-              titel="Ontdek je persoonlijke patronen"
-              omschrijving="Vita legt verbanden in jouw eigen data: hoe je slaap, beweging en stemming elkaar beïnvloeden, en wat er over 30 dagen écht verandert."
+              titel={t('voortgang.patronen.premiumTitel')}
+              omschrijving={t('voortgang.patronen.premiumTekst')}
             />
           )}
 
           {laden && (
             <div style={{ textAlign: 'center', paddingTop: 80 }}>
               <div className="mf-spinner" style={{ margin: '0 auto 16px' }} />
-              <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Jouw patronen analyseren…</p>
+              <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{t('voortgang.patronen.analyseren')}</p>
             </div>
           )}
 
           {fout && (
             <Card style={{ padding: '32px 24px', textAlign: 'center', marginTop: 24 }}>
-              <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 4, fontWeight: 600 }}>Patronen niet geladen</p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 4, fontWeight: 600 }}>{t('voortgang.patronen.nietGeladen')}</p>
               <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 20, lineHeight: 1.5 }}>{fout}</p>
-              <Button onClick={() => { setFout(null); setLaden(true); void laad() }}>Opnieuw proberen</Button>
+              <Button onClick={() => { setFout(null); setLaden(true); void laad() }}>{t('voortgang.laadFout.opnieuw')}</Button>
             </Card>
           )}
 
@@ -222,20 +223,20 @@ export default function PatronenPage() {
               {(data.samenvatting.stemming_30d_gem !== null || data.samenvatting.slaap_30d_gem !== null) && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 16 }}>
                   <StatKaart
-                    label="Stemming (30d)"
+                    label={t('voortgang.patronen.stemming30')}
                     waarde={data.samenvatting.stemming_30d_gem !== null ? `${data.samenvatting.stemming_30d_gem}/5` : null}
                     delta={data.samenvatting.stemming_30d_delta}
                     kleur="var(--mf-green)"
                   />
                   <StatKaart
-                    label="Slaap gem. (30d)"
-                    waarde={data.samenvatting.slaap_30d_gem !== null ? `${data.samenvatting.slaap_30d_gem}u` : null}
+                    label={t('voortgang.patronen.slaap30')}
+                    waarde={data.samenvatting.slaap_30d_gem !== null ? t('voortgang.patronen.uren', { n: data.samenvatting.slaap_30d_gem }) : null}
                     delta={data.samenvatting.slaap_30d_delta}
                     kleur="var(--mf-blue)"
                   />
                   <StatKaart
-                    label="Sportdagen (30d)"
-                    waarde={`${data.samenvatting.sport_dagen_30d}d`}
+                    label={t('voortgang.patronen.sport30')}
+                    waarde={t('voortgang.patronen.dagenKort', { n: data.samenvatting.sport_dagen_30d })}
                     delta={null}
                     kleur="var(--mf-purple)"
                   />
@@ -251,10 +252,10 @@ export default function PatronenPage() {
                   <Card style={{ padding: '14px 16px', marginBottom: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)' }}>
-                        Patroonbetrouwbaarheid
+                        {t('voortgang.patronen.betrouwbaarheidKop')}
                       </p>
                       <span style={{ fontSize: 11, fontWeight: 700, color: kleur }}>
-                        {totaal >= doel ? 'Sterk ✓' : `${totaal}/${doel} check-ins`}
+                        {totaal >= doel ? t('voortgang.patronen.sterk') : t('voortgang.patronen.teller', { n: totaal, doel })}
                       </span>
                     </div>
                     <Progress
@@ -262,11 +263,11 @@ export default function PatronenPage() {
                       max={doel}
                       color={kleur}
                       thickness={6}
-                      ariaLabel={`Patroonbetrouwbaarheid: ${totaal} van ${doel} check-ins`}
+                      ariaLabel={t('voortgang.patronen.betrouwbaarheidLabel', { n: totaal, doel })}
                     />
                     {totaal < doel && (
                       <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 5 }}>
-                        Nog {doel - totaal} check-ins voor betrouwbare patronen
+                        {t('voortgang.patronen.nogNodig', { n: doel - totaal })}
                       </p>
                     )}
                   </Card>
@@ -275,15 +276,15 @@ export default function PatronenPage() {
 
               {/* ── Patronen ──────────────────────────────────── */}
               <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 12px' }}>
-                Wat werkt voor jou
+                {t('voortgang.patronen.watWerkt')}
               </h2>
 
               {data.patronen.length === 0 ? (
                 <VitaLeegScherm
                   emotion="curious"
-                  titel="Ik zoek nog naar jouw patronen"
-                  boodschap="Zodra je een tijdje je stemming, slaap en beweging bijhoudt, laat ik je zien wat jou écht meer energie en rust geeft. Elke check-in brengt dat dichterbij."
-                  actieLabel="Doe een check-in"
+                  titel={t('voortgang.patronen.leegTitel')}
+                  boodschap={t('voortgang.patronen.leegTekst')}
+                  actieLabel={t('voortgang.inzichten.leegActie')}
                   actieHref="/home"
                 />
               ) : (
@@ -329,7 +330,7 @@ export default function PatronenPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <BetrouwbaarheidBadge niveau={p.betrouwbaarheid} />
                             <span style={{ fontSize: 10, color: 'var(--text-4)' }}>
-                              {p.datapunten} datapunten
+                              {t('voortgang.patronen.datapunten', { n: p.datapunten })}
                             </span>
                           </div>
                         </div>
@@ -344,7 +345,7 @@ export default function PatronenPage() {
               {data.mijlpalen.some(m => m.bereikt) && (
                 <>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 12px' }}>
-                    Behaald
+                    {t('voortgang.patronen.behaald')}
                   </h2>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 24 }}>
                     {data.mijlpalen.map((m) => {
@@ -367,7 +368,7 @@ export default function PatronenPage() {
                             : <Lock size={22} color="var(--text-4)" aria-hidden />}
                         </div>
                         <div style={{ fontSize: 10, fontWeight: 700, color: m.bereikt ? 'var(--mf-green-dark)' : 'var(--text-4)', lineHeight: 1.3 }}>
-                          {m.label}
+                          {m.doel === 1 ? t('voortgang.patronen.mijlpaalEerste') : t('voortgang.patronen.mijlpaalAantal', { n: m.doel })}
                         </div>
                       </div>
                       )
@@ -388,13 +389,13 @@ export default function PatronenPage() {
               >
                 <p style={{ fontSize: 14, color: 'var(--mf-green-dark)', fontWeight: 600, margin: '0 0 4px', lineHeight: 1.5 }}>
                   {data.samenvatting.totaal_checkins >= 21
-                    ? `Met ${data.samenvatting.totaal_checkins} check-ins heb je genoeg data voor betrouwbare inzichten. Blijf loggen.`
+                    ? t('voortgang.patronen.motivatieSterk', { n: data.samenvatting.totaal_checkins })
                     : data.samenvatting.totaal_checkins >= 7
-                    ? `${data.samenvatting.totaal_checkins} check-ins gedaan. Na 21 worden je patronen betrouwbaar.`
-                    : 'Elke log voegt een datapunt toe. Je patronen worden na een week duidelijk.'}
+                    ? t('voortgang.patronen.motivatieOnderweg', { n: data.samenvatting.totaal_checkins })
+                    : t('voortgang.patronen.motivatieStart')}
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--mf-green-mid)', margin: 0 }}>
-                  Patronen worden 24 uur gecached en bijgewerkt zodra je nieuw logt.
+                  {t('voortgang.patronen.cache')}
                 </p>
               </div>
             </>

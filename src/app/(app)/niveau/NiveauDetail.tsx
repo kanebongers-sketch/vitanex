@@ -4,9 +4,12 @@
 // game-ladder. XP blijft bestaan als bekrachtiging, niet als hoofdattractie.
 
 import { Card } from '@/components/ui/Card'
-import { LEVEL_BG, LEVEL_KLEUREN, LEVEL_NAMEN, type XPData } from '@/lib/xp/xp'
+import { LEVEL_BG, LEVEL_KLEUREN, type XPData } from '@/lib/xp/xp'
 import { Progress } from '@/components/ui/Progress'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import SectieKop from './SectieKop'
+import { levelNaam } from './xpTeksten'
 
 interface NiveauDetailProps {
   xpData: XPData
@@ -21,10 +24,11 @@ function NiveauRing({ level, pct, kleur, animKlaar }: { level: number; pct: numb
   const r = 48
   const circ = 2 * Math.PI * r
   const getoond = animKlaar ? pct : 0
+  const { t } = useVertaling()
   return (
     <div
       role="img"
-      aria-label={`Niveau ${level} — ${LEVEL_NAMEN[level]}, ${Math.round(pct)}% naar het volgende niveau`}
+      aria-label={t('voortgang.niveauDetail.ringLabel', { level, naam: levelNaam(level, t), pct: Math.round(pct) })}
       style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" focusable="false"
@@ -43,7 +47,7 @@ function NiveauRing({ level, pct, kleur, animKlaar }: { level: number; pct: numb
         alignItems: 'center', justifyContent: 'center', gap: 1,
       }}>
         <span style={{ fontSize: 9, fontWeight: 700, color: kleur, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Niveau
+          {t('voortgang.niveauDetail.niveau')}
         </span>
         <span style={{ fontSize: 32, fontWeight: 800, color: kleur, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
           {level}
@@ -56,11 +60,12 @@ function NiveauRing({ level, pct, kleur, animKlaar }: { level: number; pct: numb
 
 function NiveauStrip({ level }: { level: number }) {
   const kleur = LEVEL_KLEUREN[level]
+  const { t } = useVertaling()
   return (
     <div style={{ marginTop: 16 }}>
       <div
         role="img"
-        aria-label={`Niveau ${level} van 10`}
+        aria-label={t('voortgang.niveauDetail.vanTien', { level })}
         style={{ display: 'flex', gap: 3 }}
       >
         {Array.from({ length: 10 }, (_, i) => i + 1).map(l => (
@@ -75,58 +80,60 @@ function NiveauStrip({ level }: { level: number }) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
         <span style={{ fontSize: 10, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>
-          Niveau {level} van 10
+          {t('voortgang.niveauDetail.vanTien', { level })}
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-4)' }}>{LEVEL_NAMEN[10]}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-4)' }}>{levelNaam(10, t)}</span>
       </div>
     </div>
   )
 }
 
 export default function NiveauDetail({ xpData, level, voortgang, animKlaar }: NiveauDetailProps) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const kleur = LEVEL_KLEUREN[level]
   const isMax = level >= 10
   const tellers = [
-    { label: 'Check-ins', waarde: xpData.checkinCount },
-    { label: 'Doelen behaald', waarde: xpData.goalsCompleted },
-    { label: 'Langste reeks', waarde: `${xpData.streakRecord ?? 0} dgn` },
+    { label: t('voortgang.niveauDetail.checkins'), waarde: xpData.checkinCount },
+    { label: t('voortgang.niveauDetail.doelenBehaald'), waarde: xpData.goalsCompleted },
+    { label: t('voortgang.niveauDetail.langsteReeks'), waarde: t('voortgang.niveauDetail.dagenKort', { n: xpData.streakRecord ?? 0 }) },
   ]
 
   return (
     <Card style={{ padding: '22px 24px', marginBottom: 16 }}>
-      <SectieKop>Niveau &amp; XP</SectieKop>
+      <SectieKop>{t('voortgang.niveauDetail.kop')}</SectieKop>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
         <NiveauRing level={level} pct={isMax ? 100 : voortgang.pct} kleur={kleur} animKlaar={animKlaar} />
 
         <div style={{ flex: 1, minWidth: 220 }}>
           <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-            {LEVEL_NAMEN[level]}
+            {levelNaam(level, t)}
           </p>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1, marginBottom: 12, fontVariantNumeric: 'tabular-nums' }}>
-            {xpData.xp.toLocaleString('nl-NL')} XP totaal
+            {t('voortgang.niveauDetail.xpTotaal', { xp: xpData.xp.toLocaleString(locale) })}
           </p>
 
           <Progress
             value={animKlaar ? (isMax ? 100 : voortgang.pct) : 0}
-            ariaLabel={isMax ? 'Maximum niveau bereikt' : `Voortgang naar niveau ${level + 1}: ${voortgang.pct}%`}
+            ariaLabel={isMax ? t('voortgang.niveauDetail.maxBereikt') : t('voortgang.niveauDetail.voortgangLabel', { level: level + 1, pct: voortgang.pct })}
             color={kleur}
             thickness={8}
             style={{ marginBottom: 8 }}
           />
           <p style={{ fontSize: 12, color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>
             {isMax
-              ? 'Het hoogste niveau — bijhouden is nu het doel.'
-              : <>Nog {voortgang.nodig.toLocaleString('nl-NL')} XP tot niveau {level + 1} — {LEVEL_NAMEN[level + 1]}</>}
+              ? t('voortgang.niveauDetail.hoogste')
+              : t('voortgang.niveauDetail.nogNodig', { xp: voortgang.nodig.toLocaleString(locale), level: level + 1, naam: levelNaam(level + 1, t) })}
           </p>
 
           <div style={{ display: 'flex', gap: 24, marginTop: 14 }}>
-            {tellers.map(t => (
-              <div key={t.label}>
+            {tellers.map(teller => (
+              <div key={teller.label}>
                 <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
-                  {t.waarde}
+                  {teller.waarde}
                 </p>
-                <p style={{ fontSize: 10, color: 'var(--text-4)', fontWeight: 600 }}>{t.label}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-4)', fontWeight: 600 }}>{teller.label}</p>
               </div>
             ))}
           </div>

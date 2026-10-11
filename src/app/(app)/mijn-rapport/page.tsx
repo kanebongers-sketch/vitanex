@@ -10,7 +10,11 @@ import { Card } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
 import { Ring } from '@/components/ui/Ring'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
 
+type Vertaler = (sleutel: string, params?: Params) => string
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -31,20 +35,19 @@ function scoreKleur(s: number) {
   if (s >= 2)  return 'var(--mf-orange)'
   return 'var(--mf-red)'
 }
-function scoreLabel(s: number) {
-  if (s >= 4.5) return 'Uitstekend'
-  if (s >= 4)   return 'Goed'
-  if (s >= 3.5) return 'Redelijk goed'
-  if (s >= 3)   return 'Matig'
-  if (s >= 2)   return 'Aandacht nodig'
-  return 'Zorgwekkend'
+function scoreLabel(s: number, t: Vertaler) {
+  if (s >= 4.5) return t('coaching.rapport.score.uitstekend')
+  if (s >= 4)   return t('coaching.rapport.score.goed')
+  if (s >= 3.5) return t('coaching.rapport.score.redelijkGoed')
+  if (s >= 3)   return t('coaching.rapport.score.matig')
+  if (s >= 2)   return t('coaching.rapport.score.aandacht')
+  return t('coaching.rapport.score.zorgwekkend')
 }
 
 const HOOFDCATS = ['energie', 'mentaal', 'werk', 'sociaal', 'groei']
-const CAT_LABELS: Record<string, string> = {
-  energie: 'Energie & Lichaam',   mentaal: 'Mentaal welzijn',
-  werk:    'Werk & Motivatie',    sociaal: 'Team & Samenwerking',
-  groei:   'Groei & Ontwikkeling',
+/** Categorielabel uit het woordenboek (coaching.rapport.cat.*). */
+function catLabel(cat: string, t: Vertaler): string {
+  return t(`coaching.rapport.cat.${cat}`)
 }
 const CAT_KLEUREN: Record<string, string> = {
   energie: 'var(--mf-green)', mentaal: 'var(--mf-blue)', werk: 'var(--mf-purple)',
@@ -58,6 +61,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
   totaal: number
   catAvgs: Record<string, number>
 }) {
+  const { t } = useVertaling()
   const catsMetScore = HOOFDCATS.filter(c => catAvgs[c] !== undefined)
 
   return (
@@ -78,17 +82,17 @@ function RapportWeergave({ data, totaal, catAvgs }: {
             size={92}
             thickness={9}
             color={scoreKleur(totaal)}
-            ariaLabel={`Vitaliteitsscore ${totaal.toFixed(1)} van 5 — ${scoreLabel(totaal)}`}
+            ariaLabel={t('coaching.rapport.scoreAria', { score: totaal.toFixed(1), label: scoreLabel(totaal, t) })}
           >
             <span style={{ fontSize: 22, fontWeight: 800, color: scoreKleur(totaal) }}>{totaal.toFixed(1)}</span>
           </Ring>
           <div>
-            <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 2 }}>Vitaliteitsscore deze week</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 2 }}>{t('coaching.rapport.scoreDezeWeek')}</p>
             <p style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <span style={{ fontSize: 32, fontWeight: 800, color: scoreKleur(totaal), lineHeight: 1 }}>{totaal.toFixed(1)}</span>
               <span style={{ fontSize: 16, color: 'var(--text-3)', fontWeight: 500 }}>/5</span>
             </p>
-            <p style={{ fontSize: 13, fontWeight: 600, color: scoreKleur(totaal), marginTop: 4 }}>{scoreLabel(totaal)}</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: scoreKleur(totaal), marginTop: 4 }}>{scoreLabel(totaal, t)}</p>
           </div>
         </div>
 
@@ -105,11 +109,11 @@ function RapportWeergave({ data, totaal, catAvgs }: {
                   thickness={6}
                   label={
                     <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <span style={{ color: 'var(--text-2)' }}>{CAT_LABELS[c]}</span>
+                      <span style={{ color: 'var(--text-2)' }}>{catLabel(c, t)}</span>
                       <span style={{ fontWeight: 700, color: scoreKleur(score), fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}</span>
                     </span>
                   }
-                  ariaLabel={`${CAT_LABELS[c]}: ${score.toFixed(1)} van 5`}
+                  ariaLabel={t('coaching.rapport.catAria', { cat: catLabel(c, t), score: score.toFixed(1) })}
                 />
               )
             })}
@@ -120,7 +124,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
       {/* Samenvatting */}
       {data.samenvatting && (
         <Card style={{ padding: 24, borderLeft: '3px solid var(--mentaforce-primary)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 8 }}>Samenvatting van jouw week</p>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 8 }}>{t('coaching.rapport.samenvatting')}</p>
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.samenvatting}</p>
         </Card>
       )}
@@ -128,7 +132,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
       {/* Sterke punten */}
       {data.sterkePunten && (
         <Card style={{ padding: 24, background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-green)' }}>Sterke punten</p>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-green)' }}>{t('coaching.rapport.sterk')}</p>
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.sterkePunten}</p>
         </Card>
       )}
@@ -136,7 +140,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
       {/* Aandachtspunten */}
       {data.aandachtspunten && (
         <Card style={{ padding: 24, background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber-dark)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-amber)' }}>Aandachtspunten</p>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-amber)' }}>{t('coaching.rapport.aandacht')}</p>
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.aandachtspunten}</p>
         </Card>
       )}
@@ -144,7 +148,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
       {/* Tips */}
       {data.tips?.length > 0 && (
         <Card style={{ padding: 24 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 16 }}>Tips voor deze week</p>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 16 }}>{t('coaching.rapport.tips')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {data.tips.map((tip, i) => (
               <div key={i} style={{ display: 'flex', gap: 12 }}>
@@ -166,7 +170,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
 
 // ─── PDF export ───────────────────────────────────────────────────────────
 
-async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<string, number>) {
+async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<string, number>, t: Vertaler, locale: string) {
   const { default: jsPDF } = await import('jspdf')
 
   const W  = 210, H = 297
@@ -236,11 +240,11 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
   doc.text('MentaForce', mg, 11)
 
   doc.setFontSize(19); doc.setFont('helvetica', 'bold')
-  doc.text('Persoonlijk Welzijnsrapport', mg, 22)
+  doc.text(t('coaching.rapport.pdfTitel'), mg, 22)
 
   doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
   doc.setTextColor(160, 220, 190)
-  const datum = new Date().toLocaleDateString('nl-BE', {
+  const datum = new Date().toLocaleDateString(locale, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
   doc.text(datum, mg, 32)
@@ -259,7 +263,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
 
   doc.setFontSize(7); doc.setFont('helvetica', 'normal')
   doc.setTextColor(...MUTED)
-  doc.text('TOTAALSCORE', mg + scoreBoxW / 2, y + 10, { align: 'center' })
+  doc.text(t('coaching.rapport.totaalscore').toUpperCase(), mg + scoreBoxW / 2, y + 10, { align: 'center' })
 
   if (totaal > 0) {
     const col = sk(totaal)
@@ -268,7 +272,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MUTED)
     doc.text('/ 5', mg + scoreBoxW / 2, y + 35, { align: 'center' })
     doc.setFontSize(8);  doc.setTextColor(...col)
-    doc.text(scoreLabel(totaal), mg + scoreBoxW / 2, y + 43, { align: 'center' })
+    doc.text(scoreLabel(totaal, t), mg + scoreBoxW / 2, y + 43, { align: 'center' })
   }
 
   // Category bars
@@ -281,7 +285,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     const ry    = y + i * rowH + rowH * 0.25
 
     doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT)
-    doc.text(CAT_LABELS[cat], catX, ry + 4)
+    doc.text(catLabel(cat, t), catX, ry + 4)
 
     doc.setFont('helvetica', 'bold'); doc.setTextColor(...kl)
     doc.text(score.toFixed(1), mg + cW, ry + 4, { align: 'right' })
@@ -299,7 +303,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     const h = lines.length * 5.4 + 16
     checkPage(h + 6)
     card(y, h, BG_GRAY, GREEN)
-    sectionLabel('Samenvatting van jouw week', GREEN)
+    sectionLabel(t('coaching.rapport.samenvatting'), GREEN)
     bodyText(data.samenvatting)
     y += 8
   }
@@ -310,7 +314,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     const h = lines.length * 5.4 + 16
     checkPage(h + 6)
     card(y, h, BG_GREEN, GREEN)
-    sectionLabel('Sterke punten', GREEN)
+    sectionLabel(t('coaching.rapport.sterk'), GREEN)
     bodyText(data.sterkePunten)
     y += 8
   }
@@ -321,7 +325,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     const h = lines.length * 5.4 + 16
     checkPage(h + 6)
     card(y, h, BG_AMBER, AMBER)
-    sectionLabel('Aandachtspunten', AMBER)
+    sectionLabel(t('coaching.rapport.aandacht'), AMBER)
     bodyText(data.aandachtspunten)
     y += 8
   }
@@ -330,7 +334,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
   if (data.tips?.length) {
     checkPage(14)
     doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...MUTED)
-    doc.text('TIPS VOOR DEZE WEEK', mg, y + 6)
+    doc.text(t('coaching.rapport.tips').toUpperCase(), mg, y + 6)
     y += 12
 
     data.tips.forEach((tip, i) => {
@@ -361,17 +365,18 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     doc.setPage(p)
     doc.setDrawColor(...RULE); doc.line(mg, H - 14, W - mg, H - 14)
     doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MUTED)
-    doc.text('MentaForce · Persoonlijk & Vertrouwelijk', mg, H - 8)
+    doc.text(`MentaForce · ${t('coaching.rapport.pdfVoet')}`, mg, H - 8)
     doc.text(`${p} / ${numPages}`, W - mg, H - 8, { align: 'right' })
   }
 
   const datumFile = new Date().toLocaleDateString('nl-BE').replace(/\//g, '-')
-  doc.save(`MentaForce-rapport-${datumFile}.pdf`)
+  doc.save(`MentaForce-${t('coaching.rapport.bestandsnaam')}-${datumFile}.pdf`)
 }
 
 // ─── Main component ───────────────────────────────────────────────────────
 
 function MijnRapportInhoud() {
+  const { t, taal } = useVertaling()
   const params    = useSearchParams()
   const sessieId  = params.get('sessie')
   const { toast } = useToast()
@@ -380,7 +385,7 @@ function MijnRapportInhoud() {
   const [totaal,      setTotaal]      = useState(0)
   const [catAvgs,     setCatAvgs]     = useState<Record<string, number>>({})
   const [laden,       setLaden]       = useState(() => Boolean(sessieId))
-  const [fout,        setFout]        = useState(() => sessieId ? '' : 'We konden dit rapport niet vinden.')
+  const [fout,        setFout]        = useState(() => sessieId ? '' : t('coaching.rapport.nietGevonden'))
   const [pdfBezig,    setPdfBezig]    = useState(false)
   const [hrBezig,     setHrBezig]     = useState(false)
   const [hrVerstuurd, setHrVerstuurd] = useState(false)
@@ -396,22 +401,22 @@ function MijnRapportInhoud() {
     })
       .then(r => r.json())
       .then(data => {
-        if (data.error) { setFout(data.error); return }
+        if (data.error) { setFout(taal === 'nl' ? data.error : t('coaching.rapport.ladenMislukt')); return }
         setRapportData(data.rapport ?? null)
         setTotaal(data.totaal ?? 0)
         setCatAvgs(data.catAvgs ?? {})
       })
-      .catch(() => setFout('Rapport kon niet worden geladen.'))
+      .catch(() => setFout(t('coaching.rapport.ladenMislukt')))
       .finally(() => setLaden(false))
-  }, [sessieId])
+  }, [sessieId, t, taal])
 
   async function downloadPdf() {
     if (!rapportData) return
     setPdfBezig(true)
     try {
-      await buildPdf(rapportData, totaal, catAvgs)
+      await buildPdf(rapportData, totaal, catAvgs, t, INTL_LOCALE[taal])
     } catch {
-      toast({ title: 'PDF mislukt', description: 'Het rapport kon niet worden gedownload. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('coaching.rapport.pdfMislukt'), description: t('coaching.rapport.pdfMisluktTekst'), variant: 'error' })
     } finally {
       setPdfBezig(false)
     }
@@ -423,10 +428,10 @@ function MijnRapportInhoud() {
     try {
       // Convert structured data to plain text for email
       const tekst = [
-        `Samenvatting: ${rapportData.samenvatting}`,
-        `\nSterke punten:\n${rapportData.sterkePunten}`,
-        `\nAandachtspunten:\n${rapportData.aandachtspunten}`,
-        `\nTips:\n${rapportData.tips.map((t, i) => `${i + 1}. ${t.titel}: ${t.beschrijving}`).join('\n')}`,
+        `${t('coaching.rapport.mailSamenvatting')}: ${rapportData.samenvatting}`,
+        `\n${t('coaching.rapport.sterk')}:\n${rapportData.sterkePunten}`,
+        `\n${t('coaching.rapport.aandacht')}:\n${rapportData.aandachtspunten}`,
+        `\n${t('coaching.rapport.mailTips')}:\n${rapportData.tips.map((tip, i) => `${i + 1}. ${tip.titel}: ${tip.beschrijving}`).join('\n')}`,
       ].join('\n\n')
 
       const res  = await fetch('/api/rapport-naar-hr', {
@@ -435,10 +440,10 @@ function MijnRapportInhoud() {
         body: JSON.stringify({ sessie_id: sessieId, rapport_tekst: tekst }),
       })
       const data = await res.json()
-      if (data.error) { setHrFout(data.error); return }
+      if (data.error) { setHrFout(taal === 'nl' ? data.error : t('coaching.rapport.ietsMis')); return }
       setHrVerstuurd(true)
     } catch {
-      setHrFout('Er ging iets mis. Probeer opnieuw.')
+      setHrFout(t('coaching.rapport.ietsMis'))
     } finally {
       setHrBezig(false)
     }
@@ -449,7 +454,7 @@ function MijnRapportInhoud() {
     <main className="min-h-screen flex flex-col items-center justify-center gap-4"
       style={{ background: 'var(--bg-app)' }}>
       <div className="mf-spinner" />
-      <p className="text-sm" style={{ color: 'var(--text-4)' }}>AI analyseert je check-in...</p>
+      <p className="text-sm" style={{ color: 'var(--text-4)' }}>{t('coaching.rapport.analyseert')}</p>
     </main>
   )
 
@@ -464,14 +469,14 @@ function MijnRapportInhoud() {
             fontSize: 14, fontWeight: 600, textDecoration: 'none',
             background: 'var(--mentaforce-primary)', color: 'var(--bg-app)',
           }}>
-            Bekijk mijn laatste rapport
+            {t('coaching.rapport.laatste')}
           </Link>
           <Link href="/checkin" className="mf-rapport-link" style={{
             display: 'inline-block', padding: '12px', borderRadius: 'var(--radius-btn)',
             fontSize: 14, fontWeight: 600, textDecoration: 'none',
             border: '1px solid var(--border)', color: 'var(--text-3)',
           }}>
-            Doe een nieuwe check-in
+            {t('coaching.rapport.nieuweCheckin')}
           </Link>
         </div>
         <style>{`
@@ -491,8 +496,8 @@ function MijnRapportInhoud() {
       <div className="max-w-2xl mx-auto px-5 pt-10">
 
         <div className="mb-5">
-          <p style={{ fontSize: 12, marginBottom: 4, color: 'var(--text-4)' }}>Persoonlijk welzijnsrapport</p>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>Jouw week in beeld</h1>
+          <p style={{ fontSize: 12, marginBottom: 4, color: 'var(--text-4)' }}>{t('coaching.rapport.overline')}</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>{t('coaching.rapport.titel')}</h1>
         </div>
 
         {rapportData && (
@@ -523,13 +528,13 @@ function MijnRapportInhoud() {
               transition: 'opacity 0.15s var(--ease)',
             }}>
             {pdfBezig
-              ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />PDF wordt aangemaakt...</>
-              : <><Download size={16} aria-hidden />Download als PDF</>}
+              ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />{t('coaching.rapport.pdfBezig')}</>
+              : <><Download size={16} aria-hidden />{t('coaching.rapport.pdfDownload')}</>}
           </button>
 
           {hrVerstuurd
             ? <div style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-btn)', textAlign: 'center', fontSize: 14, fontWeight: 600, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
-                Rapport verstuurd naar HR
+                {t('coaching.rapport.hrVerstuurd')}
               </div>
             : <button
                 onClick={stuurNaarHr}
@@ -553,8 +558,8 @@ function MijnRapportInhoud() {
                   transition: 'opacity 0.15s var(--ease)',
                 }}>
                 {hrBezig
-                  ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />Versturen...</>
-                  : <><Send size={16} aria-hidden />Stuur naar HR</>}
+                  ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />{t('coaching.rapport.versturen')}</>
+                  : <><Send size={16} aria-hidden />{t('coaching.rapport.naarHr')}</>}
               </button>
           }
 
@@ -562,19 +567,19 @@ function MijnRapportInhoud() {
 
           {!hrVerstuurd && (
             <p style={{ fontSize: 12, textAlign: 'center', color: 'var(--text-4)' }}>
-              Je naam en rapport worden per e-mail naar je HR-team gestuurd.
+              {t('coaching.rapport.hrUitleg')}
             </p>
           )}
 
           <Link href="/home"
             className="mf-rapport-terug"
             style={{ width: '100%', display: 'inline-block', textAlign: 'center', borderRadius: 'var(--radius-btn)', padding: '12px', fontSize: 14, border: '1px solid var(--border)', color: 'var(--text-3)', textDecoration: 'none' }}>
-            Terug naar home
+            {t('coaching.rapport.terugHome')}
           </Link>
         </div>
 
         <p style={{ fontSize: 12, textAlign: 'center', marginTop: 24, paddingBottom: 16, color: 'var(--text-4)' }}>
-          Dit rapport is persoonlijk en vertrouwelijk.
+          {t('coaching.rapport.vertrouwelijk')}
         </p>
 
         <style>{`

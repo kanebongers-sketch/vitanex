@@ -5,26 +5,22 @@
 
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { METRIEKEN, formatMetWaarde } from '@/lib/health/gezondheid-metrics'
+import { METRIEKEN, formatMetWaarde, metriekLabel } from '@/lib/health/gezondheid-metrics'
 import {
-  liggingTovNormaal, meetmomentLabel, type Ligging, type MetriekSamenvatting,
+  liggingTovNormaal, meetmomentLabel, type MetriekSamenvatting,
 } from '@/lib/gezondheid/samenvatting'
+import type { Taalset } from '@/lib/i18n/taalset'
 import { METRIEK_ICONEN } from './metriek-iconen'
 import { MetriekWaarde } from './MetriekWaarde'
 import { MiniTrend } from './MiniTrend'
+import { useTaalset } from './useTaalset'
 import styles from './gezondheid.module.css'
 
-const LIGGING_TEKST: Record<Ligging, string> = {
-  binnen: 'Laatste meting ligt binnen je normaal.',
-  boven: 'Laatste meting ligt boven je normaal.',
-  onder: 'Laatste meting ligt onder je normaal.',
-}
-
 /** Alleen bij een actuele, afgeronde meting: een lopende optel-dag is nog niet af. */
-function liggingTekst({ sleutel, laatste, actueel, normaal }: MetriekSamenvatting, vandaag: string): string | null {
+function liggingTekst({ sleutel, laatste, actueel, normaal }: MetriekSamenvatting, vandaag: string, ts: Taalset): string | null {
   if (!normaal || !actueel) return null
   if (METRIEKEN[sleutel].cumulatief && laatste.datum === vandaag) return null
-  return LIGGING_TEKST[liggingTovNormaal(laatste.waarde, normaal)]
+  return ts.t(`lichaam.regel.ligging.${liggingTovNormaal(laatste.waarde, normaal)}`)
 }
 
 interface MetriekRegelProps {
@@ -34,19 +30,20 @@ interface MetriekRegelProps {
 }
 
 export function MetriekRegel({ samenvatting, vandaag, hero = false }: MetriekRegelProps) {
+  const ts = useTaalset()
   const { sleutel, laatste, actueel, mini, normaal } = samenvatting
   const cfg = METRIEKEN[sleutel]
   const Icoon = METRIEK_ICONEN[sleutel]
-  const moment = meetmomentLabel(sleutel, laatste.datum, vandaag)
-  const ligging = liggingTekst(samenvatting, vandaag)
+  const moment = meetmomentLabel(sleutel, laatste.datum, vandaag, ts)
+  const ligging = liggingTekst(samenvatting, vandaag, ts)
 
   return (
     <Link href={`/gezondheid/${sleutel}`} className={styles.regel}>
       <span className={styles.regelKop}>
         <Icoon size={16} aria-hidden="true" />
-        {cfg.label}
+        {metriekLabel(sleutel, ts)}
         <span className={styles.regelDatum}>
-          {actueel ? moment : <em className={styles.oud}>Laatst gemeten: {moment.toLowerCase()}</em>}
+          {actueel ? moment : <em className={styles.oud}>{ts.t('lichaam.regel.laatstGemeten', { moment: moment.toLowerCase() })}</em>}
         </span>
         <ChevronRight size={16} className={styles.pijl} aria-hidden="true" />
       </span>
@@ -54,12 +51,12 @@ export function MetriekRegel({ samenvatting, vandaag, hero = false }: MetriekReg
       <MiniTrend waarden={mini} vorm={cfg.grafiek} groot={hero} />
       <span className={styles.regelVoet}>
         {normaal
-          ? <span>Normaal {cfg.formatteer(normaal.laag)} – {formatMetWaarde(sleutel, normaal.hoog)}</span>
-          : cfg.heeftNormaal && <span>Nog geen normaal: minimaal 5 metingen nodig</span>}
-        <span>Afgelopen 7 dagen</span>
+          ? <span>{ts.t('lichaam.regel.normaal', { laag: cfg.formatteer(normaal.laag, ts), hoog: formatMetWaarde(sleutel, normaal.hoog, ts) })}</span>
+          : cfg.heeftNormaal && <span>{ts.t('lichaam.regel.geenNormaal')}</span>}
+        <span>{ts.t('lichaam.regel.zevenDagen')}</span>
       </span>
       <span className={styles.srOnly}>
-        {ligging && `${ligging} `}Bekijk details.
+        {ligging && `${ligging} `}{ts.t('lichaam.regel.details')}
       </span>
     </Link>
   )

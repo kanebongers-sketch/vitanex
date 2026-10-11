@@ -8,6 +8,10 @@ import { Users, MessageCircle, Mail, ChevronLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/ui/Avatar'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+
+type Vertaal = (sleutel: string, params?: Record<string, string | number>) => string
 
 
 type Bericht = {
@@ -32,32 +36,34 @@ type Profiel = {
   avatar_url: string | null
 }
 
-function formatTijd(iso: string) {
+function formatTijd(iso: string, locale: string, t: Vertaal) {
   const d = new Date(iso)
   const nu = new Date()
   const gister = new Date(nu)
   gister.setDate(nu.getDate() - 1)
-  const t = d.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })
-  if (d.toDateString() === nu.toDateString()) return t
-  if (d.toDateString() === gister.toDateString()) return `gisteren ${t}`
-  return d.toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' }) + ` ${t}`
+  const tijd = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  if (d.toDateString() === nu.toDateString()) return tijd
+  if (d.toDateString() === gister.toDateString()) return t('vita.chat.gisterenOm', { tijd })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' }) + ` ${tijd}`
 }
 
 function isDagScheiding(a: string, b: string) {
   return new Date(a).toDateString() !== new Date(b).toDateString()
 }
 
-function dagLabel(iso: string) {
+function dagLabel(iso: string, locale: string, t: Vertaal) {
   const d = new Date(iso)
   const nu = new Date()
   const gister = new Date(nu)
   gister.setDate(nu.getDate() - 1)
-  if (d.toDateString() === nu.toDateString()) return 'Vandaag'
-  if (d.toDateString() === gister.toDateString()) return 'Gisteren'
-  return d.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (d.toDateString() === nu.toDateString()) return t('vita.chat.vandaag')
+  if (d.toDateString() === gister.toDateString()) return t('vita.chat.gisteren')
+  return d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export default function Chat() {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const router = useRouter()
 
   const [ikId, setIkId] = useState<string | null>(null)
@@ -303,7 +309,7 @@ export default function Chat() {
       const ao = onlineSet.has(a.id) ? 0 : 1
       const bo = onlineSet.has(b.id) ? 0 : 1
       if (ao !== bo) return ao - bo
-      return a.naam.localeCompare(b.naam, 'nl')
+      return a.naam.localeCompare(b.naam, locale)
     })
 
   // Shared bubble renderer
@@ -315,7 +321,7 @@ export default function Chat() {
       const userId = getUserId(b)
       const isIk = userId === ikId
       const profiel = profielenMap.get(userId)
-      const naam = profiel?.naam ?? 'Onbekend'
+      const naam = profiel?.naam ?? t('vita.chat.onbekend')
       const avatarUrl = profiel?.avatar_url ?? null
       const isOnline = onlineSet.has(userId)
       const isOptimistic = b.id.startsWith('opt-')
@@ -335,7 +341,7 @@ export default function Chat() {
           {showDag && (
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-              <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ color: 'var(--text-3)', background: 'var(--bg-subtle)' }}>{dagLabel(b.aangemaakt_op)}</span>
+              <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ color: 'var(--text-3)', background: 'var(--bg-subtle)' }}>{dagLabel(b.aangemaakt_op, locale, t)}</span>
               <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
             </div>
           )}
@@ -367,7 +373,7 @@ export default function Chat() {
                 {b.inhoud}
               </div>
               {hoverId === b.id && (
-                <span className="text-xs px-1" style={{ color: 'var(--text-3)' }}>{formatTijd(b.aangemaakt_op)}</span>
+                <span className="text-xs px-1" style={{ color: 'var(--text-3)' }}>{formatTijd(b.aangemaakt_op, locale, t)}</span>
               )}
             </div>
             <div className="w-8 flex-shrink-0" />
@@ -394,7 +400,7 @@ export default function Chat() {
           // On desktop always show; on mobile toggle
         >
           <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Berichten</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('vita.chat.berichten')}</p>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -413,16 +419,16 @@ export default function Chat() {
                 <Users size={20} aria-hidden />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>Teamchat</p>
+                <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{t('vita.chat.teamchat')}</p>
                 <p className="text-xs truncate" style={{ color: 'var(--text-3)' }}>
-                  {onlineAanwezig.length > 0 ? `${onlineAanwezig.length + 1} online` : `${profielenMap.size} leden`}
+                  {onlineAanwezig.length > 0 ? t('vita.chat.aantalOnline', { aantal: onlineAanwezig.length + 1 }) : t('vita.chat.aantalLeden', { aantal: profielenMap.size })}
                 </p>
               </div>
             </button>
 
             {/* Divider */}
             <div className="px-4 pt-4 pb-1">
-              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-3)' }}>Directe berichten</p>
+              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-3)' }}>{t('vita.chat.directeBerichten')}</p>
             </div>
 
             {/* Team members */}
@@ -443,7 +449,7 @@ export default function Chat() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{lid.naam}</p>
                   <p className="text-xs truncate" style={{ color: onlineSet.has(lid.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
-                    {onlineSet.has(lid.id) ? 'Online' : 'Offline'}
+                    {onlineSet.has(lid.id) ? t('vita.chat.online') : t('vita.chat.offline')}
                   </p>
                 </div>
               </button>
@@ -459,7 +465,7 @@ export default function Chat() {
             {/* Mobile back */}
             <button
               onClick={() => setMobielZijbalk(true)}
-              aria-label="Terug naar gesprekken"
+              aria-label={t('vita.chat.terug')}
               className="sm:hidden p-1 -ml-1 transition"
               style={{ color: 'var(--text-3)' }}
             >
@@ -473,9 +479,9 @@ export default function Chat() {
                   <Users size={20} aria-hidden />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Teamchat</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('vita.chat.teamchat')}</p>
                   <p className="text-xs" style={{ color: 'var(--text-3)' }}>
-                    {onlineAanwezig.length > 0 ? `${onlineAanwezig.length + 1} online` : `${profielenMap.size} leden`}
+                    {onlineAanwezig.length > 0 ? t('vita.chat.aantalOnline', { aantal: onlineAanwezig.length + 1 }) : t('vita.chat.aantalLeden', { aantal: profielenMap.size })}
                   </p>
                 </div>
                 {onlineAanwezig.length > 0 && (
@@ -485,7 +491,7 @@ export default function Chat() {
                       const p = profielenMap.get(id)
                       if (!p) return null
                       return (
-                        <div key={id} title={id === ikId ? 'Jij' : p.naam} className="rounded-full" style={{ boxShadow: '0 0 0 2px var(--bg-card)' }}>
+                        <div key={id} title={id === ikId ? t('vita.chat.jij') : p.naam} className="rounded-full" style={{ boxShadow: '0 0 0 2px var(--bg-card)' }}>
                           <Avatar naam={p.naam} avatarUrl={p.avatar_url} size={28} online />
                         </div>
                       )
@@ -499,7 +505,7 @@ export default function Chat() {
                 <div>
                   <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{partnerProfiel.naam}</p>
                   <p className="text-xs font-medium" style={{ color: onlineSet.has(partnerProfiel.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
-                    {onlineSet.has(partnerProfiel.id) ? 'Online' : 'Offline'}
+                    {onlineSet.has(partnerProfiel.id) ? t('vita.chat.online') : t('vita.chat.offline')}
                   </p>
                 </div>
               </>
@@ -520,8 +526,8 @@ export default function Chat() {
                   </div>
                   <MessageCircle size={30} aria-hidden style={{ position: 'relative', zIndex: 1 }} />
                 </div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Nog geen berichten</p>
-                <p className="text-xs" style={{ color: 'var(--text-3)' }}>Stuur het eerste bericht naar je team!</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>{t('vita.chat.leegTeamTitel')}</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('vita.chat.leegTeamTekst')}</p>
               </div>
             ) : !isTeam && dmBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
@@ -531,8 +537,8 @@ export default function Chat() {
                   </div>
                   <Mail size={30} aria-hidden style={{ position: 'relative', zIndex: 1 }} />
                 </div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Begin een gesprek</p>
-                <p className="text-xs" style={{ color: 'var(--text-3)' }}>Stuur {partnerProfiel?.naam ?? 'een collega'} een bericht</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>{t('vita.chat.leegDmTitel')}</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('vita.chat.leegDmTekst', { naam: partnerProfiel?.naam ?? t('vita.chat.eenCollega') })}</p>
               </div>
             ) : isTeam ? (
               renderBubbles(teamBerichten, b => (b as Bericht).user_id)
@@ -566,14 +572,14 @@ export default function Chat() {
                       else verstuurDm()
                     }
                   }}
-                  placeholder={isTeam ? 'Stuur een bericht…' : `Stuur ${partnerProfiel?.naam ?? 'een bericht'}…`}
+                  placeholder={isTeam || !partnerProfiel ? t('vita.chat.placeholder') : t('vita.chat.placeholderDm', { naam: partnerProfiel.naam })}
                   className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed"
                   style={{ minHeight: 24, maxHeight: 120, color: 'var(--text-1)' }}
                 />
                 <button
                   onClick={isTeam ? verstuurTeam : verstuurDm}
                   disabled={isTeam ? (!teamInput.trim() || teamVerzenden) : (!dmInput.trim() || dmVerzenden)}
-                  aria-label="Bericht verzenden"
+                  aria-label={t('vita.chat.verzenden')}
                   className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
                   style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--mentaforce-primary)' : 'var(--border)' }}
                 >

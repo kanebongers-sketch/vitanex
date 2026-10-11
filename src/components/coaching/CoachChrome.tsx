@@ -10,12 +10,14 @@ import Link from 'next/link'
 import type { ReactNode, CSSProperties } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // ── Terug-link ──────────────────────────────────────────────────────────────
-export function BackLink({ href, label = 'Terug' }: { href: string; label?: string }) {
+export function BackLink({ href, label }: { href: string; label?: string }) {
+  const { t } = useVertaling()
   return (
     <Link href={href} className="mf-coach-back">
-      <ArrowLeft size={15} aria-hidden /> {label}
+      <ArrowLeft size={15} aria-hidden /> {label ?? t('coaching.algemeen.terug')}
     </Link>
   )
 }

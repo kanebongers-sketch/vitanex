@@ -15,6 +15,8 @@ import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
 import { Progress } from '@/components/ui/Progress'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface VraagStat {
@@ -37,11 +39,12 @@ interface SurveyData {
   week_start: string
 }
 
+// Woordenboek-sleutels per vraagtype.
 const TYPE_LABELS: Record<string, string> = {
-  scale: '1—5 schaal',
-  nps: 'NPS (0—10)',
-  multiple_choice: 'Meerkeuze',
-  text: 'Open tekst',
+  scale: 'werk.hrPulse.type.scale',
+  nps: 'werk.hrPulse.type.nps',
+  multiple_choice: 'werk.hrPulse.type.multiple_choice',
+  text: 'werk.hrPulse.type.text',
 }
 
 const NPS_KLEUR = (score: number) => score >= 30 ? 'var(--mf-green)' : score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)'
@@ -60,6 +63,7 @@ const SELECT_STYLE: React.CSSProperties = {
 export default function HrPulseSurveyPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<SurveyData | null>(null)
   const [nieuw, setNieuw] = useState(false)
@@ -106,9 +110,9 @@ export default function HrPulseSurveyPage() {
       setType('scale')
       setNieuw(false)
       await laadData()
-      toast({ title: 'Vraag toegevoegd', variant: 'success' })
+      toast({ title: t('werk.hrPulse.toegevoegd'), variant: 'success' })
     } else {
-      toast({ title: 'Toevoegen mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('werk.hrPulse.toevoegenMislukt'), description: t('werk.hrPulse.opnieuw'), variant: 'error' })
     }
     setToevoegen(false)
   }
@@ -120,7 +124,7 @@ export default function HrPulseSurveyPage() {
       body: JSON.stringify({ id, actief: !huidig }),
     })
     if (!res.ok) {
-      toast({ title: 'Wijzigen mislukt', description: 'De status kon niet worden bijgewerkt.', variant: 'error' })
+      toast({ title: t('werk.hrPulse.wijzigenMislukt'), description: t('werk.hrPulse.statusMislukt'), variant: 'error' })
     }
     await laadData()
   }
@@ -138,8 +142,8 @@ export default function HrPulseSurveyPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
         <PremiumSlot
           kanUpgraden
-          titel="Pulse-surveys"
-          omschrijving="Stel je team elke week één korte vraag en zie anoniem (≥ 5 respondenten) hoe de organisatie ervoor staat — met trends per vraag."
+          titel={t('werk.hrPulse.premiumTitel')}
+          omschrijving={t('werk.hrPulse.premiumOmschrijving')}
         />
       </main>
     </div>
@@ -155,10 +159,10 @@ export default function HrPulseSurveyPage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Pulse survey</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('werk.hrPulse.titel')}</h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              Week van {data?.week_start ? new Date(data.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' }) : '—'} ·{' '}
-              {participatie.respondenten} van {participatie.totaal} ingevuld ({participatie.pct}%)
+              {t('werk.hrPulse.weekVan', { datum: data?.week_start ? new Date(data.week_start).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long' }) : '—' })} ·{' '}
+              {t('werk.hrPulse.ingevuld', { aantal: participatie.respondenten, totaal: participatie.totaal, pct: participatie.pct })}
             </p>
           </div>
           <Button
@@ -167,7 +171,7 @@ export default function HrPulseSurveyPage() {
             leftIcon={nieuw ? <X size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
             onClick={() => setNieuw(v => !v)}
           >
-            {nieuw ? 'Annuleer' : 'Vraag toevoegen'}
+            {nieuw ? t('werk.hrPulse.annuleer') : t('werk.hrPulse.vraagToevoegen')}
           </Button>
         </div>
 
@@ -175,45 +179,45 @@ export default function HrPulseSurveyPage() {
         <Card style={{ padding: '16px 20px', marginBottom: 16 }}>
           <Progress
             value={participatie.pct}
-            label="Participatie deze week"
+            label={t('werk.hrPulse.participatieLabel')}
             showValue
             color="var(--mf-green)"
           />
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>{participatie.respondenten} respondenten van {participatie.totaal} medewerkers</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>{t('werk.hrPulse.respondenten', { aantal: participatie.respondenten, totaal: participatie.totaal })}</p>
         </Card>
 
         {/* Nieuw vraag formulier */}
         {nieuw && (
           <Card style={{ border: '1.5px solid var(--mentaforce-primary)', padding: '20px 22px', marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Nieuwe vraag</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>{t('werk.hrPulse.nieuweVraag')}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Field label="Vraag" required>
+              <Field label={t('werk.hrPulse.vraag')} required>
                 <Textarea
                   rows={2}
                   value={vraag}
                   onChange={e => setVraag(e.target.value)}
-                  placeholder="Hoe tevreden ben je over...?"
+                  placeholder={t('werk.hrPulse.vraagPlaceholder')}
                   style={{ resize: 'none', minHeight: 0 }}
                 />
               </Field>
-              <Field label="Type vraag">
+              <Field label={t('werk.hrPulse.typeVraag')}>
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as typeof type)}
                   style={SELECT_STYLE}
                 >
                   {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
+                    <option key={k} value={k}>{t(v)}</option>
                   ))}
                 </select>
               </Field>
               {type === 'multiple_choice' && (
-                <Field label="Opties" hint="Eén optie per regel">
+                <Field label={t('werk.hrPulse.opties')} hint={t('werk.hrPulse.optiesHint')}>
                   <Textarea
                     rows={4}
                     value={optiesRaw}
                     onChange={e => setOptiesRaw(e.target.value)}
-                    placeholder={"Altijd\nVaak\nSoms\nNooit"}
+                    placeholder={t('werk.hrPulse.optiesPlaceholder')}
                     style={{ resize: 'none' }}
                   />
                 </Field>
@@ -224,7 +228,7 @@ export default function HrPulseSurveyPage() {
                 loading={toevoegen}
                 style={{ width: '100%' }}
               >
-                {toevoegen ? 'Toevoegen…' : 'Vraag toevoegen'}
+                {toevoegen ? t('werk.hrPulse.toevoegenBezig') : t('werk.hrPulse.vraagToevoegen')}
               </Button>
             </div>
           </Card>
@@ -234,7 +238,7 @@ export default function HrPulseSurveyPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(data?.vragen ?? []).length === 0 && (
             <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', paddingTop: 40 }}>
-              Nog geen pulse survey vragen aangemaakt. Klik op &quot;Vraag toevoegen&quot; om te beginnen.
+              {t('werk.hrPulse.leeg')}
             </p>
           )}
           {(data?.vragen ?? []).map(v => {
@@ -247,7 +251,7 @@ export default function HrPulseSurveyPage() {
                     type="button"
                     role="switch"
                     aria-checked={v.actief}
-                    aria-label={`Vraag ${v.actief ? 'actief' : 'inactief'} — klik om te wisselen`}
+                    aria-label={v.actief ? t('werk.hrPulse.schakelActief') : t('werk.hrPulse.schakelInactief')}
                     onClick={() => toggleActief(v.id, v.actief)}
                     className="mf-pulse-switch"
                     style={{
@@ -276,19 +280,19 @@ export default function HrPulseSurveyPage() {
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
-                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.hrPulse.antwoorden', { type: TYPE_LABELS[v.type] ? t(TYPE_LABELS[v.type]) : v.type, aantal: v.aantal_antwoorden })}</p>
                     </div>
 
                     {v.type === 'nps' && v.nps !== null && (
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 800, color: NPS_KLEUR(v.nps) }}>{v.nps > 0 ? '+' : ''}{v.nps}</p>
-                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>NPS</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('werk.hrPulse.nps')}</p>
                       </div>
                     )}
                     {(v.type === 'scale') && v.gemiddelde !== null && (
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{v.gemiddelde}/5</p>
-                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>gem.</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('werk.hrPulse.gem')}</p>
                       </div>
                     )}
 
@@ -300,7 +304,7 @@ export default function HrPulseSurveyPage() {
                   <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
                     {v.verborgen_wegens_anonimiteit ? (
                       <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                        Resultaten zichtbaar vanaf 5 antwoorden — zo blijft elke respondent anoniem.
+                        {t('werk.hrPulse.verborgen')}
                       </p>
                     ) : v.type === 'scale' || v.type === 'nps' ? (
                       <div>
@@ -308,9 +312,9 @@ export default function HrPulseSurveyPage() {
                           <div style={{ marginBottom: 14 }}>
                             <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
                               {[
-                                { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
-                                { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
-                                { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                                { label: t('werk.hrPulse.detractors'), count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
+                                { label: t('werk.hrPulse.passives'), count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
+                                { label: t('werk.hrPulse.promoters'), count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
                               ].map(g => (
                                 <div key={g.label} style={{ flex: 1, background: g.bg, borderRadius: 'var(--radius-sm)', padding: '10px 12px', textAlign: 'center' }}>
                                   <p style={{ fontSize: 16, fontWeight: 800, color: g.kleur }}>{g.count}</p>
@@ -328,7 +332,7 @@ export default function HrPulseSurveyPage() {
                               return (
                                 <div key={waarde} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', width: 24, textAlign: 'right' }}>{waarde}</span>
-                                  <Progress value={aantal} max={max || 1} ariaLabel={`Score ${waarde}: ${aantal} antwoorden`} color="var(--mf-green)" style={{ flex: 1 }} />
+                                  <Progress value={aantal} max={max || 1} ariaLabel={t('werk.hrPulse.scoreLabel', { waarde, aantal })} color="var(--mf-green)" style={{ flex: 1 }} />
                                   <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
                                 </div>
                               )
@@ -342,14 +346,14 @@ export default function HrPulseSurveyPage() {
                           return (
                             <div key={optie} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>{optie}</span>
-                              <Progress value={aantal} max={max || 1} ariaLabel={`${optie}: ${aantal} antwoorden`} color="var(--mf-green)" style={{ width: 120 }} />
+                              <Progress value={aantal} max={max || 1} ariaLabel={t('werk.hrPulse.optieLabel', { optie, aantal })} color="var(--mf-green)" style={{ width: 120 }} />
                               <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
                             </div>
                           )
                         })}
                       </div>
                     ) : (
-                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Open antwoorden worden niet weergegeven om anonimiteit te bewaren.</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.hrPulse.openVerborgen')}</p>
                     )}
                   </div>
                 )}

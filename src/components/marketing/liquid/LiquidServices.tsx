@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import { COLORS } from '../theme'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const SVG_CLASS = 'h-full w-full transition-transform duration-700 group-hover:scale-105'
 
@@ -59,6 +60,7 @@ function FocusVisual() {
   )
 }
 
+// tag/titel/beschrijving zijn vertaalsleutels.
 interface Kaart {
   tag: string
   titel: string
@@ -68,22 +70,21 @@ interface Kaart {
 
 const KAARTEN: readonly Kaart[] = [
   {
-    tag: 'Signaleren',
-    titel: 'Anoniem meten & vroeg zien',
-    beschrijving:
-      'Korte check-ins over zes pijlers geven het team een gedeeld, geaggregeerd beeld — anoniem, AVG-conform en EU-gehost. Zo worden signalen bespreekbaar terwijl er nog ruimte is om iets te veranderen.',
+    tag: 'site.diensten.signaalTag',
+    titel: 'site.diensten.signaalTitel',
+    beschrijving: 'site.diensten.signaalTekst',
     Visual: SignaalVisual,
   },
   {
-    tag: 'Trainen',
-    titel: 'Coaching & mentale groei',
-    beschrijving:
-      'Met Vita, ademhalings- en focussessies en persoonlijke protocollen bouw je stap voor stap aan veerkracht en concentratie. Kleine dagelijkse stappen, geen quick fixes.',
+    tag: 'site.diensten.trainenTag',
+    titel: 'site.diensten.trainenTitel',
+    beschrijving: 'site.diensten.trainenTekst',
     Visual: FocusVisual,
   },
 ]
 
 export default function LiquidServices() {
+  const { t } = useVertaling()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -101,8 +102,8 @@ export default function LiquidServices() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h2 className="text-3xl md:text-5xl text-white tracking-tight">Wat MentaForce doet</h2>
-          <span className="hidden md:block text-white/60 text-sm">Het platform</span>
+          <h2 className="text-3xl md:text-5xl text-white tracking-tight">{t('site.diensten.kop')}</h2>
+          <span className="hidden md:block text-white/60 text-sm">{t('site.diensten.label')}</span>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -125,13 +126,13 @@ export default function LiquidServices() {
 
               <div className="p-6 md:p-8">
                 <div className="flex items-start justify-between mb-4">
-                  <span className="uppercase tracking-widest text-white/60 text-xs">{tag}</span>
+                  <span className="uppercase tracking-widest text-white/60 text-xs">{t(tag)}</span>
                   <span className="liquid-glass rounded-full p-2" aria-hidden>
                     <ArrowUpRight size={16} className="text-white" />
                   </span>
                 </div>
-                <h3 className="text-white text-xl md:text-2xl mb-3 tracking-tight">{titel}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{beschrijving}</p>
+                <h3 className="text-white text-xl md:text-2xl mb-3 tracking-tight">{t(titel)}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{t(beschrijving)}</p>
               </div>
             </motion.article>
           ))}

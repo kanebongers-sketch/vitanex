@@ -8,6 +8,7 @@ import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 interface Vraag {
@@ -19,6 +20,7 @@ interface Vraag {
 
 export default function PulseSurveyPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [vragen, setVragen] = useState<Vraag[]>([])
   const [alIngevuld, setAlIngevuld] = useState(false)
@@ -86,18 +88,18 @@ export default function PulseSurveyPage() {
           </div>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 10 }}>
-          {klaar ? 'Bedankt voor je bijdrage!' : 'Al ingevuld deze week'}
+          {klaar ? t('werk.pulse.bedankt') : t('werk.pulse.alIngevuld')}
         </h1>
         <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6 }}>
           {klaar
-            ? 'Jouw antwoorden zijn anoniem verzameld. Je helpt zo om het welzijn op de werkvloer te verbeteren.'
-            : 'Je hebt de wekelijkse pulse survey al ingevuld. Kom volgende week terug!'}
+            ? t('werk.pulse.bedanktTekst')
+            : t('werk.pulse.alIngevuldTekst')}
         </p>
         <button
           onClick={() => router.push('/home')}
           style={{ marginTop: 28, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'var(--bg-app)', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}
         >
-          Terug naar home
+          {t('werk.pulse.terugHome')}
         </button>
       </main>
     </div>
@@ -107,7 +109,7 @@ export default function PulseSurveyPage() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-        <p style={{ fontSize: 14, color: 'var(--text-4)' }}>Geen pulse survey actief voor jouw organisatie.</p>
+        <p style={{ fontSize: 14, color: 'var(--text-4)' }}>{t('werk.pulse.geenActief')}</p>
       </main>
     </div>
   )
@@ -126,7 +128,7 @@ export default function PulseSurveyPage() {
         {/* Progress */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)' }}>Vraag {stap + 1} van {vragen.length}</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)' }}>{t('werk.pulse.vraagVan', { nr: stap + 1, totaal: vragen.length })}</p>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-green)' }}>{Math.round(voortgang)}%</p>
           </div>
           <div
@@ -134,7 +136,7 @@ export default function PulseSurveyPage() {
             aria-valuenow={Math.round(voortgang)}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Voortgang: vraag ${stap + 1} van ${vragen.length}`}
+            aria-label={t('werk.pulse.voortgang', { nr: stap + 1, totaal: vragen.length })}
             style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}
           >
             <div style={{ height: '100%', width: `${voortgang}%`, background: 'var(--mf-green)', borderRadius: 100, transition: 'width 0.3s ease' }} />
@@ -155,7 +157,7 @@ export default function PulseSurveyPage() {
                   <button
                     key={n}
                     onClick={() => stelAntwoord(huidigeVraag.id, n)}
-                    aria-label={`Score ${n} van 5`}
+                    aria-label={t('werk.pulse.scoreVan5', { n })}
                     aria-pressed={huidigeAntwoord === n}
                     style={{
                       width: 56, height: 56, borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: 700,
@@ -167,8 +169,8 @@ export default function PulseSurveyPage() {
                 ))}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Zeer slecht</span>
-                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Uitstekend</span>
+                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('werk.pulse.zeerSlecht')}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('werk.pulse.uitstekend')}</span>
               </div>
             </div>
           )}
@@ -181,7 +183,7 @@ export default function PulseSurveyPage() {
                   <button
                     key={n}
                     onClick={() => stelAntwoord(huidigeVraag.id, n)}
-                    aria-label={`Score ${n} van 10`}
+                    aria-label={t('werk.pulse.scoreVan10', { n })}
                     aria-pressed={huidigeAntwoord === n}
                     style={{
                       width: 46, height: 46, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
@@ -193,8 +195,8 @@ export default function PulseSurveyPage() {
                 ))}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Zeer onwaarschijnlijk</span>
-                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Zeer waarschijnlijk</span>
+                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('werk.pulse.zeerOnwaarschijnlijk')}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('werk.pulse.zeerWaarschijnlijk')}</span>
               </div>
             </div>
           )}
@@ -232,7 +234,7 @@ export default function PulseSurveyPage() {
               rows={4}
               value={(huidigeAntwoord as string) ?? ''}
               onChange={e => stelAntwoord(huidigeVraag.id, e.target.value)}
-              placeholder="Jouw antwoord..."
+              placeholder={t('werk.pulse.antwoordPlaceholder')}
               style={{
                 width: '100%', border: '1.5px solid var(--border)', borderRadius: 12,
                 padding: '12px 16px', fontSize: 14, outline: 'none', resize: 'vertical',
@@ -251,7 +253,7 @@ export default function PulseSurveyPage() {
               onClick={vorige}
               style={{ padding: '13px 20px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-3)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
             >
-              ← Vorige
+              {t('werk.pulse.vorige')}
             </button>
           )}
           <button
@@ -264,12 +266,12 @@ export default function PulseSurveyPage() {
               opacity: !isBeantwoord || verzenden ? 0.4 : 1,
             }}
           >
-            {verzenden ? 'Verzenden...' : isLaatste ? 'Verzend survey →' : 'Volgende →'}
+            {verzenden ? t('werk.pulse.verzenden') : isLaatste ? t('werk.pulse.verzend') : t('werk.pulse.volgende')}
           </button>
         </div>
 
         <p style={{ fontSize: 11, color: 'var(--text-4)', textAlign: 'center', marginTop: 14 }}>
-          Jouw antwoorden zijn volledig anoniem en worden alleen als team-aggregaat getoond.
+          {t('werk.pulse.anoniem')}
         </p>
       </main>
     </div>

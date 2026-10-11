@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { huidigeTaalset } from '@/lib/i18n/server'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,8 +27,10 @@ export async function GET(request: Request) {
   }
 
   const vandaag = new Date().toISOString().split('T')[0]
+  const ts = await huidigeTaalset()
 
-  // Check cache (today's brief)
+  // Check cache (today's brief). De groet is in een taal geschreven; een
+  // cache-item zonder taal is van voor de meertaligheid, dus Nederlands.
   const { data: cached } = await supabaseAdmin
     .from('checkin_analyses')
     .select('analyse_json')
@@ -37,7 +41,8 @@ export async function GET(request: Request) {
     .limit(1)
     .maybeSingle()
 
-  if (cached?.analyse_json?.morning_brief) {
+  const cacheTaal = (cached?.analyse_json?.morning_brief_taal as string | undefined) ?? 'nl'
+  if (cached?.analyse_json?.morning_brief && cacheTaal === ts.taal) {
     return NextResponse.json({ bericht: cached.analyse_json.morning_brief })
   }
 
@@ -73,7 +78,7 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .maybeSingle()
 
-  const naam = profile?.naam || 'je'
+  const naam = profile?.naam || ts.t('vita.dagstart.naamOnbekend')
   const scores = checkin.scores as Record<string, number> || {}
 
   const wearableContext = wearable
@@ -95,8 +100,9 @@ Schrijf een bericht van 2-3 zinnen dat:
 - Warm en persoonlijk aanvoelt
 - Aansluit op de scores/data
 - Praktisch en motiverend eindigt
-- In het Nederlands is
 - Geen opsommingen of bullets gebruikt
+
+${aiTaalInstructie(ts.taal)}
 
 Geef alleen het bericht, geen extra uitleg.`
 
@@ -119,7 +125,7 @@ Geef alleen het bericht, geen extra uitleg.`
     .maybeSingle()
 
   if (existingAnalyse) {
-    const updated = { ...(existingAnalyse.analyse_json as object || {}), morning_brief: bericht }
+    const updated = { ...(existingAnalyse.analyse_json as object || {}), morning_brief: bericht, morning_brief_taal: ts.taal }
     await supabaseAdmin
       .from('checkin_analyses')
       .update({ analyse_json: updated })

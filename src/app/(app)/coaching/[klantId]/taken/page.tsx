@@ -13,10 +13,12 @@ import { Button } from '@/components/ui/Button'
 import { TaakFormulier, type NieuweTaakWaarden } from '@/components/coaching/TaakFormulier'
 import { PIJLER_ICOON } from '@/components/coaching/TaakKaart'
 import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
-import { PIJLER_LABELS, PIJLER_STIJL, targetOmschrijving, type TaakMetVoortgang } from '@/lib/coaching/taken'
+import { PIJLER_STIJL, type TaakMetVoortgang } from '@/lib/coaching/taken'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { ListChecks, Power, Trash2, ShieldAlert } from 'lucide-react'
 
 export default function KlantTakenPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { klantId } = useParams<{ klantId: string }>()
 
@@ -60,7 +62,7 @@ export default function KlantTakenPagina() {
     const data = await res.json() as { error?: string }
     setFormBezig(false)
     if (res.ok) { await laadTaken(); return true }
-    setFormFout(data.error ?? 'Taak aanmaken mislukt.')
+    setFormFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.takenBeheer.mislukt'))
     return false
   }
 
@@ -71,7 +73,7 @@ export default function KlantTakenPagina() {
       body: JSON.stringify({ actief: !taak.actief }),
     })
     if (res.ok) {
-      setTaken(prev => prev.map(t => t.id === taak.id ? { ...t, actief: !t.actief } : t))
+      setTaken(prev => prev.map(x => x.id === taak.id ? { ...x, actief: !x.actief } : x))
     }
     setActieBezigId(null)
   }
@@ -79,7 +81,7 @@ export default function KlantTakenPagina() {
   async function verwijder(taakId: string) {
     setActieBezigId(taakId)
     const res = await authFetch(`/api/coaching/taken/${taakId}`, { method: 'DELETE' })
-    if (res.ok) setTaken(prev => prev.filter(t => t.id !== taakId))
+    if (res.ok) setTaken(prev => prev.filter(x => x.id !== taakId))
     setActieBezigId(null)
     setBevestigId(null)
   }
@@ -90,11 +92,11 @@ export default function KlantTakenPagina() {
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
 
         <CoachHeader
-          eyebrow="Coaching · Taken"
-          titel="Coaching-taken"
-          subtitel="Wijs terugkerende gewoontes toe die je klant helpt opbouwen."
+          eyebrow={t('coaching.takenBeheer.eyebrow')}
+          titel={t('coaching.takenBeheer.titel')}
+          subtitel={t('coaching.takenBeheer.subtitel')}
           backHref={`/coaching/${klantId}`}
-          backLabel="Terug naar klant"
+          backLabel={t('coaching.algemeen.terugNaarKlant')}
         />
 
         {laden ? (
@@ -102,75 +104,75 @@ export default function KlantTakenPagina() {
         ) : nietGevonden ? (
           <CoachEmpty
             icon={ShieldAlert}
-            titel="Klant niet gevonden"
-            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            titel={t('coaching.klant.nietGevondenTitel')}
+            tekst={t('coaching.klant.nietActief')}
             toon="wacht"
           />
         ) : (
           <>
             <Card className="mf-animate-up mf-delay-1" style={{ padding: '20px 22px', marginBottom: 28 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ListChecks size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> Nieuwe taak
+                <ListChecks size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.takenBeheer.nieuw')}
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>
-                Je klant vinkt de taak af in het portaal; het telt mee voor hun wekelijkse streak.
+                {t('coaching.takenBeheer.uitleg')}
               </p>
               <TaakFormulier onSubmit={maakTaak} bezig={formBezig} fout={formFout} />
             </Card>
 
-            <CoachSection titel="Toegewezen taken">
+            <CoachSection titel={t('coaching.takenBeheer.lijst')}>
               {taken.length === 0 ? (
                 <CoachEmpty
                   icon={ListChecks}
-                  titel="Nog geen taken"
-                  tekst="Voeg hierboven de eerste gewoonte toe die je deze klant wilt laten opbouwen."
+                  titel={t('coaching.takenBeheer.leegTitel')}
+                  tekst={t('coaching.takenBeheer.leegTekst')}
                 />
               ) : (
                 <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {taken.map(t => {
-                  const stijl = PIJLER_STIJL[t.pijler]
-                  const Icoon = PIJLER_ICOON[t.pijler]
+                {taken.map(taak => {
+                  const stijl = PIJLER_STIJL[taak.pijler]
+                  const Icoon = PIJLER_ICOON[taak.pijler]
                   return (
-                    <li key={t.id}>
-                      <Card style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: t.actief ? 1 : 0.62 }}>
+                    <li key={taak.id}>
+                      <Card style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: taak.actief ? 1 : 0.62 }}>
                         <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: stijl.bg, color: stijl.color }}>
                           <Icoon size={18} />
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{t.titel}</p>
-                            {!t.actief && <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>Inactief</Badge>}
+                            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{taak.titel}</p>
+                            {!taak.actief && <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>{t('coaching.takenBeheer.inactief')}</Badge>}
                           </div>
-                          {t.beschrijving && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.5 }}>{t.beschrijving}</p>}
+                          {taak.beschrijving && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.5 }}>{taak.beschrijving}</p>}
                           <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginTop: 4 }}>
-                            {PIJLER_LABELS[t.pijler]} · {targetOmschrijving(t)} · {t.deze_week_gehaald}/{t.target_per_week} deze week
+                            {t(`coaching.labels.pijler.${taak.pijler}`)} · {taak.frequentie === 'dagelijks' ? t('coaching.labels.elkeDag') : t('coaching.labels.perWeek', { aantal: taak.target_per_week })} · {t('coaching.taakKaart.dezeWeek', { gehaald: taak.deze_week_gehaald, doel: taak.target_per_week })}
                           </p>
                         </div>
 
-                        {bevestigId === t.id ? (
+                        {bevestigId === taak.id ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                            <Button variant="danger" size="sm" loading={actieBezigId === t.id} onClick={() => verwijder(t.id)}>Verwijder</Button>
-                            <Button variant="ghost" size="sm" onClick={() => setBevestigId(null)}>Annuleer</Button>
+                            <Button variant="danger" size="sm" loading={actieBezigId === taak.id} onClick={() => verwijder(taak.id)}>{t('coaching.content.verwijder')}</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setBevestigId(null)}>{t('coaching.algemeen.annuleer')}</Button>
                           </div>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                             <Button
                               variant="ghost" size="sm"
-                              loading={actieBezigId === t.id}
-                              onClick={() => zetActief(t)}
+                              loading={actieBezigId === taak.id}
+                              onClick={() => zetActief(taak)}
                               leftIcon={<Power size={14} aria-hidden />}
-                              aria-label={t.actief ? `${t.titel} deactiveren` : `${t.titel} activeren`}
+                              aria-label={t(taak.actief ? 'coaching.takenBeheer.deactiverenAria' : 'coaching.takenBeheer.activerenAria', { titel: taak.titel })}
                             >
-                              {t.actief ? 'Pauzeer' : 'Activeer'}
+                              {taak.actief ? t('coaching.takenBeheer.pauzeer') : t('coaching.takenBeheer.activeer')}
                             </Button>
                             <Button
                               variant="ghost" size="sm"
-                              onClick={() => setBevestigId(t.id)}
+                              onClick={() => setBevestigId(taak.id)}
                               leftIcon={<Trash2 size={14} aria-hidden />}
-                              aria-label={`${t.titel} verwijderen`}
+                              aria-label={t('coaching.content.verwijderenAria', { titel: taak.titel })}
                               style={{ color: 'var(--mf-red)' }}
                             >
-                              Verwijder
+                              {t('coaching.content.verwijder')}
                             </Button>
                           </div>
                         )}

@@ -11,6 +11,8 @@ import { BarChart3, MessageCircle, FolderOpen } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import DocumentenSectie from '@/components/team/DocumentenSectie'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // recharts lui laden — alleen wanneer de vitaliteitstrend echt getoond wordt.
 const VitaliteitTrend = nextDynamic(() => import('@/components/team/VitaliteitTrend'), { ssr: false })
@@ -58,30 +60,33 @@ function catScore(checkins: Checkin[], keys: (keyof Checkin)[]) {
 }
 
 const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
-  hr: { label: 'HR', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
-  admin: { label: 'Staff Vitanex', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
-  medewerker: { label: 'Medewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
+  hr: { label: 'werk.teamLid.rolHr', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
+  admin: { label: 'werk.teamLid.rolAdmin', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
+  medewerker: { label: 'werk.teamLid.rolMedewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
 }
 
-const detailMetrics: { label: string; key: keyof Checkin }[] = [
-  { label: 'Energie', key: 'energie' },
-  { label: 'Slaap', key: 'slaap' },
-  { label: 'Fys. klachten', key: 'fysiek_pijn' },
-  { label: 'Beweging', key: 'fysiek_beweging' },
-  { label: 'Werkdruk', key: 'werkdruk' },
-  { label: 'Focus', key: 'mentaal_focus' },
-  { label: 'Stress', key: 'mentaal_stress' },
-  { label: 'Balans', key: 'mentaal_balans' },
-  { label: 'Motivatie', key: 'motivatie' },
-  { label: 'Teamwerk', key: 'sociaal_team' },
-  { label: 'Steun', key: 'sociaal_steun' },
-  { label: 'Herstel', key: 'herstel' },
+// Label = woordenboek-sleutel werk.teamLid.metric.<key>
+const detailMetrics: { key: keyof Checkin }[] = [
+  { key: 'energie' },
+  { key: 'slaap' },
+  { key: 'fysiek_pijn' },
+  { key: 'fysiek_beweging' },
+  { key: 'werkdruk' },
+  { key: 'mentaal_focus' },
+  { key: 'mentaal_stress' },
+  { key: 'mentaal_balans' },
+  { key: 'motivatie' },
+  { key: 'sociaal_team' },
+  { key: 'sociaal_steun' },
+  { key: 'herstel' },
 ]
 
 export default function ProfielPagina() {
   const router = useRouter()
   const params = useParams()
   const profielId = params.id as string
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
 
   const [profiel, setProfiel] = useState<Profiel | null>(null)
   const [checkins, setCheckins] = useState<Checkin[]>([])
@@ -92,6 +97,7 @@ export default function ProfielPagina() {
   const [nieGevonden, setNieGevonden] = useState(false)
   const [herinneringBezig, setHerinneringBezig] = useState(false)
   const [herinneringMelding, setHerinneringMelding] = useState<string | null>(null)
+  const [herinneringFout, setHerinneringFout] = useState(false)
   const [actieveTab, setActieveTab] = useState<TeamTab>('vitaliteit')
 
   useEffect(() => {
@@ -138,6 +144,7 @@ export default function ProfielPagina() {
   async function stuurHerinnering() {
     setHerinneringBezig(true)
     setHerinneringMelding(null)
+    setHerinneringFout(false)
     try {
       const res = await fetch('/api/herinnering-member', {
         method: 'POST',
@@ -146,12 +153,14 @@ export default function ProfielPagina() {
       })
       const json = await res.json()
       if (res.ok) {
-        setHerinneringMelding(`Herinnering verstuurd naar ${json.email}`)
+        setHerinneringMelding(t('werk.teamLid.herinneringVerstuurd', { email: json.email }))
       } else {
-        setHerinneringMelding(`Fout: ${json.error}`)
+        setHerinneringFout(true)
+        setHerinneringMelding(t('werk.teamLid.fout', { fout: taal === 'nl' ? json.error : t('werk.algemeen.ietsMis') }))
       }
     } catch {
-      setHerinneringMelding('Er ging iets mis.')
+      setHerinneringFout(true)
+      setHerinneringMelding(t('werk.teamLid.ietsMis'))
     }
     setHerinneringBezig(false)
   }
@@ -165,7 +174,7 @@ export default function ProfielPagina() {
   const totaalScore = gem([fysiekScore, mentaalScore, sociaalScore])
 
   const trendData = checkins.map(c => ({
-    datum: new Date(c.created_at).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' }),
+    datum: new Date(c.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
     Score: Math.round(((c.energie + c.slaap + c.fysiek_pijn + c.fysiek_beweging +
                         c.werkdruk + c.mentaal_focus + c.mentaal_stress + c.mentaal_balans +
                         c.motivatie + c.sociaal_team + c.sociaal_steun + c.herstel) / 60) * 100),
@@ -176,7 +185,7 @@ export default function ProfielPagina() {
   if (laden) return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16" role="status" aria-label="Profiel laden">
+      <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16" role="status" aria-label={t('werk.teamLid.laden')}>
         <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
       </main>
     </div>
@@ -186,8 +195,8 @@ export default function ProfielPagina() {
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-3xl mx-auto p-8 text-center mt-16">
-        <p className="text-sm" style={{ color: 'var(--text-3)' }}>Profiel niet gevonden.</p>
-        <Link href="/dashboard" className="text-sm hover:underline mt-4 inline-block" style={{ color: 'var(--text-2)' }}>← Terug</Link>
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.teamLid.nietGevonden')}</p>
+        <Link href="/dashboard" className="text-sm hover:underline mt-4 inline-block" style={{ color: 'var(--text-2)' }}>{t('werk.teamLid.terug')}</Link>
       </main>
     </div>
   )
@@ -198,7 +207,7 @@ export default function ProfielPagina() {
       <main className="max-w-3xl mx-auto p-8">
 
         <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm mb-6 transition" style={{ color: 'var(--text-3)' }}>
-          ← Terug naar team
+          {t('werk.teamLid.terugTeam')}
         </Link>
 
         {/* Header */}
@@ -210,15 +219,17 @@ export default function ProfielPagina() {
                 <div className="flex items-center gap-2.5 flex-wrap mb-1">
                   <h1 className="text-xl font-medium" style={{ color: 'var(--text-1)' }}>{profiel?.naam}</h1>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.color }}>
-                    {badge.label}
+                    {t(badge.label)}
                   </span>
                 </div>
                 {isHR ? (
                   checkins.length > 0
-                    ? <p className="text-sm" style={{ color: 'var(--text-3)' }}>{checkins.length} check-in{checkins.length !== 1 ? 's' : ''} gedaan · Laatste op {new Date(checkins[checkins.length - 1].created_at).toLocaleDateString('nl-BE')}</p>
-                    : <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen check-ins gedaan</p>
+                    ? <p className="text-sm" style={{ color: 'var(--text-3)' }}>{checkins.length === 1
+                      ? t('werk.teamLid.checkinsEen', { datum: new Date(checkins[checkins.length - 1].created_at).toLocaleDateString(locale) })
+                      : t('werk.teamLid.checkinsMeer', { aantal: checkins.length, datum: new Date(checkins[checkins.length - 1].created_at).toLocaleDateString(locale) })}</p>
+                    : <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.teamLid.geenCheckins')}</p>
                 ) : (
-                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>Teamlid</p>
+                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.teamLid.teamlid')}</p>
                 )}
               </div>
             </div>
@@ -231,14 +242,14 @@ export default function ProfielPagina() {
                   className="text-sm rounded-xl px-4 py-2 transition disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2"
                   style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                 >
-                  {herinneringBezig ? 'Versturen...' : 'Stuur herinnering'}
+                  {herinneringBezig ? t('werk.teamLid.versturen') : t('werk.teamLid.stuurHerinnering')}
                 </button>
                 {herinneringMelding && (
                   <p
-                    role={herinneringMelding.startsWith('Fout') ? 'alert' : 'status'}
+                    role={herinneringFout ? 'alert' : 'status'}
                     aria-live="polite"
                     className="text-xs"
-                    style={{ color: herinneringMelding.startsWith('Fout') ? 'var(--mf-red)' : 'var(--mf-green-dark)' }}
+                    style={{ color: herinneringFout ? 'var(--mf-red)' : 'var(--mf-green-dark)' }}
                   >
                     {herinneringMelding}
                   </p>
@@ -250,11 +261,11 @@ export default function ProfielPagina() {
 
         {/* Tabs — alleen voor HR */}
         {isHR && (
-          <nav aria-label="Profiel-secties" style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
+          <nav aria-label={t('werk.teamLid.secties')} style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
             {([
-              ['vitaliteit', 'Vitaliteit', BarChart3],
-              ['gesprekken', 'Gesprekken', MessageCircle],
-              ['dossier', 'Dossier', FolderOpen],
+              ['vitaliteit', 'werk.teamLid.tabVitaliteit', BarChart3],
+              ['gesprekken', 'werk.teamLid.tabGesprekken', MessageCircle],
+              ['dossier', 'werk.teamLid.tabDossier', FolderOpen],
             ] as const).map(([tab, label, Icon]) => (
               <button key={tab} type="button" aria-pressed={actieveTab === tab} onClick={() => setActieveTab(tab)} className="text-sm inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2" style={{
                 padding: '9px 16px', fontWeight: 600, border: 'none',
@@ -264,7 +275,7 @@ export default function ProfielPagina() {
                 transition: 'all 0.15s',
               }}>
                 <Icon size={15} aria-hidden="true" />
-                {label}
+                {t(label)}
               </button>
             ))}
           </nav>
@@ -275,7 +286,7 @@ export default function ProfielPagina() {
           <>
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--bg-app)', border: `2px solid ${scoreKleur(totaalScore)}` }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Totaal</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>{t('werk.teamLid.totaal')}</p>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
                     <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
@@ -284,37 +295,38 @@ export default function ProfielPagina() {
                 </div>
               </div>
               <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-green-light)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--mf-green-dark)' }}>Fysiek</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--mf-green-dark)' }}>{t('werk.teamLid.fysiek')}</p>
                 <p className="text-2xl font-medium" style={{ color: 'var(--mf-green)' }}>{fysiekScore}/5</p>
               </div>
               <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-blue-light)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--mf-blue)' }}>Mentaal</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--mf-blue)' }}>{t('werk.teamLid.mentaal')}</p>
                 <p className="text-2xl font-medium" style={{ color: 'var(--mf-blue)' }}>{mentaalScore}/5</p>
               </div>
               <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-purple-light)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--mf-purple)' }}>Sociaal</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--mf-purple)' }}>{t('werk.teamLid.sociaal')}</p>
                 <p className="text-2xl font-medium" style={{ color: 'var(--mf-purple)' }}>{sociaalScore}/5</p>
               </div>
             </div>
 
             <div className="rounded-2xl border p-6 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Scores per indicator</p>
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>{t('werk.teamLid.perIndicator')}</p>
               <div className="grid grid-cols-2 gap-3">
                 {detailMetrics.map(m => {
                   const waarde = gem(checkins.map(c => c[m.key] as number))
+                  const label = t(`werk.teamLid.metric.${m.key}`)
                   return (
-                    <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
-                      <span className="text-sm" style={{ color: 'var(--text-2)' }}>{m.label}</span>
+                    <div key={m.key} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
+                      <span className="text-sm" style={{ color: 'var(--text-2)' }}>{label}</span>
                       <div className="flex items-center gap-2">
                         <div
                           className="w-20 h-1.5 rounded-full overflow-hidden"
                           style={{ background: 'var(--bg-subtle)' }}
                           role="progressbar"
-                          aria-label={`${m.label}-score`}
+                          aria-label={t('werk.teamLid.scoreLabel', { label })}
                           aria-valuenow={waarde}
                           aria-valuemin={0}
                           aria-valuemax={5}
-                          aria-valuetext={waarde > 0 ? `${waarde} van 5` : 'Geen data'}
+                          aria-valuetext={waarde > 0 ? t('werk.teamLid.vanVijf', { waarde }) : t('werk.teamLid.geenData')}
                         >
                           <div className="h-full rounded-full" style={{ width: `${(waarde / 5) * 100}%`, background: scoreKleur(waarde) }} />
                         </div>
@@ -330,19 +342,19 @@ export default function ProfielPagina() {
 
             {checkins.length > 1 && (
               <div className="rounded-2xl border p-6 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Vitaliteitstrend</p>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>{t('werk.teamLid.trend')}</p>
                 <VitaliteitTrend data={trendData} />
               </div>
             )}
 
             {toelichtingen.length > 0 && (
               <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Toelichtingen bij check-ins ({toelichtingen.length})</p>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>{t('werk.teamLid.toelichtingen', { aantal: toelichtingen.length })}</p>
                 <div className="flex flex-col gap-3">
                   {toelichtingen.map(c => (
                     <div key={c.id} className="rounded-xl p-4" style={{ background: 'var(--bg-app)', borderLeft: '3px solid var(--mentaforce-primary)' }}>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>&ldquo;{c.toelichting}&rdquo;</p>
-                      <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>{new Date(c.created_at).toLocaleDateString(locale)}</p>
                     </div>
                   ))}
                 </div>
@@ -353,7 +365,7 @@ export default function ProfielPagina() {
 
         {isHR && actieveTab === 'vitaliteit' && checkins.length === 0 && (
           <div className="rounded-2xl border p-8 text-center mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-            <p className="text-sm" style={{ color: 'var(--text-3)' }}>Deze medewerker heeft nog geen check-ins gedaan.</p>
+            <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.teamLid.nogGeen')}</p>
           </div>
         )}
 

@@ -13,8 +13,10 @@ import { TrajectTijdlijn } from '@/components/coaching/TrajectTijdlijn'
 import { CoachHeader, CoachStat, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { TRAJECT_STATUS_STIJL, type TrajectMetFases } from '@/lib/coaching/traject'
 import { Milestone, Target } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export default function MijnTrajectPagina() {
+  const { t } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<TrajectMetFases | null>(null)
@@ -42,9 +44,9 @@ export default function MijnTrajectPagina() {
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
         <CoachHeader
-          eyebrow="Traject"
-          titel="Mijn traject"
-          subtitel="Je begeleidingslijn in fases — waar je nu staat en wat er komt."
+          eyebrow={t('coaching.tabs.traject')}
+          titel={t('coaching.mijnTraject.titel')}
+          subtitel={t('coaching.mijnTraject.subtitel')}
         />
 
         {laden ? (
@@ -52,22 +54,22 @@ export default function MijnTrajectPagina() {
         ) : !data ? (
           <CoachEmpty
             icon={Milestone}
-            titel="Nog geen traject"
-            tekst="Zodra je coach een traject voor je opstelt, zie je hier je fases en voortgang."
+            titel={t('coaching.traject.leegTitel')}
+            tekst={t('coaching.mijnTraject.leegTekst')}
           />
         ) : (
           <>
             {/* Kerncijfers — waar je staat in het traject */}
             <div className="mf-animate-up mf-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
               <CoachStat
-                label="Huidige week"
-                waarde={gestart ? data.huidige_week : '—'}
+                label={t('coaching.mijnTraject.huidigeWeek')}
+                waarde={gestart ? data.huidige_week : '-'}
                 accent={gestart ? 'var(--mf-green)' : 'var(--text-1)'}
-                hint={gestart ? undefined : 'Nog niet gestart'}
+                hint={gestart ? undefined : t('coaching.traject.nietGestart')}
                 glow={gestart}
               />
-              <CoachStat label="Duur" waarde={<>{data.traject.duur_maanden}<span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-4)', marginLeft: 4 }}>mnd</span></>} />
-              <CoachStat label="Fases" waarde={data.fases.length} />
+              <CoachStat label={t('coaching.mijnTraject.duur')} waarde={<>{data.traject.duur_maanden}<span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-4)', marginLeft: 4 }}>{t('coaching.mijnTraject.mnd')}</span></>} />
+              <CoachStat label={t('coaching.trajectFormulier.fases')} waarde={data.fases.length} />
             </div>
 
             {/* Traject-overzicht: titel, status, doel */}
@@ -75,7 +77,7 @@ export default function MijnTrajectPagina() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, marginBottom: data.traject.doel ? 16 : 0, flexWrap: 'wrap' }}>
                 <h2 className="mf-h2" style={{ minWidth: 0 }}>{data.traject.titel}</h2>
                 {stijl && (
-                  <Badge variant="neutral" style={{ background: stijl.bg, color: stijl.color, flexShrink: 0 }}>{stijl.label}</Badge>
+                  <Badge variant="neutral" style={{ background: stijl.bg, color: stijl.color, flexShrink: 0 }}>{t(`coaching.labels.trajectStatus.${data.traject.status}`)}</Badge>
                 )}
               </div>
               {data.traject.doel && (
@@ -84,20 +86,20 @@ export default function MijnTrajectPagina() {
                     <Target size={17} />
                   </span>
                   <div style={{ minWidth: 0 }}>
-                    <p className="mf-overline" style={{ marginBottom: 5 }}>Jouw doel</p>
+                    <p className="mf-overline" style={{ marginBottom: 5 }}>{t('coaching.mijnTraject.jouwDoel')}</p>
                     <p className="mf-body">{data.traject.doel}</p>
                   </div>
                 </div>
               )}
             </Card>
 
-            <CoachSection titel="Tijdlijn">
+            <CoachSection titel={t('coaching.mijnTraject.tijdlijn')}>
               {data.fases.length === 0 ? (
                 <CoachEmpty
                   icon={Milestone}
                   toon="wacht"
-                  titel="Nog geen fases"
-                  tekst="Je coach heeft nog geen fases aan dit traject toegevoegd."
+                  titel={t('coaching.mijnTraject.geenFasesTitel')}
+                  tekst={t('coaching.mijnTraject.geenFasesTekst')}
                 />
               ) : (
                 <div className="mf-animate-up mf-delay-3">

@@ -1,3 +1,995 @@
 {
-  "lichaam": {}
+  "lichaam": {
+    "groep": {
+      "activiteit": "Activiteit",
+      "slaap": "Slaap",
+      "hart": "Hart",
+      "lichaam": "Lichaam",
+      "ademhaling": "Ademhaling"
+    },
+    "duur": {
+      "min": "{min} min",
+      "uur": "{uur} u",
+      "uurMin": "{uur} u {min} min"
+    },
+    "datum": {
+      "vandaag": "Vandaag",
+      "gisteren": "Gisteren",
+      "afgelopenNacht": "Afgelopen nacht",
+      "vandaagTotNu": "Vandaag, tot nu toe"
+    },
+    "periode": {
+      "dag": {
+        "label": "Per dag",
+        "omschrijving": "de afgelopen 30 dagen"
+      },
+      "week": {
+        "label": "Per week",
+        "omschrijving": "de afgelopen 12 weken"
+      },
+      "maand": {
+        "label": "Per maand",
+        "omschrijving": "de afgelopen 12 maanden"
+      },
+      "weekVan": "week van {datum}"
+    },
+    "bron": {
+      "handmatig": "Eigen invoer"
+    },
+    "fase": {
+      "diep": "Diep",
+      "rem": "REM",
+      "licht": "Licht",
+      "wakker": "Wakker"
+    },
+    "metriek": {
+      "stappen": {
+        "label": "Stappen",
+        "eenheid": "stappen",
+        "verschil": "{waarde} stappen per dag",
+        "omhoog": "Je zette de afgelopen 7 dagen gemiddeld {verschil} meer dan je normaal.",
+        "omlaag": "Je zette de afgelopen 7 dagen gemiddeld {verschil} minder dan je normaal.",
+        "uitleg": "Alle stappen die je telefoon of horloge op een dag telt. Een handige graadmeter voor hoeveel je op een gewone dag beweegt."
+      },
+      "afstand": {
+        "label": "Afstand",
+        "eenheid": "km",
+        "verschil": "{waarde} km per dag",
+        "omhoog": "Je legde de afgelopen 7 dagen gemiddeld {verschil} meer af dan je normaal.",
+        "omlaag": "Je legde de afgelopen 7 dagen gemiddeld {verschil} minder af dan je normaal.",
+        "uitleg": "De afstand die je lopend en hardlopend aflegt, zoals je bron die meet. Fietsen telt alleen mee als je bron dat doorgeeft."
+      },
+      "actieveKcal": {
+        "label": "Actieve energie",
+        "eenheid": "kcal",
+        "verschil": "{waarde} kcal per dag",
+        "omhoog": "Je verbruikte de afgelopen 7 dagen gemiddeld {verschil} meer door te bewegen dan je normaal.",
+        "omlaag": "Je verbruikte de afgelopen 7 dagen gemiddeld {verschil} minder door te bewegen dan je normaal.",
+        "uitleg": "De energie die je verbruikt door te bewegen, bovenop wat je lichaam in rust al verbruikt. Het is een schatting van je apparaat, geen exacte meting."
+      },
+      "beweegminuten": {
+        "label": "Beweegminuten",
+        "eenheid": "min",
+        "verschil": "{waarde} min per dag",
+        "omhoog": "Je bewoog de afgelopen 7 dagen gemiddeld {verschil} meer dan je normaal.",
+        "omlaag": "Je bewoog de afgelopen 7 dagen gemiddeld {verschil} minder dan je normaal.",
+        "uitleg": "Minuten waarin je minstens stevig wandelt, zoals je bron ze telt. Elke bron hanteert een eigen grens voor wat als beweging telt."
+      },
+      "verdiepingen": {
+        "label": "Verdiepingen",
+        "eenheid": "verdiepingen",
+        "verschil": "{waarde} verdiepingen per dag",
+        "verschilEen": "{waarde} verdieping per dag",
+        "omhoog": "Je klom de afgelopen 7 dagen gemiddeld {verschil} meer dan je normaal.",
+        "omlaag": "Je klom de afgelopen 7 dagen gemiddeld {verschil} minder dan je normaal.",
+        "uitleg": "Het aantal verdiepingen (ongeveer drie meter hoogte) dat je te voet omhoog gaat, gemeten met de hoogtemeter van je apparaat."
+      },
+      "workouts": {
+        "label": "Trainingen",
+        "eenheid": "min",
+        "uitleg": "Trainingen die je in je horloge of sport-app hebt gestart. We tonen de totale trainingstijd per dag; dagen zonder training blijven leeg."
+      },
+      "slaap": {
+        "label": "Slaap",
+        "omhoog": "Je sliep de afgelopen 7 nachten gemiddeld {verschil} meer dan je normaal.",
+        "omlaag": "Je sliep de afgelopen 7 nachten gemiddeld {verschil} minder dan je normaal.",
+        "uitleg": "Je totale slaaptijd per nacht, zonder de momenten dat je wakker lag. Een nacht hoort bij de dag waarop je wakker wordt."
+      },
+      "bedtijd": {
+        "label": "Bedtijd",
+        "omhoog": "Je viel de afgelopen 7 nachten gemiddeld {verschil} later in slaap dan je normaal.",
+        "omlaag": "Je viel de afgelopen 7 nachten gemiddeld {verschil} eerder in slaap dan je normaal.",
+        "uitleg": "Het moment waarop je slaap begon. Een vast ritme helpt veel mensen om makkelijker in slaap te vallen."
+      },
+      "wektijd": {
+        "label": "Wektijd",
+        "omhoog": "Je werd de afgelopen 7 nachten gemiddeld {verschil} later wakker dan je normaal.",
+        "omlaag": "Je werd de afgelopen 7 nachten gemiddeld {verschil} eerder wakker dan je normaal.",
+        "uitleg": "Het moment waarop je slaap eindigde."
+      },
+      "rusthartslag": {
+        "label": "Rusthartslag",
+        "eenheid": "slagen/min",
+        "verschil": "{waarde} slagen per minuut",
+        "omhoog": "Je rusthartslag lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je rusthartslag lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "Je hartslag als je een tijd stil zit of slaapt. Hij schommelt met slaap, stress, ziekte, alcohol en training; de trend over weken zegt meer dan een enkele dag."
+      },
+      "hrv": {
+        "label": "Hartslagvariabiliteit",
+        "eenheid": "ms",
+        "verschil": "{waarde} ms",
+        "omhoog": "Je hartslagvariabiliteit lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je hartslagvariabiliteit lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "De variatie in tijd tussen je hartslagen (HRV). Hij verschilt sterk per persoon, dus vergelijk vooral met je eigen normaal, niet met die van een ander."
+      },
+      "vo2max": {
+        "label": "VO2max",
+        "eenheid": "ml/kg/min",
+        "verschil": "{waarde} ml/kg/min",
+        "omhoog": "Je VO2max lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je VO2max lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "Een schatting van je uithoudingsvermogen door je horloge, meestal na een stevige wandeling of loop buiten. Hij verandert langzaam, over weken tot maanden."
+      },
+      "gewicht": {
+        "label": "Gewicht",
+        "eenheid": "kg",
+        "verschil": "{waarde} kg",
+        "omhoog": "Je gewicht lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je gewicht lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "Je gewicht uit je weegschaal-app of eigen invoer. Het schommelt van dag tot dag door vocht en eten; kijk naar de lijn over weken."
+      },
+      "ademhaling": {
+        "label": "Ademfrequentie",
+        "eenheid": "per min",
+        "verschil": "{waarde} ademhalingen per minuut",
+        "omhoog": "Je ademfrequentie lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je ademfrequentie lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "Het aantal ademhalingen per minuut, meestal gemeten tijdens je slaap."
+      },
+      "zuurstof": {
+        "label": "Zuurstof in bloed",
+        "eenheid": "%",
+        "verschil": "{waarde} procentpunt",
+        "omhoog": "Je zuurstofwaarde lag de afgelopen 7 dagen gemiddeld {verschil} hoger dan je normaal.",
+        "omlaag": "Je zuurstofwaarde lag de afgelopen 7 dagen gemiddeld {verschil} lager dan je normaal.",
+        "uitleg": "Het zuurstofgehalte in je bloed zoals je horloge het schat. Dit is geen medische meting; heb je klachten, overleg dan met je huisarts."
+      }
+    },
+    "leeg": {
+      "aria": "Nog geen gezondheidsdata",
+      "titel": "Nog geen metingen",
+      "tekst": "Koppel Health Connect op je Android-telefoon, of houd zelf je slaap en stappen bij. Daarna verschijnen hier je stappen, slaap, hartslag en meer, naast je eigen normaal zodra er genoeg metingen zijn.",
+      "koppelen": "Bron koppelen"
+    },
+    "laden": {
+      "fout": "Je gezondheidsdata kon niet worden geladen.",
+      "onverwacht": "We kregen onverwachte data terug. Probeer het opnieuw.",
+      "geenVerbinding": "Geen verbinding. Controleer je internet en probeer het opnieuw."
+    },
+    "highlight": {
+      "bekijken": "{label} bekijken",
+      "onderbouwing": "{recent} metingen, vergeleken met de mediaan van {normaal} metingen daarvoor"
+    },
+    "sync": {
+      "vandaag": "Bijgewerkt vandaag om {tijd} via {bron}",
+      "opDatum": "Bijgewerkt {datum} om {tijd} via {bron}",
+      "bezig": "Bezig met bijwerken…",
+      "nooit": "Nog geen automatische synchronisatie",
+      "nu": "Nu bijwerken"
+    },
+    "workout": {
+      "titel": "Recente trainingen",
+      "leeg": "Je bron gaf in deze periode geen trainingen door.",
+      "km": "{km} km",
+      "kcal": "{kcal} kcal",
+      "hartslag": "gem. {bpm} slagen/min",
+      "soort": {
+        "hardlopen": "Hardlopen",
+        "wandelen": "Wandelen",
+        "fietsen": "Fietsen",
+        "zwemmen": "Zwemmen",
+        "wandeltocht": "Wandeltocht",
+        "yoga": "Yoga",
+        "roeien": "Roeien",
+        "kracht": "Krachttraining",
+        "interval": "Intervaltraining",
+        "crosstrainer": "Crosstrainer",
+        "pilates": "Pilates",
+        "dansen": "Dansen",
+        "training": "Training"
+      }
+    },
+    "fases": {
+      "titel": "Slaapfases",
+      "geen": "Je bron gaf de afgelopen week geen slaapfases door. Veel horloges meten diep, licht en REM; een telefoon alleen meestal niet.",
+      "nietGemeten": "niet gemeten",
+      "gemiddeldEen": "Gemiddeld per nacht over {nachten} nacht met fases, de afgelopen 7 dagen.",
+      "gemiddeldMeer": "Gemiddeld per nacht over {nachten} nachten met fases, de afgelopen 7 dagen."
+    },
+    "regel": {
+      "ligging": {
+        "binnen": "Laatste meting ligt binnen je normaal.",
+        "boven": "Laatste meting ligt boven je normaal.",
+        "onder": "Laatste meting ligt onder je normaal."
+      },
+      "laatstGemeten": "Laatst gemeten: {moment}",
+      "normaal": "Normaal {laag} tot {hoog}",
+      "geenNormaal": "Nog geen normaal: minimaal 5 metingen nodig",
+      "zevenDagen": "Afgelopen 7 dagen",
+      "details": "Bekijk details."
+    },
+    "alle": {
+      "nietGemeten": "Nog geen metingen van: {lijst}.",
+      "nietAlles": "Niet elk horloge of elke telefoon meet alles. Meet jouw apparaat dit wel?",
+      "controleer": "Controleer je koppelingen"
+    },
+    "normaal": {
+      "titel": "Jouw normaal",
+      "nietVoorDeze": "Hiervoor berekenen we geen normaal: een dag zonder training is geen meting, dus een mediaan zou niets eerlijks zeggen.",
+      "nogNietEen": "Nog geen normaal. Daarvoor zijn minstens {minimum} metingen in de afgelopen 28 dagen nodig; er is er nu {aantal}.",
+      "nogNietMeer": "Nog geen normaal. Daarvoor zijn minstens {minimum} metingen in de afgelopen 28 dagen nodig; er zijn er nu {aantal}.",
+      "bereik": "Gebruikelijk: {laag} tot {hoog}. De mediaan van {aantal} metingen tussen {vanaf} en {tot}.",
+      "ligging": {
+        "binnen": "Je laatste meting ({moment}) ligt binnen je gebruikelijke bereik.",
+        "boven": "Je laatste meting ({moment}) ligt boven je gebruikelijke bereik.",
+        "onder": "Je laatste meting ({moment}) ligt onder je gebruikelijke bereik."
+      }
+    },
+    "opnieuw": "Opnieuw proberen",
+    "aiCoach": {
+      "titel": "AI {naam}coach",
+      "sub": "Persoonlijk advies op basis van jouw data",
+      "genereer": "Genereer advies",
+      "bezig": "Advies wordt gegenereerd…",
+      "geenAdviesTekst": "Geen advies beschikbaar.",
+      "geenAdvies": "Geen advies beschikbaar",
+      "later": "Probeer het later opnieuw.",
+      "nietBereiktTekst": "Kon AI-coach niet bereiken.",
+      "nietBereikt": "AI-coach niet bereikbaar",
+      "verbinding": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "overzicht": {
+      "titel": "Gezondheid",
+      "intro": "Je metingen van je telefoon of horloge, aangevuld met wat je zelf invoert, steeds naast je eigen normaal.",
+      "laden": "Je gezondheidsdata wordt geladen…",
+      "geenBron": "Geen gekoppelde bron gevonden om bij te werken.",
+      "opvalt": "Wat opvalt",
+      "geenAfwijking": "Waar genoeg metingen zijn, wijkt je afgelopen week niet duidelijk af van de vier weken ervoor.",
+      "teWeinig": "Nog te weinig metingen om iets te laten opvallen.",
+      "highlightUitleg": "Een highlight verschijnt pas als je afgelopen week echt anders was dan de vier weken ervoor, met minstens 3 recente metingen en 5 metingen voor je normaal.",
+      "samenvatting": "Samenvatting",
+      "kiesZelf": "Kies zelf wat hier staat: open een meting en zet hem vast.",
+      "alle": "Alle metingen",
+      "voetnoot": "Je normaal is de middelste waarde (mediaan) van je eigen metingen over de afgelopen 28 dagen; het bereik is de middelste helft daarvan. Dit is leefstijlinformatie, geen medisch advies.",
+      "koppelingen": "Koppelingen beheren"
+    },
+    "detail": {
+      "opslaanMislukt": "Opslaan lukte niet op dit apparaat.",
+      "losgemaakt": "{label} staat niet meer in je samenvatting.",
+      "vastgezet": "{label} staat nu in je samenvatting.",
+      "laden": "{label} wordt geladen…",
+      "totaal": "Totaal, {periode}",
+      "gemiddeld": "Gemiddeld per dag, {periode}",
+      "geenMetingen": "Geen metingen",
+      "metTrainingEen": "{dagen} dag met training",
+      "metTrainingMeer": "{dagen} dagen met training",
+      "metMetingEen": "{dagen} dag met meting",
+      "metMetingMeer": "{dagen} dagen met meting",
+      "verwant": "Ook in deze groep",
+      "periodeAria": "Periode van de grafiek",
+      "over": "Over {label}",
+      "bron": "Bron: {bronnen}.",
+      "losmaken": "Losmaken uit samenvatting",
+      "vastzetten": "Vastzetten in samenvatting"
+    },
+    "grafiek": {
+      "geenMeting": "Geen meting",
+      "geenMetingKlein": "geen meting",
+      "totNuToe": "{datum}, tot nu toe",
+      "gemetenEen": "{aantal} dag gemeten",
+      "gemetenMeer": "{aantal} dagen gemeten",
+      "lopendeWeek": ", lopende week",
+      "lopendeMaand": ", lopende maand",
+      "totaal": "Totaal",
+      "gemiddeld": "Gemiddeld per dag",
+      "sliderAria": "{label}, {omschrijving}. Gebruik de pijltjestoetsen om door de punten te gaan.",
+      "bereik": "Jouw gebruikelijke bereik",
+      "mediaan": "Jouw normaal (mediaan)",
+      "periode": "Periode",
+      "waarde": "Waarde"
+    },
+    "voeding": {
+      "sluiten": "Sluiten",
+      "bezig": "Bezig…",
+      "maaltijdType": "Maaltijdtype",
+      "maaltijdLabel": "Maaltijd",
+      "maaltijd": {
+        "ontbijt": "Ontbijt",
+        "tussendoortje_1": "Tussendoortje 1",
+        "lunch": "Lunch",
+        "tussendoortje_2": "Tussendoortje 2",
+        "diner": "Diner",
+        "avondsnack": "Avondsnack"
+      },
+      "maaltijdKort": {
+        "ontbijt": "Ontbijt",
+        "tussendoortje_1": "Tuss. 1",
+        "lunch": "Lunch",
+        "tussendoortje_2": "Tuss. 2",
+        "diner": "Diner",
+        "avondsnack": "Avond"
+      },
+      "micro": {
+        "vitamine_a_ug": "Vitamine A",
+        "vitamine_c_mg": "Vitamine C",
+        "vitamine_d_ug": "Vitamine D",
+        "vitamine_e_mg": "Vitamine E",
+        "vitamine_b12_ug": "Vitamine B12",
+        "folaat_ug": "Folaat",
+        "calcium_mg": "Calcium",
+        "ijzer_mg": "IJzer",
+        "magnesium_mg": "Magnesium",
+        "kalium_mg": "Kalium",
+        "natrium_mg": "Natrium",
+        "zink_mg": "Zink"
+      },
+      "maat": {
+        "stuk": "stuk",
+        "snee": "snee",
+        "portie": "portie",
+        "handje": "handje",
+        "glas": "glas",
+        "kop": "kop",
+        "eetlepel": "eetlepel",
+        "theelepel": "theelepel"
+      },
+      "ring": {
+        "ariaOver": "{gegeten} van {doel} kcal gegeten, {verschil} kcal over het doel",
+        "ariaRest": "{gegeten} van {doel} kcal gegeten, {verschil} kcal resterend",
+        "over": "+{verschil} over",
+        "rest": "{verschil} resterend",
+        "macroAria": "{label}: {waarde} van {max}",
+        "rdiAria": "{label}: {waarde}, {procent}% van de dagelijkse behoefte"
+      },
+      "score": {
+        "gezond": "Gezond",
+        "matig": "Matig",
+        "ongezond": "Ongezond"
+      },
+      "voice": {
+        "titel": "Inspreken",
+        "nietVerwerkt": "Kon je maaltijd niet verwerken. Probeer opnieuw of typ het handmatig.",
+        "geenVoedsel": "Ik hoorde geen voedsel. Probeer het nog eens.",
+        "versturen": "Er ging iets mis bij het versturen.",
+        "microfoon": "Geen toegang tot de microfoon. Sta toegang toe in je browser.",
+        "opslaan": "Opslaan mislukt. Probeer opnieuw.",
+        "stop": "Stop opname",
+        "start": "Start opname",
+        "luisteren": "Aan het luisteren… tik om te stoppen",
+        "uitleg": "Tik en zeg wat je at, bijvoorbeeld \"twee eieren en een banaan\"",
+        "verwerken": "Aan het verwerken…",
+        "schatting": "Dit is een schatting. Controleer en pas de porties aan voor je opslaat.",
+        "macros": "{kcal} kcal · E{e} K{k} V{v}",
+        "gramVoor": "Gram voor {naam}",
+        "verwijder": "Verwijder {naam}",
+        "opnieuw": "Opnieuw",
+        "toevoegen": "Toevoegen ({aantal})"
+      },
+      "titel": "Voeding",
+      "analyseMislukt": "Analyse mislukt",
+      "analyseMisluktZin": "Analyse mislukt.",
+      "onbekendGerecht": "Onbekend gerecht",
+      "opslaanMislukt": "Opslaan mislukt",
+      "opslaanMisluktZin": "Opslaan mislukt.",
+      "opgeslagen": "Maaltijd opgeslagen",
+      "verwijderenMislukt": "Verwijderen mislukt",
+      "probeerOpnieuw": "Probeer het opnieuw.",
+      "toegevoegd": "Toegevoegd aan je dag",
+      "maaltijdenEen": "{aantal} maaltijd",
+      "maaltijdenMeer": "{aantal} maaltijden",
+      "nogNiets": "Nog niets gelogd",
+      "wijzigPlanAria": "Wijzig je voedingsplan",
+      "wijzigPlan": "Wijzig plan",
+      "macro": {
+        "eiwit": "Eiwit",
+        "koolhKort": "Koolh.",
+        "koolhydr": "Koolhydr.",
+        "koolhydraten": "Koolhydraten",
+        "vet": "Vet",
+        "vezels": "Vezels",
+        "suikers": "waarvan suikers",
+        "verzadigd": "waarvan verzad.",
+        "zout": "Zout"
+      },
+      "persoonlijkDoel": "Persoonlijk doel:",
+      "doelHandmatig": "(handmatig ingesteld)",
+      "doelBerekend": "(berekend uit je profiel)",
+      "intakeAria": "Rond je intake af in instellingen",
+      "intake": "Rond je intake af voor een persoonlijk calorie- en macrodoel. Nu tonen we het standaarddoel ({kcal} kcal).",
+      "water": "Water",
+      "glazen": "{aantal}/{doel} glazen",
+      "zetWater": "Zet water op {aantal} glazen",
+      "glasMinder": "Een glas water minder",
+      "glasMeer": "Een glas water meer",
+      "actie": {
+        "zoekenAria": "Voeding zoeken in productdatabase",
+        "zoeken": "Zoeken",
+        "producten": "3M+ producten",
+        "fotoAria": "Maaltijd fotograferen voor AI-analyse",
+        "foto": "Foto AI",
+        "fotoSub": "Auto-analyse",
+        "barcodeAria": "Barcode van product scannen",
+        "barcode": "Barcode",
+        "barcodeSub": "Scan product",
+        "manueelAria": "Maaltijd handmatig invoeren",
+        "manueel": "Manueel",
+        "manueelSub": "Zelf invoeren",
+        "inspreekAria": "Maaltijd inspreken",
+        "inspreekSub": "zeg wat je at"
+      },
+      "rapport": "Mijn voedingsrapport",
+      "recent": "Recent gebruikt",
+      "per100": "{kcal} kcal/100g · {eiwit}g eiwit",
+      "recentRegel": "{kcal} kcal · {eiwit}g eiwit · {koolh}g koolh.",
+      "voegToeAan": "Voeg toe aan {maaltijd}",
+      "toevoegen": "Toevoegen",
+      "leegTitel": "Begin met loggen",
+      "leegTekst": "Zoek een product, maak een foto of voeg handmatig in.",
+      "fotoAlt": "Foto",
+      "analyseren": "Analyseren...",
+      "aiAnalyseert": "AI analyseert je maaltijd",
+      "aiUitleg": "Claude herkent ingrediënten en berekent calorieën en micronutriënten.",
+      "bevestig": "Bevestig maaltijd",
+      "betrouwbaarheid": "Betrouwbaarheid: {niveau}",
+      "niveau": {
+        "laag": "laag",
+        "gemiddeld": "gemiddeld",
+        "hoog": "hoog"
+      },
+      "controleer": "Controleer de waarden.",
+      "ingredienten": "Herkende ingrediënten",
+      "aanpassen": "Aanpassen indien nodig",
+      "veld": {
+        "gerecht": "Gerecht",
+        "omschrijving": "Gerecht of omschrijving",
+        "calorieen": "Calorieën",
+        "portie": "Portie"
+      },
+      "opslaanBezig": "Opslaan...",
+      "opslaanKnop": "Maaltijd opslaan",
+      "zoekTitel": "Voeding zoeken",
+      "zoekVeld": "Zoek product, merk of ingrediënt",
+      "zoekPlaceholder": "Zoek product, merk of ingrediënt...",
+      "zoekWissen": "Zoekopdracht wissen",
+      "database": "Database kiezen",
+      "voedingswaarden": "Voedingswaarden",
+      "geenResultaten": "Geen resultaten",
+      "andereZoekterm": "Probeer een andere zoekterm of wissel van database.",
+      "terugZoeken": "Terug naar zoeken",
+      "terugOverzicht": "Terug naar overzicht",
+      "portiegrootte": "Portiegrootte",
+      "portieMinder": "Portie 5 gram minder",
+      "portieMeer": "Portie 5 gram meer",
+      "portieInGram": "Portiegrootte in gram",
+      "gram": "gram",
+      "huishoudmaat": "Kies een huishoudmaat",
+      "maatAria": "1 {maat} ({gram} gram)",
+      "snelkeuze": "Snelkeuze portiegrootte",
+      "portieGram": "Portie {gram} gram",
+      "donutAria": "Macroverdeling per {gram} gram: eiwit {eiwit}%, koolhydraten {koolh}%, vet {vet}%, {kcal} kcal",
+      "perGram": "Per {gram}g",
+      "macronutrienten": "Macronutriënten",
+      "micronutrienten": "Micronutriënten",
+      "procentBehoefte": "(% van dagelijkse behoefte)",
+      "toevoegenBezig": "Toevoegen...",
+      "toevoegenAan": "Toevoegen aan {maaltijd} ({kcal} kcal)",
+      "manueelTitel": "Manueel invoeren"
+    },
+    "activiteit": {
+      "sedentair": {
+        "label": "Zittend",
+        "sub": "Weinig beweging, kantoorwerk"
+      },
+      "licht": {
+        "label": "Licht actief",
+        "sub": "1 tot 2 keer sporten per week"
+      },
+      "gemiddeld": {
+        "label": "Gemiddeld",
+        "sub": "3 tot 4 keer sporten per week"
+      },
+      "actief": {
+        "label": "Actief",
+        "sub": "5 tot 6 keer sporten per week"
+      },
+      "zeer_actief": {
+        "label": "Zeer actief",
+        "sub": "Dagelijks sport of fysiek werk"
+      }
+    },
+    "voedingSetup": {
+      "nietIngelogd": "Niet ingelogd",
+      "overslaan": "Sla over",
+      "titel": "Voeding instellen",
+      "intro": "Stel in voor een persoonlijk calorie- en macrodoel",
+      "stapLichaam": "Jouw lichaam",
+      "stapWerk": "Werk & sport",
+      "stapSchema": "Kies schema",
+      "geslachtLabel": "Geslacht",
+      "geslacht": {
+        "man": "Man",
+        "vrouw": "Vrouw",
+        "anders": "Anders"
+      },
+      "gewicht": "Gewicht",
+      "lengte": "Lengte",
+      "leeftijd": "Leeftijd",
+      "jaar": "jaar",
+      "doelgewicht": "Doelgewicht",
+      "optioneel": "(optioneel)",
+      "doelPlaceholder": "Bijv. 70",
+      "overdag": "Wat doe je overdag?",
+      "werk": {
+        "kantoor": {
+          "label": "Kantoor of zittend",
+          "sub": "Bureau, auto, weinig bewegen"
+        },
+        "licht": {
+          "label": "Licht actief",
+          "sub": "Leraar, winkelier, verpleging"
+        },
+        "fysiek": {
+          "label": "Fysiek werk",
+          "sub": "Bouw, horeca, bezorger"
+        }
+      },
+      "hoeVaak": "Hoe vaak sport je per week?",
+      "sport": {
+        "s0": "0×",
+        "s0Sub": "Niet of nauwelijks",
+        "s1": "1-2×",
+        "s1Sub": "Per week",
+        "s3": "3-4×",
+        "s3Sub": "Per week",
+        "s5": "5+×",
+        "s5Sub": "Per week"
+      },
+      "tdee": "Jouw dagelijkse energiebehoefte (TDEE)",
+      "kcalDag": "kcal/dag",
+      "activiteitsniveau": "Activiteitsniveau:",
+      "vulStap1": "Vul stap 1 volledig in om je TDEE te berekenen",
+      "kiesSchema": "Kies je voedingsschema",
+      "gebaseerdOp": "Gebaseerd op jouw behoefte van",
+      "schema": {
+        "afvallen": {
+          "naam": "Vet verbranden",
+          "beschrijving": "Eet 500 kcal onder je dagverbruik. Hoog eiwit voorkomt spierverlies terwijl je effectief vet verbrandt."
+        },
+        "spiermassa": {
+          "naam": "Spiermassa opbouwen",
+          "beschrijving": "Een surplus van 350 kcal geeft je lichaam de energie voor spiergroei. Combineer met krachttraining."
+        },
+        "cardio": {
+          "naam": "Cardio & Conditie",
+          "beschrijving": "Onderhoud je gewicht en voed je spieren optimaal voor uithoudingssport en energieke trainingen."
+        },
+        "onderhouden": {
+          "naam": "Gewicht onderhouden",
+          "beschrijving": "Eet precies wat je verbrandt. Gebalanceerde macro's houden je gewicht en energieniveau stabiel."
+        },
+        "eiwitrijk": {
+          "naam": "Eiwitrijk",
+          "beschrijving": "Maximale eiwitinname met een licht tekort. Ideaal voor spierbehoud en verzadiging bij afvallen."
+        },
+        "clean": {
+          "naam": "Clean Eating",
+          "beschrijving": "Focus op onbewerkte, voedzame producten. Verbetering van energie, huid en algehele gezondheid."
+        },
+        "manueel": {
+          "naam": "Eigen Macro's",
+          "beschrijving": "Stel zelf in hoe je calorieën verdeeld zijn over eiwit, koolhydraten en vet."
+        }
+      },
+      "teVeel": "Eiwit en vet samen zijn meer dan 100%. Verlaag een van de twee.",
+      "indicatief": "Calorieën worden opgeslagen als TDEE. Macro-targets zijn indicatief.",
+      "letterE": "E",
+      "letterK": "K",
+      "letterV": "V",
+      "manueelHint": "{kcal} kcal/dag · stel macro % zelf in",
+      "selecteer": "Selecteer om macro's in te stellen",
+      "vorige": "Vorige",
+      "volgende": "Volgende",
+      "start": "Start met tracken"
+    },
+    "mijnVoeding": {
+      "titel": "Mijn voeding",
+      "subtitel": "De persoonlijke voedingsrichtlijn die je coach voor je heeft opgesteld.",
+      "leegTitel": "Nog geen richtlijn",
+      "leegTekst": "Zodra je coach een voedingsrichtlijn voor je opstelt, verschijnt die hier met je persoonlijke dagdoelen.",
+      "caloriedoel": "Caloriedoel per dag",
+      "macroDoelen": "Macro-dagdoelen",
+      "percentages": "Percentages tonen het aandeel in de energie uit macro's (samen {kcal} kcal).",
+      "dieetvoorkeur": "Dieetvoorkeur",
+      "dieet": {
+        "geen": "Geen voorkeur",
+        "vegetarisch": "Vegetarisch",
+        "veganistisch": "Veganistisch",
+        "pescotarisch": "Pescotarisch",
+        "keto": "Keto",
+        "mediterraan": "Mediterraan",
+        "glutenvrij": "Glutenvrij",
+        "lactosevrij": "Lactosevrij"
+      },
+      "vanCoach": "Richtlijn van je coach",
+      "disclaimer": "Deze richtlijn is opgesteld door je coach als persoonlijke begeleiding. Coaching is geen medische of diëtistische behandeling. Heb je gezondheidsklachten of twijfels, raadpleeg dan een arts of diëtist."
+    },
+    "water": {
+      "titel": "Waterintake",
+      "motivatie": {
+        "behaald": "Dagdoel behaald! Super!",
+        "bijna": "Bijna! Nog een glas en je bent er!",
+        "halverwege": "Halverwege je doel!",
+        "goed": "Goed bezig, drink nog wat meer!",
+        "start": "Tijd om te drinken!"
+      },
+      "glasAria": "Waterglas {procent}% gevuld",
+      "foutToevoegen": "Fout bij toevoegen.",
+      "toevoegenMislukt": "Toevoegen mislukt",
+      "verwijderenTekst": "Kon deze invoer niet verwijderen. Probeer het opnieuw.",
+      "ongeldig": "Voer een geldig aantal ml in (1 tot 2000).",
+      "statusAria": "Waterstatus vandaag",
+      "vanDagdoel": "{procent}% van je dagdoel",
+      "doelHandmatig": "Doel handmatig ingesteld in Instellingen",
+      "doelAuto": "Doel op basis van jouw gewicht & activiteit",
+      "weekAria": "Waterinname afgelopen 7 dagen: {dagen}",
+      "dagMl": "{dag} {ml} milliliter",
+      "geenWeekTitel": "Nog geen weekgeschiedenis",
+      "geenWeekTekst": "Log je eerste glas water om je 7-daagse trend op te bouwen.",
+      "snelAria": "Snel water toevoegen",
+      "snel": "Snel toevoegen",
+      "voegToeAria": "Voeg {ml} milliliter water toe",
+      "aangepast": "Aangepaste hoeveelheid (ml)",
+      "placeholder": "bijv. 300",
+      "logAria": "Waterlog vandaag",
+      "vandaagGelogd": "Vandaag gelogd",
+      "nogNiets": "Nog niets gelogd vandaag.",
+      "verwijderAria": "Verwijder {ml}ml om {tijd}"
+    },
+    "slaap": {
+      "titel": "Slaaptracker",
+      "kwaliteit": {
+        "k1": "Heel slecht",
+        "k2": "Slecht",
+        "k3": "Gemiddeld",
+        "k4": "Goed",
+        "k5": "Uitstekend"
+      },
+      "uitgerust": {
+        "u1": "Uitgeput",
+        "u2": "Moe",
+        "u3": "Gaat wel",
+        "u4": "Fris",
+        "u5": "Topfit"
+      },
+      "duurUur": "{u}u",
+      "duurUurMin": "{u}u {m}m",
+      "zevenDagen": "7 DAGEN SLAAP",
+      "weekAria": "Slaap afgelopen 7 dagen: {dagen}",
+      "urenAria": "{uren} uur",
+      "geenData": "geen data",
+      "urenKort": "{uren}u",
+      "legendaGoed": "≥ 7u",
+      "legendaMatig": "5-7u",
+      "legendaKort": "< 5u",
+      "opslaanTekst": "Kon je slaap niet opslaan. Probeer het opnieuw.",
+      "ietsMis": "Er ging iets mis. Probeer het opnieuw.",
+      "doelOpgeslagen": "Slaapdoel opgeslagen",
+      "gemSlaap": "Gem. slaap",
+      "tweeWeken": "afgelopen 2 weken",
+      "gemKwaliteit": "Gem. kwaliteit",
+      "schuld": "Slaapschuld",
+      "opSchema": "Op schema",
+      "tekort": "tekort ten opzichte van je doel ({uren}u)",
+      "regelmaat": "Regelmaat",
+      "consistentie": "consistentie van je bedtijd",
+      "doel": "Slaapdoel",
+      "doelUren": "Doel (uren)",
+      "streefbedtijd": "Streefbedtijd",
+      "bijwerken": "Bijwerken",
+      "instellen": "Instellen",
+      "opgeslagen": "Slaap opgeslagen!",
+      "logInvoeren": "Log invoeren",
+      "datum": "Datum",
+      "urenGeslapen": "Uren geslapen:",
+      "kwaliteitLabel": "Kwaliteit",
+      "uitgerustVraag": "Hoe uitgerust voel je je?",
+      "bedtijd": "Bedtijd",
+      "wektijd": "Wektijd",
+      "automatisch": "Duur automatisch berekend uit je tijden:",
+      "notitie": "Notitie",
+      "notitiePlaceholder": "Notitie (nachtmerrie, stress, cafeïne...)",
+      "opslaanBezig": "Opslaan…",
+      "loggen": "Slaap loggen",
+      "leegTitel": "Nog geen slaap gelogd",
+      "leegTekst": "Log je eerste nacht om je 7-daagse trend en gemiddelden te zien."
+    },
+    "stappen": {
+      "ringAria": "{stappen} stappen van {doel} ({procent}% van je doel)",
+      "eenheid": "stappen",
+      "ringDoel": "doel: {doel}",
+      "opslaanTekst": "Kon je stappen niet opslaan. Probeer het opnieuw.",
+      "geenToegang": "Geen toegang tot {bron}",
+      "geenData": "Geen stappenteller-data gevonden in {bron}",
+      "alleenApp": "Tracker beschikbaar in de iOS- en Android-app",
+      "geenVerbinding": "Kon geen verbinding maken met de tracker",
+      "ongeldigDoel": "Ongeldig doel",
+      "ongeldigDoelTekst": "Kies tussen {min} en {max} stappen.",
+      "doelNietOpgeslagen": "Kon je doel niet opslaan.",
+      "bewegen": "Bewegen",
+      "titel": "Dagelijkse stappen",
+      "doelPerDag": "Doel: {doel} stappen per dag",
+      "doelHandmatig": "Handmatig ingesteld in Instellingen",
+      "doelAuto": "Op basis van jouw fitnessdoel",
+      "behaald": "Dagdoel behaald! Geweldig!",
+      "teGaan": "Nog {stappen} stappen te gaan ({procent}%)",
+      "voerIn": "Voer je stappen in of sync via je tracker",
+      "afstand": "afstand (schatting)",
+      "streakEen": "dag doel gehaald",
+      "streakMeer": "dagen op rij",
+      "doelAanpassen": "Dagdoel aanpassen",
+      "nieuwDoel": "Nieuw dagdoel",
+      "opslaan": "Opslaan",
+      "annuleren": "Annuleren",
+      "opgeslagen": "Stappen opgeslagen!",
+      "handmatig": "Stappen handmatig invoeren",
+      "placeholder": "bijv. 8500",
+      "snelkeuze": "Snelle stappenkeuze",
+      "vulIn": "Vul {stappen} stappen in",
+      "syncBezig": "Synchroniseren…",
+      "sync": "Sync via Apple Health of Health Connect",
+      "syncUitleg": "Automatisch stappen ophalen uit je tracker",
+      "zevenDagen": "7 DAGEN OVERZICHT",
+      "weekAria": "Stappen afgelopen 7 dagen: {dagen}",
+      "dagAria": "{dag} {stappen} stappen",
+      "gemiddeld": "Gem: {stappen} stappen",
+      "totaal": "Totaal: {stappen}",
+      "leegTitel": "Nog geen stappen gelogd",
+      "leegTekst": "Voer je stappen in of sync je tracker om je 7-daagse overzicht te zien."
+    },
+    "sport": {
+      "laden": "Laden",
+      "fysiek": "Fysiek",
+      "titel": "Sport & Fitness",
+      "intro": "Jouw trainingen deze week",
+      "doel": {
+        "afvallen": "Afvallen",
+        "onderhouden": "Onderhouden",
+        "aankomen": "Aankomen",
+        "fitter": "Fitter worden"
+      },
+      "maakSchema": "Maak jouw AI-schema",
+      "maakSchemaTekst": "Gepersonaliseerd op jouw doel, niveau en beschikbare tijd.",
+      "genereer": "Genereer schema",
+      "actiefSchema": "Actief schema",
+      "niveau": {
+        "beginner": "Beginner",
+        "gemiddeld": "Gemiddeld",
+        "gevorderd": "Gevorderd"
+      },
+      "voortgangWeek": "Voortgang deze week",
+      "voortgangAria": "Voortgang deze week: {aantal} van {doel} trainingen",
+      "start": "Training starten",
+      "jouwSchema": "Jouw schema",
+      "oefKort": "{aantal} oef.",
+      "dezeWeek": "Deze week",
+      "totaal": "Totaal",
+      "perWeek": "Per week",
+      "sessies": "{aantal} sessies",
+      "leegTitel": "Nog geen trainingen",
+      "leegTekst": "Start je eerste training!",
+      "actiesAria": "Sport-acties",
+      "actie": {
+        "nieuw": "Nieuw schema",
+        "nieuwSub": "AI-gegenereerd",
+        "eigen": "Eigen workout",
+        "eigenSub": "Zelf samenstellen",
+        "cardio": "Cardio",
+        "cardioSub": "Hardlopen, fietsen…",
+        "voortgang": "Voortgang",
+        "voortgangSub": "Statistieken",
+        "oefeningen": "Oefeningen",
+        "oefeningenSub": "Bibliotheek",
+        "startSub": "Direct beginnen"
+      }
+    },
+    "cardio": {
+      "soort": {
+        "hardlopen": "Hardlopen",
+        "fietsen": "Fietsen",
+        "roeien": "Roeien",
+        "wandelen": "Wandelen",
+        "zwemmen": "Zwemmen",
+        "overig": "Overig"
+      },
+      "gelogd": "Cardio gelogd",
+      "terug": "Terug",
+      "titel": "Cardio loggen",
+      "soortAria": "Soort cardio",
+      "duur": "Duur (min)",
+      "afstand": "Afstand (km)",
+      "hartslag": "Gem. hartslag",
+      "rpe": "RPE (1-10)",
+      "later": "Later koppelbaar met Apple Health, Google Health en Strava.",
+      "recent": "Recent",
+      "leeg": "Nog geen cardio gelogd.",
+      "bpm": "{bpm} bpm"
+    },
+    "spiergroep": {
+      "alle": "Alle",
+      "borst": "Borst",
+      "rug": "Rug",
+      "schouders": "Schouders",
+      "armen": "Armen",
+      "benen": "Benen",
+      "core": "Core",
+      "cardio": "Cardio"
+    },
+    "bouwen": {
+      "opgeslagen": "Workout opgeslagen",
+      "naam": "Naam",
+      "naamPlaceholder": "Bijv. Push A",
+      "jouwWorkout": "Jouw workout ({aantal})",
+      "setsVoor": "Sets voor {naam}",
+      "herhalingenVoor": "Herhalingen voor {naam}",
+      "uitleg": "sets · herhalingen (bijv. 8-12)",
+      "zoek": "Zoek een oefening…",
+      "filterAria": "Filter op spiergroep",
+      "laden": "Laden…",
+      "voegToe": "Voeg {naam} toe",
+      "geen": "Geen oefeningen gevonden.",
+      "opslaanStart": "Opslaan & starten ({aantal})"
+    },
+    "sportVoortgang": {
+      "laden": "Voortgang laden",
+      "terug": "Terug naar sport",
+      "titel": "Mijn voortgang",
+      "intro": "Volg je gewichtsprogressie per oefening",
+      "streak": "Weekstreak",
+      "weken": "{aantal} wk",
+      "wekenOpRij": "weken op rij",
+      "trainDezeWeek": "train deze week",
+      "trainingen": "Trainingen",
+      "sets": "Sets gelogd",
+      "meeste": "Meeste vooruitgang",
+      "leegTitel": "Nog geen logs gevonden",
+      "leegTekst": "Log je eerste training om je voortgang te zien.",
+      "selecteer": "Selecteer oefening",
+      "pr": "PR: {kg} kg",
+      "rm": "Gesch. 1RM: {kg} kg",
+      "meerSessies": "Log meer sessies om een grafiek te zien.",
+      "maxGewicht": "Max. gewicht (kg)",
+      "samenvatting": "Gewichtsprogressie voor {naam}: maximaal gewicht per sessie in kilogram over de laatste {aantal} sessies.",
+      "recenteSets": "Recente sets",
+      "recenteSetsVoor": "Recente sets voor {naam}",
+      "set": "Set",
+      "reps": "Reps",
+      "volume": "Volume"
+    },
+    "oefeningen": {
+      "laden": "Oefeningen laden",
+      "titel": "Oefeningen bibliotheek",
+      "intro": "Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening",
+      "zoek": "Zoek een oefening",
+      "placeholder": "bijv. bankdrukken",
+      "spiergroep": "SPIERGROEP",
+      "moeilijkheid": "MOEILIJKHEID",
+      "leegTitel": "Bibliotheek nog leeg",
+      "leegTekst": "De bibliotheek wordt gevuld naarmate je schema's genereert. Genereer je eerste schema om oefeningen toe te voegen.",
+      "geenFilters": "Geen oefeningen gevonden voor deze filters.",
+      "bekijk": "Bekijk oefening {naam}",
+      "uitvoering": "Uitvoering",
+      "benodigdheden": "Benodigdheden"
+    },
+    "genereer": {
+      "doel": {
+        "spiermassa": "Spiermassa opbouwen",
+        "afvallen": "Afvallen of vet verbranden",
+        "conditie": "Conditie verbeteren",
+        "kracht": "Kracht opbouwen",
+        "flexibiliteit": "Flexibiliteit"
+      },
+      "dag": {
+        "maandag": "maandag",
+        "dinsdag": "dinsdag",
+        "woensdag": "woensdag",
+        "donderdag": "donderdag",
+        "vrijdag": "vrijdag",
+        "zaterdag": "zaterdag",
+        "zondag": "zondag"
+      },
+      "dagKort": {
+        "maandag": "Ma",
+        "dinsdag": "Di",
+        "woensdag": "Wo",
+        "donderdag": "Do",
+        "vrijdag": "Vr",
+        "zaterdag": "Za",
+        "zondag": "Zo"
+      },
+      "materiaal": {
+        "geen": "Geen (bodyweight)",
+        "dumbbells": "Dumbbells of halters",
+        "barbell": "Barbell + rack",
+        "kabels": "Kabelmachines",
+        "volledig": "Volledig gym"
+      },
+      "server": "Server niet beschikbaar",
+      "mislukt": "Genereren mislukt (HTTP {status})",
+      "timeout": "Het duurde te lang. Probeer het opnieuw.",
+      "ietsMis": "Er ging iets mis",
+      "agent1": "Schema planner aan het werk…",
+      "agent2": "Oefeningen worden samengesteld…",
+      "agent3": "Coach voegt persoonlijk advies toe…",
+      "titel": "AI Schema Generator",
+      "intro": "Beantwoord 3 vragen, dan maken wij jouw schema",
+      "intake": "We hebben je doel en niveau alvast ingevuld op basis van je intake. Je kunt alles nog aanpassen.",
+      "stap": "Stap {stap} van 3",
+      "doelVraag": "Wat is jouw doel?",
+      "niveauTitel": "Niveau en beschikbaarheid",
+      "jouwNiveau": "Jouw niveau",
+      "welkeDagen": "Welke dagen train je?",
+      "geselecteerd": "({aantal} geselecteerd)",
+      "minDagen": "Kies minimaal 2 trainingsdagen",
+      "tijd": "Tijd per sessie",
+      "minuten": "{min} minuten",
+      "minKort": "{min}m",
+      "materiaalTitel": "Materiaal & beperkingen",
+      "materiaalIntro": "Selecteer wat je beschikbaar hebt",
+      "materiaalAria": "Beschikbaar materiaal",
+      "blessures": "Blessures of beperkingen",
+      "blessuresHint": "Optioneel, bijv. knieklachten of rugproblemen",
+      "blessuresPlaceholder": "bijv. knieklachten, rugproblemen",
+      "bezigTitel": "Schema wordt gemaakt",
+      "bezigTekst": "Onze AI agents zijn bezig voor jou",
+      "fout": "Fout bij genereren",
+      "genereren": "Schema genereren"
+    },
+    "training": {
+      "opgeslagen": "Training opgeslagen",
+      "opgeslagenTekst": "Goed gedaan! Je sessie is gelogd.",
+      "foutOpslaan": "Fout bij opslaan",
+      "aanbevolen": "AANBEVOLEN VANDAAG",
+      "dag": "DAG {dag}",
+      "meer": "+{aantal} meer",
+      "start": "Start training",
+      "oefeningenTeller": "{klaar}/{totaal} oefeningen",
+      "voortgangAria": "Voortgang: {klaar} van {totaal} oefeningen",
+      "verstreken": "verstreken",
+      "demo": "Demonstratie van de oefening {naam}",
+      "afbeeldingLaden": "Afbeelding laden…",
+      "doel": "{sets} sets × {herhalingen} herhalingen",
+      "bodyweight": "bodyweight",
+      "vorige": "Vorige: {kg} kg × {reps}",
+      "probeer": "probeer {kg} kg",
+      "houd": "houd {kg} kg",
+      "repsLabel": "{naam} set {set} herhalingen",
+      "kgLabel": "{naam} set {set} gewicht in kilogram",
+      "setOngedaan": "Set {set} ongedaan maken",
+      "setVoltooid": "Set {set} als voltooid markeren",
+      "extraSet": "Extra set",
+      "afronden": "Training afronden",
+      "setRegel": "Set {set}: {reps} herh.",
+      "notities": "Notities",
+      "notitiesPlaceholder": "Hoe voelde de training? Aandachtspunten voor volgende keer…",
+      "opslaan": "Training opslaan",
+      "rust": "Rust · {tijd}"
+    },
+    "meta": {
+      "gezondheidTitel": "Gezondheid · MentaForce",
+      "gezondheidOmschrijving": "Stappen, slaap, hartslag en meer uit je gekoppelde bron, steeds naast je eigen normaal.",
+      "metriekTitel": "{label} · Gezondheid · MentaForce",
+      "metriekOmschrijving": "{label} per dag, week en maand, naast je eigen normaal."
+    }
+  }
 }

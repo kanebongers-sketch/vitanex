@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Medewerker { id: string; naam: string; email: string }
@@ -26,7 +28,7 @@ const TYPE_STYLE: Record<string, { kleur: string; bg: string }> = {
   onboarding: { kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
   algemeen: { kleur: 'var(--text-2)', bg: 'var(--bg-subtle)' },
 }
-const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
+const TYPE_LABEL: Record<string, string> = { disc: 'werk.rapportenTab.typeDisc', checkin: 'werk.rapportenTab.typeCheckin', onboarding: 'werk.rapportenTab.typeOnboarding', algemeen: 'werk.rapportenTab.typeAlgemeen' }
 
 const STAT_KLEUR: Record<string, string> = { blue: 'var(--mf-blue)', green: 'var(--mf-green)', purple: 'var(--mf-purple)' }
 
@@ -44,6 +46,7 @@ const SELECT_STYLE: React.CSSProperties = {
 
 export default function HrBestandenPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [geladen, setGeladen] = useState(false)
   const [actieveTab, setActieveTab] = useState<'bestanden' | 'rapporten'>('bestanden')
   const [bestanden, setBestanden] = useState<GedeeldBestand[]>([])
@@ -85,7 +88,7 @@ export default function HrBestandenPage() {
 
 
   function datumLabel(d: string) {
-    return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+    return new Date(d).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   const gefilterdeRapporten = rapporten.filter(r => {
@@ -104,7 +107,7 @@ export default function HrBestandenPage() {
   const gesorteerdeBestandenEntries = Object.entries(bestandenPerMed).sort(([uidA], [uidB]) => {
     const naamA = medewerkers[uidA]?.naam ?? ''
     const naamB = medewerkers[uidB]?.naam ?? ''
-    return naamA.localeCompare(naamB, 'nl')
+    return naamA.localeCompare(naamB, INTL_LOCALE[taal])
   })
 
   // Samenvatting statistieken
@@ -120,15 +123,15 @@ export default function HrBestandenPage() {
   return (
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Bestanden &amp; Rapporten</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('werk.hrBestanden.titel')}</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20 }}>{t('werk.hrBestanden.intro')}</p>
 
         {/* Samenvatting balk */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
           {[
-            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: STAT_KLEUR.blue },
-            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: STAT_KLEUR.green },
-            { label: 'Rapporten', waarde: aantalRapporten, kleur: STAT_KLEUR.purple },
+            { label: t('werk.hrBestanden.medewerkersGedeeld'), waarde: aantalMedewerkersGedeeld, kleur: STAT_KLEUR.blue },
+            { label: t('werk.hrBestanden.bestandenTotaal'), waarde: aantalBestanden, kleur: STAT_KLEUR.green },
+            { label: t('werk.hrBestanden.rapporten'), waarde: aantalRapporten, kleur: STAT_KLEUR.purple },
           ].map(stat => (
             <Card key={stat.label} style={{ padding: '14px 20px', flex: 1, minWidth: 140, borderTop: `3px solid ${stat.kleur}` }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1 }}>{stat.waarde}</div>
@@ -139,24 +142,24 @@ export default function HrBestandenPage() {
 
         <TabsRoot value={actieveTab} onValueChange={(v) => setActieveTab(v as 'bestanden' | 'rapporten')}>
           <TabsList style={{ marginBottom: 12 }}>
-            <TabsTrigger value="bestanden">Gedeelde bestanden</TabsTrigger>
-            <TabsTrigger value="rapporten">AI Rapporten</TabsTrigger>
+            <TabsTrigger value="bestanden">{t('werk.hrBestanden.tabBestanden')}</TabsTrigger>
+            <TabsTrigger value="rapporten">{t('werk.hrBestanden.tabRapporten')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="bestanden">
             {gesorteerdeBestandenEntries.length === 0 ? (
               <Card>
-                <EmptyState icon={FileText} title="Geen gedeelde bestanden" description="Er zijn nog geen bestanden met HR gedeeld." />
+                <EmptyState icon={FileText} title={t('werk.hrBestanden.geenBestandenTitel')} description={t('werk.hrBestanden.geenBestandenOmschrijving')} />
               </Card>
             ) : (
               gesorteerdeBestandenEntries.map(([uid, docs]) => (
                 <div key={uid} style={{ marginBottom: 24 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--text-3)', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? 'Onbekend'}</div>
-                  <Table caption={`Gedeelde bestanden van ${medewerkers[uid]?.naam ?? 'onbekende medewerker'}`}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-3)', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? t('werk.hrBestanden.onbekend')}</div>
+                  <Table caption={t('werk.hrBestanden.bestandenVan', { naam: medewerkers[uid]?.naam ?? t('werk.hrBestanden.onbekendeMedewerker') })}>
                     <THead>
                       <Tr>
-                        <Th scope="col">Bestandsnaam</Th>
-                        <Th scope="col" align="right">Gedeeld op</Th>
+                        <Th scope="col">{t('werk.hrBestanden.bestandsnaam')}</Th>
+                        <Th scope="col" align="right">{t('werk.hrBestanden.gedeeldOp')}</Th>
                       </Tr>
                     </THead>
                     <TBody>
@@ -176,24 +179,24 @@ export default function HrBestandenPage() {
           <TabsContent value="rapporten">
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
               <div style={{ minWidth: 160 }}>
-                <Field label="Type rapport">
+                <Field label={t('werk.hrBestanden.typeRapport')}>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)} style={SELECT_STYLE}>
-                    <option value='alle'>Alle types</option>
-                    <option value='disc'>DISC</option>
-                    <option value='checkin'>Check-in</option>
-                    <option value='onboarding'>Onboarding</option>
+                    <option value='alle'>{t('werk.gesprekkenTab.alleTypes')}</option>
+                    <option value='disc'>{t('werk.rapportenTab.typeDisc')}</option>
+                    <option value='checkin'>{t('werk.rapportenTab.typeCheckin')}</option>
+                    <option value='onboarding'>{t('werk.rapportenTab.typeOnboarding')}</option>
                   </select>
                 </Field>
               </div>
               <div style={{ flex: 1, minWidth: 180 }}>
-                <Field label="Medewerker zoeken">
-                  <Input placeholder='Naam medewerker…' value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} />
+                <Field label={t('werk.hrBestanden.zoeken')}>
+                  <Input placeholder={t('werk.hrBestanden.naamPlaceholder')} value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} />
                 </Field>
               </div>
             </div>
             {gefilterdeRapporten.length === 0 ? (
               <Card>
-                <EmptyState icon={FileText} title="Geen rapporten gevonden" description="Pas de filters aan of wacht tot er rapporten gedeeld worden." />
+                <EmptyState icon={FileText} title={t('werk.hrBestanden.geenRapportenTitel')} description={t('werk.hrBestanden.geenRapportenOmschrijving')} />
               </Card>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -212,8 +215,8 @@ export default function HrBestandenPage() {
                         style={{ width: '100%', background: 'transparent', border: 'none', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10, textAlign: 'left' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                          <span style={{ background: ts.bg, color: ts.kleur, border: `1px solid ${ts.kleur}`, borderRadius: 'var(--radius-xs)', padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
-                          <span style={{ color: 'var(--text-3)', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? 'Onbekend'}</span>
+                          <span style={{ background: ts.bg, color: ts.kleur, border: `1px solid ${ts.kleur}`, borderRadius: 'var(--radius-xs)', padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ? t(TYPE_LABEL[r.type]) : r.type}</span>
+                          <span style={{ color: 'var(--text-3)', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? t('werk.hrBestanden.onbekend')}</span>
                           <span style={{ fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>

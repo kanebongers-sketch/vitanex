@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Lock, Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface CoachNotitieProps {
   klantId: string
@@ -17,6 +18,7 @@ interface CoachNotitieProps {
  * (kolom coach_klanten.notitie, alleen leesbaar via de coach-eigen RLS/route).
  */
 export function CoachNotitie({ klantId, initieleNotitie }: CoachNotitieProps) {
+  const { t } = useVertaling()
   const [notitie, setNotitie] = useState(initieleNotitie ?? '')
   const [opgeslagen, setOpgeslagen] = useState(initieleNotitie ?? '')
   const [bezig, setBezig] = useState(false)
@@ -44,23 +46,23 @@ export function CoachNotitie({ klantId, initieleNotitie }: CoachNotitieProps) {
     <Card style={{ padding: 20, marginTop: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <Lock size={14} aria-hidden style={{ color: 'var(--text-3)' }} />
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Privé-notitie</h2>
-        <span style={{ fontSize: 11, color: 'var(--text-4)', marginLeft: 'auto' }}>Alleen voor jou zichtbaar</span>
+        <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{t('coaching.notitie.titel')}</h2>
+        <span style={{ fontSize: 11, color: 'var(--text-4)', marginLeft: 'auto' }}>{t('coaching.notitie.alleenJij')}</span>
       </div>
       <Textarea
         value={notitie}
         onChange={e => setNotitie(e.target.value)}
-        placeholder="Observaties, aandachtspunten of doelen voor deze klant…"
+        placeholder={t('coaching.notitie.placeholder')}
         rows={4}
         style={{ width: '100%' }}
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
         <Button onClick={bewaar} loading={bezig} disabled={!gewijzigd} size="sm">
-          Opslaan
+          {t('coaching.algemeen.opslaan')}
         </Button>
         {klaar && (
           <span role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--mf-green)', fontWeight: 600 }}>
-            <Check size={13} strokeWidth={3} aria-hidden /> Opgeslagen
+            <Check size={13} strokeWidth={3} aria-hidden /> {t('coaching.algemeen.opgeslagen')}
           </span>
         )}
       </div>

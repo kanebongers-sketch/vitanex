@@ -1,3 +1,847 @@
 {
-  "vita": {}
+  "vita": {
+    "algemeen": {
+      "praatMetVita": "Praat met Vita",
+      "praatMetVitaSub": "Stel een vraag over jouw welzijn",
+      "vitaZegt": "{naam} zegt",
+      "vitaDenktNa": "Vita denkt na…",
+      "altijdBijJe": "Altijd bij je · Vertrouwelijk",
+      "kentProfiel": " · Kent jouw profiel",
+      "vitaTypt": "Vita typt…",
+      "online": "Online"
+    },
+    "checkin": {
+      "vraag": {
+        "slaap": "Even over je slaap deze week. Hoe lagen je nachten erbij?",
+        "stress": "En de spanning: hoeveel rust of druk voelde je deze week?",
+        "energie": "Nu je energie. Zat er genoeg pit in je dagen?",
+        "focus": "Je focus dan. Kon je hoofd de aandacht vasthouden?",
+        "balans": "Even naar je balans: kwam werk en rust een beetje in evenwicht?",
+        "motivatie": "En als laatste je motivatie. Voelde je werk zinvol deze week?"
+      },
+      "reactie": {
+        "slaap": "Dank je, genoteerd. We gaan verder.",
+        "stress": "Fijn dat je dit deelt. Op naar het volgende.",
+        "energie": "Helder. Dit helpt me je week te begrijpen.",
+        "focus": "Top, dat is binnen. Nog even door.",
+        "balans": "Dank je wel, bijna klaar.",
+        "motivatie": "Genoteerd."
+      },
+      "afronden": "Sterk gedaan. Zo leer ik je het beste kennen. Je week is compleet.",
+      "reactieStandaard": "Genoteerd, we gaan verder.",
+      "vraagStandaard": "Even over je {pijler} deze week."
+    },
+    "doelbegeleider": {
+      "bevestigd": "Mooi. Hier ga ik je deze week aan herinneren, een stap tegelijk.",
+      "keuzeMeer": "Kies er 2 tot 3 die nu haalbaar voelen. Liever klein en echt dan groots en vaag.",
+      "keuzeEen": "Kies er een die nu haalbaar voelt. Liever klein en echt dan groots en vaag.",
+      "openingVoor": "Ik zag je check-in. Bij ",
+      "openingNa": " valt de meeste winst te halen. Kleine, haalbare doelen houd je vol; grote plannen sneuvelen juist in een drukke week. {keuze}",
+      "openingAlgemeen": "Fijn dat je hebt ingecheckt. Laten we samen je weekdoelen opstellen. Kleine, haalbare doelen houd je vol; grote plannen sneuvelen juist in een drukke week. {keuze}"
+    },
+    "doelenBegroeting": {
+      "allesGehaald": "Alle doelen van vandaag afgevinkt. Precies zo bouw je vooruitgang op. Wees er rustig trots op.",
+      "werkenAanVoor": "Deze week werken we aan ",
+      "werkenAanNa": ". Begin klein: een doel afvinken is al winst. Ik hou het samen met je bij.",
+      "klaar": "Deze week staan je doelen klaar. Begin klein: een doel afvinken is al winst. Ik hou het samen met je bij.",
+      "bezig": "Mooi bezig, {gehaald} van {totaal} gehaald vandaag. Nog {resterend} te gaan, maar geen druk: elke stap telt."
+    },
+    "groeiplanBegroeting": {
+      "ditIsVoor": "Dit is ",
+      "jouw": "jouw",
+      "ditIsNa": " groeiplan. Geen vast document, maar iets dat we samen opbouwen. Ik stel het bij naarmate ik je beter leer kennen.",
+      "actiesEen": " Beneden staat een concrete actie om mee te beginnen. Geen druk: een stap tegelijk.",
+      "actiesMeer": " Beneden staan {aantal} concrete acties om mee te beginnen. Geen druk: een stap tegelijk.",
+      "koers": " We zetten samen de koers uit; jij bepaalt het tempo."
+    },
+    "reflectie": {
+      "opening": "Even terugblikken samen. Geen goed of fout, gewoon eerlijk voor jezelf. Neem de tijd; wat je hier deelt blijft van jou.",
+      "vraag": {
+        "hoogtepunt": "Begin luchtig. Welk moment liet je even opleven?",
+        "uitdaging": "En het zwaardere: benoemen mag, dat maakt het lichter.",
+        "leermoment": "Soms zit de winst in wat je over jezelf ontdekte.",
+        "energie": "Merk je waar je energie heen ging, en waar ze wegliep?",
+        "volgende_week": "Een klein iets voor volgende week is al genoeg.",
+        "dankbaarheid": "Sluit zacht af. Waar was je stiekem blij mee?"
+      },
+      "vraagStandaard": "Neem even de tijd voor deze.",
+      "afronden": "Fijn dat je dit deed. Zulke momenten helpen mij je beter te leren kennen, en helpen jou de week scherper in te gaan."
+    },
+    "viering": {
+      "niveauMax": "Je staat op {niveau}, het hoogste dat er is. Ik ben oprecht trots op je. Blijf inchecken; ik blijf naast je staan.",
+      "niveauMaxLabel": "Niveau {level}: {naam}",
+      "niveauLabel": "Niveau {level}, {naam}",
+      "niveauBezigNaar": "Mooi bezig, je bent {niveau}. Nog {xp} tot {volgende}. Dat haal je; ik geloof in je.",
+      "niveauBezig": "Mooi bezig, je bent {niveau}. Nog {xp} tot je volgende niveau. Dat haal je; ik geloof in je.",
+      "xp": "{aantal} XP",
+      "eersteBadge": "Je eerste badge ligt binnen handbereik: {badge}. Doe een check-in of log een training, dan vieren we die samen.",
+      "eersteBadgeAlgemeen": "Elke check-in en elk doel brengt je dichter bij je eerste badge. Klein beginnen mag, ik houd je vooruitgang bij.",
+      "behaaldEen": "Al {aantal} binnen, knap gedaan.",
+      "badgeEen": "{aantal} badge",
+      "badgeMeer": "{aantal} badges",
+      "volgendeBadge": "{behaald} Je volgende is {badge}; die pakken we er ook bij.",
+      "alleBadges": "{behaald} Je hebt ze allemaal, dat is echt bijzonder. Ik ben trots op je.",
+      "event": {
+        "doelBereikt": "Doel bereikt. Precies zo bouw je vooruitgang op.",
+        "streak": "Je streak houdt stand. Consistentie die telt.",
+        "levelUp": "Nieuw level. Je companion groeit met je mee."
+      }
+    },
+    "stemming": {
+      "uitnodiging": "Hoe voel je je nu? Een tik, meer niet. Ik houd het even bij voor je.",
+      "reactie": {
+        "1": "Zwaar moment? Ik ben er. Fijn dat je het toch even aangaf, dat telt.",
+        "2": "Niet je beste dag, hoor ik. Dank dat je het deelt; je hoeft het niet weg te lachen.",
+        "3": "Gewoon prima mag ook. Fijn dat je even incheckte.",
+        "4": "Mooi dat het goed zit vandaag. Geniet er rustig van.",
+        "5": "Wat fijn dat je je zo voelt. Koester dit moment even."
+      },
+      "reactieStandaard": "Fijn dat je even incheckte."
+    },
+    "dagstart": {
+      "goedemorgen": "Goedemorgen",
+      "goedemiddag": "Goedemiddag",
+      "goedenavond": "Goedenavond",
+      "goedenacht": "Goedenacht",
+      "startCheckin": "Start je check-in",
+      "sluitDagAf": "Sluit je dag af",
+      "noteerDankbaarheid": "Noteer een dankbaarheid",
+      "logStemming": "Log je stemming",
+      "afgesloten": "Je hebt je dag afgesloten. Rust goed uit, morgen ben ik er weer.",
+      "terugblikken": "Even terugblikken? Een korte reflectie helpt je de dag rustig af te ronden.",
+      "geenData": "Fijn dat je er bent. Begin met je check-in, dan leer ik jouw dag kennen.",
+      "allesStreak": "Alles afgerond, en {streak} dagen op rij. Dat is echt sterk.",
+      "alles": "Alles afgerond voor vandaag. Sterk gedaan.",
+      "ochtendBezig": "Goede start: {gedaan} van {totaal} al gedaan. Zetten we de volgende?",
+      "ochtendNieuw": "Klaar voor een nieuwe dag. We beginnen rustig met je check-in.",
+      "overdagBezig": "Je bent goed bezig: {gedaan} van {totaal} taken vandaag afgerond.",
+      "overdagNieuw": "Nog even de dag ingaan? Een kleine stap zet de toon.",
+      "kicker": "Vita · jouw begeleider",
+      "groet": "{groet}, {naam}",
+      "naamOnbekend": "je"
+    },
+    "nudge": {
+      "berichtVanVita": "Bericht van Vita",
+      "verberg": "Verberg dit bericht",
+      "domein": {
+        "stress": "stress",
+        "slaap": "slaap",
+        "energie": "energie",
+        "balans": "werk-privébalans",
+        "focus": "focus",
+        "motivatie": "motivatie"
+      },
+      "jeWelzijn": "je welzijn",
+      "burnoutStijgendTitel": "Even bij je inchecken",
+      "burnoutStijgendBericht": "Je scores lopen de laatste weken wat terug, vooral op {factor}. Geen alarm, wel een goed moment om er even bij stil te staan.",
+      "burnoutStijgendCta": "Praat erover met je coach",
+      "burnoutDalendTitel": "Het gaat de goede kant op",
+      "burnoutDalendBericht": "Je welzijnsscores zijn de laatste weken verbeterd. Mooi. Wil je weten wat daaraan bijdraagt en hoe je het vasthoudt?",
+      "burnoutDalendCta": "Vier het met je coach",
+      "slaapOmlaagTitel": "Je slaapt minder dan normaal",
+      "slaapOmlaagBericht": "Deze week sliep je gemiddeld {nu}u, tegen {eerder}u de week ervoor. Zullen we kijken wat je nachtrust in de weg zit?",
+      "slaapOmlaagCta": "Vraag je coach om tips",
+      "slaapOmhoogTitel": "Je slaap zit in de lift",
+      "slaapOmhoogBericht": "Deze week sliep je gemiddeld {nu}u, {delta}u meer dan de week ervoor. Goed bezig. Wil je dit ritme vasthouden?",
+      "slaapOmhoogCta": "Hou het vast met je coach",
+      "stemmingOmlaagTitel": "Je stemming zakt wat",
+      "stemmingOmlaagBericht": "Je stemming was deze week gemiddeld {nu}/5, tegen {eerder}/5 de week ervoor. Wil je er even over praten?",
+      "stemmingOmlaagCta": "Praat erover met je coach",
+      "stemmingOmhoogTitel": "Je zit lekkerder in je vel",
+      "stemmingOmhoogBericht": "Je stemming klom deze week naar gemiddeld {nu}/5, van {eerder}/5. Wil je weten wat het verschil maakte?",
+      "stemmingOmhoogCta": "Vier het met je coach",
+      "streakTitel": "{streak} dagen op rij!",
+      "streakBericht": "Je hebt {streak} dagen achter elkaar ingecheckt. Zo ontstaat inzicht. Trots op je. Wil je je voortgang bespreken?",
+      "streakCta": "Bekijk je voortgang met de coach",
+      "dankbaarheidTitel": "Je dankbaarheidsmoment gemist?",
+      "dankbaarheidBericht": "Je hield een tijdje dagelijks bij waar je dankbaar voor was, maar de laatste week even niet. Zo'n klein moment doet vaak meer dan je denkt.",
+      "dankbaarheidCta": "Pak het weer op met je coach",
+      "heractivatieTitel": "Hoe gaat het echt met je?",
+      "heractivatieBericht": "Het is even geleden dat je iets logde. Geen druk, een eerlijk moment voor jezelf is al genoeg. Ik denk graag met je mee.",
+      "heractivatieCta": "Begin een gesprek"
+    },
+    "paginaGids": {
+      "home": {
+        "label": "Vandaag",
+        "uitleg": "Je startpunt. Hier zie ik in een oogopslag hoe je ervoor staat en wijs ik je de volgende stap.",
+        "stap": "Begin met je dagelijkse check-in of log je stemming."
+      },
+      "checkin": {
+        "label": "Wekelijkse check-in",
+        "uitleg": "Je belangrijkste move van de week: 12 korte vragen. Daarna stel ik samen met jou je weekdoelen op.",
+        "stap": "Doorloop de 12 vragen, dat duurt zo'n 2 minuten. Levert de meeste XP op."
+      },
+      "stemmingKalender": {
+        "label": "Stemming kalender",
+        "uitleg": "Je stemming van de afgelopen 90 dagen als kleurenkaart. Zo zie je in een blik je golfbeweging.",
+        "stap": "Bekijk welke weken groen kleurden. Wat deed je toen anders?"
+      },
+      "stemming": {
+        "label": "Stemming",
+        "uitleg": "In 5 seconden vastleggen hoe je je voelt. Elke log leert mij jouw ritme kennen.",
+        "stap": "Tik je stemming en energie aan, klaar."
+      },
+      "slaap": {
+        "label": "Slaap",
+        "uitleg": "Slaap is de basis onder alles: energie, focus, humeur. Log je nachten en ik laat je patronen zien.",
+        "stap": "Log hoe lang en hoe goed je sliep."
+      },
+      "stress": {
+        "label": "Stress",
+        "uitleg": "Stress meten is stress beheersen. Door het te volgen zien we wat jou opjaagt en wat je rust geeft.",
+        "stap": "Geef je stressniveau aan en, als je wilt, waar het vandaan komt."
+      },
+      "werkgeluk": {
+        "label": "Werkgeluk",
+        "uitleg": "Een simpele score: hoe lekker zit je in je werk? Over tijd wordt de trend het echte verhaal.",
+        "stap": "Schuif je werkgeluk-score van vandaag."
+      },
+      "psychVeiligheid": {
+        "label": "Psychologische veiligheid",
+        "uitleg": "Durf je je uit te spreken in je team? Deze korte check meet hoe veilig dat voelt.",
+        "stap": "Beantwoord de stellingen eerlijk. Het is van jou."
+      },
+      "inzichten": {
+        "label": "Inzichten",
+        "uitleg": "Hier vat ik je data samen tot iets bruikbaars: wat valt op, wat kun je ermee.",
+        "stap": "Lees je belangrijkste inzicht van deze week."
+      },
+      "patronen": {
+        "label": "Mijn patronen",
+        "uitleg": "De verbanden die ik in jouw data vind, bijvoorbeeld hoe je slaap je stemming kleurt.",
+        "stap": "Bekijk je sterkste patroon en de tip erbij."
+      },
+      "rapport": {
+        "label": "Rapport",
+        "uitleg": "Je vitaliteitsoverzicht per domein. Het complete plaatje, in een rustig overzicht.",
+        "stap": "Scan je domeinscores. Waar zit je laagste?"
+      },
+      "mijnRapport": {
+        "label": "Mijn rapport",
+        "uitleg": "Je persoonlijke AI-rapport, klaar om te lezen of te downloaden.",
+        "stap": "Bekijk je laatste rapport of exporteer het als PDF."
+      },
+      "sport": {
+        "label": "Sport",
+        "uitleg": "Je trainingen en schema op een plek. Bewegen is een van de sterkste knoppen voor je welzijn.",
+        "stap": "Start een training of laat mij een schema voor je maken."
+      },
+      "voeding": {
+        "label": "Voeding",
+        "uitleg": "Wat je eet stuurt je energie. Log je maaltijden; een foto is genoeg, ik reken de rest uit.",
+        "stap": "Log je volgende maaltijd met een foto."
+      },
+      "water": {
+        "label": "Water",
+        "uitleg": "Klein maar groot effect: genoeg drinken houdt je focus scherp. Ik tel met je mee.",
+        "stap": "Tik aan wat je net gedronken hebt."
+      },
+      "gezondheid": {
+        "label": "Gezondheid",
+        "uitleg": "Je metingen (stappen, slaap, hartslag) bij elkaar. Koppel je wearable voor het volledige beeld.",
+        "stap": "Bekijk je metingen of koppel een app via Koppelingen."
+      },
+      "focus": {
+        "label": "Focus",
+        "uitleg": "Je toolkit voor een heldere kop: ademhaling, een focustimer, micro-pauzes en mentale resets.",
+        "stap": "Kies een ademhaling of start een focustimer van 25 min."
+      },
+      "coach": {
+        "label": "AI Coach",
+        "uitleg": "Je persoonlijke coach die jouw data kent. Stel een vraag, krijg een antwoord op maat.",
+        "stap": "Vraag me iets, bijvoorbeeld \"hoe verbeter ik mijn slaap?\"."
+      },
+      "doelen": {
+        "label": "Doelen",
+        "uitleg": "Je weekdoelen, gekozen op basis van je check-in. Klein en haalbaar: daar zit de winst.",
+        "stap": "Vink af wat je vandaag gehaald hebt. Elke afvink = XP."
+      },
+      "journal": {
+        "label": "Journal",
+        "uitleg": "Je vrije ruimte om te schrijven. Even je hoofd legen helpt aantoonbaar tegen piekeren.",
+        "stap": "Schrijf een paar regels over je dag."
+      },
+      "meditatie": {
+        "label": "Meditatie",
+        "uitleg": "Een paar minuten stilte resetten je zenuwstelsel. Ik begeleid je rustig door de sessie.",
+        "stap": "Kies een korte sessie en zet je oortjes in."
+      },
+      "ademhaling": {
+        "label": "Ademhaling",
+        "uitleg": "De snelste knop voor rust: bewust ademen kalmeert je in minder dan een minuut.",
+        "stap": "Volg een ronde box-breathing met me mee."
+      },
+      "dankbaarheid": {
+        "label": "Dankbaarheid",
+        "uitleg": "Drie dingen benoemen die goed gingen verschuift je focus. Klein gebaar, echt effect.",
+        "stap": "Noteer 3 dingen waar je vandaag dankbaar voor bent."
+      },
+      "reflectie": {
+        "label": "Reflectie",
+        "uitleg": "Je wekelijkse terugblik in 6 vragen. Even afstand nemen maakt de volgende week scherper.",
+        "stap": "Beantwoord de reflectievragen van deze week."
+      },
+      "groeiplan": {
+        "label": "Groeiplan",
+        "uitleg": "Je persoonlijke plan op de langere termijn: sterke punten, aandachtspunten en concrete acties.",
+        "stap": "Bekijk je acties of laat mij een vers groeiplan maken."
+      },
+      "disc": {
+        "label": "DISC",
+        "uitleg": "Ontdek je werkstijl in 24 stellingen. Handig om jezelf en je team beter te begrijpen.",
+        "stap": "Doe de test. Daarna ken ik jouw stijl."
+      },
+      "niveau": {
+        "label": "Fit Level",
+        "uitleg": "Je voortgang als game: verzamel XP, klim van Starter naar Legende, ontgrendel badges.",
+        "stap": "Kijk hoeveel XP je nog nodig hebt voor het volgende level."
+      },
+      "achievements": {
+        "label": "Achievements",
+        "uitleg": "Je behaalde badges en wat er nog te ontgrendelen valt. Elke mijlpaal telt.",
+        "stap": "Bekijk welke badge het dichtstbij is."
+      },
+      "voortgang": {
+        "label": "Voortgang",
+        "uitleg": "Je totaaloverzicht: streaks, logs en weektrends bij elkaar.",
+        "stap": "Check je huidige streak en hou hem in stand!"
+      },
+      "chat": {
+        "label": "Berichten",
+        "uitleg": "Je teamchat. Even contact maakt het werk lichter; verbinding is ook welzijn.",
+        "stap": "Stuur een collega een bericht."
+      },
+      "mijnGesprekken": {
+        "label": "Mijn gesprekken",
+        "uitleg": "Je geplande en eerdere gesprekken met HR, overzichtelijk op een rij.",
+        "stap": "Bekijk je aankomende gesprek."
+      },
+      "koppelingen": {
+        "label": "Koppelingen",
+        "uitleg": "Verbind je wearable of gezondheidsapp, zodat je data vanzelf binnenkomt.",
+        "stap": "Koppel Apple Health of Google Fit."
+      },
+      "stappen": {
+        "label": "Stappen",
+        "uitleg": "Je dagelijkse stappen op een plek, met een weekgrafiek naast je doel. Bewegen is een van de sterkste knoppen voor je energie.",
+        "stap": "Log je stappen of laat ze automatisch binnenkomen via een koppeling."
+      },
+      "burnout": {
+        "label": "Burn-outcheck",
+        "uitleg": "Een korte scan die peilt hoe uitgeput, cynisch en effectief je je voelt. Vroeg signaleren maakt het verschil.",
+        "stap": "Doorloop de scan. Eerlijk antwoorden levert het scherpste beeld."
+      },
+      "mentaleSterkte": {
+        "label": "Mentale sterkte",
+        "uitleg": "Een korte quiz die je mentale veerkracht in kaart brengt, met een uitleg per antwoord. Zo zie je waar je stevig staat en waar niet.",
+        "stap": "Doe de quiz. Daarna bespreek ik je uitkomst met je."
+      },
+      "doelkeuze": {
+        "label": "Doelen kiezen",
+        "uitleg": "Op basis van je check-in kies je hier een klein weekdoel voor je aandachtsgebieden. Klein en haalbaar: daar zit de winst.",
+        "stap": "Kies per gebied een doel dat je deze week wilt halen."
+      },
+      "prestaties": {
+        "label": "Metingen",
+        "uitleg": "Je lichaamsmetingen (gewicht, vetpercentage, energie) bij elkaar, met je voortgang richting je doel.",
+        "stap": "Leg een nieuwe meting vast om je trend te volgen."
+      },
+      "uitdagingen": {
+        "label": "Uitdagingen",
+        "uitleg": "Meerdaagse mini-uitdagingen die een gewoonte helpen opbouwen. Elke dag afvinken houdt je op koers.",
+        "stap": "Start een uitdaging die bij je past en vink vandaag af."
+      },
+      "teamUitdagingen": {
+        "label": "Team-uitdagingen",
+        "uitleg": "Uitdagingen die je samen met je team aangaat. Samen bewegen houdt het licht en verbindend.",
+        "stap": "Log je voortgang van vandaag voor het team."
+      },
+      "welzijn": {
+        "label": "Welzijn",
+        "uitleg": "Verzamelde artikelen en oefeningen rond je welzijn, om even in te verdiepen wanneer je wilt.",
+        "stap": "Blader door de content en kies iets dat nu bij je past."
+      },
+      "groeien": {
+        "label": "Groeien",
+        "uitleg": "Content en oefeningen gericht op persoonlijke groei. Kleine stappen die optellen.",
+        "stap": "Kies een onderwerp waar je mee aan de slag wilt."
+      },
+      "actief": {
+        "label": "Actief",
+        "uitleg": "Alles rond bewegen en actief blijven op een plek. Beweging voedt je energie en je humeur.",
+        "stap": "Bekijk wat je vandaag in beweging kan brengen."
+      },
+      "nieuws": {
+        "label": "Nieuws",
+        "uitleg": "Aankondigingen en updates vanuit je organisatie, overzichtelijk bij elkaar.",
+        "stap": "Lees het laatste bericht dat voor jou relevant is."
+      },
+      "bestanden": {
+        "label": "Bestanden",
+        "uitleg": "Je persoonlijke documenten en gegenereerde rapporten, plus wat je met HR deelt. Jij houdt de regie.",
+        "stap": "Upload een document of bekijk je laatste rapport."
+      },
+      "protocollen": {
+        "label": "Protocollen",
+        "uitleg": "De gepubliceerde afspraken en procedures van je organisatie, te doorzoeken op onderwerp.",
+        "stap": "Zoek het protocol dat je nodig hebt."
+      },
+      "profiel": {
+        "label": "Profiel",
+        "uitleg": "Je persoonlijke gegevens en voorkeuren. Houd ze up-to-date, dan blijft mijn beeld van jou kloppen.",
+        "stap": "Werk je gegevens of voorkeuren bij."
+      },
+      "instellingen": {
+        "label": "Instellingen",
+        "uitleg": "Je account, privacy en voorkeuren. Jij bepaalt wat er met je data gebeurt.",
+        "stap": "Stel je voorkeuren in of beheer je privacy."
+      }
+    },
+    "companion": {
+      "persona": {
+        "stoicijn": "De Stoïcijn",
+        "optimizer": "De Optimizer",
+        "mentor": "De Mentor",
+        "challenger": "De Challenger",
+        "wetenschapper": "De Wetenschapper"
+      },
+      "bericht": {
+        "geenData": {
+          "challenger": "Ik heb nog niets van je gemeten. Doe je eerste check-in, dan kan ik je echt uitdagen.",
+          "stoicijn": "Ik begin graag bij het begin: doe je eerste check-in, dan weten we waar je staat.",
+          "wetenschapper": "Ik heb een nulpunt nodig. Vul je eerste check-in in, dan bouw ik jouw baseline op.",
+          "optimizer": "Zonder data kan ik nog niets voor je fijnslijpen. Start met je eerste check-in.",
+          "standaard": "Vul je eerste check-in in, dan leer ik jouw patroon kennen."
+        },
+        "slaap": {
+          "stoicijn": "Je slaap staat deze week onder druk. Richt je op herstel, zonder ruis.",
+          "optimizer": "Je slaap blijft deze week achter. Dat ga je in je focus merken; ik zou daar eerst op inzetten.",
+          "challenger": "Je slaap blijft deze week achter. Wat doe je vanavond anders?",
+          "wetenschapper": "Slaap is deze week je zwakste signaal. Ik zou daar als eerste aan draaien.",
+          "standaard": "Ik zie dat je slaap deze week achterblijft. Herstel verdient nu voorrang."
+        },
+        "stress": {
+          "stoicijn": "Je stress loopt deze week op. Kijk rustig wat de bron is, en wat je kunt loslaten.",
+          "optimizer": "Je stress staat hoog deze week. Een bewust ademhalingsmoment per dag helpt al.",
+          "challenger": "Je stress loopt deze week op. Wat ga je er concreet aan doen?",
+          "wetenschapper": "Stress is deze week je opvallendste signaal. Ik zou bewust herstelmomenten inplannen.",
+          "standaard": "Ik zie deze week een hoog stressniveau bij je. Een herstelmoment maakt het verschil."
+        },
+        "streak": {
+          "stoicijn": "{streak} dagen op rij. Dat is discipline die karakter wordt.",
+          "optimizer": "{streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden.",
+          "challenger": "{streak} dagen op rij. Sterk. Hoelang houd je dit vol?",
+          "wetenschapper": "{streak} dagen op rij. Zo wordt een gewoonte echt onderdeel van je routine.",
+          "standaard": "{streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden."
+        },
+        "goed": {
+          "stoicijn": "Je signalen staan goed. Gebruik deze week zoals je hem bedoeld hebt.",
+          "optimizer": "Je staat er sterk voor. Een mooie week voor diep werk of een stevige sessie.",
+          "wetenschapper": "Al je gemeten signalen staan goed. Je kunt deze week veel aan.",
+          "standaard": "Je signalen staan goed. Ik zie een krachtige week voor je."
+        },
+        "matig": {
+          "stoicijn": "Je staat er redelijk voor. Doe wat je gepland hebt.",
+          "optimizer": "Een redelijke basis deze week. Kleine acties nu bouwen aan volgende week.",
+          "mentor": "Je staat er redelijk voor. Gebruik die energie doelbewust.",
+          "standaard": "Je staat er redelijk voor. Ik houd je patronen voor je in de gaten."
+        },
+        "laag": {
+          "stoicijn": "Je signalen vragen deze week aandacht. Pas je planning aan: doe wat nodig is, niet meer.",
+          "standaard": "Ik zie dat het wat minder loopt. Kijk bij je welzijn, ik denk met je mee."
+        }
+      },
+      "reden": {
+        "geenData": "Ik heb nog niets van je gemeten. Ik help je rustig op weg.",
+        "zwaar": "Het is even zwaar. Ik ben er rustig en steunend voor je.",
+        "slaap": "Je slaap staat onder druk. Deze week draait om herstel, zonder ruis.",
+        "sterk": "Je loopt sterk. Ik daag je uit om scherp te blijven.",
+        "goed": "Je staat er goed voor. Laten we fijnslijpen.",
+        "standaard": "Ik stem mijn toon af op hoe het met je gaat."
+      },
+      "level": "Level {level} · {naam}",
+      "max": "Max",
+      "nogXp": "nog {aantal} XP",
+      "vandaag": "Vandaag",
+      "gedaan": "{gedaan}/{totaal} gedaan",
+      "dagCompleet": "Je dag is compleet. Sterk gedaan!",
+      "meer": "+{aantal} meer",
+      "pastZichAan": "Vita past zich aan je aan",
+      "chip": {
+        "slaap": "Slaap",
+        "stress": "Stress",
+        "stemming": "Stemming"
+      },
+      "checkinGedaan": "Check-in gedaan. Ik houd je voortgang bij.",
+      "nudgeOchtend": "Goedemorgen! Klaar voor een nieuwe dag?",
+      "nudgeAvond": "Hoe was je dag? Vergeet je avondreflectie niet.",
+      "nietOpgehaald": "Niet opgehaald",
+      "niveau": {
+        "geen": "Nog niet gemeten",
+        "goed": "Goed",
+        "matig": "Redelijk",
+        "laag": "Vraagt aandacht"
+      },
+      "foutRegel": "Ik kan je gegevens nu even niet ophalen. Probeer het zo nog eens.",
+      "welzijnStaat": "Je welzijn staat op {score}: {niveau}.",
+      "nietsGemeten": "Ik heb nog niets van je gemeten. Doe je check-in, dan leer ik je kennen.",
+      "openBekijkDag": "Open Vita en bekijk je dag",
+      "tikVoorMeer": "Tik voor meer →",
+      "paneel": "Vita, jouw dag in een oogopslag",
+      "sluit": "Sluit Vita",
+      "vlakkenGemeten": "{gemeten} van {totaal} vlakken gemeten",
+      "dagOpRij": "{aantal} dag op rij",
+      "dagenOpRij": "{aantal} dagen op rij",
+      "opDezePagina": "Op deze pagina · {label}",
+      "volgendeStap": "Volgende stap",
+      "minderTonen": "Minder tonen",
+      "meerTonen": "Meer tonen",
+      "orbTitel": "Vita, jouw gezondheidscompanion",
+      "orbLabel": "Open Vita, jouw gezondheidscompanion"
+    },
+    "chat": {
+      "gisterenOm": "gisteren {tijd}",
+      "vandaag": "Vandaag",
+      "gisteren": "Gisteren",
+      "onbekend": "Onbekend",
+      "berichten": "Berichten",
+      "teamchat": "Teamchat",
+      "aantalOnline": "{aantal} online",
+      "aantalLeden": "{aantal} leden",
+      "directeBerichten": "Directe berichten",
+      "online": "Online",
+      "offline": "Offline",
+      "terug": "Terug naar gesprekken",
+      "jij": "Jij",
+      "leegTeamTitel": "Nog geen berichten",
+      "leegTeamTekst": "Stuur het eerste bericht naar je team!",
+      "leegDmTitel": "Begin een gesprek",
+      "leegDmTekst": "Stuur {naam} een bericht",
+      "eenCollega": "een collega",
+      "placeholder": "Stuur een bericht…",
+      "placeholderDm": "Stuur {naam} een bericht…",
+      "verzenden": "Bericht verzenden"
+    },
+    "coach": {
+      "welkom": "Hoi, ik ben Vita.\n\nIk ben er voor alles rondom je welzijn op het werk: stress, energie, werk-privébalans, motivatie, slaap, of gewoon even je hoofd leegmaken.\n\nWat je hier deelt blijft tussen ons. Geen manager, geen HR die meeleest.\n\nWaar zal ik je vandaag mee helpen?",
+      "opener": {
+        "burnout_stijgend": "Hey, fijn dat je er bent. Ik zag dat je scores de laatste weken wat teruglopen. Geen zorgen. Vertel eens, hoe gaat het op dit moment echt met je?",
+        "stemming_omlaag": "Fijn dat je er bent. Ik merkte dat je stemming deze week wat lager lag dan je gewend bent. Wil je vertellen wat er speelt?",
+        "slaap_omlaag": "Goed dat je er bent. Je sliep deze week wat minder dan normaal. Zullen we samen kijken wat je nachtrust in de weg zit?",
+        "streak_mijlpaal": "Wat een mooie reeks, je hebt een flink aantal dagen op rij ingecheckt! Hoe voelt het om hier zo bewust mee bezig te zijn?",
+        "slaap_omhoog": "Goed nieuws: je slaap zit duidelijk in de lift deze week. Wil je weten hoe je dit ritme vasthoudt?",
+        "stemming_omhoog": "Mooi om te zien dat je beter in je vel zit deze week! Wat denk je dat het verschil maakte?",
+        "burnout_dalend": "Goed nieuws: je welzijnsscores gaan de laatste weken vooruit. Zullen we kijken wat daaraan bijdraagt, zodat je het kunt vasthouden?",
+        "dankbaarheid_gap": "Fijn dat je er bent. Je hield een tijdje dagelijks bij waar je dankbaar voor was. Zullen we dat samen weer oppakken?",
+        "heractivatie": "Hey, fijn dat je er weer bent. Geen druk. Vertel eens, hoe gaat het op dit moment met je?"
+      },
+      "suggestie": {
+        "gestrest": "Ik voel me gestrest",
+        "energieOp": "Mijn energie is op",
+        "slechtSlapen": "Ik slaap slecht",
+        "burnout": "Ik wil tips tegen burn-out",
+        "balans": "Werk en privé in balans",
+        "motivatie": "Ik mis motivatie",
+        "gemotiveerd": "Hoe blijf ik gemotiveerd?",
+        "rustiger": "Ik wil rustiger worden"
+      },
+      "vervolg": {
+        "meer": "Vertel me meer",
+        "vandaag": "Wat kan ik vandaag doen?",
+        "aanpak": "Hoe pak ik dit het beste aan?"
+      },
+      "fout": "Sorry, ik kan je nu even niet bereiken. Probeer het zo opnieuw.",
+      "foutLeeg": "Er ging iets mis bij het antwoorden. Probeer het opnieuw.",
+      "kiesOnderwerp": "Kies een onderwerp om te beginnen",
+      "opnieuw": "Opnieuw proberen",
+      "privacy": "Vita onthoudt context tussen gesprekken om je beter te helpen · Nooit zichtbaar voor manager of HR",
+      "invoerLabel": "Bericht aan Vita",
+      "placeholder": "Typ je bericht aan Vita",
+      "verstuur": "Verstuur bericht aan Vita"
+    },
+    "domein": {
+      "slaap": "slaap",
+      "stress": "stress",
+      "energie": "energie",
+      "focus": "focus",
+      "balans": "balans",
+      "motivatie": "motivatie"
+    },
+    "doelen": {
+      "dezeWeek": "Deze week",
+      "vorigeWeek": "vorige week {aantal}×",
+      "dagenVanZeven": "{aantal}/7 dagen",
+      "weekTrackLabel": "{aantal} van 7 dagen gehaald deze week",
+      "volgendeStap": "Volgende stap",
+      "weekdoelBehaald": "Weekdoel behaald",
+      "dagOpRij": "{aantal} dag op rij",
+      "dagenOpRij": "{aantal} dagen op rij",
+      "gehaaldVandaag": "Gehaald vandaag",
+      "vandaagNietGelukt": "Vandaag niet gelukt",
+      "aanpassen": "Aanpassen",
+      "labelGehaald": "{doel}: vandaag gehaald",
+      "gehaald": "Gehaald",
+      "labelNietGelukt": "{doel}: vandaag niet gelukt",
+      "nietGelukt": "Niet gelukt",
+      "labelNotitie": "{doel}: log met notitie",
+      "logMetNotitie": "Log met notitie",
+      "dialoogVraag": "Heb je vandaag {doel} gehaald?",
+      "jaGehaald": "Ja, gehaald",
+      "notitieLabel": "Notitie (optioneel)",
+      "notitiePlaceholder": "Hoe ging het vandaag?",
+      "enterHint": "Enter bewaart als gehaald · Shift+Enter voor een nieuwe regel",
+      "suggestiesMislukt": "Suggesties laden mislukt",
+      "later": "Probeer het later opnieuw.",
+      "verbinding": "Controleer je verbinding en probeer opnieuw.",
+      "xpLevel": "Level {level}: {naam}!",
+      "xpVerdiendUitroep": "+{xp} XP verdiend!",
+      "xpVerdiend": "+{xp} XP verdiend",
+      "nieuweBadge": "Nieuwe badge: {namen}",
+      "reactieAlles": "Alle doelen van vandaag afgevinkt, dat is een sterke dag. Trots op je.",
+      "reactieAfgevinkt": "Fijn, afgevinkt. Kleine stappen, echte vooruitgang.",
+      "reactieNiet": "Geen zorgen, morgen een nieuwe kans. Ik hou het bij, jij hoeft alleen te verschijnen.",
+      "checkinAlTitel": "Je check-in staat er al",
+      "checkinAlTekst": "Je hebt deze week al een check-in gedaan, waarschijnlijk op een ander apparaat. Je doelen van die keuze staan alleen op dat apparaat, maar je rapport kun je hier gewoon bekijken.",
+      "bekijkRapport": "Bekijk je rapport",
+      "leegTitel": "Nog geen doelen deze week",
+      "leegTekst": "Doe een korte wekelijkse check-in, dan stel ik samen met jou een paar haalbare doelen op die passen bij hoe het nu met je gaat. Ik verzin niks, ik werk met wat je me vertelt.",
+      "startCheckin": "Start check-in",
+      "weekBereik": "{van} tot {tot}",
+      "titel": "Mijn doelen deze week",
+      "sub": "{week} · AI-geselecteerde doelen",
+      "nieuweCheckin": "Nieuwe check-in",
+      "vandaagGelogd": "{gelogd}/{totaal} vandaag gelogd",
+      "vorigeWeekTotaal": "Vorige week {gehaald} van {totaal} dagen gehaald",
+      "scoresDezeWeek": "Jouw scores deze week",
+      "suggestiesTitel": "AI Weekdoel-suggesties",
+      "laden": "Laden...",
+      "genereerSuggesties": "Genereer suggesties",
+      "verbergen": "Verbergen",
+      "suggestiesUitleg": "Laat de AI 3 concrete weekdoelen voorstellen op basis van jouw laagste scores en burn-outrisico.",
+      "analyseert": "AI analyseert jouw data...",
+      "geenSuggesties": "Geen suggesties beschikbaar. Doe eerst een check-in."
+    },
+    "doelkeuze": {
+      "analyseNiet": "Analyse niet beschikbaar",
+      "analyseNietTekst": "Je doelen zijn opgeslagen, maar de AI-analyse kon niet worden gemaakt.",
+      "geenCheckinTitel": "Geen check-in gevonden",
+      "geenCheckinTekst": "Ik kan hier alleen doelen voorstellen direct na je check-in. Doe (of hervat) eerst je wekelijkse check-in, dan gaan we samen verder.",
+      "titel": "Check-in ingevuld!",
+      "sub": "Kies voor elk aandachtsgebied een doel dat je deze week wil aanpakken.",
+      "welzijnsscan": "Jouw welzijnsscan",
+      "goed": "Goed",
+      "matig": "Matig",
+      "lastig": "Lastig",
+      "aandachtsgebiedLabel": "aandachtsgebied",
+      "aandachtsgebied": "Aandachtsgebied {nummer}",
+      "vlakScore": "{vlak}: {score}/20",
+      "kiesVoor": "Kies een doel voor {vlak}",
+      "bezig": "Bezig...",
+      "start": "Start deze week →",
+      "kiesNogEen": "Kies nog {aantal} doel",
+      "kiesNogMeer": "Kies nog {aantal} doelen",
+      "kiesDoelen": "Kies je doelen",
+      "later": "Je kunt je doelen later aanpassen via het Doelen-menu."
+    },
+    "groeiplan": {
+      "termijn": {
+        "week": "Deze week",
+        "maand": "Deze maand",
+        "kwartaal": "Dit kwartaal"
+      },
+      "foutGenereren": "Het plan kon niet gegenereerd worden.",
+      "genererenMislukt": "Genereren mislukt",
+      "later": "Probeer het later opnieuw.",
+      "titel": "Persoonlijk groeiplan",
+      "sub": "AI-gegenereerd op basis van jouw data",
+      "nieuw": "Nieuw",
+      "leegTitel": "Laten we jouw groeiplan opbouwen",
+      "leegTekst": "Op basis van je check-ins, DISC-profiel en burn-outdata stel ik samen met jou een persoonlijk plan op: sterke punten, aandachtspunten en concrete acties. Ik pas het aan naarmate ik je beter leer kennen.",
+      "genereren": "Plan genereren",
+      "analyseert": "AI analyseert jouw data…",
+      "duur": "Dit duurt 5 tot 10 seconden",
+      "gegenereerdOp": "Gegenereerd op {datum}",
+      "mijnDoelen": "Mijn doelen",
+      "sterk": "Sterk",
+      "groeipunten": "Groeipunten",
+      "actiesBubbel": "Deze acties koos ik samen met jou uit jouw data. Pak er een op die vandaag haalbaar voelt, de rest wacht rustig op je."
+    },
+    "protocollen": {
+      "categorie": {
+        "algemeen": "Algemeen",
+        "arbo": "Arbo & Veiligheid",
+        "verzuim": "Verzuim",
+        "it": "IT & Systemen",
+        "hr": "HR & Onboarding",
+        "veiligheid": "Veiligheid",
+        "overig": "Overig"
+      },
+      "titel": "Protocollen",
+      "sub": "Beleid, procedures en richtlijnen",
+      "toevoegen": "Toevoegen",
+      "zoekLabel": "Zoek protocol",
+      "zoekPlaceholder": "Zoek op titel of omschrijving...",
+      "filterLabel": "Filter op categorie",
+      "alle": "Alle",
+      "leegHr": "Nog geen protocollen",
+      "leeg": "Nog geen protocollen gepubliceerd",
+      "geenResultaten": "Geen resultaten",
+      "leegHrTekst": "Klik op Toevoegen om je eerste protocol aan te maken.",
+      "leegTekst": "Er zijn nog geen protocollen gedeeld door je organisatie.",
+      "geenResultatenTekst": "Pas je zoekopdracht of filter aan om meer te zien.",
+      "concept": "Concept",
+      "hrBeheer": "HR Beheer",
+      "hrBeheerTekst": "Protocollen toevoegen, bewerken en verbergen",
+      "beheren": "Beheren",
+      "terug": "Terug naar protocollen",
+      "bewerken": "Bewerken",
+      "bijgewerkt": "Bijgewerkt {datum}"
+    },
+    "samenvattingen": {
+      "titel": "Wat Vita onthoudt",
+      "sub": "AI-samenvattingen van jouw gesprekken",
+      "naarVita": "Naar Vita →",
+      "leegTitel": "Nog geen samenvattingen",
+      "leeg1": "Na een paar berichten met Vita wordt er automatisch",
+      "leeg2": "een samenvatting opgeslagen om je beter te helpen.",
+      "meestRecent": "Meest recent",
+      "week": "Week {nummer}",
+      "weekVan": "Week van {datum}",
+      "voet": "Samenvattingen worden automatisch aangemaakt tijdens gesprekken. Ze helpen Vita beter aan te sluiten op jouw situatie."
+    },
+    "teamUitdagingen": {
+      "type": {
+        "stappen": "Stappen",
+        "checkin": "Check-ins",
+        "sport": "Sport",
+        "voeding": "Voeding",
+        "meditatie": "Meditatie",
+        "focus": "Focus",
+        "custom": "Overig",
+        "slaap": "Slaap",
+        "water": "Water",
+        "beweging": "Beweging"
+      },
+      "loggenMislukt": "Loggen mislukt",
+      "later": "Probeer het later opnieuw.",
+      "geenVerbinding": "Geen verbinding",
+      "verbinding": "Controleer je internet en probeer opnieuw.",
+      "laden": "Uitdagingen laden",
+      "ladenEen": "Uitdaging laden",
+      "titel": "Team uitdagingen",
+      "sub": "Doe mee met collectieve uitdagingen en boost je teamwelzijn",
+      "alle": "Alle uitdagingen",
+      "leegTitel": "Geen actieve uitdagingen",
+      "leegTekst": "Je HR-team kan uitdagingen aanmaken via het HR-portaal.",
+      "vandaagGelogd": "vandaag gelogd",
+      "jouwVoortgang": "jouw voortgang",
+      "voortgangLabel": "Jouw voortgang voor {naam}",
+      "deelnemerEen": "{aantal} deelnemer",
+      "deelnemerMeer": "{aantal} deelnemers",
+      "laatsteDag": "Vandaag laatste dag!",
+      "dagResterend": "{aantal} dag resterend",
+      "dagenResterend": "{aantal} dagen resterend",
+      "waardeLabel": "Waarde ({eenheid})",
+      "aantal": "aantal",
+      "voerIn": "Voer {eenheid} in",
+      "waarde": "waarde",
+      "log": "Log",
+      "geregistreerd": "Vandaag geregistreerd",
+      "deelnemen": "Deelnemen vandaag",
+      "nietGevonden": "Uitdaging niet gevonden.",
+      "terug": "Terug",
+      "teamVoortgang": "Team voortgang",
+      "teamVoortgangLabel": "Team voortgang voor {titel}",
+      "behaald": "{waarde} {eenheid} behaald",
+      "doel": "Doel: {waarde} {eenheid}",
+      "mijnBijdrage": "Mijn bijdrage",
+      "teamTotaal": "Team totaal",
+      "deelnemers": "Deelnemers",
+      "bijdrageLoggenTitel": "Mijn bijdrage loggen",
+      "notitieLabel": "Notitie (optioneel)",
+      "notitiePlaceholder": "Korte omschrijving...",
+      "gelogd": "Gelogd!",
+      "bijdrageLoggen": "Bijdrage loggen",
+      "recent": "Mijn recente bijdragen"
+    },
+    "uitdagingen": {
+      "lijst": {
+        "10slaap": {
+          "titel": "10 dagen beter slapen",
+          "sub": "Ga elke dag op hetzelfde tijdstip naar bed"
+        },
+        "21beweging": {
+          "titel": "21 dagen bewegen",
+          "sub": "20 minuten per dag actief zijn"
+        },
+        "7focus": {
+          "titel": "7 dagen deep focus",
+          "sub": "Elke dag 90 min ononderbroken werken"
+        },
+        "14stress": {
+          "titel": "14 dagen minder stress",
+          "sub": "Dagelijkse ademhaling + reflectie"
+        },
+        "30water": {
+          "titel": "30 dagen 2L water",
+          "sub": "2 liter water per dag drinken"
+        },
+        "7journaal": {
+          "titel": "7 dagen journalen",
+          "sub": "Elke avond 5 minuten schrijven"
+        }
+      },
+      "moeilijkheid": {
+        "makkelijk": "Makkelijk",
+        "gemiddeld": "Gemiddeld",
+        "uitdagend": "Uitdagend"
+      },
+      "titel": "Uitdagingen",
+      "sub": "Doe mee aan een wellness-uitdaging",
+      "actiefBezig": "Actief bezig",
+      "ringLabel": "{titel}: {verstreken} van {duur} dagen ({procent}%)",
+      "dagenVan": "{verstreken}/{duur} dagen",
+      "voltooid": "Voltooid",
+      "stoppen": "Stoppen",
+      "voortgangLabel": "Voortgang {titel}",
+      "beschikbaar": "Beschikbare uitdagingen",
+      "aantalDagen": "{aantal} dagen",
+      "actief": "Actief",
+      "starten": "Starten"
+    },
+    "api": {
+      "teVeelBerichten": "Te veel berichten. Probeer het over een uur opnieuw.",
+      "daglimiet": "Je hebt je {aantal} gratis Vita-gesprekken voor vandaag gebruikt. Morgen praat ik graag verder. Of vraag je HR-team naar het Groei-plan voor onbeperkte gesprekken.",
+      "coachNietBeschikbaar": "AI coach is niet beschikbaar.",
+      "aiNietBeschikbaar": "AI niet beschikbaar.",
+      "nietIngelogd": "Niet ingelogd.",
+      "geenBerichten": "Geen berichten meegegeven.",
+      "teVeelContext": "Te veel berichten in de context.",
+      "teLang": "Bericht is te lang.",
+      "ongeldig": "Ongeldig bericht.",
+      "coachOnbereikbaar": "Kon de coach niet bereiken.",
+      "teVeelSamenvattingen": "Te veel samenvattingsverzoeken. Probeer het later opnieuw.",
+      "samenvattingMislukt": "Samenvatting mislukt."
+    },
+    "aiCoach": {
+      "bewegingGeenData": "Koppel een wearable om persoonlijke bewegingsinzichten te ontvangen. Je kunt Google Health, Samsung Health of Apple Health koppelen via Koppelingen.",
+      "tipStappen": "Probeer elke dag 500 extra stappen te zetten",
+      "tipSlaap": "Streef naar 7 uur slaap voor beter herstel",
+      "domein": {
+        "slaap": "Slaap",
+        "energie": "Energie",
+        "stress": "Stress",
+        "focus": "Focus",
+        "balans": "Balans",
+        "motivatie": "Motivatie"
+      },
+      "trendTeWeinig": "Doe minimaal 2 check-ins om je welzijnstrend te zien.",
+      "voedingLeeg": "Log je eerste maaltijd van vandaag om persoonlijke voedingscoaching te ontvangen!",
+      "tekortEiwit": "eiwit ({nu}g / {doel}g)",
+      "tekortVezels": "vezels ({nu}g / {doel}g)",
+      "ontbijtOvergeslagen": "ontbijt overgeslagen",
+      "eiwitBijna": "eiwitdoel bijna gehaald",
+      "goedeVezels": "goede vezelinname"
+    }
+  }
 }

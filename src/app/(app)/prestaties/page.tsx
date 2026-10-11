@@ -24,6 +24,8 @@ import {
   type DoelProfiel,
   type FitnessDoel,
 } from '@/lib/health/gezondheid-berekeningen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -50,8 +52,8 @@ interface Meting {
 
 // ─── Hulpfuncties ───────────────────────────────────────────────────────────────
 
-function formatDatumKort(iso: string): string {
-  return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+function formatDatumKort(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
 /** Voortgang richting streefgewicht: 0–100% op basis van start (eerste meting) → streef. */
@@ -139,6 +141,8 @@ function MetriekTegel({
 export default function PrestatiesPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [profiel, setProfiel] = useState<ProfielRij | null>(null)
   const [metingen, setMetingen] = useState<Meting[]>([])
@@ -201,6 +205,8 @@ export default function PrestatiesPagina() {
   const bmi = berekenBMI(huidigGewicht, profiel?.lengte_cm ?? null)
   const leeftijd = berekenLeeftijd(profiel?.geboortedatum)
   const doelCfg = profiel?.fitness_doel ? DOEL_CONFIG[profiel.fitness_doel] : null
+  const doelLabel = profiel?.fitness_doel && doelCfg ? t(`voortgang.prestaties.doel.${profiel.fitness_doel}`) : null
+  const bmiLabel = bmi ? t(`voortgang.prestaties.bmi.${bmi.categorie}`) : undefined
 
   // Trend chronologisch (oudste → nieuwste) voor de grafiek.
   const trend = useMemo(
@@ -208,11 +214,11 @@ export default function PrestatiesPagina() {
       [...metingen]
         .sort((a, b) => a.datum.localeCompare(b.datum))
         .map(m => ({
-          datum: formatDatumKort(m.datum),
+          datum: formatDatumKort(m.datum, locale),
           gewicht: m.gewicht_kg ?? null,
           vet: m.vetpercentage ?? null,
         })),
-    [metingen],
+    [metingen, locale],
   )
 
   const startGewicht = trend.length > 0 ? trend[0].gewicht : huidigGewicht
@@ -228,7 +234,7 @@ export default function PrestatiesPagina() {
 
     const gewicht = parseFloat(gewichtInput.replace(',', '.'))
     if (!Number.isFinite(gewicht) || gewicht < 20 || gewicht > 400) {
-      setFout('Voer een gewicht in tussen 20 en 400 kg.')
+      setFout(t('voortgang.prestaties.foutGewicht'))
       setVeldFout('gewicht')
       return
     }
@@ -237,7 +243,7 @@ export default function PrestatiesPagina() {
     if (vetInput.trim()) {
       const v = parseFloat(vetInput.replace(',', '.'))
       if (!Number.isFinite(v) || v < 0 || v > 70) {
-        setFout('Vetpercentage moet tussen 0 en 70% liggen.')
+        setFout(t('voortgang.prestaties.foutVet'))
         setVeldFout('vet')
         return
       }
@@ -254,13 +260,14 @@ export default function PrestatiesPagina() {
     if (res.ok) {
       setGewichtInput('')
       setVetInput('')
-      toast({ title: 'Meting opgeslagen', variant: 'success' })
+      toast({ title: t('voortgang.prestaties.opgeslagen'), variant: 'success' })
       await laadData()
     } else {
       const json = await res.json() as { error?: string }
-      const melding = json.error ?? 'Opslaan mislukt. Probeer opnieuw.'
+      // Servermeldingen zijn Nederlands; in een andere taal tonen we de vertaalde terugval.
+      const melding = (taal === 'nl' ? json.error : undefined) ?? t('voortgang.prestaties.opslaanMisluktTekst')
       setFout(melding)
-      toast({ title: 'Opslaan mislukt', description: melding, variant: 'error' })
+      toast({ title: t('voortgang.prestaties.opslaanMislukt'), description: melding, variant: 'error' })
     }
 
     setBezig(false)
@@ -291,11 +298,11 @@ export default function PrestatiesPagina() {
           {/* Header */}
           <header style={{ paddingTop: '2rem', marginBottom: '1.25rem' }}>
             <p style={{ color: 'var(--text-3)', fontSize: '0.85rem', margin: '0 0 6px' }}>
-              Jouw lichaam in cijfers
+              {t('voortgang.prestaties.label')}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>
-                Lichaamsmetingen
+                {t('voortgang.prestaties.titel')}
               </h1>
               {doelCfg && (
                 <span
@@ -312,7 +319,7 @@ export default function PrestatiesPagina() {
                   }}
                 >
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: doelCfg.kleur }} />
-                  {doelCfg.label}
+                  {doelLabel}
                 </span>
               )}
             </div>
@@ -320,7 +327,7 @@ export default function PrestatiesPagina() {
 
           {/* Hero — gewicht + streefgewicht-ring */}
           <Card
-            aria-label="Gewicht en streefdoel"
+            aria-label={t('voortgang.prestaties.heroLabel')}
             style={{
               boxShadow: 'var(--shadow-md)',
               padding: '1.75rem 1.5rem',
@@ -335,8 +342,8 @@ export default function PrestatiesPagina() {
               value={voortgang ?? 0}
               ariaLabel={
                 voortgang !== null
-                  ? `Voortgang richting streefgewicht: ${voortgang}%. Huidig gewicht ${huidigGewicht ?? '–'} kg.`
-                  : `Huidig gewicht ${huidigGewicht ?? '–'} kg`
+                  ? t('voortgang.prestaties.ringLabel', { pct: voortgang, gewicht: huidigGewicht ?? '–' })
+                  : t('voortgang.prestaties.ringLeeg', { gewicht: huidigGewicht ?? '–' })
               }
               size={132}
               thickness={11}
@@ -354,7 +361,7 @@ export default function PrestatiesPagina() {
               {profiel?.streefgewicht_kg && huidigGewicht !== null ? (
                 <>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-3)', margin: 0, fontWeight: 600 }}>
-                    Richting streefgewicht
+                    {t('voortgang.prestaties.richtingStreef')}
                   </p>
                   <p style={{ margin: '0.3rem 0 0', fontSize: '1.05rem', color: 'var(--text-1)', fontWeight: 700 }}>
                     {huidigGewicht} kg{' '}
@@ -374,18 +381,18 @@ export default function PrestatiesPagina() {
                     />
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', margin: '0.5rem 0 0' }}>
-                    {voortgang}% van je doel · nog{' '}
+                    {t('voortgang.prestaties.vanDoel', { pct: voortgang ?? 0 })}{' '}
                     <strong style={{ color: 'var(--text-1)' }}>
                       {Math.abs(Math.round((huidigGewicht - profiel.streefgewicht_kg) * 10) / 10)} kg
                     </strong>{' '}
-                    te gaan
+                    {t('voortgang.prestaties.teGaan')}
                   </p>
                 </>
               ) : (
                 <>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-3)', margin: 0, fontWeight: 600 }}>Huidig gewicht</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-3)', margin: 0, fontWeight: 600 }}>{t('voortgang.prestaties.huidigGewicht')}</p>
                   <p style={{ margin: '0.3rem 0 0', fontSize: '1.05rem', color: 'var(--text-2)' }}>
-                    Stel een streefgewicht in via Instellingen om je voortgang te volgen.
+                    {t('voortgang.prestaties.stelStreefIn')}
                   </p>
                 </>
               )}
@@ -394,41 +401,40 @@ export default function PrestatiesPagina() {
 
           {/* Metriek-grid */}
           <section
-            aria-label="Lichaamsmetrieken"
+            aria-label={t('voortgang.prestaties.metriekenLabel')}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}
           >
             <MetriekTegel
-              label="Vetpercentage"
+              label={t('voortgang.prestaties.vetpercentage')}
               waarde={profiel?.vetpercentage !== null && profiel?.vetpercentage !== undefined ? String(profiel.vetpercentage) : '–'}
               eenheid={profiel?.vetpercentage != null ? '%' : undefined}
-              sub="Zelf ingevoerd"
+              sub={t('voortgang.prestaties.zelfIngevoerd')}
             />
             <MetriekTegel
               label="BMI"
               waarde={bmi ? String(bmi.waarde) : '–'}
-              sub={bmi?.label}
+              sub={bmiLabel}
               kleur={bmi?.kleur}
             />
             <MetriekTegel
-              label="Leeftijd"
+              label={t('voortgang.prestaties.leeftijd')}
               waarde={leeftijd !== null ? String(leeftijd) : '–'}
-              eenheid={leeftijd !== null ? 'jr' : undefined}
+              eenheid={leeftijd !== null ? t('voortgang.prestaties.jaar') : undefined}
             />
           </section>
 
           {/* Stofwisseling */}
           <div style={{ marginBottom: '1rem' }}>
-            <Kaart titel="Stofwisseling">
+            <Kaart titel={t('voortgang.prestaties.stofwisseling')}>
               {profielOnvolledig ? (
                 <p style={{ color: 'var(--text-3)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                  Je profiel is nog onvolledig. Vul je gewicht, lengte, geboortedatum en
-                  activiteitsniveau in bij Instellingen om je verbranding te berekenen.
+                  {t('voortgang.prestaties.profielOnvolledig')}
                 </p>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
-                  <MetriekTegel label="BMR" waarde={String(bmr)} eenheid="kcal" sub="In rust" kleur="var(--mf-blue)" />
-                  <MetriekTegel label="TDEE" waarde={String(tdee)} eenheid="kcal" sub="Met activiteit" kleur="var(--mf-purple)" />
-                  <MetriekTegel label="Caloriedoel" waarde={String(calorieDoel)} eenheid="kcal" sub={doelCfg?.label ?? 'Doel'} kleur="var(--mf-green)" />
+                  <MetriekTegel label="BMR" waarde={String(bmr)} eenheid="kcal" sub={t('voortgang.prestaties.inRust')} kleur="var(--mf-blue)" />
+                  <MetriekTegel label="TDEE" waarde={String(tdee)} eenheid="kcal" sub={t('voortgang.prestaties.metActiviteit')} kleur="var(--mf-purple)" />
+                  <MetriekTegel label={t('voortgang.prestaties.caloriedoel')} waarde={String(calorieDoel)} eenheid="kcal" sub={doelLabel ?? t('voortgang.prestaties.doelKort')} kleur="var(--mf-green)" />
                 </div>
               )}
             </Kaart>
@@ -436,10 +442,10 @@ export default function PrestatiesPagina() {
 
           {/* Trendgrafiek */}
           <div style={{ marginBottom: '1rem' }}>
-            <Kaart titel="Trend">
+            <Kaart titel={t('voortgang.prestaties.trend')}>
               {trend.length < 2 ? (
                 <p style={{ color: 'var(--text-3)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                  Log minstens twee metingen om je trend te zien.
+                  {t('voortgang.prestaties.minstensTwee')}
                 </p>
               ) : (
                 <Chart
@@ -449,15 +455,15 @@ export default function PrestatiesPagina() {
                   series={
                     heeftVet
                       ? [
-                          { key: 'gewicht', label: 'Gewicht (kg)', color: 'var(--mf-blue-mid)' },
-                          { key: 'vet', label: 'Vet (%)', color: 'var(--mf-amber)' },
+                          { key: 'gewicht', label: t('voortgang.prestaties.reeksGewicht'), color: 'var(--mf-blue-mid)' },
+                          { key: 'vet', label: t('voortgang.prestaties.reeksVet'), color: 'var(--mf-amber)' },
                         ]
-                      : [{ key: 'gewicht', label: 'Gewicht (kg)', color: 'var(--mf-blue-mid)' }]
+                      : [{ key: 'gewicht', label: t('voortgang.prestaties.reeksGewicht'), color: 'var(--mf-blue-mid)' }]
                   }
                   summary={
                     heeftVet
-                      ? 'Trend van gewicht in kilogram en vetpercentage per meetdatum.'
-                      : 'Trend van gewicht in kilogram per meetdatum.'
+                      ? t('voortgang.prestaties.samenvattingVet')
+                      : t('voortgang.prestaties.samenvatting')
                   }
                   height={260}
                   showLegend
@@ -467,10 +473,10 @@ export default function PrestatiesPagina() {
           </div>
 
           {/* Nieuwe meting */}
-          <Kaart titel="Nieuwe meting loggen">
+          <Kaart titel={t('voortgang.prestaties.nieuweMeting')}>
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 140px' }}>
-                <Field label="Gewicht (kg)" error={veldFout === 'gewicht' ? (fout ?? undefined) : undefined}>
+                <Field label={t('voortgang.prestaties.reeksGewicht')} error={veldFout === 'gewicht' ? (fout ?? undefined) : undefined}>
                   <Input
                     type="number"
                     inputMode="decimal"
@@ -479,12 +485,12 @@ export default function PrestatiesPagina() {
                     step="0.1"
                     value={gewichtInput}
                     onChange={e => setGewichtInput(e.target.value)}
-                    placeholder="bijv. 78.5"
+                    placeholder={t('voortgang.prestaties.voorbeeldGewicht')}
                   />
                 </Field>
               </div>
               <div style={{ flex: '1 1 140px' }}>
-                <Field label="Vetpercentage (%) · optioneel" error={veldFout === 'vet' ? (fout ?? undefined) : undefined}>
+                <Field label={t('voortgang.prestaties.vetOptioneel')} error={veldFout === 'vet' ? (fout ?? undefined) : undefined}>
                   <Input
                     type="number"
                     inputMode="decimal"
@@ -493,7 +499,7 @@ export default function PrestatiesPagina() {
                     step="0.1"
                     value={vetInput}
                     onChange={e => setVetInput(e.target.value)}
-                    placeholder="bijv. 18"
+                    placeholder={t('voortgang.prestaties.voorbeeldVet')}
                   />
                 </Field>
               </div>
@@ -505,13 +511,12 @@ export default function PrestatiesPagina() {
               disabled={bezig || !gewichtInput}
               style={{ marginTop: '1rem', width: '100%' }}
             >
-              {bezig ? 'Opslaan…' : 'Meting opslaan'}
+              {bezig ? t('voortgang.prestaties.opslaanBezig') : t('voortgang.prestaties.opslaan')}
             </Button>
 
             {metingen.length > 0 && (
               <p style={{ fontSize: '0.78rem', color: 'var(--text-4)', margin: '0.875rem 0 0', textAlign: 'center' }}>
-                {metingen.length} {metingen.length === 1 ? 'meting' : 'metingen'} vastgelegd · laatste op{' '}
-                {formatDatumKort(metingen[0].datum)}
+                {t(metingen.length === 1 ? 'voortgang.prestaties.vastgelegdEen' : 'voortgang.prestaties.vastgelegdMeer', { n: metingen.length, datum: formatDatumKort(metingen[0].datum, locale) })}
               </p>
             )}
           </Kaart>

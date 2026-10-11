@@ -4,10 +4,12 @@
 
 import { METRIEKEN } from '@/lib/health/gezondheid-metrics'
 import { berekenNormaal, type Normaal } from './normaal'
-import { BRON_LABELS } from './samenvoegen'
+import { bronLabel } from './samenvoegen'
 import { relatieveDatum } from './statistiek'
 import { laatsteMeting, miniTrend, type LaatsteMeting } from './trends'
 import { METRIEK_SLEUTELS, type GezondheidsDag, type MetriekSleutel } from './types'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
 
 export interface MetriekSamenvatting {
   sleutel: MetriekSleutel
@@ -42,11 +44,13 @@ export function vatAllesSamen(
 }
 
 /** "Afgelopen nacht", "Vandaag, tot nu toe", "Gisteren" of "ma 5 okt". */
-export function meetmomentLabel(sleutel: MetriekSleutel, datum: string, vandaag: string): string {
+export function meetmomentLabel(
+  sleutel: MetriekSleutel, datum: string, vandaag: string, ts: Taalset = NL_LICHAAM,
+): string {
   const cfg = METRIEKEN[sleutel]
-  if (datum === vandaag && cfg.groep === 'slaap') return 'Afgelopen nacht'
-  if (datum === vandaag && cfg.cumulatief) return 'Vandaag, tot nu toe'
-  return relatieveDatum(datum, vandaag)
+  if (datum === vandaag && cfg.groep === 'slaap') return ts.t('lichaam.datum.afgelopenNacht')
+  if (datum === vandaag && cfg.cumulatief) return ts.t('lichaam.datum.vandaagTotNu')
+  return relatieveDatum(datum, vandaag, ts)
 }
 
 export type Ligging = 'binnen' | 'boven' | 'onder'
@@ -59,12 +63,14 @@ export function liggingTovNormaal(waarde: number, normaal: Normaal): Ligging {
 }
 
 /** Leesbare namen van de bronnen die deze metriek leverden, meest gebruikte eerst. */
-export function bronnenVan(dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel): string[] {
+export function bronnenVan(
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, ts: Taalset = NL_LICHAAM,
+): string[] {
   const tellingen = new Map<string, number>()
   for (const d of dagen) {
     const bron = d.herkomst[sleutel]
     if (!bron) continue
-    const label = BRON_LABELS[bron] ?? bron
+    const label = bronLabel(bron, ts)
     tellingen.set(label, (tellingen.get(label) ?? 0) + 1)
   }
   return [...tellingen.entries()].sort((a, b) => b[1] - a[1]).map(([label]) => label)

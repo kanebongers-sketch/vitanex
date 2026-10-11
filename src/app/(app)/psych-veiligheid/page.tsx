@@ -10,6 +10,8 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 import { Shield, Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Meting {
@@ -20,15 +22,17 @@ interface Meting {
   score: number
 }
 
+// Tekst per vraag staat in het woordenboek: werk.psych.vraag.<key>.label / .beschrijving
 const VRAGEN = [
-  { key: 'vrijheid_spreken', label: 'Vrijheid van spreken', beschrijving: 'Ik voel me vrij om mijn mening te geven, ook als dat afwijkt.' },
-  { key: 'fouten_ok', label: 'Fouten zijn OK', beschrijving: 'Ik durf fouten toe te geven zonder bang te zijn voor de gevolgen.' },
-  { key: 'idee_delen', label: 'Ideeën delen', beschrijving: 'Ik deel nieuwe ideeën zonder me te schamen als ze niet perfect zijn.' },
+  { key: 'vrijheid_spreken' },
+  { key: 'fouten_ok' },
+  { key: 'idee_delen' },
 ]
 
 export default function PsychVeiligheidPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [metingen, setMetingen] = useState<Meting[]>([])
   const [scores, setScores] = useState<Record<string, number>>({ vrijheid_spreken: 0, fouten_ok: 0, idee_delen: 0 })
   const [laden, setLaden] = useState(true)
@@ -68,10 +72,10 @@ export default function PsychVeiligheidPagina() {
         setSucces(true)
         setTimeout(() => setSucces(false), 2500)
       } else {
-        toast({ title: 'Meting niet opgeslagen', description: 'Probeer het opnieuw.', variant: 'error' })
+        toast({ title: t('werk.psych.nietOpgeslagen'), description: t('werk.psych.opnieuw'), variant: 'error' })
       }
     } catch {
-      toast({ title: 'Meting niet opgeslagen', description: 'Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('werk.psych.nietOpgeslagen'), description: t('werk.psych.opnieuw'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -84,7 +88,7 @@ export default function PsychVeiligheidPagina() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" role="status" aria-label="Metingen laden" />
+        <div className="mf-spinner" role="status" aria-label={t('werk.psych.laden')} />
       </div>
     </div>
   )
@@ -106,30 +110,32 @@ export default function PsychVeiligheidPagina() {
             </div>
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>
-                Psychologische veiligheid
+                {t('werk.psych.titel')}
               </h1>
               <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
+                {t('werk.psych.intro')}
               </p>
             </div>
           </div>
           {gemiddeld && (
             <p style={{ fontSize: 14, fontWeight: 700, color: Number(gemiddeld) >= 4 ? 'var(--mf-green)' : Number(gemiddeld) >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', marginTop: 6 }}>
-              Gemiddeld de afgelopen maand: {gemiddeld}/5
+              {t('werk.psych.gemiddeld', { score: gemiddeld })}
             </p>
           )}
         </header>
 
         <section style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 24 }}>
           <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, marginBottom: 20, padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 10 }}>
-            Psychologische veiligheid is de mate waarin medewerkers zich vrij voelen om risico&apos;s te nemen zonder bang te zijn voor vernedering of afwijzing.
+            {t('werk.psych.uitleg')}
           </p>
 
-          {VRAGEN.map(v => (
+          {VRAGEN.map(v => {
+            const label = t(`werk.psych.vraag.${v.key}.label`)
+            return (
             <fieldset key={v.key} style={{ marginBottom: 20, border: 'none', padding: 0, margin: '0 0 20px' }}>
-              <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2, padding: 0 }}>{v.label}</legend>
-              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{v.beschrijving}</p>
-              <div role="radiogroup" aria-label={v.label} style={{ display: 'flex', gap: 8 }}>
+              <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2, padding: 0 }}>{label}</legend>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{t(`werk.psych.vraag.${v.key}.beschrijving`)}</p>
+              <div role="radiogroup" aria-label={label} style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => {
                   const kleur = n >= 4 ? 'var(--mf-green)' : n === 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
                   const gekozen = scores[v.key] === n
@@ -139,7 +145,7 @@ export default function PsychVeiligheidPagina() {
                       type="button"
                       role="radio"
                       aria-checked={gekozen}
-                      aria-label={`${v.label}: ${n} van 5`}
+                      aria-label={t('werk.psych.scoreLabel', { vraag: label, n })}
                       onClick={() => setScores(prev => ({ ...prev, [v.key]: n }))}
                       style={{
                         flex: 1, minHeight: 40, height: 40, borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -156,11 +162,12 @@ export default function PsychVeiligheidPagina() {
                 })}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Zelden</span>
-                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Altijd</span>
+                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{t('werk.psych.zelden')}</span>
+                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{t('werk.psych.altijd')}</span>
               </div>
             </fieldset>
-          ))}
+            )
+          })}
 
           <button
             type="button"
@@ -179,16 +186,16 @@ export default function PsychVeiligheidPagina() {
           >
             {succes ? (
               <>
-                <Check size={16} strokeWidth={2.5} aria-hidden="true" /> Opgeslagen!
+                <Check size={16} strokeWidth={2.5} aria-hidden="true" /> {t('werk.psych.opgeslagen')}
               </>
-            ) : opslaan ? 'Opslaan…' : 'Meting opslaan'}
+            ) : opslaan ? t('werk.psych.opslaan') : t('werk.psych.metingOpslaan')}
           </button>
         </section>
 
         {metingen.length > 1 && (
           <section>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
-              Verloop
+              {t('werk.psych.verloop')}
             </p>
 
             {/* Sparkline trend */}
@@ -206,7 +213,7 @@ export default function PsychVeiligheidPagina() {
               const lijn = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
               return (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '14px 16px', marginBottom: 12, border: '1px solid var(--border)' }}>
-                  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Verloop van je scores over de laatste ${recente.length} metingen, van ${recente[0].score}/5 naar ${recente[recente.length - 1].score}/5`} style={{ width: '100%', height: H, display: 'block' }}>
+                  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('werk.psych.verloopLabel', { aantal: recente.length, van: recente[0].score, naar: recente[recente.length - 1].score })} style={{ width: '100%', height: H, display: 'block' }}>
                     <path d={lijn} fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {punten.map((p, i) => (
                       <circle key={i} cx={p.x} cy={p.y} r="4" fill={p.kleur} />
@@ -220,7 +227,7 @@ export default function PsychVeiligheidPagina() {
               {metingen.map(m => (
                 <div key={m.week_start} style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <p style={{ fontSize: 12, color: 'var(--text-2)' }}>
-                    Week {new Date(m.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    {t('werk.psych.week', { datum: new Date(m.week_start).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short' }) })}
                   </p>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

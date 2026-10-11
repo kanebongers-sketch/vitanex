@@ -10,6 +10,9 @@ import {
   activiteitDuiding, checkinsKleur, dankbaarheidKleur, formatteerGetal,
   metrieken, type Metriek, type WeekStats,
 } from './weekrapport'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import { alsTaalset } from '@/lib/pijlers/teksten'
 
 interface MetriekenPaneelProps {
   stats: WeekStats
@@ -18,11 +21,12 @@ interface MetriekenPaneelProps {
 }
 
 function MetriekRing({ metriek, animKlaar }: { metriek: Metriek; animKlaar: boolean }) {
+  const { t, taal } = useVertaling()
   const heeftData = metriek.waarde !== null
-  const display = heeftData ? `${formatteerGetal(metriek.waarde ?? 0)}${metriek.eenheid}` : '–'
+  const display = heeftData ? `${formatteerGetal(metriek.waarde ?? 0, INTL_LOCALE[taal])}${metriek.eenheid}` : '–'
   const ariaLabel = heeftData
-    ? `${metriek.label}: gemiddeld ${display} deze week`
-    : `${metriek.label}: nog geen data deze week`
+    ? t('voortgang.metrieken.ringLabel', { label: metriek.label, waarde: display })
+    : t('voortgang.metrieken.ringLeeg', { label: metriek.label })
 
   return (
     <Ring
@@ -83,12 +87,14 @@ function StatKaart({ waarde, label, kleur }: { waarde: number; label: string; kl
 }
 
 export default function MetriekenPaneel({ stats, animKlaar }: MetriekenPaneelProps) {
-  const items = metrieken(stats)
+  const { t, taal } = useVertaling()
+  const ts = alsTaalset(taal, t)
+  const items = metrieken(stats, ts)
 
   return (
-    <section aria-label="Weekcijfers">
+    <section aria-label={t('voortgang.metrieken.label')}>
       <Card style={{ padding: '20px 16px 16px', marginBottom: 14 }}>
-        <p className="mf-section-label" style={{ paddingLeft: 4 }}>Gemiddelden deze week</p>
+        <p className="mf-section-label" style={{ paddingLeft: 4 }}>{t('voortgang.metrieken.kop')}</p>
         <div style={{
           display: 'flex', justifyContent: 'space-around', alignItems: 'center',
           marginBottom: 16,
@@ -107,17 +113,17 @@ export default function MetriekenPaneel({ stats, animKlaar }: MetriekenPaneelPro
       <div style={{ display: 'flex', gap: 8 }}>
         <StatKaart
           waarde={stats.aantal_checkins}
-          label="Check-ins"
+          label={t('voortgang.metrieken.checkins')}
           kleur={checkinsKleur(stats.aantal_checkins)}
         />
         <StatKaart
           waarde={stats.dankbaarheid_items}
-          label="Dankbaarheid"
+          label={t('voortgang.metrieken.dankbaarheid')}
           kleur={dankbaarheidKleur(stats.dankbaarheid_items)}
         />
       </div>
       <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 8, marginBottom: 14, lineHeight: 1.5 }}>
-        {activiteitDuiding(stats.aantal_checkins, stats.dankbaarheid_items)}
+        {activiteitDuiding(stats.aantal_checkins, stats.dankbaarheid_items, ts)}
       </p>
     </section>
   )

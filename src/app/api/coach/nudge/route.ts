@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { detectNudge } from '@/lib/coach/nudges'
+import { huidigeTaalset } from '@/lib/i18n/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const nudge = await detectNudge(user.id)
+    const nudge = await detectNudge(user.id, await huidigeTaalset())
     return NextResponse.json(
       { nudge },
       { headers: { 'Cache-Control': 'no-store' } },

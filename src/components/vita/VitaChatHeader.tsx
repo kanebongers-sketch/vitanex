@@ -1,6 +1,7 @@
 'use client'
 
 import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface VitaChatHeaderProps {
   /** Emotie voor de panda in de header — beweegt mee met de gesprekstoestand. */
@@ -14,6 +15,7 @@ interface VitaChatHeaderProps {
 // Presentational: de vaste gesprekskop. Vita's gezicht + naam + rustige status.
 // Puur props in → UI uit; geen state, geen effects.
 export default function VitaChatHeader({ emotion, kentProfiel, aanHetTypen }: VitaChatHeaderProps) {
+  const { t } = useVertaling()
   return (
     <header
       style={{
@@ -74,8 +76,8 @@ export default function VitaChatHeader({ emotion, kentProfiel, aanHetTypen }: Vi
             Vita
           </p>
           <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            Altijd bij je · Vertrouwelijk
-            {kentProfiel && ' · Kent jouw profiel'}
+            {t('vita.algemeen.altijdBijJe')}
+            {kentProfiel && t('vita.algemeen.kentProfiel')}
           </p>
         </div>
 
@@ -91,7 +93,7 @@ export default function VitaChatHeader({ emotion, kentProfiel, aanHetTypen }: Vi
             }}
           />
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            {aanHetTypen ? 'Vita typt…' : 'Online'}
+            {aanHetTypen ? t('vita.algemeen.vitaTypt') : t('vita.algemeen.online')}
           </span>
         </div>
       </div>

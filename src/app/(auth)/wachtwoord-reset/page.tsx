@@ -9,11 +9,13 @@ import Link from 'next/link'
 import { Check, Clock } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Status = 'laden' | 'gereed' | 'opslaan' | 'klaar' | 'fout_token' | 'fout_opslaan'
 
 export default function WachtwoordReset() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [status, setStatus] = useState<Status>('laden')
   const [wachtwoord, setWachtwoord] = useState('')
   const [bevestig, setBevestig] = useState('')
@@ -60,7 +62,7 @@ export default function WachtwoordReset() {
     <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
       <div className="text-center">
         <span className="mf-spinner mx-auto mb-4" aria-hidden style={{ width: 32, height: 32, display: 'block' }} />
-        <p className="text-sm" style={{ color: 'var(--text-3)' }}>Link controleren...</p>
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('account.wachtwoord.linkControleren')}</p>
       </div>
     </main>
   )
@@ -73,14 +75,14 @@ export default function WachtwoordReset() {
         >
           <Clock size={28} aria-hidden style={{ color: 'var(--mf-amber)' }} />
         </div>
-        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Link verlopen</h1>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.wachtwoord.linkVerlopen')}</h1>
         <p className="text-sm mb-8 leading-relaxed" style={{ color: 'var(--text-2)' }}>
-          De resetlink is verlopen of al gebruikt. Vraag een nieuwe link aan.
+          {t('account.wachtwoord.verlopenTekst')}
         </p>
         <Link href="/wachtwoord-vergeten"
           className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-          Nieuwe resetlink aanvragen
+          {t('account.wachtwoord.nieuweLink')}
         </Link>
     </AuthKaart>
   )
@@ -93,37 +95,37 @@ export default function WachtwoordReset() {
         >
           <Check size={28} strokeWidth={3} aria-hidden style={{ color: 'var(--mf-green)' }} />
         </div>
-        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Wachtwoord gewijzigd</h1>
-        <p className="text-sm" style={{ color: 'var(--text-2)' }}>Je wordt doorgestuurd naar de app…</p>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.wachtwoord.gewijzigd')}</h1>
+        <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t('account.wachtwoord.doorgestuurd')}</p>
     </AuthKaart>
   )
 
   return (
     <AuthKaart>
         <div className="flex justify-center mb-8">
-          <Link href="/" aria-label="MentaForce home">
+          <Link href="/" aria-label={t('account.login.homeLabel')}>
             <LogoFull iconSize={38} />
           </Link>
         </div>
 
-        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nieuw wachtwoord instellen</h1>
-        <p className="text-sm mb-8" style={{ color: 'var(--text-2)' }}>Kies een sterk wachtwoord van minimaal 8 tekens.</p>
+        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.wachtwoord.nieuwKop')}</h1>
+        <p className="text-sm mb-8" style={{ color: 'var(--text-2)' }}>{t('account.wachtwoord.nieuwIntro')}</p>
 
         {status === 'fout_opslaan' && (
           <div id="reset-fout" role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 mb-5"
             style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
-            <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>Opslaan mislukt.</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Probeer opnieuw of vraag een nieuwe link aan.</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>{t('account.wachtwoord.opslaanMislukt')}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>{t('account.wachtwoord.opslaanOpnieuw')}</p>
           </div>
         )}
 
         <div className="flex flex-col gap-3 mb-6">
           <div className="relative">
-            <label htmlFor="reset-wachtwoord" className="sr-only">Nieuw wachtwoord</label>
+            <label htmlFor="reset-wachtwoord" className="sr-only">{t('account.wachtwoord.nieuw')}</label>
             <input
               id="reset-wachtwoord"
               type={toon ? 'text' : 'password'}
-              placeholder="Nieuw wachtwoord"
+              placeholder={t('account.wachtwoord.nieuw')}
               value={wachtwoord}
               autoFocus
               autoComplete="new-password"
@@ -132,10 +134,10 @@ export default function WachtwoordReset() {
               className="mf-input pr-16"
               style={{ width: '100%', borderRadius: 14, padding: '12px 60px 12px 16px' }}
             />
-            <button type="button" onClick={() => setToon(t => !t)}
+            <button type="button" onClick={() => setToon(x => !x)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition hover:opacity-70"
               style={{ color: 'var(--text-3)' }}>
-              {toon ? 'Verberg' : 'Toon'}
+              {toon ? t('account.login.verberg') : t('account.login.toon')}
             </button>
           </div>
 
@@ -146,16 +148,16 @@ export default function WachtwoordReset() {
                   style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
               <span className="text-xs w-10 font-medium" style={{ color: 'var(--text-3)' }}>
-                {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}
+                {t(`account.register.sterkte.${['teKort', 'matig', 'goed', 'sterk'][sterkte]}`)}
               </span>
             </div>
           )}
 
-          <label htmlFor="reset-bevestig" className="sr-only">Bevestig nieuw wachtwoord</label>
+          <label htmlFor="reset-bevestig" className="sr-only">{t('account.wachtwoord.bevestig')}</label>
           <input
             id="reset-bevestig"
             type={toon ? 'text' : 'password'}
-            placeholder="Bevestig nieuw wachtwoord"
+            placeholder={t('account.wachtwoord.bevestig')}
             value={bevestig}
             autoComplete="new-password"
             aria-describedby={bevestig && wachtwoord !== bevestig ? 'reset-mismatch' : undefined}
@@ -169,7 +171,7 @@ export default function WachtwoordReset() {
             }}
           />
           {bevestig && wachtwoord !== bevestig && (
-            <p id="reset-mismatch" className="text-xs -mt-1" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
+            <p id="reset-mismatch" className="text-xs -mt-1" style={{ color: 'var(--mf-red)' }}>{t('account.register.nietGelijk')}</p>
           )}
         </div>
 
@@ -196,7 +198,7 @@ export default function WachtwoordReset() {
               }}
             />
           )}
-          {status === 'opslaan' ? 'Opslaan...' : 'Wachtwoord opslaan'}
+          {status === 'opslaan' ? t('account.wachtwoord.opslaanBezig') : t('account.wachtwoord.opslaan')}
         </button>
     </AuthKaart>
   )

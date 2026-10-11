@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import GesprekKaart from './GesprekKaart'
 import GesprekModal, { type Gesprek } from './GesprekModal'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type GesprekMet = Gesprek & { id: string; medewerker_naam?: string }
 type Medewerker = { id: string; naam: string }
@@ -34,6 +35,7 @@ const selectStijl: React.CSSProperties = {
 }
 
 export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerker }: Props) {
+  const { t } = useVertaling()
   const [gesprekken, setGesprekken] = useState<GesprekMet[]>([])
   const [medewerkers, setMedewerkers] = useState<Medewerker[]>([])
   const [laden, setLaden] = useState(true)
@@ -117,13 +119,13 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>HR Gesprekken</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{t('werk.gesprekkenTab.titel')}</h2>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-            {gesprekken.length} gesprek{gesprekken.length !== 1 ? 'ken' : ''} in totaal
+            {gesprekken.length === 1 ? t('werk.gesprekkenTab.totaalEen') : t('werk.gesprekkenTab.totaalMeer', { aantal: gesprekken.length })}
           </p>
         </div>
         <Button onClick={nieuwGesprek} size="sm" leftIcon={<Plus size={15} aria-hidden />}>
-          Nieuw gesprek
+          {t('werk.gesprekkenTab.nieuwGesprek')}
         </Button>
       </div>
 
@@ -140,15 +142,15 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
             type="text"
             value={zoeken}
             onChange={e => setZoeken(e.target.value)}
-            placeholder="Zoek op onderwerp of medewerker..."
-            aria-label="Zoek gesprekken"
+            placeholder={t('werk.gesprekkenTab.zoekPlaceholder')}
+            aria-label={t('werk.gesprekkenTab.zoekLabel')}
             style={{ paddingLeft: 36, fontSize: 13 }}
           />
         </div>
 
         {/* Status chips */}
-        <div role="group" aria-label="Filter op status" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {([['alle', 'Alle'], ['aankomend', 'Aankomend'], ['afgerond', 'Afgerond'], ['geannuleerd', 'Geannuleerd']] as const).map(([val, label]) => (
+        <div role="group" aria-label={t('werk.gesprekkenTab.filterStatus')} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {(['alle', 'aankomend', 'afgerond', 'geannuleerd'] as const).map((val) => (
             <button
               key={val}
               type="button"
@@ -157,7 +159,7 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
               style={chipStijl(filterStatus === val)}
               onClick={() => setFilterStatus(val)}
             >
-              {label}
+              {t(`werk.gesprekkenTab.status.${val}`)}
             </button>
           ))}
         </div>
@@ -167,24 +169,24 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           <select
             value={filterType}
             onChange={e => setFilterType(e.target.value as FilterType)}
-            aria-label="Filter op type gesprek"
+            aria-label={t('werk.gesprekkenTab.filterType')}
             style={selectStijl}
           >
-            <option value="alle">Alle types</option>
-            <option value="functionering">Functionering</option>
-            <option value="beoordeling">Beoordeling</option>
-            <option value="welzijn">Welzijn</option>
-            <option value="overig">Overig</option>
+            <option value="alle">{t('werk.gesprekkenTab.alleTypes')}</option>
+            <option value="functionering">{t('werk.gesprekType.functionering')}</option>
+            <option value="beoordeling">{t('werk.gesprekType.beoordeling')}</option>
+            <option value="welzijn">{t('werk.gesprekType.welzijn')}</option>
+            <option value="overig">{t('werk.gesprekType.overig')}</option>
           </select>
 
           {!gefilterdOpMedewerker && (
             <select
               value={filterMedewerker}
               onChange={e => setFilterMedewerker(e.target.value)}
-              aria-label="Filter op medewerker"
+              aria-label={t('werk.gesprekkenTab.filterMedewerker')}
               style={selectStijl}
             >
-              <option value="alle">Alle medewerkers</option>
+              <option value="alle">{t('werk.gesprekkenTab.alleMedewerkers')}</option>
               {medewerkers.map(m => (
                 <option key={m.id} value={m.id}>{m.naam}</option>
               ))}
@@ -201,15 +203,15 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
       ) : gefilterd.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="Geen gesprekken gevonden"
+          title={t('werk.gesprekkenTab.leegTitel')}
           description={
             zoeken || filterStatus !== 'alle' || filterType !== 'alle'
-              ? 'Pas je filters aan of wis de zoekopdracht.'
-              : 'Plan het eerste gesprek met een medewerker.'
+              ? t('werk.gesprekkenTab.leegFilters')
+              : t('werk.gesprekkenTab.leegEerste')
           }
           action={
             !zoeken && filterStatus === 'alle' && filterType === 'alle'
-              ? <Button onClick={nieuwGesprek} size="sm">Gesprek plannen</Button>
+              ? <Button onClick={nieuwGesprek} size="sm">{t('werk.gesprekModal.gesprekPlannen')}</Button>
               : undefined
           }
         />
@@ -219,7 +221,7 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           {aankomend.length > 0 && (
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
-                Aankomend ({aankomend.length})
+                {t('werk.gesprekkenTab.aankomendAantal', { aantal: aankomend.length })}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {aankomend.map(g => (
@@ -233,7 +235,7 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           {overig.length > 0 && (
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
-                {aankomend.length > 0 ? `Recent & overig (${overig.length})` : `Gesprekken (${overig.length})`}
+                {aankomend.length > 0 ? t('werk.gesprekkenTab.recentOverig', { aantal: overig.length }) : t('werk.gesprekkenTab.gesprekkenAantal', { aantal: overig.length })}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {overig.map(g => (

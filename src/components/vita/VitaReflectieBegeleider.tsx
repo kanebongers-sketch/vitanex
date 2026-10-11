@@ -19,6 +19,7 @@
 import { useEffect, useState } from 'react'
 import VitaBubbel from './VitaBubbel'
 import { type EmotionState } from './PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type ReflectieFase = 'opening' | 'vraag' | 'afronden'
 
@@ -33,19 +34,11 @@ interface VitaReflectieBegeleiderProps {
 
 // Warme, menselijke openingszin. Geen goed of fout — Vita nodigt uit tot eerlijk
 // terugblikken. Geen verzonnen cijfers, geen jargon, geen emoji.
-const OPENING_ZIN =
-  'Even terugblikken samen. Geen goed of fout — gewoon eerlijk voor jezelf. Neem de tijd; wat je hier deelt blijft van jou.'
 
 // Korte begeleiding per reflectievraag: één zin die het moment menselijk maakt.
 // Sluit aan op de vraag-id's uit reflectie/page.tsx.
-const VRAAG_ZINNEN: Record<string, string> = {
-  hoogtepunt:    'Begin luchtig — welk moment liet je even opleven?',
-  uitdaging:     'En het zwaardere: benoemen mag, dat maakt het lichter.',
-  leermoment:    'Soms zit de winst in wat je over jezelf ontdekte.',
-  energie:       'Merk je waar je energie heen ging — en waar ze wegliep?',
-  volgende_week: 'Eén klein iets voor volgende week is al genoeg.',
-  dankbaarheid:  'Sluit zacht af — waar was je stiekem blij mee?',
-}
+/** Vragen met een eigen begeleidende zin (vita.reflectie.vraag.*). */
+const VRAGEN_MET_ZIN = new Set(['hoogtepunt', 'uitdaging', 'leermoment', 'energie', 'volgende_week', 'dankbaarheid'])
 
 // Rustige, passende emotie per vraag. Kalm en steunend, met een net iets warmere
 // blik op het slot (dankbaarheid).
@@ -58,14 +51,13 @@ const VRAAG_EMOTIE: Record<string, EmotionState> = {
   dankbaarheid:  'supportive',
 }
 
-const AFROND_ZIN =
-  'Fijn dat je dit deed. Dit soort momenten leren mij je het beste kennen — en helpen jou de week scherper in te gaan.'
 
 export default function VitaReflectieBegeleider({
   fase,
   vraagId,
   size = 48,
 }: VitaReflectieBegeleiderProps) {
+  const { t } = useVertaling()
   // Lazy init: op de client meteen de juiste waarde (voorkomt een frame breathing
   // onder reduce). Op de server is matchMedia niet beschikbaar → false; .mf-fade-in
   // dekt de rest van de beweging al af via CSS.
@@ -86,13 +78,15 @@ export default function VitaReflectieBegeleider({
   if (fase === 'afronden') {
     return (
       <VitaBubbel emotion="proud" animate={!reduceMotion} size={size + 8}>
-        {AFROND_ZIN}
+        {t('vita.reflectie.afronden')}
       </VitaBubbel>
     )
   }
 
   if (fase === 'vraag') {
-    const zin = (vraagId ? VRAAG_ZINNEN[vraagId] : undefined) ?? 'Neem even de tijd voor deze.'
+    const zin = vraagId && VRAGEN_MET_ZIN.has(vraagId)
+      ? t(`vita.reflectie.vraag.${vraagId}`)
+      : t('vita.reflectie.vraagStandaard')
     const emotie = (vraagId ? VRAAG_EMOTIE[vraagId] : undefined) ?? 'supportive'
     return (
       <VitaBubbel emotion={emotie} animate={!reduceMotion} size={size}>
@@ -104,7 +98,7 @@ export default function VitaReflectieBegeleider({
   // fase === 'opening'
   return (
     <VitaBubbel emotion="calm" animate={!reduceMotion} size={size + 8}>
-      {OPENING_ZIN}
+      {t('vita.reflectie.opening')}
     </VitaBubbel>
   )
 }

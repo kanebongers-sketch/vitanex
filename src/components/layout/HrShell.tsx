@@ -21,41 +21,43 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
+// label = sleutel onder account.hrShell (vertaald bij het tekenen)
 type NavItem = { href: string; icon: LucideIcon; label: string; exact?: boolean }
 type NavSection = { label: string; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Overzicht',
+    label: 'overzicht',
     items: [
-      { href: '/hr', icon: LayoutGrid, label: 'Dashboard', exact: true },
-      { href: '/team', icon: Users, label: 'Team' },
-      { href: '/rapport', icon: TrendingUp, label: 'Rapporten' },
+      { href: '/hr', icon: LayoutGrid, label: 'dashboard', exact: true },
+      { href: '/team', icon: Users, label: 'team' },
+      { href: '/rapport', icon: TrendingUp, label: 'rapporten' },
     ],
   },
   {
-    label: 'Inrichten',
+    label: 'inrichten',
     items: [
-      { href: '/hr/protocollen', icon: FileText, label: 'Protocollen' },
-      { href: '/nieuws', icon: Newspaper, label: 'Nieuws' },
-      { href: '/surveys', icon: ClipboardList, label: 'Surveys' },
+      { href: '/hr/protocollen', icon: FileText, label: 'protocollen' },
+      { href: '/nieuws', icon: Newspaper, label: 'nieuws' },
+      { href: '/surveys', icon: ClipboardList, label: 'surveys' },
     ],
   },
   {
-    label: 'Beheren',
+    label: 'beheren',
     items: [
-      { href: '/hr/roosters', icon: CalendarRange, label: 'Roosters' },
-      { href: '/verlof', icon: CalendarClock, label: 'Verlof' },
-      { href: '/loonstroken', icon: Receipt, label: 'Loonstroken' },
-      { href: '/directory', icon: Users, label: 'Medewerkers' },
+      { href: '/hr/roosters', icon: CalendarRange, label: 'roosters' },
+      { href: '/verlof', icon: CalendarClock, label: 'verlof' },
+      { href: '/loonstroken', icon: Receipt, label: 'loonstroken' },
+      { href: '/directory', icon: Users, label: 'medewerkers' },
     ],
   },
 ]
 
 const BOTTOM_ITEMS: NavItem[] = [
-  { href: '/instellingen', icon: Settings, label: 'Instellingen' },
-  { href: '/home', icon: ArrowLeft, label: 'Terug naar portaal' },
+  { href: '/instellingen', icon: Settings, label: 'instellingen' },
+  { href: '/home', icon: ArrowLeft, label: 'terugPortaal' },
 ]
 
 type Props = {
@@ -68,6 +70,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { t } = useVertaling()
 
   function isActive(item: NavItem) {
     return item.exact ? pathname === item.href : pathname.startsWith(item.href + '/') || pathname === item.href
@@ -125,7 +128,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
           </div>
           <div>
             <p style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>{bedrijfNaam}</p>
-            <p style={{ color: 'var(--text-3)', fontSize: 10, marginTop: 1 }}>HR Portaal</p>
+            <p style={{ color: 'var(--text-3)', fontSize: 10, marginTop: 1 }}>{t('account.hrShell.hrPortaal')}</p>
           </div>
         </div>
 
@@ -139,7 +142,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
                 textTransform: 'uppercase', letterSpacing: '0.12em',
                 padding: '12px 16px 6px',
               }}>
-                {section.label}
+                {t(`account.hrShell.${section.label}`)}
               </p>
               {section.items.map(item => {
                 const active = isActive(item)
@@ -161,7 +164,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
                     }}
                   >
                     <Icon size={16} aria-hidden style={{ flexShrink: 0, color: active ? 'var(--mentaforce-primary)' : 'var(--text-3)' }} />
-                    {item.label}
+                    {t(`account.hrShell.${item.label}`)}
                   </Link>
                 )
               })}
@@ -185,7 +188,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
                 }}
               >
                 <Icon size={16} aria-hidden style={{ flexShrink: 0 }} />
-                {item.label}
+                {t(`account.hrShell.${item.label}`)}
               </Link>
             )
           })}
@@ -209,14 +212,14 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
             <button
               onClick={() => setSidebarOpen(o => !o)}
               className="mf-hr-iconbtn md:hidden"
-              aria-label={sidebarOpen ? 'Menu sluiten' : 'Menu openen'}
+              aria-label={sidebarOpen ? t('account.hrShell.menuSluiten') : t('account.hrShell.menuOpenen')}
               aria-expanded={sidebarOpen}
               style={{ color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 'var(--radius-xs)' }}
             >
               <Menu size={20} aria-hidden />
             </button>
             <p style={{ color: 'var(--text-3)', fontSize: 13 }}>
-              HR Portaal
+              {t('account.hrShell.hrPortaal')}
             </p>
           </div>
 
@@ -228,7 +231,7 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
               padding: '4px 6px', borderRadius: 'var(--radius-xs)',
             }}>
               <Home size={14} aria-hidden />
-              Portaal
+              {t('account.hrShell.portaal')}
             </Link>
             <div style={{
               width: 1, height: 20, background: 'var(--border-strong)',
@@ -244,13 +247,13 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
               </div>
               <div>
                 <p style={{ color: 'var(--text-1)', fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{naam.split(' ')[0]}</p>
-                <p style={{ color: 'var(--text-4)', fontSize: 10 }}>HR Manager</p>
+                <p style={{ color: 'var(--text-4)', fontSize: 10 }}>{t('account.hrShell.hrManager')}</p>
               </div>
             </div>
             <button onClick={uitloggen}
               className="mf-hr-iconbtn mf-hr-logout"
-              aria-label="Uitloggen"
-              title="Uitloggen"
+              aria-label={t('account.hrShell.uitloggen')}
+              title={t('account.hrShell.uitloggen')}
               style={{
                 color: 'var(--text-3)', background: 'none', border: 'none',
                 cursor: 'pointer', padding: 4, borderRadius: 'var(--radius-xs)',

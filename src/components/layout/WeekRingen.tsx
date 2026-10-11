@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { PIJLER_KEYS, isPijlerKey, pijlerDef, type PijlerKey } from '@/lib/pijlers/pijlers'
 import { dagenGeleden, weekdagKort, weekdagLang, type PijlerWeekDag } from '@/lib/pijlers/week'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
 
 // ── SVG donut-segment ──────────────────────────────────────────────────────
 // Zes segmenten, één per canonieke pijler, startend bovenaan (−90°) met de klok
@@ -40,14 +43,18 @@ function segmentPad(i: number, cx: number, cy: number, R: number, r: number): st
 // Een donut van 26px is voor een screenreader niets. Komma's i.p.v. em-dash:
 // die wordt per screenreader-engine anders (of niet) voorgelezen — zelfde
 // afweging als in PijlerKaart.
-function dagLabel(dag: PijlerWeekDag): string {
-  const dagNaam = weekdagLang(dag.datum)
-  const aantal = dag.gelogd.length
-  if (aantal === 0) return `${dagNaam}: niets gelogd`
+type Vertaal = (sleutel: string, params?: Params) => string
 
-  const namen = dag.gelogd.map((k) => pijlerDef(k)?.label.toLowerCase() ?? k).join(', ')
-  const woord = aantal === 1 ? 'pijler' : 'pijlers'
-  return `${dagNaam}: ${aantal} van ${N} ${woord} gelogd, ${namen}`
+function dagLabel(dag: PijlerWeekDag, t: Vertaal, locale: string): string {
+  const dagNaam = weekdagLang(dag.datum, locale)
+  const aantal = dag.gelogd.length
+  if (aantal === 0) return t('account.weekRingen.nietsGelogd', { dag: dagNaam })
+
+  const namen = dag.gelogd
+    .map((k) => (pijlerDef(k) ? t(`account.weekRingen.pijler.${k}`) : k))
+    .join(', ')
+  const sleutel = aantal === 1 ? 'account.weekRingen.gelogdEen' : 'account.weekRingen.gelogdMeer'
+  return t(sleutel, { dag: dagNaam, aantal, totaal: N, namen })
 }
 
 // ── Gedeelde week-data ─────────────────────────────────────────────────────
@@ -107,6 +114,8 @@ function leesWeek(json: unknown): PijlerWeekDag[] {
 // ── Component ──────────────────────────────────────────────────────────────
 export default function WeekRingen({ size = 26 }: { size?: number }) {
   const [dagen, setDagen] = useState<PijlerWeekDag[]>([])
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
 
   useEffect(() => {
     let actief = true
@@ -136,7 +145,7 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
               height={size}
               viewBox={`0 0 ${size} ${size}`}
               role="img"
-              aria-label={dagLabel(dag)}
+              aria-label={dagLabel(dag, t, locale)}
               style={{ display: 'block' }}
             >
               {PIJLER_KEYS.map((key, i) => {
@@ -170,7 +179,7 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
                 lineHeight: 1,
               }}
             >
-              {weekdagKort(dag.datum)}
+              {weekdagKort(dag.datum, locale)}
             </span>
           </li>
         )

@@ -6,6 +6,7 @@ import { ArrowRight, X } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
 import type { CoachNudge, NudgeToon } from '@/lib/coach/nudges'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // De banner is een bericht van Vita zelf — haar gezicht draagt de toon.
 const TOON_EMOTIE: Record<NudgeToon, EmotionState> = {
@@ -42,6 +43,7 @@ function zetCooldown(type: string, dagen: number): void {
 }
 
 export function CoachNudgeBanner() {
+  const { t } = useVertaling()
   const [nudge, setNudge] = useState<CoachNudge | null>(null)
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export function CoachNudgeBanner() {
   return (
     <section
       className="mf-nudge"
-      aria-label="Bericht van Vita"
+      aria-label={t('vita.nudge.berichtVanVita')}
       style={{
         position: 'relative',
         marginBottom: 16,
@@ -128,7 +130,7 @@ export function CoachNudgeBanner() {
 
       <button
         onClick={sluit}
-        aria-label="Verberg dit bericht"
+        aria-label={t('vita.nudge.verberg')}
         className="mf-pressable"
         style={{
           flexShrink: 0, width: 28, height: 28, borderRadius: '50%',

@@ -20,6 +20,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import VitaBubbel from './VitaBubbel'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type DoelbegeleiderFase = 'intro' | 'bevestigd'
 
@@ -43,6 +44,7 @@ export default function VitaDoelbegeleider({
   aantalGebieden = 0,
   size = 52,
 }: VitaDoelbegeleiderProps) {
+  const { t } = useVertaling()
   // Lazy init: op de client meteen de juiste waarde (voorkomt een frame
   // breathing onder reduce). Op de server is matchMedia niet beschikbaar → false;
   // .mf-fade-in dekt de translate/fade al af via CSS.
@@ -63,30 +65,28 @@ export default function VitaDoelbegeleider({
   if (fase === 'bevestigd') {
     return (
       <VitaBubbel emotion="proud" animate={!reduceMotion} size={size}>
-        Mooi. Hier ga ik je deze week aan herinneren — één stap tegelijk.
+        {t('vita.doelbegeleider.bevestigd')}
       </VitaBubbel>
     )
   }
 
   // fase === 'intro'
   const meervoud = aantalGebieden > 1
-  const keuzeZin: ReactNode = meervoud
-    ? 'Kies er 2–3 die nú haalbaar voelen — liever klein en echt dan groots en vaag.'
-    : 'Kies er één die nú haalbaar voelt — liever klein en echt dan groots en vaag.'
+  const keuzeZin = meervoud
+    ? t('vita.doelbegeleider.keuzeMeer')
+    : t('vita.doelbegeleider.keuzeEen')
 
   // Benoem het laagste vlak alleen als we het echt uit de check-in kennen.
   const opening: ReactNode = focusLabel
     ? (
       <>
-        Ik zag je check-in — bij <strong style={{ fontWeight: 700 }}>{focusLabel.toLowerCase()}</strong>{' '}
-        valt de meeste winst te halen. Kleine, haalbare doelen houden het vol; grote plannen
-        sneuvelen juist in een drukke week. {keuzeZin}
+        {t('vita.doelbegeleider.openingVoor')}<strong style={{ fontWeight: 700 }}>{focusLabel.toLowerCase()}</strong>
+        {t('vita.doelbegeleider.openingNa', { keuze: keuzeZin })}
       </>
     )
     : (
       <>
-        Fijn dat je hebt ingecheckt. Laten we samen je weekdoelen opstellen. Kleine, haalbare
-        doelen houden het vol; grote plannen sneuvelen juist in een drukke week. {keuzeZin}
+        {t('vita.doelbegeleider.openingAlgemeen', { keuze: keuzeZin })}
       </>
     )
 

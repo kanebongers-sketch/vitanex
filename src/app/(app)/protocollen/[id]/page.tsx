@@ -10,6 +10,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ArrowLeft, FileText, Pencil } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type Protocol = {
@@ -25,11 +27,8 @@ type Protocol = {
   bijgewerkt_op: string
 }
 
-const CAT_LABELS: Record<string, string> = {
-  algemeen: 'Algemeen', arbo: 'Arbo & Veiligheid', verzuim: 'Verzuim',
-  it: 'IT & Systemen', hr: 'HR & Onboarding', veiligheid: 'Veiligheid', overig: 'Overig',
-}
-
+/** Categorieën met een eigen label in het woordenboek (vita.protocollen.categorie.*). */
+const CATEGORIEEN = new Set(['algemeen', 'arbo', 'verzuim', 'it', 'hr', 'veiligheid', 'overig'])
 // Escape HTML zodat door HR ingevoerde inhoud niet als markup wordt geïnjecteerd (XSS-bescherming).
 function escapeHtml(s: string): string {
   return s
@@ -60,6 +59,7 @@ function renderMarkdown(md: string): string {
 }
 
 export default function ProtocolDetailPage() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const params = useParams()
   const id = params?.id as string
@@ -111,7 +111,7 @@ export default function ProtocolDetailPage() {
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, borderRadius: 'var(--radius-sm)' }}
         >
           <ArrowLeft size={15} aria-hidden />
-          Terug naar protocollen
+          {t('vita.protocollen.terug')}
         </button>
 
         {/* Header kaart */}
@@ -137,7 +137,7 @@ export default function ProtocolDetailPage() {
                     leftIcon={<Pencil size={14} aria-hidden />}
                     style={{ flexShrink: 0 }}
                   >
-                    Bewerken
+                    {t('vita.protocollen.bewerken')}
                   </Button>
                 )}
               </div>
@@ -145,12 +145,12 @@ export default function ProtocolDetailPage() {
                 <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{protocol.beschrijving}</p>
               )}
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant="neutral">{CAT_LABELS[protocol.categorie] ?? protocol.categorie}</Badge>
+                <Badge variant="neutral">{CATEGORIEEN.has(protocol.categorie) ? t(`vita.protocollen.categorie.${protocol.categorie}`) : protocol.categorie}</Badge>
                 {isHr && !protocol.gepubliceerd && (
-                  <Badge variant="warning">Concept</Badge>
+                  <Badge variant="warning">{t('vita.protocollen.concept')}</Badge>
                 )}
                 <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
-                  Bijgewerkt {new Date(protocol.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {t('vita.protocollen.bijgewerkt', { datum: new Date(protocol.bijgewerkt_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </span>
               </div>
             </div>

@@ -1,34 +1,25 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { TabsContent } from '@/components/ui/Tabs'
 import { CollapsibleRoot, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/Collapsible'
-import {
-  BUREAUOEFENINGEN,
-  BEWEGINGSSCHEMA,
-  VOEDING_CATEGORIEEN,
-  VOEDING_DAGRITME,
-  SLAAP_SECTIES,
-  SLAAP_FEITEN,
-  WINDDOWN_ROUTINE,
-  MENTAAL_TECHNIEKEN,
-  STRESS_SIGNALEN,
-  type Intensiteit,
-  type KennisTip,
-} from './kennis-data'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { maakKennis, type Intensiteit, type KennisTip } from './kennis-data'
 
-const INTENSITEIT_STIJL: Record<Intensiteit, { label: string; bg: string; kleur: string }> = {
-  laag: { label: 'Laag', bg: 'var(--mf-green-light)', kleur: 'var(--mf-green-dark)' },
-  gemiddeld: { label: 'Gemiddeld', bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)' },
-  hoog: { label: 'Hoog', bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)' },
+// Labels: mentaal.kennis.intensiteit.<niveau>.
+const INTENSITEIT_STIJL: Record<Intensiteit, { bg: string; kleur: string }> = {
+  laag: { bg: 'var(--mf-green-light)', kleur: 'var(--mf-green-dark)' },
+  gemiddeld: { bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)' },
+  hoog: { bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)' },
 }
 
 function IntensiteitLabel({ niveau }: { niveau: Intensiteit }) {
+  const { t } = useVertaling()
   const stijl = INTENSITEIT_STIJL[niveau]
   return (
     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: stijl.bg, color: stijl.kleur }}>
-      {stijl.label}
+      {t(`mentaal.kennis.intensiteit.${niveau}`)}
     </span>
   )
 }
@@ -124,6 +115,8 @@ function TipLijst({ tips }: { tips: KennisTip[] }) {
  * overleeft het wisselen van hoofdtab (zoals voorheen).
  */
 export default function KennisSecties() {
+  const { t } = useVertaling()
+  const kennis = useMemo(() => maakKennis(t), [t])
   const [openOefening, setOpenOefening] = useState<number | null>(null)
   const [openVoedingCat, setOpenVoedingCat] = useState<number | null>(0)
   const [openSlaapSectie, setOpenSlaapSectie] = useState<number | null>(0)
@@ -134,30 +127,30 @@ export default function KennisSecties() {
       {/* -------------- BEWEGING -------------- */}
       <TabsContent value="beweging" style={{ paddingTop: 0 }}>
         <IntroKaart>
-          Elke 50-90 minuten even bewegen <strong>kan helpen je focus te verbeteren</strong> en rugklachten te verlichten.
+          {t('mentaal.kennis.bewegingIntroVoor')} <strong>{t('mentaal.kennis.bewegingIntroNadruk')}</strong> {t('mentaal.kennis.bewegingIntroNa')}
         </IntroKaart>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {(Object.keys(INTENSITEIT_STIJL) as Intensiteit[]).map(niveau => {
             const stijl = INTENSITEIT_STIJL[niveau]
-            const aantal = BUREAUOEFENINGEN.filter(oe => oe.intensiteit === niveau).length
+            const aantal = kennis.bureauoefeningen.filter(oe => oe.intensiteit === niveau).length
             return (
               <span key={niveau} className="text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: stijl.bg, color: stijl.kleur }}>
-                {stijl.label} ({aantal})
+                {t('mentaal.kennis.intensiteitAantal', { label: t(`mentaal.kennis.intensiteit.${niveau}`), aantal })}
               </span>
             )
           })}
         </div>
 
         <div className="space-y-3">
-          {BUREAUOEFENINGEN.map((oe, idx) => (
+          {kennis.bureauoefeningen.map((oe, idx) => (
             <AccordionKaart
               key={oe.naam}
               open={openOefening === idx}
               onOpenChange={(o) => setOpenOefening(o ? idx : null)}
               afk={oe.afk}
               titel={oe.naam}
-              sub={`${oe.duur} · ${oe.stappen.length} stappen`}
+              sub={t('mentaal.kennis.subStappen', { duur: oe.duur, aantal: oe.stappen.length })}
               extra={<IntensiteitLabel niveau={oe.intensiteit} />}
             >
               <div className="px-5 pb-5" style={{ borderTop: '1px solid var(--border)' }}>
@@ -168,8 +161,8 @@ export default function KennisSecties() {
           ))}
         </div>
 
-        <SectieKaart label="Snel bewegingsschema" className="mt-5">
-          {BEWEGINGSSCHEMA.map(rij => (
+        <SectieKaart label={t('mentaal.kennis.schemaTitel')} className="mt-5">
+          {kennis.bewegingsschema.map(rij => (
             <div key={rij.tijd} className="mf-divider-row flex gap-3 items-center py-2">
               <span className="text-xs font-bold w-12 flex-shrink-0" style={{ color: 'var(--text-4)' }}>{rij.tijd}</span>
               <p className="text-sm" style={{ color: 'var(--text-2)' }}>{rij.actie}</p>
@@ -181,11 +174,11 @@ export default function KennisSecties() {
       {/* -------------- VOEDING -------------- */}
       <TabsContent value="voeding" style={{ paddingTop: 0 }}>
         <IntroKaart>
-          Voeding kan invloed hebben op cortisol, serotonine en dopamine — de stofjes die meespelen bij je stress en energie.
+          {t('mentaal.kennis.voedingIntro')}
         </IntroKaart>
 
         <div className="space-y-3">
-          {VOEDING_CATEGORIEEN.map((cat, idx) => (
+          {kennis.voedingCategorieen.map((cat, idx) => (
             <AccordionKaart
               key={cat.titel}
               open={openVoedingCat === idx}
@@ -193,15 +186,15 @@ export default function KennisSecties() {
               afk={cat.afk}
               accentKleur={cat.kleur}
               titel={cat.titel}
-              sub={`${cat.tips.length} tips`}
+              sub={t('mentaal.kennis.subTips', { aantal: cat.tips.length })}
             >
               <TipLijst tips={cat.tips} />
             </AccordionKaart>
           ))}
         </div>
 
-        <SectieKaart label="Ideale werkdag qua eten" className="mt-5">
-          {VOEDING_DAGRITME.map(blok => (
+        <SectieKaart label={t('mentaal.kennis.dagritmeTitel')} className="mt-5">
+          {kennis.voedingDagritme.map(blok => (
             <div key={blok.tijd} className="mb-4 last:mb-0">
               <p className="text-xs font-bold mb-2" style={{ color: blok.kleur }}>{blok.tijd}</p>
               {blok.items.map(item => (
@@ -218,7 +211,7 @@ export default function KennisSecties() {
       {/* -------------- SLAAP -------------- */}
       <TabsContent value="slaap" style={{ paddingTop: 0 }}>
         <div className="grid grid-cols-3 gap-3 mb-5">
-          {SLAAP_FEITEN.map(feit => (
+          {kennis.slaapFeiten.map(feit => (
             <div key={feit.label} className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm font-bold mb-0.5" style={{ color: feit.kleur }}>{feit.waarde}</p>
               <p className="text-xs" style={{ color: 'var(--text-3)' }}>{feit.label}</p>
@@ -227,7 +220,7 @@ export default function KennisSecties() {
         </div>
 
         <div className="space-y-3">
-          {SLAAP_SECTIES.map((sectie, idx) => (
+          {kennis.slaapSecties.map((sectie, idx) => (
             <AccordionKaart
               key={sectie.titel}
               open={openSlaapSectie === idx}
@@ -235,15 +228,15 @@ export default function KennisSecties() {
               afk={sectie.afk}
               accentKleur={sectie.kleur}
               titel={sectie.titel}
-              sub={`${sectie.items.length} tips`}
+              sub={t('mentaal.kennis.subTips', { aantal: sectie.items.length })}
             >
               <TipLijst tips={sectie.items} />
             </AccordionKaart>
           ))}
         </div>
 
-        <SectieKaart label="Slaap-wind-down routine" className="mt-5">
-          {WINDDOWN_ROUTINE.map(stap => (
+        <SectieKaart label={t('mentaal.kennis.winddownTitel')} className="mt-5">
+          {kennis.winddownRoutine.map(stap => (
             <div key={stap.tijd} className="mf-divider-row flex gap-3 items-start py-2">
               <span className="text-xs font-bold w-16 flex-shrink-0 mt-0.5" style={{ color: stap.kleur }}>{stap.tijd}</span>
               <p className="text-sm" style={{ color: 'var(--text-2)' }}>{stap.actie}</p>
@@ -255,11 +248,11 @@ export default function KennisSecties() {
       {/* -------------- MENTAAL -------------- */}
       <TabsContent value="mentaal" style={{ paddingTop: 0 }}>
         <IntroKaart>
-          Mentale technieken kunnen je helpen rustiger te worden en stress te verlagen door je aandacht bewust te sturen.
+          {t('mentaal.kennis.mentaalIntro')}
         </IntroKaart>
 
         <div className="space-y-3">
-          {MENTAAL_TECHNIEKEN.map((tech, idx) => (
+          {kennis.mentaalTechnieken.map((tech, idx) => (
             <AccordionKaart
               key={tech.naam}
               open={openTechniek === idx}
@@ -267,7 +260,7 @@ export default function KennisSecties() {
               afk={tech.afk}
               accentKleur={tech.kleur}
               titel={tech.naam}
-              sub={`${tech.duur} · ${tech.stappen.length} stappen`}
+              sub={t('mentaal.kennis.subStappen', { duur: tech.duur, aantal: tech.stappen.length })}
               extra={
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, ${tech.kleur} 12%, transparent)`, color: tech.kleur }}>
                   {tech.duur}
@@ -282,10 +275,10 @@ export default function KennisSecties() {
           ))}
         </div>
 
-        <SectieKaart label="Stress signalen herkennen" className="mt-5">
-          <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>Fysieke en mentale tekenen dat je een reset nodig hebt:</p>
+        <SectieKaart label={t('mentaal.kennis.signalenTitel')} className="mt-5">
+          <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>{t('mentaal.kennis.signalenIntro')}</p>
           <div className="grid grid-cols-2 gap-2">
-            {STRESS_SIGNALEN.map(signaal => (
+            {kennis.stressSignalen.map(signaal => (
               <div key={signaal} className="flex items-center gap-2 py-1.5">
                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-red)' }} />
                 <p className="text-xs" style={{ color: 'var(--text-2)' }}>{signaal}</p>

@@ -12,47 +12,45 @@ import Navbar from '@/components/layout/Navbar'
 import { Ring } from '@/components/ui/Ring'
 import { PIJLER_ICOON } from '@/components/pijlers/iconen'
 import { LaadFout } from '@/components/pijlers/LaadFout'
-import { pijlerDef, isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
+import { isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
 import { scoreNiveau, type Trend } from '@/lib/pijlers/score'
-import { PIJLER_ACTIE, challengeVoorVandaag } from '@/lib/pijlers/acties'
+import { PIJLER_ACTIE } from '@/lib/pijlers/acties'
+import { alsTaalset, bronLabel, challengeTekst, niveauLabel, pijlerActieLabel, pijlerLabel, pijlerOmschrijving, pijlerTip } from '@/lib/pijlers/teksten'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import type { Taalset } from '@/lib/i18n/taalset'
 import type { PijlerOverzicht, PijlerResultaat } from '@/lib/pijlers/pijlers-server'
 
-/* Eerlijke, algemeen geldende samenhang tussen de pijlers (geen verzonnen cijfers). */
-const PIJLER_VERBAND: Record<PijlerKey, string> = {
-  energie: 'Je energie leunt sterk op slaap en beweging — verbeter die en energie volgt vanzelf.',
-  slaap: 'Betere slaap verlaagt je stress en tilt je energie én stemming mee omhoog.',
-  stress: 'Minder stress verbetert je slaap en stemming; beweging is hier een sterke hefboom.',
-  stemming: 'Je stemming beweegt vaak mee met je slaap en beweging — kleine stappen helpen.',
-  beweging: 'Meer bewegen verhoogt je energie en verlaagt je stress — dubbele winst.',
-  voeding: 'Goede hydratatie en voeding houden je energie door de dag stabiel.',
+/* Eerlijke, algemeen geldende samenhang tussen de pijlers (geen verzonnen cijfers).
+   De teksten staan in het woordenboek onder voortgang.pijlerDetail.verband.<pijler>. */
+function verbandTekst(key: PijlerKey, ts: Taalset): string {
+  return ts.t(`voortgang.pijlerDetail.verband.${key}`)
 }
 
-function analyseZin(r: PijlerResultaat, niveauKey: string): string {
-  if (r.score === null) {
-    return 'We hebben nog te weinig gegevens om deze pijler te scoren. Log het een paar dagen en je patroon verschijnt hier.'
-  }
+function analyseZin(r: PijlerResultaat, niveauKey: string, ts: Taalset): string {
+  if (r.score === null) return ts.t('voortgang.pijlerDetail.teWeinig')
   const niveauZin =
-    niveauKey === 'goed' ? 'Je zit in een goede zone.' :
-    niveauKey === 'matig' ? 'Er is ruimte om te groeien.' :
-    'Dit vraagt op dit moment je aandacht.'
-  const t = r.trend
+    niveauKey === 'goed' ? ts.t('voortgang.pijlerDetail.zoneGoed') :
+    niveauKey === 'matig' ? ts.t('voortgang.pijlerDetail.zoneMatig') :
+    ts.t('voortgang.pijlerDetail.zoneLaag')
+  const trend = r.trend
   const trendZin =
-    t.richting === 'op' && t.deltaPct !== null ? ` Deze week ${t.deltaPct}% omhoog — mooie beweging.` :
-    t.richting === 'neer' && t.deltaPct !== null ? ` Deze week ${Math.abs(t.deltaPct)}% omlaag — houd dit in de gaten.` :
-    t.richting === 'stabiel' ? ' Stabiel ten opzichte van vorige week.' : ''
-  return niveauZin + trendZin
+    trend.richting === 'op' && trend.deltaPct !== null ? ts.t('voortgang.pijlerDetail.trendOp', { n: trend.deltaPct }) :
+    trend.richting === 'neer' && trend.deltaPct !== null ? ts.t('voortgang.pijlerDetail.trendNeer', { n: Math.abs(trend.deltaPct) }) :
+    trend.richting === 'stabiel' ? ts.t('voortgang.pijlerDetail.trendStabiel') : ''
+  return trendZin ? `${niveauZin} ${trendZin}` : niveauZin
 }
 
 function TrendPil({ trend }: { trend: Trend }) {
+  const { t } = useVertaling()
   if (trend.richting === 'geen' || trend.deltaPct === null) return null
   if (trend.richting === 'stabiel') {
-    return <span className="mf-pd-trend" style={{ color: 'var(--text-4)' }}><Minus size={13} strokeWidth={2.4} aria-hidden /> stabiel</span>
+    return <span className="mf-pd-trend" style={{ color: 'var(--text-4)' }}><Minus size={13} strokeWidth={2.4} aria-hidden /> {t('voortgang.pijlerKaart.stabiel')}</span>
   }
   const op = trend.richting === 'op'
   const Icon = op ? ArrowUpRight : ArrowDownRight
   return (
     <span className="mf-pd-trend" style={{ color: op ? 'var(--brand)' : 'var(--status-danger)' }}>
-      <Icon size={13} strokeWidth={2.4} aria-hidden />{op ? '+' : ''}{trend.deltaPct}% vs vorige week
+      <Icon size={13} strokeWidth={2.4} aria-hidden />{t('voortgang.pijlerDetail.vsVorige', { delta: `${op ? '+' : ''}${trend.deltaPct}` })}
     </span>
   )
 }
@@ -60,6 +58,8 @@ function TrendPil({ trend }: { trend: Trend }) {
 export default function PijlerDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const { t, taal } = useVertaling()
+  const ts = alsTaalset(taal, t)
   const raw = Array.isArray(params.pijler) ? params.pijler[0] : params.pijler
   const key = raw && isPijlerKey(raw) ? raw : null
 
@@ -91,17 +91,18 @@ export default function PijlerDetailPage() {
       <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
         <Navbar />
         <main className="mf-pd">
-          <p style={{ color: 'var(--text-3)', marginBottom: 16 }}>Onbekende pijler.</p>
-          <Link href="/home" style={{ color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}>Terug naar Home</Link>
+          <p style={{ color: 'var(--text-3)', marginBottom: 16 }}>{t('voortgang.pijlerDetail.onbekend')}</p>
+          <Link href="/home" style={{ color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}>{t('voortgang.pijlerDetail.terug')}</Link>
         </main>
       </div>
     )
   }
 
-  const def = pijlerDef(key)!
+  const naam = pijlerLabel(key, ts)
   const Icon = PIJLER_ICOON[key]
   const r: PijlerResultaat = data?.pijlers.find((p) => p.key === key) ?? { key, score: null, vorigeScore: null, trend: { richting: 'geen', deltaPct: null }, bronnen: [] }
   const niveau = scoreNiveau(r.score)
+  const niveauTekst = niveauLabel(niveau.niveau, ts)
   const actie = PIJLER_ACTIE[key]
   const heeftData = r.score !== null
 
@@ -110,11 +111,11 @@ export default function PijlerDetailPage() {
       <Navbar />
       <main className="mf-pd">
         <Link href="/home" className="mf-pd-back">
-          <ArrowLeft size={15} strokeWidth={2.2} aria-hidden /> Home
+          <ArrowLeft size={15} strokeWidth={2.2} aria-hidden /> {t('voortgang.pijlerDetail.home')}
         </Link>
 
         {fout ? (
-          <LaadFout wat={`je ${def.label.toLowerCase()}-gegevens`} onOpnieuw={() => { setLaden(true); void laad() }} />
+          <LaadFout wat={t('voortgang.pijlerDetail.laadFoutWat', { pijler: naam.toLocaleLowerCase(ts.locale) })} onOpnieuw={() => { setLaden(true); void laad() }} />
         ) : laden && !data ? (
           <div className="mf-skeleton" style={{ height: 200, borderRadius: 'var(--radius-card)', marginTop: 12 }} aria-busy="true" aria-live="polite" />
         ) : (
@@ -127,7 +128,7 @@ export default function PijlerDetailPage() {
             }}>
               <Ring
                 value={r.score ?? 0}
-                ariaLabel={heeftData ? `${def.label} ${r.score} van 100 — ${niveau.label}` : `${def.label}: nog geen data`}
+                ariaLabel={heeftData ? t('voortgang.pijlerDetail.ringLabel', { pijler: naam, score: r.score ?? 0, niveau: niveauTekst }) : t('voortgang.pijlerDetail.ringLeeg', { pijler: naam })}
                 size={116} thickness={10}
                 color={heeftData ? niveau.kleur : 'var(--border-strong)'}
               >
@@ -140,9 +141,9 @@ export default function PijlerDetailPage() {
                   <span className="mf-pd-ico" style={{ background: niveau.zacht, color: niveau.kleur }}>
                     <Icon size={16} strokeWidth={2} aria-hidden />
                   </span>
-                  <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)', margin: 0 }}>{def.label}</h1>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)', margin: 0 }}>{naam}</h1>
                 </div>
-                <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '0 0 8px', lineHeight: 1.5 }}>{def.omschrijving}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '0 0 8px', lineHeight: 1.5 }}>{pijlerOmschrijving(key, ts)}</p>
                 <TrendPil trend={r.trend} />
               </div>
             </header>
@@ -152,12 +153,12 @@ export default function PijlerDetailPage() {
               <span className="mf-pd-ico" style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                 <Sparkles size={15} strokeWidth={2} aria-hidden />
               </span>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--text-2)' }}>{analyseZin(r, niveau.niveau)}</p>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--text-2)' }}>{analyseZin(r, niveau.niveau, ts)}</p>
             </section>
 
             {/* Wat telt mee (eerlijk over de bronnen) */}
             <section className="mf-pd-card">
-              <h2 className="mf-pd-h2">Wat telt mee</h2>
+              <h2 className="mf-pd-h2">{t('voortgang.pijlerDetail.watTeltMee')}</h2>
               {r.bronnen.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {r.bronnen.map((b) => (
@@ -165,11 +166,11 @@ export default function PijlerDetailPage() {
                       fontSize: 12, fontWeight: 500, color: 'var(--text-2)',
                       background: 'var(--bg-subtle)', border: '1px solid var(--border)',
                       borderRadius: 999, padding: '5px 12px',
-                    }}>{b}</span>
+                    }}>{bronLabel(b, ts)}</span>
                   ))}
                 </div>
               ) : (
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--text-4)' }}>Nog geen bronnen — begin met loggen.</p>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--text-4)' }}>{t('voortgang.pijlerDetail.geenBronnen')}</p>
               )}
             </section>
 
@@ -179,11 +180,11 @@ export default function PijlerDetailPage() {
                 <span className="mf-pd-ico" style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                   <Target size={14} strokeWidth={2.2} aria-hidden />
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--brand)' }}>Vandaag</span>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--brand)' }}>{t('voortgang.pijlerDetail.vandaag')}</span>
               </div>
-              <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>{challengeVoorVandaag(key)}</p>
-              <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>{actie.tip}</p>
-              <Link href={actie.href} className="mf-pd-cta">{actie.actie}<ChevronRight size={15} strokeWidth={2.2} aria-hidden /></Link>
+              <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>{challengeTekst(key, new Date(), ts)}</p>
+              <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>{pijlerTip(key, ts)}</p>
+              <Link href={actie.href} className="mf-pd-cta">{pijlerActieLabel(key, ts)}<ChevronRight size={15} strokeWidth={2.2} aria-hidden /></Link>
             </section>
 
             {/* Samenhang met andere pijlers */}
@@ -191,7 +192,7 @@ export default function PijlerDetailPage() {
               <span className="mf-pd-ico" style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>
                 <Link2 size={15} strokeWidth={2} aria-hidden />
               </span>
-              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--text-3)' }}>{PIJLER_VERBAND[key]}</p>
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--text-3)' }}>{verbandTekst(key, ts)}</p>
             </section>
           </>
         )}

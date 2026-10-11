@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { effectieveDoelen } from '@/lib/health/gezondheid-berekeningen'
+import { huidigeTaalset } from '@/lib/i18n/server'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,22 +25,24 @@ export async function GET(request: Request) {
   if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const vandaag = new Date().toISOString().split('T')[0]
+  const ts = await huidigeTaalset()
 
-  // Cache
+  // Cache (alleen voor dezelfde taal; zonder taal = van voor de meertaligheid: nl)
   const { data: cached } = await supabaseAdmin
     .from('checkin_analyses').select('analyse_json').eq('user_id', user.id)
     .gte('aangemaakt_op', `${vandaag}T00:00:00Z`).not('analyse_json->voeding_coach', 'is', null)
     .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
 
   const cacheData = cached?.analyse_json as Record<string, unknown> | null
-  if (cacheData?.voeding_coach) return NextResponse.json(cacheData.voeding_coach)
+  const cacheTaal = (cacheData?.voeding_coach as { taal?: string } | undefined)?.taal ?? 'nl'
+  if (cacheData?.voeding_coach && cacheTaal === ts.taal) return NextResponse.json(cacheData.voeding_coach)
 
   const { data: logs } = await supabaseAdmin
     .from('voeding_logs').select('maaltijd_type, calorieen, eiwitten_g, koolhydraten_g, vetten_g, vezels_g, omschrijving')
     .eq('user_id', user.id).eq('datum', vandaag)
 
   if (!logs || logs.length === 0) {
-    return NextResponse.json({ tip: 'Log je eerste maaltijd van vandaag om persoonlijke voedingscoaching te ontvangen!', score: null, maaltijden_gelogd: 0, status: 'leeg' })
+    return NextResponse.json({ tip: ts.t('vita.aiCoach.voedingLeeg'), score: null, maaltijden_gelogd: 0, status: 'leeg' })
   }
 
   // Persoonlijke doelen + dieetcontext uit het intake-profiel (gedeeld contract).
@@ -86,11 +90,11 @@ export async function GET(request: Request) {
 
   const tekort: string[] = []
   const goed: string[] = []
-  if (eiPct < 60)  tekort.push(`eiwit (${totaal.eiwitten_g.toFixed(0)}g / ${doelEiwit}g)`)
-  if (vezPct < 50) tekort.push(`vezels (${totaal.vezels_g.toFixed(0)}g / ${doelVezels}g)`)
-  if (!heeftOntbijt && uurNu >= 10) tekort.push('ontbijt overgeslagen')
-  if (eiPct >= 80)  goed.push('eiwitdoel bijna gehaald')
-  if (vezPct >= 80) goed.push('goede vezelinname')
+  if (eiPct < 60)  tekort.push(ts.t('vita.aiCoach.tekortEiwit', { nu: totaal.eiwitten_g.toFixed(0), doel: doelEiwit }))
+  if (vezPct < 50) tekort.push(ts.t('vita.aiCoach.tekortVezels', { nu: totaal.vezels_g.toFixed(0), doel: doelVezels }))
+  if (!heeftOntbijt && uurNu >= 10) tekort.push(ts.t('vita.aiCoach.ontbijtOvergeslagen'))
+  if (eiPct >= 80)  goed.push(ts.t('vita.aiCoach.eiwitBijna'))
+  if (vezPct >= 80) goed.push(ts.t('vita.aiCoach.goedeVezels'))
 
   const doelBron = doelen.calorie_doel != null
     ? (doelen.calorie_handmatig ? 'handmatig ingesteld' : 'berekend uit profiel')
@@ -102,7 +106,7 @@ export async function GET(request: Request) {
 Persoonlijke dagdoelen (${doelBron}):
 - Calorieen: ${doelCalorieen} kcal
 - Eiwit: ${doelEiwit}g, Koolhydraten: ${doelKoolhydraten}g, Vet: ${doelVet}g, Vezels: ${doelVezels}g
-${dieetvoorkeur ? `Dieetvoorkeur: ${dieetvoorkeur} — geef alleen tips die hierbij passen.` : ''}
+${dieetvoorkeur ? `Dieetvoorkeur: ${dieetvoorkeur}. Geef alleen tips die hierbij passen.` : ''}
 ${allergieen.length > 0 ? `ALLERGIEËN (${allergieen.join(', ')}): adviseer NOOIT voedingsmiddelen die deze allergenen bevatten.` : ''}
 
 Vandaag gelogd (${logs.length} maaltijden): ${maaltijdTypes.join(', ')}
@@ -119,7 +123,9 @@ Schrijf PRECIES 2 zinnen coaching:
 1. Erken wat goed gaat (specifiek)
 2. Geef één concrete haalbare tip voor vandaag${allergieen.length > 0 ? ' die de opgegeven allergenen vermijdt' : ''}${dieetvoorkeur ? ` en bij een ${dieetvoorkeur} dieet past` : ''}
 
-Alleen het bericht, geen groet.`
+Alleen het bericht, geen groet.
+
+${aiTaalInstructie(ts.taal)}`
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5', max_tokens: 180,
@@ -133,7 +139,7 @@ Alleen het bericht, geen groet.`
     tekort, goed,
     calorie_doel: doelCalorieen,
     calorie_doel_persoonlijk: doelen.calorie_doel != null,
-    dieetvoorkeur, allergieen,
+    dieetvoorkeur, allergieen, taal: ts.taal,
     status: score >= 70 ? 'goed' : score >= 40 ? 'matig' : 'aandacht',
   }
 

@@ -5,6 +5,8 @@ import { User, Calendar } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { type Gesprek, StatusBadge } from './GesprekModal'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 type Props = {
   gesprek: Gesprek & { id: string; medewerker_naam?: string }
@@ -12,17 +14,19 @@ type Props = {
 }
 
 const TYPE_LABELS: Record<string, { label: string; variant: 'accent' | 'success' | 'neutral' }> = {
-  functionering: { label: 'Functionering', variant: 'accent' },
-  beoordeling:   { label: 'Beoordeling',   variant: 'accent' },
-  welzijn:       { label: 'Welzijn',       variant: 'success' },
-  overig:        { label: 'Overig',        variant: 'neutral' },
+  functionering: { label: 'functionering', variant: 'accent' },
+  beoordeling:   { label: 'beoordeling',   variant: 'accent' },
+  welzijn:       { label: 'welzijn',       variant: 'success' },
+  overig:        { label: 'overig',        variant: 'neutral' },
 }
 
-function formatDatum(d: string) {
-  return new Date(d).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })
+function formatDatum(d: string, locale: string) {
+  return new Date(d).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 export default function GesprekKaart({ gesprek, onClick }: Props) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const typeInfo = TYPE_LABELS[gesprek.type] ?? TYPE_LABELS.overig
   const gedaanCount = gesprek.actiepunten.filter(a => a.gedaan).length
   const totaalCount = gesprek.actiepunten.length
@@ -47,12 +51,12 @@ export default function GesprekKaart({ gesprek, onClick }: Props) {
       {/* Bovenste rij: type badge + status + datum */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Badge variant={typeInfo.variant}>{typeInfo.label}</Badge>
-          {isDringend && <Badge variant="warning">Binnenkort</Badge>}
+          <Badge variant={typeInfo.variant}>{t(`werk.gesprekType.${typeInfo.label}`)}</Badge>
+          {isDringend && <Badge variant="warning">{t('werk.gesprekKaart.binnenkort')}</Badge>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <StatusBadge status={gesprek.status} />
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatDatum(gesprek.datum)}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatDatum(gesprek.datum, locale)}</span>
         </div>
       </div>
 
@@ -78,16 +82,16 @@ export default function GesprekKaart({ gesprek, onClick }: Props) {
                 width: `${(gedaanCount / totaalCount) * 100}%`,
               }} />
             </div>
-            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{gedaanCount}/{totaalCount} actiepunten</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.gesprekKaart.actiepuntenTelling', { gedaan: gedaanCount, totaal: totaalCount })}</span>
           </div>
         ) : (
-          <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Geen actiepunten</span>
+          <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('werk.gesprekKaart.geenActiepunten')}</span>
         )}
 
         {gesprek.followup_datum && (
           <span style={{ fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Calendar size={11} aria-hidden />
-            Follow-up: {formatDatum(gesprek.followup_datum)}
+            {t('werk.gesprekKaart.followUp', { datum: formatDatum(gesprek.followup_datum, locale) })}
           </span>
         )}
       </div>

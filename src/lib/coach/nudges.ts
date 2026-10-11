@@ -13,6 +13,8 @@
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { datumMinusDagenNL } from '@/lib/utils/date-nl'
 import { berekenStreak } from '@/lib/streak/streak'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_VITA } from '@/lib/vita/taal'
 
 /** Even ver terug als de stemming-query hieronder reikt. */
 const STREAK_HORIZON_DAGEN = 60
@@ -38,10 +40,8 @@ export interface CoachNudge {
   cta: string
 }
 
-const DOMEIN_LABELS: Record<string, string> = {
-  stress: 'stress', slaap: 'slaap', energie: 'energie',
-  balans: 'werk-privébalans', focus: 'focus', motivatie: 'motivatie',
-}
+/** Domeinen met een eigen label in het woordenboek (vita.nudge.domein.*). */
+const DOMEINEN = new Set(['stress', 'slaap', 'energie', 'balans', 'focus', 'motivatie'])
 
 // Prioriteit: zorgsignalen eerst (dat is de kern van het product), dan vieringen
 // (dopamine), dan zachte aanmoedigingen. Eén nudge tegelijk — nooit overweldigen.
@@ -74,7 +74,8 @@ function rijenVan(settled: PromiseSettledResult<unknown>, label: string): Rij[] 
   return (v?.data as Rij[] | null) ?? []
 }
 
-export async function detectNudge(userId: string): Promise<CoachNudge | null> {
+export async function detectNudge(userId: string, ts: Taalset = NL_VITA): Promise<CoachNudge | null> {
+  const { t } = ts
   const admin = createAdminClient()
 
   const grens7 = datumMinusDagenNL(6)    // laatste 7 dagen (incl. vandaag)
@@ -109,21 +110,22 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
 
   // ── Burnout-trend ──────────────────────────────────────────────────────────
   if (predictor?.trending === 'stijgend') {
-    const factor = DOMEIN_LABELS[String(predictor.dominante_factor)] ?? 'je welzijn'
+    const domein = String(predictor.dominante_factor)
+    const factor = DOMEINEN.has(domein) ? t(`vita.nudge.domein.${domein}`) : t('vita.nudge.jeWelzijn')
     kandidaten.push({
       type: 'burnout_stijgend',
       toon: 'zorg',
-      titel: 'Even bij je inchecken',
-      bericht: `Je scores lopen de laatste weken wat terug — vooral op ${factor}. Geen alarm, wél een goed moment om er even bij stil te staan.`,
-      cta: 'Praat erover met je coach',
+      titel: t('vita.nudge.burnoutStijgendTitel'),
+      bericht: t('vita.nudge.burnoutStijgendBericht', { factor }),
+      cta: t('vita.nudge.burnoutStijgendCta'),
     })
   } else if (predictor?.trending === 'dalend') {
     kandidaten.push({
       type: 'burnout_dalend',
       toon: 'viering',
-      titel: 'Het gaat de goede kant op',
-      bericht: 'Je welzijnsscores zijn de laatste weken verbeterd. Mooi — wil je weten wat daaraan bijdraagt en hoe je het vasthoudt?',
-      cta: 'Vier het met je coach',
+      titel: t('vita.nudge.burnoutDalendTitel'),
+      bericht: t('vita.nudge.burnoutDalendBericht'),
+      cta: t('vita.nudge.burnoutDalendCta'),
     })
   }
 
@@ -140,17 +142,17 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
       kandidaten.push({
         type: 'slaap_omlaag',
         toon: 'aanmoediging',
-        titel: 'Je slaapt minder dan normaal',
-        bericht: `Deze week sliep je gemiddeld ${slaapNu}u, tegen ${slaapEerder}u de week ervoor. Zullen we kijken wat je nachtrust in de weg zit?`,
-        cta: 'Vraag je coach om tips',
+        titel: t('vita.nudge.slaapOmlaagTitel'),
+        bericht: t('vita.nudge.slaapOmlaagBericht', { nu: slaapNu, eerder: slaapEerder }),
+        cta: t('vita.nudge.slaapOmlaagCta'),
       })
     } else if (delta >= 0.7) {
       kandidaten.push({
         type: 'slaap_omhoog',
         toon: 'viering',
-        titel: 'Je slaap zit in de lift',
-        bericht: `Deze week sliep je gemiddeld ${slaapNu}u — ${delta}u meer dan de week ervoor. Goed bezig. Wil je dit ritme vasthouden?`,
-        cta: 'Hou het vast met je coach',
+        titel: t('vita.nudge.slaapOmhoogTitel'),
+        bericht: t('vita.nudge.slaapOmhoogBericht', { nu: slaapNu, delta }),
+        cta: t('vita.nudge.slaapOmhoogCta'),
       })
     }
   }
@@ -168,17 +170,17 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
       kandidaten.push({
         type: 'stemming_omlaag',
         toon: 'zorg',
-        titel: 'Je stemming zakt wat',
-        bericht: `Je stemming was deze week gemiddeld ${stemNu}/5, tegen ${stemEerder}/5 de week ervoor. Wil je er even over praten?`,
-        cta: 'Praat erover met je coach',
+        titel: t('vita.nudge.stemmingOmlaagTitel'),
+        bericht: t('vita.nudge.stemmingOmlaagBericht', { nu: stemNu, eerder: stemEerder }),
+        cta: t('vita.nudge.stemmingOmlaagCta'),
       })
     } else if (delta >= 0.5) {
       kandidaten.push({
         type: 'stemming_omhoog',
         toon: 'viering',
-        titel: 'Je zit lekkerder in je vel',
-        bericht: `Je stemming klom deze week naar gemiddeld ${stemNu}/5, van ${stemEerder}/5. Wil je weten wat het verschil maakte?`,
-        cta: 'Vier het met je coach',
+        titel: t('vita.nudge.stemmingOmhoogTitel'),
+        bericht: t('vita.nudge.stemmingOmhoogBericht', { nu: stemNu, eerder: stemEerder }),
+        cta: t('vita.nudge.stemmingOmhoogCta'),
       })
     }
   }
@@ -190,9 +192,9 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
     kandidaten.push({
       type: 'streak_mijlpaal',
       toon: 'viering',
-      titel: `${streak} dagen op rij!`,
-      bericht: `Je hebt ${streak} dagen achter elkaar ingecheckt. Dat is precies hoe inzicht ontstaat. Trots op je — wil je je voortgang bespreken?`,
-      cta: 'Bekijk je voortgang met de coach',
+      titel: t('vita.nudge.streakTitel', { streak }),
+      bericht: t('vita.nudge.streakBericht', { streak }),
+      cta: t('vita.nudge.streakCta'),
     })
   }
 
@@ -203,9 +205,9 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
     kandidaten.push({
       type: 'dankbaarheid_gap',
       toon: 'aanmoediging',
-      titel: 'Je dankbaarheidsmoment gemist?',
-      bericht: 'Je hield een tijdje dagelijks bij waar je dankbaar voor was, maar de laatste week even niet. Zo’n klein moment doet vaak meer dan je denkt.',
-      cta: 'Pak het weer op met je coach',
+      titel: t('vita.nudge.dankbaarheidTitel'),
+      bericht: t('vita.nudge.dankbaarheidBericht'),
+      cta: t('vita.nudge.dankbaarheidCta'),
     })
   }
 
@@ -216,9 +218,9 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
       kandidaten.push({
         type: 'heractivatie',
         toon: 'aanmoediging',
-        titel: 'Hoe gaat het echt met je?',
-        bericht: 'Het is even geleden dat je iets logde. Geen druk — één eerlijk moment voor jezelf is al genoeg. Ik denk graag met je mee.',
-        cta: 'Begin een gesprek',
+        titel: t('vita.nudge.heractivatieTitel'),
+        bericht: t('vita.nudge.heractivatieBericht'),
+        cta: t('vita.nudge.heractivatieCta'),
       })
     }
   }

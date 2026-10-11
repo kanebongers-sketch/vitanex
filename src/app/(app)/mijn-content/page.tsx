@@ -10,25 +10,23 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { ContentKaart } from '@/components/coaching/ContentKaart'
 import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
-import {
-  PIJLER_LABELS,
-  PIJLER_STIJL,
-  CONTENT_TYPE_LABELS,
-  type CoachingContent,
-  type ContentType,
-} from '@/lib/coaching/content'
+import { PIJLER_STIJL, type CoachingContent, type ContentType } from '@/lib/coaching/content'
 import { PIJLER_ICOON, CONTENT_TYPE_ICOON } from '@/components/coaching/content-iconen'
 import { ArrowLeft, BookOpen, ExternalLink } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
-const MEDIA_LABEL: Record<ContentType, string> = {
-  artikel: 'Open link', opdracht: 'Open link', audio: 'Beluister audio', video: 'Bekijk video',
+// Sleutels onder coaching.mijnContent.media.*
+const MEDIA_LABEL: Record<ContentType, 'link' | 'audio' | 'video'> = {
+  artikel: 'link', opdracht: 'link', audio: 'audio', video: 'video',
 }
 
-function datumLang(iso: string): string {
-  return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+function datumLang(iso: string, taal: Taal): string {
+  return new Date(iso).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default function MijnContentPagina() {
+  const { t } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [lijst, setLijst] = useState<CoachingContent[]>([])
@@ -62,9 +60,9 @@ export default function MijnContentPagina() {
         ) : (
           <>
             <CoachHeader
-              eyebrow="Mindset & stress"
-              titel="Van je coach"
-              subtitel="Lessen en opdrachten die je coach voor je heeft klaargezet om te lezen."
+              eyebrow={t('coaching.tabs.mindset')}
+              titel={t('coaching.mijnContent.titel')}
+              subtitel={t('coaching.mijnContent.subtitel')}
             />
 
             {laden ? (
@@ -72,11 +70,11 @@ export default function MijnContentPagina() {
             ) : lijst.length === 0 ? (
               <CoachEmpty
                 icon={BookOpen}
-                titel="Nog niets ontvangen"
-                tekst="Zodra je coach een les of opdracht publiceert, verschijnt die hier om te lezen."
+                titel={t('coaching.mijnContent.leegTitel')}
+                tekst={t('coaching.mijnContent.leegTekst')}
               />
             ) : (
-              <section aria-label="Content van je coach" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <section aria-label={t('coaching.mijnContent.lijstAria')} className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {lijst.map(c => (
                   <ContentKaart key={c.id} content={c} onOpen={() => setGeselecteerd(c)} />
                 ))}
@@ -95,6 +93,7 @@ interface DetailWeergaveProps {
 }
 
 function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
+  const { t, taal } = useVertaling()
   const stijl = PIJLER_STIJL[content.pijler]
   const PijlerIcoon = PIJLER_ICOON[content.pijler]
   const TypeIcoon = CONTENT_TYPE_ICOON[content.type]
@@ -107,7 +106,7 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
         className="mf-coach-back"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        <ArrowLeft size={15} aria-hidden /> Terug naar overzicht
+        <ArrowLeft size={15} aria-hidden /> {t('coaching.mijnContent.terug')}
       </button>
 
       <header style={{ position: 'relative', marginBottom: 24 }}>
@@ -118,14 +117,14 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
               display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
               padding: '4px 10px', borderRadius: 100, background: stijl.bg, color: stijl.color,
             }}>
-              <PijlerIcoon size={13} aria-hidden /> {PIJLER_LABELS[content.pijler]}
+              <PijlerIcoon size={13} aria-hidden /> {t(`coaching.labels.pijler.${content.pijler}`)}
             </span>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
               padding: '4px 10px', borderRadius: 100, background: 'var(--bg-subtle)', color: 'var(--text-3)',
               border: '1px solid var(--border-strong)',
             }}>
-              <TypeIcoon size={13} aria-hidden /> {CONTENT_TYPE_LABELS[content.type]}
+              <TypeIcoon size={13} aria-hidden /> {t(`coaching.labels.contentType.${content.type}`)}
             </span>
           </div>
 
@@ -133,7 +132,7 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
             {content.titel}
           </h1>
           <p className="mf-caption" style={{ marginTop: 8 }}>
-            Geplaatst op {datumLang(content.aangemaakt_op)}
+            {t('coaching.mijnContent.geplaatst', { datum: datumLang(content.aangemaakt_op, taal) })}
           </p>
         </div>
       </header>
@@ -156,7 +155,7 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
               border: '1px solid color-mix(in srgb, var(--mf-green) 45%, transparent)',
             }}
           >
-            <ExternalLink size={15} aria-hidden /> {MEDIA_LABEL[content.type]}
+            <ExternalLink size={15} aria-hidden /> {t(`coaching.mijnContent.media.${MEDIA_LABEL[content.type]}`)}
           </a>
         )}
       </Card>

@@ -9,14 +9,22 @@ import {
   maandStart, verschuifDatum, verschuifMaand, weekStart,
 } from './statistiek'
 import type { GezondheidsDag, MetriekSleutel } from './types'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
 
 export type Periode = 'dag' | 'week' | 'maand'
 
-export const PERIODES: readonly { waarde: Periode; label: string; omschrijving: string }[] = [
-  { waarde: 'dag', label: 'Per dag', omschrijving: 'de afgelopen 30 dagen' },
-  { waarde: 'week', label: 'Per week', omschrijving: 'de afgelopen 12 weken' },
-  { waarde: 'maand', label: 'Per maand', omschrijving: 'de afgelopen 12 maanden' },
-]
+export const PERIODES: readonly Periode[] = ['dag', 'week', 'maand']
+
+/** "Per dag" */
+export function periodeLabel(periode: Periode, ts: Taalset = NL_LICHAAM): string {
+  return ts.t(`lichaam.periode.${periode}.label`)
+}
+
+/** "de afgelopen 30 dagen" */
+export function periodeOmschrijving(periode: Periode, ts: Taalset = NL_LICHAAM): string {
+  return ts.t(`lichaam.periode.${periode}.omschrijving`)
+}
 
 export function isPeriode(waarde: unknown): waarde is Periode {
   return waarde === 'dag' || waarde === 'week' || waarde === 'maand'
@@ -60,7 +68,7 @@ function telbareWaarden(
 }
 
 export function trendPerDag(
-  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 30,
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 30, ts: Taalset = NL_LICHAAM,
 ): TrendPunt[] {
   const index = indexeer(dagen)
   return Array.from({ length: aantal }, (_, i) => {
@@ -68,7 +76,7 @@ export function trendPerDag(
     const waarde = waardeOp(index, sleutel, datum) ?? null
     const onvolledig = datum === vandaag && METRIEKEN[sleutel].cumulatief
     return {
-      sleutel: datum, label: dagLabelKort(datum), labelLang: datumLang(datum),
+      sleutel: datum, label: dagLabelKort(datum, ts), labelLang: datumLang(datum, ts),
       waarde, aantal: waarde === null ? 0 : 1,
       onvolledig, telMee: !onvolledig || METRIEKEN[sleutel].aggregatie === 'totaal',
     }
@@ -94,35 +102,35 @@ function bucket(
 }
 
 export function trendPerWeek(
-  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 12,
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 12, ts: Taalset = NL_LICHAAM,
 ): TrendPunt[] {
   const index = indexeer(dagen)
   const huidigeWeek = weekStart(vandaag)
   return Array.from({ length: aantal }, (_, i) => {
     const vanaf = verschuifDatum(huidigeWeek, (i - aantal + 1) * 7)
     const tot = verschuifDatum(vanaf, 6)
-    return bucket(index, sleutel, vandaag, vanaf, tot, datumKort(vanaf), `week van ${datumLang(vanaf)}`)
+    return bucket(index, sleutel, vandaag, vanaf, tot, datumKort(vanaf, ts), ts.t('lichaam.periode.weekVan', { datum: datumLang(vanaf, ts) }))
   })
 }
 
 export function trendPerMaand(
-  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 12,
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, aantal = 12, ts: Taalset = NL_LICHAAM,
 ): TrendPunt[] {
   const index = indexeer(dagen)
   const huidigeMaand = maandStart(vandaag)
   return Array.from({ length: aantal }, (_, i) => {
     const vanaf = verschuifMaand(huidigeMaand, i - aantal + 1)
     const tot = verschuifDatum(verschuifMaand(vanaf, 1), -1)
-    return bucket(index, sleutel, vandaag, vanaf, tot, maandKort(vanaf), maandLang(vanaf))
+    return bucket(index, sleutel, vandaag, vanaf, tot, maandKort(vanaf, ts), maandLang(vanaf, ts))
   })
 }
 
 export function bouwTrend(
-  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, periode: Periode, vandaag: string,
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, periode: Periode, vandaag: string, ts: Taalset = NL_LICHAAM,
 ): TrendPunt[] {
-  if (periode === 'week') return trendPerWeek(dagen, sleutel, vandaag)
-  if (periode === 'maand') return trendPerMaand(dagen, sleutel, vandaag)
-  return trendPerDag(dagen, sleutel, vandaag)
+  if (periode === 'week') return trendPerWeek(dagen, sleutel, vandaag, undefined, ts)
+  if (periode === 'maand') return trendPerMaand(dagen, sleutel, vandaag, undefined, ts)
+  return trendPerDag(dagen, sleutel, vandaag, undefined, ts)
 }
 
 /**

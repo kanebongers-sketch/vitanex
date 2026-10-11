@@ -2,8 +2,11 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { metNadruk } from '../metNadruk'
 
 export default function LiquidAbout() {
+  const { t } = useVertaling()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -25,7 +28,7 @@ export default function LiquidAbout() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
-          Waar we voor staan
+          {t('site.over.label')}
         </motion.p>
 
         <motion.h2
@@ -34,9 +37,9 @@ export default function LiquidAbout() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         >
-          Wij bouwen <em className="italic text-white/60">inzicht</em> voor
-          <br className="hidden md:block" /> teams die{' '}
-          <em className="italic text-white/60">meten, praten en groeien</em>.
+          {metNadruk(t('site.over.kopRegel1'), { className: 'italic text-white/60' })}
+          <br className="hidden md:block" />{' '}
+          {metNadruk(t('site.over.kopRegel2'), { className: 'italic text-white/60' })}
         </motion.h2>
       </div>
     </section>

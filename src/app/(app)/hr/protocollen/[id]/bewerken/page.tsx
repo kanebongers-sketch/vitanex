@@ -16,22 +16,17 @@ import {
   DialogRoot, DialogContent, DialogTitle, DialogDescription,
 } from '@/components/ui/Dialog'
 import { ArrowLeft, Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
-const CATEGORIEEN = [
-  { value: 'algemeen', label: 'Algemeen' },
-  { value: 'arbo', label: 'Arbo & Veiligheid' },
-  { value: 'verzuim', label: 'Verzuim' },
-  { value: 'it', label: 'IT & Systemen' },
-  { value: 'hr', label: 'HR & Onboarding' },
-  { value: 'veiligheid', label: 'Veiligheid' },
-  { value: 'overig', label: 'Overig' },
-]
+// Labels staan in het woordenboek: werk.protocolCategorie.<value>
+const CATEGORIEEN = ['algemeen', 'arbo', 'verzuim', 'it', 'hr', 'veiligheid', 'overig'].map(value => ({ value }))
 
 export default function BewerkProtocolPage() {
   const router = useRouter()
   const params = useParams()
   const id = params?.id as string
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
 
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)
@@ -72,7 +67,7 @@ export default function BewerkProtocolPage() {
   }, [router, id])
 
   async function opslaan() {
-    if (!titel.trim()) { setFout('Vul een titel in.'); return }
+    if (!titel.trim()) { setFout(t('werk.protocolForm.foutTitel')); return }
     setBezig(true); setFout('')
     const { error } = await supabase.from('protocollen').update({
       titel: titel.trim(), beschrijving: beschrijving.trim() || null,
@@ -80,12 +75,13 @@ export default function BewerkProtocolPage() {
       bijgewerkt_op: new Date().toISOString(),
     }).eq('id', id)
     if (error) {
-      setFout('Opslaan mislukt: ' + error.message)
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      const melding = taal === 'nl' ? error.message : t('werk.algemeen.ietsMis')
+      setFout(t('werk.protocolForm.opslaanMisluktMet', { fout: melding }))
+      toast({ title: t('werk.protocolForm.opslaanMislukt'), description: melding, variant: 'error' })
       setBezig(false)
       return
     }
-    toast({ title: 'Wijzigingen opgeslagen', variant: 'success' })
+    toast({ title: t('werk.protocolForm.wijzigingenToast'), variant: 'success' })
     router.push('/hr/protocollen')
   }
 
@@ -95,7 +91,7 @@ export default function BewerkProtocolPage() {
   }
 
   // Fout-melding bepalen per veld voor aria-koppeling.
-  const titelFout = fout === 'Vul een titel in.' ? fout : undefined
+  const titelFout = fout === t('werk.protocolForm.foutTitel') ? fout : undefined
   const algemeneFout = fout && !titelFout ? fout : undefined
 
   if (laden) return (
@@ -119,10 +115,10 @@ export default function BewerkProtocolPage() {
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, borderRadius: 'var(--radius-sm)' }}
           >
             <ArrowLeft size={15} aria-hidden />
-            Terug naar protocollen
+            {t('werk.protocolForm.terug')}
           </button>
           <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-            Protocol bewerken
+            {t('werk.protocolForm.titelBewerken')}
           </h1>
         </div>
 
@@ -130,10 +126,10 @@ export default function BewerkProtocolPage() {
           {/* Titel & beschrijving */}
           <Card style={{ padding: '20px' }}>
             <div className="flex flex-col gap-4">
-              <Field label="Titel" required error={titelFout}>
+              <Field label={t('werk.protocolForm.titel')} required error={titelFout}>
                 <Input value={titel} onChange={e => setTitel(e.target.value)} />
               </Field>
-              <Field label="Korte beschrijving">
+              <Field label={t('werk.protocolForm.beschrijving')}>
                 <Input value={beschrijving} onChange={e => setBeschrijving(e.target.value)} />
               </Field>
             </div>
@@ -142,7 +138,7 @@ export default function BewerkProtocolPage() {
           {/* Categorie */}
           <Card style={{ padding: '20px' }}>
             <fieldset style={{ border: 'none', margin: 0, padding: 0 }}>
-              <legend className="text-sm font-semibold mb-3" style={{ color: 'var(--text-2)' }}>Categorie</legend>
+              <legend className="text-sm font-semibold mb-3" style={{ color: 'var(--text-2)' }}>{t('werk.protocolForm.categorie')}</legend>
               <div className="grid grid-cols-2 gap-2">
                 {CATEGORIEEN.map(cat => {
                   const actief = categorie === cat.value
@@ -161,7 +157,7 @@ export default function BewerkProtocolPage() {
                         transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease)',
                       }}
                     >
-                      <span>{cat.label}</span>
+                      <span>{t(`werk.protocolCategorie.${cat.value}`)}</span>
                       {actief && <Check size={15} aria-hidden />}
                     </button>
                   )
@@ -173,8 +169,8 @@ export default function BewerkProtocolPage() {
           {/* Inhoud (Markdown) */}
           <Card style={{ padding: '20px' }}>
             <Field
-              label="Inhoud (Markdown)"
-              hint="Opmaak: # H1 · ## H2 · **vet** · - lijst"
+              label={t('werk.protocolForm.inhoud')}
+              hint={t('werk.protocolForm.opmaakHint')}
             >
               <Textarea
                 value={inhoud}
@@ -189,16 +185,16 @@ export default function BewerkProtocolPage() {
           <Card style={{ padding: '20px' }}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Gepubliceerd</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('werk.protocolForm.gepubliceerd')}</p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                  {gepubliceerd ? 'Zichtbaar voor medewerkers' : 'Alleen zichtbaar voor HR'}
+                  {gepubliceerd ? t('werk.protocolForm.zichtbaar') : t('werk.protocolForm.alleenHr')}
                 </p>
               </div>
               <button
                 type="button"
                 role="switch"
                 aria-checked={gepubliceerd}
-                aria-label="Protocol gepubliceerd"
+                aria-label={t('werk.protocolForm.gepubliceerdLabel')}
                 onClick={() => setGepubliceerd(!gepubliceerd)}
                 className="relative w-12 h-6 rounded-full flex-shrink-0"
                 style={{
@@ -227,10 +223,10 @@ export default function BewerkProtocolPage() {
 
           <div className="flex gap-3">
             <Button variant="secondary" onClick={probeerAnnuleren} style={{ flex: 1 }}>
-              Annuleren
+              {t('werk.algemeen.annuleren')}
             </Button>
             <Button onClick={opslaan} loading={bezig} disabled={bezig} style={{ flex: 1 }}>
-              Wijzigingen opslaan
+              {t('werk.protocolForm.wijzigingenOpslaan')}
             </Button>
           </div>
         </div>
@@ -239,14 +235,14 @@ export default function BewerkProtocolPage() {
       {/* Niet-opgeslagen wijzigingen */}
       <DialogRoot open={bevestigVerlaten} onOpenChange={setBevestigVerlaten}>
         <DialogContent>
-          <DialogTitle>Pagina verlaten?</DialogTitle>
-          <DialogDescription>Niet-opgeslagen wijzigingen gaan verloren als je nu weggaat.</DialogDescription>
+          <DialogTitle>{t('werk.protocolForm.verlatenTitel')}</DialogTitle>
+          <DialogDescription>{t('werk.protocolForm.verlatenTekstBewerken')}</DialogDescription>
           <div className="flex gap-3" style={{ marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setBevestigVerlaten(false)} style={{ flex: 1 }}>
-              Blijven
+              {t('werk.protocolForm.blijven')}
             </Button>
             <Button variant="danger" onClick={() => router.push('/hr/protocollen')} style={{ flex: 1 }}>
-              Verlaten
+              {t('werk.protocolForm.verlaten')}
             </Button>
           </div>
         </DialogContent>

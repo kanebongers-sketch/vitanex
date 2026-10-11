@@ -1,4 +1,7 @@
-import { getActiviteit, type ActiviteitKey } from '@/lib/navigatie/activiteiten'
+'use client'
+
+import type { ActiviteitKey } from '@/lib/navigatie/activiteiten'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { ACTIVITEIT_ICOON } from './iconen'
 
 interface ActiviteitBadgeProps {
@@ -14,7 +17,8 @@ interface ActiviteitBadgeProps {
  * merk-inbreuk (ui.md) als een toegankelijkheidsval.
  */
 export function ActiviteitBadge({ activiteit }: ActiviteitBadgeProps) {
-  const { label } = getActiviteit(activiteit)
+  const { t } = useVertaling()
+  const label = t(`voortgang.activiteit.${activiteit}`)
   const Icon = ACTIVITEIT_ICOON[activiteit]
 
   return (

@@ -17,6 +17,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type Registratie = {
@@ -29,7 +31,9 @@ type Registratie = {
   created_at: string
 }
 
+// De waarde (Nederlands) gaat naar de database; het label wordt vertaald.
 const PROJECTEN = ['Intern', 'Algemeen', 'Training', 'Overleg', 'Administratie', 'Overig']
+const PROJECT_SLEUTEL: Record<string, string> = Object.fromEntries(PROJECTEN.map(p => [p, `werk.uren.project.${p.toLowerCase()}`]))
 
 function weekDagen(): Date[] {
   const vandaag = new Date()
@@ -43,13 +47,16 @@ function weekDagen(): Date[] {
   })
 }
 
-function dagNaam(d: Date): string {
-  return d.toLocaleDateString('nl-BE', { weekday: 'short' })
+function dagNaam(d: Date, locale: string): string {
+  return d.toLocaleDateString(locale, { weekday: 'short' })
 }
 
 export default function UrenPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
+  const projectLabel = (p: string) => (PROJECT_SLEUTEL[p] ? t(PROJECT_SLEUTEL[p]) : p)
   const [laden, setLaden] = useState(true)
   const [registraties, setRegistraties] = useState<Registratie[]>([])
   const [userId, setUserId] = useState('')
@@ -99,7 +106,7 @@ export default function UrenPage() {
 
   async function opslaanRegistratie() {
     const u = parseFloat(uren)
-    if (!uren || isNaN(u) || u <= 0 || u > 24) { setFout('Vul een geldig aantal uren in (0–24).'); return }
+    if (!uren || isNaN(u) || u <= 0 || u > 24) { setFout(t('werk.uren.foutUren')); return }
     setOpslaan(true); setFout('')
 
     const { data, error } = await supabase.from('tijdregistraties').insert({
@@ -113,13 +120,14 @@ export default function UrenPage() {
     }).select().single()
 
     if (error) {
-      setFout('Opslaan mislukt: ' + error.message)
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      const melding = taal === 'nl' ? error.message : t('werk.algemeen.ietsMis')
+      setFout(t('werk.uren.opslaanMisluktMet', { fout: melding }))
+      toast({ title: t('werk.uren.opslaanMislukt'), description: melding, variant: 'error' })
     } else {
       setRegistraties(prev => [data as Registratie, ...prev])
       setFormulier(false)
       setUren(''); setBeschrijving('')
-      toast({ title: 'Uren opgeslagen', variant: 'success' })
+      toast({ title: t('werk.uren.opgeslagen'), variant: 'success' })
     }
     setOpslaan(false)
   }
@@ -130,7 +138,7 @@ export default function UrenPage() {
     const { error } = await supabase.from('tijdregistraties').delete().eq('id', id)
     if (error) {
       setRegistraties(vorige)
-      toast({ title: 'Verwijderen mislukt', description: error.message, variant: 'error' })
+      toast({ title: t('werk.uren.verwijderenMislukt'), description: taal === 'nl' ? error.message : t('werk.algemeen.ietsMis'), variant: 'error' })
     }
   }
 
@@ -155,25 +163,25 @@ export default function UrenPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Urenregistratie</h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Log je werkuren</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('werk.uren.titel')}</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('werk.uren.intro')}</p>
           </div>
           <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
-            Loggen
+            {t('werk.uren.loggen')}
           </Button>
         </div>
 
         {/* Week-overzicht kaart */}
         <Card style={{ padding: 20, marginBottom: 20 }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Deze week</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>{t('werk.uren.dezeWeek')}</p>
             <p className="text-sm font-bold" style={{ color: voortgangKleur }}>
-              {totaalUren}/{doelUren} uur
+              {t('werk.uren.voortgang', { totaal: totaalUren, doel: doelUren })}
             </p>
           </div>
           <div
             role="img"
-            aria-label={`${totaalUren} van ${doelUren} uur geregistreerd deze week`}
+            aria-label={t('werk.uren.voortgangLabel', { totaal: totaalUren, doel: doelUren })}
             className="rounded-full overflow-hidden mb-4"
             style={{ height: 8, background: 'var(--bg-subtle)' }}
           >
@@ -194,7 +202,7 @@ export default function UrenPage() {
               return (
                 <div key={sleutel} className="flex flex-col items-center gap-1">
                   <p className="text-xs" style={{ color: isVandaag ? 'var(--mentaforce-primary)' : 'var(--text-3)', fontWeight: isVandaag ? 700 : 400 }}>
-                    {dagNaam(dag)}
+                    {dagNaam(dag, locale)}
                   </p>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
                     style={{
@@ -213,14 +221,14 @@ export default function UrenPage() {
         {/* Formulier */}
         <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
           <DialogContent>
-            <DialogTitle>Uren loggen</DialogTitle>
+            <DialogTitle>{t('werk.uren.dialoogTitel')}</DialogTitle>
 
             <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
-              <Field label="Datum">
+              <Field label={t('werk.uren.datum')}>
                 <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
               </Field>
 
-              <Field label="Aantal uren" error={fout || undefined}>
+              <Field label={t('werk.uren.aantal')} error={fout || undefined}>
                 <Input
                   type="number"
                   inputMode="decimal"
@@ -229,11 +237,11 @@ export default function UrenPage() {
                   step="0.5"
                   value={uren}
                   onChange={e => setUren(e.target.value)}
-                  placeholder="bijv. 8"
+                  placeholder={t('werk.uren.aantalPlaceholder')}
                 />
               </Field>
 
-              <Field label="Project">
+              <Field label={t('werk.uren.projectLabel')}>
                 <select value={project} onChange={e => setProject(e.target.value)}
                   className="mf-ui-control"
                   style={{
@@ -247,28 +255,28 @@ export default function UrenPage() {
                     borderRadius: 'var(--radius-md)',
                     outline: 'none',
                   }}>
-                  {PROJECTEN.map(p => <option key={p}>{p}</option>)}
+                  {PROJECTEN.map(p => <option key={p} value={p}>{projectLabel(p)}</option>)}
                 </select>
               </Field>
 
-              <Field label="Omschrijving" hint="Optioneel">
+              <Field label={t('werk.uren.omschrijving')} hint={t('werk.uren.optioneel')}>
                 <Textarea
                   rows={2}
                   value={beschrijving}
                   onChange={e => setBeschrijving(e.target.value)}
-                  placeholder="Wat heb je gedaan?"
+                  placeholder={t('werk.uren.omschrijvingPlaceholder')}
                 />
               </Field>
 
               <Button onClick={opslaanRegistratie} loading={opslaan} disabled={!uren} style={{ width: '100%' }}>
-                {opslaan ? 'Opslaan...' : 'Opslaan'}
+                {opslaan ? t('werk.uren.opslaanBezig') : t('werk.uren.opslaan')}
               </Button>
             </div>
           </DialogContent>
         </DialogRoot>
 
         {/* Recente registraties */}
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Recente registraties</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>{t('werk.uren.recent')}</p>
 
         {laden ? (
           <div className="flex justify-center py-10">
@@ -276,41 +284,41 @@ export default function UrenPage() {
           </div>
         ) : registraties.length === 0 ? (
           <Card>
-            <EmptyState icon={Clock} title="Nog geen uren geregistreerd" description="Log je werkuren via de knop bovenaan." />
+            <EmptyState icon={Clock} title={t('werk.uren.leegTitel')} description={t('werk.uren.leegOmschrijving')} />
           </Card>
         ) : (
-          <Table caption="Recente urenregistraties">
+          <Table caption={t('werk.uren.caption')}>
             <THead>
               <Tr>
-                <Th scope="col">Project</Th>
-                <Th scope="col">Datum</Th>
-                <Th scope="col" align="right">Uren</Th>
-                <Th scope="col" align="right">Status</Th>
-                <Th scope="col" align="right"><span className="sr-only">Acties</span></Th>
+                <Th scope="col">{t('werk.uren.projectLabel')}</Th>
+                <Th scope="col">{t('werk.uren.datum')}</Th>
+                <Th scope="col" align="right">{t('werk.uren.kolomUren')}</Th>
+                <Th scope="col" align="right">{t('werk.uren.kolomStatus')}</Th>
+                <Th scope="col" align="right"><span className="sr-only">{t('werk.uren.acties')}</span></Th>
               </Tr>
             </THead>
             <TBody>
               {registraties.slice(0, 20).map(r => (
                 <Tr key={r.id}>
                   <Td>
-                    <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{r.project}</p>
+                    <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{projectLabel(r.project)}</p>
                     {r.beschrijving && <p className="text-xs" style={{ color: 'var(--text-4)' }}>{r.beschrijving}</p>}
                   </Td>
                   <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
-                    {new Date(r.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    {new Date(r.datum).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}
                   </Td>
                   <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>{r.uren}</Td>
                   <Td align="right">
                     {r.goedgekeurd
-                      ? <Badge variant="success"><Check size={12} aria-hidden /> Goedgekeurd</Badge>
-                      : <Badge variant="neutral">In behandeling</Badge>}
+                      ? <Badge variant="success"><Check size={12} aria-hidden /> {t('werk.uren.goedgekeurd')}</Badge>
+                      : <Badge variant="neutral">{t('werk.uren.inBehandeling')}</Badge>}
                   </Td>
                   <Td align="right">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => verwijder(r.id)}
-                      aria-label={`Verwijder registratie ${r.project} op ${new Date(r.datum).toLocaleDateString('nl-BE')}`}
+                      aria-label={t('werk.uren.verwijderLabel', { project: projectLabel(r.project), datum: new Date(r.datum).toLocaleDateString(locale) })}
                       style={{ padding: 8, color: 'var(--text-3)' }}
                     >
                       <Trash2 size={16} aria-hidden />

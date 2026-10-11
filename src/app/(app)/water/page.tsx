@@ -15,6 +15,8 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 interface WaterLog {
   id: string
@@ -40,27 +42,29 @@ interface WaterDag {
 
 const SNELLE_OPTIES = [150, 250, 500, 750]
 
-function formatTijdstip(iso: string): string {
-  return new Date(iso).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+function formatTijdstip(iso: string, locale: string): string {
+  return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }
 
-function formatDatum(): string {
-  return new Date().toLocaleDateString('nl-NL', {
+function formatDatum(locale: string): string {
+  return new Date().toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   })
 }
 
-function motivatieTekst(percentage: number): string {
-  if (percentage >= 100) return 'Dagdoel behaald! Super!'
-  if (percentage >= 75) return 'Bijna! Nog een glas en je bent er!'
-  if (percentage >= 50) return 'Halverwege je doel!'
-  if (percentage >= 25) return 'Goed bezig, drink nog meer!'
-  return 'Tijd om te drinken!'
+/** Woordenboeksleutel voor de motivatietekst bij dit percentage. */
+function motivatieSleutel(percentage: number): string {
+  if (percentage >= 100) return 'lichaam.water.motivatie.behaald'
+  if (percentage >= 75) return 'lichaam.water.motivatie.bijna'
+  if (percentage >= 50) return 'lichaam.water.motivatie.halverwege'
+  if (percentage >= 25) return 'lichaam.water.motivatie.goed'
+  return 'lichaam.water.motivatie.start'
 }
 
 function WaterGlas({ percentage }: { percentage: number }) {
+  const { t } = useVertaling()
   const gevuld = Math.min(percentage, 100)
   const waterHoogte = (gevuld / 100) * 200
 
@@ -69,7 +73,7 @@ function WaterGlas({ percentage }: { percentage: number }) {
       viewBox="0 0 160 260"
       width="140"
       height="230"
-      aria-label={`Waterglas ${gevuld}% gevuld`}
+      aria-label={t('lichaam.water.glasAria', { procent: gevuld })}
       role="img"
     >
       <path
@@ -136,6 +140,8 @@ function WaterGlas({ percentage }: { percentage: number }) {
 export default function WaterPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<WaterData>({ vandaag_ml: 0, doel_ml: 2000, logs: [] })
   const [bezig, setBezig] = useState(false)
@@ -191,7 +197,7 @@ export default function WaterPagina() {
         const ds = d.toISOString().split('T')[0]
         return {
           datum: ds,
-          dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2),
+          dag: d.toLocaleDateString(locale, { weekday: 'short' }).slice(0, 2),
           totaal: totalsMap.get(ds) ?? 0,
           isVandaag: ds === vandaagStr,
         }
@@ -201,7 +207,7 @@ export default function WaterPagina() {
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, locale])
 
   async function voegToe(ml: number) {
     if (bezig) return
@@ -224,9 +230,9 @@ export default function WaterPagina() {
       vitaEvent('data_logged', { kind: 'water' })
     } else {
       const json = await res.json() as { error: string }
-      const melding = json.error ?? 'Fout bij toevoegen.'
+      const melding = (taal === 'nl' ? json.error : undefined) ?? t('lichaam.water.foutToevoegen')
       setFout(melding)
-      toast({ title: 'Toevoegen mislukt', description: melding, variant: 'error' })
+      toast({ title: t('lichaam.water.toevoegenMislukt'), description: melding, variant: 'error' })
     }
 
     setBezig(false)
@@ -245,14 +251,14 @@ export default function WaterPagina() {
         logs: prev.logs.filter(l => l.id !== id),
       }))
     } else {
-      toast({ title: 'Verwijderen mislukt', description: 'Kon deze invoer niet verwijderen. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('lichaam.voeding.verwijderenMislukt'), description: t('lichaam.water.verwijderenTekst'), variant: 'error' })
     }
   }
 
   function handleCustomToevoegen() {
     const ml = parseInt(customMl, 10)
     if (!Number.isInteger(ml) || ml <= 0 || ml > 2000) {
-      setFout('Voer een geldig aantal ml in (1–2000).')
+      setFout(t('lichaam.water.ongeldig'))
       return
     }
     voegToe(ml)
@@ -282,7 +288,7 @@ export default function WaterPagina() {
           {/* Header */}
           <header style={{ paddingTop: '2rem', marginBottom: '1.5rem' }}>
             <p style={{ color: 'var(--text-3)', fontSize: '0.85rem', margin: '0 0 4px', textTransform: 'capitalize', letterSpacing: '0.01em' }}>
-              {formatDatum()}
+              {formatDatum(locale)}
             </p>
             <ActiviteitBadge activiteit="water" />
             <h1 style={{
@@ -292,13 +298,13 @@ export default function WaterPagina() {
               margin: 0,
               letterSpacing: '-0.02em',
             }}>
-              Waterintake
+              {t('lichaam.water.titel')}
             </h1>
           </header>
 
           {/* Hero card — glas + stats */}
           <section
-            aria-label="Waterstatus vandaag"
+            aria-label={t('lichaam.water.statusAria')}
             style={{
               background: 'var(--bg-card)',
               borderRadius: 'var(--radius-xl)',
@@ -339,12 +345,12 @@ export default function WaterPagina() {
                 </span>
               </p>
               <p style={{ color: 'var(--text-3)', fontSize: '0.875rem', margin: '0.4rem 0 0' }}>
-                {percentage}% van je dagdoel
+                {t('lichaam.water.vanDagdoel', { procent: percentage })}
               </p>
               <p style={{ color: 'var(--text-4)', fontSize: '0.72rem', margin: '0.3rem 0 0' }}>
                 {doelBron === 'handmatig'
-                  ? 'Doel handmatig ingesteld in Instellingen'
-                  : 'Doel op basis van jouw gewicht & activiteit'}
+                  ? t('lichaam.water.doelHandmatig')
+                  : t('lichaam.water.doelAuto')}
               </p>
             </div>
 
@@ -380,20 +386,20 @@ export default function WaterPagina() {
               {percentage >= 100
                 ? <PartyPopper size={16} aria-hidden style={{ flexShrink: 0 }} />
                 : <Droplet size={16} aria-hidden style={{ flexShrink: 0 }} />}
-              {motivatieTekst(percentage)}
+              {t(motivatieSleutel(percentage))}
             </p>
 
             {/* 7-daagse barchart */}
             {weekData.length > 0 && weekData.some(d => d.totaal > 0) && (
               <div style={{ width: '100%' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', margin: '0 0 10px' }}>
-                  Afgelopen 7 dagen
+                  {t('lichaam.regel.zevenDagen')}
                 </p>
                 <div
                   role="img"
-                  aria-label={`Waterinname afgelopen 7 dagen: ${weekData
-                    .map(dag => `${dag.dag} ${dag.totaal} milliliter`)
-                    .join(', ')}`}
+                  aria-label={t('lichaam.water.weekAria', {
+                    dagen: weekData.map(dag => t('lichaam.water.dagMl', { dag: dag.dag, ml: dag.totaal })).join(', '),
+                  })}
                   style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}
                 >
                   {weekData.map(dag => {
@@ -425,15 +431,15 @@ export default function WaterPagina() {
               <div style={{ width: '100%' }}>
                 <EmptyState
                   icon={Droplet}
-                  title="Nog geen weekgeschiedenis"
-                  description="Log je eerste glas water om je 7-daagse trend op te bouwen."
+                  title={t('lichaam.water.geenWeekTitel')}
+                  description={t('lichaam.water.geenWeekTekst')}
                 />
               </div>
             )}
           </section>
 
           {/* Snelle toevoeg knoppen */}
-          <section aria-label="Snel water toevoegen" style={{
+          <section aria-label={t('lichaam.water.snelAria')} style={{
             background: 'var(--bg-card)',
             borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--shadow-sm)',
@@ -441,7 +447,7 @@ export default function WaterPagina() {
             marginBottom: '1rem',
           }}>
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-3)', margin: '0 0 0.875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Snel toevoegen
+              {t('lichaam.water.snel')}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
               {SNELLE_OPTIES.map(ml => (
@@ -450,7 +456,7 @@ export default function WaterPagina() {
                   type="button"
                   onClick={() => voegToe(ml)}
                   disabled={bezig}
-                  aria-label={`Voeg ${ml} milliliter water toe`}
+                  aria-label={t('lichaam.water.voegToeAria', { ml })}
                   className="mf-water-quick"
                   style={{
                     minHeight: 44,
@@ -488,7 +494,7 @@ export default function WaterPagina() {
             {/* Custom ml */}
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.875rem', alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
-                <Field label="Aangepaste hoeveelheid (ml)" htmlFor="water-custom-ml">
+                <Field label={t('lichaam.water.aangepast')} htmlFor="water-custom-ml">
                   <Input
                     ref={inputRef}
                     id="water-custom-ml"
@@ -498,7 +504,7 @@ export default function WaterPagina() {
                     value={customMl}
                     onChange={e => setCustomMl(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleCustomToevoegen()}
-                    placeholder="bijv. 300"
+                    placeholder={t('lichaam.water.placeholder')}
                   />
                 </Field>
               </div>
@@ -507,7 +513,7 @@ export default function WaterPagina() {
                 disabled={bezig || !customMl}
                 style={{ whiteSpace: 'nowrap' }}
               >
-                Toevoegen
+                {t('lichaam.voeding.toevoegen')}
               </Button>
             </div>
 
@@ -519,19 +525,19 @@ export default function WaterPagina() {
           </section>
 
           {/* Waterlog */}
-          <section aria-label="Waterlog vandaag" style={{
+          <section aria-label={t('lichaam.water.logAria')} style={{
             background: 'var(--bg-card)',
             borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--shadow-sm)',
             padding: '1.25rem 1.5rem',
           }}>
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-3)', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Vandaag gelogd
+              {t('lichaam.water.vandaagGelogd')}
             </h2>
 
             {data.logs.length === 0 ? (
               <p style={{ color: 'var(--text-4)', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>
-                Nog niets gelogd vandaag.
+                {t('lichaam.water.nogNiets')}
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -553,13 +559,13 @@ export default function WaterPagina() {
                         {log.ml}ml
                       </span>
                       <span style={{ color: 'var(--text-4)', fontSize: '0.8rem' }}>
-                        {formatTijdstip(log.tijdstip)}
+                        {formatTijdstip(log.tijdstip, locale)}
                       </span>
                     </span>
                     <button
                       type="button"
                       onClick={() => verwijder(log.id)}
-                      aria-label={`Verwijder ${log.ml}ml om ${formatTijdstip(log.tijdstip)}`}
+                      aria-label={t('lichaam.water.verwijderAria', { ml: log.ml, tijd: formatTijdstip(log.tijdstip, locale) })}
                       className="mf-water-delete"
                       style={{
                         display: 'inline-flex',

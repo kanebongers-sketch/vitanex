@@ -11,6 +11,7 @@ import { Field } from '@/components/ui/Field'
 import { StepDots } from '@/components/ui/StepDots'
 import { Textarea } from '@/components/ui/Textarea'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { REFLECTIE_VRAGEN } from './reflectieVragen'
 
 interface ReflectieVraagStapProps {
@@ -34,6 +35,7 @@ export default function ReflectieVraagStap({
   onWijzig,
   onKies,
 }: ReflectieVraagStapProps) {
+  const { t } = useVertaling()
   const vraag = REFLECTIE_VRAGEN[index]
   const totaal = REFLECTIE_VRAGEN.length
 
@@ -41,15 +43,15 @@ export default function ReflectieVraagStap({
     <Card style={{ padding: '22px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.02em' }}>
-          Vraag {index + 1} van {totaal}
+          {t('mentaal.reflectie.vraagVan', { nummer: index + 1, totaal })}
         </p>
         <StepDots
           count={totaal}
           activeIndex={index}
           completed={beantwoord}
           onSelect={onKies}
-          navLabel="Reflectievragen"
-          stepLabel={i => `Vraag ${i + 1}: ${REFLECTIE_VRAGEN[i].vraag}${beantwoord[i] ? ' (beantwoord)' : ''}`}
+          navLabel={t('mentaal.reflectie.navLabel')}
+          stepLabel={i => t(beantwoord[i] ? 'mentaal.reflectie.stapBeantwoord' : 'mentaal.reflectie.stap', { nummer: i + 1, vraag: t(`mentaal.reflectie.vraag.${REFLECTIE_VRAGEN[i].id}`) })}
           gap={2}
         />
       </div>
@@ -62,9 +64,9 @@ export default function ReflectieVraagStap({
           <VitaReflectieBegeleider fase="vraag" vraagId={vraag.id} size={40} />
         </div>
         <Field
-          label={vraag.vraag}
+          label={t(`mentaal.reflectie.vraag.${vraag.id}`)}
           htmlFor={`reflectie-${vraag.id}`}
-          hint="Eén of twee zinnen is al genoeg."
+          hint={t('mentaal.reflectie.hint')}
         >
           <Textarea
             ref={veldRef}
@@ -72,7 +74,7 @@ export default function ReflectieVraagStap({
             rows={3}
             value={waarde}
             onChange={e => onWijzig(e.target.value)}
-            placeholder={vraag.placeholder}
+            placeholder={t(`mentaal.reflectie.placeholder.${vraag.id}`)}
           />
         </Field>
       </div>
@@ -85,7 +87,7 @@ export default function ReflectieVraagStap({
           disabled={index === 0}
           onClick={() => onKies(index - 1)}
         >
-          Vorige
+          {t('mentaal.reflectie.vorige')}
         </Button>
         <Button
           variant="secondary"
@@ -94,7 +96,7 @@ export default function ReflectieVraagStap({
           disabled={index === totaal - 1}
           onClick={() => onKies(index + 1)}
         >
-          Volgende
+          {t('mentaal.reflectie.volgende')}
         </Button>
       </div>
     </Card>

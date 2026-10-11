@@ -49,14 +49,17 @@ export function emotionFromEvent(type: string): EmotionState | null {
 // Warme, eerlijke viering-teksten voor de echte mijlpalen. Bewust zonder
 // emoji-spam: rustig en premium (zie animation.md / branding.md). Eén korte
 // zin die de gebruiker écht ziet en waarmaakt wat er gebeurde.
-const CELEBRATION_MESSAGES: Partial<Record<string, string>> = {
-  goal_achieved:    'Doel bereikt. Precies zo bouw je vooruitgang op.',
-  streak_milestone: 'Je streak houdt stand — consistentie die telt.',
-  level_up:         'Nieuw level. Je companion groeit met je mee.',
+// De teksten staan in het woordenboek (vita.viering.event.*).
+const CELEBRATION_SLEUTELS: Partial<Record<string, string>> = {
+  goal_achieved:    'doelBereikt',
+  streak_milestone: 'streak',
+  level_up:         'levelUp',
 }
 
-export function celebrationMessage(type: string): string | null {
-  return CELEBRATION_MESSAGES[type] ?? null
+/** Vertaalt via de meegegeven t (useVertaling in de companion). */
+export function celebrationMessage(type: string, t: (sleutel: string) => string): string | null {
+  const sleutel = CELEBRATION_SLEUTELS[type]
+  return sleutel ? t(`vita.viering.event.${sleutel}`) : null
 }
 
 const ROUTE_MAP: Array<[string, RouteContext]> = [

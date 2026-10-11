@@ -10,6 +10,8 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { vandaag } from '@/lib/doelen/weekdoelen'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import VitaCheckinBegeleider from '@/components/vita/VitaCheckinBegeleider'
 import Link from 'next/link'
 import VraagKaart, { type Vraag } from './VraagKaart'
@@ -33,66 +35,44 @@ interface Sectie {
   vragen: Vraag[]
 }
 
-// 6 domeinen — 2 kernvragen per sectie (was 4+1, nu 2)
-const SECTIES: Sectie[] = [
-  {
-    id: 'slaap', label: 'Slaap', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)',
-    vragen: [
-      { code: 'slaap_kwaliteit', type: 'schaal', verplicht: true, min: 'Zeer slecht',       max: 'Uitstekend',      label: 'Hoe heb je deze week geslapen?' },
-      { code: 'slaap_fris',      type: 'schaal', verplicht: true, min: 'Volledig uitgeput', max: 'Fris en energiek', label: 'Hoe uitgerust voelde je je bij het opstaan?' },
-    ],
-  },
-  {
-    id: 'stress', label: 'Stress', kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)',
-    vragen: [
-      { code: 'stress_niveau',   type: 'schaal', verplicht: true, min: 'Extreem gestrest', max: 'Volledig ontspannen',  label: 'Hoe stressvrij voelde je je deze week?' },
-      { code: 'stress_controle', type: 'schaal', verplicht: true, min: 'Geen controle',    max: 'Volledig in controle', label: 'Had je het gevoel controle te hebben over je dag?' },
-    ],
-  },
-  {
-    id: 'energie', label: 'Energie', kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)',
-    vragen: [
-      { code: 'energie_niveau',   type: 'schaal', verplicht: true, min: 'Uitgeput',        max: 'Vol energie', label: 'Hoe was je energieniveau deze week?' },
-      { code: 'energie_beweging', type: 'schaal', verplicht: true, min: 'Totaal inactief', max: 'Zeer actief', label: 'Hoe actief was je buiten het werk?' },
-    ],
-  },
-  {
-    id: 'focus', label: 'Focus', kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)',
-    vragen: [
-      { code: 'focus_concentratie', type: 'schaal', verplicht: true, min: 'Totaal niet',   max: 'Uitstekend',       label: 'Hoe goed kon je je concentreren op je werk?' },
-      { code: 'focus_helderheid',   type: 'schaal', verplicht: true, min: 'Wazig en traag', max: 'Scherp en helder', label: 'Hoe helder was je hoofd deze week?' },
-    ],
-  },
-  {
-    id: 'balans', label: 'Balans', kleur: 'var(--mf-blue-mid)', licht: 'var(--mf-blue-light)',
-    vragen: [
-      { code: 'balans_werk_prive', type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Perfecte balans',   label: 'Ervaarde je een goede werk-privé balans?' },
-      { code: 'balans_herstel',    type: 'schaal', verplicht: true, min: 'Nauwelijks',    max: 'Meer dan genoeg',   label: 'Had je voldoende tijd voor herstel na het werk?' },
-    ],
-  },
-  {
-    id: 'motivatie', label: 'Motivatie', kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)',
-    vragen: [
-      { code: 'motivatie_werk',   type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Zeer gemotiveerd', label: 'Hoe gemotiveerd was je om je werk goed te doen?' },
-      { code: 'motivatie_zinvol', type: 'schaal', verplicht: true, min: 'Zinloos',       max: 'Zeer zinvol',     label: 'In welke mate vond je je werk zinvol?' },
-    ],
-  },
-]
-
-// 2 codes per domein — scores genormaliseerd ×2 om range 4–20 te houden
-const DOMEIN_CODES: Record<string, string[]> = {
-  slaap:    ['slaap_kwaliteit', 'slaap_fris'],
-  stress:   ['stress_niveau',   'stress_controle'],
-  energie:  ['energie_niveau',  'energie_beweging'],
-  focus:    ['focus_concentratie', 'focus_helderheid'],
-  balans:   ['balans_werk_prive',  'balans_herstel'],
-  motivatie:['motivatie_werk', 'motivatie_zinvol'],
+// Structuur zonder tekst: labels en vragen komen uit het woordenboek
+// (mentaal.checkin.sectie.<id> en mentaal.checkin.vraag.<code>.label/min/max).
+interface SectieBasis {
+  id:    string
+  kleur: string
+  licht: string
+  codes: readonly string[]
 }
 
-const TOTAAL_VRAGEN = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
+// 6 domeinen — 2 kernvragen per sectie (was 4+1, nu 2)
+const SECTIE_BASIS: readonly SectieBasis[] = [
+  { id: 'slaap',     kleur: 'var(--mf-purple)',   licht: 'var(--mf-purple-light)', codes: ['slaap_kwaliteit', 'slaap_fris'] },
+  { id: 'stress',    kleur: 'var(--mf-red)',      licht: 'var(--mf-red-light)',    codes: ['stress_niveau', 'stress_controle'] },
+  { id: 'energie',   kleur: 'var(--mf-amber)',    licht: 'var(--mf-amber-light)',  codes: ['energie_niveau', 'energie_beweging'] },
+  { id: 'focus',     kleur: 'var(--mf-green)',    licht: 'var(--mf-green-light)',  codes: ['focus_concentratie', 'focus_helderheid'] },
+  { id: 'balans',    kleur: 'var(--mf-blue-mid)', licht: 'var(--mf-blue-light)',   codes: ['balans_werk_prive', 'balans_herstel'] },
+  { id: 'motivatie', kleur: 'var(--mf-rose)',     licht: 'var(--mf-rose-light)',   codes: ['motivatie_werk', 'motivatie_zinvol'] },
+]
 
-// Lichte pijler-info voor het resultaatmoment (presentational prop).
-const PIJLER_INFO = SECTIES.map(s => ({ id: s.id, label: s.label, kleur: s.kleur }))
+type Vertaler = (sleutel: string, params?: Record<string, string | number>) => string
+
+function bouwSecties(t: Vertaler): Sectie[] {
+  return SECTIE_BASIS.map(s => ({
+    id: s.id, kleur: s.kleur, licht: s.licht,
+    label: t(`mentaal.checkin.sectie.${s.id}`),
+    vragen: s.codes.map(code => ({
+      code, type: 'schaal' as const, verplicht: true,
+      label: t(`mentaal.checkin.vraag.${code}.label`),
+      min:   t(`mentaal.checkin.vraag.${code}.min`),
+      max:   t(`mentaal.checkin.vraag.${code}.max`),
+    })),
+  }))
+}
+
+// 2 codes per domein — scores genormaliseerd ×2 om range 4–20 te houden
+const DOMEIN_CODES: Record<string, readonly string[]> = Object.fromEntries(SECTIE_BASIS.map(s => [s.id, s.codes]))
+
+const TOTAAL_VRAGEN = SECTIE_BASIS.reduce((sum, s) => sum + s.codes.length, 0)
 
 // Interactie-states van de check-in. Rustkleuren van de schaalknoppen staan
 // hier (niet inline) zodat hover/active via CSS kunnen; de geselecteerde staat
@@ -162,6 +142,10 @@ interface Resultaat {
 export default function CheckIn() {
   const router  = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const secties = useMemo(() => bouwSecties(t), [t])
+  // Lichte pijler-info voor het resultaatmoment (presentational prop).
+  const pijlerInfo = useMemo(() => secties.map(s => ({ id: s.id, label: s.label, kleur: s.kleur })), [secties])
   const topRef  = useRef<HTMLDivElement>(null)
 
   const [userId,          setUserId]         = useState<string | null>(null)
@@ -170,7 +154,7 @@ export default function CheckIn() {
   const [alIngevuld,      setAlIngevuld]     = useState(false)
   const [sessieId,        setSessieId]       = useState<string | null>(null)
   const [kanOpnieuw,      setKanOpnieuw]     = useState(false)
-  const [volgendeCheckin, setVolgendeCheckin]= useState('')
+  const [volgendeCheckin, setVolgendeCheckin]= useState<Date | null>(null)
 
   const [sectieIdx,  setSectieIdx]  = useState(0)
   const [antwoorden, setAntwoorden] = useState<Record<string, number>>({})
@@ -226,7 +210,7 @@ export default function CheckIn() {
         setKanOpnieuw(uren < 4)
         const volgende = new Date(sessie.aangemaakt_op)
         volgende.setDate(volgende.getDate() + 7)
-        setVolgendeCheckin(volgende.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }))
+        setVolgendeCheckin(volgende)
       }
 
       setCheckend(false)
@@ -250,19 +234,19 @@ export default function CheckIn() {
     } catch {
       toast({
         variant: 'error',
-        title: 'Opnieuw invullen mislukt',
-        description: 'Probeer het zo nog eens. Je antwoorden blijven bewaard.',
+        title: t('mentaal.checkin.opnieuwMislukt'),
+        description: t('mentaal.checkin.opnieuwMisluktTekst'),
       })
     } finally {
       setLaden(false)
     }
   }
 
-  const huidigeSectie = SECTIES[sectieIdx]
-  const totaalSecties = SECTIES.length
+  const huidigeSectie = secties[sectieIdx]
+  const totaalSecties = secties.length
 
   function sectieCompleet(idx: number, ant: Record<string, number> = antwoorden) {
-    return SECTIES[idx].vragen
+    return secties[idx].vragen
       .filter(v => v.verplicht)
       .every(v => ant[v.code] !== undefined)
   }
@@ -276,7 +260,7 @@ export default function CheckIn() {
     setFout(null)
     try {
       const rijen = Object.entries(ant).map(([code, waarde]) => {
-        const sectieObj = SECTIES.find(s => s.vragen.some(v => v.code === code))
+        const sectieObj = SECTIE_BASIS.find(s => s.codes.includes(code))
         return {
           vraag_code:    code,
           categorie:     sectieObj?.id ?? null,
@@ -307,10 +291,12 @@ export default function CheckIn() {
       setLaden(false)
       window.scrollTo(0, 0)
     } catch (err) {
-      setFout(`Opslaan mislukt: ${err instanceof Error ? err.message : String(err)}`)
+      setFout(taal === 'nl'
+        ? t('mentaal.checkin.opslaanMisluktMet', { fout: err instanceof Error ? err.message : String(err) })
+        : t('mentaal.checkin.opslaanMislukt'))
       setLaden(false)
     }
-  }, [bedrijfId, weekStart])
+  }, [bedrijfId, weekStart, t, taal])
 
   function gaNaarDoelkeuze() {
     if (!resultaat) return
@@ -354,7 +340,7 @@ export default function CheckIn() {
     if (reactieTimer.current) clearTimeout(reactieTimer.current)
     setAdvancing(true)
     setToonReactie(true)
-    setReactieSectie(SECTIES[sectieIdx])
+    setReactieSectie(secties[sectieIdx])
     advanceTimer.current = setTimeout(() => {
       setSectieIdx(s => s + 1)
       scrollTop()
@@ -373,7 +359,7 @@ export default function CheckIn() {
   useEffect(() => {
     toetsRef.current = (waarde: number) => {
       if (checkend || alIngevuld || laden || advancing || resultaat) return
-      const open = SECTIES[sectieIdx].vragen.find(v => antwoordenRef.current[v.code] === undefined)
+      const open = secties[sectieIdx].vragen.find(v => antwoordenRef.current[v.code] === undefined)
       if (open) stelIn(open.code, waarde)
     }
   })
@@ -407,11 +393,11 @@ export default function CheckIn() {
 
   // Voortgang: beantwoorde vragen over de hele check-in ("7 van 12").
   const voortgang = useMemo(() => {
-    const eerder = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
+    const eerder = secties.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
     const huidig = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
     const beantwoord = eerder + huidig
     return { beantwoord, pct: Math.round((beantwoord / TOTAAL_VRAGEN) * 100) }
-  }, [sectieIdx, huidigeSectie, antwoorden])
+  }, [sectieIdx, huidigeSectie, antwoorden, secties])
 
   // Eerstvolgende open vraag: die staat op volle sterkte, de rest is stil.
   const eersteOpenCode = huidigeSectie.vragen
@@ -424,7 +410,7 @@ export default function CheckIn() {
 
   if (checkend) return (
     <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 rounded-full border-2 animate-spin" role="status" aria-label="Laden"
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" role="status" aria-label={t('mentaal.checkin.laden')}
         style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
     </main>
   )
@@ -449,31 +435,33 @@ export default function CheckIn() {
           style={{ background: 'var(--mf-green-light)' }}>
           <Check size={24} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--mf-green)' }} />
         </div>
-        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Check-in gedaan!</h2>
-        <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-3)' }}>Je antwoorden zijn ontvangen. Tot volgende week.</p>
+        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('mentaal.checkin.gedaanTitel')}</h2>
+        <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-3)' }}>{t('mentaal.checkin.gedaanTekst')}</p>
         <p className="text-xs mb-6" style={{ color: 'var(--text-4)' }}>
-          Volgende check-in: <span className="font-medium" style={{ color: 'var(--text-2)' }}>{volgendeCheckin}</span>
+          {t('mentaal.checkin.volgende')} <span className="font-medium" style={{ color: 'var(--text-2)' }}>
+            {volgendeCheckin?.toLocaleDateString(INTL_LOCALE[taal], { weekday: 'long', day: 'numeric', month: 'long' }) ?? ''}
+          </span>
         </p>
 
         {kanOpnieuw && (
           <div className="rounded-xl p-4 mb-4 text-left"
             style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber)' }}>
-            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber)' }}>Aanpassen?</p>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-2)' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
+            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber)' }}>{t('mentaal.checkin.aanpassen')}</p>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-2)' }}>{t('mentaal.checkin.aanpassenTekst')}</p>
             <button onClick={verwijderSessie} disabled={laden}
               className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
               style={{ background: 'var(--mf-amber)', color: 'var(--bg-app)' }}>
-              {laden ? 'Bezig...' : 'Opnieuw invullen'}
+              {laden ? t('mentaal.checkin.bezig') : t('mentaal.checkin.opnieuwInvullen')}
             </button>
           </div>
         )}
 
         <div className="flex flex-col gap-3">
           <Link href="/home" className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-semibold"
-            style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>Naar dashboard</Link>
+            style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>{t('mentaal.checkin.naarDashboard')}</Link>
           <Link href="/rapport" className="w-full inline-block text-center rounded-xl py-3 text-sm"
             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
-            Bekijk mijn rapport</Link>
+            {t('mentaal.checkin.bekijkRapport')}</Link>
         </div>
       </div>
     </main>
@@ -483,7 +471,7 @@ export default function CheckIn() {
 
   if (resultaat) return (
     <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-6">
-      <CheckinResultaat pijlers={PIJLER_INFO} scores={resultaat.scores} onVerder={gaNaarDoelkeuze} />
+      <CheckinResultaat pijlers={pijlerInfo} scores={resultaat.scores} onVerder={gaNaarDoelkeuze} />
     </main>
   )
 
@@ -501,7 +489,7 @@ export default function CheckIn() {
       }}>
         <Check size={16} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--bg-app)' }} />
         <p style={{ color: 'var(--bg-app)', fontSize: 13, fontWeight: 600 }}>
-          Je wekelijkse check-in — {TOTAAL_VRAGEN} vragen, klaar in ±2 minuten.
+          {t('mentaal.checkin.banner', { aantal: TOTAAL_VRAGEN })}
         </p>
       </div>
 
@@ -512,7 +500,7 @@ export default function CheckIn() {
 
           {/* Sectie pills */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 mb-2.5" style={{ scrollbarWidth: 'none' }}>
-            {SECTIES.map((s, i) => {
+            {secties.map((s, i) => {
               const klaar  = i < sectieIdx
               const actief = i === sectieIdx
               return (
@@ -539,7 +527,7 @@ export default function CheckIn() {
           <div className="flex items-center gap-3">
             <div className="flex-1 h-1.5 overflow-hidden" style={{ borderRadius: 9999, background: 'var(--bg-subtle)' }}
               role="progressbar" aria-valuenow={voortgang.beantwoord} aria-valuemin={0} aria-valuemax={TOTAAL_VRAGEN}
-              aria-label={`Voortgang: ${voortgang.beantwoord} van ${TOTAAL_VRAGEN} vragen beantwoord`}>
+              aria-label={t('mentaal.checkin.voortgangLabel', { beantwoord: voortgang.beantwoord, totaal: TOTAAL_VRAGEN })}>
               <div className="h-full transition-all duration-500"
                 style={{ width: `${voortgang.pct}%`, background: huidigeSectie.kleur, borderRadius: 9999 }} />
             </div>
@@ -555,7 +543,7 @@ export default function CheckIn() {
 
         {/* Statuswissel voor screenreaders: welke sectie is nu aan de beurt. */}
         <p className="sr-only" role="status">
-          Sectie {sectieIdx + 1} van {totaalSecties}: {huidigeSectie.label}
+          {t('mentaal.checkin.sectieStatus', { nummer: sectieIdx + 1, totaal: totaalSecties, naam: huidigeSectie.label })}
         </p>
 
         {/* Vita loopt mee: rustige aanmoediging per pijler, korte reactie bij doorschuiven.
@@ -591,7 +579,7 @@ export default function CheckIn() {
             </div>
           </div>
           <div>
-            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{sectieIdx + 1} van {totaalSecties}</p>
+            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('mentaal.checkin.sectieVan', { nummer: sectieIdx + 1, totaal: totaalSecties })}</p>
             <h1 className="text-lg font-bold" style={{ color: 'var(--text-1)' }}>{huidigeSectie.label}</h1>
           </div>
         </div>
@@ -627,7 +615,7 @@ export default function CheckIn() {
               borderColor: 'var(--border)', color: 'var(--text-3)', background: 'var(--bg-card)',
               visibility: sectieIdx === 0 ? 'hidden' : 'visible',
             }}>
-            Vorige
+            {t('mentaal.checkin.vorige')}
           </button>
           <button
             onClick={volgendeSectie}
@@ -641,21 +629,21 @@ export default function CheckIn() {
               boxShadow: isLaatsteSectie ? 'var(--shadow-md)' : undefined,
             }}>
             {laden && <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />}
-            {laden ? 'Opslaan...' : advancing ? 'Volgende...' : isLaatsteSectie ? 'Afronden' : 'Volgende'}
+            {laden ? t('mentaal.checkin.opslaan') : advancing ? t('mentaal.checkin.volgendeBezig') : isLaatsteSectie ? t('mentaal.checkin.afronden') : t('mentaal.checkin.volgendeKnop')}
           </button>
         </div>
 
         {/* Hint houdt zijn regelruimte vast — geen layout-shift bij voltooien */}
         <p className="text-xs text-center mt-3" aria-hidden={huidigCompleet}
           style={{ color: 'var(--text-4)', minHeight: '1rem', opacity: huidigCompleet ? 0 : 1, transition: 'opacity 0.2s var(--ease)' }}>
-          Beantwoord beide vragen om door te gaan.
+          {t('mentaal.checkin.beantwoordBeide')}
         </p>
         <p className="mf-toets-tip text-xs text-center mt-1" style={{ color: 'var(--text-4)' }}>
-          Tip: toets 1–5 beantwoordt de open vraag.
+          {t('mentaal.checkin.toetsTip')}
         </p>
 
         <p className="text-xs text-center mt-5 pb-6" style={{ color: 'var(--text-4)' }}>
-          Je antwoorden worden beveiligd opgeslagen.
+          {t('mentaal.checkin.beveiligd')}
         </p>
       </div>
 

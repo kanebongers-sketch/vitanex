@@ -6,7 +6,9 @@ import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { ALLE_ACHIEVEMENTS, type Achievement } from '@/lib/xp/xp'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import SectieKop from './SectieKop'
+import { mijlpaalBeschrijving, mijlpaalNaam } from './xpTeksten'
 
 const ICOON: Record<string, ReactNode> = {
   eerste_checkin: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>,
@@ -24,6 +26,7 @@ const ICOON: Record<string, ReactNode> = {
 }
 
 function MijlpaalRij({ mijlpaal, behaald }: { mijlpaal: Achievement; behaald: boolean }) {
+  const { t } = useVertaling()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: behaald ? 1 : 0.55 }}>
       <div style={{
@@ -39,10 +42,10 @@ function MijlpaalRij({ mijlpaal, behaald }: { mijlpaal: Achievement; behaald: bo
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: behaald ? 'var(--text-1)' : 'var(--text-3)' }}>
-          {mijlpaal.naam}
-          <span className="sr-only">{behaald ? ' — behaald' : ' — nog niet behaald'}</span>
+          {mijlpaalNaam(mijlpaal, t)}
+          <span className="sr-only">{behaald ? t('voortgang.mijlpalen.srBehaald') : t('voortgang.mijlpalen.srNietBehaald')}</span>
         </p>
-        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{mijlpaal.beschrijving}</p>
+        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{mijlpaalBeschrijving(mijlpaal, t)}</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <span style={{
@@ -63,12 +66,13 @@ function MijlpaalRij({ mijlpaal, behaald }: { mijlpaal: Achievement; behaald: bo
 }
 
 export default function Mijlpalen({ behaaldeIds }: { behaaldeIds: readonly string[] }) {
+  const { t } = useVertaling()
   const behaald = ALLE_ACHIEVEMENTS.filter(a => behaaldeIds.includes(a.id)).length
   return (
     <Card style={{ padding: '22px 24px', marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <SectieKop style={{ margin: 0 }}>Mijlpalen</SectieKop>
-        <Badge variant="accent">{behaald} van {ALLE_ACHIEVEMENTS.length}</Badge>
+        <SectieKop style={{ margin: 0 }}>{t('voortgang.mijlpalen.kop')}</SectieKop>
+        <Badge variant="accent">{t('voortgang.mijlpalen.teller', { n: behaald, totaal: ALLE_ACHIEVEMENTS.length })}</Badge>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
         {ALLE_ACHIEVEMENTS.map(mijlpaal => (

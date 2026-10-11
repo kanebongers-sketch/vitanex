@@ -22,6 +22,8 @@ import SectieKop from './SectieKop'
 import TrendOverzicht from './TrendOverzicht'
 import WeekTrends from './WeekTrends'
 import { berekenStreaks, berekenWeekStats, type StreakData, type WeekStats } from './trend'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 interface Totalen {
   checkins: number
@@ -37,15 +39,17 @@ const LEGE_TOTALEN: Totalen = {
   stemming_logs: 0, slaap_logs: 0, stress_logs: 0,
 }
 
-const QUICK_LINKS: Array<{ href: string; label: string; tekst: string; kleur: string; Icon: LucideIcon }> = [
-  { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: 'var(--mf-purple)', Icon: Sparkles },
-  { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mentaforce-primary)', Icon: Sprout },
-  { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: 'var(--mf-purple)', Icon: Brain },
-  { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: 'var(--mf-amber)', Icon: Award },
+/** `sleutel` wijst naar voortgang.voortgangPagina.links.<sleutel>.{label,tekst}. */
+const QUICK_LINKS: Array<{ href: string; sleutel: string; kleur: string; Icon: LucideIcon }> = [
+  { href: '/inzichten', sleutel: 'inzichten', kleur: 'var(--mf-purple)', Icon: Sparkles },
+  { href: '/groeiplan', sleutel: 'groeiplan', kleur: 'var(--mentaforce-primary)', Icon: Sprout },
+  { href: '/mentale-sterkte', sleutel: 'mentaleSterkte', kleur: 'var(--mf-purple)', Icon: Brain },
+  { href: '/achievements', sleutel: 'achievements', kleur: 'var(--mf-amber)', Icon: Award },
 ]
 
 /** Skeleton met dezelfde bloklayout als de geladen pagina — geen layout-shift. */
 function LaadStaat() {
+  const { t } = useVertaling()
   const blokken = [
     { hoogte: 210, label: 'trend' },
     { hoogte: 440, label: 'grafieken' },
@@ -54,7 +58,7 @@ function LaadStaat() {
   ]
   return (
     <div aria-busy="true">
-      <p className="sr-only" role="status">Je voortgang wordt geladen.</p>
+      <p className="sr-only" role="status">{t('voortgang.niveauPagina.laden')}</p>
       {blokken.map(blok => (
         <div key={blok.label} className="vg-skelet" aria-hidden="true"
           style={{ height: blok.hoogte, marginBottom: 20 }} />
@@ -64,6 +68,7 @@ function LaadStaat() {
 }
 
 export default function VoortgangPage() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [weekStats, setWeekStats] = useState<WeekStats[]>([])
@@ -116,11 +121,11 @@ export default function VoortgangPage() {
         stress: stressData.logs ?? [],
         focus: focusData.logs ?? [],
         checkinDatums: checkins.map((c: { aangemaakt_op: string }) => c.aangemaakt_op),
-      }))
+      }, INTL_LOCALE[taal]))
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, taal])
 
   useEffect(() => {
     if (laden || animKlaar) return
@@ -136,12 +141,12 @@ export default function VoortgangPage() {
   }, [laden, animKlaar])
 
   const METRICS = [
-    { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: 'var(--mentaforce-primary)', bg: 'var(--mentaforce-primary-light)', href: '/checkin' },
-    { label: 'Focus', waarde: totalen.focus_minuten, eenheid: 'min', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/focus' },
-    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/dankbaarheid' },
-    { label: 'Stemming', waarde: totalen.stemming_logs, eenheid: 'logs', kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', href: '/stemming' },
-    { label: 'Slaap', waarde: totalen.slaap_logs, eenheid: 'nachten', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/slaap' },
-    { label: 'Stress', waarde: totalen.stress_logs, eenheid: 'logs', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/stress' },
+    { label: t('voortgang.voortgangPagina.metriek.checkins'), waarde: totalen.checkins, eenheid: t('voortgang.voortgangPagina.eenheid.keer'), kleur: 'var(--mentaforce-primary)', bg: 'var(--mentaforce-primary-light)', href: '/checkin' },
+    { label: t('voortgang.voortgangPagina.metriek.focus'), waarde: totalen.focus_minuten, eenheid: t('voortgang.voortgangPagina.eenheid.min'), kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/focus' },
+    { label: t('voortgang.voortgangPagina.metriek.dankbaar'), waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/dankbaarheid' },
+    { label: t('voortgang.voortgangPagina.metriek.stemming'), waarde: totalen.stemming_logs, eenheid: t('voortgang.voortgangPagina.eenheid.logs'), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', href: '/stemming' },
+    { label: t('voortgang.voortgangPagina.metriek.slaap'), waarde: totalen.slaap_logs, eenheid: t('voortgang.voortgangPagina.eenheid.nachten'), kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/slaap' },
+    { label: t('voortgang.voortgangPagina.metriek.stress'), waarde: totalen.stress_logs, eenheid: t('voortgang.voortgangPagina.eenheid.logs'), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/stress' },
   ]
 
   const heeftData = totalen.checkins > 0 || totalen.stemming_logs > 0 || totalen.slaap_logs > 0
@@ -153,9 +158,9 @@ export default function VoortgangPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn voortgang</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('voortgang.voortgangPagina.titel')}</h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Het lange-termijnbeeld: trends over 4 weken en totalen over 30 dagen.
+            {t('voortgang.voortgangPagina.intro')}
           </p>
         </div>
 
@@ -174,10 +179,10 @@ export default function VoortgangPage() {
               </div>
             </div>
             <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>
-              Je reis begint hier
+              {t('voortgang.voortgangPagina.leegKop')}
             </p>
             <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 360, margin: '0 auto 24px' }}>
-              Doe je eerste check-in en log je stemming, slaap en focus. Jouw voortgang verschijnt hier zodra je data hebt verzameld.
+              {t('voortgang.voortgangPagina.leegTekst')}
             </p>
             <Link href="/checkin" className="vg-cta" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -185,7 +190,7 @@ export default function VoortgangPage() {
               color: 'var(--bg-app)', fontWeight: 700, fontSize: 15,
               padding: '14px 32px', borderRadius: 'var(--radius-btn)', textDecoration: 'none',
             }}>
-              Start je eerste check-in
+              {t('voortgang.voortgangPagina.leegKnop')}
               <ChevronRight size={16} aria-hidden />
             </Link>
           </Card>
@@ -199,9 +204,9 @@ export default function VoortgangPage() {
 
             {/* 3. Totalen — naslag over de hele periode */}
             <Card style={{ padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
-              <SectieKop style={{ marginBottom: 4 }}>Totaal gelogd (30 dagen)</SectieKop>
+              <SectieKop style={{ marginBottom: 4 }}>{t('voortgang.voortgangPagina.totaalKop')}</SectieKop>
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
-                Alles wat je in deze periode logde — tik op een tegel om direct verder te gaan.
+                {t('voortgang.voortgangPagina.totaalIntro')}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
                 {METRICS.map(m => (
@@ -215,7 +220,7 @@ export default function VoortgangPage() {
 
             {/* 4. Verdieping */}
             <section>
-              <SectieKop>Verder verdiepen</SectieKop>
+              <SectieKop>{t('voortgang.voortgangPagina.verdiepen')}</SectieKop>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
                 {QUICK_LINKS.map(item => (
                   <Link key={item.href} href={item.href} className="mf-lift" style={{ textDecoration: 'none', display: 'block', borderRadius: 'var(--radius-card)' }}>
@@ -224,8 +229,8 @@ export default function VoortgangPage() {
                         <item.Icon size={20} aria-hidden />
                       </div>
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{item.label}</p>
-                        <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.tekst}</p>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{t(`voortgang.voortgangPagina.links.${item.sleutel}.label`)}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t(`voortgang.voortgangPagina.links.${item.sleutel}.tekst`)}</p>
                       </div>
                       <ChevronRight size={14} aria-hidden style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-4)' }} />
                     </Card>

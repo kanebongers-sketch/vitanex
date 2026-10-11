@@ -11,25 +11,36 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const BreathingSphere = nextDynamic(() => import('@/components/three/BreathingSphere'), { ssr: false })
 
+// Teksten in het woordenboek: mentaal.ademhaling.techniek.<sleutel>.naam /
+// .beschrijving / .doel / .waarschuwing. De fasenaam hieronder is een interne
+// sleutel (ook voor de 3D-bol); het label komt uit mentaal.ademhaling.fase.
 interface Techniek {
   id: string
-  naam: string
-  beschrijving: string
-  fasen: { naam: string; seconden: number; kleur: string }[]
+  sleutel: string
+  fasen: { naam: FaseNaam; seconden: number; kleur: string }[]
   rondes: number
-  doel: string
-  waarschuwing?: string
+  heeftWaarschuwing?: boolean
+}
+
+type FaseNaam = 'Inademen' | 'Vasthouden' | 'Uitademen' | 'Snel inademen' | 'Loslaten' | 'Retentie'
+
+const FASE_SLEUTEL: Record<FaseNaam, string> = {
+  'Inademen': 'inademen',
+  'Vasthouden': 'vasthouden',
+  'Uitademen': 'uitademen',
+  'Snel inademen': 'snelInademen',
+  'Loslaten': 'loslaten',
+  'Retentie': 'retentie',
 }
 
 const TECHNIEKEN: Techniek[] = [
   {
     id: '478',
-    naam: '4-7-8 ontspanning',
-    beschrijving: 'Kalmeert het zenuwstelsel, helpt bij stress en slaap.',
-    doel: 'Ontspanning & slaap',
+    sleutel: 'ontspanning478',
     rondes: 4,
     fasen: [
       { naam: 'Inademen', seconden: 4, kleur: 'var(--mf-green)' },
@@ -39,9 +50,7 @@ const TECHNIEKEN: Techniek[] = [
   },
   {
     id: 'box',
-    naam: 'Box breathing',
-    beschrijving: 'Gelijkmatig 4-4-4-4 ritme. Verbetert focus en kalmte onder druk.',
-    doel: 'Focus & stressreductie',
+    sleutel: 'box',
     rondes: 4,
     fasen: [
       { naam: 'Inademen', seconden: 4, kleur: 'var(--mf-green)' },
@@ -52,9 +61,7 @@ const TECHNIEKEN: Techniek[] = [
   },
   {
     id: 'coherent',
-    naam: 'Coherente ademhaling',
-    beschrijving: '5 ademhalingen per minuut; ondersteunt hartritmevariabiliteit en balans.',
-    doel: 'Hart-brein coherentie',
+    sleutel: 'coherent',
     rondes: 5,
     fasen: [
       { naam: 'Inademen', seconden: 6, kleur: 'var(--mf-green)' },
@@ -63,11 +70,9 @@ const TECHNIEKEN: Techniek[] = [
   },
   {
     id: 'wim',
-    naam: 'Powerademhaling',
-    beschrijving: 'Energiegevende hyperventilatie gevolgd door retentie.',
-    doel: 'Energie & vitaliteit',
+    sleutel: 'power',
     rondes: 3,
-    waarschuwing: 'Doe deze oefening altijd zittend of liggend, nooit in het water of achter het stuur. Niet doen bij zwangerschap, epilepsie of hartklachten. Stop direct als je je duizelig voelt.',
+    heeftWaarschuwing: true,
     fasen: [
       { naam: 'Snel inademen', seconden: 2, kleur: 'var(--mf-amber)' },
       { naam: 'Loslaten', seconden: 2, kleur: 'var(--mf-red)' },
@@ -79,6 +84,9 @@ const TECHNIEKEN: Techniek[] = [
 export default function AdemhalingPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
+  const tekst = (tk: Techniek, veld: 'naam' | 'beschrijving' | 'doel' | 'waarschuwing') => t(`mentaal.ademhaling.techniek.${tk.sleutel}.${veld}`)
+  const faseLabel = (naam: FaseNaam) => t(`mentaal.ademhaling.fase.${FASE_SLEUTEL[naam]}`)
   const [gekozen, setGekozen] = useState<Techniek | null>(null)
   const [bezig, setBezig] = useState(false)
   const [klaar, setKlaar] = useState(false)
@@ -135,7 +143,7 @@ export default function AdemhalingPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type: 'adem', duur_minuten: Math.max(1, duur) }),
                   }).catch(() => {
-                    toast({ title: 'Sessie niet opgeslagen', description: 'Je oefening telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+                    toast({ title: t('mentaal.ademhaling.nietOpgeslagen'), description: t('mentaal.ademhaling.nietOpgeslagenTekst'), variant: 'warning' })
                   })
                   return volgendeRonde
                 }
@@ -172,6 +180,7 @@ export default function AdemhalingPage() {
   const offset = circ * (1 - cirkelPct)
 
   const faseNaam = huidigeF?.naam ?? ''
+  const faseTekst = huidigeF ? faseLabel(huidigeF.naam) : ''
   const schaal = (() => {
     if (!huidigeF || !bezig) return 1
     const ratio = 1 - (countdown / huidigeF.seconden)
@@ -193,22 +202,22 @@ export default function AdemhalingPage() {
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }}>
 
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 6 }}>Ademhalingsoefeningen</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 28 }}>Bewezen technieken om stress te verminderen en focus te verbeteren.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 6 }}>{t('mentaal.ademhaling.titel')}</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 28 }}>{t('mentaal.ademhaling.intro')}</p>
 
         {!bezig && !klaar ? (
           <>
             {/* Technieken grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
-              {TECHNIEKEN.map(t => {
-                const isGekozen = gekozen?.id === t.id
+              {TECHNIEKEN.map(tk => {
+                const isGekozen = gekozen?.id === tk.id
                 return (
                   <button
-                    key={t.id}
+                    key={tk.id}
                     type="button"
-                    onClick={() => setGekozen(t)}
+                    onClick={() => setGekozen(tk)}
                     aria-pressed={isGekozen}
-                    aria-label={`Kies ${t.naam} — ${t.doel}`}
+                    aria-label={t('mentaal.ademhaling.kiesLabel', { naam: tekst(tk, 'naam'), doel: tekst(tk, 'doel') })}
                     className="mf-pressable"
                     style={{
                       display: 'block', width: '100%', textAlign: 'left',
@@ -220,15 +229,15 @@ export default function AdemhalingPage() {
                     }}
                   >
                     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }} aria-hidden>
-                      {t.fasen.map((f, fi) => (
+                      {tk.fasen.map((f, fi) => (
                         <div key={fi} style={{ height: 4, flex: f.seconden, borderRadius: 100, background: f.kleur }} />
                       ))}
                     </div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{tekst(tk, 'naam')}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{tekst(tk, 'beschrijving')}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mentaforce-primary)', background: 'var(--mentaforce-primary-light)', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mentaforce-primary)', background: 'var(--mentaforce-primary-light)', padding: '2px 8px', borderRadius: 100 }}>{tekst(tk, 'doel')}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('mentaal.ademhaling.rondesMin', { rondes: tk.rondes, min: Math.round((tk.fasen.reduce((s, f) => s + f.seconden, 0) * tk.rondes) / 60) })}</span>
                     </div>
                   </button>
                 )
@@ -237,12 +246,12 @@ export default function AdemhalingPage() {
 
             {gekozen && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16 }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>Fasen — {gekozen.naam}</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>{t('mentaal.ademhaling.fasen', { naam: tekst(gekozen, 'naam') })}</p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {gekozen.fasen.map((f, i) => (
                     <div key={i} style={{ flex: 1, textAlign: 'center' }}>
                       <div style={{ height: 6, background: f.kleur, borderRadius: 100, marginBottom: 6 }} />
-                      <p style={{ fontSize: 11, fontWeight: 600, color: f.kleur }}>{f.naam}</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: f.kleur }}>{faseLabel(f.naam)}</p>
                       <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{f.seconden}s</p>
                     </div>
                   ))}
@@ -250,15 +259,15 @@ export default function AdemhalingPage() {
               </div>
             )}
 
-            {gekozen?.waarschuwing && (
+            {gekozen?.heeftWaarschuwing && (
               <div role="note" style={{
                 background: 'var(--mf-amber-light)',
                 border: '1px solid color-mix(in srgb, var(--mf-amber) 45%, transparent)',
                 borderRadius: 14, padding: '12px 16px', marginBottom: 16,
                 fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55,
               }}>
-                <strong style={{ color: 'var(--mf-amber-dark)' }}>Veiligheid: </strong>
-                {gekozen.waarschuwing}
+                <strong style={{ color: 'var(--mf-amber-dark)' }}>{t('mentaal.ademhaling.veiligheid')} </strong>
+                {tekst(gekozen, 'waarschuwing')}
               </div>
             )}
 
@@ -266,7 +275,7 @@ export default function AdemhalingPage() {
               type="button"
               onClick={start}
               disabled={!gekozen}
-              aria-label={gekozen ? `Start ${gekozen.naam}` : 'Kies eerst een techniek'}
+              aria-label={gekozen ? t('mentaal.ademhaling.startLabel', { naam: tekst(gekozen, 'naam') }) : t('mentaal.ademhaling.kiesEerst')}
               className="mf-pressable"
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -275,44 +284,44 @@ export default function AdemhalingPage() {
                 opacity: gekozen ? 1 : 0.4,
               }}
             >
-              Start oefening
+              {t('mentaal.ademhaling.start')}
               <ArrowRight size={17} aria-hidden />
             </button>
           </>
         ) : klaar ? (
-          <section aria-label="Oefening voltooid" style={{ textAlign: 'center', padding: '40px 0' }}>
+          <section aria-label={t('mentaal.ademhaling.voltooid')} style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, color: 'var(--mentaforce-primary)' }}>
               <Sparkles size={48} aria-hidden strokeWidth={1.75} />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>{t('mentaal.ademhaling.goedGedaan')}</h2>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 28 }}>
-              Je hebt {gekozen?.rondes} rondes {gekozen?.naam} voltooid.<br/>
-              Neem even de tijd om de rust te voelen.
+              {gekozen ? t('mentaal.ademhaling.voltooidTekst', { rondes: gekozen.rondes, naam: tekst(gekozen, 'naam') }) : ''}<br/>
+              {t('mentaal.ademhaling.voelRust')}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button type="button" onClick={() => { setKlaar(false); setGekozen(null) }} className="mf-pressable" style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid var(--border-strong)', background: 'var(--bg-card)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
-                Andere oefening
+                {t('mentaal.ademhaling.andere')}
               </button>
               <button type="button" onClick={start} className="mf-pressable" style={{ padding: '12px 24px', borderRadius: 12, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
-                Herhalen
+                {t('mentaal.ademhaling.herhalen')}
               </button>
             </div>
           </section>
         ) : (
           /* Actieve sessie */
-          <section aria-label={`Actieve oefening: ${gekozen!.naam}`} style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
+          <section aria-label={t('mentaal.ademhaling.actief', { naam: tekst(gekozen!, 'naam') })} style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
             {/* Meldt alléén de fasewissel aan screenreaders (tekst verandert enkel bij een nieuwe fase). */}
             <div aria-live="polite" className="sr-only">
-              {huidigeF ? `${faseNaam}, ${huidigeF.seconden} seconden` : ''}
+              {huidigeF ? t('mentaal.ademhaling.faseSr', { fase: faseTekst, seconden: huidigeF.seconden }) : ''}
             </div>
             <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 24 }}>
-              Ronde {ronde + 1} van {gekozen!.rondes}
+              {t('mentaal.ademhaling.ronde', { nummer: ronde + 1, totaal: gekozen!.rondes })}
             </p>
 
             {/* Cirkel + 3D bol */}
             <div
               role="img"
-              aria-label={`${faseNaam}, nog ${countdown} seconden — ronde ${ronde + 1} van ${gekozen!.rondes}`}
+              aria-label={t('mentaal.ademhaling.cirkelLabel', { fase: faseTekst, seconden: countdown, nummer: ronde + 1, totaal: gekozen!.rondes })}
               style={{ position: 'relative', display: 'inline-block', marginBottom: 28, width: 200, height: 200 }}
             >
               {/* 3D ademhalingssphere */}
@@ -337,14 +346,14 @@ export default function AdemhalingPage() {
                   {countdown}
                 </text>
                 <text x="100" y="125" textAnchor="middle" style={{ fontSize: 13, fill: huidigeF?.kleur, fontWeight: 700 }}>
-                  {huidigeF?.naam}
+                  {faseTekst}
                 </text>
               </svg>
             </div>
 
             <div
               role="img"
-              aria-label={`Fase ${fase + 1} van ${gekozen!.fasen.length}`}
+              aria-label={t('mentaal.ademhaling.faseVan', { nummer: fase + 1, totaal: gekozen!.fasen.length })}
               style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}
             >
               {gekozen!.fasen.map((f, i) => (
@@ -355,12 +364,12 @@ export default function AdemhalingPage() {
             <button
               type="button"
               onClick={stop}
-              aria-label="Oefening stoppen (of druk op Escape)"
+              aria-label={t('mentaal.ademhaling.stoppenLabel')}
               className="mf-pressable"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, border: '1px solid var(--border-strong)', background: 'var(--bg-card)', color: 'var(--text-3)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
             >
               <Square size={14} aria-hidden />
-              Stoppen
+              {t('mentaal.ademhaling.stoppen')}
             </button>
           </section>
         )}

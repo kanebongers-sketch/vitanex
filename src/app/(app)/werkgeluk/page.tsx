@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Angry, Frown, Meh, Smile, Laugh, type LucideIcon } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 interface GeschiedenisItem {
   datum: string
   score: number
@@ -36,15 +38,17 @@ function scoreIcoon(score: number): LucideIcon {
   return Laugh
 }
 
+/** Woordenboek-sleutel van het label bij een score. */
 function scoreLabel(score: number): string {
-  if (score <= 2) return 'Heel slecht'
-  if (score <= 4) return 'Niet zo goed'
-  if (score <= 6) return 'Oké'
-  if (score <= 8) return 'Goed'
-  return 'Super!'
+  if (score <= 2) return 'werk.werkgeluk.label.heelSlecht'
+  if (score <= 4) return 'werk.werkgeluk.label.nietZoGoed'
+  if (score <= 6) return 'werk.werkgeluk.label.prima'
+  if (score <= 8) return 'werk.werkgeluk.label.goed'
+  return 'werk.werkgeluk.label.super'
 }
 
 function Sparkline({ data }: { data: GeschiedenisItem[] }) {
+  const { t } = useVertaling()
   if (data.length < 2) return null
 
   const gesorteerd = [...data].sort((a, b) => a.datum.localeCompare(b.datum))
@@ -70,7 +74,7 @@ function Sparkline({ data }: { data: GeschiedenisItem[] }) {
     <svg
       viewBox={`0 0 ${breedte} ${hoogte}`}
       style={{ width: '100%', height: hoogte, display: 'block' }}
-      aria-label="30-daagse werkgeluk grafiek"
+      aria-label={t('werk.werkgeluk.grafiekLabel')}
     >
       <defs>
         <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
@@ -89,6 +93,8 @@ function Sparkline({ data }: { data: GeschiedenisItem[] }) {
 
 export default function WerkgelukPagina() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<WerkgelukData | null>(null)
   const [score, setScore] = useState(7)
@@ -156,10 +162,10 @@ export default function WerkgelukPagina() {
         }, 2000)
       } else {
         const json = await res.json() as { error?: string }
-        setFout(json.error ?? 'Er ging iets mis.')
+        setFout((taal === 'nl' ? json.error : undefined) ?? t('werk.werkgeluk.ietsMis'))
       }
     } catch {
-      setFout('Verbindingsfout. Probeer opnieuw.')
+      setFout(t('werk.werkgeluk.verbinding'))
     }
     setOpslaan(false)
   }
@@ -188,10 +194,10 @@ export default function WerkgelukPagina() {
             fontSize: 24, fontWeight: 800, color: 'var(--text-1)',
             letterSpacing: '-0.03em', marginBottom: 4,
           }}>
-            Werkgeluk check
+            {t('werk.werkgeluk.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
-            Hoe blij ben jij vandaag met je werk? Één meting per dag.
+            {t('werk.werkgeluk.intro')}
           </p>
         </header>
 
@@ -220,7 +226,7 @@ export default function WerkgelukPagina() {
                 const Icoon = scoreIcoon(score)
                 return <Icoon size={22} strokeWidth={1.75} aria-hidden="true" style={{ color: kleur, marginTop: 4, transition: 'color 0.25s ease' }} />
               })()}
-              <span style={{ fontSize: 11, fontWeight: 700, color: kleur, marginTop: 3, transition: 'color 0.25s ease' }}>{scoreLabel(score)}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: kleur, marginTop: 3, transition: 'color 0.25s ease' }}>{t(scoreLabel(score))}</span>
             </div>
           </div>
 
@@ -231,7 +237,7 @@ export default function WerkgelukPagina() {
               max={10}
               step={1}
               value={score}
-              aria-label={`Werkgeluk score: ${score} van 10, ${scoreLabel(score)}`}
+              aria-label={t('werk.werkgeluk.sliderLabel', { score, label: t(scoreLabel(score)) })}
               onChange={e => setScore(Number(e.target.value))}
               style={{
                 width: '100%', height: 6, appearance: 'none',
@@ -240,12 +246,12 @@ export default function WerkgelukPagina() {
                 transition: 'background 0.25s ease', color: kleur,
               }}
             />
-            <div role="group" aria-label="Kies een werkgeluk score van 1 tot 10" style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <div role="group" aria-label={t('werk.werkgeluk.kiesScore')} style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
               {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                 <button
                   key={n}
                   onClick={() => setScore(n)}
-                  aria-label={`Score ${n} van 10`}
+                  aria-label={t('werk.werkgeluk.scoreVan', { n })}
                   aria-pressed={score === n}
                   style={{
                     width: 28, height: 28, borderRadius: 8, border: 'none',
@@ -264,11 +270,11 @@ export default function WerkgelukPagina() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, padding: '0 2px' }}>
             {[
-              { bereik: '1-2', Icoon: Angry, omschrijving: 'Heel slecht' },
-              { bereik: '3-4', Icoon: Frown, omschrijving: 'Niet goed' },
-              { bereik: '5-6', Icoon: Meh, omschrijving: 'Oké' },
-              { bereik: '7-8', Icoon: Smile, omschrijving: 'Goed' },
-              { bereik: '9-10', Icoon: Laugh, omschrijving: 'Super!' },
+              { bereik: '1-2', Icoon: Angry, omschrijving: t('werk.werkgeluk.label.heelSlecht') },
+              { bereik: '3-4', Icoon: Frown, omschrijving: t('werk.werkgeluk.label.nietGoed') },
+              { bereik: '5-6', Icoon: Meh, omschrijving: t('werk.werkgeluk.label.prima') },
+              { bereik: '7-8', Icoon: Smile, omschrijving: t('werk.werkgeluk.label.goed') },
+              { bereik: '9-10', Icoon: Laugh, omschrijving: t('werk.werkgeluk.label.super') },
             ].map(item => (
               <div key={item.bereik} style={{ textAlign: 'center', flex: 1 }}>
                 <item.Icoon size={16} strokeWidth={1.75} role="img" aria-label={item.omschrijving} style={{ color: 'var(--text-3)', display: 'inline-block' }} />
@@ -288,13 +294,13 @@ export default function WerkgelukPagina() {
             htmlFor="werkgeluk-notitie"
             style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8 }}
           >
-            Notitie <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>(optioneel)</span>
+            {t('werk.werkgeluk.notitie')} <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>{t('werk.werkgeluk.optioneel')}</span>
           </label>
           <textarea
             id="werkgeluk-notitie"
             value={notitie}
             onChange={e => setNotitie(e.target.value)}
-            placeholder="Wat maakt je dag goed of minder goed?"
+            placeholder={t('werk.werkgeluk.notitiePlaceholder')}
             maxLength={500}
             rows={3}
             style={{
@@ -329,12 +335,12 @@ export default function WerkgelukPagina() {
           }}
         >
           {succes
-            ? 'Opgeslagen!'
+            ? t('werk.werkgeluk.opgeslagen')
             : opslaan
-            ? 'Opslaan...'
+            ? t('werk.werkgeluk.opslaan')
             : isNieuw
-            ? 'Vandaag invullen'
-            : 'Bijwerken'}
+            ? t('werk.werkgeluk.vandaagInvullen')
+            : t('werk.werkgeluk.bijwerken')}
         </button>
 
         {succes && aantalDagen > 0 && (
@@ -343,7 +349,7 @@ export default function WerkgelukPagina() {
             borderRadius: 14, border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)', marginBottom: 24,
             fontSize: 14, color: 'var(--mf-green-dark)', fontWeight: 600,
           }}>
-            Je hebt dit {aantalDagen} {aantalDagen === 1 ? 'dag' : 'dagen'} bijgehouden
+            {aantalDagen === 1 ? t('werk.werkgeluk.bijgehoudenEen') : t('werk.werkgeluk.bijgehoudenMeer', { aantal: aantalDagen })}
           </div>
         )}
 
@@ -361,10 +367,10 @@ export default function WerkgelukPagina() {
                   fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 2,
                 }}>
-                  Afgelopen 30 dagen
+                  {t('werk.werkgeluk.afgelopen30')}
                 </p>
                 <p style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>
-                  Jouw werkgeluk trend
+                  {t('werk.werkgeluk.trend')}
                 </p>
               </div>
               {data.gemiddelde !== null && (
@@ -381,7 +387,7 @@ export default function WerkgelukPagina() {
                     {data.gemiddelde}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
-                    gemiddeld
+                    {t('werk.werkgeluk.gemiddeld')}
                   </div>
                 </div>
               )}
@@ -402,7 +408,7 @@ export default function WerkgelukPagina() {
                     const s = dagMap.get(dag)
                     const isVandaag = dag === vandaagStr
                     const kleur = s !== undefined ? scoreKleur(s) : 'var(--bg-subtle)'
-                    const dagNaam = new Date(dag + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2)
+                    const dagNaam = new Date(dag + 'T12:00:00').toLocaleDateString(locale, { weekday: 'short' }).slice(0, 2)
                     return (
                       <div key={dag} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                         <div style={{
@@ -432,10 +438,10 @@ export default function WerkgelukPagina() {
               return (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                   <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    {new Date(eerste.datum + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    {new Date(eerste.datum + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                   </span>
                   <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    {new Date(laatste.datum + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    {new Date(laatste.datum + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                   </span>
                 </div>
               )

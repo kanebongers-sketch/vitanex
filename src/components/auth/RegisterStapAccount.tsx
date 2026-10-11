@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { isEmailGeldig, berekenWachtwoordSterkte } from './register-helpers'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface GoogleSsoKnopProps {
   label: string
@@ -59,32 +60,33 @@ export function RegisterStapAccount({
   onToonWachtwoordToggle, onAkkoordChange, onNieuwsbriefChange,
   onGoogle, onTerug, onRegistreer,
 }: RegisterStapAccountProps) {
+  const { t } = useVertaling()
   const emailGeldig = isEmailGeldig(email)
-  const emailFout = !emailGeldig ? 'Voer een geldig e-mailadres in.' : null
+  const emailFout = !emailGeldig ? t('account.register.ongeldigEmail') : null
   const sterkte = berekenWachtwoordSterkte(wachtwoord)
 
   return (
     <div>
-      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Maak je account aan</h1>
-      <p className="mb-6" style={{ color: 'var(--text-3)' }}>Kies een sterk wachtwoord, of gebruik Google voor snelle toegang.</p>
+      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>{t('account.register.accountKop')}</h1>
+      <p className="mb-6" style={{ color: 'var(--text-3)' }}>{t('account.register.accountIntro')}</p>
 
-      <GoogleSsoKnop label="Account aanmaken met Google" onClick={onGoogle} />
+      <GoogleSsoKnop label={t('account.register.googleAccount')} onClick={onGoogle} />
 
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-        <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>of met e-mail</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>{t('account.register.ofEmail')}</span>
         <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
       </div>
 
       <div className="flex flex-col gap-4 mb-6">
         <div>
-          <label htmlFor="reg-email" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>E-mailadres *</label>
+          <label htmlFor="reg-email" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.emailLabel')}</label>
           <input
             id="reg-email"
             type="email"
             value={email}
             onChange={e => onEmailChange(e.target.value)}
-            placeholder="jij@bedrijf.be"
+            placeholder={t('account.register.emailPlaceholder')}
             autoFocus
             autoComplete="email"
             aria-describedby={emailFout ? 'reg-email-fout' : undefined}
@@ -97,14 +99,14 @@ export function RegisterStapAccount({
         </div>
 
         <div>
-          <label htmlFor="reg-wachtwoord" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Wachtwoord *</label>
+          <label htmlFor="reg-wachtwoord" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.wachtwoordLabel')}</label>
           <div className="relative">
             <input
               id="reg-wachtwoord"
               type={toonWachtwoord ? 'text' : 'password'}
               value={wachtwoord}
               onChange={e => onWachtwoordChange(e.target.value)}
-              placeholder="Minimaal 8 tekens"
+              placeholder={t('account.register.wachtwoordPlaceholder')}
               autoComplete="new-password"
               className="mf-input pr-16"
             />
@@ -114,7 +116,7 @@ export function RegisterStapAccount({
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-1 transition hover:opacity-70"
               style={{ color: 'var(--text-3)' }}
             >
-              {toonWachtwoord ? 'Verberg' : 'Toon'}
+              {toonWachtwoord ? t('account.login.verberg') : t('account.login.toon')}
             </button>
           </div>
           {wachtwoord.length > 0 && (
@@ -123,27 +125,27 @@ export function RegisterStapAccount({
                 <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
                   style={{ background: sterkte.niveau > i ? sterkte.kleur : 'var(--border)' }} />
               ))}
-              <span className="text-xs w-10 font-medium" style={{ color: sterkte.kleur }}>{sterkte.tekst}</span>
+              <span className="text-xs w-10 font-medium" style={{ color: sterkte.kleur }}>{t(`account.register.sterkte.${sterkte.sleutel}`)}</span>
             </div>
           )}
         </div>
 
         <div>
-          <label htmlFor="reg-bevestig" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Wachtwoord bevestigen *</label>
+          <label htmlFor="reg-bevestig" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.bevestigLabel')}</label>
           <input
             id="reg-bevestig"
             type={toonWachtwoord ? 'text' : 'password'}
             value={bevestigWachtwoord}
             onChange={e => onBevestigWachtwoordChange(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && onRegistreer()}
-            placeholder="Herhaal wachtwoord"
+            placeholder={t('account.register.bevestigPlaceholder')}
             autoComplete="new-password"
             aria-describedby={bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'reg-mismatch' : undefined}
             className="mf-input"
             style={{ borderColor: bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'var(--mf-red)' : '' }}
           />
           {bevestigWachtwoord && wachtwoord !== bevestigWachtwoord && (
-            <p id="reg-mismatch" className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
+            <p id="reg-mismatch" className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>{t('account.register.nietGelijk')}</p>
           )}
         </div>
       </div>
@@ -158,11 +160,11 @@ export function RegisterStapAccount({
             style={{ accentColor: 'var(--mf-green)' }}
           />
           <span className="text-sm" style={{ color: 'var(--text-2)' }}>
-            Ik ga akkoord met de{' '}
+            {t('account.register.akkoordVoor')}{' '}
             <Link href="/voorwaarden" target="_blank" className="font-semibold underline" style={{ color: 'var(--mf-green)' }}>
-              Algemene Voorwaarden
+              {t('account.register.voorwaarden')}
             </Link>{' '}
-            en het privacy beleid van MentaForce.
+            {t('account.register.akkoordNa')}
           </span>
         </label>
         <label className="flex items-start gap-3 cursor-pointer">
@@ -174,7 +176,7 @@ export function RegisterStapAccount({
             style={{ accentColor: 'var(--mf-green)' }}
           />
           <span className="text-sm" style={{ color: 'var(--text-2)' }}>
-            Stuur mij tips over welzijn op het werk en updates over MentaForce. (optioneel)
+            {t('account.register.nieuwsbrief')}
           </span>
         </label>
       </div>
@@ -192,7 +194,7 @@ export function RegisterStapAccount({
           className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
           style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
         >
-          Terug
+          {t('account.register.terug')}
         </button>
         <button
           onClick={onRegistreer}
@@ -210,16 +212,16 @@ export function RegisterStapAccount({
                 className="w-4 h-4 rounded-full border-2 animate-spin"
                 style={{ borderColor: 'color-mix(in srgb, var(--bg-app) 30%, transparent)', borderTopColor: 'var(--bg-app)' }}
               />
-              Bezig...
+              {t('account.login.bezig')}
             </>
           ) : (
-            'Account aanmaken'
+            t('account.register.accountAanmaken')
           )}
         </button>
       </div>
 
       <p className="text-xs text-center mt-4" style={{ color: 'var(--text-4)' }}>
-        Je kunt altijd op elk moment je account verwijderen via Instellingen.
+        {t('account.register.verwijderenKan')}
       </p>
     </div>
   )

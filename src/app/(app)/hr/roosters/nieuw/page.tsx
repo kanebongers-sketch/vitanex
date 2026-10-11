@@ -12,6 +12,8 @@ import { Card } from '@/components/ui/Card'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 function maandag(datum: Date): Date {
   const d = new Date(datum)
@@ -25,16 +27,20 @@ function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-function weekBereik(weekStart: string): string {
+function weekBereik(weekStart: string, locale: string): { van: string; tot: string } {
   const ma = new Date(weekStart)
   const zo = new Date(ma)
   zo.setDate(ma.getDate() + 6)
-  return `${ma.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} t/m ${zo.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
+  return {
+    van: ma.toLocaleDateString(locale, { day: 'numeric', month: 'long' }),
+    tot: zo.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+  }
 }
 
 export default function NieuwRoosterPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [bedrijfId, setBedrijfId] = useState('')
   const [userId, setUserId] = useState('')
   const [naam, setNaam] = useState('')
@@ -56,7 +62,7 @@ export default function NieuwRoosterPage() {
       // Auto-naam op basis van week
       const d = new Date(weekStart)
       const weekNr = Math.ceil((((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 86400000) + 1) / 7)
-      setNaam(`Week ${weekNr}`)
+      setNaam(t('werk.roosterNieuw.weekNaam', { nr: weekNr }))
     }
     laad()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,11 +73,11 @@ export default function NieuwRoosterPage() {
     const d = maandag(new Date(val))
     setWeekStart(toYMD(d))
     const weekNr = Math.ceil((((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 86400000) + 1) / 7)
-    setNaam(`Week ${weekNr}`)
+    setNaam(t('werk.roosterNieuw.weekNaam', { nr: weekNr }))
   }
 
   async function opslaan() {
-    if (!naam.trim()) { setFout('Geef het rooster een naam.'); return }
+    if (!naam.trim()) { setFout(t('werk.roosterNieuw.foutNaam')); return }
     setBezig(true)
     setFout('')
     const { data, error } = await supabase
@@ -81,8 +87,8 @@ export default function NieuwRoosterPage() {
       .single()
     if (error || !data) {
       toast({
-        title: 'Opslaan mislukt',
-        description: error?.message ?? 'Onbekende fout. Probeer het later opnieuw.',
+        title: t('werk.roosterNieuw.opslaanMislukt'),
+        description: (taal === 'nl' ? error?.message : undefined) ?? t('werk.roosterNieuw.onbekendeFout'),
         variant: 'error',
       })
       setBezig(false)
@@ -101,14 +107,14 @@ export default function NieuwRoosterPage() {
           leftIcon={<ArrowLeft size={15} aria-hidden />}
           style={{ marginBottom: 20, paddingLeft: 0 }}
         >
-          Terug
+          {t('werk.roosterNieuw.terug')}
         </Button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', marginBottom: 24 }}>Nieuw rooster</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', marginBottom: 24 }}>{t('werk.roosterNieuw.titel')}</h1>
 
         <Card style={{ padding: 24 }}>
           <div style={{ marginBottom: 18 }}>
-            <Field label="Week" hint="De datum wordt automatisch op de maandag van die week gezet.">
+            <Field label={t('werk.roosterNieuw.week')} hint={t('werk.roosterNieuw.weekHint')}>
               <Input
                 type="date"
                 value={weekStart}
@@ -116,17 +122,17 @@ export default function NieuwRoosterPage() {
               />
             </Field>
             <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--text-3)' }}>
-              Rooster loopt van <strong style={{ color: 'var(--text-2)', fontWeight: 600 }}>{weekBereik(weekStart)}</strong>.
+              {t('werk.roosterNieuw.looptVan', { bereik: t('werk.roosterNieuw.bereik', weekBereik(weekStart, INTL_LOCALE[taal])) })}
             </p>
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <Field label="Naam rooster" error={fout || undefined}>
+            <Field label={t('werk.roosterNieuw.naam')} error={fout || undefined}>
               <Input
                 type="text"
                 value={naam}
                 onChange={e => { setNaam(e.target.value); if (fout) setFout('') }}
-                placeholder="bijv. Week 23 - Team A"
+                placeholder={t('werk.roosterNieuw.naamPlaceholder')}
               />
             </Field>
           </div>
@@ -137,7 +143,7 @@ export default function NieuwRoosterPage() {
             rightIcon={<ArrowRight size={16} aria-hidden />}
             style={{ width: '100%' }}
           >
-            {bezig ? 'Aanmaken…' : 'Rooster aanmaken'}
+            {bezig ? t('werk.roosterNieuw.aanmaken') : t('werk.roosterNieuw.aanmaakKnop')}
           </Button>
         </Card>
       </div>

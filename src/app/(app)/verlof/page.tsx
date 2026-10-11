@@ -18,6 +18,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type VerlofType = 'vakantie' | 'ziekte' | 'bijzonder' | 'onbetaald' | 'overig'
@@ -34,12 +36,13 @@ type VerlofAanvraag = {
   reviewer_notitie?: string | null
 }
 
+// Woordenboek-sleutels per verloftype.
 const TYPE_LABELS: Record<VerlofType, string> = {
-  vakantie: 'Vakantie',
-  ziekte: 'Ziekteverlof',
-  bijzonder: 'Bijzonder verlof',
-  onbetaald: 'Onbetaald verlof',
-  overig: 'Overig',
+  vakantie: 'werk.verlofType.vakantie',
+  ziekte: 'werk.verlofType.ziekte',
+  bijzonder: 'werk.verlofType.bijzonder',
+  onbetaald: 'werk.verlofType.onbetaald',
+  overig: 'werk.verlofType.overig',
 }
 
 const TYPE_ICON: Record<VerlofType, LucideIcon> = {
@@ -53,20 +56,22 @@ const TYPE_ICON: Record<VerlofType, LucideIcon> = {
 type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
 
 const STATUS_STIJL: Record<VerlofStatus, { variant: BadgeVariant; label: string }> = {
-  aangevraagd: { variant: 'warning', label: 'In behandeling' },
-  goedgekeurd: { variant: 'success', label: 'Goedgekeurd' },
-  afgewezen:   { variant: 'danger',  label: 'Afgewezen' },
+  aangevraagd: { variant: 'warning', label: 'werk.verlofStatus.aangevraagd' },
+  goedgekeurd: { variant: 'success', label: 'werk.verlofStatus.goedgekeurd' },
+  afgewezen:   { variant: 'danger',  label: 'werk.verlofStatus.afgewezen' },
 }
 
 function aantalDagen(van: string, tot: string): number {
   const v = new Date(van)
-  const t = new Date(tot)
-  return Math.max(1, Math.round((t.getTime() - v.getTime()) / 86400000) + 1)
+  const e = new Date(tot)
+  return Math.max(1, Math.round((e.getTime() - v.getTime()) / 86400000) + 1)
 }
 
 export default function VerlofPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [aanvragen, setAanvragen] = useState<VerlofAanvraag[]>([])
   const [formulier, setFormulier] = useState(false)
@@ -114,8 +119,8 @@ export default function VerlofPage() {
   }, [router])
 
   async function indienen() {
-    if (!datumVan || !datumTot) { setFout('Vul begin- en einddatum in.'); return }
-    if (new Date(datumTot) < new Date(datumVan)) { setFout('Einddatum moet na begindatum liggen.'); return }
+    if (!datumVan || !datumTot) { setFout(t('werk.verlof.foutDatums')); return }
+    if (new Date(datumTot) < new Date(datumVan)) { setFout(t('werk.verlof.foutVolgorde')); return }
     setOpslaan(true); setFout('')
 
     const { data, error } = await supabase.from('verlof_aanvragen').insert({
@@ -129,13 +134,14 @@ export default function VerlofPage() {
     }).select().single()
 
     if (error) {
-      setFout('Opslaan mislukt: ' + error.message)
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      const melding = taal === 'nl' ? error.message : t('werk.algemeen.ietsMis')
+      setFout(t('werk.verlof.opslaanMisluktMet', { fout: melding }))
+      toast({ title: t('werk.verlof.opslaanMislukt'), description: melding, variant: 'error' })
     } else {
       setAanvragen(prev => [data as VerlofAanvraag, ...prev])
       setFormulier(false)
       setType('vakantie'); setDatumVan(''); setDatumTot(''); setReden('')
-      toast({ title: 'Aanvraag ingediend', variant: 'success' })
+      toast({ title: t('werk.verlof.ingediend'), variant: 'success' })
     }
     setOpslaan(false)
   }
@@ -150,11 +156,11 @@ export default function VerlofPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Verlof</h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Aanvragen en overzicht</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('werk.verlof.titel')}</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('werk.verlof.intro')}</p>
           </div>
           <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
-            Aanvragen
+            {t('werk.verlof.aanvragen')}
           </Button>
         </div>
 
@@ -162,28 +168,28 @@ export default function VerlofPage() {
         <Card className="mb-6" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
             <p className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{opgenomen}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Opgenomen vakantiedag{opgenomen !== 1 ? 'en' : ''}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>{opgenomen === 1 ? t('werk.verlof.opgenomenEen') : t('werk.verlof.opgenomenMeer')}</p>
           </div>
           <p className="text-xs" style={{ color: 'var(--text-3)', textAlign: 'right', maxWidth: 240 }}>
-            Je verlofsaldo wordt beheerd door HR.
+            {t('werk.verlof.saldoHr')}
           </p>
         </Card>
 
         {/* Formulier */}
         <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
           <DialogContent>
-            <DialogTitle>Verlof aanvragen</DialogTitle>
+            <DialogTitle>{t('werk.verlof.dialoogTitel')}</DialogTitle>
 
             <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
               {/* Type */}
-              <div role="group" aria-label="Type verlof">
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>Type verlof</p>
+              <div role="group" aria-label={t('werk.verlof.typeVerlof')}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>{t('werk.verlof.typeVerlof')}</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(TYPE_LABELS) as VerlofType[]).map(t => {
-                    const Icoon = TYPE_ICON[t]
-                    const actief = type === t
+                  {(Object.keys(TYPE_LABELS) as VerlofType[]).map(soort => {
+                    const Icoon = TYPE_ICON[soort]
+                    const actief = type === soort
                     return (
-                      <button key={t} type="button" onClick={() => setType(t)}
+                      <button key={soort} type="button" onClick={() => setType(soort)}
                         aria-pressed={actief}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm transition"
                         style={{
@@ -196,7 +202,7 @@ export default function VerlofPage() {
                           cursor: 'pointer',
                         }}>
                         <Icoon size={16} aria-hidden strokeWidth={1.75} />
-                        <span>{TYPE_LABELS[t]}</span>
+                        <span>{t(TYPE_LABELS[soort])}</span>
                       </button>
                     )
                   })}
@@ -205,7 +211,7 @@ export default function VerlofPage() {
 
               {/* Datums */}
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Van">
+                <Field label={t('werk.verlof.van')}>
                   <Input
                     type="date"
                     value={datumVan}
@@ -213,7 +219,7 @@ export default function VerlofPage() {
                     onChange={e => { setDatumVan(e.target.value); if (!datumTot) setDatumTot(e.target.value) }}
                   />
                 </Field>
-                <Field label="Tot en met">
+                <Field label={t('werk.verlof.totEnMet')}>
                   <Input
                     type="date"
                     value={datumTot}
@@ -225,17 +231,17 @@ export default function VerlofPage() {
 
               {datumVan && datumTot && (
                 <p className="text-xs" style={{ color: 'var(--text-4)', marginTop: -8 }}>
-                  {aantalDagen(datumVan, datumTot)} dag{aantalDagen(datumVan, datumTot) !== 1 ? 'en' : ''}
+                  {aantalDagen(datumVan, datumTot) === 1 ? t('werk.verlof.dagEen') : t('werk.verlof.dagMeer', { aantal: aantalDagen(datumVan, datumTot) })}
                 </p>
               )}
 
               {/* Reden */}
-              <Field label="Reden" hint="Optioneel" error={fout || undefined}>
+              <Field label={t('werk.verlof.reden')} hint={t('werk.verlof.optioneel')} error={fout || undefined}>
                 <Textarea
                   rows={2}
                   value={reden}
                   onChange={e => setReden(e.target.value)}
-                  placeholder="Beschrijf de reden..."
+                  placeholder={t('werk.verlof.redenPlaceholder')}
                 />
               </Field>
 
@@ -245,14 +251,14 @@ export default function VerlofPage() {
                 disabled={!datumVan || !datumTot}
                 style={{ width: '100%' }}
               >
-                {opslaan ? 'Versturen...' : 'Aanvraag indienen'}
+                {opslaan ? t('werk.verlof.versturen') : t('werk.verlof.indienen')}
               </Button>
             </div>
           </DialogContent>
         </DialogRoot>
 
         {/* Aanvragen lijst */}
-        <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-4)' }}>Mijn aanvragen</p>
+        <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-4)' }}>{t('werk.verlof.mijnAanvragen')}</p>
 
         {laden ? (
           <div className="flex justify-center py-10">
@@ -262,18 +268,18 @@ export default function VerlofPage() {
           <Card>
             <EmptyState
               icon={Palmtree}
-              title="Nog geen verlofaanvragen"
-              description="Klik op '+ Aanvragen' om te starten."
+              title={t('werk.verlof.leegTitel')}
+              description={t('werk.verlof.leegOmschrijving')}
             />
           </Card>
         ) : (
-          <Table caption="Mijn verlofaanvragen">
+          <Table caption={t('werk.verlof.caption')}>
             <THead>
               <Tr>
-                <Th scope="col">Type</Th>
-                <Th scope="col">Periode</Th>
-                <Th scope="col" align="right">Dagen</Th>
-                <Th scope="col" align="right">Status</Th>
+                <Th scope="col">{t('werk.verlof.kolomType')}</Th>
+                <Th scope="col">{t('werk.verlof.kolomPeriode')}</Th>
+                <Th scope="col" align="right">{t('werk.verlof.kolomDagen')}</Th>
+                <Th scope="col" align="right">{t('werk.verlof.kolomStatus')}</Th>
               </Tr>
             </THead>
             <TBody>
@@ -293,25 +299,27 @@ export default function VerlofPage() {
                           <Icoon size={17} strokeWidth={1.75} />
                         </span>
                         <div>
-                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{TYPE_LABELS[a.type as VerlofType]}</p>
+                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{TYPE_LABELS[a.type as VerlofType] ? t(TYPE_LABELS[a.type as VerlofType]) : a.type}</p>
                           {a.reden && <p className="text-xs italic" style={{ color: 'var(--text-4)' }}>&quot;{a.reden}&quot;</p>}
                           {a.reviewer_notitie && (
                             <p className="text-xs" style={{ marginTop: 2, color: a.status === 'goedgekeurd' ? 'var(--mentaforce-primary)' : 'var(--mf-red)' }}>
-                              <strong>Notitie HR:</strong> {a.reviewer_notitie}
+                              <strong>{t('werk.verlof.notitieHr')}</strong> {a.reviewer_notitie}
                             </p>
                           )}
                         </div>
                       </div>
                     </Td>
                     <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
-                      {new Date(a.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
-                      {a.datum_van !== a.datum_tot && (
-                        <> – {new Date(a.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}</>
-                      )}
+                      {a.datum_van !== a.datum_tot
+                        ? t('werk.algemeen.bereik', {
+                          van: new Date(a.datum_van).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+                          tot: new Date(a.datum_tot).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+                        })
+                        : new Date(a.datum_van).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                     </Td>
                     <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>{dagen}</Td>
                     <Td align="right">
-                      <Badge variant={stijl.variant}>{stijl.label}</Badge>
+                      <Badge variant={stijl.variant}>{t(stijl.label)}</Badge>
                     </Td>
                   </Tr>
                 )

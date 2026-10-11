@@ -11,6 +11,7 @@ import { type Dispatch, type SetStateAction } from 'react'
 import { Activity, Moon, ShieldCheck, Leaf } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { VitaVeld, VitaChips, VitaSchaal, GesprekKnoppen } from './VitaKeuze'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface BaselineMeting {
@@ -50,6 +51,8 @@ export const LEGE_BASELINE: BaselineMeting = {
 }
 
 // ─── Constanten ───────────────────────────────────────────────────────────────
+// De opties zelf gaan als data naar de AI-analyse en blijven Nederlands; wat de
+// gebruiker ziet komt uit het woordenboek (zelfde volgorde, zie de *_SLEUTELS).
 const GEWOONTE_OPTIES = [
   'Veel zitten', 'Weinig water', 'Veel cafeïne', 'Onregelmatig eten',
   'Veel schermtijd voor slaap', 'Roken', 'Alcohol meerdere keren/week',
@@ -62,10 +65,12 @@ const MOTIVATOR_OPTIES = [
   'Productiever op werk', 'Pijn/klachten verminderen',
 ]
 
-const SLAAP_DUUR_OPTIES = ['<5u', '5-6u', '6-7u', '7-8u', '8-9u', '>9u']
-const BEWEGING_OPTIES = ['0', '1', '2', '3', '4', '5+']
+const GEWOONTE_SLEUTELS = ['zitten', 'water', 'cafeine', 'eten', 'scherm', 'roken', 'alcohol', 'ontbijt', 'kantEnKlaar']
+const MOTIVATOR_SLEUTELS = ['energie', 'slapen', 'stress', 'afvallen', 'fitter', 'ouder', 'rustiger', 'productiever', 'pijn']
 
-const SCHAAL_LABELS = ['Heel laag', 'Laag', 'Gemiddeld', 'Goed', 'Heel goed']
+const SLAAP_DUUR_OPTIES = ['<5u', '5-6u', '6-7u', '7-8u', '8-9u', '>9u']
+const SLAAP_DUUR_SLEUTELS = ['minder5', 'u5tot6', 'u6tot7', 'u7tot8', 'u8tot9', 'meer9']
+const BEWEGING_OPTIES = ['0', '1', '2', '3', '4', '5+']
 
 // ─── Blok-kop met lucide-icoon (geen emoji) ───────────────────────────────────
 function BlokKop({ Icon, titel, sub }: { Icon: LucideIcon; titel: string; sub: string }) {
@@ -102,6 +107,9 @@ export function BaselineMetingStap({
   onSlaan: () => void
   bezig: boolean
 }) {
+  const { t } = useVertaling()
+  const SCHAAL_LABELS = [t('account.baseline.schaal.heelLaag'), t('account.baseline.schaal.laag'), t('account.baseline.schaal.gemiddeld'), t('account.baseline.schaal.goed'), t('account.baseline.schaal.heelGoed')]
+  const FREQ_LABELS = [t('account.baseline.schaal.nooit'), t('account.baseline.schaal.zelden'), t('account.baseline.schaal.soms'), t('account.baseline.schaal.vaak'), t('account.baseline.schaal.bijnaAltijd')]
   const blok1Ingevuld =
     meting.energie_niveau !== null &&
     meting.stemming !== null &&
@@ -136,38 +144,38 @@ export function BaselineMetingStap({
 
   return (
     <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <BlokKop Icon={Activity} titel="Hoe voel je je?" sub="Denk aan de afgelopen 2 weken, gemiddeld" />
+      <BlokKop Icon={Activity} titel={t('account.baseline.blok1Kop')} sub={t('account.baseline.blok1Sub')} />
 
-      <VitaVeld label="Hoeveel energie had je gemiddeld?">
+      <VitaVeld label={t('account.baseline.energie')}>
         <VitaSchaal
-          legenda="Energie de afgelopen 2 weken"
+          legenda={t('account.baseline.energieLegenda')}
           emojis={['😴', '😕', '😐', '😊', '⚡']}
           labels={SCHAAL_LABELS}
           waarde={meting.energie_niveau}
           onKies={v => setMeting(m => ({ ...m, energie_niveau: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Hoe was je stemming?">
+      <VitaVeld label={t('account.baseline.stemming')}>
         <VitaSchaal
-          legenda="Stemming de afgelopen 2 weken"
+          legenda={t('account.baseline.stemmingLegenda')}
           emojis={['😞', '😔', '😐', '🙂', '😄']}
           labels={SCHAAL_LABELS}
           waarde={meting.stemming}
           onKies={v => setMeting(m => ({ ...m, stemming: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Had je plezier in dingen die je normaal leuk vindt?">
+      <VitaVeld label={t('account.baseline.plezier')}>
         <VitaSchaal
-          legenda="Plezier de afgelopen 2 weken"
+          legenda={t('account.baseline.plezierLegenda')}
           emojis={['😶', '😕', '😐', '😊', '🤩']}
           labels={SCHAAL_LABELS}
           waarde={meting.interesse_plezier}
           onKies={v => setMeting(m => ({ ...m, interesse_plezier: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Hoe voelt je lichaam zich fysiek? (uitgeput → fit)">
+      <VitaVeld label={t('account.baseline.lichaam')}>
         <VitaSchaal
-          legenda="Lichaamsgevoel de afgelopen 2 weken"
+          legenda={t('account.baseline.lichaamLegenda')}
           emojis={['🥵', '😮‍💨', '😐', '💪', '🔥']}
           labels={SCHAAL_LABELS}
           waarde={meting.lichaam_gevoel}
@@ -175,111 +183,114 @@ export function BaselineMetingStap({
         />
       </VitaVeld>
 
-      <BlokKop Icon={Moon} titel="Slaap & herstel" sub="De basis onder alles" />
+      <BlokKop Icon={Moon} titel={t('account.baseline.blok2Kop')} sub={t('account.baseline.blok2Sub')} />
 
-      <VitaVeld label="Hoe goed slaap je doorgaans?">
+      <VitaVeld label={t('account.baseline.slaap')}>
         <VitaSchaal
-          legenda="Slaapkwaliteit"
+          legenda={t('account.baseline.slaapLegenda')}
           emojis={['😫', '😕', '😐', '😊', '🤩']}
           labels={SCHAAL_LABELS}
           waarde={meting.slaap_kwaliteit}
           onKies={v => setMeting(m => ({ ...m, slaap_kwaliteit: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Hoeveel uur slaap je gemiddeld per nacht?">
+      <VitaVeld label={t('account.baseline.slaapDuur')}>
         <VitaChips
-          legenda="Slaapduur per nacht"
+          legenda={t('account.baseline.slaapDuurLegenda')}
           opties={SLAAP_DUUR_OPTIES}
+          labels={SLAAP_DUUR_SLEUTELS.map(k => t(`account.baseline.slaapDuurOpties.${k}`))}
           geselecteerd={meting.slaap_duur}
           onToggle={(_, i) => setMeting(m => ({ ...m, slaap_duur: i }))}
         />
       </VitaVeld>
-      <VitaVeld label="Val je overdag soms ongewild in slaap of vecht je tegen vermoeidheid?">
+      <VitaVeld label={t('account.baseline.slaperig')}>
         <VitaSchaal
-          legenda="Slaperigheid overdag"
+          legenda={t('account.baseline.slaperigLegenda')}
           emojis={['🚫', '🙂', '😐', '😪', '😴']}
-          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Constant']}
+          labels={[t('account.baseline.schaal.nooit'), t('account.baseline.schaal.zelden'), t('account.baseline.schaal.soms'), t('account.baseline.schaal.vaak'), t('account.baseline.schaal.constant')]}
           waarde={meting.slaperigheid_overdag}
           onKies={v => setMeting(m => ({ ...m, slaperigheid_overdag: v }))}
         />
       </VitaVeld>
 
-      <BlokKop Icon={ShieldCheck} titel="Stress & veerkracht" sub="De afgelopen 2 weken" />
+      <BlokKop Icon={ShieldCheck} titel={t('account.baseline.blok3Kop')} sub={t('account.baseline.blok3Sub')} />
 
-      <VitaVeld label="Hoe vaak had je het gevoel de belangrijke dingen onder controle te hebben?">
+      <VitaVeld label={t('account.baseline.controle')}>
         <VitaSchaal
-          legenda="Gevoel van controle"
+          legenda={t('account.baseline.controleLegenda')}
           emojis={['😟', '😕', '😐', '🙂', '😌']}
-          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          labels={FREQ_LABELS}
           waarde={meting.stress_controle}
           onKies={v => setMeting(m => ({ ...m, stress_controle: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Hoe vaak stapelden problemen zich zo op dat je ze niet de baas kon?">
+      <VitaVeld label={t('account.baseline.overweldigd')}>
         <VitaSchaal
-          legenda="Overweldiging"
+          legenda={t('account.baseline.overweldigdLegenda')}
           emojis={['🚫', '😕', '😐', '😓', '😵']}
-          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          labels={FREQ_LABELS}
           waarde={meting.stress_overweldigd}
           onKies={v => setMeting(m => ({ ...m, stress_overweldigd: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Lukt het je om écht te ontspannen en te herstellen op een dag?">
+      <VitaVeld label={t('account.baseline.herstel')}>
         <VitaSchaal
-          legenda="Herstel en ontspanning"
+          legenda={t('account.baseline.herstelLegenda')}
           emojis={['🚫', '😕', '😐', '😊', '🧘']}
-          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          labels={FREQ_LABELS}
           waarde={meting.herstel_ontspanning}
           onKies={v => setMeting(m => ({ ...m, herstel_ontspanning: v }))}
         />
       </VitaVeld>
 
-      <BlokKop Icon={Leaf} titel="Leefstijl & gedrag" sub="Wat doe je al?" />
+      <BlokKop Icon={Leaf} titel={t('account.baseline.blok4Kop')} sub={t('account.baseline.blok4Sub')} />
 
-      <VitaVeld label="Op hoeveel dagen per week beweeg je intensief? (zweten / buiten adem)">
+      <VitaVeld label={t('account.baseline.beweging')}>
         <VitaChips
-          legenda="Dagen intensief bewegen per week"
+          legenda={t('account.baseline.bewegingLegenda')}
           opties={BEWEGING_OPTIES}
           geselecteerd={meting.beweging_dagen}
           onToggle={(_, i) => setMeting(m => ({ ...m, beweging_dagen: i }))}
         />
       </VitaVeld>
-      <VitaVeld label="Hoe gezond eet je doorgaans?">
+      <VitaVeld label={t('account.baseline.voeding')}>
         <VitaSchaal
-          legenda="Voedingskwaliteit"
+          legenda={t('account.baseline.voedingLegenda')}
           emojis={['🍔', '🍕', '😐', '🥙', '🥗']}
           labels={SCHAAL_LABELS}
           waarde={meting.voeding_kwaliteit}
           onKies={v => setMeting(m => ({ ...m, voeding_kwaliteit: v }))}
         />
       </VitaVeld>
-      <VitaVeld label="Wat speelt nu mee in jouw dag?" sub="Kies wat past — mag meerdere zijn">
+      <VitaVeld label={t('account.baseline.gewoontes')} sub={t('account.baseline.gewoontesSub')}>
         <VitaChips
-          legenda="Gewoontes die meespelen"
+          legenda={t('account.baseline.gewoontesLegenda')}
           opties={GEWOONTE_OPTIES}
+          labels={GEWOONTE_SLEUTELS.map(k => t(`account.baseline.gewoonte.${k}`))}
           geselecteerd={meting.gewoontes}
           onToggle={toggleGewoonte}
           multi
         />
       </VitaVeld>
       <VitaVeld
-        label="Wat is voor jou de belangrijkste reden om hiermee bezig te zijn?"
-        sub={`Kies maximaal 3 (${meting.motivatoren.length}/3)`}
+        label={t('account.baseline.reden')}
+        sub={t('account.baseline.redenSub', { aantal: meting.motivatoren.length })}
       >
         <VitaChips
-          legenda="Jouw motivatoren"
+          legenda={t('account.baseline.redenLegenda')}
           opties={MOTIVATOR_OPTIES}
+          labels={MOTIVATOR_SLEUTELS.map(k => t(`account.baseline.motivator.${k}`))}
           geselecteerd={meting.motivatoren}
           onToggle={toggleMotivator}
           multi
           max={3}
         />
       </VitaVeld>
-      <VitaVeld label="Hoeveel vertrouwen heb je dat je dit kunt volhouden?">
+      <VitaVeld label={t('account.baseline.vertrouwen')}>
         <VitaSchaal
-          legenda="Zelfvertrouwen in verandering"
+          legenda={t('account.baseline.vertrouwenLegenda')}
           emojis={['😟', '😕', '😐', '🙂', '💪']}
-          labels={['Heel weinig', 'Weinig', 'Redelijk', 'Veel', 'Heel veel']}
+          labels={[t('account.baseline.schaal.heelWeinig'), t('account.baseline.schaal.weinig'), t('account.baseline.schaal.redelijk'), t('account.baseline.schaal.veel'), t('account.baseline.schaal.heelVeel')]}
           waarde={meting.zelfvertrouwen_verandering}
           onKies={v => setMeting(m => ({ ...m, zelfvertrouwen_verandering: v }))}
         />
@@ -287,17 +298,17 @@ export function BaselineMetingStap({
 
       {!kanVerder && (
         <p style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center' }}>
-          Vul de eerste twee blokken volledig in om verder te gaan
+          {t('account.baseline.eersteTwee')}
         </p>
       )}
 
       <GesprekKnoppen
         onTerug={onTerug}
         onVolgende={onVolgende}
-        volgendeLabel={bezig ? 'Vita denkt na…' : 'Analyseer mijn startfoto'}
+        volgendeLabel={bezig ? t('account.baseline.denkt') : t('account.baseline.analyseer')}
         volgendeDisabled={!kanVerder || bezig}
         bezig={bezig}
-        overslaan={{ onClick: onSlaan, label: 'Sla deze vragen over' }}
+        overslaan={{ onClick: onSlaan, label: t('account.baseline.overslaan') }}
       />
     </div>
   )

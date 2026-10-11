@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import {
   DialogRoot, DialogContent, DialogTitle, DialogDescription,
 } from '@/components/ui/Dialog'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 type Oefening = {
@@ -27,6 +28,7 @@ type Oefening = {
   benodigdheden: string[] | null
 }
 
+/** Filterwaarden zoals in de database; de knoptekst komt uit het woordenboek (lichaam.spiergroep / lichaam.sport.niveau). */
 const SPIERGROEPEN = ['Alle', 'Borst', 'Rug', 'Schouders', 'Armen', 'Benen', 'Core', 'Cardio']
 const MOEILIJKHEDEN = ['Alle', 'Beginner', 'Gemiddeld', 'Gevorderd']
 
@@ -66,6 +68,7 @@ function OefeningPlaceholder({ rounded }: { rounded?: boolean }) {
 
 export default function OefeningenPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [loading, setLoading] = useState(true)
   const [oefeningen, setOefeningen] = useState<Oefening[]>([])
   const [spiergroepFilter, setSpiergroepFilter] = useState('Alle')
@@ -101,7 +104,7 @@ export default function OefeningenPage() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 96 }}>
-          <div className="mf-spinner" role="status" aria-label="Oefeningen laden" />
+          <div className="mf-spinner" role="status" aria-label={t('lichaam.oefeningen.laden')} />
         </div>
       </div>
     )
@@ -114,21 +117,21 @@ export default function OefeningenPage() {
 
         <header style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
-            Oefeningen bibliotheek
+            {t('lichaam.oefeningen.titel')}
           </h1>
-          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>{t('lichaam.oefeningen.intro')}</p>
         </header>
 
         <Card style={{ padding: '16px 20px', marginBottom: 28 }}>
           <label htmlFor="oefening-zoek" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
-            Zoek een oefening
+            {t('lichaam.oefeningen.zoek')}
           </label>
           <div style={{ position: 'relative', marginBottom: 16 }}>
             <Search size={16} aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none' }} />
             <Input
               id="oefening-zoek"
               type="search"
-              placeholder="bijv. bankdrukken"
+              placeholder={t('lichaam.oefeningen.placeholder')}
               value={zoekterm}
               onChange={e => setZoekterm(e.target.value)}
               style={{ paddingLeft: 36 }}
@@ -136,7 +139,7 @@ export default function OefeningenPage() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <p id="filter-spiergroep" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>SPIERGROEP</p>
+            <p id="filter-spiergroep" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>{t('lichaam.oefeningen.spiergroep')}</p>
             <div role="group" aria-labelledby="filter-spiergroep" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {SPIERGROEPEN.map(s => {
                 const actief = spiergroepFilter === s
@@ -154,14 +157,14 @@ export default function OefeningenPage() {
                       border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
                       transition: 'background 0.15s var(--ease)',
                     }}
-                  >{s}</button>
+                  >{t(`lichaam.spiergroep.${s.toLowerCase()}`)}</button>
                 )
               })}
             </div>
           </div>
 
           <div>
-            <p id="filter-moeilijkheid" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>MOEILIJKHEID</p>
+            <p id="filter-moeilijkheid" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>{t('lichaam.oefeningen.moeilijkheid')}</p>
             <div role="group" aria-labelledby="filter-moeilijkheid" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {MOEILIJKHEDEN.map(m => {
                 const actief = moeilijkheidFilter === m
@@ -179,7 +182,7 @@ export default function OefeningenPage() {
                       border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
                       transition: 'background 0.15s var(--ease)',
                     }}
-                  >{m}</button>
+                  >{m === 'Alle' ? t('lichaam.spiergroep.alle') : t(`lichaam.sport.niveau.${m.toLowerCase()}`)}</button>
                 )
               })}
             </div>
@@ -190,16 +193,16 @@ export default function OefeningenPage() {
           <Card>
             <EmptyState
               icon={BookOpen}
-              title="Bibliotheek nog leeg"
-              description="De bibliotheek wordt gevuld naarmate je schema's genereert. Genereer je eerste schema om oefeningen toe te voegen."
+              title={t('lichaam.oefeningen.leegTitel')}
+              description={t('lichaam.oefeningen.leegTekst')}
             />
           </Card>
         ) : gefilterd.length === 0 ? (
           <Card>
             <EmptyState
               icon={Search}
-              title="Geen oefeningen gevonden"
-              description="Geen oefeningen gevonden voor deze filters."
+              title={t('lichaam.bouwen.geen')}
+              description={t('lichaam.oefeningen.geenFilters')}
             />
           </Card>
         ) : (
@@ -211,7 +214,7 @@ export default function OefeningenPage() {
                 onClick={() => setGeselecteerd(oefening)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGeselecteerd(oefening) } }}
                 role="button"
-                aria-label={`Bekijk oefening ${oefening.naam}`}
+                aria-label={t('lichaam.oefeningen.bekijk', { naam: oefening.naam })}
                 style={{ overflow: 'hidden' }}
               >
                 {oefening.image_url ? (
@@ -239,7 +242,7 @@ export default function OefeningenPage() {
 
       <DialogRoot open={geselecteerd !== null} onOpenChange={(open) => { if (!open) setGeselecteerd(null) }}>
         {geselecteerd && (
-          <DialogContent closeLabel="Sluiten" style={{ width: 'min(92vw, 560px)', padding: 0 }}>
+          <DialogContent closeLabel={t('lichaam.voeding.sluiten')} style={{ width: 'min(92vw, 560px)', padding: 0 }}>
             {geselecteerd.image_url ? (
               <img src={geselecteerd.image_url} alt="" style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: 'var(--radius-card) var(--radius-card) 0 0' }} />
             ) : (
@@ -266,7 +269,7 @@ export default function OefeningenPage() {
 
               {geselecteerd.uitvoering_stappen && geselecteerd.uitvoering_stappen.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>Uitvoering</h3>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>{t('lichaam.oefeningen.uitvoering')}</h3>
                   <ol style={{ paddingLeft: 20, margin: 0 }}>
                     {geselecteerd.uitvoering_stappen.map((stap, i) => (
                       <li key={i} style={{ color: 'var(--text-2)', fontSize: 14, lineHeight: 1.6, marginBottom: 6 }}>{stap}</li>
@@ -277,7 +280,7 @@ export default function OefeningenPage() {
 
               {geselecteerd.benodigdheden && geselecteerd.benodigdheden.length > 0 && (
                 <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>Benodigdheden</h3>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>{t('lichaam.oefeningen.benodigdheden')}</h3>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {geselecteerd.benodigdheden.map((item, i) => (
                       <Badge key={i} variant="neutral">{item}</Badge>

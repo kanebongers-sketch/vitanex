@@ -29,6 +29,8 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type NieuwsType = 'aankondiging' | 'beleid' | 'evenement' | 'resultaten' | 'overig'
@@ -43,16 +45,17 @@ type NieuwsBericht = {
 }
 
 const TYPE_STIJL: Record<NieuwsType, { icon: LucideIcon; bg: string; color: string; label: string }> = {
-  aankondiging: { icon: Megaphone,     bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)', label: 'Aankondiging' },
-  beleid:       { icon: ClipboardList, bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'Beleid' },
-  evenement:    { icon: PartyPopper,   bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)', label: 'Evenement' },
-  resultaten:   { icon: TrendingUp,    bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Resultaten' },
-  overig:       { icon: MessageCircle, bg: 'var(--bg-subtle)', color: 'var(--text-2)', label: 'Overig' },
+  aankondiging: { icon: Megaphone,     bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)', label: 'werk.nieuwsType.aankondiging' },
+  beleid:       { icon: ClipboardList, bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'werk.nieuwsType.beleid' },
+  evenement:    { icon: PartyPopper,   bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)', label: 'werk.nieuwsType.evenement' },
+  resultaten:   { icon: TrendingUp,    bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'werk.nieuwsType.resultaten' },
+  overig:       { icon: MessageCircle, bg: 'var(--bg-subtle)', color: 'var(--text-2)', label: 'werk.nieuwsType.overig' },
 }
 
 export default function NieuwsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [berichten, setBerichten] = useState<NieuwsBericht[]>([])
   const [isHr, setIsHr] = useState(false)
@@ -89,13 +92,13 @@ export default function NieuwsPage() {
       if (data) {
         setBerichten((data as unknown as (NieuwsBericht & { profiles: { naam: string } | null })[]).map(b => ({
           ...b,
-          auteur_naam: b.profiles?.naam ?? 'HR',
+          auteur_naam: b.profiles?.naam ?? t('werk.nieuws.hr'),
         })))
       }
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, t])
 
   async function publiceren() {
     if (!titel.trim() || !inhoud.trim()) return
@@ -113,12 +116,12 @@ export default function NieuwsPage() {
 
     if (!error && data) {
       const d = data as unknown as NieuwsBericht & { profiles: { naam: string } | null }
-      const nieuw: NieuwsBericht = { ...d, auteur_naam: d.profiles?.naam ?? 'HR' }
+      const nieuw: NieuwsBericht = { ...d, auteur_naam: d.profiles?.naam ?? t('werk.nieuws.hr') }
       setBerichten(prev => [nieuw, ...prev])
       setFormulier(false)
       setTitel(''); setInhoud(''); setType('aankondiging'); setBelangrijk(false)
     } else {
-      toast({ title: 'Plaatsen mislukt', description: 'Het bericht kon niet worden gepubliceerd. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('werk.nieuws.plaatsenMislukt'), description: t('werk.nieuws.plaatsenMisluktTekst'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -131,34 +134,34 @@ export default function NieuwsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5" style={{ gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Bedrijfsnieuws</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>Updates van jouw organisatie</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('werk.nieuws.titel')}</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{t('werk.nieuws.intro')}</p>
           </div>
           {isHr && (
             <Button leftIcon={<Plus size={16} aria-hidden />} onClick={() => setFormulier(true)}>
-              Plaatsen
+              {t('werk.nieuws.plaatsen')}
             </Button>
           )}
         </div>
 
         {/* HR Formulier */}
         <DialogRoot open={formulier} onOpenChange={setFormulier}>
-          <DialogContent closeLabel="Formulier sluiten">
-            <DialogTitle>Bericht plaatsen</DialogTitle>
+          <DialogContent closeLabel={t('werk.nieuws.formulierSluiten')}>
+            <DialogTitle>{t('werk.nieuws.berichtPlaatsen')}</DialogTitle>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
               <div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Type</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>{t('werk.nieuws.type')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {(Object.keys(TYPE_STIJL) as NieuwsType[]).map(t => {
-                    const s = TYPE_STIJL[t]
+                  {(Object.keys(TYPE_STIJL) as NieuwsType[]).map(soort => {
+                    const s = TYPE_STIJL[soort]
                     const Icon = s.icon
-                    const actief = type === t
+                    const actief = type === soort
                     return (
                       <button
-                        key={t}
+                        key={soort}
                         type="button"
-                        onClick={() => setType(t)}
+                        onClick={() => setType(soort)}
                         aria-pressed={actief}
                         className="mf-nieuws-type"
                         style={{
@@ -176,30 +179,30 @@ export default function NieuwsPage() {
                           transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease)',
                         }}
                       >
-                        <Icon size={14} aria-hidden /> {s.label}
+                        <Icon size={14} aria-hidden /> {t(s.label)}
                       </button>
                     )
                   })}
                 </div>
               </div>
 
-              <Field label="Titel" htmlFor="nieuws-titel">
+              <Field label={t('werk.nieuws.veldTitel')} htmlFor="nieuws-titel">
                 <Input
                   id="nieuws-titel"
                   type="text"
                   value={titel}
                   onChange={e => setTitel(e.target.value)}
-                  placeholder="Geef een duidelijke titel..."
+                  placeholder={t('werk.nieuws.titelPlaceholder')}
                 />
               </Field>
 
-              <Field label="Inhoud" htmlFor="nieuws-inhoud">
+              <Field label={t('werk.nieuws.inhoud')} htmlFor="nieuws-inhoud">
                 <Textarea
                   id="nieuws-inhoud"
                   rows={5}
                   value={inhoud}
                   onChange={e => setInhoud(e.target.value)}
-                  placeholder="Schrijf hier het bericht..."
+                  placeholder={t('werk.nieuws.inhoudPlaceholder')}
                 />
               </Field>
 
@@ -210,11 +213,11 @@ export default function NieuwsPage() {
                     <div style={{ position: 'absolute', top: 4, left: 4, width: 16, height: 16, borderRadius: '50%', background: 'var(--bg-card)', transition: 'transform 0.15s var(--ease)', transform: belangrijk ? 'translateX(16px)' : 'translateX(0)' }} />
                   </div>
                 </div>
-                <span style={{ fontSize: 14, color: 'var(--text-2)' }}>Markeren als belangrijk</span>
+                <span style={{ fontSize: 14, color: 'var(--text-2)' }}>{t('werk.nieuws.belangrijkMarkeren')}</span>
               </label>
 
               <Button onClick={publiceren} loading={opslaan} disabled={opslaan || !titel.trim() || !inhoud.trim()} style={{ width: '100%' }}>
-                {opslaan ? 'Plaatsen...' : 'Publiceren'}
+                {opslaan ? t('werk.nieuws.plaatsenBezig') : t('werk.nieuws.publiceren')}
               </Button>
             </div>
 
@@ -236,8 +239,8 @@ export default function NieuwsPage() {
           <Card>
             <EmptyState
               icon={Newspaper}
-              title="Nog geen berichten geplaatst"
-              description={isHr ? "Klik op 'Plaatsen' om een bericht toe te voegen." : 'Updates van jouw organisatie verschijnen hier.'}
+              title={t('werk.nieuws.leegTitel')}
+              description={isHr ? t('werk.nieuws.leegHr') : t('werk.nieuws.leegMedewerker')}
             />
           </Card>
         ) : (
@@ -256,7 +259,7 @@ export default function NieuwsPage() {
                 >
                   {b.belangrijk && (
                     <div style={{ padding: '8px 16px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}>
-                      <Zap size={14} aria-hidden /> Belangrijk bericht
+                      <Zap size={14} aria-hidden /> {t('werk.nieuws.belangrijk')}
                     </div>
                   )}
                   <div style={{ padding: 16 }}>
@@ -267,10 +270,10 @@ export default function NieuwsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 10px', borderRadius: 100, background: stijl.bg, color: stijl.color }}>
-                            {stijl.label}
+                            {t(stijl.label)}
                           </span>
                           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                            {new Date(b.gepubliceerd_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {new Date(b.gepubliceerd_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })}
                           </span>
                         </div>
                         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.4 }}>{b.titel}</h3>
@@ -286,12 +289,12 @@ export default function NieuwsPage() {
                         onClick={() => setUitgevouwen(isOpen ? null : b.id)}
                         className="mt-2 ml-9 mf-nieuws-meer"
                         style={{ fontSize: 12, fontWeight: 600, color: 'var(--mentaforce-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        {isOpen ? 'Minder tonen' : 'Meer lezen'}
+                        {isOpen ? t('werk.nieuws.minder') : t('werk.nieuws.meer')}
                       </button>
                     )}
 
                     <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 12, marginLeft: 36 }}>
-                      Geplaatst door <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{b.auteur_naam}</span>
+                      {t('werk.nieuws.geplaatstDoor')} <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{b.auteur_naam}</span>
                     </p>
                   </div>
                 </Card>

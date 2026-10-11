@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/Dialog'
 import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type Actiepunt = {
   tekst: string
@@ -46,12 +47,7 @@ type Props = {
   onSaved: () => void
 }
 
-const TYPE_OPTIES = [
-  { value: 'functionering', label: 'Functioneringsgesprek' },
-  { value: 'beoordeling',   label: 'Beoordelingsgesprek' },
-  { value: 'welzijn',       label: 'Welzijnsgesprek' },
-  { value: 'overig',        label: 'Overig' },
-]
+const TYPE_OPTIES = ['functionering', 'beoordeling', 'welzijn', 'overig'] as const
 
 const selectStijl: React.CSSProperties = {
   width: '100%',
@@ -67,6 +63,7 @@ const selectStijl: React.CSSProperties = {
 }
 
 export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers, onClose, onSaved }: Props) {
+  const { t, taal } = useVertaling()
   const isNieuw = !gesprek?.id
 
   const [medewerkerId, setMedewerkerId] = useState(gesprek?.medewerker_id ?? '')
@@ -102,8 +99,8 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
   }
 
   async function opslaan() {
-    if (!medewerkerId) { setFout('Selecteer een medewerker.'); return }
-    if (!onderwerp.trim()) { setFout('Vul een onderwerp in.'); return }
+    if (!medewerkerId) { setFout(t('werk.gesprekModal.foutMedewerker')); return }
+    if (!onderwerp.trim()) { setFout(t('werk.gesprekModal.foutOnderwerp')); return }
     setBezig(true)
     setFout(null)
 
@@ -129,7 +126,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
     }
 
     setBezig(false)
-    if (error) { setFout(error.message); return }
+    if (error) { setFout(taal === 'nl' ? error.message : t('werk.algemeen.opslaanMislukt')); return }
     onSaved()
   }
 
@@ -153,18 +150,18 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
           <div style={{ padding: '24px 24px 0', flexShrink: 0 }}>
             <div style={{ marginBottom: 16, paddingRight: 40 }}>
               <DialogTitle style={{ fontSize: 17, paddingRight: 0 }}>
-                {isNieuw ? 'Nieuw gesprek plannen' : 'Gesprek bewerken'}
+                {isNieuw ? t('werk.gesprekModal.titelNieuw') : t('werk.gesprekModal.titelBewerken')}
               </DialogTitle>
               <DialogDescription style={{ fontSize: 12, marginTop: 4 }}>
-                {isNieuw ? 'Plan een 1-on-1 met een medewerker' : 'Pas de gespreksgegevens aan'}
+                {isNieuw ? t('werk.gesprekModal.omschrijvingNieuw') : t('werk.gesprekModal.omschrijvingBewerken')}
               </DialogDescription>
             </div>
 
             <TabsList>
-              <TabsTrigger value="algemeen">Algemeen</TabsTrigger>
-              <TabsTrigger value="notities">Notities</TabsTrigger>
+              <TabsTrigger value="algemeen">{t('werk.gesprekModal.tabAlgemeen')}</TabsTrigger>
+              <TabsTrigger value="notities">{t('werk.gesprekModal.tabNotities')}</TabsTrigger>
               <TabsTrigger value="actiepunten">
-                {`Actiepunten${actiepunten.length ? ` (${actiepunten.length})` : ''}`}
+                {actiepunten.length ? t('werk.gesprekModal.tabActiepuntenAantal', { aantal: actiepunten.length }) : t('werk.gesprekModal.tabActiepunten')}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -176,9 +173,9 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
             <TabsContent value="algemeen" style={{ paddingTop: 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Medewerker */}
-                <Field label="Medewerker" required>
+                <Field label={t('werk.gesprekModal.medewerker')} required>
                   <select value={medewerkerId} onChange={e => setMedewerkerId(e.target.value)} style={selectStijl}>
-                    <option value="">Selecteer medewerker...</option>
+                    <option value="">{t('werk.gesprekModal.selecteerMedewerker')}</option>
                     {medewerkers.map(m => (
                       <option key={m.id} value={m.id}>{m.naam}</option>
                     ))}
@@ -187,45 +184,45 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
 
                 {/* Datum + Type rij */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <Field label="Datum" required>
+                  <Field label={t('werk.gesprekModal.datum')} required>
                     <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
                   </Field>
-                  <Field label="Type gesprek" required>
+                  <Field label={t('werk.gesprekModal.typeGesprek')} required>
                     <select value={type} onChange={e => setType(e.target.value as Gesprek['type'])} style={selectStijl}>
                       {TYPE_OPTIES.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
+                        <option key={o} value={o}>{t(`werk.gesprekModal.typeOptie.${o}`)}</option>
                       ))}
                     </select>
                   </Field>
                 </div>
 
                 {/* Onderwerp */}
-                <Field label="Onderwerp" required>
+                <Field label={t('werk.gesprekModal.onderwerp')} required>
                   <Input
                     type="text"
                     value={onderwerp}
                     onChange={e => setOnderwerp(e.target.value)}
-                    placeholder="Bijv. Jaargesprek Q4, Terugkeer na ziekte..."
+                    placeholder={t('werk.gesprekModal.onderwerpPlaceholder')}
                   />
                 </Field>
 
                 {/* Status + Follow-up rij */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <Field label="Status">
+                  <Field label={t('werk.gesprekModal.status')}>
                     <select value={status} onChange={e => setStatus(e.target.value as Gesprek['status'])} style={selectStijl}>
-                      <option value="gepland">Gepland</option>
-                      <option value="afgerond">Afgerond</option>
-                      <option value="geannuleerd">Geannuleerd</option>
+                      <option value="gepland">{t('werk.gesprekStatus.gepland')}</option>
+                      <option value="afgerond">{t('werk.gesprekStatus.afgerond')}</option>
+                      <option value="geannuleerd">{t('werk.gesprekStatus.geannuleerd')}</option>
                     </select>
                   </Field>
-                  <Field label="Follow-up datum">
+                  <Field label={t('werk.gesprekModal.followupDatum')}>
                     <Input type="date" value={followupDatum ?? ''} onChange={e => setFollowupDatum(e.target.value)} />
                   </Field>
                 </div>
 
                 {/* Status badge preview */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Status:</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.gesprekModal.statusDubbelepunt')}</span>
                   <StatusBadge status={status} />
                 </div>
               </div>
@@ -241,25 +238,25 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                 }}>
                   <Lock size={16} aria-hidden style={{ color: 'var(--mf-amber)', flexShrink: 0, marginTop: 1 }} />
                   <div>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>Interne notities zijn alleen zichtbaar voor HR</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>De samenvatting voor de medewerker is wel zichtbaar voor hen.</p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>{t('werk.gesprekModal.internAlleenHr')}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{t('werk.gesprekModal.samenvattingZichtbaar')}</p>
                   </div>
                 </div>
 
-                <Field label="Interne notities (alleen HR)">
+                <Field label={t('werk.gesprekModal.interneNotities')}>
                   <Textarea
                     value={notitiesIntern}
                     onChange={e => setNotitiesIntern(e.target.value)}
-                    placeholder="Vertrouwelijke aantekeningen, observaties, context..."
+                    placeholder={t('werk.gesprekModal.interneNotitiesPlaceholder')}
                     rows={5}
                   />
                 </Field>
 
-                <Field label="Samenvatting voor medewerker">
+                <Field label={t('werk.gesprekModal.samenvatting')}>
                   <Textarea
                     value={samenvattingMedewerker}
                     onChange={e => setSamenvattingMedewerker(e.target.value)}
-                    placeholder="Gedeelde samenvatting — medewerker kan dit lezen in hun app..."
+                    placeholder={t('werk.gesprekModal.samenvattingPlaceholder')}
                     rows={4}
                   />
                 </Field>
@@ -274,7 +271,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                     background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-strong)',
                     padding: '32px 24px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13,
                   }}>
-                    Nog geen actiepunten. Voeg er een toe hieronder.
+                    {t('werk.gesprekModal.geenActiepunten')}
                   </div>
                 )}
 
@@ -289,7 +286,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                         type="button"
                         onClick={() => toggleActiepunt(idx)}
                         aria-pressed={ap.gedaan}
-                        aria-label={ap.gedaan ? `Markeer "${ap.tekst}" als niet gedaan` : `Markeer "${ap.tekst}" als gedaan`}
+                        aria-label={ap.gedaan ? t('werk.gesprekModal.markeerNietGedaan', { tekst: ap.tekst }) : t('werk.gesprekModal.markeerGedaan', { tekst: ap.tekst })}
                         className="mf-pressable"
                         style={{
                           width: 20, height: 20, borderRadius: 5, flexShrink: 0,
@@ -307,7 +304,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                       <button
                         type="button"
                         onClick={() => verwijderActiepunt(idx)}
-                        aria-label={`Verwijder actiepunt "${ap.tekst}"`}
+                        aria-label={t('werk.gesprekModal.verwijderActiepunt', { tekst: ap.tekst })}
                         className="mf-pressable"
                         style={{
                           width: 24, height: 24, borderRadius: 6, border: '1px solid var(--mf-red)',
@@ -319,17 +316,17 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                       </button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 30 }}>
-                      <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Deadline:</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.gesprekModal.deadline')}</span>
                       <Input
                         type="date"
                         value={ap.deadline ?? ''}
                         onChange={e => stelDeadlineIn(idx, e.target.value)}
-                        aria-label={`Deadline voor "${ap.tekst}"`}
+                        aria-label={t('werk.gesprekModal.deadlineVoor', { tekst: ap.tekst })}
                         style={{ width: 'auto', fontSize: 13, padding: '4px 10px' }}
                       />
                       {ap.deadline && (
                         <Button variant="ghost" size="sm" onClick={() => stelDeadlineIn(idx, '')} style={{ padding: '4px 8px', fontSize: 11 }}>
-                          Wis
+                          {t('werk.gesprekModal.wis')}
                         </Button>
                       )}
                     </div>
@@ -343,8 +340,8 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                     value={nieuwActiepunt}
                     onChange={e => setNieuwActiepunt(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') voegActiepuntToe() }}
-                    placeholder="Nieuw actiepunt toevoegen..."
-                    aria-label="Nieuw actiepunt"
+                    placeholder={t('werk.gesprekModal.nieuwActiepuntPlaceholder')}
+                    aria-label={t('werk.gesprekModal.nieuwActiepunt')}
                     style={{ flex: 1 }}
                   />
                   <Button
@@ -352,7 +349,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
                     disabled={!nieuwActiepunt.trim()}
                     leftIcon={<Plus size={15} aria-hidden />}
                   >
-                    Toevoegen
+                    {t('werk.gesprekModal.toevoegen')}
                   </Button>
                 </div>
               </div>
@@ -371,9 +368,9 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
             padding: '16px 24px', borderTop: '1px solid var(--border)',
             display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0,
           }}>
-            <Button variant="secondary" onClick={onClose}>Annuleren</Button>
+            <Button variant="secondary" onClick={onClose}>{t('werk.algemeen.annuleren')}</Button>
             <Button onClick={opslaan} loading={bezig} style={{ minWidth: 100 }}>
-              {isNieuw ? 'Gesprek plannen' : 'Wijzigingen opslaan'}
+              {isNieuw ? t('werk.gesprekModal.gesprekPlannen') : t('werk.gesprekModal.wijzigingenOpslaan')}
             </Button>
           </div>
         </TabsRoot>
@@ -383,16 +380,17 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
 }
 
 export function StatusBadge({ status }: { status: Gesprek['status'] }) {
-  const map: Record<Gesprek['status'], { label: string; variant: 'accent' | 'success' | 'neutral'; dot: string }> = {
-    gepland:     { label: 'Gepland',     variant: 'accent',  dot: 'var(--mentaforce-primary)' },
-    afgerond:    { label: 'Afgerond',    variant: 'success', dot: 'var(--mf-green)' },
-    geannuleerd: { label: 'Geannuleerd', variant: 'neutral', dot: 'var(--text-3)' },
+  const { t } = useVertaling()
+  const map: Record<Gesprek['status'], { variant: 'accent' | 'success' | 'neutral'; dot: string }> = {
+    gepland:     { variant: 'accent',  dot: 'var(--mentaforce-primary)' },
+    afgerond:    { variant: 'success', dot: 'var(--mf-green)' },
+    geannuleerd: { variant: 'neutral', dot: 'var(--text-3)' },
   }
   const s = map[status]
   return (
     <Badge variant={s.variant}>
       <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
-      {s.label}
+      {t(`werk.gesprekStatus.${status}`)}
     </Badge>
   )
 }

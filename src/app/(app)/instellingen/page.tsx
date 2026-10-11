@@ -20,6 +20,8 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/Toast'
+import { TaalKiezer } from '@/components/taal/TaalKiezer'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
@@ -53,14 +55,15 @@ function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
   )
 }
 
-const SECTIES: { id: Sectie; label: string; icon: React.ReactNode; beschrijving: string }[] = [
-  { id: 'profiel',      label: 'Profiel',              icon: <SI d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />, beschrijving: 'Naam, foto en persoonlijke informatie' },
-  { id: 'gezondheid',   label: 'Gezondheid & doelen',  icon: <SI d={['M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z']} />, beschrijving: 'Gewicht, activiteit en dagdoelen' },
-  { id: 'account',      label: 'Account & Beveiliging', icon: <SI d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />, beschrijving: 'E-mail, wachtwoord en twee-factor' },
-  { id: 'privacy',      label: 'Privacy',               icon: <SI d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />, beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
-  { id: 'weergave',     label: 'Weergave',              icon: <SI d={['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z']} />, beschrijving: 'Taal, thema en voorkeuren' },
-  { id: 'data',         label: 'Mijn gegevens',         icon: <SI d={['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']} />, beschrijving: 'Exporteer of bekijk je data' },
-  { id: 'gevaar',       label: 'Gevarenzone',           icon: <SI d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />, beschrijving: 'Account verwijderen of uitloggen' },
+// Labels en beschrijvingen: account.instellingen.sectie.<id>.label / .beschrijving
+const SECTIES: { id: Sectie; icon: React.ReactNode }[] = [
+  { id: 'profiel',      icon: <SI d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /> },
+  { id: 'gezondheid',   icon: <SI d={['M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z']} /> },
+  { id: 'account',      icon: <SI d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} /> },
+  { id: 'privacy',      icon: <SI d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" /> },
+  { id: 'weergave',     icon: <SI d={['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z']} /> },
+  { id: 'data',         icon: <SI d={['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']} /> },
+  { id: 'gevaar',       icon: <SI d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" /> },
 ]
 
 function Melding({ melding }: { melding: { type: 'success' | 'error'; tekst: string } }) {
@@ -105,6 +108,7 @@ function Toggle({ actief, onChange, label, beschrijving }: {
 export default function Instellingen() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [activeSectie, setActiveSectie] = useState<Sectie>('profiel')
@@ -148,8 +152,7 @@ export default function Instellingen() {
   const [hrInzageRapporten, setHrInzageRapporten] = useState(false)
   const [hrInzageBestanden, setHrInzageBestanden] = useState(false)
 
-  // Weergave
-  const [taal, setTaal] = useState('nl')
+  // Weergave (taal: zie TaalKiezer)
   const [thema, setThema] = useState(() =>
     typeof window !== 'undefined' ? (localStorage.getItem('mf-thema') ?? 'licht') : 'licht'
   )
@@ -229,11 +232,11 @@ export default function Instellingen() {
       }
       const f = profiel?.functie ?? ''
       const a = profiel?.afdeling ?? ''
-      const t = profiel?.telefoon ?? ''
+      const tel = profiel?.telefoon ?? ''
       const b = profiel?.bio ?? ''
       setFunctie(f); setOrigineelFunctie(f)
       setAfdeling(a); setOrigineelAfdeling(a)
-      setTelefoon(t); setOrigineelTelefoon(t)
+      setTelefoon(tel); setOrigineelTelefoon(tel)
       setBio(b); setOrigineelBio(b)
       setHrInzageRapporten(profiel?.hr_inzage_rapporten ?? false)
       setHrInzageBestanden(profiel?.hr_inzage_bestanden ?? false)
@@ -262,7 +265,7 @@ export default function Instellingen() {
       await supabase.from('profiles').update({ avatar_url: pad }).eq('id', userId)
       setAvatarUrl(pad)
     } catch {
-      toast({ title: 'Uploaden mislukt', description: 'Probeer een andere afbeelding.', variant: 'error' })
+      toast({ title: t('account.instellingen.uploadMislukt'), description: t('account.instellingen.uploadAnders'), variant: 'error' })
     }
     setAvatarBezig(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -291,14 +294,14 @@ export default function Instellingen() {
       bio: bio.trim(),
     }).eq('id', userId)
     if (error) {
-      setProfielMelding({ type: 'error', tekst: 'Opslaan mislukt.' })
+      setProfielMelding({ type: 'error', tekst: t('account.instellingen.opslaanMislukt') })
     } else {
       setOrigineelNaam(naam.trim())
       setOrigineelFunctie(functie.trim())
       setOrigineelAfdeling(afdeling.trim())
       setOrigineelTelefoon(telefoon.trim())
       setOrigineelBio(bio.trim())
-      setProfielMelding({ type: 'success', tekst: 'Profiel bijgewerkt.' })
+      setProfielMelding({ type: 'success', tekst: t('account.instellingen.profielBijgewerkt') })
       setTimeout(() => setProfielMelding(null), 3000)
     }
     setProfielBezig(false)
@@ -307,21 +310,21 @@ export default function Instellingen() {
   async function wijzigWachtwoord() {
     if (!nieuwWachtwoord || !bevestigWachtwoord) return
     if (nieuwWachtwoord !== bevestigWachtwoord) {
-      setWachtwoordMelding({ type: 'error', tekst: 'Wachtwoorden komen niet overeen.' })
+      setWachtwoordMelding({ type: 'error', tekst: t('account.instellingen.nietGelijk') })
       return
     }
     if (nieuwWachtwoord.length < 8) {
-      setWachtwoordMelding({ type: 'error', tekst: 'Minimaal 8 tekens vereist.' })
+      setWachtwoordMelding({ type: 'error', tekst: t('account.instellingen.minimaal8') })
       return
     }
     setWachtwoordBezig(true)
     setWachtwoordMelding(null)
     const { error } = await supabase.auth.updateUser({ password: nieuwWachtwoord })
     if (error) {
-      setWachtwoordMelding({ type: 'error', tekst: `Fout: ${error.message}` })
+      setWachtwoordMelding({ type: 'error', tekst: t('account.instellingen.fout', { melding: error.message }) })
     } else {
       setHuidigWachtwoord(''); setNieuwWachtwoord(''); setBevestigWachtwoord('')
-      setWachtwoordMelding({ type: 'success', tekst: 'Wachtwoord succesvol gewijzigd.' })
+      setWachtwoordMelding({ type: 'success', tekst: t('account.instellingen.wachtwoordGewijzigd') })
       setTimeout(() => setWachtwoordMelding(null), 4000)
     }
     setWachtwoordBezig(false)
@@ -329,16 +332,16 @@ export default function Instellingen() {
 
   async function wijzigEmail() {
     if (!nieuwEmail.trim() || !nieuwEmail.includes('@')) {
-      setEmailMelding({ type: 'error', tekst: 'Voer een geldig e-mailadres in.' })
+      setEmailMelding({ type: 'error', tekst: t('account.register.ongeldigEmail') })
       return
     }
     setEmailBezig(true)
     setEmailMelding(null)
     const { error } = await supabase.auth.updateUser({ email: nieuwEmail.trim() })
     if (error) {
-      setEmailMelding({ type: 'error', tekst: `Fout: ${error.message}` })
+      setEmailMelding({ type: 'error', tekst: t('account.instellingen.fout', { melding: error.message }) })
     } else {
-      setEmailMelding({ type: 'success', tekst: 'Bevestigingsmail verstuurd naar nieuw adres.' })
+      setEmailMelding({ type: 'success', tekst: t('account.instellingen.emailVerstuurd') })
       setNieuwEmail('')
       setTimeout(() => setEmailMelding(null), 5000)
     }
@@ -400,21 +403,15 @@ export default function Instellingen() {
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setRolWisselMelding({ type: 'error', tekst: `Fout: ${data.error ?? 'wisselen mislukt'}` })
+      setRolWisselMelding({ type: 'error', tekst: t('account.instellingen.fout', { melding: typeof data.error === 'string' ? data.error : t('account.instellingen.wisselenMislukt') }) })
       setRolWisselBezig(false)
       return
     }
 
-    const LABELS: Record<string, string> = {
-      admin:      'Admin',
-      hr:         'HR Manager',
-      medewerker: 'Werknemer',
-      gebruiker:  'Gebruiker (geen bedrijf)',
-    }
     setUserRol(dbRol)
     setRolWisselMelding({
       type: 'success',
-      tekst: `Overgeschakeld naar ${LABELS[nieuweRol]}. Doorsturen...`,
+      tekst: t('account.instellingen.overgeschakeld', { rol: t(`account.instellingen.rolLabel.${nieuweRol}`) }),
     })
 
     setTimeout(() => {
@@ -484,9 +481,9 @@ export default function Instellingen() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
-      setExportMelding({ type: 'success', tekst: 'Je gegevens zijn gedownload als JSON-bestand.' })
+      setExportMelding({ type: 'success', tekst: t('account.instellingen.exportGelukt') })
     } catch {
-      setExportMelding({ type: 'error', tekst: 'Export mislukt. Probeer het later opnieuw.' })
+      setExportMelding({ type: 'error', tekst: t('account.instellingen.exportMislukt') })
     } finally {
       setExportBezig(false)
     }
@@ -529,14 +526,14 @@ export default function Instellingen() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-bold" style={{ color: 'var(--text-1)' }}>
-                    {naam || 'Gebruiker'}
+                    {naam || t('account.instellingen.rol.gebruiker')}
                   </h1>
                   {/* Rol badge */}
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{
                     background: userRol === 'admin' ? 'var(--mf-purple-light)' : userRol === 'hr' ? 'var(--mf-blue-light)' : 'var(--mf-green-light)',
                     color: userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue)' : 'var(--mf-green-dark)',
                   }}>
-                    {userRol === 'admin' ? 'Admin' : userRol === 'hr' ? 'HR Manager' : userRol === 'medewerker' ? 'Werknemer' : 'Gebruiker'}
+                    {userRol === 'admin' ? t('account.instellingen.rol.admin') : userRol === 'hr' ? t('account.instellingen.rol.hr') : userRol === 'medewerker' ? t('account.instellingen.rol.medewerker') : t('account.instellingen.rol.gebruiker')}
                   </span>
                 </div>
                 <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{userEmail}</p>
@@ -550,10 +547,10 @@ export default function Instellingen() {
               {/* Acties */}
               <div className="flex items-center gap-2">
                 <Button variant="secondary" size="sm" onClick={() => setActiveSectie('profiel')}>
-                  Profiel bewerken
+                  {t('account.instellingen.profielBewerken')}
                 </Button>
                 <Button variant="danger" size="sm" onClick={uitloggen} leftIcon={<LogOut size={14} aria-hidden />}>
-                  Uitloggen
+                  {t('account.hrShell.uitloggen')}
                 </Button>
               </div>
             </div>
@@ -587,8 +584,8 @@ export default function Instellingen() {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Instellingen</h2>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Beheer je profiel, account en voorkeuren.</p>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.kop')}</h2>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('account.instellingen.intro')}</p>
         </div>
 
         {laden ? (
@@ -614,8 +611,8 @@ export default function Instellingen() {
                   >
                     <span className="w-5 flex-shrink-0 flex items-center justify-center">{s.icon}</span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{s.label}</p>
-                      <p className="text-xs truncate hidden lg:block" style={{ color: 'var(--text-4)' }}>{s.beschrijving}</p>
+                      <p className="text-sm font-medium truncate">{t(`account.instellingen.sectie.${s.id}.label`)}</p>
+                      <p className="text-xs truncate hidden lg:block" style={{ color: 'var(--text-4)' }}>{t(`account.instellingen.sectie.${s.id}.beschrijving`)}</p>
                     </div>
                     {activeSectie === s.id && (
                       <div className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0" style={{ background: 'var(--mf-green)' }} />
@@ -631,7 +628,7 @@ export default function Instellingen() {
                 leftIcon={<LogOut size={15} aria-hidden />}
                 style={{ width: '100%', marginTop: 12 }}
               >
-                Uitloggen
+                {t('account.hrShell.uitloggen')}
               </Button>
 
               {/* App versie */}
@@ -648,17 +645,17 @@ export default function Instellingen() {
                   <Card style={{ padding: 24 }}>
                     <div className="flex items-center justify-between mb-5">
                       <div>
-                        <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Profielfoto</h2>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Wordt getoond in de app en teamoverzichten.</p>
+                        <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.profielfoto')}</h2>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.profielfotoSub')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="relative group flex-shrink-0">
-                        <Avatar naam={naam || 'Gebruiker'} avatarUrl={avatarUrl} size={88} />
+                        <Avatar naam={naam || t('account.instellingen.rol.gebruiker')} avatarUrl={avatarUrl} size={88} />
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           disabled={avatarBezig}
-                          aria-label={avatarUrl ? 'Foto wijzigen' : 'Foto uploaden'}
+                          aria-label={avatarUrl ? t('account.instellingen.fotoWijzigen') : t('account.instellingen.fotoUploaden')}
                           className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                           style={{ background: 'color-mix(in srgb, var(--bg-app) 55%, transparent)' }}
                         >
@@ -671,47 +668,47 @@ export default function Instellingen() {
                       </div>
                       <div className="flex flex-col gap-2 items-start">
                         <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={avatarBezig}>
-                          {avatarUrl ? 'Foto wijzigen' : 'Foto uploaden'}
+                          {avatarUrl ? t('account.instellingen.fotoWijzigen') : t('account.instellingen.fotoUploaden')}
                         </Button>
                         {avatarUrl && (
                           <Button variant="ghost" size="sm" onClick={verwijderAvatar} disabled={avatarBezig} style={{ color: 'var(--mf-red)' }}>
-                            Foto verwijderen
+                            {t('account.instellingen.fotoVerwijderen')}
                           </Button>
                         )}
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>JPG, PNG of WebP. Max 5 MB. Wordt bijgesneden naar vierkant.</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.fotoFormaat')}</p>
                       </div>
                     </div>
                   </Card>
 
                   {/* Personal info */}
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Persoonlijke informatie</h2>
-                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>Je naam is zichtbaar voor collega&apos;s in de teamchat.</p>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.persoonlijk')}</h2>
+                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.persoonlijkSub')}</p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <Field label="Weergavenaam" required>
-                        <Input type="text" value={naam} onChange={e => setNaam(e.target.value)} placeholder="Jouw naam" />
+                      <Field label={t('account.instellingen.weergavenaam')} required>
+                        <Input type="text" value={naam} onChange={e => setNaam(e.target.value)} placeholder={t('account.uitnodiging.naam')} />
                       </Field>
-                      <Field label="Functietitel">
-                        <Input type="text" value={functie} onChange={e => setFunctie(e.target.value)} placeholder="bijv. Software Engineer" />
+                      <Field label={t('account.hrOnboarding.functie')}>
+                        <Input type="text" value={functie} onChange={e => setFunctie(e.target.value)} placeholder={t('account.instellingen.functiePlaceholder')} />
                       </Field>
-                      <Field label="Afdeling">
-                        <Input type="text" value={afdeling} onChange={e => setAfdeling(e.target.value)} placeholder="bijv. Technologie" />
+                      <Field label={t('account.instellingen.afdeling')}>
+                        <Input type="text" value={afdeling} onChange={e => setAfdeling(e.target.value)} placeholder={t('account.instellingen.afdelingPlaceholder')} />
                       </Field>
-                      <Field label="Telefoonnummer">
+                      <Field label={t('account.hrOnboarding.telefoon')}>
                         <Input type="tel" value={telefoon} onChange={e => setTelefoon(e.target.value)} placeholder="+32 4xx xx xx xx" />
                       </Field>
                     </div>
 
                     <div className="mb-5">
-                      <Field label="Bio (optioneel)" hint={`${bio.length}/200 tekens`}>
-                        <Textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Vertel iets over jezelf..." />
+                      <Field label={t('account.instellingen.bio')} hint={t('account.instellingen.bioTekens', { aantal: bio.length })}>
+                        <Textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder={t('account.instellingen.bioPlaceholder')} />
                       </Field>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <Button onClick={slaProfielOp} loading={profielBezig} disabled={profielBezig || !naam.trim() || !profielGewijzigd}>
-                        Wijzigingen opslaan
+                        {t('account.instellingen.opslaan')}
                       </Button>
                       {profielMelding && <Melding melding={profielMelding} />}
                     </div>
@@ -729,15 +726,15 @@ export default function Instellingen() {
                 <>
                   {/* Current account info */}
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Accountoverzicht</h2>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.accountoverzicht')}</h2>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="rounded-xl p-4" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Huidig e-mailadres</p>
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.huidigEmail')}</p>
                         <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{userEmail || ''}</p>
                       </div>
                       <div className="rounded-xl p-4" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Account aangemaakt</p>
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>Via uitnodiging</p>
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.aangemaakt')}</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.viaUitnodiging')}</p>
                       </div>
                     </div>
                   </Card>
@@ -752,17 +749,17 @@ export default function Instellingen() {
                         </div>
                         <div>
                           <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>
-                            Testmodus — rol wisselen
+                            {t('account.instellingen.testmodusKop')}
                           </h2>
                           <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                            Wissel tijdelijk naar een andere rol om functies te testen. Je kunt altijd terugwisselen via instellingen.
+                            {t('account.instellingen.testmodusSub')}
                           </p>
                         </div>
                       </div>
 
                       {/* Huidige rol badge */}
                       <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                        <span className="text-xs" style={{ color: 'var(--text-3)' }}>Nu actief als:</span>
+                        <span className="text-xs" style={{ color: 'var(--text-3)' }}>{t('account.instellingen.nuActief')}</span>
                         <Badge
                           style={{
                             background: `color-mix(in srgb, ${userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue)' : 'var(--mentaforce-primary)'} 22%, transparent)`,
@@ -771,15 +768,15 @@ export default function Instellingen() {
                           }}
                         >
                           {userRol === 'admin'
-                            ? <><Shield size={12} aria-hidden /> Admin</>
+                            ? <><Shield size={12} aria-hidden /> {t('account.instellingen.rol.admin')}</>
                             : userRol === 'hr'
-                            ? <><Users size={12} aria-hidden /> HR Manager</>
+                            ? <><Users size={12} aria-hidden /> {t('account.instellingen.rol.hr')}</>
                             : bedrijfId
-                            ? <><Leaf size={12} aria-hidden /> Werknemer</>
-                            : <><UserIcon size={12} aria-hidden /> Gebruiker</>}
+                            ? <><Leaf size={12} aria-hidden /> {t('account.instellingen.rol.medewerker')}</>
+                            : <><UserIcon size={12} aria-hidden /> {t('account.instellingen.rol.gebruiker')}</>}
                         </Badge>
                         {userRol !== 'admin' && (
-                          <Badge variant="warning">Testmodus</Badge>
+                          <Badge variant="warning">{t('account.instellingen.testmodus')}</Badge>
                         )}
                       </div>
 
@@ -788,35 +785,31 @@ export default function Instellingen() {
                         {([
                           {
                             id: 'medewerker' as const,
-                            label: 'Werknemer',
+                            label: t('account.instellingen.rol.medewerker'),
                             Icon: Leaf,
                             kleur: 'var(--mentaforce-primary)',
-                            beschrijving: 'Gekoppeld aan bedrijf',
-                            detail: 'Check-in · rooster · gesprekken · werkdag',
+                            detail: t('account.instellingen.rolDetail.medewerker'),
                           },
                           {
                             id: 'gebruiker' as const,
-                            label: 'Gebruiker',
+                            label: t('account.instellingen.rol.gebruiker'),
                             Icon: UserIcon,
                             kleur: 'var(--text-2)',
-                            beschrijving: 'Geen bedrijf gekoppeld',
-                            detail: 'Alleen welzijn · coach · journal',
+                            detail: t('account.instellingen.rolDetail.gebruiker'),
                           },
                           {
                             id: 'hr' as const,
-                            label: 'HR Manager',
+                            label: t('account.instellingen.rol.hr'),
                             Icon: Users,
                             kleur: 'var(--mf-blue)',
-                            beschrijving: 'HR portaal',
-                            detail: 'Teams · roosters · KPI · gesprekken',
+                            detail: t('account.instellingen.rolDetail.hr'),
                           },
                           {
                             id: 'admin' as const,
-                            label: 'Admin (terug)',
+                            label: t('account.instellingen.adminTerug'),
                             Icon: Shield,
                             kleur: 'var(--mf-purple)',
-                            beschrijving: 'Volledige toegang',
-                            detail: 'Herstel je eigen account',
+                            detail: t('account.instellingen.rolDetail.admin'),
                           },
                         ] as const).map(opt => {
                           const actieveOptie = userRol === 'admin' ? 'admin'
@@ -845,7 +838,7 @@ export default function Instellingen() {
                                 <OptIcon size={20} aria-hidden style={{ color: isActief ? opt.kleur : 'var(--text-2)' }} />
                                 {isActief && (
                                   <span style={{ fontSize: 9, fontWeight: 800, background: `color-mix(in srgb, ${opt.kleur} 20%, transparent)`, color: opt.kleur, borderRadius: 4, padding: '2px 6px' }}>
-                                    ACTIEF
+                                    {t('account.instellingen.actiefKapitaal')}
                                   </span>
                                 )}
                               </div>
@@ -875,23 +868,23 @@ export default function Instellingen() {
 
                       <p className="text-xs mt-3 leading-relaxed flex items-start gap-1.5" style={{ color: 'var(--text-4)' }}>
                         <AlertTriangle size={13} aria-hidden style={{ flexShrink: 0, marginTop: 1, color: 'var(--mf-amber)' }} />
-                        <span>Elke optie wijzigt je <strong style={{ color: 'var(--text-3)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. &quot;Admin (terug)&quot; herstelt alles naar je originele staat.</span>
+                        <span>{t('account.instellingen.testWaarschuwingVoor')} <strong style={{ color: 'var(--text-3)' }}>{t('account.instellingen.testWaarschuwingVet')}</strong> {t('account.instellingen.testWaarschuwingNa')}</span>
                       </p>
                     </Card>
                   )}
 
                   {/* Change email */}
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>E-mailadres wijzigen</h2>
-                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Je ontvangt een bevestigingsmail op het nieuwe adres.</p>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.emailKop')}</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.emailSub')}</p>
                     <div className="flex gap-3 items-start">
                       <div style={{ flex: 1 }}>
-                        <Field label="Nieuw e-mailadres">
-                          <Input type="email" value={nieuwEmail} onChange={e => setNieuwEmail(e.target.value)} placeholder="naam@bedrijf.nl" />
+                        <Field label={t('account.instellingen.nieuwEmail')}>
+                          <Input type="email" value={nieuwEmail} onChange={e => setNieuwEmail(e.target.value)} placeholder={t('account.instellingen.emailPlaceholder')} />
                         </Field>
                       </div>
                       <Button onClick={wijzigEmail} loading={emailBezig} disabled={emailBezig || !nieuwEmail.trim()} style={{ marginTop: 25, flexShrink: 0 }}>
-                        Wijzigen
+                        {t('account.instellingen.wijzigen')}
                       </Button>
                     </div>
                     {emailMelding && <div className="mt-3"><Melding melding={emailMelding} /></div>}
@@ -899,21 +892,21 @@ export default function Instellingen() {
 
                   {/* Change password */}
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Wachtwoord wijzigen</h2>
-                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Minimaal 8 tekens. Gebruik letters, cijfers en symbolen voor meer veiligheid.</p>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.wachtwoordKop')}</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.wachtwoordSub')}</p>
                     <div className="flex flex-col gap-3">
                       <div className="relative">
                         <Input type={toonWachtwoord ? 'text' : 'password'} value={huidigWachtwoord}
-                          onChange={e => setHuidigWachtwoord(e.target.value)} placeholder="Huidig wachtwoord"
-                          aria-label="Huidig wachtwoord" style={{ paddingRight: 64 }} />
-                        <button type="button" onClick={() => setToonWachtwoord(t => !t)}
+                          onChange={e => setHuidigWachtwoord(e.target.value)} placeholder={t('account.instellingen.huidigWachtwoord')}
+                          aria-label={t('account.instellingen.huidigWachtwoord')} style={{ paddingRight: 64 }} />
+                        <button type="button" onClick={() => setToonWachtwoord(x => !x)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-1"
                           style={{ color: 'var(--text-3)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                          {toonWachtwoord ? 'Verberg' : 'Toon'}
+                          {toonWachtwoord ? t('account.login.verberg') : t('account.login.toon')}
                         </button>
                       </div>
                       <Input type={toonWachtwoord ? 'text' : 'password'} value={nieuwWachtwoord}
-                        onChange={e => setNieuwWachtwoord(e.target.value)} placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" />
+                        onChange={e => setNieuwWachtwoord(e.target.value)} placeholder={t('account.wachtwoord.nieuw')} aria-label={t('account.wachtwoord.nieuw')} />
                       {nieuwWachtwoord && (
                         <div className="flex items-center gap-2">
                           {[0, 1, 2].map(i => (
@@ -921,20 +914,20 @@ export default function Instellingen() {
                               style={{ background: wachtwoordSterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mentaforce-primary)'][i] : 'var(--border-strong)', transition: 'background 0.15s var(--ease)' }} />
                           ))}
                           <span className="text-xs ml-1 w-12" style={{ color: 'var(--text-4)' }}>
-                            {['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]}
+                            {t(`account.register.sterkte.${['teKort', 'matig', 'goed', 'sterk'][wachtwoordSterkte]}`)}
                           </span>
                         </div>
                       )}
                       <Input type={toonWachtwoord ? 'text' : 'password'} value={bevestigWachtwoord}
-                        onChange={e => setBevestigWachtwoord(e.target.value)} placeholder="Bevestig nieuw wachtwoord"
-                        aria-label="Bevestig nieuw wachtwoord"
+                        onChange={e => setBevestigWachtwoord(e.target.value)} placeholder={t('account.wachtwoord.bevestig')}
+                        aria-label={t('account.wachtwoord.bevestig')}
                         onKeyDown={e => e.key === 'Enter' && wijzigWachtwoord()} />
                       {bevestigWachtwoord && nieuwWachtwoord !== bevestigWachtwoord && (
-                        <p className="text-xs" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
+                        <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{t('account.register.nietGelijk')}</p>
                       )}
                       <div className="flex items-center gap-3">
                         <Button onClick={wijzigWachtwoord} loading={wachtwoordBezig} disabled={wachtwoordBezig || !nieuwWachtwoord || !bevestigWachtwoord}>
-                          Wachtwoord wijzigen
+                          {t('account.instellingen.wachtwoordKop')}
                         </Button>
                         {wachtwoordMelding && <Melding melding={wachtwoordMelding} />}
                       </div>
@@ -946,13 +939,13 @@ export default function Instellingen() {
                     <Card style={{ padding: 24 }}>
                       <div className="flex items-start justify-between gap-4 mb-4">
                         <div>
-                          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Werkgever</h2>
+                          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.werkgever')}</h2>
                           <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                            Koppel je account aan je werkgever via een HR code.
+                            {t('account.instellingen.werkgeverSub')}
                           </p>
                         </div>
                         {bedrijfId && (
-                          <Badge variant="success" style={{ flexShrink: 0 }}>Gekoppeld</Badge>
+                          <Badge variant="success" style={{ flexShrink: 0 }}>{t('account.healthConnect.gekoppeld')}</Badge>
                         )}
                       </div>
 
@@ -970,9 +963,9 @@ export default function Instellingen() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-1)' }}>
-                              {bedrijfsnaam ?? 'Jouw werkgever'}
+                              {bedrijfsnaam ?? t('account.instellingen.jouwWerkgever')}
                             </p>
-                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>Account is gekoppeld</p>
+                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('account.instellingen.accountGekoppeld')}</p>
                           </div>
                         </div>
                       ) : (
@@ -989,14 +982,14 @@ export default function Instellingen() {
                               <UserPlus size={24} aria-hidden />
                             </div>
                             <div>
-                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Nog niet gekoppeld aan een werkgever</p>
+                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{t('account.instellingen.nietGekoppeld')}</p>
                               <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                                Vraag de HR code op bij je werkgever en koppel je account.
+                                {t('account.instellingen.vraagCode')}
                               </p>
                             </div>
                           </div>
                           <Button onClick={() => setToonKoppelModal(true)} style={{ width: '100%' }}>
-                            Koppel aan werkgever via HR code
+                            {t('account.instellingen.koppelKnop')}
                           </Button>
                         </div>
                       )}
@@ -1012,9 +1005,9 @@ export default function Instellingen() {
                     style={{ background: 'var(--mentaforce-primary-light)', border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)' }}>
                     <Eye size={20} aria-hidden style={{ flexShrink: 0, marginTop: 2, color: 'var(--mentaforce-primary)' }} />
                     <div>
-                      <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Privacy-by-design</p>
+                      <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.privacyKop')}</p>
                       <p className="text-xs leading-relaxed" style={{ color: 'var(--text-2)' }}>
-                        MentaForce deelt nooit jouw individuele check-in antwoorden met HR. HR ziet uitsluitend geaggregeerde teamgemiddelden. Jouw persoonlijke data blijft van jou.
+                        {t('account.instellingen.privacyTekst')}
                       </p>
                     </div>
                   </div>
@@ -1022,16 +1015,16 @@ export default function Instellingen() {
                   {/* HR Inzage — alleen voor werknemers met bedrijf */}
                   {bedrijfId && (
                     <Card style={{ padding: 24 }}>
-                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Wat HR van jou kan zien</h2>
-                      <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Jij bepaalt wat jouw HR-afdeling mag inzien. Standaard staat alles uit.</p>
+                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.hrZiet')}</h2>
+                      <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.hrZietSub')}</p>
                       <Toggle
                         actief={hrInzageRapporten}
                         onChange={async (v) => {
                           setHrInzageRapporten(v)
                           if (userId) await supabase.from('profiles').update({ hr_inzage_rapporten: v }).eq('id', userId)
                         }}
-                        label="HR mag mijn AI-rapporten inzien"
-                        beschrijving="Check-in rapporten, DISC-profiel en onboarding samenvatting"
+                        label={t('account.onboarding.inzageRapporten')}
+                        beschrijving={t('account.instellingen.inzageRapportenSub')}
                       />
                       <Toggle
                         actief={hrInzageBestanden}
@@ -1039,37 +1032,37 @@ export default function Instellingen() {
                           setHrInzageBestanden(v)
                           if (userId) await supabase.from('profiles').update({ hr_inzage_bestanden: v }).eq('id', userId)
                         }}
-                        label="HR mag mijn gedeelde bestanden bekijken"
-                        beschrijving="Alleen bestanden die jij markeert als 'Deel met HR' in Mijn bestanden"
+                        label={t('account.onboarding.inzageBestanden')}
+                        beschrijving={t('account.instellingen.inzageBestandenSub')}
                       />
                     </Card>
                   )}
 
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Toestemmingen</h2>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.toestemmingen')}</h2>
                     <div className="flex flex-col gap-3">
                       {[
-                        { label: 'Gegevensverwerking voor welzijnsanalyse', status: 'Vereist', beschrijving: 'Noodzakelijk voor de werking van het platform' },
-                        { label: 'AVG-verwerkersovereenkomst', status: 'Actief', beschrijving: 'Aanvaard bij registratie van je organisatie' },
-                        { label: 'Analytische cookies', status: 'Actief', beschrijving: 'Helpt ons de app te verbeteren' },
-                      ].map(t => (
-                        <div key={t.label} className="flex items-start justify-between gap-4 p-3 rounded-xl" style={{ border: '1px solid var(--border)' }}>
+                        { sleutel: 'verwerking', vereist: true },
+                        { sleutel: 'avg', vereist: false },
+                        { sleutel: 'cookies', vereist: false },
+                      ].map(item => (
+                        <div key={item.sleutel} className="flex items-start justify-between gap-4 p-3 rounded-xl" style={{ border: '1px solid var(--border)' }}>
                           <div>
-                            <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t.label}</p>
-                            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t.beschrijving}</p>
+                            <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t(`account.instellingen.toestemming.${item.sleutel}.label`)}</p>
+                            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t(`account.instellingen.toestemming.${item.sleutel}.beschrijving`)}</p>
                           </div>
-                          <Badge variant={t.status === 'Vereist' ? 'neutral' : 'success'} style={{ flexShrink: 0 }}>
-                            {t.status}
+                          <Badge variant={item.vereist ? 'neutral' : 'success'} style={{ flexShrink: 0 }}>
+                            {item.vereist ? t('account.instellingen.vereist') : t('account.instellingen.actief')}
                           </Badge>
                         </div>
                       ))}
                     </div>
                     <div className="mt-4 flex gap-3 flex-wrap">
                       <Link href="/voorwaarden" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
-                        Algemene voorwaarden
+                        {t('account.instellingen.voorwaarden')}
                       </Link>
                       <Link href="/contact" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
-                        Privacy-verzoek indienen
+                        {t('account.instellingen.privacyVerzoek')}
                       </Link>
                     </div>
                   </Card>
@@ -1082,15 +1075,15 @@ export default function Instellingen() {
                   {/* ── Portaal wisselen (alleen admin) ── */}
                   {userRol === 'admin' && (
                     <Card style={{ padding: 24 }}>
-                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Portaal wisselen</h2>
+                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.portaalKop')}</h2>
                       <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
-                        Kies welk portaal je wilt bekijken. Dit is de enige plek waar je kunt wisselen.
+                        {t('account.instellingen.portaalSub')}
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {([
-                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: 'var(--mentaforce-primary)', Icon: Leaf },
-                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: 'var(--mf-blue)', Icon: Users },
-                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: 'var(--mf-purple)', Icon: Shield },
+                          { mode: 'employee' as ViewMode, label: t('account.instellingen.rol.medewerker'), beschrijving: t('account.instellingen.portaal.employee'), kleur: 'var(--mentaforce-primary)', Icon: Leaf },
+                          { mode: 'hr'       as ViewMode, label: t('account.instellingen.portaalHr'), beschrijving: t('account.instellingen.portaal.hr'), kleur: 'var(--mf-blue)', Icon: Users },
+                          { mode: 'admin'    as ViewMode, label: t('account.instellingen.rol.admin'), beschrijving: t('account.instellingen.portaal.admin'), kleur: 'var(--mf-purple)', Icon: Shield },
                         ] as const).map(opt => {
                           const actief = huidigPortaal === opt.mode
                           const OptIcon = opt.Icon
@@ -1112,7 +1105,7 @@ export default function Instellingen() {
                               <div>
                                 <p style={{ fontSize: 13, fontWeight: 700, color: actief ? opt.kleur : 'var(--text-1)' }}>
                                   {opt.label}
-                                  {actief && <span style={{ marginLeft: 6, fontSize: 10, background: `color-mix(in srgb, ${opt.kleur} 20%, transparent)`, color: opt.kleur, borderRadius: 4, padding: '1px 6px' }}>Actief</span>}
+                                  {actief && <span style={{ marginLeft: 6, fontSize: 10, background: `color-mix(in srgb, ${opt.kleur} 20%, transparent)`, color: opt.kleur, borderRadius: 4, padding: '1px 6px' }}>{t('account.instellingen.actief')}</span>}
                                 </p>
                                 <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{opt.beschrijving}</p>
                               </div>
@@ -1124,45 +1117,26 @@ export default function Instellingen() {
                   )}
 
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Taal</h2>
-                    <div className="grid grid-cols-3 gap-2.5">
-                      {[
-                        { value: 'nl', label: 'Nederlands', sub: 'Standaard' },
-                        { value: 'fr', label: 'Français', sub: 'Binnenkort' },
-                        { value: 'en', label: 'English', sub: 'Binnenkort' },
-                      ].map(l => (
-                        <button key={l.value} onClick={() => setTaal(l.value)}
-                          className="mf-pressable p-3 rounded-xl text-left"
-                          style={{
-                            background: taal === l.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            border: `1px solid ${taal === l.value ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
-                            transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)',
-                          }}>
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{l.label}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{l.sub}</p>
-                        </button>
-                      ))}
-                    </div>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.taalKop')}</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.taalSub')}</p>
+                    <TaalKiezer />
                   </Card>
 
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Thema</h2>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.themaKop')}</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { value: 'licht',      label: 'Licht',      sub: 'Helder en fris' },
-                        { value: 'schemering', label: 'Schemering', sub: 'Warm en rustig' },
-                        { value: 'donker',     label: 'Donker',     sub: 'Voor \'s avonds' },
-                        { value: 'systeem',    label: 'Systeem',    sub: 'Volgt je OS' },
-                      ].map(t => (
-                        <button key={t.value} onClick={() => setThema(t.value)}
+                        'licht', 'schemering', 'donker', 'systeem',
+                      ].map(optie => (
+                        <button key={optie} onClick={() => setThema(optie)}
                           className="mf-pressable p-3 rounded-xl text-left"
                           style={{
-                            background: thema === t.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            border: `1px solid ${thema === t.value ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                            background: thema === optie ? 'var(--mentaforce-primary-light)' : 'transparent',
+                            border: `1px solid ${thema === optie ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
                             transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)',
                           }}>
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t.label}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t.sub}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t(`account.instellingen.thema.${optie}.label`)}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t(`account.instellingen.thema.${optie}.sub`)}</p>
                         </button>
                       ))}
                     </div>
@@ -1175,16 +1149,16 @@ export default function Instellingen() {
               {activeSectie === 'data' && (
                 <>
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Gegevensoverzicht</h2>
-                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.gegevensKop')}</h2>
+                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.gegevensSub')}</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
-                        { label: 'Check-ins',        kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
-                        { label: 'Journal entries',  kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-                        { label: 'Coach-gesprekken', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', d: 'M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
-                        { label: 'Gewoonte logs',    kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', d: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
-                        { label: 'Teamberichten',    kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
-                        { label: 'Profiel data',     kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+                        { label: t('account.instellingen.gegevens.checkins'), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+                        { label: t('account.instellingen.gegevens.journal'), kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+                        { label: t('account.instellingen.gegevens.coach'), kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', d: 'M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+                        { label: t('account.instellingen.gegevens.gewoontes'), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', d: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
+                        { label: t('account.instellingen.gegevens.team'), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+                        { label: t('account.instellingen.gegevens.profiel'), kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
                       ].map(d => (
                         <div key={d.label} className="rounded-xl p-4" style={{ background: d.bg, border: '1px solid var(--border)' }}>
                           <div style={{ color: d.kleur, marginBottom: 8 }}>
@@ -1193,22 +1167,22 @@ export default function Instellingen() {
                             </svg>
                           </div>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>Alleen zichtbaar voor jou</p>
+                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.alleenJij')}</p>
                         </div>
                       ))}
                     </div>
                   </Card>
 
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Exporteer je data</h2>
-                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Download direct al jouw persoonlijke gegevens als JSON-bestand. Het bestand wordt lokaal in je browser opgebouwd.</p>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.exportKop')}</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.exportSub')}</p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         variant="secondary"
                         onClick={() => exporteerData(CHECKIN_TABELLEN, false, 'mentaforce-checkins')}
                         disabled={exportBezig}
                         leftIcon={<Download size={15} aria-hidden />}>
-                        Check-in data exporteren
+                        {t('account.instellingen.exportCheckin')}
                       </Button>
                       <Button
                         variant="secondary"
@@ -1216,7 +1190,7 @@ export default function Instellingen() {
                         loading={exportBezig}
                         disabled={exportBezig}
                         leftIcon={<Download size={15} aria-hidden />}>
-                        {exportBezig ? 'Bezig met exporteren…' : 'Volledige data exporteren'}
+                        {exportBezig ? t('account.instellingen.exportBezig') : t('account.instellingen.exportVolledig')}
                       </Button>
                     </div>
                     {exportMelding && (
@@ -1229,13 +1203,13 @@ export default function Instellingen() {
                   <GezondheidVerwijderen />
 
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Recht op inzage (AVG)</h2>
-                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
-                    <a href="mailto:info@mentaforce.nl?subject=AVG-verzoek"
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.inzageKop')}</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.inzageSub')}</p>
+                    <a href={`mailto:info@mentaforce.nl?subject=${encodeURIComponent(t('account.instellingen.avgOnderwerp'))}`}
                       className="mf-pressable inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium"
                       style={{ border: '1px solid var(--border-strong)', color: 'var(--text-1)', background: 'var(--bg-subtle)', textDecoration: 'none' }}>
                       <Mail size={15} aria-hidden />
-                      AVG-verzoek indienen
+                      {t('account.instellingen.avgVerzoek')}
                     </a>
                   </Card>
                 </>
@@ -1245,14 +1219,14 @@ export default function Instellingen() {
               {activeSectie === 'gevaar' && (
                 <>
                   <Card style={{ padding: 24 }}>
-                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Sessie</h2>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.sessie')}</h2>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm" style={{ color: 'var(--text-1)' }}>Uitloggen op dit apparaat</p>
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Je wordt doorgestuurd naar de inlogpagina.</p>
+                        <p className="text-sm" style={{ color: 'var(--text-1)' }}>{t('account.instellingen.uitloggenApparaat')}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('account.instellingen.doorgestuurd')}</p>
                       </div>
                       <Button variant="secondary" size="sm" onClick={uitloggen}>
-                        Uitloggen
+                        {t('account.hrShell.uitloggen')}
                       </Button>
                     </div>
                   </Card>
@@ -1261,17 +1235,17 @@ export default function Instellingen() {
                     <div className="flex items-start gap-3 mb-4">
                       <Trash2 size={20} aria-hidden style={{ flexShrink: 0, marginTop: 2, color: 'var(--mf-red)' }} />
                       <div>
-                        <h2 className="text-base font-semibold" style={{ color: 'var(--mf-red)' }}>Account &amp; gegevens verwijderen</h2>
+                        <h2 className="text-base font-semibold" style={{ color: 'var(--mf-red)' }}>{t('account.instellingen.verwijderKop')}</h2>
                         <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                          Vraag verwijdering aan van je account en al je persoonlijke gegevens. We verwerken je verzoek conform de AVG (recht op vergetelheid) en bevestigen per e-mail zodra het is uitgevoerd.
+                          {t('account.instellingen.verwijderSub')}
                         </p>
                       </div>
                     </div>
 
                     <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--mf-red-light)', border: '1px solid color-mix(in srgb, var(--mf-red) 25%, transparent)' }}>
-                      <p className="text-sm mb-1" style={{ color: 'var(--text-2)' }}>Wat er verwijderd wordt:</p>
+                      <p className="text-sm mb-1" style={{ color: 'var(--text-2)' }}>{t('account.instellingen.watWeg')}</p>
                       <ul className="text-xs space-y-1 ml-3" style={{ color: 'var(--text-3)' }}>
-                        {['Alle check-in antwoorden', 'Journal entries en notities', 'AI coach-gesprekken', 'Gewoonte-logs', 'Profielfoto en persoonlijke info'].map(i => (
+                        {['checkins', 'journal', 'coach', 'gewoontes', 'profiel'].map(sleutel => t(`account.instellingen.weg.${sleutel}`)).map(i => (
                           <li key={i} className="flex items-center gap-2">
                             <X size={10} aria-hidden style={{ color: 'var(--mf-red)', flexShrink: 0 }} />
                             {i}
@@ -1281,15 +1255,15 @@ export default function Instellingen() {
                     </div>
 
                     <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>
-                      Tip: exporteer eerst je gegevens via <strong style={{ color: 'var(--text-2)' }}>Mijn gegevens</strong> als je een kopie wilt bewaren.
+                      {t('account.instellingen.tipVoor')} <strong style={{ color: 'var(--text-2)' }}>{t('account.instellingen.sectie.data.label')}</strong> {t('account.instellingen.tipNa')}
                     </p>
 
                     <a
-                      href={`mailto:info@mentaforce.nl?subject=${encodeURIComponent('Verzoek tot verwijdering van mijn account en gegevens')}&body=${encodeURIComponent('Hallo,\n\nIk wil mijn MentaForce-account en al mijn persoonlijke gegevens definitief laten verwijderen conform de AVG (recht op vergetelheid).\n\nMet vriendelijke groet,')}`}
+                      href={`mailto:info@mentaforce.nl?subject=${encodeURIComponent(t('account.instellingen.verwijderOnderwerp'))}&body=${encodeURIComponent(t('account.instellingen.verwijderMail'))}`}
                       className="mf-pressable w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
                       style={{ background: 'var(--mf-red)', color: 'var(--bg-app)', textDecoration: 'none' }}>
                       <Mail size={15} aria-hidden />
-                      Verwijderverzoek indienen
+                      {t('account.instellingen.verwijderKnop')}
                     </a>
                   </Card>
                 </>

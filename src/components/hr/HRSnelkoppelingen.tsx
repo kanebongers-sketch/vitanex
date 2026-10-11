@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MessageSquarePlus, Bell, UserPlus, KeyRound, Brain, type LucideIcon } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Props = {
   hrCode: string
@@ -19,18 +20,19 @@ type ActieBase = {
 
 export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerker }: Props) {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [gekopieerd, setGekopieerd] = useState(false)
 
   async function kopieerCode() {
     try {
       await navigator.clipboard.writeText(hrCode)
       setGekopieerd(true)
-      toast({ title: 'HR-code gekopieerd', description: hrCode, variant: 'success' })
+      toast({ title: t('werk.hrSnel.codeGekopieerd'), description: hrCode, variant: 'success' })
       setTimeout(() => setGekopieerd(false), 2000)
     } catch {
       toast({
-        title: 'Kopiëren mislukt',
-        description: 'Kopieer de code handmatig.',
+        title: t('werk.hrSnel.kopierenMislukt'),
+        description: t('werk.hrSnel.kopieerHandmatig'),
         variant: 'error',
       })
     }
@@ -39,26 +41,26 @@ export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerk
   const acties: (ActieBase & { onClick: () => void })[] = [
     {
       icon: MessageSquarePlus,
-      label: 'Nieuw gesprek',
-      sub: 'Plannen',
+      label: t('werk.hrSnel.nieuwGesprek'),
+      sub: t('werk.hrSnel.plannen'),
       onClick: () => onTabSwitch('gesprekken'),
     },
     {
       icon: Bell,
-      label: 'Herinnering',
-      sub: 'Stuur naar team',
+      label: t('werk.hrSnel.herinnering'),
+      sub: t('werk.hrSnel.stuurNaarTeam'),
       onClick: () => onTabSwitch('team'),
     },
     {
       icon: UserPlus,
-      label: 'Medewerker uitnodigen',
-      sub: 'Voeg lid toe',
+      label: t('werk.hrSnel.medewerkerUitnodigen'),
+      sub: t('werk.hrSnel.voegLidToe'),
       onClick: onNieuwMedewerker,
     },
     {
       icon: KeyRound,
-      label: hrCode ? `Code: ${hrCode}` : 'HR Code',
-      sub: gekopieerd ? 'Gekopieerd!' : 'Klik om te kopiëren',
+      label: hrCode ? t('werk.hrSnel.codeLabel', { code: hrCode }) : t('werk.hrSnel.hrCode'),
+      sub: gekopieerd ? t('werk.hrSnel.gekopieerd') : t('werk.hrSnel.klikKopieren'),
       onClick: kopieerCode,
     },
   ]
@@ -82,8 +84,8 @@ export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerk
       })}
       <Link href="/disc" className="mf-snelkop" style={{ ...cardStyle, textDecoration: 'none', display: 'block' }}>
         <Brain size={22} aria-hidden style={{ color: 'var(--mentaforce-primary)', marginBottom: 8 }} />
-        <p style={labelStyle}>DISC doen</p>
-        <p style={subStyle}>Eigen profiel</p>
+        <p style={labelStyle}>{t('werk.hrSnel.discDoen')}</p>
+        <p style={subStyle}>{t('werk.hrSnel.eigenProfiel')}</p>
       </Link>
 
       <style>{`

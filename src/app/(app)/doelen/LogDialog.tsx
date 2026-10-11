@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/Dialog'
 import { type WeekDoel, logVandaag } from '@/lib/doelen/weekdoelen'
 import type { CatInfo } from './DoelKaart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { rijkeTekst } from '@/components/vita/rijkeTekst'
 
 interface LogDialogProps {
   /** Het doel dat gelogd/aangepast wordt; null = dialog dicht. */
@@ -27,6 +29,7 @@ interface LogDialogProps {
  * (Superhuman-principe: zo min mogelijk tikken), Shift+Enter maakt een nieuwe regel.
  */
 export default function LogDialog({ doel, cat, notitie, onNotitieChange, onBevestig, onSluit }: LogDialogProps) {
+  const { t } = useVertaling()
   const logEntry = doel ? logVandaag(doel) : undefined
 
   return (
@@ -39,7 +42,9 @@ export default function LogDialog({ doel, cat, notitie, onNotitieChange, onBeves
           <DialogDescription>{doel.doel_beschrijving}</DialogDescription>
 
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', margin: '16px 0 12px' }}>
-            Heb je vandaag <strong style={{ color: cat.kleur }}>{doel.target_waarde} {doel.eenheid}</strong> gehaald?
+            {rijkeTekst(t('vita.doelen.dialoogVraag'), {
+              doel: <strong style={{ color: cat.kleur }}>{doel.target_waarde} {doel.eenheid}</strong>,
+            })}
           </p>
 
           {/* Gehaald / Niet gelukt knoppen */}
@@ -54,7 +59,7 @@ export default function LogDialog({ doel, cat, notitie, onNotitieChange, onBeves
                 color: logEntry?.gehaald === true ? 'var(--bg-app)' : 'var(--text-2)',
               }}
             >
-              Ja, gehaald
+              {t('vita.doelen.jaGehaald')}
             </Button>
             <Button
               onClick={() => onBevestig(false)}
@@ -66,13 +71,13 @@ export default function LogDialog({ doel, cat, notitie, onNotitieChange, onBeves
                 color: logEntry?.gehaald === false ? 'var(--bg-app)' : 'var(--text-2)',
               }}
             >
-              Niet gelukt
+              {t('vita.doelen.nietGelukt')}
             </Button>
           </div>
 
-          <Field label="Notitie (optioneel)">
+          <Field label={t('vita.doelen.notitieLabel')}>
             <Textarea
-              placeholder="Hoe ging het vandaag?"
+              placeholder={t('vita.doelen.notitiePlaceholder')}
               value={notitie}
               onChange={e => onNotitieChange(e.target.value)}
               onKeyDown={e => {
@@ -85,7 +90,7 @@ export default function LogDialog({ doel, cat, notitie, onNotitieChange, onBeves
             />
           </Field>
           <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '8px 0 0' }}>
-            Enter bewaart als gehaald · Shift+Enter voor een nieuwe regel
+            {t('vita.doelen.enterHint')}
           </p>
         </DialogContent>
       )}

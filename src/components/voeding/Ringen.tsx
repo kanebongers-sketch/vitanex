@@ -2,13 +2,16 @@
 // Pure presentatie-componenten (SVG), geëxtraheerd uit de voeding-pagina.
 // Props in → UI uit, geen state. Kleur-tokens uit het thema, nooit hardcoded hex.
 
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+
 export function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: number; kleur: string }) {
   const r = 70, circ = 2 * Math.PI * r
   const pct = Math.min(1, gegeten / doel)
+  const { t } = useVertaling()
   const over = gegeten > doel
   const ariaLabel = over
-    ? `${gegeten} van ${doel} kcal gegeten, ${gegeten - doel} kcal over het doel`
-    : `${gegeten} van ${doel} kcal gegeten, ${doel - gegeten} kcal resterend`
+    ? t('lichaam.voeding.ring.ariaOver', { gegeten, doel, verschil: gegeten - doel })
+    : t('lichaam.voeding.ring.ariaRest', { gegeten, doel, verschil: doel - gegeten })
   return (
     <svg width="180" height="180" viewBox="0 0 180 180" style={{ display: 'block' }} role="img" aria-label={ariaLabel}>
       <circle cx="90" cy="90" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="12" />
@@ -19,18 +22,19 @@ export function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: n
       <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" style={{ fill: over ? 'var(--mf-red)' : 'var(--text-1)' }}>{gegeten}</text>
       <text x="90" y="100" textAnchor="middle" fontSize="12" style={{ fill: 'var(--text-4)' }} fontWeight="600">kcal</text>
       <text x="90" y="116" textAnchor="middle" fontSize="11" style={{ fill: over ? 'var(--mf-red)' : 'var(--mf-green)' }} fontWeight="700">
-        {over ? `+${gegeten - doel} over` : `${doel - gegeten} resterend`}
+        {over ? t('lichaam.voeding.ring.over', { verschil: gegeten - doel }) : t('lichaam.voeding.ring.rest', { verschil: doel - gegeten })}
       </text>
     </svg>
   )
 }
 
 export function MacroRing({ waarde, max, kleur, label, eenheid }: { waarde: number; max: number; kleur: string; label: string; eenheid: string }) {
+  const { t } = useVertaling()
   const r = 26, circ = 2 * Math.PI * r
   const pct = Math.min(1, waarde / max)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <svg width="68" height="68" viewBox="0 0 68 68" role="img" aria-label={`${label}: ${waarde.toFixed(0)}${eenheid} van ${max.toFixed(0)}${eenheid}`}>
+      <svg width="68" height="68" viewBox="0 0 68 68" role="img" aria-label={t('lichaam.voeding.ring.macroAria', { label, waarde: `${waarde.toFixed(0)}${eenheid}`, max: `${max.toFixed(0)}${eenheid}` })}>
         <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="6" />
         <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: kleur, transition: 'stroke-dasharray 1s ease' }} strokeWidth="6"
           strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round"
@@ -45,6 +49,7 @@ export function MacroRing({ waarde, max, kleur, label, eenheid }: { waarde: numb
 export function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mentaforce-primary)', sub = false }: {
   label: string; waarde: number; eenheid: string; rdi: number; kleur?: string; sub?: boolean
 }) {
+  const { t } = useVertaling()
   const pctRaw = Math.round((waarde / rdi) * 100)
   const pct = Math.min(100, pctRaw)
   const overRdi = pctRaw > 100
@@ -61,7 +66,7 @@ export function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mentaforce
           }}>{pctRaw}%</span>
         </div>
       </div>
-      <div role="img" aria-label={`${label}: ${waarde.toFixed(1)} ${eenheid}, ${pctRaw}% van de dagelijkse behoefte`}
+      <div role="img" aria-label={t('lichaam.voeding.ring.rdiAria', { label: label.trim(), waarde: `${waarde.toFixed(1)} ${eenheid}`, procent: pctRaw })}
         style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 9999, width: '100%',
@@ -78,7 +83,8 @@ export function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mentaforce
 export function GezondheidBadge({ score }: { score: number }) {
   const kleur = score >= 7 ? 'var(--mf-green)' : score >= 4 ? 'var(--mf-amber)' : 'var(--mf-red)'
   const bg    = score >= 7 ? 'var(--mf-green-light)' : score >= 4 ? 'var(--mf-amber-light)' : 'var(--mf-red-light)'
-  const label = score >= 7 ? 'Gezond' : score >= 4 ? 'Matig' : 'Ongezond'
+  const { t } = useVertaling()
+  const label = t(score >= 7 ? 'lichaam.voeding.score.gezond' : score >= 4 ? 'lichaam.voeding.score.matig' : 'lichaam.voeding.score.ongezond')
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: bg, color: kleur, borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>
       {score}/10 · {label}

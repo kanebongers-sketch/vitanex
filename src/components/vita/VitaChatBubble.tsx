@@ -1,6 +1,7 @@
 'use client'
 
 import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface ChatBericht {
   id: string
@@ -26,6 +27,7 @@ export default function VitaChatBubble({
   toonCursor,
   toonDenken,
 }: VitaChatBubbleProps) {
+  const { t } = useVertaling()
   const isVita = bericht.role === 'assistant'
 
   return (
@@ -69,7 +71,7 @@ export default function VitaChatBubble({
           }}
         >
           <div className="mf-spinner" style={{ width: 14, height: 14 }} />
-          <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Vita denkt na…</span>
+          <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('vita.algemeen.vitaDenktNa')}</span>
         </div>
       ) : (
         <div

@@ -26,6 +26,8 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import DoelKaart, { type CatInfo } from './DoelKaart'
 import LogDialog from './LogDialog'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type DoelenAdvies = { domein: string; doel: string; waarom: string }
@@ -91,6 +93,7 @@ const DOELEN_STYLES = `
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function DoelenInhoud() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { toast } = useToast()
   const [klaar, setKlaar]         = useState(false)
@@ -141,8 +144,8 @@ function DoelenInhoud() {
 
   useEffect(() => {
     if (!vitaReactie) return
-    const t = window.setTimeout(() => setVitaReactie(null), 6000)
-    return () => window.clearTimeout(t)
+    const timer = window.setTimeout(() => setVitaReactie(null), 6000)
+    return () => window.clearTimeout(timer)
   }, [vitaReactie])
 
   async function laadAdviezen() {
@@ -154,10 +157,10 @@ function DoelenInhoud() {
         const data = await res.json() as { adviezen: DoelenAdvies[] }
         setAdviezen(data.adviezen ?? [])
       } else {
-        toast({ title: 'Suggesties laden mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+        toast({ title: t('vita.doelen.suggestiesMislukt'), description: t('vita.doelen.later'), variant: 'error' })
       }
     } catch {
-      toast({ title: 'Suggesties laden mislukt', description: 'Controleer je verbinding en probeer opnieuw.', variant: 'error' })
+      toast({ title: t('vita.doelen.suggestiesMislukt'), description: t('vita.doelen.verbinding'), variant: 'error' })
     } finally {
       setAdviesBezig(false)
     }
@@ -195,10 +198,10 @@ function DoelenInhoud() {
   }, [router])
 
   function toonXPToast(xp: number, level: number | undefined, achievements: Achievement[]) {
-    const titel = level ? `Level ${level} — ${LEVEL_NAMEN[level]}!` : `+${xp} XP verdiend!`
+    const titel = level ? t('vita.doelen.xpLevel', { level, naam: LEVEL_NAMEN[level] }) : t('vita.doelen.xpVerdiendUitroep', { xp })
     const beschrijving = achievements.length > 0
-      ? `Nieuwe badge: ${achievements.map(a => a.naam).join(', ')}`
-      : level ? `+${xp} XP verdiend` : undefined
+      ? t('vita.doelen.nieuweBadge', { namen: achievements.map(a => a.naam).join(', ') })
+      : level ? t('vita.doelen.xpVerdiend', { xp }) : undefined
     toast({ title: titel, description: beschrijving, variant: 'success' })
   }
 
@@ -233,11 +236,11 @@ function DoelenInhoud() {
       )
       setVitaReactie(
         allesVandaagGehaald && bijgewerkt.doelen.length > 1
-          ? { tekst: 'Alle doelen van vandaag afgevinkt — dat is een sterke dag. Trots op je.', vieren: true }
-          : { tekst: 'Fijn, afgevinkt. Kleine stappen, echte vooruitgang.', vieren: false },
+          ? { tekst: t('vita.doelen.reactieAlles'), vieren: true }
+          : { tekst: t('vita.doelen.reactieAfgevinkt'), vieren: false },
       )
     } else {
-      setVitaReactie({ tekst: 'Geen zorgen — morgen een nieuwe kans. Ik hou het bij, jij hoeft alleen te verschijnen.', vieren: false })
+      setVitaReactie({ tekst: t('vita.doelen.reactieNiet'), vieren: false })
     }
 
     if (gehaald) {
@@ -297,17 +300,17 @@ function DoelenInhoud() {
         <main style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px' }}>
           {heeftCheckinDezeWeek ? (
             <VitaLeegScherm
-              titel="Je check-in staat er al"
-              boodschap="Je hebt deze week al een check-in gedaan — waarschijnlijk op een ander apparaat. Je doelen van die keuze staan alleen op dat apparaat, maar je rapport kun je hier gewoon bekijken."
-              actieLabel="Bekijk je rapport"
+              titel={t('vita.doelen.checkinAlTitel')}
+              boodschap={t('vita.doelen.checkinAlTekst')}
+              actieLabel={t('vita.doelen.bekijkRapport')}
               actieHref="/rapport"
               emotion="supportive"
             />
           ) : (
             <VitaLeegScherm
-              titel="Nog geen doelen deze week"
-              boodschap="Doe een korte wekelijkse check-in, dan stel ik samen met jou een paar haalbare doelen op die passen bij hoe het nú met je gaat. Ik verzin niks — ik werk met wat je me vertelt."
-              actieLabel="Start check-in"
+              titel={t('vita.doelen.leegTitel')}
+              boodschap={t('vita.doelen.leegTekst')}
+              actieLabel={t('vita.doelen.startCheckin')}
               actieHref="/checkin"
               emotion="supportive"
             />
@@ -321,7 +324,10 @@ function DoelenInhoud() {
 
   const maandag = new Date(selectie.weekStart)
   const zondag = new Date(maandag); zondag.setDate(maandag.getDate() + 6)
-  const weekLabel = `${maandag.getDate()} – ${zondag.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
+  const weekLabel = t('vita.doelen.weekBereik', {
+    van: maandag.getDate(),
+    tot: zondag.toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long' }),
+  })
 
   const weekDagen = maakWeekDagen(selectie.weekStart)
 
@@ -354,8 +360,8 @@ function DoelenInhoud() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn doelen deze week</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{weekLabel} · AI-geselecteerde doelen</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('vita.doelen.titel')}</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{t('vita.doelen.sub', { week: weekLabel })}</p>
           </div>
           <Link href="/checkin" style={{
             fontSize: 13, color: 'var(--mentaforce-primary)', padding: '8px 16px', borderRadius: 'var(--radius-btn)',
@@ -363,7 +369,7 @@ function DoelenInhoud() {
             cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
-            Nieuwe check-in
+            {t('vita.doelen.nieuweCheckin')}
           </Link>
         </div>
 
@@ -437,13 +443,13 @@ function DoelenInhoud() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 12, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>
-              {aantalGelogdVandaag}/{selectie.doelen.length} vandaag gelogd
+              {t('vita.doelen.vandaagGelogd', { gelogd: aantalGelogdVandaag, totaal: selectie.doelen.length })}
             </p>
             {/* Alleen tonen met echte historie van exact de vorige week — geen
                 schattingen, geen "0" bij een lege historie. Feitelijk, zonder oordeel. */}
             {vorigeWeek && vorigeWeekTotaalDagen > 0 && (
               <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>
-                Vorige week {vorigeWeekGehaald} van {vorigeWeekTotaalDagen} dagen gehaald
+                {t('vita.doelen.vorigeWeekTotaal', { gehaald: vorigeWeekGehaald, totaal: vorigeWeekTotaalDagen })}
               </p>
             )}
           </div>
@@ -453,7 +459,7 @@ function DoelenInhoud() {
         {selectie.vlak_scores && Object.keys(selectie.vlak_scores).length > 0 && (
           <Card style={{ padding: '18px 22px', marginBottom: 20 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
-              Jouw scores deze week
+              {t('vita.doelen.scoresDezeWeek')}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 10 }}>
               {(Object.keys(CAT) as WellbeingCat[]).map(vlak => {
@@ -490,30 +496,30 @@ function DoelenInhoud() {
               <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mentaforce-primary)' }}>
                 <Sparkles size={14} aria-hidden />
               </div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>AI Weekdoel-suggesties</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('vita.doelen.suggestiesTitel')}</p>
             </div>
             {!adviezen && (
               <Button size="sm" onClick={laadAdviezen} loading={adviesBezig} disabled={adviesBezig}>
-                {adviesBezig ? 'Laden...' : 'Genereer suggesties'}
+                {adviesBezig ? t('vita.doelen.laden') : t('vita.doelen.genereerSuggesties')}
               </Button>
             )}
             {adviezen && (
               <Button size="sm" variant="ghost" onClick={() => setAdviezen(null)}>
-                Verbergen
+                {t('vita.doelen.verbergen')}
               </Button>
             )}
           </div>
 
           {!adviezen && !adviesBezig && (
             <p style={{ fontSize: 12, color: 'var(--text-4)', lineHeight: 1.5 }}>
-              Laat de AI 3 concrete weekdoelen voorstellen op basis van jouw laagste scores en burnout-risico.
+              {t('vita.doelen.suggestiesUitleg')}
             </p>
           )}
 
           {adviesBezig && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }}>
               <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>AI analyseert jouw data...</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('vita.doelen.analyseert')}</p>
             </div>
           )}
 
@@ -524,7 +530,7 @@ function DoelenInhoud() {
                 return (
                   <div key={i} style={{ borderRadius: 'var(--radius-md)', padding: '12px 14px', background: `color-mix(in srgb, ${kleur} 6%, transparent)`, border: `1px solid color-mix(in srgb, ${kleur} 30%, transparent)` }}>
                     <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: kleur }}>
-                      {a.domein}
+                      {a.domein in DOMEIN_KLEUR ? t(`vita.domein.${a.domein}`) : a.domein}
                     </span>
                     <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: '4px 0 6px', lineHeight: 1.4 }}>{a.doel}</p>
                     <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{a.waarom}</p>
@@ -535,7 +541,7 @@ function DoelenInhoud() {
           )}
 
           {adviezen && adviezen.length === 0 && (
-            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Geen suggesties beschikbaar. Doe eerst een check-in.</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('vita.doelen.geenSuggesties')}</p>
           )}
         </Card>
       </main>

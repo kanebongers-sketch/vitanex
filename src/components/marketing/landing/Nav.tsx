@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { COLORS, FONT, MAXW, EASE } from '../theme'
 import Wordmark from '../Wordmark'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
+// Tweede waarde = vertaalsleutel van het label.
 const LINKS: [string, string][] = [
-  ['/#brein', 'De pijlers'],
-  ['/#aanpak', 'Aanpak'],
-  ['/#platform', 'Platform'],
+  ['/#brein', 'site.nav.dePijlers'],
+  ['/#aanpak', 'site.nav.aanpak'],
+  ['/#platform', 'site.nav.platform'],
 ]
 
 export default function Nav() {
+  const { t } = useVertaling()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -35,7 +38,7 @@ export default function Nav() {
       }}
     >
       <div style={{ maxWidth: MAXW, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="/" aria-label="MentaForce home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+        <Link href="/" aria-label={t('site.nav.home')} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <Wordmark size={17} />
         </Link>
 
@@ -45,14 +48,14 @@ export default function Nav() {
               style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none', transition: `color .2s ${EASE}` }}
               onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.ink }}
               onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.inkDim }}>
-              {label}
+              {t(label)}
             </a>
           ))}
         </div>
 
         <div className="hidden md:flex" style={{ gap: 14, alignItems: 'center' }}>
-          <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Inloggen</Link>
-          <Link href="/register" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Zelf starten</Link>
+          <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>{t('site.nav.inloggen')}</Link>
+          <Link href="/register" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>{t('site.nav.zelfStarten')}</Link>
           <Link href="/contact"
             style={{
               fontSize: 14, fontWeight: 600, color: COLORS.navyDeep, background: COLORS.cyan,
@@ -61,11 +64,11 @@ export default function Nav() {
             }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}>
-            Demo aanvragen
+            {t('site.nav.demoAanvragen')}
           </Link>
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
+        <button className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label={t('site.nav.menu')} aria-expanded={open}
           style={{ background: 'none', border: 'none', color: COLORS.ink, cursor: 'pointer', padding: 8 }}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
             {open ? <><line x1="4" y1="4" x2="18" y2="18" /><line x1="18" y1="4" x2="4" y2="18" /></>
@@ -77,11 +80,11 @@ export default function Nav() {
       {open && (
         <div style={{ borderTop: `1px solid ${COLORS.line}`, marginTop: 14, padding: '18px 28px', display: 'flex', flexDirection: 'column', gap: 16, background: COLORS.navyDeep }}>
           {LINKS.map(([href, label]) => (
-            <a key={href} href={href} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{label}</a>
+            <a key={href} href={href} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{t(label)}</a>
           ))}
-          <Link href="/login" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Inloggen</Link>
-          <Link href="/register" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Zelf starten</Link>
-          <Link href="/contact" onClick={() => setOpen(false)} style={{ color: COLORS.navyDeep, background: COLORS.cyan, padding: '12px 0', borderRadius: 10, textAlign: 'center', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Demo aanvragen</Link>
+          <Link href="/login" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{t('site.nav.inloggen')}</Link>
+          <Link href="/register" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{t('site.nav.zelfStarten')}</Link>
+          <Link href="/contact" onClick={() => setOpen(false)} style={{ color: COLORS.navyDeep, background: COLORS.cyan, padding: '12px 0', borderRadius: 10, textAlign: 'center', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>{t('site.nav.demoAanvragen')}</Link>
         </div>
       )}
     </nav>

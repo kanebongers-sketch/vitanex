@@ -11,6 +11,8 @@ import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
 import { SITE_VERBORGEN } from '@/lib/site-modus'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { TaalKiezer } from '@/components/taal/TaalKiezer'
 
 type LoginStatus =
   | 'idle'
@@ -46,6 +48,7 @@ function veiligTerugPad(ruw: string | null): string | null {
 
 function LoginInhoud() {
   const router = useRouter()
+  const { t } = useVertaling()
   // Alleen een pad op déze site ("/kane"): anders kan een gedeelde inloglink na
   // het inloggen naar een andere site doorsturen (open redirect).
   const next = veiligTerugPad(useSearchParams().get('next'))
@@ -135,9 +138,14 @@ function LoginInhoud() {
         </div>
       }
       naKaart={
-        <p className="text-[11px] mt-6 text-center" style={{ color: 'var(--text-4)' }}>
-          AVG-conform · Anoniem · Veilig versleuteld
-        </p>
+        <>
+          <p className="text-[11px] mt-6 text-center" style={{ color: 'var(--text-4)' }}>
+            {t('account.login.vertrouwen')}
+          </p>
+          <div className="flex justify-center mt-4">
+            <TaalKiezer compact />
+          </div>
+        </>
       }
     >
         {/* Logo */}
@@ -145,17 +153,17 @@ function LoginInhoud() {
           {SITE_VERBORGEN ? (
             <LogoFull iconSize={38} />
           ) : (
-            <Link href="/" aria-label="MentaForce home">
+            <Link href="/" aria-label={t('account.login.homeLabel')}>
               <LogoFull iconSize={38} />
             </Link>
           )}
         </div>
 
         <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>
-          Welkom terug
+          {t('account.login.welkom')}
         </h1>
         <p className="text-sm text-center mb-7" style={{ color: 'var(--text-2)' }}>
-          Log in met je e-mailadres en wachtwoord.
+          {t('account.login.intro')}
         </p>
 
         {/* Status messages */}
@@ -166,9 +174,9 @@ function LoginInhoud() {
             className="rounded-2xl p-4 mb-5"
             style={{ background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)' }}
           >
-            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>E-mail nog niet bevestigd</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>{t('account.login.nietBevestigd')}</p>
             <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--mf-amber-dark)' }}>
-              Kijk in je inbox op <strong>{email}</strong> en klik op de bevestigingslink.
+              {t('account.login.inboxVoor')}<strong>{email}</strong>{t('account.login.inboxNa')}
             </p>
             <button
               onClick={stuurBevestigingOpnieuw}
@@ -176,7 +184,7 @@ function LoginInhoud() {
               className="text-xs font-semibold underline disabled:opacity-50"
               style={{ color: 'var(--mf-amber-dark)' }}
             >
-              {resendBezig ? 'Versturen...' : 'Opnieuw sturen'}
+              {resendBezig ? t('account.login.versturen') : t('account.login.opnieuwSturen')}
             </button>
           </div>
         )}
@@ -184,34 +192,34 @@ function LoginInhoud() {
         {status === 'resent' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)' }}>
             <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--mf-green-dark)' }}>
-              <Check size={14} strokeWidth={3} aria-hidden /> Bevestigingsmail verstuurd
+              <Check size={14} strokeWidth={3} aria-hidden /> {t('account.login.mailVerstuurd')}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-green-mid)' }}>Klik op de link in je inbox om je account te activeren.</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-green-mid)' }}>{t('account.login.klikLink')}</p>
           </div>
         )}
 
         {status === 'wrong_credentials' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>E-mail of wachtwoord klopt niet</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>{t('account.login.foutGegevens')}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
-              Controleer je gegevens of{' '}
-              <Link href="/wachtwoord-vergeten" className="underline font-medium">reset je wachtwoord</Link>.
+              {t('account.login.controleerOf')}{' '}
+              <Link href="/wachtwoord-vergeten" className="underline font-medium">{t('account.login.resetLink')}</Link>.
             </p>
           </div>
         )}
 
         {status === 'too_many_requests' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Te veel pogingen</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Wacht een paar minuten en probeer opnieuw.</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>{t('account.login.teVeel')}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>{t('account.login.wacht')}</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>{t('account.login.fout')}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
-              Probeer opnieuw of neem contact op via{' '}
+              {t('account.login.contact')}{' '}
               <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>.
             </p>
           </div>
@@ -219,11 +227,11 @@ function LoginInhoud() {
 
         {/* Form */}
         <div className="flex flex-col gap-3 mb-4">
-          <label htmlFor="login-email" className="sr-only">E-mailadres</label>
+          <label htmlFor="login-email" className="sr-only">{t('account.login.email')}</label>
           <input
             id="login-email"
             type="email"
-            placeholder="E-mailadres"
+            placeholder={t('account.login.email')}
             value={email}
             autoFocus
             autoComplete="email"
@@ -236,11 +244,11 @@ function LoginInhoud() {
             }}
           />
           <div className="relative">
-            <label htmlFor="login-wachtwoord" className="sr-only">Wachtwoord</label>
+            <label htmlFor="login-wachtwoord" className="sr-only">{t('account.login.wachtwoord')}</label>
             <input
               id="login-wachtwoord"
               type={toonWacht ? 'text' : 'password'}
-              placeholder="Wachtwoord"
+              placeholder={t('account.login.wachtwoord')}
               value={wachtwoord}
               autoComplete="current-password"
               onChange={e => { setWachtwoord(e.target.value); if (status !== 'idle') setStatus('idle') }}
@@ -254,18 +262,18 @@ function LoginInhoud() {
             />
             <button
               type="button"
-              onClick={() => setToonWacht(t => !t)}
+              onClick={() => setToonWacht(v => !v)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition"
               style={{ color: 'var(--text-3)' }}
             >
-              {toonWacht ? 'Verberg' : 'Toon'}
+              {toonWacht ? t('account.login.verberg') : t('account.login.toon')}
             </button>
           </div>
         </div>
 
         <div className="flex justify-end mb-5">
           <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
-            Wachtwoord vergeten?
+            {t('account.login.vergeten')}
           </Link>
         </div>
 
@@ -292,7 +300,7 @@ function LoginInhoud() {
               }}
             />
           )}
-          {laden ? 'Bezig...' : 'Inloggen'}
+          {laden ? t('account.login.bezig') : t('account.login.inloggen')}
         </button>
 
         {/* Tijdelijk verborgen (lib/site-modus.ts): geen Google-login en geen registratie. */}
@@ -301,7 +309,7 @@ function LoginInhoud() {
             {/* Divider */}
             <div className="flex items-center gap-3 my-4">
               <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-              <span className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>of</span>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>{t('account.login.of')}</span>
               <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
             </div>
 
@@ -329,13 +337,13 @@ function LoginInhoud() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Inloggen met Google
+              {t('account.login.google')}
             </button>
 
             <p className="text-xs text-center mt-6" style={{ color: 'var(--text-3)' }}>
-              Nog geen account?{' '}
+              {t('account.login.geenAccount')}{' '}
               <Link href="/register" className="font-semibold" style={{ color: 'var(--mf-green)' }}>
-                Gratis registreren
+                {t('account.login.registreren')}
               </Link>
             </p>
           </>

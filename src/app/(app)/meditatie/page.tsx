@@ -12,69 +12,18 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 const MeditationParticles = nextDynamic(() => import('@/components/three/MeditationParticles'), { ssr: false })
 
+// Teksten in het woordenboek: mentaal.meditatie.sessie.<sleutel>.titel /
+// .beschrijving / .stap<n> (stap 1 is de eerste).
 const SESSIES = [
-  {
-    id: 'adem-1',
-    titel: 'Korte adem reset',
-    duur: 3,
-    beschrijving: 'Kalm je zenuwstelsel in 3 minuten',
-    Icon: Wind as LucideIcon,
-    stappen: [
-      { tekst: 'Ga comfortabel zitten. Sluit je ogen.', duur: 15 },
-      { tekst: 'Adem diep in door je neus, 4 tellen.', duur: 20 },
-      { tekst: 'Houd je adem vast, 4 tellen.', duur: 20 },
-      { tekst: 'Adem langzaam uit door je mond, 6 tellen.', duur: 25 },
-      { tekst: 'Herhaal dit ritme rustig...', duur: 100 },
-    ],
-  },
-  {
-    id: 'body-scan-5',
-    titel: 'Body scan',
-    duur: 5,
-    beschrijving: 'Scan je lichaam op spanning',
-    Icon: Brain as LucideIcon,
-    stappen: [
-      { tekst: 'Leg je handen op je knieën. Sluit je ogen.', duur: 15 },
-      { tekst: 'Voel je voeten op de grond. Ontspan.', duur: 30 },
-      { tekst: 'Ga omhoog via je benen. Laat spanning los.', duur: 40 },
-      { tekst: 'Ontspan je buik en je borst.', duur: 40 },
-      { tekst: 'Je schouders en nek. Laat alles los.', duur: 40 },
-      { tekst: 'Je gezicht, je kaak. Volledige ontspanning.', duur: 30 },
-      { tekst: 'Blijf even zo. Adem rustig.', duur: 105 },
-    ],
-  },
-  {
-    id: 'dankbaar-3',
-    titel: 'Dankbaarheidsmeditatie',
-    duur: 3,
-    beschrijving: 'Focus op wat goed gaat',
-    Icon: Heart as LucideIcon,
-    stappen: [
-      { tekst: 'Sluit je ogen. Haal diep adem.', duur: 15 },
-      { tekst: 'Denk aan iemand voor wie je dankbaar bent.', duur: 40 },
-      { tekst: 'Denk aan iets wat goed ging vandaag.', duur: 40 },
-      { tekst: 'Denk aan je lichaam — dat het voor jou werkt.', duur: 40 },
-      { tekst: 'Voel de warmte van dankbaarheid in je borst.', duur: 45 },
-    ],
-  },
-  {
-    id: 'focus-5',
-    titel: 'Focus reset',
-    duur: 5,
-    beschrijving: 'Herstel je concentratie',
-    Icon: Target as LucideIcon,
-    stappen: [
-      { tekst: 'Sluit alle tabs in je hoofd.', duur: 20 },
-      { tekst: 'Adem in, tél: 1. Uit, tél: 2.', duur: 30 },
-      { tekst: 'Blijf tellen tot 10. Begin opnieuw bij afleiding.', duur: 60 },
-      { tekst: 'Als je afgeleid wordt, constateer dat en ga terug.', duur: 60 },
-      { tekst: 'Nog één ronde van 1-10.', duur: 50 },
-      { tekst: 'Open je ogen. Je bent klaar om te focussen.', duur: 80 },
-    ],
-  },
+  { id: 'adem-1', sleutel: 'ademReset', duur: 3, Icon: Wind as LucideIcon, stappen: [{ duur: 15 }, { duur: 20 }, { duur: 20 }, { duur: 25 }, { duur: 100 }] },
+  { id: 'body-scan-5', sleutel: 'bodyScan', duur: 5, Icon: Brain as LucideIcon, stappen: [{ duur: 15 }, { duur: 30 }, { duur: 40 }, { duur: 40 }, { duur: 40 }, { duur: 30 }, { duur: 105 }] },
+  { id: 'dankbaar-3', sleutel: 'dankbaarheid', duur: 3, Icon: Heart as LucideIcon, stappen: [{ duur: 15 }, { duur: 40 }, { duur: 40 }, { duur: 40 }, { duur: 45 }] },
+  { id: 'focus-5', sleutel: 'focusReset', duur: 5, Icon: Target as LucideIcon, stappen: [{ duur: 20 }, { duur: 30 }, { duur: 60 }, { duur: 60 }, { duur: 50 }, { duur: 80 }] },
 ]
 
 interface MeditatieSessie {
@@ -87,6 +36,8 @@ interface MeditatieSessie {
 export default function MeditatiePagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const titelVan = (s: typeof SESSIES[0]) => t(`mentaal.meditatie.sessie.${s.sleutel}.titel`)
   const [laden, setLaden] = useState(true)
   const [gekozenSessie, setGekozenSessie] = useState<typeof SESSIES[0] | null>(null)
   const [bezig, setBezig] = useState(false)
@@ -109,7 +60,7 @@ export default function MeditatiePagina() {
           setLogs((json.logs ?? []).filter((l: MeditatieSessie) => l.type === 'adem'))
         }
       } catch {
-        toast({ title: 'Kon je geschiedenis niet laden', description: 'Probeer het later opnieuw.', variant: 'warning' })
+        toast({ title: t('mentaal.meditatie.geschiedenisMislukt'), description: t('mentaal.meditatie.probeerLater'), variant: 'warning' })
       }
       setLaden(false)
     }
@@ -118,7 +69,7 @@ export default function MeditatiePagina() {
       if (timerRef.current) clearInterval(timerRef.current)
       if (stapTimerRef.current) clearTimeout(stapTimerRef.current)
     }
-  }, [router, toast])
+  }, [router, toast, t])
 
   // Escape sluit een actieve sessie af (geen toetsenbordval).
   useEffect(() => {
@@ -170,7 +121,7 @@ export default function MeditatiePagina() {
       method: 'POST',
       body: JSON.stringify({ duur_minuten: sessie.duur, type: 'adem' }),
     }).catch(() => {
-      toast({ title: 'Sessie niet opgeslagen', description: 'Je oefening telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+      toast({ title: t('mentaal.meditatie.nietOpgeslagen'), description: t('mentaal.meditatie.nietOpgeslagenTekst'), variant: 'warning' })
     })
   }
 
@@ -202,7 +153,7 @@ export default function MeditatiePagina() {
         <header style={{ marginBottom: 16 }}>
           <ActiviteitBadge activiteit="meditatie" />
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mindfulness & Meditatie
+            {t('mentaal.meditatie.titel')}
           </h1>
         </header>
 
@@ -215,7 +166,7 @@ export default function MeditatiePagina() {
             const d = new Date(vandaag)
             d.setDate(d.getDate() - (6 - i))
             const ds = d.toISOString().split('T')[0]
-            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
+            return { ds, dag: d.toLocaleDateString(INTL_LOCALE[taal], { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
           })
           const sessiesDezeWeek = logs.filter(l => {
             const d = l.aangemaakt_op?.split('T')[0]
@@ -226,7 +177,7 @@ export default function MeditatiePagina() {
             <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div
                 role="img"
-                aria-label={`Meditatie afgelopen 7 dagen: op ${strip.filter(s => s.actief).length} van de 7 dagen geoefend`}
+                aria-label={t('mentaal.meditatie.stripLabel', { aantal: strip.filter(s => s.actief).length })}
                 style={{ flex: 1, display: 'flex', gap: 6 }}
               >
                 {strip.map(({ ds, dag, actief, isVandaag }) => (
@@ -247,12 +198,12 @@ export default function MeditatiePagina() {
               </div>
               <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
                 <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-purple)', margin: 0, lineHeight: 1 }}>{totaalMeditatie}</p>
-                <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>min<br />week</p>
+                <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('mentaal.meditatie.min')}<br />{t('mentaal.meditatie.week')}</p>
               </div>
               {sessiesDezeWeek > 0 && (
                 <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
                   <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{sessiesDezeWeek}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>sessies<br />week</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('mentaal.meditatie.sessies')}<br />{t('mentaal.meditatie.week')}</p>
                 </div>
               )}
             </div>
@@ -262,7 +213,7 @@ export default function MeditatiePagina() {
         {/* Actieve sessie */}
         {bezig && gekozenSessie && (
           <section
-            aria-label={`Actieve sessie: ${gekozenSessie.titel}`}
+            aria-label={t('mentaal.meditatie.actief', { titel: titelVan(gekozenSessie) })}
             style={{
               position: 'relative', overflow: 'hidden',
               background: 'var(--bg-subtle)',
@@ -274,13 +225,13 @@ export default function MeditatiePagina() {
           >
             <MeditationParticles active={bezig} />
             <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--mentaforce-primary)' }}>
-              <gekozenSessie.Icon size={44} strokeWidth={1.75} aria-label={gekozenSessie.titel} />
+              <gekozenSessie.Icon size={44} strokeWidth={1.75} aria-label={titelVan(gekozenSessie)} />
             </div>
-            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>{gekozenSessie.titel}</p>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>{titelVan(gekozenSessie)}</p>
 
             <div
               role="timer"
-              aria-label={`Resterende tijd: ${secNaarMinSec(secondsLeft)}`}
+              aria-label={t('mentaal.meditatie.resterend', { tijd: secNaarMinSec(secondsLeft) })}
               style={{ fontSize: 48, fontWeight: 800, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}
             >
               {secNaarMinSec(secondsLeft)}
@@ -293,13 +244,13 @@ export default function MeditatiePagina() {
               fontSize: 15, fontWeight: 600, lineHeight: 1.5,
               color: 'var(--text-2)',
             }}>
-              {gekozenSessie.stappen[stapIndex]?.tekst ?? ''}
+              {gekozenSessie.stappen[stapIndex] ? t(`mentaal.meditatie.sessie.${gekozenSessie.sleutel}.stap${stapIndex + 1}`) : ''}
             </div>
 
             {/* Voortgangsdots */}
             <div
               role="img"
-              aria-label={`Stap ${stapIndex + 1} van ${gekozenSessie.stappen.length}`}
+              aria-label={t('mentaal.meditatie.stapVan', { nummer: stapIndex + 1, totaal: gekozenSessie.stappen.length })}
               style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}
             >
               {gekozenSessie.stappen.map((_, i) => (
@@ -314,7 +265,7 @@ export default function MeditatiePagina() {
             <button
               type="button"
               onClick={stopSessie}
-              aria-label="Sessie stoppen (of druk op Escape)"
+              aria-label={t('mentaal.meditatie.stoppenLabel')}
               className="mf-pressable"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -324,7 +275,7 @@ export default function MeditatiePagina() {
               }}
             >
               <Square size={13} aria-hidden />
-              Stoppen
+              {t('mentaal.meditatie.stoppen')}
             </button>
           </section>
         )}
@@ -332,7 +283,7 @@ export default function MeditatiePagina() {
         {/* Klaar scherm */}
         {klaar && gekozenSessie && (
           <section
-            aria-label="Sessie voltooid"
+            aria-label={t('mentaal.meditatie.voltooid')}
             style={{
               background: 'var(--mf-green-light)', borderRadius: 24, padding: '32px 24px',
               textAlign: 'center', marginBottom: 24,
@@ -342,9 +293,9 @@ export default function MeditatiePagina() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12, color: 'var(--mentaforce-primary)' }}>
               <Sparkles size={44} aria-hidden strokeWidth={1.75} />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('mentaal.meditatie.goedGedaan')}</h2>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
-              Je hebt {gekozenSessie.duur} minuten {gekozenSessie.titel.toLowerCase()} geoefend.
+              {t('mentaal.meditatie.geoefend', { duur: gekozenSessie.duur, titel: titelVan(gekozenSessie).toLocaleLowerCase(taal) })}
             </p>
             <button
               type="button"
@@ -356,7 +307,7 @@ export default function MeditatiePagina() {
                 borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}
             >
-              Nieuwe sessie
+              {t('mentaal.meditatie.nieuweSessie')}
             </button>
           </section>
         )}
@@ -369,7 +320,7 @@ export default function MeditatiePagina() {
                 key={sessie.id}
                 type="button"
                 onClick={() => startSessie(sessie)}
-                aria-label={`Start ${sessie.titel}, ${sessie.duur} minuten`}
+                aria-label={t('mentaal.meditatie.startLabel', { titel: titelVan(sessie), duur: sessie.duur })}
                 className="mf-pressable"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
@@ -387,14 +338,14 @@ export default function MeditatiePagina() {
                     color: 'var(--mentaforce-primary)',
                   }}
                 >
-                  <sessie.Icon size={22} aria-label={sessie.titel} />
+                  <sessie.Icon size={22} aria-label={titelVan(sessie)} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{sessie.titel}</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{sessie.beschrijving}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{titelVan(sessie)}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t(`mentaal.meditatie.sessie.${sessie.sleutel}.beschrijving`)}</p>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{sessie.duur} min</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{t('mentaal.meditatie.minuten', { duur: sessie.duur })}</p>
                 </div>
               </button>
             ))}

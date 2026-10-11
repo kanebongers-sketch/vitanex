@@ -13,6 +13,7 @@ import { syncGezondheidsdata } from '@/lib/health/health-sync'
 import { datumLang } from '@/lib/gezondheid/statistiek'
 import type { GezondheidAntwoord } from '@/lib/gezondheid/types'
 import { haalGezondheid, type Geladen } from './haal-gezondheid'
+import { useTaalset } from './useTaalset'
 import { OverzichtWeergave } from './OverzichtWeergave'
 import { OVERZICHT_DAGEN } from './routes'
 import { SyncRegel } from './SyncRegel'
@@ -27,6 +28,7 @@ type Status =
 export function GezondheidOverzicht() {
   const router = useRouter()
   const { toast } = useToast()
+  const ts = useTaalset()
   const { vastgezet } = useVastgezet()
   const [status, setStatus] = useState<Status>({ soort: 'laden' })
   const [syncBezig, setSyncBezig] = useState(false)
@@ -38,21 +40,21 @@ export function GezondheidOverzicht() {
 
   useEffect(() => {
     let actief = true
-    void haalGezondheid(OVERZICHT_DAGEN).then((uit) => { if (actief) verwerk(uit) })
+    void haalGezondheid(OVERZICHT_DAGEN, ts).then((uit) => { if (actief) verwerk(uit) })
     // Stille sync (gethrottled in health-sync); alleen bij nieuwe data opnieuw laden.
     void syncGezondheidsdata()
-      .then((uitkomst) => (uitkomst && actief ? haalGezondheid(OVERZICHT_DAGEN) : null))
+      .then((uitkomst) => (uitkomst && actief ? haalGezondheid(OVERZICHT_DAGEN, ts) : null))
       .then((uit) => { if (uit && actief && uit.soort === 'klaar') verwerk(uit) })
     return () => { actief = false }
-  }, [verwerk])
+  }, [verwerk, ts])
 
   async function bijwerken() {
     setSyncBezig(true)
     try {
       const uitkomst = await syncGezondheidsdata({ forceer: true })
-      const uit = await haalGezondheid(OVERZICHT_DAGEN)
+      const uit = await haalGezondheid(OVERZICHT_DAGEN, ts)
       verwerk(uit)
-      if (!uitkomst) toast({ title: 'Geen gekoppelde bron gevonden om bij te werken.', variant: 'warning' })
+      if (!uitkomst) toast({ title: ts.t('lichaam.overzicht.geenBron'), variant: 'warning' })
       else if (uit.soort === 'fout') toast({ title: uit.tekst, variant: 'error' })
     } finally {
       setSyncBezig(false)
@@ -64,11 +66,10 @@ export function GezondheidOverzicht() {
   return (
     <main className={styles.kader}>
       <header>
-        <p className={styles.overline}>{vandaag ? datumLang(vandaag) : 'Gezondheid'}</p>
-        <h1 className={styles.titel}>Gezondheid</h1>
+        <p className={styles.overline}>{vandaag ? datumLang(vandaag, ts) : ts.t('lichaam.overzicht.titel')}</p>
+        <h1 className={styles.titel}>{ts.t('lichaam.overzicht.titel')}</h1>
         <p className={styles.intro}>
-          Je metingen van je telefoon of horloge, aangevuld met wat je zelf invoert —
-          steeds naast je eigen normaal.
+          {ts.t('lichaam.overzicht.intro')}
         </p>
         {status.soort === 'klaar' && (
           <SyncRegel bronnen={status.data.bronnen} vandaag={status.data.vandaag} bezig={syncBezig} onBijwerken={() => void bijwerken()} />
@@ -77,7 +78,7 @@ export function GezondheidOverzicht() {
 
       {status.soort === 'laden' && (
         <div className={styles.laden} role="status" aria-busy="true">
-          <span className={styles.srOnly}>Je gezondheidsdata wordt geladen…</span>
+          <span className={styles.srOnly}>{ts.t('lichaam.overzicht.laden')}</span>
           <Skeleton width="70%" height={32} />
           <Skeleton width="55%" height={32} />
           <Skeleton width="100%" height={180} radius="var(--radius-lg)" />
@@ -90,9 +91,9 @@ export function GezondheidOverzicht() {
           <p className={styles.intro}>{status.tekst}</p>
           <Button variant="secondary" className={styles.hint} onClick={() => {
             setStatus({ soort: 'laden' })
-            void haalGezondheid(OVERZICHT_DAGEN).then(verwerk)
+            void haalGezondheid(OVERZICHT_DAGEN, ts).then(verwerk)
           }}>
-            Opnieuw proberen
+            {ts.t('lichaam.opnieuw')}
           </Button>
         </div>
       )}

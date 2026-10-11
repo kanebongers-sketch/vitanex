@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 interface TeamLid {
@@ -43,11 +44,12 @@ function burnoutKleur(score: number | null) {
 }
 
 function RisicoBar({ score, max = 100 }: { score: number | null; max?: number }) {
+  const { t } = useVertaling()
   if (score === null) return <span style={{ fontSize: 12, color: 'var(--text-4)' }}>—</span>
   const kleur = burnoutKleur(score)
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <Progress value={score} max={max} ariaLabel={`Burnout risico ${score} procent`} color={kleur} thickness={6} style={{ flex: 1 }} />
+      <Progress value={score} max={max} ariaLabel={t('werk.hrTeam.risicoLabel', { score })} color={kleur} thickness={6} style={{ flex: 1 }} />
       <span style={{ fontSize: 12, fontWeight: 700, color: kleur, width: 32, textAlign: 'right' }}>{score}%</span>
     </div>
   )
@@ -55,6 +57,7 @@ function RisicoBar({ score, max = 100 }: { score: number | null; max?: number })
 
 export default function HrTeamPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [team, setTeam] = useState<TeamLid[]>([])
   const [aggregaat, setAggregaat] = useState<Aggregaat | null>(null)
@@ -96,9 +99,9 @@ export default function HrTeamPage() {
     })
 
   const filterOpties: { id: 'alles' | 'risico' | 'inactief'; label: string; icon?: typeof AlertTriangle }[] = [
-    { id: 'alles', label: 'Alles' },
-    { id: 'risico', label: 'Hoog risico', icon: AlertTriangle },
-    { id: 'inactief', label: 'Inactief', icon: Moon },
+    { id: 'alles', label: t('werk.hrTeam.alles') },
+    { id: 'risico', label: t('werk.hrTeam.hoogRisico'), icon: AlertTriangle },
+    { id: 'inactief', label: t('werk.hrTeam.inactief'), icon: Moon },
   ]
 
   return (
@@ -108,8 +111,8 @@ export default function HrTeamPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Team overzicht</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Welzijnsdata van jouw team (30 dagen)</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('werk.hrTeam.titel')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.hrTeam.intro')}</p>
         </div>
 
         {laden ? (
@@ -120,11 +123,11 @@ export default function HrTeamPage() {
             {aggregaat && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: 'Medewerkers', waarde: aggregaat.totaal_medewerkers, kleur: 'var(--text-1)' },
-                  { label: 'Actief (30d)', waarde: aggregaat.actief_30d, kleur: 'var(--mf-green)' },
-                  { label: 'Participatie', waarde: `${aggregaat.participatie_pct}%`, kleur: aggregaat.participatie_pct >= 70 ? 'var(--mf-green)' : 'var(--mf-amber)' },
-                  { label: 'Check-ins', waarde: aggregaat.totaal_checkins, kleur: 'var(--mf-purple)' },
-                  { label: 'Gem. burnout', waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : '—', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
+                  { label: t('werk.hrTeam.medewerkers'), waarde: aggregaat.totaal_medewerkers, kleur: 'var(--text-1)' },
+                  { label: t('werk.hrTeam.actief30'), waarde: aggregaat.actief_30d, kleur: 'var(--mf-green)' },
+                  { label: t('werk.hrTeam.participatie'), waarde: `${aggregaat.participatie_pct}%`, kleur: aggregaat.participatie_pct >= 70 ? 'var(--mf-green)' : 'var(--mf-amber)' },
+                  { label: t('werk.hrTeam.checkins'), waarde: aggregaat.totaal_checkins, kleur: 'var(--mf-purple)' },
+                  { label: t('werk.hrTeam.gemBurnout'), waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : '—', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
                 ].map(s => (
                   <Card key={s.label} style={{ padding: '16px 18px' }}>
                     <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
@@ -136,7 +139,7 @@ export default function HrTeamPage() {
 
             {/* Filters & sort */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-              <div role="group" aria-label="Filter medewerkers" style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: 3 }}>
+              <div role="group" aria-label={t('werk.hrTeam.filterLabel')} style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: 3 }}>
                 {filterOpties.map(f => {
                   const Icon = f.icon
                   const actief = filter === f.id
@@ -161,23 +164,23 @@ export default function HrTeamPage() {
                   )
                 })}
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 'auto' }}>{gesorteerd.length} medewerkers</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 'auto' }}>{t('werk.hrTeam.aantalMedewerkers', { aantal: gesorteerd.length })}</p>
             </div>
 
             {/* Team tabel */}
-            <Table caption="Welzijnsoverzicht per medewerker (laatste 30 dagen)">
+            <Table caption={t('werk.hrTeam.caption')}>
               <THead>
                 <Tr>
-                  <Th scope="col" sortable sortDirection={sorteer === 'naam' ? 'asc' : 'none'} onSort={() => setSorteer('naam')}>Medewerker</Th>
-                  <Th scope="col" sortable sortDirection={sorteer === 'checkins' ? 'desc' : 'none'} onSort={() => setSorteer('checkins')}>Check-ins (30d)</Th>
-                  <Th scope="col" sortable sortDirection={sorteer === 'inactief' ? 'desc' : 'none'} onSort={() => setSorteer('inactief')}>Laatste check-in</Th>
-                  <Th scope="col" sortable sortDirection={sorteer === 'burnout' ? 'desc' : 'none'} onSort={() => setSorteer('burnout')}>Burnout risico</Th>
-                  <Th scope="col">Aandacht</Th>
+                  <Th scope="col" sortable sortDirection={sorteer === 'naam' ? 'asc' : 'none'} onSort={() => setSorteer('naam')}>{t('werk.hrTeam.kolomMedewerker')}</Th>
+                  <Th scope="col" sortable sortDirection={sorteer === 'checkins' ? 'desc' : 'none'} onSort={() => setSorteer('checkins')}>{t('werk.hrTeam.kolomCheckins')}</Th>
+                  <Th scope="col" sortable sortDirection={sorteer === 'inactief' ? 'desc' : 'none'} onSort={() => setSorteer('inactief')}>{t('werk.hrTeam.kolomLaatste')}</Th>
+                  <Th scope="col" sortable sortDirection={sorteer === 'burnout' ? 'desc' : 'none'} onSort={() => setSorteer('burnout')}>{t('werk.hrTeam.kolomRisico')}</Th>
+                  <Th scope="col">{t('werk.hrTeam.kolomAandacht')}</Th>
                 </Tr>
               </THead>
               <TBody>
                 {gesorteerd.length === 0 ? (
-                  <Tr><Td colSpan={5} align="center" style={{ padding: '40px', fontSize: 13, color: 'var(--text-3)' }}>Geen medewerkers gevonden</Td></Tr>
+                  <Tr><Td colSpan={5} align="center" style={{ padding: '40px', fontSize: 13, color: 'var(--text-3)' }}>{t('werk.hrTeam.geenMedewerkers')}</Td></Tr>
                 ) : gesorteerd.map(m => {
                   const isInactief = m.checkins_30d === 0
                   const isHoogRisico = (m.burnout_risico ?? 0) >= 70
@@ -191,7 +194,7 @@ export default function HrTeamPage() {
                             {(m.naam ?? 'M').charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{m.naam ?? 'Anoniem'}</p>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{m.naam ?? t('werk.hrTeam.anoniem')}</p>
                             <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{m.email ?? ''}</p>
                           </div>
                         </div>
@@ -206,12 +209,12 @@ export default function HrTeamPage() {
                       </Td>
                       <Td>
                         {m.dagen_sinds_checkin === null ? (
-                          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Nooit</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('werk.hrTeam.nooit')}</span>
                         ) : m.dagen_sinds_checkin === 0 ? (
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-green)' }}>Vandaag</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-green)' }}>{t('werk.hrTeam.vandaag')}</span>
                         ) : (
                           <span style={{ fontSize: 12, color: m.dagen_sinds_checkin > 14 ? 'var(--mf-red)' : m.dagen_sinds_checkin > 7 ? 'var(--mf-amber)' : 'var(--text-2)' }}>
-                            {m.dagen_sinds_checkin}d geleden
+                            {t('werk.hrTeam.dagenGeleden', { dagen: m.dagen_sinds_checkin })}
                           </span>
                         )}
                       </Td>
@@ -219,16 +222,16 @@ export default function HrTeamPage() {
                         <RisicoBar score={m.burnout_risico} />
                         {m.burnout_trending && (
                           <p style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: m.burnout_trending === 'stijgend' ? 'var(--mf-red)' : m.burnout_trending === 'dalend' ? 'var(--mf-green)' : 'var(--text-3)', marginTop: 2 }}>
-                            {m.burnout_trending === 'stijgend' ? <><TrendingUp size={11} aria-hidden /> stijgend</> : m.burnout_trending === 'dalend' ? <><TrendingDown size={11} aria-hidden /> dalend</> : <><ArrowRight size={11} aria-hidden /> stabiel</>}
+                            {m.burnout_trending === 'stijgend' ? <><TrendingUp size={11} aria-hidden /> {t('werk.hrTeam.stijgend')}</> : m.burnout_trending === 'dalend' ? <><TrendingDown size={11} aria-hidden /> {t('werk.hrTeam.dalend')}</> : <><ArrowRight size={11} aria-hidden /> {t('werk.hrTeam.stabiel')}</>}
                           </p>
                         )}
                       </Td>
                       <Td>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                          {isHoogRisico && <Badge variant="danger" style={{ fontSize: 10, padding: '2px 8px' }}>Hoog risico</Badge>}
-                          {isInactief && <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>Inactief</Badge>}
+                          {isHoogRisico && <Badge variant="danger" style={{ fontSize: 10, padding: '2px 8px' }}>{t('werk.hrTeam.hoogRisico')}</Badge>}
+                          {isInactief && <Badge variant="neutral" style={{ fontSize: 10, padding: '2px 8px' }}>{t('werk.hrTeam.inactief')}</Badge>}
                           {m.dagen_sinds_checkin !== null && m.dagen_sinds_checkin > 14 && !isInactief && (
-                            <Badge variant="warning" style={{ fontSize: 10, padding: '2px 8px' }}>Lang inactief</Badge>
+                            <Badge variant="warning" style={{ fontSize: 10, padding: '2px 8px' }}>{t('werk.hrTeam.langInactief')}</Badge>
                           )}
                         </div>
                       </Td>
@@ -239,7 +242,7 @@ export default function HrTeamPage() {
             </Table>
 
             <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 12, textAlign: 'center' }}>
-              Per-medewerker welzijnsdata is alleen zichtbaar voor geautoriseerde HR en managers.
+              {t('werk.hrTeam.privacy')}
             </p>
           </>
         )}

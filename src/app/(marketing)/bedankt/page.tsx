@@ -10,6 +10,8 @@ import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
 } from '@/lib/doelen/weekdoelen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -37,27 +39,28 @@ interface AnalyseJSON {
 
 // ─── Domain config ────────────────────────────────────────────────────────────
 
+// label = vertaalsleutel (site.bedankt.*).
 const VLAK_CONFIG: Record<string, { label: string; kleur: string; licht: string }> = {
-  slaap:    { label: 'Slaap',           kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)' },
-  stress:   { label: 'Stress',          kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)' },
-  energie:  { label: 'Energie',         kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)' },
-  focus:    { label: 'Focus',           kleur: 'var(--mentaforce-primary)', licht: 'var(--mentaforce-primary-light)' },
-  balans:   { label: 'Werk-privé',      kleur: 'var(--mf-blue)', licht: 'var(--mf-blue-light)' },
-  motivatie:{ label: 'Motivatie',       kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)' },
+  slaap:    { label: 'site.bedankt.vlakSlaap',     kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)' },
+  stress:   { label: 'site.bedankt.vlakStress',    kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)' },
+  energie:  { label: 'site.bedankt.vlakEnergie',   kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)' },
+  focus:    { label: 'site.bedankt.vlakFocus',     kleur: 'var(--mentaforce-primary)', licht: 'var(--mentaforce-primary-light)' },
+  balans:   { label: 'site.bedankt.vlakBalans',    kleur: 'var(--mf-blue)', licht: 'var(--mf-blue-light)' },
+  motivatie:{ label: 'site.bedankt.vlakMotivatie', kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)' },
 }
 
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function risicoConfig(niveau: string) {
-  if (niveau === 'hoog')  return { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', tekst: 'var(--mf-red)', label: 'Hoog risico' }
-  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', tekst: 'var(--mf-amber-dark)', label: 'Matig risico' }
-  return { bg: 'var(--mentaforce-primary-light)', border: 'var(--mentaforce-primary)', tekst: 'var(--mentaforce-primary-dark)', label: 'Laag risico' }
+  if (niveau === 'hoog')  return { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', tekst: 'var(--mf-red)', label: 'site.bedankt.risicoHoog' }
+  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', tekst: 'var(--mf-amber-dark)', label: 'site.bedankt.risicoMatig' }
+  return { bg: 'var(--mentaforce-primary-light)', border: 'var(--mentaforce-primary)', tekst: 'var(--mentaforce-primary-dark)', label: 'site.bedankt.risicoLaag' }
 }
 
 const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }> = {
-  goed:  { bg: 'var(--mentaforce-primary-light)', tekst: 'var(--mentaforce-primary-dark)', label: 'Goed' },
-  matig: { bg: 'var(--mf-amber-light)', tekst: 'var(--mf-amber-dark)', label: 'Matig' },
-  laag:  { bg: 'var(--mf-red-light)', tekst: 'var(--mf-red)', label: 'Aandacht nodig' },
+  goed:  { bg: 'var(--mentaforce-primary-light)', tekst: 'var(--mentaforce-primary-dark)', label: 'site.bedankt.niveauGoed' },
+  matig: { bg: 'var(--mf-amber-light)', tekst: 'var(--mf-amber-dark)', label: 'site.bedankt.niveauMatig' },
+  laag:  { bg: 'var(--mf-red-light)', tekst: 'var(--mf-red)', label: 'site.bedankt.niveauLaag' },
 }
 
 const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
@@ -73,6 +76,7 @@ const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> 
 
 function BedanktInhoud() {
   const params = useSearchParams()
+  const { t, taal } = useVertaling()
 
   const slaap    = parseInt(params.get('slaap')    ?? '0')
   const stress   = parseInt(params.get('stress')   ?? '0')
@@ -101,7 +105,7 @@ function BedanktInhoud() {
   const [xpToast,   setXpToast]   = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
   const xpToastRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const datum = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const datum = new Date().toLocaleDateString(INTL_LOCALE[taal], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   function slaatDoelen(aj: AnalyseJSON) {
     if (!aj.aanbevolen_doelen?.length) return
@@ -230,12 +234,12 @@ function BedanktInhoud() {
           <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
         </div>
         <h2 className="text-lg font-medium text-[var(--text-1)] mb-2">
-          {status === 'laden' ? 'Check-in verwerken...' : 'AI-analyse wordt gegenereerd...'}
+          {status === 'laden' ? t('site.bedankt.verwerken') : t('site.bedankt.analyseBezig')}
         </h2>
         <p className="text-[var(--text-2)] text-sm leading-relaxed">
           {status === 'analyse'
-            ? 'De AI analyseert jouw antwoorden en stelt een persoonlijk rapport op. Dit duurt een paar seconden.'
-            : 'Even geduld...'}
+            ? t('site.bedankt.analyseUitleg')
+            : t('site.bedankt.evenGeduld')}
         </p>
       </div>
     </main>
@@ -254,25 +258,25 @@ function BedanktInhoud() {
           </span>
         </div>
         <h2 className="text-xl font-medium text-[var(--text-1)] mb-2">
-          {status === 'fout' ? 'Rapport kon niet worden geladen' : 'Check-in gedaan!'}
+          {status === 'fout' ? t('site.bedankt.foutKop') : t('site.bedankt.klaarKop')}
         </h2>
         <p className="text-[var(--text-2)] text-sm mb-8 leading-relaxed">
           {status === 'fout'
-            ? 'Je check-in is opgeslagen, maar de AI-analyse is mislukt. Probeer het opnieuw.'
-            : 'Bedankt. Je antwoorden helpen jou om beter te presteren en uitval te voorkomen.'}
+            ? t('site.bedankt.foutTekst')
+            : t('site.bedankt.klaarTekst')}
         </p>
         <div className="flex flex-col gap-3">
           {status === 'fout' && sid && (
             <button onClick={() => { setStatus('laden'); genereerAnalyse() }}
               className="w-full inline-block text-center text-[var(--bg-app)] rounded-xl py-3 text-sm font-medium"
               style={{ background: 'var(--mf-blue)' }}>
-              Opnieuw proberen
+              {t('site.bedankt.opnieuw')}
             </button>
           )}
           <Link href="/home" className="w-full inline-block text-center text-[var(--bg-app)] rounded-xl py-3 text-sm font-medium"
-            style={{ background: 'var(--mentaforce-primary)' }}>Naar dashboard</Link>
+            style={{ background: 'var(--mentaforce-primary)' }}>{t('site.bedankt.naarDashboard')}</Link>
           <Link href="/" className="w-full inline-block text-center border border-[var(--border)] text-[var(--text-2)] rounded-xl py-3 text-sm hover:bg-[var(--bg-subtle)] transition">
-            Terug naar home</Link>
+            {t('site.bedankt.terugHome')}</Link>
         </div>
       </div>
     </main>
@@ -296,7 +300,7 @@ function BedanktInhoud() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[var(--text-1)]">Jouw vitaliteitsanalyse</h1>
+              <h1 className="text-xl font-bold text-[var(--text-1)]">{t('site.bedankt.kop')}</h1>
               <p className="text-xs text-[var(--text-2)] capitalize">{datum}</p>
             </div>
           </div>
@@ -304,7 +308,7 @@ function BedanktInhoud() {
           {/* Vitaalscore */}
           {vitaalScore > 0 && (
             <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: 'var(--mentaforce-primary-light)', position: 'relative' }}>
-              <p className="text-xs text-[var(--text-2)] mb-1">Vitaalscore</p>
+              <p className="text-xs text-[var(--text-2)] mb-1">{t('site.bedankt.vitaalscore')}</p>
               <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
                   <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
@@ -327,8 +331,8 @@ function BedanktInhoud() {
               return (
                 <div key={vlak}>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="font-medium text-[var(--text-2)]">{label}</span>
-                    <span className="font-semibold" style={{ color: scoreKleur(score) }}>{score}/20 — {scoreLabel(score)}</span>
+                    <span className="font-medium text-[var(--text-2)]">{t(label)}</span>
+                    <span className="font-semibold" style={{ color: scoreKleur(score) }}>{t('site.bedankt.scoreRegel', { score, label: scoreLabel(score) })}</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden" style={{ background: licht }}>
                     <div className="h-full rounded-full transition-all duration-700"
@@ -344,10 +348,10 @@ function BedanktInhoud() {
         {analyse.aanbevolen_doelen && analyse.aanbevolen_doelen.length > 0 && (
           <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-semibold text-[var(--text-1)]">Jouw doelen voor deze week</h2>
-              <Link href="/doelen" className="text-xs font-medium" style={{ color: 'var(--mentaforce-primary)' }}>Bekijk alles →</Link>
+              <h2 className="text-sm font-semibold text-[var(--text-1)]">{t('site.bedankt.doelenKop')}</h2>
+              <Link href="/doelen" className="text-xs font-medium" style={{ color: 'var(--mentaforce-primary)' }}>{t('site.bedankt.bekijkAlles')}</Link>
             </div>
-            <p className="text-xs text-[var(--text-2)] mb-4">De AI heeft 3 doelen gekozen op basis van jouw laagste scores.</p>
+            <p className="text-xs text-[var(--text-2)] mb-4">{t('site.bedankt.doelenUitleg')}</p>
             <div className="space-y-3">
               {analyse.aanbevolen_doelen.map((doel, i) => {
                 const cfg = VLAK_CONFIG[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-2)', licht: 'var(--bg-subtle)' }
@@ -360,7 +364,11 @@ function BedanktInhoud() {
                       <p className="text-sm font-semibold" style={{ color: cfg.kleur }}>{doel.doel_titel}</p>
                       <p className="text-xs text-[var(--text-2)] mt-0.5 leading-relaxed">{doel.doel_beschrijving}</p>
                       <p className="text-xs font-medium mt-1" style={{ color: cfg.kleur }}>
-                        Doel: {doel.target_waarde} {doel.eenheid} — {doel.meetType}
+                        {t('site.bedankt.doelRegel', {
+                          waarde: doel.target_waarde,
+                          eenheid: doel.eenheid,
+                          meetType: doel.meetType === 'wekelijks' ? t('site.bedankt.meetWekelijks') : t('site.bedankt.meetDagelijks'),
+                        })}
                       </p>
                     </div>
                   </div>
@@ -372,13 +380,13 @@ function BedanktInhoud() {
 
         {/* Samenvatting */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
-          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">Samenvatting</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">{t('site.bedankt.samenvatting')}</h2>
           <p className="text-sm text-[var(--text-2)] leading-relaxed">{analyse.samenvatting}</p>
         </div>
 
         {/* Sterke punten */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
-          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">Sterke punten deze week</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">{t('site.bedankt.sterkePunten')}</h2>
           <ul className="space-y-2">
             {analyse.sterke_punten.map((p, i) => (
               <li key={i} className="flex items-start gap-2.5">
@@ -392,7 +400,7 @@ function BedanktInhoud() {
 
         {/* Aandachtspunten */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
-          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">Aandachtspunten</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">{t('site.bedankt.aandachtspunten')}</h2>
           <div className="space-y-4">
             {analyse.aandachtspunten.map((a, i) => (
               <div key={i} className="rounded-xl p-4"
@@ -406,7 +414,7 @@ function BedanktInhoud() {
 
         {/* Actieplan */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
-          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">Actieplan voor volgende week</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-3">{t('site.bedankt.actieplan')}</h2>
           <div className="space-y-4">
             {analyse.actieplan.map((item, i) => (
               <div key={i} className="flex gap-3">
@@ -425,7 +433,7 @@ function BedanktInhoud() {
         {/* Welzijn per categorie */}
         {analyse.wellbeing_categorieen && analyse.wellbeing_categorieen.length > 0 && (
           <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-4">
-            <h2 className="text-sm font-semibold text-[var(--text-1)] mb-4">Jouw welzijn per gebied</h2>
+            <h2 className="text-sm font-semibold text-[var(--text-1)] mb-4">{t('site.bedankt.welzijnPerGebied')}</h2>
             <div className="space-y-3">
               {analyse.wellbeing_categorieen.map((cat) => {
                 const kl = WELLBEING_KLEUR[cat.naam] ?? { k: 'var(--text-2)', l: 'var(--bg-subtle)', border: 'var(--border)' }
@@ -436,7 +444,7 @@ function BedanktInhoud() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold" style={{ color: kl.k }}>{cat.naam}</span>
                       <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
-                        style={{ background: nv.bg, color: nv.tekst }}>{nv.label}</span>
+                        style={{ background: nv.bg, color: nv.tekst }}>{t(nv.label)}</span>
                     </div>
                     <p className="text-xs text-[var(--text-2)] leading-relaxed mb-3">{cat.samenvatting}</p>
                     <ul className="space-y-1">
@@ -463,7 +471,7 @@ function BedanktInhoud() {
           style={{ background: risico.bg, borderLeft: `4px solid ${risico.border}` }}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold" style={{ color: risico.tekst }}>
-              Burn-out risico: {risico.label}
+              {t('site.bedankt.burnoutRisico', { label: t(risico.label) })}
             </p>
             <span className="text-xs font-medium px-2.5 py-1 rounded-full"
               style={{ background: risico.border + '20', color: risico.tekst }}>
@@ -477,29 +485,29 @@ function BedanktInhoud() {
 
         {/* Persoonlijk bericht */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-5">
-          <p className="text-xs font-medium text-[var(--text-2)] mb-2">Persoonlijk bericht</p>
+          <p className="text-xs font-medium text-[var(--text-2)] mb-2">{t('site.bedankt.persoonlijkBericht')}</p>
           <p className="text-sm text-[var(--text-2)] leading-relaxed italic">&ldquo;{analyse.bericht}&rdquo;</p>
         </div>
 
         {/* Deel met HR */}
         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm mb-5">
-          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-1">Deel met HR?</h2>
-          <p className="text-xs text-[var(--text-2)] mb-4">Je analyse is privé. Jij beslist of je hem deelt.</p>
+          <h2 className="text-sm font-semibold text-[var(--text-1)] mb-1">{t('site.bedankt.delenKop')}</h2>
+          <p className="text-xs text-[var(--text-2)] mb-4">{t('site.bedankt.delenUitleg')}</p>
           <button
             onClick={toggleDelen}
             disabled={deelBezig}
             role="switch"
             aria-checked={gedeeld}
-            aria-label="Deel je analyse met HR"
+            aria-label={t('site.bedankt.delenAria')}
             className="w-full flex items-center justify-between p-4 rounded-xl border transition"
             style={{ background: gedeeld ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)', borderColor: gedeeld ? 'var(--mentaforce-primary)' : 'var(--border)' }}
           >
             <div className="text-left">
               <p className="text-sm font-medium" style={{ color: gedeeld ? 'var(--mentaforce-primary-dark)' : 'var(--text-2)' }}>
-                {gedeeld ? 'Gedeeld met HR' : 'Deel met HR'}
+                {gedeeld ? t('site.bedankt.gedeeld') : t('site.bedankt.delen')}
               </p>
               <p className="text-xs mt-0.5" style={{ color: gedeeld ? 'var(--mentaforce-primary)' : 'var(--text-3)' }}>
-                {gedeeld ? 'HR kan deze analyse inzien.' : 'HR krijgt toegang tot deze analyse.'}
+                {gedeeld ? t('site.bedankt.gedeeldUitleg') : t('site.bedankt.delenToegang')}
               </p>
             </div>
             <div className="w-10 h-6 rounded-full flex items-center transition-all duration-200 flex-shrink-0 ml-4"
@@ -514,21 +522,21 @@ function BedanktInhoud() {
           <Link href="/doelen"
             className="w-full inline-block text-center text-[var(--bg-app)] rounded-xl py-3.5 text-sm font-semibold"
             style={{ background: 'var(--mentaforce-primary)' }}>
-            Bekijk je doelen voor deze week
+            {t('site.bedankt.bekijkDoelen')}
           </Link>
           <Link href="/rapport"
             className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
             style={{ borderColor: 'var(--mf-blue)', color: 'var(--mf-blue)' }}>
-            Volledig rapport bekijken
+            {t('site.bedankt.volledigRapport')}
           </Link>
           <Link href="/home"
             className="w-full inline-block text-center border border-[var(--border)] text-[var(--text-2)] rounded-xl py-3 text-sm hover:bg-[var(--bg-subtle)] transition">
-            Terug naar dashboard
+            {t('site.bedankt.terugDashboard')}
           </Link>
         </div>
 
         <p className="text-xs text-[var(--text-2)] text-center mt-6 pb-4">
-          Alle check-in antwoorden zijn anoniem en beveiligd opgeslagen.
+          {t('site.bedankt.anoniem')}
         </p>
       </div>
     </main>
@@ -549,20 +557,20 @@ function BedanktInhoud() {
           </div>
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-purple)', marginBottom: 2 }}>
-              +{xpToast.xp} XP verdiend!
+              {t('site.bedankt.xpVerdiend', { xp: xpToast.xp })}
             </p>
             {xpToast.level && (
               <p style={{ fontSize: 12, fontWeight: 700, color: LEVEL_KLEUREN[xpToast.level] }}>
-                Level {xpToast.level} bereikt — {LEVEL_NAMEN[xpToast.level]}!
+                {t('site.bedankt.levelBereikt', { level: xpToast.level, naam: LEVEL_NAMEN[xpToast.level] })}
               </p>
             )}
             {xpToast.achievements.length > 0 && (
               <p style={{ fontSize: 11, color: 'var(--mf-amber)', fontWeight: 600 }}>
-                Achievement: {xpToast.achievements.map((a: Achievement) => a.naam).join(', ')}
+                {t('site.bedankt.achievement', { namen: xpToast.achievements.map((a: Achievement) => a.naam).join(', ') })}
               </p>
             )}
             <Link href="/niveau" style={{ fontSize: 11, color: 'var(--mf-purple)', textDecoration: 'underline', fontWeight: 600 }}>
-              Bekijk Fit Level
+              {t('site.bedankt.bekijkLevel')}
             </Link>
           </div>
         </div>

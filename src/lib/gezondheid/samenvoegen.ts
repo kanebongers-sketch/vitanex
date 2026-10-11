@@ -5,6 +5,8 @@
 // `unknown`-achtig (Supabase): elke waarde wordt hier gevalideerd.
 
 import type { GezondheidsDag, MetriekSleutel, SlaapFases, Workout } from './types'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
 
 export const TIJDZONE = 'Europe/Amsterdam'
 
@@ -28,7 +30,12 @@ export const BRON_LABELS: Record<string, string> = {
   apple_health: 'Apple Health', healthkit: 'Apple Health',
   health_connect: 'Health Connect',
   google_fit: 'Google Fit', google_health: 'Google Fit',
-  handmatig: 'Eigen invoer',
+}
+
+/** Leesbare naam van een bron: merknamen blijven, eigen invoer wordt vertaald, onbekend blijft zoals hij is. */
+export function bronLabel(bron: string, ts: Taalset = NL_LICHAAM): string {
+  if (bron === 'handmatig') return ts.t('lichaam.bron.handmatig')
+  return BRON_LABELS[bron] ?? bron
 }
 
 function voorkeur(bron: string): number {

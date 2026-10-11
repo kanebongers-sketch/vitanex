@@ -27,6 +27,9 @@ import { Loader2, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { Button } from '@/components/ui/Button'
 import { DialogRoot, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+
+const NAAM_MARKER = '\u0000'
 
 interface Props {
   open: boolean
@@ -38,6 +41,15 @@ interface Props {
 type Fase = 'invoer' | 'valideren' | 'bevestig' | 'koppelen' | 'klaar' | 'fout'
 
 export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }: Props) {
+  const { t, taal } = useVertaling()
+  // Server-meldingen zijn Nederlands; in een andere taal tonen we een eigen tekst.
+  const serverFout = (fout: unknown, terugval: string) =>
+    taal === 'nl' && typeof fout === 'string' ? fout : terugval
+  // Zin met de bedrijfsnaam vet erin, ongeacht waar de naam in de vertaling staat.
+  const metNaam = (sleutel: string) => {
+    const [voor, na = ''] = t(sleutel, { naam: NAAM_MARKER }).split(NAAM_MARKER)
+    return <>{voor}<strong>{bedrijfsnaam}</strong>{na}</>
+  }
   const [invoer, setInvoer] = useState('')
   const [fase, setFase] = useState<Fase>('invoer')
   const [foutTekst, setFoutTekst] = useState<string | null>(null)
@@ -78,7 +90,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
   async function valideerCode() {
     const code = invoer.trim()
     if (!/^[A-Z]{3}-[0-9][A-Z][0-9]$/.test(code)) {
-      setFoutTekst('Voer een geldige code in, zoals FIT-X2K.')
+      setFoutTekst(t('werk.hrCodeModal.foutFormaat'))
       return
     }
     setFase('valideren')
@@ -87,7 +99,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
       const res = await fetch(`/api/hr-code/valideer?code=${encodeURIComponent(code)}`)
       const json = await res.json()
       if (!res.ok || !json.geldig) {
-        setFoutTekst(json.fout ?? 'Ongeldige HR code.')
+        setFoutTekst(serverFout(json.fout, t('werk.hrCodeModal.foutOngeldig')))
         setFase('fout')
         return
       }
@@ -95,7 +107,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
       setBedrijfId(json.bedrijf_id)
       setFase('bevestig')
     } catch {
-      setFoutTekst('Netwerkfout. Controleer je verbinding en probeer opnieuw.')
+      setFoutTekst(t('werk.hrCodeModal.foutNetwerkVerbinding'))
       setFase('fout')
     }
   }
@@ -112,7 +124,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
       jwt = data.session?.access_token
     }
     if (!jwt) {
-      setFoutTekst('Je sessie is verlopen. Log opnieuw in.')
+      setFoutTekst(t('werk.hrCodeModal.foutSessie'))
       setFase('fout')
       return
     }
@@ -128,14 +140,14 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
       })
       const json = await res.json()
       if (!res.ok) {
-        setFoutTekst(json.fout ?? 'Koppeling mislukt.')
+        setFoutTekst(serverFout(json.fout, t('werk.hrCodeModal.foutKoppeling')))
         setFase('fout')
         return
       }
       setFase('klaar')
       onGekoppeld?.({ bedrijf_id: bedrijfId, bedrijfsnaam })
     } catch {
-      setFoutTekst('Netwerkfout. Probeer opnieuw.')
+      setFoutTekst(t('werk.hrCodeModal.foutNetwerk'))
       setFase('fout')
     }
   }
@@ -158,12 +170,12 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
               fontWeight: 700, fontSize: 16,
             }}
           >
-            HR
+            {t('werk.hrCodeModal.hrIcoon')}
           </div>
           <div>
-            <DialogTitle style={{ fontSize: 18, paddingRight: 0, lineHeight: 1.3 }}>Koppel aan werkgever</DialogTitle>
+            <DialogTitle style={{ fontSize: 18, paddingRight: 0, lineHeight: 1.3 }}>{t('werk.hrCodeModal.titel')}</DialogTitle>
             <DialogDescription style={{ fontSize: 12, marginTop: 2 }}>
-              Voer de HR code in die je van je werkgever hebt ontvangen
+              {t('werk.hrCodeModal.omschrijving')}
             </DialogDescription>
           </div>
         </div>
@@ -172,7 +184,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
         {toonInvoer && (
           <div>
             <label htmlFor="hr-code-invoer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>
-              HR Code
+              {t('werk.hrSnel.hrCode')}
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -224,11 +236,11 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
             )}
 
             <p id="hr-code-hint" style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12, textAlign: 'center' }}>
-              Je werkgever vindt de HR code op het HR-dashboard van MentaForce.
+              {t('werk.hrCodeModal.hint')}
             </p>
 
             <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-              <Button variant="secondary" onClick={onSluit}>Annuleren</Button>
+              <Button variant="secondary" onClick={onSluit}>{t('werk.algemeen.annuleren')}</Button>
               <Button
                 onClick={() => {
                   setFoutTekst(null)
@@ -239,7 +251,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
                 disabled={invoer.length < 7}
                 style={{ flex: 1 }}
               >
-                {fase === 'fout' ? 'Opnieuw proberen' : fase === 'valideren' ? 'Controleren...' : 'Controleer code'}
+                {fase === 'fout' ? t('werk.hrCodeModal.opnieuw') : fase === 'valideren' ? t('werk.hrCodeModal.controleren') : t('werk.hrCodeModal.controleerCode')}
               </Button>
             </div>
           </div>
@@ -253,23 +265,23 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
               background: 'var(--mentaforce-primary-light)', padding: 20, marginBottom: 20, textAlign: 'center',
             }}>
               <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4, color: 'var(--mentaforce-primary)' }}>
-                Bedrijf gevonden
+                {t('werk.hrCodeModal.bedrijfGevonden')}
               </p>
               <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{bedrijfsnaam}</p>
               <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 4 }}>
-                Code: <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{invoer}</span>
+                {t('werk.hrCodeModal.code')} <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{invoer}</span>
               </p>
             </div>
 
             <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 24, lineHeight: 1.6 }}>
-              Wil je je account koppelen aan <strong>{bedrijfsnaam}</strong>?
-              Je HR-afdeling krijgt toegang tot anonieme welzijnsdata van jouw team — nooit persoonsgebonden inzichten.
+              {metNaam('werk.hrCodeModal.koppelVraag')}{' '}
+              {t('werk.hrCodeModal.koppelUitleg')}
             </p>
 
             <div style={{ display: 'flex', gap: 12 }}>
-              <Button variant="secondary" onClick={() => setFase('invoer')}>Terug</Button>
+              <Button variant="secondary" onClick={() => setFase('invoer')}>{t('werk.hrCodeModal.terug')}</Button>
               <Button onClick={koppelAanBedrijf} style={{ flex: 1 }}>
-                Ja, koppel mij aan {bedrijfsnaam}
+                {t('werk.hrCodeModal.jaKoppel', { naam: bedrijfsnaam })}
               </Button>
             </div>
           </div>
@@ -279,7 +291,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
         {fase === 'koppelen' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 16 }}>
             <Loader2 size={48} aria-hidden style={{ color: 'var(--mentaforce-primary)', animation: 'mf-spin 0.7s linear infinite' }} />
-            <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Koppeling verwerken...</p>
+            <p style={{ fontSize: 14, color: 'var(--text-3)' }}>{t('werk.hrCodeModal.verwerken')}</p>
           </div>
         )}
 
@@ -295,11 +307,11 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
             >
               <CheckCircle2 size={36} style={{ color: 'var(--mentaforce-primary)' }} />
             </div>
-            <h3 style={{ fontWeight: 800, color: 'var(--text-1)', fontSize: 20, marginBottom: 8 }}>Gekoppeld!</h3>
+            <h3 style={{ fontWeight: 800, color: 'var(--text-1)', fontSize: 20, marginBottom: 8 }}>{t('werk.hrCodeModal.gekoppeld')}</h3>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>
-              Je account is succesvol gekoppeld aan <strong>{bedrijfsnaam}</strong>.
+              {metNaam('werk.hrCodeModal.gekoppeldAan')}
             </p>
-            <Button onClick={onSluit} style={{ width: '100%' }}>Sluiten</Button>
+            <Button onClick={onSluit} style={{ width: '100%' }}>{t('werk.hrCodeModal.sluiten')}</Button>
           </div>
         )}
       </DialogContent>

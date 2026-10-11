@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface TeamUitdaging {
@@ -31,14 +33,8 @@ interface TeamUitdaging {
   team_uitdaging_logs?: { user_id: string }[]
 }
 
-const TYPES = [
-  { id: 'stappen', label: 'Stappen' },
-  { id: 'minuten_sport', label: 'Sportminuten' },
-  { id: 'water', label: 'Water (glazen)' },
-  { id: 'slaap', label: 'Slaap (uren)' },
-  { id: 'checkin', label: 'Check-ins' },
-  { id: 'custom', label: 'Anders' },
-]
+// Labels staan in het woordenboek: werk.uitdagingType.<id>
+const TYPES = ['stappen', 'minuten_sport', 'water', 'slaap', 'checkin', 'custom'].map(id => ({ id }))
 
 const SELECT_STYLE: React.CSSProperties = {
   width: '100%',
@@ -55,6 +51,8 @@ const SELECT_STYLE: React.CSSProperties = {
 export default function HRUitdagingenPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [uitdagingen, setUitdagingen] = useState<TeamUitdaging[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -101,7 +99,7 @@ export default function HRUitdagingenPagina() {
           beschrijving: form.beschrijving || undefined,
           type: form.type,
           doel_waarde: form.doel_waarde ? parseFloat(form.doel_waarde) : undefined,
-          eenheid: form.eenheid || TYPES.find(t => t.id === form.type)?.label,
+          eenheid: form.eenheid || (TYPES.some(type => type.id === form.type) ? t(`werk.uitdagingType.${form.type}`) : undefined),
           start_datum: form.start_datum,
           eind_datum: form.eind_datum,
         }),
@@ -111,13 +109,13 @@ export default function HRUitdagingenPagina() {
         setUitdagingen(prev => [json.uitdaging, ...prev])
         setShowForm(false)
         setForm({ titel: '', beschrijving: '', type: 'stappen', doel_waarde: '', eenheid: '', start_datum: new Date().toISOString().split('T')[0], eind_datum: '' })
-        toast({ title: 'Uitdaging aangemaakt', variant: 'success' })
+        toast({ title: t('werk.uitdagingen.aangemaakt'), variant: 'success' })
       } else {
-        toast({ title: 'Aanmaken mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
+        toast({ title: t('werk.uitdagingen.aanmakenMislukt'), description: t('werk.uitdagingen.opnieuw'), variant: 'error' })
       }
     } catch (err: unknown) {
-      const bericht = err instanceof Error ? err.message : 'Onbekende fout'
-      toast({ title: 'Aanmaken mislukt', description: bericht, variant: 'error' })
+      const bericht = err instanceof Error && taal === 'nl' ? err.message : t('werk.uitdagingen.onbekendeFout')
+      toast({ title: t('werk.uitdagingen.aanmakenMislukt'), description: bericht, variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -142,9 +140,9 @@ export default function HRUitdagingenPagina() {
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Team uitdagingen
+              {t('werk.uitdagingen.titel')}
             </h1>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Maak en beheer team wellbeing challenges</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.uitdagingen.intro')}</p>
           </div>
           <Button
             variant={showForm ? 'secondary' : 'primary'}
@@ -152,7 +150,7 @@ export default function HRUitdagingenPagina() {
             leftIcon={showForm ? <X size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
             onClick={() => setShowForm(!showForm)}
           >
-            {showForm ? 'Annuleer' : 'Nieuw'}
+            {showForm ? t('werk.uitdagingen.annuleer') : t('werk.uitdagingen.nieuw')}
           </Button>
         </header>
 
@@ -160,51 +158,51 @@ export default function HRUitdagingenPagina() {
         {showForm && (
           <Card style={{ borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: 20 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 16 }}>
-              Nieuwe uitdaging
+              {t('werk.uitdagingen.nieuweUitdaging')}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Field label="Titel" required>
+              <Field label={t('werk.uitdagingen.veldTitel')} required>
                 <Input value={form.titel} onChange={e => setForm(p => ({ ...p, titel: e.target.value }))}
-                  placeholder="30 minuten bewegen per dag" />
+                  placeholder={t('werk.uitdagingen.titelPlaceholder')} />
               </Field>
 
-              <Field label="Beschrijving">
+              <Field label={t('werk.uitdagingen.beschrijving')}>
                 <Textarea value={form.beschrijving} onChange={e => setForm(p => ({ ...p, beschrijving: e.target.value }))}
-                  placeholder="Extra context voor deelnemers..."
+                  placeholder={t('werk.uitdagingen.beschrijvingPlaceholder')}
                   rows={2}
                   style={{ resize: 'none', minHeight: 0 }} />
               </Field>
 
-              <Field label="Type">
+              <Field label={t('werk.uitdagingen.type')}>
                 <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
                   style={SELECT_STYLE}>
-                  {TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                  {TYPES.map(type => <option key={type.id} value={type.id}>{t(`werk.uitdagingType.${type.id}`)}</option>)}
                 </select>
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <Field label="Doelwaarde">
+                <Field label={t('werk.uitdagingen.doelwaarde')}>
                   <Input type="number" value={form.doel_waarde} onChange={e => setForm(p => ({ ...p, doel_waarde: e.target.value }))}
                     placeholder="10000" />
                 </Field>
-                <Field label="Eenheid">
+                <Field label={t('werk.uitdagingen.eenheid')}>
                   <Input value={form.eenheid} onChange={e => setForm(p => ({ ...p, eenheid: e.target.value }))}
-                    placeholder="stappen" />
+                    placeholder={t('werk.uitdagingen.eenheidPlaceholder')} />
                 </Field>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <Field label="Startdatum">
+                <Field label={t('werk.uitdagingen.startdatum')}>
                   <Input type="date" value={form.start_datum} onChange={e => setForm(p => ({ ...p, start_datum: e.target.value }))} />
                 </Field>
-                <Field label="Einddatum" required>
+                <Field label={t('werk.uitdagingen.einddatum')} required>
                   <Input type="date" value={form.eind_datum} onChange={e => setForm(p => ({ ...p, eind_datum: e.target.value }))} />
                 </Field>
               </div>
 
               <Button onClick={aanmaken} disabled={!form.titel.trim() || !form.eind_datum} loading={opslaan} style={{ width: '100%' }}>
-                {opslaan ? 'Aanmaken…' : 'Uitdaging aanmaken'}
+                {opslaan ? t('werk.uitdagingen.aanmaken') : t('werk.uitdagingen.aanmaakKnop')}
               </Button>
             </div>
           </Card>
@@ -215,11 +213,11 @@ export default function HRUitdagingenPagina() {
           <Card style={{ borderRadius: 'var(--radius-lg)' }}>
             <EmptyState
               icon={Trophy}
-              title="Nog geen uitdagingen"
-              description="Maak je eerste team uitdaging aan."
+              title={t('werk.uitdagingen.leegTitel')}
+              description={t('werk.uitdagingen.leegOmschrijving')}
               action={
                 <Button size="sm" leftIcon={<Plus size={15} aria-hidden />} onClick={() => setShowForm(true)}>
-                  Nieuwe uitdaging
+                  {t('werk.uitdagingen.nieuweUitdaging')}
                 </Button>
               }
             />
@@ -243,16 +241,16 @@ export default function HRUitdagingenPagina() {
                     </div>
                     <div style={{ flexShrink: 0, marginLeft: 12 }}>
                       {resterende > 0 ? (
-                        <Badge variant="success" style={{ fontSize: 10 }}>{resterende}d resterend</Badge>
+                        <Badge variant="success" style={{ fontSize: 10 }}>{t('werk.uitdagingen.resterend', { dagen: resterende })}</Badge>
                       ) : (
-                        <Badge variant="neutral" style={{ fontSize: 10 }}>Afgelopen</Badge>
+                        <Badge variant="neutral" style={{ fontSize: 10 }}>{t('werk.uitdagingen.afgelopen')}</Badge>
                       )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--text-3)', flexWrap: 'wrap' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Calendar size={12} aria-hidden />
-                      {new Date(u.start_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} → {new Date(u.eind_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                      {new Date(u.start_datum).toLocaleDateString(locale, { day: 'numeric', month: 'short' })} → {new Date(u.eind_datum).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                     </span>
                     {u.doel_waarde && (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -262,7 +260,7 @@ export default function HRUitdagingenPagina() {
                     )}
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Users size={12} aria-hidden />
-                      {deelnemers} deelnemers
+                      {t('werk.uitdagingen.deelnemers', { aantal: deelnemers })}
                     </span>
                   </div>
                 </Card>

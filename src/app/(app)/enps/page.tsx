@@ -8,6 +8,8 @@ import { Check, Frown, Meh, Smile, Laugh, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Meting {
@@ -20,11 +22,13 @@ interface Meting {
 const SCORE_ICON = (score: number): LucideIcon =>
   score <= 3 ? Frown : score <= 6 ? Meh : score <= 8 ? Smile : Laugh
 
-const CATEGORIE = (score: number) => score >= 9 ? 'Promoter' : score >= 7 ? 'Passief' : 'Detractor'
+const CATEGORIE = (score: number) => score >= 9 ? 'werk.enps.promoter' : score >= 7 ? 'werk.enps.passief' : 'werk.enps.detractor'
 const CAT_KLEUR = (score: number) => score >= 9 ? 'var(--mf-green)' : score >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
 export default function ENPSPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [metingen, setMetingen] = useState<Meting[]>([])
   const [score, setScore] = useState<number | null>(null)
@@ -81,39 +85,39 @@ export default function ENPSPage() {
 
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 6 }}>
-            Werkbetrokkenheid (eNPS)
+            {t('werk.enps.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5 }}>
-            Hoe waarschijnlijk is het dat je dit bedrijf aanbeveelt als werkgever aan vrienden of familie?
+            {t('werk.enps.intro')}
           </p>
         </div>
 
         {(alIngevuld && !klaar) ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px', marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>Al ingevuld deze maand</p>
-            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Je eNPS voor {new Date(huidigeMaand + '-01').toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })} is al geregistreerd. Kom volgende maand terug.</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{t('werk.enps.alIngevuld')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('werk.enps.alIngevuldTekst', { maand: new Date(huidigeMaand + '-01').toLocaleDateString(locale, { month: 'long', year: 'numeric' }) })}</p>
           </div>
         ) : klaar ? (
           <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, border: '1px solid var(--mf-green-mid)', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: 'var(--mf-green)' }}>
               <Check size={24} aria-hidden />
             </div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green)' }}>Bedankt voor je eerlijke antwoord!</p>
-            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Jouw respons is volledig anoniem verwerkt.</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green)' }}>{t('werk.enps.bedankt')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{t('werk.enps.anoniem')}</p>
           </div>
         ) : (
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '28px 24px', marginBottom: 16 }}>
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 20, lineHeight: 1.4 }}>
-              Op een schaal van 0 tot 10, hoe waarschijnlijk is het dat je dit bedrijf aanbeveelt?
+              {t('werk.enps.vraag')}
             </p>
 
             {/* Score grid */}
-            <div role="group" aria-label="Kies een score van 0 tot 10" style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+            <div role="group" aria-label={t('werk.enps.kiesScore')} style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
               {Array.from({ length: 11 }, (_, i) => i).map(n => (
                 <button
                   key={n}
                   onClick={() => setScore(n)}
-                  aria-label={`Score ${n} van 10`}
+                  aria-label={t('werk.enps.scoreLabel', { n })}
                   aria-pressed={score === n}
                   style={{
                     width: 48, height: 48, borderRadius: 12, fontSize: 15, fontWeight: 700,
@@ -129,8 +133,8 @@ export default function ENPSPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              <span style={{ fontSize: 11, color: 'var(--mf-red)', fontWeight: 600 }}>0 — Helemaal niet</span>
-              <span style={{ fontSize: 11, color: 'var(--mf-green)', fontWeight: 600 }}>10 — Absoluut</span>
+              <span style={{ fontSize: 11, color: 'var(--mf-red)', fontWeight: 600 }}>{t('werk.enps.helemaalNiet')}</span>
+              <span style={{ fontSize: 11, color: 'var(--mf-green)', fontWeight: 600 }}>{t('werk.enps.absoluut')}</span>
             </div>
 
             {score !== null && (
@@ -145,20 +149,20 @@ export default function ENPSPage() {
                     </span>
                   </div>
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: CAT_KLEUR(score) }}>{CATEGORIE(score)}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: CAT_KLEUR(score) }}>{t(CATEGORIE(score))}</p>
                     <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                      {score >= 9 ? 'Enthousiaste ambassadeur voor het bedrijf.' : score >= 7 ? 'Tevreden, maar niet uitgesproken positief.' : 'Zou het bedrijf niet aanbevelen.'}
+                      {score >= 9 ? t('werk.enps.uitlegPromoter') : score >= 7 ? t('werk.enps.uitlegPassief') : t('werk.enps.uitlegDetractor')}
                     </p>
                   </div>
                 </div>
 
-                <label htmlFor="enps-reden" style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', marginBottom: 6 }}>Optionele toelichting (anoniem)</label>
+                <label htmlFor="enps-reden" style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', marginBottom: 6 }}>{t('werk.enps.toelichting')}</label>
                 <textarea
                   id="enps-reden"
                   rows={3}
                   value={reden}
                   onChange={e => setReden(e.target.value)}
-                  placeholder="Wat is de voornaamste reden voor je score?"
+                  placeholder={t('werk.enps.toelichtingPlaceholder')}
                   style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box', lineHeight: 1.5, background: 'var(--bg-card)', color: 'var(--text-2)' }}
                 />
               </div>
@@ -174,7 +178,7 @@ export default function ENPSPage() {
                 opacity: score === null || verzenden ? 0.4 : 1,
               }}
             >
-              {verzenden ? 'Verzenden...' : 'Score indienen →'}
+              {verzenden ? t('werk.enps.verzenden') : t('werk.enps.indienen')}
             </button>
           </div>
         )}
@@ -182,7 +186,7 @@ export default function ENPSPage() {
         {/* Historiek */}
         {metingen.length > 0 && (
           <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', marginBottom: 12 }}>Mijn historiek</p>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', marginBottom: 12 }}>{t('werk.enps.historiek')}</p>
 
             {/* Mini trend barchart */}
             {metingen.length >= 2 && (() => {
@@ -193,13 +197,13 @@ export default function ENPSPage() {
               const totalW = recente.length * (barW + gap) - gap
               return (
                 <div style={{ marginBottom: 16, overflowX: 'auto' }}>
-                  <svg role="img" aria-label="Trend van je laatste eNPS-scores" width={totalW} height={barH + 24} viewBox={`0 0 ${totalW} ${barH + 24}`} style={{ display: 'block' }}>
+                  <svg role="img" aria-label={t('werk.enps.trendLabel')} width={totalW} height={barH + 24} viewBox={`0 0 ${totalW} ${barH + 24}`} style={{ display: 'block' }}>
                     {recente.map((m, i) => {
                       const x = i * (barW + gap)
                       const h = Math.max(6, Math.round((m.score / 10) * barH))
                       const y = barH - h
                       const kleur = m.score >= 9 ? 'var(--mf-green)' : m.score >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
-                      const maandLabel = new Date(m.maand + '-01').toLocaleDateString('nl-NL', { month: 'short' }).slice(0, 3)
+                      const maandLabel = new Date(m.maand + '-01').toLocaleDateString(locale, { month: 'short' }).slice(0, 3)
                       return (
                         <g key={m.maand}>
                           <rect x={x} y={y} width={barW} height={h} rx={5} fill={kleur} fillOpacity={0.85} />
@@ -225,13 +229,13 @@ export default function ENPSPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
-                      {new Date(m.maand + '-01').toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })}
+                      {new Date(m.maand + '-01').toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
                     </p>
                     {m.reden && <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{m.reden.slice(0, 60)}{m.reden.length > 60 ? '...' : ''}</p>}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ fontSize: 16, fontWeight: 800, color: CAT_KLEUR(m.score) }}>{m.score}/10</p>
-                    <p style={{ fontSize: 10, color: CAT_KLEUR(m.score) }}>{CATEGORIE(m.score)}</p>
+                    <p style={{ fontSize: 10, color: CAT_KLEUR(m.score) }}>{t(CATEGORIE(m.score))}</p>
                   </div>
                 </div>
               ))}

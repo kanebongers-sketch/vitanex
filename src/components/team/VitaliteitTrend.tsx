@@ -1,6 +1,7 @@
 'use client'
 
 import { Chart } from '@/components/ui/Chart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type TrendPunt = {
   datum: string
@@ -12,13 +13,14 @@ export type TrendPunt = {
 // lazy-laden van recharts, het tekstalternatief (role="img" + sr-only tabel) en
 // de token-gestuurde styling.
 export default function VitaliteitTrend({ data }: { data: TrendPunt[] }) {
+  const { t } = useVertaling()
   return (
     <Chart
       type="line"
       data={data}
       xKey="datum"
-      series={[{ key: 'Score', label: 'Vitaliteitsscore', color: 'var(--mentaforce-primary)' }]}
-      summary="Vitaliteitsscore van het team per datum, op een schaal van 0 tot 100 procent."
+      series={[{ key: 'Score', label: t('werk.vitaliteitTrend.label'), color: 'var(--mentaforce-primary)' }]}
+      summary={t('werk.vitaliteitTrend.samenvatting')}
       yDomain={[0, 100]}
       height={200}
     />

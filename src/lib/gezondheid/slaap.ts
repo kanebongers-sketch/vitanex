@@ -4,12 +4,15 @@
 
 import { gemiddelde, verschuifDatum } from './statistiek'
 import type { GezondheidsDag, SlaapFases } from './types'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
 
 export const FASE_VOLGORDE = ['diep', 'rem', 'licht', 'wakker'] as const
 export type Fase = (typeof FASE_VOLGORDE)[number]
 
-export const FASE_LABELS: Record<Fase, string> = {
-  diep: 'Diep', rem: 'REM', licht: 'Licht', wakker: 'Wakker',
+/** "Diep", "REM", "Licht", "Wakker" */
+export function faseLabel(fase: Fase, ts: Taalset = NL_LICHAAM): string {
+  return ts.t(`lichaam.fase.${fase}`)
 }
 
 export interface FaseGemiddelde {

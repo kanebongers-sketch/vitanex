@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { isRateLimited } from '@/lib/utils/rate-limit'
+import { huidigeTaalset } from '@/lib/i18n/server'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,19 +32,20 @@ function berekenWeekStart(datum: Date): string {
 }
 
 export async function POST(req: NextRequest) {
+  const ts = await huidigeTaalset()
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: 'AI niet beschikbaar.' }, { status: 503 })
+    return NextResponse.json({ error: ts.t('vita.api.aiNietBeschikbaar') }, { status: 503 })
   }
 
   try {
     const user = await getAuthenticatedUser(req)
-    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+    if (!user) return NextResponse.json({ error: ts.t('vita.api.nietIngelogd') }, { status: 401 })
 
     // Best-effort rem per gebruiker: één samenvatting per gesprek-beurt is
     // ruim voldoende; 10 per uur dekt normaal gebruik.
     if (isRateLimited(`coach-samenvatting:${user.id}`, 10, 3600_000)) {
       return NextResponse.json(
-        { error: 'Te veel samenvattingsverzoeken. Probeer het later opnieuw.' },
+        { error: ts.t('vita.api.teVeelSamenvattingen') },
         { status: 429 },
       )
     }
@@ -53,11 +56,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
     if (berichten.length > 50) {
-      return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
+      return NextResponse.json({ error: ts.t('vita.api.teVeelContext') }, { status: 400 })
     }
     for (const b of berichten) {
       if (!valideerBericht(b)) {
-        return NextResponse.json({ error: 'Ongeldig bericht.' }, { status: 400 })
+        return NextResponse.json({ error: ts.t('vita.api.ongeldig') }, { status: 400 })
       }
     }
     const geldigeBerichten: Bericht[] = berichten
@@ -88,7 +91,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 200,
       messages: [{
         role: 'user',
-        content: `Vat dit coach-gesprek samen in maximaal 2 zinnen. Focus op de kern: wat speelde er, welke inzichten of tips kwamen naar voren. Schrijf in de derde persoon ("De gebruiker..."). Antwoord alleen met de samenvatting.\n\n${eerdereContext}${gespreksTekst}`,
+        content: `Vat dit coach-gesprek samen in maximaal 2 zinnen. Focus op de kern: wat speelde er, welke inzichten of tips kwamen naar voren. Schrijf in de derde persoon ("De gebruiker..."). Antwoord alleen met de samenvatting.\n${aiTaalInstructie(ts.taal)}\n\n${eerdereContext}${gespreksTekst}`,
       }],
     })
 
@@ -106,6 +109,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ samenvatting, week_start: weekStart })
   } catch (err) {
     console.error('[coach/samenvatting POST]', err)
-    return NextResponse.json({ error: 'Samenvatting mislukt.' }, { status: 500 })
+    return NextResponse.json({ error: ts.t('vita.api.samenvattingMislukt') }, { status: 500 })
   }
 }

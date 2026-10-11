@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Watch } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import styles from './gezondheid.module.css'
 
 interface LegeGezondheidProps {
@@ -10,16 +11,17 @@ interface LegeGezondheidProps {
 }
 
 export function LegeGezondheid({ koppelRoute }: LegeGezondheidProps) {
+  const { t } = useVertaling()
   return (
-    <section className={styles.sectie} aria-label="Nog geen gezondheidsdata">
+    <section className={styles.sectie} aria-label={t('lichaam.leeg.aria')}>
       <EmptyState
         icon={Watch}
-        title="Nog geen metingen"
+        title={t('lichaam.leeg.titel')}
         headingLevel={2}
-        description="Koppel Health Connect op je Android-telefoon, of houd zelf je slaap en stappen bij. Daarna verschijnen hier je stappen, slaap, hartslag en meer — naast je eigen normaal zodra er genoeg metingen zijn."
+        description={t('lichaam.leeg.tekst')}
         action={
           <Link href={koppelRoute} className={styles.knopLink}>
-            Bron koppelen
+            {t('lichaam.leeg.koppelen')}
           </Link>
         }
       />

@@ -2,6 +2,9 @@
 // Datums zijn kalenderdagen als 'YYYY-MM-DD'. We rekenen in UTC zodat
 // zomer-/wintertijd nooit een dag laat verspringen.
 
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
+
 const DAG_MS = 86_400_000
 
 export function gemiddelde(waarden: readonly number[]): number | null {
@@ -60,41 +63,39 @@ export function verschuifMaand(datum: string, aantal: number): string {
   return naarDatum(d)
 }
 
-const LOCALE = 'nl-NL'
-
-function datumFormaat(datum: string, opties: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', ...opties }).format(naarUtc(datum))
+function datumFormaat(datum: string, opties: Intl.DateTimeFormatOptions, ts: Taalset): string {
+  return new Intl.DateTimeFormat(ts.locale, { timeZone: 'UTC', ...opties }).format(naarUtc(datum))
 }
 
 /** "ma 6" */
-export function dagLabelKort(datum: string): string {
-  return datumFormaat(datum, { weekday: 'short', day: 'numeric' }).replace('.', '')
+export function dagLabelKort(datum: string, ts: Taalset = NL_LICHAAM): string {
+  return datumFormaat(datum, { weekday: 'short', day: 'numeric' }, ts).replace('.', '')
 }
 
 /** "6 okt" */
-export function datumKort(datum: string): string {
-  return datumFormaat(datum, { day: 'numeric', month: 'short' }).replace('.', '')
+export function datumKort(datum: string, ts: Taalset = NL_LICHAAM): string {
+  return datumFormaat(datum, { day: 'numeric', month: 'short' }, ts).replace('.', '')
 }
 
 /** "maandag 6 oktober" */
-export function datumLang(datum: string): string {
-  return datumFormaat(datum, { weekday: 'long', day: 'numeric', month: 'long' })
+export function datumLang(datum: string, ts: Taalset = NL_LICHAAM): string {
+  return datumFormaat(datum, { weekday: 'long', day: 'numeric', month: 'long' }, ts)
 }
 
 /** "okt" */
-export function maandKort(datum: string): string {
-  return datumFormaat(datum, { month: 'short' }).replace('.', '')
+export function maandKort(datum: string, ts: Taalset = NL_LICHAAM): string {
+  return datumFormaat(datum, { month: 'short' }, ts).replace('.', '')
 }
 
 /** "oktober 2026" */
-export function maandLang(datum: string): string {
-  return datumFormaat(datum, { month: 'long', year: 'numeric' })
+export function maandLang(datum: string, ts: Taalset = NL_LICHAAM): string {
+  return datumFormaat(datum, { month: 'long', year: 'numeric' }, ts)
 }
 
 /** "Vandaag", "Gisteren" of "ma 6 okt" — relatief aan `vandaag`. */
-export function relatieveDatum(datum: string, vandaag: string): string {
+export function relatieveDatum(datum: string, vandaag: string, ts: Taalset = NL_LICHAAM): string {
   const verschil = dagenTussen(datum, vandaag)
-  if (verschil === 0) return 'Vandaag'
-  if (verschil === 1) return 'Gisteren'
-  return datumFormaat(datum, { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')
+  if (verschil === 0) return ts.t('lichaam.datum.vandaag')
+  if (verschil === 1) return ts.t('lichaam.datum.gisteren')
+  return datumFormaat(datum, { weekday: 'short', day: 'numeric', month: 'short' }, ts).replace(/\./g, '')
 }

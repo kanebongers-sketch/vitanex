@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FileText, Plus, Search, ChevronRight } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type Protocol = {
@@ -29,17 +31,11 @@ type Protocol = {
   bijgewerkt_op: string
 }
 
-const CAT_LABELS: Record<string, string> = {
-  algemeen: 'Algemeen',
-  arbo: 'Arbo & Veiligheid',
-  verzuim: 'Verzuim',
-  it: 'IT & Systemen',
-  hr: 'HR & Onboarding',
-  veiligheid: 'Veiligheid',
-  overig: 'Overig',
-}
-
+/** Categorieën met een eigen label in het woordenboek (vita.protocollen.categorie.*). */
+const CATEGORIEEN = new Set(['algemeen', 'arbo', 'verzuim', 'it', 'hr', 'veiligheid', 'overig'])
 export default function ProtokollenPage() {
+  const { t, taal } = useVertaling()
+  const catLabel = (cat: string) => (CATEGORIEEN.has(cat) ? t(`vita.protocollen.categorie.${cat}`) : cat)
   const router = useRouter()
   const [protocollen, setProtocollen] = useState<Protocol[]>([])
   const [laden, setLaden] = useState(true)
@@ -92,10 +88,10 @@ export default function ProtokollenPage() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-              Protocollen
+              {t('vita.protocollen.titel')}
             </h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>
-              Beleid, procedures en richtlijnen
+              {t('vita.protocollen.sub')}
             </p>
           </div>
           {isHr && (
@@ -104,14 +100,14 @@ export default function ProtokollenPage() {
               onClick={() => router.push('/hr/protocollen/nieuw')}
               leftIcon={<Plus size={16} aria-hidden />}
             >
-              Toevoegen
+              {t('vita.protocollen.toevoegen')}
             </Button>
           )}
         </div>
 
         {/* Zoeken */}
         <div className="mb-4" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Label htmlFor="protocol-zoek">Zoek protocol</Label>
+          <Label htmlFor="protocol-zoek">{t('vita.protocollen.zoekLabel')}</Label>
           <div style={{ position: 'relative' }}>
             <Search
               size={16}
@@ -124,7 +120,7 @@ export default function ProtokollenPage() {
             <Input
               id="protocol-zoek"
               type="text"
-              placeholder="Zoek op titel of omschrijving..."
+              placeholder={t('vita.protocollen.zoekPlaceholder')}
               value={zoek}
               onChange={e => setZoek(e.target.value)}
               style={{ paddingLeft: 38 }}
@@ -137,7 +133,7 @@ export default function ProtokollenPage() {
           <div
             className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide"
             role="group"
-            aria-label="Filter op categorie"
+            aria-label={t('vita.protocollen.filterLabel')}
           >
             <button
               type="button"
@@ -151,7 +147,7 @@ export default function ProtokollenPage() {
                 transition: 'opacity 0.15s var(--ease)',
               }}
             >
-              Alle
+              {t('vita.protocollen.alle')}
             </button>
             {categorieen.map(cat => (
               <button
@@ -167,7 +163,7 @@ export default function ProtokollenPage() {
                   transition: 'opacity 0.15s var(--ease)',
                 }}
               >
-                {CAT_LABELS[cat] ?? cat}
+                {catLabel(cat)}
               </button>
             ))}
           </div>
@@ -183,11 +179,11 @@ export default function ProtokollenPage() {
             <EmptyState
               icon={FileText}
               title={protocollen.length === 0
-                ? isHr ? 'Nog geen protocollen' : 'Nog geen protocollen gepubliceerd'
-                : 'Geen resultaten'}
+                ? isHr ? t('vita.protocollen.leegHr') : t('vita.protocollen.leeg')
+                : t('vita.protocollen.geenResultaten')}
               description={protocollen.length === 0
-                ? isHr ? 'Klik op Toevoegen om je eerste protocol aan te maken.' : 'Er zijn nog geen protocollen gedeeld door je organisatie.'
-                : 'Pas je zoekopdracht of filter aan om meer te zien.'}
+                ? isHr ? t('vita.protocollen.leegHrTekst') : t('vita.protocollen.leegTekst')
+                : t('vita.protocollen.geenResultatenTekst')}
             />
           </Card>
         ) : (
@@ -224,7 +220,7 @@ export default function ProtokollenPage() {
                         </p>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {isHr && !p.gepubliceerd && (
-                            <Badge variant="warning">Concept</Badge>
+                            <Badge variant="warning">{t('vita.protocollen.concept')}</Badge>
                           )}
                           <ChevronRight size={16} aria-hidden style={{ color: 'var(--text-4)' }} />
                         </div>
@@ -235,9 +231,9 @@ export default function ProtokollenPage() {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="neutral">{CAT_LABELS[p.categorie] ?? p.categorie}</Badge>
+                        <Badge variant="neutral">{catLabel(p.categorie)}</Badge>
                         <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
-                          {new Date(p.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(p.bijgewerkt_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                     </div>
@@ -253,9 +249,9 @@ export default function ProtokollenPage() {
           <Card style={{ marginTop: 24, padding: '16px' }}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold" style={{ color: 'var(--text-2)' }}>HR Beheer</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-2)' }}>{t('vita.protocollen.hrBeheer')}</p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                  Protocollen toevoegen, bewerken en verbergen
+                  {t('vita.protocollen.hrBeheerTekst')}
                 </p>
               </div>
               <Button
@@ -263,7 +259,7 @@ export default function ProtokollenPage() {
                 size="sm"
                 onClick={() => router.push('/hr/protocollen')}
               >
-                Beheren
+                {t('vita.protocollen.beheren')}
               </Button>
             </div>
           </Card>

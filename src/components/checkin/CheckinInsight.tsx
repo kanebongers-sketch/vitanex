@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, TrendingUp, MessageCircle, ArrowRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
-import { CAT } from '@/lib/doelen/doelen-config'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import type { WellbeingCat } from '@/lib/doelen/weekdoelen'
 
 const VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
@@ -33,6 +33,7 @@ function pct(score: number): number {
  * één bewezen patroon uit /api/patronen. Eerlijk: alleen echte cijfers.
  */
 export function CheckinInsight({ scores }: CheckinInsightProps) {
+  const { t, taal } = useVertaling()
   const [patroon, setPatroon] = useState<Patroon | null>(null)
 
   useEffect(() => {
@@ -63,18 +64,21 @@ export function CheckinInsight({ scores }: CheckinInsightProps) {
   const sterktePct = pct(scores[sterkste])
 
   const lead =
-    vitaliteit >= 70 ? 'Sterke week — je staat er goed voor.'
-    : vitaliteit >= 45 ? 'Een solide basis om op verder te bouwen.'
-    : 'Fijn dat je eerlijk incheckt. Juist nu telt elke kleine stap.'
+    vitaliteit >= 70 ? t('mentaal.inzicht.leadSterk')
+    : vitaliteit >= 45 ? t('mentaal.inzicht.leadSolide')
+    : t('mentaal.inzicht.leadEerlijk')
+
+  // Vlaknaam uit het woordenboek (zelfde labels als de check-in-secties).
+  const vlak = (v: WellbeingCat) => t(`mentaal.checkin.sectie.${v}`).toLocaleLowerCase(taal)
 
   // Noem een sterkste vlak alleen als dat écht goed scoort; anders puur de kans.
   const body = sterktePct >= 55
-    ? `Je sterkste vlak is ${CAT[sterkste].label.toLowerCase()} (${sterktePct}%). Je grootste kans deze week ligt bij ${CAT[focus].label.toLowerCase()} — daar helpen de doelen hieronder je gericht mee.`
-    : `Je grootste kans deze week ligt bij ${CAT[focus].label.toLowerCase()}. De doelen hieronder zijn precies daarop gericht — één stap tegelijk.`
+    ? t('mentaal.inzicht.bodySterk', { sterkste: vlak(sterkste), pct: sterktePct, focus: vlak(focus) })
+    : t('mentaal.inzicht.bodyKans', { focus: vlak(focus) })
 
   return (
     <section
-      aria-label="Persoonlijk inzicht na je check-in"
+      aria-label={t('mentaal.inzicht.label')}
       style={{
         marginBottom: 20,
         padding: '18px 20px',
@@ -101,7 +105,7 @@ export function CheckinInsight({ scores }: CheckinInsightProps) {
             fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
             color: 'var(--mentaforce-primary)', margin: '0 0 2px',
           }}>
-            Jouw moment
+            {t('mentaal.inzicht.moment')}
           </p>
           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.01em' }}>
             {lead}
@@ -112,7 +116,7 @@ export function CheckinInsight({ scores }: CheckinInsightProps) {
             {vitaliteit}
           </p>
           <p style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '3px 0 0' }}>
-            vitaliteit
+            {t('mentaal.inzicht.vitaliteit')}
           </p>
         </div>
       </div>
@@ -129,7 +133,7 @@ export function CheckinInsight({ scores }: CheckinInsightProps) {
           <TrendingUp size={16} strokeWidth={1.75} aria-hidden style={{ flexShrink: 0, marginTop: 1, color: 'var(--mentaforce-primary)' }} />
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px' }}>
-              Je coach zag een patroon — {patroon.titel.toLowerCase()}
+              {t('mentaal.inzicht.patroon', { titel: patroon.titel.toLowerCase() })}
             </p>
             <p style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--text-3)', margin: 0 }}>
               {patroon.beschrijving}
@@ -148,7 +152,7 @@ export function CheckinInsight({ scores }: CheckinInsightProps) {
         }}
       >
         <MessageCircle size={14} strokeWidth={2} aria-hidden />
-        Bespreek deze week met je coach
+        {t('mentaal.inzicht.bespreek')}
         <ArrowRight size={13} strokeWidth={2.25} aria-hidden />
       </Link>
     </section>

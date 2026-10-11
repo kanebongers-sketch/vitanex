@@ -12,6 +12,8 @@ import { METRIEKEN, type Drempel } from '@/lib/health/gezondheid-metrics'
 import { normaalOver, waardenInVenster, NORMAAL_VENSTER_DAGEN } from './normaal'
 import { gemiddelde, verschuifDatum } from './statistiek'
 import { METRIEK_SLEUTELS, type GezondheidsDag, type MetriekSleutel } from './types'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_LICHAAM } from './taal'
 
 export const RECENT_DAGEN = 7
 export const MIN_RECENTE_METINGEN = 3
@@ -69,7 +71,7 @@ export function beoordeelbareMetrieken(
 }
 
 export function berekenHighlight(
-  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string,
+  dagen: readonly GezondheidsDag[], sleutel: MetriekSleutel, vandaag: string, ts: Taalset = NL_LICHAAM,
 ): Highlight | null {
   const regel = METRIEKEN[sleutel].highlight
   const v = vergelijkRecent(dagen, sleutel, vandaag)
@@ -81,7 +83,7 @@ export function berekenHighlight(
 
   return {
     sleutel,
-    tekst: regel.beschrijf(regel.formatVerschil(Math.abs(verschil)), verschil > 0),
+    tekst: regel.beschrijf(regel.formatVerschil(Math.abs(verschil), ts), verschil > 0, ts),
     verschil,
     recentGemiddelde: v.recentGemiddelde,
     normaal: v.basisMediaan,
@@ -93,10 +95,10 @@ export function berekenHighlight(
 
 /** Alle highlights, sterkste afwijking eerst. */
 export function berekenHighlights(
-  dagen: readonly GezondheidsDag[], vandaag: string, max = 3,
+  dagen: readonly GezondheidsDag[], vandaag: string, max = 3, ts: Taalset = NL_LICHAAM,
 ): Highlight[] {
   return METRIEK_SLEUTELS
-    .map((s) => berekenHighlight(dagen, s, vandaag))
+    .map((s) => berekenHighlight(dagen, s, vandaag, ts))
     .filter((h): h is Highlight => h !== null)
     .sort((a, b) => b.sterkte - a.sterkte)
     .slice(0, max)

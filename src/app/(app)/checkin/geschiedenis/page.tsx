@@ -10,6 +10,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { CollapsibleRoot, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/Collapsible'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface CheckIn {
@@ -18,13 +20,14 @@ interface CheckIn {
   scores: Record<string, number>
 }
 
-const DOMEIN_CONFIG: Record<string, { label: string; kleur: string }> = {
-  energie:  { label: 'Energie',   kleur: 'var(--mf-amber)' },
-  slaap:    { label: 'Slaap',     kleur: 'var(--mf-purple)' },
-  stress:   { label: 'Stress',    kleur: 'var(--mf-red)' },
-  focus:    { label: 'Focus',     kleur: 'var(--mf-green)' },
-  balans:   { label: 'Balans',    kleur: 'var(--mf-blue)' },
-  motivatie:{ label: 'Motivatie', kleur: 'var(--mf-rose)' },
+// Labels uit het woordenboek: mentaal.checkin.sectie.<domein>.
+const DOMEIN_CONFIG: Record<string, { kleur: string }> = {
+  energie:  { kleur: 'var(--mf-amber)' },
+  slaap:    { kleur: 'var(--mf-purple)' },
+  stress:   { kleur: 'var(--mf-red)' },
+  focus:    { kleur: 'var(--mf-green)' },
+  balans:   { kleur: 'var(--mf-blue)' },
+  motivatie:{ kleur: 'var(--mf-rose)' },
 }
 
 function scoreKleur(score: number) {
@@ -43,6 +46,8 @@ function vitaalScore(scores: Record<string, number>) {
 export default function CheckInGeschiedenisPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([])
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
@@ -60,15 +65,15 @@ export default function CheckInGeschiedenisPage() {
       if (error) {
         toast({
           variant: 'error',
-          title: 'Geschiedenis laden mislukt',
-          description: 'We konden je check-ins niet ophalen. Probeer het later opnieuw.',
+          title: t('mentaal.geschiedenis.ladenMislukt'),
+          description: t('mentaal.geschiedenis.ladenMisluktTekst'),
         })
       }
       setCheckIns(data ?? [])
       setLaden(false)
     }
     laad()
-  }, [router, toast])
+  }, [router, toast, t])
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -77,19 +82,19 @@ export default function CheckInGeschiedenisPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
           <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>
-            <ArrowLeft size={14} aria-hidden="true" /> Check-in
+            <ArrowLeft size={14} aria-hidden="true" /> {t('mentaal.geschiedenis.terug')}
           </Link>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Check-in geschiedenis</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('mentaal.geschiedenis.titel')}</h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              {laden ? 'Geschiedenis laden…' : `${checkIns.length} check-ins in de afgelopen tijd`}
+              {laden ? t('mentaal.geschiedenis.laden') : t(checkIns.length === 1 ? 'mentaal.geschiedenis.aantalEen' : 'mentaal.geschiedenis.aantalMeer', { aantal: checkIns.length })}
             </p>
           </div>
           <Link href="/voortgang" style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-purple)', textDecoration: 'none', padding: '8px 16px', borderRadius: 10, background: 'var(--mf-purple-light)' }}>
-            Voortgang →
+            {t('mentaal.geschiedenis.voortgang')} →
           </Link>
         </div>
 
@@ -100,10 +105,10 @@ export default function CheckInGeschiedenisPage() {
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
               <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)' }} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6, position: 'relative', zIndex: 1 }}>Nog geen check-ins</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20, position: 'relative', zIndex: 1, maxWidth: 320, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>Je wekelijkse check-ins verschijnen hier als tijdlijn — zodat je je welzijn over de weken kunt volgen.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6, position: 'relative', zIndex: 1 }}>{t('mentaal.geschiedenis.leegTitel')}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20, position: 'relative', zIndex: 1, maxWidth: 320, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>{t('mentaal.geschiedenis.leegTekst')}</p>
             <Link href="/checkin" style={{ fontSize: 14, color: 'var(--bg-app)', background: 'var(--mentaforce-primary)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block', position: 'relative', zIndex: 1 }}>
-              Eerste check-in →
+              {t('mentaal.geschiedenis.eerste')} →
             </Link>
           </div>
         ) : (
@@ -114,7 +119,7 @@ export default function CheckInGeschiedenisPage() {
               const vkleur = vscore >= 70 ? 'var(--mf-green)' : vscore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
               const isOpen = uitgevouwen === ci.id
               const domeinen = Object.keys(DOMEIN_CONFIG).filter(d => ci.scores?.[d] !== undefined)
-              const datumLabel = datum.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+              const datumLabel = datum.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 
               return (
                 <div key={ci.id} style={{ display: 'flex', gap: 0 }}>
@@ -136,7 +141,7 @@ export default function CheckInGeschiedenisPage() {
                         <CollapsibleTrigger asChild>
                           <button
                             type="button"
-                            aria-label={`Details ${datumLabel}, score ${vscore} van 100`}
+                            aria-label={t('mentaal.geschiedenis.detailsLabel', { datum: datumLabel, score: vscore })}
                             className="mf-pressable"
                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
                           >
@@ -145,13 +150,13 @@ export default function CheckInGeschiedenisPage() {
                                 {datumLabel}
                               </p>
                               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
-                                {datum.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
+                                {datum.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })} · {t(domeinen.length === 1 ? 'mentaal.geschiedenis.domeinenEen' : 'mentaal.geschiedenis.domeinenMeer', { aantal: domeinen.length })}
                               </p>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <div style={{ textAlign: 'right' }}>
                                 <p style={{ fontSize: 20, fontWeight: 800, color: vkleur }}>{vscore}</p>
-                                <p style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>score</p>
+                                <p style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>{t('mentaal.geschiedenis.score')}</p>
                               </div>
                               <ChevronDown
                                 size={16}
@@ -170,12 +175,13 @@ export default function CheckInGeschiedenisPage() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
                             {domeinen.map(d => {
                               const cfg = DOMEIN_CONFIG[d]
+                              const label = t(`mentaal.checkin.sectie.${d}`)
                               const score = ci.scores[d]
                               const pct = Math.round(((score - 4) / 16) * 100)
                               const fractie = Math.min(Math.max(pct, 0), 100) / 100
                               return (
                                 <div key={d} style={{ borderRadius: 10, padding: '10px 12px', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: cfg.kleur, marginBottom: 4 }}>{cfg.label}</p>
+                                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: cfg.kleur, marginBottom: 4 }}>{label}</p>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <div
                                       role="progressbar"
@@ -183,7 +189,7 @@ export default function CheckInGeschiedenisPage() {
                                       aria-valuemin={4}
                                       aria-valuemax={20}
                                       aria-valuetext={`${pct}%`}
-                                      aria-label={`${cfg.label}: ${score} van 20`}
+                                      aria-label={t('mentaal.geschiedenis.domeinLabel', { domein: label, score })}
                                       style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 100, overflow: 'hidden' }}
                                     >
                                       <div

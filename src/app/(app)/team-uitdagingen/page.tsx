@@ -30,6 +30,7 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface UitdagingLog { user_id: string; datum: string; waarde: number | null }
 
@@ -46,14 +47,15 @@ interface Uitdaging {
 }
 
 // Type krijgt label + icoon (nooit kleur-alleen). lucide i.p.v. emoji.
-const TYPE_CONFIG: Record<string, { label: string; icon: LucideIcon }> = {
-  stappen:   { label: 'Stappen',   icon: Footprints },
-  checkin:   { label: 'Check-ins', icon: CheckCircle2 },
-  sport:     { label: 'Sport',     icon: Dumbbell },
-  voeding:   { label: 'Voeding',   icon: Salad },
-  meditatie: { label: 'Meditatie', icon: Brain },
-  focus:     { label: 'Focus',     icon: Timer },
-  custom:    { label: 'Overig',    icon: Target },
+// Het label staat in het woordenboek: vita.teamUitdagingen.type.<type>.
+const TYPE_CONFIG: Record<string, { icon: LucideIcon }> = {
+  stappen:   { icon: Footprints },
+  checkin:   { icon: CheckCircle2 },
+  sport:     { icon: Dumbbell },
+  voeding:   { icon: Salad },
+  meditatie: { icon: Brain },
+  focus:     { icon: Timer },
+  custom:    { icon: Target },
 }
 
 function dagsTot(datum: string): number {
@@ -72,6 +74,7 @@ function voortgangPct(logs: UitdagingLog[], doelWaarde: number | null, userId: s
 }
 
 export default function TeamUitdagingenPagina() {
+  const { t } = useVertaling()
   const router = useRouter()
   const { toast } = useToast()
   const [uitdagingen, setUitdagingen] = useState<Uitdaging[]>([])
@@ -115,10 +118,10 @@ export default function TeamUitdagingenPagina() {
         setLogWaarde('')
         vitaEvent('habit_completed', { kind: 'challenge' })
       } else {
-        toast({ title: 'Loggen mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+        toast({ title: t('vita.teamUitdagingen.loggenMislukt'), description: t('vita.teamUitdagingen.later'), variant: 'error' })
       }
     } catch {
-      toast({ title: 'Geen verbinding', description: 'Controleer je internet en probeer opnieuw.', variant: 'error' })
+      toast({ title: t('vita.teamUitdagingen.geenVerbinding'), description: t('vita.teamUitdagingen.verbinding'), variant: 'error' })
     }
     setLoggen(null)
   }
@@ -126,7 +129,7 @@ export default function TeamUitdagingenPagina() {
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }} role="status" aria-label="Uitdagingen laden">
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }} role="status" aria-label={t('vita.teamUitdagingen.laden')}>
         <div className="mf-spinner" />
       </div>
     </div>
@@ -140,10 +143,10 @@ export default function TeamUitdagingenPagina() {
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Team uitdagingen
+              {t('vita.teamUitdagingen.titel')}
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              Doe mee met collectieve uitdagingen en boost je teamwelzijn
+              {t('vita.teamUitdagingen.sub')}
             </p>
           </div>
           <Link
@@ -153,7 +156,7 @@ export default function TeamUitdagingenPagina() {
               fontSize: 12, color: 'var(--mentaforce-primary)', fontWeight: 600, textDecoration: 'none',
             }}
           >
-            Alle uitdagingen <ArrowRight size={14} aria-hidden />
+            {t('vita.teamUitdagingen.alle')} <ArrowRight size={14} aria-hidden />
           </Link>
         </header>
 
@@ -161,8 +164,8 @@ export default function TeamUitdagingenPagina() {
           <Card>
             <EmptyState
               icon={Trophy}
-              title="Geen actieve uitdagingen"
-              description="Je HR-team kan uitdagingen aanmaken via het HR-portaal."
+              title={t('vita.teamUitdagingen.leegTitel')}
+              description={t('vita.teamUitdagingen.leegTekst')}
             />
           </Card>
         ) : (
@@ -174,7 +177,8 @@ export default function TeamUitdagingenPagina() {
               const heeftVandaag = u.team_uitdaging_logs.some(
                 l => l.user_id === userId && l.datum === new Date().toISOString().split('T')[0],
               )
-              const cfg = TYPE_CONFIG[u.type] ?? { label: u.type, icon: Target }
+              const cfg = TYPE_CONFIG[u.type] ?? { icon: Target }
+              const typeLabel = u.type in TYPE_CONFIG ? t(`vita.teamUitdagingen.type.${u.type}`) : u.type
               const TypeIcon = cfg.icon
               const voltooid = pct >= 100
 
@@ -184,11 +188,11 @@ export default function TeamUitdagingenPagina() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>
-                          <TypeIcon size={13} aria-hidden /> {cfg.label}
+                          <TypeIcon size={13} aria-hidden /> {typeLabel}
                         </span>
                         {heeftVandaag && (
                           <Badge variant="success">
-                            <Check size={11} aria-hidden /> vandaag gelogd
+                            <Check size={11} aria-hidden /> {t('vita.teamUitdagingen.vandaagGelogd')}
                           </Badge>
                         )}
                       </div>
@@ -199,14 +203,14 @@ export default function TeamUitdagingenPagina() {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', lineHeight: 1 }}>{pct}%</p>
-                      <p style={{ fontSize: 10, color: 'var(--text-3)' }}>jouw voortgang</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('vita.teamUitdagingen.jouwVoortgang')}</p>
                     </div>
                   </div>
 
                   {/* Voortgangsbalk */}
                   <Progress
                     value={pct}
-                    ariaLabel={`Jouw voortgang voor ${u.naam}`}
+                    ariaLabel={t('vita.teamUitdagingen.voortgangLabel', { naam: u.naam })}
                     thickness={6}
                     color={voltooid ? 'var(--mf-green)' : 'var(--mentaforce-primary)'}
                     style={{ marginBottom: 12 }}
@@ -214,10 +218,12 @@ export default function TeamUitdagingenPagina() {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                      {deelnemers} deelnemer{deelnemers !== 1 ? 's' : ''}
+                      {t(deelnemers === 1 ? 'vita.teamUitdagingen.deelnemerEen' : 'vita.teamUitdagingen.deelnemerMeer', { aantal: deelnemers })}
                     </span>
                     <span style={{ fontSize: 11, color: dagen <= 3 ? 'var(--mf-red)' : 'var(--text-3)', fontWeight: dagen <= 3 ? 700 : 400 }}>
-                      {dagen === 0 ? 'Vandaag laatste dag!' : `${dagen} dag${dagen !== 1 ? 'en' : ''} resterend`}
+                      {dagen === 0
+                        ? t('vita.teamUitdagingen.laatsteDag')
+                        : t(dagen === 1 ? 'vita.teamUitdagingen.dagResterend' : 'vita.teamUitdagingen.dagenResterend', { aantal: dagen })}
                     </span>
                   </div>
 
@@ -225,12 +231,12 @@ export default function TeamUitdagingenPagina() {
                   {u.doel_waarde ? (
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                       <div style={{ flex: 1 }}>
-                        <Field label={`Waarde (${u.eenheid ?? 'aantal'})`}>
+                        <Field label={t('vita.teamUitdagingen.waardeLabel', { eenheid: u.eenheid ?? t('vita.teamUitdagingen.aantal') })}>
                           <Input
                             type="number"
                             value={logWaarde}
                             onChange={e => setLogWaarde(e.target.value)}
-                            placeholder={`Voer ${u.eenheid ?? 'waarde'} in`}
+                            placeholder={t('vita.teamUitdagingen.voerIn', { eenheid: u.eenheid ?? t('vita.teamUitdagingen.waarde') })}
                             min={0}
                           />
                         </Field>
@@ -241,7 +247,7 @@ export default function TeamUitdagingenPagina() {
                         disabled={loggen === u.id || !logWaarde}
                         variant="secondary"
                       >
-                        Log
+                        {t('vita.teamUitdagingen.log')}
                       </Button>
                     </div>
                   ) : (
@@ -253,7 +259,7 @@ export default function TeamUitdagingenPagina() {
                       leftIcon={heeftVandaag ? <Check size={16} aria-hidden /> : undefined}
                       style={{ width: '100%' }}
                     >
-                      {heeftVandaag ? 'Vandaag geregistreerd' : 'Deelnemen vandaag'}
+                      {heeftVandaag ? t('vita.teamUitdagingen.geregistreerd') : t('vita.teamUitdagingen.deelnemen')}
                     </Button>
                   )}
                 </Card>

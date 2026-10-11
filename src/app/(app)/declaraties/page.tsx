@@ -22,6 +22,8 @@ import {
   DialogRoot, DialogContent, DialogTitle,
 } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type DeclaratieStatus = 'ingediend' | 'goedgekeurd' | 'afgewezen'
@@ -38,13 +40,14 @@ type Declaratie = {
   reviewer_notitie?: string | null
 }
 
+// Woordenboek-sleutels per categorie.
 const CAT_LABELS: Record<DeclaratieCategorie, string> = {
-  reiskosten: 'Reiskosten',
-  maaltijd: 'Maaltijd',
-  materiaal: 'Materiaal',
-  training: 'Training',
-  representatie: 'Representatie',
-  overig: 'Overig',
+  reiskosten: 'werk.declaratieCategorie.reiskosten',
+  maaltijd: 'werk.declaratieCategorie.maaltijd',
+  materiaal: 'werk.declaratieCategorie.materiaal',
+  training: 'werk.declaratieCategorie.training',
+  representatie: 'werk.declaratieCategorie.representatie',
+  overig: 'werk.declaratieCategorie.overig',
 }
 
 const CAT_ICON: Record<DeclaratieCategorie, LucideIcon> = {
@@ -59,18 +62,20 @@ const CAT_ICON: Record<DeclaratieCategorie, LucideIcon> = {
 type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
 
 const STATUS_STIJL: Record<DeclaratieStatus, { variant: BadgeVariant; label: string }> = {
-  ingediend:   { variant: 'warning', label: 'In behandeling' },
-  goedgekeurd: { variant: 'success', label: 'Goedgekeurd' },
-  afgewezen:   { variant: 'danger',  label: 'Afgewezen' },
+  ingediend:   { variant: 'warning', label: 'werk.declaratieStatus.ingediend' },
+  goedgekeurd: { variant: 'success', label: 'werk.declaratieStatus.goedgekeurd' },
+  afgewezen:   { variant: 'danger',  label: 'werk.declaratieStatus.afgewezen' },
 }
 
-function euro(bedrag: number): string {
-  return `€${bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function euro(bedrag: number, locale: string): string {
+  return `€${bedrag.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function DeclaratiesPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [declaraties, setDeclaraties] = useState<Declaratie[]>([])
   const [userId, setUserId] = useState('')
@@ -108,8 +113,8 @@ export default function DeclaratiesPage() {
 
   async function indienen() {
     const b = parseFloat(bedrag.replace(',', '.'))
-    if (!bedrag || isNaN(b) || b <= 0) { setFout('Vul een geldig bedrag in.'); return }
-    if (!beschrijving.trim()) { setFout('Omschrijving is verplicht.'); return }
+    if (!bedrag || isNaN(b) || b <= 0) { setFout(t('werk.declaraties.foutBedrag')); return }
+    if (!beschrijving.trim()) { setFout(t('werk.declaraties.foutOmschrijving')); return }
     setOpslaan(true); setFout('')
 
     const { data, error } = await supabase.from('declaraties').insert({
@@ -123,13 +128,14 @@ export default function DeclaratiesPage() {
     }).select().single()
 
     if (error) {
-      setFout('Opslaan mislukt: ' + error.message)
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      const melding = taal === 'nl' ? error.message : t('werk.algemeen.ietsMis')
+      setFout(t('werk.declaraties.opslaanMisluktMet', { fout: melding }))
+      toast({ title: t('werk.declaraties.opslaanMislukt'), description: melding, variant: 'error' })
     } else {
       setDeclaraties(prev => [data as Declaratie, ...prev])
       setFormulier(false)
       setBedrag(''); setBeschrijving(''); setCategorie('reiskosten')
-      toast({ title: 'Declaratie ingediend', variant: 'success' })
+      toast({ title: t('werk.declaraties.ingediend'), variant: 'success' })
     }
     setOpslaan(false)
   }
@@ -145,35 +151,35 @@ export default function DeclaratiesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Declaraties</h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Onkostenvergoedingen</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('werk.declaraties.titel')}</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('werk.declaraties.intro')}</p>
           </div>
           <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
-            Indienen
+            {t('werk.declaraties.indienen')}
           </Button>
         </div>
 
         {/* Statistieken */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
           <Card style={{ padding: 16 }}>
-            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Openstaand</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--mf-amber)' }}>{euro(openstaand)}</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>{t('werk.declaraties.openstaand')}</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--mf-amber)' }}>{euro(openstaand, locale)}</p>
           </Card>
           <Card style={{ padding: 16 }}>
-            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Goedgekeurd</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--mentaforce-primary)' }}>{euro(totaalGoedgekeurd)}</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>{t('werk.declaraties.goedgekeurd')}</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--mentaforce-primary)' }}>{euro(totaalGoedgekeurd, locale)}</p>
           </Card>
         </div>
 
         {/* Formulier */}
         <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
           <DialogContent>
-            <DialogTitle>Declaratie indienen</DialogTitle>
+            <DialogTitle>{t('werk.declaraties.dialoogTitel')}</DialogTitle>
 
             <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
               {/* Categorie */}
-              <div role="group" aria-label="Categorie">
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>Categorie</p>
+              <div role="group" aria-label={t('werk.declaraties.categorie')}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>{t('werk.declaraties.categorie')}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(CAT_LABELS) as DeclaratieCategorie[]).map(c => {
                     const Icoon = CAT_ICON[c]
@@ -192,7 +198,7 @@ export default function DeclaratiesPage() {
                           cursor: 'pointer',
                         }}>
                         <Icoon size={18} aria-hidden strokeWidth={1.75} />
-                        <span>{CAT_LABELS[c]}</span>
+                        <span>{t(CAT_LABELS[c])}</span>
                       </button>
                     )
                   })}
@@ -200,10 +206,10 @@ export default function DeclaratiesPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Datum">
+                <Field label={t('werk.declaraties.datum')}>
                   <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
                 </Field>
-                <Field label="Bedrag (€)">
+                <Field label={t('werk.declaraties.bedrag')}>
                   <Input
                     type="text"
                     inputMode="decimal"
@@ -214,24 +220,24 @@ export default function DeclaratiesPage() {
                 </Field>
               </div>
 
-              <Field label="Omschrijving" error={fout || undefined}>
+              <Field label={t('werk.declaraties.omschrijving')} error={fout || undefined}>
                 <Textarea
                   rows={2}
                   value={beschrijving}
                   onChange={e => setBeschrijving(e.target.value)}
-                  placeholder="Beschrijf de declaratie..."
+                  placeholder={t('werk.declaraties.omschrijvingPlaceholder')}
                 />
               </Field>
 
               <Button onClick={indienen} loading={opslaan} style={{ width: '100%' }}>
-                {opslaan ? 'Indienen...' : 'Declaratie indienen'}
+                {opslaan ? t('werk.declaraties.indienenBezig') : t('werk.declaraties.dialoogTitel')}
               </Button>
             </div>
           </DialogContent>
         </DialogRoot>
 
         {/* Lijst */}
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Mijn declaraties</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>{t('werk.declaraties.mijn')}</p>
 
         {laden ? (
           <div className="flex justify-center py-10">
@@ -239,16 +245,16 @@ export default function DeclaratiesPage() {
           </div>
         ) : declaraties.length === 0 ? (
           <Card>
-            <EmptyState icon={Wallet} title="Nog geen declaraties" description="Dien je eerste onkostenvergoeding in." />
+            <EmptyState icon={Wallet} title={t('werk.declaraties.leegTitel')} description={t('werk.declaraties.leegOmschrijving')} />
           </Card>
         ) : (
-          <Table caption="Mijn declaraties">
+          <Table caption={t('werk.declaraties.mijn')}>
             <THead>
               <Tr>
-                <Th scope="col">Categorie</Th>
-                <Th scope="col">Datum</Th>
-                <Th scope="col" align="right">Bedrag</Th>
-                <Th scope="col" align="right">Status</Th>
+                <Th scope="col">{t('werk.declaraties.categorie')}</Th>
+                <Th scope="col">{t('werk.declaraties.datum')}</Th>
+                <Th scope="col" align="right">{t('werk.declaraties.kolomBedrag')}</Th>
+                <Th scope="col" align="right">{t('werk.declaraties.kolomStatus')}</Th>
               </Tr>
             </THead>
             <TBody>
@@ -267,26 +273,26 @@ export default function DeclaratiesPage() {
                           <Icoon size={17} strokeWidth={1.75} />
                         </span>
                         <div>
-                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{CAT_LABELS[d.categorie as DeclaratieCategorie]}</p>
+                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{CAT_LABELS[d.categorie as DeclaratieCategorie] ? t(CAT_LABELS[d.categorie as DeclaratieCategorie]) : d.categorie}</p>
                           {d.beschrijving && (
                             <p className="text-xs" style={{ color: 'var(--text-4)' }}>{d.beschrijving}</p>
                           )}
                           {d.reviewer_notitie && (
                             <p className="text-xs" style={{ marginTop: 2, color: d.status === 'goedgekeurd' ? 'var(--mentaforce-primary)' : 'var(--mf-red)' }}>
-                              <strong>Notitie:</strong> {d.reviewer_notitie}
+                              <strong>{t('werk.declaraties.notitie')}</strong> {d.reviewer_notitie}
                             </p>
                           )}
                         </div>
                       </div>
                     </Td>
                     <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
-                      {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(d.datum).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                     </Td>
                     <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>
-                      {euro(d.bedrag)}
+                      {euro(d.bedrag, locale)}
                     </Td>
                     <Td align="right">
-                      <Badge variant={stijl.variant}>{stijl.label}</Badge>
+                      <Badge variant={stijl.variant}>{t(stijl.label)}</Badge>
                     </Td>
                   </Tr>
                 )

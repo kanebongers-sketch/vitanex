@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { useVertaling } from '@/lib/i18n/TaalProvider';
 
 /**
  * Voortgangs-dots voor stapsgewijze flows (reflectievragen, wizards, historie).
@@ -59,6 +60,7 @@ export function StepDots({
   dotRadius,
   gap = 3,
 }: StepDotsProps) {
+  const { t } = useVertaling();
   const radius = dotRadius ?? dotSize / 2;
   const indices = Array.from({ length: count }, (_, i) => i);
 
@@ -82,7 +84,7 @@ export function StepDots({
             type="button"
             onClick={() => onSelect(i)}
             className="mf-stepdots-dot"
-            aria-label={stepLabel?.(i) ?? `Stap ${i + 1} van ${count}`}
+            aria-label={stepLabel?.(i) ?? t('account.ui.stapVan', { stap: i + 1, totaal: count })}
             aria-current={isActief ? 'step' : undefined}
             style={{
               width: HIT_TARGET,

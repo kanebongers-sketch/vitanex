@@ -24,9 +24,11 @@ import VitaIntakeGesprek, { type IntakeStap } from './VitaIntakeGesprek'
 import HrOnboarding, { type HrStap, type HrForm } from './HrOnboarding'
 import { GesprekStyles } from './VitaGesprekStyles'
 import { VitaVeld, VitaInput } from './VitaKeuze'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [rol, setRol] = useState<'hr' | 'gebruiker' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
@@ -197,7 +199,7 @@ export default function OnboardingPage() {
     )
     if (error) {
       // Niet-blokkerend: het profiel is al opgeslagen. Toon een nette melding.
-      setFout('Je startmeting kon niet worden opgeslagen, maar je profiel staat klaar.')
+      setFout(t('account.onboarding.startmetingFout'))
     }
   }
 
@@ -285,16 +287,16 @@ export default function OnboardingPage() {
         if (res.ok) {
           updates.rol = 'medewerker'
         } else {
-          setFout('Koppelen aan je werkgever lukte niet. Je account is aangemaakt; je kunt de HR-code later opnieuw invoeren in Instellingen.')
+          setFout(t('account.onboarding.koppelFout'))
         }
       } catch {
-        setFout('Koppelen aan je werkgever lukte niet door een verbindingsprobleem. Je account is aangemaakt; probeer de HR-code later opnieuw in Instellingen.')
+        setFout(t('account.onboarding.koppelNetwerkFout'))
       }
     }
 
     const { error } = await supabase.from('profiles').update(updates).eq('id', userId)
     if (error) {
-      setFout('Opslaan is niet gelukt. Controleer je verbinding en probeer het opnieuw.')
+      setFout(t('account.onboarding.opslaanFout'))
       setBezig(false)
       return
     }
@@ -327,7 +329,7 @@ export default function OnboardingPage() {
         <div className="vita-intake-kaart mf-grain">
           <header className="vita-merk">
             <span className="vita-merk-woord">MENTAFORCE<span className="vita-merk-stip" aria-hidden>.</span></span>
-            <span className="vita-merk-badge">HR-setup</span>
+            <span className="vita-merk-badge">{t('account.onboarding.hrSetup')}</span>
           </header>
           <HrOnboarding stap={hrStap} setStap={setHrStap} hr={hr} setHr={setHr} bezig={bezig} onAfronden={hrAfronden} />
         </div>
@@ -381,29 +383,30 @@ function HrCodeSlot({
   inzageBestanden: boolean
   onToggle: (key: 'hrInzageRapporten' | 'hrInzageBestanden') => void
 }) {
+  const { t } = useVertaling()
   const toggles = [
-    { key: 'hrInzageRapporten' as const, label: 'HR mag mijn AI-rapporten inzien', actief: inzageRapporten },
-    { key: 'hrInzageBestanden' as const, label: 'HR mag mijn gedeelde bestanden bekijken', actief: inzageBestanden },
+    { key: 'hrInzageRapporten' as const, label: t('account.onboarding.inzageRapporten'), actief: inzageRapporten },
+    { key: 'hrInzageBestanden' as const, label: t('account.onboarding.inzageBestanden'), actief: inzageBestanden },
   ]
   return (
     <>
-      <VitaVeld label="HR-code" sub="Optioneel — koppel aan jouw werkgever" htmlFor="vita-hrcode">
+      <VitaVeld label={t('account.onboarding.hrCode')} sub={t('account.onboarding.hrCodeSub')} htmlFor="vita-hrcode">
         <VitaInput
           id="vita-hrcode"
           value={hrCode}
           onChange={e => onHrCode(e.target.value)}
-          placeholder="Bijv. ABC123"
+          placeholder={t('account.onboarding.hrCodePlaceholder')}
           maxLength={10}
           autoComplete="off"
         />
         {hrCodeBedrijf && (
           <p style={{ fontSize: 12.5, color: 'var(--mentaforce-primary)', marginTop: 6, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Check size={13} strokeWidth={2.5} aria-hidden /> Gekoppeld aan {hrCodeBedrijf}
+            <Check size={13} strokeWidth={2.5} aria-hidden /> {t('account.onboarding.gekoppeldAan', { bedrijf: hrCodeBedrijf })}
           </p>
         )}
         {hrCode.length >= 6 && !hrCodeBedrijf && (
           <p style={{ fontSize: 12.5, color: 'var(--text-4)', marginTop: 6 }}>
-            Code niet herkend — controleer met je HR-afdeling.
+            {t('account.onboarding.codeOnbekend')}
           </p>
         )}
       </VitaVeld>

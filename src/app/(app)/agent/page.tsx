@@ -9,6 +9,8 @@ import {
   Calendar, Clock, RefreshCw, Pencil, Rocket, ChevronDown, ChevronUp,
   Save, Smartphone, type LucideIcon,
 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 const FF = 'var(--mentaforce-primary)', DARK = 'var(--bg-app)', CARD = 'var(--bg-card)', CARD2 = 'var(--bg-subtle)'
@@ -16,17 +18,18 @@ const BORDER = 'var(--border)', TEXT = 'var(--text-1)', MUTED = 'var(--text-3)'
 const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
 const R_COLORS = ['var(--mf-amber)','var(--mf-orange)','var(--mf-red)']
-const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
+// Woordenboek-sleutels per ronde.
+const R_NAMEN  = ['werk.agent.ronde.1','werk.agent.ronde.2','werk.agent.ronde.3']
 
 const STATUS_STYLE: Record<string, {bg:string;color:string;label:string;Icon:LucideIcon}> = {
-  wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'Wacht', Icon:Clock},
-  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'Goed', Icon:Check},
-  overgeslagen:      {bg:'var(--bg-app)',    color:'var(--text-2)',  label:'Skip', Icon:X},
-  email_klaar:       {bg:'color-mix(in srgb, var(--mf-purple) 16%, transparent)', color:'var(--mf-purple)',  label:'Email klaar', Icon:Mail},
-  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'Email goed', Icon:Check},
-  email_overgeslagen:{bg:'var(--bg-app)',    color:'var(--text-2)',  label:'Email skip', Icon:X},
-  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'Verstuurd', Icon:Send},
-  gepland:           {bg:'var(--bg-app)',    color:'var(--text-2)',   label:'Gepland', Icon:Calendar},
+  wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'werk.agent.status.wacht', Icon:Clock},
+  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'werk.agent.status.goedgekeurd', Icon:Check},
+  overgeslagen:      {bg:'var(--bg-app)',    color:'var(--text-2)',  label:'werk.agent.status.overgeslagen', Icon:X},
+  email_klaar:       {bg:'color-mix(in srgb, var(--mf-purple) 16%, transparent)', color:'var(--mf-purple)',  label:'werk.agent.status.email_klaar', Icon:Mail},
+  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'werk.agent.status.email_goedgekeurd', Icon:Check},
+  email_overgeslagen:{bg:'var(--bg-app)',    color:'var(--text-2)',  label:'werk.agent.status.email_overgeslagen', Icon:X},
+  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'werk.agent.status.verstuurd', Icon:Send},
+  gepland:           {bg:'var(--bg-app)',    color:'var(--text-2)',   label:'werk.agent.status.gepland', Icon:Calendar},
 }
 
 type Contact = {
@@ -48,6 +51,7 @@ type EditState = {
 }
 
 export default function AgentPage() {
+  const { t, taal } = useVertaling()
   const [batches, setBatches] = useState<Batch[]>([])
   const [geladen, setGeladen] = useState(false)
   const [toegang, setToegang] = useState(false)
@@ -101,7 +105,7 @@ export default function AgentPage() {
   }, [haalBatches])
 
   useEffect(()=>{ laad() }, [laad])
-  useEffect(()=>{ const t=setInterval(laad,15000); return()=>clearInterval(t) }, [laad])
+  useEffect(()=>{ const timer=setInterval(laad,15000); return()=>clearInterval(timer) }, [laad])
 
   const batch = batches.find(b => b.id === activeBatch)
   const alleContacten = batch?.contacten ?? []
@@ -206,7 +210,7 @@ export default function AgentPage() {
 
       setExpandedBody(null)
       setEdit(null)
-      setZoekMelding({ ok: true, tekst: 'Email wordt opnieuw gegenereerd door de agent — duurt ~1 min.' })
+      setZoekMelding({ ok: true, tekst: t('werk.agent.regenereren') })
       setTimeout(() => { setZoekMelding(null); laad() }, 8000)
     } catch {
       // Netwerk-/agentfout stil opvangen; de lijst wordt hieronder ververst.
@@ -240,20 +244,20 @@ export default function AgentPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        setZoekMelding({ok:true, tekst:'Agent gestart! Nieuwe bedrijven worden gezocht. Pagina vernieuwt automatisch.'})
+        setZoekMelding({ok:true, tekst:t('werk.agent.gestart')})
         setTimeout(()=>{ setZoekMelding(null); laad() }, 5000)
       } else {
-        setZoekMelding({ok:false, tekst:`Fout: ${data.error ?? 'Onbekende fout'}`})
+        setZoekMelding({ok:false, tekst:t('werk.agent.fout', { fout: (taal === 'nl' ? data.error : undefined) ?? t('werk.agent.onbekendeFout') })})
       }
     } catch {
-      setZoekMelding({ok:false, tekst:'Kan agent niet bereiken'})
+      setZoekMelding({ok:false, tekst:t('werk.agent.nietBereikbaar')})
     }
     setZoekBezig(false)
   }
 
   const wisselRonde = (r: number) => {
     if (edit) {
-      if (!confirm('Je hebt niet-opgeslagen wijzigingen. Ronde wisselen en annuleren?')) return
+      if (!confirm(t('werk.agent.bevestigWissel'))) return
       setEdit(null)
       setExpandedBody(null)
     }
@@ -262,7 +266,7 @@ export default function AgentPage() {
     setZoekTerm('')
   }
 
-  const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
+  const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString(INTL_LOCALE[taal],{weekday:'short',day:'numeric',month:'short'}) : '—'
 
   if (!toegang) return (
     <div style={{minHeight:'100vh',background:DARK,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -279,20 +283,20 @@ export default function AgentPage() {
           <div style={{width:30,height:30,borderRadius:8,background:FF,display:'flex',alignItems:'center',justifyContent:'center'}}><Bot size={16} color="var(--bg-app)" aria-hidden /></div>
           <div>
             <p style={{fontWeight:700,fontSize:13,color:TEXT,lineHeight:1}}>Fit Factory Agent</p>
-            <p style={{fontSize:10,color:MUTED,marginTop:2}}>3 rondes · 2 dagen apart · Eersel 15km</p>
+            <p style={{fontSize:10,color:MUTED,marginTop:2}}>{t('werk.agent.subtitel')}</p>
           </div>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px color-mix(in srgb, var(--mf-green) 60%, transparent)'}}/>
-          <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</span>
+          <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString(INTL_LOCALE[taal],{hour:'2-digit',minute:'2-digit'})}</span>
           <button
             onClick={voegBedrijvenToe}
             disabled={zoekBezig}
             style={{background:zoekBezig?'color-mix(in srgb, var(--mentaforce-primary) 5%, transparent)':'color-mix(in srgb, var(--mentaforce-primary) 12%, transparent)',border:'1px solid color-mix(in srgb, var(--mentaforce-primary) 40%, transparent)',borderRadius:6,color:zoekBezig?MUTED:FF,fontSize:11,padding:'5px 12px',cursor:zoekBezig?'not-allowed':'pointer',fontWeight:600,transition:'all 0.2s',display:'inline-flex',alignItems:'center',gap:6}}
           >
-            {zoekBezig ? <><Clock size={12} aria-hidden /> Zoeken...</> : '+ 10 bedrijven'}
+            {zoekBezig ? <><Clock size={12} aria-hidden /> {t('werk.agent.zoeken')}</> : t('werk.agent.plusTien')}
           </button>
-          <button onClick={laad} aria-label="Vernieuwen" style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer',display:'inline-flex',alignItems:'center'}}><RefreshCw size={13} aria-hidden /></button>
+          <button onClick={laad} aria-label={t('werk.agent.vernieuwen')} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer',display:'inline-flex',alignItems:'center'}}><RefreshCw size={13} aria-hidden /></button>
         </div>
       </header>
 
@@ -300,7 +304,7 @@ export default function AgentPage() {
       {zoekMelding && (
         <div style={{padding:'10px 24px',background:zoekMelding.ok?'color-mix(in srgb, var(--mf-green) 10%, transparent)':'color-mix(in srgb, var(--mf-red) 10%, transparent)',borderBottom:`1px solid ${zoekMelding.ok?'color-mix(in srgb, var(--mf-green) 30%, transparent)':'color-mix(in srgb, var(--mf-red) 30%, transparent)'}`,fontSize:12,color:zoekMelding.ok?GREEN:RED,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span>{zoekMelding.tekst}</span>
-          <button onClick={()=>setZoekMelding(null)} aria-label="Melding sluiten" style={{background:'none',border:'none',color:MUTED,cursor:'pointer',display:'inline-flex',alignItems:'center'}}><X size={14} aria-hidden /></button>
+          <button onClick={()=>setZoekMelding(null)} aria-label={t('werk.agent.meldingSluiten')} style={{background:'none',border:'none',color:MUTED,cursor:'pointer',display:'inline-flex',alignItems:'center'}}><X size={14} aria-hidden /></button>
         </div>
       )}
 
@@ -311,19 +315,19 @@ export default function AgentPage() {
           {/* Nav links */}
           <div style={{padding:'0 12px 12px',borderBottom:`1px solid ${BORDER}`,marginBottom:8}}>
             <Link href="/agent" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,fontSize:12,fontWeight:600,textDecoration:'none',marginBottom:4}}>
-              <FolderOpen size={14} aria-hidden /> Campagne batches
+              <FolderOpen size={14} aria-hidden /> {t('werk.agent.batches')}
             </Link>
             <Link href="/agent/bedrijven" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,color:MUTED,fontSize:12,textDecoration:'none',transition:'all 0.15s'}}>
-              <ClipboardList size={14} aria-hidden /> Alle bedrijven
+              <ClipboardList size={14} aria-hidden /> {t('werk.agent.alleBedrijven')}
             </Link>
           </div>
 
-          <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'4px 16px 10px'}}>Campagne batches</p>
+          <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'4px 16px 10px'}}>{t('werk.agent.batches')}</p>
 
-          {!geladen ? <p style={{color:MUTED,fontSize:12,padding:'0 16px'}}>Laden...</p>
+          {!geladen ? <p style={{color:MUTED,fontSize:12,padding:'0 16px'}}>{t('werk.agent.laden')}</p>
           : batches.length === 0 ? (
             <div style={{padding:'16px',textAlign:'center'}}>
-              <p style={{fontSize:12,color:MUTED,lineHeight:1.7}}>Nog geen batches.</p>
+              <p style={{fontSize:12,color:MUTED,lineHeight:1.7}}>{t('werk.agent.geenBatches')}</p>
             </div>
           ) : batches.map(b => {
             const cs = b.contacten ?? []
@@ -340,7 +344,7 @@ export default function AgentPage() {
               }}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
                   <p style={{fontSize:12,fontWeight:isActief?600:400,color:isActief?FF:TEXT,lineHeight:1.3,flex:1,marginRight:6}}>{b.naam}</p>
-                  {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>Vandaag</span>}
+                  {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>{t('werk.agent.vandaag')}</span>}
                 </div>
                 {/* Progress bars per ronde */}
                 <div style={{display:'flex',flexDirection:'column',gap:3,marginBottom:4}}>
@@ -370,8 +374,8 @@ export default function AgentPage() {
               </div>
               <Smartphone size={36} color={MUTED} aria-hidden style={{position:'relative',zIndex:1}} />
             </div>
-              <p style={{fontSize:16,fontWeight:600,color:TEXT,marginBottom:8}}>Selecteer een batch</p>
-              <p style={{fontSize:13,color:MUTED}}>Of wacht op de ochtend selectie via Telegram</p>
+              <p style={{fontSize:16,fontWeight:600,color:TEXT,marginBottom:8}}>{t('werk.agent.selecteer')}</p>
+              <p style={{fontSize:13,color:MUTED}}>{t('werk.agent.ochtend')}</p>
             </div>
           ) : (
             <>
@@ -381,7 +385,7 @@ export default function AgentPage() {
                   <div>
                     <h1 style={{fontSize:18,fontWeight:700,color:TEXT,margin:0}}>{batch.naam}</h1>
                     <p style={{fontSize:12,color:MUTED,marginTop:4}}>
-                      Status: <span style={{color:batch.status==='voltooid'?GREEN:FF}}>{batch.status}</span>
+                      {t('werk.agent.statusLabel')} <span style={{color:batch.status==='voltooid'?GREEN:FF}}>{batch.status}</span>
                     </p>
                   </div>
                   <div style={{display:'flex',gap:8,fontSize:12,color:MUTED}}>
@@ -397,24 +401,24 @@ export default function AgentPage() {
                 {batchStats && (
                   <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
                     <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:'10px 14px'}}>
-                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Totaal</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{t('werk.agent.totaal')}</p>
                       <p style={{fontSize:20,fontWeight:700,color:TEXT,margin:0,lineHeight:1}}>{batchStats.totaal}</p>
-                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>contacten</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{t('werk.agent.contacten')}</p>
                     </div>
                     <div style={{background:CARD,border:`1px solid color-mix(in srgb, var(--mf-green) 15%, transparent)`,borderRadius:8,padding:'10px 14px'}}>
-                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Verstuurd R{activeRonde}</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{t('werk.agent.verstuurdRonde', { ronde: activeRonde })}</p>
                       <p style={{fontSize:20,fontWeight:700,color:GREEN,margin:0,lineHeight:1}}>{batchStats.verstuurd}</p>
-                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{batchStats.pct}% van batch</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{t('werk.agent.vanBatch', { pct: batchStats.pct })}</p>
                     </div>
                     <div style={{background:CARD,border:`1px solid color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)`,borderRadius:8,padding:'10px 14px'}}>
-                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Te reviewen</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{t('werk.agent.teReviewen')}</p>
                       <p style={{fontSize:20,fontWeight:700,color:batchStats.teReviewen>0?FF:MUTED,margin:0,lineHeight:1}}>{batchStats.teReviewen}</p>
-                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>wacht op actie</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{t('werk.agent.wachtOpActie')}</p>
                     </div>
                     <div style={{background:CARD,border:`1px solid ${batchStats.zwarteLijst>0?'color-mix(in srgb, var(--mf-red) 20%, transparent)':BORDER}`,borderRadius:8,padding:'10px 14px'}}>
-                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Zwarte lijst</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>{t('werk.agent.zwarteLijst')}</p>
                       <p style={{fontSize:20,fontWeight:700,color:batchStats.zwarteLijst>0?RED:MUTED,margin:0,lineHeight:1}}>{batchStats.zwarteLijst}</p>
-                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>geblokkeerd</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{t('werk.agent.geblokkeerd')}</p>
                     </div>
                   </div>
                 )}
@@ -432,9 +436,9 @@ export default function AgentPage() {
                         border: `1px solid ${activeRonde===r ? `color-mix(in srgb, ${R_COLORS[r-1]} 27%, transparent)` : BORDER}`,
                       }}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
-                          <span style={{fontSize:12,fontWeight:600,color:activeRonde===r?R_COLORS[r-1]:TEXT}}>Ronde {r}</span>
+                          <span style={{fontSize:12,fontWeight:600,color:activeRonde===r?R_COLORS[r-1]:TEXT}}>{t('werk.agent.rondeNr', { ronde: r })}</span>
                           <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                            {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
+                            {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>{t('werk.agent.vandaag')}</span>}
                             <span style={{fontSize:9,color:s.verstuurd>0?GREEN:MUTED}}>{s.verstuurd}/{totaal}</span>
                           </div>
                         </div>
@@ -442,7 +446,7 @@ export default function AgentPage() {
                         <div style={{height:3,background:'var(--border)',borderRadius:2,marginBottom:6}}>
                           <div style={{width:`${pct}%`,height:'100%',background:R_COLORS[r-1],borderRadius:2,transition:'width 0.4s'}}/>
                         </div>
-                        <p style={{fontSize:10,color:MUTED,marginBottom:4}}>{R_NAMEN[r-1]}</p>
+                        <p style={{fontSize:10,color:MUTED,marginBottom:4}}>{t(R_NAMEN[r-1])}</p>
                         <div style={{display:'flex',gap:6,fontSize:10,flexWrap:'wrap'}}>
                           {s.verstuurd > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:GREEN}}><Check size={11} aria-hidden /> {s.verstuurd}</span>}
                           {s.wacht > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:'var(--text-3)'}}><Clock size={11} aria-hidden /> {s.wacht}</span>}
@@ -465,15 +469,15 @@ export default function AgentPage() {
                 const heeftEmailGoed = s.klaar > 0
                 return (heeftWacht || heeftEmailKlaar || heeftEmailGoed) ? (
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
-                    <span style={{fontSize:12,color:MUTED,flex:1}}>Bulk acties voor ronde {activeRonde}:</span>
+                    <span style={{fontSize:12,color:MUTED,flex:1}}>{t('werk.agent.bulk', { ronde: activeRonde })}</span>
                     {heeftWacht && (
                       <button onClick={()=>keurAllesGoed(activeRonde,'bedrijf')} disabled={approvingAll} style={{background:'color-mix(in srgb, var(--mf-green) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
-                        <Check size={14} aria-hidden /> Alle {s.wacht} bedrijven goedkeuren
+                        <Check size={14} aria-hidden /> {t('werk.agent.alleBedrijvenGoed', { aantal: s.wacht })}
                       </button>
                     )}
                     {heeftEmailKlaar && (
                       <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'color-mix(in srgb, var(--mf-green) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',borderRadius:7,color:'var(--mf-green-light)',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
-                        <Check size={14} aria-hidden /> Alle emails goedkeuren
+                        <Check size={14} aria-hidden /> {t('werk.agent.alleMailsGoed')}
                       </button>
                     )}
                     {heeftEmailGoed && (
@@ -488,16 +492,16 @@ export default function AgentPage() {
                             })
                             const data = await res.json()
                             setZoekMelding(data.ok
-                              ? {ok:true, tekst:`Verstuur gestart voor ronde ${activeRonde}! Agent verwerkt de emails.`}
-                              : {ok:false, tekst:`Fout: ${data.error ?? 'Onbekende fout'}`}
+                              ? {ok:true, tekst:t('werk.agent.verstuurGestart', { ronde: activeRonde })}
+                              : {ok:false, tekst:t('werk.agent.fout', { fout: (taal === 'nl' ? data.error : undefined) ?? t('werk.agent.onbekendeFout') })}
                             )
-                          } catch { setZoekMelding({ok:false, tekst:'Kan agent niet bereiken'}) }
+                          } catch { setZoekMelding({ok:false, tekst:t('werk.agent.nietBereikbaar')}) }
                           setApprovingAll(false)
                         }}
                         disabled={approvingAll}
                         style={{background:'color-mix(in srgb, var(--mf-green) 12%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 40%, transparent)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}
                       >
-                        <Rocket size={14} aria-hidden /> Verstuur {s.klaar} emails (ronde {activeRonde})
+                        <Rocket size={14} aria-hidden /> {t('werk.agent.verstuur', { aantal: s.klaar, ronde: activeRonde })}
                       </button>
                     )}
                   </div>
@@ -511,25 +515,25 @@ export default function AgentPage() {
                   <Search size={14} color={MUTED} aria-hidden style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} />
                   <input
                     type="text"
-                    placeholder="Zoek op naam, email, stad of sector..."
+                    placeholder={t('werk.agent.zoekPlaceholder')}
                     value={zoekTerm}
                     onChange={e=>setZoekTerm(e.target.value)}
                     style={{width:'100%',background:CARD2,border:`1px solid ${BORDER}`,borderRadius:7,color:TEXT,fontSize:12,padding:'8px 10px 8px 32px',outline:'none',fontFamily:'inherit'}}
                   />
                   {zoekTerm && (
-                    <button onClick={()=>setZoekTerm('')} aria-label="Zoekterm wissen" style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:MUTED,cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center'}}><X size={13} aria-hidden /></button>
+                    <button onClick={()=>setZoekTerm('')} aria-label={t('werk.agent.zoekWissen')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:MUTED,cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center'}}><X size={13} aria-hidden /></button>
                   )}
                 </div>
 
                 {/* Status filter pills */}
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
                   {([
-                    {key:'actie', label:'Actie vereist', Icon:Rocket},
-                    {key:'alle',  label:'Alle', Icon:null},
-                    {key:'wacht', label:'Wacht', Icon:Clock},
-                    {key:'email_klaar', label:'Email klaar', Icon:Mail},
-                    {key:'verstuurd', label:'Verstuurd', Icon:Send},
-                    {key:'overgeslagen', label:'Skip', Icon:X},
+                    {key:'actie', label:t('werk.agent.filter.actie'), Icon:Rocket},
+                    {key:'alle',  label:t('werk.agent.filter.alle'), Icon:null},
+                    {key:'wacht', label:t('werk.agent.status.wacht'), Icon:Clock},
+                    {key:'email_klaar', label:t('werk.agent.status.email_klaar'), Icon:Mail},
+                    {key:'verstuurd', label:t('werk.agent.status.verstuurd'), Icon:Send},
+                    {key:'overgeslagen', label:t('werk.agent.status.overgeslagen'), Icon:X},
                   ] as {key:string;label:string;Icon:LucideIcon|null}[]).map(f => {
                     const count = f.key === 'alle' || f.key === 'actie' ? null
                       : alleContacten.filter(c => (c[`r${activeRonde}_status` as keyof Contact] as string) === f.key).length
@@ -546,7 +550,7 @@ export default function AgentPage() {
                     )
                   })}
                   <span style={{fontSize:11,color:MUTED,marginLeft:4}}>
-                    {contacten.length}/{alleContacten.length} zichtbaar
+                    {t('werk.agent.zichtbaar', { aantal: contacten.length, totaal: alleContacten.length })}
                   </span>
                 </div>
               </div>
@@ -555,7 +559,7 @@ export default function AgentPage() {
               <div style={{display:'flex',flexDirection:'column',gap:8}}>
                 {contacten.length === 0 && (
                   <div style={{textAlign:'center',padding:'32px 16px',color:MUTED,fontSize:13}}>
-                    {zoekTerm ? `Geen resultaten voor "${zoekTerm}"` : 'Geen contacten voor deze filter.'}
+                    {zoekTerm ? t('werk.agent.geenResultaten', { zoekterm: zoekTerm }) : t('werk.agent.geenContacten')}
                   </div>
                 )}
                 {contacten.map(c => {
@@ -589,10 +593,10 @@ export default function AgentPage() {
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
                             <p style={{fontSize:13,fontWeight:600,color:TEXT,margin:0}}>{c.naam}</p>
-                            <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10,display:'inline-flex',alignItems:'center',gap:4}}><st.Icon size={11} aria-hidden /> {st.label}</span>
-                            <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
+                            <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10,display:'inline-flex',alignItems:'center',gap:4}}><st.Icon size={11} aria-hidden /> {t(st.label)}</span>
+                            <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{t('werk.agent.punten', { score: c.score })}</span>
                             {opZwarteLijst && (
-                              <span style={{background:'color-mix(in srgb, var(--mf-red) 15%, transparent)',color:RED,borderRadius:5,padding:'2px 7px',fontSize:10,fontWeight:700,border:'1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)'}}>ZL</span>
+                              <span style={{background:'color-mix(in srgb, var(--mf-red) 15%, transparent)',color:RED,borderRadius:5,padding:'2px 7px',fontSize:10,fontWeight:700,border:'1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)'}}>{t('werk.agent.zl')}</span>
                             )}
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
@@ -604,30 +608,30 @@ export default function AgentPage() {
                           <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10,flexWrap:'wrap',justifyContent:'flex-end'}}>
                             {status === 'wacht' && <>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={GREEN} ariaLabel="Bedrijf goedkeuren" onClick={()=>keurGoed(c.id,r,'bedrijf')}><Check size={13} aria-hidden /></Btn>
+                                <Btn color={GREEN} ariaLabel={t('werk.agent.bedrijfGoed')} onClick={()=>keurGoed(c.id,r,'bedrijf')}><Check size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
                               </div>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={RED} ariaLabel="Bedrijf overslaan" onClick={()=>slaOver(c.id,r,'bedrijf')}><X size={13} aria-hidden /></Btn>
+                                <Btn color={RED} ariaLabel={t('werk.agent.bedrijfOverslaan')} onClick={()=>slaOver(c.id,r,'bedrijf')}><X size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
                               </div>
                             </>}
                             {status === 'email_klaar' && <>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}><Check size={13} aria-hidden /> Email</Btn>
+                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}><Check size={13} aria-hidden /> {t('werk.agent.mail')}</Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
                               </div>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={RED} ariaLabel="Email overslaan" onClick={()=>slaOver(c.id,r,'email')}><X size={13} aria-hidden /></Btn>
+                                <Btn color={RED} ariaLabel={t('werk.agent.mailOverslaan')} onClick={()=>slaOver(c.id,r,'email')}><X size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
                               </div>
                             </>}
                             {heeftEmail && !isEditing && (
                               <>
-                                <Btn color={MUTED} ariaLabel={isExpanded?'Email inklappen':'Email uitklappen'} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
+                                <Btn color={MUTED} ariaLabel={isExpanded?t('werk.agent.mailInklappen'):t('werk.agent.mailUitklappen')} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
                                   {isExpanded? <ChevronUp size={13} aria-hidden /> : <ChevronDown size={13} aria-hidden />}
                                 </Btn>
-                                <Btn color={FF} ariaLabel="Email bewerken" onClick={()=>{
+                                <Btn color={FF} ariaLabel={t('werk.agent.mailBewerken')} onClick={()=>{
                                   setExpandedBody(c.id)
                                   setEdit({
                                     id: c.id,
@@ -637,7 +641,7 @@ export default function AgentPage() {
                                     onderwerpVal: c[onderwerpKey] as string ?? '',
                                   })
                                 }}><Pencil size={13} aria-hidden /></Btn>
-                                <Btn color={'var(--mf-purple)'} ariaLabel="Email opnieuw genereren" onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
+                                <Btn color={'var(--mf-purple)'} ariaLabel={t('werk.agent.mailOpnieuw')} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
                                   {isRegenerating ? <Clock size={13} aria-hidden /> : <RefreshCw size={13} aria-hidden />}
                                 </Btn>
                               </>
@@ -652,14 +656,14 @@ export default function AgentPage() {
                           {isEditing ? (
                             <>
                               {/* Onderwerp edit */}
-                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>Onderwerp</p>
+                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>{t('werk.agent.onderwerp')}</p>
                               <input
                                 value={edit!.onderwerpVal}
                                 onChange={e=>setEdit({...edit!, onderwerpVal:e.target.value})}
                                 style={{width:'100%',background:'var(--bg-subtle)',color:TEXT,border:'1px solid var(--border-strong)',borderRadius:6,padding:'8px 10px',fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:10}}
                               />
                               {/* Body edit */}
-                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>Email tekst</p>
+                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>{t('werk.agent.mailTekst')}</p>
                               <textarea
                                 value={edit!.bodyVal}
                                 onChange={e=>setEdit({...edit!, bodyVal:e.target.value})}
@@ -668,11 +672,11 @@ export default function AgentPage() {
                               <div style={{display:'flex',gap:8,marginTop:10}}>
                                 <button onClick={slaEmailOp} disabled={saving}
                                   style={{background:'color-mix(in srgb, var(--mf-green) 15%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 40%, transparent)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
-                                  {saving ? 'Opslaan...' : <><Save size={13} aria-hidden /> Opslaan</>}
+                                  {saving ? t('werk.agent.opslaanBezig') : <><Save size={13} aria-hidden /> {t('werk.agent.opslaan')}</>}
                                 </button>
                                 <button onClick={()=>setEdit(null)}
                                   style={{background:'color-mix(in srgb, var(--mf-red) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}>
-                                  Annuleren
+                                  {t('werk.agent.annuleren')}
                                 </button>
                               </div>
                             </>
@@ -686,7 +690,7 @@ export default function AgentPage() {
 
                       {/* Regenereer melding */}
                       {isRegenerating && (
-                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8,display:'flex',alignItems:'center',gap:5}}><Clock size={12} aria-hidden /> Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
+                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8,display:'flex',alignItems:'center',gap:5}}><Clock size={12} aria-hidden /> {t('werk.agent.gereset')}</p>
                       )}
                     </div>
                   )

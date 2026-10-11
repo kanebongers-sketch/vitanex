@@ -5,6 +5,8 @@
 
 import { Flame, Trophy } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { alsTaalset } from '@/lib/pijlers/teksten'
 import SectieKop from './SectieKop'
 import { bepaalRichting, dagWoord, type StreakData, type WeekStats } from './trend'
 
@@ -15,20 +17,22 @@ interface TrendOverzichtProps {
   animKlaar: boolean
 }
 
-const WEEK_LABELS = ['3 wkn terug', '2 wkn terug', 'vorige week', 'deze week'] as const
+/** Woordenboek-sleutels van de 4 weken, oudste eerst. */
+const WEEK_SLEUTELS = ['drieTerug', 'tweeTerug', 'vorige', 'deze'] as const
 
 function WekenBalk({ weekStats, animKlaar }: { weekStats: WeekStats[]; animKlaar: boolean }) {
+  const { t } = useVertaling()
   const max = Math.max(7, ...weekStats.map(w => w.checkins))
   const beschrijving = weekStats
-    .map((w, i) => `${WEEK_LABELS[i] ?? w.week}: ${w.checkins}`)
+    .map((w, i) => `${WEEK_SLEUTELS[i] ? t(`voortgang.weken.${WEEK_SLEUTELS[i]}`) : w.week}: ${w.checkins}`)
     .join(', ')
 
   return (
     <div>
       <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 8 }}>
-        Check-ins per week
+        {t('voortgang.trendOverzicht.perWeek')}
       </p>
-      <p className="sr-only">Check-ins per week — {beschrijving}</p>
+      <p className="sr-only">{t('voortgang.trendOverzicht.srPerWeek', { beschrijving })}</p>
       <div aria-hidden="true" style={{ display: 'flex', gap: 14, alignItems: 'flex-end' }}>
         {weekStats.map((w, i) => {
           const isNu = i === weekStats.length - 1
@@ -72,19 +76,21 @@ const balkStijl = `
 `
 
 export default function TrendOverzicht({ streak, weekStats, animKlaar }: TrendOverzichtProps) {
-  const richting = bepaalRichting(weekStats)
+  const { t, taal } = useVertaling()
+  const ts = alsTaalset(taal, t)
+  const richting = bepaalRichting(weekStats, ts)
 
   return (
     <Card style={{ padding: '22px 24px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
-      <SectieKop>Het grote plaatje</SectieKop>
+      <SectieKop>{t('voortgang.trendOverzicht.kop')}</SectieKop>
 
       <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 280px', minWidth: 240 }}>
           <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
-            {streak.totaal_dagen} actieve {dagWoord(streak.totaal_dagen)}
+            {t(streak.totaal_dagen === 1 ? 'voortgang.trendOverzicht.actiefEen' : 'voortgang.trendOverzicht.actiefMeer', { n: streak.totaal_dagen })}
           </p>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-            in de afgelopen 30 dagen
+            {t('voortgang.trendOverzicht.periode')}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
             {richting.label && (
@@ -115,16 +121,16 @@ export default function TrendOverzicht({ streak, weekStats, animKlaar }: TrendOv
       }}>
         <p style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--text-3)' }}>
           <span style={{ display: 'inline-flex', color: 'var(--mentaforce-primary)' }}><Flame size={15} aria-hidden /></span>
-          Huidige streak
+          {t('voortgang.trendOverzicht.huidigeStreak')}
           <span style={{ fontWeight: 800, color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
-            {streak.huidige_streak} {dagWoord(streak.huidige_streak)}
+            {streak.huidige_streak} {dagWoord(streak.huidige_streak, ts)}
           </span>
         </p>
         <p style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--text-3)' }}>
           <span style={{ display: 'inline-flex', color: 'var(--mf-amber)' }}><Trophy size={15} aria-hidden /></span>
-          Langste streak
+          {t('voortgang.trendOverzicht.langsteStreak')}
           <span style={{ fontWeight: 800, color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
-            {streak.langste_streak} {dagWoord(streak.langste_streak)}
+            {streak.langste_streak} {dagWoord(streak.langste_streak, ts)}
           </span>
         </p>
       </div>

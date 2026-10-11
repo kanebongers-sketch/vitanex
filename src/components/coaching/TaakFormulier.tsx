@@ -9,11 +9,10 @@ import { Plus } from 'lucide-react'
 import {
   PIJLERS,
   FREQUENTIES,
-  PIJLER_LABELS,
-  FREQUENTIE_LABELS,
   type Frequentie,
   type Pijler,
 } from '@/lib/coaching/taken'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface NieuweTaakWaarden {
   titel: string
@@ -42,6 +41,7 @@ const LEEG: NieuweTaakWaarden = {
 }
 
 export function TaakFormulier({ onSubmit, bezig, fout }: TaakFormulierProps) {
+  const { t } = useVertaling()
   const [waarden, setWaarden] = useState<NieuweTaakWaarden>(LEEG)
 
   function zet<K extends keyof NieuweTaakWaarden>(sleutel: K, waarde: NieuweTaakWaarden[K]) {
@@ -56,19 +56,19 @@ export function TaakFormulier({ onSubmit, bezig, fout }: TaakFormulierProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Field label="Titel" error={fout ?? undefined}>
+      <Field label={t('coaching.algemeen.titel')} error={fout ?? undefined}>
         <Input
           type="text"
-          placeholder="Bijv. 10.000 stappen lopen"
+          placeholder={t('coaching.taakFormulier.titelPlaceholder')}
           value={waarden.titel}
           maxLength={120}
           onChange={e => zet('titel', e.target.value)}
         />
       </Field>
 
-      <Field label="Toelichting (optioneel)">
+      <Field label={t('coaching.taakFormulier.toelichting')}>
         <Textarea
-          placeholder="Korte instructie of context voor je klant"
+          placeholder={t('coaching.taakFormulier.toelichtingPlaceholder')}
           value={waarden.beschrijving}
           rows={2}
           maxLength={400}
@@ -77,28 +77,28 @@ export function TaakFormulier({ onSubmit, bezig, fout }: TaakFormulierProps) {
       </Field>
 
       <div style={{ display: 'grid', gridTemplateColumns: waarden.frequentie === 'wekelijks' ? '1fr 1fr 1fr' : '1fr 1fr', gap: 12 }}>
-        <Field label="Pijler">
+        <Field label={t('coaching.algemeen.pijler')}>
           <select
             style={SELECT_STYLE}
             value={waarden.pijler}
             onChange={e => zet('pijler', e.target.value as Pijler)}
           >
-            {PIJLERS.map(p => <option key={p} value={p}>{PIJLER_LABELS[p]}</option>)}
+            {PIJLERS.map(p => <option key={p} value={p}>{t(`coaching.labels.pijler.${p}`)}</option>)}
           </select>
         </Field>
 
-        <Field label="Frequentie">
+        <Field label={t('coaching.taakFormulier.frequentie')}>
           <select
             style={SELECT_STYLE}
             value={waarden.frequentie}
             onChange={e => zet('frequentie', e.target.value as Frequentie)}
           >
-            {FREQUENTIES.map(f => <option key={f} value={f}>{FREQUENTIE_LABELS[f]}</option>)}
+            {FREQUENTIES.map(f => <option key={f} value={f}>{t(`coaching.labels.frequentie.${f}`)}</option>)}
           </select>
         </Field>
 
         {waarden.frequentie === 'wekelijks' && (
-          <Field label="Keer per week">
+          <Field label={t('coaching.taakFormulier.keerPerWeek')}>
             <select
               style={SELECT_STYLE}
               value={waarden.target_per_week}
@@ -117,7 +117,7 @@ export function TaakFormulier({ onSubmit, bezig, fout }: TaakFormulierProps) {
           disabled={!waarden.titel.trim()}
           leftIcon={<Plus size={15} aria-hidden />}
         >
-          Taak toevoegen
+          {t('coaching.taakFormulier.toevoegen')}
         </Button>
       </div>
     </div>

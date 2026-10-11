@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { gemiddelde, slaapschuld, regelmaat } from '@/lib/slaap/stats'
 import { kiesVitaInzicht } from '@/lib/vita/inzicht'
 import { dagGemiddelde, kiesSterksteVerband } from '@/lib/vita/verbanden'
@@ -43,6 +44,7 @@ function lijst(ruw: unknown, sleutel: string): unknown[] {
  * i.p.v. twee losse blokken.
  */
 export function useVitaInzicht(): VitaToon | null {
+  const { t } = useVertaling()
   const [toon, setToon] = useState<VitaToon | null>(null)
 
   const laad = useCallback((): Promise<void> => {
@@ -58,7 +60,7 @@ export function useVitaInzicht(): VitaToon | null {
         stemming: dagGemiddelde(lijst(stemmingRuw, 'logs'), 'aangemaakt_op', 'stemming'),
         stappen: dagGemiddelde(lijst(stappenRuw, 'dagen'), 'datum', 'stappen'),
       }))
-      if (verband) { setToon({ emoji: '🔗', tekst: verband.tekst, label: 'Vita ziet een verband' }); return }
+      if (verband) { setToon({ emoji: '🔗', tekst: verband.tekst, label: t('voortgang.vitaInzicht.verband') }); return }
 
       const { uren, bedtijden, doel } = leesSlaap(slaapRuw)
       const inzicht = kiesVitaInzicht({
@@ -70,7 +72,7 @@ export function useVitaInzicht(): VitaToon | null {
       })
       if (inzicht) setToon({ emoji: inzicht.emoji, tekst: inzicht.tekst, label: 'Vita' })
     })
-  }, [])
+  }, [t])
 
   useEffect(() => { void laad() }, [laad])
 

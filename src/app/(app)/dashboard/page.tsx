@@ -22,6 +22,8 @@ import HRKpiCards from '@/components/hr/HRKpiCards'
 import HRSnelkoppelingen from '@/components/hr/HRSnelkoppelingen'
 
 import BedrijfTabComponent, { type BedrijfInfo as BedrijfInfoComponent } from '@/components/hr/BedrijfTab'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // recharts lui laden — alleen wanneer de trendgrafieken echt getoond worden.
 const HrCharts = nextDynamic(() => import('@/components/hr/HrCharts'), { ssr: false })
@@ -117,10 +119,11 @@ function scoreKleur(score: number): string {
   return 'var(--mf-red)'
 }
 
-function scoreBadge(score: number): { bg: string; color: string; label: string } {
-  if (score >= 4) return { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Goed' }
-  if (score >= 2.5) return { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'Matig' }
-  return { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Laag' }
+/** `label` is de woordenboek-sleutel onder voortgang.dashboard.badge. */
+function scoreBadge(score: number): { bg: string; color: string; label: 'goed' | 'matig' | 'laag' } {
+  if (score >= 4) return { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'goed' }
+  if (score >= 2.5) return { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'matig' }
+  return { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'laag' }
 }
 
 // ── AI Insights component ────────────────────────────────────────────────────
@@ -140,6 +143,7 @@ function AIInsightCard({
   signaalCount: number
   checkinCount: number
 }) {
+  const { t } = useVertaling()
   const [inzicht, setInzicht] = useState<string | null>(null)
   const [laden, setLaden] = useState(false)
 
@@ -167,13 +171,13 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
         }),
       })
       if (!resp.ok) {
-        setInzicht('Kon het inzicht niet laden. Probeer opnieuw.')
+        setInzicht(t('voortgang.dashboard.ai.fout'))
       } else {
         const tekst = await resp.text()
-        setInzicht(tekst || 'Geen inzicht beschikbaar.')
+        setInzicht(tekst || t('voortgang.dashboard.ai.geen'))
       }
     } catch {
-      setInzicht('Kon het inzicht niet laden. Probeer opnieuw.')
+      setInzicht(t('voortgang.dashboard.ai.fout'))
     }
     setLaden(false)
   }
@@ -183,7 +187,7 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'color-mix(in srgb, var(--mf-green) 18%, transparent)', color: 'var(--mf-green)' }}>AI</span>
-          <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Teamanalyse</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('voortgang.dashboard.ai.kop')}</p>
         </div>
         <button
           onClick={genereer}
@@ -197,10 +201,10 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
                 className="w-3 h-3 rounded-full animate-spin inline-block"
                 style={{ border: '1px solid var(--border-strong)', borderTopColor: 'var(--text-1)' }}
               />
-              Analyseren...
+              {t('voortgang.dashboard.ai.bezig')}
             </>
           ) : (
-            inzicht ? 'Vernieuwen' : 'Analyseer team'
+            inzicht ? t('voortgang.dashboard.ai.vernieuwen') : t('voortgang.dashboard.ai.analyseer')
           )}
         </button>
       </div>
@@ -211,7 +215,7 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
         </p>
       ) : (
         <p className="text-sm" style={{ color: 'var(--text-3)' }}>
-          Klik op &quot;Analyseer team&quot; voor een AI-analyse van jouw teamdata.
+          {t('voortgang.dashboard.ai.uitleg')}
         </p>
       )}
     </div>
@@ -225,6 +229,8 @@ type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declara
 // ── Aankomende Gesprekken Widget ─────────────────────────────────────────────
 
 function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const aankomend = gesprekken
     .filter(g => new Date(g.datum) >= new Date())
     .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
@@ -232,9 +238,9 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
 
   return (
     <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Aankomende gesprekken</p>
+      <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.gesprekken.kop')}</p>
       {aankomend.length === 0 ? (
-        <p className="text-xs py-2" style={{ color: 'var(--text-3)' }}>Geen geplande gesprekken.</p>
+        <p className="text-xs py-2" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.gesprekken.geen')}</p>
       ) : (
         <div className="flex flex-col gap-2">
           {aankomend.map(g => (
@@ -245,7 +251,7 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
                   {new Date(g.datum).getDate()}
                 </span>
                 <span className="text-[9px] leading-none" style={{ color: 'var(--mf-blue)' }}>
-                  {new Date(g.datum).toLocaleDateString('nl-BE', { month: 'short' })}
+                  {new Date(g.datum).toLocaleDateString(locale, { month: 'short' })}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
@@ -253,7 +259,7 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
                 <p className="text-xs" style={{ color: 'var(--text-3)' }}>{g.type}</p>
               </div>
               <p className="text-xs flex-shrink-0" style={{ color: 'var(--text-3)' }}>
-                {new Date(g.datum).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(g.datum).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
           ))}
@@ -266,6 +272,8 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
 // ── Verlof Kalender Mini Widget ──────────────────────────────────────────────
 
 function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[] }) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const now = new Date()
   const jaar = now.getFullYear()
   const maand = now.getMonth()
@@ -284,12 +292,15 @@ function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[]
     })
   }
 
-  const dagletters = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
+  // Maandag t/m zondag; 5 jan 2026 is een maandag. Nederlands houdt de vaste afkortingen.
+  const dagletters = taal === 'nl'
+    ? ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
+    : Array.from({ length: 7 }, (_, i) => new Date(2026, 0, 5 + i).toLocaleDateString(locale, { weekday: 'short' }))
 
   return (
     <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
       <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>
-        Verlofkalender — {now.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })}
+        {t('voortgang.dashboard.verlofKalender.kop', { maand: now.toLocaleDateString(locale, { month: 'long', year: 'numeric' }) })}
       </p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {dagletters.map(d => (
@@ -320,7 +331,7 @@ function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[]
       </div>
       {goedgekeurdVerlof.length > 0 && (
         <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>
-          {goedgekeurdVerlof.length} goedgekeurd verlof{goedgekeurdVerlof.length !== 1 ? 'en' : ''} actief
+          {t(goedgekeurdVerlof.length === 1 ? 'voortgang.dashboard.verlofKalender.actiefEen' : 'voortgang.dashboard.verlofKalender.actiefMeer', { n: goedgekeurdVerlof.length })}
         </p>
       )}
     </div>
@@ -338,6 +349,7 @@ function BulkActies({
   gefilterdTeam: TeamLid[]
   onHerinnering: (leden: TeamLid[]) => void
 }) {
+  const { t, taal } = useVertaling()
   const [geselecteerd, setGeselecteerd] = useState<Set<string>>(new Set())
   const [uitgevouwen, setUitgevouwen] = useState(false)
   const [bezig, setBezig] = useState(false)
@@ -371,15 +383,15 @@ function BulkActies({
       })
       if (resp.ok) {
         onHerinnering(doelwitten)
-        setFeedback(`Herinnering verstuurd naar ${doelwitten.length} medewerker${doelwitten.length !== 1 ? 's' : ''}.`)
+        setFeedback(t(doelwitten.length === 1 ? 'voortgang.dashboard.bulk.verstuurdEen' : 'voortgang.dashboard.bulk.verstuurdMeer', { n: doelwitten.length }))
         setGeselecteerd(new Set())
         setTimeout(() => setFeedback(null), 4000)
       } else {
-        setFeedback('Kon herinnering niet versturen. Probeer opnieuw.')
+        setFeedback(t('voortgang.dashboard.bulk.mislukt'))
         setTimeout(() => setFeedback(null), 5000)
       }
     } catch {
-      setFeedback('Networkfout — herinnering niet verstuurd.')
+      setFeedback(t('voortgang.dashboard.bulk.netwerkfout'))
       setTimeout(() => setFeedback(null), 5000)
     }
     setBezig(false)
@@ -387,12 +399,12 @@ function BulkActies({
 
   function exporteerCSV() {
     const rijen = [
-      ['Naam', 'Score', 'Laatste check-in', 'Deze week ingevuld'],
+      [t('voortgang.dashboard.csv.naam'), t('voortgang.dashboard.csv.score'), t('voortgang.dashboard.csv.laatste'), t('voortgang.dashboard.csv.dezeWeek')],
       ...gefilterdTeam.map(l => [
-        l.naam || 'Onbekend',
+        l.naam || t('voortgang.dashboard.onbekend'),
         l.laatste_score !== null ? String(l.laatste_score) : '-',
-        l.laatste_checkin ? new Date(l.laatste_checkin).toLocaleDateString('nl-BE') : 'Nooit',
-        l.deze_week_ingevuld ? 'Ja' : 'Nee',
+        l.laatste_checkin ? new Date(l.laatste_checkin).toLocaleDateString(INTL_LOCALE[taal]) : t('voortgang.dashboard.csv.nooit'),
+        l.deze_week_ingevuld ? t('voortgang.dashboard.csv.ja') : t('voortgang.dashboard.csv.nee'),
       ]),
     ]
     const csv = rijen.map(r => r.join(',')).join('\n')
@@ -413,7 +425,7 @@ function BulkActies({
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition"
           style={{ color: 'var(--text-2)', background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         >
-          <Download size={13} aria-hidden="true" /> Exporteer CSV
+          <Download size={13} aria-hidden="true" /> {t('voortgang.dashboard.bulk.exporteer')}
         </button>
         <button
           onClick={() => setUitgevouwen(u => !u)}
@@ -424,7 +436,7 @@ function BulkActies({
             borderColor: uitgevouwen ? 'var(--text-1)' : 'var(--border)',
           }}
         >
-          Bulk acties {geselecteerd.size > 0 ? `(${geselecteerd.size})` : ''}
+          {t('voortgang.dashboard.bulk.acties')} {geselecteerd.size > 0 ? `(${geselecteerd.size})` : ''}
         </button>
         {laagScorendeLeden.length > 0 && (
           <button
@@ -432,7 +444,7 @@ function BulkActies({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
             style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: '1px solid color-mix(in srgb, var(--mf-red) 40%, transparent)' }}
           >
-            Selecteer lage scores ({laagScorendeLeden.length})
+            {t('voortgang.dashboard.bulk.selecteerLaag', { n: laagScorendeLeden.length })}
           </button>
         )}
         {nietIngevuld.length > 0 && (
@@ -441,7 +453,7 @@ function BulkActies({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
             style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', border: '1px solid color-mix(in srgb, var(--mf-amber) 40%, transparent)' }}
           >
-            Selecteer niet ingevuld ({nietIngevuld.length})
+            {t('voortgang.dashboard.bulk.selecteerNiet', { n: nietIngevuld.length })}
           </button>
         )}
       </div>
@@ -450,7 +462,7 @@ function BulkActies({
         <div className="rounded-xl border p-4 mb-4" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-medium" style={{ color: 'var(--text-2)' }}>
-              {geselecteerd.size} medewerker{geselecteerd.size !== 1 ? 's' : ''} geselecteerd
+              {t(geselecteerd.size === 1 ? 'voortgang.dashboard.bulk.geselecteerdEen' : 'voortgang.dashboard.bulk.geselecteerdMeer', { n: geselecteerd.size })}
             </p>
             <div className="flex gap-2">
               <button
@@ -458,14 +470,14 @@ function BulkActies({
                 className="text-xs transition-colors"
                 style={{ color: 'var(--text-3)' }}
               >
-                Alles
+                {t('voortgang.dashboard.bulk.alles')}
               </button>
               <button
                 onClick={() => setGeselecteerd(new Set())}
                 className="text-xs transition-colors"
                 style={{ color: 'var(--text-3)' }}
               >
-                Wis
+                {t('voortgang.dashboard.bulk.wis')}
               </button>
             </div>
           </div>
@@ -491,7 +503,7 @@ function BulkActies({
             className="w-full py-2 rounded-xl text-xs font-semibold disabled:opacity-40 transition"
             style={{ background: 'var(--mf-amber)', color: 'var(--bg-app)' }}
           >
-            {bezig ? 'Versturen...' : `Stuur herinnering (${geselecteerd.size})`}
+            {bezig ? t('voortgang.dashboard.versturen') : t('voortgang.dashboard.bulk.stuur', { n: geselecteerd.size })}
           </button>
         </div>
       )}
@@ -508,6 +520,7 @@ function BulkActies({
 // ── Medewerker uitnodigen modal ──────────────────────────────────────────────
 
 function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; hrCode: string }) {
+  const { t, taal } = useVertaling()
   const [emailInput, setEmailInput] = useState('')
   const [naamInput, setNaamInput] = useState('')
   const [bezig, setBezig] = useState(false)
@@ -524,13 +537,14 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
         body: JSON.stringify({ email: emailInput.trim(), naam: naamInput.trim(), hrCode }),
       })
       if (resp.ok) {
-        setResultaat({ ok: true, bericht: `Uitnodiging verstuurd naar ${emailInput}` })
+        setResultaat({ ok: true, bericht: t('voortgang.dashboard.uitnodigen.verstuurd', { email: emailInput }) })
       } else {
         const fout = await resp.json().catch(() => ({}))
-        setResultaat({ ok: false, bericht: fout?.message || 'Kon uitnodiging niet versturen. Probeer opnieuw.' })
+        // Servermeldingen zijn Nederlands; in een andere taal tonen we de vertaalde terugval.
+        setResultaat({ ok: false, bericht: (taal === 'nl' && fout?.message) || t('voortgang.dashboard.uitnodigen.mislukt') })
       }
     } catch {
-      setResultaat({ ok: false, bericht: 'Networkfout — controleer de verbinding en probeer opnieuw.' })
+      setResultaat({ ok: false, bericht: t('voortgang.dashboard.uitnodigen.netwerkfout') })
     }
     setBezig(false)
   }
@@ -539,8 +553,8 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="rounded-2xl p-6 w-full max-w-sm shadow-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-semibold" style={{ color: 'var(--text-1)' }}>Medewerker uitnodigen</p>
-          <button onClick={onSluit} aria-label="Sluiten" className="leading-none transition-colors" style={{ color: 'var(--text-3)' }}>
+          <p className="font-semibold" style={{ color: 'var(--text-1)' }}>{t('voortgang.dashboard.uitnodigen.kop')}</p>
+          <button onClick={onSluit} aria-label={t('voortgang.dashboard.sluiten')} className="leading-none transition-colors" style={{ color: 'var(--text-3)' }}>
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -552,7 +566,7 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
             <p className="text-sm" style={{ color: 'var(--text-2)' }}>{resultaat.bericht}</p>
             {resultaat.ok && (
               <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>
-                De medewerker ontvangt een e-mail met HR-code <strong>{hrCode}</strong> om in te loggen.
+                {t('voortgang.dashboard.uitnodigen.ontvangtVoor')} <strong>{hrCode}</strong> {t('voortgang.dashboard.uitnodigen.ontvangtNa')}
               </p>
             )}
             <button
@@ -560,34 +574,34 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
               className="mt-4 px-4 py-2 rounded-xl text-sm font-medium"
               style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
-              Sluiten
+              {t('voortgang.dashboard.sluiten')}
             </button>
           </div>
         ) : (
           <form onSubmit={stuurUitnodiging}>
             <div className="mb-3">
-              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>Naam</label>
+              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.uitnodigen.naam')}</label>
               <input
                 type="text"
                 value={naamInput}
                 onChange={e => setNaamInput(e.target.value)}
-                placeholder="Jan de Vries"
+                placeholder={t('voortgang.dashboard.uitnodigen.naamVoorbeeld')}
                 className="mf-input w-full rounded-xl px-3 py-2 text-sm outline-none"
               />
             </div>
             <div className="mb-4">
-              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>E-mailadres *</label>
+              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.uitnodigen.email')}</label>
               <input
                 type="email"
                 value={emailInput}
                 onChange={e => setEmailInput(e.target.value)}
-                placeholder="jan@bedrijf.nl"
+                placeholder={t('voortgang.dashboard.uitnodigen.emailVoorbeeld')}
                 required
                 className="mf-input w-full rounded-xl px-3 py-2 text-sm outline-none"
               />
             </div>
             <div className="rounded-xl p-3 mb-4 text-xs" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
-              HR-code: <strong>{hrCode || 'Laden...'}</strong> — wordt meegestuurd in de e-mail.
+              {t('voortgang.dashboard.uitnodigen.hrCode')} <strong>{hrCode || t('voortgang.dashboard.laden')}</strong>{t('voortgang.dashboard.uitnodigen.meegestuurd')}
             </div>
             <button
               type="submit"
@@ -595,7 +609,7 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
               className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40"
               style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
-              {bezig ? 'Versturen...' : 'Stuur uitnodiging'}
+              {bezig ? t('voortgang.dashboard.versturen') : t('voortgang.dashboard.uitnodigen.stuur')}
             </button>
           </form>
         )}
@@ -609,6 +623,8 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
 export default function Dashboard() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [checkins, setCheckins] = useState<Checkin[]>([])
   const [team, setTeam] = useState<TeamLid[]>([])
   const [laden, setLaden] = useState(true)
@@ -750,14 +766,14 @@ export default function Dashboard() {
       if (verlofRes.data) {
         setVerlofAanvragen((verlofRes.data as unknown as (VerlofHR & { profiles: { naam: string } | null })[]).map(v => ({
           ...v,
-          naam: v.profiles?.naam ?? 'Onbekend',
+          naam: v.profiles?.naam ?? t('voortgang.dashboard.onbekend'),
         })))
       }
 
       if (declRes.data) {
         setDeclaratiesHR((declRes.data as unknown as (DeclaratieHR & { profiles: { naam: string } | null })[]).map(d => ({
           ...d,
-          naam: d.profiles?.naam ?? 'Onbekend',
+          naam: d.profiles?.naam ?? t('voortgang.dashboard.onbekend'),
         })))
       }
 
@@ -766,28 +782,28 @@ export default function Dashboard() {
           id: g.id,
           datum: g.datum,
           type: g.type,
-          medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
+          medewerker_naam: g.medewerker?.naam ?? t('voortgang.dashboard.onbekend'),
         })))
       }
 
       // Fouten niet stil inslikken: benoem zichtbaar welke onderdelen misten.
       const bronnen: { error: unknown; label: string }[] = [
-        { error: checkinRes.error, label: 'check-ins' },
-        { error: teamRes.error, label: 'teamoverzicht' },
-        { error: avatarRes.error, label: 'avatars' },
-        { error: bedrijfRes.error, label: 'bedrijfsgegevens' },
-        { error: discRes.error, label: 'DISC-status' },
-        { error: perUserRes.error, label: 'check-in-historie' },
-        { error: feedbackRes.error, label: 'feedback' },
-        { error: verlofRes.error, label: 'verlofaanvragen' },
-        { error: declRes.error, label: 'declaraties' },
-        { error: gesprekRes.error, label: 'gesprekken' },
+        { error: checkinRes.error, label: t('voortgang.dashboard.bron.checkins') },
+        { error: teamRes.error, label: t('voortgang.dashboard.bron.team') },
+        { error: avatarRes.error, label: t('voortgang.dashboard.bron.avatars') },
+        { error: bedrijfRes.error, label: t('voortgang.dashboard.bron.bedrijf') },
+        { error: discRes.error, label: t('voortgang.dashboard.bron.disc') },
+        { error: perUserRes.error, label: t('voortgang.dashboard.bron.historie') },
+        { error: feedbackRes.error, label: t('voortgang.dashboard.bron.feedback') },
+        { error: verlofRes.error, label: t('voortgang.dashboard.bron.verlof') },
+        { error: declRes.error, label: t('voortgang.dashboard.bron.declaraties') },
+        { error: gesprekRes.error, label: t('voortgang.dashboard.bron.gesprekken') },
       ]
       const mislukt = bronnen.filter(b => b.error).map(b => b.label)
       if (mislukt.length > 0) {
         toast({
-          title: 'Niet alle gegevens geladen',
-          description: `Kon ${mislukt.join(', ')} niet ophalen. Vernieuw de pagina om het opnieuw te proberen.`,
+          title: t('voortgang.dashboard.nietAlles'),
+          description: t('voortgang.dashboard.nietAllesTekst', { onderdelen: mislukt.join(', ') }),
           variant: 'error',
         })
       }
@@ -795,14 +811,14 @@ export default function Dashboard() {
       setLaden(false)
     }
     laadData()
-  }, [router, toast])
+  }, [router, toast, t])
 
   const metricCards = [
-    { label: 'Energie', key: 'energie' },
-    { label: 'Slaap', key: 'slaap' },
-    { label: 'Werkdruk', key: 'werkdruk' },
-    { label: 'Motivatie', key: 'motivatie' },
-    { label: 'Herstel', key: 'herstel' },
+    { label: t('voortgang.dashboard.metriek.energie'), key: 'energie' },
+    { label: t('voortgang.dashboard.metriek.slaap'), key: 'slaap' },
+    { label: t('voortgang.dashboard.metriek.werkdruk'), key: 'werkdruk' },
+    { label: t('voortgang.dashboard.metriek.motivatie'), key: 'motivatie' },
+    { label: t('voortgang.dashboard.metriek.herstel'), key: 'herstel' },
   ]
 
   const allMetricKeys = [
@@ -811,12 +827,9 @@ export default function Dashboard() {
     'motivatie', 'sociaal_team', 'sociaal_steun', 'herstel',
   ] as const
 
-  const metricLabels: Record<string, string> = {
-    energie: 'Energie', slaap: 'Slaap', fysiek_pijn: 'Fys. klachten',
-    fysiek_beweging: 'Beweging', werkdruk: 'Werkdruk', mentaal_focus: 'Focus',
-    mentaal_stress: 'Stress', mentaal_balans: 'Balans', motivatie: 'Motivatie',
-    sociaal_team: 'Teamwerk', sociaal_steun: 'Steun', herstel: 'Herstel',
-  }
+  const metricLabels: Record<string, string> = Object.fromEntries(
+    allMetricKeys.map(k => [k, t(`voortgang.dashboard.metriek.${k}`)]),
+  )
 
   const vitaliteitscore = gemiddelde(
     allMetricKeys.map(k => gemiddelde(checkins.map(c => c[k])))
@@ -829,7 +842,7 @@ export default function Dashboard() {
     const dag = d.getDay() === 0 ? 6 : d.getDay() - 1
     const maandag = new Date(d)
     maandag.setDate(d.getDate() - dag)
-    const weekKey = maandag.toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })
+    const weekKey = maandag.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
     const score = Math.round((allMetricKeys.reduce((sum, k) => sum + c[k], 0) / 60) * 100)
     const weekArr = weekMap.get(weekKey) ?? []
     weekMap.set(weekKey, weekArr)
@@ -863,7 +876,7 @@ export default function Dashboard() {
     })
     .sort((a, b) => {
       if (teamSorteer === 'score') return (a.laatste_score ?? -1) - (b.laatste_score ?? -1)
-      return (a.naam || '').localeCompare(b.naam || '', 'nl')
+      return (a.naam || '').localeCompare(b.naam || '', locale)
     })
 
   // Signalen — tijdstip per mount vastzetten zodat de render puur blijft
@@ -882,7 +895,7 @@ export default function Dashboard() {
       const scores = recents.slice(0, 2).map(checkinScore)
       const daling = scores[1] - scores[0]
       if (daling >= 15) {
-        signalen.push({ lid, reden: `Score daalde ${daling}pt in laatste 2 check-ins`, ernst: daling >= 25 ? 'hoog' : 'matig' })
+        signalen.push({ lid, reden: t('voortgang.dashboard.signaal.daling', { n: daling }), ernst: daling >= 25 ? 'hoog' : 'matig' })
         continue
       }
     }
@@ -892,14 +905,14 @@ export default function Dashboard() {
       const laagsteScore = recents[0][laagsteKey]
       if (laagsteScore <= 1.5) {
         const label = metricLabels[laagsteKey] ?? laagsteKey
-        signalen.push({ lid, reden: `${label} staat kritiek laag (${laagsteScore}/5)`, ernst: 'hoog' })
+        signalen.push({ lid, reden: t('voortgang.dashboard.signaal.kritiek', { label, score: laagsteScore }), ernst: 'hoog' })
         continue
       }
     }
     if (lid.laatste_checkin) {
       const dagenGeleden = Math.floor((nuTs - new Date(lid.laatste_checkin).getTime()) / (1000 * 60 * 60 * 24))
       if (dagenGeleden >= 14) {
-        signalen.push({ lid, reden: `${dagenGeleden} dagen geen check-in`, ernst: 'matig' })
+        signalen.push({ lid, reden: t('voortgang.dashboard.signaal.stil', { n: dagenGeleden }), ernst: 'matig' })
       }
     }
   }
@@ -919,30 +932,30 @@ export default function Dashboard() {
   const burnoutRisico = team.length > 0 ? Math.round((waarschuwingen.length / team.length) * 100) : 0
 
   const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string; icon?: boolean }[] = [
-    { key: 'overzicht', label: 'Overzicht' },
-    { key: 'team', label: `Team (${team.length})` },
-    { key: 'trends', label: 'Trends' },
+    { key: 'overzicht', label: t('voortgang.dashboard.tab.overzicht') },
+    { key: 'team', label: t('voortgang.dashboard.tab.team', { n: team.length }) },
+    { key: 'trends', label: t('voortgang.dashboard.tab.trends') },
     {
       key: 'signalen',
-      label: 'Signalen',
+      label: t('voortgang.dashboard.tab.signalen'),
       badge: signalen.length > 0 ? signalen.length : undefined,
       badgeKleur: 'var(--mf-red)',
     },
     {
       key: 'verlof',
-      label: 'Verlof',
+      label: t('voortgang.dashboard.tab.verlof'),
       badge: pendingVerlof > 0 ? pendingVerlof : undefined,
       badgeKleur: 'var(--mf-amber)',
     },
     {
       key: 'declaraties',
-      label: 'Declaraties',
+      label: t('voortgang.dashboard.tab.declaraties'),
       badge: pendingDeclaraties > 0 ? pendingDeclaraties : undefined,
       badgeKleur: 'var(--mf-purple)',
     },
-    { key: 'gesprekken', label: 'Gesprekken' },
-    { key: 'rapporten', label: 'Rapporten', icon: true },
-    { key: 'bedrijf', label: 'Bedrijf' },
+    { key: 'gesprekken', label: t('voortgang.dashboard.tab.gesprekken') },
+    { key: 'rapporten', label: t('voortgang.dashboard.tab.rapporten'), icon: true },
+    { key: 'bedrijf', label: t('voortgang.dashboard.tab.bedrijf') },
   ]
 
   // Score van de week — gemiddelde van checkins van de afgelopen 7 dagen
@@ -961,9 +974,9 @@ export default function Dashboard() {
         <div className="px-6 sm:px-8 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
             style={{ background: 'var(--mf-blue)', color: 'var(--bg-app)' }}>HR</div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>HR Portaal</p>
-          <span className="text-xs" style={{ color: 'var(--text-3)' }}>—</span>
-          <p className="text-xs" style={{ color: 'var(--text-3)' }}>Teamwelzijn en vitaliteitsdata van jouw organisatie</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t('voortgang.dashboard.portaal')}</p>
+          <span className="text-xs" style={{ color: 'var(--text-3)' }} aria-hidden="true">·</span>
+          <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.portaalTekst')}</p>
         </div>
       </div>
 
@@ -972,7 +985,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>HR-dashboard</h1>
+            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>{t('voortgang.dashboard.titel')}</h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-4)' }}>{email}</p>
           </div>
           <div className="flex gap-3 flex-wrap items-start">
@@ -997,22 +1010,22 @@ export default function Dashboard() {
                   {weekScore}
                   <span className="text-sm font-semibold opacity-60">/100</span>
                 </p>
-                <p className="text-xs font-semibold mt-1" style={{ color: 'var(--text-4)' }}>Score week</p>
+                <p className="text-xs font-semibold mt-1" style={{ color: 'var(--text-4)' }}>{t('voortgang.dashboard.scoreWeek')}</p>
               </div>
             )}
             <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>{participatieRate}%</p>
-              <p className="text-xs" style={{ color: 'var(--text-4)' }}>Participatie</p>
+              <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('voortgang.dashboard.participatie')}</p>
             </div>
             <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>{ingevuld.length}/{team.length}</p>
-              <p className="text-xs" style={{ color: 'var(--text-4)' }}>Check-ins week</p>
+              <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('voortgang.dashboard.checkinsWeek')}</p>
             </div>
             {signalen.length > 0 && (
               <div className="rounded-xl border px-4 py-2.5 text-center"
                 style={{ background: 'var(--mf-red-light)', borderColor: 'color-mix(in srgb, var(--mf-red) 40%, transparent)' }}>
                 <p className="text-lg font-semibold" style={{ color: 'var(--mf-red)' }}>{signalen.length}</p>
-                <p className="text-xs" style={{ color: 'var(--mf-red)' }}>Signalen</p>
+                <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{t('voortgang.dashboard.tab.signalen')}</p>
               </div>
             )}
           </div>
@@ -1023,26 +1036,26 @@ export default function Dashboard() {
           className="flex gap-1 rounded-xl p-1 mb-6 overflow-x-auto"
           style={{ background: 'var(--bg-subtle)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
-          {tabs.map(t => (
+          {tabs.map(tab => (
             <button
-              key={t.key}
-              onClick={() => setActieveTab(t.key)}
+              key={tab.key}
+              onClick={() => setActieveTab(tab.key)}
               className="px-4 py-2 rounded-lg text-sm transition whitespace-nowrap flex items-center gap-1.5 flex-shrink-0"
               style={{
-                background: actieveTab === t.key ? 'var(--bg-card)' : 'transparent',
-                color: actieveTab === t.key ? 'var(--text-1)' : 'var(--text-3)',
-                fontWeight: actieveTab === t.key ? 500 : 400,
-                boxShadow: actieveTab === t.key ? '0 1px 3px rgba(0,0,0,0.25)' : 'none',
+                background: actieveTab === tab.key ? 'var(--bg-card)' : 'transparent',
+                color: actieveTab === tab.key ? 'var(--text-1)' : 'var(--text-3)',
+                fontWeight: actieveTab === tab.key ? 500 : 400,
+                boxShadow: actieveTab === tab.key ? '0 1px 3px rgba(0,0,0,0.25)' : 'none',
               }}
             >
-              {t.icon && <Bot size={14} aria-hidden="true" />}
-              {t.label}
-              {t.badge !== undefined && (
+              {tab.icon && <Bot size={14} aria-hidden="true" />}
+              {tab.label}
+              {tab.badge !== undefined && (
                 <span
                   className="text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none"
-                  style={{ background: t.badgeKleur ?? 'var(--mf-red)', color: 'var(--bg-app)' }}
+                  style={{ background: tab.badgeKleur ?? 'var(--mf-red)', color: 'var(--bg-app)' }}
                 >
-                  {t.badge}
+                  {tab.badge}
                 </span>
               )}
             </button>
@@ -1099,11 +1112,10 @@ export default function Dashboard() {
                 {waarschuwingen.length > 0 && (
                   <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--mf-red-light)', borderLeft: '4px solid var(--mf-red)' }}>
                     <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-red)' }}>
-                      Lage vitaliteitscore — {burnoutRisico}% van het team
+                      {t('voortgang.dashboard.risico.kop', { pct: burnoutRisico })}
                     </p>
                     <p className="text-sm" style={{ color: 'var(--mf-red)' }}>
-                      {waarschuwingen.length} medewerker{waarschuwingen.length > 1 ? 's scoren' : ' scoort'} onder 2.5/5.
-                      Overweeg een persoonlijk gesprek of check de signalen-tab.
+                      {t(waarschuwingen.length > 1 ? 'voortgang.dashboard.risico.tekstMeer' : 'voortgang.dashboard.risico.tekstEen', { n: waarschuwingen.length })}
                     </p>
                   </div>
                 )}
@@ -1111,10 +1123,10 @@ export default function Dashboard() {
                 {nietIngevuld.length > 0 && (
                   <div className="rounded-2xl p-5 mb-6" style={{ background: 'var(--mf-amber-light)', borderLeft: '4px solid var(--mf-amber)' }}>
                     <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>
-                      Check-in herinnering
+                      {t('voortgang.dashboard.herinnering.kop')}
                     </p>
                     <p className="text-sm" style={{ color: 'var(--mf-amber-dark)' }}>
-                      {nietIngevuld.length} medewerker{nietIngevuld.length > 1 ? 's hebben' : ' heeft'} de check-in nog niet ingevuld deze week.
+                      {t(nietIngevuld.length > 1 ? 'voortgang.dashboard.herinnering.tekstMeer' : 'voortgang.dashboard.herinnering.tekstEen', { n: nietIngevuld.length })}
                     </p>
                   </div>
                 )}
@@ -1125,7 +1137,7 @@ export default function Dashboard() {
                     className="rounded-2xl border p-6 col-span-2 sm:col-span-1"
                     style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderTop: '3px solid var(--mf-green)' }}
                   >
-                    <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Vitaliteitsscore</p>
+                    <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.vitaliteit')}</p>
                     <div style={{ position: 'relative', display: 'inline-block' }}>
                       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
                         <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
@@ -1135,14 +1147,14 @@ export default function Dashboard() {
                       </p>
                     </div>
                     {checkins.length > 0 && (
-                      <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>{checkins.length} check-ins totaal</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.checkinsTotaal', { n: checkins.length })}</p>
                     )}
                   </div>
                   {metricCards.map(m => {
                     const waarde = gemiddelde(checkins.map(c => c[m.key as keyof Checkin] as number))
                     const badge = waarde > 0 ? scoreBadge(waarde) : null
                     return (
-                      <div key={m.label} className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                      <div key={m.key} className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                         <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>{m.label}</p>
                         <p className="text-2xl font-medium" style={{ color: waarde > 0 ? scoreKleur(waarde) : 'var(--border-strong)' }}>
                           {waarde > 0 ? waarde : '—'}
@@ -1150,7 +1162,7 @@ export default function Dashboard() {
                         {badge && (
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full mt-1 inline-block"
                             style={{ background: badge.bg, color: badge.color }}>
-                            {badge.label}
+                            {t(`voortgang.dashboard.badge.${badge.label}`)}
                           </span>
                         )}
                       </div>
@@ -1162,7 +1174,7 @@ export default function Dashboard() {
                 {team.length > 0 && (
                   <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Participatie deze week</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.participatieWeek')}</p>
                       <span className="text-sm font-semibold" style={{ color: participatieRate >= 70 ? 'var(--mf-green)' : participatieRate >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                         {ingevuld.length}/{team.length}
                       </span>
@@ -1177,9 +1189,9 @@ export default function Dashboard() {
                       />
                     </div>
                     <p className="text-xs" style={{ color: 'var(--text-3)' }}>
-                      {participatieRate >= 80 ? 'Uitstekende participatie' :
-                        participatieRate >= 50 ? 'Goede participatie, ruimte voor verbetering' :
-                          'Lage participatie — overweeg een herinnering te sturen'}
+                      {participatieRate >= 80 ? t('voortgang.dashboard.participatieHoog') :
+                        participatieRate >= 50 ? t('voortgang.dashboard.participatieMidden') :
+                          t('voortgang.dashboard.participatieLaag')}
                     </p>
                   </div>
                 )}
@@ -1191,9 +1203,9 @@ export default function Dashboard() {
                         style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
                         <Hand size={26} aria-hidden="true" />
                       </div>
-                      <p className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nodig je eerste medewerker uit</p>
+                      <p className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('voortgang.dashboard.leeg.kop')}</p>
                       <p className="text-sm mb-5" style={{ color: 'var(--text-3)' }}>
-                        Je hebt nog geen medewerkers gekoppeld. Deel je HR-code of stuur een directe uitnodiging.
+                        {t('voortgang.dashboard.leeg.tekst')}
                       </p>
                       {bedrijf?.hr_code && (
                         <div className="rounded-xl px-4 py-3 mb-4 text-sm font-mono font-bold tracking-widest"
@@ -1206,14 +1218,14 @@ export default function Dashboard() {
                         className="px-5 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-90"
                         style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
                       >
-                        Medewerker uitnodigen
+                        {t('voortgang.dashboard.uitnodigen.kop')}
                       </button>
                     </div>
                   </div>
                 )}
                 {team.length > 0 && checkins.length === 0 && (
                   <div className="rounded-2xl border p-8 text-center mt-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen check-ins beschikbaar. Medewerkers kunnen inloggen en een check-in invullen.</p>
+                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.leeg.geenCheckins')}</p>
                   </div>
                 )}
               </>
@@ -1223,20 +1235,20 @@ export default function Dashboard() {
             {actieveTab === 'team' && (
               <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                  <p className="text-sm font-medium flex-1" style={{ color: 'var(--text-2)' }}>Teamoverzicht</p>
+                  <p className="text-sm font-medium flex-1" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.team.kop')}</p>
                   <button
                     onClick={() => setUitnodigenOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition"
                     style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
                   >
-                    + Medewerker uitnodigen
+                    + {t('voortgang.dashboard.uitnodigen.kop')}
                   </button>
                 </div>
 
                 <div className="flex gap-2 flex-wrap mb-4">
                   <input
                     type="text"
-                    placeholder="Zoek op naam..."
+                    placeholder={t('voortgang.dashboard.team.zoek')}
                     value={teamZoekterm}
                     onChange={e => setTeamZoekterm(e.target.value)}
                     className="mf-input rounded-lg px-3 py-1.5 text-xs outline-none w-36"
@@ -1246,18 +1258,18 @@ export default function Dashboard() {
                     onChange={e => setTeamFilter(e.target.value as typeof teamFilter)}
                     className="mf-input rounded-lg px-2 py-1.5 text-xs outline-none"
                   >
-                    <option value="alle">Alle</option>
-                    <option value="ingevuld">Ingevuld</option>
-                    <option value="niet_ingevuld">Niet ingevuld</option>
-                    <option value="laag">Lage score</option>
+                    <option value="alle">{t('voortgang.dashboard.team.alle')}</option>
+                    <option value="ingevuld">{t('voortgang.dashboard.team.ingevuld')}</option>
+                    <option value="niet_ingevuld">{t('voortgang.dashboard.team.nietIngevuld')}</option>
+                    <option value="laag">{t('voortgang.dashboard.team.laag')}</option>
                   </select>
                   <select
                     value={teamSorteer}
                     onChange={e => setTeamSorteer(e.target.value as typeof teamSorteer)}
                     className="mf-input rounded-lg px-2 py-1.5 text-xs outline-none"
                   >
-                    <option value="naam">Sorteer: naam</option>
-                    <option value="score">Sorteer: score</option>
+                    <option value="naam">{t('voortgang.dashboard.team.sorteerNaam')}</option>
+                    <option value="score">{t('voortgang.dashboard.team.sorteerScore')}</option>
                   </select>
                 </div>
 
@@ -1268,9 +1280,9 @@ export default function Dashboard() {
                 />
 
                 {team.length === 0 ? (
-                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen medewerkers.</p>
+                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.team.geen')}</p>
                 ) : gefilterdTeam.length === 0 ? (
-                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen leden gevonden.</p>
+                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.team.nietGevonden')}</p>
                 ) : (
                   <div className="flex flex-col gap-1">
                     {gefilterdTeam.map(lid => {
@@ -1285,11 +1297,11 @@ export default function Dashboard() {
                           <div className="flex items-center gap-3">
                             <Avatar naam={lid.naam || '?'} avatarUrl={lid.avatar_url} size={32} />
                             <div>
-                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || 'Onbekend'}</p>
+                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || t('voortgang.dashboard.onbekend')}</p>
                               <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                                 {lid.laatste_checkin
-                                  ? `Laatst: ${new Date(lid.laatste_checkin).toLocaleDateString('nl-BE')}`
-                                  : 'Nog nooit ingevuld'}
+                                  ? t('voortgang.dashboard.team.laatst', { datum: new Date(lid.laatste_checkin).toLocaleDateString(locale) })
+                                  : t('voortgang.dashboard.team.nooit')}
                               </p>
                             </div>
                           </div>
@@ -1306,8 +1318,8 @@ export default function Dashboard() {
                                 color: lid.deze_week_ingevuld ? 'var(--mf-green-dark)' : 'var(--mf-amber-dark)',
                               }}>
                               {lid.deze_week_ingevuld
-                                ? <Check size={14} aria-label="Ingevuld deze week" />
-                                : <Circle size={12} aria-label="Niet ingevuld deze week" />}
+                                ? <Check size={14} aria-label={t('voortgang.dashboard.team.ingevuldWeek')} />
+                                : <Circle size={12} aria-label={t('voortgang.dashboard.team.nietIngevuldWeek')} />}
                             </span>
                             <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--text-3)' }} />
                           </div>
@@ -1315,7 +1327,7 @@ export default function Dashboard() {
                       )
                     })}
                     {(teamZoekterm || teamFilter !== 'alle') && (
-                      <p className="text-xs pt-2" style={{ color: 'var(--text-3)' }}>{gefilterdTeam.length} van {team.length} leden</p>
+                      <p className="text-xs pt-2" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.team.teller', { n: gefilterdTeam.length, totaal: team.length })}</p>
                     )}
                   </div>
                 )}
@@ -1326,10 +1338,10 @@ export default function Dashboard() {
             {actieveTab === 'signalen' && (
               <>
                 <div className="mb-6">
-                  <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Vroege waarschuwingssignalen</p>
+                  <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.signaal.kop')}</p>
                   {signalen.length === 0 ? (
                     <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen alarmsignalen gedetecteerd.</p>
+                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.signaal.geen')}</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
@@ -1349,7 +1361,7 @@ export default function Dashboard() {
                                   background: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)',
                                   color: ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber-dark)',
                                 }}>
-                                {ernst === 'hoog' ? 'Hoog risico' : 'Let op'}
+                                {ernst === 'hoog' ? t('voortgang.dashboard.signaal.hoog') : t('voortgang.dashboard.signaal.letOp')}
                               </span>
                             </div>
                             <p className="text-xs" style={{ color: 'var(--text-3)' }}>{reden}</p>
@@ -1359,7 +1371,7 @@ export default function Dashboard() {
                             className="flex-shrink-0 text-xs border rounded-lg px-3 py-1.5 hover:bg-[var(--bg-subtle)] transition"
                             style={{ borderColor: 'var(--border)', color: 'var(--text-2)' }}
                           >
-                            Profiel
+                            {t('voortgang.dashboard.signaal.profiel')}
                           </Link>
                         </div>
                       ))}
@@ -1370,11 +1382,11 @@ export default function Dashboard() {
                 {/* Anonymous feedback */}
                 <div>
                   <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>
-                    Anonieme feedback ({feedback.length})
+                    {t('voortgang.dashboard.feedback.kop', { n: feedback.length })}
                   </p>
                   {feedback.length === 0 ? (
                     <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen anonieme feedback.</p>
+                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.feedback.geen')}</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
@@ -1387,7 +1399,7 @@ export default function Dashboard() {
                               {f.categorie}
                             </span>
                             <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-                              {new Date(f.aangemaakt_op).toLocaleDateString('nl-BE')}
+                              {new Date(f.aangemaakt_op).toLocaleDateString(locale)}
                             </span>
                           </div>
                           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>&quot;{f.inhoud}&quot;</p>
@@ -1404,7 +1416,7 @@ export default function Dashboard() {
               <>
                 {checkins.length === 0 ? (
                   <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen data voor trends.</p>
+                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.trends.geen')}</p>
                   </div>
                 ) : (
                   <>
@@ -1413,9 +1425,9 @@ export default function Dashboard() {
                     {laagsteMetrics.length >= 3 && (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
-                          { label: 'Meeste aandacht nodig', items: laagsteMetrics.slice(0, 3), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
-                          { label: 'Kan beter', items: laagsteMetrics.slice(3, 6), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
-                          { label: 'Gaat goed', items: [...laagsteMetrics].reverse().slice(0, 3), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                          { label: t('voortgang.dashboard.trends.aandacht'), items: laagsteMetrics.slice(0, 3), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
+                          { label: t('voortgang.dashboard.trends.kanBeter'), items: laagsteMetrics.slice(3, 6), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
+                          { label: t('voortgang.dashboard.trends.gaatGoed'), items: [...laagsteMetrics].reverse().slice(0, 3), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
                         ].map(groep => (
                           <div key={groep.label} className="rounded-2xl p-4" style={{ background: groep.bg }}>
                             <p className="text-xs font-semibold mb-2" style={{ color: groep.kleur }}>{groep.label}</p>
@@ -1463,7 +1475,7 @@ export default function Dashboard() {
             )}
             {actieveTab === 'gesprekken' && !bedrijfId && (
               <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <p className="text-sm" style={{ color: 'var(--text-3)' }}>Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.bedrijfNietGevonden')}</p>
               </div>
             )}
 
@@ -1475,7 +1487,7 @@ export default function Dashboard() {
             {/* ── BEDRIJF TAB ── */}
             {actieveTab === 'bedrijf' && !bedrijf && (
               <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <p className="text-sm" style={{ color: 'var(--text-3)' }}>Bedrijfsdata kon niet worden geladen. Ververs de pagina of neem contact op met support.</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.bedrijfNietGeladen')}</p>
               </div>
             )}
             {actieveTab === 'bedrijf' && bedrijf && (
@@ -1512,26 +1524,35 @@ type VerlofTabProps = {
   onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
 }
 
-const VERLOF_TYPE_LABELS: Record<string, { icon: typeof TreePalm; label: string }> = {
-  vakantie: { icon: TreePalm, label: 'Vakantie' },
-  ziekte: { icon: Thermometer, label: 'Ziekte' },
-  bijzonder: { icon: Star, label: 'Bijzonder' },
-  onbetaald: { icon: Briefcase, label: 'Onbetaald' },
-  overig: { icon: ClipboardList, label: 'Overig' },
+/** Icoon per verloftype; het label staat in voortgang.dashboard.verlofType.<type>. */
+const VERLOF_TYPE_ICOON: Record<string, typeof TreePalm> = {
+  vakantie: TreePalm,
+  ziekte: Thermometer,
+  bijzonder: Star,
+  onbetaald: Briefcase,
+  overig: ClipboardList,
 }
 
 function VerlofTypeLabel({ type }: { type: string }) {
-  const entry = VERLOF_TYPE_LABELS[type]
-  if (!entry) return <>{type}</>
-  const Icon = entry.icon
+  const { t } = useVertaling()
+  const Icon = VERLOF_TYPE_ICOON[type]
+  if (!Icon) return <>{type}</>
   return (
     <span className="inline-flex items-center gap-1 align-middle">
-      <Icon size={12} aria-hidden="true" /> {entry.label}
+      <Icon size={12} aria-hidden="true" /> {t(`voortgang.dashboard.verlofType.${type}`)}
     </span>
   )
 }
 
+/** "3 jan" of "3 jan t/m 5 jan" in de taal van de gebruiker. */
+function periodeTekst(van: string, tot: string, locale: string, t: (sleutel: string, params?: Record<string, string | number>) => string): string {
+  const opmaak = (d: string) => new Date(d).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  return van !== tot ? t('voortgang.dashboard.periode', { van: opmaak(van), tot: opmaak(tot) }) : opmaak(van)
+}
+
 function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [notities, setNotities] = useState<Record<string, string>>({})
   const [verwerking, setVerwerking] = useState<string | null>(null)
 
@@ -1550,14 +1571,14 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
 
   function dagenTekst(van: string, tot: string) {
     const d = Math.max(1, Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86400000) + 1)
-    return `${d} dag${d !== 1 ? 'en' : ''}`
+    return t(d === 1 ? 'voortgang.dashboard.dagEen' : 'voortgang.dashboard.dagMeer', { n: d })
   }
 
   return (
     <div>
       {pending.length > 0 && (
         <div className="mb-6">
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>In behandeling ({pending.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.inBehandelingTeller', { n: pending.length })}</p>
           <div className="flex flex-col gap-3">
             {pending.map(v => (
               <div key={v.id} className="rounded-2xl border p-4"
@@ -1567,18 +1588,17 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{v.naam}</p>
                     <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                       <VerlofTypeLabel type={v.type} /> ·{' '}
-                      {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
-                      {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
+                      {periodeTekst(v.datum_van, v.datum_tot, locale, t)}
                       {' '}· {dagenTekst(v.datum_van, v.datum_tot)}
                     </p>
                     {v.reden && <p className="text-xs mt-1" style={{ color: 'var(--text-3)' }}>&quot;{v.reden}&quot;</p>}
                   </div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
-                    style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>In behandeling</span>
+                    style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>{t('voortgang.dashboard.inBehandeling')}</span>
                 </div>
                 <input
                   type="text"
-                  placeholder="Optionele notitie voor medewerker..."
+                  placeholder={t('voortgang.dashboard.notitieMedewerker')}
                   value={notities[v.id] ?? ''}
                   onChange={e => setNotities(prev => ({ ...prev, [v.id]: e.target.value }))}
                   className="mf-input w-full rounded-xl px-3 py-2 text-xs outline-none mb-3"
@@ -1588,13 +1608,13 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                     disabled={verwerking === v.id}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
                     style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-                    <Check size={14} aria-hidden="true" /> Goedkeuren
+                    <Check size={14} aria-hidden="true" /> {t('voortgang.dashboard.goedkeuren')}
                   </button>
                   <button onClick={() => behandel(v.id, 'afgewezen')}
                     disabled={verwerking === v.id}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
                     style={{ background: 'var(--mf-red)', color: 'var(--bg-app)' }}>
-                    <X size={14} aria-hidden="true" /> Afwijzen
+                    <X size={14} aria-hidden="true" /> {t('voortgang.dashboard.afwijzen')}
                   </button>
                 </div>
               </div>
@@ -1605,7 +1625,7 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
 
       {behandeld.length > 0 && (
         <div>
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Behandeld ({behandeld.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.behandeldTeller', { n: behandeld.length })}</p>
           <div className="flex flex-col gap-2">
             {behandeld.map(v => (
               <div key={v.id} className="rounded-2xl border px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
@@ -1613,8 +1633,7 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                   <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{v.naam}</p>
                   <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                     <VerlofTypeLabel type={v.type} /> ·{' '}
-                    {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
-                    {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
+                    {periodeTekst(v.datum_van, v.datum_tot, locale, t)}
                   </p>
                 </div>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 inline-flex items-center gap-1"
@@ -1622,8 +1641,8 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                     ? { background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }
                     : { background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}>
                   {v.status === 'goedgekeurd'
-                    ? <><Check size={12} aria-hidden="true" /> Goedgekeurd</>
-                    : <><X size={12} aria-hidden="true" /> Afgewezen</>}
+                    ? <><Check size={12} aria-hidden="true" /> {t('voortgang.dashboard.goedgekeurd')}</>
+                    : <><X size={12} aria-hidden="true" /> {t('voortgang.dashboard.afgewezen')}</>}
                 </span>
               </div>
             ))}
@@ -1639,7 +1658,7 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
             </div>
             <span style={{ position: 'relative', zIndex: 1, color: 'var(--mf-green)' }}><TreePalm size={32} aria-hidden="true" /></span>
           </div>
-          <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen verlofaanvragen.</p>
+          <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.geenVerlof')}</p>
         </div>
       )}
     </div>
@@ -1653,27 +1672,30 @@ type DeclaratiesTabProps = {
   onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
 }
 
-const DECL_CAT_LABELS: Record<string, { icon: typeof Car; label: string }> = {
-  reiskosten: { icon: Car, label: 'Reiskosten' },
-  maaltijd: { icon: Utensils, label: 'Maaltijd' },
-  materiaal: { icon: Package, label: 'Materiaal' },
-  training: { icon: GraduationCap, label: 'Training' },
-  representatie: { icon: Handshake, label: 'Representatie' },
-  overig: { icon: Wallet, label: 'Overig' },
+/** Icoon per categorie; het label staat in voortgang.dashboard.declCat.<categorie>. */
+const DECL_CAT_ICOON: Record<string, typeof Car> = {
+  reiskosten: Car,
+  maaltijd: Utensils,
+  materiaal: Package,
+  training: GraduationCap,
+  representatie: Handshake,
+  overig: Wallet,
 }
 
 function DeclCatLabel({ categorie }: { categorie: string }) {
-  const entry = DECL_CAT_LABELS[categorie]
-  if (!entry) return <>{categorie}</>
-  const Icon = entry.icon
+  const { t } = useVertaling()
+  const Icon = DECL_CAT_ICOON[categorie]
+  if (!Icon) return <>{categorie}</>
   return (
     <span className="inline-flex items-center gap-1 align-middle">
-      <Icon size={12} aria-hidden="true" /> {entry.label}
+      <Icon size={12} aria-hidden="true" /> {t(`voortgang.dashboard.declCat.${categorie}`)}
     </span>
   )
 }
 
 function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [notities, setNotities] = useState<Record<string, string>>({})
   const [verwerking, setVerwerking] = useState<string | null>(null)
 
@@ -1695,16 +1717,16 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
     <div>
       {totaalOpenstaand > 0 && (
         <div className="rounded-2xl border p-4 mb-5 flex items-center justify-between" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <p className="text-sm" style={{ color: 'var(--text-2)' }}>Totaal openstaand</p>
+          <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.totaalOpenstaand')}</p>
           <p className="text-lg font-bold" style={{ color: 'var(--mf-purple)' }}>
-            €{totaalOpenstaand.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
+            €{totaalOpenstaand.toLocaleString(locale, { minimumFractionDigits: 2 })}
           </p>
         </div>
       )}
 
       {pending.length > 0 && (
         <div className="mb-6">
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>In behandeling ({pending.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.inBehandelingTeller', { n: pending.length })}</p>
           <div className="flex flex-col gap-3">
             {pending.map(d => (
               <div key={d.id} className="rounded-2xl border p-4"
@@ -1714,17 +1736,17 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{d.naam}</p>
                     <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                       <DeclCatLabel categorie={d.categorie} /> ·{' '}
-                      {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(d.datum).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>{d.beschrijving}</p>
                   </div>
                   <p className="text-lg font-bold flex-shrink-0" style={{ color: 'var(--text-1)' }}>
-                    €{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
+                    €{d.bedrag.toLocaleString(locale, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 <input
                   type="text"
-                  placeholder="Optionele notitie..."
+                  placeholder={t('voortgang.dashboard.notitie')}
                   value={notities[d.id] ?? ''}
                   onChange={e => setNotities(prev => ({ ...prev, [d.id]: e.target.value }))}
                   className="mf-input w-full rounded-xl px-3 py-2 text-xs outline-none mb-3"
@@ -1734,13 +1756,13 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
                     disabled={verwerking === d.id}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
                     style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-                    <Check size={14} aria-hidden="true" /> Goedkeuren
+                    <Check size={14} aria-hidden="true" /> {t('voortgang.dashboard.goedkeuren')}
                   </button>
                   <button onClick={() => behandel(d.id, 'afgewezen')}
                     disabled={verwerking === d.id}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
                     style={{ background: 'var(--mf-red)', color: 'var(--bg-app)' }}>
-                    <X size={14} aria-hidden="true" /> Afwijzen
+                    <X size={14} aria-hidden="true" /> {t('voortgang.dashboard.afwijzen')}
                   </button>
                 </div>
               </div>
@@ -1751,7 +1773,7 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
 
       {behandeld.length > 0 && (
         <div>
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Behandeld ({behandeld.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('voortgang.dashboard.behandeldTeller', { n: behandeld.length })}</p>
           <div className="flex flex-col gap-2">
             {behandeld.map(d => (
               <div key={d.id} className="rounded-2xl border px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
@@ -1762,14 +1784,14 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-2)' }}>€{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--text-2)' }}>€{d.bedrag.toLocaleString(locale, { minimumFractionDigits: 2 })}</p>
                   <span className="flex items-center justify-center w-6 h-6 rounded-full"
                     style={d.status === 'goedgekeurd'
                       ? { background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }
                       : { background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}>
                     {d.status === 'goedgekeurd'
-                      ? <Check size={13} aria-label="Goedgekeurd" />
-                      : <X size={13} aria-label="Afgewezen" />}
+                      ? <Check size={13} aria-label={t('voortgang.dashboard.goedgekeurd')} />
+                      : <X size={13} aria-label={t('voortgang.dashboard.afgewezen')} />}
                   </span>
                 </div>
               </div>
@@ -1786,7 +1808,7 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
             </div>
             <span style={{ position: 'relative', zIndex: 1, color: 'var(--mf-green)' }}><Wallet size={32} aria-hidden="true" /></span>
           </div>
-          <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen declaraties ingediend.</p>
+          <p className="text-sm" style={{ color: 'var(--text-3)' }}>{t('voortgang.dashboard.geenDeclaraties')}</p>
         </div>
       )}
     </div>

@@ -14,21 +14,27 @@ import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/componen
 import { PijlerBadge } from '@/components/coaching/PijlerBadge'
 import { TrajectTijdlijn } from '@/components/coaching/TrajectTijdlijn'
 import { TrajectFormulier } from '@/components/coaching/TrajectFormulier'
-import { PIJLERS, PIJLER_VOLGORDE } from '@/lib/coaching/pijlers'
+import { PIJLER_VOLGORDE } from '@/lib/coaching/pijlers'
 import { TRAJECT_STATUS_STIJL, type TrajectMetFases } from '@/lib/coaching/traject'
 import { Route, Pencil, CalendarRange, Flag, ShieldAlert } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
 
-function datumKort(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+type Vertaler = (sleutel: string, params?: Params) => string
+
+function datumKort(iso: string, taal: Taal): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function weekStatusTekst(week: number, duurMaanden: number): string {
-  if (week < 1) return 'Nog niet gestart'
+function weekStatusTekst(week: number, duurMaanden: number, t: Vertaler): string {
+  if (week < 1) return t('coaching.traject.nietGestart')
   const totaalWeken = Math.round(duurMaanden * 4.345)
-  return `Week ${week} van ~${totaalWeken}`
+  return t('coaching.traject.weekVan', { week, totaal: totaalWeken })
 }
 
 export default function TrajectPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const params = useParams<{ klantId: string }>()
   const klantId = params.klantId
@@ -73,11 +79,11 @@ export default function TrajectPagina() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Traject"
-          titel="Traject"
-          subtitel={`Begeleidingslijn voor ${klantNaam ?? 'je klant'} — opgebouwd rond de drie pijlers.`}
+          eyebrow={t('coaching.tabs.traject')}
+          titel={t('coaching.tabs.traject')}
+          subtitel={t('coaching.traject.subtitel', { naam: klantNaam ?? t('coaching.traject.jeKlant') })}
           backHref={`/coaching/${klantId}`}
-          backLabel="Terug naar klant"
+          backLabel={t('coaching.algemeen.terugNaarKlant')}
         />
 
         {laden ? (
@@ -86,8 +92,8 @@ export default function TrajectPagina() {
           <CoachEmpty
             icon={ShieldAlert}
             toon="wacht"
-            titel="Klant niet gevonden"
-            tekst="Deze klant is niet aan jou gekoppeld of bestaat niet."
+            titel={t('coaching.klant.nietGevondenTitel')}
+            tekst={t('coaching.klant.nietGevondenTekst')}
           />
         ) : (
           <>
@@ -97,7 +103,7 @@ export default function TrajectPagina() {
                 {PIJLER_VOLGORDE.map(p => (
                   <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 210, flex: 1 }}>
                     <PijlerBadge pijler={p} />
-                    <span style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>{PIJLERS[p].omschrijving}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>{t(`coaching.labels.pijlerOmschrijving.${p}`)}</span>
                   </div>
                 ))}
               </div>
@@ -116,9 +122,9 @@ export default function TrajectPagina() {
               <div className="mf-animate-up mf-delay-2">
                 <CoachEmpty
                   icon={Route}
-                  titel="Nog geen traject"
-                  tekst="Stel een traject op met fases per pijler, zodat de klant precies weet waar jullie de komende maanden aan werken."
-                  actie={<Button onClick={() => setBewerken(true)} leftIcon={<Pencil size={15} aria-hidden />}>Traject opstellen</Button>}
+                  titel={t('coaching.traject.leegTitel')}
+                  tekst={t('coaching.traject.leegTekst')}
+                  actie={<Button onClick={() => setBewerken(true)} leftIcon={<Pencil size={15} aria-hidden />}>{t('coaching.traject.opstellen')}</Button>}
                 />
               </div>
             ) : (
@@ -137,19 +143,19 @@ export default function TrajectPagina() {
                         </span>
                         <h2 className="mf-h2">{traject.traject.titel}</h2>
                         <Badge variant="neutral" style={{ background: TRAJECT_STATUS_STIJL[traject.traject.status].bg, color: TRAJECT_STATUS_STIJL[traject.traject.status].color }}>
-                          {TRAJECT_STATUS_STIJL[traject.traject.status].label}
+                          {t(`coaching.labels.trajectStatus.${traject.traject.status}`)}
                         </Badge>
                       </div>
                       {traject.traject.doel && <p className="mf-body" style={{ maxWidth: '60ch' }}>{traject.traject.doel}</p>}
                     </div>
-                    <Button variant="secondary" size="sm" onClick={() => setBewerken(true)} leftIcon={<Pencil size={14} aria-hidden />}>Bewerken</Button>
+                    <Button variant="secondary" size="sm" onClick={() => setBewerken(true)} leftIcon={<Pencil size={14} aria-hidden />}>{t('coaching.traject.bewerken')}</Button>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--text-3)' }}>
-                      <CalendarRange size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> Start {datumKort(traject.traject.start_datum)}
+                      <CalendarRange size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.traject.start', { datum: datumKort(traject.traject.start_datum, taal) })}
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--text-3)' }}>
-                      <Flag size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {traject.traject.duur_maanden} maanden
+                      <Flag size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.traject.maanden', { aantal: traject.traject.duur_maanden })}
                     </span>
                     <span style={{
                       marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -158,14 +164,14 @@ export default function TrajectPagina() {
                       border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',
                       fontVariantNumeric: 'tabular-nums',
                     }}>
-                      {weekStatusTekst(traject.huidige_week, traject.traject.duur_maanden)}
+                      {weekStatusTekst(traject.huidige_week, traject.traject.duur_maanden, t)}
                     </span>
                   </div>
                 </Card>
 
                 {/* Tijdlijn */}
                 <div className="mf-animate-up mf-delay-3">
-                  <CoachSection titel="Fases">
+                  <CoachSection titel={t('coaching.trajectFormulier.fases')}>
                     <TrajectTijdlijn data={traject} />
                   </CoachSection>
                 </div>

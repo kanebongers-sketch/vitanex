@@ -7,6 +7,7 @@
 // Interactie-states (hover/active/focus/pop) staan in de check-in-CSS op page.
 
 import { Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface Vraag {
   code:      string
@@ -31,6 +32,7 @@ interface VraagKaartProps {
 const SCHAAL = [1, 2, 3, 4, 5] as const
 
 export default function VraagKaart({ vraag, waarde, kleur, licht, nummer, stil, onChange }: VraagKaartProps) {
+  const { t } = useVertaling()
   const beantwoord = waarde !== undefined
 
   return (
@@ -59,7 +61,7 @@ export default function VraagKaart({ vraag, waarde, kleur, licht, nummer, stil, 
           const actief = waarde === n
           return (
             <button key={n} type="button" onClick={() => onChange(n)}
-              aria-label={`${vraag.label}: ${n} van 5`}
+              aria-label={t('mentaal.checkin.schaalLabel', { vraag: vraag.label, waarde: n })}
               aria-pressed={actief}
               className="mf-schaal-btn flex-1 h-12 rounded-xl text-sm font-semibold border"
               style={actief ? {

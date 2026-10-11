@@ -12,6 +12,8 @@ import { vitaEvent } from '@/lib/vita/events'
 import Navbar from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
 import ReflectieHistorie from './ReflectieHistorie'
 import ReflectieVraagStap from './ReflectieVraagStap'
@@ -20,6 +22,7 @@ import { REFLECTIE_VRAGEN, eersteOpenVraag, type ReflectieEntry } from './reflec
 export default function ReflectiePage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [antwoorden, setAntwoorden] = useState<Record<string, string>>({})
   const [opslaan, setOpslaan] = useState(false)
@@ -84,8 +87,8 @@ export default function ReflectiePage() {
     if (error) {
       toast({
         variant: 'error',
-        title: 'Opslaan mislukt',
-        description: 'Je reflectie kon niet worden opgeslagen. Probeer het opnieuw — je antwoorden staan er nog.',
+        title: t('mentaal.reflectie.opslaanMislukt'),
+        description: t('mentaal.reflectie.opslaanMisluktTekst'),
       })
       return
     }
@@ -115,13 +118,13 @@ export default function ReflectiePage() {
     setAntwoorden(prev => ({ ...prev, [vraagId]: waarde }))
   }
 
-  const weekLabel = new Date(weekStart).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
+  const weekLabel = new Date(weekStart).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long' })
   const beantwoord = REFLECTIE_VRAGEN.map(v => Boolean(antwoorden[v.id]?.trim()))
   const ingevuld = beantwoord.filter(Boolean).length
   const heeftIets = ingevuld > 0
   // Ritme uit al opgehaalde data (max 8 weken historie) — bij de kaap eerlijk '8+'.
   const wekenOpRij = berekenWekenOpRij(eerdere.map(e => e.week_start), weekStart)
-  const ritmeLabel = wekenOpRij >= 2 ? ` · ${wekenOpRij >= 8 ? '8+' : wekenOpRij} weken op rij` : ''
+  const ritmeLabel = wekenOpRij >= 2 ? ` · ${t('mentaal.reflectie.wekenOpRij', { aantal: wekenOpRij >= 8 ? '8+' : wekenOpRij })}` : ''
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -133,9 +136,9 @@ export default function ReflectiePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('mentaal.reflectie.titel')}</h1>
               <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                Week van {weekLabel} · {ingevuld} van {REFLECTIE_VRAGEN.length} beantwoord{ritmeLabel}
+                {t('mentaal.reflectie.status', { datum: weekLabel, aantal: ingevuld, totaal: REFLECTIE_VRAGEN.length })}{ritmeLabel}
               </p>
             </div>
           </div>
@@ -145,7 +148,7 @@ export default function ReflectiePage() {
             leftIcon={<History size={15} aria-hidden />}
             onClick={() => setToonHistorie(v => !v)}
           >
-            {toonHistorie ? 'Huidige week' : `Historie (${eerdere.length})`}
+            {toonHistorie ? t('mentaal.reflectie.huidigeWeek') : t('mentaal.reflectie.historie', { aantal: eerdere.length })}
           </Button>
         </div>
 
@@ -179,7 +182,7 @@ export default function ReflectiePage() {
                 leftIcon={opgeslagen ? <Check size={16} aria-hidden /> : undefined}
                 style={{ flex: 1 }}
               >
-                {opslaan ? 'Opslaan...' : opgeslagen ? 'Opgeslagen' : 'Reflectie opslaan'}
+                {opslaan ? t('mentaal.reflectie.opslaan') : opgeslagen ? t('mentaal.reflectie.opgeslagen') : t('mentaal.reflectie.opslaanKnop')}
               </Button>
               <Link
                 href="/journal"
@@ -200,7 +203,7 @@ export default function ReflectiePage() {
                 }}
               >
                 <BookOpen size={16} aria-hidden />
-                Naar journal
+                {t('mentaal.reflectie.naarJournal')}
               </Link>
             </div>
 
@@ -211,14 +214,14 @@ export default function ReflectiePage() {
                 <>
                   <span className="mf-fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-2)' }}>
                     <Check size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
-                    Opgeslagen — je kunt altijd nog aanvullen.
+                    {t('mentaal.reflectie.opgeslagenAanvullen')}
                   </span>
                   <Link
                     href="/home"
                     className="mf-reflectie-link mf-fade-in"
                     style={{ fontSize: 13, fontWeight: 600, color: 'var(--mentaforce-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
                   >
-                    Naar home →
+                    {t('mentaal.reflectie.naarHome')} →
                   </Link>
                 </>
               )}

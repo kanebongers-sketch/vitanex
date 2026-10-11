@@ -5,6 +5,8 @@
 import { Smile, Moon, Target, CheckCircle2, type LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Chart } from '@/components/ui/Chart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import SectieKop from './SectieKop'
 import type { WeekStats } from './trend'
 
@@ -13,7 +15,8 @@ interface WeekTrendsProps {
 }
 
 interface TrendDef {
-  label: string
+  /** Vaste sleutel: reekssleutel in de grafiek en woordenboek-sleutel. */
+  sleutel: 'stemming' | 'slaap' | 'focus' | 'checkins'
   Icon: LucideIcon
   eenheid: string
   kleur: string
@@ -24,42 +27,47 @@ interface TrendDef {
 
 // Trend-metrieken met label/icoon (niet kleur-only) + één-pass delta.
 const TREND_DEFS: TrendDef[] = [
-  { label: 'Stemming', Icon: Smile, eenheid: '/5', kleur: 'var(--mf-amber)', decimalen: true, yMax: 5, lees: w => w.stemming },
-  { label: 'Slaap', Icon: Moon, eenheid: 'u', kleur: 'var(--mf-purple)', decimalen: true, yMax: 9, lees: w => w.slaap },
-  { label: 'Focus', Icon: Target, eenheid: 'm', kleur: 'var(--mentaforce-primary)', decimalen: false, yMax: 120, lees: w => w.focus },
-  { label: 'Check-ins', Icon: CheckCircle2, eenheid: '×', kleur: 'var(--mf-green)', decimalen: false, yMax: 7, lees: w => w.checkins },
+  { sleutel: 'stemming', Icon: Smile, eenheid: '/5', kleur: 'var(--mf-amber)', decimalen: true, yMax: 5, lees: w => w.stemming },
+  { sleutel: 'slaap', Icon: Moon, eenheid: 'u', kleur: 'var(--mf-purple)', decimalen: true, yMax: 9, lees: w => w.slaap },
+  { sleutel: 'focus', Icon: Target, eenheid: 'm', kleur: 'var(--mentaforce-primary)', decimalen: false, yMax: 120, lees: w => w.focus },
+  { sleutel: 'checkins', Icon: CheckCircle2, eenheid: '×', kleur: 'var(--mf-green)', decimalen: false, yMax: 7, lees: w => w.checkins },
 ]
 
 export default function WeekTrends({ weekStats }: WeekTrendsProps) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   return (
     <section style={{ marginBottom: 20 }}>
-      <SectieKop style={{ marginBottom: 4 }}>Weektrend (4 weken)</SectieKop>
+      <SectieKop style={{ marginBottom: 4 }}>{t('voortgang.weekTrends.kop')}</SectieKop>
       <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>
-        Weekgemiddelden per metriek — zo zie je richting over de maand, niet één losse dag.
+        {t('voortgang.weekTrends.intro')}
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
         {TREND_DEFS.map(metric => {
+          const label = t(`voortgang.weekTrends.metriek.${metric.sleutel}`)
+          const eenheid = t(`voortgang.weekTrends.eenheid.${metric.sleutel}`)
+          const getal = (n: number, decimalen: number) => n.toLocaleString(locale, { minimumFractionDigits: decimalen, maximumFractionDigits: decimalen })
           const vals = weekStats.map(metric.lees)
           const geldigVals = vals.filter((v): v is number => v !== null && v > 0)
           const latest = geldigVals[geldigVals.length - 1] ?? null
           const vorig = geldigVals[geldigVals.length - 2] ?? null
           const delta = latest !== null && vorig !== null ? latest - vorig : null
           const deltaStr = delta !== null
-            ? `${delta >= 0 ? '+' : ''}${metric.decimalen ? delta.toFixed(1) : Math.round(delta)}`
+            ? `${delta >= 0 ? '+' : ''}${metric.decimalen ? getal(delta, 1) : getal(Math.round(delta), 0)}`
             : null
           // Stress is hier niet aanwezig; hogere waarde = beter voor alle trends.
           const deltaKleur = delta === null ? 'var(--text-4)' : (delta > 0 ? 'var(--mf-green)' : delta < 0 ? 'var(--mf-red)' : 'var(--text-4)')
           const deltaArrow = delta === null ? '→' : delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
-          const latestLabel = latest !== null ? `${metric.decimalen ? latest : Math.round(latest)}${metric.eenheid}` : '—'
+          const latestLabel = latest !== null ? `${metric.decimalen ? latest.toLocaleString(locale) : getal(Math.round(latest), 0)}${eenheid}` : '—'
 
-          const chartData = weekStats.map(w => ({ week: w.week, [metric.label]: metric.lees(w) }))
+          const chartData = weekStats.map(w => ({ week: w.week, [metric.sleutel]: metric.lees(w) }))
 
           return (
-            <Card key={metric.label} style={{ padding: '16px', boxShadow: 'var(--shadow-xs)' }}>
+            <Card key={metric.sleutel} style={{ padding: '16px', boxShadow: 'var(--shadow-xs)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
                   <span style={{ display: 'inline-flex', color: metric.kleur }}><metric.Icon size={14} aria-hidden /></span>
-                  {metric.label}
+                  {label}
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: metric.kleur, fontVariantNumeric: 'tabular-nums' }}>
                   {latestLabel}
@@ -69,15 +77,15 @@ export default function WeekTrends({ weekStats }: WeekTrendsProps) {
                 type="bar"
                 data={chartData}
                 xKey="week"
-                series={[{ key: metric.label, label: metric.label, color: metric.kleur }]}
-                summary={`${metric.label} per week over de laatste 4 weken${metric.eenheid ? `, in ${metric.eenheid}` : ''}.`}
+                series={[{ key: metric.sleutel, label, color: metric.kleur }]}
+                summary={t('voortgang.weekTrends.samenvatting', { label, eenheid })}
                 yDomain={[0, metric.yMax]}
                 height={120}
               />
               {deltaStr && (
                 <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: deltaKleur, fontVariantNumeric: 'tabular-nums' }}>{deltaArrow} {deltaStr}</span>
-                  <span style={{ fontSize: 10, color: 'var(--text-4)' }}>vs vorige week</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-4)' }}>{t('voortgang.weekTrends.vsVorige')}</span>
                 </div>
               )}
             </Card>

@@ -12,8 +12,10 @@ import { TaakKaart } from '@/components/coaching/TaakKaart'
 import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import type { TaakMetVoortgang } from '@/lib/coaching/taken'
 import { ListChecks, Sparkles, Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export default function MijnTakenPagina() {
+  const { t } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [taken, setTaken] = useState<TaakMetVoortgang[]>([])
@@ -37,7 +39,7 @@ export default function MijnTakenPagina() {
     laad()
   }, [router, laadTaken])
 
-  const vandaagGehaald = useMemo(() => taken.filter(t => t.vandaag_gehaald).length, [taken])
+  const vandaagGehaald = useMemo(() => taken.filter(x => x.vandaag_gehaald).length, [taken])
   const voortgangPct = taken.length > 0 ? Math.round((vandaagGehaald / taken.length) * 100) : 0
   const allesGehaald = taken.length > 0 && vandaagGehaald === taken.length
 
@@ -47,9 +49,9 @@ export default function MijnTakenPagina() {
 
     // Optimistische update
     const delta = gehaald ? 1 : -1
-    setTaken(prev => prev.map(t => t.id === taak.id
-      ? { ...t, vandaag_gehaald: gehaald, deze_week_gehaald: Math.max(0, t.deze_week_gehaald + delta) }
-      : t))
+    setTaken(prev => prev.map(x => x.id === taak.id
+      ? { ...x, vandaag_gehaald: gehaald, deze_week_gehaald: Math.max(0, x.deze_week_gehaald + delta) }
+      : x))
 
     const res = await authFetch('/api/coaching/taken/log', {
       method: 'POST',
@@ -58,16 +60,16 @@ export default function MijnTakenPagina() {
 
     if (res.ok) {
       const data = await res.json() as { vandaag_gehaald: boolean; deze_week_gehaald: number }
-      setTaken(prev => prev.map(t => t.id === taak.id
-        ? { ...t, vandaag_gehaald: data.vandaag_gehaald, deze_week_gehaald: data.deze_week_gehaald }
-        : t))
+      setTaken(prev => prev.map(x => x.id === taak.id
+        ? { ...x, vandaag_gehaald: data.vandaag_gehaald, deze_week_gehaald: data.deze_week_gehaald }
+        : x))
       // Streak/achievements laten (her)berekenen — best-effort, faalt stil.
       void authFetch('/api/achievements/check', { method: 'POST' }).catch(() => {})
     } else {
       // Rollback bij fout
-      setTaken(prev => prev.map(t => t.id === taak.id
-        ? { ...t, vandaag_gehaald: !gehaald, deze_week_gehaald: Math.max(0, t.deze_week_gehaald - delta) }
-        : t))
+      setTaken(prev => prev.map(x => x.id === taak.id
+        ? { ...x, vandaag_gehaald: !gehaald, deze_week_gehaald: Math.max(0, x.deze_week_gehaald - delta) }
+        : x))
     }
     setBezigId(null)
   }
@@ -78,9 +80,9 @@ export default function MijnTakenPagina() {
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
         <CoachHeader
-          eyebrow="Vandaag"
-          titel="Mijn taken"
-          subtitel="De gewoontes die je coach voor je heeft klaargezet. Vink af wat je vandaag hebt gedaan."
+          eyebrow={t('coaching.mijnTaken.vandaag')}
+          titel={t('coaching.mijnTaken.titel')}
+          subtitel={t('coaching.mijnTaken.subtitel')}
         />
 
         {laden ? (
@@ -88,8 +90,8 @@ export default function MijnTakenPagina() {
         ) : taken.length === 0 ? (
           <CoachEmpty
             icon={ListChecks}
-            titel="Nog geen taken"
-            tekst="Zodra je coach gewoontes voor je toewijst, verschijnen ze hier om dagelijks af te vinken."
+            titel={t('coaching.takenBeheer.leegTitel')}
+            tekst={t('coaching.mijnTaken.leegTekst')}
           />
         ) : (
           <>
@@ -101,7 +103,7 @@ export default function MijnTakenPagina() {
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
                 <div style={{ minWidth: 0 }}>
                   <p className="mf-overline" style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12, color: 'var(--text-3)' }}>
-                    <Sparkles size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> Vandaag
+                    <Sparkles size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.mijnTaken.vandaag')}
                   </p>
                   <p className="mf-number-large" style={{ lineHeight: 1, color: allesGehaald ? 'var(--mf-green)' : 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
                     {vandaagGehaald}
@@ -109,8 +111,8 @@ export default function MijnTakenPagina() {
                   </p>
                   <p className="mf-caption" style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {allesGehaald
-                      ? <><Check size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> Alles afgevinkt — sterk gedaan.</>
-                      : 'gewoontes afgevinkt vandaag'}
+                      ? <><Check size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('coaching.mijnTaken.allesAf')}</>
+                      : t('coaching.mijnTaken.afgevinkt')}
                   </p>
                 </div>
                 <span
@@ -126,7 +128,7 @@ export default function MijnTakenPagina() {
                 aria-valuenow={voortgangPct}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label="Taken vandaag afgevinkt"
+                aria-label={t('coaching.mijnTaken.voortgangAria')}
                 style={{ height: 8, borderRadius: 100, background: 'var(--bg-subtle)', overflow: 'hidden' }}
               >
                 <div
@@ -139,13 +141,13 @@ export default function MijnTakenPagina() {
               </div>
             </Card>
 
-            <section aria-label="Mijn taken" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {taken.map(t => (
+            <section aria-label={t('coaching.mijnTaken.titel')} className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {taken.map(taak => (
                 <TaakKaart
-                  key={t.id}
-                  taak={t}
-                  bezig={bezigId === t.id}
-                  onToggle={gehaald => toggle(t, gehaald)}
+                  key={taak.id}
+                  taak={taak}
+                  bezig={bezigId === taak.id}
+                  onToggle={gehaald => toggle(taak, gehaald)}
                 />
               ))}
             </section>

@@ -14,20 +14,23 @@ import { Field } from '@/components/ui/Field'
 import { CoachHeader, CoachStat, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { MailPlus, Mail, X, Check, Clock } from 'lucide-react'
 import type { CoachingUitnodiging, UitnodigingStatus } from '@/lib/coaching/uitnodiging'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
-const STATUS_STIJL: Record<UitnodigingStatus, { variant: 'warning' | 'success' | 'neutral'; label: string }> = {
-  open:         { variant: 'warning', label: 'Openstaand' },
-  geaccepteerd: { variant: 'success', label: 'Geaccepteerd' },
-  ingetrokken:  { variant: 'neutral', label: 'Ingetrokken' },
-  verlopen:     { variant: 'neutral', label: 'Verlopen' },
+const STATUS_VARIANT: Record<UitnodigingStatus, 'warning' | 'success' | 'neutral'> = {
+  open:         'warning',
+  geaccepteerd: 'success',
+  ingetrokken:  'neutral',
+  verlopen:     'neutral',
 }
 
-function formatDatum(waarde: string | null): string {
+function formatDatum(waarde: string | null, taal: Taal): string {
   if (!waarde) return ''
-  return new Date(waarde).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(waarde).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 export default function CoachingUitnodigenPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [uitnodigingen, setUitnodigingen] = useState<CoachingUitnodiging[]>([])
@@ -72,12 +75,12 @@ export default function CoachingUitnodigenPagina() {
     })
     const data = await res.json() as { error?: string; email?: string }
     if (res.ok) {
-      setSucces(`Uitnodiging verstuurd naar ${data.email ?? email.trim()}.`)
+      setSucces(t('coaching.uitnodigen.verstuurd', { email: data.email ?? email.trim() }))
       setEmail('')
       setNaam('')
       await laadUitnodigingen()
     } else {
-      setFout(data.error ?? 'Uitnodigen mislukt.')
+      setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.uitnodigen.mislukt'))
     }
     setBezig(false)
   }
@@ -92,7 +95,7 @@ export default function CoachingUitnodigenPagina() {
       await laadUitnodigingen()
     } else {
       const data = await res.json().catch(() => ({})) as { error?: string }
-      setFout(data.error ?? 'Intrekken mislukt.')
+      setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.uitnodigen.intrekkenMislukt'))
     }
     setIntrekBezig(null)
   }
@@ -105,11 +108,11 @@ export default function CoachingUitnodigenPagina() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Coaching"
-          titel="Klant uitnodigen"
-          subtitel="Nodig een nieuwe klant uit per e-mail. Ze maken een account aan of loggen in en worden automatisch aan jou gekoppeld."
+          eyebrow={t('coaching.overzicht.eyebrow')}
+          titel={t('coaching.overzicht.uitnodigen')}
+          subtitel={t('coaching.uitnodigen.subtitel')}
           backHref="/coaching"
-          backLabel="Terug naar klanten"
+          backLabel={t('coaching.algemeen.terugNaarKlanten')}
         />
 
         {laden ? (
@@ -118,28 +121,28 @@ export default function CoachingUitnodigenPagina() {
           <>
             {/* Hero-stats */}
             <div className="mf-animate-up mf-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
-              <CoachStat label="Verstuurd" waarde={uitnodigingen.length} glow={uitnodigingen.length > 0} />
-              <CoachStat label="Openstaand" waarde={openstaand} accent={openstaand > 0 ? 'var(--mf-amber)' : 'var(--text-1)'} />
-              <CoachStat label="Geaccepteerd" waarde={geaccepteerd} accent="var(--mf-green)" />
+              <CoachStat label={t('coaching.uitnodigen.statVerstuurd')} waarde={uitnodigingen.length} glow={uitnodigingen.length > 0} />
+              <CoachStat label={t('coaching.labels.uitnodigingStatus.open')} waarde={openstaand} accent={openstaand > 0 ? 'var(--mf-amber)' : 'var(--text-1)'} />
+              <CoachStat label={t('coaching.labels.uitnodigingStatus.geaccepteerd')} waarde={geaccepteerd} accent="var(--mf-green)" />
             </div>
 
             {/* Uitnodigen-formulier */}
             <Card className="mf-animate-up mf-delay-2" style={{ padding: '20px 22px', marginBottom: 28 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MailPlus size={15} aria-hidden style={{ color: 'var(--mf-green)' }} />
-                Nieuwe uitnodiging
+                {t('coaching.uitnodigen.nieuwe')}
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>
-                De link in de e-mail blijft 14 dagen geldig. De klant bepaalt zelf welke gegevens ze delen.
+                {t('coaching.uitnodigen.uitleg')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ flex: 2, minWidth: 220 }}>
-                    <Field label="E-mailadres klant" error={fout ?? undefined}>
+                    <Field label={t('coaching.overzicht.emailLabel')} error={fout ?? undefined}>
                       <input
                         type="email"
                         className="mf-input"
-                        placeholder="klant@voorbeeld.nl"
+                        placeholder={t('coaching.overzicht.emailPlaceholder')}
                         value={email}
                         autoComplete="off"
                         onChange={e => { setEmail(e.target.value); setFout(null); setSucces(null) }}
@@ -149,11 +152,11 @@ export default function CoachingUitnodigenPagina() {
                     </Field>
                   </div>
                   <div style={{ flex: 1, minWidth: 160 }}>
-                    <Field label="Naam (optioneel)">
+                    <Field label={t('coaching.uitnodigen.naam')}>
                       <input
                         type="text"
                         className="mf-input"
-                        placeholder="Voornaam"
+                        placeholder={t('coaching.uitnodigen.voornaam')}
                         value={naam}
                         autoComplete="off"
                         onChange={e => setNaam(e.target.value)}
@@ -165,7 +168,7 @@ export default function CoachingUitnodigenPagina() {
                 </div>
                 <div>
                   <Button onClick={verstuurUitnodiging} loading={bezig} disabled={!email.trim()} leftIcon={<Mail size={15} aria-hidden />}>
-                    Uitnodiging versturen
+                    {t('coaching.uitnodigen.versturen')}
                   </Button>
                 </div>
               </div>
@@ -178,13 +181,13 @@ export default function CoachingUitnodigenPagina() {
             {uitnodigingen.length === 0 ? (
               <CoachEmpty
                 icon={Mail}
-                titel="Nog geen uitnodigingen"
-                tekst="Stuur je eerste uitnodiging via het e-mailadres van je klant."
+                titel={t('coaching.uitnodigen.leegTitel')}
+                tekst={t('coaching.uitnodigen.leegTekst')}
               />
             ) : (
-              <section aria-label="Verstuurde uitnodigingen" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <section aria-label={t('coaching.uitnodigen.lijstAria')} className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {uitnodigingen.map(u => {
-                  const stijl = STATUS_STIJL[u.status]
+                  const variant = STATUS_VARIANT[u.status]
                   const verloopt = u.status === 'open' ? new Date(u.verloopt_op).getTime() < Date.now() : false
                   const isAcc = u.status === 'geaccepteerd'
                   const wachtOpen = u.status === 'open' && !verloopt
@@ -205,13 +208,13 @@ export default function CoachingUitnodigenPagina() {
                         <p style={{ fontSize: 12.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {u.naam ? `${u.email} · ` : ''}
                           {u.status === 'geaccepteerd'
-                            ? `Geaccepteerd op ${formatDatum(u.geaccepteerd_op)}`
-                            : `Verstuurd op ${formatDatum(u.aangemaakt_op)}`}
+                            ? t('coaching.uitnodigen.geaccepteerdOp', { datum: formatDatum(u.geaccepteerd_op, taal) })
+                            : t('coaching.uitnodigen.verstuurdOp', { datum: formatDatum(u.aangemaakt_op, taal) })}
                         </p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                        <Badge variant={verloopt ? 'neutral' : stijl.variant} style={{ fontSize: 10, padding: '3px 9px' }}>
-                          {verloopt ? 'Verlopen' : stijl.label}
+                        <Badge variant={verloopt ? 'neutral' : variant} style={{ fontSize: 10, padding: '3px 9px' }}>
+                          {t(`coaching.labels.uitnodigingStatus.${verloopt ? 'verlopen' : u.status}`)}
                         </Badge>
                         {u.status === 'open' && (
                           <Button
@@ -220,10 +223,10 @@ export default function CoachingUitnodigenPagina() {
                             onClick={() => trekIn(u.id)}
                             loading={intrekBezig === u.id}
                             leftIcon={<X size={14} aria-hidden />}
-                            aria-label={`Uitnodiging voor ${u.email} intrekken`}
+                            aria-label={t('coaching.uitnodigen.intrekkenAria', { email: u.email })}
                             style={{ color: 'var(--mf-red)' }}
                           >
-                            Intrekken
+                            {t('coaching.uitnodigen.intrekken')}
                           </Button>
                         )}
                       </div>

@@ -4,6 +4,9 @@
 // eerlijk in plaats van lege kaarten te renderen. Duidingen zijn schuldvrij en
 // komen uitsluitend uit echte, al opgehaalde weekdata.
 
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_VOORTGANG } from '@/lib/pijlers/teksten'
+
 export interface WeekStats {
   stemming: number | null
   slaap: number | null
@@ -47,9 +50,11 @@ export function heeftWeekData(stats: WeekStats | null): boolean {
     || stats.dankbaarheid_items > 0
 }
 
-/** NL-notatie: 7.2 → '7,2'; hele getallen zonder decimaal. */
-export function formatteerGetal(waarde: number): string {
-  return Number.isInteger(waarde) ? `${waarde}` : waarde.toFixed(1).replace('.', ',')
+/** NL-notatie: 7.2 → '7,2'; hele getallen zonder decimaal. Met `locale` in die notatie. */
+export function formatteerGetal(waarde: number, locale?: string): string {
+  if (Number.isInteger(waarde)) return `${waarde}`
+  if (locale && !locale.startsWith('nl')) return waarde.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return waarde.toFixed(1).replace('.', ',')
 }
 
 // ── Kleur per metriek (zelfde drempels als de duiding-teksten) ────────────────
@@ -84,43 +89,41 @@ export function dankbaarheidKleur(items: number): string {
 
 // ── Schuldvrije NL-duiding per metriek ────────────────────────────────────────
 
-export function stemmingDuiding(v: number | null): string {
-  if (v === null) return 'Stemming: nog niets gelogd deze week.'
-  const getal = formatteerGetal(v)
-  if (v >= 4) return `Stemming gemiddeld ${getal}/5 — je zat er goed bij.`
-  if (v >= 3) return `Stemming gemiddeld ${getal}/5 — wisselend, en dat is oké.`
-  return `Stemming gemiddeld ${getal}/5 — een zwaardere week.`
+export function stemmingDuiding(v: number | null, ts: Taalset = NL_VOORTGANG): string {
+  if (v === null) return ts.t('voortgang.duiding.stemmingLeeg')
+  const getal = formatteerGetal(v, ts.locale)
+  if (v >= 4) return ts.t('voortgang.duiding.stemmingGoed', { getal })
+  if (v >= 3) return ts.t('voortgang.duiding.stemmingWisselend', { getal })
+  return ts.t('voortgang.duiding.stemmingZwaar', { getal })
 }
 
-export function slaapDuiding(v: number | null): string {
-  if (v === null) return 'Slaap: nog niets gelogd deze week.'
-  const getal = formatteerGetal(v)
-  if (v >= 7) return `Slaap gemiddeld ${getal} uur — een gezond ritme.`
-  if (v >= 5) return `Slaap gemiddeld ${getal} uur — aan de korte kant.`
-  return `Slaap gemiddeld ${getal} uur — je lichaam vraagt om meer rust.`
+export function slaapDuiding(v: number | null, ts: Taalset = NL_VOORTGANG): string {
+  if (v === null) return ts.t('voortgang.duiding.slaapLeeg')
+  const getal = formatteerGetal(v, ts.locale)
+  if (v >= 7) return ts.t('voortgang.duiding.slaapGoed', { getal })
+  if (v >= 5) return ts.t('voortgang.duiding.slaapKort', { getal })
+  return ts.t('voortgang.duiding.slaapTeKort', { getal })
 }
 
 /** Rust = 10 − gemiddelde stress; hoger is rustiger. */
-export function rustDuiding(rust: number | null): string {
-  if (rust === null) return 'Rust: nog geen stresslogs deze week.'
-  const getal = formatteerGetal(rust)
-  if (rust >= 7) return `Rust ${getal}/10 — de spanning bleef laag.`
-  if (rust >= 5) return `Rust ${getal}/10 — gemiddelde spanning, niets geks.`
-  return `Rust ${getal}/10 — een gespannen week; wees mild voor jezelf.`
+export function rustDuiding(rust: number | null, ts: Taalset = NL_VOORTGANG): string {
+  if (rust === null) return ts.t('voortgang.duiding.rustLeeg')
+  const getal = formatteerGetal(rust, ts.locale)
+  if (rust >= 7) return ts.t('voortgang.duiding.rustLaag', { getal })
+  if (rust >= 5) return ts.t('voortgang.duiding.rustGemiddeld', { getal })
+  return ts.t('voortgang.duiding.rustGespannen', { getal })
 }
 
 /** Eén feitelijke zin over gelogde activiteit — zonder druk of schuld. */
-export function activiteitDuiding(checkins: number, dankbaarheid: number): string {
-  if (checkins === 0 && dankbaarheid === 0) {
-    return 'Nog geen check-ins of dankbaarheidsmomenten deze week — alles wat je logt, scherpt dit beeld aan.'
-  }
+export function activiteitDuiding(checkins: number, dankbaarheid: number, ts: Taalset = NL_VOORTGANG): string {
+  if (checkins === 0 && dankbaarheid === 0) return ts.t('voortgang.duiding.activiteitLeeg')
   const checkinDeel = checkins === 0
-    ? 'nog geen check-ins'
-    : `${checkins} ${checkins === 1 ? 'check-in' : 'check-ins'}`
+    ? ts.t('voortgang.duiding.geenCheckins')
+    : ts.t(checkins === 1 ? 'voortgang.duiding.checkinEen' : 'voortgang.duiding.checkinMeer', { n: checkins })
   const dankDeel = dankbaarheid === 0
-    ? 'nog geen dankbaarheidsmomenten'
-    : `${dankbaarheid} ${dankbaarheid === 1 ? 'dankbaarheidsmoment' : 'dankbaarheidsmomenten'}`
-  return `Deze week: ${checkinDeel} en ${dankDeel} gelogd.`
+    ? ts.t('voortgang.duiding.geenDank')
+    : ts.t(dankbaarheid === 1 ? 'voortgang.duiding.dankEen' : 'voortgang.duiding.dankMeer', { n: dankbaarheid })
+  return ts.t('voortgang.duiding.activiteit', { checkins: checkinDeel, dank: dankDeel })
 }
 
 // ── Metriek-model voor de ringen ──────────────────────────────────────────────
@@ -136,20 +139,20 @@ export interface Metriek {
 }
 
 /** De drie ring-metrieken, afgeleid uit de echte weekstats. */
-export function metrieken(stats: WeekStats): Metriek[] {
+export function metrieken(stats: WeekStats, ts: Taalset = NL_VOORTGANG): Metriek[] {
   const rust = stats.stress === null ? null : 10 - stats.stress
   return [
     {
-      key: 'stemming', label: 'Stemming', waarde: stats.stemming, max: 5, eenheid: '/5',
-      kleur: stemmingKleur(stats.stemming), duiding: stemmingDuiding(stats.stemming),
+      key: 'stemming', label: ts.t('voortgang.metrieken.stemming'), waarde: stats.stemming, max: 5, eenheid: '/5',
+      kleur: stemmingKleur(stats.stemming), duiding: stemmingDuiding(stats.stemming, ts),
     },
     {
-      key: 'slaap', label: 'Slaap', waarde: stats.slaap, max: 9, eenheid: 'u',
-      kleur: slaapKleur(stats.slaap), duiding: slaapDuiding(stats.slaap),
+      key: 'slaap', label: ts.t('voortgang.metrieken.slaap'), waarde: stats.slaap, max: 9, eenheid: ts.t('voortgang.metrieken.uur'),
+      kleur: slaapKleur(stats.slaap), duiding: slaapDuiding(stats.slaap, ts),
     },
     {
-      key: 'rust', label: 'Rust', waarde: rust, max: 10, eenheid: '/10',
-      kleur: rustKleur(rust), duiding: rustDuiding(rust),
+      key: 'rust', label: ts.t('voortgang.metrieken.rust'), waarde: rust, max: 10, eenheid: '/10',
+      kleur: rustKleur(rust), duiding: rustDuiding(rust, ts),
     },
   ]
 }

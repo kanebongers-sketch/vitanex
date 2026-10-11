@@ -3,6 +3,7 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ElementRef, type ReactNode } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useVertaling } from '@/lib/i18n/TaalProvider';
 
 /**
  * Dialog — toegankelijke modal op basis van @radix-ui/react-dialog.
@@ -69,7 +70,8 @@ export interface DialogContentProps extends ComponentPropsWithoutRef<typeof Radi
 }
 
 export const DialogContent = forwardRef<ElementRef<typeof RadixDialog.Content>, DialogContentProps>(
-  function DialogContent({ children, style, className, showClose = true, closeLabel = 'Sluiten', ...rest }, ref) {
+  function DialogContent({ children, style, className, showClose = true, closeLabel, ...rest }, ref) {
+    const { t } = useVertaling();
     return (
       <DialogPortal>
         <DialogOverlay />
@@ -98,7 +100,7 @@ export const DialogContent = forwardRef<ElementRef<typeof RadixDialog.Content>, 
           {children}
           {showClose && (
             <RadixDialog.Close
-              aria-label={closeLabel}
+              aria-label={closeLabel ?? t('account.ui.sluiten')}
               className="mf-pressable"
               style={{
                 position: 'absolute',

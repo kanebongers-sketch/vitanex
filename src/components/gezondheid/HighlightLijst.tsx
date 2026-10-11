@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { METRIEKEN } from '@/lib/health/gezondheid-metrics'
+import { metriekLabel } from '@/lib/health/gezondheid-metrics'
 import type { Highlight } from '@/lib/gezondheid/highlights'
+import { useTaalset } from './useTaalset'
 import styles from './gezondheid.module.css'
 
 interface HighlightLijstProps {
@@ -12,15 +13,8 @@ interface HighlightLijstProps {
   metLink?: boolean
 }
 
-function Onderbouwing({ highlight }: { highlight: Highlight }) {
-  return (
-    <>
-      {highlight.recentAantal} metingen, vergeleken met de mediaan van {highlight.normaalAantal} metingen daarvoor
-    </>
-  )
-}
-
 export function HighlightLijst({ highlights, metLink = true }: HighlightLijstProps) {
+  const ts = useTaalset()
   return (
     <ul className={styles.highlights}>
       {highlights.map((h) => (
@@ -29,14 +23,16 @@ export function HighlightLijst({ highlights, metLink = true }: HighlightLijstPro
             <Link href={`/gezondheid/${h.sleutel}`} className={styles.highlight}>
               <p className={styles.highlightTekst}>{h.tekst}</p>
               <span className={styles.highlightMeta}>
-                {METRIEKEN[h.sleutel].label} bekijken
+                {ts.t('lichaam.highlight.bekijken', { label: metriekLabel(h.sleutel, ts) })}
                 <ArrowRight size={14} aria-hidden="true" />
               </span>
             </Link>
           ) : (
             <div className={styles.highlight}>
               <p className={styles.highlightTekst}>{h.tekst}</p>
-              <span className={styles.highlightMeta}><Onderbouwing highlight={h} /></span>
+              <span className={styles.highlightMeta}>
+                {ts.t('lichaam.highlight.onderbouwing', { recent: h.recentAantal, normaal: h.normaalAantal })}
+              </span>
             </div>
           )}
         </li>

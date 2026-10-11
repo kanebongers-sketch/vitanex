@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { Avatar } from '@/components/ui/Avatar'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Medewerker = {
   id: string
@@ -25,10 +26,11 @@ type Medewerker = {
   locatie: string | null
 }
 
+// Labels staan in het woordenboek: werk.rol.<rol>
 const ROL_LABELS: Record<string, string> = {
-  admin: 'Administrator',
-  hr: 'HR Manager',
-  medewerker: 'Medewerker',
+  admin: 'werk.rol.admin',
+  hr: 'werk.rol.hr',
+  medewerker: 'werk.rol.medewerker',
 }
 
 type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
@@ -45,6 +47,8 @@ function rolVariant(rol: string): BadgeVariant {
 
 export default function DirectoryPage() {
   const router = useRouter()
+  const { t } = useVertaling()
+  const rolLabel = (rol: string) => (ROL_LABELS[rol] ? t(ROL_LABELS[rol]) : rol)
   const [laden, setLaden] = useState(true)
   const [medewerkers, setMedewerkers] = useState<Medewerker[]>([])
   const [zoekterm, setZoekterm] = useState('')
@@ -94,18 +98,18 @@ export default function DirectoryPage() {
 
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Medewerkersgids</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{medewerkers.length} collega{medewerkers.length !== 1 ? "'s" : ''}</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('werk.directory.titel')}</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{medewerkers.length === 1 ? t('werk.directory.collegasEen') : t('werk.directory.collegasMeer', { aantal: medewerkers.length })}</p>
         </div>
 
         {/* Zoekbalk */}
         <div className="relative mb-3">
-          <label htmlFor="directory-zoek" className="sr-only">Zoek collega</label>
+          <label htmlFor="directory-zoek" className="sr-only">{t('werk.directory.zoekLabel')}</label>
           <Search size={17} aria-hidden style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none' }} />
           <input
             id="directory-zoek"
             type="search"
-            placeholder="Zoek op naam, functie of afdeling..."
+            placeholder={t('werk.directory.zoekPlaceholder')}
             value={zoekterm}
             onChange={e => setZoekterm(e.target.value)}
             className="mf-ui-control w-full"
@@ -123,7 +127,7 @@ export default function DirectoryPage() {
         </div>
 
         {/* Rol filter pills */}
-        <div role="group" aria-label="Filter op rol" className="flex gap-2 mb-5 overflow-x-auto pb-1">
+        <div role="group" aria-label={t('werk.directory.filterRol')} className="flex gap-2 mb-5 overflow-x-auto pb-1">
           {rollen.map(r => {
             const actief = rolFilter === r
             return (
@@ -140,7 +144,7 @@ export default function DirectoryPage() {
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}>
-                {r === 'alle' ? 'Alle' : ROL_LABELS[r] ?? r}
+                {r === 'alle' ? t('werk.directory.alle') : rolLabel(r)}
               </button>
             )
           })}
@@ -157,7 +161,7 @@ export default function DirectoryPage() {
                   <p className="text-xl font-bold mt-3" style={{ color: 'var(--text-1)' }}>{geselecteerd.naam}</p>
                   {geselecteerd.functie && <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{geselecteerd.functie}</p>}
                   <div className="mt-2">
-                    <Badge variant={rolVariant(geselecteerd.rol)}>{ROL_LABELS[geselecteerd.rol] ?? geselecteerd.rol}</Badge>
+                    <Badge variant={rolVariant(geselecteerd.rol)}>{rolLabel(geselecteerd.rol)}</Badge>
                   </div>
                 </div>
 
@@ -166,7 +170,7 @@ export default function DirectoryPage() {
                     <div className="flex items-center gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
                       <Building2 size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
                       <div>
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Afdeling</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('werk.directory.afdeling')}</p>
                         <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{geselecteerd.afdeling}</p>
                       </div>
                     </div>
@@ -177,7 +181,7 @@ export default function DirectoryPage() {
                       style={{ borderBottom: '1px solid var(--border)' }}>
                       <Mail size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
                       <div>
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>E-mail</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('werk.directory.email')}</p>
                         <p className="text-sm font-medium" style={{ color: 'var(--mentaforce-primary)' }}>{geselecteerd.email}</p>
                       </div>
                     </a>
@@ -188,7 +192,7 @@ export default function DirectoryPage() {
                       style={{ borderBottom: '1px solid var(--border)' }}>
                       <Phone size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
                       <div>
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Telefoon</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('werk.directory.telefoon')}</p>
                         <p className="text-sm font-medium" style={{ color: 'var(--mentaforce-primary)' }}>{geselecteerd.telefoon}</p>
                       </div>
                     </a>
@@ -197,7 +201,7 @@ export default function DirectoryPage() {
                     <div className="flex items-center gap-3 py-2.5">
                       <MapPin size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
                       <div>
-                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Locatie</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t('werk.directory.locatie')}</p>
                         <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{geselecteerd.locatie}</p>
                       </div>
                     </div>
@@ -215,7 +219,7 @@ export default function DirectoryPage() {
                       fontWeight: 600,
                       fontSize: 14,
                     }}>
-                    <Mail size={16} aria-hidden /> E-mail sturen
+                    <Mail size={16} aria-hidden /> {t('werk.directory.mailSturen')}
                   </a>
                 )}
               </>
@@ -232,8 +236,8 @@ export default function DirectoryPage() {
           <Card>
             <EmptyState
               icon={Users}
-              title={zoekterm ? `Geen resultaten voor "${zoekterm}"` : 'Geen collega\'s gevonden'}
-              description={zoekterm ? 'Probeer een andere zoekterm.' : undefined}
+              title={zoekterm ? t('werk.directory.geenResultaten', { zoekterm }) : t('werk.directory.geenCollegas')}
+              description={zoekterm ? t('werk.directory.andereZoekterm') : undefined}
             />
           </Card>
         ) : (
@@ -243,7 +247,7 @@ export default function DirectoryPage() {
                 <Card
                   interactive
                   role="button"
-                  aria-label={`Bekijk profiel van ${m.naam || 'collega'}`}
+                  aria-label={t('werk.directory.bekijkProfiel', { naam: m.naam || t('werk.directory.collega') })}
                   onClick={() => setGeselecteerd(m)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGeselecteerd(m) } }}
                   className="flex items-center gap-3"
@@ -252,19 +256,19 @@ export default function DirectoryPage() {
                   <Avatar naam={m.naam || '?'} avatarUrl={m.avatar_url} size={44} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{m.naam || 'Onbekend'}</p>
-                      {m.id === mijnId && <Badge variant="accent">jij</Badge>}
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{m.naam || t('werk.directory.onbekend')}</p>
+                      {m.id === mijnId && <Badge variant="accent">{t('werk.directory.jij')}</Badge>}
                     </div>
                     <p className="text-xs truncate" style={{ color: 'var(--text-4)' }}>
                       {m.functie ?? m.afdeling ?? m.email ?? '—'}
                     </p>
                   </div>
-                  <Badge variant={rolVariant(m.rol)}>{ROL_LABELS[m.rol] ?? m.rol}</Badge>
+                  <Badge variant={rolVariant(m.rol)}>{rolLabel(m.rol)}</Badge>
                 </Card>
               </li>
             ))}
             {(zoekterm || rolFilter !== 'alle') && (
-              <p className="text-xs text-center pt-2" style={{ color: 'var(--text-4)' }}>{gefilterd.length} van {medewerkers.length} collega&apos;s</p>
+              <p className="text-xs text-center pt-2" style={{ color: 'var(--text-4)' }}>{t('werk.directory.telling', { aantal: gefilterd.length, totaal: medewerkers.length })}</p>
             )}
           </ul>
         )}

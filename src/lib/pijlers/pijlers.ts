@@ -75,7 +75,7 @@ export const PIJLERS: readonly PijlerDef[] = [
   {
     key: 'beweging',
     label: 'Beweging',
-    omschrijving: 'Fysieke activiteit in je dagelijks leven — stappen en training.',
+    omschrijving: 'Fysieke activiteit in je dagelijks leven: stappen en training.',
     icoon: 'Footprints',
     kleur: 'var(--mf-green)',
     kleurZacht: 'var(--mf-green-light)',
@@ -84,7 +84,7 @@ export const PIJLERS: readonly PijlerDef[] = [
   {
     key: 'voeding',
     label: 'Voeding',
-    omschrijving: 'Voeding en hydratatie — vol te houden, zonder obsessie.',
+    omschrijving: 'Voeding en hydratatie, vol te houden en zonder obsessie.',
     icoon: 'Apple',
     kleur: 'var(--mf-orange)',
     kleurZacht: 'var(--mf-orange-light)',

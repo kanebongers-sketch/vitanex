@@ -11,6 +11,8 @@ import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { UserRound, ShieldCheck, Unlink } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 interface MijnCoach {
   koppeling_id: string
@@ -23,6 +25,7 @@ interface MijnCoach {
 }
 
 export default function MijnCoachPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [coaches, setCoaches] = useState<MijnCoach[]>([])
@@ -62,7 +65,7 @@ export default function MijnCoachPagina() {
   }
 
   async function beeindig(coachId: string, naam: string) {
-    if (!window.confirm(`Koppeling met ${naam} beëindigen? Je coach kan je gegevens daarna niet meer inzien.`)) return
+    if (!window.confirm(t('coaching.mijnCoach.beeindigenBevestig', { naam }))) return
     const res = await authFetch('/api/coaching/mijn-coaches', {
       method: 'POST',
       body: JSON.stringify({ coach_id: coachId }),
@@ -75,9 +78,9 @@ export default function MijnCoachPagina() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 640, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Persoonlijke begeleiding"
-          titel="Mijn coach"
-          subtitel="Beheer wie jou begeleidt en bepaal zelf wat je coach mag inzien. Je houdt de regie — altijd."
+          eyebrow={t('coaching.mijnCoach.eyebrow')}
+          titel={t('coaching.mijnCoach.titel')}
+          subtitel={t('coaching.mijnCoach.subtitel')}
         />
 
         {laden ? (
@@ -85,8 +88,8 @@ export default function MijnCoachPagina() {
         ) : coaches.length === 0 ? (
           <CoachEmpty
             icon={UserRound}
-            titel="Je hebt nog geen coach"
-            tekst="Zodra een coach jou koppelt, verschijnt die hier en kun je inzage in je welzijnsdata toestaan."
+            titel={t('coaching.mijnCoach.leegTitel')}
+            tekst={t('coaching.mijnCoach.leegTekst')}
           />
         ) : (
           <div className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -99,10 +102,10 @@ export default function MijnCoachPagina() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 15, padding: '20px 22px' }}>
                     <Avatar naam={c.coach_naam} avatarUrl={c.coach_avatar} size={52} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p className="mf-overline" style={{ color: 'var(--mf-green)', marginBottom: 5 }}>Jouw coach</p>
+                      <p className="mf-overline" style={{ color: 'var(--mf-green)', marginBottom: 5 }}>{t('coaching.mijnCoach.jouwCoach')}</p>
                       <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>{c.coach_naam}</p>
                       <p className="mf-caption" style={{ marginTop: 2 }}>
-                        Sinds {new Date(c.sinds).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {t('coaching.mijnCoach.sinds', { datum: new Date(c.sinds).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' }) })}
                       </p>
                     </div>
                   </div>
@@ -116,17 +119,17 @@ export default function MijnCoachPagina() {
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>
-                        Deel mijn welzijnsdata met {voornaam}
+                        {t('coaching.mijnCoach.deelMet', { naam: voornaam })}
                       </p>
                       <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                        Je coach ziet dan je check-ins, welzijnsprofiel en voortgang. Je kunt dit altijd weer intrekken.
+                        {t('coaching.mijnCoach.deelUitleg')}
                       </p>
                     </div>
                     <button
                       type="button"
                       role="switch"
                       aria-checked={c.inzage_toestemming}
-                      aria-label={`Inzage voor ${c.coach_naam} ${c.inzage_toestemming ? 'aan' : 'uit'}`}
+                      aria-label={t(c.inzage_toestemming ? 'coaching.mijnCoach.inzageAan' : 'coaching.mijnCoach.inzageUit', { naam: c.coach_naam })}
                       disabled={bezigNu}
                       onClick={() => zetToestemming(c.coach_id, !c.inzage_toestemming)}
                       className="mf-coach-switch"
@@ -144,7 +147,7 @@ export default function MijnCoachPagina() {
                       onClick={() => beeindig(c.coach_id, c.coach_naam)}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--mf-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontWeight: 600, borderRadius: 6 }}
                     >
-                      <Unlink size={14} aria-hidden /> Koppeling beëindigen
+                      <Unlink size={14} aria-hidden /> {t('coaching.mijnCoach.beeindigen')}
                     </button>
                   </div>
                 </Card>

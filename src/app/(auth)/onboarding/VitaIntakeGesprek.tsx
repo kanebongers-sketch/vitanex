@@ -24,6 +24,7 @@ import { BaselineMetingStap } from './BaselineMetingStap'
 import VitaBubbel from '@/components/vita/VitaBubbel'
 import { VitaKaartKeuze, VitaVeld, VitaInput, GesprekKnoppen, type KaartOptie } from './VitaKeuze'
 import { GesprekStyles } from './VitaGesprekStyles'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // ─── Stappen ──────────────────────────────────────────────────────────────────
 export type IntakeStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'doel' | 'klaar'
@@ -32,17 +33,18 @@ export const INTAKE_STAPPEN: IntakeStap[] = ['welkom', 'profiel', 'eerste-meting
 // Stappen die in de subtiele voortgangsindicatie meetellen (welkom/klaar niet).
 const VOORTGANG_STAPPEN: IntakeStap[] = ['profiel', 'eerste-meting', 'lichaam', 'doel']
 
-const GESLACHT_OPTIES: readonly KaartOptie<'man' | 'vrouw' | 'anders' | 'zeg_ik_niet'>[] = [
-  { value: 'man', titel: 'Man', Icon: Mars },
-  { value: 'vrouw', titel: 'Vrouw', Icon: Venus },
-  { value: 'anders', titel: 'Anders', Icon: Transgender },
-  { value: 'zeg_ik_niet', titel: 'Zeg ik liever niet', Icon: CircleDashed },
-]
+const GESLACHT_OPTIES = [
+  { value: 'man', Icon: Mars },
+  { value: 'vrouw', Icon: Venus },
+  { value: 'anders', Icon: Transgender },
+  { value: 'zeg_ik_niet', Icon: CircleDashed },
+] as const
 
 // ────────────────────────────────────────────────────────────────────────────
 // Subtiele voortgangsindicatie: kleine cyan-segmentjes, geen %-badge.
 // ────────────────────────────────────────────────────────────────────────────
 function Voortgang({ stap }: { stap: IntakeStap }) {
+  const { t } = useVertaling()
   const actiefIndex = VOORTGANG_STAPPEN.indexOf(stap)
   if (actiefIndex < 0) return null
   return (
@@ -51,7 +53,7 @@ function Voortgang({ stap }: { stap: IntakeStap }) {
       aria-valuemin={1}
       aria-valuemax={VOORTGANG_STAPPEN.length}
       aria-valuenow={actiefIndex + 1}
-      aria-label={`Stap ${actiefIndex + 1} van ${VOORTGANG_STAPPEN.length}`}
+      aria-label={t('account.ui.stapVan', { stap: actiefIndex + 1, totaal: VOORTGANG_STAPPEN.length })}
       style={{ display: 'flex', gap: 6, marginBottom: 24 }}
     >
       {VOORTGANG_STAPPEN.map((_, i) => (
@@ -97,6 +99,7 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
     stap, setStap, naam, gebr, setGebr, baseline, setBaseline, maxGeboortedatum,
     aiAnalyse, aiBezig, bezig, fout, hrCodeBedrijf, bouwProfiel, onStartMeting, onAfronden, hrSlot,
   } = props
+  const { t } = useVertaling()
 
   const displayNaam = gebr.naam || naam
 
@@ -109,7 +112,7 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
           <span className="vita-merk-woord">
             MENTAFORCE<span className="vita-merk-stip" aria-hidden>.</span>
           </span>
-          <span className="vita-merk-badge">Intake met Vita</span>
+          <span className="vita-merk-badge">{t('account.vita.badge')}</span>
         </header>
 
         <Voortgang stap={stap} />
@@ -135,8 +138,7 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
         {stap === 'eerste-meting' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <VitaBubbel emotion="curious" animate>
-              Nu wil ik écht weten hoe het met je gaat, {displayNaam || 'even'}. Vijftien korte vragen —
-              geen goed of fout, gewoon eerlijk. Hiermee maak ik jouw persoonlijke startfoto.
+              {displayNaam ? t('account.vita.metingNaam', { naam: displayNaam }) : t('account.vita.meting')}
             </VitaBubbel>
             <BaselineMetingStap
               meting={baseline}
@@ -152,8 +154,7 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
         {stap === 'lichaam' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <VitaBubbel emotion="calm" animate>
-              Fijn, dank je. Om jouw water-, stappen- en caloriedoelen kloppend te maken help
-              een paar cijfers me enorm. Alles is optioneel en blijft strikt tussen ons.
+              {t('account.vita.lichaam')}
             </VitaBubbel>
             <LichaamStap
               gebr={gebr}
@@ -169,8 +170,7 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
         {stap === 'doel' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <VitaBubbel emotion="motivated" animate>
-              Bijna klaar. Vertel me waar je naartoe wilt — dan stem ik je schema, voeding en
-              mijn coaching daarop af.
+              {t('account.vita.doel')}
             </VitaBubbel>
             <DoelStap
               gebr={gebr}
@@ -201,42 +201,37 @@ export default function VitaIntakeGesprek(props: VitaIntakeGesprekProps) {
 // WELKOM — Vita stelt zich voor
 // ════════════════════════════════════════════════════════════════════════════
 function WelkomStap({ naam, onStart }: { naam: string; onStart: () => void }) {
+  const { t } = useVertaling()
   return (
     <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
       <VitaBubbel emotion="proud" animate size={60}>
-        {naam ? (
-          <>Hoi {naam}, wat leuk dat je er bent. Ik ben <strong>Vita</strong>, en vanaf nu loop
-          ik met je mee.</>
-        ) : (
-          <>Hoi, wat leuk dat je er bent. Ik ben <strong>Vita</strong>, en vanaf nu loop ik met
-          je mee.</>
-        )}
+        {naam ? t('account.vita.hoiNaam', { naam }) : t('account.vita.hoi')}{' '}
+        {t('account.vita.ikBen')} <strong>Vita</strong>{t('account.vita.meelopen')}
       </VitaBubbel>
 
       <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--text-2)' }}>
-        Geen lange vragenlijst. We hebben even een gesprekje — over hoe je je voelt, hoe je slaapt
-        en waar je naartoe wilt. Daarna weet ik precies hoe ik je kan helpen.
+        {t('account.vita.welkomTekst')}
       </p>
 
       <ul className="vita-punten">
         {[
-          'Een persoonlijke startfoto van jouw welzijn',
-          'Water-, stappen- en caloriedoelen op maat',
-          'Optioneel: koppelen aan je werkgever',
-        ].map(t => (
-          <li key={t}>
+          t('account.vita.punt1'),
+          t('account.vita.punt2'),
+          t('account.vita.punt3'),
+        ].map(punt => (
+          <li key={punt}>
             <span className="vita-punt-check" aria-hidden><Check size={13} strokeWidth={2.5} /></span>
-            {t}
+            {punt}
           </li>
         ))}
       </ul>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button type="button" onClick={onStart} className="vita-knop vita-knop-primary vita-knop-blok">
-          Begin het gesprek <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
+          {t('account.vita.begin')} <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
         </button>
         <p style={{ fontSize: 12.5, color: 'var(--text-4)', textAlign: 'center' }}>
-          Ongeveer 5 minuten · eenmalig · altijd bij te stellen
+          {t('account.vita.duur')}
         </p>
       </div>
     </div>
@@ -255,19 +250,23 @@ function ProfielStap({
   onTerug: () => void
   onVolgende: () => void
 }) {
+  const { t } = useVertaling()
   const heeftNaam = gebr.naam.trim().length > 0
+  const geslachtOpties: KaartOptie<(typeof GESLACHT_OPTIES)[number]['value']>[] = GESLACHT_OPTIES.map(o => ({
+    value: o.value, Icon: o.Icon, titel: t(`account.vita.geslacht.${o.value}`),
+  }))
   return (
     <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <VitaBubbel emotion="curious" animate>
-        Zullen we beginnen bij het begin? Hoe mag ik je noemen?
+        {t('account.vita.naamVraag')}
       </VitaBubbel>
 
-      <VitaVeld label="Jouw naam" htmlFor="vita-naam">
+      <VitaVeld label={t('account.uitnodiging.naam')} htmlFor="vita-naam">
         <VitaInput
           id="vita-naam"
           value={gebr.naam}
           onChange={e => setGebr(f => ({ ...f, naam: e.target.value }))}
-          placeholder="Bijv. Sam"
+          placeholder={t('account.vita.naamPlaceholder')}
           autoFocus
           autoComplete="given-name"
         />
@@ -276,13 +275,12 @@ function ProfielStap({
       {heeftNaam && (
         <div className="mf-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <VitaBubbel emotion="supportive" animate>
-            Leuk je te ontmoeten, {gebr.naam.trim()}. Nog één ding zodat ik je scores kloppend maak —
-            volledig optioneel.
+            {t('account.vita.ontmoeten', { naam: gebr.naam.trim() })}
           </VitaBubbel>
-          <VitaVeld label="Wat past het best bij jou?" sub="Alleen voor nauwkeurige berekeningen — nooit gedeeld met HR">
+          <VitaVeld label={t('account.vita.geslachtVraag')} sub={t('account.vita.geslachtSub')}>
             <VitaKaartKeuze
-              legenda="Geslacht"
-              opties={GESLACHT_OPTIES}
+              legenda={t('account.vita.geslachtLegenda')}
+              opties={geslachtOpties}
               waarde={gebr.geslacht}
               onKies={v => setGebr(f => ({ ...f, geslacht: v }))}
               kolommen={2}
@@ -313,23 +311,23 @@ function KlaarStap({
   hrCodeBedrijf: string
   bezig: boolean
 }) {
+  const { t } = useVertaling()
   const samenvatting = useMemo(() => {
     const items: { Icon: typeof Sparkles; tekst: string }[] = []
-    if (aiAnalyse) items.push({ Icon: Sparkles, tekst: `Vitality Score: ${aiAnalyse.vitality_score}/100` })
-    if (heeftStartmeting) items.push({ Icon: Check, tekst: 'Startmeting opgeslagen' })
+    if (aiAnalyse) items.push({ Icon: Sparkles, tekst: t('account.vita.score', { score: aiAnalyse.vitality_score }) })
+    if (heeftStartmeting) items.push({ Icon: Check, tekst: t('account.vita.startmeting') })
     items.push(
       hrCodeBedrijf
-        ? { Icon: Building2, tekst: `Gekoppeld aan ${hrCodeBedrijf}` }
-        : { Icon: Check, tekst: 'Persoonlijk account aangemaakt' },
+        ? { Icon: Building2, tekst: t('account.onboarding.gekoppeldAan', { bedrijf: hrCodeBedrijf }) }
+        : { Icon: Check, tekst: t('account.vita.persoonlijk') },
     )
     return items
-  }, [aiAnalyse, heeftStartmeting, hrCodeBedrijf])
+  }, [aiAnalyse, heeftStartmeting, hrCodeBedrijf, t])
 
   return (
     <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <VitaBubbel emotion="proud" animate size={60}>
-        {naam ? <>Klaar, {naam}!</> : <>Klaar!</>} Ik ken je nu een stuk beter. Vanaf nu loop ik met
-        je mee — elke dag een beetje.
+        {naam ? t('account.vita.klaarNaam', { naam }) : t('account.vita.klaar')} {t('account.vita.klaarTekst')}
       </VitaBubbel>
 
       {aiAnalyse?.narratief && (
@@ -357,7 +355,7 @@ function KlaarStap({
         disabled={bezig}
         className="vita-knop vita-knop-primary vita-knop-blok"
       >
-        {bezig ? 'Bezig…' : 'Naar mijn dashboard'} <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
+        {bezig ? t('account.koppelingen.bezig') : t('account.vita.naarDashboard')} <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
       </button>
     </div>
   )

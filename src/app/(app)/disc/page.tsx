@@ -11,10 +11,16 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Crown, Sparkles, HeartHandshake, Microscope, CheckCircle2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
 
 
 type Dimensie = 'D' | 'I' | 'S' | 'C'
-interface Vraag { id: number; tekst: string; dimensie: Dimensie }
+// Teksten in het woordenboek: mentaal.disc.vraag.v<id>.
+interface Vraag { id: number; dimensie: Dimensie }
+
+type Vertaler = (sleutel: string, params?: Params) => string
 
 type Fase = 'intro' | 'test' | 'resultaat' | 'opgeslagen' | 'eerder'
 
@@ -28,71 +34,70 @@ interface EerderResultaat {
 }
 
 const VRAGEN: Vraag[] = [
-  { id: 1, tekst: 'Ik neem graag het voortouw in nieuwe situaties.', dimensie: 'D' },
-  { id: 2, tekst: 'Ik stel hoge eisen aan mezelf en anderen.', dimensie: 'D' },
-  { id: 3, tekst: 'Ik ga direct op mijn doel af, zonder omwegen.', dimensie: 'D' },
-  { id: 4, tekst: 'Ik neem snel beslissingen, ook zonder alle informatie.', dimensie: 'D' },
-  { id: 5, tekst: 'Ik daag bestaande situaties en regels graag uit.', dimensie: 'D' },
-  { id: 6, tekst: 'Ik werk hard om de beste te zijn in wat ik doe.', dimensie: 'D' },
-  { id: 7, tekst: 'Ik maak makkelijk nieuwe contacten en vrienden.', dimensie: 'I' },
-  { id: 8, tekst: 'Ik ben enthousiast en positief ingesteld.', dimensie: 'I' },
-  { id: 9, tekst: 'Ik weet mensen te overtuigen en te inspireren.', dimensie: 'I' },
-  { id: 10, tekst: 'Ik ben graag het middelpunt van de aandacht.', dimensie: 'I' },
-  { id: 11, tekst: 'Ik deel mijn gevoelens en ervaringen open met anderen.', dimensie: 'I' },
-  { id: 12, tekst: 'Ik breng energie en positiviteit in een groep.', dimensie: 'I' },
-  { id: 13, tekst: 'Mensen kunnen op mij rekenen: ik ben betrouwbaar en consistent.', dimensie: 'S' },
-  { id: 14, tekst: 'Ik werk het liefst in een stabiele, voorspelbare omgeving.', dimensie: 'S' },
-  { id: 15, tekst: 'Ik ben een goede luisteraar en geef anderen ruimte.', dimensie: 'S' },
-  { id: 16, tekst: 'Ik werk graag samen met anderen aan een gemeenschappelijk doel.', dimensie: 'S' },
-  { id: 17, tekst: 'Ik blijf geduldig in stressvolle of onduidelijke situaties.', dimensie: 'S' },
-  { id: 18, tekst: 'Ik streef naar harmonie en goede relaties in mijn omgeving.', dimensie: 'S' },
-  { id: 19, tekst: 'Nauwkeurigheid en kwaliteit zijn voor mij erg belangrijk.', dimensie: 'C' },
-  { id: 20, tekst: 'Ik analyseer situaties grondig voordat ik actie onderneem.', dimensie: 'C' },
-  { id: 21, tekst: 'Ik volg graag vaste procedures en richtlijnen.', dimensie: 'C' },
-  { id: 22, tekst: 'Ik controleer mijn werk meerdere keren om fouten te vermijden.', dimensie: 'C' },
-  { id: 23, tekst: 'Ik werk op een systematische en gestructureerde manier.', dimensie: 'C' },
-  { id: 24, tekst: 'Ik houd hoge kwaliteitsstandaarden aan in alles wat ik doe.', dimensie: 'C' },
+  { id: 1, dimensie: 'D' },
+  { id: 2, dimensie: 'D' },
+  { id: 3, dimensie: 'D' },
+  { id: 4, dimensie: 'D' },
+  { id: 5, dimensie: 'D' },
+  { id: 6, dimensie: 'D' },
+  { id: 7, dimensie: 'I' },
+  { id: 8, dimensie: 'I' },
+  { id: 9, dimensie: 'I' },
+  { id: 10, dimensie: 'I' },
+  { id: 11, dimensie: 'I' },
+  { id: 12, dimensie: 'I' },
+  { id: 13, dimensie: 'S' },
+  { id: 14, dimensie: 'S' },
+  { id: 15, dimensie: 'S' },
+  { id: 16, dimensie: 'S' },
+  { id: 17, dimensie: 'S' },
+  { id: 18, dimensie: 'S' },
+  { id: 19, dimensie: 'C' },
+  { id: 20, dimensie: 'C' },
+  { id: 21, dimensie: 'C' },
+  { id: 22, dimensie: 'C' },
+  { id: 23, dimensie: 'C' },
+  { id: 24, dimensie: 'C' },
 ]
 
 const DIM_KLEUR: Record<Dimensie, string> = { D: 'var(--mf-red)', I: 'var(--mf-amber)', S: 'var(--mf-green)', C: 'var(--mf-blue)' }
-const DIM_LABEL: Record<Dimensie, string> = { D: 'Dominantie', I: 'Invloed', S: 'Stabiliteit', C: 'Conscientieusheid' }
-const DIM_BESCHR: Record<Dimensie, string> = {
-  D: 'Resultaatgericht, direct en besluitvaardig. Je neemt graag de leiding en stelt hoge eisen.',
-  I: 'Enthousiast, sociaal en overtuigend. Je inspireert anderen en brengt energie in het team.',
-  S: 'Betrouwbaar, geduldig en samenwerkingsgericht. Je zorgt voor stabiliteit en harmonie.',
-  C: 'Nauwkeurig, analytisch en kwaliteitsgericht. Je werkt systematisch en grondig.',
+// Label, beschrijving en kernwoorden per dimensie: mentaal.disc.dim.<d>.*
+function dimLabel(t: Vertaler, d: Dimensie): string {
+  return t(`mentaal.disc.dim.${d.toLowerCase()}.label`)
+}
+function dimBeschr(t: Vertaler, d: Dimensie): string {
+  return t(`mentaal.disc.dim.${d.toLowerCase()}.beschrijving`)
+}
+function dimNaam(t: Vertaler, d: Dimensie): string {
+  return t('mentaal.disc.dimNaam', { letter: d, label: dimLabel(t, d) })
 }
 // Icoon per dimensie (vervangt de gekleurde emoji-bollen). Kleur blijft via DIM_KLEUR,
 // maar het icoon + label dragen de betekenis, niet enkel de kleur.
 const DIM_ICOON: Record<Dimensie, LucideIcon> = {
   D: Crown, I: Sparkles, S: HeartHandshake, C: Microscope,
 }
-const DIM_KERNWOORDEN: Record<Dimensie, string[]> = {
-  D: ['Leidend', 'Besluitvaardig', 'Resultaatgericht', 'Direct'],
-  I: ['Enthousiast', 'Sociaal', 'Overtuigend', 'Inspirerend'],
-  S: ['Betrouwbaar', 'Geduldig', 'Harmonieus', 'Teamgericht'],
-  C: ['Nauwkeurig', 'Analytisch', 'Systematisch', 'Kwaliteitsgericht'],
-}
+const KERNWOORDEN_AANTAL = 4
 
-const SCHAAL = ['Helemaal niet', 'Nauwelijks', 'Soms', 'Vaak', 'Volledig']
+// Schaallabels: mentaal.disc.schaal<1-5>.
 
 // Dimensie-volgorde: vragen 1-6 = D, 7-12 = I, 13-18 = S, 19-24 = C
 const DIM_RANGES: Record<Dimensie, [number, number]> = {
   D: [1, 6], I: [7, 12], S: [13, 18], C: [19, 24],
 }
 
-// Samenwerkingtabel: combinaties van primaire profielen
-const SAMENWERKING: Partial<Record<string, { label: string; beschrijving: string; kleur: string }>> = {
-  'D+D': { label: 'Krachtig duo', beschrijving: 'Hoge energie en ambitie, maar let op: beide willen leiden. Spreek rollen duidelijk af.', kleur: 'var(--mf-red)' },
-  'D+I': { label: 'Energieke combinatie', beschrijving: 'D brengt focus en richting, I zorgt voor enthousiasme en draagvlak. Sterk team.', kleur: 'var(--mf-orange)' },
-  'D+S': { label: 'Daadkracht & rust', beschrijving: 'D drijft vooruit, S zorgt voor stabiliteit. Goede balans als er respect is voor elkaars tempo.', kleur: 'var(--mf-purple)' },
-  'D+C': { label: 'Resultaat & precisie', beschrijving: 'D wil snel, C wil grondig. Kan wrijving geven, maar levert kwalitatief sterke resultaten.', kleur: 'var(--mf-purple)' },
-  'I+I': { label: 'Bruisend en creatief', beschrijving: 'Veel energie en ideeën, maar wie bewaakt de uitvoering? Zorg voor structuur erbij.', kleur: 'var(--mf-amber)' },
-  'I+S': { label: 'Warm en harmonieus', beschrijving: 'I inspireert, S ondersteunt. Mensen voelen zich gewaardeerd in dit team.', kleur: 'var(--mf-green)' },
-  'I+C': { label: 'Creativiteit & kwaliteit', beschrijving: 'I genereert ideeën, C verfijnt ze. Complementair als ze elkaars stijl respecteren.', kleur: 'var(--mf-blue)' },
-  'S+S': { label: 'Stabiel en betrouwbaar', beschrijving: 'Hoge harmonie en loyaliteit. Sterk in uitvoering, maar pas op voor vermijding van conflict.', kleur: 'var(--mf-green)' },
-  'S+C': { label: 'Stabiel analytisch team', beschrijving: 'Geduldig, grondig en betrouwbaar. Uitstekend voor complexe, zorgvuldige taken.', kleur: 'var(--mf-blue)' },
-  'C+C': { label: 'Kwaliteitsgedreven duo', beschrijving: 'Hoge standaarden en precisie. Sterk in analyse, maar bewaar oog voor de grote lijn.', kleur: 'var(--mf-blue)' },
+// Samenwerkingtabel: combinaties van primaire profielen. Teksten in
+// mentaal.disc.samen.<combinatie>.label / .beschrijving (bv. 'di' voor D+I).
+const SAMENWERKING: Partial<Record<string, { kleur: string }>> = {
+  'D+D': { kleur: 'var(--mf-red)' },
+  'D+I': { kleur: 'var(--mf-orange)' },
+  'D+S': { kleur: 'var(--mf-purple)' },
+  'D+C': { kleur: 'var(--mf-purple)' },
+  'I+I': { kleur: 'var(--mf-amber)' },
+  'I+S': { kleur: 'var(--mf-green)' },
+  'I+C': { kleur: 'var(--mf-blue)' },
+  'S+S': { kleur: 'var(--mf-green)' },
+  'S+C': { kleur: 'var(--mf-blue)' },
+  'C+C': { kleur: 'var(--mf-blue)' },
 }
 
 function getSamenwerking(primair: Dimensie) {
@@ -100,14 +105,15 @@ function getSamenwerking(primair: Dimensie) {
   return dims.map(andere => {
     const key1 = `${primair}+${andere}`
     const key2 = `${andere}+${primair}`
-    const data = SAMENWERKING[key1] ?? SAMENWERKING[key2]
-    return { andere, data }
+    const sleutel = SAMENWERKING[key1] ? key1 : SAMENWERKING[key2] ? key2 : null
+    const data = sleutel ? SAMENWERKING[sleutel] : undefined
+    return { andere, data, tekstSleutel: sleutel ? sleutel.replace('+', '').toLowerCase() : null }
   })
 }
 
-function formatDatum(iso: string): string {
+function formatDatum(iso: string, locale: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 const DIMS: Dimensie[] = ['D', 'I', 'S', 'C']
@@ -119,6 +125,7 @@ interface RadarProps {
 }
 
 function RadarDiagram({ scores, primair }: RadarProps) {
+  const { t } = useVertaling()
   // Geometrie is puur afhankelijk van scores/primair; memo'iseren voorkomt
   // herberekening van paden bij elke parent-render.
   const geom = useMemo(() => {
@@ -157,7 +164,7 @@ function RadarDiagram({ scores, primair }: RadarProps) {
     return { cx, cy, polyPath, grids, assen, labels, dots }
   }, [scores, primair])
 
-  const beschrijving = DIMS.map(d => `${DIM_LABEL[d]} ${scores[d]} van 30`).join(', ')
+  const beschrijving = DIMS.map(d => t('mentaal.disc.radarDeel', { label: dimLabel(t, d), score: scores[d] })).join(', ')
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, position: 'relative' }}>
@@ -169,7 +176,7 @@ function RadarDiagram({ scores, primair }: RadarProps) {
         height={220}
         viewBox="0 0 220 220"
         role="img"
-        aria-label={`Radar-diagram van jouw DISC-scores: ${beschrijving}.`}
+        aria-label={t('mentaal.disc.radarLabel', { beschrijving })}
         style={{ position: 'relative', zIndex: 1 }}
       >
         {/* Grid rings */}
@@ -205,6 +212,7 @@ function RadarDiagram({ scores, primair }: RadarProps) {
 
 export default function DiscPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [geladen, setGeladen] = useState(false)
   const [fase, setFase] = useState<Fase>('intro')
   const [antwoorden, setAntwoorden] = useState<Record<number, number>>({})
@@ -249,11 +257,11 @@ export default function DiscPage() {
   useEffect(() => {
     if (zojuistBeantwoord === null) return
     if (huidigIdx >= VRAGEN.length - 1) return
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setHuidigIdx(v => v + 1)
       setZojuistBeantwoord(null)
     }, 300)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [zojuistBeantwoord, huidigIdx])
 
   function antwoord(vraagId: number, waarde: number) {
@@ -293,11 +301,11 @@ export default function DiscPage() {
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({})) as { error?: string }
-        throw new Error(j.error ?? 'Verwerking mislukt')
+        throw new Error(taal === 'nl' && j.error ? j.error : t('mentaal.disc.verwerkingMislukt'))
       }
       setFase('opgeslagen')
     } catch (e) {
-      setFout(e instanceof Error ? e.message : 'Er ging iets mis')
+      setFout(e instanceof Error ? e.message : t('mentaal.disc.ietsMis'))
     } finally { setBezig(false) }
   }
 
@@ -325,8 +333,8 @@ export default function DiscPage() {
       <Navbar />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
         <header style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
-          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('mentaal.disc.titel')}</h1>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>{t('mentaal.disc.sub')}</p>
         </header>
 
         {/* FASE: eerder gedaan */}
@@ -342,17 +350,17 @@ export default function DiscPage() {
                   return <Icoon size={36} strokeWidth={1.5} aria-hidden style={{ position: 'relative', zIndex: 1, color: DIM_KLEUR[eerderResultaat.primair_profiel as Dimensie] ?? 'var(--mentaforce-primary)' }} />
                 })()}
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
-              <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.aangemaakt_op)}</p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t('mentaal.disc.alIngevuld')}</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 14 }}>{t('mentaal.disc.gedaanOp', { datum: formatDatum(eerderResultaat.aangemaakt_op, INTL_LOCALE[taal]) })}</p>
             </div>
 
             <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 20, marginBottom: 24 }}>
-              <p className="mf-overline" style={{ marginBottom: 12 }}>Jouw laatste resultaat</p>
+              <p className="mf-overline" style={{ marginBottom: 12 }}>{t('mentaal.disc.laatste')}</p>
               <p style={{ color: DIM_KLEUR[eerderResultaat.primair_profiel as Dimensie], fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
-                {eerderResultaat.primair_profiel} – {DIM_LABEL[eerderResultaat.primair_profiel as Dimensie]}
+                {dimNaam(t, eerderResultaat.primair_profiel as Dimensie)}
               </p>
               <p style={{ color: 'var(--text-3)', fontSize: 14, margin: 0 }}>
-                {DIM_BESCHR[eerderResultaat.primair_profiel as Dimensie]}
+                {dimBeschr(t, eerderResultaat.primair_profiel as Dimensie)}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
                 {([
@@ -368,10 +376,10 @@ export default function DiscPage() {
 
             <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
               <Button onClick={() => router.push('/bestanden')} style={{ width: '100%' }}>
-                Bekijk je rapport
+                {t('mentaal.disc.bekijkRapport')}
               </Button>
               <Button variant="ghost" onClick={startOpnieuw} style={{ width: '100%', border: '1px solid var(--border-strong)' }}>
-                Doe de test opnieuw
+                {t('mentaal.disc.opnieuw')}
               </Button>
             </div>
           </Card>
@@ -381,9 +389,9 @@ export default function DiscPage() {
         {fase === 'intro' && (
           <div>
             <Card style={{ padding: 32, marginBottom: 20 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Wat is DISC?</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('mentaal.disc.watIs')}</h2>
               <p style={{ color: 'var(--text-3)', fontSize: 15, lineHeight: 1.7, margin: 0 }}>
-                DISC is een model dat gedragsstijlen beschrijft aan de hand van vier dimensies. Er is geen goed of fout profiel — elke stijl heeft unieke sterke punten. De test bestaat uit 24 stellingen en duurt ongeveer 5 minuten.
+                {t('mentaal.disc.uitleg', { aantal: VRAGEN.length })}
               </p>
             </Card>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
@@ -397,11 +405,11 @@ export default function DiscPage() {
                   }}>
                     <Icoon size={26} strokeWidth={1.6} aria-hidden style={{ color: DIM_KLEUR[dim], marginBottom: 8 }} />
                     <div style={{ color: DIM_KLEUR[dim], fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
-                      {dim} – {DIM_LABEL[dim]}
+                      {dimNaam(t, dim)}
                     </div>
-                    <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.5, margin: '0 0 12px' }}>{DIM_BESCHR[dim]}</p>
+                    <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.5, margin: '0 0 12px' }}>{dimBeschr(t, dim)}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {DIM_KERNWOORDEN[dim].map(k => (
+                      {Array.from({ length: KERNWOORDEN_AANTAL }, (_, i) => t(`mentaal.disc.dim.${dim.toLowerCase()}.kern${i + 1}`)).map(k => (
                         <span key={k} style={{
                           background: `color-mix(in srgb, ${DIM_KLEUR[dim]} 18%, transparent)`,
                           color: DIM_KLEUR[dim], borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600,
@@ -413,7 +421,7 @@ export default function DiscPage() {
               })}
             </div>
             <Button onClick={() => setFase('test')} size="lg" style={{ width: '100%' }}>
-              Start de test
+              {t('mentaal.disc.start')}
             </Button>
           </div>
         )}
@@ -443,7 +451,7 @@ export default function DiscPage() {
             {/* Algemene voortgangsbalk */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ color: 'var(--text-3)', fontSize: 13 }}>Vraag {huidigIdx + 1} van {VRAGEN.length}</span>
+                <span style={{ color: 'var(--text-3)', fontSize: 13 }}>{t('mentaal.disc.vraagVan', { nummer: huidigIdx + 1, totaal: VRAGEN.length })}</span>
                 <span style={{ color: 'var(--text-3)', fontSize: 13 }}>{Math.round(((huidigIdx + 1) / VRAGEN.length) * 100)}%</span>
               </div>
               <div
@@ -451,7 +459,7 @@ export default function DiscPage() {
                 aria-valuenow={huidigIdx + 1}
                 aria-valuemin={1}
                 aria-valuemax={VRAGEN.length}
-                aria-label="Voortgang DISC-test"
+                aria-label={t('mentaal.disc.voortgang')}
                 style={{ background: 'var(--bg-subtle)', borderRadius: 6, height: 6, overflow: 'hidden' }}
               >
                 <div style={{ width: (((huidigIdx + 1) / VRAGEN.length) * 100) + '%', height: '100%', background: DIM_KLEUR[hv.dimensie], borderRadius: 6, transition: 'width 0.3s var(--ease)' }} />
@@ -465,10 +473,10 @@ export default function DiscPage() {
                 color: DIM_KLEUR[hv.dimensie], borderRadius: 'var(--radius-xs)', padding: '4px 12px',
                 fontSize: 13, fontWeight: 600, marginBottom: 20,
               }}>
-                <HvIcoon size={14} aria-hidden /> {DIM_LABEL[hv.dimensie]}
+                <HvIcoon size={14} aria-hidden /> {dimLabel(t, hv.dimensie)}
               </div>
-              <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.5, marginBottom: 32 }}>{hv.tekst}</p>
-              <div role="radiogroup" aria-label={hv.tekst} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.5, marginBottom: 32 }}>{t(`mentaal.disc.vraag.v${hv.id}`)}</p>
+              <div role="radiogroup" aria-label={t(`mentaal.disc.vraag.v${hv.id}`)} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {[1, 2, 3, 4, 5].map(w => {
                   const g = antwoorden[hv.id] === w
                   return (
@@ -477,7 +485,7 @@ export default function DiscPage() {
                       type="button"
                       role="radio"
                       aria-checked={g}
-                      aria-label={`${w} – ${SCHAAL[w - 1]}`}
+                      aria-label={t('mentaal.disc.schaalLabel', { waarde: w, label: t(`mentaal.disc.schaal${w}`) })}
                       onClick={() => antwoord(hv.id, w)}
                       className="mf-disc-opt"
                       style={{
@@ -490,7 +498,7 @@ export default function DiscPage() {
                       }}
                     >
                       <div style={{ fontSize: 18, marginBottom: 4 }}>{w}</div>
-                      <div style={{ fontSize: 11, lineHeight: 1.2 }}>{SCHAAL[w - 1]}</div>
+                      <div style={{ fontSize: 11, lineHeight: 1.2 }}>{t(`mentaal.disc.schaal${w}`)}</div>
                     </button>
                   )
                 })}
@@ -502,11 +510,11 @@ export default function DiscPage() {
                   disabled={huidigIdx === 0}
                   style={{ border: '1px solid var(--border-strong)' }}
                 >
-                  ← Vorige vraag
+                  ← {t('mentaal.disc.vorige')}
                 </Button>
                 {huidigIdx < VRAGEN.length - 1 && antwoorden[hv.id] !== undefined && (
                   <Button variant="secondary" onClick={() => setHuidigIdx(v => v + 1)}>
-                    Volgende →
+                    {t('mentaal.disc.volgende')} →
                   </Button>
                 )}
               </div>
@@ -525,9 +533,9 @@ export default function DiscPage() {
         {fase === 'resultaat' && (
           <div>
             <Card style={{ padding: 32, marginBottom: 20 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, textAlign: 'center', color: 'var(--text-1)' }}>Jouw DISC-profiel</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, textAlign: 'center', color: 'var(--text-1)' }}>{t('mentaal.disc.profiel')}</h2>
               <p style={{ color: 'var(--text-3)', textAlign: 'center', marginBottom: 24 }}>
-                Primair: <span style={{ color: DIM_KLEUR[primair], fontWeight: 700, fontSize: 18 }}>{primair} – {DIM_LABEL[primair]}</span>
+                {t('mentaal.disc.primair')} <span style={{ color: DIM_KLEUR[primair], fontWeight: 700, fontSize: 18 }}>{dimNaam(t, primair)}</span>
               </p>
 
               <RadarDiagram scores={scores} primair={primair} />
@@ -546,9 +554,9 @@ export default function DiscPage() {
                     borderRadius: 'var(--radius-md)', padding: 20, marginBottom: 24,
                   }}>
                     <h3 style={{ color: DIM_KLEUR[primair], fontWeight: 700, marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Icoon size={18} aria-hidden /> {DIM_LABEL[primair]}
+                      <Icoon size={18} aria-hidden /> {dimLabel(t, primair)}
                     </h3>
-                    <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>{DIM_BESCHR[primair]}</p>
+                    <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>{dimBeschr(t, primair)}</p>
                   </div>
                 )
               })()}
@@ -558,16 +566,16 @@ export default function DiscPage() {
                 </div>
               )}
               <Button onClick={verzend} loading={bezig} size="lg" style={{ width: '100%' }}>
-                {bezig ? 'Opslaan…' : 'Resultaat opslaan & rapport genereren'}
+                {bezig ? t('mentaal.disc.opslaan') : t('mentaal.disc.opslaanKnop')}
               </Button>
             </Card>
 
             {/* Samenwerkingtabel */}
             <Card style={{ padding: 32 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Samenwerking met andere profielen</h3>
-              <p style={{ color: 'var(--text-3)', fontSize: 14, marginBottom: 20 }}>Hoe werkt jouw {primair}-profiel samen met andere DISC-typen?</p>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>{t('mentaal.disc.samenTitel')}</h3>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginBottom: 20 }}>{t('mentaal.disc.samenSub', { profiel: primair })}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {getSamenwerking(primair).map(({ andere, data }) => {
+                {getSamenwerking(primair).map(({ andere, data, tekstSleutel }) => {
                   const Icoon = DIM_ICOON[andere]
                   return (
                     <div key={andere} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
@@ -576,8 +584,8 @@ export default function DiscPage() {
                         <div style={{ color: DIM_KLEUR[andere], fontWeight: 700, fontSize: 13, marginTop: 2 }}>{primair}+{andere}</div>
                       </div>
                       <div>
-                        <div style={{ color: data?.kleur ?? 'var(--text-2)', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{data?.label ?? '–'}</div>
-                        <p style={{ color: 'var(--text-3)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>{data?.beschrijving ?? ''}</p>
+                        <div style={{ color: data?.kleur ?? 'var(--text-2)', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{tekstSleutel ? t(`mentaal.disc.samen.${tekstSleutel}.label`) : '-'}</div>
+                        <p style={{ color: 'var(--text-3)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>{tekstSleutel ? t(`mentaal.disc.samen.${tekstSleutel}.beschrijving`) : ''}</p>
                       </div>
                     </div>
                   )
@@ -591,10 +599,10 @@ export default function DiscPage() {
         {fase === 'opgeslagen' && (
           <Card style={{ padding: 40, textAlign: 'center' }}>
             <CheckCircle2 size={48} strokeWidth={1.5} aria-hidden style={{ color: 'var(--mf-green)', marginBottom: 16 }} />
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', marginBottom: 8 }}>Resultaat opgeslagen!</h2>
-            <p style={{ color: 'var(--text-3)', marginBottom: 24 }}>Je DISC-profiel en rapport zijn opgeslagen.</p>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', marginBottom: 8 }}>{t('mentaal.disc.opgeslagen')}</h2>
+            <p style={{ color: 'var(--text-3)', marginBottom: 24 }}>{t('mentaal.disc.opgeslagenTekst')}</p>
             <Button onClick={() => router.push('/bestanden')}>
-              Bekijk je rapport
+              {t('mentaal.disc.bekijkRapport')}
             </Button>
           </Card>
         )}
@@ -611,11 +619,12 @@ interface ScoreBalkProps {
 }
 
 function ScoreBalk({ dim, score, thick = false }: ScoreBalkProps) {
+  const { t } = useVertaling()
   const pct = Math.round((score / 30) * 100)
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ color: DIM_KLEUR[dim], fontWeight: 600, fontSize: thick ? 15 : 13 }}>{dim} – {DIM_LABEL[dim]}</span>
+        <span style={{ color: DIM_KLEUR[dim], fontWeight: 600, fontSize: thick ? 15 : 13 }}>{dimNaam(t, dim)}</span>
         <span style={{ color: 'var(--text-3)', fontSize: thick ? 14 : 13 }}>{score}/30</span>
       </div>
       <div
@@ -623,7 +632,7 @@ function ScoreBalk({ dim, score, thick = false }: ScoreBalkProps) {
         aria-valuenow={score}
         aria-valuemin={0}
         aria-valuemax={30}
-        aria-label={`${DIM_LABEL[dim]}: ${score} van 30`}
+        aria-label={t('mentaal.disc.scoreLabel', { label: dimLabel(t, dim), score })}
         style={{ background: 'var(--bg-app)', borderRadius: 6, height: thick ? 10 : 8, overflow: 'hidden' }}
       >
         <div style={{ width: pct + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6, transition: 'width 0.8s var(--ease)' }} />

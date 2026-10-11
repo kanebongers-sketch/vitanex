@@ -18,6 +18,8 @@ import { useToast } from '@/components/ui/Toast'
 import {
   DialogRoot, DialogContent, DialogTitle, DialogDescription, DialogClose,
 } from '@/components/ui/Dialog'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 type Profiel = { id: string; naam: string; afdeling?: string | null; functie?: string | null }
 type RoosterInfo = { id: string; naam: string; week_start: string }
@@ -49,7 +51,11 @@ function weekDagen(weekStart: string): string[] {
   })
 }
 
-const DAGNAMEN = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag']
+/** Volledige dagnaam met hoofdletter, in de taal van de gebruiker. */
+function dagNaam(ymd: string, locale: string): string {
+  const naam = new Date(ymd).toLocaleDateString(locale, { weekday: 'long' })
+  return naam.charAt(0).toLocaleUpperCase(locale) + naam.slice(1)
+}
 
 /** Token-gestileerde native select; gedeeld door medewerker- en dag-keuze. */
 const SELECT_STYLE: React.CSSProperties = {
@@ -65,16 +71,16 @@ const SELECT_STYLE: React.CSSProperties = {
   boxSizing: 'border-box',
 }
 
-function dagLabel(ymd: string): string {
-  const d = new Date(ymd)
-  const idx = (d.getDay() === 0 ? 7 : d.getDay()) - 1
-  return `${DAGNAMEN[idx]} ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}`
+function dagLabel(ymd: string, locale: string): string {
+  return `${dagNaam(ymd, locale)} ${new Date(ymd).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`
 }
 
 export default function RoosterDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const roosterId = params.id as string
 
   const [rooster, setRooster] = useState<RoosterInfo | null>(null)
@@ -106,7 +112,7 @@ export default function RoosterDetailPage() {
 
     setDiensten((data ?? []).map(d => ({
       ...d,
-      user_naam: naamMap[d.user_id] ?? 'Onbekend',
+      user_naam: naamMap[d.user_id] ?? t('werk.roosterDetail.onbekend'),
     })))
   }
 
@@ -142,9 +148,9 @@ export default function RoosterDetailPage() {
   }, [roosterId])
 
   async function voegDienstToe() {
-    if (!form.user_id) { setFout('Kies een medewerker.'); return }
-    if (!form.datum) { setFout('Kies een datum.'); return }
-    if (form.start_tijd >= form.eind_tijd) { setFout('Eindtijd moet na starttijd zijn.'); return }
+    if (!form.user_id) { setFout(t('werk.roosterDetail.foutMedewerker')); return }
+    if (!form.datum) { setFout(t('werk.roosterDetail.foutDatum')); return }
+    if (form.start_tijd >= form.eind_tijd) { setFout(t('werk.roosterDetail.foutTijd')); return }
     setBezig(true); setFout('')
     const { error } = await supabase.from('rooster_diensten').insert({
       rooster_id: roosterId,
@@ -156,7 +162,7 @@ export default function RoosterDetailPage() {
       notitie: form.notitie || null,
     })
     if (error) {
-      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      toast({ title: t('werk.roosterDetail.opslaanMislukt'), description: taal === 'nl' ? error.message : t('werk.algemeen.ietsMis'), variant: 'error' })
       setBezig(false)
       return
     }
@@ -166,7 +172,7 @@ export default function RoosterDetailPage() {
     setForm(prev => ({ ...LEEG_FORM, datum: prev.datum }))
     setFormOpen(false)
     setBezig(false)
-    toast({ title: 'Dienst toegevoegd', variant: 'success' })
+    toast({ title: t('werk.roosterDetail.toegevoegd'), variant: 'success' })
   }
 
   async function bevestigVerwijderDienst() {
@@ -175,14 +181,14 @@ export default function RoosterDetailPage() {
     setVerwijderBezig(doel.id)
     const { error } = await supabase.from('rooster_diensten').delete().eq('id', doel.id)
     if (error) {
-      toast({ title: 'Verwijderen mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+      toast({ title: t('werk.roosterDetail.verwijderenMislukt'), description: t('werk.algemeen.later'), variant: 'error' })
       setVerwijderBezig(null)
       return
     }
     setDiensten(prev => prev.filter(d => d.id !== doel.id))
     setVerwijderBezig(null)
     setTeVerwijderen(null)
-    toast({ title: 'Dienst verwijderd', variant: 'success' })
+    toast({ title: t('werk.roosterDetail.verwijderd'), variant: 'success' })
   }
 
   function openForm() {
@@ -194,7 +200,7 @@ export default function RoosterDetailPage() {
   if (!geladen || !rooster) {
     return (
       <HrShell>
-        <p style={{ textAlign: 'center', padding: 60, color: 'var(--text-3)' }}>Laden…</p>
+        <p style={{ textAlign: 'center', padding: 60, color: 'var(--text-3)' }}>{t('werk.roosterDetail.laden')}</p>
       </HrShell>
     )
   }
@@ -207,13 +213,13 @@ export default function RoosterDetailPage() {
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '28px 16px' }}>
 
         {/* Breadcrumb */}
-        <nav aria-label="Kruimelpad" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 13, color: 'var(--text-2)' }}>
+        <nav aria-label={t('werk.roosterDetail.kruimelpad')} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 13, color: 'var(--text-2)' }}>
           <button
             onClick={() => router.push('/hr/roosters')}
             className="mf-pressable"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: 0, font: 'inherit' }}
           >
-            Roosters
+            {t('werk.roosterDetail.roosters')}
           </button>
           <span aria-hidden>/</span>
           <span style={{ color: 'var(--text-1)', fontWeight: 500 }}>{rooster.naam}</span>
@@ -224,13 +230,14 @@ export default function RoosterDetailPage() {
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{rooster.naam}</h1>
             <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 3 }}>
-              {new Date(rooster.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
-              {' – '}
-              {weekEind.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {t('werk.algemeen.bereik', {
+                van: new Date(rooster.week_start).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+                tot: weekEind.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+              })}
             </p>
           </div>
           <Button onClick={openForm} leftIcon={<Plus size={16} aria-hidden />}>
-            Dienst toevoegen
+            {t('werk.roosterDetail.dienstToevoegen')}
           </Button>
         </header>
 
@@ -245,28 +252,28 @@ export default function RoosterDetailPage() {
 
         {/* Diensten tabel per dag */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {dagen.map((dag, i) => {
+          {dagen.map((dag) => {
             const dagDiensten = diensten.filter(d => d.datum === dag)
-            const datumKort = new Date(dag).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+            const datumKort = new Date(dag).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
             return (
               <div key={dag}>
                 <h2 style={{ fontWeight: 600, color: 'var(--text-2)', fontSize: 14, marginBottom: 10 }}>
-                  {DAGNAMEN[i]}{' '}
+                  {dagNaam(dag, locale)}{' '}
                   <span style={{ color: 'var(--text-3)', fontWeight: 400, fontSize: 12 }}>{datumKort}</span>
                 </h2>
                 {dagDiensten.length === 0 ? (
                   <Card style={{ padding: '14px 18px' }}>
-                    <p style={{ color: 'var(--text-4)', fontSize: 12, margin: 0 }}>Geen diensten</p>
+                    <p style={{ color: 'var(--text-4)', fontSize: 12, margin: 0 }}>{t('werk.roosterDetail.geenDiensten')}</p>
                   </Card>
                 ) : (
-                  <Table caption={`Diensten op ${DAGNAMEN[i]} ${datumKort}`}>
+                  <Table caption={t('werk.roosterDetail.caption', { dag: dagNaam(dag, locale), datum: datumKort })}>
                     <THead>
                       <Tr>
-                        <Th scope="col">Tijd</Th>
-                        <Th scope="col">Medewerker</Th>
-                        <Th scope="col">Rol</Th>
-                        <Th scope="col">Notitie</Th>
-                        <Th scope="col" align="right">Actie</Th>
+                        <Th scope="col">{t('werk.roosterDetail.tijd')}</Th>
+                        <Th scope="col">{t('werk.roosterDetail.medewerker')}</Th>
+                        <Th scope="col">{t('werk.roosterDetail.rol')}</Th>
+                        <Th scope="col">{t('werk.roosterDetail.notitie')}</Th>
+                        <Th scope="col" align="right">{t('werk.roosterDetail.actie')}</Th>
                       </Tr>
                     </THead>
                     <TBody>
@@ -274,7 +281,7 @@ export default function RoosterDetailPage() {
                         <Tr key={d.id}>
                           <Td>
                             <span style={{ fontWeight: 600, color: 'var(--mentaforce-primary)', whiteSpace: 'nowrap' }}>
-                              {d.start_tijd.slice(0, 5)}–{d.eind_tijd.slice(0, 5)}
+                              {t('werk.algemeen.bereik', { van: d.start_tijd.slice(0, 5), tot: d.eind_tijd.slice(0, 5) })}
                             </span>
                           </Td>
                           <Th scope="row" style={{ textTransform: 'none', letterSpacing: 'normal', fontSize: 13, color: 'var(--text-1)', fontWeight: 500 }}>
@@ -289,7 +296,7 @@ export default function RoosterDetailPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => setTeVerwijderen(d)}
-                              aria-label={`Dienst van ${d.user_naam} verwijderen`}
+                              aria-label={t('werk.roosterDetail.verwijderLabel', { naam: d.user_naam ?? '' })}
                               style={{ color: 'var(--mf-red)', padding: '6px 8px' }}
                             >
                               <Trash2 size={15} aria-hidden />
@@ -308,18 +315,18 @@ export default function RoosterDetailPage() {
         {/* Dienst toevoegen dialog */}
         <DialogRoot open={formOpen} onOpenChange={(open) => { if (!open) { setFormOpen(false); setFout('') } }}>
           <DialogContent>
-            <DialogTitle>Dienst toevoegen</DialogTitle>
+            <DialogTitle>{t('werk.roosterDetail.dienstToevoegen')}</DialogTitle>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 18 }}>
               {/* Medewerker */}
-              <Field label="Medewerker">
+              <Field label={t('werk.roosterDetail.medewerker')}>
                 <select
                   value={form.user_id}
                   onChange={e => setForm(f => ({ ...f, user_id: e.target.value }))}
                   className="mf-ui-control"
                   style={SELECT_STYLE}
                 >
-                  <option value="">Kies medewerker…</option>
+                  <option value="">{t('werk.roosterDetail.kiesMedewerker')}</option>
                   {medewerkers.map(m => (
                     <option key={m.id} value={m.id}>{m.naam}{m.afdeling ? ` (${m.afdeling})` : ''}</option>
                   ))}
@@ -327,30 +334,30 @@ export default function RoosterDetailPage() {
               </Field>
 
               {/* Datum */}
-              <Field label="Datum">
+              <Field label={t('werk.roosterDetail.datum')}>
                 <select
                   value={form.datum}
                   onChange={e => setForm(f => ({ ...f, datum: e.target.value }))}
                   className="mf-ui-control"
                   style={SELECT_STYLE}
                 >
-                  <option value="">Kies dag…</option>
+                  <option value="">{t('werk.roosterDetail.kiesDag')}</option>
                   {dagen.map(d => (
-                    <option key={d} value={d}>{dagLabel(d)}</option>
+                    <option key={d} value={d}>{dagLabel(d, locale)}</option>
                   ))}
                 </select>
               </Field>
 
               {/* Tijden */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field label="Starttijd">
+                <Field label={t('werk.roosterDetail.starttijd')}>
                   <Input
                     type="time"
                     value={form.start_tijd}
                     onChange={e => setForm(f => ({ ...f, start_tijd: e.target.value }))}
                   />
                 </Field>
-                <Field label="Eindtijd">
+                <Field label={t('werk.roosterDetail.eindtijd')}>
                   <Input
                     type="time"
                     value={form.eind_tijd}
@@ -360,22 +367,22 @@ export default function RoosterDetailPage() {
               </div>
 
               {/* Rol label */}
-              <Field label="Rol / label" hint="Optioneel">
+              <Field label={t('werk.roosterDetail.rolLabel')} hint={t('werk.roosterDetail.optioneel')}>
                 <Input
                   type="text"
                   value={form.rol_label}
                   onChange={e => setForm(f => ({ ...f, rol_label: e.target.value }))}
-                  placeholder="bijv. Kassa, Magazijn, Support…"
+                  placeholder={t('werk.roosterDetail.rolPlaceholder')}
                 />
               </Field>
 
               {/* Notitie */}
-              <Field label="Notitie" hint="Optioneel">
+              <Field label={t('werk.roosterDetail.notitie')} hint={t('werk.roosterDetail.optioneel')}>
                 <Input
                   type="text"
                   value={form.notitie}
                   onChange={e => setForm(f => ({ ...f, notitie: e.target.value }))}
-                  placeholder="Extra info voor de medewerker…"
+                  placeholder={t('werk.roosterDetail.notitiePlaceholder')}
                 />
               </Field>
 
@@ -388,10 +395,10 @@ export default function RoosterDetailPage() {
 
             <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
               <DialogClose asChild>
-                <Button variant="ghost" style={{ flex: 1 }}>Annuleren</Button>
+                <Button variant="ghost" style={{ flex: 1 }}>{t('werk.algemeen.annuleren')}</Button>
               </DialogClose>
               <Button onClick={voegDienstToe} loading={bezig} style={{ flex: 2 }}>
-                {bezig ? 'Opslaan…' : 'Dienst opslaan'}
+                {bezig ? t('werk.roosterDetail.opslaanBezig') : t('werk.roosterDetail.dienstOpslaan')}
               </Button>
             </div>
           </DialogContent>
@@ -400,15 +407,15 @@ export default function RoosterDetailPage() {
         {/* Verwijderbevestiging */}
         <DialogRoot open={!!teVerwijderen} onOpenChange={(open) => { if (!open) setTeVerwijderen(null) }}>
           <DialogContent>
-            <DialogTitle>Dienst verwijderen?</DialogTitle>
+            <DialogTitle>{t('werk.roosterDetail.verwijderTitel')}</DialogTitle>
             <DialogDescription>
               {teVerwijderen
-                ? `De dienst van ${teVerwijderen.user_naam} (${teVerwijderen.start_tijd.slice(0, 5)}–${teVerwijderen.eind_tijd.slice(0, 5)}) wordt verwijderd. Dit kan niet ongedaan worden gemaakt.`
+                ? t('werk.roosterDetail.verwijderTekst', { naam: teVerwijderen.user_naam ?? '', tijd: t('werk.algemeen.bereik', { van: teVerwijderen.start_tijd.slice(0, 5), tot: teVerwijderen.eind_tijd.slice(0, 5) }) })
                 : ''}
             </DialogDescription>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 22 }}>
               <DialogClose asChild>
-                <Button variant="ghost">Annuleren</Button>
+                <Button variant="ghost">{t('werk.algemeen.annuleren')}</Button>
               </DialogClose>
               <Button
                 variant="danger"
@@ -416,7 +423,7 @@ export default function RoosterDetailPage() {
                 onClick={bevestigVerwijderDienst}
                 leftIcon={<Trash2 size={15} aria-hidden />}
               >
-                Verwijderen
+                {t('werk.roosterDetail.verwijderen')}
               </Button>
             </div>
           </DialogContent>

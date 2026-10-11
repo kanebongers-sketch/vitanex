@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle2 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { TIMERS, MICRO_IDEEEN, POMODORO_BLOKKEN, formatTijd, type TimerTab } from './focus-data'
 import type { FocusTimerEngine } from './useFocusTimer'
 
@@ -25,8 +26,11 @@ interface FocusTimerProps {
  * Presentational — alle state komt uit de FocusTimerEngine.
  */
 export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: FocusTimerProps) {
+  const { t, taal } = useVertaling()
   const { timerTab, actief, rest, klaar, voltooideMinuten, wisselTab, toggle, reset } = engine
   const config = TIMERS[timerTab]
+  const naamVan = (k: TimerTab) => t(`mentaal.focus.timer.${k}.naam`)
+  const naam = naamVan(timerTab)
   const voortgang = 1 - rest / config.duur
   const onaangeraakt = rest === config.duur && !klaar
 
@@ -53,7 +57,7 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
               type="button"
               onClick={() => wisselTab(k)}
               aria-pressed={timerTab === k}
-              aria-label={`${TIMERS[k].naam}, ${formatTijd(TIMERS[k].duur)}`}
+              aria-label={t('mentaal.focus.presetLabel', { naam: naamVan(k), tijd: formatTijd(TIMERS[k].duur) })}
               className="mf-pressable flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
               style={{
                 background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
@@ -62,7 +66,7 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
               }}
             >
               <span className="text-xs font-bold opacity-60">{TIMERS[k].afk}</span>
-              <span className="font-medium">{TIMERS[k].naam}</span>
+              <span className="font-medium">{naamVan(k)}</span>
               <span style={{ opacity: 0.6, fontVariantNumeric: 'tabular-nums' }}>{formatTijd(TIMERS[k].duur)}</span>
             </button>
           ))}
@@ -72,7 +76,7 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
       <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div
           role="img"
-          aria-label={`${config.naam}: ${formatTijd(rest)} resterend`}
+          aria-label={t('mentaal.focus.resterend', { naam, tijd: formatTijd(rest) })}
           style={{ position: 'relative', width: 200, height: 200 }}
         >
           <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, color-mix(in srgb, ${config.kleur} 18%, transparent) 0%, transparent 70%)` }} />
@@ -91,7 +95,7 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 2 }} aria-hidden>
             <span className="text-4xl font-bold" style={{ color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>{formatTijd(rest)}</span>
-            <span className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{config.naam}</span>
+            <span className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{naam}</span>
           </div>
         </div>
 
@@ -101,14 +105,14 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
             <div className="flex justify-center mb-1.5" style={{ color: 'var(--mf-green)' }}>
               <CheckCircle2 size={32} aria-hidden strokeWidth={2} />
             </div>
-            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{config.naam} voltooid</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('mentaal.focus.voltooid', { naam })}</p>
             <p className="text-xs mt-1" style={{ color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>
-              +{voltooideMinuten} min · vandaag {vandaagMinuten} min in {vandaagSessies} sessie{vandaagSessies === 1 ? '' : 's'}
+              {t(vandaagSessies === 1 ? 'mentaal.focus.vandaagEen' : 'mentaal.focus.vandaagMeer', { plus: voltooideMinuten, minuten: vandaagMinuten, sessies: vandaagSessies })}
             </p>
           </div>
         )}
 
-        <p className="text-xs text-center mt-4 max-w-xs" style={{ color: 'var(--text-4)' }}>{config.tip}</p>
+        <p className="text-xs text-center mt-4 max-w-xs" style={{ color: 'var(--text-4)' }}>{t(`mentaal.focus.timer.${timerTab}.tip`)}</p>
       </div>
 
       {/* Eén duidelijke primaire actie; reset alleen tonen als die zin heeft */}
@@ -116,21 +120,21 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
         <button
           type="button"
           onClick={() => { if (klaar) { reset() } else { toggle() } }}
-          aria-label={klaar ? 'Nieuwe sessie starten' : actief ? 'Timer pauzeren' : onaangeraakt ? `${config.naam} starten` : 'Timer hervatten'}
+          aria-label={klaar ? t('mentaal.focus.nieuweStarten') : actief ? t('mentaal.focus.pauzeren') : onaangeraakt ? t('mentaal.focus.naamStarten', { naam }) : t('mentaal.focus.hervatten')}
           className="mf-pressable flex-1 py-3.5 rounded-xl font-semibold text-sm transition"
           style={{ background: actief ? 'var(--mf-amber)' : config.kleur, color: 'var(--bg-app)' }}
         >
-          {klaar ? 'Nieuwe sessie' : actief ? 'Pauzeer' : onaangeraakt ? `Start ${config.naam.toLowerCase()}` : 'Hervat'}
+          {klaar ? t('mentaal.focus.nieuweSessie') : actief ? t('mentaal.focus.pauzeer') : onaangeraakt ? t('mentaal.focus.startNaam', { naam: naam.toLocaleLowerCase(taal) }) : t('mentaal.focus.hervat')}
         </button>
         {!onaangeraakt && !klaar && (
           <button
             type="button"
             onClick={reset}
-            aria-label="Timer resetten"
+            aria-label={t('mentaal.focus.resetten')}
             className="mf-pressable mf-reset-btn px-5 py-3.5 rounded-xl text-sm border transition"
             style={{ borderColor: 'var(--border-strong)', color: 'var(--text-3)' }}
           >
-            Reset
+            {t('mentaal.focus.reset')}
           </button>
         )}
       </div>
@@ -140,26 +144,26 @@ export default function FocusTimer({ engine, vandaagMinuten, vandaagSessies }: F
         <>
           {timerTab === 'micro' && (
             <div className="rounded-2xl border p-5 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Ideeën voor je micro-break</p>
-              {MICRO_IDEEEN.map(s => (
-                <div key={s} className="mf-divider-row flex items-center gap-2.5 py-1.5">
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>{t('mentaal.focus.microTitel')}</p>
+              {MICRO_IDEEEN.map(sleutel => (
+                <div key={sleutel} className="mf-divider-row flex items-center gap-2.5 py-1.5">
                   <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-purple)' }} />
-                  <p className="text-xs" style={{ color: 'var(--text-2)' }}>{s}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-2)' }}>{t(`mentaal.focus.micro.${sleutel}`)}</p>
                 </div>
               ))}
             </div>
           )}
 
           <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-3)' }}>Pomodoro methode</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-3)' }}>{t('mentaal.focus.pomodoroTitel')}</p>
             <p className="text-sm mb-4" style={{ color: 'var(--text-2)' }}>
-              Werk in blokken van 25 minuten gefocust werk, gevolgd door 5 minuten pauze. Na 4 blokken een lange pauze van 15-30 minuten.
+              {t('mentaal.focus.pomodoroTekst')}
             </p>
             <div className="flex gap-2 items-center flex-wrap">
               {POMODORO_BLOKKEN.map((b, i) => (
                 <span key={i} className="text-xs px-2.5 py-1 rounded-lg font-medium"
                   style={{ background: POMODORO_STIJL[b.soort].bg, color: POMODORO_STIJL[b.soort].kleur }}>
-                  {b.label}
+                  {t(b.soort === 'focus' ? 'mentaal.focus.blokFocus' : 'mentaal.focus.blokPauze', { minuten: b.minuten })}
                 </span>
               ))}
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { TIMERS, type TimerTab } from './focus-data'
 
 export interface FocusTimerEngine {
@@ -25,6 +26,7 @@ export interface FocusTimerEngine {
  */
 export function useFocusTimer(onVoltooid: (duurMinuten: number) => void): FocusTimerEngine {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [timerTab, setTimerTab] = useState<TimerTab>('focus')
   const [actief, setActief] = useState(false)
   const [rest, setRest] = useState(TIMERS.focus.duur)
@@ -43,11 +45,11 @@ export function useFocusTimer(onVoltooid: (duurMinuten: number) => void): FocusT
         method: 'POST',
         body: JSON.stringify({ duur_minuten: duur, type: apiType }),
       }).catch(() => {
-        toast({ title: 'Sessie niet opgeslagen', description: 'Je focusblok telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+        toast({ title: t('mentaal.focus.nietOpgeslagen'), description: t('mentaal.focus.nietOpgeslagenTekst'), variant: 'warning' })
       })
       onVoltooid(duur)
     }
-  }, [timerTab, toast, onVoltooid])
+  }, [timerTab, toast, onVoltooid, t])
 
   useEffect(() => {
     if (!actief) {

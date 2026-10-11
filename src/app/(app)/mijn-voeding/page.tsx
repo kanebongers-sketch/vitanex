@@ -7,11 +7,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
-  DIEETVOORKEUR_LABELS,
   isDieetvoorkeur,
   macroVerdeling,
   type VoedingRichtlijn,
@@ -56,6 +56,7 @@ function MacroRegel({ label, gram, pct, stijl }: MacroRegelProps) {
 
 export default function MijnVoedingPagina() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [richtlijn, setRichtlijn] = useState<VoedingRichtlijn | null>(null)
 
@@ -87,9 +88,9 @@ export default function MijnVoedingPagina() {
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
         <CoachHeader
-          eyebrow="Voeding"
-          titel="Mijn voeding"
-          subtitel="De persoonlijke voedingsrichtlijn die je coach voor je heeft opgesteld."
+          eyebrow={t('lichaam.voeding.titel')}
+          titel={t('lichaam.mijnVoeding.titel')}
+          subtitel={t('lichaam.mijnVoeding.subtitel')}
         />
 
         {laden ? (
@@ -97,8 +98,8 @@ export default function MijnVoedingPagina() {
         ) : !richtlijn ? (
           <CoachEmpty
             icon={Apple}
-            titel="Nog geen richtlijn"
-            tekst="Zodra je coach een voedingsrichtlijn voor je opstelt, verschijnt die hier met je persoonlijke dagdoelen."
+            titel={t('lichaam.mijnVoeding.leegTitel')}
+            tekst={t('lichaam.mijnVoeding.leegTekst')}
           />
         ) : (
           <>
@@ -109,7 +110,7 @@ export default function MijnVoedingPagina() {
                   <Flame size={26} strokeWidth={1.75} />
                 </span>
                 <div style={{ minWidth: 0 }}>
-                  <p className="mf-overline" style={{ marginBottom: 8 }}>Caloriedoel per dag</p>
+                  <p className="mf-overline" style={{ marginBottom: 8 }}>{t('lichaam.mijnVoeding.caloriedoel')}</p>
                   <p className="mf-number-large" style={{ color: 'var(--mf-green)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
                     {richtlijn.calorie_doel}
                     <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-4)', marginLeft: 7, letterSpacing: 0 }}>kcal</span>
@@ -120,16 +121,16 @@ export default function MijnVoedingPagina() {
 
             {/* Macro-dagdoelen */}
             {heeftMacros && (
-              <CoachSection titel="Macro-dagdoelen" style={{ marginTop: 24 }}>
+              <CoachSection titel={t('lichaam.mijnVoeding.macroDoelen')} style={{ marginTop: 24 }}>
                 <Card className="mf-animate-up mf-delay-2" style={{ padding: '22px 24px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <MacroRegel label="Eiwit" gram={richtlijn.eiwit_g ?? 0} pct={verdeling?.eiwit_pct ?? null} stijl={MACRO_STIJL.eiwit} />
-                    <MacroRegel label="Koolhydraten" gram={richtlijn.koolhydraat_g ?? 0} pct={verdeling?.koolhydraat_pct ?? null} stijl={MACRO_STIJL.koolhydraat} />
-                    <MacroRegel label="Vet" gram={richtlijn.vet_g ?? 0} pct={verdeling?.vet_pct ?? null} stijl={MACRO_STIJL.vet} />
+                    <MacroRegel label={t('lichaam.voeding.macro.eiwit')} gram={richtlijn.eiwit_g ?? 0} pct={verdeling?.eiwit_pct ?? null} stijl={MACRO_STIJL.eiwit} />
+                    <MacroRegel label={t('lichaam.voeding.macro.koolhydraten')} gram={richtlijn.koolhydraat_g ?? 0} pct={verdeling?.koolhydraat_pct ?? null} stijl={MACRO_STIJL.koolhydraat} />
+                    <MacroRegel label={t('lichaam.voeding.macro.vet')} gram={richtlijn.vet_g ?? 0} pct={verdeling?.vet_pct ?? null} stijl={MACRO_STIJL.vet} />
                   </div>
                   {verdeling && (
                     <p className="mf-caption" style={{ marginTop: 16 }}>
-                      Percentages tonen het aandeel in de energie uit macro&apos;s (samen {verdeling.totaal_kcal} kcal).
+                      {t('lichaam.mijnVoeding.percentages', { kcal: verdeling.totaal_kcal })}
                     </p>
                   )}
                 </Card>
@@ -139,8 +140,8 @@ export default function MijnVoedingPagina() {
             {/* Dieetvoorkeur */}
             {toonDieet && richtlijn.dieetvoorkeur && (
               <Card className="mf-animate-up mf-delay-3" style={{ padding: '16px 24px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Dieetvoorkeur</span>
-                <Badge variant="success">{DIEETVOORKEUR_LABELS[richtlijn.dieetvoorkeur]}</Badge>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{t('lichaam.mijnVoeding.dieetvoorkeur')}</span>
+                <Badge variant="success">{t(`lichaam.mijnVoeding.dieet.${richtlijn.dieetvoorkeur}`)}</Badge>
               </Card>
             )}
 
@@ -148,7 +149,7 @@ export default function MijnVoedingPagina() {
             {richtlijn.richtlijn_tekst && (
               <Card className="mf-animate-up mf-delay-3" style={{ padding: '22px 24px', marginBottom: 16 }}>
                 <h2 className="mf-overline" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-3)' }}>
-                  <Apple size={14} aria-hidden style={{ color: 'var(--mf-green)' }} /> Richtlijn van je coach
+                  <Apple size={14} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t('lichaam.mijnVoeding.vanCoach')}
                 </h2>
                 <p className="mf-body" style={{ color: 'var(--text-1)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                   {richtlijn.richtlijn_tekst}
@@ -157,8 +158,7 @@ export default function MijnVoedingPagina() {
             )}
 
             <p className="mf-caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-              Deze richtlijn is opgesteld door je coach als persoonlijke begeleiding. Coaching is geen medische of
-              diëtistische behandeling — heb je gezondheidsklachten of twijfels, raadpleeg dan een arts of diëtist.
+              {t('lichaam.mijnVoeding.disclaimer')}
             </p>
           </>
         )}

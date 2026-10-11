@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { SheetRoot, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/Sheet'
 import { pijlerDef, type PijlerKey } from '@/lib/pijlers/pijlers'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // Snel loggen vanaf de home: tik een pijler, log in twee tellen, score werkt bij.
 // Elke pijler mapt op zijn minimale, eerlijke invoer — geen formulier-marathon.
@@ -45,20 +47,22 @@ function maaltijdNu(): string {
   return 'snack'
 }
 
-const TITEL: Record<PijlerKey, { titel: string; sub: string }> = {
-  stemming: { titel: 'Hoe voel je je?', sub: 'Leg je stemming en energie van nu vast.' },
-  energie: { titel: 'Hoe voel je je?', sub: 'Leg je stemming en energie van nu vast.' },
-  stress: { titel: 'Hoeveel spanning?', sub: '1 is helemaal rustig, 10 is heel gespannen.' },
-  slaap: { titel: 'Hoe lang sliep je?', sub: 'Het aantal uren van afgelopen nacht.' },
-  beweging: { titel: 'Stappen vandaag', sub: 'Kies snel of vul je eigen aantal in.' },
-  voeding: { titel: 'Voeding & water', sub: 'Log snel een maaltijd of tik een glas water erbij.' },
+/** Woordenboek-sleutel van de kop per pijler (energie deelt de kop van stemming). */
+const KOP_SLEUTEL: Record<PijlerKey, string> = {
+  stemming: 'gevoel',
+  energie: 'gevoel',
+  stress: 'stress',
+  slaap: 'slaap',
+  beweging: 'stappen',
+  voeding: 'voeding',
 }
 
 export function SnelLogSheet({ pijler, route, onClose, onGelogd }: SnelLogSheetProps) {
+  const { t } = useVertaling()
   const open = pijler !== null
   const kleur = pijler ? pijlerDef(pijler)?.kleur ?? 'var(--brand)' : 'var(--brand)'
   const soort = pijler ? SOORT[pijler] : null
-  const kop = pijler ? TITEL[pijler] : null
+  const kop = pijler ? { titel: t(`voortgang.snelLog.kop.${KOP_SLEUTEL[pijler]}.titel`), sub: t(`voortgang.snelLog.kop.${KOP_SLEUTEL[pijler]}.sub`) } : null
 
   return (
     <SheetRoot open={open} onOpenChange={(o) => { if (!o) onClose() }}>
@@ -79,7 +83,7 @@ export function SnelLogSheet({ pijler, route, onClose, onGelogd }: SnelLogSheetP
         {pijler && (
           <Link href={route} onClick={onClose}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 4, alignSelf: 'flex-start', fontSize: 13, fontWeight: 700, color: 'var(--text-3)', textDecoration: 'none' }}>
-            Volledig loggen <ChevronRight size={15} aria-hidden />
+            {t('voortgang.snelLog.volledig')} <ChevronRight size={15} aria-hidden />
           </Link>
         )}
       </SheetContent>
@@ -129,20 +133,21 @@ function Veld({ label, children }: { label: string; children: ReactNode }) {
 /** Post + toast + afsluiten; geeft `bezig` terug voor de knop. */
 function useOpslaan() {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [bezig, setBezig] = useState(false)
   const opslaan = async (url: string, body: unknown, klaar: () => void): Promise<boolean> => {
     setBezig(true)
     try {
       const res = await authFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       if (!res.ok) {
-        toast({ title: 'Opslaan mislukt', description: 'Probeer het zo nog eens.', variant: 'error' })
+        toast({ title: t('voortgang.snelLog.opslaanMislukt'), description: t('voortgang.snelLog.probeerZo'), variant: 'error' })
         return false
       }
-      toast({ title: 'Opgeslagen', description: 'Je score is bijgewerkt.', variant: 'success' })
+      toast({ title: t('voortgang.snelLog.opgeslagen'), description: t('voortgang.snelLog.scoreBijgewerkt'), variant: 'success' })
       klaar()
       return true
     } catch {
-      toast({ title: 'Geen verbinding', description: 'Controleer je internet en probeer opnieuw.', variant: 'error' })
+      toast({ title: t('voortgang.snelLog.geenVerbinding'), description: t('voortgang.snelLog.controleerInternet'), variant: 'error' })
       return false
     } finally {
       setBezig(false)
@@ -157,12 +162,13 @@ const STEMMING_EMOJI: Record<number, string> = { 1: '😞', 2: '🙁', 3: '😐'
 
 function GevoelForm({ kleur, onKlaar, onClose }: FormProps) {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const { opslaan, bezig } = useOpslaan()
   const [stemming, setStemming] = useState<number | null>(null)
   const [energie, setEnergie] = useState<number | null>(null)
 
   async function bewaar() {
-    if (stemming === null) { toast({ title: 'Kies je stemming', variant: 'warning' }); return }
+    if (stemming === null) { toast({ title: t('voortgang.snelLog.kiesStemming'), variant: 'warning' }); return }
     const body: { stemming: number; energie?: number } = { stemming }
     if (energie !== null) body.energie = energie
     if (await opslaan('/api/stemming', body, onKlaar)) onClose()
@@ -170,37 +176,39 @@ function GevoelForm({ kleur, onKlaar, onClose }: FormProps) {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      <Veld label="Stemming">
+      <Veld label={t('voortgang.snelLog.stemming')}>
         <KeuzeRij waarden={[1, 2, 3, 4, 5]} actief={stemming} kleur={kleur} onKies={setStemming} labels={STEMMING_EMOJI} />
       </Veld>
-      <Veld label="Energie (optioneel)">
+      <Veld label={t('voortgang.snelLog.energieOptioneel')}>
         <KeuzeRij waarden={[1, 2, 3, 4, 5]} actief={energie} kleur={kleur} onKies={setEnergie} />
       </Veld>
-      <Button onClick={bewaar} loading={bezig} disabled={stemming === null} style={{ background: kleur, borderColor: kleur }}>Opslaan</Button>
+      <Button onClick={bewaar} loading={bezig} disabled={stemming === null} style={{ background: kleur, borderColor: kleur }}>{t('voortgang.snelLog.opslaan')}</Button>
     </div>
   )
 }
 
 function StressForm({ kleur, onKlaar, onClose }: FormProps) {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const { opslaan, bezig } = useOpslaan()
   const [niveau, setNiveau] = useState<number | null>(null)
 
   async function bewaar() {
-    if (niveau === null) { toast({ title: 'Kies een niveau', variant: 'warning' }); return }
+    if (niveau === null) { toast({ title: t('voortgang.snelLog.kiesNiveau'), variant: 'warning' }); return }
     if (await opslaan('/api/stress', { stress_niveau: niveau }, onKlaar)) onClose()
   }
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <KeuzeRij waarden={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} actief={niveau} kleur={kleur} onKies={setNiveau} />
-      <Button onClick={bewaar} loading={bezig} disabled={niveau === null} style={{ background: kleur, borderColor: kleur }}>Opslaan</Button>
+      <Button onClick={bewaar} loading={bezig} disabled={niveau === null} style={{ background: kleur, borderColor: kleur }}>{t('voortgang.snelLog.opslaan')}</Button>
     </div>
   )
 }
 
 function SlaapForm({ kleur, onKlaar, onClose }: FormProps) {
   const { opslaan, bezig } = useOpslaan()
+  const { t, taal } = useVertaling()
   const [uren, setUren] = useState(7.5)
   const stap = (d: number) => setUren((u) => Math.max(0, Math.min(14, Math.round((u + d) * 2) / 2)))
 
@@ -211,13 +219,13 @@ function SlaapForm({ kleur, onKlaar, onClose }: FormProps) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-        <StepKnop label="Minder slaap" teken="−" onClick={() => stap(-0.5)} kleur={kleur} />
+        <StepKnop label={t('voortgang.snelLog.minderSlaap')} teken="−" onClick={() => stap(-0.5)} kleur={kleur} />
         <span style={{ minWidth: 96, textAlign: 'center', fontSize: 30, fontWeight: 900, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-          {uren.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}<span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-4)' }}> u</span>
+          {uren.toLocaleString(INTL_LOCALE[taal], { minimumFractionDigits: 1, maximumFractionDigits: 1 })}<span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-4)' }}> {t('voortgang.snelLog.uur')}</span>
         </span>
-        <StepKnop label="Meer slaap" teken="+" onClick={() => stap(0.5)} kleur={kleur} />
+        <StepKnop label={t('voortgang.snelLog.meerSlaap')} teken="+" onClick={() => stap(0.5)} kleur={kleur} />
       </div>
-      <Button onClick={bewaar} loading={bezig} style={{ background: kleur, borderColor: kleur }}>Opslaan</Button>
+      <Button onClick={bewaar} loading={bezig} style={{ background: kleur, borderColor: kleur }}>{t('voortgang.snelLog.opslaan')}</Button>
     </div>
   )
 }
@@ -233,6 +241,7 @@ function StepKnop({ teken, label, onClick, kleur }: { teken: string; label: stri
 
 function StappenForm({ kleur, onKlaar, onClose }: FormProps) {
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const { opslaan, bezig } = useOpslaan()
   const [aantal, setAantal] = useState<number | null>(null)
   const [eigen, setEigen] = useState('')
@@ -240,7 +249,7 @@ function StappenForm({ kleur, onKlaar, onClose }: FormProps) {
 
   async function bewaar() {
     const n = aantal ?? parseInt(eigen.replace(/\D/g, ''), 10)
-    if (!Number.isFinite(n) || n <= 0) { toast({ title: 'Vul een aantal in', variant: 'warning' }); return }
+    if (!Number.isFinite(n) || n <= 0) { toast({ title: t('voortgang.snelLog.vulAantalIn'), variant: 'warning' }); return }
     if (await opslaan('/api/stappen', { stappen: n }, onKlaar)) onClose()
   }
 
@@ -248,17 +257,20 @@ function StappenForm({ kleur, onKlaar, onClose }: FormProps) {
     <div style={{ display: 'grid', gap: 16 }}>
       <KeuzeRij waarden={snel} actief={aantal} kleur={kleur}
         onKies={(n) => { setAantal(n); setEigen('') }}
-        labels={Object.fromEntries(snel.map((n) => [n, `${(n / 1000).toLocaleString('nl-NL')}k`]))} />
-      <input inputMode="numeric" placeholder="Eigen aantal, bijv. 8500" value={eigen}
+        labels={Object.fromEntries(snel.map((n) => [n, `${(n / 1000).toLocaleString(INTL_LOCALE[taal])}k`]))} />
+      <input inputMode="numeric" placeholder={t('voortgang.snelLog.eigenAantal')} value={eigen}
         onChange={(e) => { setEigen(e.target.value); setAantal(null) }}
         style={{ height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
-      <Button onClick={bewaar} loading={bezig} disabled={aantal === null && eigen.trim() === ''} style={{ background: kleur, borderColor: kleur }}>Opslaan</Button>
+      <Button onClick={bewaar} loading={bezig} disabled={aantal === null && eigen.trim() === ''} style={{ background: kleur, borderColor: kleur }}>{t('voortgang.snelLog.opslaan')}</Button>
     </div>
   )
 }
 
 function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  /** Servermeldingen zijn Nederlands; in een andere taal tonen we de vertaalde terugval. */
+  const serverMelding = (melding: string | undefined, terugval: string) => (taal === 'nl' && melding ? melding : terugval)
   const { opslaan, bezig } = useOpslaan()
   const [wat, setWat] = useState('')
   const [kcal, setKcal] = useState('')
@@ -279,17 +291,17 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
 
   async function schatMetVita() {
     const oms = wat.trim()
-    if (oms === '') { toast({ title: 'Wat at je?', description: 'Typ eerst kort wat je at.', variant: 'warning' }); return }
+    if (oms === '') { toast({ title: t('voortgang.snelLog.watAtJe'), description: t('voortgang.snelLog.typEerst'), variant: 'warning' }); return }
     setSchatBezig(true)
     try {
       const res = await authFetch('/api/voeding/schat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ omschrijving: oms }) })
       const data = await res.json().catch(() => null) as { calorieen?: number; eiwitten_g?: number; betrouwbaarheid?: 'laag' | 'gemiddeld' | 'hoog'; error?: string } | null
       if (!res.ok || !data || typeof data.calorieen !== 'number') {
-        toast({ title: 'Schatten lukte niet', description: data?.error ?? 'Vul de waarden zelf in.', variant: 'error' }); return
+        toast({ title: t('voortgang.snelLog.schattenMislukt'), description: serverMelding(data?.error, t('voortgang.snelLog.vulZelfIn')), variant: 'error' }); return
       }
       toonSchatting(data.calorieen, data.eiwitten_g, data.betrouwbaarheid)
     } catch {
-      toast({ title: 'Geen verbinding', variant: 'error' })
+      toast({ title: t('voortgang.snelLog.geenVerbinding'), variant: 'error' })
     } finally {
       setSchatBezig(false)
     }
@@ -301,19 +313,19 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
     setFotoBezig(true)
     try {
       const tok = (await supabase.auth.getSession()).data.session?.access_token
-      if (!tok) { toast({ title: 'Log opnieuw in', variant: 'error' }); return }
+      if (!tok) { toast({ title: t('voortgang.snelLog.logOpnieuwIn'), variant: 'error' }); return }
       const fd = new FormData()
       fd.append('foto', file)
       const res = await fetch('/api/voeding/analyseer', { method: 'POST', headers: { Authorization: `Bearer ${tok}` }, body: fd })
       const json = await res.json().catch(() => null) as { analyse?: { gerecht?: string; calorieen?: number; macros?: { eiwitten_g?: number }; betrouwbaarheid?: 'laag' | 'gemiddeld' | 'hoog' }; error?: string } | null
       const a = json?.analyse
       if (!res.ok || !a || typeof a.calorieen !== 'number') {
-        toast({ title: 'Foto lezen lukte niet', description: json?.error ?? 'Probeer een duidelijkere foto.', variant: 'error' }); return
+        toast({ title: t('voortgang.snelLog.fotoMislukt'), description: serverMelding(json?.error, t('voortgang.snelLog.duidelijkereFoto')), variant: 'error' }); return
       }
       if (typeof a.gerecht === 'string' && a.gerecht.trim() !== '') setWat(a.gerecht.trim())
       toonSchatting(a.calorieen, a.macros?.eiwitten_g, a.betrouwbaarheid)
     } catch {
-      toast({ title: 'Geen verbinding', variant: 'error' })
+      toast({ title: t('voortgang.snelLog.geenVerbinding'), variant: 'error' })
     } finally {
       setFotoBezig(false)
     }
@@ -327,7 +339,7 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
 
   async function bewaarMaaltijd() {
     const oms = wat.trim()
-    if (oms === '') { toast({ title: 'Wat at je?', description: 'Vul kort in wat je at.', variant: 'warning' }); return }
+    if (oms === '') { toast({ title: t('voortgang.snelLog.watAtJe'), description: t('voortgang.snelLog.vulKortIn'), variant: 'warning' }); return }
     const kcalNum = parseInt(kcal.replace(/\D/g, ''), 10)
     const eiwitNum = parseInt(eiwit.replace(/\D/g, ''), 10)
     const body: Record<string, unknown> = { maaltijd_type: maaltijdNu(), omschrijving: oms, bron: 'snel' }
@@ -338,34 +350,34 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      <Veld label="Maaltijd loggen">
-        <input value={wat} onChange={(e) => { setWat(e.target.value); setGeschat(null) }} placeholder="Wat at je? bijv. 2 boterhammen kaas" style={veldStijl} />
+      <Veld label={t('voortgang.snelLog.maaltijdLoggen')}>
+        <input value={wat} onChange={(e) => { setWat(e.target.value); setGeschat(null) }} placeholder={t('voortgang.snelLog.watPlaceholder')} style={veldStijl} />
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={schatMetVita} disabled={schatBezig || fotoBezig || wat.trim() === ''}
             style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, borderRadius: 12, cursor: schatBezig || fotoBezig || wat.trim() === '' ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: schatBezig || fotoBezig || wat.trim() === '' ? 0.5 : 1 }}>
-            <Sparkles size={15} aria-hidden /> {schatBezig ? 'Vita schat…' : 'Schat met Vita'}
+            <Sparkles size={15} aria-hidden /> {schatBezig ? t('voortgang.snelLog.vitaSchat') : t('voortgang.snelLog.schatMetVita')}
           </button>
-          <button type="button" onClick={() => fotoInput.current?.click()} disabled={schatBezig || fotoBezig} aria-label="Maak of kies een foto van je maaltijd"
+          <button type="button" onClick={() => fotoInput.current?.click()} disabled={schatBezig || fotoBezig} aria-label={t('voortgang.snelLog.fotoLabel')}
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, padding: '0 14px', borderRadius: 12, cursor: schatBezig || fotoBezig ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: schatBezig || fotoBezig ? 0.5 : 1 }}>
-            <Camera size={15} aria-hidden /> {fotoBezig ? 'Lezen…' : 'Foto'}
+            <Camera size={15} aria-hidden /> {fotoBezig ? t('voortgang.snelLog.lezen') : t('voortgang.snelLog.foto')}
           </button>
         </div>
         <input ref={fotoInput} type="file" accept="image/*" capture="environment" onChange={onFotoGekozen} hidden />
         <div style={{ display: 'flex', gap: 10 }}>
-          <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder="kcal" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
-          <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder="eiwit (g)" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
+          <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder={t('voortgang.snelLog.kcal')} style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
+          <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder={t('voortgang.snelLog.eiwit')} style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
         </div>
         {geschat && (
-          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Geschat door Vita ({geschat} betrouwbaar) — pas gerust aan.</span>
+          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('voortgang.snelLog.geschat', { betrouwbaarheid: t(`voortgang.snelLog.betrouwbaarheid.${geschat}`) })}</span>
         )}
-        <Button onClick={bewaarMaaltijd} loading={bezig} disabled={wat.trim() === ''} style={{ background: kleur, borderColor: kleur }}>Maaltijd opslaan</Button>
+        <Button onClick={bewaarMaaltijd} loading={bezig} disabled={wat.trim() === ''} style={{ background: kleur, borderColor: kleur }}>{t('voortgang.snelLog.maaltijdOpslaan')}</Button>
       </Veld>
 
       <div aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-4)', fontSize: 12 }}>
-        <span style={{ flex: 1, height: 1, background: 'var(--border)' }} /> of drink <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        <span style={{ flex: 1, height: 1, background: 'var(--border)' }} /> {t('voortgang.snelLog.ofDrink')} <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
       </div>
 
-      <Veld label="Water">
+      <Veld label={t('voortgang.snelLog.water')}>
         <WaterKnoppen kleur={kleur} onKlaar={onKlaar} />
       </Veld>
     </div>
@@ -374,6 +386,7 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
 
 function WaterKnoppen({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }) {
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [bezig, setBezig] = useState(false)
   const [totaal, setTotaal] = useState<number | null>(null)
 
@@ -381,12 +394,12 @@ function WaterKnoppen({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }
     setBezig(true)
     try {
       const res = await authFetch('/api/water', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ml }) })
-      if (!res.ok) { toast({ title: 'Opslaan mislukt', variant: 'error' }); return }
+      if (!res.ok) { toast({ title: t('voortgang.snelLog.opslaanMislukt'), variant: 'error' }); return }
       const json = await res.json().catch(() => null) as { nieuw_totaal?: number } | null
       if (json && typeof json.nieuw_totaal === 'number') setTotaal(json.nieuw_totaal)
       onKlaar()
     } catch {
-      toast({ title: 'Geen verbinding', variant: 'error' })
+      toast({ title: t('voortgang.snelLog.geenVerbinding'), variant: 'error' })
     } finally {
       setBezig(false)
     }
@@ -404,7 +417,7 @@ function WaterKnoppen({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }
       </div>
       {totaal !== null && (
         <p role="status" style={{ margin: 0, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
-          Vandaag: <strong style={{ color: 'var(--text-1)' }}>{(totaal / 1000).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} l</strong> gedronken
+          {t('voortgang.snelLog.waterVandaag')} <strong style={{ color: 'var(--text-1)' }}>{(totaal / 1000).toLocaleString(INTL_LOCALE[taal], { minimumFractionDigits: 1, maximumFractionDigits: 1 })} l</strong> {t('voortgang.snelLog.gedronken')}
         </p>
       )}
     </div>

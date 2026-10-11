@@ -10,6 +10,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp/xp'
 import RadarChart from '@/components/ui/RadarChart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 const SCORE_RGB = (s: number): [number, number, number] =>
   s >= 70 ? [0.114, 0.620, 0.459] : s >= 45 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
@@ -36,9 +38,10 @@ interface Analyse {
   aangemaakt_op: string
 }
 
+// Woordenboek-sleutels per vlak.
 const CAT_LABEL: Record<string, string> = {
-  slaap: 'Slaap', stress: 'Stress', energie: 'Energie',
-  focus: 'Focus', balans: 'Werk-privé', motivatie: 'Motivatie',
+  slaap: 'werk.rapport.cat.slaap', stress: 'werk.rapport.cat.stress', energie: 'werk.rapport.cat.energie',
+  focus: 'werk.rapport.cat.focus', balans: 'werk.rapport.cat.balans', motivatie: 'werk.rapport.cat.motivatie',
 }
 const CAT_KLEUR: Record<string, string> = {
   slaap: 'var(--mf-purple)', stress: 'var(--mf-red)', energie: 'var(--mf-amber)',
@@ -47,6 +50,7 @@ const CAT_KLEUR: Record<string, string> = {
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function ScoreRing({ score }: { score: number }) {
+  const { t } = useVertaling()
   const r = 56, circ = 2 * Math.PI * r
   const kleur = score >= 70 ? 'var(--mf-green)' : score >= 45 ? 'var(--mf-amber)' : 'var(--mf-red)'
   const trackKleur = score >= 70
@@ -55,7 +59,7 @@ function ScoreRing({ score }: { score: number }) {
     ? 'color-mix(in srgb, var(--mf-amber) 12%, transparent)'
     : 'color-mix(in srgb, var(--mf-red) 12%, transparent)'
   return (
-    <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label={`Vitaliteitsscore ${score} van 100`}>
+    <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label={t('werk.rapport.ringLabel', { score })}>
       <circle cx="70" cy="70" r={r} fill="none" stroke={trackKleur} strokeWidth="11" />
       <circle cx="70" cy="70" r={r} fill="none" stroke={kleur} strokeWidth="11"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
@@ -68,6 +72,8 @@ function ScoreRing({ score }: { score: number }) {
 
 export default function Rapport() {
   const router  = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const printRef = useRef<HTMLDivElement>(null)
   const [laden, setLaden]         = useState(true)
   const [analyse, setAnalyse]     = useState<Analyse | null>(null)
@@ -196,7 +202,7 @@ export default function Rapport() {
     try {
       const { default: jsPDF } = await import('jspdf')
       const aj = analyse.analyse_json
-      const datum = new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })
+      const datum = new Date(analyse.aangemaakt_op).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
       const scoreValsP = Object.values(analyse.scores).filter(v => v > 0)
       const gemP = scoreValsP.length > 0 ? scoreValsP.reduce((a, b) => a + b, 0) / scoreValsP.length : 0
       const totaal = scoreValsP.length > 0 ? Math.round(((gemP - 4) / 16) * 100) : 0
@@ -217,24 +223,24 @@ export default function Rapport() {
       const addLine = () => { doc.setDrawColor(229,231,235); doc.line(mg, y, W - mg, y); y += 6 }
 
       // Header
-      addText('MentaForce — Mijn Rapport', 20, true, [17,158,117])
+      addText(t('werk.rapport.pdfKop'), 20, true, [17,158,117])
       addText(datum, 11, false, [156,163,175])
       y += 4
       addLine()
 
       // Score
-      addText(`Vitaliteitsscore: ${totaal}/100`, 16, true, [17,40,53])
+      addText(t('werk.rapport.pdfScore', { score: totaal }), 16, true, [17,40,53])
       y += 2
       VLAK_VOLGORDE.forEach(k => {
         const v = analyse.scores[k]
-        if (v) addText(`${CAT_LABEL[k]}: ${v}/20`, 11, false, [107,114,128], mg + 4)
+        if (v) addText(t('werk.rapport.pdfCat', { label: t(CAT_LABEL[k]), waarde: v }), 11, false, [107,114,128], mg + 4)
       })
       y += 4
 
       // Samenvatting
       if (aj.samenvatting) {
         addLine()
-        addText('AI Samenvatting', 13, true, [17,40,53])
+        addText(t('werk.rapport.pdfSamenvatting'), 13, true, [17,40,53])
         addText(aj.samenvatting, 11, false, [55,65,81])
         y += 4
       }
@@ -242,7 +248,7 @@ export default function Rapport() {
       // Sterke punten
       if (aj.sterke_punten?.length) {
         addLine()
-        addText('Sterke punten', 13, true, [17,40,53])
+        addText(t('werk.rapport.sterkePunten'), 13, true, [17,40,53])
         aj.sterke_punten.forEach(p => addText(`• ${p}`, 11, false, [6,95,70], mg + 4))
         y += 4
       }
@@ -251,7 +257,7 @@ export default function Rapport() {
       const zwakke = aj.wellbeing_categorieen?.filter(c => c.niveau !== 'goed') ?? []
       if (zwakke.length) {
         addLine()
-        addText('Verbeterpunten', 13, true, [17,40,53])
+        addText(t('werk.rapport.verbeterpunten'), 13, true, [17,40,53])
         zwakke.forEach(c => {
           addText(c.naam, 12, true, [55,65,81], mg + 4)
           addText(c.samenvatting, 11, false, [107,114,128], mg + 8)
@@ -265,7 +271,7 @@ export default function Rapport() {
       if (aj.burnout_risico) {
         addLine()
         const r = aj.burnout_risico
-        addText(`Burn-out risico: ${r.niveau} (${r.score}/10)`, 13, true, [17,40,53])
+        addText(t('werk.rapport.pdfBurnout', { niveau: r.niveau, score: r.score }), 13, true, [17,40,53])
         addText(r.uitleg, 11, false, [107,114,128])
         y += 4
       }
@@ -273,10 +279,10 @@ export default function Rapport() {
       // Actieplan
       if (aj.actieplan?.length) {
         addLine()
-        addText('Actieplan volgende week', 13, true, [17,40,53])
+        addText(t('werk.rapport.actieplan'), 13, true, [17,40,53])
         aj.actieplan.forEach((item, i) => {
           addText(`${i + 1}. ${item.actie}`, 11, true, [55,65,81], mg + 4)
-          addText(`${item.wanneer} — ${item.waarom}`, 10, false, [107,114,128], mg + 8)
+          addText(`${item.wanneer} · ${item.waarom}`, 10, false, [107,114,128], mg + 8)
           y += 1
         })
         y += 4
@@ -285,15 +291,15 @@ export default function Rapport() {
       // Bericht
       if (aj.bericht) {
         addLine()
-        addText('Bericht van de AI Coach', 13, true, [17,40,53])
+        addText(t('werk.rapport.pdfBericht'), 13, true, [17,40,53])
         addText(`"${aj.bericht}"`, 11, false, [107,114,128])
       }
 
       // Footer
       y = 285
-      addText(`MentaForce · Fit Level ${xpLevel} (${LEVEL_NAMEN[xpLevel]}) · ${datum}`, 9, false, [156,163,175])
+      addText(t('werk.rapport.pdfVoet', { level: xpLevel, naam: LEVEL_NAMEN[xpLevel], datum }), 9, false, [156,163,175])
 
-      doc.save(`rapport-${datum.replace(/ /g,'-')}.pdf`)
+      doc.save(t('werk.rapport.pdfBestand', { datum: datum.replace(/ /g,'-') }))
     } finally {
       setDownloading(false)
     }
@@ -303,7 +309,7 @@ export default function Rapport() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" role="status" aria-label="Rapport laden" />
+        <div className="mf-spinner" role="status" aria-label={t('werk.rapport.laden')} />
       </div>
     </div>
   )
@@ -313,15 +319,15 @@ export default function Rapport() {
   const gemiddelde = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0
   const score = scoreVals.length > 0 ? Math.round(((gemiddelde - 4) / 16) * 100) : null
   const kleur = !score ? 'var(--text-3)' : score >= 70 ? 'var(--mf-green)' : score >= 45 ? 'var(--mf-amber)' : 'var(--mf-red)'
-  const label = !score ? '' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
-  const datum = analyse ? new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' }) : ''
+  const label = !score ? '' : score >= 70 ? t('werk.rapport.label.goed') : score >= 45 ? t('werk.rapport.label.aandacht') : t('werk.rapport.label.zorg')
+  const datum = analyse ? new Date(analyse.aangemaakt_op).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' }) : ''
 
   const burnout = aj?.burnout_risico
   const burnoutCfg = !burnout ? null : burnout.niveau === 'hoog'
-    ? { bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)', label: 'Hoog risico' }
+    ? { bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)', label: t('werk.rapport.risico.hoog') }
     : burnout.niveau === 'matig'
-    ? { bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)', label: 'Matig risico' }
-    : { bg: 'var(--mf-green-light)', kleur: 'var(--mf-green)', label: 'Laag risico' }
+    ? { bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)', label: t('werk.rapport.risico.matig') }
+    : { bg: 'var(--mf-green-light)', kleur: 'var(--mf-green)', label: t('werk.rapport.risico.laag') }
 
   const zwakke = aj?.wellbeing_categorieen?.filter(c => c.niveau !== 'goed') ?? []
 
@@ -333,8 +339,8 @@ export default function Rapport() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Mijn rapport</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{datum || 'Nog geen check-in gedaan'}</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>{t('werk.rapport.titel')}</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{datum || t('werk.rapport.geenCheckin')}</p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {analyse && (
@@ -348,7 +354,7 @@ export default function Rapport() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                {downloading ? 'Bezig…' : 'Download PDF'}
+                {downloading ? t('werk.rapport.bezig') : t('werk.rapport.downloadPdf')}
               </button>
             )}
             <Link href="/checkin" style={{
@@ -357,7 +363,7 @@ export default function Rapport() {
               borderRadius: 12, padding: '11px 20px',
               fontSize: 14, fontWeight: 600, textDecoration: 'none',
             }}>
-              Nieuwe check-in
+              {t('werk.rapport.nieuweCheckin')}
             </Link>
           </div>
         </div>
@@ -370,30 +376,30 @@ export default function Rapport() {
           }}>
             {analyseAanMaken ? (
               <>
-                <div className="mf-spinner" style={{ margin: '0 auto 20px' }} role="status" aria-label="Analyse wordt opgesteld" />
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse wordt opgesteld…</h2>
-                <p style={{ fontSize: 14, color: 'var(--text-3)' }}>De AI analyseert jouw check-in. Dit duurt een paar seconden.</p>
+                <div className="mf-spinner" style={{ margin: '0 auto 20px' }} role="status" aria-label={t('werk.rapport.opgesteldLabel')} />
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('werk.rapport.opgesteld')}</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)' }}>{t('werk.rapport.opgesteldTekst')}</p>
               </>
             ) : analyseFout ? (
               <>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse mislukt</h2>
-                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('werk.rapport.mislukt')}</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>{t('werk.rapport.misluktTekst')}</p>
                 <button onClick={() => { setAnalyseFout(false); setLaden(true); laad() }}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-                  Opnieuw proberen →
+                  {t('werk.rapport.opnieuw')}
                 </button>
               </>
             ) : (
               <>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Nog geen rapport beschikbaar</h2>
-                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{t('werk.rapport.geenRapport')}</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>{t('werk.rapport.geenRapportTekst')}</p>
                 <Link href="/checkin" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   background: 'var(--mf-green)', color: 'var(--bg-app)',
                   borderRadius: 12, padding: '12px 28px',
                   fontSize: 15, fontWeight: 700, textDecoration: 'none',
                 }}>
-                  Start eerste check-in →
+                  {t('werk.rapport.eersteCheckin')}
                 </Link>
               </>
             )}
@@ -440,14 +446,14 @@ export default function Rapport() {
                     const pct = Math.round(((v - 4) / 16) * 100)
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-3)', width: 72, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-3)', width: 72, flexShrink: 0 }}>{t(CAT_LABEL[k])}</span>
                         <div
                           role="progressbar"
-                          aria-label={CAT_LABEL[k]}
+                          aria-label={t(CAT_LABEL[k])}
                           aria-valuenow={v}
                           aria-valuemin={4}
                           aria-valuemax={20}
-                          aria-valuetext={`${v} van 20`}
+                          aria-valuetext={t('werk.rapport.vanTwintig', { waarde: v })}
                           style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}
                         >
                           <div style={{ height: '100%', width: '100%', borderRadius: 3, background: CAT_KLEUR[k], transformOrigin: 'left center', transform: `scaleX(${pct / 100})`, transition: 'transform 0.8s var(--ease)' }} />
@@ -478,13 +484,13 @@ export default function Rapport() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: burnoutCfg.kleur, flexShrink: 0 }} />
-                    <p style={{ fontSize: 13, fontWeight: 700, color: burnoutCfg.kleur }}>Burn-out risico: {burnoutCfg.label}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: burnoutCfg.kleur }}>{t('werk.rapport.burnoutRisico', { label: burnoutCfg.label })}</p>
                     <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: burnoutCfg.kleur }}>{burnout.score}/10</span>
                   </div>
                   <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>{burnout.uitleg}</p>
                   {burnout.niveau !== 'laag' && (
                     <Link href="/burnout" style={{ fontSize: 12, fontWeight: 600, color: burnoutCfg.kleur, textDecoration: 'underline', marginTop: 8, display: 'inline-block' }}>
-                      Doe de volledige scan →
+                      {t('werk.rapport.volledigeScan')}
                     </Link>
                   )}
                 </div>
@@ -496,7 +502,7 @@ export default function Rapport() {
                   background: 'var(--mf-green-light)', borderRadius: 16, padding: '20px 24px',
                   border: '1.5px solid var(--mf-green-mid)',
                 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 10 }}>Sterke punten</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 10 }}>{t('werk.rapport.sterkePunten')}</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {aj.sterke_punten.map((p, i) => (
                       <span key={i} style={{
@@ -513,12 +519,12 @@ export default function Rapport() {
             {/* Verbeterpunten (compact) */}
             {zwakke.length > 0 && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>Verbeterpunten</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>{t('werk.rapport.verbeterpunten')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {zwakke.map(cat => {
                     const niveauKleur = cat.niveau === 'laag' ? 'var(--mf-red)' : 'var(--mf-amber-dark)'
                     const niveauBg    = cat.niveau === 'laag' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)'
-                    const niveauLabel = cat.niveau === 'laag' ? 'Aandacht nodig' : 'Matig'
+                    const niveauLabel = cat.niveau === 'laag' ? t('werk.rapport.niveau.aandacht') : t('werk.rapport.niveau.matig')
                     return (
                       <div key={cat.naam} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', minWidth: 140 }}>{cat.naam}</span>
@@ -542,7 +548,7 @@ export default function Rapport() {
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Aandachtspunten</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{t('werk.rapport.aandachtspunten')}</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {aj.aandachtspunten.map((punt, i) => (
@@ -571,7 +577,7 @@ export default function Rapport() {
                       <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                     </svg>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)' }}>Actieplan volgende week</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)' }}>{t('werk.rapport.actieplan')}</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {aj.actieplan.map((item, i) => (
@@ -595,7 +601,7 @@ export default function Rapport() {
             {/* AI bericht */}
             {aj?.bericht && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bericht van de Coach</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t('werk.rapport.berichtCoach')}</p>
                 <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, fontStyle: 'italic' }}>&ldquo;{aj.bericht}&rdquo;</p>
               </div>
             )}

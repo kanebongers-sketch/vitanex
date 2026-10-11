@@ -9,6 +9,8 @@
 // terug.
 
 import type { XPEvent } from '@/lib/xp/xp'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_VOORTGANG } from '@/lib/pijlers/teksten'
 
 export interface WeekDag {
   /** Kort NL-label: 'ma' … 'zo'. */
@@ -121,23 +123,17 @@ export function laatsteWeken(
   return weken
 }
 
-function dagWoord(n: number): string {
-  return n === 1 ? 'dag' : 'dagen'
+/** "1 dag" / "3 dagen" in de taal van de taalset. */
+function aantalDagen(n: number, ts: Taalset): string {
+  return ts.t(n === 1 ? 'voortgang.momentum.dagEen' : 'voortgang.momentum.dagMeer', { n })
 }
 
-/** Nuchtere momentum-zin — nooit schuld-framing bij een mindere week. */
-export function momentumTekst(actieveDagen: number, vorigeWeek: number): string {
-  if (actieveDagen === 0 && vorigeWeek === 0) {
-    return 'Nog geen activiteit gelogd — een korte check-in is een prima eerste stap.'
-  }
-  if (vorigeWeek === 0) {
-    return 'Vorige week geen gelogde activiteit — deze week ben je al begonnen.'
-  }
-  if (actieveDagen > vorigeWeek) {
-    return `Meer dan vorige week (${vorigeWeek} ${dagWoord(vorigeWeek)}) — rustig opgebouwd momentum.`
-  }
-  if (actieveDagen === vorigeWeek) {
-    return `Hetzelfde ritme als vorige week (${vorigeWeek} ${dagWoord(vorigeWeek)}).`
-  }
-  return `Vorige week ${vorigeWeek} ${dagWoord(vorigeWeek)} — elke actieve dag telt, ook deze week.`
+/** Nuchtere momentum-zin, nooit schuld-framing bij een mindere week. */
+export function momentumTekst(actieveDagen: number, vorigeWeek: number, ts: Taalset = NL_VOORTGANG): string {
+  if (actieveDagen === 0 && vorigeWeek === 0) return ts.t('voortgang.momentum.nogNiets')
+  if (vorigeWeek === 0) return ts.t('voortgang.momentum.begonnen')
+  const dagen = aantalDagen(vorigeWeek, ts)
+  if (actieveDagen > vorigeWeek) return ts.t('voortgang.momentum.meer', { dagen })
+  if (actieveDagen === vorigeWeek) return ts.t('voortgang.momentum.gelijk', { dagen })
+  return ts.t('voortgang.momentum.minder', { dagen })
 }

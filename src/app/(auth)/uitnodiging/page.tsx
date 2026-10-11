@@ -10,12 +10,14 @@ import { Suspense } from 'react'
 import { Link2Off, Mail, MailCheck, UserRound } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Status = 'laden' | 'gereed' | 'ongeldig' | 'registreren' | 'bevestig_nodig' | 'al_geregistreerd' | 'fout'
 
 function UitnodigingForm() {
   const router = useRouter()
   const params = useSearchParams()
+  const { t, taal } = useVertaling()
   const token = params.get('token')
 
   const [status, setStatus] = useState<Status>('laden')
@@ -51,7 +53,7 @@ function UitnodigingForm() {
 
   async function registreren() {
     if (!wachtwoord || !naam.trim() || !tokenData) return
-    if (wachtwoord.length < 8) { setFoutMelding('Wachtwoord moet minimaal 8 tekens zijn.'); return }
+    if (wachtwoord.length < 8) { setFoutMelding(t('account.register.wachtwoordKort')); return }
     setStatus('registreren')
     setFoutMelding('')
 
@@ -69,13 +71,13 @@ function UitnodigingForm() {
         setStatus('al_geregistreerd')
         return
       }
-      setFoutMelding('Er ging iets mis. Probeer opnieuw.')
+      setFoutMelding(t('account.uitnodiging.fout'))
       setStatus('gereed')
       return
     }
 
     if (!data.user) {
-      setFoutMelding('Er ging iets mis. Probeer opnieuw.')
+      setFoutMelding(t('account.uitnodiging.fout'))
       setStatus('gereed')
       return
     }
@@ -106,7 +108,7 @@ function UitnodigingForm() {
     if (!koppel.ok) {
       const body: unknown = await koppel.json().catch(() => null)
       const melding = (body as { fout?: unknown } | null)?.fout
-      setFoutMelding(typeof melding === 'string' ? melding : 'Koppelen aan je bedrijf mislukte.')
+      setFoutMelding(taal === 'nl' && typeof melding === 'string' ? melding : t('account.uitnodiging.koppelenMislukt'))
       setStatus('gereed')
       return
     }
@@ -142,13 +144,13 @@ function UitnodigingForm() {
         >
           <Link2Off size={28} aria-hidden style={{ color: 'var(--mf-red)' }} />
         </div>
-        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Link niet geldig</h1>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.uitnodiging.ongeldigKop')}</h1>
         <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-2)' }}>
-          Deze uitnodigingslink is ongeldig of al eerder gebruikt. Vraag je HR-manager om een nieuwe uitnodiging te sturen.
+          {t('account.uitnodiging.ongeldigTekst')}
         </p>
         <a href="mailto:info@mentaforce.nl"
           className="text-sm font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
-          Contact opnemen
+          {t('account.uitnodiging.contact')}
         </a>
     </AuthKaart>
   )
@@ -161,14 +163,14 @@ function UitnodigingForm() {
         >
           <UserRound size={28} aria-hidden style={{ color: 'var(--mf-green)' }} />
         </div>
-        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Account bestaat al</h1>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.uitnodiging.bestaatKop')}</h1>
         <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-2)' }}>
-          Er bestaat al een account voor <strong style={{ color: 'var(--text-1)' }}>{tokenData?.email}</strong>. Log gewoon in om verder te gaan.
+          {t('account.uitnodiging.bestaatVoor')} <strong style={{ color: 'var(--text-1)' }}>{tokenData?.email}</strong>. {t('account.uitnodiging.bestaatNa')}
         </p>
         <Link href="/login"
           className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-          Inloggen
+          {t('account.login.inloggen')}
         </Link>
     </AuthKaart>
   )
@@ -181,21 +183,21 @@ function UitnodigingForm() {
         >
           <MailCheck size={28} aria-hidden style={{ color: 'var(--mf-green)' }} />
         </div>
-        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Bevestig je e-mail</h1>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>{t('account.register.bevestigKop')}</h1>
         <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>
-          We hebben een bevestigingsmail gestuurd naar
+          {t('account.register.gestuurdNaar')}
         </p>
         <p className="font-semibold mb-6" style={{ color: 'var(--text-1)' }}>{tokenData?.email}</p>
         <p className="text-xs mb-8 leading-relaxed" style={{ color: 'var(--text-3)' }}>
-          Klik op de link in de mail om je account te activeren. Controleer ook je spam-map als je niets ontvangt.
+          {t('account.uitnodiging.klikLink')}
         </p>
 
         <div className="rounded-xl p-4 mb-6 text-left" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
           <div className="flex flex-col gap-2.5">
             {[
-              'Klik op de link in de bevestigingsmail',
-              'Je wordt doorgestuurd naar het inlogscherm',
-              'Log in en doe je eerste check-in',
+              t('account.uitnodiging.vervolgMail'),
+              t('account.register.vervolgDoorgestuurd'),
+              t('account.register.vervolgInloggen'),
             ].map((stap, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
@@ -211,13 +213,13 @@ function UitnodigingForm() {
         <Link href="/login"
           className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
-          Ga naar inloggen
+          {t('account.register.naarInloggen')}
         </Link>
         <button
           onClick={() => supabase.auth.resend({ type: 'signup', email: tokenData?.email ?? '' })}
           className="mt-3 text-xs transition hover:opacity-70 underline"
           style={{ color: 'var(--text-3)' }}>
-          Bevestigingsmail opnieuw sturen
+          {t('account.uitnodiging.opnieuwSturen')}
         </button>
     </AuthKaart>
   )
@@ -228,25 +230,25 @@ function UitnodigingForm() {
           <LogoFull iconSize={38} />
         </div>
 
-        <h1 className="text-2xl font-semibold mb-1" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>Je bent uitgenodigd</h1>
+        <h1 className="text-2xl font-semibold mb-1" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>{t('account.uitnodiging.kop')}</h1>
         <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--text-2)' }}>
-          Maak je account aan om te starten met MentaForce.
+          {t('account.uitnodiging.intro')}
         </p>
 
         {tokenData && (
           <div className="flex items-center gap-2 text-xs rounded-xl px-4 py-3 mb-6"
             style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', color: 'var(--text-2)' }}>
             <Mail size={14} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} />
-            <span>Account voor: <strong style={{ color: 'var(--text-1)' }}>{tokenData.email}</strong></span>
+            <span>{t('account.uitnodiging.accountVoor')} <strong style={{ color: 'var(--text-1)' }}>{tokenData.email}</strong></span>
           </div>
         )}
 
         <div className="flex flex-col gap-3 mb-2">
-          <label htmlFor="uitn-naam" className="sr-only">Jouw naam</label>
+          <label htmlFor="uitn-naam" className="sr-only">{t('account.uitnodiging.naam')}</label>
           <input
             id="uitn-naam"
             type="text"
-            placeholder="Jouw naam"
+            placeholder={t('account.uitnodiging.naam')}
             value={naam}
             autoFocus
             autoComplete="name"
@@ -255,11 +257,11 @@ function UitnodigingForm() {
             style={{ borderRadius: 14, padding: '12px 16px' }}
           />
           <div className="relative">
-            <label htmlFor="uitn-wachtwoord" className="sr-only">Wachtwoord</label>
+            <label htmlFor="uitn-wachtwoord" className="sr-only">{t('account.login.wachtwoord')}</label>
             <input
               id="uitn-wachtwoord"
               type={toonWachtwoord ? 'text' : 'password'}
-              placeholder="Kies een wachtwoord (min. 8 tekens)"
+              placeholder={t('account.uitnodiging.wachtwoordPlaceholder')}
               value={wachtwoord}
               autoComplete="new-password"
               aria-describedby={foutMelding ? 'uitn-fout' : undefined}
@@ -268,10 +270,10 @@ function UitnodigingForm() {
               className="mf-input pr-16"
               style={{ width: '100%', borderRadius: 14, padding: '12px 60px 12px 16px' }}
             />
-            <button type="button" onClick={() => setToonWachtwoord(t => !t)}
+            <button type="button" onClick={() => setToonWachtwoord(x => !x)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition hover:opacity-70"
               style={{ color: 'var(--text-3)' }}>
-              {toonWachtwoord ? 'Verberg' : 'Toon'}
+              {toonWachtwoord ? t('account.login.verberg') : t('account.login.toon')}
             </button>
           </div>
           {wachtwoord.length > 0 && (
@@ -281,7 +283,7 @@ function UitnodigingForm() {
                   style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
               <span className="text-xs w-10" style={{ color: 'var(--text-3)' }}>
-                {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}
+                {t(`account.register.sterkte.${['teKort', 'matig', 'goed', 'sterk'][sterkte]}`)}
               </span>
             </div>
           )}
@@ -308,7 +310,7 @@ function UitnodigingForm() {
               }}
             />
           )}
-          {status === 'registreren' ? 'Account aanmaken...' : 'Account aanmaken'}
+          {status === 'registreren' ? t('account.uitnodiging.aanmakenBezig') : t('account.register.accountAanmaken')}
         </button>
     </AuthKaart>
   )

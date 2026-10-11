@@ -12,25 +12,19 @@ import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
 import { useToast } from '@/components/ui/Toast'
 import { Sparkles, MessageCircle, RotateCcw } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
-const VRAGEN = [
-  'Als ik een tegenslag ervaar, herstel ik me snel.',
-  'Ik kan omgaan met onzekerheid zonder overmatige stress.',
-  'Ik stel prioriteiten goed en voorkom overbelasting.',
-  'Ik durf nee te zeggen als mijn grenzen worden overschreden.',
-  'Ik heb een duidelijk gevoel van wat mij motiveert.',
-  'Ik heb goede sociale steun om op terug te vallen.',
-  'Ik slaap voldoende en herstel goed van inspanning.',
-  'Ik houd mijn negatieve gedachten goed onder controle.',
-]
+// Teksten in het woordenboek: mentaal.mentaleSterkte.vraag.<sleutel> en
+// mentaal.mentaleSterkte.schaal.<sleutel>. Volgorde gelijk aan de API.
+const VRAGEN = ['tegenslag', 'onzekerheid', 'prioriteiten', 'grenzen', 'motivatie', 'steun', 'slaap', 'gedachten'] as const
 
 const SCHAAL = [
-  { waarde: 1, label: 'Nooit' },
-  { waarde: 2, label: 'Zelden' },
-  { waarde: 3, label: 'Soms' },
-  { waarde: 4, label: 'Vaak' },
-  { waarde: 5, label: 'Altijd' },
+  { waarde: 1, sleutel: 'nooit' },
+  { waarde: 2, sleutel: 'zelden' },
+  { waarde: 3, sleutel: 'soms' },
+  { waarde: 4, sleutel: 'vaak' },
+  { waarde: 5, sleutel: 'altijd' },
 ]
 
 interface Resultaat {
@@ -49,6 +43,14 @@ const NIVEAU_KLEUR: Record<string, string> = {
   'Aandacht nodig': 'var(--mf-red)',
 }
 
+// Het niveau komt als Nederlands label van de API; toon het vertaald.
+const NIVEAU_SLEUTEL: Record<string, string> = {
+  'Sterk': 'sterk',
+  'Gemiddeld': 'gemiddeld',
+  'Kwetsbaar': 'kwetsbaar',
+  'Aandacht nodig': 'aandacht',
+}
+
 function scoreKleur(score: number): string {
   if (score >= 4) return 'var(--mf-green)'
   if (score >= 3) return 'var(--mf-amber)'
@@ -58,6 +60,7 @@ function scoreKleur(score: number): string {
 export default function MentaleSterktePagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [antwoorden, setAntwoorden] = useState<number[]>(new Array(VRAGEN.length).fill(0))
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)
@@ -80,11 +83,11 @@ export default function MentaleSterktePagina() {
   useEffect(() => {
     if (zojuistBeantwoord === null) return
     if (zojuistBeantwoord >= VRAGEN.length - 1) return
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setHuidigVraag(zojuistBeantwoord + 1)
       setZojuistBeantwoord(null)
     }, 300)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [zojuistBeantwoord])
 
   function stelAntwoord(vraagIdx: number, waarde: number) {
@@ -100,13 +103,13 @@ export default function MentaleSterktePagina() {
         method: 'POST',
         body: JSON.stringify({ antwoorden }),
       })
-      if (!res.ok) throw new Error('De analyse kon niet worden opgehaald.')
+      if (!res.ok) throw new Error(t('mentaal.mentaleSterkte.analyseNietOpgehaald'))
       const json = await res.json() as Resultaat
       setResultaat(json)
     } catch (e) {
       toast({
-        title: 'Analyse mislukt',
-        description: e instanceof Error ? e.message : 'Probeer het later opnieuw.',
+        title: t('mentaal.mentaleSterkte.analyseMislukt'),
+        description: e instanceof Error ? e.message : t('mentaal.mentaleSterkte.probeerLater'),
         variant: 'error',
       })
     } finally {
@@ -123,6 +126,7 @@ export default function MentaleSterktePagina() {
 
   const klaarVoorVerstuur = antwoorden.every(a => a > 0)
   const beantwoord = antwoorden.filter(a => a > 0).length
+  const niveauLabel = (niveau: string) => NIVEAU_SLEUTEL[niveau] ? t(`mentaal.mentaleSterkte.niveau.${NIVEAU_SLEUTEL[niveau]}`) : niveau
 
   if (laden) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
@@ -142,27 +146,28 @@ export default function MentaleSterktePagina() {
           <>
             <header style={{ marginBottom: 24 }}>
               <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-                Mentale veerkracht quiz
+                {t('mentaal.mentaleSterkte.titel')}
               </h1>
               <p style={{ fontSize: 13, color: 'var(--text-3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-                8 vragen · AI-analyse · 2 minuten
+                {t('mentaal.mentaleSterkte.sub', { aantal: VRAGEN.length })}
               </p>
               {/* Voortgangsbalk */}
               <Progress
                 value={beantwoord}
                 max={VRAGEN.length}
-                ariaLabel="Voortgang quiz"
+                ariaLabel={t('mentaal.mentaleSterkte.voortgang')}
                 thickness={6}
                 style={{ marginTop: 14 }}
               />
               <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 4, textAlign: 'right' }}>
-                {beantwoord}/{VRAGEN.length} beantwoord
+                {t('mentaal.mentaleSterkte.beantwoord', { aantal: beantwoord, totaal: VRAGEN.length })}
               </p>
             </header>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {VRAGEN.map((vraag, i) => {
+              {VRAGEN.map((sleutel, i) => {
+                const vraag = t(`mentaal.mentaleSterkte.vraag.${sleutel}`)
                 const actief = huidigVraag === i
                 const ingevuld = antwoorden[i] > 0
                 return (
@@ -181,13 +186,14 @@ export default function MentaleSterktePagina() {
                     <div role="radiogroup" aria-label={vraag} style={{ display: 'flex', gap: 6 }}>
                       {SCHAAL.map(s => {
                         const gekozen = antwoorden[i] === s.waarde
+                        const label = t(`mentaal.mentaleSterkte.schaal.${s.sleutel}`)
                         return (
                           <button
                             key={s.waarde}
                             type="button"
                             role="radio"
                             aria-checked={gekozen}
-                            aria-label={`${s.waarde} – ${s.label}`}
+                            aria-label={t('mentaal.mentaleSterkte.schaalLabel', { waarde: s.waarde, label })}
                             onClick={() => stelAntwoord(i, s.waarde)}
                             className="mf-likert-btn"
                             style={{
@@ -208,7 +214,7 @@ export default function MentaleSterktePagina() {
                             }}
                           >
                             <span style={{ fontSize: 13 }}>{s.waarde}</span>
-                            <span style={{ fontSize: 9, fontWeight: 600, lineHeight: 1.1 }}>{s.label}</span>
+                            <span style={{ fontSize: 9, fontWeight: 600, lineHeight: 1.1 }}>{label}</span>
                           </button>
                         )
                       })}
@@ -226,7 +232,7 @@ export default function MentaleSterktePagina() {
                 style={{ width: '100%', marginTop: 20 }}
                 rightIcon={!bezig ? <Sparkles size={18} aria-hidden /> : undefined}
               >
-                {bezig ? 'AI analyseert…' : 'Bekijk mijn analyse'}
+                {bezig ? t('mentaal.mentaleSterkte.analyseert') : t('mentaal.mentaleSterkte.bekijk')}
               </Button>
             )}
 
@@ -251,14 +257,14 @@ export default function MentaleSterktePagina() {
                 </span>
               </div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: NIVEAU_KLEUR[resultaat.niveau] ?? 'var(--text-1)', marginBottom: 4 }}>
-                {resultaat.niveau}
+                {niveauLabel(resultaat.niveau)}
               </h1>
-              <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Score: {resultaat.score}/100</p>
+              <p style={{ fontSize: 14, color: 'var(--text-3)' }}>{t('mentaal.mentaleSterkte.score', { score: resultaat.score })}</p>
 
               <Progress
                 value={resultaat.score}
                 max={100}
-                ariaLabel={`Veerkrachtscore: ${resultaat.score} van 100, niveau ${resultaat.niveau}`}
+                ariaLabel={t('mentaal.mentaleSterkte.scoreLabel', { score: resultaat.score, niveau: niveauLabel(resultaat.niveau) })}
                 color={NIVEAU_KLEUR[resultaat.niveau] ?? 'var(--mentaforce-primary)'}
                 style={{ maxWidth: 280, margin: '16px auto 0' }}
               />
@@ -267,14 +273,14 @@ export default function MentaleSterktePagina() {
             <Card style={{ padding: 20, marginBottom: 20 }}>
               <p className="mf-overline" style={{ marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-                AI-analyse
+                {t('mentaal.mentaleSterkte.aiAnalyse')}
               </p>
               <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{resultaat.analyse}</p>
             </Card>
 
             <Card style={{ padding: 16, marginBottom: 20 }}>
               <p className="mf-overline" style={{ marginBottom: 12 }}>
-                Jouw scores per vraag
+                {t('mentaal.mentaleSterkte.perVraag')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {resultaat.per_vraag.map((pv, i) => (
@@ -286,7 +292,7 @@ export default function MentaleSterktePagina() {
                     thickness={4}
                     label={
                       <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: 8 }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{pv.vraag}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{VRAGEN[i] ? t(`mentaal.mentaleSterkte.vraag.${VRAGEN[i]}`) : pv.vraag}</span>
                         <span style={{ fontSize: 11, fontWeight: 700, color: scoreKleur(pv.score), flexShrink: 0 }}>{pv.score}/5</span>
                       </span>
                     }
@@ -302,14 +308,14 @@ export default function MentaleSterktePagina() {
                 style={{ flex: 1 }}
                 leftIcon={<RotateCcw size={15} aria-hidden />}
               >
-                Opnieuw doen
+                {t('mentaal.mentaleSterkte.opnieuw')}
               </Button>
               <Button
                 onClick={() => router.push('/coach')}
                 style={{ flex: 1 }}
                 leftIcon={<MessageCircle size={15} aria-hidden />}
               >
-                Bespreek met coach
+                {t('mentaal.mentaleSterkte.bespreek')}
               </Button>
             </div>
           </>

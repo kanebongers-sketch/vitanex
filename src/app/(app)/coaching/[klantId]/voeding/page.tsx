@@ -15,13 +15,13 @@ import { Textarea } from '@/components/ui/Textarea'
 import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
   DIEETVOORKEUREN,
-  DIEETVOORKEUR_LABELS,
   macroVerdeling,
   type Dieetvoorkeur,
   type MacroVerdeling,
   type VoedingRichtlijn,
 } from '@/lib/coaching/voeding'
 import { Apple, Save, Flame, ShieldAlert, Check } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const SELECT_STYLE: CSSProperties = {
   width: '100%', padding: '10px 14px', fontSize: 15, lineHeight: 1.4,
@@ -71,18 +71,19 @@ function parseNum(waarde: string): number | null {
 
 // Live macro-verdeling als premium segmentbalk + legenda (puur presentational).
 function MacroBalk({ verdeling }: { verdeling: MacroVerdeling }) {
+  const { t } = useVertaling()
   const segmenten = [
-    { key: 'eiwit', label: 'Eiwit', pct: verdeling.eiwit_pct, ...MACRO_STIJL.eiwit },
-    { key: 'koolhydraat', label: 'Koolhydraten', pct: verdeling.koolhydraat_pct, ...MACRO_STIJL.koolhydraat },
-    { key: 'vet', label: 'Vet', pct: verdeling.vet_pct, ...MACRO_STIJL.vet },
+    { key: 'eiwit', label: t('coaching.voeding.eiwit'), pct: verdeling.eiwit_pct, ...MACRO_STIJL.eiwit },
+    { key: 'koolhydraat', label: t('coaching.voeding.koolhydraten'), pct: verdeling.koolhydraat_pct, ...MACRO_STIJL.koolhydraat },
+    { key: 'vet', label: t('coaching.voeding.vet'), pct: verdeling.vet_pct, ...MACRO_STIJL.vet },
   ] as const
 
   return (
-    <div aria-label="Berekende macroverdeling">
+    <div aria-label={t('coaching.voeding.verdelingAria')}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span className="mf-overline" style={{ color: 'var(--text-3)' }}>Verdeling</span>
+        <span className="mf-overline" style={{ color: 'var(--text-3)' }}>{t('coaching.voeding.verdeling')}</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--mf-green)', fontVariantNumeric: 'tabular-nums' }}>
-          <Flame size={13} aria-hidden /> {verdeling.totaal_kcal} kcal uit macro&apos;s
+          <Flame size={13} aria-hidden /> {t('coaching.voeding.kcalUitMacros', { kcal: verdeling.totaal_kcal })}
         </span>
       </div>
       <div style={{ display: 'flex', height: 9, borderRadius: 100, overflow: 'hidden', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
@@ -103,6 +104,7 @@ function MacroBalk({ verdeling }: { verdeling: MacroVerdeling }) {
 }
 
 export default function KlantVoedingPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { klantId } = useParams<{ klantId: string }>()
 
@@ -182,7 +184,7 @@ export default function KlantVoedingPagina() {
       setWaarden(naarForm(data.richtlijn))
       setOpgeslagen(true)
     } else {
-      setFout(data.error ?? 'Opslaan mislukt.')
+      setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.algemeen.opslaanMislukt'))
     }
   }
 
@@ -191,11 +193,11 @@ export default function KlantVoedingPagina() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 780, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Voeding"
-          titel="Voedingsrichtlijn"
-          subtitel="Stel een persoonlijke richtlijn en dagdoelen op. Je klant ziet deze terug bij Mijn voeding."
+          eyebrow={t('coaching.tabs.voeding')}
+          titel={t('coaching.voeding.titel')}
+          subtitel={t('coaching.voeding.subtitel')}
           backHref={`/coaching/${klantId}`}
-          backLabel="Terug naar klant"
+          backLabel={t('coaching.algemeen.terugNaarKlant')}
           rechts={
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px',
@@ -203,7 +205,7 @@ export default function KlantVoedingPagina() {
               color: 'var(--mf-green)', background: 'var(--mf-green-light)',
               border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',
             }}>
-              <Apple size={14} aria-hidden /> {bestaand ? 'Actieve richtlijn' : 'Nieuwe richtlijn'}
+              <Apple size={14} aria-hidden /> {bestaand ? t('coaching.voeding.actief') : t('coaching.voeding.nieuw')}
             </span>
           }
         />
@@ -214,29 +216,29 @@ export default function KlantVoedingPagina() {
           <CoachEmpty
             icon={ShieldAlert}
             toon="wacht"
-            titel="Klant niet gevonden"
-            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            titel={t('coaching.klant.nietGevondenTitel')}
+            tekst={t('coaching.klant.nietActief')}
           />
         ) : (
           <>
-            <CoachSection titel="Dagdoelen">
+            <CoachSection titel={t('coaching.voeding.dagdoelen')}>
               <Card className="mf-card-glow mf-animate-up mf-delay-1" style={{ padding: '22px 24px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <Field label="Calorieën per dag (kcal)" hint="Optioneel — laat leeg als je geen caloriedoel wilt opgeven.">
-                    <Input type="number" inputMode="numeric" min={800} max={8000} placeholder="Bijv. 2200"
+                  <Field label={t('coaching.voeding.calorieen')} hint={t('coaching.voeding.calorieenHint')}>
+                    <Input type="number" inputMode="numeric" min={800} max={8000} placeholder={t('coaching.voeding.calorieenPlaceholder')}
                       value={waarden.calorie_doel} onChange={e => zet('calorie_doel', e.target.value)} />
                   </Field>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <Field label="Eiwit (g)">
+                    <Field label={t('coaching.voeding.eiwitG')}>
                       <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
                         value={waarden.eiwit_g} onChange={e => zet('eiwit_g', e.target.value)} />
                     </Field>
-                    <Field label="Koolhydraten (g)">
+                    <Field label={t('coaching.voeding.koolhydratenG')}>
                       <Input type="number" inputMode="numeric" min={0} max={1500} placeholder="0"
                         value={waarden.koolhydraat_g} onChange={e => zet('koolhydraat_g', e.target.value)} />
                     </Field>
-                    <Field label="Vet (g)">
+                    <Field label={t('coaching.voeding.vetG')}>
                       <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
                         value={waarden.vet_g} onChange={e => zet('vet_g', e.target.value)} />
                     </Field>
@@ -247,18 +249,18 @@ export default function KlantVoedingPagina() {
               </Card>
             </CoachSection>
 
-            <CoachSection titel="Persoonlijke richtlijn">
+            <CoachSection titel={t('coaching.voeding.persoonlijk')}>
               <Card className="mf-animate-up mf-delay-2" style={{ padding: '22px 24px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <Field label="Dieetvoorkeur">
+                  <Field label={t('coaching.voeding.dieetvoorkeur')}>
                     <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.dieetvoorkeur}
                       onChange={e => zet('dieetvoorkeur', e.target.value as Dieetvoorkeur)}>
-                      {DIEETVOORKEUREN.map(d => <option key={d} value={d}>{DIEETVOORKEUR_LABELS[d]}</option>)}
+                      {DIEETVOORKEUREN.map(d => <option key={d} value={d}>{t(`coaching.labels.dieet.${d}`)}</option>)}
                     </select>
                   </Field>
 
-                  <Field label="Richtlijn & toelichting" hint="Bijv. focus op eiwit bij elke maaltijd, 2 stuks fruit per dag, water bij het ontbijt.">
-                    <Textarea rows={5} maxLength={4000} placeholder="Schrijf de persoonlijke voedingsrichtlijn voor deze klant."
+                  <Field label={t('coaching.voeding.richtlijn')} hint={t('coaching.voeding.richtlijnHint')}>
+                    <Textarea rows={5} maxLength={4000} placeholder={t('coaching.voeding.richtlijnPlaceholder')}
                       value={waarden.richtlijn_tekst} onChange={e => zet('richtlijn_tekst', e.target.value)} />
                   </Field>
                 </div>
@@ -269,18 +271,17 @@ export default function KlantVoedingPagina() {
 
             <div className="mf-animate-up mf-delay-3" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <Button onClick={bewaar} loading={bezig} leftIcon={<Save size={15} aria-hidden />}>
-                {bestaand ? 'Richtlijn bijwerken' : 'Richtlijn opstellen'}
+                {bestaand ? t('coaching.voeding.bijwerken') : t('coaching.voeding.opstellen')}
               </Button>
               {opgeslagen && (
                 <span role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--mf-green)' }}>
-                  <Check size={15} aria-hidden /> Opgeslagen
+                  <Check size={15} aria-hidden /> {t('coaching.algemeen.opgeslagen')}
                 </span>
               )}
             </div>
 
             <p className="mf-caption" style={{ marginTop: 22, lineHeight: 1.6, maxWidth: '60ch' }}>
-              Coaching is geen medische of diëtistische behandeling. Deel geen richtlijn die een medische diagnose vereist;
-              verwijs bij twijfel naar een arts of diëtist.
+              {t('coaching.voeding.disclaimer')}
             </p>
 
             <style>{`

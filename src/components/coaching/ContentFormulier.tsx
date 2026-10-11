@@ -9,11 +9,10 @@ import { Plus, Check } from 'lucide-react'
 import {
   PIJLERS,
   CONTENT_TYPES,
-  PIJLER_LABELS,
-  CONTENT_TYPE_LABELS,
   type ContentType,
   type Pijler,
 } from '@/lib/coaching/content'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface ContentWaarden {
   titel: string
@@ -50,6 +49,7 @@ const LEEG: ContentWaarden = {
 }
 
 export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, onAnnuleer }: ContentFormulierProps) {
+  const { t } = useVertaling()
   const [waarden, setWaarden] = useState<ContentWaarden>(initieel ?? LEEG)
   const bewerken = initieel !== undefined
 
@@ -65,24 +65,24 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
 
   const doelgroepOpties: { waarde: boolean; label: string }[] = [
     { waarde: false, label: klantNaam },
-    { waarde: true, label: 'Al mijn klanten' },
+    { waarde: true, label: t('coaching.contentFormulier.alleKlanten') },
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Field label="Titel" error={fout ?? undefined}>
+      <Field label={t('coaching.algemeen.titel')} error={fout ?? undefined}>
         <Input
           type="text"
-          placeholder="Bijv. Ademhalingsoefening bij stress"
+          placeholder={t('coaching.contentFormulier.titelPlaceholder')}
           value={waarden.titel}
           maxLength={160}
           onChange={e => zet('titel', e.target.value)}
         />
       </Field>
 
-      <Field label="Inhoud" hint="De les of opdracht in je eigen woorden.">
+      <Field label={t('coaching.contentFormulier.inhoud')} hint={t('coaching.contentFormulier.inhoudHint')}>
         <Textarea
-          placeholder="Schrijf hier de mindset- of stress-les of -opdracht voor je klant…"
+          placeholder={t('coaching.contentFormulier.inhoudPlaceholder')}
           value={waarden.inhoud}
           rows={7}
           maxLength={20000}
@@ -91,20 +91,20 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
       </Field>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Field label="Type">
+        <Field label={t('coaching.contentFormulier.type')}>
           <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.type} onChange={e => zet('type', e.target.value as ContentType)}>
-            {CONTENT_TYPES.map(t => <option key={t} value={t}>{CONTENT_TYPE_LABELS[t]}</option>)}
+            {CONTENT_TYPES.map(type => <option key={type} value={type}>{t(`coaching.labels.contentType.${type}`)}</option>)}
           </select>
         </Field>
 
-        <Field label="Pijler">
+        <Field label={t('coaching.algemeen.pijler')}>
           <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.pijler} onChange={e => zet('pijler', e.target.value as Pijler)}>
-            {PIJLERS.map(p => <option key={p} value={p}>{PIJLER_LABELS[p]}</option>)}
+            {PIJLERS.map(p => <option key={p} value={p}>{t(`coaching.labels.pijler.${p}`)}</option>)}
           </select>
         </Field>
       </div>
 
-      <Field label="Media-link (optioneel)" hint="Externe link naar audio, video of bestand.">
+      <Field label={t('coaching.contentFormulier.media')} hint={t('coaching.contentFormulier.mediaHint')}>
         <Input
           type="url"
           placeholder="https://…"
@@ -117,7 +117,7 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
       {/* Doelgroep alleen bij aanmaken: bestaande content wijzigt niet van doelgroep. */}
       {!bewerken && (
       <fieldset style={{ border: 'none', margin: 0, padding: 0 }}>
-        <legend style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Voor wie</legend>
+        <legend style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>{t('coaching.contentFormulier.voorWie')}</legend>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {doelgroepOpties.map(opt => {
             const actief = waarden.voorAlleKlanten === opt.waarde
@@ -149,16 +149,16 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>Publiceren</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{t('coaching.contentFormulier.publiceren')}</p>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-            {waarden.gepubliceerd ? 'Direct zichtbaar voor je klant' : 'Alleen zichtbaar voor jou (concept)'}
+            {waarden.gepubliceerd ? t('coaching.contentFormulier.direct') : t('coaching.contentFormulier.alleenJij')}
           </p>
         </div>
         <button
           type="button"
           role="switch"
           aria-checked={waarden.gepubliceerd}
-          aria-label="Content publiceren"
+          aria-label={t('coaching.contentFormulier.publicerenAria')}
           onClick={() => zet('gepubliceerd', !waarden.gepubliceerd)}
           className="relative"
           style={{
@@ -178,7 +178,7 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
 
       <div style={{ display: 'flex', gap: 10 }}>
         {bewerken && onAnnuleer && (
-          <Button variant="secondary" onClick={onAnnuleer} style={{ flex: 1 }}>Annuleer</Button>
+          <Button variant="secondary" onClick={onAnnuleer} style={{ flex: 1 }}>{t('coaching.algemeen.annuleer')}</Button>
         )}
         <Button
           onClick={verstuur}
@@ -187,7 +187,7 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
           leftIcon={bewerken ? <Check size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
           style={{ flex: bewerken ? 1 : undefined }}
         >
-          {bewerken ? 'Wijzigingen opslaan' : 'Content toevoegen'}
+          {bewerken ? t('coaching.contentFormulier.wijzigingenOpslaan') : t('coaching.contentFormulier.toevoegen')}
         </Button>
       </div>
 

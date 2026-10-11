@@ -15,15 +15,10 @@ import { useFocusTimer } from './useFocusTimer'
 import AdemSectie from './AdemSectie'
 import FocusTimer from './FocusTimer'
 import KennisSecties from './KennisSecties'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
-const TABS: { id: HoofdTab; label: string }[] = [
-  { id: 'adem', label: 'Ademhaling' },
-  { id: 'beweging', label: 'Beweging' },
-  { id: 'voeding', label: 'Voeding' },
-  { id: 'slaap', label: 'Slaap' },
-  { id: 'mentaal', label: 'Mentaal' },
-  { id: 'timer', label: 'Timer' },
-]
+// Labels: mentaal.focus.tab.<id>.
+const TABS: readonly HoofdTab[] = ['adem', 'beweging', 'voeding', 'slaap', 'mentaal', 'timer']
 
 /**
  * Container van het Focus-scherm: laadt de statistieken van vandaag, houdt de
@@ -34,6 +29,7 @@ const TABS: { id: HoofdTab; label: string }[] = [
 export default function FocusPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [klaar, setKlaar] = useState(false)
   const [tab, setTab] = useState<HoofdTab>('adem')
   const [focusMinutenVandaag, setFocusMinutenVandaag] = useState(0)
@@ -65,13 +61,13 @@ export default function FocusPagina() {
           setFocusMinutenVandaag(logs.reduce((acc, log) => acc + (log.duur_minuten ?? 0), 0))
         }
       } catch {
-        toast({ title: 'Kon je focus-statistieken niet laden', description: 'Probeer het later opnieuw.', variant: 'warning' })
+        toast({ title: t('mentaal.focus.statsMislukt'), description: t('mentaal.focus.probeerLater'), variant: 'warning' })
       } finally {
         setKlaar(true)
       }
     }
     laadVandaag()
-  }, [router, toast])
+  }, [router, toast, t])
 
   if (!klaar) return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
@@ -80,9 +76,9 @@ export default function FocusPagina() {
   )
 
   const vandaagStats = [
-    { Icon: Target, waarde: `${focusMinutenVandaag}`, sub: 'min focus', kleur: focusMinutenVandaag >= 50 ? 'var(--mf-green)' : focusMinutenVandaag >= 25 ? 'var(--mf-amber)' : 'var(--text-3)' },
-    { Icon: TimerIcon, waarde: `${focusSessiesVandaag}`, sub: focusSessiesVandaag === 1 ? 'sessie' : 'sessies', kleur: focusSessiesVandaag >= 4 ? 'var(--mf-green)' : 'var(--text-3)' },
-    { Icon: Flame, waarde: focusMinutenVandaag >= 100 ? 'Top!' : focusMinutenVandaag >= 50 ? 'Goed' : 'Bezig', sub: 'vandaag', kleur: focusMinutenVandaag >= 100 ? 'var(--mf-green)' : focusMinutenVandaag >= 50 ? 'var(--mf-amber)' : 'var(--text-3)' },
+    { id: 'minuten', Icon: Target, waarde: `${focusMinutenVandaag}`, sub: t('mentaal.focus.minFocus'), kleur: focusMinutenVandaag >= 50 ? 'var(--mf-green)' : focusMinutenVandaag >= 25 ? 'var(--mf-amber)' : 'var(--text-3)' },
+    { id: 'sessies', Icon: TimerIcon, waarde: `${focusSessiesVandaag}`, sub: focusSessiesVandaag === 1 ? t('mentaal.focus.sessie') : t('mentaal.focus.sessies'), kleur: focusSessiesVandaag >= 4 ? 'var(--mf-green)' : 'var(--text-3)' },
+    { id: 'status', Icon: Flame, waarde: focusMinutenVandaag >= 100 ? t('mentaal.focus.top') : focusMinutenVandaag >= 50 ? t('mentaal.focus.goed') : t('mentaal.focus.bezig'), sub: t('mentaal.focus.vandaag'), kleur: focusMinutenVandaag >= 100 ? 'var(--mf-green)' : focusMinutenVandaag >= 50 ? 'var(--mf-amber)' : 'var(--text-3)' },
   ]
 
   return (
@@ -92,15 +88,15 @@ export default function FocusPagina() {
 
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Focus & Welzijn</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Ademhaling, beweging, voeding, slaap en mentale reset.</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('mentaal.focus.titel')}</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('mentaal.focus.intro')}</p>
         </div>
 
         {/* Vandaag strip */}
         {(focusMinutenVandaag > 0 || focusSessiesVandaag > 0) && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
             {vandaagStats.map(stat => (
-              <div key={stat.sub} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', padding: '12px 10px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
+              <div key={stat.id} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', padding: '12px 10px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: stat.kleur }}><stat.Icon size={18} aria-hidden /></div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: stat.kleur, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{stat.waarde}</div>
                 <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 2, fontWeight: 600 }}>{stat.sub}</div>
@@ -113,24 +109,24 @@ export default function FocusPagina() {
           {/* Tab bar — scrollable op mobiel */}
           <div className="overflow-x-auto pb-1 mb-6">
             <TabsList
-              aria-label="Welzijnscategorieën"
+              aria-label={t('mentaal.focus.tabsLabel')}
               className="mf-focus-tabs"
               style={{
                 display: 'flex', gap: 6, minWidth: 'max-content',
                 background: 'var(--bg-subtle)', borderRadius: 16, padding: 6, border: 'none',
               }}
             >
-              {TABS.map(t => (
+              {TABS.map(id => (
                 <TabsTrigger
-                  key={t.id}
-                  value={t.id}
+                  key={id}
+                  value={id}
                   className="mf-focus-tab"
                   style={{
                     padding: '8px 16px', borderRadius: 12, fontSize: 12, fontWeight: 500,
                     whiteSpace: 'nowrap', color: 'var(--text-3)',
                   }}
                 >
-                  {t.label}
+                  {t(`mentaal.focus.tab.${id}`)}
                 </TabsTrigger>
               ))}
             </TabsList>

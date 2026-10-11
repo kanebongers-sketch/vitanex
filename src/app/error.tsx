@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
 import FfFout from '@/app/FitFactoryPT/error'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // Next 16.2.4-conventie: error.tsx krijgt { error, unstable_retry }. De docs
 // adviseren unstable_retry() (her-fetch + her-render) boven reset(). We tonen
@@ -15,6 +16,7 @@ export default function Fout({
   error: Error & { digest?: string }
   unstable_retry: () => void
 }) {
+  const { t } = useVertaling()
   // Op het Fit Factory-domein nooit het MentaForce-foutscherm.
   if (typeof window !== 'undefined' && isPtHost(window.location.host)) {
     return <FfFout error={new Error('fout')} retry={unstable_retry} />
@@ -62,7 +64,7 @@ export default function Fout({
           lineHeight: 1.15,
         }}
       >
-        Er ging iets mis
+        {t('site.fout.kop')}
       </h1>
 
       <p
@@ -75,8 +77,7 @@ export default function Fout({
           marginBottom: 32,
         }}
       >
-        Er ging iets mis. Probeer het opnieuw — blijft het misgaan, ga dan terug
-        naar de startpagina.
+        {t('site.fout.tekst')}
       </p>
 
       <button
@@ -95,13 +96,13 @@ export default function Fout({
           transition: 'opacity 0.15s, transform 0.15s',
         }}
       >
-        Probeer opnieuw
+        {t('site.fout.opnieuw')}
       </button>
 
       <p style={{ marginTop: 20, fontSize: 12, color: 'var(--text-4)', fontWeight: 500 }}>
-        Of ga naar{' '}
+        {t('site.fout.ofGaNaar')}{' '}
         <Link href="/" style={{ color: 'var(--mf-green)', textDecoration: 'none', fontWeight: 700 }}>
-          de startpagina
+          {t('site.fout.startpagina')}
         </Link>
       </p>
     </main>

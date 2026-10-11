@@ -2,19 +2,19 @@
 // Bewust zonder React: testbaar en herbruikbaar. Generieke week-helpers
 // (bepaalWeekStart, berekenWekenOpRij) staan in '@/lib/utils/date-nl'.
 
+// De teksten staan in het woordenboek: mentaal.reflectie.vraag.<id> en
+// mentaal.reflectie.placeholder.<id>.
 export interface ReflectieVraag {
   id: string
-  vraag: string
-  placeholder: string
 }
 
 export const REFLECTIE_VRAGEN: readonly ReflectieVraag[] = [
-  { id: 'hoogtepunt', vraag: 'Wat was het hoogtepunt van deze week?', placeholder: 'Het moment dat me het meest energiek maakte...' },
-  { id: 'uitdaging', vraag: 'Wat was de grootste uitdaging?', placeholder: 'Iets wat me moeilijk afging of stress gaf...' },
-  { id: 'leermoment', vraag: 'Wat heb ik geleerd of ontdekt over mezelf?', placeholder: 'Een inzicht, patroon of nieuwe vaardigheid...' },
-  { id: 'energie', vraag: 'Wat gaf me energie? Wat kostte energie?', placeholder: 'Activiteiten, mensen of situaties die...' },
-  { id: 'volgende_week', vraag: 'Wat wil ik volgende week anders doen?', placeholder: 'Eén concrete verandering of intentie...' },
-  { id: 'dankbaarheid', vraag: 'Waar ben ik dankbaar voor deze week?', placeholder: 'Klein of groot, persoonlijk of professioneel...' },
+  { id: 'hoogtepunt' },
+  { id: 'uitdaging' },
+  { id: 'leermoment' },
+  { id: 'energie' },
+  { id: 'volgende_week' },
+  { id: 'dankbaarheid' },
 ]
 
 export interface ReflectieEntry {

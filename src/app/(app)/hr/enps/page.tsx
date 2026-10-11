@@ -12,6 +12,8 @@ import { Chart, type ChartDatum } from '@/components/ui/Chart'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { BarChart3 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface ENPSData {
@@ -34,6 +36,7 @@ const NPS_KLEUR = (score: number | null) => {
 
 export default function HrENPSPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<ENPSData | null>(null)
   const [premiumNodig, setPremiumNodig] = useState(false)
@@ -66,8 +69,8 @@ export default function HrENPSPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
         <PremiumSlot
           kanUpgraden
-          titel="eNPS-dashboard"
-          omschrijving="Meet hoe waarschijnlijk het is dat medewerkers jullie organisatie aanbevelen — anoniem (≥ 5 respondenten), met trend per maand en verdeling."
+          titel={t('werk.hrEnps.premiumTitel')}
+          omschrijving={t('werk.hrEnps.premiumOmschrijving')}
         />
       </main>
     </div>
@@ -80,8 +83,8 @@ export default function HrENPSPage() {
         <Card>
           <EmptyState
             icon={BarChart3}
-            title="Geen eNPS-gegevens"
-            description="Er is nog geen data beschikbaar, of je hebt geen toegang tot dit overzicht."
+            title={t('werk.hrEnps.geenDataTitel')}
+            description={t('werk.hrEnps.geenDataOmschrijving')}
           />
         </Card>
       </main>
@@ -94,17 +97,19 @@ export default function HrENPSPage() {
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>eNPS Dashboard</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Employee Net Promoter Score — anoniem, over alle deelnemers.</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('werk.hrEnps.titel')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.hrEnps.intro')}</p>
         </div>
         <Card>
           <EmptyState
             icon={BarChart3}
-            title="Nog te weinig respondenten"
-            description="Resultaten worden getoond vanaf 5 respondenten om anonimiteit te garanderen."
+            title={t('werk.hrEnps.teWeinigTitel')}
+            description={t('werk.hrEnps.teWeinigOmschrijving')}
           />
           <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', paddingBottom: 20 }}>
-            Tot nu toe {data.totaal_respondenten} respondent{data.totaal_respondenten !== 1 ? 'en' : ''} ({data.participatie_pct}% van het team).
+            {data.totaal_respondenten === 1
+              ? t('werk.hrEnps.totNuEen', { pct: data.participatie_pct })
+              : t('werk.hrEnps.totNuMeer', { aantal: data.totaal_respondenten, pct: data.participatie_pct })}
           </p>
         </Card>
       </main>
@@ -126,17 +131,17 @@ export default function HrENPSPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
 
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>eNPS Dashboard</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Employee Net Promoter Score — anoniem, over alle deelnemers.</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('werk.hrEnps.titel')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('werk.hrEnps.intro')}</p>
         </div>
 
         {/* Top stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
-            { label: 'eNPS score', waarde: data.nps !== null ? (data.nps > 0 ? '+' : '') + data.nps : '—', kleur: npsKleur },
-            { label: 'Respondenten', waarde: String(data.totaal_respondenten), kleur: 'var(--text-1)' },
-            { label: 'Participatie', waarde: `${data.participatie_pct}%`, kleur: 'var(--text-1)' },
-            { label: 'Promoters', waarde: String(data.promoters), kleur: 'var(--mf-green)' },
+            { label: t('werk.hrEnps.score'), waarde: data.nps !== null ? (data.nps > 0 ? '+' : '') + data.nps : '—', kleur: npsKleur },
+            { label: t('werk.hrEnps.respondenten'), waarde: String(data.totaal_respondenten), kleur: 'var(--text-1)' },
+            { label: t('werk.hrEnps.participatie'), waarde: `${data.participatie_pct}%`, kleur: 'var(--text-1)' },
+            { label: t('werk.hrEnps.promoters'), waarde: String(data.promoters), kleur: 'var(--mf-green)' },
           ].map(s => (
             <Card key={s.label} style={{ padding: '16px 18px' }}>
               <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
@@ -148,25 +153,25 @@ export default function HrENPSPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Segmentbalk */}
           <Card style={{ padding: '20px 22px' }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Verdeling respondenten</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>{t('werk.hrEnps.verdeling')}</p>
             {data.totaal_respondenten === 0 ? (
-              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.hrEnps.nogGeenData')}</p>
             ) : (
               <>
-                <div role="img" aria-label={`Verdeling: ${data.detractors} detractors, ${data.passives} passives, ${data.promoters} promoters`} style={{ height: 12, display: 'flex', borderRadius: 100, overflow: 'hidden', marginBottom: 14 }}>
+                <div role="img" aria-label={t('werk.hrEnps.verdelingLabel', { detractors: data.detractors, passives: data.passives, promoters: data.promoters })} style={{ height: 12, display: 'flex', borderRadius: 100, overflow: 'hidden', marginBottom: 14 }}>
                   {[
-                    { label: 'Detractors', count: data.detractors, kleur: 'var(--mf-red)' },
-                    { label: 'Passives',   count: data.passives,   kleur: 'var(--mf-amber)' },
-                    { label: 'Promoters',  count: data.promoters,  kleur: 'var(--mf-green)' },
+                    { label: t('werk.hrEnps.detractors'), count: data.detractors, kleur: 'var(--mf-red)' },
+                    { label: t('werk.hrEnps.passives'),   count: data.passives,   kleur: 'var(--mf-amber)' },
+                    { label: t('werk.hrEnps.promoters'),  count: data.promoters,  kleur: 'var(--mf-green)' },
                   ].map(g => (
                     <div key={g.label} style={{ flex: g.count / totaal, background: g.kleur, minWidth: g.count > 0 ? 4 : 0 }} />
                   ))}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Promoters (9—10)', count: data.promoters, kleur: 'var(--mf-green)' },
-                    { label: 'Passives (7—8)',   count: data.passives,  kleur: 'var(--mf-amber)' },
-                    { label: 'Detractors (0—6)', count: data.detractors, kleur: 'var(--mf-red)' },
+                    { label: t('werk.hrEnps.promotersBereik'), count: data.promoters, kleur: 'var(--mf-green)' },
+                    { label: t('werk.hrEnps.passivesBereik'),   count: data.passives,  kleur: 'var(--mf-amber)' },
+                    { label: t('werk.hrEnps.detractorsBereik'), count: data.detractors, kleur: 'var(--mf-red)' },
                   ].map(g => (
                     <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div aria-hidden style={{ width: 10, height: 10, borderRadius: 3, background: g.kleur, flexShrink: 0 }} />
@@ -182,28 +187,28 @@ export default function HrENPSPage() {
 
           {/* Trend */}
           <Card style={{ padding: '20px 22px' }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>eNPS trend (6 maanden)</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>{t('werk.hrEnps.trend')}</p>
             {data.trend.length === 0 ? (
-              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen historische data</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.hrEnps.geenHistorie')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {data.trend.map(t => {
-                  const kleur = NPS_KLEUR(t.nps)
-                  const maandLabel = new Date(t.maand + '-01').toLocaleDateString('nl-BE', { month: 'short' })
+                {data.trend.map(punt => {
+                  const kleur = NPS_KLEUR(punt.nps)
+                  const maandLabel = new Date(punt.maand + '-01').toLocaleDateString(INTL_LOCALE[taal], { month: 'short' })
                   return (
-                    <div key={t.maand} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div key={punt.maand} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{ fontSize: 11, color: 'var(--text-3)', width: 48, flexShrink: 0 }}>
                         {maandLabel}
                       </span>
-                      <div role="img" aria-label={`${maandLabel}: eNPS ${t.nps !== null ? t.nps : 'geen data'}, ${t.respondenten} respondenten`} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                        {t.nps !== null && (
-                          <div style={{ height: '100%', width: `${Math.min(100, ((t.nps + 100) / 200) * 100)}%`, background: kleur, borderRadius: 100 }} />
+                      <div role="img" aria-label={t('werk.hrEnps.trendLabel', { maand: maandLabel, score: punt.nps !== null ? punt.nps : t('werk.hrEnps.geenData'), aantal: punt.respondenten })} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                        {punt.nps !== null && (
+                          <div style={{ height: '100%', width: `${Math.min(100, ((punt.nps + 100) / 200) * 100)}%`, background: kleur, borderRadius: 100 }} />
                         )}
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>
-                        {t.nps !== null ? (t.nps > 0 ? '+' : '') + t.nps : '—'}
+                        {punt.nps !== null ? (punt.nps > 0 ? '+' : '') + punt.nps : '—'}
                       </span>
-                      <span style={{ fontSize: 10, color: 'var(--text-3)', width: 20, flexShrink: 0 }}>{t.respondenten}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-3)', width: 20, flexShrink: 0 }}>{punt.respondenten}</span>
                     </div>
                   )
                 })}
@@ -214,21 +219,21 @@ export default function HrENPSPage() {
 
         {/* Scoredistributie */}
         <Card style={{ padding: '20px 22px' }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Scoredistributie</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>{t('werk.hrEnps.distributie')}</p>
           {!heeftDistributie ? (
-            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.hrEnps.nogGeenData')}</p>
           ) : (
             <Chart
               type="bar"
               data={distributieData}
               xKey="score"
-              series={[{ key: 'aantal', label: 'Aantal antwoorden', color: 'var(--mentaforce-primary)' }]}
+              series={[{ key: 'aantal', label: t('werk.hrEnps.aantalAntwoorden'), color: 'var(--mentaforce-primary)' }]}
               height={140}
-              summary="Aantal antwoorden per eNPS-score van 0 tot 10."
+              summary={t('werk.hrEnps.distributieSamenvatting')}
             />
           )}
           <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 12 }}>
-            eNPS benchmarks: Excellent ≥ 50 · Goed ≥ 20 · Matig ≥ 0 · Negatief &lt; 0
+            {t('werk.hrEnps.benchmarks')}
           </p>
         </Card>
       </main>

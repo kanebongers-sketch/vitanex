@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button'
 import {
   type WeekDoel, vandaag, isVandaagGelogd, logVandaag, berekenStreak,
 } from '@/lib/doelen/weekdoelen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
 /** Structureel gelijk aan de entries van CAT in @/lib/doelen/doelen-config. */
 export interface CatInfo {
@@ -18,7 +20,11 @@ export interface CatInfo {
   icon: ReactNode
 }
 
-const DAG_LETTERS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
+/** Korte dagnaam via Intl (nl: 'ma', 'di', ...). */
+function dagLetters(dag: string, taal: Taal): string {
+  const kort = new Date(`${dag}T12:00:00`).toLocaleDateString(INTL_LOCALE[taal], { weekday: 'short' }).replace('.', '')
+  return taal === 'nl' ? kort.slice(0, 2) : kort
+}
 
 interface DoelKaartProps {
   doel: WeekDoel
@@ -43,22 +49,23 @@ interface DoelKaartProps {
 function WeekTrack({ doel, cat, weekDagen, gelogd, vorigeWeekGehaald }: {
   doel: WeekDoel; cat: CatInfo; weekDagen: string[]; gelogd: boolean; vorigeWeekGehaald?: number
 }) {
+  const { t, taal } = useVertaling()
   const aantalGehaald = weekDagen.filter(dag => doel.logs.find(l => l.datum === dag)?.gehaald === true).length
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Deze week</span>
+        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('vita.doelen.dezeWeek')}</span>
         <span style={{ fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
           {/* Feitelijke week-op-week-referentie — gedempt, zonder oordeel.
               Alleen aanwezig als dit doel vorige week ook bestond. */}
           {vorigeWeekGehaald !== undefined && (
-            <span style={{ color: 'var(--text-4)', fontWeight: 500 }}>vorige week {vorigeWeekGehaald}× · </span>
+            <span style={{ color: 'var(--text-4)', fontWeight: 500 }}>{t('vita.doelen.vorigeWeek', { aantal: vorigeWeekGehaald })} · </span>
           )}
-          <span style={{ fontWeight: 700, color: cat.kleur }}>{aantalGehaald}/7 dagen</span>
+          <span style={{ fontWeight: 700, color: cat.kleur }}>{t('vita.doelen.dagenVanZeven', { aantal: aantalGehaald })}</span>
         </span>
       </div>
-      <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={`${aantalGehaald} van 7 dagen gehaald deze week`}>
-        {weekDagen.map((dag, i) => {
+      <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('vita.doelen.weekTrackLabel', { aantal: aantalGehaald })}>
+        {weekDagen.map((dag) => {
           const log = doel.logs.find(l => l.datum === dag)
           const isVandaagDag = dag === vandaag()
           const vulling = log?.gehaald === true
@@ -78,7 +85,7 @@ function WeekTrack({ doel, cat, weekDagen, gelogd, vorigeWeekGehaald }: {
                 fontWeight: isVandaagDag ? 700 : 500,
                 color: isVandaagDag ? 'var(--text-2)' : 'var(--text-4)',
               }}>
-                {DAG_LETTERS[i]}
+                {dagLetters(dag, taal)}
               </span>
             </div>
           )
@@ -91,6 +98,7 @@ function WeekTrack({ doel, cat, weekDagen, gelogd, vorigeWeekGehaald }: {
 export default function DoelKaart({
   doel, cat, weekDagen, isVolgendeStap, netGelogd, netBehaald, vorigeWeekGehaald, onLog, onDetails,
 }: DoelKaartProps) {
+  const { t } = useVertaling()
   const gelogd = isVandaagGelogd(doel)
   const gehaaldVandaag = logVandaag(doel)?.gehaald === true
   const streak = berekenStreak(doel, weekDagen)
@@ -142,7 +150,7 @@ export default function DoelKaart({
             color: 'var(--mentaforce-primary)', background: 'var(--mentaforce-primary-light)',
             border: '1px solid var(--mentaforce-primary)', padding: '3px 9px', borderRadius: 100,
           }}>
-            Volgende stap
+            {t('vita.doelen.volgendeStap')}
           </span>
         ) : null}
       </div>
@@ -157,11 +165,11 @@ export default function DoelKaart({
           </p>
           {weekBehaald ? (
             <Badge variant="success" className={netBehaald ? 'mf-fade-in' : undefined}>
-              <Check size={11} strokeWidth={3} aria-hidden /> Weekdoel behaald
+              <Check size={11} strokeWidth={3} aria-hidden /> {t('vita.doelen.weekdoelBehaald')}
             </Badge>
           ) : streak > 0 ? (
             <Badge variant="success">
-              <Flame size={11} aria-hidden /> {streak} dag{streak !== 1 ? 'en' : ''} op rij
+              <Flame size={11} aria-hidden /> {t(streak === 1 ? 'vita.doelen.dagOpRij' : 'vita.doelen.dagenOpRij', { aantal: streak })}
             </Badge>
           ) : null}
         </div>
@@ -178,8 +186,8 @@ export default function DoelKaart({
         }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: gehaaldVandaag ? cat.kleur : 'var(--text-3)' }}>
             {gehaaldVandaag
-              ? <><Check size={14} strokeWidth={3} aria-hidden /> Gehaald vandaag</>
-              : <><X size={14} strokeWidth={3} aria-hidden /> Vandaag niet gelukt</>}
+              ? <><Check size={14} strokeWidth={3} aria-hidden /> {t('vita.doelen.gehaaldVandaag')}</>
+              : <><X size={14} strokeWidth={3} aria-hidden /> {t('vita.doelen.vandaagNietGelukt')}</>}
           </span>
           <Button
             size="sm"
@@ -187,7 +195,7 @@ export default function DoelKaart({
             onClick={() => onDetails(doel)}
             style={{ color: cat.kleur, border: `1px solid color-mix(in srgb, ${cat.kleur} 35%, transparent)` }}
           >
-            Aanpassen
+            {t('vita.doelen.aanpassen')}
           </Button>
         </div>
       ) : (
@@ -195,27 +203,27 @@ export default function DoelKaart({
           <Button
             onClick={() => onLog(doel, true)}
             leftIcon={<Check size={15} strokeWidth={2.5} aria-hidden />}
-            aria-label={`${doel.doel_titel}: vandaag gehaald`}
+            aria-label={t('vita.doelen.labelGehaald', { doel: doel.doel_titel })}
             style={{
               flex: 1, background: cat.kleur, color: 'var(--bg-app)', border: '1px solid transparent',
               boxShadow: `0 4px 12px color-mix(in srgb, ${cat.kleur} 30%, transparent)`,
             }}
           >
-            Gehaald
+            {t('vita.doelen.gehaald')}
           </Button>
           <Button
             variant="ghost"
             onClick={() => onLog(doel, false)}
-            aria-label={`${doel.doel_titel}: vandaag niet gelukt`}
+            aria-label={t('vita.doelen.labelNietGelukt', { doel: doel.doel_titel })}
             style={{ border: '1px solid var(--border-strong)', color: 'var(--text-3)' }}
           >
-            Niet gelukt
+            {t('vita.doelen.nietGelukt')}
           </Button>
           <Button
             variant="ghost"
             onClick={() => onDetails(doel)}
-            aria-label={`${doel.doel_titel}: log met notitie`}
-            title="Log met notitie"
+            aria-label={t('vita.doelen.labelNotitie', { doel: doel.doel_titel })}
+            title={t('vita.doelen.logMetNotitie')}
             style={{ border: '1px solid var(--border)', padding: '10px 12px', color: 'var(--text-3)' }}
           >
             <Pencil size={14} aria-hidden />

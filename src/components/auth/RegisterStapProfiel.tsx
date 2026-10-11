@@ -1,6 +1,7 @@
 'use client'
 
 import { formatteerHrCodeInvoer, type GebruikerType } from './register-helpers'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface RegisterStapHrCodeProps {
   hrCode: string
@@ -17,16 +18,16 @@ export function RegisterStapHrCode({
   hrCode, bedrijfsnaam, bezig, fout,
   onHrCodeChange, onValideer, onTerug, onOverslaan,
 }: RegisterStapHrCodeProps) {
+  const { t } = useVertaling()
   return (
     <div>
-      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>HR Code van je werkgever</h1>
+      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>{t('account.register.hrCodeKop')}</h1>
       <p className="mb-8" style={{ color: 'var(--text-3)' }}>
-        Voer de 7-tekens HR code in die je van je werkgever of HR-afdeling hebt ontvangen.
-        Geen code? Je kunt deze stap overslaan en later koppelen via Instellingen.
+        {t('account.register.hrCodeIntro')}
       </p>
 
       <div className="mb-6">
-        <label htmlFor="reg-hrcode" className="text-xs font-semibold block mb-2" style={{ color: 'var(--text-2)' }}>HR Code</label>
+        <label htmlFor="reg-hrcode" className="text-xs font-semibold block mb-2" style={{ color: 'var(--text-2)' }}>{t('account.register.stapHrCode')}</label>
         <input
           id="reg-hrcode"
           type="text"
@@ -49,7 +50,7 @@ export function RegisterStapHrCode({
         {bedrijfsnaam && !fout && hrCode.length === 7 && (
           <div aria-live="polite" className="mt-3 rounded-xl px-4 py-2.5 text-sm font-medium"
             style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', color: 'var(--mf-green-dark)' }}>
-            Bedrijf gevonden: <strong>{bedrijfsnaam}</strong>
+            {t('account.register.bedrijfGevonden')} <strong>{bedrijfsnaam}</strong>
           </div>
         )}
         {fout && (
@@ -66,7 +67,7 @@ export function RegisterStapHrCode({
           className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
           style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
         >
-          Terug
+          {t('account.register.terug')}
         </button>
         <button
           onClick={onValideer}
@@ -84,10 +85,10 @@ export function RegisterStapHrCode({
                 className="w-4 h-4 rounded-full border-2 animate-spin"
                 style={{ borderColor: 'color-mix(in srgb, var(--bg-app) 30%, transparent)', borderTopColor: 'var(--bg-app)' }}
               />
-              Controleren...
+              {t('account.register.controleren')}
             </>
           ) : (
-            'Controleer & verder'
+            t('account.register.controleerVerder')
           )}
         </button>
       </div>
@@ -97,7 +98,7 @@ export function RegisterStapHrCode({
         className="w-full mt-4 text-sm transition underline hover:opacity-80"
         style={{ color: 'var(--text-3)' }}
       >
-        Ik heb geen HR code, overslaan
+        {t('account.register.geenCode')}
       </button>
     </div>
   )
@@ -124,20 +125,21 @@ export function RegisterStapProfiel({
   onNaamChange, onOrganisatieChange, onTeamgrootteChange, onFunctieChange, onTelefoonChange,
   onTerug, onVerder,
 }: RegisterStapProfielProps) {
+  const { t } = useVertaling()
   return (
     <div>
-      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Vertel ons iets over jezelf</h1>
-      <p className="mb-8" style={{ color: 'var(--text-3)' }}>Alleen je naam is verplicht. De rest is optioneel.</p>
+      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>{t('account.register.profielKop')}</h1>
+      <p className="mb-8" style={{ color: 'var(--text-3)' }}>{t('account.register.profielIntro')}</p>
 
       <div className="flex flex-col gap-4 mb-8">
         <div>
-          <label htmlFor="reg-naam" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Jouw naam *</label>
+          <label htmlFor="reg-naam" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.naamLabel')}</label>
           <input
             id="reg-naam"
             type="text"
             value={naam}
             onChange={e => onNaamChange(e.target.value)}
-            placeholder="Jan Janssen"
+            placeholder={t('account.register.naamPlaceholder')}
             autoFocus
             autoComplete="name"
             className="mf-input"
@@ -147,50 +149,50 @@ export function RegisterStapProfiel({
         {(type === 'hr') && (
           <>
             <div>
-              <label htmlFor="reg-organisatie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Organisatie</label>
+              <label htmlFor="reg-organisatie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.organisatie')}</label>
               <input
                 id="reg-organisatie"
                 type="text"
                 value={organisatie}
                 onChange={e => onOrganisatieChange(e.target.value)}
-                placeholder="Naam van je bedrijf"
+                placeholder={t('account.register.organisatiePlaceholder')}
                 autoComplete="organization"
                 className="mf-input"
               />
             </div>
             <div>
-              <label htmlFor="reg-teamgrootte" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Teamgrootte</label>
+              <label htmlFor="reg-teamgrootte" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.teamgrootte')}</label>
               <select
                 id="reg-teamgrootte"
                 value={teamgrootte}
                 onChange={e => onTeamgrootteChange(e.target.value)}
                 className="mf-input appearance-none"
               >
-                <option value="" disabled>Selecteer aantal medewerkers</option>
-                <option value="10-24">10 tot 24 medewerkers</option>
-                <option value="25-49">25 tot 49 medewerkers</option>
-                <option value="50-99">50 tot 99 medewerkers</option>
-                <option value="100-249">100 tot 249 medewerkers</option>
-                <option value="250+">250 of meer medewerkers</option>
+                <option value="" disabled>{t('account.register.teamKies')}</option>
+                <option value="10-24">{t('account.register.teamBereik', { van: 10, tot: 24 })}</option>
+                <option value="25-49">{t('account.register.teamBereik', { van: 25, tot: 49 })}</option>
+                <option value="50-99">{t('account.register.teamBereik', { van: 50, tot: 99 })}</option>
+                <option value="100-249">{t('account.register.teamBereik', { van: 100, tot: 249 })}</option>
+                <option value="250+">{t('account.register.teamMeer', { van: 250 })}</option>
               </select>
             </div>
           </>
         )}
 
         <div>
-          <label htmlFor="reg-functie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Functie (optioneel)</label>
+          <label htmlFor="reg-functie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.functie')}</label>
           <input
             id="reg-functie"
             type="text"
             value={functie}
             onChange={e => onFunctieChange(e.target.value)}
-            placeholder={type === 'hr' ? 'bijv. HR Manager' : 'bijv. Software Developer'}
+            placeholder={type === 'hr' ? t('account.register.functieHr') : t('account.register.functieGebruiker')}
             className="mf-input"
           />
         </div>
 
         <div>
-          <label htmlFor="reg-telefoon" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Telefoonnummer (optioneel)</label>
+          <label htmlFor="reg-telefoon" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>{t('account.register.telefoon')}</label>
           <input
             id="reg-telefoon"
             type="tel"
@@ -209,7 +211,7 @@ export function RegisterStapProfiel({
           className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
           style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
         >
-          Terug
+          {t('account.register.terug')}
         </button>
         <button
           onClick={onVerder}
@@ -220,7 +222,7 @@ export function RegisterStapProfiel({
             boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
           }}
         >
-          Verder
+          {t('account.register.verder')}
         </button>
       </div>
     </div>

@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type Vraag = { id: string; tekst: string; type: 'schaal' | 'ja_nee' | 'tekst' }
@@ -27,60 +29,61 @@ type ResultatenMap = Record<string, {
 }>
 
 // -- Survey templates --------------------------------------------------------
+// Teksten zijn woordenboek-sleutels; bij het laden worden ze vertaald.
 
 const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Omit<Vraag, 'id'>[] }[] = [
   {
-    naam: 'Pulse check',
+    naam: 'werk.surveys.template.pulse.naam',
     kleur: 'var(--mf-green)',
-    beschrijving: '3 vragen · ±1 min · Ideaal wekelijks',
+    beschrijving: 'werk.surveys.template.pulse.beschrijving',
     vragen: [
-      { tekst: 'Hoe voel je je vandaag op het werk?', type: 'schaal' },
-      { tekst: 'Heb je voldoende energie voor je taken?', type: 'schaal' },
-      { tekst: 'Is je werkdruk beheersbaar?', type: 'ja_nee' },
+      { tekst: 'werk.surveys.template.pulse.vraag1', type: 'schaal' },
+      { tekst: 'werk.surveys.template.pulse.vraag2', type: 'schaal' },
+      { tekst: 'werk.surveys.template.pulse.vraag3', type: 'ja_nee' },
     ],
   },
   {
-    naam: 'Stress & werkdruk',
+    naam: 'werk.surveys.template.stress.naam',
     kleur: 'var(--mf-red)',
-    beschrijving: '4 vragen · ±2 min · Maandelijks',
+    beschrijving: 'werk.surveys.template.stress.beschrijving',
     vragen: [
-      { tekst: 'Hoe hoog ervaar je de werkdruk momenteel?', type: 'schaal' },
-      { tekst: 'Lukt het je om je werk af te krijgen binnen werktijd?', type: 'ja_nee' },
-      { tekst: 'Heb je voldoende hersteltijd na het werk?', type: 'schaal' },
-      { tekst: 'Wat zou jouw werkdruk verlagen?', type: 'tekst' },
+      { tekst: 'werk.surveys.template.stress.vraag1', type: 'schaal' },
+      { tekst: 'werk.surveys.template.stress.vraag2', type: 'ja_nee' },
+      { tekst: 'werk.surveys.template.stress.vraag3', type: 'schaal' },
+      { tekst: 'werk.surveys.template.stress.vraag4', type: 'tekst' },
     ],
   },
   {
-    naam: 'Teamcultuur',
+    naam: 'werk.surveys.template.cultuur.naam',
     kleur: 'var(--mf-blue)',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: 'werk.surveys.template.cultuur.beschrijving',
     vragen: [
-      { tekst: 'Hoe prettig ervaar je de samenwerking in je team?', type: 'schaal' },
-      { tekst: 'Voel je je gehoord door je leidinggevende?', type: 'schaal' },
-      { tekst: 'Zou je ons bedrijf aanraden als werkgever?', type: 'ja_nee' },
-      { tekst: 'Wat kan beter in onze teamcultuur?', type: 'tekst' },
+      { tekst: 'werk.surveys.template.cultuur.vraag1', type: 'schaal' },
+      { tekst: 'werk.surveys.template.cultuur.vraag2', type: 'schaal' },
+      { tekst: 'werk.surveys.template.cultuur.vraag3', type: 'ja_nee' },
+      { tekst: 'werk.surveys.template.cultuur.vraag4', type: 'tekst' },
     ],
   },
   {
-    naam: 'Betrokkenheid',
+    naam: 'werk.surveys.template.betrokkenheid.naam',
     kleur: 'var(--mf-purple)',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: 'werk.surveys.template.betrokkenheid.beschrijving',
     vragen: [
-      { tekst: 'Hoe gemotiveerd ben je in je werk?', type: 'schaal' },
-      { tekst: 'Voel je je verbonden met de doelen van het bedrijf?', type: 'schaal' },
-      { tekst: 'Heb je voldoende ruimte voor persoonlijke groei?', type: 'schaal' },
-      { tekst: 'Wat zou jouw betrokkenheid verhogen?', type: 'tekst' },
+      { tekst: 'werk.surveys.template.betrokkenheid.vraag1', type: 'schaal' },
+      { tekst: 'werk.surveys.template.betrokkenheid.vraag2', type: 'schaal' },
+      { tekst: 'werk.surveys.template.betrokkenheid.vraag3', type: 'schaal' },
+      { tekst: 'werk.surveys.template.betrokkenheid.vraag4', type: 'tekst' },
     ],
   },
   {
-    naam: 'Leiderschap',
+    naam: 'werk.surveys.template.leiderschap.naam',
     kleur: 'var(--mf-amber)',
-    beschrijving: '4 vragen · ±2 min · Extra anoniem',
+    beschrijving: 'werk.surveys.template.leiderschap.beschrijving',
     vragen: [
-      { tekst: 'Geeft je leidinggevende duidelijk richting?', type: 'schaal' },
-      { tekst: 'Voel je je gesteund door je leidinggevende?', type: 'schaal' },
-      { tekst: 'Worden jouw ideeën serieus genomen?', type: 'schaal' },
-      { tekst: 'Wat kan beter in het leiderschap binnen je team?', type: 'tekst' },
+      { tekst: 'werk.surveys.template.leiderschap.vraag1', type: 'schaal' },
+      { tekst: 'werk.surveys.template.leiderschap.vraag2', type: 'schaal' },
+      { tekst: 'werk.surveys.template.leiderschap.vraag3', type: 'schaal' },
+      { tekst: 'werk.surveys.template.leiderschap.vraag4', type: 'tekst' },
     ],
   },
 ]
@@ -92,6 +95,7 @@ function maakVragen(vragen: Omit<Vraag, 'id'>[]): Vraag[] {
 // -- Transparantie-banner -----------------------------------------------------
 
 function AnonimBanner() {
+  const { t } = useVertaling()
   const [open, setOpen] = useState(false)
   return (
     <div style={{ borderRadius: 16, border: '1px solid color-mix(in srgb, var(--mf-blue) 35%, transparent)', background: 'var(--mf-blue-light)', marginBottom: 20, overflow: 'hidden' }}>
@@ -101,8 +105,8 @@ function AnonimBanner() {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-blue)' }}>Volledig anoniem</p>
-            <p style={{ fontSize: 12, color: 'var(--mf-blue-mid)' }}>Jouw naam wordt nooit gedeeld met HR of collega&apos;s</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-blue)' }}>{t('werk.surveys.volledigAnoniem')}</p>
+            <p style={{ fontSize: 12, color: 'var(--mf-blue-mid)' }}>{t('werk.surveys.naamNooit')}</p>
           </div>
         </div>
         <button
@@ -110,7 +114,7 @@ function AnonimBanner() {
           aria-expanded={open}
           style={{ fontSize: 12, fontWeight: 500, padding: '8px 12px', minHeight: 40, borderRadius: 8, color: 'var(--mf-blue)', background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', border: 'none', cursor: 'pointer' }}
         >
-          {open ? 'Verbergen' : 'Hoe werkt dit?'}
+          {open ? t('werk.surveys.verbergen') : t('werk.surveys.hoeWerkt')}
         </button>
       </div>
       {open && (
@@ -119,18 +123,18 @@ function AnonimBanner() {
             {[
               {
                 icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-                titel: 'Wat HR ziet',
-                tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.',
+                titel: t('werk.surveys.hrZiet'),
+                tekst: t('werk.surveys.hrZietTekst'),
               },
               {
                 icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
-                titel: 'Wat HR niet ziet',
-                tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.',
+                titel: t('werk.surveys.hrZietNiet'),
+                tekst: t('werk.surveys.hrZietNietTekst'),
               },
               {
                 icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-                titel: 'Kleine teams',
-                tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.',
+                titel: t('werk.surveys.kleineTeams'),
+                tekst: t('werk.surveys.kleineTeamsTekst'),
               },
             ].map(item => (
               <div key={item.titel} style={{ borderRadius: 12, padding: 12, background: 'var(--bg-card)' }}>
@@ -154,6 +158,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   userId: string
   onGemaakt: () => void
 }) {
+  const { t } = useVertaling()
   const [titel, setTitel] = useState('')
   const [vragen, setVragen] = useState<Vraag[]>([
     { id: crypto.randomUUID(), tekst: '', type: 'schaal' },
@@ -170,8 +175,8 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   }
 
   function laadTemplate(tmpl: typeof TEMPLATES[0]) {
-    setTitel(tmpl.naam)
-    setVragen(maakVragen(tmpl.vragen))
+    setTitel(t(tmpl.naam))
+    setVragen(maakVragen(tmpl.vragen.map(v => ({ ...v, tekst: t(v.tekst) }))))
     setTemplateTab('zelf')
   }
 
@@ -192,20 +197,20 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   return (
     <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: 24, marginBottom: 20 }}>
       <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 20 }}>
-        {(['template', 'zelf'] as const).map(t => (
+        {(['template', 'zelf'] as const).map(soort => (
           <button
-            key={t}
-            onClick={() => setTemplateTab(t)}
-            aria-pressed={templateTab === t}
+            key={soort}
+            onClick={() => setTemplateTab(soort)}
+            aria-pressed={templateTab === soort}
             style={{
               padding: '9px 16px', minHeight: 40, borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
-              background: templateTab === t ? 'var(--bg-card)' : 'transparent',
-              color: templateTab === t ? 'var(--text-1)' : 'var(--text-3)',
-              fontWeight: templateTab === t ? 600 : 400,
-              boxShadow: templateTab === t ? 'var(--shadow-card)' : 'none',
+              background: templateTab === soort ? 'var(--bg-card)' : 'transparent',
+              color: templateTab === soort ? 'var(--text-1)' : 'var(--text-3)',
+              fontWeight: templateTab === soort ? 600 : 400,
+              boxShadow: templateTab === soort ? 'var(--shadow-card)' : 'none',
             }}
           >
-            {t === 'template' ? 'Kies template' : 'Zelf maken'}
+            {soort === 'template' ? t('werk.surveys.kiesTemplate') : t('werk.surveys.zelfMaken')}
           </button>
         ))}
       </div>
@@ -224,18 +229,18 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: tmpl.kleur, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{tmpl.naam}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{t(tmpl.naam)}</span>
               </div>
-              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{tmpl.beschrijving}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{t(tmpl.beschrijving)}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {tmpl.vragen.slice(0, 2).map((v, i) => (
+                {tmpl.vragen.slice(0, 2).map(v => t(v.tekst)).map((tekst, i) => (
                   <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-3)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '...' : ''}
+                    {tekst.slice(0, 30)}{tekst.length > 30 ? '...' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
                   <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-3)' }}>
-                    +{tmpl.vragen.length - 2} meer
+                    {t('werk.surveys.meer', { aantal: tmpl.vragen.length - 2 })}
                   </span>
                 )}
               </div>
@@ -244,11 +249,11 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
         </div>
       ) : (
         <>
-          <label htmlFor="survey-titel" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }}>Titel van de survey</label>
+          <label htmlFor="survey-titel" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }}>{t('werk.surveys.titelLabel')}</label>
           <input
             id="survey-titel"
             type="text"
-            placeholder="Titel van de survey"
+            placeholder={t('werk.surveys.titelLabel')}
             value={titel}
             onChange={e => setTitel(e.target.value)}
             style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
@@ -259,26 +264,26 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                 <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 18 }}>{i + 1}.</span>
                 <input
                   type="text"
-                  placeholder="Vraag..."
-                  aria-label={`Vraag ${i + 1}`}
+                  placeholder={t('werk.surveys.vraagPlaceholder')}
+                  aria-label={t('werk.surveys.vraagLabel', { nr: i + 1 })}
                   value={v.tekst}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, tekst: e.target.value } : q))}
                   style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
                 />
                 <select
                   value={v.type}
-                  aria-label={`Type voor vraag ${i + 1}`}
+                  aria-label={t('werk.surveys.typeLabel', { nr: i + 1 })}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
                   style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 8px', fontSize: 12, outline: 'none', background: 'var(--bg-card)' }}
                 >
-                  <option value="schaal">1-5 schaal</option>
-                  <option value="ja_nee">Ja / Nee</option>
-                  <option value="tekst">Open tekst</option>
+                  <option value="schaal">{t('werk.surveys.typeSchaal')}</option>
+                  <option value="ja_nee">{t('werk.surveys.typeJaNee')}</option>
+                  <option value="tekst">{t('werk.surveys.typeTekst')}</option>
                 </select>
                 {vragen.length > 1 && (
                   <button
                     onClick={() => verwijderVraag(v.id)}
-                    aria-label={`Vraag ${i + 1} verwijderen`}
+                    aria-label={t('werk.surveys.vraagVerwijderen', { nr: i + 1 })}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 8, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -290,13 +295,13 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             ))}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button onClick={voegVraagToe} style={{ fontSize: 12, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Vraag toevoegen</button>
+            <button onClick={voegVraagToe} style={{ fontSize: 12, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>{t('werk.surveys.vraagToevoegen')}</button>
             <button
               onClick={maakAan}
               disabled={bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())}
               style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'var(--bg-app)', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
             >
-              {bezig ? 'Aanmaken...' : 'Survey aanmaken'}
+              {bezig ? t('werk.surveys.aanmaken') : t('werk.surveys.aanmaakKnop')}
             </button>
           </div>
         </>
@@ -317,6 +322,7 @@ function schaalKleur(score: number) {
 
 export default function SurveysPagina() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [surveys, setSurveys] = useState<Survey[]>([])
   const [beantwoord, setBeantwoord] = useState<Set<string>>(new Set())
   const [resultaten, setResultaten] = useState<ResultatenMap>({})
@@ -434,8 +440,8 @@ export default function SurveysPagina() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Surveys</h1>
-            <p style={{ color: 'var(--text-3)', fontSize: 13 }}>Anonieme peilingen over welzijn op het werk.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>{t('werk.surveys.titel')}</h1>
+            <p style={{ color: 'var(--text-3)', fontSize: 13 }}>{t('werk.surveys.intro')}</p>
           </div>
           {isHR && (
             <button
@@ -447,7 +453,7 @@ export default function SurveysPagina() {
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
               }}
             >
-              {nieuwTonen ? 'Sluiten' : '+ Nieuwe survey'}
+              {nieuwTonen ? t('werk.surveys.sluiten') : t('werk.surveys.nieuw')}
             </button>
           )}
         </div>
@@ -466,7 +472,7 @@ export default function SurveysPagina() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Antwoord anoniem verstuurd
+            {t('werk.surveys.verstuurd')}
           </div>
         )}
 
@@ -491,7 +497,7 @@ export default function SurveysPagina() {
               aria-valuenow={aantalBeantwoord}
               aria-valuemin={0}
               aria-valuemax={activeSurvey.vragen.length}
-              aria-label="Voortgang enquête"
+              aria-label={t('werk.surveys.voortgang')}
               style={{ height: 4, background: 'var(--bg-subtle)' }}
             >
               <div style={{ height: '100%', width: `${voortgang * 100}%`, background: 'var(--mf-green)', transition: 'width 0.3s' }} />
@@ -501,11 +507,11 @@ export default function SurveysPagina() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>{activeSurvey.titel}</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{aantalBeantwoord}/{activeSurvey.vragen.length} vragen beantwoord</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{t('werk.surveys.beantwoord', { aantal: aantalBeantwoord, totaal: activeSurvey.vragen.length })}</p>
                 </div>
                 <button
                   onClick={() => { setActiveSurveyId(null); setAntwoorden({}) }}
-                  aria-label="Enquête sluiten"
+                  aria-label={t('werk.surveys.enqueteSluiten')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 8, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -527,7 +533,7 @@ export default function SurveysPagina() {
                           <button
                             key={n}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: n }))}
-                            aria-label={`${n} van 5`}
+                            aria-label={t('werk.surveys.vanVijf', { n })}
                             aria-pressed={antwoorden[v.id] === n}
                             style={{
                               flex: 1, padding: '12px 0', minHeight: 44, borderRadius: 12, fontSize: 14, fontWeight: 700,
@@ -548,7 +554,7 @@ export default function SurveysPagina() {
                           <button
                             key={String(b)}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: b }))}
-                            aria-label={b ? 'Ja' : 'Nee'}
+                            aria-label={b ? t('werk.surveys.ja') : t('werk.surveys.nee')}
                             aria-pressed={antwoorden[v.id] === b}
                             style={{
                               flex: 1, padding: '12px 0', minHeight: 44, borderRadius: 12, fontSize: 14, fontWeight: 600,
@@ -558,7 +564,7 @@ export default function SurveysPagina() {
                               cursor: 'pointer',
                             }}
                           >
-                            {b ? 'Ja' : 'Nee'}
+                            {b ? t('werk.surveys.ja') : t('werk.surveys.nee')}
                           </button>
                         ))}
                       </div>
@@ -569,7 +575,7 @@ export default function SurveysPagina() {
                         aria-label={v.tekst}
                         value={(antwoorden[v.id] as string) ?? ''}
                         onChange={e => setAntwoorden(prev => ({ ...prev, [v.id]: e.target.value }))}
-                        placeholder="Jouw antwoord (optioneel)..."
+                        placeholder={t('werk.surveys.antwoordPlaceholder')}
                         style={{ width: 'calc(100% - 28px)', marginLeft: 28, border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none' }}
                       />
                     )}
@@ -587,10 +593,10 @@ export default function SurveysPagina() {
                     opacity: (verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)) ? 0.4 : 1,
                   }}
                 >
-                  {verzenden ? 'Versturen...' : 'Verstuur anoniem'}
+                  {verzenden ? t('werk.surveys.versturen') : t('werk.surveys.verstuurAnoniem')}
                 </button>
                 <p style={{ fontSize: 11, textAlign: 'center', color: 'var(--text-3)', marginTop: 8 }}>
-                  Jouw naam wordt nooit gedeeld. Antwoorden zijn 100% anoniem.
+                  {t('werk.surveys.nooitGedeeld')}
                 </p>
               </div>
             </div>
@@ -600,20 +606,20 @@ export default function SurveysPagina() {
         {/* HR tabs */}
         {isHR && (
           <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 16 }}>
-            {(['actief', 'resultaten'] as const).map(t => (
+            {(['actief', 'resultaten'] as const).map(soort => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
-                aria-pressed={tab === t}
+                key={soort}
+                onClick={() => setTab(soort)}
+                aria-pressed={tab === soort}
                 style={{
                   padding: '9px 16px', minHeight: 40, borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
-                  background: tab === t ? 'var(--bg-card)' : 'transparent',
-                  color: tab === t ? 'var(--text-1)' : 'var(--text-3)',
-                  fontWeight: tab === t ? 600 : 400,
-                  boxShadow: tab === t ? 'var(--shadow-card)' : 'none',
+                  background: tab === soort ? 'var(--bg-card)' : 'transparent',
+                  color: tab === soort ? 'var(--text-1)' : 'var(--text-3)',
+                  fontWeight: tab === soort ? 600 : 400,
+                  boxShadow: tab === soort ? 'var(--shadow-card)' : 'none',
                 }}
               >
-                {t === 'actief' ? 'Actieve surveys' : 'Resultaten'}
+                {soort === 'actief' ? t('werk.surveys.tabActief') : t('werk.surveys.tabResultaten')}
               </button>
             ))}
           </div>
@@ -637,9 +643,9 @@ export default function SurveysPagina() {
                 </svg>
               </div>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen surveys</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>{t('werk.surveys.geen')}</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              {isHR ? 'Nog geen surveys aangemaakt.' : 'Geen actieve surveys op dit moment.'}
+              {isHR ? t('werk.surveys.geenHr') : t('werk.surveys.geenActiefNu')}
             </p>
           </div>
         ) : (
@@ -657,19 +663,19 @@ export default function SurveysPagina() {
                         <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{s.titel}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                            {s.vragen.length} vra{s.vragen.length !== 1 ? 'gen' : 'ag'}
+                            {s.vragen.length === 1 ? t('werk.surveys.vraagEen') : t('werk.surveys.vraagMeer', { aantal: s.vragen.length })}
                           </span>
                           <span style={{ color: 'var(--border)' }}>·</span>
-                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>±{geschatteMinuten} min</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.surveys.minuten', { aantal: geschatteMinuten })}</span>
                           <span style={{ color: 'var(--border)' }}>·</span>
                           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                            {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE')}
+                            {new Date(s.aangemaakt_op).toLocaleDateString(INTL_LOCALE[taal])}
                           </span>
                           <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 100, background: 'var(--mf-blue-light)', color: 'var(--mf-blue)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
-                            Anoniem
+                            {t('werk.surveys.anoniem')}
                           </span>
                         </div>
                       </div>
@@ -685,7 +691,7 @@ export default function SurveysPagina() {
                               color: s.actief ? 'var(--mf-green-dark)' : 'var(--text-2)',
                             }}
                           >
-                            {s.actief ? 'Actief' : 'Inactief'}
+                            {s.actief ? t('werk.surveys.actief') : t('werk.surveys.inactief')}
                           </button>
                         )}
                         {!isHR && s.actief && !alBeantwoord && (
@@ -693,7 +699,7 @@ export default function SurveysPagina() {
                             onClick={() => { setActiveSurveyId(s.id); setAntwoorden({}) }}
                             style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'var(--bg-app)', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)' }}
                           >
-                            Invullen
+                            {t('werk.surveys.invullen')}
                           </button>
                         )}
                         {!isHR && alBeantwoord && (
@@ -701,7 +707,7 @@ export default function SurveysPagina() {
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"/>
                             </svg>
-                            Ingevuld
+                            {t('werk.surveys.ingevuld')}
                           </span>
                         )}
                       </div>
@@ -711,19 +717,19 @@ export default function SurveysPagina() {
                     {isHR && tab === 'resultaten' && (
                       <div style={{ borderTop: '1px solid var(--bg-subtle)', paddingTop: 16, marginTop: 16 }}>
                         {!res ? (
-                          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen antwoorden.</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.surveys.nogGeenAntwoorden')}</p>
                         ) : res.count < 3 ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--mf-amber-dark)', background: 'var(--mf-amber-light)', padding: '10px 14px', borderRadius: 10 }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                             </svg>
-                            Resultaten worden verborgen totdat er minimaal 3 reacties zijn ({res.count}/3).
+                            {t('werk.surveys.verborgen', { aantal: res.count })}
                           </div>
                         ) : (
                           <>
                             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 12 }}>
-                              {res.count} respons{res.count !== 1 ? 'en' : ''}
+                              {res.count === 1 ? t('werk.surveys.responsEen') : t('werk.surveys.responsMeer', { aantal: res.count })}
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                               {s.vragen.map(v => (
@@ -731,7 +737,7 @@ export default function SurveysPagina() {
                                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>{v.tekst}</p>
                                   {v.type === 'schaal' && res.schaalGems[v.id] !== undefined && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                      <div role="progressbar" aria-valuenow={res.schaalGems[v.id]} aria-valuemin={0} aria-valuemax={5} aria-label={`Gemiddelde score: ${res.schaalGems[v.id]} van 5`} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                                      <div role="progressbar" aria-valuenow={res.schaalGems[v.id]} aria-valuemin={0} aria-valuemax={5} aria-label={t('werk.surveys.gemScore', { score: res.schaalGems[v.id] })} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
                                         <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]), transition: 'width 0.6s ease' }} />
                                       </div>
                                       <span style={{ fontSize: 13, fontWeight: 700, color: schaalKleur(res.schaalGems[v.id]), width: 40, textAlign: 'right' }}>
@@ -742,8 +748,8 @@ export default function SurveysPagina() {
                                   {v.type === 'ja_nee' && res.jaCount[v.id] !== undefined && (
                                     <div style={{ display: 'flex', gap: 10 }}>
                                       {[
-                                        { label: 'Ja', count: res.jaCount[v.id], kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
-                                        { label: 'Nee', count: res.count - res.jaCount[v.id], kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
+                                        { label: t('werk.surveys.ja'), count: res.jaCount[v.id], kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                                        { label: t('werk.surveys.nee'), count: res.count - res.jaCount[v.id], kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
                                       ].map(item => (
                                         <div key={item.label} style={{ flex: 1, borderRadius: 12, padding: '10px 0', textAlign: 'center', background: item.bg }}>
                                           <p style={{ fontSize: 18, fontWeight: 800, color: item.kleur }}>{item.count}</p>
@@ -754,13 +760,13 @@ export default function SurveysPagina() {
                                   )}
                                   {v.type === 'tekst' && res.teksten[v.id] && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                      {res.teksten[v.id].slice(0, 4).map((t, i) => (
+                                      {res.teksten[v.id].slice(0, 4).map((reactie, i) => (
                                         <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', background: 'var(--bg-subtle)', padding: '8px 12px', borderRadius: 8 }}>
-                                          &ldquo;{t}&rdquo;
+                                          &ldquo;{reactie}&rdquo;
                                         </p>
                                       ))}
                                       {res.teksten[v.id].length > 4 && (
-                                        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>+{res.teksten[v.id].length - 4} meer reacties</p>
+                                        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.surveys.meerReacties', { aantal: res.teksten[v.id].length - 4 })}</p>
                                       )}
                                     </div>
                                   )}
@@ -788,9 +794,9 @@ export default function SurveysPagina() {
                 <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
               </svg>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen actieve surveys</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 2 }}>Geen actieve surveys op dit moment.</p>
-            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>{t('werk.surveys.geenActief')}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 2 }}>{t('werk.surveys.geenActiefNu')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.surveys.hrStuurt')}</p>
           </div>
         )}
 

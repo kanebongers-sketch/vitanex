@@ -23,6 +23,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import VitaBubbel from './VitaBubbel'
 import type { EmotionState } from './PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import { rijkeTekst } from './rijkeTekst'
 
 interface LevelViering {
   variant: 'level'
@@ -74,78 +77,60 @@ const cyaan = (tekst: ReactNode): ReactNode => (
   <strong style={{ fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{tekst}</strong>
 )
 
+type Vertaal = (sleutel: string, params?: Record<string, string | number>) => string
+
 /** Bouwt Vita's boodschap + emotie voor de level-variant. */
-function levelBoodschap(props: LevelViering): { emotion: EmotionState; tekst: ReactNode } {
+function levelBoodschap(props: LevelViering, t: Vertaal, locale: string): { emotion: EmotionState; tekst: ReactNode } {
   if (props.isMax) {
     return {
       emotion: 'proud',
-      tekst: (
-        <>
-          Je staat op {cyaan(`Niveau ${props.level} — ${props.levelNaam}`)}, het hoogste dat er is.
-          Ik ben oprecht trots op je. Blijf inchecken; ik blijf naast je staan.
-        </>
-      ),
+      tekst: rijkeTekst(t('vita.viering.niveauMax'), {
+        niveau: cyaan(t('vita.viering.niveauMaxLabel', { level: props.level, naam: props.levelNaam })),
+      }),
     }
   }
 
   const volgende = props.volgendeNaam
+  const delen = {
+    niveau: cyaan(t('vita.viering.niveauLabel', { level: props.level, naam: props.levelNaam })),
+    xp: cyaan(t('vita.viering.xp', { aantal: props.xpTotVolgende.toLocaleString(locale) })),
+    volgende: volgende ? cyaan(volgende) : null,
+  }
   return {
     emotion: 'motivated',
-    tekst: (
-      <>
-        Mooi bezig — je bent {cyaan(`Niveau ${props.level}, ${props.levelNaam}`)}. Nog{' '}
-        {cyaan(`${props.xpTotVolgende.toLocaleString('nl-NL')} XP`)}
-        {volgende ? <> tot {cyaan(volgende)}</> : <> tot je volgende niveau</>}. Dat haal je;
-        ik geloof in je.
-      </>
-    ),
+    tekst: rijkeTekst(t(volgende ? 'vita.viering.niveauBezigNaar' : 'vita.viering.niveauBezig'), delen),
   }
 }
 
 /** Bouwt Vita's boodschap + emotie voor de badge-variant. */
-function badgeBoodschap(props: BadgeViering): { emotion: EmotionState; tekst: ReactNode } {
+function badgeBoodschap(props: BadgeViering, t: Vertaal): { emotion: EmotionState; tekst: ReactNode } {
   if (props.behaald === 0) {
     return {
       emotion: 'curious',
-      tekst: props.volgendeBadge ? (
-        <>
-          Je eerste badge ligt binnen handbereik: {cyaan(props.volgendeBadge)}. Doe een check-in
-          of log een training — dan vieren we die samen.
-        </>
-      ) : (
-        <>
-          Elke check-in en elk doel brengt je dichter bij je eerste badge. Klein beginnen mag —
-          ik houd je vooruitgang bij.
-        </>
-      ),
+      tekst: props.volgendeBadge
+        ? rijkeTekst(t('vita.viering.eersteBadge'), { badge: cyaan(props.volgendeBadge) })
+        : t('vita.viering.eersteBadgeAlgemeen'),
     }
   }
 
   const meervoud = props.behaald > 1
-  const behaaldZin: ReactNode = (
-    <>
-      Al {cyaan(`${props.behaald} ${meervoud ? 'badges' : 'badge'}`)} binnen — knap gedaan.
-    </>
-  )
+  const behaaldZin = rijkeTekst(t('vita.viering.behaaldEen'), {
+    aantal: cyaan(t(meervoud ? 'vita.viering.badgeMeer' : 'vita.viering.badgeEen', { aantal: props.behaald })),
+  })
 
   return {
     emotion: props.volgendeBadge ? 'motivated' : 'proud',
-    tekst: props.volgendeBadge ? (
-      <>
-        {behaaldZin} Je volgende is {cyaan(props.volgendeBadge)}; die pakken we er ook bij.
-      </>
-    ) : (
-      <>
-        {behaaldZin} Je hebt ze allemaal — dat is echt bijzonder. Ik ben trots op je.
-      </>
-    ),
+    tekst: props.volgendeBadge
+      ? rijkeTekst(t('vita.viering.volgendeBadge'), { behaald: behaaldZin, badge: cyaan(props.volgendeBadge) })
+      : rijkeTekst(t('vita.viering.alleBadges'), { behaald: behaaldZin }),
   }
 }
 
 export default function VitaVoortgangViering(props: VitaVoortgangVieringProps) {
   const reduceMotion = useReduceMotion()
+  const { t, taal } = useVertaling()
   const { emotion, tekst } =
-    props.variant === 'level' ? levelBoodschap(props) : badgeBoodschap(props)
+    props.variant === 'level' ? levelBoodschap(props, t, INTL_LOCALE[taal]) : badgeBoodschap(props, t)
 
   return (
     <VitaBubbel emotion={emotion} animate={!reduceMotion} size={props.size ?? 52}>

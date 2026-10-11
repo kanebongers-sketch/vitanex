@@ -16,6 +16,7 @@ import {
   type HcBeschikbaarheid,
 } from '@/lib/health/health-connect'
 import { syncGezondheidsdata } from '@/lib/health/health-sync'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface Toestand {
   beschikbaarheid: HcBeschikbaarheid
@@ -32,23 +33,24 @@ const tekst = { fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5, marginTop
 
 export function HealthConnectKaart() {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [toestand, setToestand] = useState<Toestand | null>(null)
   const [bezig, setBezig] = useState(false)
 
   useEffect(() => {
     let actief = true
-    void leesToestand().then((t) => { if (actief) setToestand(t) })
+    void leesToestand().then((nieuw) => { if (actief) setToestand(nieuw) })
     return () => { actief = false }
   }, [])
 
   async function sync() {
     const uitkomst = await syncGezondheidsdata({ forceer: true })
     if (uitkomst && uitkomst.opgeslagen > 0) {
-      toast({ title: `${uitkomst.opgeslagen} dagen gesynchroniseerd`, variant: 'success' })
+      toast({ title: t(uitkomst.opgeslagen === 1 ? 'account.healthConnect.syncEen' : 'account.healthConnect.syncMeer', { aantal: uitkomst.opgeslagen }), variant: 'success' })
     } else {
       toast({
-        title: 'Nog geen gegevens gevonden',
-        description: 'Staat er data in Health Connect? Controleer of je horloge-app (bv. Samsung Health) erheen schrijft.',
+        title: t('account.healthConnect.geenGegevens'),
+        description: t('account.healthConnect.geenGegevensTekst'),
         variant: 'warning',
       })
     }
@@ -59,7 +61,7 @@ export function HealthConnectKaart() {
     try {
       const ok = await vraagPermissies()
       if (!ok) {
-        toast({ title: 'Geen toestemming gekregen', description: 'Je kunt het later aanzetten in Health Connect.', variant: 'warning' })
+        toast({ title: t('account.healthConnect.geenToestemming'), description: t('account.healthConnect.geenToestemmingTekst'), variant: 'warning' })
         return
       }
       setToestand(await leesToestand())
@@ -87,7 +89,7 @@ export function HealthConnectKaart() {
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Health Connect</p>
             <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Samsung Health · Fitbit · Google Fit</p>
             <div style={{ marginTop: 4 }}>
-              <Badge variant={gekoppeld ? 'success' : 'neutral'}><span aria-hidden>{gekoppeld ? '● ' : '○ '}</span>{gekoppeld ? 'Gekoppeld' : 'Niet gekoppeld'}</Badge>
+              <Badge variant={gekoppeld ? 'success' : 'neutral'}><span aria-hidden>{gekoppeld ? '● ' : '○ '}</span>{gekoppeld ? t('account.healthConnect.gekoppeld') : t('account.healthConnect.nietGekoppeld')}</Badge>
             </div>
           </div>
         </div>
@@ -106,35 +108,37 @@ interface KaartActieProps {
 }
 
 function KaartActie({ toestand, bezig, onKoppel, onSync }: KaartActieProps) {
+  const { t } = useVertaling()
   if (!toestand) return null
   if (toestand.beschikbaarheid === 'niet_geinstalleerd') {
-    return <Button size="sm" rightIcon={<ExternalLink size={14} aria-hidden />} onClick={() => void openHealthConnect(true)}>Installeren</Button>
+    return <Button size="sm" rightIcon={<ExternalLink size={14} aria-hidden />} onClick={() => void openHealthConnect(true)}>{t('account.healthConnect.installeren')}</Button>
   }
   if (toestand.beschikbaarheid !== 'beschikbaar') return null
   if (toestand.rechten > 0) {
-    return <Button variant="secondary" size="sm" loading={bezig} leftIcon={<RefreshCw size={14} aria-hidden />} onClick={onSync}>Nu syncen</Button>
+    return <Button variant="secondary" size="sm" loading={bezig} leftIcon={<RefreshCw size={14} aria-hidden />} onClick={onSync}>{t('account.healthConnect.nuSyncen')}</Button>
   }
-  return <Button size="sm" loading={bezig} onClick={onKoppel}>Koppelen</Button>
+  return <Button size="sm" loading={bezig} onClick={onKoppel}>{t('account.healthConnect.koppelen')}</Button>
 }
 
 function Uitleg({ toestand }: { toestand: Toestand | null }) {
-  if (!toestand) return <p style={tekst}>Health Connect controleren…</p>
+  const { t } = useVertaling()
+  if (!toestand) return <p style={tekst}>{t('account.healthConnect.controleren')}</p>
   switch (toestand.beschikbaarheid) {
     case 'niet_geinstalleerd':
-      return <p style={tekst}>Installeer Health Connect uit de Play Store. Daarna kan MentaForce je stappen, slaap en hartslag lezen.</p>
+      return <p style={tekst}>{t('account.healthConnect.installeerTekst')}</p>
     case 'niet_ondersteund':
-      return <p style={tekst}>Health Connect werkt (nog) niet op dit toestel. Werk Android en de Health Connect-app bij en probeer het opnieuw.</p>
+      return <p style={tekst}>{t('account.healthConnect.nietOndersteund')}</p>
     case 'geen_android':
       return null
   }
   if (toestand.rechten === 0) {
-    return <p style={tekst}>Je kiest zelf per soort wat je deelt. MentaForce leest alleen; we schrijven nooit iets terug.</p>
+    return <p style={tekst}>{t('account.healthConnect.zelfKiezen')}</p>
   }
   return (
     <p style={tekst}>
-      Toegang tot {toestand.rechten} van de {HC_LEESTYPES.length} soorten gegevens.{' '}
+      {t('account.healthConnect.toegang', { aantal: toestand.rechten, totaal: HC_LEESTYPES.length })}{' '}
       <button type="button" onClick={() => void openHealthConnect(false)} className="mf-vandaag-link" style={{ background: 'none', border: 0, padding: '2px 0', color: 'var(--brand)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
-        Aanpassen in Health Connect
+        {t('account.healthConnect.aanpassen')}
       </button>
     </p>
   )

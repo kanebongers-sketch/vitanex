@@ -3,13 +3,8 @@
 import { Check, Dumbbell, Brain, Zap } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import {
-  PIJLER_LABELS,
-  PIJLER_STIJL,
-  targetOmschrijving,
-  type Pijler,
-  type TaakMetVoortgang,
-} from '@/lib/coaching/taken'
+import { PIJLER_STIJL, type Pijler, type TaakMetVoortgang } from '@/lib/coaching/taken'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export const PIJLER_ICOON: Record<Pijler, LucideIcon> = {
   body: Dumbbell,
@@ -28,10 +23,14 @@ export interface TaakKaartProps {
  * die het ritme (voortgang t.o.v. het weekdoel) laat voelen. Puur presentational.
  */
 export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
+  const { t } = useVertaling()
   const stijl = PIJLER_STIJL[taak.pijler]
   const Icoon = PIJLER_ICOON[taak.pijler]
   const gevuld = Math.min(taak.deze_week_gehaald, taak.target_per_week)
   const gedaan = taak.vandaag_gehaald
+  const doelTekst = taak.frequentie === 'dagelijks'
+    ? t('coaching.labels.elkeDag')
+    : t('coaching.labels.perWeek', { aantal: taak.target_per_week })
 
   return (
     <Card
@@ -68,7 +67,7 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
               background: stijl.bg, color: stijl.color,
             }}
           >
-            {PIJLER_LABELS[taak.pijler]}
+            {t(`coaching.labels.pijler.${taak.pijler}`)}
           </span>
         </div>
 
@@ -92,7 +91,7 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
             ))}
           </span>
           <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>
-            {taak.deze_week_gehaald}/{taak.target_per_week} deze week · {targetOmschrijving(taak)}
+            {t('coaching.taakKaart.dezeWeek', { gehaald: taak.deze_week_gehaald, doel: taak.target_per_week })} · {doelTekst}
           </span>
         </div>
       </div>
@@ -102,7 +101,7 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
         type="button"
         role="checkbox"
         aria-checked={taak.vandaag_gehaald}
-        aria-label={`${taak.titel} ${taak.vandaag_gehaald ? 'afvinken ongedaan maken' : 'afvinken voor vandaag'}`}
+        aria-label={t(taak.vandaag_gehaald ? 'coaching.taakKaart.afvinkenOngedaan' : 'coaching.taakKaart.afvinkenVandaag', { titel: taak.titel })}
         disabled={bezig}
         onClick={() => onToggle(!taak.vandaag_gehaald)}
         className="mf-taak-toggle"

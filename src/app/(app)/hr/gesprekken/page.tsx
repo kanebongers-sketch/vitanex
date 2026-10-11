@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import HrShell from '@/components/layout/HrShell'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 export default function HrGesprekkenPage() {
   const router = useRouter()
+  const { t } = useVertaling()
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [hrUserId, setHrUserId] = useState<string | null>(null)
   const [laden, setLaden] = useState(true)
@@ -43,10 +45,10 @@ export default function HrGesprekkenPage() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px 72px' }}>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-            HR Gesprekken
+            {t('werk.hrGesprekken.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>
-            Plan en log 1-op-1 gesprekken met medewerkers
+            {t('werk.hrGesprekken.intro')}
           </p>
         </div>
         <GesprekkenTab bedrijfId={bedrijfId ?? ''} hrUserId={hrUserId ?? ''} />

@@ -13,7 +13,10 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
-import { berekenLevel, LEVEL_NAMEN, xpVoortgang, laadXPData } from '@/lib/xp/xp'
+import { berekenLevel, xpVoortgang, laadXPData } from '@/lib/xp/xp'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import { levelNaam } from '../niveau/xpTeksten'
 import { laadXPVanServer } from '@/lib/xp/xp-sync'
 import VitaVoortgangViering from '@/components/vita/VitaVoortgangViering'
 
@@ -30,14 +33,15 @@ interface Achievement {
   }
 }
 
-const CAT_LABELS: Record<string, string> = {
-  'check-in': 'Check-ins',
-  coaching:   'Coaching',
-  sport:      'Sport',
-  voeding:    'Voeding',
-  streak:     'Streaks',
-  team:       'Team',
-  mijlpaal:   'Mijlpalen',
+/** Woordenboek-sleutel per categorie (voortgang.achievements.categorie.<sleutel>). */
+const CAT_SLEUTEL: Record<string, string> = {
+  'check-in': 'checkin',
+  coaching:   'coaching',
+  sport:      'sport',
+  voeding:    'voeding',
+  streak:     'streak',
+  team:       'team',
+  mijlpaal:   'mijlpaal',
 }
 
 const CAT_KLEUREN: Record<string, string> = {
@@ -52,6 +56,7 @@ const CAT_KLEUREN: Record<string, string> = {
 
 export default function AchievementsPagina() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [laden, setLaden] = useState(true)
   // Eén canonieke voortgang: de Fit Level-XP uit user_xp (dezelfde als /niveau).
@@ -108,7 +113,7 @@ export default function AchievementsPagina() {
 
   const perCategorie = groeperenOpCategorie()
   const niveau = berekenLevel(fitXP)
-  const niveauNaam = LEVEL_NAMEN[niveau] ?? 'Starter'
+  const niveauNaam = levelNaam(niveau, t) || levelNaam(1, t)
   const vg = xpVoortgang(fitXP, niveau)
 
   return (
@@ -118,10 +123,10 @@ export default function AchievementsPagina() {
 
         <header style={{ marginBottom: 20 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
-            Gamificatie
+            {t('voortgang.achievements.label')}
           </p>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
-            Jouw prestaties
+            {t('voortgang.achievements.titel')}
           </h1>
         </header>
 
@@ -144,13 +149,13 @@ export default function AchievementsPagina() {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
-                Fit Level {niveau}
+                {t('voortgang.achievements.fitLevel', { level: niveau })}
               </p>
               <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.02em' }}>
                 {niveauNaam}
               </p>
               <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
-                {fitXP} XP · {achievements.length} badges
+                {t('voortgang.achievements.xpBadges', { xp: fitXP, n: achievements.length })}
               </p>
             </div>
           </div>
@@ -158,7 +163,7 @@ export default function AchievementsPagina() {
           {/* Level voortgangsbalk */}
           <Progress
             value={vg.pct}
-            ariaLabel={`Voortgang naar het volgende niveau: ${vg.pct}%`}
+            ariaLabel={t('voortgang.achievements.voortgangLabel', { pct: vg.pct })}
             color="var(--mentaforce-primary)"
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
@@ -166,7 +171,7 @@ export default function AchievementsPagina() {
               {fitXP} XP
             </span>
             <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
-              {niveau >= 10 ? 'Max niveau!' : `nog ${vg.nodig} XP tot Fit Level ${niveau + 1}`}
+              {niveau >= 10 ? t('voortgang.achievements.max') : t('voortgang.achievements.nogNodig', { xp: vg.nodig, level: niveau + 1 })}
             </span>
           </div>
         </Card>
@@ -175,11 +180,11 @@ export default function AchievementsPagina() {
           <Card style={{ padding: '16px 24px' }}>
             <EmptyState
               icon={Trophy}
-              title="Nog geen prestaties behaald"
-              description="Doe check-ins, gebruik de AI Coach en log trainingen om je eerste badges te verdienen."
+              title={t('voortgang.achievements.leegTitel')}
+              description={t('voortgang.achievements.leegTekst')}
               action={
                 <Button onClick={() => router.push('/vandaag')}>
-                  Start vandaag
+                  {t('voortgang.achievements.startVandaag')}
                 </Button>
               }
             />
@@ -193,7 +198,7 @@ export default function AchievementsPagina() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <div style={{ width: 3, height: 16, borderRadius: 2, background: kleur }} />
                     <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: kleur, margin: 0 }}>
-                      {CAT_LABELS[cat] ?? cat} ({items.length})
+                      {CAT_SLEUTEL[cat] ? t(`voortgang.achievements.categorie.${CAT_SLEUTEL[cat]}`) : cat} ({items.length})
                     </p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -227,7 +232,7 @@ export default function AchievementsPagina() {
                             {a.achievements.beschrijving}
                           </p>
                           <p style={{ fontSize: 10, color: 'var(--text-4)', margin: 0 }}>
-                            {new Date(a.behaald_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(a.behaald_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>

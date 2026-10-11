@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/ui/Avatar'
 import { Check, AlertCircle, Copy } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 type Token = {
   id: string
@@ -27,6 +29,7 @@ type Lid = {
 
 export default function Team() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [tokens, setTokens] = useState<Token[]>([])
   const [leden, setLeden] = useState<Lid[]>([])
   const [email, setEmail] = useState('')
@@ -100,12 +103,12 @@ export default function Team() {
       .single()
 
     if (error || !data) {
-      setMelding({ type: 'error', tekst: 'Er ging iets mis bij het aanmaken van de uitnodiging.' })
+      setMelding({ type: 'error', tekst: t('werk.team.foutUitnodiging') })
       setLaden(false)
       return
     }
 
-    setMelding({ type: 'success', tekst: `Uitnodigingslink aangemaakt voor ${email}` })
+    setMelding({ type: 'success', tekst: t('werk.team.linkAangemaakt', { email }) })
     setEmail('')
     setLaden(false)
     await laadTokens(bedrijfId)
@@ -130,9 +133,9 @@ export default function Team() {
       .eq('id', id)
 
     if (error) {
-      setMelding({ type: 'error', tekst: 'Verwijderen mislukt.' })
+      setMelding({ type: 'error', tekst: t('werk.team.verwijderenMislukt') })
     } else {
-      setMelding({ type: 'success', tekst: 'Medewerker verwijderd uit het team.' })
+      setMelding({ type: 'success', tekst: t('werk.team.verwijderd') })
       setVerwijderBevestig(null)
       await laadLeden(bedrijfId)
     }
@@ -149,19 +152,19 @@ export default function Team() {
     l.naam?.toLowerCase().includes(zoekterm.toLowerCase())
   )
 
-  const gefilterdTokens = tokens.filter(t =>
-    t.email.toLowerCase().includes(zoekterm.toLowerCase())
+  const gefilterdTokens = tokens.filter(tok =>
+    tok.email.toLowerCase().includes(zoekterm.toLowerCase())
   )
 
   const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
-    hr: { label: 'HR', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
-    admin: { label: 'Admin', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
-    medewerker: { label: 'Medewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
+    hr: { label: t('werk.team.rolHr'), bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
+    admin: { label: t('werk.team.rolAdmin'), bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
+    medewerker: { label: t('werk.team.rolMedewerker'), bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
   }
 
   const tabs = [
-    { key: 'leden', label: `Leden (${leden.length})` },
-    { key: 'uitnodigingen', label: `Uitnodigingen (${tokens.length})` },
+    { key: 'leden', label: t('werk.team.tabLeden', { aantal: leden.length }) },
+    { key: 'uitnodigingen', label: t('werk.team.tabUitnodigingen', { aantal: tokens.length }) },
   ]
 
   return (
@@ -169,8 +172,8 @@ export default function Team() {
       <Navbar />
       <main className="p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>Team beheren</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Beheer leden en stuur uitnodigingen.</p>
+          <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>{t('werk.team.titel')}</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.team.intro')}</p>
         </div>
 
         {melding && (
@@ -193,11 +196,11 @@ export default function Team() {
 
         {/* Uitnodigen */}
         <div className="rounded-2xl border p-6 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Medewerker uitnodigen</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>{t('werk.team.uitnodigenTitel')}</p>
           <div className="flex gap-3">
             <input
               type="email"
-              placeholder="e-mailadres medewerker"
+              placeholder={t('werk.team.emailPlaceholder')}
               value={email}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && uitnodigen()}
@@ -213,28 +216,28 @@ export default function Team() {
               className="rounded-xl px-5 py-3 text-sm font-medium transition disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2"
               style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
             >
-              {laden ? 'Bezig...' : 'Uitnodigen'}
+              {laden ? t('werk.team.bezig') : t('werk.team.uitnodigen')}
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <nav className="flex gap-1 rounded-xl p-1 mb-4 w-fit" style={{ background: 'var(--bg-subtle)' }} aria-label="Team-secties">
-          {tabs.map(t => (
+        <nav className="flex gap-1 rounded-xl p-1 mb-4 w-fit" style={{ background: 'var(--bg-subtle)' }} aria-label={t('werk.team.secties')}>
+          {tabs.map(tab => (
             <button
-              key={t.key}
+              key={tab.key}
               type="button"
-              aria-pressed={actieveTab === t.key}
-              onClick={() => { setActieveTab(t.key as typeof actieveTab); setZoekterm('') }}
+              aria-pressed={actieveTab === tab.key}
+              onClick={() => { setActieveTab(tab.key as typeof actieveTab); setZoekterm('') }}
               className="px-4 py-2 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2"
               style={{
-                background: actieveTab === t.key ? 'var(--bg-card)' : 'transparent',
-                color: actieveTab === t.key ? 'var(--text-1)' : 'var(--text-3)',
-                fontWeight: actieveTab === t.key ? 500 : 400,
-                boxShadow: actieveTab === t.key ? 'var(--shadow-card)' : 'none',
+                background: actieveTab === tab.key ? 'var(--bg-card)' : 'transparent',
+                color: actieveTab === tab.key ? 'var(--text-1)' : 'var(--text-3)',
+                fontWeight: actieveTab === tab.key ? 500 : 400,
+                boxShadow: actieveTab === tab.key ? 'var(--shadow-card)' : 'none',
               }}
             >
-              {t.label}
+              {tab.label}
             </button>
           ))}
         </nav>
@@ -243,7 +246,7 @@ export default function Team() {
         <div className="mb-4">
           <input
             type="text"
-            placeholder={actieveTab === 'leden' ? 'Zoek op naam...' : 'Zoek op e-mail...'}
+            placeholder={actieveTab === 'leden' ? t('werk.team.zoekNaam') : t('werk.team.zoekEmail')}
             value={zoekterm}
             onChange={e => setZoekterm(e.target.value)}
             className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition"
@@ -255,14 +258,14 @@ export default function Team() {
 
         <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           {bezig ? (
-            <div className="flex justify-center py-4" role="status" aria-label="Team laden">
+            <div className="flex justify-center py-4" role="status" aria-label={t('werk.team.laden')}>
               <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
             </div>
           ) : actieveTab === 'leden' ? (
             <>
-              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Teamleden</p>
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>{t('werk.team.teamleden')}</p>
               {gefilterdeLeden.length === 0 ? (
-                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? 'Geen resultaten.' : 'Nog geen leden. Nodig medewerkers uit via het formulier hierboven.'}</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? t('werk.team.geenResultaten') : t('werk.team.geenLeden')}</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {gefilterdeLeden.map(lid => {
@@ -274,7 +277,7 @@ export default function Team() {
                             <Avatar naam={lid.naam || '?'} avatarUrl={lid.avatar_url} size={32} />
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || 'Onbekend'}</p>
+                                <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || t('werk.team.onbekend')}</p>
                                 <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.color }}>
                                   {badge.label}
                                 </span>
@@ -287,7 +290,7 @@ export default function Team() {
                               className="text-xs rounded-lg px-3 py-1.5 transition"
                               style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                             >
-                              Profiel
+                              {t('werk.team.profiel')}
                             </Link>
                             {lid.rol === 'medewerker' && (
                               verwijderBevestig === lid.id ? (
@@ -298,7 +301,7 @@ export default function Team() {
                                     className="text-xs px-3 py-2 rounded-lg transition font-medium focus-visible:outline-none focus-visible:ring-2"
                                     style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}
                                   >
-                                    Bevestig
+                                    {t('werk.team.bevestig')}
                                   </button>
                                   <button
                                     type="button"
@@ -306,7 +309,7 @@ export default function Team() {
                                     className="text-xs rounded-lg px-2 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                                     style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                   >
-                                    Annuleer
+                                    {t('werk.team.annuleer')}
                                   </button>
                                 </div>
                               ) : (
@@ -316,7 +319,7 @@ export default function Team() {
                                   className="text-xs rounded-lg px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                                   style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                 >
-                                  Verwijder
+                                  {t('werk.team.verwijder')}
                                 </button>
                               )
                             )}
@@ -330,48 +333,48 @@ export default function Team() {
             </>
           ) : (
             <>
-              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Uitnodigingen</p>
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>{t('werk.team.uitnodigingen')}</p>
               {gefilterdTokens.length === 0 ? (
-                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? 'Geen resultaten.' : 'Nog geen uitnodigingen verstuurd.'}</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? t('werk.team.geenResultaten') : t('werk.team.geenUitnodigingen')}</p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {gefilterdTokens.map(t => (
-                    <div key={t.id} className="flex justify-between items-center py-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  {gefilterdTokens.map(tok => (
+                    <div key={tok.id} className="flex justify-between items-center py-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                       <div>
-                        <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t.email}</p>
+                        <p className="text-sm" style={{ color: 'var(--text-2)' }}>{tok.email}</p>
                         <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                          {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} ·{' '}
-                          {t.gebruikt
-                            ? <span style={{ color: 'var(--mf-green)' }}>Geactiveerd</span>
-                            : <span style={{ color: 'var(--mf-amber)' }}>Nog niet gebruikt</span>
+                          {new Date(tok.aangemaakt_op).toLocaleDateString(INTL_LOCALE[taal])} ·{' '}
+                          {tok.gebruikt
+                            ? <span style={{ color: 'var(--mf-green)' }}>{t('werk.team.geactiveerd')}</span>
+                            : <span style={{ color: 'var(--mf-amber)' }}>{t('werk.team.nietGebruikt')}</span>
                           }
                         </p>
                       </div>
-                      {!t.gebruikt ? (
+                      {!tok.gebruikt ? (
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => kopieerLink(t.token)}
-                            aria-label={`Uitnodigingslink kopiëren voor ${t.email}`}
+                            onClick={() => kopieerLink(tok.token)}
+                            aria-label={t('werk.team.kopieerLabel', { email: tok.email })}
                             className="text-xs rounded-lg px-3 py-2 transition inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2"
                             style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                           >
-                            {gekopieerd === t.token
-                              ? <><Check size={13} aria-hidden="true" /> Gekopieerd</>
-                              : <><Copy size={13} aria-hidden="true" /> Kopieer link</>}
+                            {gekopieerd === tok.token
+                              ? <><Check size={13} aria-hidden="true" /> {t('werk.team.gekopieerd')}</>
+                              : <><Copy size={13} aria-hidden="true" /> {t('werk.team.kopieerLink')}</>}
                           </button>
                           <button
                             type="button"
-                            onClick={() => intrekkenToken(t.id)}
-                            aria-label={`Uitnodiging intrekken voor ${t.email}`}
+                            onClick={() => intrekkenToken(tok.id)}
+                            aria-label={t('werk.team.intrekLabel', { email: tok.email })}
                             className="text-xs rounded-lg px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                           >
-                            Intrekken
+                            {t('werk.team.intrekken')}
                           </button>
                         </div>
                       ) : (
-                        <Check size={16} aria-label="Geactiveerd" style={{ color: 'var(--mf-green)' }} />
+                        <Check size={16} aria-label={t('werk.team.geactiveerd')} style={{ color: 'var(--mf-green)' }} />
                       )}
                     </div>
                   ))}

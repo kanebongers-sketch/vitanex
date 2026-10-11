@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { huidigeTaalset } from '@/lib/i18n/server'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,12 +21,15 @@ export async function GET(request: Request) {
   if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const vandaag = new Date().toISOString().split('T')[0]
+  const ts = await huidigeTaalset()
 
   const { data: cached } = await supabaseAdmin.from('checkin_analyses')
     .select('analyse_json').eq('user_id', user.id).gte('aangemaakt_op', `${vandaag}T00:00:00Z`)
     .not('analyse_json->beweging_coach', 'is', null).order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
   const cacheData = cached?.analyse_json as Record<string, unknown> | null
-  if (cacheData?.beweging_coach) return NextResponse.json(cacheData.beweging_coach)
+  // Cache geldt alleen voor dezelfde taal (zonder taal = van voor de meertaligheid: nl).
+  const cacheTaal = (cacheData?.beweging_coach as { taal?: string } | undefined)?.taal ?? 'nl'
+  if (cacheData?.beweging_coach && cacheTaal === ts.taal) return NextResponse.json(cacheData.beweging_coach)
 
   const veertienGeleden = new Date()
   veertienGeleden.setDate(veertienGeleden.getDate() - 14)
@@ -43,7 +48,7 @@ export async function GET(request: Request) {
 
   if (wearables.length === 0 && checkins.length === 0) {
     return NextResponse.json({
-      inzicht: 'Koppel een wearable om persoonlijke bewegingsinzichten te ontvangen. Je kunt Google Health, Samsung Health of Apple Health koppelen via Koppelingen.',
+      inzicht: ts.t('vita.aiCoach.bewegingGeenData'),
       trend: 'neutraal', tips: [], heeft_data: false,
     })
   }
@@ -80,7 +85,9 @@ Schrijf PRECIES 2 zinnen bewegingsinzicht:
 1. Benoem een positieve observatie of patroon
 2. Geef één concrete motiverende actietip voor komende week
 
-Alleen het inzicht, warm en persoonlijk, in het Nederlands.`
+Alleen het inzicht, warm en persoonlijk.
+
+${aiTaalInstructie(ts.taal)}`
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5', max_tokens: 180,
@@ -89,11 +96,11 @@ Alleen het inzicht, warm en persoonlijk, in het Nederlands.`
 
   const inzicht = (message.content[0] as { type: string; text: string }).text.trim()
   const tips: string[] = []
-  if (gemStappen && gemStappen < 7000) tips.push('Probeer elke dag 500 extra stappen te zetten')
-  if (gemSlaap && gemSlaap < 420)      tips.push('Streef naar 7 uur slaap voor beter herstel')
+  if (gemStappen && gemStappen < 7000) tips.push(ts.t('vita.aiCoach.tipStappen'))
+  if (gemSlaap && gemSlaap < 420)      tips.push(ts.t('vita.aiCoach.tipSlaap'))
 
   const trend: 'positief' | 'neutraal' | 'negatief' = stappenTrend > 10 ? 'positief' : stappenTrend < -10 ? 'negatief' : 'neutraal'
-  const resultaat = { inzicht, trend, tips, heeft_data: true, gemStappen, gemSlaap, gemHartslag, stappenTrend }
+  const resultaat = { inzicht, trend, tips, heeft_data: true, gemStappen, gemSlaap, gemHartslag, stappenTrend, taal: ts.taal }
 
   const { data: existingAnalyse } = await supabaseAdmin.from('checkin_analyses')
     .select('id, analyse_json').eq('user_id', user.id).gte('aangemaakt_op', `${vandaag}T00:00:00Z`)

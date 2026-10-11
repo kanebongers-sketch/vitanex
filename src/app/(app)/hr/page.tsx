@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 type HrTab = 'portaal' | 'gesprekken'
@@ -49,17 +50,19 @@ function trendGemiddelde(punten: TrendPunt[] | undefined): number | null {
   return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10
 }
 
+// Woordenboek-sleutels (gedeeld met de analytics-pagina).
 const TECHNIEK_LABELS: Record<string, string> = {
-  box: 'Box breathing',
-  '478': '4-7-8 methode',
-  grounding: 'Grounding',
-  pmr: 'Progressieve spierontspanning',
-  geen_techniek: 'Geen techniek',
+  box: 'werk.analytics.techniek.box',
+  '478': 'werk.analytics.techniek.478',
+  grounding: 'werk.analytics.techniek.grounding',
+  pmr: 'werk.analytics.techniek.pmr',
+  geen_techniek: 'werk.analytics.techniek.geen_techniek',
 }
 
 export default function HrDashboardPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [naam, setNaam] = useState<string>('')
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [hrUserId, setHrUserId] = useState<string | null>(null)
@@ -85,7 +88,7 @@ export default function HrDashboardPage() {
       if (!profiel || !['hr', 'admin'].includes(profiel.rol ?? '')) {
         router.push('/home'); return
       }
-      setNaam(profiel.naam ?? 'HR')
+      setNaam(profiel.naam ?? t('werk.hr.naamTerugval'))
       setBedrijfId(profiel.bedrijf_id ?? null)
       setHrUserId(user.id)
 
@@ -142,12 +145,12 @@ export default function HrDashboardPage() {
       setGeladen(true)
     }
     laad()
-  }, [router])
+  }, [router, t])
 
   function toggleTile(id: TileId) {
     setActief(prev => {
       const next = new Set(prev)
-      if (next.has(id)) { next.delete(id); setVolgorde(v => v.filter(t => t !== id)) }
+      if (next.has(id)) { next.delete(id); setVolgorde(v => v.filter(tegelId => tegelId !== id)) }
       else { next.add(id); setVolgorde(v => [...v, id]) }
       return next
     })
@@ -171,21 +174,21 @@ export default function HrDashboardPage() {
   async function opslaan() {
     setBezig(true)
     const { error } = await supabase.from('portaal_config').upsert(
-      { bedrijf_id: bedrijfId, tiles: volgorde.filter(t => actief.has(t)), updated_at: new Date().toISOString() },
+      { bedrijf_id: bedrijfId, tiles: volgorde.filter(tegelId => actief.has(tegelId)), updated_at: new Date().toISOString() },
       { onConflict: 'bedrijf_id' }
     )
     if (error) {
-      toast({ title: 'Opslaan mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('werk.hr.opslaanMislukt'), description: t('werk.hr.opnieuw'), variant: 'error' })
       setBezig(false)
       return
     }
     setOpgeslagen(true)
     setBezig(false)
-    toast({ title: 'Portaal opgeslagen', variant: 'success' })
+    toast({ title: t('werk.hr.portaalOpgeslagen'), variant: 'success' })
   }
 
-  const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)).filter((t): t is typeof ALLE_TILES[number] => t !== undefined)
-  const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
+  const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(tegel => tegel.id === id)).filter((tegel): tegel is typeof ALLE_TILES[number] => tegel !== undefined)
+  const inactiefTiles = ALLE_TILES.filter(tegel => !actief.has(tegel.id))
 
   const ACCENT = 'var(--mentaforce-primary)'
 
@@ -218,16 +221,16 @@ export default function HrDashboardPage() {
         {/* ── PAGE HEADER ── */}
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: 4 }}>
-            Goedendag, {naam.split(' ')[0]}
+            {t('werk.hr.groet', { naam: naam.split(' ')[0] })}
           </h1>
           <p style={{ color: 'var(--text-2)', fontSize: 14 }}>
-            Beheer het portaal en volg de vitaliteit van je team.
+            {t('werk.hr.intro')}
           </p>
         </div>
 
         {/* ── TABS ── */}
-        <div role="tablist" aria-label="HR weergave" style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
-          {([['portaal', 'Portaal beheren', Home], ['gesprekken', 'HR Gesprekken', MessageSquare]] as const).map(([tab, label, Icon]) => {
+        <div role="tablist" aria-label={t('werk.hr.weergave')} style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
+          {([['portaal', 'werk.hr.tabPortaal', Home], ['gesprekken', 'werk.hr.tabGesprekken', MessageSquare]] as const).map(([tab, label, Icon]) => {
             const isActief = actieveTab === tab
             return (
               <button key={tab} role="tab" aria-selected={isActief} onClick={() => setActieveTab(tab)}
@@ -240,7 +243,7 @@ export default function HrDashboardPage() {
                   color: isActief ? ACCENT : 'var(--text-2)',
                   transition: 'color 0.15s var(--ease), border-color 0.15s var(--ease)',
                 }}>
-                <Icon size={15} aria-hidden />{label}
+                <Icon size={15} aria-hidden />{t(label)}
               </button>
             )
           })}
@@ -256,13 +259,13 @@ export default function HrDashboardPage() {
         {/* ── STATS ROW ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
           {([
-            { label: 'Medewerkers',    value: stats.medewerkers, icon: Users, iconBg: 'var(--mf-blue-light)', iconColor: 'var(--mf-blue)' },
-            { label: 'Check-ins (7d)', value: stats.checkins,    icon: CheckCircle2, iconBg: 'var(--mentaforce-primary-light)', iconColor: 'var(--mentaforce-primary)' },
-            { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: HeartPulse, iconBg: 'var(--mf-purple-light)', iconColor: 'var(--mf-purple)' },
+            { label: t('werk.hr.medewerkers'), value: stats.medewerkers, icon: Users, iconBg: 'var(--mf-blue-light)', iconColor: 'var(--mf-blue)' },
+            { label: t('werk.hr.checkins7'), value: stats.checkins,    icon: CheckCircle2, iconBg: 'var(--mentaforce-primary-light)', iconColor: 'var(--mentaforce-primary)' },
+            { label: t('werk.hr.gemVitaal'), value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: HeartPulse, iconBg: 'var(--mf-purple-light)', iconColor: 'var(--mf-purple)' },
           ] as const).map(s => {
             const Icon = s.icon
             return (
-              <Card key={s.label} interactive aria-label={`${s.label}: ${s.value}`} style={{ padding: '18px 20px', cursor: 'default' }}>
+              <Card key={s.label} interactive aria-label={t('werk.hr.statLabel', { label: s.label, waarde: s.value })} style={{ padding: '18px 20px', cursor: 'default' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
                   <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', background: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -279,52 +282,52 @@ export default function HrDashboardPage() {
         {analytics && heeftAnalyse && (
           <div style={{ marginBottom: 32 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
-              Team welzijn (afgelopen 12 weken)
+              {t('werk.hr.teamWelzijn')}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
 
               {/* Gem. stemming */}
               {gemStemming !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. stemming</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>{t('werk.hr.gemStemming')}</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: gemStemming >= 3.5 ? 'var(--mf-green)' : 'var(--mf-amber)', lineHeight: 1, marginBottom: 4 }}>
                     {gemStemming}/5
                   </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Weekgemiddelden, anoniem</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.hr.weekgemiddelden')}</p>
                 </Card>
               )}
 
               {/* Gem. slaap */}
               {gemSlaap !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. slaap</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>{t('werk.hr.gemSlaap')}</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: gemSlaap >= 7 ? 'var(--mf-green)' : 'var(--mf-amber)', lineHeight: 1, marginBottom: 4 }}>
-                    {gemSlaap}u
+                    {t('werk.hr.uur', { waarde: gemSlaap })}
                   </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Uren per nacht</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.hr.urenPerNacht')}</p>
                 </Card>
               )}
 
               {/* Gem. stress */}
               {gemStress !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. stress</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>{t('werk.hr.gemStress')}</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: gemStress >= 7 ? 'var(--mf-red)' : gemStress >= 5 ? 'var(--mf-amber)' : 'var(--mf-green)', lineHeight: 1, marginBottom: 4 }}>
                     {gemStress}/10
                   </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Lager is beter</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.hr.lagerBeter')}</p>
                 </Card>
               )}
 
               {/* Participatie deze week */}
               {analyticsParticipatie !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Actief deze week</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>{t('werk.hr.actiefDezeWeek')}</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: analyticsParticipatie >= 70 ? 'var(--mf-green)' : analyticsParticipatie >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analyticsParticipatie}%
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                    {analytics.actief_deze_week} van {analytics.totaal_medewerkers} medewerkers
+                    {t('werk.hr.vanMedewerkers', { actief: analytics.actief_deze_week, totaal: analytics.totaal_medewerkers })}
                   </p>
                 </Card>
               )}
@@ -332,13 +335,13 @@ export default function HrDashboardPage() {
               {/* Technieken bij hoge stress */}
               {topTechnieken.length > 0 && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Technieken bij hoge stress</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>{t('werk.hr.technieken')}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {topTechnieken.map((t, i) => (
-                      <div key={t.naam} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {topTechnieken.map((tech, i) => (
+                      <div key={tech.naam} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', minWidth: 16 }}>{i + 1}.</span>
-                        <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>{TECHNIEK_LABELS[t.naam] ?? t.naam}</span>
-                        <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{t.count}×</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>{TECHNIEK_LABELS[tech.naam] ? t(TECHNIEK_LABELS[tech.naam]) : tech.naam}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{tech.count}×</span>
                       </div>
                     ))}
                   </div>
@@ -347,7 +350,7 @@ export default function HrDashboardPage() {
 
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 10 }}>
-              Geanonimiseerd — resultaten worden alleen getoond vanaf {analytics.drempel ?? 5} deelnemers.
+              {t('werk.hr.geanonimiseerd', { drempel: analytics.drempel ?? 5 })}
             </p>
           </div>
         )}
@@ -359,8 +362,8 @@ export default function HrDashboardPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>Portaal inrichten</h2>
-                <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>Sleep tegels om volgorde te wijzigen</p>
+                <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{t('werk.hr.portaalInrichten')}</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{t('werk.hr.sleep')}</p>
               </div>
               <Button
                 onClick={opslaan}
@@ -369,21 +372,21 @@ export default function HrDashboardPage() {
                 size="sm"
                 leftIcon={opgeslagen && !bezig ? <Check size={15} aria-hidden /> : undefined}
               >
-                {bezig ? 'Opslaan...' : opgeslagen ? 'Opgeslagen' : 'Opslaan'}
+                {bezig ? t('werk.hr.opslaanBezig') : opgeslagen ? t('werk.hr.opgeslagen') : t('werk.hr.opslaan')}
               </Button>
             </div>
 
             {/* Actieve tegels */}
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
-              Actief ({actiefTiles.length})
+              {t('werk.hr.actief', { aantal: actiefTiles.length })}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
               {actiefTiles.length === 0 && (
                 <Card style={{ border: '1px dashed var(--border-strong)' }}>
                   <EmptyState
                     icon={LayoutGrid}
-                    title="Geen actieve tegels"
-                    description="Schakel hieronder tegels in om ze te tonen in het portaal."
+                    title={t('werk.hr.geenTegels')}
+                    description={t('werk.hr.geenTegelsTekst')}
                   />
                 </Card>
               )}
@@ -416,7 +419,7 @@ export default function HrDashboardPage() {
                       fontSize: 10, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
                     }}>{idx + 1}</span>
                     <button onClick={() => toggleTile(tile.id)}
-                      aria-label={`${tile.label} uitschakelen`}
+                      aria-label={t('werk.hr.uitschakelen', { label: tile.label })}
                       className="mf-hr-tile-remove"
                       style={{
                         width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
@@ -434,7 +437,7 @@ export default function HrDashboardPage() {
             {inactiefTiles.length > 0 && (
               <>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
-                  Uitgeschakeld ({inactiefTiles.length})
+                  {t('werk.hr.uitgeschakeld', { aantal: inactiefTiles.length })}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {inactiefTiles.map(tile => (
@@ -448,8 +451,8 @@ export default function HrDashboardPage() {
                         <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{tile.label}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{tile.sublabel}</p>
                       </div>
-                      <Button onClick={() => toggleTile(tile.id)} variant="secondary" size="sm" aria-label={`${tile.label} inschakelen`}>
-                        Inschakelen
+                      <Button onClick={() => toggleTile(tile.id)} variant="secondary" size="sm" aria-label={t('werk.hr.inschakelenLabel', { label: tile.label })}>
+                        {t('werk.hr.inschakelen')}
                       </Button>
                     </div>
                   ))}
@@ -460,15 +463,15 @@ export default function HrDashboardPage() {
 
           {/* Right: quick links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Snelle acties</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>{t('werk.hr.snelleActies')}</h2>
             {([
-              { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: FileText },
-              { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: FolderOpen },
-              { href: '/team',                 label: 'Team bekijken',           icon: Users },
-              { href: '/dashboard',            label: 'Verlof beheren',          icon: Palmtree },
-              { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: Banknote },
-              { href: '/rapport',              label: 'Rapporten bekijken',      icon: TrendingUp },
-              { href: '/hr/abonnement',        label: 'Abonnement beheren',      icon: CreditCard },
+              { href: '/hr/protocollen/nieuw', label: 'werk.hr.actie.nieuwProtocol', icon: FileText },
+              { href: '/hr/protocollen',       label: 'werk.hr.actie.protocollen', icon: FolderOpen },
+              { href: '/team',                 label: 'werk.hr.actie.team', icon: Users },
+              { href: '/dashboard',            label: 'werk.hr.actie.verlof', icon: Palmtree },
+              { href: '/loonstroken',          label: 'werk.hr.actie.loonstroken', icon: Banknote },
+              { href: '/rapport',              label: 'werk.hr.actie.rapporten', icon: TrendingUp },
+              { href: '/hr/abonnement',        label: 'werk.hr.actie.abonnement', icon: CreditCard },
             ] as const).map(item => {
               const Icon = item.icon
               return (
@@ -482,7 +485,7 @@ export default function HrDashboardPage() {
                   <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-xs)', flexShrink: 0, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={16} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{item.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{t(item.label)}</p>
                   <ChevronRight size={14} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
                 </Link>
               )
@@ -492,17 +495,17 @@ export default function HrDashboardPage() {
 
         {/* ── INSTELLINGEN ── */}
         <Card style={{ marginTop: 32, padding: '20px 24px' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Instellingen</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>{t('werk.hr.instellingen')}</h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>DISC test verplicht voor alle medewerkers</p>
-              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Medewerkers moeten de DISC-persoonlijkheidstest invullen voordat ze toegang krijgen tot het portaal.</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>{t('werk.hr.discVerplicht')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.hr.discUitleg')}</p>
             </div>
             <button
               type="button"
               role="switch"
               aria-checked={discVerplicht}
-              aria-label="DISC test verplicht voor alle medewerkers"
+              aria-label={t('werk.hr.discVerplicht')}
               onClick={async () => {
                 if (!bedrijfId || discBezig) return
                 setDiscBezig(true)
@@ -512,7 +515,7 @@ export default function HrDashboardPage() {
                   .update({ disc_verplicht: nieuweWaarde })
                   .eq('id', bedrijfId)
                 if (error) {
-                  toast({ title: 'Wijziging mislukt', description: 'De instelling is niet opgeslagen.', variant: 'error' })
+                  toast({ title: t('werk.hr.wijzigingMislukt'), description: t('werk.hr.nietOpgeslagen'), variant: 'error' })
                 } else {
                   setDiscVerplicht(nieuweWaarde)
                 }

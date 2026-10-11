@@ -19,6 +19,7 @@ import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 import { stelGewichtVoor, leesRepBereik, type Suggestie } from '@/lib/sport/suggestie'
 import { useRustTimer } from '@/components/sport/useRustTimer'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ function aanbevolenDag(schema: Trainingsdag[]): number {
 export default function TrainingLoggerPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const fieldPrefix = useId()
   const [laden, setLaden]                   = useState(true)
   const [schema, setSchema]                 = useState<FitnessSchema | null>(null)
@@ -217,17 +219,17 @@ export default function TrainingLoggerPage() {
 
       setTimerActive(false)
       vitaEvent('habit_completed', { kind: 'training' })
-      toast({ title: 'Training opgeslagen', description: 'Goed gedaan! Je sessie is gelogd.', variant: 'success' })
+      toast({ title: t('lichaam.training.opgeslagen'), description: t('lichaam.training.opgeslagenTekst'), variant: 'success' })
       setTimeout(() => router.push('/sport'), 1500)
     } catch {
-      toast({ title: 'Fout bij opslaan', description: 'Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('lichaam.training.foutOpslaan'), description: t('lichaam.voeding.probeerOpnieuw'), variant: 'error' })
       setOpslaan(false)
     }
   }
 
   if (laden) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="mf-spinner" role="status" aria-label="Laden" />
+      <div className="mf-spinner" role="status" aria-label={t('lichaam.sport.laden')} />
     </div>
   )
 
@@ -243,7 +245,7 @@ export default function TrainingLoggerPage() {
         {scherm === 'kiezen' && schema && (
           <>
             <header style={{ marginBottom: 22 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>Training starten</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>{t('lichaam.sport.start')}</h1>
               <p style={{ color: 'var(--text-3)', fontSize: 13, margin: 0 }}>{schema.naam}</p>
             </header>
 
@@ -258,21 +260,21 @@ export default function TrainingLoggerPage() {
                   }}>
                     {aanbevolen && (
                       <div style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontSize: 10, fontWeight: 700, padding: '4px 12px', letterSpacing: '0.06em' }}>
-                        AANBEVOLEN VANDAAG
+                        {t('lichaam.training.aanbevolen')}
                       </div>
                     )}
                     <div style={{ padding: '16px 16px 14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                         <div>
-                          <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginBottom: 3 }}>DAG {dag.dag}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginBottom: 3 }}>{t('lichaam.training.dag', { dag: dag.dag })}</div>
                           <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{dag.naam}</div>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-3)', justifyContent: 'flex-end' }}>
-                            <Clock size={11} aria-hidden /> {dag.geschatte_duur} min
+                            <Clock size={11} aria-hidden /> {t('lichaam.duur.min', { min: dag.geschatte_duur })}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-3)', justifyContent: 'flex-end', marginTop: 3 }}>
-                            <Dumbbell size={11} aria-hidden /> {dag.oefeningen.length} oef.
+                            <Dumbbell size={11} aria-hidden /> {t('lichaam.sport.oefKort', { aantal: dag.oefeningen.length })}
                           </div>
                         </div>
                       </div>
@@ -294,7 +296,7 @@ export default function TrainingLoggerPage() {
                         ))}
                         {dag.oefeningen.length > 4 && (
                           <div style={{ fontSize: 11, color: 'var(--text-4)', paddingTop: 4 }}>
-                            +{dag.oefeningen.length - 4} meer
+                            {t('lichaam.training.meer', { aantal: dag.oefeningen.length - 4 })}
                           </div>
                         )}
                       </div>
@@ -319,7 +321,7 @@ export default function TrainingLoggerPage() {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         }}
                       >
-                        <Flame size={15} aria-hidden /> Start training
+                        <Flame size={15} aria-hidden /> {t('lichaam.training.start')}
                       </button>
                     </div>
                   </Card>
@@ -345,12 +347,12 @@ export default function TrainingLoggerPage() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginBottom: 4 }}>{gekozenTraining.naam}</div>
                 <div style={{ fontSize: 13, color: 'var(--mentaforce-primary)', fontWeight: 700, marginBottom: 6 }}>
-                  {voltooideOef}/{oefeningen.length} oefeningen
+                  {t('lichaam.training.oefeningenTeller', { klaar: voltooideOef, totaal: oefeningen.length })}
                 </div>
                 <div style={{ maxWidth: 120 }}>
                   <Progress
                     value={oefeningen.length ? (voltooideOef / oefeningen.length) * 100 : 0}
-                    ariaLabel={`Voortgang: ${voltooideOef} van ${oefeningen.length} oefeningen`}
+                    ariaLabel={t('lichaam.training.voortgangAria', { klaar: voltooideOef, totaal: oefeningen.length })}
                     thickness={3}
                   />
                 </div>
@@ -360,7 +362,7 @@ export default function TrainingLoggerPage() {
                   {fmt(timerSec)}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--text-4)', justifyContent: 'center' }}>
-                  <Timer size={9} aria-hidden /> verstreken
+                  <Timer size={9} aria-hidden /> {t('lichaam.training.verstreken')}
                 </div>
               </div>
             </div>
@@ -380,14 +382,14 @@ export default function TrainingLoggerPage() {
                       {oef.gif_url ? (
                         <img
                           src={oef.gif_url}
-                          alt={`Demonstratie van de oefening ${oef.naam}`}
+                          alt={t('lichaam.training.demo', { naam: oef.naam })}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
                           <Dumbbell size={36} strokeWidth={1.2} style={{ color: 'var(--text-4)' }} aria-hidden />
                           {oef.laadt_img && (
-                            <div style={{ fontSize: 11, color: 'var(--text-4)' }}>Afbeelding laden…</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('lichaam.training.afbeeldingLaden')}</div>
                           )}
                         </div>
                       )}
@@ -402,13 +404,13 @@ export default function TrainingLoggerPage() {
                           {oef.naam}
                         </div>
                         <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
-                          {oef.doelSets} sets × {oef.doelHerhalingen} herhalingen
-                          {!oef.heeft_gewicht && ' · bodyweight'}
+                          {t('lichaam.training.doel', { sets: oef.doelSets, herhalingen: oef.doelHerhalingen })}
+                          {!oef.heeft_gewicht && ` · ${t('lichaam.training.bodyweight')}`}
                         </div>
                         {oef.heeft_gewicht && oef.suggestie && oef.suggestie.actie !== 'onbekend' && (
                           <div style={{ fontSize: 11.5, marginTop: 4, fontWeight: 600, color: oef.suggestie.actie === 'verhoog' ? 'var(--mentaforce-primary)' : 'var(--text-3)' }}>
-                            Vorige: {oef.suggestie.vorigeGewichtKg} kg × {oef.suggestie.vorigeReps}
-                            {oef.suggestie.voorstelKg !== null && ` · ${oef.suggestie.actie === 'verhoog' ? 'probeer' : 'houd'} ${oef.suggestie.voorstelKg} kg`}
+                            {t('lichaam.training.vorige', { kg: oef.suggestie.vorigeGewichtKg ?? '', reps: oef.suggestie.vorigeReps ?? '' })}
+                            {oef.suggestie.voorstelKg !== null && ` · ${t(oef.suggestie.actie === 'verhoog' ? 'lichaam.training.probeer' : 'lichaam.training.houd', { kg: oef.suggestie.voorstelKg })}`}
                           </div>
                         )}
                       </div>
@@ -445,7 +447,7 @@ export default function TrainingLoggerPage() {
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <label htmlFor={repId} style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
-                                  {oef.naam} set {si + 1} herhalingen
+                                  {t('lichaam.training.repsLabel', { naam: oef.naam, set: si + 1 })}
                                 </label>
                                 <Input
                                   id={repId}
@@ -463,7 +465,7 @@ export default function TrainingLoggerPage() {
                               {oef.heeft_gewicht && (
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <label htmlFor={kgId} style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
-                                    {oef.naam} set {si + 1} gewicht in kilogram
+                                    {t('lichaam.training.kgLabel', { naam: oef.naam, set: si + 1 })}
                                   </label>
                                   <Input
                                     id={kgId}
@@ -488,7 +490,7 @@ export default function TrainingLoggerPage() {
                                   if (wordtVoltooid) rust.start(oef.rusttijd_sec)
                                 }}
                                 aria-pressed={set.voltooid}
-                                aria-label={`Set ${si + 1} ${set.voltooid ? 'ongedaan maken' : 'als voltooid markeren'}`}
+                                aria-label={t(set.voltooid ? 'lichaam.training.setOngedaan' : 'lichaam.training.setVoltooid', { set: si + 1 })}
                                 className="mf-pressable"
                                 style={{ width: 38, height: 38, borderRadius: 10, border: 'none', cursor: 'pointer', background: set.voltooid ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)', color: set.voltooid ? 'var(--bg-app)' : 'var(--text-3)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                               >
@@ -505,7 +507,7 @@ export default function TrainingLoggerPage() {
                         className="mf-pressable"
                         style={{ marginTop: 10, width: '100%', background: 'none', border: '1.5px dashed var(--border-strong)', color: 'var(--text-3)', borderRadius: 10, padding: '8px 0', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
-                        <Plus size={13} aria-hidden /> Extra set
+                        <Plus size={13} aria-hidden /> {t('lichaam.training.extraSet')}
                       </button>
                     </div>
                   </Card>
@@ -519,7 +521,7 @@ export default function TrainingLoggerPage() {
               className="mf-pressable"
               style={{ marginTop: 20, width: '100%', background: 'var(--mf-orange)', color: 'var(--bg-app)', border: 'none', borderRadius: 'var(--radius-md)', padding: '14px 0', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
-              <Trophy size={16} aria-hidden /> Training afronden
+              <Trophy size={16} aria-hidden /> {t('lichaam.training.afronden')}
             </button>
           </>
         )}
@@ -530,7 +532,7 @@ export default function TrainingLoggerPage() {
         {scherm === 'afronden' && gekozenTraining && (
           <>
             <header style={{ marginBottom: 20 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>Training afronden</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>{t('lichaam.training.afronden')}</h1>
               <p style={{ color: 'var(--text-3)', fontSize: 13, margin: 0 }}>
                 {gekozenTraining.naam} · {fmt(timerSec)}
               </p>
@@ -538,7 +540,7 @@ export default function TrainingLoggerPage() {
 
             {/* Samenvatting */}
             <Card style={{ padding: '16px', marginBottom: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>Samenvatting</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>{t('lichaam.overzicht.samenvatting')}</div>
               {oefeningen.map((oef, oi) => {
                 const sets = oef.setsGedaan.filter(s => s.voltooid)
                 if (!sets.length) return null
@@ -547,7 +549,7 @@ export default function TrainingLoggerPage() {
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{oef.naam}</div>
                     {sets.map((s, si) => (
                       <div key={si} style={{ fontSize: 12, color: 'var(--text-2)', paddingLeft: 12, lineHeight: 1.8 }}>
-                        Set {si + 1}: {s.herhalingen || '—'} herh.{oef.heeft_gewicht && s.gewicht_kg !== null ? ` · ${s.gewicht_kg} kg` : oef.heeft_gewicht ? '' : ' · bodyweight'}
+                        {t('lichaam.training.setRegel', { set: si + 1, reps: s.herhalingen || '-' })}{oef.heeft_gewicht && s.gewicht_kg !== null ? ` · ${s.gewicht_kg} kg` : oef.heeft_gewicht ? '' : ` · ${t('lichaam.training.bodyweight')}`}
                       </div>
                     ))}
                   </div>
@@ -557,12 +559,12 @@ export default function TrainingLoggerPage() {
 
             {/* Notities */}
             <Card style={{ padding: '16px', marginBottom: 20 }}>
-              <Field label="Notities" htmlFor="training-notities">
+              <Field label={t('lichaam.training.notities')} htmlFor="training-notities">
                 <Textarea
                   id="training-notities"
                   value={notities}
                   onChange={e => setNotities(e.target.value)}
-                  placeholder="Hoe voelde de training? Aandachtspunten voor volgende keer…"
+                  placeholder={t('lichaam.training.notitiesPlaceholder')}
                   rows={3}
                 />
               </Field>
@@ -575,7 +577,7 @@ export default function TrainingLoggerPage() {
                 className="mf-pressable"
                 style={{ flex: 1, background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', padding: '14px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
               >
-                <ArrowLeft size={14} aria-hidden /> Terug
+                <ArrowLeft size={14} aria-hidden /> {t('lichaam.cardio.terug')}
               </button>
               <button
                 type="button"
@@ -584,7 +586,7 @@ export default function TrainingLoggerPage() {
                 className="mf-pressable"
                 style={{ flex: 2, background: opslaan ? 'var(--bg-subtle)' : 'var(--mentaforce-primary)', color: opslaan ? 'var(--text-4)' : 'var(--bg-app)', border: 'none', borderRadius: 'var(--radius-md)', padding: '14px 0', fontSize: 15, fontWeight: 700, cursor: opslaan ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                <CheckCircle2 size={16} aria-hidden /> {opslaan ? 'Opslaan…' : 'Training opslaan'}
+                <CheckCircle2 size={16} aria-hidden /> {opslaan ? t('lichaam.slaap.opslaanBezig') : t('lichaam.training.opslaan')}
               </button>
             </div>
           </>
@@ -597,7 +599,7 @@ export default function TrainingLoggerPage() {
           <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
             <Timer size={18} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>Rust · {fmt(rust.rustSec)}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{t('lichaam.training.rust', { tijd: fmt(rust.rustSec) })}</div>
               <div style={{ height: 4, borderRadius: 999, background: 'var(--bg-subtle)', marginTop: 5, overflow: 'hidden' }}>
                 <div style={{ height: '100%', background: 'var(--mentaforce-primary)', width: `${rust.totaal > 0 ? (rust.rustSec / rust.totaal) * 100 : 0}%`, transition: 'width 1s linear' }} />
               </div>
@@ -608,7 +610,7 @@ export default function TrainingLoggerPage() {
             </button>
             <button type="button" onClick={rust.slaOver}
               style={{ height: 36, padding: '0 14px', borderRadius: 10, border: 'none', background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontSize: 13, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
-              Sla over
+              {t('lichaam.voedingSetup.overslaan')}
             </button>
           </div>
         </div>

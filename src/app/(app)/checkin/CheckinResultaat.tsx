@@ -9,6 +9,7 @@
 import { useEffect, useRef } from 'react'
 import { Check, ArrowRight } from 'lucide-react'
 import VitaCheckinBegeleider from '@/components/vita/VitaCheckinBegeleider'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface PijlerInfo {
   id:    string
@@ -29,6 +30,7 @@ function naarPct(score: number): number {
 }
 
 export default function CheckinResultaat({ pijlers, scores, onVerder }: CheckinResultaatProps) {
+  const { t } = useVertaling()
   const laatste = pijlers[pijlers.length - 1]
 
   // De hele view wisselt hiernaartoe: zet focus op de kop zodat toetsenbord-
@@ -39,7 +41,7 @@ export default function CheckinResultaat({ pijlers, scores, onVerder }: CheckinR
   }, [])
 
   return (
-    <section className="max-w-md w-full mf-animate-up" aria-label="Resultaat van je check-in">
+    <section className="max-w-md w-full mf-animate-up" aria-label={t('mentaal.checkin.resultaatLabel')}>
       {/* Vita's warme afronding — bestaand completion-moment, geen nieuwe copy */}
       <div className="mb-6">
         <VitaCheckinBegeleider
@@ -59,14 +61,14 @@ export default function CheckinResultaat({ pijlers, scores, onVerder }: CheckinR
         </div>
         <h1 ref={kopRef} tabIndex={-1} className="text-xl font-semibold text-center mb-1"
           style={{ color: 'var(--text-1)', outline: 'none' }}>
-          Check-in compleet
+          {t('mentaal.checkin.compleet')}
         </h1>
         <p className="text-sm text-center mb-7 leading-relaxed" style={{ color: 'var(--text-3)' }}>
-          Dit is je weekbeeld — zo stond je er de afgelopen week voor.
+          {t('mentaal.checkin.weekbeeld')}
         </p>
 
         {/* Weekbeeld: per vlak een rustige balk + percentage (echte scores) */}
-        <ul className="flex flex-col gap-3.5 mb-8" aria-label="Jouw score per vlak">
+        <ul className="flex flex-col gap-3.5 mb-8" aria-label={t('mentaal.checkin.scorePerVlak')}>
           {pijlers.map(p => {
             const breedte = naarPct(scores[p.id] ?? 4)
             return (
@@ -90,11 +92,11 @@ export default function CheckinResultaat({ pijlers, scores, onVerder }: CheckinR
         <button type="button" onClick={onVerder}
           className="mf-resultaat-cta w-full py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
           style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', boxShadow: 'var(--shadow-md)' }}>
-          Kies je focus voor deze week
+          {t('mentaal.checkin.kiesFocus')}
           <ArrowRight size={16} strokeWidth={2.25} aria-hidden="true" />
         </button>
         <p className="text-xs text-center mt-4" style={{ color: 'var(--text-4)' }}>
-          Je antwoorden zijn beveiligd opgeslagen.
+          {t('mentaal.checkin.beveiligdOpgeslagen')}
         </p>
       </div>
 

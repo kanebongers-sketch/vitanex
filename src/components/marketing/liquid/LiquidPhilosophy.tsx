@@ -5,38 +5,37 @@ import { motion, useInView } from 'framer-motion'
 import { Footprints, HeartPulse, Moon, Smile, Utensils, Zap } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COLORS } from '../theme'
+import { metNadruk } from '../metNadruk'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface Pijler {
+  /** Vertaalsleutel van het label. */
   label: string
   icon: LucideIcon
 }
 
 const PIJLERS: readonly Pijler[] = [
-  { label: 'Energie', icon: Zap },
-  { label: 'Slaap', icon: Moon },
-  { label: 'Stress', icon: HeartPulse },
-  { label: 'Stemming', icon: Smile },
-  { label: 'Beweging', icon: Footprints },
-  { label: 'Voeding', icon: Utensils },
+  { label: 'site.pijlers.energie', icon: Zap },
+  { label: 'site.pijlers.slaap', icon: Moon },
+  { label: 'site.pijlers.stress', icon: HeartPulse },
+  { label: 'site.pijlers.stemming', icon: Smile },
+  { label: 'site.pijlers.beweging', icon: Footprints },
+  { label: 'site.pijlers.voeding', icon: Utensils },
 ]
 
+// Vertaalsleutels van label en tekst per blok.
 interface TekstBlok {
   label: string
   body: string
 }
 
 const BLOKKEN: readonly TekstBlok[] = [
-  {
-    label: 'Zes pijlers, één beeld',
-    body: 'Energie, slaap, stress, stemming, beweging en voeding vormen samen één beeld van hoe je er mentaal voor staat. Door klein en vaak te meten worden patronen zichtbaar die een jaarlijkse vragenlijst mist.',
-  },
-  {
-    label: 'Coaching die meebeweegt',
-    body: 'Vita, de AI-coach in MentaForce, vertaalt je eigen gegevens naar kleine, haalbare stappen — van focusoefeningen tot een rustiger slaapritme. Geen standaardlijstjes, maar begeleiding die meegroeit met jouw week.',
-  },
+  { label: 'site.filosofie.blok1Label', body: 'site.filosofie.blok1Tekst' },
+  { label: 'site.filosofie.blok2Label', body: 'site.filosofie.blok2Tekst' },
 ]
 
 export default function LiquidPhilosophy() {
+  const { t } = useVertaling()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -49,7 +48,7 @@ export default function LiquidPhilosophy() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          Meten <em className="italic text-white/40">x</em> groeien
+          {metNadruk(t('site.filosofie.kop'), { className: 'italic text-white/40' })}
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -69,7 +68,7 @@ export default function LiquidPhilosophy() {
                   className="liquid-glass rounded-2xl flex flex-col items-center justify-center gap-2"
                 >
                   <Icon size={22} style={{ color: COLORS.cyan }} aria-hidden />
-                  <span className="text-white/80 text-xs md:text-sm font-medium">{label}</span>
+                  <span className="text-white/80 text-xs md:text-sm font-medium">{t(label)}</span>
                 </div>
               ))}
             </div>
@@ -83,8 +82,8 @@ export default function LiquidPhilosophy() {
             {BLOKKEN.map((blok, index) => (
               <div key={blok.label}>
                 {index > 0 && <div className="w-full h-px bg-white/10 my-8 md:my-10" />}
-                <p className="text-white/60 text-xs tracking-widest uppercase mb-4">{blok.label}</p>
-                <p className="text-white/70 text-base md:text-lg leading-relaxed">{blok.body}</p>
+                <p className="text-white/60 text-xs tracking-widest uppercase mb-4">{t(blok.label)}</p>
+                <p className="text-white/70 text-base md:text-lg leading-relaxed">{t(blok.body)}</p>
               </div>
             ))}
           </motion.div>

@@ -8,6 +8,8 @@ import {
   Bot, RefreshCw, ArrowLeft, ClipboardList, Send, X, Ban, Check,
   Search, Mail, Calendar, Clock, type LucideIcon,
 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 const sb = createClient(
@@ -44,6 +46,7 @@ interface RawContact {
 type Filter = 'alles' | 'verstuurd' | 'zwarte_lijst' | 'overgeslagen'
 
 export default function BedrijvenPage() {
+  const { t, taal } = useVertaling()
   const [contacten, setContacten] = useState<Contact[]>([])
   const [geladen, setGeladen] = useState(false)
   const [toegang, setToegang] = useState(false)
@@ -136,13 +139,13 @@ export default function BedrijvenPage() {
           <div style={{width:30,height:30,borderRadius:8,background:FF,display:'flex',alignItems:'center',justifyContent:'center'}}><Bot size={16} color="var(--bg-app)" aria-hidden /></div>
           <div>
             <p style={{fontWeight:700,fontSize:13,color:TEXT,lineHeight:1}}>Fit Factory Agent</p>
-            <p style={{fontSize:10,color:MUTED,marginTop:2}}>Alle bedrijven overzicht</p>
+            <p style={{fontSize:10,color:MUTED,marginTop:2}}>{t('werk.agentBedrijven.subtitel')}</p>
           </div>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px color-mix(in srgb, var(--mf-green) 60%, transparent)'}}/>
-          <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</span>
-          <button onClick={laad} aria-label="Vernieuwen" style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer',display:'inline-flex',alignItems:'center'}}><RefreshCw size={13} aria-hidden /></button>
+          <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString(INTL_LOCALE[taal],{hour:'2-digit',minute:'2-digit'})}</span>
+          <button onClick={laad} aria-label={t('werk.agentBedrijven.vernieuwen')} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer',display:'inline-flex',alignItems:'center'}}><RefreshCw size={13} aria-hidden /></button>
         </div>
       </header>
 
@@ -151,16 +154,16 @@ export default function BedrijvenPage() {
         {/* ZIJBALK */}
         <aside style={{borderRight:`1px solid ${BORDER}`,padding:'16px 12px',display:'flex',flexDirection:'column',gap:4}}>
           <Link href="/agent" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,color:MUTED,fontSize:12,textDecoration:'none',marginBottom:4}}>
-            <ArrowLeft size={14} aria-hidden /> Terug naar batches
+            <ArrowLeft size={14} aria-hidden /> {t('werk.agentBedrijven.terug')}
           </Link>
 
-          <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'8px 10px 6px'}}>Filter</p>
+          <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'8px 10px 6px'}}>{t('werk.agentBedrijven.filter')}</p>
 
           {([
-            ['alles', ClipboardList, `Alle bedrijven`, totaal],
-            ['verstuurd', Send, 'Verstuurd', verstuurdCount],
-            ['overgeslagen', X, 'Overgeslagen', contacten.filter(c=>c.r1_status==='overgeslagen').length],
-            ['zwarte_lijst', Ban, 'Zwarte lijst', zwarteLijstCount],
+            ['alles', ClipboardList, t('werk.agentBedrijven.alle'), totaal],
+            ['verstuurd', Send, t('werk.agentBedrijven.verstuurd'), verstuurdCount],
+            ['overgeslagen', X, t('werk.agentBedrijven.overgeslagen'), contacten.filter(c=>c.r1_status==='overgeslagen').length],
+            ['zwarte_lijst', Ban, t('werk.agentBedrijven.zwarteLijst'), zwarteLijstCount],
           ] as [Filter, LucideIcon, string, number][]).map(([f, Icon, label, count]) => (
             <button key={f} onClick={()=>setFilter(f)} style={{
               display:'flex',alignItems:'center',justifyContent:'space-between',
@@ -176,18 +179,18 @@ export default function BedrijvenPage() {
 
           {/* Stats */}
           <div style={{marginTop:'auto',padding:'12px 10px',background:CARD,borderRadius:8}}>
-            <p style={{fontSize:10,color:MUTED,marginBottom:8}}>Overzicht</p>
+            <p style={{fontSize:10,color:MUTED,marginBottom:8}}>{t('werk.agentBedrijven.overzicht')}</p>
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:11}}>
-                <span style={{color:MUTED}}>Totaal benaderd</span>
+                <span style={{color:MUTED}}>{t('werk.agentBedrijven.totaalBenaderd')}</span>
                 <span style={{color:TEXT}}>{totaal}</span>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:11}}>
-                <span style={{color:MUTED}}>Email verstuurd</span>
+                <span style={{color:MUTED}}>{t('werk.agentBedrijven.mailVerstuurd')}</span>
                 <span style={{color:GREEN}}>{verstuurdCount}</span>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:11}}>
-                <span style={{color:MUTED}}>Zwarte lijst</span>
+                <span style={{color:MUTED}}>{t('werk.agentBedrijven.zwarteLijst')}</span>
                 <span style={{color:RED}}>{zwarteLijstCount}</span>
               </div>
               {totaal > 0 && (
@@ -195,7 +198,7 @@ export default function BedrijvenPage() {
                   <div style={{height:3,background:'var(--border)',borderRadius:2}}>
                     <div style={{width:`${verstuurdCount/totaal*100}%`,height:'100%',background:GREEN,borderRadius:2}}/>
                   </div>
-                  <p style={{fontSize:9,color:MUTED,marginTop:3}}>{Math.round(verstuurdCount/totaal*100)}% conversie</p>
+                  <p style={{fontSize:9,color:MUTED,marginTop:3}}>{t('werk.agentBedrijven.conversie', { pct: Math.round(verstuurdCount/totaal*100) })}</p>
                 </div>
               )}
             </div>
@@ -210,16 +213,16 @@ export default function BedrijvenPage() {
             <input
               value={zoek}
               onChange={e=>setZoek(e.target.value)}
-              placeholder="Zoek op naam, email of sector..."
+              placeholder={t('werk.agentBedrijven.zoekPlaceholder')}
               style={{width:'100%',background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,padding:'10px 14px 10px 36px',color:TEXT,fontSize:13,outline:'none'}}
             />
           </div>
 
           {/* Resultaten teller */}
-          <p style={{fontSize:11,color:MUTED,marginBottom:12}}>{gefilterd.length} bedrijven{zoek ? ` voor "${zoek}"` : ''}</p>
+          <p style={{fontSize:11,color:MUTED,marginBottom:12}}>{zoek ? t('werk.agentBedrijven.aantalZoek', { aantal: gefilterd.length, zoek }) : t('werk.agentBedrijven.aantal', { aantal: gefilterd.length })}</p>
 
           {!geladen ? (
-            <p style={{color:MUTED,fontSize:12}}>Laden...</p>
+            <p style={{color:MUTED,fontSize:12}}>{t('werk.agentBedrijven.laden')}</p>
           ) : gefilterd.length === 0 ? (
             <div style={{textAlign:'center',padding:'40px',color:MUTED}}>
               <div style={{position:'relative',display:'inline-block',marginBottom:8}}>
@@ -228,7 +231,7 @@ export default function BedrijvenPage() {
                 </div>
                 <Search size={32} color={MUTED} aria-hidden style={{position:'relative',zIndex:1}} />
               </div>
-              <p>Geen bedrijven gevonden</p>
+              <p>{t('werk.agentBedrijven.geen')}</p>
             </div>
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:6}}>
@@ -242,12 +245,12 @@ export default function BedrijvenPage() {
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2,flexWrap:'wrap'}}>
                       <p style={{fontSize:13,fontWeight:600,color:c.op_zwarte_lijst?'var(--mf-red-light)':TEXT,margin:0}}>{c.naam}</p>
-                      {c.op_zwarte_lijst && <span style={{background:'color-mix(in srgb, var(--mf-red) 15%, transparent)',color:RED,borderRadius:4,padding:'1px 7px',fontSize:10,display:'inline-flex',alignItems:'center',gap:4}}><Ban size={11} aria-hidden /> Zwarte lijst</span>}
-                      <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10}}>{c.score}pts</span>
+                      {c.op_zwarte_lijst && <span style={{background:'color-mix(in srgb, var(--mf-red) 15%, transparent)',color:RED,borderRadius:4,padding:'1px 7px',fontSize:10,display:'inline-flex',alignItems:'center',gap:4}}><Ban size={11} aria-hidden /> {t('werk.agentBedrijven.zwarteLijst')}</span>}
+                      <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10}}>{t('werk.agentBedrijven.punten', { score: c.score })}</span>
                     </div>
                     <p style={{fontSize:11,color:MUTED,margin:'0 0 4px'}}>{c.email} · {c.stad} · {c.sector}</p>
                     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-                      <span style={{fontSize:10,color:MUTED}}>Batch: {c.batch_naam}</span>
+                      <span style={{fontSize:10,color:MUTED}}>{t('werk.agentBedrijven.batch', { naam: c.batch_naam ?? '' })}</span>
                       {/* Ronde statussen */}
                       <div style={{display:'flex',gap:4}}>
                         {[1,2,3].map(r => {
@@ -265,7 +268,7 @@ export default function BedrijvenPage() {
                   {/* Zwarte lijst knop */}
                   <button
                     onClick={()=>toggleZwarteLijst(c.id, !!c.op_zwarte_lijst)}
-                    title={c.op_zwarte_lijst ? 'Van zwarte lijst verwijderen' : 'Op zwarte lijst plaatsen'}
+                    title={c.op_zwarte_lijst ? t('werk.agentBedrijven.vanLijst') : t('werk.agentBedrijven.opLijst')}
                     style={{
                       background: c.op_zwarte_lijst ? 'color-mix(in srgb, var(--mf-red) 15%, transparent)' : 'color-mix(in srgb, var(--text-1) 4%, transparent)',
                       border: `1px solid ${c.op_zwarte_lijst ? 'color-mix(in srgb, var(--mf-red) 40%, transparent)' : BORDER}`,
@@ -274,7 +277,7 @@ export default function BedrijvenPage() {
                       transition:'all 0.15s', display:'inline-flex', alignItems:'center', gap:6,
                     }}
                   >
-                    {c.op_zwarte_lijst ? <><Check size={13} aria-hidden /> Verwijder uit lijst</> : <><Ban size={13} aria-hidden /> Zwarte lijst</>}
+                    {c.op_zwarte_lijst ? <><Check size={13} aria-hidden /> {t('werk.agentBedrijven.uitLijst')}</> : <><Ban size={13} aria-hidden /> {t('werk.agentBedrijven.zwarteLijst')}</>}
                   </button>
                 </div>
               ))}

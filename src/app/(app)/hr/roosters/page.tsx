@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import {
   DialogRoot, DialogContent, DialogTitle, DialogDescription, DialogClose,
 } from '@/components/ui/Dialog'
@@ -26,16 +28,20 @@ type Rooster = {
   dienst_count?: number
 }
 
-function weekLabel(weekStart: string): string {
+function weekLabel(weekStart: string, locale: string): { van: string; tot: string } {
   const ma = new Date(weekStart)
   const zo = new Date(ma)
   zo.setDate(ma.getDate() + 6)
-  return `${ma.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} – ${zo.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}`
+  return {
+    van: ma.toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+    tot: zo.toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
+  }
 }
 
 export default function HrRoostersPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [roosters, setRoosters] = useState<Rooster[]>([])
   const [geladen, setGeladen] = useState(false)
   const [verwijderBezig, setVerwijderBezig] = useState<string | null>(null)
@@ -80,14 +86,14 @@ export default function HrRoostersPage() {
     setVerwijderBezig(doel.id)
     const { error } = await supabase.from('roosters').delete().eq('id', doel.id)
     if (error) {
-      toast({ title: 'Verwijderen mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+      toast({ title: t('werk.hrRoosters.verwijderenMislukt'), description: t('werk.algemeen.later'), variant: 'error' })
       setVerwijderBezig(null)
       return
     }
     setRoosters(prev => prev.filter(r => r.id !== doel.id))
     setVerwijderBezig(null)
     setTeVerwijderen(null)
-    toast({ title: 'Rooster verwijderd', description: `"${doel.naam}" en alle diensten zijn verwijderd.`, variant: 'success' })
+    toast({ title: t('werk.hrRoosters.verwijderd'), description: t('werk.hrRoosters.verwijderdOmschrijving', { naam: doel.naam }), variant: 'success' })
   }
 
   return (
@@ -96,11 +102,11 @@ export default function HrRoostersPage() {
 
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Roosters</h1>
-            <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 4 }}>Beheer werkroosters per week</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{t('werk.hrRoosters.titel')}</h1>
+            <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 4 }}>{t('werk.hrRoosters.intro')}</p>
           </div>
           <Link href="/hr/roosters/nieuw" style={{ textDecoration: 'none' }}>
-            <Button leftIcon={<Plus size={16} aria-hidden />}>Nieuw rooster</Button>
+            <Button leftIcon={<Plus size={16} aria-hidden />}>{t('werk.hrRoosters.nieuw')}</Button>
           </Link>
         </header>
 
@@ -122,11 +128,11 @@ export default function HrRoostersPage() {
           <Card>
             <EmptyState
               icon={CalendarDays}
-              title="Nog geen roosters"
-              description="Maak je eerste rooster aan om diensten in te plannen."
+              title={t('werk.hrRoosters.leegTitel')}
+              description={t('werk.hrRoosters.leegOmschrijving')}
               action={
                 <Link href="/hr/roosters/nieuw" style={{ textDecoration: 'none' }}>
-                  <Button leftIcon={<Plus size={16} aria-hidden />}>Nieuw rooster</Button>
+                  <Button leftIcon={<Plus size={16} aria-hidden />}>{t('werk.hrRoosters.nieuw')}</Button>
                 </Link>
               }
             />
@@ -139,14 +145,14 @@ export default function HrRoostersPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-1)', fontSize: 15 }}>{r.naam}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
-                      {weekLabel(r.week_start)}
-                      <span style={{ marginLeft: 12, color: 'var(--text-3)' }}>{r.dienst_count} diensten</span>
+                      {t('werk.algemeen.bereik', weekLabel(r.week_start, INTL_LOCALE[taal]))}
+                      <span style={{ marginLeft: 12, color: 'var(--text-3)' }}>{t('werk.hrRoosters.dienstenAantal', { aantal: r.dienst_count ?? 0 })}</span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                     <Link href={`/hr/roosters/${r.id}`} style={{ textDecoration: 'none' }}>
                       <Button variant="secondary" size="sm" leftIcon={<Pencil size={15} aria-hidden />}>
-                        Bewerken
+                        {t('werk.hrRoosters.bewerken')}
                       </Button>
                     </Link>
                     <Button
@@ -154,9 +160,9 @@ export default function HrRoostersPage() {
                       size="sm"
                       onClick={() => setTeVerwijderen(r)}
                       leftIcon={<Trash2 size={15} aria-hidden />}
-                      aria-label={`Rooster "${r.naam}" verwijderen`}
+                      aria-label={t('werk.hrRoosters.verwijderLabel', { naam: r.naam })}
                     >
-                      Verwijder
+                      {t('werk.hrRoosters.verwijder')}
                     </Button>
                   </div>
                 </Card>
@@ -169,15 +175,15 @@ export default function HrRoostersPage() {
       {/* Verwijderbevestiging */}
       <DialogRoot open={!!teVerwijderen} onOpenChange={(open) => { if (!open) setTeVerwijderen(null) }}>
         <DialogContent>
-          <DialogTitle>Rooster verwijderen?</DialogTitle>
+          <DialogTitle>{t('werk.hrRoosters.dialoogTitel')}</DialogTitle>
           <DialogDescription>
             {teVerwijderen
-              ? `"${teVerwijderen.naam}" en alle bijbehorende diensten worden definitief verwijderd. Dit kan niet ongedaan worden gemaakt.`
+              ? t('werk.hrRoosters.dialoogTekst', { naam: teVerwijderen.naam })
               : ''}
           </DialogDescription>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 22 }}>
             <DialogClose asChild>
-              <Button variant="ghost">Annuleren</Button>
+              <Button variant="ghost">{t('werk.algemeen.annuleren')}</Button>
             </DialogClose>
             <Button
               variant="danger"
@@ -185,7 +191,7 @@ export default function HrRoostersPage() {
               onClick={bevestigVerwijderen}
               leftIcon={<Trash2 size={15} aria-hidden />}
             >
-              Definitief verwijderen
+              {t('werk.hrRoosters.definitief')}
             </Button>
           </div>
         </DialogContent>

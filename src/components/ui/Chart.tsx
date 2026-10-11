@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import dynamic from 'next/dynamic';
+import { useVertaling } from '@/lib/i18n/TaalProvider';
 
 /**
  * Toegankelijke, lazy-geladen recharts-wrapper voor MentaForce.
@@ -281,6 +282,8 @@ interface DataTableProps {
  * Visueel verborgen, volledig leesbaar voor screenreaders.
  */
 function ChartDataTable({ data, xKey, series, summary }: DataTableProps) {
+  const { t } = useVertaling();
+  const leeg = t('account.ui.geenWaarde');
   return (
     <table style={srOnly}>
       <caption>{summary}</caption>
@@ -297,9 +300,9 @@ function ChartDataTable({ data, xKey, series, summary }: DataTableProps) {
       <tbody>
         {data.map((row, i) => (
           <tr key={i}>
-            <th scope="row">{formatCell(row[xKey])}</th>
+            <th scope="row">{formatCell(row[xKey], leeg)}</th>
             {series.map((s) => (
-              <td key={s.key}>{formatCell(row[s.key])}</td>
+              <td key={s.key}>{formatCell(row[s.key], leeg)}</td>
             ))}
           </tr>
         ))}
@@ -308,8 +311,8 @@ function ChartDataTable({ data, xKey, series, summary }: DataTableProps) {
   );
 }
 
-function formatCell(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
+function formatCell(value: string | number | null | undefined, leeg: string): string {
+  if (value === null || value === undefined) return leeg;
   return String(value);
 }
 

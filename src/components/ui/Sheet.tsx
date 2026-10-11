@@ -3,6 +3,7 @@
 import { forwardRef, type ComponentPropsWithoutRef, type CSSProperties, type ElementRef, type ReactNode } from 'react';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useVertaling } from '@/lib/i18n/TaalProvider';
 
 /**
  * Sheet — slide-over / drawer op basis van @radix-ui/react-dialog.
@@ -103,9 +104,10 @@ export interface SheetContentProps extends ComponentPropsWithoutRef<typeof Radix
 
 export const SheetContent = forwardRef<ElementRef<typeof RadixDialog.Content>, SheetContentProps>(
   function SheetContent(
-    { children, side = 'right', style, className, showClose = true, closeLabel = 'Sluiten', ...rest },
+    { children, side = 'right', style, className, showClose = true, closeLabel, ...rest },
     ref,
   ) {
+    const { t } = useVertaling();
     return (
       <SheetPortal>
         <SheetOverlay />
@@ -131,7 +133,7 @@ export const SheetContent = forwardRef<ElementRef<typeof RadixDialog.Content>, S
           {children}
           {showClose && (
             <RadixDialog.Close
-              aria-label={closeLabel}
+              aria-label={closeLabel ?? t('account.ui.sluiten')}
               className="mf-pressable"
               style={{
                 position: 'absolute',

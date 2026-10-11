@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface PremiumSlotProps {
   titel: string
@@ -17,6 +18,7 @@ interface PremiumSlotProps {
 }
 
 export function PremiumSlot({ titel, omschrijving, kanUpgraden = false }: PremiumSlotProps) {
+  const { t } = useVertaling()
   return (
     <Card>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12, padding: '28px 16px' }}>
@@ -33,18 +35,18 @@ export function PremiumSlot({ titel, omschrijving, kanUpgraden = false }: Premiu
             {omschrijving}
           </p>
         </div>
-        <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Onderdeel van het Groei-plan.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.ui.premiumOnderdeel')}</p>
         {kanUpgraden ? (
           <Link href="/hr/abonnement" style={{
             fontSize: 13, fontWeight: 600, color: 'var(--bg-app)',
             background: 'var(--mentaforce-primary)', borderRadius: 'var(--radius-btn)',
             padding: '10px 18px', textDecoration: 'none',
           }}>
-            Bekijk plannen
+            {t('account.ui.premiumBekijk')}
           </Link>
         ) : (
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Vraag je HR-team naar het Groei-plan van MentaForce.
+            {t('account.ui.premiumVraagHr')}
           </p>
         )}
       </div>

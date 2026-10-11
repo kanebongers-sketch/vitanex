@@ -10,6 +10,8 @@ import {
   type Activiteitsniveau,
   type FitnessDoel,
 } from '@/lib/health/gezondheid-berekeningen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 interface Props {
   userId: string
@@ -63,6 +65,8 @@ const LABEL_STIJL: React.CSSProperties = {
 }
 
 export default function GezondheidDoelen({ userId }: Props) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<Melding | null>(null)
@@ -136,9 +140,9 @@ export default function GezondheidDoelen({ userId }: Props) {
     const { error } = await supabase.from('profiles').update(update).eq('id', userId)
 
     if (error) {
-      setMelding({ type: 'error', tekst: 'Opslaan mislukt. Probeer opnieuw.' })
+      setMelding({ type: 'error', tekst: t('account.doelen.opslaanMislukt') })
     } else {
-      setMelding({ type: 'success', tekst: 'Gezondheid & doelen bijgewerkt.' })
+      setMelding({ type: 'success', tekst: t('account.doelen.bijgewerkt') })
       setTimeout(() => setMelding(null), 3000)
     }
     setBezig(false)
@@ -158,30 +162,30 @@ export default function GezondheidDoelen({ userId }: Props) {
     <>
       {/* Profiel & lichaam */}
       <section className="rounded-2xl p-6" style={SECTIE_STIJL}>
-        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Gezondheidsprofiel</h2>
+        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.doelen.profielKop')}</h2>
         <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
-          Deze gegevens bepalen automatisch je water-, stappen- en calorie-doelen.
+          {t('account.doelen.profielSub')}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <label style={LABEL_STIJL}>Gewicht (kg)</label>
+            <label style={LABEL_STIJL}>{t('account.intake.gewicht')}</label>
             <input type="number" inputMode="decimal" min={1} value={gewicht}
-              onChange={e => setGewicht(e.target.value)} placeholder="bijv. 75" style={VELD_STIJL} />
+              onChange={e => setGewicht(e.target.value)} placeholder={t('account.intake.bijvoorbeeld', { waarde: 75 })} style={VELD_STIJL} />
           </div>
           <div>
-            <label style={LABEL_STIJL}>Lengte (cm)</label>
+            <label style={LABEL_STIJL}>{t('account.intake.lengte')}</label>
             <input type="number" inputMode="decimal" min={1} value={lengte}
-              onChange={e => setLengte(e.target.value)} placeholder="bijv. 178" style={VELD_STIJL} />
+              onChange={e => setLengte(e.target.value)} placeholder={t('account.intake.bijvoorbeeld', { waarde: 178 })} style={VELD_STIJL} />
           </div>
           <div>
-            <label style={LABEL_STIJL}>Streefgewicht (kg)</label>
+            <label style={LABEL_STIJL}>{t('account.intake.streefgewicht')}</label>
             <input type="number" inputMode="decimal" min={1} value={streefgewicht}
-              onChange={e => setStreefgewicht(e.target.value)} placeholder="optioneel" style={VELD_STIJL} />
+              onChange={e => setStreefgewicht(e.target.value)} placeholder={t('account.doelen.optioneel')} style={VELD_STIJL} />
           </div>
           {geboortedatum && (
             <div>
-              <label style={LABEL_STIJL}>Geboortedatum</label>
+              <label style={LABEL_STIJL}>{t('account.intake.geboortedatum')}</label>
               <input type="text" value={geboortedatum} disabled style={{ ...VELD_STIJL, opacity: 0.6 }} />
             </div>
           )}
@@ -189,10 +193,9 @@ export default function GezondheidDoelen({ userId }: Props) {
 
         {/* Activiteitsniveau */}
         <div className="mb-5">
-          <label style={LABEL_STIJL}>Activiteitsniveau</label>
+          <label style={LABEL_STIJL}>{t('account.intake.activiteitsniveau')}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(Object.keys(ACTIVITEIT_CONFIG) as Activiteitsniveau[]).map(niveau => {
-              const cfg = ACTIVITEIT_CONFIG[niveau]
               const actief = activiteit === niveau
               return (
                 <button key={niveau} type="button" onClick={() => setActiviteit(niveau)}
@@ -201,8 +204,8 @@ export default function GezondheidDoelen({ userId }: Props) {
                     borderColor: actief ? 'var(--mf-green)' : 'var(--border)',
                     background: actief ? 'var(--mf-green-light)' : 'transparent',
                   }}>
-                  <p className="text-sm font-medium" style={{ color: actief ? 'var(--mf-green-dark)' : 'var(--text-1)' }}>{cfg.label}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-4)' }}>{cfg.sub}</p>
+                  <p className="text-sm font-medium" style={{ color: actief ? 'var(--mf-green-dark)' : 'var(--text-1)' }}>{t(`account.intake.activiteit.${niveau}.titel`)}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t(`account.intake.activiteit.${niveau}.sub`)}</p>
                 </button>
               )
             })}
@@ -211,7 +214,7 @@ export default function GezondheidDoelen({ userId }: Props) {
 
         {/* Fitnessdoel */}
         <div>
-          <label style={LABEL_STIJL}>Fitnessdoel</label>
+          <label style={LABEL_STIJL}>{t('account.intake.fitnessdoel')}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(Object.keys(DOEL_CONFIG) as FitnessDoel[]).map(d => {
               const cfg = DOEL_CONFIG[d]
@@ -223,8 +226,8 @@ export default function GezondheidDoelen({ userId }: Props) {
                     borderColor: actief ? cfg.kleur : 'var(--border)',
                     background: actief ? 'var(--bg-subtle)' : 'transparent',
                   }}>
-                  <p className="text-sm font-medium" style={{ color: actief ? cfg.kleur : 'var(--text-1)' }}>{cfg.label}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-4)' }}>{cfg.sub}</p>
+                  <p className="text-sm font-medium" style={{ color: actief ? cfg.kleur : 'var(--text-1)' }}>{t(`account.intake.doel.${d}.titel`)}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t(`account.intake.doel.${d}.sub`)}</p>
                 </button>
               )
             })}
@@ -234,55 +237,55 @@ export default function GezondheidDoelen({ userId }: Props) {
 
       {/* Doelen overschrijven */}
       <section className="rounded-2xl p-6" style={SECTIE_STIJL}>
-        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Dagdoelen</h2>
+        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('account.doelen.dagdoelenKop')}</h2>
         <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
-          Laat leeg om automatisch te berekenen, of vul een eigen waarde in om te overschrijven.
+          {t('account.doelen.dagdoelenSub')}
         </p>
 
         <div className="flex flex-col gap-4">
           <div>
-            <label style={LABEL_STIJL}>Waterdoel (ml)</label>
+            <label style={LABEL_STIJL}>{t('account.doelen.water')}</label>
             <input type="number" inputMode="numeric" min={1} value={waterDoel}
               onChange={e => setWaterDoel(e.target.value)}
-              placeholder={`Auto: ${autoPreview.water_doel_ml} ml`} style={VELD_STIJL} />
+              placeholder={t('account.doelen.auto', { waarde: `${autoPreview.water_doel_ml} ml` })} style={VELD_STIJL} />
             <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
               {waterDoel.trim() === ''
-                ? `Automatisch: ${autoPreview.water_doel_ml} ml per dag`
-                : 'Handmatig ingesteld'}
+                ? t('account.doelen.automatischWater', { waarde: autoPreview.water_doel_ml })
+                : t('account.doelen.handmatig')}
             </p>
           </div>
 
           <div>
-            <label style={LABEL_STIJL}>Stappendoel</label>
+            <label style={LABEL_STIJL}>{t('account.doelen.stappen')}</label>
             <input type="number" inputMode="numeric" min={1} value={stappenDoel}
               onChange={e => setStappenDoel(e.target.value)}
-              placeholder={`Auto: ${autoPreview.stappen_doel}`} style={VELD_STIJL} />
+              placeholder={t('account.doelen.auto', { waarde: autoPreview.stappen_doel })} style={VELD_STIJL} />
             <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
               {stappenDoel.trim() === ''
-                ? `Automatisch: ${autoPreview.stappen_doel.toLocaleString('nl-NL')} stappen per dag`
-                : 'Handmatig ingesteld'}
+                ? t('account.doelen.automatischStappen', { waarde: autoPreview.stappen_doel.toLocaleString(locale) })
+                : t('account.doelen.handmatig')}
             </p>
           </div>
 
           <div>
-            <label style={LABEL_STIJL}>Caloriedoel (kcal)</label>
+            <label style={LABEL_STIJL}>{t('account.doelen.calorie')}</label>
             <input type="number" inputMode="numeric" min={1} value={calorieDoel}
               onChange={e => setCalorieDoel(e.target.value)}
-              placeholder={autoPreview.calorie_doel != null ? `Auto: ${autoPreview.calorie_doel} kcal` : 'Vul gewicht & lengte in voor auto'}
+              placeholder={autoPreview.calorie_doel != null ? t('account.doelen.auto', { waarde: `${autoPreview.calorie_doel} kcal` }) : t('account.doelen.vulInAuto')}
               style={VELD_STIJL} />
             <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
               {calorieDoel.trim() !== ''
-                ? 'Handmatig ingesteld'
+                ? t('account.doelen.handmatig')
                 : autoPreview.calorie_doel != null
-                  ? `Automatisch: ${autoPreview.calorie_doel.toLocaleString('nl-NL')} kcal per dag`
-                  : 'Vul gewicht, lengte en geboortedatum in om automatisch te berekenen'}
+                  ? t('account.doelen.automatischCalorie', { waarde: autoPreview.calorie_doel.toLocaleString(locale) })
+                  : t('account.doelen.vulInBerekenen')}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 mt-6">
           <Button variant="primary" onClick={opslaan} loading={bezig}>
-            {bezig ? 'Opslaan...' : 'Wijzigingen opslaan'}
+            {bezig ? t('account.hrOnboarding.opslaan') : t('account.instellingen.opslaan')}
           </Button>
           {melding && (
             <p className="text-sm" style={{ color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>

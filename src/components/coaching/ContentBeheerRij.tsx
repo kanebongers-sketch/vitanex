@@ -4,13 +4,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Pencil, Eye, EyeOff, Trash2 } from 'lucide-react'
-import {
-  PIJLER_LABELS,
-  PIJLER_STIJL,
-  CONTENT_TYPE_LABELS,
-  doelgroepOmschrijving,
-  type CoachingContent,
-} from '@/lib/coaching/content'
+import { PIJLER_STIJL, type CoachingContent } from '@/lib/coaching/content'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { CONTENT_TYPE_ICOON } from '@/components/coaching/content-iconen'
 
 export interface ContentBeheerRijProps {
@@ -29,6 +24,7 @@ export function ContentBeheerRij({
   content, bezig, bevestigVerwijder,
   onBewerk, onTogglePublicatie, onVraagVerwijder, onVerwijder, onAnnuleerVerwijder,
 }: ContentBeheerRijProps) {
+  const { t } = useVertaling()
   const stijl = PIJLER_STIJL[content.pijler]
   const Icoon = CONTENT_TYPE_ICOON[content.type]
 
@@ -47,19 +43,19 @@ export function ContentBeheerRij({
           {content.titel}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: stijl.color }}>{PIJLER_LABELS[content.pijler]}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: stijl.color }}>{t(`coaching.labels.pijler.${content.pijler}`)}</span>
           <span style={{ fontSize: 11, color: 'var(--text-4)' }}>·</span>
-          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{CONTENT_TYPE_LABELS[content.type]}</span>
+          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{t(`coaching.labels.contentType.${content.type}`)}</span>
           <span style={{ fontSize: 11, color: 'var(--text-4)' }}>·</span>
-          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{doelgroepOmschrijving(content)}</span>
-          {!content.gepubliceerd && <Badge variant="warning" style={{ fontSize: 10, padding: '2px 8px' }}>Concept</Badge>}
+          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{t(content.klant_id === null ? 'coaching.labels.doelgroep.alle' : 'coaching.labels.doelgroep.deze')}</span>
+          {!content.gepubliceerd && <Badge variant="warning" style={{ fontSize: 10, padding: '2px 8px' }}>{t('coaching.labels.concept')}</Badge>}
         </div>
       </div>
 
       {bevestigVerwijder ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          <Button variant="danger" size="sm" loading={bezig} onClick={onVerwijder}>Verwijder</Button>
-          <Button variant="ghost" size="sm" onClick={onAnnuleerVerwijder}>Annuleer</Button>
+          <Button variant="danger" size="sm" loading={bezig} onClick={onVerwijder}>{t('coaching.content.verwijder')}</Button>
+          <Button variant="ghost" size="sm" onClick={onAnnuleerVerwijder}>{t('coaching.algemeen.annuleer')}</Button>
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
@@ -67,27 +63,27 @@ export function ContentBeheerRij({
             variant="ghost" size="sm"
             onClick={onBewerk}
             leftIcon={<Pencil size={14} aria-hidden />}
-            aria-label={`${content.titel} bewerken`}
+            aria-label={t('coaching.content.bewerkenAria', { titel: content.titel })}
           >
-            Bewerk
+            {t('coaching.content.bewerk')}
           </Button>
           <Button
             variant="ghost" size="sm"
             loading={bezig}
             onClick={onTogglePublicatie}
             leftIcon={content.gepubliceerd ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
-            aria-label={content.gepubliceerd ? `${content.titel} verbergen` : `${content.titel} publiceren`}
+            aria-label={t(content.gepubliceerd ? 'coaching.content.verbergenAria' : 'coaching.content.publicerenAria', { titel: content.titel })}
           >
-            {content.gepubliceerd ? 'Verberg' : 'Publiceer'}
+            {content.gepubliceerd ? t('coaching.content.verberg') : t('coaching.content.publiceer')}
           </Button>
           <Button
             variant="ghost" size="sm"
             onClick={onVraagVerwijder}
             leftIcon={<Trash2 size={14} aria-hidden />}
-            aria-label={`${content.titel} verwijderen`}
+            aria-label={t('coaching.content.verwijderenAria', { titel: content.titel })}
             style={{ color: 'var(--mf-red)' }}
           >
-            Verwijder
+            {t('coaching.content.verwijder')}
           </Button>
         </div>
       )}

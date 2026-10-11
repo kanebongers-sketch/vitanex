@@ -2,6 +2,13 @@
 // Gemiddelden per as (stemming/energie/stress), een zachte reflectie-prompt na
 // een log, en een voorzichtig — nadrukkelijk niet-klinisch — signaal bij
 // aanhoudend lage stemming of hoge stress. Alles puur en deterministisch.
+// Teksten komen uit het woordenboek (gebied mentaal); zonder taalset Nederlands.
+
+import mentaalNl from '@/lib/i18n/woordenboeken/mentaal/nl.json'
+import { maakTaalset, type Taalset } from '@/lib/i18n/taalset'
+
+/** Nederlandse taalset met de mentaal-teksten: standaard voor aanroepen en tests. */
+const NL_MENTAAL: Taalset = maakTaalset('nl', mentaalNl)
 
 export type WelzijnAs = 'stemming' | 'energie' | 'stress'
 
@@ -27,11 +34,11 @@ export interface ReflectiePrompt {
  * Eén zachte, open reflectievraag op basis van de zojuist gelogde waarden.
  * Nooit dwingend — de UI toont 'm optioneel en makkelijk over te slaan.
  */
-export function reflectiePrompt(stemming: number | null, stress: number | null): ReflectiePrompt {
-  if (stress !== null && stress >= 4) return { vraag: 'Wat gaf vandaag de meeste druk?', emoji: '🌬️' }
-  if (stemming !== null && stemming <= 2) return { vraag: 'Wat speelde er vandaag mee?', emoji: '💭' }
-  if (stemming !== null && stemming >= 4) return { vraag: 'Wat ging er vandaag goed?', emoji: '✨' }
-  return { vraag: 'Wat wil je onthouden van vandaag?', emoji: '📝' }
+export function reflectiePrompt(stemming: number | null, stress: number | null, ts: Taalset = NL_MENTAAL): ReflectiePrompt {
+  if (stress !== null && stress >= 4) return { vraag: ts.t('mentaal.welzijn.promptDruk'), emoji: '🌬️' }
+  if (stemming !== null && stemming <= 2) return { vraag: ts.t('mentaal.welzijn.promptSpeelde'), emoji: '💭' }
+  if (stemming !== null && stemming >= 4) return { vraag: ts.t('mentaal.welzijn.promptGoed'), emoji: '✨' }
+  return { vraag: ts.t('mentaal.welzijn.promptOnthouden'), emoji: '📝' }
 }
 
 export interface WelzijnSignaal {
@@ -50,7 +57,7 @@ const STRESS_HOOG = 4
  * te weinig data. Bewust zacht en eerlijk — geen diagnose, wel een uitnodiging
  * tot rust of hulp.
  */
-export function kiesWelzijnSignaal(logs: readonly WelzijnLog[]): WelzijnSignaal | null {
+export function kiesWelzijnSignaal(logs: readonly WelzijnLog[], ts: Taalset = NL_MENTAAL): WelzijnSignaal | null {
   const recent = logs.slice(0, VENSTER)
   const metData = recent.filter((l) => l.stemming !== null || l.stress !== null)
   if (metData.length < MIN_LOGS) return null
@@ -60,13 +67,13 @@ export function kiesWelzijnSignaal(logs: readonly WelzijnLog[]): WelzijnSignaal 
 
   if (gemStress !== null && gemStress >= STRESS_HOOG) {
     return {
-      tekst: 'Je stress ligt de laatste tijd hoog. Geen diagnose — wel een seintje om echt even rust te pakken, en hulp te zoeken als het aanhoudt.',
+      tekst: ts.t('mentaal.welzijn.signaalStress'),
       emoji: '🫧',
     }
   }
   if (gemStemming !== null && gemStemming <= STEMMING_LAAG) {
     return {
-      tekst: 'Je stemming zit al een paar dagen laag. Wees mild voor jezelf. Praten met iemand die je vertrouwt kan helpen — je hoeft het niet alleen te dragen.',
+      tekst: ts.t('mentaal.welzijn.signaalStemming'),
       emoji: '🤍',
     }
   }

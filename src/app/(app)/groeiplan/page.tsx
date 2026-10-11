@@ -20,6 +20,8 @@ import type { LucideIcon } from 'lucide-react'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 import VitaGroeiplanBegroeting from '@/components/vita/VitaGroeiplanBegroeting'
 import VitaBubbel from '@/components/vita/VitaBubbel'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Actie {
@@ -40,11 +42,12 @@ interface Groeiplan {
 
 type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
 
-// Termijn → badge-variant + label + icoon (kleur is nooit de enige drager).
-const TERMIJN_META: Record<string, { variant: BadgeVariant; label: string; icoon: LucideIcon }> = {
-  week:     { variant: 'success', label: 'Deze week',   icoon: CalendarDays },
-  maand:    { variant: 'accent',  label: 'Deze maand',  icoon: CalendarRange },
-  kwartaal: { variant: 'warning', label: 'Dit kwartaal', icoon: CalendarRange },
+// Termijn → badge-variant + icoon (kleur is nooit de enige drager). Het label
+// staat in het woordenboek: vita.groeiplan.termijn.<termijn>.
+const TERMIJN_META: Record<string, { variant: BadgeVariant; icoon: LucideIcon }> = {
+  week:     { variant: 'success', icoon: CalendarDays },
+  maand:    { variant: 'accent',  icoon: CalendarRange },
+  kwartaal: { variant: 'warning', icoon: CalendarRange },
 }
 const TERMIJN_VOLGORDE = ['week', 'maand', 'kwartaal']
 
@@ -53,6 +56,7 @@ const DOMEIN_ICOON: Record<string, LucideIcon> = {
 }
 
 export default function GroeiplanPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { toast } = useToast()
   const [groeiplan, setGroeiplan] = useState<Groeiplan | null>(null)
@@ -78,13 +82,13 @@ export default function GroeiplanPagina() {
     setGenereren(true)
     try {
       const res = await authFetch('/api/groeiplan', { method: 'POST' })
-      if (!res.ok) throw new Error('Het plan kon niet gegenereerd worden.')
+      if (!res.ok) throw new Error(t('vita.groeiplan.foutGenereren'))
       const json = await res.json() as { groeiplan: Groeiplan }
       setGroeiplan(json.groeiplan)
     } catch (e) {
       toast({
-        title: 'Genereren mislukt',
-        description: e instanceof Error ? e.message : 'Probeer het later opnieuw.',
+        title: t('vita.groeiplan.genererenMislukt'),
+        description: e instanceof Error ? e.message : t('vita.groeiplan.later'),
         variant: 'error',
       })
     } finally {
@@ -107,11 +111,11 @@ export default function GroeiplanPagina() {
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Persoonlijk groeiplan
+              {t('vita.groeiplan.titel')}
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Sparkles size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-              AI-gegenereerd op basis van jouw data
+              {t('vita.groeiplan.sub')}
             </p>
           </div>
           {groeiplan && (
@@ -122,19 +126,19 @@ export default function GroeiplanPagina() {
               loading={genereren}
               leftIcon={<RefreshCw size={14} aria-hidden />}
             >
-              Nieuw
+              {t('vita.groeiplan.nieuw')}
             </Button>
           )}
         </header>
 
         {!groeiplan && !genereren ? (
           <VitaLeegScherm
-            titel="Laten we jouw groeiplan opbouwen"
-            boodschap="Op basis van je check-ins, DISC-profiel en burnout-data stel ik samen met jou een persoonlijk plan op — sterke punten, aandachtspunten en concrete acties. Ik pas het aan naarmate ik je beter leer kennen."
+            titel={t('vita.groeiplan.leegTitel')}
+            boodschap={t('vita.groeiplan.leegTekst')}
             emotion="motivated"
           >
             <Button onClick={genereerNieuwPlan} size="lg" leftIcon={<Sparkles size={18} aria-hidden />}>
-              Plan genereren
+              {t('vita.groeiplan.genereren')}
             </Button>
           </VitaLeegScherm>
         ) : genereren ? (
@@ -142,8 +146,8 @@ export default function GroeiplanPagina() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, justifyContent: 'center' }}>
               <div className="mf-spinner" />
               <div>
-                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-1)' }}>AI analyseert jouw data…</p>
-                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Dit duurt 5-10 seconden</p>
+                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-1)' }}>{t('vita.groeiplan.analyseert')}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{t('vita.groeiplan.duur')}</p>
               </div>
             </div>
             {/* Skeleton-voorbeeld van het komende plan */}
@@ -167,14 +171,14 @@ export default function GroeiplanPagina() {
             </div>
 
             <p style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 20, textAlign: 'right' }}>
-              Gegenereerd op {new Date(groeiplan.aangemaakt_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
+              {t('vita.groeiplan.gegenereerdOp', { datum: new Date(groeiplan.aangemaakt_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long' }) })}
             </p>
 
             {/* Doelen */}
             <Card style={{ padding: 18, marginBottom: 14 }}>
               <p className="mf-overline" style={{ marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Target size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-                Mijn doelen
+                {t('vita.groeiplan.mijnDoelen')}
               </p>
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {(groeiplan.doelen ?? []).map((d, i) => (
@@ -197,7 +201,7 @@ export default function GroeiplanPagina() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
               <Card style={{ padding: 16, background: 'var(--mentaforce-primary-light)' }}>
                 <p className="mf-overline" style={{ color: 'var(--mentaforce-primary)', marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Sparkles size={12} aria-hidden /> Sterk
+                  <Sparkles size={12} aria-hidden /> {t('vita.groeiplan.sterk')}
                 </p>
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {(groeiplan.sterke_punten ?? []).map((s, i) => (
@@ -209,7 +213,7 @@ export default function GroeiplanPagina() {
               </Card>
               <Card style={{ padding: 16, background: 'var(--mf-orange-light)' }}>
                 <p className="mf-overline" style={{ color: 'var(--mf-orange)', marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Leaf size={12} aria-hidden /> Groeipunten
+                  <Leaf size={12} aria-hidden /> {t('vita.groeiplan.groeipunten')}
                 </p>
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {(groeiplan.aandachtspunten ?? []).map((a, i) => (
@@ -224,15 +228,14 @@ export default function GroeiplanPagina() {
             {/* Acties — gegroepeerd per termijn */}
             {(() => {
               const groups = TERMIJN_VOLGORDE
-                .map(t => ({ termijn: t, acties: (groeiplan.acties ?? []).filter(a => a.termijn === t) }))
+                .map(termijn => ({ termijn, acties: (groeiplan.acties ?? []).filter(a => a.termijn === termijn) }))
                 .filter(g => g.acties.length > 0)
               if (groups.length === 0) return null
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {/* Vita moedigt de concrete acties aan — steunend, zonder druk. */}
                   <VitaBubbel emotion="motivated" size={44} naam={null}>
-                    Deze acties koos ik samen met jou uit jouw data. Pak er één op
-                    die vandaag haalbaar voelt — de rest wacht rustig op je.
+                    {t('vita.groeiplan.actiesBubbel')}
                   </VitaBubbel>
 
                   {groups.map(g => {
@@ -243,7 +246,7 @@ export default function GroeiplanPagina() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                           <Badge variant={meta?.variant ?? 'neutral'}>
                             <TermijnIcoon size={12} aria-hidden />
-                            {meta?.label ?? g.termijn}
+                            {meta ? t(`vita.groeiplan.termijn.${g.termijn}`) : g.termijn}
                           </Badge>
                         </div>
                         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -262,7 +265,7 @@ export default function GroeiplanPagina() {
                                 </span>
                                 <div style={{ flex: 1 }}>
                                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6, lineHeight: 1.4 }}>{a.actie}</p>
-                                  <Badge variant="neutral" style={{ fontSize: 10, textTransform: 'capitalize' }}>{a.domein}</Badge>
+                                  <Badge variant="neutral" style={{ fontSize: 10, textTransform: 'capitalize' }}>{a.domein in DOMEIN_ICOON ? t(`vita.domein.${a.domein}`) : a.domein}</Badge>
                                 </div>
                               </li>
                             )

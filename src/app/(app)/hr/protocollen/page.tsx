@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/Toast'
 import { FileText, Plus, Pencil, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 type Protocol = {
@@ -30,14 +32,12 @@ type Protocol = {
   bijgewerkt_op: string
 }
 
-const CAT_LABELS: Record<string, string> = {
-  algemeen: 'Algemeen', arbo: 'Arbo & Veiligheid', verzuim: 'Verzuim',
-  it: 'IT & Systemen', hr: 'HR & Onboarding', veiligheid: 'Veiligheid', overig: 'Overig',
-}
+const CATEGORIEEN = new Set(['algemeen', 'arbo', 'verzuim', 'it', 'hr', 'veiligheid', 'overig'])
 
 export default function HrProtokollenPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [protocollen, setProtocollen] = useState<Protocol[]>([])
   const [laden, setLaden] = useState(true)
   const [verwijderModal, setVerwijderModal] = useState<string | null>(null)
@@ -63,16 +63,16 @@ export default function HrProtokollenPage() {
 
   async function togglePublicatie(id: string, huidig: boolean) {
     const { error } = await supabase.from('protocollen').update({ gepubliceerd: !huidig }).eq('id', id)
-    if (error) { toast({ title: 'Kon publicatie niet wijzigen', variant: 'error' }); return }
+    if (error) { toast({ title: t('werk.protocollen.publicatieMislukt'), variant: 'error' }); return }
     setProtocollen(prev => prev.map(p => p.id === id ? { ...p, gepubliceerd: !huidig } : p))
   }
 
   async function verwijder(id: string) {
     const { error } = await supabase.from('protocollen').delete().eq('id', id)
-    if (error) { toast({ title: 'Verwijderen mislukt', variant: 'error' }); return }
+    if (error) { toast({ title: t('werk.protocollen.verwijderenMislukt'), variant: 'error' }); return }
     setProtocollen(prev => prev.filter(p => p.id !== id))
     setVerwijderModal(null)
-    toast({ title: 'Protocol verwijderd', variant: 'success' })
+    toast({ title: t('werk.protocollen.verwijderd'), variant: 'success' })
   }
 
   return (
@@ -83,22 +83,22 @@ export default function HrProtokollenPage() {
 
         <div className="flex items-start justify-between mb-6">
           <div>
-            <nav aria-label="Kruimelpad" className="flex items-center gap-2 mb-1">
+            <nav aria-label={t('werk.protocollen.kruimelpad')} className="flex items-center gap-2 mb-1">
               <Link
                 href="/hr"
                 className="text-sm"
                 style={{ color: 'var(--text-4)', borderRadius: 'var(--radius-sm)' }}
               >
-                HR
+                {t('werk.protocollen.hr')}
               </Link>
               <span aria-hidden style={{ color: 'var(--text-4)' }}>/</span>
-              <span className="text-sm" style={{ color: 'var(--text-2)' }}>Protocollen</span>
+              <span className="text-sm" style={{ color: 'var(--text-2)' }}>{t('werk.protocollen.protocollen')}</span>
             </nav>
             <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-              Protocollen beheren
+              {t('werk.protocollen.titel')}
             </h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>
-              {protocollen.length} protocol{protocollen.length !== 1 ? 'len' : ''}
+              {protocollen.length === 1 ? t('werk.protocollen.aantalEen') : t('werk.protocollen.aantalMeer', { aantal: protocollen.length })}
             </p>
           </div>
           <Button
@@ -106,7 +106,7 @@ export default function HrProtokollenPage() {
             onClick={() => router.push('/hr/protocollen/nieuw')}
             leftIcon={<Plus size={16} aria-hidden />}
           >
-            Nieuw
+            {t('werk.protocollen.nieuw')}
           </Button>
         </div>
 
@@ -116,14 +116,14 @@ export default function HrProtokollenPage() {
           <Card>
             <EmptyState
               icon={FileText}
-              title="Nog geen protocollen"
-              description="Maak je eerste protocol aan om beleid en procedures te delen met je team."
+              title={t('werk.protocollen.leegTitel')}
+              description={t('werk.protocollen.leegOmschrijving')}
               action={
                 <Button
                   onClick={() => router.push('/hr/protocollen/nieuw')}
                   leftIcon={<Plus size={16} aria-hidden />}
                 >
-                  Eerste protocol aanmaken
+                  {t('werk.protocollen.eerste')}
                 </Button>
               }
             />
@@ -146,11 +146,11 @@ export default function HrProtokollenPage() {
                         <div>
                           <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{p.titel}</p>
                           <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                            {CAT_LABELS[p.categorie] ?? p.categorie} · {new Date(p.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
+                            {CATEGORIEEN.has(p.categorie) ? t(`werk.protocolCategorie.${p.categorie}`) : p.categorie} · {new Date(p.bijgewerkt_op).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short' })}
                           </p>
                         </div>
                         <Badge variant={p.gepubliceerd ? 'success' : 'warning'} style={{ flexShrink: 0 }}>
-                          {p.gepubliceerd ? 'Gepubliceerd' : 'Concept'}
+                          {p.gepubliceerd ? t('werk.protocollen.gepubliceerd') : t('werk.protocollen.concept')}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -160,7 +160,7 @@ export default function HrProtokollenPage() {
                           onClick={() => router.push(`/hr/protocollen/${p.id}/bewerken`)}
                           leftIcon={<Pencil size={15} aria-hidden />}
                         >
-                          Bewerken
+                          {t('werk.protocollen.bewerken')}
                         </Button>
                         <Button
                           variant="ghost"
@@ -168,7 +168,7 @@ export default function HrProtokollenPage() {
                           onClick={() => togglePublicatie(p.id, p.gepubliceerd)}
                           leftIcon={p.gepubliceerd ? <EyeOff size={15} aria-hidden /> : <Eye size={15} aria-hidden />}
                         >
-                          {p.gepubliceerd ? 'Als concept opslaan' : 'Publiceren'}
+                          {p.gepubliceerd ? t('werk.protocollen.alsConcept') : t('werk.protocollen.publiceren')}
                         </Button>
                         <Button
                           variant="danger"
@@ -176,7 +176,7 @@ export default function HrProtokollenPage() {
                           onClick={() => setVerwijderModal(p.id)}
                           leftIcon={<Trash2 size={15} aria-hidden />}
                         >
-                          Verwijderen
+                          {t('werk.protocollen.verwijderen')}
                         </Button>
                       </div>
                     </div>
@@ -191,11 +191,11 @@ export default function HrProtokollenPage() {
       {/* Verwijder bevestiging */}
       <DialogRoot open={verwijderModal !== null} onOpenChange={(open) => { if (!open) setVerwijderModal(null) }}>
         <DialogContent>
-          <DialogTitle>Protocol verwijderen?</DialogTitle>
-          <DialogDescription>Dit kan niet ongedaan worden gemaakt.</DialogDescription>
+          <DialogTitle>{t('werk.protocollen.dialoogTitel')}</DialogTitle>
+          <DialogDescription>{t('werk.protocollen.dialoogTekst')}</DialogDescription>
           <div className="flex gap-3" style={{ marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setVerwijderModal(null)} style={{ flex: 1 }}>
-              Annuleren
+              {t('werk.algemeen.annuleren')}
             </Button>
             <Button
               variant="danger"
@@ -203,7 +203,7 @@ export default function HrProtokollenPage() {
               style={{ flex: 1 }}
               leftIcon={<Trash2 size={16} aria-hidden />}
             >
-              Verwijderen
+              {t('werk.protocollen.verwijderen')}
             </Button>
           </div>
         </DialogContent>

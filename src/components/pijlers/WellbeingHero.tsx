@@ -1,7 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { Ring } from '@/components/ui/Ring'
 import { scoreNiveau, type Wellbeing } from '@/lib/pijlers/score'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { alsTaalset, niveauLabel } from '@/lib/pijlers/teksten'
 
 interface WellbeingHeroProps {
   /** Voluit: "Goedemorgen, Kane". */
@@ -16,8 +20,10 @@ interface WellbeingHeroProps {
  * Eerlijk bij weinig data — toont "x/6 gemeten" en nooit een verzonnen getal.
  */
 export function WellbeingHero({ groet, datum, wellbeing }: WellbeingHeroProps) {
+  const { t, taal } = useVertaling()
   const { score, gemeten, totaal } = wellbeing
   const niveau = scoreNiveau(score)
+  const niveauTekst = niveauLabel(niveau.niveau, alsTaalset(taal, t))
   const heeftData = score !== null
 
   return (
@@ -43,7 +49,7 @@ export function WellbeingHero({ groet, datum, wellbeing }: WellbeingHeroProps) {
       }}>
         <Ring
           value={score ?? 0}
-          ariaLabel={heeftData ? `Wellbeing-score ${score} van 100 — ${niveau.label}` : 'Wellbeing-score: nog geen data'}
+          ariaLabel={heeftData ? t('voortgang.wellbeing.ringLabel', { score: score ?? 0, niveau: niveauTekst }) : t('voortgang.wellbeing.ringLeeg')}
           size={132}
           thickness={11}
           color={heeftData ? niveau.kleur : 'var(--border-strong)'}
@@ -54,28 +60,28 @@ export function WellbeingHero({ groet, datum, wellbeing }: WellbeingHeroProps) {
               <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-4)', marginTop: 3 }}>/ 100</span>
             </span>
           ) : (
-            <span style={{ fontSize: 12, color: 'var(--text-4)', textAlign: 'center', padding: '0 10px' }}>Nog geen score</span>
+            <span style={{ fontSize: 12, color: 'var(--text-4)', textAlign: 'center', padding: '0 10px' }}>{t('voortgang.wellbeing.nogGeenScore')}</span>
           )}
         </Ring>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-4)', margin: '0 0 5px' }}>
-            Wellbeing
+            {t('voortgang.wellbeing.kop')}
           </p>
           <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: heeftData ? niveau.kleur : 'var(--text-3)', margin: '0 0 8px' }}>
-            {heeftData ? niveau.label : 'Begin met meten'}
+            {heeftData ? niveauTekst : t('voortgang.wellbeing.beginMetMeten')}
           </p>
           {heeftData ? (
             <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-              {gemeten} van {totaal} pijlers gemeten deze week.
-              {gemeten < totaal ? ' Meet de rest voor een completer beeld.' : ' Volledig beeld — mooi.'}
+              {t('voortgang.wellbeing.gemeten', { n: gemeten, totaal })}
+              {' '}{gemeten < totaal ? t('voortgang.wellbeing.meetDeRest') : t('voortgang.wellbeing.volledig')}
             </p>
           ) : (
             <Link href="/checkin" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               fontSize: 13, fontWeight: 600, color: 'var(--brand)', textDecoration: 'none',
             }}>
-              Doe je eerste check-in <ChevronRight size={15} strokeWidth={2.2} aria-hidden />
+              {t('voortgang.wellbeing.eersteCheckin')} <ChevronRight size={15} strokeWidth={2.2} aria-hidden />
             </Link>
           )}
         </div>

@@ -2,6 +2,8 @@
 
 import { Clock } from 'lucide-react'
 import { Badge, type BadgeProps } from '@/components/ui/Badge'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 export type DienstStatus = 'actief' | 'komend' | 'verleden'
 
@@ -29,11 +31,11 @@ function bepaalStatus(datum: string): DienstStatus {
 /** Visuele staat per status: badge-variant + label + kaart-accent. Alles via tokens. */
 const STATUS_STIJL: Record<
   DienstStatus,
-  { label: string; badge: BadgeProps['variant']; accent: string; surface: string }
+  { labelSleutel: string; badge: BadgeProps['variant']; accent: string; surface: string }
 > = {
-  actief:   { label: 'Vandaag', badge: 'accent',  accent: 'var(--mentaforce-primary)', surface: 'var(--mentaforce-primary-light)' },
-  komend:   { label: 'Komend',  badge: 'neutral', accent: 'var(--border-strong)',      surface: 'var(--bg-subtle)' },
-  verleden: { label: 'Geweest', badge: 'neutral', accent: 'var(--border)',             surface: 'var(--bg-subtle)' },
+  actief:   { labelSleutel: 'werk.dienstKaart.vandaag', badge: 'accent',  accent: 'var(--mentaforce-primary)', surface: 'var(--mentaforce-primary-light)' },
+  komend:   { labelSleutel: 'werk.dienstKaart.komend', badge: 'neutral', accent: 'var(--border-strong)',      surface: 'var(--bg-subtle)' },
+  verleden: { labelSleutel: 'werk.dienstKaart.geweest', badge: 'neutral', accent: 'var(--border)',             surface: 'var(--bg-subtle)' },
 }
 
 function formatTijd(t: string) {
@@ -48,6 +50,7 @@ interface DienstKaartProps {
 }
 
 export default function DienstKaart({ dienst, toonNaam = false, compact = false }: DienstKaartProps) {
+  const { t, taal } = useVertaling()
   const status = bepaalStatus(dienst.datum)
   const s = STATUS_STIJL[status]
   const isActief = status === 'actief'
@@ -70,7 +73,7 @@ export default function DienstKaart({ dienst, toonNaam = false, compact = false 
           </div>
         )}
         <div style={{ fontSize: 11, color: isActief ? 'var(--mentaforce-primary)' : 'var(--text-2)', fontWeight: 600 }}>
-          {formatTijd(dienst.start_tijd)}–{formatTijd(dienst.eind_tijd)}
+          {formatTijd(dienst.start_tijd)}-{formatTijd(dienst.eind_tijd)}
         </div>
         {dienst.rol_label && (
           <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{dienst.rol_label}</div>
@@ -93,7 +96,7 @@ export default function DienstKaart({ dienst, toonNaam = false, compact = false 
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <Badge variant={s.badge}>{s.label}</Badge>
+          <Badge variant={s.badge}>{t(s.labelSleutel)}</Badge>
           {dienst.rol_label && (
             <span style={{ fontSize: 12, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {dienst.rol_label}
@@ -102,7 +105,7 @@ export default function DienstKaart({ dienst, toonNaam = false, compact = false 
         </div>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: isActief ? 'var(--mentaforce-primary)' : 'var(--text-1)', whiteSpace: 'nowrap' }}>
           <Clock size={14} aria-hidden />
-          {formatTijd(dienst.start_tijd)} – {formatTijd(dienst.eind_tijd)}
+          {t('werk.algemeen.bereik', { van: formatTijd(dienst.start_tijd), tot: formatTijd(dienst.eind_tijd) })}
         </span>
       </div>
 
@@ -113,7 +116,7 @@ export default function DienstKaart({ dienst, toonNaam = false, compact = false 
       )}
 
       <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
-        {new Date(dienst.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+        {new Date(dienst.datum).toLocaleDateString(INTL_LOCALE[taal], { weekday: 'long', day: 'numeric', month: 'long' })}
       </div>
 
       {dienst.notitie && (

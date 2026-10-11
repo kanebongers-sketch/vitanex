@@ -24,12 +24,15 @@ import { PijlerTrends } from '@/components/pijlers/PijlerTrends'
 import {
   heeftWeekData, scoreLabelKleur, type Rapport, type WeekRapportResponse,
 } from './weekrapport'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 /** Skeleton met dezelfde bloklayout als de geladen pagina — geen layout-shift. */
 function LaadStaat() {
+  const { t } = useVertaling()
   return (
     <div aria-busy="true">
-      <p className="sr-only" role="status">Je weekinzichten worden geladen.</p>
+      <p className="sr-only" role="status">{t('voortgang.inzichten.laden')}</p>
       <div aria-hidden="true">
         <div className="mf-skeleton" style={{ height: 104, borderRadius: 'var(--radius-card)', marginBottom: 16 }} />
         <div className="mf-home-layout">
@@ -52,9 +55,10 @@ function LaadStaat() {
 
 /** Kernboodschap bovenaan: score-label + de echte samenvatting van deze week. */
 function KernKaart({ rapport, weekStart }: { rapport: Rapport; weekStart: string | undefined }) {
+  const { t, taal } = useVertaling()
   const kleur = scoreLabelKleur(rapport.score_label)
   const weekDatum = weekStart
-    ? new Date(weekStart).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
+    ? new Date(weekStart).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long' })
     : null
 
   return (
@@ -70,13 +74,13 @@ function KernKaart({ rapport, weekStart }: { rapport: Rapport; weekStart: string
         )}
         {weekDatum && (
           <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500 }}>
-            Week van {weekDatum}
+            {t('voortgang.inzichten.weekVan', { datum: weekDatum })}
           </span>
         )}
       </div>
       <p style={{ fontSize: 15, color: 'var(--text-1)', lineHeight: 1.7, margin: 0 }}>
         {rapport.samenvatting
-          ?? 'De samenvatting van deze week is nog niet beschikbaar. Je echte weekcijfers staan hieronder — probeer later "Vernieuwen" voor het volledige verhaal.'}
+          ?? t('voortgang.inzichten.geenSamenvatting')}
       </p>
     </Card>
   )
@@ -92,13 +96,14 @@ function TekstKaart({ titel, tekst }: { titel: string; tekst: string }) {
 }
 
 function TipKaart({ tekst }: { tekst: string }) {
+  const { t } = useVertaling()
   return (
     <div style={{
       background: 'var(--brand-soft)', borderRadius: 'var(--radius-card)',
       padding: '16px 18px', border: '1px solid color-mix(in srgb, var(--brand) 30%, transparent)',
     }}>
       <p className="mf-section-label" style={{ color: 'var(--brand)', marginBottom: 8 }}>
-        Tip van de week
+        {t('voortgang.inzichten.tip')}
       </p>
       <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65, margin: 0 }}>{tekst}</p>
     </div>
@@ -108,6 +113,7 @@ function TipKaart({ tekst }: { tekst: string }) {
 export default function InzichtenPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [vernieuwen, setVernieuwen] = useState(false)
   const [data, setData] = useState<WeekRapportResponse | null>(null)
@@ -131,15 +137,15 @@ export default function InzichtenPagina() {
         const json = await res.json() as WeekRapportResponse
         setData(json)
       } else {
-        toast({ variant: 'error', title: 'Inzichten niet geladen', description: 'Probeer het later opnieuw.' })
+        toast({ variant: 'error', title: t('voortgang.inzichten.nietGeladen'), description: t('voortgang.inzichten.later') })
       }
     } catch {
-      toast({ variant: 'error', title: 'Inzichten niet geladen', description: 'Controleer je verbinding en probeer het opnieuw.' })
+      toast({ variant: 'error', title: t('voortgang.inzichten.nietGeladen'), description: t('voortgang.inzichten.verbinding') })
     } finally {
       setLaden(false)
       setVernieuwen(false)
     }
-  }, [router, toast])
+  }, [router, toast, t])
 
   // Uitgesteld naar een microtask (zelfde patroon als home) — geen synchrone
   // setState in het effect, dus geen cascading render.
@@ -171,10 +177,10 @@ export default function InzichtenPagina() {
         <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Wekelijkse inzichten
+              {t('voortgang.inzichten.titel')}
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
-              Jouw week in één rustige blik — op basis van wat je echt logde.
+              {t('voortgang.inzichten.intro')}
             </p>
           </div>
           {!premiumNodig && (
@@ -185,7 +191,7 @@ export default function InzichtenPagina() {
               loading={vernieuwen}
               leftIcon={<RefreshCw size={13} aria-hidden />}
             >
-              {vernieuwen ? 'Laden…' : 'Vernieuwen'}
+              {vernieuwen ? t('voortgang.inzichten.laadt') : t('voortgang.inzichten.vernieuwen')}
             </Button>
           )}
         </header>
@@ -195,8 +201,8 @@ export default function InzichtenPagina() {
 
         {premiumNodig && (
           <PremiumSlot
-            titel="Wekelijkse AI-inzichten"
-            omschrijving="Vita analyseert elke week jouw check-ins, slaap, stemming en beweging en vertaalt ze naar één helder verhaal met een concrete tip."
+            titel={t('voortgang.inzichten.premiumTitel')}
+            omschrijving={t('voortgang.inzichten.premiumTekst')}
           />
         )}
 
@@ -206,9 +212,9 @@ export default function InzichtenPagina() {
         {!premiumNodig && !laden && !heeftInhoud && (
           <VitaLeegScherm
             emotion="curious"
-            titel="Je inzichten groeien met je mee"
-            boodschap={data?.bericht ?? 'Doe deze week een paar check-ins, dan maak ik voor jou een analyse van hoe je week ervoor stond. Hoe meer je bijhoudt, hoe scherper het beeld.'}
-            actieLabel="Doe een check-in"
+            titel={t('voortgang.inzichten.leegTitel')}
+            boodschap={(taal === 'nl' ? data?.bericht : undefined) ?? t('voortgang.inzichten.leegTekst')}
+            actieLabel={t('voortgang.inzichten.leegActie')}
             actieHref="/home"
           />
         )}
@@ -223,7 +229,7 @@ export default function InzichtenPagina() {
               <div className="mf-home-layout">
                 <MetriekenPaneel stats={rapport.stats} animKlaar={animKlaar} />
                 <div>
-                  {rapport.patroon && <TekstKaart titel="Patroon" tekst={rapport.patroon} />}
+                  {rapport.patroon && <TekstKaart titel={t('voortgang.inzichten.patroon')} tekst={rapport.patroon} />}
                   {rapport.tip && <TipKaart tekst={rapport.tip} />}
                 </div>
               </div>

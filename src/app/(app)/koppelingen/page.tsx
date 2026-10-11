@@ -12,6 +12,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 import { isAndroidApp } from '@/lib/health/health-connect'
@@ -36,9 +38,10 @@ type CalendarData = {
 }
 
 function StatusBadge({ connected }: { connected: boolean }) {
+  const { t } = useVertaling()
   return (
     <Badge variant={connected ? 'success' : 'neutral'}>
-      {connected ? '● Gekoppeld' : '○ Niet gekoppeld'}
+      <span aria-hidden>{connected ? '● ' : '○ '}</span>{connected ? t('account.healthConnect.gekoppeld') : t('account.healthConnect.nietGekoppeld')}
     </Badge>
   )
 }
@@ -51,7 +54,7 @@ function DataRij({ label, waarde, eenheid }: { label: string; waarde: string | n
     >
       <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
-        {waarde !== null ? `${waarde}${eenheid ? ' ' + eenheid : ''}` : '—'}
+        {waarde !== null ? `${waarde}${eenheid ? ' ' + eenheid : ''}` : '-'}
       </span>
     </div>
   )
@@ -79,6 +82,7 @@ function KoppelingenInhoud() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
   const [userId, setUserId] = useState<string | null>(null)
   const [laden, setLaden] = useState(true)
 
@@ -112,25 +116,25 @@ function KoppelingenInhoud() {
       const error         = searchParams.get('error')
 
       if (error) {
-        const tekst = error === 'fitbit_denied' ? 'Fitbit koppeling geweigerd'
-          : error === 'google_denied' ? 'Google koppeling geweigerd'
-          : error === 'fit_denied' ? 'Google Fit koppeling geweigerd'
-          : error.endsWith('_state') ? 'Koppeling verlopen — probeer opnieuw'
-          : 'Koppeling mislukt'
+        const tekst = error === 'fitbit_denied' ? t('account.koppelingen.geweigerd', { dienst: 'Fitbit' })
+          : error === 'google_denied' ? t('account.koppelingen.geweigerd', { dienst: 'Google' })
+          : error === 'fit_denied' ? t('account.koppelingen.geweigerd', { dienst: 'Google Fit' })
+          : error.endsWith('_state') ? t('account.koppelingen.verlopen')
+          : t('account.koppelingen.mislukt')
         toast({ title: tekst, variant: 'error' })
       }
 
       if (fitbitConnected) {
-        toast({ title: 'Fitbit succesvol gekoppeld!', variant: 'success' })
+        toast({ title: t('account.koppelingen.gelukt', { dienst: 'Fitbit' }), variant: 'success' })
       }
 
       if (googleConnected) {
-        toast({ title: 'Google Agenda succesvol gekoppeld!', variant: 'success' })
+        toast({ title: t('account.koppelingen.gelukt', { dienst: t('account.koppelingen.googleAgenda') }), variant: 'success' })
       }
 
       if (fitConnected) {
         setFitVerbonden(true)
-        toast({ title: 'Google Fit succesvol gekoppeld!', variant: 'success' })
+        toast({ title: t('account.koppelingen.gelukt', { dienst: 'Google Fit' }), variant: 'success' })
       }
 
       // Check of Google Fit al gekoppeld is. Dit was een directe query op
@@ -169,19 +173,19 @@ function KoppelingenInhoud() {
       setLaden(false)
     }
     init()
-  }, [router, searchParams, toast])
+  }, [router, searchParams, toast, t])
 
   async function startKoppeling(provider: 'fitbit' | 'google-calendar') {
     try {
       const res = await authFetch(`/api/${provider}/auth`)
       const data = await res.json() as { url?: string; error?: string }
       if (!res.ok || !data.url) {
-        toast({ title: data.error ?? 'Koppeling starten mislukt', variant: 'error' })
+        toast({ title: taal === 'nl' && data.error ? data.error : t('account.koppelingen.startenMislukt'), variant: 'error' })
         return
       }
       window.location.href = data.url
     } catch {
-      toast({ title: 'Koppeling starten mislukt', variant: 'error' })
+      toast({ title: t('account.koppelingen.startenMislukt'), variant: 'error' })
     }
   }
 
@@ -197,14 +201,14 @@ function KoppelingenInhoud() {
     }).catch(() => null)
 
     if (!res?.ok) {
-      toast({ title: 'Ontkoppelen mislukt. Probeer opnieuw.', variant: 'error' })
+      toast({ title: t('account.koppelingen.ontkoppelenMislukt'), variant: 'error' })
       return
     }
 
     if (provider === 'fitbit') { setFitbitVerbonden(false); setFitbitData(null) }
     else if (provider === 'google_fit') { setFitVerbonden(false); setFitData(null) }
     else { setCalVerbonden(false); setCalData(null) }
-    toast({ title: 'Koppeling verwijderd', variant: 'success' })
+    toast({ title: t('account.koppelingen.verwijderd'), variant: 'success' })
   }
 
   const werkLastVariant = (wl: string): 'success' | 'warning' | 'danger' =>
@@ -220,8 +224,8 @@ function KoppelingenInhoud() {
     <main style={{ padding: '24px', maxWidth: 900, margin: '0 auto' }}>
       <style>{`.mf-datarij:last-child { border-bottom: none; }`}</style>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Koppelingen</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>Verbind je horloge, telefoon en agenda. Jij kiest wat je deelt; MentaForce leest alleen.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('account.koppelingen.kop')}</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>{t('account.koppelingen.intro')}</p>
       </div>
 
       {/* Health Connect — alleen in de Android-app */}
@@ -238,25 +242,25 @@ function KoppelingenInhoud() {
             </div>
           </div>
           {fitbitVerbonden ? (
-            <Button variant="ghost" size="sm" onClick={() => ontkoppel('fitbit')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
+            <Button variant="ghost" size="sm" onClick={() => ontkoppel('fitbit')} style={{ color: 'var(--mf-red)' }}>{t('account.koppelingen.ontkoppelen')}</Button>
           ) : (
-            <Button size="sm" onClick={() => startKoppeling('fitbit')}>Koppelen</Button>
+            <Button size="sm" onClick={() => startKoppeling('fitbit')}>{t('account.healthConnect.koppelen')}</Button>
           )}
         </div>
         {fitbitLaden ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
             <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Data ophalen…</span>
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.koppelingen.dataOphalen')}</span>
           </div>
         ) : fitbitData ? (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-            <DataRij label="Stappen vandaag" waarde={fitbitData.stappen?.toLocaleString('nl-BE') ?? null} />
-            <DataRij label="Slaap" waarde={fitbitData.slaapMinuten !== null ? Math.round(fitbitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-            <DataRij label="Slaapkwaliteit" waarde={fitbitData.slaapKwaliteit} eenheid="%" />
-            <DataRij label="Rusthartslag" waarde={fitbitData.hartslag} eenheid="bpm" />
+            <DataRij label={t('account.koppelingen.stappenVandaag')} waarde={fitbitData.stappen?.toLocaleString(INTL_LOCALE[taal]) ?? null} />
+            <DataRij label={t('account.koppelingen.slaap')} waarde={fitbitData.slaapMinuten !== null ? Math.round(fitbitData.slaapMinuten / 60 * 10) / 10 : null} eenheid={t('account.koppelingen.uur')} />
+            <DataRij label={t('account.koppelingen.slaapkwaliteit')} waarde={fitbitData.slaapKwaliteit} eenheid="%" />
+            <DataRij label={t('account.koppelingen.rusthartslag')} waarde={fitbitData.hartslag} eenheid="bpm" />
           </div>
         ) : (
-          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel je Fitbit om stappen, slaap en hartslag te zien.</p>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>{t('account.koppelingen.fitbitLeeg')}</p>
         )}
       </Card>
 
@@ -268,7 +272,7 @@ function KoppelingenInhoud() {
             <ProviderLogo><Activity size={20} aria-hidden /></ProviderLogo>
             <div>
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Google Fit</p>
-              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Stappen · Slaap · Hartslag</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.koppelingen.fitSoorten')}</p>
               <div style={{ marginTop: 4 }}><StatusBadge connected={fitVerbonden} /></div>
             </div>
           </div>
@@ -282,29 +286,29 @@ function KoppelingenInhoud() {
                   setFitSyncBezig(true)
                   syncGezondheidsdata({ forceer: true })
                     .then(u => toast(u
-                      ? { title: `${u.opgeslagen} dagen gesynchroniseerd!`, variant: 'success' }
-                      : { title: 'Synchroniseren mislukt', variant: 'error' }))
+                      ? { title: t(u.opgeslagen === 1 ? 'account.healthConnect.syncEen' : 'account.healthConnect.syncMeer', { aantal: u.opgeslagen }), variant: 'success' }
+                      : { title: t('account.koppelingen.syncMislukt'), variant: 'error' }))
                     .finally(() => setFitSyncBezig(false))
                 }}
-              >{fitSyncBezig ? 'Bezig…' : 'Sync nu'}</Button>
-              <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_fit')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
+              >{fitSyncBezig ? t('account.koppelingen.bezig') : t('account.koppelingen.syncNu')}</Button>
+              <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_fit')} style={{ color: 'var(--mf-red)' }}>{t('account.koppelingen.ontkoppelen')}</Button>
             </div>
           ) : null}
         </div>
         {fitLaden ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
             <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Status ophalen…</span>
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.koppelingen.statusOphalen')}</span>
           </div>
         ) : fitData ? (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-            <DataRij label="Stappen vandaag" waarde={fitData.stappen?.toLocaleString('nl-BE') ?? null} />
-            <DataRij label="Slaap" waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-            <DataRij label="Gemiddelde hartslag" waarde={fitData.hartslag} eenheid="bpm" />
+            <DataRij label={t('account.koppelingen.stappenVandaag')} waarde={fitData.stappen?.toLocaleString(INTL_LOCALE[taal]) ?? null} />
+            <DataRij label={t('account.koppelingen.slaap')} waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid={t('account.koppelingen.uur')} />
+            <DataRij label={t('account.koppelingen.gemHartslag')} waarde={fitData.hartslag} eenheid="bpm" />
           </div>
         ) : null}
         <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
-          Google stopt met de Google Fit-koppeling. Gebruik op Android Health Connect; daarna kun je Google Fit hier ontkoppelen.
+          {t('account.koppelingen.fitStopt')}
         </p>
       </Card>
       )}
@@ -315,45 +319,45 @@ function KoppelingenInhoud() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <ProviderLogo><Calendar size={20} aria-hidden /></ProviderLogo>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Google Agenda</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{t('account.koppelingen.googleAgenda')}</p>
               <div style={{ marginTop: 4 }}><StatusBadge connected={calVerbonden} /></div>
             </div>
           </div>
           {calVerbonden ? (
-            <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_calendar')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
+            <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_calendar')} style={{ color: 'var(--mf-red)' }}>{t('account.koppelingen.ontkoppelen')}</Button>
           ) : (
-            <Button size="sm" onClick={() => startKoppeling('google-calendar')}>Koppelen</Button>
+            <Button size="sm" onClick={() => startKoppeling('google-calendar')}>{t('account.healthConnect.koppelen')}</Button>
           )}
         </div>
         {calLaden ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
             <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Agenda ophalen…</span>
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.koppelingen.agendaOphalen')}</span>
           </div>
         ) : calData ? (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-            <DataRij label="Afspraken deze week" waarde={calData.aantalAfspraken} />
-            <DataRij label="Vergadertijd" waarde={Math.round(calData.totalMeetingMinuten / 60 * 10) / 10} eenheid="uur" />
+            <DataRij label={t('account.koppelingen.afspraken')} waarde={calData.aantalAfspraken} />
+            <DataRij label={t('account.koppelingen.vergadertijd')} waarde={Math.round(calData.totalMeetingMinuten / 60 * 10) / 10} eenheid={t('account.koppelingen.uur')} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Werkdruk indicator</span>
+              <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{t('account.koppelingen.werkdruk')}</span>
               <Badge variant={werkLastVariant(calData.werkLast)}>
-                {calData.werkLast.charAt(0).toUpperCase() + calData.werkLast.slice(1)}
+                {t(`account.koppelingen.werkLast.${calData.werkLast}`)}
               </Badge>
             </div>
             {calData.vandaagAfspraken.length > 0 && (
               <div style={{ marginTop: 8 }}>
-                <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 4 }}>Vandaag:</p>
+                <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 4 }}>{t('account.koppelingen.vandaag')}</p>
                 {calData.vandaagAfspraken.slice(0, 3).map((a, i) => (
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', padding: '2px 0' }}>• {a}</p>
                 ))}
                 {calData.vandaagAfspraken.length > 3 && (
-                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>+{calData.vandaagAfspraken.length - 3} meer</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('account.koppelingen.meer', { aantal: calData.vandaagAfspraken.length - 3 })}</p>
                 )}
               </div>
             )}
           </div>
         ) : (
-          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel je Google Agenda voor werk-privébalans inzichten.</p>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>{t('account.koppelingen.agendaLeeg')}</p>
         )}
       </Card>
 
@@ -363,10 +367,10 @@ function KoppelingenInhoud() {
           <ProviderLogo><Mail size={20} aria-hidden /></ProviderLogo>
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Microsoft Outlook</p>
-            <div style={{ marginTop: 4 }}><Badge variant="accent">Binnenkort</Badge></div>
+            <div style={{ marginTop: 4 }}><Badge variant="accent">{t('account.koppelingen.binnenkort')}</Badge></div>
           </div>
         </div>
-        <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>Outlook agenda-integratie via Microsoft Graph API — binnenkort beschikbaar.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>{t('account.koppelingen.outlook')}</p>
       </Card>
 
       {/* Apple Health — actief in de iOS-app, informatief daarbuiten */}
@@ -381,7 +385,7 @@ function KoppelingenInhoud() {
                 {isIos ? (
                   <StatusBadge connected={ahVerbonden} />
                 ) : (
-                  <Badge variant="accent">iOS app vereist</Badge>
+                  <Badge variant="accent">{t('account.koppelingen.iosVereist')}</Badge>
                 )}
               </div>
             </div>
@@ -397,23 +401,23 @@ function KoppelingenInhoud() {
                   const uitkomst = await syncGezondheidsdata({ forceer: true })
                   setAhVerbonden(true)
                   try { localStorage.setItem('mf-apple-health-verbonden', '1') } catch { /* ok */ }
-                  toast({ title: uitkomst ? `Apple Health gekoppeld — ${uitkomst.opgeslagen} dagen gesynchroniseerd!` : 'Apple Health gekoppeld!', variant: 'success' })
+                  toast({ title: uitkomst ? t('account.koppelingen.ahGekoppeldSync', { aantal: uitkomst.opgeslagen }) : t('account.koppelingen.ahGekoppeld'), variant: 'success' })
                 } else {
-                  toast({ title: 'Geen toegang tot Apple Health', variant: 'error' })
+                  toast({ title: t('account.koppelingen.ahGeenToegang'), variant: 'error' })
                 }
                 setAhLaden(false)
               }}
             >
-              Koppelen
+              {t('account.healthConnect.koppelen')}
             </Button>
           )}
         </div>
         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
           {isIos
             ? ahVerbonden
-              ? 'Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
-              : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
-            : 'Apple Health kan alleen vanuit een iPhone-app gekoppeld worden. Die iPhone-app is er nog niet.'}
+              ? t('account.koppelingen.ahActief')
+              : t('account.koppelingen.ahKoppel')
+            : t('account.koppelingen.ahAlleenIos')}
         </p>
       </Card>
 

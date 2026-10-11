@@ -2,7 +2,8 @@
 
 import { useCallback, useRef, useState, type CSSProperties } from 'react'
 import { Mic, Square, Check, X, Loader2 } from 'lucide-react'
-import { MAALTIJD_VOLGORDE, MAALTIJD_VOL_LABEL } from './constants'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { MAALTIJD_VOLGORDE, maaltijdVolSleutel } from './constants'
 import { schaalNaarPortie } from './berekeningen'
 import { leesVoiceRespons, type VoiceItem } from './voice-client'
 import type { MaaltijdType } from './types'
@@ -47,6 +48,7 @@ function standaardMaaltijd(): MaaltijdType {
 }
 
 export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string; datum: string; onKlaar: () => void; onSluit: () => void }) {
+  const { t } = useVertaling()
   const [fase, setFase] = useState<Fase>('idle')
   const [fout, setFout] = useState<string | null>(null)
   const [transcript, setTranscript] = useState('')
@@ -64,19 +66,19 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
       const res = await fetch('/api/voeding/voice', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
       const data = leesVoiceRespons(await res.json().catch(() => null))
       if (!res.ok || data === null) {
-        setFout('Kon je maaltijd niet verwerken. Probeer opnieuw of typ het handmatig.')
+        setFout(t('lichaam.voeding.voice.nietVerwerkt'))
         setFase('idle')
         return
       }
       setTranscript(data.transcript)
       setRegels(data.items.map(naarRegel))
       setFase('review')
-      if (data.items.length === 0) setFout('Ik hoorde geen voedsel. Probeer het nog eens.')
+      if (data.items.length === 0) setFout(t('lichaam.voeding.voice.geenVoedsel'))
     } catch {
-      setFout('Er ging iets mis bij het versturen.')
+      setFout(t('lichaam.voeding.voice.versturen'))
       setFase('idle')
     }
-  }, [token])
+  }, [token, t])
 
   const startOpname = useCallback(async () => {
     setFout(null)
@@ -93,9 +95,9 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
       recorder.start()
       setFase('opnemen')
     } catch {
-      setFout('Geen toegang tot de microfoon. Sta toegang toe in je browser.')
+      setFout(t('lichaam.voeding.voice.microfoon'))
     }
-  }, [verwerk])
+  }, [verwerk, t])
 
   const stopOpname = useCallback(() => {
     recorderRef.current?.stop()
@@ -122,16 +124,16 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
       }))
       onKlaar()
     } catch {
-      setFout('Opslaan mislukt. Probeer opnieuw.')
+      setFout(t('lichaam.voeding.voice.opslaan'))
       setFase('review')
     }
-  }, [regels, token, datum, maaltijd, onKlaar])
+  }, [regels, token, datum, maaltijd, onKlaar, t])
 
   return (
     <div style={{ background: 'var(--bg-card, var(--bg-subtle))', border: '1px solid var(--border)', borderRadius: 16, padding: 16, display: 'grid', gap: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong style={{ fontSize: 15, color: 'var(--text-1)' }}>Inspreken</strong>
-        <button type="button" onClick={onSluit} aria-label="Sluiten" style={ikoonKnop}><X size={18} /></button>
+        <strong style={{ fontSize: 15, color: 'var(--text-1)' }}>{t('lichaam.voeding.voice.titel')}</strong>
+        <button type="button" onClick={onSluit} aria-label={t('lichaam.voeding.sluiten')} style={ikoonKnop}><X size={18} /></button>
       </div>
 
       {(fase === 'idle' || fase === 'opnemen') ? (
@@ -139,7 +141,7 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
           <button
             type="button"
             onClick={fase === 'opnemen' ? stopOpname : startOpname}
-            aria-label={fase === 'opnemen' ? 'Stop opname' : 'Start opname'}
+            aria-label={t(fase === 'opnemen' ? 'lichaam.voeding.voice.stop' : 'lichaam.voeding.voice.start')}
             style={{
               width: 76, height: 76, borderRadius: 999, border: 'none', cursor: 'pointer',
               background: fase === 'opnemen' ? 'var(--mf-red)' : 'var(--mentaforce-primary)',
@@ -150,26 +152,26 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
             {fase === 'opnemen' ? <Square size={26} fill="#fff" /> : <Mic size={30} />}
           </button>
           <span style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            {fase === 'opnemen' ? 'Aan het luisteren… tik om te stoppen' : 'Tik en zeg wat je at — bijv. "twee eieren en een banaan"'}
+            {t(fase === 'opnemen' ? 'lichaam.voeding.voice.luisteren' : 'lichaam.voeding.voice.uitleg')}
           </span>
         </div>
       ) : null}
 
       {fase === 'verwerken' ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', padding: '16px 0', color: 'var(--text-3)' }}>
-          <Loader2 size={18} className="voeding-spin" /> Aan het verwerken…
+          <Loader2 size={18} className="voeding-spin" /> {t('lichaam.voeding.voice.verwerken')}
         </div>
       ) : null}
 
       {(fase === 'review' || fase === 'opslaan') ? (
         <div style={{ display: 'grid', gap: 12 }}>
           {transcript ? <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0, fontStyle: 'italic' }}>“{transcript}”</p> : null}
-          <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>Schatting — controleer en pas de porties aan voor je opslaat.</p>
+          <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{t('lichaam.voeding.voice.schatting')}</p>
 
           <label style={{ display: 'grid', gap: 4 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Maaltijd</span>
+            <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('lichaam.voeding.maaltijdLabel')}</span>
             <select value={maaltijd} onChange={(e) => setMaaltijd(e.target.value as MaaltijdType)} style={veld}>
-              {MAALTIJD_VOLGORDE.map((m) => <option key={m} value={m}>{MAALTIJD_VOL_LABEL[m]}</option>)}
+              {MAALTIJD_VOLGORDE.map((m) => <option key={m} value={m}>{t(maaltijdVolSleutel(m))}</option>)}
             </select>
           </label>
 
@@ -180,13 +182,13 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
                 <li key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, alignItems: 'center', padding: '8px 10px', background: 'var(--bg-subtle)', borderRadius: 10 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{m.calorieen} kcal · E{m.eiwitten_g} K{m.koolhydraten_g} V{m.vetten_g}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('lichaam.voeding.voice.macros', { kcal: m.calorieen, e: m.eiwitten_g, k: m.koolhydraten_g, v: m.vetten_g })}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <input inputMode="numeric" value={String(r.gram)} onChange={(e) => zetGram(i, e.target.value)} aria-label={`Gram voor ${r.naam}`} style={{ ...veld, width: 60, textAlign: 'center' }} />
+                    <input inputMode="numeric" value={String(r.gram)} onChange={(e) => zetGram(i, e.target.value)} aria-label={t('lichaam.voeding.voice.gramVoor', { naam: r.naam })} style={{ ...veld, width: 60, textAlign: 'center' }} />
                     <span style={{ fontSize: 11, color: 'var(--text-4)' }}>g</span>
                   </div>
-                  <button type="button" onClick={() => verwijder(i)} aria-label={`Verwijder ${r.naam}`} style={ikoonKnop}><X size={16} /></button>
+                  <button type="button" onClick={() => verwijder(i)} aria-label={t('lichaam.voeding.voice.verwijder', { naam: r.naam })} style={ikoonKnop}><X size={16} /></button>
                 </li>
               )
             })}
@@ -195,9 +197,9 @@ export function VoiceLogger({ token, datum, onKlaar, onSluit }: { token: string;
           {fout ? <p style={{ fontSize: 12, color: 'var(--mf-red)', margin: 0 }}>{fout}</p> : null}
 
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" onClick={() => { setFase('idle'); setRegels([]); setTranscript(''); setFout(null) }} style={{ ...knop, background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--border)' }}>Opnieuw</button>
+            <button type="button" onClick={() => { setFase('idle'); setRegels([]); setTranscript(''); setFout(null) }} style={{ ...knop, background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--border)' }}>{t('lichaam.voeding.voice.opnieuw')}</button>
             <button type="button" onClick={() => void bewaar()} disabled={regels.length === 0 || fase === 'opslaan'} style={{ ...knop, background: 'var(--mentaforce-primary)', color: '#fff', opacity: regels.length === 0 ? 0.5 : 1 }}>
-              <Check size={15} /> {fase === 'opslaan' ? 'Bezig…' : `Toevoegen (${regels.length})`}
+              <Check size={15} /> {fase === 'opslaan' ? t('lichaam.voeding.bezig') : t('lichaam.voeding.voice.toevoegen', { aantal: regels.length })}
             </button>
           </div>
         </div>

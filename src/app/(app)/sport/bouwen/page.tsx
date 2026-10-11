@@ -8,15 +8,18 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { ArrowLeft, Plus, X, Search, Dumbbell, Check } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 type Oefening = { id: string; naam: string; spiergroep: string | null }
 type Gekozen = { id: string; naam: string; spiergroep: string | null; sets: string; herhalingen: string; heeft_gewicht: boolean }
 
+/** Filterwaarden zoals in de database; de knoptekst komt uit lichaam.spiergroep.<waarde in kleine letters>. */
 const SPIERGROEPEN = ['Alle', 'Borst', 'Rug', 'Schouders', 'Armen', 'Benen', 'Core', 'Cardio']
 
 export default function WorkoutBouwenPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [bibliotheek, setBibliotheek] = useState<Oefening[]>([])
   const [zoek, setZoek] = useState('')
@@ -67,10 +70,10 @@ export default function WorkoutBouwenPage() {
     })
     setOpslaan(false)
     if (res.ok) {
-      toast({ title: 'Workout opgeslagen', variant: 'success' })
+      toast({ title: t('lichaam.bouwen.opgeslagen'), variant: 'success' })
       router.push('/sport/training')
     } else {
-      toast({ title: 'Opslaan mislukt', variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), variant: 'error' })
     }
   }
 
@@ -79,55 +82,55 @@ export default function WorkoutBouwenPage() {
       <Navbar />
       <main style={{ maxWidth: 640, margin: '0 auto', padding: '20px 16px 120px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-          <button type="button" aria-label="Terug" onClick={() => router.push('/sport')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, minWidth: 44, minHeight: 44 }}><ArrowLeft size={22} /></button>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Eigen workout</h1>
+          <button type="button" aria-label={t('lichaam.cardio.terug')} onClick={() => router.push('/sport')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, minWidth: 44, minHeight: 44 }}><ArrowLeft size={22} /></button>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>{t('lichaam.sport.actie.eigen')}</h1>
         </div>
 
         <label style={{ display: 'block', marginBottom: 18 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Naam</span>
-          <input value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Bijv. Push A"
+          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{t('lichaam.bouwen.naam')}</span>
+          <input value={naam} onChange={(e) => setNaam(e.target.value)} placeholder={t('lichaam.bouwen.naamPlaceholder')}
             style={{ width: '100%', height: 44, marginTop: 4, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-1)', fontSize: 15, padding: '0 12px', boxSizing: 'border-box' }} />
         </label>
 
         {/* Gekozen oefeningen */}
         {gekozen.length > 0 && (
           <div style={{ marginBottom: 22 }}>
-            <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Jouw workout ({gekozen.length})</p>
+            <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>{t('lichaam.bouwen.jouwWorkout', { aantal: gekozen.length })}</p>
             <div style={{ display: 'grid', gap: 8 }}>
               {gekozen.map((g) => (
                 <div key={g.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: 8, alignItems: 'center', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.naam}</span>
-                  <input inputMode="numeric" value={g.sets} onChange={(e) => zet(g.id, 'sets', e.target.value)} aria-label={`Sets voor ${g.naam}`} style={veld(46)} />
-                  <input value={g.herhalingen} onChange={(e) => zet(g.id, 'herhalingen', e.target.value)} aria-label={`Herhalingen voor ${g.naam}`} style={veld(64)} />
-                  <button type="button" onClick={() => verwijder(g.id)} aria-label={`Verwijder ${g.naam}`} style={{ background: 'none', border: 'none', color: 'var(--text-4)', cursor: 'pointer', padding: 4 }}><X size={16} /></button>
+                  <input inputMode="numeric" value={g.sets} onChange={(e) => zet(g.id, 'sets', e.target.value)} aria-label={t('lichaam.bouwen.setsVoor', { naam: g.naam })} style={veld(46)} />
+                  <input value={g.herhalingen} onChange={(e) => zet(g.id, 'herhalingen', e.target.value)} aria-label={t('lichaam.bouwen.herhalingenVoor', { naam: g.naam })} style={veld(64)} />
+                  <button type="button" onClick={() => verwijder(g.id)} aria-label={t('lichaam.voeding.voice.verwijder', { naam: g.naam })} style={{ background: 'none', border: 'none', color: 'var(--text-4)', cursor: 'pointer', padding: 4 }}><X size={16} /></button>
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '6px 2px 0' }}>sets · herhalingen (bijv. 8-12)</p>
+            <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '6px 2px 0' }}>{t('lichaam.bouwen.uitleg')}</p>
           </div>
         )}
 
         {/* Bibliotheek */}
         <div style={{ position: 'relative', marginBottom: 10 }}>
           <Search size={16} aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)' }} />
-          <input value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoek een oefening…"
+          <input value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder={t('lichaam.bouwen.zoek')}
             style={{ width: '100%', height: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-1)', fontSize: 15, padding: '0 12px 0 36px', boxSizing: 'border-box' }} />
         </div>
-        <div role="group" aria-label="Filter op spiergroep" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div role="group" aria-label={t('lichaam.bouwen.filterAria')} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
           {SPIERGROEPEN.map((s) => (
             <button key={s} type="button" onClick={() => setFilter(s)} aria-pressed={filter === s}
               style={{ padding: '6px 12px', borderRadius: 999, border: `1px solid ${filter === s ? 'var(--mentaforce-primary)' : 'var(--border)'}`, background: filter === s ? 'var(--mentaforce-primary)' : 'transparent', color: filter === s ? 'var(--bg-app)' : 'var(--text-3)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
-              {s}
+              {t(`lichaam.spiergroep.${s.toLowerCase()}`)}
             </button>
           ))}
         </div>
 
         {laden ? (
-          <p style={{ color: 'var(--text-4)', fontSize: 14 }}>Laden…</p>
+          <p style={{ color: 'var(--text-4)', fontSize: 14 }}>{t('lichaam.bouwen.laden')}</p>
         ) : (
           <div style={{ display: 'grid', gap: 6 }}>
             {zichtbaar.map((o) => (
-              <button key={o.id} type="button" onClick={() => voegToe(o)} aria-label={`Voeg ${o.naam} toe`}
+              <button key={o.id} type="button" onClick={() => voegToe(o)} aria-label={t('lichaam.bouwen.voegToe', { naam: o.naam })}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '11px 12px', cursor: 'pointer', textAlign: 'left' }}>
                 <Dumbbell size={16} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
@@ -137,7 +140,7 @@ export default function WorkoutBouwenPage() {
                 <Plus size={18} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
               </button>
             ))}
-            {zichtbaar.length === 0 && <p style={{ color: 'var(--text-4)', fontSize: 14 }}>Geen oefeningen gevonden.</p>}
+            {zichtbaar.length === 0 && <p style={{ color: 'var(--text-4)', fontSize: 14 }}>{t('lichaam.bouwen.geen')}</p>}
           </div>
         )}
       </main>
@@ -147,7 +150,7 @@ export default function WorkoutBouwenPage() {
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50, background: 'var(--bg-card)', borderTop: '1px solid var(--border)', padding: '12px 16px calc(12px + env(safe-area-inset-bottom))' }}>
           <button type="button" onClick={() => void bewaar()} disabled={opslaan}
             style={{ maxWidth: 640, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 14, border: 'none', background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: opslaan ? 0.6 : 1 }}>
-            <Check size={18} /> {opslaan ? 'Opslaan…' : `Opslaan & starten (${gekozen.length})`}
+            <Check size={18} /> {opslaan ? t('lichaam.slaap.opslaanBezig') : t('lichaam.bouwen.opslaanStart', { aantal: gekozen.length })}
           </button>
         </div>
       )}

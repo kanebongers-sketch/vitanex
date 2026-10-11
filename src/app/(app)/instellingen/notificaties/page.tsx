@@ -13,6 +13,7 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { activeerPush, pushStatus, type PushStatus } from '@/lib/push/client'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface Voorkeuren {
   vandaag_aan: boolean
@@ -29,15 +30,12 @@ const DEFAULTS: Voorkeuren = {
   stiltetijd_start: '22:00', stiltetijd_eind: '08:00', max_per_dag: 2,
 }
 
-const SOORTEN: { key: keyof Voorkeuren; label: string; beschrijving: string }[] = [
-  { key: 'vandaag_aan', label: 'Je Vandaag-kaart', beschrijving: '’s Ochtends één melding dat je kaart klaarstaat. Niet als je al actief was.' },
-  { key: 'checkin_aan', label: 'Dagelijkse check-in', beschrijving: 'Een vriendelijke duw op een slim gekozen moment om even in te checken.' },
-  { key: 'streak_aan', label: 'Reeks in gevaar', beschrijving: 'Alleen ’s avonds, en alleen als je die dag nog niet actief was.' },
-  { key: 'vita_week_aan', label: 'Vita’s weekinzicht', beschrijving: 'Eén keer per week een korte samenvatting van je voortgang.' },
-]
+// Teksten: account.notificaties.soort.<key>.label / .beschrijving
+const SOORTEN: (keyof Voorkeuren)[] = ['vandaag_aan', 'checkin_aan', 'streak_aan', 'vita_week_aan']
 
 export default function NotificatiesPage() {
   const { toast } = useToast()
+  const { t } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)
   const [opgeslagen, setOpgeslagen] = useState(false)
@@ -63,10 +61,10 @@ export default function NotificatiesPage() {
     activeerPush()
       .then((status) => {
         setApparaat(status)
-        if (status === 'granted') toast({ title: 'Meldingen staan aan', description: 'Dit apparaat is geregistreerd.', variant: 'success' })
-        else if (status === 'denied') toast({ title: 'Meldingen geweigerd', description: 'Zet ze aan in je telefooninstellingen.', variant: 'warning' })
+        if (status === 'granted') toast({ title: t('account.notificaties.aanTitel'), description: t('account.notificaties.aanTekst'), variant: 'success' })
+        else if (status === 'denied') toast({ title: t('account.notificaties.geweigerdTitel'), description: t('account.notificaties.geweigerdTekst'), variant: 'warning' })
       })
-      .catch(() => toast({ title: 'Er ging iets mis', description: 'Probeer het later opnieuw.', variant: 'error' }))
+      .catch(() => toast({ title: t('account.notificaties.fout'), description: t('account.notificaties.later'), variant: 'error' }))
   }
 
   function slaOp(): void {
@@ -74,11 +72,11 @@ export default function NotificatiesPage() {
     authFetch('/api/push/voorkeuren', { method: 'PUT', body: JSON.stringify(voorkeuren) })
       .then((r) => {
         setBezig(false)
-        if (!r.ok) { toast({ title: 'Opslaan mislukt', description: 'Probeer het later opnieuw.', variant: 'error' }); return }
+        if (!r.ok) { toast({ title: t('account.notificaties.opslaanMislukt'), description: t('account.notificaties.later'), variant: 'error' }); return }
         setOpgeslagen(true)
         setTimeout(() => setOpgeslagen(false), 2500)
       })
-      .catch(() => { setBezig(false); toast({ title: 'Opslaan mislukt', description: 'Probeer het later opnieuw.', variant: 'error' }) })
+      .catch(() => { setBezig(false); toast({ title: t('account.notificaties.opslaanMislukt'), description: t('account.notificaties.later'), variant: 'error' }) })
   }
 
   return (
@@ -87,12 +85,12 @@ export default function NotificatiesPage() {
       <main style={{ padding: '36px 40px 96px', maxWidth: 800, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
           <Link href="/instellingen" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>
-            <ArrowLeft size={15} aria-hidden /> Instellingen
+            <ArrowLeft size={15} aria-hidden /> {t('account.instellingen.kop')}
           </Link>
         </div>
 
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Notificaties</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 24 }}>Rustige, respectvolle herinneringen — nooit meer dan je zelf toestaat.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>{t('account.notificaties.kop')}</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 24 }}>{t('account.notificaties.intro')}</p>
 
         {laden ? (
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}><div className="mf-spinner" /></div>
@@ -105,21 +103,21 @@ export default function NotificatiesPage() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <Sparkles size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--brand, var(--mentaforce-primary))', marginTop: 1 }} />
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>Slim getimed</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>{t('account.notificaties.slimKop')}</p>
                   <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                    Vita kiest het moment op basis van wanneer jij meestal actief bent — geen vaste, storende tijd voor iedereen.
+                    {t('account.notificaties.slimTekst')}
                   </p>
                 </div>
               </div>
             </Card>
 
-            {SOORTEN.map((opt) => (
+            {SOORTEN.map((key) => (
               <ToggleRij
-                key={opt.key}
-                label={opt.label}
-                beschrijving={opt.beschrijving}
-                actief={Boolean(voorkeuren[opt.key])}
-                onToggle={() => setVoorkeuren((p) => ({ ...p, [opt.key]: !p[opt.key] }))}
+                key={key}
+                label={t(`account.notificaties.soort.${key}.label`)}
+                beschrijving={t(`account.notificaties.soort.${key}.beschrijving`)}
+                actief={Boolean(voorkeuren[key])}
+                onToggle={() => setVoorkeuren((p) => ({ ...p, [key]: !p[key] }))}
               />
             ))}
 
@@ -127,18 +125,18 @@ export default function NotificatiesPage() {
             <Card style={{ padding: '18px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Moon size={15} aria-hidden style={{ color: 'var(--text-3)' }} />
-                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Stiltetijd</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{t('account.notificaties.stiltetijd')}</p>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 14 }}>Binnen dit venster sturen we nooit een melding.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 14 }}>{t('account.notificaties.stiltetijdTekst')}</p>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <Field label="Van"><Input type="time" value={voorkeuren.stiltetijd_start} onChange={(e) => setVoorkeuren((p) => ({ ...p, stiltetijd_start: e.target.value }))} style={{ width: 'auto' }} /></Field>
-                <Field label="Tot"><Input type="time" value={voorkeuren.stiltetijd_eind} onChange={(e) => setVoorkeuren((p) => ({ ...p, stiltetijd_eind: e.target.value }))} style={{ width: 'auto' }} /></Field>
+                <Field label={t('account.notificaties.van')}><Input type="time" value={voorkeuren.stiltetijd_start} onChange={(e) => setVoorkeuren((p) => ({ ...p, stiltetijd_start: e.target.value }))} style={{ width: 'auto' }} /></Field>
+                <Field label={t('account.notificaties.tot')}><Input type="time" value={voorkeuren.stiltetijd_eind} onChange={(e) => setVoorkeuren((p) => ({ ...p, stiltetijd_eind: e.target.value }))} style={{ width: 'auto' }} /></Field>
               </div>
             </Card>
 
             {/* Daglimiet */}
             <Card style={{ padding: '18px 20px' }}>
-              <Field label="Maximaal per dag" hint="Een harde bovengrens — ook als er meer zou kunnen. Wij spammen niet.">
+              <Field label={t('account.notificaties.maxPerDag')} hint={t('account.notificaties.maxHint')}>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[1, 2, 3].map((n) => (
                     <button key={n} type="button" onClick={() => setVoorkeuren((p) => ({ ...p, max_per_dag: n }))}
@@ -155,7 +153,7 @@ export default function NotificatiesPage() {
             </Card>
 
             <Button onClick={slaOp} loading={bezig} leftIcon={opgeslagen ? <Check size={16} aria-hidden /> : undefined} style={{ width: '100%', marginTop: 4 }}>
-              {bezig ? 'Opslaan…' : opgeslagen ? 'Opgeslagen!' : 'Voorkeuren opslaan'}
+              {bezig ? t('account.hrOnboarding.opslaan') : opgeslagen ? t('account.notificaties.opgeslagen') : t('account.notificaties.opslaan')}
             </Button>
           </div>
         )}
@@ -166,6 +164,7 @@ export default function NotificatiesPage() {
 }
 
 function ApparaatStatus({ status, geconfigureerd, onAan }: { status: PushStatus; geconfigureerd: boolean; onAan: () => void }) {
+  const { t } = useVertaling()
   // Eerlijk: als de bezorging (FCM) nog niet is aangezet, beloven we niets.
   if (!geconfigureerd) {
     return (
@@ -173,8 +172,8 @@ function ApparaatStatus({ status, geconfigureerd, onAan }: { status: PushStatus;
         <div style={{ display: 'flex', gap: 10 }}>
           <BellOff size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--text-3)', marginTop: 1 }} />
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>Bezorging wordt binnenkort aangezet</p>
-            <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>Je voorkeuren worden bewaard. Zodra push live staat, gelden ze meteen.</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>{t('account.notificaties.binnenkortKop')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{t('account.notificaties.binnenkortTekst')}</p>
           </div>
         </div>
       </Card>
@@ -185,7 +184,7 @@ function ApparaatStatus({ status, geconfigureerd, onAan }: { status: PushStatus;
       <Card style={{ padding: '16px 18px', borderColor: 'color-mix(in srgb, var(--mf-green, #2fbf71) 40%, transparent)' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <Bell size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--mf-green, #2fbf71)' }} />
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Meldingen staan aan op dit apparaat</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{t('account.notificaties.staanAan')}</p>
         </div>
       </Card>
     )
@@ -196,8 +195,8 @@ function ApparaatStatus({ status, geconfigureerd, onAan }: { status: PushStatus;
         <div style={{ display: 'flex', gap: 10 }}>
           <Bell size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--brand, var(--mentaforce-primary))', marginTop: 1 }} />
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>Open de app op je telefoon</p>
-            <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>Push-meldingen werken in de MentaForce-app. Je voorkeuren stel je hier alvast in.</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>{t('account.notificaties.openApp')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{t('account.notificaties.openAppTekst')}</p>
           </div>
         </div>
       </Card>
@@ -208,12 +207,12 @@ function ApparaatStatus({ status, geconfigureerd, onAan }: { status: PushStatus;
     <Card style={{ padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>Meldingen aanzetten</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>{t('account.notificaties.aanzettenKop')}</p>
           <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-            {status === 'denied' ? 'Je hebt meldingen eerder geweigerd — zet ze aan in je telefooninstellingen.' : 'Geef toestemming om herinneringen op dit apparaat te ontvangen.'}
+            {status === 'denied' ? t('account.notificaties.eerderGeweigerd') : t('account.notificaties.toestemming')}
           </p>
         </div>
-        {status !== 'denied' && <Button onClick={onAan} leftIcon={<Bell size={16} aria-hidden />}>Aanzetten</Button>}
+        {status !== 'denied' && <Button onClick={onAan} leftIcon={<Bell size={16} aria-hidden />}>{t('account.notificaties.aanzetten')}</Button>}
       </div>
     </Card>
   )

@@ -12,6 +12,8 @@ import { Ring } from '@/components/ui/Ring'
 import { Badge } from '@/components/ui/Badge'
 import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { Chart, type ChartDatum } from '@/components/ui/Chart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface WeekPunt {
@@ -54,15 +56,15 @@ function heeftToonbareData(punten: WeekPunt[]): boolean {
   return punten.some((p) => typeof p.gemiddelde === 'number')
 }
 
-function recenteWeekRange(): string {
+function recenteWeekRange(locale: string): { van: string; tot: string } {
   const nu = new Date()
   const maandag = new Date(nu)
   maandag.setDate(nu.getDate() - nu.getDay() + 1)
   const zondag = new Date(maandag)
   zondag.setDate(maandag.getDate() + 6)
   const fmt = (d: Date) =>
-    d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
-  return `${fmt(maandag)} – ${fmt(zondag)}`
+    d.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  return { van: fmt(maandag), tot: fmt(zondag) }
 }
 
 // Maakt van een week-trend de generieke Chart-data: { week, waarde }.
@@ -72,6 +74,7 @@ function naarChartData(punten: WeekPunt[]): ChartDatum[] {
 
 export default function HrAnalyticsPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [fout, setFout] = useState<string | null>(null)
@@ -99,12 +102,12 @@ export default function HrAnalyticsPage() {
       if (res.status === 403) {
         const json = (await res.json().catch(() => null)) as { code?: string } | null
         if (json?.code === 'premium') setPremiumNodig(true)
-        else setFout('Je hebt geen toegang tot dit overzicht.')
+        else setFout(t('werk.analytics.geenToegang'))
         setLaden(false)
         return
       }
       if (!res.ok) {
-        setFout('Data kon niet worden opgehaald.')
+        setFout(t('werk.analytics.ophalenMislukt'))
         setLaden(false)
         return
       }
@@ -112,7 +115,7 @@ export default function HrAnalyticsPage() {
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, t])
 
   const participatiePct =
     data && data.totaal_medewerkers > 0
@@ -127,32 +130,32 @@ export default function HrAnalyticsPage() {
     participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   const drempel = data?.drempel ?? 5
-  const anonimiteitsUitleg = `Resultaten zichtbaar vanaf ${drempel} deelnemers om anonimiteit te garanderen.`
+  const anonimiteitsUitleg = t('werk.analytics.anonimiteit', { drempel })
 
   const kpiKaarten = [
     {
-      label: 'Gem. stemming',
+      label: t('werk.analytics.gemStemming'),
       waarde: gemStemming !== null ? `${gemStemming}/5` : '–',
       kleur: gemStemming !== null && gemStemming >= 3.5 ? 'var(--mf-green)' : 'var(--mf-amber)',
-      sub: 'Afgelopen 12 weken',
+      sub: t('werk.analytics.afgelopen12'),
     },
     {
-      label: 'Gem. slaap',
-      waarde: gemSlaap !== null ? `${gemSlaap}u` : '–',
+      label: t('werk.analytics.gemSlaap'),
+      waarde: gemSlaap !== null ? t('werk.analytics.uur', { waarde: gemSlaap }) : '–',
       kleur: gemSlaap !== null && gemSlaap >= 7 ? 'var(--mf-green)' : 'var(--mf-amber)',
-      sub: 'Afgelopen 12 weken',
+      sub: t('werk.analytics.afgelopen12'),
     },
     {
-      label: 'Gem. stress',
+      label: t('werk.analytics.gemStress'),
       waarde: gemStress !== null ? `${gemStress}/10` : '–',
       kleur: gemStress !== null && gemStress >= 7 ? 'var(--mf-red)' : gemStress !== null && gemStress >= 5 ? 'var(--mf-amber)' : 'var(--mf-green)',
-      sub: 'Afgelopen 12 weken',
+      sub: t('werk.analytics.afgelopen12'),
     },
     {
-      label: '% Actief',
+      label: t('werk.analytics.procentActief'),
       waarde: `${participatiePct}%`,
       kleur: participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)',
-      sub: 'Deze week',
+      sub: t('werk.analytics.dezeWeek'),
     },
   ]
 
@@ -165,15 +168,15 @@ export default function HrAnalyticsPage() {
         <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Team Analytics
+              {t('werk.analytics.titel')}
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              Week {recenteWeekRange()} &nbsp;·&nbsp; Anonieme wellbeing trends
+              {t('werk.analytics.sub', { bereik: t('werk.algemeen.bereik', recenteWeekRange(INTL_LOCALE[taal])) })}
             </p>
           </div>
           {data && (
             <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
-              <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> medewerkers
+              <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> {t('werk.analytics.medewerkers')}
             </p>
           )}
         </div>
@@ -185,8 +188,8 @@ export default function HrAnalyticsPage() {
         ) : premiumNodig ? (
           <PremiumSlot
             kanUpgraden
-            titel="Team-analytics"
-            omschrijving="Anonieme wellbeing-trends van je team: stemming, slaap en stress per week, top-stressoren en participatie — altijd met k-anonimiteit (≥ 5 deelnemers)."
+            titel={t('werk.analytics.premiumTitel')}
+            omschrijving={t('werk.analytics.premiumOmschrijving')}
           />
         ) : fout ? (
           <div role="alert" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 'var(--radius-md)', padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
@@ -219,8 +222,8 @@ export default function HrAnalyticsPage() {
               {/* Stemming trend */}
               <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stemming trend</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddelde per week (schaal 1–5)</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('werk.analytics.stemmingTrend')}</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.analytics.stemmingSub')}</p>
                 </div>
                 {!heeftToonbareData(data.stemming_trend) ? (
                   <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
@@ -229,10 +232,10 @@ export default function HrAnalyticsPage() {
                     type="area"
                     data={naarChartData(data.stemming_trend)}
                     xKey="week"
-                    series={[{ key: 'waarde', label: 'Stemming', color: 'var(--mf-purple)' }]}
+                    series={[{ key: 'waarde', label: t('werk.analytics.stemming'), color: 'var(--mf-purple)' }]}
                     yDomain={[1, 5]}
                     height={140}
-                    summary="Gemiddelde stemming per week op een schaal van 1 tot 5, over de afgelopen weken."
+                    summary={t('werk.analytics.stemmingSamenvatting')}
                   />
                 )}
               </Card>
@@ -240,8 +243,8 @@ export default function HrAnalyticsPage() {
               {/* Slaap trend */}
               <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Slaap trend</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. uren slaap per week</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('werk.analytics.slaapTrend')}</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.analytics.slaapSub')}</p>
                 </div>
                 {!heeftToonbareData(data.slaap_trend) ? (
                   <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
@@ -250,10 +253,10 @@ export default function HrAnalyticsPage() {
                     type="area"
                     data={naarChartData(data.slaap_trend)}
                     xKey="week"
-                    series={[{ key: 'waarde', label: 'Slaap (uren)', color: 'var(--mf-green)' }]}
+                    series={[{ key: 'waarde', label: t('werk.analytics.slaap'), color: 'var(--mf-green)' }]}
                     yDomain={[4, 9]}
                     height={140}
-                    summary="Gemiddeld aantal uren slaap per week over de afgelopen weken."
+                    summary={t('werk.analytics.slaapSamenvatting')}
                   />
                 )}
               </Card>
@@ -265,8 +268,8 @@ export default function HrAnalyticsPage() {
               {/* Stress staafgrafiek */}
               <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stress trend</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (schaal 1–10)</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('werk.analytics.stressTrend')}</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.analytics.stressSub')}</p>
                 </div>
                 {!heeftToonbareData(data.stress_trend) ? (
                   <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
@@ -275,10 +278,10 @@ export default function HrAnalyticsPage() {
                     type="bar"
                     data={naarChartData(data.stress_trend)}
                     xKey="week"
-                    series={[{ key: 'waarde', label: 'Stress', color: 'var(--mentaforce-primary)' }]}
+                    series={[{ key: 'waarde', label: t('werk.analytics.stress'), color: 'var(--mentaforce-primary)' }]}
                     yDomain={[0, 10]}
                     height={140}
-                    summary="Gemiddeld stressniveau per week op een schaal van 1 tot 10 over de afgelopen weken."
+                    summary={t('werk.analytics.stressSamenvatting')}
                   />
                 )}
               </Card>
@@ -295,24 +298,23 @@ export default function HrAnalyticsPage() {
                 }}
               >
                 <div style={{ textAlign: 'center' }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Participatie</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Check-ins deze week</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('werk.analytics.participatie')}</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.analytics.checkinsDezeWeek')}</p>
                 </div>
                 <Ring
                   value={participatiePct}
-                  ariaLabel={`Participatie deze week: ${participatiePct} procent actief`}
+                  ariaLabel={t('werk.analytics.ringLabel', { pct: participatiePct })}
                   size={108}
                   thickness={10}
                   color={ringKleur}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.1 }}>
                     <strong style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)' }}>{participatiePct}%</strong>
-                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>actief</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('werk.analytics.actief')}</span>
                   </span>
                 </Ring>
                 <p style={{ fontSize: 12, color: 'var(--text-2)', textAlign: 'center' }}>
-                  <strong style={{ color: 'var(--text-1)' }}>{data.actief_deze_week}</strong> van{' '}
-                  <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> actief
+                  {t('werk.analytics.vanActief', { actief: data.actief_deze_week, totaal: data.totaal_medewerkers })}
                 </p>
               </Card>
             </div>
@@ -321,22 +323,16 @@ export default function HrAnalyticsPage() {
             {data.top_technieken.length > 0 && (
               <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Technieken bij hoge stress (30 dagen)</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('werk.analytics.techniekenTitel')}</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('werk.analytics.techniekenSub')}</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {data.top_technieken.map((s) => {
-                    const labelMap: Record<string, string> = {
-                      box: 'Box breathing',
-                      '478': '4-7-8 methode',
-                      grounding: 'Grounding',
-                      pmr: 'Progressieve spierontspanning',
-                      geen_techniek: 'Geen techniek',
-                    }
+                    const bekend = ['box', '478', 'grounding', 'pmr', 'geen_techniek'].includes(s.naam)
                     return (
                       <Badge key={s.naam} variant="warning" style={{ padding: '8px 14px', fontSize: 12 }}>
                         <strong style={{ fontSize: 15, fontWeight: 900 }}>{s.count}</strong>
-                        <span style={{ fontWeight: 600 }}>{labelMap[s.naam] ?? s.naam}</span>
+                        <span style={{ fontWeight: 600 }}>{bekend ? t(`werk.analytics.techniek.${s.naam}`) : s.naam}</span>
                       </Badge>
                     )
                   })}
@@ -345,7 +341,7 @@ export default function HrAnalyticsPage() {
             )}
 
             <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 16, textAlign: 'center' }}>
-              Alle data is geanonimiseerd. Trends worden alleen getoond bij voldoende deelnemers.
+              {t('werk.analytics.voetnoot')}
             </p>
           </>
         ) : null}

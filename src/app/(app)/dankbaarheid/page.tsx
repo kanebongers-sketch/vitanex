@@ -11,6 +11,8 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface DankbaarheidLog {
@@ -19,32 +21,21 @@ interface DankbaarheidLog {
   items: string[]
 }
 
-const PLACEHOLDERS = [
-  'Een fijne samenwerking vandaag…',
-  'Een moment waarvan ik genoot…',
-  'Iets wat me energie gaf…',
-  'Een kleine overwinning…',
-  'Een persoon die me hielp…',
-]
+// Teksten in het woordenboek: mentaal.dankbaarheid.placeholder.<n> en
+// mentaal.dankbaarheid.suggestie.<set>.<n>.
+const PLACEHOLDERS = ['samenwerking', 'genoot', 'energie', 'overwinning', 'persoon'] as const
 
 const SUGGESTIE_SETS = [
-  [
-    'Mijn gezondheid', 'Een gesprek met…', 'De rust van vandaag',
-    'Een kleine overwinning', 'Mijn energie',
-  ],
-  [
-    'Iemand die hielp', 'Lekker gegeten', 'Goed geslapen',
-    'Een mooie wandeling', 'Tijd voor mezelf',
-  ],
-  [
-    'Mijn team/collega\'s', 'Buiten zijn geweest', 'Iets geleerd',
-    'Thuis en veiligheid', 'Een grapje of lach',
-  ],
-]
+  ['gezondheid', 'gesprek', 'rust', 'overwinning', 'energie'],
+  ['hielp', 'gegeten', 'geslapen', 'wandeling', 'mezelf'],
+  ['team', 'buiten', 'geleerd', 'thuis', 'lach'],
+] as const
 
 export default function DankbaarheidPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const veldId = useId()
   const [logs, setLogs] = useState<DankbaarheidLog[]>([])
   const [items, setItems] = useState(['', '', ''])
@@ -68,15 +59,15 @@ export default function DankbaarheidPagina() {
           const vandaagLog = json.logs.find(l => l.datum === vandaag)
           if (vandaagLog) setItems([...vandaagLog.items, '', ''].slice(0, 3))
         } else {
-          toast({ title: 'Laden mislukt', description: 'Je eerdere entries konden niet worden opgehaald.', variant: 'error' })
+          toast({ title: t('mentaal.dankbaarheid.ladenMislukt'), description: t('mentaal.dankbaarheid.ladenMisluktTekst'), variant: 'error' })
         }
       } catch {
-        toast({ title: 'Geen verbinding', description: 'Je eerdere entries konden niet worden opgehaald.', variant: 'error' })
+        toast({ title: t('mentaal.dankbaarheid.geenVerbinding'), description: t('mentaal.dankbaarheid.ladenMisluktTekst'), variant: 'error' })
       }
       setLaden(false)
     }
     laad()
-  }, [router, toast])
+  }, [router, toast, t])
 
   async function slaOp() {
     const geldig = items.map(i => i.trim()).filter(Boolean)
@@ -101,10 +92,10 @@ export default function DankbaarheidPagina() {
           router.push('/home')
         }, 1200)
       } else {
-        toast({ title: 'Opslaan mislukt', description: 'Je dankbaarheid kon niet worden opgeslagen. Probeer het opnieuw.', variant: 'error' })
+        toast({ title: t('mentaal.dankbaarheid.opslaanMislukt'), description: t('mentaal.dankbaarheid.opslaanMisluktTekst'), variant: 'error' })
       }
     } catch {
-      toast({ title: 'Opslaan mislukt', description: 'Je dankbaarheid kon niet worden opgeslagen. Controleer je verbinding.', variant: 'error' })
+      toast({ title: t('mentaal.dankbaarheid.opslaanMislukt'), description: t('mentaal.dankbaarheid.opslaanVerbinding'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -129,10 +120,10 @@ export default function DankbaarheidPagina() {
         <header style={{ marginBottom: 24 }}>
           <ActiviteitBadge activiteit="dankbaarheid" />
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Dankbaarheidslogboek
+            {t('mentaal.dankbaarheid.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
-            Drie dingen per dag. Een gewoonte uit de positieve psychologie.
+            {t('mentaal.dankbaarheid.intro')}
           </p>
         </header>
 
@@ -144,7 +135,7 @@ export default function DankbaarheidPagina() {
             const d = new Date(nu)
             d.setDate(d.getDate() - (6 - i))
             const ds = d.toISOString().split('T')[0]
-            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaag }
+            return { ds, dag: d.toLocaleDateString(locale, { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaag }
           })
           let streak = 0
           for (let i = 6; i >= 0; i--) {
@@ -155,7 +146,7 @@ export default function DankbaarheidPagina() {
             <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div
                 role="img"
-                aria-label={`Dankbaarheid afgelopen 7 dagen: op ${strip.filter(s => s.actief).length} van de 7 dagen ingevuld`}
+                aria-label={t('mentaal.dankbaarheid.stripLabel', { aantal: strip.filter(s => s.actief).length })}
                 style={{ flex: 1, display: 'flex', gap: 6 }}
               >
                 {strip.map(({ ds, dag, actief, isVandaag }) => (
@@ -177,7 +168,7 @@ export default function DankbaarheidPagina() {
               {streak > 0 && (
                 <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
                   <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{streak}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('mentaal.dankbaarheid.streakRegel1')}<br />{t('mentaal.dankbaarheid.streakRegel2')}</p>
                 </div>
               )}
             </div>
@@ -199,10 +190,10 @@ export default function DankbaarheidPagina() {
             <Heart size={20} aria-hidden style={{ color: 'var(--mf-green)' }} />
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
-                {heeftVandaag ? 'Aanpassen' : 'Vandaag dankbaar voor…'}
+                {heeftVandaag ? t('mentaal.dankbaarheid.aanpassen') : t('mentaal.dankbaarheid.vandaagDankbaar')}
               </p>
               <p style={{ fontSize: 11, color: 'var(--text-4)' }}>
-                {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
           </div>
@@ -232,13 +223,13 @@ export default function DankbaarheidPagina() {
                   cursor: 'text',
                 }}>
                   <span aria-hidden style={{ fontSize: 14, color: 'var(--mf-green)', fontWeight: 700, minWidth: 18 }}>{i + 1}.</span>
-                  <span className="sr-only">Dankbaar voor, item {i + 1}</span>
+                  <span className="sr-only">{t('mentaal.dankbaarheid.itemLabel', { nummer: i + 1 })}</span>
                   <input
                     id={inputId}
                     type="text"
                     value={item}
                     onChange={e => setItems(prev => prev.map((v, j) => j === i ? e.target.value : v))}
-                    placeholder={PLACEHOLDERS[i % PLACEHOLDERS.length]}
+                    placeholder={t(`mentaal.dankbaarheid.placeholder.${PLACEHOLDERS[i % PLACEHOLDERS.length]}`)}
                     maxLength={200}
                     aria-describedby={toonSuggesties ? suggestiesId : undefined}
                     style={{
@@ -256,7 +247,7 @@ export default function DankbaarheidPagina() {
                         width: 28, height: 28, flexShrink: 0,
                         background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 0,
                       }}
-                      aria-label="Wis veld"
+                      aria-label={t('mentaal.dankbaarheid.wisVeld')}
                     >
                       <X size={14} aria-hidden />
                     </button>
@@ -264,7 +255,7 @@ export default function DankbaarheidPagina() {
                 </label>
                 {toonSuggesties && (
                   <div id={suggestiesId} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingLeft: 4 }}>
-                    {SUGGESTIE_SETS[i % SUGGESTIE_SETS.length].map(sug => (
+                    {SUGGESTIE_SETS[i % SUGGESTIE_SETS.length].map(sleutel => t(`mentaal.dankbaarheid.suggestie.${sleutel}`)).map(sug => (
                       <button
                         key={sug}
                         type="button"
@@ -304,7 +295,7 @@ export default function DankbaarheidPagina() {
               transition: 'opacity 0.15s var(--ease)',
             }}
           >
-            {succes ? <><Check size={16} aria-hidden /> Opgeslagen!</> : opslaan ? 'Opslaan…' : heeftVandaag ? 'Bijwerken' : 'Opslaan'}
+            {succes ? <><Check size={16} aria-hidden /> {t('mentaal.dankbaarheid.opgeslagen')}</> : opslaan ? t('mentaal.dankbaarheid.opslaanBezig') : heeftVandaag ? t('mentaal.dankbaarheid.bijwerken') : t('mentaal.dankbaarheid.opslaan')}
           </button>
         </section>
 
@@ -312,7 +303,7 @@ export default function DankbaarheidPagina() {
         {logs.length > 0 && (
           <section>
             <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: '0 0 12px' }}>
-              Recente entries ({logs.length})
+              {t('mentaal.dankbaarheid.recent', { aantal: logs.length })}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {logs.map(log => (
@@ -321,9 +312,9 @@ export default function DankbaarheidPagina() {
                   border: log.datum === vandaag ? '1.5px solid var(--mf-green-mid)' : '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-4)', marginBottom: 8 }}>
-                    {new Date(log.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    {new Date(log.datum).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}
                     {log.datum === vandaag && (
-                      <span style={{ marginLeft: 6, color: 'var(--mf-green)', fontWeight: 700 }}>vandaag</span>
+                      <span style={{ marginLeft: 6, color: 'var(--mf-green)', fontWeight: 700 }}>{t('mentaal.dankbaarheid.vandaag')}</span>
                     )}
                   </p>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>

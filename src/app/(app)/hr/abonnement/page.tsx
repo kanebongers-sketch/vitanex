@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { PLAN_INFO, PLAN_VOLGORDE, type Plan } from '@/lib/plan/plan'
 import { Check, CheckCircle2, CreditCard, Mail } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface BedrijfAbonnement {
   naam: string
@@ -24,6 +25,7 @@ interface BedrijfAbonnement {
 
 export default function HrAbonnementPage() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
   const [laden, setLaden] = useState(true)
   const [bedrijf, setBedrijf] = useState<BedrijfAbonnement | null>(null)
   const [bezig, setBezig] = useState<string | null>(null)
@@ -33,9 +35,9 @@ export default function HrAbonnementPage() {
     // Checkout-redirect (?status=...) hydration-veilig uitlezen ná mount.
     const status = new URLSearchParams(window.location.search).get('status')
     if (status === 'succes') {
-      setMelding({ soort: 'succes', tekst: 'Gelukt! De betaling is gestart — je plan wordt binnen enkele ogenblikken bijgewerkt.' })
+      setMelding({ soort: 'succes', tekst: t('werk.abonnement.betalingGestart') })
     } else if (status === 'geannuleerd') {
-      setMelding({ soort: 'fout', tekst: 'De betaling is geannuleerd. Er is niets gewijzigd.' })
+      setMelding({ soort: 'fout', tekst: t('werk.abonnement.betalingGeannuleerd') })
     }
 
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -52,7 +54,7 @@ export default function HrAbonnementPage() {
       }
       setLaden(false)
     })
-  }, [router])
+  }, [router, t])
 
   async function startCheckout(plan: Plan) {
     setBezig(plan)
@@ -67,9 +69,9 @@ export default function HrAbonnementPage() {
         window.location.assign(data.url)
         return
       }
-      setMelding({ soort: 'fout', tekst: data.error ?? 'Er ging iets mis. Probeer het opnieuw.' })
+      setMelding({ soort: 'fout', tekst: (taal === 'nl' ? data.error : undefined) ?? t('werk.algemeen.ietsMis') })
     } catch {
-      setMelding({ soort: 'fout', tekst: 'Er ging iets mis. Controleer je verbinding en probeer het opnieuw.' })
+      setMelding({ soort: 'fout', tekst: t('werk.abonnement.verbinding') })
     }
     setBezig(null)
   }
@@ -84,9 +86,9 @@ export default function HrAbonnementPage() {
         window.location.assign(data.url)
         return
       }
-      setMelding({ soort: 'fout', tekst: data.error ?? 'Er ging iets mis. Probeer het opnieuw.' })
+      setMelding({ soort: 'fout', tekst: (taal === 'nl' ? data.error : undefined) ?? t('werk.algemeen.ietsMis') })
     } catch {
-      setMelding({ soort: 'fout', tekst: 'Er ging iets mis. Controleer je verbinding en probeer het opnieuw.' })
+      setMelding({ soort: 'fout', tekst: t('werk.abonnement.verbinding') })
     }
     setBezig(null)
   }
@@ -95,7 +97,7 @@ export default function HrAbonnementPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" role="status" aria-label="Abonnement laden" />
+        <div className="mf-spinner" role="status" aria-label={t('werk.abonnement.laden')} />
       </div>
     </div>
   )
@@ -106,12 +108,14 @@ export default function HrAbonnementPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 920, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Abonnement
+            {t('werk.abonnement.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
             {bedrijf
-              ? `${bedrijf.naam} · ${bedrijf.aantalGebruikers} ${bedrijf.aantalGebruikers === 1 ? 'gebruiker' : 'gebruikers'} · prijzen per gebruiker per maand`
-              : 'Beheer het plan van jullie organisatie.'}
+              ? (bedrijf.aantalGebruikers === 1
+                ? t('werk.abonnement.subEen', { naam: bedrijf.naam })
+                : t('werk.abonnement.subMeer', { naam: bedrijf.naam, aantal: bedrijf.aantalGebruikers }))
+              : t('werk.abonnement.beheer')}
           </p>
         </div>
 
@@ -134,7 +138,7 @@ export default function HrAbonnementPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 220 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{info.naam}</h2>
-                    {isHuidig && <Badge variant="success">Huidig plan</Badge>}
+                    {isHuidig && <Badge variant="success">{t('werk.abonnement.huidig')}</Badge>}
                   </div>
                   <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
                     {info.omschrijving}
@@ -153,21 +157,21 @@ export default function HrAbonnementPage() {
                         <span style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
                           €{info.prijsPerGebruiker}
                         </span>
-                        <span style={{ fontSize: 12, color: 'var(--text-3)' }}> per gebruiker / maand</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('werk.abonnement.perGebruiker')}</span>
                         {bedrijf && (
                           <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>
-                            ≈ €{info.prijsPerGebruiker * bedrijf.aantalGebruikers} per maand voor jullie team
+                            {t('werk.abonnement.teamPrijs', { bedrag: info.prijsPerGebruiker * bedrijf.aantalGebruikers })}
                           </p>
                         )}
                       </>
                     ) : (
-                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>Op aanvraag</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>{t('werk.abonnement.opAanvraag')}</span>
                     )}
                   </div>
                   {isHuidig ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-3)', fontSize: 13 }}>
                       <CheckCircle2 size={16} aria-hidden />
-                      Dit plan is actief
+                      {t('werk.abonnement.actief')}
                     </div>
                   ) : info.zelfService ? (
                     <Button
@@ -176,12 +180,12 @@ export default function HrAbonnementPage() {
                       disabled={bezig !== null}
                       aria-busy={bezig === plan}
                     >
-                      {bezig === plan ? 'Bezig…' : `Overstappen naar ${info.naam}`}
+                      {bezig === plan ? t('werk.abonnement.bezig') : t('werk.abonnement.overstappen', { plan: info.naam })}
                     </Button>
                   ) : (
                     <Button variant="secondary" onClick={() => router.push('/contact')}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <Mail size={15} aria-hidden /> Neem contact op
+                        <Mail size={15} aria-hidden /> {t('werk.abonnement.contact')}
                       </span>
                     </Button>
                   )}
@@ -196,18 +200,18 @@ export default function HrAbonnementPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>
-                  Facturen & beheer
+                  {t('werk.abonnement.facturen')}
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                  Bekijk facturen, wijzig de betaalmethode of zeg op via het beveiligde klantportaal.
+                  {t('werk.abonnement.facturenUitleg')}
                   {bedrijf.abonnementStatus && bedrijf.abonnementStatus !== 'active' && (
-                    <> Status: <strong>{bedrijf.abonnementStatus}</strong>.</>
+                    <> {t('werk.abonnement.status')} <strong>{bedrijf.abonnementStatus}</strong>.</>
                   )}
                 </p>
               </div>
               <Button variant="secondary" onClick={openPortaal} disabled={bezig !== null} aria-busy={bezig === 'portaal'}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <CreditCard size={15} aria-hidden /> {bezig === 'portaal' ? 'Bezig…' : 'Open klantportaal'}
+                  <CreditCard size={15} aria-hidden /> {bezig === 'portaal' ? t('werk.abonnement.bezig') : t('werk.abonnement.portaal')}
                 </span>
               </Button>
             </div>
@@ -215,8 +219,8 @@ export default function HrAbonnementPage() {
         )}
 
         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 24 }}>
-          Vragen over facturatie of een offerte op maat?{' '}
-          <Link href="/contact" style={{ color: 'var(--mentaforce-primary)' }}>Neem contact op</Link> — we denken graag mee.
+          {t('werk.abonnement.vragen')}{' '}
+          <Link href="/contact" style={{ color: 'var(--mentaforce-primary)' }}>{t('werk.abonnement.contact')}</Link>. {t('werk.abonnement.meedenken')}
         </p>
       </main>
     </div>

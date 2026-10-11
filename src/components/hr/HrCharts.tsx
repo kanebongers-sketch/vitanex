@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/Card'
 import { Chart } from '@/components/ui/Chart'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type TrendPunt = {
   week: string
@@ -24,18 +25,19 @@ export default function HrCharts({
   trendData: TrendPunt[]
   vergelijkingData: VergelijkingPunt[]
 }) {
+  const { t } = useVertaling()
   return (
     <>
       <Card style={{ padding: 24, marginBottom: 24 }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 16 }}>
-          Vitaliteitstrend over tijd
+          {t('werk.hrCharts.trendTitel')}
         </p>
         <Chart
           type="line"
           data={trendData}
           xKey="week"
-          series={[{ key: 'Score', label: 'Score (%)', color: 'var(--mentaforce-primary)' }]}
-          summary="Gemiddelde vitaliteitsscore van het team per week, op een schaal van 0 tot 100 procent."
+          series={[{ key: 'Score', label: t('werk.hrCharts.scoreLabel'), color: 'var(--mentaforce-primary)' }]}
+          summary={t('werk.hrCharts.trendSamenvatting')}
           yDomain={[0, 100]}
           height={220}
         />
@@ -43,14 +45,14 @@ export default function HrCharts({
 
       <Card style={{ padding: 24, marginBottom: 24 }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 16 }}>
-          Gemiddelde score per metric
+          {t('werk.hrCharts.vergelijkingTitel')}
         </p>
         <Chart
           type="bar"
           data={vergelijkingData}
           xKey="metric"
-          series={[{ key: 'Gemiddelde', label: 'Gemiddelde', color: 'var(--mentaforce-primary)' }]}
-          summary="Gemiddelde score per welzijnsmetric, op een schaal van 0 tot 5."
+          series={[{ key: 'Gemiddelde', label: t('werk.hrCharts.gemiddelde'), color: 'var(--mentaforce-primary)' }]}
+          summary={t('werk.hrCharts.vergelijkingSamenvatting')}
           yDomain={[0, 5]}
           height={240}
         />

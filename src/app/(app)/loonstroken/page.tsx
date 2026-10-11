@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Download, FileText, Info, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
@@ -13,16 +13,27 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 import type { Loonstrook } from '@/lib/types'
 
-function euro(bedrag: number): string {
-  return `€${bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}`
+// Zet een stuk code midden in een vertaalde zin, waar de vertaling het ook plaatst.
+const CODE = '\u0000'
+function met(zin: string, code: ReactNode): ReactNode {
+  const [voor, na = ''] = zin.split(CODE)
+  return <>{voor}{code}{na}</>
+}
+
+function euro(bedrag: number, locale: string): string {
+  return `€${bedrag.toLocaleString(locale, { minimumFractionDigits: 2 })}`
 }
 
 export default function LoonstrokenPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden,       setLaden]       = useState(true)
   const [loonstroken, setLoonstroken] = useState<Loonstrook[]>([])
   const [isHr,        setIsHr]        = useState(false)
@@ -56,7 +67,7 @@ export default function LoonstrokenPage() {
     if (data?.signedUrl) {
       window.open(data.signedUrl, '_blank')
     } else {
-      toast({ title: 'Downloaden mislukt', description: error?.message ?? 'Probeer het later opnieuw.', variant: 'error' })
+      toast({ title: t('werk.loonstroken.downloadMislukt'), description: (taal === 'nl' ? error?.message : undefined) ?? t('werk.loonstroken.later'), variant: 'error' })
     }
   }
 
@@ -76,11 +87,11 @@ export default function LoonstrokenPage() {
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-              Loonstroken
+              {t('werk.loonstroken.titel')}
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Jouw salarisoverzicht</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{t('werk.loonstroken.intro')}</p>
           </div>
-          {isHr && <Badge variant="accent">HR-beheer</Badge>}
+          {isHr && <Badge variant="accent">{t('werk.loonstroken.hrBeheer')}</Badge>}
         </div>
 
         {laden ? (
@@ -91,8 +102,8 @@ export default function LoonstrokenPage() {
           <Card>
             <EmptyState
               icon={FileText}
-              title="Nog geen loonstroken"
-              description="Loonstroken worden door HR geüpload."
+              title={t('werk.loonstroken.leegTitel')}
+              description={t('werk.loonstroken.leegOmschrijving')}
             />
           </Card>
         ) : (
@@ -107,13 +118,13 @@ export default function LoonstrokenPage() {
                   >
                     {jaar}
                   </p>
-                  <Table caption={`Loonstroken ${jaar}`}>
+                  <Table caption={t('werk.loonstroken.tabelCaption', { jaar })}>
                     <THead>
                       <Tr>
-                        <Th scope="col">Periode</Th>
-                        <Th scope="col" align="right">Netto</Th>
-                        <Th scope="col" align="right">Bruto</Th>
-                        <Th scope="col" align="right">PDF</Th>
+                        <Th scope="col">{t('werk.loonstroken.periode')}</Th>
+                        <Th scope="col" align="right">{t('werk.loonstroken.netto')}</Th>
+                        <Th scope="col" align="right">{t('werk.loonstroken.bruto')}</Th>
+                        <Th scope="col" align="right">{t('werk.loonstroken.pdf')}</Th>
                       </Tr>
                     </THead>
                     <TBody>
@@ -132,10 +143,10 @@ export default function LoonstrokenPage() {
                             </div>
                           </Td>
                           <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>
-                            {s.netto_loon != null ? euro(s.netto_loon) : '—'}
+                            {s.netto_loon != null ? euro(s.netto_loon, locale) : '—'}
                           </Td>
                           <Td align="right" style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
-                            {s.bruto_loon != null ? euro(s.bruto_loon) : '—'}
+                            {s.bruto_loon != null ? euro(s.bruto_loon, locale) : '—'}
                           </Td>
                           <Td align="right">
                             <Button
@@ -143,9 +154,9 @@ export default function LoonstrokenPage() {
                               size="sm"
                               leftIcon={<Download size={15} aria-hidden />}
                               onClick={() => download(s)}
-                              aria-label={`Download loonstrook ${s.periode} (PDF)`}
+                              aria-label={t('werk.loonstroken.downloadLabel', { periode: s.periode })}
                             >
-                              PDF
+                              {t('werk.loonstroken.pdf')}
                             </Button>
                           </Td>
                         </Tr>
@@ -162,8 +173,7 @@ export default function LoonstrokenPage() {
           <p className="text-xs leading-relaxed flex items-start gap-2" style={{ color: 'var(--text-3)' }}>
             <Lock size={14} aria-hidden style={{ flexShrink: 0, marginTop: 1, color: 'var(--mentaforce-primary)' }} />
             <span>
-              Loonstroken zijn beveiligd en alleen zichtbaar voor jou.
-              Neem contact op met HR als er een fout staat of een strook ontbreekt.
+              {t('werk.loonstroken.beveiligd')}
             </span>
           </p>
         </Card>
@@ -172,11 +182,11 @@ export default function LoonstrokenPage() {
           <Card style={{ marginTop: 12, padding: 16, borderColor: 'var(--mentaforce-primary)' }}>
             <p className="text-xs font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--mentaforce-primary)' }}>
               <Info size={14} aria-hidden style={{ flexShrink: 0 }} />
-              HR: Loonstroken uploaden
+              {t('werk.loonstroken.hrUploadTitel')}
             </p>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-3)' }}>
-              Upload PDF-bestanden via het Supabase Storage-dashboard in de bucket <code>loonstroken</code>.
-              Het bestandspad moet het formaat <code>&#123;user_id&#125;/&#123;bestandsnaam&#125;.pdf</code> volgen.
+              {met(t('werk.loonstroken.hrUploadBucket', { bucket: CODE }), <code>loonstroken</code>)}{' '}
+              {met(t('werk.loonstroken.hrUploadPad', { formaat: CODE }), <code>&#123;user_id&#125;/&#123;bestandsnaam&#125;.pdf</code>)}
             </p>
           </Card>
         )}

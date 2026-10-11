@@ -11,6 +11,7 @@ import {
   Building2, KeyRound, BarChart3, UserRound, ArrowRight, PartyPopper, Rocket,
 } from 'lucide-react'
 import { VitaVeld, VitaInput, GesprekKnoppen } from './VitaKeuze'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export interface HrForm {
   naam: string
@@ -27,21 +28,32 @@ export interface HrForm {
 export type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 export const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
+// `val` is wat in de database komt (Nederlands, ongewijzigd); `sleutel` is het label.
 const SECTOREN = [
-  'Zorg & Welzijn', 'Technologie & IT', 'Logistiek & Transport',
-  'Retail & E-commerce', 'Onderwijs & Onderzoek', 'Financiën & Verzekeringen',
-  'Bouw & Vastgoed', 'Industrie & Productie', 'Horeca & Toerisme',
-  'Overheid & Non-profit', 'Marketing & Communicatie', 'Juridisch & Advies',
-  'Energie & Milieu', 'Landbouw & Voedsel', 'Anders',
+  { val: 'Zorg & Welzijn', sleutel: 'zorg' },
+  { val: 'Technologie & IT', sleutel: 'tech' },
+  { val: 'Logistiek & Transport', sleutel: 'logistiek' },
+  { val: 'Retail & E-commerce', sleutel: 'retail' },
+  { val: 'Onderwijs & Onderzoek', sleutel: 'onderwijs' },
+  { val: 'Financiën & Verzekeringen', sleutel: 'financien' },
+  { val: 'Bouw & Vastgoed', sleutel: 'bouw' },
+  { val: 'Industrie & Productie', sleutel: 'industrie' },
+  { val: 'Horeca & Toerisme', sleutel: 'horeca' },
+  { val: 'Overheid & Non-profit', sleutel: 'overheid' },
+  { val: 'Marketing & Communicatie', sleutel: 'marketing' },
+  { val: 'Juridisch & Advies', sleutel: 'juridisch' },
+  { val: 'Energie & Milieu', sleutel: 'energie' },
+  { val: 'Landbouw & Voedsel', sleutel: 'landbouw' },
+  { val: 'Anders', sleutel: 'anders' },
 ]
 
 const GROOTTES = [
-  { val: '1-10',    label: '1 – 10',    sub: 'Klein team' },
-  { val: '11-25',   label: '11 – 25',   sub: 'Groeiend bedrijf' },
-  { val: '26-50',   label: '26 – 50',   sub: 'Middelgroot' },
-  { val: '51-100',  label: '51 – 100',  sub: 'Groter bedrijf' },
-  { val: '101-250', label: '101 – 250', sub: 'Groot bedrijf' },
-  { val: '250+',    label: '250+',      sub: 'Enterprise' },
+  { val: '1-10',    label: '1-10',    sleutel: 'klein' },
+  { val: '11-25',   label: '11-25',   sleutel: 'groeiend' },
+  { val: '26-50',   label: '26-50',   sleutel: 'middel' },
+  { val: '51-100',  label: '51-100',  sleutel: 'groter' },
+  { val: '101-250', label: '101-250', sleutel: 'groot' },
+  { val: '250+',    label: '250+',    sleutel: 'enterprise' },
 ]
 
 interface HrOnboardingProps {
@@ -54,6 +66,8 @@ interface HrOnboardingProps {
 }
 
 export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfronden }: HrOnboardingProps) {
+  const { t } = useVertaling()
+  const sectorLabel = SECTOREN.find(s => s.val === hr.sector)
   return (
     <>
       {stap === 'welkom' && (
@@ -63,18 +77,17 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
               <Building2 size={20} strokeWidth={1.75} />
             </span>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-              {hr.naam ? `Welkom, ${hr.naam}` : 'Welkom, HR-professional'}
+              {hr.naam ? t('account.hrOnboarding.welkomNaam', { naam: hr.naam }) : t('account.hrOnboarding.welkom')}
             </h1>
           </div>
           <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            Laten we jouw organisatie instellen in MentaForce. Een paar vragen over jou en je bedrijf,
-            zodat het platform direct op maat staat.
+            {t('account.hrOnboarding.intro')}
           </p>
           <ul className="vita-punten">
             {[
-              { Icon: Building2, tekst: 'Jouw bedrijfsprofiel aanmaken' },
-              { Icon: BarChart3, tekst: 'Sector en teamgrootte instellen' },
-              { Icon: KeyRound, tekst: 'Automatisch een HR-code genereren voor werknemers' },
+              { Icon: Building2, tekst: t('account.hrOnboarding.punt1') },
+              { Icon: BarChart3, tekst: t('account.hrOnboarding.punt2') },
+              { Icon: KeyRound, tekst: t('account.hrOnboarding.punt3') },
             ].map(({ Icon, tekst }) => (
               <li key={tekst}>
                 <span className="vita-punt-check" aria-hidden><Icon size={13} strokeWidth={2} /></span>
@@ -83,22 +96,22 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
             ))}
           </ul>
           <button type="button" onClick={() => setStap('gegevens')} className="vita-knop vita-knop-primary vita-knop-blok">
-            Beginnen <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
+            {t('account.hrOnboarding.beginnen')} <ArrowRight size={17} strokeWidth={2.25} aria-hidden />
           </button>
-          <p style={{ fontSize: 12.5, color: 'var(--text-4)', textAlign: 'center' }}>Minder dan 3 minuten · eenmalig</p>
+          <p style={{ fontSize: 12.5, color: 'var(--text-4)', textAlign: 'center' }}>{t('account.hrOnboarding.duur')}</p>
         </div>
       )}
 
       {stap === 'gegevens' && (
         <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <StapKop Icon={UserRound} titel="Jouw gegevens" sub="Hoe mogen we je noemen en wat is je rol?" />
-          <VitaVeld label="Volledige naam" htmlFor="hr-naam">
-            <VitaInput id="hr-naam" value={hr.naam} onChange={e => setHr(f => ({ ...f, naam: e.target.value }))} placeholder="Voor- en achternaam" autoFocus autoComplete="name" />
+          <StapKop Icon={UserRound} titel={t('account.hrOnboarding.gegevensKop')} sub={t('account.hrOnboarding.gegevensSub')} />
+          <VitaVeld label={t('account.hrOnboarding.naam')} htmlFor="hr-naam">
+            <VitaInput id="hr-naam" value={hr.naam} onChange={e => setHr(f => ({ ...f, naam: e.target.value }))} placeholder={t('account.hrOnboarding.naamPlaceholder')} autoFocus autoComplete="name" />
           </VitaVeld>
-          <VitaVeld label="Functietitel" sub="Bijv. HR Manager, People & Culture Lead" htmlFor="hr-functie">
-            <VitaInput id="hr-functie" value={hr.functietitel} onChange={e => setHr(f => ({ ...f, functietitel: e.target.value }))} placeholder="HR Manager" />
+          <VitaVeld label={t('account.hrOnboarding.functie')} sub={t('account.hrOnboarding.functieSub')} htmlFor="hr-functie">
+            <VitaInput id="hr-functie" value={hr.functietitel} onChange={e => setHr(f => ({ ...f, functietitel: e.target.value }))} placeholder={t('account.hrOnboarding.functiePlaceholder')} />
           </VitaVeld>
-          <VitaVeld label="Telefoonnummer" sub="Optioneel — voor contact met het MentaForce-team" htmlFor="hr-tel">
+          <VitaVeld label={t('account.hrOnboarding.telefoon')} sub={t('account.hrOnboarding.telefoonSub')} htmlFor="hr-tel">
             <VitaInput id="hr-tel" type="tel" value={hr.telefoon} onChange={e => setHr(f => ({ ...f, telefoon: e.target.value }))} placeholder="+32 4xx xx xx xx" autoComplete="tel" />
           </VitaVeld>
           <GesprekKnoppen onTerug={() => setStap('welkom')} onVolgende={() => setStap('bedrijf')} volgendeDisabled={!hr.naam.trim()} />
@@ -107,18 +120,18 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
 
       {stap === 'bedrijf' && (
         <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <StapKop Icon={Building2} titel="Jouw organisatie" sub="Basisinformatie over het bedrijf" />
-          <VitaVeld label="Bedrijfsnaam" htmlFor="hr-bedrijf">
-            <VitaInput id="hr-bedrijf" value={hr.bedrijfNaam} onChange={e => setHr(f => ({ ...f, bedrijfNaam: e.target.value }))} placeholder="Naam van het bedrijf" autoFocus autoComplete="organization" />
+          <StapKop Icon={Building2} titel={t('account.hrOnboarding.bedrijfKop')} sub={t('account.hrOnboarding.bedrijfSub')} />
+          <VitaVeld label={t('account.hrOnboarding.bedrijfsnaam')} htmlFor="hr-bedrijf">
+            <VitaInput id="hr-bedrijf" value={hr.bedrijfNaam} onChange={e => setHr(f => ({ ...f, bedrijfNaam: e.target.value }))} placeholder={t('account.hrOnboarding.bedrijfsnaamPlaceholder')} autoFocus autoComplete="organization" />
           </VitaVeld>
-          <VitaVeld label="Stad / vestigingsplaats" htmlFor="hr-stad">
-            <VitaInput id="hr-stad" value={hr.stad} onChange={e => setHr(f => ({ ...f, stad: e.target.value }))} placeholder="Bijv. Amsterdam, Brussel…" />
+          <VitaVeld label={t('account.hrOnboarding.stad')} htmlFor="hr-stad">
+            <VitaInput id="hr-stad" value={hr.stad} onChange={e => setHr(f => ({ ...f, stad: e.target.value }))} placeholder={t('account.hrOnboarding.stadPlaceholder')} />
           </VitaVeld>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <VitaVeld label="KvK-nummer" sub="Optioneel" htmlFor="hr-kvk">
+            <VitaVeld label={t('account.hrOnboarding.kvk')} sub={t('account.hrOnboarding.optioneel')} htmlFor="hr-kvk">
               <VitaInput id="hr-kvk" value={hr.kvk} onChange={e => setHr(f => ({ ...f, kvk: e.target.value }))} placeholder="12345678" />
             </VitaVeld>
-            <VitaVeld label="Website" sub="Optioneel" htmlFor="hr-web">
+            <VitaVeld label={t('account.hrOnboarding.website')} sub={t('account.hrOnboarding.optioneel')} htmlFor="hr-web">
               <VitaInput id="hr-web" value={hr.website} onChange={e => setHr(f => ({ ...f, website: e.target.value }))} placeholder="www.bedrijf.nl" />
             </VitaVeld>
           </div>
@@ -128,25 +141,25 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
 
       {stap === 'details' && (
         <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <StapKop Icon={BarChart3} titel="Bedrijfsdetails" sub="Helpt ons het platform te optimaliseren voor jouw organisatie" />
+          <StapKop Icon={BarChart3} titel={t('account.hrOnboarding.detailsKop')} sub={t('account.hrOnboarding.detailsSub')} />
 
-          <VitaVeld label="Sector / branche">
-            <div role="radiogroup" aria-label="Sector" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, maxHeight: 240, overflowY: 'auto', paddingRight: 4 }}>
+          <VitaVeld label={t('account.hrOnboarding.sector')}>
+            <div role="radiogroup" aria-label={t('account.hrOnboarding.sectorKort')} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, maxHeight: 240, overflowY: 'auto', paddingRight: 4 }}>
               {SECTOREN.map(s => (
                 <button
-                  key={s} type="button" role="radio" aria-checked={hr.sector === s}
-                  onClick={() => setHr(f => ({ ...f, sector: s }))}
-                  className="vita-chip" data-actief={hr.sector === s}
+                  key={s.val} type="button" role="radio" aria-checked={hr.sector === s.val}
+                  onClick={() => setHr(f => ({ ...f, sector: s.val }))}
+                  className="vita-chip" data-actief={hr.sector === s.val}
                   style={{ borderRadius: 10, textAlign: 'left', justifyContent: 'flex-start' }}
                 >
-                  {s}
+                  {t(`account.hrOnboarding.sectoren.${s.sleutel}`)}
                 </button>
               ))}
             </div>
           </VitaVeld>
 
-          <VitaVeld label="Aantal medewerkers" sub="Hoe groot is de organisatie?">
-            <div role="radiogroup" aria-label="Teamgrootte" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          <VitaVeld label={t('account.hrOnboarding.aantal')} sub={t('account.hrOnboarding.aantalSub')}>
+            <div role="radiogroup" aria-label={t('account.register.teamgrootte')} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {GROOTTES.map(g => (
                 <button
                   key={g.val} type="button" role="radio" aria-checked={hr.grootte === g.val}
@@ -155,7 +168,7 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
                   style={{ textAlign: 'center', padding: '10px 8px' }}
                 >
                   <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{g.label}</span>
-                  <span style={{ display: 'block', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{g.sub}</span>
+                  <span style={{ display: 'block', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{t(`account.hrOnboarding.groottes.${g.sleutel}`)}</span>
                 </button>
               ))}
             </div>
@@ -164,7 +177,7 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
           <GesprekKnoppen
             onTerug={() => setStap('bedrijf')}
             onVolgende={onAfronden}
-            volgendeLabel={bezig ? 'Opslaan…' : 'Account activeren'}
+            volgendeLabel={bezig ? t('account.hrOnboarding.opslaan') : t('account.hrOnboarding.activeren')}
             volgendeDisabled={bezig}
             bezig={bezig}
           />
@@ -177,16 +190,16 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
             <span className="vita-samenvatting-icoon" aria-hidden style={{ width: 40, height: 40, borderRadius: 12 }}>
               <PartyPopper size={20} strokeWidth={1.75} />
             </span>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Je bent klaar</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{t('account.hrOnboarding.klaarKop')}</h1>
           </div>
           <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            Organisatie <strong style={{ color: 'var(--text-1)' }}>{hr.bedrijfNaam}</strong> is aangemaakt en jouw HR-account staat klaar.
+            {t('account.hrOnboarding.klaarVoor')} <strong style={{ color: 'var(--text-1)' }}>{hr.bedrijfNaam}</strong> {t('account.hrOnboarding.klaarNa')}
           </p>
           <ul className="vita-samenvatting">
             {[
-              { Icon: Building2, tekst: hr.bedrijfNaam, sub: `${hr.sector || 'Sector'} · ${hr.grootte || '?'} medewerkers` },
-              { Icon: KeyRound, tekst: 'HR-code automatisch gegenereerd', sub: 'Deel met werknemers via Instellingen → Bedrijf' },
-              { Icon: BarChart3, tekst: 'Dashboard klaar voor gebruik', sub: 'Data verschijnt zodra werknemers zich aanmelden' },
+              { Icon: Building2, tekst: hr.bedrijfNaam, sub: t('account.hrOnboarding.samenvattingBedrijf', { sector: sectorLabel ? t(`account.hrOnboarding.sectoren.${sectorLabel.sleutel}`) : t('account.hrOnboarding.sectorKort'), aantal: hr.grootte || '?' }) },
+              { Icon: KeyRound, tekst: t('account.hrOnboarding.codeKlaar'), sub: t('account.hrOnboarding.codeKlaarSub') },
+              { Icon: BarChart3, tekst: t('account.hrOnboarding.dashboardKlaar'), sub: t('account.hrOnboarding.dashboardKlaarSub') },
             ].map(item => (
               <li key={item.tekst} style={{ alignItems: 'flex-start' }}>
                 <span className="vita-samenvatting-icoon" aria-hidden><item.Icon size={15} strokeWidth={2} /></span>
@@ -198,7 +211,7 @@ export default function HrOnboarding({ stap, setStap, hr, setHr, bezig, onAfrond
             ))}
           </ul>
           <button type="button" onClick={() => { window.location.href = '/hr' }} className="vita-knop vita-knop-primary vita-knop-blok">
-            Naar het HR-portaal <Rocket size={17} strokeWidth={2} aria-hidden />
+            {t('account.hrOnboarding.naarPortaal')} <Rocket size={17} strokeWidth={2} aria-hidden />
           </button>
         </div>
       )}

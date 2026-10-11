@@ -18,6 +18,11 @@ import { Textarea } from '@/components/ui/Textarea'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
 import { urenUitTijden, slaapschuld, regelmaat } from '@/lib/slaap/stats'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
+import type { Params } from '@/lib/i18n/vertaal'
+
+type Vertaal = (sleutel: string, params?: Params) => string
 
 interface SlaapLog {
   id: string
@@ -30,8 +35,9 @@ interface SlaapLog {
   notitie: string | null
 }
 
-const KWALITEIT_LABELS = ['', 'Heel slecht', 'Slecht', 'Gemiddeld', 'Goed', 'Uitstekend']
-const UITGERUST_LABELS = ['', 'Uitgeput', 'Moe', 'Oké', 'Fris', 'Topfit']
+/** Labels per score 1-5: lichaam.slaap.kwaliteit.k<n> en lichaam.slaap.uitgerust.u<n>. */
+const kwaliteitLabel = (t: Vertaal, k: number): string => t(`lichaam.slaap.kwaliteit.k${k}`)
+const uitgerustLabel = (t: Vertaal, u: number): string => t(`lichaam.slaap.uitgerust.u${u}`)
 // Index 0 is leeg (kwaliteit start bij 1); lucide-iconen volgen dezelfde 5-puntsschaal als stemming.
 const KWALITEIT_ICOON: (LucideIcon | null)[] = [null, Angry, Frown, Meh, Smile, Laugh]
 
@@ -41,10 +47,10 @@ function kwaliteitKleur(k: number): string {
   return 'var(--mf-red)'
 }
 
-function urenNaarTijd(uren: number) {
+function urenNaarTijd(t: Vertaal, uren: number): string {
   const h = Math.floor(uren)
   const m = Math.round((uren - h) * 60)
-  return `${h}u${m > 0 ? ` ${m}m` : ''}`
+  return m > 0 ? t('lichaam.slaap.duurUurMin', { u: h, m }) : t('lichaam.slaap.duurUur', { u: h })
 }
 
 function slaapKleur(u: number): string {
@@ -54,6 +60,7 @@ function slaapKleur(u: number): string {
 }
 
 function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
+  const { t, taal } = useVertaling()
   const vandaag = new Date()
   const dagen = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(vandaag)
@@ -62,7 +69,7 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
     const log = logs.find(l => l.datum === datum)
     return {
       datum,
-      dag: d.toLocaleDateString('nl-NL', { weekday: 'narrow' }),
+      dag: d.toLocaleDateString(INTL_LOCALE[taal], { weekday: 'narrow' }),
       uren: log?.uren_slaap ?? null,
     }
   })
@@ -77,13 +84,15 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
       marginBottom: 16, boxShadow: 'var(--shadow-sm)',
     }}>
       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
-        7 DAGEN SLAAP
+        {t('lichaam.slaap.zevenDagen')}
       </p>
       <div
         role="img"
-        aria-label={`Slaap afgelopen 7 dagen: ${dagen
-          .map(d => `${d.dag} ${d.uren !== null ? `${d.uren} uur` : 'geen data'}`)
-          .join(', ')}`}
+        aria-label={t('lichaam.slaap.weekAria', {
+          dagen: dagen
+            .map(d => `${d.dag} ${d.uren !== null ? t('lichaam.slaap.urenAria', { uren: d.uren }) : t('lichaam.slaap.geenData')}`)
+            .join(', '),
+        })}
         style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: barH + 20 }}
       >
         {dagen.map(d => {
@@ -95,7 +104,7 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
             <div key={d.datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
               {d.uren !== null && (
                 <span style={{ fontSize: 8, color: kleur, fontWeight: 700 }}>
-                  {d.uren % 1 === 0 ? `${d.uren}u` : `${d.uren.toFixed(1)}u`}
+                  {t('lichaam.slaap.urenKort', { uren: d.uren % 1 === 0 ? d.uren : d.uren.toFixed(1) })}
                 </span>
               )}
               <div style={{
@@ -114,9 +123,9 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
       </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
         {[
-          { kleur: 'var(--mf-green)', label: '≥ 7u' },
-          { kleur: 'var(--mf-amber)', label: '5–7u' },
-          { kleur: 'var(--mf-red)',   label: '< 5u' },
+          { kleur: 'var(--mf-green)', label: t('lichaam.slaap.legendaGoed') },
+          { kleur: 'var(--mf-amber)', label: t('lichaam.slaap.legendaMatig') },
+          { kleur: 'var(--mf-red)',   label: t('lichaam.slaap.legendaKort') },
         ].map(l => (
           <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: l.kleur }} />
@@ -131,6 +140,8 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
 export default function SlaapPagina() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [logs, setLogs] = useState<SlaapLog[]>([])
   const [gemiddeldUren, setGemiddeldUren] = useState<number | null>(null)
@@ -201,10 +212,10 @@ export default function SlaapPagina() {
         vitaEvent('data_logged', { kind: 'slaap' })
         setTimeout(() => router.push('/home'), 1500)
       } else {
-        toast({ title: 'Opslaan mislukt', description: 'Kon je slaap niet opslaan. Probeer het opnieuw.', variant: 'error' })
+        toast({ title: t('lichaam.voeding.opslaanMislukt'), description: t('lichaam.slaap.opslaanTekst'), variant: 'error' })
       }
     } catch {
-      toast({ title: 'Opslaan mislukt', description: 'Er ging iets mis. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), description: t('lichaam.slaap.ietsMis'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -216,10 +227,10 @@ export default function SlaapPagina() {
         method: 'POST',
         body: JSON.stringify({ uren: doelUren, streefbedtijd: streefbedtijd || null }),
       })
-      if (res.ok) { setHeeftDoel(true); toast({ title: 'Slaapdoel opgeslagen', variant: 'success' }) }
-      else toast({ title: 'Opslaan mislukt', variant: 'error' })
+      if (res.ok) { setHeeftDoel(true); toast({ title: t('lichaam.slaap.doelOpgeslagen'), variant: 'success' }) }
+      else toast({ title: t('lichaam.voeding.opslaanMislukt'), variant: 'error' })
     } catch {
-      toast({ title: 'Opslaan mislukt', variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), variant: 'error' })
     }
     setDoelOpslaan(false)
   }
@@ -245,11 +256,11 @@ export default function SlaapPagina() {
 
         <header style={{ marginBottom: 28 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
-            {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           <ActiviteitBadge activiteit="slaap" />
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
-            Slaaptracker
+            {t('lichaam.slaap.titel')}
           </h1>
         </header>
 
@@ -259,12 +270,12 @@ export default function SlaapPagina() {
             {gemiddeldUren !== null && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
                 <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>
-                  Gem. slaap
+                  {t('lichaam.slaap.gemSlaap')}
                 </p>
                 <p style={{ fontSize: 26, fontWeight: 800, color: slaapKleur(gemiddeldUren), margin: 0, letterSpacing: '-0.02em' }}>
-                  {urenNaarTijd(gemiddeldUren)}
+                  {urenNaarTijd(t, gemiddeldUren)}
                 </p>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>afgelopen 2 weken</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>{t('lichaam.slaap.tweeWeken')}</p>
               </div>
             )}
             {gemiddeldKwaliteit !== null && (() => {
@@ -273,11 +284,11 @@ export default function SlaapPagina() {
               return (
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
                 <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>
-                  Gem. kwaliteit
+                  {t('lichaam.slaap.gemKwaliteit')}
                 </p>
                 <GemIcoon size={28} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(gemRond), display: 'block' }} />
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '6px 0 0' }}>
-                  {gemiddeldKwaliteit.toFixed(1)}/5 — {KWALITEIT_LABELS[gemRond]}
+                  {gemiddeldKwaliteit.toFixed(1)}/5 · {kwaliteitLabel(t, gemRond)}
                 </p>
               </div>
               )
@@ -290,20 +301,20 @@ export default function SlaapPagina() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
             {schuld !== null && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>Slaapschuld</p>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>{t('lichaam.slaap.schuld')}</p>
                 <p style={{ fontSize: 22, fontWeight: 800, color: schuld === 0 ? 'var(--mf-green)' : 'var(--mf-amber)', margin: 0, letterSpacing: '-0.02em' }}>
-                  {schuld === 0 ? 'Op schema' : urenNaarTijd(schuld)}
+                  {schuld === 0 ? t('lichaam.slaap.opSchema') : urenNaarTijd(t, schuld)}
                 </p>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>tekort t.o.v. je doel ({doelUren}u)</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>{t('lichaam.slaap.tekort', { uren: doelUren })}</p>
               </div>
             )}
             {regelmaatScore !== null && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>Regelmaat</p>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>{t('lichaam.slaap.regelmaat')}</p>
                 <p style={{ fontSize: 22, fontWeight: 800, color: regelmaatScore >= 70 ? 'var(--mf-green)' : regelmaatScore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)', margin: 0, letterSpacing: '-0.02em' }}>
                   {regelmaatScore}<span style={{ fontSize: 13, color: 'var(--text-4)' }}>/100</span>
                 </p>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>consistentie van je bedtijd</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>{t('lichaam.slaap.consistentie')}</p>
               </div>
             )}
           </div>
@@ -311,15 +322,15 @@ export default function SlaapPagina() {
 
         {/* Slaapdoel instellen */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px', marginBottom: 20 }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 10px' }}>Slaapdoel</p>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 10px' }}>{t('lichaam.slaap.doel')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
-            <Field label="Doel (uren)">
+            <Field label={t('lichaam.slaap.doelUren')}>
               <Input type="number" inputMode="decimal" min={4} max={12} step={0.5} value={doelUren} onChange={e => setDoelUren(Math.max(0, Math.min(24, parseFloat(e.target.value) || 0)))} />
             </Field>
-            <Field label="Streefbedtijd">
+            <Field label={t('lichaam.slaap.streefbedtijd')}>
               <Input type="time" value={streefbedtijd} onChange={e => setStreefbedtijd(e.target.value)} />
             </Field>
-            <Button onClick={verstuurDoel} loading={doelOpslaan} variant="secondary">{doelOpslaan ? '…' : (heeftDoel ? 'Bijwerken' : 'Instellen')}</Button>
+            <Button onClick={verstuurDoel} loading={doelOpslaan} variant="secondary">{doelOpslaan ? '…' : t(heeftDoel ? 'lichaam.slaap.bijwerken' : 'lichaam.slaap.instellen')}</Button>
           </div>
         </div>
 
@@ -333,7 +344,7 @@ export default function SlaapPagina() {
             fontSize: 13, color: 'var(--mf-green)', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <Check size={16} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} /> Slaap opgeslagen!
+            <Check size={16} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} /> {t('lichaam.slaap.opgeslagen')}
           </div>
         )}
 
@@ -348,7 +359,7 @@ export default function SlaapPagina() {
             transition: 'background 0.3s ease',
           }}>
             <span style={{ fontSize: 24, fontWeight: 900, color: slaapKleur(uren), letterSpacing: '-0.03em', lineHeight: 1 }}>
-              {urenNaarTijd(uren)}
+              {urenNaarTijd(t, uren)}
             </span>
             {(() => {
               const HeroIcoon = KWALITEIT_ICOON[kwaliteit] ?? Meh
@@ -360,11 +371,11 @@ export default function SlaapPagina() {
         {/* Form card */}
         <section style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-md)', padding: '20px', marginBottom: 20 }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 18px' }}>
-            Log invoeren
+            {t('lichaam.slaap.logInvoeren')}
           </p>
 
           <div style={{ marginBottom: 16 }}>
-            <Field label="Datum">
+            <Field label={t('lichaam.slaap.datum')}>
               <Input
                 type="date"
                 value={datum}
@@ -375,23 +386,23 @@ export default function SlaapPagina() {
 
           <div style={{ marginBottom: 16 }}>
             <label htmlFor="slaap-uren" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
-              Uren geslapen:{' '}
-              <strong style={{ color: slaapKleur(uren) }}>{urenNaarTijd(uren)}</strong>
+              {t('lichaam.slaap.urenGeslapen')}{' '}
+              <strong style={{ color: slaapKleur(uren) }}>{urenNaarTijd(t, uren)}</strong>
             </label>
             <input
               id="slaap-uren"
               type="range" min={0} max={12} step={0.5} value={uren}
-              aria-valuetext={urenNaarTijd(uren)}
+              aria-valuetext={urenNaarTijd(t, uren)}
               onChange={e => setUren(parseFloat(e.target.value))}
               style={{ width: '100%', accentColor: slaapKleur(uren) }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-4)', marginTop: 2 }}>
-              <span>0u</span><span>6u</span><span>12u</span>
+              <span>{t('lichaam.slaap.duurUur', { u: 0 })}</span><span>{t('lichaam.slaap.duurUur', { u: 6 })}</span><span>{t('lichaam.slaap.duurUur', { u: 12 })}</span>
             </div>
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-kwaliteit-label">Kwaliteit</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-kwaliteit-label">{t('lichaam.slaap.kwaliteitLabel')}</p>
             <div style={{ display: 'flex', gap: 8 }} role="group" aria-labelledby="slaap-kwaliteit-label">
               {[1, 2, 3, 4, 5].map(k => {
                 const actief = kwaliteit === k
@@ -402,7 +413,7 @@ export default function SlaapPagina() {
                   type="button"
                   onClick={() => setKwaliteit(k)}
                   aria-pressed={actief}
-                  aria-label={KWALITEIT_LABELS[k]}
+                  aria-label={kwaliteitLabel(t, k)}
                   style={{
                     flex: 1, height: 44, minWidth: 44, borderRadius: 'var(--radius-sm)',
                     border: actief ? '1px solid transparent' : '1px solid var(--border-strong)',
@@ -418,12 +429,12 @@ export default function SlaapPagina() {
               })}
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 6, textAlign: 'center' }}>
-              {KWALITEIT_LABELS[kwaliteit]}
+              {kwaliteitLabel(t, kwaliteit)}
             </p>
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-uitgerust-label">Hoe uitgerust voel je je?</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-uitgerust-label">{t('lichaam.slaap.uitgerustVraag')}</p>
             <div style={{ display: 'flex', gap: 8 }} role="group" aria-labelledby="slaap-uitgerust-label">
               {[1, 2, 3, 4, 5].map(u => {
                 const actief = uitgerust === u
@@ -433,7 +444,7 @@ export default function SlaapPagina() {
                     type="button"
                     onClick={() => setUitgerust(u)}
                     aria-pressed={actief}
-                    aria-label={UITGERUST_LABELS[u]}
+                    aria-label={uitgerustLabel(t, u)}
                     style={{
                       flex: 1, height: 44, minWidth: 44, borderRadius: 'var(--radius-sm)',
                       border: actief ? '1px solid transparent' : '1px solid var(--border-strong)',
@@ -449,30 +460,30 @@ export default function SlaapPagina() {
               })}
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 6, textAlign: 'center' }}>
-              {UITGERUST_LABELS[uitgerust]}
+              {uitgerustLabel(t, uitgerust)}
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-            <Field label="Bedtijd">
+            <Field label={t('lichaam.slaap.bedtijd')}>
               <Input type="time" value={bedtijd} onChange={e => { const v = e.target.value; setBedtijd(v); const u = urenUitTijden(v, wektijd); if (u !== null) setUren(u) }} />
             </Field>
-            <Field label="Wektijd">
+            <Field label={t('lichaam.slaap.wektijd')}>
               <Input type="time" value={wektijd} onChange={e => { const v = e.target.value; setWektijd(v); const u = urenUitTijden(bedtijd, v); if (u !== null) setUren(u) }} />
             </Field>
           </div>
           {bedtijd && wektijd && urenUitTijden(bedtijd, wektijd) !== null && (
             <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '-8px 0 16px', textAlign: 'center' }}>
-              Duur automatisch berekend uit je tijden: <strong style={{ color: 'var(--text-2)' }}>{urenNaarTijd(urenUitTijden(bedtijd, wektijd) as number)}</strong>
+              {t('lichaam.slaap.automatisch')} <strong style={{ color: 'var(--text-2)' }}>{urenNaarTijd(t, urenUitTijden(bedtijd, wektijd) as number)}</strong>
             </p>
           )}
 
           <div style={{ marginBottom: 16 }}>
-            <Field label="Notitie">
+            <Field label={t('lichaam.slaap.notitie')}>
               <Textarea
                 value={notitie}
                 onChange={e => setNotitie(e.target.value)}
-                placeholder="Notitie (nachtmerrie, stress, cafeïne...)"
+                placeholder={t('lichaam.slaap.notitiePlaceholder')}
                 maxLength={200}
                 rows={2}
               />
@@ -485,7 +496,7 @@ export default function SlaapPagina() {
             style={{ width: '100%' }}
             size="lg"
           >
-            {opslaan ? 'Opslaan…' : 'Slaap loggen'}
+            {opslaan ? t('lichaam.slaap.opslaanBezig') : t('lichaam.slaap.loggen')}
           </Button>
         </section>
 
@@ -510,17 +521,17 @@ export default function SlaapPagina() {
                     fontWeight: 800, fontSize: 10, color: slaapKleur(log.uren_slaap),
                     letterSpacing: '-0.02em',
                   }}>
-                    {urenNaarTijd(log.uren_slaap)}
+                    {urenNaarTijd(t, log.uren_slaap)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', margin: 0 }}>
-                      {new Date(log.datum + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {new Date(log.datum + 'T12:00:00').toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}
                     </p>
                     {log.kwaliteit ? (() => {
                       const LogKwIcoon = KWALITEIT_ICOON[log.kwaliteit] ?? Meh
                       return (
                       <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <LogKwIcoon size={13} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(log.kwaliteit), flexShrink: 0 }} /> {KWALITEIT_LABELS[log.kwaliteit]}
+                        <LogKwIcoon size={13} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(log.kwaliteit), flexShrink: 0 }} /> {kwaliteitLabel(t, log.kwaliteit)}
                       </p>
                       )
                     })() : null}
@@ -540,8 +551,8 @@ export default function SlaapPagina() {
           <section style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)' }}>
             <EmptyState
               icon={Moon}
-              title="Nog geen slaap gelogd"
-              description="Log je eerste nacht om je 7-daagse trend en gemiddelden te zien."
+              title={t('lichaam.slaap.leegTitel')}
+              description={t('lichaam.slaap.leegTekst')}
             />
           </section>
         )}

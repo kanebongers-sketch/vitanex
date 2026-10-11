@@ -7,6 +7,8 @@
 // dus de vorige-week-regel is een kaal aantal, zonder noemer.
 
 import type { WeekDoel, WeekHistorieEntry } from '@/lib/doelen/weekdoelen'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { NL_VOORTGANG } from '@/lib/pijlers/teksten'
 
 export interface WeekMomenten {
   gehaald: number
@@ -34,17 +36,13 @@ export function vorigeWeek(
   return historie.find(h => h.weekStart !== actieveWeekStart) ?? null
 }
 
-function momentWoord(aantal: number): string {
-  return aantal === 1 ? 'doelmoment' : 'doelmomenten'
-}
-
 /** "X van Y doelmomenten gehaald deze week" — alleen zinvol als er iets gelogd is. */
-export function doelmomentenTekst({ gehaald, gelogd }: WeekMomenten): string {
-  return `${gehaald} van ${gelogd} ${momentWoord(gelogd)} gehaald deze week`
+export function doelmomentenTekst({ gehaald, gelogd }: WeekMomenten, ts: Taalset = NL_VOORTGANG): string {
+  return ts.t(gelogd === 1 ? 'voortgang.weekdoelen.momentenEen' : 'voortgang.weekdoelen.momentenMeer', { gehaald, gelogd })
 }
 
 /** Schuldvrije vorige-week-regel; null bij 0 — geen vergelijking, geen nullen. */
-export function vorigeWeekTekst(gehaald: number): string | null {
+export function vorigeWeekTekst(gehaald: number, ts: Taalset = NL_VOORTGANG): string | null {
   if (gehaald <= 0) return null
-  return `Vorige week: ${gehaald} ${momentWoord(gehaald)} gehaald.`
+  return ts.t(gehaald === 1 ? 'voortgang.weekdoelen.vorigeEen' : 'voortgang.weekdoelen.vorigeMeer', { n: gehaald })
 }

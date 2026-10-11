@@ -19,7 +19,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
-
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
 type Gesprek = {
   id: string
@@ -33,35 +34,38 @@ type Gesprek = {
   hr_naam?: string
 }
 
-const TYPE_STIJL: Record<Gesprek['type'], { label: string; kleur: string; bg: string; icon: LucideIcon }> = {
-  functionering: { label: 'Functionering', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', icon: BarChart3 },
-  beoordeling:   { label: 'Beoordeling',   kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', icon: Star },
-  welzijn:       { label: 'Welzijn',       kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', icon: HeartHandshake },
-  onboarding:    { label: 'Onboarding',    kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', icon: Hand },
-  overig:        { label: 'Overig',        kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', icon: MessageCircle },
+// Labels staan in het woordenboek: coaching.gesprekken.type.* en .status.*
+const TYPE_STIJL: Record<Gesprek['type'], { kleur: string; bg: string; icon: LucideIcon }> = {
+  functionering: { kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', icon: BarChart3 },
+  beoordeling:   { kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', icon: Star },
+  welzijn:       { kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', icon: HeartHandshake },
+  onboarding:    { kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', icon: Hand },
+  overig:        { kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', icon: MessageCircle },
 }
 
-const STATUS_STIJL: Record<Gesprek['status'], { label: string; kleur: string; bg: string }> = {
-  gepland:     { label: 'Gepland',     kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
-  afgerond:    { label: 'Afgerond',    kleur: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
-  geannuleerd: { label: 'Geannuleerd', kleur: 'var(--text-3)', bg: 'var(--bg-subtle)' },
+const STATUS_STIJL: Record<Gesprek['status'], { kleur: string; bg: string }> = {
+  gepland:     { kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+  afgerond:    { kleur: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
+  geannuleerd: { kleur: 'var(--text-3)', bg: 'var(--bg-subtle)' },
 }
 
-function formatDatum(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+function formatDatum(d: string, taal: Taal) {
+  return new Date(d).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function DagenTot({ datum }: { datum: string }) {
+  const { t } = useVertaling()
   // Tijdstip per mount vastzetten zodat de render puur blijft
   const [nu] = useState(() => Date.now())
   const dagen = Math.ceil((new Date(datum).getTime() - nu) / 86400000)
   if (dagen < 0) return null
-  if (dagen === 0) return <span style={{ color: 'var(--mf-red)', fontWeight: 700, fontSize: 11 }}>Vandaag</span>
-  if (dagen <= 3) return <span style={{ color: 'var(--mf-amber)', fontWeight: 700, fontSize: 11 }}>{dagen}d</span>
-  return <span style={{ color: 'var(--text-2)', fontSize: 11 }}>{dagen} dagen</span>
+  if (dagen === 0) return <span style={{ color: 'var(--mf-red)', fontWeight: 700, fontSize: 11 }}>{t('coaching.gesprekken.vandaag')}</span>
+  if (dagen <= 3) return <span style={{ color: 'var(--mf-amber)', fontWeight: 700, fontSize: 11 }}>{t('coaching.gesprekken.dagenKort', { aantal: dagen })}</span>
+  return <span style={{ color: 'var(--text-2)', fontSize: 11 }}>{t('coaching.gesprekken.dagen', { aantal: dagen })}</span>
 }
 
 export default function MijnGesprekkenPage() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [gesprekken, setGesprekken] = useState<Gesprek[]>([])
   const [laden, setLaden] = useState(true)
@@ -91,13 +95,13 @@ export default function MijnGesprekkenPage() {
         setGesprekken(data.map(g => ({
           ...g,
           actiepunten: Array.isArray(g.actiepunten) ? g.actiepunten : [],
-          hr_naam: hrNamen.get(g.hr_user_id) ?? 'HR',
+          hr_naam: hrNamen.get(g.hr_user_id) ?? t('coaching.gesprekken.hr'),
         })))
       }
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, t])
 
   const actief_gesprek = gesprekken.find(g => g.id === actief)
   const aankomend = gesprekken.filter(g => g.status === 'gepland')
@@ -110,10 +114,10 @@ export default function MijnGesprekkenPage() {
 
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-            Mijn gesprekken
+            {t('coaching.gesprekken.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>
-            Overzicht van je HR-gesprekken en actiepunten
+            {t('coaching.gesprekken.subtitel')}
           </p>
         </div>
 
@@ -125,8 +129,8 @@ export default function MijnGesprekkenPage() {
           <Card>
             <EmptyState
               icon={MessageSquare}
-              title="Nog geen gesprekken gepland"
-              description="Je HR-manager kan hier 1-op-1 gesprekken inplannen."
+              title={t('coaching.gesprekken.leegTitel')}
+              description={t('coaching.gesprekken.leegTekst')}
             />
           </Card>
         ) : (
@@ -136,7 +140,7 @@ export default function MijnGesprekkenPage() {
             {aankomend.length > 0 && (
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-3)', marginBottom: 10 }}>
-                  Aankomend
+                  {t('coaching.gesprekken.aankomend')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {aankomend.map(g => <GesprekKaart key={g.id} g={g} actief={actief === g.id} onClick={() => setActief(actief === g.id ? null : g.id)} />)}
@@ -148,7 +152,7 @@ export default function MijnGesprekkenPage() {
             {afgerond.length > 0 && (
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-3)', marginBottom: 10 }}>
-                  Afgerond
+                  {t('coaching.gesprekken.status.afgerond')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {afgerond.map(g => <GesprekKaart key={g.id} g={g} actief={actief === g.id} onClick={() => setActief(actief === g.id ? null : g.id)} />)}
@@ -170,13 +174,13 @@ export default function MijnGesprekkenPage() {
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>{actief_gesprek.onderwerp}</p>
                   <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                    {formatDatum(actief_gesprek.datum)} · met {actief_gesprek.hr_naam}
+                    {formatDatum(actief_gesprek.datum, taal)} · {t('coaching.gesprekken.met', { naam: actief_gesprek.hr_naam ?? '' })}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setActief(null)}
-                aria-label="Detail sluiten"
+                aria-label={t('coaching.gesprekken.sluiten')}
                 className="mf-gesprek-close"
                 style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 'var(--radius-sm)', background: 'transparent', border: '1px solid transparent', cursor: 'pointer', color: 'var(--text-3)', lineHeight: 1 }}
               >
@@ -187,12 +191,12 @@ export default function MijnGesprekkenPage() {
             {/* Samenvatting */}
             {actief_gesprek.samenvatting_medewerker ? (
               <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8 }}>Samenvatting</p>
+                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8 }}>{t('coaching.gesprekken.samenvatting')}</p>
                 <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{actief_gesprek.samenvatting_medewerker}</p>
               </div>
             ) : (
               <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px dashed var(--border-strong)' }}>
-                <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>Nog geen samenvatting beschikbaar</p>
+                <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>{t('coaching.gesprekken.geenSamenvatting')}</p>
               </div>
             )}
 
@@ -200,7 +204,7 @@ export default function MijnGesprekkenPage() {
             {actief_gesprek.actiepunten.length > 0 && (
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
-                  Actiepunten ({actief_gesprek.actiepunten.filter(a => a.gereed).length}/{actief_gesprek.actiepunten.length} gereed)
+                  {t('coaching.gesprekken.actiepunten', { gereed: actief_gesprek.actiepunten.filter(a => a.gereed).length, totaal: actief_gesprek.actiepunten.length })}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {actief_gesprek.actiepunten.map((ap, i) => (
@@ -220,7 +224,7 @@ export default function MijnGesprekkenPage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: 13, color: ap.gereed ? 'var(--mf-green-dark)' : 'var(--text-2)', textDecoration: ap.gereed ? 'line-through' : 'none' }}>{ap.tekst}</p>
-                        {ap.deadline && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Deadline: {formatDatum(ap.deadline)}</p>}
+                        {ap.deadline && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{t('coaching.gesprekken.deadline', { datum: formatDatum(ap.deadline, taal) })}</p>}
                       </div>
                     </div>
                   ))}
@@ -233,7 +237,7 @@ export default function MijnGesprekkenPage() {
               <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <CalendarClock size={16} aria-hidden style={{ color: 'var(--mf-amber-dark)', flexShrink: 0 }} />
                 <p style={{ fontSize: 13, color: 'var(--mf-amber-dark)' }}>
-                  Vervolggesprek gepland op <strong>{formatDatum(actief_gesprek.follow_up_datum)}</strong>
+                  {t('coaching.gesprekken.vervolg')} <strong>{formatDatum(actief_gesprek.follow_up_datum, taal)}</strong>
                 </p>
               </div>
             )}
@@ -252,6 +256,7 @@ export default function MijnGesprekkenPage() {
 }
 
 function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onClick: () => void }) {
+  const { t, taal } = useVertaling()
   const type = TYPE_STIJL[g.type]
   const status = STATUS_STIJL[g.status]
   const Icon = type.icon
@@ -273,16 +278,16 @@ function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onC
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.onderwerp}</p>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: type.bg, color: type.kleur, flexShrink: 0 }}>{type.label}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: type.bg, color: type.kleur, flexShrink: 0 }}>{t(`coaching.gesprekken.type.${g.type}`)}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{new Date(g.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} · {g.hr_naam}</p>
-              {openAp > 0 && <span style={{ fontSize: 11, color: 'var(--mf-amber)', fontWeight: 600 }}>{openAp} openstaand{openAp !== 1 ? 'e' : ''} actiepunt{openAp !== 1 ? 'en' : ''}</span>}
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{new Date(g.datum).toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'short' })} · {g.hr_naam}</p>
+              {openAp > 0 && <span style={{ fontSize: 11, color: 'var(--mf-amber)', fontWeight: 600 }}>{t(openAp === 1 ? 'coaching.gesprekken.openEen' : 'coaching.gesprekken.openMeer', { aantal: openAp })}</span>}
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: status.bg, color: status.kleur }}>{status.label}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: status.bg, color: status.kleur }}>{t(`coaching.gesprekken.status.${g.status}`)}</span>
           {g.status === 'gepland' && <DagenTot datum={g.datum} />}
         </div>
       </div>

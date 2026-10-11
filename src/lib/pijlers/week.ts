@@ -57,13 +57,22 @@ function weekdagIndex(datum: string): number {
   return (new Date(`${datum}T12:00:00.000Z`).getUTCDay() + 6) % 7
 }
 
-/** Korte weekdagnaam ('Ma') — voor het zichtbare label onder een ring. */
-export function weekdagKort(datum: string): string {
+/** Weekdagnaam via Intl voor een andere taal dan Nederlands (eerste letter groot). */
+function weekdagIntl(datum: string, locale: string, weekday: 'short' | 'long'): string {
+  const tekst = new Date(`${datum}T12:00:00.000Z`).toLocaleDateString(locale, { weekday, timeZone: 'UTC' })
+  return tekst.charAt(0).toLocaleUpperCase(locale) + tekst.slice(1)
+}
+
+/** Korte weekdagnaam ('Ma') — voor het zichtbare label onder een ring. Zonder of met
+ *  Nederlandse `locale` de vaste NL-namen; anders de Intl-naam in die taal. */
+export function weekdagKort(datum: string, locale?: string): string {
+  if (locale && !locale.startsWith('nl')) return weekdagIntl(datum, locale, 'short')
   return WEEKDAG_KORT[weekdagIndex(datum)] ?? ''
 }
 
 /** Volledige weekdagnaam ('Maandag') — voor het tekstuele alternatief. */
-export function weekdagLang(datum: string): string {
+export function weekdagLang(datum: string, locale?: string): string {
+  if (locale && !locale.startsWith('nl')) return weekdagIntl(datum, locale, 'long')
   return WEEKDAG_LANG[weekdagIndex(datum)] ?? ''
 }
 

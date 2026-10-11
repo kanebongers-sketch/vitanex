@@ -9,6 +9,8 @@ import { Brain } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 interface Samenvatting {
@@ -19,6 +21,7 @@ interface Samenvatting {
 }
 
 export default function CoachSamenvattingenPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const [samenvattingen, setSamenvattingen] = useState<Samenvatting[]>([])
   const [laden, setLaden] = useState(true)
@@ -40,7 +43,7 @@ export default function CoachSamenvattingenPagina() {
 
   function formatWeek(weekStart: string) {
     const d = new Date(weekStart)
-    return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+    return d.toLocaleDateString(INTL_LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   if (laden) return (
@@ -59,17 +62,17 @@ export default function CoachSamenvattingenPagina() {
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Wat Vita onthoudt
+              {t('vita.samenvattingen.titel')}
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-              AI-samenvattingen van jouw gesprekken
+              {t('vita.samenvattingen.sub')}
             </p>
           </div>
           <Link href="/coach" style={{
             background: 'var(--text-1)', color: 'var(--bg-app)', textDecoration: 'none',
             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
           }}>
-            Naar Vita →
+            {t('vita.samenvattingen.naarVita')}
           </Link>
         </header>
 
@@ -92,10 +95,10 @@ export default function CoachSamenvattingenPagina() {
               </span>
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
-              Nog geen samenvattingen
+              {t('vita.samenvattingen.leegTitel')}
             </p>
             <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
-              Na een paar berichten met Vita wordt er automatisch<br />een samenvatting opgeslagen om je beter te helpen.
+              {t('vita.samenvattingen.leeg1')}<br />{t('vita.samenvattingen.leeg2')}
             </p>
           </div>
         ) : (
@@ -112,11 +115,11 @@ export default function CoachSamenvattingenPagina() {
                       background: i === 0 ? 'var(--mf-green)' : 'var(--border)',
                     }} />
                     <p style={{ fontSize: 11, fontWeight: 700, color: i === 0 ? 'var(--mf-green)' : 'var(--text-3)' }}>
-                      {i === 0 ? 'Meest recent' : `Week ${i + 1}`}
+                      {i === 0 ? t('vita.samenvattingen.meestRecent') : t('vita.samenvattingen.week', { nummer: i + 1 })}
                     </p>
                   </div>
                   <p style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    Week van {formatWeek(s.week_start)}
+                    {t('vita.samenvattingen.weekVan', { datum: formatWeek(s.week_start) })}
                   </p>
                 </div>
                 <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>
@@ -126,7 +129,7 @@ export default function CoachSamenvattingenPagina() {
             ))}
 
             <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'center', marginTop: 8 }}>
-              Samenvattingen worden automatisch aangemaakt tijdens gesprekken. Ze helpen Vita beter aan te sluiten op jouw situatie.
+              {t('vita.samenvattingen.voet')}
             </p>
           </div>
         )}

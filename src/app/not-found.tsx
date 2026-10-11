@@ -4,11 +4,13 @@ import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
 import { FfNietGevonden } from '@/components/lifeos/pt-dashboard/FfNietGevonden'
+import { huidigeTaalset } from '@/lib/i18n/server'
 
 export default async function NietGevonden() {
   // Op fitfactorypt.nl een 404 in de Fit Factory-stijl, zonder MentaForce.
   const h = await headers()
   if (isPtHost(h.get('x-forwarded-host') ?? h.get('host'))) return <FfNietGevonden />
+  const { t } = await huidigeTaalset()
 
   return (
     <main
@@ -67,7 +69,7 @@ export default async function NietGevonden() {
           marginBottom: 8,
         }}
       >
-        Oeps, deze pagina bestaat niet
+        {t('site.nietGevonden.kop')}
       </p>
 
       <p
@@ -80,8 +82,7 @@ export default async function NietGevonden() {
           marginBottom: 36,
         }}
       >
-        De pagina die je zoekt is verplaatst, verwijderd of heeft nooit bestaan.
-        Geen zorgen — ga terug naar de startpagina.
+        {t('site.nietGevonden.tekst')}
       </p>
 
       <Link
@@ -100,7 +101,7 @@ export default async function NietGevonden() {
           transition: 'opacity 0.15s',
         }}
       >
-        Terug naar de startpagina
+        {t('site.nietGevonden.terug')}
       </Link>
 
       <p
@@ -111,7 +112,7 @@ export default async function NietGevonden() {
           fontWeight: 500,
         }}
       >
-        Of ga naar{' '}
+        {t('site.nietGevonden.ofGaNaar')}{' '}
         <Link
           href="/login"
           style={{
@@ -120,7 +121,7 @@ export default async function NietGevonden() {
             fontWeight: 700,
           }}
         >
-          inloggen
+          {t('site.nietGevonden.inloggen')}
         </Link>
       </p>
     </main>

@@ -16,6 +16,8 @@ import {
 import {
   doelmomentenTekst, telHistorieGehaald, telWeekMomenten, vorigeWeek, vorigeWeekTekst,
 } from './weekdoelen-blok'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { alsTaalset } from '@/lib/pijlers/teksten'
 
 interface WeekdoelenOpslag {
   selectie: WeekSelectie | null
@@ -39,6 +41,7 @@ function DoelenLink({ label }: { label: string }) {
 }
 
 export default function WeekdoelenBlok() {
+  const { t, taal } = useVertaling()
   const [opslag, setOpslag] = useState<WeekdoelenOpslag | null>(null)
 
   useEffect(() => {
@@ -60,22 +63,23 @@ export default function WeekdoelenBlok() {
 
   const momenten = selectie ? telWeekMomenten(selectie.doelen) : null
   const heeftMomenten = momenten !== null && momenten.gelogd > 0
-  const vorigeRegel = vorige ? vorigeWeekTekst(telHistorieGehaald(vorige)) : null
+  const ts = alsTaalset(taal, t)
+  const vorigeRegel = vorige ? vorigeWeekTekst(telHistorieGehaald(vorige), ts) : null
 
   return (
-    <section aria-label="Weekdoelen">
+    <section aria-label={t('voortgang.weekdoelen.kop')}>
       <Card className="mf-fade-in" style={{ padding: '16px 18px', marginTop: 14 }}>
-        <p className="mf-section-label" style={{ marginBottom: 8 }}>Weekdoelen</p>
+        <p className="mf-section-label" style={{ marginBottom: 8 }}>{t('voortgang.weekdoelen.kop')}</p>
 
         <p style={{
           fontSize: 14, color: 'var(--text-1)', lineHeight: 1.65, margin: 0,
           fontVariantNumeric: 'tabular-nums',
         }}>
           {heeftMomenten && momenten !== null
-            ? doelmomentenTekst(momenten)
+            ? doelmomentenTekst(momenten, ts)
             : selectie
-              ? 'Je weekdoelen staan klaar — er is nog geen moment gelogd.'
-              : 'Voor deze week heb je nog geen weekdoelen gekozen.'}
+              ? t('voortgang.weekdoelen.klaar')
+              : t('voortgang.weekdoelen.geen')}
         </p>
 
         {vorigeRegel && (
@@ -88,7 +92,7 @@ export default function WeekdoelenBlok() {
         )}
 
         {!heeftMomenten && (
-          <DoelenLink label={selectie ? 'Log een moment' : 'Kies je weekdoelen'} />
+          <DoelenLink label={selectie ? t('voortgang.weekdoelen.logMoment') : t('voortgang.weekdoelen.kies')} />
         )}
       </Card>
     </section>

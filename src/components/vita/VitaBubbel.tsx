@@ -10,6 +10,7 @@
 
 import { type ReactNode } from 'react'
 import PandaFace, { type EmotionState } from './PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface VitaBubbelProps {
   /** Wat Vita zegt. Kan platte tekst of rich children zijn. */
@@ -34,6 +35,7 @@ export default function VitaBubbel({
   size = 52,
   naam = 'Vita',
 }: VitaBubbelProps) {
+  const { t } = useVertaling()
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
       {/* Vita's gezicht met een zachte cyan-halo eronder */}
@@ -57,7 +59,7 @@ export default function VitaBubbel({
       {/* Spreekballon */}
       <div
         className="mf-fade-in"
-        aria-label={naam ? `${naam} zegt` : 'Vita zegt'}
+        aria-label={t('vita.algemeen.vitaZegt', { naam: naam ?? 'Vita' })}
         style={{
           position: 'relative',
           background: 'var(--bg-card)',

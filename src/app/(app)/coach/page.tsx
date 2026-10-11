@@ -15,48 +15,33 @@ import Navbar from '@/components/layout/Navbar'
 import VitaChatHeader from '@/components/vita/VitaChatHeader'
 import VitaChatBubble, { type ChatBericht } from '@/components/vita/VitaChatBubble'
 import type { EmotionState } from '@/components/vita/PandaFace'
-
-const WELKOM = `Hoi, ik ben Vita.
-
-Ik ben er voor alles rondom je welzijn op het werk — stress, energie, werk-privébalans, motivatie, slaap, of gewoon even je hoofd leegmaken.
-
-Wat je hier deelt blijft tussen ons. Geen manager, geen HR die meeleest.
-
-Waar zal ik je vandaag mee helpen?`
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 // Wanneer de gebruiker via een proactieve nudge binnenkomt (/coach?start=<type>),
 // opent Vita zelf het gesprek over wat ze opmerkte — i.p.v. het generieke welkom.
-const NUDGE_OPENERS: Record<string, string> = {
-  burnout_stijgend: 'Hey, fijn dat je er bent. Ik zag dat je scores de laatste weken wat teruglopen. Geen zorgen — vertel eens, hoe gaat het op dit moment écht met je?',
-  stemming_omlaag: 'Fijn dat je er bent. Ik merkte dat je stemming deze week wat lager lag dan je gewend bent. Wil je vertellen wat er speelt?',
-  slaap_omlaag: 'Goed dat je er bent. Je sliep deze week wat minder dan normaal. Zullen we samen kijken wat je nachtrust in de weg zit?',
-  streak_mijlpaal: 'Wat een mooie reeks — je hebt een flink aantal dagen op rij ingecheckt! Hoe voelt het om hier zo bewust mee bezig te zijn?',
-  slaap_omhoog: 'Goed nieuws: je slaap zit duidelijk in de lift deze week. Wil je weten hoe je dit ritme vasthoudt?',
-  stemming_omhoog: 'Mooi om te zien dat je beter in je vel zit deze week! Wat denk je dat het verschil maakte?',
-  burnout_dalend: 'Goed nieuws — je welzijnsscores gaan de laatste weken vooruit. Zullen we kijken wat daaraan bijdraagt, zodat je het kunt vasthouden?',
-  dankbaarheid_gap: 'Fijn dat je er bent. Je hield een tijdje dagelijks bij waar je dankbaar voor was. Zullen we dat samen weer oppakken?',
-  heractivatie: 'Hey, fijn dat je er weer bent. Geen druk — vertel eens, hoe gaat het op dit moment met je?',
-}
-
-const SUGGESTIES: { icon: LucideIcon; tekst: string }[] = [
-  { icon: Frown, tekst: 'Ik voel me gestrest' },
-  { icon: BatteryLow, tekst: 'Mijn energie is op' },
-  { icon: Moon, tekst: 'Ik slaap slecht' },
-  { icon: AlertTriangle, tekst: 'Ik wil tips tegen burn-out' },
-  { icon: Scale, tekst: 'Werk en privé in balans' },
-  { icon: Lightbulb, tekst: 'Ik mis motivatie' },
-  { icon: Target, tekst: 'Hoe blijf ik gemotiveerd?' },
-  { icon: Wind, tekst: 'Ik wil rustiger worden' },
+// De teksten staan in het woordenboek: vita.coach.opener.<type>.
+const NUDGE_TYPES = new Set([
+  'burnout_stijgend', 'stemming_omlaag', 'slaap_omlaag', 'streak_mijlpaal', 'slaap_omhoog',
+  'stemming_omhoog', 'burnout_dalend', 'dankbaarheid_gap', 'heractivatie',
+])
+// Labels staan in het woordenboek: vita.coach.suggestie.<sleutel>.
+const SUGGESTIES: { icon: LucideIcon; sleutel: string }[] = [
+  { icon: Frown, sleutel: 'gestrest' },
+  { icon: BatteryLow, sleutel: 'energieOp' },
+  { icon: Moon, sleutel: 'slechtSlapen' },
+  { icon: AlertTriangle, sleutel: 'burnout' },
+  { icon: Scale, sleutel: 'balans' },
+  { icon: Lightbulb, sleutel: 'motivatie' },
+  { icon: Target, sleutel: 'gemotiveerd' },
+  { icon: Wind, sleutel: 'rustiger' },
 ]
 
-const FOUT_FALLBACK = 'Sorry, ik kan je nu even niet bereiken. Probeer het zo opnieuw.'
 
-const VERVOLGVRAGEN: { icon: LucideIcon; tekst: string }[] = [
-  { icon: MessageCircleMore, tekst: 'Vertel me meer' },
-  { icon: ListChecks, tekst: 'Wat kan ik vandaag doen?' },
-  { icon: Compass, tekst: 'Hoe pak ik dit het beste aan?' },
+const VERVOLGVRAGEN: { icon: LucideIcon; sleutel: string }[] = [
+  { icon: MessageCircleMore, sleutel: 'meer' },
+  { icon: ListChecks, sleutel: 'vandaag' },
+  { icon: Compass, sleutel: 'aanpak' },
 ]
-
 type GebruikerContext = {
   naam: string
   discPrimair?: string
@@ -74,10 +59,12 @@ const DOMEIN_CODES: Record<string, string[]> = {
 }
 
 export default function CoachPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
-  const [berichten, setBerichten] = useState<ChatBericht[]>([
-    { id: 'welkom', role: 'assistant', content: WELKOM },
+  const [berichten, setBerichten] = useState<ChatBericht[]>(() => [
+    { id: 'welkom', role: 'assistant', content: t('vita.coach.welkom') },
   ])
+  const foutFallback = t('vita.coach.fout')
   const [input, setInput] = useState('')
   const [laden, setLaden] = useState(false)
   const [klaar, setKlaar] = useState(false)
@@ -91,14 +78,14 @@ export default function CoachPagina() {
   // binnen, dan vervangt Vita's eigen opener het welkom vóór de eerste interactie.
   useEffect(() => {
     const start = new URLSearchParams(window.location.search).get('start')
-    const opener = start ? NUDGE_OPENERS[start] : undefined
-    if (!opener) return
+    if (!start || !NUDGE_TYPES.has(start)) return
+    const opener = t(`vita.coach.opener.${start}`)
     setBerichten(prev =>
       prev.length === 1 && prev[0].id === 'welkom'
         ? [{ id: 'opener', role: 'assistant', content: opener }]
         : prev,
     )
-  }, [])
+  }, [t])
 
   useEffect(() => {
     async function check() {
@@ -201,10 +188,11 @@ export default function CoachPagina() {
       })
 
       if (!res.ok || !res.body) {
-        let foutmelding = FOUT_FALLBACK
+        let foutmelding = foutFallback
         try {
           const json = await res.json()
-          if (json.error) foutmelding = json.error
+          // Servermeldingen zijn Nederlands; in een andere taal de algemene melding.
+          if (json.error && taal === 'nl') foutmelding = json.error
         } catch { /* geen JSON-body beschikbaar */ }
         toonFout(foutmelding)
       } else {
@@ -222,11 +210,11 @@ export default function CoachPagina() {
         // in plaats van een lege bubbel.
         if (!volledigAntwoord.trim()) {
           volledigAntwoord = ''
-          toonFout('Er ging iets mis bij het antwoorden. Probeer het opnieuw.')
+          toonFout(t('vita.coach.foutLeeg'))
         }
       }
     } catch {
-      toonFout(FOUT_FALLBACK)
+      toonFout(foutFallback)
     }
 
     setLaden(false)
@@ -302,12 +290,12 @@ export default function CoachPagina() {
           {/* Suggesties — alleen vóór het eerste bericht */}
           {berichten.length === 1 && !laden && (
             <div style={{ marginTop: 8 }}>
-              <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8, textAlign: 'center' }}>Kies een onderwerp om te beginnen</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8, textAlign: 'center' }}>{t('vita.coach.kiesOnderwerp')}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
                 {SUGGESTIES.map(s => (
                   <button
-                    key={s.tekst}
-                    onClick={() => verstuur(s.tekst)}
+                    key={s.sleutel}
+                    onClick={() => verstuur(t(`vita.coach.suggestie.${s.sleutel}`))}
                     className="mf-pressable mf-suggestie-chip"
                     style={{
                       fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
@@ -315,7 +303,7 @@ export default function CoachPagina() {
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                     }}
                   >
-                    <s.icon size={13} strokeWidth={1.75} aria-hidden />{s.tekst}
+                    <s.icon size={13} strokeWidth={1.75} aria-hidden />{t(`vita.coach.suggestie.${s.sleutel}`)}
                   </button>
                 ))}
               </div>
@@ -334,7 +322,7 @@ export default function CoachPagina() {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                 }}
               >
-                <RotateCcw size={13} strokeWidth={1.75} aria-hidden />Opnieuw proberen
+                <RotateCcw size={13} strokeWidth={1.75} aria-hidden />{t('vita.coach.opnieuw')}
               </button>
             </div>
           )}
@@ -344,8 +332,8 @@ export default function CoachPagina() {
             <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', paddingLeft: 44 }}>
               {VERVOLGVRAGEN.map(s => (
                 <button
-                  key={s.tekst}
-                  onClick={() => verstuur(s.tekst)}
+                  key={s.sleutel}
+                  onClick={() => verstuur(t(`vita.coach.vervolg.${s.sleutel}`))}
                   className="mf-pressable mf-suggestie-chip"
                   style={{
                     fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
@@ -353,7 +341,7 @@ export default function CoachPagina() {
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                   }}
                 >
-                  <s.icon size={13} strokeWidth={1.75} aria-hidden />{s.tekst}
+                  <s.icon size={13} strokeWidth={1.75} aria-hidden />{t(`vita.coach.vervolg.${s.sleutel}`)}
                 </button>
               ))}
             </div>
@@ -366,7 +354,7 @@ export default function CoachPagina() {
         {/* Privacy-notitie */}
         <div style={{ padding: '4px 16px', textAlign: 'center', flexShrink: 0 }}>
           <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
-            Vita onthoudt context tussen gesprekken om je beter te helpen · Nooit zichtbaar voor manager of HR
+            {t('vita.coach.privacy')}
           </p>
         </div>
 
@@ -381,7 +369,7 @@ export default function CoachPagina() {
             padding: '8px 12px', background: 'var(--bg-subtle)',
             maxWidth: 760, margin: '0 auto',
           }}>
-            <label htmlFor="vita-invoer" className="mf-sr-only">Bericht aan Vita</label>
+            <label htmlFor="vita-invoer" className="mf-sr-only">{t('vita.coach.invoerLabel')}</label>
             <textarea
               id="vita-invoer"
               ref={inputRef}
@@ -395,7 +383,7 @@ export default function CoachPagina() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuur() }
               }}
-              placeholder="Typ je bericht aan Vita"
+              placeholder={t('vita.coach.placeholder')}
               disabled={laden}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
@@ -408,7 +396,7 @@ export default function CoachPagina() {
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
               className="mf-vita-verstuur"
-              aria-label="Verstuur bericht aan Vita"
+              aria-label={t('vita.coach.verstuur')}
               style={{
                 flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

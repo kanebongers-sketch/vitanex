@@ -11,13 +11,15 @@ import { LogoFull } from '@/components/layout/Logo'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { HeartHandshake, LogIn, UserPlus, AlertCircle, ShieldCheck } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const TOKEN_OPSLAG_SLEUTEL = 'mf_coaching_uitnodiging_token'
-const PRIVACY_KENMERKEN = ['AVG-conform', 'EU-gehost', 'Altijd intrekbaar'] as const
+const PRIVACY_KENMERKEN = ['avg', 'eu', 'intrekbaar'] as const
 
 type Fase = 'laden' | 'geen-token' | 'ingelogd' | 'uitgelogd'
 
 function WelkomInhoud() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -72,9 +74,9 @@ function WelkomInhoud() {
       return
     }
     const data = await res.json().catch(() => ({})) as { error?: string }
-    setFout(data.error ?? 'Koppelen mislukt. Probeer het later opnieuw.')
+    setFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.welkom.koppelenMislukt'))
     setAccepteerBezig(false)
-  }, [token, accepteerBezig, router])
+  }, [token, accepteerBezig, router, t, taal])
 
   const retourPad = token ? `/coaching/welkom?token=${encodeURIComponent(token)}` : '/coaching/welkom'
   const registerHref = `/register?next=${encodeURIComponent(retourPad)}`
@@ -89,8 +91,8 @@ function WelkomInhoud() {
 
         {fase === 'geen-token' && (
           <FoutBlok
-            titel="Geen geldige uitnodiging"
-            tekst="We konden geen uitnodiging vinden. Open de link uit je e-mail opnieuw, of vraag je coach om een nieuwe uitnodiging."
+            titel={t('coaching.welkom.geenTitel')}
+            tekst={t('coaching.welkom.geenTekst')}
             onNaarHome={() => router.push('/home')}
           />
         )}
@@ -98,13 +100,12 @@ function WelkomInhoud() {
         {fase === 'ingelogd' && (
           <div style={{ textAlign: 'center' }}>
             <IconRing />
-            <p className="mf-overline" style={{ color: 'var(--mf-green)', margin: '18px 0 8px' }}>Uitnodiging van je coach</p>
+            <p className="mf-overline" style={{ color: 'var(--mf-green)', margin: '18px 0 8px' }}>{t('coaching.welkom.overline')}</p>
             <h1 className="mf-h1" style={{ fontSize: 'clamp(22px, 4vw, 27px)', marginBottom: 10 }}>
-              Je coach nodigt je uit
+              {t('coaching.welkom.ingelogdTitel')}
             </h1>
             <p className="mf-body" style={{ color: 'var(--text-3)', maxWidth: '38ch', margin: '0 auto 24px' }}>
-              Accepteer de koppeling om samen met je coach aan je welzijn te werken. Jij bepaalt daarna
-              zelf welke gegevens je deelt — en die keuze kun je altijd aanpassen.
+              {t('coaching.welkom.ingelogdTekst')}
             </p>
 
             <Button
@@ -113,7 +114,7 @@ function WelkomInhoud() {
               leftIcon={<ShieldCheck size={16} aria-hidden />}
               style={{ width: '100%', justifyContent: 'center' }}
             >
-              Koppeling accepteren
+              {t('coaching.welkom.accepteren')}
             </Button>
 
             {fout && (
@@ -129,13 +130,12 @@ function WelkomInhoud() {
         {fase === 'uitgelogd' && (
           <div style={{ textAlign: 'center' }}>
             <IconRing />
-            <p className="mf-overline" style={{ color: 'var(--mf-green)', margin: '18px 0 8px' }}>Uitnodiging van je coach</p>
+            <p className="mf-overline" style={{ color: 'var(--mf-green)', margin: '18px 0 8px' }}>{t('coaching.welkom.overline')}</p>
             <h1 className="mf-h1" style={{ fontSize: 'clamp(22px, 4vw, 27px)', marginBottom: 10 }}>
-              Je bent uitgenodigd
+              {t('coaching.welkom.uitgelogdTitel')}
             </h1>
             <p className="mf-body" style={{ color: 'var(--text-3)', maxWidth: '38ch', margin: '0 auto 24px' }}>
-              Maak een account aan of log in om de koppeling met je coach af te ronden. Kom daarna
-              terug via de link in je e-mail om te bevestigen.
+              {t('coaching.welkom.uitgelogdTekst')}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -144,7 +144,7 @@ function WelkomInhoud() {
                 leftIcon={<UserPlus size={16} aria-hidden />}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                Account aanmaken
+                {t('coaching.welkom.accountAanmaken')}
               </Button>
               <Button
                 variant="secondary"
@@ -152,7 +152,7 @@ function WelkomInhoud() {
                 leftIcon={<LogIn size={16} aria-hidden />}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                Ik heb al een account
+                {t('coaching.welkom.alAccount')}
               </Button>
             </div>
 
@@ -167,10 +167,11 @@ function WelkomInhoud() {
 
 // ── Layout-frame: mesh-achtergrond + logo-header + gecentreerde inhoud ────────
 function WelkomFrame({ children }: { children: ReactNode }) {
+  const { t } = useVertaling()
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       <header style={{ padding: '22px 26px', position: 'relative', zIndex: 1 }}>
-        <Link href="/" aria-label="MentaForce home">
+        <Link href="/" aria-label={t('coaching.welkom.homeAria')}>
           <LogoFull iconSize={30} />
         </Link>
       </header>
@@ -200,14 +201,15 @@ function IconRing() {
 
 // ── Eerlijke privacy-kenmerken (echt: EU-gehost, AVG-conform, intrekbaar) ─────
 function PrivacyKenmerken() {
+  const { t } = useVertaling()
   return (
-    <ul aria-label="Privacy-waarborgen" style={{ listStyle: 'none', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, margin: '22px 0 0', padding: 0 }}>
+    <ul aria-label={t('coaching.welkom.privacyAria')} style={{ listStyle: 'none', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, margin: '22px 0 0', padding: 0 }}>
       {PRIVACY_KENMERKEN.map(kenmerk => (
         <li
           key={kenmerk}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: 'var(--text-3)', padding: '4px 10px', borderRadius: 100, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
         >
-          <ShieldCheck size={11} aria-hidden style={{ color: 'var(--mf-green)' }} /> {kenmerk}
+          <ShieldCheck size={11} aria-hidden style={{ color: 'var(--mf-green)' }} /> {t(`coaching.welkom.privacy.${kenmerk}`)}
         </li>
       ))}
     </ul>
@@ -216,8 +218,9 @@ function PrivacyKenmerken() {
 
 // ── Laad-skeleton (shimmer i.p.v. spinner), gedeeld met de Suspense-fallback ──
 function LaadInhoud() {
+  const { t } = useVertaling()
   return (
-    <div role="status" aria-label="Bezig met laden" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+    <div role="status" aria-label={t('coaching.algemeen.laden')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
       <div className="mf-skeleton" style={{ width: 60, height: 60, borderRadius: '50%' }} />
       <div className="mf-skeleton" style={{ width: '68%', height: 22, borderRadius: 8 }} />
       <div className="mf-skeleton" style={{ width: '100%', height: 48, borderRadius: 10 }} />
@@ -227,6 +230,7 @@ function LaadInhoud() {
 }
 
 function FoutBlok({ titel, tekst, onNaarHome }: { titel: string; tekst: string; onNaarHome: () => void }) {
+  const { t } = useVertaling()
   return (
     <div style={{ textAlign: 'center' }}>
       <span
@@ -246,7 +250,7 @@ function FoutBlok({ titel, tekst, onNaarHome }: { titel: string; tekst: string; 
         {tekst}
       </p>
       <Button variant="secondary" onClick={onNaarHome} style={{ width: '100%', justifyContent: 'center' }}>
-        Naar MentaForce
+        {t('coaching.welkom.naarMentaForce')}
       </Button>
     </div>
   )

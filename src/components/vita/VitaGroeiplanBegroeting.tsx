@@ -23,6 +23,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { EmotionState } from './PandaFace'
 import VitaBubbel from './VitaBubbel'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface VitaGroeiplanBegroetingProps {
   /** Aantal doelen in het plan. */
@@ -38,6 +39,7 @@ export default function VitaGroeiplanBegroeting({
   aantalActies,
   size = 52,
 }: VitaGroeiplanBegroetingProps) {
+  const { t } = useVertaling()
   // Lazy init zodat er geen ademhalings-frame gebeurt onder reduce. Op de server
   // is matchMedia niet beschikbaar → false; .mf-fade-in dekt fade/translate af.
   const [reduceMotion, setReduceMotion] = useState<boolean>(() => {
@@ -57,35 +59,22 @@ export default function VitaGroeiplanBegroeting({
   const heeftActies = aantalActies > 0
   const emotion: EmotionState = heeftActies ? 'motivated' : 'focused'
 
-  let boodschap: ReactNode
-  if (heeftActies) {
-    boodschap = (
-      <>
-        Dit is <strong style={{ fontWeight: 700 }}>jouw</strong> groeiplan — geen
-        vast document, maar iets dat we samen opbouwen. Ik stel het bij naarmate
-        ik je beter leer kennen. Beneden staan{' '}
-        {aantalActies === 1 ? 'een concrete actie' : `${aantalActies} concrete acties`}{' '}
-        om mee te beginnen. Geen druk: één stap tegelijk.
-      </>
-    )
-  } else if (aantalDoelen > 0) {
-    boodschap = (
-      <>
-        Dit is <strong style={{ fontWeight: 700 }}>jouw</strong> groeiplan — geen
-        vast document, maar iets dat we samen opbouwen. Ik stel het bij naarmate
-        ik je beter leer kennen. We zetten samen de koers uit; jij bepaalt het
-        tempo.
-      </>
-    )
-  } else {
-    boodschap = (
-      <>
-        Dit is <strong style={{ fontWeight: 700 }}>jouw</strong> groeiplan — geen
-        vast document, maar iets dat we samen opbouwen. Ik stel het bij naarmate
-        ik je beter leer kennen.
-      </>
-    )
-  }
+  // Vaste opening + een staart die past bij de omvang van het plan.
+  const staart = heeftActies
+    ? aantalActies === 1
+      ? t('vita.groeiplanBegroeting.actiesEen')
+      : t('vita.groeiplanBegroeting.actiesMeer', { aantal: aantalActies })
+    : aantalDoelen > 0
+      ? t('vita.groeiplanBegroeting.koers')
+      : ''
+  const boodschap: ReactNode = (
+    <>
+      {t('vita.groeiplanBegroeting.ditIsVoor')}
+      <strong style={{ fontWeight: 700 }}>{t('vita.groeiplanBegroeting.jouw')}</strong>
+      {t('vita.groeiplanBegroeting.ditIsNa')}
+      {staart}
+    </>
+  )
 
   return (
     <VitaBubbel emotion={emotion} animate={!reduceMotion} size={size}>

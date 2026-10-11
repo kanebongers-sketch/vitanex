@@ -26,6 +26,8 @@ import {
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { normaliseerPlan, PLAN_INFO } from '@/lib/plan/plan'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 
 const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'
@@ -55,12 +57,13 @@ type CheckinStat = {
 function StatKaart({ label, waarde, sub, kleur, icon: Icon }: {
   label: string; waarde: string | number; sub?: string; kleur: string; icon: LucideIcon
 }) {
+  const { t } = useVertaling()
   return (
     <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
       <div className="flex items-start justify-between mb-3">
         <Icon size={22} strokeWidth={2} style={{ color: kleur }} aria-hidden="true" />
         <span className="text-xs font-semibold px-2 py-1 rounded-full"
-          style={{ background: `color-mix(in srgb, ${kleur} 8%, transparent)`, color: kleur }}>Live</span>
+          style={{ background: `color-mix(in srgb, ${kleur} 8%, transparent)`, color: kleur }}>{t('werk.admin.live')}</span>
       </div>
       <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
@@ -91,8 +94,16 @@ function SectieKnop({ label, icon: Icon, actief, onClick }: {
   )
 }
 
+const BEKENDE_ROLLEN = new Set(['admin', 'hr', 'medewerker', 'manager'])
+const BEKENDE_PLANNEN = new Set(['starter', 'groei', 'enterprise'])
+
 export default function Admin() {
   const router = useRouter()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
+  const rolLabel = (rol: string) => (BEKENDE_ROLLEN.has(rol) ? t(`werk.rol.${rol}`) : rol)
+  const planLabel = (plan: string) => (BEKENDE_PLANNEN.has(plan) ? t(`werk.admin.plan.${plan}`) : plan)
+  const serverFout = (bericht: string | undefined) => (taal === 'nl' && bericht ? bericht : t('werk.algemeen.ietsMis'))
   const [sectie, setSectie] = useState<Sectie>('overzicht')
   const [bedrijven, setBedrijven] = useState<Bedrijf[]>([])
   const [profielen, setProfielen] = useState<Profiel[]>([])
@@ -146,9 +157,9 @@ export default function Admin() {
     setBezig(true)
     const { error } = await supabase.from('bedrijven').insert({ naam: nieuwBedrijf.trim(), plan: nieuwPlan })
     if (error) {
-      setMelding({ type: 'error', tekst: `Fout: ${error.message}` })
+      setMelding({ type: 'error', tekst: t('werk.admin.foutMet', { fout: serverFout(error.message) }) })
     } else {
-      setMelding({ type: 'success', tekst: `Bedrijf "${nieuwBedrijf}" aangemaakt.` })
+      setMelding({ type: 'success', tekst: t('werk.admin.bedrijfAangemaakt', { naam: nieuwBedrijf }) })
       setNieuwBedrijf('')
     }
     await laadAlles()
@@ -166,12 +177,12 @@ export default function Admin() {
       email_confirm: true,
     })
     if (error || !data.user) {
-      setMelding({ type: 'error', tekst: `Fout: ${error?.message}` })
+      setMelding({ type: 'error', tekst: t('werk.admin.foutMet', { fout: serverFout(error?.message) }) })
       setBezig(false)
       return
     }
     await supabase.from('profiles').upsert({ id: data.user.id, naam: hrForm.email, bedrijf_id: hrForm.bedrijf_id, rol: 'hr' })
-    setMelding({ type: 'success', tekst: `HR-account aangemaakt voor ${hrForm.email}` })
+    setMelding({ type: 'success', tekst: t('werk.admin.hrAangemaakt', { email: hrForm.email }) })
     setHrForm({ email: '', bedrijf_id: '', wachtwoord: '' })
     await laadAlles()
     setBezig(false)
@@ -253,9 +264,9 @@ export default function Admin() {
         <div className="px-4 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
             style={{ background: 'var(--mf-purple)', color: 'var(--bg-app)' }}>A</div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>Admin Portaal</p>
-          <span className="text-xs" style={{ color: 'var(--text-3)' }}>—</span>
-          <p className="text-xs" style={{ color: 'var(--text-3)' }}>MentaForce platform beheer</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t('werk.admin.portaal')}</p>
+          <span className="text-xs" style={{ color: 'var(--text-3)' }}>·</span>
+          <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.platformBeheer')}</p>
         </div>
       </div>
 
@@ -268,17 +279,17 @@ export default function Admin() {
               <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
                 style={{ background: 'var(--mf-purple)', color: 'var(--bg-app)' }}>A</div>
               <div>
-                <p className="text-xs font-bold" style={{ color: 'var(--text-1)' }}>Admin</p>
-                <p className="text-xs" style={{ color: 'var(--text-3)' }}>MentaForce Staff</p>
+                <p className="text-xs font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.admin')}</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.staff')}</p>
               </div>
             </div>
             {([
-              ['overzicht', 'Overzicht', Home],
-              ['financieel', 'Financieel', Wallet],
-              ['bedrijven', 'Bedrijven', Building2],
-              ['gebruikers', 'Gebruikers', Users],
-              ['platform', 'Platform', BarChart3],
-              ['beheer', 'Beheer', Settings],
+              ['overzicht', t('werk.admin.sectie.overzicht'), Home],
+              ['financieel', t('werk.admin.sectie.financieel'), Wallet],
+              ['bedrijven', t('werk.admin.sectie.bedrijven'), Building2],
+              ['gebruikers', t('werk.admin.sectie.gebruikers'), Users],
+              ['platform', t('werk.admin.sectie.platform'), BarChart3],
+              ['beheer', t('werk.admin.sectie.beheer'), Settings],
             ] as [Sectie, string, LucideIcon][]).map(([id, label, icon]) => (
               <SectieKnop key={id} id={id} label={label} icon={icon}
                 actief={sectie === id} onClick={() => setSectie(id)} />
@@ -286,19 +297,19 @@ export default function Admin() {
             {/* Rol-switcher */}
             <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold px-2 mb-2 uppercase tracking-widest" style={{ color: 'var(--text-3)' }}>
-                Bekijken als
+                {t('werk.admin.bekijkenAls')}
               </p>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
                   style={{ background: 'var(--mf-purple-light)', color: 'var(--mf-purple)' }}>
-                  <Shield size={14} strokeWidth={2} aria-hidden="true" /> Admin (huidig)
+                  <Shield size={14} strokeWidth={2} aria-hidden="true" /> {t('werk.admin.adminHuidig')}
                 </div>
                 <button
                   onClick={() => schakelNaarRol('hr')}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition w-full text-left mf-rol-knop-hr"
                   style={{ color: 'var(--text-3)' }}
                 >
-                  <Briefcase size={14} strokeWidth={2} aria-hidden="true" /> HR-manager
+                  <Briefcase size={14} strokeWidth={2} aria-hidden="true" /> {t('werk.admin.hrManager')}
                   <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                     <path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -308,7 +319,7 @@ export default function Admin() {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition w-full text-left mf-rol-knop-mwd"
                   style={{ color: 'var(--text-3)' }}
                 >
-                  <User size={14} strokeWidth={2} aria-hidden="true" /> Medewerker
+                  <User size={14} strokeWidth={2} aria-hidden="true" /> {t('werk.admin.medewerker')}
                   <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                     <path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -322,7 +333,7 @@ export default function Admin() {
                 className="flex items-center gap-2.5 px-3 py-2 rounded-xl w-full text-left text-xs transition mf-setup-link"
                 style={{ color: 'var(--text-3)' }}
               >
-                <Wrench size={14} strokeWidth={2} aria-hidden="true" /> Setup & migraties
+                <Wrench size={14} strokeWidth={2} aria-hidden="true" /> {t('werk.admin.setup')}
               </a>
             </div>
           </div>
@@ -351,10 +362,10 @@ export default function Admin() {
           {sectie === 'overzicht' && (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Admin dashboard</h1>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.dashboard')}</h1>
                 <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
-                  Overzicht van alle activiteit op het MentaForce platform.
-                  {' '}<span style={{ color: 'var(--text-4)' }}>Bijgewerkt: {new Date().toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}</span>
+                  {t('werk.admin.dashboardIntro')}
+                  {' '}<span style={{ color: 'var(--text-4)' }}>{t('werk.admin.bijgewerkt', { tijd: new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</span>
                 </p>
               </div>
 
@@ -366,23 +377,23 @@ export default function Admin() {
                 <>
                   {/* KPI grid */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <StatKaart icon={Building2} label="Bedrijven" waarde={totaalBedrijven}
-                      sub={`+${nieuweBedrijven30d} deze maand`} kleur="var(--mf-green)" />
-                    <StatKaart icon={Users} label="Gebruikers" waarde={totaalGebruikers}
-                      sub={`${totaalMedewerkers} mwd / ${totaalHR} HR`} kleur="var(--mf-blue)" />
-                    <StatKaart icon={CheckCircle2} label="Check-ins (7d)" waarde={checkinsDezeWeek}
-                      sub={`${checkinsDezeWeekUniek} unieke gebruikers`} kleur="var(--mf-purple)" />
-                    <StatKaart icon={Wallet} label="MRR (schatting)" waarde={`€ ${totalMRR.toLocaleString('nl-BE')}`}
-                      sub={`ARR: € ${totalARR.toLocaleString('nl-BE')}`} kleur="var(--mf-amber)" />
+                    <StatKaart icon={Building2} label={t('werk.admin.bedrijven')} waarde={totaalBedrijven}
+                      sub={t('werk.admin.dezeMaand', { aantal: nieuweBedrijven30d })} kleur="var(--mf-green)" />
+                    <StatKaart icon={Users} label={t('werk.admin.gebruikers')} waarde={totaalGebruikers}
+                      sub={t('werk.admin.verdeling', { medewerkers: totaalMedewerkers, hr: totaalHR })} kleur="var(--mf-blue)" />
+                    <StatKaart icon={CheckCircle2} label={t('werk.admin.checkins7')} waarde={checkinsDezeWeek}
+                      sub={t('werk.admin.uniek', { aantal: checkinsDezeWeekUniek })} kleur="var(--mf-purple)" />
+                    <StatKaart icon={Wallet} label={t('werk.admin.mrrSchatting')} waarde={t('werk.admin.euro', { bedrag: totalMRR.toLocaleString(locale) })}
+                      sub={t('werk.admin.arr', { bedrag: totalARR.toLocaleString(locale) })} kleur="var(--mf-amber)" />
                   </div>
 
                   {/* Top bedrijven tabel */}
                   <div className="rounded-2xl border mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Meest actieve bedrijven</h2>
+                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.meestActief')}</h2>
                       <button onClick={() => setSectie('bedrijven')}
                         className="text-xs font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
-                        Alles bekijken
+                        {t('werk.admin.allesBekijken')}
                       </button>
                     </div>
                     <div>
@@ -398,24 +409,24 @@ export default function Admin() {
                               <span className="text-sm font-bold w-5" style={{ color: 'var(--text-3)' }}>{i + 1}</span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{b.naam}</p>
-                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{mwd} medewerkers</p>
+                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.medewerkersAantal', { aantal: mwd })}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>{ci} check-ins</p>
-                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>€ {mrr}/mnd</p>
+                                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>{t('werk.admin.checkinsAantal', { aantal: ci })}</p>
+                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.perMaand', { bedrag: mrr })}</p>
                               </div>
                               <span className="text-xs font-semibold px-2 py-1 rounded-full capitalize"
                                 style={{
                                   background: b.plan === 'enterprise' ? 'var(--mf-purple-light)' : b.plan === 'groei' ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
                                   color: b.plan === 'enterprise' ? 'var(--mf-purple)' : b.plan === 'groei' ? 'var(--mf-green-dark)' : 'var(--text-2)',
                                 }}>
-                                {b.plan ?? 'groei'}
+                                {planLabel(b.plan ?? 'groei')}
                               </span>
                             </div>
                           )
                         })}
                       {bedrijven.length === 0 && (
-                        <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--text-3)' }}>Nog geen bedrijven.</div>
+                        <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.admin.nogGeenBedrijven')}</div>
                       )}
                     </div>
                   </div>
@@ -423,10 +434,10 @@ export default function Admin() {
                   {/* Recente gebruikers */}
                   <div className="rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Recente gebruikers</h2>
+                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.recenteGebruikers')}</h2>
                       <button onClick={() => setSectie('gebruikers')}
                         className="text-xs font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
-                        Alles bekijken
+                        {t('werk.admin.allesBekijken')}
                       </button>
                     </div>
                     <div>
@@ -442,15 +453,15 @@ export default function Admin() {
                               {(p.naam || '?')[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{p.naam || 'Onbekend'}</p>
-                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>{bedrijf?.naam ?? 'Geen bedrijf'}</p>
+                              <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{p.naam || t('werk.admin.onbekend')}</p>
+                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>{bedrijf?.naam ?? t('werk.admin.geenBedrijf')}</p>
                             </div>
                             <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
                               style={{
                                 background: p.rol === 'hr' ? 'var(--mf-green-light)' : p.rol === 'admin' ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
                                 color: p.rol === 'hr' ? 'var(--mf-green-dark)' : p.rol === 'admin' ? 'var(--mf-purple)' : 'var(--mf-blue)',
                               }}>
-                              {p.rol}
+                              {rolLabel(p.rol)}
                             </span>
                           </div>
                         )
@@ -466,8 +477,8 @@ export default function Admin() {
           {sectie === 'financieel' && (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Financieel overzicht</h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Geschatte inkomsten op basis van huidig aantal medewerkers per plan.</p>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.financieelTitel')}</h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.admin.financieelIntro')}</p>
               </div>
 
               {laden ? (
@@ -477,22 +488,22 @@ export default function Admin() {
               ) : (
                 <>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <StatKaart icon={TrendingUp} label="MRR" waarde={`€ ${totalMRR.toLocaleString('nl-BE')}`}
-                      sub="Maandelijkse inkomsten" kleur="var(--mf-green)" />
-                    <StatKaart icon={Target} label="ARR" waarde={`€ ${totalARR.toLocaleString('nl-BE')}`}
-                      sub="Jaarlijkse inkomsten" kleur="var(--mf-blue)" />
-                    <StatKaart icon={User} label="ARPU" waarde={`€ ${totaalMedewerkers > 0 ? (totalMRR / totaalMedewerkers).toFixed(2) : '0'}`}
-                      sub="Per medewerker per mnd" kleur="var(--mf-purple)" />
-                    <StatKaart icon={Building2} label="ARPC" waarde={`€ ${totaalBedrijven > 0 ? Math.round(totalMRR / totaalBedrijven) : 0}`}
-                      sub="Per bedrijf per mnd" kleur="var(--mf-amber)" />
+                    <StatKaart icon={TrendingUp} label={t('werk.admin.mrr')} waarde={t('werk.admin.euro', { bedrag: totalMRR.toLocaleString(locale) })}
+                      sub={t('werk.admin.maandInkomsten')} kleur="var(--mf-green)" />
+                    <StatKaart icon={Target} label={t('werk.admin.arrLabel')} waarde={t('werk.admin.euro', { bedrag: totalARR.toLocaleString(locale) })}
+                      sub={t('werk.admin.jaarInkomsten')} kleur="var(--mf-blue)" />
+                    <StatKaart icon={User} label={t('werk.admin.arpu')} waarde={t('werk.admin.euro', { bedrag: totaalMedewerkers > 0 ? (totalMRR / totaalMedewerkers).toFixed(2) : '0' })}
+                      sub={t('werk.admin.perMedewerker')} kleur="var(--mf-purple)" />
+                    <StatKaart icon={Building2} label={t('werk.admin.arpc')} waarde={t('werk.admin.euro', { bedrag: totaalBedrijven > 0 ? Math.round(totalMRR / totaalBedrijven) : 0 })}
+                      sub={t('werk.admin.perBedrijf')} kleur="var(--mf-amber)" />
                   </div>
 
                   {/* Plan verdeling */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                     {[
-                      { plan: 'starter', naam: 'Starter', prijs: 4, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)' },
-                      { plan: 'groei', naam: 'Groei', prijs: 7, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
-                      { plan: 'enterprise', naam: 'Enterprise', prijs: 15, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
+                      { plan: 'starter', naam: t('werk.admin.plan.starter'), prijs: 4, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)' },
+                      { plan: 'groei', naam: t('werk.admin.plan.groei'), prijs: 7, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                      { plan: 'enterprise', naam: t('werk.admin.plan.enterprise'), prijs: 15, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
                     ].map(plan => {
                       const aantalBedrijven = planVerdeling[plan.plan] ?? 0
                       const aantalMwd = bedrijven
@@ -504,25 +515,25 @@ export default function Admin() {
                           <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold px-3 py-1 rounded-full"
                               style={{ background: plan.bg, color: plan.kleur }}>{plan.naam}</span>
-                            <span className="text-xs" style={{ color: 'var(--text-3)' }}>€ {plan.prijs}/pp/mnd</span>
+                            <span className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.ppMaand', { prijs: plan.prijs })}</span>
                           </div>
                           <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
                             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
                               <div style={{ width: 90, height: 90, borderRadius: '50%', background: `radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)` }} />
                             </div>
                             <p className="text-3xl font-black" style={{ color: plan.kleur, position: 'relative', zIndex: 1 }}>
-                              € {mrr.toLocaleString('nl-BE')}
+                              {t('werk.admin.euro', { bedrag: mrr.toLocaleString(locale) })}
                             </p>
                           </div>
-                          <p className="text-xs" style={{ color: 'var(--text-3)' }}>MRR</p>
+                          <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.mrr')}</p>
                           <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3" style={{ borderColor: 'var(--border)' }}>
                             <div>
                               <p className="text-lg font-bold" style={{ color: 'var(--text-1)' }}>{aantalBedrijven}</p>
-                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>bedrijven</p>
+                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.bedrijvenKlein')}</p>
                             </div>
                             <div>
                               <p className="text-lg font-bold" style={{ color: 'var(--text-1)' }}>{aantalMwd}</p>
-                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>medewerkers</p>
+                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.medewerkersKlein')}</p>
                             </div>
                           </div>
                         </div>
@@ -533,7 +544,7 @@ export default function Admin() {
                   {/* Inkomsten per bedrijf */}
                   <div className="rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Inkomsten per bedrijf</h2>
+                      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.inkomstenPerBedrijf')}</h2>
                     </div>
                     <div>
                       {[...bedrijven]
@@ -547,17 +558,17 @@ export default function Admin() {
                             <div key={b.id} className="px-5 py-3.5 flex items-center gap-4 not-first:border-t" style={{ borderColor: 'var(--border)' }}>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{b.naam}</p>
-                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{mwd} medewerkers · {plan}</p>
+                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.medewerkersPlan', { aantal: mwd, plan: planLabel(plan) })}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-sm font-bold" style={{ color: 'var(--mf-green)' }}>€ {mrr}/mnd</p>
-                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>€ {arr.toLocaleString('nl-BE')}/jaar</p>
+                                <p className="text-sm font-bold" style={{ color: 'var(--mf-green)' }}>{t('werk.admin.perMaand', { bedrag: mrr })}</p>
+                                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.perJaar', { bedrag: arr.toLocaleString(locale) })}</p>
                               </div>
                             </div>
                           )
                         })}
                       {bedrijven.length === 0 && (
-                        <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--text-3)' }}>Geen data beschikbaar.</div>
+                        <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.admin.geenData')}</div>
                       )}
                     </div>
                   </div>
@@ -571,15 +582,15 @@ export default function Admin() {
             <>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Bedrijven</h1>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{bedrijven.length} bedrijven actief op het platform.</p>
+                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.bedrijven')}</h1>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.admin.bedrijvenActief', { aantal: bedrijven.length })}</p>
                 </div>
               </div>
 
               <div className="rounded-2xl border mb-5 p-4 flex gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <input
                   type="text"
-                  placeholder="Zoek op bedrijfsnaam..."
+                  placeholder={t('werk.admin.zoekBedrijf')}
                   value={zoekterm}
                   onChange={e => setZoekterm(e.target.value)}
                   className="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
@@ -594,7 +605,7 @@ export default function Admin() {
                       <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
                     </div>
                   ) : gefilterdeBedrijven.length === 0 ? (
-                    <div className="py-12 text-center text-sm" style={{ color: 'var(--text-3)' }}>Geen resultaten gevonden.</div>
+                    <div className="py-12 text-center text-sm" style={{ color: 'var(--text-3)' }}>{t('werk.admin.geenResultaten')}</div>
                   ) : gefilterdeBedrijven.map(b => {
                     const hrAantal = aantalPerBedrijf(b.id, 'hr')
                     const mwdAantal = aantalPerBedrijf(b.id, 'medewerker')
@@ -617,19 +628,19 @@ export default function Admin() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{b.naam}</p>
                             <p className="text-xs" style={{ color: 'var(--text-3)' }}>
-                              {mwdAantal} medewerkers · {hrAantal} HR · Aangemaakt {new Date(b.aangemaakt_op).toLocaleDateString('nl-BE')}
+                              {t('werk.admin.bedrijfRegel', { medewerkers: mwdAantal, hr: hrAantal, datum: new Date(b.aangemaakt_op).toLocaleDateString(locale) })}
                             </p>
                           </div>
                           <div className="text-right hidden sm:block">
-                            <p className="text-sm font-semibold" style={{ color: 'var(--mf-green)' }}>€ {mrr}/mnd</p>
-                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>{ci} check-ins</p>
+                            <p className="text-sm font-semibold" style={{ color: 'var(--mf-green)' }}>{t('werk.admin.perMaand', { bedrag: mrr })}</p>
+                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.checkinsAantal', { aantal: ci })}</p>
                           </div>
                           <span className="text-xs font-semibold px-2 py-1 rounded-full capitalize ml-2"
                             style={{
                               background: plan === 'enterprise' ? 'var(--mf-purple-light)' : plan === 'groei' ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
                               color: plan === 'enterprise' ? 'var(--mf-purple)' : plan === 'groei' ? 'var(--mf-green-dark)' : 'var(--text-2)',
                             }}>
-                            {plan}
+                            {planLabel(plan)}
                           </span>
                           <span className="ml-2" style={{ color: 'var(--text-3)' }}>{isOpen ? '↑' : '↓'}</span>
                         </button>
@@ -638,9 +649,9 @@ export default function Admin() {
                           <div className="px-5 pb-4 pt-1 border-t" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border)' }}>
                             <div className="grid grid-cols-3 gap-3 mb-4">
                               {[
-                                { label: 'Medewerkers', waarde: mwdAantal, kleur: 'var(--mf-blue)' },
-                                { label: 'HR-accounts', waarde: hrAantal, kleur: 'var(--mf-green)' },
-                                { label: 'Totaal check-ins', waarde: ci, kleur: 'var(--mf-purple)' },
+                                { label: t('werk.admin.medewerkers'), waarde: mwdAantal, kleur: 'var(--mf-blue)' },
+                                { label: t('werk.admin.hrAccounts'), waarde: hrAantal, kleur: 'var(--mf-green)' },
+                                { label: t('werk.admin.totaalCheckins'), waarde: ci, kleur: 'var(--mf-purple)' },
                               ].map(s => (
                                 <div key={s.label} className="rounded-xl p-3 border text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                                   <p className="text-xl font-bold" style={{ color: s.kleur }}>{s.waarde}</p>
@@ -648,9 +659,9 @@ export default function Admin() {
                                 </div>
                               ))}
                             </div>
-                            <p className="text-xs font-semibold mb-2 uppercase tracking-widest" style={{ color: 'var(--text-3)' }}>HR-accounts</p>
+                            <p className="text-xs font-semibold mb-2 uppercase tracking-widest" style={{ color: 'var(--text-3)' }}>{t('werk.admin.hrAccounts')}</p>
                             {hrLeden.length === 0 ? (
-                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>Geen HR-accounts gekoppeld.</p>
+                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.geenHr')}</p>
                             ) : hrLeden.map(p => (
                               <div key={p.id} className="flex items-center gap-2 py-1">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
@@ -660,7 +671,7 @@ export default function Admin() {
                                 <span className="text-xs" style={{ color: 'var(--text-2)' }}>{p.naam}</span>
                               </div>
                             ))}
-                            <p className="text-xs mt-3" style={{ color: 'var(--text-4)' }}>ID: {b.id}</p>
+                            <p className="text-xs mt-3" style={{ color: 'var(--text-4)' }}>{t('werk.admin.id', { id: b.id })}</p>
                           </div>
                         )}
                       </div>
@@ -675,29 +686,29 @@ export default function Admin() {
           {sectie === 'gebruikers' && (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Gebruikers</h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{totaalGebruikers} gebruikers totaal.</p>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.gebruikers')}</h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.admin.gebruikersTotaal', { aantal: totaalGebruikers })}</p>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-5">
                 <div className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-3xl font-black mb-1" style={{ color: 'var(--text-1)' }}>{totaalGebruikers}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>Totaal</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.totaal')}</p>
                 </div>
                 <div className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-3xl font-black mb-1" style={{ color: 'var(--mf-green)' }}>{totaalMedewerkers}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>Medewerkers</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.medewerkers')}</p>
                 </div>
                 <div className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-3xl font-black mb-1" style={{ color: 'var(--mf-blue)' }}>{totaalHR}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>HR-accounts</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>{t('werk.admin.hrAccounts')}</p>
                 </div>
               </div>
 
               <div className="rounded-2xl border mb-4 p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <input
                   type="text"
-                  placeholder="Zoek op naam..."
+                  placeholder={t('werk.admin.zoekNaam')}
                   value={zoekterm}
                   onChange={e => setZoekterm(e.target.value)}
                   className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
@@ -724,16 +735,16 @@ export default function Admin() {
                           {(p.naam || '?')[0].toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{p.naam || 'Naamloos'}</p>
-                          <p className="text-xs truncate" style={{ color: 'var(--text-3)' }}>{bedrijf?.naam ?? 'Geen bedrijf'}</p>
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{p.naam || t('werk.admin.naamloos')}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--text-3)' }}>{bedrijf?.naam ?? t('werk.admin.geenBedrijf')}</p>
                         </div>
-                        <p className="text-xs hidden sm:block" style={{ color: 'var(--text-3)' }}>{userCheckins} check-ins</p>
+                        <p className="text-xs hidden sm:block" style={{ color: 'var(--text-3)' }}>{t('werk.admin.checkinsAantal', { aantal: userCheckins })}</p>
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize ml-2"
                           style={{
                             background: p.rol === 'hr' ? 'var(--mf-green-light)' : p.rol === 'admin' ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
                             color: p.rol === 'hr' ? 'var(--mf-green-dark)' : p.rol === 'admin' ? 'var(--mf-purple)' : 'var(--mf-blue)',
                           }}>
-                          {p.rol}
+                          {rolLabel(p.rol)}
                         </span>
                       </div>
                     )
@@ -748,30 +759,30 @@ export default function Admin() {
             <>
               <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Platform statistieken</h1>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Activiteit en gezondheid van het platform.</p>
+                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.platformTitel')}</h1>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.admin.platformIntro')}</p>
                 </div>
                 <Link href="/admin/metrics" style={{
                   fontSize: 13, color: 'var(--mentaforce-primary)', textDecoration: 'none',
                   border: '1px solid var(--border)', borderRadius: 'var(--radius-btn)', padding: '8px 14px',
                 }}>
-                  Retentie & events →
+                  {t('werk.admin.retentie')}
                 </Link>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <StatKaart icon={CheckCircle2} label="Totaal check-ins" waarde={checkins.length}
-                  sub="Alle tijden" kleur="var(--mf-green)" />
-                <StatKaart icon={Calendar} label="Check-ins (7d)" waarde={checkinsDezeWeek}
-                  sub={`${checkinsDezeWeekUniek} gebruikers`} kleur="var(--mf-blue)" />
-                <StatKaart icon={BarChart3} label="Gem. per bedrijf" waarde={totaalBedrijven > 0 ? Math.round(checkins.length / totaalBedrijven) : 0}
-                  sub="Check-ins totaal" kleur="var(--mf-purple)" />
+                <StatKaart icon={CheckCircle2} label={t('werk.admin.totaalCheckins')} waarde={checkins.length}
+                  sub={t('werk.admin.alleTijden')} kleur="var(--mf-green)" />
+                <StatKaart icon={Calendar} label={t('werk.admin.checkins7')} waarde={checkinsDezeWeek}
+                  sub={t('werk.admin.gebruikersAantal', { aantal: checkinsDezeWeekUniek })} kleur="var(--mf-blue)" />
+                <StatKaart icon={BarChart3} label={t('werk.admin.gemPerBedrijf')} waarde={totaalBedrijven > 0 ? Math.round(checkins.length / totaalBedrijven) : 0}
+                  sub={t('werk.admin.checkinsTotaal')} kleur="var(--mf-purple)" />
               </div>
 
               {/* Check-in activiteit per bedrijf */}
               <div className="rounded-2xl border mb-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                  <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Participatiegraad per bedrijf (7 dagen)</h2>
+                  <h2 className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.participatie')}</h2>
                 </div>
                 <div className="p-5 flex flex-col gap-3">
                   {bedrijven.map(b => {
@@ -798,11 +809,11 @@ export default function Admin() {
                               background: pct >= 70 ? 'var(--mf-green)' : pct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)',
                             }} />
                         </div>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>{actiefDezeWeek.size}/{medewerkers.length} medewerkers actief</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>{t('werk.admin.actiefTelling', { actief: actiefDezeWeek.size, totaal: medewerkers.length })}</p>
                       </div>
                     )
                   })}
-                  {bedrijven.length === 0 && <p className="text-sm text-center py-4" style={{ color: 'var(--text-3)' }}>Geen data.</p>}
+                  {bedrijven.length === 0 && <p className="text-sm text-center py-4" style={{ color: 'var(--text-3)' }}>{t('werk.admin.geenDataKort')}</p>}
                 </div>
               </div>
             </>
@@ -812,18 +823,18 @@ export default function Admin() {
           {sectie === 'beheer' && (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Beheer</h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Bedrijven aanmaken en HR-accounts instellen.</p>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{t('werk.admin.beheerTitel')}</h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{t('werk.admin.beheerIntro')}</p>
               </div>
 
               {/* Nieuw bedrijf */}
               <div className="rounded-2xl border p-6 mb-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nieuw bedrijf aanmaken</h2>
-                <p className="text-xs mb-4" style={{ color: 'var(--text-3)' }}>Maak een nieuw klantbedrijf aan op het platform.</p>
+                <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('werk.admin.nieuwBedrijf')}</h2>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-3)' }}>{t('werk.admin.nieuwBedrijfIntro')}</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
-                    placeholder="Bedrijfsnaam"
+                    placeholder={t('werk.admin.bedrijfsnaam')}
                     value={nieuwBedrijf}
                     onChange={e => setNieuwBedrijf(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && maakBedrijfAan()}
@@ -836,25 +847,25 @@ export default function Admin() {
                     className="border rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
                     style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border)', color: 'var(--text-1)' }}
                   >
-                    <option value="starter">Starter (€4/pp)</option>
-                    <option value="groei">Groei (€7/pp)</option>
-                    <option value="enterprise">Enterprise</option>
+                    <option value="starter">{t('werk.admin.optieStarter')}</option>
+                    <option value="groei">{t('werk.admin.optieGroei')}</option>
+                    <option value="enterprise">{t('werk.admin.optieEnterprise')}</option>
                   </select>
                   <button
                     onClick={maakBedrijfAan}
                     disabled={bezig || !nieuwBedrijf.trim()}
                     className="rounded-xl px-6 py-3 text-sm font-semibold transition disabled:opacity-30"
                     style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>
-                    {bezig ? 'Bezig...' : 'Aanmaken'}
+                    {bezig ? t('werk.admin.bezig') : t('werk.admin.aanmaken')}
                   </button>
                 </div>
               </div>
 
               {/* HR-account aanmaken */}
               <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>HR-account aanmaken</h2>
+                <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{t('werk.admin.hrAanmaken')}</h2>
                 <p className="text-xs mb-4" style={{ color: 'var(--text-3)' }}>
-                  Maak een HR-account aan voor een bestaand bedrijf. Het account is direct actief.
+                  {t('werk.admin.hrAanmakenIntro')}
                 </p>
                 <div className="flex flex-col gap-3">
                   <select
@@ -863,12 +874,12 @@ export default function Admin() {
                     className="border rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
                     style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border)', color: 'var(--text-1)' }}
                   >
-                    <option value="">Kies een bedrijf</option>
+                    <option value="">{t('werk.admin.kiesBedrijf')}</option>
                     {bedrijven.map(b => <option key={b.id} value={b.id}>{b.naam}</option>)}
                   </select>
                   <input
                     type="email"
-                    placeholder="E-mailadres HR-manager"
+                    placeholder={t('werk.admin.emailHr')}
                     value={hrForm.email}
                     onChange={e => setHrForm(prev => ({ ...prev, email: e.target.value }))}
                     className="border rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
@@ -876,7 +887,7 @@ export default function Admin() {
                   />
                   <input
                     type="password"
-                    placeholder="Tijdelijk wachtwoord"
+                    placeholder={t('werk.admin.tijdelijkWachtwoord')}
                     value={hrForm.wachtwoord}
                     onChange={e => setHrForm(prev => ({ ...prev, wachtwoord: e.target.value }))}
                     className="border rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--mentaforce-primary)]"
@@ -887,7 +898,7 @@ export default function Admin() {
                     disabled={bezig || !hrForm.email || !hrForm.bedrijf_id || !hrForm.wachtwoord}
                     className="rounded-xl py-3 text-sm font-semibold transition disabled:opacity-30"
                     style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>
-                    {bezig ? 'Bezig...' : 'HR-account aanmaken'}
+                    {bezig ? t('werk.admin.bezig') : t('werk.admin.hrAanmaken')}
                   </button>
                 </div>
               </div>

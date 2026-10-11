@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { huidigeTaalset } from '@/lib/i18n/server'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,9 +13,10 @@ const supabaseAdmin = createClient(
 )
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const DOMEIN_LABELS: Record<string, string> = {
-  slaap_kwaliteit: 'Slaap', energie_niveau: 'Energie', stress_niveau: 'Stress',
-  focus_concentratie: 'Focus', balans_werk_prive: 'Balans', motivatie_werk: 'Motivatie',
+// Vraagcode → label-sleutel in het woordenboek (vita.aiCoach.domein.*).
+const DOMEIN_SLEUTELS: Record<string, string> = {
+  slaap_kwaliteit: 'slaap', energie_niveau: 'energie', stress_niveau: 'stress',
+  focus_concentratie: 'focus', balans_werk_prive: 'balans', motivatie_werk: 'motivatie',
 }
 
 export async function GET(request: Request) {
@@ -24,12 +27,18 @@ export async function GET(request: Request) {
   if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const vandaag = new Date().toISOString().split('T')[0]
+  const ts = await huidigeTaalset()
+  const DOMEIN_LABELS: Record<string, string> = Object.fromEntries(
+    Object.entries(DOMEIN_SLEUTELS).map(([code, sleutel]) => [code, ts.t(`vita.aiCoach.domein.${sleutel}`)]),
+  )
 
   const { data: cached } = await supabaseAdmin.from('checkin_analyses')
     .select('analyse_json').eq('user_id', user.id).gte('aangemaakt_op', `${vandaag}T00:00:00Z`)
     .not('analyse_json->checkin_trend', 'is', null).order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
   const cacheData = cached?.analyse_json as Record<string, unknown> | null
-  if (cacheData?.checkin_trend) return NextResponse.json(cacheData.checkin_trend)
+  // Cache geldt alleen voor dezelfde taal (zonder taal = van voor de meertaligheid: nl).
+  const cacheTaal = (cacheData?.checkin_trend as { taal?: string } | undefined)?.taal ?? 'nl'
+  if (cacheData?.checkin_trend && cacheTaal === ts.taal) return NextResponse.json(cacheData.checkin_trend)
 
   const { data: checkins } = await supabaseAdmin.from('checkin_analyses')
     .select('scores, aangemaakt_op').eq('user_id', user.id)
@@ -37,7 +46,7 @@ export async function GET(request: Request) {
 
   if (!checkins || checkins.length < 2) {
     return NextResponse.json({
-      trend_bericht: 'Doe minimaal 2 check-ins om je welzijnstrend te zien.',
+      trend_bericht: ts.t('vita.aiCoach.trendTeWeinig'),
       positieve_trends: [], aandachtspunten: [], acties: [], heeft_data: false,
     })
   }
@@ -70,7 +79,9 @@ Geef PRECIES:
 1. Een persoonlijk trend-bericht (2 zinnen, warm en empathisch)
 2. Maximaal 2 concrete actietips
 
-Formatteer als JSON zonder markdown:
+${aiTaalInstructie(ts.taal)}
+
+Formatteer als JSON zonder markdown (sleutels blijven zoals hieronder):
 {"trend_bericht": "...", "acties": ["tip 1", "tip 2"]}`
 
   const message = await anthropic.messages.create({
@@ -88,7 +99,7 @@ Formatteer als JSON zonder markdown:
   const resultaat = {
     trend_bericht: aiResponse.trend_bericht, acties: aiResponse.acties || [],
     positieve_trends: verbeterd, aandachtspunten: verslechterd,
-    aantalCheckins: checkins.length, heeft_data: true,
+    aantalCheckins: checkins.length, heeft_data: true, taal: ts.taal,
   }
 
   const { data: existingAnalyse } = await supabaseAdmin.from('checkin_analyses')

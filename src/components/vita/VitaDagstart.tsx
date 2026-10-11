@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
 import { getTimeOfDay, emotionFromScore, type TimeOfDay } from '@/lib/vita/emotion-engine'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+
+type Vertaal = (sleutel: string, params?: Record<string, string | number>) => string
 
 /**
  * VitaDagstart — Vita's warme, tijdsbewuste presence bovenaan de home.
@@ -60,11 +63,11 @@ interface Boodschap {
 }
 
 /** Tijdsbewuste groet, consistent met de rest van de app. */
-function groetVoor(tod: TimeOfDay): string {
-  if (tod === 'morning') return 'Goedemorgen'
-  if (tod === 'afternoon') return 'Goedemiddag'
-  if (tod === 'evening') return 'Goedenavond'
-  return 'Goedenacht'
+function groetVoor(tod: TimeOfDay, t: Vertaal): string {
+  if (tod === 'morning') return t('vita.dagstart.goedemorgen')
+  if (tod === 'afternoon') return t('vita.dagstart.goedemiddag')
+  if (tod === 'evening') return t('vita.dagstart.goedenavond')
+  return t('vita.dagstart.goedenacht')
 }
 
 /**
@@ -75,30 +78,31 @@ function groetVoor(tod: TimeOfDay): string {
 function bouwBoodschap(
   tod: TimeOfDay,
   props: Pick<VitaDagstartProps, 'readiness' | 'gedaanCount' | 'totaal' | 'streak' | 'reflectieGedaan'>,
+  t: Vertaal,
 ): Boodschap {
   const { readiness, gedaanCount, totaal, streak, reflectieGedaan } = props
-  const groet = groetVoor(tod)
+  const groet = groetVoor(tod, t)
   const scoreEmotie: EmotionState = readiness !== null ? emotionFromScore(readiness) : 'curious'
   const allesGedaan = totaal > 0 && gedaanCount === totaal
 
-  const checkinSuggestie: Suggestie = { href: '/checkin', label: 'Start je check-in' }
-  const reflectieSuggestie: Suggestie = { href: '/reflectie', label: 'Sluit je dag af' }
-  const dankbaarheidSuggestie: Suggestie = { href: '/dankbaarheid', label: 'Noteer één dankbaarheid' }
-  const stemmingSuggestie: Suggestie = { href: '/stemming', label: 'Log je stemming' }
+  const checkinSuggestie: Suggestie = { href: '/checkin', label: t('vita.dagstart.startCheckin') }
+  const reflectieSuggestie: Suggestie = { href: '/reflectie', label: t('vita.dagstart.sluitDagAf') }
+  const dankbaarheidSuggestie: Suggestie = { href: '/dankbaarheid', label: t('vita.dagstart.noteerDankbaarheid') }
+  const stemmingSuggestie: Suggestie = { href: '/stemming', label: t('vita.dagstart.logStemming') }
 
   // 's Avonds/'s nachts: uitnodigen tot reflectie, tenzij al gedaan.
   if (tod === 'evening' || tod === 'night') {
     if (reflectieGedaan) {
       return {
         groet,
-        tekst: 'Je hebt je dag afgesloten. Rust goed uit — morgen ben ik er weer.',
+        tekst: t('vita.dagstart.afgesloten'),
         suggestie: dankbaarheidSuggestie,
         emotie: 'supportive',
       }
     }
     return {
       groet,
-      tekst: 'Even terugblikken? Een korte reflectie helpt je de dag rustig af te ronden.',
+      tekst: t('vita.dagstart.terugblikken'),
       suggestie: reflectieSuggestie,
       emotie: 'supportive',
     }
@@ -108,7 +112,7 @@ function bouwBoodschap(
   if (readiness === null) {
     return {
       groet,
-      tekst: 'Fijn dat je er bent. Begin met je check-in, dan leer ik jouw dag kennen.',
+      tekst: t('vita.dagstart.geenData'),
       suggestie: checkinSuggestie,
       emotie: 'curious',
     }
@@ -119,8 +123,8 @@ function bouwBoodschap(
     return {
       groet,
       tekst: streak > 1
-        ? `Alles afgerond — en ${streak} dagen op rij. Dat is echt sterk.`
-        : 'Alles afgerond voor vandaag. Sterk gedaan.',
+        ? t('vita.dagstart.allesStreak', { streak })
+        : t('vita.dagstart.alles'),
       suggestie: stemmingSuggestie,
       emotie: 'proud',
     }
@@ -131,8 +135,8 @@ function bouwBoodschap(
     return {
       groet,
       tekst: gedaanCount > 0
-        ? `Goede start — ${gedaanCount} van ${totaal} al gedaan. Zetten we de volgende?`
-        : 'Klaar voor een nieuwe dag. We beginnen rustig met je check-in.',
+        ? t('vita.dagstart.ochtendBezig', { gedaan: gedaanCount, totaal })
+        : t('vita.dagstart.ochtendNieuw'),
       suggestie: checkinSuggestie,
       emotie: scoreEmotie,
     }
@@ -142,8 +146,8 @@ function bouwBoodschap(
   return {
     groet,
     tekst: gedaanCount > 0
-      ? `Je bent goed bezig — ${gedaanCount} van ${totaal} taken vandaag afgerond.`
-      : 'Nog even de dag ingaan? Eén kleine stap zet de toon.',
+      ? t('vita.dagstart.overdagBezig', { gedaan: gedaanCount, totaal })
+      : t('vita.dagstart.overdagNieuw'),
     suggestie: gedaanCount > 0 ? stemmingSuggestie : checkinSuggestie,
     emotie: scoreEmotie,
   }
@@ -158,15 +162,16 @@ export default function VitaDagstart({
   reflectieGedaan,
 }: VitaDagstartProps) {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const { t } = useVertaling()
   const tod = getTimeOfDay()
-  const naam = voornaam || 'je'
+  const naam = voornaam || t('vita.dagstart.naamOnbekend')
   const { groet, tekst, suggestie, emotie } = bouwBoodschap(tod, {
     readiness,
     gedaanCount,
     totaal,
     streak,
     reflectieGedaan,
-  })
+  }, t)
 
   return (
     <section aria-labelledby="vita-dagstart-titel" className="vita-dagstart">
@@ -177,9 +182,9 @@ export default function VitaDagstart({
 
       <div className="vita-dagstart-body">
         <header>
-          <p className="vita-dagstart-kicker">Vita · jouw begeleider</p>
+          <p className="vita-dagstart-kicker">{t('vita.dagstart.kicker')}</p>
           <h1 id="vita-dagstart-titel" className="vita-dagstart-groet">
-            {groet}, {naam}
+            {t('vita.dagstart.groet', { groet, naam })}
           </h1>
         </header>
         <p className="vita-dagstart-tekst">{tekst}</p>

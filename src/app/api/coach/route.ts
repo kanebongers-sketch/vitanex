@@ -5,6 +5,9 @@ import { buildGebruikerContextBlok } from '@/lib/coach/coach-context'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { getPlanVoorUser } from '@/lib/plan/plan-server'
 import { heeftFeature, VITA_GRATIS_BERICHTEN_PER_DAG } from '@/lib/plan/plan'
+import { huidigeTaal, huidigeTaalset } from '@/lib/i18n/server'
+import type { Taalset } from '@/lib/i18n/taalset'
+import { aiTaalInstructie } from '@/lib/vita/ai-taal'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld')
@@ -12,22 +15,24 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const BASIS_SYSTEEM = `Je bent Vita — de AI-companion van MentaForce. Je bent dezelfde Vita die de gebruiker als vriendelijke panda-companion in de app kent: warm, menselijk en oprecht betrokken. Je begeleidt bij stress, burn-out preventie, energie, werk-privébalans en mentale veerkracht.
+// Bewust zonder lange streepjes en klemtoon-accenten: het model neemt de stijl
+// van de prompt over (zie ook aiTaalInstructie).
+const BASIS_SYSTEEM = `Je bent Vita, de AI-companion van MentaForce. Je bent dezelfde Vita die de gebruiker als vriendelijke panda-companion in de app kent: warm, menselijk en oprecht betrokken. Je begeleidt bij stress, burn-out preventie, energie, werk-privébalans en mentale veerkracht.
 
 Wie je bent:
 - Je spreekt altijd in de ik-vorm en noemt jezelf Vita ("Ik ben Vita", "ik denk...", "ik hoor je").
-- Je bent geen anonieme chatbot of afstandelijke coach — je bent een companion die deze persoon al kent en met ze meeleeft.
-- Je toon is warm, rustig, nuchter en Nederlands. Menselijk, nooit klinisch of afstandelijk.
+- Je bent geen anonieme chatbot of afstandelijke coach, maar een companion die deze persoon al kent en met ze meeleeft.
+- Je toon is warm, rustig en nuchter. Menselijk, nooit klinisch of afstandelijk.
 
 Hoe je praat:
-- Kort en persoonlijk. Meestal 2–5 zinnen; alleen langer als de gebruiker daar echt om vraagt.
-- Je luistert eerst en spiegelt wat je hoort, vóór je advies geeft.
-- Je stelt af en toe één open, reflectieve vraag — niet elke beurt een vragenlijst.
+- Kort en persoonlijk. Meestal 2 tot 5 zinnen; alleen langer als de gebruiker daar echt om vraagt.
+- Je luistert eerst en spiegelt wat je hoort, voordat je advies geeft.
+- Je stelt af en toe een open, reflectieve vraag, niet elke beurt een vragenlijst.
 - Concrete, haalbare tips wanneer ze passen; geen algemene preek.
 - Geen medisch jargon, geen opsommingen-om-het-opsommen. Praat zoals een mens.
 - Emoji spaarzaam en alleen als het echt warmte toevoegt; nooit geforceerd.
 
-Als de context een afgeleide toestand of toon meegeeft (bijvoorbeeld dat het even zwaar is, of dat iemand juist sterk loopt), stem je je toon daar subtiel op af — steunend en rustig bij zwaarte, iets aanmoedigender bij momentum. Overdrijf dit niet; blijf altijd jezelf.
+Als de context een afgeleide toestand of toon meegeeft (bijvoorbeeld dat het even zwaar is, of dat iemand juist sterk loopt), stem je je toon daar subtiel op af: steunend en rustig bij zwaarte, iets aanmoedigender bij momentum. Overdrijf dit niet; blijf altijd jezelf.
 
 Je grenzen (blijven altijd gelden):
 - Je bent geen therapeut, psycholoog of arts, en doet niet alsof.
@@ -35,9 +40,9 @@ Je grenzen (blijven altijd gelden):
 - Je geeft nooit medicatieadvies of diagnoses.
 
 Eerlijkheid (niet onderhandelbaar):
-- Gebruik UITSLUITEND de cijfers, scores en feiten die in de context staan. Verzin nooit percentages, correlaties, trends of scores — ook niet als het aannemelijk klinkt of het gesprek erom vraagt.
+- Gebruik UITSLUITEND de cijfers, scores en feiten die in de context staan. Verzin nooit percentages, correlaties, trends of scores, ook niet als het aannemelijk klinkt of het gesprek erom vraagt.
 - Ontbreekt data? Zeg dat gewoon ("dat heb ik nog niet van je gezien") in plaats van iets aan te nemen.
-- Som cijfers niet op. Gebruik ze om te sturen naar één concrete volgende stap.
+- Som cijfers niet op. Gebruik ze om te sturen naar een concrete volgende stap.
 - Zie je een verband tussen pijlers (bv. slaap die energie meetrekt), benoem dat alleen als de context het ondersteunt.`
 
 type Bericht = { role: 'user' | 'assistant'; content: string }
@@ -71,7 +76,7 @@ type CoachToegang =
  * kolom `aangemaakt_op` (de eerdere `created_at`-query faalde stil, waardoor
  * de uurlimiet nooit werd toegepast).
  */
-async function checkCoachToegang(userId: string): Promise<CoachToegang> {
+async function checkCoachToegang(userId: string, ts: Taalset): Promise<CoachToegang> {
   try {
     const supabase = createAdminClient()
     const uurStart = new Date(Date.now() - 3600 * 1000).toISOString()
@@ -86,7 +91,7 @@ async function checkCoachToegang(userId: string): Promise<CoachToegang> {
       return {
         toegestaan: false,
         status: 429,
-        melding: 'Te veel berichten. Probeer het over een uur opnieuw.',
+        melding: ts.t('vita.api.teVeelBerichten'),
       }
     }
 
@@ -104,7 +109,7 @@ async function checkCoachToegang(userId: string): Promise<CoachToegang> {
         return {
           toegestaan: false,
           status: 403,
-          melding: `Je hebt je ${VITA_GRATIS_BERICHTEN_PER_DAG} gratis Vita-gesprekken voor vandaag gebruikt. Morgen praat ik graag verder — of vraag je HR-team naar het Groei-plan voor onbeperkte gesprekken.`,
+          melding: ts.t('vita.api.daglimiet', { aantal: VITA_GRATIS_BERICHTEN_PER_DAG }),
         }
       }
     }
@@ -118,16 +123,17 @@ async function checkCoachToegang(userId: string): Promise<CoachToegang> {
 }
 
 export async function POST(req: NextRequest) {
+  const ts = await huidigeTaalset()
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: 'AI coach is niet beschikbaar.' }, { status: 503 })
+    return NextResponse.json({ error: ts.t('vita.api.coachNietBeschikbaar') }, { status: 503 })
   }
 
   const user = await getAuthenticatedUser(req)
   if (!user) {
-    return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+    return NextResponse.json({ error: ts.t('vita.api.nietIngelogd') }, { status: 401 })
   }
 
-  const toegang = await checkCoachToegang(user.id)
+  const toegang = await checkCoachToegang(user.id, ts)
   if (!toegang.toegestaan) {
     return NextResponse.json({ error: toegang.melding }, { status: toegang.status })
   }
@@ -140,10 +146,10 @@ export async function POST(req: NextRequest) {
     } = await req.json()
 
     if (!Array.isArray(berichten) || berichten.length === 0) {
-      return NextResponse.json({ error: 'Geen berichten meegegeven.' }, { status: 400 })
+      return NextResponse.json({ error: ts.t('vita.api.geenBerichten') }, { status: 400 })
     }
     if (berichten.length > 50) {
-      return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
+      return NextResponse.json({ error: ts.t('vita.api.teVeelContext') }, { status: 400 })
     }
     for (const b of berichten) {
       if (!valideerBericht(b)) {
@@ -151,7 +157,7 @@ export async function POST(req: NextRequest) {
           && typeof (b as Record<string, unknown>).content === 'string'
           && ((b as Record<string, unknown>).content as string).length > 4000
         return NextResponse.json(
-          { error: contentTeLang ? 'Bericht is te lang.' : 'Ongeldig bericht.' },
+          { error: contentTeLang ? ts.t('vita.api.teLang') : ts.t('vita.api.ongeldig') },
           { status: 400 },
         )
       }
@@ -163,16 +169,18 @@ export async function POST(req: NextRequest) {
     let chatBerichten: Bericht[] = berichten
     let openerContext = ''
     if (chatBerichten[0].role === 'assistant') {
-      openerContext = `\n\nJe opende dit gesprek zelf proactief met: "${chatBerichten[0].content}" — bouw daarop voort.`
+      openerContext = `\n\nJe opende dit gesprek zelf proactief met: "${chatBerichten[0].content}". Bouw daarop voort.`
       chatBerichten = chatBerichten.slice(1)
     }
     if (chatBerichten.length === 0 || chatBerichten[0].role !== 'user') {
-      return NextResponse.json({ error: 'Geen berichten meegegeven.' }, { status: 400 })
+      return NextResponse.json({ error: ts.t('vita.api.geenBerichten') }, { status: 400 })
     }
 
     // Volatiele gebruikerscontext, los van de stabiele persona (zie hieronder).
     const defaultContext: GebruikerContext = { naam: 'je', ...gebruiker_context }
-    const gebruikerBlok = await buildGebruikerContextBlok(user.id, defaultContext) + openerContext
+    // Taal + stijlregel staan na de cache-breakpoint: ze verschillen per gebruiker.
+    const taalBlok = `\n\n${aiTaalInstructie(await huidigeTaal())}`
+    const gebruikerBlok = await buildGebruikerContextBlok(user.id, defaultContext) + openerContext + taalBlok
 
     // Ruimte voor een écht coach-antwoord. 600 was te krap voor een weekplan of
     // een antwoord dat meerdere pijlers verbindt.
@@ -240,6 +248,6 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     console.error('[coach]', err)
-    return NextResponse.json({ error: 'Kon de coach niet bereiken.' }, { status: 500 })
+    return NextResponse.json({ error: ts.t('vita.api.coachOnbereikbaar') }, { status: 500 })
   }
 }

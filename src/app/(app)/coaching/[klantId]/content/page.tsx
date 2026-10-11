@@ -13,6 +13,7 @@ import { ContentFormulier, type ContentWaarden } from '@/components/coaching/Con
 import { ContentBeheerRij } from '@/components/coaching/ContentBeheerRij'
 import type { CoachingContent } from '@/lib/coaching/content'
 import { BookOpen, ShieldAlert, Pencil } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 /** Bouwt de POST/PATCH-payload; klant_id gaat alleen mee bij aanmaken. */
 function bouwPayload(waarden: ContentWaarden, klantId: string, nieuw: boolean) {
@@ -28,12 +29,14 @@ function bouwPayload(waarden: ContentWaarden, klantId: string, nieuw: boolean) {
 }
 
 export default function KlantContentPagina() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { klantId } = useParams<{ klantId: string }>()
 
   const [laden, setLaden] = useState(true)
   const [nietGevonden, setNietGevonden] = useState(false)
-  const [klantNaam, setKlantNaam] = useState('Deze klant')
+  const [opgehaaldeNaam, setKlantNaam] = useState<string | null>(null)
+  const klantNaam = opgehaaldeNaam ?? t('coaching.labels.doelgroep.deze')
   const [lijst, setLijst] = useState<CoachingContent[]>([])
   const [formBezig, setFormBezig] = useState(false)
   const [formFout, setFormFout] = useState<string | null>(null)
@@ -80,7 +83,7 @@ export default function KlantContentPagina() {
     const data = await res.json() as { error?: string }
     setFormBezig(false)
     if (res.ok) { setBewerkItem(null); await laadLijst(); return true }
-    setFormFout(data.error ?? 'Opslaan mislukt.')
+    setFormFout((taal === 'nl' ? data.error : undefined) ?? t('coaching.algemeen.opslaanMislukt'))
     return false
   }
 
@@ -117,11 +120,11 @@ export default function KlantContentPagina() {
       <Navbar />
       <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 780, margin: '0 auto' }}>
         <CoachHeader
-          eyebrow="Mindset & stress"
-          titel="Mindset & stress"
-          subtitel={`Schrijf lessen en opdrachten en lever ze aan ${klantNaam} of aan al je klanten. Zij lezen wat je publiceert.`}
+          eyebrow={t('coaching.tabs.mindset')}
+          titel={t('coaching.tabs.mindset')}
+          subtitel={t('coaching.contentBeheer.subtitel', { naam: klantNaam })}
           backHref={`/coaching/${klantId}`}
-          backLabel="Terug naar klant"
+          backLabel={t('coaching.algemeen.terugNaarKlant')}
           rechts={!laden && !nietGevonden ? (
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px',
@@ -129,7 +132,7 @@ export default function KlantContentPagina() {
               color: 'var(--mf-purple)', background: 'var(--mf-purple-light)',
               border: '1px solid color-mix(in srgb, var(--mf-purple) 30%, transparent)',
             }}>
-              <BookOpen size={14} aria-hidden /> {gepubliceerd} gepubliceerd
+              <BookOpen size={14} aria-hidden /> {t('coaching.contentBeheer.gepubliceerd', { aantal: gepubliceerd })}
             </span>
           ) : undefined}
         />
@@ -140,8 +143,8 @@ export default function KlantContentPagina() {
           <CoachEmpty
             icon={ShieldAlert}
             toon="wacht"
-            titel="Klant niet gevonden"
-            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            titel={t('coaching.klant.nietGevondenTitel')}
+            tekst={t('coaching.klant.nietActief')}
           />
         ) : (
           <>
@@ -155,9 +158,9 @@ export default function KlantContentPagina() {
                   {bewerkItem ? <Pencil size={17} aria-hidden /> : <BookOpen size={18} aria-hidden />}
                 </span>
                 <div>
-                  <h2 className="mf-h3">{bewerkItem ? 'Content bewerken' : 'Nieuwe content'}</h2>
+                  <h2 className="mf-h3">{bewerkItem ? t('coaching.contentBeheer.bewerken') : t('coaching.contentBeheer.nieuw')}</h2>
                   <p className="mf-caption" style={{ marginTop: 2 }}>
-                    {bewerkItem ? 'Pas een bestaande les of opdracht aan.' : 'Een les of opdracht voor mindset & stress.'}
+                    {bewerkItem ? t('coaching.contentBeheer.bewerkenTekst') : t('coaching.contentBeheer.nieuwTekst')}
                   </p>
                 </div>
               </div>
@@ -173,12 +176,12 @@ export default function KlantContentPagina() {
             </Card>
 
             <div className="mf-animate-up mf-delay-2">
-              <CoachSection titel="Aangemaakte content">
+              <CoachSection titel={t('coaching.contentBeheer.lijst')}>
                 {lijst.length === 0 ? (
                   <CoachEmpty
                     icon={BookOpen}
-                    titel="Nog geen content"
-                    tekst="Voeg hierboven je eerste mindset- of stress-les of -opdracht toe."
+                    titel={t('coaching.contentBeheer.leegTitel')}
+                    tekst={t('coaching.contentBeheer.leegTekst')}
                   />
                 ) : (
                   <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -1,12 +1,8 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import {
-  PIJLER_LABELS,
-  PIJLER_STIJL,
-  CONTENT_TYPE_LABELS,
-  type CoachingContent,
-} from '@/lib/coaching/content'
+import { PIJLER_STIJL, type CoachingContent } from '@/lib/coaching/content'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 import { PIJLER_ICOON, CONTENT_TYPE_ICOON } from '@/components/coaching/content-iconen'
 
 export interface ContentKaartProps {
@@ -25,6 +21,7 @@ function preview(inhoud: string): string {
  * de detailweergave zit in de pagina. Als knop uitgevoerd voor toetsenbord-toegang.
  */
 export function ContentKaart({ content, onOpen }: ContentKaartProps) {
+  const { t } = useVertaling()
   const stijl = PIJLER_STIJL[content.pijler]
   const Icoon = CONTENT_TYPE_ICOON[content.type]
   const PijlerIcoon = PIJLER_ICOON[content.pijler]
@@ -61,13 +58,13 @@ export function ContentKaart({ content, onOpen }: ContentKaartProps) {
             display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600,
             padding: '2px 8px', borderRadius: 100, background: stijl.bg, color: stijl.color,
           }}>
-            <PijlerIcoon size={11} aria-hidden /> {PIJLER_LABELS[content.pijler]}
+            <PijlerIcoon size={11} aria-hidden /> {t(`coaching.labels.pijler.${content.pijler}`)}
           </span>
           <span style={{
             fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 100,
             background: 'var(--bg-subtle)', color: 'var(--text-3)', border: '1px solid var(--border-strong)',
           }}>
-            {CONTENT_TYPE_LABELS[content.type]}
+            {t(`coaching.labels.contentType.${content.type}`)}
           </span>
         </span>
       </span>

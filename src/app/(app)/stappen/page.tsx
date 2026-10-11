@@ -17,6 +17,8 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 // Bewegen-accent + doel-bereikt: token-kleuren, geen hardcoded hex.
 const KLEUR = 'var(--mf-amber)'              // accent voor bewegen
@@ -26,8 +28,8 @@ const DOEL_BEREIKT = 'var(--mf-green)'       // cyaan primary bij doel behaald
 
 interface DagStap { datum: string; stappen: number | null }
 
-function dagNaam(datum: string): string {
-  return new Date(datum + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2)
+function dagNaam(datum: string, locale: string): string {
+  return new Date(datum + 'T12:00:00').toLocaleDateString(locale, { weekday: 'short' }).slice(0, 2)
 }
 
 function vandaagStr(): string {
@@ -40,6 +42,8 @@ function dagTerugNL(n: number): string {
 }
 
 function StappenRing({ stappen, doel }: { stappen: number; doel: number }) {
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const r = 62
   const circ = 2 * Math.PI * r
   const pct = Math.min(stappen / doel, 1)
@@ -49,7 +53,7 @@ function StappenRing({ stappen, doel }: { stappen: number; doel: number }) {
     <svg
       width="160" height="160" viewBox="0 0 160 160"
       role="img"
-      aria-label={`${stappen.toLocaleString('nl-NL')} stappen van ${doel.toLocaleString('nl-NL')} (${pctLabel}% van je doel)`}
+      aria-label={t('lichaam.stappen.ringAria', { stappen: stappen.toLocaleString(locale), doel: doel.toLocaleString(locale), procent: pctLabel })}
       className="mf-stappen-ring"
     >
       <circle cx="80" cy="80" r={r} fill="none" stroke={KLEUR_SOFT} strokeWidth="12" />
@@ -72,13 +76,13 @@ function StappenRing({ stappen, doel }: { stappen: number; doel: number }) {
         />
       )}
       <text x="80" y="74" textAnchor="middle" fontSize="28" fontWeight="800" fill={stappen >= doel ? DOEL_BEREIKT : KLEUR}>
-        {stappen.toLocaleString('nl-NL')}
+        {stappen.toLocaleString(locale)}
       </text>
       <text x="80" y="91" textAnchor="middle" fontSize="11" fill="var(--text-4)" fontWeight="500">
-        stappen
+        {t('lichaam.stappen.eenheid')}
       </text>
       <text x="80" y="107" textAnchor="middle" fontSize="10" fill="var(--text-3)">
-        doel: {doel.toLocaleString('nl-NL')}
+        {t('lichaam.stappen.ringDoel', { doel: doel.toLocaleString(locale) })}
       </text>
       <style>{`
         .mf-stappen-ring-arc { transition: stroke-dasharray 0.8s var(--ease); }
@@ -93,6 +97,8 @@ function StappenRing({ stappen, doel }: { stappen: number; doel: number }) {
 export default function StappenPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const locale = INTL_LOCALE[taal]
   const [laden, setLaden] = useState(true)
   const [vandaag, setVandaag] = useState(0)
   const [doel, setDoel] = useState(STANDAARD_STAPPEN_DOEL)
@@ -146,7 +152,7 @@ export default function StappenPage() {
       setTimeout(() => setSucces(false), 2500)
       laadData()
     } else {
-      toast({ title: 'Opslaan mislukt', description: 'Kon je stappen niet opslaan. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), description: t('lichaam.stappen.opslaanTekst'), variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -159,7 +165,7 @@ export default function StappenPage() {
       if (platform === 'ios') {
         const { leesAppleHealthBereik, vraagAppleHealthPermissies } = await import('@/lib/health/apple-health')
         const ok = await vraagAppleHealthPermissies()
-        if (!ok) { setTrackerFout('Geen toegang tot Apple Health'); setTrackerLaden(false); return }
+        if (!ok) { setTrackerFout(t('lichaam.stappen.geenToegang', { bron: 'Apple Health' })); setTrackerLaden(false); return }
         const metingen = await leesAppleHealthBereik(1)
         const vandaagMeting = metingen.find(m => m.datum === vandaagStr())
         if (vandaagMeting?.stappen) {
@@ -176,12 +182,12 @@ export default function StappenPage() {
             laadData()
           }
         } else {
-          setTrackerFout('Geen stappenteller data gevonden in Apple Health')
+          setTrackerFout(t('lichaam.stappen.geenData', { bron: 'Apple Health' }))
         }
       } else if (platform === 'android') {
         const { leesHealthBereik, vraagPermissies } = await import('@/lib/health/health-connect')
         const ok = await vraagPermissies()
-        if (!ok) { setTrackerFout('Geen toegang tot Health Connect'); setTrackerLaden(false); return }
+        if (!ok) { setTrackerFout(t('lichaam.stappen.geenToegang', { bron: 'Health Connect' })); setTrackerLaden(false); return }
         const metingen = await leesHealthBereik(1)
         const vandaagMeting = metingen.find(m => m.datum === vandaagStr())
         if (vandaagMeting?.stappen) {
@@ -198,13 +204,13 @@ export default function StappenPage() {
             laadData()
           }
         } else {
-          setTrackerFout('Geen stappenteller data gevonden in Health Connect')
+          setTrackerFout(t('lichaam.stappen.geenData', { bron: 'Health Connect' }))
         }
       } else {
-        setTrackerFout('Tracker beschikbaar in de iOS/Android app')
+        setTrackerFout(t('lichaam.stappen.alleenApp'))
       }
     } catch {
-      setTrackerFout('Kon geen verbinding maken met de tracker')
+      setTrackerFout(t('lichaam.stappen.geenVerbinding'))
     }
     setTrackerLaden(false)
   }
@@ -212,7 +218,7 @@ export default function StappenPage() {
   async function slaOpDoel() {
     const n = parseInt(doelInvoer.replace(/\D/g, ''), 10)
     if (!n || n < 1000 || n > 50000) {
-      toast({ title: 'Ongeldig doel', description: 'Kies tussen 1.000 en 50.000 stappen.', variant: 'warning' })
+      toast({ title: t('lichaam.stappen.ongeldigDoel'), description: t('lichaam.stappen.ongeldigDoelTekst', { min: (1000).toLocaleString(locale), max: (50000).toLocaleString(locale) }), variant: 'warning' })
       return
     }
     setDoelBezig(true)
@@ -228,7 +234,7 @@ export default function StappenPage() {
       setDoelEditor(false)
       setDoelInvoer('')
     } else {
-      toast({ title: 'Opslaan mislukt', description: 'Kon je doel niet opslaan.', variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), description: t('lichaam.stappen.doelNietOpgeslagen'), variant: 'error' })
     }
   }
 
@@ -256,18 +262,18 @@ export default function StappenPage() {
         <header style={{ marginBottom: 24 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: KLEUR, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: KLEUR, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bewegen</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: KLEUR, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('lichaam.stappen.bewegen')}</span>
           </span>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
-            Dagelijkse stappen
+            {t('lichaam.stappen.titel')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>
-            Doel: {doel.toLocaleString('nl-NL')} stappen per dag
+            {t('lichaam.stappen.doelPerDag', { doel: doel.toLocaleString(locale) })}
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>
             {doelHandmatig
-              ? 'Handmatig ingesteld in Instellingen'
-              : 'Op basis van jouw fitnessdoel'}
+              ? t('lichaam.stappen.doelHandmatig')
+              : t('lichaam.stappen.doelAuto')}
           </p>
         </header>
 
@@ -281,17 +287,17 @@ export default function StappenPage() {
           {vandaag >= doel && (
             <p style={{ marginTop: 10, fontSize: 14, fontWeight: 700, color: DOEL_BEREIKT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <PartyPopper size={16} aria-hidden style={{ flexShrink: 0 }} />
-              Dagdoel behaald! Geweldig!
+              {t('lichaam.stappen.behaald')}
             </p>
           )}
           {vandaag > 0 && vandaag < doel && (
             <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-3)' }}>
-              Nog {(doel - vandaag).toLocaleString('nl-NL')} stappen te gaan ({pct}%)
+              {t('lichaam.stappen.teGaan', { stappen: (doel - vandaag).toLocaleString(locale), procent: pct })}
             </p>
           )}
           {vandaag === 0 && (
             <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-4)' }}>
-              Voer je stappen in of sync via je tracker
+              {t('lichaam.stappen.voerIn')}
             </p>
           )}
 
@@ -299,15 +305,15 @@ export default function StappenPage() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 18, fontWeight: 800, color: 'var(--text-1)' }}>
-                <Route size={15} aria-hidden style={{ color: KLEUR }} /> ~{afstand.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km
+                <Route size={15} aria-hidden style={{ color: KLEUR }} /> ~{afstand.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km
               </span>
-              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>afstand (schatting)</span>
+              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t('lichaam.stappen.afstand')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 18, fontWeight: 800, color: streak > 0 ? DOEL_BEREIKT : 'var(--text-3)' }}>
                 <Flame size={15} aria-hidden style={{ color: streak > 0 ? DOEL_BEREIKT : 'var(--text-4)' }} /> {streak}
               </span>
-              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{streak === 1 ? 'dag doel gehaald' : 'dagen op rij'}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t(streak === 1 ? 'lichaam.stappen.streakEen' : 'lichaam.stappen.streakMeer')}</span>
             </div>
           </div>
 
@@ -315,17 +321,17 @@ export default function StappenPage() {
           {!doelEditor ? (
             <button type="button" onClick={() => { setDoelEditor(true); setDoelInvoer(String(doel)) }}
               style={{ marginTop: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-3)' }}>
-              <Target size={13} aria-hidden /> Dagdoel aanpassen
+              <Target size={13} aria-hidden /> {t('lichaam.stappen.doelAanpassen')}
             </button>
           ) : (
             <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'flex-end' }}>
-              <Field label="Nieuw dagdoel" htmlFor="doel-invoer">
+              <Field label={t('lichaam.stappen.nieuwDoel')} htmlFor="doel-invoer">
                 <Input id="doel-invoer" type="number" inputMode="numeric" value={doelInvoer}
                   onChange={e => setDoelInvoer(e.target.value)} onKeyDown={e => e.key === 'Enter' && slaOpDoel()}
                   style={{ width: 120 }} />
               </Field>
-              <Button onClick={slaOpDoel} loading={doelBezig} disabled={doelBezig || !doelInvoer}>Opslaan</Button>
-              <Button variant="ghost" onClick={() => setDoelEditor(false)}>Annuleren</Button>
+              <Button onClick={slaOpDoel} loading={doelBezig} disabled={doelBezig || !doelInvoer}>{t('lichaam.stappen.opslaan')}</Button>
+              <Button variant="ghost" onClick={() => setDoelEditor(false)}>{t('lichaam.stappen.annuleren')}</Button>
             </div>
           )}
         </div>
@@ -351,7 +357,7 @@ export default function StappenPage() {
             fontSize: 14, color: KLEUR, fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <Check size={16} aria-hidden style={{ flexShrink: 0 }} /> Stappen opgeslagen!
+            <Check size={16} aria-hidden style={{ flexShrink: 0 }} /> {t('lichaam.stappen.opgeslagen')}
           </div>
         )}
 
@@ -363,12 +369,12 @@ export default function StappenPage() {
         }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <Field label="Stappen handmatig invoeren" htmlFor="stappen-invoer">
+              <Field label={t('lichaam.stappen.handmatig')} htmlFor="stappen-invoer">
                 <Input
                   id="stappen-invoer"
                   type="number"
                   inputMode="numeric"
-                  placeholder="bijv. 8500"
+                  placeholder={t('lichaam.stappen.placeholder')}
                   value={invoer}
                   onChange={e => setInvoer(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && slaOpHandmatig()}
@@ -380,19 +386,19 @@ export default function StappenPage() {
               loading={opslaan}
               disabled={opslaan || !invoer}
             >
-              Opslaan
+              {t('lichaam.stappen.opslaan')}
             </Button>
           </div>
 
           {/* Snelle opties */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }} role="group" aria-label="Snelle stappenkeuze">
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }} role="group" aria-label={t('lichaam.stappen.snelkeuze')}>
             {[5000, 7500, 10000, 12500].map(n => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setInvoer(String(n))}
                 aria-pressed={invoer === String(n)}
-                aria-label={`Vul ${n.toLocaleString('nl-NL')} stappen in`}
+                aria-label={t('lichaam.stappen.vulIn', { stappen: n.toLocaleString(locale) })}
                 className="mf-stappen-quick"
                 style={{
                   flex: 1, minHeight: 44, padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
@@ -402,7 +408,7 @@ export default function StappenPage() {
                   cursor: 'pointer',
                 }}
               >
-                {(n / 1000).toLocaleString('nl-NL')}k
+                {(n / 1000).toLocaleString(locale)}k
               </button>
             ))}
           </div>
@@ -432,10 +438,10 @@ export default function StappenPage() {
           <Smartphone size={22} aria-hidden style={{ color: KLEUR, flexShrink: 0 }} />
           <div style={{ textAlign: 'left', flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
-              {trackerLaden ? 'Synchroniseren…' : 'Sync via Apple Health / Health Connect'}
+              {trackerLaden ? t('lichaam.stappen.syncBezig') : t('lichaam.stappen.sync')}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>
-              Automatisch stappen ophalen uit je tracker
+              {t('lichaam.stappen.syncUitleg')}
             </div>
           </div>
           <ChevronRight size={18} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
@@ -461,7 +467,7 @@ export default function StappenPage() {
             border: '1px solid var(--border)',
           }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
-              7 DAGEN OVERZICHT
+              {t('lichaam.stappen.zevenDagen')}
             </p>
             {(() => {
               const vandaag_ = vandaagStr()
@@ -471,9 +477,11 @@ export default function StappenPage() {
                 const gevonden = dagen.find(r => r.datum === ds)
                 return { datum: ds, stappen: gevonden?.stappen ?? 0, isVandaag: ds === vandaag_ }
               })
-              const chartLabel = `Stappen afgelopen 7 dagen: ${rijen
-                .map(r => `${dagNaam(r.datum)} ${(r.stappen ?? 0).toLocaleString('nl-NL')} stappen`)
-                .join(', ')}`
+              const chartLabel = t('lichaam.stappen.weekAria', {
+                dagen: rijen
+                  .map(r => t('lichaam.stappen.dagAria', { dag: dagNaam(r.datum, locale), stappen: (r.stappen ?? 0).toLocaleString(locale) }))
+                  .join(', '),
+              })
               return (
                 <div role="img" aria-label={chartLabel} style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80 }}>
                   {rijen.map(({ datum, stappen: s, isVandaag }) => {
@@ -495,7 +503,7 @@ export default function StappenPage() {
                           fontSize: 10, fontWeight: isVandaag ? 800 : 500,
                           color: isVandaag ? KLEUR : 'var(--text-4)',
                         }}>
-                          {dagNaam(datum)}
+                          {dagNaam(datum, locale)}
                         </span>
                       </div>
                     )
@@ -505,14 +513,14 @@ export default function StappenPage() {
             })()}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
               <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
-                Gem: {(() => {
+                {t('lichaam.stappen.gemiddeld', { stappen: (() => {
                   const actief = dagen.filter(d => (d.stappen ?? 0) > 0).length
-                  if (!actief) return '–'
-                  return Math.round(dagen.reduce((s, d) => s + (d.stappen ?? 0), 0) / actief).toLocaleString('nl-NL')
-                })()} stappen
+                  if (!actief) return '-'
+                  return Math.round(dagen.reduce((s, d) => s + (d.stappen ?? 0), 0) / actief).toLocaleString(locale)
+                })() })}
               </span>
               <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
-                Totaal: {dagen.reduce((s, d) => s + (d.stappen ?? 0), 0).toLocaleString('nl-NL')}
+                {t('lichaam.stappen.totaal', { stappen: dagen.reduce((s, d) => s + (d.stappen ?? 0), 0).toLocaleString(locale) })}
               </span>
             </div>
           </div>
@@ -526,8 +534,8 @@ export default function StappenPage() {
           }}>
             <EmptyState
               icon={Footprints}
-              title="Nog geen stappen gelogd"
-              description="Voer je stappen in of sync je tracker om je 7-daagse overzicht te zien."
+              title={t('lichaam.stappen.leegTitel')}
+              description={t('lichaam.stappen.leegTekst')}
             />
           </div>
         )}

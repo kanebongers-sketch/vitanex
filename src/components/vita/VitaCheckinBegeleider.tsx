@@ -19,6 +19,7 @@
 import { useEffect, useState } from 'react'
 import VitaBubbel from './VitaBubbel'
 import { type EmotionState } from './PandaFace'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export type BegeleiderFase = 'vraag' | 'reactie' | 'afronden'
 
@@ -37,16 +38,9 @@ interface VitaCheckinBegeleiderProps {
   size?: number
 }
 
-// Warme, menselijke openingszinnen per pijler. Geen jargon, geen emoji, geen
-// verzonnen cijfers — Vita vraagt oprecht naar hoe de week ging.
-const VRAAG_ZINNEN: Record<string, string> = {
-  slaap:     'Even over je slaap deze week — hoe lagen je nachten erbij?',
-  stress:    'En de spanning: hoeveel rust of druk voelde je deze week?',
-  energie:   'Nu je energie. Zat er genoeg pit in je dagen?',
-  focus:     'Je focus dan — kon je hoofd de aandacht vasthouden?',
-  balans:    'Even naar je balans: kwam werk en rust een beetje in evenwicht?',
-  motivatie: 'En als laatste je motivatie — voelde je werk zinvol deze week?',
-}
+// Warme, menselijke openingszinnen per pijler (woordenboek: vita.checkin.vraag.*).
+// Geen jargon, geen emoji, geen verzonnen cijfers; Vita vraagt oprecht naar de week.
+const PIJLERS_MET_ZIN = new Set(['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie'])
 
 // Emotie per pijler: rustig-nieuwsgierig, met een net iets warmere blik op het slot.
 const VRAAG_EMOTIE: Record<string, EmotionState> = {
@@ -58,18 +52,8 @@ const VRAAG_EMOTIE: Record<string, EmotionState> = {
   motivatie: 'motivated',
 }
 
-// Korte bemoediging als een sectie net compleet is. Bewust neutraal-positief:
-// Vita beoordeelt de antwoorden niet, ze waardeert dat je het deelt.
-const REACTIE_ZINNEN: Record<string, string> = {
-  slaap:     'Dank je — genoteerd. We gaan verder.',
-  stress:    'Fijn dat je dit deelt. Op naar het volgende.',
-  energie:   'Helder. Dit helpt me je week te begrijpen.',
-  focus:     'Top, dat is binnen. Nog even door.',
-  balans:    'Dank je wel — bijna klaar.',
-  motivatie: 'Genoteerd.',
-}
-
-const AFROND_ZIN = 'Sterk gedaan — hier leer ik je het beste van kennen. Je week is compleet.'
+// Korte bemoediging als een sectie net compleet is (vita.checkin.reactie.*).
+// Bewust neutraal-positief: Vita beoordeelt de antwoorden niet.
 
 export default function VitaCheckinBegeleider({
   fase,
@@ -79,6 +63,7 @@ export default function VitaCheckinBegeleider({
   totaalSecties,
   size = 48,
 }: VitaCheckinBegeleiderProps) {
+  const { t } = useVertaling()
   // Lazy init: op de client meteen de juiste waarde (voorkomt een frame breathing
   // onder reduce). Op de server matchMedia niet beschikbaar → false, .mf-fade-in
   // dekt de rest van de beweging al af via CSS.
@@ -101,13 +86,15 @@ export default function VitaCheckinBegeleider({
   if (fase === 'afronden') {
     return (
       <VitaBubbel emotion="proud" animate={!reduceMotion} size={size + 8}>
-        {AFROND_ZIN}
+        {t('vita.checkin.afronden')}
       </VitaBubbel>
     )
   }
 
   if (fase === 'reactie') {
-    const zin = REACTIE_ZINNEN[pijlerId] ?? 'Genoteerd — we gaan verder.'
+    const zin = PIJLERS_MET_ZIN.has(pijlerId)
+      ? t(`vita.checkin.reactie.${pijlerId}`)
+      : t('vita.checkin.reactieStandaard')
     return (
       <VitaBubbel emotion="proud" animate={!reduceMotion} size={size}>
         {zin}
@@ -116,8 +103,9 @@ export default function VitaCheckinBegeleider({
   }
 
   // fase === 'vraag'
-  const basisZin = VRAAG_ZINNEN[pijlerId]
-    ?? `Even over je ${pijlerLabel.toLowerCase()} deze week.`
+  const basisZin = PIJLERS_MET_ZIN.has(pijlerId)
+    ? t(`vita.checkin.vraag.${pijlerId}`)
+    : t('vita.checkin.vraagStandaard', { pijler: pijlerLabel.toLowerCase() })
   const emotie = VRAAG_EMOTIE[pijlerId] ?? (isLaatste ? 'motivated' : 'curious')
 
   return (

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Bot, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface Props {
   categorie: string
@@ -17,6 +18,8 @@ export default function AiCoachCard({ categorie, apiUrl, linkUrl, linkLabel }: P
   const [advies, setAdvies] = useState<string | null>(null)
   const [laden, setLaden] = useState(false)
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  const naam = categorie.charAt(0).toUpperCase() + categorie.slice(1)
 
   async function laadAdvies() {
     if (advies || laden) return
@@ -24,15 +27,16 @@ export default function AiCoachCard({ categorie, apiUrl, linkUrl, linkLabel }: P
     try {
       const res = await fetch(apiUrl, { method: 'POST' })
       const data = await res.json() as { advies?: string; error?: string }
-      const tekst = data.advies ?? data.error ?? 'Geen advies beschikbaar.'
+      const serverFout = taal === 'nl' ? data.error : undefined
+      const tekst = data.advies ?? serverFout ?? t('lichaam.aiCoach.geenAdviesTekst')
       setAdvies(tekst)
       if (!data.advies) {
-        toast({ title: 'Geen advies beschikbaar', description: data.error ?? 'Probeer het later opnieuw.', variant: 'warning' })
+        toast({ title: t('lichaam.aiCoach.geenAdvies'), description: serverFout ?? t('lichaam.aiCoach.later'), variant: 'warning' })
       }
     } catch {
-      const tekst = 'Kon AI-coach niet bereiken.'
+      const tekst = t('lichaam.aiCoach.nietBereiktTekst')
       setAdvies(tekst)
-      toast({ title: 'AI-coach niet bereikbaar', description: 'Controleer je verbinding en probeer het opnieuw.', variant: 'error' })
+      toast({ title: t('lichaam.aiCoach.nietBereikt'), description: t('lichaam.aiCoach.verbinding'), variant: 'error' })
     } finally {
       setLaden(false)
     }
@@ -40,7 +44,7 @@ export default function AiCoachCard({ categorie, apiUrl, linkUrl, linkLabel }: P
 
   return (
     <section
-      aria-label={`AI ${categorie}coach`}
+      aria-label={t('lichaam.aiCoach.titel', { naam: categorie })}
       style={{
         background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-subtle) 100%)',
         border: '1px solid var(--border-strong)',
@@ -62,20 +66,20 @@ export default function AiCoachCard({ categorie, apiUrl, linkUrl, linkLabel }: P
           <Bot size={18} />
         </div>
         <div>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>AI {categorie.charAt(0).toUpperCase() + categorie.slice(1)}coach</p>
-          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)' }}>Persoonlijk advies op basis van jouw data</p>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>{t('lichaam.aiCoach.titel', { naam })}</p>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)' }}>{t('lichaam.aiCoach.sub')}</p>
         </div>
       </div>
 
       {!advies && !laden && (
         <Button onClick={laadAdvies} variant="primary" style={{ position: 'relative', width: '100%' }}>
-          Genereer advies
+          {t('lichaam.aiCoach.genereer')}
         </Button>
       )}
 
       {laden && (
         <div style={{ textAlign: 'center', padding: '10px 0', color: 'var(--text-3)', fontSize: 14, position: 'relative' }}>
-          Advies wordt gegenereerd…
+          {t('lichaam.aiCoach.bezig')}
         </div>
       )}
 

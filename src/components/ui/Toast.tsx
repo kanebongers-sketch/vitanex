@@ -10,6 +10,7 @@ import {
 } from 'react';
 import * as RadixToast from '@radix-ui/react-toast';
 import { X, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { useVertaling } from '@/lib/i18n/TaalProvider';
 
 /**
  * Toast — op basis van @radix-ui/react-toast. Biedt een ToastProvider die
@@ -85,6 +86,7 @@ interface ToastCardProps {
 }
 
 function ToastCard({ item, onDismiss }: ToastCardProps) {
+  const { t } = useVertaling();
   const variant = item.variant ?? 'default';
   const accent = VARIANT_ACCENT[variant];
   const Icon = VARIANT_ICON[variant];
@@ -125,7 +127,7 @@ function ToastCard({ item, onDismiss }: ToastCardProps) {
         )}
       </div>
       <RadixToast.Close
-        aria-label="Melding sluiten"
+        aria-label={t('account.ui.meldingSluiten')}
         className="mf-pressable"
         style={{
           display: 'inline-flex',

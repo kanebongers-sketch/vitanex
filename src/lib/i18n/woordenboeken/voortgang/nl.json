@@ -1,3 +1,887 @@
 {
-  "voortgang": {}
+  "voortgang": {
+    "pijlers": {
+      "energie": {
+        "label": "Energie",
+        "omschrijving": "Hoeveel energie en vitaliteit je door de week ervaart.",
+        "tip": "Daglicht, water en even bewegen: drie kleine dingen die je energie door de dag dragen.",
+        "actie": "Log je energie",
+        "challenges": {
+          "0": "Pak vandaag 10 minuten daglicht, het liefst voor 10:00.",
+          "1": "Drink een glas water voor je eerste koffie.",
+          "2": "Sta elk uur even op en rek je uit.",
+          "3": "Loop je eerste telefoongesprek van vandaag staand of buiten."
+        }
+      },
+      "slaap": {
+        "label": "Slaap",
+        "omschrijving": "Je slaapkwaliteit, -duur en hoe uitgerust je opstaat.",
+        "tip": "Een avond eerder naar bed is klein. Het patroon eromheen doet het werk.",
+        "actie": "Log je slaap",
+        "challenges": {
+          "0": "Ga vanavond 30 minuten eerder naar bed dan gisteren.",
+          "1": "Leg je telefoon het laatste half uur voor het slapen weg.",
+          "2": "Sta morgen op je normale tijd op, ook als je later inslaapt.",
+          "3": "Drink na 16:00 geen koffie meer.",
+          "4": "Maak je slaapkamer vanavond een graad koeler en donkerder."
+        }
+      },
+      "stress": {
+        "label": "Stress",
+        "omschrijving": "Ervaren spanning en je gevoel van controle daarover.",
+        "tip": "Een korte pauze onderbreekt de spanning. Meerdere korte pauzes houden dat vol.",
+        "actie": "Ademoefening",
+        "challenges": {
+          "0": "Neem vandaag 3 minuten om rustig te ademen.",
+          "1": "Plan een pauze van 5 minuten zonder scherm.",
+          "2": "Schrijf op wat nu het zwaarst weegt. Een zin is genoeg.",
+          "3": "Zeg vandaag nee tegen iets kleins."
+        }
+      },
+      "stemming": {
+        "label": "Stemming",
+        "omschrijving": "Je algemene stemming en mentale balans van dag tot dag.",
+        "tip": "Benoemen wat je voelt geeft je er grip op en maakt je patroon zichtbaar.",
+        "actie": "Log je stemming",
+        "challenges": {
+          "0": "Schrijf 1 ding op waar je dankbaar voor bent.",
+          "1": "Stuur iemand een bericht met wat je in ze waardeert.",
+          "2": "Benoem in 1 woord hoe je je nu voelt, zonder oordeel.",
+          "3": "Doe vandaag 1 ding puur omdat je het leuk vindt."
+        }
+      },
+      "beweging": {
+        "label": "Beweging",
+        "omschrijving": "Fysieke activiteit in je dagelijks leven: stappen en training.",
+        "tip": "Bewegen hoeft niet groot te zijn. Elke stap telt mee.",
+        "actie": "Log je beweging",
+        "challenges": {
+          "0": "Loop vandaag 15 minuten achter elkaar.",
+          "1": "Neem de trap in plaats van de lift.",
+          "2": "Loop een blokje om na het eten.",
+          "3": "Zet 10 minuten muziek op en beweeg gewoon."
+        }
+      },
+      "voeding": {
+        "label": "Voeding",
+        "omschrijving": "Voeding en hydratatie, vol te houden en zonder obsessie.",
+        "tip": "Drinken lukt het makkelijkst als je het koppelt aan iets dat je toch al doet.",
+        "actie": "Log je voeding",
+        "challenges": {
+          "0": "Drink je eerste glas water binnen 30 minuten na het opstaan.",
+          "1": "Voeg bij 1 maaltijd iets groens toe.",
+          "2": "Eet vandaag 1 maaltijd zonder scherm erbij.",
+          "3": "Zet een fles water binnen handbereik op je bureau."
+        }
+      }
+    },
+    "niveau": {
+      "geen": "Nog niet gemeten",
+      "goed": "Goed",
+      "matig": "Redelijk",
+      "laag": "Vraagt aandacht"
+    },
+    "bron": {
+      "dagelijkseEnergie": "Dagelijkse energie",
+      "weekcheckin": "Weekcheck-in",
+      "slaapduur": "Slaapduur",
+      "slaapkwaliteit": "Slaapkwaliteit",
+      "stresslogs": "Stresslogs",
+      "stemmingLogs": "Stemming-logs",
+      "stappen": "Stappen",
+      "training": "Training",
+      "voedingskwaliteit": "Voedingskwaliteit",
+      "hydratatie": "Hydratatie"
+    },
+    "home": {
+      "groetNacht": "Goedenacht",
+      "groetOchtend": "Goedemorgen",
+      "groetMiddag": "Goedemiddag",
+      "groetAvond": "Goedenavond",
+      "jij": "jij",
+      "actieGevoel": "Hoe voel je je?",
+      "actieSlaap": "Log je slaap van vannacht",
+      "actieStappenInvullen": "Vul je stappen in",
+      "actieStappenRest": "Nog {n} stappen tot je doel",
+      "actieWaterBijhouden": "Hou je water bij",
+      "actieWaterRestEen": "Nog {n} glas water tot je doel",
+      "actieWaterRestMeer": "Nog {n} glazen water tot je doel",
+      "actieStress": "Hoeveel spanning voel je?",
+      "vandaagLabel": "Vandaag",
+      "dagscore": "Dagscore",
+      "laden": "laden…",
+      "pijlersGemeten": "{n} van {totaal} pijlers gemeten vandaag",
+      "logIets": "Log iets om je dag in beeld te brengen",
+      "teDoen": "Te doen vandaag",
+      "allesGedaan": "Je bent bij voor vandaag. Mooi.",
+      "snelLoggenLabel": "{label}, snel loggen",
+      "jouwPijlers": "Jouw pijlers",
+      "pijlerLabelGemeten": "{pijler} snel loggen, nu cijfer {cijfer} van 10, {niveau}",
+      "pijlerLabelLeeg": "{pijler} snel loggen, nog niet gemeten",
+      "tikOmTeLoggen": "Tik om te loggen",
+      "vitaInzichtLabel": "Praat met Vita over dit inzicht",
+      "vitaOpenLabel": "Open Vita, je coach",
+      "vraagVita": "Vraag Vita",
+      "vitaOndertitel": "Je persoonlijke coach. Vraag wat je maar wilt.",
+      "dagscoreRing": "Dagscore {cijfer} van 10",
+      "dagscoreRingLeeg": "Dagscore nog niet gemeten"
+    },
+    "retentie": {
+      "label": "Je dagelijkse lus",
+      "nogTot": "op rij, nog {n} tot {emoji}",
+      "dagOpRij": "dag op rij",
+      "dagenOpRij": "dagen op rij",
+      "vandaagBij": "Vandaag bij",
+      "checkinLabel": "Doe je dagelijkse check-in",
+      "checkin": "Check-in"
+    },
+    "vitaInzicht": {
+      "verband": "Vita ziet een verband"
+    },
+    "trends": {
+      "kop": "Trends",
+      "slaap": "Slaap",
+      "stappen": "Stappen",
+      "stemming": "Stemming",
+      "gewicht": "Gewicht",
+      "eenheidUur": "u",
+      "bekijken": "{label}: trend bekijken",
+      "zevenDagen": "7d",
+      "stabiel": "stabiel",
+      "sparkline": "Trend van de afgelopen periode"
+    },
+    "laadFout": {
+      "tekst": "We konden {wat} niet laden. Controleer je verbinding en probeer het opnieuw. Je gegevens zijn niet kwijt.",
+      "standaardWat": "je overzicht",
+      "opnieuw": "Opnieuw proberen"
+    },
+    "pijlerKaart": {
+      "trendStabiel": ", trend stabiel",
+      "trendOmhoog": ", trend {n} procent omhoog",
+      "trendOmlaag": ", trend {n} procent omlaag",
+      "labelGemeten": "{pijler}: {score} van 100, {niveau}{trend}",
+      "labelLeeg": "{pijler}: {niveau}",
+      "stabiel": "stabiel"
+    },
+    "pijlerTrends": {
+      "kop": "Je pijlers deze week",
+      "samenvatting": "{niveau} · gemiddeld · {n} van {totaal} gemeten",
+      "laadFoutWat": "je pijler-trends"
+    },
+    "wellbeing": {
+      "ringLabel": "Wellbeing-score {score} van 100, {niveau}",
+      "ringLeeg": "Wellbeing-score: nog geen data",
+      "nogGeenScore": "Nog geen score",
+      "kop": "Wellbeing",
+      "beginMetMeten": "Begin met meten",
+      "gemeten": "{n} van {totaal} pijlers gemeten deze week.",
+      "meetDeRest": "Meet de rest voor een completer beeld.",
+      "volledig": "Volledig beeld. Mooi.",
+      "eersteCheckin": "Doe je eerste check-in"
+    },
+    "activiteit": {
+      "stemming": "Stemming",
+      "sport": "Sport",
+      "water": "Water",
+      "slaap": "Slaap",
+      "meditatie": "Meditatie",
+      "dankbaarheid": "Dankbaarheid"
+    },
+    "snelLog": {
+      "kop": {
+        "gevoel": {
+          "titel": "Hoe voel je je?",
+          "sub": "Leg je stemming en energie van nu vast."
+        },
+        "stress": {
+          "titel": "Hoeveel spanning?",
+          "sub": "1 is helemaal rustig, 10 is heel gespannen."
+        },
+        "slaap": {
+          "titel": "Hoe lang sliep je?",
+          "sub": "Het aantal uren van afgelopen nacht."
+        },
+        "stappen": {
+          "titel": "Stappen vandaag",
+          "sub": "Kies snel of vul je eigen aantal in."
+        },
+        "voeding": {
+          "titel": "Voeding & water",
+          "sub": "Log snel een maaltijd of tik een glas water erbij."
+        }
+      },
+      "volledig": "Volledig loggen",
+      "opslaanMislukt": "Opslaan mislukt",
+      "probeerZo": "Probeer het zo nog eens.",
+      "opgeslagen": "Opgeslagen",
+      "scoreBijgewerkt": "Je score is bijgewerkt.",
+      "geenVerbinding": "Geen verbinding",
+      "controleerInternet": "Controleer je internet en probeer opnieuw.",
+      "kiesStemming": "Kies je stemming",
+      "stemming": "Stemming",
+      "energieOptioneel": "Energie (optioneel)",
+      "opslaan": "Opslaan",
+      "kiesNiveau": "Kies een niveau",
+      "minderSlaap": "Minder slaap",
+      "meerSlaap": "Meer slaap",
+      "uur": "u",
+      "vulAantalIn": "Vul een aantal in",
+      "eigenAantal": "Eigen aantal, bijv. 8500",
+      "watAtJe": "Wat at je?",
+      "typEerst": "Typ eerst kort wat je at.",
+      "schattenMislukt": "Schatten lukte niet",
+      "vulZelfIn": "Vul de waarden zelf in.",
+      "logOpnieuwIn": "Log opnieuw in",
+      "fotoMislukt": "Foto lezen lukte niet",
+      "duidelijkereFoto": "Probeer een duidelijkere foto.",
+      "vulKortIn": "Vul kort in wat je at.",
+      "maaltijdLoggen": "Maaltijd loggen",
+      "watPlaceholder": "Wat at je? bijv. 2 boterhammen kaas",
+      "vitaSchat": "Vita schat…",
+      "schatMetVita": "Schat met Vita",
+      "fotoLabel": "Maak of kies een foto van je maaltijd",
+      "lezen": "Lezen…",
+      "foto": "Foto",
+      "kcal": "kcal",
+      "eiwit": "eiwit (g)",
+      "geschat": "Geschat door Vita ({betrouwbaarheid} betrouwbaar). Pas gerust aan.",
+      "betrouwbaarheid": {
+        "laag": "laag",
+        "gemiddeld": "gemiddeld",
+        "hoog": "hoog"
+      },
+      "maaltijdOpslaan": "Maaltijd opslaan",
+      "ofDrink": "of drink",
+      "water": "Water",
+      "waterVandaag": "Vandaag:",
+      "gedronken": "gedronken"
+    },
+    "levels": {
+      "1": "Starter",
+      "2": "Beginner",
+      "3": "Actief",
+      "4": "Consistent",
+      "5": "Gedreven",
+      "6": "Vitaal",
+      "7": "Krachtig",
+      "8": "Elite",
+      "9": "Champion",
+      "10": "Legende"
+    },
+    "mijlpaal": {
+      "eerste_checkin": {
+        "naam": "Eerste stap",
+        "beschrijving": "Eerste wekelijkse check-in gedaan"
+      },
+      "drie_checkins": {
+        "naam": "Op weg",
+        "beschrijving": "3 wekelijkse check-ins ingevuld"
+      },
+      "tien_checkins": {
+        "naam": "Consistent",
+        "beschrijving": "10 wekelijkse check-ins ingevuld"
+      },
+      "eerste_doel": {
+        "naam": "Doelgericht",
+        "beschrijving": "Eerste doel succesvol bereikt"
+      },
+      "drie_doelen": {
+        "naam": "Veelzijdig",
+        "beschrijving": "3 doelen bereikt"
+      },
+      "vijf_doelen": {
+        "naam": "Doorzetter",
+        "beschrijving": "5 doelen bereikt"
+      },
+      "streek_7": {
+        "naam": "Reeks van 7",
+        "beschrijving": "7 aaneengesloten dagen gelogd"
+      },
+      "streek_30": {
+        "naam": "IJzerdiscipline",
+        "beschrijving": "30 aaneengesloten dagen gelogd"
+      },
+      "hoge_score": {
+        "naam": "Topweek",
+        "beschrijving": "Check-in met gemiddelde score van 4,5 of hoger"
+      },
+      "level_5": {
+        "naam": "Halverwege",
+        "beschrijving": "Fit Level 5 (Gedreven) bereikt"
+      },
+      "level_8": {
+        "naam": "Bijna top",
+        "beschrijving": "Fit Level 8 (Elite) bereikt"
+      },
+      "level_10": {
+        "naam": "Legende",
+        "beschrijving": "Fit Level 10 bereikt, het maximum"
+      }
+    },
+    "mijlpalen": {
+      "kop": "Mijlpalen",
+      "teller": "{n} van {totaal}",
+      "srBehaald": ", behaald",
+      "srNietBehaald": ", nog niet behaald"
+    },
+    "xp": {
+      "type": {
+        "checkin": "Check-in",
+        "doel": "Doel",
+        "reeks": "Reeks",
+        "mijlpaal": "Mijlpaal"
+      },
+      "recent": "Recente activiteit",
+      "hoeHetWerkt": "Hoe XP werkt",
+      "bron": {
+        "checkin": "Wekelijkse check-in",
+        "topScore": "Uitstekende score (4,5 of hoger)",
+        "doelregistratie": "Dagelijkse doelregistratie",
+        "reeks7": "7-daagse reeks",
+        "reeks30": "30-daagse reeks",
+        "doelBereikt": "Doel succesvol bereikt",
+        "mijlpalen": "Mijlpalen"
+      },
+      "nooitKwijt": "Je XP raak je nooit kwijt, ook niet in een rustige week."
+    },
+    "niveauDetail": {
+      "kop": "Niveau & XP",
+      "niveau": "Niveau",
+      "ringLabel": "Niveau {level}, {naam}, {pct}% naar het volgende niveau",
+      "vanTien": "Niveau {level} van 10",
+      "checkins": "Check-ins",
+      "doelenBehaald": "Doelen behaald",
+      "langsteReeks": "Langste reeks",
+      "dagenKort": "{n} dgn",
+      "xpTotaal": "{xp} XP totaal",
+      "maxBereikt": "Maximum niveau bereikt",
+      "voortgangLabel": "Voortgang naar niveau {level}: {pct}%",
+      "hoogste": "Het hoogste niveau. Bijhouden is nu het doel.",
+      "nogNodig": "Nog {xp} XP tot niveau {level}: {naam}"
+    },
+    "momentum": {
+      "dagEen": "{n} dag",
+      "dagMeer": "{n} dagen",
+      "nogNiets": "Nog geen activiteit gelogd. Een korte check-in is een prima eerste stap.",
+      "begonnen": "Vorige week geen gelogde activiteit, deze week ben je al begonnen.",
+      "meer": "Meer dan vorige week ({dagen}). Rustig opgebouwd momentum.",
+      "gelijk": "Hetzelfde ritme als vorige week ({dagen}).",
+      "minder": "Vorige week {dagen}, en elke actieve dag telt, ook deze week."
+    },
+    "weken": {
+      "drieTerug": "3 wkn terug",
+      "tweeTerug": "2 wkn terug",
+      "vorige": "vorige week",
+      "deze": "deze week"
+    },
+    "weekOverzicht": {
+      "kop": "Deze week",
+      "srPerWeek": "Actieve dagen per week: {beschrijving}",
+      "actief": "{n} van de 7 dagen actief",
+      "actieveDagen": "Actieve dagen deze week: {dagen}",
+      "geenActieveDagen": "Nog geen actieve dagen deze week",
+      "consistentie": "Weekconsistentie: {n} van de 7 dagen",
+      "uitleg": "Een dag telt als actief zodra je iets logt: een check-in, doel of mijlpaal.",
+      "laatste4": "Laatste 4 weken",
+      "checkinGedaan": "Je wekelijkse check-in staat. Die is voor deze week gedaan.",
+      "checkinOpen": "Je wekelijkse check-in staat nog open voor deze week."
+    },
+    "niveauPagina": {
+      "titel": "Voortgang",
+      "intro": "Je week, je gewoontes en je niveau, op basis van wat je echt deed.",
+      "laden": "Je voortgang wordt geladen.",
+      "checkinDoen": "Check-in doen",
+      "doelenBekijken": "Doelen bekijken"
+    },
+    "richting": {
+      "teWeinig": "Nog te weinig historie voor een trend. Die bouwt zich vanzelf op.",
+      "gestartLabel": "Net gestart",
+      "gestart": "Je bent deze week begonnen. Vanaf hier bouwt je trend zich op.",
+      "geenCheckins": "Nog geen check-ins in de afgelopen weken. Je trend begint bij je eerstvolgende check-in.",
+      "stijgendLabel": "Stijgend",
+      "stijgend": "De lijn loopt op: vorige week was je actiever dan de weken ervoor.",
+      "stabielLabel": "Stabiel",
+      "stabiel": "Een stabiel ritme over de afgelopen weken. Consistentie is de basis.",
+      "wisselendLabel": "Wisselend",
+      "wisselend": "De afgelopen weken wisselden in ritme. Elke actieve dag telt gewoon mee.",
+      "dag": "dag",
+      "dagen": "dagen"
+    },
+    "trendOverzicht": {
+      "kop": "Het grote plaatje",
+      "perWeek": "Check-ins per week",
+      "srPerWeek": "Check-ins per week: {beschrijving}",
+      "actiefEen": "{n} actieve dag",
+      "actiefMeer": "{n} actieve dagen",
+      "periode": "in de afgelopen 30 dagen",
+      "huidigeStreak": "Huidige streak",
+      "langsteStreak": "Langste streak"
+    },
+    "weekTrends": {
+      "kop": "Weektrend (4 weken)",
+      "intro": "Weekgemiddelden per metriek. Zo zie je de richting over de maand, niet een losse dag.",
+      "metriek": {
+        "stemming": "Stemming",
+        "slaap": "Slaap",
+        "focus": "Focus",
+        "checkins": "Check-ins"
+      },
+      "eenheid": {
+        "stemming": "/5",
+        "slaap": "u",
+        "focus": "m",
+        "checkins": "×"
+      },
+      "samenvatting": "{label} per week over de laatste 4 weken, in {eenheid}.",
+      "vsVorige": "vs vorige week"
+    },
+    "voortgangPagina": {
+      "titel": "Mijn voortgang",
+      "intro": "Het lange-termijnbeeld: trends over 4 weken en totalen over 30 dagen.",
+      "leegKop": "Je reis begint hier",
+      "leegTekst": "Doe je eerste check-in en log je stemming, slaap en focus. Jouw voortgang verschijnt hier zodra je data hebt verzameld.",
+      "leegKnop": "Start je eerste check-in",
+      "totaalKop": "Totaal gelogd (30 dagen)",
+      "totaalIntro": "Alles wat je in deze periode logde. Tik op een tegel om direct verder te gaan.",
+      "verdiepen": "Verder verdiepen",
+      "metriek": {
+        "checkins": "Check-ins",
+        "focus": "Focus",
+        "dankbaar": "Dankbaar",
+        "stemming": "Stemming",
+        "slaap": "Slaap",
+        "stress": "Stress"
+      },
+      "eenheid": {
+        "keer": "keer",
+        "min": "min",
+        "logs": "logs",
+        "nachten": "nachten"
+      },
+      "links": {
+        "inzichten": {
+          "label": "AI Inzichten",
+          "tekst": "Persoonlijke analyse van jouw week"
+        },
+        "groeiplan": {
+          "label": "Groeiplan",
+          "tekst": "AI-gegenereerd persoonlijk groeiplan"
+        },
+        "mentaleSterkte": {
+          "label": "Mentale sterkte",
+          "tekst": "Quiz: hoe sterk ben jij mentaal?"
+        },
+        "achievements": {
+          "label": "Achievements",
+          "tekst": "Bekijk jouw behaalde badges"
+        }
+      }
+    },
+    "duiding": {
+      "stemmingLeeg": "Stemming: nog niets gelogd deze week.",
+      "stemmingGoed": "Stemming gemiddeld {getal}/5. Je zat er goed bij.",
+      "stemmingWisselend": "Stemming gemiddeld {getal}/5. Wisselend, en dat is prima.",
+      "stemmingZwaar": "Stemming gemiddeld {getal}/5. Een zwaardere week.",
+      "slaapLeeg": "Slaap: nog niets gelogd deze week.",
+      "slaapGoed": "Slaap gemiddeld {getal} uur. Een gezond ritme.",
+      "slaapKort": "Slaap gemiddeld {getal} uur, aan de korte kant.",
+      "slaapTeKort": "Slaap gemiddeld {getal} uur. Je lichaam vraagt om meer rust.",
+      "rustLeeg": "Rust: nog geen stresslogs deze week.",
+      "rustLaag": "Rust {getal}/10. De spanning bleef laag.",
+      "rustGemiddeld": "Rust {getal}/10. Gemiddelde spanning, niets geks.",
+      "rustGespannen": "Rust {getal}/10. Een gespannen week, wees mild voor jezelf.",
+      "activiteitLeeg": "Nog geen check-ins of dankbaarheidsmomenten deze week. Alles wat je logt, scherpt dit beeld aan.",
+      "geenCheckins": "nog geen check-ins",
+      "checkinEen": "{n} check-in",
+      "checkinMeer": "{n} check-ins",
+      "geenDank": "nog geen dankbaarheidsmomenten",
+      "dankEen": "{n} dankbaarheidsmoment",
+      "dankMeer": "{n} dankbaarheidsmomenten",
+      "activiteit": "Deze week: {checkins} en {dank} gelogd."
+    },
+    "metrieken": {
+      "stemming": "Stemming",
+      "slaap": "Slaap",
+      "rust": "Rust",
+      "uur": "u",
+      "ringLabel": "{label}: gemiddeld {waarde} deze week",
+      "ringLeeg": "{label}: nog geen data deze week",
+      "label": "Weekcijfers",
+      "kop": "Gemiddelden deze week",
+      "checkins": "Check-ins",
+      "dankbaarheid": "Dankbaarheid"
+    },
+    "weekdoelen": {
+      "momentenEen": "{gehaald} van {gelogd} doelmoment gehaald deze week",
+      "momentenMeer": "{gehaald} van {gelogd} doelmomenten gehaald deze week",
+      "vorigeEen": "Vorige week: {n} doelmoment gehaald.",
+      "vorigeMeer": "Vorige week: {n} doelmomenten gehaald.",
+      "kop": "Weekdoelen",
+      "klaar": "Je weekdoelen staan klaar. Er is nog geen moment gelogd.",
+      "geen": "Voor deze week heb je nog geen weekdoelen gekozen.",
+      "logMoment": "Log een moment",
+      "kies": "Kies je weekdoelen"
+    },
+    "inzichten": {
+      "laden": "Je weekinzichten worden geladen.",
+      "weekVan": "Week van {datum}",
+      "geenSamenvatting": "De samenvatting van deze week is nog niet beschikbaar. Je echte weekcijfers staan hieronder. Probeer later \"Vernieuwen\" voor het volledige verhaal.",
+      "tip": "Tip van de week",
+      "nietGeladen": "Inzichten niet geladen",
+      "later": "Probeer het later opnieuw.",
+      "verbinding": "Controleer je verbinding en probeer het opnieuw.",
+      "titel": "Wekelijkse inzichten",
+      "intro": "Jouw week in een rustige blik, op basis van wat je echt logde.",
+      "laadt": "Laden…",
+      "vernieuwen": "Vernieuwen",
+      "premiumTitel": "Wekelijkse AI-inzichten",
+      "premiumTekst": "Vita analyseert elke week jouw check-ins, slaap, stemming en beweging en vertaalt ze naar een helder verhaal met een concrete tip.",
+      "leegTitel": "Je inzichten groeien met je mee",
+      "leegTekst": "Doe deze week een paar check-ins, dan maak ik voor jou een analyse van hoe je week ervoor stond. Hoe meer je bijhoudt, hoe scherper het beeld.",
+      "leegActie": "Doe een check-in",
+      "patroon": "Patroon"
+    },
+    "pijlerDetail": {
+      "verband": {
+        "energie": "Je energie leunt sterk op slaap en beweging. Verbeter die en je energie volgt vanzelf.",
+        "slaap": "Betere slaap verlaagt je stress en tilt je energie en stemming mee omhoog.",
+        "stress": "Minder stress verbetert je slaap en stemming. Beweging is hier een sterke hefboom.",
+        "stemming": "Je stemming beweegt vaak mee met je slaap en beweging. Kleine stappen helpen.",
+        "beweging": "Meer bewegen verhoogt je energie en verlaagt je stress. Dubbele winst.",
+        "voeding": "Goede hydratatie en voeding houden je energie door de dag stabiel."
+      },
+      "teWeinig": "We hebben nog te weinig gegevens om deze pijler te scoren. Log het een paar dagen en je patroon verschijnt hier.",
+      "zoneGoed": "Je zit in een goede zone.",
+      "zoneMatig": "Er is ruimte om te groeien.",
+      "zoneLaag": "Dit vraagt op dit moment je aandacht.",
+      "trendOp": "Deze week {n}% omhoog, mooie beweging.",
+      "trendNeer": "Deze week {n}% omlaag. Houd dit in de gaten.",
+      "trendStabiel": "Stabiel ten opzichte van vorige week.",
+      "vsVorige": "{delta}% vs vorige week",
+      "onbekend": "Onbekende pijler.",
+      "terug": "Terug naar Home",
+      "home": "Home",
+      "laadFoutWat": "je {pijler}-gegevens",
+      "ringLabel": "{pijler} {score} van 100, {niveau}",
+      "ringLeeg": "{pijler}: nog geen data",
+      "watTeltMee": "Wat telt mee",
+      "geenBronnen": "Nog geen bronnen. Begin met loggen.",
+      "vandaag": "Vandaag"
+    },
+    "achievements": {
+      "label": "Gamificatie",
+      "titel": "Jouw prestaties",
+      "fitLevel": "Fit Level {level}",
+      "xpBadges": "{xp} XP · {n} badges",
+      "voortgangLabel": "Voortgang naar het volgende niveau: {pct}%",
+      "max": "Max niveau!",
+      "nogNodig": "nog {xp} XP tot Fit Level {level}",
+      "leegTitel": "Nog geen prestaties behaald",
+      "leegTekst": "Doe check-ins, gebruik de AI Coach en log trainingen om je eerste badges te verdienen.",
+      "startVandaag": "Start vandaag",
+      "categorie": {
+        "checkin": "Check-ins",
+        "coaching": "Coaching",
+        "sport": "Sport",
+        "voeding": "Voeding",
+        "streak": "Streaks",
+        "team": "Team",
+        "mijlpaal": "Mijlpalen"
+      }
+    },
+    "prestaties": {
+      "doel": {
+        "afvallen": "Afvallen",
+        "onderhouden": "Onderhouden",
+        "aankomen": "Aankomen",
+        "fitter": "Fitter worden"
+      },
+      "bmi": {
+        "ondergewicht": "Ondergewicht",
+        "gezond": "Gezond gewicht",
+        "overgewicht": "Overgewicht",
+        "obesitas": "Obesitas"
+      },
+      "foutGewicht": "Voer een gewicht in tussen 20 en 400 kg.",
+      "foutVet": "Vetpercentage moet tussen 0 en 70% liggen.",
+      "opgeslagen": "Meting opgeslagen",
+      "opslaanMislukt": "Opslaan mislukt",
+      "opslaanMisluktTekst": "Opslaan mislukt. Probeer opnieuw.",
+      "label": "Jouw lichaam in cijfers",
+      "titel": "Lichaamsmetingen",
+      "heroLabel": "Gewicht en streefdoel",
+      "ringLabel": "Voortgang richting streefgewicht: {pct}%. Huidig gewicht {gewicht} kg.",
+      "ringLeeg": "Huidig gewicht {gewicht} kg",
+      "richtingStreef": "Richting streefgewicht",
+      "vanDoel": "{pct}% van je doel · nog",
+      "teGaan": "te gaan",
+      "huidigGewicht": "Huidig gewicht",
+      "stelStreefIn": "Stel een streefgewicht in via Instellingen om je voortgang te volgen.",
+      "metriekenLabel": "Lichaamsmetrieken",
+      "vetpercentage": "Vetpercentage",
+      "zelfIngevoerd": "Zelf ingevoerd",
+      "leeftijd": "Leeftijd",
+      "jaar": "jr",
+      "stofwisseling": "Stofwisseling",
+      "profielOnvolledig": "Je profiel is nog onvolledig. Vul je gewicht, lengte, geboortedatum en activiteitsniveau in bij Instellingen om je verbranding te berekenen.",
+      "inRust": "In rust",
+      "metActiviteit": "Met activiteit",
+      "caloriedoel": "Caloriedoel",
+      "doelKort": "Doel",
+      "trend": "Trend",
+      "minstensTwee": "Log minstens twee metingen om je trend te zien.",
+      "reeksGewicht": "Gewicht (kg)",
+      "reeksVet": "Vet (%)",
+      "samenvattingVet": "Trend van gewicht in kilogram en vetpercentage per meetdatum.",
+      "samenvatting": "Trend van gewicht in kilogram per meetdatum.",
+      "nieuweMeting": "Nieuwe meting loggen",
+      "voorbeeldGewicht": "bijv. 78.5",
+      "vetOptioneel": "Vetpercentage (%) · optioneel",
+      "voorbeeldVet": "bijv. 18",
+      "opslaanBezig": "Opslaan…",
+      "opslaan": "Meting opslaan",
+      "vastgelegdEen": "{n} meting vastgelegd · laatste op {datum}",
+      "vastgelegdMeer": "{n} metingen vastgelegd · laatste op {datum}"
+    },
+    "patronen": {
+      "betrouwbaarheid": {
+        "laag": "Weinig data",
+        "middel": "Groeiend beeld",
+        "hoog": "Sterk patroon"
+      },
+      "vsVorige": "{delta} vs. vorige periode",
+      "fout": "Kon patronen niet ophalen. Probeer het opnieuw.",
+      "terug": "Terug",
+      "titel": "Jouw patronen",
+      "intro": "Wat verandert er echt in jouw leven? Gebaseerd op jouw eigen data.",
+      "premiumTitel": "Ontdek je persoonlijke patronen",
+      "premiumTekst": "Vita legt verbanden in jouw eigen data: hoe je slaap, beweging en stemming elkaar beïnvloeden, en wat er over 30 dagen echt verandert.",
+      "analyseren": "Jouw patronen analyseren…",
+      "nietGeladen": "Patronen niet geladen",
+      "stemming30": "Stemming (30d)",
+      "slaap30": "Slaap gem. (30d)",
+      "sport30": "Sportdagen (30d)",
+      "uren": "{n}u",
+      "dagenKort": "{n}d",
+      "betrouwbaarheidKop": "Patroonbetrouwbaarheid",
+      "sterk": "Sterk ✓",
+      "teller": "{n}/{doel} check-ins",
+      "betrouwbaarheidLabel": "Patroonbetrouwbaarheid: {n} van {doel} check-ins",
+      "nogNodig": "Nog {n} check-ins voor betrouwbare patronen",
+      "watWerkt": "Wat werkt voor jou",
+      "leegTitel": "Ik zoek nog naar jouw patronen",
+      "leegTekst": "Zodra je een tijdje je stemming, slaap en beweging bijhoudt, laat ik je zien wat jou echt meer energie en rust geeft. Elke check-in brengt dat dichterbij.",
+      "datapunten": "{n} datapunten",
+      "behaald": "Behaald",
+      "mijlpaalEerste": "Eerste check-in",
+      "mijlpaalAantal": "{n} check-ins",
+      "motivatieSterk": "Met {n} check-ins heb je genoeg data voor betrouwbare inzichten. Blijf loggen.",
+      "motivatieOnderweg": "{n} check-ins gedaan. Na 21 worden je patronen betrouwbaar.",
+      "motivatieStart": "Elke log voegt een datapunt toe. Je patronen worden na een week duidelijk.",
+      "cache": "Patronen worden 24 uur gecached en bijgewerkt zodra je nieuw logt."
+    },
+    "dashboard": {
+      "badge": {
+        "goed": "Goed",
+        "matig": "Matig",
+        "laag": "Laag"
+      },
+      "ai": {
+        "fout": "Kon het inzicht niet laden. Probeer opnieuw.",
+        "geen": "Geen inzicht beschikbaar.",
+        "kop": "Teamanalyse",
+        "bezig": "Analyseren...",
+        "vernieuwen": "Vernieuwen",
+        "analyseer": "Analyseer team",
+        "uitleg": "Klik op \"Analyseer team\" voor een AI-analyse van jouw teamdata."
+      },
+      "gesprekken": {
+        "kop": "Aankomende gesprekken",
+        "geen": "Geen geplande gesprekken."
+      },
+      "verlofKalender": {
+        "kop": "Verlofkalender, {maand}",
+        "actiefEen": "{n} goedgekeurd verlof actief",
+        "actiefMeer": "{n} goedgekeurde verloven actief"
+      },
+      "bulk": {
+        "verstuurdEen": "Herinnering verstuurd naar {n} medewerker.",
+        "verstuurdMeer": "Herinnering verstuurd naar {n} medewerkers.",
+        "mislukt": "Kon herinnering niet versturen. Probeer opnieuw.",
+        "netwerkfout": "Netwerkfout, herinnering niet verstuurd.",
+        "exporteer": "Exporteer CSV",
+        "acties": "Bulk acties",
+        "selecteerLaag": "Selecteer lage scores ({n})",
+        "selecteerNiet": "Selecteer niet ingevuld ({n})",
+        "geselecteerdEen": "{n} medewerker geselecteerd",
+        "geselecteerdMeer": "{n} medewerkers geselecteerd",
+        "alles": "Alles",
+        "wis": "Wis",
+        "stuur": "Stuur herinnering ({n})"
+      },
+      "csv": {
+        "naam": "Naam",
+        "score": "Score",
+        "laatste": "Laatste check-in",
+        "dezeWeek": "Deze week ingevuld",
+        "nooit": "Nooit",
+        "ja": "Ja",
+        "nee": "Nee"
+      },
+      "onbekend": "Onbekend",
+      "versturen": "Versturen...",
+      "laden": "Laden...",
+      "sluiten": "Sluiten",
+      "uitnodigen": {
+        "verstuurd": "Uitnodiging verstuurd naar {email}",
+        "mislukt": "Kon uitnodiging niet versturen. Probeer opnieuw.",
+        "netwerkfout": "Netwerkfout. Controleer de verbinding en probeer opnieuw.",
+        "kop": "Medewerker uitnodigen",
+        "ontvangtVoor": "De medewerker ontvangt een e-mail met HR-code",
+        "ontvangtNa": "om in te loggen.",
+        "naam": "Naam",
+        "naamVoorbeeld": "Jan de Vries",
+        "email": "E-mailadres *",
+        "emailVoorbeeld": "jan@bedrijf.nl",
+        "hrCode": "HR-code:",
+        "meegestuurd": ", wordt meegestuurd in de e-mail.",
+        "stuur": "Stuur uitnodiging"
+      },
+      "bron": {
+        "checkins": "check-ins",
+        "team": "teamoverzicht",
+        "avatars": "avatars",
+        "bedrijf": "bedrijfsgegevens",
+        "disc": "DISC-status",
+        "historie": "check-in-historie",
+        "feedback": "feedback",
+        "verlof": "verlofaanvragen",
+        "declaraties": "declaraties",
+        "gesprekken": "gesprekken"
+      },
+      "nietAlles": "Niet alle gegevens geladen",
+      "nietAllesTekst": "Kon {onderdelen} niet ophalen. Vernieuw de pagina om het opnieuw te proberen.",
+      "metriek": {
+        "energie": "Energie",
+        "slaap": "Slaap",
+        "fysiek_pijn": "Fys. klachten",
+        "fysiek_beweging": "Beweging",
+        "werkdruk": "Werkdruk",
+        "mentaal_focus": "Focus",
+        "mentaal_stress": "Stress",
+        "mentaal_balans": "Balans",
+        "motivatie": "Motivatie",
+        "sociaal_team": "Teamwerk",
+        "sociaal_steun": "Steun",
+        "herstel": "Herstel"
+      },
+      "signaal": {
+        "daling": "Score daalde {n}pt in laatste 2 check-ins",
+        "kritiek": "{label} staat kritiek laag ({score}/5)",
+        "stil": "{n} dagen geen check-in",
+        "kop": "Vroege waarschuwingssignalen",
+        "geen": "Geen alarmsignalen gedetecteerd.",
+        "hoog": "Hoog risico",
+        "letOp": "Let op",
+        "profiel": "Profiel"
+      },
+      "tab": {
+        "overzicht": "Overzicht",
+        "team": "Team ({n})",
+        "trends": "Trends",
+        "signalen": "Signalen",
+        "verlof": "Verlof",
+        "declaraties": "Declaraties",
+        "gesprekken": "Gesprekken",
+        "rapporten": "Rapporten",
+        "bedrijf": "Bedrijf"
+      },
+      "portaal": "HR Portaal",
+      "portaalTekst": "Teamwelzijn en vitaliteitsdata van jouw organisatie",
+      "titel": "HR-dashboard",
+      "scoreWeek": "Score week",
+      "participatie": "Participatie",
+      "checkinsWeek": "Check-ins week",
+      "risico": {
+        "kop": "Lage vitaliteitscore bij {pct}% van het team",
+        "tekstEen": "{n} medewerker scoort onder 2.5/5. Overweeg een persoonlijk gesprek of check de signalen-tab.",
+        "tekstMeer": "{n} medewerkers scoren onder 2.5/5. Overweeg een persoonlijk gesprek of check de signalen-tab."
+      },
+      "herinnering": {
+        "kop": "Check-in herinnering",
+        "tekstEen": "{n} medewerker heeft de check-in nog niet ingevuld deze week.",
+        "tekstMeer": "{n} medewerkers hebben de check-in nog niet ingevuld deze week."
+      },
+      "vitaliteit": "Vitaliteitsscore",
+      "checkinsTotaal": "{n} check-ins totaal",
+      "participatieWeek": "Participatie deze week",
+      "participatieHoog": "Uitstekende participatie",
+      "participatieMidden": "Goede participatie, ruimte voor verbetering",
+      "participatieLaag": "Lage participatie. Overweeg een herinnering te sturen.",
+      "leeg": {
+        "kop": "Nodig je eerste medewerker uit",
+        "tekst": "Je hebt nog geen medewerkers gekoppeld. Deel je HR-code of stuur een directe uitnodiging.",
+        "geenCheckins": "Nog geen check-ins beschikbaar. Medewerkers kunnen inloggen en een check-in invullen."
+      },
+      "team": {
+        "kop": "Teamoverzicht",
+        "zoek": "Zoek op naam...",
+        "alle": "Alle",
+        "ingevuld": "Ingevuld",
+        "nietIngevuld": "Niet ingevuld",
+        "laag": "Lage score",
+        "sorteerNaam": "Sorteer: naam",
+        "sorteerScore": "Sorteer: score",
+        "geen": "Nog geen medewerkers.",
+        "nietGevonden": "Geen leden gevonden.",
+        "laatst": "Laatst: {datum}",
+        "nooit": "Nog nooit ingevuld",
+        "ingevuldWeek": "Ingevuld deze week",
+        "nietIngevuldWeek": "Niet ingevuld deze week",
+        "teller": "{n} van {totaal} leden"
+      },
+      "feedback": {
+        "kop": "Anonieme feedback ({n})",
+        "geen": "Nog geen anonieme feedback."
+      },
+      "trends": {
+        "geen": "Nog geen data voor trends.",
+        "aandacht": "Meeste aandacht nodig",
+        "kanBeter": "Kan beter",
+        "gaatGoed": "Gaat goed"
+      },
+      "bedrijfNietGevonden": "Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.",
+      "bedrijfNietGeladen": "Bedrijfsdata kon niet worden geladen. Ververs de pagina of neem contact op met support.",
+      "verlofType": {
+        "vakantie": "Vakantie",
+        "ziekte": "Ziekte",
+        "bijzonder": "Bijzonder",
+        "onbetaald": "Onbetaald",
+        "overig": "Overig"
+      },
+      "periode": "{van} t/m {tot}",
+      "dagEen": "{n} dag",
+      "dagMeer": "{n} dagen",
+      "inBehandelingTeller": "In behandeling ({n})",
+      "inBehandeling": "In behandeling",
+      "notitieMedewerker": "Optionele notitie voor medewerker...",
+      "goedkeuren": "Goedkeuren",
+      "afwijzen": "Afwijzen",
+      "behandeldTeller": "Behandeld ({n})",
+      "goedgekeurd": "Goedgekeurd",
+      "afgewezen": "Afgewezen",
+      "geenVerlof": "Geen verlofaanvragen.",
+      "declCat": {
+        "reiskosten": "Reiskosten",
+        "maaltijd": "Maaltijd",
+        "materiaal": "Materiaal",
+        "training": "Training",
+        "representatie": "Representatie",
+        "overig": "Overig"
+      },
+      "totaalOpenstaand": "Totaal openstaand",
+      "notitie": "Optionele notitie...",
+      "geenDeclaraties": "Geen declaraties ingediend."
+    }
+  }
 }

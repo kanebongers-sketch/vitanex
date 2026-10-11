@@ -14,6 +14,7 @@ import { Chart, type ChartDatum } from '@/components/ui/Chart'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { beste1RM, piekGewicht, weekStreak } from '@/lib/sport/stats'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 
 type OefeningLog = {
@@ -75,6 +76,7 @@ function verwerk(data: OefeningLog[]): OefeningGroep[] {
 export default function VoortgangPage() {
   const router = useRouter()
   const selectId = useId()
+  const { t } = useVertaling()
   const [loading, setLoading] = useState(true)
   const [logs, setLogs] = useState<OefeningLog[]>([])
   const [geselecteerdeOefening, setGeselecteerdeOefening] = useState<string>('')
@@ -132,7 +134,7 @@ export default function VoortgangPage() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 96 }}>
-          <div className="mf-spinner" role="status" aria-label="Voortgang laden" />
+          <div className="mf-spinner" role="status" aria-label={t('lichaam.sportVoortgang.laden')} />
         </div>
       </div>
     )
@@ -145,20 +147,20 @@ export default function VoortgangPage() {
 
         <header style={{ marginBottom: 24 }}>
           <Link href="/sport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--mentaforce-primary)', fontSize: 14, textDecoration: 'none' }}>
-            <ArrowLeft size={15} aria-hidden /> Terug naar sport
+            <ArrowLeft size={15} aria-hidden /> {t('lichaam.sportVoortgang.terug')}
           </Link>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-1)', margin: '8px 0 4px', letterSpacing: '-0.03em' }}>
-            Mijn voortgang
+            {t('lichaam.sportVoortgang.titel')}
           </h1>
-          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>{t('lichaam.sportVoortgang.intro')}</p>
         </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 32 }}>
           {[
-            { label: 'Weekstreak', waarde: streak > 0 ? `${streak} wk` : '—', kleur: 'var(--mf-orange)', sub: streak > 0 ? 'weken op rij' : 'train deze week' },
-            { label: 'Trainingen', waarde: totaalTrainingen, kleur: 'var(--mf-blue)' },
-            { label: 'Sets gelogd', waarde: totaalSets, kleur: 'var(--mentaforce-primary)' },
-            { label: 'Meeste vooruitgang', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: 'var(--mf-purple)', sub: besteOefening?.naam },
+            { label: t('lichaam.sportVoortgang.streak'), waarde: streak > 0 ? t('lichaam.sportVoortgang.weken', { aantal: streak }) : '-', kleur: 'var(--mf-orange)', sub: t(streak > 0 ? 'lichaam.sportVoortgang.wekenOpRij' : 'lichaam.sportVoortgang.trainDezeWeek') },
+            { label: t('lichaam.sportVoortgang.trainingen'), waarde: totaalTrainingen, kleur: 'var(--mf-blue)' },
+            { label: t('lichaam.sportVoortgang.sets'), waarde: totaalSets, kleur: 'var(--mentaforce-primary)' },
+            { label: t('lichaam.sportVoortgang.meeste'), waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '-', kleur: 'var(--mf-purple)', sub: besteOefening?.naam },
           ].map((stat, i) => (
             <Card key={i} style={{ padding: '20px 16px' }}>
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 4 }}>{stat.label}</p>
@@ -172,14 +174,14 @@ export default function VoortgangPage() {
           <Card>
             <EmptyState
               icon={BarChart2}
-              title="Nog geen logs gevonden"
-              description="Log je eerste training om je voortgang te zien."
+              title={t('lichaam.sportVoortgang.leegTitel')}
+              description={t('lichaam.sportVoortgang.leegTekst')}
             />
           </Card>
         ) : (
           <>
             <Card style={{ padding: '16px 20px', marginBottom: 24 }}>
-              <label htmlFor={selectId} style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600, display: 'block', marginBottom: 8 }}>Selecteer oefening</label>
+              <label htmlFor={selectId} style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('lichaam.sportVoortgang.selecteer')}</label>
               <select
                 id={selectId}
                 value={geselecteerdeOefening}
@@ -198,8 +200,8 @@ export default function VoortgangPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{actieveGroep.naam}</h2>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {persoonlijkRecord > 0 && <Badge variant="accent">PR: {persoonlijkRecord} kg</Badge>}
-                      {geschat1rm > 0 && <Badge variant="accent">Gesch. 1RM: {geschat1rm} kg</Badge>}
+                      {persoonlijkRecord > 0 && <Badge variant="accent">{t('lichaam.sportVoortgang.pr', { kg: persoonlijkRecord })}</Badge>}
+                      {geschat1rm > 0 && <Badge variant="accent">{t('lichaam.sportVoortgang.rm', { kg: geschat1rm })}</Badge>}
                       <Badge variant={actieveGroep.progressieProcent >= 0 ? 'success' : 'danger'}>
                         {actieveGroep.progressieProcent >= 0 ? '+' : ''}{actieveGroep.progressieProcent}%
                       </Badge>
@@ -207,29 +209,29 @@ export default function VoortgangPage() {
                   </div>
 
                   {chartData.length < 2 ? (
-                    <p style={{ color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>Log meer sessies om een grafiek te zien.</p>
+                    <p style={{ color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>{t('lichaam.sportVoortgang.meerSessies')}</p>
                   ) : (
                     <Chart
                       type="bar"
                       data={chartData}
                       xKey="datum"
-                      series={[{ key: 'Max. gewicht', label: 'Max. gewicht (kg)' }]}
-                      summary={`Gewichtsprogressie voor ${actieveGroep.naam}: maximaal gewicht per sessie in kilogram over de laatste ${chartData.length} sessies.`}
+                      series={[{ key: 'Max. gewicht', label: t('lichaam.sportVoortgang.maxGewicht') }]}
+                      summary={t('lichaam.sportVoortgang.samenvatting', { naam: actieveGroep.naam, aantal: chartData.length })}
                       height={180}
                     />
                   )}
                 </Card>
 
                 <Card style={{ padding: '20px' }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Recente sets</h2>
-                  <Table caption={`Recente sets voor ${actieveGroep.naam}`}>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>{t('lichaam.sportVoortgang.recenteSets')}</h2>
+                  <Table caption={t('lichaam.sportVoortgang.recenteSetsVoor', { naam: actieveGroep.naam })}>
                     <THead>
                       <Tr>
-                        <Th scope="col">Datum</Th>
-                        <Th scope="col">Set</Th>
-                        <Th scope="col">Reps</Th>
-                        <Th scope="col">Gewicht</Th>
-                        <Th scope="col" align="right">Volume</Th>
+                        <Th scope="col">{t('lichaam.slaap.datum')}</Th>
+                        <Th scope="col">{t('lichaam.sportVoortgang.set')}</Th>
+                        <Th scope="col">{t('lichaam.sportVoortgang.reps')}</Th>
+                        <Th scope="col">{t('lichaam.voedingSetup.gewicht')}</Th>
+                        <Th scope="col" align="right">{t('lichaam.sportVoortgang.volume')}</Th>
                       </Tr>
                     </THead>
                     <TBody>
@@ -240,8 +242,8 @@ export default function VoortgangPage() {
                             <Td>{log.training_logs.datum}</Td>
                             <Td>{log.set_nummer}</Td>
                             <Td>{log.herhalingen}</Td>
-                            <Td>{log.gewicht_kg ?? '—'} kg</Td>
-                            <Td align="right" style={{ color: 'var(--mentaforce-primary)', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '—'}</Td>
+                            <Td>{log.gewicht_kg ?? '-'} kg</Td>
+                            <Td align="right" style={{ color: 'var(--mentaforce-primary)', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '-'}</Td>
                           </Tr>
                         )
                       })}

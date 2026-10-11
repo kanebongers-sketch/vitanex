@@ -13,16 +13,18 @@ import { GoogleSsoKnop, RegisterStapAccount } from '@/components/auth/RegisterSt
 import { RegisterStapHrCode, RegisterStapProfiel } from '@/components/auth/RegisterStapProfiel'
 import { RegisterStapBevestig } from '@/components/auth/RegisterStapBevestig'
 import { RegisterZijpaneel } from '@/components/auth/RegisterZijpaneel'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
   // Gebruikers krijgen een extra HR-code stap; HR niet
   const stappen: Stap[] = type === 'gebruiker'
     ? ['type', 'hrcode', 'info', 'account', 'bevestig']
     : ['type', 'info', 'account', 'bevestig']
-  const labels = type === 'gebruiker'
-    ? ['Jouw rol', 'HR Code', 'Gegevens', 'Account', 'Bevestiging']
-    : ['Jouw rol', 'Gegevens', 'Account', 'Bevestiging']
+  const labels: Record<Stap, string> = {
+    type: 'stapRol', hrcode: 'stapHrCode', info: 'stapGegevens', account: 'stapAccount', bevestig: 'stapBevestiging',
+  }
   const huidigeIndex = stappen.indexOf(huidig)
+  const { t } = useVertaling()
 
   return (
     <div className="flex items-center gap-0 mb-10">
@@ -44,7 +46,7 @@ function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: Gebru
               </div>
               <span className="text-xs mt-1.5 font-medium hidden sm:block"
                 style={{ color: actief ? 'var(--mf-green)' : gedaan ? 'var(--text-2)' : 'var(--text-3)' }}>
-                {labels[i]}
+                {t(`account.register.${labels[s]}`)}
               </span>
             </div>
             {i < stappen.length - 1 && (
@@ -66,16 +68,17 @@ interface StapKiesTypeProps {
 }
 
 function StapKiesType({ type, onKies, onVerder, onGoogle }: StapKiesTypeProps) {
+  const { t } = useVertaling()
   return (
     <div>
-      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Wie ben je?</h1>
-      <p className="mb-6" style={{ color: 'var(--text-3)' }}>We passen MentaForce aan op basis van jouw rol.</p>
+      <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>{t('account.register.wieBenJe')}</h1>
+      <p className="mb-6" style={{ color: 'var(--text-3)' }}>{t('account.register.wieIntro')}</p>
 
-      <GoogleSsoKnop label="Snel registreren met Google" onClick={onGoogle} />
+      <GoogleSsoKnop label={t('account.register.googleSnel')} onClick={onGoogle} />
 
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-        <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>of kies je rol</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>{t('account.register.ofKiesRol')}</span>
         <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
       </div>
 
@@ -84,16 +87,16 @@ function StapKiesType({ type, onKies, onVerder, onGoogle }: StapKiesTypeProps) {
           {
             id: 'gebruiker' as GebruikerType,
             icon: User,
-            titel: 'Gebruiker',
-            beschrijving: 'Ik wil mijn eigen welzijn bijhouden en persoonlijke tools gebruiken.',
+            titel: t('account.register.gebruikerTitel'),
+            beschrijving: t('account.register.gebruikerTekst'),
             badge: null as string | null,
           },
           {
             id: 'hr' as GebruikerType,
             icon: Users,
-            titel: 'HR-manager of leidinggevende',
-            beschrijving: 'Ik wil het welzijn van mijn team monitoren en HR-inzichten ontvangen.',
-            badge: 'Voor teams & organisaties',
+            titel: t('account.register.hrTitel'),
+            beschrijving: t('account.register.hrTekst'),
+            badge: t('account.register.hrBadge'),
           },
         ].map(o => (
           <button
@@ -145,13 +148,14 @@ function StapKiesType({ type, onKies, onVerder, onGoogle }: StapKiesTypeProps) {
           boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
         }}
       >
-        Verder
+        {t('account.register.verder')}
       </button>
     </div>
   )
 }
 
 function RegisterForm() {
+  const { t, taal } = useVertaling()
   const [stap, setStap] = useState<Stap>('type')
   const [type, setType] = useState<GebruikerType | null>(null)
 
@@ -186,7 +190,7 @@ function RegisterForm() {
   async function valideerHrCode() {
     const code = hrCode.toUpperCase().trim()
     if (!HR_CODE_PATROON.test(code)) {
-      setHrCodeFout('Voer een geldige code in, zoals FIT-X2K.')
+      setHrCodeFout(t('account.register.codeOngeldigFormaat'))
       return
     }
     setHrCodeBezig(true)
@@ -195,14 +199,14 @@ function RegisterForm() {
       const res = await fetch(`/api/hr-code/valideer?code=${encodeURIComponent(code)}`)
       const json = await res.json()
       if (!res.ok || !json.geldig) {
-        setHrCodeFout(json.fout ?? 'Ongeldige HR code.')
+        setHrCodeFout(taal === 'nl' && json.fout ? json.fout : t('account.register.codeOngeldig'))
       } else {
         setHrCodeBedrijfId(json.bedrijf_id)
         setHrCodeBedrijfsnaam(json.bedrijfsnaam)
         setStap('info')
       }
     } catch {
-      setHrCodeFout('Netwerkfout. Controleer je verbinding en probeer opnieuw.')
+      setHrCodeFout(t('account.register.netwerkfout'))
     } finally {
       setHrCodeBezig(false)
     }
@@ -218,7 +222,7 @@ function RegisterForm() {
 
   async function registreer() {
     if (!email.trim() || !wachtwoord || wachtwoord !== bevestigWachtwoord || !akkoord) return
-    if (wachtwoord.length < 8) { setFout('Wachtwoord moet minimaal 8 tekens zijn.'); return }
+    if (wachtwoord.length < 8) { setFout(t('account.register.wachtwoordKort')); return }
     setBezig(true)
     setFout(null)
     const { data: signUpData, error } = await supabase.auth.signUp({
@@ -243,20 +247,20 @@ function RegisterForm() {
     if (error) {
       const m = error.message.toLowerCase()
       if (m.includes('already registered') || m.includes('user already exists')) {
-        setFout('Dit e-mailadres is al geregistreerd. Probeer in te loggen of reset je wachtwoord.')
+        setFout(t('account.register.alGeregistreerd'))
       } else if (m.includes('password') && m.includes('weak')) {
-        setFout('Kies een sterker wachtwoord met letters, cijfers en/of symbolen.')
+        setFout(t('account.register.zwakWachtwoord'))
       } else if (m.includes('invalid email')) {
-        setFout('Voer een geldig e-mailadres in.')
+        setFout(t('account.register.ongeldigEmail'))
       } else {
-        setFout('Registratie mislukt. Controleer je gegevens en probeer opnieuw.')
+        setFout(t('account.register.mislukt'))
       }
       setBezig(false)
       return
     }
     // Supabase kan een user teruggeven zonder error maar met identities=[] als het account al bestond
     if (signUpData.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
-      setFout('Dit e-mailadres is al geregistreerd. Probeer in te loggen of reset je wachtwoord.')
+      setFout(t('account.register.alGeregistreerd'))
       setBezig(false)
       return
     }
@@ -298,13 +302,13 @@ function RegisterForm() {
         className="w-full px-6 py-4 flex items-center justify-between"
         style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}
       >
-        <Link href="/" aria-label="MentaForce home">
+        <Link href="/" aria-label={t('account.login.homeLabel')}>
           <LogoFull iconSize={32} />
         </Link>
         <p className="text-sm" style={{ color: 'var(--text-3)' }}>
-          Al een account?{' '}
+          {t('account.register.alAccount')}{' '}
           <Link href="/login" className="font-semibold transition" style={{ color: 'var(--mf-green)' }}>
-            Inloggen
+            {t('account.login.inloggen')}
           </Link>
         </p>
       </header>
@@ -384,7 +388,7 @@ function RegisterForm() {
                 onEmailChange={v => { setEmail(v); setFout(null) }}
                 onWachtwoordChange={setWachtwoord}
                 onBevestigWachtwoordChange={setBevestigWachtwoord}
-                onToonWachtwoordToggle={() => setToonWachtwoord(t => !t)}
+                onToonWachtwoordToggle={() => setToonWachtwoord(v => !v)}
                 onAkkoordChange={setAkkoord}
                 onNieuwsbriefChange={setNieuwsbrief}
                 onGoogle={registreerMetGoogle}

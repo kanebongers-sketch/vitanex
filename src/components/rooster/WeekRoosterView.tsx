@@ -2,8 +2,8 @@
 
 import DienstKaart, { type Dienst } from './DienstKaart'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
-
-const DAGEN = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 
 function maandag(datum: Date): Date {
   const d = new Date(datum)
@@ -36,7 +36,9 @@ interface WeekRoosterViewProps {
 }
 
 export default function WeekRoosterView({ diensten, weekStart, toonNaam = false }: WeekRoosterViewProps) {
+  const { t, taal } = useVertaling()
   const ma = maandag(weekStart ?? new Date())
+  const dagNaam = new Intl.DateTimeFormat(INTL_LOCALE[taal], { weekday: 'short' })
 
   const dagen = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(ma)
@@ -47,10 +49,10 @@ export default function WeekRoosterView({ diensten, weekStart, toonNaam = false 
   const vandaagStr = toYMD(new Date())
 
   return (
-    <Table caption="Weekrooster met diensten per dag">
+    <Table caption={t('werk.weekRooster.caption')}>
       <THead>
         <Tr>
-          {dagen.map((dag, i) => {
+          {dagen.map((dag) => {
             const ymd = toYMD(dag)
             const isVandaag = ymd === vandaagStr
             return (
@@ -65,7 +67,7 @@ export default function WeekRoosterView({ diensten, weekStart, toonNaam = false 
                   borderBottom: isVandaag ? '2px solid var(--mentaforce-primary)' : undefined,
                 }}
               >
-                <span style={{ display: 'block', fontSize: 11, fontWeight: 600 }}>{DAGEN[i]}</span>
+                <span style={{ display: 'block', fontSize: 11, fontWeight: 600 }}>{dagNaam.format(dag)}</span>
                 <span
                   style={{
                     display: 'inline-flex',
@@ -84,7 +86,7 @@ export default function WeekRoosterView({ diensten, weekStart, toonNaam = false 
                   }}
                 >
                   {dag.getDate()}
-                  {isVandaag && <span style={SR_ONLY}>(vandaag)</span>}
+                  {isVandaag && <span style={SR_ONLY}>{t('werk.weekRooster.vandaagSr')}</span>}
                 </span>
               </Th>
             )
@@ -108,7 +110,7 @@ export default function WeekRoosterView({ diensten, weekStart, toonNaam = false 
                 }}
               >
                 {dagDiensten.length === 0 ? (
-                  <span style={{ color: 'var(--text-4)', fontSize: 11 }} aria-label="Geen diensten">
+                  <span style={{ color: 'var(--text-4)', fontSize: 11 }} aria-label={t('werk.weekRooster.geenDiensten')}>
                     –
                   </span>
                 ) : (

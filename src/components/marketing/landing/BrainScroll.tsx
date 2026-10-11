@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { COLORS, FONT, MAXW, EASE, BRAIN_COLORS, STEP_REGION } from '../theme'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 const BrainCanvas = dynamic(() => import('../BrainCanvas'), { ssr: false, loading: () => null })
 
-interface Step { naam: string; zin: string; info: string; help: string }
+interface Step { sleutel: 'energie' | 'slaap' | 'stress' | 'stemming' | 'beweging' | 'voeding' }
 
 // Editoriale plaatsing per stap (index = step, 0 = intro, 1..6 = de zes vlakken).
 // `tx`/`ty` zijn de horizontale/verticale anker-zones op desktop; we vertalen de
@@ -25,16 +26,19 @@ const CARD_POS: readonly CardPos[] = [
   { x: 'right', y: 'bottom' }, // 6 Voeding   — rechts-onder
 ]
 
+// Sleutel per vlak; naam, zin, info en hulp komen uit het woordenboek
+// (site.pijlers.<sleutel> en site.brein.<sleutel>Zin/Info/Help).
 const STEPS: Step[] = [
-  { naam: 'Energie', zin: 'Dagelijkse vitaliteit en herstel inzichtelijk.', info: 'We volgen hoe energie zich over de week ontwikkelt, zodat dips opvallen voordat ze doorwerken.', help: 'Dagelijkse check-ins tonen je energietrend; de app geeft kleine, haalbare hersteltips wanneer je structureel onder je niveau zit.' },
-  { naam: 'Slaap', zin: 'Slaapkwaliteit en herstel, nacht na nacht.', info: 'Inzicht in slaap en herstel als basis voor focus en humeur overdag.', help: 'Houd je slaap bij en krijg routines aangereikt die je nachtrust stap voor stap verbeteren.' },
-  { naam: 'Stress', zin: 'Vroege signalen van overbelasting.', info: 'Spanning wordt zichtbaar in trends, zodat je er op tijd over kunt praten.', help: 'De app reikt adem- en ontspanoefeningen aan precies wanneer de spanning oploopt.' },
-  { naam: 'Stemming', zin: 'Mentaal welzijn en motivatie.', info: 'Anoniem peilen hoe het écht met het team gaat, zonder ongemakkelijk gesprek.', help: 'Anonieme stemmingsmeting met een teamoverzicht en korte reflecties maken het makkelijker om te praten over hoe het gaat.' },
-  { naam: 'Beweging', zin: 'Lichamelijke activiteit die energie voedt.', info: 'Hoe beweging samenhangt met hoe mensen zich voelen en presteren.', help: 'Koppel je activiteit en zet haalbare beweegdoelen die in je werkdag passen.' },
-  { naam: 'Voeding', zin: 'Voeding en hydratatie als fundament.', info: 'De kleine gewoontes die veerkracht dragen, inzichtelijk gemaakt.', help: 'Voedings- en hydratatie-check-ins met simpele, volhoudbare gewoontes die je veerkracht versterken.' },
+  { sleutel: 'energie' },
+  { sleutel: 'slaap' },
+  { sleutel: 'stress' },
+  { sleutel: 'stemming' },
+  { sleutel: 'beweging' },
+  { sleutel: 'voeding' },
 ]
 
 export default function BrainScroll() {
+  const { t } = useVertaling()
   const wrapRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef(0)               // continue 0..1 — stuurt de camera elke frame
   const [step, setStep] = useState(0)          // discreet — alleen voor info-kaart + stippen
@@ -158,14 +162,14 @@ export default function BrainScroll() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                     <span style={{ width: 12, height: 12, borderRadius: '50%', background: COLORS.cyan, boxShadow: `0 0 12px ${COLORS.cyan}` }} />
                     <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan }}>
-                      De zes vlakken
+                      {t('site.brein.introLabel')}
                     </span>
                   </div>
                   <h3 style={{ fontWeight: 700, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-0.03em', lineHeight: 1.02, color: COLORS.ink, margin: '0 0 14px' }}>
-                    Eén brein,<br />zes vlakken.
+                    {t('site.brein.introKopRegel1')}<br />{t('site.brein.introKopRegel2')}
                   </h3>
                   <p style={{ fontSize: 16, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>
-                    Welzijn, anoniem gemeten over zes vlakken. Scroll om elk vlak te ontdekken.
+                    {t('site.brein.introTekst')}
                   </p>
                 </div>
               ) : (
@@ -173,19 +177,19 @@ export default function BrainScroll() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                     <span style={{ width: 12, height: 12, borderRadius: '50%', background: color, boxShadow: `0 0 12px ${color}` }} />
                     <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan }}>
-                      Vlak 0{step} / 06
+                      {t('site.brein.vlakNummer', { nr: step })}
                     </span>
                   </div>
                   <h3 style={{ fontWeight: 700, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-0.03em', lineHeight: 1.02, color: COLORS.ink, margin: '0 0 14px' }}>
-                    {cur.naam}
+                    {t(`site.pijlers.${cur.sleutel}`)}
                   </h3>
-                  <p style={{ fontSize: 17, lineHeight: 1.5, color: COLORS.ink, margin: '0 0 10px', fontWeight: 500 }}>{cur.zin}</p>
-                  <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: '0 0 16px' }}>{cur.info}</p>
+                  <p style={{ fontSize: 17, lineHeight: 1.5, color: COLORS.ink, margin: '0 0 10px', fontWeight: 500 }}>{t(`site.brein.${cur.sleutel}Zin`)}</p>
+                  <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: '0 0 16px' }}>{t(`site.brein.${cur.sleutel}Info`)}</p>
                   <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 14 }}>
                     <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.cyan, margin: '0 0 6px' }}>
-                      Hoe MentaForce helpt
+                      {t('site.brein.hoeHelpt')}
                     </p>
-                    <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{cur.help}</p>
+                    <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{t(`site.brein.${cur.sleutel}Help`)}</p>
                   </div>
                 </div>
               )}
@@ -212,7 +216,7 @@ export default function BrainScroll() {
           {/* sectiekop — onder de nav */}
           <div style={{ position: 'absolute', top: 92, left: 0, right: 0, padding: '0 28px', textAlign: 'center', pointerEvents: 'none' }}>
             <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan, margin: 0 }}>
-              De zes vlakken — scroll om te ontdekken
+              {t('site.brein.sectieKop')}
             </p>
           </div>
         </div>

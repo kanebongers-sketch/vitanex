@@ -16,6 +16,8 @@ import nextDynamic from 'next/dynamic'
 import VoedingSetup from './VoedingSetup'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 
 // Geëxtraheerd uit deze pagina (was 1378 regels) naar de voeding-feature-map.
@@ -27,7 +29,7 @@ import { VoedingVeld, MaaltijdSelector } from '@/components/voeding/VoedingVelde
 import { ProductFoto } from '@/components/voeding/ProductFoto'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
-  MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
+  maaltijdLabelSleutel, maaltijdVolSleutel, DOEL_KCAL,
 } from '@/components/voeding/constants'
 import type {
   AiAnalyse, VoedingLog, VoedingForm,
@@ -57,6 +59,10 @@ const KCAL_GLOW = (gegeten: number, doel: number): string =>
 export default function VoedingPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t, taal } = useVertaling()
+  /** Serverfouten zijn Nederlands; in een andere taal tonen we de algemene melding. */
+  const foutTekst = (e: unknown, standaard: string): string =>
+    taal === 'nl' && e instanceof Error && e.message ? e.message : standaard
   const fileInputRef    = useRef<HTMLInputElement>(null)
   const cameraInputRef  = useRef<HTMLInputElement>(null)
   const barcodeInputRef = useRef<HTMLInputElement>(null)
@@ -164,7 +170,7 @@ export default function VoedingPage() {
 
     try {
       const res = await fetch('/api/voeding/analyseer', { method: 'POST', headers: { Authorization: `Bearer ${tok}` }, body: fd })
-      if (!res.ok) { const e = await res.json() as { error?: string }; throw new Error(e.error || 'Analyse mislukt') }
+      if (!res.ok) { const e = await res.json() as { error?: string }; throw new Error(e.error || t('lichaam.voeding.analyseMislukt')) }
       const data = await res.json() as { analyse: AiAnalyse }
       const a = data.analyse
       setAnalyse(a)
@@ -180,9 +186,9 @@ export default function VoedingPage() {
       })
       setScherm('bevestigen')
     } catch (e) {
-      const msg = (e as Error).message || 'Analyse mislukt.'
+      const msg = foutTekst(e, t('lichaam.voeding.analyseMisluktZin'))
       setFout(msg)
-      toast({ title: 'Analyse mislukt', description: msg, variant: 'error' })
+      toast({ title: t('lichaam.voeding.analyseMislukt'), description: msg, variant: 'error' })
       setScherm('overzicht')
     }
   }
@@ -234,7 +240,7 @@ export default function VoedingPage() {
     setOpslaan(true); setFout(null)
     const body = {
       datum: vandaag, maaltijd_type: form.maaltijd_type,
-      omschrijving: form.omschrijving.trim() || 'Onbekend gerecht',
+      omschrijving: form.omschrijving.trim() || t('lichaam.voeding.onbekendGerecht'),
       calorieen: form.calorieen ? parseInt(form.calorieen) : null,
       eiwitten_g: form.eiwitten_g ? parseFloat(form.eiwitten_g) : null,
       koolhydraten_g: form.koolhydraten_g ? parseFloat(form.koolhydraten_g) : null,
@@ -245,16 +251,16 @@ export default function VoedingPage() {
     }
     try {
       const res = await fetch('/api/voeding', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Opslaan mislukt')
+      if (!res.ok) throw new Error(t('lichaam.voeding.opslaanMislukt'))
       await laadLogs(token)
       vitaEvent('data_logged', { kind: 'voeding' })
-      toast({ title: 'Maaltijd opgeslagen', variant: 'success' })
+      toast({ title: t('lichaam.voeding.opgeslagen'), variant: 'success' })
       resetForm(); setScherm('overzicht')
       router.push('/home')
     } catch (e) {
-      const msg = (e as Error).message || 'Opslaan mislukt.'
+      const msg = foutTekst(e, t('lichaam.voeding.opslaanMisluktZin'))
       setFout(msg)
-      toast({ title: 'Opslaan mislukt', description: msg, variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), description: msg, variant: 'error' })
     }
     finally { setOpslaan(false) }
   }
@@ -265,11 +271,11 @@ export default function VoedingPage() {
     setLogs(prev => prev.filter(l => l.id !== id))
     try {
       const res = await fetch(`/api/voeding?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-      if (!res.ok) throw new Error('Verwijderen mislukt')
+      if (!res.ok) throw new Error(t('lichaam.voeding.verwijderenMislukt'))
     } catch (e) {
       // Rollback bij fout: terug naar de vorige lijst en meld het.
       setLogs(vorige)
-      toast({ title: 'Verwijderen mislukt', description: (e as Error).message, variant: 'error' })
+      toast({ title: t('lichaam.voeding.verwijderenMislukt'), description: foutTekst(e, t('lichaam.voeding.probeerOpnieuw')), variant: 'error' })
     }
   }
 
@@ -314,17 +320,17 @@ export default function VoedingPage() {
     }
     try {
       const res = await fetch('/api/voeding', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Opslaan mislukt')
+      if (!res.ok) throw new Error(t('lichaam.voeding.opslaanMislukt'))
       slaRecentOp(geselecteerdProduct)
       await laadLogs(token)
       vitaEvent('data_logged', { kind: 'voeding' })
-      toast({ title: 'Toegevoegd aan je dag', variant: 'success' })
+      toast({ title: t('lichaam.voeding.toegevoegd'), variant: 'success' })
       setGeselecteerdProduct(null); setZoekQuery(''); setZoekResultaten([])
       setScherm('overzicht')
     } catch (e) {
-      const msg = (e as Error).message || 'Opslaan mislukt.'
+      const msg = foutTekst(e, t('lichaam.voeding.opslaanMisluktZin'))
       setFout(msg)
-      toast({ title: 'Opslaan mislukt', description: msg, variant: 'error' })
+      toast({ title: t('lichaam.voeding.opslaanMislukt'), description: msg, variant: 'error' })
     }
     finally { setOpslaan(false) }
   }
@@ -402,22 +408,22 @@ export default function VoedingPage() {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.03em' }}>Voeding</h1>
+                <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.03em' }}>{t('lichaam.voeding.titel')}</h1>
                 <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0, textTransform: 'capitalize' }}>
-                  {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  {new Date().toLocaleDateString(INTL_LOCALE[taal], { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                 <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? 'var(--mf-green)' : 'var(--text-4)', fontWeight: 700 }}>
-                  {logs.length > 0 ? `${logs.length} maaltijd${logs.length !== 1 ? 'en' : ''}` : 'Nog niets gelogd'}
+                  {logs.length > 0 ? t(logs.length === 1 ? 'lichaam.voeding.maaltijdenEen' : 'lichaam.voeding.maaltijdenMeer', { aantal: logs.length }) : t('lichaam.voeding.nogNiets')}
                 </div>
                 <button
                   type="button"
-                  aria-label="Wijzig je voedingsplan"
+                  aria-label={t('lichaam.voeding.wijzigPlanAria')}
                   onClick={() => setToontSetup(true)}
                   style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-strong)', borderRadius: 20, padding: '7px 12px', fontSize: 11, fontWeight: 700, color: 'var(--text-2)', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 >
-                  Wijzig plan ›
+                  {t('lichaam.voeding.wijzigPlan')} ›
                 </button>
               </div>
             </div>
@@ -438,10 +444,10 @@ export default function VoedingPage() {
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <MacroRing waarde={dagTotaal.eiwitten_g}     max={eiwitDoel}  kleur={MACRO_KLEUR.eiwit}        label="Eiwit"   eenheid="g" />
-                  <MacroRing waarde={dagTotaal.koolhydraten_g} max={koolhDoel}  kleur={MACRO_KLEUR.koolhydraten} label="Koolh."  eenheid="g" />
-                  <MacroRing waarde={dagTotaal.vetten_g}       max={vetDoel}    kleur={MACRO_KLEUR.vet}          label="Vet"     eenheid="g" />
-                  <MacroRing waarde={dagTotaal.vezels_g}       max={vezelsDoel} kleur={MACRO_KLEUR.vezels}       label="Vezels"  eenheid="g" />
+                  <MacroRing waarde={dagTotaal.eiwitten_g}     max={eiwitDoel}  kleur={MACRO_KLEUR.eiwit}        label={t('lichaam.voeding.macro.eiwit')} eenheid="g" />
+                  <MacroRing waarde={dagTotaal.koolhydraten_g} max={koolhDoel}  kleur={MACRO_KLEUR.koolhydraten} label={t('lichaam.voeding.macro.koolhKort')} eenheid="g" />
+                  <MacroRing waarde={dagTotaal.vetten_g}       max={vetDoel}    kleur={MACRO_KLEUR.vet}          label={t('lichaam.voeding.macro.vet')} eenheid="g" />
+                  <MacroRing waarde={dagTotaal.vezels_g}       max={vezelsDoel} kleur={MACRO_KLEUR.vezels}       label={t('lichaam.voeding.macro.vezels')} eenheid="g" />
                 </div>
               </div>
 
@@ -450,14 +456,14 @@ export default function VoedingPage() {
                 {heeftPersoonlijkDoel ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>
                     <Target size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
-                    <span>Persoonlijk doel: <strong style={{ color: 'var(--text-2)' }}>{calorieDoel} kcal</strong>{doelen?.calorie_handmatig ? ' (handmatig ingesteld)' : ' (berekend uit je profiel)'}</span>
+                    <span>{t('lichaam.voeding.persoonlijkDoel')} <strong style={{ color: 'var(--text-2)' }}>{calorieDoel} kcal</strong> {t(doelen?.calorie_handmatig ? 'lichaam.voeding.doelHandmatig' : 'lichaam.voeding.doelBerekend')}</span>
                   </div>
                 ) : (
-                  <button type="button" aria-label="Rond je intake af in instellingen" onClick={() => router.push('/instellingen')}
+                  <button type="button" aria-label={t('lichaam.voeding.intakeAria')} onClick={() => router.push('/instellingen')}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)', borderRadius: 12, padding: '12px 14px', cursor: 'pointer', textAlign: 'left' }}>
                     <Settings size={18} aria-hidden style={{ color: 'var(--mf-amber)', flexShrink: 0 }} />
                     <span style={{ flex: 1, fontSize: 12, color: 'var(--text-1)', fontWeight: 600, lineHeight: 1.4 }}>
-                      Rond je intake af voor een persoonlijk calorie- en macrodoel. Nu tonen we het standaarddoel ({DOEL_KCAL} kcal).
+                      {t('lichaam.voeding.intake', { kcal: DOEL_KCAL })}
                     </span>
                     <span style={{ fontSize: 16, color: 'var(--mf-amber)' }}>›</span>
                   </button>
@@ -467,10 +473,10 @@ export default function VoedingPage() {
               {/* Macro-voortgang t.o.v. persoonlijke targets */}
               <div style={{ padding: '0 20px 16px' }}>
                 {[
-                  { label: 'Eiwit',        waarde: dagTotaal.eiwitten_g,     rdi: eiwitDoel,  kleur: 'var(--mf-red)',    eenheid: 'g' },
-                  { label: 'Koolhydraten', waarde: dagTotaal.koolhydraten_g, rdi: koolhDoel,  kleur: 'var(--mf-amber)',  eenheid: 'g' },
-                  { label: 'Vet',          waarde: dagTotaal.vetten_g,       rdi: vetDoel,    kleur: 'var(--mf-purple)', eenheid: 'g' },
-                  { label: 'Vezels',       waarde: dagTotaal.vezels_g,       rdi: vezelsDoel, kleur: 'var(--mf-green)',  eenheid: 'g' },
+                  { label: t('lichaam.voeding.macro.eiwit'),        waarde: dagTotaal.eiwitten_g,     rdi: eiwitDoel,  kleur: 'var(--mf-red)',    eenheid: 'g' },
+                  { label: t('lichaam.voeding.macro.koolhydraten'), waarde: dagTotaal.koolhydraten_g, rdi: koolhDoel,  kleur: 'var(--mf-amber)',  eenheid: 'g' },
+                  { label: t('lichaam.voeding.macro.vet'),          waarde: dagTotaal.vetten_g,       rdi: vetDoel,    kleur: 'var(--mf-purple)', eenheid: 'g' },
+                  { label: t('lichaam.voeding.macro.vezels'),       waarde: dagTotaal.vezels_g,       rdi: vezelsDoel, kleur: 'var(--mf-green)',  eenheid: 'g' },
                 ].map(m => (
                   <RdiBalk key={m.label} label={m.label} waarde={m.waarde} eenheid={m.eenheid} rdi={m.rdi} kleur={m.kleur} />
                 ))}
@@ -498,13 +504,13 @@ export default function VoedingPage() {
               <Droplet size={22} aria-hidden style={{ color: 'var(--mf-blue)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Water</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-blue)' }}>{water}/{waterDoelGlazen} glazen</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{t('lichaam.voeding.water')}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-blue)' }}>{t('lichaam.voeding.glazen', { aantal: water, doel: waterDoelGlazen })}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
                   {Array.from({ length: waterDoelGlazen }).map((_, i) => (
                     <button key={i} type="button" onClick={() => setWaterSave(i < water ? i : i + 1)}
-                      aria-label={`Zet water op ${i < water ? i : i + 1} glazen`}
+                      aria-label={t('lichaam.voeding.zetWater', { aantal: i < water ? i : i + 1 })}
                       style={{ flex: 1, minHeight: 24, padding: '8px 0', display: 'flex', alignItems: 'center', borderRadius: 4, border: 'none', cursor: 'pointer', background: 'transparent' }}>
                       <span aria-hidden style={{ display: 'block', width: '100%', height: 8, borderRadius: 4,
                         background: i < water ? 'var(--mf-blue)' : 'var(--mf-blue-light)',
@@ -514,9 +520,9 @@ export default function VoedingPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
-                <button type="button" onClick={() => setWaterSave(water - 1)} aria-label="Eén glas water minder"
+                <button type="button" onClick={() => setWaterSave(water - 1)} aria-label={t('lichaam.voeding.glasMinder')}
                   style={{ width: 44, height: 44, borderRadius: 10, border: '1px solid var(--border-strong)', background: 'var(--bg-subtle)', cursor: 'pointer', fontSize: 16, color: 'var(--text-2)', fontWeight: 700 }}>−</button>
-                <button type="button" onClick={() => setWaterSave(water + 1)} aria-label="Eén glas water meer"
+                <button type="button" onClick={() => setWaterSave(water + 1)} aria-label={t('lichaam.voeding.glasMeer')}
                   style={{ width: 44, height: 44, borderRadius: 10, border: '1px solid var(--mf-blue)', background: 'var(--mf-blue)', cursor: 'pointer', fontSize: 16, color: 'var(--bg-app)', fontWeight: 800 }}>+</button>
               </div>
             </div>
@@ -525,44 +531,44 @@ export default function VoedingPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
               {/* Zoeken — primaire actie (cyan-accent) */}
               <button type="button" className="vd-action vd-action--primary"
-                aria-label="Voeding zoeken in productdatabase"
+                aria-label={t('lichaam.voeding.actie.zoekenAria')}
                 onClick={() => { setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken') }}>
                 <Search size={24} aria-hidden style={{ color: 'var(--mentaforce-primary)', marginBottom: 4 }} />
-                <span style={{ fontSize: 12, fontWeight: 800 }}>Zoeken</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>3M+ producten</span>
+                <span style={{ fontSize: 12, fontWeight: 800 }}>{t('lichaam.voeding.actie.zoeken')}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{t('lichaam.voeding.actie.producten')}</span>
               </button>
               {/* Foto AI */}
               <button type="button" className="vd-action"
-                aria-label="Maaltijd fotograferen voor AI-analyse"
+                aria-label={t('lichaam.voeding.actie.fotoAria')}
                 onClick={() => cameraInputRef.current?.click()}>
                 <Camera size={24} aria-hidden style={{ color: 'var(--text-2)', marginBottom: 4 }} />
-                <span style={{ fontSize: 12, fontWeight: 800 }}>Foto AI</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>Auto-analyse</span>
+                <span style={{ fontSize: 12, fontWeight: 800 }}>{t('lichaam.voeding.actie.foto')}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{t('lichaam.voeding.actie.fotoSub')}</span>
               </button>
               {/* Barcode */}
               <button type="button" className="vd-action"
-                aria-label="Barcode van product scannen"
+                aria-label={t('lichaam.voeding.actie.barcodeAria')}
                 onClick={() => barcodeInputRef.current?.click()}>
                 <ScanBarcode size={24} aria-hidden style={{ color: 'var(--text-2)', marginBottom: 4 }} />
-                <span style={{ fontSize: 12, fontWeight: 800 }}>Barcode</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>Scan product</span>
+                <span style={{ fontSize: 12, fontWeight: 800 }}>{t('lichaam.voeding.actie.barcode')}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{t('lichaam.voeding.actie.barcodeSub')}</span>
               </button>
               {/* Manueel */}
               <button type="button" className="vd-action"
-                aria-label="Maaltijd handmatig invoeren"
+                aria-label={t('lichaam.voeding.actie.manueelAria')}
                 onClick={() => { resetForm(); setScherm('manueel') }}>
                 <Pencil size={24} aria-hidden style={{ color: 'var(--text-2)', marginBottom: 4 }} />
-                <span style={{ fontSize: 12, fontWeight: 700 }}>Manueel</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>Zelf invoeren</span>
+                <span style={{ fontSize: 12, fontWeight: 700 }}>{t('lichaam.voeding.actie.manueel')}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{t('lichaam.voeding.actie.manueelSub')}</span>
               </button>
               {/* Inspreken — volle breedte, signature-feature */}
               <button type="button" className="vd-action"
-                aria-label="Maaltijd inspreken"
+                aria-label={t('lichaam.voeding.actie.inspreekAria')}
                 style={{ gridColumn: '1 / -1', flexDirection: 'row', gap: 8 }}
                 onClick={() => setToontVoice(true)}>
                 <Mic size={20} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-                <span style={{ fontSize: 13, fontWeight: 800 }}>Inspreken</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)' }}>— zeg wat je at</span>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>{t('lichaam.voeding.voice.titel')}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('lichaam.voeding.actie.inspreekSub')}</span>
               </button>
             </div>
 
@@ -573,7 +579,7 @@ export default function VoedingPage() {
                   token={token}
                   datum={vandaag}
                   onSluit={() => setToontVoice(false)}
-                  onKlaar={() => { setToontVoice(false); void laadLogs(token); toast({ title: 'Toegevoegd aan je dag', variant: 'success' }) }}
+                  onKlaar={() => { setToontVoice(false); void laadLogs(token); toast({ title: t('lichaam.voeding.toegevoegd'), variant: 'success' }) }}
                 />
               </div>
             )}
@@ -584,14 +590,14 @@ export default function VoedingPage() {
                 categorie="voeding"
                 apiUrl="/api/ai-coach/voeding"
                 linkUrl="/voeding"
-                linkLabel="Mijn voedingsrapport"
+                linkLabel={t('lichaam.voeding.rapport')}
               />
             )}
 
             {/* ── Recente voeding ── */}
             {recenteFoods.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>{t('lichaam.voeding.recent')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.slice(0, 4).map(r => (
                     <button key={r.id} type="button" aria-label={`Selecteer ${r.naam}`} onClick={() => selecteerProduct(r)}
@@ -599,7 +605,7 @@ export default function VoedingPage() {
                       <ProductFoto src={r.foto_url} alt={r.naam} size={44} radius={10} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal/100g · {r.per_100g.eiwitten_g}g eiwit</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{t('lichaam.voeding.per100', { kcal: r.per_100g.calorieen, eiwit: r.per_100g.eiwitten_g })}</p>
                       </div>
                       <span style={{ fontSize: 16, color: 'var(--text-4)' }}>›</span>
                     </button>
@@ -619,14 +625,14 @@ export default function VoedingPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <MtIcoon size={16} aria-hidden strokeWidth={1.75} style={{ color: MAALTIJD_KLEUR[mt], flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{MAALTIJD_LABEL[mt]}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{t(maaltijdLabelSleutel(mt))}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: MAALTIJD_KLEUR[mt] }}>{mtKcal} kcal</span>
-                      <button type="button" aria-label={`Voeg toe aan ${MAALTIJD_VOL_LABEL[mt]}`}
+                      <button type="button" aria-label={t('lichaam.voeding.voegToeAan', { maaltijd: t(maaltijdVolSleutel(mt)) })}
                         onClick={() => { setForm(f => ({ ...f, maaltijd_type: mt })); setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken') }}
                         style={{ background: `color-mix(in srgb, ${MAALTIJD_KLEUR[mt]} 15%, transparent)`, border: 'none', borderRadius: 8, padding: '7px 12px', minHeight: 36, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: MAALTIJD_KLEUR[mt] }}>
-                        + Toevoegen
+                        + {t('lichaam.voeding.toevoegen')}
                       </button>
                     </div>
                   </div>
@@ -649,7 +655,7 @@ export default function VoedingPage() {
                               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
                                 {log.omschrijving}
                               </p>
-                              <button type="button" aria-label={`Verwijder ${log.omschrijving}`} onClick={() => verwijder(log.id)}
+                              <button type="button" aria-label={t('lichaam.voeding.voice.verwijder', { naam: log.omschrijving })} onClick={() => verwijder(log.id)}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, padding: 4, marginRight: -4, flexShrink: 0 }}>×</button>
                             </div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -675,8 +681,8 @@ export default function VoedingPage() {
             {logs.length === 0 && (
               <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--bg-card)', borderRadius: 20, border: '1.5px dashed var(--border-strong)' }}>
                 <Salad size={52} aria-hidden strokeWidth={1.5} style={{ color: 'var(--text-4)', marginBottom: 12 }} />
-                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-2)', marginBottom: 6 }}>Begin met loggen</p>
-                <p style={{ fontSize: 13, color: 'var(--text-4)', lineHeight: 1.6 }}>Zoek een product, maak een foto,<br />of voeg handmatig in.</p>
+                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-2)', marginBottom: 6 }}>{t('lichaam.voeding.leegTitel')}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-4)', lineHeight: 1.6 }}>{t('lichaam.voeding.leegTekst')}</p>
               </div>
             )}
           </>
@@ -689,15 +695,15 @@ export default function VoedingPage() {
           <div style={{ textAlign: 'center', padding: '80px 24px' }}>
             {fotoPreview && (
               <div style={{ width: 220, height: 220, borderRadius: 24, overflow: 'hidden', margin: '0 auto 32px', position: 'relative', boxShadow: 'var(--shadow-xl)' }}>
-                <Image src={fotoPreview} alt="Foto" fill style={{ objectFit: 'cover' }} />
+                <Image src={fotoPreview} alt={t('lichaam.voeding.fotoAlt')} fill style={{ objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                   <div className="mf-spinner" style={{ width: 36, height: 36, borderTopColor: 'white', borderWidth: 3 }} />
-                  <span style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>Analyseren...</span>
+                  <span style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>{t('lichaam.voeding.analyseren')}</span>
                 </div>
               </div>
             )}
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 10px', letterSpacing: '-0.03em' }}>AI analyseert je maaltijd</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>Claude herkent ingrediënten en<br />berekent calorieën + micros.</p>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 10px', letterSpacing: '-0.03em' }}>{t('lichaam.voeding.aiAnalyseert')}</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>{t('lichaam.voeding.aiUitleg')}</p>
           </div>
         )}
 
@@ -707,13 +713,13 @@ export default function VoedingPage() {
         {scherm === 'bevestigen' && analyse && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-              <button type="button" aria-label="Terug naar overzicht" onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Bevestig maaltijd</h1>
+              <button type="button" aria-label={t('lichaam.voeding.terugOverzicht')} onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>{t('lichaam.voeding.bevestig')}</h1>
             </div>
 
             {fotoPreview && (
               <div style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 14, position: 'relative', height: 200 }}>
-                <Image src={fotoPreview} alt="Maaltijd" fill style={{ objectFit: 'cover' }} />
+                <Image src={fotoPreview} alt={t('lichaam.voeding.maaltijdLabel')} fill style={{ objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', top: 12, right: 12 }}><GezondheidBadge score={analyse.gezondheid_score} /></div>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '20px 16px 14px' }}>
                   <p style={{ color: 'white', fontSize: 16, fontWeight: 800, margin: '0 0 2px' }}>{analyse.gerecht}</p>
@@ -731,12 +737,12 @@ export default function VoedingPage() {
                 const betrKleur = analyse.betrouwbaarheid === 'hoog' ? 'var(--mentaforce-primary)' : analyse.betrouwbaarheid === 'gemiddeld' ? 'var(--mf-amber)' : 'var(--mf-red)'
                 return <BetrIcoon size={16} aria-hidden style={{ color: betrKleur, flexShrink: 0 }} />
               })()}
-              <span><strong>Betrouwbaarheid: {analyse.betrouwbaarheid}</strong>{analyse.betrouwbaarheid !== 'hoog' && ' — controleer de waarden.'}</span>
+              <span><strong>{t('lichaam.voeding.betrouwbaarheid', { niveau: t(`lichaam.voeding.niveau.${analyse.betrouwbaarheid}`) })}</strong>{analyse.betrouwbaarheid !== 'hoog' && ` ${t('lichaam.voeding.controleer')}`}</span>
             </div>
 
             {analyse.ingredienten?.length > 0 && (
               <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Herkende ingrediënten</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{t('lichaam.voeding.ingredienten')}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {analyse.ingredienten.map((ing, i) => (
                     <span key={i} style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>{ing}</span>
@@ -746,19 +752,19 @@ export default function VoedingPage() {
             )}
 
             <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid var(--border)', padding: '16px', marginBottom: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Aanpassen indien nodig</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>{t('lichaam.voeding.aanpassen')}</p>
               <div style={{ display: 'grid', gap: 10 }}>
                 {renderMaaltijdSelector()}
-                {renderInputVeld({ label: 'Gerecht', veld: 'omschrijving' })}
+                {renderInputVeld({ label: t('lichaam.voeding.veld.gerecht'), veld: 'omschrijving' })}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {renderInputVeld({ label: 'Calorieën', veld: 'calorieen', type: 'number', suffix: 'kcal' })}
-                  {renderInputVeld({ label: 'Portie', veld: 'portie_gram', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.veld.calorieen'), veld: 'calorieen', type: 'number', suffix: 'kcal' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.veld.portie'), veld: 'portie_gram', type: 'number', suffix: 'g' })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {renderInputVeld({ label: 'Eiwit', veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Koolh.', veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Vet', veld: 'vetten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Vezels', veld: 'vezels_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.eiwit'), veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.koolhKort'), veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.vet'), veld: 'vetten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.vezels'), veld: 'vezels_g', type: 'number', suffix: 'g' })}
                 </div>
               </div>
             </div>
@@ -773,7 +779,7 @@ export default function VoedingPage() {
             {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
             <button type="button" className="vd-cta" onClick={() => slaOp('foto')} disabled={opslaan}>
-              {opslaan ? 'Opslaan...' : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />Maaltijd opslaan</>}
+              {opslaan ? t('lichaam.voeding.opslaanBezig') : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />{t('lichaam.voeding.opslaanKnop')}</>}
             </button>
           </>
         )}
@@ -784,8 +790,8 @@ export default function VoedingPage() {
         {scherm === 'zoeken' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <button type="button" aria-label="Terug naar overzicht" onClick={() => setScherm('overzicht')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, minWidth: 44, minHeight: 44 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Voeding zoeken</h1>
+              <button type="button" aria-label={t('lichaam.voeding.terugOverzicht')} onClick={() => setScherm('overzicht')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, minWidth: 44, minHeight: 44 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>{t('lichaam.voeding.zoekTitel')}</h1>
             </div>
 
             {/* Zoekbalk */}
@@ -793,21 +799,21 @@ export default function VoedingPage() {
               <div className="vd-searchbar" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-card)', border: '1.5px solid var(--border-strong)', borderRadius: 14, padding: '12px 16px' }}>
                 <Search size={18} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
                 <input autoFocus type="search" enterKeyHint="search" value={zoekQuery}
-                  aria-label="Zoek product, merk of ingrediënt"
+                  aria-label={t('lichaam.voeding.zoekVeld')}
                   onChange={e => { setZoekQuery(e.target.value); zoekVoeding(e.target.value) }}
-                  placeholder="Zoek product, merk of ingrediënt..."
+                  placeholder={t('lichaam.voeding.zoekPlaceholder')}
                   style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, color: 'var(--text-1)', background: 'none' }} />
                 {zoekLaden && <div className="mf-spinner" style={{ width: 18, height: 18 }} />}
                 {zoekQuery && !zoekLaden && (
-                  <button type="button" aria-label="Zoekopdracht wissen" onClick={() => { setZoekQuery(''); setZoekResultaten([]) }}
+                  <button type="button" aria-label={t('lichaam.voeding.zoekWissen')} onClick={() => { setZoekQuery(''); setZoekResultaten([]) }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', fontSize: 18, lineHeight: 1, minWidth: 28, minHeight: 28 }}>×</button>
                 )}
               </div>
             </div>
 
             {/* Bron tabs */}
-            <div role="group" aria-label="Database kiezen" style={{ display: 'flex', background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, marginBottom: 12, gap: 4 }}>
-              {[{ key: 'off' as const, label: '🌍 Open Food Facts', sub: '3M+ producten' }, { key: 'usda' as const, label: '🇺🇸 USDA', sub: 'Voedingswaarden' }].map(b => {
+            <div role="group" aria-label={t('lichaam.voeding.database')} style={{ display: 'flex', background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, marginBottom: 12, gap: 4 }}>
+              {[{ key: 'off' as const, label: '🌍 Open Food Facts', sub: t('lichaam.voeding.actie.producten') }, { key: 'usda' as const, label: '🇺🇸 USDA', sub: t('lichaam.voeding.voedingswaarden') }].map(b => {
                 const actief = zoekBron === b.key
                 return (
                   <button key={b.key} type="button" aria-pressed={actief}
@@ -828,7 +834,7 @@ export default function VoedingPage() {
             {/* Recent (alleen als geen query) */}
             {zoekQuery.length < 2 && recenteFoods.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>{t('lichaam.voeding.recent')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.map(r => (
                     <button key={r.id} type="button" aria-label={`Selecteer ${r.naam}`} onClick={() => selecteerProduct(r)}
@@ -836,7 +842,7 @@ export default function VoedingPage() {
                       <ProductFoto src={r.foto_url} alt={r.naam} size={44} radius={10} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('lichaam.voeding.recentRegel', { kcal: r.per_100g.calorieen, eiwit: r.per_100g.eiwitten_g, koolh: r.per_100g.koolhydraten_g })}</p>
                       </div>
                       <span style={{ fontSize: 16, color: 'var(--text-4)', flexShrink: 0, paddingTop: 2 }}>›</span>
                     </button>
@@ -849,8 +855,8 @@ export default function VoedingPage() {
             {zoekQuery.length >= 2 && !zoekLaden && zoekResultaten.length === 0 && (
               <div style={{ textAlign: 'center', padding: '40px 24px' }}>
                 <Search size={40} aria-hidden style={{ color: 'var(--text-4)', marginBottom: 12 }} />
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Geen resultaten</p>
-                <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Probeer een andere zoekterm of wissel van database.</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>{t('lichaam.voeding.geenResultaten')}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{t('lichaam.voeding.andereZoekterm')}</p>
               </div>
             )}
 
@@ -922,7 +928,7 @@ export default function VoedingPage() {
           return (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <button type="button" aria-label="Terug naar zoeken" onClick={() => setScherm('zoeken')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, minWidth: 44, minHeight: 44 }}>‹</button>
+                <button type="button" aria-label={t('lichaam.voeding.terugZoeken')} onClick={() => setScherm('zoeken')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, minWidth: 44, minHeight: 44 }}>‹</button>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h1 style={{ fontSize: 17, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{geselecteerdProduct.naam}</h1>
                   {geselecteerdProduct.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{geselecteerdProduct.merk}</p>}
@@ -944,44 +950,44 @@ export default function VoedingPage() {
 
               {/* Portie aanpassen */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Portiegrootte</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>{t('lichaam.voeding.portiegrootte')}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <button type="button" aria-label="Portie 5 gram minder" onClick={() => setPortieGram(Math.max(5, portieGram - 5))}
+                  <button type="button" aria-label={t('lichaam.voeding.portieMinder')} onClick={() => setPortieGram(Math.max(5, portieGram - 5))}
                     style={{ width: 44, height: 44, borderRadius: 10, border: '1.5px solid var(--border-strong)', background: 'var(--bg-subtle)', fontSize: 20, cursor: 'pointer', color: 'var(--text-2)', fontWeight: 700, flexShrink: 0 }}>−</button>
                   <div style={{ flex: 1, textAlign: 'center' }}>
                     <input type="number" inputMode="numeric" value={portieGram}
-                      aria-label="Portiegrootte in gram"
+                      aria-label={t('lichaam.voeding.portieInGram')}
                       onChange={e => setPortieGram(Math.max(1, parseInt(e.target.value) || 1))}
                       style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-1)', border: 'none', outline: 'none', textAlign: 'center', width: 90, background: 'none' }} />
-                    <span aria-hidden style={{ fontSize: 14, color: 'var(--text-4)', fontWeight: 600 }}>gram</span>
+                    <span aria-hidden style={{ fontSize: 14, color: 'var(--text-4)', fontWeight: 600 }}>{t('lichaam.voeding.gram')}</span>
                   </div>
-                  <button type="button" aria-label="Portie 5 gram meer" onClick={() => setPortieGram(portieGram + 5)}
+                  <button type="button" aria-label={t('lichaam.voeding.portieMeer')} onClick={() => setPortieGram(portieGram + 5)}
                     style={{ width: 44, height: 44, borderRadius: 10, border: '1.5px solid var(--mentaforce-primary)', background: 'var(--mentaforce-primary)', fontSize: 20, cursor: 'pointer', color: 'var(--bg-app)', fontWeight: 800, flexShrink: 0 }}>+</button>
                 </div>
                 {/* Huishoudmaten: zet de gram op een typische maat (1 snee = 35g). */}
-                <div role="group" aria-label="Kies een huishoudmaat" style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
+                <div role="group" aria-label={t('lichaam.voeding.huishoudmaat')} style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
                   {HUISHOUDMATEN.map(maat => {
                     const actief = portieGram === maat.gram
                     return (
                       <button key={maat.id} type="button" onClick={() => setPortieGram(maat.gram)}
-                        aria-pressed={actief} aria-label={`1 ${maat.label} (${maat.gram} gram)`}
+                        aria-pressed={actief} aria-label={t('lichaam.voeding.maatAria', { maat: t(`lichaam.voeding.maat.${maat.id}`), gram: maat.gram })}
                         style={{ minHeight: 36, padding: '7px 11px', borderRadius: 20,
                           border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
                           background: actief ? 'color-mix(in srgb, var(--mentaforce-primary) 14%, transparent)' : 'var(--bg-subtle)',
                           color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
                           fontSize: 12, fontWeight: 700, cursor: 'pointer',
                           transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease)' }}>
-                        {maat.label} <span style={{ opacity: 0.6, fontWeight: 600 }}>{maat.gram}g</span>
+                        {t(`lichaam.voeding.maat.${maat.id}`)} <span style={{ opacity: 0.6, fontWeight: 600 }}>{maat.gram}g</span>
                       </button>
                     )
                   })}
                 </div>
-                <div role="group" aria-label="Snelkeuze portiegrootte" style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                <div role="group" aria-label={t('lichaam.voeding.snelkeuze')} style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {[30, 50, 100, 150, 200, 250, 300].map(g => {
                     const actief = portieGram === g
                     return (
                       <button key={g} type="button" onClick={() => setPortieGram(g)}
-                        aria-pressed={actief} aria-label={`Portie ${g} gram`}
+                        aria-pressed={actief} aria-label={t('lichaam.voeding.portieGram', { gram: g })}
                         style={{ minHeight: 36, padding: '7px 13px', borderRadius: 20,
                           border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
                           background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
@@ -999,7 +1005,7 @@ export default function VoedingPage() {
               <div style={{ background: 'var(--mf-green-light)', borderRadius: 18, padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
                 {/* Macro donut */}
                 <svg width="100" height="100" viewBox="0 0 100 100" style={{ flexShrink: 0 }}
-                  role="img" aria-label={`Macroverdeling per ${portieGram} gram: eiwit ${eiwitPct}%, koolhydraten ${koolhPct}%, vet ${vetPct}%, ${Math.round(p.calorieen * factor)} kcal`}>
+                  role="img" aria-label={t('lichaam.voeding.donutAria', { gram: portieGram, eiwit: eiwitPct, koolh: koolhPct, vet: vetPct, kcal: Math.round(p.calorieen * factor) })}>
                   <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="10" />
                   <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--mf-red)' }} strokeWidth="10"
                     strokeDasharray={`${eiwitDash} ${circ2}`} strokeDashoffset={-eiwitOff}
@@ -1015,11 +1021,11 @@ export default function VoedingPage() {
                 </svg>
                 {/* Macro legend */}
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 700, margin: '0 0 8px' }}>Per {portieGram}g</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 700, margin: '0 0 8px' }}>{t('lichaam.voeding.perGram', { gram: portieGram })}</p>
                   {[
-                    { label: 'Eiwit',        waarde: p.eiwitten_g     * factor, kleur: 'var(--mf-red)',    pct: eiwitPct },
-                    { label: 'Koolhydr.',    waarde: p.koolhydraten_g * factor, kleur: 'var(--mf-amber)',  pct: koolhPct },
-                    { label: 'Vet',          waarde: p.vetten_g       * factor, kleur: 'var(--mf-purple)', pct: vetPct   },
+                    { label: t('lichaam.voeding.macro.eiwit'),     waarde: p.eiwitten_g     * factor, kleur: 'var(--mf-red)',    pct: eiwitPct },
+                    { label: t('lichaam.voeding.macro.koolhydr'),  waarde: p.koolhydraten_g * factor, kleur: 'var(--mf-amber)',  pct: koolhPct },
+                    { label: t('lichaam.voeding.macro.vet'),       waarde: p.vetten_g       * factor, kleur: 'var(--mf-purple)', pct: vetPct   },
                   ].map(m => (
                     <div key={m.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: m.kleur, flexShrink: 0 }} />
@@ -1034,17 +1040,17 @@ export default function VoedingPage() {
               {/* Macros tabel met RDI % */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
-                  Macronutriënten <span style={{ color: 'var(--text-4)' }}>— % van dagelijkse behoefte</span>
+                  {t('lichaam.voeding.macronutrienten')} <span style={{ color: 'var(--text-4)' }}>{t('lichaam.voeding.procentBehoefte')}</span>
                 </p>
-                <RdiBalk label="Calorieën"          waarde={Math.round(p.calorieen      * factor)} eenheid="kcal" rdi={RDI.calorieen}      kleur={MACRO_KLEUR.vezels} />
-                <RdiBalk label="Eiwit"              waarde={p.eiwitten_g     * factor}            eenheid="g"    rdi={RDI.eiwitten_g}     kleur={MACRO_KLEUR.eiwit} />
-                <RdiBalk label="Koolhydraten"       waarde={p.koolhydraten_g * factor}            eenheid="g"    rdi={RDI.koolhydraten_g} kleur={MACRO_KLEUR.koolhydraten} />
-                <RdiBalk label="  waarvan suikers"  waarde={(p.suikers_g       || 0) * factor}    eenheid="g"    rdi={RDI.suikers_g}      kleur={MACRO_KLEUR.koolhydraten} sub />
-                <RdiBalk label="Vet"                waarde={p.vetten_g       * factor}            eenheid="g"    rdi={RDI.vetten_g}       kleur={MACRO_KLEUR.vet} />
-                <RdiBalk label="  waarvan verzad."  waarde={(p.verzadigd_vet_g || 0) * factor}    eenheid="g"    rdi={RDI.verzadigd_vet_g} kleur={MACRO_KLEUR.vet} sub />
-                <RdiBalk label="Vezels"             waarde={p.vezels_g       * factor}            eenheid="g"    rdi={RDI.vezels_g}       kleur={MACRO_KLEUR.micro} />
+                <RdiBalk label={t('lichaam.voeding.veld.calorieen')} waarde={Math.round(p.calorieen      * factor)} eenheid="kcal" rdi={RDI.calorieen}      kleur={MACRO_KLEUR.vezels} />
+                <RdiBalk label={t('lichaam.voeding.macro.eiwit')} waarde={p.eiwitten_g     * factor}            eenheid="g"    rdi={RDI.eiwitten_g}     kleur={MACRO_KLEUR.eiwit} />
+                <RdiBalk label={t('lichaam.voeding.macro.koolhydraten')} waarde={p.koolhydraten_g * factor}            eenheid="g"    rdi={RDI.koolhydraten_g} kleur={MACRO_KLEUR.koolhydraten} />
+                <RdiBalk label={t('lichaam.voeding.macro.suikers')} waarde={(p.suikers_g       || 0) * factor}    eenheid="g"    rdi={RDI.suikers_g}      kleur={MACRO_KLEUR.koolhydraten} sub />
+                <RdiBalk label={t('lichaam.voeding.macro.vet')} waarde={p.vetten_g       * factor}            eenheid="g"    rdi={RDI.vetten_g}       kleur={MACRO_KLEUR.vet} />
+                <RdiBalk label={t('lichaam.voeding.macro.verzadigd')} waarde={(p.verzadigd_vet_g || 0) * factor}    eenheid="g"    rdi={RDI.verzadigd_vet_g} kleur={MACRO_KLEUR.vet} sub />
+                <RdiBalk label={t('lichaam.voeding.macro.vezels')} waarde={p.vezels_g       * factor}            eenheid="g"    rdi={RDI.vezels_g}       kleur={MACRO_KLEUR.micro} />
                 <div style={{ borderBottom: 'none' }}>
-                  <RdiBalk label="Zout"             waarde={(p.zout_mg         || 0) * factor}    eenheid="mg"   rdi={RDI.zout_mg}        kleur="var(--text-3)" />
+                  <RdiBalk label={t('lichaam.voeding.macro.zout')} waarde={(p.zout_mg         || 0) * factor}    eenheid="mg"   rdi={RDI.zout_mg}        kleur="var(--text-3)" />
                 </div>
               </div>
 
@@ -1052,13 +1058,13 @@ export default function VoedingPage() {
               {heeftMicros && (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
                   <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
-                    Micronutriënten <span style={{ color: 'var(--text-4)' }}>— % van dagelijkse behoefte</span>
+                    {t('lichaam.voeding.micronutrienten')} <span style={{ color: 'var(--text-4)' }}>{t('lichaam.voeding.procentBehoefte')}</span>
                   </p>
                   {Object.entries(MICRO_META)
                     .filter(([key]) => micros[key] !== null && micros[key] !== undefined && (micros[key] as number) > 0)
                     .map(([key, meta]) => (
                       <RdiBalk key={key}
-                        label={meta.label}
+                        label={t(`lichaam.voeding.micro.${key}`)}
                         waarde={Number(((micros[key] as number) * factor).toFixed(2))}
                         eenheid={meta.eenheid}
                         rdi={RDI[meta.rdi_key] || 1}
@@ -1073,7 +1079,7 @@ export default function VoedingPage() {
               {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
               <button type="button" className="vd-cta" onClick={voegProductToe} disabled={opslaan}>
-                {opslaan ? 'Toevoegen...' : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />{`Toevoegen aan ${MAALTIJD_LABEL[form.maaltijd_type]} (${Math.round(p.calorieen * factor)} kcal)`}</>}
+                {opslaan ? t('lichaam.voeding.toevoegenBezig') : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />{t('lichaam.voeding.toevoegenAan', { maaltijd: t(maaltijdLabelSleutel(form.maaltijd_type)), kcal: Math.round(p.calorieen * factor) })}</>}
               </button>
             </>
           )
@@ -1085,23 +1091,23 @@ export default function VoedingPage() {
         {scherm === 'manueel' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <button type="button" aria-label="Terug naar overzicht" onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Manueel invoeren</h1>
+              <button type="button" aria-label={t('lichaam.voeding.terugOverzicht')} onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>{t('lichaam.voeding.manueelTitel')}</h1>
             </div>
 
             <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '18px 16px', marginBottom: 16 }}>
               <div style={{ display: 'grid', gap: 12 }}>
                 {renderMaaltijdSelector()}
-                {renderInputVeld({ label: 'Gerecht / omschrijving', veld: 'omschrijving' })}
+                {renderInputVeld({ label: t('lichaam.voeding.veld.omschrijving'), veld: 'omschrijving' })}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {renderInputVeld({ label: 'Calorieën', veld: 'calorieen', type: 'number', suffix: 'kcal' })}
-                  {renderInputVeld({ label: 'Portie', veld: 'portie_gram', type: 'number', suffix: 'gram' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.veld.calorieen'), veld: 'calorieen', type: 'number', suffix: 'kcal' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.veld.portie'), veld: 'portie_gram', type: 'number', suffix: t('lichaam.voeding.gram') })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                  {renderInputVeld({ label: 'Eiwit', veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Koolhydraten', veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Vet', veld: 'vetten_g', type: 'number', suffix: 'g' })}
-                  {renderInputVeld({ label: 'Vezels', veld: 'vezels_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.eiwit'), veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.koolhydraten'), veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.vet'), veld: 'vetten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: t('lichaam.voeding.macro.vezels'), veld: 'vezels_g', type: 'number', suffix: 'g' })}
                 </div>
               </div>
             </div>
@@ -1109,7 +1115,7 @@ export default function VoedingPage() {
             {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
             <button type="button" className="vd-cta" onClick={() => slaOp('manueel')} disabled={opslaan || !form.omschrijving.trim()}>
-              {opslaan ? 'Opslaan...' : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />Maaltijd opslaan</>}
+              {opslaan ? t('lichaam.voeding.opslaanBezig') : <><Check size={18} aria-hidden style={{ color: 'currentColor' }} />{t('lichaam.voeding.opslaanKnop')}</>}
             </button>
           </>
         )}

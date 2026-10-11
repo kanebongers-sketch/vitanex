@@ -9,41 +9,40 @@ import {
 import Nav from '@/components/marketing/landing/Nav'
 import Footer from '@/components/marketing/landing/Footer'
 import { COLORS, FONT, MAXW, EASE, glassPanel } from '@/components/marketing/theme'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
+// label/beschrijving/vraag/antwoord/tekst zijn vertaalsleutels (site.contact.*).
 interface Onderwerp { id: string; label: string; beschrijving: string; icoon: LucideIcon }
 
 const ONDERWERPEN: Onderwerp[] = [
-  { id: 'demo', label: 'Demo aanvragen', beschrijving: 'Ontdek hoe MentaForce werkt voor jouw team', icoon: Presentation },
-  { id: 'pricing', label: 'Prijsinformatie', beschrijving: 'Maatwerk offerte voor jouw organisatie', icoon: Euro },
-  { id: 'technisch', label: 'Technische vraag', beschrijving: 'Support, integraties en API', icoon: Wrench },
-  { id: 'privacy', label: 'Privacy & AVG', beschrijving: 'Vragen over gegevensverwerking', icoon: Lock },
-  { id: 'partnership', label: 'Partnership', beschrijving: 'Samenwerking en reseller-programma', icoon: Handshake },
-  { id: 'anders', label: 'Overig', beschrijving: 'Een andere vraag of opmerking', icoon: MessageCircle },
+  { id: 'demo', label: 'onderwerpDemoLabel', beschrijving: 'onderwerpDemoTekst', icoon: Presentation },
+  { id: 'pricing', label: 'onderwerpPrijsLabel', beschrijving: 'onderwerpPrijsTekst', icoon: Euro },
+  { id: 'technisch', label: 'onderwerpTechLabel', beschrijving: 'onderwerpTechTekst', icoon: Wrench },
+  { id: 'privacy', label: 'onderwerpPrivacyLabel', beschrijving: 'onderwerpPrivacyTekst', icoon: Lock },
+  { id: 'partnership', label: 'onderwerpPartnerLabel', beschrijving: 'onderwerpPartnerTekst', icoon: Handshake },
+  { id: 'anders', label: 'onderwerpOverigLabel', beschrijving: 'onderwerpOverigTekst', icoon: MessageCircle },
 ]
 
-const FAQ = [
-  {
-    vraag: 'Ziet HR de individuele antwoorden van medewerkers?',
-    antwoord: 'Nee. HR ziet uitsluitend geaggregeerde teamdata — gemiddelden en trends. Individuele check-in antwoorden zijn nooit zichtbaar voor HR.',
-  },
-  {
-    vraag: 'Hoe worden de gegevens van medewerkers beschermd?',
-    antwoord: 'MentaForce is volledig AVG-conform. Check-ins zijn anoniem en alle data wordt opgeslagen binnen de EU.',
-  },
-  {
-    vraag: 'Wat kost MentaForce?',
-    antwoord: 'Neem contact op voor prijzen en mogelijkheden — we denken graag mee op basis van de grootte en wensen van jouw organisatie.',
-  },
-  {
-    vraag: 'Kan MentaForce integreren met ons HR-systeem?',
-    antwoord: 'Neem contact op voor prijzen en mogelijkheden. We bespreken graag wat er voor jouw organisatie kan.',
-  },
+const FAQ: { vraag: string; antwoord: string }[] = [
+  { vraag: 'faq1Vraag', antwoord: 'faq1Antwoord' },
+  { vraag: 'faq2Vraag', antwoord: 'faq2Antwoord' },
+  { vraag: 'faq3Vraag', antwoord: 'faq3Antwoord' },
+  { vraag: 'faq4Vraag', antwoord: 'faq4Antwoord' },
 ]
 
 const TRUST: { icoon: LucideIcon; tekst: string }[] = [
-  { icoon: Lock, tekst: 'Anonieme check-ins' },
-  { icoon: ShieldCheck, tekst: 'Volledig AVG-conform' },
-  { icoon: Server, tekst: 'Data opgeslagen in de EU' },
+  { icoon: Lock, tekst: 'trustAnoniem' },
+  { icoon: ShieldCheck, tekst: 'trustAvg' },
+  { icoon: Server, tekst: 'trustEu' },
+]
+
+// Teamgrootte: waarde (naar de API, ongewijzigd) + bereik voor het label.
+const TEAMGROOTTES: { waarde: string; van: number; tot?: number }[] = [
+  { waarde: '10-24', van: 10, tot: 24 },
+  { waarde: '25-49', van: 25, tot: 49 },
+  { waarde: '50-99', van: 50, tot: 99 },
+  { waarde: '100-249', van: 100, tot: 249 },
+  { waarde: '250+', van: 250 },
 ]
 
 const veldStijl: React.CSSProperties = {
@@ -75,6 +74,8 @@ function veldBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | H
 }
 
 export default function Contact() {
+  const { t, taal } = useVertaling()
+  const tc = (sleutel: string, params?: Record<string, string | number>) => t(`site.contact.${sleutel}`, params)
   const [geselecteerd, setGeselecteerd] = useState<string | null>(null)
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
@@ -104,13 +105,14 @@ export default function Contact() {
         setVerzonden(true)
       } else {
         const json: unknown = await res.json().catch(() => null)
-        const melding = typeof json === 'object' && json !== null && 'error' in json && typeof (json as { error: unknown }).error === 'string'
+        // De servermelding is Nederlands; in andere talen een vertaalde algemene melding.
+        const melding = taal === 'nl' && typeof json === 'object' && json !== null && 'error' in json && typeof (json as { error: unknown }).error === 'string'
           ? (json as { error: string }).error
-          : 'Je bericht kon niet worden verstuurd.'
+          : tc('foutVersturen')
         setFout(melding)
       }
     } catch {
-      setFout('Je bericht kon niet worden verstuurd. Controleer je verbinding en probeer het opnieuw.')
+      setFout(tc('foutVerbinding'))
     } finally {
       setBezig(false)
     }
@@ -134,13 +136,13 @@ export default function Contact() {
           <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 28px', textAlign: 'center', position: 'relative' }}>
             <p style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, padding: '6px 16px', margin: '0 0 24px', fontSize: 12, fontWeight: 600, border: `1px solid ${COLORS.lineStrong}`, background: COLORS.cyanSoft, color: COLORS.ink }}>
               <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.cyan }} />
-              Reactie binnen 24 uur op werkdagen
+              {tc('badge')}
             </p>
             <h1 style={{ fontWeight: 700, fontSize: 'clamp(34px, 6vw, 56px)', lineHeight: 1.04, letterSpacing: '-0.035em', color: COLORS.ink, margin: '0 0 18px' }}>
-              Neem contact op
+              {tc('kop')}
             </h1>
             <p style={{ fontSize: 17, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>
-              Vraag een demo aan, bespreek de mogelijkheden of stel een vraag. We staan klaar om te helpen.
+              {tc('intro')}
             </p>
           </div>
         </section>
@@ -155,12 +157,12 @@ export default function Contact() {
                 <span style={{ width: 72, height: 72, borderRadius: '50%', background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
                   <Check aria-hidden size={32} style={{ color: COLORS.cyan }} />
                 </span>
-                <h2 style={{ fontSize: 24, fontWeight: 700, color: COLORS.ink, margin: '0 0 12px' }}>Bericht verstuurd</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 700, color: COLORS.ink, margin: '0 0 12px' }}>{tc('verzondenKop')}</h2>
                 <p style={{ color: COLORS.inkDim, margin: '0 0 8px', lineHeight: 1.6 }}>
-                  We hebben je bericht ontvangen en nemen zo snel mogelijk contact op.
+                  {tc('verzondenTekst')}
                 </p>
                 <p style={{ fontSize: 14, color: COLORS.inkDim, margin: '0 0 32px' }}>
-                  Verwacht een reactie op <span style={{ color: COLORS.cyan }}>{email}</span> binnen 24 uur op werkdagen.
+                  {tc('verzondenReactieVoor')} <span style={{ color: COLORS.cyan }}>{email}</span> {tc('verzondenReactieNa')}
                 </p>
                 <button
                   onClick={() => { setVerzonden(false); setFout(null); setNaam(''); setEmail(''); setOrganisatie(''); setTeamgrootte(''); setBericht(''); setGeselecteerd(null) }}
@@ -168,16 +170,16 @@ export default function Contact() {
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.cyan }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.lineStrong }}
                 >
-                  Nieuw bericht sturen
+                  {tc('nieuwBericht')}
                 </button>
               </div>
             ) : (
               <form onSubmit={verstuur}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.ink, margin: '0 0 24px' }}>Stuur ons een bericht</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.ink, margin: '0 0 24px' }}>{tc('formulierKop')}</h2>
 
                 {/* Onderwerp */}
-                <div role="group" aria-label="Onderwerp" style={{ marginBottom: 24 }}>
-                  <p style={{ ...labelStijl, marginBottom: 12 }}>Onderwerp</p>
+                <div role="group" aria-label={tc('onderwerp')} style={{ marginBottom: 24 }}>
+                  <p style={{ ...labelStijl, marginBottom: 12 }}>{tc('onderwerp')}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
                     {ONDERWERPEN.map((o) => {
                       const actief = geselecteerd === o.id
@@ -198,9 +200,9 @@ export default function Contact() {
                         >
                           <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                             <Icoon aria-hidden size={15} style={{ color: actief ? COLORS.cyan : COLORS.inkDim, flexShrink: 0 }} />
-                            <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.ink }}>{o.label}</span>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.ink }}>{tc(o.label)}</span>
                           </span>
-                          <span style={{ fontSize: 12, lineHeight: 1.4, color: COLORS.inkDim }}>{o.beschrijving}</span>
+                          <span style={{ fontSize: 12, lineHeight: 1.4, color: COLORS.inkDim }}>{tc(o.beschrijving)}</span>
                         </button>
                       )
                     })}
@@ -210,18 +212,18 @@ export default function Contact() {
                 {/* Naam + e-mail */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
                   <div>
-                    <label htmlFor="contact-naam" style={labelStijl}>Naam *</label>
+                    <label htmlFor="contact-naam" style={labelStijl}>{tc('naamLabel')}</label>
                     <input
                       id="contact-naam" ref={naamRef} type="text" value={naam}
-                      onChange={(e) => setNaam(e.target.value)} placeholder="Jan Janssen" required
+                      onChange={(e) => setNaam(e.target.value)} placeholder={tc('naamPlaceholder')} required
                       style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
                     />
                   </div>
                   <div>
-                    <label htmlFor="contact-email" style={labelStijl}>E-mailadres *</label>
+                    <label htmlFor="contact-email" style={labelStijl}>{tc('emailLabel')}</label>
                     <input
                       id="contact-email" type="email" value={email}
-                      onChange={(e) => setEmail(e.target.value)} placeholder="jan@bedrijf.nl" required
+                      onChange={(e) => setEmail(e.target.value)} placeholder={tc('emailPlaceholder')} required
                       style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
                     />
                   </div>
@@ -230,37 +232,37 @@ export default function Contact() {
                 {/* Organisatie + teamgrootte */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
                   <div>
-                    <label htmlFor="contact-organisatie" style={labelStijl}>Organisatie</label>
+                    <label htmlFor="contact-organisatie" style={labelStijl}>{tc('organisatieLabel')}</label>
                     <input
                       id="contact-organisatie" type="text" value={organisatie}
-                      onChange={(e) => setOrganisatie(e.target.value)} placeholder="Bedrijfsnaam"
+                      onChange={(e) => setOrganisatie(e.target.value)} placeholder={tc('organisatiePlaceholder')}
                       style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
                     />
                   </div>
                   <div>
-                    <label htmlFor="contact-teamgrootte" style={labelStijl}>Teamgrootte</label>
+                    <label htmlFor="contact-teamgrootte" style={labelStijl}>{tc('teamgrootteLabel')}</label>
                     <select
                       id="contact-teamgrootte" value={teamgrootte}
                       onChange={(e) => setTeamgrootte(e.target.value)}
                       style={{ ...veldStijl, appearance: 'none', color: teamgrootte ? COLORS.ink : COLORS.inkDim }}
                       onFocus={veldFocus} onBlur={veldBlur}
                     >
-                      <option value="" disabled>Selecteer grootte</option>
-                      <option value="10-24">10 – 24 medewerkers</option>
-                      <option value="25-49">25 – 49 medewerkers</option>
-                      <option value="50-99">50 – 99 medewerkers</option>
-                      <option value="100-249">100 – 249 medewerkers</option>
-                      <option value="250+">250+ medewerkers</option>
+                      <option value="" disabled>{tc('teamgrootteKies')}</option>
+                      {TEAMGROOTTES.map(({ waarde, van, tot }) => (
+                        <option key={waarde} value={waarde}>
+                          {tot === undefined ? tc('teamVanaf', { aantal: van }) : tc('teamBereik', { van, tot })}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
                 {/* Bericht */}
                 <div style={{ marginBottom: 24 }}>
-                  <label htmlFor="contact-bericht" style={labelStijl}>Bericht *</label>
+                  <label htmlFor="contact-bericht" style={labelStijl}>{tc('berichtLabel')}</label>
                   <textarea
                     id="contact-bericht" rows={5} value={bericht}
-                    onChange={(e) => setBericht(e.target.value)} placeholder="Beschrijf je vraag of verzoek..." required
+                    onChange={(e) => setBericht(e.target.value)} placeholder={tc('berichtPlaceholder')} required
                     style={{ ...veldStijl, resize: 'none' }} onFocus={veldFocus} onBlur={veldBlur}
                   />
                 </div>
@@ -268,7 +270,7 @@ export default function Contact() {
                 {fout && (
                   <div role="alert" style={{ marginBottom: 20, padding: '14px 18px', borderRadius: 12, border: `1px solid ${COLORS.lineStrong}`, background: COLORS.navyElev, fontSize: 14, lineHeight: 1.6, color: COLORS.ink }}>
                     {fout}{' '}
-                    Of mail ons direct op{' '}
+                    {tc('foutMailVoor')}{' '}
                     <a href="mailto:info@mentaforce.nl" style={{ color: COLORS.cyan, textDecorationColor: COLORS.cyan }}>info@mentaforce.nl</a>.
                   </div>
                 )}
@@ -285,12 +287,12 @@ export default function Contact() {
                     transition: `opacity .2s ${EASE}, transform .2s ${EASE}`,
                   }}
                 >
-                  {bezig ? 'Versturen...' : 'Bericht versturen →'}
+                  {bezig ? tc('versturenBezig') : tc('versturen')}
                 </button>
 
                 <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: COLORS.inkDim }}>
-                  Door te versturen ga je akkoord met onze{' '}
-                  <Link href="/voorwaarden" style={{ color: COLORS.inkDim, textDecoration: 'underline' }}>Voorwaarden</Link>.
+                  {tc('akkoordVoor')}{' '}
+                  <Link href="/voorwaarden" style={{ color: COLORS.inkDim, textDecoration: 'underline' }}>{tc('akkoordLink')}</Link>.
                 </p>
               </form>
             )}
@@ -301,14 +303,14 @@ export default function Contact() {
 
             {/* Direct bereikbaar */}
             <div style={{ ...glassPanel, padding: 24 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.ink, margin: '0 0 16px' }}>Direct bereikbaar</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.ink, margin: '0 0 16px' }}>{tc('bereikbaarKop')}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <a href="mailto:info@mentaforce.nl" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, textDecoration: 'none' }}>
                   <span style={{ width: 36, height: 36, borderRadius: 10, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Mail aria-hidden size={16} style={{ color: COLORS.cyan }} />
                   </span>
                   <span>
-                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>E-mail</span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>{tc('email')}</span>
                     <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink }}>info@mentaforce.nl</span>
                   </span>
                 </a>
@@ -317,8 +319,8 @@ export default function Contact() {
                     <Clock aria-hidden size={16} style={{ color: COLORS.cyan }} />
                   </span>
                   <span>
-                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>Reactietijd</span>
-                    <span style={{ fontSize: 14, color: COLORS.ink }}>Binnen 24 uur op werkdagen</span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>{tc('reactietijd')}</span>
+                    <span style={{ fontSize: 14, color: COLORS.ink }}>{tc('reactietijdWaarde')}</span>
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -326,8 +328,8 @@ export default function Contact() {
                     <MapPin aria-hidden size={16} style={{ color: COLORS.cyan }} />
                   </span>
                   <span>
-                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>Locatie</span>
-                    <span style={{ fontSize: 14, color: COLORS.ink }}>Amsterdam, Nederland</span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>{tc('locatie')}</span>
+                    <span style={{ fontSize: 14, color: COLORS.ink }}>{tc('locatieWaarde')}</span>
                   </span>
                 </div>
               </div>
@@ -338,9 +340,9 @@ export default function Contact() {
               <span style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <Presentation aria-hidden size={20} style={{ color: COLORS.cyan }} />
               </span>
-              <p style={{ fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: '0 0 8px' }}>Demo van 30 minuten</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: '0 0 8px' }}>{tc('demoKop')}</p>
               <p style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.inkDim, margin: '0 0 16px' }}>
-                We tonen het platform live en beantwoorden al je vragen.
+                {tc('demoTekst')}
               </p>
               <button
                 onClick={kiesDemo}
@@ -353,7 +355,7 @@ export default function Contact() {
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
               >
-                Demo aanvragen
+                {tc('demoKnop')}
               </button>
             </div>
 
@@ -362,7 +364,7 @@ export default function Contact() {
               {TRUST.map(({ icoon: Icoon, tekst }) => (
                 <li key={tekst} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icoon aria-hidden size={15} style={{ color: COLORS.cyan, flexShrink: 0 }} />
-                  <span style={{ fontSize: 14, color: COLORS.inkDim }}>{tekst}</span>
+                  <span style={{ fontSize: 14, color: COLORS.inkDim }}>{tc(tekst)}</span>
                 </li>
               ))}
             </ul>
@@ -374,10 +376,10 @@ export default function Contact() {
           <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 28px' }}>
             <div style={{ textAlign: 'center', marginBottom: 48 }}>
               <h2 style={{ fontWeight: 700, fontSize: 'clamp(26px, 4vw, 36px)', letterSpacing: '-0.03em', color: COLORS.ink, margin: '0 0 12px' }}>
-                Veelgestelde vragen
+                {tc('faqKop')}
               </h2>
               <p style={{ fontSize: 15, color: COLORS.inkDim, margin: 0 }}>
-                Vind je het antwoord niet? Stuur ons een bericht.
+                {tc('faqIntro')}
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -392,14 +394,14 @@ export default function Contact() {
                       fontFamily: FONT.grotesk,
                     }}
                   >
-                    <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink }}>{item.vraag}</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink }}>{tc(item.vraag)}</span>
                     <span aria-hidden style={{ color: COLORS.cyan, fontSize: 18, marginLeft: 16, flexShrink: 0, transform: faqOpen === i ? 'rotate(45deg)' : 'rotate(0deg)', transition: `transform .2s ${EASE}` }}>
                       +
                     </span>
                   </button>
                   {faqOpen === i && (
                     <p style={{ padding: '0 24px 20px', margin: 0, fontSize: 14, lineHeight: 1.7, color: COLORS.inkDim }}>
-                      {item.antwoord}
+                      {tc(item.antwoord)}
                     </p>
                   )}
                 </div>

@@ -1,14 +1,20 @@
+'use client'
+
 import { PIJLERS } from '@/lib/coaching/pijlers'
 import type { TrajectMetFases } from '@/lib/coaching/traject'
 import { PijlerBadge } from './PijlerBadge'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import type { Params } from '@/lib/i18n/vertaal'
 
 // Presentational: toont de fases van een traject als verticale tijdlijn met
 // pijler-accenten en markeert de fase die nu loopt. Puur (props in → UI uit).
 
-function weekLabel(van: number | null, tot: number | null): string | null {
+type Vertaler = (sleutel: string, params?: Params) => string
+
+function weekLabel(van: number | null, tot: number | null, t: Vertaler): string | null {
   if (van === null && tot === null) return null
-  if (van !== null && tot !== null) return `Week ${van}–${tot}`
-  return van !== null ? `Vanaf week ${van}` : `Tot week ${tot}`
+  if (van !== null && tot !== null) return t('coaching.tijdlijn.weekVanTot', { van, tot })
+  return van !== null ? t('coaching.tijdlijn.vanafWeek', { van }) : t('coaching.tijdlijn.totWeek', { tot: tot ?? '' })
 }
 
 export interface TrajectTijdlijnProps {
@@ -16,6 +22,7 @@ export interface TrajectTijdlijnProps {
 }
 
 export function TrajectTijdlijn({ data }: TrajectTijdlijnProps) {
+  const { t } = useVertaling()
   const { fases, huidige_fase_id } = data
 
   return (
@@ -24,7 +31,7 @@ export function TrajectTijdlijn({ data }: TrajectTijdlijnProps) {
         const info = PIJLERS[fase.pijler]
         const isNu = fase.id === huidige_fase_id
         const isLaatste = i === fases.length - 1
-        const week = weekLabel(fase.week_van, fase.week_tot)
+        const week = weekLabel(fase.week_van, fase.week_tot, t)
 
         return (
           <li key={fase.id} style={{ display: 'flex', gap: 16, position: 'relative' }}>
@@ -58,13 +65,13 @@ export function TrajectTijdlijn({ data }: TrajectTijdlijnProps) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>
-                  FASE {fase.volgorde}
+                  {t('coaching.tijdlijn.fase', { nummer: fase.volgorde })}
                 </span>
                 <PijlerBadge pijler={fase.pijler} />
                 {week && <span style={{ fontSize: 12, color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>{week}</span>}
                 {isNu && (
                   <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: info.kleurToken, background: info.accentBgToken, padding: '2px 8px', borderRadius: 100 }}>
-                    Nu bezig
+                    {t('coaching.tijdlijn.nuBezig')}
                   </span>
                 )}
               </div>
