@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LEGAL_NAV, MAIN_NAV, SITE } from "@rv/config/site";
+import { Logo } from "./Logo";
 import { Container } from "@rv/components/ui/Container";
 import { PaymentBadges } from "@rv/components/ui/PaymentBadges";
 import { NewsletterForm } from "@rv/components/newsletter/NewsletterForm";
@@ -57,12 +58,7 @@ export function Footer() {
       </Container>
 
       <Container className="border-t border-line pt-10">
-        <p
-          aria-hidden
-          className="select-none break-words font-display text-display-xl md:text-display-2xl font-extrabold uppercase leading-[0.85] text-ink"
-        >
-          {SITE.brandName}
-        </p>
+        <Logo className="h-auto w-full text-ink" />
       </Container>
 
       <Container className="mt-10 flex flex-col gap-3 border-t border-line py-8 text-xs text-ink-muted md:flex-row md:justify-between">

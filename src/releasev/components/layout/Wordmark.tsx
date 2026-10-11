@@ -1,19 +1,17 @@
 import Link from "next/link";
 import { SITE } from "@rv/config/site";
 import { cn } from "@rv/lib/cn";
+import { Logo } from "./Logo";
 
-/** Tekstlogo. Vervang later door een eigen SVG-logo in deze component. */
+/** Logo in de menubalk, linkt naar de homepage. */
 export function Wordmark({ className }: { className?: string }) {
   return (
     <Link
       href="/"
-      className={cn(
-        "font-display text-lg font-extrabold uppercase tracking-[-0.02em] [font-stretch:112%] transition-colors duration-300 hover:text-accent",
-        className,
-      )}
+      className={cn("-m-2 p-2 text-ink transition-opacity duration-300 hover:opacity-80", className)}
       aria-label={`${SITE.brandName}, naar de homepage`}
     >
-      {SITE.brandName}
+      <Logo className="h-[18px] md:h-5" />
     </Link>
   );
 }

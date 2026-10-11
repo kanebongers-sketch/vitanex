@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { SITE } from "@rv/config/site";
+import { LOGO_TRANSFORM, LOGO_V_PATH, LOGO_VIEWBOX, LOGO_WORD_PATH } from "@rv/components/layout/logo-paths";
 
 /**
  * Standaard social-share afbeelding (1200x630) voor alle pagina's.
@@ -15,6 +16,13 @@ const COLORS = {
   accent: "#ff6b3d",
   line: "#2c2c30",
 } as const;
+
+/** Het woordmerk als afbeelding (ImageResponse rendert inline SVG het betrouwbaarst als data-URL). */
+const LOGO_SRC = `data:image/svg+xml;base64,${Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LOGO_VIEWBOX}"><g transform="${LOGO_TRANSFORM}"><path fill="${COLORS.ink}" d="${LOGO_WORD_PATH}"/><path fill="${COLORS.accent}" d="${LOGO_V_PATH}"/></g></svg>`,
+).toString("base64")}`;
+const LOGO_WIDTH = 300;
+const LOGO_HEIGHT = Math.round((LOGO_WIDTH * Number(LOGO_VIEWBOX.split(" ")[3])) / Number(LOGO_VIEWBOX.split(" ")[2]));
 
 export const alt = `${SITE.brandName} | Recovery & Mobility Kit`;
 export const size = { width: 1200, height: 630 };
@@ -47,7 +55,8 @@ export default async function OpengraphImage() {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: COLORS.canvas, color: COLORS.ink, padding: "64px 80px", fontFamily, fontWeight: 800 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 28, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
-          <span>{SITE.brandName}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={LOGO_SRC} width={LOGO_WIDTH} height={LOGO_HEIGHT} alt={SITE.brandName} />
           <span style={{ display: "flex", width: 16, height: 16, borderRadius: 999, background: COLORS.accent }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
