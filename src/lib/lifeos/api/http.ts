@@ -7,8 +7,8 @@
 // en "de server deed het niet" op één hoop gooien, en dat is precies de fout die
 // de README verbiedt: fout ≠ leeg.
 //
-// Neutraal gedeeld: agenda, taken, notities, journal, voeding, training en
-// inbox gebruiken dit alle zeven. Stond ooit onder `agenda/` omdat die het
+// Neutraal gedeeld: agenda, taken, notities, journal, voeding en training
+// gebruiken dit alle zes. Stond ooit onder `agenda/` omdat die het
 // eerst nodig had — met 25 importeurs was dat een landmijn geworden.
 
 import { authFetch } from '@/lib/auth/auth-fetch'

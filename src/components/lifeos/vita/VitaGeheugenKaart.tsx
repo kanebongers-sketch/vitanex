@@ -162,10 +162,11 @@ const REGEL: CSSProperties = {
   borderBottom: '1px solid var(--line)',
 }
 const SOORT: CSSProperties = {
-  fontSize: 11,
+  fontSize: 'var(--label-grootte, 11px)',
   fontWeight: 600,
-  letterSpacing: '0.04em',
+  letterSpacing: 'var(--label-spatie, 0.04em)',
   textTransform: 'uppercase',
+  fontFamily: 'var(--label-font, inherit)',
   color: 'var(--text-4)',
   minWidth: 64,
 }

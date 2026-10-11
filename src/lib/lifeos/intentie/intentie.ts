@@ -1,5 +1,5 @@
 // ─── LifeOS — AI-intentiedetectie ───────────────────────────────────────────
-// Het gedeelde brein onder Telegram-spraakmemo's én Gmail-analyse. Eén stuk
+// Het brein onder de Telegram-spraakmemo's. Een stuk
 // tekst ("herinner me vrijdag Ruben te bellen") → één gestructureerde intentie
 // die de app kan uitvoeren: taak, agenda, notitie, herinnering, idee of
 // follow-up.
@@ -13,7 +13,7 @@
 // automatisch op de juiste plek. Het model kiest daarom bij voorkeur een concrete
 // soort; bij echte twijfel valt de routing terug op 'notitie' (de veilige vangbak,
 // zie `telegram/antwoord.ts#bepaalActie`), niet op een terugvraag. 'onduidelijk'
-// blijft bestaan voor de gedeelde consumenten (Gmail-analyse, notitie-categorie),
+// blijft bestaan voor de andere consumenten (notitie-categorie),
 // maar wordt door het model vrijwel nooit gekozen.
 //
 // De classificatie draait via tool-use (gedwongen JSON), niet via vrije tekst

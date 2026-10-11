@@ -7,7 +7,7 @@ import { opMoment } from './tijd'
 const NU = opMoment('2026-10-01', 10)
 
 function taak(over: Partial<TaakKandidaat> = {}): TaakKandidaat {
-  return { id: 't1', titel: 'Offerte maken', datum: null, deadline: null, inspanningMinuten: null, top3: false, uitMail: false, ...over }
+  return { id: 't1', titel: 'Offerte maken', datum: null, deadline: null, inspanningMinuten: null, top3: false, ...over }
 }
 function afspraak(dag: string, van: number, tot: number, titel = 'PT'): Afspraak {
   return { id: `${dag}-${van}`, titel, startOp: opMoment(dag, van), eindOp: opMoment(dag, tot), heleDag: false, locatie: null }
@@ -15,7 +15,7 @@ function afspraak(dag: string, van: number, tot: number, titel = 'PT'): Afspraak
 function bestaand(over: Partial<BestaandBlok> & { sleutel: string }): BestaandBlok {
   return { soort: 'bouw', taakIds: [], startOp: null, status: 'gepland', ...over }
 }
-/** Alle bouwblokken al gepland, zodat een test alleen over taken/mail gaat. */
+/** Alle bouwblokken al gepland, zodat een test alleen over taken gaat. */
 const BOUW_KLAAR: BestaandBlok[] = ['2026-09-28', '2026-10-05'].flatMap((w) => [1, 2].map((n) => bestaand({ sleutel: `bouw:${w}:${n}` })))
 
 describe('vindPlek', () => {
@@ -86,26 +86,6 @@ describe('planBlokken — taken', () => {
   })
 })
 
-describe('planBlokken — mail', () => {
-  test('mailtaken worden één gebundeld blok', () => {
-    const taken = [taak({ id: 'm1', titel: 'Reageren op Jan', uitMail: true }), taak({ id: 'm2', titel: 'Factuur bepalen', uitMail: true })]
-    const uit = planBlokken({ nu: NU, afspraken: [], taken, bestaand: BOUW_KLAAR })
-    expect(uit).toHaveLength(1)
-    expect(uit[0]).toMatchObject({ soort: 'mail', sleutel: 'mail:2026-10-01', titel: 'Mail afhandelen (2)', taakIds: ['m1', 'm2'] })
-    expect(uit[0].beschrijving).toContain('- Reageren op Jan')
-  })
-
-  test('al gedekte mailtaken geven geen nieuw blok; vandaag al een mailblok → morgen', () => {
-    const taken = [taak({ id: 'm1', uitMail: true }), taak({ id: 'm2', uitMail: true })]
-    const uit = planBlokken({
-      nu: NU, afspraken: [], taken,
-      bestaand: [...BOUW_KLAAR, bestaand({ sleutel: 'mail:2026-10-01', soort: 'mail', taakIds: ['m1'] })],
-    })
-    expect(uit).toHaveLength(1)
-    expect(uit[0]).toMatchObject({ sleutel: 'mail:2026-10-02', taakIds: ['m2'] })
-  })
-})
-
 describe('planBlokken — bouwblok PT uitbouwen', () => {
   test('2× per werkweek, \'s ochtends, op verschillende dagen', () => {
     const uit = planBlokken({ nu: NU, afspraken: [], taken: [], bestaand: [] }).filter((b) => b.soort === 'bouw')
@@ -143,10 +123,5 @@ describe('teOpruimen', () => {
     const begonnen = bestaand({ sleutel: 'taak:t2', soort: 'taak', taakIds: ['t2'], startOp: opMoment('2026-10-01', 9) })
     const bouw = bestaand({ sleutel: 'bouw:x:1', startOp: morgen })
     expect(teOpruimen([open, begonnen, bouw], new Set(['t1']), NU)).toEqual([])
-  })
-  test('mailblok pas weg als álle mails af zijn', () => {
-    const b = bestaand({ sleutel: 'mail:d', soort: 'mail', taakIds: ['m1', 'm2'], startOp: morgen })
-    expect(teOpruimen([b], new Set(['m2']), NU)).toEqual([])
-    expect(teOpruimen([b], new Set(), NU)).toEqual([b])
   })
 })

@@ -131,9 +131,9 @@ function SessiePicker({ keuzes, actief, onKies }: { keuzes: BlokKeuze[]; actief:
               border: `1px solid ${aan ? 'var(--brand)' : 'var(--line)'}`,
               background: aan ? 'var(--brand-soft)' : 'transparent',
               color: aan ? 'var(--brand)' : 'var(--text-3)',
-              fontSize: 12.5,
+              fontSize: 'var(--chip-grootte, 12.5px)',
               fontWeight: 600,
-              fontFamily: 'inherit',
+              fontFamily: 'var(--chip-font, inherit)',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               transition: 'color 150ms var(--ease), border-color 150ms var(--ease), background 150ms var(--ease)',
@@ -152,9 +152,9 @@ function Kop({ data }: { data: BlokVandaag }) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
         <Dumbbell size={16} strokeWidth={2.2} style={{ color: 'var(--brand)' }} aria-hidden />
-        <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)' }}>{data.titel}</span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', fontFamily: 'var(--ff-kop, inherit)', textTransform: 'var(--kop-kast, none)' as CSSProperties['textTransform'] }}>{data.titel}</span>
         {data.week ? (
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--brand-soft)', borderRadius: 999, padding: '2px 8px' }}>
+          <span style={{ fontSize: 'var(--label-grootte, 11px)', fontFamily: 'var(--label-font, inherit)', letterSpacing: 'var(--label-spatie, normal)', textTransform: 'var(--kop-kast, none)' as CSSProperties['textTransform'], fontWeight: 700, color: 'var(--brand)', background: 'var(--brand-soft)', borderRadius: 999, padding: '2px 8px' }}>
             Week {data.week} · {data.profiel?.naam}
           </span>
         ) : null}

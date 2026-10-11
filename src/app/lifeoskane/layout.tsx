@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { FounderPoort } from '@/components/lifeos/auth/FounderPoort'
 import { LifeosNav } from '@/components/lifeos/os/LifeosNav'
 import { SnelTaakKnop } from '@/components/lifeos/taken/SnelTaakKnop'
+import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FfMaker } from '@/components/lifeos/pt-dashboard/FfMaker'
 import { PT_FAVICON } from '@/lib/fit-factory/domein'
 import { FIT_FACTORY } from '@/components/marketing/theme'
 import { barlow, inter } from '@/app/fonts/fit-factory'
@@ -26,6 +28,12 @@ export default function LifeosLayout({ children }: { children: ReactNode }) {
     <div className={`lifeos-root lk-app ${barlow.variable} ${inter.variable}`}>
       <LifeosNav />
       <FounderPoort>{children}</FounderPoort>
+      {/* De voet zoals in de PT-app (.ff-voet): logo, uitleg en de makersregel. */}
+      <footer className="lk-voet">
+        <FfLogo className="lk-voet-logo" />
+        <span>LifeOS · alleen zichtbaar voor Kane</span>
+        <FfMaker />
+      </footer>
       {/* Overal snel een taak toevoegen (+ rechtsonder, sneltoets n). */}
       <SnelTaakKnop />
     </div>

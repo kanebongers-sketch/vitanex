@@ -1,5 +1,5 @@
 // Tests voor de OAuth-state-ondertekening — de CSRF-bescherming van elke
-// koppeling (Whoop, Oura, agenda, Gmail, …). De kernbelofte van de module: je
+// koppeling (Whoop, Oura, agenda, …). De kernbelofte van de module: je
 // kunt geen state maken die wij accepteren zonder het geheim, en een
 // gemanipuleerde of verlopen state wordt geweigerd. Die belofte stond in de kop
 // maar werd door geen enkele test bewaakt — precies het patroon waar een echte
@@ -52,7 +52,7 @@ describe('maakState + leesState — round-trip', () => {
   })
 
   it('bindt de dienst: elke dienst komt als zichzelf terug', () => {
-    for (const dienst of ['oura', 'gmail', 'google_calendar', 'outlook'] as const) {
+    for (const dienst of ['oura', 'google_calendar', 'outlook'] as const) {
       expect(leesState(maakState(dienst))).toEqual({ dienst })
     }
   })
@@ -157,13 +157,13 @@ describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
   // een vervalste state (ongeldig) hard weigeren. Dat onderscheid wordt hier
   // bewaakt.
   it('noemt een verse eigen state geldig, met dienst', () => {
-    expect(beoordeelState(maakState('gmail'))).toEqual({ staat: 'geldig', dienst: 'gmail' })
+    expect(beoordeelState(maakState('oura'))).toEqual({ staat: 'geldig', dienst: 'oura' })
   })
 
   it('noemt een door-ons-ondertekende maar verlopen state "verlopen", met dienst', () => {
-    const state = maakState('gmail')
+    const state = maakState('oura')
     vi.setSystemTime(NU + STATE_TTL_MS + 1) // net voorbij de TTL
-    expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'gmail' })
+    expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'oura' })
   })
 
   it('behoudt de juiste dienst op de verlopen-uitkomst', () => {
@@ -176,10 +176,15 @@ describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
     // Cruciaal: een verlopen exp uit een payload die wij NIET ondertekenden mag
     // nooit als "verlopen" tellen, anders is het onderscheid een lek. Bad sig →
     // ongeldig, ook al staat er een keurige (verlopen) exp in.
-    const kapot = ondertekendeState({ n: 'x', d: 'gmail', exp: NU - 1 })
+    const kapot = ondertekendeState({ n: 'x', d: 'oura', exp: NU - 1 })
     const [payload] = kapot.split('.')
     const fakeSig = createHmac('sha256', 'ander-geheim').update(payload).digest('base64url')
     expect(beoordeelState(`${payload}.${fakeSig}`)).toEqual({ staat: 'ongeldig' })
+  })
+
+  it('noemt een state voor de verwijderde Gmail-koppeling ongeldig', () => {
+    expect(beoordeelState(ondertekendeState({ n: 'x', d: 'gmail', exp: NU + 1000 })))
+      .toEqual({ staat: 'ongeldig' })
   })
 
   it('noemt een onbekende dienst ongeldig — geen dienst om te vertrouwen', () => {
@@ -193,7 +198,7 @@ describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
   })
 
   it('leesState blijft null geven op een verlopen state (dun laagje op beoordeelState)', () => {
-    const state = maakState('gmail')
+    const state = maakState('oura')
     vi.setSystemTime(NU + STATE_TTL_MS + 1)
     expect(leesState(state)).toBeNull()
   })

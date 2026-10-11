@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht, coachVoorbereiding } from './aandacht'
+import { crmOpvolging, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht, coachVoorbereiding } from './aandacht'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
@@ -88,24 +88,6 @@ describe('crmOpvolging', () => {
   })
 })
 
-describe('inboxAandacht', () => {
-  test('null (niet nagegaan) = geen regel', () => {
-    expect(inboxAandacht(null)).toBeNull()
-  })
-
-  test('0 actie-mails = geen regel', () => {
-    expect(inboxAandacht(0)).toBeNull()
-  })
-
-  test('1 mail: enkelvoud, dringend', () => {
-    expect(inboxAandacht(1)).toEqual({ tekst: '1 mail vraagt een reactie', dringend: true })
-  })
-
-  test('meerdere: meervoud', () => {
-    expect(inboxAandacht(4)?.tekst).toBe('4 mails vragen een reactie')
-  })
-})
-
 function afhaak(over: Partial<Afhaak> = {}): Afhaak {
   return { id: 'k', naam: 'Kevin', wekenGeleden: 3, ...over }
 }
@@ -125,7 +107,7 @@ describe('inplanAandacht', () => {
   })
 
   test('typfout staat direct onder de inplan-regel', () => {
-    const punten = bouwAandacht([], '2026-09-28', null, {
+    const punten = bouwAandacht([], '2026-09-28', {
       inplannen: [status('Kevin', 1, 1)],
       typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: [], nieuweTitel: 'Kevin' }],
     })
@@ -136,14 +118,14 @@ describe('inplanAandacht', () => {
   })
 
   test('staat in bouwAandacht ná de CRM-opvolging', () => {
-    const punten = bouwAandacht([], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
+    const punten = bouwAandacht([], '2026-09-28', { inplannen: [status('Kevin', 1, 1)] })
     expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])
   })
 })
 
 describe('bouwAandacht — bewaker en coachsignalen', () => {
   test('botsing/reistijd bovenaan en dringend, rust onderaan, coachsignaal erbij', () => {
-    const punten = bouwAandacht([], '2026-10-01', null, {
+    const punten = bouwAandacht([], '2026-10-01', {
       bewaker: [
         { soort: 'rust', tekst: 'Rust' },
         { soort: 'botsing', tekst: 'Botsing' },
@@ -209,21 +191,15 @@ describe('afhaakAandacht', () => {
 })
 
 describe('bouwAandacht', () => {
-  test('volgorde: CRM, dan afhaak, dan inbox', () => {
+  test('volgorde: CRM, dan afhaak', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
       VANDAAG,
-      3,
       { afhaak: [afhaak({ naam: 'Kevin', wekenGeleden: 3 })] },
     )
+    expect(punten).toHaveLength(2)
     expect(punten[0].tekst).toContain('Sanne')
     expect(punten[1].tekst).toContain('Kevin')
-    expect(punten[2].tekst).toContain('mails vragen een reactie')
-  })
-
-  test('inbox weggelaten als niet nagegaan', () => {
-    const punten = bouwAandacht([persoon({ naam: 'Sanne', followUpDatum: VANDAAG })], VANDAAG, null)
-    expect(punten.some((p) => p.tekst.includes('reactie'))).toBe(false)
   })
 
   test('alles leeg = geen punten', () => {
@@ -253,7 +229,6 @@ describe('statusHintAandacht', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
       VANDAAG,
-      2,
       { statusHints: [hint()] },
     )
     expect(punten[punten.length - 1].tekst).toContain('Joris Bax traint al')

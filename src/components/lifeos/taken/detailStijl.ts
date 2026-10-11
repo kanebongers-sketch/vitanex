@@ -17,10 +17,11 @@ export const VELD: CSSProperties = {
 
 export const LABEL: CSSProperties = {
   padding: 0,
-  fontSize: 11,
+  fontSize: 'var(--label-grootte, 11px)',
   fontWeight: 600,
-  letterSpacing: '0.04em',
+  letterSpacing: 'var(--label-spatie, 0.04em)',
   textTransform: 'uppercase',
+  fontFamily: 'var(--label-font, inherit)',
   color: 'var(--text-3)',
 }
 

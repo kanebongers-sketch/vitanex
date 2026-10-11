@@ -52,12 +52,6 @@ async function leesBlokken(admin: SupabaseClient, userId: string): Promise<(Best
   }))
 }
 
-async function mailTaakIds(admin: SupabaseClient, userId: string): Promise<Set<string> | null> {
-  const { data, error } = await admin.from('mail_taken').select('taak_id').eq('user_id', userId).not('taak_id', 'is', null)
-  if (error || !Array.isArray(data)) return null
-  return new Set((data as { taak_id: string }[]).map((r) => r.taak_id))
-}
-
 async function zetInAgenda(admin: SupabaseClient, userId: string, v: BlokVoorstel, kalenderId: string | null): Promise<boolean> {
   const { data: claim, error } = await admin
     .from(TABEL)
@@ -142,14 +136,13 @@ async function ruimOp(
 
 export async function planAgendaBlokken(admin: SupabaseClient, userId: string, nu = new Date()): Promise<BlokkenUitkomst> {
   const leeg: BlokkenUitkomst = { gepland: [], opgeruimd: 0, hersteld: 0 }
-  const [blokken, uitMail, taken, agenda] = await Promise.all([
+  const [blokken, taken, agenda] = await Promise.all([
     leesBlokken(admin, userId),
-    mailTaakIds(admin, userId),
     haalTaken(admin, userId, { alleenOpen: true }),
     haalEventsUitCache(admin, userId, nu, new Date(nu.getTime() + (HORIZON_DAGEN + 1) * 24 * 60 * 60 * 1000)),
   ])
   // Zonder geheugen of zonder je agenda geen beslissingen: anders dubbel of over een afspraak heen.
-  if (blokken === null || uitMail === null || !taken.ok || !agenda.ok) return leeg
+  if (blokken === null || !taken.ok || !agenda.ok) return leeg
 
   const kalenderId = await leesGekozenKalender(admin, userId)
   const open = taken.waarde.filter((t) => !t.klaar)
@@ -170,7 +163,6 @@ export async function planAgendaBlokken(admin: SupabaseClient, userId: string, n
     deadline: t.deadline,
     inspanningMinuten: t.inspanningMinuten,
     top3: t.top3Positie !== null,
-    uitMail: uitMail.has(t.id),
   }))
   const voorstellen = planBlokken({ nu, afspraken: agenda.waarde, taken: kandidaten, bestaand: blokken }).slice(0, MAX_NIEUW)
 

@@ -31,9 +31,11 @@ import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 /**
  * De diensten die LifeOS kan koppelen.
  *
- * Deze lijst moet gelijk blijven aan de check-constraint `koppelingen_dienst_geldig`
- * in `supabase/migrations/001_fundament.sql`. Voeg je er een toe, doe het op
- * beide plekken — anders slaagt de OAuth-flow en faalt pas het opslaan.
+ * Elke dienst hier moet ook in de check-constraint `koppelingen_dienst_geldig`
+ * in `supabase/migrations/001_fundament.sql` staan. Voeg je er een toe, doe het op
+ * beide plekken, anders slaagt de OAuth-flow en faalt pas het opslaan. De
+ * constraint kent nog `gmail`; die koppeling is uit LifeOS gehaald (besluit Kane,
+ * okt 2026), dus hier staat hij bewust niet meer.
  */
 export const DIENSTEN = [
   'whoop',
@@ -41,7 +43,6 @@ export const DIENSTEN = [
   'garmin',
   'samsung',
   'google_calendar',
-  'gmail',
   'outlook',
 ] as const
 

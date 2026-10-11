@@ -37,8 +37,7 @@ export type StatusUitkomst =
   | { staat: 'fout'; reden: string }
 
 /**
- * De publieke URL waar Telegram naartoe pusht. Dezelfde `APP_URL`-afspraak als
- * `gmailConfig()`: `APP_URL` of anders `NEXT_PUBLIC_APP_URL`, en null als geen van
+ * De publieke URL waar Telegram naartoe pusht: `APP_URL` of anders `NEXT_PUBLIC_APP_URL`, en null als geen van
  * beide staat — dan is er niets zinnigs te registreren.
  */
 export function webhookUrl(): string | null {

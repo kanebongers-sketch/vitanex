@@ -1,15 +1,13 @@
 // ─── LifeOS — blokken in je agenda: wat, wanneer (PUUR) ─────────────────────
-// Van je to-do naar tijd in je agenda. Drie soorten blokken, allemaal in je
+// Van je to-do naar tijd in je agenda. Twee soorten blokken, allemaal in je
 // PERSOONLIJKE agenda (de aanroeper schrijft; dit bestand beslist alleen):
 //
 //   taak  — een taak met een dag of deadline krijgt een eigen blok op die dag
 //           (of vóór de deadline). Maximaal TAKEN_PER_DAG per dag.
-//   mail  — taken die uit je mail kwamen ("Reageren op …") krijgen géén los
-//           blokje van 15 minuten elk, maar samen één "Mail afhandelen"-blok.
 //   bouw  — het vaste bouwblok "PT uitbouwen": BOUW_PER_WEEK × per werkweek,
 //           bij voorkeur 's ochtends, op verschillende dagen.
 //
-// Eén sleutel per blok (`taak:<id>`, `mail:<dag>`, `bouw:<maandag>:<n>`). Bestaat
+// Een sleutel per blok (`taak:<id>`, `bouw:<maandag>:<n>`). Bestaat
 // een sleutel al, dan plant LifeOS 'm nooit opnieuw — ook niet als jij het blok
 // in Google verplaatste of weggooide. Jij hebt het laatste woord.
 //
@@ -18,7 +16,7 @@
 import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { dagPlus, dagVan, opMoment, uurVan, weekdag, weekVan } from './tijd'
 
-export type BlokSoort = 'taak' | 'mail' | 'bouw'
+export type BlokSoort = 'taak' | 'bouw'
 
 /** Een blok dat LifeOS eerder plande (uit `agenda_blokken`). */
 export interface BestaandBlok {
@@ -38,8 +36,6 @@ export interface TaakKandidaat {
   deadline: string | null
   inspanningMinuten: number | null
   top3: boolean
-  /** Kwam uit je mail → gaat in het gebundelde mail-blok. */
-  uitMail: boolean
 }
 
 export interface BlokVoorstel {
@@ -72,9 +68,6 @@ export const BOUW_MIN = 90
 export const BOUW_TITEL = 'Bouwblok: PT uitbouwen'
 const BOUW_OCHTEND_TOT = 12
 const BOUW_UITERLIJK = 18
-const MAIL_PER_STUK = 15
-const MAIL_MIN = 30
-const MAIL_MAX = 60
 /**
  * Vandaag pas plannen vanaf 09:00: de ochtendplanning (sport + wandeling, 07:00)
  * kiest eerst. Anders pakt een taakblok de plek die je training nodig had.
@@ -188,28 +181,6 @@ function planBouw(bord: Planbord, dagen: readonly string[], bestaand: readonly B
   }
 }
 
-function planMail(bord: Planbord, dagen: readonly string[], taken: readonly TaakKandidaat[], bestaand: readonly BestaandBlok[]): void {
-  const gedekt = new Set(bestaand.filter((b) => b.soort === 'mail').flatMap((b) => b.taakIds))
-  const open = taken.filter((t) => t.uitMail && !gedekt.has(t.id))
-  if (open.length === 0) return
-  const sleutels = new Set(bestaand.map((b) => b.sleutel))
-  const minuten = klem(open.length * MAIL_PER_STUK, MAIL_MIN, MAIL_MAX)
-  const beschrijving = [
-    'Door LifeOS ingepland: de mails die op een antwoord of actie wachten.',
-    '',
-    ...open.map((t) => `- ${t.titel}`),
-  ].join('\n')
-
-  for (const dag of dagen.slice(0, 2)) {
-    const sleutel = `mail:${dag}`
-    if (sleutels.has(sleutel)) continue
-    const gelukt = bord.plaats(dag, DAG_VAN, DAG_TOT, minuten, (startOp, eindOp) => ({
-      soort: 'mail', sleutel, titel: `Mail afhandelen (${open.length})`, beschrijving, startOp, eindOp, taakIds: open.map((t) => t.id),
-    }))
-    if (gelukt) return
-  }
-}
-
 /** Welke dagen komen in aanmerking voor deze taak, vroegste eerst. */
 function dagenVoorTaak(t: TaakKandidaat, dagen: readonly string[], vandaag: string): string[] {
   if (dagen.length === 0) return []
@@ -245,7 +216,7 @@ function planTaken(bord: Planbord, dagen: readonly string[], vandaag: string, ta
     perDag.set(dag, (perDag.get(dag) ?? 0) + 1)
   }
 
-  const kandidaten = taken.filter((t) => !t.uitMail && !sleutels.has(`taak:${t.id}`)).sort(volgorde)
+  const kandidaten = taken.filter((t) => !sleutels.has(`taak:${t.id}`)).sort(volgorde)
   for (const t of kandidaten) {
     const minuten = klem(t.inspanningMinuten ?? STANDAARD_TAAK_MIN, 15, 180)
     const titel = `Taak: ${t.titel}`.slice(0, 120)
@@ -262,12 +233,11 @@ function planTaken(bord: Planbord, dagen: readonly string[], vandaag: string, ta
   }
 }
 
-/** Alle nieuwe blokken voor de komende week. Volgorde: bouw, mail, taken. */
+/** Alle nieuwe blokken voor de komende week. Volgorde: bouw, dan taken. */
 export function planBlokken(invoer: PlanInvoer): BlokVoorstel[] {
   const dagen = planDagen(invoer.nu)
   const bord = new Planbord(invoer.afspraken, invoer.nu)
   planBouw(bord, dagen, invoer.bestaand)
-  planMail(bord, dagen, invoer.taken, invoer.bestaand)
   planTaken(bord, dagen, dagVan(invoer.nu), invoer.taken, invoer.bestaand)
   return bord.voorstellen
 }

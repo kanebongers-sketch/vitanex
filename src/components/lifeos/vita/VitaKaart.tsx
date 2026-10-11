@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { TriangleAlert, Compass, RefreshCw } from 'lucide-react'
 import { Kaart, NogNiets, type Nadruk } from '@/components/lifeos/os/Kaart'
 import { supabase } from '@/lib/supabase/supabase'
@@ -217,12 +217,14 @@ function OpnieuwKnop({ opnieuw }: { opnieuw: () => void }) {
         alignItems: 'center',
         gap: 7,
         padding: '7px 13px',
-        borderRadius: 999,
+        borderRadius: 'var(--knop-radius, 999px)',
         border: `1px solid ${hover ? 'var(--brand)' : 'var(--line-strong)'}`,
         background: 'transparent',
         color: hover ? 'var(--brand)' : 'var(--text-2)',
-        fontFamily: 'inherit',
-        fontSize: 12,
+        fontFamily: 'var(--knop-font, inherit)',
+        fontSize: 'var(--knop-klein-grootte, 12px)',
+        letterSpacing: 'var(--knop-spatie, normal)',
+        textTransform: 'var(--knop-kast, none)' as CSSProperties['textTransform'],
         fontWeight: 600,
         cursor: 'pointer',
         transition: 'color 180ms var(--ease), border-color 180ms var(--ease)',

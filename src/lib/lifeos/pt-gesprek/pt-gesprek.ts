@@ -132,7 +132,7 @@ export function coachAchterstand(
 // ─── De vorm over de draad (systeemgrens) ───────────────────────────────────
 // "Niet gekoppeld" is een eigen tak, geen lege lijst — anders zegt de kaart
 // "alles ingepland" terwijl we niet in de agenda kónden kijken. Zelfde patroon
-// als InboxVandaag / AgendaVandaag.
+// als AgendaVandaag.
 
 export type PtGesprekkenAntwoord =
   | { gekoppeld: false }

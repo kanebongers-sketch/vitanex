@@ -1,5 +1,5 @@
 // ─── LifeOS binnen MentaForce — de brug ─────────────────────────────────────
-// LifeOS is Kane's PERSOONLIJKE Life Operating System. Zijn data (agenda, inbox,
+// LifeOS is Kane's PERSOONLIJKE Life Operating System. Zijn data (agenda,
 // gezondheid, taken) hoort NIET in de B2B-database van MentaForce: die heeft een
 // anonimiteitsbelofte aan de medewerkers van klantbedrijven, en persoonlijke
 // data van derden (mailafzenders!) hoort daar niet tussen.

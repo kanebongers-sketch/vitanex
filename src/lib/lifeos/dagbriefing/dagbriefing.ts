@@ -6,7 +6,7 @@
 // ─── PUUR EN INJECTEERBAAR ──────────────────────────────────────────────────
 // Geen fetch, geen DB, geen Date.now(). Dit bestand krijgt een KANT-EN-KLAAR
 // feiten-object en een injecteerbaar `BriefingModel` binnen — precies zoals
-// `intentie.ts`/`concept.ts`. Zo is de hele briefing zonder netwerk te testen met
+// `intentie.ts`. Zo is de hele briefing zonder netwerk te testen met
 // een nep-model, en `dagbriefing-model.ts` levert apart de echte Anthropic-call.
 //
 // ─── EERLIJKHEID (niet onderhandelbaar, dezelfde regel als overal in LifeOS) ─
@@ -91,7 +91,7 @@ interface BriefingKern {
 }
 
 // ─── Het model (injecteerbaar) ──────────────────────────────────────────────
-// Spiegelt `IntentieModel`/`ConceptModel`: één methode, een `unknown` terug (het
+// Spiegelt `IntentieModel`: een methode, een `unknown` terug (het
 // gedwongen-JSON-antwoord). `dagbriefing-model.ts` levert de echte implementatie.
 
 export interface BriefingModel {
@@ -428,7 +428,7 @@ async function bepaalKern(
     return leesModelBriefing(raw) ?? deterministischeKern(feiten)
   } catch {
     // Eén kapotte modelaanroep mag de briefing niet opblazen: val terug op de
-    // feiten. Zelfde keuze als `schrijfConcept` — een storing wordt geen leegte.
+    // feiten: een storing wordt geen leegte.
     return deterministischeKern(feiten)
   }
 }

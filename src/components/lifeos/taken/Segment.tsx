@@ -96,8 +96,8 @@ function SegmentKnop({ label, titel, actief, onClick }: SegmentKnopProps) {
 const KNOP: CSSProperties = {
   padding: '5px 10px',
   borderRadius: 999,
-  fontFamily: 'inherit',
-  fontSize: 12,
+  fontFamily: 'var(--chip-font, inherit)',
+  fontSize: 'var(--chip-grootte, 12px)',
   fontWeight: 600,
   cursor: 'pointer',
   // Alleen kleur: geen layout-properties animeren.

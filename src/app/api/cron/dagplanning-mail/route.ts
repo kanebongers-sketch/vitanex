@@ -35,7 +35,7 @@ import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
-import { haalRecenteBlokkenEnMail } from '@/lib/lifeos/blokken/recent'
+import { haalRecenteBlokken } from '@/lib/lifeos/blokken/recent'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { puntSignalen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
@@ -50,9 +50,6 @@ import { categoriseerMet } from '@/lib/lifeos/agenda/categorie'
 import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
-import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
-import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
-import { triageer } from '@/lib/lifeos/inbox/classificeer'
 import { haalContext } from '@/lib/lifeos/vita/context'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
@@ -114,51 +111,12 @@ async function haalVitaSignalen(
 }
 
 /**
- * Hoeveel ongelezen mails vragen om een reactie? Best-effort en GOEDKOOP: één
- * Gmail-metadata-fetch (max 40 berichten) + de regelgebaseerde `triageer` — geen
- * AI-call, dus geen kosten per ochtend. `null` = niet nagegaan (Gmail niet
- * gekoppeld, toestemming ingetrokken, of Gmail even onbereikbaar): dan toont de
- * mail geen inbox-regel i.p.v. een misleidende "0". Één verse-token-herkansing bij
- * een 401, gespiegeld aan `inbox/vandaag/route.ts`.
- */
-async function haalInboxActie(
-  admin: ReturnType<typeof createLifeosAdminClient>,
-  userId: string,
-): Promise<number | null> {
-  try {
-    const token = await geldigMailToken(admin, userId)
-    if (token.staat !== 'ok') return null
-
-    let mails = await haalTriageMails(token.toegangstoken)
-    if (mails.staat === 'verlopen') {
-      const vers = await forceerMailVernieuwing(admin, userId)
-      if (vers.staat !== 'ok') return null
-      mails = await haalTriageMails(vers.toegangstoken)
-    }
-    if (mails.staat !== 'ok') return null
-
-    return triageer(mails.mails).vraagtActie.length
-  } catch (oorzaak) {
-    console.error('[dagplanning-mail] inbox-triage mislukt', oorzaak)
-    return null
-  }
-}
-
-/**
  * Cross-domein aandachtspunten ("Vraagt je aandacht"): wie je vandaag zou opvolgen
- * (CRM) en hoeveel mail een reactie vraagt (inbox). Best-effort, net als de Vita-signalen: valt een bron om, dan
- * levert die gewoon geen regels op — de mail gaat door met wat er wél is, nooit met
- * een halve of verzonnen sectie.
+ * (CRM) en wat je PT-klanten vragen. Puur afgeleid uit data die de route al
+ * best-effort ophaalde: een ontbrekende bron levert gewoon geen regels op.
  */
-async function haalAandacht(
-  admin: ReturnType<typeof createLifeosAdminClient>,
-  userId: string,
-  vandaagKey: string,
-  personen: readonly Persoon[],
-  pt: PtAandacht,
-): Promise<Aandachtspunt[]> {
-  const inboxActie = await haalInboxActie(admin, userId)
-  return bouwAandacht(personen, vandaagKey, inboxActie, pt)
+function haalAandacht(vandaagKey: string, personen: readonly Persoon[], pt: PtAandacht): Aandachtspunt[] {
+  return bouwAandacht(personen, vandaagKey, pt)
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
@@ -239,7 +197,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // ─── INHAAL-VANGNET (goedkope kant) ───────────────────────────────────────
   // De workflow probeert 's ochtends meerdere keren, zodat een door GitHub gemiste
   // tik van 05:00 alsnog wordt ingehaald door 05:30/06:00/… Is de dagmail van
-  // vandaag al geclaimd, dan stoppen we hier — vóór we de agenda en inbox aflopen.
+  // vandaag al geclaimd, dan stoppen we hier, voor we de agenda aflopen.
   // Zo doet alleen de éérste geslaagde poging op een dag echt werk; de rest is één
   // goedkope DB-lezing. Het échte slot tegen dubbele mails blijft de claim onderaan.
   if ((await alGeclaimdVandaag(admin, userId, datum, 'email')) === true) {
@@ -389,16 +347,16 @@ export async function GET(req: NextRequest): Promise<Response> {
       }
     })
 
-  // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox. Best-effort.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag, bewaker, coachSignalen })
+  // "Vraagt je aandacht": CRM-opvolging + afhaak. Best-effort.
+  const aandacht = haalAandacht(vandaagKey, personen, { ...pt, coachVandaag, bewaker, coachSignalen })
 
   // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).
   const etmaal = new Date(nu.getTime() - 24 * 60 * 60 * 1000)
-  const [acties, blokkenEnMail] = await Promise.all([
+  const [acties, blokken] = await Promise.all([
     haalRecenteActies(admin, userId, etmaal).catch(() => []),
-    haalRecenteBlokkenEnMail(admin, userId, etmaal).catch(() => []),
+    haalRecenteBlokken(admin, userId, etmaal).catch(() => []),
   ])
-  const automatisch = [...acties, ...blokkenEnMail]
+  const automatisch = [...acties, ...blokken]
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht, automatisch)
 
   // Eén mail per dag, wie of wat 'm ook triggert (de meerdere ochtend-tikken van de

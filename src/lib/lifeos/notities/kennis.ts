@@ -374,9 +374,8 @@ async function haalBetrokkenNotities(
 // ─── Systeemgrens: rijen uit de database ────────────────────────────────────
 // Geen cast: de database is een systeemgrens als elke andere. Zie `notities.ts`.
 // De drie helpers hieronder zijn geëxporteerd t.b.v. directe unit-tests — ze zijn
-// puur en dragen de link-integriteit, dus ze horen apart getest (zelfde reden als
-// `heeftBereik`/`ontbrekendBereik` in inbox/bereik.ts). Ze worden ook intern
-// gebruikt.
+// puur en dragen de link-integriteit, dus ze horen apart getest. Ze worden ook
+// intern gebruikt.
 
 export function leesTekstVeld(rij: unknown, veld: string): string | null {
   if (typeof rij !== 'object' || rij === null) return null

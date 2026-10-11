@@ -86,10 +86,11 @@ function TaakRegel({ taak, toonDag, onVink }: { taak: Taak; toonDag: boolean; on
 
 const kopStijl: CSSProperties = {
   margin: 0,
-  fontSize: 11.5,
+  fontSize: 'var(--label-grootte, 11.5px)',
   fontWeight: 700,
-  letterSpacing: '0.06em',
+  letterSpacing: 'var(--label-spatie, 0.06em)',
   textTransform: 'uppercase',
+  fontFamily: 'var(--label-font, inherit)',
 }
 
 const rijStijl: CSSProperties = {

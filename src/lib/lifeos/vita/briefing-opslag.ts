@@ -135,7 +135,7 @@ export async function geefClaimTerug(admin: SupabaseClient, id: string): Promise
  * (geclaimd óf al bezorgd — er staat een rij)? Puur een optimalisatie voor
  * herhaalde aanroepen: de dagmail-workflow probeert 's ochtends meerdere keren
  * (voor het geval GitHub een geplande tik laat vallen), en zonder deze check zou
- * elke poging eerst de agenda + inbox aflopen om pas bij de claim te stranden.
+ * elke poging eerst de agenda aflopen om pas bij de claim te stranden.
  *
  * Dit VERVANGT het slot niet — dat blijft de INSERT in `claimBriefing`. Een race
  * die hier langs glipt (twee runs die tegelijk niets zien) wordt daar alsnog

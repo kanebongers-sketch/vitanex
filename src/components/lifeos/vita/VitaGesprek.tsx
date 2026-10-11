@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from 'react'
 import { CircleStop, CornerDownLeft } from 'lucide-react'
 import { Kaart, type Nadruk } from '@/components/lifeos/os/Kaart'
 import { Foutregel } from './Foutregel'
@@ -232,12 +232,14 @@ function VerstuurKnop({ leeg }: { leeg: boolean }) {
         alignItems: 'center',
         gap: 7,
         padding: '7px 14px',
-        borderRadius: 999,
+        borderRadius: 'var(--knop-radius, 999px)',
         border: `1px solid ${!leeg && hover ? 'var(--brand)' : 'var(--line-strong)'}`,
         background: 'transparent',
         color: leeg ? 'var(--text-4)' : hover ? 'var(--brand)' : 'var(--text-2)',
-        fontFamily: 'inherit',
-        fontSize: 12,
+        fontFamily: 'var(--knop-font, inherit)',
+        fontSize: 'var(--knop-klein-grootte, 12px)',
+        letterSpacing: 'var(--knop-spatie, normal)',
+        textTransform: 'var(--knop-kast, none)' as CSSProperties['textTransform'],
         fontWeight: 600,
         cursor: leeg ? 'default' : 'pointer',
         transition: 'color 180ms var(--ease), border-color 180ms var(--ease)',
@@ -263,12 +265,14 @@ function StopKnop({ onStop }: { onStop: () => void }) {
         alignItems: 'center',
         gap: 7,
         padding: '7px 14px',
-        borderRadius: 999,
+        borderRadius: 'var(--knop-radius, 999px)',
         border: `1px solid ${hover ? 'var(--brand)' : 'var(--line-strong)'}`,
         background: 'transparent',
         color: hover ? 'var(--brand)' : 'var(--text-2)',
-        fontFamily: 'inherit',
-        fontSize: 12,
+        fontFamily: 'var(--knop-font, inherit)',
+        fontSize: 'var(--knop-klein-grootte, 12px)',
+        letterSpacing: 'var(--knop-spatie, normal)',
+        textTransform: 'var(--knop-kast, none)' as CSSProperties['textTransform'],
         fontWeight: 600,
         cursor: 'pointer',
         transition: 'color 180ms var(--ease), border-color 180ms var(--ease)',

@@ -117,10 +117,11 @@ function AgendaRij({
 }
 
 const LABEL: CSSProperties = {
-  fontSize: 10,
+  fontSize: 'var(--label-grootte, 10px)',
   fontWeight: 600,
-  letterSpacing: '0.08em',
+  letterSpacing: 'var(--label-spatie, 0.08em)',
   textTransform: 'uppercase',
+  fontFamily: 'var(--label-font, inherit)',
   color: 'var(--text-4)',
   margin: 0,
 }

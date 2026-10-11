@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 // ─── Auto-refresh voor de cockpit ───────────────────────────────────────────
 // De kaarten in de cockpit zijn losse client-eilanden die zichzelf ophalen. Ze
 // deden dat één keer bij mount en daarna nooit meer: liet je het dashboard open
-// staan, dan verouderde je agenda, inbox en taken zonder dat je het zag.
+// staan, dan verouderde je agenda en taken zonder dat je het zag.
 //
 // Deze provider geeft één gedeeld `signaal` (een teller) dat elke `INTERVAL_MS`
 // omhoogtikt. Een kaart neemt `useRefreshSignaal()` op in de deps van haar
@@ -19,7 +19,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 // kaarten vangen races al af met hun generatieteller, dus een tik die een
 // nog-lopende fetch inhaalt kan geen verouderde data laten winnen.
 //
-// PAUZEERT OP DE ACHTERGROND. Een verborgen tabblad hoeft Gmail en Google Agenda
+// PAUZEERT OP DE ACHTERGROND. Een verborgen tabblad hoeft Google Agenda
 // niet elke 5 minuten te bevragen. We slaan tikken over terwijl de tab verborgen
 // is, en verversen meteen zodra je terugkomt en er minstens één interval voorbij
 // is — anders staat er verouderde data te wachten tot de volgende tik.

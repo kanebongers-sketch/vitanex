@@ -63,10 +63,11 @@ const KOP: CSSProperties = {
   alignItems: 'baseline',
   gap: 8,
   margin: '0 0 4px',
-  fontSize: 12,
+  fontSize: 'var(--label-grootte, 12px)',
   fontWeight: 600,
-  letterSpacing: '0.04em',
+  letterSpacing: 'var(--label-spatie, 0.04em)',
   textTransform: 'uppercase',
+  fontFamily: 'var(--label-font, inherit)',
   color: 'var(--text-3)',
 }
 

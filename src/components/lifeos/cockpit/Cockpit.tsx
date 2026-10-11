@@ -3,7 +3,6 @@ import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
 import { TakenApple } from '@/components/lifeos/taken/TakenApple'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
-import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
 import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
@@ -30,9 +29,8 @@ import { VitaGeheugenKaart } from '@/components/lifeos/vita/VitaGeheugenKaart'
 // ─── De volgorde, van boven naar onder ──────────────────────────────────────
 //   1. Vandaag  — de briefing + Vita's signalen + vraag-balk (het eerste wat je leest).
 //   2. Mijn dag — welke taak in welk gat (dagplan), je taken en je agenda.
-//   3. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
-//   4. Beleggingen — je portefeuille: waarde, vandaag, winst/verlies, verloop.
-//   5. Terugblik — je journal van vandaag en wat Vita over je onthoudt.
+//   3. Beleggingen: je portefeuille: waarde, vandaag, winst/verlies, verloop.
+//   4. Terugblik: je journal van vandaag en wat Vita over je onthoudt.
 // Alles van Fit Factory PT (klanten inplannen, coachgesprekken, het team) staat
 // in de PT-app (PT_APP_BEHEER), niet meer hier.
 
@@ -72,11 +70,6 @@ export function Cockpit() {
             <AgendaKaart />
           </div>
         </section>
-
-        {/* Band — de inbox als rustige volle-breedte-lijst onder het gereedschap. */}
-        <div className="os-cockpit__band">
-          <InboxKaart />
-        </div>
 
         {/* Band — je beleggingen: geen dagwerk, wel in één blik te zien. */}
         <div className="os-cockpit__band">

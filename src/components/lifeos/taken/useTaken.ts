@@ -15,7 +15,7 @@ import { herstelTaak, vervangTaak, verwijderTaak } from './lijstMutatie'
 // Alle bediening van de takenlijst op één plek: laden, afvinken, wijzigen,
 // verwijderen, toevoegen. De container (`VangOp`) bezit deze hook en geeft 'm aan
 // het presentational `TakenBody` door; hier zit het gedrag. Zelfde vorm als
-// `useBrainDump`/`useSuggesties`.
+// `useBrainDump`.
 //
 // Alles is optimistisch: de UI springt meteen om, want wachten op de server
 // voelt als een defect. Mislukt het, dan draaien we terug ÉN zeggen we het. Stil

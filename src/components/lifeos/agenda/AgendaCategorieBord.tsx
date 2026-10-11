@@ -185,7 +185,7 @@ export function AgendaCategorieBord() {
               style={{ ...chip, ...(uit ? chipUit : chipAan) }}
             >
               {categorieLabel(cat)}
-              <span style={{ ...chipTelling, color: uit ? 'var(--text-4)' : 'var(--bg-app)' }}>{aantal}</span>
+              <span style={{ ...chipTelling, color: uit ? 'var(--text-4)' : 'var(--brand)' }}>{aantal}</span>
             </button>
           )
         })}
@@ -246,16 +246,21 @@ const vak: React.CSSProperties = {
   padding: 'var(--ruimte-kaart)',
   background: 'var(--bg-card)',
   border: '1px solid var(--line)',
-  borderRadius: 14,
+  borderRadius: 12,
 }
+// Zoals .ptd-knop in de PT-app: Barlow-kapitalen, radius 10, dunne lijn.
 const knop: React.CSSProperties = {
-  padding: '8px 16px',
+  minHeight: 40,
+  padding: '8px 14px',
   borderRadius: 10,
-  border: '1px solid var(--brand)',
+  border: '1px solid var(--line-strong)',
   background: 'transparent',
-  color: 'var(--brand)',
-  fontSize: 13,
+  color: 'var(--text-1)',
+  fontFamily: 'var(--knop-font, inherit)',
+  fontSize: 15,
   fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
   cursor: 'pointer',
 }
 const chipRij: React.CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 8 }
@@ -265,14 +270,15 @@ const chip: React.CSSProperties = {
   gap: 8,
   padding: '7px 12px',
   borderRadius: 999,
-  fontSize: 13,
+  fontFamily: 'var(--chip-font, inherit)',
+  fontSize: 'var(--chip-grootte, 13px)',
   fontWeight: 600,
   cursor: 'pointer',
   transition: 'opacity .15s var(--ease), background .15s var(--ease)',
 }
 const chipAan: React.CSSProperties = {
-  background: 'var(--brand)',
-  color: 'var(--bg-app)',
+  background: 'var(--brand-soft)',
+  color: 'var(--brand)',
   border: '1px solid var(--brand)',
 }
 const chipUit: React.CSSProperties = {
@@ -287,9 +293,11 @@ const chipTelling: React.CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
   fontWeight: 700,
 }
+// Zoals .ptd-sectiekop h2 in de PT-app: Barlow-kapitalen (de h2-regel van .lk-app).
 const sectieKop: React.CSSProperties = {
-  fontFamily: 'var(--font-grotesk)',
-  fontSize: 15,
+  fontFamily: 'var(--ff-kop, var(--font-grotesk))',
+  fontSize: 21,
+  fontWeight: 700,
   color: 'var(--text-1)',
   margin: '0 0 10px',
   letterSpacing: '.01em',

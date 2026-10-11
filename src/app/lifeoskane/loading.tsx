@@ -43,7 +43,7 @@ export default function LifeosLaden() {
               ))}
             </section>
 
-            {/* Inbox: volle-breedte-lijst. */}
+            {/* Beleggingen: volle-breedte-band. */}
             <div className="os-cockpit__band">
               <div style={{ ...KAART, height: 168 }} />
             </div>

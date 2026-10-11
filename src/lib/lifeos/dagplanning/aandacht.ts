@@ -1,7 +1,7 @@
 // ─── LifeOS — dagplanning: "Vraagt je aandacht" (puur) ──────────────────────
 // De ochtendmail toonde je dag (agenda + taken) en Vita's observaties. Maar een
 // stafchef ziet méér dan je agenda: wie je vandaag zou opvolgen (CRM), welke
-// PT-klanten aandacht vragen en wat er in je inbox wacht. Dit bestand leidt die aandachtspunten
+// PT-klanten aandacht vragen. Dit bestand leidt die aandachtspunten
 // puur af — data in → regels uit, geen fetch, geen DB — zodat de route ze
 // best-effort ophaalt en de mail ze rendert.
 //
@@ -224,28 +224,15 @@ export interface PtAandacht {
 }
 
 /**
- * De inbox-regel: hoeveel ongelezen mails vragen een reactie. `null` = niet
- * nagegaan (Gmail niet gekoppeld of even onbereikbaar) → geen regel, geen valse
- * "0 mails" die suggereert dat we keken. 0 echte actie-mails is óók geen regel:
- * een lege to-do hoort niet als aandachtspunt.
- */
-export function inboxAandacht(actie: number | null): Aandachtspunt | null {
-  if (actie === null || actie <= 0) return null
-  return { tekst: `${actie} ${actie === 1 ? 'mail vraagt' : 'mails vragen'} een reactie`, dringend: true }
-}
-
-/**
  * Alle aandachtspunten voor vandaag, in volgorde van "vraagt een menselijk
- * antwoord": CRM-opvolging (mensen boven cijfers), dan PT inplannen en afgehaakte klanten, dan de
- * inbox. Leeg = de mail laat de hele sectie weg.
+ * antwoord": CRM-opvolging (mensen boven cijfers), dan PT inplannen en afgehaakte klanten.
+ * Leeg = de mail laat de hele sectie weg.
  */
 export function bouwAandacht(
   personen: readonly Persoon[],
   vandaagKey: string,
-  inboxActie: number | null = null,
   pt: PtAandacht = {},
 ): Aandachtspunt[] {
-  const inbox = inboxAandacht(inboxActie)
   const bewaker = pt.bewaker ?? []
   // Botsingen en reistijd vragen actie vóór die dag: bovenaan en dringend.
   const agendaActie = bewaker.filter((m) => m.soort !== 'rust').map((m) => ({ tekst: m.tekst, dringend: true }))
@@ -261,7 +248,6 @@ export function bouwAandacht(
     ...typfoutAandacht(pt.typfouten ?? []),
     ...coachAandacht(pt.coachgesprekken ?? []),
     ...afhaakAandacht(pt.afhaak ?? []),
-    ...(inbox ? [inbox] : []),
     // Administratie achteraan: eerst mensen, dan "je CRM loopt achter".
     ...statusHintAandacht(pt.statusHints ?? []),
     ...onbekendAandacht(pt.onbekend ?? []),

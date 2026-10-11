@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, TriangleAlert, Info, X } from 'lucide-react'
 
-// Feedback na terugkeer uit de Google OAuth-flow (agenda / Gmail). Leeft in het
+// Feedback na terugkeer uit de Google Agenda-koppeling (OAuth). Leeft in het
 // LifeOS-dashboard (fitfactorypt.nl/lifeoskane) — daar landen de koppel-callbacks. Geëxtraheerd
 // uit de oude /home toen die de consumenten-home werd.
 
@@ -32,14 +32,10 @@ function meldingVoor(dienst: string, status: string, reden: string | null): Kopp
   return null
 }
 
-/** Leest de koppel-status uit de query-params. Agenda gaat vóór inbox als beide er staan. */
+/** Leest de koppel-status van de agenda uit de query-params. */
 function leesKoppelMelding(params: URLSearchParams): KoppelMelding | null {
-  const reden = params.get('reden')
   const agenda = params.get('agenda')
-  if (agenda) return meldingVoor('Google Agenda', agenda, reden)
-  const inbox = params.get('inbox')
-  if (inbox) return meldingVoor('Gmail', inbox, reden)
-  return null
+  return agenda ? meldingVoor('Google Agenda', agenda, params.get('reden')) : null
 }
 
 export function KoppelFeedback() {
@@ -51,7 +47,7 @@ export function KoppelFeedback() {
     if (!nieuw) return
 
     // Param opruimen zodat een refresh de melding niet opnieuw toont. Pad + hash blijven.
-    ;['agenda', 'inbox', 'reden'].forEach((k) => params.delete(k))
+    ;['agenda', 'reden'].forEach((k) => params.delete(k))
     const zoek = params.toString()
     const schone = `${window.location.pathname}${zoek ? `?${zoek}` : ''}${window.location.hash}`
     window.history.replaceState(null, '', schone)

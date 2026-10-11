@@ -1,12 +1,12 @@
 // ─── LifeOS — de echte dagbriefing-schrijver via Claude ─────────────────────
 // De dunne laag die `BriefingModel` implementeert met een echte modelaanroep.
 // Apart van `dagbriefing.ts` zodat dat bestand zonder netwerk testbaar blijft —
-// exact dezelfde opzet als `intentie/intentie-model.ts` en `inbox/concept-model.ts`.
+// exact dezelfde opzet als `intentie/intentie-model.ts`.
 //
 // Wat gedeeld hoort te zijn, is gedeeld: hetzelfde model (`claude-sonnet-5`),
 // dezelfde tool-use-aanpak (gedwongen JSON), dezelfde `thinking: disabled`. Wie
-// intentie/concept/dagbriefing ooit samenvoegt, tilt schema en toolnaam naar
-// parameters en gooit deze drie factories weg — dezelfde afweging als daar staat.
+// intentie/dagbriefing ooit samenvoegt, tilt schema en toolnaam naar
+// parameters en gooit deze twee factories weg: dezelfde afweging als daar staat.
 
 import Anthropic from '@anthropic-ai/sdk'
 import { DAGBRIEFING_SCHEMA, type BriefingModel } from './dagbriefing'

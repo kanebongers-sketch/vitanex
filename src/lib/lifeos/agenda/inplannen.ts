@@ -53,8 +53,7 @@ const MS_PER_MINUUT = 60_000
  * Standaardduur van een focusblok.
  *
  * Een zichtbare, bij te stellen aanname — geen meting. Een uur is lang genoeg
- * voor echt werk en kort genoeg om in een gemiddeld gat te passen. Zelfde soort
- * keuze als `STANDAARD_AFSPRAAK_MINUTEN` in `inbox/suggestie-actie.ts`.
+ * voor echt werk en kort genoeg om in een gemiddeld gat te passen.
  */
 export const STANDAARD_FOCUS_MINUTEN = 60
 

@@ -1453,6 +1453,18 @@ body {
   --knop-stil-kleur: var(--text-1);
   --knop-stil-vlak-hover: transparent;
   --knop-stil-kleur-hover: var(--text-1);
+  --knop-klein-grootte: 14px;
+  /* Losse LifeOS-componenten met inline stijl lezen deze tokens (met hun oude
+     waarde als terugval), zodat ze hier de PT-maat krijgen:
+     labels  = .ptd-label: Barlow-kapitalen 13px, ruime spatiering;
+     chips   = .ptd-chip: Barlow 14px;
+     kop-kast zet een titel in een inline-stijl op kapitalen. */
+  --label-font: var(--ff-kop);
+  --label-grootte: 13px;
+  --label-spatie: 0.08em;
+  --chip-font: var(--ff-kop);
+  --chip-grootte: 14px;
+  --kop-kast: uppercase;
   --font-grotesk: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
 }
@@ -1579,6 +1591,25 @@ body {
   .lk-tab, .lk-uit { transition: none; }
   .lk-uit:active { transform: none; }
 }
+
+/* De voet, zoals .ff-voet: klein logo, een regel uitleg en de makersregel.
+   Ruimte onderin voor de zwevende taak-knop (SnelTaakKnop) rechtsonder. */
+.lk-voet {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 18px 16px calc(88px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-4);
+}
+.lk-voet-logo { display: block; height: 22px; width: auto; opacity: 0.75; }
+.lk-voet .ff-maker { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+.lk-voet .ff-maker strong { color: var(--text-1); font-weight: 700; }
 
 /* Atmosfeer: één zachte cyaan-gloed vanaf de bovenrand. Geen gradient-blob. */
 .os-sfeer {
@@ -1752,8 +1783,8 @@ body {
         6col: anker 6 (x2)  . half 3+3=6  . vol 6
         4col: anker 4 (x2)  . half 2+2=4  . vol 4
         1col: elke tegel vol
-       (Dagplan + Vang op zijn de ankers, Welzijn + Agenda de halve tegels, Inbox
-        de volle-breedte-lijst. Even aantal halve tegels, dus ze paren netjes.)
+       (Dagplan + Vang op zijn de ankers, Welzijn + Agenda de halve tegels.
+        Even aantal halve tegels, dus ze paren netjes.)
      VERBINDEN (3x vol): elke tegel een eigen volle rij op elke breakpoint.
    --half draagt de twee breedte-kaarten in Mijn dag (en het laad-skelet). --kwart
    en --derde blijven als span-utility gedefinieerd voor symmetrie met de set, maar
@@ -3684,8 +3715,48 @@ body {
 .lifeos-root.lk-app .bel__knop--primair { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
 .lifeos-root.lk-app .bel__knop--primair:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
 
+/* ── Kaarten reageren zoals .ptd-rij: alleen de lijn wordt sterker ────────── */
+/* Geen opgelichte laag en geen lift: de PT-app is vlak. Plat blijft zonder rand. */
+.lifeos-root.lk-app .os-kaart::before { display: none; }
+.lifeos-root.lk-app .os-kaart { transition: border-color 160ms var(--ease); }
+.lifeos-root.lk-app .os-crm__tegel { transition: border-color 160ms var(--ease); }
+@media (hover: hover) {
+  .lifeos-root.lk-app .os-kaart:not(.os-kaart--plat):hover,
+  .lifeos-root.lk-app .os-crm__tegel:hover { transform: none; border-color: var(--line-strong); }
+}
+.lifeos-root.lk-app .os-kaart:active { transform: none; }
+
+/* ── Invoervelden zoals .ptd-invoer: radius 11, verhoogd vlak ─────────────── */
+.lifeos-root.lk-app :is(.os-crm__invoer, .os-crm__select, .os-focus__invoer, .os-login__invoer) { border-radius: 11px; }
+
+/* ── Knoppen in het mensen-bord zoals .ptd-knop en .ptd-tekstknop ────────── */
+.lifeos-root.lk-app .os-crm__modus { border-radius: 12px; padding: 4px; }
+.lifeos-root.lk-app .os-crm__modus-knop { border-radius: 10px; padding: 8px 16px; }
+/* Actief = amber vlak met amber tekst, net als de actieve PT-tab. */
+.lifeos-root.lk-app .os-crm__modus-knop--actief { color: var(--brand); background: var(--brand-soft); }
+.lifeos-root.lk-app .os-crm__gevaar {
+  min-height: 40px;
+  border-radius: 10px;
+  font-family: var(--ff-kop);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lifeos-root.lk-app :is(.os-crm__meer, .os-crm__wis, .os-crm__gevaar-stil, .os-crm-terug) {
+  font-family: var(--ff-kop);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Dagbriefing: de verversknop als .ptd-knop--klein ─────────────────────── */
+.lifeos-root.lk-app .dagbrief__ververs:hover:not(:disabled) { background: transparent; }
+
 @media (prefers-reduced-motion: reduce) {
-  .lifeos-root.lk-app .os-crm__tab { transition: none; }
+  .lifeos-root.lk-app .os-crm__tab,
+  .lifeos-root.lk-app .os-kaart,
+  .lifeos-root.lk-app .os-crm__tegel { transition: none; }
 }
 
 /* LifeOS to-do: "nu mee bezig"-knop — rustig, cyaan op hover. */
