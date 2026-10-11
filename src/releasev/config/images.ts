@@ -76,11 +76,11 @@ export const IMAGES = {
   },
   floorStretch: {
     src: ai("thuis.webp"),
-    alt: "Iemand rolt in de avond de bovenrug los op een foam roller in de woonkamer",
+    alt: "Iemand rolt in de avond de bovenrug los op een RELEASE V foam roller in de woonkamer",
   },
   deskWindow: {
     src: ai("kantoor.webp"),
-    alt: "Iemand ontspant de nek en schouders aan een bureau bij het raam",
+    alt: "Iemand in een RELEASE V-shirt ontspant de nek en schouders aan een bureau bij het raam",
   },
   /** Portret van de trainer: vervang altijd door een echte foto */
   trainer: {
