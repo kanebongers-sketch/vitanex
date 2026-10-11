@@ -68,6 +68,7 @@ export function Footer() {
         <p>
           {SITE.company.street}, {SITE.company.postalCity}
         </p>
+        <p>Sfeerbeelden zijn deels met AI gemaakt.</p>
       </Container>
     </footer>
   );

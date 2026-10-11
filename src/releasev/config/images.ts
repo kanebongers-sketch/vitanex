@@ -1,11 +1,12 @@
 /**
- * BEELDBANK — alle foto's op een plek.
+ * BEELDBANK: alle foto's op een plek.
  *
- * TIJDELIJK: dit zijn rechtenvrije stockfoto's van Unsplash (Unsplash License:
- * gratis commercieel gebruik, naamsvermelding niet verplicht). Ze tonen NIET
- * exact jouw kit. Vervang ze voor livegang door eigen foto's:
- *   1. zet je foto in /public/images/ (bijv. /public/images/hero.jpg)
- *   2. verander hieronder `src` in "/images/hero.jpg" en pas de `alt` aan.
+ * TIJDELIJK zijn er twee soorten sfeerbeelden, die geen van beide exact jouw kit tonen:
+ *  - rechtenvrije stockfoto's van Unsplash (Unsplash License: gratis commercieel gebruik);
+ *  - AI-beelden (GPT Image 2.5) in /public/releasev/images/ai/, gemaakt met de beeldgenerator.
+ * Vervang ze voor livegang door eigen foto's:
+ *   1. zet je foto in /public/releasev/images/ (bijv. hero.jpg)
+ *   2. verander hieronder `src` in "/releasev/images/hero.jpg" en pas de `alt` aan.
  */
 export interface SiteImage {
   src: string;
@@ -13,11 +14,13 @@ export interface SiteImage {
 }
 
 const unsplash = (id: string) => `https://images.unsplash.com/${id}`;
+const AI_IMAGE_DIR = "/releasev/images/ai/";
+const ai = (file: string) => `${AI_IMAGE_DIR}${file}`;
 
 export const IMAGES = {
   hero: {
-    src: unsplash("photo-1579758629938-03607ccdbaba"),
-    alt: "Sporter zit uit te rusten op een bank in een donkere sportschool",
+    src: ai("hero.webp"),
+    alt: "Sporter zit na de training rustig op de vloer van een donkere studio, zacht licht door het raam",
   },
   foamRolling: {
     src: unsplash("photo-1591741535585-9c4f52b3f13f"),
@@ -52,32 +55,32 @@ export const IMAGES = {
     alt: "Gekleurde weerstandsbanden die aan een rek hangen",
   },
   strength: {
-    src: unsplash("photo-1574680096145-d05b474e2155"),
-    alt: "Krachtsporter met een halterstang op de schouders, zwart-wit",
+    src: ai("kracht.webp"),
+    alt: "Krachtsporter staat rustig bij het squatrek tussen twee sets in een donkere gym",
   },
   deadlift: {
-    src: unsplash("photo-1605296867304-46d5465a13f1"),
-    alt: "Krachtsporter maakt zich klaar voor een deadlift in een donkere ruimte",
+    src: ai("deadlift.webp"),
+    alt: "Krachtsporter maakt de handen klaar met magnesium voor een deadlift",
   },
   runnerNight: {
-    src: unsplash("photo-1679769177248-727f4d1047a5"),
-    alt: "Hardloper zit gehurkt op een verlichte weg in de avond",
+    src: ai("hardlopen.webp"),
+    alt: "Hardloper rekt de bovenbenen na een ochtendrun op een rustige straat in de mist",
   },
   runnerTunnel: {
-    src: unsplash("photo-1512291152593-07033c65b791"),
-    alt: "Hardloper onder een overkapping bij zonsondergang",
+    src: ai("hardlopen-avond.webp"),
+    alt: "Hardloper rust even uit langs een weg bij zonsondergang",
   },
   stretchBw: {
-    src: unsplash("photo-1640262653851-103cbaf802d5"),
-    alt: "Vrouw doet een hamstringstretch op een mat, zwart-wit",
+    src: ai("stretch.webp"),
+    alt: "Vrouw doet een hamstringstretch met een stretchband op een mat",
   },
   floorStretch: {
-    src: unsplash("photo-1701826510575-33d570b9d7f7"),
-    alt: "Man doet een mobiliteitsoefening op de vloer van een lichte studio",
+    src: ai("thuis.webp"),
+    alt: "Iemand rolt in de avond de bovenrug los op een foam roller in de woonkamer",
   },
   deskWindow: {
-    src: unsplash("photo-1639384375285-55891b4ea5b8"),
-    alt: "Iemand werkt aan een bureau bij het raam",
+    src: ai("kantoor.webp"),
+    alt: "Iemand ontspant de nek en schouders aan een bureau bij het raam",
   },
   /** Portret van de trainer: vervang altijd door een echte foto */
   trainer: {
@@ -89,10 +92,10 @@ export const IMAGES = {
 export type ImageKey = keyof typeof IMAGES;
 
 /**
- * true voor tijdelijke stockfoto's. Productbeelden met stockfoto's krijgen
- * het label "Sfeerbeeld", zodat niemand denkt dat dit exact de kit is.
- * Zodra je eigen foto's in /public/images staan, verdwijnt het label vanzelf.
+ * true voor tijdelijke sfeerbeelden (stockfoto's en AI-beelden). Productbeelden
+ * daarmee krijgen het label "Sfeerbeeld", zodat niemand denkt dat dit exact de kit is.
+ * Zodra je eigen foto's in /public/releasev/images staan, verdwijnt het label vanzelf.
  */
 export function isStockImage(src: string | undefined): boolean {
-  return Boolean(src?.startsWith("https://images.unsplash.com/"));
+  return Boolean(src?.startsWith("https://images.unsplash.com/") || src?.startsWith(AI_IMAGE_DIR));
 }
