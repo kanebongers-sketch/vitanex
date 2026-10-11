@@ -4,6 +4,11 @@ Je werkt aan **MentaForce** (van Vitaal): een welzijnsplatform voor teams. Het m
 welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijlers):
 **Energie, Slaap, Stress, Stemming, Beweging, Voeding**.
 
+## Status (11-10-2026, besluit Kane)
+- MentaForce staat **offline** (`MENTAFORCE_OFFLINE` in `src/lib/site-modus.ts`); de code blijft staan.
+- Live is alleen **Fit Factory PT** op fitfactorypt.nl, plus **LifeOS** op het verborgen adres fitfactorypt.nl/lifeoskane.
+- De LifeOS-link/knop is alleen voor Kane (rol beheerder). **Ruben (eigenaar) mag de link nooit te zien krijgen.**
+
 ## Missie
 Bouw het hoogst mogelijke welzijnsplatform op het internet. Elke feature is:
 **premium, schaalbaar, toegankelijk, snel, mooi én eerlijk.**
