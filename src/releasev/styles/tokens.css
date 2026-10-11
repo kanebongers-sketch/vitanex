@@ -1,0 +1,114 @@
+/* ==========================================================================
+   DESIGN TOKENS — pas hier de complete stijl van de site aan.
+   Alle Tailwind-klassen (bg-canvas, text-ink, font-display, py-section, ...)
+   worden automatisch uit deze waarden gegenereerd.
+
+   Structuur (botsingsvrij in de gedeelde app):
+   - :root { --rv-… } bevat de WAARDEN. Pas hier kleuren, maten enz. aan.
+   - @theme inline koppelt Tailwind-namen (bg-canvas, text-ink, …) aan die waarden.
+   De --rv-namen bestaan nergens anders in de app, dus niets kan ze overschrijven.
+
+   Stijl: "performance dark". De pagina is donker (canvas), tekst is licht (ink).
+   Lichte contrastbanden gebruiken bg-ink + text-on-ink.
+   ========================================================================== */
+
+:root {
+  --rv-color-canvas: #0b0b0c;          /* pagina-achtergrond (bijna zwart) */
+  --rv-color-surface: #151517;         /* kaarten en vlakken op donker */
+  --rv-color-surface-strong: #202023;  /* placeholders, actieve vlakken */
+  --rv-color-line: #2c2c30;            /* randen en scheidingslijnen op donker */
+  --rv-color-ink: #f4f3f0;             /* hoofdtekst op donker + lichte banden */
+  --rv-color-ink-soft: #c5c4bf;        /* secundaire tekst op donker */
+  --rv-color-ink-muted: #8f8e89;       /* labels, meta (AA-contrast op canvas) */
+  --rv-color-ink-raised: #e6e5e0;      /* iets donkerder vlak binnen lichte banden */
+  --rv-color-on-ink: #0b0b0c;          /* tekst op lichte banden (bg-ink) */
+  --rv-color-on-ink-muted: #55544f;    /* secundaire tekst op lichte banden */
+  --rv-color-accent: #ff6b3d;          /* signaaloranje — de enige accentkleur */
+  --rv-color-accent-strong: #ff8a63;   /* hover-state van accent */
+  --rv-color-accent-soft: #3b1d12;     /* zachte accentvlakken / selectie */
+  --rv-color-success: #7ad19c;
+  --rv-color-danger: #ff7a6b;
+  --rv-text-display-2xl: clamp(3.25rem, 1.4rem + 8.6vw, 15rem);
+  --rv-text-display-2xl--line-height: 0.88;
+  --rv-text-display-2xl--letter-spacing: -0.045em;
+  --rv-text-display-xl: clamp(2.75rem, 1.5rem + 5.8vw, 10rem);
+  --rv-text-display-xl--line-height: 0.92;
+  --rv-text-display-xl--letter-spacing: -0.04em;
+  --rv-text-display-lg: clamp(2.25rem, 1.4rem + 3.8vw, 7rem);
+  --rv-text-display-lg--line-height: 0.96;
+  --rv-text-display-lg--letter-spacing: -0.035em;
+  --rv-text-display-md: clamp(1.625rem, 1.25rem + 1.7vw, 3.5rem);
+  --rv-text-display-md--line-height: 1.04;
+  --rv-text-display-md--letter-spacing: -0.025em;
+  --rv-text-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --rv-text-lead--line-height: 1.55;
+  --rv-text-eyebrow: 0.6875rem;
+  --rv-text-eyebrow--line-height: 1;
+  --rv-text-eyebrow--letter-spacing: 0.18em;
+  --rv-spacing-gutter: clamp(1rem, 4vw, 7rem);                 /* zijmarge, schaalt mee met de schermbreedte */
+  --rv-spacing-section: clamp(5rem, 3.5rem + 7vw, 10rem);      /* ruimte tussen secties */
+  --rv-spacing-section-sm: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+  --rv-container-content: 100%;                                /* volle breedte; marges via --spacing-gutter */
+  --rv-container-prose: 42rem;                                 /* leesbreedte */
+  --rv-radius-soft: 0.375rem;
+  --rv-radius-card: 0.75rem;
+  --rv-radius-panel: 1rem;
+  --rv-shadow-lift: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 24px 48px -24px rgb(0 0 0 / 0.8);
+  --rv-shadow-drawer: -24px 0 60px -20px rgb(0 0 0 / 0.7);
+  --rv-ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+  --rv-duration-calm: 600ms;
+}
+
+@theme inline {
+  --color-canvas: var(--rv-color-canvas);
+  --color-surface: var(--rv-color-surface);
+  --color-surface-strong: var(--rv-color-surface-strong);
+  --color-line: var(--rv-color-line);
+  --color-ink: var(--rv-color-ink);
+  --color-ink-soft: var(--rv-color-ink-soft);
+  --color-ink-muted: var(--rv-color-ink-muted);
+  --color-ink-raised: var(--rv-color-ink-raised);
+  --color-on-ink: var(--rv-color-on-ink);
+  --color-on-ink-muted: var(--rv-color-on-ink-muted);
+  --color-accent: var(--rv-color-accent);
+  --color-accent-strong: var(--rv-color-accent-strong);
+  --color-accent-soft: var(--rv-color-accent-soft);
+  --color-success: var(--rv-color-success);
+  --color-danger: var(--rv-color-danger);
+  --text-display-2xl: var(--rv-text-display-2xl);
+  --text-display-2xl--line-height: var(--rv-text-display-2xl--line-height);
+  --text-display-2xl--letter-spacing: var(--rv-text-display-2xl--letter-spacing);
+  --text-display-xl: var(--rv-text-display-xl);
+  --text-display-xl--line-height: var(--rv-text-display-xl--line-height);
+  --text-display-xl--letter-spacing: var(--rv-text-display-xl--letter-spacing);
+  --text-display-lg: var(--rv-text-display-lg);
+  --text-display-lg--line-height: var(--rv-text-display-lg--line-height);
+  --text-display-lg--letter-spacing: var(--rv-text-display-lg--letter-spacing);
+  --text-display-md: var(--rv-text-display-md);
+  --text-display-md--line-height: var(--rv-text-display-md--line-height);
+  --text-display-md--letter-spacing: var(--rv-text-display-md--letter-spacing);
+  --text-lead: var(--rv-text-lead);
+  --text-lead--line-height: var(--rv-text-lead--line-height);
+  --text-eyebrow: var(--rv-text-eyebrow);
+  --text-eyebrow--line-height: var(--rv-text-eyebrow--line-height);
+  --text-eyebrow--letter-spacing: var(--rv-text-eyebrow--letter-spacing);
+  --spacing-gutter: var(--rv-spacing-gutter);
+  --spacing-section: var(--rv-spacing-section);
+  --spacing-section-sm: var(--rv-spacing-section-sm);
+  --container-content: var(--rv-container-content);
+  --container-prose: var(--rv-container-prose);
+  --radius-soft: var(--rv-radius-soft);
+  --radius-card: var(--rv-radius-card);
+  --radius-panel: var(--rv-radius-panel);
+  --shadow-lift: var(--rv-shadow-lift);
+  --shadow-drawer: var(--rv-shadow-drawer);
+  --ease-calm: var(--rv-ease-calm);
+  --duration-calm: var(--rv-duration-calm);
+}
+
+/* Fonts: "inline", omdat de font-variabelen op de webshop-wrapper staan (niet op
+   <html>, die is van de gedeelde app). Zo verwijzen de utilities er direct naar. */
+@theme inline {
+  --font-sans: var(--font-rv-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-rv-heading), ui-sans-serif, system-ui, sans-serif;
+}

@@ -13,6 +13,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@rv': path.resolve(__dirname, 'src/releasev'),
       '@': path.resolve(__dirname, 'src'),
     },
   },

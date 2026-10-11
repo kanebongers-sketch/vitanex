@@ -18,7 +18,7 @@ while (
 // kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
 // op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
 // een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
-const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'api', 'fonts', 'lead'])
+const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'api', 'fonts', 'lead', 'releasev'])
 function mentaforceRoutes(): string[] {
   const appDir = path.join(__dirname, 'src', 'app')
   const mappen = (dir: string) =>
@@ -32,6 +32,44 @@ function mentaforceRoutes(): string[] {
     }
   }
   return [...routes].filter((r) => !GEEN_MENTAFORCE_ROUTE.has(r) && !r.startsWith('_') && !r.startsWith('['))
+}
+
+// RELEASE V (releasev.nl) draait in dezelfde app (src/releasev, src/app/releasev).
+// De redirects en de CSP hieronder zijn van MentaForce/Fit Factory en gelden NIET
+// voor releasev.nl; de webshop krijgt zijn eigen headers (RELEASEV_HEADERS).
+const RELEASEV_HOST = { type: 'host' as const, value: '(www\\.)?releasev\\.(nl|localhost)' }
+
+type Redirect = { source: string; destination: string; permanent: boolean; has?: unknown[]; missing?: unknown[] }
+function nietOpReleaseV<T extends Redirect>(regels: T[]): T[] {
+  return regels.map((regel) => ({ ...regel, missing: [...(regel.missing ?? []), RELEASEV_HOST] }))
+}
+
+function releaseVHeaders(isProd: boolean) {
+  const csp = [
+    "default-src 'self'",
+    isProd
+      ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://images.unsplash.com https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
+    "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net",
+    "font-src 'self' data:",
+    "frame-src 'none'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    ...(isProd ? ['upgrade-insecure-requests'] : []),
+  ].join('; ')
+  return [
+    { key: 'Content-Security-Policy', value: csp },
+    { key: 'X-Content-Type-Options', value: 'nosniff' },
+    { key: 'X-Frame-Options', value: 'DENY' },
+    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+    { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+    ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }] : []),
+  ]
 }
 
 const nextConfig: NextConfig = {
@@ -61,8 +99,17 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.openfoodfacts.org',
       },
+      // RELEASE V: tijdelijke stockfoto's (worden door Unsplash zelf verkleind)
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
     unoptimized: process.env.CAPACITOR_BUILD === 'true',
+    // Eigen loader: Unsplash verkleint de (tijdelijke) RELEASE V-foto's zelf; voor alle
+    // andere afbeeldingen exact het standaardgedrag van Next.js. Zie het bestand.
+    loader: 'custom',
+    loaderFile: './src/releasev/lib/image-loader.ts',
   },
 
   // Tijdelijk verborgen site (src/lib/site-modus.ts): de publieke pagina's sturen
@@ -105,8 +152,8 @@ const nextConfig: NextConfig = {
       { source: '/1', destination: '/vandaag', permanent: true },
       { source: '/1/plan', destination: '/vandaag/plan', permanent: true },
     ]
-    if (!SITE_VERBORGEN) return [...leadLinks, ...lifeosLinks, ...vandaagLinks]
-    return [
+    if (!SITE_VERBORGEN) return nietOpReleaseV([...leadLinks, ...lifeosLinks, ...vandaagLinks])
+    return nietOpReleaseV([
       ...leadLinks,
       ...lifeosLinks,
       ...vandaagLinks,
@@ -117,7 +164,7 @@ const nextConfig: NextConfig = {
         // Niet op het Fit Factory-domein: daar is "/" de team-ingang (src/proxy.ts).
         missing: [{ type: 'host' as const, value: '(www\\.)?fitfactorypt\\.nl' }],
       })),
-    ]
+    ])
   },
 
   async headers() {
@@ -184,8 +231,11 @@ const nextConfig: NextConfig = {
     ].join(', ')
 
     return [
+      // RELEASE V: eigen headers (andere CSP: Unsplash-foto's, GA4, Meta Pixel)
+      { source: '/(.*)', has: [RELEASEV_HOST], headers: releaseVHeaders(isProd) },
       {
         source: '/(.*)',
+        missing: [RELEASEV_HOST],
         headers: [
           { key: 'Content-Security-Policy',           value: csp },
           { key: 'X-Content-Type-Options',             value: 'nosniff' },

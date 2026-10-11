@@ -4,6 +4,7 @@ import "./globals.css";
 import { barlow } from "./fonts/fit-factory";
 import { headers } from "next/headers";
 import { isPtHost } from "@/lib/fit-factory/domein";
+import { isReleaseVHost } from "@/releasev/lib/host-routing";
 import { STANDAARD_TAAL, richtingVan, type Taal } from "@/lib/i18n/talen";
 import { huidigeTaal, laadBron, laadWoordenboek } from "@/lib/i18n/server";
 import { TaalProvider } from "@/lib/i18n/TaalProvider";
@@ -36,8 +37,11 @@ export default async function RootLayout({
   // Fit Factory PT (zelfde app, ander domein) is altijd Nederlands; MentaForce
   // volgt de taalkeuze van de gebruiker (cookie) of anders de browser.
   const h = await headers();
-  const pt = isPtHost(h.get("x-forwarded-host") ?? h.get("host"));
-  const taal: Taal = pt ? STANDAARD_TAAL : await huidigeTaal();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const pt = isPtHost(host);
+  // RELEASE V (releasev.nl) is altijd Nederlands, net als Fit Factory PT.
+  const vasteTaal = pt || isReleaseVHost(host);
+  const taal: Taal = vasteTaal ? STANDAARD_TAAL : await huidigeTaal();
   const [woordenboek, bron] = await Promise.all([laadWoordenboek(taal), laadBron()]);
 
   return (

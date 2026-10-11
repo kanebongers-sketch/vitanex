@@ -54,7 +54,10 @@
     "recharts": "^3.8.1",
     "resend": "^6.12.2",
     "stripe": "^18.0.0",
-    "three": "^0.176.0"
+    "stripe-rv": "npm:stripe@^23.0.0",
+    "three": "^0.176.0",
+    "zod": "^4.6.6",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

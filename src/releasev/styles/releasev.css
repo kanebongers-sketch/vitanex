@@ -1,0 +1,160 @@
+/* ==========================================================================
+   RELEASE V — eigen stijlbestand van de webshop.
+   Laadt alleen op webshoppagina's (via app/releasev/layout.tsx), zodat de
+   tokens van RELEASE V en van Fit Factory elkaar nooit raken.
+   `source(none)` + @source: Tailwind scant alleen de webshopcode.
+   ========================================================================== */
+@import "tailwindcss" source(none);
+@source "..";
+@source "../../app/releasev";
+@import "./tokens.css";
+
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    interpolate-size: allow-keywords;
+  }
+
+  /* Voorkomt dat de pagina zijwaarts meeschuift als iets een paar pixels uitsteekt.
+     `clip` (i.p.v. `hidden`) houdt sticky-elementen werkend. */
+  html, body {
+    overflow-x: clip;
+  }
+
+  body {
+    background-color: var(--rv-color-canvas);
+    color: var(--rv-color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* De font-variabelen staan op deze wrapper (zie app/releasev/layout.tsx) */
+  .rv-root {
+    font-family: var(--font-rv-body), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--rv-color-accent-soft);
+    color: var(--rv-color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rv-color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-rv-heading), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-stretch: 108%;
+    text-wrap: balance;
+  }
+
+  /* Grote koppen: vetter en breder, voor de performance-uitstraling */
+  .text-display-2xl, .text-display-xl {
+    font-weight: 800;
+    font-stretch: 112%;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Subtiele korrel voor sfeer op donkere en placeholder-vlakken */
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size var(--rv-duration-calm) var(--rv-ease-calm);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* FAQ-accordeon op basis van <details> */
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item[open] .faq-icon { transform: rotate(45deg); }
+  .faq-item::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size 400ms var(--rv-ease-calm), content-visibility 400ms allow-discrete;
+  }
+  .faq-item[open]::details-content { block-size: auto; }
+}
+
+
+/* ==========================================================================
+   Herstellaag voor de gedeelde app.
+   src/app/globals.css (Fit Factory/MentaForce) heeft regels BUITEN de Tailwind-
+   lagen; die winnen altijd van gelaagde stijlen. Dit bestand laadt alleen op
+   webshoppagina's, dus hier zetten we die regels terug naar de webshopstijl.
+   `revert-layer` laat de Tailwind-stijlen van de webshop weer gelden.
+   ========================================================================== */
+
+/* Fit Factory zet html/body vast op schermhoogte met een scrollende body
+   (voor de app-shell). De webshop scrollt gewoon met het venster. */
+html {
+  height: auto;
+  overflow: visible;
+  overflow-x: clip;
+}
+
+body {
+  height: auto;
+  overflow: visible;
+  overflow-x: clip;
+  overscroll-behavior: auto;
+  -webkit-user-select: auto;
+  user-select: auto;
+  font-size: 1rem;
+  font-feature-settings: normal;
+  background: var(--rv-color-canvas);
+  color: var(--rv-color-ink);
+}
+
+/* Koppen: geen vaste dikte/letterafstand/Barlow Condensed van Fit Factory */
+.rv-root :is(h1, h2, h3, h4, h5, h6) {
+  font-family: revert-layer;
+  font-weight: revert-layer;
+  letter-spacing: revert-layer;
+  line-height: revert-layer;
+  text-transform: revert-layer;
+}
+
+/* Focusrand: die van de webshop (oranje), niet de amberkleurige van Fit Factory */
+.rv-root :is(button, a, input, textarea, select):focus-visible {
+  outline: revert-layer;
+  outline-offset: revert-layer;
+  box-shadow: revert-layer;
+}
