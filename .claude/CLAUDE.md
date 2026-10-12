@@ -68,3 +68,8 @@ In plaats van "maak dit mooier", schrijf:
 > Lees CLAUDE.md, ui.md, branding.md, threejs.md, animation.md. Analyseer de huidige
 > implementatie, vind de zwakke plekken, maak een plan, implementeer, review en
 > verbeter tot productiekwaliteit.
+
+## REA (Reverse Engineer Anything)
+- MCP-server `rea` in `.mcp.json` (vastgezet op `rea-agents@6.4.0`, MIT, github.com/morluto/rea) en skill `.claude/skills/reverse-engineer-anything`. Bijwerken: `npx rea-agents@latest setup --client claude_code` en de versie hier aanpassen.
+- Alleen gebruiken om te begrijpen hoe iets werkt en het daarna zelf te bouwen. Geen code, teksten of beelden van anderen overnemen en geen apps van anderen namaken.
+
