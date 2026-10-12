@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { COLORS } from '../theme'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
@@ -44,6 +45,7 @@ function PulseVisual() {
 }
 
 export default function LiquidFeature() {
+  const mf = useMfHref()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -77,7 +79,7 @@ export default function LiquidFeature() {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.2, ease: EASE }}
             >
-              <Link href="/contact" className="liquid-glass inline-block rounded-full px-8 py-3 text-sm font-medium text-white">
+              <Link href={mf('/contact')} className="liquid-glass inline-block rounded-full px-8 py-3 text-sm font-medium text-white">
                 Ontdek meer
               </Link>
             </motion.div>

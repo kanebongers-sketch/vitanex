@@ -11,6 +11,7 @@ import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
 import { SITE_VERBORGEN } from '@/lib/site-modus'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 type LoginStatus =
   | 'idle'
@@ -45,6 +46,7 @@ function veiligTerugPad(ruw: string | null): string | null {
 }
 
 function LoginInhoud() {
+  const mf = useMfHref()
   const router = useRouter()
   // Alleen een pad op déze site ("/kane"): anders kan een gedeelde inloglink na
   // het inloggen naar een andere site doorsturen (open redirect).
@@ -145,7 +147,7 @@ function LoginInhoud() {
           {SITE_VERBORGEN ? (
             <LogoFull iconSize={38} />
           ) : (
-            <Link href="/" aria-label="MentaForce home">
+            <Link href={mf('/')} aria-label="MentaForce home">
               <LogoFull iconSize={38} />
             </Link>
           )}
@@ -311,7 +313,7 @@ function LoginInhoud() {
                 await import('@/lib/supabase/supabase').then(({ supabase }) =>
                   supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: { redirectTo: window.location.origin + '/onboarding' },
+                    options: { redirectTo: window.location.origin + mf('/onboarding') },
                   })
                 )
               }}

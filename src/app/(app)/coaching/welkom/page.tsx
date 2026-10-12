@@ -11,6 +11,7 @@ import { LogoFull } from '@/components/layout/Logo'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { HeartHandshake, LogIn, UserPlus, AlertCircle, ShieldCheck } from 'lucide-react'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 const TOKEN_OPSLAG_SLEUTEL = 'mf_coaching_uitnodiging_token'
 const PRIVACY_KENMERKEN = ['AVG-conform', 'EU-gehost', 'Altijd intrekbaar'] as const
@@ -167,10 +168,11 @@ function WelkomInhoud() {
 
 // ── Layout-frame: mesh-achtergrond + logo-header + gecentreerde inhoud ────────
 function WelkomFrame({ children }: { children: ReactNode }) {
+  const mf = useMfHref()
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       <header style={{ padding: '22px 26px', position: 'relative', zIndex: 1 }}>
-        <Link href="/" aria-label="MentaForce home">
+        <Link href={mf('/')} aria-label="MentaForce home">
           <LogoFull iconSize={30} />
         </Link>
       </header>

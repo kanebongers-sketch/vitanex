@@ -18,4 +18,8 @@ export const SITE_VERBORGEN = false
 // meer een MentaForce-scherm te zien. API's en bestanden blijven werken (de
 // PT-app en LifeOS gebruiken ze), localhost blijft bruikbaar om te ontwikkelen.
 // De code blijft staan: terug online = deze schakelaar op false.
+//
+// Sinds 12-10-2026 (besluit Kane) staat MentaForce wél online onder
+// releasev.nl/mentaforce (src/lib/mentaforce/basis.ts, src/proxy.ts). Deze
+// schakelaar geldt alleen voor de andere domeinen en blijft dus aan.
 export const MENTAFORCE_OFFLINE = true

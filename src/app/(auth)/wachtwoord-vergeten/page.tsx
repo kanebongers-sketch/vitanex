@@ -9,10 +9,12 @@ import { supabase } from '@/lib/supabase/supabase'
 import { MailCheck } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 type Status = 'idle' | 'loading' | 'verstuurd' | 'not_found' | 'error'
 
 export default function WachtwoordVergeten() {
+  const mf = useMfHref()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
 
@@ -21,7 +23,7 @@ export default function WachtwoordVergeten() {
     setStatus('loading')
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/wachtwoord-reset`,
+      redirectTo: `${window.location.origin}${mf('/wachtwoord-reset')}`,
     })
 
     if (error) {

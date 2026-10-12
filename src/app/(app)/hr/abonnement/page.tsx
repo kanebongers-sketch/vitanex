@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { PLAN_INFO, PLAN_VOLGORDE, type Plan } from '@/lib/plan/plan'
 import { Check, CheckCircle2, CreditCard, Mail } from 'lucide-react'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 interface BedrijfAbonnement {
   naam: string
@@ -23,6 +24,7 @@ interface BedrijfAbonnement {
 }
 
 export default function HrAbonnementPage() {
+  const mf = useMfHref()
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [bedrijf, setBedrijf] = useState<BedrijfAbonnement | null>(null)
@@ -44,7 +46,7 @@ export default function HrAbonnementPage() {
       // De stripe-velden zijn client-side bewust niet leesbaar; de server-route
       // doet de rol-check en levert alleen afgeleide, niet-gevoelige data.
       try {
-        const res = await authFetch('/api/stripe/abonnement')
+        const res = await authFetch(mf('/api/stripe/abonnement'))
         if (res.status === 403) { router.push('/home'); return }
         if (res.ok) setBedrijf((await res.json()) as BedrijfAbonnement)
       } catch {
@@ -58,7 +60,7 @@ export default function HrAbonnementPage() {
     setBezig(plan)
     setMelding(null)
     try {
-      const res = await authFetch('/api/stripe/checkout', {
+      const res = await authFetch(mf('/api/stripe/checkout'), {
         method: 'POST',
         body: JSON.stringify({ plan }),
       })
@@ -78,7 +80,7 @@ export default function HrAbonnementPage() {
     setBezig('portaal')
     setMelding(null)
     try {
-      const res = await authFetch('/api/stripe/portal', { method: 'POST' })
+      const res = await authFetch(mf('/api/stripe/portal'), { method: 'POST' })
       const data = (await res.json()) as { url?: string; error?: string }
       if (res.ok && data.url) {
         window.location.assign(data.url)
@@ -179,7 +181,7 @@ export default function HrAbonnementPage() {
                       {bezig === plan ? 'Bezig…' : `Overstappen naar ${info.naam}`}
                     </Button>
                   ) : (
-                    <Button variant="secondary" onClick={() => router.push('/contact')}>
+                    <Button variant="secondary" onClick={() => router.push(mf('/contact'))}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                         <Mail size={15} aria-hidden /> Neem contact op
                       </span>
@@ -216,7 +218,7 @@ export default function HrAbonnementPage() {
 
         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 24 }}>
           Vragen over facturatie of een offerte op maat?{' '}
-          <Link href="/contact" style={{ color: 'var(--mentaforce-primary)' }}>Neem contact op</Link> — we denken graag mee.
+          <Link href={mf('/contact')} style={{ color: 'var(--mentaforce-primary)' }}>Neem contact op</Link> — we denken graag mee.
         </p>
       </main>
     </div>

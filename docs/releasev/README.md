@@ -36,3 +36,10 @@ Alles met het voorvoegsel `RELEASEV_`, zodat het nooit botst met MentaForce/Fit 
 - Geen gedachtestreepjes en geen klemtoon-accenten in teksten (test bewaakt het).
 - Geen verzonnen reviews, cijfers of medische claims. Kane: manager van 8 PT-locaties, leidt zelf trainers op (geen academy).
 - Openstaande verbeterpunten: `docs/releasev/CRO-AUDIT.md`.
+
+## MentaForce onder releasev.nl/mentaforce (sinds 12-10-2026)
+- `releasev.nl/mentaforce/…` is MentaForce; alle andere adressen blijven van de webshop (ook `/contact`, `/bedankt` en de webshop-API's).
+- Regels en tests: `src/lib/mentaforce/basis.ts`. De webshop-pagina's en -API's worden tijdens de build uit `src/app/releasev` gelezen (`RELEASEV_ROUTES`, `RELEASEV_APIS` in `next.config.ts`), zodat MentaForce er nooit tussen komt.
+- Onder `/mentaforce` gelden de headers (CSP) van MentaForce; de verborgen stand van de webshop (noindex) geldt er ook.
+- Supabase: `https://releasev.nl/mentaforce/**` moet in de toegestane terugkeeradressen staan (Authentication > URL Configuration), anders werken Google-login en wachtwoord-reset niet.
+

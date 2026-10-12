@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useMfPathname } from '@/lib/mentaforce/useMfBasis'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import { CATEGORIEEN } from '@/lib/navigatie/categorie-nav'
@@ -507,7 +508,7 @@ const MOBILE_TABS = [
 /* ── Main Navbar ── */
 export default function Navbar() {
   const { t } = useVertaling()
-  const pathname = usePathname()
+  const pathname = useMfPathname()
   const router = useRouter()
 
   const [openMenu, setOpenMenu] = useState(false)

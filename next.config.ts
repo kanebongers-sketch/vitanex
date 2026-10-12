@@ -34,6 +34,23 @@ function mentaforceRoutes(): string[] {
   return [...routes].filter((r) => !GEEN_MENTAFORCE_ROUTE.has(r) && !r.startsWith('_') && !r.startsWith('['))
 }
 
+// MentaForce draait op releasev.nl/mentaforce (src/lib/mentaforce/basis.ts). Wat
+// van de webshop is, blijft van de webshop: de top-level pagina's en API's van
+// src/app/releasev, ook afgeleid tijdens de build.
+function webshopMappen(...deel: string[]): string[] {
+  const dir = path.join(__dirname, 'src', 'app', 'releasev', ...deel)
+  const namen = new Set<string>()
+  for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!d.isDirectory()) continue
+    if (d.name.startsWith('(') && d.name.endsWith(')')) {
+      for (const k of fs.readdirSync(path.join(dir, d.name), { withFileTypes: true })) if (k.isDirectory()) namen.add(k.name)
+    } else {
+      namen.add(d.name)
+    }
+  }
+  return [...namen].filter((n) => !n.startsWith('[') && !n.startsWith('_'))
+}
+
 // RELEASE V (releasev.nl) draait in dezelfde app (src/releasev, src/app/releasev).
 // De redirects en de CSP hieronder zijn van MentaForce/Fit Factory en gelden NIET
 // voor releasev.nl; de webshop krijgt zijn eigen headers (RELEASEV_HEADERS).
@@ -75,6 +92,8 @@ function releaseVHeaders(isProd: boolean) {
 const nextConfig: NextConfig = {
   env: {
     MENTAFORCE_ROUTES: mentaforceRoutes().join(','),
+    RELEASEV_ROUTES: webshopMappen().join(','),
+    RELEASEV_APIS: webshopMappen('api').join(','),
   },
 
   serverExternalPackages: ['pdfkit'],
@@ -230,37 +249,41 @@ const nextConfig: NextConfig = {
       'fullscreen=(self)',
     ].join(', ')
 
+    const mentaforceHeaders = [
+      { key: 'Content-Security-Policy',           value: csp },
+      { key: 'X-Content-Type-Options',             value: 'nosniff' },
+      { key: 'X-Frame-Options',                    value: 'DENY' },
+      { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy',                 value: permissionsPolicy },
+      { key: 'X-DNS-Prefetch-Control',             value: 'on' },
+      // Eigen browsing-context-groep: een pagina die wij openen (of die ons
+      // opent) krijgt geen `window.opener` naar ons. Er zijn geen popup-
+      // flows (OAuth loopt via redirects), dus dit breekt niets.
+      { key: 'Cross-Origin-Opener-Policy',         value: 'same-origin' },
+      // Onze antwoorden (API-JSON, chunks, afbeeldingen) mag een andere site
+      // niet no-cors inladen. `same-site` i.p.v. `same-origin` zodat een
+      // www./apex-split of een subdomein het niet breekt.
+      { key: 'Cross-Origin-Resource-Policy',       value: 'same-site' },
+      // Geen Flash/PDF-crossdomain.xml-beleid: niets mag ons cross-domain lezen.
+      { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
+      // HSTS — only in production to avoid breaking local dev
+      ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
+      // Verborgen site: nergens in zoekmachines. Werkt alleen als Google de
+      // pagina wél mag ophalen (zie app/robots.ts) — anders ziet hij dit nooit
+      // en blijven oude resultaten staan.
+      ...(SITE_VERBORGEN ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
+    ]
+
     return [
       // RELEASE V: eigen headers (andere CSP: Unsplash-foto's, GA4, Meta Pixel)
       { source: '/(.*)', has: [RELEASEV_HOST], headers: releaseVHeaders(isProd) },
-      {
-        source: '/(.*)',
-        missing: [RELEASEV_HOST],
-        headers: [
-          { key: 'Content-Security-Policy',           value: csp },
-          { key: 'X-Content-Type-Options',             value: 'nosniff' },
-          { key: 'X-Frame-Options',                    value: 'DENY' },
-          { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy',                 value: permissionsPolicy },
-          { key: 'X-DNS-Prefetch-Control',             value: 'on' },
-          // Eigen browsing-context-groep: een pagina die wij openen (of die ons
-          // opent) krijgt geen `window.opener` naar ons. Er zijn geen popup-
-          // flows (OAuth loopt via redirects), dus dit breekt niets.
-          { key: 'Cross-Origin-Opener-Policy',         value: 'same-origin' },
-          // Onze antwoorden (API-JSON, chunks, afbeeldingen) mag een andere site
-          // niet no-cors inladen. `same-site` i.p.v. `same-origin` zodat een
-          // www./apex-split of een subdomein het niet breekt.
-          { key: 'Cross-Origin-Resource-Policy',       value: 'same-site' },
-          // Geen Flash/PDF-crossdomain.xml-beleid: niets mag ons cross-domain lezen.
-          { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
-          // HSTS — only in production to avoid breaking local dev
-          ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
-          // Verborgen site: nergens in zoekmachines. Werkt alleen als Google de
-          // pagina wél mag ophalen (zie app/robots.ts) — anders ziet hij dit nooit
-          // en blijven oude resultaten staan.
-          ...(SITE_VERBORGEN ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
-        ],
-      },
+      { source: '/(.*)', missing: [RELEASEV_HOST], headers: mentaforceHeaders },
+      // MentaForce onder releasev.nl/mentaforce (src/lib/mentaforce/basis.ts) houdt
+      // zijn eigen headers (o.a. de CSP voor Supabase). Deze regels staan ná die van
+      // de webshop: bij dezelfde header wint de laatste. De rest van releasev.nl
+      // houdt de webshop-headers.
+      { source: '/mentaforce', has: [RELEASEV_HOST], headers: mentaforceHeaders },
+      { source: '/mentaforce/:pad*', has: [RELEASEV_HOST], headers: mentaforceHeaders },
       // Het Fit Factory-domein hoort NOOIT in zoekmachines, los van de site-modus:
       // het is een besloten team-app met gegevens van leads en klanten. Crawlen
       // blijft toegestaan (zie app/robots.ts), zodat Google deze kop ook ziet.
