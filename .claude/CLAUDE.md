@@ -10,6 +10,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - De LifeOS-link/knop is alleen voor Kane (rol beheerder). **Ruben (eigenaar) mag de link nooit te zien krijgen.**
 - LifeOS heeft **geen Gmail/mail-functie meer** (geen inbox, mail naar taken, triage of conceptmails). Niet terugbouwen zonder Kane. De mails die LifeOS naar Kane stuurt (dagplanning, weekmail) en de PT-verslagmails blijven.
 - LifeOS heeft de Fit Factory PT-stijl (grafiet + amber, Barlow-koppen), net als de PT-app.
+- De PT-app gebruikt op de pc de hele schermbreedte (rand `--ff-rand`); alleen formulieren en inloggen blijven smal. De LifeOS-agenda staat over de volle breedte.
 
 ## Missie
 Bouw het hoogst mogelijke welzijnsplatform op het internet. Elke feature is:
