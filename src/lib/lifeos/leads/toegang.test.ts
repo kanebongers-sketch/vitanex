@@ -176,6 +176,10 @@ describe('isZelfdeOorsprong (CSRF)', () => {
     expect(isZelfdeOorsprong(koppen({ origin: 'https://mentaforce.nl.kwaad.nl', host: 'mentaforce.nl' }))).toBe(false)
     expect(isZelfdeOorsprong(koppen({ origin: 'null', host: 'mentaforce.nl' }))).toBe(false)
   })
+  it('eigen domein achter Render: x-forwarded-host wijkt af van host, beide tellen als wij', () => {
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://fitfactorypt.nl', host: 'fitfactorypt.nl', 'x-forwarded-host': 'mentaforce.onrender.com' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://kwaad.nl', host: 'fitfactorypt.nl', 'x-forwarded-host': 'mentaforce.onrender.com' }))).toBe(false)
+  })
   it('zonder enige oorsprong-kop (geen browser): weigeren', () => {
     expect(isZelfdeOorsprong(koppen({ host: 'mentaforce.nl' }))).toBe(false)
     expect(isZelfdeOorsprong(koppen({}))).toBe(false)

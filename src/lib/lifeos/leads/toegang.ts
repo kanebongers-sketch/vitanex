@@ -19,9 +19,14 @@ export function foutAntwoord(fout: string, status: number): NextResponse {
 // ─── Zelfde oorsprong (CSRF, defense-in-depth naast SameSite=Lax) ─────────────
 
 /** De publieke host van dit verzoek: achter een proxy staat die in X-Forwarded-Host. */
-function hostVan(headers: Headers): string | null {
-  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim()
-  return host ? host.toLowerCase() : null
+/**
+ * De hosts waaronder de server dit verzoek ziet. Achter Render/Cloudflare kan
+ * `x-forwarded-host` iets anders zijn dan `host` (bv. op fitfactorypt.nl); beide
+ * zijn door de proxy gezet, niet door de pagina, dus beide tellen als "wij".
+ */
+function hostsVan(headers: Headers): string[] {
+  const kandidaten = [headers.get('x-forwarded-host')?.split(',')[0], headers.get('host')]
+  return kandidaten.flatMap((h) => (h && h.trim() ? [h.trim().toLowerCase()] : []))
 }
 
 /**
@@ -35,10 +40,10 @@ export function isZelfdeOorsprong(headers: Headers): boolean {
   const site = headers.get('sec-fetch-site')
   if (site) return site === 'same-origin'
   const origin = headers.get('origin')
-  const host = hostVan(headers)
-  if (!origin || !host) return false
+  const hosts = hostsVan(headers)
+  if (!origin || hosts.length === 0) return false
   try {
-    return new URL(origin).host.toLowerCase() === host
+    return hosts.includes(new URL(origin).host.toLowerCase())
   } catch {
     return false
   }
