@@ -9,6 +9,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - **Sinds 12-10-2026 (besluit Kane): MentaForce is online onder releasev.nl/mentaforce.** `src/proxy.ts` herschrijft `/mentaforce/…` naar de gewone routes (logica en tests: `src/lib/mentaforce/basis.ts`). De webshop en fitfactorypt.nl mogen hier niet onder lijden of veranderen.
   - Links: `useMfHref()` (`src/lib/mentaforce/useMfBasis.ts`) voor `/`, `/#…`, `/contact`, `/bedankt` en `/api/contact|stripe|checkout|newsletter` (die namen zijn op releasev.nl van de webshop). Andere MentaForce-links zonder basis werken via een 308 naar `/mentaforce/…`.
   - Menu's vergelijken met `useMfPathname()`, niet met `usePathname()` (dat geeft daar `/mentaforce/…`).
+  - Links buiten de browser (mails, Stripe, OAuth) via `mentaforceAppUrl()` (`MENTAFORCE_APP_URL`), nooit `NEXT_PUBLIC_APP_URL` aanpassen: LifeOS gebruikt die.
 - Live is alleen **Fit Factory PT** op fitfactorypt.nl, plus **LifeOS** op het verborgen adres fitfactorypt.nl/lifeoskane.
 - De LifeOS-link/knop is alleen voor Kane (rol beheerder). **Ruben (eigenaar) mag de link nooit te zien krijgen.**
 - LifeOS heeft **geen Gmail/mail-functie meer** (geen inbox, mail naar taken, triage of conceptmails). Niet terugbouwen zonder Kane. De mails die LifeOS naar Kane stuurt (dagplanning, weekmail) en de PT-verslagmails blijven.

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createOAuthState } from '@/lib/auth/oauth-state'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 /**
  * Start de Google Agenda OAuth-flow voor de ingelogde gebruiker.
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'GOOGLE_CLIENT_ID niet ingesteld' }, { status: 503 })
   }
 
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/google-calendar/callback`
+  const redirectUri = `${mentaforceAppUrl()}/api/google-calendar/callback`
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
 
   url.searchParams.set('client_id', clientId)

@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { getStripe, stripePriceIdVoorPlan, BETALEN_NIET_BESCHIKBAAR } from '@/lib/integraties/stripe'
 import { normaliseerPlan, PLAN_INFO } from '@/lib/plan/plan'
 import { isRateLimited } from '@/lib/utils/rate-limit'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const appUrl = mentaforceAppUrl() ?? 'http://localhost:3000'
     const sessie = await stripe.checkout.sessions.create(
       {
         mode: 'subscription',

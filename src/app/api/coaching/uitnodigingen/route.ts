@@ -5,14 +5,15 @@ import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { isCoach } from '@/lib/coaching/server'
 import { maakUitnodiging, lijstUitnodigingen } from '@/lib/coaching/uitnodiging-server'
 import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 // GET  /api/coaching/uitnodigingen            → lijst van uitnodigingen (coach)
 // POST /api/coaching/uitnodigingen {email,naam?} → maak uitnodiging + verstuur e-mail
 
 /** Leidt de publieke origin af: env eerst (zoals de bestaande mailroutes), dan headers. */
 function bepaalOrigin(req: NextRequest): string {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (envUrl && envUrl !== 'undefined') return envUrl.replace(/\/+$/, '')
+  const envUrl = mentaforceAppUrl()
+  if (envUrl) return envUrl
   const origin = req.headers.get('origin')
   if (origin) return origin.replace(/\/+$/, '')
   const proto = req.headers.get('x-forwarded-proto') ?? 'https'
