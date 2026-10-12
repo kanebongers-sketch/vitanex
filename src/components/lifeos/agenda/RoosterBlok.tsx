@@ -17,6 +17,8 @@ import {
 export const PX_PER_MIN = 0.8
 /** Verticale marge binnen het rooster-body, zodat de rand-labels niet afknippen. */
 export const PAD_Y = 10
+/** Blokken lager dan dit (in px) krijgen naam en tijd op een regel. */
+const KORT_BLOK_PX = 32
 
 /** Het kleine, uppercase sectielabel dat boven de rooster-onderdelen staat. */
 export const SECTIE_LABEL: CSSProperties = {
@@ -75,10 +77,42 @@ export function RoosterBlokItem({ blok, dagLabel }: RoosterBlokItemProps) {
   const titelKleur = stijl ? stijl.tekst : 'var(--text-1)'
 
   const label = `${dagLabel ? `${dagLabel}, ` : ''}${tijd}, ${titel}${blok.locatie ? `, ${blok.locatie}` : ''}`
+  // Te laag voor twee regels (korter dan ~40 minuten): de naam eerst, de tijd erachter
+  // op dezelfde regel. Anders valt de naam weg en zie je alleen "17:00-17:20".
+  const kort = hoogte < KORT_BLOK_PX
+
+  const tijdSpan = (
+    <span
+      key="tijd"
+      className="os-cijfer"
+      aria-hidden="true"
+      style={{ fontSize: 11, color: tijdKleur, opacity: stijl ? 0.85 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}
+    >
+      {tijd}
+    </span>
+  )
+  const titelSpan = (
+    <span
+      key="titel"
+      aria-hidden="true"
+      style={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: titelKleur,
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {titel}
+    </span>
+  )
 
   return (
     <li
       aria-label={label}
+      title={label}
       style={{
         position: 'absolute',
         top,
@@ -86,37 +120,18 @@ export function RoosterBlokItem({ blok, dagLabel }: RoosterBlokItemProps) {
         left: `${blok.laneIndex * breedtePct}%`,
         width: `calc(${breedtePct}% - 3px)`,
         display: 'flex',
-        flexWrap: 'wrap',
+        flexWrap: kort ? 'nowrap' : 'wrap',
+        alignItems: kort ? 'center' : undefined,
         alignContent: 'flex-start',
         gap: '1px 6px',
         overflow: 'hidden',
-        padding: '3px 7px',
+        padding: kort ? '0 7px' : '3px 7px',
         borderRadius: 6,
         boxSizing: 'border-box',
         ...kleurStijl,
       }}
     >
-      <span
-        className="os-cijfer"
-        aria-hidden="true"
-        style={{ fontSize: 11, color: tijdKleur, opacity: stijl ? 0.85 : 1, whiteSpace: 'nowrap' }}
-      >
-        {tijd}
-      </span>
-      <span
-        aria-hidden="true"
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: titelKleur,
-          minWidth: 0,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {titel}
-      </span>
+      {kort ? [titelSpan, tijdSpan] : [tijdSpan, titelSpan]}
     </li>
   )
 }

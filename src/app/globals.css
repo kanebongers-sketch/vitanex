@@ -4046,8 +4046,16 @@ body {
 .lifeos-root.ff .ptd-badge { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
 .lifeos-root.ff .ptd-tegel, .lifeos-root.ff .ptd-rij, .lifeos-root.ff .ptd-form, .lifeos-root.ff .ptd-kaart { border-radius: 12px; }
 
+/* Op de pc gebruikt de PT-app de hele breedte (besluit Kane): een vaste rand
+   die meegroeit met het scherm, geen smalle kolom in het midden. Formulieren en
+   het inlogscherm (.ff-smal, .ptd-smal) blijven bewust smal. */
+.lifeos-root.ff { --ff-rand: clamp(16px, 3vw, 48px); }
+.lifeos-root.ff .ptd { max-width: none; padding-left: var(--ff-rand); padding-right: var(--ff-rand); }
+.lifeos-root.ff .ptd.ff-smal { max-width: 520px; }
+.lifeos-root.ff .ptd .ptd { padding-left: 0; padding-right: 0; }
+
 /* De balk bovenaan: logo links, naam + uitloggen rechts. */
-.lifeos-root.ff .ff-balk { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(10px, env(safe-area-inset-top)) max(16px, calc((100% - 928px) / 2)) 10px; background: rgba(16, 16, 20, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.lifeos-root.ff .ff-balk { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(10px, env(safe-area-inset-top)) var(--ff-rand) 10px; background: rgba(16, 16, 20, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .lifeos-root.ff .ff-logo { display: block; height: 34px; width: auto; }
 .lifeos-root.ff .ff-balk-rechts { display: flex; align-items: center; gap: 10px; }
 .lifeos-root.ff .ff-wie { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
@@ -4075,7 +4083,7 @@ body {
 .lifeos-root.ff .ff-tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 @media (min-width: 820px) {
   .lifeos-root.ff .ff-inhoud { padding-bottom: 64px; }
-  .lifeos-root.ff .ff-tabs { position: sticky; top: 64px; bottom: auto; max-width: 928px; margin: 14px auto 0; border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
+  .lifeos-root.ff .ff-tabs { position: sticky; top: 64px; bottom: auto; margin: 14px var(--ff-rand) 0; border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
   .lifeos-root.ff .ff-tabs a { grid-auto-flow: column; align-items: center; justify-content: center; gap: 8px; padding: 10px 8px; font-size: 15px; }
   .lifeos-root.ff .ff-tabs a svg { width: 18px; height: 18px; }
   .lifeos-root.ff .ff-tabs a[aria-current='page'] { background: var(--brand-soft); }

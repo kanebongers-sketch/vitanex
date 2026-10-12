@@ -51,22 +51,23 @@ export function Cockpit() {
           />
         </div>
 
-        {/* Cluster "Mijn dag" — twee halve tegels die exact optellen tot de volle
-            breedte: wat moet er gebeuren (taken) en wanneer (agenda). */}
+        {/* Cluster "Mijn dag": wat past er in je dag en je taken naast elkaar, en
+            daaronder je agenda over de volle breedte: de weekweergave heeft die
+            ruimte nodig, anders vallen namen en tijden weg. */}
         <section className="os-cluster" aria-labelledby="os-dag-kop">
           <header className="os-cluster__kop">
             <h2 id="os-dag-kop" className="os-zone__kop">
               Mijn dag
             </h2>
-            <p className="os-zone__intro">Je taken en je agenda voor vandaag — wat moet er gebeuren en wanneer.</p>
+            <p className="os-zone__intro">Je taken en je agenda voor vandaag: wat moet er gebeuren en wanneer.</p>
           </header>
-          <div className="os-tile--vol">
+          <div className="os-tile--half">
             <DagplanKaart />
           </div>
           <div className="os-tile--half">
             <TakenApple />
           </div>
-          <div className="os-tile--half">
+          <div className="os-tile--vol">
             <AgendaKaart />
           </div>
         </section>

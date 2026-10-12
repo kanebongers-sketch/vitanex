@@ -27,7 +27,7 @@ const GUTTER = 52
 const KOL_MIN = 132
 const KOP_HOOGTE = 36
 const HELEDAG_HOOGTE = 30
-const MAX_HOOGTE = 420
+const MAX_HOOGTE = 640
 
 interface DagenRoosterGridProps {
   dagen: AgendaDag[]
