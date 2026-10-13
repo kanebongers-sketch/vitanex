@@ -1,6 +1,7 @@
 ﻿import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { renderEmail, renderEmailKnop, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
   const { naam, email } = body as { naam?: string; email?: string }
   if (!email) return NextResponse.json({ error: 'email vereist' }, { status: 400 })
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const appUrl = mentaforceAppUrl() ?? 'http://localhost:3000'
 
   const { error } = await resend.emails.send({
     from: 'MentaForce <onboarding@resend.dev>',

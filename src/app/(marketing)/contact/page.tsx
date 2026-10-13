@@ -9,6 +9,7 @@ import {
 import Nav from '@/components/marketing/landing/Nav'
 import Footer from '@/components/marketing/landing/Footer'
 import { COLORS, FONT, MAXW, EASE, glassPanel } from '@/components/marketing/theme'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 interface Onderwerp { id: string; label: string; beschrijving: string; icoon: LucideIcon }
 
@@ -75,6 +76,7 @@ function veldBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | H
 }
 
 export default function Contact() {
+  const mf = useMfHref()
   const [geselecteerd, setGeselecteerd] = useState<string | null>(null)
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
@@ -95,7 +97,7 @@ export default function Contact() {
     setBezig(true)
     setFout(null)
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(mf('/api/contact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ onderwerp: geselecteerd ?? '', naam, email, organisatie, teamgrootte, bericht }),

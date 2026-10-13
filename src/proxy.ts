@@ -2,6 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { PAD_HEADER, beslis, leesRoutes } from '@/lib/fit-factory/domein'
 import { MENTAFORCE_OFFLINE } from '@/lib/site-modus'
 import { releaseVProxy } from '@/releasev/lib/proxy-releasev'
+import { isReleaseVHost } from '@/releasev/lib/host-routing'
+import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
+import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -14,8 +17,51 @@ import { releaseVProxy } from '@/releasev/lib/proxy-releasev'
 
 /** De MentaForce-routes, tijdens de build uit src/app afgeleid (next.config). */
 const MENTAFORCE_ROUTES = leesRoutes(process.env.MENTAFORCE_ROUTES)
+/** Top-level pagina's en API's van de webshop (next.config): die blijven van RELEASE V. */
+const WEBSHOP_ROUTES = leesRoutes(process.env.RELEASEV_ROUTES)
+const WEBSHOP_APIS = leesRoutes(process.env.RELEASEV_APIS)
+
+/**
+ * MentaForce onder releasev.nl/mentaforce (src/lib/mentaforce/basis.ts). Alleen
+ * op het kale releasev.nl; null = niet van MentaForce, dan gaat alles verder zoals
+ * het altijd ging (webshop, Fit Factory).
+ */
+function mentaforceOpReleaseV(request: NextRequest): NextResponse | null {
+  const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
+  if (!isReleaseVHost(host) || host.startsWith('www.')) return null
+  // Zonder routelijsten (kapotte build) niets doen: liever een 404 dan de webshop raken.
+  if (MENTAFORCE_ROUTES.size === 0 || WEBSHOP_ROUTES.size === 0) return null
+
+  const { pathname, search } = request.nextUrl
+  const besluit = beslisMentaforce(pathname, search, MENTAFORCE_ROUTES, WEBSHOP_ROUTES, WEBSHOP_APIS)
+  if (besluit.soort === 'niet-van-mij') return null
+  // Absoluut adres op hetzelfde (al gecontroleerde) domein; achter Render is
+  // request.url niet altijd het publieke adres.
+  if (besluit.soort === 'omleiden') {
+    const origin = host === 'releasev.localhost' ? `http://${request.headers.get('host')}` : `https://${host}`
+    return NextResponse.redirect(`${origin}${besluit.url}`, 308)
+  }
+
+  const headers = new Headers(request.headers)
+  headers.set(MF_BASIS_HEADER, MF_BASIS)
+  headers.set(PAD_HEADER, `${pathname}${search}`)
+  let response: NextResponse
+  if (besluit.soort === 'door') {
+    response = NextResponse.next({ request: { headers } })
+  } else {
+    const doel = request.nextUrl.clone()
+    doel.pathname = besluit.pad
+    response = NextResponse.rewrite(doel, { request: { headers } })
+  }
+  // Zolang releasev.nl verborgen is voor Google, geldt dat ook voor /mentaforce.
+  if (isSiteHidden()) response.headers.set(NOINDEX_HEADER.key, NOINDEX_HEADER.value)
+  return response
+}
 
 export function proxy(request: NextRequest) {
+  const mentaforce = mentaforceOpReleaseV(request)
+  if (mentaforce) return mentaforce
+
   const releaseV = releaseVProxy(request)
   if (releaseV) return releaseV
 

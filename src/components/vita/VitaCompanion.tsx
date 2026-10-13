@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useMfPathname } from '@/lib/mentaforce/useMfBasis'
 import { X, Flame, Moon, Zap, Smile, Sparkles, ChevronRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
@@ -427,7 +428,7 @@ const dataChipStyle: CSSProperties = {
 }
 
 export default function VitaCompanion() {
-  const pathname = usePathname()
+  const pathname = useMfPathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [toonMeer, setToonMeer] = useState(false)

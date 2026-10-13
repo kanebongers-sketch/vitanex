@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 export async function POST(request: NextRequest) {
   const user = await getAuthenticatedUser(request)
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
         <h2 style="font-size:20px; font-weight:600; color:${EMAIL_KLEUREN.ink}; margin:0 0 8px;">Hey ${profiel.naam ? escapeHtml(profiel.naam) : 'daar'} 👋</h2>
         <p style="color:${EMAIL_KLEUREN.inkDim}; line-height:1.6; margin:0;">Je wekelijkse vitaliteits check-in staat klaar. Het duurt maar 2 minuten.</p>
       `,
-      knop: { label: 'Check-in doen', url: `${process.env.NEXT_PUBLIC_APP_URL}/checkin` },
+      knop: { label: 'Check-in doen', url: `${mentaforceAppUrl()}/checkin` },
     }),
   })
 

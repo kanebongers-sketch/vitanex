@@ -10,6 +10,7 @@ import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
 } from '@/lib/doelen/weekdoelen'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> 
 // ─── Inner component ──────────────────────────────────────────────────────────
 
 function BedanktInhoud() {
+  const mf = useMfHref()
   const params = useSearchParams()
 
   const slaap    = parseInt(params.get('slaap')    ?? '0')
@@ -271,7 +273,7 @@ function BedanktInhoud() {
           )}
           <Link href="/home" className="w-full inline-block text-center text-[var(--bg-app)] rounded-xl py-3 text-sm font-medium"
             style={{ background: 'var(--mentaforce-primary)' }}>Naar dashboard</Link>
-          <Link href="/" className="w-full inline-block text-center border border-[var(--border)] text-[var(--text-2)] rounded-xl py-3 text-sm hover:bg-[var(--bg-subtle)] transition">
+          <Link href={mf('/')} className="w-full inline-block text-center border border-[var(--border)] text-[var(--text-2)] rounded-xl py-3 text-sm hover:bg-[var(--bg-subtle)] transition">
             Terug naar home</Link>
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useMfPathname } from '@/lib/mentaforce/useMfBasis'
 import {
   LayoutGrid,
   Users,
@@ -65,7 +66,7 @@ type Props = {
 }
 
 export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaForce' }: Props) {
-  const pathname = usePathname()
+  const pathname = useMfPathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 

@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useMfPathname } from '@/lib/mentaforce/useMfBasis'
 
 const ROOT_ROUTES = ['/home', '/hr', '/admin', '/login']
 
 export function useAndroidBack() {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = useMfPathname()
 
   useEffect(() => {
     let cleanup: (() => void) | null = null

@@ -13,6 +13,7 @@ import { GoogleSsoKnop, RegisterStapAccount } from '@/components/auth/RegisterSt
 import { RegisterStapHrCode, RegisterStapProfiel } from '@/components/auth/RegisterStapProfiel'
 import { RegisterStapBevestig } from '@/components/auth/RegisterStapBevestig'
 import { RegisterZijpaneel } from '@/components/auth/RegisterZijpaneel'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
   // Gebruikers krijgen een extra HR-code stap; HR niet
@@ -152,6 +153,7 @@ function StapKiesType({ type, onKies, onVerder, onGoogle }: StapKiesTypeProps) {
 }
 
 function RegisterForm() {
+  const mf = useMfHref()
   const [stap, setStap] = useState<Stap>('type')
   const [type, setType] = useState<GebruikerType | null>(null)
 
@@ -212,7 +214,7 @@ function RegisterForm() {
     const { supabase } = await import('@/lib/supabase/supabase')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/onboarding' },
+      options: { redirectTo: window.location.origin + mf('/onboarding') },
     })
   }
 
@@ -298,7 +300,7 @@ function RegisterForm() {
         className="w-full px-6 py-4 flex items-center justify-between"
         style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}
       >
-        <Link href="/" aria-label="MentaForce home">
+        <Link href={mf('/')} aria-label="MentaForce home">
           <LogoFull iconSize={32} />
         </Link>
         <p className="text-sm" style={{ color: 'var(--text-3)' }}>

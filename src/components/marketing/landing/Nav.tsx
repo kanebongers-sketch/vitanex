@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { COLORS, FONT, MAXW, EASE } from '../theme'
 import Wordmark from '../Wordmark'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 const LINKS: [string, string][] = [
   ['/#brein', 'De pijlers'],
@@ -14,6 +15,7 @@ const LINKS: [string, string][] = [
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const mf = useMfHref()
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 32)
@@ -35,13 +37,13 @@ export default function Nav() {
       }}
     >
       <div style={{ maxWidth: MAXW, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="/" aria-label="MentaForce home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+        <Link href={mf('/')} aria-label="MentaForce home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <Wordmark size={17} />
         </Link>
 
         <div className="hidden md:flex" style={{ gap: 34, alignItems: 'center' }}>
           {LINKS.map(([href, label]) => (
-            <a key={href} href={href}
+            <a key={href} href={mf(href)}
               style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none', transition: `color .2s ${EASE}` }}
               onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.ink }}
               onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.inkDim }}>
@@ -51,9 +53,9 @@ export default function Nav() {
         </div>
 
         <div className="hidden md:flex" style={{ gap: 14, alignItems: 'center' }}>
-          <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Inloggen</Link>
-          <Link href="/register" style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Zelf starten</Link>
-          <Link href="/contact"
+          <Link href={mf('/login')} style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Inloggen</Link>
+          <Link href={mf('/register')} style={{ fontSize: 14, fontWeight: 500, color: COLORS.inkDim, textDecoration: 'none' }}>Zelf starten</Link>
+          <Link href={mf('/contact')}
             style={{
               fontSize: 14, fontWeight: 600, color: COLORS.navyDeep, background: COLORS.cyan,
               padding: '10px 20px', borderRadius: 10, textDecoration: 'none',
@@ -77,11 +79,11 @@ export default function Nav() {
       {open && (
         <div style={{ borderTop: `1px solid ${COLORS.line}`, marginTop: 14, padding: '18px 28px', display: 'flex', flexDirection: 'column', gap: 16, background: COLORS.navyDeep }}>
           {LINKS.map(([href, label]) => (
-            <a key={href} href={href} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{label}</a>
+            <a key={href} href={mf(href)} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{label}</a>
           ))}
-          <Link href="/login" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Inloggen</Link>
-          <Link href="/register" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Zelf starten</Link>
-          <Link href="/contact" onClick={() => setOpen(false)} style={{ color: COLORS.navyDeep, background: COLORS.cyan, padding: '12px 0', borderRadius: 10, textAlign: 'center', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Demo aanvragen</Link>
+          <Link href={mf('/login')} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Inloggen</Link>
+          <Link href={mf('/register')} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Zelf starten</Link>
+          <Link href={mf('/contact')} onClick={() => setOpen(false)} style={{ color: COLORS.navyDeep, background: COLORS.cyan, padding: '12px 0', borderRadius: 10, textAlign: 'center', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Demo aanvragen</Link>
         </div>
       )}
     </nav>

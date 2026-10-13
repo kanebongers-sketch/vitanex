@@ -7,6 +7,7 @@ import { useState, type FormEvent } from 'react'
 import { ArrowRight, Brain, Mail, ShieldCheck } from 'lucide-react'
 import { COLORS } from '../theme'
 import Wordmark from '../Wordmark'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 const HeroField = dynamic(() => import('./HeroField'), { ssr: false, loading: () => null })
 
@@ -24,12 +25,13 @@ const SOCIALS: readonly { href: string; label: string; icon: typeof Brain }[] = 
 
 export default function LiquidHero() {
   const router = useRouter()
+  const mf = useMfHref()
   const [email, setEmail] = useState('')
 
   const startRegistratie = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const adres = email.trim()
-    router.push(adres ? `/register?email=${encodeURIComponent(adres)}` : '/register')
+    router.push(mf(adres ? `/register?email=${encodeURIComponent(adres)}` : '/register'))
   }
 
   return (
@@ -48,7 +50,7 @@ export default function LiquidHero() {
       <header className="relative z-20 px-6 py-6">
         <nav className="liquid-glass mx-auto flex max-w-5xl items-center justify-between rounded-full px-6 py-3">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center rounded-full" aria-label="MentaForce home">
+            <Link href={mf('/')} className="flex items-center rounded-full" aria-label="MentaForce home">
               <Wordmark size={17} compact />
             </Link>
             <div className="ml-8 hidden items-center gap-8 md:flex">
@@ -60,10 +62,10 @@ export default function LiquidHero() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-white">
+            <Link href={mf('/login')} className="text-sm font-medium text-white">
               Inloggen
             </Link>
-            <Link href="/register" className="liquid-glass rounded-full px-6 py-2 text-sm font-medium text-white">
+            <Link href={mf('/register')} className="liquid-glass rounded-full px-6 py-2 text-sm font-medium text-white">
               Start gratis
             </Link>
           </div>
@@ -115,7 +117,7 @@ export default function LiquidHero() {
               <Icon size={20} aria-hidden />
             </a>
           ) : (
-            <Link key={href} href={href} aria-label={label} className="liquid-glass rounded-full p-4 text-white/80 transition-all hover:bg-white/5 hover:text-white">
+            <Link key={href} href={mf(href)} aria-label={label} className="liquid-glass rounded-full p-4 text-white/80 transition-all hover:bg-white/5 hover:text-white">
               <Icon size={20} aria-hidden />
             </Link>
           ),

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { COLORS, FONT, MAXW } from '../theme'
 import Wordmark from '../Wordmark'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 type Item = [string, string]
 interface Col { titel: string; items: Item[] }
@@ -14,6 +15,7 @@ const COLS: Col[] = [
 ]
 
 export default function Footer() {
+  const mf = useMfHref()
   return (
     <footer style={{ fontFamily: FONT.grotesk, borderTop: `1px solid ${COLORS.line}`, background: COLORS.navyDeep }}>
       <div style={{ maxWidth: MAXW, margin: '0 auto', padding: '64px 28px 32px' }}>
@@ -35,7 +37,7 @@ export default function Footer() {
                 {col.items.map(([href, label]) => (
                   href.startsWith('#')
                     ? <a key={label + href} href={href} style={{ fontSize: 14, color: COLORS.inkDim, textDecoration: 'none' }}>{label}</a>
-                    : <Link key={label + href} href={href} style={{ fontSize: 14, color: COLORS.inkDim, textDecoration: 'none' }}>{label}</Link>
+                    : <Link key={label + href} href={mf(href)} style={{ fontSize: 14, color: COLORS.inkDim, textDecoration: 'none' }}>{label}</Link>
                 ))}
               </div>
             </div>

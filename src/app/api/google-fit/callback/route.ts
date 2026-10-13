@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { verifyOAuthState } from '@/lib/auth/oauth-state'
+import { mentaforceAppUrl } from '@/lib/mentaforce/app-url'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const appUrl = mentaforceAppUrl()
   if (!appUrl) {
-    console.error('[Google Fit callback] NEXT_PUBLIC_APP_URL niet ingesteld')
+    console.error('[Google Fit callback] MENTAFORCE_APP_URL en NEXT_PUBLIC_APP_URL niet ingesteld')
     return NextResponse.json({ error: 'Serverconfiguratie onvolledig' }, { status: 500 })
   }
 

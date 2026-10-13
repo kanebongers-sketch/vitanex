@@ -9,10 +9,12 @@ import Link from 'next/link'
 import { Check, Clock } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 type Status = 'laden' | 'gereed' | 'opslaan' | 'klaar' | 'fout_token' | 'fout_opslaan'
 
 export default function WachtwoordReset() {
+  const mf = useMfHref()
   const router = useRouter()
   const [status, setStatus] = useState<Status>('laden')
   const [wachtwoord, setWachtwoord] = useState('')
@@ -101,7 +103,7 @@ export default function WachtwoordReset() {
   return (
     <AuthKaart>
         <div className="flex justify-center mb-8">
-          <Link href="/" aria-label="MentaForce home">
+          <Link href={mf('/')} aria-label="MentaForce home">
             <LogoFull iconSize={38} />
           </Link>
         </div>

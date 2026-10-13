@@ -11,10 +11,10 @@ const config: CapacitorConfig = {
   webDir: 'out',
 
   server: {
-    // Verander dit naar je productie-URL zodra de app live staat
-    // Bijv. 'https://app.mentaforce.nl' of 'https://mentaforce.vercel.app'
+    // Sinds 12-10-2026 draait MentaForce onder releasev.nl/mentaforce (mentaforce.nl
+    // is losgekoppeld). Andere URL: CAPACITOR_SERVER_URL bij `npx cap sync`.
     url: isProd
-      ? process.env.CAPACITOR_SERVER_URL ?? 'https://mentaforce.nl'
+      ? process.env.CAPACITOR_SERVER_URL ?? 'https://releasev.nl/mentaforce'
       : 'http://localhost:3000', // via adb reverse tcp:3000 tcp:3000
     cleartext: !isProd,
     androidScheme: 'https',

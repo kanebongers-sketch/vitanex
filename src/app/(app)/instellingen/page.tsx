@@ -20,6 +20,7 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/Toast'
+import { useMfHref } from '@/lib/mentaforce/useMfBasis'
 
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
@@ -103,6 +104,7 @@ function Toggle({ actief, onChange, label, beschrijving }: {
 }
 
 export default function Instellingen() {
+  const mf = useMfHref()
   const router = useRouter()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1068,7 +1070,7 @@ export default function Instellingen() {
                       <Link href="/voorwaarden" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
                         Algemene voorwaarden
                       </Link>
-                      <Link href="/contact" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
+                      <Link href={mf('/contact')} className="text-xs underline" style={{ color: 'var(--text-3)' }}>
                         Privacy-verzoek indienen
                       </Link>
                     </div>
