@@ -5,6 +5,7 @@ import { KlantKaart } from '@/components/lifeos/pt-dashboard/KlantKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { FilterRij, metFilters } from './FilterRij'
 import { TEAM_FOUT } from './teksten'
+import { zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { BeheerKlantenLijst } from '@/components/lifeos/pt-beheer/BeheerKlantenLijst'
 
 // /<eigenaar>/klanten — alle PT-klanten van het team met hun abonnement, te
@@ -41,7 +42,7 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
     <section className="ptd-sectie" aria-labelledby="eig-klanten-kop">
       <div className="ptd-sectiekop">
         <h2 id="eig-klanten-kop">PT-klanten{gekozen ? ` van ${gekozen.naam}` : ' van het team'}</h2>
-        <span>{cijfers.lopend} lopend · {euro(cijfers.maandwaarde)} p/m</span>
+        <span>{cijfers.lopend} lopend{zietGeld(g.link.rol) ? ` · ${euro(cijfers.maandwaarde)} p/m` : ''}</span>
       </div>
       <FilterRij
         label="PT'er"
@@ -74,10 +75,10 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
             <KlantKaart
               key={klant.id}
               klant={klant}
-              toonPrijs
+              toonPrijs={zietGeld(g.link.rol)}
               vandaag={g.vandaag}
               trainer={gekozen ? undefined : naamVan.get(ptId)}
-              dossierHref={`/${code}/klanten/${klant.id}`}
+              dossierHref={zietDossiers(g.link.rol) ? `/${code}/klanten/${klant.id}` : undefined}
             />
           ))}
         </ul>

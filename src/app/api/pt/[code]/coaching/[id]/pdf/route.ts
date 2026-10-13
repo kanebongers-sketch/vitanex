@@ -6,7 +6,7 @@
 // zie `verslag-bouw.ts`.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { kijktMee } from '@/lib/lifeos/leads/links'
+import { zietCoach } from '@/lib/lifeos/leads/links'
 import { GEEN_CACHE, foutAntwoord, ingelogdeLink, isUuid } from '@/lib/lifeos/leads/toegang'
 import { bouwVerslag, verslagPdfAntwoord } from '@/lib/lifeos/pt-coaching/verslag-bouw'
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, ctx: Context) {
   const { code, id } = await ctx.params
   const r = await ingelogdeLink(req, code, { eigenaarMag: true })
   if (r instanceof NextResponse) return r
-  if (!kijktMee(r.link.rol)) return foutAntwoord('Verslagen zijn alleen voor de eigenaren en Kane.', 403)
+  if (!zietCoach(r.link.rol)) return foutAntwoord('Verslagen zijn alleen voor de eigenaren en Kane.', 403)
   if (!isUuid(id)) return foutAntwoord(NIET_GEVONDEN, 404)
 
   const v = await bouwVerslag(r.admin, r.link.userId, id, new Date())

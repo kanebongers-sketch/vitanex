@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import type { LeadLink } from './links'
+import { zietCoach, zietDossiers, zietGeld, type LeadLink } from './links'
 
 const links = vi.hoisted(() => ({ vindLink: vi.fn(), sessieGeldig: vi.fn() }))
 vi.mock('./links', async (importOriginal) => ({ ...(await importOriginal<typeof import('./links')>()), ...links }))
@@ -49,12 +49,13 @@ const KLANT_JOEY = '55555555-5555-4555-8555-555555555555'
 const KLANT_OUD = '66666666-6666-4666-8666-666666666666'
 
 const link = (rol: LeadLink['rol'], persoonId: string, code: string): LeadLink => ({
-  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0,
+  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, club: null,
 })
 const LINKS: Record<string, LeadLink> = {
   joey: link('pt', JOEY, 'joey'),
   ruben: link('eigenaar', RUBEN, 'ruben'),
   kane: link('beheerder', KANE, 'kane'),
+  sanne: { ...link('clubmanager', RUBEN, 'sanne'), club: 'bladel' },
 }
 const req = () => new NextRequest('https://mentaforce.nl/api/pt/x', { method: 'PUT' })
 const status = (r: unknown) => (r instanceof NextResponse ? r.status : 200)
@@ -201,5 +202,25 @@ describe('leadToegang', () => {
     expect(r instanceof NextResponse ? null : r.link.persoonId).toBe(JOEY)
     expect(status(await leadToegang(req(), 'ruben', KLANT_JOEY))).toBe(403)
     expect(status(await leadToegang(req(), 'kane', KLANT_OUD))).toBe(404) // geen lead met dit id
+  })
+})
+
+describe('clubmanager: alleen meekijken', () => {
+  it('mag niets schrijven: geen klant, lead of nieuwe rij (403)', async () => {
+    expect(status(await ingelogdeLink(req(), 'sanne'))).toBe(403)
+    expect(status(await klantToegang(req(), 'sanne', KLANT_JOEY))).toBe(403)
+    expect(status(await leadToegang(req(), 'sanne', KLANT_JOEY))).toBe(403)
+    expect(status(await nieuwToegang(req(), 'sanne', JOEY))).toBe(403)
+  })
+  it('mag wel lezen waar meekijkers dat mogen (bv. een document openen)', async () => {
+    expect(status(await ingelogdeLink(req(), 'sanne', { eigenaarMag: true }))).toBe(200)
+  })
+})
+
+describe('zichtbaarheid per rol', () => {
+  it('geld en coachgesprekken alleen voor eigenaar en beheerder; dossiers niet voor een clubmanager', () => {
+    expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietGeld(r as LeadLink['rol']))).toEqual([false, true, true, false])
+    expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietCoach(r as LeadLink['rol']))).toEqual([false, true, true, false])
+    expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietDossiers(r as LeadLink['rol']))).toEqual([true, true, true, false])
   })
 })

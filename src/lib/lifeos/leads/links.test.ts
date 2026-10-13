@@ -68,7 +68,7 @@ const later = (dagen: number, uren = 0) => new Date(NU.getTime() + (dagen * 24 +
 
 const joey = (over: Partial<LeadLink> = {}): LeadLink => ({
   rol: 'pt', userId: USER, persoonId: JOEY, code: 'joey', naam: 'Joey', pinStatus: 'actief', pinHash: hashPin(PIN),
-  mislukt: 0, geblokkeerdTot: null, blokkades: 0, ...over,
+  mislukt: 0, geblokkeerdTot: null, blokkades: 0, club: null, ...over,
 })
 const kane = (): LeadLink => ({ ...joey(), rol: 'beheerder', persoonId: KANE, code: 'kane', naam: 'Kane', pinHash: null })
 const linkRij = (l: LeadLink): Rij => ({

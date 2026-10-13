@@ -23,9 +23,11 @@ interface Props {
   toonPin?: boolean
   /** Onder de tabel: export, beheerlinks, uitleg. */
   children?: ReactNode
+  /** Omzet tonen (eigenaren, beheerder); een clubmanager ziet geen bedragen. */
+  toonGeld?: boolean
 }
 
-export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children }: Props) {
+export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children, toonGeld = true }: Props) {
   const { rijen, clubs, analyse, vestigingen } = data
   const som = (f: (r: (typeof rijen)[number]) => number) => rijen.reduce((s, r) => s + f(r), 0)
   const leadsTotaal = som((r) => r.leads.totaal)
@@ -37,7 +39,11 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children 
         <Tegel getal={String(som((r) => r.leads.dezeWeek))} label="Leads deze week" uitleg={`${som((r) => r.leads.dezeMaand)} deze maand`} />
         <Tegel getal={String(som((r) => r.leads.open))} label="Open leads" uitleg={`${som((r) => r.teLaat)} opvolging te laat`} />
         <Tegel getal={String(klant)} label="Klant geworden" uitleg={leadsTotaal ? `${Math.round((klant / leadsTotaal) * 100)}% van ${leadsTotaal} leads` : 'nog geen leads'} accent />
-        <Tegel getal={euro(som((r) => r.maandwaarde))} label="PT-abonnementen p/m" uitleg={`${som((r) => r.klantenLopend)} lopend · incl. btw`} />
+        {toonGeld ? (
+          <Tegel getal={euro(som((r) => r.maandwaarde))} label="PT-abonnementen p/m" uitleg={`${som((r) => r.klantenLopend)} lopend · incl. btw`} />
+        ) : (
+          <Tegel getal={String(som((r) => r.klantenLopend))} label="Lopende abonnementen" uitleg={`${som((r) => r.sessiesPerWeek)} sessies per week`} />
+        )}
       </div>
 
       <section className="ptd-sectie" aria-labelledby="team-kop">
@@ -54,7 +60,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children 
                 <tr>
                   <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Doel wk</th><th scope="col">Maand</th><th scope="col">Open</th>
                   <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col">Abonnementen</th>
-                  <th scope="col">Per maand</th><th scope="col">Laatste lead</th>
+                  {toonGeld ? <th scope="col">Per maand</th> : null}<th scope="col">Laatste lead</th>
                   {toonPin ? <th scope="col">Dashboard</th> : null}
                 </tr>
               </thead>
@@ -70,7 +76,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children 
                     <td>{r.leads.klant}</td>
                     <td>{r.leads.conversie === null ? '–' : `${r.leads.conversie}%`}</td>
                     <td>{r.klantenLopend}{r.bevroren > 0 ? ` (${r.bevroren} bevr.)` : ''}</td>
-                    <td>{euro(r.maandwaarde)}</td>
+                    {toonGeld ? <td>{euro(r.maandwaarde)}</td> : null}
                     <td>{r.laatsteLead ? dagKort(r.laatsteLead) : '–'}</td>
                     {toonPin ? <td>{r.pinStatus ? PIN[r.pinStatus] : '–'}</td> : null}
                   </tr>
@@ -82,7 +88,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children 
         {children}
       </section>
 
-      <VestigingTabel vestigingen={vestigingen} />
+      {toonGeld ? <VestigingTabel vestigingen={vestigingen} /> : null}
 
       <ClubTabel clubs={clubs} />
 

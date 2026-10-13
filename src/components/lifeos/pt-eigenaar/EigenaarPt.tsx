@@ -19,6 +19,7 @@ import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CheckinKaart } from './CheckinKaart'
 import { TEAM_FOUT } from './teksten'
+import { zietCoach, zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { DoelenBewerken } from '@/components/lifeos/pt-beheer/DoelenBewerken'
 
 // /<eigenaar>/team/<id> — alles van één PT'er, zoals die het in zijn eigen app
@@ -38,21 +39,28 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
   const klanten = g.team.klanten.get(pt.id) ?? []
   const o = ptOverzicht(leads, klanten, g.vandaag)
   const doelen = doelenWeergave(g.doelen.get(pt.id) ?? null, leads, klanten, g.vandaag)
-  const checkin = await haalCheckin(g.admin, alsPt(g.link, pt.id), huidigeWeek(new Date()))
+  const geld = zietGeld(g.link.rol)
+  const coach = zietCoach(g.link.rol)
+  // De check-in hoort bij het coachgesprek: alleen ophalen voor wie dat mag zien.
+  const checkin = coach ? await haalCheckin(g.admin, alsPt(g.link, pt.id), huidigeWeek(new Date())) : null
   const opvolgen = [...o.teLaat, ...o.vandaag]
   const lopend = klanten.filter((k) => isLopend(k, g.vandaag))
 
   return (
     <>
       <div>
-        <Link href={`/${code}`} className="ptd-link ffdos-terug"><ChevronLeft size={16} aria-hidden /> Hele team</Link>
+        <Link href={`/${code}`} className="ptd-link ffdos-terug"><ChevronLeft size={16} aria-hidden /> {g.link.rol === 'clubmanager' ? 'Hele club' : 'Hele team'}</Link>
         <h1 className="ptd-titel">{pt.naam}</h1>
       </div>
       <div className="ptd-tegels">
         <Tegel getal={String(o.leads.dezeWeek)} label="Leads deze week" uitleg={`${o.leads.dezeMaand} deze maand · ${o.leads.totaal} totaal`} />
         <Tegel getal={String(o.leads.open)} label="Open leads" uitleg={`${o.teLaat.length} te laat · ${o.zonderPlan.length} zonder plan`} />
         <Tegel getal={String(o.leads.klant)} label="Klant geworden" uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads`} accent />
-        <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · ${o.klanten.sessiesPerWeek} sessies p/w`} />
+        {geld ? (
+          <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · ${o.klanten.sessiesPerWeek} sessies p/w`} />
+        ) : (
+          <Tegel getal={String(o.klanten.lopend)} label="Lopende klanten" uitleg={`${o.klanten.sessiesPerWeek} sessies per week`} />
+        )}
       </div>
 
       {g.link.rol === 'beheerder' ? (
@@ -81,22 +89,26 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
           <p className="ptd-leeg">{pt.naam} heeft geen lopende PT-klanten ingevuld.</p>
         ) : (
           <ul className="ptd-lijst">
-            {lopend.slice(0, MAX_LIJST).map((k) => <KlantKaart key={k.id} klant={k} vandaag={g.vandaag} toonPrijs dossierHref={`/${code}/klanten/${k.id}`} />)}
+            {lopend.slice(0, MAX_LIJST).map((k) => (
+              <KlantKaart key={k.id} klant={k} vandaag={g.vandaag} toonPrijs={geld} dossierHref={zietDossiers(g.link.rol) ? `/${code}/klanten/${k.id}` : undefined} />
+            ))}
           </ul>
         )}
         <Link className="ptd-knop ptd-knop--klein" href={`/${code}/klanten?pt=${pt.id}&toon=alle`}>Alle klanten van {pt.naam} ({klanten.length})</Link>
       </section>
 
-      <section className="ptd-sectie" aria-labelledby="eig-checkin-kop">
-        <div className="ptd-sectiekop"><h2 id="eig-checkin-kop">Check-in deze week</h2><span>voorbereiding coachgesprek</span></div>
-        {!checkin.ok ? (
-          <Foutmelding bericht="De check-in kon niet geladen worden. Vernieuw de pagina." />
-        ) : checkin.waarde ? (
-          <div className="ptd-rij"><CheckinKaart checkin={checkin.waarde} /></div>
-        ) : (
-          <p className="ptd-leeg">{pt.naam} heeft de check-in van deze week nog niet ingevuld.</p>
-        )}
-      </section>
+      {checkin ? (
+        <section className="ptd-sectie" aria-labelledby="eig-checkin-kop">
+          <div className="ptd-sectiekop"><h2 id="eig-checkin-kop">Check-in deze week</h2><span>voorbereiding coachgesprek</span></div>
+          {!checkin.ok ? (
+            <Foutmelding bericht="De check-in kon niet geladen worden. Vernieuw de pagina." />
+          ) : checkin.waarde ? (
+            <div className="ptd-rij"><CheckinKaart checkin={checkin.waarde} /></div>
+          ) : (
+            <p className="ptd-leeg">{pt.naam} heeft de check-in van deze week nog niet ingevuld.</p>
+          )}
+        </section>
+      ) : null}
 
       {leads.length > 0 ? (
         <section className="ptd-sectie" aria-labelledby="eig-trend-kop">

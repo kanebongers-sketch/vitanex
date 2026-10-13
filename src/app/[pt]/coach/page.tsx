@@ -1,5 +1,6 @@
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
-import { kijktMee } from '@/lib/lifeos/leads/links'
+import { kijktMee, zietCoach } from '@/lib/lifeos/leads/links'
+import { notFound } from 'next/navigation'
 import { huidigeWeek, weekLabel } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckin } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { haalOpenPuntenVan } from '@/lib/lifeos/pt-coaching/opslag'
@@ -17,6 +18,8 @@ export default async function CoachPagina({ params }: { params: Promise<{ pt: st
   const { pt } = await params
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
+  // Coachgesprekken zijn tussen Kane en de PT'er: een clubmanager ziet ze niet.
+  if (kijktMee(s.link.rol) && !zietCoach(s.link.rol)) notFound()
   if (kijktMee(s.link.rol)) return <><h1 className="sr-only">Coach</h1><EigenaarCoach code={s.link.code} beheerder={s.link.rol === 'beheerder'} /></>
 
   const week = huidigeWeek(new Date())

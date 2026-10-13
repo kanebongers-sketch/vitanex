@@ -6,7 +6,7 @@
 
 import { isPinStatus, type Lead, type PinStatus } from '@/lib/lifeos/leads/leads'
 import { vatKlantenSamen, type PtKlant } from './abonnementen'
-import { CLUBS, type Club } from './clubs'
+import { CLUBS, isClub, type Club } from './clubs'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
 import { analyseer, type Analyse } from './analyse'
 import type { PtDoelen } from './doelen'
@@ -95,11 +95,14 @@ function obj(v: unknown): Record<string, unknown> | null {
 
 // ─── Eigenaren (meekijkers, bv. Ruben) ────────────────────────────────────────
 
-/** Een eigenaar met zijn PT-app-link, zodat Kane de pincode kan goedkeuren. */
+/** Een eigenaar of clubmanager met zijn PT-app-link, zodat Kane de pincode kan goedkeuren. */
 export interface EigenaarRij {
   id: string
   naam: string
   code: string
+  rol: 'eigenaar' | 'clubmanager'
+  /** Alleen bij een clubmanager. */
+  club: Club | null
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
   /** Bij een wachtende pin: de controlecode om na te vragen. */
@@ -114,6 +117,8 @@ export function leesEigenaren(ruw: unknown): EigenaarRij[] {
     if (!x || typeof x.id !== 'string' || typeof x.naam !== 'string' || typeof x.code !== 'string' || !isPinStatus(x.pinStatus)) return []
     return [{
       id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus,
+      rol: x.rol === 'clubmanager' ? 'clubmanager' : 'eigenaar',
+      club: isClub(x.club) ? x.club : null,
       pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null,
       ...(typeof x.controle === 'string' && /^\d{4}$/.test(x.controle) ? { controle: x.controle } : {}),
     }]

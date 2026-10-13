@@ -8,7 +8,8 @@ import type { LinkRol } from '@/lib/lifeos/leads/links'
 // De app-navigatie: op de telefoon een tabbalk onderin (duimbereik, zoals een
 // echte app), vanaf tablet een rij bovenaan. Actief = aria-current. Een eigenaar
 // krijgt dezelfde tabs, maar "Home" heet "Team" (ook actief op /team/<id>); de
-// beheerder (Kane) krijgt daarnaast "Beheer".
+// beheerder (Kane) krijgt daarnaast "Beheer". Een clubmanager ziet zijn club:
+// geen Coach (coachgesprekken zijn tussen Kane en de PT'er).
 
 interface Item {
   pad: string
@@ -28,7 +29,8 @@ const ITEMS: Item[] = [
 
 const EIGENAAR_ITEMS: Item[] = ITEMS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
 const BEHEERDER_ITEMS: Item[] = [...EIGENAAR_ITEMS.slice(0, 4), { pad: '/beheer', label: 'Beheer', icoon: Settings2 }, ...EIGENAAR_ITEMS.slice(4)]
-const ITEMS_VOOR: Record<LinkRol, Item[]> = { pt: ITEMS, eigenaar: EIGENAAR_ITEMS, beheerder: BEHEERDER_ITEMS }
+const CLUBMANAGER_ITEMS: Item[] = EIGENAAR_ITEMS.filter((i) => i.pad !== '/coach').map((i) => (i.pad === '' ? { ...i, label: 'Club' } : i))
+const ITEMS_VOOR: Record<LinkRol, Item[]> = { pt: ITEMS, eigenaar: EIGENAAR_ITEMS, beheerder: BEHEERDER_ITEMS, clubmanager: CLUBMANAGER_ITEMS }
 
 export function PtNav({ code, rol = 'pt' }: { code: string; rol?: LinkRol }) {
   const pad = usePathname()

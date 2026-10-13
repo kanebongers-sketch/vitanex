@@ -13,6 +13,7 @@ import { haalLeadsVan } from '@/lib/lifeos/leads/opslag'
 import { haalKlantenVan } from './klanten-opslag'
 import { haalDoelenVoor } from './doelen-opslag'
 import { haalPtTeamGegevens } from './team-opslag'
+import { voorClub } from './club-filter'
 import type { PtDoelen } from './doelen'
 import { zonderPrijs } from './abonnementen'
 
@@ -55,14 +56,18 @@ export const ptGegevens = cache(async (code: string) => {
 })
 
 /**
- * Alles wat een ingelogde eigenaar ziet: het hele actieve PT-team met leads,
- * klanten en doelen. Null = geen ingelogde eigenaar. `team` null = lezen mislukt.
+ * Alles wat een ingelogde eigenaar, beheerder of clubmanager ziet: het actieve
+ * PT-team met leads, klanten en doelen — voor een clubmanager alleen zijn club.
+ * Null = niemand die meekijkt. `team` null = lezen mislukt.
  */
 export const eigenaarGegevens = cache(async (code: string) => {
   const s = await ptSessie(code)
   if (!s?.ingelogd || !kijktMee(s.link.rol)) return null
+  // Een clubmanager: alleen zijn eigen club, en zonder doelen (zie club-filter).
+  const club = s.link.rol === 'clubmanager' ? s.link.club : null
   // De doelen komen in hetzelfde rondje als leads en klanten mee (zie team-opslag).
-  const team = await haalPtTeamGegevens(s.admin, s.link.userId, { metDoelen: true })
+  const alles = await haalPtTeamGegevens(s.admin, s.link.userId, { metDoelen: !club })
+  const team = alles && club ? voorClub(alles, club) : alles
   const doelen = team?.doelen ?? null
   return {
     admin: s.admin,

@@ -39,10 +39,15 @@ describe('leesEigenaren', () => {
         { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
         { id: 'e2', naam: 'Zonder code', pinStatus: 'actief' },
         { id: 'e3', naam: 'Rare pin', code: 'x', pinStatus: 'kapot' },
+        { id: 'm1', naam: 'Sanne', code: 'sanne', pinStatus: 'geen', rol: 'clubmanager', club: 'bladel' },
+        { id: 'm2', naam: 'Rare club', code: 'rc', pinStatus: 'geen', rol: 'clubmanager', club: 'parijs' },
       ],
     }
     expect(leesEigenaren(ruw)).toEqual([
-      { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+      { id: 'e1', naam: 'Ruben', code: 'ruben', rol: 'eigenaar', club: null, pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+      { id: 'm1', naam: 'Sanne', code: 'sanne', rol: 'clubmanager', club: 'bladel', pinStatus: 'geen', pinAangevraagdOp: null },
+      // Een onbekende club wordt geen club: zo'n manager ziet in de app niets (vindLink weigert hem).
+      { id: 'm2', naam: 'Rare club', code: 'rc', rol: 'clubmanager', club: null, pinStatus: 'geen', pinAangevraagdOp: null },
     ])
   })
 

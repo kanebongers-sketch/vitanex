@@ -7,7 +7,8 @@ import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
 import { HoofdaccountLogin } from '@/components/lifeos/pt-dashboard/HoofdaccountLogin'
-import { kijktMee } from '@/lib/lifeos/leads/links'
+import { kijktMee, type LinkRol } from '@/lib/lifeos/leads/links'
+import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { UitlogKnop } from '@/components/lifeos/pt-dashboard/UitlogKnop'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
   }
 }
 
-const ROL_LABEL = { pt: 'jouw app', eigenaar: 'eigenaar', beheerder: 'beheerder' } as const
+const ROL_LABEL: Record<LinkRol, string> = { pt: 'jouw app', eigenaar: 'eigenaar', beheerder: 'beheerder', clubmanager: 'clubmanager' }
 
 export const viewport: Viewport = { themeColor: FIT_FACTORY.zwart }
 
@@ -86,13 +87,21 @@ export default async function PtLayout({ children, params }: Props) {
           children
         ) : (
           <>
-            <FfHero boventitel={`Personal Training · ${ROL_LABEL[s.link.rol]}`} titel={`Hoi ${s.link.naam}`} />
+            <FfHero
+              boventitel={`Personal Training · ${ROL_LABEL[s.link.rol]}${s.link.club ? ` · ${CLUB_LABEL[s.link.club]}` : ''}`}
+              titel={`Hoi ${s.link.naam}`}
+            />
             {s.link.rol === 'beheerder' ? <HoofdaccountLogin /> : <PinPoort code={s.link.code} pinStatus={s.link.pinStatus} />}
           </>
         )}
         <footer className="ff-voet">
           {s.link.rol === 'beheerder' ? (
             <span>Je beheert de PT-app van het hele team. Ga zorgvuldig om met de gegevens van leads en klanten. Gegevens staan in de EU.</span>
+          ) : s.link.rol === 'clubmanager' && s.link.club ? (
+            <span>
+              Je kijkt mee met de PT van {CLUB_LABEL[s.link.club]}: leads, klanten en prestaties. Aanpassen doen de PT&apos;ers zelf;
+              bedragen en klantdossiers zie je niet. Gegevens staan in de EU.
+            </span>
           ) : eigenaar ? (
             <span>
               Je kijkt mee met wat het PT-team invult; aanpassen doen de PT&apos;ers zelf. Ga zorgvuldig om met de gegevens van
@@ -100,8 +109,9 @@ export default async function PtLayout({ children, params }: Props) {
             </span>
           ) : (
             <span>
-              Alleen zichtbaar voor jou, Kane en de eigenaren van Fit Factory. Vul van leads alleen in wat nodig is om op te
-              volgen, en vraag of je diegene mag benaderen. Gegevens staan in de EU.
+              Zichtbaar voor jou, Kane, de eigenaren van Fit Factory en de clubmanager van de club (leads en klanten, geen
+              dossiers). Vul van leads alleen in wat nodig is om op te volgen, en vraag of je diegene mag benaderen. Gegevens
+              staan in de EU.
             </span>
           )}
           <span>Fit Factory Personal Training</span>

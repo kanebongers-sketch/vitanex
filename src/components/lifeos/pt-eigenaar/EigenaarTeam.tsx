@@ -7,6 +7,10 @@ import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { TeamOverzichtWeergave } from '@/components/lifeos/pt-team/TeamOverzichtWeergave'
 import { TEAM_FOUT } from './teksten'
+import { zietGeld, type LinkRol } from '@/lib/lifeos/leads/links'
+import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
+
+const ROL_KOP: Record<LinkRol, string> = { pt: 'PT', eigenaar: 'eigenaar', beheerder: 'beheerder', clubmanager: 'clubmanager' }
 
 // /<eigenaar> — het hele PT-team in één beeld: dezelfde cijfers die Kane in
 // LifeOS ziet (totalen, per PT'er, per club, team-trend). Alleen lezen.
@@ -23,17 +27,19 @@ export async function EigenaarTeam({ code }: { code: string }) {
     g.vandaag,
     g.doelen,
   )
+  const club = g.link.rol === 'clubmanager' ? g.link.club : null
   const teLaat = [...leads.values()].flat().filter((l) => moetOpvolgen(l, g.vandaag) && l.opvolgdatum !== g.vandaag).length
 
   return (
     <>
-      <FfHero boventitel={`Fit Factory PT · ${g.link.rol === 'beheerder' ? 'beheerder' : 'eigenaar'}`} titel={`Hoi ${g.link.naam}`}>
+      <FfHero boventitel={`Fit Factory PT · ${ROL_KOP[g.link.rol]}${club ? ` ${CLUB_LABEL[club]}` : ''}`} titel={`Hoi ${g.link.naam}`}>
         <p className="ff-hero-sub">
-          Alles wat het PT-team bijhoudt, live: leads, opvolging, klanten en abonnementen.
-          {g.link.rol === 'beheerder' ? ' Klanten en doelen pas je hier ook aan.' : ' Je kijkt mee; invullen doen de PT\'ers zelf.'}
+          {club
+            ? `De PT in ${CLUB_LABEL[club]}, live: leads, opvolging, klanten en prestaties per PT'er. Je kijkt mee; invullen doen de PT'ers zelf.`
+            : `Alles wat het PT-team bijhoudt, live: leads, opvolging, klanten en abonnementen.${g.link.rol === 'beheerder' ? ' Klanten en doelen pas je hier ook aan.' : " Je kijkt mee; invullen doen de PT'ers zelf."}`}
         </p>
       </FfHero>
-      <TeamOverzichtWeergave data={data} ptHref={`/${code}/team`}>
+      <TeamOverzichtWeergave data={data} ptHref={`/${code}/team`} toonGeld={zietGeld(g.link.rol)}>
         <div className="ptd-acties">
           <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead`}>
             Alle leads <ChevronRight size={14} aria-hidden />
