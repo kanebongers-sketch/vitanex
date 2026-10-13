@@ -470,6 +470,39 @@ export async function stopClubmanager(admin: SupabaseClient, userId: string, per
   return 'ok'
 }
 
+/** Een pincode die op Kane's goedkeuring wacht, met de controlecode om na te vragen. */
+export interface WachtendePin {
+  persoonId: string
+  naam: string
+  rol: Exclude<LinkRol, 'beheerder'>
+  clubs: Club[]
+  controle: string | null
+  aangevraagdOp: string | null
+}
+
+/** Alle wachtende pincodes (PT'ers, clubmanagers, eigenaren), oudste eerst. Null = lezen mislukt. */
+export async function haalWachtendePins(admin: SupabaseClient, userId: string): Promise<WachtendePin[] | null> {
+  const { data, error } = await admin
+    .from('pt_lead_links')
+    .select('persoon_id, rol, clubs, pin_hash, pin_aangevraagd_op, persoon:crm_personen(naam, status)')
+    .eq('user_id', userId)
+    .eq('actief', true)
+    .eq('pin_status', 'wacht')
+    .neq('rol', 'beheerder')
+    .order('pin_aangevraagd_op', { ascending: true })
+  if (error || !Array.isArray(data)) return null
+  return (data as unknown[]).flatMap((ruw): WachtendePin[] => {
+    const r = ruw as { persoon_id: string; rol: string; clubs: unknown; pin_hash: string | null; pin_aangevraagd_op: string | null }
+    const p = persoonUit(ruw) as { naam?: string; status?: string } | null
+    const rol = leesRol(r.rol)
+    if (!p?.naam || p.status === 'inactief' || rol === 'beheerder') return []
+    return [{
+      persoonId: r.persoon_id, naam: p.naam, rol, clubs: rol === 'clubmanager' ? leesClubs(r.clubs) : [],
+      controle: r.pin_hash ? controleCode(r.pin_hash) : null, aangevraagdOp: r.pin_aangevraagd_op,
+    }]
+  })
+}
+
 /** Voor de ochtendmail: wie (PT'er of eigenaar) koos een pincode die nog op jouw goedkeuring wacht? */
 export async function pinSignalen(
   admin: SupabaseClient,
