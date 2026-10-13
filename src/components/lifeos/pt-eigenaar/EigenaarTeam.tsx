@@ -9,6 +9,8 @@ import { TeamOverzichtWeergave } from '@/components/lifeos/pt-team/TeamOverzicht
 import { TEAM_FOUT } from './teksten'
 import { haalWachtendePins, zietGeld, type LinkRol } from '@/lib/lifeos/leads/links'
 import { WachtendePincodes } from '@/components/lifeos/pt-beheer/WachtendePincodes'
+import { StopRedenen } from '@/components/lifeos/pt-team/StopRedenen'
+import { stopOverzicht } from '@/lib/lifeos/pt-dashboard/stopredenen'
 import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 
 const ROL_KOP: Record<LinkRol, string> = { pt: 'PT', eigenaar: 'eigenaar', beheerder: 'beheerder', clubmanager: 'clubmanager' }
@@ -56,6 +58,7 @@ export async function EigenaarTeam({ code }: { code: string }) {
         </div>
         <p className="ptd-hint">Een 0 betekent: niets ingevuld in de app — niet per se niets gedaan.</p>
       </TeamOverzichtWeergave>
+      <StopRedenen o={stopOverzicht(team, klanten)} />
     </>
   )
 }
