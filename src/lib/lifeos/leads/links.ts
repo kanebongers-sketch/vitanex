@@ -387,6 +387,8 @@ export interface EigenaarLink extends LinkInfo {
   rol: 'eigenaar' | 'clubmanager'
   /** Alleen bij een clubmanager; anders leeg. */
   clubs: readonly Club[]
+  /** Voor de wekelijkse clubmail (alleen relevant bij een clubmanager). */
+  email: string | null
 }
 
 /** De geldige clubs uit een `clubs`-kolom (text[]), zonder dubbelen, in vaste volgorde. */
@@ -408,21 +410,21 @@ export async function haalEigenaren(admin: SupabaseClient, userId: string): Prom
   if (rijen.length === 0) return []
   const { data: personen, error: fout } = await admin
     .from('crm_personen')
-    .select('id, naam, groep, status')
+    .select('id, naam, groep, status, email')
     .eq('user_id', userId)
     .in('id', rijen.map((r) => r.persoon_id))
   if (fout) return null
-  const naamVan = new Map(
-    ((personen ?? []) as { id: string; naam: string; groep: string; status: string }[])
-      .filter((p) => p.groep === GROEP_VOOR_ROL.eigenaar && p.status !== 'inactief')
-      .map((p) => [p.id, p.naam]),
-  )
+  const actief = ((personen ?? []) as { id: string; naam: string; groep: string; status: string; email: string | null }[])
+    .filter((p) => p.groep === GROEP_VOOR_ROL.eigenaar && p.status !== 'inactief')
+  const naamVan = new Map(actief.map((p) => [p.id, p.naam]))
+  const emailVan = new Map(actief.map((p) => [p.id, p.email]))
   return rijen.flatMap((r) => {
     const naam = naamVan.get(r.persoon_id)
     return naam
       ? [{
           id: r.persoon_id, naam, code: r.code, rol: r.rol === 'clubmanager' ? ('clubmanager' as const) : ('eigenaar' as const),
           clubs: leesClubs(r.clubs),
+          email: emailVan.get(r.persoon_id) ?? null,
           pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op, ...controleVoor(r.pin_status, r.pin_hash),
         }]
       : []
@@ -452,6 +454,14 @@ export async function maakClubmanager(admin: SupabaseClient, userId: string, naa
     return null
   }
   return { id: persoon.id as string, code }
+}
+
+/** Het e-mailadres van een clubmanager (voor de clubmail) zetten of wissen. Alleen rol `clubmanager`. */
+export async function zetClubmanagerEmail(admin: SupabaseClient, userId: string, persoonId: string, email: string | null): Promise<'ok' | 'niet_gevonden' | 'db'> {
+  const { data: link } = await admin.from('pt_lead_links').select('persoon_id').eq('user_id', userId).eq('persoon_id', persoonId).eq('rol', 'clubmanager').maybeSingle()
+  if (!link) return 'niet_gevonden'
+  const { error } = await admin.from('crm_personen').update({ email }).eq('id', persoonId).eq('user_id', userId)
+  return error ? 'db' : 'ok'
 }
 
 /** Een clubmanager stoppen: link uit, alle toestellen uitgelogd, CRM-persoon inactief. Alleen rol `clubmanager`. */

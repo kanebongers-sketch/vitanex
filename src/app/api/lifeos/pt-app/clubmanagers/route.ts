@@ -1,10 +1,11 @@
 // POST   /api/lifeos/pt-app/clubmanagers — clubmanager toevoegen. Body: { naam, clubs: [...] }.
+// PATCH  /api/lifeos/pt-app/clubmanagers — e-mailadres voor de clubmail. Body: { persoonId, email } (leeg = wissen).
 // DELETE /api/lifeos/pt-app/clubmanagers — clubmanager stoppen. Body: { persoonId }.
 // Kane beheert dit onder Beheer in de PT-app. Auth: de founder-gate.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { maakClubmanager, stopClubmanager } from '@/lib/lifeos/leads/links'
+import { maakClubmanager, stopClubmanager, zetClubmanagerEmail } from '@/lib/lifeos/leads/links'
 import { CLUBS, isClub } from '@/lib/lifeos/pt-dashboard/clubs'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 
@@ -30,6 +31,21 @@ export async function POST(req: NextRequest) {
   const uit = await maakClubmanager(toegang.admin, toegang.userId, naam, clubs)
   if (!uit) return NextResponse.json({ fout: 'Opslaan mislukt. Probeer het opnieuw.' }, { status: 502 })
   return NextResponse.json(uit, { status: 201, headers: GEEN_CACHE })
+}
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export async function PATCH(req: NextRequest) {
+  const toegang = await vereisLifeosToegang(req)
+  if (toegang instanceof NextResponse) return toegang
+  const o = await body(req)
+  if (typeof o.persoonId !== 'string' || !isUuid(o.persoonId)) return NextResponse.json({ fout: 'Ongeldige invoer.' }, { status: 400 })
+  const email = typeof o.email === 'string' ? o.email.trim().toLowerCase() : ''
+  if (email && (email.length > 254 || !EMAIL.test(email))) return NextResponse.json({ fout: 'Dit is geen geldig e-mailadres.' }, { status: 400 })
+  const uit = await zetClubmanagerEmail(toegang.admin, toegang.userId, o.persoonId, email || null)
+  if (uit === 'niet_gevonden') return NextResponse.json({ fout: 'Deze clubmanager bestaat niet (meer).' }, { status: 404 })
+  if (uit === 'db') return NextResponse.json({ fout: 'Opslaan mislukt.' }, { status: 502 })
+  return NextResponse.json({ ok: true }, { headers: GEEN_CACHE })
 }
 
 export async function DELETE(req: NextRequest) {

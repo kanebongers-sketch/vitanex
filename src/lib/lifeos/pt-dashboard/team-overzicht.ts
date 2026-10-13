@@ -103,6 +103,8 @@ export interface EigenaarRij {
   rol: 'eigenaar' | 'clubmanager'
   /** Alleen bij een clubmanager; anders leeg. */
   clubs: Club[]
+  /** E-mailadres voor de clubmail, of null. */
+  email: string | null
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
   /** Bij een wachtende pin: de controlecode om na te vragen. */
@@ -119,6 +121,7 @@ export function leesEigenaren(ruw: unknown): EigenaarRij[] {
       id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus,
       rol: x.rol === 'clubmanager' ? 'clubmanager' : 'eigenaar',
       clubs: Array.isArray(x.clubs) ? CLUBS.filter((c) => (x.clubs as unknown[]).includes(c)) : [],
+      email: typeof x.email === 'string' && x.email ? x.email : null,
       pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null,
       ...(typeof x.controle === 'string' && /^\d{4}$/.test(x.controle) ? { controle: x.controle } : {}),
     }]

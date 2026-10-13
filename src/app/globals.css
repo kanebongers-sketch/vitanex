@@ -3864,6 +3864,8 @@ body {
 .lifeos-root .kl-bezit { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
 .lifeos-root .kl-bezit > li { display: grid; gap: 4px; }
 .lifeos-root .kl-pins { padding: 14px 16px; border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.lifeos-root .kl-email { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.lifeos-root .kl-email .ptd-invoer { flex: 1 1 220px; }
 .lifeos-root .kl-pins h2 { display: inline-flex; align-items: center; gap: 8px; }
 .lifeos-root .ptd-laden { display: grid; gap: 16px; }
 .lifeos-root .ptd-skelet { border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); animation: ptd-puls 1.6s ease-in-out infinite; }

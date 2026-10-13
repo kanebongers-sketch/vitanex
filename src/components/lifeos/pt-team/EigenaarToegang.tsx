@@ -9,6 +9,7 @@ import { pinActie } from '@/components/lifeos/pt/PinGoedkeuren'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 import { ClubmanagerFormulier } from './ClubmanagerFormulier'
+import { ClubmanagerEmail } from './ClubmanagerEmail'
 
 // Wie in de PT-app meekijkt (alleen lezen): eigenaren (het hele team) en
 // clubmanagers (één club). Per persoon de link en de stand van de pincode; net
@@ -64,6 +65,7 @@ export function EigenaarToegang({ eigenaren, onVernieuw }: { eigenaren: readonly
               <span>{PT_DOMEIN}/{e.code}</span>
               {e.controle ? <span>Controlecode <strong className="ptd-controle">{e.controle}</strong>: vraag deze na vóór je goedkeurt</span> : null}
             </p>
+            {e.rol === 'clubmanager' ? <ClubmanagerEmail persoonId={e.id} naam={e.naam} begin={e.email} onOpgeslagen={onVernieuw} /> : null}
             {e.pinStatus !== 'geen' || e.rol === 'clubmanager' ? (
               <div className="ptd-acties ptd-acties--rij">
                 {e.pinStatus === 'geen' ? null : e.pinStatus === 'wacht' ? (
