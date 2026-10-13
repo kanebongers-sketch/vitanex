@@ -7,7 +7,7 @@ import type { PinActie } from '@/lib/lifeos/leads/leads'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { pinActie } from '@/components/lifeos/pt/PinGoedkeuren'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
-import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
+import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 import { ClubmanagerFormulier } from './ClubmanagerFormulier'
 
 // Wie in de PT-app meekijkt (alleen lezen): eigenaren (het hele team) en
@@ -54,7 +54,7 @@ export function EigenaarToegang({ eigenaren, onVernieuw }: { eigenaren: readonly
             <div className="ptd-rij-kop">
               <span className="ptd-naam">
                 {e.naam}
-                <span className="ptd-zacht"> · {e.rol === 'clubmanager' && e.club ? `clubmanager ${CLUB_LABEL[e.club]}` : 'eigenaar'}</span>
+                <span className="ptd-zacht"> · {e.rol === 'clubmanager' && e.clubs.length > 0 ? `clubmanager ${clubsLabel(e.clubs)}` : 'eigenaar'}</span>
               </span>
               <span className={e.pinStatus === 'wacht' ? 'ptd-badge ptd-badge--let-op' : e.pinStatus === 'actief' ? 'ptd-badge ptd-badge--accent' : 'ptd-badge'}>
                 {PIN[e.pinStatus]}

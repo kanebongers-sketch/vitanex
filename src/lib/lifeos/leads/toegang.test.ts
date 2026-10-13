@@ -49,13 +49,13 @@ const KLANT_JOEY = '55555555-5555-4555-8555-555555555555'
 const KLANT_OUD = '66666666-6666-4666-8666-666666666666'
 
 const link = (rol: LeadLink['rol'], persoonId: string, code: string): LeadLink => ({
-  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, club: null,
+  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, clubs: [],
 })
 const LINKS: Record<string, LeadLink> = {
   joey: link('pt', JOEY, 'joey'),
   ruben: link('eigenaar', RUBEN, 'ruben'),
   kane: link('beheerder', KANE, 'kane'),
-  sanne: { ...link('clubmanager', RUBEN, 'sanne'), club: 'bladel' },
+  sanne: { ...link('clubmanager', RUBEN, 'sanne'), clubs: ['bladel'] },
 }
 const req = () => new NextRequest('https://mentaforce.nl/api/pt/x', { method: 'PUT' })
 const status = (r: unknown) => (r instanceof NextResponse ? r.status : 200)

@@ -6,7 +6,7 @@
 
 import { isPinStatus, type Lead, type PinStatus } from '@/lib/lifeos/leads/leads'
 import { vatKlantenSamen, type PtKlant } from './abonnementen'
-import { CLUBS, isClub, type Club } from './clubs'
+import { CLUBS, type Club } from './clubs'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
 import { analyseer, type Analyse } from './analyse'
 import type { PtDoelen } from './doelen'
@@ -101,8 +101,8 @@ export interface EigenaarRij {
   naam: string
   code: string
   rol: 'eigenaar' | 'clubmanager'
-  /** Alleen bij een clubmanager. */
-  club: Club | null
+  /** Alleen bij een clubmanager; anders leeg. */
+  clubs: Club[]
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
   /** Bij een wachtende pin: de controlecode om na te vragen. */
@@ -118,7 +118,7 @@ export function leesEigenaren(ruw: unknown): EigenaarRij[] {
     return [{
       id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus,
       rol: x.rol === 'clubmanager' ? 'clubmanager' : 'eigenaar',
-      club: isClub(x.club) ? x.club : null,
+      clubs: Array.isArray(x.clubs) ? CLUBS.filter((c) => (x.clubs as unknown[]).includes(c)) : [],
       pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null,
       ...(typeof x.controle === 'string' && /^\d{4}$/.test(x.controle) ? { controle: x.controle } : {}),
     }]

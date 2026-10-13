@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isVergadering } from '@/lib/lifeos/agenda/vergadering'
-import { isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
+import { CLUBS, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { CODE_PATROON, isPinStatus, linkCodeVoor, type PinActie, type PinStatus } from './leads'
 import {
   BEHEER_SESSIE_UUR, MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, SESSIE_AANRAAK_MS, SESSIE_DAGEN, SESSIE_INACTIEF_DAGEN,
@@ -18,7 +18,7 @@ import {
  * hele team (alleen lezen, eigen pincode); `beheerder` = Kane: ziet alles wat een
  * eigenaar ziet plus het beheer, en logt in via zijn MentaForce-hoofdaccount
  * (geen pincode — `pin_hash` blijft leeg, dus inloggen met een pin kan niet);
- * `clubmanager` = kijkt mee met één club (migratie 366): leads, klanten en
+ * `clubmanager` = kijkt mee met zijn club(s) (migraties 366/367): leads, klanten en
  * prestaties per PT'er — zonder bedragen, dossiers of coachgesprekken.
  */
 export type LinkRol = 'pt' | 'eigenaar' | 'beheerder' | 'clubmanager'
@@ -66,11 +66,11 @@ export interface LeadLink {
   geblokkeerdTot: string | null
   /** Hoe vaak de link achter elkaar geblokkeerd raakte (migratie 361); een goede pin of een reset zet 'm op 0. */
   blokkades: number
-  /** Alleen bij een clubmanager: zijn club (migratie 366). */
-  club: Club | null
+  /** Alleen bij een clubmanager: zijn club(s) (migratie 367); anders leeg. */
+  clubs: readonly Club[]
 }
 
-const LINK_KOLOMMEN = 'rol, user_id, persoon_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades, club'
+const LINK_KOLOMMEN = 'rol, user_id, persoon_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades, clubs'
 
 /** Bij welke CRM-groep elke rol hoort: een PT'er zit in het PT-team, een eigenaar in management. */
 const GROEP_VOOR_ROL: Record<LinkRol, string> = { pt: 'pt_team', eigenaar: 'management', beheerder: 'management', clubmanager: 'management' }
@@ -100,8 +100,8 @@ export async function vindLink(admin: SupabaseClient, code: string): Promise<Lea
   const rol = leesRol(link.rol)
   if (!p || p.user_id !== link.user_id || p.groep !== GROEP_VOOR_ROL[rol] || p.status === 'inactief' || isVergadering(p.naam)) return null
   // Een clubmanager zonder (geldige) club ziet niets: liever een 404 dan per ongeluk alle clubs.
-  const club = isClub(link.club) ? link.club : null
-  if (rol === 'clubmanager' && !club) return null
+  const clubs = leesClubs(link.clubs)
+  if (rol === 'clubmanager' && clubs.length === 0) return null
   return {
     rol,
     userId: link.user_id,
@@ -113,7 +113,7 @@ export async function vindLink(admin: SupabaseClient, code: string): Promise<Lea
     mislukt: link.mislukt ?? 0,
     geblokkeerdTot: link.geblokkeerd_tot,
     blokkades: typeof link.blokkades === 'number' ? link.blokkades : 0,
-    club,
+    clubs: rol === 'clubmanager' ? clubs : [],
   }
 }
 
@@ -380,20 +380,26 @@ export interface EigenaarLink extends LinkInfo {
   id: string
   naam: string
   rol: 'eigenaar' | 'clubmanager'
-  /** Alleen bij een clubmanager. */
-  club: Club | null
+  /** Alleen bij een clubmanager; anders leeg. */
+  clubs: readonly Club[]
+}
+
+/** De geldige clubs uit een `clubs`-kolom (text[]), zonder dubbelen, in vaste volgorde. */
+export function leesClubs(ruw: unknown): Club[] {
+  const lijst = Array.isArray(ruw) ? ruw : []
+  return CLUBS.filter((c) => lijst.includes(c))
 }
 
 /** De actieve meekijkers met een pincode: eigenaren en clubmanagers (CRM-groep management). Null = lezen mislukt. */
 export async function haalEigenaren(admin: SupabaseClient, userId: string): Promise<EigenaarLink[] | null> {
   const { data: links, error } = await admin
     .from('pt_lead_links')
-    .select('persoon_id, code, pin_status, pin_aangevraagd_op, pin_hash, rol, club')
+    .select('persoon_id, code, pin_status, pin_aangevraagd_op, pin_hash, rol, clubs')
     .eq('user_id', userId)
     .in('rol', ['eigenaar', 'clubmanager'])
     .eq('actief', true)
   if (error || !Array.isArray(links)) return null
-  const rijen = links as { persoon_id: string; code: string; pin_status: string; pin_aangevraagd_op: string | null; pin_hash: string | null; rol: string; club: string | null }[]
+  const rijen = links as { persoon_id: string; code: string; pin_status: string; pin_aangevraagd_op: string | null; pin_hash: string | null; rol: string; clubs: unknown }[]
   if (rijen.length === 0) return []
   const { data: personen, error: fout } = await admin
     .from('crm_personen')
@@ -411,19 +417,20 @@ export async function haalEigenaren(admin: SupabaseClient, userId: string): Prom
     return naam
       ? [{
           id: r.persoon_id, naam, code: r.code, rol: r.rol === 'clubmanager' ? ('clubmanager' as const) : ('eigenaar' as const),
-          club: isClub(r.club) ? r.club : null,
+          clubs: leesClubs(r.clubs),
           pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op, ...controleVoor(r.pin_status, r.pin_hash),
         }]
       : []
-  }).sort((a, b) => a.rol.localeCompare(b.rol) || (a.club ?? '').localeCompare(b.club ?? '') || a.naam.localeCompare(b.naam, 'nl'))
+  }).sort((a, b) => a.rol.localeCompare(b.rol) || a.naam.localeCompare(b.naam, 'nl'))
 }
 
 /**
  * Een clubmanager toevoegen (Kane, onder Beheer): een CRM-persoon in management
- * plus een link met rol `clubmanager` en zijn club. De pincode kiest de manager
+ * plus een link met rol `clubmanager` en zijn club(s). De pincode kiest de manager
  * zelf; Kane keurt goed met de controlecode. Null = opslaan mislukt.
  */
-export async function maakClubmanager(admin: SupabaseClient, userId: string, naam: string, club: Club): Promise<{ id: string; code: string } | null> {
+export async function maakClubmanager(admin: SupabaseClient, userId: string, naam: string, clubs: readonly Club[]): Promise<{ id: string; code: string } | null> {
+  if (clubs.length === 0) return null
   const { data: persoon, error } = await admin
     .from('crm_personen')
     .insert({ user_id: userId, naam, groep: GROEP_VOOR_ROL.clubmanager, status: 'actief' })
@@ -433,7 +440,8 @@ export async function maakClubmanager(admin: SupabaseClient, userId: string, naa
   const { data: bestaand } = await admin.from('pt_lead_links').select('code')
   const bezet = new Set(((bestaand ?? []) as { code: string }[]).map((r) => r.code))
   const code = linkCodeVoor(naam, bezet)
-  const { error: fout } = await admin.from('pt_lead_links').insert({ persoon_id: persoon.id, user_id: userId, code, rol: 'clubmanager', club })
+  // `club` (oud, migratie 366) krijgt de eerste club mee voor oudere app-versies.
+  const { error: fout } = await admin.from('pt_lead_links').insert({ persoon_id: persoon.id, user_id: userId, code, rol: 'clubmanager', clubs, club: clubs[0] })
   if (fout) {
     await admin.from('crm_personen').delete().eq('id', persoon.id).eq('user_id', userId)
     return null
@@ -479,12 +487,12 @@ export async function pinSignalen(
   return [...pts, ...eig]
 }
 
-/** Iemand op de ingang van fitfactorypt.nl: voornaam, link, rol en (bij een clubmanager) club. */
+/** Iemand op de ingang van fitfactorypt.nl: voornaam, link, rol en (bij een clubmanager) club(s). */
 export interface Ingang {
   code: string
   naam: string
   rol: 'pt' | 'eigenaar' | 'clubmanager'
-  club: Club | null
+  clubs: readonly Club[]
 }
 
 /**
@@ -496,19 +504,19 @@ export interface Ingang {
 export async function haalIngangen(admin: SupabaseClient): Promise<Ingang[]> {
   const { data: links, error } = await admin
     .from('pt_lead_links')
-    .select('persoon_id, code, rol, club, persoon:crm_personen(naam, groep, status)')
+    .select('persoon_id, code, rol, clubs, persoon:crm_personen(naam, groep, status)')
     .eq('actief', true)
     .in('rol', ['pt', 'eigenaar', 'clubmanager'])
   if (error || !Array.isArray(links)) return []
   return (links as unknown[])
     .flatMap((ruw): Ingang[] => {
-      const l = ruw as { code: string; rol: string; club: string | null }
+      const l = ruw as { code: string; rol: string; clubs: unknown }
       const p = persoonUit(ruw) as { naam?: string; groep?: string; status?: string } | null
       const rol = leesRol(l.rol)
       if (rol === 'beheerder' || !p?.naam || p.groep !== GROEP_VOOR_ROL[rol] || p.status === 'inactief' || isVergadering(p.naam)) return []
-      const club = isClub(l.club) ? l.club : null
-      if (rol === 'clubmanager' && !club) return []
-      return [{ code: l.code, naam: p.naam.split(' ')[0], rol, club }]
+      const clubs = rol === 'clubmanager' ? leesClubs(l.clubs) : []
+      if (rol === 'clubmanager' && clubs.length === 0) return []
+      return [{ code: l.code, naam: p.naam.split(' ')[0], rol, clubs }]
     })
     .sort((x, y) => x.naam.localeCompare(y.naam, 'nl'))
 }

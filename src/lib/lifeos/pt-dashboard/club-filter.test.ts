@@ -24,7 +24,7 @@ describe('voorClub', () => {
   }
 
   test('alleen leads en klanten van de eigen club; leads zonder club vallen weg', () => {
-    const b = voorClub(alles, 'bladel')
+    const b = voorClub(alles, ['bladel'])
     expect(b.team.map((p) => p.id)).toEqual(['amey'])
     expect(b.leads.get('amey')?.map((l) => l.id)).toEqual(['a1'])
     expect(b.klanten.get('amey')?.map((k) => k.id)).toEqual(['k1'])
@@ -32,7 +32,7 @@ describe('voorClub', () => {
   })
 
   test('trainers met iets in de club (ook de beheerder als trainer); doelen vallen weg', () => {
-    const b = voorClub(alles, 'budel')
+    const b = voorClub(alles, ['budel'])
     expect(b.team.map((p) => p.id)).toEqual(['amey', 'nieck', 'kane'])
     expect([...b.leads.values()].flat().every((l) => l.club === 'budel')).toBe(true)
     expect([...b.klanten.values()].flat().every((k) => k.club === 'budel')).toBe(true)
@@ -42,10 +42,20 @@ describe('voorClub', () => {
 
   test('geen afwijkende prijs in de data voor een clubmanager', () => {
     const metPrijs = { ...alles, klanten: new Map([['nieck', [{ ...klant('k2', 'budel'), prijsAfwijkend: 249 }]]]) }
-    expect(voorClub(metPrijs, 'budel').klanten.get('nieck')?.[0]?.prijsAfwijkend).toBeNull()
+    expect(voorClub(metPrijs, ['budel']).klanten.get('nieck')?.[0]?.prijsAfwijkend).toBeNull()
+  })
+
+  test('meerdere clubs (bv. Someren én Boschdijk): beide, en verder niets', () => {
+    const b = voorClub(alles, ['bladel', 'budel'])
+    expect(b.leads.get('amey')?.map((l) => l.id)).toEqual(['a1', 'a2'])
+    expect([...b.klanten.values()].flat().map((k) => k.id).sort()).toEqual(['k1', 'k2', 'k3'])
+  })
+
+  test('geen clubs: niets', () => {
+    expect(voorClub(alles, []).team).toEqual([])
   })
 
   test('club zonder activiteit: leeg team', () => {
-    expect(voorClub(alles, 'oisterwijk').team).toEqual([])
+    expect(voorClub(alles, ['oisterwijk']).team).toEqual([])
   })
 })

@@ -19,3 +19,8 @@ export const CLUB_LABEL: Record<Club, string> = {
 export function isClub(v: unknown): v is Club {
   return typeof v === 'string' && (CLUBS as readonly string[]).includes(v)
 }
+
+/** "Someren & Eindhoven Boschdijk" — de clubs van een clubmanager als één naam. */
+export function clubsLabel(clubs: readonly Club[]): string {
+  return clubs.map((c) => CLUB_LABEL[c]).join(' & ')
+}

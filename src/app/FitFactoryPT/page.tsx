@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { haalIngangen } from '@/lib/lifeos/leads/links'
-import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
+import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 import { PT_APP_BEHEER } from '@/lib/lifeos/pt-dashboard/beheer'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -91,7 +91,7 @@ export default async function LeadStart({ searchParams }: Props) {
                   {lijst.map((p) => (
                     <li key={p.code}>
                       <Link href={`/${p.code}`} className="lead-naam">
-                        <span>{p.naam}{p.club ? <small className="lead-uitleg">{CLUB_LABEL[p.club]}</small> : null}</span>
+                        <span>{p.naam}{p.clubs.length > 0 ? <small className="lead-uitleg">{clubsLabel(p.clubs)}</small> : null}</span>
                         <ChevronRight size={20} strokeWidth={2.2} aria-hidden />
                       </Link>
                     </li>

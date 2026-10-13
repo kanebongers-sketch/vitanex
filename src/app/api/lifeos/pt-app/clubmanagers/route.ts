@@ -1,11 +1,11 @@
-// POST   /api/lifeos/pt-app/clubmanagers — clubmanager toevoegen. Body: { naam, club }.
+// POST   /api/lifeos/pt-app/clubmanagers — clubmanager toevoegen. Body: { naam, clubs: [...] }.
 // DELETE /api/lifeos/pt-app/clubmanagers — clubmanager stoppen. Body: { persoonId }.
 // Kane beheert dit onder Beheer in de PT-app. Auth: de founder-gate.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { maakClubmanager, stopClubmanager } from '@/lib/lifeos/leads/links'
-import { isClub } from '@/lib/lifeos/pt-dashboard/clubs'
+import { CLUBS, isClub } from '@/lib/lifeos/pt-dashboard/clubs'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
@@ -24,9 +24,10 @@ export async function POST(req: NextRequest) {
   const o = await body(req)
   const naam = typeof o.naam === 'string' ? o.naam.replace(/\s+/g, ' ').trim() : ''
   if (naam.length < 2 || naam.length > 60) return NextResponse.json({ fout: 'Vul een naam in (2 tot 60 tekens).' }, { status: 400 })
-  if (!isClub(o.club)) return NextResponse.json({ fout: 'Kies de club.' }, { status: 400 })
+  const clubs = Array.isArray(o.clubs) ? CLUBS.filter((c) => (o.clubs as unknown[]).includes(c)) : isClub(o.club) ? [o.club] : []
+  if (clubs.length === 0) return NextResponse.json({ fout: 'Kies minstens één club.' }, { status: 400 })
 
-  const uit = await maakClubmanager(toegang.admin, toegang.userId, naam, o.club)
+  const uit = await maakClubmanager(toegang.admin, toegang.userId, naam, clubs)
   if (!uit) return NextResponse.json({ fout: 'Opslaan mislukt. Probeer het opnieuw.' }, { status: 502 })
   return NextResponse.json(uit, { status: 201, headers: GEEN_CACHE })
 }

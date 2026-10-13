@@ -8,7 +8,7 @@ import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
 import { HoofdaccountLogin } from '@/components/lifeos/pt-dashboard/HoofdaccountLogin'
 import { kijktMee, type LinkRol } from '@/lib/lifeos/leads/links'
-import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
+import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 import { UitlogKnop } from '@/components/lifeos/pt-dashboard/UitlogKnop'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -88,7 +88,7 @@ export default async function PtLayout({ children, params }: Props) {
         ) : (
           <>
             <FfHero
-              boventitel={`Personal Training · ${ROL_LABEL[s.link.rol]}${s.link.club ? ` · ${CLUB_LABEL[s.link.club]}` : ''}`}
+              boventitel={`Personal Training · ${ROL_LABEL[s.link.rol]}${s.link.clubs.length > 0 ? ` · ${clubsLabel(s.link.clubs)}` : ''}`}
               titel={`Hoi ${s.link.naam}`}
             />
             {s.link.rol === 'beheerder' ? <HoofdaccountLogin /> : <PinPoort code={s.link.code} pinStatus={s.link.pinStatus} />}
@@ -97,9 +97,9 @@ export default async function PtLayout({ children, params }: Props) {
         <footer className="ff-voet">
           {s.link.rol === 'beheerder' ? (
             <span>Je beheert de PT-app van het hele team. Ga zorgvuldig om met de gegevens van leads en klanten. Gegevens staan in de EU.</span>
-          ) : s.link.rol === 'clubmanager' && s.link.club ? (
+          ) : s.link.rol === 'clubmanager' && s.link.clubs.length > 0 ? (
             <span>
-              Je kijkt mee met de PT van {CLUB_LABEL[s.link.club]}: leads, klanten en prestaties. Aanpassen doen de PT&apos;ers zelf;
+              Je kijkt mee met de PT van {clubsLabel(s.link.clubs)}: leads, klanten en prestaties. Aanpassen doen de PT&apos;ers zelf;
               bedragen en klantdossiers zie je niet. Gegevens staan in de EU.
             </span>
           ) : eigenaar ? (

@@ -57,17 +57,17 @@ export const ptGegevens = cache(async (code: string) => {
 
 /**
  * Alles wat een ingelogde eigenaar, beheerder of clubmanager ziet: het actieve
- * PT-team met leads, klanten en doelen — voor een clubmanager alleen zijn club.
+ * PT-team met leads, klanten en doelen — voor een clubmanager alleen zijn club(s).
  * Null = niemand die meekijkt. `team` null = lezen mislukt.
  */
 export const eigenaarGegevens = cache(async (code: string) => {
   const s = await ptSessie(code)
   if (!s?.ingelogd || !kijktMee(s.link.rol)) return null
-  // Een clubmanager: alleen zijn eigen club, en zonder doelen (zie club-filter).
-  const club = s.link.rol === 'clubmanager' ? s.link.club : null
+  // Een clubmanager: alleen zijn eigen club(s), en zonder doelen (zie club-filter).
+  const clubmanager = s.link.rol === 'clubmanager'
   // De doelen komen in hetzelfde rondje als leads en klanten mee (zie team-opslag).
-  const alles = await haalPtTeamGegevens(s.admin, s.link.userId, { metDoelen: !club })
-  const team = alles && club ? voorClub(alles, club) : alles
+  const alles = await haalPtTeamGegevens(s.admin, s.link.userId, { metDoelen: !clubmanager })
+  const team = alles && clubmanager ? voorClub(alles, s.link.clubs) : alles
   const doelen = team?.doelen ?? null
   return {
     admin: s.admin,
