@@ -63,6 +63,7 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer, 
           <span>Maandelijks opzegbaar</span>
         ) : null}
         {k.stopReden ? <span>Reden: {STOP_REDEN_LABEL[k.stopReden]}</span> : null}
+        {k.referralGevraagdOp ? <span>Referral gevraagd {dagKort(k.referralGevraagdOp)}</span> : null}
         {k.contact ? <span>{k.contact}</span> : null}
       </div>
       {k.notitie ? <p className="ptd-tekst">{k.notitie}</p> : null}

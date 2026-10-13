@@ -1,6 +1,7 @@
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { PERIODE_DAGEN, VOOR_LABEL, type ClubStand, type GroeiActie, type GroeiCijfers } from '@/lib/lifeos/pt-dashboard/groeiplan'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
+import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 
 // Het groeiplan lezen: focus, acties (per rol), en de live cijfers ernaast.
 // Puur weergave — de pagina kiest welke acties en clubs iemand ziet.
@@ -98,6 +99,54 @@ export function ClubTabel({ standen }: { standen: readonly ClubStand[] }) {
                 <td><Voortgang actief={s.actief} doel={s.doel} /></td>
                 <td>{s.leads}</td>
                 <td>{s.nieuweKlanten}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
+export interface CheckupRij {
+  id: string
+  naam: string
+  /** Datum van de lopende afspraak, of null: nog geen checkup-afspraak. */
+  afspraakOp: string | null
+  gehaald: number
+  afspraken: number
+  teLaat: number
+  referralNogNiet: number
+}
+
+/** Per PT'er: de lopende checkup-afspraak (gehaald x van y) en wat nu aandacht vraagt. */
+export function CheckupTabel({ rijen, ptHref }: { rijen: readonly CheckupRij[]; ptHref: string }) {
+  return (
+    <section className="ptd-sectie" aria-labelledby="gp-checkup-kop">
+      <div className="ptd-sectiekop">
+        <h2 id="gp-checkup-kop">Checkups per PT&apos;er</h2>
+        <span>afspraken uit de laatste checkup, nu gemeten</span>
+      </div>
+      <div className="ptd-scroll">
+        <table className="ptd-tabel">
+          <caption className="sr-only">Afspraken per PT&apos;er en de stand</caption>
+          <thead>
+            <tr>
+              <th scope="col">PT&apos;er</th>
+              <th scope="col">Afgesproken op</th>
+              <th scope="col">Gehaald</th>
+              <th scope="col">Leads te laat</th>
+              <th scope="col">Referral nog niet gevraagd</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rijen.map((r) => (
+              <tr key={r.id}>
+                <th scope="row"><a className="ptd-link" href={`${ptHref}/${r.id}`}>{r.naam}</a></th>
+                <td>{r.afspraakOp ? dagKort(r.afspraakOp) : <span className="ptd-hint">nog geen</span>}</td>
+                <td>{r.afspraken > 0 ? `${r.gehaald} van ${r.afspraken}` : '–'}</td>
+                <td>{r.teLaat}</td>
+                <td>{r.referralNogNiet}</td>
               </tr>
             ))}
           </tbody>

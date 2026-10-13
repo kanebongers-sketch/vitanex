@@ -104,6 +104,8 @@ export interface PtKlant {
   prijsAfwijkend: number | null
   /** Waarom de klant opzegde of stopte; alleen bij opgezegd/gestopt. */
   stopReden: StopReden | null
+  /** YYYY-MM-DD: wanneer de PT'er om een referral vroeg; null = nog niet. Telt mee in de checkup. */
+  referralGevraagdOp: string | null
 }
 
 // ─── Datums (dagsleutels, geen tijdzones) ─────────────────────────────────────
@@ -246,6 +248,7 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
       notitie: tekstMetRegels(o.notitie, 1000),
       leadId: typeof o.leadId === 'string' && UUID.test(o.leadId) ? o.leadId : null,
       stopReden: (status === 'opgezegd' || status === 'gestopt') && isStopReden(o.stopReden) ? o.stopReden : null,
+      referralGevraagdOp: typeof o.referralGevraagdOp === 'string' && DAG.test(o.referralGevraagdOp) ? o.referralGevraagdOp : null,
       ...(Object.hasOwn(o, 'prijsAfwijkend') ? { prijsAfwijkend: leesPrijs(o.prijsAfwijkend) } : {}),
     },
   }

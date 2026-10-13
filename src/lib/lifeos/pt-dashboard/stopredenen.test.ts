@@ -4,7 +4,7 @@ import { stopOverzicht } from './stopredenen'
 
 const klant = (id: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: id, contact: null, duoPartner: null, club: 'budel', abonnement: '1x', startdatum: '2026-05-01', status: 'actief',
-  opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
+  opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
 })
 const gestopt = (id: string, stopReden: PtKlant['stopReden']) => klant(id, { status: 'gestopt', opgezegdOp: '2026-09-01', stopReden })
 

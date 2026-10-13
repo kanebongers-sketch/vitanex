@@ -11,7 +11,7 @@ const lead = (id: string, club: Lead['club']): Lead => ({
 })
 const klant = (id: string, club: PtKlant['club']): PtKlant => ({
   id, naam: id, contact: null, duoPartner: null, club, abonnement: '1x', startdatum: '2026-09-01', status: 'actief', opgezegdOp: null,
-  notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null,
+  notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null,
 })
 
 describe('voorClub', () => {

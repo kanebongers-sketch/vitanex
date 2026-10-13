@@ -5,7 +5,7 @@ import type { PtKlant } from './abonnementen'
 
 const klant = (id: string, startdatum: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: id, contact: null, duoPartner: null, club: 'eersel', abonnement: '1x', startdatum, status: 'actief', opgezegdOp: null,
-  notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
+  notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
 })
 const stand = (over: Partial<DossierStand> = {}): DossierStand => ({ intake: true, startmeting: true, laatsteMeting: '2026-10-05', laatsteSessie: null, ...over })
 const VANDAAG = '2026-10-09'

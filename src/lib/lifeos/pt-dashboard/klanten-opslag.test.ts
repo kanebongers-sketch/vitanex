@@ -78,7 +78,7 @@ describe('verplaatsKlant', () => {
 describe('voegKlantToe — grens per uur', () => {
   const invoer: KlantInvoer = {
     naam: 'Nieuw', contact: null, duoPartner: null, club: 'budel', abonnement: '1x', startdatum: '2026-10-09',
-    status: 'actief', opgezegdOp: null, notitie: null, leadId: null, stopReden: null,
+    status: 'actief', opgezegdOp: null, notitie: null, leadId: null, stopReden: null, referralGevraagdOp: null,
   }
   const NU = new Date('2026-10-09T12:00:00.000Z')
 

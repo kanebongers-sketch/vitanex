@@ -31,49 +31,48 @@ const MAX_TITEL = 80
 const MAX_UITLEG = 500
 const MAX_DOEL = 500
 
-/** Het startplan tot Kane of een eigenaar het aanpast. Bewust zonder getallen: doelen zet het team zelf. */
+/**
+ * Het startplan tot Kane of een eigenaar het aanpast. Elke actie is iets dat in
+ * de checkup na te meten is (zie checkup.ts); bewust zonder getallen: de doelen
+ * per club en de afspraken per PT'er zet het team zelf.
+ */
 export const START_PLAN: Groeiplan = {
-  focus: 'Meer PT-klanten in elke club: meer gesprekken op de vloer, elke lead snel opvolgen en tevreden klanten om een referral vragen.',
+  focus: 'Meer PT-klanten met een vaste routine: elke lead vastleggen en op tijd opvolgen, lopende klanten om een referral vragen en klanten vasthouden. Elke checkup meten we dit na.',
   doelen: {},
   acties: [
     {
-      titel: 'Elke dienst: gesprekken op de vloer',
-      uitleg: 'Spreek tijdens je dienst leden aan die aan het trainen zijn. Geen verkooppraatje: vraag naar hun doel en hoe het gaat. Interesse? Leg ze meteen vast als lead (bron: Vloer).',
+      titel: 'Elk gesprek met interesse dezelfde dag in de app',
+      uitleg: 'Wie interesse toont, leg je dezelfde dag vast als lead, met club en bron. Wat niet in de app staat, bestaat in de checkup niet: daar tellen we de nieuwe gesprekken tegen de afspraak.',
       voor: 'pt',
     },
     {
-      titel: 'Elke lead binnen 2 dagen opvolgen',
-      uitleg: 'Een nieuwe lead krijgt binnen twee dagen een bericht of telefoontje. Zet altijd een volgende stap en een opvolgdatum, dan zie je in de app wie er aan de beurt is.',
+      titel: 'Geen lead te laat, geen lead zonder plan',
+      uitleg: 'Elke open lead heeft een volgende stap en een datum. In de checkup lopen we de leads die te laat of zonder plan staan één voor één door.',
       voor: 'pt',
     },
     {
-      titel: 'Vraag tevreden klanten om een referral',
-      uitleg: 'Na een behaald doel of een goede meting: vraag of ze iemand kennen met hetzelfde doel. Komt er iemand, leg die vast met bron Referral.',
+      titel: 'Elke lopende klant om een referral vragen',
+      uitleg: 'Vraag het bij een behaald doel of een goede meting, en vink "referral gevraagd" aan bij de klant. De checkup laat zien bij wie je het nog niet vroeg.',
       voor: 'pt',
     },
     {
-      titel: 'Bied duo-training aan',
-      uitleg: 'Train je iemand al? Bied aan om een partner of vriend mee te nemen als duo. Samen trainen is voor veel mensen een kleinere stap.',
+      titel: 'Einde vaste periode: evaluatiegesprek',
+      uitleg: 'Loopt de vaste periode van een klant binnen 30 dagen af, plan dan een evaluatie: wat is bereikt, wat is het volgende doel? De checkup toont wie eraan komt.',
       voor: 'pt',
     },
     {
-      titel: 'Nieuwe leden voorstellen aan de PT\'er',
-      uitleg: 'Vertel bij elke inschrijving dat er een PT\'er in de club is en wanneer die er is. Geef interesse door aan de PT\'er, die legt het vast met bron Intake.',
+      titel: 'Bij een opzegging altijd de reden invullen',
+      uitleg: 'Zo zien we in de checkup en bij de stopredenen wat we beter kunnen doen.',
+      voor: 'pt',
+    },
+    {
+      titel: 'Nieuwe leden doorgeven aan de PT\'er',
+      uitleg: 'Geef bij elke inschrijving met interesse in begeleiding de naam door aan de PT\'er van je club; die legt het vast met bron Intake. Zo zie je terug hoeveel leads via de club binnenkomen.',
       voor: 'clubmanager',
     },
     {
-      titel: 'Elke week samen de cijfers bekijken',
-      uitleg: 'Bekijk één keer per week met de PT\'ers van je club deze pagina: hoeveel gesprekken, wie moet er nog opgevolgd worden, waar staat de club ten opzichte van het doel?',
-      voor: 'clubmanager',
-    },
-    {
-      titel: 'Laat resultaten zien',
-      uitleg: 'Deel, met toestemming van de klant, een resultaat of een stukje training op de social media van de club. Leads die daaruit komen: bron Social media.',
-      voor: 'iedereen',
-    },
-    {
-      titel: 'Houd klanten vast',
-      uitleg: 'Elke klant die blijft, hoef je niet te vervangen. Vraag regelmatig hoe het gaat en vul bij een opzegging altijd de reden in, zodat we zien wat we beter kunnen doen.',
+      titel: 'Elke checkup: afspraken maken en nameten',
+      uitleg: 'Kane spreekt per PT\'er meetbare afspraken af (gesprekken, nieuwe klanten, referrals, niets te laat). De volgende checkup laat uit de app zien of ze gehaald zijn.',
       voor: 'iedereen',
     },
   ],

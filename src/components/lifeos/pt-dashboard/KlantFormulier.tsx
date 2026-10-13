@@ -40,7 +40,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
       : {
           naam: vanLead?.naam ?? '', contact: vanLead?.contact ?? null, duoPartner: null,
           club: vanLead?.club ?? standaardClub, abonnement: '1x', startdatum: vandaag,
-          status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null, stopReden: null, prijsAfwijkend: null,
+          status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null, stopReden: null, referralGevraagdOp: null, prijsAfwijkend: null,
         },
   )
   const [trainer, setTrainer] = useState(beginTrainer ?? trainers?.[0]?.id ?? '')
@@ -169,6 +169,18 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           />
         </Veld>
       ) : null}
+
+      <label className="ck-vinkje">
+        <input
+          type="checkbox"
+          checked={v.referralGevraagdOp !== null}
+          onChange={(e) => zet('referralGevraagdOp', e.target.checked ? (klant?.referralGevraagdOp ?? vandaag) : null)}
+        />
+        <span>
+          Om een referral gevraagd{v.referralGevraagdOp ? ` (${dagLang(v.referralGevraagdOp)})` : ''}
+          <span className="ptd-hint"> · kent deze klant iemand met hetzelfde doel?</span>
+        </span>
+      </label>
 
       <Veld label="Notities" id={`knotitie-${id}`}>
         <textarea id={`knotitie-${id}`} className="ptd-invoer" value={v.notitie ?? ''} onChange={(e) => zet('notitie', e.target.value || null)} maxLength={1000} placeholder="Doel, blessures, afspraken…" />

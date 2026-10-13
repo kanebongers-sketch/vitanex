@@ -4333,3 +4333,20 @@ body {
 .lifeos-root .gp-kaart-focus { font-size: 14.5px; line-height: 1.45; color: var(--text-2); }
 .lifeos-root .gp-kaart:hover { border-color: color-mix(in srgb, var(--brand) 50%, var(--line)); }
 .lifeos-root .gp-kaart:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── PT-app: checkup ─────────────────────────────────────────────────────── */
+.lifeos-root .ck-raster { display: grid; gap: 10px; }
+@media (min-width: 900px) { .lifeos-root .ck-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lifeos-root .ck-blok { gap: 10px; align-content: start; }
+.lifeos-root .ck-kern { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.lifeos-root .ck-namen { display: grid; gap: 6px; }
+.lifeos-root .ck-namen ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lifeos-root .ck-namen li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.lifeos-root .ck-namen li:last-child { border-bottom: none; }
+.lifeos-root .ck-namen li strong { font-weight: 600; color: var(--text-1); }
+.lifeos-root .ck-namen li span { color: var(--text-3); }
+.lifeos-root .ck-scores { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lifeos-root .ck-scores li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; font-size: 14.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.lifeos-root .ck-scores strong { color: var(--text-1); font-weight: 600; }
+.lifeos-root .ck-vinkje { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--text-2); cursor: pointer; }
+.lifeos-root .ck-vinkje input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--brand); flex: none; }

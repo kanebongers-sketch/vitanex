@@ -5,7 +5,7 @@ import {
 
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k1', naam: 'Sanne', contact: null, duoPartner: null, club: 'budel', abonnement: '1x',
-  startdatum: '2026-09-01', status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
+  startdatum: '2026-09-01', status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
 })
 
 describe('prijzen (Fit Factory PT 2026)', () => {

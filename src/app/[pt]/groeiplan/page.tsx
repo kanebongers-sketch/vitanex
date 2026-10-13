@@ -1,16 +1,18 @@
 import type { Metadata } from 'next'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
-import { magGroeiplanAanpassen, zietGroeiplan } from '@/lib/lifeos/leads/links'
+import { magGroeiplanAanpassen, zietCoach, zietGroeiplan } from '@/lib/lifeos/leads/links'
 import { notFound } from 'next/navigation'
 import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
-import { haalPtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
+import { haalPtTeamGegevens, type PtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
 import { voorClub } from '@/lib/lifeos/pt-dashboard/club-filter'
 import { CLUBS, clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
 import { actiesVoor, clubStanden, groeiCijfers } from '@/lib/lifeos/pt-dashboard/groeiplan'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { ClubTabel, GroeiActies, GroeiFocus, GroeiTegels } from '@/components/lifeos/pt-groei/GroeiplanWeergave'
+import { haalLopendeAfspraken } from '@/lib/lifeos/pt-dashboard/afspraken-opslag'
+import { checkupStand, scoreAfspraak, type Afspraak } from '@/lib/lifeos/pt-dashboard/checkup'
+import { CheckupTabel, ClubTabel, GroeiActies, GroeiFocus, GroeiTegels, type CheckupRij } from '@/components/lifeos/pt-groei/GroeiplanWeergave'
 import { GroeiplanBewerken } from '@/components/lifeos/pt-groei/GroeiplanBewerken'
 
 // /<code>/groeiplan — het plan voor meer PT-klanten, voor iedereen in de PT-app.
@@ -30,7 +32,9 @@ export default async function GroeiplanPagina({ params }: { params: Promise<{ pt
   const { rol, userId } = s.link
   if (!zietGroeiplan(rol)) notFound()
 
+  const coach = zietCoach(rol)
   const [opgeslagen, alles] = await Promise.all([haalGroeiplan(s.admin, userId), haalPtTeamGegevens(s.admin, userId)])
+  const afspraken = coach && alles ? await haalLopendeAfspraken(s.admin, userId, alles.team.map((p) => p.id)) : null
   if (!opgeslagen || !alles) return <Foutmelding bericht="Het groeiplan kon niet geladen worden. Vernieuw de pagina." />
 
   const clubmanager = rol === 'clubmanager'
@@ -61,7 +65,28 @@ export default async function GroeiplanPagina({ params }: { params: Promise<{ pt
         <GroeiTegels titel="Jouw cijfers" c={groeiCijfers(g.leads.get(s.link.persoonId) ?? [], g.klanten.get(s.link.persoonId) ?? [], vandaag)} />
       ) : null}
       <GroeiTegels titel={club ? `${club}` : 'Het team'} c={groeiCijfers(leads, klanten, vandaag)} />
+      {coach && afspraken ? <CheckupTabel rijen={checkupRijen(g, afspraken, vandaag)} ptHref={`/${s.link.code}/team`} /> : null}
       <ClubTabel standen={clubStanden(leads, klanten, plan, vandaag, clubmanager ? s.link.clubs : CLUBS)} />
     </>
   )
+}
+
+/** Per trainer: de lopende afspraak gemeten, plus wat nu aandacht vraagt. Wie nog geen afspraak heeft, staat bovenaan. */
+function checkupRijen(g: PtTeamGegevens, afspraken: Map<string, Afspraak>, vandaag: string): CheckupRij[] {
+  return g.team
+    .map((p) => {
+      const vorige = afspraken.get(p.id) ?? null
+      const stand = checkupStand(g.leads.get(p.id) ?? [], g.klanten.get(p.id) ?? [], vorige, vandaag)
+      const scores = vorige ? scoreAfspraak(vorige, stand) : []
+      return {
+        id: p.id,
+        naam: p.naam,
+        afspraakOp: vorige?.gemaaktOp ?? null,
+        gehaald: scores.filter((x) => x.gehaald).length,
+        afspraken: scores.length,
+        teLaat: stand.leads.teLaat.length,
+        referralNogNiet: stand.referrals.nogNiet.length,
+      }
+    })
+    .sort((a, b) => (a.afspraakOp ?? '').localeCompare(b.afspraakOp ?? '') || a.naam.localeCompare(b.naam, 'nl'))
 }

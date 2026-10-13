@@ -21,6 +21,11 @@ import { CheckinKaart } from './CheckinKaart'
 import { TEAM_FOUT } from './teksten'
 import { zietCoach, zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { DoelenBewerken } from '@/components/lifeos/pt-beheer/DoelenBewerken'
+import { checkupStand, checkupSinds } from '@/lib/lifeos/pt-dashboard/checkup'
+import { haalLopendeAfspraken } from '@/lib/lifeos/pt-dashboard/afspraken-opslag'
+import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
+import { AfspraakStand, CheckupKaart } from '@/components/lifeos/pt-groei/CheckupKaart'
+import { AfsprakenFormulier } from '@/components/lifeos/pt-groei/AfsprakenFormulier'
 
 // /<eigenaar>/team/<id> — alles van één PT'er, zoals die het in zijn eigen app
 // ziet: cijfers, doelen, opvolging, klanten, trend en de check-in van deze week.
@@ -41,8 +46,12 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
   const doelen = doelenWeergave(g.doelen.get(pt.id) ?? null, leads, klanten, g.vandaag)
   const geld = zietGeld(g.link.rol)
   const coach = zietCoach(g.link.rol)
-  // De check-in hoort bij het coachgesprek: alleen ophalen voor wie dat mag zien.
-  const checkin = coach ? await haalCheckin(g.admin, alsPt(g.link, pt.id), huidigeWeek(new Date())) : null
+  // Check-in en afspraken horen bij het coachgesprek: alleen voor wie dat mag zien.
+  const [checkin, afspraken] = coach
+    ? await Promise.all([haalCheckin(g.admin, alsPt(g.link, pt.id), huidigeWeek(new Date())), haalLopendeAfspraken(g.admin, g.link.userId, [pt.id])])
+    : [null, null]
+  const vorige = afspraken?.get(pt.id) ?? null
+  const checkup = coach ? checkupStand(leads, klanten, vorige, g.vandaag) : null
   const opvolgen = [...o.teLaat, ...o.vandaag]
   const lopend = klanten.filter((k) => isLopend(k, g.vandaag))
 
@@ -70,6 +79,19 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
           <div className="ptd-sectiekop"><h2 id="eig-doelen-kop">Doelen</h2><span>gezet door Kane</span></div>
           {doelen.notitie ? <p className="ptd-doel-notitie">{doelen.notitie}</p> : null}
           {doelen.items.length > 0 ? <DoelLijst items={doelen.items} /> : null}
+        </section>
+      ) : null}
+
+      {checkup ? (
+        <section className="ptd-sectie" aria-labelledby="eig-checkup-kop">
+          <div className="ptd-sectiekop">
+            <h2 id="eig-checkup-kop">Checkup</h2>
+            <span>sinds {checkup.sindsAfspraak ? 'de vorige checkup' : 'twee weken terug'} ({dagKort(checkupSinds(vorige, g.vandaag))})</span>
+          </div>
+          {afspraken === null ? <Foutmelding bericht="De afspraken konden niet geladen worden. Vernieuw de pagina." /> : null}
+          {vorige ? <AfspraakStand afspraak={vorige} stand={checkup} /> : <p className="ptd-leeg">Nog geen afspraken met {pt.naam}. Leg ze onderaan de checkup vast.</p>}
+          <CheckupKaart stand={checkup} vandaag={g.vandaag} doelGesprekken={g.doelen.get(pt.id)?.leadsPerWeek ?? null} />
+          {g.link.rol === 'beheerder' && afspraken !== null ? <AfsprakenFormulier code={code} persoonId={pt.id} naam={pt.naam} vorige={vorige} /> : null}
         </section>
       ) : null}
 
