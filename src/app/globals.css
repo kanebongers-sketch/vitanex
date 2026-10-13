@@ -3856,6 +3856,13 @@ body {
 .lifeos-root a.ptd-chip { text-decoration: none; }
 .lifeos-root .ptd-trainer { color: var(--text-1); font-weight: 600; }
 .lifeos-root .ptd-controle { color: var(--text-1); font-variant-numeric: tabular-nums; letter-spacing: 0.12em; }
+.lifeos-root .kl-maten { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.lifeos-root .kl-maat { display: grid; justify-items: center; gap: 4px; min-width: 56px; font-size: 13px; color: var(--text-3); }
+.lifeos-root .kl-maat strong { font-size: 18px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.lifeos-root .kl-maat strong.kl-op { color: var(--text-4, var(--text-3)); }
+.lifeos-root .kl-maat .ptd-invoer { width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+.lifeos-root .kl-bezit { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.lifeos-root .kl-bezit > li { display: grid; gap: 4px; }
 .lifeos-root .ptd-laden { display: grid; gap: 16px; }
 .lifeos-root .ptd-skelet { border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); animation: ptd-puls 1.6s ease-in-out infinite; }
 .lifeos-root .ptd-skelet--tegel { height: 96px; }

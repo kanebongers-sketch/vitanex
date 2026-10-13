@@ -43,6 +43,11 @@ export function zietDossiers(rol: LinkRol): boolean {
   return rol === 'pt' || rol === 'eigenaar' || rol === 'beheerder'
 }
 
+/** Ziet deze rol de kleding van de PT'ers en de voorraad in Eersel? Eigenaren en de beheerder. */
+export function zietKleding(rol: LinkRol): boolean {
+  return rol === 'eigenaar' || rol === 'beheerder'
+}
+
 /** Ziet deze rol de coachgesprekken (check-ins, open punten, verslagen) van het team? */
 export function zietCoach(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'

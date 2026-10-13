@@ -50,6 +50,17 @@ async function haalBeheerder(admin: SupabaseClient, userId: string): Promise<{ i
   return p ? { id: p.id as string, naam: String(p.naam).split(' ')[0] } : null
 }
 
+/** Alleen de trainers (actieve PT'ers + de beheerder) met naam, zonder leads en klanten. Null = lezen mislukt. */
+export async function haalTrainers(admin: SupabaseClient, userId: string): Promise<{ id: string; naam: string }[] | null> {
+  const [personen, beheerder] = await Promise.all([haalPersonen(admin, userId, 'pt_team'), haalBeheerder(admin, userId)])
+  if (!personen.ok || beheerder === 'fout') return null
+  const pts = personen.waarde
+    .filter((p) => p.status !== 'inactief' && !isVergadering(p.naam))
+    .map((p) => ({ id: p.id, naam: p.naam }))
+    .sort((a, b) => a.naam.localeCompare(b.naam, 'nl'))
+  return beheerder ? [...pts, beheerder] : pts
+}
+
 /** Null = team, leads of klanten konden niet gelezen worden (fout ≠ leeg). */
 export async function haalPtTeamGegevens(
   admin: SupabaseClient,

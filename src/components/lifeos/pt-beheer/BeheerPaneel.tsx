@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { Shirt } from 'lucide-react'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 import { PtKlantenKaart } from '@/components/lifeos/pt/PtKlantenKaart'
 import { DocumentenBeheer } from '@/components/lifeos/pt-team/DocumentenBeheer'
@@ -10,9 +12,20 @@ import { BeheerEigenaren } from './BeheerEigenaren'
 // eigenaren toegang geven, de documenten voor het team en de export. Alles loopt
 // via de LifeOS-API's achter de founder-gate (zijn hoofdaccount).
 
-export function BeheerPaneel() {
+export function BeheerPaneel({ code }: { code: string }) {
   return (
     <RefreshProvider>
+      <section className="ptd-sectie" aria-labelledby="beheer-kleding-kop">
+        <div className="ptd-sectiekop">
+          <h2 id="beheer-kleding-kop">Kleding</h2>
+          <span>wat elke PT&apos;er heeft · voorraad Eersel</span>
+        </div>
+        <div className="ptd-acties">
+          <Link className="ptd-knop ptd-knop--primair" href={`/${code}/kleding`}>
+            <Shirt size={16} aria-hidden /> Kleding &amp; voorraad
+          </Link>
+        </div>
+      </section>
       <section className="ptd-sectie" aria-labelledby="beheer-klanten-kop">
         <div className="ptd-sectiekop">
           <h2 id="beheer-klanten-kop">Mijn PT-klanten</h2>

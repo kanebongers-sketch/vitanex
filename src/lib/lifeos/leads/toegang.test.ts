@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import { zietCoach, zietDossiers, zietGeld, type LeadLink } from './links'
+import { zietCoach, zietDossiers, zietGeld, zietKleding, type LeadLink } from './links'
 
 const links = vi.hoisted(() => ({ vindLink: vi.fn(), sessieGeldig: vi.fn() }))
 vi.mock('./links', async (importOriginal) => ({ ...(await importOriginal<typeof import('./links')>()), ...links }))
@@ -222,5 +222,7 @@ describe('zichtbaarheid per rol', () => {
     expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietGeld(r as LeadLink['rol']))).toEqual([false, true, true, false])
     expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietCoach(r as LeadLink['rol']))).toEqual([false, true, true, false])
     expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietDossiers(r as LeadLink['rol']))).toEqual([true, true, true, false])
+    // Kleding: alleen Kane registreert, eigenaren kijken mee; PT'ers en clubmanagers niet.
+    expect(['pt', 'eigenaar', 'beheerder', 'clubmanager'].map((r) => zietKleding(r as LeadLink['rol']))).toEqual([false, true, true, false])
   })
 })

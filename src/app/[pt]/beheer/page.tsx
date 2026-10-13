@@ -17,7 +17,7 @@ export default async function BeheerPagina({ params }: { params: Promise<{ pt: s
   return (
     <>
       <FfHero boventitel="Fit Factory PT · beheer" titel="Beheer" />
-      <BeheerPaneel />
+      <BeheerPaneel code={s.link.code} />
     </>
   )
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, MessagesSquare, Settings2, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, LayoutDashboard, MessagesSquare, Settings2, Shirt, UserPlus, Users, type LucideIcon } from 'lucide-react'
 import type { LinkRol } from '@/lib/lifeos/leads/links'
 
 // De app-navigatie: op de telefoon een tabbalk onderin (duimbereik, zoals een
@@ -27,9 +27,11 @@ const ITEMS: Item[] = [
   { pad: '/bibliotheek', label: 'Kennis', icoon: BookOpen },
 ]
 
-const EIGENAAR_ITEMS: Item[] = ITEMS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
-const BEHEERDER_ITEMS: Item[] = [...EIGENAAR_ITEMS.slice(0, 4), { pad: '/beheer', label: 'Beheer', icoon: Settings2 }, ...EIGENAAR_ITEMS.slice(4)]
-const CLUBMANAGER_ITEMS: Item[] = EIGENAAR_ITEMS.filter((i) => i.pad !== '/coach').map((i) => (i.pad === '' ? { ...i, label: 'Club' } : i))
+const TEAM_ITEMS: Item[] = ITEMS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
+// Eigenaren: ook Kleding (Kane bereikt die via Beheer; zes tabs is het maximum op een telefoon).
+const EIGENAAR_ITEMS: Item[] = [...TEAM_ITEMS.slice(0, 4), { pad: '/kleding', label: 'Kleding', icoon: Shirt }, ...TEAM_ITEMS.slice(4)]
+const BEHEERDER_ITEMS: Item[] = [...TEAM_ITEMS.slice(0, 4), { pad: '/beheer', label: 'Beheer', icoon: Settings2, ook: '/kleding' }, ...TEAM_ITEMS.slice(4)]
+const CLUBMANAGER_ITEMS: Item[] = TEAM_ITEMS.filter((i) => i.pad !== '/coach').map((i) => (i.pad === '' ? { ...i, label: 'Club' } : i))
 const ITEMS_VOOR: Record<LinkRol, Item[]> = { pt: ITEMS, eigenaar: EIGENAAR_ITEMS, beheerder: BEHEERDER_ITEMS, clubmanager: CLUBMANAGER_ITEMS }
 
 export function PtNav({ code, rol = 'pt' }: { code: string; rol?: LinkRol }) {
@@ -39,7 +41,7 @@ export function PtNav({ code, rol = 'pt' }: { code: string; rol?: LinkRol }) {
       {ITEMS_VOOR[rol].map(({ pad: p, label, icoon: Icoon, ook }) => {
         const href = `/${code}${p}`
         const actief =
-          (p === '' ? pad === href : pad === href || pad.startsWith(`${href}/`)) || (!!ook && pad.startsWith(`/${code}${ook}/`))
+          (p === '' ? pad === href : pad === href || pad.startsWith(`${href}/`)) || (!!ook && (pad === `/${code}${ook}` || pad.startsWith(`/${code}${ook}/`)))
         return (
           <Link key={href} href={href} aria-current={actief ? 'page' : undefined}>
             <Icoon aria-hidden strokeWidth={2} />
