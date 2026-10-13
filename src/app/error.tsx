@@ -6,18 +6,18 @@ import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
 import FfFout from '@/app/FitFactoryPT/error'
 
-// Next 16.2.4-conventie: error.tsx krijgt { error, unstable_retry }. De docs
-// adviseren unstable_retry() (her-fetch + her-render) boven reset(). We tonen
+// Next 16.3-conventie: error.tsx krijgt { error, retry }. De docs
+// adviseren retry() (her-fetch + her-render) boven reset(). We tonen
 // bewust geen interne foutdetails; de digest staat in de server-logs.
 export default function Fout({
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   // Op het Fit Factory-domein nooit het MentaForce-foutscherm.
   if (typeof window !== 'undefined' && isPtHost(window.location.host)) {
-    return <FfFout error={new Error('fout')} retry={unstable_retry} />
+    return <FfFout error={new Error('fout')} retry={retry} />
   }
   return (
     <main
@@ -80,7 +80,7 @@ export default function Fout({
       </p>
 
       <button
-        onClick={() => unstable_retry()}
+        onClick={() => retry()}
         style={{
           background: 'var(--mf-green)',
           color: 'var(--bg-app)',

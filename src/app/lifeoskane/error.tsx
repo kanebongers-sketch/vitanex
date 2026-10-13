@@ -9,7 +9,7 @@ import { TriangleAlert } from 'lucide-react'
 // kapotte narrowing) heeft niets boven zich: zonder deze boundary neemt een
 // eiland de hele pagina mee en kijkt Kane naar een wit scherm.
 //
-// Next 16.2.4-conventie: error.tsx krijgt `{ error, unstable_retry }`, niet
+// Next 16.3-conventie: error.tsx krijgt `{ error, retry }`, niet
 // `reset` zoals in oudere Next-versies. Zie `src/app/error.tsx`, dezelfde vorm.
 //
 // We tonen bewust GEEN interne details (message, stack, digest): die horen in de
@@ -19,10 +19,10 @@ import { TriangleAlert } from 'lucide-react'
 // de layout; de Fit Factory-tokens komen via `.lk-app .lifeos-root` (globals.css).
 
 export default function LifeosFout({
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   return (
     <div className="lifeos-root">
@@ -49,7 +49,7 @@ export default function LifeosFout({
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
-            <button type="button" onClick={() => unstable_retry()} style={PRIMAIR}>
+            <button type="button" onClick={() => retry()} style={PRIMAIR}>
               Opnieuw proberen
             </button>
             <Link href="/lifeoskane" style={STIL}>
