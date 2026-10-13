@@ -53,6 +53,14 @@ export function zietCoach(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'
 }
 
+/**
+ * Ziet deze rol het groeiplan? Voorlopig niet de PT'ers: Kane wil het eerst
+ * optimaliseren (13-10-2026). Weer openzetten = `return true`.
+ */
+export function zietGroeiplan(rol: LinkRol): boolean {
+  return rol !== 'pt'
+}
+
 /** Mag deze rol het groeiplan (focus, doelen per club, acties) aanpassen? Eigenaren en de beheerder; de rest leest. */
 export function magGroeiplanAanpassen(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'

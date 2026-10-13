@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
-import { magGroeiplanAanpassen } from '@/lib/lifeos/leads/links'
+import { magGroeiplanAanpassen, zietGroeiplan } from '@/lib/lifeos/leads/links'
+import { notFound } from 'next/navigation'
 import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
 import { haalPtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
 import { voorClub } from '@/lib/lifeos/pt-dashboard/club-filter'
@@ -15,7 +16,8 @@ import { GroeiplanBewerken } from '@/components/lifeos/pt-groei/GroeiplanBewerke
 // /<code>/groeiplan — het plan voor meer PT-klanten, voor iedereen in de PT-app.
 // PT'ers en clubmanagers zien hun acties; Kane en de eigenaren alles, en passen
 // het aan. De cijfers zijn aantallen (geen namen, geen bedragen); een
-// clubmanager ziet alleen zijn eigen club(s). De layout regelt het inloggen.
+// clubmanager ziet alleen zijn eigen club(s). PT'ers voorlopig niet (404, zie
+// zietGroeiplan). De layout regelt het inloggen.
 
 export const metadata: Metadata = { title: 'Groeiplan · Fit Factory PT' }
 
@@ -26,6 +28,7 @@ export default async function GroeiplanPagina({ params }: { params: Promise<{ pt
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
   const { rol, userId } = s.link
+  if (!zietGroeiplan(rol)) notFound()
 
   const [opgeslagen, alles] = await Promise.all([haalGroeiplan(s.admin, userId), haalPtTeamGegevens(s.admin, userId)])
   if (!opgeslagen || !alles) return <Foutmelding bericht="Het groeiplan kon niet geladen worden. Vernieuw de pagina." />

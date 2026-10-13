@@ -11,7 +11,8 @@ import type { LinkRol } from '@/lib/lifeos/leads/links'
 // beheerder (Kane) krijgt daarnaast "Beheer". Een clubmanager ziet zijn club:
 // geen Coach (coachgesprekken zijn tussen Kane en de PT'er). PT'ers en
 // clubmanagers hebben een tab "Groei" (het groeiplan); eigenaren en Kane zitten
-// al op zes tabs en komen er via de kaart op hun Team-scherm.
+// al op zes tabs en komen er via de kaart op hun Team-scherm. PT'ers zien het
+// groeiplan voorlopig niet (zie zietGroeiplan).
 
 interface Item {
   pad: string
@@ -29,7 +30,7 @@ const BASIS: Item[] = [
   { pad: '/bibliotheek', label: 'Kennis', icoon: BookOpen },
 ]
 const GROEI: Item = { pad: '/groeiplan', label: 'Groei', icoon: TrendingUp }
-const ITEMS: Item[] = [...BASIS.slice(0, 3), GROEI, ...BASIS.slice(3)]
+const ITEMS: Item[] = BASIS
 
 const TEAM_ITEMS: Item[] = BASIS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
 // Eigenaren: ook Kleding (Kane bereikt die via Beheer; zes tabs is het maximum op een telefoon).

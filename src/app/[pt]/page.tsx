@@ -10,6 +10,7 @@ import { Overzicht } from '@/components/lifeos/pt-dashboard/Overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { BeginschermHint } from '@/components/lifeos/pt-dashboard/BeginschermHint'
 import { EigenaarTeam } from '@/components/lifeos/pt-eigenaar/EigenaarTeam'
+import { zietGroeiplan } from '@/lib/lifeos/leads/links'
 import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
 import { GroeiplanKaart } from '@/components/lifeos/pt-groei/GroeiplanKaart'
 
@@ -25,7 +26,7 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
   const club = meestGebruikteClub(g.leads, g.klanten)
   const s = await ptSessie(pt)
   const [stand, groeiplan] = s
-    ? await Promise.all([haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)), haalGroeiplan(s.admin, g.link.userId)])
+    ? await Promise.all([haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)), zietGroeiplan(g.link.rol) ? haalGroeiplan(s.admin, g.link.userId) : null])
     : [new Map(), null]
   const taken = dossierTaken(g.klanten, stand, g.vandaag)
   return (
