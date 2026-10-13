@@ -3,7 +3,8 @@ import { euro, isLopend, type PtKlant } from '@/lib/lifeos/pt-dashboard/abonneme
 import { ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { KlantKaart } from '@/components/lifeos/pt-dashboard/KlantKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { FilterRij, metFilters } from './FilterRij'
+import { FilterRij, filterClubs, gekozenClub, metFilters } from './FilterRij'
+import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { TEAM_FOUT } from './teksten'
 import { zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { BeheerKlantenLijst } from '@/components/lifeos/pt-beheer/BeheerKlantenLijst'
@@ -16,9 +17,10 @@ interface Props {
   code: string
   pt: string | null
   toon: string | null
+  club: string | null
 }
 
-export async function EigenaarKlanten({ code, pt, toon }: Props) {
+export async function EigenaarKlanten({ code, pt, toon, club: clubRuw }: Props) {
   const g = await eigenaarGegevens(code)
   if (!g) return null
   if (!g.team) return <Foutmelding bericht={TEAM_FOUT} />
@@ -27,9 +29,12 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
   const gekozen = team.find((p) => p.id === pt) ?? null
   const naamVan = new Map(team.map((p) => [p.id, p.naam]))
 
+  const clubs = filterClubs(g.link.clubs, [...klanten.values()].flat().map((k) => k.club))
+  const club = gekozenClub(clubRuw, clubs)
   const alle = team
     .filter((p) => !gekozen || p.id === gekozen.id)
     .flatMap((p) => (klanten.get(p.id) ?? []).map((klant) => ({ klant, ptId: p.id })))
+    .filter((x) => !club || x.klant.club === club)
   const lopend = (k: PtKlant) => isLopend(k, g.vandaag)
   const zichtbaar = alle
     .filter((x) => !alleenLopend || lopend(x.klant))
@@ -41,21 +46,30 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
   return (
     <section className="ptd-sectie" aria-labelledby="eig-klanten-kop">
       <div className="ptd-sectiekop">
-        <h2 id="eig-klanten-kop">PT-klanten{gekozen ? ` van ${gekozen.naam}` : ' van het team'}</h2>
+        <h2 id="eig-klanten-kop">PT-klanten{gekozen ? ` van ${gekozen.naam}` : ' van het team'}{club ? ` · ${CLUB_LABEL[club]}` : ''}</h2>
         <span>{cijfers.lopend} lopend{zietGeld(g.link.rol) ? ` · ${euro(cijfers.maandwaarde)} p/m` : ''}</span>
       </div>
+      {clubs.length > 0 ? (
+        <FilterRij
+          label="Club"
+          opties={[
+            { label: 'Alle clubs', href: metFilters(basis, { pt: gekozen?.id ?? null, toon: toonFilter }), actief: !club },
+            ...clubs.map((c) => ({ label: CLUB_LABEL[c], href: metFilters(basis, { pt: gekozen?.id ?? null, toon: toonFilter, club: c }), actief: club === c })),
+          ]}
+        />
+      ) : null}
       <FilterRij
         label="PT'er"
         opties={[
-          { label: 'Iedereen', href: metFilters(basis, { toon: toonFilter }), actief: !gekozen },
-          ...team.map((p) => ({ label: p.naam, href: metFilters(basis, { pt: p.id, toon: toonFilter }), actief: gekozen?.id === p.id, aantal: (klanten.get(p.id) ?? []).filter(lopend).length })),
+          { label: 'Iedereen', href: metFilters(basis, { toon: toonFilter, club }), actief: !gekozen },
+          ...team.map((p) => ({ label: p.naam, href: metFilters(basis, { pt: p.id, toon: toonFilter, club }), actief: gekozen?.id === p.id, aantal: (klanten.get(p.id) ?? []).filter((k) => lopend(k) && (!club || k.club === club)).length })),
         ]}
       />
       <FilterRij
         label="Welke klanten"
         opties={[
-          { label: 'Lopend', href: metFilters(basis, { pt: gekozen?.id ?? null }), actief: alleenLopend, aantal: alle.filter((x) => lopend(x.klant)).length },
-          { label: 'Alle', href: metFilters(basis, { pt: gekozen?.id ?? null, toon: 'alle' }), actief: !alleenLopend, aantal: alle.length },
+          { label: 'Lopend', href: metFilters(basis, { pt: gekozen?.id ?? null, club }), actief: alleenLopend, aantal: alle.filter((x) => lopend(x.klant)).length },
+          { label: 'Alle', href: metFilters(basis, { pt: gekozen?.id ?? null, toon: 'alle', club }), actief: !alleenLopend, aantal: alle.length },
         ]}
       />
       {g.link.rol === 'beheerder' ? (

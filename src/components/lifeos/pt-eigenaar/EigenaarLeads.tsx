@@ -2,7 +2,8 @@ import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { OPEN_STATUSSEN, moetOpvolgen, type Lead } from '@/lib/lifeos/leads/leads'
 import { LeadKaart } from '@/components/lifeos/pt-dashboard/LeadKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { FilterRij, metFilters } from './FilterRij'
+import { FilterRij, filterClubs, gekozenClub, metFilters } from './FilterRij'
+import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { TEAM_FOUT } from './teksten'
 import { BeheerLeadsLijst } from '@/components/lifeos/pt-beheer/BeheerLeadsLijst'
 
@@ -25,9 +26,10 @@ interface Props {
   code: string
   pt: string | null
   toon: string | null
+  club: string | null
 }
 
-export async function EigenaarLeads({ code, pt, toon }: Props) {
+export async function EigenaarLeads({ code, pt, toon, club: clubRuw }: Props) {
   const g = await eigenaarGegevens(code)
   if (!g) return null
   if (!g.team) return <Foutmelding bericht={TEAM_FOUT} />
@@ -36,9 +38,12 @@ export async function EigenaarLeads({ code, pt, toon }: Props) {
   const gekozen = team.find((p) => p.id === pt) ?? null
   const naamVan = new Map(team.map((p) => [p.id, p.naam]))
 
+  const clubs = filterClubs(g.link.clubs, [...leads.values()].flat().map((l) => l.club))
+  const club = gekozenClub(clubRuw, clubs)
   const alle = team
     .filter((p) => !gekozen || p.id === gekozen.id)
     .flatMap((p) => (leads.get(p.id) ?? []).map((lead) => ({ lead, ptId: p.id })))
+    .filter((x) => !club || x.lead.club === club)
   const zichtbaar = alle
     .filter((x) => past(x.lead, weergave, g.vandaag))
     .sort((a, b) => b.lead.gesprokenOp.localeCompare(a.lead.gesprokenOp) || a.lead.naam.localeCompare(b.lead.naam, 'nl'))
@@ -48,21 +53,30 @@ export async function EigenaarLeads({ code, pt, toon }: Props) {
   return (
     <section className="ptd-sectie" aria-labelledby="eig-leads-kop">
       <div className="ptd-sectiekop">
-        <h2 id="eig-leads-kop">Leads{gekozen ? ` van ${gekozen.naam}` : ' van het team'}</h2>
+        <h2 id="eig-leads-kop">Leads{gekozen ? ` van ${gekozen.naam}` : ' van het team'}{club ? ` · ${CLUB_LABEL[club]}` : ''}</h2>
         <span>{zichtbaar.length} {zichtbaar.length === 1 ? 'lead' : 'leads'}</span>
       </div>
+      {clubs.length > 0 ? (
+        <FilterRij
+          label="Club"
+          opties={[
+            { label: 'Alle clubs', href: metFilters(basis, { pt: gekozen?.id ?? null, toon: toonFilter }), actief: !club },
+            ...clubs.map((c) => ({ label: CLUB_LABEL[c], href: metFilters(basis, { pt: gekozen?.id ?? null, toon: toonFilter, club: c }), actief: club === c })),
+          ]}
+        />
+      ) : null}
       <FilterRij
         label="PT'er"
         opties={[
-          { label: 'Iedereen', href: metFilters(basis, { toon: toonFilter }), actief: !gekozen },
-          ...team.map((p) => ({ label: p.naam, href: metFilters(basis, { pt: p.id, toon: toonFilter }), actief: gekozen?.id === p.id, aantal: (leads.get(p.id) ?? []).length })),
+          { label: 'Iedereen', href: metFilters(basis, { toon: toonFilter, club }), actief: !gekozen },
+          ...team.map((p) => ({ label: p.naam, href: metFilters(basis, { pt: p.id, toon: toonFilter, club }), actief: gekozen?.id === p.id, aantal: (leads.get(p.id) ?? []).filter((l) => !club || l.club === club).length })),
         ]}
       />
       <FilterRij
         label="Stand"
         opties={WEERGAVEN.map((w) => ({
           label: WEERGAVE_LABEL[w],
-          href: metFilters(basis, { pt: gekozen?.id ?? null, toon: w === 'open' ? null : w }),
+          href: metFilters(basis, { pt: gekozen?.id ?? null, toon: w === 'open' ? null : w, club }),
           actief: w === weergave,
           aantal: alle.filter((x) => past(x.lead, w, g.vandaag)).length,
         }))}

@@ -15,7 +15,7 @@ interface Props {
 export default async function LeadsPagina({ params, searchParams }: Props) {
   const [{ pt }, zoek] = await Promise.all([params, searchParams])
   const mee = await meekijker(pt)
-  if (mee) return <><h1 className="sr-only">Leads van het team</h1><EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} /></>
+  if (mee) return <><h1 className="sr-only">Leads van het team</h1><EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} club={param(zoek, 'club')} /></>
   const g = await ptGegevens(pt)
   if (!g) return null
   // Zonder klanten weet de pagina niet welke leads al klant zijn: dan zou elke

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CLUBS, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
 
 // Een rij filterchips als links: de filter staat in de URL (?pt=…&toon=…), zodat
 // terug, vernieuwen en delen op dezelfde plek uitkomen. Puur.
@@ -33,4 +34,21 @@ export function metFilters(basis: string, filters: Record<string, string | null>
 export function param(zoek: { [k: string]: string | string[] | undefined }, sleutel: string): string | null {
   const v = zoek[sleutel]
   return typeof v === 'string' && v.length > 0 && v.length <= 60 ? v : null
+}
+
+/**
+ * De clubs om op te filteren: voor een clubmanager zijn eigen clubs, voor
+ * eigenaren en de beheerder de clubs die in de gegevens voorkomen (in vaste
+ * volgorde). Eén of geen club = geen filter nodig.
+ */
+export function filterClubs(rolClubs: readonly Club[], inGegevens: Iterable<Club | null>): Club[] {
+  if (rolClubs.length > 0) return rolClubs.length > 1 ? [...rolClubs] : []
+  const aanwezig = new Set<Club | null>(inGegevens)
+  const clubs = CLUBS.filter((c) => aanwezig.has(c))
+  return clubs.length > 1 ? clubs : []
+}
+
+/** De gekozen club uit de URL, maar alleen als die in de lijst staat. */
+export function gekozenClub(ruw: string | null, clubs: readonly Club[]): Club | null {
+  return clubs.find((c) => c === ruw) ?? null
 }
