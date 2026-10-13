@@ -99,12 +99,19 @@ function tekst(v: unknown, max: number): string | null {
 }
 
 /** Het formulier van de PT'er → een lead, of een leesbare fout. `vandaag` = YYYY-MM-DD. */
-export function leesNieuweLead(body: unknown, vandaag: string): Lees<NieuweLead> {
+/**
+ * Formulier → lead. Bij invoer is de club verplicht (`clubVerplicht`, standaard);
+ * bij het inlezen van een opgeslagen lead niet, zodat een oude lead zonder club
+ * niet stil uit lijsten verdwijnt.
+ */
+export function leesNieuweLead(body: unknown, vandaag: string, { clubVerplicht = true } = {}): Lees<NieuweLead> {
   const o = obj(body)
   if (!o) return { ok: false, fout: 'Ongeldige invoer.' }
   const naam = tekst(o.naam, 120)
   if (!naam) return { ok: false, fout: 'Vul de naam in van wie je gesproken hebt.' }
   if (!isBron(o.bron)) return { ok: false, fout: 'Kies hoe je diegene gesproken hebt (bron).' }
+  // Verplicht: zonder club ziet de clubmanager de lead niet (zie club-filter).
+  if (clubVerplicht && !isClub(o.club)) return { ok: false, fout: 'Kies de club waar je diegene gesproken hebt.' }
   let gesprokenOp = vandaag
   if (typeof o.gesprokenOp === 'string' && DAG.test(o.gesprokenOp)) {
     if (o.gesprokenOp > vandaag) return { ok: false, fout: 'De datum ligt in de toekomst.' }
@@ -135,7 +142,7 @@ export function leesNieuweLead(body: unknown, vandaag: string): Lees<NieuweLead>
 export function leesLead(ruw: unknown): Lead | null {
   const x = obj(ruw)
   if (!x || typeof x.id !== 'string' || typeof x.aangemaaktOp !== 'string') return null
-  const r = leesNieuweLead(x, '9999-12-31')
+  const r = leesNieuweLead(x, '9999-12-31', { clubVerplicht: false })
   return r.ok ? { id: x.id, aangemaaktOp: x.aangemaaktOp, ...r.waarde } : null
 }
 

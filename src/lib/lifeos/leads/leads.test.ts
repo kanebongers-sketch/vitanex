@@ -22,11 +22,18 @@ describe('lead invoer', () => {
     expect(leesNieuweLead({ naam: 'X', bron: 'tiktok' }, '2026-10-08').ok).toBe(false)
     expect(leesNieuweLead({ naam: 'X', bron: 'vloer', gesprokenOp: '2026-10-09' }, '2026-10-08').ok).toBe(false)
   })
-  test('onbekende keuzes worden leeg i.p.v. fout; te lange velden ingekort', () => {
-    const r = leesNieuweLead({ naam: 'a'.repeat(300), bron: 'anders', club: 'mars', notitie: 'b'.repeat(2000) }, '2026-10-08')
-    expect(r.ok && r.waarde.club).toBe(null)
+  test('te lange velden ingekort', () => {
+    const r = leesNieuweLead({ naam: 'a'.repeat(300), bron: 'anders', club: 'eersel', notitie: 'b'.repeat(2000) }, '2026-10-08')
     expect(r.ok && r.waarde.naam.length).toBe(120)
     expect(r.ok && r.waarde.notitie?.length).toBe(1000)
+  })
+  test('club is verplicht bij invoer (anders ziet de clubmanager de lead niet)', () => {
+    expect(leesNieuweLead({ naam: 'X', bron: 'vloer' }, '2026-10-08').ok).toBe(false)
+    expect(leesNieuweLead({ naam: 'X', bron: 'vloer', club: 'mars' }, '2026-10-08').ok).toBe(false)
+  })
+  test('een opgeslagen lead zonder club blijft leesbaar (verdwijnt niet uit lijsten)', () => {
+    const oud = { ...lead(), club: null }
+    expect(leesLead(JSON.parse(JSON.stringify(oud)))?.club).toBeNull()
   })
   test('rondreis via JSON', () => {
     const l = lead({ opvolgdatum: '2026-10-10', reviewGevraagd: true })

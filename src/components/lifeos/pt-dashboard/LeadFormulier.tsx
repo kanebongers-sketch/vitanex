@@ -54,6 +54,7 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
     e.preventDefault()
     if (bezig) return
     if (!v.naam.trim()) return setFout('Vul de naam in van wie je gesproken hebt.')
+    if (!v.club) return setFout('Kies de club waar je diegene gesproken hebt.')
     setBezig(true)
     setFout(null)
     const body = trainers ? { ...v, trainerId: trainer } : v
@@ -85,9 +86,9 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
         <Veld label="Telefoon / contact" id={`contact-${id}`}>
           <input id={`contact-${id}`} className="ptd-invoer" value={v.contact ?? ''} onChange={(e) => zet('contact', e.target.value || null)} maxLength={160} inputMode="tel" autoComplete="off" />
         </Veld>
-        <Veld label="Club" id={`club-${id}`}>
-          <select id={`club-${id}`} className="ptd-invoer" value={v.club ?? ''} onChange={(e) => zet('club', isClub(e.target.value) ? e.target.value : null)}>
-            <option value="">Kies…</option>
+        <Veld label="Club *" id={`club-${id}`}>
+          <select id={`club-${id}`} className="ptd-invoer" value={v.club ?? ''} onChange={(e) => zet('club', isClub(e.target.value) ? e.target.value : null)} required>
+            <option value="" disabled>Kies…</option>
             {CLUBS.map((c) => <option key={c} value={c}>{CLUB_LABEL[c]}</option>)}
           </select>
         </Veld>
