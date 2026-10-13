@@ -162,10 +162,59 @@
 
 .highlight:hover .highlightMeta { color: var(--brand); }
 
+/* Afgelopen week naast je normaal (HighlightVergelijking). */
+.vergelijking {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin: 16px 0 0;
+}
+
+.vergelijkingRij {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.vergelijkingLabel { font-size: 13px; color: var(--text-3); }
+
+.vergelijkingWaarde {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+}
+
+.vergelijkingBaan {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.vergelijkingStaaf,
+.vergelijkingStaafRecent {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease);
+}
+
+.vergelijkingStaaf { background: color-mix(in srgb, var(--text-1) 32%, transparent); }
+.vergelijkingStaafRecent { background: var(--brand); }
+
 /* ── Samenvatting-regels ─────────────────────────────────────────────────── */
 
 .regels {
   display: grid;
+  /* minmax(0, …): anders rekt de kolom mee met de breedste regel en valt die
+     op een smalle telefoon rechts buiten beeld. */
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -173,7 +222,7 @@
 }
 
 @media (min-width: 900px) {
-  .regels { grid-template-columns: 1fr 1fr; column-gap: 48px; }
+  .regels { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
   .regels > li:first-child { grid-column: 1 / -1; }
 }
 
@@ -181,7 +230,7 @@
 
 .regel {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 4px 16px;
   padding: 22px 4px 24px;
@@ -194,6 +243,7 @@
 
 .regelKop {
   grid-column: 1 / -1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -204,7 +254,7 @@
 
 .regelKop svg { color: var(--brand); flex-shrink: 0; }
 
-.regelDatum { margin-left: auto; font-size: 13px; color: var(--text-3); }
+.regelDatum { min-width: 0; margin-left: auto; font-size: 13px; text-align: right; color: var(--text-3); }
 
 .pijl {
   color: var(--text-3);
@@ -249,6 +299,10 @@
 
 .mini { display: block; width: 84px; height: 36px; }
 .miniHero { width: 168px; height: 64px; }
+
+@media (max-width: 479px) {
+  .miniHero { width: 112px; height: 48px; }
+}
 .miniStaaf { fill: color-mix(in srgb, var(--brand) 45%, transparent); }
 .miniStaafLaatste { fill: var(--brand); }
 .miniLijn { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -516,7 +570,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sectie, .staaf, .lijn, .fase { animation: none; }
-  .regel, .compactRegel, .pijl, .link, .highlightMeta { transition: none; }
+  .regel, .compactRegel, .pijl, .link, .highlightMeta, .vergelijkingStaaf, .vergelijkingStaafRecent { transition: none; }
   .regel:hover .pijl, .compactRegel:hover .pijl { transform: none; }
 }
 
