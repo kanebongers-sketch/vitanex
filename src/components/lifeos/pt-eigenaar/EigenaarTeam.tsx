@@ -12,6 +12,8 @@ import { WachtendePincodes } from '@/components/lifeos/pt-beheer/WachtendePincod
 import { StopRedenen } from '@/components/lifeos/pt-team/StopRedenen'
 import { stopOverzicht } from '@/lib/lifeos/pt-dashboard/stopredenen'
 import { clubsLabel } from '@/lib/lifeos/pt-dashboard/clubs'
+import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
+import { GroeiplanKaart } from '@/components/lifeos/pt-groei/GroeiplanKaart'
 
 const ROL_KOP: Record<LinkRol, string> = { pt: 'PT', eigenaar: 'eigenaar', beheerder: 'beheerder', clubmanager: 'clubmanager' }
 
@@ -31,7 +33,10 @@ export async function EigenaarTeam({ code }: { code: string }) {
     g.doelen,
   )
   // Kane: wachtende pincodes bovenaan, zodat hij meteen kan goedkeuren.
-  const pins = g.link.rol === 'beheerder' ? await haalWachtendePins(g.admin, g.link.userId) : null
+  const [pins, groeiplan] = await Promise.all([
+    g.link.rol === 'beheerder' ? haalWachtendePins(g.admin, g.link.userId) : Promise.resolve(null),
+    haalGroeiplan(g.admin, g.link.userId),
+  ])
   const club = g.link.rol === 'clubmanager' && g.link.clubs.length > 0 ? clubsLabel(g.link.clubs) : null
   const teLaat = [...leads.values()].flat().filter((l) => moetOpvolgen(l, g.vandaag) && l.opvolgdatum !== g.vandaag).length
 
@@ -45,6 +50,7 @@ export async function EigenaarTeam({ code }: { code: string }) {
         </p>
       </FfHero>
       {pins && pins.length > 0 ? <WachtendePincodes pins={pins} /> : null}
+      {groeiplan ? <GroeiplanKaart code={code} focus={groeiplan.plan.focus} /> : null}
       <TeamOverzichtWeergave data={data} ptHref={`/${code}/team`} toonGeld={zietGeld(g.link.rol)}>
         <div className="ptd-acties">
           <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead`}>

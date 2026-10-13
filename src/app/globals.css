@@ -4313,3 +4313,23 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.01em;
 }
+
+/* ── PT-app: groeiplan ───────────────────────────────────────────────────── */
+.lifeos-root .gp-focus { display: grid; gap: 8px; padding: 18px 20px; border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.lifeos-root .gp-focus-tekst { margin: 0; font-size: 19px; line-height: 1.45; font-weight: 600; color: var(--text-1); text-wrap: pretty; }
+.lifeos-root .gp-acties { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lifeos-root .gp-acties p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
+.lifeos-root .gp-actie-kop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.lifeos-root .gp-actie-kop h3 { margin: 0; flex: 1 1 auto; font-size: 16px; font-weight: 600; color: var(--text-1); }
+.lifeos-root .gp-nummer { font-size: 13px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+.lifeos-root .gp-voor { font-size: 12px; font-weight: 600; color: var(--text-3); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+.lifeos-root .gp-bewerk-actie { gap: 10px; }
+.lifeos-root .gp-voortgang { display: inline-flex; align-items: center; gap: 10px; }
+.lifeos-root .gp-balk { position: relative; display: inline-block; width: 72px; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.lifeos-root .gp-balk > span { position: absolute; inset: 0; background: var(--brand); transform-origin: left center; }
+.lifeos-root .gp-kaart { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 14px 16px; color: var(--text-1); text-decoration: none; transition: border-color 160ms var(--ease); }
+.lifeos-root .gp-kaart > svg:first-child { color: var(--brand); }
+.lifeos-root .gp-kaart > span { display: grid; gap: 2px; min-width: 0; }
+.lifeos-root .gp-kaart-focus { font-size: 14.5px; line-height: 1.45; color: var(--text-2); }
+.lifeos-root .gp-kaart:hover { border-color: color-mix(in srgb, var(--brand) 50%, var(--line)); }
+.lifeos-root .gp-kaart:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

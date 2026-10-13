@@ -2,14 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, MessagesSquare, Settings2, Shirt, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, LayoutDashboard, MessagesSquare, Settings2, Shirt, TrendingUp, UserPlus, Users, type LucideIcon } from 'lucide-react'
 import type { LinkRol } from '@/lib/lifeos/leads/links'
 
 // De app-navigatie: op de telefoon een tabbalk onderin (duimbereik, zoals een
 // echte app), vanaf tablet een rij bovenaan. Actief = aria-current. Een eigenaar
 // krijgt dezelfde tabs, maar "Home" heet "Team" (ook actief op /team/<id>); de
 // beheerder (Kane) krijgt daarnaast "Beheer". Een clubmanager ziet zijn club:
-// geen Coach (coachgesprekken zijn tussen Kane en de PT'er).
+// geen Coach (coachgesprekken zijn tussen Kane en de PT'er). PT'ers en
+// clubmanagers hebben een tab "Groei" (het groeiplan); eigenaren en Kane zitten
+// al op zes tabs en komen er via de kaart op hun Team-scherm.
 
 interface Item {
   pad: string
@@ -19,19 +21,21 @@ interface Item {
   ook?: string
 }
 
-const ITEMS: Item[] = [
+const BASIS: Item[] = [
   { pad: '', label: 'Home', icoon: LayoutDashboard },
   { pad: '/lead', label: 'Leads', icoon: UserPlus },
   { pad: '/klanten', label: 'Klanten', icoon: Users },
   { pad: '/coach', label: 'Coach', icoon: MessagesSquare },
   { pad: '/bibliotheek', label: 'Kennis', icoon: BookOpen },
 ]
+const GROEI: Item = { pad: '/groeiplan', label: 'Groei', icoon: TrendingUp }
+const ITEMS: Item[] = [...BASIS.slice(0, 3), GROEI, ...BASIS.slice(3)]
 
-const TEAM_ITEMS: Item[] = ITEMS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
+const TEAM_ITEMS: Item[] = BASIS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
 // Eigenaren: ook Kleding (Kane bereikt die via Beheer; zes tabs is het maximum op een telefoon).
 const EIGENAAR_ITEMS: Item[] = [...TEAM_ITEMS.slice(0, 4), { pad: '/kleding', label: 'Kleding', icoon: Shirt }, ...TEAM_ITEMS.slice(4)]
 const BEHEERDER_ITEMS: Item[] = [...TEAM_ITEMS.slice(0, 4), { pad: '/beheer', label: 'Beheer', icoon: Settings2, ook: '/kleding' }, ...TEAM_ITEMS.slice(4)]
-const CLUBMANAGER_ITEMS: Item[] = TEAM_ITEMS.filter((i) => i.pad !== '/coach').map((i) => (i.pad === '' ? { ...i, label: 'Club' } : i))
+const CLUBMANAGER_ITEMS: Item[] = [...TEAM_ITEMS.slice(0, 3).map((i) => (i.pad === '' ? { ...i, label: 'Club' } : i)), GROEI, ...TEAM_ITEMS.slice(4)]
 const ITEMS_VOOR: Record<LinkRol, Item[]> = { pt: ITEMS, eigenaar: EIGENAAR_ITEMS, beheerder: BEHEERDER_ITEMS, clubmanager: CLUBMANAGER_ITEMS }
 
 export function PtNav({ code, rol = 'pt' }: { code: string; rol?: LinkRol }) {

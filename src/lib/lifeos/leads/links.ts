@@ -53,6 +53,11 @@ export function zietCoach(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'
 }
 
+/** Mag deze rol het groeiplan (focus, doelen per club, acties) aanpassen? Eigenaren en de beheerder; de rest leest. */
+export function magGroeiplanAanpassen(rol: LinkRol): boolean {
+  return rol === 'eigenaar' || rol === 'beheerder'
+}
+
 function leesRol(v: unknown): LinkRol {
   return LINK_ROLLEN.find((r) => r === v) ?? 'pt'
 }

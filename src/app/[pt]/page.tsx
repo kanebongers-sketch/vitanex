@@ -10,6 +10,8 @@ import { Overzicht } from '@/components/lifeos/pt-dashboard/Overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { BeginschermHint } from '@/components/lifeos/pt-dashboard/BeginschermHint'
 import { EigenaarTeam } from '@/components/lifeos/pt-eigenaar/EigenaarTeam'
+import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
+import { GroeiplanKaart } from '@/components/lifeos/pt-groei/GroeiplanKaart'
 
 // /<naam> — het overzicht van de PT'er (of, voor een eigenaar, van het hele team).
 
@@ -22,7 +24,9 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je gegevens konden niet geladen worden. Vernieuw de pagina." />
   const club = meestGebruikteClub(g.leads, g.klanten)
   const s = await ptSessie(pt)
-  const stand = s ? await haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)) : new Map()
+  const [stand, groeiplan] = s
+    ? await Promise.all([haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)), haalGroeiplan(s.admin, g.link.userId)])
+    : [new Map(), null]
   const taken = dossierTaken(g.klanten, stand, g.vandaag)
   return (
     <>
@@ -36,6 +40,7 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
         leads={g.leads}
       />
       <DossiersDezeWeek code={g.link.code} taken={taken} />
+      {groeiplan ? <GroeiplanKaart code={g.link.code} focus={groeiplan.plan.focus} /> : null}
     </>
   )
 }
