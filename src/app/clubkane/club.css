@@ -33,7 +33,7 @@
 .club-kop { position: sticky; top: 0; z-index: 40; background: rgba(16, 16, 20, 0.9); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .club-kop--laden { height: 104px; }
 .club-balk { display: flex; align-items: center; gap: 12px; padding: max(10px, env(safe-area-inset-top)) var(--ff-rand) 8px; }
-.club-merk { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-1); margin-right: auto; }
+.club-merk { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-1); flex: none; }
 .club-merk .ff-logo, .club-merk img { height: 30px; width: auto; }
 .club-merk-woord { font-family: var(--ff-kop); font-weight: 700; font-size: 20px; letter-spacing: 0.18em; color: var(--brand); }
 .club-vestiging { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text-2); }
@@ -51,6 +51,32 @@
 .club-nav a[aria-current='page'] { color: var(--text-1); }
 .club-nav a[aria-current='page']::after { transform: scaleX(1); }
 @media (min-width: 900px) { .club-test { display: inline-flex; } }
+
+/* Groepen (rij 1) en het menupaneel voor de telefoon. */
+.club-balk-rechts { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.club-groepen { display: none; gap: 4px; margin-left: 18px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--club-vlak); }
+.club-groepen a { padding: 7px 14px; border-radius: 999px; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); text-decoration: none; transition: color 160ms var(--ease), background-color 160ms var(--ease); }
+.club-groepen a:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+.club-groepen a[aria-current='true'] { color: #0A0B09; background: var(--brand); }
+.club-menuknop { display: inline-flex; }
+@media (min-width: 1100px) {
+  .club-groepen { display: flex; }
+  .club-menuknop { display: none; }
+}
+@media (max-width: 699px) {
+  .club-balk .club-vestiging, .club-terug span { display: none; }
+}
+.club-menu-scherm { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: flex-end; animation: club-vervaag 160ms var(--ease); }
+.club-menu { width: min(420px, 100%); height: 100%; overflow-y: auto; background: var(--bg-card); border-left: 1px solid var(--line-strong); padding: max(14px, env(safe-area-inset-top)) 18px 32px; display: grid; gap: 18px; align-content: start; animation: club-schuif 220ms var(--ease); }
+.club-menu-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.club-menu-kop .club-vestiging { display: inline-flex; }
+.club-menu-groep h2 { margin: 0 0 6px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
+.club-menu-groep ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.club-menu-groep a { display: grid; gap: 1px; padding: 10px 12px; border-radius: var(--club-radius-klein); text-decoration: none; color: var(--text-1); border: 1px solid transparent; }
+.club-menu-groep a span { font-family: var(--ff-kop); font-size: 18px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-menu-groep a small { font-size: 12.5px; color: var(--text-3); }
+.club-menu-groep a:hover { background: var(--club-vlak-hover); }
+.club-menu-groep a[aria-current='page'] { border-color: color-mix(in srgb, var(--brand) 55%, transparent); background: var(--brand-soft); }
 
 /* ── Werkvlak en pagina-opbouw ────────────────────────────────────────────── */
 .club-werkvlak { padding: 24px var(--ff-rand) 64px; display: grid; gap: 24px; align-content: start; }
