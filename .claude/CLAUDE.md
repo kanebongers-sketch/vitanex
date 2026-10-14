@@ -21,6 +21,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - **Sportivity blijft** voor ledenadministratie, incasso en abonnementen; check-in gaat nu met QR en bandje via Sportivity. Kane wil een **koppeling met Sportivity**, maar voorlopig **geen contact met Sportivity of andere bedrijven**.
 - **Geheim tot de presentatie:** alleen Kane (beheerder-sessie) op `fitfactorypt.nl/clubkane`; eigenaren, clubmanagers en PT'ers krijgen een 404 en zien nergens een link. Knop "Club" alleen in de PT-balk voor de beheerder.
 - Naam: **Fit Factory** (balk: Fit Factory-logo + CLUB). Pilot: **Budel**, later met een echt ledenbestand. Rollen: balie, trainer, groepslesinstructeur, clubmanager.
+- Het fitness-leadsysteem in Club staat **los van het PT-systeem** (geen koppeling met pt_leads of de PT-app).
 - Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
 
 ## Missie
