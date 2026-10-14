@@ -1,8 +1,9 @@
 import { mooiMaximum, heel } from '@/lib/club/cijfers/opmaak'
+import { Plot, XAs, yVan } from './Plot'
 
-// Staafgrafiek in SVG. De staven schalen mee met de breedte; de labels staan
-// in gewone HTML eronder, zodat ze op elke schermbreedte leesbaar blijven.
-// Amber = de reeks; een "zachte" staaf (bv. de lopende week) is half doorzichtig.
+// Staafgrafiek. De staven schalen mee met de breedte binnen een vast tekenvlak;
+// de labels staan in gewone HTML eronder. Merkkleur = de reeks; een "zachte"
+// staaf (de lopende week) is half doorzichtig. Onder de grafiek een tabel voor schermlezers.
 
 export interface Kolom {
   label: string
@@ -22,42 +23,26 @@ interface Props {
   labelElke?: number
 }
 
-const H = 100
-
 export function Kolommen({ id, titel, beschrijving, kolommen, eenheid, labelElke = 1 }: Props) {
   const max = mooiMaximum(Math.max(0, ...kolommen.map((k) => k.waarde)))
   const n = Math.max(kolommen.length, 1)
   const breed = 100 / n
-  const gat = Math.min(breed * 0.28, 2.4)
+  const gat = Math.min(breed * 0.3, 2.4)
+  const nul = yVan(0)
+  const streepjes = [0, 0.5, 1].map((f) => ({ label: heel(max * f), fractie: f }))
   return (
     <figure className="club-cijfers-figuur">
-      <div className="club-cijfers-plot">
-        <div className="club-cijfers-yas" aria-hidden>
-          <span>{heel(max)}</span>
-          <span>{heel(max / 2)}</span>
-          <span>0</span>
-        </div>
-        <svg className="club-cijfers-svg" viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-labelledby={`${id}-t ${id}-d`}>
-          <title id={`${id}-t`}>{titel}</title>
-          <desc id={`${id}-d`}>{beschrijving}</desc>
-          {[0, 0.5, 1].map((f) => (
-            <line key={f} x1={0} x2={100} y1={H * f} y2={H * f} className="club-cijfers-raster" vectorEffect="non-scaling-stroke" />
-          ))}
-          {kolommen.map((k, i) => {
-            const h = (k.waarde / max) * H
-            return (
-              <rect key={k.naam} x={i * breed + gat / 2} width={breed - gat} y={H - h} height={h} className={k.zacht ? 'club-cijfers-staaf club-cijfers-staaf--zacht' : 'club-cijfers-staaf'}>
-                <title>{`${k.naam}: ${heel(k.waarde)} ${eenheid}`}</title>
-              </rect>
-            )
-          })}
-        </svg>
-      </div>
-      <div className="club-cijfers-xas" aria-hidden style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
-        {kolommen.map((k, i) => (
-          <span key={k.naam}>{i % labelElke === 0 || i === n - 1 ? k.label : ''}</span>
-        ))}
-      </div>
+      <Plot id={id} titel={titel} beschrijving={beschrijving} streepjes={streepjes}>
+        {kolommen.map((k, i) => {
+          const top = yVan(k.waarde / max)
+          return (
+            <rect key={k.naam} x={i * breed + gat / 2} width={breed - gat} y={top} height={Math.max(0, nul - top)} className={k.zacht ? 'club-cijfers-staaf club-cijfers-staaf--zacht' : 'club-cijfers-staaf'}>
+              <title>{`${k.naam}: ${heel(k.waarde)} ${eenheid}`}</title>
+            </rect>
+          )
+        })}
+      </Plot>
+      <XAs labels={kolommen.map((k) => k.label)} sleutels={kolommen.map((k) => k.naam)} labelElke={labelElke} />
       <table className="club-sr">
         <caption>{titel}</caption>
         <thead>

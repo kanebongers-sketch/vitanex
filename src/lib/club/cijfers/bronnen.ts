@@ -21,7 +21,6 @@ import {
   lidCijferUitRij,
   reserveringUitRij,
   rijenVan,
-  tekst,
 } from './rijen'
 
 export interface Bron<T> {
@@ -86,39 +85,6 @@ async function haalLessenLos(admin: SupabaseClient, userId: string, van: Date, t
     reserveringen.push(...rijenVan(r.rijen, reserveringUitRij))
   }
   return { data: telPerLes(lessen, reserveringen), fout: meld('Lessen', fout, lessenRuw.afgekapt) }
-}
-
-/** Laatste bezoek per lid van een vestiging. */
-export async function haalLaatsteBezoek(admin: SupabaseClient, userId: string, vestiging: Vestiging, sinds: Date): Promise<Bron<Map<string, Date>>> {
-  const uit = new Map<string, Date>()
-  const rpc = await haalAlles((a, b) => admin.rpc('club_laatste_bezoek', { p_user: userId, p_vestiging: vestiging }).range(a, b))
-  if (!rpc.fout) {
-    for (const v of rpc.rijen) {
-      const r = alsRij(v)
-      const id = r ? tekst(r.lid_id) : null
-      const op = r ? datum(r.laatste) : null
-      if (id && op) uit.set(id, op)
-    }
-    return { data: uit, fout: meld('Bezoek per lid', null, rpc.afgekapt) }
-  }
-  // Zonder de functie: alleen de recente check-ins, nieuwste eerst.
-  const los = await haalAlles((a, b) =>
-    admin
-      .from('club_checkins')
-      .select('lid_id, op')
-      .eq('user_id', userId)
-      .eq('vestiging', vestiging)
-      .gte('op', sinds.toISOString())
-      .order('op', { ascending: false })
-      .range(a, b),
-  )
-  for (const v of los.rijen) {
-    const r = alsRij(v)
-    const id = r ? tekst(r.lid_id) : null
-    const op = r ? datum(r.op) : null
-    if (id && op && !uit.has(id)) uit.set(id, op)
-  }
-  return { data: uit, fout: meld('Bezoek per lid', los.fout, los.afgekapt) }
 }
 
 export async function haalLedenCijfers(admin: SupabaseClient, userId: string, vestiging?: Vestiging): Promise<Bron<LidCijferRij[]>> {

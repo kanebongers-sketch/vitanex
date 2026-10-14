@@ -44,10 +44,18 @@ export function telStatussen(leden: readonly LidCijferRij[], dag: string): Statu
   return { actief, proef, gepauzeerd, opgezegdLopend }
 }
 
-/** Was dit lid (geen proeflid) op deze dag lid volgens lid sinds en einddatum? */
-function lidOp(l: LidCijferRij, dag: string): boolean {
+/**
+ * Telt dit lid mee in het ledenbestand? Geen proefleden, en een lid sinds is
+ * nodig. Gestopt zonder einddatum: we weten niet wanneer, dus niet meetellen.
+ */
+function telbaar(l: LidCijferRij): l is LidCijferRij & { lidSinds: string } {
   if (l.status === 'proef' || !l.lidSinds) return false
-  return l.lidSinds <= dag && (l.einddatum === null || l.einddatum > dag)
+  return !(l.status === 'gestopt' && l.einddatum === null)
+}
+
+/** Was dit lid op deze dag lid volgens lid sinds en einddatum? */
+export function lidOp(l: LidCijferRij, dag: string): boolean {
+  return telbaar(l) && l.lidSinds <= dag && (l.einddatum === null || l.einddatum > dag)
 }
 
 /** Ledenbestand aan het eind van elke week (zondag, of vandaag voor de lopende week). */
@@ -64,17 +72,23 @@ export interface Stroom {
   uitstroom: number[]
 }
 
-/** Instroom = lid sinds in die week (geen proeflid). Uitstroom = einddatum in die week, tot en met vandaag. */
+/**
+ * Instroom = lid sinds in die week. Uitstroom = einddatum in die week, tot en
+ * met vandaag. Dezelfde leden als het ledenbestand (zie telbaar), zodat
+ * instroom min uitstroom precies de groei van het bestand is.
+ */
 export function stroomPerWeek(leden: readonly LidCijferRij[], maandagen: readonly string[], vandaag: string): Stroom {
   const instroom = maandagen.map(() => 0)
   const uitstroom = maandagen.map(() => 0)
   const index = (dag: string): number => maandagen.findIndex((ma) => dag >= ma && dag <= plusDagen(ma, 6))
   for (const l of leden) {
-    if (l.lidSinds && l.status !== 'proef' && l.lidSinds <= vandaag) {
+    if (!telbaar(l)) continue
+    const blijft = l.einddatum === null || l.einddatum > l.lidSinds
+    if (blijft && l.lidSinds <= vandaag) {
       const i = index(l.lidSinds)
       if (i >= 0) instroom[i] += 1
     }
-    if (l.einddatum && l.einddatum <= vandaag) {
+    if (l.einddatum && blijft && l.einddatum <= vandaag) {
       const i = index(l.einddatum)
       if (i >= 0) uitstroom[i] += 1
     }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Cake } from 'lucide-react'
 import type { Jarige, VandaagLid } from '@/lib/club/cijfers/vandaag'
+import { aantal } from '@/lib/club/cijfers/opmaak'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { initialen } from '@/lib/club/kern/lid'
@@ -10,11 +11,11 @@ import { initialen } from '@/lib/club/kern/lid'
 export function NieuwDezeWeek({ leden, vestiging }: { leden: VandaagLid[]; vestiging: Vestiging }) {
   const proef = leden.filter((l) => l.status === 'proef').length
   return (
-    <section className="club-kaart club-kaart--vlak" aria-labelledby="vandaag-nieuw">
-      <header className="club-sectiekop">
+    <section className="club-kaart club-kaart--vlak club-vandaag-kaart" aria-labelledby="vandaag-nieuw">
+      <header className="club-sectiekop club-vandaag-sectiekop">
         <h2 id="vandaag-nieuw">Nieuw deze week</h2>
         <span>
-          {leden.length - proef} leden · {proef} proefleden
+          {aantal(leden.length - proef, 'nieuw lid', 'nieuwe leden')} · {aantal(proef, 'proeflid', 'proefleden')}
         </span>
       </header>
       {leden.length === 0 ? (
@@ -27,13 +28,12 @@ export function NieuwDezeWeek({ leden, vestiging }: { leden: VandaagLid[]; vesti
                 <span className="club-avatar" aria-hidden>
                   {initialen(l)}
                 </span>
-                <span className="club-rij-hoofd">
+                <span className="club-rij-hoofd club-vandaag-gezicht-tekst">
                   <span className="club-rij-titel">
                     {l.voornaam} {l.achternaam}
                   </span>
-                  <span className="club-rij-sub">
-                    {l.status === 'proef' ? 'Proeflid' : (l.abonnement ?? 'Lid')} · sinds {l.lidSinds ? dagKort(l.lidSinds) : 'onbekend'}
-                  </span>
+                  <span className="club-rij-sub">{l.status === 'proef' ? 'Proeflid' : (l.abonnement ?? 'Lid')}</span>
+                  <span className="club-rij-sub">Sinds {l.lidSinds ? dagKort(l.lidSinds) : 'onbekend'}</span>
                 </span>
               </Link>
             </li>
@@ -46,15 +46,15 @@ export function NieuwDezeWeek({ leden, vestiging }: { leden: VandaagLid[]; vesti
 
 export function JarigVandaag({ jarigen, vestiging }: { jarigen: Jarige[]; vestiging: Vestiging }) {
   return (
-    <section className="club-kaart club-kaart--vlak" aria-labelledby="vandaag-jarig">
-      <header className="club-sectiekop">
+    <section className="club-kaart club-kaart--vlak club-vandaag-kaart" aria-labelledby="vandaag-jarig">
+      <header className="club-sectiekop club-vandaag-sectiekop">
         <h2 id="vandaag-jarig">Jarig vandaag</h2>
         <Cake aria-hidden size={18} className="club-vandaag-taart" />
       </header>
       {jarigen.length === 0 ? (
         <p className="club-leeg">Vandaag is er niemand jarig.</p>
       ) : (
-        <ul className="club-lijst">
+        <ul className="club-lijst club-vandaag-lijst">
           {jarigen.map(({ lid, leeftijd }) => (
             <li key={lid.id}>
               <Link href={clubPad(`/leden/${lid.id}`, vestiging)} className="club-rij club-vandaag-rijlink">

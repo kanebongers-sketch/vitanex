@@ -29,16 +29,57 @@
 .club-vandaag-feit-sub .club-plus { color: var(--club-ok); font-weight: 700; }
 .club-vandaag-feit-sub .club-min { color: var(--club-let-op); font-weight: 700; }
 
-/* ── Kolom rechts ────────────────────────────────────────────────────────── */
-.club-vandaag-stapel { display: grid; gap: 16px; align-content: start; }
-.club-vandaag-meer { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; transition: color 160ms var(--ease); }
+/* ── Raster: paren op gelijke hoogte ─────────────────────────────────────── */
+.club-raster.club-vandaag-raster > .club-vandaag-vol { grid-column: 1 / -1; }
+@media (min-width: 700px) and (max-width: 999px) {
+  .club-raster.club-vandaag-raster > .club-k5, .club-raster.club-vandaag-raster > .club-k7 { grid-column: span 6; }
+}
+.club-vandaag-raster > div { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.club-vandaag-raster > div > :last-child { flex: 1 1 auto; }
+.club-vandaag-kaart { display: flex; flex-direction: column; min-width: 0; }
+.club-vandaag-sectiekop { flex-wrap: wrap; row-gap: 4px; }
+.club-vandaag-telling { margin-left: 6px; color: var(--club-let-op); }
+.club-vandaag-meer { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; text-decoration: none; transition: color 160ms var(--ease); }
 .club-vandaag-meer:hover { color: var(--brand); }
 .club-vandaag-uitleg { margin: -4px 0 6px; }
+.club-vandaag-voet { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-3); }
+
+/* Lijsten: de link is de rij, de lijn staat tussen de items. */
+.club-vandaag-lijst > li + li { border-top: 1px solid var(--line); }
+.club-vandaag-lijst .club-rij { border-bottom: 0; }
 .club-vandaag-rijlink { color: inherit; text-decoration: none; border-radius: var(--club-radius-klein); padding-left: 6px; padding-right: 6px; transition: background-color 140ms var(--ease); }
 .club-vandaag-rijlink:hover { background: var(--club-vlak-hover); }
 .club-vandaag-rijlink:hover .club-rij-titel { color: var(--brand); }
-.club-vandaag-weg { flex: none; font-size: 13px; color: var(--text-3); white-space: nowrap; }
-.club-vandaag-weg strong { font-family: var(--ff-kop); font-size: 22px; color: var(--club-let-op); margin-right: 2px; }
+
+/* Risico: reden mag over twee regels, rechts hoe lang weg en de score. */
+.club-vandaag-risicorij { align-items: flex-start; }
+.club-vandaag-risicorij .club-avatar { margin-top: 2px; background: var(--club-let-op-zacht); color: var(--club-let-op); }
+.club-vandaag-reden { font-size: 12.5px; line-height: 1.45; color: var(--text-3); }
+.club-vandaag-weg { flex: none; display: grid; justify-items: end; gap: 2px; font-size: 12.5px; color: var(--text-3); white-space: nowrap; text-align: right; }
+.club-vandaag-weg strong { font-family: var(--ff-kop); font-size: 24px; line-height: 1; color: var(--club-let-op); margin-right: 2px; }
+.club-vandaag-score { font-size: 12px; color: var(--text-3); }
+.club-vandaag-score .club-getal { color: var(--text-2); font-weight: 600; }
+
+/* Wie werkt er: stip in de roosterkleur van de medewerker (zelfde menging als Personeel). */
+.club-vandaag-dienst { display: flex; align-items: center; gap: 12px; padding: 9px 2px; min-width: 0; }
+.club-vandaag-dienst[data-fase='geweest'] { opacity: 0.6; }
+.club-vandaag-dienst[data-open] .club-rij-titel { color: var(--club-let-op); }
+.club-vandaag-stip { flex: none; width: 10px; height: 10px; border-radius: 999px; background: var(--text-3); }
+.club-vandaag-dienst[data-open] .club-vandaag-stip { background: transparent; border: 2px dashed var(--club-let-op); }
+.club-vandaag-stip[data-kleur='amber'] { background: var(--brand); }
+.club-vandaag-stip[data-kleur='blauw'] { background: var(--club-info); }
+.club-vandaag-stip[data-kleur='groen'] { background: var(--club-ok); }
+.club-vandaag-stip[data-kleur='turkoois'] { background: color-mix(in srgb, var(--club-ok) 50%, var(--club-info)); }
+.club-vandaag-stip[data-kleur='lila'] { background: color-mix(in srgb, var(--club-info) 55%, var(--club-let-op)); }
+.club-vandaag-stip[data-kleur='roze'] { background: color-mix(in srgb, var(--club-let-op) 50%, var(--text-1)); }
+.club-vandaag-stip[data-kleur='geel'] { background: color-mix(in srgb, var(--brand) 50%, var(--text-1)); }
+.club-vandaag-stip[data-kleur='zand'] { background: var(--text-3); }
+
+/* Taken: groot getal, voortgangsbalk, open taken, afsluitronde. */
+.club-vandaag-taakstand { margin: 0; display: flex; align-items: baseline; gap: 8px; color: var(--text-3); font-size: 14px; }
+.club-vandaag-taakstand strong { font-family: var(--ff-kop); font-size: 48px; line-height: 0.9; color: var(--text-1); }
+.club-vandaag-open { margin: 10px 0; }
+.club-vandaag-kaart > .club-chip { align-self: flex-start; white-space: normal; margin-top: 4px; }
 
 /* ── Tijdlijn ────────────────────────────────────────────────────────────── */
 .club-vandaag-tijdlijn { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -48,6 +89,7 @@
 .club-vandaag-punt { position: relative; z-index: 1; width: 11px; height: 11px; margin: 7px 0 0 3px; border-radius: 999px; border: 2px solid var(--text-3); background: var(--bg-card); }
 .club-vandaag-lesinhoud { display: grid; gap: 4px; min-width: 0; }
 .club-vandaag-lesnaam { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; font-size: 15.5px; }
+.club-vandaag-lessub { margin: 0; font-size: 12.5px; color: var(--text-3); }
 .club-vandaag-les[data-fase='voorbij'] { opacity: 0.55; }
 .club-vandaag-les[data-fase='voorbij'] .club-vandaag-punt { background: var(--text-3); }
 .club-vandaag-les[data-fase='bezig'] .club-vandaag-punt { border-color: var(--brand); background: var(--brand); box-shadow: 0 0 0 4px var(--brand-soft); }
@@ -61,15 +103,40 @@
 
 .club-vandaag-bezetting { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
 .club-vandaag-balk { position: relative; width: min(180px, 40vw); height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-vandaag-balk--breed { display: block; width: 100%; margin-top: 10px; }
 .club-vandaag-balk span { position: absolute; inset: 0; background: var(--brand); transform-origin: left; border-radius: inherit; transition: transform 400ms var(--ease); }
+.club-vandaag-balk span[data-vol] { background: var(--club-let-op); }
+.club-vandaag-balk span[data-klaar] { background: var(--club-ok); }
+
+/* Ingeklapte lessen van eerder vandaag. */
+.club-vandaag-eerder { padding: 2px 0 6px; }
+.club-vandaag-eerder summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; border: 1px dashed var(--line-strong); border-radius: 999px; font-size: 13px; color: var(--text-3); list-style: none; transition: color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-vandaag-eerder summary::-webkit-details-marker { display: none; }
+.club-vandaag-eerder summary::before { content: '+'; margin-right: 6px; font-weight: 700; }
+.club-vandaag-eerder details[open] summary::before { content: '2'; }
+.club-vandaag-eerder summary:hover { color: var(--text-1); border-color: var(--text-3); }
+.club-vandaag-eerder summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ── Nieuw en jarig ──────────────────────────────────────────────────────── */
 .club-vandaag-gezichten { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .club-vandaag-gezicht { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: var(--club-radius-klein); color: inherit; text-decoration: none; min-width: 0; transition: background-color 140ms var(--ease); }
 .club-vandaag-gezicht:hover { background: var(--club-vlak-hover); }
 .club-vandaag-gezicht:hover .club-rij-titel { color: var(--brand); }
+.club-vandaag-gezicht-tekst .club-rij-titel, .club-vandaag-gezicht-tekst .club-rij-sub { white-space: normal; overflow-wrap: anywhere; }
 .club-vandaag-taart { color: var(--brand); }
+
+@media (max-width: 480px) {
+  .club-vandaag-feit { padding: 14px 16px; }
+  .club-vandaag-nu { padding: 18px 16px 20px; min-height: 180px; }
+  .club-vandaag-nu::before { left: 16px; top: 18px; }
+  .club-vandaag-les { grid-template-columns: 48px 18px minmax(0, 1fr); gap: 0 8px; }
+  .club-vandaag-les::before { left: 64px; }
+  .club-vandaag-lestijd { font-size: 19px; }
+  .club-vandaag-nustreep::before { width: 56px; }
+  .club-vandaag-gezichten { grid-template-columns: minmax(0, 1fr); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .club-vandaag-nu::before { animation: none; }
+  .club-vandaag-balk span { transition: none; }
 }

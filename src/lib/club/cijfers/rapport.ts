@@ -8,6 +8,7 @@ import {
   geslachtsverdeling,
   isActiefLid,
   ledenbestandPerWeek,
+  lidOp,
   leeftijdsverdeling,
   stroomPerWeek,
   telStatussen,
@@ -87,8 +88,9 @@ export function gemiddeldPerWeek(reeks: readonly number[]): number {
   return compleet.length > 0 ? som(compleet) / compleet.length : 0
 }
 
+/** Ledenbestand op een dag, met precies de regels van de grafiek (lidOp). */
 function bestandOp(leden: readonly LidCijferRij[], dag: string): number {
-  return leden.filter((l) => l.status !== 'proef' && l.lidSinds !== null && l.lidSinds <= dag && (l.einddatum === null || l.einddatum > dag)).length
+  return leden.filter((l) => lidOp(l, dag)).length
 }
 
 function vestigingRij(inv: RapportInvoer, v: Vestiging): VestigingRij {

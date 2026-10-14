@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react'
 import { WEEKDAG_KORT, weekdagNaam } from '@/lib/club/cijfers/tijd'
 import { heel } from '@/lib/club/cijfers/opmaak'
 
-// Drukte per weekdag en uur als heatmap. Cellen in SVG, labels in HTML.
-// Amber met meer dekking = drukker; leeg = geen enkele check-in.
+// Drukte per weekdag en uur als heatmap: een CSS-raster met vaste rijhoogte,
+// dagen links en uren eronder in hetzelfde raster, dus altijd uitgelijnd en
+// nooit buiten de kaart. Meer dekking = drukker; leeg vlak = geen check-in.
 
 interface Props {
   raster: number[][]
@@ -10,52 +12,40 @@ interface Props {
   beschrijving: string
 }
 
-const CEL = 10
+function Cel({ n, max, titel }: { n: number; max: number; titel: string }) {
+  const stijl: CSSProperties | undefined = n === 0 ? undefined : { opacity: 0.16 + 0.84 * (n / max) }
+  return <span className={n === 0 ? 'club-cijfers-cel club-cijfers-cel--leeg' : 'club-cijfers-cel'} style={stijl} title={titel} />
+}
 
 export function Drukte({ raster, uren, beschrijving }: Props) {
-  const max = Math.max(1, ...raster.flat())
-  const breedte = uren.length * CEL
+  const max = Math.max(0, ...raster.flat())
+  if (max === 0 || uren.length === 0) return <p className="club-leeg">In deze periode zijn nog geen check-ins geregistreerd.</p>
   return (
     <figure className="club-cijfers-figuur club-cijfers-drukte">
-      <div className="club-cijfers-drukte-vlak">
-        <div className="club-cijfers-drukte-dagen" aria-hidden>
-          {WEEKDAG_KORT.map((d) => (
-            <span key={d}>{d}</span>
+      <div className="club-cijfers-drukte-raster" aria-hidden style={{ gridTemplateColumns: `28px repeat(${uren.length}, minmax(0, 1fr))` }}>
+        {raster.map((rij, d) => (
+          <div key={WEEKDAG_KORT[d]} className="club-cijfers-drukte-rij">
+            <span className="club-cijfers-drukte-dag">{WEEKDAG_KORT[d]}</span>
+            {uren.map((uur) => (
+              <Cel key={uur} n={rij[uur] ?? 0} max={max} titel={`${weekdagNaam(d + 1)} ${uur}:00: ${heel(rij[uur] ?? 0)} check-ins`} />
+            ))}
+          </div>
+        ))}
+        <div className="club-cijfers-drukte-rij">
+          <span />
+          {uren.map((u) => (
+            <span key={u} className="club-cijfers-drukte-uur">
+              {u % 3 === 0 ? `${u}` : ''}
+            </span>
           ))}
         </div>
-        <svg className="club-cijfers-drukte-svg" viewBox={`0 0 ${breedte} ${7 * CEL}`} preserveAspectRatio="none" role="img" aria-labelledby="drukte-t drukte-d">
-          <title id="drukte-t">Drukte per weekdag en uur</title>
-          <desc id="drukte-d">{beschrijving}</desc>
-          {raster.map((rij, d) =>
-            uren.map((uur, i) => {
-              const n = rij[uur] ?? 0
-              return (
-                <rect
-                  key={`${d}-${uur}`}
-                  x={i * CEL + 0.6}
-                  y={d * CEL + 0.6}
-                  width={CEL - 1.2}
-                  height={CEL - 1.2}
-                  rx={1.2}
-                  className={n === 0 ? 'club-cijfers-cel club-cijfers-cel--leeg' : 'club-cijfers-cel'}
-                  style={n === 0 ? undefined : { opacity: 0.14 + 0.86 * (n / max) }}
-                >
-                  <title>{`${weekdagNaam(d + 1)} ${uur}:00: ${heel(n)} check-ins`}</title>
-                </rect>
-              )
-            }),
-          )}
-        </svg>
-      </div>
-      <div className="club-cijfers-drukte-uren" aria-hidden style={{ gridTemplateColumns: `repeat(${uren.length}, minmax(0, 1fr))` }}>
-        {uren.map((u) => (
-          <span key={u}>{u % 3 === 0 ? `${u}` : ''}</span>
-        ))}
       </div>
       <figcaption className="club-cijfers-schaal">
+        <span className="club-sr">{beschrijving}</span>
         <span>Rustig</span>
         <span className="club-cijfers-schaal-balk" aria-hidden />
         <span>Druk</span>
+        <span className="club-cijfers-schaal-max">max {heel(max)} per uur over de periode</span>
       </figcaption>
       <table className="club-sr">
         <caption>Check-ins per weekdag en uur</caption>

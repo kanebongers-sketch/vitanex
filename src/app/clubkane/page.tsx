@@ -5,7 +5,9 @@ import { haalVandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { dagLang, tijdNl } from '@/lib/club/cijfers/tijd'
 import { VandaagHero } from '@/components/club/vandaag/VandaagHero'
 import { LesTijdlijn } from '@/components/club/vandaag/LesTijdlijn'
-import { LeadsOpvolgen, RisicoLeden } from '@/components/club/vandaag/Opvolgen'
+import { LeadsOpvolgen } from '@/components/club/vandaag/Opvolgen'
+import { RisicoLeden } from '@/components/club/vandaag/RisicoLeden'
+import { TakenVandaag, WieWerkt } from '@/components/club/vandaag/Werkvloer'
 import { JarigVandaag, NieuwDezeWeek } from '@/components/club/vandaag/NieuwEnJarig'
 import '@/components/club/vandaag/vandaag.css'
 
@@ -28,7 +30,9 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
             {weekdag} <span>{rest.join(' ')}</span>
           </h1>
         </div>
-        <p className="club-vandaag-stand">Stand van {tijdNl(data.nu)}</p>
+        <p className="club-vandaag-stand">
+          Stand van <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
+        </p>
       </header>
 
       {data.meldingen.map((m) => (
@@ -39,19 +43,23 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
 
       <VandaagHero data={data} />
 
-      <div className="club-raster">
+      <div className="club-raster club-vandaag-raster">
         <div className="club-k7">
           <LesTijdlijn lessen={data.lessen} nu={data.nu} roosterPad={clubPad('/rooster', vestiging)} />
         </div>
         <div className="club-k5 club-vandaag-stapel">
+          <WieWerkt diensten={data.werkvloer.diensten} vestiging={vestiging} />
+          <TakenVandaag stand={data.werkvloer.taken} heeftTaken={data.werkvloer.heeftTaken} vestiging={vestiging} />
+        </div>
+        <div className="club-k7">
+          <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />
+        </div>
+        <div className="club-k5 club-vandaag-stapel">
           <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />
-          <RisicoLeden leden={data.risico} vandaag={data.vandaag} vestiging={vestiging} />
-        </div>
-        <div className="club-k8">
-          <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
-        </div>
-        <div className="club-k4">
           <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />
+        </div>
+        <div className="club-vandaag-vol">
+          <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
         </div>
       </div>
     </>

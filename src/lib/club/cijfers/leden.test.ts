@@ -41,6 +41,21 @@ describe('ledenbestand en stroom', () => {
   it('telt instroom zonder proefleden en uitstroom tot vandaag', () => {
     expect(stroomPerWeek(leden, maandagen, VANDAAG)).toEqual({ instroom: [0, 1, 0], uitstroom: [1, 0, 0] })
   })
+
+  it('laat instroom min uitstroom precies de groei van het bestand zijn', () => {
+    const meer = [
+      ...leden,
+      lid({ lidSinds: null, status: 'gestopt', einddatum: '2026-10-07' }),
+      lid({ lidSinds: '2026-09-01', status: 'proef', einddatum: '2026-10-08' }),
+      lid({ lidSinds: '2024-01-01', status: 'gestopt', einddatum: null }),
+      lid({ lidSinds: '2026-09-30', status: 'opgezegd', einddatum: '2026-10-14' }),
+    ]
+    const bestand = ledenbestandPerWeek(meer, maandagen, VANDAAG)
+    const voorStart = ledenbestandPerWeek(meer, ['2026-09-21'], VANDAAG)[0]
+    const { instroom, uitstroom } = stroomPerWeek(meer, maandagen, VANDAAG)
+    const som = (r: number[]) => r.reduce((a, b) => a + b, 0)
+    expect(som(instroom) - som(uitstroom)).toBe(bestand[2] - voorStart)
+  })
 })
 
 describe('demografie', () => {

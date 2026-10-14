@@ -1,7 +1,9 @@
-import { heel, mooiMaximum } from '@/lib/club/cijfers/opmaak'
+import { heel, metTeken, mooieAs, mooiMaximum } from '@/lib/club/cijfers/opmaak'
+import { Plot, XAs, yVan } from './Plot'
 
-// Ledenbestand als amber lijn, met daaronder instroom (lichtgrijs, omhoog) en
-// uitstroom (donkergrijs, omlaag) per week. Twee SVG's die dezelfde x-as delen.
+// Twee grafieken met elk een eigen schaal, onder elkaar op dezelfde weken:
+// boven het ledenbestand als lijn (as rond de echte waarden, niet vanaf nul),
+// onder instroom (groen, omhoog) en uitstroom (koraal, omlaag) als staven rond nul.
 
 interface Props {
   labels: string[]
@@ -12,73 +14,90 @@ interface Props {
   labelElke: number
 }
 
-const H = 100
+function xMidden(i: number, n: number): number {
+  return ((i + 0.5) / n) * 100
+}
 
-function lijnPad(waarden: number[], min: number, max: number): string {
-  const n = waarden.length
-  const bereik = Math.max(max - min, 1)
-  return waarden
-    .map((w, i) => {
-      const x = n === 1 ? 50 : ((i + 0.5) / n) * 100
-      const y = H - ((w - min) / bereik) * H
-      return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`
-    })
-    .join(' ')
+function Bestand({ namen, bestand }: Pick<Props, 'namen' | 'bestand'>) {
+  const n = Math.max(bestand.length, 1)
+  const as = mooieAs(Math.min(...bestand), Math.max(...bestand))
+  const f = (w: number) => (w - as.min) / Math.max(as.max - as.min, 1)
+  const punten = bestand.map((w, i) => `${xMidden(i, n).toFixed(2)},${yVan(f(w)).toFixed(2)}`)
+  const lijn = punten.length === 1 ? `M0,${yVan(f(bestand[0])).toFixed(2)} L100,${yVan(f(bestand[0])).toFixed(2)}` : `M${punten.join(' L')}`
+  const vlak = punten.length > 1 ? `${lijn} L${xMidden(n - 1, n).toFixed(2)},${yVan(0)} L${xMidden(0, n).toFixed(2)},${yVan(0)} Z` : null
+  return (
+    <Plot
+      id="groei-bestand"
+      titel="Ledenbestand per week"
+      beschrijving={`Van ${heel(bestand[0] ?? 0)} naar ${heel(bestand.at(-1) ?? 0)} leden over ${n} weken.`}
+      streepjes={as.streepjes.map((w) => ({ label: heel(w), fractie: f(w) }))}
+    >
+      {vlak && <path d={vlak} className="club-cijfers-vlak" />}
+      <path d={lijn} className="club-cijfers-lijn" vectorEffect="non-scaling-stroke" />
+      {bestand.map((w, i) => (
+        <rect key={namen[i]} x={(i / n) * 100} width={100 / n} y={0} height={100} className="club-cijfers-raak">
+          <title>{`${namen[i]}: ${heel(w)} leden`}</title>
+        </rect>
+      ))}
+    </Plot>
+  )
+}
+
+function Stroom({ namen, instroom, uitstroom }: Pick<Props, 'namen' | 'instroom' | 'uitstroom'>) {
+  const n = Math.max(instroom.length, 1)
+  const max = mooiMaximum(Math.max(1, ...instroom, ...uitstroom))
+  const breed = 100 / n
+  const gat = Math.min(breed * 0.3, 2.4)
+  const nul = yVan(0.5)
+  return (
+    <Plot
+      id="groei-stroom"
+      titel="Instroom en uitstroom per week"
+      beschrijving={`${heel(instroom.reduce((s, w) => s + w, 0))} nieuwe leden en ${heel(uitstroom.reduce((s, w) => s + w, 0))} vertrokken leden over ${n} weken.`}
+      streepjes={[
+        { label: `+${heel(max)}`, fractie: 1 },
+        { label: '0', fractie: 0.5 },
+        { label: `−${heel(max)}`, fractie: 0 },
+      ]}
+      laag
+    >
+      {instroom.map((w, i) => {
+        const top = yVan(0.5 + (w / max) * 0.5)
+        return (
+          <rect key={`in-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={top} height={nul - top} className="club-cijfers-staaf--in">
+            <title>{`${namen[i]}: ${heel(w)} nieuw`}</title>
+          </rect>
+        )
+      })}
+      {uitstroom.map((w, i) => (
+        <rect key={`uit-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={nul} height={yVan(0.5 - (w / max) * 0.5) - nul} className="club-cijfers-staaf--uit">
+          <title>{`${namen[i]}: ${heel(w)} vertrokken`}</title>
+        </rect>
+      ))}
+    </Plot>
+  )
 }
 
 export function GroeiGrafiek({ labels, namen, bestand, instroom, uitstroom, labelElke }: Props) {
-  const laag = Math.min(...bestand)
-  const hoog = Math.max(...bestand)
-  const marge = Math.max(2, Math.ceil((hoog - laag) * 0.25))
-  const min = Math.max(0, laag - marge)
-  const max = hoog + marge
-  const stroomMax = mooiMaximum(Math.max(1, ...instroom, ...uitstroom))
-  const n = Math.max(bestand.length, 1)
-  const breed = 100 / n
-  const pad = lijnPad(bestand, min, max)
+  if (bestand.length === 0) return <p className="club-leeg">Nog geen weken om te tonen.</p>
+  const netto = instroom.reduce((s, w) => s + w, 0) - uitstroom.reduce((s, w) => s + w, 0)
   return (
-    <figure className="club-cijfers-figuur">
-      <div className="club-cijfers-plot">
-        <div className="club-cijfers-yas" aria-hidden>
-          <span>{heel(max)}</span>
-          <span>{heel((max + min) / 2)}</span>
-          <span>{heel(min)}</span>
-        </div>
-        <svg className="club-cijfers-svg" viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-labelledby="groei-t groei-d">
-          <title id="groei-t">Ledenbestand per week</title>
-          <desc id="groei-d">{`Van ${heel(bestand[0] ?? 0)} naar ${heel(bestand.at(-1) ?? 0)} leden over ${n} weken.`}</desc>
-          {[0, 0.5, 1].map((f) => (
-            <line key={f} x1={0} x2={100} y1={H * f} y2={H * f} className="club-cijfers-raster" vectorEffect="non-scaling-stroke" />
-          ))}
-          <path d={`${pad} L${(((n - 0.5) / n) * 100).toFixed(2)},${H} L${((0.5 / n) * 100).toFixed(2)},${H} Z`} className="club-cijfers-vlak" />
-          <path d={pad} className="club-cijfers-lijn" vectorEffect="non-scaling-stroke" />
-        </svg>
+    <figure className="club-cijfers-figuur club-cijfers-groei">
+      <div className="club-cijfers-deel">
+        <p className="club-cijfers-deelkop">
+          Ledenbestand <span>aan het eind van elke week</span>
+        </p>
+        <Bestand namen={namen} bestand={bestand} />
       </div>
-      <div className="club-cijfers-plot club-cijfers-plot--stroom">
-        <div className="club-cijfers-yas" aria-hidden>
-          <span>+{heel(stroomMax)}</span>
-          <span>0</span>
-          <span>{'−'}{heel(stroomMax)}</span>
-        </div>
-        <svg className="club-cijfers-svg" viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" aria-hidden>
-          <line x1={0} x2={100} y1={H / 2} y2={H / 2} className="club-cijfers-raster" vectorEffect="non-scaling-stroke" />
-          {instroom.map((w, i) => {
-            const h = (w / stroomMax) * (H / 2)
-            return <rect key={`in-${namen[i]}`} x={i * breed + breed * 0.18} width={breed * 0.64} y={H / 2 - h} height={h} className="club-cijfers-staaf--in" />
-          })}
-          {uitstroom.map((w, i) => {
-            const h = (w / stroomMax) * (H / 2)
-            return <rect key={`uit-${namen[i]}`} x={i * breed + breed * 0.18} width={breed * 0.64} y={H / 2} height={h} className="club-cijfers-staaf--uit" />
-          })}
-        </svg>
-      </div>
-      <div className="club-cijfers-xas" aria-hidden style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
-        {labels.map((l, i) => (
-          <span key={namen[i]}>{i % labelElke === 0 || i === n - 1 ? l : ''}</span>
-        ))}
+      <div className="club-cijfers-deel">
+        <p className="club-cijfers-deelkop">
+          Instroom en uitstroom <span>netto {metTeken(netto)}</span>
+        </p>
+        <Stroom namen={namen} instroom={instroom} uitstroom={uitstroom} />
+        <XAs labels={labels} sleutels={namen} labelElke={labelElke} />
       </div>
       <figcaption className="club-cijfers-legenda">
-        <span data-reeks="hoofd">Ledenbestand</span>
+        <span data-reeks="lijn">Ledenbestand</span>
         <span data-reeks="in">Instroom</span>
         <span data-reeks="uit">Uitstroom</span>
       </figcaption>

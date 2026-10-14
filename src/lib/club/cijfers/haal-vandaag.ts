@@ -1,23 +1,28 @@
 // ─── Fit Factory Club: Vandaag ophalen (SERVER) ─────────────────────────────
-// Zes gerichte queries tegelijk voor een vestiging, daarna puur rekenen.
+// Gerichte queries tegelijk voor een vestiging, daarna puur rekenen. Leden met
+// risico komen uit de behoudsscore (haal-risico.ts), dezelfde als de ledenlijst.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { haalLaatsteBezoek } from './bronnen'
+import { haalRisico } from './haal-risico'
+import { haalWerkvloer, type Werkvloer } from './haal-werkvloer'
 import { haalAlles } from './pagina'
+import type { RisicoLid } from './risico'
 import { alsRij, dag, datum, getal, ingeslotenNaam, isLidStatus, rijenVan, tekst } from './rijen'
-import { dagSleutel, dagStart, maandagVan, plusDagen } from './tijd'
+import { dagSleutel, dagStart, maandagVan, plusDagen, tijdNl } from './tijd'
 import {
   jarigen,
   nieuwDezeWeek,
   nuBinnen,
-  risicoLeden,
-  verschil,
+  vergelijkMetVorigeWeek,
+  type CheckinMoment,
   type Jarige,
-  type RisicoLid,
   type VandaagLid,
   type Verschil,
 } from './vandaag'
+
+/** Zoveel leden met risico staan er op Vandaag; de rest staat in de ledenlijst. */
+export const RISICO_ZICHTBAAR = 8
 
 export interface VandaagLes {
   id: string
@@ -47,12 +52,16 @@ export interface Vandaag {
   nuBinnen: number
   checkinsVandaag: number
   checkinsVorigeWeek: number
-  verschil: Verschil
+  /** Null als er vorige week op deze dag geen check-ins zijn geregistreerd. */
+  verschil: Verschil | null
   lessen: VandaagLes[]
   proeflessen: VandaagLead[]
   opvolgen: VandaagLead[]
   opvolgenTotaal: number
   risico: RisicoLid[]
+  /** Laatste bezoek ooit voor zichtbare risicoleden zonder bezoek in 12 weken. */
+  laatsteOoit: Map<string, Date | null>
+  werkvloer: Werkvloer
   nieuw: VandaagLid[]
   jarig: Jarige[]
   meldingen: string[]
@@ -136,51 +145,73 @@ async function haalLeadsVandaag(admin: SupabaseClient, userId: string, vestiging
   }
 }
 
+function checkinUitRij(v: unknown): CheckinMoment | null {
+  const r = alsRij(v)
+  const op = r ? datum(r.op) : null
+  return r && op ? { lidId: tekst(r.lid_id), op } : null
+}
+
+function telVraag(admin: SupabaseClient, userId: string, vestiging: Vestiging, van: Date, tot: Date) {
+  return admin
+    .from('club_checkins')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('vestiging', vestiging)
+    .gte('op', van.toISOString())
+    .lt('op', tot.toISOString())
+}
+
+function haalLedenVandaag(admin: SupabaseClient, userId: string, vestiging: Vestiging) {
+  return haalAlles((a, b) =>
+    admin
+      .from('club_leden')
+      .select('id, voornaam, achternaam, status, lid_sinds, einddatum, geboortedatum, abonnement')
+      .eq('user_id', userId)
+      .eq('vestiging', vestiging)
+      .order('id')
+      .range(a, b),
+  )
+}
+
 export async function haalVandaag(admin: SupabaseClient, userId: string, vestiging: Vestiging, nu = new Date()): Promise<Vandaag> {
   const vandaag = dagSleutel(nu)
   const start = dagStart(vandaag)
   const morgen = dagStart(plusDagen(vandaag, 1))
-  const week = 7 * 86_400_000
-  const [checkins, vorige, lessen, leads, leden, laatste] = await Promise.all([
-    haalAlles((a, b) => admin.from('club_checkins').select('op').eq('user_id', userId).eq('vestiging', vestiging).gte('op', start.toISOString()).order('op').range(a, b)),
-    admin
-      .from('club_checkins')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('vestiging', vestiging)
-      .gte('op', new Date(start.getTime() - week).toISOString())
-      .lte('op', new Date(nu.getTime() - week).toISOString()),
+  const vorigeStart = dagStart(plusDagen(vandaag, -7))
+  const vorigeNu = new Date(vorigeStart.getTime() + (nu.getTime() - start.getTime()))
+  const [checkins, vorigeTotNu, vorigeDag, lessen, leads, leden, risico, werkvloer] = await Promise.all([
+    haalAlles((a, b) => admin.from('club_checkins').select('lid_id, op').eq('user_id', userId).eq('vestiging', vestiging).gte('op', start.toISOString()).order('op').range(a, b)),
+    telVraag(admin, userId, vestiging, vorigeStart, new Date(vorigeNu.getTime() + 1)),
+    telVraag(admin, userId, vestiging, vorigeStart, dagStart(plusDagen(vandaag, -6))),
     haalLessenVandaag(admin, userId, vestiging, start, morgen),
     haalLeadsVandaag(admin, userId, vestiging, vandaag, start, morgen),
-    haalAlles((a, b) =>
-      admin
-        .from('club_leden')
-        .select('id, voornaam, achternaam, status, lid_sinds, einddatum, geboortedatum, abonnement')
-        .eq('user_id', userId)
-        .eq('vestiging', vestiging)
-        .order('id')
-        .range(a, b),
-    ),
-    haalLaatsteBezoek(admin, userId, vestiging, new Date(nu.getTime() - 120 * 86_400_000)),
+    haalLedenVandaag(admin, userId, vestiging),
+    haalRisico(admin, userId, vestiging, nu, RISICO_ZICHTBAAR),
+    haalWerkvloer(admin, userId, vestiging, vandaag, tijdNl(nu)),
   ])
-  const ops = rijenVan(checkins.rijen, (v) => datum(alsRij(v)?.op))
+  const ops = rijenVan(checkins.rijen, checkinUitRij)
   const ledenLijst = rijenVan(leden.rijen, vandaagLidUitRij)
-  const fouten = [checkins.fout, vorige.error?.message, lessen.fout, leads.fout, leden.fout]
+  const fouten = [checkins.fout, vorigeTotNu.error?.message, vorigeDag.error?.message, lessen.fout, leads.fout, leden.fout]
   for (const f of fouten) if (f) console.error('[club/vandaag] laden mislukt', f)
-  const meldingen = [...(fouten.some(Boolean) ? ['Niet alles kon worden geladen; sommige cijfers kunnen ontbreken.'] : []), ...(laatste.fout ? [laatste.fout] : [])]
-  const vorigeAantal = vorige.count ?? 0
+  const meldingen = [
+    ...(fouten.some(Boolean) ? ['Niet alles kon worden geladen; sommige cijfers kunnen ontbreken.'] : []),
+    ...(risico.fout ? [risico.fout] : []),
+  ]
+  const toenTotNu = vorigeTotNu.count ?? 0
   return {
     vandaag,
     nu,
     nuBinnen: nuBinnen(ops, nu),
     checkinsVandaag: ops.length,
-    checkinsVorigeWeek: vorigeAantal,
-    verschil: verschil(ops.length, vorigeAantal),
+    checkinsVorigeWeek: toenTotNu,
+    verschil: vorigeDag.error ? null : vergelijkMetVorigeWeek(ops.length, toenTotNu, vorigeDag.count ?? 0),
     lessen: lessen.lessen,
     proeflessen: leads.proef,
     opvolgen: leads.opvolgen,
     opvolgenTotaal: leads.totaal,
-    risico: risicoLeden(ledenLijst, laatste.data, vandaag),
+    risico: risico.lijst,
+    laatsteOoit: risico.laatsteOoit,
+    werkvloer,
     nieuw: nieuwDezeWeek(ledenLijst, maandagVan(vandaag), vandaag),
     jarig: jarigen(ledenLijst, vandaag),
     meldingen,

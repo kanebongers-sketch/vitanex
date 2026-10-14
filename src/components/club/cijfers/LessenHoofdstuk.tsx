@@ -1,5 +1,5 @@
 import { DEFINITIES } from '@/lib/club/cijfers/definities'
-import { heel, procent } from '@/lib/club/cijfers/opmaak'
+import { aantal, heel, procent } from '@/lib/club/cijfers/opmaak'
 import { csvBestandsnaam } from '@/lib/club/cijfers/csv'
 import type { BezettingGroep } from '@/lib/club/cijfers/lessen'
 import { BalkTabel } from './BalkTabel'
@@ -52,12 +52,16 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
         definitie={DEFINITIES.noShow}
         csv={{ bestand: csvBestandsnaam('no-show', deel), kop: ['Aanwezig', 'No-show', 'No-show %'], rijen: [[r.totalen.aanwezig, r.totalen.noShow, r.totalen.noShowAandeel === null ? null : Math.round(r.totalen.noShowAandeel * 1000) / 10]] }}
       >
-        <div className="club-cijfers-feit">
-          <strong className="club-cijfers-groot">{procent(r.totalen.noShowAandeel)}</strong>
-          <span>
-            {heel(r.totalen.noShow)} keer niet gekomen tegen {heel(r.totalen.aanwezig)} keer wel.
-          </span>
-        </div>
+        {r.totalen.noShowAandeel === null ? (
+          <p className="club-leeg">Nog geen lessen met afgeronde reserveringen in deze periode.</p>
+        ) : (
+          <div className="club-cijfers-feit">
+            <strong className="club-cijfers-groot">{procent(r.totalen.noShowAandeel)}</strong>
+            <span>
+              {heel(r.totalen.noShow)} keer niet gekomen tegen {heel(r.totalen.aanwezig)} keer wel.
+            </span>
+          </div>
+        )}
       </CijferBlok>
       <CijferBlok
         id="blok-wachtlijst"
@@ -65,7 +69,7 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
         titel="Wachtlijstdruk"
         kern={
           <>
-            <strong>{heel(wl.wachtenden)}</strong> mensen wachten
+            <strong>{heel(wl.wachtenden)}</strong> {wl.wachtenden === 1 ? 'persoon wacht' : 'mensen wachten'}
           </>
         }
         definitie={DEFINITIES.wachtlijst}
@@ -74,11 +78,11 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
         <div className="club-cijfers-feitenrij">
           <div className="club-cijfers-feit">
             <strong className="club-cijfers-groot">{heel(wl.vol)}</strong>
-            <span>van {heel(wl.lessen)} lessen vol</span>
+            <span>van {aantal(wl.lessen, 'les', 'lessen')} vol</span>
           </div>
           <div className="club-cijfers-feit">
             <strong className="club-cijfers-groot">{heel(wl.metWachtlijst)}</strong>
-            <span>met wachtlijst</span>
+            <span>{wl.metWachtlijst === 1 ? 'les' : 'lessen'} met wachtlijst</span>
           </div>
         </div>
         {wl.perLestype.length > 0 && (

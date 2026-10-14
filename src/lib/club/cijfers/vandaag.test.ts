@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { jarigen, lesFase, nieuwDezeWeek, nuBinnen, risicoLeden, verschil, type VandaagLid } from './vandaag'
+import { jarigen, lesFase, nieuwDezeWeek, nuBinnen, vergelijkMetVorigeWeek, verschil, type VandaagLid } from './vandaag'
 import { haalAlles } from './pagina'
 import { bezoekTellingUitRij, lesTellingUitRij, lidCijferUitRij } from './rijen'
 
@@ -10,10 +10,16 @@ function lid(id: string, deel: Partial<VandaagLid> = {}): VandaagLid {
 const VANDAAG = '2026-10-14'
 
 describe('Vandaag', () => {
-  it('telt wie in de laatste 90 minuten binnenkwam', () => {
+  it('telt wie in de laatste 90 minuten binnenkwam, ieder lid een keer', () => {
     const nu = new Date('2026-10-14T18:00:00Z')
-    const ops = [new Date('2026-10-14T17:00:00Z'), new Date('2026-10-14T16:31:00Z'), new Date('2026-10-14T16:29:00Z')]
-    expect(nuBinnen(ops, nu)).toBe(2)
+    const ops = [
+      { lidId: 'a', op: new Date('2026-10-14T17:00:00Z') },
+      { lidId: 'a', op: new Date('2026-10-14T17:10:00Z') },
+      { lidId: 'b', op: new Date('2026-10-14T16:31:00Z') },
+      { lidId: null, op: new Date('2026-10-14T16:40:00Z') },
+      { lidId: 'c', op: new Date('2026-10-14T16:29:00Z') },
+    ]
+    expect(nuBinnen(ops, nu)).toBe(3)
   })
 
   it('geeft het verschil met vorige week', () => {
@@ -21,17 +27,10 @@ describe('Vandaag', () => {
     expect(verschil(3, 3).richting).toBe('gelijk')
   })
 
-  it('zet actieve leden die 21 dagen of langer weg zijn op de risicolijst', () => {
-    const laatste = new Map([
-      ['a', new Date('2026-09-23T10:00:00Z')], // 21 dagen
-      ['b', new Date('2026-10-01T10:00:00Z')], // 13 dagen
-      ['c', new Date('2026-08-01T10:00:00Z')], // 74 dagen, maar gepauzeerd
-    ])
-    const r = risicoLeden([lid('a'), lid('b'), lid('c', { status: 'gepauzeerd' }), lid('d'), lid('e', { lidSinds: '2026-10-10' })], laatste, VANDAAG)
-    expect(r.map((x) => [x.lid.id, x.dagenWeg])).toEqual([
-      ['d', null],
-      ['a', 21],
-    ])
+  it('vergelijkt alleen met vorige week als die dag data heeft', () => {
+    expect(vergelijkMetVorigeWeek(11, 0, 0)).toBeNull()
+    expect(vergelijkMetVorigeWeek(11, 0, 40)).toEqual({ verschil: 11, richting: 'meer' })
+    expect(vergelijkMetVorigeWeek(5, 9, 30)).toEqual({ verschil: -4, richting: 'minder' })
   })
 
   it('vindt nieuwe leden en proefleden van deze week', () => {

@@ -1,6 +1,7 @@
 import type { Vandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { BINNEN_MINUTEN } from '@/lib/club/cijfers/vandaag'
-import { weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
+import { aantal, metTeken } from '@/lib/club/cijfers/opmaak'
+import { tijdNl, weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
 
 // De bovenkant van Vandaag: een reuzencijfer voor wie er nu is, en daarnaast
 // drie feiten in een rustige kolom. Bewust geen rij gelijke tegels.
@@ -11,29 +12,34 @@ interface Props {
 
 function VerschilTekst({ data }: Props) {
   const dag = weekdagNaam(weekdagVan(data.vandaag))
+  if (data.verschil === null) {
+    return <span className="club-vandaag-feit-sub">Geen vergelijking: vorige {dag} zijn geen check-ins geregistreerd</span>
+  }
   const { verschil, richting } = data.verschil
-  if (richting === 'gelijk') return <span className="club-vandaag-feit-sub">Even veel als vorige {dag} om deze tijd</span>
+  if (richting === 'gelijk') return <span className="club-vandaag-feit-sub">Even veel als vorige {dag} om deze tijd ({data.checkinsVorigeWeek})</span>
   return (
     <span className="club-vandaag-feit-sub">
-      <span className={richting === 'meer' ? 'club-plus' : 'club-min'}>
-        {richting === 'meer' ? '+' : ''}
-        {verschil}
-      </span>{' '}
-      ten opzichte van vorige {dag} om deze tijd ({data.checkinsVorigeWeek})
+      <span className={richting === 'meer' ? 'club-plus' : 'club-min'}>{metTeken(verschil)}</span> ten opzichte van vorige {dag} om deze tijd ({data.checkinsVorigeWeek})
     </span>
   )
+}
+
+function proefTekst(data: Vandaag): string {
+  if (data.proeflessen.length === 0) return 'Geen proeflessen gepland'
+  return data.proeflessen.map((p) => `${p.naam.split(' ')[0]}${p.proeflesOp ? ` ${tijdNl(p.proeflesOp)}` : ''}`).join(', ')
 }
 
 export function VandaagHero({ data }: Props) {
   const lessen = data.lessen.filter((l) => !l.geannuleerd)
   const nogTeGaan = lessen.filter((l) => l.start.getTime() > data.nu.getTime()).length
-  const proefTijden = data.proeflessen.length
   return (
     <section className="club-vandaag-hero" aria-label="Nu in de club">
       <div className="club-vandaag-nu">
         <span className="club-vandaag-label">Nu binnen</span>
         <strong className="club-vandaag-reus">{data.nuBinnen}</strong>
-        <span className="club-vandaag-nu-sub">check-ins in de laatste {BINNEN_MINUTEN} minuten</span>
+        <span className="club-vandaag-nu-sub">
+          {data.nuBinnen === 1 ? 'lid' : 'leden'} ingecheckt in de laatste {BINNEN_MINUTEN} minuten
+        </span>
       </div>
       <dl className="club-vandaag-feiten">
         <div className="club-vandaag-feit">
@@ -47,14 +53,14 @@ export function VandaagHero({ data }: Props) {
           <dt>Lessen vandaag</dt>
           <dd>
             <strong>{lessen.length}</strong>
-            <span className="club-vandaag-feit-sub">{lessen.length === 0 ? 'Geen lessen gepland' : `${nogTeGaan} nog te gaan`}</span>
+            <span className="club-vandaag-feit-sub">{lessen.length === 0 ? 'Geen lessen gepland' : nogTeGaan === 0 ? 'Alle lessen zijn begonnen of geweest' : `${aantal(nogTeGaan, 'les', 'lessen')} nog te gaan`}</span>
           </dd>
         </div>
         <div className="club-vandaag-feit">
           <dt>Proeflessen vandaag</dt>
           <dd>
-            <strong>{proefTijden}</strong>
-            <span className="club-vandaag-feit-sub">{proefTijden === 0 ? 'Geen proeflessen gepland' : data.proeflessen.map((p) => p.naam.split(' ')[0]).join(', ')}</span>
+            <strong>{data.proeflessen.length}</strong>
+            <span className="club-vandaag-feit-sub">{proefTekst(data)}</span>
           </dd>
         </div>
       </dl>

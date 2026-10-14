@@ -1,10 +1,8 @@
 // ─── Fit Factory Club: rekenwerk voor Vandaag (PUUR) ────────────────────────
 
 import type { LidStatus } from '@/lib/club/kern/lid'
-import { dagenTussen, dagSleutel, jarigOp, leeftijdOp } from './tijd'
+import { jarigOp, leeftijdOp } from './tijd'
 
-/** Na zoveel dagen zonder bezoek staat een actief lid op de risicolijst. */
-export const RISICO_DAGEN = 21
 /** Wie in de laatste zoveel minuten incheckte, telt als "nu binnen". */
 export const BINNEN_MINUTEN = 90
 
@@ -29,41 +27,25 @@ export function verschil(nu: number, toen: number): Verschil {
   return { verschil: v, richting: v > 0 ? 'meer' : v < 0 ? 'minder' : 'gelijk' }
 }
 
-/** Hoeveel check-ins vielen binnen de laatste `minuten` voor `nu`. */
-export function nuBinnen(checkins: readonly Date[], nu: Date, minuten = BINNEN_MINUTEN): number {
-  const grens = nu.getTime() - minuten * 60_000
-  return checkins.filter((d) => d.getTime() >= grens && d.getTime() <= nu.getTime()).length
-}
-
-export interface RisicoLid {
-  lid: VandaagLid
-  /** Dagen sinds het laatste bezoek, of null als we geen bezoek kennen. */
-  dagenWeg: number | null
-}
-
 /**
- * Actieve leden (status actief) die al `drempel` dagen of langer niet zijn
- * geweest. Wie nog nooit kwam, telt mee als hij al langer dan de drempel lid is.
- * Langst weg eerst; "nooit geweest" bovenaan.
+ * Vergelijking met dezelfde weekdag vorige week tot hetzelfde tijdstip. Alleen
+ * eerlijk als er die dag ook echt check-ins zijn geregistreerd; anders null.
  */
-export function risicoLeden(
-  leden: readonly VandaagLid[],
-  laatsteBezoek: ReadonlyMap<string, Date>,
-  vandaag: string,
-  drempel = RISICO_DAGEN,
-): RisicoLid[] {
-  const uit: RisicoLid[] = []
-  for (const lid of leden) {
-    if (lid.status !== 'actief') continue
-    const laatst = laatsteBezoek.get(lid.id)
-    if (laatst) {
-      const dagen = dagenTussen(dagSleutel(laatst), vandaag)
-      if (dagen >= drempel) uit.push({ lid, dagenWeg: dagen })
-    } else if (lid.lidSinds && dagenTussen(lid.lidSinds, vandaag) >= drempel) {
-      uit.push({ lid, dagenWeg: null })
-    }
-  }
-  return uit.sort((a, b) => (b.dagenWeg ?? Infinity) - (a.dagenWeg ?? Infinity))
+export function vergelijkMetVorigeWeek(nu: number, toenTotNu: number, toenHeleDag: number): Verschil | null {
+  return toenHeleDag > 0 ? verschil(nu, toenTotNu) : null
+}
+
+export interface CheckinMoment {
+  lidId: string | null
+  op: Date
+}
+
+/** Hoeveel mensen checkten in de laatste `minuten` voor `nu` in (twee keer inchecken telt een keer). */
+export function nuBinnen(checkins: readonly CheckinMoment[], nu: Date, minuten = BINNEN_MINUTEN): number {
+  const grens = nu.getTime() - minuten * 60_000
+  const binnen = checkins.filter((c) => c.op.getTime() >= grens && c.op.getTime() <= nu.getTime())
+  const zonderId = binnen.filter((c) => c.lidId === null).length
+  return new Set(binnen.flatMap((c) => (c.lidId ? [c.lidId] : []))).size + zonderId
 }
 
 /** Nieuwe leden en proefleden met lid sinds vanaf `maandag` tot en met vandaag. */

@@ -30,3 +30,33 @@ export function mooiMaximum(max: number): number {
   const stap = [1, 2, 2.5, 5, 10].find((s) => s * macht >= max) ?? 10
   return stap * macht
 }
+
+/** "1 lid", "3 leden", "0 leden": enkelvoud alleen bij precies 1. */
+export function aantal(n: number, enkel: string, meer: string): string {
+  return `${heel(n)} ${Math.round(n) === 1 ? enkel : meer}`
+}
+
+export interface As {
+  min: number
+  max: number
+  /** Van laag naar hoog, gelijke stappen, min en max inbegrepen. */
+  streepjes: number[]
+}
+
+/**
+ * Een as met ronde streepjes rond de waarden laag tot hoog, met wat lucht
+ * erboven en eronder. Nooit onder nul als de waarden dat niet zijn.
+ */
+export function mooieAs(laag: number, hoog: number, stappen = 4): As {
+  const lo = Math.min(laag, hoog)
+  const hi = Math.max(laag, hoog)
+  const ruimte = Math.max(hi - lo, Math.max(Math.abs(hi), 1) * 0.1, 1)
+  // Tellingen hebben hele streepjes: nooit een stap kleiner dan 1.
+  const stap = Math.max(1, mooiMaximum(ruimte / Math.max(1, stappen - 1)))
+  const min = Math.max(lo >= 0 ? 0 : -Infinity, Math.floor((lo - stap * 0.25) / stap) * stap)
+  let max = Math.ceil((hi + stap * 0.25) / stap) * stap
+  if (max <= min) max = min + stap
+  const streepjes: number[] = []
+  for (let w = min; w <= max + stap / 2; w += stap) streepjes.push(Math.round(w * 1000) / 1000)
+  return { min, max: streepjes[streepjes.length - 1], streepjes }
+}

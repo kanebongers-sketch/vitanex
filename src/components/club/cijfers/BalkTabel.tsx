@@ -1,6 +1,7 @@
 // Een echte tabel met een balk in de waardecel: leesbaar voor schermlezers,
 // sorteerbaar in je hoofd, en de balk geeft in een oogopslag de verhouding.
-// De balk is een SVG die alleen horizontaal schaalt.
+// De balk is een gewoon vlak met een vaste hoogte; op een smal scherm schuift
+// de tabel binnen zijn eigen rol en nooit de pagina.
 
 export interface BalkRij {
   label: string
@@ -25,40 +26,41 @@ interface Props {
 export function BalkTabel({ bijschrift, kolomLabel, waardeLabel, extraLabels = [], rijen, leeg }: Props) {
   if (rijen.length === 0) return <p className="club-leeg">{leeg}</p>
   return (
-    <table className="club-cijfers-balktabel">
-      <caption className="club-sr">{bijschrift}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{kolomLabel}</th>
-          <th scope="col">{waardeLabel}</th>
-          {extraLabels.map((l) => (
-            <th key={l} scope="col" className="club-cijfers-rechts">
-              {l}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rijen.map((r) => (
-          <tr key={r.label} data-nadruk={r.nadruk || undefined}>
-            <th scope="row">{r.label}</th>
-            <td>
-              <span className="club-cijfers-balkcel">
-                <svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden className="club-cijfers-balk">
-                  <rect x={0} y={0} width={100} height={8} rx={4} className="club-cijfers-balk-spoor" />
-                  <rect x={0} y={0} width={Math.max(0, Math.min(1, r.deel)) * 100} height={8} rx={4} className="club-cijfers-balk-vul" />
-                </svg>
-                <span className="club-getal">{r.waarde}</span>
-              </span>
-            </td>
-            {(r.extra ?? []).map((e, i) => (
-              <td key={`${extraLabels[i] ?? i}`} className="club-cijfers-rechts club-getal">
-                {e}
-              </td>
+    <div className="club-cijfers-tabelrol">
+      <table className="club-cijfers-balktabel">
+        <caption className="club-sr">{bijschrift}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{kolomLabel}</th>
+            <th scope="col">{waardeLabel}</th>
+            {extraLabels.map((l) => (
+              <th key={l} scope="col" className="club-cijfers-rechts">
+                {l}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rijen.map((r) => (
+            <tr key={r.label} data-nadruk={r.nadruk || undefined}>
+              <th scope="row">{r.label}</th>
+              <td>
+                <span className="club-cijfers-balkcel">
+                  <span className="club-cijfers-balk" aria-hidden>
+                    <span style={{ width: `${Math.max(0, Math.min(1, r.deel)) * 100}%` }} />
+                  </span>
+                  <span className="club-getal">{r.waarde}</span>
+                </span>
+              </td>
+              {(r.extra ?? []).map((e, i) => (
+                <td key={`${extraLabels[i] ?? i}`} className="club-cijfers-rechts club-getal">
+                  {e}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

@@ -33,8 +33,14 @@
 .club-cijfers-hoofdstukkop::after { content: ''; flex: 1; height: 1px; background: var(--line); transform: translateY(-0.3em); }
 .club-cijfers-volle { grid-column: 1 / -1; }
 .club-cijfers-stapel { display: grid; gap: 16px; align-content: start; }
+/* Tablet: geen halve rijen met een gat ernaast. Paren van k6 blijven naast elkaar. */
+@media (min-width: 700px) and (max-width: 999px) {
+  .club-cijfers-hoofdstuk .club-raster > :is(.club-k4, .club-k5, .club-k7, .club-k8) { grid-column: span 12; }
+  .club-cijfers-hoofdstuk .club-cijfers-stapel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
-.club-cijfers-blok { display: grid; gap: 14px; align-content: start; }
+.club-cijfers-blok { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.club-cijfers-blok > * { min-width: 0; }
 .club-cijfers-blokkop { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
 .club-cijfers-blokkop h3 { margin: 0; font-family: var(--ff-kop); font-size: 19px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
 .club-cijfers-kern { margin: 0; font-size: 13.5px; color: var(--text-3); }
@@ -48,43 +54,55 @@
 .club-cijfers-feit { display: grid; gap: 2px; color: var(--text-3); font-size: 13px; }
 .club-cijfers-groot { font-family: var(--ff-kop); font-weight: 700; font-size: clamp(48px, 5vw, 72px); line-height: 0.9; color: var(--text-1); font-variant-numeric: tabular-nums; }
 
-/* ── Grafieken ───────────────────────────────────────────────────────────── */
-.club-cijfers-figuur { margin: 0; display: grid; gap: 6px; }
-.club-cijfers-plot { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; height: 200px; }
-.club-cijfers-plot--stroom { height: 84px; }
-.club-cijfers-yas { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; line-height: 1; transform: translateY(-0.1em); }
-.club-cijfers-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* ── Grafieken ───────────────────────────────────────────────────────────
+   Elke grafiek heeft een vast tekenvlak (.club-cijfers-doek) met overflow
+   verborgen; de SVG staat er absoluut in. Zo kan niets buiten de kaart lopen. */
+.club-cijfers-figuur { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.club-cijfers-plot { --club-cijfers-yas: 44px; display: grid; grid-template-columns: var(--club-cijfers-yas) minmax(0, 1fr); gap: 8px; height: 200px; min-width: 0; }
+.club-cijfers-plot--laag { height: 112px; }
+.club-cijfers-yas { position: relative; min-width: 0; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; line-height: 1; }
+.club-cijfers-yas span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+.club-cijfers-doek { position: relative; overflow: hidden; min-width: 0; height: 100%; }
+.club-cijfers-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .club-cijfers-raster { stroke: var(--line); stroke-width: 1; }
 .club-cijfers-staaf { fill: var(--brand); transition: opacity 160ms var(--ease); }
 .club-cijfers-staaf:hover { opacity: 0.8; }
 .club-cijfers-staaf--zacht { opacity: 0.4; }
-.club-cijfers-staaf--in { fill: var(--text-2); }
-.club-cijfers-staaf--uit { fill: var(--text-4); }
+.club-cijfers-staaf--in { fill: var(--club-ok); }
+.club-cijfers-staaf--uit { fill: var(--club-let-op); }
 .club-cijfers-lijn { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .club-cijfers-vlak { fill: var(--brand-soft); }
-.club-cijfers-xas { display: grid; margin-left: 48px; font-size: 11.5px; color: var(--text-3); white-space: nowrap; }
-.club-cijfers-xas span { text-align: center; overflow: visible; }
+.club-cijfers-raak { fill: transparent; }
+.club-cijfers-raak:hover { fill: var(--club-vlak-hover); }
+.club-cijfers-xas { display: grid; margin-left: calc(44px + 8px); font-size: 11.5px; color: var(--text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.club-cijfers-xas span { display: flex; justify-content: center; min-width: 0; }
+
+.club-cijfers-groei { gap: 14px; }
+.club-cijfers-deel { display: grid; gap: 6px; min-width: 0; }
+.club-cijfers-deelkop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.club-cijfers-deelkop span { margin-left: 6px; font-family: var(--ff-inter), system-ui, sans-serif; font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-3); }
 
 .club-cijfers-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; font-size: 12.5px; color: var(--text-3); }
 .club-cijfers-legenda span { display: inline-flex; align-items: center; gap: 6px; }
 .club-cijfers-legenda span::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--brand); }
-.club-cijfers-legenda [data-reeks='hoofd']::before { height: 3px; }
+.club-cijfers-legenda [data-reeks='lijn']::before { height: 3px; border-radius: 2px; }
 .club-cijfers-legenda [data-reeks='zacht']::before { opacity: 0.4; }
-.club-cijfers-legenda [data-reeks='in']::before { background: var(--text-2); }
-.club-cijfers-legenda [data-reeks='uit']::before { background: var(--text-4); }
-.club-cijfers-blok:not(#blok-groei) .club-cijfers-legenda [data-reeks='hoofd']::before { height: 12px; }
+.club-cijfers-legenda [data-reeks='in']::before { background: var(--club-ok); }
+.club-cijfers-legenda [data-reeks='uit']::before { background: var(--club-let-op); }
 
-/* Heatmap */
-.club-cijfers-drukte-vlak { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 6px; height: 224px; }
-.club-cijfers-drukte-dagen { display: grid; grid-template-rows: repeat(7, 1fr); align-items: center; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
-.club-cijfers-drukte-svg { width: 100%; height: 100%; display: block; }
-.club-cijfers-cel { fill: var(--brand); }
-.club-cijfers-cel--leeg { fill: var(--club-vlak-hover); }
-.club-cijfers-drukte-uren { display: grid; margin-left: 34px; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
-.club-cijfers-schaal { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12px; color: var(--text-3); }
-.club-cijfers-schaal-balk { width: 120px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--brand-soft), var(--brand)); }
+/* Heatmap: een CSS-raster, rijen met een vaste hoogte. */
+.club-cijfers-drukte-raster { display: grid; grid-auto-rows: 24px; gap: 3px; min-width: 0; }
+.club-cijfers-drukte-rij { display: contents; }
+.club-cijfers-drukte-dag { align-self: center; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-cijfers-cel { display: block; min-width: 0; border-radius: 3px; background: var(--brand); }
+.club-cijfers-cel--leeg { background: var(--club-vlak-hover); }
+.club-cijfers-drukte-uur { display: flex; justify-content: center; align-self: start; min-width: 0; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.club-cijfers-schaal { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 4px; font-size: 12px; color: var(--text-3); }
+.club-cijfers-schaal-balk { width: 120px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 16%, transparent), var(--brand)); }
+.club-cijfers-schaal-max { margin-left: auto; }
 
-/* Tabel met balken */
+/* Tabel met balken: schuift binnen zijn eigen rol op een smal scherm. */
+.club-cijfers-tabelrol { overflow-x: auto; min-width: 0; }
 .club-cijfers-balktabel { width: 100%; border-collapse: collapse; font-size: 14px; }
 .club-cijfers-balktabel th, .club-cijfers-balktabel td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .club-cijfers-balktabel tr:last-child th, .club-cijfers-balktabel tr:last-child td { border-bottom: 0; }
@@ -93,9 +111,8 @@
 .club-cijfers-balktabel tbody th { font-weight: 600; text-align: left; white-space: nowrap; width: 1%; padding-right: 16px; }
 .club-cijfers-balkcel { display: grid; grid-template-columns: minmax(60px, 1fr) 52px; align-items: center; gap: 10px; }
 .club-cijfers-balkcel .club-getal { text-align: right; font-weight: 600; }
-.club-cijfers-balk { width: 100%; height: 8px; display: block; }
-.club-cijfers-balk-spoor { fill: var(--club-vlak-hover); }
-.club-cijfers-balk-vul { fill: var(--brand); }
+.club-cijfers-balk { position: relative; display: block; width: 100%; height: 8px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-cijfers-balk span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: var(--brand); }
 .club-cijfers-balktabel tr[data-nadruk] .club-getal { color: var(--brand); }
 
 /* Vergelijking */
@@ -104,3 +121,21 @@
 .club-cijfers-vergelijk tr[aria-current] { background: var(--brand-soft); }
 .club-cijfers-vergelijk tr[aria-current] th { color: var(--brand); }
 .club-cijfers-vergelijk th.club-cijfers-rechts { text-align: right; }
+.club-cijfers-vergelijk tbody th { position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
+.club-cijfers-vergelijk tr[aria-current] th { background: color-mix(in srgb, var(--brand) 14%, var(--bg-card)); }
+
+/* ── Telefoon ────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .club-cijfers-plot { --club-cijfers-yas: 34px; height: 168px; gap: 6px; }
+  .club-cijfers-plot--laag { height: 96px; }
+  .club-cijfers-xas { margin-left: calc(34px + 6px); font-size: 10.5px; }
+  .club-cijfers-drukte-raster { grid-auto-rows: 20px; gap: 2px; }
+  .club-cijfers-drukte-uur { font-size: 10px; }
+  .club-cijfers-kern-hoofd { padding-right: 0; }
+  .club-cijfers-kern-rest > div { padding: 14px 12px 16px 0; }
+  .club-cijfers-schaal-max { margin-left: 0; flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-cijfers-staaf { transition: none; }
+}
