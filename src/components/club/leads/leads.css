@@ -1,0 +1,151 @@
+/* ─── Fit Factory Club: leads en proeflessen ─────────────────────────────────
+   Alleen .club-leads-*; tokens uit club.css en .lifeos-root.ff. Geen nieuwe
+   kleuren: amber = actie en "nu", koraal = te laat, groen = lid. */
+
+/* ── Cijfers ─────────────────────────────────────────────────────────────── */
+.club-leads-cijfers { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1000px) { .club-leads-cijfers { grid-template-columns: 1fr 1fr 1.3fr 2fr; } }
+.club-leads-bronnen { grid-column: span 2; }
+@media (min-width: 1000px) { .club-leads-bronnen { grid-column: auto; } }
+.club-leads-uitleg { margin-top: 4px; font-size: 12.5px; color: var(--text-3); }
+.club-leads-uitleg summary { cursor: pointer; width: fit-content; text-decoration: underline dotted; text-underline-offset: 3px; }
+.club-leads-uitleg p { margin: 6px 0 0; line-height: 1.5; }
+.club-leads-bronlijst { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 7px; }
+.club-leads-bronlijst li { display: grid; grid-template-columns: 96px minmax(40px, 1fr) auto; align-items: center; gap: 10px; font-size: 13px; }
+.club-leads-bronnaam { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-leads-bronbalk { height: 6px; border-radius: 6px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-leads-bronbalk > span { display: block; height: 100%; background: var(--brand); transform-origin: left; border-radius: 6px; transition: transform 400ms var(--ease); }
+
+/* ── Filters ─────────────────────────────────────────────────────────────── */
+.club-leads-filterbalk { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.club-leads-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; }
+.club-leads-filters .club-veld { min-width: 160px; }
+.club-leads-filterknoppen { display: flex; gap: 6px; }
+
+/* ── Vandaag opvolgen ────────────────────────────────────────────────────── */
+.club-leads-vandaag { position: relative; background: var(--bg-card); border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius: var(--club-radius); padding: 16px 18px 6px; box-shadow: var(--club-schaduw); overflow: hidden; }
+.club-leads-vandaag::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--brand); }
+.club-leads-vandaag .club-leeg { margin-bottom: 10px; }
+.club-leads-actie { flex-wrap: wrap; }
+.club-leads-actie[data-reden='te_laat'] .club-avatar, .club-leads-actie[data-reden='uitkomst'] .club-avatar { background: var(--club-let-op-zacht); color: var(--club-let-op); }
+.club-leads-rijacties { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+@media (max-width: 699px) { .club-leads-rijacties { width: 100%; padding-left: 48px; } }
+
+/* Een naam die het paneel opent: tekst, geen knop-uiterlijk. */
+.club-leads-naamknop { all: unset; cursor: pointer; font-weight: 600; color: var(--text-1); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; }
+.club-leads-naamknop:hover { color: var(--brand); }
+.club-leads-naamknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── Pijplijn ────────────────────────────────────────────────────────────── */
+.club-leads-alle .club-sectiekop { margin-bottom: 12px; }
+.club-leads-pijplijn { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 82vw); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+@media (min-width: 700px) { .club-leads-pijplijn { grid-auto-columns: minmax(250px, 1fr); } }
+@media (min-width: 1400px) { .club-leads-pijplijn { grid-auto-flow: row; grid-template-columns: repeat(6, minmax(0, 1fr)); overflow: visible; } }
+.club-leads-kolom { --kolom: var(--text-4); scroll-snap-align: start; display: grid; align-content: start; gap: 10px; min-height: 220px; padding: 12px; border-radius: var(--club-radius); background: var(--club-vlak); border: 1px solid var(--line); border-top: 3px solid var(--kolom); transition: background-color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-leads-kolom[data-status='nieuw'] { --kolom: var(--club-info); }
+.club-leads-kolom[data-status='contact'] { --kolom: var(--text-2); }
+.club-leads-kolom[data-status='proefles'], .club-leads-kolom[data-status='proefles_geweest'] { --kolom: var(--brand); }
+.club-leads-kolom[data-status='lid'] { --kolom: var(--club-ok); }
+.club-leads-kolom[data-status='verloren'] { --kolom: var(--text-4); }
+.club-leads-kolom[data-doel] { background: var(--brand-soft); border-color: var(--brand); }
+.club-leads-kolomkop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.club-leads-aantal { font-size: 30px; line-height: 1; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.club-leads-kolomleeg { margin: 0; padding: 18px 0; text-align: center; font-size: 13px; color: var(--text-4); border: 1px dashed var(--line); border-radius: var(--club-radius-klein); }
+.club-leads-kaarten { display: grid; gap: 8px; }
+
+.club-leads-kaart { display: grid; gap: 8px; padding: 12px; border-radius: var(--club-radius-klein); background: var(--bg-card); border: 1px solid var(--line); cursor: grab; transition: transform 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease); }
+.club-leads-kaart:hover { transform: translateY(-2px); border-color: var(--line-strong); box-shadow: var(--club-schaduw); }
+.club-leads-kaart:focus-within { border-color: color-mix(in srgb, var(--brand) 60%, var(--line)); }
+.club-leads-kaart:active { cursor: grabbing; }
+.club-leads-kaart[aria-busy='true'] { opacity: 0.55; }
+.club-leads-kaartkop { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.club-leads-kaartkop .club-avatar { width: 32px; height: 32px; font-size: 13px; }
+.club-leads-kaartinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.club-leads-kaartinfo:empty { display: none; }
+.club-leads-mw { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-3); }
+.club-leads-stap { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-2); }
+.club-leads-stap svg { color: var(--brand); flex: none; }
+.club-leads-verplaats { border-top: 1px solid var(--line); padding-top: 8px; }
+.club-leads-keuze { width: 100%; min-height: 32px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--text-2); font: inherit; font-size: 12.5px; cursor: pointer; }
+.club-leads-keuze:hover { border-color: var(--line-strong); color: var(--text-1); }
+.club-leads-keuze option { background: var(--bg-card); color: var(--text-1); }
+.club-leads-telaat { color: var(--club-let-op); font-weight: 600; }
+
+/* ── Melding bovenin ─────────────────────────────────────────────────────── */
+.club-leads-fout { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* ── Zijpaneel ───────────────────────────────────────────────────────────── */
+.club-leads-paneel { position: relative; gap: 18px; padding-top: 24px; }
+.club-leads-paneel:focus { outline: none; }
+.club-leads-sluit { position: absolute; top: 14px; right: 14px; }
+.club-leads-paneelkop { display: flex; align-items: center; gap: 14px; padding-right: 40px; }
+.club-leads-paneeltitel { min-width: 0; }
+.club-leads-paneeltitel h2, .club-leads-paneelnaam { margin: 0; font-family: var(--ff-kop); font-size: 32px; line-height: 1; font-weight: 700; text-transform: uppercase; }
+.club-leads-paneeltitel p:last-child { margin: 4px 0 0; font-size: 13.5px; }
+
+.club-leads-blok { display: grid; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.club-leads-blok h3 { margin: 0; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-leads-volgende { padding: 16px; border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius: var(--club-radius); background: color-mix(in srgb, var(--brand) 5%, transparent); }
+.club-leads-volgende .club-segment { width: fit-content; }
+.club-leads-stapblok { display: grid; gap: 12px; animation: club-leads-in 200ms var(--ease); }
+@keyframes club-leads-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.club-leads-proefles { display: grid; gap: 10px; padding: 12px; border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-leads-proefles p { margin: 0; }
+.club-leads-proefles[data-voorbij] { background: var(--club-let-op-zacht); }
+
+.club-leads-lesdagen { display: grid; gap: 12px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.club-leads-lesdag { margin: 0 0 6px; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-leads-lessen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.club-leads-les { width: 100%; display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: transparent; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; transition: border-color 140ms var(--ease), background-color 140ms var(--ease); }
+.club-leads-les:hover { border-color: var(--brand); background: var(--brand-soft); }
+.club-leads-les[aria-pressed='true'] { border-color: var(--brand); }
+.club-leads-les:disabled { opacity: 0.5; cursor: wait; }
+.club-leads-lestijd { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-leads-lesnaam { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.club-leads-formulier { display: grid; gap: 12px; }
+.club-leads-datumrij { display: flex; align-items: flex-end; gap: 8px; }
+.club-leads-datumrij .club-veld { flex: 1; }
+.club-leads-opvolgen { display: grid; gap: 10px; }
+.club-leads-opvolgen .club-label { margin: 0; }
+.club-leads-opvolgen strong { color: var(--text-1); text-transform: none; letter-spacing: 0; font-family: var(--ff-inter), system-ui, sans-serif; }
+
+.club-leads-gegevens summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; cursor: pointer; list-style: none; }
+.club-leads-gegevens summary::-webkit-details-marker { display: none; }
+.club-leads-gegevens summary h3::after { content: ' +'; color: var(--text-3); }
+.club-leads-gegevens[open] summary h3::after { content: ' \2212'; }
+.club-leads-gegevens summary span { font-size: 12.5px; }
+
+.club-leads-toestemming { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); font-size: 13.5px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+.club-leads-toestemming input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--brand); flex: none; }
+.club-leads-toestemming:has(input:checked) { border-color: color-mix(in srgb, var(--club-ok) 50%, transparent); background: var(--club-ok-zacht); }
+
+.club-leads-keuzeset { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+.club-leads-keuzeset legend { width: 100%; margin-bottom: 6px; }
+.club-leads-radio { position: relative; }
+.club-leads-radio input { position: absolute; opacity: 0; }
+.club-leads-radio span { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13.5px; color: var(--text-2); cursor: pointer; }
+.club-leads-radio input:checked + span { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.club-leads-radio input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.club-leads-dubbel { display: grid; gap: 8px; }
+.club-leads-dubbel p { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.club-leads-voorbeeld { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.club-leads-voorbeeld dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-leads-voorbeeld dd { margin: 2px 0 0; font-weight: 600; }
+
+/* Tijdlijn van de historie. */
+.club-leads-tijdlijn { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.club-leads-tijdlijn li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding-bottom: 14px; }
+.club-leads-tijdlijn li:not(:last-child)::before { content: ''; position: absolute; left: 12px; top: 26px; bottom: 0; width: 1px; background: var(--line-strong); }
+.club-leads-tijdlijnpunt { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--club-vlak-hover); color: var(--text-2); }
+.club-leads-tijdlijn li[data-soort='status'] .club-leads-tijdlijnpunt, .club-leads-tijdlijn li[data-soort='proefles'] .club-leads-tijdlijnpunt { background: var(--brand-soft); color: var(--brand); }
+.club-leads-tijdlijnkop { margin: 3px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 13px; }
+.club-leads-tijdlijnkop time { color: var(--text-3); font-size: 12.5px; }
+.club-leads-tijdlijnkop .club-zacht { font-size: 12px; }
+.club-leads-tijdlijntekst { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-leads-kaart:hover { transform: none; }
+}

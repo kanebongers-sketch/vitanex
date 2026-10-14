@@ -1,0 +1,152 @@
+/* ─── Fit Factory Club: leden ─────────────────────────────────────────────────
+   Ledenlijst en ledenkaart. Alleen .club-leden-*; tokens uit club.css en
+   .lifeos-root.ff. Rustige grafiet-vlakken, grote condensed cijfers, amber
+   alleen voor focus en "nu". Status: groen = goed, koraal = let op. */
+
+/* ── Cijfertegels (tegelijk snelfilters) ─────────────────────────────────── */
+.club-leden-tegels { display: grid; gap: 1px; grid-template-columns: repeat(2, minmax(0, 1fr)); background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius); overflow: hidden; }
+@media (min-width: 700px) { .club-leden-tegels { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.club-leden-tegel { position: relative; display: grid; gap: 2px; padding: 16px 18px 14px; background: var(--bg-card); color: var(--text-1); text-decoration: none; transition: background-color 160ms var(--ease); }
+.club-leden-tegel::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--text-2); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease); }
+.club-leden-tegel:hover { background: color-mix(in srgb, var(--bg-card) 92%, var(--text-1)); }
+.club-leden-tegel[aria-current='true'] { background: color-mix(in srgb, var(--bg-card) 88%, var(--text-1)); }
+.club-leden-tegel[aria-current='true']::before { transform: scaleX(1); }
+.club-leden-tegel:last-child:nth-child(odd) { grid-column: span 2; }
+@media (min-width: 700px) { .club-leden-tegel:last-child:nth-child(odd) { grid-column: auto; } }
+.club-leden-tegel-getal { font-family: var(--ff-kop); font-size: clamp(40px, 4.2vw, 64px); line-height: 0.95; font-weight: 700; letter-spacing: -0.01em; }
+.club-leden-tegel--risico .club-leden-tegel-getal { color: var(--club-let-op); }
+.club-leden-tegel--risico::before { background: var(--club-let-op); }
+
+/* ── Zoeken en filters ────────────────────────────────────────────────────── */
+.club-leden-filters { display: grid; gap: 10px; transition: opacity 160ms var(--ease); }
+.club-leden-filters[data-bezig] { opacity: 0.75; }
+.club-leden-zoek { position: relative; display: flex; align-items: center; }
+.club-leden-zoek > svg { position: absolute; left: 14px; color: var(--text-3); pointer-events: none; }
+.club-leden-zoek .club-invoer { padding-left: 44px; padding-right: 44px; }
+.club-leden-kbd { position: absolute; right: 12px; min-width: 22px; padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--text-3); font: 600 12px/1.4 var(--ff-inter), system-ui, sans-serif; text-align: center; }
+.club-leden-zoek:focus-within .club-leden-kbd { opacity: 0; }
+.club-leden-filterrij { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.club-leden-filter { flex: 1 1 160px; max-width: 240px; }
+.club-leden-filter .club-invoer { min-height: 38px; font-size: 14px; }
+.club-leden-risico[aria-pressed='true'] { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 55%, transparent); background: var(--club-let-op-zacht); }
+
+/* ── Tabel ────────────────────────────────────────────────────────────────── */
+.club-leden-tabel { min-width: 920px; }
+.club-leden-tabel th { padding: 0; }
+.club-leden-sorteer { display: inline-flex; align-items: center; gap: 4px; padding: 11px 14px; width: 100%; color: var(--text-3) !important; font-weight: 600 !important; }
+.club-leden-sorteer:hover, .club-leden-sorteer[data-actief] { color: var(--text-1) !important; }
+.club-leden-getalkolom { text-align: right; }
+.club-leden-getalkolom .club-leden-sorteer { justify-content: flex-end; }
+.club-leden-rij { cursor: pointer; }
+.club-leden-rij td { padding-top: 9px; padding-bottom: 9px; }
+.club-leden-naamcel { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 300px; }
+.club-leden-abonnement { color: var(--text-2); white-space: nowrap; }
+.club-leden-voet { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: 13px; }
+.club-leden-pager { display: flex; align-items: center; gap: 10px; }
+
+/* ── Behoudssignaal ───────────────────────────────────────────────────────── */
+.club-leden-behoud { display: grid; gap: 3px; min-width: 220px; max-width: 300px; }
+.club-leden-behoud-boven { display: flex; align-items: center; gap: 8px; }
+.club-leden-behoud-score { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; min-width: 2ch; text-align: right; }
+.club-leden-behoud-uitleg { font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-leden-behoud-geen { font-size: 12.5px; color: var(--text-4); }
+.club-leden-meter { position: relative; flex: 1; min-width: 40px; height: 4px; border-radius: 4px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-leden-meter > span { position: absolute; inset: 0; border-radius: inherit; background: var(--text-3); transform-origin: left; }
+.club-leden-behoud--goed .club-leden-meter > span { background: var(--club-ok); }
+.club-leden-behoud--let_op .club-leden-meter > span { background: color-mix(in srgb, var(--club-let-op) 60%, var(--text-3)); }
+.club-leden-behoud--risico .club-leden-meter > span { background: var(--club-let-op); }
+.club-leden-chip--let-op { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 45%, transparent); background: transparent; }
+
+/* ── Ledenkaart: kop ──────────────────────────────────────────────────────── */
+.club-leden-kop { display: grid; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.club-leden-terug { display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: var(--text-3); text-decoration: none; font-size: 13px; }
+.club-leden-terug:hover { color: var(--text-1); }
+.club-leden-kop-hoofd { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; }
+.club-leden-kop-avatar { width: 76px; height: 76px; font-size: 30px; box-shadow: 0 0 0 1px var(--line-strong), 0 0 0 6px var(--bg-app), 0 0 0 7px var(--line); }
+.club-leden-kop-naam { flex: 1 1 280px; min-width: 0; }
+.club-leden-kop-naam h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(36px, 5vw, 64px); line-height: 0.92; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
+.club-leden-kop-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.club-leden-kop-acties { display: flex; gap: 8px; flex-wrap: wrap; }
+.club-leden-feiten { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius); overflow: hidden; }
+.club-leden-feit { display: grid; gap: 2px; padding: 10px 14px; background: var(--bg-card); }
+.club-leden-feit dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-leden-feit dd { margin: 0; font-size: 15px; font-weight: 600; }
+.club-leden-feit--sportivity { background: var(--club-vlak); }
+.club-leden-feit--sportivity dd { color: var(--text-2); font-weight: 500; }
+
+.club-leden-secties { position: sticky; top: 108px; z-index: 5; width: fit-content; backdrop-filter: blur(10px); }
+.club-leden-kolom { display: grid; gap: 16px; align-content: start; }
+.club-leden-tweekolom { display: grid; gap: 16px; }
+@media (min-width: 760px) { .club-leden-tweekolom { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.club-leden-subkop { margin: 0 0 6px; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+#overzicht, #notities, #gegevens { scroll-margin-top: 170px; }
+
+/* ── Bezoekpatroon ────────────────────────────────────────────────────────── */
+.club-leden-patroon-wrap { display: grid; gap: 14px; }
+@media (min-width: 900px) { .club-leden-patroon-wrap { grid-template-columns: minmax(0, 1fr) 210px; align-items: end; } }
+.club-leden-patroon { margin: 0; display: grid; gap: 6px; }
+.club-leden-patroon svg { width: 100%; height: auto; display: block; overflow: visible; }
+.club-leden-patroon-lijn { stroke: var(--line); stroke-dasharray: 2 4; }
+.club-leden-balk rect { fill: color-mix(in srgb, var(--text-1) 34%, transparent); }
+.club-leden-balk rect[data-leeg] { fill: var(--line-strong); }
+.club-leden-balk--nu rect { fill: var(--brand); }
+.club-leden-balk-getal { fill: var(--text-2); font: 600 12px var(--ff-inter), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.club-leden-balk-label { fill: var(--text-4); font: 500 11px var(--ff-inter), system-ui, sans-serif; }
+.club-leden-balk--nu .club-leden-balk-label { fill: var(--brand); }
+.club-leden-weekdagen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.club-leden-weekdagen li { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--text-3); }
+.club-leden-weekdag-vak { width: 100%; aspect-ratio: 1; max-width: 34px; border-radius: 6px; background: var(--text-1); }
+.club-leden-weekdag-vak[data-leeg] { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.club-leden-weekdag-naam { font-family: var(--ff-kop); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── Behoudkaart ──────────────────────────────────────────────────────────── */
+.club-leden-behoudkaart { display: grid; gap: 14px; align-content: start; }
+.club-leden-behoudkaart > h2 { margin: 0; }
+.club-leden-behoudkaart-kop { display: flex; align-items: center; gap: 16px; }
+.club-leden-groot-getal { font-family: var(--ff-kop); font-size: clamp(64px, 7vw, 92px); line-height: 0.82; font-weight: 700; letter-spacing: -0.02em; }
+.club-leden-behoud--goed .club-leden-groot-getal { color: var(--club-ok); }
+.club-leden-behoud--risico .club-leden-groot-getal { color: var(--club-let-op); }
+.club-leden-behoudkaart-zin { margin: 8px 0 0; font-size: 15px; line-height: 1.4; color: var(--text-1); }
+.club-leden-onderdelen { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-leden-onderdelen li { display: grid; grid-template-columns: 86px minmax(0, 1fr) 44px; align-items: center; gap: 4px 10px; font-size: 13px; }
+.club-leden-onderdeel-label { font-family: var(--ff-kop); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.club-leden-onderdelen .club-getal { text-align: right; }
+.club-leden-onderdeel-uitleg { grid-column: 2 / -1; color: var(--text-3); font-size: 12.5px; }
+
+/* ── Reserveringen en bezoeken ────────────────────────────────────────────── */
+.club-leden-datumblok { flex: none; display: grid; justify-items: center; width: 44px; padding: 4px 0; border: 1px solid var(--line); border-radius: var(--club-radius-klein); line-height: 1; }
+.club-leden-datumblok strong { font-family: var(--ff-kop); font-size: 20px; }
+.club-leden-datumblok span { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── Notities ─────────────────────────────────────────────────────────────── */
+.club-leden-notitieform { display: grid; gap: 8px; margin-bottom: 14px; }
+.club-leden-notitieform-voet { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.club-leden-vink { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-2); cursor: pointer; }
+.club-leden-vink input { accent-color: var(--brand); width: 16px; height: 16px; }
+.club-leden-notities { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-leden-notitie { padding: 12px 14px 8px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
+.club-leden-notitie--vast { border-color: var(--line-strong); background: var(--club-vlak-hover); box-shadow: inset 3px 0 0 var(--text-2); }
+.club-leden-notitie p { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.club-leden-notitie-voet { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text-4); }
+.club-leden-notitie-acties { display: inline-flex; gap: 2px; opacity: 0.7; transition: opacity 160ms var(--ease); }
+.club-leden-notitie:hover .club-leden-notitie-acties, .club-leden-notitie:focus-within .club-leden-notitie-acties { opacity: 1; }
+.club-leden-weg:hover { color: var(--club-let-op); }
+
+/* ── Gegevens ─────────────────────────────────────────────────────────────── */
+.club-leden-gegevens { display: grid; gap: 10px; margin: 0 0 6px; }
+.club-leden-gegevens > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.club-leden-gegevens dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-leden-gegevens dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.club-leden-gegevens a { display: inline-flex; align-items: center; gap: 6px; color: var(--text-1); text-decoration: none; }
+.club-leden-gegevens a:hover { color: var(--brand); }
+.club-leden-blok { margin-top: 16px; display: grid; gap: 8px; }
+.club-leden-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.club-leden-tags li { padding-right: 4px; }
+.club-leden-tags button { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 0; border-radius: 999px; background: transparent; color: var(--text-3); cursor: pointer; }
+.club-leden-tags button:hover { background: var(--club-vlak-hover); color: var(--club-let-op); }
+.club-leden-tagform { display: flex; gap: 8px; }
+.club-leden-tagform .club-invoer { min-height: 36px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-leden-tegel::before, .club-leden-filters { transition: none; }
+}

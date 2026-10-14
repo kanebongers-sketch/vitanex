@@ -1,0 +1,113 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { eisClubToegang } from '@/lib/club/toegang'
+import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import type { Medewerker } from '@/lib/club/gedeeld/medewerker'
+import { haalLidKaart, type LidKaart } from '@/lib/club/leden/kaart'
+import { datumKort, datumUitSleutel, laatsteBezoekTekst, leeftijd, tijdNl } from '@/lib/club/leden/tijd'
+import { LidKop } from '@/components/club/leden/LidKop'
+import { BehoudKaart } from '@/components/club/leden/BehoudKaart'
+import { Bezoekpatroon } from '@/components/club/leden/Bezoekpatroon'
+import { Reserveringen } from '@/components/club/leden/Reserveringen'
+import { Notities } from '@/components/club/leden/Notities'
+import { LidGegevens } from '@/components/club/leden/LidGegevens'
+import '@/components/club/leden/leden.css'
+
+export const metadata: Metadata = { title: 'Ledenkaart' }
+
+const BRON_LABEL: Record<string, string> = { balie: 'Balie', qr: 'QR-code', bandje: 'Bandje', les: 'Les' }
+
+function geenBehoudTekst(kaart: LidKaart): string {
+  if (kaart.lid.status === 'gepauzeerd') return 'Gepauzeerd: we verwachten nu geen bezoek, dus geen score.'
+  if (kaart.lid.status === 'opgezegd') return 'Opgezegd: geen score meer. Wel een kans voor een gesprek voor de einddatum.'
+  if (kaart.lid.status === 'gestopt') return 'Gestopt: geen score.'
+  return 'De bezoeken konden niet worden geladen, dus er is nu geen score.'
+}
+
+/** Trainers om uit te kiezen, plus de huidige coach als die geen trainer is. */
+function coachKeuzes(medewerkers: Medewerker[], coachId: string | null): { id: string; naam: string }[] {
+  const trainers = medewerkers.filter((m) => m.rollen.includes('trainer'))
+  const huidig = medewerkers.find((m) => m.id === coachId)
+  const lijst = huidig && !trainers.includes(huidig) ? [...trainers, huidig] : trainers
+  return lijst.map((m) => ({ id: m.id, naam: m.naam }))
+}
+
+function LaatsteBezoeken({ kaart, nu }: { kaart: LidKaart; nu: Date }) {
+  const lijst = kaart.bezoeken.slice(0, 8)
+  return (
+    <section className="club-kaart" aria-labelledby="bezoeken-kop">
+      <h2 id="bezoeken-kop">Laatste bezoeken</h2>
+      {lijst.length ? (
+        <ul className="club-lijst">
+          {lijst.map((b) => (
+            <li key={b.id} className="club-rij">
+              <span className="club-rij-hoofd">
+                <span className="club-rij-titel">{laatsteBezoekTekst(b.op, nu)}</span>
+                <span className="club-rij-sub">{datumKort(b.op, nu)}, {tijdNl(b.op)}{b.vestiging && b.vestiging !== kaart.lid.vestiging ? ` · ${VESTIGING_LABEL[kiesVestiging(b.vestiging)]}` : ''}</span>
+              </span>
+              <span className="club-chip club-chip--geen">{BRON_LABEL[b.bron] ?? b.bron}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="club-hint">
+          Geen bezoek in de laatste 12 weken.{kaart.laatsteBezoek ? ` Laatste bezoek: ${datumKort(kaart.laatsteBezoek, nu)}.` : ''}
+        </p>
+      )}
+    </section>
+  )
+}
+
+export default async function LidPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
+  const t = await eisClubToegang()
+  const [{ id }, ruw] = await Promise.all([params, searchParams])
+  const nu = new Date()
+  const kaart = await haalLidKaart(t.admin, t.userId, id, nu)
+  if (!kaart) notFound()
+  const { lid } = kaart
+  const vestiging = ruw.v ? kiesVestiging(ruw.v) : lid.vestiging
+  const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
+
+  return (
+    <>
+      <LidKop lid={lid} vestiging={vestiging} coachNaam={coach?.naam ?? null} />
+      <nav className="club-segment club-leden-secties" aria-label="Secties">
+        <a href="#overzicht">Overzicht</a>
+        <a href="#notities">Notities</a>
+        <a href="#gegevens">Gegevens</a>
+      </nav>
+      {kaart.fouten.length ? (
+        <p className="club-melding club-melding--fout" role="alert">Niet alles kon worden geladen ({kaart.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.</p>
+      ) : null}
+      <div className="club-raster">
+        <div className="club-k8 club-leden-kolom" id="overzicht">
+          <section className="club-kaart" aria-labelledby="patroon-kop">
+            <div className="club-sectiekop">
+              <h2 id="patroon-kop">Bezoekpatroon</h2>
+              <span>Laatste 12 weken · laatste bezoek {laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}</span>
+            </div>
+            <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
+          </section>
+          <div className="club-leden-tweekolom">
+            <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
+            <LaatsteBezoeken kaart={kaart} nu={nu} />
+          </div>
+          <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} nu={nu} />
+        </div>
+        <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
+          <Notities lidId={lid.id} notities={kaart.notities} />
+          <LidGegevens
+            lidId={lid.id}
+            email={lid.email}
+            telefoon={lid.telefoon}
+            geboortedatum={datumUitSleutel(lid.geboortedatum)}
+            leeftijd={leeftijd(lid.geboortedatum, nu)}
+            coachId={lid.coachId}
+            trainers={coachKeuzes(kaart.medewerkers, lid.coachId)}
+            tags={lid.tags}
+          />
+        </aside>
+      </div>
+    </>
+  )
+}

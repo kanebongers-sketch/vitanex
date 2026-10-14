@@ -1,0 +1,138 @@
+/* ─── Fit Factory Club: ledenapp-voorvertoning ────────────────────────────────
+   Het lid krijgt een iets zachtere, toegankelijkere versie van de Fit
+   Factory-look: grotere tekst, rondere vlakken, verhoogde kaarten, amber voor
+   de ene actie die telt. Op de pc in een telefoonframe; op een telefoon valt
+   het frame weg en vult de app het scherm. Alleen tokens uit .lifeos-root.ff
+   en club.css (.club-app is de root, dus hier .club-lidapp-). */
+
+.club-lidapp-kiezer { min-width: min(320px, 100%); }
+.club-lidapp-podium { display: grid; gap: 32px; align-items: start; }
+@media (min-width: 1000px) { .club-lidapp-podium { grid-template-columns: auto minmax(0, 1fr); gap: 56px; } }
+
+/* ── Het toestel ─────────────────────────────────────────────────────────── */
+.club-lidapp-toestel { --lidapp-radius: 18px; justify-self: center; width: 390px; padding: 12px; border-radius: 54px; background: var(--bg-raised); border: 1px solid var(--line-strong); box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.9), inset 0 0 0 2px rgba(255, 255, 255, 0.04); }
+.club-lidapp-scherm { position: relative; height: 780px; border-radius: 42px; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: radial-gradient(140% 60% at 100% 0%, var(--brand-soft) 0%, transparent 55%), var(--bg-app); font-size: 16px; }
+.club-lidapp-statusbalk { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 26px 6px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.club-lidapp-statusbalk span:last-child { justify-self: end; font-family: var(--ff-kop); letter-spacing: 0.14em; font-size: 11px; color: var(--brand); }
+.club-lidapp-eiland { width: 96px; height: 26px; border-radius: 999px; background: var(--bg-raised); }
+.club-lidapp-inhoud { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.club-lidapp-tab { display: grid; gap: 16px; padding: 12px 20px 28px; animation: club-lidapp-in 260ms var(--ease); }
+@keyframes club-lidapp-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.club-lidapp-tabs { display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 10px 22px; background: rgba(16, 16, 20, 0.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+.club-lidapp-tabs a { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border-radius: 12px; color: var(--text-3); text-decoration: none; font-size: 11.5px; font-weight: 600; transition: color 160ms var(--ease); }
+.club-lidapp-tabs a:hover { color: var(--text-1); }
+.club-lidapp-tabs a[aria-current='page'] { color: var(--brand); }
+.club-lidapp-tabs a[aria-current='page'] svg { transform: translateY(-1px); }
+
+@media (max-width: 640px) {
+  .club-lidapp-toestel { width: auto; justify-self: stretch; margin: 0 calc(-1 * var(--ff-rand)); padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .club-lidapp-scherm { height: auto; min-height: calc(100dvh - 120px); border-radius: 0; overflow: visible; }
+  .club-lidapp-statusbalk { display: none; }
+  .club-lidapp-inhoud { overflow: visible; }
+  .club-lidapp-tabs { position: sticky; bottom: 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); z-index: 5; }
+}
+
+/* ── Gedeelde bouwstenen in de app ───────────────────────────────────────── */
+.club-lidapp-kop { margin: 0; font-family: var(--ff-kop); font-weight: 700; font-size: 32px; line-height: 1; text-transform: uppercase; }
+.club-lidapp-leeg { margin: 0; padding: 18px; border-radius: var(--lidapp-radius); background: var(--bg-card); color: var(--text-2); line-height: 1.5; }
+.club-lidapp-knop { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--bg-raised); color: var(--text-1); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: transform 120ms var(--ease), opacity 160ms var(--ease); }
+.club-lidapp-knop:active { transform: scale(0.97); }
+.club-lidapp-knop:disabled { opacity: 0.6; cursor: default; }
+.club-lidapp-knop--primair { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
+.club-lidapp-knop--stil { background: transparent; color: var(--text-2); }
+.club-lidapp-knop--breed { width: 100%; min-height: 54px; font-size: 16px; }
+.club-lidapp-knop--klaar { background: var(--club-ok-zacht); border-color: transparent; color: var(--club-ok); opacity: 1 !important; }
+.club-lidapp-tekstknop { justify-self: center; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-3); font: inherit; font-size: 14px; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+.club-lidapp-tekstknop:hover { color: var(--text-1); }
+.club-lidapp-bericht { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--club-ok-zacht); color: var(--text-1); font-size: 14.5px; line-height: 1.45; }
+.club-lidapp-bericht--fout { background: var(--club-let-op-zacht); }
+.club-lidapp-label { font-size: 13px; color: var(--text-3); }
+
+/* ── Home ────────────────────────────────────────────────────────────────── */
+.club-lidapp-groet { margin: 8px 0 -14px; color: var(--text-2); font-size: 17px; }
+.club-lidapp-naam { margin: 0; font-family: var(--ff-kop); font-weight: 700; font-size: 52px; line-height: 1; text-transform: uppercase; }
+.club-lidapp-volgende, .club-lidapp-schemalink { display: grid; gap: 4px; padding: 18px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); color: inherit; text-decoration: none; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
+.club-lidapp-volgende { border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.club-lidapp-volgende:hover, .club-lidapp-schemalink:hover { border-color: var(--brand); transform: translateY(-1px); }
+.club-lidapp-volgende strong { font-family: var(--ff-kop); font-size: 28px; line-height: 1.05; text-transform: uppercase; }
+.club-lidapp-volgende > span:last-child, .club-lidapp-schemalink span { color: var(--text-2); font-size: 14.5px; }
+.club-lidapp-boven { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); }
+.club-lidapp-schemalink strong { font-size: 17px; }
+.club-lidapp-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.club-lidapp-duo > div { display: grid; gap: 2px; padding: 16px; border-radius: var(--lidapp-radius); background: var(--bg-card); }
+.club-lidapp-duo strong { display: inline-flex; align-items: center; gap: 4px; font-family: var(--ff-kop); font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-lidapp-duo strong svg { color: var(--brand); }
+.club-lidapp-duo span { font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-qr { display: grid; justify-items: center; gap: 10px; padding: 18px; border-radius: var(--lidapp-radius); background: var(--bg-card); text-align: center; }
+.club-lidapp-qr h3 { justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin: 0; font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; }
+.club-lidapp-qr img { width: 168px; height: 168px; border-radius: 14px; background: var(--text-1); padding: 6px; }
+.club-lidapp-qr p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+
+/* ── Lessen ──────────────────────────────────────────────────────────────── */
+.club-lidapp-regels { border-radius: 14px; background: var(--bg-card); padding: 0 14px; }
+.club-lidapp-regels summary { display: flex; align-items: center; gap: 8px; min-height: 46px; cursor: pointer; font-weight: 600; font-size: 14.5px; color: var(--text-1); }
+.club-lidapp-regels summary svg { color: var(--brand); }
+.club-lidapp-regels ul { margin: 0 0 14px; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--text-2); line-height: 1.45; }
+.club-lidapp-dag { display: grid; gap: 8px; }
+.club-lidapp-dag h3 { margin: 6px 0 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+.club-lidapp-dag h3 span { color: var(--text-3); font-weight: 600; }
+.club-lidapp-dag ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-lidapp-les { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid transparent; }
+.club-lidapp-les[data-mijn='geboekt'] { border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
+.club-lidapp-les[data-mijn='wachtlijst'] { border-color: color-mix(in srgb, var(--club-info) 45%, transparent); }
+.club-lidapp-les time { font-family: var(--ff-kop); font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-lidapp-les-hoofd { display: grid; gap: 1px; min-width: 0; }
+.club-lidapp-les-hoofd strong { font-size: 15.5px; }
+.club-lidapp-les-hoofd span { font-size: 13px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-lidapp-les-hoofd .club-lidapp-vrij { color: var(--club-ok); }
+.club-lidapp-les-hoofd .club-lidapp-vol { color: var(--text-2); }
+.club-lidapp-waarschuwing { white-space: normal !important; color: var(--club-let-op) !important; }
+
+/* ── Schema ──────────────────────────────────────────────────────────────── */
+.club-lidapp-schemanaam { margin: -8px 0 0; color: var(--text-2); font-size: 15px; }
+.club-lidapp-schemanaam span { color: var(--text-3); }
+.club-lidapp-dagkeuze { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.club-lidapp-dagkeuze button { position: relative; flex: none; min-height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+.club-lidapp-dagkeuze button[aria-pressed='true'] { background: var(--text-1); border-color: var(--text-1); color: var(--bg-app); }
+.club-lidapp-stip { position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 999px; background: var(--brand); }
+.club-lidapp-oefeningen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-lidapp-oefeningen li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: var(--lidapp-radius); background: var(--bg-card); }
+.club-lidapp-nr { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-family: var(--ff-kop); font-weight: 700; }
+.club-lidapp-oefeningen div { display: grid; gap: 2px; min-width: 0; }
+.club-lidapp-oefeningen strong { font-size: 15.5px; }
+.club-lidapp-oefeningen span { font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.club-lidapp-oefeningen em { font-style: normal; font-size: 13px; color: var(--text-3); line-height: 1.4; }
+.club-lidapp-recent h3 { margin: 4px 0 8px; font-family: var(--ff-kop); font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-2); }
+.club-lidapp-recent ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-lidapp-recent li { display: flex; justify-content: space-between; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.club-lidapp-recent li span:last-child { color: var(--text-3); }
+
+/* ── Profiel ─────────────────────────────────────────────────────────────── */
+.club-lidapp-profielkop { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+.club-lidapp-avatar { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 999px; background: var(--brand); color: var(--bg-app); font-family: var(--ff-kop); font-weight: 700; font-size: 26px; }
+.club-lidapp-status { font-size: 14px; color: var(--club-ok); font-weight: 600; }
+.club-lidapp-gegevens { margin: 0; display: grid; border-radius: var(--lidapp-radius); background: var(--bg-card); padding: 4px 16px; }
+.club-lidapp-gegevens > div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.club-lidapp-gegevens > div:last-child { border-bottom: 0; }
+.club-lidapp-gegevens dt { color: var(--text-3); }
+.club-lidapp-gegevens dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.club-lidapp-sportivity { display: grid; gap: 6px; padding: 16px; border-radius: var(--lidapp-radius); border: 1px dashed var(--line-strong); }
+.club-lidapp-sportivity h3 { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.club-lidapp-sportivity p { margin: 0; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.club-lidapp-sportivity .club-lidapp-abo { font-size: 17px; font-weight: 700; color: var(--text-1); }
+.club-lidapp-voetnoot { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: var(--text-3); }
+
+/* ── Uitleg naast het toestel ────────────────────────────────────────────── */
+.club-lidapp-uitleg { display: grid; gap: 28px; max-width: 620px; }
+.club-lidapp-punten { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-lidapp-punten li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.club-lidapp-punten li > span { font-family: var(--ff-kop); font-size: 34px; font-weight: 700; line-height: 1; color: var(--brand); }
+.club-lidapp-punten strong { font-family: var(--ff-kop); font-size: 22px; text-transform: uppercase; letter-spacing: 0.03em; }
+.club-lidapp-punten p { margin: 2px 0 0; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+.club-lidapp-uitleg-regels h2 { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+.club-lidapp-uitleg-regels ul { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 6px; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-lidapp-tab { animation: none; }
+}

@@ -1,0 +1,88 @@
+/* ─── Fit Factory Club: instellingen ────────────────────────────────────────
+   Regels, zalen, lestypen, het vaste weekrooster en medewerkers. Inline
+   bewerken in rijen en uitklappers, een zijpaneel voor vaste lessen. Kleuren
+   en lettertypen komen uit club.css; het soortstreepje uit rooster.css. */
+
+.club-instellingen-tabs { align-self: start; justify-self: start; }
+.club-instellingen-sectie { display: grid; gap: 16px; align-content: start; }
+.club-instellingen-kop { margin: 0 0 10px; font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; display: flex; gap: 8px; align-items: baseline; }
+.club-instellingen-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-2); cursor: pointer; }
+.club-instellingen-check input, .club-instellingen-keuze input { width: 16px; height: 16px; accent-color: var(--brand); }
+.club-instellingen-getal { font-variant-numeric: tabular-nums; max-width: 120px; }
+.club-instellingen-smal { width: 140px; }
+.club-instellingen-actie { width: 1%; white-space: nowrap; text-align: right; }
+.club-instellingen-formvoet { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 14px; }
+.club-instellingen-formvoet .club-fout { margin: 0 auto 0 0; }
+.club-instellingen-sectie .club-tabel tr[data-uit] td { opacity: 0.6; }
+
+/* ── Regels ───────────────────────────────────────────────────────────────── */
+.club-instellingen-regels { display: grid; gap: 16px; }
+@media (min-width: 1100px) { .club-instellingen-regels { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; } .club-instellingen-opslaan { grid-column: 1 / -1; } }
+.club-instellingen-blok > h2 { font-size: 20px; }
+.club-instellingen-regelraster { display: grid; gap: 18px 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.club-instellingen-regel .club-invoer { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; min-height: 48px; }
+.club-instellingen-regel small { line-height: 1.4; }
+.club-instellingen-dagen { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-instellingen-dag { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.club-instellingen-dag:last-child { border-bottom: 0; }
+.club-instellingen-dag .club-instellingen-check span { font-family: var(--ff-kop); font-size: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-1); min-width: 92px; }
+.club-instellingen-dag[data-dicht] .club-instellingen-check span { color: var(--text-4); }
+.club-instellingen-tijden { display: inline-flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 13px; }
+.club-instellingen-tijden .club-invoer { width: 112px; font-variant-numeric: tabular-nums; }
+.club-instellingen-opslaan { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; }
+
+/* ── Nieuw-formulier (zalen) ─────────────────────────────────────────────── */
+.club-instellingen-nieuw { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 16px; border-radius: var(--club-radius); border: 1px dashed var(--line-strong); }
+.club-instellingen-nieuw .club-veld:first-child { flex: 1 1 240px; }
+.club-instellingen-nieuw .club-fout { flex-basis: 100%; margin: 0; }
+
+/* ── Uitklap-items (lestypen, medewerkers) ───────────────────────────────── */
+.club-instellingen-lijst { display: grid; gap: 8px; align-content: start; }
+.club-instellingen-item { border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); transition: border-color 160ms var(--ease); }
+.club-instellingen-item[open] { border-color: var(--line-strong); }
+.club-instellingen-item[data-uit] summary { opacity: 0.65; }
+.club-instellingen-item summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 16px; cursor: pointer; list-style: none; }
+.club-instellingen-item summary::-webkit-details-marker { display: none; }
+.club-instellingen-item summary:hover .club-instellingen-item-naam { color: var(--brand); }
+.club-instellingen-item-naam { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; transition: color 140ms var(--ease); }
+.club-instellingen-item summary .club-zacht { font-size: 13px; }
+.club-instellingen-item > form { padding: 4px 16px 16px; }
+.club-instellingen-lestype, .club-instellingen-mens, .club-instellingen-serie { display: grid; gap: 12px; }
+.club-instellingen-lestype { border-left: 3px solid var(--club-rooster-soort, var(--line-strong)); padding-left: 14px; }
+
+/* Keuzechips voor rollen en vestigingen. */
+.club-instellingen-keuzes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+.club-instellingen-keuzes legend { width: 100%; margin-bottom: 6px; }
+.club-instellingen-keuze { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13px; color: var(--text-2); cursor: pointer; transition: border-color 140ms var(--ease), background-color 140ms var(--ease); }
+.club-instellingen-keuze:has(input:checked) { border-color: transparent; background: var(--brand-soft); color: var(--brand); }
+.club-instellingen-keuze:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── Medewerkers + rollenuitleg ─────────────────────────────────────────── */
+@media (min-width: 1100px) { .club-instellingen-medewerkers { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); align-items: start; } }
+.club-instellingen-rollen { position: sticky; top: 124px; }
+.club-instellingen-rollen dl { margin: 0 0 12px; display: grid; gap: 10px; }
+.club-instellingen-rollen dt { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand); }
+.club-instellingen-rollen dd { margin: 2px 0 0; font-size: 13.5px; color: var(--text-2); }
+
+/* ── Weekrooster ──────────────────────────────────────────────────────────── */
+.club-instellingen-genereer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 18px; border-radius: var(--club-radius); border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); background: var(--bg-card); }
+.club-instellingen-genereer strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-instellingen-genereer p { margin: 4px 0 0; max-width: 70ch; }
+.club-instellingen-week { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+@media (min-width: 1200px) { .club-instellingen-week { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: clip; } }
+.club-instellingen-weekdag { display: grid; gap: 6px; align-content: start; padding: 12px 10px; border-left: 1px solid var(--line); min-height: 160px; }
+.club-instellingen-weekdag:first-child { border-left: 0; }
+.club-instellingen-weekdag h3 { display: flex; justify-content: space-between; margin: 0 0 4px; font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.club-instellingen-weekdag h3 .club-getal { color: var(--text-4); }
+.club-instellingen-serie-kaart { position: relative; display: grid; gap: 1px; text-align: left; padding: 8px 10px 8px 13px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--club-vlak-hover); color: var(--text-1); font: inherit; cursor: pointer; transition: transform 140ms var(--ease), border-color 140ms var(--ease); }
+.club-instellingen-serie-kaart::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: var(--club-rooster-soort, var(--text-4)); }
+.club-instellingen-serie-kaart:hover { transform: translateY(-1px); border-color: var(--line-strong); }
+.club-instellingen-serie-kaart[data-uit] { opacity: 0.5; }
+.club-instellingen-serie-kaart .club-zacht { font-size: 11.5px; }
+.club-instellingen-serie-kaart .club-chip { justify-self: start; margin-top: 4px; }
+.club-instellingen-serie-tijd { font-size: 12px; color: var(--text-3); }
+.club-instellingen-serie-naam { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-instellingen-plus { display: grid; place-items: center; min-height: 34px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line-strong); background: transparent; color: var(--text-4); cursor: pointer; transition: color 140ms var(--ease), border-color 140ms var(--ease); }
+.club-instellingen-plus:hover { color: var(--brand); border-color: var(--brand); }
+.club-instellingen-paneelkop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.club-instellingen-paneelkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 30px; line-height: 1; font-weight: 700; text-transform: uppercase; }

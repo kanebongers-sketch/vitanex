@@ -16,6 +16,13 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - LifeOS heeft de Fit Factory PT-stijl (grafiet + amber, Barlow-koppen), net als de PT-app.
 - De PT-app gebruikt op de pc de hele schermbreedte (rand `--ff-rand`); alleen formulieren en inloggen blijven smal. De LifeOS-agenda staat over de volle breedte.
 
+## Fit Factory Club (clubsoftware, besluit Kane 14-10-2026)
+- All-in clubsoftware die **Virtuagym vervangt** (intakes, schema's, lesroosters, reserveren) plus leden (niet financieel), check-in, CRM/leads, dashboard, cijfers en ledenapp. Zelfde functies als Virtuagym, **andere opbouw en uitstraling**, nooit hun code, teksten of ontwerp overnemen.
+- **Sportivity blijft** voor ledenadministratie, incasso en abonnementen; check-in gaat nu met QR en bandje via Sportivity. Kane wil een **koppeling met Sportivity**, maar voorlopig **geen contact met Sportivity of andere bedrijven**.
+- **Geheim tot de presentatie:** alleen Kane (beheerder-sessie) op `fitfactorypt.nl/clubkane`; eigenaren, clubmanagers en PT'ers krijgen een 404 en zien nergens een link. Knop "Club" alleen in de PT-balk voor de beheerder.
+- Naam: **Fit Factory** (balk: Fit Factory-logo + CLUB). Pilot: **Budel**, later met een echt ledenbestand. Rollen: balie, trainer, groepslesinstructeur, clubmanager.
+- Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
+
 ## Missie
 Bouw het hoogst mogelijke welzijnsplatform op het internet. Elke feature is:
 **premium, schaalbaar, toegankelijk, snel, mooi én eerlijk.**
