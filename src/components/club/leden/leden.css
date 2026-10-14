@@ -28,6 +28,11 @@
 .club-leden-filterrij { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .club-leden-filter { flex: 1 1 160px; max-width: 240px; }
 .club-leden-filter .club-invoer { min-height: 38px; font-size: 14px; }
+.club-leden-sorteerkeuze { display: none; }
+@media (max-width: 699px) {
+  .club-leden-sorteerkeuze { display: block; flex-basis: 100%; max-width: none; }
+  .club-leden-filter { max-width: none; }
+}
 .club-leden-risico[aria-pressed='true'] { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 55%, transparent); background: var(--club-let-op-zacht); }
 
 /* ── Tabel ────────────────────────────────────────────────────────────────── */
@@ -41,15 +46,37 @@
 .club-leden-rij td { padding-top: 9px; padding-bottom: 9px; }
 .club-leden-naamcel { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 300px; }
 .club-leden-abonnement { color: var(--text-2); white-space: nowrap; }
+.club-leden-nooit { display: grid; gap: 1px; }
+.club-leden-nooit .club-zacht { font-size: 12.5px; }
+.club-leden-leeg { display: grid; justify-items: center; gap: 12px; }
+.club-leden-leeg p { margin: 0; }
+.club-leden-pager [aria-disabled='true'] { opacity: 0.4; cursor: default; }
 .club-leden-voet { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: 13px; }
 .club-leden-pager { display: flex; align-items: center; gap: 10px; }
+
+/* ── Telefoon: elke rij een kaart ──────────────────────────────────────────── */
+@media (max-width: 699px) {
+  .club-leden-tabel { min-width: 0; }
+  .club-leden-tabel thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .club-leden-tabel tbody { display: block; }
+  .club-leden-rij { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 14px; border-bottom: 1px solid var(--line); }
+  .club-leden-rij:last-child { border-bottom: 0; }
+  .club-leden-rij td { display: grid; gap: 3px; align-content: start; padding: 0; border: 0; text-align: left; }
+  .club-leden-rij td[data-label]::before { content: attr(data-label); font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+  .club-leden-rij .club-leden-cel-naam, .club-leden-rij .club-leden-cel-behoud { grid-column: 1 / -1; }
+  .club-leden-rij .club-leden-cel-nummer { display: none; }
+  .club-leden-rij .club-chip { justify-self: start; }
+  .club-leden-naamcel { max-width: none; }
+  .club-leden-abonnement { white-space: normal; }
+  .club-leden-behoud { min-width: 0; max-width: none; }
+}
 
 /* ── Behoudssignaal ───────────────────────────────────────────────────────── */
 .club-leden-behoud { display: grid; gap: 3px; min-width: 220px; max-width: 300px; }
 .club-leden-behoud-boven { display: flex; align-items: center; gap: 8px; }
 .club-leden-behoud-score { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; min-width: 2ch; text-align: right; }
-.club-leden-behoud-uitleg { font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-leden-behoud-geen { font-size: 12.5px; color: var(--text-4); }
+.club-leden-behoud-uitleg { font-size: 12.5px; line-height: 1.4; color: var(--text-3); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.club-leden-behoud-geen { font-size: 12.5px; color: var(--text-3); }
 .club-leden-meter { position: relative; flex: 1; min-width: 40px; height: 4px; border-radius: 4px; background: var(--club-vlak-hover); overflow: hidden; }
 .club-leden-meter > span { position: absolute; inset: 0; border-radius: inherit; background: var(--text-3); transform-origin: left; }
 .club-leden-behoud--goed .club-leden-meter > span { background: var(--club-ok); }
@@ -74,25 +101,37 @@
 .club-leden-feit--sportivity { background: var(--club-vlak); }
 .club-leden-feit--sportivity dd { color: var(--text-2); font-weight: 500; }
 
-.club-leden-secties { position: sticky; top: 108px; z-index: 5; width: fit-content; backdrop-filter: blur(10px); }
+/* Springlinks alleen als de kolommen onder elkaar staan; niet sticky, zodat ze
+   nooit over de inhoud schuiven. */
+.club-leden-secties { width: fit-content; }
+@media (min-width: 1000px) { .club-leden-secties { display: none; } }
 .club-leden-kolom { display: grid; gap: 16px; align-content: start; }
 .club-leden-tweekolom { display: grid; gap: 16px; }
 @media (min-width: 760px) { .club-leden-tweekolom { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .club-leden-subkop { margin: 0 0 6px; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
-#overzicht, #notities, #gegevens { scroll-margin-top: 170px; }
+#overzicht, #notities, #gegevens { scroll-margin-top: 124px; }
 
 /* ── Bezoekpatroon ────────────────────────────────────────────────────────── */
-.club-leden-patroon-wrap { display: grid; gap: 14px; }
+.club-leden-patroon-wrap { display: grid; gap: 18px; }
 @media (min-width: 900px) { .club-leden-patroon-wrap { grid-template-columns: minmax(0, 1fr) 210px; align-items: end; } }
-.club-leden-patroon { margin: 0; display: grid; gap: 6px; }
-.club-leden-patroon svg { width: 100%; height: auto; display: block; overflow: visible; }
-.club-leden-patroon-lijn { stroke: var(--line); stroke-dasharray: 2 4; }
-.club-leden-balk rect { fill: color-mix(in srgb, var(--text-1) 34%, transparent); }
-.club-leden-balk rect[data-leeg] { fill: var(--line-strong); }
-.club-leden-balk--nu rect { fill: var(--brand); }
-.club-leden-balk-getal { fill: var(--text-2); font: 600 12px var(--ff-inter), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-.club-leden-balk-label { fill: var(--text-4); font: 500 11px var(--ff-inter), system-ui, sans-serif; }
-.club-leden-balk--nu .club-leden-balk-label { fill: var(--brand); }
+.club-leden-patroon { margin: 0; display: grid; gap: 8px; }
+.club-leden-grafiek { margin-top: 18px; display: grid; grid-template-columns: 22px minmax(0, 1fr); grid-template-rows: 150px auto; column-gap: 8px; row-gap: 6px; }
+.club-leden-as { position: relative; }
+.club-leden-as span { position: absolute; right: 0; transform: translateY(50%); font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; line-height: 1; }
+.club-leden-plot { position: relative; border-bottom: 1px solid var(--line-strong); }
+.club-leden-plot-lijn { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--line); }
+.club-leden-balken, .club-leden-xas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+.club-leden-balken { position: absolute; inset: 0; align-items: end; }
+.club-leden-balk { height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.club-leden-balk-staaf { position: relative; width: min(100%, 26px); border-radius: 4px 4px 0 0; background: color-mix(in srgb, var(--text-1) 34%, transparent); }
+.club-leden-balk[data-leeg] .club-leden-balk-staaf { background: var(--line-strong); }
+.club-leden-balk--nu .club-leden-balk-staaf { background: var(--brand); }
+.club-leden-balk-getal { position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -3px); font-size: 12px; font-weight: 600; color: var(--text-2); }
+.club-leden-xas { grid-column: 2; }
+.club-leden-xas li { text-align: center; font-size: 11.5px; color: var(--text-3); white-space: nowrap; }
+.club-leden-xas .club-leden-xas--nu { color: var(--brand); font-weight: 600; }
+@media (max-width: 599px) { .club-leden-xas li[data-om] { visibility: hidden; } }
+.club-leden-weekdagen-wrap { display: grid; gap: 4px; }
 .club-leden-weekdagen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .club-leden-weekdagen li { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--text-3); }
 .club-leden-weekdag-vak { width: 100%; aspect-ratio: 1; max-width: 34px; border-radius: 6px; background: var(--text-1); }
@@ -114,6 +153,10 @@
 .club-leden-onderdeel-uitleg { grid-column: 2 / -1; color: var(--text-3); font-size: 12.5px; }
 
 /* ── Reserveringen en bezoeken ────────────────────────────────────────────── */
+.club-leden-resrij { align-items: center; }
+.club-leden-resrij > .club-chip { flex: none; }
+.club-leden-res-notitie { color: var(--club-ok); }
+.club-leden-res-notitie--mist { color: var(--club-let-op); }
 .club-leden-datumblok { flex: none; display: grid; justify-items: center; width: 44px; padding: 4px 0; border: 1px solid var(--line); border-radius: var(--club-radius-klein); line-height: 1; }
 .club-leden-datumblok strong { font-family: var(--ff-kop); font-size: 20px; }
 .club-leden-datumblok span { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -127,7 +170,7 @@
 .club-leden-notitie { padding: 12px 14px 8px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
 .club-leden-notitie--vast { border-color: var(--line-strong); background: var(--club-vlak-hover); box-shadow: inset 3px 0 0 var(--text-2); }
 .club-leden-notitie p { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-.club-leden-notitie-voet { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text-4); }
+.club-leden-notitie-voet { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text-3); }
 .club-leden-notitie-acties { display: inline-flex; gap: 2px; opacity: 0.7; transition: opacity 160ms var(--ease); }
 .club-leden-notitie:hover .club-leden-notitie-acties, .club-leden-notitie:focus-within .club-leden-notitie-acties { opacity: 1; }
 .club-leden-weg:hover { color: var(--club-let-op); }

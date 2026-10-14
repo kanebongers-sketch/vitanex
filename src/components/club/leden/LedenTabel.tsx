@@ -2,20 +2,23 @@ import Link from 'next/link'
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { initialen, LID_STATUS_LABEL, volledigeNaam } from '@/lib/club/kern/lid'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
-import { lijstZoek, type LedenRij, type LijstParams, type Pagina, type SorteerSleutel } from '@/lib/club/leden/lijst'
-import { laatsteBezoekTekst } from '@/lib/club/leden/tijd'
+import { lijstZoek, STANDAARD_PARAMS, type LedenRij, type LijstParams, type Pagina, type SorteerSleutel } from '@/lib/club/leden/lijst'
+import { datumUitSleutel, laatsteBezoekTekst } from '@/lib/club/leden/tijd'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 import { Behoudsignaal } from './Behoudsignaal'
 import { RijKlik } from './RijKlik'
 
 // De ledenlijst: een compacte tabel, sorteren via de kopjes, een rij opent de
-// ledenkaart. Geen bedragen: geld en contracten staan in Sportivity.
+// ledenkaart. Op een telefoon wordt elke rij een kaart (CSS, data-label).
+// Geen bedragen: geld en contracten staan in Sportivity.
 
 interface LedenTabelProps {
   pagina: Pagina<LedenRij>
   params: LijstParams
   vestiging: Vestiging
   nu: Date
+  /** Staat er een zoekterm of filter aan? Dan een andere lege staat. */
+  gefilterd: boolean
 }
 
 interface Kolom {
@@ -32,7 +35,7 @@ const KOLOMMEN: Kolom[] = [
   { sleutel: 'status', label: 'Status' },
   { sleutel: 'abonnement', label: 'Abonnement' },
   { sleutel: 'bezoek', label: 'Laatste bezoek', aflopendEerst: true },
-  { sleutel: 'bezoeken', label: '30 dagen', aflopendEerst: true, getal: true },
+  { sleutel: 'bezoeken', label: 'Bezoeken 30 dagen', aflopendEerst: true, getal: true },
   { sleutel: 'behoud', label: 'Behoud' },
 ]
 
@@ -41,13 +44,25 @@ function Kop({ kolom, params, vestiging }: { kolom: Kolom; params: LijstParams; 
   const oplopend = actief ? !params.oplopend : !kolom.aflopendEerst
   const href = clubPad('/leden', vestiging, lijstZoek(params, { sort: kolom.sleutel, oplopend }))
   const richting = actief ? (params.oplopend ? 'ascending' : 'descending') : undefined
+  const uitleg = `Sorteer op ${kolom.label.toLowerCase()}, ${oplopend ? 'oplopend' : 'aflopend'}`
   return (
     <th scope="col" aria-sort={richting} className={kolom.getal ? 'club-leden-getalkolom' : undefined}>
-      <Link href={href} scroll={false} className="club-leden-sorteer" data-actief={actief || undefined}>
+      <Link href={href} scroll={false} className="club-leden-sorteer" data-actief={actief || undefined} aria-label={uitleg}>
         {kolom.label}
         {actief ? (params.oplopend ? <ArrowUp aria-hidden size={13} /> : <ArrowDown aria-hidden size={13} />) : null}
       </Link>
     </th>
+  )
+}
+
+function LaatsteBezoek({ rij, nu }: { rij: LedenRij; nu: Date }) {
+  if (rij.laatsteBezoek) return <>{laatsteBezoekTekst(rij.laatsteBezoek, nu)}</>
+  const sinds = datumUitSleutel(rij.lid.lidSinds)
+  return (
+    <span className="club-leden-nooit">
+      <span>Nog nooit</span>
+      {sinds ? <span className="club-zacht">Ingeschreven {sinds}</span> : null}
+    </span>
   )
 }
 
@@ -56,7 +71,7 @@ function Rij({ rij, vestiging, nu }: { rij: LedenRij; vestiging: Vestiging; nu: 
   const href = clubPad(`/leden/${lid.id}`, vestiging)
   return (
     <tr data-href={href} className="club-leden-rij">
-      <td>
+      <td className="club-leden-cel-naam">
         <div className="club-leden-naamcel">
           <span className="club-avatar" aria-hidden>{initialen(lid)}</span>
           <span className="club-rij-hoofd">
@@ -65,17 +80,19 @@ function Rij({ rij, vestiging, nu }: { rij: LedenRij; vestiging: Vestiging; nu: 
           </span>
         </div>
       </td>
-      <td className="club-getal club-zacht">{lid.lidnummer ?? '·'}</td>
-      <td><span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span></td>
-      <td className="club-leden-abonnement">{lid.abonnement ?? <span className="club-zacht">Onbekend</span>}</td>
-      <td className={rij.laatsteBezoek ? undefined : 'club-zacht'}>{laatsteBezoekTekst(rij.laatsteBezoek, nu)}</td>
-      <td className="club-getal club-leden-getalkolom">{rij.bezoeken30}</td>
-      <td><Behoudsignaal behoud={rij.behoud} geenTekst={lid.status === 'opgezegd' ? 'Opgezegd' : 'Geen bezoek verwacht'} /></td>
+      <td className="club-getal club-zacht club-leden-cel-nummer" data-label="Lidnummer">{lid.lidnummer ?? 'Onbekend'}</td>
+      <td data-label="Status"><span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span></td>
+      <td className="club-leden-abonnement" data-label="Abonnement">{lid.abonnement ?? <span className="club-zacht">Onbekend</span>}</td>
+      <td data-label="Laatste bezoek"><LaatsteBezoek rij={rij} nu={nu} /></td>
+      <td className="club-getal club-leden-getalkolom" data-label="Bezoeken 30 dagen">{rij.bezoeken30}</td>
+      <td className="club-leden-cel-behoud" data-label="Behoud">
+        <Behoudsignaal behoud={rij.behoud} geenTekst={lid.status === 'opgezegd' ? 'Opgezegd: geen score' : 'Geen score: geen bezoek verwacht'} />
+      </td>
     </tr>
   )
 }
 
-function Paginering({ pagina, params, vestiging }: Omit<LedenTabelProps, 'nu'>) {
+function Paginering({ pagina, params, vestiging }: Pick<LedenTabelProps, 'pagina' | 'params' | 'vestiging'>) {
   if (pagina.paginas <= 1) return null
   const naar = (p: number) => clubPad('/leden', vestiging, lijstZoek(params, { pagina: p }))
   return (
@@ -91,10 +108,19 @@ function Paginering({ pagina, params, vestiging }: Omit<LedenTabelProps, 'nu'>) 
   )
 }
 
-export function LedenTabel({ pagina, params, vestiging, nu }: LedenTabelProps) {
-  if (pagina.totaal === 0) {
-    return <p className="club-leeg">Geen leden gevonden met deze zoekopdracht of filters.</p>
-  }
+function Leeg({ params, vestiging, gefilterd }: Pick<LedenTabelProps, 'params' | 'vestiging' | 'gefilterd'>) {
+  if (!gefilterd) return <p className="club-leeg">Er staan nog geen leden in deze vestiging.</p>
+  const wis = clubPad('/leden', vestiging, lijstZoek({ ...STANDAARD_PARAMS, sort: params.sort, oplopend: params.oplopend }))
+  return (
+    <div className="club-leeg club-leden-leeg" role="status">
+      <p>Geen leden gevonden{params.q ? <> voor &ldquo;{params.q}&rdquo;</> : null} met deze filters.</p>
+      <Link href={wis} className="club-knop club-knop--klein" scroll={false}>Wis zoekterm en filters</Link>
+    </div>
+  )
+}
+
+export function LedenTabel({ pagina, params, vestiging, nu, gefilterd }: LedenTabelProps) {
+  if (pagina.totaal === 0) return <Leeg params={params} vestiging={vestiging} gefilterd={gefilterd} />
   return (
     <section className="club-leden-lijst" aria-label="Ledenlijst">
       <div className="club-tabel-wrap">

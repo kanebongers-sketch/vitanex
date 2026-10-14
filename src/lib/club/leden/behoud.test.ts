@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { berekenBehoud, keerTekst, labelVoorScore } from './behoud'
+import { behoudVoorLid, berekenBehoud, labelVoorScore, noShowTekst, perWeekTekst } from './behoud'
 
 const NU = new Date('2026-10-14T12:00:00+02:00')
 
@@ -23,14 +23,14 @@ describe('berekenBehoud', () => {
     const b = berekenBehoud({ bezoeken: regelmatig(2, 1, 84), noShows: 0, lidSinds: LANG_LID, nu: NU })
     expect(b.score).toBe(100)
     expect(b.label).toBe('goed')
-    expect(b.uitleg).toBe('Komt 2x per week, stabiel')
+    expect(b.uitleg).toBe('Komt ongeveer 2x per week, stabiel')
   })
 
   it('ziet een lid dat 3x per week kwam en 2 weken wegblijft als risico', () => {
     const bezoeken = [...regelmatig(3, 28, 84), ...op(15, 17, 20, 22, 25, 27)]
     const b = berekenBehoud({ bezoeken, noShows: 0, lidSinds: LANG_LID, nu: NU })
     expect(b.dagenSinds).toBe(15)
-    expect(b.uitleg).toBe('Kwam 3x per week, nu 0x in 2 weken')
+    expect(b.uitleg).toBe('Kwam ongeveer 3x per week, nu al 2 weken niet')
     expect(b.label).not.toBe('goed')
   })
 
@@ -51,7 +51,7 @@ describe('berekenBehoud', () => {
     const b = berekenBehoud({ bezoeken: op(1, 4), noShows: 0, lidSinds: '2026-10-08', nu: NU })
     expect(b.eerderPerWeek).toBeNull()
     expect(b.recentPerWeek).toBe(2)
-    expect(b.uitleg).toBe('Nieuw lid, komt 2x per week')
+    expect(b.uitleg).toBe('Nieuw lid, komt ongeveer 2x per week')
     expect(b.label).toBe('goed')
   })
 
@@ -72,20 +72,21 @@ describe('berekenBehoud', () => {
     expect(berekenBehoud({ ...basis, noShows: 1 }).onderdelen.noShows).toBe(6)
     const veel = berekenBehoud({ ...basis, noShows: 5 })
     expect(veel.onderdelen.noShows).toBe(0)
-    expect(veel.uitleg).toBe('Komt 2x per week, stabiel. 5x niet gekomen bij een geboekte les')
+    expect(veel.uitleg).toBe('Komt ongeveer 2x per week, stabiel. 5 keer niet gekomen bij een geboekte les')
+    expect(berekenBehoud({ ...basis, noShows: 1 }).uitleg).toBe('Komt ongeveer 2x per week, stabiel. Een keer niet gekomen bij een geboekte les')
   })
 
   it('meldt een daling zonder lange afwezigheid', () => {
     const bezoeken = [...regelmatig(3, 28, 84), ...op(3, 17)]
     const b = berekenBehoud({ bezoeken, noShows: 0, lidSinds: LANG_LID, nu: NU })
-    expect(b.uitleg).toBe('Kwam 3x per week, nu 0,5x per week')
+    expect(b.uitleg).toBe('Kwam ongeveer 3x per week, nu minder dan 1x per week')
     expect(b.onderdelen.trend).toBeLessThan(10)
   })
 
   it('meldt het als iemand vaker komt', () => {
     const bezoeken = [...regelmatig(1, 28, 84), ...regelmatig(3, 1, 28)]
     const b = berekenBehoud({ bezoeken, noShows: 0, lidSinds: LANG_LID, nu: NU })
-    expect(b.uitleg).toMatch(/^Komt vaker: 3x per week \(was 1x\)$/)
+    expect(b.uitleg).toBe('Komt vaker: ongeveer 3x per week (was ongeveer 1x per week)')
   })
 
   it('geeft lid-duur punten naar hoe lang iemand lid is', () => {
@@ -104,7 +105,7 @@ describe('berekenBehoud', () => {
   })
 })
 
-describe('labelVoorScore en keerTekst', () => {
+describe('labelVoorScore en perWeekTekst', () => {
   it('legt de grenzen vast', () => {
     expect(labelVoorScore(70)).toBe('goed')
     expect(labelVoorScore(69)).toBe('let_op')
@@ -112,9 +113,54 @@ describe('labelVoorScore en keerTekst', () => {
     expect(labelVoorScore(44)).toBe('risico')
   })
 
-  it('schrijft getallen met komma en zonder ,0', () => {
-    expect(keerTekst(3)).toBe('3x')
-    expect(keerTekst(1.5)).toBe('1,5x')
-    expect(keerTekst(0.25)).toBe('0,3x')
+  it('rondt af op hele of halve keren in gewone taal', () => {
+    expect(perWeekTekst(0)).toBe('niet')
+    expect(perWeekTekst(Number.NaN)).toBe('niet')
+    expect(perWeekTekst(0.25)).toBe('minder dan 1x per week')
+    expect(perWeekTekst(0.74)).toBe('minder dan 1x per week')
+    expect(perWeekTekst(0.8)).toBe('ongeveer 1x per week')
+    expect(perWeekTekst(1.3)).toBe('ongeveer 1,5x per week')
+    expect(perWeekTekst(2)).toBe('ongeveer 2x per week')
+  })
+
+  it('maakt van extreme waarden eerlijke woorden in plaats van 7x per week', () => {
+    expect(perWeekTekst(5.6)).toBe('bijna elke dag')
+    expect(perWeekTekst(7)).toBe('elke dag')
+    expect(perWeekTekst(12)).toBe('elke dag')
+  })
+
+  it('schrijft no-shows als een keer of n keer', () => {
+    expect(noShowTekst(0)).toBe('Altijd gekomen bij een geboekte les')
+    expect(noShowTekst(1)).toBe('Een keer niet gekomen bij een geboekte les')
+    expect(noShowTekst(3)).toBe('3 keer niet gekomen bij een geboekte les')
+  })
+})
+
+describe('extreme en rare invoer', () => {
+  it('telt een lid dat elke dag komt als elke dag, niet als meer', () => {
+    const b = berekenBehoud({ bezoeken: op(...Array.from({ length: 84 }, (_, i) => i)), noShows: 0, lidSinds: LANG_LID, nu: NU })
+    expect(b.recentPerWeek).toBe(7)
+    expect(b.uitleg).toBe('Komt elke dag, stabiel')
+    expect(b.score).toBe(100)
+  })
+
+  it('zegt "komt weinig" bij minder dan een keer per week', () => {
+    const b = berekenBehoud({ bezoeken: op(5, 40, 70), noShows: 0, lidSinds: LANG_LID, nu: NU })
+    expect(b.uitleg).toBe('Komt weinig: minder dan 1x per week')
+  })
+
+  it('noemt weken bij lange afwezigheid zonder eerder ritme', () => {
+    const b = berekenBehoud({ bezoeken: op(20), noShows: 0, lidSinds: LANG_LID, nu: NU })
+    expect(b.uitleg).toBe('Al 2 weken niet geweest')
+  })
+})
+
+describe('behoudVoorLid', () => {
+  it('geeft alleen actieve en proefleden een score', () => {
+    const bezoeken = regelmatig(2, 1, 84)
+    expect(behoudVoorLid({ status: 'actief', lidSinds: LANG_LID }, bezoeken, 0, NU)?.score).toBe(100)
+    expect(behoudVoorLid({ status: 'proef', lidSinds: LANG_LID }, bezoeken, 0, NU)).not.toBeNull()
+    expect(behoudVoorLid({ status: 'gepauzeerd', lidSinds: LANG_LID }, bezoeken, 0, NU)).toBeNull()
+    expect(behoudVoorLid({ status: 'opgezegd', lidSinds: LANG_LID }, bezoeken, 0, NU)).toBeNull()
   })
 })

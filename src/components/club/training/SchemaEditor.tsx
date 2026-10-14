@@ -15,6 +15,7 @@ import { stuur } from './api'
 import { EditorDag } from './EditorDag'
 import { EditorKop, type KopStaat } from './EditorKop'
 import { EditorWerkbalk } from './EditorWerkbalk'
+import { BeeldBron } from './OefeningBeeld'
 import { OefeningKiezer } from './OefeningKiezer'
 import { SchemaPrint } from './SchemaPrint'
 
@@ -127,6 +128,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
               <Plus aria-hidden size={16} /> Dag {dagLetter(staat.dagTitels.length + 1)} toevoegen
             </button>
           )}
+          {staat.regels.some((r) => perId.get(r.oefeningId)?.beeld) && <BeeldBron />}
         </div>
         <div className="club-k4 club-training-zij">
           <EditorKop kop={kop} zet={zetKop} trainers={p.trainers} isSjabloon={p.isSjabloon} />

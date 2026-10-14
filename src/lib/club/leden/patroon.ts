@@ -43,3 +43,11 @@ export function perWeekdag(bezoeken: readonly Date[], nu: Date, weken = PATROON_
 }
 
 export const WEEKDAG_KORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'] as const
+
+/** De y-as van de weekgrafiek: minstens 3 hoog, stappen van 1 (tot 4) of 2. */
+export function asSchaal(hoogste: number): { top: number; ticks: number[] } {
+  const basis = Math.max(3, Math.ceil(hoogste))
+  const stap = basis <= 4 ? 1 : 2
+  const top = Math.ceil(basis / stap) * stap
+  return { top, ticks: Array.from({ length: top / stap + 1 }, (_, i) => i * stap) }
+}

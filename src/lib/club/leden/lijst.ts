@@ -3,13 +3,14 @@
 // (?status=actief&risico=1&sort=-behoud&p=2), zodat een lijst deelbaar is.
 
 import { LID_STATUSSEN, volledigeNaam, type Lid, type LidStatus } from '@/lib/club/kern/lid'
-import { berekenBehoud, type Behoud } from './behoud'
+import { behoudVoorLid, type Behoud } from './behoud'
 import { dagenGeleden, dagSleutel } from './tijd'
 
 export const PER_PAGINA = 50
 
 export interface LedenRij {
   lid: Lid
+  /** Het laatste bezoek ooit (alle vestigingen), of null als het lid nog nooit kwam. */
   laatsteBezoek: Date | null
   bezoeken30: number
   /** Alleen voor leden die horen te komen (actief, proef); anders null. */
@@ -85,22 +86,24 @@ export function lijstZoek(p: LijstParams, wijziging: Partial<LijstParams> = {}):
   return uit
 }
 
-/** Een rij per lid, met laatste bezoek, bezoeken in 30 dagen en behoud. */
+/**
+ * Een rij per lid, met laatste bezoek, bezoeken in 30 dagen en behoud.
+ * `bezoeken`: check-ins van de laatste 12 weken in alle vestigingen.
+ * `eerder`: het laatste bezoek van voor die 12 weken, voor leden zonder recent bezoek.
+ */
 export function bouwRijen(
   leden: readonly Lid[],
   bezoeken: ReadonlyMap<string, readonly Date[]>,
   noShows: ReadonlyMap<string, number>,
   nu: Date,
+  eerder: ReadonlyMap<string, Date> = new Map(),
 ): LedenRij[] {
   return leden.map((lid) => {
     const eigen = bezoeken.get(lid.id) ?? []
-    const laatsteBezoek = eigen.reduce<Date | null>((max, b) => (!max || b > max ? b : max), null)
+    const recent = eigen.reduce<Date | null>((max, b) => (!max || b > max ? b : max), null)
     const dagen30 = new Set(eigen.filter((b) => { const d = dagenGeleden(b, nu); return d >= 0 && d < 30 }).map(dagSleutel))
-    const verwacht = lid.status === 'actief' || lid.status === 'proef'
-    const behoud = verwacht
-      ? berekenBehoud({ bezoeken: eigen, noShows: noShows.get(lid.id) ?? 0, lidSinds: lid.lidSinds, nu })
-      : null
-    return { lid, laatsteBezoek, bezoeken30: dagen30.size, behoud }
+    const behoud = behoudVoorLid(lid, eigen, noShows.get(lid.id) ?? 0, nu)
+    return { lid, laatsteBezoek: recent ?? eerder.get(lid.id) ?? null, bezoeken30: dagen30.size, behoud }
   })
 }
 
@@ -174,6 +177,25 @@ export function pagineer<T>(rijen: readonly T[], pagina: number, per = PER_PAGIN
   return { rijen: deel, pagina: huidig, paginas, van: deel.length ? start + 1 : 0, tot: start + deel.length, totaal: rijen.length }
 }
 
+/** Sorteerkeuzes voor smalle schermen, waar de tabelkoppen verborgen zijn. */
+export const SORTEER_KEUZES: readonly { sort: SorteerSleutel; oplopend: boolean; label: string }[] = [
+  { sort: 'naam', oplopend: true, label: 'Naam (A tot Z)' },
+  { sort: 'naam', oplopend: false, label: 'Naam (Z tot A)' },
+  { sort: 'behoud', oplopend: true, label: 'Behoud (laagste eerst)' },
+  { sort: 'behoud', oplopend: false, label: 'Behoud (hoogste eerst)' },
+  { sort: 'bezoek', oplopend: false, label: 'Laatste bezoek (recent eerst)' },
+  { sort: 'bezoek', oplopend: true, label: 'Laatste bezoek (langst geleden eerst)' },
+  { sort: 'bezoeken', oplopend: false, label: 'Bezoeken 30 dagen (meeste eerst)' },
+  { sort: 'bezoeken', oplopend: true, label: 'Bezoeken 30 dagen (minste eerst)' },
+  { sort: 'lidnummer', oplopend: true, label: 'Lidnummer' },
+  { sort: 'status', oplopend: true, label: 'Status' },
+  { sort: 'abonnement', oplopend: true, label: 'Abonnement' },
+]
+
+export function heeftFilter(p: LijstParams): boolean {
+  return Boolean(p.q || p.status || p.abonnement || p.tag || p.coach || p.risico)
+}
+
 export interface LedenTellingen {
   actief: number
   gepauzeerd: number
@@ -182,9 +204,14 @@ export interface LedenTellingen {
   risico: number
 }
 
-export function telTegels(rijen: readonly LedenRij[]): LedenTellingen {
+/**
+ * De tellingen voor de tegels. Een zoekterm telt mee (de tegels bewaren hem bij
+ * klikken), zodat het getal op een tegel precies het aantal rijen na de klik is.
+ */
+export function telTegels(rijen: readonly LedenRij[], q = ''): LedenTellingen {
+  const lijst = q ? filterRijen(rijen, { ...STANDAARD_PARAMS, q }) : rijen
   const t: LedenTellingen = { actief: 0, gepauzeerd: 0, opgezegd: 0, proef: 0, risico: 0 }
-  for (const { lid, behoud } of rijen) {
+  for (const { lid, behoud } of lijst) {
     if (lid.status !== 'gestopt') t[lid.status] += 1
     if (behoud?.label === 'risico') t.risico += 1
   }

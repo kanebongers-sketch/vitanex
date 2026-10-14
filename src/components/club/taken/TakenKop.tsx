@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { TAKEN_WEERGAVEN, WEERGAVE_LABEL, takenHref, type TakenWeergave } from '@/lib/club/taken/url'
 
-// Kop van de takenpagina's: titel, de vier weergaven en (waar het telt) bladeren per week.
+// Kop van de takenpagina's: titel, de weergaven (Dag, Week, Overzicht, Beheer) en (waar het telt) bladeren per week.
 
 interface KopProps {
   vestiging: Vestiging
@@ -29,7 +29,7 @@ export function TakenKop({ vestiging, vestigingNaam, weergave, titel, sub, child
       </header>
       <nav className="club-segment club-taken-weergaven club-taken-print-weg" aria-label="Weergave van de taken">
         {TAKEN_WEERGAVEN.map((w) => (
-          <Link key={w || 'week'} href={takenHref(w, vestiging)} aria-current={w === weergave ? 'page' : undefined}>
+          <Link key={w || 'dag'} href={takenHref(w, vestiging)} aria-current={w === weergave ? 'page' : undefined}>
             {WEERGAVE_LABEL[w]}
           </Link>
         ))}

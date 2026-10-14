@@ -11,7 +11,7 @@ import {
 interface OefeningFiltersProps {
   filter: OefeningFilter
   onFilter: (f: OefeningFilter) => void
-  /** Ook de keuze "inactieve tonen" (alleen in de bibliotheek). */
+  /** Ook de keuzes "inactieve tonen" en "zonder beeld" (alleen in de bibliotheek). */
   metInactiefKeuze?: boolean
   zoekLabel?: string
 }
@@ -60,10 +60,16 @@ export const OefeningFilters = forwardRef<HTMLInputElement, OefeningFiltersProps
         </select>
       </label>
       {metInactiefKeuze && (
-        <label className="club-training-vink">
-          <input type="checkbox" checked={filter.metInactief} onChange={(e) => zet({ metInactief: e.target.checked })} />
-          <span>Ook inactieve</span>
-        </label>
+        <div className="club-training-vinken">
+          <label className="club-training-vink">
+            <input type="checkbox" checked={filter.metInactief} onChange={(e) => zet({ metInactief: e.target.checked })} />
+            <span>Ook inactieve</span>
+          </label>
+          <label className="club-training-vink">
+            <input type="checkbox" checked={filter.zonderBeeld} onChange={(e) => zet({ zonderBeeld: e.target.checked })} />
+            <span>Zonder beeld</span>
+          </label>
+        </div>
       )}
     </div>
   )

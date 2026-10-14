@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Lid } from '@/lib/club/kern/lid'
-import { bouwRijen, filterKeuzes, filterRijen, leesLijstParams, lijstZoek, pagineer, sorteerRijen, STANDAARD_PARAMS, telTegels } from './lijst'
+import { behoudVoorLid } from './behoud'
+import { bouwRijen, filterKeuzes, filterRijen, heeftFilter, leesLijstParams, lijstZoek, pagineer, SORTEER_KEUZES, sorteerRijen, STANDAARD_PARAMS, telTegels } from './lijst'
 
 const NU = new Date('2026-10-14T12:00:00+02:00')
 
@@ -30,6 +31,20 @@ describe('bouwRijen', () => {
     expect(RIJEN[0].bezoeken30).toBe(6)
     expect(RIJEN[0].laatsteBezoek?.getTime()).toBe(dagen(1)[0].getTime())
     expect(RIJEN[1].laatsteBezoek).toBeNull()
+  })
+
+  it('neemt het laatste bezoek van voor het venster over, anders null (nog nooit)', () => {
+    const ouder = new Date('2026-05-01T10:00:00+02:00')
+    const rijen = bouwRijen(LEDEN, BEZOEK, new Map(), NU, new Map([['2', ouder]]))
+    expect(rijen[1].laatsteBezoek?.getTime()).toBe(ouder.getTime())
+    expect(rijen[3].laatsteBezoek).toBeNull()
+    expect(rijen[0].laatsteBezoek?.getTime()).toBe(dagen(1)[0].getTime())
+  })
+
+  it('rekent precies dezelfde score en uitleg als de ledenkaart', () => {
+    const rij = bouwRijen(LEDEN, BEZOEK, new Map([['1', 2]]), NU)[0]
+    const kaart = behoudVoorLid(LEDEN[0], BEZOEK.get('1') ?? [], 2, NU)
+    expect(rij.behoud).toEqual(kaart)
   })
 
   it('geeft alleen actieve en proefleden een behoudsscore', () => {
@@ -100,7 +115,28 @@ describe('telTegels en filterKeuzes', () => {
     expect(telTegels(RIJEN)).toEqual({ actief: 1, gepauzeerd: 1, opgezegd: 0, proef: 1, risico: 1 })
   })
 
+  it('telt met de zoekterm mee, zodat een tegel evenveel toont als de lijst na de klik', () => {
+    expect(telTegels(RIJEN, 'cas')).toEqual({ actief: 0, gepauzeerd: 0, opgezegd: 0, proef: 1, risico: 1 })
+    const risicoNaKlik = filterRijen(RIJEN, { ...STANDAARD_PARAMS, q: 'cas', risico: true }).length
+    expect(telTegels(RIJEN, 'cas').risico).toBe(risicoNaKlik)
+  })
+
   it('geeft gesorteerde, unieke keuzes', () => {
     expect(filterKeuzes(RIJEN)).toEqual({ abonnementen: ['All-in maand', 'Student'], tags: ['pt-interesse'] })
+  })
+})
+
+describe('heeftFilter en SORTEER_KEUZES', () => {
+  it('ziet een zoekterm of filter', () => {
+    expect(heeftFilter(STANDAARD_PARAMS)).toBe(false)
+    expect(heeftFilter({ ...STANDAARD_PARAMS, sort: 'behoud' })).toBe(false)
+    expect(heeftFilter({ ...STANDAARD_PARAMS, q: 'sanne' })).toBe(true)
+    expect(heeftFilter({ ...STANDAARD_PARAMS, risico: true })).toBe(true)
+  })
+
+  it('heeft unieke sorteerkeuzes, met de standaard voorop', () => {
+    const sleutels = SORTEER_KEUZES.map((k) => (k.oplopend ? '' : '-') + k.sort)
+    expect(new Set(sleutels).size).toBe(sleutels.length)
+    expect(SORTEER_KEUZES[0]).toMatchObject({ sort: STANDAARD_PARAMS.sort, oplopend: STANDAARD_PARAMS.oplopend })
   })
 })

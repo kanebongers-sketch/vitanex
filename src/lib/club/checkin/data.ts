@@ -92,14 +92,39 @@ function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: Li
   }
 }
 
-/** Zoeken aan de balie: eerst een exacte code, anders op naam in deze vestiging. Null bij een fout. */
+/**
+ * Op naam in de andere vestigingen, voor een lid dat zijn pas vergat. Zelfde
+ * zoekregels als zoekLeden; alleen gebruikt als de eigen vestiging weinig geeft.
+ */
+async function zoekElders(admin: SupabaseClient, userId: string, v: Vestiging, term: string, limiet: number): Promise<Lid[]> {
+  const schoon = term.replace(/[%,()*]/g, ' ').slice(0, 60).trim()
+  if (schoon.length < 3) return []
+  const zoek = schoon.split(/\s+/).slice(0, 3).reduce(
+    (q, deel) => q.or(`voornaam.ilike.%${deel}%,achternaam.ilike.%${deel}%,lidnummer.ilike.%${deel}%`),
+    admin.from('club_leden').select(LID_KOLOMMEN).eq('user_id', userId).neq('vestiging', v),
+  )
+  const { data, error } = await zoek.order('achternaam').order('voornaam').limit(limiet)
+  if (error) {
+    console.error('[club] leden elders zoeken mislukt', error.message)
+    return []
+  }
+  return (data ?? []).map(lidUitRij).filter((l): l is Lid => l !== null)
+}
+
+async function zoekOpNaam(admin: SupabaseClient, userId: string, v: Vestiging, term: string): Promise<Lid[] | null> {
+  const eigen = await zoekLeden(admin, userId, v, term, 8)
+  if (!eigen || eigen.length >= 3) return eigen
+  return [...eigen, ...(await zoekElders(admin, userId, v, term, 5))]
+}
+
+/** Zoeken aan de balie: eerst een exacte code, anders op naam (eerst deze vestiging). Null bij een fout. */
 export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Vestiging, invoer: string, nu: Date): Promise<ZoekAntwoord | null> {
   const term = invoer.trim().slice(0, 80)
   if (!term) return { exact: false, bron: 'balie', leden: [] }
   const code = isCode(term) ? await zoekOpCode(admin, userId, term) : { leden: [], veld: 'naam' as const }
   if (!code) return null
   const exact = code.leden.length > 0
-  const leden = exact ? code.leden : await zoekLeden(admin, userId, v, term, 8)
+  const leden = exact ? code.leden : await zoekOpNaam(admin, userId, v, term)
   if (!leden) return null
   const ids = leden.map((l) => l.id)
   const [laatste, reserveringen, venster] = await Promise.all([

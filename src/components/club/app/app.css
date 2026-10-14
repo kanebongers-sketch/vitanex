@@ -97,12 +97,34 @@
 .club-lidapp-dagkeuze button[aria-pressed='true'] { background: var(--text-1); border-color: var(--text-1); color: var(--bg-app); }
 .club-lidapp-stip { position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 999px; background: var(--brand); }
 .club-lidapp-oefeningen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.club-lidapp-oefeningen li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: var(--lidapp-radius); background: var(--bg-card); }
+.club-lidapp-oefening { width: 100%; display: grid; grid-template-columns: 30px auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 12px 12px 14px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color 160ms var(--ease), transform 120ms var(--ease); }
+.club-lidapp-oefening:hover { border-color: var(--line-strong); }
+.club-lidapp-oefening:active { transform: scale(0.99); }
+.club-lidapp-oefening:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .club-lidapp-nr { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-family: var(--ff-kop); font-weight: 700; }
-.club-lidapp-oefeningen div { display: grid; gap: 2px; min-width: 0; }
-.club-lidapp-oefeningen strong { font-size: 15.5px; }
-.club-lidapp-oefeningen span { font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
-.club-lidapp-oefeningen em { font-style: normal; font-size: 13px; color: var(--text-3); line-height: 1.4; }
+.club-lidapp-oefening-tekst { display: grid; gap: 2px; min-width: 0; }
+.club-lidapp-oefening-tekst strong { font-size: 15.5px; }
+.club-lidapp-oefening-tekst > span { font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.club-lidapp-oefening-tekst em { font-style: normal; font-size: 13px; color: var(--text-3); line-height: 1.4; }
+.club-lidapp-oefening-pijl { color: var(--text-3); }
+.club-lidapp-tab > .club-lidapp-beeldbron { justify-self: center; }
+
+/* Een oefening groot: een blad dat over het schema schuift. */
+.club-lidapp-blad-scherm { position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-end; background: color-mix(in srgb, var(--bg-app) 72%, transparent); animation: club-lidapp-vervaag 200ms var(--ease); }
+.club-lidapp-blad { width: 100%; max-height: 88%; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 14px; padding: 18px 20px 28px; border-radius: 26px 26px 0 0; background: var(--bg-raised); border-top: 1px solid var(--line-strong); box-shadow: 0 -24px 48px -24px rgba(0, 0, 0, 0.8); animation: club-lidapp-blad-in 300ms var(--ease); outline: none; }
+.club-lidapp-blad .club-training-beeld--groot { justify-self: center; width: min(100%, 300px); }
+.club-lidapp-blad-kop { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.club-lidapp-blad-kop h3 { margin: 0; font-family: var(--ff-kop); font-size: 28px; font-weight: 700; line-height: 1; text-transform: uppercase; }
+.club-lidapp-blad-sluit { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-1); cursor: pointer; }
+.club-lidapp-blad-sluit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-lidapp-blad-regel { margin: 0; text-align: center; font-family: var(--ff-kop); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.club-lidapp-blad-notitie { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--brand-soft); font-size: 14px; line-height: 1.45; }
+.club-lidapp-blad section h4 { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-lidapp-blad section p { margin: 0; font-size: 15px; line-height: 1.55; }
+.club-lidapp-blad > .club-training-beeldbron { justify-self: center; }
+@keyframes club-lidapp-blad-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes club-lidapp-vervaag { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 640px) { .club-lidapp-blad-scherm { position: fixed; z-index: 50; } }
 .club-lidapp-recent h3 { margin: 4px 0 8px; font-family: var(--ff-kop); font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-2); }
 .club-lidapp-recent ul { list-style: none; margin: 0; padding: 0; display: grid; }
 .club-lidapp-recent li { display: flex; justify-content: space-between; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14.5px; }
@@ -134,5 +156,5 @@
 .club-lidapp-uitleg-regels ul { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 6px; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
 
 @media (prefers-reduced-motion: reduce) {
-  .club-lidapp-tab { animation: none; }
+  .club-lidapp-tab, .club-lidapp-blad, .club-lidapp-blad-scherm { animation: none; }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { perWeekdag, weekBalken } from './patroon'
+import { asSchaal, perWeekdag, weekBalken } from './patroon'
 
 const NU = new Date('2026-10-14T12:00:00+02:00') // woensdag
 
@@ -31,5 +31,17 @@ describe('perWeekdag', () => {
   it('telt per weekdag met maandag eerst', () => {
     // 0 = woensdag, 2 = maandag, 3 = zondag
     expect(perWeekdag(op(0, 2, 3, 7), NU)).toEqual([1, 0, 2, 0, 0, 0, 1])
+  })
+})
+
+describe('asSchaal', () => {
+  it('is minstens 3 hoog met stappen van 1', () => {
+    expect(asSchaal(0)).toEqual({ top: 3, ticks: [0, 1, 2, 3] })
+    expect(asSchaal(4)).toEqual({ top: 4, ticks: [0, 1, 2, 3, 4] })
+  })
+
+  it('neemt stappen van 2 boven de 4 en rondt naar boven af', () => {
+    expect(asSchaal(5)).toEqual({ top: 6, ticks: [0, 2, 4, 6] })
+    expect(asSchaal(7)).toEqual({ top: 8, ticks: [0, 2, 4, 6, 8] })
   })
 })

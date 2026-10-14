@@ -5,6 +5,7 @@ import { Check, Plus } from 'lucide-react'
 import { filterOefeningen, LEEG_FILTER, type OefeningFilter } from '@/lib/club/training/filter'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { MATERIAAL_LABEL, NIVEAU_LABEL, SPIERGROEP_LABEL } from '@/lib/club/training/typen'
+import { OefeningBeeld } from './OefeningBeeld'
 import { OefeningFilters } from './OefeningFilters'
 import { Zijpaneel } from './Zijpaneel'
 
@@ -34,6 +35,7 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
             return (
               <li key={o.id}>
                 <button type="button" className="club-rij club-training-kiesrij" onClick={() => onKies(o)}>
+                  <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="klein" decoratief />
                   <span className="club-rij-hoofd">
                     <span className="club-rij-titel">{o.naam}</span>
                     <span className="club-rij-sub">{SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]} · {NIVEAU_LABEL[o.niveau]}</span>

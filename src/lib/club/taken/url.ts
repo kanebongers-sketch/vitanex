@@ -4,12 +4,14 @@
 
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 
-export const TAKEN_WEERGAVEN = ['', 'vandaag', 'overzicht', 'beheer'] as const
+// Besluit Kane (14-10-2026): simpel houden, een tab Dag (standaard) en een tab Week,
+// plus Overzicht en Beheer.
+export const TAKEN_WEERGAVEN = ['', 'week', 'overzicht', 'beheer'] as const
 export type TakenWeergave = (typeof TAKEN_WEERGAVEN)[number]
 
 export const WEERGAVE_LABEL: Record<TakenWeergave, string> = {
-  '': 'Week',
-  vandaag: 'Vandaag',
+  '': 'Dag',
+  week: 'Week',
   overzicht: 'Overzicht',
   beheer: 'Beheer',
 }

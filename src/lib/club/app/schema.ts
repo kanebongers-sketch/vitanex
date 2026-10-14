@@ -3,6 +3,7 @@
 
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
 import { alsRij, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
+import { beeldenUitRij, type OefeningBeelden } from '@/lib/club/training/beeld'
 
 export interface AppOefening {
   id: string
@@ -16,6 +17,9 @@ export interface AppOefening {
   rustSec: number | null
   notitie: string | null
   aandachtspunten: string | null
+  uitleg: string | null
+  /** Begin- en eindhouding, of null als er (nog) geen tekening is. */
+  beeld: OefeningBeelden | null
 }
 
 export interface AppSchemaDag {
@@ -55,6 +59,8 @@ export function oefeningUitRij(v: unknown): AppOefening | null {
     rustSec: getal(r.rust_sec),
     notitie: tekst(r.notitie),
     aandachtspunten: oef ? tekst(oef.aandachtspunten) : null,
+    uitleg: oef ? tekst(oef.uitleg) : null,
+    beeld: oef ? beeldenUitRij(oef) : null,
   }
 }
 

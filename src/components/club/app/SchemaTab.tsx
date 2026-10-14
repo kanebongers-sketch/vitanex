@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Undo2 } from 'lucide-react'
+import { Check, ChevronRight, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
+import type { AppOefening } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
 import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
+import { BeeldBron, OefeningBeeld } from '@/components/club/training/OefeningBeeld'
+import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en vink
-// af dat je de training gedaan hebt (club_trainingslog).
+// af dat je de training gedaan hebt (club_trainingslog). Tik op een oefening
+// voor de bewegende tekening met uitleg.
 
 interface Props {
   lidId: string
@@ -23,6 +27,8 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
   const [bezig, startBezig] = useTransition()
   const [fout, setFout] = useState<string | null>(null)
   const [gekozen, setGekozen] = useState<number | null>(null)
+  const [open, setOpen] = useState<AppOefening | null>(null)
+  const sluit = useCallback(() => setOpen(null), [])
   if (!schema || schema.dagen.length === 0) {
     return (
       <div className="club-lidapp-tab">
@@ -65,17 +71,22 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
       <ol className="club-lidapp-oefeningen">
         {dag.oefeningen.map((o, i) => (
           <li key={o.id}>
-            <span className="club-lidapp-nr" aria-hidden>
-              {i + 1}
-            </span>
-            <div>
-              <strong>{o.naam}</strong>
-              <span>{voorschrift(o) || 'Volgens je trainer'}</span>
-              {(o.notitie ?? o.aandachtspunten) && <em>{o.notitie ?? o.aandachtspunten}</em>}
-            </div>
+            <button type="button" className="club-lidapp-oefening" onClick={() => setOpen(o)} aria-haspopup="dialog">
+              <span className="club-lidapp-nr" aria-hidden>
+                {i + 1}
+              </span>
+              <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="klein" decoratief />
+              <span className="club-lidapp-oefening-tekst">
+                <strong>{o.naam}</strong>
+                <span>{voorschrift(o) || 'Volgens je trainer'}</span>
+                {(o.notitie ?? o.aandachtspunten) && <em>{o.notitie ?? o.aandachtspunten}</em>}
+              </span>
+              <ChevronRight aria-hidden size={18} className="club-lidapp-oefening-pijl" />
+            </button>
           </li>
         ))}
       </ol>
+      {dag.oefeningen.some((o) => o.beeld) && <BeeldBron className="club-lidapp-beeldbron" />}
       <button type="button" className={`club-lidapp-knop club-lidapp-knop--breed ${gedaan ? 'club-lidapp-knop--klaar' : 'club-lidapp-knop--primair'}`} onClick={vink} disabled={bezig || gedaan !== null}>
         {gedaan ? <Check aria-hidden size={18} /> : null}
         {bezig ? 'Bezig...' : gedaan ? `Dag ${dag.letter} gedaan vandaag` : `Training dag ${dag.letter} gedaan`}
@@ -103,6 +114,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
           </ul>
         </section>
       )}
+      {open && <OefeningBlad oefening={open} onSluit={sluit} />}
     </div>
   )
 }

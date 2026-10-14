@@ -3,7 +3,7 @@ import { eisClubToegang } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLedenRijen } from '@/lib/club/leden/data'
-import { filterKeuzes, filterRijen, leesLijstParams, pagineer, sorteerRijen, telTegels } from '@/lib/club/leden/lijst'
+import { filterKeuzes, filterRijen, heeftFilter, leesLijstParams, pagineer, sorteerRijen, telTegels } from '@/lib/club/leden/lijst'
 import { LedenTegels } from '@/components/club/leden/LedenTegels'
 import { LedenFilters } from '@/components/club/leden/LedenFilters'
 import { LedenTabel } from '@/components/club/leden/LedenTabel'
@@ -36,7 +36,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   return (
     <>
       <LedenKop vestiging={VESTIGING_LABEL[vestiging]} totaal={rijen.length} />
-      <LedenTegels tellingen={telTegels(rijen)} params={params} vestiging={vestiging} />
+      <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
         vestiging={vestiging}
@@ -44,7 +44,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
         tags={keuzes.tags}
         coaches={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
       />
-      <LedenTabel pagina={pagineer(gefilterd, params.pagina)} params={params} vestiging={vestiging} nu={nu} />
+      <LedenTabel pagina={pagineer(gefilterd, params.pagina)} params={params} vestiging={vestiging} nu={nu} gefilterd={heeftFilter(params)} />
     </>
   )
 }
@@ -56,7 +56,7 @@ function LedenKop({ vestiging, totaal }: { vestiging: string; totaal: number | n
         <p className="club-boventitel">{vestiging}</p>
         <h1>Leden</h1>
         <p>
-          {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud uit de check-ins. Geld en contracten staan in Sportivity.
+          {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in Sportivity.
         </p>
       </div>
     </header>

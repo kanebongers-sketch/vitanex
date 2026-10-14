@@ -103,19 +103,22 @@ describe('weergave', () => {
 
 describe('filterOefeningen', () => {
   const lijst: Oefening[] = [
-    { id: '1', naam: 'Push-up op knieën', spiergroep: 'borst', materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true },
-    { id: '2', naam: 'Bankdrukken', spiergroep: 'borst', materiaal: 'barbell', niveau: 2, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true },
-    { id: '3', naam: 'Oude oefening', spiergroep: 'rug', materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false },
+    { id: '1', naam: 'Push-up op knieën', spiergroep: 'borst', materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: null },
+    { id: '2', naam: 'Bankdrukken', spiergroep: 'borst', materiaal: 'barbell', niveau: 2, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: { start: '/club/oefeningen/0042-start.svg', eind: '/club/oefeningen/0042-eind.svg' } },
+    { id: '3', naam: 'Oude oefening', spiergroep: 'rug', materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false, beeld: null },
   ]
   it('zoekt zonder accenten en filtert', () => {
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, zoek: 'knieen' }).map((o) => o.id)).toEqual(['1'])
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, materiaal: 'barbell' }).map((o) => o.id)).toEqual(['2'])
     expect(filterOefeningen(lijst, LEEG_FILTER)).toHaveLength(2)
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, metInactief: true })).toHaveLength(3)
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, zonderBeeld: true }).map((o) => o.id)).toEqual(['1'])
   })
   it('leest en schrijft de URL', () => {
     const f = filterUitParams({ spier: 'borst', mat: 'onzin', niveau: '2', zoek: 'press' })
     expect(f).toMatchObject({ spiergroep: 'borst', materiaal: null, niveau: 2, zoek: 'press' })
     expect(filterNaarParams(f)).toEqual({ zoek: 'press', spier: 'borst', niveau: '2' })
+    expect(filterUitParams({ beeld: 'zonder' }).zonderBeeld).toBe(true)
+    expect(filterNaarParams({ ...LEEG_FILTER, zonderBeeld: true })).toEqual({ beeld: 'zonder' })
   })
 })

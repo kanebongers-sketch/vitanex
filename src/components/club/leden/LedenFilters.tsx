@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
-import { lijstZoek, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
+import { heeftFilter as metFilter, lijstZoek, SORTEER_KEUZES, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
 
 // Zoeken en filteren boven de ledenlijst. Alles gaat via de URL, zodat terug,
 // vooruit en delen werken. "/" zet de cursor in het zoekveld.
@@ -60,7 +60,8 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
     return () => window.clearTimeout(klok)
   }, [q, params, router, vestiging])
 
-  const heeftFilter = Boolean(params.q || params.status || params.abonnement || params.tag || params.coach || params.risico)
+  const heeftFilter = metFilter(params)
+  const sorteerWaarde = SORTEER_KEUZES.findIndex((k) => k.sort === params.sort && k.oplopend === params.oplopend)
 
   return (
     <section className="club-leden-filters" aria-label="Zoeken en filteren" data-bezig={bezig || undefined}>
@@ -74,7 +75,7 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
           placeholder="Zoek op naam, lidnummer of e-mail"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Escape') setQ('') }}
+          onKeyDown={(e) => { if (e.key === 'Escape' && q) { e.preventDefault(); setQ('') } }}
           autoComplete="off"
           spellCheck={false}
         />
@@ -109,6 +110,13 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
             <option value="">Alle coaches</option>
             <option value="geen">Zonder coach</option>
             {coaches.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+          </select>
+        </label>
+        <label className="club-leden-filter club-leden-sorteerkeuze">
+          <span className="club-sr">Sorteren</span>
+          <select className="club-invoer" value={sorteerWaarde < 0 ? 0 : sorteerWaarde}
+            onChange={(e) => { const k = SORTEER_KEUZES[Number(e.target.value)]; if (k) ga({ sort: k.sort, oplopend: k.oplopend }) }}>
+            {SORTEER_KEUZES.map((k, i) => <option key={k.label} value={i}>Sorteer: {k.label}</option>)}
           </select>
         </label>
         <button type="button" className="club-knop club-leden-risico" aria-pressed={params.risico} onClick={() => ga({ risico: !params.risico })}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition, type KeyboardEvent } from 'react'
+import { useEffect, useEffectEvent, useRef, useState, useTransition, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScanLine } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
@@ -11,6 +11,10 @@ import { BalieLidKaart, Resultaten, Uitkomst } from './CheckinKaart'
 // Het baliescherm. Een QR-scanner of bandjeslezer typt als een toetsenbord en
 // sluit af met Enter: een exacte code checkt meteen in. Op naam zoeken toont
 // de treffers; pijltjes kiezen, Enter checkt in. Het zoekveld houdt de focus.
+// Escape wist alles. De uitkomst (WELKOM) blijft even staan en verdwijnt dan,
+// zodat het volgende lid een leeg scherm ziet.
+
+const UITKOMST_MS = 8000
 
 interface Resultaat extends ZoekAntwoord {
   query: string
@@ -96,11 +100,31 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
     if (q.length >= 2) klok.current = window.setTimeout(() => void zoek(q), 220)
   }
 
+  function wis() {
+    window.clearTimeout(klok.current)
+    verzoekNr.current += 1
+    setQuery('')
+    setResultaat(null)
+    setAfgerond(null)
+    setFout(null)
+    veld.current?.focus()
+  }
+
+  const wisVanScherm = useEffectEvent(() => wis())
+
   useEffect(() => () => window.clearTimeout(klok.current), [])
 
+  useEffect(() => {
+    if (!afgerond) return
+    const weg = window.setTimeout(() => setAfgerond(null), UITKOMST_MS)
+    return () => window.clearTimeout(weg)
+  }, [afgerond])
+
   // Een scan terwijl de focus ergens anders staat: terug naar het zoekveld.
+  // Escape werkt overal op het scherm.
   useEffect(() => {
     function toets(e: globalThis.KeyboardEvent) {
+      if (e.key === 'Escape' && !isTypveld(e.target)) return wisVanScherm()
       if (isTypveld(e.target) || e.metaKey || e.ctrlKey || e.altKey || e.key.length !== 1) return
       veld.current?.focus()
     }
@@ -131,13 +155,14 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
       e.preventDefault()
       setGekozen((g) => (g - 1 + aantal) % aantal)
     } else if (e.key === 'Escape') {
-      typ('')
-      setResultaat(null)
+      e.preventDefault()
+      wis()
     }
   }
 
   const leden = resultaat && resultaat.query === query.trim() ? resultaat.leden : []
   const lid = leden[gekozen] ?? null
+  const lijstOpen = leden.length > 1
 
   return (
     <section className="club-checkin-balie" aria-label="Inchecken">
@@ -155,12 +180,19 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
           spellCheck={false}
           enterKeyHint="go"
           aria-describedby="checkin-hulp"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={lijstOpen}
+          aria-controls={lijstOpen ? 'checkin-resultaten' : undefined}
+          aria-activedescendant={lijstOpen ? `checkin-optie-${gekozen}` : undefined}
         />
       </label>
-      <p id="checkin-hulp" className="club-hint">QR-code en bandje checken direct in. Op naam: kies met de pijltjes, Enter checkt in.</p>
+      <p id="checkin-hulp" className="club-hint club-checkin-hulp">
+        QR-code en bandje checken direct in. Op naam: kies met <kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> checkt in, <kbd>Esc</kbd> wist.
+      </p>
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
       {afgerond ? <Uitkomst lid={afgerond.lid} antwoord={afgerond.antwoord} /> : null}
-      {leden.length > 1 ? <Resultaten leden={leden} gekozen={gekozen} onKies={(i) => { setGekozen(i); veld.current?.focus() }} /> : null}
+      {lijstOpen ? <Resultaten id="checkin-resultaten" leden={leden} gekozen={gekozen} onKies={(i) => { setGekozen(i); veld.current?.focus() }} /> : null}
       {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken(lid, resultaat?.exact ? resultaat.bron : 'balie')} /> : null}
       {resultaat && resultaat.query === query.trim() && !leden.length ? (
         <p className="club-leeg">Niemand gevonden voor &ldquo;{resultaat.query}&rdquo;. Controleer de spelling of zoek op lidnummer.</p>

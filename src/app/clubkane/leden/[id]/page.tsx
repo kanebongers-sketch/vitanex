@@ -39,19 +39,25 @@ function LaatsteBezoeken({ kaart, nu }: { kaart: LidKaart; nu: Date }) {
       <h2 id="bezoeken-kop">Laatste bezoeken</h2>
       {lijst.length ? (
         <ul className="club-lijst">
-          {lijst.map((b) => (
-            <li key={b.id} className="club-rij">
-              <span className="club-rij-hoofd">
-                <span className="club-rij-titel">{laatsteBezoekTekst(b.op, nu)}</span>
-                <span className="club-rij-sub">{datumKort(b.op, nu)}, {tijdNl(b.op)}{b.vestiging && b.vestiging !== kaart.lid.vestiging ? ` · ${VESTIGING_LABEL[kiesVestiging(b.vestiging)]}` : ''}</span>
-              </span>
-              <span className="club-chip club-chip--geen">{BRON_LABEL[b.bron] ?? b.bron}</span>
-            </li>
-          ))}
+          {lijst.map((b) => {
+            const elders = b.vestiging && b.vestiging !== kaart.lid.vestiging ? VESTIGING_LABEL[kiesVestiging(b.vestiging)] : null
+            return (
+              <li key={b.id} className="club-rij">
+                <span className="club-rij-hoofd">
+                  <span className="club-rij-titel">{laatsteBezoekTekst(b.op, nu)}</span>
+                  <span className="club-rij-sub club-getal">{datumKort(b.op, nu)}, {tijdNl(b.op)}</span>
+                </span>
+                {elders ? <span className="club-chip club-chip--info">In {elders}</span> : null}
+                <span className="club-chip club-chip--geen">{BRON_LABEL[b.bron] ?? b.bron}</span>
+              </li>
+            )
+          })}
         </ul>
       ) : (
         <p className="club-hint">
-          Geen bezoek in de laatste 12 weken.{kaart.laatsteBezoek ? ` Laatste bezoek: ${datumKort(kaart.laatsteBezoek, nu)}.` : ''}
+          {kaart.laatsteBezoek
+            ? `Geen bezoek in de laatste 12 weken. Laatste bezoek: ${datumKort(kaart.laatsteBezoek, nu)}.`
+            : `Nog nooit geweest.${kaart.lid.lidSinds ? ` Ingeschreven op ${datumUitSleutel(kaart.lid.lidSinds)}.` : ''}`}
         </p>
       )}
     </section>
@@ -71,7 +77,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   return (
     <>
       <LidKop lid={lid} vestiging={vestiging} coachNaam={coach?.naam ?? null} />
-      <nav className="club-segment club-leden-secties" aria-label="Secties">
+      <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
         <a href="#notities">Notities</a>
         <a href="#gegevens">Gegevens</a>
@@ -84,7 +90,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
           <section className="club-kaart" aria-labelledby="patroon-kop">
             <div className="club-sectiekop">
               <h2 id="patroon-kop">Bezoekpatroon</h2>
-              <span>Laatste 12 weken · laatste bezoek {laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}</span>
+              <span>Laatste 12 weken · {kaart.laatsteBezoek ? `laatste bezoek ${laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}` : 'nog nooit geweest'}</span>
             </div>
             <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
           </section>
@@ -92,7 +98,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
             <LaatsteBezoeken kaart={kaart} nu={nu} />
           </div>
-          <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} nu={nu} />
+          <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
         </div>
         <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
           <Notities lidId={lid.id} notities={kaart.notities} />

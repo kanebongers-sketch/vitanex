@@ -1,44 +1,52 @@
-import { perWeekdag, weekBalken, WEEKDAG_KORT } from '@/lib/club/leden/patroon'
+import { asSchaal, perWeekdag, weekBalken, WEEKDAG_KORT } from '@/lib/club/leden/patroon'
 
-// Het bezoekpatroon van een lid: 12 staafjes (per 7 dagen, de laatste eindigt
-// vandaag) en een strook per weekdag. Eigen SVG, geen grafiekbibliotheek.
+// Het bezoekpatroon van een lid: 12 staven (per 7 dagen, de laatste eindigt
+// vandaag) met een y-as, en een strook per weekdag. Gewone HTML in plaats van
+// een geschaalde SVG, zodat de letters ook op een telefoon leesbaar blijven.
 
 interface BezoekpatroonProps {
   bezoeken: Date[]
   nu: Date
 }
 
-const B = 560
-const H = 150
-const ONDER = 22
-const BOVEN = 14
+function procent(waarde: number, top: number): string {
+  return `${(waarde / top) * 100}%`
+}
 
 function Balken({ bezoeken, nu }: BezoekpatroonProps) {
   const balken = weekBalken(bezoeken, nu)
-  const max = Math.max(3, ...balken.map((b) => b.aantal))
-  const vak = B / balken.length
-  const breed = vak * 0.56
-  const schaal = (H - ONDER - BOVEN) / max
+  const { top, ticks } = asSchaal(Math.max(...balken.map((b) => b.aantal)))
   const totaal = balken.reduce((s, b) => s + b.aantal, 0)
+  const omschrijving = `Bezoeken per week, laatste 12 weken, samen ${totaal}. ${balken.map((b) => `${b.huidig ? 'Deze week' : `Week vanaf ${b.label}`}: ${b.aantal}`).join(', ')}.`
   return (
     <figure className="club-leden-patroon">
-      <svg viewBox={`0 0 ${B} ${H}`} role="img" aria-label={`Bezoeken per week, laatste 12 weken: samen ${totaal}. ${balken.map((b) => `week vanaf ${b.label}: ${b.aantal}`).join(', ')}.`}>
-        {[1, 2, 3].filter((n) => n <= max).map((n) => (
-          <line key={n} x1={0} x2={B} y1={H - ONDER - n * schaal} y2={H - ONDER - n * schaal} className="club-leden-patroon-lijn" />
-        ))}
-        {balken.map((b, i) => {
-          const hoog = Math.max(b.aantal * schaal, b.aantal ? 4 : 2)
-          const x = i * vak + (vak - breed) / 2
-          return (
-            <g key={b.label} className={b.huidig ? 'club-leden-balk club-leden-balk--nu' : 'club-leden-balk'}>
-              <rect x={x} y={H - ONDER - hoog} width={breed} height={hoog} rx={3} data-leeg={b.aantal === 0 || undefined} />
-              {b.aantal ? <text x={x + breed / 2} y={H - ONDER - hoog - 4} textAnchor="middle" className="club-leden-balk-getal">{b.aantal}</text> : null}
-              {i % 2 === 1 || b.huidig ? <text x={x + breed / 2} y={H - 6} textAnchor="middle" className="club-leden-balk-label">{b.huidig ? 'nu' : b.label}</text> : null}
-            </g>
-          )
-        })}
-      </svg>
-      <figcaption className="club-hint">Bezoeken per week (een dag met een check-in telt als een bezoek).</figcaption>
+      <div className="club-leden-grafiek" role="img" aria-label={omschrijving}>
+        <div className="club-leden-as" aria-hidden>
+          {ticks.map((t) => <span key={t} style={{ bottom: procent(t, top) }}>{t}</span>)}
+        </div>
+        <div className="club-leden-plot" aria-hidden>
+          {ticks.map((t) => <span key={t} className="club-leden-plot-lijn" style={{ bottom: procent(t, top) }} />)}
+          <ol className="club-leden-balken">
+            {balken.map((b) => (
+              <li key={b.label} className={b.huidig ? 'club-leden-balk club-leden-balk--nu' : 'club-leden-balk'} data-leeg={b.aantal === 0 || undefined}>
+                <span className="club-leden-balk-staaf" style={{ height: b.aantal ? procent(b.aantal, top) : '2px' }}>
+                  {b.aantal ? <span className="club-leden-balk-getal club-getal">{b.aantal}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <ol className="club-leden-xas" aria-hidden>
+          {balken.map((b, i) => (
+            <li key={b.label} data-om={(balken.length - 1 - i) % 2 === 1 || undefined} className={b.huidig ? 'club-leden-xas--nu' : undefined}>
+              {b.huidig ? 'Nu' : b.label}
+            </li>
+          ))}
+        </ol>
+      </div>
+      <figcaption className="club-hint">
+        Bezoeken per week: een dag met een check-in telt als een bezoek, in alle vestigingen. De laatste staaf zijn de laatste 7 dagen.
+      </figcaption>
     </figure>
   )
 }
@@ -47,15 +55,18 @@ function Weekdagen({ bezoeken, nu }: BezoekpatroonProps) {
   const telling = perWeekdag(bezoeken, nu)
   const max = Math.max(1, ...telling)
   return (
-    <ol className="club-leden-weekdagen" aria-label="Bezoeken per weekdag, laatste 12 weken">
-      {telling.map((n, i) => (
-        <li key={WEEKDAG_KORT[i]}>
-          <span className="club-leden-weekdag-vak" aria-hidden style={{ opacity: n ? 0.18 + 0.82 * (n / max) : 1 }} data-leeg={n === 0 || undefined} />
-          <span className="club-leden-weekdag-naam">{WEEKDAG_KORT[i]}</span>
-          <span className="club-getal">{n}</span>
-        </li>
-      ))}
-    </ol>
+    <div className="club-leden-weekdagen-wrap">
+      <h3 className="club-leden-subkop" id="weekdag-kop">Per weekdag</h3>
+      <ol className="club-leden-weekdagen" aria-labelledby="weekdag-kop">
+        {telling.map((n, i) => (
+          <li key={WEEKDAG_KORT[i]}>
+            <span className="club-leden-weekdag-vak" aria-hidden style={{ opacity: n ? 0.18 + 0.82 * (n / max) : 1 }} data-leeg={n === 0 || undefined} />
+            <span className="club-leden-weekdag-naam">{WEEKDAG_KORT[i]}</span>
+            <span className="club-getal">{n}<span className="club-sr"> bezoeken</span></span>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 

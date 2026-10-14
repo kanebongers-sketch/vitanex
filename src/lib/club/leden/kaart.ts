@@ -1,15 +1,17 @@
 // ─── Fit Factory Club: de ledenkaart lezen (SERVER-ONLY) ────────────────────
-// Alles wat de kaart van een lid nodig heeft. Bezoeken tellen hier over alle
-// vestigingen (een lid dat in Bergeijk traint, is niet weg).
+// Alles wat de kaart van een lid nodig heeft. Bezoeken en no-shows tellen over
+// alle vestigingen (een lid dat in Bergeijk traint, is niet weg), precies als
+// in de ledenlijst: beide rekenen via behoudVoorLid.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalLid, type Lid } from '@/lib/club/kern/lid'
 import { haalMedewerkers, type Medewerker } from '@/lib/club/kern/medewerker'
-import { berekenBehoud, NO_SHOW_DAGEN, VENSTER_DAGEN, type Behoud } from './behoud'
+import { behoudVoorLid, NO_SHOW_DAGEN, VENSTER_DAGEN, type Behoud } from './behoud'
 import { checkinUitRij, notitieUitRij, RESERVERING_SELECT, reserveringUitRij, sorteerNotities, type CheckinRij, type LidReservering, type Notitie } from './rijen'
 
 const MS_DAG = 86_400_000
-const RESERVERING_TERUG_DAGEN = 42
+/** Even ver terug als de no-shows in de score (8 weken), zodat de telling klopt. */
+const RESERVERING_TERUG_DAGEN = NO_SHOW_DAGEN
 const RESERVERING_VOORUIT_DAGEN = 21
 
 export interface LidKaart {
@@ -39,8 +41,9 @@ async function haalBezoekenLid(admin: SupabaseClient, userId: string, lidId: str
 }
 
 async function haalLaatsteBezoek(admin: SupabaseClient, userId: string, lidId: string): Promise<Date | null> {
-  const { data } = await admin.from('club_checkins').select('id, lid_id, op')
+  const { data, error } = await admin.from('club_checkins').select('id, lid_id, op')
     .eq('user_id', userId).eq('lid_id', lidId).order('op', { ascending: false }).limit(1).maybeSingle()
+  if (error) console.error('[club] laatste bezoek lezen mislukt', error.message)
   return checkinUitRij(data)?.op ?? null
 }
 
@@ -91,10 +94,7 @@ export async function haalLidKaart(admin: SupabaseClient, userId: string, id: st
   ].filter((f): f is string => f !== null)
   const res = reserveringen ?? []
   const noShows = telNoShows(res, nu)
-  const verwacht = lid.status === 'actief' || lid.status === 'proef'
-  const behoud = verwacht && bezoeken
-    ? berekenBehoud({ bezoeken: bezoeken.map((b) => b.op), noShows, lidSinds: lid.lidSinds, nu })
-    : null
+  const behoud = bezoeken ? behoudVoorLid(lid, bezoeken.map((b) => b.op), noShows, nu) : null
   return {
     lid,
     bezoeken: bezoeken ?? [],

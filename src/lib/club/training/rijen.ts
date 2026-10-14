@@ -2,6 +2,7 @@
 // Systeemgrens: alles wat uit Supabase komt wordt hier genarrowd. Een rij die
 // niet klopt wordt null en valt weg, in plaats van de pagina te breken.
 
+import { BEELD_KOLOMMEN, beeldenUitRij, type OefeningBeelden } from './beeld'
 import {
   isDoel, isMateriaal, isNiveau, isPatroon, isSchemaStatus, isSpiergroep, isZone,
   type Doel, type Materiaal, type Niveau, type Patroon, type SchemaStatus, type Spiergroep, type Zone,
@@ -18,9 +19,11 @@ export interface Oefening {
   uitleg: string | null
   aandachtspunten: string | null
   actief: boolean
+  /** Begin- en eindhouding (Everkinetic), of null. */
+  beeld: OefeningBeelden | null
 }
 
-export const OEFENING_KOLOMMEN = 'id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief'
+export const OEFENING_KOLOMMEN = `id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief, ${BEELD_KOLOMMEN}`
 
 export interface SchemaRegel {
   id: string
@@ -103,6 +106,7 @@ export function oefeningUitRij(rij: unknown): Oefening | null {
     uitleg: tekstOfNull(rij.uitleg),
     aandachtspunten: tekstOfNull(rij.aandachtspunten),
     actief: rij.actief !== false,
+    beeld: beeldenUitRij(rij),
   }
 }
 

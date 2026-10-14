@@ -13,6 +13,8 @@ const oef = (id: string, dag: number, volgorde: number, deel: Partial<AppOefenin
   rustSec: null,
   notitie: null,
   aandachtspunten: null,
+  uitleg: null,
+  beeld: null,
   ...deel,
 })
 
@@ -30,6 +32,14 @@ describe('schema in de app', () => {
     const o = oefeningUitRij({ id: 'x', dag: 1, volgorde: 2, sets: 3, herhalingen: '8-10', gewicht_kg: '42.5', club_oefeningen: { naam: 'Squat', spiergroep: 'benen' } })
     expect(o).toMatchObject({ naam: 'Squat', spiergroep: 'benen', gewichtKg: 42.5 })
     expect(oefeningUitRij({ id: 'x' })).toBeNull()
+  })
+
+  it('neemt de tekeningen alleen mee als beide paden van ons zijn', () => {
+    const pad = (h: string) => `/club/oefeningen/0122-${h}.svg`
+    const met = oefeningUitRij({ id: 'x', dag: 1, club_oefeningen: { naam: 'Squat', uitleg: 'Zak en kom omhoog.', beeld_start: pad('start'), beeld_eind: pad('eind') } })
+    expect(met).toMatchObject({ uitleg: 'Zak en kom omhoog.', beeld: { start: pad('start'), eind: pad('eind') } })
+    const vreemd = oefeningUitRij({ id: 'x', dag: 1, club_oefeningen: { naam: 'Squat', beeld_start: 'https://elders.nl/a.svg', beeld_eind: pad('eind') } })
+    expect(vreemd?.beeld).toBeNull()
   })
 
   it('schrijft het voorschrift kort op', () => {

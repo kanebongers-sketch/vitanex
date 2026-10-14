@@ -124,7 +124,7 @@ async function haalSchema(admin: SupabaseClient, userId: string, lidId: string):
   if (error || !r || !id) return { schema: null, fout: error?.message ?? null }
   const oef = await admin
     .from('club_schema_oefeningen')
-    .select('id, dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, club_oefeningen(naam, spiergroep, aandachtspunten)')
+    .select('id, dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, club_oefeningen(naam, spiergroep, uitleg, aandachtspunten, beeld_start, beeld_eind)')
     .eq('user_id', userId)
     .eq('schema_id', id)
     .order('dag')

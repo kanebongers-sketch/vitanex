@@ -1,0 +1,23 @@
+Tekeningen van oefeningen (bestanden <nummer>-start.svg en <nummer>-eind.svg)
+
+Bron: Everkinetic, open data met oefeningen
+      https://everkinetic.com
+      https://github.com/everkinetic/data
+Auteur: Greg Priday en bijdragers
+Licentie: Creative Commons Naamsvermelding-GelijkDelen 4.0 Internationaal (CC BY-SA 4.0)
+          https://creativecommons.org/licenses/by-sa/4.0/
+          https://creativecommons.org/licenses/by-sa/4.0/deed.nl
+
+Aangepast door Fit Factory: de witte achtergrond is verwijderd, de lijnkleur
+wordt door de website bepaald (currentColor) en overbodige attributen zijn
+weggelaten. De tekeningen zelf zijn niet veranderd. De nummers in de
+bestandsnamen zijn de nummers uit de dataset van Everkinetic
+(<nummer>-relaxation.svg werd <nummer>-start.svg, <nummer>-tension.svg werd
+<nummer>-eind.svg).
+
+De aangepaste tekeningen vallen onder dezelfde licentie, CC BY-SA 4.0. Je mag
+ze delen en bewerken, ook commercieel, zolang je de bron noemt en je
+bewerkingen onder dezelfde licentie deelt.
+
+Ophalen of vernieuwen: node scripts/club/everkinetic-import.mjs
+Welke tekening bij welke oefening hoort: src/lib/club/training/beelden-koppeling.ts

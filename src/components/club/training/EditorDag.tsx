@@ -5,6 +5,7 @@ import type { EditorRegel } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, MATERIAAL_LABEL, SPIERGROEP_LABEL } from '@/lib/club/training/typen'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
+import { OefeningBeeld } from './OefeningBeeld'
 
 type Veld = 'sets' | 'herhalingen' | 'gewichtKg' | 'rustSec' | 'notitie'
 
@@ -56,8 +57,11 @@ export function EditorDag(p: EditorDagProps) {
               <li key={r.sleutel} className="club-training-regel">
                 <span className="club-training-regelnr" aria-hidden>{i + 1}</span>
                 <div className="club-training-regelnaam">
-                  <strong>{naam}</strong>
-                  {o && <span className="club-zacht">{SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]}</span>}
+                  <OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />
+                  <div className="club-training-regeltekst">
+                    <strong>{naam}</strong>
+                    {o && <span className="club-zacht">{SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]}</span>}
+                  </div>
                 </div>
                 <label className="club-training-mini">
                   <span>Sets</span>

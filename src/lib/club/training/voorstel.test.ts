@@ -8,7 +8,7 @@ let teller = 0
 function oef(naam: string, patroon: Patroon, spiergroep: Spiergroep, materiaal: Materiaal, niveau: Niveau = 1, belast: Zone[] = []): Oefening {
   teller += 1
   const id = `00000000-0000-4000-8000-${String(teller).padStart(12, '0')}`
-  return { id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg: null, aandachtspunten: null, actief: true }
+  return { id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg: null, aandachtspunten: null, actief: true, beeld: null }
 }
 
 const BIB: Oefening[] = [

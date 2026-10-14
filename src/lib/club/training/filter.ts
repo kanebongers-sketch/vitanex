@@ -9,9 +9,11 @@ export interface OefeningFilter {
   materiaal: Materiaal | null
   niveau: Niveau | null
   metInactief: boolean
+  /** Alleen oefeningen zonder tekening (om aan te vullen). */
+  zonderBeeld: boolean
 }
 
-export const LEEG_FILTER: OefeningFilter = { zoek: '', spiergroep: null, materiaal: null, niveau: null, metInactief: false }
+export const LEEG_FILTER: OefeningFilter = { zoek: '', spiergroep: null, materiaal: null, niveau: null, metInactief: false, zonderBeeld: false }
 
 /** Zonder hoofdletters en accenten, zodat "knieen" ook "knieën" vindt. */
 export function normaliseer(t: string): string {
@@ -25,12 +27,13 @@ export function filterOefeningen(oefeningen: readonly Oefening[], f: OefeningFil
     if (f.spiergroep && o.spiergroep !== f.spiergroep) return false
     if (f.materiaal && o.materiaal !== f.materiaal) return false
     if (f.niveau && o.niveau !== f.niveau) return false
+    if (f.zonderBeeld && o.beeld) return false
     const naam = normaliseer(o.naam)
     return woorden.every((w) => naam.includes(w))
   })
 }
 
-/** Filter uit de zoekparameters (?zoek=&spier=&mat=&niveau=). */
+/** Filter uit de zoekparameters (?zoek=&spier=&mat=&niveau=&beeld=zonder). */
 export function filterUitParams(p: Record<string, string | string[] | undefined>): OefeningFilter {
   const een = (k: string) => {
     const v = p[k]
@@ -45,6 +48,7 @@ export function filterUitParams(p: Record<string, string | string[] | undefined>
     materiaal: isMateriaal(mat) ? mat : null,
     niveau: isNiveau(niveau) ? niveau : null,
     metInactief: een('inactief') === '1',
+    zonderBeeld: een('beeld') === 'zonder',
   }
 }
 
@@ -56,5 +60,6 @@ export function filterNaarParams(f: OefeningFilter): Record<string, string> {
   if (f.materiaal) uit.mat = f.materiaal
   if (f.niveau) uit.niveau = String(f.niveau)
   if (f.metInactief) uit.inactief = '1'
+  if (f.zonderBeeld) uit.beeld = 'zonder'
   return uit
 }

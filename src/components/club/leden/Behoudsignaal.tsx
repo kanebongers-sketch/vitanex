@@ -2,7 +2,8 @@ import { BEHOUD_LABEL, type Behoud } from '@/lib/club/leden/behoud'
 import { BEHOUD_CHIP } from '@/lib/club/leden/weergave'
 
 // Het behoudssignaal in een rij: een dunne meter, de score en de uitleg in
-// mensentaal. Zonder score (gepauzeerd, opgezegd, gestopt) een rustig streepje.
+// mensentaal (precies dezelfde als op de ledenkaart). Zonder score (gepauzeerd,
+// opgezegd, gestopt) een korte reden.
 
 interface BehoudsignaalProps {
   behoud: Behoud | null
@@ -23,7 +24,7 @@ export function Behoudsignaal({ behoud, geenTekst = 'Geen bezoek verwacht' }: Be
           <span style={{ transform: `scaleX(${behoud.score / 100})` }} />
         </span>
       </div>
-      <span className="club-leden-behoud-uitleg">{behoud.uitleg}</span>
+      <span className="club-leden-behoud-uitleg" title={behoud.uitleg}>{behoud.uitleg}</span>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { CircleCheck, CircleAlert, Clock3 } from 'lucide-react'
+import { CircleCheck, CircleAlert, Clock3, MapPin } from 'lucide-react'
 import type { BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
 
 // De grote kaarten van het baliescherm: het gevonden lid (met Inchecken) en
@@ -24,6 +24,43 @@ function LesRegel({ lid }: { lid: BalieLid }) {
   )
 }
 
+/** "Lid van Bergeijk" als het lid uit een andere vestiging komt. */
+function VestigingChip({ lid }: { lid: BalieLid }) {
+  if (!lid.andereVestiging) return null
+  return (
+    <span className={`club-chip ${lid.geenToegang ? 'club-chip--let-op' : 'club-chip--info'} club-checkin-elders`}>
+      <MapPin aria-hidden size={13} /> Lid van {lid.vestigingLabel}
+    </span>
+  )
+}
+
+function Oordeel({ lid }: { lid: BalieLid }) {
+  if (lid.geenToegang) {
+    return (
+      <p className="club-checkin-oordeel club-checkin-oordeel--niet">
+        <CircleAlert aria-hidden size={22} />
+        <span>Geen toegang in Eersel. <span className="club-checkin-oordeel-regel">Alleen leden van Eersel sporten bij alle clubs; leden van {lid.vestigingLabel} overal behalve Eersel.</span></span>
+      </p>
+    )
+  }
+  if (!lid.magTrainen) {
+    return (
+      <p className="club-checkin-oordeel club-checkin-oordeel--niet">
+        <CircleAlert aria-hidden size={22} /> <span>Niet actief: {lid.statusLabel.toLowerCase()}. Verwijs naar Sportivity.</span>
+      </p>
+    )
+  }
+  return (
+    <p className="club-checkin-oordeel club-checkin-oordeel--mag">
+      <CircleCheck aria-hidden size={22} />
+      <span>
+        {`${lid.statusLabel}: mag ${lid.andereVestiging ? 'hier ' : ''}trainen`}
+        {lid.andereVestiging ? <span className="club-checkin-oordeel-regel">Lid van {lid.vestigingLabel}, sporten hier zit in het lidmaatschap.</span> : null}
+      </span>
+    </p>
+  )
+}
+
 interface LidKaartProps {
   lid: BalieLid
   bezig: boolean
@@ -37,22 +74,11 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
         <span className="club-avatar club-avatar--groot" aria-hidden>{lid.initialen}</span>
         <div className="club-checkin-kaart-naam">
           <h2>{lid.naam}</h2>
-          <p className="club-zacht">
-            {[lid.lidnummer, lid.abonnement, lid.andereVestiging ? `Lid van ${lid.vestigingLabel}` : null].filter(Boolean).join(' · ')}
-          </p>
+          <p className="club-zacht club-getal">{[lid.lidnummer, lid.abonnement].filter(Boolean).join(' · ')}</p>
+          <VestigingChip lid={lid} />
         </div>
       </div>
-      {lid.magTrainen ? (
-        <p className="club-checkin-oordeel club-checkin-oordeel--mag"><CircleCheck aria-hidden size={22} /> {lid.statusLabel}: mag trainen</p>
-      ) : lid.geenToegang ? (
-        <p className="club-checkin-oordeel club-checkin-oordeel--niet">
-          <CircleAlert aria-hidden size={22} /> Lid van {lid.vestigingLabel}: sporten in Eersel zit niet in dit lidmaatschap. Alleen leden van Eersel sporten bij alle clubs.
-        </p>
-      ) : (
-        <p className="club-checkin-oordeel club-checkin-oordeel--niet">
-          <CircleAlert aria-hidden size={22} /> Niet actief: {lid.statusLabel.toLowerCase()}. Verwijs naar Sportivity.
-        </p>
-      )}
+      <Oordeel lid={lid} />
       <LesRegel lid={lid} />
       {lid.dubbelSinds ? <p className="club-checkin-dubbel">Al ingecheckt om {tijd(lid.dubbelSinds)}. Nog een keer telt niet mee.</p> : null}
       <button type="button" className="club-knop club-knop--primair club-knop--groot club-checkin-knop" onClick={onInchecken} disabled={bezig || !lid.magTrainen}>
@@ -82,7 +108,7 @@ export function Uitkomst({ lid, antwoord }: UitkomstProps) {
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
         <p className="club-checkin-uitkomst-woord">Geen toegang</p>
         <h2>{lid.naam}</h2>
-        <p>Lid van {antwoord.vestigingLabel}. Sporten in Eersel zit niet in dit lidmaatschap; niet ingecheckt.</p>
+        <p>Lid van {antwoord.vestigingLabel}: niet ingecheckt. Alleen leden van Eersel sporten bij alle clubs; andere leden overal behalve Eersel.</p>
       </article>
     )
   }
@@ -101,6 +127,7 @@ export function Uitkomst({ lid, antwoord }: UitkomstProps) {
       <h2>{lid.naam}</h2>
       <p>
         Ingecheckt om {tijd(antwoord.op)}.
+        {lid.andereVestiging ? ` Lid van ${lid.vestigingLabel}.` : ''}
         {antwoord.les ? ` Aanwezig gezet bij ${antwoord.les.naam} van ${tijd(antwoord.les.start)}.` : lid.les ? ` Vandaag ${lid.les.naam} om ${tijd(lid.les.start)}.` : ''}
       </p>
     </article>
@@ -108,24 +135,34 @@ export function Uitkomst({ lid, antwoord }: UitkomstProps) {
 }
 
 interface ResultatenProps {
+  id: string
   leden: BalieLid[]
   gekozen: number
   onKies: (index: number) => void
 }
 
-export function Resultaten({ leden, gekozen, onKies }: ResultatenProps) {
+/** De treffers als keuzelijst bij het zoekveld (combobox): pijltjes of klikken. */
+export function Resultaten({ id, leden, gekozen, onKies }: ResultatenProps) {
   return (
-    <ul className="club-checkin-resultaten" role="listbox" aria-label="Gevonden leden">
+    <ul id={id} className="club-checkin-resultaten" role="listbox" aria-label="Gevonden leden">
       {leden.map((l, i) => (
-        <li key={l.id} role="option" aria-selected={i === gekozen}>
-          <button type="button" onClick={() => onKies(i)} className="club-checkin-resultaat">
-            <span className="club-avatar" aria-hidden>{l.initialen}</span>
-            <span className="club-rij-hoofd">
-              <span className="club-rij-titel">{l.naam}</span>
-              <span className="club-rij-sub">{[l.lidnummer, l.les ? `${l.les.naam} ${tijd(l.les.start)}` : null].filter(Boolean).join(' · ')}</span>
+        <li
+          key={l.id}
+          id={`checkin-optie-${i}`}
+          role="option"
+          aria-selected={i === gekozen}
+          className="club-checkin-resultaat"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onKies(i)}
+        >
+          <span className="club-avatar" aria-hidden>{l.initialen}</span>
+          <span className="club-rij-hoofd">
+            <span className="club-rij-titel">{l.naam}</span>
+            <span className="club-rij-sub">
+              {[l.lidnummer, l.andereVestiging ? `Lid van ${l.vestigingLabel}` : null, l.les ? `${l.les.naam} ${tijd(l.les.start)}` : null].filter(Boolean).join(' · ')}
             </span>
-            <span className={`club-chip ${l.magTrainen ? 'club-chip--ok' : 'club-chip--let-op'}`}>{l.statusLabel}</span>
-          </button>
+          </span>
+          <span className={`club-chip ${l.magTrainen ? 'club-chip--ok' : 'club-chip--let-op'}`}>{l.geenToegang ? 'Geen toegang' : l.statusLabel}</span>
         </li>
       ))}
     </ul>
