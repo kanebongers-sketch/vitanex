@@ -5,7 +5,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
-import { haalLid } from '@/lib/club/gedeeld/lid'
+import { haalLid } from '@/lib/club/kern/lid'
 import { leesOmzetten } from '@/lib/club/leads/invoer'
 import { splitsNaam } from '@/lib/club/leads/naam'
 import { dagVan } from '@/lib/club/leads/regels'

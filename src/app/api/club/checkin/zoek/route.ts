@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging } from '@/lib/club/gedeeld/vestiging'
+import { kiesVestiging } from '@/lib/club/kern/vestiging'
 import { zoekVoorBalie } from '@/lib/club/checkin/data'
 
 // GET /api/club/checkin/zoek?v=budel&q=...

@@ -3,7 +3,7 @@
 // gegeven; de pagina of route toont dan een nette Nederlandse melding.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { HISTORIE_KOLOMMEN, LEAD_KOLOMMEN, historieUitRij, leadUitRij, type HistorieRegel, type HistorieSoort, type Lead } from './model'
 import { CONVERSIE_DAGEN } from './cijfers'
 import { telefoonZoekpatroon, vindDubbelen, normaliseerEmail, type Contactgegevens, type DubbelKandidaat, type DubbelTreffer } from './dubbel'

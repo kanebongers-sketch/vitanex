@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { haalLid, volledigeNaam } from '@/lib/club/gedeeld/lid'
+import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { isUuid, leesVastpinnen } from '@/lib/club/leden/invoer'
 
 // PATCH  /api/club/leden/[id]/notities/[notitieId]  { vastgepind }

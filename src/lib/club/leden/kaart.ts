@@ -3,8 +3,8 @@
 // vestigingen (een lid dat in Bergeijk traint, is niet weg).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { haalLid, type Lid } from '@/lib/club/gedeeld/lid'
-import { haalMedewerkers, type Medewerker } from '@/lib/club/gedeeld/medewerker'
+import { haalLid, type Lid } from '@/lib/club/kern/lid'
+import { haalMedewerkers, type Medewerker } from '@/lib/club/kern/medewerker'
 import { berekenBehoud, NO_SHOW_DAGEN, VENSTER_DAGEN, type Behoud } from './behoud'
 import { checkinUitRij, notitieUitRij, RESERVERING_SELECT, reserveringUitRij, sorteerNotities, type CheckinRij, type LidReservering, type Notitie } from './rijen'
 

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging } from '@/lib/club/gedeeld/vestiging'
-import { volledigeNaam, zoekLeden } from '@/lib/club/gedeeld/lid'
+import { kiesVestiging } from '@/lib/club/kern/vestiging'
+import { volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 
 // GET /api/club/rooster/leden?v=<vestiging>&q=<zoekterm>
 // Voor "lid toevoegen" in het zijpaneel: alleen wat de balie daarvoor nodig heeft.

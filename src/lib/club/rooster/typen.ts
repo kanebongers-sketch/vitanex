@@ -2,7 +2,7 @@
 // Databaserijen komen binnen als `unknown` en worden hier genarrowd. Geen casts
 // op databasedata: een rij die niet klopt valt eruit (null).
 
-import { isVestiging, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 import { RESERVERING_BRONNEN, RESERVERING_STATUSSEN, type ReserveringBron, type ReserveringStatus } from './regels'
 import { normaliseerTijd, isDatum } from './tijd'
 

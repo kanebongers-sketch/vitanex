@@ -4,7 +4,7 @@
 // geweest, Lid, Verloren. Alles hier is puur en getest; de database-grens
 // (leadUitRij, historieUitRij) narrowt elke rij zonder casts op de velden.
 
-import { isVestiging, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 
 export const LEAD_STATUSSEN = ['nieuw', 'contact', 'proefles', 'proefles_geweest', 'lid', 'verloren'] as const
 export type LeadStatus = (typeof LEAD_STATUSSEN)[number]

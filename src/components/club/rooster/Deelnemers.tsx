@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, UserX, X } from 'lucide-react'
-import { initialen, volledigeNaam } from '@/lib/club/gedeeld/lid'
+import { initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import type { Deelnemer } from '@/lib/club/rooster/lesbeheer-opslag'
 import type { AfvinkStatus } from '@/lib/club/rooster/regels'
 import { stuur, useClubActie } from './vraag'

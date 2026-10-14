@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalLesDetail, haalLessen, haalRegels, haalStamdata, type LesDetail } from '@/lib/club/rooster/opslag'
 import { ruimsteOpening } from '@/lib/club/rooster/openingstijden'
 import { filterLessen, uurBereik, weekCijfers } from '@/lib/club/rooster/raster'

@@ -5,7 +5,7 @@ import { TriangleAlert } from 'lucide-react'
 import type { Lead } from '@/lib/club/leads/model'
 import { splitsNaam } from '@/lib/club/leads/naam'
 import { treffersUitJson, type DubbelTreffer } from '@/lib/club/leads/dubbel'
-import { LID_STATUS_LABEL, LID_STATUSSEN } from '@/lib/club/gedeeld/lid'
+import { LID_STATUS_LABEL, LID_STATUSSEN } from '@/lib/club/kern/lid'
 import { stuur } from './stuur'
 import type { Doe } from './usePaneel'
 

@@ -1,6 +1,6 @@
 // ─── Fit Factory Club: rekenwerk voor Vandaag (PUUR) ────────────────────────
 
-import type { LidStatus } from '@/lib/club/gedeeld/lid'
+import type { LidStatus } from '@/lib/club/kern/lid'
 import { dagenTussen, dagSleutel, jarigOp, leeftijdOp } from './tijd'
 
 /** Na zoveel dagen zonder bezoek staat een actief lid op de risicolijst. */

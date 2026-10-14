@@ -2,7 +2,7 @@
 // Krijgt de opgehaalde rijen van alle vestigingen en maakt er een rapport van
 // voor het gekozen bereik (een vestiging of alle), plus de vergelijking.
 
-import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { bezoekPerWeek, drukteRaster, piekUur, som, zichtbareUren, type BezoekTelling } from './bezoek'
 import {
   geslachtsverdeling,

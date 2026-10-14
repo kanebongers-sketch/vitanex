@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Lid } from '@/lib/club/gedeeld/lid'
+import type { Lid } from '@/lib/club/kern/lid'
 import { bouwRijen, filterKeuzes, filterRijen, leesLijstParams, lijstZoek, pagineer, sorteerRijen, STANDAARD_PARAMS, telTegels } from './lijst'
 
 const NU = new Date('2026-10-14T12:00:00+02:00')

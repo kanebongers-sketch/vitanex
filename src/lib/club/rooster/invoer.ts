@@ -2,7 +2,7 @@
 // Systeemgrens: wat er binnenkomt is `unknown`. Elke functie geeft een nette
 // waarde of een Nederlandse foutmelding terug.
 
-import { isVestiging, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 import { AFVINK_STATUSSEN, RESERVERING_BRONNEN, type AfvinkStatus, type ReserveringBron } from './regels'
 import { MAX_WEKEN_VOORUIT } from './genereren'
 

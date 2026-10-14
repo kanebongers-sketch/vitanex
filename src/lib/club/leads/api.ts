@@ -4,8 +4,8 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, type ClubToegang } from '@/lib/club/toegang'
-import { haalMedewerkers } from '@/lib/club/gedeeld/medewerker'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { haalMedewerkers } from '@/lib/club/kern/medewerker'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalLead } from './data'
 import { isUuid } from './filters'
 import type { Lead } from './model'

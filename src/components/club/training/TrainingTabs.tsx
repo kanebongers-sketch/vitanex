@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 
 export const TABS = [
   { sleutel: 'intakes', label: 'Intakes' },

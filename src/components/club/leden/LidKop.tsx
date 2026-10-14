@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, CalendarDays, Dumbbell } from 'lucide-react'
-import { initialen, LID_STATUS_LABEL, volledigeNaam, type Lid } from '@/lib/club/gedeeld/lid'
-import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { initialen, LID_STATUS_LABEL, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
+import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { datumUitSleutel } from '@/lib/club/leden/tijd'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 

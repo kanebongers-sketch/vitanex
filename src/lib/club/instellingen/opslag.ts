@@ -4,8 +4,8 @@
 // wijziging komt in het logboek.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Medewerker } from '@/lib/club/gedeeld/medewerker'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Medewerker } from '@/lib/club/kern/medewerker'
+import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
 import { gelukt, haalRegels, haalStamdata, mislukt, type Resultaat, type VestigingInstellingen } from '@/lib/club/rooster/basis-opslag'
 import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type LesSerie, type Lestype, type Zaal } from '@/lib/club/rooster/typen'

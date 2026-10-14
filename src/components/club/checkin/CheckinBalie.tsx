@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScanLine } from 'lucide-react'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import type { CheckinBron } from '@/lib/club/checkin/regels'
 import { isCheckinAntwoord, isZoekAntwoord, type BalieLid, type CheckinAntwoord, type ZoekAntwoord } from '@/lib/club/checkin/types'
 import { BalieLidKaart, Resultaten, Uitkomst } from './CheckinKaart'

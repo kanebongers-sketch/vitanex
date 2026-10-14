@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { Lead, LeadStatus, PaneelStap } from '@/lib/club/leads/model'
 import { stuur } from './stuur'
 

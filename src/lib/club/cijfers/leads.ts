@@ -1,7 +1,7 @@
 // ─── Fit Factory Club: leadconversie (PUUR) ─────────────────────────────────
 // Per bron: hoeveel leads, hoeveel kwamen tot een proefles, hoeveel werden lid.
 
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 
 export const LEAD_BRONNEN = ['website', 'balie', 'telefoon', 'social', 'verwijzing', 'actie', 'overig'] as const
 export type LeadBron = (typeof LEAD_BRONNEN)[number]

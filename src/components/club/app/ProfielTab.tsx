@@ -1,6 +1,6 @@
 import { CreditCard, LockKeyhole } from 'lucide-react'
-import { LID_STATUS_LABEL, initialen, volledigeNaam, type Lid } from '@/lib/club/gedeeld/lid'
-import { VESTIGING_LABEL } from '@/lib/club/gedeeld/vestiging'
+import { LID_STATUS_LABEL, initialen, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
+import { VESTIGING_LABEL } from '@/lib/club/kern/vestiging'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 
 // Profiel in de ledenapp: eigen gegevens. Geld en contract staan in Sportivity;

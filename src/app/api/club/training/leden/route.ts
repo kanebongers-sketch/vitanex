@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
-import { volledigeNaam, zoekLeden } from '@/lib/club/gedeeld/lid'
-import { kiesVestiging } from '@/lib/club/gedeeld/vestiging'
+import { volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
+import { kiesVestiging } from '@/lib/club/kern/vestiging'
 
 // GET /api/club/training/leden?v=budel&q=sanne: leden zoeken voor de lidkiezer.
 // Alleen wat de kiezer nodig heeft: id, naam, lidnummer, status.

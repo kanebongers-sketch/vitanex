@@ -2,7 +2,7 @@
 // Welke chip-kleur bij welke status. Groen = goed, koraal = let op, grijs = uit.
 // Amber blijft voor de hoofdactie.
 
-import type { LidStatus } from '@/lib/club/gedeeld/lid'
+import type { LidStatus } from '@/lib/club/kern/lid'
 import type { BehoudLabel } from './behoud'
 import type { ReserveringStatus } from './rijen'
 

@@ -3,7 +3,7 @@
 // komt is `unknown` en wordt hier genarrowd; foutteksten zijn Nederlands en
 // kunnen zo in de interface getoond worden.
 
-import { isVestiging, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 import { isLeadBron, type LeadBron } from './model'
 import { isDagSleutel } from './regels'
 import { isUuid } from './filters'

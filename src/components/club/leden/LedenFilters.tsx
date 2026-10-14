@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
-import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/gedeeld/lid'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { lijstZoek, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
 
 // Zoeken en filteren boven de ledenlijst. Alles gaat via de URL, zodat terug,

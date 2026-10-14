@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { Cake } from 'lucide-react'
 import type { Jarige, VandaagLid } from '@/lib/club/cijfers/vandaag'
 import { dagKort } from '@/lib/club/cijfers/tijd'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
-import { initialen } from '@/lib/club/gedeeld/lid'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { initialen } from '@/lib/club/kern/lid'
 
 // Mensen om vandaag even aan te spreken: wie net begonnen is en wie jarig is.
 

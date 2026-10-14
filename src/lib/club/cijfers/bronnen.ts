@@ -4,8 +4,8 @@
 // tellen we hier met dezelfde pure functies. Elke query filtert op user_id.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
-import { isVestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestiging } from '@/lib/club/kern/vestiging'
 import { telBezoek, type BezoekTelling, type Checkin } from './bezoek'
 import type { LidCijferRij } from './leden'
 import type { LeadCijferRij } from './leads'

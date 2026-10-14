@@ -2,7 +2,7 @@
 // Vijf gerichte bronnen tegelijk, daarna puur rekenen in maakRapport.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalBezoek, haalLeadsCijfers, haalLedenCijfers, haalLessen } from './bronnen'
 import { periodeStart, wekenReeks, type Bereik, type Periode } from './periode'
 import { maakRapport, type Rapport } from './rapport'

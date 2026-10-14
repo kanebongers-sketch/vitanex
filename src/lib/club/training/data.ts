@@ -3,7 +3,7 @@
 // pagina een nette melding toont in plaats van te crashen.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { INTAKE_KOLOMMEN, intakeUitRij, type Intake } from './intake-rij'
 import {
   OEFENING_KOLOMMEN, REGEL_KOLOMMEN, SCHEMA_KOLOMMEN, logUitRij, oefeningUitRij, regelUitRij, schemaUitRij,

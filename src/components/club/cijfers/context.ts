@@ -3,7 +3,7 @@
 import type { Rapport } from '@/lib/club/cijfers/rapport'
 import type { Bereik, Periode } from '@/lib/club/cijfers/periode'
 import { dagKort } from '@/lib/club/cijfers/tijd'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 
 export interface CijferContext {
   rapport: Rapport

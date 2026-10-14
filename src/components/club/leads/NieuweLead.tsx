@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
-import { VESTIGING_LABEL } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { VESTIGING_LABEL } from '@/lib/club/kern/vestiging'
 import { opvolgSnelkeuzes } from '@/lib/club/leads/regels'
 import { LeadVelden, veldenUitFormulier } from './LeadVelden'
 import { ZijPaneel } from './ZijPaneel'

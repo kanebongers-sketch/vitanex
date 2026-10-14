@@ -3,8 +3,8 @@
 // "Nu binnen". De regels zelf staan puur in ./regels.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { haalLid, initialen, LID_KOLOMMEN, LID_STATUS_LABEL, lidUitRij, magTrainen, volledigeNaam, zoekLeden, type Lid } from '@/lib/club/gedeeld/lid'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { haalLid, initialen, LID_KOLOMMEN, LID_STATUS_LABEL, lidUitRij, magTrainen, volledigeNaam, zoekLeden, type Lid } from '@/lib/club/kern/lid'
+import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { dagGrenzen } from '@/lib/club/leden/tijd'
 import { checkinUitRij, RESERVERING_SELECT, reserveringUitRij, type CheckinRij, type LidReservering } from '@/lib/club/leden/rijen'
 import {

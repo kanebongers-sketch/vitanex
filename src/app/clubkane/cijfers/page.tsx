@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import { kiesVestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalRapport } from '@/lib/club/cijfers/haal-rapport'
 import { kiesBereik, kiesPeriode } from '@/lib/club/cijfers/periode'
 import { CijferKop } from '@/components/club/cijfers/CijferKop'

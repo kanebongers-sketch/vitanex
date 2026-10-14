@@ -4,7 +4,7 @@
 // de les om 19:00 beginnen. Idempotent: lessen die al bestaan (zelfde serie en
 // starttijd, de unieke index op serie_id + start_op) worden overgeslagen.
 
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { isoWeekdag, nlNaarUtc, plusDagen } from './tijd'
 import type { LesSerie } from './typen'
 

@@ -1,7 +1,7 @@
 // ─── Fit Factory Club: check-in, wat de API teruggeeft (PUUR) ───────────────
 // Gedeeld tussen de API-routes en het baliescherm. Datums als ISO-tekst.
 
-import type { LidStatus } from '@/lib/club/gedeeld/lid'
+import type { LidStatus } from '@/lib/club/kern/lid'
 import type { CheckinBron } from './regels'
 
 export interface BalieLes {

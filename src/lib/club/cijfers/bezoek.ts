@@ -3,7 +3,7 @@
 // het liefst zelf per week en per weekdag en uur (functie club_cijfers_bezoek,
 // migratie 386); zonder die functie tellen we hier dezelfde vorm uit losse rijen.
 
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { maandagVan, nlMoment } from './tijd'
 
 export type BezoekSoort = 'week' | 'uur'

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { PERIODES, type Bereik, type Periode } from '@/lib/club/cijfers/periode'
-import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 
 // Kop van Cijfers met de periode en het bereik als links (staat in de URL).

@@ -1,8 +1,8 @@
 // ─── Fit Factory Club: databaserijen naar typen (PUUR, systeemgrens) ────────
 // Alles wat uit de database komt is `unknown` tot het hier is nagekeken.
 
-import { LID_STATUSSEN, type LidStatus } from '@/lib/club/gedeeld/lid'
-import { isVestiging } from '@/lib/club/gedeeld/vestiging'
+import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
+import { isVestiging } from '@/lib/club/kern/vestiging'
 import type { BezoekTelling } from './bezoek'
 import type { LidCijferRij } from './leden'
 import { isLeadBron, isLeadStatus, type LeadCijferRij } from './leads'

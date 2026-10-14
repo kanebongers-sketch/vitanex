@@ -4,7 +4,7 @@
 // automatisch door.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { haalLid, volledigeNaam } from '@/lib/club/gedeeld/lid'
+import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
 import { gelukt, haalLesRij, haalRegels, haalReserveringenVanLes, mislukt, type Resultaat } from './basis-opslag'
 import type { ReserveerInvoer } from './invoer'

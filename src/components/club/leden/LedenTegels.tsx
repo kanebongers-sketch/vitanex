@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { lijstZoek, STANDAARD_PARAMS, type LedenTellingen, type LijstParams } from '@/lib/club/leden/lijst'
 
 // Cijfertegels boven de ledenlijst. Elke tegel is een filter: klik en de lijst

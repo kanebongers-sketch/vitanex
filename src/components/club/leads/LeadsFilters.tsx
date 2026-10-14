@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { LEAD_BRONNEN, LEAD_BRON_LABEL } from '@/lib/club/leads/model'
 import { PERIODES, PERIODE_LABEL, filterParams, heeftFilters, type LeadFilters } from '@/lib/club/leads/filters'
-import { clubPad, VESTIGING_PARAM, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, VESTIGING_PARAM, type Vestiging } from '@/lib/club/kern/vestiging'
 
 interface LeadsFiltersProps {
   vestiging: Vestiging

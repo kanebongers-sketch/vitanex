@@ -9,7 +9,7 @@
 // - "Nu binnen" is een schatting: we hebben geen uitcheck, dus iedereen die in
 //   de laatste 90 minuten incheckte.
 
-import { magTrainen, type LidStatus } from '@/lib/club/gedeeld/lid'
+import { magTrainen, type LidStatus } from '@/lib/club/kern/lid'
 import type { CheckinRij, LidReservering } from '@/lib/club/leden/rijen'
 
 export const DUBBEL_MIN = 30

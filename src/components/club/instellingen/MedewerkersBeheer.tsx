@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from 'react'
 import { Plus, Save } from 'lucide-react'
-import { MEDEWERKER_ROLLEN, RECHTEN, ROL_LABEL, type Medewerker, type MedewerkerRol } from '@/lib/club/gedeeld/medewerker'
-import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { MEDEWERKER_ROLLEN, RECHTEN, ROL_LABEL, type Medewerker, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { useClubActie } from '@/components/club/rooster/vraag'
 import { bewaarItem } from './opslaan'

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ClubToegang } from '@/lib/club/toegang'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalIntakes, haalOefeningen, haalSchemas, haalTrainingslog } from '@/lib/club/training/data'
 import type { OefeningFilter } from '@/lib/club/training/filter'
 import { IntakeLijst } from './IntakeLijst'

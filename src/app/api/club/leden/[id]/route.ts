@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { haalLid, volledigeNaam } from '@/lib/club/gedeeld/lid'
-import { haalMedewerkers } from '@/lib/club/gedeeld/medewerker'
+import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
+import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { leesLidWijziging } from '@/lib/club/leden/invoer'
 
 // PATCH /api/club/leden/[id]  { coachId?: uuid | null, tags?: string[] }

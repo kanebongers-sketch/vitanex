@@ -2,7 +2,7 @@
 // Zes gerichte queries tegelijk voor een vestiging, daarna puur rekenen.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalLaatsteBezoek } from './bronnen'
 import { haalAlles } from './pagina'
 import { alsRij, dag, datum, getal, ingeslotenNaam, isLidStatus, rijenVan, tekst } from './rijen'

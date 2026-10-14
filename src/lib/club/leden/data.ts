@@ -5,8 +5,8 @@
 // blokken. Voor de pilot (honderden leden) ruim snel genoeg.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { LID_KOLOMMEN, lidUitRij, type Lid } from '@/lib/club/gedeeld/lid'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { LID_KOLOMMEN, lidUitRij, type Lid } from '@/lib/club/kern/lid'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { NO_SHOW_DAGEN, VENSTER_DAGEN } from './behoud'
 import { bouwRijen, type LedenRij } from './lijst'
 import { checkinUitRij, reserveringUitRij } from './rijen'

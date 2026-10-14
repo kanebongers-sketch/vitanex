@@ -3,8 +3,8 @@
 // lesoverzicht met tellingen. Elke query filtert op user_id.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { medewerkerUitRij, type Medewerker } from '@/lib/club/gedeeld/medewerker'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { openingstijdenUitJson, type Openingstijden } from './openingstijden'
 import { telPerLes, legeTelling, type LesOverzicht } from './raster'
 import { regelsUitJson, type ReserveringStatus, type RoosterRegels } from './regels'

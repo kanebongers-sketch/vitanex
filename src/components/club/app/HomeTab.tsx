@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { CalendarCheck, Flame, QrCode } from 'lucide-react'
-import type { Lid } from '@/lib/club/gedeeld/lid'
+import type { Lid } from '@/lib/club/kern/lid'
 import type { LidAppData } from '@/lib/club/app/data'
 import { dagNaamKort, groet } from '@/lib/club/app/regels'
 import { dagLetter, volgendeDag } from '@/lib/club/app/schema'

@@ -3,8 +3,8 @@
 // Elke lezer krijgt `unknown` en geeft nette databasevelden (snake_case) of een
 // Nederlandse foutmelding. `gedeeltelijk` = een PATCH: alleen meegegeven velden.
 
-import { MEDEWERKER_ROLLEN } from '@/lib/club/gedeeld/medewerker'
-import { VESTIGINGEN, isVestiging, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { MEDEWERKER_ROLLEN } from '@/lib/club/kern/medewerker'
+import { VESTIGINGEN, isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 import { controleerOpeningstijden, openingstijdenNaarJson } from '@/lib/club/rooster/openingstijden'
 import { REGEL_DEFINITIES, REGEL_SLEUTELS, regelsNaarJson, type RoosterRegels } from '@/lib/club/rooster/regels'
 import { isDatum, isTijd } from '@/lib/club/rooster/tijd'

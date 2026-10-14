@@ -4,8 +4,8 @@ import type { VandaagLead } from '@/lib/club/cijfers/haal-vandaag'
 import type { RisicoLid } from '@/lib/club/cijfers/vandaag'
 import { RISICO_DAGEN } from '@/lib/club/cijfers/vandaag'
 import { dagenTussen, dagKort } from '@/lib/club/cijfers/tijd'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
-import { initialen } from '@/lib/club/gedeeld/lid'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { initialen } from '@/lib/club/kern/lid'
 
 // Twee werklijsten naast de tijdlijn: leads die vandaag (of eerder) gebeld
 // moesten worden, en actieve leden die al drie weken niet zijn geweest.

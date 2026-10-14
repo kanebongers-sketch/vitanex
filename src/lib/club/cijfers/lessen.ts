@@ -2,7 +2,7 @@
 // Per les tellen we de reserveringen op status. Daaruit volgen bezetting,
 // no-show en wachtlijstdruk, per lestype en per tijdslot.
 
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { tijdNl } from './tijd'
 
 export const RESERVERING_STATUSSEN = ['geboekt', 'wachtlijst', 'geannuleerd', 'aanwezig', 'no_show'] as const

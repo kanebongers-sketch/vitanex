@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Building2 } from 'lucide-react'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
-import { VESTIGINGEN, VESTIGING_LABEL, VESTIGING_PARAM, PILOT_VESTIGING, kiesVestiging } from '@/lib/club/gedeeld/vestiging'
+import { VESTIGINGEN, VESTIGING_LABEL, VESTIGING_PARAM, PILOT_VESTIGING, kiesVestiging } from '@/lib/club/kern/vestiging'
 import { ONDERDELEN, isActief } from './onderdelen'
 
 // De bovenkant van de clubsoftware: logo, de vestiging waarin je werkt en de

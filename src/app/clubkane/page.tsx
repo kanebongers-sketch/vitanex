@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalVandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { dagLang, tijdNl } from '@/lib/club/cijfers/tijd'
 import { VandaagHero } from '@/components/club/vandaag/VandaagHero'

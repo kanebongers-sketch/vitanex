@@ -2,7 +2,7 @@
 // Rijen opbouwen, filteren, sorteren en pagineren. Alle keuzes staan in de URL
 // (?status=actief&risico=1&sort=-behoud&p=2), zodat een lijst deelbaar is.
 
-import { LID_STATUSSEN, volledigeNaam, type Lid, type LidStatus } from '@/lib/club/gedeeld/lid'
+import { LID_STATUSSEN, volledigeNaam, type Lid, type LidStatus } from '@/lib/club/kern/lid'
 import { berekenBehoud, type Behoud } from './behoud'
 import { dagenGeleden, dagSleutel } from './tijd'
 

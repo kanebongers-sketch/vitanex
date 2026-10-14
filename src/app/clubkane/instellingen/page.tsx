@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalInstellingen, type Instellingen } from '@/lib/club/instellingen/opslag'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { RegelsFormulier } from '@/components/club/instellingen/RegelsFormulier'

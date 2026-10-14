@@ -5,7 +5,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import QRCode from 'qrcode'
 import { FIT_FACTORY } from '@/components/marketing/theme'
-import type { Lid } from '@/lib/club/gedeeld/lid'
+import type { Lid } from '@/lib/club/kern/lid'
 import { alsRij, datum, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import { dagSleutel, dagStart, plusDagen } from '@/lib/club/cijfers/tijd'
 import { appRegelsUitJson, bezoekenDezeMaand, wekenOpRij, type AppRegels, type MijnStatus } from './regels'

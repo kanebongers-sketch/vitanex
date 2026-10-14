@@ -3,9 +3,9 @@
 // aanpassen, en lessen aanmaken uit het weekrooster.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { LID_KOLOMMEN, lidUitRij, type Lid } from '@/lib/club/gedeeld/lid'
+import { LID_KOLOMMEN, lidUitRij, type Lid } from '@/lib/club/kern/lid'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { gelukt, haalLesRij, haalReserveringenVanLes, haalStamdata, maakOverzicht, mislukt, type Resultaat } from './basis-opslag'
 import { lesSleutel, lessenUitSeries, MAX_WEKEN_VOORUIT } from './genereren'
 import type { LesWijziging } from './invoer'

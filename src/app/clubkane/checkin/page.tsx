@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/gedeeld/vestiging'
+import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalDagPaneel } from '@/lib/club/checkin/data'
 import { CheckinBalie } from '@/components/club/checkin/CheckinBalie'
 import { NuBinnen } from '@/components/club/checkin/NuBinnen'

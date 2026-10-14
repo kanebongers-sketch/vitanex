@@ -3,8 +3,8 @@
 // straks uit Sportivity; de geschiedenis van pauzes kennen we niet, dus het
 // teruggerekende ledenbestand per week kijkt alleen naar lid sinds en einddatum.
 
-import type { LidStatus } from '@/lib/club/gedeeld/lid'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { LidStatus } from '@/lib/club/kern/lid'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { leeftijdOp, plusDagen } from './tijd'
 
 export interface LidCijferRij {

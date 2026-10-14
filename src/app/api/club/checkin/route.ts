@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { isVestiging } from '@/lib/club/gedeeld/vestiging'
-import { volledigeNaam } from '@/lib/club/gedeeld/lid'
+import { isVestiging } from '@/lib/club/kern/vestiging'
+import { volledigeNaam } from '@/lib/club/kern/lid'
 import { checkIn } from '@/lib/club/checkin/data'
 import { leesCheckinInvoer } from '@/lib/club/checkin/regels'
 

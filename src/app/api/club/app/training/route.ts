@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { haalLid, volledigeNaam } from '@/lib/club/gedeeld/lid'
+import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { leesTrainingInvoer } from '@/lib/club/app/invoer'
 
 // POST /api/club/app/training  { lidId, schemaId, dag }

@@ -5,7 +5,7 @@
 // De regels per vestiging staan in club_vestigingen.regels (jsonb, snake_case);
 // ontbreekt een regel, dan geldt de standaard.
 
-import { magTrainen, type LidStatus } from '@/lib/club/gedeeld/lid'
+import { magTrainen, type LidStatus } from '@/lib/club/kern/lid'
 
 export interface RoosterRegels {
   /** Annuleren binnen zoveel uur voor de start telt als "te laat". */

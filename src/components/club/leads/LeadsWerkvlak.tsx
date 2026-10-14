@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { Vestiging } from '@/lib/club/gedeeld/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import type { Lead } from '@/lib/club/leads/model'
 import type { ProeflesLes } from '@/lib/club/leads/lessen'
 import type { VandaagItem } from '@/lib/club/leads/regels'

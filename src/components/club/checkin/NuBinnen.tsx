@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clubPad, type Vestiging } from '@/lib/club/gedeeld/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { NU_BINNEN_MIN, type DagSamenvatting } from '@/lib/club/checkin/regels'
 import { tijdNl } from '@/lib/club/leden/tijd'
 
