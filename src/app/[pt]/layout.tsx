@@ -76,8 +76,13 @@ export default async function PtLayout({ children, params }: Props) {
         <FfLogo prioriteit />
         <div className="ff-balk-rechts">
           <span className="ff-wie">{s.link.naam}</span>
-          {/* Alleen voor Kane (beheerder, ingelogd): de verborgen ingang naar LifeOS. */}
-          {s.ingelogd && s.link.rol === 'beheerder' ? <Link href="/lifeoskane" prefetch={false} className="ff-lifeos">LifeOS</Link> : null}
+          {/* Alleen voor Kane (beheerder, ingelogd): de verborgen ingangen naar de clubsoftware en LifeOS. */}
+          {s.ingelogd && s.link.rol === 'beheerder' ? (
+            <>
+              <Link href="/clubkane" prefetch={false} className="ff-lifeos">Club</Link>
+              <Link href="/lifeoskane" prefetch={false} className="ff-lifeos">LifeOS</Link>
+            </>
+          ) : null}
           {s.ingelogd ? <UitlogKnop code={s.link.code} /> : null}
         </div>
       </header>
