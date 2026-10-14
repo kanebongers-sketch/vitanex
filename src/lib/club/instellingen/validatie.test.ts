@@ -79,6 +79,6 @@ describe('medewerkers', () => {
   it('weigert een onbekende rol, geen rol of een fout e-mailadres', () => {
     expect(leesNieuw({ naam: 'Kim', rollen: ['baas'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
     expect(leesNieuw({ naam: 'Kim', rollen: [], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
-    expect(leesNieuw({ naam: 'Kim', email: 'kim@', rollen: ['balie'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
+    expect(leesNieuw({ naam: 'Kim', email: 'kim@', rollen: ['trainer'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
   })
 })

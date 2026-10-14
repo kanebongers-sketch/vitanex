@@ -22,6 +22,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - **Geheim tot de presentatie:** alleen Kane (beheerder-sessie) op `fitfactorypt.nl/clubkane`; eigenaren, clubmanagers en PT'ers krijgen een 404 en zien nergens een link. Knop "Club" alleen in de PT-balk voor de beheerder.
 - Naam: **Fit Factory** (balk: Fit Factory-logo + CLUB). Pilot: **Budel**, later met een echt ledenbestand. Rollen: balie, trainer, groepslesinstructeur, clubmanager.
 - Club heeft naast het groepslesrooster een **personeelsrooster** (diensten fitnesspersoneel) en **taken en poetslijsten** (dagelijkse taken, afsluitronde, poetsrooster met minimum per week), gebaseerd op de Excel-lijsten van Budel. Het fitnessrooster staat nu in Google Agenda (kleur per medewerker); de administratie controleert daar de uren, daarom krijgt het personeelsrooster een urenadministratie (gepland, gewerkt, goedgekeurd, verwerkt, export).
+- Oefeningbeelden: **geen eigen video's** (kan niet) en **nooit Virtuagym-beeld**. Bron is de open database Everkinetic (CC BY-SA 4.0, begin- en eindhouding als SVG, in onze kleuren als kleine loop), altijd met bronvermelding.
 - Het fitness-leadsysteem in Club staat **los van het PT-systeem** (geen koppeling met pt_leads of de PT-app).
 - Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
 

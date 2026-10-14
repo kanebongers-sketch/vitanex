@@ -1,5 +1,5 @@
 // ─── Fit Factory Club, personeel: typen en databaserijen (PUUR) ─────────────
-// Diensten van het fitnesspersoneel (balie, vloer, opening en afsluiten) met
+// Diensten van het fitnesspersoneel (vloer en balie, opening en afsluiten) met
 // de urenregistratie erbij. Tijden zijn Nederlandse kloktijden op een datum
 // ("08:00" tot "14:00"); een dienst loopt nooit over middernacht.
 
@@ -19,7 +19,7 @@ export const KLEUR_LABEL: Record<Kleur, string> = {
   zand: 'Zand',
 }
 
-export const PERSONEEL_ROLLEN = ['balie', 'trainer', 'instructeur', 'manager', 'administratie'] as const
+export const PERSONEEL_ROLLEN = ['trainer', 'instructeur', 'manager', 'administratie'] as const
 export type PersoneelRol = (typeof PERSONEEL_ROLLEN)[number]
 
 export const CATEGORIEEN = ['opening', 'dag', 'avond', 'afsluiten', 'weekend', 'overig'] as const

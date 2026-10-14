@@ -42,7 +42,7 @@ function wissel<T>(lijst: readonly T[], x: T): T[] {
 }
 
 function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; vestiging: Vestiging }) {
-  const leeg: Velden = { naam: '', email: '', rollen: ['balie'], vestigingen: [vestiging] }
+  const leeg: Velden = { naam: '', email: '', rollen: ['trainer'], vestigingen: [vestiging] }
   const [v, setV] = useState<Velden>(mens ? { naam: mens.naam, email: mens.email ?? '', rollen: mens.rollen, vestigingen: mens.vestigingen } : leeg)
   const { bezig, fout, voerUit } = useClubActie()
 

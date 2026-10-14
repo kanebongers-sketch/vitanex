@@ -1,15 +1,16 @@
 // ─── Fit Factory clubsoftware: medewerkers (gedeeld) ────────────────────────
-// Balie, trainers, groepslesinstructeurs en clubmanagers. In de testfase werkt
-// alleen Kane erin; de rollen bepalen straks wat iemand ziet (zie RECHTEN).
+// De functies van Fit Factory (besluit Kane 14-10-2026): trainer (doet ook de
+// balie), groepslesinstructeur en clubmanager, plus de centrale administratie
+// voor de uren. In de testfase werkt alleen Kane erin; de rollen bepalen straks
+// wat iemand ziet (zie RECHTEN).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isVestiging, type Vestiging } from './vestiging'
 
-export const MEDEWERKER_ROLLEN = ['balie', 'trainer', 'instructeur', 'manager', 'administratie'] as const
+export const MEDEWERKER_ROLLEN = ['trainer', 'instructeur', 'manager', 'administratie'] as const
 export type MedewerkerRol = (typeof MEDEWERKER_ROLLEN)[number]
 
 export const ROL_LABEL: Record<MedewerkerRol, string> = {
-  balie: 'Balie',
   trainer: 'Trainer',
   instructeur: 'Groepslesinstructeur',
   manager: 'Clubmanager',
@@ -18,8 +19,7 @@ export const ROL_LABEL: Record<MedewerkerRol, string> = {
 
 /** Welke onderdelen een rol straks ziet. De testfase is alleen Kane (alles). */
 export const RECHTEN: Record<MedewerkerRol, readonly string[]> = {
-  balie: ['vandaag', 'checkin', 'leden', 'rooster', 'leads', 'personeel', 'taken'],
-  trainer: ['vandaag', 'leden', 'schemas', 'rooster', 'personeel', 'taken'],
+  trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'leads', 'personeel', 'taken'],
   instructeur: ['vandaag', 'rooster', 'personeel'],
   manager: ['vandaag', 'checkin', 'leden', 'rooster', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
   administratie: ['personeel'],

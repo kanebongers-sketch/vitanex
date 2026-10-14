@@ -23,7 +23,7 @@ function dienst(over: Partial<Dienst>): Dienst {
   }
 }
 
-const lid: PersoneelLid = { id: 'a', naam: 'Lynn Maas', rollen: ['balie'], contracturen: 24, kleur: 'groen' }
+const lid: PersoneelLid = { id: 'a', naam: 'Lynn Maas', rollen: ['trainer'], contracturen: 24, kleur: 'groen' }
 
 describe('periodes', () => {
   it('week en vier weken beginnen op maandag', () => {

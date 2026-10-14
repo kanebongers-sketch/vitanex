@@ -26,7 +26,7 @@ function dienst(over: Partial<Dienst>): Dienst {
 }
 
 const leden: PersoneelLid[] = [
-  { id: 'a', naam: 'Lynn', rollen: ['balie'], contracturen: 24, kleur: 'groen' },
+  { id: 'a', naam: 'Lynn', rollen: ['trainer'], contracturen: 24, kleur: 'groen' },
   { id: 'b', naam: 'Dennis', rollen: ['trainer'], contracturen: 24, kleur: 'blauw' },
   { id: 'c', naam: 'Yara', rollen: ['trainer'], contracturen: 8, kleur: 'turkoois' },
 ]
