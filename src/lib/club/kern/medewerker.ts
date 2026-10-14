@@ -5,7 +5,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isVestiging, type Vestiging } from './vestiging'
 
-export const MEDEWERKER_ROLLEN = ['balie', 'trainer', 'instructeur', 'manager'] as const
+export const MEDEWERKER_ROLLEN = ['balie', 'trainer', 'instructeur', 'manager', 'administratie'] as const
 export type MedewerkerRol = (typeof MEDEWERKER_ROLLEN)[number]
 
 export const ROL_LABEL: Record<MedewerkerRol, string> = {
@@ -13,14 +13,16 @@ export const ROL_LABEL: Record<MedewerkerRol, string> = {
   trainer: 'Trainer',
   instructeur: 'Groepslesinstructeur',
   manager: 'Clubmanager',
+  administratie: 'Administratie',
 }
 
 /** Welke onderdelen een rol straks ziet. De testfase is alleen Kane (alles). */
 export const RECHTEN: Record<MedewerkerRol, readonly string[]> = {
-  balie: ['vandaag', 'checkin', 'leden', 'rooster', 'leads'],
-  trainer: ['vandaag', 'leden', 'schemas', 'rooster'],
-  instructeur: ['vandaag', 'rooster'],
-  manager: ['vandaag', 'checkin', 'leden', 'rooster', 'leads', 'schemas', 'cijfers', 'instellingen'],
+  balie: ['vandaag', 'checkin', 'leden', 'rooster', 'leads', 'personeel', 'taken'],
+  trainer: ['vandaag', 'leden', 'schemas', 'rooster', 'personeel', 'taken'],
+  instructeur: ['vandaag', 'rooster', 'personeel'],
+  manager: ['vandaag', 'checkin', 'leden', 'rooster', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
+  administratie: ['personeel'],
 }
 
 export interface Medewerker {

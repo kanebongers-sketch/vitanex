@@ -15,6 +15,8 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is' },
   { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status' },
   { sleutel: 'rooster', pad: '/rooster', label: 'Rooster', uitleg: 'Groepslessen, reserveringen en wachtlijst' },
+  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten van het fitnesspersoneel per week' },
+  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster' },
   { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen' },
   { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen" },
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud' },

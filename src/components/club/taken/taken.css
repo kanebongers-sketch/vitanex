@@ -1,0 +1,186 @@
+/* ─── Fit Factory Club: taken en poetslijsten ────────────────────────────────
+   Het Excel-tabblad, maar dan als werkplek: per lijst een strak raster van
+   taken en dagen met grote tikvlakken. Gedaan = groen vak met initialen en
+   tijd, vandaag = amber kolom, achter = koraal. Op de tablet ("Vandaag") alles
+   groter, per moment van de dag. Alle kleuren uit club.css en .lifeos-root.ff.
+   Afdrukken geeft een zwart-wit papieren reserve van de week. */
+
+.club-taken-pagina { display: grid; gap: 22px; align-content: start; }
+.club-taken-weeknr { color: var(--brand); }
+.club-taken-kopacties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-taken-bladeren { display: flex; gap: 6px; }
+.club-taken-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.club-taken-weergaven { justify-self: start; }
+
+/* ── Wie vinkt af ─────────────────────────────────────────────────────────── */
+.club-taken-persoon { position: sticky; top: 112px; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--club-radius); background: color-mix(in srgb, var(--bg-card) 92%, transparent); backdrop-filter: blur(10px); box-shadow: var(--club-schaduw); }
+.club-taken-persoon[data-leeg] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+.club-taken-persoon[data-leeg] .club-avatar { background: var(--club-vlak-hover); color: var(--text-3); }
+.club-taken-persoon-keuze { display: flex; align-items: center; gap: 10px; }
+.club-taken-persoon-keuze > span { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+.club-taken-persoon-keuze select { min-width: 220px; min-height: 44px; font-size: 16px; }
+.club-taken-persoon-anders { display: flex; gap: 8px; }
+.club-taken-persoon-anders .club-invoer { width: 140px; min-height: 44px; font-size: 16px; text-transform: uppercase; }
+.club-taken-persoon-anders .club-knop { min-height: 44px; }
+.club-taken-persoon-fout { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 8px 6px 8px 12px; border-radius: var(--club-radius-klein); background: var(--club-let-op-zacht); color: var(--club-let-op); font-size: 14px; font-weight: 600; }
+
+/* ── Een lijst als raster ─────────────────────────────────────────────────── */
+.club-taken-lijst { display: grid; gap: 10px; }
+.club-taken-lijstnaam { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-taken-tabelwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-taken-raster { width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 14px; }
+.club-taken-raster th, .club-taken-raster td { border-bottom: 1px solid var(--line); }
+.club-taken-raster thead th { padding: 10px 6px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); background: var(--bg-card); border-bottom-color: var(--line-strong); }
+.club-taken-raster .club-taken-naam { width: clamp(200px, 26vw, 340px); text-align: left; padding: 8px 14px; position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
+.club-taken-raster tbody .club-taken-naam { font-weight: 600; font-size: 14.5px; line-height: 1.3; }
+.club-taken-naam > span { display: block; }
+.club-taken-freq { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--text-3); }
+.club-taken-dagkop { text-align: center; }
+.club-taken-dagkop b { display: block; font-size: 22px; line-height: 1.05; color: var(--text-1); letter-spacing: 0; }
+.club-taken-dagkop[data-vandaag] { color: var(--brand); box-shadow: inset 0 3px 0 var(--brand); }
+.club-taken-dagkop[data-vandaag] b { color: var(--brand); }
+.club-taken-raster .club-taken-week { width: 110px; text-align: center; padding: 6px 8px; }
+.club-taken-groep th { padding: 14px 14px 6px; text-align: left; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); background: var(--bg-card); position: sticky; left: 0; }
+.club-taken-rij:hover .club-taken-naam, .club-taken-rij:hover td { background-color: var(--club-vlak); }
+.club-taken-rij[data-status='achter'] .club-taken-naam { box-shadow: inset 3px 0 0 var(--club-let-op); }
+.club-taken-rij[data-status='gehaald'] .club-taken-naam { box-shadow: inset 3px 0 0 var(--club-ok); }
+.club-taken-cel { padding: 4px; text-align: center; }
+.club-taken-cel[data-vandaag] { background: color-mix(in srgb, var(--brand) 6%, transparent); }
+
+/* Het vakje: groot tikvlak, gedaan = groen met initialen en tijd. */
+.club-taken-vak { position: relative; display: grid; place-items: center; align-content: center; gap: 1px; width: 100%; min-height: 52px; padding: 4px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius-klein); background: transparent; color: var(--text-1); cursor: pointer; font: inherit; transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 120ms var(--ease); -webkit-tap-highlight-color: transparent; }
+.club-taken-vak:hover:not(:disabled) { border-color: var(--text-4); background: var(--club-vlak-hover); }
+.club-taken-vak:active:not(:disabled) { transform: scale(0.96); }
+.club-taken-vak:disabled { cursor: default; border-style: solid; border-color: transparent; background: var(--club-vlak); opacity: 0.45; }
+.club-taken-vak-hint { color: var(--text-4); opacity: 0; transition: opacity 140ms var(--ease); }
+.club-taken-vak:hover .club-taken-vak-hint, .club-taken-vak:focus-visible .club-taken-vak-hint { opacity: 1; }
+.club-taken-vak[aria-pressed='true'] { border: 1px solid color-mix(in srgb, var(--club-ok) 55%, transparent); background: var(--club-ok-zacht); }
+.club-taken-vak[aria-pressed='true']:hover { background: color-mix(in srgb, var(--club-ok) 22%, transparent); }
+.club-taken-vak[aria-busy='true'] { opacity: 0.6; }
+.club-taken-vak-wie { font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; color: var(--club-ok); line-height: 1; }
+.club-taken-vak-tijd { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-3); }
+.club-taken-teller { font-size: 12.5px; }
+
+/* ── Iets anders gedaan ───────────────────────────────────────────────────── */
+.club-taken-notitieweek { display: grid; gap: 10px; }
+.club-taken-notitieraster { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+@media (min-width: 1300px) { .club-taken-notitieraster { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+.club-taken-notitiedag { display: grid; gap: 8px; align-content: start; padding: 12px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-taken-notitiedag[data-vandaag] { border-color: color-mix(in srgb, var(--brand) 50%, var(--line)); }
+.club-taken-notitiedag-kop { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
+.club-taken-notitiedag-kop span { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-right: 4px; }
+.club-taken-notitiedag[data-vandaag] .club-taken-notitiedag-kop { color: var(--brand); }
+.club-taken-notities { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-taken-notities li { position: relative; padding: 8px 30px 8px 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-taken-notities p { margin: 0; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.club-taken-notitie-wie { font-size: 11.5px; color: var(--text-3); }
+.club-taken-notities .club-knop { position: absolute; top: 2px; right: 0; min-height: 28px; padding: 0 6px; color: var(--text-3); }
+.club-taken-notitieform { display: grid; gap: 6px; }
+.club-app .club-taken-notitieform textarea.club-invoer { min-height: 58px; font-size: 14px; }
+.club-taken-notitieform .club-knop { justify-self: start; }
+
+/* ── Tabletmodus: vandaag ─────────────────────────────────────────────────── */
+.club-taken-bord { display: grid; gap: 26px; }
+.club-taken-bord-stand { margin: 0; font-size: 18px; color: var(--text-2); }
+.club-taken-bord-stand strong { font-family: var(--ff-kop); font-size: 34px; color: var(--text-1); vertical-align: -0.08em; }
+.club-taken-moment, .club-taken-afsluit { display: grid; gap: 12px; }
+.club-taken-moment-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line-strong); padding-bottom: 6px; }
+.club-taken-moment-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: clamp(26px, 3vw, 34px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.club-taken-moment-kop > span { font-family: var(--ff-kop); font-size: 20px; font-weight: 600; color: var(--text-3); }
+.club-taken-moment[data-af] .club-taken-moment-kop > span { color: var(--club-ok); }
+.club-taken-tegels { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.club-taken-tegel { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--club-radius); background: var(--bg-card); color: var(--text-1); text-align: left; font: inherit; cursor: pointer; transition: background-color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease); -webkit-tap-highlight-color: transparent; }
+.club-taken-tegel:hover { border-color: var(--text-4); background: color-mix(in srgb, var(--text-1) 5%, var(--bg-card)); }
+.club-taken-tegel:active { transform: scale(0.985); }
+.club-taken-tegel[aria-busy='true'] { opacity: 0.6; }
+.club-taken-tegel-vink { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; border: 2px solid var(--line-strong); color: var(--bg-app); }
+.club-taken-tegel[aria-pressed='true'] { border-color: color-mix(in srgb, var(--club-ok) 55%, transparent); background: var(--club-ok-zacht); }
+.club-taken-tegel[aria-pressed='true'] .club-taken-tegel-vink { background: var(--club-ok); border-color: var(--club-ok); }
+.club-taken-tegel-tekst { display: grid; gap: 3px; min-width: 0; }
+.club-taken-tegel-bron { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-taken-tegel-naam { font-size: 17px; font-weight: 600; line-height: 1.25; }
+.club-taken-tegel[aria-pressed='true'] .club-taken-tegel-naam { color: var(--text-2); }
+.club-taken-tegel-wie { font-size: 13px; font-weight: 600; color: var(--club-ok); }
+.club-taken-tegel .club-taken-teller { justify-self: start; }
+
+.club-taken-afsluit { padding: 18px; border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius: calc(var(--club-radius) + 4px); background: linear-gradient(180deg, var(--brand-soft), transparent 140px), var(--club-vlak); }
+.club-taken-afsluit[data-klaar] { border-color: color-mix(in srgb, var(--club-ok) 45%, var(--line)); background: linear-gradient(180deg, var(--club-ok-zacht), transparent 140px), var(--club-vlak); }
+.club-taken-afsluit-voet { display: grid; gap: 10px; justify-items: start; padding-top: 4px; }
+.club-taken-afsluit-status { margin: 0; color: var(--club-ok); font-size: 15px; }
+.club-taken-afsluit-vraag { margin: 0; color: var(--club-let-op); font-weight: 600; font-size: 16px; }
+.club-taken-extra { border: 1px solid var(--line); border-radius: var(--club-radius); padding: 0 14px; background: var(--club-vlak); }
+.club-taken-extra summary { padding: 16px 0; cursor: pointer; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.club-taken-extra[open] { padding-bottom: 14px; }
+.club-taken-pagina--tablet .club-taken-notitiedag { padding: 0; border: 0; background: transparent; }
+.club-app .club-taken-pagina--tablet textarea.club-invoer { min-height: 80px; font-size: 16px; }
+
+/* ── Overzicht ────────────────────────────────────────────────────────────── */
+.club-taken-van { font-size: 0.5em; color: var(--text-3); letter-spacing: 0.02em; }
+.club-taken-overzicht-lijsten { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
+.club-taken-overzicht-kop { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-taken-overzicht-rij { flex-wrap: wrap; }
+.club-taken-overzicht-rij .club-chip { white-space: normal; }
+.club-taken-historie td[data-te-weinig] { color: var(--club-let-op); font-weight: 600; }
+.club-taken-historie-naam { font-weight: 600; text-transform: none; letter-spacing: 0; font-family: inherit; font-size: 14px; color: var(--text-1); }
+.club-tabel .club-taken-groep th { position: static; padding: 14px 14px 6px; color: var(--brand); }
+.club-taken-score { display: inline-flex; align-items: center; gap: 10px; min-width: 150px; }
+.club-taken-score-balk { position: relative; flex: 1; height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-taken-score-balk > span { position: absolute; inset: 0; transform-origin: left; border-radius: inherit; background: var(--text-3); }
+.club-taken-score[data-soort='ok'] .club-taken-score-balk > span { background: var(--club-ok); }
+.club-taken-score[data-soort='let-op'] .club-taken-score-balk > span { background: var(--club-let-op); }
+.club-taken-score[data-soort='ok'] .club-getal { color: var(--club-ok); }
+.club-taken-score[data-soort='let-op'] .club-getal { color: var(--club-let-op); }
+
+/* ── Beheer ───────────────────────────────────────────────────────────────── */
+.club-taken-beheerkolom { display: grid; gap: 16px; align-content: start; }
+.club-taken-beheer { display: grid; gap: 10px; }
+.club-taken-beheer[data-uit] { opacity: 0.7; }
+.club-taken-beheerkop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.club-taken-beheernaam { display: flex; gap: 8px; align-items: center; flex: 1; min-width: 220px; }
+.club-taken-beheernaam .club-invoer { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; background: transparent; border-color: transparent; padding-left: 6px; }
+.club-taken-beheernaam .club-invoer:hover { border-color: var(--line-strong); }
+.club-taken-beheerknoppen { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.club-taken-beheerlijst { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-taken-beheerrij { padding: 8px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.club-taken-beheerrij:last-child { border-bottom: 0; }
+.club-taken-beheerrij[data-uit] .club-rij-titel { color: var(--text-3); text-decoration: line-through; }
+.club-taken-beheerrij-lijn { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.club-taken-taakform { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); padding: 12px; border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-taken-taakform-naam { grid-column: 1 / -1; }
+.club-taken-taakform-acties { grid-column: 1 / -1; }
+.club-taken-nieuwknop { justify-self: start; }
+.club-taken-actieform { display: grid; gap: 12px; }
+.club-taken-actieform h2 { margin: 0; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-taken-actieform .club-knop { justify-self: start; }
+
+/* ── Telefoon ─────────────────────────────────────────────────────────────── */
+@media (max-width: 699px) {
+  .club-taken-persoon { position: static; }
+  .club-taken-persoon-keuze { flex: 1; flex-wrap: wrap; }
+  .club-taken-persoon-keuze select { min-width: 0; width: 100%; }
+}
+
+/* ── Papieren reserve ─────────────────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body:has(.club-taken-pagina) .club-kop, body:has(.club-taken-pagina) .club-voet { display: none; }
+  body:has(.club-taken-pagina) .club-app { background: white; color: black; min-height: 0; }
+  body:has(.club-taken-pagina) .club-werkvlak { padding: 0; }
+  .club-taken-pagina { gap: 10px; }
+  .club-taken-pagina .club-taken-print-weg, .club-taken-pagina .club-taken-persoon { display: none; }
+  .club-taken-pagina .club-paginakop h1, .club-taken-lijstnaam, .club-taken-weeknr, .club-taken-pagina .club-paginakop p, .club-taken-pagina .club-boventitel { color: black; font-size: 16pt; }
+  .club-taken-lijst, .club-taken-notitieweek { break-inside: avoid; }
+  .club-taken-tabelwrap { overflow: visible; border-color: black; border-radius: 0; background: white; }
+  .club-taken-raster { min-width: 0; font-size: 9pt; }
+  .club-taken-raster th, .club-taken-raster td { border: 0.5pt solid black; background: white; color: black; box-shadow: none; position: static; }
+  .club-taken-dagkop b, .club-taken-dagkop[data-vandaag], .club-taken-dagkop[data-vandaag] b, .club-taken-groep th, .club-taken-freq { color: black; }
+  .club-taken-vak { min-height: 22px; border: 0; background: white; opacity: 1; }
+  .club-taken-vak[aria-pressed='true'] { background: white; border: 0; }
+  .club-taken-vak-wie { color: black; font-size: 10pt; }
+  .club-taken-vak-tijd, .club-taken-vak-hint { display: none; }
+  .club-taken-teller { color: black; background: white; border: 0.5pt solid black; }
+  .club-taken-notitieraster { grid-template-columns: repeat(7, 1fr); }
+  .club-taken-notitiedag { border: 0.5pt solid black; border-radius: 0; background: white; color: black; min-height: 40mm; }
+  .club-taken-notitiedag-kop, .club-taken-notitiedag-kop span, .club-taken-notitie-wie { color: black; }
+  .club-taken-notities li { background: white; padding: 0; }
+}

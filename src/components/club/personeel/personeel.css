@@ -1,0 +1,242 @@
+/* ─── Fit Factory Club: personeelsrooster ───────────────────────────────────
+   Per dag een tijdbalk over de volle breedte. Bovenin de bezetting: groen hoe
+   meer mensen er staan, koraal gearceerd waar binnen de bemande uren niemand
+   staat. Daaronder een baan per medewerker in zijn of haar eigen kleur (de naam
+   staat er altijd als tekst naast). Open diensten koraal gestippeld.
+   Alle kleuren komen uit de tokens van club.css en .lifeos-root.ff. */
+
+.club-personeel-pagina {
+  --club-personeel-label: 136px;
+  --club-personeel-baanhoogte: 34px;
+  display: grid;
+  gap: 18px;
+  /* Roosterkleuren per medewerker, gemengd uit de bestaande tokens. */
+  --club-personeel-k-amber: var(--brand);
+  --club-personeel-k-blauw: var(--club-info);
+  --club-personeel-k-groen: var(--club-ok);
+  --club-personeel-k-turkoois: color-mix(in srgb, var(--club-ok) 50%, var(--club-info));
+  --club-personeel-k-lila: color-mix(in srgb, var(--club-info) 55%, var(--club-let-op));
+  --club-personeel-k-roze: color-mix(in srgb, var(--club-let-op) 50%, var(--text-1));
+  --club-personeel-k-geel: color-mix(in srgb, var(--brand) 50%, var(--text-1));
+  --club-personeel-k-zand: var(--text-3);
+}
+.club-personeel-pagina [data-kleur] { --club-personeel-kleur: var(--text-3); }
+.club-personeel-pagina [data-kleur='amber'] { --club-personeel-kleur: var(--club-personeel-k-amber); }
+.club-personeel-pagina [data-kleur='blauw'] { --club-personeel-kleur: var(--club-personeel-k-blauw); }
+.club-personeel-pagina [data-kleur='groen'] { --club-personeel-kleur: var(--club-personeel-k-groen); }
+.club-personeel-pagina [data-kleur='turkoois'] { --club-personeel-kleur: var(--club-personeel-k-turkoois); }
+.club-personeel-pagina [data-kleur='lila'] { --club-personeel-kleur: var(--club-personeel-k-lila); }
+.club-personeel-pagina [data-kleur='roze'] { --club-personeel-kleur: var(--club-personeel-k-roze); }
+.club-personeel-pagina [data-kleur='geel'] { --club-personeel-kleur: var(--club-personeel-k-geel); }
+.club-personeel-pagina [data-kleur='zand'] { --club-personeel-kleur: var(--club-personeel-k-zand); }
+.club-personeel-stip { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 999px; background: var(--club-personeel-kleur, var(--text-3)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--club-personeel-kleur, var(--text-3)) 25%, transparent); }
+
+/* ── Kop, tabbladen, balk met cijfers ────────────────────────────────────── */
+.club-personeel-kop { display: grid; gap: 14px; }
+.club-personeel-weeknr { color: var(--text-4); font-size: 0.55em; letter-spacing: 0.06em; margin-left: 0.25em; vertical-align: 0.25em; }
+.club-personeel-bladeren { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.club-personeel-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.club-personeel-periode { font-family: var(--ff-kop); font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0 6px; }
+.club-personeel-tabs { justify-self: start; }
+.club-personeel-balk { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; }
+.club-personeel-cijfers { display: flex; flex-wrap: wrap; gap: 6px 28px; margin: 0; }
+.club-personeel-cijfers > div { display: grid; gap: 0; }
+.club-personeel-cijfers dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-personeel-cijfers dd { margin: 0; font-family: var(--ff-kop); font-size: 34px; line-height: 1; font-weight: 700; }
+.club-personeel-cijfers--groot dd { font-size: clamp(32px, 3.4vw, 46px); }
+.club-personeel-cijfers [data-let-op] dd { color: var(--club-let-op); }
+.club-personeel-snel { display: grid; gap: 6px; justify-items: end; }
+.club-personeel-keuze { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+/* ── Werkvlak: rooster links, zijbalk rechts op brede schermen ───────────── */
+.club-personeel-werkvlak { display: grid; gap: 18px; align-items: start; }
+@media (min-width: 1280px) {
+  .club-personeel-werkvlak { grid-template-columns: minmax(0, 1fr) 320px; }
+  .club-personeel-zij { position: sticky; top: 120px; }
+}
+.club-personeel-zij { display: grid; gap: 16px; }
+.club-personeel-zijkaart > h2 { display: flex; justify-content: space-between; align-items: baseline; }
+
+/* ── De week en de tijdas ─────────────────────────────────────────────────── */
+.club-personeel-week { display: grid; gap: 10px; min-width: 0; }
+.club-personeel-as { position: sticky; top: 104px; z-index: 6; display: grid; grid-template-columns: var(--club-personeel-label) minmax(0, 1fr); padding: 6px 12px 4px; background: color-mix(in srgb, var(--bg-app) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.club-personeel-as .club-personeel-spoor { min-height: 16px; background: none; }
+.club-personeel-as span[style] { position: absolute; left: var(--l); transform: translateX(-50%); font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-4); }
+
+.club-personeel-dag { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); overflow: clip; }
+.club-personeel-dag[data-vandaag] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); box-shadow: inset 3px 0 0 var(--brand); }
+.club-personeel-dagkop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 12px 8px; }
+.club-personeel-dagkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; min-width: calc(var(--club-personeel-label) - 12px); }
+.club-personeel-dagnaam { color: var(--text-3); }
+.club-personeel-dag[data-vandaag] .club-personeel-dagnaam { color: var(--brand); }
+.club-personeel-dagkop > .club-zacht { font-size: 13px; }
+.club-personeel-dagacties { display: inline-flex; gap: 6px; margin-left: auto; }
+
+/* Banen: label links, spoor rechts. Posities komen uit --l en --w (procent). */
+.club-personeel-banen { position: relative; padding: 0 12px 10px; }
+.club-personeel-baan { display: grid; grid-template-columns: var(--club-personeel-label) minmax(0, 1fr); border-top: 1px solid var(--line); }
+.club-personeel-baanlabel { display: flex; align-items: center; gap: 8px; min-width: 0; padding-right: 10px; font-size: 13px; color: var(--text-2); }
+.club-personeel-baanlabel > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-personeel-baan--bezetting .club-personeel-baanlabel { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-4); }
+.club-personeel-spoor { position: relative; min-height: var(--club-personeel-baanhoogte); background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: calc(100% / var(--uren, 15)) 100%; }
+.club-personeel-spoor > [style] { position: absolute; left: var(--l); width: var(--w); }
+.club-personeel-spoortekst { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text-4); pointer-events: none; }
+.club-personeel-onbemand { background-image: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 8px); }
+
+/* Bezetting en gaten. */
+.club-personeel-bemand { top: 8px; bottom: 8px; border-radius: 4px; background: var(--club-vlak); }
+.club-personeel-dekking { top: 10px; bottom: 10px; background: color-mix(in srgb, var(--club-ok) 40%, transparent); }
+.club-personeel-dekking[data-aantal='2'] { background: color-mix(in srgb, var(--club-ok) 70%, transparent); }
+.club-personeel-dekking[data-aantal='3'] { background: var(--club-ok); }
+.club-personeel-gat { top: 4px; bottom: 4px; z-index: 2; min-width: 18px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: repeating-linear-gradient(135deg, var(--club-let-op) 0 5px, color-mix(in srgb, var(--club-let-op) 60%, transparent) 5px 10px); color: var(--bg-app); font-family: var(--ff-kop); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; transition: transform 160ms var(--ease); }
+.club-personeel-gat:hover { transform: scaleY(1.08); }
+.club-personeel-gat span { padding: 0 4px; border-radius: 3px; background: var(--club-let-op); }
+
+/* Klikbare uurvakken onder de diensten. */
+.club-personeel-uurvak { top: 0; bottom: 0; transition: background-color 120ms var(--ease); }
+.club-personeel-uurvak:hover { background: var(--club-vlak-hover); }
+.club-personeel-hint { opacity: 0; transition: opacity 160ms var(--ease); }
+.club-personeel-baan:hover .club-personeel-hint { opacity: 1; }
+
+/* Een dienst. */
+.club-personeel-blok { top: 4px; bottom: 4px; z-index: 3; display: flex; align-items: center; gap: 6px; min-width: 6px; padding: 0 6px 0 8px; overflow: hidden; white-space: nowrap; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--club-personeel-kleur, var(--text-3)) 45%, transparent); border-left: 3px solid var(--club-personeel-kleur, var(--text-3)); background: color-mix(in srgb, var(--club-personeel-kleur, var(--text-3)) 18%, var(--bg-card)); color: var(--text-1); font-size: 12px; text-decoration: none; transition: transform 160ms var(--ease), border-color 160ms var(--ease); }
+.club-personeel-blok:hover { z-index: 4; transform: translateY(-1px); border-color: var(--club-personeel-kleur, var(--text-3)); }
+.club-personeel-blok[aria-current='true'] { box-shadow: 0 0 0 2px var(--brand); }
+.club-personeel-bloktijd { font-weight: 600; }
+.club-personeel-bloksoort { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; }
+.club-personeel-blokteken { margin-left: auto; display: inline-flex; color: var(--club-ok); }
+.club-personeel-blok[data-open] { border: 1px dashed var(--club-let-op); border-left-width: 3px; background: var(--club-let-op-zacht); color: var(--club-let-op); }
+.club-personeel-blok[data-open] .club-personeel-bloksoort { color: var(--club-let-op); font-weight: 600; }
+.club-personeel-blok:is([data-uursoort='ziek'], [data-uursoort='verlof']) { background: repeating-linear-gradient(135deg, var(--club-vlak) 0 6px, transparent 6px 12px); color: var(--text-3); }
+.club-personeel-blok:is([data-uursoort='ziek'], [data-uursoort='verlof']) .club-personeel-bloktijd { text-decoration: line-through; }
+
+/* Mededelingen en "geen afspraken": dunne balken zoals in de agenda. */
+.club-personeel-notitie, .club-personeel-geenafspraken { top: 7px; bottom: 7px; z-index: 3; display: flex; align-items: center; gap: 6px; min-width: 120px; padding: 0 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border-radius: 4px; font-size: 12px; text-decoration: none; }
+.club-personeel-notitie { background: var(--club-info-zacht); color: var(--club-info); border: 1px solid color-mix(in srgb, var(--club-info) 35%, transparent); }
+.club-personeel-notitie[data-soort='geen_afspraken'], .club-personeel-geenafspraken { background: repeating-linear-gradient(135deg, var(--club-vlak-hover) 0 5px, transparent 5px 10px), var(--bg-card); color: var(--text-2); border: 1px solid var(--line-strong); }
+.club-personeel-geenafspraken { z-index: 5; top: 9px; bottom: 9px; min-width: 60px; }
+
+/* Nu-lijn over alle banen van vandaag. */
+.club-personeel-nulaag { position: absolute; top: 0; bottom: 10px; left: calc(12px + var(--club-personeel-label)); right: 12px; pointer-events: none; z-index: 6; }
+.club-personeel-nu { position: absolute; top: 0; bottom: 0; left: var(--l); width: 2px; background: var(--brand); }
+
+/* ── Zijbalk: uren en controle ────────────────────────────────────────────── */
+.club-personeel-urenlijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.club-personeel-urenrij { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.club-personeel-urennaam { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-1); text-decoration: none; font-weight: 600; font-size: 14px; }
+a.club-personeel-urennaam:hover { color: var(--brand); }
+.club-personeel-urengetal { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
+.club-personeel-urengetal .club-zacht { font-size: 15px; font-weight: 600; }
+.club-personeel-urenmeter { grid-column: 1 / 2; position: relative; height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: visible; }
+.club-personeel-urenmeter > span { position: absolute; left: 0; top: 0; bottom: 0; width: var(--vul); border-radius: 999px; background: var(--club-ok); }
+.club-personeel-urenmeter::after { content: ''; position: absolute; left: var(--contract); top: -3px; bottom: -3px; width: 2px; background: var(--text-2); }
+.club-personeel-urenoordeel { font-size: 12px; font-weight: 600; color: var(--club-ok); text-align: right; }
+.club-personeel-urenrij[data-oordeel='te_veel'] .club-personeel-urenmeter > span { background: var(--club-let-op); }
+.club-personeel-urenrij[data-oordeel='te_veel'] .club-personeel-urenoordeel { color: var(--club-let-op); }
+.club-personeel-urenrij[data-oordeel='te_weinig'] .club-personeel-urenmeter > span { background: var(--club-info); }
+.club-personeel-urenrij[data-oordeel='te_weinig'] .club-personeel-urenoordeel { color: var(--club-info); }
+.club-personeel-urenrij[data-oordeel='geen_contract'] .club-personeel-urenmeter > span { background: var(--text-4); }
+.club-personeel-urenrij[data-oordeel='geen_contract'] .club-personeel-urenoordeel { color: var(--text-3); }
+
+.club-personeel-meldingen { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-personeel-meldingen li { border-bottom: 1px solid var(--line); }
+.club-personeel-meldingen li:last-child { border-bottom: 0; }
+.club-personeel-meldingen a { display: grid; grid-template-columns: 16px 64px minmax(0, 1fr); gap: 8px; align-items: start; padding: 8px 2px; color: var(--text-1); text-decoration: none; font-size: 13.5px; line-height: 1.4; border-radius: 6px; }
+.club-personeel-meldingen a:hover { background: var(--club-vlak-hover); }
+.club-personeel-meldingen svg { margin-top: 2px; color: var(--club-info); }
+.club-personeel-meldingen :is([data-soort='gat'], [data-soort='open'], [data-soort='overlap'], [data-soort='onbevestigd']) svg { color: var(--club-let-op); }
+.club-personeel-meldingdag { font-family: var(--ff-kop); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+.club-personeel-meldingen a:not(:has(svg)) { grid-template-columns: 64px minmax(0, 1fr); }
+
+/* ── Zijpaneel ───────────────────────────────────────────────────────────── */
+.club-personeel-paneelkop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.club-personeel-paneelkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 30px; line-height: 1; font-weight: 700; text-transform: uppercase; }
+.club-personeel-paneelkop .club-zacht { margin-top: 6px; font-size: 14px; }
+.club-personeel-formulier, .club-personeel-sectie { display: grid; gap: 12px; }
+.club-personeel-sectie { padding-top: 14px; border-top: 1px solid var(--line); }
+.club-personeel-sectie > h3 { margin: 0; font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.club-personeel-ruil { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.club-personeel-velden { border: 0; margin: 0; padding: 0; display: grid; gap: 12px; min-width: 0; }
+.club-personeel-afwijkend { color: var(--club-let-op); }
+.club-personeel-stappen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.club-personeel-stappen li { padding: 6px 4px; text-align: center; border-radius: 6px; border: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--text-4); }
+.club-personeel-stappen li[data-klaar] { color: var(--club-ok); background: var(--club-ok-zacht); border-color: transparent; }
+.club-personeel-stappen li[aria-current='step'] { border-color: var(--club-ok); }
+.club-personeel-patroon { display: grid; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.club-personeel-patroonacties { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.club-personeel-patroonacties .club-veld { width: 84px; }
+.club-personeel-vink { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; font-size: 13.5px; color: var(--text-2); }
+
+/* ── Beschikbaarheid ─────────────────────────────────────────────────────── */
+.club-personeel-team { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 900px) { .club-personeel-team { grid-template-columns: 260px minmax(0, 1fr); } }
+.club-personeel-teamlijst { padding: 8px; }
+.club-personeel-teamnaam { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--club-radius-klein); color: var(--text-2); text-decoration: none; font-weight: 600; }
+.club-personeel-teamnaam > span:nth-child(2) { flex: 1; }
+.club-personeel-teamnaam:hover { background: var(--club-vlak-hover); color: var(--text-1); }
+.club-personeel-teamnaam[aria-current='page'] { background: var(--brand-soft); color: var(--text-1); }
+.club-personeel-teamdetail { display: grid; gap: 16px; min-width: 0; }
+.club-personeel-gekozen { display: flex; align-items: center; gap: 10px; }
+.club-personeel-instellingen { display: grid; gap: 14px; max-width: 640px; }
+.club-personeel-kleuren { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
+.club-personeel-kleuren legend { margin-bottom: 6px; }
+.club-personeel-kleurkeuze { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13px; cursor: pointer; }
+.club-personeel-kleurkeuze input { accent-color: var(--brand); margin: 0; }
+.club-personeel-kleurkeuze:has(input:checked) { border-color: var(--club-personeel-kleur); background: color-mix(in srgb, var(--club-personeel-kleur) 14%, transparent); }
+.club-personeel-kleurkeuze:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-personeel-vastraster { display: grid; gap: 6px; margin-bottom: 10px; }
+.club-personeel-vastrij { display: grid; grid-template-columns: 110px 170px minmax(0, 1fr); gap: 8px; align-items: center; }
+.club-personeel-vastdag { font-family: var(--ff-kop); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.club-personeel-vastrij[data-keuze='nee'] .club-personeel-vastdag { color: var(--club-let-op); }
+.club-personeel-vasttijd { display: flex; align-items: center; gap: 8px; }
+.club-personeel-vasttijd .club-invoer { max-width: 130px; }
+
+/* ── Mijn diensten ───────────────────────────────────────────────────────── */
+.club-personeel-mijn { display: grid; gap: 16px; }
+.club-personeel-kiezer { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.club-personeel-kiezer .club-veld { min-width: 240px; }
+.club-personeel-mijnnaam { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--ff-kop); font-size: 28px; text-transform: uppercase; }
+.club-personeel-mijnkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 0 0 8px; font-family: var(--ff-kop); font-size: 18px; text-transform: uppercase; }
+.club-personeel-mijnkop .club-zacht { font-size: 14px; text-transform: none; }
+.club-personeel-mijndag { display: grid; width: 56px; font-family: var(--ff-kop); text-transform: uppercase; line-height: 1.1; }
+.club-personeel-mijndag span { font-size: 12px; color: var(--text-3); letter-spacing: 0.1em; }
+
+/* ── Uren ────────────────────────────────────────────────────────────────── */
+.club-personeel-urenacties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.club-personeel-urenacties .club-hint { margin: 0; flex-basis: 100%; }
+.club-personeel-urentabel th[scope='row'] { white-space: nowrap; }
+.club-personeel-urentabel [data-verschil='min'] { color: var(--club-let-op); font-weight: 600; }
+.club-personeel-urentabel [data-verschil='plus'] { color: var(--club-info); font-weight: 600; }
+.club-personeel-tabelnoot { margin: 0; padding: 10px 14px; border-top: 1px solid var(--line); }
+
+/* ── Telefoon en tablet ──────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .club-personeel-pagina { --club-personeel-label: 84px; --club-personeel-baanhoogte: 38px; }
+  .club-personeel-bloksoort, .club-personeel-hint { display: none; }
+  .club-personeel-blok { padding: 0 4px 0 5px; font-size: 11px; }
+  .club-personeel-dagacties { margin-left: 0; width: 100%; }
+  .club-personeel-snel { justify-items: start; }
+  .club-personeel-vastrij { grid-template-columns: 1fr; }
+  .club-personeel-as { top: 96px; }
+}
+
+/* ── Printen: de week voor op het prikbord ───────────────────────────────── */
+.club-personeel-print { display: none; }
+@media print {
+  @page { size: landscape; margin: 10mm; }
+  .club-app:has(.club-personeel-pagina) { background: white; color: black; min-height: 0; }
+  .club-app:has(.club-personeel-pagina) > :not(.club-werkvlak) { display: none !important; }
+  .club-app:has(.club-personeel-pagina) .club-werkvlak { padding: 0; }
+  .club-personeel-kop, .club-personeel-balk, .club-personeel-geen-print, .club-personeel-urenacties,
+  .club-personeel-pagina:has(.club-personeel-print) .club-personeel-werkvlak,
+  .club-personeel-pagina .club-paneel-scherm { display: none !important; }
+  .club-personeel-pagina .club-kaart { box-shadow: none; background: white; border-color: color-mix(in srgb, black 20%, transparent); color: black; }
+  .club-personeel-print { display: block; color: black; font-family: var(--ff-inter), system-ui, sans-serif; font-size: 9.5pt; }
+  .club-personeel-print h2 { margin: 0 0 4mm; font-family: var(--ff-kop); font-size: 18pt; text-transform: uppercase; }
+  .club-personeel-print table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .club-personeel-print th, .club-personeel-print td { border: 1px solid color-mix(in srgb, black 30%, transparent); padding: 1.5mm; text-align: left; vertical-align: top; }
+  .club-personeel-print thead th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.05em; }
+  .club-personeel-mijn, .club-personeel-mijn * { color: black !important; }
+  .club-personeel-printdienst { display: block; }
+  .club-personeel-printdienst + .club-personeel-printdienst { margin-top: 1mm; }
+}
