@@ -16,9 +16,11 @@ interface AfsluitProps {
   items: VandaagTaak[]
   bron: Record<string, string>
   begin: Ronde | null
+  /** Alleen de eindknop en de stand, zonder tegels (de dagweergave toont de taken al in de tabel). */
+  zonderTegels?: boolean
 }
 
-export function Afsluitronde({ items, bron, begin }: AfsluitProps) {
+export function Afsluitronde({ items, bron, begin, zonderTegels = false }: AfsluitProps) {
   const { persoon, vestiging, meld } = useAfvinken()
   const [ronde, setRonde] = useState(begin)
   const [bevestig, setBevestig] = useState(false)
@@ -53,11 +55,13 @@ export function Afsluitronde({ items, bron, begin }: AfsluitProps) {
           {klaar} van {items.length}
         </span>
       </header>
-      <ul className="club-taken-tegels">
-        {items.map((i) => (
-          <TaakTegel key={i.taak.id} item={i} bron={bron[i.taak.lijstId] ?? ''} />
-        ))}
-      </ul>
+      {!zonderTegels && (
+        <ul className="club-taken-tegels">
+          {items.map((i) => (
+            <TaakTegel key={i.taak.id} item={i} bron={bron[i.taak.lijstId] ?? ''} />
+          ))}
+        </ul>
+      )}
       <div className="club-taken-afsluit-voet" aria-live="polite">
         {ronde && (
           <p className="club-taken-afsluit-status">

@@ -23,7 +23,9 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - Naam: **Fit Factory** (balk: Fit Factory-logo + CLUB). Pilot: **Budel**, later met een echt ledenbestand. Functies per vestiging: **trainer** (doet ook de balie), **groepslesinstructeur** en **clubmanager**; geen aparte baliefunctie. Daarnaast centraal de administratie voor de uren.
 - Demodata blijft actueel via `club_demo_verversen()` (pg_cron, elke nacht); raakt alleen rijen met demo = true.
 - Club heeft naast het groepslesrooster een **personeelsrooster** (diensten fitnesspersoneel) en **taken en poetslijsten** (dagelijkse taken, afsluitronde, poetsrooster met minimum per week), gebaseerd op de Excel-lijsten van Budel. Het fitnessrooster staat nu in Google Agenda (kleur per medewerker); de administratie controleert daar de uren, daarom krijgt het personeelsrooster een urenadministratie (gepland, gewerkt, goedgekeurd, verwerkt, export).
-- Taken simpel houden: tabbladen **Dag** (standaard) en **Week**, plus Overzicht en Beheer.
+- Taken simpel houden: tabbladen **Dag** (standaard) en **Week**, plus Overzicht en Beheer. Beide in de **Excel-weergave** (tabel taken tegen dagen), Dag is dezelfde tabel met een dag.
+- Cijfers altijd **per kalendermaand** (van de 1e tot en met de 30e of 31e), niet per week.
+- Oefeningbeelden: hoofdbron **RepDB gratis** (vlakke illustraties, bronvermelding "Exercise data by RepDB (repdb.co)"), Everkinetic alleen als reserve. Betaalde ExerciseDB niet (besluit Kane).
 - Oefeningbeelden: **geen eigen video's** (kan niet) en **nooit Virtuagym-beeld**. Bron is de open database Everkinetic (CC BY-SA 4.0, begin- en eindhouding als SVG, in onze kleuren als kleine loop), altijd met bronvermelding.
 - Het fitness-leadsysteem in Club staat **los van het PT-systeem** (geen koppeling met pt_leads of de PT-app).
 - Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
