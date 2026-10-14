@@ -95,11 +95,11 @@
 .club-tegel-sub .club-min { color: var(--club-let-op); }
 
 /* ── Knoppen ──────────────────────────────────────────────────────────────── */
-.club-knop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-1); font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background-color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease); }
+.club-knop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-1); font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background-color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease); }
 .club-knop:hover { background: var(--club-vlak-hover); border-color: var(--text-4); }
 .club-knop:active { transform: translateY(1px); }
 .club-knop:disabled, .club-knop[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; }
-.club-knop--primair { background: var(--brand); border-color: var(--brand); color: #101014; }
+.club-knop--primair { background: var(--brand); border-color: var(--brand); color: #0A0B09; }
 .club-knop--primair:hover { background: color-mix(in srgb, var(--brand) 88%, #fff); border-color: var(--brand); }
 .club-knop--gevaar { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 50%, transparent); }
 .club-knop--stil { border-color: transparent; background: transparent; color: var(--text-2); }

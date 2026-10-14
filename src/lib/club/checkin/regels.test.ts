@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckinRij, LidReservering } from '@/lib/club/leden/rijen'
 import { isCheckinAntwoord, isZoekAntwoord } from './types'
-import { beoordeelCheckin, bronVoorMatch, isCode, isDubbel, leesCheckinInvoer, leesVenster, lesInVenster, lesVandaag, vatDagSamen } from './regels'
+import { beoordeelCheckin, bronVoorMatch, isCode, isDubbel, leesCheckinInvoer, leesVenster, lesInVenster, lesVandaag, magInVestiging, vatDagSamen } from './regels'
 
 const NU = new Date('2026-10-14T18:50:00+02:00')
 const MIN = 60_000
@@ -124,5 +124,26 @@ describe('antwoorden van de API', () => {
     expect(isCheckinAntwoord({ soort: 'niet_actief', statusLabel: 'Gepauzeerd' })).toBe(true)
     expect(isCheckinAntwoord({ soort: 'raar' })).toBe(false)
     expect(isCheckinAntwoord(null)).toBe(false)
+  })
+})
+
+describe('magInVestiging (regel van fitfactory.nl)', () => {
+  it('leden van Eersel sporten overal, anderen overal behalve in Eersel', () => {
+    expect(magInVestiging('eersel', 'budel')).toBe(true)
+    expect(magInVestiging('eersel', 'eersel')).toBe(true)
+    expect(magInVestiging('budel', 'someren')).toBe(true)
+    expect(magInVestiging('budel', 'eersel')).toBe(false)
+  })
+
+  it('beoordeelCheckin weigert zonder toegang, maar niet-actief gaat voor', () => {
+    const nu = new Date('2026-10-14T10:00:00Z')
+    expect(beoordeelCheckin('actief', null, nu, false)).toEqual({ soort: 'geen_toegang' })
+    expect(beoordeelCheckin('gestopt', null, nu, false)).toEqual({ soort: 'niet_actief', status: 'gestopt' })
+    expect(beoordeelCheckin('actief', null, nu)).toEqual({ soort: 'mag' })
+  })
+
+  it('isCheckinAntwoord kent geen_toegang', () => {
+    expect(isCheckinAntwoord({ soort: 'geen_toegang', vestigingLabel: 'Budel' })).toBe(true)
+    expect(isCheckinAntwoord({ soort: 'geen_toegang' })).toBe(false)
   })
 })

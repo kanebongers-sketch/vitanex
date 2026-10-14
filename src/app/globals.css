@@ -28,10 +28,10 @@
   /* Huisstijl okt 2026 (op verzoek van Kane): de look van Fit Factory —
      grafiet + amber, koppen in Barlow Condensed. Primair accent = amber.
      Status/data-kleuren gedempt (alleen voor echte status, niet decoratief). */
-  --mf-green:        #E8A33F;
-  --mf-green-light:  rgba(232, 163, 63, 0.14);
+  --mf-green:        #B58E5C;
+  --mf-green-light:  rgba(181, 142, 92, 0.14);
   --mf-green-dark:   #C98A2E;
-  --mf-green-mid:    #F2B65C;
+  --mf-green-mid:    #C9A574;
   --mf-blue:         #5AA2FF;
   --mf-blue-mid:     #7FB6FF;
   --mf-blue-light:   rgba(90, 162, 255, 0.14);
@@ -51,11 +51,11 @@
   --mf-orange-light: rgba(251, 146, 60, 0.12);
 
   /* Legacy aliases kept for existing pages — nu amber-accent */
-  --mentaforce-primary:       #E8A33F;
-  --mentaforce-primary-light: rgba(232, 163, 63, 0.14);
+  --mentaforce-primary:       #B58E5C;
+  --mentaforce-primary-light: rgba(181, 142, 92, 0.14);
   --mentaforce-primary-dark:  #C98A2E;
-  --mentaforce-accent:        #E8A33F;
-  --mentaforce-accent-light:  rgba(232, 163, 63, 0.12);
+  --mentaforce-accent:        #B58E5C;
+  --mentaforce-accent-light:  rgba(181, 142, 92, 0.12);
 
   /* ── Canoniek merk + functioneel statuspalet (V3 — single source of truth) ──
      Nieuwe code gebruikt UITSLUITEND deze semantische tokens. De oude namen
@@ -67,13 +67,13 @@
      door een slash — dat sluit dit blok-commentaar voortijdig af en de rest van
      de regel belandt als losse tekst in de CSS. Kost je een 500 op elke pagina,
      en geen enkele unit-test ziet het. */
-  --brand:        #E8A33F;
-  --brand-strong: #F2B65C;
-  --brand-soft:   rgba(232, 163, 63, 0.14);
-  --brand-glow:   rgba(232, 163, 63, 0.30);
+  --brand:        #B58E5C;
+  --brand-strong: #C9A574;
+  --brand-soft:   rgba(181, 142, 92, 0.14);
+  --brand-glow:   rgba(181, 142, 92, 0.30);
 
-  --status-success:      #E8A33F; /* positief = merk-amber */
-  --status-success-soft: rgba(232, 163, 63, 0.14);
+  --status-success:      #B58E5C; /* positief = merk-amber */
+  --status-success-soft: rgba(181, 142, 92, 0.14);
   /* "Let op" mag niet dezelfde kleur hebben als het merk: koraalrood (zoals Fit Factory). */
   --status-warning:      #F47C66;
   --status-warning-soft: rgba(244, 124, 102, 0.14);
@@ -87,8 +87,8 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Roboto Mono", monospace;
 
   /* Surface — gelaagd grafiet (Fit Factory-look) */
-  --bg-app:    #101014;
-  --bg-card:   #1A1A1F;
+  --bg-app:    #0A0B09;
+  --bg-card:   #141513;
   --bg-subtle: #15151A;
   --bg-card-border: rgba(255, 255, 255, 0.08);
 
@@ -160,13 +160,13 @@
 /* ── Donker thema ─────────────────────────────────────────── */
 /* Merk-/accent-tokens erven van :root (amber). Grafiet zoals Fit Factory. */
 .thema-donker {
-  --bg-app:    #101014;
-  --bg-card:   #1a1a1f;
+  --bg-app:    #0A0B09;
+  --bg-card:   #141513;
   --bg-subtle: #15151a;
   --bg-card-border: #26262d;
   --text-1: #f4f4f5;
   --text-2: #c4c4c9;
-  /* Gemeten op --bg-card #1a1a1f: ≈6.3:1 en ≈5.0:1 — AA voor kleine tekst. */
+  /* Gemeten op --bg-card #141513: ≈6.3:1 en ≈5.0:1 — AA voor kleine tekst. */
   --text-3: #9c9ca3;
   --text-4: #8a8a92;
   --border:       rgba(255,255,255,0.06);
@@ -348,7 +348,7 @@ textarea:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--mf-green);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(232, 163, 63, 0.15);
+  box-shadow: 0 0 0 4px rgba(181, 142, 92, 0.15);
 }
 
 /* Remove default outline, only show on keyboard nav */
@@ -570,7 +570,7 @@ a:focus:not(:focus-visible) {
 
 .mf-input:focus {
   border-color: var(--mf-green);
-  box-shadow: 0 0 0 3px rgba(232, 163, 63, 0.12);
+  box-shadow: 0 0 0 3px rgba(181, 142, 92, 0.12);
 }
 
 .mf-input::placeholder { color: var(--text-4, #9CA3AF); }
@@ -1024,13 +1024,13 @@ body.mf-has-sidebar > * {
 
 :root {
   /* Upgraded shadow tokens — cyaan glows (merkaccent) */
-  --shadow-green-glow: 0 0 0 1px rgba(232,163,63,0.15), 0 4px 24px rgba(232,163,63,0.18), 0 1px 6px rgba(232,163,63,0.10);
-  --shadow-green-ring:  0 0 32px rgba(232,163,63,0.25);
+  --shadow-green-glow: 0 0 0 1px rgba(181,142,92,0.15), 0 4px 24px rgba(181,142,92,0.18), 0 1px 6px rgba(181,142,92,0.10);
+  --shadow-green-ring:  0 0 32px rgba(181,142,92,0.25);
   --shadow-amber-glow:  0 0 24px rgba(186,117,23,0.22), 0 4px 16px rgba(186,117,23,0.12);
 
   /* Mesh gradient layers (home) — uitsluitend cyan/navy/inkt-tinten */
-  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(232,163,63,0.07) 0%, transparent 60%);
-  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(232,163,63,0.04) 0%, transparent 55%);
+  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(181,142,92,0.07) 0%, transparent 60%);
+  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(181,142,92,0.04) 0%, transparent 55%);
   --mesh-3: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(244,244,245,0.03) 0%, transparent 50%);
 }
 
@@ -1039,12 +1039,12 @@ body.mf-has-sidebar > * {
   --mf-amber:        #FFAD3B;
   --mf-amber-light:  #2A1F07;
 
-  --shadow-green-glow: 0 0 0 1px rgba(232,163,63,0.20), 0 4px 32px rgba(232,163,63,0.25), 0 1px 8px rgba(232,163,63,0.15);
-  --shadow-green-ring:  0 0 48px rgba(232,163,63,0.35);
+  --shadow-green-glow: 0 0 0 1px rgba(181,142,92,0.20), 0 4px 32px rgba(181,142,92,0.25), 0 1px 8px rgba(181,142,92,0.15);
+  --shadow-green-ring:  0 0 48px rgba(181,142,92,0.35);
   --shadow-amber-glow:  0 0 28px rgba(255,173,59,0.28), 0 4px 20px rgba(255,173,59,0.14);
 
-  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(232,163,63,0.09) 0%, transparent 60%);
-  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(232,163,63,0.05) 0%, transparent 55%);
+  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(181,142,92,0.09) 0%, transparent 60%);
+  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(181,142,92,0.05) 0%, transparent 55%);
   --mesh-3: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(244,244,245,0.04) 0%, transparent 50%);
 }
 
@@ -1056,7 +1056,7 @@ body {
 /* ── Mesh gradient background ───────────────────────────────────── */
 .mf-mesh-bg {
   background:
-    radial-gradient(46% 36% at 50% -6%, rgba(232,163,63,0.11) 0%, transparent 68%),
+    radial-gradient(46% 36% at 50% -6%, rgba(181,142,92,0.11) 0%, transparent 68%),
     var(--mesh-1),
     var(--mesh-2),
     var(--mesh-3),
@@ -1084,20 +1084,20 @@ body {
 /* ── Glowing card ───────────────────────────────────────────────── */
 .mf-card-glow {
   box-shadow: var(--shadow-green-glow);
-  border-color: rgba(232,163,63,0.20) !important;
+  border-color: rgba(181,142,92,0.20) !important;
 }
 
 .thema-donker .mf-card-glow {
-  border-color: rgba(232,163,63,0.25) !important;
+  border-color: rgba(181,142,92,0.25) !important;
 }
 
 /* ── Ring glow (for readiness SVG) ─────────────────────────────── */
 .mf-ring-glow {
-  filter: drop-shadow(0 0 12px rgba(232,163,63,0.35));
+  filter: drop-shadow(0 0 12px rgba(181,142,92,0.35));
 }
 
 .thema-donker .mf-ring-glow {
-  filter: drop-shadow(0 0 16px rgba(232,163,63,0.45));
+  filter: drop-shadow(0 0 16px rgba(181,142,92,0.45));
 }
 
 /* ── Gradient border card (using background-clip) ──────────────── */
@@ -1113,13 +1113,13 @@ body {
   position: absolute;
   inset: -1.5px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(232,163,63,0.25) 0%, rgba(232,163,63,0.10) 50%, rgba(244,244,245,0.08) 100%);
+  background: linear-gradient(135deg, rgba(181,142,92,0.25) 0%, rgba(181,142,92,0.10) 50%, rgba(244,244,245,0.08) 100%);
   z-index: -1;
   pointer-events: none;
 }
 
 .thema-donker .mf-card-gradient-border::before {
-  background: linear-gradient(135deg, rgba(232,163,63,0.28) 0%, rgba(232,163,63,0.12) 50%, rgba(244,244,245,0.10) 100%);
+  background: linear-gradient(135deg, rgba(181,142,92,0.28) 0%, rgba(181,142,92,0.12) 50%, rgba(244,244,245,0.10) 100%);
 }
 
 /* ── Score color utilities ──────────────────────────────────────── */
@@ -1144,11 +1144,11 @@ body {
 .mf-check-row:active { transform: scale(0.98); }
 
 .mf-check-row.done {
-  background: rgba(232,163,63,0.07);
+  background: rgba(181,142,92,0.07);
 }
 
 .thema-donker .mf-check-row.done {
-  background: rgba(232,163,63,0.09);
+  background: rgba(181,142,92,0.09);
 }
 
 .mf-check-bubble {
@@ -1245,7 +1245,7 @@ body {
 .mf-coach-row:focus-visible {
   outline: none;
   border-color: var(--mf-green) !important;
-  box-shadow: 0 0 0 3px rgba(232,163,63,0.18);
+  box-shadow: 0 0 0 3px rgba(181,142,92,0.18);
 }
 
 /* Module-tabs op de klantpagina */
@@ -1269,7 +1269,7 @@ body {
 .mf-coach-aura {
   position: absolute; pointer-events: none; z-index: 0;
   width: 420px; height: 420px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(232,163,63,0.12) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(181,142,92,0.12) 0%, transparent 68%);
   filter: blur(6px);
 }
 
@@ -1279,7 +1279,7 @@ body {
   border: none; cursor: pointer; flex-shrink: 0; padding: 0;
   transition: background 0.22s var(--ease);
 }
-.mf-coach-switch[data-aan="true"]  { background: var(--mf-green); box-shadow: 0 0 16px rgba(232,163,63,0.4); }
+.mf-coach-switch[data-aan="true"]  { background: var(--mf-green); box-shadow: 0 0 16px rgba(181,142,92,0.4); }
 .mf-coach-switch[data-aan="false"] { background: var(--border-strong); }
 .mf-coach-switch .knop {
   position: absolute; top: 3px; width: 21px; height: 21px; border-radius: 50%;
@@ -1414,13 +1414,13 @@ body {
    opnieuw zetten, dus dit blok geldt ook voor elke geneste .lifeos-root. */
 .lifeos-root.lk-app,
 .lk-app .lifeos-root {
-  --brand: #e8a33f;
-  --brand-strong: #f2b65c;
-  --brand-soft: rgba(232, 163, 63, 0.14);
-  --brand-glow: rgba(232, 163, 63, 0.3);
-  --bg-app: #101014;
-  --bg-card: #1a1a1f;
-  --bg-raised: #24242a;
+  --brand: #B58E5C;
+  --brand-strong: #C9A574;
+  --brand-soft: rgba(181, 142, 92, 0.14);
+  --brand-glow: rgba(181, 142, 92, 0.3);
+  --bg-app: #0A0B09;
+  --bg-card: #141513;
+  --bg-raised: #1E1F1C;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
   /* "Let op" mag niet dezelfde kleur hebben als het merk: koraal, zoals in de PT-app. */
@@ -1466,7 +1466,7 @@ body {
   --chip-grootte: 14px;
   --kop-kast: uppercase;
   --font-grotesk: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
-  --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --ff-kop: var(--ff-barlow), 'Oswald', 'Arial Narrow', sans-serif;
 }
 /* body is een flex-kolom met vaste hoogte: niet laten krimpen (zelfde reden als .ff). */
 .lifeos-root.lk-app { flex: none; }
@@ -4019,22 +4019,22 @@ body {
    White-label op verzoek van Kane: de PT-app draagt de huisstijl van Fit Factory PT
    (zie FIT_FACTORY in theme.ts). Alle .ptd-* componenten lezen CSS-variabelen, dus
    hier herdefiniëren we alleen de tokens + typografie; de componenten blijven gelijk.
-   Contrast (WCAG): amber #E8A33F op #101014 ≈ 8.7:1; zwarte tekst op amber ≈ 8.7:1. */
+   Contrast (WCAG): brons #B58E5C op #0A0B09 ≈ 6.6:1; zwarte tekst op brons ≈ 6.6:1 (huisstijl fitfactory.nl). */
 .lifeos-root.ff {
-  --brand: #e8a33f;
-  --brand-strong: #f2b65c;
-  --brand-soft: rgba(232, 163, 63, 0.14);
-  --brand-glow: rgba(232, 163, 63, 0.3);
-  --bg-app: #101014;
-  --bg-card: #1a1a1f;
-  --bg-raised: #24242a;
+  --brand: #B58E5C;
+  --brand-strong: #C9A574;
+  --brand-soft: rgba(181, 142, 92, 0.14);
+  --brand-glow: rgba(181, 142, 92, 0.3);
+  --bg-app: #0A0B09;
+  --bg-card: #141513;
+  --bg-raised: #1E1F1C;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
   /* "Let op" mag niet dezelfde kleur hebben als het merk-accent: koraalrood. */
   --status-aandacht: #f47c66;
   --status-warning: #f47c66;
   --status-warning-soft: rgba(244, 124, 102, 0.14);
-  --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --ff-kop: var(--ff-barlow), 'Oswald', 'Arial Narrow', sans-serif;
   font-family: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   background: var(--bg-app);
   color: var(--text-1);
@@ -4052,9 +4052,9 @@ body {
 .lifeos-root.ff .ptd-naam { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; }
 .lifeos-root.ff .ptd-tegel .ptd-getal { font-size: 34px; font-weight: 700; letter-spacing: 0; }
 .lifeos-root.ff .ptd-tegel .ptd-label { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
-.lifeos-root.ff .ptd-knop { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.lifeos-root.ff .ptd-knop { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 999px; padding-left: 18px; padding-right: 18px; }
 .lifeos-root.ff .ptd-knop--klein { font-size: 14px; }
-.lifeos-root.ff .ptd-knop--primair { color: #101014; }
+.lifeos-root.ff .ptd-knop--primair { color: #0A0B09; }
 .lifeos-root.ff .ptd-chip { font-size: 14px; letter-spacing: 0.03em; }
 .lifeos-root.ff .ptd-badge { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
 .lifeos-root.ff .ptd-tegel, .lifeos-root.ff .ptd-rij, .lifeos-root.ff .ptd-form, .lifeos-root.ff .ptd-kaart { border-radius: 12px; }
@@ -4309,7 +4309,7 @@ body {
    typografie en vallen erbuiten. :where houdt de specificiteit laag, zodat een
    component die bewust iets anders wil dat gewoon kan. */
 :where(h1, h2, h3):not(.lifeos-root *) {
-  font-family: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-family: var(--ff-barlow), 'Oswald', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.01em;
 }

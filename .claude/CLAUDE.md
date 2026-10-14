@@ -21,6 +21,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - **Sportivity blijft** voor ledenadministratie, incasso en abonnementen; check-in gaat nu met QR en bandje via Sportivity. Kane wil een **koppeling met Sportivity**, maar voorlopig **geen contact met Sportivity of andere bedrijven**.
 - **Geheim tot de presentatie:** alleen Kane (beheerder-sessie) op `fitfactorypt.nl/clubkane`; eigenaren, clubmanagers en PT'ers krijgen een 404 en zien nergens een link. Knop "Club" alleen in de PT-balk voor de beheerder.
 - Naam: **Fit Factory** (balk: Fit Factory-logo + CLUB). Pilot: **Budel**, later met een echt ledenbestand. Rollen: balie, trainer, groepslesinstructeur, clubmanager.
+- Club heeft naast het groepslesrooster een **personeelsrooster** (diensten fitnesspersoneel) en **taken en poetslijsten** (dagelijkse taken, afsluitronde, poetsrooster met minimum per week), gebaseerd op de Excel-lijsten van Budel. Het fitnessrooster staat nu in Google Agenda (kleur per medewerker); de administratie controleert daar de uren, daarom krijgt het personeelsrooster een urenadministratie (gepland, gewerkt, goedgekeurd, verwerkt, export).
 - Het fitness-leadsysteem in Club staat **los van het PT-systeem** (geen koppeling met pt_leads of de PT-app).
 - Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
 
@@ -50,6 +51,10 @@ Bouw het hoogst mogelijke welzijnsplatform op het internet. Elke feature is:
 - **React 19**, **TypeScript**, **Tailwind CSS v4**.
 - **3D**: React Three Fiber 9 + drei 10 + three 0.176.
 - **Motion**: framer-motion, gsap, lenis. **Data**: Supabase. **Mobiel**: Capacitor.
+
+## Huisstijl volgens fitfactory.nl (besluit Kane 14-10-2026)
+- De hele app (Fit Factory PT, Club, LifeOS) volgt de website fitfactory.nl: bijna zwart `#0A0B09`, kaarten `#141513`, accent **brons `#B58E5C`**, koppen **Oswald** (kapitalen), tekst **Roboto**, pilvormige knoppen, slogan "Meet. Train. Repeat.". Zelf gehost in `src/app/fonts/` (namen `barlow`/`inter` en `--ff-barlow`/`--ff-inter` zijn historisch). Hieronder waar amber, grafiet, Barlow of Inter staat: lees brons, zwart, Oswald en Roboto.
+- Feiten van de website staan in Club: adressen, telefoon en e-mail per vestiging, open 06:00 tot 23:00 (Eersel eigen tijden), bemande uren apart, leden van Eersel sporten overal, anderen overal behalve Eersel.
 
 ## Design system (strikt) — sinds okt 2026 de Fit Factory-look
 - **Twee kleuren**: Grafiet `#101014` (kaarten `#1A1A1F`) + Amber `#E8A33F` (wit/inkt

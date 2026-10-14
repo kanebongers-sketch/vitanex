@@ -24,6 +24,8 @@ export interface BalieLid {
   vestigingLabel: string
   /** Lid van een andere vestiging dan waar de balie staat. */
   andereVestiging: boolean
+  /** Mag hier niet sporten (lid van een andere club die in Eersel incheckt). */
+  geenToegang: boolean
   les: BalieLes | null
   /** Al ingecheckt in de laatste 30 minuten? Dan de tijd daarvan. */
   dubbelSinds: string | null
@@ -40,6 +42,7 @@ export type CheckinAntwoord =
   | { soort: 'ingecheckt'; op: string; les: { naam: string; start: string } | null }
   | { soort: 'dubbel'; op: string }
   | { soort: 'niet_actief'; statusLabel: string }
+  | { soort: 'geen_toegang'; vestigingLabel: string }
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -58,5 +61,6 @@ export function isZoekAntwoord(v: unknown): v is ZoekAntwoord {
 export function isCheckinAntwoord(v: unknown): v is CheckinAntwoord {
   if (!isObject(v)) return false
   if (v.soort === 'ingecheckt' || v.soort === 'dubbel') return typeof v.op === 'string'
+  if (v.soort === 'geen_toegang') return typeof v.vestigingLabel === 'string'
   return v.soort === 'niet_actief' && typeof v.statusLabel === 'string'
 }

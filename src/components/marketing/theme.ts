@@ -7,16 +7,16 @@
 export const COLORS = {
   // Grafiet-familie (achtergronden / oppervlakken)
   navyDeep: '#0B0B0E',
-  navy: '#101014',
-  navyElev: '#1A1A1F',
+  navy: '#0A0B09',
+  navyElev: '#141513',
   navyLine: '#26262D',
   navyScrim: 'rgba(16,16,20,0.82)', // semi-transparant grafiet — nav-achtergrond bij scroll (met blur)
 
   // Amber (enige accentkleur)
-  cyan: '#E8A33F',
-  cyanDim: '#F2B65C',
-  cyanSoft: 'rgba(232,163,63,0.12)',
-  cyanGlow: 'rgba(232,163,63,0.30)',
+  cyan: '#B58E5C',
+  cyanDim: '#C9A574',
+  cyanSoft: 'rgba(181,142,92,0.12)',
+  cyanGlow: 'rgba(181,142,92,0.30)',
 
   // Neutralen (tekst / lijnen)
   ink: '#F4F4F5',
@@ -70,9 +70,9 @@ export const MAXW = 1200
  * In CSS staan dezelfde waarden als variabelen onder `.lifeos-root.ff` (globals.css).
  */
 export const FIT_FACTORY = {
-  zwart: '#101014',
-  kaart: '#1A1A1F',
-  verhoogd: '#24242A',
-  amber: '#E8A33F',
-  amberSterk: '#F2B65C',
+  zwart: '#0A0B09',
+  kaart: '#141513',
+  verhoogd: '#1E1F1C',
+  amber: '#B58E5C',
+  amberSterk: '#C9A574',
 } as const

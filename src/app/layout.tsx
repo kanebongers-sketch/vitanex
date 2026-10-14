@@ -1,4 +1,4 @@
-﻿import type { Viewport } from "next";
+import type { Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { barlow } from "./fonts/fit-factory";
@@ -10,14 +10,14 @@ import { STANDAARD_TAAL, richtingVan, type Taal } from "@/lib/i18n/talen";
 import { huidigeTaal, laadBron, laadWoordenboek } from "@/lib/i18n/server";
 import { TaalProvider } from "@/lib/i18n/TaalProvider";
 
-// Huisstijl (okt 2026, de look van Fit Factory): tekst in Inter, koppen in
-// Barlow Condensed. Beide zelf gehost (OFL, zie src/app/fonts/OFL-*.txt) — de
-// Render-build heeft zo geen netwerk nodig.
+// Huisstijl van fitfactory.nl (14-10-2026): tekst in Roboto, koppen in Oswald.
+// Beide zelf gehost (OFL, zie src/app/fonts/OFL-*.txt), de Render-build heeft zo
+// geen netwerk nodig.
 //
-// Inter krijgt de variabele --font-grotesk: die naam gebruikt de hele app al als
-// "de tekstletter" (FONT.grotesk, font-grotesk), dus zo wisselt alles in één keer.
+// Roboto krijgt de variabele --font-grotesk: die naam gebruikt de hele app al als
+// "de tekstletter" (FONT.grotesk, font-grotesk), dus zo wisselt alles in een keer.
 const tekst = localFont({
-  src: './fonts/inter-latin-wght-normal.woff2',
+  src: './fonts/roboto-latin-wght-normal.woff2',
   variable: '--font-grotesk',
   weight: '100 900',
   display: 'swap',

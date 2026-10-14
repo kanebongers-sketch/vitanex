@@ -4,13 +4,13 @@
 // LET OP: e-mail-HTML ondersteunt geen CSS-variabelen of externe stylesheets.
 // De letterlijke hexwaarden hieronder spiegelen daarom bewust de tokens uit
 // src/components/marketing/theme.ts (COLORS.navyDeep #0B0B0E, COLORS.navy
-// #101014, COLORS.cyan #E8A33F, COLORS.ink #F4F4F5 — grafiet + amber sinds okt
+// #0A0B09, COLORS.cyan #B58E5C, COLORS.ink #F4F4F5 — grafiet + amber sinds okt
 // 2026). Wijzigt theme.ts, werk dan ook deze waarden bij.
 
 export const EMAIL_KLEUREN = {
   navyDeep: '#0B0B0E',
-  navy: '#101014',
-  cyan: '#E8A33F',
+  navy: '#0A0B09',
+  cyan: '#B58E5C',
   ink: '#F4F4F5',
   inkDim: 'rgba(244,244,245,0.72)',
   inkFaint: 'rgba(244,244,245,0.50)',

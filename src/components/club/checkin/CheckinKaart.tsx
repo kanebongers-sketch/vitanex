@@ -44,6 +44,10 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
       </div>
       {lid.magTrainen ? (
         <p className="club-checkin-oordeel club-checkin-oordeel--mag"><CircleCheck aria-hidden size={22} /> {lid.statusLabel}: mag trainen</p>
+      ) : lid.geenToegang ? (
+        <p className="club-checkin-oordeel club-checkin-oordeel--niet">
+          <CircleAlert aria-hidden size={22} /> Lid van {lid.vestigingLabel}: sporten in Eersel zit niet in dit lidmaatschap. Alleen leden van Eersel sporten bij alle clubs.
+        </p>
       ) : (
         <p className="club-checkin-oordeel club-checkin-oordeel--niet">
           <CircleAlert aria-hidden size={22} /> Niet actief: {lid.statusLabel.toLowerCase()}. Verwijs naar Sportivity.
@@ -70,6 +74,15 @@ export function Uitkomst({ lid, antwoord }: UitkomstProps) {
         <p className="club-checkin-uitkomst-woord">Niet actief</p>
         <h2>{lid.naam}</h2>
         <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt: verwijs naar Sportivity voor het abonnement.</p>
+      </article>
+    )
+  }
+  if (antwoord.soort === 'geen_toegang') {
+    return (
+      <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
+        <p className="club-checkin-uitkomst-woord">Geen toegang</p>
+        <h2>{lid.naam}</h2>
+        <p>Lid van {antwoord.vestigingLabel}. Sporten in Eersel zit niet in dit lidmaatschap; niet ingecheckt.</p>
       </article>
     )
   }

@@ -8,7 +8,7 @@ import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { dagGrenzen } from '@/lib/club/leden/tijd'
 import { checkinUitRij, RESERVERING_SELECT, reserveringUitRij, type CheckinRij, type LidReservering } from '@/lib/club/leden/rijen'
 import {
-  beoordeelCheckin, bronVoorMatch, DUBBEL_MIN, isCode, leesVenster, lesInVenster, lesVandaag, vatDagSamen,
+  beoordeelCheckin, bronVoorMatch, DUBBEL_MIN, isCode, leesVenster, lesInVenster, lesVandaag, magInVestiging, vatDagSamen,
   type CheckinBron, type DagSamenvatting, type MatchVeld,
 } from './regels'
 import type { BalieLid, CheckinAntwoord, ZoekAntwoord } from './types'
@@ -74,6 +74,7 @@ async function haalVenster(admin: SupabaseClient, userId: string, v: Vestiging):
 function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: LidReservering[], nu: Date, venster: number): BalieLid {
   const les = lesVandaag(res, nu)
   const inVenster = lesInVenster(res, nu, venster)
+  const geenToegang = !magInVestiging(lid.vestiging, v)
   return {
     id: lid.id,
     naam: volledigeNaam(lid),
@@ -81,10 +82,11 @@ function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: Li
     lidnummer: lid.lidnummer,
     status: lid.status,
     statusLabel: LID_STATUS_LABEL[lid.status],
-    magTrainen: magTrainen(lid.status),
+    magTrainen: magTrainen(lid.status) && !geenToegang,
     abonnement: lid.abonnement,
     vestigingLabel: VESTIGING_LABEL[lid.vestiging],
     andereVestiging: lid.vestiging !== v,
+    geenToegang,
     les: les ? { naam: les.lesNaam, start: les.start.toISOString(), status: les.status, inVenster: inVenster?.id === les.id } : null,
     dubbelSinds: laatste && nu.getTime() - laatste.getTime() < DUBBEL_MIN * MIN ? laatste.toISOString() : null,
   }
@@ -140,8 +142,9 @@ export async function checkIn(admin: SupabaseClient, userId: string, verzoek: Ch
   const lid = await haalLid(admin, userId, verzoek.lidId)
   if (!lid) return { ok: false, fout: 'Dit lid bestaat niet (meer).', status: 404 }
   const laatste = (await laatsteCheckins(admin, userId, [lid.id], new Date(nu.getTime() - DUBBEL_MIN * MIN))).get(lid.id) ?? null
-  const besluit = beoordeelCheckin(lid.status, laatste, nu)
+  const besluit = beoordeelCheckin(lid.status, laatste, nu, magInVestiging(lid.vestiging, verzoek.vestiging))
   if (besluit.soort === 'niet_actief') return { ok: true, lid, antwoord: { soort: 'niet_actief', statusLabel: LID_STATUS_LABEL[besluit.status] } }
+  if (besluit.soort === 'geen_toegang') return { ok: true, lid, antwoord: { soort: 'geen_toegang', vestigingLabel: VESTIGING_LABEL[lid.vestiging] } }
   if (besluit.soort === 'dubbel') return { ok: true, lid, antwoord: { soort: 'dubbel', op: besluit.op.toISOString() } }
   const { data, error } = await admin.from('club_checkins')
     .insert({ user_id: userId, lid_id: lid.id, vestiging: verzoek.vestiging, bron: verzoek.bron, op: nu.toISOString() })

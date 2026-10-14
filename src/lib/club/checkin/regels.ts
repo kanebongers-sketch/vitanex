@@ -75,13 +75,24 @@ export function isCode(invoer: string): boolean {
   return /^[A-Za-z0-9_-]{2,64}$/.test(invoer.trim())
 }
 
+/**
+ * Mag een lid van `lidVestiging` sporten in `balieVestiging`? Regel van
+ * fitfactory.nl: leden van Eersel sporten bij alle clubs, leden van een andere
+ * club bij alle clubs behalve Eersel.
+ */
+export function magInVestiging(lidVestiging: string, balieVestiging: string): boolean {
+  return balieVestiging !== 'eersel' || lidVestiging === 'eersel'
+}
+
 export type CheckinBesluit =
   | { soort: 'mag' }
   | { soort: 'niet_actief'; status: LidStatus }
+  | { soort: 'geen_toegang' }
   | { soort: 'dubbel'; op: Date }
 
-export function beoordeelCheckin(status: LidStatus, laatste: Date | null, nu: Date): CheckinBesluit {
+export function beoordeelCheckin(status: LidStatus, laatste: Date | null, nu: Date, toegang = true): CheckinBesluit {
   if (!magTrainen(status)) return { soort: 'niet_actief', status }
+  if (!toegang) return { soort: 'geen_toegang' }
   if (laatste && isDubbel(laatste, nu)) return { soort: 'dubbel', op: laatste }
   return { soort: 'mag' }
 }

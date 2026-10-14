@@ -18,7 +18,7 @@ describe('ptManifest', () => {
   test('short_name is de app-naam (past onder het icoon), kleuren uit de Fit Factory-huisstijl', () => {
     const m = ptManifest('x', 'Maximiliaan-Alexander')
     expect(m.short_name).toBe('Fit Factory PT')
-    expect(m.theme_color).toBe('#101014')
+    expect(m.theme_color).toBe('#0A0B09')
     expect(m.icons?.some((i) => i.purpose === 'maskable')).toBe(true)
   })
 })
