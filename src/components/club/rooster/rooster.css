@@ -65,6 +65,13 @@
 .club-rooster-les .club-rooster-bezetting { margin-top: auto; }
 @container (max-height: 70px) { .club-rooster-les-meta { display: none; } }
 @container (max-height: 52px) { .club-rooster-les-tijd { display: none; } }
+/* Korte les (bv. 30 minuten): naam en bezetting op een regel, de naam krimpt nooit weg. */
+.club-rooster-les-naam { flex-shrink: 0; }
+/* (LesBlok zet data-kort bij lessen van 35 minuten of korter.) */
+.club-rooster-les[data-kort] { flex-direction: row; align-items: center; gap: 8px; padding-top: 0; padding-bottom: 0; }
+.club-rooster-les[data-kort] .club-rooster-les-tijd, .club-rooster-les[data-kort] .club-rooster-les-meta, .club-rooster-les[data-kort] .club-rooster-balk { display: none; }
+.club-rooster-les[data-kort] .club-rooster-les-naam { flex: 1 1 auto; min-width: 0; font-size: 13.5px; }
+.club-rooster-les[data-kort] .club-rooster-bezetting { margin-top: 0; flex: none; }
 @container (max-width: 92px) { .club-rooster-wacht { display: none; } }
 
 /* De lijn van nu. */

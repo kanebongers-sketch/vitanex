@@ -88,16 +88,19 @@ begin
   -- Proefleden zijn nieuw.
   update public.club_leden set lid_sinds = current_date - floor(random() * 14)::int where demo and status = 'proef';
 
-  -- Bezoeken: de laatste 60 dagen, actieve leden komen 0 tot 4 keer per week.
+  -- Bezoeken: de laatste 60 dagen. Deterministisch per lid en dag (hashtext), want
+  -- random() in deze WHERE werd maar een keer uitgerekend. Ongeveer 8 procent komt
+  -- nooit, 12 procent haakt de laatste weken af, de rest komt 1 tot 3 keer per week.
   insert into public.club_checkins (user_id, lid_id, vestiging, op, bron, demo)
   select uid, l.id, l.vestiging,
-    (d::date + time '06:30' + floor(random() * 15 * 60) * interval '1 minute') at time zone 'Europe/Amsterdam',
-    (array['bandje','qr','bandje','balie'])[1 + floor(random() * 4)::int], true
+    (d::date + time '06:30' + (abs(hashtext(l.id::text || d::text || 'm')) % 900) * interval '1 minute') at time zone 'Europe/Amsterdam',
+    (array['bandje','qr','bandje','balie'])[1 + abs(hashtext(l.id::text || d::text || 'b')) % 4], true
   from public.club_leden l
   cross join generate_series(current_date - 60, current_date - 1, interval '1 day') d
-  where l.demo and l.status in ('actief','opgezegd','proef')
-    and d::date >= l.lid_sinds
-    and random() < (case when l.tags @> array['nieuw'] then 0.12 else 0.06 + (abs(hashtext(l.id::text)) % 50) / 100.0 end);
+  where l.demo and l.status in ('actief','opgezegd','proef') and d::date >= l.lid_sinds
+    and (abs(hashtext(l.id::text)) % 100) >= 8
+    and ((abs(hashtext(l.id::text)) % 100) >= 20 or d::date < current_date - 25)
+    and (abs(hashtext(l.id::text || d::text)) % 100) < 12 + (abs(hashtext(l.id::text)) % 30);
   -- Vandaag: wat bezoek tot nu toe.
   insert into public.club_checkins (user_id, lid_id, vestiging, op, bron, demo)
   select uid, l.id, l.vestiging, now() - (floor(random() * 300) * interval '1 minute'), 'bandje', true

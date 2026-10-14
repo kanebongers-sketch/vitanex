@@ -16,6 +16,9 @@ interface Props {
   plek?: { van: number; duur: number; baan: number; banen: number }
 }
 
+/** Lessen van zo kort of korter krijgen naam en bezetting op een regel. */
+const KORTE_LES_MIN = 35
+
 export function Bezetting({ les }: { les: LesOverzicht }) {
   const niveau = les.geannuleerd ? 'uit' : bezettingNiveau(les.geboekt, les.capaciteit)
   const stijl = { '--deel': bezettingDeel(les.geboekt, les.capaciteit) } as CSSProperties
@@ -57,6 +60,7 @@ export function LesBlok({ les, href, tijd, isVoorbij, isGeopend, plek }: Props) 
       style={stijl}
       data-soort={les.lestype?.soort ?? 'overig'}
       data-voorbij={isVoorbij || undefined}
+      data-kort={(plek && plek.duur <= KORTE_LES_MIN) || undefined}
       data-geannuleerd={les.geannuleerd || undefined}
       aria-current={isGeopend ? 'true' : undefined}
       aria-label={omschrijving(les, tijd)}
