@@ -1,7 +1,9 @@
 import type { EditorRegel, EditorStaat } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, DOEL_LABEL, type Doel } from '@/lib/club/training/typen'
-import { BEELD_BRON } from '@/lib/club/training/beeld'
+import { BEELD_BRON, bronnenVan } from '@/lib/club/training/beeld'
+import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
+import { SPIER_INFO } from '@/lib/club/training/spieren'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeldPrint } from './OefeningBeeld'
 
@@ -18,7 +20,8 @@ interface SchemaPrintProps {
 
 /** Het schema op papier. Alleen zichtbaar bij afdrukken (zie training.css). */
 export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staat, oefeningen }: SchemaPrintProps) {
-  const metBeeld = staat.regels.some((r) => oefeningen.get(r.oefeningId)?.beeld)
+  const bronnen = bronnenVan(staat.regels.map((r) => oefeningen.get(r.oefeningId)?.beeld))
+  const metBeeld = bronnen.length > 0
   return (
     <article className="club-training-print" aria-hidden>
       <header>
@@ -44,7 +47,12 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
           </section>
         )
       })}
-      {metBeeld && <footer>{BEELD_BRON.tekst} (github.com/everkinetic/data, creativecommons.org/licenses/by-sa/4.0)</footer>}
+      {metBeeld && (
+        <footer>
+          {bronnen.includes('repdb') && <p>{REPDB_BRON.tekst}. {REPDB_BRON.vereist}</p>}
+          {bronnen.includes('everkinetic') && <p>{BEELD_BRON.tekst} (github.com/everkinetic/data, creativecommons.org/licenses/by-sa/4.0)</p>}
+        </footer>
+      )}
     </article>
   )
 }
@@ -58,7 +66,12 @@ function PrintRegel({ regel: r, oefening, metBeeld }: { regel: EditorRegel; oefe
           <OefeningBeeldPrint naam={naam} beeld={oefening?.beeld ?? null} />
         </td>
       )}
-      <td><span className="club-training-print-oefnaam">{naam}</span></td>
+      <td>
+        <span className="club-training-print-oefnaam">{naam}</span>
+        {oefening && oefening.spierenPrimair.length > 0 && (
+          <span className="club-training-print-spieren">{oefening.spierenPrimair.map((s) => SPIER_INFO[s].naam).join(', ')}</span>
+        )}
+      </td>
       <td>{r.sets}</td>
       <td>{toonHerhalingen(r.herhalingen)}</td>
       <td>{r.gewichtKg}</td>

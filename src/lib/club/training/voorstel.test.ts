@@ -2,43 +2,44 @@ import { describe, expect, it } from 'vitest'
 import { stelSchemaVoor, type VoorstelIntake } from './voorstel'
 import { aantalOefeningen, dosering, hoofddoel, kiesSplit } from './voorstel-regels'
 import type { Oefening } from './rijen'
+import type { Spier } from './spieren'
 import type { Materiaal, Niveau, Patroon, Spiergroep, Zone } from './typen'
 
 let teller = 0
-function oef(naam: string, patroon: Patroon, spiergroep: Spiergroep, materiaal: Materiaal, niveau: Niveau = 1, belast: Zone[] = []): Oefening {
+function oef(naam: string, patroon: Patroon, spiergroep: Spiergroep, materiaal: Materiaal, niveau: Niveau = 1, belast: Zone[] = [], spieren: Spier[] = []): Oefening {
   teller += 1
   const id = `00000000-0000-4000-8000-${String(teller).padStart(12, '0')}`
-  return { id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg: null, aandachtspunten: null, actief: true, beeld: null }
+  return { id, naam, spiergroep, spierenPrimair: spieren, spierenSecundair: [], materiaal, niveau, patroon, belast, uitleg: null, aandachtspunten: null, actief: true, beeld: null }
 }
 
 const BIB: Oefening[] = [
-  oef('Leg press', 'squat', 'benen', 'machine', 1, ['knie']),
-  oef('Goblet squat', 'squat', 'benen', 'dumbbell', 1, ['knie']),
-  oef('Back squat', 'squat', 'benen', 'barbell', 3, ['knie', 'rug']),
-  oef('Box squat lichaamsgewicht', 'squat', 'benen', 'geen', 1, ['knie']),
-  oef('Hip thrust', 'heupscharnier', 'billen', 'barbell', 2, []),
-  oef('Glute bridge', 'heupscharnier', 'billen', 'geen', 1, []),
-  oef('Roemeense deadlift', 'heupscharnier', 'benen', 'dumbbell', 2, ['rug']),
-  oef('Deadlift', 'heupscharnier', 'onderrug', 'barbell', 3, ['rug']),
-  oef('Lunge', 'lunge', 'benen', 'dumbbell', 2, ['knie']),
-  oef('Step-up', 'lunge', 'benen', 'bank', 1, ['knie']),
-  oef('Chest press machine', 'duwen_horizontaal', 'borst', 'machine', 1, ['schouder']),
+  oef('Leg press', 'squat', 'benen', 'machine', 1, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Goblet squat', 'squat', 'benen', 'dumbbell', 1, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Back squat', 'squat', 'benen', 'barbell', 3, ['knie', 'rug'], ['quadriceps', 'bilspieren']),
+  oef('Box squat lichaamsgewicht', 'squat', 'benen', 'geen', 1, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Hip thrust', 'heupscharnier', 'billen', 'barbell', 2, [], ['bilspieren']),
+  oef('Glute bridge', 'heupscharnier', 'billen', 'geen', 1, [], ['bilspieren']),
+  oef('Roemeense deadlift', 'heupscharnier', 'benen', 'dumbbell', 2, ['rug'], ['hamstrings', 'bilspieren']),
+  oef('Deadlift', 'heupscharnier', 'onderrug', 'barbell', 3, ['rug'], ['bilspieren', 'hamstrings', 'onderrug']),
+  oef('Lunge', 'lunge', 'benen', 'dumbbell', 2, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Step-up', 'lunge', 'benen', 'bank', 1, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Chest press machine', 'duwen_horizontaal', 'borst', 'machine', 1, ['schouder'], ['borstspieren']),
   oef('Push-up', 'duwen_horizontaal', 'borst', 'geen', 1, ['schouder', 'pols']),
   oef('Bankdrukken', 'duwen_horizontaal', 'borst', 'barbell', 2, ['schouder']),
   oef('Dumbbell press', 'duwen_horizontaal', 'borst', 'dumbbell', 2, ['schouder']),
-  oef('Shoulder press machine', 'duwen_verticaal', 'schouders', 'machine', 1, ['schouder']),
+  oef('Shoulder press machine', 'duwen_verticaal', 'schouders', 'machine', 1, ['schouder'], ['voorste_schouder']),
   oef('Dumbbell shoulder press', 'duwen_verticaal', 'schouders', 'dumbbell', 2, ['schouder']),
-  oef('Lat pulldown', 'trekken_verticaal', 'rug', 'kabel', 1, ['schouder']),
+  oef('Lat pulldown', 'trekken_verticaal', 'rug', 'kabel', 1, ['schouder'], ['latissimus']),
   oef('Pull-up', 'trekken_verticaal', 'rug', 'geen', 3, ['schouder']),
   oef('Seated row', 'trekken_horizontaal', 'rug', 'kabel', 1, []),
   oef('Dumbbell row', 'trekken_horizontaal', 'rug', 'dumbbell', 1, []),
   oef('Band row', 'trekken_horizontaal', 'rug', 'band', 1, []),
-  oef('Biceps curl', 'isolatie', 'biceps', 'dumbbell', 1, []),
+  oef('Biceps curl', 'isolatie', 'biceps', 'dumbbell', 1, [], ['biceps']),
   oef('Triceps pushdown', 'isolatie', 'triceps', 'kabel', 1, ['elleboog']),
   oef('Lateral raise', 'isolatie', 'schouders', 'dumbbell', 1, ['schouder']),
-  oef('Leg extension', 'isolatie', 'benen', 'machine', 1, ['knie']),
-  oef('Leg curl', 'isolatie', 'benen', 'machine', 1, []),
-  oef('Calf raise', 'isolatie', 'kuiten', 'machine', 1, []),
+  oef('Leg extension', 'isolatie', 'benen', 'machine', 1, ['knie'], ['quadriceps']),
+  oef('Leg curl', 'isolatie', 'benen', 'machine', 1, [], ['hamstrings']),
+  oef('Calf raise', 'isolatie', 'kuiten', 'machine', 1, [], ['kuiten']),
   oef('Plank', 'core', 'buik', 'geen', 1, []),
   oef('Dead bug', 'core', 'buik', 'geen', 1, []),
   oef('Roeiergometer', 'cardio', 'cardio', 'cardio_apparaat', 1, []),
@@ -174,5 +175,26 @@ describe('stelSchemaVoor', () => {
 
   it('is deterministisch', () => {
     expect(stelSchemaVoor(basis, BIB)).toEqual(stelSchemaVoor(basis, [...BIB].reverse()))
+  })
+
+  it('geeft een benendag quadriceps, hamstrings en bilspieren, ook in korte tijd', () => {
+    for (const minuten of [30, 60]) {
+      const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4, minutenPerSessie: minuten }, BIB)
+      const spieren = new Set(v.dagen[1].regels.flatMap((r) => perId.get(r.oefeningId)!.spierenPrimair))
+      expect(spieren.has('quadriceps') && spieren.has('hamstrings') && spieren.has('bilspieren')).toBe(true)
+    }
+  })
+
+  it('kiest na een squat een heupscharnier dat de hamstrings toevoegt', () => {
+    const v = stelSchemaVoor({ ...basis, minutenPerSessie: 60 }, BIB)
+    const dagA = v.dagen[0].regels.map((r) => perId.get(r.oefeningId)!)
+    const scharnier = dagA.find((o) => o.patroon === 'heupscharnier')
+    expect(scharnier?.spierenPrimair).toContain('hamstrings')
+  })
+
+  it('werkt ook met oefeningen zonder spieren (terugval op de grove spiergroep)', () => {
+    const zonder = BIB.map((o) => ({ ...o, spierenPrimair: [] }))
+    const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4 }, zonder)
+    expect(v.dagen.every((d) => d.regels.length > 0)).toBe(true)
   })
 })

@@ -1,0 +1,82 @@
+/* ─── Fit Factory Club: de spierkaart en spierchips ──────────────────────────
+   Silhouet voor en achter met per spier een vlak. Werkt vooral = merkkleur
+   (brons), werkt mee = merkkleur zacht, rust = donkergrijs. Kleuren alleen via
+   de tokens. Alleen de vulling verandert, rustig; geen beweging. Alle
+   selectors: .club-training-spier... */
+
+.club-training-spierkaart {
+  --club-training-spier-naad: var(--bg-card);
+  --club-training-spier-rust: color-mix(in srgb, var(--text-1) 13%, var(--bg-card));
+  --club-training-spier-mee: color-mix(in srgb, var(--brand) 40%, var(--bg-card));
+  --club-training-spier-lichaam: color-mix(in srgb, var(--text-1) 6%, var(--bg-card));
+  display: block;
+  height: auto;
+  overflow: visible;
+}
+.club-training-spierkaart--klein { width: 88px; }
+.club-training-spierkaart--groot { width: min(100%, 340px); }
+
+.club-training-spierkaart-lichaam { fill: var(--club-training-spier-lichaam); }
+.club-training-spier {
+  fill: var(--club-training-spier-rust);
+  stroke: var(--club-training-spier-naad);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  transition: fill 240ms var(--ease, ease-out), stroke 240ms var(--ease, ease-out);
+}
+.club-training-spier--secundair { fill: var(--club-training-spier-mee); }
+.club-training-spier--primair { fill: var(--brand); }
+/* Diepe buikspier en hart en longen liggen onder de oppervlakte: in rust alleen een stippellijn. */
+.club-training-spier--diep { stroke-dasharray: 1.6 1.4; stroke-width: 0.9; }
+.club-training-spier--diep.club-training-spier--rust { fill: transparent; stroke: var(--text-4); }
+.club-training-spier--diep:not(.club-training-spier--rust) { stroke: var(--club-training-spier-naad); stroke-dasharray: none; }
+@media (prefers-reduced-motion: reduce) {
+  .club-training-spier { transition: none; }
+}
+
+.club-training-spierkaart-onderschrift text { font-family: var(--ff-kop); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; fill: var(--text-3); text-anchor: middle; }
+
+.club-training-spierfiguur { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.club-training-spierlegenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font-size: 12px; color: var(--text-3); }
+.club-training-spierlegenda span { display: inline-flex; align-items: center; gap: 6px; }
+.club-training-spierlegenda-stip { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.club-training-spierlegenda-stip--primair { background: var(--brand); }
+.club-training-spierlegenda-stip--secundair { background: color-mix(in srgb, var(--brand) 40%, var(--bg-card)); }
+
+/* De zin onder de kaart: "Werkt vooral op ..." */
+.club-training-spieruitleg { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
+.club-training-spieruitleg strong { color: var(--text-1); font-weight: 600; }
+
+/* Spierchips: kort de primaire spieren, in kaarten en de editor. */
+.club-training-spierchips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.club-training-spierchip { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--brand); background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); }
+.club-training-spierchip--grof { color: var(--text-2); background: var(--club-vlak, transparent); border-color: var(--line-strong); }
+
+/* Spieren kiezen in het formulier: een knop per spier, drie standen. */
+.club-training-spierkeuze { display: grid; gap: 12px; }
+.club-training-spierkeuze-groep { display: grid; gap: 6px; }
+.club-training-spierkeuze-groep > h4 { margin: 0; font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-training-spierknop { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-size: 13.5px; cursor: pointer; transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease); }
+.club-training-spierknop:hover { border-color: var(--text-4); color: var(--text-1); }
+.club-training-spierknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-training-spierknop[data-staat='primair'] { background: var(--brand); border-color: var(--brand); color: var(--bg-app); font-weight: 600; }
+.club-training-spierknop[data-staat='secundair'] { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand); }
+.club-training-spierknop-stand { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.club-training-spierkeuze-voorbeeld { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
+
+/* Overzicht per schema: sets per groep per dag. */
+.club-training-spieroverzicht { display: grid; gap: 12px; }
+.club-training-spieroverzicht table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.club-training-spieroverzicht th, .club-training-spieroverzicht td { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--line); }
+.club-training-spieroverzicht th:first-child, .club-training-spieroverzicht td:first-child { text-align: left; }
+.club-training-spieroverzicht thead th { font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-training-spieroverzicht td[data-nul='true'] { color: var(--text-4); }
+.club-training-spieroverzicht-dag { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; }
+.club-training-spieroverzicht-gat { margin: 0; font-size: 13px; line-height: 1.5; color: var(--club-let-op); }
+.club-training-spieroverzicht-ok { margin: 0; font-size: 13px; color: var(--club-ok); }
+
+.club-training-spierblok { display: grid; gap: 10px; }
+
+/* Bibliotheekkaart: tekening en spierkaart onder elkaar; editorregel: chips naast het materiaal. */
+.club-training-oefkaart-beelden { display: grid; gap: 8px; justify-items: center; }
+.club-training-regelspieren { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }

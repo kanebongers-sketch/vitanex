@@ -2,12 +2,13 @@
 // Vakkennis in tabellen: welke split bij hoeveel dagen, welke patronen per dag
 // en welke sets, herhalingen en rust bij welk doel. Geen AI, geen kosten.
 
-import type { Doel, Materiaal, Niveau, Patroon, Spiergroep, Voorkeur } from './typen'
+import type { Spier } from './spieren'
+import type { Doel, Materiaal, Niveau, Patroon, Voorkeur } from './typen'
 
 export interface Slot {
   patroon: Patroon
-  /** Alleen deze spiergroepen (voor isolatie: biceps, triceps, ...). */
-  spiergroepen?: readonly Spiergroep[]
+  /** Alleen oefeningen die vooral op een van deze spieren werken (voor isolatie: quadriceps, hamstrings, ...). */
+  spieren?: readonly Spier[]
 }
 
 export interface DagSjabloon {
@@ -15,36 +16,39 @@ export interface DagSjabloon {
   slots: readonly Slot[]
 }
 
-const s = (patroon: Patroon, ...spiergroepen: Spiergroep[]): Slot =>
-  spiergroepen.length > 0 ? { patroon, spiergroepen } : { patroon }
+const s = (patroon: Patroon, ...spieren: Spier[]): Slot => (spieren.length > 0 ? { patroon, spieren } : { patroon })
 
+// Elke dag raakt de grote spieren van dat deel van het lichaam: een benendag
+// heeft quadriceps, hamstrings en bilspieren, een trekdag ook de achterste
+// schouder. Het voorstel kiest binnen een slot de oefening die op deze dag
+// de meeste nog niet geraakte hoofdspieren toevoegt (zie voorstel.ts).
 const FULL_A: DagSjabloon = {
   titel: 'Full body A',
   slots: [s('squat'), s('duwen_horizontaal'), s('trekken_verticaal'), s('heupscharnier'), s('duwen_verticaal'), s('core'), s('isolatie', 'biceps', 'triceps'), s('trekken_horizontaal')],
 }
 const FULL_B: DagSjabloon = {
   titel: 'Full body B',
-  slots: [s('heupscharnier'), s('duwen_verticaal'), s('trekken_horizontaal'), s('lunge'), s('duwen_horizontaal'), s('core'), s('isolatie', 'schouders', 'rug'), s('trekken_verticaal')],
+  slots: [s('heupscharnier'), s('duwen_verticaal'), s('trekken_horizontaal'), s('lunge'), s('duwen_horizontaal'), s('core'), s('isolatie', 'middelste_schouder', 'achterste_schouder'), s('trekken_verticaal')],
 }
 const FULL_C: DagSjabloon = {
   titel: 'Full body C',
-  slots: [s('lunge'), s('trekken_verticaal'), s('duwen_horizontaal'), s('heupscharnier'), s('trekken_horizontaal'), s('core'), s('isolatie', 'billen', 'benen'), s('duwen_verticaal')],
+  slots: [s('lunge'), s('trekken_verticaal'), s('duwen_horizontaal'), s('heupscharnier'), s('trekken_horizontaal'), s('core'), s('isolatie', 'hamstrings', 'bilspieren', 'abductoren'), s('duwen_verticaal')],
 }
 const BOVEN: DagSjabloon = {
   titel: 'Bovenlichaam',
-  slots: [s('duwen_horizontaal'), s('trekken_horizontaal'), s('duwen_verticaal'), s('trekken_verticaal'), s('isolatie', 'biceps'), s('isolatie', 'triceps'), s('core'), s('isolatie', 'schouders')],
+  slots: [s('duwen_horizontaal'), s('trekken_horizontaal'), s('duwen_verticaal'), s('trekken_verticaal'), s('isolatie', 'biceps'), s('isolatie', 'triceps'), s('core'), s('isolatie', 'middelste_schouder', 'achterste_schouder')],
 }
 const ONDER: DagSjabloon = {
   titel: 'Onderlichaam',
-  slots: [s('squat'), s('heupscharnier'), s('lunge'), s('isolatie', 'benen'), s('isolatie', 'billen'), s('core'), s('isolatie', 'kuiten'), s('core')],
+  slots: [s('squat'), s('heupscharnier'), s('lunge'), s('isolatie', 'hamstrings'), s('isolatie', 'quadriceps'), s('core'), s('isolatie', 'kuiten'), s('isolatie', 'bilspieren', 'abductoren', 'adductoren')],
 }
 const DUWEN: DagSjabloon = {
   titel: 'Duwen',
-  slots: [s('duwen_horizontaal'), s('duwen_verticaal'), s('duwen_horizontaal'), s('isolatie', 'schouders'), s('isolatie', 'triceps'), s('core'), s('isolatie', 'borst'), s('isolatie', 'triceps')],
+  slots: [s('duwen_horizontaal'), s('duwen_verticaal'), s('duwen_horizontaal'), s('isolatie', 'middelste_schouder'), s('isolatie', 'triceps'), s('core'), s('isolatie', 'borstspieren'), s('isolatie', 'triceps')],
 }
 const TREKKEN: DagSjabloon = {
   titel: 'Trekken',
-  slots: [s('trekken_verticaal'), s('trekken_horizontaal'), s('trekken_horizontaal'), s('isolatie', 'biceps'), s('isolatie', 'rug', 'schouders'), s('core'), s('isolatie', 'biceps'), s('trekken_verticaal')],
+  slots: [s('trekken_verticaal'), s('trekken_horizontaal'), s('trekken_horizontaal'), s('isolatie', 'biceps'), s('isolatie', 'achterste_schouder', 'rhomboideus', 'trapezius'), s('core'), s('isolatie', 'biceps'), s('trekken_verticaal')],
 }
 const BENEN: DagSjabloon = { ...ONDER, titel: 'Benen' }
 

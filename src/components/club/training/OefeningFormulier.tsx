@@ -3,11 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { Oefening } from '@/lib/club/training/rijen'
+import { leesSpierKeuze, type Spier } from '@/lib/club/training/spieren'
 import {
   MATERIAAL_LABEL, MATERIALEN, NIVEAU_LABEL, NIVEAUS, PATROON_LABEL, PATRONEN, SPIERGROEP_LABEL, SPIERGROEPEN, ZONE_LABEL, ZONES,
   type Zone,
 } from '@/lib/club/training/typen'
 import { stuur } from './api'
+import { SpierKeuze } from './SpierKeuze'
 
 interface OefeningFormulierProps {
   oefening: Oefening | null
@@ -18,15 +20,22 @@ interface OefeningFormulierProps {
 export function OefeningFormulier({ oefening, onKlaar }: OefeningFormulierProps) {
   const router = useRouter()
   const [belast, setBelast] = useState<Zone[]>(oefening?.belast ?? [])
+  const [spieren, setSpieren] = useState<{ primair: Spier[]; secundair: Spier[] }>({
+    primair: oefening?.spierenPrimair ?? [],
+    secundair: oefening?.spierenSecundair ?? [],
+  })
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
 
   async function bewaar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
+    const keuze = leesSpierKeuze(spieren.primair, spieren.secundair)
+    if (!keuze.ok) return setFout(keuze.fout)
     const body = {
       naam: f.get('naam'), spiergroep: f.get('spiergroep'), materiaal: f.get('materiaal'), niveau: f.get('niveau'),
       patroon: f.get('patroon'), belast, uitleg: f.get('uitleg'), aandachtspunten: f.get('aandachtspunten'), actief: f.get('actief') === 'on',
+      spierenPrimair: keuze.primair, spierenSecundair: keuze.secundair,
     }
     setBezig(true)
     setFout(null)
@@ -47,7 +56,7 @@ export function OefeningFormulier({ oefening, onKlaar }: OefeningFormulierProps)
       </label>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Spiergroep</span>
+          <span>Spiergroep (grof)</span>
           <select name="spiergroep" className="club-invoer" defaultValue={oefening?.spiergroep ?? 'borst'}>
             {SPIERGROEPEN.map((s) => <option key={s} value={s}>{SPIERGROEP_LABEL[s]}</option>)}
           </select>
@@ -72,6 +81,7 @@ export function OefeningFormulier({ oefening, onKlaar }: OefeningFormulierProps)
           </select>
         </label>
       </div>
+      <SpierKeuze naam={oefening?.naam ?? ''} primair={spieren.primair} secundair={spieren.secundair} onWijzig={setSpieren} />
       <fieldset className="club-training-fieldset">
         <legend className="club-label">Belast (het voorstel slaat hem over bij een blessure hier)</legend>
         <div className="club-training-chips">

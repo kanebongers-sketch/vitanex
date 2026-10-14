@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react'
 import { Check, Plus } from 'lucide-react'
 import { filterOefeningen, LEEG_FILTER, type OefeningFilter } from '@/lib/club/training/filter'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { MATERIAAL_LABEL, NIVEAU_LABEL, SPIERGROEP_LABEL } from '@/lib/club/training/typen'
+import { MATERIAAL_LABEL, NIVEAU_LABEL } from '@/lib/club/training/typen'
 import { OefeningBeeld } from './OefeningBeeld'
 import { OefeningFilters } from './OefeningFilters'
+import { SpierChips } from './SpierChips'
 import { Zijpaneel } from './Zijpaneel'
 
 interface OefeningKiezerProps {
@@ -38,7 +39,8 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
                   <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="klein" decoratief />
                   <span className="club-rij-hoofd">
                     <span className="club-rij-titel">{o.naam}</span>
-                    <span className="club-rij-sub">{SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]} · {NIVEAU_LABEL[o.niveau]}</span>
+                    <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} />
+                    <span className="club-rij-sub">{MATERIAAL_LABEL[o.materiaal]} · {NIVEAU_LABEL[o.niveau]}</span>
                   </span>
                   {al ? <Check aria-label="Staat al op deze dag" size={18} className="club-training-al" /> : <Plus aria-hidden size={18} />}
                 </button>

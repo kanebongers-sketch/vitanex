@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
-import { leesOefening } from '@/lib/club/training/invoer'
+import { leesOefening, oefeningNaarRij } from '@/lib/club/training/invoer'
 
 // POST /api/club/training/oefeningen: een eigen oefening toevoegen.
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await t.admin
     .from('club_oefeningen')
-    .insert({ user_id: t.userId, ...invoer.waarde })
+    .insert({ user_id: t.userId, ...oefeningNaarRij(invoer.waarde) })
     .select('id')
     .single()
   if (error) {

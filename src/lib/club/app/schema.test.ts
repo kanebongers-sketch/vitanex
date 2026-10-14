@@ -7,6 +7,8 @@ const oef = (id: string, dag: number, volgorde: number, deel: Partial<AppOefenin
   volgorde,
   naam: id,
   spiergroep: null,
+  spierenPrimair: [],
+  spierenSecundair: [],
   sets: null,
   herhalingen: null,
   gewichtKg: null,
@@ -30,7 +32,12 @@ describe('schema in de app', () => {
 
   it('leest een rij met ingesloten oefening', () => {
     const o = oefeningUitRij({ id: 'x', dag: 1, volgorde: 2, sets: 3, herhalingen: '8-10', gewicht_kg: '42.5', club_oefeningen: { naam: 'Squat', spiergroep: 'benen' } })
-    expect(o).toMatchObject({ naam: 'Squat', spiergroep: 'benen', gewichtKg: 42.5 })
+    expect(o).toMatchObject({ naam: 'Squat', spiergroep: 'benen', gewichtKg: 42.5, spierenPrimair: [], spierenSecundair: [] })
+    const metSpieren = oefeningUitRij({
+      id: 'y', dag: 1,
+      club_oefeningen: { naam: 'Squat', spieren_primair: ['quadriceps', 'bilspieren', 'nek'], spieren_secundair: ['quadriceps', 'hamstrings'] },
+    })
+    expect(metSpieren).toMatchObject({ spierenPrimair: ['quadriceps', 'bilspieren'], spierenSecundair: ['hamstrings'] })
     expect(oefeningUitRij({ id: 'x' })).toBeNull()
   })
 
@@ -40,6 +47,9 @@ describe('schema in de app', () => {
     expect(met).toMatchObject({ uitleg: 'Zak en kom omhoog.', beeld: { start: pad('start'), eind: pad('eind') } })
     const vreemd = oefeningUitRij({ id: 'x', dag: 1, club_oefeningen: { naam: 'Squat', beeld_start: 'https://elders.nl/a.svg', beeld_eind: pad('eind') } })
     expect(vreemd?.beeld).toBeNull()
+    const r = (h: string) => `/club/oefeningen-repdb/squat-${h}.webp`
+    const repdb = oefeningUitRij({ id: 'x', dag: 1, club_oefeningen: { naam: 'Squat', beeld_start: r('start'), beeld_eind: r('eind'), beeld_bron: 'RepDB' } })
+    expect(repdb?.beeld).toEqual({ start: r('start'), eind: r('eind'), bron: 'repdb', enkel: false })
   })
 
   it('schrijft het voorschrift kort op', () => {

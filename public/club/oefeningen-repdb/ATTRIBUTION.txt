@@ -1,0 +1,28 @@
+Exercise data by RepDB (repdb.co)
+https://repdb.co
+
+Illustraties van oefeningen (bestanden <id>-start.webp en <id>-eind.webp)
+
+Bron: RepDB, gratis versie (Free Tier License v1.0)
+      https://repdb.co
+      https://github.com/RepDB/exercise-dataset
+Licentiegever: Sergei Argutin (RepDB), Berlijn
+
+Gebruikt onder de gratis licentie van RepDB, met deze voorwaarden:
+1. Gratis voor persoonlijk en commercieel gebruik binnen een app of website.
+2. Zichtbare bronvermelding verplicht: "Exercise data by RepDB (repdb.co)".
+   In de app staat bij de beelden: "Illustraties: RepDB (repdb.co)", met een
+   link naar https://repdb.co.
+3. Niet herpubliceren, doorverkopen of opnieuw verpakken als dataset,
+   datasetrepository of API (ook niet bewerkt). Alleen gebruik in de app.
+4. Bijsnijden, schalen en herkleuren mag voor gebruik in de app.
+5. Niet gebruiken als invoer, voorbeeld of training voor generatieve AI.
+6. Niets uit de map premium-samples/ van RepDB is gebruikt (alleen bedoeld
+   om te beoordelen).
+
+De bestanden zijn ongewijzigd overgenomen uit images/flat/ van RepDB. De
+bestandsnaam is de RepDB-id; "peak" heet hier "eind". Heeft een oefening maar
+een houding ("main"), dan zijn start en eind hetzelfde beeld.
+
+Ophalen: node scripts/club/repdb-import.mjs
+Koppeling: src/lib/club/training/beelden-repdb.ts

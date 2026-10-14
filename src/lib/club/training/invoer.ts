@@ -4,6 +4,7 @@
 
 import type { Uitslag } from './intake'
 import { isRij, tekstOfNull } from './rijen'
+import { leesSpierKeuze, type Spier } from './spieren'
 import {
   MAX_DAGEN, isDoel, isMateriaal, isNiveau, isPatroon, isSchemaStatus, isSpiergroep, isUuid, isZone, ZONES,
   type Doel, type Materiaal, type Niveau, type Patroon, type SchemaStatus, type Spiergroep, type Zone,
@@ -132,6 +133,8 @@ export function metVolgorde(regels: readonly RegelInvoer[]): (RegelInvoer & { vo
 export interface OefeningInvoer {
   naam: string
   spiergroep: Spiergroep
+  spierenPrimair: Spier[]
+  spierenSecundair: Spier[]
   materiaal: Materiaal
   niveau: Niveau
   patroon: Patroon | null
@@ -151,11 +154,15 @@ export function leesOefening(body: unknown): Uitslag<OefeningInvoer> {
   if (!isNiveau(niveau)) return { ok: false, fout: 'Kies een niveau.' }
   if (!leeg(body.patroon) && !isPatroon(body.patroon)) return { ok: false, fout: 'Onbekend bewegingspatroon.' }
   const belast = Array.isArray(body.belast) ? body.belast.filter(isZone) : []
+  const spieren = leesSpierKeuze(body.spierenPrimair, body.spierenSecundair)
+  if (!spieren.ok) return spieren
   return {
     ok: true,
     waarde: {
       naam,
       spiergroep: body.spiergroep,
+      spierenPrimair: spieren.primair,
+      spierenSecundair: spieren.secundair,
       materiaal: body.materiaal,
       niveau,
       patroon: isPatroon(body.patroon) ? body.patroon : null,
@@ -165,4 +172,10 @@ export function leesOefening(body: unknown): Uitslag<OefeningInvoer> {
       actief: body.actief !== false,
     },
   }
+}
+
+/** Naar de kolommen van club_oefeningen (spieren als snake_case). */
+export function oefeningNaarRij(o: OefeningInvoer) {
+  const { spierenPrimair, spierenSecundair, ...rest } = o
+  return { ...rest, spieren_primair: spierenPrimair, spieren_secundair: spierenSecundair }
 }

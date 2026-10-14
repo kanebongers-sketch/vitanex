@@ -5,9 +5,10 @@ import { X } from 'lucide-react'
 import type { AppOefening } from '@/lib/club/app/schema'
 import { voorschrift } from '@/lib/club/app/schema'
 import { BeeldBron, OefeningBeeld } from '@/components/club/training/OefeningBeeld'
+import { SpierBlok } from '@/components/club/training/SpierChips'
 
-// Een oefening groot in de app: de bewegende tekening, het voorschrift, hoe je
-// hem doet en waar je op let. Schuift als een blad over het schema; Escape of
+// Een oefening groot in de app: de bewegende tekening, het voorschrift, welke
+// spieren je traint, hoe je hem doet en waar je op let. Schuift als een blad over het schema; Escape of
 // de sluitknop gaat terug, de focus springt terug naar de oefening.
 
 interface OefeningBladProps {
@@ -48,13 +49,19 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
           <h4>Zo doe je het</h4>
           <p>{o.uitleg ?? 'Je trainer legt deze oefening aan je uit.'}</p>
         </section>
+        {o.spierenPrimair.length > 0 && (
+          <section>
+            <h4>Deze spieren train je</h4>
+            <SpierBlok naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} />
+          </section>
+        )}
         {o.aandachtspunten && (
           <section>
             <h4>Let op</h4>
             <p>{o.aandachtspunten}</p>
           </section>
         )}
-        {o.beeld && <BeeldBron />}
+        {o.beeld && <BeeldBron bronnen={[o.beeld.bron]} />}
       </div>
     </div>
   )

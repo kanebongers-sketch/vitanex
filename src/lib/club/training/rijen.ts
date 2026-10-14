@@ -3,6 +3,7 @@
 // niet klopt wordt null en valt weg, in plaats van de pagina te breken.
 
 import { BEELD_KOLOMMEN, beeldenUitRij, type OefeningBeelden } from './beeld'
+import { schoonSpieren, type Spier } from './spieren'
 import {
   isDoel, isMateriaal, isNiveau, isPatroon, isSchemaStatus, isSpiergroep, isZone,
   type Doel, type Materiaal, type Niveau, type Patroon, type SchemaStatus, type Spiergroep, type Zone,
@@ -12,6 +13,10 @@ export interface Oefening {
   id: string
   naam: string
   spiergroep: Spiergroep
+  /** Waar de oefening vooral op werkt (migratie 394). Leeg als nog niet ingevuld. */
+  spierenPrimair: Spier[]
+  /** Spieren die meewerken. */
+  spierenSecundair: Spier[]
   materiaal: Materiaal
   niveau: Niveau
   patroon: Patroon | null
@@ -23,7 +28,7 @@ export interface Oefening {
   beeld: OefeningBeelden | null
 }
 
-export const OEFENING_KOLOMMEN = `id, naam, spiergroep, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief, ${BEELD_KOLOMMEN}`
+export const OEFENING_KOLOMMEN = `id, naam, spiergroep, spieren_primair, spieren_secundair, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief, ${BEELD_KOLOMMEN}`
 
 export interface SchemaRegel {
   id: string
@@ -90,6 +95,12 @@ export function naamUitRelatie(v: unknown): string | null {
   return voornaam && achternaam ? `${voornaam} ${achternaam}` : null
 }
 
+/** Primair en secundair uit de rij; een spier die in beide staat telt alleen als primair. */
+export function spierenUitRij(rij: Record<string, unknown>): { spierenPrimair: Spier[]; spierenSecundair: Spier[] } {
+  const spierenPrimair = schoonSpieren(rij.spieren_primair)
+  return { spierenPrimair, spierenSecundair: schoonSpieren(rij.spieren_secundair).filter((s) => !spierenPrimair.includes(s)) }
+}
+
 export function oefeningUitRij(rij: unknown): Oefening | null {
   if (!isRij(rij)) return null
   const id = tekstOfNull(rij.id)
@@ -99,6 +110,7 @@ export function oefeningUitRij(rij: unknown): Oefening | null {
     id,
     naam,
     spiergroep: rij.spiergroep,
+    ...spierenUitRij(rij),
     materiaal: isMateriaal(rij.materiaal) ? rij.materiaal : 'overig',
     niveau: isNiveau(rij.niveau) ? rij.niveau : 1,
     patroon: isPatroon(rij.patroon) ? rij.patroon : null,

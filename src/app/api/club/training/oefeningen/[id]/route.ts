@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
-import { leesOefening } from '@/lib/club/training/invoer'
+import { leesOefening, oefeningNaarRij } from '@/lib/club/training/invoer'
 import { isUuid } from '@/lib/club/training/typen'
 
 // PATCH /api/club/training/oefeningen/[id]: een oefening bewerken (of op inactief zetten).
@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data, error } = await t.admin
     .from('club_oefeningen')
-    .update(invoer.waarde)
+    .update(oefeningNaarRij(invoer.waarde))
     .eq('user_id', t.userId)
     .eq('id', id)
     .select('id')

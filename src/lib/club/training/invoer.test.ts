@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { leesHerhalingen, leesOefening, leesSchema, metVolgorde } from './invoer'
-import { filterNaarParams, filterOefeningen, filterUitParams, LEEG_FILTER } from './filter'
+import { leesHerhalingen, leesOefening, leesSchema, metVolgorde, oefeningNaarRij } from './invoer'
+import { filterNaarParams, filterOefeningen, filterUitParams, keuzeNaarWaarde, LEEG_FILTER, waardeNaarKeuze } from './filter'
 import type { Oefening } from './rijen'
 import { lijnPunten, toonHerhalingen, toonRust, toonVerschil, trainingenPerWeek } from './weergave'
 
@@ -57,10 +57,20 @@ describe('metVolgorde', () => {
 
 describe('leesOefening', () => {
   it('valideert de oefening', () => {
-    const u = leesOefening({ naam: 'Plank', spiergroep: 'buik', materiaal: 'geen', niveau: '1', patroon: 'core', belast: ['rug', 'x'] })
+    const plank = { naam: 'Plank', spiergroep: 'buik', materiaal: 'geen', niveau: '1', patroon: 'core', belast: ['rug', 'x'], spierenPrimair: ['rechte_buikspier', 'diepe_buikspier'], spierenSecundair: ['schuine_buikspieren'] }
+    const u = leesOefening(plank)
     if (!u.ok) throw new Error(u.fout)
-    expect(u.waarde).toMatchObject({ niveau: 1, belast: ['rug'], actief: true })
+    expect(u.waarde).toMatchObject({ niveau: 1, belast: ['rug'], actief: true, spierenPrimair: ['rechte_buikspier', 'diepe_buikspier'] })
+    expect(oefeningNaarRij(u.waarde)).toMatchObject({ spieren_primair: ['rechte_buikspier', 'diepe_buikspier'], spieren_secundair: ['schuine_buikspieren'] })
+    expect(oefeningNaarRij(u.waarde)).not.toHaveProperty('spierenPrimair')
     expect(leesOefening({ naam: 'X', spiergroep: 'nek', materiaal: 'geen', niveau: 1 }).ok).toBe(false)
+  })
+  it('eist minstens een primaire spier en geen spier in beide lijsten', () => {
+    const basis = { naam: 'Plank', spiergroep: 'buik', materiaal: 'geen', niveau: 1 }
+    expect(leesOefening({ ...basis, spierenPrimair: [] })).toEqual({ ok: false, fout: 'Kies minstens een spier waar de oefening vooral op werkt.' })
+    const dubbel = leesOefening({ ...basis, spierenPrimair: ['rechte_buikspier'], spierenSecundair: ['rechte_buikspier'] })
+    expect(dubbel.ok).toBe(false)
+    expect(leesOefening({ ...basis, spierenPrimair: ['nek'] }).ok).toBe(false)
   })
 })
 
@@ -103,9 +113,9 @@ describe('weergave', () => {
 
 describe('filterOefeningen', () => {
   const lijst: Oefening[] = [
-    { id: '1', naam: 'Push-up op knieën', spiergroep: 'borst', materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: null },
-    { id: '2', naam: 'Bankdrukken', spiergroep: 'borst', materiaal: 'barbell', niveau: 2, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: { start: '/club/oefeningen/0042-start.svg', eind: '/club/oefeningen/0042-eind.svg' } },
-    { id: '3', naam: 'Oude oefening', spiergroep: 'rug', materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false, beeld: null },
+    { id: '1', naam: 'Push-up op knieën', spiergroep: 'borst', spierenPrimair: ['borstspieren'], spierenSecundair: ['triceps', 'voorste_schouder'], materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: null },
+    { id: '2', naam: 'Bankdrukken', spiergroep: 'borst', spierenPrimair: ['borstspieren'], spierenSecundair: ['triceps'], materiaal: 'barbell', niveau: 2, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, beeld: { start: '/club/oefeningen/0042-start.svg', eind: '/club/oefeningen/0042-eind.svg', bron: 'everkinetic', enkel: false } },
+    { id: '3', naam: 'Oude oefening', spiergroep: 'rug', spierenPrimair: [], spierenSecundair: [], materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false, beeld: null },
   ]
   it('zoekt zonder accenten en filtert', () => {
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, zoek: 'knieen' }).map((o) => o.id)).toEqual(['1'])
@@ -114,10 +124,27 @@ describe('filterOefeningen', () => {
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, metInactief: true })).toHaveLength(3)
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, zonderBeeld: true }).map((o) => o.id)).toEqual(['1'])
   })
+  it('filtert op een spier, ook als meewerkende spier', () => {
+    const borst = { soort: 'spier', spier: 'borstspieren' } as const
+    const triceps = { soort: 'spier', spier: 'triceps' } as const
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, spier: borst }).map((o) => o.id)).toEqual(['1', '2'])
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, spier: triceps })).toHaveLength(0)
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, spier: triceps, ookMeewerkend: true }).map((o) => o.id)).toEqual(['1', '2'])
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, spier: { soort: 'groep', groep: 'schouders' }, ookMeewerkend: true }).map((o) => o.id)).toEqual(['1'])
+  })
+  it('valt zonder spieren terug op de grove spiergroep', () => {
+    const rug = { soort: 'spier', spier: 'latissimus' } as const
+    expect(filterOefeningen(lijst, { ...LEEG_FILTER, metInactief: true, spier: rug }).map((o) => o.id)).toEqual(['3'])
+  })
   it('leest en schrijft de URL', () => {
-    const f = filterUitParams({ spier: 'borst', mat: 'onzin', niveau: '2', zoek: 'press' })
-    expect(f).toMatchObject({ spiergroep: 'borst', materiaal: null, niveau: 2, zoek: 'press' })
-    expect(filterNaarParams(f)).toEqual({ zoek: 'press', spier: 'borst', niveau: '2' })
+    const f = filterUitParams({ spier: 'quadriceps', mee: '1', mat: 'onzin', niveau: '2', zoek: 'press' })
+    expect(f).toMatchObject({ spier: { soort: 'spier', spier: 'quadriceps' }, ookMeewerkend: true, materiaal: null, niveau: 2, zoek: 'press' })
+    expect(filterNaarParams(f)).toEqual({ zoek: 'press', spier: 'quadriceps', mee: '1', niveau: '2' })
+    expect(filterUitParams({ groep: 'benen' }).spier).toEqual({ soort: 'groep', groep: 'benen' })
+    expect(filterUitParams({ spier: 'benen' }).spier).toBeNull()
+    expect(filterNaarParams({ ...LEEG_FILTER, ookMeewerkend: true })).toEqual({})
+    expect(keuzeNaarWaarde(waardeNaarKeuze('g:romp'))).toBe('g:romp')
+    expect(waardeNaarKeuze('s:nek')).toBeNull()
     expect(filterUitParams({ beeld: 'zonder' }).zonderBeeld).toBe(true)
     expect(filterNaarParams({ ...LEEG_FILTER, zonderBeeld: true })).toEqual({ beeld: 'zonder' })
   })

@@ -6,6 +6,7 @@
 import type { Antwoorden } from './intake'
 import { PARQ_VRAGEN } from './intake'
 import type { Oefening } from './rijen'
+import { hoofdspieren, type Spier } from './spieren'
 import { DOEL_LABEL, NIVEAU_LABEL, ZONE_LABEL, type Doel, type Materiaal, type Niveau, type Zone } from './typen'
 import {
   aantalOefeningen, beschikbaarMateriaal, dosering, hoofddoel, kiesSplit, MATERIAAL_VOORKEUR, type Slot,
@@ -66,12 +67,39 @@ function vergelijk(niveau: Niveau) {
   return (a: Oefening, b: Oefening) => score(a, niveau) - score(b, niveau) || a.naam.localeCompare(b.naam, 'nl')
 }
 
-function kiesVoorSlot(slot: Slot, ctx: Context, gebruikt: ReadonlySet<string>, opDag: ReadonlySet<string>): Oefening | null {
-  const opties = ctx.kandidaten.filter(
-    (o) => o.patroon === slot.patroon && (!slot.spiergroepen || slot.spiergroepen.includes(o.spiergroep)) && !opDag.has(o.id),
-  )
+/**
+ * Hoeveel hoofdspieren voegt deze oefening toe die vandaag nog niet geraakt zijn?
+ * Hooguit twee: anders wint een hele-lichaamsoefening (thruster) altijd van een gewone squat.
+ */
+function nieuweSpieren(o: Oefening, geraakt: ReadonlySet<Spier>): number {
+  return Math.min(hoofdspieren(o).filter((sp) => !geraakt.has(sp)).length, 2)
+}
+
+function pastInSlot(o: Oefening, slot: Slot): boolean {
+  if (o.patroon !== slot.patroon) return false
+  return !slot.spieren || hoofdspieren(o).some((sp) => slot.spieren?.includes(sp))
+}
+
+function kiesVoorSlot(slot: Slot, ctx: Context, gebruikt: ReadonlySet<string>, dag: DagStaat): Oefening | null {
+  const opties = ctx.kandidaten.filter((o) => pastInSlot(o, slot) && !dag.ids.has(o.id))
   // Liever een oefening die nog nergens in het schema staat, zodat de dagen verschillen.
-  return opties.find((o) => !gebruikt.has(o.id)) ?? opties[0] ?? null
+  // Daarbinnen de oefening die de meeste nieuwe hoofdspieren toevoegt, zodat een dag in balans is.
+  // Bij gelijke stand blijft de volgorde van de kandidaten (niveau, materiaal, naam) beslissen.
+  let beste: Oefening | null = null
+  let besteScore = -Infinity
+  for (const o of opties) {
+    const score = (gebruikt.has(o.id) ? 0 : 100) + nieuweSpieren(o, dag.spieren)
+    if (score > besteScore) {
+      beste = o
+      besteScore = score
+    }
+  }
+  return beste
+}
+
+interface DagStaat {
+  ids: Set<string>
+  spieren: Set<Spier>
 }
 
 function regelVoor(o: Oefening, ctx: Context): VoorstelRegel {
@@ -85,18 +113,19 @@ function cardioAfsluiter(ctx: Context, opDag: ReadonlySet<string>, dagIndex: num
 }
 
 function bouwDag(slots: readonly Slot[], ctx: Context, gebruikt: Set<string>, aantal: number, metCardio: boolean, dagIndex: number): VoorstelRegel[] {
-  const opDag = new Set<string>()
+  const dag: DagStaat = { ids: new Set(), spieren: new Set() }
   const regels: VoorstelRegel[] = []
   const kracht = metCardio ? aantal - 1 : aantal
   for (const slot of slots) {
     if (regels.length >= kracht) break
-    const o = kiesVoorSlot(slot, ctx, gebruikt, opDag)
+    const o = kiesVoorSlot(slot, ctx, gebruikt, dag)
     if (!o) continue
-    opDag.add(o.id)
+    dag.ids.add(o.id)
+    for (const sp of hoofdspieren(o)) dag.spieren.add(sp)
     gebruikt.add(o.id)
     regels.push(regelVoor(o, ctx))
   }
-  const cardio = metCardio ? cardioAfsluiter(ctx, opDag, dagIndex) : null
+  const cardio = metCardio ? cardioAfsluiter(ctx, dag.ids, dagIndex) : null
   if (cardio) regels.push(regelVoor(cardio, ctx))
   return regels
 }

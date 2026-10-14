@@ -3,9 +3,10 @@
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react'
 import type { EditorRegel } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { dagLetter, MATERIAAL_LABEL, SPIERGROEP_LABEL } from '@/lib/club/training/typen'
+import { dagLetter, MATERIAAL_LABEL } from '@/lib/club/training/typen'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeld } from './OefeningBeeld'
+import { SpierChips } from './SpierChips'
 
 type Veld = 'sets' | 'herhalingen' | 'gewichtKg' | 'rustSec' | 'notitie'
 
@@ -60,7 +61,12 @@ export function EditorDag(p: EditorDagProps) {
                   <OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />
                   <div className="club-training-regeltekst">
                     <strong>{naam}</strong>
-                    {o && <span className="club-zacht">{SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]}</span>}
+                    {o && (
+                      <span className="club-training-regelspieren">
+                        <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} max={2} />
+                        <span className="club-zacht">{MATERIAAL_LABEL[o.materiaal]}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
                 <label className="club-training-mini">

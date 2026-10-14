@@ -2,11 +2,9 @@
 
 import { forwardRef } from 'react'
 import { Search } from 'lucide-react'
-import type { OefeningFilter } from '@/lib/club/training/filter'
-import {
-  MATERIAAL_LABEL, MATERIALEN, NIVEAU_LABEL, NIVEAUS, SPIERGROEP_LABEL, SPIERGROEPEN,
-  isMateriaal, isNiveau, isSpiergroep,
-} from '@/lib/club/training/typen'
+import { keuzeNaarWaarde, waardeNaarKeuze, type OefeningFilter } from '@/lib/club/training/filter'
+import { SPIER_GROEP_LABEL, SPIER_GROEPEN, SPIER_INFO, spierenInGroep } from '@/lib/club/training/spieren'
+import { MATERIAAL_LABEL, MATERIALEN, NIVEAU_LABEL, NIVEAUS, isMateriaal, isNiveau } from '@/lib/club/training/typen'
 
 interface OefeningFiltersProps {
   filter: OefeningFilter
@@ -16,7 +14,7 @@ interface OefeningFiltersProps {
   zoekLabel?: string
 }
 
-/** Zoeken plus filters op spiergroep, materiaal en niveau. */
+/** Zoeken plus filters op spier (of een hele groep), materiaal en niveau. */
 export const OefeningFilters = forwardRef<HTMLInputElement, OefeningFiltersProps>(function OefeningFilters(
   { filter, onFilter, metInactiefKeuze, zoekLabel = 'Zoek oefening' },
   zoekRef,
@@ -32,10 +30,15 @@ export const OefeningFilters = forwardRef<HTMLInputElement, OefeningFiltersProps
         </span>
       </label>
       <label className="club-veld">
-        <span>Spiergroep</span>
-        <select className="club-invoer" value={filter.spiergroep ?? ''} onChange={(e) => zet({ spiergroep: isSpiergroep(e.target.value) ? e.target.value : null })}>
-          <option value="">Alle</option>
-          {SPIERGROEPEN.map((s) => <option key={s} value={s}>{SPIERGROEP_LABEL[s]}</option>)}
+        <span>Spier</span>
+        <select className="club-invoer" value={keuzeNaarWaarde(filter.spier)} onChange={(e) => zet({ spier: waardeNaarKeuze(e.target.value) })}>
+          <option value="">Alle spieren</option>
+          {SPIER_GROEPEN.map((g) => (
+            <optgroup key={g} label={SPIER_GROEP_LABEL[g]}>
+              <option value={`g:${g}`}>{SPIER_GROEP_LABEL[g]}: alles</option>
+              {spierenInGroep(g).map((sp) => <option key={sp} value={`s:${sp}`}>{SPIER_INFO[sp].naam} ({SPIER_INFO[sp].ook})</option>)}
+            </optgroup>
+          ))}
         </select>
       </label>
       <label className="club-veld">
@@ -59,18 +62,24 @@ export const OefeningFilters = forwardRef<HTMLInputElement, OefeningFiltersProps
           {NIVEAUS.map((n) => <option key={n} value={n}>{NIVEAU_LABEL[n]}</option>)}
         </select>
       </label>
-      {metInactiefKeuze && (
-        <div className="club-training-vinken">
-          <label className="club-training-vink">
-            <input type="checkbox" checked={filter.metInactief} onChange={(e) => zet({ metInactief: e.target.checked })} />
-            <span>Ook inactieve</span>
-          </label>
-          <label className="club-training-vink">
-            <input type="checkbox" checked={filter.zonderBeeld} onChange={(e) => zet({ zonderBeeld: e.target.checked })} />
-            <span>Zonder beeld</span>
-          </label>
-        </div>
-      )}
+      <div className="club-training-vinken">
+        <label className="club-training-vink">
+          <input type="checkbox" checked={filter.ookMeewerkend} onChange={(e) => zet({ ookMeewerkend: e.target.checked })} />
+          <span>Ook meewerkend</span>
+        </label>
+        {metInactiefKeuze && (
+          <>
+            <label className="club-training-vink">
+              <input type="checkbox" checked={filter.metInactief} onChange={(e) => zet({ metInactief: e.target.checked })} />
+              <span>Ook inactieve</span>
+            </label>
+            <label className="club-training-vink">
+              <input type="checkbox" checked={filter.zonderBeeld} onChange={(e) => zet({ zonderBeeld: e.target.checked })} />
+              <span>Zonder beeld</span>
+            </label>
+          </>
+        )}
+      </div>
     </div>
   )
 })

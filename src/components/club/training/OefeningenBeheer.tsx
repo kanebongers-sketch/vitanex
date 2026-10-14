@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { telBeelden } from '@/lib/club/training/beeld'
+import { bronnenVan, telBeelden } from '@/lib/club/training/beeld'
 import { filterNaarParams, filterOefeningen, type OefeningFilter } from '@/lib/club/training/filter'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { MATERIAAL_LABEL, NIVEAU_LABEL, PATROON_LABEL, SPIERGROEP_LABEL, ZONE_LABEL } from '@/lib/club/training/typen'
-import { BeeldBron, OefeningBeeld } from './OefeningBeeld'
+import { MATERIAAL_LABEL, NIVEAU_LABEL, PATROON_LABEL, ZONE_LABEL } from '@/lib/club/training/typen'
+import { BeeldBron, OefeningBeeld, RepdbVermelding } from './OefeningBeeld'
 import { OefeningDetail } from './OefeningDetail'
 import { OefeningFilters } from './OefeningFilters'
 import { OefeningFormulier } from './OefeningFormulier'
+import { SpierChips } from './SpierChips'
+import { Spierkaart } from './Spierkaart'
 import { Zijpaneel } from './Zijpaneel'
 
 interface OefeningenBeheerProps {
@@ -19,7 +21,7 @@ interface OefeningenBeheerProps {
 
 type Open = { soort: 'nieuw' } | { soort: 'detail' | 'bewerk'; oefening: Oefening } | null
 
-const FILTER_SLEUTELS = ['zoek', 'spier', 'mat', 'niveau', 'inactief', 'beeld']
+const FILTER_SLEUTELS = ['zoek', 'spier', 'groep', 'mee', 'mat', 'niveau', 'inactief', 'beeld']
 
 /** De bibliotheek: zoeken (toets /), filteren, bekijken met tekening, toevoegen en bewerken in een zijpaneel. */
 export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerProps) {
@@ -28,6 +30,7 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
   const zoek = useRef<HTMLInputElement>(null)
   const zichtbaar = useMemo(() => filterOefeningen(oefeningen, filter), [oefeningen, filter])
   const telling = useMemo(() => telBeelden(oefeningen.filter((o) => o.actief)), [oefeningen])
+  const bronnen = useMemo(() => bronnenVan(oefeningen.map((o) => o.beeld)), [oefeningen])
   const sluit = useCallback(() => setOpen(null), [])
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
         <p className="club-training-beeldteller">
           <strong>{telling.met}</strong> van {telling.totaal} actieve oefeningen hebben een tekening
         </p>
-        <BeeldBron />
+        <BeeldBron bronnen={bronnen} />
       </div>
       {zichtbaar.length === 0 ? (
         <p className="club-leeg">{oefeningen.length === 0 ? 'De bibliotheek is nog leeg. Voeg een oefening toe.' : 'Geen oefeningen met deze filters.'}</p>
@@ -76,6 +79,7 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
           ))}
         </ul>
       )}
+      {bronnen.includes('repdb') && <RepdbVermelding />}
       {open && <OefeningPaneel open={open} onBewerk={(o) => setOpen({ soort: 'bewerk', oefening: o })} onSluit={sluit} />}
     </section>
   )
@@ -84,7 +88,10 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
 function OefeningKaart({ oefening: o, onOpen }: { oefening: Oefening; onOpen: () => void }) {
   return (
     <button type="button" className={`club-training-oefkaart ${o.actief ? '' : 'is-inactief'}`} onClick={onOpen}>
-      <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="middel" decoratief />
+      <span className="club-training-oefkaart-beelden">
+        <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="middel" decoratief />
+        <Spierkaart naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} formaat="klein" decoratief />
+      </span>
       <span className="club-training-oefkaart-tekst">
         <span className="club-training-oefkaart-kop">
           <span className="club-training-oefnaam">{o.naam}</span>
@@ -92,8 +99,9 @@ function OefeningKaart({ oefening: o, onOpen }: { oefening: Oefening; onOpen: ()
             {[1, 2, 3].map((n) => <i key={n} data-aan={n <= o.niveau} />)}
           </span>
         </span>
+        <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} />
         <span className="club-rij-sub">
-          {SPIERGROEP_LABEL[o.spiergroep]} · {MATERIAAL_LABEL[o.materiaal]}
+          {MATERIAAL_LABEL[o.materiaal]}
           {o.patroon ? ` · ${PATROON_LABEL[o.patroon]}` : ''}
         </span>
         {o.uitleg && <span className="club-training-oefuitleg">{o.uitleg}</span>}

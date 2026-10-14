@@ -7,6 +7,7 @@ import {
   hernoemDag, kopieerDag, naarPayloadRegels, nieuweDag, verplaats, verwijderDag, verwijderRegel, voegToe, wijzigRegel,
   type EditorStaat,
 } from '@/lib/club/training/editor'
+import { bronnenVan } from '@/lib/club/training/beeld'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, MAX_DAGEN } from '@/lib/club/training/typen'
 import { toonHerhalingen } from '@/lib/club/training/weergave'
@@ -18,6 +19,7 @@ import { EditorWerkbalk } from './EditorWerkbalk'
 import { BeeldBron } from './OefeningBeeld'
 import { OefeningKiezer } from './OefeningKiezer'
 import { SchemaPrint } from './SchemaPrint'
+import { SpierOverzicht } from './SpierOverzicht'
 
 interface SchemaEditorProps {
   schemaId: string
@@ -128,10 +130,11 @@ export function SchemaEditor(p: SchemaEditorProps) {
               <Plus aria-hidden size={16} /> Dag {dagLetter(staat.dagTitels.length + 1)} toevoegen
             </button>
           )}
-          {staat.regels.some((r) => perId.get(r.oefeningId)?.beeld) && <BeeldBron />}
+          <BeeldBron bronnen={bronnenVan(staat.regels.map((r) => perId.get(r.oefeningId)?.beeld))} />
         </div>
         <div className="club-k4 club-training-zij">
           <EditorKop kop={kop} zet={zetKop} trainers={p.trainers} isSjabloon={p.isSjabloon} />
+          <SpierOverzicht staat={staat} oefeningen={perId} />
           {p.zijkant}
         </div>
       </div>

@@ -4,6 +4,8 @@
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
 import { alsRij, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import { beeldenUitRij, type OefeningBeelden } from '@/lib/club/training/beeld'
+import { spierenUitRij } from '@/lib/club/training/rijen'
+import type { Spier } from '@/lib/club/training/spieren'
 
 export interface AppOefening {
   id: string
@@ -11,6 +13,9 @@ export interface AppOefening {
   volgorde: number
   naam: string
   spiergroep: string | null
+  /** Waar de oefening vooral op werkt, en wat meewerkt (leeg als nog niet ingevuld). */
+  spierenPrimair: Spier[]
+  spierenSecundair: Spier[]
   sets: number | null
   herhalingen: string | null
   gewichtKg: number | null
@@ -53,6 +58,7 @@ export function oefeningUitRij(v: unknown): AppOefening | null {
     volgorde: getal(r.volgorde) ?? 0,
     naam: ingeslotenNaam(r.club_oefeningen) ?? 'Oefening',
     spiergroep: oef ? tekst(oef.spiergroep) : null,
+    ...(oef ? spierenUitRij(oef) : { spierenPrimair: [], spierenSecundair: [] }),
     sets: getal(r.sets),
     herhalingen: tekst(r.herhalingen),
     gewichtKg: getal(r.gewicht_kg),

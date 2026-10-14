@@ -7,7 +7,8 @@ import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
 import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
-import { BeeldBron, OefeningBeeld } from '@/components/club/training/OefeningBeeld'
+import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
+import { bronnenVan } from '@/lib/club/training/beeld'
 import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
 
@@ -43,6 +44,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
   const nuDatum = new Date(nu)
   const gedaan = gedaanVandaag(logs, schema.id, dag.dag, nuDatum)
   const recent = logs.filter((l) => l.schemaId === schema.id).slice(0, 4)
+  const schemaBronnen = bronnenVan(schema.dagen.flatMap((d) => d.oefeningen.map((o) => o.beeld)))
 
   function vink() {
     setFout(null)
@@ -86,7 +88,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
           </li>
         ))}
       </ol>
-      {dag.oefeningen.some((o) => o.beeld) && <BeeldBron className="club-lidapp-beeldbron" />}
+      <BeeldBron className="club-lidapp-beeldbron" bronnen={bronnenVan(dag.oefeningen.map((o) => o.beeld))} />
       <button type="button" className={`club-lidapp-knop club-lidapp-knop--breed ${gedaan ? 'club-lidapp-knop--klaar' : 'club-lidapp-knop--primair'}`} onClick={vink} disabled={bezig || gedaan !== null}>
         {gedaan ? <Check aria-hidden size={18} /> : null}
         {bezig ? 'Bezig...' : gedaan ? `Dag ${dag.letter} gedaan vandaag` : `Training dag ${dag.letter} gedaan`}
@@ -114,6 +116,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
           </ul>
         </section>
       )}
+      {schemaBronnen.includes('repdb') && <RepdbVermelding className="club-lidapp-beeldbron" />}
       {open && <OefeningBlad oefening={open} onSluit={sluit} />}
     </div>
   )

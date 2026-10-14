@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { beeldenUitRij, isBeeldPad, telBeelden } from './beeld'
+import { BEELD_KOLOMMEN, beeldenUitRij, bronnenVan, isBeeldPad, telBeelden } from './beeld'
 import { BEELD_KOPPELING, beeldBestand, KOPPELING_BESTAAND, KOPPELING_NIEUW } from './beelden-koppeling'
 
 const ROOT = process.cwd()
@@ -68,12 +68,41 @@ describe('beeldpaden uit de database', () => {
   })
 
   it('geeft beide houdingen of niets', () => {
-    expect(beeldenUitRij({ beeld_start: start, beeld_eind: eind })).toEqual({ start, eind })
+    expect(beeldenUitRij({ beeld_start: start, beeld_eind: eind })).toEqual({ start, eind, bron: 'everkinetic', enkel: false })
     expect(beeldenUitRij({ beeld_start: start, beeld_eind: null })).toBeNull()
     expect(beeldenUitRij({})).toBeNull()
   })
 
   it('telt hoeveel oefeningen een tekening hebben', () => {
-    expect(telBeelden([{ beeld: { start, eind } }, { beeld: null }, { beeld: null }])).toEqual({ met: 1, totaal: 3 })
+    expect(telBeelden([{ beeld: { start, eind, bron: 'everkinetic', enkel: false } }, { beeld: null }, { beeld: null }])).toEqual({ met: 1, totaal: 3 })
+  })
+
+  it('laat ook RepDB-paden door en geeft de bron door', () => {
+    const rStart = '/club/oefeningen-repdb/squat-start.webp'
+    const rEind = '/club/oefeningen-repdb/squat-eind.webp'
+    expect(isBeeldPad(rStart)).toBe(true)
+    expect(isBeeldPad('/club/oefeningen-repdb/Squat-start.webp')).toBe(false)
+    expect(isBeeldPad('/club/oefeningen-repdb/squat-start.svg')).toBe(false)
+    expect(isBeeldPad('/club/oefeningen-repdb/../x-start.webp')).toBe(false)
+    expect(beeldenUitRij({ beeld_start: rStart, beeld_eind: rEind, beeld_bron: 'RepDB' })).toEqual({ start: rStart, eind: rEind, bron: 'repdb', enkel: false })
+    // Gemengde bronnen zijn geen geldig paar.
+    expect(beeldenUitRij({ beeld_start: rStart, beeld_eind: eind })).toBeNull()
+    expect(BEELD_KOLOMMEN).toContain('beeld_bron')
+  })
+
+  it('herkent een enkele houding (stilstaand beeld)', () => {
+    const plank = '/club/oefeningen-repdb/plank-start.webp'
+    expect(beeldenUitRij({ beeld_start: plank, beeld_eind: '/club/oefeningen-repdb/plank-eind.webp' })?.enkel).toBe(true)
+  })
+
+  it('werkt nog met alleen Everkinetic-paden zolang migratie 395 niet is toegepast', () => {
+    expect(beeldenUitRij({ beeld_start: start, beeld_eind: eind, beeld_bron: 'Everkinetic' })?.bron).toBe('everkinetic')
+  })
+
+  it('noemt elke bron een keer, RepDB eerst', () => {
+    const r = beeldenUitRij({ beeld_start: '/club/oefeningen-repdb/squat-start.webp', beeld_eind: '/club/oefeningen-repdb/squat-eind.webp' })
+    const e = beeldenUitRij({ beeld_start: start, beeld_eind: eind })
+    expect(bronnenVan([e, null, r, e])).toEqual(['repdb', 'everkinetic'])
+    expect(bronnenVan([null])).toEqual([])
   })
 })
