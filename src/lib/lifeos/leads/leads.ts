@@ -199,6 +199,32 @@ export function moetOpvolgen(l: Pick<Lead, 'status' | 'opvolgdatum'>, vandaag: s
   return OPEN_STATUSSEN.includes(l.status) && l.opvolgdatum !== null && l.opvolgdatum <= vandaag
 }
 
+/**
+ * De logische volgorde van een leadlijst: eerst wat aandacht nodig heeft, dan
+ * de rest. Open leads: te laat (langst te laat eerst), vandaag, zonder plan
+ * (langst wachtend eerst), daarna op opvolgdatum. Afgesloten leads (klant,
+ * geen klant, geen interesse) onderaan, nieuwste gesprek eerst.
+ */
+export function vergelijkLeads(vandaag: string): (a: Lead, b: Lead) => number {
+  const rang = (l: Lead) => {
+    if (!OPEN_STATUSSEN.includes(l.status)) return 4
+    if (l.opvolgdatum !== null && l.opvolgdatum < vandaag) return 0
+    if (l.opvolgdatum === vandaag) return 1
+    if (l.opvolgdatum === null) return 2
+    return 3
+  }
+  return (a, b) => {
+    const ra = rang(a)
+    const verschil = ra - rang(b)
+    if (verschil !== 0) return verschil
+    const opDatum =
+      ra === 4 ? b.gesprokenOp.localeCompare(a.gesprokenOp)
+      : ra === 2 ? a.gesprokenOp.localeCompare(b.gesprokenOp)
+      : (a.opvolgdatum ?? '').localeCompare(b.opvolgdatum ?? '')
+    return opDatum || a.naam.localeCompare(b.naam, 'nl')
+  }
+}
+
 // ─── Link-code ────────────────────────────────────────────────────────────────
 
 /** "Joey van Dijk" → "joey-van-dijk" (alleen a-z, 0-9 en streepjes). */

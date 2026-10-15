@@ -8,7 +8,7 @@
 //   4. Behoud — wie stopte (met reden), wie nadert het einde van de vaste periode.
 // Plus de meetbare afspraken van de vorige checkup: gehaald of niet.
 
-import { OPEN_STATUSSEN, moetOpvolgen, type Lead } from '@/lib/lifeos/leads/leads'
+import { OPEN_STATUSSEN, moetOpvolgen, vergelijkLeads, type Lead } from '@/lib/lifeos/leads/leads'
 import { eindeVastePeriode, isLopend, plusDagen, type PtKlant } from './abonnementen'
 
 /** Zonder eerdere afspraak kijken we zoveel dagen terug (de coachronde). */
@@ -190,17 +190,7 @@ export function scoreAfspraak(a: Afspraak, s: CheckupStand): AfspraakScore[] {
 
 // ─── Leads doorlopen ────────────────────────────────────────────────────────
 
-/**
- * De open leads in de volgorde waarin je ze in de wekelijkse bespreking
- * doorloopt: te laat (oudste eerst), vandaag, zonder plan, daarna op opvolgdatum.
- */
+/** De open leads in de volgorde waarin je ze in de wekelijkse bespreking doorloopt (zie vergelijkLeads). */
 export function leadsDoorlopen(leads: readonly Lead[], vandaag: string): Lead[] {
-  const rang = (l: Lead) =>
-    l.opvolgdatum !== null && l.opvolgdatum < vandaag ? 0
-    : l.opvolgdatum === vandaag ? 1
-    : l.opvolgdatum === null && (l.volgendeStap === null || l.volgendeStap === 'afgesloten') ? 2
-    : 3
-  return leads
-    .filter((l) => OPEN_STATUSSEN.includes(l.status))
-    .sort((a, b) => rang(a) - rang(b) || (a.opvolgdatum ?? '9999').localeCompare(b.opvolgdatum ?? '9999') || a.naam.localeCompare(b.naam, 'nl'))
+  return leads.filter((l) => OPEN_STATUSSEN.includes(l.status)).sort(vergelijkLeads(vandaag))
 }

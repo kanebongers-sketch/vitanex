@@ -1,5 +1,5 @@
 import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
-import { OPEN_STATUSSEN, moetOpvolgen, type Lead } from '@/lib/lifeos/leads/leads'
+import { OPEN_STATUSSEN, moetOpvolgen, vergelijkLeads, type Lead } from '@/lib/lifeos/leads/leads'
 import { LeadKaart } from '@/components/lifeos/pt-dashboard/LeadKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { FilterRij, filterClubs, gekozenClub, metFilters } from './FilterRij'
@@ -45,9 +45,10 @@ export async function EigenaarLeads({ code, pt, toon, club: clubRuw }: Props) {
     .filter((p) => !gekozen || p.id === gekozen.id)
     .flatMap((p) => (leads.get(p.id) ?? []).map((lead) => ({ lead, ptId: p.id })))
     .filter((x) => !club || x.lead.club === club)
+  const volgorde = vergelijkLeads(g.vandaag)
   const zichtbaar = alle
     .filter((x) => past(x.lead, weergave, g.vandaag))
-    .sort((a, b) => b.lead.gesprokenOp.localeCompare(a.lead.gesprokenOp) || a.lead.naam.localeCompare(b.lead.naam, 'nl'))
+    .sort((a, b) => volgorde(a.lead, b.lead))
   const basis = `/${code}/lead`
   const toonFilter = weergave === 'open' ? null : weergave
 

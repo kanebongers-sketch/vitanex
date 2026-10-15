@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Search } from 'lucide-react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { OPEN_STATUSSEN, leesLead, moetOpvolgen, type Lead, type LeadStatus } from '@/lib/lifeos/leads/leads'
+import { OPEN_STATUSSEN, leesLead, moetOpvolgen, vergelijkLeads, type Lead, type LeadStatus } from '@/lib/lifeos/leads/leads'
 import type { Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { LeadFormulier } from './LeadFormulier'
 import { LeadKaart } from './LeadKaart'
@@ -65,6 +65,7 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
   const zichtbaar = useMemo(() => {
     const q = zoek.trim().toLowerCase()
     return leads.filter((l) => past(l, filter, vandaag)).filter((l) => !q || `${l.naam} ${l.contact ?? ''} ${l.notitie ?? ''}`.toLowerCase().includes(q))
+      .sort(vergelijkLeads(vandaag))
   }, [leads, filter, zoek, vandaag])
 
   function vervang(l: Lead) {

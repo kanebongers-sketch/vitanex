@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  GERESERVEERD, CODE_PATROON, leadRegel, leesLead, leesLeadNotitieTekst, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
+  GERESERVEERD, CODE_PATROON, leadRegel, leesLead, leesLeadNotitieTekst, vergelijkLeads, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
   vatLeadsSamen, type Lead,
 } from './leads'
 
@@ -109,4 +109,20 @@ describe('logboek per lead', () => {
     const l = { ...lead(), logboek: [n, { id: 'kapot' }] }
     expect(leesLead(JSON.parse(JSON.stringify(l)))?.logboek).toEqual([n])
   })
+})
+
+test('vergelijkLeads: te laat, vandaag, zonder plan, later; afgesloten onderaan, nieuwste eerst', () => {
+  const ls = [
+    lead({ id: 'klant-oud', status: 'klant', gesprokenOp: '2026-09-01' }),
+    lead({ id: 'later', status: 'opvolgen', opvolgdatum: '2026-10-20' }),
+    lead({ id: 'plan-nieuw', gesprokenOp: '2026-10-07' }),
+    lead({ id: 'plan-oud', gesprokenOp: '2026-10-01' }),
+    lead({ id: 'vandaag', status: 'opvolgen', opvolgdatum: '2026-10-08' }),
+    lead({ id: 'laat-kort', status: 'opvolgen', opvolgdatum: '2026-10-07' }),
+    lead({ id: 'laat-lang', status: 'opvolgen', opvolgdatum: '2026-10-01' }),
+    lead({ id: 'geen-klant', status: 'geen_klant', gesprokenOp: '2026-10-05' }),
+  ]
+  expect([...ls].sort(vergelijkLeads('2026-10-08')).map((l) => l.id)).toEqual([
+    'laat-lang', 'laat-kort', 'vandaag', 'plan-oud', 'plan-nieuw', 'later', 'geen-klant', 'klant-oud',
+  ])
 })
