@@ -5,7 +5,7 @@ import { bouwTeamOverzicht, leesEigenaren, perVestiging } from './team-overzicht
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
-  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null,
+  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
   gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 const klant: PtKlant = {

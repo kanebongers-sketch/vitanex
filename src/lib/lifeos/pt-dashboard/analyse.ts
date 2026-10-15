@@ -78,8 +78,8 @@ export function weekReeks(leads: readonly Lead[], vandaag: string, weken = 8): W
   return reeks
 }
 
-/** Statussen die betekenen: er is een vervolgafspraak geweest of gepland. */
-const VERDER: readonly LeadStatus[] = ['proefles', 'intake', 'klant']
+/** Statussen die betekenen: er is een vervolgafspraak geweest of gepland (ook wie daarna geen klant werd). */
+const VERDER: readonly LeadStatus[] = ['proefles', 'intake', 'geen_klant', 'klant']
 
 /** Gesproken (alle leads) → in gesprek (proefles/intake ingepland of klant) → klant. */
 export function funnel(leads: readonly Pick<Lead, 'status'>[]): FunnelStap[] {
@@ -88,7 +88,7 @@ export function funnel(leads: readonly Pick<Lead, 'status'>[]): FunnelStap[] {
   const klant = leads.filter((l) => l.status === 'klant').length
   return [
     { sleutel: 'gesproken', label: 'Gesproken', aantal: totaal, pct: procent(totaal, totaal) },
-    { sleutel: 'in_gesprek', label: 'Proefles, intake of klant', aantal: verder, pct: procent(verder, totaal) },
+    { sleutel: 'in_gesprek', label: 'Proefles of intake gepland of gehad', aantal: verder, pct: procent(verder, totaal) },
     { sleutel: 'klant', label: 'Klant geworden', aantal: klant, pct: procent(klant, totaal) },
   ]
 }

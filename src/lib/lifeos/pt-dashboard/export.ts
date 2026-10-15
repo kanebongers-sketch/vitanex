@@ -8,7 +8,7 @@
 // tab/CR) begint, kan Excel als formule uitvoeren ("CSV-injectie"); die krijgt
 // een ' ervoor, zodat Excel hem als tekst toont.
 
-import { BRON_LABEL, INTERESSE_LABEL, STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
+import { BRON_LABEL, GEEN_KLANT_REDEN_LABEL, INTERESSE_LABEL, STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 import { CLUB_LABEL } from './clubs'
 import { ABONNEMENT, KLANT_STATUS_LABEL, eindeVastePeriode, klantPrijs, laatsteDag, type PtKlant } from './abonnementen'
 
@@ -30,7 +30,7 @@ const BOM = '﻿'
 
 const LEAD_KOLOMMEN = [
   'Datum', 'Trainer', 'Naam lead', 'Telefoon / contact', 'Club', 'Bron', 'Interesse', 'Status', 'Volgende stap',
-  'Opvolgdatum', 'Google review gevraagd', 'Referral gevraagd', 'Kent iemand', 'Notities',
+  'Opvolgdatum', 'Google review gevraagd', 'Referral gevraagd', 'Kent iemand', 'Notities', 'Reden geen klant',
 ] as const
 
 const KLANT_KOLOMMEN = [
@@ -77,6 +77,7 @@ function leadRij(trainer: string, l: Lead): string[] {
     jaNee(l.referralGevraagd),
     l.kentIemand ?? '',
     l.notitie ?? '',
+    l.geenKlantReden ? GEEN_KLANT_REDEN_LABEL[l.geenKlantReden] : '',
   ]
 }
 

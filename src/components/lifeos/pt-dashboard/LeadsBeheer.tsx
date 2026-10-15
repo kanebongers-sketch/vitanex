@@ -14,7 +14,7 @@ import { ptApi } from './api'
 // Lokale state voor directe feedback; `router.refresh()` houdt het overzicht
 // (en de tellers op /<naam>) in de pas.
 
-type Filter = 'open' | 'opvolgen' | 'klant' | 'geen_interesse' | 'alles'
+type Filter = 'open' | 'opvolgen' | 'klant' | 'geen_klant' | 'geen_interesse' | 'alles'
 
 interface Props {
   code: string
@@ -32,6 +32,7 @@ const FILTERS: { sleutel: Filter; label: string }[] = [
   { sleutel: 'open', label: 'Open' },
   { sleutel: 'opvolgen', label: 'Nu opvolgen' },
   { sleutel: 'klant', label: 'Klant geworden' },
+  { sleutel: 'geen_klant', label: 'Geen klant geworden' },
   { sleutel: 'geen_interesse', label: 'Geen interesse' },
   { sleutel: 'alles', label: 'Alles' },
 ]
@@ -40,6 +41,7 @@ function past(l: Lead, f: Filter, vandaag: string): boolean {
   if (f === 'open') return OPEN_STATUSSEN.includes(l.status)
   if (f === 'opvolgen') return moetOpvolgen(l, vandaag)
   if (f === 'klant') return l.status === 'klant'
+  if (f === 'geen_klant') return l.status === 'geen_klant'
   if (f === 'geen_interesse') return l.status === 'geen_interesse'
   return true
 }

@@ -7,7 +7,7 @@ import { voorClub } from './club-filter'
 
 const lead = (id: string, club: Lead['club']): Lead => ({
   id, naam: id, contact: null, club, bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null,
-  reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z',
+  reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z',
 })
 const klant = (id: string, club: PtKlant['club']): PtKlant => ({
   id, naam: id, contact: null, duoPartner: null, club, abonnement: '1x', startdatum: '2026-09-01', status: 'actief', opgezegdOp: null,

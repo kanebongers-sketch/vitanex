@@ -6,7 +6,7 @@ import { bedragNl, csvCel, datumNl, exportBestandsnaam, isExportSoort, klantenCs
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'Sanne', contact: '0612345678', club: 'eersel', bron: 'vloer', interesse: 'warm', status: 'opvolgen',
   volgendeStap: 'bellen', opvolgdatum: '2026-10-10', reviewGevraagd: true, referralGevraagd: false, kentIemand: null,
-  notitie: null, gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
+  notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k', naam: 'Tom', contact: null, duoPartner: null, club: 'eersel', abonnement: '2x', startdatum: '2026-09-01',
@@ -43,9 +43,9 @@ describe('leadsCsv', () => {
     expect(csv.endsWith('\r\n')).toBe(true)
     const [kop, rij] = regels(csv)
     expect(kop).toBe(
-      'Datum;Trainer;Naam lead;Telefoon / contact;Club;Bron;Interesse;Status;Volgende stap;Opvolgdatum;Google review gevraagd;Referral gevraagd;Kent iemand;Notities',
+      'Datum;Trainer;Naam lead;Telefoon / contact;Club;Bron;Interesse;Status;Volgende stap;Opvolgdatum;Google review gevraagd;Referral gevraagd;Kent iemand;Notities;Reden geen klant',
     )
-    expect(rij).toBe('07-10-2026;Joey;Sanne;0612345678;Eersel;Vloer;Warm;Opvolgen;Bellen;10-10-2026;Ja;Nee;;')
+    expect(rij).toBe('07-10-2026;Joey;Sanne;0612345678;Eersel;Vloer;Warm;Opvolgen;Bellen;10-10-2026;Ja;Nee;;;')
   })
   test('per trainer in volgorde, nieuwste gesprek eerst; lege velden leeg', () => {
     const csv = leadsCsv([
@@ -55,7 +55,7 @@ describe('leadsCsv', () => {
     const r = regels(csv)
     expect(r[1]).toContain(';Nieuw;')
     expect(r[2]).toContain(';Oud;')
-    expect(r[3]).toBe('07-10-2026;Luna;L;0612345678;;Vloer;;Opvolgen;;;Ja;Nee;;')
+    expect(r[3]).toBe('07-10-2026;Luna;L;0612345678;;Vloer;;Opvolgen;;;Ja;Nee;;;')
   })
   test('alleen de kopregel zonder leads', () => {
     expect(regels(leadsCsv([]))).toHaveLength(2)

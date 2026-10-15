@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { CalendarClock, Check, Pencil } from 'lucide-react'
 import {
-  BRON_LABEL, INTERESSE_LABEL, LEAD_STATUSSEN, STAP_LABEL, STATUS_LABEL, isStatus, moetOpvolgen, type Lead, type LeadStatus,
+  BRON_LABEL, GEEN_KLANT_REDEN_LABEL, INTERESSE_LABEL, LEAD_STATUSSEN, STAP_LABEL, STATUS_LABEL, isStatus, moetOpvolgen, type Lead, type LeadStatus,
 } from '@/lib/lifeos/leads/leads'
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { geleden, relatief } from '@/lib/lifeos/pt-dashboard/datum'
@@ -27,7 +27,7 @@ interface Props {
 
 export function statusBadge(status: LeadStatus): string {
   if (status === 'klant') return 'ptd-badge ptd-badge--accent'
-  if (status === 'geen_interesse') return 'ptd-badge ptd-badge--stil'
+  if (status === 'geen_interesse' || status === 'geen_klant') return 'ptd-badge ptd-badge--stil'
   return 'ptd-badge'
 }
 
@@ -46,6 +46,7 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, traine
         {lead.club ? <span>{CLUB_LABEL[lead.club]}</span> : null}
         <span>{BRON_LABEL[lead.bron]}</span>
         {lead.interesse ? <span>{INTERESSE_LABEL[lead.interesse]}</span> : null}
+        {lead.geenKlantReden ? <span>Reden: {GEEN_KLANT_REDEN_LABEL[lead.geenKlantReden]}</span> : null}
         {lead.contact ? <span>{lead.contact}</span> : null}
       </div>
       {lead.opvolgdatum || lead.volgendeStap ? (

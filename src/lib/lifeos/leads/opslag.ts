@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isClub } from '@/lib/lifeos/pt-dashboard/clubs'
-import { isBron, isInteresse, isStap, isStatus, type Lead, type NieuweLead } from './leads'
+import { isBron, isGeenKlantReden, isInteresse, isStap, isStatus, type Lead, type NieuweLead } from './leads'
 import type { LeadLink } from './links'
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'te_veel' | 'niet_gevonden' }
@@ -14,7 +14,7 @@ export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | '
 const MAX_PER_UUR = 40
 
 const KOLOMMEN =
-  'id, naam, contact, locatie, bron, interesse, status, volgende_stap, opvolgdatum, review_gevraagd, referral_gevraagd, kent_iemand, notitie, gesproken_op, aangemaakt_op'
+  'id, naam, contact, locatie, bron, interesse, status, volgende_stap, opvolgdatum, review_gevraagd, referral_gevraagd, kent_iemand, notitie, geen_klant_reden, gesproken_op, aangemaakt_op'
 
 interface Rij {
   id: string
@@ -30,6 +30,7 @@ interface Rij {
   referral_gevraagd: boolean
   kent_iemand: string | null
   notitie: string | null
+  geen_klant_reden: string | null
   gesproken_op: string
   aangemaakt_op: string
 }
@@ -50,6 +51,7 @@ function vanRij(r: Rij): Lead | null {
     referralGevraagd: r.referral_gevraagd === true,
     kentIemand: r.kent_iemand,
     notitie: r.notitie,
+    geenKlantReden: r.status === 'geen_klant' && isGeenKlantReden(r.geen_klant_reden) ? r.geen_klant_reden : null,
     gesprokenOp: r.gesproken_op,
     aangemaaktOp: r.aangemaakt_op,
   }
@@ -76,6 +78,7 @@ function naarRij(l: NieuweLead) {
     referral_gevraagd: l.referralGevraagd,
     kent_iemand: l.kentIemand,
     notitie: l.notitie,
+    geen_klant_reden: l.geenKlantReden,
     gesproken_op: l.gesprokenOp,
   }
 }

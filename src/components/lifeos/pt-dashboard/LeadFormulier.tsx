@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import {
-  BRON_LABEL, INTERESSE_LABEL, INTERESSES, LEAD_BRONNEN, LEAD_STATUSSEN, STAP_LABEL, STAPPEN, STATUS_LABEL,
+  BRON_LABEL, GEEN_KLANT_REDENEN, GEEN_KLANT_REDEN_LABEL, INTERESSE_LABEL, INTERESSES, LEAD_BRONNEN, LEAD_STATUSSEN, STAP_LABEL, STAPPEN, STATUS_LABEL,
   isStap, isStatus, leesLead, type Lead, type NieuweLead,
 } from '@/lib/lifeos/leads/leads'
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
@@ -31,7 +31,7 @@ interface Props {
 function leeg(vandaag: string, club: Club | null): NieuweLead {
   return {
     naam: '', contact: null, club, bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null,
-    reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, gesprokenOp: vandaag,
+    reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: vandaag,
   }
 }
 
@@ -98,6 +98,16 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
           </select>
         </Veld>
       </div>
+
+      {v.status === 'geen_klant' ? (
+        <Keuzes
+          label="Waarom geen klant?"
+          leegToegestaan
+          opties={GEEN_KLANT_REDENEN.map((r) => ({ waarde: r, label: GEEN_KLANT_REDEN_LABEL[r] }))}
+          waarde={v.geenKlantReden}
+          onKies={(r) => zet('geenKlantReden', r)}
+        />
+      ) : null}
 
       <Keuzes label="Bron *" opties={LEAD_BRONNEN.map((b) => ({ waarde: b, label: BRON_LABEL[b] }))} waarde={v.bron} onKies={(b) => b && zet('bron', b)} />
       <Keuzes label="Interesse" leegToegestaan opties={INTERESSES.map((i) => ({ waarde: i, label: INTERESSE_LABEL[i] }))} waarde={v.interesse} onKies={(i) => zet('interesse', i)} />

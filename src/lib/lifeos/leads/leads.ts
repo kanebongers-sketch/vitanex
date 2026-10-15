@@ -10,7 +10,7 @@ function keuze<const T extends readonly string[]>(lijst: T) {
   return (v: unknown): v is T[number] => typeof v === 'string' && (lijst as readonly string[]).includes(v)
 }
 
-export const LEAD_STATUSSEN = ['nieuw', 'opvolgen', 'proefles', 'intake', 'later', 'geen_interesse', 'klant'] as const
+export const LEAD_STATUSSEN = ['nieuw', 'opvolgen', 'proefles', 'intake', 'later', 'geen_interesse', 'geen_klant', 'klant'] as const
 export type LeadStatus = (typeof LEAD_STATUSSEN)[number]
 export const STATUS_LABEL: Record<LeadStatus, string> = {
   nieuw: 'Nieuw',
@@ -19,11 +19,24 @@ export const STATUS_LABEL: Record<LeadStatus, string> = {
   intake: 'Intake ingepland',
   later: 'Later opvolgen',
   geen_interesse: 'Geen interesse',
+  geen_klant: 'Geen klant geworden',
   klant: 'Klant geworden',
 }
 /** Nog in de pijplijn (niet afgesloten). */
 export const OPEN_STATUSSEN: readonly LeadStatus[] = ['nieuw', 'opvolgen', 'proefles', 'intake', 'later']
 export const isStatus = keuze(LEAD_STATUSSEN)
+
+/** Waarom iemand na een intake of proefles geen klant werd (optioneel, bij status geen_klant). */
+export const GEEN_KLANT_REDENEN = ['te_duur', 'geen_tijd', 'zelf_trainen', 'elders', 'anders'] as const
+export type GeenKlantReden = (typeof GEEN_KLANT_REDENEN)[number]
+export const GEEN_KLANT_REDEN_LABEL: Record<GeenKlantReden, string> = {
+  te_duur: 'Te duur',
+  geen_tijd: 'Geen tijd',
+  zelf_trainen: 'Traint liever zelf',
+  elders: 'Gaat ergens anders',
+  anders: 'Anders',
+}
+export const isGeenKlantReden = keuze(GEEN_KLANT_REDENEN)
 
 export const LEAD_BRONNEN = ['vloer', 'walk_in', 'intake', 'proefles', 'referral', 'social', 'mailing', 'bellen', 'anders'] as const
 export type LeadBron = (typeof LEAD_BRONNEN)[number]
@@ -79,6 +92,8 @@ export interface Lead {
   referralGevraagd: boolean
   kentIemand: string | null
   notitie: string | null
+  /** Alleen bij status geen_klant: waarom niet. */
+  geenKlantReden: GeenKlantReden | null
   /** Dagsleutel YYYY-MM-DD: wanneer gesproken. */
   gesprokenOp: string
   aangemaaktOp: string
@@ -118,6 +133,7 @@ export function leesNieuweLead(body: unknown, vandaag: string, { clubVerplicht =
     gesprokenOp = o.gesprokenOp
   }
   const opvolgdatum = typeof o.opvolgdatum === 'string' && DAG.test(o.opvolgdatum) ? o.opvolgdatum : null
+  const status = isStatus(o.status) ? o.status : 'nieuw'
   return {
     ok: true,
     waarde: {
@@ -126,13 +142,14 @@ export function leesNieuweLead(body: unknown, vandaag: string, { clubVerplicht =
       club: isClub(o.club) ? o.club : null,
       bron: o.bron,
       interesse: isInteresse(o.interesse) ? o.interesse : null,
-      status: isStatus(o.status) ? o.status : 'nieuw',
+      status,
       volgendeStap: isStap(o.volgendeStap) ? o.volgendeStap : null,
       opvolgdatum,
       reviewGevraagd: o.reviewGevraagd === true,
       referralGevraagd: o.referralGevraagd === true,
       kentIemand: tekst(o.kentIemand, 200),
       notitie: tekst(o.notitie, 1000),
+      geenKlantReden: status === 'geen_klant' && isGeenKlantReden(o.geenKlantReden) ? o.geenKlantReden : null,
       gesprokenOp,
     },
   }

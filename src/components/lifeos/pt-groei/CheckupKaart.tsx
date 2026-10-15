@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { STATUS_LABEL, STAP_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
+import { GEEN_KLANT_REDEN_LABEL, STATUS_LABEL, STAP_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 import { STOP_REDEN_LABEL, type PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagKort, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { scoreAfspraak, type Afspraak, type CheckupStand } from '@/lib/lifeos/pt-dashboard/checkup'
@@ -83,10 +83,16 @@ export function CheckupKaart({ stand: s, vandaag, doelGesprekken }: { stand: Che
       <Blok
         nr="02"
         titel="Pijplijn & conversie"
-        kern={`${s.pijplijn.ingepland.length} ingepland · ${s.pijplijn.nieuweKlanten.length} nieuwe klanten · ${s.pijplijn.nieuwKlant} van ${s.leads.nieuw.length} nieuwe leads al klant`}
+        kern={`${s.pijplijn.ingepland.length} ingepland · ${s.pijplijn.nieuweKlanten.length} nieuwe klanten · ${s.pijplijn.nieuwKlant} van ${s.leads.nieuw.length} nieuwe leads klant, ${s.pijplijn.nieuwGeenKlant.length} geen klant`}
       >
         <Namen titel="Intake of proefles ingepland" items={s.pijplijn.ingepland} sleutel={(l) => l.id} regel={leadRegel(vandaag)} leeg="Niemand ingepland voor intake of proefles." />
         <Namen titel="Nieuwe klanten" items={s.pijplijn.nieuweKlanten} sleutel={(k) => k.id} regel={klantNaam} />
+        <Namen
+          titel="Geen klant geworden: wat kunnen we leren?"
+          items={s.pijplijn.nieuwGeenKlant}
+          sleutel={(l) => l.id}
+          regel={(l) => <><strong>{l.naam}</strong><span>{l.geenKlantReden ? GEEN_KLANT_REDEN_LABEL[l.geenKlantReden] : 'reden niet ingevuld'}</span></>}
+        />
       </Blok>
       <Blok
         nr="03"

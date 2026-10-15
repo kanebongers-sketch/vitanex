@@ -94,6 +94,8 @@ export interface CheckupStand {
     nieuweKlanten: PtKlant[]
     /** Van de nieuwe leads: hoeveel inmiddels klant. */
     nieuwKlant: number
+    /** Van de nieuwe leads: wie na intake of proefles geen klant werd (met reden). */
+    nieuwGeenKlant: Lead[]
   }
   referrals: {
     lopend: number
@@ -140,6 +142,7 @@ export function checkupStand(leads: readonly Lead[], klanten: readonly PtKlant[]
       ingepland: open.filter((l) => l.status === 'intake' || l.status === 'proefles').sort(opNaam),
       nieuweKlanten: klanten.filter((k) => inPeriode(k.startdatum)).sort(opNaam),
       nieuwKlant: nieuw.filter((l) => l.status === 'klant').length,
+      nieuwGeenKlant: nieuw.filter((l) => l.status === 'geen_klant').sort(opNaam),
     },
     referrals: {
       lopend: lopend.length,

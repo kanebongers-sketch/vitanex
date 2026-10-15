@@ -8,7 +8,7 @@ import {
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l1', naam: 'Sanne', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
-  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null,
+  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
   gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 
@@ -34,6 +34,14 @@ describe('lead invoer', () => {
   test('een opgeslagen lead zonder club blijft leesbaar (verdwijnt niet uit lijsten)', () => {
     const oud = { ...lead(), club: null }
     expect(leesLead(JSON.parse(JSON.stringify(oud)))?.club).toBeNull()
+  })
+  test('geen klant geworden: reden alleen bij die status', () => {
+    const r = leesNieuweLead({ naam: 'X', bron: 'vloer', club: 'eersel', status: 'geen_klant', geenKlantReden: 'te_duur' }, '2026-10-08')
+    expect(r.ok && r.waarde.geenKlantReden).toBe('te_duur')
+    const anders = leesNieuweLead({ naam: 'X', bron: 'vloer', club: 'eersel', status: 'opvolgen', geenKlantReden: 'te_duur' }, '2026-10-08')
+    expect(anders.ok && anders.waarde.geenKlantReden).toBeNull()
+    const onbekend = leesNieuweLead({ naam: 'X', bron: 'vloer', club: 'eersel', status: 'geen_klant', geenKlantReden: 'maan' }, '2026-10-08')
+    expect(onbekend.ok && onbekend.waarde.geenKlantReden).toBeNull()
   })
   test('rondreis via JSON', () => {
     const l = lead({ opvolgdatum: '2026-10-10', reviewGevraagd: true })
