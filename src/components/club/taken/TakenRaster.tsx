@@ -95,7 +95,7 @@ export function TakenRaster({ lijst, taken, dagen }: RasterProps) {
         {lijst.naam}
       </h2>
       <div className="club-taken-tabelwrap">
-        <table className="club-taken-raster">
+        <table className="club-taken-raster" data-een-dag={dagen.length === 1 || undefined}>
           <thead>
             <tr>
               <th scope="col" className="club-taken-naam">
