@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dagenTussen, dagLang, dagSleutel, dagStart, jarigOp, leeftijdOp, maandagVan, nlMoment, plusDagen, tijdNl, weekdagVan } from './tijd'
-import { kiesBereik, kiesPeriode, periodeStart, wekenReeks } from './periode'
+import { kiesBereik } from './periode'
 
 describe('tijd in Nederland', () => {
   it('rekent een bezoek na middernacht NL tot de nieuwe dag', () => {
@@ -42,22 +42,10 @@ describe('tijd in Nederland', () => {
   })
 })
 
-describe('periode uit de URL', () => {
-  it('accepteert alleen 4, 12, 26 of 52 weken', () => {
-    expect(kiesPeriode('26')).toBe(26)
-    expect(kiesPeriode('5')).toBe(12)
-    expect(kiesPeriode(undefined)).toBe(12)
-    expect(kiesPeriode(['52'])).toBe(52)
-  })
-
+describe('bereik uit de URL', () => {
   it('kent alleen het bereik alle of de vestiging', () => {
     expect(kiesBereik('alle')).toBe('alle')
+    expect(kiesBereik(['alle'])).toBe('alle')
     expect(kiesBereik('iets')).toBe('vestiging')
-  })
-
-  it('maakt een reeks maandagen met de lopende week als laatste', () => {
-    const r = wekenReeks('2026-10-14', 4)
-    expect(r).toEqual(['2026-09-21', '2026-09-28', '2026-10-05', '2026-10-12'])
-    expect(periodeStart('2026-10-14', 4)).toBe('2026-09-21')
   })
 })

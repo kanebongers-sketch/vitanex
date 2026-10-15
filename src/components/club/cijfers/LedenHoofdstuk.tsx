@@ -6,7 +6,7 @@ import type { Verdeling } from '@/lib/club/cijfers/leden'
 import { BalkTabel } from './BalkTabel'
 import { CijferBlok, Hoofdstuk } from './CijferBlok'
 import { GroeiGrafiek } from './GroeiGrafiek'
-import { bereikNaam, bestandsdeel, weekLabels, type CijferContext } from './context'
+import { bereikNaam, bestandsdeel, maandLabels, type CijferContext } from './context'
 
 function verdelingRijen(v: Verdeling[]) {
   const totaal = Math.max(1, som(v.map((x) => x.aantal)))
@@ -16,29 +16,40 @@ function verdelingRijen(v: Verdeling[]) {
 
 export function LedenHoofdstuk({ c }: { c: CijferContext }) {
   const r = c.rapport
-  const w = weekLabels(c.maandagen)
-  const instroom = som(r.stroom.instroom)
-  const uitstroom = som(r.stroom.uitstroom)
+  const trend = r.trend
+  const m = maandLabels(trend.map((k) => k.venster.maand))
+  const bestand = trend.map((k) => k.cijfers.bestandEind)
+  const instroom = trend.map((k) => k.cijfers.instroom)
+  const uitstroom = trend.map((k) => k.cijfers.uitstroom)
+  const h = r.huidig.cijfers
   const deel = bestandsdeel(c)
   return (
     <Hoofdstuk nummer="01" titel="Leden">
       <CijferBlok
         id="blok-groei"
         className="club-k8"
-        titel="Ledenbestand en groei"
+        titel="Ledenbestand, 12 maanden"
         kern={
           <>
-            <strong>{metTeken(instroom)}</strong> in · <strong>{metTeken(-uitstroom)}</strong> uit
+            Deze maand <strong>{metTeken(h.instroom)}</strong> in · <strong>{metTeken(-h.uitstroom)}</strong> uit
           </>
         }
         definitie={`${DEFINITIES.ledenbestand} ${DEFINITIES.stroom}`}
         csv={{
-          bestand: csvBestandsnaam('ledenbestand', deel),
-          kop: ['Week (maandag)', 'Ledenbestand', 'Instroom', 'Uitstroom'],
-          rijen: c.maandagen.map((m, i) => [m, r.ledenbestand[i], r.stroom.instroom[i], r.stroom.uitstroom[i]]),
+          bestand: csvBestandsnaam('ledenbestand-per-maand', deel),
+          kop: ['Maand', 'Ledenbestand begin', 'Ledenbestand eind', 'Instroom', 'Uitstroom', 'Groei'],
+          rijen: trend.map((k) => [k.venster.maand, k.cijfers.bestandBegin, k.cijfers.bestandEind, k.cijfers.instroom, k.cijfers.uitstroom, k.cijfers.groei]),
         }}
       >
-        <GroeiGrafiek labels={w.labels} namen={w.namen} bestand={r.ledenbestand} instroom={r.stroom.instroom} uitstroom={r.stroom.uitstroom} labelElke={w.labelElke} />
+        <GroeiGrafiek
+          labels={m.labels}
+          namen={m.namen}
+          bestand={bestand}
+          instroom={instroom}
+          uitstroom={uitstroom}
+          labelElke={1}
+          zacht={trend.map((k) => k.venster.lopend)}
+        />
       </CijferBlok>
       <div className="club-k4 club-cijfers-stapel">
         <CijferBlok

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { bezoekPerWeek, drukteRaster, piekUur, telBezoek, zichtbareUren } from './bezoek'
-import { conversiePerBron, type LeadCijferRij } from './leads'
+import { bezoekIn, bezoekPerDag, drukteRaster, piekUur, telBezoek, zichtbareUren } from './bezoek'
+import { conversiePerBron, leadsIn, type LeadCijferRij } from './leads'
 import { naarCsv, csvBestandsnaam } from './csv'
 
 describe('bezoek tellen', () => {
@@ -11,10 +11,19 @@ describe('bezoek tellen', () => {
     { vestiging: 'eersel', op: new Date('2026-10-13T08:00:00Z') }, // di 10:00
   ])
 
-  it('telt per week, per vestiging of alles samen', () => {
-    const maandagen = ['2026-10-05', '2026-10-12']
-    expect(bezoekPerWeek(tellingen, maandagen, new Set(['budel'] as const))).toEqual([1, 2])
-    expect(bezoekPerWeek(tellingen, maandagen, null)).toEqual([1, 3])
+  it('telt per dag, per vestiging of alles samen', () => {
+    const budel = bezoekPerDag(tellingen, new Set(['budel'] as const))
+    expect(budel.get('2026-10-12')).toBe(2)
+    expect(budel.get('2026-10-05')).toBe(1)
+    const alle = bezoekPerDag(tellingen, null)
+    expect(bezoekIn(alle, { van: '2026-10-06', tot: '2026-10-31' })).toBe(3)
+    expect(bezoekIn(alle, { van: '2026-10-01', tot: '2026-10-05' })).toBe(1)
+  })
+
+  it('telt drukte alleen vanaf het begin van de gekozen maand', () => {
+    const t = telBezoek([{ vestiging: 'budel', op: new Date('2026-09-30T21:30:00Z') }, { vestiging: 'budel', op: new Date('2026-09-30T22:30:00Z') }], new Date('2026-09-30T22:00:00Z'))
+    expect(t.filter((x) => x.soort === 'uur')).toEqual([{ vestiging: 'budel', soort: 'uur', sleutel: '4-0', aantal: 1 }])
+    expect(t.filter((x) => x.soort === 'dag').map((x) => x.sleutel)).toEqual(['2026-09-30', '2026-10-01'])
   })
 
   it('vult het drukteraster per weekdag en uur en vindt de piek', () => {
@@ -31,7 +40,7 @@ describe('bezoek tellen', () => {
 })
 
 describe('leadconversie', () => {
-  const lead = (deel: Partial<LeadCijferRij>): LeadCijferRij => ({ vestiging: 'budel', bron: 'website', status: 'nieuw', proeflesOp: null, ...deel })
+  const lead = (deel: Partial<LeadCijferRij>): LeadCijferRij => ({ vestiging: 'budel', bron: 'website', status: 'nieuw', proeflesOp: null, aangemaakt: '2026-10-02', ...deel })
 
   it('rekent per bron proefles, lid, verloren en open', () => {
     const { perBron, totaal } = conversiePerBron([
@@ -44,6 +53,11 @@ describe('leadconversie', () => {
     expect(perBron[0]).toMatchObject({ bron: 'website', leads: 4, proefles: 2, lid: 1, verloren: 1, open: 2, conversie: 0.25 })
     expect(perBron[1]).toMatchObject({ bron: 'balie', leads: 1, conversie: 1 })
     expect(totaal).toMatchObject({ leads: 5, lid: 2 })
+  })
+
+  it('neemt alleen leads uit het venster', () => {
+    const r = leadsIn([lead({}), lead({ aangemaakt: '2026-09-30' }), lead({ aangemaakt: null })], { van: '2026-10-01', tot: '2026-10-31' })
+    expect(r).toHaveLength(1)
   })
 })
 

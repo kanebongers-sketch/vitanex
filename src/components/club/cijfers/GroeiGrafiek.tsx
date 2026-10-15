@@ -1,7 +1,7 @@
 import { heel, metTeken, mooieAs, mooiMaximum } from '@/lib/club/cijfers/opmaak'
 import { Plot, XAs, yVan } from './Plot'
 
-// Twee grafieken met elk een eigen schaal, onder elkaar op dezelfde weken:
+// Twee grafieken met elk een eigen schaal, onder elkaar op dezelfde maanden:
 // boven het ledenbestand als lijn (as rond de echte waarden, niet vanaf nul),
 // onder instroom (groen, omhoog) en uitstroom (koraal, omlaag) als staven rond nul.
 
@@ -12,6 +12,8 @@ interface Props {
   instroom: number[]
   uitstroom: number[]
   labelElke: number
+  /** Per kolom: nog niet compleet (de lopende maand), staat lichter. */
+  zacht: boolean[]
 }
 
 function xMidden(i: number, n: number): number {
@@ -28,8 +30,8 @@ function Bestand({ namen, bestand }: Pick<Props, 'namen' | 'bestand'>) {
   return (
     <Plot
       id="groei-bestand"
-      titel="Ledenbestand per week"
-      beschrijving={`Van ${heel(bestand[0] ?? 0)} naar ${heel(bestand.at(-1) ?? 0)} leden over ${n} weken.`}
+      titel="Ledenbestand per maand"
+      beschrijving={`Van ${heel(bestand[0] ?? 0)} naar ${heel(bestand.at(-1) ?? 0)} leden over ${n} maanden.`}
       streepjes={as.streepjes.map((w) => ({ label: heel(w), fractie: f(w) }))}
     >
       {vlak && <path d={vlak} className="club-cijfers-vlak" />}
@@ -43,7 +45,7 @@ function Bestand({ namen, bestand }: Pick<Props, 'namen' | 'bestand'>) {
   )
 }
 
-function Stroom({ namen, instroom, uitstroom }: Pick<Props, 'namen' | 'instroom' | 'uitstroom'>) {
+function Stroom({ namen, instroom, uitstroom, zacht }: Pick<Props, 'namen' | 'instroom' | 'uitstroom' | 'zacht'>) {
   const n = Math.max(instroom.length, 1)
   const max = mooiMaximum(Math.max(1, ...instroom, ...uitstroom))
   const breed = 100 / n
@@ -52,8 +54,8 @@ function Stroom({ namen, instroom, uitstroom }: Pick<Props, 'namen' | 'instroom'
   return (
     <Plot
       id="groei-stroom"
-      titel="Instroom en uitstroom per week"
-      beschrijving={`${heel(instroom.reduce((s, w) => s + w, 0))} nieuwe leden en ${heel(uitstroom.reduce((s, w) => s + w, 0))} vertrokken leden over ${n} weken.`}
+      titel="Instroom en uitstroom per maand"
+      beschrijving={`${heel(instroom.reduce((s, w) => s + w, 0))} nieuwe leden en ${heel(uitstroom.reduce((s, w) => s + w, 0))} vertrokken leden over ${n} maanden.`}
       streepjes={[
         { label: `+${heel(max)}`, fractie: 1 },
         { label: '0', fractie: 0.5 },
@@ -64,13 +66,13 @@ function Stroom({ namen, instroom, uitstroom }: Pick<Props, 'namen' | 'instroom'
       {instroom.map((w, i) => {
         const top = yVan(0.5 + (w / max) * 0.5)
         return (
-          <rect key={`in-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={top} height={nul - top} className="club-cijfers-staaf--in">
+          <rect key={`in-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={top} height={nul - top} className={zacht[i] ? 'club-cijfers-staaf--in club-cijfers-staaf--zacht' : 'club-cijfers-staaf--in'}>
             <title>{`${namen[i]}: ${heel(w)} nieuw`}</title>
           </rect>
         )
       })}
       {uitstroom.map((w, i) => (
-        <rect key={`uit-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={nul} height={yVan(0.5 - (w / max) * 0.5) - nul} className="club-cijfers-staaf--uit">
+        <rect key={`uit-${namen[i]}`} x={i * breed + gat / 2} width={breed - gat} y={nul} height={yVan(0.5 - (w / max) * 0.5) - nul} className={zacht[i] ? 'club-cijfers-staaf--uit club-cijfers-staaf--zacht' : 'club-cijfers-staaf--uit'}>
           <title>{`${namen[i]}: ${heel(w)} vertrokken`}</title>
         </rect>
       ))}
@@ -78,14 +80,14 @@ function Stroom({ namen, instroom, uitstroom }: Pick<Props, 'namen' | 'instroom'
   )
 }
 
-export function GroeiGrafiek({ labels, namen, bestand, instroom, uitstroom, labelElke }: Props) {
-  if (bestand.length === 0) return <p className="club-leeg">Nog geen weken om te tonen.</p>
+export function GroeiGrafiek({ labels, namen, bestand, instroom, uitstroom, labelElke, zacht }: Props) {
+  if (bestand.length === 0) return <p className="club-leeg">Nog geen maanden om te tonen.</p>
   const netto = instroom.reduce((s, w) => s + w, 0) - uitstroom.reduce((s, w) => s + w, 0)
   return (
     <figure className="club-cijfers-figuur club-cijfers-groei">
       <div className="club-cijfers-deel">
         <p className="club-cijfers-deelkop">
-          Ledenbestand <span>aan het eind van elke week</span>
+          Ledenbestand <span>aan het eind van elke maand, de lopende maand tot en met vandaag</span>
         </p>
         <Bestand namen={namen} bestand={bestand} />
       </div>
@@ -93,7 +95,7 @@ export function GroeiGrafiek({ labels, namen, bestand, instroom, uitstroom, labe
         <p className="club-cijfers-deelkop">
           Instroom en uitstroom <span>netto {metTeken(netto)}</span>
         </p>
-        <Stroom namen={namen} instroom={instroom} uitstroom={uitstroom} />
+        <Stroom namen={namen} instroom={instroom} uitstroom={uitstroom} zacht={zacht} />
         <XAs labels={labels} sleutels={namen} labelElke={labelElke} />
       </div>
       <figcaption className="club-cijfers-legenda">
@@ -102,10 +104,10 @@ export function GroeiGrafiek({ labels, namen, bestand, instroom, uitstroom, labe
         <span data-reeks="uit">Uitstroom</span>
       </figcaption>
       <table className="club-sr">
-        <caption>Ledenbestand, instroom en uitstroom per week</caption>
+        <caption>Ledenbestand, instroom en uitstroom per maand</caption>
         <thead>
           <tr>
-            <th scope="col">Week</th>
+            <th scope="col">Maand</th>
             <th scope="col">Ledenbestand</th>
             <th scope="col">Instroom</th>
             <th scope="col">Uitstroom</th>

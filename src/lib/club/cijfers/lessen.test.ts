@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { bezettingPerLestype, bezettingPerTijdslot, geweestVoor, lesTotalen, telPerLes, wachtlijstdruk, type LesBasis } from './lessen'
-import { maakRapport, gemiddeldPerWeek } from './rapport'
+import { bezettingPerLestype, bezettingPerTijdslot, geweestVoor, telPerLes, wachtlijstdruk, type LesBasis } from './lessen'
+import { lesDagen, lesSomIn } from './lesdagen'
 
 const les = (id: string, lestype: string, start: string, capaciteit = 10, geannuleerd = false): LesBasis => ({
   id,
@@ -35,7 +35,7 @@ describe('lescijfers', () => {
   it('rekent bezetting en no-show over lessen die geweest zijn', () => {
     const geweest = geweestVoor(lessen, nu)
     expect(geweest.map((l) => l.id)).toEqual(['a', 'b'])
-    const t = lesTotalen(geweest)
+    const t = lesSomIn(lesDagen(geweest, nu), { van: '2026-10-01', tot: '2026-10-31' }, null)
     expect(t.bezetting).toBeCloseTo(4 / 14)
     expect(t.noShowAandeel).toBeCloseTo(1 / 4)
     expect(bezettingPerLestype(geweest)[0]).toMatchObject({ label: 'Spinning', bezetting: 0.75 })
@@ -48,44 +48,27 @@ describe('lescijfers', () => {
   })
 
   it('geeft geen no-show percentage zonder afgeronde reserveringen', () => {
-    expect(lesTotalen([]).noShowAandeel).toBeNull()
+    expect(lesSomIn([], { van: '2026-10-01', tot: '2026-10-31' }, null).noShowAandeel).toBeNull()
   })
 })
 
-describe('rapport', () => {
-  it('rekent het gemiddelde zonder de lopende week', () => {
-    expect(gemiddeldPerWeek([10, 20, 3])).toBe(15)
-    expect(gemiddeldPerWeek([7])).toBe(7)
-  })
-
-  it('stelt een rapport samen per vestiging en vergelijkt alle acht', () => {
-    const r = maakRapport({
-      vandaag: '2026-10-14',
-      nu: new Date('2026-10-14T10:00:00Z'),
-      maandagen: ['2026-09-28', '2026-10-05', '2026-10-12'],
-      bereik: 'vestiging',
-      vestiging: 'budel',
-      leden: [
-        { id: '1', vestiging: 'budel', status: 'actief', lidSinds: '2026-01-01', einddatum: null, geboortedatum: '1990-01-01', geslacht: 'vrouw' },
-        { id: '2', vestiging: 'budel', status: 'actief', lidSinds: '2026-10-06', einddatum: null, geboortedatum: null, geslacht: 'man' },
-        { id: '3', vestiging: 'eersel', status: 'actief', lidSinds: '2026-01-01', einddatum: null, geboortedatum: null, geslacht: null },
+describe('lessen per dag', () => {
+  it('telt alleen gehouden lessen en kapt geboekt af op de capaciteit', () => {
+    const lessen = telPerLes(
+      [les('a', 'Spinning', '2026-10-12T05:00:00Z', 2), les('b', 'Yoga', '2026-10-12T17:00:00Z', 10), les('c', 'Yoga', '2026-10-13T17:00:00Z', 10, true), les('d', 'Yoga', '2026-10-20T17:00:00Z')],
+      [
+        { lesId: 'a', status: 'aanwezig' },
+        { lesId: 'a', status: 'aanwezig' },
+        { lesId: 'a', status: 'no_show' },
+        { lesId: 'b', status: 'aanwezig' },
       ],
-      bezoek: [
-        { vestiging: 'budel', soort: 'week', sleutel: '2026-09-28', aantal: 4 },
-        { vestiging: 'budel', soort: 'week', sleutel: '2026-10-05', aantal: 6 },
-        { vestiging: 'eersel', soort: 'week', sleutel: '2026-10-05', aantal: 9 },
-      ],
-      lessen: [],
-      komend: [],
-      leads: [{ vestiging: 'budel', bron: 'website', status: 'lid', proeflesOp: null }],
-    })
-    expect(r.status.actief).toBe(2)
-    expect(r.groei).toBe(1)
-    expect(r.bezoek).toEqual([4, 6, 0])
-    expect(r.bezoekGemiddeld).toBe(5)
-    expect(r.bezoekPerLid).toBe(2.5)
-    expect(r.vergelijking).toHaveLength(8)
-    expect(r.vergelijking.find((v) => v.vestiging === 'eersel')).toMatchObject({ actief: 1, bezoekPerWeek: 4.5, leads: 0, conversie: null })
-    expect(r.leads.totaal.conversie).toBe(1)
+    )
+    const dagen = lesDagen(lessen, new Date('2026-10-14T10:00:00Z'))
+    expect(dagen).toEqual([{ vestiging: 'budel', dag: '2026-10-12', lessen: 2, capaciteit: 12, bezet: 3, aanwezig: 3, noShow: 1 }])
+    const som = lesSomIn(dagen, { van: '2026-10-01', tot: '2026-10-31' }, null)
+    expect(som.bezetting).toBeCloseTo(3 / 12)
+    expect(som.noShowAandeel).toBeCloseTo(1 / 4)
+    expect(lesSomIn(dagen, { van: '2026-09-01', tot: '2026-09-30' }, null)).toMatchObject({ lessen: 0, bezetting: null, noShowAandeel: null })
+    expect(lesSomIn(dagen, { van: '2026-10-01', tot: '2026-10-31' }, new Set(['eersel'] as const)).lessen).toBe(0)
   })
 })

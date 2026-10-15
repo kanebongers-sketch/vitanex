@@ -20,6 +20,7 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
   const r = c.rapport
   const deel = bestandsdeel(c)
   const wl = r.wachtlijst
+  const h = r.huidig.cijfers
   return (
     <Hoofdstuk nummer="03" titel="Lessen">
       <CijferBlok
@@ -28,13 +29,13 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
         titel="Bezetting per lestype"
         kern={
           <>
-            Gemiddeld <strong>{r.totalen.lessen > 0 ? procent(r.totalen.bezetting) : 'geen data'}</strong>
+            Gemiddeld <strong>{h.bezetting === null ? 'geen data' : procent(h.bezetting)}</strong>
           </>
         }
         definitie={DEFINITIES.bezetting}
         csv={{ bestand: csvBestandsnaam('bezetting-per-lestype', deel), kop: ['Lestype', ...BEZETTING_KOP], rijen: bezettingCsv(r.perLestype) }}
       >
-        <BalkTabel bijschrift={`Bezetting per lestype, ${bereikNaam(c)}`} kolomLabel="Lestype" waardeLabel="Bezetting" extraLabels={['Lessen']} rijen={bezettingRijen(r.perLestype)} leeg="In deze periode zijn nog geen lessen geweest." />
+        <BalkTabel bijschrift={`Bezetting per lestype, ${bereikNaam(c)}`} kolomLabel="Lestype" waardeLabel="Bezetting" extraLabels={['Lessen']} rijen={bezettingRijen(r.perLestype)} leeg="In deze maand zijn nog geen lessen geweest." />
       </CijferBlok>
       <CijferBlok
         id="blok-tijdslot"
@@ -43,22 +44,22 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
         definitie="Zelfde telling als bij lestype, gegroepeerd op de begintijd van de les."
         csv={{ bestand: csvBestandsnaam('bezetting-per-tijdslot', deel), kop: ['Begintijd', ...BEZETTING_KOP], rijen: bezettingCsv(r.perTijdslot) }}
       >
-        <BalkTabel bijschrift={`Bezetting per begintijd, ${bereikNaam(c)}`} kolomLabel="Begintijd" waardeLabel="Bezetting" extraLabels={['Lessen']} rijen={bezettingRijen(r.perTijdslot)} leeg="In deze periode zijn nog geen lessen geweest." />
+        <BalkTabel bijschrift={`Bezetting per begintijd, ${bereikNaam(c)}`} kolomLabel="Begintijd" waardeLabel="Bezetting" extraLabels={['Lessen']} rijen={bezettingRijen(r.perTijdslot)} leeg="In deze maand zijn nog geen lessen geweest." />
       </CijferBlok>
       <CijferBlok
         id="blok-noshow"
         className="club-k5"
         titel="No-show"
         definitie={DEFINITIES.noShow}
-        csv={{ bestand: csvBestandsnaam('no-show', deel), kop: ['Aanwezig', 'No-show', 'No-show %'], rijen: [[r.totalen.aanwezig, r.totalen.noShow, r.totalen.noShowAandeel === null ? null : Math.round(r.totalen.noShowAandeel * 1000) / 10]] }}
+        csv={{ bestand: csvBestandsnaam('no-show', deel), kop: ['Aanwezig', 'No-show', 'No-show %'], rijen: [[h.aanwezig, h.noShowAantal, h.noShow === null ? null : Math.round(h.noShow * 1000) / 10]] }}
       >
-        {r.totalen.noShowAandeel === null ? (
-          <p className="club-leeg">Nog geen lessen met afgeronde reserveringen in deze periode.</p>
+        {h.noShow === null ? (
+          <p className="club-leeg">Nog geen lessen met afgeronde reserveringen in deze maand.</p>
         ) : (
           <div className="club-cijfers-feit">
-            <strong className="club-cijfers-groot">{procent(r.totalen.noShowAandeel)}</strong>
+            <strong className="club-cijfers-groot">{procent(h.noShow)}</strong>
             <span>
-              {heel(r.totalen.noShow)} keer niet gekomen tegen {heel(r.totalen.aanwezig)} keer wel.
+              {heel(h.noShowAantal)} keer niet gekomen tegen {heel(h.aanwezig)} keer wel.
             </span>
           </div>
         )}

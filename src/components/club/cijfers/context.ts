@@ -1,16 +1,15 @@
 // Wat elk hoofdstuk van de cijferpagina mee krijgt.
 
 import type { Rapport } from '@/lib/club/cijfers/rapport'
-import type { Bereik, Periode } from '@/lib/club/cijfers/periode'
-import { dagKort } from '@/lib/club/cijfers/tijd'
+import type { Bereik } from '@/lib/club/cijfers/periode'
+import { maandKort, maandNaam, type Maand } from '@/lib/club/cijfers/maand'
 import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 
 export interface CijferContext {
   rapport: Rapport
-  maandagen: string[]
+  maand: Maand
   vestiging: Vestiging
   bereik: Bereik
-  weken: Periode
   vandaag: string
 }
 
@@ -19,15 +18,15 @@ export function bereikNaam(c: Pick<CijferContext, 'bereik' | 'vestiging'>): stri
   return c.bereik === 'alle' ? 'Alle vestigingen' : VESTIGING_LABEL[c.vestiging]
 }
 
-/** Deel van een bestandsnaam: "budel-12w". */
-export function bestandsdeel(c: Pick<CijferContext, 'bereik' | 'vestiging' | 'weken'>): string {
-  return `${c.bereik === 'alle' ? 'alle-vestigingen' : c.vestiging}-${c.weken}w`
+/** Deel van een bestandsnaam: "budel-2026-10". */
+export function bestandsdeel(c: Pick<CijferContext, 'bereik' | 'vestiging' | 'maand'>): string {
+  return `${c.bereik === 'alle' ? 'alle-vestigingen' : c.vestiging}-${c.maand}`
 }
 
-export function weekLabels(maandagen: readonly string[]): { labels: string[]; namen: string[]; labelElke: number } {
+/** Labels voor een reeks maanden: kort onder de as, voluit in tabel en tooltip. */
+export function maandLabels(maanden: readonly Maand[]): { labels: string[]; namen: string[] } {
   return {
-    labels: maandagen.map(dagKort),
-    namen: maandagen.map((m) => `week van ${dagKort(m)}`),
-    labelElke: maandagen.length <= 4 ? 1 : maandagen.length <= 12 ? 2 : maandagen.length <= 26 ? 4 : 8,
+    labels: maanden.map((m) => (m.endsWith('-01') ? `${maandKort(m)} ${m.slice(2, 4)}` : maandKort(m))),
+    namen: maanden.map(maandNaam),
   }
 }

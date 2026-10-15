@@ -1,11 +1,11 @@
 // ─── Fit Factory Club: ledencijfers (PUUR) ──────────────────────────────────
 // Rekenen op het ledenbestand zoals het nu in de database staat. Statussen komen
 // straks uit Sportivity; de geschiedenis van pauzes kennen we niet, dus het
-// teruggerekende ledenbestand per week kijkt alleen naar lid sinds en einddatum.
+// teruggerekende ledenbestand per maand kijkt alleen naar lid sinds en einddatum.
 
 import type { LidStatus } from '@/lib/club/kern/lid'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { leeftijdOp, plusDagen } from './tijd'
+import { leeftijdOp } from './tijd'
 
 export interface LidCijferRij {
   id: string
@@ -58,40 +58,39 @@ export function lidOp(l: LidCijferRij, dag: string): boolean {
   return telbaar(l) && l.lidSinds <= dag && (l.einddatum === null || l.einddatum > dag)
 }
 
-/** Ledenbestand aan het eind van elke week (zondag, of vandaag voor de lopende week). */
-export function ledenbestandPerWeek(leden: readonly LidCijferRij[], maandagen: readonly string[], vandaag: string): number[] {
-  return maandagen.map((ma) => {
-    const zondag = plusDagen(ma, 6)
-    const peil = zondag < vandaag ? zondag : vandaag
-    return leden.filter((l) => lidOp(l, peil)).length
-  })
+/** Ledenbestand aan het eind van een dag. */
+export function bestandOp(leden: readonly LidCijferRij[], dag: string): number {
+  return leden.filter((l) => lidOp(l, dag)).length
+}
+
+/** De vroegste lid sinds van de leden die meetellen; null als er geen zijn. */
+export function vroegsteLidSinds(leden: readonly LidCijferRij[]): string | null {
+  let vroegst: string | null = null
+  for (const l of leden) if (telbaar(l) && (vroegst === null || l.lidSinds < vroegst)) vroegst = l.lidSinds
+  return vroegst
 }
 
 export interface Stroom {
-  instroom: number[]
-  uitstroom: number[]
+  instroom: number
+  uitstroom: number
 }
 
 /**
- * Instroom = lid sinds in die week. Uitstroom = einddatum in die week, tot en
- * met vandaag. Dezelfde leden als het ledenbestand (zie telbaar), zodat
- * instroom min uitstroom precies de groei van het bestand is.
+ * Instroom = lid sinds in het venster. Uitstroom = einddatum in het venster,
+ * tot en met vandaag. Dezelfde leden als het ledenbestand (zie telbaar), zodat
+ * instroom min uitstroom precies het bestand aan het eind min dat van de dag
+ * voor het venster is.
  */
-export function stroomPerWeek(leden: readonly LidCijferRij[], maandagen: readonly string[], vandaag: string): Stroom {
-  const instroom = maandagen.map(() => 0)
-  const uitstroom = maandagen.map(() => 0)
-  const index = (dag: string): number => maandagen.findIndex((ma) => dag >= ma && dag <= plusDagen(ma, 6))
+export function stroomIn(leden: readonly LidCijferRij[], van: string, tot: string, vandaag: string): Stroom {
+  const eind = tot < vandaag ? tot : vandaag
+  let instroom = 0
+  let uitstroom = 0
   for (const l of leden) {
     if (!telbaar(l)) continue
     const blijft = l.einddatum === null || l.einddatum > l.lidSinds
-    if (blijft && l.lidSinds <= vandaag) {
-      const i = index(l.lidSinds)
-      if (i >= 0) instroom[i] += 1
-    }
-    if (l.einddatum && blijft && l.einddatum <= vandaag) {
-      const i = index(l.einddatum)
-      if (i >= 0) uitstroom[i] += 1
-    }
+    if (!blijft) continue
+    if (l.lidSinds >= van && l.lidSinds <= eind) instroom += 1
+    if (l.einddatum && l.einddatum >= van && l.einddatum <= eind) uitstroom += 1
   }
   return { instroom, uitstroom }
 }

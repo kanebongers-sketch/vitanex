@@ -2,6 +2,7 @@
 // Per bron: hoeveel leads, hoeveel kwamen tot een proefles, hoeveel werden lid.
 
 import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { inVenster, type Venster } from './maand'
 
 export const LEAD_BRONNEN = ['website', 'balie', 'telefoon', 'social', 'verwijzing', 'actie', 'overig'] as const
 export type LeadBron = (typeof LEAD_BRONNEN)[number]
@@ -31,6 +32,8 @@ export interface LeadCijferRij {
   bron: LeadBron
   status: LeadStatus
   proeflesOp: string | null
+  /** Dag waarop de lead binnenkwam (Nederlandse tijd); null als onbekend. */
+  aangemaakt: string | null
 }
 
 export interface Conversie {
@@ -76,4 +79,9 @@ export function conversiePerBron(leads: readonly LeadCijferRij[]): { perBron: Co
     .filter((c) => c.leads > 0)
     .sort((a, b) => b.leads - a.leads)
   return { perBron, totaal: tel(leads, 'totaal', 'Totaal') }
+}
+
+/** Leads die binnen het venster binnenkwamen. */
+export function leadsIn(leads: readonly LeadCijferRij[], v: Venster): LeadCijferRij[] {
+  return leads.filter((l) => l.aangemaakt !== null && inVenster(l.aangemaakt, v))
 }

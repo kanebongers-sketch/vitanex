@@ -1,50 +1,78 @@
-import { aantal, eenDecimaal, heel, metTeken, procent } from '@/lib/club/cijfers/opmaak'
+import { DEFINITIES } from '@/lib/club/cijfers/definities'
+import { vensterNaam } from '@/lib/club/cijfers/maand'
+import { aantal, heel, metTeken } from '@/lib/club/cijfers/opmaak'
+import type { Kant } from '@/lib/club/cijfers/rapport'
+import { tegel, TEGELS, toon, vergelijkTekst, type Tegel } from './kern-tegels'
 import type { CijferContext } from './context'
 
-// De vijf kerncijfers als een editoriale strook: het ledental groot, de rest
-// kleiner ernaast, gescheiden door lijnen in plaats van losse kaartjes. Bij
-// elk getal staat wat erin zit, zodat het klopt met de ledenlijst.
+// De kerncijfers van de maand als een editoriale strook: het ledenbestand groot,
+// de rest in een raster ernaast. Onder elk cijfer de vergelijking met de vorige
+// maand en met dezelfde maand vorig jaar, of eerlijk "geen vergelijking".
+
+const KLASSE = { beter: 'club-plus', slechter: 'club-min', gelijk: '' } as const
+
+function Vergelijkingen({ t, c }: { t: Tegel; c: CijferContext }) {
+  const r = c.rapport
+  const regels: [string, Kant][] = [
+    ['Vorige maand', r.vorige],
+    ['Vorig jaar', r.vorigJaar],
+  ]
+  return (
+    <ul className="club-cijfers-vgl">
+      {regels.map(([naam, basis]) => {
+        const v = vergelijkTekst(t, r.huidig, basis)
+        return (
+          <li key={naam} data-geen={v.oordeel === null || undefined}>
+            <span>{naam}</span> <span className={v.oordeel ? KLASSE[v.oordeel] : ''}>{v.tekst}</span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function Hoofd({ c }: { c: CijferContext }) {
+  const h = c.rapport.huidig.cijfers
+  const s = c.rapport.status
+  const groeiKlasse = h.groei > 0 ? 'club-plus' : h.groei < 0 ? 'club-min' : ''
+  return (
+    <div className="club-cijfers-kern-hoofd">
+      <span className="club-cijfers-kern-label">Ledenbestand {c.rapport.huidig.venster.lopend ? 'vandaag' : 'eind van de maand'}</span>
+      <strong className="club-cijfers-reus">{heel(h.bestandEind)}</strong>
+      <span className="club-cijfers-kern-sub">
+        Begin {heel(h.bestandBegin)}, <span className={groeiKlasse}>{metTeken(h.groei)}</span> deze maand
+      </span>
+      <Vergelijkingen t={tegel('bestandEind')} c={c} />
+      <span className="club-cijfers-kern-sub">
+        Nu {aantal(s.actief, 'actief lid', 'actieve leden')}, {aantal(s.proef, 'proeflid', 'proefleden')} en {heel(s.gepauzeerd)} gepauzeerd.
+      </span>
+    </div>
+  )
+}
 
 export function Kerncijfers({ c }: { c: CijferContext }) {
   const r = c.rapport
-  const groeiKlasse = r.groei > 0 ? 'club-plus' : r.groei < 0 ? 'club-min' : ''
+  const rest = TEGELS.filter((t) => t.sleutel !== 'bestandEind')
   return (
-    <section className="club-cijfers-kern-strook" aria-label="Kerncijfers">
-      <div className="club-cijfers-kern-hoofd">
-        <span className="club-cijfers-kern-label">Actieve leden</span>
-        <strong className="club-cijfers-reus">{heel(r.status.actief)}</strong>
-        <span className="club-cijfers-kern-sub">
-          {r.status.opgezegdLopend > 0 ? `Waarvan ${aantal(r.status.opgezegdLopend, 'opgezegd lid', 'opgezegde leden')} tot de einddatum. ` : ''}
-          Plus {aantal(r.status.proef, 'proeflid', 'proefleden')} en {heel(r.status.gepauzeerd)} gepauzeerd.
-        </span>
-        <span className="club-cijfers-kern-sub">
-          Ledenbestand <span className={groeiKlasse}>{metTeken(r.groei)}</span> in {c.weken} weken
-        </span>
-      </div>
+    <section className="club-cijfers-kern-strook" aria-labelledby="kern-titel">
+      <h2 id="kern-titel" className="club-sr">
+        Kerncijfers {vensterNaam(r.huidig.venster)}
+      </h2>
+      <Hoofd c={c} />
       <dl className="club-cijfers-kern-rest">
-        <div>
-          <dt>Bezoek per week</dt>
-          <dd>{heel(r.bezoekGemiddeld)}</dd>
-          <dd className="club-cijfers-kern-sub">{r.bezoekPerLid === null ? 'Geen actieve leden' : `${eenDecimaal(r.bezoekPerLid)} per actief lid, complete weken`}</dd>
-        </div>
-        <div>
-          <dt>Bezetting lessen</dt>
-          <dd>{r.totalen.lessen > 0 ? procent(r.totalen.bezetting) : 'Geen'}</dd>
-          <dd className="club-cijfers-kern-sub">{r.totalen.lessen > 0 ? `${aantal(r.totalen.lessen, 'les', 'lessen')} geweest` : 'Nog geen lessen geweest'}</dd>
-        </div>
-        <div>
-          <dt>No-show</dt>
-          <dd>{r.totalen.noShowAandeel === null ? 'Geen' : procent(r.totalen.noShowAandeel)}</dd>
-          <dd className="club-cijfers-kern-sub">{r.totalen.noShowAandeel === null ? 'Nog geen reserveringen afgerond' : `${heel(r.totalen.noShow)} keer niet gekomen`}</dd>
-        </div>
-        <div>
-          <dt>Leadconversie</dt>
-          <dd>{r.leads.totaal.leads > 0 ? procent(r.leads.totaal.conversie) : 'Geen'}</dd>
-          <dd className="club-cijfers-kern-sub">
-            {r.leads.totaal.leads > 0 ? `${heel(r.leads.totaal.lid)} van ${aantal(r.leads.totaal.leads, 'lead', 'leads')} werd lid` : 'Geen leads in deze periode'}
-          </dd>
-        </div>
+        {rest.map((t) => (
+          <div key={t.sleutel}>
+            <dt>{t.label}</dt>
+            <dd className="club-cijfers-kern-getal">{toon(t.waarde(r.huidig.cijfers), t.soort)}</dd>
+            <dd>
+              <Vergelijkingen t={t} c={c} />
+            </dd>
+          </div>
+        ))}
       </dl>
+      <p className="club-cijfers-kern-voet">
+        Vergeleken met {vensterNaam(r.vorige.venster)} en {vensterNaam(r.vorigJaar.venster)}. {DEFINITIES.vergelijking}
+      </p>
     </section>
   )
 }

@@ -60,3 +60,16 @@ export function mooieAs(laag: number, hoog: number, stappen = 4): As {
   for (let w = min; w <= max + stap / 2; w += stap) streepjes.push(Math.round(w * 1000) / 1000)
   return { min, max: streepjes[streepjes.length - 1], streepjes }
 }
+
+/** +0,4 of −1,2 (een decimaal, echt minteken); 0,0 zonder teken. */
+export function metTekenDecimaal(n: number): string {
+  const afgerond = Math.round(n * 10) / 10
+  if (afgerond > 0) return `+${eenDecimaal(afgerond)}`
+  if (afgerond < 0) return `−${eenDecimaal(Math.abs(afgerond))}`
+  return eenDecimaal(0)
+}
+
+/** Een relatief verschil: 0.12 wordt "+12%". */
+export function metTekenProcent(deel: number): string {
+  return `${metTeken(deel * 100)}%`
+}

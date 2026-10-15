@@ -21,10 +21,28 @@
 .club-cijfers-kern-rest > div { display: grid; align-content: end; gap: 2px; padding: 18px 16px 20px; border-top: 1px solid var(--line); }
 @media (min-width: 700px) { .club-cijfers-kern-rest > div { border-top: 0; border-left: 1px solid var(--line); } }
 .club-cijfers-kern-rest dd { margin: 0; }
-.club-cijfers-kern-rest dd:not(.club-cijfers-kern-sub) { font-family: var(--ff-kop); font-weight: 700; font-size: clamp(38px, 4vw, 56px); line-height: 1; font-variant-numeric: tabular-nums; }
+.club-cijfers-kern-rest dd.club-cijfers-kern-getal { font-family: var(--ff-kop); font-weight: 700; font-size: clamp(38px, 4vw, 56px); line-height: 1; font-variant-numeric: tabular-nums; }
 
 .club-cijfers-kern-sub .club-plus, .club-cijfers-vergelijk .club-plus { color: var(--club-ok); font-weight: 700; }
 .club-cijfers-kern-sub .club-min, .club-cijfers-vergelijk .club-min { color: var(--club-let-op); font-weight: 700; }
+
+/* Vergelijking onder elk kerncijfer: vorige maand en vorig jaar. */
+.club-cijfers-vgl { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-cijfers-vgl li { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.club-cijfers-vgl li > span:first-child { min-width: 7.5em; }
+.club-cijfers-vgl .club-plus { color: var(--club-ok); font-weight: 700; }
+.club-cijfers-vgl .club-min { color: var(--club-let-op); font-weight: 700; }
+.club-cijfers-vgl li[data-geen] > span:last-child { font-style: italic; opacity: 0.8; }
+.club-cijfers-kern-voet { grid-column: 1 / -1; margin: 0; padding: 12px 0 14px; border-top: 1px solid var(--line); font-size: 12.5px; line-height: 1.55; color: var(--text-3); max-width: 110ch; }
+
+/* Maandkeuze in de kop */
+.club-cijfers-maandnav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.club-cijfers-maandkeuze select { min-width: 11em; text-transform: capitalize; }
+.club-cijfers-uit { opacity: 0.35; pointer-events: none; }
+.club-cijfers-loopt { font-size: 12px; font-weight: 400; color: var(--brand); }
+.club-cijfers-vergelijk td[data-geen] { color: var(--text-3); font-style: italic; }
+.club-cijfers-vergelijk tbody th a { color: inherit; text-decoration: none; text-transform: capitalize; }
+.club-cijfers-vergelijk tbody th a:hover, .club-cijfers-vergelijk tbody th a:focus-visible { color: var(--brand); text-decoration: underline; }
 
 /* ── Hoofdstukken en blokken ─────────────────────────────────────────────── */
 .club-cijfers-hoofdstuk { display: grid; gap: 14px; margin-top: 12px; }

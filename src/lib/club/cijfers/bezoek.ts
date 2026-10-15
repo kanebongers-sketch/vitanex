@@ -1,14 +1,15 @@
 // ─── Fit Factory Club: bezoekcijfers (PUUR) ─────────────────────────────────
 // Een bezoek is een check-in (balie, QR, bandje of les). De database telt ze
-// het liefst zelf per week en per weekdag en uur (functie club_cijfers_bezoek,
-// migratie 386); zonder die functie tellen we hier dezelfde vorm uit losse rijen.
+// het liefst zelf per dag en per weekdag en uur (functie club_cijfers_bezoek_dag,
+// migratie 396); zonder die functie tellen we hier dezelfde vorm uit losse rijen.
 
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { maandagVan, nlMoment } from './tijd'
+import { inVenster, type Venster } from './maand'
+import { nlMoment } from './tijd'
 
-export type BezoekSoort = 'week' | 'uur'
+export type BezoekSoort = 'dag' | 'uur'
 
-/** Een getelde groep: per week (sleutel = maandag) of per weekdag en uur (sleutel = "3-19"). */
+/** Een getelde groep: per dag (sleutel = "YYYY-MM-DD") of per weekdag en uur (sleutel = "3-19"). */
 export interface BezoekTelling {
   vestiging: Vestiging
   soort: BezoekSoort
@@ -21,8 +22,11 @@ export interface Checkin {
   op: Date
 }
 
-/** Losse check-ins naar dezelfde tellingen als de databasefunctie geeft. */
-export function telBezoek(checkins: readonly Checkin[]): BezoekTelling[] {
+/**
+ * Losse check-ins naar dezelfde tellingen als de databasefunctie geeft. Per
+ * dag alles; per weekdag en uur alleen vanaf `uurVan` (de gekozen maand).
+ */
+export function telBezoek(checkins: readonly Checkin[], uurVan: Date | null = null): BezoekTelling[] {
   const tellers = new Map<string, BezoekTelling>()
   const tel = (vestiging: Vestiging, soort: BezoekSoort, sleutel: string): void => {
     const k = `${vestiging}|${soort}|${sleutel}`
@@ -31,8 +35,8 @@ export function telBezoek(checkins: readonly Checkin[]): BezoekTelling[] {
   }
   for (const c of checkins) {
     const m = nlMoment(c.op)
-    tel(c.vestiging, 'week', maandagVan(m.dag))
-    tel(c.vestiging, 'uur', `${m.weekdag}-${m.uur}`)
+    tel(c.vestiging, 'dag', m.dag)
+    if (uurVan === null || c.op.getTime() >= uurVan.getTime()) tel(c.vestiging, 'uur', `${m.weekdag}-${m.uur}`)
   }
   return [...tellers.values()]
 }
@@ -41,21 +45,24 @@ function binnen(t: BezoekTelling, vestigingen: ReadonlySet<Vestiging> | null): b
   return vestigingen === null || vestigingen.has(t.vestiging)
 }
 
-/** Bezoeken per week voor de gegeven maandagen. `vestigingen` null = alle. */
-export function bezoekPerWeek(
-  tellingen: readonly BezoekTelling[],
-  maandagen: readonly string[],
-  vestigingen: ReadonlySet<Vestiging> | null,
-): number[] {
-  const perWeek = new Map<string, number>()
+/** Bezoeken per dag. `vestigingen` null = alle. */
+export function bezoekPerDag(tellingen: readonly BezoekTelling[], vestigingen: ReadonlySet<Vestiging> | null): Map<string, number> {
+  const perDag = new Map<string, number>()
   for (const t of tellingen) {
-    if (t.soort !== 'week' || !binnen(t, vestigingen)) continue
-    perWeek.set(t.sleutel, (perWeek.get(t.sleutel) ?? 0) + t.aantal)
+    if (t.soort !== 'dag' || !binnen(t, vestigingen)) continue
+    perDag.set(t.sleutel, (perDag.get(t.sleutel) ?? 0) + t.aantal)
   }
-  return maandagen.map((ma) => perWeek.get(ma) ?? 0)
+  return perDag
 }
 
-/** Drukte: [weekdag 0..6][uur 0..23], opgeteld over de periode. */
+/** Alle bezoeken in een venster van hele dagen. */
+export function bezoekIn(perDag: ReadonlyMap<string, number>, v: Venster): number {
+  let totaal = 0
+  for (const [dag, n] of perDag) if (inVenster(dag, v)) totaal += n
+  return totaal
+}
+
+/** Drukte: [weekdag 0..6][uur 0..23], opgeteld over de gekozen maand. */
 export function drukteRaster(tellingen: readonly BezoekTelling[], vestigingen: ReadonlySet<Vestiging> | null): number[][] {
   const raster = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0))
   for (const t of tellingen) {

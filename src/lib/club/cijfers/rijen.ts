@@ -2,11 +2,13 @@
 // Alles wat uit de database komt is `unknown` tot het hier is nagekeken.
 
 import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
-import { isVestiging } from '@/lib/club/kern/vestiging'
+import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { BezoekTelling } from './bezoek'
 import type { LidCijferRij } from './leden'
+import type { LesDag } from './lesdagen'
 import { isLeadBron, isLeadStatus, type LeadCijferRij } from './leads'
 import { isReserveringStatus, type LesBasis, type LesTelling, type ReserveringStatus } from './lessen'
+import { dagSleutel } from './tijd'
 
 export type Rij = Record<string, unknown>
 
@@ -65,7 +67,7 @@ export function bezoekTellingUitRij(v: unknown): BezoekTelling | null {
   const sleutel = r ? tekst(r.sleutel) : null
   const aantal = r ? getal(r.aantal) : null
   if (!r || !sleutel || aantal === null || !isVestiging(r.vestiging)) return null
-  if (r.soort !== 'week' && r.soort !== 'uur') return null
+  if (r.soort !== 'dag' && r.soort !== 'uur') return null
   return { vestiging: r.vestiging, soort: r.soort, sleutel, aantal }
 }
 
@@ -110,7 +112,8 @@ export function reserveringUitRij(v: unknown): { lesId: string; status: Reserver
 export function leadCijferUitRij(v: unknown): LeadCijferRij | null {
   const r = alsRij(v)
   if (!r || !isVestiging(r.vestiging) || !isLeadBron(r.bron) || !isLeadStatus(r.status)) return null
-  return { vestiging: r.vestiging, bron: r.bron, status: r.status, proeflesOp: tekst(r.proefles_op) }
+  const aangemaakt = datum(r.aangemaakt_op)
+  return { vestiging: r.vestiging, bron: r.bron, status: r.status, proeflesOp: tekst(r.proefles_op), aangemaakt: aangemaakt ? dagSleutel(aangemaakt) : null }
 }
 
 /** Alleen de bruikbare rijen. */
@@ -121,4 +124,38 @@ export function rijenVan<T>(data: readonly unknown[], fn: (v: unknown) => T | nu
     if (t !== null) uit.push(t)
   }
   return uit
+}
+
+/** Een rij uit de databasefunctie club_cijfers_lessen_dag (migratie 396). */
+export function lesDagUitRij(v: unknown): LesDag | null {
+  const r = alsRij(v)
+  const d = r ? dag(r.dag) : null
+  if (!r || !d || !isVestiging(r.vestiging)) return null
+  return {
+    vestiging: r.vestiging,
+    dag: d,
+    lessen: getal(r.lessen) ?? 0,
+    capaciteit: getal(r.capaciteit) ?? 0,
+    bezet: getal(r.bezet) ?? 0,
+    aanwezig: getal(r.aanwezig) ?? 0,
+    noShow: getal(r.no_show) ?? 0,
+  }
+}
+
+export type BeginBron = 'bezoek' | 'lessen' | 'leads'
+
+/** Vanaf welke dag er data is, per vestiging en bron. */
+export interface BeginRij {
+  vestiging: Vestiging
+  bron: BeginBron
+  dag: string
+}
+
+/** Een rij uit club_cijfers_begin (migratie 396): { vestiging, bron, eerste }. */
+export function beginUitRij(v: unknown): BeginRij | null {
+  const r = alsRij(v)
+  const eerste = r ? datum(r.eerste) : null
+  if (!r || !eerste || !isVestiging(r.vestiging)) return null
+  if (r.bron !== 'bezoek' && r.bron !== 'lessen' && r.bron !== 'leads') return null
+  return { vestiging: r.vestiging, bron: r.bron, dag: dagSleutel(eerste) }
 }

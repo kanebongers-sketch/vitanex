@@ -86,29 +86,6 @@ export function bezettingPerTijdslot(lessen: readonly LesTelling[]): BezettingGr
   return groepeer(lessen, (l) => tijdNl(l.start)).sort((a, b) => a.label.localeCompare(b.label))
 }
 
-export interface Totalen {
-  lessen: number
-  bezetting: number
-  aanwezig: number
-  noShow: number
-  /** no-show / (aanwezig + no-show), 0..1; null als er niets af te lezen valt. */
-  noShowAandeel: number | null
-}
-
-export function lesTotalen(lessen: readonly LesTelling[]): Totalen {
-  const bezet = lessen.reduce((s, l) => s + Math.min(l.bezet, l.capaciteit), 0)
-  const capaciteit = lessen.reduce((s, l) => s + l.capaciteit, 0)
-  const aanwezig = lessen.reduce((s, l) => s + l.aanwezig, 0)
-  const noShow = lessen.reduce((s, l) => s + l.noShow, 0)
-  return {
-    lessen: lessen.length,
-    bezetting: capaciteit > 0 ? bezet / capaciteit : 0,
-    aanwezig,
-    noShow,
-    noShowAandeel: aanwezig + noShow > 0 ? noShow / (aanwezig + noShow) : null,
-  }
-}
-
 export interface Wachtlijstdruk {
   lessen: number
   vol: number
