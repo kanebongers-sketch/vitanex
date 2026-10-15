@@ -8,6 +8,7 @@ import {
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { geleden, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
+import { LeadLogboek } from './LeadLogboek'
 
 // Eén lead in de lijst. Met `onBewerk`/`onStatus` is hij bewerkbaar (PT'er);
 // zonder is hij alleen-lezen (Kane in LifeOS, de eigenaar in de PT-app).
@@ -21,6 +22,8 @@ interface Props {
   klantHref?: string
   /** Welke PT'er de lead sprak — in lijsten van het hele team. */
   trainer?: string
+  /** Link-code om notities in het logboek te zetten (de PT'er zelf, of Kane); weglaten = logboek alleen lezen. */
+  notitieCode?: string
   /** De status wordt opgeslagen: keuzelijst even dicht (geen dubbele wijziging). */
   bezig?: boolean
 }
@@ -31,7 +34,7 @@ export function statusBadge(status: LeadStatus): string {
   return 'ptd-badge'
 }
 
-export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer, bezig = false }: Props) {
+export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer, notitieCode, bezig = false }: Props) {
   const teLaat = moetOpvolgen(lead, vandaag) && lead.opvolgdatum !== vandaag
   const opvolgVandaag = moetOpvolgen(lead, vandaag) && lead.opvolgdatum === vandaag
   return (
@@ -58,6 +61,7 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, traine
           </span>
         </div>
       ) : null}
+      {lead.logboek ? <LeadLogboek leadId={lead.id} naam={lead.naam} logboek={lead.logboek} vandaag={vandaag} code={notitieCode} /> : null}
       {lead.notitie ? <p className="ptd-tekst">{lead.notitie}</p> : null}
       {lead.reviewGevraagd || lead.referralGevraagd || lead.kentIemand ? (
         <div className="ptd-meta">

@@ -12,6 +12,7 @@ import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
 import { DoelLijst } from '@/components/lifeos/pt-dashboard/DoelVoortgang'
 import { LeadKaart } from '@/components/lifeos/pt-dashboard/LeadKaart'
+import type { Lead } from '@/lib/lifeos/leads/leads'
 import { KlantKaart } from '@/components/lifeos/pt-dashboard/KlantKaart'
 import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
 import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
@@ -21,7 +22,8 @@ import { CheckinKaart } from './CheckinKaart'
 import { TEAM_FOUT } from './teksten'
 import { zietCoach, zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { DoelenBewerken } from '@/components/lifeos/pt-beheer/DoelenBewerken'
-import { checkupStand, checkupSinds } from '@/lib/lifeos/pt-dashboard/checkup'
+import { checkupStand, checkupSinds, leadsDoorlopen } from '@/lib/lifeos/pt-dashboard/checkup'
+import { BeheerLeadsLijst } from '@/components/lifeos/pt-beheer/BeheerLeadsLijst'
 import { haalLopendeAfspraken } from '@/lib/lifeos/pt-dashboard/afspraken-opslag'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { AfspraakStand, CheckupKaart } from '@/components/lifeos/pt-groei/CheckupKaart'
@@ -91,19 +93,23 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
           {afspraken === null ? <Foutmelding bericht="De afspraken konden niet geladen worden. Vernieuw de pagina." /> : null}
           {vorige ? <AfspraakStand afspraak={vorige} stand={checkup} /> : <p className="ptd-leeg">Nog geen afspraken met {pt.naam}. Leg ze onderaan de checkup vast.</p>}
           <CheckupKaart stand={checkup} vandaag={g.vandaag} doelGesprekken={g.doelen.get(pt.id)?.leadsPerWeek ?? null} />
+          <LeadsDoorlopen code={code} pt={pt} leads={leadsDoorlopen(leads, g.vandaag)} vandaag={g.vandaag} beheerder={g.link.rol === 'beheerder'} trainers={g.team.team} />
           {g.link.rol === 'beheerder' && afspraken !== null ? <AfsprakenFormulier code={code} persoonId={pt.id} naam={pt.naam} vorige={vorige} /> : null}
         </section>
       ) : null}
 
-      <section className="ptd-sectie" aria-labelledby="eig-opvolgen-kop">
-        <div className="ptd-sectiekop"><h2 id="eig-opvolgen-kop">Opvolgen</h2><span>te laat en vandaag</span></div>
-        {opvolgen.length === 0 ? (
-          <p className="ptd-leeg">Niets te laat of voor vandaag.</p>
-        ) : (
-          <ul className="ptd-lijst">{opvolgen.slice(0, MAX_LIJST).map((l) => <LeadKaart key={l.id} lead={l} vandaag={g.vandaag} />)}</ul>
-        )}
-        <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead?pt=${pt.id}&toon=alle`}>Alle leads van {pt.naam} ({leads.length})</Link>
-      </section>
+      {/* Wie de checkup ziet, doorloopt de leads daar; de clubmanager krijgt deze korte lijst. */}
+      {checkup ? null : (
+        <section className="ptd-sectie" aria-labelledby="eig-opvolgen-kop">
+          <div className="ptd-sectiekop"><h2 id="eig-opvolgen-kop">Opvolgen</h2><span>te laat en vandaag</span></div>
+          {opvolgen.length === 0 ? (
+            <p className="ptd-leeg">Niets te laat of voor vandaag.</p>
+          ) : (
+            <ul className="ptd-lijst">{opvolgen.slice(0, MAX_LIJST).map((l) => <LeadKaart key={l.id} lead={l} vandaag={g.vandaag} />)}</ul>
+          )}
+          <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead?pt=${pt.id}&toon=alle`}>Alle leads van {pt.naam} ({leads.length})</Link>
+        </section>
+      )}
 
       <section className="ptd-sectie" aria-labelledby="eig-klanten-kop">
         <div className="ptd-sectiekop"><h2 id="eig-klanten-kop">Lopende klanten</h2><span>{lopend.length}</span></div>
@@ -143,5 +149,37 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
         </section>
       ) : null}
     </>
+  )
+}
+
+interface DoorlopenProps {
+  code: string
+  pt: { id: string; naam: string }
+  leads: readonly Lead[]
+  vandaag: string
+  beheerder: boolean
+  trainers: readonly { id: string; naam: string }[]
+}
+
+/** De wekelijkse leadbespreking: alle open leads, urgent eerst. Kane noteert per lead wat is afgesproken. */
+function LeadsDoorlopen({ code, pt, leads, vandaag, beheerder, trainers }: DoorlopenProps) {
+  return (
+    <div className="ptd-sectie">
+      <div className="ptd-sectiekop">
+        <h3>Leads doorlopen</h3>
+        <span>{leads.length} open · te laat en zonder plan eerst</span>
+      </div>
+      {beheerder ? (
+        <p className="ptd-hint">Zet per lead in een notitie wat jullie afspreken; {pt.naam} ziet het terug op de leadkaart.</p>
+      ) : null}
+      {leads.length === 0 ? (
+        <p className="ptd-leeg">{pt.naam} heeft geen open leads.</p>
+      ) : beheerder ? (
+        <BeheerLeadsLijst code={code} vandaag={vandaag} items={leads.map((lead) => ({ lead, trainerId: pt.id }))} trainers={trainers} standaardTrainer={pt.id} toonTrainer={false} zonderNieuw />
+      ) : (
+        <ul className="ptd-lijst">{leads.map((l) => <LeadKaart key={l.id} lead={l} vandaag={vandaag} />)}</ul>
+      )}
+      <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead?pt=${pt.id}&toon=alle`}>Alle leads van {pt.naam}</Link>
+    </div>
   )
 }

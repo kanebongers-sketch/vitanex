@@ -171,6 +171,7 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
                 lead={l}
                 vandaag={vandaag}
                 onBewerk={() => setBewerk(l.id)}
+                notitieCode={code}
                 onStatus={(s) => void zetStatus(l, s)}
                 bezig={opslaan.has(l.id)}
                 klantHref={metKlant.has(l.id) ? undefined : `/${code}/klanten?vanLead=${l.id}`}

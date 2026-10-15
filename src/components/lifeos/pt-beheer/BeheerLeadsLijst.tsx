@@ -18,9 +18,11 @@ interface Props {
   trainers: readonly { id: string; naam: string }[]
   standaardTrainer: string
   toonTrainer: boolean
+  /** Zonder de knop "Lead invullen" (bv. in de checkup, waar je bestaande leads doorloopt). */
+  zonderNieuw?: boolean
 }
 
-export function BeheerLeadsLijst({ code, vandaag, items, trainers, standaardTrainer, toonTrainer }: Props) {
+export function BeheerLeadsLijst({ code, vandaag, items, trainers, standaardTrainer, toonTrainer, zonderNieuw = false }: Props) {
   const router = useRouter()
   const [nieuw, setNieuw] = useState(false)
   const [bewerk, setBewerk] = useState<string | null>(null)
@@ -35,7 +37,7 @@ export function BeheerLeadsLijst({ code, vandaag, items, trainers, standaardTrai
     <>
       {nieuw ? (
         <LeadFormulier code={code} vandaag={vandaag} standaardClub={null} trainers={trainers} trainerId={standaardTrainer} onOpgeslagen={klaar} onAnnuleer={() => setNieuw(false)} />
-      ) : (
+      ) : zonderNieuw ? null : (
         <div className="ptd-acties">
           <button type="button" className="ptd-knop ptd-knop--primair" onClick={() => setNieuw(true)}>
             <Plus size={18} aria-hidden /> Lead invullen
@@ -68,6 +70,7 @@ export function BeheerLeadsLijst({ code, vandaag, items, trainers, standaardTrai
                 vandaag={vandaag}
                 trainer={toonTrainer ? naamVan.get(trainerId) : undefined}
                 onBewerk={() => setBewerk(lead.id)}
+                notitieCode={code}
               />
             ),
           )}

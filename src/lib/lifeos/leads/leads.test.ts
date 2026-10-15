@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  GERESERVEERD, CODE_PATROON, leadRegel, leesLead, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
+  GERESERVEERD, CODE_PATROON, leadRegel, leesLead, leesLeadNotitieTekst, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
   vatLeadsSamen, type Lead,
 } from './leads'
 
@@ -94,5 +94,19 @@ describe('samenvatting voor het coachgesprek', () => {
   test('rondreis via JSON', () => {
     const s = vatLeadsSamen(leads, sinds, '2026-10-08')
     expect(leesLeadSamenvatting(JSON.parse(JSON.stringify(s)))).toEqual(s)
+  })
+})
+
+describe('logboek per lead', () => {
+  test('tekst verplicht, spaties samengevouwen, ingekort op 500', () => {
+    expect(leesLeadNotitieTekst({ tekst: '   ' }).ok).toBe(false)
+    expect(leesLeadNotitieTekst({ tekst: ' gebeld,   voicemail ' })).toEqual({ ok: true, waarde: 'gebeld, voicemail' })
+    const lang = leesLeadNotitieTekst({ tekst: 'x'.repeat(900) })
+    expect(lang.ok && lang.waarde.length).toBe(500)
+  })
+  test('rondreis via JSON met logboek; kapotte notities vallen weg', () => {
+    const n = { id: 'n1', datum: '2026-10-15', tekst: 'proefles di 18:00', door: 'Joey', aangemaaktOp: '2026-10-15T09:00:00Z' }
+    const l = { ...lead(), logboek: [n, { id: 'kapot' }] }
+    expect(leesLead(JSON.parse(JSON.stringify(l)))?.logboek).toEqual([n])
   })
 })

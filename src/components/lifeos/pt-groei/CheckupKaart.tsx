@@ -41,6 +41,7 @@ function LeadRegel({ lead: l, vandaag }: { lead: Lead; vandaag: string }) {
     <>
       <strong>{l.naam}</strong>
       <span>{l.opvolgdatum ? relatief(l.opvolgdatum, vandaag) : STATUS_LABEL[l.status]}{l.volgendeStap ? ` · ${STAP_LABEL[l.volgendeStap]}` : ''}</span>
+      {l.logboek?.[0] ? <span className="ck-notitie">{dagKort(l.logboek[0].datum)}: {l.logboek[0].tekst}</span> : null}
     </>
   )
 }

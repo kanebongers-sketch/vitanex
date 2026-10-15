@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isClub } from '@/lib/lifeos/pt-dashboard/clubs'
-import { isBron, isGeenKlantReden, isInteresse, isStap, isStatus, type Lead, type NieuweLead } from './leads'
+import { isBron, isGeenKlantReden, isInteresse, isStap, isStatus, type Lead, type LeadNotitie, type NieuweLead } from './leads'
 import type { LeadLink } from './links'
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'te_veel' | 'niet_gevonden' }
@@ -34,6 +34,16 @@ interface Rij {
   gesproken_op: string
   aangemaakt_op: string
 }
+
+interface NotitieRij {
+  id: string
+  datum: string
+  tekst: string
+  door: string | null
+  aangemaakt_op: string
+}
+
+const vanNotitieRij = (n: NotitieRij): LeadNotitie => ({ id: n.id, datum: n.datum, tekst: n.tekst, door: n.door, aangemaaktOp: n.aangemaakt_op })
 
 function vanRij(r: Rij): Lead | null {
   if (!isBron(r.bron) || !isStatus(r.status)) return null
@@ -94,7 +104,7 @@ export async function haalLeadsVan(admin: SupabaseClient, link: LeadLink, max = 
     .order('aangemaakt_op', { ascending: false })
     .limit(max)
   if (error) return { ok: false, reden: 'db' }
-  return { ok: true, waarde: vanRijen(data) }
+  return { ok: true, waarde: await metLogboek(admin, link.userId, vanRijen(data)) }
 }
 
 export async function voegLeadToe(admin: SupabaseClient, link: LeadLink, nieuw: NieuweLead, nu: Date): Promise<Uitkomst<Lead>> {
@@ -114,7 +124,7 @@ export async function voegLeadToe(admin: SupabaseClient, link: LeadLink, nieuw: 
     .select(KOLOMMEN)
     .single()
   const lead = !error && data ? vanRij(data as Rij) : null
-  return lead ? { ok: true, waarde: lead } : { ok: false, reden: 'db' }
+  return lead ? { ok: true, waarde: { ...lead, logboek: [] } } : { ok: false, reden: 'db' }
 }
 
 /** Een lead volledig bijwerken — alleen een lead van déze PT'er. */
@@ -129,7 +139,7 @@ export async function wijzigLead(admin: SupabaseClient, link: LeadLink, id: stri
     .maybeSingle()
   if (error) return { ok: false, reden: 'db' }
   const uit = data ? vanRij(data as Rij) : null
-  return uit ? { ok: true, waarde: uit } : { ok: false, reden: 'niet_gevonden' }
+  return uit ? { ok: true, waarde: (await metLogboek(admin, link.userId, [uit]))[0] } : { ok: false, reden: 'niet_gevonden' }
 }
 
 export async function verwijderLead(admin: SupabaseClient, link: LeadLink, id: string): Promise<Uitkomst<null>> {
@@ -174,12 +184,106 @@ export async function haalLeadsVoorStrikt(admin: SupabaseClient, userId: string,
     .order('aangemaakt_op', { ascending: false })
     .limit(5000)
   if (error) return null
-  for (const r of (data ?? []) as (Rij & { persoon_id: string })[]) {
-    const l = vanRij(r)
-    if (!l) continue
+  const rijen = (data ?? []) as (Rij & { persoon_id: string })[]
+  const logboeken = await haalLogboeken(admin, userId, rijen.map((r) => r.id))
+  for (const r of rijen) {
+    const kaal = vanRij(r)
+    if (!kaal) continue
+    const l = logboeken ? { ...kaal, logboek: logboeken.get(kaal.id) ?? [] } : kaal
     const lijst = uit.get(r.persoon_id) ?? []
     lijst.push(l)
     uit.set(r.persoon_id, lijst)
   }
   return uit
+}
+
+// ─── Logboek per lead (migratie 397) ────────────────────────────────────────
+
+/** Zoveel lead-ids per query (de ids gaan in de URL). */
+const LOGBOEK_BLOK = 150
+
+/**
+ * De logboeken van deze leads, nieuwste notitie eerst. Null = lezen mislukt;
+ * de leads zelf blijven dan gewoon zichtbaar, alleen zonder logboek.
+ */
+async function haalLogboeken(admin: SupabaseClient, userId: string, leadIds: readonly string[]): Promise<Map<string, LeadNotitie[]> | null> {
+  const uit = new Map<string, LeadNotitie[]>()
+  const blokken: string[][] = []
+  for (let i = 0; i < leadIds.length; i += LOGBOEK_BLOK) blokken.push(leadIds.slice(i, i + LOGBOEK_BLOK))
+  const antwoorden = await Promise.all(
+    blokken.map((ids) =>
+      admin.from('pt_leadnotities').select('id, lead_id, datum, tekst, door, aangemaakt_op').eq('user_id', userId).in('lead_id', ids).order('aangemaakt_op', { ascending: false }),
+    ),
+  )
+  if (antwoorden.some((a) => a.error)) return null
+  for (const a of antwoorden) {
+    for (const r of (a.data ?? []) as (NotitieRij & { lead_id: string })[]) {
+      const lijst = uit.get(r.lead_id) ?? []
+      lijst.push(vanNotitieRij(r))
+      uit.set(r.lead_id, lijst)
+    }
+  }
+  return uit
+}
+
+/** Leads met hun logboek erbij (best-effort: lukt het lezen niet, dan zonder). */
+async function metLogboek(admin: SupabaseClient, userId: string, leads: Lead[]): Promise<Lead[]> {
+  const logboeken = await haalLogboeken(admin, userId, leads.map((l) => l.id))
+  return logboeken ? leads.map((l) => ({ ...l, logboek: logboeken.get(l.id) ?? [] })) : leads
+}
+
+/** Meer notities bij één lead is eerder een kapotte knop dan een echt verloop. */
+const MAX_NOTITIES_PER_LEAD = 200
+
+/** Is dit een lead van déze trainer (link: de PT'er zelf, of "als" de trainer via leadToegang)? */
+async function eigenLeadId(admin: SupabaseClient, link: LeadLink, leadId: string): Promise<'ja' | 'nee' | 'db'> {
+  const { data, error } = await admin.from('pt_leads').select('id').eq('id', leadId).eq('user_id', link.userId).eq('persoon_id', link.persoonId).maybeSingle()
+  return error ? 'db' : data ? 'ja' : 'nee'
+}
+
+/**
+ * Een notitie bij een lead — alleen een lead van déze trainer (zoals bij
+ * wijzigLead). Raakt ook bijgewerkt_op van de lead (de bewaartermijn telt vanaf
+ * het laatste contact).
+ */
+export async function voegLeadNotitieToe(
+  admin: SupabaseClient,
+  link: LeadLink,
+  leadId: string,
+  tekst: string,
+  datum: string,
+  door: string,
+): Promise<Uitkomst<LeadNotitie>> {
+  const userId = link.userId
+  const [eigen, tel] = await Promise.all([
+    eigenLeadId(admin, link, leadId),
+    admin.from('pt_leadnotities').select('id', { count: 'exact', head: true }).eq('lead_id', leadId).eq('user_id', userId),
+  ])
+  if (eigen === 'db' || tel.error) return { ok: false, reden: 'db' }
+  if (eigen === 'nee') return { ok: false, reden: 'niet_gevonden' }
+  if ((tel.count ?? 0) >= MAX_NOTITIES_PER_LEAD) return { ok: false, reden: 'te_veel' }
+  const { data, error } = await admin
+    .from('pt_leadnotities')
+    .insert({ lead_id: leadId, user_id: userId, datum, tekst, door })
+    .select('id, datum, tekst, door, aangemaakt_op')
+    .single()
+  if (error || !data) return { ok: false, reden: 'db' }
+  await admin.from('pt_leads').update({ bijgewerkt_op: new Date().toISOString() }).eq('id', leadId).eq('user_id', userId)
+  return { ok: true, waarde: vanNotitieRij(data as NotitieRij) }
+}
+
+/** Een notitie weghalen (bv. een typfout). Alleen bij een lead van déze trainer. */
+export async function verwijderLeadNotitie(admin: SupabaseClient, link: LeadLink, leadId: string, notitieId: string): Promise<Uitkomst<null>> {
+  const userId = link.userId
+  const eigen = await eigenLeadId(admin, link, leadId)
+  if (eigen !== 'ja') return { ok: false, reden: eigen === 'db' ? 'db' : 'niet_gevonden' }
+  const { data, error } = await admin
+    .from('pt_leadnotities')
+    .delete()
+    .eq('id', notitieId)
+    .eq('lead_id', leadId)
+    .eq('user_id', userId)
+    .select('id')
+  if (error) return { ok: false, reden: 'db' }
+  return (data ?? []).length === 0 ? { ok: false, reden: 'niet_gevonden' } : { ok: true, waarde: null }
 }

@@ -187,3 +187,20 @@ export function scoreAfspraak(a: Afspraak, s: CheckupStand): AfspraakScore[] {
   }
   return uit
 }
+
+// ─── Leads doorlopen ────────────────────────────────────────────────────────
+
+/**
+ * De open leads in de volgorde waarin je ze in de wekelijkse bespreking
+ * doorloopt: te laat (oudste eerst), vandaag, zonder plan, daarna op opvolgdatum.
+ */
+export function leadsDoorlopen(leads: readonly Lead[], vandaag: string): Lead[] {
+  const rang = (l: Lead) =>
+    l.opvolgdatum !== null && l.opvolgdatum < vandaag ? 0
+    : l.opvolgdatum === vandaag ? 1
+    : l.opvolgdatum === null && (l.volgendeStap === null || l.volgendeStap === 'afgesloten') ? 2
+    : 3
+  return leads
+    .filter((l) => OPEN_STATUSSEN.includes(l.status))
+    .sort((a, b) => rang(a) - rang(b) || (a.opvolgdatum ?? '9999').localeCompare(b.opvolgdatum ?? '9999') || a.naam.localeCompare(b.naam, 'nl'))
+}

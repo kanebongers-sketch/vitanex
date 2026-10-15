@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 import type { PtKlant } from './abonnementen'
-import { checkupSinds, checkupStand, leesAfspraakInvoer, scoreAfspraak, type Afspraak } from './checkup'
+import { checkupSinds, checkupStand, leadsDoorlopen, leesAfspraakInvoer, scoreAfspraak, type Afspraak } from './checkup'
 
 const lead = (id: string, over: Partial<Lead> = {}): Lead => ({
   id, naam: `Lead ${id}`, contact: null, club: 'bladel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: 'bellen', opvolgdatum: '2026-10-20',
@@ -79,4 +79,17 @@ describe('checkupStand', () => {
     ])
     expect(scoreAfspraak(afspraak({ gesprekken: 3 }), s)).toHaveLength(1)
   })
+})
+
+test('leadsDoorlopen: te laat, vandaag, zonder plan, rest op datum; afgesloten leads niet', () => {
+  const ls = [
+    lead('later', { opvolgdatum: '2026-10-20' }),
+    lead('plan', { opvolgdatum: null, volgendeStap: null }),
+    lead('vandaag', { opvolgdatum: VANDAAG }),
+    lead('laat2', { opvolgdatum: '2026-10-12' }),
+    lead('laat1', { opvolgdatum: '2026-10-01' }),
+    lead('klant', { status: 'klant', opvolgdatum: '2026-10-01' }),
+    lead('weg', { status: 'geen_klant' }),
+  ]
+  expect(leadsDoorlopen(ls, VANDAAG).map((l) => l.id)).toEqual(['laat1', 'laat2', 'vandaag', 'plan', 'later'])
 })

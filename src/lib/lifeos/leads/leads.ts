@@ -94,12 +94,27 @@ export interface Lead {
   notitie: string | null
   /** Alleen bij status geen_klant: waarom niet. */
   geenKlantReden: GeenKlantReden | null
+  /** Het logboek, nieuwste eerst. Ontbreekt = niet meegeladen. */
+  logboek?: LeadNotitie[]
   /** Dagsleutel YYYY-MM-DD: wanneer gesproken. */
   gesprokenOp: string
   aangemaaktOp: string
 }
 
-export type NieuweLead = Omit<Lead, 'id' | 'aangemaaktOp'>
+export type NieuweLead = Omit<Lead, 'id' | 'aangemaaktOp' | 'logboek'>
+
+/** Eén korte, gedateerde notitie bij een lead ("gebeld, voicemail"). */
+export interface LeadNotitie {
+  id: string
+  /** YYYY-MM-DD */
+  datum: string
+  tekst: string
+  /** Naam van wie het schreef. */
+  door: string | null
+  aangemaaktOp: string
+}
+
+export const MAX_LEADNOTITIE = 500
 
 type Lees<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 const DAG = /^\d{4}-\d{2}-\d{2}$/
@@ -160,7 +175,23 @@ export function leesLead(ruw: unknown): Lead | null {
   const x = obj(ruw)
   if (!x || typeof x.id !== 'string' || typeof x.aangemaaktOp !== 'string') return null
   const r = leesNieuweLead(x, '9999-12-31', { clubVerplicht: false })
-  return r.ok ? { id: x.id, aangemaaktOp: x.aangemaaktOp, ...r.waarde } : null
+  if (!r.ok) return null
+  const lead: Lead = { id: x.id, aangemaaktOp: x.aangemaaktOp, ...r.waarde }
+  return Array.isArray(x.logboek) ? { ...lead, logboek: x.logboek.flatMap((n) => leesLeadNotitie(n) ?? []) } : lead
+}
+
+/** Eén logboeknotitie uit JSON (API-antwoord), of null. */
+export function leesLeadNotitie(ruw: unknown): LeadNotitie | null {
+  const x = obj(ruw)
+  if (!x || typeof x.id !== 'string' || typeof x.tekst !== 'string' || typeof x.aangemaaktOp !== 'string') return null
+  if (typeof x.datum !== 'string' || !DAG.test(x.datum)) return null
+  return { id: x.id, datum: x.datum, tekst: x.tekst, door: typeof x.door === 'string' ? x.door : null, aangemaaktOp: x.aangemaaktOp }
+}
+
+/** De tekst van een nieuwe notitie (spaties samengevouwen, ingekort), of een fout. */
+export function leesLeadNotitieTekst(body: unknown): Lees<string> {
+  const t = tekst(obj(body)?.tekst, MAX_LEADNOTITIE)
+  return t ? { ok: true, waarde: t } : { ok: false, fout: 'Schrijf kort wat er is gebeurd.' }
 }
 
 /** Moet deze lead vandaag (of eerder) opgevolgd worden? */

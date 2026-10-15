@@ -4350,3 +4350,23 @@ body {
 .lifeos-root .ck-scores strong { color: var(--text-1); font-weight: 600; }
 .lifeos-root .ck-vinkje { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--text-2); cursor: pointer; }
 .lifeos-root .ck-vinkje input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--brand); flex: none; }
+
+/* ── PT-app: logboek per lead ────────────────────────────────────────────── */
+.lifeos-root .ll { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.lifeos-root .ll-kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.lifeos-root .ll-laatste { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0; min-width: 0; flex: 1 1 220px; font-size: 14px; line-height: 1.45; }
+.lifeos-root .ll-laatste > svg { align-self: center; color: var(--brand); flex: none; }
+.lifeos-root .ll-leeg { color: var(--text-3); }
+.lifeos-root .ll-wanneer { font-size: 12.5px; font-weight: 600; color: var(--text-3); white-space: nowrap; }
+.lifeos-root .ll-tekst { color: var(--text-1); overflow-wrap: anywhere; }
+.lifeos-root .ll-paneel { display: grid; gap: 8px; }
+.lifeos-root .ll-form { display: flex; gap: 8px; }
+.lifeos-root .ll-form .ptd-invoer { flex: 1 1 auto; min-width: 0; }
+.lifeos-root .ll-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lifeos-root .ll-lijst li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.lifeos-root .ll-lijst li:last-child { border-bottom: none; }
+.lifeos-root .ll-lijst .ll-tekst { flex: 1 1 200px; }
+.lifeos-root .ll-weg { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-left: auto; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--text-3); cursor: pointer; }
+.lifeos-root .ll-weg:hover { color: var(--text-1); border-color: var(--line); }
+.lifeos-root .ll-weg:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.lifeos-root .ck-namen li .ck-notitie { flex-basis: 100%; font-size: 13px; color: var(--text-2); overflow-wrap: anywhere; }
