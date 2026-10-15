@@ -19,7 +19,7 @@ function Cel({ n, max, titel }: { n: number; max: number; titel: string }) {
 
 export function Drukte({ raster, uren, beschrijving }: Props) {
   const max = Math.max(0, ...raster.flat())
-  if (max === 0 || uren.length === 0) return <p className="club-leeg">In deze periode zijn nog geen check-ins geregistreerd.</p>
+  if (max === 0 || uren.length === 0) return <p className="club-leeg">In deze maand zijn nog geen check-ins geregistreerd.</p>
   return (
     <figure className="club-cijfers-figuur club-cijfers-drukte">
       <div className="club-cijfers-drukte-raster" aria-hidden style={{ gridTemplateColumns: `28px repeat(${uren.length}, minmax(0, 1fr))` }}>
@@ -45,7 +45,7 @@ export function Drukte({ raster, uren, beschrijving }: Props) {
         <span>Rustig</span>
         <span className="club-cijfers-schaal-balk" aria-hidden />
         <span>Druk</span>
-        <span className="club-cijfers-schaal-max">max {heel(max)} per uur over de periode</span>
+        <span className="club-cijfers-schaal-max">max {heel(max)} per uur in deze maand</span>
       </figcaption>
       <table className="club-sr">
         <caption>Check-ins per weekdag en uur</caption>

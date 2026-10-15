@@ -72,9 +72,9 @@ function PerMaand({ c }: { c: CijferContext }) {
       <Kolommen
         id="bezoek-maand"
         titel={`Bezoek per maand, ${bereikNaam(c)}`}
-        beschrijving={`Check-ins per kalendermaand, van ${maandNaam(trend[0].venster.maand)} tot en met ${maandNaam(c.maand)}.`}
+        beschrijving={`Check-ins per kalendermaand, van ${maandNaam(trend[0].venster.maand)} tot en met ${maandNaam(c.maand)}. Lichter = nog niet compleet.`}
         eenheid="check-ins"
-        kolommen={trend.map((k, i) => ({ label: m.labels[i], naam: m.namen[i], waarde: k.cijfers.bezoek, zacht: k.venster.lopend, geenData: geen(k.venster.tot) }))}
+        kolommen={trend.map((k, i) => ({ label: m.labels[i], naam: m.namen[i], waarde: k.cijfers.bezoek, zacht: k.venster.lopend || (vanaf !== null && vanaf > k.venster.van), geenData: geen(k.venster.tot) }))}
       />
     </CijferBlok>
   )

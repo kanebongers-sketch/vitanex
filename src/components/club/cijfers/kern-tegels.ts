@@ -71,6 +71,6 @@ export function vergelijkTekst(t: Tegel, huidig: Kant, basis: Kant): VergelijkTe
   if (!v) return { tekst: 'geen vergelijking', oordeel: null }
   if (t.soort === 'procent') return { tekst: `${metTeken(v.verschil * 100)} procentpunt`, oordeel: oordeel(v, t.beter, 0.0005) }
   if (t.soort === 'decimaal') return { tekst: metTekenDecimaal(v.verschil), oordeel: oordeel(v, t.beter, 0.05) }
-  const rel = v.relatief === null ? '' : ` (${metTekenProcent(v.relatief)})`
+  const rel = v.relatief === null || Math.abs(v.relatief) < 0.005 ? '' : ` (${metTekenProcent(v.relatief)})`
   return { tekst: `${metTeken(v.verschil)}${rel}`, oordeel: oordeel(v, t.beter, 0.5) }
 }
