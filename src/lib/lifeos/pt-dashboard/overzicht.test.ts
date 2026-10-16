@@ -4,7 +4,7 @@ import { belbaarNummer, clubMatrix, leadCijfers, ptOverzicht } from './overzicht
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
-  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
+  opvolgdatum: null, opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
   gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 
@@ -59,4 +59,11 @@ describe('belbaarNummer', () => {
     expect(belbaarNummer('064574579')).toBe(null) // te kort (zoals in de oude tracker)
     expect(belbaarNummer('@sanne.fit')).toBe(null)
   })
+})
+
+test('succesPct: klant ÷ afgesloten; niets afgesloten → null', async () => {
+  const { succesPct } = await import('./overzicht')
+  const nul = { nieuw: 0, opvolgen: 0, proefles: 0, intake: 0, later: 0, geen_interesse: 0, geen_klant: 0, klant: 0 }
+  expect(succesPct({ ...nul, nieuw: 5 })).toBeNull()
+  expect(succesPct({ ...nul, klant: 2, geen_klant: 1, geen_interesse: 1, nieuw: 10 })).toBe(50)
 })

@@ -36,7 +36,7 @@ export function Overzicht({ code, vandaag, o, leads, doelen }: Props) {
         <Tegel
           getal={String(o.leads.klant)}
           label="Klant geworden"
-          uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads`}
+          uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads${o.leads.succes === null ? '' : ` · ${o.leads.succes}% van de afgesloten`}`}
           accent
         />
         <Tegel getal={String(o.klanten.lopend)} label="Lopende klanten" uitleg={`${o.klanten.sessiesPerWeek} sessies per week`} />

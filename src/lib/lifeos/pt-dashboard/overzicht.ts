@@ -16,6 +16,8 @@ export interface LeadCijfers {
   geenInteresse: number
   /** Klant geworden ÷ alle leads, in hele procenten; null zonder leads. */
   conversie: number | null
+  /** Succes zoals MyLeads: klant geworden ÷ afgesloten leads (klant, geen klant, geen interesse); null als er nog niets is afgesloten. */
+  succes: number | null
   perStatus: Record<LeadStatus, number>
 }
 
@@ -37,6 +39,12 @@ function maandag(dag: string): string {
   return plusDagen(dag, -wd)
 }
 
+/** Klant geworden ÷ afgesloten (klant + geen klant + geen interesse), in hele procenten; null zonder afgesloten leads. */
+export function succesPct(perStatus: Readonly<Record<LeadStatus, number>>): number | null {
+  const afgesloten = perStatus.klant + perStatus.geen_klant + perStatus.geen_interesse
+  return afgesloten === 0 ? null : Math.round((perStatus.klant / afgesloten) * 100)
+}
+
 export function leadCijfers(leads: readonly Lead[], vandaag: string): LeadCijfers {
   const weekStart = maandag(vandaag)
   const maandStart = `${vandaag.slice(0, 8)}01`
@@ -51,6 +59,7 @@ export function leadCijfers(leads: readonly Lead[], vandaag: string): LeadCijfer
     klant,
     geenInteresse: perStatus.geen_interesse,
     conversie: leads.length === 0 ? null : Math.round((klant / leads.length) * 100),
+    succes: succesPct(perStatus),
     perStatus,
   }
 }

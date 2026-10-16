@@ -14,7 +14,9 @@ import { ptApi } from './api'
 // Lokale state voor directe feedback; `router.refresh()` houdt het overzicht
 // (en de tellers op /<naam>) in de pas.
 
-type Filter = 'open' | 'opvolgen' | 'klant' | 'geen_klant' | 'geen_interesse' | 'alles'
+// Zoals MyLeads: standaard alleen wie vandaag aan de beurt is (of te laat), de
+// rest staat onder Toekomst; afgesloten leads per uitkomst.
+type Filter = 'vandaag' | 'toekomst' | 'klant' | 'geen_klant' | 'geen_interesse' | 'alles'
 
 interface Props {
   code: string
@@ -29,8 +31,8 @@ interface Props {
 }
 
 const FILTERS: { sleutel: Filter; label: string }[] = [
-  { sleutel: 'open', label: 'Open' },
-  { sleutel: 'opvolgen', label: 'Nu opvolgen' },
+  { sleutel: 'vandaag', label: 'Vandaag' },
+  { sleutel: 'toekomst', label: 'Toekomst' },
   { sleutel: 'klant', label: 'Klant geworden' },
   { sleutel: 'geen_klant', label: 'Geen klant geworden' },
   { sleutel: 'geen_interesse', label: 'Geen interesse' },
@@ -38,8 +40,8 @@ const FILTERS: { sleutel: Filter; label: string }[] = [
 ]
 
 function past(l: Lead, f: Filter, vandaag: string): boolean {
-  if (f === 'open') return OPEN_STATUSSEN.includes(l.status)
-  if (f === 'opvolgen') return moetOpvolgen(l, vandaag)
+  if (f === 'vandaag') return moetOpvolgen(l, vandaag)
+  if (f === 'toekomst') return OPEN_STATUSSEN.includes(l.status) && !moetOpvolgen(l, vandaag)
   if (f === 'klant') return l.status === 'klant'
   if (f === 'geen_klant') return l.status === 'geen_klant'
   if (f === 'geen_interesse') return l.status === 'geen_interesse'
@@ -51,7 +53,8 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
   // Leads waarvan de status nu opgeslagen wordt: die kaart is even niet te wijzigen.
   const [opslaan, setOpslaan] = useState<ReadonlySet<string>>(new Set())
   const [leads, setLeads] = useState<Lead[]>(begin)
-  const [filter, setFilter] = useState<Filter>(startOpen ? 'alles' : 'open')
+  // Niets voor vandaag? Dan meteen Toekomst, zodat de lijst niet leeg opent.
+  const [filter, setFilter] = useState<Filter>(() => (startOpen ? 'alles' : begin.some((l) => moetOpvolgen(l, vandaag)) ? 'vandaag' : 'toekomst'))
   const [zoek, setZoek] = useState('')
   const [nieuw, setNieuw] = useState(startNieuw)
   const [bewerk, setBewerk] = useState<string | null>(startOpen)
@@ -64,7 +67,8 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
   )
   const zichtbaar = useMemo(() => {
     const q = zoek.trim().toLowerCase()
-    return leads.filter((l) => past(l, filter, vandaag)).filter((l) => !q || `${l.naam} ${l.contact ?? ''} ${l.notitie ?? ''}`.toLowerCase().includes(q))
+    // Zoeken doorzoekt alle leads, los van het gekozen filter.
+    return leads.filter((l) => (q ? true : past(l, filter, vandaag))).filter((l) => !q || `${l.naam} ${l.contact ?? ''} ${l.notitie ?? ''}`.toLowerCase().includes(q))
       .sort(vergelijkLeads(vandaag))
   }, [leads, filter, zoek, vandaag])
 
@@ -109,7 +113,7 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
           onOpgeslagen={(l) => {
             vervang(l)
             setNieuw(false)
-            setFilter(OPEN_STATUSSEN.includes(l.status) ? 'open' : 'alles')
+            setFilter(moetOpvolgen(l, vandaag) ? 'vandaag' : OPEN_STATUSSEN.includes(l.status) ? 'toekomst' : 'alles')
           }}
           onAnnuleer={() => setNieuw(false)}
         />
@@ -142,7 +146,9 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
             ? 'Nog geen leads. Sprak je vandaag iemand op de vloer, bij een intake of aan de telefoon? Zet het erin — dan bespreken we het in het coachgesprek.'
             : zoek
               ? 'Niets gevonden voor deze zoekopdracht.'
-              : 'Niets in deze lijst.'}
+              : filter === 'vandaag'
+                ? 'Niemand meer voor vandaag. Kijk bij Toekomst wie hierna aan de beurt is.'
+                : 'Niets in deze lijst.'}
         </p>
       ) : (
         <ul className="ptd-lijst">
@@ -173,6 +179,7 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
                 vandaag={vandaag}
                 onBewerk={() => setBewerk(l.id)}
                 notitieCode={code}
+                onLead={vervang}
                 onStatus={(s) => void zetStatus(l, s)}
                 bezig={opslaan.has(l.id)}
                 klantHref={metKlant.has(l.id) ? undefined : `/${code}/klanten?vanLead=${l.id}`}

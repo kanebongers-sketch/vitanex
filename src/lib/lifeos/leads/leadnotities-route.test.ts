@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 const links = vi.hoisted(() => ({ vindLink: vi.fn(), sessieGeldig: vi.fn() }))
 vi.mock('@/lib/lifeos/leads/links', async (importOriginal) => ({ ...(await importOriginal<typeof import('./links')>()), ...links }))
 vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => ({}) }))
-const opslag = vi.hoisted(() => ({ voegLeadNotitieToe: vi.fn(), verwijderLeadNotitie: vi.fn() }))
+const opslag = vi.hoisted(() => ({ voegContactmomentToe: vi.fn(), verwijderLeadNotitie: vi.fn() }))
 vi.mock('./opslag', async (importOriginal) => ({ ...(await importOriginal<typeof import('./opslag')>()), ...opslag }))
 
 import { POST } from '@/app/api/pt/[code]/leads/[id]/notities/route'
@@ -21,7 +21,7 @@ const ctx = { params: Promise.resolve({ code: 'joey', id: LEAD }) }
 beforeEach(() => {
   vi.clearAllMocks()
   links.sessieGeldig.mockResolvedValue(true)
-  opslag.voegLeadNotitieToe.mockResolvedValue({ ok: true, waarde: { id: 'n', datum: '2026-10-15', tekst: 'gebeld', door: 'Joey', aangemaaktOp: 'x' } })
+  opslag.voegContactmomentToe.mockResolvedValue({ ok: true, waarde: { notitie: { id: 'n' }, lead: { id: LEAD } } })
 })
 
 describe('POST notitie bij een lead', () => {
@@ -29,18 +29,26 @@ describe('POST notitie bij een lead', () => {
     links.vindLink.mockResolvedValue(link('pt'))
     const r = await POST(req({ tekst: 'gebeld' }), ctx)
     expect(r.status).toBe(201)
-    expect(opslag.voegLeadNotitieToe).toHaveBeenCalledWith({}, expect.objectContaining({ userId: 'u', persoonId: 'p' }), LEAD, 'gebeld', expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), 'Joey')
+    expect(opslag.voegContactmomentToe).toHaveBeenCalledWith({}, expect.objectContaining({ userId: 'u', persoonId: 'p' }), LEAD, { tekst: 'gebeld' }, expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), 'Joey')
+  })
+  it('contactmoment: status en opvolging gaan mee; klant geworden wist de opvolging', async () => {
+    links.vindLink.mockResolvedValue(link('pt'))
+    await POST(req({ tekst: 'proefles gepland', status: 'proefles', opvolgdatum: '2026-10-20', opvolgtijd: '18:00' }), ctx)
+    expect(opslag.voegContactmomentToe).toHaveBeenLastCalledWith({}, expect.anything(), LEAD, { tekst: 'proefles gepland', status: 'proefles', opvolgdatum: '2026-10-20', opvolgtijd: '18:00' }, expect.any(String), 'Joey')
+    await POST(req({ tekst: 'ingeschreven', status: 'klant', opvolgdatum: '2026-10-20', opvolgtijd: '18:00' }), ctx)
+    expect(opslag.voegContactmomentToe).toHaveBeenLastCalledWith({}, expect.anything(), LEAD, { tekst: 'ingeschreven', status: 'klant', opvolgdatum: null, opvolgtijd: null }, expect.any(String), 'Joey')
+    expect((await POST(req({ tekst: 'x', status: 'baas' }), ctx)).status).toBe(400)
   })
   it.each(['eigenaar', 'clubmanager'])('%s → 403', async (rol) => {
     links.vindLink.mockResolvedValue(link(rol))
     expect((await POST(req({ tekst: 'gebeld' }), ctx)).status).toBe(403)
-    expect(opslag.voegLeadNotitieToe).not.toHaveBeenCalled()
+    expect(opslag.voegContactmomentToe).not.toHaveBeenCalled()
   })
   it('lege tekst → 400; vreemde site → 403; niet de eigen lead → 404', async () => {
     links.vindLink.mockResolvedValue(link('pt'))
     expect((await POST(req({ tekst: ' ' }), ctx)).status).toBe(400)
     expect((await POST(req({ tekst: 'x' }, 'cross-site'), ctx)).status).toBe(403)
-    opslag.voegLeadNotitieToe.mockResolvedValue({ ok: false, reden: 'niet_gevonden' })
+    opslag.voegContactmomentToe.mockResolvedValue({ ok: false, reden: 'niet_gevonden' })
     expect((await POST(req({ tekst: 'x' }), ctx)).status).toBe(404)
   })
 })

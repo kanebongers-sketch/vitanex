@@ -88,6 +88,8 @@ export interface Lead {
   volgendeStap: VolgendeStap | null
   /** YYYY-MM-DD of null. */
   opvolgdatum: string | null
+  /** HH:MM of null: een tijd bij de opvolgdatum ("bel morgen 10:00"). Alleen met een datum. */
+  opvolgtijd: string | null
   reviewGevraagd: boolean
   referralGevraagd: boolean
   kentIemand: string | null
@@ -103,7 +105,10 @@ export interface Lead {
 
 export type NieuweLead = Omit<Lead, 'id' | 'aangemaaktOp' | 'logboek'>
 
-/** Eén korte, gedateerde notitie bij een lead ("gebeld, voicemail"). */
+/**
+ * Eén contactmoment bij een lead ("gebeld, voicemail"): wat er gebeurde, en als
+ * dat in hetzelfde moment is vastgelegd, de status daarna en de volgende opvolging.
+ */
 export interface LeadNotitie {
   id: string
   /** YYYY-MM-DD */
@@ -112,6 +117,27 @@ export interface LeadNotitie {
   /** Naam van wie het schreef. */
   door: string | null
   aangemaaktOp: string
+  /** De status na dit moment; null = niet gewijzigd. */
+  status: LeadStatus | null
+  /** De afgesproken volgende opvolging (YYYY-MM-DD, HH:MM); null = geen. */
+  opvolgdatum: string | null
+  opvolgtijd: string | null
+}
+
+/** Wat je in één contactmoment vastlegt. Velden die ontbreken (`undefined`) laten de lead ongemoeid. */
+export interface ContactmomentInvoer {
+  tekst: string
+  status?: LeadStatus
+  /** null = geen opvolging meer (bv. klant geworden). */
+  opvolgdatum?: string | null
+  opvolgtijd?: string | null
+}
+
+const TIJD = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/
+
+/** "10:00" of "10:00:00" → "10:00"; anders null. */
+export function leesTijd(v: unknown): string | null {
+  return typeof v === 'string' && TIJD.test(v) ? v.slice(0, 5) : null
 }
 
 export const MAX_LEADNOTITIE = 500
@@ -148,6 +174,7 @@ export function leesNieuweLead(body: unknown, vandaag: string, { clubVerplicht =
     gesprokenOp = o.gesprokenOp
   }
   const opvolgdatum = typeof o.opvolgdatum === 'string' && DAG.test(o.opvolgdatum) ? o.opvolgdatum : null
+  const opvolgtijd = opvolgdatum ? leesTijd(o.opvolgtijd) : null
   const status = isStatus(o.status) ? o.status : 'nieuw'
   return {
     ok: true,
@@ -160,6 +187,7 @@ export function leesNieuweLead(body: unknown, vandaag: string, { clubVerplicht =
       status,
       volgendeStap: isStap(o.volgendeStap) ? o.volgendeStap : null,
       opvolgdatum,
+      opvolgtijd,
       reviewGevraagd: o.reviewGevraagd === true,
       referralGevraagd: o.referralGevraagd === true,
       kentIemand: tekst(o.kentIemand, 200),
@@ -185,13 +213,45 @@ export function leesLeadNotitie(ruw: unknown): LeadNotitie | null {
   const x = obj(ruw)
   if (!x || typeof x.id !== 'string' || typeof x.tekst !== 'string' || typeof x.aangemaaktOp !== 'string') return null
   if (typeof x.datum !== 'string' || !DAG.test(x.datum)) return null
-  return { id: x.id, datum: x.datum, tekst: x.tekst, door: typeof x.door === 'string' ? x.door : null, aangemaaktOp: x.aangemaaktOp }
+  const opvolgdatum = typeof x.opvolgdatum === 'string' && DAG.test(x.opvolgdatum) ? x.opvolgdatum : null
+  return {
+    id: x.id, datum: x.datum, tekst: x.tekst, door: typeof x.door === 'string' ? x.door : null, aangemaaktOp: x.aangemaaktOp,
+    status: isStatus(x.status) ? x.status : null, opvolgdatum, opvolgtijd: opvolgdatum ? leesTijd(x.opvolgtijd) : null,
+  }
 }
 
 /** De tekst van een nieuwe notitie (spaties samengevouwen, ingekort), of een fout. */
 export function leesLeadNotitieTekst(body: unknown): Lees<string> {
   const t = tekst(obj(body)?.tekst, MAX_LEADNOTITIE)
   return t ? { ok: true, waarde: t } : { ok: false, fout: 'Schrijf kort wat er is gebeurd.' }
+}
+
+/**
+ * Een contactmoment: tekst verplicht; status en opvolging alleen als ze
+ * meegestuurd zijn. Een afgesloten status (klant, geen klant, geen interesse)
+ * wist de opvolging: daar valt niets meer op te volgen.
+ */
+export function leesContactmoment(body: unknown): Lees<ContactmomentInvoer> {
+  const o = obj(body)
+  const t = leesLeadNotitieTekst(body)
+  if (!o || !t.ok) return t.ok ? { ok: false, fout: 'Ongeldige invoer.' } : t
+  const uit: ContactmomentInvoer = { tekst: t.waarde }
+  if (o.status !== undefined) {
+    if (!isStatus(o.status)) return { ok: false, fout: 'Kies een geldige status.' }
+    uit.status = o.status
+  }
+  if (o.opvolgdatum !== undefined) {
+    if (o.opvolgdatum !== null && o.opvolgdatum !== '' && (typeof o.opvolgdatum !== 'string' || !DAG.test(o.opvolgdatum))) {
+      return { ok: false, fout: 'Kies een geldige opvolgdatum.' }
+    }
+    uit.opvolgdatum = typeof o.opvolgdatum === 'string' && o.opvolgdatum ? o.opvolgdatum : null
+    uit.opvolgtijd = uit.opvolgdatum ? leesTijd(o.opvolgtijd) : null
+  }
+  if (uit.status && !OPEN_STATUSSEN.includes(uit.status)) {
+    uit.opvolgdatum = null
+    uit.opvolgtijd = null
+  }
+  return { ok: true, waarde: uit }
 }
 
 /** Moet deze lead vandaag (of eerder) opgevolgd worden? */
@@ -220,7 +280,7 @@ export function vergelijkLeads(vandaag: string): (a: Lead, b: Lead) => number {
     const opDatum =
       ra === 4 ? b.gesprokenOp.localeCompare(a.gesprokenOp)
       : ra === 2 ? a.gesprokenOp.localeCompare(b.gesprokenOp)
-      : (a.opvolgdatum ?? '').localeCompare(b.opvolgdatum ?? '')
+      : `${a.opvolgdatum ?? ''} ${a.opvolgtijd ?? '99:99'}`.localeCompare(`${b.opvolgdatum ?? ''} ${b.opvolgtijd ?? '99:99'}`)
     return opDatum || a.naam.localeCompare(b.naam, 'nl')
   }
 }

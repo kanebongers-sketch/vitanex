@@ -11,12 +11,13 @@ import { BeheerLeadsLijst } from '@/components/lifeos/pt-beheer/BeheerLeadsLijst
 // op PT'er en stand (filters in de URL). Een eigenaar kijkt mee; de beheerder
 // kan leads ook invullen, bijwerken en verplaatsen.
 
-const WEERGAVEN = ['open', 'te_laat', 'klant', 'geen_klant', 'alle'] as const
+const WEERGAVEN = ['open', 'vandaag', 'te_laat', 'klant', 'geen_klant', 'alle'] as const
 type Weergave = (typeof WEERGAVEN)[number]
-const WEERGAVE_LABEL: Record<Weergave, string> = { open: 'Open', te_laat: 'Te laat', klant: 'Klant geworden', geen_klant: 'Geen klant geworden', alle: 'Alle' }
+const WEERGAVE_LABEL: Record<Weergave, string> = { open: 'Open', vandaag: 'Vandaag aan de beurt', te_laat: 'Te laat', klant: 'Klant geworden', geen_klant: 'Geen klant geworden', alle: 'Alle' }
 
 function past(l: Lead, w: Weergave, vandaag: string): boolean {
   if (w === 'open') return OPEN_STATUSSEN.includes(l.status)
+  if (w === 'vandaag') return moetOpvolgen(l, vandaag)
   if (w === 'te_laat') return moetOpvolgen(l, vandaag) && l.opvolgdatum !== vandaag
   if (w === 'klant') return l.status === 'klant'
   if (w === 'geen_klant') return l.status === 'geen_klant'

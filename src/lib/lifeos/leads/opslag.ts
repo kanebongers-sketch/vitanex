@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isClub } from '@/lib/lifeos/pt-dashboard/clubs'
-import { isBron, isGeenKlantReden, isInteresse, isStap, isStatus, type Lead, type LeadNotitie, type NieuweLead } from './leads'
+import { isBron, isGeenKlantReden, isInteresse, isStap, isStatus, leesTijd, type ContactmomentInvoer, type Lead, type LeadNotitie, type NieuweLead } from './leads'
 import type { LeadLink } from './links'
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'te_veel' | 'niet_gevonden' }
@@ -14,7 +14,7 @@ export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | '
 const MAX_PER_UUR = 40
 
 const KOLOMMEN =
-  'id, naam, contact, locatie, bron, interesse, status, volgende_stap, opvolgdatum, review_gevraagd, referral_gevraagd, kent_iemand, notitie, geen_klant_reden, gesproken_op, aangemaakt_op'
+  'id, naam, contact, locatie, bron, interesse, status, volgende_stap, opvolgdatum, opvolgtijd, review_gevraagd, referral_gevraagd, kent_iemand, notitie, geen_klant_reden, gesproken_op, aangemaakt_op'
 
 interface Rij {
   id: string
@@ -26,6 +26,7 @@ interface Rij {
   status: string
   volgende_stap: string | null
   opvolgdatum: string | null
+  opvolgtijd: string | null
   review_gevraagd: boolean
   referral_gevraagd: boolean
   kent_iemand: string | null
@@ -41,9 +42,17 @@ interface NotitieRij {
   tekst: string
   door: string | null
   aangemaakt_op: string
+  status: string | null
+  opvolgdatum: string | null
+  opvolgtijd: string | null
 }
 
-const vanNotitieRij = (n: NotitieRij): LeadNotitie => ({ id: n.id, datum: n.datum, tekst: n.tekst, door: n.door, aangemaaktOp: n.aangemaakt_op })
+const NOTITIE_KOLOMMEN = 'id, datum, tekst, door, aangemaakt_op, status, opvolgdatum, opvolgtijd'
+
+const vanNotitieRij = (n: NotitieRij): LeadNotitie => ({
+  id: n.id, datum: n.datum, tekst: n.tekst, door: n.door, aangemaaktOp: n.aangemaakt_op,
+  status: isStatus(n.status) ? n.status : null, opvolgdatum: n.opvolgdatum, opvolgtijd: n.opvolgdatum ? leesTijd(n.opvolgtijd) : null,
+})
 
 function vanRij(r: Rij): Lead | null {
   if (!isBron(r.bron) || !isStatus(r.status)) return null
@@ -57,6 +66,7 @@ function vanRij(r: Rij): Lead | null {
     status: r.status,
     volgendeStap: isStap(r.volgende_stap) ? r.volgende_stap : null,
     opvolgdatum: r.opvolgdatum,
+    opvolgtijd: r.opvolgdatum ? leesTijd(r.opvolgtijd) : null,
     reviewGevraagd: r.review_gevraagd === true,
     referralGevraagd: r.referral_gevraagd === true,
     kentIemand: r.kent_iemand,
@@ -84,6 +94,7 @@ function naarRij(l: NieuweLead) {
     status: l.status,
     volgende_stap: l.volgendeStap,
     opvolgdatum: l.opvolgdatum,
+    opvolgtijd: l.opvolgdatum ? l.opvolgtijd : null,
     review_gevraagd: l.reviewGevraagd,
     referral_gevraagd: l.referralGevraagd,
     kent_iemand: l.kentIemand,
@@ -212,7 +223,7 @@ async function haalLogboeken(admin: SupabaseClient, userId: string, leadIds: rea
   for (let i = 0; i < leadIds.length; i += LOGBOEK_BLOK) blokken.push(leadIds.slice(i, i + LOGBOEK_BLOK))
   const antwoorden = await Promise.all(
     blokken.map((ids) =>
-      admin.from('pt_leadnotities').select('id, lead_id, datum, tekst, door, aangemaakt_op').eq('user_id', userId).in('lead_id', ids).order('aangemaakt_op', { ascending: false }),
+      admin.from('pt_leadnotities').select(`lead_id, ${NOTITIE_KOLOMMEN}`).eq('user_id', userId).in('lead_id', ids).order('aangemaakt_op', { ascending: false }),
     ),
   )
   if (antwoorden.some((a) => a.error)) return null
@@ -242,18 +253,20 @@ async function eigenLeadId(admin: SupabaseClient, link: LeadLink, leadId: string
 }
 
 /**
- * Een notitie bij een lead — alleen een lead van déze trainer (zoals bij
- * wijzigLead). Raakt ook bijgewerkt_op van de lead (de bewaartermijn telt vanaf
- * het laatste contact).
+ * Een contactmoment bij een lead — alleen een lead van déze trainer (zoals bij
+ * wijzigLead). De notitie bewaart de status en opvolging van dat moment; de
+ * lead krijgt ze ook (alleen de velden die in het moment zitten). Raakt altijd
+ * bijgewerkt_op van de lead (de bewaartermijn telt vanaf het laatste contact).
+ * Geeft de notitie én de bijgewerkte lead terug.
  */
-export async function voegLeadNotitieToe(
+export async function voegContactmomentToe(
   admin: SupabaseClient,
   link: LeadLink,
   leadId: string,
-  tekst: string,
+  m: ContactmomentInvoer,
   datum: string,
   door: string,
-): Promise<Uitkomst<LeadNotitie>> {
+): Promise<Uitkomst<{ notitie: LeadNotitie; lead: Lead }>> {
   const userId = link.userId
   const [eigen, tel] = await Promise.all([
     eigenLeadId(admin, link, leadId),
@@ -262,14 +275,27 @@ export async function voegLeadNotitieToe(
   if (eigen === 'db' || tel.error) return { ok: false, reden: 'db' }
   if (eigen === 'nee') return { ok: false, reden: 'niet_gevonden' }
   if ((tel.count ?? 0) >= MAX_NOTITIES_PER_LEAD) return { ok: false, reden: 'te_veel' }
+
+  const opvolging = m.opvolgdatum !== undefined
   const { data, error } = await admin
     .from('pt_leadnotities')
-    .insert({ lead_id: leadId, user_id: userId, datum, tekst, door })
-    .select('id, datum, tekst, door, aangemaakt_op')
+    .insert({
+      lead_id: leadId, user_id: userId, datum, tekst: m.tekst, door,
+      status: m.status ?? null, opvolgdatum: opvolging ? m.opvolgdatum : null, opvolgtijd: opvolging ? (m.opvolgtijd ?? null) : null,
+    })
+    .select(NOTITIE_KOLOMMEN)
     .single()
   if (error || !data) return { ok: false, reden: 'db' }
-  await admin.from('pt_leads').update({ bijgewerkt_op: new Date().toISOString() }).eq('id', leadId).eq('user_id', userId)
-  return { ok: true, waarde: vanNotitieRij(data as NotitieRij) }
+
+  const wijziging = {
+    bijgewerkt_op: new Date().toISOString(),
+    ...(m.status ? { status: m.status } : {}),
+    ...(opvolging ? { opvolgdatum: m.opvolgdatum, opvolgtijd: m.opvolgtijd ?? null } : {}),
+  }
+  const bij = await admin.from('pt_leads').update(wijziging).eq('id', leadId).eq('user_id', userId).eq('persoon_id', link.persoonId).select(KOLOMMEN).maybeSingle()
+  const lead = !bij.error && bij.data ? vanRij(bij.data as Rij) : null
+  if (!lead) return { ok: false, reden: 'db' }
+  return { ok: true, waarde: { notitie: vanNotitieRij(data as NotitieRij), lead: (await metLogboek(admin, userId, [lead]))[0] } }
 }
 
 /** Een notitie weghalen (bv. een typfout). Alleen bij een lead van déze trainer. */

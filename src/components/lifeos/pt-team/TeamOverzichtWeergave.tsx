@@ -59,7 +59,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children,
               <thead>
                 <tr>
                   <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Doel wk</th><th scope="col">Maand</th><th scope="col">Open</th>
-                  <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col">Abonnementen</th>
+                  <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col" title="Klant geworden van de afgesloten leads">Succes</th><th scope="col">Abonnementen</th>
                   {toonGeld ? <th scope="col">Per maand</th> : null}<th scope="col">Laatste lead</th>
                   {toonPin ? <th scope="col">Dashboard</th> : null}
                 </tr>
@@ -75,6 +75,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children,
                     <td>{r.teLaat > 0 ? <span className="ptd-badge ptd-badge--let-op">{r.teLaat}</span> : 0}</td>
                     <td>{r.leads.klant}</td>
                     <td>{r.leads.conversie === null ? '–' : `${r.leads.conversie}%`}</td>
+                    <td>{r.leads.succes === null ? '–' : `${r.leads.succes}%`}</td>
                     <td>{r.klantenLopend}{r.bevroren > 0 ? ` (${r.bevroren} bevr.)` : ''}</td>
                     {toonGeld ? <td>{euro(r.maandwaarde)}</td> : null}
                     <td>{r.laatsteLead ? dagKort(r.laatsteLead) : '–'}</td>

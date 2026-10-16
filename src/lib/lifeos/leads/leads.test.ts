@@ -2,13 +2,13 @@ import { describe, expect, test } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  GERESERVEERD, CODE_PATROON, leadRegel, leesLead, leesLeadNotitieTekst, vergelijkLeads, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
+  GERESERVEERD, CODE_PATROON, leadRegel, leesContactmoment, leesLead, leesLeadNotitieTekst, leesTijd, vergelijkLeads, leesLeadSamenvatting, leesNieuweLead, linkCodeVoor, moetOpvolgen, slugVoorNaam,
   vatLeadsSamen, type Lead,
 } from './leads'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l1', naam: 'Sanne', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
-  opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
+  opvolgdatum: null, opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
   gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 
@@ -44,7 +44,7 @@ describe('lead invoer', () => {
     expect(onbekend.ok && onbekend.waarde.geenKlantReden).toBeNull()
   })
   test('rondreis via JSON', () => {
-    const l = lead({ opvolgdatum: '2026-10-10', reviewGevraagd: true })
+    const l = lead({ opvolgdatum: '2026-10-10', opvolgtijd: null, reviewGevraagd: true })
     expect(leesLead(JSON.parse(JSON.stringify(l)))).toEqual(l)
   })
   test('opvolgen: alleen open leads met een datum vandaag of eerder', () => {
@@ -105,7 +105,7 @@ describe('logboek per lead', () => {
     expect(lang.ok && lang.waarde.length).toBe(500)
   })
   test('rondreis via JSON met logboek; kapotte notities vallen weg', () => {
-    const n = { id: 'n1', datum: '2026-10-15', tekst: 'proefles di 18:00', door: 'Joey', aangemaaktOp: '2026-10-15T09:00:00Z' }
+    const n = { id: 'n1', datum: '2026-10-15', tekst: 'proefles di 18:00', door: 'Joey', aangemaaktOp: '2026-10-15T09:00:00Z', status: 'proefles' as const, opvolgdatum: '2026-10-20', opvolgtijd: '18:00' }
     const l = { ...lead(), logboek: [n, { id: 'kapot' }] }
     expect(leesLead(JSON.parse(JSON.stringify(l)))?.logboek).toEqual([n])
   })
@@ -125,4 +125,38 @@ test('vergelijkLeads: te laat, vandaag, zonder plan, later; afgesloten onderaan,
   expect([...ls].sort(vergelijkLeads('2026-10-08')).map((l) => l.id)).toEqual([
     'laat-lang', 'laat-kort', 'vandaag', 'plan-oud', 'plan-nieuw', 'later', 'geen-klant', 'klant-oud',
   ])
+})
+
+describe('contactmoment', () => {
+  test('alleen tekst = alleen een notitie (lead blijft ongemoeid)', () => {
+    expect(leesContactmoment({ tekst: 'gebeld' })).toEqual({ ok: true, waarde: { tekst: 'gebeld' } })
+  })
+  test('status + opvolging; lege datum wist de opvolging; tijd alleen met datum', () => {
+    expect(leesContactmoment({ tekst: 'x', status: 'opvolgen', opvolgdatum: '2026-10-20', opvolgtijd: '10:00:00' })).toEqual({
+      ok: true, waarde: { tekst: 'x', status: 'opvolgen', opvolgdatum: '2026-10-20', opvolgtijd: '10:00' },
+    })
+    expect(leesContactmoment({ tekst: 'x', opvolgdatum: '', opvolgtijd: '10:00' })).toEqual({ ok: true, waarde: { tekst: 'x', opvolgdatum: null, opvolgtijd: null } })
+  })
+  test('afgesloten status wist de opvolging; ongeldige invoer → fout', () => {
+    const r = leesContactmoment({ tekst: 'lid geworden', status: 'klant', opvolgdatum: '2026-10-20' })
+    expect(r.ok && r.waarde).toEqual({ tekst: 'lid geworden', status: 'klant', opvolgdatum: null, opvolgtijd: null })
+    expect(leesContactmoment({ tekst: 'x', status: 'baas' }).ok).toBe(false)
+    expect(leesContactmoment({ tekst: 'x', opvolgdatum: 'morgen' }).ok).toBe(false)
+    expect(leesContactmoment({ tekst: ' ' }).ok).toBe(false)
+  })
+  test('leesTijd', () => {
+    expect(leesTijd('09:05')).toBe('09:05')
+    expect(leesTijd('24:00')).toBeNull()
+    expect(leesTijd('9:05')).toBeNull()
+  })
+  test('opvolgtijd bij een lead alleen met datum; sorteren binnen dezelfde dag op tijd', () => {
+    const r = leesNieuweLead({ naam: 'X', bron: 'vloer', club: 'eersel', opvolgtijd: '10:00' }, '2026-10-08')
+    expect(r.ok && r.waarde.opvolgtijd).toBeNull()
+    const ls = [
+      lead({ id: 'zonder', status: 'opvolgen', opvolgdatum: '2026-10-08', opvolgtijd: null }),
+      lead({ id: 'laat', status: 'opvolgen', opvolgdatum: '2026-10-08', opvolgtijd: '16:00' }),
+      lead({ id: 'vroeg', status: 'opvolgen', opvolgdatum: '2026-10-08', opvolgtijd: '09:00' }),
+    ]
+    expect([...ls].sort(vergelijkLeads('2026-10-08')).map((l) => l.id)).toEqual(['vroeg', 'laat', 'zonder'])
+  })
 })

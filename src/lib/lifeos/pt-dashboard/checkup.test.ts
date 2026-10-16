@@ -5,7 +5,7 @@ import { checkupSinds, checkupStand, leadsDoorlopen, leesAfspraakInvoer, scoreAf
 
 const lead = (id: string, over: Partial<Lead> = {}): Lead => ({
   id, naam: `Lead ${id}`, contact: null, club: 'bladel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: 'bellen', opvolgdatum: '2026-10-20',
-  reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-08', aangemaaktOp: '2026-10-08T10:00:00Z', ...over,
+  opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-08', aangemaaktOp: '2026-10-08T10:00:00Z', ...over,
 })
 const klant = (id: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: `Klant ${id}`, contact: null, duoPartner: null, club: 'bladel', abonnement: '1x', startdatum: '2026-05-01', status: 'actief',

@@ -5,7 +5,7 @@ import { START_PLAN, actiesVoor, clubStanden, groeiCijfers, leesGroeiplan, MAX_A
 
 const lead = (id: string, over: Partial<Lead> = {}): Lead => ({
   id, naam: `Lead ${id}`, contact: null, club: 'bladel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null,
-  reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-12', aangemaaktOp: '2026-10-12T10:00:00Z', ...over,
+  opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-12', aangemaaktOp: '2026-10-12T10:00:00Z', ...over,
 })
 const klant = (id: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: `Klant ${id}`, contact: null, duoPartner: null, club: 'bladel', abonnement: '1x', startdatum: '2026-05-01', status: 'actief',

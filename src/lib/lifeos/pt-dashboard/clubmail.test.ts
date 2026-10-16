@@ -5,7 +5,7 @@ import { bouwClubmail, clubWeek } from './clubmail'
 
 const lead = (id: string, over: Partial<Lead> = {}): Lead => ({
   id, naam: `Lead ${id}`, contact: '0612345678', club: 'bladel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null,
-  reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-08', aangemaaktOp: '2026-10-08T10:00:00Z', ...over,
+  opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-08', aangemaaktOp: '2026-10-08T10:00:00Z', ...over,
 })
 const klant = (id: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: `Klant ${id}`, contact: null, duoPartner: null, club: 'bladel', abonnement: '1x', startdatum: '2026-10-07', status: 'actief',

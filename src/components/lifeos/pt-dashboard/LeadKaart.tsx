@@ -24,6 +24,8 @@ interface Props {
   trainer?: string
   /** Link-code om notities in het logboek te zetten (de PT'er zelf, of Kane); weglaten = logboek alleen lezen. */
   notitieCode?: string
+  /** De lead na een contactmoment (nieuwe status/opvolging). */
+  onLead?: (l: Lead) => void
   /** De status wordt opgeslagen: keuzelijst even dicht (geen dubbele wijziging). */
   bezig?: boolean
 }
@@ -34,7 +36,7 @@ export function statusBadge(status: LeadStatus): string {
   return 'ptd-badge'
 }
 
-export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer, notitieCode, bezig = false }: Props) {
+export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer, notitieCode, onLead, bezig = false }: Props) {
   const teLaat = moetOpvolgen(lead, vandaag) && lead.opvolgdatum !== vandaag
   const opvolgVandaag = moetOpvolgen(lead, vandaag) && lead.opvolgdatum === vandaag
   return (
@@ -57,11 +59,11 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, traine
           <span className={teLaat ? 'ptd-badge ptd-badge--let-op' : opvolgVandaag ? 'ptd-badge ptd-badge--accent' : 'ptd-badge'}>
             <CalendarClock size={13} aria-hidden />
             {lead.volgendeStap ? STAP_LABEL[lead.volgendeStap] : 'Opvolgen'}
-            {lead.opvolgdatum ? ` · ${relatief(lead.opvolgdatum, vandaag)}` : ''}
+            {lead.opvolgdatum ? ` · ${relatief(lead.opvolgdatum, vandaag)}${lead.opvolgtijd ? ` ${lead.opvolgtijd}` : ''}` : ''}
           </span>
         </div>
       ) : null}
-      {lead.logboek ? <LeadLogboek leadId={lead.id} naam={lead.naam} logboek={lead.logboek} vandaag={vandaag} code={notitieCode} /> : null}
+      {lead.logboek ? <LeadLogboek lead={lead} vandaag={vandaag} code={notitieCode} onLead={onLead} /> : null}
       {lead.notitie ? <p className="ptd-tekst">{lead.notitie}</p> : null}
       {lead.reviewGevraagd || lead.referralGevraagd || lead.kentIemand ? (
         <div className="ptd-meta">

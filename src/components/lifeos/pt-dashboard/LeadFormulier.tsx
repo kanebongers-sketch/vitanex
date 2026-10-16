@@ -30,12 +30,12 @@ interface Props {
 
 function leeg(vandaag: string, club: Club | null): NieuweLead {
   return {
-    naam: '', contact: null, club, bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null,
+    naam: '', contact: null, club, bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null, opvolgdatum: null, opvolgtijd: null,
     reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null, gesprokenOp: vandaag,
   }
 }
 
-const SNEL = [
+export const SNEL = [
   { label: 'Morgen', dagen: 1 },
   { label: 'Over 3 dagen', dagen: 3 },
   { label: 'Over een week', dagen: 7 },
@@ -121,6 +121,17 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
         </Veld>
         <Veld label="Opvolgdatum" id={`opvolg-${id}`}>
           <input id={`opvolg-${id}`} type="date" className="ptd-invoer" value={v.opvolgdatum ?? ''} onChange={(e) => zet('opvolgdatum', e.target.value || null)} />
+        </Veld>
+        <Veld label="Tijd" id={`opvolgtijd-${id}`}>
+          <input
+            id={`opvolgtijd-${id}`}
+            type="time"
+            step={300}
+            className="ptd-invoer"
+            value={v.opvolgtijd ?? ''}
+            disabled={!v.opvolgdatum}
+            onChange={(e) => zet('opvolgtijd', e.target.value || null)}
+          />
         </Veld>
       </div>
       <div className="ptd-keuzes" aria-label="Snel een opvolgdatum kiezen">

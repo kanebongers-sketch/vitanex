@@ -66,7 +66,7 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
       <div className="ptd-tegels">
         <Tegel getal={String(o.leads.dezeWeek)} label="Leads deze week" uitleg={`${o.leads.dezeMaand} deze maand · ${o.leads.totaal} totaal`} />
         <Tegel getal={String(o.leads.open)} label="Open leads" uitleg={`${o.teLaat.length} te laat · ${o.zonderPlan.length} zonder plan`} />
-        <Tegel getal={String(o.leads.klant)} label="Klant geworden" uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads`} accent />
+        <Tegel getal={String(o.leads.klant)} label="Klant geworden" uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads${o.leads.succes === null ? '' : ` · ${o.leads.succes}% van de afgesloten`}`} accent />
         {geld ? (
           <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · ${o.klanten.sessiesPerWeek} sessies p/w`} />
         ) : (

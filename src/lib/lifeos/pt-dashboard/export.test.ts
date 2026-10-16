@@ -5,7 +5,7 @@ import { bedragNl, csvCel, datumNl, exportBestandsnaam, isExportSoort, klantenCs
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'Sanne', contact: '0612345678', club: 'eersel', bron: 'vloer', interesse: 'warm', status: 'opvolgen',
-  volgendeStap: 'bellen', opvolgdatum: '2026-10-10', reviewGevraagd: true, referralGevraagd: false, kentIemand: null,
+  volgendeStap: 'bellen', opvolgdatum: '2026-10-10', opvolgtijd: null, reviewGevraagd: true, referralGevraagd: false, kentIemand: null,
   notitie: null, geenKlantReden: null, gesprokenOp: '2026-10-07', aangemaaktOp: '2026-10-07T10:00:00Z', ...over,
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({

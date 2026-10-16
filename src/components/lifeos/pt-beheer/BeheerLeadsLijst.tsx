@@ -71,6 +71,7 @@ export function BeheerLeadsLijst({ code, vandaag, items, trainers, standaardTrai
                 trainer={toonTrainer ? naamVan.get(trainerId) : undefined}
                 onBewerk={() => setBewerk(lead.id)}
                 notitieCode={code}
+                onLead={() => router.refresh()}
               />
             ),
           )}

@@ -21,7 +21,7 @@ function rij(over: Partial<CoachRij> & { naam: string }): CoachRij {
 function lead(naam: string, over: Partial<Lead> = {}): Lead {
   return {
     id: naam, naam, contact: null, club: null, bron: 'vloer', interesse: null, status: 'opvolgen', volgendeStap: 'bellen',
-    opvolgdatum: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
+    opvolgdatum: null, opvolgtijd: null, reviewGevraagd: false, referralGevraagd: false, kentIemand: null, notitie: null, geenKlantReden: null,
     gesprokenOp: '2026-10-01', aangemaaktOp: '2026-10-01T10:00:00Z', ...over,
   }
 }
