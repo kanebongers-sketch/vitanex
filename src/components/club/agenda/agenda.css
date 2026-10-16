@@ -1,0 +1,22 @@
+/* ── Fit Factory Club: agenda ────────────────────────────────────────────── */
+.club-app .ag-nav { align-items: center; }
+.club-app .ag-bereik { font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; min-width: 120px; text-align: center; }
+.club-app .ag-form { display: grid; gap: 14px; margin: 14px 0; }
+.club-app .ag-vinkje { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); cursor: pointer; }
+.club-app .ag-vinkje input { width: 18px; height: 18px; accent-color: var(--brand); }
+.club-app .ag-week { display: grid; gap: 10px; margin-top: 14px; }
+@media (min-width: 1000px) { .club-app .ag-week { grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: start; } }
+.club-app .ag-dag { display: grid; gap: 8px; align-content: start; min-height: 120px; padding: 12px; border-radius: var(--club-radius); border: 1px solid var(--line); background: var(--bg-card); }
+.club-app .ag-dag--vandaag { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+.club-app .ag-dag-kop { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.club-app .ag-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.club-app .ag-item { display: grid; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); background: var(--club-vlak); color: var(--text-1); font: inherit; cursor: pointer; transition: border-color 160ms ease; }
+.club-app .ag-item:hover { border-color: var(--line-strong); }
+.club-app .ag-item--overleg, .club-app .ag-item--intake, .club-app .ag-item--pt { border-left-color: var(--brand); }
+.club-app .ag-item--onderhoud { border-left-color: var(--club-let-op); }
+.club-app .ag-tijd { font-size: 12px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-app .ag-titel { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.club-app .ag-meta { font-size: 12px; color: var(--text-3); }
+.club-app .ag-leeg { display: grid; place-items: center; min-height: 56px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line); background: none; color: var(--text-4); cursor: pointer; transition: color 160ms ease, border-color 160ms ease; }
+.club-app .ag-leeg:hover { color: var(--brand); border-color: var(--brand); }
+.club-app .ag-item:focus-visible, .club-app .ag-leeg:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
