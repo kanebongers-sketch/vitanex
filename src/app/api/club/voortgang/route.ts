@@ -16,7 +16,10 @@ export async function GET(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const lidId = req.nextUrl.searchParams.get('lid')
-  if (!isUuid(lidId) || !(await lidVestiging(t.admin, t.userId, lidId))) return clubFout('Lid niet gevonden.', 404)
+  const vestiging = isUuid(lidId) ? await lidVestiging(t.admin, t.userId, lidId) : null
+  if (!isUuid(lidId) || !vestiging) return clubFout('Lid niet gevonden.', 404)
+  // Inzage in gezondheidsgegevens wordt gelogd (AVG).
+  await logActie(t, 'Metingen bekeken', null, vestiging)
   return clubJson({ voortgang: await haalVoortgang(t.admin, t.userId, lidId) })
 }
 
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
   const vestiging = await lidVestiging(t.admin, t.userId, m.lidId)
   if (!vestiging) return clubFout('Dit lid bestaat niet (meer).', 404)
   if (!(await medewerkerBestaat(t.admin, t.userId, m.medewerkerId))) return clubFout('Onbekende medewerker.', 400)
-  if (!(await voegMetingToe(t.admin, t.userId, m))) return clubFout('De meting kon niet worden opgeslagen. Probeer het opnieuw.', 500)
+  if (!(await voegMetingToe(t.admin, t.userId, m, t.naam))) return clubFout('De meting kon niet worden opgeslagen. Probeer het opnieuw.', 500)
 
   await logActie(t, 'Meting toegevoegd', 'met toestemming van het lid', vestiging)
   return clubJson({ voortgang: await haalVoortgang(t.admin, t.userId, m.lidId) }, 201)

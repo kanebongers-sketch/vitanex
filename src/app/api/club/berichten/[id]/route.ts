@@ -6,6 +6,7 @@ import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } fro
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { leesActie, leesBericht, stopVenster, type BerichtActie } from '@/lib/club/berichten/invoer'
 import { BERICHT_KOLOMMEN, berichtUitRij, type Bericht } from '@/lib/club/berichten/model'
+import { leesJsonBegrensd } from '@/lib/club/kern/body'
 
 interface Context {
   params: Promise<{ id: string }>
@@ -34,7 +35,9 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Bericht niet gevonden.', 404)
-  const actie = leesActie(await req.json().catch(() => null))
+  const body = await leesJsonBegrensd(req, 32 * 1024)
+  if (body === 'te-groot') return clubFout('Dit bericht is te groot.', 413)
+  const actie = leesActie(body)
   if (!actie.ok) return clubFout(actie.fout, 400)
 
   const huidig = await haalHuidig(t, id)

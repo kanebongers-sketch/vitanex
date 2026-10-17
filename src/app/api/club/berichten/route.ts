@@ -5,12 +5,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { leesBericht } from '@/lib/club/berichten/invoer'
 import { BERICHT_KOLOMMEN, berichtUitRij } from '@/lib/club/berichten/model'
+import { leesJsonBegrensd } from '@/lib/club/kern/body'
 
 export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
 
-  const body: unknown = await req.json().catch(() => null)
+  const body = await leesJsonBegrensd(req, 32 * 1024)
+  if (body === 'te-groot') return clubFout('Dit bericht is te groot.', 413)
   const invoer = leesBericht(body, t.vestigingen.map((v) => v.sleutel), new Date())
   if (!invoer.ok) return clubFout(invoer.fout, 400)
 

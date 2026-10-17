@@ -22,7 +22,7 @@ export const ROL_LABEL: Record<MedewerkerRol, string> = {
 export const RECHTEN: Record<MedewerkerRol, readonly string[]> = {
   trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'leads', 'personeel', 'taken'],
   instructeur: ['vandaag', 'rooster', 'personeel'],
-  manager: ['vandaag', 'checkin', 'leden', 'rooster', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
+  manager: ['vandaag', 'checkin', 'leden', 'berichten', 'rooster', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
   administratie: ['personeel'],
 }
 

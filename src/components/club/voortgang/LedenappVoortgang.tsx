@@ -9,6 +9,7 @@ import { VoortgangGrafiek } from './VoortgangGrafiek'
 import { WeekBalken } from './WeekBalken'
 import { datumKort, getal } from './weergave'
 import './voortgang.css'
+import { VOOR_LID as VOOR_LID_MATEN } from '@/lib/club/voortgang/lid'
 
 interface LedenappVoortgangProps {
   /** Uit haalVoortgang() op de server. */
@@ -18,7 +19,7 @@ interface LedenappVoortgangProps {
 }
 
 /** Wat een lid zelf ziet: lichaam en omtrek, geen BMI of hartslag (dat bespreekt de trainer). */
-const VOOR_LID: readonly ReeksSleutel[] = ['gewicht_kg', 'buikomtrek_cm', 'heupomtrek_cm', 'vetpercentage', 'spiermassa_kg']
+const VOOR_LID: readonly ReeksSleutel[] = VOOR_LID_MATEN
 
 /** Eigen voortgang in de ledenapp: verloop, trainingen per week en mijlpalen. */
 export function LedenappVoortgang({ voortgang, nu }: LedenappVoortgangProps) {

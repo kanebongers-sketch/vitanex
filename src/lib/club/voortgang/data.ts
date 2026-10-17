@@ -85,8 +85,15 @@ export async function haalMeting(admin: SupabaseClient, userId: string, id: stri
   return error ? null : metingUitRij(data)
 }
 
-export async function voegMetingToe(admin: SupabaseClient, userId: string, m: MetingInvoer): Promise<boolean> {
-  const { error } = await admin.from('club_metingen').insert({ ...metingKolommen(m), user_id: userId, lid_id: m.lidId })
+/** Een nieuwe meting. `wie` vroeg de toestemming van het lid: dat leggen we met het tijdstip vast (AVG). */
+export async function voegMetingToe(admin: SupabaseClient, userId: string, m: MetingInvoer, wie: string): Promise<boolean> {
+  const { error } = await admin.from('club_metingen').insert({
+    ...metingKolommen(m),
+    user_id: userId,
+    lid_id: m.lidId,
+    toestemming_op: new Date().toISOString(),
+    toestemming_door: wie.slice(0, 80),
+  })
   if (error) meld('meting opslaan', error)
   return !error
 }

@@ -51,6 +51,11 @@ const API_ONDERDEEL: Record<string, string> = {
   rooster: 'rooster',
   taken: 'taken',
   training: 'schemas',
+  // Gezondheidsgegevens horen bij de ledenkaart.
+  voortgang: 'leden',
+  berichten: 'berichten',
+  sluiting: 'sluiting',
+  bedrijf: 'bedrijf',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

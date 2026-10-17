@@ -18,6 +18,7 @@ import '@/components/club/app/app.css'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
+import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
@@ -75,7 +76,8 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
     haalBedrijf(t.admin, t.userId),
     haalBerichtenVoorLid(t.admin, t.userId, lid, nu),
   ])
-  const voortgang = tab === 'voortgang' ? await haalVoortgang(t.admin, t.userId, lid.id, nu) : null
+  // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
+  const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(t.admin, t.userId, lid.id, nu)) : null
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>

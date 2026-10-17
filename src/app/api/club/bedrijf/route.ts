@@ -5,12 +5,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { leesBedrijfInvoer } from '@/lib/club/bedrijf/invoer'
 import { bewaarBedrijf } from '@/lib/club/bedrijf/opslag'
+import { leesJsonBegrensd } from '@/lib/club/kern/body'
 
 export async function PATCH(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
 
-  const invoer = leesBedrijfInvoer(await req.json().catch(() => null))
+  const body = await leesJsonBegrensd(req, 256 * 1024)
+  if (body === 'te-groot') return clubFout('De tekst is te groot.', 413)
+  const invoer = leesBedrijfInvoer(body)
   if (!invoer.ok) return clubJson({ fout: invoer.fout, veld: invoer.veld ?? null }, 400)
 
   if (!(await bewaarBedrijf(t.admin, t.userId, invoer.waarde))) {
