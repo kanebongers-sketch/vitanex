@@ -18,7 +18,7 @@ while (
 // kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
 // op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
 // een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
-const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'clubkane', 'clubinloggen', 'api', 'fonts', 'lead', 'releasev'])
+const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'clubkane', 'clubinloggen', 'aiyourgym', 'api', 'fonts', 'lead', 'releasev'])
 function mentaforceRoutes(): string[] {
   const appDir = path.join(__dirname, 'src', 'app')
   const mappen = (dir: string) =>
