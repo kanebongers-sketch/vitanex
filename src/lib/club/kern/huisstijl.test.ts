@@ -105,3 +105,20 @@ describe('organisatieUitRij', () => {
     expect(organisatieUitRij({ id, naam: ' ' })).toBeNull()
   })
 })
+
+describe('leesbaarheid van de tekstladder', () => {
+  /** Een rgba-inkt over een achtergrond naar een effectieve hex-kleur. */
+  function opAchtergrond(rgba: string, bg: string): string {
+    const [r, g, b, a] = rgba.match(/[\d.]+/g)!.map(Number)
+    const achter = parseInt(bg.slice(1), 16)
+    const meng = (v: number, w: number) => Math.round(v * a + w * (1 - a)).toString(16).padStart(2, '0')
+    return `#${meng(r, (achter >> 16) & 255)}${meng(g, (achter >> 8) & 255)}${meng(b, achter & 255)}`
+  }
+
+  it.each(['donker', 'licht'] as const)('kleine tekst haalt 4.5:1 op het %s thema', (thema) => {
+    const v = huisstijlVariabelen('#B58E5C', thema)
+    for (const token of ['--text-1', '--text-2', '--text-3', '--text-4']) {
+      for (const bg of [v['--bg-app'], v['--bg-card']]) expect(contrast(opAchtergrond(v[token], bg), bg)).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})
