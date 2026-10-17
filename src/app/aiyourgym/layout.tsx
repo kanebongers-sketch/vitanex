@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { connection } from 'next/server'
 import { eisKane } from '@/lib/club/toegang'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 
@@ -11,6 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AiYourGymLayout({ children }: { children: ReactNode }) {
+  // Nooit vooraf bouwen: tijdens de build is er geen inlog, dan werd de 404 vastgezet.
+  await connection()
   if (!siteActief()) await eisKane()
   return children
 }

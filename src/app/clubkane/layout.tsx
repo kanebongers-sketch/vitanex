@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import type { CSSProperties, ReactNode } from 'react'
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { clubToegang, eisClubToegang } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
@@ -55,6 +56,11 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
       </MerkProvider>
       <footer className="club-voet">
         <span>{org.naam} Club{org.demo ? ' · demo' : ''}{t.isKane ? ' · testomgeving, alleen zichtbaar voor Kane' : ''}</span>
+        {t.isKane && t.organisaties.length > 1 && (
+          <Link href="/clubkane/huisstijl#sportscholen-kop" className="club-voet-wissel">
+            Andere sportschool
+          </Link>
+        )}
         <FfMaker />
       </footer>
     </div>

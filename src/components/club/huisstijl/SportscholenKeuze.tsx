@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Check, Plus } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 
@@ -21,7 +20,6 @@ interface SportscholenKeuzeProps {
 }
 
 export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzeProps) {
-  const router = useRouter()
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [nieuw, setNieuw] = useState<string | null>(null)
@@ -41,9 +39,8 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
       setBezig(null)
       return setFout(uit.fout)
     }
-    router.push('/clubkane/huisstijl')
-    router.refresh()
-    setBezig(null)
+    // Heel Club opnieuw laden: menu, huisstijl en vestigingen horen bij de nieuwe sportschool.
+    window.location.assign('/clubkane/huisstijl')
   }
 
   // Een slot dat meteen dicht gaat, zodat twee snelle klikken niet twee keer aanmaken.
@@ -60,8 +57,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
     setBezig(null)
     if (!uit.ok) return setFout(uit.fout)
     setNieuw(null)
-    router.push('/clubkane/instellingen?tab=vestigingen')
-    router.refresh()
+    window.location.assign('/clubkane/instellingen?tab=vestigingen')
   }
 
   return (
