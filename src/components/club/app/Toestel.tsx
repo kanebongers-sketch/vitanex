@@ -24,17 +24,19 @@ interface Props {
   tab: AppTab
   nu: Date
   tabPad: (tab: AppTab) => string
+  /** De naam van de sportschool die open staat, in de statusbalk. */
+  merkNaam: string
   children: ReactNode
 }
 
-export function Toestel({ tab, nu, tabPad, children }: Props) {
+export function Toestel({ tab, nu, tabPad, merkNaam, children }: Props) {
   return (
     <div className="club-lidapp-toestel">
       <div className="club-lidapp-scherm">
         <div className="club-lidapp-statusbalk" aria-hidden>
           <span>{tijdNl(nu)}</span>
           <span className="club-lidapp-eiland" />
-          <span>FIT FACTORY</span>
+          <span>{merkNaam.toUpperCase()}</span>
         </div>
         <div className="club-lidapp-inhoud" id="lidapp-inhoud">
           {children}

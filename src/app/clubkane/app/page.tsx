@@ -72,7 +72,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
         </p>
       ))}
       <div className="club-lidapp-podium">
-        <Toestel tab={tab} nu={nu} tabPad={tabPad}>
+        <Toestel tab={tab} nu={nu} tabPad={tabPad} merkNaam={t.organisatie.naam}>
           {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
