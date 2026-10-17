@@ -41,18 +41,19 @@
 }
 .club-training-beeld-label { display: none; }
 
-/* De loop: 1,8 s per ronde, elke houding ongeveer 0,9 s in beeld met een zachte overgang. */
+/* De loop: 1,8 s per ronde, elke houding ongeveer 0,9 s in beeld met een zachte overgang.
+   Een heel lichte zoom (hooguit 2 procent) laat de wissel als beweging voelen. */
 .club-training-beeld-houding--start { animation: club-training-beeld-start 1.8s ease-in-out infinite; }
 .club-training-beeld-houding--eind { animation: club-training-beeld-eind 1.8s ease-in-out infinite; }
 @keyframes club-training-beeld-start {
-  0%, 38% { opacity: 1; }
-  50%, 88% { opacity: 0; }
-  100% { opacity: 1; }
+  0%, 38% { opacity: 1; transform: scale(1); }
+  50%, 88% { opacity: 0; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
 }
 @keyframes club-training-beeld-eind {
-  0%, 38% { opacity: 0; }
-  50%, 88% { opacity: 1; }
-  100% { opacity: 0; }
+  0%, 38% { opacity: 0; transform: scale(0.985); }
+  50%, 88% { opacity: 1; transform: scale(1.012); }
+  100% { opacity: 0; transform: scale(0.985); }
 }
 
 /* RepDB: lichte illustratie op lichtblauw. Geen binnenrand, het beeld vult het vlak met
