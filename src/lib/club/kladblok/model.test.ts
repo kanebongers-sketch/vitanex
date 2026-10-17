@@ -16,7 +16,7 @@ describe('leesKladWijziging', () => {
     expect(leesKladWijziging({ vastgepind: true })).toEqual({ ok: true, waarde: { vastgepind: true } })
     expect(leesKladWijziging({ vestiging: null })).toEqual({ ok: true, waarde: { vestiging: null } })
     expect(leesKladWijziging({ map: 'geheim' }).ok).toBe(false)
-    expect(leesKladWijziging({ vestiging: 'mars' }).ok).toBe(false)
+    expect(leesKladWijziging({ vestiging: 'Mars!' }).ok).toBe(false)
     expect(leesKladWijziging({}).ok).toBe(false)
   })
   test('inhoud: regeleinden blijven, max 3 lege regels, ingekort', () => {
@@ -45,7 +45,7 @@ describe('lijst', () => {
   test('voorproef en rij/antwoord inlezen', () => {
     expect(voorproef('a\n\nb', 10)).toBe('a b')
     expect(voorproef('x'.repeat(20), 10)).toBe(`${'x'.repeat(9)}…`)
-    const rij = { id: 'a', vestiging: 'onbekend', map: 'x', titel: 'T', inhoud: null, aangemaakt_op: 'a', bijgewerkt_op: 'b' }
+    const rij = { id: 'a', vestiging: 'Onbekend!', map: 'x', titel: 'T', inhoud: null, aangemaakt_op: 'a', bijgewerkt_op: 'b' }
     expect(kladUitRij(rij)).toMatchObject({ vestiging: null, map: 'algemeen', inhoud: '' })
     expect(leesKladAntwoord({ notitie: n() })).toEqual(n())
   })

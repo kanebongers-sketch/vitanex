@@ -4,7 +4,8 @@
 // uitgezet. Elke wijziging komt in het logboek.
 
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
-import { VESTIGING_LABEL, isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { hoortBij, naamVan } from '@/lib/club/kern/vestigingen'
 import { kopieerPlan, verplaats, volgendeVolgorde, type TeKopierenTaak, type Volgorde } from './beheer'
 import type { LijstWijziging, TaakVelden, TaakWijziging } from './invoer'
 import { gelukt, haalTaken, mislukt, type Resultaat } from './opslag'
@@ -129,7 +130,7 @@ async function voegTakenToe(t: ClubToegang, lijstId: string, taken: readonly TeK
 
 /** Kopieer de lijsten van de ene vestiging naar de andere (zonder dubbelingen, zonder vinkjes). */
 export async function kopieerLijsten(t: ClubToegang, van: Vestiging, naar: Vestiging): Promise<Resultaat<{ lijsten: number; taken: number }>> {
-  if (!isVestiging(van) || !isVestiging(naar)) return mislukt('Onbekende vestiging.')
+  if (!hoortBij(t.vestigingen, van) || !hoortBij(t.vestigingen, naar)) return mislukt('Onbekende vestiging.')
   const [bron, doel] = await Promise.all([haalTaken(t.admin, t.userId, van), haalTaken(t.admin, t.userId, naar)])
   if (!bron || !doel) return mislukt(NIET_GELUKT, 500)
   const plan = kopieerPlan(bron, doel)
@@ -141,6 +142,6 @@ export async function kopieerLijsten(t: ClubToegang, van: Vestiging, naar: Vesti
   for (const a of plan.aanvullen) {
     if (!(await voegTakenToe(t, a.lijstId, a.taken))) return mislukt('Kopieren is half gelukt. Kijk de lijsten na en probeer het opnieuw.', 500)
   }
-  await logActie(t, 'Takenlijsten gekopieerd', `${VESTIGING_LABEL[van]} naar ${VESTIGING_LABEL[naar]}: ${plan.aantalTaken} taken`, naar)
+  await logActie(t, 'Takenlijsten gekopieerd', `${naamVan(t.vestigingen, van)} naar ${naamVan(t.vestigingen, naar)}: ${plan.aantalTaken} taken`, naar)
   return gelukt({ lijsten: plan.nieuweLijsten.length, taken: plan.aantalTaken })
 }

@@ -4,7 +4,8 @@
 // Nederlandse foutmelding. `gedeeltelijk` = een PATCH: alleen meegegeven velden.
 
 import { MEDEWERKER_ROLLEN } from '@/lib/club/kern/medewerker'
-import { VESTIGINGEN, isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { controleerOpeningstijden, openingstijdenNaarJson } from '@/lib/club/rooster/openingstijden'
 import { REGEL_DEFINITIES, REGEL_SLEUTELS, regelsNaarJson, type RoosterRegels } from '@/lib/club/rooster/regels'
 import { isDatum, isTijd } from '@/lib/club/rooster/tijd'
@@ -132,13 +133,16 @@ export const SERIE_SCHEMA = {
   actief: ['actief', jaNee],
 } as const
 
-export const MEDEWERKER_SCHEMA = {
-  naam: ['naam', tekstVeld('een naam', 1, 80)],
-  email: ['email', emailVeld],
-  rollen: ['rollen', lijstVeld('rol', MEDEWERKER_ROLLEN, 1)],
-  vestigingen: ['vestigingen', lijstVeld('vestiging', VESTIGINGEN, 1)],
-  actief: ['actief', jaNee],
-} as const
+/** Medewerkers: de vestigingen moeten bij de sportschool horen (de sleutels van haar vestigingen). */
+export function medewerkerSchema(vestigingen: readonly string[]) {
+  return {
+    naam: ['naam', tekstVeld('een naam', 1, 80)],
+    email: ['email', emailVeld],
+    rollen: ['rollen', lijstVeld('rol', MEDEWERKER_ROLLEN, 1)],
+    vestigingen: ['vestigingen', lijstVeld('vestiging', vestigingen, 1)],
+    actief: ['actief', jaNee],
+  } as const
+}
 
 /** Een nieuw item: velden die niet zijn meegegeven krijgen hun standaard voordat ze gelezen worden. */
 export function leesNieuw(ruw: unknown, schema: Record<string, readonly [string, Lezer]>, standaard: Velden): Gelezen<Velden> {
@@ -156,7 +160,7 @@ export function controleerLooptijd(v: Velden): string | null {
 
 export function leesVestiging(ruw: unknown): Vestiging | null {
   const b = object(ruw)
-  return b && isVestiging(b.vestiging) ? b.vestiging : null
+  return b && isVestigingSlug(b.vestiging) ? b.vestiging : null
 }
 
 // ── Regels en openingstijden ──────────────────────────────────────────────

@@ -2,7 +2,8 @@
 // Systeemgrens: wat er binnenkomt is `unknown`. Elke functie geeft een nette
 // waarde of een Nederlandse foutmelding terug.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { AFVINK_STATUSSEN, RESERVERING_BRONNEN, type AfvinkStatus, type ReserveringBron } from './regels'
 import { MAX_WEKEN_VOORUIT } from './genereren'
 
@@ -91,7 +92,7 @@ export function leesAnnuleerReden(ruw: unknown): Invoer<string> {
 
 export function leesGenereerInvoer(ruw: unknown): Invoer<{ vestiging: Vestiging; weken: number }> {
   const b = object(ruw)
-  if (!b || !isVestiging(b.vestiging)) return mis('Kies een vestiging.')
+  if (!b || !isVestigingSlug(b.vestiging)) return mis('Kies een vestiging.')
   const weken = b.weken === undefined ? 6 : Number(b.weken)
   if (!Number.isInteger(weken) || weken < 1 || weken > MAX_WEKEN_VOORUIT) return mis(`Kies 1 tot ${MAX_WEKEN_VOORUIT} weken.`)
   return goed({ vestiging: b.vestiging, weken })
@@ -106,7 +107,7 @@ export interface LessenVraag {
 /** De zoekparameters van GET /lessen: v, van, tot (ISO). Maximaal 62 dagen. */
 export function leesLessenVraag(zoek: URLSearchParams): Invoer<LessenVraag> {
   const v = zoek.get('v')
-  if (!isVestiging(v)) return mis('Kies een geldige vestiging (?v=).')
+  if (!isVestigingSlug(v)) return mis('Kies een geldige vestiging (?v=).')
   const van = new Date(zoek.get('van') ?? '')
   const tot = new Date(zoek.get('tot') ?? '')
   if (Number.isNaN(van.getTime()) || Number.isNaN(tot.getTime())) return mis('Geef van en tot als ISO-datum.')

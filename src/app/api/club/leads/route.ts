@@ -3,6 +3,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { leesNieuweLead } from '@/lib/club/leads/invoer'
 import { LEAD_BRON_LABEL, LEAD_KOLOMMEN, leadUitRij } from '@/lib/club/leads/model'
 import { schrijfHistorie } from '@/lib/club/leads/data'
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
 
   const invoer = leesNieuweLead(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (!hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const n = invoer.waarde
   if (!(await isGeldigeMedewerker(t, n.vestiging, n.medewerkerId))) return clubFout('Deze medewerker werkt niet in deze vestiging.', 400)
 

@@ -2,7 +2,8 @@
 // Systeemgrens. De pagina stuurt de rijen al als velden (na het koppelen van de
 // kolommen); de server controleert elke rij opnieuw.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import type { ImportRegel } from './plan'
 import { controleerRij, ruweRijUit } from './rij'
 
@@ -23,7 +24,7 @@ export type VerzoekUitslag = { ok: true; waarde: ImportVerzoek } | { ok: false; 
 export function leesImportVerzoek(body: unknown, vandaag: string): VerzoekUitslag {
   if (typeof body !== 'object' || body === null) return { ok: false, fout: 'Ongeldige invoer.' }
   const o = body as Record<string, unknown>
-  if (!isVestiging(o.vestiging)) return { ok: false, fout: 'Kies een vestiging.' }
+  if (!isVestigingSlug(o.vestiging)) return { ok: false, fout: 'Kies een vestiging.' }
   if (!Array.isArray(o.rijen) || o.rijen.length === 0) return { ok: false, fout: 'Het bestand bevat geen leden.' }
   if (o.rijen.length > MAX_IMPORT_RIJEN) return { ok: false, fout: `Maximaal ${MAX_IMPORT_RIJEN} leden per keer. Splits het bestand.` }
 

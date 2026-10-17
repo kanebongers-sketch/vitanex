@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ClubToegang } from '@/lib/club/toegang'
-import { VESTIGING_LABEL, isVestiging } from '@/lib/club/kern/vestiging'
+import { naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { maandagVan, plusDagen, weekParam, isoWeek } from '@/lib/club/rooster/tijd'
 import { haalDienstenVan } from '@/lib/club/personeel/opslag'
 import { duurMin } from '@/lib/club/personeel/regels'
@@ -22,7 +22,14 @@ interface Props {
 
 type EigenDienst = Dienst & { vestiging: string }
 
-function DienstRegel({ d, staat, toonStatus }: { d: EigenDienst; staat: PersoneelStaat; toonStatus: boolean }) {
+interface DienstRegelProps {
+  d: EigenDienst
+  staat: PersoneelStaat
+  toonStatus: boolean
+  vestigingen: readonly VestigingInfo[]
+}
+
+function DienstRegel({ d, staat, toonStatus, vestigingen }: DienstRegelProps) {
   const href = personeelHref(zonderPaneel({ ...staat, tab: 'week', mw: null }), { week: weekParam(d.datum), dienst: d.id, v: d.vestiging })
   return (
     <li className="club-rij">
@@ -34,7 +41,7 @@ function DienstRegel({ d, staat, toonStatus }: { d: EigenDienst; staat: Personee
         <span className="club-rij-titel club-getal">
           {d.begin} tot {d.eind}
         </span>
-        <span className="club-rij-sub">{[isVestiging(d.vestiging) ? VESTIGING_LABEL[d.vestiging] : d.vestiging, d.notitie].filter(Boolean).join(' · ')}</span>
+        <span className="club-rij-sub">{[naamVan(vestigingen, d.vestiging), d.notitie].filter(Boolean).join(' · ')}</span>
       </span>
       {d.uursoort !== 'werk' && <span className="club-chip club-chip--info">{UURSOORT_LABEL[d.uursoort]}</span>}
       {toonStatus && <span className={d.uurStatus === 'gepland' ? 'club-chip club-chip--let-op' : 'club-chip club-chip--ok'}>{d.uurStatus === 'gepland' ? 'Niet bevestigd' : UUR_STATUS_LABEL[d.uurStatus]}</span>}
@@ -90,14 +97,14 @@ export async function MijnTab({ t, staat, team, vandaag }: Props) {
                   {uurTekst(min)} uur{gekozen.contracturen !== null ? ` van ${uurTekst(gekozen.contracturen * 60)}` : ''}
                 </span>
               </h3>
-              {eigen.length === 0 ? <p className="club-hint">Geen diensten.</p> : <ul className="club-lijst">{eigen.map((d) => <DienstRegel key={d.id} d={d} staat={staat} toonStatus={false} />)}</ul>}
+              {eigen.length === 0 ? <p className="club-hint">Geen diensten.</p> : <ul className="club-lijst">{eigen.map((d) => <DienstRegel key={d.id} d={d} staat={staat} toonStatus={false} vestigingen={t.vestigingen} />)}</ul>}
             </section>
           )
         })}
       </div>
       <section className="club-kaart club-personeel-geen-print" aria-labelledby="club-personeel-verleden">
         <h3 id="club-personeel-verleden">Afgelopen twee weken</h3>
-        {verleden.length === 0 ? <p className="club-hint">Geen diensten.</p> : <ul className="club-lijst">{verleden.map((d) => <DienstRegel key={d.id} d={d} staat={staat} toonStatus />)}</ul>}
+        {verleden.length === 0 ? <p className="club-hint">Geen diensten.</p> : <ul className="club-lijst">{verleden.map((d) => <DienstRegel key={d.id} d={d} staat={staat} toonStatus vestigingen={t.vestigingen} />)}</ul>}
       </section>
     </div>
   )

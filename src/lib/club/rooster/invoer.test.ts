@@ -47,7 +47,7 @@ describe('leesAnnuleerReden', () => {
 describe('leesGenereerInvoer', () => {
   it('neemt standaard 6 weken', () => {
     expect(leesGenereerInvoer({ vestiging: 'budel' })).toEqual({ ok: true, waarde: { vestiging: 'budel', weken: 6 } })
-    expect(leesGenereerInvoer({ vestiging: 'parijs' }).ok).toBe(false)
+    expect(leesGenereerInvoer({ vestiging: 'Parijs!' }).ok).toBe(false)
     expect(leesGenereerInvoer({ vestiging: 'budel', weken: 13 }).ok).toBe(false)
   })
 })

@@ -57,7 +57,7 @@ export function Vergelijking({ c }: { c: CijferContext }) {
       <CijferBlok
         id="blok-vergelijking"
         className="club-cijfers-volle"
-        titel={`Alle 8 vestigingen, ${naam}`}
+        titel={`${rijen.length === 1 ? 'De vestiging' : `Alle ${rijen.length} vestigingen`}, ${naam}`}
         definitie={DEFINITIES.vestigingen}
         csv={{
           bestand: csvBestandsnaam('vestigingen-vergelijking', c.maand),

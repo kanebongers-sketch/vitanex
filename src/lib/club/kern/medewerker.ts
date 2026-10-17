@@ -5,7 +5,8 @@
 // wat iemand ziet (zie RECHTEN).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isVestiging, type Vestiging } from './vestiging'
+import type { Vestiging } from './vestiging'
+import { isVestigingSlug } from './vestigingen'
 
 export const MEDEWERKER_ROLLEN = ['trainer', 'instructeur', 'manager', 'administratie'] as const
 export type MedewerkerRol = (typeof MEDEWERKER_ROLLEN)[number]
@@ -47,7 +48,7 @@ export function medewerkerUitRij(rij: unknown): Medewerker | null {
     naam: r.naam,
     email: typeof r.email === 'string' ? r.email : null,
     rollen: Array.isArray(r.rollen) ? r.rollen.filter(isRol) : [],
-    vestigingen: Array.isArray(r.vestigingen) ? r.vestigingen.filter(isVestiging) : [],
+    vestigingen: Array.isArray(r.vestigingen) ? r.vestigingen.filter(isVestigingSlug) : [],
     actief: r.actief !== false,
   }
 }

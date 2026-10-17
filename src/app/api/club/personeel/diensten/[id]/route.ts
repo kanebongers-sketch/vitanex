@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { alsAntwoord, leesJson } from '@/lib/club/personeel/api'
 import { verwijderDienst, wijzigDienst } from '@/lib/club/personeel/diensten-opslag'
 import { isUuid, leesDienst } from '@/lib/club/personeel/invoer'
@@ -18,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   if (!isUuid(id)) return clubFout('Deze dienst bestaat niet.', 404)
   const invoer = leesDienst(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (!hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   return alsAntwoord(await wijzigDienst(t, id, invoer.waarde))
 }
 

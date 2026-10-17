@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
 import { AppUitleg } from '@/components/club/app/AppUitleg'
@@ -20,7 +22,8 @@ export const metadata: Metadata = { title: 'Ledenapp' }
 export default async function ClubLedenapp({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('app')
   const zoek = await searchParams
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const tab = kiesTab(zoek.tab)
   const [leden, schemas] = await Promise.all([
     zoekLeden(t.admin, t.userId, vestiging, '', 200),
@@ -35,7 +38,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   const kop = (
     <header className="club-paginakop">
       <div>
-        <p className="club-boventitel">{VESTIGING_LABEL[vestiging]} · voorvertoning</p>
+        <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · voorvertoning</p>
         <h1>Ledenapp</h1>
         <p>Zo ziet een lid de app op zijn telefoon. Kies een lid om mee te kijken.</p>
       </div>
@@ -73,7 +76,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
-          {tab === 'profiel' && <ProfielTab lid={lid} />}
+          {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} />}
         </Toestel>
         <AppUitleg regels={data.regels} />
       </div>

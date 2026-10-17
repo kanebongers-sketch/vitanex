@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { VESTIGING_LABEL } from '@/lib/club/kern/vestiging'
+import { hoortBij, naamVan } from '@/lib/club/kern/vestigingen'
 import { dagSleutel } from '@/lib/club/leden/tijd'
 import { leesImportVerzoek, MAX_IMPORT_BYTES } from '@/lib/club/leden/import/verzoek'
 import { planImport, voerImportUit } from '@/lib/club/leden/import/opslag'
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
   const verzoek = leesImportVerzoek(body, dagSleutel(new Date()))
   if (!verzoek.ok) return clubFout(verzoek.fout, 400)
   const { vestiging, opslaan, regels, fouten, waarschuwingen } = verzoek.waarde
+  if (!hoortBij(t.vestigingen, vestiging)) return clubFout('Onbekende vestiging.', 400)
 
   const plan = await planImport(t.admin, t.userId, regels, vestiging)
   if (!plan) return clubFout('De bestaande leden konden niet worden gelezen. Probeer het opnieuw.', 500)
@@ -42,5 +43,5 @@ export async function POST(req: NextRequest) {
     `${uit.toegevoegd} nieuw, ${uit.bijgewerkt} bijgewerkt${uit.mislukt.length ? `, ${uit.mislukt.length} mislukt` : ''}`,
     vestiging,
   )
-  return clubJson({ ...uit, vestiging: VESTIGING_LABEL[vestiging] })
+  return clubJson({ ...uit, vestiging: naamVan(t.vestigingen, vestiging) })
 }

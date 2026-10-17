@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Bereik } from '@/lib/club/cijfers/periode'
 import { maandenReeks, maandNaam, maandVan, plusMaanden, vensterNaam, VROEGSTE_MAAND, type Maand, type MaandVenster } from '@/lib/club/cijfers/maand'
 import { dagLang } from '@/lib/club/cijfers/tijd'
-import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { MaandKiezer, type MaandOptie } from './MaandKiezer'
 
 // Kop van Cijfers: de gekozen kalendermaand groot, vorige en volgende maand,
@@ -11,6 +11,9 @@ import { MaandKiezer, type MaandOptie } from './MaandKiezer'
 
 interface Props {
   vestiging: Vestiging
+  vestigingNaam: string
+  /** Hoeveel vestigingen de sportschool heeft (voor "Alle 8 vestigingen"). */
+  aantalVestigingen: number
   maand: Maand
   bereik: Bereik
   venster: MaandVenster
@@ -24,7 +27,7 @@ function hoofdletter(t: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-export function CijferKop({ vestiging, maand, bereik, venster, vandaag }: Props) {
+export function CijferKop({ vestiging, vestigingNaam, aantalVestigingen, maand, bereik, venster, vandaag }: Props) {
   const nu = maandVan(vandaag)
   const pad = (m: Maand, b: Bereik) => clubPad('/cijfers', vestiging, { maand: m, ...(b === 'alle' ? { bereik: 'alle' } : {}) })
   const vorige = plusMaanden(maand, -1)
@@ -35,7 +38,7 @@ export function CijferKop({ vestiging, maand, bereik, venster, vandaag }: Props)
   return (
     <header className="club-cijfers-kop">
       <div>
-        <p className="club-boventitel">{bereik === 'alle' ? 'Alle 8 vestigingen' : VESTIGING_LABEL[vestiging]} · maandrapport</p>
+        <p className="club-boventitel">{bereik === 'alle' ? (aantalVestigingen === 1 ? 'De vestiging' : `Alle ${aantalVestigingen} vestigingen`) : vestigingNaam} · maandrapport</p>
         <h1 className="club-cijfers-titel">{maandNaam(maand)}</h1>
         <p className="club-cijfers-periode">
           {venster.lopend ? (
@@ -72,7 +75,7 @@ export function CijferKop({ vestiging, maand, bereik, venster, vandaag }: Props)
         </div>
         <div className="club-segment" role="group" aria-label="Bereik">
           <Link href={pad(maand, 'vestiging')} aria-current={bereik === 'vestiging' ? 'page' : undefined} scroll={false}>
-            {VESTIGING_LABEL[vestiging]}
+            {vestigingNaam}
           </Link>
           <Link href={pad(maand, 'alle')} aria-current={bereik === 'alle' ? 'page' : undefined} scroll={false}>
             Alle vestigingen

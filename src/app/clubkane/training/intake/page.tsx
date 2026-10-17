@@ -4,7 +4,9 @@ import { ArrowLeft } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { IntakeFormulier } from '@/components/club/training/IntakeFormulier'
 import { trainingPad, trainingPaden } from '@/components/club/training/TrainingTabs'
@@ -17,7 +19,8 @@ export const metadata: Metadata = { title: 'Intake' }
 export default async function IntakePagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('training')
   const zoek = await searchParams
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const lidParam = typeof zoek.lid === 'string' ? zoek.lid : null
   const [lid, medewerkers] = await Promise.all([
     lidParam ? haalLid(t.admin, t.userId, lidParam) : Promise.resolve(null),
@@ -29,7 +32,7 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]} · Training</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · Training</p>
           <h1>Intake</h1>
           <p>Vijf korte stappen op een scherm. Gezondheidsgegevens alleen met toestemming van het lid.</p>
         </div>

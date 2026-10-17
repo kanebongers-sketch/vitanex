@@ -63,7 +63,7 @@ describe('leesNotitieInvoer en leesAfsluitInvoer', () => {
   it('vraagt een vestiging, tekst en wie', () => {
     const goed = leesNotitieInvoer({ vestiging: 'budel', datum: VANDAAG, tekst: 'Ramen gelapt', wie: 'Lynn' }, VANDAAG)
     expect(goed.ok).toBe(true)
-    expect(leesNotitieInvoer({ vestiging: 'parijs', datum: VANDAAG, tekst: 'x', wie: 'L' }, VANDAAG).ok).toBe(false)
+    expect(leesNotitieInvoer({ vestiging: 'Parijs!', datum: VANDAAG, tekst: 'x', wie: 'L' }, VANDAAG).ok).toBe(false)
     expect(leesNotitieInvoer({ vestiging: 'budel', datum: VANDAAG, tekst: ' ', wie: 'L' }, VANDAAG).ok).toBe(false)
     expect(leesAfsluitInvoer({ vestiging: 'budel', wie: 'Lynn' }).ok).toBe(true)
     expect(leesAfsluitInvoer({ vestiging: 'budel' }).ok).toBe(false)

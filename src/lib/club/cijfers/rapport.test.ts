@@ -5,8 +5,15 @@ import type { LesDag } from './lesdagen'
 import { cijfersVoor, dataVanaf, dekkingVan, type Bronnen } from './maandcijfers'
 import { maandVenster, vergelijkVenster } from './maand'
 import { maakRapport } from './rapport'
+import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 
 const VANDAAG = '2026-10-14'
+
+/** De acht vestigingen van Fit Factory zoals ze in club_vestigingen staan. */
+const FIT_FACTORY: VestigingInfo[] = [
+  ['budel', 'Budel'], ['bergeijk', 'Bergeijk'], ['someren', 'Someren'], ['eindhoven_boschdijk', 'Eindhoven Boschdijk'],
+  ['eindhoven_tongelre', 'Eindhoven Tongelre'], ['eersel', 'Eersel'], ['oisterwijk', 'Oisterwijk'], ['bladel', 'Bladel'],
+].map(([sleutel, naam]) => ({ sleutel, naam, standaard: sleutel === 'budel' }))
 
 function lid(id: string, deel: Partial<LidCijferRij>): LidCijferRij {
   return { id, vestiging: 'budel', status: 'actief', lidSinds: '2025-01-01', einddatum: null, geboortedatum: null, geslacht: null, ...deel }
@@ -63,8 +70,8 @@ describe('cijfers van een venster', () => {
 })
 
 describe('maandrapport', () => {
-  it('maakt kerncijfers, vergelijkingen, 12 maanden en de acht vestigingen', () => {
-    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-10', bereik: 'vestiging', vestiging: 'budel', bronnen, lessen: [], komend: [] })
+  it('maakt kerncijfers, vergelijkingen, 12 maanden en alle vestigingen van de sportschool', () => {
+    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-10', bereik: 'vestiging', vestiging: 'budel', vestigingen: FIT_FACTORY, bronnen, lessen: [], komend: [] })
     expect(r.huidig.venster).toMatchObject({ van: '2026-10-01', tot: '2026-10-14', lopend: true })
     expect(r.vorige.venster.tot).toBe('2026-09-14')
     expect(r.vorigJaar.venster.maand).toBe('2025-10')
@@ -79,16 +86,24 @@ describe('maandrapport', () => {
     expect(r.leads.totaal.leads).toBe(1)
     expect(r.status.actief).toBe(3)
     expect(r.vergelijking).toHaveLength(8)
+    expect(r.vergelijking.map((v) => v.label)).toEqual(FIT_FACTORY.map((v) => v.naam))
     expect(r.vergelijking.find((v) => v.vestiging === 'eersel')?.cijfers).toMatchObject({ bestandEind: 1, bezoek: 9 })
   })
 
   it('telt alle vestigingen samen bij het bereik alle', () => {
-    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-10', bereik: 'alle', vestiging: 'budel', bronnen, lessen: [], komend: [] })
+    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-10', bereik: 'alle', vestiging: 'budel', vestigingen: FIT_FACTORY, bronnen, lessen: [], komend: [] })
     expect(r.huidig.cijfers).toMatchObject({ bezoek: 23, bestandEind: 4 })
   })
 
+  it('vergelijkt alleen de vestigingen van een andere sportschool', () => {
+    const demo = [{ sleutel: 'demo-centrum', naam: 'Demo Centrum', standaard: true }]
+    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-10', bereik: 'vestiging', vestiging: 'demo-centrum', vestigingen: demo, bronnen, lessen: [], komend: [] })
+    expect(r.vergelijking).toEqual([expect.objectContaining({ vestiging: 'demo-centrum', label: 'Demo Centrum' })])
+    expect(r.huidig.cijfers.bezoek).toBe(0)
+  })
+
   it('een afgesloten maand vergelijkt met de hele vorige maand', () => {
-    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-09', bereik: 'vestiging', vestiging: 'budel', bronnen, lessen: [], komend: [] })
+    const r = maakRapport({ vandaag: VANDAAG, nu: new Date('2026-10-14T10:00:00Z'), maand: '2026-09', bereik: 'vestiging', vestiging: 'budel', vestigingen: FIT_FACTORY, bronnen, lessen: [], komend: [] })
     expect(r.huidig.venster).toMatchObject({ heel: true, lopend: false, dagen: 30 })
     expect(r.vorige.venster).toMatchObject({ maand: '2026-08', heel: true, dagen: 31 })
     expect(r.huidig.cijfers.bezoek).toBe(107)

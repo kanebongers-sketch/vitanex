@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { leesLessenVraag } from '@/lib/club/rooster/invoer'
 import { haalLessen } from '@/lib/club/rooster/opslag'
 
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const vraag = leesLessenVraag(req.nextUrl.searchParams)
   if (!vraag.ok) return clubFout(vraag.fout, 400)
+  if (!hoortBij(t.vestigingen, vraag.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const lessen = await haalLessen(t.admin, t.userId, vraag.waarde.vestiging, vraag.waarde.van, vraag.waarde.tot)
   if (!lessen) return clubFout('De lessen konden niet worden gelezen.', 500)
   return clubJson({ lessen })

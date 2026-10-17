@@ -5,13 +5,14 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { naamVan } from '@/lib/club/kern/vestigingen'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
 import { gelukt, haalRegels, haalStamdata, mislukt, type Resultaat, type VestigingInstellingen } from '@/lib/club/rooster/basis-opslag'
 import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type LesSerie, type Lestype, type Zaal } from '@/lib/club/rooster/typen'
 import {
   LESTYPE_SCHEMA,
-  MEDEWERKER_SCHEMA,
+  medewerkerSchema,
   SERIE_SCHEMA,
   ZAAL_SCHEMA,
   controleerLooptijd,
@@ -50,13 +51,13 @@ export async function slaRegelsOp(t: ClubToegang, invoer: RegelsInvoer): Promise
     return mislukt('Opslaan is niet gelukt. Probeer het opnieuw.', 500)
   }
   if (!data || data.length === 0) {
-    const nieuw = await t.admin.from('club_vestigingen').insert({ ...velden, vestiging: invoer.vestiging, user_id: t.userId, naam: VESTIGING_LABEL[invoer.vestiging] })
+    const nieuw = await t.admin.from('club_vestigingen').insert({ ...velden, vestiging: invoer.vestiging, user_id: t.userId, naam: naamVan(t.vestigingen, invoer.vestiging) })
     if (nieuw.error) {
       console.error('[club-instellingen] vestiging aanmaken mislukt', nieuw.error.message)
       return mislukt('Opslaan is niet gelukt. Probeer het opnieuw.', 500)
     }
   }
-  await logActie(t, 'Regels aangepast', VESTIGING_LABEL[invoer.vestiging], invoer.vestiging)
+  await logActie(t, 'Regels aangepast', naamVan(t.vestigingen, invoer.vestiging), invoer.vestiging)
   return gelukt({ opgeslagen: true })
 }
 
@@ -72,7 +73,11 @@ const TABEL: Record<InstellingSoort, string> = {
   medewerkers: 'club_medewerkers',
 }
 
-const SCHEMA = { zalen: ZAAL_SCHEMA, lestypen: LESTYPE_SCHEMA, weekrooster: SERIE_SCHEMA, medewerkers: MEDEWERKER_SCHEMA }
+/** Het schema van een soort; medewerkers mogen alleen in vestigingen van deze sportschool werken. */
+function schemaVoor(t: ClubToegang, soort: InstellingSoort) {
+  if (soort === 'medewerkers') return medewerkerSchema(t.vestigingen.map((v) => v.sleutel))
+  return { zalen: ZAAL_SCHEMA, lestypen: LESTYPE_SCHEMA, weekrooster: SERIE_SCHEMA }[soort]
+}
 
 const STANDAARD: Record<InstellingSoort, Record<string, unknown>> = {
   zalen: { actief: true },
@@ -103,7 +108,7 @@ function naamVoorLog(v: Record<string, unknown>): string | null {
 
 /** Een nieuw item aanmaken. Zalen en vaste lessen horen bij de vestiging. */
 export async function maakItem(t: ClubToegang, soort: InstellingSoort, vestiging: Vestiging, ruw: unknown): Promise<Resultaat<{ id: string }>> {
-  const gelezen = leesNieuw(ruw, SCHEMA[soort], STANDAARD[soort])
+  const gelezen = leesNieuw(ruw, schemaVoor(t, soort), STANDAARD[soort])
   if (!gelezen.ok) return mislukt(gelezen.fout)
   const velden = gelezen.waarde
   if (soort === 'weekrooster') {
@@ -122,7 +127,7 @@ export async function maakItem(t: ClubToegang, soort: InstellingSoort, vestiging
 
 /** Een bestaand item wijzigen (alleen de meegegeven velden). */
 export async function wijzigItem(t: ClubToegang, soort: InstellingSoort, id: string, vestiging: Vestiging, ruw: unknown): Promise<Resultaat<{ id: string }>> {
-  const gelezen = leesVolgensSchema(ruw, SCHEMA[soort], true)
+  const gelezen = leesVolgensSchema(ruw, schemaVoor(t, soort), true)
   if (!gelezen.ok) return mislukt(gelezen.fout)
   const velden = gelezen.waarde
   if (soort === 'weekrooster') {

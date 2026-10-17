@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
 import { alsAntwoord, leesJson } from '@/lib/club/rooster/api'
 import { leesVestiging } from '@/lib/club/instellingen/validatie'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { isInstellingSoort, maakItem } from '@/lib/club/instellingen/opslag'
 
 // POST /api/club/instellingen/[soort]  soort = zalen | lestypen | weekrooster | medewerkers
@@ -15,5 +16,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ soo
   const body = await leesJson(req)
   const vestiging = leesVestiging(body)
   if (!vestiging) return clubFout('Kies een vestiging.', 400)
+  if (!hoortBij(t.vestigingen, vestiging)) return clubFout('Onbekende vestiging.', 400)
   return alsAntwoord(await maakItem(t, soort, vestiging, body))
 }

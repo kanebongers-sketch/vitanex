@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { alsAntwoord, leesJson, vandaagNl } from '@/lib/club/taken/api'
 import { leesAfsluitInvoer } from '@/lib/club/taken/invoer'
 import { meldAfsluitronde } from '@/lib/club/taken/afvink-opslag'
@@ -12,6 +13,7 @@ export async function POST(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const invoer = leesAfsluitInvoer(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (!hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const r = await meldAfsluitronde(t, invoer.waarde, vandaagNl())
   if (r.ok) {
     const open = r.waarde.openTaken === 0 ? 'alles afgevinkt' : `${r.waarde.openTaken} open`

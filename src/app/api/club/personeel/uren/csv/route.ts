@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging } from '@/lib/club/kern/vestiging'
+import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { isDatum, nlDelen } from '@/lib/club/rooster/tijd'
 import { haalDiensten, haalTeam } from '@/lib/club/personeel/opslag'
 import { PERIODE_SOORTEN, periodeVan, urenCsv, urenOverzicht } from '@/lib/club/personeel/uren'
@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const zoek = req.nextUrl.searchParams
-  const vestiging = kiesVestiging(zoek.get('v'))
+  const vestiging = kiesUit(t.vestigingen, zoek.get('v'))
+  if (!vestiging) return clubFout('Onbekende vestiging.', 400)
   const soort = PERIODE_SOORTEN.find((p) => p === zoek.get('periode')) ?? 'week'
   const op = zoek.get('op')
   const periode = periodeVan(soort, isDatum(op) ? op : nlDelen(new Date()).datum)

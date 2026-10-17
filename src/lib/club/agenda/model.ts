@@ -5,7 +5,8 @@
 // Tabel: club_agenda (migratie 399). Groepslessen en diensten staan in hun eigen
 // rooster; die komen hier (nog) niet in.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { isDatum, isTijd, nlDelen, nlNaarUtc, plusDagen } from '@/lib/club/rooster/tijd'
 
 export const SOORTEN = ['afspraak', 'overleg', 'intake', 'pt', 'onderhoud', 'overig'] as const
@@ -42,7 +43,7 @@ export const AGENDA_KOLOMMEN = 'id, vestiging, titel, soort, begin_op, eind_op, 
 export function agendaUitRij(ruw: unknown): AgendaItem | null {
   if (typeof ruw !== 'object' || ruw === null) return null
   const r = ruw as Record<string, unknown>
-  if (typeof r.id !== 'string' || typeof r.titel !== 'string' || !isVestiging(r.vestiging)) return null
+  if (typeof r.id !== 'string' || typeof r.titel !== 'string' || !isVestigingSlug(r.vestiging)) return null
   if (typeof r.begin_op !== 'string' || typeof r.eind_op !== 'string') return null
   return {
     id: r.id,
@@ -84,7 +85,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function leesAgendaInvoer(body: unknown): Lees<AgendaInvoer> {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return { ok: false, fout: 'Ongeldige invoer.' }
   const o = body as Record<string, unknown>
-  if (!isVestiging(o.vestiging)) return { ok: false, fout: 'Kies een vestiging.' }
+  if (!isVestigingSlug(o.vestiging)) return { ok: false, fout: 'Kies een vestiging.' }
   const titel = typeof o.titel === 'string' ? o.titel.replace(/\s+/g, ' ').trim().slice(0, MAX_TITEL) : ''
   if (!titel) return { ok: false, fout: 'Geef de afspraak een titel.' }
   if (!isDatum(o.datum)) return { ok: false, fout: 'Kies een datum.' }

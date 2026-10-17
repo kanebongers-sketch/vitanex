@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Building2, Menu, X } from 'lucide-react'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
-import { VESTIGINGEN, VESTIGING_LABEL, VESTIGING_PARAM, PILOT_VESTIGING, kiesVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import { VESTIGING_PARAM, type Vestiging } from '@/lib/club/kern/vestiging'
+import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { Module } from '@/lib/club/kern/organisatie'
 import { GROEPEN, actiefOnderdeel, groepenMet, isActief, onderdelenVan } from './onderdelen'
+import { useVestigingen } from './VestigingenContext'
 
 // De bovenkant van de clubsoftware. Een ingedeeld menu, maar anders dan de
 // zijbalk van Virtuagym: alles bovenin zodat het werkvlak de volle breedte houdt.
@@ -15,20 +17,31 @@ import { GROEPEN, actiefOnderdeel, groepenMet, isActief, onderdelenVan } from '.
 // waarin je zit. Op de telefoon een knop Menu met een paneel met alle groepen.
 // De vestiging staat in de URL; wisselen houdt je op hetzelfde onderdeel.
 
-function href(pad: string, vestiging: Vestiging): string {
-  return `/clubkane${pad}?${VESTIGING_PARAM}=${vestiging}`
+/** Zonder vestiging (sportschool heeft er nog geen) blijft de link zonder ?v=. */
+function href(pad: string, vestiging: Vestiging | null): string {
+  const basis = `/clubkane${pad}`
+  return vestiging ? `${basis}?${VESTIGING_PARAM}=${encodeURIComponent(vestiging)}` : basis
 }
 
-function VestigingKeuze({ vestiging, onWissel }: { vestiging: Vestiging; onWissel: (v: string) => void }) {
+interface VestigingKeuzeProps {
+  vestiging: Vestiging | null
+  /** Zet " (pilot)" achter de standaardvestiging (alleen bij Fit Factory). */
+  pilot: boolean
+  onWissel: (v: string) => void
+}
+
+function VestigingKeuze({ vestiging, pilot, onWissel }: VestigingKeuzeProps) {
+  const vestigingen = useVestigingen()
+  if (!vestiging || vestigingen.length === 0) return null
   return (
     <label className="club-vestiging">
       <Building2 aria-hidden size={16} />
       <span className="club-sr">Vestiging</span>
       <select value={vestiging} onChange={(e) => onWissel(e.target.value)}>
-        {VESTIGINGEN.map((v) => (
-          <option key={v} value={v}>
-            {VESTIGING_LABEL[v]}
-            {v === PILOT_VESTIGING ? ' (pilot)' : ''}
+        {vestigingen.map((v) => (
+          <option key={v.sleutel} value={v.sleutel}>
+            {v.naam}
+            {pilot && v.standaard ? ' (pilot)' : ''}
           </option>
         ))}
       </select>
@@ -54,14 +67,15 @@ function Merk({ merk }: { merk: ClubMerkInfo }) {
 }
 
 interface MenuPaneelProps {
-  vestiging: Vestiging
+  vestiging: Vestiging | null
+  pilot: boolean
   pad: string
   uit: readonly Module[]
   onSluit: () => void
   onWissel: (v: string) => void
 }
 
-function MenuPaneel({ vestiging, pad, uit, onSluit, onWissel }: MenuPaneelProps) {
+function MenuPaneel({ vestiging, pilot, pad, uit, onSluit, onWissel }: MenuPaneelProps) {
   const sluitKnop = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -73,7 +87,7 @@ function MenuPaneel({ vestiging, pad, uit, onSluit, onWissel }: MenuPaneelProps)
     <div className="club-menu-scherm" onClick={(e) => e.target === e.currentTarget && onSluit()}>
       <nav className="club-menu" aria-label="Menu" role="dialog" aria-modal="true">
         <div className="club-menu-kop">
-          <VestigingKeuze vestiging={vestiging} onWissel={onWissel} />
+          <VestigingKeuze vestiging={vestiging} pilot={pilot} onWissel={onWissel} />
           <button ref={sluitKnop} type="button" className="club-knop club-knop--stil" aria-label="Menu sluiten" onClick={onSluit}>
             <X aria-hidden size={20} />
           </button>
@@ -109,7 +123,7 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
-  const vestiging = kiesVestiging(zoek.get(VESTIGING_PARAM))
+  const vestiging = kiesUit(useVestigingen(), zoek.get(VESTIGING_PARAM))
   const huidig = actiefOnderdeel(pad)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -137,7 +151,7 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
           })}
         </nav>
         <div className="club-balk-rechts">
-          <VestigingKeuze vestiging={vestiging} onWissel={wissel} />
+          <VestigingKeuze vestiging={vestiging} pilot={merk.fitFactory} onWissel={wissel} />
           <span className="club-test" title="Alleen zichtbaar voor Kane tot de presentatie">
             Testomgeving
           </span>
@@ -158,7 +172,7 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
           </Link>
         ))}
       </nav>
-      {menuOpen && <MenuPaneel vestiging={vestiging} pad={pad} uit={uit} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
+      {menuOpen && <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
     </header>
   )
 }

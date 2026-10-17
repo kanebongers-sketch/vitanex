@@ -3,7 +3,8 @@
 // Geen bedragen: geld en contracten blijven in Sportivity.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isVestiging, type Vestiging } from './vestiging'
+import type { Vestiging } from './vestiging'
+import { isVestigingSlug } from './vestigingen'
 
 export const LID_STATUSSEN = ['actief', 'gepauzeerd', 'opgezegd', 'gestopt', 'proef'] as const
 export type LidStatus = (typeof LID_STATUSSEN)[number]
@@ -59,7 +60,7 @@ export function lidUitRij(rij: unknown): Lid | null {
   const id = tekst(r.id)
   const voornaam = tekst(r.voornaam)
   const achternaam = tekst(r.achternaam)
-  if (!id || !voornaam || !achternaam || !isVestiging(r.vestiging)) return null
+  if (!id || !voornaam || !achternaam || !isVestigingSlug(r.vestiging)) return null
   const geslacht = r.geslacht === 'man' || r.geslacht === 'vrouw' || r.geslacht === 'anders' ? r.geslacht : null
   return {
     id,

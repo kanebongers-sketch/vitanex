@@ -24,7 +24,7 @@ describe('leesNieuweLead', () => {
   })
 
   it('weigert een onbekende vestiging of bron', () => {
-    expect(leesNieuweLead({ ...basis, vestiging: 'amsterdam' })).toMatchObject({ ok: false })
+    expect(leesNieuweLead({ ...basis, vestiging: 'Amsterdam!' })).toMatchObject({ ok: false })
     expect(leesNieuweLead({ ...basis, bron: 'tv' })).toMatchObject({ ok: false })
   })
 })

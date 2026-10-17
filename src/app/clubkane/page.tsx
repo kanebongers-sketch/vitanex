@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalVandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { dagLang, tijdNl } from '@/lib/club/cijfers/tijd'
 import { VandaagHero } from '@/components/club/vandaag/VandaagHero'
@@ -24,7 +26,8 @@ export const metadata: Metadata = { title: 'Vandaag' }
 
 export default async function ClubVandaag({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
-  const vestiging = kiesVestiging((await searchParams).v)
+  const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
+  if (!vestiging) return <GeenVestigingen />
   const data = await haalVandaag(t.admin, t.userId, vestiging)
   // Agenda en overdracht naast de rest; een fout hier breekt het scherm niet (null = melding in het blok).
   const maandag = maandagVan(data.vandaag)
@@ -36,7 +39,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
     <>
       <header className="club-vandaag-kop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]} · vandaag</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · vandaag</p>
           <h1 className="club-vandaag-dag">
             {weekdag} <span>{rest.join(' ')}</span>
           </h1>

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { isoWeek, nlDelen } from '@/lib/club/rooster/tijd'
 import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
 import { achterstand, historie, vorigeMaandagen } from '@/lib/club/taken/overzicht'
@@ -18,7 +20,8 @@ const AANTAL_WEKEN = 4
 export default async function TakenOverzichtPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('taken')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const w = weekContext(leesWeek(params.week), nlDelen(new Date()).datum)
   const maandagen = vorigeMaandagen(w.maandag, AANTAL_WEKEN)
   const [data, afvinkingen, notities, rondes] = await Promise.all([
@@ -29,7 +32,7 @@ export default async function TakenOverzichtPagina({ searchParams }: { searchPar
   ])
   const actief = data ? alleenActief(data) : null
   const kop = (
-    <TakenKop vestiging={vestiging} vestigingNaam={VESTIGING_LABEL[vestiging]} weergave="overzicht" titel={`Overzicht week ${w.weekNummer}`} sub={weekLabel(w.maandag)}>
+    <TakenKop vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, vestiging)} weergave="overzicht" titel={`Overzicht week ${w.weekNummer}`} sub={weekLabel(w.maandag)}>
       <WeekBladeren weergave="overzicht" vestiging={vestiging} vorige={w.vorige} volgende={w.volgende} isDezeWeek={w.isDezeWeek} />
     </TakenKop>
   )

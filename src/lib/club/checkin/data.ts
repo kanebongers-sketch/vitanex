@@ -4,7 +4,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalLid, initialen, LID_KOLOMMEN, LID_STATUS_LABEL, lidUitRij, magTrainen, volledigeNaam, zoekLeden, type Lid } from '@/lib/club/kern/lid'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { dagGrenzen } from '@/lib/club/leden/tijd'
 import { checkinUitRij, RESERVERING_SELECT, reserveringUitRij, type CheckinRij, type LidReservering } from '@/lib/club/leden/rijen'
 import {
@@ -71,7 +72,7 @@ async function haalVenster(admin: SupabaseClient, userId: string, v: Vestiging):
   return leesVenster(typeof data === 'object' && data !== null ? (data as Record<string, unknown>).regels : null)
 }
 
-function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: LidReservering[], nu: Date, venster: number): BalieLid {
+function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: LidReservering[], nu: Date, venster: number, vestigingen: readonly VestigingInfo[]): BalieLid {
   const les = lesVandaag(res, nu)
   const inVenster = lesInVenster(res, nu, venster)
   const geenToegang = !magInVestiging(lid.vestiging, v)
@@ -84,7 +85,7 @@ function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: Li
     statusLabel: LID_STATUS_LABEL[lid.status],
     magTrainen: magTrainen(lid.status) && !geenToegang,
     abonnement: lid.abonnement,
-    vestigingLabel: VESTIGING_LABEL[lid.vestiging],
+    vestigingLabel: naamVan(vestigingen, lid.vestiging),
     andereVestiging: lid.vestiging !== v,
     geenToegang,
     les: les ? { naam: les.lesNaam, start: les.start.toISOString(), status: les.status, inVenster: inVenster?.id === les.id } : null,
@@ -118,7 +119,7 @@ async function zoekOpNaam(admin: SupabaseClient, userId: string, v: Vestiging, t
 }
 
 /** Zoeken aan de balie: eerst een exacte code, anders op naam (eerst deze vestiging). Null bij een fout. */
-export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Vestiging, invoer: string, nu: Date): Promise<ZoekAntwoord | null> {
+export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Vestiging, invoer: string, nu: Date, vestigingen: readonly VestigingInfo[]): Promise<ZoekAntwoord | null> {
   const term = invoer.trim().slice(0, 80)
   if (!term) return { exact: false, bron: 'balie', leden: [] }
   const code = isCode(term) ? await zoekOpCode(admin, userId, term) : { leden: [], veld: 'naam' as const }
@@ -135,7 +136,7 @@ export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Ve
   return {
     exact,
     bron: exact ? bronVoorMatch(code.veld) : 'balie',
-    leden: leden.map((l) => naarBalieLid(l, v, laatste.get(l.id), reserveringen.filter((r) => r.lidId === l.id), nu, venster)),
+    leden: leden.map((l) => naarBalieLid(l, v, laatste.get(l.id), reserveringen.filter((r) => r.lidId === l.id), nu, venster, vestigingen)),
   }
 }
 
@@ -163,13 +164,13 @@ async function markeerAanwezig(admin: SupabaseClient, userId: string, lidId: str
   return les
 }
 
-export async function checkIn(admin: SupabaseClient, userId: string, verzoek: CheckinVerzoek, nu: Date): Promise<CheckinUitslag> {
+export async function checkIn(admin: SupabaseClient, userId: string, verzoek: CheckinVerzoek, nu: Date, vestigingen: readonly VestigingInfo[]): Promise<CheckinUitslag> {
   const lid = await haalLid(admin, userId, verzoek.lidId)
   if (!lid) return { ok: false, fout: 'Dit lid bestaat niet (meer).', status: 404 }
   const laatste = (await laatsteCheckins(admin, userId, [lid.id], new Date(nu.getTime() - DUBBEL_MIN * MIN))).get(lid.id) ?? null
   const besluit = beoordeelCheckin(lid.status, laatste, nu, magInVestiging(lid.vestiging, verzoek.vestiging))
   if (besluit.soort === 'niet_actief') return { ok: true, lid, antwoord: { soort: 'niet_actief', statusLabel: LID_STATUS_LABEL[besluit.status] } }
-  if (besluit.soort === 'geen_toegang') return { ok: true, lid, antwoord: { soort: 'geen_toegang', vestigingLabel: VESTIGING_LABEL[lid.vestiging] } }
+  if (besluit.soort === 'geen_toegang') return { ok: true, lid, antwoord: { soort: 'geen_toegang', vestigingLabel: naamVan(vestigingen, lid.vestiging) } }
   if (besluit.soort === 'dubbel') return { ok: true, lid, antwoord: { soort: 'dubbel', op: besluit.op.toISOString() } }
   const { data, error } = await admin.from('club_checkins')
     .insert({ user_id: userId, lid_id: lid.id, vestiging: verzoek.vestiging, bron: verzoek.bron, op: nu.toISOString() })

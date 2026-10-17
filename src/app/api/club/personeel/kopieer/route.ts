@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { alsAntwoord, leesJson } from '@/lib/club/personeel/api'
 import { leesKopie } from '@/lib/club/personeel/invoer'
 import { kopieerVorigeWeek } from '@/lib/club/personeel/plannen-opslag'
@@ -12,6 +13,7 @@ export async function POST(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const invoer = leesKopie(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (!hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const { vestiging, maandag, vervang } = invoer.waarde
   return alsAntwoord(await kopieerVorigeWeek(t, vestiging, maandag, vervang))
 }

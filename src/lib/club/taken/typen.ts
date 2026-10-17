@@ -3,7 +3,8 @@
 // erin en wat het personeel per dag afvinkt. Rijen uit de database worden hier
 // genarrowd: een onbruikbare rij valt weg in plaats van de pagina te breken.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 
 export const FREQUENTIES = ['dagelijks', 'per_week', 'indien_nodig', 'extra'] as const
 export type Frequentie = (typeof FREQUENTIES)[number]
@@ -101,7 +102,7 @@ export function lijstUitRij(rij: unknown): Takenlijst | null {
   const r = obj(rij)
   const id = tekst(r?.id)
   const naam = tekst(r?.naam)
-  if (!r || !id || !naam || !isVestiging(r.vestiging)) return null
+  if (!r || !id || !naam || !isVestigingSlug(r.vestiging)) return null
   return { id, vestiging: r.vestiging, naam, volgorde: getal(r.volgorde, 0), actief: r.actief !== false }
 }
 

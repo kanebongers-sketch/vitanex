@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalInstellingen, type Instellingen } from '@/lib/club/instellingen/opslag'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { RegelsFormulier } from '@/components/club/instellingen/RegelsFormulier'
@@ -58,7 +60,8 @@ function TabInhoud({ tab, data, vestiging }: { tab: Tab; data: Instellingen; ves
 export default async function InstellingenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const tab = kiesTab(params.tab)
   const data = await haalInstellingen(t.admin, t.userId, vestiging)
   const huidig = TABS.find((x) => x.sleutel === tab)
@@ -67,7 +70,7 @@ export default async function InstellingenPagina({ searchParams }: { searchParam
     <>
       <header className="club-paginakop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
           <h1>Instellingen</h1>
           <p>{huidig?.uitleg}</p>
         </div>

@@ -1,8 +1,12 @@
 import { redirect } from 'next/navigation'
-import { kiesVestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { eisClubToegang } from '@/lib/club/toegang'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { takenHref } from '@/lib/club/taken/url'
 
 // Oud adres: de dagweergave staat nu op /clubkane/taken (tab Dag).
 export default async function OudVandaag({ searchParams }: { searchParams: ZoekParams }) {
-  redirect(takenHref('', kiesVestiging((await searchParams).v)))
+  const t = await eisClubToegang()
+  const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
+  redirect(vestiging ? takenHref('', vestiging) : '/clubkane/taken')
 }

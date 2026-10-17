@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eisModule } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalLesDetail, haalLessen, haalRegels, haalStamdata, type LesDetail } from '@/lib/club/rooster/opslag'
 import { ruimsteOpening } from '@/lib/club/rooster/openingstijden'
 import { filterLessen, uurBereik, weekCijfers } from '@/lib/club/rooster/raster'
@@ -38,7 +40,8 @@ function magAfvinken(detail: LesDetail, regels: RoosterRegels, nuMs: number): bo
 export default async function RoosterPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('rooster')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const staat = leesRoosterStaat(params, vestiging)
   const nu = new Date()
   const nuNl = nlDelen(nu)
@@ -62,7 +65,7 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
   return (
     <>
       <RoosterKop
-        vestigingNaam={VESTIGING_LABEL[vestiging]}
+        vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weekNummer={isoWeek(maandag).week}
         weekLabel={weekLabel(maandag)}
         vorige={weekParam(plusDagen(maandag, -7))}

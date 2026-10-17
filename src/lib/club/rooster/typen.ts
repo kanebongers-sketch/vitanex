@@ -2,7 +2,8 @@
 // Databaserijen komen binnen als `unknown` en worden hier genarrowd. Geen casts
 // op databasedata: een rij die niet klopt valt eruit (null).
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { RESERVERING_BRONNEN, RESERVERING_STATUSSEN, type ReserveringBron, type ReserveringStatus } from './regels'
 import { normaliseerTijd, isDatum } from './tijd'
 
@@ -114,7 +115,7 @@ export function zaalUitRij(ruw: unknown): Zaal | null {
   const id = tekst(r.id)
   const naam = tekst(r.naam)
   const capaciteit = geheel(r.capaciteit)
-  if (!id || !naam || capaciteit === null || !isVestiging(r.vestiging)) return null
+  if (!id || !naam || capaciteit === null || !isVestigingSlug(r.vestiging)) return null
   return { id, vestiging: r.vestiging, naam, capaciteit, actief: r.actief !== false }
 }
 
@@ -146,7 +147,7 @@ export function serieUitRij(ruw: unknown): LesSerie | null {
   const starttijd = normaliseerTijd(r.starttijd)
   const duurMin = geheel(r.duur_min)
   const capaciteit = geheel(r.capaciteit)
-  if (!id || !lestypeId || !isVestiging(r.vestiging) || weekdag === null || weekdag < 1 || weekdag > 7) return null
+  if (!id || !lestypeId || !isVestigingSlug(r.vestiging) || weekdag === null || weekdag < 1 || weekdag > 7) return null
   if (!starttijd || duurMin === null || capaciteit === null || !isDatum(r.vanaf)) return null
   return {
     id,
@@ -172,7 +173,7 @@ export function lesUitRij(ruw: unknown): LesRij | null {
   const startOp = tekst(r.start_op)
   const eindOp = tekst(r.eind_op)
   const capaciteit = geheel(r.capaciteit)
-  if (!id || !lestypeId || !startOp || !eindOp || capaciteit === null || !isVestiging(r.vestiging)) return null
+  if (!id || !lestypeId || !startOp || !eindOp || capaciteit === null || !isVestigingSlug(r.vestiging)) return null
   if (Number.isNaN(Date.parse(startOp)) || Number.isNaN(Date.parse(eindOp))) return null
   return {
     id,

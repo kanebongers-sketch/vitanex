@@ -2,9 +2,10 @@
 // Krijgt de opgehaalde rijen van alle vestigingen en maakt er een rapport van
 // voor de gekozen kalendermaand en het gekozen bereik (een vestiging of alle):
 // kerncijfers met vergelijkingen, 12 maanden trend, de maand zelf per dag en
-// per uur, lessen, leads en de acht vestigingen naast elkaar.
+// per uur, lessen, leads en alle vestigingen van de sportschool naast elkaar.
 
-import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { bezoekPerDag, drukteRaster, piekUur, zichtbareUren } from './bezoek'
 import { geslachtsverdeling, isActiefLid, leeftijdsverdeling, telStatussen, type StatusTelling, type Verdeling } from './leden'
 import { conversiePerBron, leadsIn, type Conversie } from './leads'
@@ -30,6 +31,8 @@ export interface RapportInvoer {
   maand: Maand
   bereik: Bereik
   vestiging: Vestiging
+  /** De vestigingen van de sportschool, voor de vergelijking naast elkaar. */
+  vestigingen: readonly VestigingInfo[]
   bronnen: Bronnen
   /** Tellingen per les in de gekozen maand (tot nu). */
   lessen: readonly LesTelling[]
@@ -110,10 +113,10 @@ export function maakRapport(inv: RapportInvoer): Rapport {
     leeftijd: leeftijdsverdeling(actieveLeden, inv.vandaag),
     geslacht: geslachtsverdeling(actieveLeden),
     ...maandDeel(inv, set, huidig),
-    vergelijking: VESTIGINGEN.map((v) => ({
-      vestiging: v,
-      label: VESTIGING_LABEL[v],
-      cijfers: cijfersVoor(inv.bronnen, new Set([v]), huidig, inv.vandaag),
+    vergelijking: inv.vestigingen.map((v) => ({
+      vestiging: v.sleutel,
+      label: v.naam,
+      cijfers: cijfersVoor(inv.bronnen, new Set([v.sleutel]), huidig, inv.vandaag),
     })),
   }
 }

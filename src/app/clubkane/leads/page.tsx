@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLeads, haalProeflesLessen } from '@/lib/club/leads/data'
 import { berekenCijfers } from '@/lib/club/leads/cijfers'
@@ -25,7 +27,8 @@ function eerste(v: string | string[] | undefined): string | undefined {
 export default async function LeadsPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('leads')
   const zoek = await searchParams
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const filters = leesFilters(zoek)
   const nu = new Date()
 
@@ -47,7 +50,7 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
           <h1>Leads</h1>
           <p>Wie je vandaag belt, wie er komt proefsporten en waar elke lead staat. Van eerste contact tot lid.</p>
         </div>

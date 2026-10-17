@@ -23,7 +23,7 @@ export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
     <div className="club-training-oefdetail">
       <OefeningSpeler key={o.id} naam={o.naam} beeld={o.beeld} />
       {o.beeld && <BeeldBron bronnen={[o.beeld.bron]} />}
-      <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg="Nog geen uitleg. Voeg die toe via Bewerken." />
+      <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg="Nog geen uitleg. Voeg die toe via Bewerken." oefeningId={o.id} />
       <dl className="club-training-defs club-training-defs--twee">
         {kenmerken.map(([label, waarde]) => (
           <div key={label} className="club-training-def">

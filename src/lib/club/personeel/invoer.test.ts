@@ -12,7 +12,7 @@ describe('leesDienst', () => {
 
   it('weigert einde voor begin, onbekende vestiging en ziek zonder persoon', () => {
     expect(leesDienst({ vestiging: 'budel', datum: '2026-10-14', begin: '21:30', eind: '14:00' }).ok).toBe(false)
-    expect(leesDienst({ vestiging: 'parijs', datum: '2026-10-14', begin: '08:00', eind: '14:00' }).ok).toBe(false)
+    expect(leesDienst({ vestiging: 'Parijs!', datum: '2026-10-14', begin: '08:00', eind: '14:00' }).ok).toBe(false)
     expect(leesDienst({ vestiging: 'budel', datum: '2026-10-14', begin: '08:00', eind: '14:00', uursoort: 'ziek' }).ok).toBe(false)
     expect(leesDienst({ vestiging: 'budel', datum: '2026-10-14', begin: '08:00', eind: '14:00', medewerkerId: 'x' }).ok).toBe(false)
   })

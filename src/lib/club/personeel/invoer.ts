@@ -2,7 +2,8 @@
 // Elke body komt als unknown binnen en gaat er alleen getypt en gecontroleerd
 // uit, met een Nederlandse foutzin voor het scherm.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { isDatum, isoWeekdag, normaliseerTijd } from '@/lib/club/rooster/tijd'
 import { isKleur, NOTITIE_SOORTEN, REDENEN, UURSOORTEN, type Kleur, type NotitieSoort, type Reden, type Uursoort } from './typen'
 
@@ -58,7 +59,7 @@ export interface DienstInvoer {
 export function leesDienst(ruw: unknown): Invoer<DienstInvoer> {
   const b = object(ruw)
   if (!b) return mis('Ongeldige invoer.')
-  if (!isVestiging(b.vestiging)) return mis('Kies een vestiging.')
+  if (!isVestigingSlug(b.vestiging)) return mis('Kies een vestiging.')
   if (!isDatum(b.datum)) return mis('Kies een geldige datum.')
   const begin = normaliseerTijd(b.begin)
   const eind = normaliseerTijd(b.eind)
@@ -116,7 +117,7 @@ export interface WeekInvoer {
 }
 
 function leesWeek(b: Record<string, unknown> | null): Invoer<WeekInvoer> {
-  if (!b || !isVestiging(b.vestiging)) return mis('Kies een vestiging.')
+  if (!b || !isVestigingSlug(b.vestiging)) return mis('Kies een vestiging.')
   if (!isMaandag(b.maandag)) return mis('Kies een geldige week.')
   return goed({ vestiging: b.vestiging, maandag: b.maandag })
 }
@@ -225,7 +226,7 @@ export interface NotitieInvoer {
 
 export function leesNotitie(ruw: unknown): Invoer<NotitieInvoer> {
   const b = object(ruw)
-  if (!b || !isVestiging(b.vestiging)) return mis('Kies een vestiging.')
+  if (!b || !isVestigingSlug(b.vestiging)) return mis('Kies een vestiging.')
   if (!isDatum(b.datum)) return mis('Kies een datum.')
   const van = b.van ? normaliseerTijd(b.van) : null
   const tot = b.tot ? normaliseerTijd(b.tot) : null
@@ -249,7 +250,7 @@ export interface UrenBulkInvoer {
 
 export function leesUrenBulk(ruw: unknown): Invoer<UrenBulkInvoer> {
   const b = object(ruw)
-  if (!b || !isVestiging(b.vestiging)) return mis('Kies een vestiging.')
+  if (!b || !isVestigingSlug(b.vestiging)) return mis('Kies een vestiging.')
   if (b.actie !== 'goedkeuren' && b.actie !== 'verwerken') return mis('Onbekende actie.')
   if (!isDatum(b.van) || !isDatum(b.tot) || b.tot <= b.van) return mis('Kies een geldige periode.')
   return goed({ vestiging: b.vestiging, actie: b.actie, van: b.van, tot: b.tot })

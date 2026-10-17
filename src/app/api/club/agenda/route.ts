@@ -4,6 +4,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { isGeldigeMedewerker } from '@/lib/club/leads/api'
 import { AGENDA_KOLOMMEN, agendaUitRij, herhalingen, leesAgendaInvoer, leesHerhaal } from '@/lib/club/agenda/model'
 
@@ -13,6 +14,7 @@ export async function POST(req: NextRequest) {
   const body: unknown = await req.json().catch(() => null)
   const invoer = leesAgendaInvoer(body)
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (!hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const a = invoer.waarde
   if (!(await isGeldigeMedewerker(t, a.vestiging, a.medewerkerId))) return clubFout('Deze medewerker werkt niet in deze vestiging.', 400)
   const reeks = herhalingen(a, leesHerhaal(body))

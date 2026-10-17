@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { isVestiging } from '@/lib/club/kern/vestiging'
+import { hoortBij, isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { volledigeNaam } from '@/lib/club/kern/lid'
 import { checkIn } from '@/lib/club/checkin/data'
 import { leesCheckinInvoer } from '@/lib/club/checkin/regels'
@@ -14,8 +14,9 @@ export async function POST(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const body: unknown = await req.json().catch(() => null)
   const invoer = leesCheckinInvoer(body)
-  if (!invoer || !isVestiging(invoer.vestiging)) return clubFout('Ongeldig verzoek.', 400)
-  const uitslag = await checkIn(t.admin, t.userId, { lidId: invoer.lidId, vestiging: invoer.vestiging, bron: invoer.bron }, new Date())
+  if (!invoer || !isVestigingSlug(invoer.vestiging)) return clubFout('Ongeldig verzoek.', 400)
+  if (!hoortBij(t.vestigingen, invoer.vestiging)) return clubFout('Onbekende vestiging.', 400)
+  const uitslag = await checkIn(t.admin, t.userId, { lidId: invoer.lidId, vestiging: invoer.vestiging, bron: invoer.bron }, new Date(), t.vestigingen)
   if (!uitslag.ok) return clubFout(uitslag.fout, uitslag.status)
   if (uitslag.antwoord.soort === 'ingecheckt') {
     const les = uitslag.antwoord.les ? `, aanwezig bij ${uitslag.antwoord.les.naam}` : ''

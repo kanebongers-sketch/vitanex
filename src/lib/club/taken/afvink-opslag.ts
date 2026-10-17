@@ -4,7 +4,8 @@
 // tegelijk tikken krijgen allebei hetzelfde vinkje terug.
 
 import type { ClubToegang } from '@/lib/club/toegang'
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import type { AfsluitInvoer, AfvinkInvoer, NotitieInvoer, Persoon } from './invoer'
 import { gelukt, mislukt, type Resultaat } from './opslag'
 import {
@@ -30,7 +31,7 @@ async function vestigingVanTaak(t: ClubToegang, taakId: string): Promise<Vestigi
   const taak = await t.admin.from('club_taken').select('lijst_id').eq('user_id', t.userId).eq('id', taakId).maybeSingle()
   if (taak.error || !taak.data || typeof taak.data.lijst_id !== 'string') return null
   const lijst = await t.admin.from('club_takenlijsten').select('vestiging').eq('user_id', t.userId).eq('id', taak.data.lijst_id).maybeSingle()
-  if (lijst.error || !lijst.data || !isVestiging(lijst.data.vestiging)) return null
+  if (lijst.error || !lijst.data || !isVestigingSlug(lijst.data.vestiging)) return null
   return lijst.data.vestiging
 }
 

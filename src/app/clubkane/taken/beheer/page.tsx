@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalTaken } from '@/lib/club/taken/opslag'
 import { BeheerLijst } from '@/components/club/taken/BeheerLijst'
 import { KopieerLijsten, NieuweLijst } from '@/components/club/taken/LijstActies'
@@ -15,14 +17,15 @@ export const metadata: Metadata = { title: 'Taken beheren' }
 export default async function TakenBeheerPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('taken')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const data = await haalTaken(t.admin, t.userId, vestiging)
 
   return (
     <div className="club-taken-pagina">
       <TakenKop
         vestiging={vestiging}
-        vestigingNaam={VESTIGING_LABEL[vestiging]}
+        vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weergave="beheer"
         titel="Lijsten beheren"
         sub="Uitgezette taken verdwijnen van de lijsten maar blijven in de geschiedenis staan."

@@ -2,7 +2,8 @@
 // Systeemgrens: wat binnenkomt is `unknown`. Elke functie geeft een nette
 // waarde of een Nederlandse foutmelding terug.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { isDatum, plusDagen } from '@/lib/club/rooster/tijd'
 import { isFrequentie, isMoment, type Frequentie, type Moment } from './typen'
 
@@ -85,7 +86,7 @@ export interface NotitieInvoer extends Persoon {
 export function leesNotitieInvoer(ruw: unknown, vandaag: string): Invoer<NotitieInvoer> {
   const b = object(ruw)
   if (!b) return mis('Ongeldig verzoek.')
-  if (!isVestiging(b.vestiging)) return mis('Onbekende vestiging.')
+  if (!isVestigingSlug(b.vestiging)) return mis('Onbekende vestiging.')
   if (!isDatum(b.datum) || !magAfvinkenOp(b.datum, vandaag)) return mis('Op deze dag kun je geen notitie zetten.')
   const tekst = netteTekst(b.tekst, 1000)
   if (!tekst) return mis('Schrijf kort op wat je gedaan hebt (maximaal 1000 tekens).')
@@ -101,7 +102,7 @@ export interface AfsluitInvoer extends Persoon {
 export function leesAfsluitInvoer(ruw: unknown): Invoer<AfsluitInvoer> {
   const b = object(ruw)
   if (!b) return mis('Ongeldig verzoek.')
-  if (!isVestiging(b.vestiging)) return mis('Onbekende vestiging.')
+  if (!isVestigingSlug(b.vestiging)) return mis('Onbekende vestiging.')
   const p = leesPersoon(b)
   if (!p.ok) return p
   return goed({ vestiging: b.vestiging, ...p.waarde })
@@ -174,7 +175,7 @@ export function leesLijstWijziging(ruw: unknown): Invoer<LijstWijziging> {
 export function leesNieuweLijst(ruw: unknown): Invoer<{ vestiging: Vestiging; naam: string }> {
   const b = object(ruw)
   if (!b) return mis('Ongeldig verzoek.')
-  if (!isVestiging(b.vestiging)) return mis('Onbekende vestiging.')
+  if (!isVestigingSlug(b.vestiging)) return mis('Onbekende vestiging.')
   const naam = netteTekst(b.naam, 60)
   if (!naam) return mis('Geef de lijst een naam (maximaal 60 tekens).')
   return goed({ vestiging: b.vestiging, naam })
@@ -183,7 +184,7 @@ export function leesNieuweLijst(ruw: unknown): Invoer<{ vestiging: Vestiging; na
 export function leesKopieerInvoer(ruw: unknown): Invoer<{ van: Vestiging; naar: Vestiging }> {
   const b = object(ruw)
   if (!b) return mis('Ongeldig verzoek.')
-  if (!isVestiging(b.van) || !isVestiging(b.naar)) return mis('Kies twee vestigingen.')
+  if (!isVestigingSlug(b.van) || !isVestigingSlug(b.naar)) return mis('Kies twee vestigingen.')
   if (b.van === b.naar) return mis('Kies een andere vestiging om naartoe te kopieren.')
   return goed({ van: b.van, naar: b.naar })
 }

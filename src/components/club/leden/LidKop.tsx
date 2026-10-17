@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, CalendarDays, Dumbbell } from 'lucide-react'
 import { initialen, LID_STATUS_LABEL, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
-import { clubPad, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { datumUitSleutel } from '@/lib/club/leden/tijd'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 
@@ -11,6 +11,8 @@ import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 interface LidKopProps {
   lid: Lid
   vestiging: Vestiging
+  /** De naam van de vestiging van het lid. */
+  vestigingNaam: string
   coachNaam: string | null
 }
 
@@ -23,7 +25,7 @@ function Feit({ label, waarde }: { label: string; waarde: string | null }) {
   )
 }
 
-export function LidKop({ lid, vestiging, coachNaam }: LidKopProps) {
+export function LidKop({ lid, vestiging, vestigingNaam, coachNaam }: LidKopProps) {
   return (
     <header className="club-leden-kop">
       <Link href={clubPad('/leden', vestiging)} className="club-leden-terug">
@@ -32,7 +34,7 @@ export function LidKop({ lid, vestiging, coachNaam }: LidKopProps) {
       <div className="club-leden-kop-hoofd">
         <span className="club-avatar club-avatar--groot club-leden-kop-avatar" aria-hidden>{initialen(lid)}</span>
         <div className="club-leden-kop-naam">
-          <p className="club-boventitel">{VESTIGING_LABEL[lid.vestiging]}{lid.demo ? ' · voorbeeldlid' : ''}</p>
+          <p className="club-boventitel">{vestigingNaam}{lid.demo ? ' · voorbeeldlid' : ''}</p>
           <h1>{volledigeNaam(lid)}</h1>
           <div className="club-leden-kop-chips">
             <span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span>

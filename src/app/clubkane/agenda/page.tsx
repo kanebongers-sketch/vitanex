@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { isoWeek, maandagUitWeekParam, maandagVan, nlDelen, plusDagen, weekParam } from '@/lib/club/rooster/tijd'
 import { haalAgendaWeek } from '@/lib/club/agenda/data'
@@ -20,7 +22,8 @@ const kort = (dag: string) => KORT.format(new Date(`${dag}T12:00:00Z`))
 export default async function AgendaPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
   const zoek = await searchParams
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const vandaag = nlDelen(new Date()).datum
   const maandag = maandagUitWeekParam(zoek.week, vandaag)
   const [items, medewerkers] = await Promise.all([
@@ -34,7 +37,7 @@ export default async function AgendaPagina({ searchParams }: { searchParams: Zoe
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]} · week {isoWeek(maandag).week}</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · week {isoWeek(maandag).week}</p>
           <h1>Agenda</h1>
           <p>Overleg, intakes, onderhoud en andere afspraken van de vestiging, per week.</p>
         </div>

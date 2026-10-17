@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { alleenActief, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
 import { leesWeek, takenHref } from '@/lib/club/taken/url'
@@ -24,7 +26,8 @@ export const metadata: Metadata = { title: 'Taken per week' }
 export default async function TakenWeekPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('taken')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const w = weekContext(leesWeek(params.week), nlDelen(new Date()).datum)
   const [data, afvinkingen, notities, medewerkers] = await Promise.all([
     haalTaken(t.admin, t.userId, vestiging),
@@ -38,7 +41,7 @@ export default async function TakenWeekPagina({ searchParams }: { searchParams: 
     <div className="club-taken-pagina">
       <TakenKop
         vestiging={vestiging}
-        vestigingNaam={VESTIGING_LABEL[vestiging]}
+        vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weergave="week"
         titel={
           <>

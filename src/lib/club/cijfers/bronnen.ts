@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { isVestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { telBezoek, type BezoekTelling, type Checkin } from './bezoek'
 import type { LidCijferRij } from './leden'
 import type { LeadCijferRij } from './leads'
@@ -60,7 +60,7 @@ export async function haalBezoek(admin: SupabaseClient, userId: string, van: Dat
   const checkins = rijenVan<Checkin>(los.rijen, (v) => {
     const r = alsRij(v)
     const op = r ? datum(r.op) : null
-    return r && op && isVestiging(r.vestiging) ? { vestiging: r.vestiging, op } : null
+    return r && op && isVestigingSlug(r.vestiging) ? { vestiging: r.vestiging, op } : null
   })
   return { data: telBezoek(checkins, uurVan), fout: meld('Bezoek', los.fout, los.afgekapt) }
 }

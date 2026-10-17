@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalOefeningen, haalSchema, haalTrainingslog } from '@/lib/club/training/data'
 import { uitOpgeslagen } from '@/lib/club/training/editor'
 import { SchemaEditor } from '@/components/club/training/SchemaEditor'
@@ -20,7 +22,8 @@ export const metadata: Metadata = { title: 'Schema' }
 export default async function SchemaPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
   const t = await eisModule('training')
   const [{ id }, zoek] = await Promise.all([params, searchParams])
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
 
   const [schema, oefeningen, medewerkers, log] = await Promise.all([
     haalSchema(t.admin, t.userId, id),
@@ -38,7 +41,7 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
     <div className="club-training-printpagina">
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${VESTIGING_LABEL[vestiging]}`}</p>
+          <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${naamVan(t.vestigingen, vestiging)}`}</p>
           <h1>{kop.naam}</h1>
           {!isSjabloon && kop.status === 'concept' && <p>Concept: zet het op actief zodra het klaar is voor het lid.</p>}
         </div>

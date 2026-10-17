@@ -3,6 +3,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { KLAD_KOLOMMEN, kladUitRij, leesKladWijziging } from '@/lib/club/kladblok/model'
 
@@ -17,6 +18,7 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (!isUuid(id)) return clubFout('Notitie niet gevonden.', 404)
   const invoer = leesKladWijziging(await req.json().catch(() => null))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (invoer.waarde.vestiging != null && !hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const w = invoer.waarde
   const { data, error } = await t.admin
     .from('club_kladblok')

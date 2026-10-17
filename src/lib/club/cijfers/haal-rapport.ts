@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
+import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { haalBezoek, haalLeadsCijfers, haalLedenCijfers, haalLessen } from './bronnen'
 import { haalBegin, haalLesDagen } from './bronnen-maand'
 import { maandGrenzen, plusMaanden, type Maand } from './maand'
@@ -26,6 +27,7 @@ function vroegste(a: Date, b: Date): Date {
 export async function haalRapport(
   admin: SupabaseClient,
   userId: string,
+  vestigingen: readonly VestigingInfo[],
   vestiging: Vestiging,
   maand: Maand,
   bereik: Bereik,
@@ -41,7 +43,7 @@ export async function haalRapport(
     haalBezoek(admin, userId, van, gekozen.tot, gekozen.van),
     haalLesDagen(admin, userId, van, totNu),
     haalLeadsCijfers(admin, userId, van, gekozen.tot),
-    haalBegin(admin, userId),
+    haalBegin(admin, userId, vestigingen.map((v) => v.sleutel)),
     haalLessen(admin, userId, nu, vooruit),
   ])
   // Zonder migratie 396 zijn de lessen van de maand al per les opgehaald.
@@ -54,6 +56,7 @@ export async function haalRapport(
     maand,
     bereik,
     vestiging,
+    vestigingen,
     bronnen: { leden: leden.data, bezoek: bezoek.data, lesDagen: lesDagen.data, leads: leads.data, begin: begin.data },
     lessen: lessen.data,
     komend: komend.data,

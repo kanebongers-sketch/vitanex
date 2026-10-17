@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import { Plus, Save } from 'lucide-react'
 import { MEDEWERKER_ROLLEN, RECHTEN, ROL_LABEL, type Medewerker, type MedewerkerRol } from '@/lib/club/kern/medewerker'
-import { VESTIGINGEN, VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { useVestigingen, useVestigingNaam } from '@/components/club/shell/VestigingenContext'
 import { ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { useClubActie } from '@/components/club/rooster/vraag'
 import { bewaarItem } from './opslaan'
@@ -45,6 +46,7 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
   const leeg: Velden = { naam: '', email: '', rollen: ['trainer'], vestigingen: [vestiging] }
   const [v, setV] = useState<Velden>(mens ? { naam: mens.naam, email: mens.email ?? '', rollen: mens.rollen, vestigingen: mens.vestigingen } : leeg)
   const { bezig, fout, voerUit } = useClubActie()
+  const vestigingen = useVestigingen()
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -75,10 +77,10 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
       </fieldset>
       <fieldset className="club-instellingen-keuzes">
         <legend className="club-label">Vestigingen</legend>
-        {VESTIGINGEN.map((x) => (
-          <label key={x} className="club-instellingen-keuze">
-            <input type="checkbox" checked={v.vestigingen.includes(x)} onChange={() => setV({ ...v, vestigingen: wissel(v.vestigingen, x) })} />
-            <span>{VESTIGING_LABEL[x]}</span>
+        {vestigingen.map((x) => (
+          <label key={x.sleutel} className="club-instellingen-keuze">
+            <input type="checkbox" checked={v.vestigingen.includes(x.sleutel)} onChange={() => setV({ ...v, vestigingen: wissel(v.vestigingen, x.sleutel) })} />
+            <span>{x.naam}</span>
           </label>
         ))}
       </fieldset>
@@ -102,6 +104,7 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
 export function MedewerkersBeheer({ medewerkers, vestiging }: { medewerkers: Medewerker[]; vestiging: Vestiging }) {
   const hier = medewerkers.filter((m) => m.vestigingen.includes(vestiging))
   const elders = medewerkers.filter((m) => !m.vestigingen.includes(vestiging))
+  const naam = useVestigingNaam(vestiging)
   const rij = (m: Medewerker) => (
     <details key={m.id} className="club-instellingen-item" data-uit={!m.actief || undefined}>
       <summary>
@@ -116,7 +119,7 @@ export function MedewerkersBeheer({ medewerkers, vestiging }: { medewerkers: Med
     <section className="club-instellingen-sectie club-instellingen-medewerkers">
       <div className="club-instellingen-lijst">
         <h3 className="club-instellingen-kop">
-          {VESTIGING_LABEL[vestiging]} <span className="club-getal club-zacht">{hier.length}</span>
+          {naam} <span className="club-getal club-zacht">{hier.length}</span>
         </h3>
         {hier.length === 0 ? <p className="club-leeg">Nog geen medewerkers in deze vestiging.</p> : hier.map(rij)}
         {elders.length > 0 && (

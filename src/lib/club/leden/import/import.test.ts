@@ -212,7 +212,7 @@ describe('leesImportVerzoek', () => {
     if (!goed.ok) return
     expect(goed.waarde.regels).toHaveLength(1)
     expect(goed.waarde.fouten).toEqual([{ regel: 3, fout: 'Voornaam of achternaam ontbreekt.' }])
-    expect(leesImportVerzoek({ vestiging: 'parijs', rijen: [{ regel: 2 }] }, VANDAAG).ok).toBe(false)
+    expect(leesImportVerzoek({ vestiging: 'Parijs!', rijen: [{ regel: 2 }] }, VANDAAG).ok).toBe(false)
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [] }, VANDAAG).ok).toBe(false)
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [{ regel: 2 }, { regel: 2 }] }, VANDAAG).ok).toBe(false)
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [{ regel: 1.5 }] }, VANDAAG).ok).toBe(false)

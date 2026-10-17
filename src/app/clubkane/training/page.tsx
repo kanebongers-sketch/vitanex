@@ -4,7 +4,9 @@ import { ClipboardPlus } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalLid, initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { filterUitParams } from '@/lib/club/training/filter'
 import { LidFilter } from '@/components/club/training/LidFilter'
 import { NieuwSchemaKnop } from '@/components/club/training/SchemaActies'
@@ -21,7 +23,8 @@ export const metadata: Metadata = { title: 'Training' }
 export default async function TrainingPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('training')
   const zoek = await searchParams
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const tab = kiesTab(zoek.tab)
   const lidParam = typeof zoek.lid === 'string' ? zoek.lid : null
 
@@ -38,7 +41,7 @@ export default async function TrainingPagina({ searchParams }: { searchParams: Z
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
           <h1>Training</h1>
           <p>Intakes, schema&apos;s en oefeningen. Van intake naar een voorstel en een schema op maat in een paar minuten.</p>
         </div>

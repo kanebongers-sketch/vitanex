@@ -54,7 +54,7 @@ describe('Vandaag', () => {
 
 describe('systeemgrens en ophalen', () => {
   it('weigert onbruikbare rijen', () => {
-    expect(lidCijferUitRij({ id: '1', vestiging: 'nergens', status: 'actief' })).toBeNull()
+    expect(lidCijferUitRij({ id: '1', vestiging: 'Nergens!', status: 'actief' })).toBeNull()
     expect(bezoekTellingUitRij({ vestiging: 'budel', soort: 'week', sleutel: 'x', aantal: 1 })).toBeNull()
     expect(bezoekTellingUitRij({ vestiging: 'budel', soort: 'dag', sleutel: '2026-10-12', aantal: '7' })).toMatchObject({ aantal: 7 })
     expect(lesTellingUitRij({ id: 'l', vestiging: 'budel', lestype: 'Yoga', start_op: '2026-10-14T08:00:00Z', capaciteit: 12, geannuleerd: false, bezet: '5' })).toMatchObject({

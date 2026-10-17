@@ -1,17 +1,16 @@
 import { CreditCard, LockKeyhole } from 'lucide-react'
 import { LID_STATUS_LABEL, initialen, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
-import { VESTIGING_LABEL } from '@/lib/club/kern/vestiging'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 
 // Profiel in de ledenapp: eigen gegevens. Geld en contract staan in Sportivity;
 // hier alleen de naam van het abonnement.
 
-export function ProfielTab({ lid }: { lid: Lid }) {
+export function ProfielTab({ lid, vestigingNaam }: { lid: Lid; vestigingNaam: string }) {
   const regels: [string, string | null][] = [
     ['Lidnummer', lid.lidnummer],
     ['E-mail', lid.email],
     ['Telefoon', lid.telefoon],
-    ['Vestiging', VESTIGING_LABEL[lid.vestiging]],
+    ['Vestiging', vestigingNaam],
     ['Lid sinds', lid.lidSinds ? `${dagKort(lid.lidSinds)} ${lid.lidSinds.slice(0, 4)}` : null],
   ]
   return (

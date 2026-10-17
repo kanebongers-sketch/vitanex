@@ -4,7 +4,7 @@
 // de functies en tabellen die er al zijn. Elke query filtert op user_id.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { VESTIGINGEN, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalLessen, meld, type Bron } from './bronnen'
 import { lesDagen, type LesDag } from './lesdagen'
 import type { LesTelling } from './lessen'
@@ -42,12 +42,12 @@ async function eersteVan(admin: SupabaseClient, userId: string, v: Vestiging, br
   return eerste ? { vestiging: v, bron, dag: dagSleutel(eerste) } : null
 }
 
-/** Vanaf welke dag er per vestiging bezoek, lessen en leads zijn. */
-export async function haalBegin(admin: SupabaseClient, userId: string): Promise<Bron<BeginRij[]>> {
+/** Vanaf welke dag er per vestiging bezoek, lessen en leads zijn (vestigingen: voor de terugval zonder 396). */
+export async function haalBegin(admin: SupabaseClient, userId: string, vestigingen: readonly Vestiging[]): Promise<Bron<BeginRij[]>> {
   const { data, error } = await admin.rpc('club_cijfers_begin', { p_user: userId })
   if (!error) return { data: rijenVan(Array.isArray(data) ? data : [], beginUitRij), fout: null }
   const bronnen: BeginBron[] = ['bezoek', 'lessen', 'leads']
-  const los = await Promise.all(VESTIGINGEN.flatMap((v) => bronnen.map((b) => eersteVan(admin, userId, v, b))))
+  const los = await Promise.all(vestigingen.flatMap((v) => bronnen.map((b) => eersteVan(admin, userId, v, b))))
   const rijen = los.filter((r): r is BeginRij => r !== null && r !== 'fout')
   return { data: rijen, fout: meld('Begin van de data', los.includes('fout') ? 'een of meer tellingen mislukt' : null, false) }
 }

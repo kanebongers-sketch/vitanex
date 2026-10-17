@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
-import { kiesVestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalRapport } from '@/lib/club/cijfers/haal-rapport'
 import { kiesMaand } from '@/lib/club/cijfers/maand'
 import { kiesBereik } from '@/lib/club/cijfers/periode'
@@ -15,7 +17,7 @@ import { Maandoverzicht } from '@/components/club/cijfers/Maandoverzicht'
 import type { CijferContext } from '@/components/club/cijfers/context'
 import '@/components/club/cijfers/cijfers.css'
 
-// Cijfers: een maandrapport per vestiging of voor alle acht samen. Altijd per
+// Cijfers: een maandrapport per vestiging of voor alle vestigingen samen. Altijd per
 // kalendermaand (de 1e tot en met de laatste dag, besluit Kane), vergeleken
 // met de vorige maand en dezelfde maand vorig jaar. Maand en bereik staan in
 // de URL (?maand=2026-10&bereik=alle). Bij elk cijfer staat hoe het geteld is.
@@ -26,14 +28,16 @@ export default async function ClubCijfers({ searchParams }: { searchParams: Zoek
   const t = await eisModule('cijfers')
   const zoek = await searchParams
   const nu = new Date()
-  const vestiging = kiesVestiging(zoek.v)
+  const vestiging = kiesUit(t.vestigingen, zoek.v)
+  if (!vestiging) return <GeenVestigingen />
   const maand = kiesMaand(zoek.maand, dagSleutel(nu))
   const bereik = kiesBereik(zoek.bereik)
-  const { rapport, vandaag, meldingen } = await haalRapport(t.admin, t.userId, vestiging, maand, bereik, nu)
-  const c: CijferContext = { rapport, maand, vestiging, bereik, vandaag }
+  const { rapport, vandaag, meldingen } = await haalRapport(t.admin, t.userId, t.vestigingen, vestiging, maand, bereik, nu)
+  const vestigingNaam = naamVan(t.vestigingen, vestiging)
+  const c: CijferContext = { rapport, maand, vestiging, vestigingNaam, bereik, vandaag }
   return (
     <>
-      <CijferKop vestiging={vestiging} maand={maand} bereik={bereik} venster={rapport.huidig.venster} vandaag={vandaag} />
+      <CijferKop vestiging={vestiging} vestigingNaam={vestigingNaam} aantalVestigingen={t.vestigingen.length} maand={maand} bereik={bereik} venster={rapport.huidig.venster} vandaag={vandaag} />
       {meldingen.map((m) => (
         <p key={m} className="club-melding club-melding--fout" role="status">
           {m}

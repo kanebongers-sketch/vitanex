@@ -3,19 +3,21 @@
 import type { Rapport } from '@/lib/club/cijfers/rapport'
 import type { Bereik } from '@/lib/club/cijfers/periode'
 import { maandKort, maandNaam, type Maand } from '@/lib/club/cijfers/maand'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
 
 export interface CijferContext {
   rapport: Rapport
   maand: Maand
   vestiging: Vestiging
+  /** De naam van de gekozen vestiging (uit club_vestigingen). */
+  vestigingNaam: string
   bereik: Bereik
   vandaag: string
 }
 
 /** "Budel" of "Alle vestigingen". */
-export function bereikNaam(c: Pick<CijferContext, 'bereik' | 'vestiging'>): string {
-  return c.bereik === 'alle' ? 'Alle vestigingen' : VESTIGING_LABEL[c.vestiging]
+export function bereikNaam(c: Pick<CijferContext, 'bereik' | 'vestigingNaam'>): string {
+  return c.bereik === 'alle' ? 'Alle vestigingen' : c.vestigingNaam
 }
 
 /** Deel van een bestandsnaam: "budel-2026-10". */

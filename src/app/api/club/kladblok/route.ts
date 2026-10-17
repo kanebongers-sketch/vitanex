@@ -2,6 +2,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { KLAD_KOLOMMEN, kladUitRij, leesKladWijziging } from '@/lib/club/kladblok/model'
 
 export async function POST(req: NextRequest) {
@@ -9,6 +10,7 @@ export async function POST(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const invoer = leesKladWijziging(await req.json().catch(() => null), { nieuw: true })
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  if (invoer.waarde.vestiging != null && !hoortBij(t.vestigingen, invoer.waarde.vestiging)) return clubFout('Onbekende vestiging.', 400)
   const w = invoer.waarde
   const { data, error } = await t.admin
     .from('club_kladblok')

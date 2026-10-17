@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { maandagUitWeekParam, nlDelen } from '@/lib/club/rooster/tijd'
 import { haalTeam } from '@/lib/club/personeel/opslag'
 import { leesStaat } from '@/lib/club/personeel/url'
@@ -20,7 +22,8 @@ export const metadata: Metadata = { title: 'Personeel' }
 export default async function PersoneelPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('personeel')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const staat = leesStaat(params, vestiging)
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)
@@ -28,7 +31,7 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
 
   return (
     <div className="club-personeel-pagina">
-      <PersoneelKop staat={staat} vestigingNaam={VESTIGING_LABEL[vestiging]} maandag={maandag} vandaag={nu.datum} />
+      <PersoneelKop staat={staat} vestigingNaam={naamVan(t.vestigingen, vestiging)} maandag={maandag} vandaag={nu.datum} />
       {team === null ? (
         <p className="club-melding club-melding--fout" role="alert">
           Het personeel kon niet worden geladen. Staat migratie 388 er al op? Ververs de pagina om het opnieuw te proberen.

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Archive, ArchiveRestore, Check, ChevronLeft, ListChecks, Pencil, Pin, PinOff, Trash2 } from 'lucide-react'
-import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { useVestigingNaam } from '@/components/club/shell/VestigingenContext'
 import { MAPPEN, MAP_LABEL, MAX_INHOUD, MAX_TITEL, isMap, leesKladAntwoord, type KladNotitie, type KladWijziging } from '@/lib/club/kladblok/model'
 import { stuur } from '@/components/club/leden/stuur'
 import { vinkStand, voegVinkToe, wisselVinkje } from '@/lib/club/kladblok/opmaak'
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit }: Props) {
+  const vestigingNaam = useVestigingNaam(vestiging)
   const [titel, setTitel] = useState(notitie.titel)
   const [inhoud, setInhoud] = useState(notitie.inhoud)
   const [stand, setStand] = useState<Stand>('opgeslagen')
@@ -128,7 +130,7 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
         <label className="club-veld kb-keuze">
           <span>Voor</span>
           <select className="club-invoer" value={notitie.vestiging ?? 'alle'} onChange={(e) => void meteen({ vestiging: e.target.value === 'alle' ? null : vestiging })}>
-            <option value={vestiging}>{VESTIGING_LABEL[vestiging]}</option>
+            <option value={vestiging}>{vestigingNaam}</option>
             <option value="alle">Alle vestigingen</option>
           </select>
         </label>

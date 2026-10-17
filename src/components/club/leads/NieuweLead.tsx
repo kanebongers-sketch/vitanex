@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { VESTIGING_LABEL } from '@/lib/club/kern/vestiging'
+import { useVestigingNaam } from '@/components/club/shell/VestigingenContext'
 import { opvolgSnelkeuzes } from '@/lib/club/leads/regels'
 import { LeadVelden, veldenUitFormulier } from './LeadVelden'
 import { ZijPaneel } from './ZijPaneel'
@@ -19,6 +19,7 @@ interface NieuweLeadProps {
 // Snel een lead invoeren aan de balie of tijdens een telefoontje. Standaard
 // opvolgen: vandaag, zodat hij meteen in "Vandaag opvolgen" staat.
 export function NieuweLead({ vestiging, medewerkers, vandaag, onSluit, onAangemaakt }: NieuweLeadProps) {
+  const vestigingNaam = useVestigingNaam(vestiging)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
   const keuzes = [{ label: 'Vandaag', dag: vandaag }, ...opvolgSnelkeuzes(vandaag)]
@@ -42,7 +43,7 @@ export function NieuweLead({ vestiging, medewerkers, vandaag, onSluit, onAangema
   return (
     <ZijPaneel titelId="nieuwe-lead-titel" onSluit={onSluit}>
       <header>
-        <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
+        <p className="club-boventitel">{vestigingNaam}</p>
         <h2 id="nieuwe-lead-titel" className="club-leads-paneelnaam">
           Nieuwe lead
         </h2>

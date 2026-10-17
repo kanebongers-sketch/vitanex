@@ -18,7 +18,7 @@ describe('leesAgendaInvoer', () => {
     expect(leesAgendaInvoer({ ...basis, titel: ' ' }).ok).toBe(false)
     expect(leesAgendaInvoer({ ...basis, datum: 'morgen' }).ok).toBe(false)
     expect(leesAgendaInvoer({ ...basis, begin: '11:00', eind: '10:00' }).ok).toBe(false)
-    expect(leesAgendaInvoer({ ...basis, vestiging: 'mars' }).ok).toBe(false)
+    expect(leesAgendaInvoer({ ...basis, vestiging: 'Mars!' }).ok).toBe(false)
     const r = leesAgendaInvoer({ ...basis, soort: 'feest', medewerkerId: 'geen-uuid' })
     expect(r.ok && [r.waarde.soort, r.waarde.medewerkerId]).toEqual(['afspraak', null])
   })

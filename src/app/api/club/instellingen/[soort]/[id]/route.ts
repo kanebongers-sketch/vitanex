@@ -3,6 +3,7 @@ import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
 import { alsAntwoord, leesJson } from '@/lib/club/rooster/api'
 import { isUuid } from '@/lib/club/rooster/invoer'
 import { leesVestiging } from '@/lib/club/instellingen/validatie'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { isInstellingSoort, wijzigItem } from '@/lib/club/instellingen/opslag'
 
 // PATCH /api/club/instellingen/[soort]/[id]  { vestiging, ...alleen de velden die veranderen }
@@ -16,6 +17,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ so
   const body = await leesJson(req)
   const vestiging = leesVestiging(body)
   if (!vestiging) return clubFout('Kies een vestiging.', 400)
+  if (!hoortBij(t.vestigingen, vestiging)) return clubFout('Onbekende vestiging.', 400)
   // Het schema leest alleen zijn eigen velden; "vestiging" in de body wordt daar genegeerd.
   return alsAntwoord(await wijzigItem(t, soort, id, vestiging, body))
 }

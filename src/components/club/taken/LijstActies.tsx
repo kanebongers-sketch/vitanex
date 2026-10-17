@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from 'react'
 import { Copy, Plus } from 'lucide-react'
-import { VESTIGINGEN, VESTIGING_LABEL, isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { hoortBij, naamVan } from '@/lib/club/kern/vestigingen'
+import { useVestigingen } from '@/components/club/shell/VestigingenContext'
 import { useBeheer } from './useBeheer'
 
 // Een nieuwe lijst voor deze vestiging, en de lijsten van de ene vestiging
@@ -38,23 +40,24 @@ export function NieuweLijst({ vestiging }: { vestiging: Vestiging }) {
   )
 }
 
-function antwoordTekst(data: unknown, naar: Vestiging): string {
+function antwoordTekst(data: unknown, naarNaam: string): string {
   const taken = typeof data === 'object' && data !== null && 'taken' in data && typeof data.taken === 'number' ? data.taken : 0
-  if (taken === 0) return `${VESTIGING_LABEL[naar]} had alles al. Er is niets bijgekomen.`
-  return `${taken} ${taken === 1 ? 'taak' : 'taken'} gekopieerd naar ${VESTIGING_LABEL[naar]}.`
+  if (taken === 0) return `${naarNaam} had alles al. Er is niets bijgekomen.`
+  return `${taken} ${taken === 1 ? 'taak' : 'taken'} gekopieerd naar ${naarNaam}.`
 }
 
 export function KopieerLijsten({ vestiging }: { vestiging: Vestiging }) {
   const { bezig, fout, stuur } = useBeheer()
+  const vestigingen = useVestigingen()
   const [van, setVan] = useState<Vestiging>(vestiging)
-  const [naar, setNaar] = useState<Vestiging>(VESTIGINGEN.find((v) => v !== vestiging) ?? vestiging)
+  const [naar, setNaar] = useState<Vestiging>(vestigingen.find((v) => v.sleutel !== vestiging)?.sleutel ?? vestiging)
   const [klaar, setKlaar] = useState<string | null>(null)
 
   async function kopieer(e: FormEvent) {
     e.preventDefault()
     setKlaar(null)
     const r = await stuur('/api/club/taken/kopieer', 'POST', { van, naar })
-    if (r.ok) setKlaar(antwoordTekst(r.data, naar))
+    if (r.ok) setKlaar(antwoordTekst(r.data, naamVan(vestigingen, naar)))
   }
 
   return (
@@ -64,20 +67,20 @@ export function KopieerLijsten({ vestiging }: { vestiging: Vestiging }) {
       <div className="club-formrij">
         <label className="club-veld">
           <span>Van</span>
-          <select className="club-invoer" value={van} onChange={(e) => isVestiging(e.target.value) && setVan(e.target.value)}>
-            {VESTIGINGEN.map((v) => (
-              <option key={v} value={v}>
-                {VESTIGING_LABEL[v]}
+          <select className="club-invoer" value={van} onChange={(e) => hoortBij(vestigingen, e.target.value) && setVan(e.target.value)}>
+            {vestigingen.map((v) => (
+              <option key={v.sleutel} value={v.sleutel}>
+                {v.naam}
               </option>
             ))}
           </select>
         </label>
         <label className="club-veld">
           <span>Naar</span>
-          <select className="club-invoer" value={naar} onChange={(e) => isVestiging(e.target.value) && setNaar(e.target.value)}>
-            {VESTIGINGEN.map((v) => (
-              <option key={v} value={v}>
-                {VESTIGING_LABEL[v]}
+          <select className="club-invoer" value={naar} onChange={(e) => hoortBij(vestigingen, e.target.value) && setNaar(e.target.value)}>
+            {vestigingen.map((v) => (
+              <option key={v.sleutel} value={v.sleutel}>
+                {v.naam}
               </option>
             ))}
           </select>

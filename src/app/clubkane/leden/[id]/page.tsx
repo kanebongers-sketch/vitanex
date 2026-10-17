@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { eisModule } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
+import { hoortBij, naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
 import { haalLidKaart, type LidKaart } from '@/lib/club/leden/kaart'
 import { datumKort, datumUitSleutel, laatsteBezoekTekst, leeftijd, tijdNl } from '@/lib/club/leden/tijd'
@@ -32,7 +33,7 @@ function coachKeuzes(medewerkers: Medewerker[], coachId: string | null): { id: s
   return lijst.map((m) => ({ id: m.id, naam: m.naam }))
 }
 
-function LaatsteBezoeken({ kaart, nu }: { kaart: LidKaart; nu: Date }) {
+function LaatsteBezoeken({ kaart, nu, vestigingen }: { kaart: LidKaart; nu: Date; vestigingen: readonly VestigingInfo[] }) {
   const lijst = kaart.bezoeken.slice(0, 8)
   return (
     <section className="club-kaart" aria-labelledby="bezoeken-kop">
@@ -40,7 +41,7 @@ function LaatsteBezoeken({ kaart, nu }: { kaart: LidKaart; nu: Date }) {
       {lijst.length ? (
         <ul className="club-lijst">
           {lijst.map((b) => {
-            const elders = b.vestiging && b.vestiging !== kaart.lid.vestiging ? VESTIGING_LABEL[kiesVestiging(b.vestiging)] : null
+            const elders = b.vestiging && b.vestiging !== kaart.lid.vestiging ? naamVan(vestigingen, b.vestiging) : null
             return (
               <li key={b.id} className="club-rij">
                 <span className="club-rij-hoofd">
@@ -71,12 +72,13 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const kaart = await haalLidKaart(t.admin, t.userId, id, nu)
   if (!kaart) notFound()
   const { lid } = kaart
-  const vestiging = ruw.v ? kiesVestiging(ruw.v) : lid.vestiging
+  // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
+  const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
   const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
 
   return (
     <>
-      <LidKop lid={lid} vestiging={vestiging} coachNaam={coach?.naam ?? null} />
+      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} />
       <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
         <a href="#notities">Notities</a>
@@ -96,7 +98,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
           </section>
           <div className="club-leden-tweekolom">
             <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
-            <LaatsteBezoeken kaart={kaart} nu={nu} />
+            <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
           </div>
           <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
         </div>

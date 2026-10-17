@@ -2,7 +2,8 @@
 // Alles wat uit de database komt is `unknown` tot het hier is nagekeken.
 
 import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import type { BezoekTelling } from './bezoek'
 import type { LidCijferRij } from './leden'
 import type { LesDag } from './lesdagen'
@@ -49,7 +50,7 @@ export function ingeslotenNaam(v: unknown): string | null {
 export function lidCijferUitRij(v: unknown): LidCijferRij | null {
   const r = alsRij(v)
   const id = r ? tekst(r.id) : null
-  if (!r || !id || !isVestiging(r.vestiging) || !isLidStatus(r.status)) return null
+  if (!r || !id || !isVestigingSlug(r.vestiging) || !isLidStatus(r.status)) return null
   const geslacht = r.geslacht === 'man' || r.geslacht === 'vrouw' || r.geslacht === 'anders' ? r.geslacht : null
   return {
     id,
@@ -66,7 +67,7 @@ export function bezoekTellingUitRij(v: unknown): BezoekTelling | null {
   const r = alsRij(v)
   const sleutel = r ? tekst(r.sleutel) : null
   const aantal = r ? getal(r.aantal) : null
-  if (!r || !sleutel || aantal === null || !isVestiging(r.vestiging)) return null
+  if (!r || !sleutel || aantal === null || !isVestigingSlug(r.vestiging)) return null
   if (r.soort !== 'dag' && r.soort !== 'uur') return null
   return { vestiging: r.vestiging, soort: r.soort, sleutel, aantal }
 }
@@ -77,7 +78,7 @@ export function lesBasisUitRij(v: unknown): LesBasis | null {
   const id = r ? tekst(r.id) : null
   const start = r ? datum(r.start_op) : null
   const capaciteit = r ? getal(r.capaciteit) : null
-  if (!r || !id || !start || capaciteit === null || !isVestiging(r.vestiging)) return null
+  if (!r || !id || !start || capaciteit === null || !isVestigingSlug(r.vestiging)) return null
   return {
     id,
     vestiging: r.vestiging,
@@ -111,7 +112,7 @@ export function reserveringUitRij(v: unknown): { lesId: string; status: Reserver
 
 export function leadCijferUitRij(v: unknown): LeadCijferRij | null {
   const r = alsRij(v)
-  if (!r || !isVestiging(r.vestiging) || !isLeadBron(r.bron) || !isLeadStatus(r.status)) return null
+  if (!r || !isVestigingSlug(r.vestiging) || !isLeadBron(r.bron) || !isLeadStatus(r.status)) return null
   const aangemaakt = datum(r.aangemaakt_op)
   return { vestiging: r.vestiging, bron: r.bron, status: r.status, proeflesOp: tekst(r.proefles_op), aangemaakt: aangemaakt ? dagSleutel(aangemaakt) : null }
 }
@@ -130,7 +131,7 @@ export function rijenVan<T>(data: readonly unknown[], fn: (v: unknown) => T | nu
 export function lesDagUitRij(v: unknown): LesDag | null {
   const r = alsRij(v)
   const d = r ? dag(r.dag) : null
-  if (!r || !d || !isVestiging(r.vestiging)) return null
+  if (!r || !d || !isVestigingSlug(r.vestiging)) return null
   return {
     vestiging: r.vestiging,
     dag: d,
@@ -155,7 +156,7 @@ export interface BeginRij {
 export function beginUitRij(v: unknown): BeginRij | null {
   const r = alsRij(v)
   const eerste = r ? datum(r.eerste) : null
-  if (!r || !eerste || !isVestiging(r.vestiging)) return null
+  if (!r || !eerste || !isVestigingSlug(r.vestiging)) return null
   if (r.bron !== 'bezoek' && r.bron !== 'lessen' && r.bron !== 'leads') return null
   return { vestiging: r.vestiging, bron: r.bron, dag: dagSleutel(eerste) }
 }

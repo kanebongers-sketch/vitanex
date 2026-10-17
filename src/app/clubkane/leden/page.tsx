@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Upload } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLedenRijen } from '@/lib/club/leden/data'
 import { filterKeuzes, filterRijen, heeftFilter, leesLijstParams, pagineer, sorteerRijen, telTegels } from '@/lib/club/leden/lijst'
@@ -16,7 +18,8 @@ export const metadata: Metadata = { title: 'Leden' }
 export default async function LedenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('leden')
   const ruw = await searchParams
-  const vestiging = kiesVestiging(ruw.v)
+  const vestiging = kiesUit(t.vestigingen, ruw.v)
+  if (!vestiging) return <GeenVestigingen />
   const params = leesLijstParams(ruw)
   const nu = new Date()
   const [rijen, medewerkers] = await Promise.all([
@@ -27,7 +30,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   if (!rijen) {
     return (
       <>
-        <LedenKop vestiging={vestiging} totaal={null} />
+        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} />
         <p className="club-melding club-melding--fout" role="alert">De leden konden niet worden geladen. Ververs de pagina of probeer het zo nog eens.</p>
       </>
     )
@@ -37,7 +40,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   const keuzes = filterKeuzes(rijen)
   return (
     <>
-      <LedenKop vestiging={vestiging} totaal={rijen.length} />
+      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} />
       <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
@@ -51,11 +54,11 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   )
 }
 
-function LedenKop({ vestiging, totaal }: { vestiging: Vestiging; totaal: number | null }) {
+function LedenKop({ vestiging, naam, totaal }: { vestiging: Vestiging; naam: string; totaal: number | null }) {
   return (
     <header className="club-paginakop">
       <div>
-        <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
+        <p className="club-boventitel">{naam}</p>
         <h1>Leden</h1>
         <p>
           {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in Sportivity.

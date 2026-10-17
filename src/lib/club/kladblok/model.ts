@@ -4,7 +4,8 @@
 // vestiging, of voor alle vestigingen. Vastpinnen, archiveren, zoeken.
 // Tabel: club_kladblok (migratie 399; club_notities zijn de notities bij een lid).
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 
 export const MAPPEN = ['algemeen', 'overdracht', 'afspraken', 'kennis', 'ideeen'] as const
 export type KladMap = (typeof MAPPEN)[number]
@@ -49,7 +50,7 @@ export function kladUitRij(ruw: unknown): KladNotitie | null {
   if (typeof r.id !== 'string' || typeof r.titel !== 'string' || typeof r.aangemaakt_op !== 'string' || typeof r.bijgewerkt_op !== 'string') return null
   return {
     id: r.id,
-    vestiging: isVestiging(r.vestiging) ? r.vestiging : null,
+    vestiging: isVestigingSlug(r.vestiging) ? r.vestiging : null,
     map: isMap(r.map) ? r.map : 'algemeen',
     titel: r.titel,
     inhoud: typeof r.inhoud === 'string' ? r.inhoud : '',
@@ -111,7 +112,7 @@ export function leesKladWijziging(body: unknown, { nieuw = false } = {}): Lees<K
     uit.map = o.map
   }
   if (o.vestiging !== undefined) {
-    if (o.vestiging !== null && !isVestiging(o.vestiging)) return { ok: false, fout: 'Kies een geldige vestiging.' }
+    if (o.vestiging !== null && !isVestigingSlug(o.vestiging)) return { ok: false, fout: 'Kies een geldige vestiging.' }
     uit.vestiging = o.vestiging
   }
   if (o.vastgepind !== undefined) uit.vastgepind = o.vastgepind === true

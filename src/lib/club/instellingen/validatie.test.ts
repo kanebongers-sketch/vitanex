@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   LESTYPE_SCHEMA,
-  MEDEWERKER_SCHEMA,
+  medewerkerSchema,
   SERIE_SCHEMA,
   ZAAL_SCHEMA,
   controleerLooptijd,
@@ -30,7 +30,7 @@ describe('leesRegelsInvoer', () => {
   it('weigert waarden buiten de grenzen in plaats van ze stil aan te passen', () => {
     const r = leesRegelsInvoer({ vestiging: 'budel', regels: { ...REGELS, annuleerUren: 100 }, openingstijden: OPEN })
     expect(r.ok).toBe(false)
-    expect(leesRegelsInvoer({ vestiging: 'parijs', regels: REGELS, openingstijden: OPEN }).ok).toBe(false)
+    expect(leesRegelsInvoer({ vestiging: 'Parijs!', regels: REGELS, openingstijden: OPEN }).ok).toBe(false)
   })
 })
 
@@ -71,14 +71,23 @@ describe('weekrooster', () => {
 })
 
 describe('medewerkers', () => {
+  const MEDEWERKER = medewerkerSchema(['budel', 'eersel'])
+
   it('leest rollen en vestigingen zonder dubbelen', () => {
-    const r = leesNieuw({ naam: 'Kim', email: 'KIM@voorbeeld.nl', rollen: ['instructeur', 'instructeur'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true })
+    const r = leesNieuw({ naam: 'Kim', email: 'KIM@voorbeeld.nl', rollen: ['instructeur', 'instructeur'], vestigingen: ['budel'] }, MEDEWERKER, { actief: true })
     expect(r).toEqual({ ok: true, waarde: { naam: 'Kim', email: 'kim@voorbeeld.nl', rollen: ['instructeur'], vestigingen: ['budel'], actief: true } })
   })
 
   it('weigert een onbekende rol, geen rol of een fout e-mailadres', () => {
-    expect(leesNieuw({ naam: 'Kim', rollen: ['baas'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
-    expect(leesNieuw({ naam: 'Kim', rollen: [], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
-    expect(leesNieuw({ naam: 'Kim', email: 'kim@', rollen: ['trainer'], vestigingen: ['budel'] }, MEDEWERKER_SCHEMA, { actief: true }).ok).toBe(false)
+    expect(leesNieuw({ naam: 'Kim', rollen: ['baas'], vestigingen: ['budel'] }, MEDEWERKER, { actief: true }).ok).toBe(false)
+    expect(leesNieuw({ naam: 'Kim', rollen: [], vestigingen: ['budel'] }, MEDEWERKER, { actief: true }).ok).toBe(false)
+    expect(leesNieuw({ naam: 'Kim', email: 'kim@', rollen: ['trainer'], vestigingen: ['budel'] }, MEDEWERKER, { actief: true }).ok).toBe(false)
+  })
+
+  it('weigert een vestiging die niet bij de sportschool hoort, of geen vestiging', () => {
+    expect(leesNieuw({ naam: 'Kim', rollen: ['trainer'], vestigingen: ['demo-centrum'] }, MEDEWERKER, { actief: true }).ok).toBe(false)
+    expect(leesNieuw({ naam: 'Kim', rollen: ['trainer'], vestigingen: [] }, MEDEWERKER, { actief: true }).ok).toBe(false)
+    const demo = leesNieuw({ naam: 'Kim', rollen: ['trainer'], vestigingen: ['demo-centrum'] }, medewerkerSchema(['demo-centrum']), { actief: true })
+    expect(demo.ok).toBe(true)
   })
 })

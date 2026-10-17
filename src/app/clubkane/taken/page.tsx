@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
-import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { isDatum, nlDelen, plusDagen, weekParam } from '@/lib/club/rooster/tijd'
 import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
 import { takenHref } from '@/lib/club/taken/url'
@@ -33,7 +35,8 @@ function kiesDag(ruw: string | string[] | undefined, vandaag: string): string {
 export default async function TakenDagPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('taken')
   const params = await searchParams
-  const vestiging = kiesVestiging(params.v)
+  const vestiging = kiesUit(t.vestigingen, params.v)
+  if (!vestiging) return <GeenVestigingen />
   const vandaag = nlDelen(new Date()).datum
   const dag = kiesDag(params.dag, vandaag)
   const w = weekContext(weekParam(dag), vandaag)
@@ -53,7 +56,7 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
       {dag === vandaag && <AutoVerversen />}
       <TakenKop
         vestiging={vestiging}
-        vestigingNaam={VESTIGING_LABEL[vestiging]}
+        vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weergave=""
         titel={`${naam.charAt(0).toUpperCase()}${naam.slice(1)}`}
         sub={dag === vandaag ? 'Vandaag. Tik op een vakje om af te vinken.' : dag < vandaag ? 'Een eerdere dag.' : 'Een dag die nog moet komen.'}

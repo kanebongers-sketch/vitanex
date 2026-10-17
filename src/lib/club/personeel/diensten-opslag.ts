@@ -3,7 +3,7 @@
 // (uren al naar de salarisadministratie) is op slot.
 
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
-import { isVestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { controleerKoppeling, dbFout, gelukt, mislukt, type Resultaat } from './api'
 import { haalDienst } from './opslag'
 import type { DienstInvoer } from './invoer'
@@ -84,7 +84,7 @@ export async function meldZiek(t: ClubToegang, id: string): Promise<Resultaat<{ 
   if (!oud.ok) return oud
   const d = oud.waarde
   if (!d.medewerkerId || d.uursoort !== 'werk') return mislukt('Alleen een ingeplande werkdienst kan ziek gemeld worden.')
-  if (!isVestiging(d.vestiging)) return mislukt('Onbekende vestiging.', 500)
+  if (!isVestigingSlug(d.vestiging)) return mislukt('Onbekende vestiging.', 500)
   const nu = new Date().toISOString()
   const { error } = await t.admin
     .from('club_diensten')

@@ -3,7 +3,8 @@
 // komt is `unknown` en wordt hier genarrowd; foutteksten zijn Nederlands en
 // kunnen zo in de interface getoond worden.
 
-import { isVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { isLeadBron, type LeadBron } from './model'
 import { isDagSleutel } from './regels'
 import { isUuid } from './filters'
@@ -60,7 +61,7 @@ export interface NieuweLead extends Contact {
 export function leesNieuweLead(body: unknown): Uitkomst<NieuweLead> {
   const r = obj(body)
   if (!r) return fout('Ongeldig verzoek.')
-  if (!isVestiging(r.vestiging)) return fout('Onbekende vestiging.')
+  if (!isVestigingSlug(r.vestiging)) return fout('Onbekende vestiging.')
   const naam = leesNaam(r.naam)
   if (!naam) return fout('Vul een naam in (maximaal 120 tekens).')
   const contact = leesContact(r)
