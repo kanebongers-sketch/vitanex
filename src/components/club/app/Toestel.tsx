@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { CalendarDays, Dumbbell, House, UserRound } from 'lucide-react'
 import { tijdNl } from '@/lib/club/cijfers/tijd'
+import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 
 // Het telefoonframe van de voorvertoning. Op een telefoon zelf valt het frame
 // weg en vult de app het hele scherm.
@@ -26,10 +27,13 @@ interface Props {
   tabPad: (tab: AppTab) => string
   /** De naam van de sportschool die open staat, in de statusbalk. */
   merkNaam: string
+  /** Logo van de sportschool bovenaan de app (URL), of het ingebouwde Fit Factory-logo. */
+  merkLogo?: string | null
+  fitFactory?: boolean
   children: ReactNode
 }
 
-export function Toestel({ tab, nu, tabPad, merkNaam, children }: Props) {
+export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory = false, children }: Props) {
   return (
     <div className="club-lidapp-toestel">
       <div className="club-lidapp-scherm">
@@ -39,6 +43,9 @@ export function Toestel({ tab, nu, tabPad, merkNaam, children }: Props) {
           <span>{merkNaam.toUpperCase()}</span>
         </div>
         <div className="club-lidapp-inhoud" id="lidapp-inhoud">
+          <div className="club-lidapp-merk">
+            {fitFactory ? <FfLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} /> : <span>{merkNaam}</span>}
+          </div>
           {children}
         </div>
         <nav className="club-lidapp-tabs" aria-label="Ledenapp">

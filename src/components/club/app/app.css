@@ -16,6 +16,9 @@
 .club-lidapp-statusbalk span:last-child { justify-self: end; font-family: var(--ff-kop); letter-spacing: 0.14em; font-size: 11px; color: var(--brand-tekst, var(--brand)); }
 .club-lidapp-eiland { width: 96px; height: 26px; border-radius: 999px; background: var(--bg-raised); }
 .club-lidapp-inhoud { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.club-lidapp-merk { display: flex; justify-content: center; align-items: center; min-height: 40px; padding: 4px 20px 0; }
+.club-lidapp-merk img, .club-lidapp-merk .ff-logo { height: 26px; width: auto; max-width: 70%; object-fit: contain; }
+.club-lidapp-merk span { font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .club-lidapp-tab { display: grid; gap: 16px; padding: 12px 20px 28px; animation: club-lidapp-in 260ms var(--ease); }
 @keyframes club-lidapp-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 

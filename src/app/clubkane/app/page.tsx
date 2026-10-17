@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
+import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
@@ -72,7 +73,14 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
         </p>
       ))}
       <div className="club-lidapp-podium">
-        <Toestel tab={tab} nu={nu} tabPad={tabPad} merkNaam={t.organisatie.naam}>
+        <Toestel
+          tab={tab}
+          nu={nu}
+          tabPad={tabPad}
+          merkNaam={t.organisatie.naam}
+          fitFactory={t.organisatie.logo === LOGO_FIT_FACTORY}
+          merkLogo={t.organisatie.logo && t.organisatie.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(t.organisatie.logo)}` : null}
+        >
           {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
