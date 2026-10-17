@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
   if (!naam) return clubFout('Vul de naam van de sportschool in.', 400)
   if (naam.length > MAX_NAAM) return clubFout(`De naam mag maximaal ${MAX_NAAM} tekens zijn.`, 400)
   if (t.organisaties.length >= MAX_SPORTSCHOLEN) return clubFout(`Maximaal ${MAX_SPORTSCHOLEN} sportscholen.`, 400)
-  const id = await maakOrganisatie(t, naam)
-  if (!id) return clubFout('Deze sportschool bestaat al of kon niet worden aangemaakt.', 409)
+  const uit = await maakOrganisatie(t, naam)
+  if (!uit.ok) return clubFout(uit.fout, uit.status)
   await logActie(t, 'Sportschool aangemaakt', naam, null)
-  const antwoord = clubJson({ id }, 201)
-  antwoord.cookies.set(ORGANISATIE_COOKIE, id, {
+  const antwoord = clubJson({ id: uit.id }, 201)
+  antwoord.cookies.set(ORGANISATIE_COOKIE, uit.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

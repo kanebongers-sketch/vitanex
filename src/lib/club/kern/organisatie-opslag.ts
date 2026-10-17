@@ -63,28 +63,57 @@ async function ruimLogoOp(t: ClubToegang, pad: string): Promise<void> {
   if (error) console.error('[club] oud logo opruimen mislukt', error.message)
 }
 
-/** Kolommen van een oefening die een nieuwe sportschool als startbibliotheek krijgt. */
+/**
+ * Kolommen van een oefening die een nieuwe sportschool als startbibliotheek
+ * krijgt. De eigen coaching (kolom coaching) gaat bewust niet mee: die is van
+ * de sportschool die hem schreef; de nieuwe krijgt de standaardcoaching.
+ */
 const OEFENING_KOPIE = 'naam, spiergroep, materiaal, niveau, uitleg, aandachtspunten, patroon, belast, beeld_start, beeld_eind, beeld_bron, beeld_licentie, spieren_primair, spieren_secundair'
+const BLOK = 500
+
+export type NieuweOrganisatie = { ok: true; id: string } | { ok: false; fout: string; status: number }
+
+/** De basisbibliotheek: alle actieve oefeningen van de eigen sportschool van de beheerder (Fit Factory). */
+async function basisBibliotheek(t: ClubToegang): Promise<Record<string, unknown>[] | null> {
+  const rijen: Record<string, unknown>[] = []
+  for (let van = 0; van < 20_000; van += BLOK) {
+    const { data, error } = await t.admin.from('club_oefeningen').select(OEFENING_KOPIE).eq('user_id', t.beheerderId).eq('actief', true).order('naam').range(van, van + BLOK - 1)
+    if (error) {
+      console.error('[club] basisbibliotheek lezen mislukt', error.message)
+      return null
+    }
+    rijen.push(...(data ?? []))
+    if ((data ?? []).length < BLOK) break
+  }
+  return rijen
+}
 
 /**
  * Een nieuwe sportschool: een eigen, lege omgeving met de beheerder als eigenaar
- * en de actieve oefenbibliotheek van de eigen sportschool als startpunt.
- * Vestigingen voegt de sportschool daarna zelf toe (Instellingen, Vestigingen).
+ * en de basisbibliotheek als startpunt. Lukt het kopieren van de bibliotheek
+ * niet, dan wordt de sportschool weer weggehaald: liever een duidelijke fout
+ * dan een halve omgeving. Vestigingen voegt de sportschool daarna zelf toe.
  */
-export async function maakOrganisatie(t: ClubToegang, naam: string): Promise<string | null> {
-  if (t.organisaties.some((o) => o.naam.toLowerCase() === naam.toLowerCase())) return null
+export async function maakOrganisatie(t: ClubToegang, naam: string): Promise<NieuweOrganisatie> {
+  if (t.organisaties.some((o) => o.naam.toLowerCase() === naam.toLowerCase())) return { ok: false, fout: 'Er is al een sportschool met deze naam.', status: 409 }
+  const bibliotheek = await basisBibliotheek(t)
+  if (!bibliotheek) return { ok: false, fout: 'De oefenbibliotheek kon niet worden gelezen. Probeer het opnieuw.', status: 500 }
   const id = randomUUID()
   const { error } = await t.admin.from('club_organisaties').insert({ id, beheerder_id: t.beheerderId, naam, kleur_accent: '#B58E5C', thema: 'donker' })
   if (error) {
+    if (error.code === '23505') return { ok: false, fout: 'Er is al een sportschool met deze naam.', status: 409 }
     console.error('[club] sportschool aanmaken mislukt', error.message)
-    return null
+    return { ok: false, fout: 'De sportschool kon niet worden aangemaakt.', status: 500 }
   }
-  const { data, error: leesFout } = await t.admin.from('club_oefeningen').select(OEFENING_KOPIE).eq('user_id', t.beheerderId).eq('actief', true)
-  if (leesFout) console.error('[club] oefenbibliotheek lezen mislukt', leesFout.message)
-  const rijen = (data ?? []).map((o) => ({ ...o, user_id: id, actief: true }))
-  if (rijen.length > 0) {
-    const { error: kopieFout } = await t.admin.from('club_oefeningen').insert(rijen)
-    if (kopieFout) console.error('[club] oefenbibliotheek kopieren mislukt', kopieFout.message)
+  for (let i = 0; i < bibliotheek.length; i += BLOK) {
+    const blok = bibliotheek.slice(i, i + BLOK).map((o) => ({ ...o, user_id: id, actief: true }))
+    const { error: kopieFout } = await t.admin.from('club_oefeningen').insert(blok)
+    if (kopieFout) {
+      console.error('[club] oefenbibliotheek kopieren mislukt, sportschool teruggedraaid', kopieFout.message)
+      await t.admin.from('club_oefeningen').delete().eq('user_id', id)
+      await t.admin.from('club_organisaties').delete().eq('id', id).eq('beheerder_id', t.beheerderId)
+      return { ok: false, fout: 'De oefenbibliotheek kon niet worden gekopieerd. Er is niets aangemaakt; probeer het opnieuw.', status: 500 }
+    }
   }
-  return id
+  return { ok: true, id }
 }

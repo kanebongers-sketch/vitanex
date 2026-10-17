@@ -46,12 +46,17 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
     setBezig(null)
   }
 
+  // Een slot dat meteen dicht gaat, zodat twee snelle klikken niet twee keer aanmaken.
+  const slot = useRef(false)
+
   async function maak() {
     const naam = (nieuw ?? '').trim()
-    if (!naam) return
+    if (!naam || slot.current) return
+    slot.current = true
     setBezig('nieuw')
     setFout(null)
     const uit = await stuur('/api/club/organisatie/nieuw', 'POST', { naam })
+    slot.current = false
     setBezig(null)
     if (!uit.ok) return setFout(uit.fout)
     setNieuw(null)
