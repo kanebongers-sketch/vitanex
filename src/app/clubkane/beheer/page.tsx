@@ -53,6 +53,7 @@ export default async function BeheerPagina() {
   const locaties: InstellingRegel[] = [
     { titel: 'Vestigingen', uitleg: 'Toevoegen, naam, volgorde en welke standaard open gaat.', stand: aantal(t.vestigingen.length, 'vestiging', 'vestigingen'), href: pad('/instellingen', { tab: 'vestigingen' }), let: t.vestigingen.length === 0 },
     { titel: 'Regels en openingstijden', uitleg: 'Boeken, annuleren, no-shows en openingstijden per vestiging.', stand: 'Per vestiging', href: pad('/instellingen', { tab: 'regels' }), uit: !v },
+    { titel: 'Sluitingsdagen en feestdagen', uitleg: 'Dagen dat een vestiging dicht is of andere tijden heeft; het rooster houdt er rekening mee.', stand: 'Feestdagen en sluitingen', href: '/clubkane/beheer/sluiting' },
     { titel: 'Zalen', uitleg: 'De ruimtes voor groepslessen en hoeveel mensen erin passen.', stand: aantal(zalen, 'zaal', 'zalen'), href: pad('/instellingen', { tab: 'zalen' }), uit: !v },
   ]
   const mensen: InstellingRegel[] = [
@@ -68,6 +69,7 @@ export default async function BeheerPagina() {
   ]
   const ledenRegels: InstellingRegel[] = [
     { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
+    { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },
   ]
 

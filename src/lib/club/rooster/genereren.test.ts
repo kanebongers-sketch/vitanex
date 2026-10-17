@@ -63,3 +63,26 @@ describe('lessenUitSeries', () => {
     expect(lesSleutel('s', '2026-10-20T17:00:00+00:00')).toBe(lesSleutel('s', new Date('2026-10-20T17:00:00Z')))
   })
 })
+
+describe('lessenUitSeries met sluitingsdagen', () => {
+  it('maakt geen les op een gesloten dag', () => {
+    // Arrange
+    const dicht = new Map([['2026-10-27', null]])
+    // Act
+    const lessen = lessenUitSeries([serie], '2026-10-14', 3, NU, new Set(), dicht)
+    // Assert
+    expect(lessen.map((l) => l.startOp)).toEqual(['2026-10-20T17:00:00.000Z', '2026-11-03T18:00:00.000Z'])
+  })
+
+  it('maakt op een afwijkende dag alleen lessen die helemaal binnen de tijden vallen', () => {
+    const binnen = new Map([['2026-10-20', { van: '09:00', tot: '20:00' }]])
+    const buiten = new Map([['2026-10-20', { van: '09:00', tot: '19:30' }]])
+    expect(lessenUitSeries([serie], '2026-10-14', 1, NU, new Set(), binnen)).toHaveLength(1)
+    expect(lessenUitSeries([serie], '2026-10-14', 1, NU, new Set(), buiten)).toHaveLength(0)
+  })
+
+  it('laat andere dagen ongemoeid', () => {
+    const anders = new Map([['2026-10-21', null]])
+    expect(lessenUitSeries([serie], '2026-10-14', 2, NU, new Set(), anders)).toHaveLength(2)
+  })
+})

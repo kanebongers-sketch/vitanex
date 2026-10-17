@@ -18,6 +18,7 @@ import { haalKladblok } from '@/lib/club/kladblok/data'
 import { overdrachtVoorVandaag } from '@/lib/club/kladblok/model'
 import { maandagVan } from '@/lib/club/rooster/tijd'
 import '@/components/club/vandaag/vandaag.css'
+import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
 
 // Vandaag: het eerste scherm van de clubsoftware. Wat er nu speelt in de
 // gekozen vestiging, in een keer server-side opgehaald (zie haal-vandaag.ts).
@@ -48,6 +49,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           Stand van <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
         </p>
       </header>
+
+      <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={vestiging} />
 
       {data.meldingen.map((m) => (
         <p key={m} className="club-melding club-melding--fout" role="status">

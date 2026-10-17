@@ -1,0 +1,121 @@
+/* ─── Club, voortgang van leden ─────────────────────────────────────────────
+   Eigen prefix .club-voortgang-. Alleen tokens uit club.css, werkt in donker
+   en licht thema. De grafiek is een eigen SVG: data-visualisatie als deel van
+   het ontwerp, geen grafiekbibliotheek. */
+
+/* ── Kaart op de ledenkaart ── */
+.club-voortgang { display: grid; gap: 18px; }
+.club-voortgang-kop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.club-voortgang-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-voortgang-ondertitel { margin: 2px 0 0; font-size: 13px; color: var(--text-3); }
+.club-voortgang-meldplek:empty { display: none; }
+.club-voortgang-meldplek .club-melding { margin: 0; }
+
+.club-voortgang-hoofd { display: grid; gap: 10px; }
+.club-voortgang-reekskop { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 12px 28px; }
+.club-voortgang-cijfer { display: grid; gap: 2px; }
+.club-voortgang-getal { font-family: var(--ff-kop); font-size: clamp(44px, 6vw, 64px); font-weight: 700; line-height: 0.95; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.club-voortgang-getal small { margin-left: 6px; font-size: 18px; font-weight: 600; color: var(--text-3); letter-spacing: 0.04em; }
+.club-voortgang-meetdatum { font-size: 12.5px; color: var(--text-3); }
+
+.club-voortgang-verschillen { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; padding-left: 24px; border-left: 1px solid var(--line); }
+.club-voortgang-verschillen div { display: grid; gap: 1px; }
+.club-voortgang-verschillen dt { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-voortgang-verschillen dd { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--brand-tekst, var(--brand)); }
+.club-voortgang-verschillen dd.club-voortgang-klein { font-family: inherit; font-size: 12px; font-weight: 400; color: var(--text-3); }
+.club-voortgang-wissel { grid-column: 1 / -1; justify-self: start; }
+
+/* ── De grafiek ── */
+.club-voortgang-grafiek { margin: 0; }
+.club-voortgang-grafiek svg { display: block; width: 100%; height: auto; overflow: visible; }
+.club-voortgang-raster { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 4; }
+.club-voortgang-as-tekst { font-size: 11px; fill: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-voortgang-vul-boven { stop-color: var(--brand); stop-opacity: 0.22; }
+.club-voortgang-vul-onder { stop-color: var(--brand); stop-opacity: 0; }
+.club-voortgang-lijn { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.club-voortgang-punt circle, .club-voortgang-punt rect { fill: var(--bg-card); stroke: var(--brand); stroke-width: 2; transition: transform 160ms var(--ease); transform-box: fill-box; transform-origin: center; }
+.club-voortgang-punt:hover circle { transform: scale(1.35); }
+.club-voortgang-punt--nu circle, .club-voortgang-punt--nu rect { fill: var(--brand); stroke: var(--bg-card); stroke-width: 2.5; }
+
+.club-voortgang-legenda { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; font-size: 12.5px; color: var(--text-3); }
+.club-voortgang-legenda-ruit, .club-voortgang-legenda-rond { display: inline-block; width: 9px; height: 9px; border: 2px solid var(--brand); }
+.club-voortgang-legenda-ruit { transform: rotate(45deg); }
+.club-voortgang-legenda-rond { border-radius: 999px; margin-left: 6px; }
+.club-voortgang-legenda-extra { margin-left: auto; color: var(--text-2); }
+.club-voortgang-kanttekening { margin: 0; padding: 10px 12px; border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; background: var(--brand-soft); font-size: 13.5px; line-height: 1.5; color: var(--text-2); }
+
+/* ── Trainingen per week ── */
+.club-voortgang-training { display: grid; grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); gap: 20px; align-items: end; padding-top: 18px; border-top: 1px solid var(--line); }
+.club-voortgang-training h3 { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 16px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.club-voortgang-training .club-hint { margin: 8px 0 0; }
+.club-voortgang-feiten { display: flex; gap: 18px; margin: 0; }
+.club-voortgang-feiten div { display: grid; }
+.club-voortgang-feiten dt { font-size: 12px; color: var(--text-3); }
+.club-voortgang-feiten dd { margin: 0; font-family: var(--ff-kop); font-size: 28px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+
+.club-voortgang-weken { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; align-items: end; height: 120px; }
+.club-voortgang-weken--compact { height: 84px; gap: 5px; }
+.club-voortgang-week { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; gap: 3px; text-align: center; }
+.club-voortgang-week-getal { font-size: 11px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; min-height: 1.2em; }
+.club-voortgang-week-baan { position: relative; border-radius: 6px; background: color-mix(in srgb, var(--text-1) 4%, transparent); overflow: hidden; }
+.club-voortgang-week-staaf { position: absolute; inset: 0; border-radius: 6px; background: var(--brand); transform-origin: bottom; transition: transform 400ms var(--ease); }
+.club-voortgang-week-staaf--leeg { background: var(--line-strong); }
+.club-voortgang-week-staaf--nu { background: repeating-linear-gradient(135deg, var(--brand) 0 4px, color-mix(in srgb, var(--brand) 55%, transparent) 4px 8px); }
+
+/* ── Historie en formulier ── */
+.club-voortgang-historie { border-top: 1px solid var(--line); padding-top: 14px; }
+.club-voortgang-historie summary { cursor: pointer; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); border-radius: 6px; }
+.club-voortgang-historie summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.club-voortgang-momenten { list-style: none; margin: 10px 0 0; padding: 0; display: grid; }
+.club-voortgang-moment { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.club-voortgang-moment-tekst { display: grid; gap: 3px; min-width: 0; flex: 1 1 260px; }
+.club-voortgang-moment-kop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 600; }
+.club-voortgang-moment-waarden { font-size: 13.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.club-voortgang-moment-sub { font-size: 12.5px; color: var(--text-3); }
+.club-voortgang-moment-acties { display: flex; gap: 6px; }
+
+.club-voortgang-formulier { display: grid; gap: 14px; padding: 16px; border-radius: var(--club-radius); border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--club-vlak); }
+.club-voortgang-toestemming { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+.club-voortgang-toestemming input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--brand); }
+.club-voortgang-toestemming strong { color: var(--text-1); }
+.club-voortgang-velden { display: grid; gap: 12px; margin: 0; padding: 0; border: 0; min-width: 0; transition: opacity 160ms var(--ease); }
+.club-voortgang-velden:disabled { opacity: 0.45; }
+.club-voortgang-velden-kop { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.club-voortgang-meetvelden { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.club-voortgang-eenheid { position: relative; display: block; }
+.club-voortgang-eenheid .club-invoer { width: 100%; padding-right: 62px; }
+.club-voortgang-eenheid small { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-3); pointer-events: none; }
+
+/* ── Ledenapp ── */
+.club-voortgang-app { display: grid; gap: 14px; }
+.club-voortgang-app-blok { display: grid; gap: 10px; padding: 16px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); }
+.club-voortgang-app-kop { display: grid; gap: 2px; }
+.club-voortgang-app-getal { font-family: var(--ff-kop); font-size: 44px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-voortgang-app-getal small { margin-left: 4px; font-size: 16px; color: var(--text-3); }
+.club-voortgang-app-sub { font-size: 13.5px; color: var(--text-2); }
+.club-voortgang-app-leeg { margin: 0; color: var(--text-2); line-height: 1.5; }
+.club-voortgang-app-wissel { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.club-voortgang-app-wissel button { flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.club-voortgang-app-wissel button[aria-pressed='true'] { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
+.club-voortgang-app-wissel button:focus-visible, .club-voortgang-moment-acties button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-voortgang-app-rij { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.club-voortgang-app-reeks { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 700; color: var(--brand-tekst, var(--brand)); }
+.club-voortgang-app-doel { display: grid; gap: 8px; font-size: 14px; color: var(--text-2); }
+.club-voortgang-app-doel strong { color: var(--text-1); }
+.club-voortgang-app-balk { display: block; height: 8px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
+.club-voortgang-app-balk span { display: block; height: 100%; background: var(--brand); border-radius: inherit; transform-origin: left; transition: transform 500ms var(--ease); }
+.club-voortgang-app-mijlpalen { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.club-voortgang-app-mijlpalen li { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); font-size: 13px; font-weight: 600; }
+
+/* ── Smal scherm ── */
+@media (max-width: 640px) {
+  .club-voortgang-reekskop { grid-template-columns: 1fr; }
+  .club-voortgang-verschillen { padding-left: 0; border-left: 0; }
+  .club-voortgang-training { grid-template-columns: 1fr; }
+  .club-voortgang-legenda-extra { margin-left: 0; flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-voortgang-week-staaf, .club-voortgang-app-balk span, .club-voortgang-punt circle, .club-voortgang-punt rect, .club-voortgang-velden { transition: none; }
+  .club-voortgang-punt:hover circle { transform: none; }
+}

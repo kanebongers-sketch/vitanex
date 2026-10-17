@@ -1,0 +1,106 @@
+/* ─── Club: sluitingsdagen ────────────────────────────────────────────────────
+   Editoriaal jaaroverzicht: grote maandkoppen, per dag een strakke regel met
+   het dagnummer als anker. Rechts de formulieren. Alleen .club-sluiting-*.
+   Kleuren via variabelen, werkt in donker en licht thema. */
+
+.club-sluiting-jaren { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.club-sluiting-status:empty { display: none; }
+.club-sluiting-status .club-melding { margin: 0; }
+
+.club-sluiting-werkvlak { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 1100px) { .club-sluiting-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 40px; } }
+.club-sluiting-hoofd { min-width: 0; }
+.club-sluiting-zij { display: grid; gap: 16px; min-width: 0; }
+@media (min-width: 1100px) { .club-sluiting-zij { position: sticky; top: 88px; } }
+
+/* ── Jaaroverzicht ───────────────────────────────────────────────────────── */
+.club-sluiting-jaar { display: grid; gap: 30px; }
+.club-sluiting-maand { display: grid; gap: 10px; }
+.club-sluiting-maandkop {
+  display: flex; align-items: baseline; gap: 10px; margin: 0; padding-bottom: 8px; border-bottom: 2px solid var(--brand);
+  font-family: var(--ff-kop); font-size: clamp(24px, 2.6vw, 32px); line-height: 1; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+.club-sluiting-maandkop span { font-size: 14px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-sluiting-lijst { list-style: none; margin: 0; padding: 0; display: grid; }
+
+.club-sluiting-regel {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: start; gap: 6px 16px;
+  padding: 14px 4px; border-bottom: 1px solid var(--line); transition: background-color 160ms var(--ease);
+}
+.club-sluiting-regel:last-child { border-bottom: 0; }
+.club-sluiting-regel:hover { background: var(--club-vlak-hover); }
+.club-sluiting-regel.is-verleden { opacity: 0.55; }
+.club-sluiting-regel.is-bewerken { display: block; padding: 16px; background: var(--club-vlak); border-radius: var(--club-radius-klein); }
+
+.club-sluiting-dag { display: grid; justify-items: center; line-height: 1; padding-top: 2px; }
+.club-sluiting-dagnr { font-family: var(--ff-kop); font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-sluiting-weekdag { margin-top: 4px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+
+.club-sluiting-inhoud { display: grid; gap: 4px; min-width: 0; }
+.club-sluiting-reden { margin: 0; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.club-sluiting-wie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; color: var(--text-3); font-size: 13px; }
+
+.club-sluiting-waarschuwing {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 6px; padding: 8px 10px;
+  border-radius: var(--club-radius-klein); background: var(--club-let-op-zacht); color: var(--text-1); font-size: 13.5px;
+}
+.club-sluiting-waarschuwing svg { color: var(--club-let-op); flex: none; }
+.club-sluiting-waarschuwing > span { flex: 1 1 200px; }
+
+.club-sluiting-rechts { display: grid; justify-items: end; gap: 8px; }
+.club-sluiting-knoppen { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.club-sluiting-knoppen .club-knop--stil { color: var(--text-3); }
+.club-sluiting-knoppen .club-knop--stil:hover { color: var(--text-1); }
+
+@media (max-width: 600px) {
+  .club-sluiting-regel { grid-template-columns: 44px minmax(0, 1fr); }
+  .club-sluiting-dagnr { font-size: 28px; }
+  .club-sluiting-rechts { grid-column: 2; justify-items: start; }
+  .club-sluiting-knoppen { justify-content: flex-start; margin-left: -10px; }
+}
+
+/* ── Formulieren ─────────────────────────────────────────────────────────── */
+.club-sluiting-form { display: grid; gap: 14px; }
+.club-sluiting-form .club-formrij { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.club-sluiting-soort { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.club-sluiting-formacties { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-sluiting-form [role='alert'] .club-melding { margin: 0; }
+.club-sluiting-zij .club-hint { margin: -4px 0 12px; }
+
+.club-sluiting-feestdagen { list-style: none; margin: 0; padding: 0; display: grid; border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+.club-sluiting-feestdag { display: grid; gap: 8px; padding: 10px 12px; }
+.club-sluiting-feestdag + .club-sluiting-feestdag { border-top: 1px solid var(--line); }
+.club-sluiting-feestdag.is-er-al { opacity: 0.6; }
+.club-sluiting-feestnaam { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.club-sluiting-feestdag.is-er-al .club-sluiting-feestnaam { cursor: default; }
+.club-sluiting-feestnaam input { width: 18px; height: 18px; flex: none; accent-color: var(--brand); }
+.club-sluiting-feestnaam > span { display: grid; gap: 1px; min-width: 0; }
+.club-sluiting-feestnaam strong { font-size: 14.5px; }
+.club-sluiting-feestnaam small { color: var(--text-3); font-size: 12.5px; }
+.club-sluiting-feestkeuze { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-left: 30px; }
+.club-sluiting-feestkeuze > select.club-invoer { width: auto; min-height: 34px; padding: 4px 10px; font-size: 13.5px; }
+.club-sluiting-tijden { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 13px; }
+.club-sluiting-tijden .club-invoer { width: 104px; min-height: 34px; padding: 4px 8px; font-size: 13.5px; }
+
+/* ── Melding (Vandaag en ledenapp) ───────────────────────────────────────── */
+.club-sluiting-melding {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--club-info) 40%, var(--line)); border-left-width: 3px;
+  border-radius: var(--club-radius-klein, 10px); background: var(--club-info-zacht); color: var(--text-1);
+}
+.club-sluiting-melding.is-vandaag { border-color: color-mix(in srgb, var(--club-let-op) 45%, var(--line)); background: var(--club-let-op-zacht); }
+.club-sluiting-melding-icoon { flex: none; margin-top: 2px; color: var(--club-info); }
+.club-sluiting-melding.is-vandaag .club-sluiting-melding-icoon { color: var(--club-let-op); }
+.club-sluiting-melding-tekst { display: grid; gap: 6px; min-width: 0; }
+.club-sluiting-melding-kop { margin: 0; font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.club-sluiting-melding ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 13.5px; }
+.club-sluiting-melding li { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.club-sluiting-melding li strong { min-width: 74px; font-variant-numeric: tabular-nums; }
+.club-sluiting-melding-reden { color: var(--text-3); }
+.club-sluiting-melding--app { padding: 12px 14px; gap: 10px; }
+.club-sluiting-melding--app .club-sluiting-melding-kop { font-size: 13.5px; }
+.club-sluiting-melding--app li strong { min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-sluiting-regel { transition: none; }
+}

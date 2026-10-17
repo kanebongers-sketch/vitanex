@@ -12,6 +12,9 @@ import { Bezoekpatroon } from '@/components/club/leden/Bezoekpatroon'
 import { Reserveringen } from '@/components/club/leden/Reserveringen'
 import { Notities } from '@/components/club/leden/Notities'
 import { LidGegevens } from '@/components/club/leden/LidGegevens'
+import { Voortgangskaart } from '@/components/club/voortgang/Voortgangskaart'
+import { haalVoortgang } from '@/lib/club/voortgang/data'
+import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -71,6 +74,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const nu = new Date()
   const kaart = await haalLidKaart(t.admin, t.userId, id, nu)
   if (!kaart) notFound()
+  const voortgang = await haalVoortgang(t.admin, t.userId, kaart.lid.id, nu)
   const { lid } = kaart
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
   const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
@@ -81,6 +85,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
       <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} />
       <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
+        <a href="#voortgang">Voortgang</a>
         <a href="#notities">Notities</a>
         <a href="#gegevens">Gegevens</a>
       </nav>
@@ -101,6 +106,14 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
           </div>
           <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
+          <div id="voortgang">
+            <Voortgangskaart
+              begin={voortgang}
+              medewerkers={kaart.medewerkers.map((m) => ({ id: m.id, naam: m.naam }))}
+              vandaag={dagSleutelNl(nu)}
+              nu={nu.toISOString()}
+            />
+          </div>
         </div>
         <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
           <Notities lidId={lid.id} notities={kaart.notities} />

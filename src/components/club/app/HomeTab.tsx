@@ -6,6 +6,8 @@ import { dagNaamKort, groet } from '@/lib/club/app/regels'
 import { dagLetter, volgendeDag } from '@/lib/club/app/schema'
 import { dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import type { LedenappInstellingen } from '@/lib/club/kern/org-instellingen'
+import type { Bericht } from '@/lib/club/berichten/model'
+import { LedenappBerichten } from '@/components/club/berichten/LedenappBerichten'
 
 // Home in de ledenapp: begroeting, de volgende geboekte les, bezoek en reeks,
 // en de check-in QR-code (alleen het token, nooit naam of lidnummer).
@@ -17,9 +19,11 @@ interface Props {
   tabPad: (tab: string) => string
   /** Wat de sportschool heeft ingesteld voor de app (welkom, tabbladen, QR). */
   instellingen: LedenappInstellingen
+  /** Nieuws en acties van de sportschool voor dit lid. */
+  berichten: readonly Bericht[]
 }
 
-export function HomeTab({ lid, data, nu, tabPad, instellingen }: Props) {
+export function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }: Props) {
   const lessenAan = !instellingen.tabsUit.includes('lessen')
   const schemaAan = !instellingen.tabsUit.includes('schema')
   const vandaag = dagSleutel(nu)
@@ -30,6 +34,7 @@ export function HomeTab({ lid, data, nu, tabPad, instellingen }: Props) {
       <p className="club-lidapp-groet">{groet(nu)},</p>
       <h2 className="club-lidapp-naam">{lid.voornaam}</h2>
       {instellingen.welkom && <p className="club-lidapp-welkom">{instellingen.welkom}</p>}
+      {berichten.length > 0 && <LedenappBerichten berichten={berichten} nu={nu} />}
 
       {lessenAan && (
         <Link href={tabPad('lessen')} className="club-lidapp-volgende">

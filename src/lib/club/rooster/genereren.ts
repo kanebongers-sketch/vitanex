@@ -3,9 +3,13 @@
 // De kloktijd is Nederlandse tijd: over de overgang naar wintertijd heen blijft
 // de les om 19:00 beginnen. Idempotent: lessen die al bestaan (zelfde serie en
 // starttijd, de unieke index op serie_id + start_op) worden overgeslagen.
+// Sluitingsdagen (club_sluitingen) komen mee als `uitzonderingen`: op een
+// gesloten dag geen lessen, op een dag met afwijkende tijden alleen lessen die
+// daar helemaal binnen vallen.
 
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { isoWeekdag, nlNaarUtc, plusDagen } from './tijd'
+import type { Openingstijd } from './openingstijden'
+import { isoWeekdag, nlNaarUtc, plusDagen, tijdNaarMinuten } from './tijd'
 import type { LesSerie } from './typen'
 
 export interface NieuweLes {
@@ -33,10 +37,19 @@ function binnenLooptijd(serie: LesSerie, datum: string): boolean {
   return serie.tot === null || datum <= serie.tot
 }
 
+/** Mag een les van deze serie op deze dag? undefined = gewone dag, null = gesloten. */
+function pastBinnenUitzondering(serie: LesSerie, uitzondering: Openingstijd | null | undefined): boolean {
+  if (uitzondering === undefined) return true
+  if (uitzondering === null) return false
+  const start = tijdNaarMinuten(serie.starttijd)
+  return start >= tijdNaarMinuten(uitzondering.van) && start + serie.duurMin <= tijdNaarMinuten(uitzondering.tot)
+}
+
 /**
  * Alle lessen die er vanaf `vandaag` (Nederlandse datum) voor `weken` weken
  * moeten zijn. Lessen die al begonnen zijn (voor `nu`) en lessen die al bestaan
- * (`bestaand`, sleutels uit lesSleutel) komen er niet in.
+ * (`bestaand`, sleutels uit lesSleutel) komen er niet in, net als lessen op
+ * een gesloten dag of buiten de afwijkende tijden (`uitzonderingen`, per datum).
  */
 export function lessenUitSeries(
   series: readonly LesSerie[],
@@ -44,14 +57,17 @@ export function lessenUitSeries(
   weken: number,
   nu: Date,
   bestaand: ReadonlySet<string> = new Set(),
+  uitzonderingen: ReadonlyMap<string, Openingstijd | null> = new Map(),
 ): NieuweLes[] {
   const aantalDagen = Math.max(0, Math.min(MAX_WEKEN_VOORUIT, Math.floor(weken))) * 7
   const uit: NieuweLes[] = []
   for (let i = 0; i < aantalDagen; i++) {
     const datum = plusDagen(vandaag, i)
     const weekdag = isoWeekdag(datum)
+    const uitzondering = uitzonderingen.has(datum) ? (uitzonderingen.get(datum) ?? null) : undefined
     for (const serie of series) {
       if (!serie.actief || serie.weekdag !== weekdag || !binnenLooptijd(serie, datum)) continue
+      if (!pastBinnenUitzondering(serie, uitzondering)) continue
       const start = nlNaarUtc(datum, serie.starttijd)
       if (start.getTime() <= nu.getTime() || bestaand.has(lesSleutel(serie.id, start))) continue
       const eind = new Date(start.getTime() + serie.duurMin * 60_000)

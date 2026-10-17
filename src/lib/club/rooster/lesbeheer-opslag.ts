@@ -12,7 +12,8 @@ import type { LesWijziging } from './invoer'
 import { telPerLes, type LesOverzicht } from './raster'
 import { sorteerWachtlijst } from './regels'
 import { schuifWachtlijstDoor } from './reserveren-opslag'
-import { nlDelen } from './tijd'
+import { haalUitzonderingen } from '@/lib/club/sluiting/lezen'
+import { nlDelen, plusDagen } from './tijd'
 import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type ReserveringRij } from './typen'
 
 export interface Deelnemer {
@@ -145,7 +146,10 @@ export async function genereerLessen(t: ClubToegang, vestiging: Vestiging, weken
   const bestaand = new Set(
     (bestaandeRijen ?? []).flatMap((r) => (typeof r.serie_id === 'string' && typeof r.start_op === 'string' ? [lesSleutel(r.serie_id, r.start_op)] : [])),
   )
-  const nieuw = lessenUitSeries(series, nlDelen(nu).datum, weken, nu, bestaand)
+  const vandaag = nlDelen(nu).datum
+  // Sluitingsdagen en afwijkende openingstijden: daar komen geen lessen (zie sluiting/regels.ts).
+  const uitzonderingen = await haalUitzonderingen(t.admin, t.userId, vestiging, vandaag, plusDagen(vandaag, Math.min(weken, MAX_WEKEN_VOORUIT) * 7))
+  const nieuw = lessenUitSeries(series, vandaag, weken, nu, bestaand, uitzonderingen)
   const aangemaakt = await voegLessenToe(t.admin, t.userId, nieuw)
   await logActie(t, 'Lessen aangemaakt', `${aangemaakt} lessen voor ${weken} weken`, vestiging)
   return gelukt({ aangemaakt })

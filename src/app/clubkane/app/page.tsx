@@ -15,6 +15,10 @@ import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
 import { SchemaTab } from '@/components/club/app/SchemaTab'
 import { kiesTab, Toestel, type AppTab } from '@/components/club/app/Toestel'
 import '@/components/club/app/app.css'
+import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
+import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
+import { haalVoortgang } from '@/lib/club/voortgang/data'
+import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
 // Kies een (demo)lid; tabblad en lid staan in de URL.
@@ -66,7 +70,12 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   }
 
   const nu = new Date()
-  const [data, bedrijf] = await Promise.all([haalLidApp(t.admin, t.userId, lid, nu), haalBedrijf(t.admin, t.userId)])
+  const [data, bedrijf, berichten] = await Promise.all([
+    haalLidApp(t.admin, t.userId, lid, nu),
+    haalBedrijf(t.admin, t.userId),
+    haalBerichtenVoorLid(t.admin, t.userId, lid, nu),
+  ])
+  const voortgang = tab === 'voortgang' ? await haalVoortgang(t.admin, t.userId, lid.id, nu) : null
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>
@@ -86,9 +95,20 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           merkLogo={t.organisatie.logo && t.organisatie.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(t.organisatie.logo)}` : null}
           tabsUit={appInstellingen.tabsUit}
         >
-          {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={appInstellingen} />}
+          {tab === 'home' && (
+            <>
+              <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={appInstellingen} berichten={berichten ?? []} />
+            </>
+          )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {tab === 'voortgang' && voortgang && (
+            <div className="club-lidapp-tab">
+              <h2 className="club-lidapp-kop">Voortgang</h2>
+              <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
+            </div>
+          )}
           {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} teksten={bedrijf?.teksten ?? null} sportschool={t.organisatie.naam} />}
         </Toestel>
         <AppUitleg regels={data.regels} />

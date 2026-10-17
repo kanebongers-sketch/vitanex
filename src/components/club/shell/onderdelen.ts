@@ -35,6 +35,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer' },
   { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden' },
   { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads' },
+  { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties voor de ledenapp', groep: 'leden' },
   { sleutel: 'app', pad: '/app', label: 'Ledenapp', uitleg: 'Zo ziet een lid het op zijn telefoon', groep: 'leden', module: 'app' },
   { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster' },
   { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel' },
@@ -43,6 +44,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
   { sleutel: 'beheer', pad: '/beheer', label: 'Instellingencentrum', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer' },
   { sleutel: 'bedrijf', pad: '/beheer/bedrijf', label: 'Bedrijf en huisregels', uitleg: 'KvK, btw, contact en de teksten voor je leden', groep: 'beheer' },
+  { sleutel: 'sluiting', pad: '/beheer/sluiting', label: 'Sluitingsdagen', uitleg: 'Feestdagen, sluitingen en andere openingstijden', groep: 'beheer' },
   { sleutel: 'huisstijl', pad: '/huisstijl', label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool', groep: 'beheer' },
   { sleutel: 'instellingen', pad: '/instellingen', label: 'Instellingen', uitleg: 'Zalen, lessen, regels en medewerkers', groep: 'beheer' },
 ]
