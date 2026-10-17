@@ -18,6 +18,7 @@ import '@/components/club/app/app.css'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
+import { LedenappAfspraken } from '@/components/club/afspraken/LedenappAfspraken'
 import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 
@@ -32,9 +33,16 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
   const appInstellingen = t.organisatie.instellingen.ledenapp
+  // Tabbladen die uit staan: zelf uitgezet in de ledenapp-instellingen, of het onderdeel staat uit.
+  const tabsUit: string[] = [
+    ...appInstellingen.tabsUit,
+    ...(t.organisatie.uit.includes('afspraken') ? ['afspraken'] : []),
+    ...(t.organisatie.uit.includes('rooster') ? ['lessen'] : []),
+    ...(t.organisatie.uit.includes('training') ? ['schema'] : []),
+  ]
   const gekozenTab = kiesTab(zoek.tab)
-  // Een tabblad dat de sportschool heeft uitgezet bestaat niet: dan Home.
-  const tab = (appInstellingen.tabsUit as readonly string[]).includes(gekozenTab) ? 'home' : gekozenTab
+  // Een tabblad dat uit staat bestaat niet: dan Home.
+  const tab = tabsUit.includes(gekozenTab) ? 'home' : gekozenTab
   const [leden, schemas] = await Promise.all([
     zoekLeden(t.admin, t.userId, vestiging, '', 200),
     t.admin.from('club_schemas').select('lid_id').eq('user_id', t.userId).eq('status', 'actief').not('lid_id', 'is', null).limit(1000),
@@ -95,16 +103,22 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           merkNaam={t.organisatie.naam}
           fitFactory={t.organisatie.logo === LOGO_FIT_FACTORY}
           merkLogo={t.organisatie.logo && t.organisatie.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(t.organisatie.logo)}` : null}
-          tabsUit={appInstellingen.tabsUit}
+          tabsUit={tabsUit}
         >
           {tab === 'home' && (
             <>
               <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={appInstellingen} berichten={berichten ?? []} />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit }} berichten={berichten ?? []} />
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {tab === 'afspraken' && (
+            <div className="club-lidapp-tab">
+              <h2 className="club-lidapp-kop">Afspraken</h2>
+              <LedenappAfspraken lidId={lid.id} />
+            </div>
+          )}
           {tab === 'voortgang' && voortgang && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Voortgang</h2>

@@ -62,6 +62,7 @@ export default async function BeheerPagina() {
   ]
   const planning: InstellingRegel[] = [
     { titel: 'Lestypen', uitleg: 'De groepslessen die je geeft.', stand: aantal(lestypen, 'lestype', 'lestypen'), href: pad('/instellingen', { tab: 'lestypen' }), uit: !v || org.uit.includes('rooster') },
+    { titel: 'Afspraaktypen', uitleg: 'Soorten afspraken, duur, buffer en boekregels voor de app.', stand: 'Intake, personal training, metingen', href: '/clubkane/afspraken?tab=typen', uit: org.uit.includes('afspraken') },
     { titel: 'Weekrooster', uitleg: 'De vaste lessen per week.', stand: 'Per vestiging', href: pad('/instellingen', { tab: 'weekrooster' }), uit: !v || org.uit.includes('rooster') },
   ]
   const training: InstellingRegel[] = [

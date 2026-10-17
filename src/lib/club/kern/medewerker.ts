@@ -20,9 +20,9 @@ export const ROL_LABEL: Record<MedewerkerRol, string> = {
 
 /** Welke onderdelen een rol straks ziet. De testfase is alleen Kane (alles). */
 export const RECHTEN: Record<MedewerkerRol, readonly string[]> = {
-  trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'leads', 'personeel', 'taken'],
+  trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'afspraken', 'leads', 'personeel', 'taken'],
   instructeur: ['vandaag', 'rooster', 'personeel'],
-  manager: ['vandaag', 'checkin', 'leden', 'berichten', 'rooster', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
+  manager: ['vandaag', 'checkin', 'leden', 'berichten', 'rooster', 'afspraken', 'personeel', 'taken', 'leads', 'schemas', 'cijfers', 'instellingen'],
   administratie: ['personeel'],
 }
 

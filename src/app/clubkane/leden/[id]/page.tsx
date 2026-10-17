@@ -13,6 +13,7 @@ import { Reserveringen } from '@/components/club/leden/Reserveringen'
 import { Notities } from '@/components/club/leden/Notities'
 import { LidGegevens } from '@/components/club/leden/LidGegevens'
 import { Voortgangskaart } from '@/components/club/voortgang/Voortgangskaart'
+import { AfsprakenVanLid } from '@/components/club/afspraken/AfsprakenVanLid'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import '@/components/club/leden/leden.css'
@@ -106,6 +107,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
           </div>
           <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
+          <AfsprakenVanLid lidId={kaart.lid.id} vestiging={kaart.lid.vestiging} />
           <div id="voortgang">
             <Voortgangskaart
               begin={voortgang}

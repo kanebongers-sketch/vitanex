@@ -38,6 +38,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties voor de ledenapp', groep: 'leden' },
   { sleutel: 'app', pad: '/app', label: 'Ledenapp', uitleg: 'Zo ziet een lid het op zijn telefoon', groep: 'leden', module: 'app' },
   { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster' },
+  { sleutel: 'afspraken', pad: '/afspraken', label: 'Afspraken', uitleg: 'Intakes, personal training en metingen per trainer', groep: 'planning', module: 'afspraken' },
   { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel' },
   { sleutel: 'agenda', pad: '/agenda', label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week', groep: 'planning' },
   { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training' },

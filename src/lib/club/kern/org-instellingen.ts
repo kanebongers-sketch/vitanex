@@ -10,14 +10,15 @@ import { MEDEWERKER_ROLLEN, RECHTEN, type MedewerkerRol } from './medewerker'
  * als ONDERDELEN in src/components/club/shell/onderdelen.ts (een test bewaakt dat).
  */
 export const ONDERDEEL_SLEUTELS = [
-  'vandaag', 'checkin', 'taken', 'notities', 'leden', 'leads', 'app', 'rooster', 'personeel', 'agenda', 'schemas', 'cijfers', 'beheer', 'bedrijf', 'sluiting', 'berichten', 'huisstijl', 'instellingen',
+  'vandaag', 'checkin', 'taken', 'notities', 'leden', 'leads', 'app', 'rooster', 'afspraken', 'personeel', 'agenda', 'schemas', 'cijfers', 'beheer', 'bedrijf', 'sluiting', 'berichten', 'huisstijl', 'instellingen',
 ] as const
 
-export const LEDENAPP_TABS = ['lessen', 'schema', 'voortgang'] as const
+export const LEDENAPP_TABS = ['lessen', 'afspraken', 'schema', 'voortgang'] as const
 export type LedenappTab = (typeof LEDENAPP_TABS)[number]
 
 export const LEDENAPP_TAB_LABEL: Record<LedenappTab, string> = {
   lessen: 'Lessen (groepslessen boeken)',
+  afspraken: 'Afspraken (intake of personal training boeken)',
   schema: 'Schema (trainingsschema met coaching)',
   voortgang: 'Voortgang (metingen en trainingen per week)',
 }

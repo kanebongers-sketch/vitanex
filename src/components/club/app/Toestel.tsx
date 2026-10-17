@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { CalendarDays, Dumbbell, House, TrendingUp, UserRound } from 'lucide-react'
+import { CalendarClock, CalendarDays, Dumbbell, House, TrendingUp, UserRound } from 'lucide-react'
 import { tijdNl } from '@/lib/club/cijfers/tijd'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 
@@ -10,6 +10,7 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 export const APP_TABS = [
   { sleutel: 'home', label: 'Home', Icoon: House },
   { sleutel: 'lessen', label: 'Lessen', Icoon: CalendarDays },
+  { sleutel: 'afspraken', label: 'Afspraken', Icoon: CalendarClock },
   { sleutel: 'schema', label: 'Schema', Icoon: Dumbbell },
   { sleutel: 'voortgang', label: 'Voortgang', Icoon: TrendingUp },
   { sleutel: 'profiel', label: 'Profiel', Icoon: UserRound },

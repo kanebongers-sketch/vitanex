@@ -7,13 +7,14 @@ import { HEX, THEMAS, type Thema } from './huisstijl'
 import { leesSlug } from './subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij, type OrgInstellingen } from './org-instellingen'
 
-export const MODULES = ['leden', 'checkin', 'rooster', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] as const
+export const MODULES = ['leden', 'checkin', 'rooster', 'afspraken', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] as const
 export type Module = (typeof MODULES)[number]
 
 export const MODULE_LABEL: Record<Module, { label: string; uitleg: string }> = {
   leden: { label: 'Leden', uitleg: 'Ledenlijst, ledenkaart, behoud en ledenbestand inlezen.' },
   checkin: { label: 'Check-in', uitleg: 'Inchecken bij de balie met QR of zoeken.' },
   rooster: { label: 'Groepslessen', uitleg: 'Lesrooster, reserveren en wachtlijsten.' },
+  afspraken: { label: 'Afspraken', uitleg: 'Intakes, personal training en metingen met trainers boeken.' },
   personeel: { label: 'Personeelsrooster', uitleg: 'Diensten, beschikbaarheid en uren.' },
   taken: { label: 'Taken en poetslijsten', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster.' },
   leads: { label: 'Leads', uitleg: 'Proeflessen en aanmeldingen opvolgen.' },

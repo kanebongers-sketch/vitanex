@@ -64,7 +64,7 @@ describe('huisstijl-invoer', () => {
     expect(leesHuisstijl({ ...goed, kleurAccent: 'red' }).ok).toBe(false)
     expect(leesHuisstijl({ ...goed, thema: 'paars' }).ok).toBe(false)
     expect(leesHuisstijl({ ...goed, uit: ['kassa'] }).ok).toBe(false)
-    expect(leesHuisstijl({ ...goed, uit: ['leden', 'checkin', 'rooster', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] }).ok).toBe(false)
+    expect(leesHuisstijl({ ...goed, uit: ['leden', 'checkin', 'rooster', 'afspraken', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] }).ok).toBe(false)
   })
 
   it('zet onderdelen om naar en van jsonb', () => {
