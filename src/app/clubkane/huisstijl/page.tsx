@@ -3,6 +3,7 @@ import { eisClubToegang } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { HuisstijlPortaal } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { SportscholenKeuze } from '@/components/club/huisstijl/SportscholenKeuze'
+import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import '@/components/club/huisstijl/huisstijl.css'
 
 export const metadata: Metadata = { title: 'Huisstijl' }
@@ -28,6 +29,7 @@ export default async function HuisstijlPagina() {
         actief={org.id}
         sportscholen={t.organisaties.map((o) => ({ id: o.id, naam: o.naam, demo: o.demo, kleurAccent: o.kleurAccent }))}
       />
+      <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} actief={process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'} />
       <HuisstijlPortaal
         key={org.id}
         organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }}

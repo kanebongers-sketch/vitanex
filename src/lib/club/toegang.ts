@@ -6,7 +6,7 @@
 // verraadt dat er iets achter zit).
 
 import { cache } from 'react'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -15,6 +15,7 @@ import { beoordeelSessie, leesSessie, vindLink } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
 import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
+import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
 
 export interface ClubToegang {
@@ -54,7 +55,20 @@ async function beheerderCode(admin: SupabaseClient): Promise<string | null> {
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
 function standaardOrganisatie(id: string): Organisatie {
-  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false }
+  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: null }
+}
+
+/**
+ * Op een subdomein (<slug>.aiyourgym.com, schakelaar CLUB_SUBDOMEINEN_ACTIEF aan)
+ * bepaalt het adres welke sportschool open staat; de cookie telt dan niet.
+ * undefined = geen subdomein; null = subdomein van een sportschool die deze
+ * beheerder niet mag openen (dan bestaat Club hier niet: 404).
+ */
+async function organisatieUitHost(organisaties: readonly Organisatie[]): Promise<Organisatie | null | undefined> {
+  if (process.env.CLUB_SUBDOMEINEN_ACTIEF !== '1') return undefined
+  const slug = slugUitHost((await headers()).get('host'))
+  if (!slug) return undefined
+  return organisaties.find((o) => o.slug === slug) ?? null
 }
 
 /** De sportscholen van deze beheerder; de eigen (Fit Factory) altijd eerst. */
@@ -90,9 +104,11 @@ export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   const ingelogd = await beoordeelSessie(admin, link, token, sessie, new Date())
   if (!ingelogd) return null
   const organisaties = await haalOrganisaties(admin, link.userId)
-  // De gekozen sportschool, alleen als die bij deze beheerder hoort; anders de eigen.
+  const vanHost = await organisatieUitHost(organisaties)
+  if (vanHost === null) return null
+  // Anders de gekozen sportschool, alleen als die bij deze beheerder hoort; anders de eigen.
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
-  const organisatie = organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
+  const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
   const vestigingen = await haalVestigingen(admin, organisatie.id)
   return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, vestigingen, naam: link.naam, code }
 })
