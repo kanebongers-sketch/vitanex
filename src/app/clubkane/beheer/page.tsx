@@ -33,13 +33,14 @@ export default async function BeheerPagina() {
   const org = t.organisatie
   const v = kiesUit(t.vestigingen, null)
   const pad = (p: string, extra?: Record<string, string>) => (v ? clubPad(p, v, extra) : `/clubkane${p}`)
-  const [medewerkers, leden, oefeningen, eigenCoaching, lestypen, zalen] = await Promise.all([
+  const [medewerkers, leden, oefeningen, eigenCoaching, lestypen, zalen, vormen] = await Promise.all([
     tel(t, 'club_medewerkers'),
     tel(t, 'club_leden'),
     tel(t, 'club_oefeningen'),
     tel(t, 'club_oefeningen', true),
     tel(t, 'club_lestypen'),
     tel(t, 'club_zalen'),
+    tel(t, 'club_lidmaatschapsvormen'),
   ])
   const aanTal = MODULES.length - org.uit.length
   const app = org.instellingen.ledenapp
@@ -69,6 +70,7 @@ export default async function BeheerPagina() {
     { titel: 'Oefeningen en coaching', uitleg: 'Je bibliotheek met beelden, eigen oefeningen en je eigen coachteksten.', stand: `${aantal(oefeningen, 'oefening', 'oefeningen')}${eigenCoaching ? `, ${eigenCoaching} met eigen coaching` : ''}`, href: pad('/training', { tab: 'oefeningen' }), uit: org.uit.includes('training') },
   ]
   const ledenRegels: InstellingRegel[] = [
+    { titel: 'Lidmaatschappen en labels', uitleg: 'Vormen zoals in Sportivity, met vestigingen, groepslessen en daluren, en de labels voor leden.', stand: aantal(vormen, 'vorm', 'vormen'), href: '/clubkane/beheer/lidmaatschappen' },
     { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
     { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },

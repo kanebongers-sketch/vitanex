@@ -139,17 +139,33 @@ export async function maakAfspraak(admin: SupabaseClient, userId: string, n: Nie
   return afspraak ? { ok: true, waarde: afspraak } : { ok: false, status: 500, fout: 'De afspraak kon niet worden gelezen.' }
 }
 
-export async function werkAfspraakBij(admin: SupabaseClient, userId: string, id: string, patch: Record<string, unknown>): Promise<Opgeslagen<Afspraak>> {
-  const { data, error } = await admin
+/** Een afspraak bijwerken. Met `alleenAlsStatus` alleen als de status nog die is (geen stille overschrijving). */
+export async function werkAfspraakBij(admin: SupabaseClient, userId: string, id: string, patch: Record<string, unknown>, alleenAlsStatus?: string): Promise<Opgeslagen<Afspraak>> {
+  let q = admin
     .from('club_afspraken')
     .update({ ...patch, gewijzigd_op: new Date().toISOString() })
     .eq('user_id', userId)
     .eq('id', id)
+  if (alleenAlsStatus) q = q.eq('status', alleenAlsStatus)
+  const { data, error } = await q
     .select(AFSPRAAK_KOLOMMEN)
     .maybeSingle()
   if (error) return schrijfFout(error)
   const afspraak = afspraakUitRij(data)
   return afspraak ? { ok: true, waarde: afspraak } : { ok: false, status: 404, fout: 'Afspraak niet gevonden.' }
+}
+
+/** Hoeveel geplande afspraken in de toekomst heeft dit lid? null bij een fout. */
+export async function telOpenAfsprakenVanLid(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<number | null> {
+  const { count, error } = await admin
+    .from('club_afspraken')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('lid_id', lidId)
+    .eq('status', 'gepland')
+    .gt('start_op', nu.toISOString())
+  if (error) console.error('[club] open afspraken tellen mislukt', error.message)
+  return error ? null : count
 }
 
 /** Afspraken met de naam van het lid en het type erbij. */

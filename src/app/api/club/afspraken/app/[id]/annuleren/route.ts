@@ -29,7 +29,8 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (!type) return clubFout('Annuleren lukt nu niet. Bel of mail de sportschool.', 409)
   const mag = magLidAnnuleren(type, afspraak, new Date())
   if (!mag.ok) return clubFout(mag.fout, 409)
-  const uit = await werkAfspraakBij(t.admin, t.userId, id, { status: 'geannuleerd', geannuleerd_op: new Date().toISOString() })
+  // Alleen een afspraak die nog gepland staat (niet een die de trainer net op 'geweest' zette).
+  const uit = await werkAfspraakBij(t.admin, t.userId, id, { status: 'geannuleerd', geannuleerd_op: new Date().toISOString() }, 'gepland')
   if (!uit.ok) return clubFout(uit.fout, uit.status)
   await logActie(t, 'afspraak geannuleerd in de app', `${type.naam}, ${volledigeNaam(lid)}`, lid.vestiging)
   return clubJson({ ok: true })

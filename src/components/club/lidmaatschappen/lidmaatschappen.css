@@ -1,0 +1,145 @@
+/* ─── Club: lidmaatschapsvormen en labels ─────────────────────────────────────
+   Editoriale lijst: per vorm een kleurstreep, grote naam in kapitalen, de
+   regels als dunne rij, rechts het aantal leden als groot getal. Rechts de
+   formulieren. Alleen .club-lidm-*. Kleuren gemengd uit de tokens van club.css,
+   dus goed in donker en licht thema. */
+
+.club-lidm {
+  display: grid;
+  gap: 22px;
+  --club-lidm-k-amber: var(--brand);
+  --club-lidm-k-blauw: var(--club-info);
+  --club-lidm-k-groen: var(--club-ok);
+  --club-lidm-k-turkoois: color-mix(in srgb, var(--club-ok) 50%, var(--club-info));
+  --club-lidm-k-lila: color-mix(in srgb, var(--club-info) 55%, var(--club-let-op));
+  --club-lidm-k-roze: color-mix(in srgb, var(--club-let-op) 50%, var(--text-1));
+  --club-lidm-k-geel: color-mix(in srgb, var(--brand) 50%, var(--text-1));
+  --club-lidm-k-zand: var(--text-3);
+}
+.club-lidm [data-kleur] { --club-lidm-kleur: var(--text-3); }
+.club-lidm [data-kleur='amber'] { --club-lidm-kleur: var(--club-lidm-k-amber); }
+.club-lidm [data-kleur='blauw'] { --club-lidm-kleur: var(--club-lidm-k-blauw); }
+.club-lidm [data-kleur='groen'] { --club-lidm-kleur: var(--club-lidm-k-groen); }
+.club-lidm [data-kleur='turkoois'] { --club-lidm-kleur: var(--club-lidm-k-turkoois); }
+.club-lidm [data-kleur='lila'] { --club-lidm-kleur: var(--club-lidm-k-lila); }
+.club-lidm [data-kleur='roze'] { --club-lidm-kleur: var(--club-lidm-k-roze); }
+.club-lidm [data-kleur='geel'] { --club-lidm-kleur: var(--club-lidm-k-geel); }
+.club-lidm [data-kleur='zand'] { --club-lidm-kleur: var(--club-lidm-k-zand); }
+
+.club-lidm .club-paginakop { margin-bottom: 0; }
+.club-lidm-status:empty { display: none; }
+.club-lidm-status .club-melding { margin: 0; }
+
+/* ── Cijferstrook ────────────────────────────────────────────────────────── */
+.club-lidm-cijfers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.club-lidm-cijfers > div { padding: 14px 18px 14px 0; display: grid; gap: 2px; }
+.club-lidm-cijfers > div + div { padding-left: 18px; border-left: 1px solid var(--line); }
+.club-lidm-cijfers dt { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-lidm-cijfers dd { margin: 0; font-family: var(--ff-kop); font-size: clamp(30px, 3.4vw, 42px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-lidm-cijfers .is-let dd { color: var(--club-let-op); }
+
+/* ── Werkvlak ────────────────────────────────────────────────────────────── */
+.club-lidm-werkvlak { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 1100px) { .club-lidm-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 40px; } }
+.club-lidm-hoofd { min-width: 0; display: grid; gap: 10px; align-content: start; }
+.club-lidm-zij { display: grid; gap: 16px; min-width: 0; }
+@media (min-width: 1100px) { .club-lidm-zij { position: sticky; top: 88px; } }
+.club-lidm-zij .club-hint { margin: -4px 0 12px; }
+.club-lidm-kop {
+  margin: 0; padding-bottom: 8px; border-bottom: 2px solid var(--brand);
+  font-family: var(--ff-kop); font-size: clamp(24px, 2.6vw, 32px); line-height: 1; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+.club-lidm-intro { margin: 0; }
+.club-lidm-leeg { margin: 0; padding: 28px 0; color: var(--text-3); }
+
+/* ── Een regel ───────────────────────────────────────────────────────────── */
+.club-lidm-lijst { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-lidm-regel {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 20px; align-items: start;
+  padding: 18px 8px 18px 20px; border-bottom: 1px solid var(--line); transition: background-color 160ms var(--ease);
+}
+.club-lidm-regel::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--club-lidm-kleur); }
+.club-lidm-regel:last-child { border-bottom: 0; }
+.club-lidm-regel:hover { background: var(--club-vlak-hover); }
+.club-lidm-regel.is-uit .club-lidm-inhoud { opacity: 0.6; }
+.club-lidm-regel.is-bewerken { display: block; margin: 8px 0; padding: 18px 18px 18px 22px; background: var(--club-vlak); border-radius: var(--club-radius-klein); border-bottom: 0; }
+
+.club-lidm-inhoud { display: grid; gap: 6px; min-width: 0; }
+.club-lidm-naam {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0;
+  font-family: var(--ff-kop); font-size: clamp(19px, 1.9vw, 23px); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.15; overflow-wrap: anywhere;
+}
+.club-lidm-omschrijving { margin: 0; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+.club-lidm-regels { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 0; color: var(--text-3); font-size: 13px; }
+.club-lidm-regels li + li::before { content: ''; display: inline-block; width: 4px; height: 4px; margin: 0 10px 2px; border-radius: 50%; background: var(--line-strong); vertical-align: middle; }
+
+.club-lidm-rechts { display: grid; justify-items: end; gap: 6px; }
+.club-lidm-aantal { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.club-lidm-aantal strong { font-family: var(--ff-kop); font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-lidm-aantal span { color: var(--text-3); font-size: 13px; }
+.club-lidm-link { color: var(--brand-tekst, var(--brand)); font-size: 13px; font-weight: 600; text-decoration: none; border-radius: 4px; }
+.club-lidm-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.club-lidm-knoppen { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.club-lidm-knoppen .club-knop--stil { color: var(--text-3); }
+.club-lidm-knoppen .club-knop--stil:hover { color: var(--text-1); }
+.club-lidm-let { margin: 0; max-width: 260px; text-align: right; }
+.club-lidm-bevestig { display: grid; justify-items: end; gap: 8px; max-width: 320px; padding: 10px 12px; border-radius: var(--club-radius-klein); background: var(--club-let-op-zacht); }
+.club-lidm-bevestig p { margin: 0; font-size: 13.5px; text-align: right; }
+
+/* Labels: de tag als pil in zijn kleur. */
+.club-lidm-regel--label .club-lidm-naam { text-transform: none; letter-spacing: 0; }
+.club-lidm-tag {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px;
+  font-family: var(--ff-inter), system-ui, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none;
+  color: var(--text-1); background: color-mix(in srgb, var(--club-lidm-kleur, var(--brand)) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--club-lidm-kleur, var(--brand)) 45%, transparent);
+}
+.club-lidm-tag::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--club-lidm-kleur, var(--brand)); }
+.club-lidm-voorbeeld { margin: -6px 0 0; }
+.club-lidm-voorbeeld .club-lidm-tag { font-size: 12.5px; padding: 1px 8px; }
+
+/* ── Uit de ledenlijst ───────────────────────────────────────────────────── */
+.club-lidm-los { list-style: none; margin: 0 0 14px; padding: 0; display: grid; border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+.club-lidm-los li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; font-size: 14px; }
+.club-lidm-los li + li { border-top: 1px solid var(--line); }
+.club-lidm-los-n { font-variant-numeric: tabular-nums; color: var(--text-3); }
+.club-lidm-los-meer { color: var(--text-3); }
+
+/* ── Formulieren ─────────────────────────────────────────────────────────── */
+.club-lidm-form { display: grid; gap: 14px; }
+.club-lidm-form [role='alert']:empty { display: none; }
+.club-lidm-form [role='alert'] .club-melding { margin: 0; }
+.club-lidm-groep { display: grid; gap: 8px; margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+.club-lidm-groep > legend { float: left; width: 100%; margin-bottom: 6px; padding: 0; }
+.club-lidm-vinkrij { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-left: 4px; }
+.club-lidm-vink { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; cursor: pointer; }
+.club-lidm-vink input { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); flex: none; }
+.club-lidm-smal { max-width: 180px; }
+.club-lidm-tijden { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.club-lidm-formacties { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.club-lidm-kleuren { margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+.club-lidm-kleuren > legend { float: left; width: 100%; margin-bottom: 8px; padding: 0; }
+.club-lidm-kleurrij { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-lidm-kleur { position: relative; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; }
+.club-lidm-kleur::before { content: ''; width: 24px; height: 24px; border-radius: 50%; background: var(--club-lidm-kleur); transition: transform 140ms var(--ease); }
+.club-lidm-kleur:hover::before { transform: scale(1.08); }
+.club-lidm-kleur input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.club-lidm-kleur:has(input:checked) { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--club-lidm-kleur); }
+.club-lidm-kleur:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+@media (max-width: 600px) {
+  .club-lidm-regel { grid-template-columns: minmax(0, 1fr); padding-left: 16px; }
+  .club-lidm-rechts { justify-items: start; grid-auto-flow: row; }
+  .club-lidm-aantal strong { font-size: 26px; }
+  .club-lidm-knoppen { justify-content: flex-start; margin-left: -10px; }
+  .club-lidm-let, .club-lidm-bevestig p { text-align: left; }
+  .club-lidm-bevestig { justify-items: start; }
+  .club-lidm-cijfers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .club-lidm-cijfers > div, .club-lidm-cijfers > div + div { padding: 12px 8px 12px 0; border-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-lidm-regel, .club-lidm-kleur::before { transition: none; }
+  .club-lidm-kleur:hover::before { transform: none; }
+}

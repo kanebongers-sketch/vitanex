@@ -2,6 +2,9 @@
 // De ledenapp is nu een voorvertoning voor de beheerder: het lid komt uit de
 // vraag (?lid= of body) en moet bij deze sportschool en een eigen vestiging
 // horen. Straks komt het lid uit de eigen inlog van het lid.
+// LET OP: zodra leden zelf inloggen MOET het lid uit die sessie komen en niet
+// meer uit de vraag; anders kan een lid voor een ander boeken of annuleren.
+// Daarom eisen deze routes nu een beheerder-sessie (vereisClubToegang).
 
 import type { NextResponse } from 'next/server'
 import { clubFout, type ClubToegang } from '@/lib/club/toegang'

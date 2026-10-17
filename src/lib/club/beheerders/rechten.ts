@@ -10,7 +10,7 @@ import type { Rechten } from '@/lib/club/kern/org-instellingen'
 import type { BeheerderRol } from './beheerder'
 
 /** Onderdelen die alleen Kane en de eigenaar hebben, wat de rechten ook zeggen. */
-const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting'])
+const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen'])
 
 export interface WieMag {
   isKane: boolean
@@ -58,6 +58,7 @@ const API_ONDERDEEL: Record<string, string> = {
   // Beheer-onderdelen: nooit voor een clubmanager (NOOIT_VOOR_CLUBMANAGER).
   bedrijf: 'bedrijf',
   sluiting: 'sluiting',
+  lidmaatschappen: 'lidmaatschappen',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

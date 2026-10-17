@@ -9,10 +9,14 @@ import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { volledigeNaam } from '@/lib/club/kern/lid'
 import { nlNaarUtc } from '@/lib/club/rooster/tijd'
 import { leesAppBoeking } from '@/lib/club/afspraken/invoer'
-import { haalAfspraken, haalType, haalTypen, maakAfspraak, metNamen } from '@/lib/club/afspraken/opslag'
+import { haalAfspraken, haalType, haalTypen, maakAfspraak, metNamen, telOpenAfsprakenVanLid } from '@/lib/club/afspraken/opslag'
 import { BOEK_HORIZON_DAGEN, boekVenster, eindVan, magGeven, magLidAnnuleren, magLidBoeken } from '@/lib/club/afspraken/regels'
 import { controleerTijd, leesJson } from '@/lib/club/afspraken/api'
 import { lidVoorApp } from '@/lib/club/afspraken/app-api'
+import { STAP_MIN } from '@/lib/club/afspraken/sloten'
+
+/** Hoeveel geplande afspraken een lid via de app tegelijk mag hebben. */
+const MAX_OPEN_APP = 2
 
 const DAG = 86_400_000
 const NIET_MEER_VRIJ = 'Dit tijdstip is net niet meer vrij. Kies een ander moment.'
@@ -75,6 +79,13 @@ export async function POST(req: NextRequest) {
   const type = await haalType(t.admin, t.userId, b.typeId)
   if (!type) return clubFout('Dit soort afspraak bestaat niet.', 404)
   const nu = new Date()
+  // Alleen tijden uit het raster dat de app toont (elke 15 minuten): geen versnipperde agenda.
+  const [uur, minuut] = b.tijd.split(':').map(Number)
+  if ((uur * 60 + minuut) % STAP_MIN !== 0) return clubFout(NIET_MEER_VRIJ, 409)
+  // Een lid kan niet de hele agenda vullen: hooguit MAX_OPEN_APP geplande afspraken tegelijk.
+  const open = await telOpenAfsprakenVanLid(t.admin, t.userId, lid.id, nu)
+  if (open === null) return clubFout('Boeken lukt nu niet. Probeer het opnieuw.', 500)
+  if (open >= MAX_OPEN_APP) return clubFout(`Je hebt al ${open} geplande afspraken. Na je volgende afspraak kun je weer een nieuwe maken.`, 409)
   const mag = magLidBoeken(type, nlNaarUtc(b.datum, b.tijd), nu)
   if (!mag.ok) return clubFout(mag.fout, 409)
   const { vanaf, tot } = boekVenster(type, nu)
