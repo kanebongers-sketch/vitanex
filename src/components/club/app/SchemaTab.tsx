@@ -9,12 +9,14 @@ import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from 
 import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
 import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
 import { bronnenVan } from '@/lib/club/training/beeld'
+import { useKernpunten } from '@/components/club/training/coaching/useKernpunten'
 import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en vink
-// af dat je de training gedaan hebt (club_trainingslog). Tik op een oefening
-// voor de bewegende tekening met uitleg.
+// af dat je de training gedaan hebt (club_trainingslog). Onder elke oefening
+// staan de twee belangrijkste kernpunten, zodat je ze ziet tijdens het trainen;
+// tik op een oefening voor de bewegende illustratie met de volledige coaching.
 
 interface Props {
   lidId: string
@@ -30,6 +32,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
   const [gekozen, setGekozen] = useState<number | null>(null)
   const [open, setOpen] = useState<AppOefening | null>(null)
   const sluit = useCallback(() => setOpen(null), [])
+  const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
     return (
       <div className="club-lidapp-tab">
@@ -81,7 +84,7 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
               <span className="club-lidapp-oefening-tekst">
                 <strong>{o.naam}</strong>
                 <span>{voorschrift(o) || 'Volgens je trainer'}</span>
-                {(o.notitie ?? o.aandachtspunten) && <em>{o.notitie ?? o.aandachtspunten}</em>}
+                <OefeningHint notitie={o.notitie} punten={kernpunten[o.naam]} aandachtspunten={o.aandachtspunten} />
               </span>
               <ChevronRight aria-hidden size={18} className="club-lidapp-oefening-pijl" />
             </button>
@@ -120,4 +123,21 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
       {open && <OefeningBlad oefening={open} onSluit={sluit} />}
     </div>
   )
+}
+
+/** Onder een oefening: de notitie van de trainer, anders de eerste twee kernpunten, anders de aandachtspunten. */
+function OefeningHint({ notitie, punten, aandachtspunten }: { notitie: string | null; punten: readonly string[] | undefined; aandachtspunten: string | null }) {
+  if (notitie) return <em>{notitie}</em>
+  if (punten && punten.length > 0) {
+    return (
+      <span className="club-lidapp-kernpunten">
+        {punten.slice(0, 2).map((p, i) => (
+          <span key={i}>
+            <b aria-hidden>{i + 1}</b> {p}
+          </span>
+        ))}
+      </span>
+    )
+  }
+  return aandachtspunten ? <em>{aandachtspunten}</em> : null
 }
