@@ -16,6 +16,9 @@ import { Voortgangskaart } from '@/components/club/voortgang/Voortgangskaart'
 import { AfsprakenVanLid } from '@/components/club/afspraken/AfsprakenVanLid'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { haalPlan } from '@/lib/club/voeding/lezen'
+import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -75,7 +78,12 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const nu = new Date()
   const kaart = await haalLidKaart(t.admin, t.userId, id, nu)
   if (!kaart) notFound()
-  const voortgang = await haalVoortgang(t.admin, t.userId, kaart.lid.id, nu)
+  // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
+  const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
+  const [voortgang, voeding] = await Promise.all([
+    haalVoortgang(t.admin, t.userId, kaart.lid.id, nu),
+    toonVoeding ? haalPlan(t.admin, t.userId, kaart.lid.id) : Promise.resolve(null),
+  ])
   const { lid } = kaart
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
   const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
@@ -87,6 +95,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
       <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
         <a href="#voortgang">Voortgang</a>
+        {toonVoeding && <a href="#voeding">Voeding</a>}
         <a href="#notities">Notities</a>
         <a href="#gegevens">Gegevens</a>
       </nav>
@@ -116,6 +125,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
               nu={nu.toISOString()}
             />
           </div>
+          {toonVoeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
         </div>
         <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
           <Notities lidId={lid.id} notities={kaart.notities} />

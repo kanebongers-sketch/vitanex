@@ -1,0 +1,150 @@
+/* ─── Club: voeding ──────────────────────────────────────────────────────────
+   Het dagdoel als groot condensed getal met een verdeelbalk eronder: eiwit in
+   de merkkleur, koolhydraten en vet in afgeleide tinten (geen nieuwe kleuren).
+   Editor: links het plan, rechts de rekenhulp als rustig zijpaneel.
+   Alleen .club-voeding-*. Kleuren via variabelen; donker en licht thema. */
+
+.club-voeding {
+  --club-voeding-eiwit: var(--brand);
+  --club-voeding-kh: color-mix(in srgb, var(--brand) 45%, var(--text-3));
+  --club-voeding-vet: color-mix(in srgb, var(--text-3) 70%, transparent);
+}
+
+/* ── Dagdoel en verdeling ─────────────────────────────────────────────────── */
+.club-voeding-bord { display: grid; gap: 14px; }
+.club-voeding-kcal { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.club-voeding-kcal strong { font-family: var(--ff-kop); font-size: clamp(44px, 5vw, 64px); line-height: 0.9; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.club-voeding-kcal span { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-3); }
+.club-voeding-bord--compact .club-voeding-kcal strong { font-size: 40px; }
+
+.club-voeding-balk { display: flex; gap: 3px; height: 10px; border-radius: 999px; overflow: hidden; background: var(--line); }
+.club-voeding-balk span { display: block; height: 100%; min-width: 4px; }
+.club-voeding-balk .is-eiwit, .club-voeding-macro.is-eiwit::before { background: var(--club-voeding-eiwit); }
+.club-voeding-balk .is-kh, .club-voeding-macro.is-kh::before { background: var(--club-voeding-kh); }
+.club-voeding-balk .is-vet, .club-voeding-macro.is-vet::before { background: var(--club-voeding-vet); }
+
+.club-voeding-macros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); }
+.club-voeding-macro { position: relative; padding: 12px 10px 4px 14px; border-left: 1px solid var(--line); }
+.club-voeding-macro:first-child { border-left: 0; padding-left: 14px; }
+.club-voeding-macro::before { content: ''; position: absolute; left: 0; top: 16px; width: 6px; height: 6px; border-radius: 999px; }
+.club-voeding-macro:not(:first-child)::before { left: 10px; }
+.club-voeding-macro:not(:first-child) { padding-left: 24px; }
+.club-voeding-macro dt { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-voeding-macro dd { margin: 4px 0 0; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.club-voeding-macro dd strong { font-family: var(--ff-kop); font-size: 28px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-voeding-macro dd small { font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+@media (max-width: 420px) {
+  .club-voeding-macro dd strong { font-size: 22px; }
+  .club-voeding-macro, .club-voeding-macro:not(:first-child) { padding-left: 16px; }
+  .club-voeding-macro:not(:first-child)::before { left: 6px; }
+}
+
+/* ── Adviezen en dagindeling (weergave) ───────────────────────────────────── */
+.club-voeding-subkop { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-voeding-adviezen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: advies; }
+.club-voeding-adviezen li { counter-increment: advies; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: baseline; line-height: 1.45; overflow-wrap: anywhere; }
+.club-voeding-adviezen li::before { content: counter(advies); font-family: var(--ff-kop); font-weight: 700; font-size: 16px; color: var(--brand-tekst, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-voeding-dag { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-voeding-dag li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.club-voeding-dag li:last-child { border-bottom: 0; }
+.club-voeding-dag time, .club-voeding-dag .is-geen-tijd { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-voeding-dag strong { font-weight: 600; }
+.club-voeding-dag p { grid-column: 2; margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-line; }
+.club-voeding-disclaimer { margin: 0; padding: 10px 12px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); font-size: 12.5px; line-height: 1.5; color: var(--text-3); }
+
+/* ── Ledenkaart ───────────────────────────────────────────────────────────── */
+.club-voeding-kaart { display: grid; gap: 16px; }
+.club-voeding-kaart-raster { display: grid; gap: 18px; }
+@media (min-width: 900px) { .club-voeding-kaart-raster { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; } }
+.club-voeding-meta { font-size: 12.5px; color: var(--text-3); }
+
+/* ── Overzicht ────────────────────────────────────────────────────────────── */
+.club-voeding-tabs { margin-top: 4px; }
+.club-voeding-werkvlak { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 1100px) { .club-voeding-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(380px, 520px); gap: 44px; } }
+.club-voeding-lijst { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-voeding-regel {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 14px 8px;
+  border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; border-radius: var(--club-radius-klein);
+  transition: background-color 160ms var(--ease);
+}
+.club-voeding-lijst li:last-child .club-voeding-regel { border-bottom: 0; }
+.club-voeding-regel:hover { background: var(--club-vlak-hover); }
+.club-voeding-regel[aria-current='true'] { background: var(--club-vlak); box-shadow: inset 3px 0 0 var(--brand); }
+.club-voeding-regel-titel { font-size: 15.5px; font-weight: 600; overflow-wrap: anywhere; }
+.club-voeding-regel-sub { display: block; margin-top: 3px; font-size: 13px; color: var(--text-3); overflow-wrap: anywhere; }
+.club-voeding-regel-kcal { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.club-voeding-regel-kcal small { display: block; font-size: 11px; letter-spacing: 0.14em; color: var(--text-3); }
+.club-voeding-regel-kcal.is-tekst { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-voeding-regel .club-voeding-balk { grid-column: 1 / -1; height: 4px; margin-top: 6px; }
+.club-voeding-zoek { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+.club-voeding-zoek .club-invoer { flex: 1 1 220px; }
+.club-voeding-groepkop { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; padding-bottom: 8px; border-bottom: 2px solid var(--brand); font-family: var(--ff-kop); font-size: clamp(20px, 2.2vw, 26px); line-height: 1; font-weight: 700; text-transform: uppercase; }
+.club-voeding-groepkop span { font-size: 14px; letter-spacing: 0.1em; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-voeding-kolom { display: grid; gap: 28px; min-width: 0; }
+
+/* ── Editor ───────────────────────────────────────────────────────────────── */
+.club-voeding-editor { display: grid; gap: 24px; align-items: start; }
+@media (min-width: 1100px) { .club-voeding-editor { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap: 36px; } }
+.club-voeding-editor-plan { display: grid; gap: 18px; min-width: 0; }
+.club-voeding-zij { display: grid; gap: 18px; min-width: 0; }
+@media (min-width: 1100px) { .club-voeding-zij { position: sticky; top: 88px; } }
+.club-voeding-blok { display: grid; gap: 14px; }
+.club-voeding-blok > h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-voeding-velden { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.club-voeding-eenheid { position: relative; }
+.club-voeding-eenheid .club-invoer { padding-right: 44px; font-variant-numeric: tabular-nums; }
+.club-voeding-eenheid em { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 12.5px; color: var(--text-3); pointer-events: none; }
+.club-voeding-hint { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+.club-voeding-hint--let-op { color: var(--club-let-op); }
+
+.club-voeding-regels { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-voeding-regels li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.club-voeding-maaltijd { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
+.club-voeding-maaltijd textarea.club-invoer { grid-column: 1 / 3; min-height: 64px; }
+.club-voeding-maaltijd .club-voeding-tijd { grid-column: 1; }
+@media (max-width: 520px) { .club-voeding-maaltijd { grid-template-columns: 90px minmax(0, 1fr) auto; } }
+.club-voeding-weg { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: transparent; color: var(--text-3); cursor: pointer; transition: color 150ms var(--ease), border-color 150ms var(--ease); }
+.club-voeding-weg:hover { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 50%, var(--line)); }
+.club-voeding-snel { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-voeding-snel button { border: 1px dashed var(--line-strong); background: transparent; color: var(--text-2); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; transition: border-color 150ms var(--ease), color 150ms var(--ease); }
+.club-voeding-snel button:hover { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); }
+
+.club-voeding-reken { display: grid; gap: 14px; }
+.club-voeding-reken-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.club-voeding-reken-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.club-voeding-keuzes { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
+.club-voeding-keuzes legend { margin-bottom: 6px; padding: 0; }
+.club-voeding-keuzes label { position: relative; }
+.club-voeding-keuzes input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.club-voeding-keuzes span { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13.5px; color: var(--text-2); transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease); }
+.club-voeding-keuzes input:checked + span { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 60%, transparent); color: var(--brand-tekst, var(--brand)); }
+.club-voeding-keuzes input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-voeding-uitkomst { display: grid; gap: 6px; padding: 14px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
+.club-voeding-uitkomst dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; font-size: 13.5px; }
+.club-voeding-uitkomst dt { color: var(--text-3); }
+.club-voeding-uitkomst dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); }
+.club-voeding-uitkomst .is-totaal { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; color: var(--text-1); }
+.club-voeding-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-app select.club-invoer.club-voeding-kies { flex: 1 1 200px; width: auto; }
+.club-voeding-melding:empty { display: none; }
+.club-voeding-melding .club-melding { margin: 0; }
+
+/* ── Ledenapp ─────────────────────────────────────────────────────────────── */
+.club-voeding-app { display: grid; gap: 18px; }
+.club-voeding-app-blok { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line); }
+.club-voeding-app-doel { font-size: 13px; color: var(--text-3); }
+.club-voeding-app-rij { display: grid; gap: 6px; }
+.club-voeding-app-rij-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.club-voeding-app-rij-kop span:first-child { font-weight: 600; }
+.club-voeding-app-rij-kop span:last-child { font-variant-numeric: tabular-nums; color: var(--text-2); }
+.club-voeding-app-spoor { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.club-voeding-app-spoor span { display: block; height: 100%; border-radius: inherit; transform-origin: left; }
+.club-voeding-app-spoor .is-eiwit { background: var(--club-voeding-eiwit); }
+.club-voeding-app-spoor .is-kh { background: var(--club-voeding-kh); }
+.club-voeding-app-spoor .is-vet { background: var(--club-voeding-vet); }
+@media (prefers-reduced-motion: no-preference) {
+  .club-voeding-app-spoor span { animation: club-voeding-groei 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+}
+@keyframes club-voeding-groei { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.club-voeding-app-leeg { margin: 0; color: var(--text-3); line-height: 1.5; }

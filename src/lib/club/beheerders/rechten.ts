@@ -64,6 +64,7 @@ const API_ONDERDEEL: Record<string, string> = {
   automatisering: 'opvolgen',
   challenges: 'challenges',
   rapporten: 'rapporten',
+  voeding: 'voeding',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

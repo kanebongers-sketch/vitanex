@@ -44,6 +44,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel' },
   { sleutel: 'agenda', pad: '/agenda', label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week', groep: 'planning' },
   { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training' },
+  { sleutel: 'voeding', pad: '/voeding', label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid', groep: 'coaching' },
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
   { sleutel: 'rapporten', pad: '/rapporten', label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren', groep: 'beheer' },
   { sleutel: 'beheer', pad: '/beheer', label: 'Instellingencentrum', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer' },

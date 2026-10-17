@@ -23,6 +23,9 @@ import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
 import { LedenappChallenges } from '@/components/club/challenges/LedenappChallenges'
+import { haalPlan } from '@/lib/club/voeding/lezen'
+import { planVoorLid } from '@/lib/club/voeding/model'
+import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
 // Kies een (demo)lid; tabblad en lid staan in de URL.
@@ -40,7 +43,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
     ...appInstellingen.tabsUit,
     ...(t.organisatie.uit.includes('afspraken') ? ['afspraken'] : []),
     ...(t.organisatie.uit.includes('rooster') ? ['lessen'] : []),
-    ...(t.organisatie.uit.includes('training') ? ['schema'] : []),
+    ...(t.organisatie.uit.includes('training') ? ['schema', 'voeding'] : []),
   ]
   const gekozenTab = kiesTab(zoek.tab)
   // Een tabblad dat uit staat bestaat niet: dan Home.
@@ -89,6 +92,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
   const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(t.admin, t.userId, lid.id, nu)) : null
   const challenges = tab === 'voortgang' ? await haalLedenappChallenges(t.admin, t.userId, lid, nu) : null
+  const voedingPlan = tab === 'voeding' ? await haalPlan(t.admin, t.userId, lid.id) : undefined
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>
@@ -116,6 +120,11 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {tab === 'voeding' && (
+            <div className="club-lidapp-tab">
+              <LedenappVoeding plan={voedingPlan ? planVoorLid(voedingPlan) : null} />
+            </div>
+          )}
           {tab === 'afspraken' && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Afspraken</h2>
