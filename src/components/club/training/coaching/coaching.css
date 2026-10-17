@@ -93,3 +93,35 @@
 @media (prefers-reduced-motion: reduce) {
   .club-speler-knop { transition: none; }
 }
+
+/* ── Coaching aanpassen ──────────────────────────────────────────────────── */
+.club-coach-bewerk { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: -8px; }
+.club-coach-editor { display: grid; gap: 22px; container-type: inline-size; }
+.club-coach-editor-groep { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.club-coach-editor-groep > legend { margin-bottom: 6px; padding: 0; }
+.club-coach-editor-groep > .club-hint { margin: -4px 0 2px; }
+.club-coach-editor-groep > .club-knop { justify-self: start; }
+.club-coach-editor-paar, .club-coach-editor-zin { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.club-coach-editor-paar { grid-template-columns: auto minmax(0, 1fr) auto; }
+.club-coach-editor-paar > textarea { grid-column: 2; resize: vertical; min-height: 44px; line-height: 1.45; }
+.club-coach-editor-paar > .club-knop { grid-column: 3; grid-row: 1; }
+@container (min-width: 560px) {
+  .club-coach-editor-paar { grid-template-columns: auto minmax(0, 0.8fr) minmax(0, 1.6fr) auto; }
+  .club-coach-editor-paar > textarea { grid-column: 3; grid-row: 1; }
+  .club-coach-editor-paar > .club-knop { grid-column: 4; }
+}
+.club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > input:first-of-type { grid-column: 1 / 3; }
+@container (min-width: 560px) { .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > input:first-of-type { grid-column: 1 / 3; } }
+.club-coach-editor-nummer { display: grid; place-items: center; width: 28px; height: 40px; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; color: var(--brand); }
+.club-coach-editor-zin textarea { resize: vertical; min-height: 44px; line-height: 1.45; }
+.club-coach-editor-zin:not(:has(.club-coach-editor-nummer)) > textarea { grid-column: 1 / 3; }
+.club-coach-editor-raster { display: grid; gap: 12px; }
+@container (min-width: 560px) { .club-coach-editor-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.club-coach-editor-paar > .club-knop, .club-coach-editor-zin > .club-knop { width: 40px; min-height: 40px; height: 40px; padding: 0; }
+.club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > textarea { grid-column: 1 / 3; }
+@container (min-width: 560px) {
+  .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) auto; }
+  .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > input:first-of-type { grid-column: 1; }
+  .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > textarea { grid-column: 2; grid-row: 1; }
+  .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > .club-knop { grid-column: 3; }
+}
