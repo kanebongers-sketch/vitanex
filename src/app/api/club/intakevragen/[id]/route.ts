@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
-import { alsAntwoord, leesJson } from '@/lib/club/rooster/api'
+import { alsAntwoord } from '@/lib/club/rooster/api'
+import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { isVraagId } from '@/lib/club/intakevragen/invoer'
 import { verwijderVraag, wijzigVraag } from '@/lib/club/intakevragen/opslag'
 
@@ -15,7 +16,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (t instanceof NextResponse) return t
   const { id } = await params
   if (!isVraagId(id)) return clubFout(ONBEKEND, 404)
-  return alsAntwoord(await wijzigVraag(t, id, await leesJson(req)))
+  const b = await leesJsonOfTeGroot(req, 16_000)
+  if (b instanceof NextResponse) return b
+  return alsAntwoord(await wijzigVraag(t, id, b.body))
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

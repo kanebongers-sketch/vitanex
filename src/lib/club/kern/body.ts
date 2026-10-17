@@ -2,7 +2,8 @@
 // Leest nooit meer dan `maxBytes`: een te grote body wordt geweigerd voordat
 // hij helemaal in het geheugen staat. 'te-groot' = weigeren met 413.
 
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { GEEN_CACHE } from '@/lib/lifeos/leads/toegang'
 
 export async function leesJsonBegrensd(req: NextRequest, maxBytes: number): Promise<unknown | 'te-groot'> {
   const lengte = Number(req.headers.get('content-length') ?? NaN)
@@ -14,4 +15,11 @@ export async function leesJsonBegrensd(req: NextRequest, maxBytes: number): Prom
   } catch {
     return null
   }
+}
+
+/** Zoals leesJsonBegrensd, maar een te grote body wordt meteen een 413-antwoord. */
+export async function leesJsonOfTeGroot(req: NextRequest, maxBytes: number): Promise<{ body: unknown } | NextResponse> {
+  const body = await leesJsonBegrensd(req, maxBytes)
+  if (body === 'te-groot') return NextResponse.json({ fout: 'Het verzoek is te groot.' }, { status: 413, headers: GEEN_CACHE })
+  return { body }
 }

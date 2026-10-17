@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { leesIntake } from '@/lib/club/training/intake'
 import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
@@ -14,7 +15,9 @@ export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
 
-  const body: unknown = await req.json().catch(() => null)
+  const gelezen = await leesJsonOfTeGroot(req, 64_000)
+  if (gelezen instanceof NextResponse) return gelezen
+  const body = gelezen.body
   const vragen = await haalIntakeVragen(t.admin, t.userId)
   if (!vragen) return clubFout('De intakevragen konden niet worden gelezen. Probeer het opnieuw.', 500)
   const invoer = leesIntake(body, dagSleutelNl(new Date()), vragen.vragen)

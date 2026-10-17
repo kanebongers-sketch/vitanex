@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
-import { alsAntwoord, leesJson } from '@/lib/club/rooster/api'
+import { alsAntwoord } from '@/lib/club/rooster/api'
 import { isUuid } from '@/lib/club/rooster/invoer'
+import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { leesLidId } from '@/lib/club/challenges/invoer'
 import { schrijfIn, schrijfUit } from '@/lib/club/challenges/opslag'
 
@@ -14,7 +15,9 @@ async function lees(req: NextRequest, params: Promise<{ id: string }>) {
   if (t instanceof NextResponse) return t
   const { id } = await params
   if (!isUuid(id)) return clubFout('Deze challenge bestaat niet.', 404)
-  const lid = leesLidId(await leesJson(req))
+  const b = await leesJsonOfTeGroot(req, 1_000)
+  if (b instanceof NextResponse) return b
+  const lid = leesLidId(b.body)
   if (!lid.ok) return clubFout(lid.fout, 400)
   return { t, id, lidId: lid.waarde }
 }

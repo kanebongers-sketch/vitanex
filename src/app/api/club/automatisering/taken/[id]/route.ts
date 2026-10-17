@@ -3,6 +3,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { REGEL_DEFINITIES, isUuid } from '@/lib/club/automatisering/regels'
 import { actieNaarWijziging, leesTaakActie } from '@/lib/club/automatisering/taken'
 import { werkTaakBij } from '@/lib/club/automatisering/opslag'
@@ -13,7 +14,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params
   if (!isUuid(id)) return clubFout('Deze taak bestaat niet.', 404)
 
-  const invoer = leesTaakActie(await req.json().catch(() => null))
+  const b = await leesJsonOfTeGroot(req, 2_000)
+  if (b instanceof NextResponse) return b
+  const invoer = leesTaakActie(b.body)
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const uit = await werkTaakBij(t.admin, t.userId, id, actieNaarWijziging(invoer.waarde, t.naam, new Date()))
   if (uit.soort === 'niet_gevonden') return clubFout('Deze taak bestaat niet (meer).', 404)
