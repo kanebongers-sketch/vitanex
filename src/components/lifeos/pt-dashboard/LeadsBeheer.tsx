@@ -189,8 +189,8 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
         </ul>
       )}
       <p className="ptd-hint">
-        Leads met &quot;Geen interesse&quot; die 12 maanden niet zijn bijgewerkt, worden automatisch verwijderd (AVG: niet langer
-        bewaren dan nodig).
+        Leads met &quot;Geen interesse&quot; of &quot;Geen klant geworden&quot; waar 12 maanden niets mee is gedaan, worden automatisch
+        verwijderd (AVG: niet langer bewaren dan nodig).
       </p>
     </section>
   )

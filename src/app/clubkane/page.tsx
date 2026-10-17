@@ -9,6 +9,12 @@ import { LeadsOpvolgen } from '@/components/club/vandaag/Opvolgen'
 import { RisicoLeden } from '@/components/club/vandaag/RisicoLeden'
 import { TakenVandaag, WieWerkt } from '@/components/club/vandaag/Werkvloer'
 import { JarigVandaag, NieuwDezeWeek } from '@/components/club/vandaag/NieuwEnJarig'
+import { AgendaVandaag, OverdrachtVandaag } from '@/components/club/vandaag/AgendaEnOverdracht'
+import { haalAgendaWeek } from '@/lib/club/agenda/data'
+import { perDag } from '@/lib/club/agenda/model'
+import { haalKladblok } from '@/lib/club/kladblok/data'
+import { overdrachtVoorVandaag } from '@/lib/club/kladblok/model'
+import { maandagVan } from '@/lib/club/rooster/tijd'
 import '@/components/club/vandaag/vandaag.css'
 
 // Vandaag: het eerste scherm van de clubsoftware. Wat er nu speelt in de
@@ -20,6 +26,11 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const t = await eisClubToegang()
   const vestiging = kiesVestiging((await searchParams).v)
   const data = await haalVandaag(t.admin, t.userId, vestiging)
+  // Agenda en overdracht naast de rest; een fout hier breekt het scherm niet (null = melding in het blok).
+  const maandag = maandagVan(data.vandaag)
+  const [week, kladblok] = await Promise.all([haalAgendaWeek(t.admin, t.userId, vestiging, maandag), haalKladblok(t.admin, t.userId, vestiging)])
+  const agendaVandaag = week ? (perDag(week, maandag).find((d) => d.datum === data.vandaag)?.items ?? []) : null
+  const overdracht = kladblok ? overdrachtVoorVandaag(kladblok, data.nu) : null
   const [weekdag, ...rest] = dagLang(data.vandaag).split(' ')
   return (
     <>
@@ -49,6 +60,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </div>
         <div className="club-k5 club-vandaag-stapel">
           <WieWerkt diensten={data.werkvloer.diensten} vestiging={vestiging} />
+          <OverdrachtVandaag notities={overdracht} vestiging={vestiging} />
+          <AgendaVandaag items={agendaVandaag} vestiging={vestiging} />
           <TakenVandaag stand={data.werkvloer.taken} heeftTaken={data.werkvloer.heeftTaken} vestiging={vestiging} />
         </div>
         <div className="club-k7">

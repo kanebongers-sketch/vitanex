@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { CalendarClock, Plus } from 'lucide-react'
-import { STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
+import { STAP_LABEL, STATUS_LABEL, vergelijkLeads, type Lead } from '@/lib/lifeos/leads/leads'
 import { ABONNEMENT, eindeVastePeriode } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import type { PtOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
-import { dagKort, relatief } from '@/lib/lifeos/pt-dashboard/datum'
+import { dagKort, geleden, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { funnel, weekReeks } from '@/lib/lifeos/pt-dashboard/analyse'
 import type { DoelenWeergave } from '@/lib/lifeos/pt-dashboard/doelen'
 import { Tegel } from './Tegel'
@@ -26,7 +26,8 @@ interface Props {
 }
 
 export function Overzicht({ code, vandaag, o, leads, doelen }: Props) {
-  const opvolgen = [...o.teLaat, ...o.vandaag]
+  // Te laat eerst, dan vandaag op tijd ("bel 10:00" vóór "bel 16:00").
+  const opvolgen = [...o.teLaat, ...o.vandaag].sort(vergelijkLeads(vandaag))
   const leeg = o.leads.totaal === 0 && o.klanten.lopend === 0
   return (
     <>
@@ -122,6 +123,8 @@ export function Overzicht({ code, vandaag, o, leads, doelen }: Props) {
 
 function OpvolgRij({ code, lead: l, vandaag }: { code: string; lead: Lead; vandaag: string }) {
   const teLaat = l.opvolgdatum !== null && l.opvolgdatum < vandaag
+  // Het laatste contactmoment zegt meer dan de vaste notitie: "gebeld, voicemail".
+  const laatste = l.logboek?.[0]
   return (
     <li className="ptd-rij">
       <div className="ptd-rij-kop">
@@ -133,11 +136,15 @@ function OpvolgRij({ code, lead: l, vandaag }: { code: string; lead: Lead; vanda
           <span className={teLaat ? 'ptd-badge ptd-badge--let-op' : 'ptd-badge ptd-badge--accent'}>
             <CalendarClock size={13} aria-hidden />
             {l.volgendeStap ? STAP_LABEL[l.volgendeStap] : 'Opvolgen'}
-            {l.opvolgdatum ? ` · ${relatief(l.opvolgdatum, vandaag)}` : ''}
+            {l.opvolgdatum ? ` · ${relatief(l.opvolgdatum, vandaag)}${l.opvolgtijd ? ` ${l.opvolgtijd}` : ''}` : ''}
           </span>
         </div>
       ) : null}
-      {l.notitie ? <p className="ptd-tekst ptd-kort">{l.notitie}</p> : null}
+      {laatste ? (
+        <p className="ptd-tekst ptd-kort">{geleden(laatste.datum, vandaag)}{laatste.door ? ` · ${laatste.door}` : ''}: {laatste.tekst}</p>
+      ) : l.notitie ? (
+        <p className="ptd-tekst ptd-kort">{l.notitie}</p>
+      ) : null}
       <div className="ptd-acties ptd-acties--rij">
         <ContactActies contact={l.contact} naam={l.naam} />
         <Link className="ptd-knop ptd-knop--klein" href={`/${code}/lead?open=${l.id}#lead-${l.id}`}>Bijwerken</Link>

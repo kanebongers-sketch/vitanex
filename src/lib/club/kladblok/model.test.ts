@@ -50,3 +50,16 @@ describe('lijst', () => {
     expect(leesKladAntwoord({ notitie: n() })).toEqual(n())
   })
 })
+
+test('overdrachtVoorVandaag: map overdracht, vastgepind of recent, niet gearchiveerd', async () => {
+  const { overdrachtVoorVandaag } = await import('./model')
+  const nu = new Date('2026-10-17T12:00:00Z')
+  const lijst = [
+    n({ id: 'recent', bijgewerktOp: '2026-10-16T08:00:00Z' }),
+    n({ id: 'oud', bijgewerktOp: '2026-10-01T08:00:00Z' }),
+    n({ id: 'pin-oud', vastgepind: true, bijgewerktOp: '2026-09-01T08:00:00Z' }),
+    n({ id: 'kennis', map: 'kennis', bijgewerktOp: '2026-10-16T09:00:00Z' }),
+    n({ id: 'archief', gearchiveerd: true, bijgewerktOp: '2026-10-16T09:00:00Z' }),
+  ]
+  expect(overdrachtVoorVandaag(lijst, nu).map((x) => x.id)).toEqual(['pin-oud', 'recent'])
+})

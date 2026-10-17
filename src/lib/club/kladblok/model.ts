@@ -149,3 +149,19 @@ export function voorproef(inhoud: string, max = 140): string {
   const t = inhoud.replace(/\s+/g, ' ').trim()
   return t.length > max ? `${t.slice(0, max - 1)}…` : t
 }
+
+/** Zoveel dagen blijft een overdrachtsnotitie op Vandaag staan (vastgepind: altijd). */
+export const OVERDRACHT_DAGEN = 3
+
+/**
+ * De overdracht voor het Vandaag-scherm: niet-gearchiveerde notities in de map
+ * Overdracht die vastgepind zijn of in de laatste drie dagen zijn bijgewerkt.
+ * Vastgepind eerst, dan nieuwste; maximaal `max`.
+ */
+export function overdrachtVoorVandaag(notities: readonly KladNotitie[], nu: Date, max = 4): KladNotitie[] {
+  const grens = nu.getTime() - OVERDRACHT_DAGEN * 86_400_000
+  return notities
+    .filter((n) => n.map === 'overdracht' && !n.gearchiveerd && (n.vastgepind || Date.parse(n.bijgewerktOp) >= grens))
+    .sort(sorteerKlad)
+    .slice(0, max)
+}
