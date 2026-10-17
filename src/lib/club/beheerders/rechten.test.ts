@@ -22,7 +22,7 @@ describe('toegestaneOnderdelen', () => {
     expect(toegestaneOnderdelen(EIGENAAR, rechten)).toBeNull()
   })
   it('beheer en huisstijl nooit voor een clubmanager, ook niet als ze opgeslagen zijn', () => {
-    const t = toegestaneOnderdelen(MANAGER, { ...standaardRechten(), manager: ['leden', 'beheer', 'huisstijl'] })
+    const t = toegestaneOnderdelen(MANAGER, { ...standaardRechten(), manager: ['leden', 'beheer', 'huisstijl', 'bedrijf', 'sluiting'] })
     expect(t).toEqual(['vandaag', 'leden'])
   })
   it('clubmanager: de rechten van de rol Clubmanager, altijd met Vandaag', () => {
@@ -37,13 +37,17 @@ describe('toegestaneOnderdelen', () => {
 describe('apiOnderdeel', () => {
   it('koppelt API-paden aan onderdelen die echt bestaan', () => {
     const sleutels = new Set(ONDERDELEN.map((o) => o.sleutel))
-    for (const pad of ['/api/club/leden/1', '/api/club/kladblok', '/api/club/training/schemas', '/api/club/vestigingen', '/api/club/organisatie', '/api/club/organisatie/instellingen']) {
+    for (const pad of ['/api/club/leden/1', '/api/club/berichten', '/api/club/bedrijf', '/api/club/sluiting', '/api/club/kladblok', '/api/club/training/schemas', '/api/club/vestigingen', '/api/club/organisatie', '/api/club/organisatie/instellingen']) {
       const sleutel = apiOnderdeel(pad)
       expect(sleutel, pad).not.toBeNull()
       expect(sleutels.has(sleutel ?? '')).toBe(true)
     }
     expect(apiOnderdeel('/api/club/kladblok')).toBe('notities')
     expect(apiOnderdeel('/api/club/training/x')).toBe('schemas')
+    expect(apiOnderdeel('/api/club/voortgang/1')).toBe('leden')
+    expect(apiOnderdeel('/api/club/berichten')).toBe('berichten')
+    expect(apiOnderdeel('/api/club/sluiting/feestdagen')).toBe('sluiting')
+    expect(apiOnderdeel('/api/club/bedrijf')).toBe('bedrijf')
   })
   it('beheerders, adres, wisselen en nieuwe sportschool horen bij geen onderdeel', () => {
     for (const pad of ['/api/club/beheerders', '/api/club/organisatie/adres', '/api/club/organisatie/wissel', '/api/club/organisatie/nieuw', '/api/club/onbekend']) {
@@ -64,6 +68,8 @@ describe('magApi', () => {
     expect(magApi(manager, '/api/club/organisatie/adres', 'PATCH')).toBe(false)
     expect(magApi(manager, '/api/club/organisatie/instellingen', 'PATCH')).toBe(false)
     expect(magApi(manager, '/api/club/iets-nieuws', 'GET')).toBe(false)
+    expect(magApi(manager, '/api/club/sluiting', 'POST')).toBe(false)
+    expect(magApi(manager, '/api/club/voortgang', 'POST')).toBe(true)
   })
   it('het logo ophalen mag altijd (de balk toont het), uploaden niet', () => {
     expect(magApi(manager, '/api/club/organisatie/logo', 'GET')).toBe(true)
