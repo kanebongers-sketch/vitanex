@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Upload } from 'lucide-react'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLedenRijen } from '@/lib/club/leden/data'
 import { filterKeuzes, filterRijen, heeftFilter, leesLijstParams, pagineer, sorteerRijen, telTegels } from '@/lib/club/leden/lijst'
@@ -25,7 +27,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   if (!rijen) {
     return (
       <>
-        <LedenKop vestiging={VESTIGING_LABEL[vestiging]} totaal={null} />
+        <LedenKop vestiging={vestiging} totaal={null} />
         <p className="club-melding club-melding--fout" role="alert">De leden konden niet worden geladen. Ververs de pagina of probeer het zo nog eens.</p>
       </>
     )
@@ -35,7 +37,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   const keuzes = filterKeuzes(rijen)
   return (
     <>
-      <LedenKop vestiging={VESTIGING_LABEL[vestiging]} totaal={rijen.length} />
+      <LedenKop vestiging={vestiging} totaal={rijen.length} />
       <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
@@ -49,16 +51,19 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   )
 }
 
-function LedenKop({ vestiging, totaal }: { vestiging: string; totaal: number | null }) {
+function LedenKop({ vestiging, totaal }: { vestiging: Vestiging; totaal: number | null }) {
   return (
     <header className="club-paginakop">
       <div>
-        <p className="club-boventitel">{vestiging}</p>
+        <p className="club-boventitel">{VESTIGING_LABEL[vestiging]}</p>
         <h1>Leden</h1>
         <p>
           {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in Sportivity.
         </p>
       </div>
+      <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
+        <Upload size={16} aria-hidden /> Ledenbestand inlezen
+      </Link>
     </header>
   )
 }
