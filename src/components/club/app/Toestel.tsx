@@ -30,10 +30,12 @@ interface Props {
   /** Logo van de sportschool bovenaan de app (URL), of het ingebouwde Fit Factory-logo. */
   merkLogo?: string | null
   fitFactory?: boolean
+  /** Tabbladen die de sportschool heeft uitgezet. */
+  tabsUit?: readonly string[]
   children: ReactNode
 }
 
-export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory = false, children }: Props) {
+export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory = false, tabsUit = [], children }: Props) {
   return (
     <div className="club-lidapp-toestel">
       <div className="club-lidapp-scherm">
@@ -49,7 +51,7 @@ export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory
           {children}
         </div>
         <nav className="club-lidapp-tabs" aria-label="Ledenapp">
-          {APP_TABS.map(({ sleutel, label, Icoon }) => (
+          {APP_TABS.filter((t) => !tabsUit.includes(t.sleutel)).map(({ sleutel, label, Icoon }) => (
             <Link key={sleutel} href={tabPad(sleutel)} aria-current={sleutel === tab ? 'page' : undefined} scroll={false}>
               <Icoon aria-hidden size={20} />
               <span>{label}</span>

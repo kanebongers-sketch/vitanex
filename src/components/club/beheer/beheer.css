@@ -1,0 +1,59 @@
+/* ─── Club: instellingencentrum ───────────────────────────────────────────────
+   Editoriaal: een grote kop met de sportschool, daaronder groepen als strakke
+   lijsten (geen kaartenraster). Elke regel: wat, de stand, en een pijl.
+   Op brede schermen twee kolommen groepen. Alleen .club-beheer-*. */
+
+.club-beheer-kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.club-beheer-kopinhoud { display: grid; gap: 6px; min-width: 0; }
+.club-beheer-kop h1 { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 4.4vw, 56px); line-height: 0.95; font-weight: 700; text-transform: uppercase; }
+.club-beheer-stip { width: 18px; height: 18px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
+.club-beheer-adres { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: var(--text-2); }
+.club-beheer-adres svg { color: var(--brand-tekst, var(--brand)); }
+.club-beheer-modules { margin: 0; color: var(--text-3); font-size: 13px; }
+
+.club-beheer-groepen { display: grid; gap: 28px 40px; margin-top: 28px; }
+@media (min-width: 1100px) { .club-beheer-groepen { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.club-beheer-groep { display: grid; gap: 10px; min-width: 0; }
+.club-beheer-groepkop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-beheer-lijst { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
+.club-beheer-lijst li + li { border-top: 1px solid var(--line); }
+.club-beheer-regel {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; align-items: center; gap: 14px; padding: 16px 18px;
+  color: var(--text-1); text-decoration: none; transition: background-color 160ms var(--ease);
+}
+a.club-beheer-regel:hover { background: var(--club-vlak-hover); }
+a.club-beheer-regel:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.club-beheer-regel.is-uit { opacity: 0.55; }
+.club-beheer-tekst { display: grid; gap: 3px; min-width: 0; }
+.club-beheer-tekst strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-beheer-tekst span { color: var(--text-3); font-size: 13.5px; line-height: 1.4; }
+.club-beheer-stand { justify-self: end; max-width: 220px; text-align: right; color: var(--text-2); font-size: 13.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.club-beheer-stand.is-let { color: var(--club-let-op); font-weight: 600; }
+.club-beheer-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
+a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
+@media (max-width: 560px) {
+  .club-beheer-regel { grid-template-columns: minmax(0, 1fr) 18px; }
+  .club-beheer-stand { grid-column: 1; grid-row: 2; justify-self: start; text-align: left; max-width: none; }
+  .club-beheer-pijl { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* ── Formulieren (ledenapp, rechten) ─────────────────────────────────────── */
+.club-beheer-formulier { display: grid; gap: 22px; max-width: 760px; margin-top: 20px; }
+.club-beheer-keuzes { display: grid; gap: 8px; }
+.club-beheer-keuze { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-card); cursor: pointer; }
+.club-beheer-keuze input { width: 18px; height: 18px; accent-color: var(--brand); }
+.club-beheer-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.club-beheer-acties .club-melding { margin: 0; flex: 1 1 240px; }
+
+.club-beheer-matrix-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-beheer-matrix { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px; }
+.club-beheer-matrix th, .club-beheer-matrix td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: center; }
+.club-beheer-matrix thead th { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); position: sticky; top: 0; background: var(--bg-card); }
+.club-beheer-matrix tbody th { text-align: left; font-weight: 600; }
+.club-beheer-matrix tbody th small { display: block; font-weight: 400; color: var(--text-3); font-size: 12.5px; }
+.club-beheer-matrix input { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; }
+.club-beheer-matrix tr:last-child th, .club-beheer-matrix tr:last-child td { border-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-beheer-regel, .club-beheer-pijl { transition: none; }
+}

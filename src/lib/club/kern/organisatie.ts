@@ -5,6 +5,7 @@
 
 import { HEX, THEMAS, type Thema } from './huisstijl'
 import { leesSlug } from './subdomein'
+import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij, type OrgInstellingen } from './org-instellingen'
 
 export const MODULES = ['leden', 'checkin', 'rooster', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] as const
 export type Module = (typeof MODULES)[number]
@@ -37,6 +38,8 @@ export interface Organisatie {
   demo: boolean
   /** Het eigen adres: <slug>.aiyourgym.com, of null als het nog niet gekozen is. */
   slug: string | null
+  /** Ledenapp en rechten per rol (club_organisaties.instellingen). */
+  instellingen: OrgInstellingen
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -78,10 +81,11 @@ export function organisatieUitRij(rij: unknown): Organisatie | null {
     uit: modulesUit(r.modules),
     demo: r.demo === true,
     slug: typeof r.slug === 'string' && leesSlug(r.slug).ok ? r.slug : null,
+    instellingen: orgInstellingenUitRij(r.instellingen, ONDERDEEL_SLEUTELS),
   }
 }
 
-export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, modules, demo, slug'
+export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, modules, demo, slug, instellingen'
 
 /** De cookie waarin staat welke sportschool Kane nu bekijkt. */
 export const ORGANISATIE_COOKIE = 'club-org'

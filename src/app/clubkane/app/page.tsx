@@ -25,7 +25,10 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   const zoek = await searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
-  const tab = kiesTab(zoek.tab)
+  const appInstellingen = t.organisatie.instellingen.ledenapp
+  const gekozenTab = kiesTab(zoek.tab)
+  // Een tabblad dat de sportschool heeft uitgezet bestaat niet: dan Home.
+  const tab = (appInstellingen.tabsUit as readonly string[]).includes(gekozenTab) ? 'home' : gekozenTab
   const [leden, schemas] = await Promise.all([
     zoekLeden(t.admin, t.userId, vestiging, '', 200),
     t.admin.from('club_schemas').select('lid_id').eq('user_id', t.userId).eq('status', 'actief').not('lid_id', 'is', null).limit(1000),
@@ -80,8 +83,9 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           merkNaam={t.organisatie.naam}
           fitFactory={t.organisatie.logo === LOGO_FIT_FACTORY}
           merkLogo={t.organisatie.logo && t.organisatie.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(t.organisatie.logo)}` : null}
+          tabsUit={appInstellingen.tabsUit}
         >
-          {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} />}
+          {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={appInstellingen} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
           {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} />}

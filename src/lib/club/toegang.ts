@@ -16,6 +16,7 @@ import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
 import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { slugUitHost } from '@/lib/club/kern/subdomein'
+import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
 
 export interface ClubToegang {
@@ -55,7 +56,7 @@ async function beheerderCode(admin: SupabaseClient): Promise<string | null> {
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
 function standaardOrganisatie(id: string): Organisatie {
-  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: null }
+  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }
 }
 
 /**
