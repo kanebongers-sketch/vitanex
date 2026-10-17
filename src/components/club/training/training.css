@@ -213,6 +213,7 @@
   .club-training-print { display: block; color: black; font-family: var(--ff-inter), system-ui, sans-serif; font-size: 11pt; }
   .club-training-print header { margin-bottom: 8mm; border-bottom: 2px solid black; padding-bottom: 4mm; }
   .club-training-print header p { margin: 0; }
+  .club-training-print-logo { display: block; max-height: 14mm; max-width: 60mm; object-fit: contain; margin-bottom: 2mm; }
   .club-training-print h1 { margin: 2mm 0; font-family: var(--ff-kop); font-size: 26pt; text-transform: uppercase; line-height: 1; }
   .club-training-print h2 { margin: 6mm 0 2mm; font-family: var(--ff-kop); font-size: 15pt; text-transform: uppercase; }
   .club-training-print section { break-inside: avoid; }

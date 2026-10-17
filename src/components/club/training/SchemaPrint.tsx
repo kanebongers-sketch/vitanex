@@ -31,7 +31,7 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
   return (
     <article className="club-training-print" aria-hidden>
       <header>
-        <p>{merk.naam}</p>
+        {merk.logoUrl ? <img src={merk.logoUrl} alt={merk.naam} className="club-training-print-logo" /> : <p>{merk.naam}</p>}
         <h1>{naam}</h1>
         <p>{[lidNaam, doel ? DOEL_LABEL[doel] : null, weken ? `${weken} weken` : null, trainer ? `Trainer: ${trainer}` : null].filter(Boolean).join(' · ')}</p>
         {notitie && <p className="club-training-print-notitie">{notitie}</p>}
