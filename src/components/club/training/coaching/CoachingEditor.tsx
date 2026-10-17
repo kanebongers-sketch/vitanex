@@ -148,6 +148,12 @@ function PaarLijst({ titel, hint, paren, max, labelA, labelB, maxA, maxB, genumm
     <fieldset className="club-coach-editor-groep">
       <legend className="club-coach-kop">{titel}</legend>
       <p className="club-hint">{hint}</p>
+      {paren.length > 0 && (
+        <div className={`club-coach-editor-koppen${genummerd ? ' is-genummerd' : ''}`} aria-hidden>
+          <span>{labelA}</span>
+          <span>{labelB}</span>
+        </div>
+      )}
       {paren.map((p, i) => (
         <div key={i} className="club-coach-editor-paar">
           {genummerd && <span className="club-coach-editor-nummer" aria-hidden>{i + 1}</span>}

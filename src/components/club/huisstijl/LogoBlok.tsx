@@ -58,7 +58,7 @@ export function LogoBlok({ logoUrl, ingebouwd, naam }: LogoBlokProps) {
   const heeftLogo = ingebouwd || logoUrl !== null
   return (
     <div className="club-huisstijl-logo">
-      <div className="club-huisstijl-logovlak" aria-hidden={!heeftLogo}>
+      <div className="club-huisstijl-logovlak">
         {ingebouwd ? (
           <FfLogo />
         ) : logoUrl ? (

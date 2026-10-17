@@ -34,10 +34,11 @@ const LEEG: Coaching = {
 
 function Laden() {
   return (
-    <div className="club-coach-laden" aria-busy="true" aria-label="Uitleg laden">
-      <span />
-      <span />
-      <span />
+    <div className="club-coach-laden" role="status" aria-busy="true">
+      <span className="club-sr">Uitleg laden</span>
+      <span aria-hidden />
+      <span aria-hidden />
+      <span aria-hidden />
     </div>
   )
 }

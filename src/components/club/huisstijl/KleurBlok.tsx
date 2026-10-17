@@ -64,6 +64,8 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
             <input type="color" value={geldig ? kleur : '#B58E5C'} onChange={(e) => onKleur(e.target.value.toUpperCase())} aria-label="Kleur kiezen" />
             <input
               className="club-invoer"
+              aria-label="Kleurcode"
+              aria-describedby="kleur-melding"
               value={kleur}
               maxLength={7}
               spellCheck={false}
@@ -74,13 +76,15 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
         </label>
       </div>
 
-      {!geldig && <p className="club-melding club-melding--fout" role="alert">Schrijf de kleur als # en zes tekens, bijvoorbeeld #B58E5C.</p>}
-      {getoond?.aangepast && (
-        <p className="club-melding" role="status">
-          Deze kleur valt weg tegen de {thema === 'donker' ? 'donkere' : 'lichte'} achtergrond (contrast {verhouding.toFixed(1)}:1, minimaal {MIN_CONTRAST_ACCENT}:1).
-          In de app gebruiken we daarom <span className="club-huisstijl-code" style={{ color: getoond.kleur }}>{getoond.kleur}</span>, zodat knoppen en lijnen leesbaar blijven.
-        </p>
-      )}
+      <div id="kleur-melding" aria-live="polite">
+        {!geldig && <p className="club-melding club-melding--fout">Schrijf de kleur als # en zes tekens, bijvoorbeeld #B58E5C.</p>}
+        {getoond?.aangepast && (
+          <p className="club-melding">
+            Deze kleur is als tekst niet goed leesbaar op de {thema === 'donker' ? 'donkere' : 'lichte'} achtergrond (contrast {verhouding.toFixed(1)}:1, minimaal {MIN_CONTRAST_ACCENT}:1).
+            In de app gebruiken we daarom <span className="club-huisstijl-code" style={{ color: getoond.kleur }}>{getoond.kleur}</span>: dezelfde tint, iets {thema === 'donker' ? 'lichter' : 'donkerder'}.
+          </p>
+        )}
+      </div>
     </section>
   )
 }

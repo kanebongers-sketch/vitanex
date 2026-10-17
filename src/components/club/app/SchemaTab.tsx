@@ -69,7 +69,12 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
         {schema.dagen.map((d) => (
           <button key={d.dag} type="button" aria-pressed={d.dag === dag.dag} onClick={() => setGekozen(d.dag)}>
             Dag {d.letter}
-            {d.dag === voorstel && <span className="club-lidapp-stip" aria-label="volgende" />}
+            {d.dag === voorstel && (
+              <>
+                <span className="club-lidapp-stip" aria-hidden />
+                <span className="club-sr"> (volgende)</span>
+              </>
+            )}
           </button>
         ))}
       </div>

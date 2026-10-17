@@ -62,20 +62,29 @@ export const THEMA_BASIS: Record<Thema, Basis> = {
   licht: { bgApp: '#F4F3EF', bgCard: '#FFFFFF', bgRaised: '#FFFFFF', inkt: '17, 17, 15' },
 }
 
-export const MIN_CONTRAST_ACCENT = 3
+/**
+ * Het accent wordt ook als kleine tekst gebruikt (koppen boven, nummers, de
+ * gekozen tab). Daarom de norm voor tekst (4.5:1) met wat marge, tegen zowel
+ * de achtergrond van de app als die van de kaarten.
+ */
+export const MIN_CONTRAST_ACCENT = 4.8
+
+function genoegContrast(kleur: string, thema: Thema): boolean {
+  const { bgApp, bgCard } = THEMA_BASIS[thema]
+  return Math.min(contrast(kleur, bgApp), contrast(kleur, bgCard)) >= MIN_CONTRAST_ACCENT
+}
 
 /**
- * Het accent zoals we het tonen: gelijk aan de keuze als het contrast met de
- * achtergrond goed genoeg is, anders stap voor stap lichter (donker thema) of
- * donkerder (licht thema) tot het wel genoeg is.
+ * Het accent zoals we het tonen: gelijk aan de keuze als het contrast goed
+ * genoeg is, anders stap voor stap lichter (donker thema) of donkerder (licht
+ * thema) tot het wel genoeg is. De tint blijft, alleen de helderheid schuift.
  */
 export function bruikbaarAccent(accent: string, thema: Thema): { kleur: string; aangepast: boolean } {
-  const bg = THEMA_BASIS[thema].bgApp
-  if (contrast(accent, bg) >= MIN_CONTRAST_ACCENT) return { kleur: accent.toUpperCase(), aangepast: false }
+  if (genoegContrast(accent, thema)) return { kleur: accent.toUpperCase(), aangepast: false }
   const richting = thema === 'donker' ? 1 : -1
-  for (let stap = 1; stap <= 20; stap++) {
-    const kleur = meng(accent, (richting * stap) / 20)
-    if (contrast(kleur, bg) >= MIN_CONTRAST_ACCENT) return { kleur, aangepast: true }
+  for (let stap = 1; stap <= 40; stap++) {
+    const kleur = meng(accent, (richting * stap) / 40)
+    if (genoegContrast(kleur, thema)) return { kleur, aangepast: true }
   }
   return { kleur: thema === 'donker' ? '#FFFFFF' : '#000000', aangepast: true }
 }
@@ -119,8 +128,8 @@ export function huisstijlVariabelen(accentKeuze: string, thema: Thema): Record<s
     // Statuskleuren: op een lichte achtergrond donkerder, anders is de tekst niet leesbaar (4.5:1).
     ...(licht
       ? {
-          '--club-ok': '#1E7A47',
-          '--club-ok-zacht': 'rgba(30, 122, 71, 0.12)',
+          '--club-ok': '#17663B',
+          '--club-ok-zacht': 'rgba(23, 102, 59, 0.12)',
           '--club-let-op': '#B83A24',
           '--club-let-op-zacht': 'rgba(184, 58, 36, 0.1)',
           '--club-info': '#2D56C4',

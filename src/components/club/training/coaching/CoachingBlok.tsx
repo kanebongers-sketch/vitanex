@@ -15,7 +15,7 @@ interface CoachingBlokProps {
 
 export function Kernpunten({ coaching }: { coaching: Coaching }) {
   return (
-    <ol className="club-coach-kern" aria-label="Kernpunten">
+    <ol className="club-coach-kern" role="list" aria-label="Kernpunten">
       {coaching.kernpunten.map((k, i) => (
         <li key={i} className="club-coach-kernpunt">
           <span className="club-coach-nummer" aria-hidden>{i + 1}</span>
@@ -46,7 +46,7 @@ export function CoachingBlok({ coaching: c, kop: Kop = 'h3' }: CoachingBlokProps
 
       <section>
         <Kop className="club-coach-kop">Uitvoering</Kop>
-        <ol className="club-coach-stappen">
+        <ol className="club-coach-stappen" role="list">
           {c.stappen.map((stap, i) => (
             <li key={i}>{stap}</li>
           ))}
@@ -55,7 +55,7 @@ export function CoachingBlok({ coaching: c, kop: Kop = 'h3' }: CoachingBlokProps
 
       <section>
         <Kop className="club-coach-kop">Veelgemaakte fouten</Kop>
-        <ul className="club-coach-fouten">
+        <ul className="club-coach-fouten" role="list">
           {c.fouten.map((f, i) => (
             <li key={i} className="club-coach-fout">
               <span className="club-coach-fout-rij club-coach-fout-rij--fout">

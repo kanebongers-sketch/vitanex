@@ -29,7 +29,10 @@
 .club-huisstijl-blok:first-child { border-top: 0; padding-top: 4px; }
 .club-huisstijl-blok .club-veld { max-width: 520px; }
 .club-huisstijl-opslaan { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); background: linear-gradient(to top, var(--bg-app) 70%, transparent); }
-.club-huisstijl-opslaan .club-melding { flex: 1 1 260px; margin: 0; }
+.club-huisstijl-status { flex: 1 1 260px; }
+.club-huisstijl-status .club-melding { margin: 0; }
+/* De plakkende opslaanbalk mag een veld met focus niet afdekken. */
+html:has(.club-huisstijl-opslaan) { scroll-padding-bottom: 110px; }
 
 /* ── Logo ────────────────────────────────────────────────────────────────── */
 .club-huisstijl-logo { display: grid; gap: 10px; }

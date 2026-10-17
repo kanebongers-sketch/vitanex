@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { leesCsv, type CsvTabel } from '@/lib/club/leden/import/csv'
 import { IMPORT_VELD_LABEL, ontbrekendeVelden, pasKoppelingToe, raadKoppeling, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
@@ -137,9 +137,12 @@ export function LedenImport({ vestiging, vestigingLabel }: LedenImportProps) {
 }
 
 function ImportKlaar({ klaar, vestiging, vestigingLabel }: { klaar: Klaar; vestiging: Vestiging; vestigingLabel: string }) {
+  const kop = useRef<HTMLHeadingElement>(null)
+  // Het resultaat verschijnt in een keer: zet de focus erop, dan leest een schermlezer het voor.
+  useEffect(() => kop.current?.focus(), [])
   return (
-    <section className="club-kaart club-import-klaar" aria-live="polite">
-      <h2>Ledenbestand ingelezen</h2>
+    <section className="club-kaart club-import-klaar">
+      <h2 ref={kop} tabIndex={-1}>Ledenbestand ingelezen</h2>
       <p>
         {vestigingLabel}: {klaar.toegevoegd} nieuwe leden toegevoegd en {klaar.bijgewerkt} bijgewerkt.
       </p>

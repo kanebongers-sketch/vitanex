@@ -40,6 +40,8 @@ describe('contrast en kleuren', () => {
     const licht = huisstijlVariabelen('#B58E5C', 'licht')
     expect(licht['--bg-app']).toBe('#F4F3EF')
     expect(contrast(licht['--club-ok'], '#FFFFFF')).toBeGreaterThanOrEqual(4.5)
+    // Ook op het zachte statusvlak (chip) leesbaar.
+    expect(contrast(licht['--club-ok'], '#E6EFE9')).toBeGreaterThanOrEqual(4.5)
     expect(contrast(licht['--club-let-op'], '#FFFFFF')).toBeGreaterThanOrEqual(4.5)
     expect(huisstijlVariabelen('rood', 'donker')['--brand']).toBe('#B58E5C')
   })
@@ -119,6 +121,17 @@ describe('leesbaarheid van de tekstladder', () => {
     const v = huisstijlVariabelen('#B58E5C', thema)
     for (const token of ['--text-1', '--text-2', '--text-3', '--text-4']) {
       for (const bg of [v['--bg-app'], v['--bg-card']]) expect(contrast(opAchtergrond(v[token], bg), bg)).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})
+
+describe('accent als tekst', () => {
+  const STARTKLEUREN = ['#B58E5C', '#E8A33F', '#E5484D', '#FF6B3D', '#30A46C', '#3E63DD', '#8E4EC6', '#12A594']
+  it.each(['donker', 'licht'] as const)('elke startkleur is als tekst leesbaar op het %s thema', (thema) => {
+    for (const k of STARTKLEUREN) {
+      const { kleur } = bruikbaarAccent(k, thema)
+      expect(contrast(kleur, THEMA_BASIS[thema].bgApp)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(kleur, THEMA_BASIS[thema].bgCard)).toBeGreaterThanOrEqual(4.5)
     }
   })
 })

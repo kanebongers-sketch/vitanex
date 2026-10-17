@@ -78,11 +78,9 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
               Terugzetten
             </button>
           )}
-          {melding && (
-            <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`} role={melding.ok ? 'status' : 'alert'}>
-              {melding.tekst}
-            </p>
-          )}
+          <div className="club-huisstijl-status" role="status" aria-live="polite">
+            {melding && <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`}>{melding.tekst}</p>}
+          </div>
         </div>
       </div>
 

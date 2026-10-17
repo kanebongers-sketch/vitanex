@@ -26,6 +26,8 @@ export function KolomKoppeling({ koppen, eersteRij, koppeling, onWijzig }: Kolom
               {verplicht && <span className="club-import-verplicht"> verplicht</span>}
             </span>
             <select
+              aria-required={verplicht}
+              aria-invalid={verplicht && kolom === null}
               className="club-invoer"
               value={kolom ?? ''}
               onChange={(e) => onWijzig(veld, e.target.value === '' ? null : Number(e.target.value))}

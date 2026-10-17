@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Plus } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
@@ -25,6 +25,13 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [nieuw, setNieuw] = useState<string | null>(null)
+  const nieuwKnop = useRef<HTMLButtonElement>(null)
+  const wasOpen = useRef(false)
+  // Na annuleren of aanmaken gaat de focus terug naar de knop "Nieuwe sportschool".
+  useEffect(() => {
+    if (nieuw === null && wasOpen.current) nieuwKnop.current?.focus()
+    wasOpen.current = nieuw !== null
+  }, [nieuw])
 
   async function open(id: string) {
     setBezig(id)
@@ -81,7 +88,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
         })}
         <li>
           {nieuw === null ? (
-            <button type="button" className="club-huisstijl-school club-huisstijl-school--nieuw" disabled={bezig !== null} onClick={() => setNieuw('')}>
+            <button ref={nieuwKnop} type="button" className="club-huisstijl-school club-huisstijl-school--nieuw" disabled={bezig !== null} onClick={() => setNieuw('')}>
               <Plus aria-hidden size={16} /> Nieuwe sportschool
             </button>
           ) : (

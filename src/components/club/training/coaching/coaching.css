@@ -86,9 +86,9 @@
 .club-coach-tegel dd { margin: 0; color: var(--text-1); font-size: 14.5px; line-height: 1.45; }
 
 .club-coach-laden { display: grid; gap: 10px; }
-.club-coach-laden span { height: 18px; border-radius: 6px; background: var(--club-vlak); }
-.club-coach-laden span:nth-child(2) { width: 82%; }
-.club-coach-laden span:nth-child(3) { width: 64%; }
+.club-coach-laden > span[aria-hidden] { height: 18px; border-radius: 6px; background: var(--club-vlak); }
+.club-coach-laden > span[aria-hidden]:nth-child(3) { width: 82%; }
+.club-coach-laden > span[aria-hidden]:nth-child(4) { width: 64%; }
 
 @media (prefers-reduced-motion: reduce) {
   .club-speler-knop { transition: none; }
@@ -124,4 +124,11 @@
   .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > input:first-of-type { grid-column: 1; }
   .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > textarea { grid-column: 2; grid-row: 1; }
   .club-coach-editor-paar:not(:has(.club-coach-editor-nummer)) > .club-knop { grid-column: 3; }
+}
+/* Zichtbare kolomnamen boven de paren (op breed scherm; smal staan de velden onder elkaar met hun placeholder). */
+.club-coach-editor-koppen { display: none; }
+@container (min-width: 560px) {
+  .club-coach-editor-koppen { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) 40px; gap: 8px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+  .club-coach-editor-koppen.is-genummerd { grid-template-columns: 28px minmax(0, 0.8fr) minmax(0, 1.6fr) 40px; }
+  .club-coach-editor-koppen.is-genummerd > span:first-child { grid-column: 2; }
 }

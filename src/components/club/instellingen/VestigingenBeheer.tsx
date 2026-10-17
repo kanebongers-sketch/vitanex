@@ -75,10 +75,10 @@ function VestigingRij({ vestiging: v, eerste, laatste, bezig, onWijzig }: Vestig
   return (
     <li className="club-instellingen-vestrij">
       <span className="club-instellingen-vestvolg">
-        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omhoog`} disabled={bezig || eerste} onClick={() => onWijzig({ verplaats: -1 })}>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omhoog`} aria-disabled={bezig || eerste} onClick={() => !bezig && !eerste && onWijzig({ verplaats: -1 })}>
           <ArrowUp aria-hidden size={15} />
         </button>
-        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omlaag`} disabled={bezig || laatste} onClick={() => onWijzig({ verplaats: 1 })}>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omlaag`} aria-disabled={bezig || laatste} onClick={() => !bezig && !laatste && onWijzig({ verplaats: 1 })}>
           <ArrowDown aria-hidden size={15} />
         </button>
       </span>
