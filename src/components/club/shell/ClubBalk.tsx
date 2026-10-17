@@ -10,6 +10,7 @@ import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { Module } from '@/lib/club/kern/organisatie'
 import { GROEPEN, actiefOnderdeel, groepenMet, isActief, onderdelenVan } from './onderdelen'
 import { useVestigingen } from './VestigingenContext'
+import { UitlogKnop } from './UitlogKnop'
 
 // De bovenkant van de clubsoftware. Een ingedeeld menu, maar anders dan de
 // zijbalk van Virtuagym: alles bovenin zodat het werkvlak de volle breedte houdt.
@@ -113,7 +114,8 @@ function MenuPaneel({ vestiging, pilot, pad, uit, onSluit, onWissel }: MenuPanee
 }
 
 interface ClubBalkProps {
-  ptCode: string
+  /** De PT-code van Kane (link terug naar de PT-app); null voor een eigenaar of clubmanager. */
+  ptCode: string | null
   merk: ClubMerkInfo
   /** Onderdelen die bij deze sportschool uit staan. */
   uit: readonly Module[]
@@ -152,13 +154,19 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
         </nav>
         <div className="club-balk-rechts">
           <VestigingKeuze vestiging={vestiging} pilot={merk.fitFactory} onWissel={wissel} />
-          <span className="club-test" title="Alleen zichtbaar voor Kane tot de presentatie">
-            Testomgeving
-          </span>
-          <Link href={`/${ptCode}`} className="club-terug" prefetch={false}>
-            <ArrowLeft aria-hidden size={15} />
-            <span>PT-app</span>
-          </Link>
+          {ptCode && (
+            <span className="club-test" title="Alleen zichtbaar voor Kane tot de presentatie">
+              Testomgeving
+            </span>
+          )}
+          {ptCode ? (
+            <Link href={`/${ptCode}`} className="club-terug" prefetch={false}>
+              <ArrowLeft aria-hidden size={15} />
+              <span>PT-app</span>
+            </Link>
+          ) : (
+            <UitlogKnop />
+          )}
           <button type="button" className="club-knop club-knop--klein club-menuknop" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
             <Menu aria-hidden size={18} />
             Menu

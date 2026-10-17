@@ -1,0 +1,36 @@
+/* ─── Club: inlogpagina van een eigenaar of clubmanager ─────────────────────
+   Een rustige poort in de huisstijl van de eigen sportschool: grote condensed
+   kop, een smalle kaart met een accentlijn, verder niets. */
+
+.club-inlog-vlak {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 32px 16px;
+  background:
+    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 60%),
+    var(--bg-app);
+}
+.club-inlog-kaart {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 36px 28px 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--club-radius);
+  background: var(--bg-card);
+  box-shadow: var(--club-schaduw);
+  overflow: hidden;
+}
+.club-inlog-kaart::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--brand); }
+.club-inlog-merk { display: flex; align-items: baseline; gap: 10px; margin: 0 0 28px; font-family: var(--ff-kop); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 15px; color: var(--text-2); }
+.club-inlog-merk > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-inlog-club { color: var(--brand-tekst, var(--brand)); letter-spacing: 0.18em; }
+.club-inlog-kaart h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 9vw, 44px); line-height: 1; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.club-inlog-rol { margin: 8px 0 24px; font-size: 14px; color: var(--text-3); }
+.club-inlog-uitleg { margin: 0; font-size: 15px; color: var(--text-2); line-height: 1.5; }
+.club-inlog-form { display: grid; gap: 16px; }
+.club-inlog-pin { font-size: 22px; letter-spacing: 0.4em; text-align: center; min-height: 52px; }
+.club-inlog-form .club-knop { width: 100%; }
+.club-inlog-wacht { display: grid; gap: 12px; font-size: 15px; line-height: 1.55; color: var(--text-2); }
+.club-inlog-wacht p { margin: 0; }
+.club-inlog-controle { font-family: var(--ff-kop); font-size: 22px; letter-spacing: 0.2em; color: var(--brand-tekst, var(--brand)); }
