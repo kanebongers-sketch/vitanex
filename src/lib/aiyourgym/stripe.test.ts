@@ -30,10 +30,10 @@ describe('handtekeningKlopt', () => {
 })
 
 describe('leesEvent', () => {
-  const sessie = { id: 'cs_test_abc', status: 'complete', mode: 'subscription', customer: 'cus_1', subscription: { id: 'sub_1' }, metadata: { aanmelding_id: ID } }
+  const sessie = { id: 'cs_test_abc', status: 'complete', mode: 'subscription', customer: 'cus_1', subscription: { id: 'sub_1' }, payment_status: 'no_payment_required', metadata: { aanmelding_id: ID } }
   it('een afgeronde checkout', () => {
     expect(leesEvent({ id: 'evt_1', type: 'checkout.session.completed', data: { object: sessie } })).toEqual({
-      soort: 'sessie_afgerond', id: 'evt_1', sessie: { sessieId: 'cs_test_abc', aanmeldingId: ID, status: 'complete', mode: 'subscription', klantId: 'cus_1', abonnementId: 'sub_1' },
+      soort: 'sessie_afgerond', id: 'evt_1', sessie: { sessieId: 'cs_test_abc', aanmeldingId: ID, status: 'complete', betaalStatus: 'no_payment_required', mode: 'subscription', klantId: 'cus_1', abonnementId: 'sub_1' },
     })
   })
   it('abonnementen en facturen (oude en nieuwe vorm)', () => {
@@ -55,6 +55,8 @@ describe('leesEvent', () => {
     const s = leesSessie(sessie)!
     expect(sessieKlaar(s)).toBe(true)
     expect(sessieKlaar({ ...s, status: 'open' })).toBe(false)
+    expect(sessieKlaar({ ...s, betaalStatus: 'unpaid' })).toBe(false)
+    expect(sessieKlaar({ ...s, betaalStatus: null })).toBe(false)
     expect(sessieKlaar({ ...s, mode: 'payment' })).toBe(false)
   })
   it('vorm van een sessie-id', () => {

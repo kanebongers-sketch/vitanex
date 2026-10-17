@@ -6,7 +6,7 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { MAX_BODY_BYTES, isRobot, leesAanmelding } from '@/lib/aiyourgym/aanmelding'
 import { NIET_OPEN, afsluitbaar, stripePrijs, stripeSleutel } from '@/lib/aiyourgym/config'
 import { checkoutAdressen, oorsprongVan } from '@/lib/aiyourgym/links'
-import { koppelSessie, maakAanmelding, slugVrij } from '@/lib/aiyourgym/opslag'
+import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
 
@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
   const admin = adminOfNull()
   if (!admin) return aygFout(NIET_OPEN, 503)
   const nu = new Date()
+  // Harde rem in de database (de rate limit hierboven is per serverinstantie en per IP-kop).
+  const teVeel = await teVeelRecent(admin, a.eigenaarEmail, nu)
+  if (teVeel === null) return aygFout(MISLUKT, 500)
+  if (teVeel) return aygFout('Te veel pogingen. Probeer het later opnieuw.', 429)
   const vrij = await slugVrij(admin, a.slug, nu)
   if (vrij === null) return aygFout(MISLUKT, 500)
   if (!vrij) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }, 409)

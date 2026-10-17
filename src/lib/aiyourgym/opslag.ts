@@ -76,6 +76,17 @@ export async function slugVrij(admin: SupabaseClient, slug: string, nu: Date): P
   return (org.data ?? []).length === 0 && (bezet.data ?? []).length === 0 && (wacht.data ?? []).length === 0
 }
 
+/** Te veel aanmeldingen in het laatste uur (per e-mailadres en in totaal)? Null bij een databasefout. */
+export async function teVeelRecent(admin: SupabaseClient, email: string, nu: Date): Promise<boolean | null> {
+  const sinds = new Date(nu.getTime() - 60 * 60_000).toISOString()
+  const [eigen, alles] = await Promise.all([
+    admin.from('ayg_aanmeldingen').select('id', { count: 'exact', head: true }).eq('eigenaar_email', email).gte('aangemaakt_op', sinds),
+    admin.from('ayg_aanmeldingen').select('id', { count: 'exact', head: true }).gte('aangemaakt_op', sinds),
+  ])
+  if (eigen.error || alles.error) return null
+  return (eigen.count ?? 0) >= 5 || (alles.count ?? 0) >= 200
+}
+
 // ─── Aanmeldingen ───────────────────────────────────────────────────────────
 
 export async function maakAanmelding(admin: SupabaseClient, a: Aanmelding, status: 'aanvraag' | 'wacht_op_betaling', nu: Date): Promise<string | null> {
@@ -132,6 +143,8 @@ export async function claimInrichten(admin: SupabaseClient, a: AanmeldingRij, nu
   const { data, error } = await (vastgelopen ? basis.lt('bijgewerkt_op', grens.toISOString()) : basis).select('id')
   if (error) {
     console.error('[aiyourgym] inrichten claimen mislukt', error.code ?? '')
+    // Het adres is intussen van een andere sportschool (unieke index, migratie 433): geen tweede omgeving, Kane lost het met de hand op.
+    if (error.code === '23505') await admin.from('ayg_aanmeldingen').update({ status: 'aanvraag', bijgewerkt_op: nu.toISOString() }).eq('id', a.id).eq('status', a.status)
     return false
   }
   return Array.isArray(data) && data.length === 1

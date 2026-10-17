@@ -3,6 +3,8 @@
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { isAygHost, zichtbaarPad } from './host'
 
+const EIGEN_HOSTS: ReadonlySet<string> = new Set(['fitfactorypt.nl', 'www.fitfactorypt.nl'])
+
 /**
  * De publieke oorsprong van een verzoek. De host is al gecontroleerd (zelfde
  * oorsprong), dus hij is van ons. Lokaal http, verder altijd https.
@@ -10,7 +12,10 @@ import { isAygHost, zichtbaarPad } from './host'
 export function oorsprongVan(host: string | null | undefined): string | null {
   const h = (host ?? '').trim().toLowerCase()
   if (!/^[a-z0-9.-]+(:\d{1,5})?$/.test(h)) return null
-  const lokaal = h.split(':')[0] === 'localhost' || h.split(':')[0].endsWith('.localhost')
+  const naam = h.split(':')[0]
+  const lokaal = naam === 'localhost' || naam.endsWith('.localhost')
+  // Alleen eigen domeinen: een zelfbedachte Host-kop mag nooit het doel van Stripe of de inloglink worden.
+  if (!lokaal && !isAygHost(h) && !EIGEN_HOSTS.has(naam)) return null
   return `${lokaal ? 'http' : 'https'}://${h}`
 }
 

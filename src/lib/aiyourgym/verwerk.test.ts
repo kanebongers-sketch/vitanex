@@ -12,7 +12,7 @@ const rij = (extra: Record<string, unknown> = {}) => ({
   status: 'wacht_op_betaling', stripe_session_id: 'cs_test_1', stripe_subscription_id: null, organisatie_id: null, aangemaakt_op: NU.toISOString(), bijgewerkt_op: NU.toISOString(), ...extra,
 })
 
-const sessie: AfgerondeSessie = { sessieId: 'cs_test_1', aanmeldingId: ID, status: 'complete', mode: 'subscription', klantId: 'cus_1', abonnementId: 'sub_1' }
+const sessie: AfgerondeSessie = { sessieId: 'cs_test_1', aanmeldingId: ID, status: 'complete', betaalStatus: 'no_payment_required', mode: 'subscription', klantId: 'cus_1', abonnementId: 'sub_1' }
 const ok = (data: unknown): Antwoord => ({ data, error: null })
 
 function deps(uitslag: { ok: true; organisatieId: string } | { ok: false } = { ok: true, organisatieId: ORG }) {
@@ -116,5 +116,19 @@ describe('verwerkEvent', () => {
     const { admin, vragen } = db(rij({ status: 'test', stripe_subscription_id: 'sub_1' }))
     expect(await verwerkEvent(admin, { soort: 'abonnement_weg', id: 'evt_3', abonnementId: 'sub_1' }, deps())).toBe('ok')
     expect(vragen.some((v) => v.actie === 'update')).toBe(false)
+  })
+})
+
+describe('claimInrichten bij een bezet adres', () => {
+  it('een unieke-index-fout zet de aanmelding op aanvraag en richt niets in', async () => {
+    const { vragen, admin } = nepSupabase((v: Vraag) => {
+      if (v.tabel === 'ayg_aanmeldingen' && v.actie === 'select') return ok(rij())
+      if (v.tabel === 'ayg_aanmeldingen' && v.actie === 'update' && (v.waarde as { status?: string }).status === 'inrichten') return { data: null, error: { code: '23505', message: 'dubbel' } }
+      return ok([{ id: ID }])
+    })
+    const d = deps()
+    expect(await verwerkSessie(admin, sessie, d)).toBe('klaar')
+    expect(d.maakSportschool).not.toHaveBeenCalled()
+    expect(vragen.some((v) => v.actie === 'update' && (v.waarde as { status?: string }).status === 'aanvraag')).toBe(true)
   })
 })
