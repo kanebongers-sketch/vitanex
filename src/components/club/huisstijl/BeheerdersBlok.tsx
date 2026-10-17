@@ -80,7 +80,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
       </p>
 
       {beheerders === null ? (
-        <p className="club-melding club-melding--fout" role="alert">De beheerders konden niet worden gelezen. Is migratie 408 al gedraaid?</p>
+        <p className="club-melding club-melding--fout" role="alert">De beheerders konden niet worden gelezen. Is migratie 410 al gedraaid?</p>
       ) : actieven.length === 0 ? (
         <p className="club-hint">Nog geen beheerders.</p>
       ) : (

@@ -6,6 +6,7 @@ import { SportscholenKeuze } from '@/components/club/huisstijl/SportscholenKeuze
 import { BeheerdersBlok } from '@/components/club/huisstijl/BeheerdersBlok'
 import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import '@/components/club/huisstijl/huisstijl.css'
 
 export const metadata: Metadata = { title: 'Huisstijl' }
@@ -35,6 +36,7 @@ export default async function HuisstijlPagina() {
           sportscholen={t.organisaties.map((o) => ({ id: o.id, naam: o.naam, demo: o.demo, kleurAccent: o.kleurAccent }))}
         />
       )}
+      {t.isKane && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} actief={process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'} />}
       <HuisstijlPortaal
         key={org.id}
         organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }}

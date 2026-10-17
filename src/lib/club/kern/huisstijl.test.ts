@@ -105,7 +105,8 @@ describe('organisatieUitRij', () => {
   const id = '67b0a700-3f1d-425e-9646-98c237e34fd7'
   it('leest een rij en vangt foute waarden af', () => {
     const o = organisatieUitRij({ id, naam: 'Fit Factory', slogan: '', logo: '../../etc', kleur_accent: 'rood', thema: 'neon', modules: { leads: false }, demo: true })
-    expect(o).toEqual({ id, naam: 'Fit Factory', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: ['leads'], demo: true })
+    expect(o).toMatchObject({ id, naam: 'Fit Factory', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: ['leads'], demo: true, slug: null })
+    expect(o?.instellingen.ledenapp.qr).toBe(true)
   })
   it('weigert een rij zonder geldig id of naam', () => {
     expect(organisatieUitRij({ id: 'x', naam: 'A' })).toBeNull()

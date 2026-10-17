@@ -5,6 +5,7 @@ import { releaseVProxy } from '@/releasev/lib/proxy-releasev'
 import { isReleaseVHost } from '@/releasev/lib/host-routing'
 import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
 import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
+import { beslisClub } from '@/lib/club/kern/subdomein'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -58,7 +59,32 @@ function mentaforceOpReleaseV(request: NextRequest): NextResponse | null {
   return response
 }
 
+/**
+ * Club op een eigen subdomein per sportschool (<slug>.aiyourgym.com), zie
+ * src/lib/club/kern/subdomein.ts. Alleen met CLUB_SUBDOMEINEN_ACTIEF=1; zonder
+ * die schakelaar, of op elk ander domein, null en gaat alles zoals altijd.
+ * Welke sportschool open staat bepaalt de toegang zelf uit de host.
+ */
+function clubOpSubdomein(request: NextRequest): NextResponse | null {
+  const besluit = beslisClub(request.headers.get('host'), request.nextUrl.pathname, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1')
+  if (besluit.soort === 'niet-van-mij') return null
+  let response: NextResponse
+  if (besluit.soort === 'door') {
+    response = NextResponse.next()
+  } else {
+    const doel = request.nextUrl.clone()
+    doel.pathname = besluit.pad
+    response = NextResponse.rewrite(doel)
+  }
+  // Club is nooit voor zoekmachines.
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  return response
+}
+
 export function proxy(request: NextRequest) {
+  const club = clubOpSubdomein(request)
+  if (club) return club
+
   const mentaforce = mentaforceOpReleaseV(request)
   if (mentaforce) return mentaforce
 

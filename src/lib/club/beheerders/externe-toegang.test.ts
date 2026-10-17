@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from 'vitest'
 import type { Organisatie } from '@/lib/club/kern/organisatie'
+import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
 import type { Beheerder } from './beheerder'
 import { externeToegangVelden } from './externe-toegang'
 
@@ -10,7 +11,7 @@ const KANE = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const GYM_A = 'de000000-0000-4000-8000-0000000000c1'
 const GYM_B = 'be000000-0000-4000-8000-0000000000b2'
 
-const org = (id: string, naam: string): Organisatie => ({ id, naam, slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false })
+const org = (id: string, naam: string): Organisatie => ({ id, naam, slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) })
 
 const SANNE: Beheerder = {
   id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne de Vries', email: null, rol: 'clubmanager',

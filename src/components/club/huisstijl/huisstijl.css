@@ -108,6 +108,10 @@ html:has(.club-huisstijl-opslaan) { scroll-padding-bottom: 110px; }
 .club-huisstijl-nieuw .club-invoer { width: 240px; }
 .club-huisstijl-code { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .club-huisstijl-codestaal { width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
+.club-huisstijl-adres { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-huisstijl-adres > svg { color: var(--brand-tekst, var(--brand)); }
+.club-huisstijl-adres .club-invoer { width: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.club-huisstijl-domein { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text-2); }
 
 /* Beheerders van de sportschool (alleen Kane) */
 .club-beheerders { display: grid; gap: 14px; }

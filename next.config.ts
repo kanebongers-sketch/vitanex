@@ -56,9 +56,13 @@ function webshopMappen(...deel: string[]): string[] {
 // voor releasev.nl; de webshop krijgt zijn eigen headers (RELEASEV_HEADERS).
 const RELEASEV_HOST = { type: 'host' as const, value: '(www\\.)?releasev\\.(nl|localhost)' }
 
+// Club op een eigen subdomein per sportschool (<slug>.aiyourgym.com, src/lib/club/kern/subdomein.ts).
+// Ook daar gelden de MentaForce/LifeOS-redirects niet: /training is daar Club, geen LifeOS.
+const CLUB_HOST = { type: 'host' as const, value: '[a-z0-9-]+\\.(aiyourgym\\.com|club\\.localhost)' }
+
 type Redirect = { source: string; destination: string; permanent: boolean; has?: unknown[]; missing?: unknown[] }
 function nietOpReleaseV<T extends Redirect>(regels: T[]): T[] {
-  return regels.map((regel) => ({ ...regel, missing: [...(regel.missing ?? []), RELEASEV_HOST] }))
+  return regels.map((regel) => ({ ...regel, missing: [...(regel.missing ?? []), RELEASEV_HOST, CLUB_HOST] }))
 }
 
 function releaseVHeaders(isProd: boolean) {
