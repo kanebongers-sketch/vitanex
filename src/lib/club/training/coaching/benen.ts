@@ -84,6 +84,33 @@ export const COACHING_BENEN: CoachingBoek = {
     zwaarder: 'Houd het been 2 tellen vast aan de binnenkant voor je terug laat komen.',
   },
 
+  'Adductie staand met elastiek': {
+    kernpunten: [
+      { punt: 'Hand tegen de muur', uitleg: 'Steun licht met een hand. Dan hoeft je standbeen niet te balanceren en werkt de binnenkant van je dij.' },
+      { punt: 'Romp blijft recht', uitleg: 'Leun niet weg van het anker. Je schouders staan boven je heupen, alleen het werkbeen beweegt.' },
+      { punt: 'Been langs je standbeen', uitleg: 'Trek je been gestrekt naar binnen tot net voor je standbeen. Daar voel je de binnenkant van je dij het best.' },
+      { punt: 'Remmen op de weg terug', uitleg: 'Laat het elastiek je been niet terugschieten. Langzaam terug is de helft van het werk.' },
+    ],
+    opstelling: [
+      'Maak het elastiek laag vast, bijvoorbeeld aan een rek, en doe de lus om de enkel aan de kant van het anker.',
+      'Stap zijwaarts weg van het anker tot er al spanning staat als je werkbeen iets naar buiten hangt.',
+    ],
+    stappen: [
+      'Begin met je werkbeen iets naar buiten, richting het anker.',
+      'Trek het been gestrekt naar binnen, langs of net voor je standbeen.',
+      'Laat het rustig terugkomen tot je weer de beginspanning voelt.',
+    ],
+    fouten: [
+      { fout: 'Bovenlichaam hangt naar de kant', beter: 'Steun met je hand en houd je schouders recht boven je heupen.' },
+      { fout: 'Zwaaien met het been', beter: 'Kies een lichter elastiek of sta dichter bij het anker. Rustig tempo, volle controle.' },
+      { fout: 'Tenen draaien naar buiten', beter: 'Houd je tenen naar voren gericht, zo blijft het werk bij de binnenkant van je bovenbeen.' },
+    ],
+    ademhaling: 'Adem uit als je het been naar binnen trekt, adem in op de weg terug.',
+    tempo: '1 tel naar binnen, kort vasthouden, 2 tellen terug.',
+    makkelijker: 'Sta dichter bij het anker zodat het elastiek minder strak staat.',
+    zwaarder: 'Gebruik een zwaarder elastiek of houd het been 2 tellen vast aan de binnenkant.',
+  },
+
   'Adductor machine': {
     kernpunten: [
       { punt: 'Rug tegen de leuning', uitleg: 'Zit rechtop met je onderrug tegen het kussen, dan blijft het werk in de binnenkant van je bovenbenen.' },
@@ -667,6 +694,33 @@ export const COACHING_BENEN: CoachingBoek = {
     zwaarder: 'Gebruik een zwaarder elastiek of zak langzamer in 4 tellen.',
   },
 
+  'Squat met elastiek boven de knieen': {
+    kernpunten: [
+      { punt: 'Knieen naar buiten', uitleg: 'Duw je knieen de hele herhaling tegen het elastiek in naar buiten. Zo werken je billen aan de zijkant mee.' },
+      { punt: 'Elastiek net boven de knie', uitleg: 'Niet op of onder de knie, maar net erboven. Daar blijft het zitten en drukt het niet op je gewricht.' },
+      { punt: 'Borst omhoog', uitleg: 'Je romp blijft rechtop en je kijkt vooruit. Armen voor je helpen je in balans.' },
+      { punt: 'Hele voet aan de grond', uitleg: 'Je gewicht verdeeld over hiel en voorvoet. Je grote teen blijft op de grond als je knieen naar buiten gaan.' },
+    ],
+    opstelling: [
+      'Doe een minibandje om beide benen, net boven je knieen.',
+      'Sta met je voeten op schouderbreedte, tenen licht naar buiten, en strek je armen voor je of vouw je handen.',
+    ],
+    stappen: [
+      'Duw je knieen licht naar buiten zodat er spanning op het elastiek komt.',
+      'Zak tot je bovenbenen ongeveer horizontaal zijn, knieen in lijn met je tenen.',
+      'Duw de grond weg en kom helemaal rechtop, zonder de spanning los te laten.',
+    ],
+    fouten: [
+      { fout: 'Knieen vallen naar binnen', beter: 'Kies een lichter elastiek en duw bewust naar buiten. Je knieen wijzen naar je tweede en derde teen.' },
+      { fout: 'Elastiek rolt op of zakt af', beter: 'Leg het plat net boven de knie. Een breder stoffen bandje blijft beter zitten.' },
+      { fout: 'Voeten rollen naar de buitenkant', beter: 'Houd je grote teen op de grond. Naar buiten duwen doe je met je knieen, niet met je voeten.' },
+    ],
+    ademhaling: 'Adem in tijdens het zakken, adem uit bij het omhoog komen.',
+    tempo: '2 tellen omlaag, 1 tel omhoog, spanning blijft op het elastiek.',
+    makkelijker: 'Gebruik een lichter elastiek of zak naar een bank achter je.',
+    zwaarder: 'Gebruik een zwaarder elastiek of houd een dumbbell voor je borst.',
+  },
+
   'Squat met lichaamsgewicht': {
     kernpunten: [
       { punt: 'Billen naar achteren', uitleg: 'Zak alsof je op een stoel gaat zitten die net achter je staat. Je heupen gaan naar achteren en omlaag.' },
@@ -827,6 +881,33 @@ export const COACHING_BENEN: CoachingBoek = {
     tempo: '2 tellen omlaag, 1 tel omhoog en door naar de volgende stap.',
     makkelijker: 'Doe hem zonder dumbbells en sluit na elke stap je voeten even aan.',
     zwaarder: 'Neem zwaardere dumbbells of houd ze boven je hoofd voor extra werk voor je romp.',
+  },
+
+  'Walking lunge met lichaamsgewicht': {
+    kernpunten: [
+      { punt: 'Handen in je zij', uitleg: 'Zo blijven je armen stil en voel je meteen of je romp rechtop blijft.' },
+      { punt: 'Flinke pas vooruit', uitleg: 'Een ruime stap geeft onderin twee hoeken van ongeveer 90 graden en spaart je voorste knie.' },
+      { punt: 'Duw via je voorste hiel', uitleg: 'Je voorste been tilt je omhoog en naar voren. Je voelt het in bil en bovenbeen.' },
+      { punt: 'Knie niet op de grond', uitleg: 'Stop net boven de vloer met je achterste knie. Niet laten tikken of klappen.' },
+    ],
+    opstelling: [
+      'Zorg voor een vrije baan van minstens 10 meter.',
+      'Sta met je voeten op heupbreedte en zet je handen in je zij.',
+    ],
+    stappen: [
+      'Stap een flinke pas naar voren en zak tot je achterste knie bijna de grond raakt.',
+      'Duw via je voorste hiel omhoog en breng je achterste been naar voren in de volgende stap.',
+      'Herhaal en blijf in een rustig ritme doorlopen.',
+    ],
+    fouten: [
+      { fout: 'Voeten op een lijn', beter: 'Loop op heupbreedte, alsof je op twee rails loopt. Zo blijf je in balans.' },
+      { fout: 'Romp valt voorover', beter: 'Borst omhoog en blik vooruit. Zak recht naar beneden in plaats van naar voren.' },
+      { fout: 'Steeds sneller gaan', beter: 'Houd elke stap even rustig. Vaart maakt de lunge slordig en zwaar voor je knie.' },
+    ],
+    ademhaling: 'Adem in als je zakt, adem uit als je omhoog duwt.',
+    tempo: '2 tellen omlaag, 1 tel omhoog en door naar de volgende stap.',
+    makkelijker: 'Sluit na elke stap je voeten even aan en zak minder diep.',
+    zwaarder: 'Pak een dumbbell in elke hand of loop een langere baan.',
   },
 
   'Wall sit': {

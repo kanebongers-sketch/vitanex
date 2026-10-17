@@ -135,6 +135,33 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
     zwaarder: 'Voeg een push-up toe in de plank of spring bovenin met je knieën naar je borst.',
   },
 
+  'Calf raise met lichaamsgewicht': {
+    kernpunten: [
+      { punt: 'Zo hoog mogelijk op je tenen', uitleg: 'Duw door tot je echt op je voorvoet staat. De laatste centimeters zijn het zwaarst en het nuttigst.' },
+      { punt: 'Druk via je grote teen', uitleg: 'Zo blijft je enkel recht en rolt je voet niet naar de buitenkant.' },
+      { punt: 'Knieen recht, niet op slot', uitleg: 'Je benen blijven recht maar niet op slot. Je kuiten tillen je op, niet je knieen.' },
+      { punt: 'Langzaam terug', uitleg: 'Zak rustig tot je hielen de grond raken. Niet laten vallen en meteen weer omhoog veren.' },
+    ],
+    opstelling: [
+      'Sta rechtop met je voeten op heupbreedte en je tenen recht naar voren.',
+      'Houd een muur of rek vast als je balans wiebelt.',
+    ],
+    stappen: [
+      'Duw jezelf via je voorvoeten omhoog tot je zo hoog mogelijk op je tenen staat.',
+      'Houd bovenin een tel vast en span je kuiten aan.',
+      'Laat je hielen in 2 tot 3 tellen zakken tot ze de grond raken.',
+    ],
+    fouten: [
+      { fout: 'Halve beweging, snel op en neer', beter: 'Neem de volle weg van hielen op de grond tot hoog op je tenen, en tel rustig mee.' },
+      { fout: 'Gewicht op de buitenkant van je voet', beter: 'Duw vooral via je grote teen omhoog. Zo blijft je enkel recht en stabiel.' },
+      { fout: 'Meeveren met de knieen', beter: 'Houd je benen recht. Buig je knieen, dan doen je bovenbenen het werk.' },
+    ],
+    ademhaling: 'Adem uit als je omhoog komt, adem in als je hielen zakken.',
+    tempo: '1 tel omhoog, 1 tel stil, 3 tellen omlaag.',
+    makkelijker: 'Houd je met twee handen vast aan een rek en doe minder herhalingen.',
+    zwaarder: 'Doe het op een been of houd een dumbbell vast in de hand aan de kant van je standbeen.',
+  },
+
   'Calf raise op een trede': {
     kernpunten: [
       { punt: 'Helemaal op je tenen', uitleg: 'Kom zo hoog mogelijk, alsof je op je grote teen staat. De laatste centimeters zijn het zwaarst en het nuttigst.' },
@@ -534,6 +561,35 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
     tempo: '2 tellen omlaag, explosief omhoog en doordrukken.',
     makkelijker: 'Doe de squat en de schouderpress los na elkaar, of gebruik maar een dumbbell met twee handen.',
     zwaarder: 'Gebruik zwaardere dumbbells of een barbell, of doe het in een vaste tijd.',
+  },
+
+  'Thruster met barbell': {
+    kernpunten: [
+      { punt: 'Ellebogen hoog', uitleg: 'De stang rust voor op je schouders met je ellebogen naar voren. Zo blijft je romp rechtop in de squat.' },
+      { punt: 'Knieen in lijn met je tenen', uitleg: 'Duw je knieen licht naar buiten bij het zakken. Niet naar binnen laten vallen.' },
+      { punt: 'Een vloeiende beweging', uitleg: 'De kracht uit je benen loopt door in de druk boven je hoofd. Geen squat en daarna een losse press.' },
+      { punt: 'Stang recht boven je midden', uitleg: 'Bovenin staat de stang boven je middenvoet, armen naast je oren en je hoofd iets door je armen.' },
+      { punt: 'Bovenin ribben laag', uitleg: 'Span buik en billen aan zodat je rug niet hol trekt als je armen gestrekt zijn.' },
+    ],
+    opstelling: [
+      'Begin met een lege stang of een licht gewicht. Pak hem net buiten schouderbreedte en leg hem voor op je schouders.',
+      'Voeten op schouderbreedte, tenen licht naar buiten, ellebogen naar voren.',
+    ],
+    stappen: [
+      'Zak in een front squat tot je bovenbenen ongeveer horizontaal zijn, borst omhoog.',
+      'Kom krachtig omhoog en druk de stang in dezelfde beweging recht boven je hoofd.',
+      'Laat de stang gecontroleerd terugkomen op je schouders en zak direct in de volgende squat.',
+    ],
+    fouten: [
+      { fout: 'Ellebogen zakken in de squat', beter: 'Houd je ellebogen hoog en je borst open. Ga minder diep als de stang naar voren rolt.' },
+      { fout: 'Stang gaat in een boog om je hoofd', beter: 'Haal je hoofd even naar achteren en druk de stang recht omhoog langs je gezicht.' },
+      { fout: 'Holle rug bij het drukken', beter: 'Span je buik en billen aan bovenin. Je armen gaan omhoog, je ribben blijven laag.' },
+      { fout: 'Stang valt hard op je schouders', beter: 'Vang hem op met je armen en buig licht door je knieen voordat je weer in de squat gaat.' },
+    ],
+    ademhaling: 'Adem in en span aan voor het zakken, adem uit als je omhoog komt en drukt.',
+    tempo: '2 tellen omlaag, explosief omhoog en doordrukken.',
+    makkelijker: 'Gebruik een lege stang of doe de thruster met lichte dumbbells.',
+    zwaarder: 'Voeg gewicht toe in kleine stappen of doe een vast aantal herhalingen op tijd.',
   },
 
   'Turkish get-up': {

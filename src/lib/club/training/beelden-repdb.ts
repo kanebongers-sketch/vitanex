@@ -7,13 +7,14 @@
 // generatieve AI. Zie public/club/oefeningen-repdb/ATTRIBUTION.txt.
 //
 // Handmatig gekoppeld op beweging EN materiaal: liever geen beeld dan een beeld
-// dat iets anders laat zien. Oefeningen zonder RepDB-match houden hun
-// Everkinetic-tekening (beelden-koppeling.ts) of blijven zonder beeld.
+// dat iets anders laat zien. Sinds migratie 400 is RepDB de enige beeldstijl:
+// oefeningen zonder RepDB-match staan op inactief en zijn vervangen.
 // `id` is de RepDB-id (tevens de bestandsnaam: <id>-start.webp, <id>-eind.webp),
 // `titel` de Engelse naam daar, ter controle door het importscript.
 //
 // Gebruikt door scripts/club/repdb-import.mjs (haalt de beelden op) en migratie
-// 395_club_oefening_repdb.sql (zet de paden in de database).
+// 395_club_oefening_repdb.sql en 400_club_oefeningen_repdb_vervangen.sql (zetten
+// de paden in de database).
 
 export interface RepdbKoppeling {
   naam: string
@@ -168,8 +169,50 @@ export const REPDB_KOPPELING: readonly RepdbKoppeling[] = [
 ]
 
 /**
- * Bewust zonder RepDB-beeld: RepDB heeft geen versie met dezelfde beweging en
- * hetzelfde materiaal. Ze houden hun Everkinetic-tekening of blijven zonder beeld.
+ * Migratie 400 (besluit eigenaar: overal dezelfde beeldstijl, alleen RepDB).
+ * Nieuwe oefeningen die een oefening uit REPDB_GEEN_MATCH vervangen, plus
+ * Sumo squat met dumbbell, die bij nader inzien wel een passend RepDB-beeld
+ * heeft (een dumbbell tussen de benen) en daarom actief blijft.
+ */
+export const REPDB_KOPPELING_400: readonly RepdbKoppeling[] = [
+  { naam: 'Adductie staand met elastiek', id: 'banded-standing-hip-adduction', titel: 'Banded Standing Hip Adduction' },
+  { naam: 'Calf raise met lichaamsgewicht', id: 'bodyweight-calf-raise', titel: 'Bodyweight Calf Raise' },
+  { naam: 'Squat met elastiek boven de knieen', id: 'banded-squat', titel: 'Banded Squat' },
+  { naam: 'Thruster met barbell', id: 'thruster', titel: 'Thruster' },
+  { naam: 'Walking lunge met lichaamsgewicht', id: 'walking-lunge', titel: 'Walking Lunge' },
+  { naam: 'Sumo squat met dumbbell', id: 'db-sumo-squat', titel: 'Dumbbell Sumo Squat' },
+]
+
+/**
+ * Migratie 400: elke oefening uit REPDB_GEEN_MATCH staat op inactief en is
+ * vervangen door de dichtstbijzijnde oefening met een RepDB-beeld (zelfde
+ * beweging, zo dicht mogelijk materiaal). Schema's verwijzen nu naar de nieuwe.
+ * Sumo squat met dumbbell ontbreekt hier: die kreeg zelf een RepDB-beeld.
+ */
+export const REPDB_VERVANGING: Readonly<Record<string, string>> = {
+  'Cable fly': 'Cable crossover',
+  'Row met elastiek': 'Seated cable row',
+  'Dips aan de brug': 'Dips voor de borst',
+  'Walking lunge': 'Walking lunge met lichaamsgewicht',
+  'Calf raise op een trede': 'Calf raise met lichaamsgewicht',
+  'Thruster met dumbbells': 'Thruster met barbell',
+  'Reverse fly liggend op een bank': 'Reverse fly',
+  'Reverse fly met elastiek': 'Band pull-apart',
+  'Step-up met dumbbells': 'Step-up',
+  'Squat met elastiek': 'Squat met elastiek boven de knieen',
+  'Leg curl staand': 'Leg curl liggend',
+  'Adductie aan de kabel': 'Adductie staand met elastiek',
+  'Kuitpers in de leg press': 'Calf raise staand',
+  'Biceps curl met elastiek': 'Curl aan de kabel',
+  'Triceps pushdown met touw': 'Triceps pushdown',
+  'Crunch met benen op een bank': 'Crunch',
+}
+
+/**
+ * Hadden in migratie 395 geen RepDB-beeld: RepDB heeft geen versie met dezelfde
+ * beweging en hetzelfde materiaal. Sinds migratie 400 staan ze op inactief en
+ * zijn ze vervangen (REPDB_VERVANGING), behalve Sumo squat met dumbbell
+ * (REPDB_KOPPELING_400).
  */
 export const REPDB_GEEN_MATCH: readonly string[] = [
   'Cable fly', // RepDB toont alleen hoge katrollen, wij werken op schouderhoogte
@@ -181,7 +224,7 @@ export const REPDB_GEEN_MATCH: readonly string[] = [
   'Reverse fly liggend op een bank',
   'Reverse fly met elastiek',
   'Step-up met dumbbells', // RepDB alleen zonder gewicht
-  'Sumo squat met dumbbell', // RepDB met twee dumbbells naast de benen
+  'Sumo squat met dumbbell', // in 400 alsnog gekoppeld, zie REPDB_KOPPELING_400
   'Squat met elastiek', // RepDB met een lusband boven de knieen
   'Leg curl staand', // RepDB alleen met elastiek
   'Adductie aan de kabel',
