@@ -61,6 +61,10 @@ export function agendaUitRij(ruw: unknown): AgendaItem | null {
 type Lees<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
 export interface AgendaInvoer {
+  /** Zoals ingevuld (Nederlandse tijd), voor het herhalen. */
+  datum: string
+  begin: string
+  eind: string
   vestiging: Vestiging
   titel: string
   soort: AgendaSoort
@@ -94,6 +98,9 @@ export function leesAgendaInvoer(body: unknown): Lees<AgendaInvoer> {
   return {
     ok: true,
     waarde: {
+      datum: o.datum,
+      begin,
+      eind,
       vestiging: o.vestiging,
       titel,
       soort: isSoort(o.soort) ? o.soort : 'afspraak',
@@ -104,6 +111,28 @@ export function leesAgendaInvoer(body: unknown): Lees<AgendaInvoer> {
       notitie,
     },
   }
+}
+
+/** Maximaal zoveel weken vooruit herhalen (een half jaar). */
+export const MAX_HERHAAL_WEKEN = 26
+
+/** Het aantal extra weken uit de invoer: 0 (geen herhaling) tot en met 26. */
+export function leesHerhaal(body: unknown): number {
+  const v = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).herhaalWeken : 0
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : 0
+  return Number.isInteger(n) && n > 0 ? Math.min(n, MAX_HERHAAL_WEKEN) : 0
+}
+
+/**
+ * De afspraak plus `weken` keer dezelfde afspraak een week later. Elke keer
+ * opnieuw vanuit de Nederlandse kloktijd berekend, zodat 09:00 ook na de
+ * overgang naar winter- of zomertijd 09:00 blijft.
+ */
+export function herhalingen(a: AgendaInvoer, weken: number): AgendaInvoer[] {
+  return Array.from({ length: weken + 1 }, (_, i) => {
+    const datum = plusDagen(a.datum, i * 7)
+    return { ...a, datum, beginOp: nlNaarUtc(datum, a.begin).toISOString(), eindOp: nlNaarUtc(datum, a.eind).toISOString() }
+  })
 }
 
 /** Datum, begin- en eindtijd (Nederlandse tijd) van een afspraak, voor het formulier. */

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { agendaUitRij, formWaarden, leesAgendaInvoer, perDag, tijdLabel, type AgendaItem } from './model'
+import { agendaUitRij, formWaarden, herhalingen, leesAgendaInvoer, leesHerhaal, perDag, tijdLabel, type AgendaItem } from './model'
 
 const basis = { vestiging: 'budel', titel: '  Teamoverleg  ', datum: '2026-10-20', begin: '09:00', eind: '10:30', soort: 'overleg' }
 
@@ -46,5 +46,22 @@ describe('weekweergave', () => {
     expect(agendaUitRij({ id: 'a', vestiging: 'budel', titel: 'T', soort: '?', begin_op: '2026-10-20T07:00:00+00:00', eind_op: '2026-10-20T08:00:00+00:00' }))
       .toMatchObject({ soort: 'afspraak', beginOp: '2026-10-20T07:00:00.000Z', heleDag: false })
     expect(agendaUitRij({ id: 'a', vestiging: 'mars' })).toBeNull()
+  })
+})
+
+describe('herhalen', () => {
+  test('leesHerhaal: 0 tot en met 26', () => {
+    expect(leesHerhaal({})).toBe(0)
+    expect(leesHerhaal({ herhaalWeken: '4' })).toBe(4)
+    expect(leesHerhaal({ herhaalWeken: 99 })).toBe(26)
+    expect(leesHerhaal({ herhaalWeken: -2 })).toBe(0)
+    expect(leesHerhaal({ herhaalWeken: 1.5 })).toBe(0)
+  })
+  test('elke week dezelfde kloktijd, ook over de wintertijd heen', () => {
+    const r = leesAgendaInvoer(basis)
+    if (!r.ok) throw new Error(r.fout)
+    const reeks = herhalingen(r.waarde, 2)
+    expect(reeks.map((a) => a.beginOp)).toEqual(['2026-10-20T07:00:00.000Z', '2026-10-27T08:00:00.000Z', '2026-11-03T08:00:00.000Z'])
+    expect(reeks.map((a) => formWaarden(a).begin)).toEqual(['09:00', '09:00', '09:00'])
   })
 })

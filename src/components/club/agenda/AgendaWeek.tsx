@@ -11,6 +11,8 @@ import { stuur } from '@/components/club/leden/stuur'
 // elkaar), elke afspraak met tijd, soort en wie. Tik op een afspraak om hem te
 // wijzigen; "Nieuwe afspraak" opent hetzelfde formulier leeg.
 
+const HERHAAL = [3, 7, 11, 25] as const
+
 const DAG = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 
 interface Props {
@@ -30,10 +32,12 @@ interface Concept {
   heleDag: boolean
   medewerkerId: string
   notitie: string
+  /** Alleen bij een nieuwe afspraak: zoveel weken extra herhalen. */
+  herhaalWeken: number
 }
 
-const leegConcept = (datum: string): Concept => ({ id: null, titel: '', soort: 'afspraak', datum, begin: '09:00', eind: '10:00', heleDag: false, medewerkerId: '', notitie: '' })
-const vanItem = (a: AgendaItem): Concept => ({ id: a.id, titel: a.titel, soort: a.soort, ...formWaarden(a), heleDag: a.heleDag, medewerkerId: a.medewerkerId ?? '', notitie: a.notitie ?? '' })
+const leegConcept = (datum: string): Concept => ({ id: null, titel: '', soort: 'afspraak', datum, begin: '09:00', eind: '10:00', heleDag: false, medewerkerId: '', notitie: '', herhaalWeken: 0 })
+const vanItem = (a: AgendaItem): Concept => ({ id: a.id, titel: a.titel, soort: a.soort, ...formWaarden(a), heleDag: a.heleDag, medewerkerId: a.medewerkerId ?? '', notitie: a.notitie ?? '', herhaalWeken: 0 })
 
 export function AgendaWeek({ vestiging, dagen, vandaag, medewerkers }: Props) {
   const router = useRouter()
@@ -108,9 +112,19 @@ export function AgendaWeek({ vestiging, dagen, vandaag, medewerkers }: Props) {
               <input type="time" step={300} className="club-invoer" value={concept.eind} onChange={(e) => zet('eind', e.target.value)} disabled={concept.heleDag} required={!concept.heleDag} />
             </label>
           </div>
-          <label className="ag-vinkje">
-            <input type="checkbox" checked={concept.heleDag} onChange={(e) => zet('heleDag', e.target.checked)} /> Hele dag
-          </label>
+          <div className="club-formrij">
+            <label className="ag-vinkje">
+              <input type="checkbox" checked={concept.heleDag} onChange={(e) => zet('heleDag', e.target.checked)} /> Hele dag
+            </label>
+            {concept.id ? null : (
+              <label className="club-veld"><span>Herhalen</span>
+                <select className="club-invoer" value={concept.herhaalWeken} onChange={(e) => zet('herhaalWeken', Number(e.target.value))}>
+                  <option value={0}>Niet herhalen</option>
+                  {HERHAAL.map((w) => <option key={w} value={w}>Elke week, nog {w} keer</option>)}
+                </select>
+              </label>
+            )}
+          </div>
           <label className="club-veld"><span>Notitie</span>
             <textarea className="club-invoer" value={concept.notitie} onChange={(e) => zet('notitie', e.target.value)} maxLength={2000} rows={3} />
           </label>
