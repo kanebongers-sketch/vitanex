@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
 import { haalLidKaart, type LidKaart } from '@/lib/club/leden/kaart'
@@ -65,7 +65,7 @@ function LaatsteBezoeken({ kaart, nu }: { kaart: LidKaart; nu: Date }) {
 }
 
 export default async function LidPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('leden')
   const [{ id }, ruw] = await Promise.all([params, searchParams])
   const nu = new Date()
   const kaart = await haalLidKaart(t.admin, t.userId, id, nu)

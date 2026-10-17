@@ -6,7 +6,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Building2, Menu, X } from 'lucide-react'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { VESTIGINGEN, VESTIGING_LABEL, VESTIGING_PARAM, PILOT_VESTIGING, kiesVestiging, type Vestiging } from '@/lib/club/kern/vestiging'
-import { GROEPEN, actiefOnderdeel, isActief, onderdelenVan } from './onderdelen'
+import type { Module } from '@/lib/club/kern/organisatie'
+import { GROEPEN, actiefOnderdeel, groepenMet, isActief, onderdelenVan } from './onderdelen'
 
 // De bovenkant van de clubsoftware. Een ingedeeld menu, maar anders dan de
 // zijbalk van Virtuagym: alles bovenin zodat het werkvlak de volle breedte houdt.
@@ -35,7 +36,32 @@ function VestigingKeuze({ vestiging, onWissel }: { vestiging: Vestiging; onWisse
   )
 }
 
-function MenuPaneel({ vestiging, pad, onSluit, onWissel }: { vestiging: Vestiging; pad: string; onSluit: () => void; onWissel: (v: string) => void }) {
+/** Het merk van de sportschool die open staat: haar logo, of haar naam als woordmerk. */
+export interface ClubMerkInfo {
+  naam: string
+  /** URL van het geuploade logo, of null. */
+  logoUrl: string | null
+  /** Het ingebouwde Fit Factory-logo. */
+  fitFactory: boolean
+}
+
+function Merk({ merk }: { merk: ClubMerkInfo }) {
+  if (merk.fitFactory) return <FfLogo />
+  if (merk.logoUrl) {
+    return <img src={merk.logoUrl} alt={merk.naam} className="club-merk-logo" />
+  }
+  return <span className="club-merk-naam">{merk.naam}</span>
+}
+
+interface MenuPaneelProps {
+  vestiging: Vestiging
+  pad: string
+  uit: readonly Module[]
+  onSluit: () => void
+  onWissel: (v: string) => void
+}
+
+function MenuPaneel({ vestiging, pad, uit, onSluit, onWissel }: MenuPaneelProps) {
   const sluitKnop = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -52,11 +78,11 @@ function MenuPaneel({ vestiging, pad, onSluit, onWissel }: { vestiging: Vestigin
             <X aria-hidden size={20} />
           </button>
         </div>
-        {GROEPEN.map((g) => (
+        {groepenMet(uit).map((g) => (
           <section key={g.sleutel} className="club-menu-groep" aria-label={g.label}>
             <h2>{g.label}</h2>
             <ul>
-              {onderdelenVan(g.sleutel).map((o) => (
+              {onderdelenVan(g.sleutel, uit).map((o) => (
                 <li key={o.sleutel}>
                   <Link href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} onClick={onSluit}>
                     <span>{o.label}</span>
@@ -72,7 +98,14 @@ function MenuPaneel({ vestiging, pad, onSluit, onWissel }: { vestiging: Vestigin
   )
 }
 
-export function ClubBalk({ ptCode }: { ptCode: string }) {
+interface ClubBalkProps {
+  ptCode: string
+  merk: ClubMerkInfo
+  /** Onderdelen die bij deze sportschool uit staan. */
+  uit: readonly Module[]
+}
+
+export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
@@ -89,13 +122,13 @@ export function ClubBalk({ ptCode }: { ptCode: string }) {
   return (
     <header className="club-kop">
       <div className="club-balk">
-        <Link href={href('', vestiging)} className="club-merk" aria-label="Fit Factory, naar Vandaag">
-          <FfLogo />
+        <Link href={href('', vestiging)} className="club-merk" aria-label={`${merk.naam}, naar Vandaag`}>
+          <Merk merk={merk} />
           <span className="club-merk-woord">CLUB</span>
         </Link>
         <nav className="club-groepen" aria-label="Groepen">
-          {GROEPEN.map((g) => {
-            const eerste = onderdelenVan(g.sleutel)[0]
+          {groepenMet(uit).map((g) => {
+            const eerste = onderdelenVan(g.sleutel, uit)[0]
             return (
               <Link key={g.sleutel} href={href(eerste?.pad ?? '', vestiging)} aria-current={huidig.groep === g.sleutel ? 'true' : undefined} title={g.uitleg}>
                 {g.label}
@@ -119,13 +152,13 @@ export function ClubBalk({ ptCode }: { ptCode: string }) {
         </div>
       </div>
       <nav className="club-nav" aria-label={`Onderdelen van ${GROEPEN.find((g) => g.sleutel === huidig.groep)?.label ?? 'de groep'}`}>
-        {onderdelenVan(huidig.groep).map((o) => (
+        {onderdelenVan(huidig.groep, uit).map((o) => (
           <Link key={o.sleutel} href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} title={o.uitleg}>
             {o.label}
           </Link>
         ))}
       </nav>
-      {menuOpen && <MenuPaneel vestiging={vestiging} pad={pad} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
+      {menuOpen && <MenuPaneel vestiging={vestiging} pad={pad} uit={uit} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
     </header>
   )
 }

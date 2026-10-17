@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { isDatum, nlDelen, plusDagen, weekParam } from '@/lib/club/rooster/tijd'
@@ -31,7 +31,7 @@ function kiesDag(ruw: string | string[] | undefined, vandaag: string): string {
 }
 
 export default async function TakenDagPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('taken')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const vandaag = nlDelen(new Date()).datum

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalOefeningen, haalSchema, haalTrainingslog } from '@/lib/club/training/data'
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: 'Schema' }
 // Rechts: wat het lid in de app heeft afgevinkt (alleen lezen).
 
 export default async function SchemaPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('training')
   const [{ id }, zoek] = await Promise.all([params, searchParams])
   const vestiging = kiesVestiging(zoek.v)
 

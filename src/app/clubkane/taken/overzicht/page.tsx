@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { isoWeek, nlDelen } from '@/lib/club/rooster/tijd'
 import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Overzicht taken' }
 const AANTAL_WEKEN = 4
 
 export default async function TakenOverzichtPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('taken')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const w = weekContext(leesWeek(params.week), nlDelen(new Date()).datum)

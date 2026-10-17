@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Upload } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLedenRijen } from '@/lib/club/leden/data'
@@ -14,7 +14,7 @@ import '@/components/club/leden/leden.css'
 export const metadata: Metadata = { title: 'Leden' }
 
 export default async function LedenPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('leden')
   const ruw = await searchParams
   const vestiging = kiesVestiging(ruw.v)
   const params = leesLijstParams(ruw)

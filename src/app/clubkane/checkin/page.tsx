@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalDagPaneel } from '@/lib/club/checkin/data'
 import { CheckinBalie } from '@/components/club/checkin/CheckinBalie'
@@ -10,7 +10,7 @@ import '@/components/club/checkin/checkin.css'
 export const metadata: Metadata = { title: 'Check-in' }
 
 export default async function CheckinPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('checkin')
   const vestiging = kiesVestiging((await searchParams).v)
   const samenvatting = await haalDagPaneel(t.admin, t.userId, vestiging, new Date())
   return (

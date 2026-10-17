@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Intake' }
 // Een nieuwe intake. ?lid=<id> zet het lid alvast klaar (vanuit de ledenkaart).
 
 export default async function IntakePagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('training')
   const zoek = await searchParams
   const vestiging = kiesVestiging(zoek.v)
   const lidParam = typeof zoek.lid === 'string' ? zoek.lid : null

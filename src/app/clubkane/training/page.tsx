@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ClipboardPlus } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { haalLid, initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: 'Training' }
 // direct naar alles van een lid kan linken.
 
 export default async function TrainingPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('training')
   const zoek = await searchParams
   const vestiging = kiesVestiging(zoek.v)
   const tab = kiesTab(zoek.tab)

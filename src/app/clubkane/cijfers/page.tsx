@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalRapport } from '@/lib/club/cijfers/haal-rapport'
 import { kiesMaand } from '@/lib/club/cijfers/maand'
@@ -23,7 +23,7 @@ import '@/components/club/cijfers/cijfers.css'
 export const metadata: Metadata = { title: 'Cijfers' }
 
 export default async function ClubCijfers({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('cijfers')
   const zoek = await searchParams
   const nu = new Date()
   const vestiging = kiesVestiging(zoek.v)

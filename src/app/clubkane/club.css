@@ -30,11 +30,13 @@
 .club-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ── Kop: balk + onderdelen ───────────────────────────────────────────────── */
-.club-kop { position: sticky; top: 0; z-index: 40; background: rgba(16, 16, 20, 0.9); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.club-kop { position: sticky; top: 0; z-index: 40; background: var(--club-kop-bg, rgba(16, 16, 20, 0.9)); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .club-kop--laden { height: 104px; }
 .club-balk { display: flex; align-items: center; gap: 12px; padding: max(10px, env(safe-area-inset-top)) var(--ff-rand) 8px; }
 .club-merk { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-1); flex: none; }
 .club-merk .ff-logo, .club-merk img { height: 30px; width: auto; }
+.club-merk-logo { max-width: 160px; object-fit: contain; }
+.club-merk-naam { font-family: var(--ff-kop); font-weight: 700; font-size: 20px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-1); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .club-merk-woord { font-family: var(--ff-kop); font-weight: 700; font-size: 20px; letter-spacing: 0.18em; color: var(--brand); }
 .club-vestiging { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text-2); }
 .club-vestiging select { appearance: none; background: transparent; border: 0; color: var(--text-1); font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 4px 4px 0; cursor: pointer; }
@@ -57,7 +59,7 @@
 .club-groepen { display: none; gap: 4px; margin-left: 18px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--club-vlak); }
 .club-groepen a { padding: 7px 14px; border-radius: 999px; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); text-decoration: none; transition: color 160ms var(--ease), background-color 160ms var(--ease); }
 .club-groepen a:hover { color: var(--text-1); background: var(--club-vlak-hover); }
-.club-groepen a[aria-current='true'] { color: #0A0B09; background: var(--brand); }
+.club-groepen a[aria-current='true'] { color: var(--brand-inkt, #0A0B09); background: var(--brand); }
 .club-menuknop { display: inline-flex; }
 @media (min-width: 1100px) {
   .club-groepen { display: flex; }
@@ -125,8 +127,8 @@
 .club-knop:hover { background: var(--club-vlak-hover); border-color: var(--text-4); }
 .club-knop:active { transform: translateY(1px); }
 .club-knop:disabled, .club-knop[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; }
-.club-knop--primair { background: var(--brand); border-color: var(--brand); color: #0A0B09; }
-.club-knop--primair:hover { background: color-mix(in srgb, var(--brand) 88%, #fff); border-color: var(--brand); }
+.club-knop--primair { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt, #0A0B09); }
+.club-knop--primair:hover { background: var(--brand-strong, color-mix(in srgb, var(--brand) 88%, #fff)); border-color: var(--brand); }
 .club-knop--gevaar { color: var(--club-let-op); border-color: color-mix(in srgb, var(--club-let-op) 50%, transparent); }
 .club-knop--stil { border-color: transparent; background: transparent; color: var(--text-2); }
 .club-knop--klein { min-height: 32px; padding: 0 10px; font-size: 13px; }
@@ -170,7 +172,7 @@
 /* ── Formulieren ──────────────────────────────────────────────────────────── */
 .club-veld { display: grid; gap: 6px; min-width: 0; }
 .club-veld > span, .club-label { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
-.club-invoer, .club-app select.club-invoer, .club-app textarea.club-invoer { width: 100%; min-height: 40px; padding: 8px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: rgba(0, 0, 0, 0.25); color: var(--text-1); font: inherit; font-size: 14.5px; }
+.club-invoer, .club-app select.club-invoer, .club-app textarea.club-invoer { width: 100%; min-height: 40px; padding: 8px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-invoer-bg, rgba(0, 0, 0, 0.25)); color: var(--text-1); font: inherit; font-size: 14.5px; }
 .club-app textarea.club-invoer { min-height: 90px; resize: vertical; line-height: 1.5; }
 .club-invoer::placeholder { color: var(--text-4); }
 .club-invoer:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
@@ -18,7 +18,7 @@ import '@/components/club/app/app.css'
 export const metadata: Metadata = { title: 'Ledenapp' }
 
 export default async function ClubLedenapp({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('app')
   const zoek = await searchParams
   const vestiging = kiesVestiging(zoek.v)
   const tab = kiesTab(zoek.tab)

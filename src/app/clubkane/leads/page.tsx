@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { haalLeads, haalProeflesLessen } from '@/lib/club/leads/data'
@@ -23,7 +23,7 @@ function eerste(v: string | string[] | undefined): string | undefined {
 // Leads en proeflessen: bovenaan wat vandaag moet, daaronder de pijplijn van
 // eerste contact tot lid. Filters en het open paneel staan in de URL.
 export default async function LeadsPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('leads')
   const zoek = await searchParams
   const vestiging = kiesVestiging(zoek.v)
   const filters = leesFilters(zoek)

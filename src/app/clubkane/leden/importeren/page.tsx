@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { LedenImport } from '@/components/club/leden/import/LedenImport'
 import '@/components/club/leden/leden.css'
@@ -10,7 +10,7 @@ import '@/components/club/leden/import/import.css'
 export const metadata: Metadata = { title: 'Ledenbestand inlezen' }
 
 export default async function LedenImporterenPagina({ searchParams }: { searchParams: ZoekParams }) {
-  await eisClubToegang()
+  await eisModule('leden')
   const vestiging = kiesVestiging((await searchParams).v)
   const label = VESTIGING_LABEL[vestiging]
   return (

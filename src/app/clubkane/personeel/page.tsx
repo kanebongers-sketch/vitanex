@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { maandagUitWeekParam, nlDelen } from '@/lib/club/rooster/tijd'
 import { haalTeam } from '@/lib/club/personeel/opslag'
@@ -18,7 +18,7 @@ import '@/components/club/personeel/personeel.css'
 export const metadata: Metadata = { title: 'Personeel' }
 
 export default async function PersoneelPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('personeel')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const staat = leesStaat(params, vestiging)

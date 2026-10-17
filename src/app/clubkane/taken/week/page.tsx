@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { nlDelen } from '@/lib/club/rooster/tijd'
@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: 'Taken per week' }
 // taken en dagen, afvinken met een tik, tellers voor de weektaken.
 
 export default async function TakenWeekPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('taken')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const w = weekContext(leesWeek(params.week), nlDelen(new Date()).datum)

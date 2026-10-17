@@ -4,6 +4,8 @@
 // zoals Virtuagym, maar op onze eigen manier: groepen bovenin, de onderdelen van
 // de groep eronder, en op de telefoon een menupaneel).
 
+import type { Module } from '@/lib/club/kern/organisatie'
+
 export const GROEPEN = [
   { sleutel: 'werkvloer', label: 'Werkvloer', uitleg: 'Wat er vandaag in de club gebeurt' },
   { sleutel: 'leden', label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
@@ -22,21 +24,24 @@ export interface Onderdeel {
   /** Korte uitleg voor de zoekbalk en de presentatie. */
   uitleg: string
   groep: GroepSleutel
+  /** Het onderdeel dat een sportschool uit kan zetten (zie het huisstijl-portaal). Zonder: altijd aan. */
+  module?: Module
 }
 
 export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'vandaag', pad: '', label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging', groep: 'werkvloer' },
-  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is', groep: 'werkvloer' },
-  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster', groep: 'werkvloer' },
+  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is', groep: 'werkvloer', module: 'checkin' },
+  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster', groep: 'werkvloer', module: 'taken' },
   { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer' },
-  { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden' },
-  { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden' },
-  { sleutel: 'app', pad: '/app', label: 'Ledenapp', uitleg: 'Zo ziet een lid het op zijn telefoon', groep: 'leden' },
-  { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning' },
-  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning' },
+  { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden' },
+  { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads' },
+  { sleutel: 'app', pad: '/app', label: 'Ledenapp', uitleg: 'Zo ziet een lid het op zijn telefoon', groep: 'leden', module: 'app' },
+  { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster' },
+  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel' },
   { sleutel: 'agenda', pad: '/agenda', label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week', groep: 'planning' },
-  { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching' },
-  { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer' },
+  { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training' },
+  { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
+  { sleutel: 'huisstijl', pad: '/huisstijl', label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool', groep: 'beheer' },
   { sleutel: 'instellingen', pad: '/instellingen', label: 'Instellingen', uitleg: 'Zalen, lessen, regels en medewerkers', groep: 'beheer' },
 ]
 
@@ -53,7 +58,17 @@ export function actiefOnderdeel(pad: string): Onderdeel {
   return passend[0] ?? ONDERDELEN[0]
 }
 
-/** De onderdelen van een groep, in vaste volgorde. */
-export function onderdelenVan(groep: GroepSleutel): Onderdeel[] {
-  return ONDERDELEN.filter((o) => o.groep === groep)
+/** Staat dit onderdeel aan bij deze sportschool? */
+export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = []): boolean {
+  return !onderdeel.module || !uit.includes(onderdeel.module)
+}
+
+/** De onderdelen van een groep die aan staan, in vaste volgorde. */
+export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = []): Onderdeel[] {
+  return ONDERDELEN.filter((o) => o.groep === groep && isZichtbaar(o, uit))
+}
+
+/** De groepen met minstens een onderdeel dat aan staat. */
+export function groepenMet(uit: readonly Module[] = []): (typeof GROEPEN)[number][] {
+  return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit).length > 0)
 }

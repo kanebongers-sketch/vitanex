@@ -1,0 +1,102 @@
+/* ─── Club: huisstijl-portaal ─────────────────────────────────────────────────
+   Links de velden in rustige blokken, rechts een levend voorbeeld dat meeplakt
+   tijdens het scrollen. Alleen .club-huisstijl-*; tokens uit club.css. */
+
+.club-huisstijl-kop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+
+/* ── Sportscholen ────────────────────────────────────────────────────────── */
+.club-huisstijl-scholen { display: grid; gap: 10px; }
+.club-huisstijl-scholen ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.club-huisstijl-school {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px; border-radius: var(--club-radius);
+  border: 1px solid var(--line-strong); background: var(--bg-card); color: var(--text-1); font: inherit; cursor: pointer;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+.club-huisstijl-school:hover:not(:disabled) { border-color: color-mix(in srgb, var(--brand) 50%, var(--line-strong)); background: var(--club-vlak-hover); }
+.club-huisstijl-school:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-huisstijl-school[aria-current='true'] { border-color: var(--brand); cursor: default; }
+.club-huisstijl-school:disabled:not([aria-current='true']) { opacity: 0.6; cursor: wait; }
+.club-huisstijl-stip { width: 14px; height: 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
+.club-huisstijl-schoolnaam { font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-huisstijl-open { display: inline-flex; align-items: center; gap: 4px; color: var(--text-3); font-size: 13px; }
+.club-huisstijl-school[aria-current='true'] .club-huisstijl-open { color: var(--brand); }
+
+/* ── Indeling ────────────────────────────────────────────────────────────── */
+.club-huisstijl { display: grid; gap: 28px; align-items: start; margin-top: 8px; }
+@media (min-width: 1080px) { .club-huisstijl { grid-template-columns: minmax(0, 1fr) 420px; } }
+.club-huisstijl-velden { display: grid; gap: 0; min-width: 0; }
+.club-huisstijl-blok { display: grid; gap: 14px; padding: 24px 0; border-top: 1px solid var(--line); }
+.club-huisstijl-blok:first-child { border-top: 0; padding-top: 4px; }
+.club-huisstijl-blok .club-veld { max-width: 520px; }
+.club-huisstijl-opslaan { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); background: linear-gradient(to top, var(--bg-app) 70%, transparent); }
+.club-huisstijl-opslaan .club-melding { flex: 1 1 260px; margin: 0; }
+
+/* ── Logo ────────────────────────────────────────────────────────────────── */
+.club-huisstijl-logo { display: grid; gap: 10px; }
+.club-huisstijl-logovlak { display: grid; place-items: center; width: min(100%, 320px); height: 110px; padding: 16px; border-radius: var(--club-radius); border: 1px dashed var(--line-strong); background: var(--club-vlak); }
+.club-huisstijl-logovlak img, .club-huisstijl-logovlak .ff-logo { max-width: 100%; max-height: 64px; width: auto; height: auto; object-fit: contain; }
+.club-huisstijl-logoleeg { color: var(--text-3); font-size: 13px; text-align: center; }
+
+/* ── Kleuren ─────────────────────────────────────────────────────────────── */
+.club-huisstijl-thema { justify-self: start; }
+.club-huisstijl-thema button { display: inline-flex; align-items: center; gap: 6px; }
+.club-huisstijl-stalen { display: flex; flex-wrap: wrap; gap: 10px; }
+.club-huisstijl-staal {
+  width: 36px; height: 36px; border-radius: 999px; border: 2px solid transparent; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18); transition: transform 140ms var(--ease);
+}
+.club-huisstijl-staal:hover { transform: scale(1.08); }
+.club-huisstijl-staal:focus-visible { outline: 2px solid var(--text-1); outline-offset: 3px; }
+.club-huisstijl-staal[aria-pressed='true'] { border-color: var(--text-1); box-shadow: inset 0 0 0 3px var(--bg-app); }
+.club-huisstijl-kleurveld { display: flex; gap: 8px; align-items: center; max-width: 220px; }
+.club-huisstijl-kleurveld input[type='color'] { flex: none; width: 44px; height: 40px; padding: 0; border: 1px solid var(--line-strong); border-radius: var(--club-radius-klein); background: none; cursor: pointer; }
+.club-huisstijl-kleurveld .club-invoer { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+.club-huisstijl-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; }
+
+/* ── Onderdelen ──────────────────────────────────────────────────────────── */
+.club-huisstijl-modules { list-style: none; margin: 0; padding: 0; display: grid; border: 1px solid var(--line); border-radius: var(--club-radius); overflow: hidden; }
+@media (min-width: 760px) { .club-huisstijl-modules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.club-huisstijl-modules li { border-bottom: 1px solid var(--line); background: var(--bg-card); }
+.club-huisstijl-module { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; }
+.club-huisstijl-moduletekst { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.club-huisstijl-moduletekst strong { font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-huisstijl-moduletekst span { color: var(--text-3); font-size: 13px; line-height: 1.4; }
+.club-huisstijl-schakelaar {
+  appearance: none; flex: none; position: relative; width: 44px; height: 26px; margin: 0; border-radius: 999px; cursor: pointer;
+  background: var(--line-strong); transition: background-color 160ms var(--ease);
+}
+.club-huisstijl-schakelaar::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: var(--text-1);
+  transition: transform 180ms var(--ease);
+}
+.club-huisstijl-schakelaar:checked { background: var(--brand); }
+.club-huisstijl-schakelaar:checked::after { transform: translateX(18px); background: var(--brand-inkt, #0A0B09); }
+.club-huisstijl-schakelaar:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-huisstijl-schakelaar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Voorbeeld ───────────────────────────────────────────────────────────── */
+.club-huisstijl-voorbeeld {
+  position: sticky; top: 130px; display: grid; gap: 0; overflow: hidden; border-radius: var(--club-radius);
+  border: 1px solid var(--line-strong); background: var(--bg-app); color: var(--text-1); box-shadow: var(--club-schaduw);
+  transition: background-color 200ms var(--ease);
+}
+.club-huisstijl-voorbeeldlabel { position: absolute; right: 12px; top: 10px; margin: 0; z-index: 1; font-family: var(--ff-kop); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-4); }
+.club-huisstijl-vb-balk { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; padding-right: 90px; background: var(--club-kop-bg); border-bottom: 1px solid var(--line); }
+.club-huisstijl-vb-balk .club-merk img, .club-huisstijl-vb-balk .ff-logo { height: 26px; width: auto; }
+.club-huisstijl-vb-groep { padding: 5px 12px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.club-huisstijl-vb-inhoud { display: grid; gap: 12px; padding: 18px 16px 20px; }
+.club-huisstijl-vb-kop { margin: -6px 0 0; font-family: var(--ff-kop); font-size: 34px; line-height: 1; font-weight: 700; text-transform: uppercase; }
+.club-huisstijl-vb-tegels { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+.club-huisstijl-vb-tegels span { display: grid; gap: 2px; padding: 10px 12px; background: var(--bg-card); color: var(--text-3); font-size: 12.5px; }
+.club-huisstijl-vb-tegels strong { font-family: var(--ff-kop); font-size: 30px; line-height: 1; color: var(--text-1); }
+.club-huisstijl-vb-app { display: grid; place-items: center; padding: 18px 16px 22px; border-top: 1px solid var(--line); background: radial-gradient(120% 80% at 100% 0%, var(--brand-soft), transparent 60%), var(--bg-card); }
+.club-huisstijl-vb-telefoon { display: grid; gap: 10px; width: min(100%, 250px); padding: 16px; border-radius: 28px; border: 1px solid var(--line-strong); background: var(--bg-app); }
+.club-huisstijl-vb-groet { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; text-transform: uppercase; line-height: 1; }
+.club-huisstijl-vb-slogan { margin: -4px 0 0; color: var(--brand); font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.club-huisstijl-vb-qr { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt); font-family: var(--ff-kop); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 14px; }
+.club-huisstijl-vb-schema { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--club-vlak); border: 1px solid var(--line); color: var(--text-2); font-size: 13px; }
+.club-huisstijl-vb-schema svg { color: var(--brand); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-huisstijl-school, .club-huisstijl-staal, .club-huisstijl-schakelaar, .club-huisstijl-schakelaar::after, .club-huisstijl-voorbeeld { transition: none; }
+}

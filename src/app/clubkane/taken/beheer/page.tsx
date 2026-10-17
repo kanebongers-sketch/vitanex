@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalTaken } from '@/lib/club/taken/opslag'
 import { BeheerLijst } from '@/components/club/taken/BeheerLijst'
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Taken beheren' }
 // wijzigen, uitzetten, en kopieren naar een andere vestiging.
 
 export default async function TakenBeheerPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('taken')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const data = await haalTaken(t.admin, t.userId, vestiging)

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisModule } from '@/lib/club/toegang'
 import { clubPad, kiesVestiging, VESTIGING_LABEL, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { haalLesDetail, haalLessen, haalRegels, haalStamdata, type LesDetail } from '@/lib/club/rooster/opslag'
 import { ruimsteOpening } from '@/lib/club/rooster/openingstijden'
@@ -36,7 +36,7 @@ function magAfvinken(detail: LesDetail, regels: RoosterRegels, nuMs: number): bo
 }
 
 export default async function RoosterPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisModule('rooster')
   const params = await searchParams
   const vestiging = kiesVestiging(params.v)
   const staat = leesRoosterStaat(params, vestiging)
