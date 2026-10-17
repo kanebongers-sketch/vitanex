@@ -10,7 +10,7 @@ import { ZalenBeheer } from '@/components/club/instellingen/ZalenBeheer'
 import { LestypenBeheer } from '@/components/club/instellingen/LestypenBeheer'
 import { WeekroosterBeheer } from '@/components/club/instellingen/WeekroosterBeheer'
 import { MedewerkersBeheer } from '@/components/club/instellingen/MedewerkersBeheer'
-import { VestigingenBeheer } from '@/components/club/instellingen/VestigingenBeheer'
+import { VestigingenBeheer, type VestigingContact } from '@/components/club/instellingen/VestigingenBeheer'
 import '@/components/club/rooster/rooster.css'
 import '@/components/club/instellingen/instellingen.css'
 
@@ -70,7 +70,7 @@ export default async function InstellingenPagina({ searchParams }: { searchParam
       <>
         <InstellingenKop boven={vestiging ? naamVan(t.vestigingen, vestiging) : t.organisatie.naam} uitleg={huidig?.uitleg} />
         {vestiging && <Tabs vestiging={vestiging} tab={tab} />}
-        <VestigingenBeheer vestigingen={t.vestigingen} />
+        <VestigingenBeheer vestigingen={t.vestigingen} contact={await haalContact(t)} />
       </>
     )
   }
@@ -111,4 +111,12 @@ function Tabs({ vestiging, tab }: { vestiging: Vestiging; tab: Tab }) {
       ))}
     </nav>
   )
+}
+
+/** Adres, telefoon en e-mail van de vestigingen van deze sportschool. */
+async function haalContact(t: Awaited<ReturnType<typeof eisClubToegang>>): Promise<VestigingContact> {
+  const { data, error } = await t.admin.from('club_vestigingen').select('vestiging, adres, telefoon, email').eq('user_id', t.userId)
+  if (error) console.error('[club] contact vestigingen lezen mislukt', error.message)
+  const tekst = (v: unknown) => (typeof v === 'string' && v.trim() ? v : null)
+  return Object.fromEntries((data ?? []).map((r) => [String(r.vestiging), { adres: tekst(r.adres), telefoon: tekst(r.telefoon), email: tekst(r.email) }]))
 }

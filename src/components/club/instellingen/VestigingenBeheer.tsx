@@ -9,11 +9,15 @@ import { stuur, useClubActie } from '@/components/club/rooster/vraag'
 // De vestigingen van de sportschool: toevoegen, hernoemen, volgorde en welke
 // standaard open gaat. Verwijderen kan niet (leden en lessen verwijzen ernaar).
 
+/** Contactgegevens per vestiging (adres, telefoon, e-mail), op sleutel. */
+export type VestigingContact = Record<string, { adres: string | null; telefoon: string | null; email: string | null }>
+
 interface VestigingenBeheerProps {
   vestigingen: readonly VestigingInfo[]
+  contact: VestigingContact
 }
 
-export function VestigingenBeheer({ vestigingen }: VestigingenBeheerProps) {
+export function VestigingenBeheer({ vestigingen, contact }: VestigingenBeheerProps) {
   const { bezig, fout, voerUit } = useClubActie()
   const [nieuw, setNieuw] = useState('')
 
@@ -34,6 +38,7 @@ export function VestigingenBeheer({ vestigingen }: VestigingenBeheerProps) {
           <VestigingRij
             key={v.sleutel}
             vestiging={v}
+            contact={contact[v.sleutel] ?? { adres: null, telefoon: null, email: null }}
             eerste={i === 0}
             laatste={i === vestigingen.length - 1}
             bezig={bezig}
@@ -63,14 +68,17 @@ export function VestigingenBeheer({ vestigingen }: VestigingenBeheerProps) {
 
 interface VestigingRijProps {
   vestiging: VestigingInfo
+  contact: VestigingContact[string]
   eerste: boolean
   laatste: boolean
   bezig: boolean
   onWijzig: (body: Record<string, unknown>) => void
 }
 
-function VestigingRij({ vestiging: v, eerste, laatste, bezig, onWijzig }: VestigingRijProps) {
+function VestigingRij({ vestiging: v, contact, eerste, laatste, bezig, onWijzig }: VestigingRijProps) {
   const [naam, setNaam] = useState(v.naam)
+  const [gegevens, setGegevens] = useState({ adres: contact.adres ?? '', telefoon: contact.telefoon ?? '', email: contact.email ?? '' })
+  const contactGewijzigd = gegevens.adres !== (contact.adres ?? '') || gegevens.telefoon !== (contact.telefoon ?? '') || gegevens.email !== (contact.email ?? '')
   const gewijzigd = naam.trim() !== v.naam && naam.trim() !== ''
   return (
     <li className="club-instellingen-vestrij">
@@ -95,6 +103,26 @@ function VestigingRij({ vestiging: v, eerste, laatste, bezig, onWijzig }: Vestig
           Maak standaard
         </button>
       )}
+      <details className="club-instellingen-vestcontact">
+        <summary>Contact{contact.adres ? `: ${contact.adres}` : ''}</summary>
+        <div className="club-instellingen-vestvelden">
+          {(['adres', 'telefoon', 'email'] as const).map((veld) => (
+            <label key={veld} className="club-veld">
+              <span>{veld === 'email' ? 'E-mail' : veld === 'adres' ? 'Adres' : 'Telefoon'}</span>
+              <input
+                className="club-invoer"
+                type={veld === 'email' ? 'email' : veld === 'telefoon' ? 'tel' : 'text'}
+                value={gegevens[veld]}
+                maxLength={veld === 'adres' ? 160 : veld === 'email' ? 160 : 20}
+                onChange={(e) => setGegevens({ ...gegevens, [veld]: e.target.value })}
+              />
+            </label>
+          ))}
+          <button type="button" className="club-knop club-knop--klein" disabled={bezig || !contactGewijzigd} onClick={() => onWijzig(gegevens)}>
+            <Check aria-hidden size={15} /> Contact bewaren
+          </button>
+        </div>
+      </details>
     </li>
   )
 }

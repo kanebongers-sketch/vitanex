@@ -64,6 +64,8 @@ export function leesNieuweVestiging(body: unknown): Uitslag<NieuweVestiging> {
 export interface VestigingWijziging {
   naam?: string
   adres?: string | null
+  telefoon?: string | null
+  email?: string | null
   /** Deze vestiging wordt de standaard (de andere niet meer). */
   standaard?: true
   /** Een plek omhoog (-1) of omlaag (1) in de lijst. */
@@ -83,6 +85,16 @@ export function leesVestigingWijziging(body: unknown): Uitslag<VestigingWijzigin
     const adres = leesAdres(o.adres)
     if (!adres.ok) return adres
     uit.adres = adres.waarde
+  }
+  if ('telefoon' in o) {
+    const tel = schoon(o.telefoon)
+    if (tel && !/^[0-9+() -]{6,20}$/.test(tel)) return { ok: false, fout: 'Vul een geldig telefoonnummer in.' }
+    uit.telefoon = tel || null
+  }
+  if ('email' in o) {
+    const email = schoon(o.email).toLowerCase()
+    if (email && (email.length > 160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return { ok: false, fout: 'Vul een geldig e-mailadres in.' }
+    uit.email = email || null
   }
   if (o.standaard === true) uit.standaard = true
   if (o.verplaats === -1 || o.verplaats === 1) uit.verplaats = o.verplaats

@@ -11,6 +11,7 @@ import { HomeTab } from '@/components/club/app/HomeTab'
 import { LessenTab } from '@/components/club/app/LessenTab'
 import { LidKiezer } from '@/components/club/app/LidKiezer'
 import { ProfielTab } from '@/components/club/app/ProfielTab'
+import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
 import { SchemaTab } from '@/components/club/app/SchemaTab'
 import { kiesTab, Toestel, type AppTab } from '@/components/club/app/Toestel'
 import '@/components/club/app/app.css'
@@ -65,7 +66,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   }
 
   const nu = new Date()
-  const data = await haalLidApp(t.admin, t.userId, lid, nu)
+  const [data, bedrijf] = await Promise.all([haalLidApp(t.admin, t.userId, lid, nu), haalBedrijf(t.admin, t.userId)])
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>
@@ -88,7 +89,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'home' && <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={appInstellingen} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
-          {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} />}
+          {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} teksten={bedrijf?.teksten ?? null} sportschool={t.organisatie.naam} />}
         </Toestel>
         <AppUitleg regels={data.regels} />
       </div>

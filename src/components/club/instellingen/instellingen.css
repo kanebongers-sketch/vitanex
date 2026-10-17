@@ -94,5 +94,9 @@
 .club-instellingen-vestrij > .club-invoer { flex: 1 1 220px; min-width: 0; }
 .club-instellingen-vestvolg { display: inline-flex; gap: 2px; }
 .club-instellingen-vestvolg .club-knop { width: 34px; padding: 0; }
+.club-instellingen-vestcontact { flex-basis: 100%; }
+.club-instellingen-vestcontact summary { cursor: pointer; color: var(--text-3); font-size: 13.5px; padding: 2px 0; }
+.club-instellingen-vestcontact summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.club-instellingen-vestvelden { display: grid; gap: 10px; padding: 10px 0 4px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); align-items: end; }
 .club-instellingen-vestnieuw { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .club-instellingen-vestnieuw .club-veld { flex: 1 1 260px; }

@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Rechten per rol' }
 // Wat elke rol ziet. De onderdelen voor beheer (instellingencentrum, huisstijl,
 // instellingen) horen bij de eigenaar en clubmanagers met beheerrechten.
 
-const ALLEEN_BEHEER = new Set(['beheer', 'huisstijl'])
+const ALLEEN_BEHEER = new Set(['beheer', 'bedrijf', 'huisstijl'])
 
 export default async function RechtenPagina() {
   const t = await eisClubToegang()

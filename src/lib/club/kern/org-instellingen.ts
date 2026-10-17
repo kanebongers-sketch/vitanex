@@ -10,7 +10,7 @@ import { MEDEWERKER_ROLLEN, RECHTEN, type MedewerkerRol } from './medewerker'
  * als ONDERDELEN in src/components/club/shell/onderdelen.ts (een test bewaakt dat).
  */
 export const ONDERDEEL_SLEUTELS = [
-  'vandaag', 'checkin', 'taken', 'notities', 'leden', 'leads', 'app', 'rooster', 'personeel', 'agenda', 'schemas', 'cijfers', 'beheer', 'huisstijl', 'instellingen',
+  'vandaag', 'checkin', 'taken', 'notities', 'leden', 'leads', 'app', 'rooster', 'personeel', 'agenda', 'schemas', 'cijfers', 'beheer', 'bedrijf', 'huisstijl', 'instellingen',
 ] as const
 
 export const LEDENAPP_TABS = ['lessen', 'schema'] as const

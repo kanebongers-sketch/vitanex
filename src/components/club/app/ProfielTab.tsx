@@ -1,11 +1,21 @@
 import { CreditCard, LockKeyhole } from 'lucide-react'
+import type { Teksten } from '@/lib/club/bedrijf/model'
+import { LedenappJuridisch } from '@/components/club/bedrijf/LedenappJuridisch'
 import { LID_STATUS_LABEL, initialen, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 
 // Profiel in de ledenapp: eigen gegevens. Geld en contract staan in Sportivity;
 // hier alleen de naam van het abonnement.
 
-export function ProfielTab({ lid, vestigingNaam }: { lid: Lid; vestigingNaam: string }) {
+interface ProfielTabProps {
+  lid: Lid
+  vestigingNaam: string
+  /** Huisregels, voorwaarden en privacy van de sportschool (leeg = niets tonen). */
+  teksten: Teksten | null
+  sportschool: string
+}
+
+export function ProfielTab({ lid, vestigingNaam, teksten, sportschool }: ProfielTabProps) {
   const regels: [string, string | null][] = [
     ['Lidnummer', lid.lidnummer],
     ['E-mail', lid.email],
@@ -39,6 +49,7 @@ export function ProfielTab({ lid, vestigingNaam }: { lid: Lid; vestigingNaam: st
         <p className="club-lidapp-abo">{lid.abonnement ?? 'Abonnement onbekend'}</p>
         <p>Je abonnement, facturen en betalingen regel je in Sportivity. Vragen? Loop even langs de balie.</p>
       </section>
+      {teksten && <LedenappJuridisch teksten={teksten} sportschool={sportschool} />}
       <p className="club-lidapp-voetnoot">
         <LockKeyhole aria-hidden size={14} /> Inloggen met je eigen account komt bij de pilot.
       </p>

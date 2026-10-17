@@ -1,0 +1,90 @@
+/* ─── Club: bedrijfsgegevens en huisregels ────────────────────────────────────
+   Gegevens: een strak formulier in groepen (kop met dunne lijn erboven), op
+   brede schermen met het contact per vestiging als rustige kolom ernaast.
+   Teksten: links schrijven, rechts het voorbeeld zoals een lid het leest.
+   Alleen .club-bedrijf-* en .club-juridisch (de gedeelde tekstweergave). */
+
+.club-bedrijf-tabs { margin-top: 20px; }
+
+/* ── Tabblad Gegevens ────────────────────────────────────────────────────── */
+.club-bedrijf-indeling { display: grid; gap: 36px; margin-top: 24px; align-items: start; }
+@media (min-width: 1100px) { .club-bedrijf-indeling { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 48px; } }
+
+.club-bedrijf-formulier { display: grid; gap: 30px; min-width: 0; }
+.club-bedrijf-groep { display: grid; gap: 12px; margin: 0; padding: 18px 0 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+.club-bedrijf-groep legend { float: left; width: 100%; margin: 0; padding: 0; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-bedrijf-groep > .club-hint { clear: both; margin: -4px 0 4px; max-width: 64ch; }
+.club-bedrijf-velden { display: grid; gap: 14px 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.club-bedrijf-breed { grid-column: 1 / -1; }
+.club-bedrijf-velden .club-invoer[aria-invalid='true'] { border-color: var(--club-let-op); box-shadow: 0 0 0 3px var(--club-let-op-zacht); }
+
+.club-bedrijf-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.club-bedrijf-acties > div { flex: 1 1 240px; }
+.club-bedrijf-acties .club-melding, .club-bedrijf-acties .club-hint { margin: 0; }
+
+.club-bedrijf-vestigingen { display: grid; gap: 14px; padding: 20px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); min-width: 0; }
+@media (min-width: 1100px) { .club-bedrijf-vestigingen { position: sticky; top: 132px; } }
+.club-bedrijf-sectiekop { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 16px; }
+.club-bedrijf-sectiekop h2 { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-bedrijf-sectiekop .club-hint { margin: 0; max-width: 46ch; }
+.club-bedrijf-vlijst { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-bedrijf-vlijst li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); min-width: 0; }
+.club-bedrijf-vlijst strong { font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase; }
+.club-bedrijf-vlijst span { display: flex; align-items: flex-start; gap: 8px; color: var(--text-2); font-size: 13.5px; overflow-wrap: anywhere; }
+.club-bedrijf-vlijst span svg { flex: none; margin-top: 2px; color: var(--brand-tekst, var(--brand)); }
+.club-bedrijf-vlijst span.is-leeg { color: var(--text-4); }
+.club-bedrijf-vlijst span.is-leeg svg { color: var(--text-4); }
+
+/* ── Tabblad Teksten ─────────────────────────────────────────────────────── */
+.club-bedrijf-teksten { display: grid; gap: 18px; margin-top: 24px; }
+.club-bedrijf-teksten .club-segment button { display: inline-flex; align-items: center; gap: 6px; }
+.club-bedrijf-stip { width: 7px; height: 7px; border-radius: 999px; background: var(--brand); }
+.club-bedrijf-werkvlak { display: grid; gap: 20px; align-items: start; }
+@media (min-width: 1000px) { .club-bedrijf-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; } }
+.club-bedrijf-schrijf { display: grid; gap: 10px; min-width: 0; }
+.club-bedrijf-schrijf .club-veld > .club-hint { margin-bottom: 2px; }
+.club-app textarea.club-bedrijf-textarea { min-height: 440px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; line-height: 1.65; tab-size: 2; }
+.club-bedrijf-onder { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.club-bedrijf-onder p { margin: 0; }
+.club-bedrijf-onder code { padding: 1px 5px; border-radius: 4px; background: var(--club-vlak-hover); color: var(--text-1); font-size: 12.5px; white-space: pre; }
+.club-bedrijf-teller { margin: 0; font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.club-bedrijf-teller.is-bijna { color: var(--text-1); font-weight: 600; }
+.club-bedrijf-teller.is-te-lang { color: var(--club-let-op); font-weight: 700; }
+
+.club-bedrijf-voorbeeld { position: relative; min-width: 0; padding: 24px 26px 28px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); box-shadow: var(--club-schaduw); }
+.club-bedrijf-voorbeeld::before { content: ''; position: absolute; left: 26px; right: 26px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--brand); }
+@media (min-width: 1000px) { .club-bedrijf-voorbeeld { position: sticky; top: 132px; max-height: calc(100dvh - 160px); overflow-y: auto; } }
+.club-bedrijf-voorbeeld > h2 { margin: 0 0 14px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-bedrijf-leeg { margin: 0; color: var(--text-3); font-size: 14px; }
+
+/* ── De tekst zelf (beheer en ledenapp) ──────────────────────────────────── */
+.club-juridisch { display: grid; gap: 10px; color: var(--text-2); font-size: 15px; line-height: 1.65; overflow-wrap: anywhere; }
+.club-juridisch > :is(h2, h3, h4) { margin: 10px 0 0; font-family: var(--ff-kop); font-size: 19px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.15; text-transform: uppercase; color: var(--text-1); }
+.club-juridisch > :is(h2, h3, h4):first-child { margin-top: 0; }
+.club-juridisch p { margin: 0; }
+.club-juridisch ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.club-juridisch li { position: relative; padding-left: 20px; }
+.club-juridisch li::before { content: ''; position: absolute; left: 2px; top: 0.72em; width: 8px; height: 2px; border-radius: 2px; background: var(--brand); }
+
+/* ── Ledenapp: uitklapbare blokken op Profiel ────────────────────────────── */
+.club-bedrijf-lidapp { display: grid; gap: 8px; }
+.club-bedrijf-lidapp > h3 { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 2px; font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.club-bedrijf-lidapp-blok { border: 1px solid var(--line); border-radius: var(--lidapp-radius, var(--club-radius)); background: var(--bg-card); overflow: hidden; }
+.club-bedrijf-lidapp-blok summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px; font-weight: 600; cursor: pointer; list-style: none; }
+.club-bedrijf-lidapp-blok summary::-webkit-details-marker { display: none; }
+.club-bedrijf-lidapp-blok summary svg { flex: none; color: var(--text-3); transition: transform 200ms var(--ease); }
+.club-bedrijf-lidapp-blok[open] summary svg { transform: rotate(180deg); color: var(--brand-tekst, var(--brand)); }
+.club-bedrijf-lidapp-blok summary:hover { background: var(--club-vlak-hover); }
+.club-bedrijf-lidapp-blok summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.club-bedrijf-lidapp-blok .club-juridisch { padding: 4px 16px 18px; font-size: 14.5px; }
+.club-bedrijf-lidapp-blok .club-juridisch > :is(h2, h3, h4) { font-size: 16px; }
+
+@media (max-width: 420px) {
+  .club-bedrijf-vestigingen, .club-bedrijf-voorbeeld { padding: 16px; }
+  .club-bedrijf-voorbeeld::before { left: 16px; right: 16px; }
+  .club-app textarea.club-bedrijf-textarea { min-height: 320px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-bedrijf-lidapp-blok summary svg { transition: none; }
+}

@@ -50,7 +50,12 @@ export async function wijzigVestiging(t: ClubToegang, sleutel: string, w: Vestig
     console.error('[club] vestiging wijzigen mislukt', bericht)
     return { ok: false, fout: 'Opslaan lukte niet. Probeer het opnieuw.', status: 500 }
   }
-  const velden = { ...(w.naam !== undefined ? { naam: w.naam } : {}), ...(w.adres !== undefined ? { adres: w.adres } : {}) }
+  const velden = {
+    ...(w.naam !== undefined ? { naam: w.naam } : {}),
+    ...(w.adres !== undefined ? { adres: w.adres } : {}),
+    ...(w.telefoon !== undefined ? { telefoon: w.telefoon } : {}),
+    ...(w.email !== undefined ? { email: w.email } : {}),
+  }
   if (Object.keys(velden).length > 0) {
     const { error } = await t.admin.from('club_vestigingen').update(velden).eq('user_id', t.userId).eq('vestiging', sleutel)
     if (error) return fout(error.message)

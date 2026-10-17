@@ -28,3 +28,12 @@ describe('vestigingen beheren', () => {
     expect([...nieuweVolgorde(['a', 'b', 'c'], 'c', 1)]).toEqual([['a', 1], ['b', 2], ['c', 3]])
   })
 })
+
+describe('contact van een vestiging', () => {
+  it('leest telefoon en e-mail en weigert onzin', () => {
+    expect(leesVestigingWijziging({ adres: 'Dorpsstraat 1', telefoon: '085-060 3424', email: 'Budel@Voorbeeld.nl' })).toEqual({ ok: true, waarde: { adres: 'Dorpsstraat 1', telefoon: '085-060 3424', email: 'budel@voorbeeld.nl' } })
+    expect(leesVestigingWijziging({ telefoon: '' })).toEqual({ ok: true, waarde: { telefoon: null } })
+    expect(leesVestigingWijziging({ telefoon: 'bel me' }).ok).toBe(false)
+    expect(leesVestigingWijziging({ email: 'geen-mail' }).ok).toBe(false)
+  })
+})

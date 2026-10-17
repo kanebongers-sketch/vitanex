@@ -46,6 +46,7 @@ export default async function BeheerPagina() {
 
   const sportschool: InstellingRegel[] = [
     { titel: 'Huisstijl', uitleg: 'Naam, slogan, logo, accentkleur en donker of licht.', stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? 'Eigen logo' : 'Logo geupload') : 'Nog geen logo', href: '/clubkane/huisstijl' },
+    { titel: 'Bedrijf en huisregels', uitleg: 'KvK, btw, hoofdkantoor, social links, huisregels, voorwaarden en privacy.', stand: 'Gegevens en teksten', href: '/clubkane/beheer/bedrijf' },
     { titel: 'Adres', uitleg: 'Je eigen adres voor medewerkers en leden.', stand: org.slug ? adresVan(org.slug) : 'Nog niet gekozen', href: '/clubkane/huisstijl#adres-kop', let: !org.slug },
     { titel: 'Onderdelen', uitleg: 'Zet uit wat je sportschool niet gebruikt.', stand: `${aanTal} van ${MODULES.length} aan`, href: '/clubkane/huisstijl#modules-kop' },
   ]
