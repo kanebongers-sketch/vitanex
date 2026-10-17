@@ -25,6 +25,7 @@ import { beheerderCookie, type BeheerderRol } from '@/lib/club/beheerders/beheer
 import { beheerderVanSessie } from '@/lib/club/beheerders/beheerder-opslag'
 import { externeToegangVelden } from '@/lib/club/beheerders/externe-toegang'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { magApi, magBeheerdersBeheren, magOnderdeel, toegestaneOnderdelen } from '@/lib/club/beheerders/rechten'
 
 /** Wie er binnen is: Kane (beheerder) of een eigenaar of clubmanager van een sportschool. */
 export type ClubRol = 'beheerder' | BeheerderRol
@@ -48,8 +49,12 @@ export interface ClubToegang {
   beheerderId: string
   /** Kane, of een eigenaar of clubmanager van de actieve sportschool. */
   rol: ClubRol
-  /** Alleen Kane wisselt van sportschool, maakt sportscholen aan en beheert beheerders. */
+  /** Alleen Kane wisselt van sportschool en maakt sportscholen aan. */
   isKane: boolean
+  /** Het id in club_beheerders van een eigenaar of clubmanager; null voor Kane. */
+  persoonId: string | null
+  /** De onderdelen die deze persoon ziet (sleutels uit shell/onderdelen.ts); null = alles. */
+  onderdelen: readonly string[] | null
   /** De vestigingen van de actieve sportschool, in vaste volgorde; de standaard eerst. */
   vestigingen: VestigingInfo[]
   /** Wie er werkt, voor het logboek ("Kane"). */
@@ -122,7 +127,7 @@ async function toegangVoorKane(admin: SupabaseClient): Promise<ClubToegang | nul
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
   const vestigingen = await haalVestigingen(admin, organisatie.id)
-  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, vestigingen, naam: link.naam, code }
+  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, persoonId: null, onderdelen: null, vestigingen, naam: link.naam, code }
 }
 
 /** De sportschool van een eigenaar of clubmanager, met de eigenaar van het record. */
@@ -146,7 +151,15 @@ async function toegangVoorBeheerder(admin: SupabaseClient): Promise<ClubToegang 
   // Op het subdomein van een andere sportschool bestaat Club voor deze beheerder niet.
   if ((await organisatieUitHost(velden.organisaties)) === null) return null
   const vestigingen = await haalVestigingen(admin, velden.userId)
-  return { admin, ...velden, vestigingen }
+  return { admin, ...velden, onderdelen: toegestaneOnderdelen(velden, velden.organisatie.instellingen.rechten), vestigingen }
+}
+
+/**
+ * Hoort deze sportschool bij de host van dit verzoek? Op het subdomein van een
+ * andere sportschool niet; op een gewoon domein (of met de schakelaar uit) wel.
+ */
+export async function hostPastBij(org: Organisatie): Promise<boolean> {
+  return (await organisatieUitHost([org])) !== null
 }
 
 /** Wie is er binnen: Kane, of een eigenaar of clubmanager? Per request een keer gevraagd. */
@@ -187,6 +200,8 @@ export function clubJson(data: unknown, status = 200): NextResponse {
 export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang | NextResponse> {
   const t = await clubToegang()
   if (!t) return clubFout('Niet gevonden.', 404)
+  // Een clubmanager: alleen de API's van onderdelen die de eigenaar hem geeft.
+  if (!magApi(t.onderdelen, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
   const leest = req.method === 'GET' || req.method === 'HEAD'
   if (!leest && !isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
   return t
@@ -222,6 +237,26 @@ export async function logActie(t: ClubToegang, actie: string, onderwerp: string 
  * Voor pagina's van een onderdeel dat een sportschool uit kan zetten: de
  * toegang, of een gewone 404 als het onderdeel bij deze sportschool uit staat.
  */
+/** Beheerders (eigenaren en clubmanagers) en het adres: Kane en de eigenaar. Anderen een 404. */
+export async function eisBeheerdersBeheer(): Promise<ClubToegang> {
+  const t = await eisClubToegang()
+  if (!magBeheerdersBeheren(t)) notFound()
+  return t
+}
+
+export async function vereisBeheerdersBeheer(req: NextRequest): Promise<ClubToegang | NextResponse> {
+  const t = await vereisClubToegang(req)
+  if (t instanceof NextResponse) return t
+  return magBeheerdersBeheren(t) ? t : clubFout('Niet gevonden.', 404)
+}
+
+/** Voor de layout van een onderdeel: een clubmanager zonder recht op dit onderdeel krijgt een 404. */
+export async function eisOnderdeel(sleutel: string): Promise<ClubToegang> {
+  const t = await eisClubToegang()
+  if (!magOnderdeel(t.onderdelen, sleutel)) notFound()
+  return t
+}
+
 export async function eisModule(module: Module): Promise<ClubToegang> {
   const t = await eisClubToegang()
   if (!moduleAan(t.organisatie, module)) notFound()

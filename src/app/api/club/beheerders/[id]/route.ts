@@ -1,10 +1,11 @@
 // PATCH /api/club/beheerders/[id]  { actie: goedkeuren | afwijzen | reset | stoppen, controle? }
 // Goedkeuren alleen met de controlecode die de beheerder aan Kane noemt.
-// Kane beoordeelt de pincode van een beheerder, reset hem, of stopt de
-// beheerder. Alleen binnen de sportschool die nu open staat; alleen Kane.
+// Kane of de eigenaar beoordeelt de pincode van een beheerder, reset hem, of
+// stopt de beheerder. Alleen binnen de eigen sportschool; nooit jezelf (dan
+// zou je jezelf buitensluiten). Een clubmanager krijgt een 404.
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, logActie, vereisKane } from '@/lib/club/toegang'
+import { clubFout, clubJson, logActie, vereisBeheerdersBeheer } from '@/lib/club/toegang'
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { leesBeoordeling } from '@/lib/club/beheerders/beheerder'
 import { beoordeelBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
@@ -16,10 +17,11 @@ interface Context {
 }
 
 export async function PATCH(req: NextRequest, ctx: Context) {
-  const t = await vereisKane(req)
+  const t = await vereisBeheerdersBeheer(req)
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Niet gevonden.', 404)
+  if (id === t.persoonId) return clubFout('Je eigen toegang pas je hier niet aan. Vraag een andere eigenaar of Kane.', 400)
   const invoer = leesBeoordeling(await req.json().catch(() => null))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const { actie } = invoer.waarde

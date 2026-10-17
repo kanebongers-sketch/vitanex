@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { clubToegang, haalEigenOrganisatie } from '@/lib/club/toegang'
+import { clubToegang, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { ROL_LABEL } from '@/lib/club/beheerders/beheerder'
 import { vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
@@ -46,7 +46,7 @@ export default async function ClubInloggenPagina({ params }: PaginaProps) {
   const b = await vindBeheerder(admin, code)
   if (!b) notFound()
   const { organisatie } = await haalEigenOrganisatie(admin, b.organisatieId)
-  if (!organisatie) notFound()
+  if (!organisatie || !(await hostPastBij(organisatie))) notFound()
   // Al binnen bij deze sportschool: meteen door.
   const t = await clubToegang()
   if (t && !t.isKane && t.userId === organisatie.id) redirect('/clubkane')

@@ -1,11 +1,12 @@
 // De poort van Club met de eigen login: de schakelaar, tenant-scheiding in
-// clubToegang, de inlogroutes (404, cookie, rate limiting) en de routes die
-// alleen Kane mag gebruiken.
+// clubToegang, de inlogroutes (404, cookie, rate limiting), de routes die
+// alleen Kane of de eigenaar mag gebruiken, de rechten van de clubmanager en
+// het subdomein per sportschool.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
-const stand = vi.hoisted(() => ({ aan: true, cookies: new Map<string, string>(), geremd: false }))
+const stand = vi.hoisted(() => ({ aan: true, cookies: new Map<string, string>(), geremd: false, host: 'fitfactorypt.nl' }))
 vi.mock('@/lib/club/beheerders/schakelaar', () => ({
   get CLUB_EIGEN_LOGIN() {
     return stand.aan
@@ -13,11 +14,15 @@ vi.mock('@/lib/club/beheerders/schakelaar', () => ({
 }))
 vi.mock('next/headers', () => ({
   cookies: async () => ({ get: (naam: string) => (stand.cookies.has(naam) ? { value: stand.cookies.get(naam) } : undefined) }),
+  headers: async () => new Headers({ host: stand.host }),
 }))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
 vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => db.admin }))
-const opslag = vi.hoisted(() => ({ beheerderVanSessie: vi.fn(), vindBeheerder: vi.fn(), logInBeheerder: vi.fn(), kiesBeheerderPin: vi.fn() }))
+const opslag = vi.hoisted(() => ({
+  beheerderVanSessie: vi.fn(), vindBeheerder: vi.fn(), logInBeheerder: vi.fn(), kiesBeheerderPin: vi.fn(),
+  haalBeheerders: vi.fn(), maakBeheerder: vi.fn(), beoordeelBeheerder: vi.fn(),
+}))
 vi.mock('@/lib/club/beheerders/beheerder-opslag', async (orig) => ({ ...(await orig<typeof import('./beheerder-opslag')>()), ...opslag }))
 
 import { nepSupabase, type Vraag } from './nep-supabase'
@@ -29,7 +34,12 @@ const SANNE = {
   id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne', email: null, rol: 'clubmanager', code: 'abcdefghijklmnopqrstuvwx',
   actief: true, pinStatus: 'actief', pinHash: 'x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
 }
-const orgRij = (id: string, naam: string) => ({ id, naam, slogan: null, logo: null, kleur_accent: '#B58E5C', thema: 'donker', modules: {}, demo: false, beheerder_id: KANE })
+const SANNE_EIGENAAR = { ...SANNE, id: '22222222-2222-4222-8222-222222222222', rol: 'eigenaar' }
+// De eigenaar gaf de rol Clubmanager alleen Leden.
+const orgRij = (id: string, naam: string, slug: string) => ({
+  id, naam, slug, slogan: null, logo: null, kleur_accent: '#B58E5C', thema: 'donker', modules: {}, demo: false, beheerder_id: KANE,
+  instellingen: { rechten: { manager: ['leden'] } },
+})
 
 // Geen PT-beheerderslink (Kane is niet ingelogd); de organisaties wel.
 const db = vi.hoisted(() => ({ admin: null as unknown }))
@@ -37,12 +47,12 @@ db.admin = nepSupabase((v: Vraag) => {
   if (v.tabel === 'pt_lead_links') return { data: null, error: null }
   if (v.tabel === 'club_organisaties') {
     const id = v.filters.find(([, k]) => k === 'id')?.[2]
-    return { data: id === GYM_A ? orgRij(GYM_A, 'Gym A') : id === GYM_B ? orgRij(GYM_B, 'Gym B') : null, error: null }
+    return { data: id === GYM_A ? orgRij(GYM_A, 'Gym A', 'gyma') : id === GYM_B ? orgRij(GYM_B, 'Gym B', 'gymb') : null, error: null }
   }
   return { data: [], error: null }
 }).admin
 
-import { clubToegang } from '@/lib/club/toegang'
+import { clubToegang, vereisClubToegang } from '@/lib/club/toegang'
 import { POST as inloggen } from '@/app/api/club/inloggen/[code]/route'
 import { POST as kiesPin } from '@/app/api/club/inloggen/[code]/pin/route'
 import { POST as wissel } from '@/app/api/club/organisatie/wissel/route'
@@ -63,6 +73,11 @@ beforeEach(() => {
   vi.clearAllMocks()
   stand.aan = true
   stand.geremd = false
+  stand.host = 'fitfactorypt.nl'
+  delete process.env.CLUB_SUBDOMEINEN_ACTIEF
+  opslag.haalBeheerders.mockResolvedValue([])
+  opslag.maakBeheerder.mockResolvedValue({ id: 'nieuw' })
+  opslag.beoordeelBeheerder.mockResolvedValue('ok')
   stand.cookies = new Map([[BEHEERDER_COOKIE, 'token']])
   opslag.beheerderVanSessie.mockResolvedValue(SANNE)
   opslag.vindBeheerder.mockResolvedValue(SANNE)
@@ -90,7 +105,63 @@ describe('clubToegang voor een eigenaar of clubmanager', () => {
   })
 })
 
-describe('alleen Kane: sportscholen wisselen, aanmaken en beheerders', () => {
+describe('de eigenaar beheert de eigen beheerders, nooit zichzelf', () => {
+  beforeEach(() => {
+    opslag.beheerderVanSessie.mockResolvedValue(SANNE_EIGENAAR)
+  })
+  it('zet een clubmanager klaar in de eigen sportschool', async () => {
+    const r = await nieuweBeheerder(req('/api/club/beheerders', { naam: 'Tom', rol: 'clubmanager' }))
+    expect(r.status).toBe(201)
+    expect(opslag.maakBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, { naam: 'Tom', email: null, rol: 'clubmanager' })
+  })
+  it('kan de eigen toegang niet stoppen of resetten', async () => {
+    const r = await beoordeel(req(`/api/club/beheerders/${SANNE_EIGENAAR.id}`, { actie: 'stoppen' }, zelf, 'PATCH'), ctx({ id: SANNE_EIGENAAR.id }))
+    expect(r.status).toBe(400)
+    expect(opslag.beoordeelBeheerder).not.toHaveBeenCalled()
+  })
+  it('stopt een andere beheerder, altijd binnen de eigen sportschool', async () => {
+    const r = await beoordeel(req(`/api/club/beheerders/${SANNE.id}`, { actie: 'stoppen' }, zelf, 'PATCH'), ctx({ id: SANNE.id }))
+    expect(r.status).toBe(200)
+    expect(opslag.beoordeelBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, SANNE.id, { actie: 'stoppen', controle: null })
+  })
+  it('ziet alles van de eigen sportschool, maar wisselt of maakt geen sportscholen', async () => {
+    expect((await clubToegang())?.onderdelen).toBeNull()
+    expect((await wissel(req('/api/club/organisatie/wissel', { id: GYM_B }))).status).toBe(404)
+    expect((await nieuweSportschool(req('/api/club/organisatie/nieuw', { naam: 'Gym C' }))).status).toBe(404)
+  })
+})
+
+describe('de clubmanager ziet wat de eigenaar hem geeft', () => {
+  it('de API van een toegestaan onderdeel wel, de rest is een 404', async () => {
+    expect((await clubToegang())?.onderdelen).toEqual(['vandaag', 'leden'])
+    expect(await vereisClubToegang(req('/api/club/leden', {}))).not.toBeInstanceOf(NextResponse)
+    const dicht = await vereisClubToegang(req('/api/club/rooster', {}))
+    expect(dicht).toBeInstanceOf(NextResponse)
+    expect((dicht as NextResponse).status).toBe(404)
+  })
+})
+
+describe('subdomein per sportschool', () => {
+  beforeEach(() => {
+    process.env.CLUB_SUBDOMEINEN_ACTIEF = '1'
+  })
+  it('op het eigen subdomein binnen, op dat van een andere sportschool niet', async () => {
+    stand.host = 'gyma.aiyourgym.com'
+    expect((await clubToegang())?.userId).toBe(GYM_A)
+    stand.host = 'gymb.aiyourgym.com'
+    expect(await clubToegang()).toBeNull()
+  })
+  it('de inloglink werkt alleen op het eigen subdomein', async () => {
+    opslag.logInBeheerder.mockResolvedValue({ staat: 'fout', over: 4 })
+    stand.host = 'gymb.aiyourgym.com'
+    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(404)
+    expect(opslag.logInBeheerder).not.toHaveBeenCalled()
+    stand.host = 'gyma.aiyourgym.com'
+    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(401)
+  })
+})
+
+describe('alleen Kane: sportscholen wisselen en aanmaken; clubmanager ook geen beheerders', () => {
   it('een clubmanager krijgt overal een 404, niets wordt aangemaakt of gewisseld', async () => {
     const w = await wissel(req('/api/club/organisatie/wissel', { id: GYM_B }))
     expect(w.status).toBe(404)

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisBeheerdersBeheer } from '@/lib/club/toegang'
 import { ONDERDELEN, isZichtbaar } from '@/components/club/shell/onderdelen'
 import { RechtenMatrix } from '@/components/club/beheer/RechtenMatrix'
 import '@/components/club/beheer/beheer.css'
@@ -14,7 +14,8 @@ export const metadata: Metadata = { title: 'Rechten per rol' }
 const ALLEEN_BEHEER = new Set(['beheer', 'huisstijl'])
 
 export default async function RechtenPagina() {
-  const t = await eisClubToegang()
+  // Alleen Kane en de eigenaar: een clubmanager mag nooit zijn eigen rechten verruimen.
+  const t = await eisBeheerdersBeheer()
   const onderdelen = ONDERDELEN.filter((o) => !ALLEEN_BEHEER.has(o.sleutel) && isZichtbaar(o, t.organisatie.uit)).map((o) => ({ sleutel: o.sleutel, label: o.label, uitleg: o.uitleg }))
   return (
     <>

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout, clubJson, logActie, vereisBeheerdersBeheer } from '@/lib/club/toegang'
 import { leesVestigingWijziging } from '@/lib/club/instellingen/vestigingen-invoer'
 import { wijzigVestiging } from '@/lib/club/instellingen/vestigingen-opslag'
 
@@ -7,7 +7,7 @@ import { wijzigVestiging } from '@/lib/club/instellingen/vestigingen-opslag'
 // Verwijderen kan niet: leden, lessen en diensten verwijzen naar de vestiging.
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ sleutel: string }> }) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisBeheerdersBeheer(req)
   if (t instanceof NextResponse) return t
   const { sleutel } = await params
   const invoer = leesVestigingWijziging(await req.json().catch(() => null))

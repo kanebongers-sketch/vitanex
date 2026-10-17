@@ -6,7 +6,7 @@ import { Copy, UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { BEHEERDER_ROLLEN, ROL_LABEL, type BeheerderActie, type BeheerderOverzicht, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
 
-// Alleen voor Kane: eigenaren en clubmanagers van de sportschool die open
+// Voor Kane en de eigenaar: eigenaren en clubmanagers van de sportschool die open
 // staat. Kane zet iemand klaar, geeft de persoonlijke link, keurt de gekozen
 // pincode goed door de controlecode in te vullen die de beheerder noemt (de
 // server controleert hem), en kan resetten of stoppen. Fit Factory zelf krijgt
@@ -18,6 +18,10 @@ interface BeheerdersBlokProps {
   loginAan: boolean
   /** De eigen sportschool van Kane (Fit Factory): dan geen nieuwe beheerders. */
   eigenSportschool: boolean
+  /** Het eigen id als een eigenaar dit beheert: die rij is niet aan te passen. */
+  ikZelf: string | null
+  /** https://<slug>.aiyourgym.com als de sportschool een eigen adres heeft; anders dit domein. */
+  linkBasis: string | null
 }
 
 const STATUS: Record<BeheerderOverzicht['pinStatus'], { label: string; chip: string }> = {
@@ -26,7 +30,7 @@ const STATUS: Record<BeheerderOverzicht['pinStatus'], { label: string; chip: str
   actief: { label: 'Actief', chip: 'club-chip--ok' },
 }
 
-export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportschool }: BeheerdersBlokProps) {
+export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportschool, ikZelf, linkBasis }: BeheerdersBlokProps) {
   const router = useRouter()
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
@@ -62,7 +66,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
 
   async function kopieer(b: BeheerderOverzicht) {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/clubinloggen/${b.code}`)
+      await navigator.clipboard.writeText(`${linkBasis ?? window.location.origin}/clubinloggen/${b.code}`)
       setGekopieerd(b.id)
     } catch {
       setFout('Kopieren lukte niet. Selecteer de link en kopieer hem zelf.')
@@ -75,7 +79,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
     <section className="club-kaart club-beheerders" aria-labelledby="beheerders-kop">
       <h2 id="beheerders-kop">Beheerders van {sportschool}</h2>
       <p className="club-hint">
-        Eigenaren en clubmanagers loggen in met een persoonlijke link en een pincode die jij goedkeurt. Ze zien alleen deze sportschool.
+        Eigenaren en clubmanagers loggen in met een persoonlijke link en een pincode die jij goedkeurt. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt in het instellingencentrum.
         {!loginAan && ' De eigen login staat nog uit: de links werken pas als de schakelaar aan gaat.'}
       </p>
 
@@ -108,6 +112,9 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
                   />
                 </label>
               )}
+              {b.id === ikZelf ? (
+                <span className="club-hint">Dit ben jij</span>
+              ) : (
               <div className="club-beheerders-acties">
                 <button type="button" className="club-knop club-knop--klein" onClick={() => void kopieer(b)}>
                   <Copy aria-hidden size={14} /> {gekopieerd === b.id ? 'Gekopieerd' : 'Link'}
@@ -123,6 +130,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
                 )}
                 <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig !== null} onClick={() => void doe(b.id, 'stoppen')}>Stoppen</button>
               </div>
+              )}
             </li>
           ))}
         </ul>

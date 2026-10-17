@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
+import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
+import { adresVan } from '@/lib/club/kern/subdomein'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { HuisstijlPortaal } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { SportscholenKeuze } from '@/components/club/huisstijl/SportscholenKeuze'
@@ -17,9 +19,11 @@ export const metadata: Metadata = { title: 'Huisstijl' }
 // eigenaren en clubmanagers (beide alleen voor Kane).
 
 export default async function HuisstijlPagina() {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('huisstijl')
+  const beheren = magBeheerdersBeheren(t)
+  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
   const org = t.organisatie
-  const beheerders = t.isKane ? await haalBeheerders(t.admin, t.userId) : null
+  const beheerders = beheren ? await haalBeheerders(t.admin, t.userId) : null
   const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
   return (
     <>
@@ -36,14 +40,23 @@ export default async function HuisstijlPagina() {
           sportscholen={t.organisaties.map((o) => ({ id: o.id, naam: o.naam, demo: o.demo, kleurAccent: o.kleurAccent }))}
         />
       )}
-      {t.isKane && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} actief={process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'} />}
+      {beheren && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} actief={subdomeinen} />}
       <HuisstijlPortaal
         key={org.id}
         organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }}
         logoUrl={logoUrl}
         ingebouwdLogo={org.logo === LOGO_FIT_FACTORY}
       />
-      {t.isKane && <BeheerdersBlok sportschool={org.naam} beheerders={beheerders} loginAan={CLUB_EIGEN_LOGIN} eigenSportschool={org.id === t.beheerderId} />}
+      {beheren && (
+        <BeheerdersBlok
+          sportschool={org.naam}
+          beheerders={beheerders}
+          loginAan={CLUB_EIGEN_LOGIN}
+          eigenSportschool={t.isKane && org.id === t.beheerderId}
+          ikZelf={t.persoonId}
+          linkBasis={subdomeinen && org.slug ? `https://${adresVan(org.slug)}` : null}
+        />
+      )}
     </>
   )
 }

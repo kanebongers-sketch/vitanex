@@ -7,7 +7,7 @@ import type { NextRequest } from 'next/server'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { ipVan, isZelfdeOorsprong, leesPin } from '@/lib/lifeos/leads/toegang'
 import { isRateLimited } from '@/lib/utils/rate-limit'
-import { clubFout, clubJson } from '@/lib/club/toegang'
+import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
 import { logInBeheerder, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
@@ -35,6 +35,9 @@ export async function POST(req: NextRequest, ctx: Context) {
   const admin = createLifeosAdminClient()
   const b = await vindBeheerder(admin, code)
   if (!b) return clubFout('Niet gevonden.', 404)
+  // Op het subdomein van een andere sportschool bestaat deze link niet.
+  const { organisatie } = await haalEigenOrganisatie(admin, b.organisatieId)
+  if (!organisatie || !(await hostPastBij(organisatie))) return clubFout('Niet gevonden.', 404)
   const pin = leesPin(await req.json().catch(() => null))
   if (!pin) return clubFout('Vul je pincode van 6 cijfers in.', 400)
 
