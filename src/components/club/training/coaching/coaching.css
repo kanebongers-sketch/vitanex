@@ -4,18 +4,18 @@
    groen. Tokens uit club.css. Selectors: .club-speler-*, .club-coach-*. */
 
 /* ── Speler ──────────────────────────────────────────────────────────────── */
-.club-speler { display: grid; gap: 10px; margin: 0; justify-items: start; }
-.club-speler-beeld { position: relative; display: block; width: min(100%, 360px); padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--club-radius); }
+.club-speler { display: grid; gap: 12px; margin: 0; justify-items: center; justify-self: stretch; }
+.club-speler-beeld { position: relative; display: block; width: min(100%, 380px); padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--club-radius); }
 .club-speler-beeld .club-training-beeld--groot { width: 100%; }
-/* In het blad van de ledenapp staat het beeld in het midden. */
-.club-lidapp-blad .club-speler { justify-items: center; }
+/* In het blad van de ledenapp iets kleiner, passend bij het telefoonscherm. */
+.club-lidapp-blad .club-speler-beeld { width: min(100%, 320px); }
 .club-speler-beeld:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .club-speler-stand {
   position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 999px;
   background: color-mix(in srgb, var(--bg-app) 78%, transparent); color: var(--text-1);
   font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
 }
-.club-speler-bediening { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.club-speler-bediening { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; align-items: center; }
 .club-speler-standen { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--club-vlak); }
 .club-speler-knop {
   display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border-radius: 999px;
@@ -44,7 +44,7 @@
 }
 
 /* ── Coaching ────────────────────────────────────────────────────────────── */
-.club-coach { display: grid; gap: 26px; }
+.club-coach { display: grid; gap: 26px; container-type: inline-size; min-width: 0; }
 .club-coach > section { display: grid; gap: 10px; }
 .club-coach-kop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
 .club-coach-tekst { margin: 0; color: var(--text-2); line-height: 1.6; max-width: 68ch; }
@@ -65,7 +65,8 @@
 .club-coach-stappen li:not(:last-child)::after { content: ''; position: absolute; left: 13px; top: 28px; bottom: -10px; width: 1px; background: var(--line); }
 
 .club-coach-fouten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-@media (min-width: 760px) { .club-coach-fouten { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Naar de breedte van het blok zelf: in het smalle zijpaneel en de ledenapp onder elkaar. */
+@container (min-width: 620px) { .club-coach-fouten { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .club-coach-fout { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--club-vlak); }
 .club-coach-fout-rij { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; line-height: 1.45; font-size: 14.5px; }
 .club-coach-fout-rij > svg { margin-top: 2px; }
@@ -74,7 +75,11 @@
 .club-coach-fout-rij--beter { color: var(--text-2); }
 .club-coach-fout-rij--beter > svg { color: var(--club-ok); }
 
-.club-coach-tegels { margin: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+.club-coach-tegels { margin: 0; display: grid; gap: 1px; grid-template-columns: 1fr; background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+@container (min-width: 440px) {
+  .club-coach-tegels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .club-coach-tegel:last-child:nth-child(odd) { grid-column: span 2; }
+}
 .club-coach-tegel { display: grid; gap: 4px; align-content: start; padding: 14px 16px; background: var(--bg-card); }
 .club-coach-tegel dt { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
 .club-coach-tegel dt svg { color: var(--brand); }
