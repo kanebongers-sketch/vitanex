@@ -43,7 +43,9 @@ select uid, uid, 'Fit Factory', 'Meet. Train. Repeat.', 'ingebouwd:fitfactory', 
 from (select user_id as uid from public.pt_lead_links where rol = 'beheerder' limit 1) b
 on conflict (id) do nothing;
 
--- Opslag voor logo's: openbaar leesbaar (het logo staat in de app), schrijven alleen via de server.
+-- Opslag voor logo's: niet openbaar; lezen en schrijven alleen via de server
+-- (de route /api/club/organisatie/logo serveert het logo met strenge headers).
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('club-logo', 'club-logo', true, 1048576, array['image/png', 'image/webp', 'image/svg+xml', 'image/jpeg'])
+values ('club-logo', 'club-logo', false, 1048576, array['image/png', 'image/webp', 'image/svg+xml', 'image/jpeg'])
 on conflict (id) do nothing;
+update storage.buckets set public = false where id = 'club-logo';

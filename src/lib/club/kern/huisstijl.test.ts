@@ -79,6 +79,18 @@ describe('huisstijl-invoer', () => {
     expect(isVeiligeSvg('<svg><image href="https://x.nl/a.png"/></svg>')).toBe(false)
     expect(isVeiligeSvg('<svg><a xlink:href="javascript:x"/></svg>')).toBe(false)
     expect(isVeiligeSvg('geen svg')).toBe(false)
+    expect(isVeiligeSvg('<svg/onload=alert(1)>')).toBe(false)
+    expect(isVeiligeSvg('<svg><a href="&#106;avascript:x"/></svg>')).toBe(false)
+    expect(isVeiligeSvg('<svg><style>@import url(https://x)</style></svg>')).toBe(false)
+    expect(isVeiligeSvg('<svg><use href="#a"/></svg>')).toBe(false)
+    expect(isVeiligeSvg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><rect width="2" height="2" fill="#B58E5C"/><g transform="scale(1)"><circle r="1"/></g></svg>')).toBe(true)
+  })
+
+  it('controleert de eerste bytes van een afbeelding', async () => {
+    const { heeftJuisteKop } = await import('./organisatie-invoer')
+    expect(heeftJuisteKop(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0, 0]), 'png')).toBe(true)
+    expect(heeftJuisteKop(new Uint8Array([0x3c, 0x68, 0x74, 0x6d]), 'png')).toBe(false)
+    expect(heeftJuisteKop(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), 'jpg')).toBe(true)
   })
 })
 

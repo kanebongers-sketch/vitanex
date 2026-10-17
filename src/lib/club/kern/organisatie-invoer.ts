@@ -60,9 +60,31 @@ export function controleerLogo(type: string, grootte: number): Uitslag<'png' | '
   return { ok: true, waarde: extensie }
 }
 
-/** Een SVG met scripts, event-handlers of externe verwijzingen weigeren we. */
+/**
+ * Een SVG met scripts, event-handlers, stijlen, verwijzingen of tekens als
+ * entiteit weigeren we. Streng met opzet: een gewoon logo (paden, vormen,
+ * kleuren) heeft niets van dit alles nodig. Het logo wordt bovendien alleen als
+ * <img> getoond en met een sandbox-CSP geserveerd: dit is de tweede laag.
+ */
 export function isVeiligeSvg(tekst: string): boolean {
   const t = tekst.toLowerCase()
   if (!t.includes('<svg')) return false
-  return !/<script|<foreignobject|\son[a-z]+\s*=|javascript:|<iframe|<embed|<object|xlink:href\s*=\s*["']\s*(https?:|data:|\/\/)|href\s*=\s*["']\s*(https?:|data:|\/\/)/.test(t)
+  const verboden = [
+    /<\s*(script|style|foreignobject|iframe|embed|object|use|image|a|animate|set|handler|feimage)\b/,
+    /\bon[a-z]+\s*=/,
+    /(href|src)\s*=/,
+    /&#|&[a-z]+;/,
+    /url\s*\(|@import|javascript:|data:/,
+    /<!doctype|<!entity/,
+  ]
+  return !verboden.some((r) => r.test(t))
+}
+
+/** De eerste bytes moeten passen bij het type (het type zelf komt van de browser). */
+export function heeftJuisteKop(bytes: Uint8Array, soort: 'png' | 'webp' | 'svg' | 'jpg'): boolean {
+  const begin = (...b: number[]) => b.every((x, i) => bytes[i] === x)
+  if (soort === 'png') return begin(0x89, 0x50, 0x4e, 0x47)
+  if (soort === 'jpg') return begin(0xff, 0xd8, 0xff)
+  if (soort === 'webp') return begin(0x52, 0x49, 0x46, 0x46) && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  return true
 }

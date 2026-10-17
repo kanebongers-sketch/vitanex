@@ -14,6 +14,7 @@ import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { beoordeelSessie, leesSessie, vindLink } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
+import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
 
 export interface ClubToegang {
@@ -30,6 +31,8 @@ export interface ClubToegang {
   organisaties: Organisatie[]
   /** Wie ingelogd is (Kane), los van de sportschool die open staat. */
   beheerderId: string
+  /** De vestigingen van de actieve sportschool, in vaste volgorde; de standaard eerst. */
+  vestigingen: VestigingInfo[]
   /** Wie er werkt, voor het logboek ("Kane"). */
   naam: string
   /** De PT-code van de beheerder, voor de link terug naar de PT-app. */
@@ -63,6 +66,13 @@ async function haalOrganisaties(admin: SupabaseClient, beheerderId: string): Pro
   return [eigen, ...lijst.filter((o) => o.id !== beheerderId)]
 }
 
+/** De vestigingen van een sportschool (leeg bij een fout: de pagina's tonen dan een melding). */
+async function haalVestigingen(admin: SupabaseClient, organisatieId: string): Promise<VestigingInfo[]> {
+  const { data, error } = await admin.from('club_vestigingen').select('vestiging, naam, volgorde, standaard').eq('user_id', organisatieId).order('volgorde').order('naam')
+  if (error) console.error('[club] vestigingen lezen mislukt', error.message)
+  return vestigingenUitRijen(data ?? [])
+}
+
 /** Is dit verzoek van Kane (beheerder, ingelogd)? Per request een keer gevraagd. */
 export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   let admin: SupabaseClient
@@ -83,7 +93,8 @@ export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   // De gekozen sportschool, alleen als die bij deze beheerder hoort; anders de eigen.
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const organisatie = organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
-  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, naam: link.naam, code }
+  const vestigingen = await haalVestigingen(admin, organisatie.id)
+  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, vestigingen, naam: link.naam, code }
 })
 
 /** Voor pagina's en layouts: de toegang, of een gewone 404. */

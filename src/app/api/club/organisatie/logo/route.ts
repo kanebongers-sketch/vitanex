@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, clubToegang, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { LOGO_PAD } from '@/lib/club/kern/organisatie'
-import { controleerLogo, isVeiligeSvg } from '@/lib/club/kern/organisatie-invoer'
+import { MAX_LOGO_BYTES, controleerLogo, heeftJuisteKop, isVeiligeSvg } from '@/lib/club/kern/organisatie-invoer'
 import { LOGO_BUCKET, bewaarLogo, verwijderLogo } from '@/lib/club/kern/organisatie-opslag'
 
 // GET    /api/club/organisatie/logo?pad=<org>/<bestand>  het logo tonen
@@ -37,12 +37,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
+  // Eerst de grootte: niet een hele grote body in het geheugen lezen.
+  const lengte = Number(req.headers.get('content-length') ?? NaN)
+  if (!Number.isFinite(lengte) || lengte > MAX_LOGO_BYTES + 64 * 1024) return clubFout('Het logo mag maximaal 1 MB zijn.', 413)
   const form = await req.formData().catch(() => null)
   const bestand = form?.get('logo')
   if (!(bestand instanceof File)) return clubFout('Kies een logo.', 400)
   const controle = controleerLogo(bestand.type, bestand.size)
   if (!controle.ok) return clubFout(controle.fout, 400)
   const bytes = await bestand.arrayBuffer()
+  if (!heeftJuisteKop(new Uint8Array(bytes), controle.waarde)) return clubFout('Dit bestand is geen echte afbeelding van dit type.', 400)
   if (controle.waarde === 'svg' && !isVeiligeSvg(new TextDecoder().decode(bytes))) {
     return clubFout('Deze SVG bevat scripts of verwijzingen naar buiten. Exporteer hem opnieuw of kies een PNG.', 400)
   }
