@@ -1,0 +1,126 @@
+/* ── Club: opvolgen en automatiseringen ─────────────────────────────────────
+   Eigen prefixen: .club-opvolg-* (de opvolglijst) en .club-auto-* (de regels).
+   Alleen tokens uit club.css; werkt in donker en licht. */
+
+.club-opvolg-status:empty { display: none; }
+
+/* Index: groot totaal links, de regels als inhoudsopgave rechts. */
+.club-opvolg-index { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
+.club-opvolg-totaal { margin: 0; padding: 14px 28px 14px 0; display: grid; align-content: center; border-right: 1px solid var(--line); }
+.club-opvolg-totaal strong { font-family: var(--ff-kop); font-size: clamp(48px, 6vw, 76px); line-height: 0.9; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--brand-tekst, var(--brand)); }
+.club-opvolg-totaal span { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+.club-opvolg-index ul { list-style: none; margin: 0; padding: 8px 0 8px 12px; flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-content: center; gap: 4px 6px; }
+.club-opvolg-index a { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 999px; color: var(--text-2); text-decoration: none; font-size: 14px; transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+.club-opvolg-index a strong { font-family: var(--ff-kop); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text-1); }
+.club-opvolg-index a:hover { background: var(--club-vlak-hover); color: var(--text-1); }
+@media (max-width: 599px) {
+  .club-opvolg-totaal { border-right: 0; padding-right: 0; width: 100%; grid-template-columns: auto 1fr; align-items: baseline; gap: 10px; }
+  .club-opvolg-index ul { padding-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Groepen: kop als smalle kolom links (plakt op de pc), taken rechts. */
+.club-opvolg-groepen { display: grid; gap: 36px; }
+.club-opvolg-groep { display: grid; gap: 12px; scroll-margin-top: 96px; }
+@media (min-width: 1000px) {
+  .club-opvolg-groep { grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .club-opvolg-groepkop { position: sticky; top: 96px; }
+}
+.club-opvolg-groepkop h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; }
+.club-opvolg-groepkop p { margin: 6px 0 0; color: var(--text-3); font-size: 13.5px; line-height: 1.5; }
+.club-opvolg-aantal { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt, #0A0B09); font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+
+.club-opvolg-taken { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+@media (min-width: 1500px) { .club-opvolg-taken { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.club-opvolg-taak { position: relative; display: grid; gap: 10px; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
+.club-opvolg-taak::before { content: ''; position: absolute; left: -1px; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--brand); opacity: 0; transition: opacity 160ms var(--ease); }
+.club-opvolg-taak:hover, .club-opvolg-taak:focus-within { border-color: var(--line-strong); }
+.club-opvolg-taak:hover::before, .club-opvolg-taak:focus-within::before { opacity: 1; }
+
+.club-opvolg-taak-kop { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.club-opvolg-wie { flex: 1; min-width: 0; }
+.club-opvolg-naam { font-weight: 700; font-size: 15.5px; color: var(--text-1); text-decoration: none; overflow-wrap: anywhere; }
+.club-opvolg-naam:hover { color: var(--brand-tekst, var(--brand)); text-decoration: underline; text-underline-offset: 3px; }
+.club-opvolg-reden { margin: 2px 0 0; font-size: 13.5px; color: var(--text-2); }
+.club-opvolg-oppakker { flex: none; }
+
+.club-opvolg-tekst summary { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); list-style: none; border-radius: 6px; }
+.club-opvolg-tekst summary::-webkit-details-marker { display: none; }
+.club-opvolg-tekst summary::after { content: ''; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 160ms var(--ease); }
+.club-opvolg-tekst[open] summary::after { transform: rotate(-135deg) translateY(-1px); }
+.club-opvolg-tekst blockquote { margin: 10px 0; padding: 10px 14px; border-left: 2px solid var(--brand); background: var(--club-vlak); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; font-size: 14px; line-height: 1.55; color: var(--text-1); white-space: pre-line; }
+
+.club-opvolg-notitie { margin: 0; font-size: 13.5px; color: var(--text-2); }
+.club-opvolg-notitie span { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-right: 6px; }
+.club-opvolg-notitieform { display: grid; gap: 8px; }
+
+.club-opvolg-acties { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.club-opvolg-contact, .club-opvolg-knoppen { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-opvolg-contact .club-knop--stil { padding-left: 6px; padding-right: 8px; }
+.club-opvolg-knoppen { margin-left: auto; }
+@media (max-width: 420px) {
+  .club-opvolg-knoppen { width: 100%; }
+  .club-opvolg-knoppen .club-knop { flex: 1; }
+}
+
+/* Recent afgehandeld: een rustige logboeklijst. */
+.club-opvolg-recent { padding-top: 8px; }
+.club-opvolg-historie { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.club-opvolg-historie li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.club-opvolg-historie .club-chip { flex: none; margin-top: 2px; }
+.club-opvolg-historie-tekst { flex: 1; min-width: 0; }
+.club-opvolg-historie-tekst p { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.club-opvolg-historie-tekst p + p { font-size: 12.5px; margin-top: 2px; }
+.club-opvolg-historie a { color: var(--text-1); font-weight: 600; text-decoration: none; }
+.club-opvolg-historie a:hover { color: var(--brand-tekst, var(--brand)); }
+
+/* ── Automatiseringen (beheer) ───────────────────────────────────────────── */
+.club-auto-uitleg ol { list-style: none; counter-reset: stap; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius); overflow: hidden; }
+@media (min-width: 900px) { .club-auto-uitleg ol { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.club-auto-uitleg li { counter-increment: stap; background: var(--bg-card); padding: 14px 16px 14px 52px; position: relative; font-size: 13.5px; line-height: 1.5; color: var(--text-2); }
+.club-auto-uitleg li::before { content: counter(stap); position: absolute; left: 16px; top: 12px; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; line-height: 1; color: var(--brand-tekst, var(--brand)); }
+.club-auto-uitleg strong { color: var(--text-1); }
+
+.club-auto-regels { display: grid; gap: 14px; }
+@media (min-width: 1300px) { .club-auto-regels { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+
+.club-auto-regel { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); padding: 18px; display: grid; gap: 16px; box-shadow: var(--club-schaduw); transition: border-color 160ms var(--ease); }
+.club-auto-regel:focus-within { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-auto-regelkop { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.club-auto-nummer { font-family: var(--ff-kop); font-size: 40px; font-weight: 700; line-height: 0.85; color: transparent; -webkit-text-stroke: 1px var(--text-4); font-variant-numeric: tabular-nums; }
+.club-auto-regel:not(.club-auto-regel--uit) .club-auto-nummer { -webkit-text-stroke-color: var(--brand); }
+.club-auto-regeltekst h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-auto-regeltekst p { margin: 4px 0 0; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.club-auto-regeltekst .club-hint { font-size: 13px; color: var(--text-3); }
+
+/* Schakelaar aan/uit. */
+.club-auto-schakelaar { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: var(--text-2); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border-radius: 999px; }
+.club-auto-schakelaar-bol { position: relative; width: 46px; height: 26px; border-radius: 999px; background: var(--club-vlak-hover); border: 1px solid var(--line-strong); transition: background-color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-auto-schakelaar-bol::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 999px; background: var(--text-3); transition: transform 180ms var(--ease), background-color 160ms var(--ease); }
+.club-auto-schakelaar[aria-checked='true'] { color: var(--brand-tekst, var(--brand)); }
+.club-auto-schakelaar[aria-checked='true'] .club-auto-schakelaar-bol { background: var(--brand); border-color: var(--brand); }
+.club-auto-schakelaar[aria-checked='true'] .club-auto-schakelaar-bol::after { transform: translateX(20px); background: var(--brand-inkt, #0A0B09); }
+.club-auto-schakelaar:disabled { opacity: 0.6; cursor: progress; }
+.club-auto-schakelaar:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+.club-auto-form { display: grid; gap: 12px; }
+.club-auto-regel--uit .club-auto-form { opacity: 0.62; }
+.club-auto-regel--uit .club-auto-form:focus-within { opacity: 1; }
+.club-auto-getal { display: flex; align-items: center; gap: 10px; }
+.club-auto-getal .club-invoer { width: 96px; flex: none; font-variant-numeric: tabular-nums; }
+.club-auto-getal .club-zacht { font-size: 12.5px; }
+.club-auto-form .club-hint, .club-auto-form .club-fout { margin: -4px 0 0; }
+
+.club-auto-voorbeeld { margin: 0; display: grid; gap: 6px; }
+.club-auto-voorbeeld figcaption { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-auto-voorbeeld blockquote { margin: 0; justify-self: start; max-width: 52ch; padding: 10px 14px; background: var(--brand-soft); color: var(--text-1); border-radius: 14px 14px 14px 4px; font-size: 14px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+
+@media (max-width: 480px) {
+  .club-auto-regelkop { grid-template-columns: minmax(0, 1fr) auto; }
+  .club-auto-nummer { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-opvolg-taak, .club-opvolg-taak::before, .club-opvolg-index a, .club-opvolg-tekst summary::after,
+  .club-auto-regel, .club-auto-schakelaar-bol, .club-auto-schakelaar-bol::after { transition: none; }
+}

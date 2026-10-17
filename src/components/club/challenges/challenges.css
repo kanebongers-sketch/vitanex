@@ -1,0 +1,180 @@
+/* ─── Club: challenges en badges ─────────────────────────────────────────────
+   Beheer: editoriale lijsten met het doel als groot getal, rechts de stand.
+   Ledenapp: kaarten met voortgangsbalk, ranglijst en een badgeraster.
+   Alleen .club-challenges-*. Kleuren via variabelen; donker en licht thema. */
+
+.club-challenges-werkvlak { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 1100px) { .club-challenges-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(380px, 520px); gap: 44px; } }
+.club-challenges-zij { min-width: 0; }
+@media (min-width: 1100px) { .club-challenges-zij { position: sticky; top: 88px; max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; } }
+.club-challenges-leeg { margin: 0; padding: 14px 0; color: var(--text-3); line-height: 1.5; }
+
+/* ── Lijsten ──────────────────────────────────────────────────────────────── */
+.club-challenges-lijsten { display: grid; gap: 32px; min-width: 0; }
+.club-challenges-groep { display: grid; gap: 6px; }
+.club-challenges-groepkop {
+  display: flex; align-items: baseline; gap: 10px; margin: 0; padding-bottom: 8px; border-bottom: 2px solid var(--brand);
+  font-family: var(--ff-kop); font-size: clamp(22px, 2.4vw, 30px); line-height: 1; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+.club-challenges-groepkop span { font-size: 14px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-challenges-lijst { list-style: none; margin: 0; padding: 0; display: grid; }
+
+.club-challenges-regel {
+  position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 4px 16px;
+  padding: 16px 8px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; border-radius: var(--club-radius-klein);
+  transition: background-color 160ms var(--ease);
+}
+.club-challenges-lijst li:last-child .club-challenges-regel { border-bottom: 0; }
+.club-challenges-regel:hover { background: var(--club-vlak-hover); }
+.club-challenges-regel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-challenges-regel[aria-current='true'] { background: var(--club-vlak); box-shadow: inset 3px 0 0 var(--brand); }
+.club-challenges-doel { font-family: var(--ff-kop); font-size: 40px; line-height: 1; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; color: var(--brand-tekst, var(--brand)); }
+.club-challenges-regel-inhoud { display: grid; gap: 4px; min-width: 0; }
+.club-challenges-regel-titel { font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.club-challenges-regel-sub { font-size: 13px; color: var(--text-3); overflow-wrap: anywhere; }
+.club-challenges-tijd { display: block; height: 3px; margin-top: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.club-challenges-tijd span { display: block; height: 100%; background: var(--text-3); transform-origin: left; }
+.club-challenges-regel[aria-current='true'] .club-challenges-tijd span { background: var(--brand); }
+
+@media (max-width: 600px) {
+  .club-challenges-regel { grid-template-columns: 48px minmax(0, 1fr); }
+  .club-challenges-doel { font-size: 30px; }
+  .club-challenges-regel .club-chip { grid-column: 2; justify-self: start; }
+}
+
+/* ── Detail ───────────────────────────────────────────────────────────────── */
+.club-challenges-detail { display: grid; gap: 22px; padding: 24px; border-radius: var(--club-radius); background: var(--bg-card); border: 1px solid var(--line); box-shadow: var(--club-schaduw); }
+@media (max-width: 600px) { .club-challenges-detail { padding: 18px 16px; } }
+.club-challenges-detailkop { display: grid; gap: 8px; }
+.club-challenges-detailkop h2 { margin: 0; font-family: var(--ff-kop); font-size: clamp(28px, 3vw, 40px); line-height: 1.02; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
+.club-challenges-doelzin { margin: 0; color: var(--text-2); }
+.club-challenges-doelzin strong { color: var(--text-1); }
+.club-challenges-uitleg { margin: 0; line-height: 1.55; color: var(--text-2); }
+.club-challenges-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.club-challenges-bevestig { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--club-radius-klein); background: var(--club-let-op-zacht); font-size: 14px; }
+.club-challenges-fout:empty { display: none; }
+.club-challenges-fout { flex-basis: 100%; }
+.club-challenges-fout .club-melding { margin: 0; }
+
+.club-challenges-kenmerken { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.club-challenges-kenmerken li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-2); }
+.club-challenges-kenmerken svg { flex: none; color: var(--brand-tekst, var(--brand)); }
+
+.club-challenges-cijfers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.club-challenges-cijfers div { padding: 14px 8px; border-left: 1px solid var(--line); }
+.club-challenges-cijfers div:first-child { border-left: 0; padding-left: 0; }
+.club-challenges-cijfers dt { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-challenges-cijfers dd { margin: 4px 0 0; font-family: var(--ff-kop); font-size: 32px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  .club-challenges-cijfers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .club-challenges-cijfers div:nth-child(3) { border-left: 0; padding-left: 0; }
+  .club-challenges-cijfers div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+}
+.club-challenges-subkop { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+
+/* ── Stand ────────────────────────────────────────────────────────────────── */
+.club-challenges-stand { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-challenges-stand li { display: grid; grid-template-columns: 36px minmax(0, 1fr) minmax(120px, 44%); align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.club-challenges-stand li:last-child { border-bottom: 0; }
+.club-challenges-plek { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; text-align: center; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-challenges-stand li:nth-child(-n + 3) .club-challenges-plek { color: var(--brand-tekst, var(--brand)); }
+.club-challenges-wie { display: grid; min-width: 0; }
+.club-challenges-wie strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-challenges-wie small { font-size: 12px; color: var(--text-3); }
+.club-challenges-score { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; align-items: center; gap: 8px; }
+.club-challenges-balk { display: block; height: 6px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
+.club-challenges-balk span { display: block; height: 100%; border-radius: inherit; background: var(--brand); transform-origin: left; transition: transform 400ms var(--ease); }
+.club-challenges-getal { font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-challenges-getal small { font-weight: 500; color: var(--text-3); }
+.club-challenges-vink { color: var(--club-ok); }
+@media (max-width: 480px) {
+  .club-challenges-stand li { grid-template-columns: 28px minmax(0, 1fr); }
+  .club-challenges-score { grid-column: 2; }
+}
+
+/* ── Formulier ────────────────────────────────────────────────────────────── */
+.club-challenges-form { display: grid; gap: 16px; padding: 24px; border-radius: var(--club-radius); background: var(--bg-card); border: 1px solid var(--line); }
+@media (max-width: 600px) { .club-challenges-form { padding: 18px 16px; } }
+.club-challenges-form h2 { margin: 0; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; text-transform: uppercase; }
+.club-challenges-form textarea { resize: vertical; min-height: 72px; }
+.club-challenges-veldset { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.club-challenges-soorten { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.club-challenges-soort { position: relative; display: block; cursor: pointer; }
+.club-challenges-soort input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.club-challenges-soort > span {
+  display: grid; gap: 2px; height: 100%; padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong);
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+.club-challenges-soort small { font-size: 12.5px; color: var(--text-3); line-height: 1.4; }
+.club-challenges-soort:hover > span { background: var(--club-vlak-hover); }
+.club-challenges-soort input:checked + span { border-color: var(--brand); background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
+.club-challenges-soort input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-challenges-vinkjes { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.club-challenges-vinkje { display: inline-flex; align-items: flex-start; gap: 8px; min-height: 32px; font-size: 14px; cursor: pointer; }
+.club-challenges-vinkje input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--brand); flex: none; }
+.club-challenges-vinkje input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-challenges-formacties { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Ledenapp ─────────────────────────────────────────────────────────────── */
+.club-challenges-app { display: grid; gap: 12px; }
+.club-challenges-app-kop { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-challenges-app-rij { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.club-challenges-app-teller { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-challenges-app-melding:empty { display: none; }
+.club-challenges-app-melding p { margin: 0; padding: 10px 14px; border-radius: var(--lidapp-radius, 18px); background: var(--brand-soft); color: var(--text-1); font-size: 14px; }
+.club-challenges-app-leeg { margin: 0; padding: 16px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); color: var(--text-2); line-height: 1.5; }
+.club-challenges-app-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+
+.club-challenges-app-kaart { position: relative; display: grid; gap: 8px; padding: 18px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); overflow: hidden; }
+.club-challenges-app-kaart.is-lopend { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-challenges-app-kaart.is-afgelopen { opacity: 0.85; }
+.club-challenges-app-kaart h4 { margin: 0; font-family: var(--ff-kop); font-size: 22px; line-height: 1.05; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
+.club-challenges-app-status { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-challenges-app-kaart.is-afgelopen .club-challenges-app-status, .club-challenges-app-kaart.is-gepland .club-challenges-app-status { color: var(--text-3); }
+.club-challenges-app-uitleg { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.club-challenges-app-stand { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 0; }
+.club-challenges-app-stand strong { font-family: var(--ff-kop); font-size: 44px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-challenges-app-stand span { color: var(--text-3); font-size: 14px; }
+.club-challenges-app-balk { display: block; height: 10px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
+.club-challenges-app-balk span { display: block; height: 100%; border-radius: inherit; background: var(--brand); transform-origin: left; transition: transform 600ms var(--ease); }
+.club-challenges-app-gehaald { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; color: var(--club-ok); }
+
+.club-challenges-app-mee, .club-challenges-app-uit {
+  justify-self: start; min-height: 40px; padding: 0 18px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: transform 160ms var(--ease), opacity 160ms var(--ease);
+}
+.club-challenges-app-mee { border: 0; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); }
+.club-challenges-app-uit { border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); }
+.club-challenges-app-mee:active, .club-challenges-app-uit:active { transform: scale(0.98); }
+.club-challenges-app-mee:disabled, .club-challenges-app-uit:disabled { opacity: 0.6; cursor: wait; }
+.club-challenges-app-mee:focus-visible, .club-challenges-app-uit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.club-challenges-app-ranglijst { list-style: none; margin: 6px 0 0; padding: 8px 0 0; display: grid; border-top: 1px solid var(--line); }
+.club-challenges-app-ranglijst li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; font-size: 14px; }
+.club-challenges-app-ranglijst li.is-ik { background: var(--brand-soft); font-weight: 700; }
+.club-challenges-app-plek { font-family: var(--ff-kop); font-weight: 700; color: var(--text-3); text-align: center; font-variant-numeric: tabular-nums; }
+.club-challenges-app-ranglijst li:nth-child(1) .club-challenges-app-plek { color: var(--brand-tekst, var(--brand)); }
+.club-challenges-app-naam { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-challenges-app-punten { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Badges: raster van medailles. */
+.club-challenges-badges { display: grid; gap: 10px; margin-top: 8px; }
+.club-challenges-raster { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.club-challenges-raster li { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 14px 6px 12px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); text-align: center; }
+.club-challenges-raster strong { font-size: 12.5px; line-height: 1.25; font-weight: 700; color: var(--text-3); }
+.club-challenges-raster small { font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-challenges-medaille {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px;
+  border: 1.5px dashed var(--line-strong); color: var(--text-4, var(--text-3));
+}
+.club-challenges-raster li.is-behaald strong { color: var(--text-1); }
+.club-challenges-raster li.is-behaald small { color: var(--brand-tekst, var(--brand)); font-weight: 600; }
+.club-challenges-raster li.is-behaald .club-challenges-medaille {
+  border: 0; color: var(--brand-inkt, var(--bg-app));
+  background: radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--brand) 70%, #fff) 0%, var(--brand) 55%, color-mix(in srgb, var(--brand) 75%, #000) 100%);
+  box-shadow: 0 6px 18px -8px var(--brand), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-challenges-regel, .club-challenges-balk span, .club-challenges-app-balk span, .club-challenges-soort > span, .club-challenges-app-mee, .club-challenges-app-uit { transition: none; }
+}

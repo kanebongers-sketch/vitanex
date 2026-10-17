@@ -21,6 +21,8 @@ import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { LedenappAfspraken } from '@/components/club/afspraken/LedenappAfspraken'
 import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
+import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
+import { LedenappChallenges } from '@/components/club/challenges/LedenappChallenges'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
 // Kies een (demo)lid; tabblad en lid staan in de URL.
@@ -86,6 +88,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   ])
   // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
   const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(t.admin, t.userId, lid.id, nu)) : null
+  const challenges = tab === 'voortgang' ? await haalLedenappChallenges(t.admin, t.userId, lid, nu) : null
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>
@@ -123,6 +126,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Voortgang</h2>
               <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
+              {challenges && <LedenappChallenges data={challenges} />}
             </div>
           )}
           {tab === 'profiel' && <ProfielTab lid={lid} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} teksten={bedrijf?.teksten ?? null} sportschool={t.organisatie.naam} />}

@@ -99,3 +99,33 @@ describe('intakeUitRij', () => {
     expect(intakeUitRij({ id: 'a' })).toBeNull()
   })
 })
+
+describe('leesIntake met eigen vragen van de sportschool', () => {
+  const GEVONDEN = { id: '22222222-2222-4222-8222-222222222222', sleutel: null, vraag: 'Hoe heb je ons gevonden?', uitleg: null, soort: 'keuze' as const, opties: ['Google', 'Anders'], verplicht: true, gezondheid: false, sectie: 'Kennismaking', volgorde: 1, actief: true }
+  const OPERATIE = { ...GEVONDEN, id: '33333333-3333-4333-8333-333333333333', vraag: 'Geopereerd?', soort: 'ja_nee' as const, opties: [], verplicht: false, gezondheid: true, sectie: 'Gezondheid', volgorde: 2 }
+  const vragen = [GEVONDEN, OPERATIE]
+  function met(eigen: Record<string, unknown>, toestemming = false) {
+    const v = verzoek({ toestemmingGezondheid: toestemming })
+    return { ...v, antwoorden: { ...v.antwoorden, eigen } }
+  }
+
+  it('bewaart de antwoorden met een kopie van de vraag', () => {
+    const u = leesIntake(met({ [GEVONDEN.id]: 'Google' }), VANDAAG, vragen)
+    if (!u.ok) throw new Error(u.fout)
+    expect(u.waarde.antwoorden.eigen).toEqual([
+      { vraagId: GEVONDEN.id, vraag: 'Hoe heb je ons gevonden?', sectie: 'Kennismaking', soort: 'keuze', gezondheid: false, waarde: 'Google' },
+    ])
+  })
+
+  it('weigert een open verplichte vraag en gezondheid zonder toestemming', () => {
+    expect(leesIntake(met({}), VANDAAG, vragen).ok).toBe(false)
+    expect(leesIntake(met({ [GEVONDEN.id]: 'Google', [OPERATIE.id]: true }), VANDAAG, vragen).ok).toBe(false)
+    expect(leesIntake(met({ [GEVONDEN.id]: 'Google', [OPERATIE.id]: true }, true), VANDAAG, vragen).ok).toBe(true)
+  })
+
+  it('leest een oude intake zonder eigen antwoorden gewoon', () => {
+    const i = intakeUitRij({ id: 'x', lid_id: LID, datum: '2026-10-01', antwoorden: { doelen: ['kracht'], niveau: 1, dagenPerWeek: 2, minutenPerSessie: 45 }, toestemming_gezondheid: false })
+    expect(i?.antwoorden?.eigen).toEqual([])
+    expect(i?.antwoorden?.doelen).toEqual(['kracht'])
+  })
+})

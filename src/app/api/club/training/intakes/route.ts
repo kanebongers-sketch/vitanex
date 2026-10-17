@@ -1,19 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { leesIntake } from '@/lib/club/training/intake'
+import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
 import { lidVestiging } from '@/lib/club/training/schrijven'
 import { medewerkerBestaat } from '@/lib/club/kern/medewerker'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 
 // POST /api/club/training/intakes: een nieuwe intake voor een lid.
 // Gezondheidsgegevens alleen met expliciete toestemming (zie leesIntake).
+// Eigen vragen van de sportschool worden gecontroleerd tegen club_intakevragen.
 
 export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
 
   const body: unknown = await req.json().catch(() => null)
-  const invoer = leesIntake(body, dagSleutelNl(new Date()))
+  const vragen = await haalIntakeVragen(t.admin, t.userId)
+  if (!vragen) return clubFout('De intakevragen konden niet worden gelezen. Probeer het opnieuw.', 500)
+  const invoer = leesIntake(body, dagSleutelNl(new Date()), vragen.vragen)
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const i = invoer.waarde
 

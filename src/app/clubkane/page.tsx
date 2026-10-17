@@ -21,6 +21,8 @@ import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { beperkVandaag } from '@/lib/club/beheerders/vandaag-filter'
 import '@/components/club/vandaag/vandaag.css'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
+import { OpvolgenVandaag } from '@/components/club/automatisering/OpvolgenVandaag'
+import '@/components/club/automatisering/automatisering.css'
 
 // Vandaag: het eerste scherm van de clubsoftware. Wat er nu speelt in de
 // gekozen vestiging, in een keer server-side opgehaald (zie haal-vandaag.ts).
@@ -81,6 +83,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           {mag('leden') && <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />}
         </div>
         <div className="club-k5 club-vandaag-stapel">
+          {mag('opvolgen') && <OpvolgenVandaag admin={t.admin} userId={t.userId} vestiging={vestiging} />}
           {mag('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}
           {mag('leden') && <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />}
         </div>

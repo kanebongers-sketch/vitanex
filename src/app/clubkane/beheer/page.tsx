@@ -67,10 +67,13 @@ export default async function BeheerPagina() {
     { titel: 'Weekrooster', uitleg: 'De vaste lessen per week.', stand: 'Per vestiging', href: pad('/instellingen', { tab: 'weekrooster' }), uit: !v || org.uit.includes('rooster') },
   ]
   const training: InstellingRegel[] = [
+    { titel: 'Intakeformulier', uitleg: 'De vragen bij een intake: eigen vragen, secties, volgorde en wat aan staat.', stand: 'Vaste en eigen vragen', href: '/clubkane/beheer/intake', uit: org.uit.includes('training') },
     { titel: 'Oefeningen en coaching', uitleg: 'Je bibliotheek met beelden, eigen oefeningen en je eigen coachteksten.', stand: `${aantal(oefeningen, 'oefening', 'oefeningen')}${eigenCoaching ? `, ${eigenCoaching} met eigen coaching` : ''}`, href: pad('/training', { tab: 'oefeningen' }), uit: org.uit.includes('training') },
   ]
   const ledenRegels: InstellingRegel[] = [
     { titel: 'Lidmaatschappen en labels', uitleg: 'Vormen zoals in Sportivity, met vestigingen, groepslessen en daluren, en de labels voor leden.', stand: aantal(vormen, 'vorm', 'vormen'), href: '/clubkane/beheer/lidmaatschappen' },
+    { titel: 'Automatiseringen', uitleg: 'Wie het team opvolgt: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', stand: 'Zeven regels', href: '/clubkane/beheer/automatiseringen' },
+    { titel: 'Challenges en badges', uitleg: 'Doelen voor leden met voortgang, ranglijst en badges.', stand: 'Lopend en gepland', href: '/clubkane/challenges' },
     { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
     { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },

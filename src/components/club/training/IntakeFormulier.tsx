@@ -1,14 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
-import { DOEL_LABEL, DOELEN, NIVEAU_LABEL, NIVEAUS, VOORKEUR_LABEL, VOORKEUREN } from '@/lib/club/training/typen'
+import { actieveVragen, secties } from '@/lib/club/intakevragen/lijst'
+import type { IntakeVraag } from '@/lib/club/intakevragen/soorten'
+import { IntakeSectie, Stap } from '@/components/club/intakevragen/IntakeSectie'
 import { idUit, stuur } from './api'
-import { beginStaat, naarVerzoek, stappenKlaar, type IntakeStaat } from './intake-staat'
-import { IntakeGezondheid } from './IntakeGezondheid'
+import { beginStaat, eersteOpen, metingenKlaar, naarVerzoek, sectieKlaar, type IntakeStaat } from './intake-staat'
+import { IntakeToestemming } from './IntakeGezondheid'
 import { IntakeMetingen } from './IntakeMetingen'
-import { KeuzeChips, wissel } from './KeuzeChips'
 import { LidKiezer, type GekozenLid } from './LidKiezer'
 import { VoorstelKnop } from './VoorstelKnop'
 
@@ -20,33 +21,35 @@ interface IntakeFormulierProps {
   /** Pad naar de intakes van een lid ({lid}) en naar de editor ({id}). */
   lidHref: string
   editorHref: string
+  /** De intakevragen van de sportschool (club_intakevragen of de standaardset). */
+  vragen: IntakeVraag[]
 }
 
-function Stap({ nr, titel, children }: { nr: number; titel: string; children: ReactNode }) {
-  return (
-    <section className="club-training-stap" aria-labelledby={`stap-${nr}`}>
-      <h2 id={`stap-${nr}`}><span className="club-training-stapnr">{nr}</span>{titel}</h2>
-      {children}
-    </section>
-  )
-}
-
-/** De intake: vijf stappen op een scherm, met de voortgang ernaast. */
-export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHref, editorHref }: IntakeFormulierProps) {
+/** De intake: lid, de secties van de sportschool en de metingen op een scherm, met de voortgang ernaast. */
+export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHref, editorHref, vragen }: IntakeFormulierProps) {
   const [lid, setLid] = useState<GekozenLid | null>(beginLid)
   const [s, setS] = useState<IntakeStaat>(() => beginStaat(vandaag, trainers[0]?.id ?? ''))
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
   const [opgeslagen, setOpgeslagen] = useState<string | null>(null)
   const zet = (deel: Partial<IntakeStaat>) => setS((oud) => ({ ...oud, ...deel }))
-  const klaar = stappenKlaar(s, lid !== null)
+  const actief = useMemo(() => actieveVragen(vragen), [vragen])
+  const delen = useMemo(() => secties(actief), [actief])
+  const toestemmingIn = delen.find((d) => d.vragen.some((v) => v.gezondheid))?.naam ?? null
+  const open = eersteOpen(actief, s)
+  const voortgang = [
+    { sleutel: 'lid', label: 'Lid gekozen', klaar: lid !== null },
+    ...delen.map((d) => ({ sleutel: `sectie-${d.naam}`, label: d.naam, klaar: sectieKlaar(d.vragen, s) })),
+    { sleutel: 'metingen', label: 'Metingen', klaar: metingenKlaar(s) },
+  ]
 
   async function bewaar(e: React.FormEvent) {
     e.preventDefault()
     if (!lid) return setFout('Kies eerst een lid.')
+    if (open) return setFout(`Vul "${open.vraag}" in.`)
     setBezig(true)
     setFout(null)
-    const u = await stuur('/intakes', 'POST', naarVerzoek(s, lid.id))
+    const u = await stuur('/intakes', 'POST', naarVerzoek(s, lid.id, actief))
     setBezig(false)
     const id = u.ok ? idUit(u.data) : null
     if (!id) return setFout(u.ok ? 'Opslaan lukte niet.' : u.fout)
@@ -95,34 +98,12 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
           </div>
         </Stap>
 
-        <Stap nr={2} titel="Doel en ervaring">
-          <KeuzeChips legend="Doelen" opties={DOELEN} labels={DOEL_LABEL} gekozen={s.doelen} onWissel={(d) => zet({ doelen: wissel(s.doelen, d) })} />
-          <KeuzeChips legend="Ervaring met krachttraining" opties={NIVEAUS} labels={NIVEAU_LABEL} gekozen={s.niveau ? [s.niveau] : []} onWissel={(n) => zet({ niveau: n })} enkel />
-          <label className="club-veld">
-            <span>Motivatie in eigen woorden</span>
-            <input className="club-invoer" value={s.motivatie} maxLength={500} onChange={(e) => zet({ motivatie: e.target.value })} placeholder="Waarom nu, wat wil het lid over drie maanden kunnen?" />
-          </label>
-        </Stap>
+        {delen.map((d, i) => (
+          <IntakeSectie key={d.naam} nr={i + 2} naam={d.naam} vragen={d.vragen} s={s} zet={zet} metToestemming={d.naam === toestemmingIn} />
+        ))}
 
-        <Stap nr={3} titel="Beschikbaarheid en voorkeur">
-          <div className="club-formrij">
-            <label className="club-veld">
-              <span>Dagen per week: <strong className="club-training-waarde">{s.dagenPerWeek}</strong></span>
-              <input type="range" min={1} max={7} value={s.dagenPerWeek} onChange={(e) => zet({ dagenPerWeek: Number(e.target.value) })} className="club-training-schuif" />
-            </label>
-            <label className="club-veld">
-              <span>Minuten per training: <strong className="club-training-waarde">{s.minutenPerSessie}</strong></span>
-              <input type="range" min={15} max={180} step={15} value={s.minutenPerSessie} onChange={(e) => zet({ minutenPerSessie: Number(e.target.value) })} className="club-training-schuif" />
-            </label>
-          </div>
-          <KeuzeChips legend="Voorkeur" opties={VOORKEUREN} labels={VOORKEUR_LABEL} gekozen={s.voorkeuren} onWissel={(v) => zet({ voorkeuren: wissel(s.voorkeuren, v) })} />
-        </Stap>
-
-        <Stap nr={4} titel="Gezondheid">
-          <IntakeGezondheid s={s} zet={zet} />
-        </Stap>
-
-        <Stap nr={5} titel="Metingen">
+        <Stap nr={delen.length + 2} titel="Metingen">
+          {toestemmingIn === null && <IntakeToestemming aan={s.toestemming} onZet={(aan) => zet({ toestemming: aan })} />}
           <IntakeMetingen s={s} zet={zet} />
           <label className="club-veld">
             <span>Notitie van de trainer</span>
@@ -133,17 +114,17 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
 
       <aside className="club-training-voortgang" aria-label="Voortgang">
         <ol>
-          {([['lid', 'Lid gekozen'], ['doel', 'Doel en ervaring'], ['beschikbaarheid', 'Beschikbaarheid'], ['gezondheid', 'Gezondheid'], ['metingen', 'Metingen']] as const).map(([k, label]) => (
-            <li key={k} data-klaar={klaar[k]}>
-              <span className="club-training-vinkje" aria-hidden>{klaar[k] ? <Check size={14} /> : null}</span>
-              {label}
-              <span className="club-sr">{klaar[k] ? ' (klaar)' : ' (nog open)'}</span>
+          {voortgang.map((v) => (
+            <li key={v.sleutel} data-klaar={v.klaar}>
+              <span className="club-training-vinkje" aria-hidden>{v.klaar ? <Check size={14} /> : null}</span>
+              {v.label}
+              <span className="club-sr">{v.klaar ? ' (klaar)' : ' (nog open)'}</span>
             </li>
           ))}
         </ol>
         <p className="club-hint">{s.toestemming ? 'Gezondheidsgegevens worden opgeslagen met toestemming.' : 'Zonder toestemming: geen gezondheidsgegevens.'}</p>
         {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
-        <button type="submit" className="club-knop club-knop--primair club-knop--groot" disabled={bezig || !klaar.lid || !klaar.doel}>
+        <button type="submit" className="club-knop club-knop--primair club-knop--groot" disabled={bezig || !lid}>
           {bezig ? 'Opslaan...' : 'Intake opslaan'}
         </button>
       </aside>

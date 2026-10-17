@@ -59,6 +59,10 @@ const API_ONDERDEEL: Record<string, string> = {
   bedrijf: 'bedrijf',
   sluiting: 'sluiting',
   lidmaatschappen: 'lidmaatschappen',
+  intakevragen: 'beheer',
+  // Regels instellen controleert de route daarnaast zelf op Beheer.
+  automatisering: 'opvolgen',
+  challenges: 'challenges',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

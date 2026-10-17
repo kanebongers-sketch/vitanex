@@ -1,0 +1,73 @@
+/* ─── Club, intakeformulier per sportschool ──────────────────────────────────
+   Werkvlak: links de vragen per sectie (genummerd, editoriaal), rechts het live
+   voorbeeld. Ook de velden van het echte formulier (.club-intakevragen-vraag). */
+
+.club-intakevragen-status:empty { display: none; }
+.club-intakevragen-werkvlak { display: grid; gap: 24px; align-items: start; }
+@media (min-width: 1180px) { .club-intakevragen-werkvlak { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); } }
+.club-intakevragen-hoofd { display: grid; gap: 18px; min-width: 0; }
+
+.club-intakevragen-balk { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+
+/* Secties: groot nummer, kop in kapitalen, dunne lijn eronder. */
+.club-intakevragen-secties { display: grid; gap: 22px; }
+.club-intakevragen-sectie > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line-strong); }
+.club-intakevragen-sectie > header h2 { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-intakevragen-sectie > header .club-intakevragen-pijlen { margin-left: auto; }
+.club-intakevragen-sectienr { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.1em; color: var(--brand-tekst, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-intakevragen-sectie ol { list-style: none; margin: 0; padding: 0; }
+
+.club-intakevragen-regel { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); transition: background-color 140ms var(--ease), opacity 140ms var(--ease); }
+.club-intakevragen-regel:hover { background: var(--club-vlak); }
+.club-intakevragen-regel[data-uit] { opacity: 0.55; }
+.club-intakevragen-regel[data-bewerkt] { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
+.club-intakevragen-tekst { display: grid; gap: 4px; min-width: 0; }
+.club-intakevragen-vraagtekst { color: var(--text-1); font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.club-intakevragen-labels { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--text-3); font-size: 12px; }
+.club-intakevragen-labels > span + span::before { content: '·'; margin-right: 10px; color: var(--text-4); }
+.club-intakevragen-label--gezond { display: inline-flex; align-items: center; gap: 4px; color: var(--club-ok); }
+.club-intakevragen-pijlen, .club-intakevragen-knoppen { display: inline-flex; align-items: center; gap: 2px; }
+.club-intakevragen-pijlen .club-knop, .club-intakevragen-knoppen .club-knop { min-width: 34px; padding: 0 8px; }
+
+/* Aan/uit als pilschakelaar. */
+.club-intakevragen-schakel { min-width: 52px; min-height: 30px; margin-right: 4px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-3); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease); }
+.club-intakevragen-schakel[aria-pressed='true'] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-tekst, var(--brand)); }
+.club-intakevragen-schakel:disabled { cursor: not-allowed; opacity: 0.6; }
+.club-intakevragen-schakel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Het formulier voor een vraag. */
+.club-intakevragen-formulier { display: grid; gap: 14px; padding: 18px 20px 20px; background: var(--bg-card); border: 1px solid var(--line); border-top: 3px solid var(--brand); border-radius: var(--club-radius); }
+.club-intakevragen-formulier h3 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-intakevragen-vinkjes { display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 0; padding: 0; border: 0; }
+.club-intakevragen-vinkjes label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 14px; cursor: pointer; }
+.club-intakevragen-vinkjes input { width: 18px; height: 18px; accent-color: var(--brand); }
+.club-intakevragen-vinkjes label:has(input:disabled) { cursor: not-allowed; color: var(--text-4); }
+
+/* Het live voorbeeld. */
+.club-intakevragen-voorbeeld { display: grid; gap: 14px; padding: 18px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); background: var(--club-vlak); }
+@media (min-width: 1180px) { .club-intakevragen-voorbeeld { position: sticky; top: 124px; max-height: calc(100vh - 140px); overflow: auto; overscroll-behavior: contain; } }
+.club-intakevragen-voorbeeld > header { display: grid; gap: 4px; }
+.club-intakevragen-voorbeeld > header h2 { margin: 0; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-intakevragen-voorbeeld .club-boventitel { display: inline-flex; align-items: center; gap: 6px; }
+.club-intakevragen-voorbeeldvlak { display: grid; gap: 12px; }
+
+/* Velden in het formulier (echt en voorbeeld). */
+.club-intakevragen-vraag { display: grid; gap: 4px; }
+.club-intakevragen-uitleg { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; }
+.club-intakevragen-verplicht { font-family: var(--ff-kop); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-intakevragen-janee { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.45; }
+.club-intakevragen-janee > span:first-child { flex: 1 1 280px; }
+.club-intakevragen-janee .club-training-ja[aria-pressed='true'] { background: var(--club-let-op-zacht); color: var(--club-let-op); }
+.club-intakevragen-slot { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.club-intakevragen-getal .club-invoer { max-width: 180px; }
+.club-intakevragen-schaal .club-training-keuze { min-width: 44px; padding: 0 10px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 520px) {
+  .club-intakevragen-regel { grid-template-columns: minmax(0, 1fr) auto; }
+  .club-intakevragen-regel > .club-intakevragen-pijlen { grid-column: 1 / -1; grid-row: 2; }
+  .club-intakevragen-sectie > header h2 { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-intakevragen-regel, .club-intakevragen-schakel { transition: none; }
+}

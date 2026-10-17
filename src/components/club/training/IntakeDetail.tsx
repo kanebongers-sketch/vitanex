@@ -3,6 +3,7 @@ import { berekenBmi, bmiDuiding, PARQ_VRAGEN } from '@/lib/club/training/intake'
 import type { Intake } from '@/lib/club/training/intake-rij'
 import { DOEL_LABEL, NIVEAU_LABEL, VOORKEUR_LABEL, ZONE_LABEL } from '@/lib/club/training/typen'
 import { toonDatumLang } from '@/lib/club/training/weergave'
+import { toonWaarde, type EigenAntwoord } from '@/lib/club/intakevragen/eigen'
 
 interface IntakeDetailProps {
   intake: Intake
@@ -16,6 +17,13 @@ function Regel({ label, children }: { label: string; children: React.ReactNode }
       <dd>{children}</dd>
     </div>
   )
+}
+
+/** Eigen antwoorden per sectie, in de volgorde waarin ze zijn opgeslagen. */
+function perSectie(eigen: readonly EigenAntwoord[]): [string, EigenAntwoord[]][] {
+  const uit = new Map<string, EigenAntwoord[]>()
+  for (const a of eigen) uit.set(a.sectie, [...(uit.get(a.sectie) ?? []), a])
+  return [...uit.entries()]
 }
 
 const getal = (n: number | undefined, eenheid: string) => (n === undefined ? 'niet gemeten' : `${n.toLocaleString('nl-NL')} ${eenheid}`)
@@ -43,6 +51,15 @@ export function IntakeDetail({ intake, trainer }: IntakeDetailProps) {
       ) : (
         <p className="club-melding">De antwoorden van deze intake zijn niet leesbaar.</p>
       )}
+
+      {a && a.eigen.length > 0 && perSectie(a.eigen).map(([sectie, antwoorden]) => (
+        <section key={sectie} aria-label={sectie}>
+          <h3 className="club-training-tussenkop">{sectie}</h3>
+          <dl className="club-training-defs">
+            {antwoorden.map((e) => <Regel key={e.vraagId} label={e.vraag}>{toonWaarde(e.soort, e.waarde)}</Regel>)}
+          </dl>
+        </section>
+      ))}
 
       <section aria-label="Metingen">
         <h3 className="club-training-tussenkop">Metingen</h3>

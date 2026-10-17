@@ -10,6 +10,8 @@ import {
   type Doel, type Niveau, type Voorkeur, type Zone,
 } from './typen'
 import { isRij, tekstOfNull } from './rijen'
+import { eigenUitOpslag, leesEigenAntwoorden, type EigenAntwoord } from '@/lib/club/intakevragen/eigen'
+import type { IntakeVraag } from '@/lib/club/intakevragen/soorten'
 
 export const PARQ_VRAGEN = [
   { sleutel: 'hart', vraag: 'Heeft een arts ooit gezegd dat je iets aan je hart hebt of alleen onder toezicht mag sporten?' },
@@ -39,6 +41,8 @@ export interface Antwoorden {
   voorkeuren: Voorkeur[]
   motivatie: string | null
   gezondheid: Gezondheid | null
+  /** Antwoorden op de eigen vragen van de sportschool, met een kopie van de vraag. */
+  eigen: EigenAntwoord[]
 }
 
 export interface Metingen {
@@ -146,7 +150,11 @@ function leesGezondheid(ruw: unknown): Gezondheid {
   }
 }
 
-/** Valideer de antwoorden. Zonder toestemming is gezondheid altijd null. */
+/**
+ * Valideer de vaste antwoorden. Zonder toestemming is gezondheid altijd null.
+ * De eigen antwoorden worden hier mild gelezen (zoals ze opgeslagen zijn);
+ * leesIntake controleert ze streng tegen de vragen van de sportschool.
+ */
 export function leesAntwoorden(ruw: unknown, toestemming: boolean): Uitslag<Antwoorden> {
   if (!isRij(ruw)) return { ok: false, fout: 'De antwoorden ontbreken.' }
   const doelen = Array.isArray(ruw.doelen) ? uniek(ruw.doelen.filter(isDoel)) : []
@@ -168,6 +176,7 @@ export function leesAntwoorden(ruw: unknown, toestemming: boolean): Uitslag<Antw
       voorkeuren: VOORKEUREN.filter((v) => voorkeuren.includes(v)),
       motivatie: korteTekst(ruw.motivatie, 500),
       gezondheid: toestemming ? leesGezondheid(ruw.gezondheid) : null,
+      eigen: eigenUitOpslag(ruw.eigen, toestemming),
     },
   }
 }
@@ -176,8 +185,12 @@ function isDatum(v: unknown): v is string {
   return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T12:00:00Z`))
 }
 
-/** De hele intake uit een verzoek. `vandaag` is de standaarddatum (yyyy-mm-dd). */
-export function leesIntake(body: unknown, vandaag: string): Uitslag<IntakeInvoer> {
+/**
+ * De hele intake uit een verzoek. `vandaag` is de standaarddatum (yyyy-mm-dd).
+ * `vragen` zijn de intakevragen van de sportschool: antwoorden op eigen vragen
+ * worden daartegen gecontroleerd (verplicht, soort, toestemming).
+ */
+export function leesIntake(body: unknown, vandaag: string, vragen: readonly IntakeVraag[] = []): Uitslag<IntakeInvoer> {
   if (!isRij(body)) return { ok: false, fout: 'Ongeldig verzoek.' }
   if (!isUuid(body.lidId)) return { ok: false, fout: 'Kies eerst een lid.' }
   if (body.medewerkerId !== undefined && body.medewerkerId !== null && body.medewerkerId !== '' && !isUuid(body.medewerkerId)) {
@@ -188,6 +201,8 @@ export function leesIntake(body: unknown, vandaag: string): Uitslag<IntakeInvoer
   const toestemming = body.toestemmingGezondheid === true
   const antwoorden = leesAntwoorden(body.antwoorden, toestemming)
   if (!antwoorden.ok) return antwoorden
+  const eigen = leesEigenAntwoorden(isRij(body.antwoorden) ? body.antwoorden.eigen : undefined, vragen, toestemming)
+  if (!eigen.ok) return eigen
   const metingen = leesMetingen(body.metingen, toestemming)
   if (!metingen.ok) return metingen
   return {
@@ -196,7 +211,7 @@ export function leesIntake(body: unknown, vandaag: string): Uitslag<IntakeInvoer
       lidId: body.lidId,
       medewerkerId: isUuid(body.medewerkerId) ? body.medewerkerId : null,
       datum,
-      antwoorden: antwoorden.waarde,
+      antwoorden: { ...antwoorden.waarde, eigen: eigen.waarde },
       metingen: metingen.waarde,
       toestemmingGezondheid: toestemming,
       notitie: korteTekst(body.notitie, 2000),
