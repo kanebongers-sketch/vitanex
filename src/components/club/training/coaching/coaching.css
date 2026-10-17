@@ -1,0 +1,90 @@
+/* ─── Fit Factory Club: coaching bij een oefening ─────────────────────────────
+   Editoriaal en rustig: grote bronzen nummers bij de kernpunten (die moet je
+   onthouden), dunne lijnen ertussen, fouten in koraal met de correctie in
+   groen. Tokens uit club.css. Selectors: .club-speler-*, .club-coach-*. */
+
+/* ── Speler ──────────────────────────────────────────────────────────────── */
+.club-speler { display: grid; gap: 10px; margin: 0; justify-items: start; }
+.club-speler-beeld { position: relative; display: block; width: min(100%, 360px); padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--club-radius); }
+.club-speler-beeld .club-training-beeld--groot { width: 100%; }
+/* In het blad van de ledenapp staat het beeld in het midden. */
+.club-lidapp-blad .club-speler { justify-items: center; }
+.club-speler-beeld:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.club-speler-stand {
+  position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-app) 78%, transparent); color: var(--text-1);
+  font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.club-speler-bediening { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.club-speler-standen { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--club-vlak); }
+.club-speler-knop {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid transparent; background: transparent; color: var(--text-2); cursor: pointer;
+  font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease);
+}
+.club-speler-knop:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+.club-speler-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-speler-knop[aria-pressed='true'] { color: var(--text-1); background: color-mix(in srgb, var(--brand) 18%, transparent); border-color: color-mix(in srgb, var(--brand) 45%, transparent); }
+.club-speler-knop--spelen { border-color: var(--line-strong); background: var(--club-vlak); }
+.club-speler-knop--spelen[aria-pressed='true'] { background: var(--club-vlak); border-color: var(--line-strong); }
+
+/* Een houding vasthouden: de loop stopt, alleen die houding is zichtbaar. */
+.club-speler[data-stand='start'] .club-training-beeld-houding,
+.club-speler[data-stand='eind'] .club-training-beeld-houding { animation: none; }
+.club-speler[data-stand='start'] .club-training-beeld-houding--start,
+.club-speler[data-stand='eind'] .club-training-beeld-houding--eind { opacity: 1; }
+.club-speler[data-stand='start'] .club-training-beeld-houding--eind,
+.club-speler[data-stand='eind'] .club-training-beeld-houding--start { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  /* Daar staan beide houdingen al naast elkaar; de bediening voegt niets toe. */
+  .club-speler-bediening, .club-speler-stand { display: none; }
+  .club-speler-beeld { pointer-events: none; cursor: default; }
+  .club-speler[data-stand] .club-training-beeld .club-training-beeld-houding { opacity: 1; }
+}
+
+/* ── Coaching ────────────────────────────────────────────────────────────── */
+.club-coach { display: grid; gap: 26px; }
+.club-coach > section { display: grid; gap: 10px; }
+.club-coach-kop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-coach-tekst { margin: 0; color: var(--text-2); line-height: 1.6; max-width: 68ch; }
+
+.club-coach-kern { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.club-coach-kernpunt { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.club-coach-nummer { font-family: var(--ff-kop); font-size: 44px; line-height: 0.85; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+.club-coach-kerntekst { display: grid; gap: 3px; min-width: 0; }
+.club-coach-kerntekst strong { font-family: var(--ff-kop); font-size: 21px; line-height: 1.1; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-1); }
+.club-coach-kerntekst span { color: var(--text-3); font-size: 14.5px; line-height: 1.5; }
+
+.club-coach-stappen { margin: 0; padding: 0; list-style: none; counter-reset: stap; display: grid; gap: 10px; }
+.club-coach-stappen li { counter-increment: stap; position: relative; padding-left: 40px; color: var(--text-2); line-height: 1.55; }
+.club-coach-stappen li::before {
+  content: counter(stap); position: absolute; left: 0; top: -1px; display: grid; place-items: center; width: 26px; height: 26px;
+  border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text-1); font: 600 13px/1 var(--ff-kop);
+}
+.club-coach-stappen li:not(:last-child)::after { content: ''; position: absolute; left: 13px; top: 28px; bottom: -10px; width: 1px; background: var(--line); }
+
+.club-coach-fouten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+@media (min-width: 760px) { .club-coach-fouten { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.club-coach-fout { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-coach-fout-rij { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; line-height: 1.45; font-size: 14.5px; }
+.club-coach-fout-rij > svg { margin-top: 2px; }
+.club-coach-fout-rij--fout { color: var(--text-1); font-weight: 600; }
+.club-coach-fout-rij--fout > svg { color: var(--club-let-op); }
+.club-coach-fout-rij--beter { color: var(--text-2); }
+.club-coach-fout-rij--beter > svg { color: var(--club-ok); }
+
+.club-coach-tegels { margin: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); background: var(--line); border: 1px solid var(--line); border-radius: var(--club-radius-klein); overflow: hidden; }
+.club-coach-tegel { display: grid; gap: 4px; align-content: start; padding: 14px 16px; background: var(--bg-card); }
+.club-coach-tegel dt { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-coach-tegel dt svg { color: var(--brand); }
+.club-coach-tegel dd { margin: 0; color: var(--text-1); font-size: 14.5px; line-height: 1.45; }
+
+.club-coach-laden { display: grid; gap: 10px; }
+.club-coach-laden span { height: 18px; border-radius: 6px; background: var(--club-vlak); }
+.club-coach-laden span:nth-child(2) { width: 82%; }
+.club-coach-laden span:nth-child(3) { width: 64%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-speler-knop { transition: none; }
+}

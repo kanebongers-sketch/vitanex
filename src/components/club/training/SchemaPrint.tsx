@@ -1,3 +1,5 @@
+'use client'
+
 import type { EditorRegel, EditorStaat } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, DOEL_LABEL, type Doel } from '@/lib/club/training/typen'
@@ -6,6 +8,7 @@ import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
 import { SPIER_INFO } from '@/lib/club/training/spieren'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeldPrint } from './OefeningBeeld'
+import { useKernpunten, type KernpuntenPerNaam } from './coaching/useKernpunten'
 
 interface SchemaPrintProps {
   naam: string
@@ -22,6 +25,7 @@ interface SchemaPrintProps {
 export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staat, oefeningen }: SchemaPrintProps) {
   const bronnen = bronnenVan(staat.regels.map((r) => oefeningen.get(r.oefeningId)?.beeld))
   const metBeeld = bronnen.length > 0
+  const kernpunten = useKernpunten(staat.regels.flatMap((r) => oefeningen.get(r.oefeningId)?.naam ?? []))
   return (
     <article className="club-training-print" aria-hidden>
       <header>
@@ -41,7 +45,7 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
                 <tr>{metBeeld && <th>Uitvoering</th>}<th>Oefening</th><th>Sets</th><th>Herhalingen</th><th>Kg</th><th>Rust</th><th>Notitie</th></tr>
               </thead>
               <tbody>
-                {regels.map((r) => <PrintRegel key={r.sleutel} regel={r} oefening={oefeningen.get(r.oefeningId)} metBeeld={metBeeld} />)}
+                {regels.map((r) => <PrintRegel key={r.sleutel} regel={r} oefening={oefeningen.get(r.oefeningId)} metBeeld={metBeeld} kernpunten={kernpunten} />)}
               </tbody>
             </table>
           </section>
@@ -57,8 +61,16 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
   )
 }
 
-function PrintRegel({ regel: r, oefening, metBeeld }: { regel: EditorRegel; oefening: Oefening | undefined; metBeeld: boolean }) {
+interface PrintRegelProps {
+  regel: EditorRegel
+  oefening: Oefening | undefined
+  metBeeld: boolean
+  kernpunten: KernpuntenPerNaam
+}
+
+function PrintRegel({ regel: r, oefening, metBeeld, kernpunten }: PrintRegelProps) {
   const naam = oefening?.naam ?? 'Onbekend'
+  const punten = kernpunten[naam] ?? []
   return (
     <tr>
       {metBeeld && (
@@ -70,6 +82,9 @@ function PrintRegel({ regel: r, oefening, metBeeld }: { regel: EditorRegel; oefe
         <span className="club-training-print-oefnaam">{naam}</span>
         {oefening && oefening.spierenPrimair.length > 0 && (
           <span className="club-training-print-spieren">{oefening.spierenPrimair.map((s) => SPIER_INFO[s].naam).join(', ')}</span>
+        )}
+        {punten.length > 0 && (
+          <span className="club-training-print-kern">{punten.map((p, i) => `${i + 1}. ${p}`).join('   ')}</span>
         )}
       </td>
       <td>{r.sets}</td>

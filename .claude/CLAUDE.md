@@ -28,6 +28,7 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - Cijfers altijd **per kalendermaand** (van de 1e tot en met de 30e of 31e), niet per week.
 - Oefeningbeelden: hoofdbron **RepDB gratis** (vlakke illustraties, bronvermelding "Exercise data by RepDB (repdb.co)"), Everkinetic alleen als reserve. Betaalde ExerciseDB niet (besluit Kane).
 - Oefeningbeelden: **geen eigen video's** (kan niet) en **nooit Virtuagym-beeld**. Bron is de open database Everkinetic (CC BY-SA 4.0, begin- en eindhouding als SVG, in onze kleuren als kleine loop), altijd met bronvermelding.
+- Trainingsschema's zijn het belangrijkste onderdeel van Club (besluit Kane 17-10-2026). Elke oefening heeft coaching zoals een trainer die geeft: 3 tot 5 genummerde kernpunten ("1. Rug recht", "2. Knieen niet op slot"), opstelling, stappen, veelgemaakte fouten met correctie, ademhaling, tempo. Bron: `src/lib/club/training/coaching/` (op exacte oefeningnaam, getest); nieuwe oefeningen krijgen ook coaching. Beeld: bewegende illustratie met speler (afspelen, begin, eind).
 - Het fitness-leadsysteem in Club staat **los van het PT-systeem** (geen koppeling met pt_leads of de PT-app).
 - Code: `src/lib/club/**`, `src/app/clubkane/**`, `src/app/api/club/**`, `src/components/club/**`; tabellen `club_*` in de LifeOS-database (migraties 380 en hoger). Bouwbrief: `docs/club/BRIEF.md`. Demodata heeft `demo = true`.
 
