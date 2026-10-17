@@ -43,7 +43,7 @@ export default async function AgendaPagina({ searchParams }: { searchParams: Zoe
         </div>
         <nav className="club-acties ag-nav" aria-label="Week kiezen">
           <Link className="club-knop club-knop--klein" href={weekHref(plusDagen(maandag, -7))} aria-label="Vorige week"><ChevronLeft size={16} aria-hidden /></Link>
-          <span className="ag-bereik">{kort(maandag)} – {kort(plusDagen(maandag, 6))}</span>
+          <span className="ag-bereik">{kort(maandag)} tot {kort(plusDagen(maandag, 6))}</span>
           <Link className="club-knop club-knop--klein" href={weekHref(plusDagen(maandag, 7))} aria-label="Volgende week"><ChevronRight size={16} aria-hidden /></Link>
           {dezeWeek ? null : <Link className="club-knop club-knop--klein" href={clubPad('/agenda', vestiging)}>Deze week</Link>}
         </nav>

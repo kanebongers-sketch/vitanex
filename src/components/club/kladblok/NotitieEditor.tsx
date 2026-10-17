@@ -69,7 +69,7 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
   })
   useEffect(() => () => spoelRef.current(), [])
 
-  /** Nu opslaan, samen met wat nog openstond (één verzoek, dus geen oude tekst die later binnenkomt). */
+  /** Nu opslaan, samen met wat nog openstond (een verzoek, dus geen oude tekst die later binnenkomt). */
   async function meteen(w: KladWijziging) {
     if (timer.current) clearTimeout(timer.current)
     timer.current = null

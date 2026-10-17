@@ -80,7 +80,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * Het formulier → een afspraak. Datum + begin- en eindtijd in Nederlandse tijd;
- * een hele dag loopt van 00:00 tot 23:59. Eind vóór begin = fout.
+ * een hele dag loopt van 00:00 tot 23:59. Eind voor begin = fout.
  */
 export function leesAgendaInvoer(body: unknown): Lees<AgendaInvoer> {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return { ok: false, fout: 'Ongeldige invoer.' }
@@ -93,7 +93,7 @@ export function leesAgendaInvoer(body: unknown): Lees<AgendaInvoer> {
   const begin = heleDag ? '00:00' : o.begin
   const eind = heleDag ? '23:59' : o.eind
   if (!isTijd(begin) || !isTijd(eind)) return { ok: false, fout: 'Vul een begin- en eindtijd in.' }
-  if (eind < begin) return { ok: false, fout: 'De eindtijd ligt vóór de begintijd.' }
+  if (eind < begin) return { ok: false, fout: 'De eindtijd ligt voor de begintijd.' }
   const medewerkerId = typeof o.medewerkerId === 'string' && UUID.test(o.medewerkerId) ? o.medewerkerId : null
   const notitie = typeof o.notitie === 'string' && o.notitie.trim() ? o.notitie.trim().slice(0, MAX_NOTITIE) : null
   return {
@@ -154,9 +154,9 @@ export function perDag(items: readonly AgendaItem[], maandag: string): { datum: 
   })
 }
 
-/** "09:00 – 10:30" of "Hele dag". */
+/** "09:00 tot 10:30" of "Hele dag". */
 export function tijdLabel(a: Pick<AgendaItem, 'beginOp' | 'eindOp' | 'heleDag'>): string {
   if (a.heleDag) return 'Hele dag'
   const { begin, eind } = formWaarden(a)
-  return `${begin} – ${eind}`
+  return `${begin} tot ${eind}`
 }

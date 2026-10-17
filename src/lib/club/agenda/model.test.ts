@@ -14,7 +14,7 @@ describe('leesAgendaInvoer', () => {
     const r = leesAgendaInvoer({ ...basis, heleDag: true, begin: 'x', eind: 'y' })
     expect(r.ok && formWaarden(r.waarde)).toEqual({ datum: '2026-10-20', begin: '00:00', eind: '23:59' })
   })
-  test('fouten: geen titel, geen datum, eind vóór begin, onbekende vestiging; onbekende soort = afspraak', () => {
+  test('fouten: geen titel, geen datum, eind voor begin, onbekende vestiging; onbekende soort = afspraak', () => {
     expect(leesAgendaInvoer({ ...basis, titel: ' ' }).ok).toBe(false)
     expect(leesAgendaInvoer({ ...basis, datum: 'morgen' }).ok).toBe(false)
     expect(leesAgendaInvoer({ ...basis, begin: '11:00', eind: '10:00' }).ok).toBe(false)
@@ -41,7 +41,7 @@ describe('weekweergave', () => {
     expect(week[2].items.map((a) => a.id)).toEqual(['nacht'])
   })
   test('tijdLabel en rij inlezen', () => {
-    expect(tijdLabel(item('x', '2026-10-20T07:00:00.000Z', '2026-10-20T08:30:00.000Z'))).toBe('09:00 – 10:30')
+    expect(tijdLabel(item('x', '2026-10-20T07:00:00.000Z', '2026-10-20T08:30:00.000Z'))).toBe('09:00 tot 10:30')
     expect(tijdLabel(item('x', '2026-10-20T07:00:00.000Z', '2026-10-20T08:30:00.000Z', true))).toBe('Hele dag')
     expect(agendaUitRij({ id: 'a', vestiging: 'budel', titel: 'T', soort: '?', begin_op: '2026-10-20T07:00:00+00:00', eind_op: '2026-10-20T08:00:00+00:00' }))
       .toMatchObject({ soort: 'afspraak', beginOp: '2026-10-20T07:00:00.000Z', heleDag: false })

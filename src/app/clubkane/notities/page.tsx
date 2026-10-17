@@ -25,7 +25,7 @@ export default async function NotitiesPagina({ searchParams }: { searchParams: Z
         <div>
           <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
           <h1>Notities</h1>
-          <p>Overdracht tussen diensten, afspraken, kennis en ideeën. Alles op één plek, voor deze vestiging of voor alle vestigingen.</p>
+          <p>Overdracht tussen diensten, afspraken, kennis en ideeën. Alles op een plek, voor deze vestiging of voor alle vestigingen.</p>
         </div>
       </section>
       {notities === null ? (
