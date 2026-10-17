@@ -49,7 +49,7 @@
 
 /* Spierchips: kort de primaire spieren, in kaarten en de editor. */
 .club-training-spierchips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
-.club-training-spierchip { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--brand); background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); }
+.club-training-spierchip { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); }
 .club-training-spierchip--grof { color: var(--text-2); background: var(--club-vlak, transparent); border-color: var(--line-strong); }
 
 /* Spieren kiezen in het formulier: een knop per spier, drie standen. */
@@ -60,7 +60,7 @@
 .club-training-spierknop:hover { border-color: var(--text-4); color: var(--text-1); }
 .club-training-spierknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .club-training-spierknop[data-staat='primair'] { background: var(--brand); border-color: var(--brand); color: var(--bg-app); font-weight: 600; }
-.club-training-spierknop[data-staat='secundair'] { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand); }
+.club-training-spierknop[data-staat='secundair'] { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand-tekst, var(--brand)); }
 .club-training-spierknop-stand { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
 .club-training-spierkeuze-voorbeeld { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
 

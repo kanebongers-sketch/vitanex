@@ -33,7 +33,7 @@
 
 /* Een naam die het paneel opent: tekst, geen knop-uiterlijk. */
 .club-leads-naamknop { all: unset; cursor: pointer; font-weight: 600; color: var(--text-1); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; }
-.club-leads-naamknop:hover { color: var(--brand); }
+.club-leads-naamknop:hover { color: var(--brand-tekst, var(--brand)); }
 .club-leads-naamknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ── Pijplijn ────────────────────────────────────────────────────────────── */
@@ -64,7 +64,7 @@
 .club-leads-kaartinfo:empty { display: none; }
 .club-leads-mw { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-3); }
 .club-leads-stap { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-2); }
-.club-leads-stap svg { color: var(--brand); flex: none; }
+.club-leads-stap svg { color: var(--brand-tekst, var(--brand)); flex: none; }
 .club-leads-verplaats { border-top: 1px solid var(--line); padding-top: 8px; }
 .club-leads-keuze { width: 100%; min-height: 32px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--text-2); font: inherit; font-size: 12.5px; cursor: pointer; }
 .club-leads-keuze:hover { border-color: var(--line-strong); color: var(--text-1); }
@@ -126,7 +126,7 @@
 .club-leads-radio { position: relative; }
 .club-leads-radio input { position: absolute; opacity: 0; }
 .club-leads-radio span { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13.5px; color: var(--text-2); cursor: pointer; }
-.club-leads-radio input:checked + span { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.club-leads-radio input:checked + span { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
 .club-leads-radio input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .club-leads-dubbel { display: grid; gap: 8px; }
@@ -140,7 +140,7 @@
 .club-leads-tijdlijn li { position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding-bottom: 14px; }
 .club-leads-tijdlijn li:not(:last-child)::before { content: ''; position: absolute; left: 12px; top: 26px; bottom: 0; width: 1px; background: var(--line-strong); }
 .club-leads-tijdlijnpunt { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--club-vlak-hover); color: var(--text-2); }
-.club-leads-tijdlijn li[data-soort='status'] .club-leads-tijdlijnpunt, .club-leads-tijdlijn li[data-soort='proefles'] .club-leads-tijdlijnpunt { background: var(--brand-soft); color: var(--brand); }
+.club-leads-tijdlijn li[data-soort='status'] .club-leads-tijdlijnpunt, .club-leads-tijdlijn li[data-soort='proefles'] .club-leads-tijdlijnpunt { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
 .club-leads-tijdlijnkop { margin: 3px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 13px; }
 .club-leads-tijdlijnkop time { color: var(--text-3); font-size: 12.5px; }
 .club-leads-tijdlijnkop .club-zacht { font-size: 12px; }

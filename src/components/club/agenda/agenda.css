@@ -18,5 +18,5 @@
 .club-app .ag-titel { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .club-app .ag-meta { font-size: 12px; color: var(--text-3); }
 .club-app .ag-leeg { display: grid; place-items: center; min-height: 56px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line); background: none; color: var(--text-4); cursor: pointer; transition: color 160ms ease, border-color 160ms ease; }
-.club-app .ag-leeg:hover { color: var(--brand); border-color: var(--brand); }
+.club-app .ag-leeg:hover { color: var(--brand-tekst, var(--brand)); border-color: var(--brand); }
 .club-app .ag-item:focus-visible, .club-app .ag-leeg:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

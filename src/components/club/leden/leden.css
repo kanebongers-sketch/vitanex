@@ -129,7 +129,7 @@
 .club-leden-balk-getal { position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -3px); font-size: 12px; font-weight: 600; color: var(--text-2); }
 .club-leden-xas { grid-column: 2; }
 .club-leden-xas li { text-align: center; font-size: 11.5px; color: var(--text-3); white-space: nowrap; }
-.club-leden-xas .club-leden-xas--nu { color: var(--brand); font-weight: 600; }
+.club-leden-xas .club-leden-xas--nu { color: var(--brand-tekst, var(--brand)); font-weight: 600; }
 @media (max-width: 599px) { .club-leden-xas li[data-om] { visibility: hidden; } }
 .club-leden-weekdagen-wrap { display: grid; gap: 4px; }
 .club-leden-weekdagen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
@@ -181,7 +181,7 @@
 .club-leden-gegevens dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
 .club-leden-gegevens dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
 .club-leden-gegevens a { display: inline-flex; align-items: center; gap: 6px; color: var(--text-1); text-decoration: none; }
-.club-leden-gegevens a:hover { color: var(--brand); }
+.club-leden-gegevens a:hover { color: var(--brand-tekst, var(--brand)); }
 .club-leden-blok { margin-top: 16px; display: grid; gap: 8px; }
 .club-leden-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .club-leden-tags li { padding-right: 4px; }

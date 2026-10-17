@@ -26,7 +26,7 @@
 .club-training-lidkiezer { position: relative; display: grid; gap: 6px; }
 .club-training-lidlijst { list-style: none; margin: 0; padding: 4px; display: grid; border: 1px solid var(--line-strong); border-radius: var(--club-radius-klein); background: var(--bg-card); box-shadow: var(--club-schaduw); max-height: 320px; overflow-y: auto; }
 .club-training-lidlijst button { width: 100%; display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; }
-.club-training-lidlijst [aria-selected='true'] button { background: var(--brand-soft); color: var(--brand); }
+.club-training-lidlijst [aria-selected='true'] button { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
 
 /* ── Filters en oefeningenbibliotheek ─────────────────────────────────────── */
 .club-training-filters { flex: 1; display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); align-items: end; }
@@ -62,7 +62,7 @@
 .club-training-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .club-training-keuze { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease); }
 .club-training-keuze:hover { border-color: var(--text-4); color: var(--text-1); }
-.club-training-keuze[aria-pressed='true'] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); font-weight: 600; }
+.club-training-keuze[aria-pressed='true'] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-tekst, var(--brand)); font-weight: 600; }
 .club-training-form { display: grid; gap: 14px; }
 
 /* ── Intake: vijf stappen op een scherm ───────────────────────────────────── */
@@ -71,9 +71,9 @@
 .club-training-stappen { display: grid; gap: 14px; counter-reset: stap; }
 .club-training-stap { display: grid; gap: 14px; padding: 18px 20px 20px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); }
 .club-training-stap > h2 { margin: 0; display: flex; align-items: center; gap: 12px; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
-.club-training-stapnr { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--brand-soft); color: var(--brand); font-size: 17px; font-variant-numeric: tabular-nums; }
+.club-training-stapnr { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); font-size: 17px; font-variant-numeric: tabular-nums; }
 .club-training-schuif { width: 100%; accent-color: var(--brand); min-height: 32px; }
-.club-training-waarde { color: var(--brand); font-size: 16px; font-variant-numeric: tabular-nums; }
+.club-training-waarde { color: var(--brand-tekst, var(--brand)); font-size: 16px; font-variant-numeric: tabular-nums; }
 .club-training-voortgang { position: sticky; top: 124px; display: grid; gap: 14px; padding: 18px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); box-shadow: var(--club-schaduw); }
 .club-training-voortgang ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .club-training-voortgang li { display: flex; align-items: center; gap: 10px; color: var(--text-3); font-size: 14px; }
@@ -98,7 +98,7 @@
 .club-training-eenheid .club-invoer { padding-right: 58px; font-variant-numeric: tabular-nums; }
 .club-training-eenheid small { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 12px; }
 .club-training-bmi { display: grid; gap: 2px; padding: 10px 14px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
-.club-training-bmi .club-tegel-getal { font-size: 32px; color: var(--brand); }
+.club-training-bmi .club-tegel-getal { font-size: 32px; color: var(--brand-tekst, var(--brand)); }
 
 .club-training-klaar { display: grid; gap: 12px; max-width: 720px; }
 .club-training-klaar h2 { margin: 0; font-family: var(--ff-kop); font-size: 34px; text-transform: uppercase; }
@@ -107,7 +107,7 @@
 /* ── Intakes: lijst, detail en meetverloop ────────────────────────────────── */
 .club-training-intakes { padding: 4px 18px; }
 .club-training-rijknop { border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; }
-.club-training-rijknop:hover .club-rij-titel { color: var(--brand); }
+.club-training-rijknop:hover .club-rij-titel { color: var(--brand-tekst, var(--brand)); }
 .club-training-datumblok { flex: none; width: 92px; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); }
 .club-training-intakedetail { display: grid; gap: 18px; }
 .club-training-tussenkop { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 16px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
@@ -137,12 +137,12 @@
 .club-training-klein { font-size: 12.5px; margin-top: 2px; }
 .club-training-sjablonen { padding: 4px 18px; }
 .club-training-link { color: var(--text-1); text-decoration: none; }
-.club-training-link:hover { color: var(--brand); }
+.club-training-link:hover { color: var(--brand-tekst, var(--brand)); }
 
 /* ── Editor ───────────────────────────────────────────────────────────────── */
 .club-training-werkbalk { position: sticky; top: 104px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: color-mix(in srgb, var(--bg-app) 88%, transparent); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: var(--club-radius); }
 .club-training-werkmelding { margin: 0 0 0 auto; }
-.club-training-werkmelding a { color: var(--brand); }
+.club-training-werkmelding a { color: var(--brand-tekst, var(--brand)); }
 .club-training-dagen, .club-training-zij { display: grid; gap: 16px; align-content: start; }
 .club-training-zij .club-kaart > h2 { margin: 0 0 10px; }
 .club-training-kopvelden { display: grid; gap: 14px; }
@@ -190,7 +190,7 @@
 .club-training-kieslijst { gap: 2px; }
 .club-training-kiesrij { width: 100%; padding: 10px 8px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; border-radius: 6px; }
 .club-training-kiesrij:hover { background: var(--club-vlak-hover); }
-.club-training-kiesrij > svg { flex: none; color: var(--brand); }
+.club-training-kiesrij > svg { flex: none; color: var(--brand-tekst, var(--brand)); }
 .club-training-al { color: var(--club-ok); }
 
 /* Getraind (trainingslog) */

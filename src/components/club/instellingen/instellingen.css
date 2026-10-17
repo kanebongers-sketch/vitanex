@@ -43,7 +43,7 @@
 .club-instellingen-item[data-uit] summary { opacity: 0.65; }
 .club-instellingen-item summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 16px; cursor: pointer; list-style: none; }
 .club-instellingen-item summary::-webkit-details-marker { display: none; }
-.club-instellingen-item summary:hover .club-instellingen-item-naam { color: var(--brand); }
+.club-instellingen-item summary:hover .club-instellingen-item-naam { color: var(--brand-tekst, var(--brand)); }
 .club-instellingen-item-naam { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; transition: color 140ms var(--ease); }
 .club-instellingen-item summary .club-zacht { font-size: 13px; }
 .club-instellingen-item > form { padding: 4px 16px 16px; }
@@ -54,14 +54,14 @@
 .club-instellingen-keuzes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
 .club-instellingen-keuzes legend { width: 100%; margin-bottom: 6px; }
 .club-instellingen-keuze { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13px; color: var(--text-2); cursor: pointer; transition: border-color 140ms var(--ease), background-color 140ms var(--ease); }
-.club-instellingen-keuze:has(input:checked) { border-color: transparent; background: var(--brand-soft); color: var(--brand); }
+.club-instellingen-keuze:has(input:checked) { border-color: transparent; background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
 .club-instellingen-keuze:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ── Medewerkers + rollenuitleg ─────────────────────────────────────────── */
 @media (min-width: 1100px) { .club-instellingen-medewerkers { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); align-items: start; } }
 .club-instellingen-rollen { position: sticky; top: 124px; }
 .club-instellingen-rollen dl { margin: 0 0 12px; display: grid; gap: 10px; }
-.club-instellingen-rollen dt { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand); }
+.club-instellingen-rollen dt { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
 .club-instellingen-rollen dd { margin: 2px 0 0; font-size: 13.5px; color: var(--text-2); }
 
 /* ── Weekrooster ──────────────────────────────────────────────────────────── */
@@ -83,7 +83,7 @@
 .club-instellingen-serie-tijd { font-size: 12px; color: var(--text-3); }
 .club-instellingen-serie-naam { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
 .club-instellingen-plus { display: grid; place-items: center; min-height: 34px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line-strong); background: transparent; color: var(--text-4); cursor: pointer; transition: color 140ms var(--ease), border-color 140ms var(--ease); }
-.club-instellingen-plus:hover { color: var(--brand); border-color: var(--brand); }
+.club-instellingen-plus:hover { color: var(--brand-tekst, var(--brand)); border-color: var(--brand); }
 .club-instellingen-paneelkop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .club-instellingen-paneelkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 30px; line-height: 1; font-weight: 700; text-transform: uppercase; }
 

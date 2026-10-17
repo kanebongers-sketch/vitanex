@@ -35,7 +35,7 @@
 .club-personeel-kop { display: grid; gap: 14px; }
 .club-personeel-weeknr { color: var(--text-4); font-size: 0.55em; letter-spacing: 0.06em; margin-left: 0.25em; vertical-align: 0.25em; }
 .club-personeel-bladeren { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.club-personeel-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.club-personeel-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); }
 .club-personeel-periode { font-family: var(--ff-kop); font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0 6px; }
 .club-personeel-tabs { justify-self: start; }
 .club-personeel-balk { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; }
@@ -68,7 +68,7 @@
 .club-personeel-dagkop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 12px 8px; }
 .club-personeel-dagkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; min-width: calc(var(--club-personeel-label) - 12px); }
 .club-personeel-dagnaam { color: var(--text-3); }
-.club-personeel-dag[data-vandaag] .club-personeel-dagnaam { color: var(--brand); }
+.club-personeel-dag[data-vandaag] .club-personeel-dagnaam { color: var(--brand-tekst, var(--brand)); }
 .club-personeel-dagkop > .club-zacht { font-size: 13px; }
 .club-personeel-dagacties { display: inline-flex; gap: 6px; margin-left: auto; }
 
@@ -124,7 +124,7 @@
 .club-personeel-urenlijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .club-personeel-urenrij { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
 .club-personeel-urennaam { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-1); text-decoration: none; font-weight: 600; font-size: 14px; }
-a.club-personeel-urennaam:hover { color: var(--brand); }
+a.club-personeel-urennaam:hover { color: var(--brand-tekst, var(--brand)); }
 .club-personeel-urengetal { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
 .club-personeel-urengetal .club-zacht { font-size: 15px; font-weight: 600; }
 .club-personeel-urenmeter { grid-column: 1 / 2; position: relative; height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: visible; }

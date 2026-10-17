@@ -13,7 +13,7 @@
 @media (min-width: 1000px) { .club-cijfers-kern-strook { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
 .club-cijfers-kern-hoofd { display: grid; align-content: end; gap: 4px; padding: 18px 24px 20px 0; }
 .club-cijfers-kern-label, .club-cijfers-kern-rest dt { font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
-.club-cijfers-kern-label { color: var(--brand); }
+.club-cijfers-kern-label { color: var(--brand-tekst, var(--brand)); }
 .club-cijfers-reus { font-family: var(--ff-kop); font-weight: 700; font-size: clamp(88px, 10vw, 148px); line-height: 0.82; font-variant-numeric: tabular-nums; }
 .club-cijfers-kern-sub { margin: 0; font-size: 13px; color: var(--text-3); }
 .club-cijfers-kern-rest { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -39,18 +39,18 @@
 .club-cijfers-maandnav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .club-cijfers-maandkeuze select { min-width: 11em; text-transform: capitalize; }
 .club-cijfers-uit { opacity: 0.35; pointer-events: none; }
-.club-cijfers-loopt { font-size: 12px; font-weight: 400; color: var(--brand); }
+.club-cijfers-loopt { font-size: 12px; font-weight: 400; color: var(--brand-tekst, var(--brand)); }
 .club-cijfers-vergelijk td[data-deels] { color: var(--text-2); }
-.club-cijfers-vergelijk td[data-deels] span { color: var(--brand); margin-left: 1px; }
+.club-cijfers-vergelijk td[data-deels] span { color: var(--brand-tekst, var(--brand)); margin-left: 1px; }
 .club-cijfers-voetnoot { margin: 0; font-size: 12.5px; color: var(--text-3); }
 .club-cijfers-vergelijk td[data-geen] { color: var(--text-3); font-style: italic; }
 .club-cijfers-vergelijk tbody th a { color: inherit; text-decoration: none; text-transform: capitalize; }
-.club-cijfers-vergelijk tbody th a:hover, .club-cijfers-vergelijk tbody th a:focus-visible { color: var(--brand); text-decoration: underline; }
+.club-cijfers-vergelijk tbody th a:hover, .club-cijfers-vergelijk tbody th a:focus-visible { color: var(--brand-tekst, var(--brand)); text-decoration: underline; }
 
 /* ── Hoofdstukken en blokken ─────────────────────────────────────────────── */
 .club-cijfers-hoofdstuk { display: grid; gap: 14px; margin-top: 12px; }
 .club-cijfers-hoofdstukkop { display: flex; align-items: baseline; gap: 14px; margin: 0; font-family: var(--ff-kop); font-weight: 700; text-transform: uppercase; font-size: clamp(28px, 3vw, 40px); line-height: 1; }
-.club-cijfers-hoofdstukkop span { font-size: 0.5em; letter-spacing: 0.16em; color: var(--brand); }
+.club-cijfers-hoofdstukkop span { font-size: 0.5em; letter-spacing: 0.16em; color: var(--brand-tekst, var(--brand)); }
 .club-cijfers-hoofdstukkop::after { content: ''; flex: 1; height: 1px; background: var(--line); transform: translateY(-0.3em); }
 .club-cijfers-volle { grid-column: 1 / -1; }
 .club-cijfers-stapel { display: grid; gap: 16px; align-content: start; }
@@ -134,13 +134,13 @@
 .club-cijfers-balkcel .club-getal { text-align: right; font-weight: 600; }
 .club-cijfers-balk { position: relative; display: block; width: 100%; height: 8px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
 .club-cijfers-balk span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: var(--brand); }
-.club-cijfers-balktabel tr[data-nadruk] .club-getal { color: var(--brand); }
+.club-cijfers-balktabel tr[data-nadruk] .club-getal { color: var(--brand-tekst, var(--brand)); }
 
 /* Vergelijking */
 .club-cijfers-vergelijk { box-shadow: none; }
 .club-cijfers-vergelijk tbody th { text-align: left; font-weight: 600; white-space: nowrap; }
 .club-cijfers-vergelijk tr[aria-current] { background: var(--brand-soft); }
-.club-cijfers-vergelijk tr[aria-current] th { color: var(--brand); }
+.club-cijfers-vergelijk tr[aria-current] th { color: var(--brand-tekst, var(--brand)); }
 .club-cijfers-vergelijk th.club-cijfers-rechts { text-align: right; }
 .club-cijfers-vergelijk tbody th { position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
 .club-cijfers-vergelijk tr[aria-current] th { background: color-mix(in srgb, var(--brand) 14%, var(--bg-card)); }

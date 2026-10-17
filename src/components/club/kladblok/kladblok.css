@@ -8,14 +8,14 @@
 .club-app .kb-zoek .club-invoer { padding-left: 36px; }
 .club-app .kb-mappen { display: flex; flex-wrap: wrap; gap: 6px; }
 .club-app .kb-map { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--line-strong); background: none; color: var(--text-2); font: inherit; font-size: 13px; cursor: pointer; transition: border-color 160ms ease, color 160ms ease; }
-.club-app .kb-map[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+.club-app .kb-map[aria-pressed='true'] { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); }
 .club-app .kb-map:focus-visible, .club-app .kb-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .club-app .kb-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .club-app .kb-item { display: grid; gap: 3px; width: 100%; text-align: left; padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--bg-card); color: var(--text-1); font: inherit; cursor: pointer; transition: border-color 160ms ease; }
 .club-app .kb-item:hover { border-color: var(--line-strong); }
 .club-app .kb-item[aria-current='true'] { border-color: var(--brand); }
 .club-app .kb-item-titel { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-app .kb-pin { color: var(--brand); margin-right: 6px; font-size: 10px; vertical-align: 2px; }
+.club-app .kb-pin { color: var(--brand-tekst, var(--brand)); margin-right: 6px; font-size: 10px; vertical-align: 2px; }
 .club-app .kb-item-tekst { font-size: 13.5px; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .club-app .kb-item-meta { font-size: 12px; color: var(--text-3); }
 .club-app .kb-editor { min-width: 0; }

@@ -6,10 +6,10 @@
    Afdrukken geeft een zwart-wit papieren reserve van de week. */
 
 .club-taken-pagina { display: grid; gap: 22px; align-content: start; }
-.club-taken-weeknr { color: var(--brand); }
+.club-taken-weeknr { color: var(--brand-tekst, var(--brand)); }
 .club-taken-kopacties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .club-taken-bladeren { display: flex; gap: 6px; }
-.club-taken-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.club-taken-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); }
 .club-taken-weergaven { justify-self: start; }
 
 /* ── Wie vinkt af ─────────────────────────────────────────────────────────── */
@@ -37,14 +37,14 @@
 .club-taken-freq { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--text-3); }
 .club-taken-dagkop { text-align: center; }
 .club-taken-dagkop b { display: block; font-size: 22px; line-height: 1.05; color: var(--text-1); letter-spacing: 0; }
-.club-taken-dagkop[data-vandaag] { color: var(--brand); box-shadow: inset 0 3px 0 var(--brand); }
-.club-taken-dagkop[data-vandaag] b { color: var(--brand); }
+.club-taken-dagkop[data-vandaag] { color: var(--brand-tekst, var(--brand)); box-shadow: inset 0 3px 0 var(--brand); }
+.club-taken-dagkop[data-vandaag] b { color: var(--brand-tekst, var(--brand)); }
 .club-taken-raster .club-taken-week { width: 110px; text-align: center; padding: 6px 8px; }
 /* Dag: een smalle afvinkkolom, de taaknaam krijgt de rest van de breedte. */
 .club-taken-raster[data-een-dag] { min-width: 0; }
 .club-taken-raster[data-een-dag] .club-taken-naam { width: auto; }
 .club-taken-raster[data-een-dag] .club-taken-dagkop { width: clamp(120px, 18vw, 200px); }
-.club-taken-groep th { padding: 14px 14px 6px; text-align: left; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); background: var(--bg-card); position: sticky; left: 0; }
+.club-taken-groep th { padding: 14px 14px 6px; text-align: left; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); background: var(--bg-card); position: sticky; left: 0; }
 .club-taken-rij:hover .club-taken-naam, .club-taken-rij:hover td { background-color: var(--club-vlak); }
 .club-taken-rij[data-status='achter'] .club-taken-naam { box-shadow: inset 3px 0 0 var(--club-let-op); }
 .club-taken-rij[data-status='gehaald'] .club-taken-naam { box-shadow: inset 3px 0 0 var(--club-ok); }
@@ -73,7 +73,7 @@
 .club-taken-notitiedag[data-vandaag] { border-color: color-mix(in srgb, var(--brand) 50%, var(--line)); }
 .club-taken-notitiedag-kop { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
 .club-taken-notitiedag-kop span { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-right: 4px; }
-.club-taken-notitiedag[data-vandaag] .club-taken-notitiedag-kop { color: var(--brand); }
+.club-taken-notitiedag[data-vandaag] .club-taken-notitiedag-kop { color: var(--brand-tekst, var(--brand)); }
 .club-taken-notities { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .club-taken-notities li { position: relative; padding: 8px 30px 8px 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); }
 .club-taken-notities p { margin: 0; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
@@ -126,7 +126,7 @@
 .club-taken-overzicht-rij .club-chip { white-space: normal; }
 .club-taken-historie td[data-te-weinig] { color: var(--club-let-op); font-weight: 600; }
 .club-taken-historie-naam { font-weight: 600; text-transform: none; letter-spacing: 0; font-family: inherit; font-size: 14px; color: var(--text-1); }
-.club-tabel .club-taken-groep th { position: static; padding: 14px 14px 6px; color: var(--brand); }
+.club-tabel .club-taken-groep th { position: static; padding: 14px 14px 6px; color: var(--brand-tekst, var(--brand)); }
 .club-taken-score { display: inline-flex; align-items: center; gap: 10px; min-width: 150px; }
 .club-taken-score-balk { position: relative; flex: 1; height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
 .club-taken-score-balk > span { position: absolute; inset: 0; transform-origin: left; border-radius: inherit; background: var(--text-3); }

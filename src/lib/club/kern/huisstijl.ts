@@ -63,15 +63,17 @@ export const THEMA_BASIS: Record<Thema, Basis> = {
 }
 
 /**
- * Het accent wordt ook als kleine tekst gebruikt (koppen boven, nummers, de
- * gekozen tab). Daarom de norm voor tekst (4.5:1) met wat marge, tegen zowel
- * de achtergrond van de app als die van de kaarten.
+ * Twee normen. Vlakken, knoppen, lijnen en focus: 3:1 (WCAG voor UI-onderdelen);
+ * de tekst op een accentknop wordt zwart of wit (inktOp). Kleine tekst in de
+ * accentkleur: 4.5:1 met wat marge. Zo houdt een sportschool haar eigen kleur
+ * op knoppen en vlakken, en blijft tekst altijd leesbaar.
  */
+export const MIN_CONTRAST_VLAK = 3
 export const MIN_CONTRAST_ACCENT = 4.8
 
-function genoegContrast(kleur: string, thema: Thema): boolean {
+function genoegContrast(kleur: string, thema: Thema, minimaal: number): boolean {
   const { bgApp, bgCard } = THEMA_BASIS[thema]
-  return Math.min(contrast(kleur, bgApp), contrast(kleur, bgCard)) >= MIN_CONTRAST_ACCENT
+  return Math.min(contrast(kleur, bgApp), contrast(kleur, bgCard)) >= minimaal
 }
 
 /**
@@ -79,12 +81,12 @@ function genoegContrast(kleur: string, thema: Thema): boolean {
  * genoeg is, anders stap voor stap lichter (donker thema) of donkerder (licht
  * thema) tot het wel genoeg is. De tint blijft, alleen de helderheid schuift.
  */
-export function bruikbaarAccent(accent: string, thema: Thema): { kleur: string; aangepast: boolean } {
-  if (genoegContrast(accent, thema)) return { kleur: accent.toUpperCase(), aangepast: false }
+export function bruikbaarAccent(accent: string, thema: Thema, minimaal = MIN_CONTRAST_ACCENT): { kleur: string; aangepast: boolean } {
+  if (genoegContrast(accent, thema, minimaal)) return { kleur: accent.toUpperCase(), aangepast: false }
   const richting = thema === 'donker' ? 1 : -1
   for (let stap = 1; stap <= 40; stap++) {
     const kleur = meng(accent, (richting * stap) / 40)
-    if (genoegContrast(kleur, thema)) return { kleur, aangepast: true }
+    if (genoegContrast(kleur, thema, minimaal)) return { kleur, aangepast: true }
   }
   return { kleur: thema === 'donker' ? '#FFFFFF' : '#000000', aangepast: true }
 }
@@ -102,7 +104,9 @@ function alpha(hex: string, a: number): string {
 /** Alle CSS-variabelen voor een huisstijl, klaar voor een style-attribuut. */
 export function huisstijlVariabelen(accentKeuze: string, thema: Thema): Record<string, string> {
   const basis = THEMA_BASIS[thema]
-  const { kleur: accent } = bruikbaarAccent(HEX.test(accentKeuze) ? accentKeuze : '#B58E5C', thema)
+  const keuze = HEX.test(accentKeuze) ? accentKeuze : '#B58E5C'
+  const { kleur: accent } = bruikbaarAccent(keuze, thema, MIN_CONTRAST_VLAK)
+  const { kleur: accentTekst } = bruikbaarAccent(keuze, thema, MIN_CONTRAST_ACCENT)
   const inkt = (a: number) => `rgba(${basis.inkt}, ${a})`
   const licht = thema === 'licht'
   return {
@@ -111,6 +115,7 @@ export function huisstijlVariabelen(accentKeuze: string, thema: Thema): Record<s
     '--brand-soft': alpha(accent, licht ? 0.12 : 0.14),
     '--brand-glow': alpha(accent, 0.3),
     '--brand-inkt': inktOp(accent),
+    '--brand-tekst': accentTekst,
     '--bg-app': basis.bgApp,
     '--bg-card': basis.bgCard,
     '--bg-raised': basis.bgRaised,

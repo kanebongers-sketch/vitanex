@@ -22,7 +22,7 @@
 /* ── Kop: weeknummer en bladeren ─────────────────────────────────────────── */
 .club-rooster-weeknr { color: var(--text-4); font-size: 0.55em; letter-spacing: 0.06em; margin-left: 0.25em; vertical-align: 0.25em; }
 .club-rooster-bladeren { display: flex; gap: 6px; }
-.club-rooster-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.club-rooster-bladeren [aria-current='page'] { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); }
 
 /* ── Filters ──────────────────────────────────────────────────────────────── */
 .club-rooster-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -30,7 +30,7 @@
 .club-rooster-filter select { appearance: none; min-height: 36px; padding: 0 30px 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-2); font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
 .club-rooster-filter::after { content: ''; position: absolute; right: 13px; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; color: var(--text-3); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 .club-rooster-filter select:hover { color: var(--text-1); border-color: var(--text-4); }
-.club-rooster-filter[data-actief] select { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+.club-rooster-filter[data-actief] select { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); }
 .club-rooster-filter select option { background: var(--bg-card); color: var(--text-1); text-transform: none; }
 
 /* ── Het raster (pc en tablet) ────────────────────────────────────────────── */
@@ -42,7 +42,7 @@
 .club-rooster-kolomkop-nr { font-family: var(--ff-kop); font-size: 28px; line-height: 1; font-weight: 700; color: var(--text-1); }
 .club-rooster-kolomkop-telling { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-4); }
 .club-rooster-kolomkop[data-vandaag] { box-shadow: inset 0 3px 0 var(--brand); }
-.club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-dag, .club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-nr { color: var(--brand); }
+.club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-dag, .club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-nr { color: var(--brand-tekst, var(--brand)); }
 
 .club-rooster-uren { display: grid; grid-auto-rows: var(--club-rooster-uur); }
 .club-rooster-uren span { position: relative; padding-right: 8px; text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-4); transform: translateY(-0.65em); }
@@ -92,7 +92,7 @@
 /* ── Daglijst (telefoon) ──────────────────────────────────────────────────── */
 .club-rooster-daglijst { display: grid; gap: 22px; }
 .club-rooster-daglijst-dag h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
-.club-rooster-daglijst-dag[data-vandaag] h2 { color: var(--brand); }
+.club-rooster-daglijst-dag[data-vandaag] h2 { color: var(--brand-tekst, var(--brand)); }
 .club-rooster-daglijst-leeg { margin: 0; font-size: 13px; color: var(--text-4); }
 .club-rooster-daglijst-rijen { display: grid; gap: 6px; }
 .club-rooster-rij { position: relative; display: grid; grid-template-columns: 54px minmax(0, 1fr) 96px; grid-template-areas: 'tijd naam bezet' 'tijd meta bezet'; align-items: center; column-gap: 12px; padding: 12px 14px 12px 16px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--bg-card); color: var(--text-1); text-decoration: none; }

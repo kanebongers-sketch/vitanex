@@ -1,7 +1,7 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { HEX, MIN_CONTRAST_ACCENT, bruikbaarAccent, contrast, THEMA_BASIS, type Thema } from '@/lib/club/kern/huisstijl'
+import { HEX, MIN_CONTRAST_ACCENT, MIN_CONTRAST_VLAK, bruikbaarAccent, type Thema } from '@/lib/club/kern/huisstijl'
 
 // Accentkleur en thema. Een paar sterke startkleuren, of een eigen kleur. Is
 // het contrast te laag, dan zeggen we dat eerlijk en laten we zien welke
@@ -27,8 +27,9 @@ interface KleurBlokProps {
 
 export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
   const geldig = HEX.test(kleur)
-  const getoond = geldig ? bruikbaarAccent(kleur, thema) : null
-  const verhouding = geldig ? contrast(kleur, THEMA_BASIS[thema].bgApp) : 0
+  const vlak = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_VLAK) : null
+  const tekst = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_ACCENT) : null
+  const richting = thema === 'donker' ? 'lichter' : 'donkerder'
   return (
     <section className="club-huisstijl-blok" aria-labelledby="kleur-kop">
       <h2 id="kleur-kop" className="club-huisstijl-kop">Kleuren</h2>
@@ -78,13 +79,27 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
 
       <div id="kleur-melding" aria-live="polite">
         {!geldig && <p className="club-melding club-melding--fout">Schrijf de kleur als # en zes tekens, bijvoorbeeld #B58E5C.</p>}
-        {getoond?.aangepast && (
+        {vlak?.aangepast && (
           <p className="club-melding">
-            Deze kleur is als tekst niet goed leesbaar op de {thema === 'donker' ? 'donkere' : 'lichte'} achtergrond (contrast {verhouding.toFixed(1)}:1, minimaal {MIN_CONTRAST_ACCENT}:1).
-            In de app gebruiken we daarom <span className="club-huisstijl-code" style={{ color: getoond.kleur }}>{getoond.kleur}</span>: dezelfde tint, iets {thema === 'donker' ? 'lichter' : 'donkerder'}.
+            Deze kleur valt weg tegen de {thema === 'donker' ? 'donkere' : 'lichte'} achtergrond (minimaal {MIN_CONTRAST_VLAK}:1). Knoppen en vlakken worden daarom{' '}
+            <Code kleur={vlak.kleur} />: dezelfde tint, iets {richting}.
+          </p>
+        )}
+        {!vlak?.aangepast && tekst?.aangepast && (
+          <p className="club-melding">
+            Knoppen en vlakken houden precies je kleur. Voor kleine tekst in de accentkleur gebruiken we <Code kleur={tekst.kleur} />, iets {richting}, zodat die altijd leesbaar is (minimaal {MIN_CONTRAST_ACCENT}:1).
           </p>
         )}
       </div>
     </section>
+  )
+}
+
+function Code({ kleur }: { kleur: string }) {
+  return (
+    <span className="club-huisstijl-code">
+      <span className="club-huisstijl-codestaal" style={{ background: kleur }} aria-hidden />
+      {kleur}
+    </span>
   )
 }

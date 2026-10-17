@@ -9,6 +9,11 @@ describe('contrast en kleuren', () => {
     expect(contrast('#B58E5C', '#0A0B09')).toBeGreaterThan(6)
   })
 
+  it('houdt de eigen kleur op vlakken zolang die 3:1 haalt', () => {
+    expect(huisstijlVariabelen('#E5484D', 'licht')['--brand']).toBe('#E5484D')
+    expect(huisstijlVariabelen('#E5484D', 'licht')['--brand-tekst']).not.toBe('#E5484D')
+  })
+
   it('laat een goede accentkleur ongemoeid', () => {
     expect(bruikbaarAccent('#B58E5C', 'donker')).toEqual({ kleur: '#B58E5C', aangepast: false })
   })
@@ -129,9 +134,12 @@ describe('accent als tekst', () => {
   const STARTKLEUREN = ['#B58E5C', '#E8A33F', '#E5484D', '#FF6B3D', '#30A46C', '#3E63DD', '#8E4EC6', '#12A594']
   it.each(['donker', 'licht'] as const)('elke startkleur is als tekst leesbaar op het %s thema', (thema) => {
     for (const k of STARTKLEUREN) {
-      const { kleur } = bruikbaarAccent(k, thema)
-      expect(contrast(kleur, THEMA_BASIS[thema].bgApp)).toBeGreaterThanOrEqual(4.5)
-      expect(contrast(kleur, THEMA_BASIS[thema].bgCard)).toBeGreaterThanOrEqual(4.5)
+      const v = huisstijlVariabelen(k, thema)
+      for (const bg of [THEMA_BASIS[thema].bgApp, THEMA_BASIS[thema].bgCard]) {
+        expect(contrast(v['--brand-tekst'], bg)).toBeGreaterThanOrEqual(4.5)
+        expect(contrast(v['--brand'], bg)).toBeGreaterThanOrEqual(3)
+        expect(contrast(v['--brand-inkt'], v['--brand'])).toBeGreaterThanOrEqual(4.5)
+      }
     }
   })
 })
