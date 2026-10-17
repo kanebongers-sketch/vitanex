@@ -319,7 +319,7 @@ export function linkCodeVoor(naam: string, bezet: ReadonlySet<string>): string {
  */
 export const GERESERVEERD: ReadonlySet<string> = new Set([
   '1', 'achievements', 'actief', 'ademhaling', 'admin', 'agent', 'api', 'auth', 'bedankt', 'bestanden', 'burnout', 'chat',
-  'checkin', 'clubkane', 'coach', 'coaching', 'contact', 'content', 'dankbaarheid', 'dashboard', 'declaraties', 'directory', 'disc',
+  'checkin', 'clubinloggen', 'clubkane', 'coach', 'coaching', 'contact', 'content', 'dankbaarheid', 'dashboard', 'declaraties', 'directory', 'disc',
   'doelen', 'doelkeuze', 'enps', 'focus', 'fonts', 'gezondheid', 'groeien', 'groeiplan', 'home', 'hr', 'instellingen',
   'inzichten', 'journal', 'kanebongers', 'koppelingen', 'lead', 'FitFactoryPT', 'fitfactorypt', 'lifeos', 'lifeoskane', 'login', 'loonstroken', 'meditatie',
   'mentale-sterkte', 'mijn-coach', 'mijn-content', 'mijn-gesprekken', 'mijn-rapport', 'mijn-taken', 'mijn-traject',

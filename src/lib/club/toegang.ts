@@ -1,9 +1,12 @@
 // ─── Fit Factory clubsoftware: het slot (SERVER-ONLY) ───────────────────────
-// Testfase: alleen Kane. Toegang = een geldige beheerder-sessie van de PT-app
-// (de httpOnly-cookie die hij krijgt als hij inlogt met zijn hoofdaccount).
-// Eigenaren, clubmanagers en PT'ers hebben die rol nooit, dus voor hen bestaat
-// /clubkane niet: pagina's geven een gewone 404 en de API ook (geen 401/403 die
-// verraadt dat er iets achter zit).
+// Twee ingangen:
+//   1. Kane: een geldige beheerder-sessie van de PT-app (de httpOnly-cookie van
+//      het hoofdaccount). Ziet alle eigen sportscholen en wisselt ertussen.
+//   2. Een eigenaar of clubmanager van een sportschool (club_beheerders), met
+//      een eigen sessie na link plus pincode. Ziet ALLEEN de eigen sportschool.
+//      Alleen als de schakelaar CLUB_EIGEN_LOGIN aan staat; standaard uit.
+// Alle anderen: /clubkane bestaat niet. Pagina's geven een gewone 404 en de API
+// ook (geen 401/403 die verraadt dat er iets achter zit).
 
 import { cache } from 'react'
 import { cookies, headers } from 'next/headers'
@@ -17,7 +20,14 @@ import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
 import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
-import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
+import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
+import { beheerderCookie, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
+import { beheerderVanSessie } from '@/lib/club/beheerders/beheerder-opslag'
+import { externeToegangVelden } from '@/lib/club/beheerders/externe-toegang'
+import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+
+/** Wie er binnen is: Kane (beheerder) of een eigenaar of clubmanager van een sportschool. */
+export type ClubRol = 'beheerder' | BeheerderRol
 
 export interface ClubToegang {
   admin: SupabaseClient
@@ -29,16 +39,23 @@ export interface ClubToegang {
   userId: string
   /** De actieve sportschool, met huisstijl en onderdelen. */
   organisatie: Organisatie
-  /** Alle sportscholen die deze beheerder mag openen (om te wisselen). */
+  /** Alle sportscholen die deze persoon mag openen (voor een eigenaar of clubmanager alleen de eigen). */
   organisaties: Organisatie[]
-  /** Wie ingelogd is (Kane), los van de sportschool die open staat. */
+  /**
+   * De beheerder_id van de sportscholen (Kane). Voor Kane is dat wie ingelogd
+   * is; voor een eigenaar of clubmanager de eigenaar van het organisatierecord.
+   */
   beheerderId: string
+  /** Kane, of een eigenaar of clubmanager van de actieve sportschool. */
+  rol: ClubRol
+  /** Alleen Kane wisselt van sportschool, maakt sportscholen aan en beheert beheerders. */
+  isKane: boolean
   /** De vestigingen van de actieve sportschool, in vaste volgorde; de standaard eerst. */
   vestigingen: VestigingInfo[]
   /** Wie er werkt, voor het logboek ("Kane"). */
   naam: string
-  /** De PT-code van de beheerder, voor de link terug naar de PT-app. */
-  code: string
+  /** De PT-code van Kane, voor de link terug naar de PT-app; null voor anderen. */
+  code: string | null
 }
 
 /** De code van de (enige) actieve beheerder-link, of null. */
@@ -88,14 +105,8 @@ async function haalVestigingen(admin: SupabaseClient, organisatieId: string): Pr
   return vestigingenUitRijen(data ?? [])
 }
 
-/** Is dit verzoek van Kane (beheerder, ingelogd)? Per request een keer gevraagd. */
-export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
-  let admin: SupabaseClient
-  try {
-    admin = createLifeosAdminClient()
-  } catch {
-    return null
-  }
+/** Kane: een geldige beheerder-sessie van de PT-app. */
+async function toegangVoorKane(admin: SupabaseClient): Promise<ClubToegang | null> {
   const code = await beheerderCode(admin)
   if (!code) return null
   const token = (await cookies()).get(sessieCookieNaam(code))?.value
@@ -111,7 +122,42 @@ export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
   const vestigingen = await haalVestigingen(admin, organisatie.id)
-  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, vestigingen, naam: link.naam, code }
+  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, vestigingen, naam: link.naam, code }
+}
+
+/** De sportschool van een eigenaar of clubmanager, met de eigenaar van het record. */
+export async function haalEigenOrganisatie(admin: SupabaseClient, id: string): Promise<{ organisatie: Organisatie | null; eigenaarId: string | null }> {
+  const { data, error } = await admin.from('club_organisaties').select(`${ORGANISATIE_KOLOMMEN}, beheerder_id`).eq('id', id).maybeSingle()
+  if (error) console.error('[club] organisatie lezen mislukt', error.message)
+  const eigenaar = (data as { beheerder_id?: unknown } | null)?.beheerder_id
+  return { organisatie: organisatieUitRij(data), eigenaarId: isUuid(eigenaar) ? eigenaar : null }
+}
+
+/** Een eigenaar of clubmanager met een eigen sessie; alleen met de schakelaar aan. */
+async function toegangVoorBeheerder(admin: SupabaseClient): Promise<ClubToegang | null> {
+  if (!CLUB_EIGEN_LOGIN) return null
+  const token = (await cookies()).get(beheerderCookie())?.value
+  if (!token) return null
+  const b = await beheerderVanSessie(admin, token, new Date())
+  if (!b) return null
+  const { organisatie, eigenaarId } = await haalEigenOrganisatie(admin, b.organisatieId)
+  const velden = externeToegangVelden(b, organisatie, eigenaarId)
+  if (!velden) return null
+  // Op het subdomein van een andere sportschool bestaat Club voor deze beheerder niet.
+  if ((await organisatieUitHost(velden.organisaties)) === null) return null
+  const vestigingen = await haalVestigingen(admin, velden.userId)
+  return { admin, ...velden, vestigingen }
+}
+
+/** Wie is er binnen: Kane, of een eigenaar of clubmanager? Per request een keer gevraagd. */
+export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
+  let admin: SupabaseClient
+  try {
+    admin = createLifeosAdminClient()
+  } catch {
+    return null
+  }
+  return (await toegangVoorKane(admin)) ?? (await toegangVoorBeheerder(admin))
 })
 
 /** Voor pagina's en layouts: de toegang, of een gewone 404. */
@@ -132,7 +178,7 @@ export function clubJson(data: unknown, status = 200): NextResponse {
 }
 
 /**
- * De poort voor elke /api/club-route. Niet Kane: 404 (bestaat niet).
+ * De poort voor elke /api/club-route. Niemand binnen: 404 (bestaat niet).
  * Muterende verzoeken (alles behalve GET/HEAD) moeten van onze eigen pagina komen.
  *
  *   const t = await vereisClubToegang(req)
@@ -144,6 +190,20 @@ export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang |
   const leest = req.method === 'GET' || req.method === 'HEAD'
   if (!leest && !isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
   return t
+}
+
+/** Voor pagina's die alleen Kane mag zien (sportscholen, beheerders): anders een gewone 404. */
+export async function eisKane(): Promise<ClubToegang> {
+  const t = await eisClubToegang()
+  if (!t.isKane) notFound()
+  return t
+}
+
+/** Als vereisClubToegang, maar alleen voor Kane; anderen krijgen een 404. */
+export async function vereisKane(req: NextRequest): Promise<ClubToegang | NextResponse> {
+  const t = await vereisClubToegang(req)
+  if (t instanceof NextResponse) return t
+  return t.isKane ? t : clubFout('Niet gevonden.', 404)
 }
 
 /** Een regel in het logboek. Best-effort: een mislukte log breekt de actie niet. */

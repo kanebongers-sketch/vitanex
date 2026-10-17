@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout, clubJson, logActie, vereisKane } from '@/lib/club/toegang'
 import { MAX_NAAM } from '@/lib/club/kern/organisatie-invoer'
 import { ORGANISATIE_COOKIE } from '@/lib/club/kern/organisatie'
 import { maakOrganisatie } from '@/lib/club/kern/organisatie-opslag'
@@ -11,7 +11,7 @@ import { maakOrganisatie } from '@/lib/club/kern/organisatie-opslag'
 const MAX_SPORTSCHOLEN = 25
 
 export async function POST(req: NextRequest) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisKane(req)
   if (t instanceof NextResponse) return t
   const body: unknown = await req.json().catch(() => null)
   const ruw = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).naam : null

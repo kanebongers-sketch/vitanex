@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout, clubJson, vereisKane } from '@/lib/club/toegang'
 import { ORGANISATIE_COOKIE, isUuid } from '@/lib/club/kern/organisatie'
 
 // POST /api/club/organisatie/wissel  { id }
@@ -7,7 +7,7 @@ import { ORGANISATIE_COOKIE, isUuid } from '@/lib/club/kern/organisatie'
 // keuze staat in een httpOnly-cookie, de toegang controleert hem elke keer.
 
 export async function POST(req: NextRequest) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisKane(req)
   if (t instanceof NextResponse) return t
   const body: unknown = await req.json().catch(() => null)
   const id = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).id : null

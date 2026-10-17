@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout, clubJson, logActie, vereisKane } from '@/lib/club/toegang'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 
 // PATCH /api/club/organisatie/adres  { slug }
@@ -7,7 +7,7 @@ import { leesSlug } from '@/lib/club/kern/subdomein'
 // Uniek over alle sportscholen (unieke index, migratie 408).
 
 export async function PATCH(req: NextRequest) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisKane(req)
   if (t instanceof NextResponse) return t
   const body: unknown = await req.json().catch(() => null)
   const uitslag = leesSlug(typeof body === 'object' && body !== null ? (body as Record<string, unknown>).slug : null)

@@ -15,7 +15,9 @@ import './club.css'
 
 // fitfactorypt.nl/clubkane: de all-in clubsoftware van Fit Factory (leden,
 // rooster en reserveren, check-in, leads, intakes en schema's, ledenapp).
-// Testfase: alleen Kane. De layout geeft iedereen anders een gewone 404; elke
+// Testfase: alleen Kane, plus (met de schakelaar CLUB_EIGEN_LOGIN aan) de
+// eigenaren en clubmanagers van een sportschool, elk alleen in de eigen
+// sportschool. De layout geeft iedereen anders een gewone 404; elke
 // pagina en elke /api/club-route controleert dat zelf nog een keer (zie
 // src/lib/club/toegang.ts). Nooit in zoekmachines.
 
@@ -52,7 +54,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
         </VestigingenProvider>
       </MerkProvider>
       <footer className="club-voet">
-        <span>{org.naam} Club{org.demo ? ' · demo' : ''} · testomgeving, alleen zichtbaar voor Kane</span>
+        <span>{org.naam} Club{org.demo ? ' · demo' : ''}{t.isKane ? ' · testomgeving, alleen zichtbaar voor Kane' : ''}</span>
         <FfMaker />
       </footer>
     </div>
