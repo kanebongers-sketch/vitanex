@@ -74,3 +74,10 @@ export async function haalMedewerkers(
   }
   return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }
+
+/** Hoort deze medewerker bij de sportschool (user_id)? Geen medewerker (null) is altijd goed. */
+export async function medewerkerBestaat(admin: SupabaseClient, userId: string, id: string | null): Promise<boolean> {
+  if (!id) return true
+  const { data, error } = await admin.from('club_medewerkers').select('id').eq('user_id', userId).eq('id', id).maybeSingle()
+  return !error && data !== null
+}

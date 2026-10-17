@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest'
+import { leesNieuweVestiging, leesVestigingWijziging, maakVestigingSlug, nieuweVolgorde } from './vestigingen-invoer'
+import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
+
+describe('vestigingen beheren', () => {
+  it('maakt een geldige, unieke slug uit de naam', () => {
+    expect(maakVestigingSlug('Eindhoven Centrum', 'K3F9')).toBe('eindhoven-centrum-k3f9')
+    expect(maakVestigingSlug("  's-Hertogenbosch Oost! ", 'ab12')).toBe('s-hertogenbosch-oost-ab12')
+    expect(maakVestigingSlug('Café Zuid', 'x1')).toBe('cafe-zuid-x1')
+    expect(maakVestigingSlug('!!!', 'a1')).toBe('vestiging-a1')
+    expect(isVestigingSlug(maakVestigingSlug('x'.repeat(80), 'zz99'))).toBe(true)
+  })
+
+  it('leest een nieuwe vestiging', () => {
+    expect(leesNieuweVestiging({ naam: '  Noord  ', adres: '' })).toEqual({ ok: true, waarde: { naam: 'Noord', adres: null } })
+    expect(leesNieuweVestiging({ naam: ' ' }).ok).toBe(false)
+    expect(leesNieuweVestiging({ naam: 'x'.repeat(61) }).ok).toBe(false)
+  })
+
+  it('leest een wijziging en weigert lege invoer', () => {
+    expect(leesVestigingWijziging({ naam: 'Zuid', standaard: true, verplaats: -1 })).toEqual({ ok: true, waarde: { naam: 'Zuid', standaard: true, verplaats: -1 } })
+    expect(leesVestigingWijziging({ verplaats: 2 }).ok).toBe(false)
+    expect(leesVestigingWijziging({}).ok).toBe(false)
+  })
+
+  it('verplaatst een vestiging een plek en blijft binnen de lijst', () => {
+    expect([...nieuweVolgorde(['a', 'b', 'c'], 'b', -1)]).toEqual([['b', 1], ['a', 2], ['c', 3]])
+    expect([...nieuweVolgorde(['a', 'b', 'c'], 'c', 1)]).toEqual([['a', 1], ['b', 2], ['c', 3]])
+  })
+})

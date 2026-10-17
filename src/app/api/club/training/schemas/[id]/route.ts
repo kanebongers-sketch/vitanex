@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { medewerkerBestaat } from '@/lib/club/kern/medewerker'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { leesSchema } from '@/lib/club/training/invoer'
 import { isRij } from '@/lib/club/training/rijen'
@@ -16,12 +17,6 @@ async function huidigSchema(t: ClubToegang, id: string): Promise<{ lidId: string
   const { data, error } = await t.admin.from('club_schemas').select('lid_id, status').eq('user_id', t.userId).eq('id', id).maybeSingle()
   if (error || !isRij(data)) return null
   return { lidId: typeof data.lid_id === 'string' ? data.lid_id : null, status: typeof data.status === 'string' ? data.status : '' }
-}
-
-async function medewerkerBestaat(t: ClubToegang, id: string | null): Promise<boolean> {
-  if (!id) return true
-  const { data, error } = await t.admin.from('club_medewerkers').select('id').eq('user_id', t.userId).eq('id', id).maybeSingle()
-  return !error && data !== null
 }
 
 async function rondAndereAf(t: ClubToegang, lidId: string, behalve: string): Promise<void> {
@@ -49,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const huidig = await huidigSchema(t, id)
   if (!huidig) return clubFout('Onbekend schema.', 404)
   if (!(await oefeningenBestaan(t.admin, t.userId, s.regels.map((r) => r.oefeningId)))) return clubFout('Een van de oefeningen bestaat niet meer.', 400)
-  if (!(await medewerkerBestaat(t, s.medewerkerId))) return clubFout('Onbekende trainer.', 400)
+  if (!(await medewerkerBestaat(t.admin, t.userId, s.medewerkerId))) return clubFout('Onbekende trainer.', 400)
 
   const { error } = await t.admin
     .from('club_schemas')

@@ -5,6 +5,7 @@ import { clubToegang, eisClubToegang } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { ClubBalk } from '@/components/club/shell/ClubBalk'
+import { MerkProvider } from '@/components/club/shell/MerkContext'
 import { VestigingenProvider } from '@/components/club/shell/VestigingenContext'
 import { FfMaker } from '@/components/lifeos/pt-dashboard/FfMaker'
 import { PT_FAVICON } from '@/lib/fit-factory/domein'
@@ -42,12 +43,14 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   }
   return (
     <div className={`lifeos-root ff club-app ${barlow.variable} ${inter.variable}`} style={stijl} data-thema={org.thema}>
-      <VestigingenProvider vestigingen={t.vestigingen}>
-        <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-          <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} />
-        </Suspense>
-        <main className="club-werkvlak">{children}</main>
-      </VestigingenProvider>
+      <MerkProvider merk={merk}>
+        <VestigingenProvider vestigingen={t.vestigingen}>
+          <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
+            <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} />
+          </Suspense>
+          <main className="club-werkvlak">{children}</main>
+        </VestigingenProvider>
+      </MerkProvider>
       <footer className="club-voet">
         <span>{org.naam} Club{org.demo ? ' · demo' : ''} · testomgeving, alleen zichtbaar voor Kane</span>
         <FfMaker />

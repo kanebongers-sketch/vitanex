@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { leesIntake } from '@/lib/club/training/intake'
 import { lidVestiging } from '@/lib/club/training/schrijven'
+import { medewerkerBestaat } from '@/lib/club/kern/medewerker'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 
 // POST /api/club/training/intakes: een nieuwe intake voor een lid.
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
 
   const vestiging = await lidVestiging(t.admin, t.userId, i.lidId)
   if (!vestiging) return clubFout('Dit lid bestaat niet (meer).', 404)
+  if (!(await medewerkerBestaat(t.admin, t.userId, i.medewerkerId))) return clubFout('Onbekende trainer.', 400)
 
   const { data, error } = await t.admin
     .from('club_intakes')

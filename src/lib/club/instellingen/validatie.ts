@@ -71,6 +71,19 @@ function lijstVeld(label: string, opties: readonly string[], minimaal: number): 
   }
 }
 
+/**
+ * Vestigingen van een medewerker: sleutels die (niet meer) bij de sportschool
+ * horen vallen weg in plaats van het opslaan te blokkeren. Er moet er wel
+ * minstens een overblijven.
+ */
+function vestigingenVeld(opties: readonly string[]): Lezer {
+  return (v) => {
+    if (!Array.isArray(v) || v.some((x) => typeof x !== 'string')) return nee('Ongeldige keuze bij vestiging.')
+    const bekend = [...new Set(v.filter((x) => opties.includes(x)))]
+    return bekend.length < 1 ? nee('Kies minstens een vestiging.') : ok(bekend)
+  }
+}
+
 const emailVeld: Lezer = (v) => {
   if (v === null || v === undefined || (typeof v === 'string' && v.trim() === '')) return ok(null)
   const s = typeof v === 'string' ? v.trim().toLowerCase() : ''
@@ -139,7 +152,7 @@ export function medewerkerSchema(vestigingen: readonly string[]) {
     naam: ['naam', tekstVeld('een naam', 1, 80)],
     email: ['email', emailVeld],
     rollen: ['rollen', lijstVeld('rol', MEDEWERKER_ROLLEN, 1)],
-    vestigingen: ['vestigingen', lijstVeld('vestiging', vestigingen, 1)],
+    vestigingen: ['vestigingen', vestigingenVeld(vestigingen)],
     actief: ['actief', jaNee],
   } as const
 }

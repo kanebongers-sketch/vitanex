@@ -8,6 +8,7 @@ import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
 import { SPIER_INFO } from '@/lib/club/training/spieren'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeldPrint } from './OefeningBeeld'
+import { useMerk } from '@/components/club/shell/MerkContext'
 import { useKernpunten, type KernpuntenPerNaam } from './coaching/useKernpunten'
 
 interface SchemaPrintProps {
@@ -25,11 +26,12 @@ interface SchemaPrintProps {
 export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staat, oefeningen }: SchemaPrintProps) {
   const bronnen = bronnenVan(staat.regels.map((r) => oefeningen.get(r.oefeningId)?.beeld))
   const metBeeld = bronnen.length > 0
+  const merk = useMerk()
   const kernpunten = useKernpunten(staat.regels.flatMap((r) => oefeningen.get(r.oefeningId)?.naam ?? []))
   return (
     <article className="club-training-print" aria-hidden>
       <header>
-        <p>Fit Factory</p>
+        <p>{merk.naam}</p>
         <h1>{naam}</h1>
         <p>{[lidNaam, doel ? DOEL_LABEL[doel] : null, weken ? `${weken} weken` : null, trainer ? `Trainer: ${trainer}` : null].filter(Boolean).join(' · ')}</p>
         {notitie && <p className="club-training-print-notitie">{notitie}</p>}

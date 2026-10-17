@@ -86,3 +86,13 @@
 .club-instellingen-plus:hover { color: var(--brand); border-color: var(--brand); }
 .club-instellingen-paneelkop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .club-instellingen-paneelkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 30px; line-height: 1; font-weight: 700; text-transform: uppercase; }
+
+/* ── Vestigingen ─────────────────────────────────────────────────────────── */
+.club-instellingen-vestigingen { display: grid; gap: 16px; max-width: 760px; }
+.club-instellingen-vestlijst { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.club-instellingen-vestrij { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.club-instellingen-vestrij > .club-invoer { flex: 1 1 220px; min-width: 0; }
+.club-instellingen-vestvolg { display: inline-flex; gap: 2px; }
+.club-instellingen-vestvolg .club-knop { width: 34px; padding: 0; }
+.club-instellingen-vestnieuw { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.club-instellingen-vestnieuw .club-veld { flex: 1 1 260px; }
