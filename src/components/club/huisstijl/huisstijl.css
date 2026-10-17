@@ -100,3 +100,6 @@
 @media (prefers-reduced-motion: reduce) {
   .club-huisstijl-school, .club-huisstijl-staal, .club-huisstijl-schakelaar, .club-huisstijl-schakelaar::after, .club-huisstijl-voorbeeld { transition: none; }
 }
+.club-huisstijl-school--nieuw { border-style: dashed; color: var(--text-2); font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.club-huisstijl-nieuw { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.club-huisstijl-nieuw .club-invoer { width: 240px; }
