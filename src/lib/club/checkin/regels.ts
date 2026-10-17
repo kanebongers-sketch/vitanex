@@ -123,6 +123,8 @@ export interface CheckinInvoer {
   lidId: string
   vestiging: string
   bron: CheckinBron
+  /** "Toch inchecken": de balie checkt in ondanks de waarschuwing van het lidmaatschap. */
+  toch: boolean
 }
 
 /** Systeemgrens: het verzoek van het baliescherm. De vestiging controleert de route. */
@@ -132,5 +134,5 @@ export function leesCheckinInvoer(body: unknown): CheckinInvoer | null {
   if (typeof o.lidId !== 'string' || !/^[0-9a-f-]{36}$/i.test(o.lidId)) return null
   if (typeof o.vestiging !== 'string') return null
   const bron = BRONNEN.find((b) => b === o.bron) ?? 'balie'
-  return { lidId: o.lidId, vestiging: o.vestiging, bron }
+  return { lidId: o.lidId, vestiging: o.vestiging, bron, toch: o.toch === true }
 }

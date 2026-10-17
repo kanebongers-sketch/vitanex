@@ -6,7 +6,7 @@ const LID = '22222222-2222-4222-8222-222222222222'
 
 describe('leesReserveerInvoer', () => {
   it('accepteert een geldige boeking', () => {
-    expect(leesReserveerInvoer({ lesId: LES, lidId: LID, bron: 'app' })).toEqual({ ok: true, waarde: { lesId: LES, lidId: LID, bron: 'app' } })
+    expect(leesReserveerInvoer({ lesId: LES, lidId: LID, bron: 'app' })).toEqual({ ok: true, waarde: { lesId: LES, lidId: LID, bron: 'app', toch: false } })
   })
 
   it('valt terug op balie zonder bron en weigert onzin', () => {
@@ -14,6 +14,12 @@ describe('leesReserveerInvoer', () => {
     expect(leesReserveerInvoer({ lesId: 'x', lidId: LID }).ok).toBe(false)
     expect(leesReserveerInvoer({ lesId: LES, lidId: LID, bron: 'hacker' }).ok).toBe(false)
     expect(leesReserveerInvoer(null).ok).toBe(false)
+  })
+
+  it('laat toch boeken alleen toe aan de balie, nooit vanuit de ledenapp', () => {
+    expect(leesReserveerInvoer({ lesId: LES, lidId: LID, bron: 'balie', toch: true })).toMatchObject({ ok: true, waarde: { toch: true } })
+    expect(leesReserveerInvoer({ lesId: LES, lidId: LID, bron: 'app', toch: true })).toMatchObject({ ok: true, waarde: { toch: false } })
+    expect(leesReserveerInvoer({ lesId: LES, lidId: LID, toch: 'ja' })).toMatchObject({ ok: true, waarde: { toch: false } })
   })
 })
 

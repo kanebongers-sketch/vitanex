@@ -8,6 +8,8 @@ import { leesCheckinInvoer } from '@/lib/club/checkin/regels'
 // POST /api/club/checkin  { lidId, vestiging, bron }
 // Checkt een lid in aan de balie. Niet actief of al binnen 30 minuten
 // ingecheckt: geen nieuwe rij, wel een duidelijk antwoord voor het scherm.
+// Past het niet bij het lidmaatschap (vestiging of daluren), dan eerst een
+// waarschuwing; met toch = true checkt de balie toch in en dat wordt gelogd.
 
 export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
@@ -16,11 +18,12 @@ export async function POST(req: NextRequest) {
   const invoer = leesCheckinInvoer(body)
   if (!invoer || !isVestigingSlug(invoer.vestiging)) return clubFout('Ongeldig verzoek.', 400)
   if (!hoortBij(t.vestigingen, invoer.vestiging)) return clubFout('Onbekende vestiging.', 400)
-  const uitslag = await checkIn(t.admin, t.userId, { lidId: invoer.lidId, vestiging: invoer.vestiging, bron: invoer.bron }, new Date(), t.vestigingen)
+  const uitslag = await checkIn(t.admin, t.userId, { lidId: invoer.lidId, vestiging: invoer.vestiging, bron: invoer.bron, toch: invoer.toch }, new Date(), t.vestigingen)
   if (!uitslag.ok) return clubFout(uitslag.fout, uitslag.status)
   if (uitslag.antwoord.soort === 'ingecheckt') {
     const les = uitslag.antwoord.les ? `, aanwezig bij ${uitslag.antwoord.les.naam}` : ''
     await logActie(t, 'Ingecheckt', `${volledigeNaam(uitslag.lid)} (${invoer.bron})${les}`, invoer.vestiging)
+    if (uitslag.ondanks) await logActie(t, 'Ingecheckt ondanks lidmaatschap', `${volledigeNaam(uitslag.lid)}: ${uitslag.ondanks}`, invoer.vestiging)
   }
   return clubJson(uitslag.antwoord)
 }

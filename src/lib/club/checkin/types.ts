@@ -27,6 +27,8 @@ export interface BalieLid {
   /** Mag hier niet sporten (lid van een andere club die in Eersel incheckt). */
   geenToegang: boolean
   les: BalieLes | null
+  /** Past niet bij de lidmaatschapsvorm (vestiging of daluren): de reden. Niet blokkeren, de balie beslist. */
+  vormWaarschuwing: string | null
   /** Al ingecheckt in de laatste 30 minuten? Dan de tijd daarvan. */
   dubbelSinds: string | null
 }
@@ -43,6 +45,8 @@ export type CheckinAntwoord =
   | { soort: 'dubbel'; op: string }
   | { soort: 'niet_actief'; statusLabel: string }
   | { soort: 'geen_toegang'; vestigingLabel: string }
+  /** Niet ingecheckt: het lidmaatschap laat dit niet toe. Opnieuw met toch = true checkt wel in. */
+  | { soort: 'vorm_waarschuwing'; reden: string }
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -62,5 +66,6 @@ export function isCheckinAntwoord(v: unknown): v is CheckinAntwoord {
   if (!isObject(v)) return false
   if (v.soort === 'ingecheckt' || v.soort === 'dubbel') return typeof v.op === 'string'
   if (v.soort === 'geen_toegang') return typeof v.vestigingLabel === 'string'
+  if (v.soort === 'vorm_waarschuwing') return typeof v.reden === 'string'
   return v.soort === 'niet_actief' && typeof v.statusLabel === 'string'
 }

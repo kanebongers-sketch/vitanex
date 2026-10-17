@@ -1,4 +1,4 @@
-import { CircleCheck, CircleAlert, Clock3, MapPin } from 'lucide-react'
+import { CircleCheck, CircleAlert, Clock3, MapPin, TriangleAlert } from 'lucide-react'
 import type { BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
 
 // De grote kaarten van het baliescherm: het gevonden lid (met Inchecken) en
@@ -61,6 +61,18 @@ function Oordeel({ lid }: { lid: BalieLid }) {
   )
 }
 
+/** Lidmaatschap laat dit niet toe (vestiging of daluren): waarschuwen, niet blokkeren. */
+function VormWaarschuwing({ reden }: { reden: string }) {
+  return (
+    <p className="club-checkin-vorm" role="note">
+      <TriangleAlert aria-hidden size={20} />
+      <span>
+        Let op het lidmaatschap. <span className="club-checkin-oordeel-regel">{reden} Check in als de balie dat goedvindt.</span>
+      </span>
+    </p>
+  )
+}
+
 interface LidKaartProps {
   lid: BalieLid
   bezig: boolean
@@ -79,10 +91,11 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
         </div>
       </div>
       <Oordeel lid={lid} />
+      {lid.magTrainen && lid.vormWaarschuwing ? <VormWaarschuwing reden={lid.vormWaarschuwing} /> : null}
       <LesRegel lid={lid} />
       {lid.dubbelSinds ? <p className="club-checkin-dubbel">Al ingecheckt om {tijd(lid.dubbelSinds)}. Nog een keer telt niet mee.</p> : null}
       <button type="button" className="club-knop club-knop--primair club-knop--groot club-checkin-knop" onClick={onInchecken} disabled={bezig || !lid.magTrainen}>
-        Inchecken <kbd aria-hidden>Enter</kbd>
+        {lid.vormWaarschuwing ? 'Toch inchecken' : <>Inchecken <kbd aria-hidden>Enter</kbd></>}
       </button>
     </article>
   )
@@ -91,9 +104,30 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
 interface UitkomstProps {
   lid: BalieLid
   antwoord: CheckinAntwoord
+  bezig: boolean
+  /** Bij een waarschuwing van het lidmaatschap: toch inchecken of laten. */
+  onToch: () => void
+  onNiet: () => void
 }
 
-export function Uitkomst({ lid, antwoord }: UitkomstProps) {
+export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps) {
+  if (antwoord.soort === 'vorm_waarschuwing') {
+    return (
+      <article className="club-checkin-uitkomst club-checkin-uitkomst--let-op" role="alert">
+        <p className="club-checkin-uitkomst-woord">Let op</p>
+        <h2>{lid.naam}</h2>
+        <p>{antwoord.reden} Nog niet ingecheckt.</p>
+        <div className="club-checkin-uitkomst-knoppen">
+          <button type="button" className="club-knop club-knop--primair" onClick={onToch} disabled={bezig}>
+            Toch inchecken
+          </button>
+          <button type="button" className="club-knop club-knop--stil" onClick={onNiet} disabled={bezig}>
+            Niet inchecken
+          </button>
+        </div>
+      </article>
+    )
+  }
   if (antwoord.soort === 'niet_actief') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">

@@ -6,12 +6,19 @@ import { stuur, useClubActie } from './vraag'
 
 // De balie boekt een lid in deze les: zoeken op naam, lidnummer, e-mail of
 // telefoon, dan "Boek". Is de les vol, dan komt het lid op de wachtlijst.
+// Past de les niet bij het lidmaatschap, dan eerst een waarschuwing met
+// "Toch boeken" (de balie beslist; de API logt het).
 
 interface Treffer {
   id: string
   naam: string
   lidnummer: string | null
   status: string
+}
+
+function leesWaarschuwing(data: unknown): string | null {
+  if (typeof data !== 'object' || data === null || !('status' in data) || data.status !== 'waarschuwing') return null
+  return 'waarschuwing' in data && typeof data.waarschuwing === 'string' ? data.waarschuwing : 'Deze les past niet bij het lidmaatschap.'
 }
 
 function leesTreffers(data: unknown): Treffer[] {
@@ -29,6 +36,7 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
   const [resultaat, setResultaat] = useState<{ term: string; leden: Treffer[] }>({ term: '', leden: [] })
   const [zoekFout, setZoekFout] = useState<string | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
+  const [waarschuwing, setWaarschuwing] = useState<{ lid: Treffer; tekst: string } | null>(null)
   const { bezig, fout, voerUit } = useClubActie()
   const veldId = useId()
 
@@ -52,10 +60,16 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
     }
   }, [term, vestiging])
 
-  async function boek(t: Treffer) {
+  async function boek(t: Treffer, toch = false) {
     setMelding(null)
-    const uit = await voerUit(() => stuur('/api/club/rooster/reserveringen', 'POST', { lesId, lidId: t.id, bron: 'balie' }))
+    setWaarschuwing(null)
+    const uit = await voerUit(() => stuur('/api/club/rooster/reserveringen', 'POST', { lesId, lidId: t.id, bron: 'balie', toch }))
     if (!uit.ok) return
+    const tekst = leesWaarschuwing(uit.data)
+    if (tekst) {
+      setWaarschuwing({ lid: t, tekst })
+      return
+    }
     const opWachtlijst = typeof uit.data === 'object' && uit.data !== null && 'status' in uit.data && uit.data.status === 'wachtlijst'
     setMelding(opWachtlijst ? `${t.naam} staat op de wachtlijst.` : `${t.naam} is ingeschreven.`)
     setTerm('')
@@ -84,6 +98,21 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
       {zoekFout && <p className="club-fout" role="alert">{zoekFout}</p>}
       {fout && <p className="club-fout" role="alert">{fout}</p>}
       {melding && <p className="club-melding club-melding--ok" role="status">{melding}</p>}
+      {waarschuwing && (
+        <div className="club-melding club-melding--fout club-rooster-vorm" role="alert">
+          <p>
+            <strong>{waarschuwing.lid.naam}:</strong> {waarschuwing.tekst}
+          </p>
+          <div className="club-rooster-vorm-knoppen">
+            <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => boek(waarschuwing.lid, true)}>
+              Toch boeken
+            </button>
+            <button type="button" className="club-knop club-knop--klein club-knop--stil" disabled={bezig} onClick={() => setWaarschuwing(null)}>
+              Niet boeken
+            </button>
+          </div>
+        </div>
+      )}
       {zichtbaar.length > 0 && (
         <ul className="club-lijst club-rooster-treffers">
           {zichtbaar.map((t) => (

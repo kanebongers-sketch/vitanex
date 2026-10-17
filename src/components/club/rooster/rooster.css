@@ -136,6 +136,10 @@
 .club-rooster-zoekveld svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-4); pointer-events: none; }
 .club-rooster-zoekveld .club-invoer { padding-left: 36px; }
 .club-rooster-treffers { max-height: 260px; overflow-y: auto; }
+.club-rooster-vorm { display: grid; gap: 10px; }
+.club-rooster-vorm p { margin: 0; }
+.club-rooster-vorm strong { color: var(--club-let-op); }
+.club-rooster-vorm-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
 .club-rooster-uitklap { border-top: 1px solid var(--line); padding-top: 12px; }
 .club-rooster-uitklap summary { cursor: pointer; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); list-style-position: inside; }
 .club-rooster-uitklap summary:hover { color: var(--text-1); }

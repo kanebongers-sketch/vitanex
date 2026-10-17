@@ -12,7 +12,10 @@ import { BalieLidKaart, Resultaten, Uitkomst } from './CheckinKaart'
 // sluit af met Enter: een exacte code checkt meteen in. Op naam zoeken toont
 // de treffers; pijltjes kiezen, Enter checkt in. Het zoekveld houdt de focus.
 // Escape wist alles. De uitkomst (WELKOM) blijft even staan en verdwijnt dan,
-// zodat het volgende lid een leeg scherm ziet.
+// zodat het volgende lid een leeg scherm ziet. Past het niet bij het
+// lidmaatschap (vestiging of daluren), dan blijft een waarschuwing staan met
+// "Toch inchecken": de balie beslist, de API logt het. Enter alleen checkt
+// nooit in tegen het lidmaatschap in; daarvoor is de knop.
 
 const UITKOMST_MS = 8000
 
@@ -23,6 +26,7 @@ interface Resultaat extends ZoekAntwoord {
 interface Afgerond {
   lid: BalieLid
   antwoord: CheckinAntwoord
+  bron: CheckinBron
 }
 
 function isTypveld(doel: EventTarget | null): boolean {
@@ -63,14 +67,14 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
     }
   }
 
-  async function inchecken(lid: BalieLid, bron: CheckinBron) {
+  async function inchecken(lid: BalieLid, bron: CheckinBron, toch = false) {
     setBezig(true)
     setFout(null)
     try {
       const res = await fetch('/api/club/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lidId: lid.id, vestiging, bron }),
+        body: JSON.stringify({ lidId: lid.id, vestiging, bron, toch }),
       })
       const data: unknown = await res.json().catch(() => null)
       if (!res.ok || !isCheckinAntwoord(data)) {
@@ -78,7 +82,7 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
         setFout(melding ?? 'Inchecken lukte niet. Probeer het opnieuw.')
         return
       }
-      setAfgerond({ lid, antwoord: data })
+      setAfgerond({ lid, antwoord: data, bron })
       setResultaat(null)
       setQuery('')
       verzoekNr.current += 1
@@ -115,7 +119,7 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
   useEffect(() => () => window.clearTimeout(klok.current), [])
 
   useEffect(() => {
-    if (!afgerond) return
+    if (!afgerond || afgerond.antwoord.soort === 'vorm_waarschuwing') return
     const weg = window.setTimeout(() => setAfgerond(null), UITKOMST_MS)
     return () => window.clearTimeout(weg)
   }, [afgerond])
@@ -191,9 +195,11 @@ export function CheckinBalie({ vestiging }: { vestiging: Vestiging }) {
         QR-code en bandje checken direct in. Op naam: kies met <kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> checkt in, <kbd>Esc</kbd> wist.
       </p>
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
-      {afgerond ? <Uitkomst lid={afgerond.lid} antwoord={afgerond.antwoord} /> : null}
+      {afgerond ? (
+        <Uitkomst lid={afgerond.lid} antwoord={afgerond.antwoord} bezig={bezig} onToch={() => void inchecken(afgerond.lid, afgerond.bron, true)} onNiet={wis} />
+      ) : null}
       {lijstOpen ? <Resultaten id="checkin-resultaten" leden={leden} gekozen={gekozen} onKies={(i) => { setGekozen(i); veld.current?.focus() }} /> : null}
-      {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken(lid, resultaat?.exact ? resultaat.bron : 'balie')} /> : null}
+      {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken(lid, resultaat?.exact ? resultaat.bron : 'balie', lid.vormWaarschuwing !== null)} /> : null}
       {resultaat && resultaat.query === query.trim() && !leden.length ? (
         <p className="club-leeg">Niemand gevonden voor &ldquo;{resultaat.query}&rdquo;. Controleer de spelling of zoek op lidnummer.</p>
       ) : null}

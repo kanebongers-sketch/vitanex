@@ -104,8 +104,14 @@ describe('vatDagSamen', () => {
 describe('leesCheckinInvoer', () => {
   it('leest een geldig verzoek en valt terug op balie', () => {
     const id = '3f2b8c1e-7a4d-4e2b-9c1a-0d5e6f7a8b9c'
-    expect(leesCheckinInvoer({ lidId: id, vestiging: 'budel', bron: 'qr' })).toEqual({ lidId: id, vestiging: 'budel', bron: 'qr' })
+    expect(leesCheckinInvoer({ lidId: id, vestiging: 'budel', bron: 'qr' })).toEqual({ lidId: id, vestiging: 'budel', bron: 'qr', toch: false })
     expect(leesCheckinInvoer({ lidId: id, vestiging: 'budel', bron: 'les' })?.bron).toBe('balie')
+  })
+
+  it('leest toch inchecken alleen als echte true', () => {
+    const id = '3f2b8c1e-7a4d-4e2b-9c1a-0d5e6f7a8b9c'
+    expect(leesCheckinInvoer({ lidId: id, vestiging: 'budel', toch: true })?.toch).toBe(true)
+    expect(leesCheckinInvoer({ lidId: id, vestiging: 'budel', toch: 'ja' })?.toch).toBe(false)
   })
 
   it('weigert onzin', () => {
@@ -145,5 +151,10 @@ describe('magInVestiging (regel van fitfactory.nl)', () => {
   it('isCheckinAntwoord kent geen_toegang', () => {
     expect(isCheckinAntwoord({ soort: 'geen_toegang', vestigingLabel: 'Budel' })).toBe(true)
     expect(isCheckinAntwoord({ soort: 'geen_toegang' })).toBe(false)
+  })
+
+  it('isCheckinAntwoord kent de waarschuwing van het lidmaatschap', () => {
+    expect(isCheckinAntwoord({ soort: 'vorm_waarschuwing', reden: 'Buiten de daluren.' })).toBe(true)
+    expect(isCheckinAntwoord({ soort: 'vorm_waarschuwing' })).toBe(false)
   })
 })

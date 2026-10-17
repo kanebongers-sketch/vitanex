@@ -32,6 +32,9 @@
 .club-checkin-hulp kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: 5px; font: 600 11.5px/1.5 var(--ff-inter), system-ui, sans-serif; text-align: center; color: var(--text-2); }
 .club-checkin-oordeel--mag { color: var(--club-ok); background: var(--club-ok-zacht); }
 .club-checkin-oordeel--niet { color: var(--club-let-op); background: var(--club-let-op-zacht); }
+.club-checkin-vorm { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent); color: var(--club-let-op); font-size: 16px; font-weight: 600; }
+.club-checkin-vorm > svg { flex: none; }
+.club-checkin-vorm .club-checkin-oordeel-regel { color: var(--text-2); }
 .club-checkin-les { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 15.5px; color: var(--text-2); }
 .club-checkin-les > svg { flex: none; color: var(--text-3); }
 .club-checkin-les em { font-style: normal; color: var(--club-ok); }
@@ -51,6 +54,9 @@
 .club-checkin-uitkomst--dubbel .club-checkin-uitkomst-woord { color: var(--club-info); }
 .club-checkin-uitkomst--niet { border-color: color-mix(in srgb, var(--club-let-op) 50%, transparent); background: linear-gradient(120deg, var(--club-let-op-zacht), transparent 70%), var(--bg-card); }
 .club-checkin-uitkomst--niet .club-checkin-uitkomst-woord { color: var(--club-let-op); }
+.club-checkin-uitkomst--let-op { border-color: color-mix(in srgb, var(--club-let-op) 50%, transparent); }
+.club-checkin-uitkomst--let-op .club-checkin-uitkomst-woord { color: var(--club-let-op); }
+.club-checkin-uitkomst-knoppen { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 @keyframes club-checkin-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ── Meerdere treffers ────────────────────────────────────────────────────── */

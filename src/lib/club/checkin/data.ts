@@ -7,6 +7,11 @@ import { haalLid, initialen, LID_KOLOMMEN, LID_STATUS_LABEL, lidUitRij, magTrain
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { dagGrenzen } from '@/lib/club/leden/tijd'
+import { haalVormen } from '@/lib/club/lidmaatschappen/lezen'
+import { checkinWaarschuwing } from '@/lib/club/lidmaatschappen/koppeling'
+import { vormVoorLid } from '@/lib/club/lidmaatschappen/regels'
+import { haalVormVanLid } from '@/lib/club/lidmaatschappen/toegang-opslag'
+import type { Lidmaatschapsvorm } from '@/lib/club/lidmaatschappen/model'
 import { checkinUitRij, RESERVERING_SELECT, reserveringUitRij, type CheckinRij, type LidReservering } from '@/lib/club/leden/rijen'
 import {
   beoordeelCheckin, bronVoorMatch, DUBBEL_MIN, isCode, leesVenster, lesInVenster, lesVandaag, magInVestiging, vatDagSamen,
@@ -72,7 +77,17 @@ async function haalVenster(admin: SupabaseClient, userId: string, v: Vestiging):
   return leesVenster(typeof data === 'object' && data !== null ? (data as Record<string, unknown>).regels : null)
 }
 
-function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: LidReservering[], nu: Date, venster: number, vestigingen: readonly VestigingInfo[]): BalieLid {
+interface BalieContext {
+  v: Vestiging
+  nu: Date
+  venster: number
+  vestigingen: readonly VestigingInfo[]
+  /** Lidmaatschapsvormen van de sportschool; leeg bij een leesfout (dan geen waarschuwing). */
+  vormen: readonly Lidmaatschapsvorm[]
+}
+
+function naarBalieLid(lid: Lid, laatste: Date | undefined, res: LidReservering[], c: BalieContext): BalieLid {
+  const { v, nu, venster, vestigingen } = c
   const les = lesVandaag(res, nu)
   const inVenster = lesInVenster(res, nu, venster)
   const geenToegang = !magInVestiging(lid.vestiging, v)
@@ -88,6 +103,7 @@ function naarBalieLid(lid: Lid, v: Vestiging, laatste: Date | undefined, res: Li
     vestigingLabel: naamVan(vestigingen, lid.vestiging),
     andereVestiging: lid.vestiging !== v,
     geenToegang,
+    vormWaarschuwing: checkinWaarschuwing(vormVoorLid(c.vormen, lid.abonnement), v, nu),
     les: les ? { naam: les.lesNaam, start: les.start.toISOString(), status: les.status, inVenster: inVenster?.id === les.id } : null,
     dubbelSinds: laatste && nu.getTime() - laatste.getTime() < DUBBEL_MIN * MIN ? laatste.toISOString() : null,
   }
@@ -128,15 +144,17 @@ export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Ve
   const leden = exact ? code.leden : await zoekOpNaam(admin, userId, v, term)
   if (!leden) return null
   const ids = leden.map((l) => l.id)
-  const [laatste, reserveringen, venster] = await Promise.all([
+  const [laatste, reserveringen, venster, vormen] = await Promise.all([
     laatsteCheckins(admin, userId, ids, new Date(nu.getTime() - DUBBEL_MIN * MIN)),
     reserveringenVandaag(admin, userId, ids, nu),
     haalVenster(admin, userId, v),
+    haalVormen(admin, userId),
   ])
+  const context: BalieContext = { v, nu, venster, vestigingen, vormen: vormen ?? [] }
   return {
     exact,
     bron: exact ? bronVoorMatch(code.veld) : 'balie',
-    leden: leden.map((l) => naarBalieLid(l, v, laatste.get(l.id), reserveringen.filter((r) => r.lidId === l.id), nu, venster, vestigingen)),
+    leden: leden.map((l) => naarBalieLid(l, laatste.get(l.id), reserveringen.filter((r) => r.lidId === l.id), context)),
   }
 }
 
@@ -144,10 +162,13 @@ export interface CheckinVerzoek {
   lidId: string
   vestiging: Vestiging
   bron: CheckinBron
+  /** Toch inchecken ondanks de waarschuwing van het lidmaatschap. */
+  toch: boolean
 }
 
 export type CheckinUitslag =
-  | { ok: true; lid: Lid; antwoord: CheckinAntwoord }
+  /** `ondanks`: ingecheckt terwijl het lidmaatschap dit niet toelaat (de reden, voor het logboek). */
+  | { ok: true; lid: Lid; antwoord: CheckinAntwoord; ondanks?: string }
   | { ok: false; fout: string; status: number }
 
 /** Zet de geboekte les in het venster op "aanwezig". Geeft de les terug, of null. */
@@ -172,6 +193,8 @@ export async function checkIn(admin: SupabaseClient, userId: string, verzoek: Ch
   if (besluit.soort === 'niet_actief') return { ok: true, lid, antwoord: { soort: 'niet_actief', statusLabel: LID_STATUS_LABEL[besluit.status] } }
   if (besluit.soort === 'geen_toegang') return { ok: true, lid, antwoord: { soort: 'geen_toegang', vestigingLabel: naamVan(vestigingen, lid.vestiging) } }
   if (besluit.soort === 'dubbel') return { ok: true, lid, antwoord: { soort: 'dubbel', op: besluit.op.toISOString() } }
+  const waarschuwing = checkinWaarschuwing(await haalVormVanLid(admin, userId, lid.abonnement), verzoek.vestiging, nu)
+  if (waarschuwing && !verzoek.toch) return { ok: true, lid, antwoord: { soort: 'vorm_waarschuwing', reden: waarschuwing } }
   const { data, error } = await admin.from('club_checkins')
     .insert({ user_id: userId, lid_id: lid.id, vestiging: verzoek.vestiging, bron: verzoek.bron, op: nu.toISOString() })
     .select('id, lid_id, op').single()
@@ -184,6 +207,7 @@ export async function checkIn(admin: SupabaseClient, userId: string, verzoek: Ch
   return {
     ok: true,
     lid,
+    ondanks: waarschuwing ?? undefined,
     antwoord: { soort: 'ingecheckt', op: rij.op.toISOString(), les: les ? { naam: les.lesNaam, start: les.start.toISOString() } : null },
   }
 }

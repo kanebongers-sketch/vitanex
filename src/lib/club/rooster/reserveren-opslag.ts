@@ -6,6 +6,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
+import { toetsBoeking } from '@/lib/club/lidmaatschappen/toegang-opslag'
 import { gelukt, haalLesRij, haalRegels, haalReserveringenVanLes, mislukt, type Resultaat } from './basis-opslag'
 import type { ReserveerInvoer } from './invoer'
 import {
@@ -108,11 +109,10 @@ async function controleerOverboeking(admin: SupabaseClient, userId: string, les:
   return laatste + 1
 }
 
-export interface ReserveerAntwoord {
-  id: string
-  status: 'geboekt' | 'wachtlijst'
-  wachtpositie: number | null
-}
+export type ReserveerAntwoord =
+  | { id: string; status: 'geboekt' | 'wachtlijst'; wachtpositie: number | null }
+  /** Balie: past niet bij het lidmaatschap. Niets geboekt; opnieuw met toch = true boekt wel. */
+  | { status: 'waarschuwing'; waarschuwing: string }
 
 /** Boek een lid in een les (of zet het op de wachtlijst). */
 export async function reserveer(t: ClubToegang, invoer: ReserveerInvoer, nu = new Date()): Promise<Resultaat<ReserveerAntwoord>> {
@@ -139,6 +139,9 @@ export async function reserveer(t: ClubToegang, invoer: ReserveerInvoer, nu = ne
     noShows,
   })
   if (!uitkomst.ok) return mislukt(uitkomst.fout, 409)
+  const vorm = await toetsBoeking(t.admin, t.userId, { lidId: lid.id, abonnement: lid.abonnement, les, bron: invoer.bron, toch: invoer.toch })
+  if (vorm.soort === 'weiger') return mislukt(vorm.melding, 409)
+  if (vorm.soort === 'waarschuw') return gelukt({ status: 'waarschuwing', waarschuwing: vorm.reden })
   const velden = { status: uitkomst.status, wachtpositie: uitkomst.wachtpositie, bron: invoer.bron, geboekt_op: nu.toISOString() }
   const id = await schrijfBoeking(t.admin, t.userId, les, lid.id, bestaand, velden)
   if (!id) return mislukt('Boeken is niet gelukt. Probeer het opnieuw.', 500)
@@ -153,6 +156,7 @@ export async function reserveer(t: ClubToegang, invoer: ReserveerInvoer, nu = ne
   }
   const moment = nlDelen(new Date(les.startOp))
   await logActie(t, status === 'geboekt' ? 'Les geboekt' : 'Op wachtlijst gezet', `${volledigeNaam(lid)}, les ${moment.datum} ${moment.tijd}`, les.vestiging)
+  if (vorm.ondanks) await logActie(t, 'Geboekt ondanks lidmaatschap', `${volledigeNaam(lid)}, les ${moment.datum} ${moment.tijd}: ${vorm.ondanks}`, les.vestiging)
   return gelukt({ id, status, wachtpositie })
 }
 

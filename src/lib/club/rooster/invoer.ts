@@ -32,6 +32,8 @@ export interface ReserveerInvoer {
   lesId: string
   lidId: string
   bron: ReserveringBron
+  /** De balie boekt bewust tegen het lidmaatschap in ("Toch boeken"). Telt niet voor de ledenapp. */
+  toch: boolean
 }
 
 export function leesReserveerInvoer(ruw: unknown): Invoer<ReserveerInvoer> {
@@ -42,7 +44,7 @@ export function leesReserveerInvoer(ruw: unknown): Invoer<ReserveerInvoer> {
   const bron = b.bron ?? 'balie'
   if (typeof bron !== 'string' || !(RESERVERING_BRONNEN as readonly string[]).includes(bron)) return mis('Onbekende bron van de boeking.')
   const nette = RESERVERING_BRONNEN.find((x) => x === bron) ?? 'balie'
-  return goed({ lesId: b.lesId, lidId: b.lidId, bron: nette })
+  return goed({ lesId: b.lesId, lidId: b.lidId, bron: nette, toch: nette !== 'app' && b.toch === true })
 }
 
 export function leesAfvinkInvoer(ruw: unknown): Invoer<AfvinkStatus> {
