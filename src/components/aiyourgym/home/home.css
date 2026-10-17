@@ -1,0 +1,162 @@
+/* AI Your Gym | composities van de voorpagina en de subpagina's */
+
+.ayg-ruim { margin-top: 10px; }
+.ayg-ruim-boven { margin-top: clamp(28px, 4vw, 44px); }
+.ayg-veldset { border: 0; margin: 0; padding: 0; display: grid; gap: 12px; min-width: 0; }
+.ayg-veldset legend { padding: 0; margin-bottom: 12px; }
+
+/* ── Held ────────────────────────────────────────────────────────────────── */
+.ayg-held { position: relative; padding-block: clamp(48px, 7vw, 104px) 24px; overflow: clip; }
+.ayg-held::before { content: ''; position: absolute; inset: auto -20% 0 30%; height: 70%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) 30%, transparent), transparent 70%); filter: blur(10px); pointer-events: none; z-index: -1; }
+.ayg-held-raster { display: grid; gap: clamp(48px, 6vw, 72px); align-items: center; }
+.ayg-held-tekst { display: grid; gap: 26px; }
+.ayg-held-tekst .ayg-display { max-width: 11ch; }
+.ayg-held-kenmerken { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg-held-kenmerken li { display: inline-flex; align-items: center; gap: 8px; }
+.ayg-held-kenmerken li::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--ayg-tekst); }
+.ayg-held-beeld { position: relative; padding-bottom: 48px; }
+.ayg-held-venster { width: min(100%, 720px); margin-left: auto; }
+.ayg-held-toestel { position: absolute; left: 0; bottom: 0; width: 300px; scale: 0.6; transform-origin: left bottom; }
+@media (min-width: 521px) { .ayg-held-toestel { scale: 0.74; } }
+@media (min-width: 1080px) { .ayg-held-toestel { scale: 0.84; } }
+.ayg-held-bijschrift { margin-top: 18px; font-size: 13px; color: var(--ayg-tekst-2); text-align: right; }
+@media (max-width: 520px) {
+  .ayg-held-venster { width: 118%; margin-left: 12%; }
+  .ayg-held-beeld { padding-bottom: 120px; }
+}
+@media (min-width: 1080px) {
+  .ayg-held-raster { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); }
+  .ayg-held-beeld { padding-bottom: 72px; }
+  .ayg-held-venster { margin-right: -6vw; width: 112%; }
+  .ayg-held-toestel { left: -40px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ayg-held-venster { animation: ayg-op 1000ms 120ms var(--ayg-ease) both; }
+  .ayg-held-toestel { animation: ayg-op 1000ms 320ms var(--ayg-ease) both; }
+}
+
+/* ── Index van de onderdelen ─────────────────────────────────────────────── */
+.ayg-index { border-top: 1.5px solid var(--ayg-tekst); }
+.ayg-index li { border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-index-link { position: relative; isolation: isolate; display: grid; grid-template-columns: 44px 1fr 28px; gap: 8px 16px; align-items: baseline; padding-block: clamp(22px, 3vw, 34px); text-decoration: none; }
+.ayg-index-link::after { content: ''; position: absolute; inset: 0 calc(-1 * var(--ayg-rand)); background: var(--ayg-accent); transform: scaleY(0); transform-origin: bottom; transition: transform 380ms var(--ayg-ease); z-index: -1; }
+.ayg-index-link:hover::after { transform: scaleY(1); }
+.ayg-index-nr { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ayg-tekst-2); }
+.ayg-index-naam { font: 700 clamp(2.2rem, 5.4vw, 4.4rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.045em; font-variation-settings: 'wdth' 80; }
+.ayg-index-tekst { grid-column: 2 / -1; display: grid; gap: 8px; color: var(--ayg-tekst-2); max-width: 52ch; }
+.ayg-index-functies { font-size: 14px; color: var(--ayg-tekst); }
+.ayg-index-pijl { grid-row: 1; grid-column: 3; align-self: center; transition: transform 300ms var(--ayg-ease); }
+.ayg-index-link:hover .ayg-index-pijl { transform: translate(4px, -4px); }
+.ayg-index-link:hover .ayg-index-nr, .ayg-index-link:hover .ayg-index-tekst { color: var(--ayg-tekst); }
+@media (min-width: 900px) {
+  .ayg-index-link { grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr) 28px; }
+  .ayg-index-tekst { grid-column: 3; grid-row: 1; }
+  .ayg-index-pijl { grid-column: 4; }
+}
+
+/* ── Gesplitst: tekst naast beeld ────────────────────────────────────────── */
+.ayg-gesplitst { display: grid; gap: clamp(40px, 6vw, 80px); align-items: center; }
+.ayg-gesplitst .ayg-sectiekop { margin-bottom: 0; }
+.ayg-gesplitst-tekst { gap: 32px; }
+@media (min-width: 1000px) {
+  .ayg-gesplitst { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+  .ayg-gesplitst--om { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* ── Bento ───────────────────────────────────────────────────────────────── */
+.ayg-bento { display: grid; gap: 16px; }
+.ayg-bento-vak { display: grid; gap: 24px; align-content: space-between; padding: clamp(20px, 2.6vw, 32px); border-radius: calc(var(--ayg-radius) + 8px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); overflow: hidden; transition: transform 400ms var(--ayg-ease); }
+.ayg-bento-vak:hover { transform: translateY(-3px); }
+.ayg-bento-vak--groot { background: var(--ayg-vlak-2); }
+.ayg-bento-tekst { display: grid; gap: 10px; max-width: 46ch; }
+.ayg-bento-tekst p { color: var(--ayg-tekst-2); }
+.ayg-bento .aygm-figuur { margin-inline: -4px; }
+@media (min-width: 980px) {
+  .ayg-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ayg-bento-vak--groot { grid-row: span 2; }
+}
+
+/* ── Duo met verspringing ────────────────────────────────────────────────── */
+.ayg-duo { display: grid; gap: 48px; }
+@media (min-width: 980px) {
+  .ayg-duo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+  .ayg-duo-verschoven { margin-top: 96px; }
+}
+
+/* ── Fundament ───────────────────────────────────────────────────────────── */
+.ayg-fundament { display: grid; gap: 0; grid-template-columns: 1fr; border-top: 1px solid var(--ayg-lijn); }
+.ayg-fundament li { display: grid; gap: 12px; align-content: start; padding: 32px 0; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-fundament li svg { width: 40px; height: 40px; padding: 9px; border-radius: 11px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-fundament p { color: var(--ayg-tekst-2); max-width: 40ch; }
+@media (min-width: 700px) {
+  .ayg-fundament { grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+}
+@media (min-width: 1040px) {
+  .ayg-fundament { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Pakketten (kort) ────────────────────────────────────────────────────── */
+.ayg-pakket-rij { display: grid; gap: 12px; }
+.ayg-pakket-rij li { display: grid; gap: 10px; padding: 28px; border-radius: var(--ayg-radius); border: 1px solid var(--ayg-lijn); background: var(--ayg-vlak); }
+.ayg-pakket-rij li[data-aanbevolen] { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); border-color: var(--ayg-inkt); box-shadow: var(--ayg-schaduw); }
+.ayg-pakket-rij p { color: var(--ayg-tekst-2); }
+.ayg-pakket-rij li[data-aanbevolen] p { color: var(--ayg-inkt-tekst-2); }
+@media (min-width: 820px) { .ayg-pakket-rij { grid-template-columns: repeat(3, 1fr); } }
+
+/* ── Huisstijl-demo ──────────────────────────────────────────────────────── */
+.ayg-huisstijl { display: grid; gap: 36px; justify-items: center; }
+.ayg-huisstijl .aygm-kiezer { width: 100%; max-width: 420px; }
+.ayg-huisstijl-toestel { background: none; }
+.ayg-huisstijl-toestel .aygm-toestel { width: 300px; transition: none; }
+@media (min-width: 640px) {
+  .ayg-huisstijl { grid-template-columns: minmax(0, 1fr) auto; align-items: center; justify-items: stretch; }
+}
+
+/* ── Prijzen ─────────────────────────────────────────────────────────────── */
+.ayg-prijzen { display: grid; gap: 16px; align-items: stretch; }
+@media (min-width: 960px) { .ayg-prijzen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ayg-pakket { display: grid; grid-template-rows: auto auto 1fr auto; gap: 24px; padding: clamp(26px, 3vw, 36px); border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+.ayg-pakket[data-aanbevolen] { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); border-color: var(--ayg-inkt); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-lijn: var(--ayg-inkt-lijn); box-shadow: var(--ayg-schaduw); }
+.ayg-pakket[data-aanbevolen] .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
+.ayg-pakket-kop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ayg-pakket-naam { font-size: clamp(2rem, 3.4vw, 2.8rem); letter-spacing: -0.045em; font-variation-settings: 'wdth' 82; }
+.ayg-pakket-prijs { padding-block: 20px; border-block: 1px solid var(--ayg-lijn); display: grid; gap: 4px; }
+.ayg-pakket-prijs strong { font: 700 1.5rem/1.1 var(--ayg-font-kop); letter-spacing: -0.03em; }
+.ayg-pakket-prijs span { font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg-pakket .ayg-knoppen { display: grid; gap: 10px; }
+.ayg-pakket .ayg-knop { width: 100%; }
+.ayg-badge { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 99px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+
+/* ── Functies-pagina ─────────────────────────────────────────────────────── */
+.ayg-inhoudsopgave { display: flex; flex-wrap: wrap; gap: 8px; }
+.ayg-inhoudsopgave a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--ayg-lijn-sterk); text-decoration: none; font-size: 14.5px; font-weight: 500; transition: background-color 200ms, color 200ms; }
+.ayg-inhoudsopgave a:hover { background: var(--ayg-tekst); color: var(--ayg-bg); }
+.ayg-groep { scroll-margin-top: 90px; }
+.ayg-groep-raster { display: grid; gap: clamp(36px, 5vw, 64px); }
+@media (min-width: 1000px) { .ayg-groep-raster { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: start; } }
+.ayg-groep-kop { display: grid; gap: 18px; }
+@media (min-width: 1000px) { .ayg-groep-kop { position: sticky; top: 100px; } }
+.ayg-groep-nr { font: 800 clamp(4rem, 9vw, 8rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-vlak-2); -webkit-text-stroke: 1.5px var(--ayg-lijn-sterk); }
+.ayg-podium .ayg-groep-nr { color: transparent; -webkit-text-stroke-color: var(--ayg-inkt-tekst-2); }
+.ayg-functielijst { display: grid; gap: 0; border-top: 1px solid var(--ayg-lijn); }
+.ayg-functielijst li { display: grid; gap: 8px; padding-block: 22px; border-bottom: 1px solid var(--ayg-lijn); }
+@media (min-width: 640px) { .ayg-functielijst li { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 24px; } }
+.ayg-functielijst h3 { font-size: 1.15rem; letter-spacing: -0.02em; }
+.ayg-functielijst p { color: var(--ayg-tekst-2); }
+.ayg-groep-beeld { margin-top: 40px; }
+
+/* ── Ledenapp-pagina ─────────────────────────────────────────────────────── */
+.ayg-toestellen { display: flex; gap: clamp(16px, 3vw, 32px); justify-content: center; align-items: flex-start; overflow-x: auto; padding: 8px 4px 32px; scroll-snap-type: x mandatory; }
+.ayg-toestellen > * { flex: 0 0 auto; scroll-snap-align: center; display: grid; gap: 16px; justify-items: center; }
+.ayg-toestellen > *:nth-child(2) { margin-top: 48px; }
+.ayg-toestellen .aygm-figuur > * { container-type: normal; }
+.ayg-toestellen .aygm-toestel { width: clamp(240px, 26vw, 290px); }
+.ayg-toestel-label { font-size: 14px; font-weight: 600; color: var(--ayg-tekst-2); }
+.ayg-tabs-lijst { display: grid; gap: 0; border-top: 1px solid var(--ayg-lijn); }
+.ayg-tabs-lijst li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-block: 20px; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-tabs-lijst svg { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: var(--ayg-vlak-2); }
+.ayg-podium .ayg-tabs-lijst svg { background: var(--ayg-inkt-2); color: var(--ayg-accent); }
+.ayg-tabs-lijst p { color: var(--ayg-tekst-2); }
+
+/* Rasteritems mogen nooit breder worden dan hun kolom (lange tekst, schermbeelden) */
+:where(.ayg-bento-vak, .ayg-stapel, .ayg-held-raster, .ayg-gesplitst, .ayg-bento, .ayg-duo, .ayg-groep-raster, .ayg-prijzen, .ayg-pakket-rij, .ayg-fundament) > * { min-width: 0; }

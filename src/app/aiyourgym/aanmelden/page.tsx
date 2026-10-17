@@ -1,0 +1,56 @@
+import type { Metadata } from 'next'
+import { PAKKETTEN, PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
+import { maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
+import { afsluitbaar } from '@/lib/aiyourgym/config'
+import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
+import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
+import type { PakketKeuze } from '@/components/aiyourgym/aanmelden/types'
+
+// /aiyourgym/aanmelden: een sportschool meldt zich aan. De poort (alleen Kane
+// zolang de website uit staat) zit in ../layout.tsx. Welke pakketten online af
+// te sluiten zijn, bepaalt de server (Stripe-prijs in env); bedragen tonen we
+// nergens (besluit Kane): die ziet de klant pas bij Stripe.
+
+export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Aanmelden | AI Your Gym',
+  description: 'Meld je sportschool aan bij AI Your Gym en krijg je eigen omgeving op naam.aiyourgym.com.',
+}
+
+interface PaginaProps {
+  searchParams: Promise<{ [sleutel: string]: string | string[] | undefined }>
+}
+
+export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
+  const zoek = await searchParams
+  const startPakket = vindPakket(typeof zoek.pakket === 'string' ? zoek.pakket : null)?.sleutel ?? null
+  const geannuleerd = zoek.geannuleerd === '1'
+  const pakketten: PakketKeuze[] = PAKKETTEN.map((p) => ({
+    sleutel: p.sleutel,
+    naam: p.naam,
+    voorWie: p.voorWie,
+    inbegrepen: p.inbegrepen,
+    maxVestigingen: maxVestigingenVoor(p.sleutel),
+    aanbevolen: p.aanbevolen === true,
+    open: afsluitbaar(p.sleutel),
+  }))
+
+  return (
+    <AanmeldSchil>
+      <section className="aan-pagina ayg-wrap">
+        <header className="aan-intro">
+          <p className="ayg-label">Aanmelden</p>
+          <h1 className="aan-titel">Zet je sportschool in vier stappen klaar.</h1>
+          <p className="ayg-lead">Kies je pakket, kies je adres en vertel wie de eigenaar is. Daarna krijg je een eigen omgeving met je eigen portaal.</p>
+        </header>
+        {geannuleerd && (
+          <p className="aan-melding aan-melding--rustig" role="status">
+            Je hebt het betalen afgebroken. Er is niets afgeschreven; vul het formulier opnieuw in als je verder wilt.
+          </p>
+        )}
+        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} />
+      </section>
+    </AanmeldSchil>
+  )
+}

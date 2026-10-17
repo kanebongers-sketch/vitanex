@@ -59,10 +59,13 @@ const RELEASEV_HOST = { type: 'host' as const, value: '(www\\.)?releasev\\.(nl|l
 // Club op een eigen subdomein per sportschool (<slug>.aiyourgym.com, src/lib/club/kern/subdomein.ts).
 // Ook daar gelden de MentaForce/LifeOS-redirects niet: /training is daar Club, geen LifeOS.
 const CLUB_HOST = { type: 'host' as const, value: '[a-z0-9-]+\\.(aiyourgym\\.com|club\\.localhost)' }
+// De verkoopwebsite zelf (aiyourgym.com en www, src/lib/aiyourgym/host.ts): ook daar geen
+// MentaForce/LifeOS/PT-redirects. CLUB_HOST vangt www al; dit ook de kale naam en lokaal.
+const AYG_HOST = { type: 'host' as const, value: '(www\\.)?aiyourgym\\.(com|localhost)' }
 
 type Redirect = { source: string; destination: string; permanent: boolean; has?: unknown[]; missing?: unknown[] }
 function nietOpReleaseV<T extends Redirect>(regels: T[]): T[] {
-  return regels.map((regel) => ({ ...regel, missing: [...(regel.missing ?? []), RELEASEV_HOST, CLUB_HOST] }))
+  return regels.map((regel) => ({ ...regel, missing: [...(regel.missing ?? []), RELEASEV_HOST, CLUB_HOST, AYG_HOST] }))
 }
 
 function releaseVHeaders(isProd: boolean) {

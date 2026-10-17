@@ -1,0 +1,68 @@
+import Link from 'next/link'
+import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
+import { AANMELDEN, NAV_LINKS, aygPad } from './paden'
+
+const PRODUCT = [
+  { label: 'Werkvloer', pad: aygPad('/functies#werkvloer') },
+  { label: 'Leden en ledenbehoud', pad: aygPad('/functies#leden') },
+  { label: 'Planning en personeel', pad: aygPad('/functies#planning') },
+  { label: 'Coaching en schema’s', pad: aygPad('/functies#coaching') },
+  { label: 'Beheer en cijfers', pad: aygPad('/functies#beheer') },
+] as const
+
+export function AygVoet() {
+  const jaar = new Date().getFullYear()
+  return (
+    <footer className="ayg-voet">
+      <div className="ayg-wrap">
+        <div className="ayg-voet-raster">
+          <div className="ayg-voet-merk">
+            <AygLogo opDonker />
+            <p>Clubsoftware voor sportscholen. Werkvloer, leden, planning en coaching op een plek.</p>
+          </div>
+          <nav aria-labelledby="voet-site">
+            <h2 id="voet-site">Website</h2>
+            <ul>
+              {NAV_LINKS.map((l) => (
+                <li key={l.pad}>
+                  <Link href={l.pad}>{l.label}</Link>
+                </li>
+              ))}
+              <li>
+                <Link href={AANMELDEN}>Probeer gratis</Link>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="voet-product">
+            <h2 id="voet-product">Product</h2>
+            <ul>
+              {PRODUCT.map((l) => (
+                <li key={l.pad}>
+                  <Link href={l.pad}>{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <nav aria-labelledby="voet-afspraken">
+            <h2 id="voet-afspraken">Afspraken</h2>
+            <ul>
+              <li>
+                <Link href={aygPad('/privacy')}>Privacy</Link>
+              </li>
+              <li>
+                <Link href={aygPad('/voorwaarden')}>Voorwaarden</Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <p className="ayg-voet-woord" aria-hidden>
+          AI Your Gym
+        </p>
+        <div className="ayg-voet-onder">
+          <span>© {jaar} AI Your Gym</span>
+          <span>Gegevens opgeslagen in de EU</span>
+        </div>
+      </div>
+    </footer>
+  )
+}

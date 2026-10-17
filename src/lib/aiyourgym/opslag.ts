@@ -1,0 +1,189 @@
+// ─── AI Your Gym: aanmeldingen en Stripe-events opslaan (SERVER-ONLY) ───────
+// Tabellen ayg_aanmeldingen en ayg_stripe_events (migratie 422) in de
+// LifeOS-database, alleen via de service role.
+
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Aanmelding } from './aanmelding'
+import { isAanmeldStatus, volgendeStatus, type AanmeldStatus, type Gebeurtenis } from './status'
+
+export const AANMELDING_KOLOMMEN = 'id, pakket, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, stripe_customer_id, stripe_subscription_id, stripe_session_id, organisatie_id, aangemaakt_op, bijgewerkt_op'
+
+export interface AanmeldingRij {
+  id: string
+  pakket: string
+  sportschoolNaam: string
+  slug: string
+  aantalVestigingen: number
+  eigenaarNaam: string
+  eigenaarEmail: string
+  eigenaarTelefoon: string
+  status: AanmeldStatus
+  stripeSessionId: string | null
+  stripeSubscriptionId: string | null
+  organisatieId: string | null
+  aangemaaktOp: string
+  bijgewerktOp: string
+}
+
+/** Een checkout die zo lang niet is afgerond, houdt het adres niet meer vast (Stripe laat hem na 24 uur verlopen). */
+const WACHT_HOUDT_ADRES_MS = 24 * 60 * 60 * 1000
+/** Hangt een inrichting langer dan dit, dan mag een nieuwe poging het overnemen. */
+export const INRICHTEN_VASTGELOPEN_MS = 10 * 60 * 1000
+
+function tekst(v: unknown): string {
+  return typeof v === 'string' ? v : ''
+}
+
+function tekstOfNull(v: unknown): string | null {
+  return typeof v === 'string' && v ? v : null
+}
+
+export function aanmeldingUitRij(rij: unknown): AanmeldingRij | null {
+  if (typeof rij !== 'object' || rij === null) return null
+  const r = rij as Record<string, unknown>
+  if (typeof r.id !== 'string' || !isAanmeldStatus(r.status)) return null
+  return {
+    id: r.id,
+    pakket: tekst(r.pakket),
+    sportschoolNaam: tekst(r.sportschool_naam),
+    slug: tekst(r.slug),
+    aantalVestigingen: typeof r.aantal_vestigingen === 'number' ? r.aantal_vestigingen : 1,
+    eigenaarNaam: tekst(r.eigenaar_naam),
+    eigenaarEmail: tekst(r.eigenaar_email),
+    eigenaarTelefoon: tekst(r.eigenaar_telefoon),
+    status: r.status,
+    stripeSessionId: tekstOfNull(r.stripe_session_id),
+    stripeSubscriptionId: tekstOfNull(r.stripe_subscription_id),
+    organisatieId: tekstOfNull(r.organisatie_id),
+    aangemaaktOp: tekst(r.aangemaakt_op),
+    bijgewerktOp: tekst(r.bijgewerkt_op),
+  }
+}
+
+// ─── Beschikbaarheid ────────────────────────────────────────────────────────
+
+/** Is dit adres nog vrij? Null bij een databasefout (dan niet doorgaan). */
+export async function slugVrij(admin: SupabaseClient, slug: string, nu: Date): Promise<boolean | null> {
+  const [org, bezet, wacht] = await Promise.all([
+    admin.from('club_organisaties').select('id').eq('slug', slug).limit(1),
+    admin.from('ayg_aanmeldingen').select('id').eq('slug', slug).in('status', ['inrichten', 'actief', 'betaling_mislukt', 'gepauzeerd', 'test']).limit(1),
+    admin.from('ayg_aanmeldingen').select('id').eq('slug', slug).eq('status', 'wacht_op_betaling').gte('aangemaakt_op', new Date(nu.getTime() - WACHT_HOUDT_ADRES_MS).toISOString()).limit(1),
+  ])
+  if (org.error || bezet.error || wacht.error) {
+    console.error('[aiyourgym] beschikbaarheid lezen mislukt', org.error?.message ?? bezet.error?.message ?? wacht.error?.message)
+    return null
+  }
+  return (org.data ?? []).length === 0 && (bezet.data ?? []).length === 0 && (wacht.data ?? []).length === 0
+}
+
+// ─── Aanmeldingen ───────────────────────────────────────────────────────────
+
+export async function maakAanmelding(admin: SupabaseClient, a: Aanmelding, status: 'aanvraag' | 'wacht_op_betaling', nu: Date): Promise<string | null> {
+  const { data, error } = await admin
+    .from('ayg_aanmeldingen')
+    .insert({
+      pakket: a.pakket,
+      sportschool_naam: a.sportschoolNaam,
+      slug: a.slug,
+      aantal_vestigingen: a.aantalVestigingen,
+      eigenaar_naam: a.eigenaarNaam,
+      eigenaar_email: a.eigenaarEmail,
+      eigenaar_telefoon: a.eigenaarTelefoon,
+      status,
+      akkoord_op: nu.toISOString(),
+    })
+    .select('id')
+    .single()
+  if (error || !data) {
+    console.error('[aiyourgym] aanmelding opslaan mislukt', error?.code ?? '')
+    return null
+  }
+  return String((data as { id: unknown }).id)
+}
+
+export async function koppelSessie(admin: SupabaseClient, id: string, sessieId: string): Promise<boolean> {
+  const { error } = await admin.from('ayg_aanmeldingen').update({ stripe_session_id: sessieId, bijgewerkt_op: new Date().toISOString() }).eq('id', id).eq('status', 'wacht_op_betaling')
+  if (error) console.error('[aiyourgym] sessie koppelen mislukt', error.code ?? '')
+  return !error
+}
+
+export async function vindAanmelding(admin: SupabaseClient, id: string): Promise<AanmeldingRij | null> {
+  const { data, error } = await admin.from('ayg_aanmeldingen').select(AANMELDING_KOLOMMEN).eq('id', id).maybeSingle()
+  if (error) console.error('[aiyourgym] aanmelding lezen mislukt', error.code ?? '')
+  return aanmeldingUitRij(data)
+}
+
+export async function vindOpSessie(admin: SupabaseClient, sessieId: string): Promise<AanmeldingRij | null> {
+  const { data, error } = await admin.from('ayg_aanmeldingen').select(AANMELDING_KOLOMMEN).eq('stripe_session_id', sessieId).maybeSingle()
+  if (error) console.error('[aiyourgym] aanmelding lezen mislukt', error.code ?? '')
+  return aanmeldingUitRij(data)
+}
+
+/**
+ * Compare-and-set: alleen wie de status van wacht_op_betaling (of een
+ * vastgelopen inrichting) naar inrichten zet, richt de sportschool in. Twee
+ * gelijktijdige events of een event plus de welkomstpagina: precies een wint.
+ */
+export async function claimInrichten(admin: SupabaseClient, a: AanmeldingRij, nu: Date): Promise<boolean> {
+  const grens = new Date(nu.getTime() - INRICHTEN_VASTGELOPEN_MS)
+  const vastgelopen = a.status === 'inrichten' && Date.parse(a.bijgewerktOp) < grens.getTime()
+  if (a.status !== 'wacht_op_betaling' && !vastgelopen) return false
+  const basis = admin.from('ayg_aanmeldingen').update({ status: 'inrichten', bijgewerkt_op: nu.toISOString() }).eq('id', a.id).eq('status', a.status)
+  const { data, error } = await (vastgelopen ? basis.lt('bijgewerkt_op', grens.toISOString()) : basis).select('id')
+  if (error) {
+    console.error('[aiyourgym] inrichten claimen mislukt', error.code ?? '')
+    return false
+  }
+  return Array.isArray(data) && data.length === 1
+}
+
+export async function bewaarOrganisatie(admin: SupabaseClient, id: string, organisatieId: string | null): Promise<boolean> {
+  const { error } = await admin.from('ayg_aanmeldingen').update({ organisatie_id: organisatieId, bijgewerkt_op: new Date().toISOString() }).eq('id', id).eq('status', 'inrichten')
+  return !error
+}
+
+export async function rondInrichtingAf(admin: SupabaseClient, id: string, s: { klantId: string | null; abonnementId: string | null }): Promise<boolean> {
+  const { error } = await admin
+    .from('ayg_aanmeldingen')
+    .update({ status: 'actief', stripe_customer_id: s.klantId, stripe_subscription_id: s.abonnementId, bijgewerkt_op: new Date().toISOString() })
+    .eq('id', id)
+    .eq('status', 'inrichten')
+  if (error) console.error('[aiyourgym] inrichting afronden mislukt', error.code ?? '')
+  return !error
+}
+
+/** Mislukt: terug naar wacht_op_betaling, zodat de volgende poging van Stripe het opnieuw doet. */
+export async function geefInrichtingVrij(admin: SupabaseClient, id: string): Promise<void> {
+  const { error } = await admin.from('ayg_aanmeldingen').update({ status: 'wacht_op_betaling', organisatie_id: null, bijgewerkt_op: new Date().toISOString() }).eq('id', id).eq('status', 'inrichten')
+  if (error) console.error('[aiyourgym] inrichting vrijgeven mislukt', error.code ?? '')
+}
+
+/** Een event van Stripe over een lopend abonnement. 'fout' = Stripe moet het opnieuw proberen. */
+export async function werkStatusBij(admin: SupabaseClient, abonnementId: string, g: Gebeurtenis): Promise<'ok' | 'fout'> {
+  const { data, error } = await admin.from('ayg_aanmeldingen').select(AANMELDING_KOLOMMEN).eq('stripe_subscription_id', abonnementId).maybeSingle()
+  if (error) return 'fout'
+  const a = aanmeldingUitRij(data)
+  if (!a) return 'ok'
+  const nieuw = volgendeStatus(a.status, g)
+  if (!nieuw) return 'ok'
+  const { error: schrijfFout } = await admin.from('ayg_aanmeldingen').update({ status: nieuw, bijgewerkt_op: new Date().toISOString() }).eq('id', a.id).eq('status', a.status)
+  return schrijfFout ? 'fout' : 'ok'
+}
+
+// ─── Stripe-events: elk event precies een keer ──────────────────────────────
+
+export type EventClaim = 'nieuw' | 'dubbel' | 'fout'
+
+export async function claimEvent(admin: SupabaseClient, eventId: string, type: string): Promise<EventClaim> {
+  const { error } = await admin.from('ayg_stripe_events').insert({ event_id: eventId, type: type.slice(0, 80) })
+  if (!error) return 'nieuw'
+  if (error.code === '23505') return 'dubbel'
+  console.error('[aiyourgym] event registreren mislukt', error.code ?? '')
+  return 'fout'
+}
+
+/** Verwerking mislukt: claim weg, zodat de herhaling van Stripe het opnieuw mag doen. */
+export async function geefEventVrij(admin: SupabaseClient, eventId: string): Promise<void> {
+  const { error } = await admin.from('ayg_stripe_events').delete().eq('event_id', eventId)
+  if (error) console.error('[aiyourgym] event vrijgeven mislukt', error.code ?? '')
+}

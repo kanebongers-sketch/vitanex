@@ -6,6 +6,8 @@ import { isReleaseVHost } from '@/releasev/lib/host-routing'
 import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
 import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
 import { beslisClub } from '@/lib/club/kern/subdomein'
+import { beslisAyg } from '@/lib/aiyourgym/host'
+import { siteActief } from '@/lib/aiyourgym/schakelaar'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -81,9 +83,27 @@ function clubOpSubdomein(request: NextRequest): NextResponse | null {
   return response
 }
 
+/**
+ * De verkoopwebsite van AI Your Gym op aiyourgym.com en www.aiyourgym.com, zie
+ * src/lib/aiyourgym/host.ts. Alleen met AIYOURGYM_SITE_ACTIEF=1; zonder die
+ * schakelaar, of op elk ander domein, null en gaat alles zoals altijd. Een
+ * subdomein van een sportschool is van Club (stap hierboven).
+ */
+function aiyourgymSite(request: NextRequest): NextResponse | null {
+  const besluit = beslisAyg(request.headers.get('host'), request.nextUrl.pathname, siteActief())
+  if (besluit.soort === 'niet-van-mij') return null
+  if (besluit.soort === 'door') return NextResponse.next()
+  const doel = request.nextUrl.clone()
+  doel.pathname = besluit.pad
+  return NextResponse.rewrite(doel)
+}
+
 export function proxy(request: NextRequest) {
   const club = clubOpSubdomein(request)
   if (club) return club
+
+  const ayg = aiyourgymSite(request)
+  if (ayg) return ayg
 
   const mentaforce = mentaforceOpReleaseV(request)
   if (mentaforce) return mentaforce

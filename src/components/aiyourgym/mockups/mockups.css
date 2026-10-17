@@ -1,0 +1,186 @@
+/* ==========================================================================
+   AI Your Gym | productbeelden in HTML en CSS
+   De schermen gebruiken dezelfde variabelen als Club zelf (--brand, --bg-app,
+   --text-1 ...), zodat de huisstijl-demo ze met huisstijlVariabelen() kan
+   omkleuren, precies zoals een sportschool dat in Club doet.
+   ========================================================================== */
+
+.aygm {
+  --brand: #c9f03e;
+  --brand-inkt: #0a0b09;
+  --brand-tekst: #c9f03e;
+  --brand-soft: rgba(201, 240, 62, 0.14);
+  --bg-app: #0a0b09;
+  --bg-card: #141513;
+  --bg-raised: #1e1f1c;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text-1: rgba(255, 255, 255, 0.96);
+  --text-2: rgba(255, 255, 255, 0.78);
+  --text-3: rgba(255, 255, 255, 0.62);
+  --club-ok: #6fd69a;
+  --club-let-op: #f47c66;
+  --club-info: #8fb3ff;
+  font-family: var(--ayg-font-tekst);
+  color: var(--text-1);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-user-select: none;
+  user-select: none;
+  margin: 0;
+}
+.aygm * { box-sizing: border-box; }
+.aygm :where(h3, h4, p, ul, ol) { margin: 0; padding: 0; list-style: none; font: inherit; letter-spacing: normal; text-transform: none; }
+.aygm-kop { font: 700 15px/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; font-variation-settings: 'wdth' 90; }
+.aygm-boven { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygm-getal { font: 700 26px/1 var(--ayg-font-kop); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.aygm-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--bg-raised); color: var(--text-2); white-space: nowrap; }
+.aygm-chip--accent { background: var(--brand); color: var(--brand-inkt); }
+.aygm-chip--ok { color: var(--club-ok); background: color-mix(in srgb, var(--club-ok) 14%, transparent); }
+.aygm-chip--letop { color: var(--club-let-op); background: color-mix(in srgb, var(--club-let-op) 14%, transparent); }
+.aygm-knopje { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 8px; font-size: 12px; font-weight: 600; background: var(--brand); color: var(--brand-inkt); white-space: nowrap; }
+.aygm-knopje--rand { background: transparent; color: var(--text-1); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.aygm-kaart { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.aygm-balk { height: 6px; border-radius: 99px; background: var(--bg-raised); overflow: hidden; }
+.aygm-balk > span { display: block; height: 100%; background: var(--brand); border-radius: inherit; transform-origin: left; }
+
+/* Schermbeelden passen zich aan hun eigen breedte aan */
+.aygm-figuur > *, .ayg-held-venster { min-width: 0; container-type: inline-size; }
+/* Bijschrift onder een productbeeld */
+.aygm-figuur { margin: 0; display: grid; gap: 14px; }
+.aygm-bijschrift { font-size: 13px; color: var(--ayg-tekst-2); display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.aygm-bijschrift a { color: inherit; }
+
+/* ── Venster (desktop) ───────────────────────────────────────────────────── */
+.aygm-venster { border-radius: 16px; background: var(--bg-app); border: 1px solid rgba(255, 255, 255, 0.09); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 30px 80px -30px rgba(0, 0, 0, 0.75), 0 60px 140px -60px rgba(15, 20, 18, 0.55); overflow: hidden; }
+.aygm-venster-balk { display: flex; align-items: center; gap: 14px; height: 38px; padding: 0 14px; background: var(--bg-card); border-bottom: 1px solid var(--line); }
+.aygm-stippen { display: flex; gap: 6px; }
+.aygm-stippen i { width: 9px; height: 9px; border-radius: 50%; background: var(--bg-raised); }
+.aygm-adres { flex: 1; max-width: 300px; margin-inline: auto; height: 22px; border-radius: 6px; background: var(--bg-app); color: var(--text-3); font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.aygm-app-kop { display: flex; align-items: center; gap: 18px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.aygm-app-merk { display: flex; align-items: center; gap: 8px; font: 700 13px/1 var(--ayg-font-kop); letter-spacing: -0.01em; }
+.aygm-app-merk i { width: 20px; height: 20px; border-radius: 6px; background: var(--brand); }
+.aygm-app-groepen { display: flex; gap: 4px; color: var(--text-3); font-size: 12px; font-weight: 500; overflow: hidden; }
+.aygm-app-groepen span { padding: 5px 9px; border-radius: 7px; white-space: nowrap; }
+.aygm-app-groepen span[data-actief] { background: var(--bg-raised); color: var(--text-1); }
+.aygm-app-inhoud { padding: 18px; }
+
+/* ── Rooster ─────────────────────────────────────────────────────────────── */
+.aygm-rooster-kop { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 14px; }
+.aygm-rooster { display: grid; grid-template-columns: 36px repeat(5, minmax(0, 1fr)); grid-template-rows: 24px repeat(6, 40px); gap: 4px; }
+.aygm-rooster-dag { font-size: 11px; font-weight: 600; color: var(--text-3); align-self: center; }
+.aygm-rooster-dag[data-vandaag] { color: var(--brand-tekst); }
+.aygm-rooster-uur { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.aygm-les { border-radius: 8px; padding: 6px 7px; background: var(--bg-card); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); overflow: hidden; display: grid; align-content: start; gap: 2px; min-width: 0; }
+.aygm-les b { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-les span { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aygm-les[data-vol] { border-left-color: var(--club-let-op); }
+.aygm-les[data-druk] { border-left-color: var(--brand); }
+.aygm-les[data-vol] span { color: var(--club-let-op); }
+
+/* ── Telefoon ────────────────────────────────────────────────────────────── */
+.aygm-toestel { width: 300px; max-width: 100%; aspect-ratio: 300 / 620; padding: 9px; border-radius: 48px; background: linear-gradient(150deg, #2a2f2c, #0c0e0d 40%, #1f2421); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.08), 0 40px 80px -30px rgba(0, 0, 0, 0.7), 0 80px 140px -70px rgba(15, 20, 18, 0.6); }
+.aygm-scherm { position: relative; height: 100%; border-radius: 40px; background: var(--bg-app); overflow: hidden; display: flex; flex-direction: column; }
+.aygm-status { display: flex; justify-content: space-between; align-items: center; height: 40px; padding: 0 24px; font-size: 11.5px; font-weight: 600; flex-shrink: 0; }
+.aygm-eiland { width: 84px; height: 24px; border-radius: 20px; background: #000; }
+.aygm-scherm-inhoud { flex: 1; overflow: hidden; padding: 6px 16px 16px; display: grid; align-content: start; gap: 12px; }
+.aygm-scherm-merk { display: flex; align-items: center; gap: 8px; font: 800 14px/1 var(--ayg-font-kop); letter-spacing: 0.02em; text-transform: uppercase; }
+.aygm-scherm-merk i { width: 22px; height: 22px; border-radius: 7px; background: var(--brand); }
+.aygm-tabs { display: grid; grid-template-columns: repeat(6, 1fr); padding: 8px 8px 18px; border-top: 1px solid var(--line); background: var(--bg-card); flex-shrink: 0; }
+.aygm-tabs span { display: grid; justify-items: center; gap: 3px; font-size: 8.5px; color: var(--text-3); }
+.aygm-tabs span[data-actief] { color: var(--brand-tekst); }
+.aygm-tabs svg { width: 17px; height: 17px; }
+
+/* App-schermen */
+.aygm-hallo { font: 700 22px/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
+.aygm-volgende { background: var(--brand); color: var(--brand-inkt); border-radius: 14px; padding: 14px; display: grid; gap: 4px; }
+.aygm-volgende .aygm-boven { color: inherit; opacity: 0.7; }
+.aygm-volgende b { font: 700 19px/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.aygm-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.aygm-qr { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.aygm-qr svg { width: 64px; height: 64px; border-radius: 6px; background: #fff; padding: 5px; }
+.aygm-lijst { display: grid; gap: 8px; }
+.aygm-rij { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 12px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); }
+.aygm-rij-tekst { display: grid; gap: 2px; min-width: 0; }
+.aygm-rij-tekst b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-rij-tekst span { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-dagen { display: flex; gap: 6px; }
+.aygm-dagen span { flex: 1; display: grid; justify-items: center; gap: 1px; padding: 7px 0; border-radius: 10px; background: var(--bg-card); font-size: 10px; color: var(--text-3); }
+.aygm-dagen span b { font-size: 14px; color: var(--text-1); }
+.aygm-dagen span[data-actief] { background: var(--brand); color: var(--brand-inkt); }
+.aygm-dagen span[data-actief] b { color: var(--brand-inkt); }
+.aygm-oef { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); }
+.aygm-oef img { width: 52px; height: 52px; border-radius: 9px; background: #f2f0e9; object-fit: cover; }
+.aygm-vink { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); display: grid; place-items: center; }
+.aygm-vink[data-aan] { background: var(--brand); color: var(--brand-inkt); box-shadow: none; }
+
+/* ── Oefening met coaching ───────────────────────────────────────────────── */
+.aygm-oefening { display: grid; gap: 0; border-radius: 18px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--line); box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.7); }
+@media (min-width: 720px) { .aygm-oefening { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.aygm-beeld { position: relative; aspect-ratio: 1; background: #f2f0e9; }
+.aygm-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.aygm-beeld-eind { animation: aygm-wissel 3.2s ease-in-out infinite; }
+@keyframes aygm-wissel { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
+.aygm-speler { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(15, 20, 18, 0.86); color: #f2f0e9; font-size: 11px; font-weight: 600; backdrop-filter: blur(8px); }
+.aygm-speler i { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); display: grid; place-items: center; font-style: normal; }
+.aygm-speler .aygm-balk { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.18); }
+.aygm-speler .aygm-balk > span { animation: aygm-voortgang 3.2s linear infinite; }
+@keyframes aygm-voortgang { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.aygm-coaching { padding: 22px; display: grid; gap: 16px; align-content: start; }
+.aygm-coaching-titel { font: 700 26px/1 var(--ayg-font-kop); letter-spacing: -0.035em; font-variation-settings: 'wdth' 86; }
+.aygm-kernpunten { display: grid; gap: 10px; counter-reset: k; }
+.aygm-kernpunten li { counter-increment: k; display: grid; grid-template-columns: 26px 1fr; gap: 10px; }
+.aygm-kernpunten li::before { content: counter(k); width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.aygm-kernpunten b { display: block; font-size: 13.5px; }
+.aygm-kernpunten span { font-size: 12px; color: var(--text-2); }
+.aygm-feiten { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.aygm-feiten div { padding: 10px 12px; border-radius: 10px; background: var(--bg-raised); display: grid; gap: 3px; }
+.aygm-feiten span { font-size: 12px; color: var(--text-2); }
+
+/* ── Tabellen (check-in, taken, personeel, opvolgen) ─────────────────────── */
+.aygm-tabel { display: grid; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.aygm-tabel > div { display: grid; align-items: center; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--line); min-width: 0; }
+.aygm-tabel > div:first-child { border-top: 0; background: var(--bg-card); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.aygm-tabel span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-raised); display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--text-2); flex-shrink: 0; }
+.aygm-wie { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.aygm-vakje { width: 18px; height: 18px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px var(--line-strong); justify-self: center; display: grid; place-items: center; }
+.aygm-vakje[data-aan] { background: var(--brand); color: var(--brand-inkt); box-shadow: none; }
+.aygm-zoek { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line-strong); color: var(--text-3); margin-bottom: 12px; }
+
+/* ── Cijfers ─────────────────────────────────────────────────────────────── */
+.aygm-tegels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+@media (min-width: 560px) { .aygm-tegels { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.aygm-tegel { padding: 12px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); display: grid; gap: 6px; }
+.aygm-staven { display: flex; align-items: end; gap: 6px; height: 110px; padding: 12px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); }
+.aygm-staven span { flex: 1; border-radius: 5px 5px 2px 2px; background: var(--bg-raised); transform-origin: bottom; }
+.aygm-staven span[data-nu] { background: var(--brand); }
+
+/* ── Huisstijl-demo ──────────────────────────────────────────────────────── */
+.aygm-kiezer { display: grid; gap: 18px; }
+.aygm-stalen { display: flex; flex-wrap: wrap; gap: 10px; }
+.aygm-staal { width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); transition: transform 200ms var(--ayg-ease); }
+.aygm-staal:hover { transform: scale(1.08); }
+.aygm-staal[aria-pressed='true'] { box-shadow: 0 0 0 3px var(--ayg-inkt), 0 0 0 5px var(--ayg-inkt-tekst-2); }
+.aygm-wissel { display: inline-flex; padding: 4px; border-radius: 12px; background: var(--ayg-inkt-2); gap: 4px; }
+.aygm-wissel button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--ayg-inkt-tekst-2); font: 600 14px/1 var(--ayg-font-tekst); cursor: pointer; }
+.aygm-wissel button[aria-pressed='true'] { background: var(--ayg-inkt-tekst); color: var(--ayg-inkt); }
+.aygm-melding { font-size: 13.5px; color: var(--ayg-inkt-tekst-2); min-height: 1.4em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aygm-beeld-eind, .aygm-speler .aygm-balk > span { animation: none !important; }
+}
+
+/* Smalle containers (onderaan, zodat deze regels winnen) */
+@container (max-width: 540px) {
+  .aygm-app-groepen { display: none; }
+  .aygm-rooster { grid-template-columns: 34px repeat(3, minmax(0, 1fr)); }
+  .aygm-rooster [data-dag='3'], .aygm-rooster [data-dag='4'] { display: none; }
+  .aygm-adres { max-width: 200px; font-size: 10px; }
+  .aygm-app-inhoud { padding: 14px; }
+}
+@container (max-width: 400px) {
+  .aygm-tabel > div { padding: 8px 10px; gap: 8px; }
+  .aygm-avatar { display: none; }
+}
+
