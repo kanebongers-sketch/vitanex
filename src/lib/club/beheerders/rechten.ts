@@ -63,6 +63,7 @@ const API_ONDERDEEL: Record<string, string> = {
   // Regels instellen controleert de route daarnaast zelf op Beheer.
   automatisering: 'opvolgen',
   challenges: 'challenges',
+  rapporten: 'rapporten',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */
