@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Archive, ArchiveRestore, ChevronLeft, Pin, PinOff, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Check, ChevronLeft, ListChecks, Pencil, Pin, PinOff, Trash2 } from 'lucide-react'
 import { VESTIGING_LABEL, type Vestiging } from '@/lib/club/kern/vestiging'
 import { MAPPEN, MAP_LABEL, MAX_INHOUD, MAX_TITEL, isMap, leesKladAntwoord, type KladNotitie, type KladWijziging } from '@/lib/club/kladblok/model'
 import { stuur } from '@/components/club/leden/stuur'
+import { vinkStand, voegVinkToe, wisselVinkje } from '@/lib/club/kladblok/opmaak'
+import { Leesweergave } from './Leesweergave'
 
 // Eén notitie bewerken. Tekst en titel slaan vanzelf op zodra je even stopt met
 // typen (zoals Evernote); map, vestiging, vastpinnen en archiveren meteen. Of het
@@ -27,6 +29,9 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
   const [titel, setTitel] = useState(notitie.titel)
   const [inhoud, setInhoud] = useState(notitie.inhoud)
   const [stand, setStand] = useState<Stand>('opgeslagen')
+  // Een notitie met inhoud opent om te lezen (vinkjes aanklikbaar); een lege om te schrijven.
+  const [bewerken, setBewerken] = useState(notitie.inhoud.trim() === '')
+  const tekstVeld = useRef<HTMLTextAreaElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const openstaand = useRef<KladWijziging>({})
 
@@ -62,9 +67,36 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
   })
   useEffect(() => () => spoelRef.current(), [])
 
+  /** Nu opslaan, samen met wat nog openstond (één verzoek, dus geen oude tekst die later binnenkomt). */
   async function meteen(w: KladWijziging) {
-    spoel()
-    await bewaar(w)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+    const samen = { ...openstaand.current, ...w }
+    openstaand.current = {}
+    await bewaar(samen)
+  }
+
+  const vinken = vinkStand(inhoud)
+
+  /** Een vakje aan- of uitvinken in de leesweergave: meteen opslaan. */
+  function vink(index: number) {
+    const nieuw = wisselVinkje(inhoud, index)
+    setInhoud(nieuw)
+    void meteen({ inhoud: nieuw })
+  }
+
+  /** Een afvinkpunt achteraan en meteen erin typen. */
+  function vinkErbij() {
+    const nieuw = voegVinkToe(inhoud)
+    setInhoud(nieuw)
+    later({ inhoud: nieuw })
+    setBewerken(true)
+    requestAnimationFrame(() => {
+      const veld = tekstVeld.current
+      if (!veld) return
+      veld.focus()
+      veld.setSelectionRange(nieuw.length, nieuw.length)
+    })
   }
 
   async function verwijder() {
@@ -127,16 +159,33 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
         onBlur={spoel}
         placeholder="Titel"
       />
-      <label className="club-sr" htmlFor="kb-inhoud">Tekst</label>
-      <textarea
-        id="kb-inhoud"
-        className="kb-inhoud"
-        value={inhoud}
-        maxLength={MAX_INHOUD}
-        onChange={(e) => { setInhoud(e.target.value); later({ inhoud: e.target.value }) }}
-        onBlur={spoel}
-        placeholder="Schrijf hier…"
-      />
+      <div className="kb-werkbalk">
+        <button type="button" className="club-knop club-knop--klein" onClick={() => { spoel(); setBewerken((x) => !x) }}>
+          {bewerken ? <><Check size={15} aria-hidden /> Klaar</> : <><Pencil size={15} aria-hidden /> Bewerken</>}
+        </button>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={vinkErbij}>
+          <ListChecks size={15} aria-hidden /> Afvinkpunt
+        </button>
+        {vinken.totaal > 0 ? <span className="club-hint">{vinken.klaar} van {vinken.totaal} afgevinkt</span> : null}
+        {bewerken ? <span className="club-hint kb-uitleg">[ ] afvinkpunt · - opsomming · # tussenkop</span> : null}
+      </div>
+      {bewerken ? (
+        <>
+          <label className="club-sr" htmlFor="kb-inhoud">Tekst</label>
+          <textarea
+            id="kb-inhoud"
+            ref={tekstVeld}
+            className="kb-inhoud"
+            value={inhoud}
+            maxLength={MAX_INHOUD}
+            onChange={(e) => { setInhoud(e.target.value); later({ inhoud: e.target.value }) }}
+            onBlur={spoel}
+            placeholder="Schrijf hier…"
+          />
+        </>
+      ) : (
+        <Leesweergave inhoud={inhoud} onVink={vink} />
+      )}
       <p className={`kb-stand${typeof stand === 'object' ? ' kb-stand--fout' : ''}`} role="status" aria-live="polite">
         {standTekst}{notitie.auteur ? ` · aangemaakt door ${notitie.auteur}` : ''}
       </p>

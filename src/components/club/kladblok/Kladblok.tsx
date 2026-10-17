@@ -5,6 +5,7 @@ import { Archive, Plus, Search } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { MAPPEN, MAP_LABEL, leesKladAntwoord, pastKlad, sorteerKlad, voorproef, type KladMap, type KladNotitie } from '@/lib/club/kladblok/model'
 import { stuur } from '@/components/club/leden/stuur'
+import { vinkStand } from '@/lib/club/kladblok/opmaak'
 import { NotitieEditor } from './NotitieEditor'
 
 // Notities à la Evernote: links de lijst (zoeken, mappen, archief), rechts de
@@ -17,6 +18,12 @@ interface Props {
   vestiging: Vestiging
   begin: KladNotitie[]
   startId: string | null
+}
+
+/** " · 2/5 afgevinkt" als de notitie afvinkpunten heeft, anders leeg. */
+function vinkTekst(inhoud: string): string {
+  const v = vinkStand(inhoud)
+  return v.totaal > 0 ? ` · ${v.klaar}/${v.totaal} afgevinkt` : ''
 }
 
 function zetUrl(id: string | null) {
@@ -104,7 +111,7 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
                   <span className="kb-item-titel">{n.vastgepind ? <span className="kb-pin" aria-label="Vastgepind">●</span> : null}{n.titel}</span>
                   <span className="kb-item-tekst">{voorproef(n.inhoud) || 'Lege notitie'}</span>
                   <span className="kb-item-meta">
-                    {MAP_LABEL[n.map]} · {n.vestiging ? '' : 'alle vestigingen · '}{BIJGEWERKT.format(new Date(n.bijgewerktOp))}
+                    {MAP_LABEL[n.map]} · {n.vestiging ? '' : 'alle vestigingen · '}{BIJGEWERKT.format(new Date(n.bijgewerktOp))}{vinkTekst(n.inhoud)}
                   </span>
                 </button>
               </li>

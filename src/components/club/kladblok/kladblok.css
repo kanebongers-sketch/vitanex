@@ -39,3 +39,15 @@
   .club-app .kb-terug { display: inline-flex; flex-basis: 100%; }
   .club-app .kb-knoppen { margin-left: 0; }
 }
+.club-app .kb-werkbalk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.club-app .kb-uitleg { font-size: 12px; }
+.club-app .kb-lees { display: grid; gap: 6px; min-height: 30vh; font-size: 15.5px; line-height: 1.65; color: var(--text-1); }
+.club-app .kb-alinea { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.club-app .kb-kop { margin: 10px 0 0; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-app .kb-punten { margin: 0; padding-left: 20px; }
+.club-app .kb-vinken { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.club-app .kb-vink { display: flex; align-items: flex-start; gap: 10px; padding: 6px 4px; border-radius: 8px; cursor: pointer; }
+.club-app .kb-vink:hover { background: var(--club-vlak); }
+.club-app .kb-vink input { width: 20px; height: 20px; margin-top: 3px; flex: none; accent-color: var(--brand); }
+.club-app .kb-vink--klaar span { color: var(--text-3); text-decoration: line-through; }
+.club-app .kb-wit { height: 6px; }
