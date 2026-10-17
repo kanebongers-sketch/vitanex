@@ -16,6 +16,7 @@ export interface ExterneToegangVelden {
   code: null
   rol: BeheerderRol
   isKane: false
+  persoonId: string
 }
 
 /**
@@ -34,5 +35,6 @@ export function externeToegangVelden(b: Beheerder, organisatie: Organisatie | nu
     code: null,
     rol: b.rol,
     isKane: false,
+    persoonId: b.id,
   }
 }

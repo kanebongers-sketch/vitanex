@@ -1,0 +1,72 @@
+import { describe, expect, it } from 'vitest'
+import { standaardRechten } from '@/lib/club/kern/org-instellingen'
+import { ONDERDELEN } from '@/components/club/shell/onderdelen'
+import { apiOnderdeel, magApi, magBeheerdersBeheren, magOnderdeel, toegestaneOnderdelen } from './rechten'
+
+const KANE = { isKane: true, rol: 'beheerder' } as const
+const EIGENAAR = { isKane: false, rol: 'eigenaar' } as const
+const MANAGER = { isKane: false, rol: 'clubmanager' } as const
+
+describe('wie beheert beheerders en het adres', () => {
+  it('Kane en de eigenaar wel, de clubmanager niet', () => {
+    expect(magBeheerdersBeheren(KANE)).toBe(true)
+    expect(magBeheerdersBeheren(EIGENAAR)).toBe(true)
+    expect(magBeheerdersBeheren(MANAGER)).toBe(false)
+  })
+})
+
+describe('toegestaneOnderdelen', () => {
+  const rechten = { ...standaardRechten(), manager: ['leden', 'rooster'] }
+  it('Kane en de eigenaar: alles', () => {
+    expect(toegestaneOnderdelen(KANE, rechten)).toBeNull()
+    expect(toegestaneOnderdelen(EIGENAAR, rechten)).toBeNull()
+  })
+  it('beheer en huisstijl nooit voor een clubmanager, ook niet als ze opgeslagen zijn', () => {
+    const t = toegestaneOnderdelen(MANAGER, { ...standaardRechten(), manager: ['leden', 'beheer', 'huisstijl'] })
+    expect(t).toEqual(['vandaag', 'leden'])
+  })
+  it('clubmanager: de rechten van de rol Clubmanager, altijd met Vandaag', () => {
+    const t = toegestaneOnderdelen(MANAGER, rechten)
+    expect(t).toEqual(['vandaag', 'leden', 'rooster'])
+    expect(magOnderdeel(t, 'leden')).toBe(true)
+    expect(magOnderdeel(t, 'cijfers')).toBe(false)
+    expect(magOnderdeel(t, 'huisstijl')).toBe(false)
+  })
+})
+
+describe('apiOnderdeel', () => {
+  it('koppelt API-paden aan onderdelen die echt bestaan', () => {
+    const sleutels = new Set(ONDERDELEN.map((o) => o.sleutel))
+    for (const pad of ['/api/club/leden/1', '/api/club/kladblok', '/api/club/training/schemas', '/api/club/vestigingen', '/api/club/organisatie', '/api/club/organisatie/instellingen']) {
+      const sleutel = apiOnderdeel(pad)
+      expect(sleutel, pad).not.toBeNull()
+      expect(sleutels.has(sleutel ?? '')).toBe(true)
+    }
+    expect(apiOnderdeel('/api/club/kladblok')).toBe('notities')
+    expect(apiOnderdeel('/api/club/training/x')).toBe('schemas')
+  })
+  it('beheerders, adres, wisselen en nieuwe sportschool horen bij geen onderdeel', () => {
+    for (const pad of ['/api/club/beheerders', '/api/club/organisatie/adres', '/api/club/organisatie/wissel', '/api/club/organisatie/nieuw', '/api/club/onbekend']) {
+      expect(apiOnderdeel(pad), pad).toBeNull()
+    }
+  })
+})
+
+describe('magApi', () => {
+  const manager = ['vandaag', 'leden']
+  it('alles mag bij null (Kane, eigenaar)', () => {
+    expect(magApi(null, '/api/club/beheerders', 'POST')).toBe(true)
+  })
+  it('clubmanager: alleen eigen onderdelen, onbekend is dicht', () => {
+    expect(magApi(manager, '/api/club/leden/123', 'PATCH')).toBe(true)
+    expect(magApi(manager, '/api/club/rooster', 'GET')).toBe(false)
+    expect(magApi(manager, '/api/club/beheerders', 'POST')).toBe(false)
+    expect(magApi(manager, '/api/club/organisatie/adres', 'PATCH')).toBe(false)
+    expect(magApi(manager, '/api/club/organisatie/instellingen', 'PATCH')).toBe(false)
+    expect(magApi(manager, '/api/club/iets-nieuws', 'GET')).toBe(false)
+  })
+  it('het logo ophalen mag altijd (de balk toont het), uploaden niet', () => {
+    expect(magApi(manager, '/api/club/organisatie/logo', 'GET')).toBe(true)
+    expect(magApi(manager, '/api/club/organisatie/logo', 'POST')).toBe(false)
+  })
+})

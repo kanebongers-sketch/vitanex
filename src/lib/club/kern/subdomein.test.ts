@@ -39,6 +39,7 @@ describe('subdomein per sportschool', () => {
     expect(beslisClub('gym.aiyourgym.com', '/leden', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/clubkane/leden' })
     expect(beslisClub('gym.aiyourgym.com', '/clubkane/leden', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('gym.aiyourgym.com', '/api/club/leden', true)).toEqual({ soort: 'door', slug: 'gym' })
+    expect(beslisClub('gym.aiyourgym.com', '/clubinloggen/abcdefghijklmnopqrstuvwx', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('fitfactorypt.nl', '/leden', true)).toEqual({ soort: 'niet-van-mij' })
   })
 })

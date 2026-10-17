@@ -1,15 +1,15 @@
 // POST /api/club/beheerders  { naam, email?, rol }
-// Kane zet een eigenaar of clubmanager klaar voor de sportschool die nu open
-// staat. Alleen Kane; anderen krijgen een 404. De link werkt pas als de
+// Kane of de eigenaar zet een eigenaar of clubmanager klaar voor de eigen
+// sportschool (die nu open staat). Een clubmanager krijgt een 404. De link werkt pas als de
 // schakelaar CLUB_EIGEN_LOGIN aan staat.
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { clubFout, clubJson, logActie, vereisKane } from '@/lib/club/toegang'
+import { clubFout, clubJson, logActie, vereisBeheerdersBeheer } from '@/lib/club/toegang'
 import { MAX_BEHEERDERS, ROL_LABEL, leesNieuweBeheerder } from '@/lib/club/beheerders/beheerder'
 import { haalBeheerders, maakBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 
 export async function POST(req: NextRequest) {
-  const t = await vereisKane(req)
+  const t = await vereisBeheerdersBeheer(req)
   if (t instanceof NextResponse) return t
   // Fit Factory zelf krijgt nog geen beheerders: Club is geheim tot de presentatie.
   if (t.userId === t.beheerderId) return clubFout('Voor Fit Factory zelf maak je nog geen beheerders aan: Club blijft geheim tot de presentatie.', 400)

@@ -62,17 +62,22 @@ export function actiefOnderdeel(pad: string): Onderdeel {
   return passend[0] ?? ONDERDELEN[0]
 }
 
-/** Staat dit onderdeel aan bij deze sportschool? */
-export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = []): boolean {
+/**
+ * Staat dit onderdeel aan bij deze sportschool, en mag deze persoon het zien?
+ * `toegestaan` null = alles (Kane en de eigenaar); anders de sleutels die de
+ * eigenaar aan de rol gaf (zie src/lib/club/beheerders/rechten.ts).
+ */
+export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): boolean {
+  if (toegestaan !== null && !toegestaan.includes(onderdeel.sleutel)) return false
   return !onderdeel.module || !uit.includes(onderdeel.module)
 }
 
 /** De onderdelen van een groep die aan staan, in vaste volgorde. */
-export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = []): Onderdeel[] {
-  return ONDERDELEN.filter((o) => o.groep === groep && isZichtbaar(o, uit))
+export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+  return ONDERDELEN.filter((o) => o.groep === groep && isZichtbaar(o, uit, toegestaan))
 }
 
 /** De groepen met minstens een onderdeel dat aan staat. */
-export function groepenMet(uit: readonly Module[] = []): (typeof GROEPEN)[number][] {
-  return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit).length > 0)
+export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): (typeof GROEPEN)[number][] {
+  return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit, toegestaan).length > 0)
 }

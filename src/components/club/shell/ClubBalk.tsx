@@ -72,11 +72,13 @@ interface MenuPaneelProps {
   pilot: boolean
   pad: string
   uit: readonly Module[]
+  /** Wat deze persoon mag zien; null = alles. */
+  toegestaan: readonly string[] | null
   onSluit: () => void
   onWissel: (v: string) => void
 }
 
-function MenuPaneel({ vestiging, pilot, pad, uit, onSluit, onWissel }: MenuPaneelProps) {
+function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, onSluit, onWissel }: MenuPaneelProps) {
   const sluitKnop = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -93,11 +95,11 @@ function MenuPaneel({ vestiging, pilot, pad, uit, onSluit, onWissel }: MenuPanee
             <X aria-hidden size={20} />
           </button>
         </div>
-        {groepenMet(uit).map((g) => (
+        {groepenMet(uit, toegestaan).map((g) => (
           <section key={g.sleutel} className="club-menu-groep" aria-label={g.label}>
             <h2>{g.label}</h2>
             <ul>
-              {onderdelenVan(g.sleutel, uit).map((o) => (
+              {onderdelenVan(g.sleutel, uit, toegestaan).map((o) => (
                 <li key={o.sleutel}>
                   <Link href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} onClick={onSluit}>
                     <span>{o.label}</span>
@@ -119,9 +121,11 @@ interface ClubBalkProps {
   merk: ClubMerkInfo
   /** Onderdelen die bij deze sportschool uit staan. */
   uit: readonly Module[]
+  /** Wat deze persoon mag zien; null = alles. */
+  toegestaan: readonly string[] | null
 }
 
-export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
+export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
@@ -143,8 +147,8 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
           <span className="club-merk-woord">CLUB</span>
         </Link>
         <nav className="club-groepen" aria-label="Groepen">
-          {groepenMet(uit).map((g) => {
-            const eerste = onderdelenVan(g.sleutel, uit)[0]
+          {groepenMet(uit, toegestaan).map((g) => {
+            const eerste = onderdelenVan(g.sleutel, uit, toegestaan)[0]
             return (
               <Link key={g.sleutel} href={href(eerste?.pad ?? '', vestiging)} aria-current={huidig.groep === g.sleutel ? 'true' : undefined} title={g.uitleg}>
                 {g.label}
@@ -174,13 +178,13 @@ export function ClubBalk({ ptCode, merk, uit }: ClubBalkProps) {
         </div>
       </div>
       <nav className="club-nav" aria-label={`Onderdelen van ${GROEPEN.find((g) => g.sleutel === huidig.groep)?.label ?? 'de groep'}`}>
-        {onderdelenVan(huidig.groep, uit).map((o) => (
+        {onderdelenVan(huidig.groep, uit, toegestaan).map((o) => (
           <Link key={o.sleutel} href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} title={o.uitleg}>
             {o.label}
           </Link>
         ))}
       </nav>
-      {menuOpen && <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
+      {menuOpen && <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} toegestaan={toegestaan} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
     </header>
   )
 }

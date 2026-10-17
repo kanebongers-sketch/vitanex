@@ -48,7 +48,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>
           <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-            <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} />
+            <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} toegestaan={t.onderdelen} />
           </Suspense>
           <main className="club-werkvlak">{children}</main>
         </VestigingenProvider>
