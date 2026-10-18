@@ -70,6 +70,12 @@
 .club-training-spieroverzicht th, .club-training-spieroverzicht td { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--line); }
 .club-training-spieroverzicht th:first-child, .club-training-spieroverzicht td:first-child { text-align: left; }
 .club-training-spieroverzicht thead th { font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+/* Smalle kolom (tablet): de tabel krimpt mee in plaats van de pagina breder te maken. */
+.club-training-spieroverzicht { min-width: 0; overflow-x: auto; }
+@media (max-width: 1279px) {
+  .club-training-spieroverzicht thead th { font-size: 10.5px; letter-spacing: 0.02em; }
+  .club-training-spieroverzicht th, .club-training-spieroverzicht td { padding: 6px 2px; }
+}
 .club-training-spieroverzicht td[data-nul='true'] { color: var(--text-4); }
 .club-training-spieroverzicht-dag { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; }
 .club-training-spieroverzicht-gat { margin: 0; font-size: 13px; line-height: 1.5; color: var(--club-let-op); }

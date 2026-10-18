@@ -39,21 +39,29 @@ export default async function TrainingPagina({ searchParams }: { searchParams: Z
   const paden = trainingPaden(vestiging)
   const props = { t, vestiging, lid, trainers }
 
+  // Een hoofdactie per tabblad: intake afnemen (Intakes) of een nieuw sjabloon (Sjablonen).
+  // Bij Schema's is de lijst of de lege staat de hoofdzaak; daar is de intake een gewone knop.
+  // De bibliotheek heeft een eigen knop voor een nieuwe oefening.
+  const metIntake = tab === 'intakes' || tab === 'schemas'
   return (
     <>
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
           <h1>Training</h1>
-          <p>Intakes, schema&apos;s en oefeningen. Van intake naar een voorstel en een schema op maat in een paar minuten.</p>
+          <p>Van intake naar een schema op maat: intake afnemen, voorstel maken, aanpassen en activeren.</p>
         </div>
-        <div className="club-acties">
-          <Link className="club-knop" href={paden.nieuweIntake(lid?.id ?? null)}>
-            <ClipboardPlus aria-hidden size={16} /> Intake afnemen
-          </Link>
-          {lid && <NieuwSchemaKnop lidId={lid.id} editorHref={paden.editor} label="Leeg schema" />}
-          {tab === 'sjablonen' && <NieuwSchemaKnop lidId={null} editorHref={paden.editor} label="Nieuw sjabloon" />}
-        </div>
+        {(metIntake || tab === 'sjablonen') && (
+          <div className="club-acties">
+            {metIntake && lid && <NieuwSchemaKnop lidId={lid.id} editorHref={paden.editor} label="Leeg schema" primair={false} />}
+            {metIntake && (
+              <Link className={`club-knop${tab === 'intakes' ? ' club-knop--primair' : ''}`} href={paden.nieuweIntake(lid?.id ?? null)}>
+                <ClipboardPlus aria-hidden size={16} /> Intake afnemen
+              </Link>
+            )}
+            {tab === 'sjablonen' && <NieuwSchemaKnop lidId={null} editorHref={paden.editor} label="Nieuw sjabloon" primair={!lid} />}
+          </div>
+        )}
       </section>
 
       <div className="club-training-balk">

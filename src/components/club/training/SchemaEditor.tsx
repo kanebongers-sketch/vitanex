@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
 import {
-  hernoemDag, koppelAanVorige, kopieerDag, naarPayloadRegels, nieuweDag, ontkoppel, verplaats, verplaatsNaar, verwijderDag, verwijderRegel,
+  hernoemDag, koppelAanVorige, kopieerDag, naarPayloadRegels, nieuweDag, ontkoppel, verplaats, verplaatsNaar, verwijderDag, verwijderRegel, vervangOefening,
   voegToe, wijzigRegel, zetGewicht, zetInspanning, zetMaat, type EditorStaat,
 } from '@/lib/club/training/editor'
 import { bronnenVan } from '@/lib/club/training/beeld'
@@ -16,6 +16,8 @@ import { dosering } from '@/lib/club/training/voorstel-regels'
 import { stuur } from './api'
 import { EditorDag } from './EditorDag'
 import { EditorKop, type KopStaat } from './EditorKop'
+import { VervangContext } from './editor/VervangOefening'
+import { WaaromSchema } from './editor/WaaromSchema'
 import { EditorWerkbalk } from './EditorWerkbalk'
 import type { RegelActies } from './editor/EditorRegelRij'
 import { ProgressieKaart } from './editor/ProgressieKaart'
@@ -70,19 +72,22 @@ export function SchemaEditor(p: SchemaEditorProps) {
   const zetKop = (deel: Partial<KopStaat>) => setKop((k) => ({ ...k, ...deel }))
   const sluitKiezer = useCallback(() => setKiesVoor(null), [])
 
-  const opslaan = useCallback(async () => {
+  // Opslaan; met `extra` wijzigt er eerst iets aan de kop (Activeren zet de status op actief).
+  const opslaan = useCallback(async (extra: Partial<KopStaat> = {}) => {
+    const nieuw = { ...kop, ...extra }
     setBezig(true)
     setFout(null)
     const u = await stuur(`/schemas/${p.schemaId}`, 'PUT', {
-      ...kop,
-      weken: kop.weken.trim() || null,
-      medewerkerId: kop.medewerkerId || null,
+      ...nieuw,
+      weken: nieuw.weken.trim() || null,
+      medewerkerId: nieuw.medewerkerId || null,
       dagTitels: staat.dagTitels,
       regels: naarPayloadRegels(staat),
     })
     setBezig(false)
     if (!u.ok) return setFout(u.fout)
-    setBewaard(JSON.stringify([kop, staat]))
+    setKop(nieuw)
+    setBewaard(JSON.stringify([nieuw, staat]))
     router.refresh()
   }, [kop, staat, p.schemaId, router])
 
@@ -126,6 +131,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
       onKoppel: (k) => wijzig((s) => koppelAanVorige(s, k)),
       onOntkoppel: (k) => wijzig((s) => ontkoppel(s, k)),
       onVerwijder: (k) => wijzig((s) => verwijderRegel(s, k)),
+      onVervang: (k, id) => wijzig((s) => vervangOefening(s, k, id)),
       onSleepStart: (k) => {
         sleep.current = k
       },
@@ -159,13 +165,15 @@ export function SchemaEditor(p: SchemaEditorProps) {
   }
 
   const trainer = p.trainers.find((t) => t.id === kop.medewerkerId)?.naam ?? null
+  const vervangBron = useMemo(() => ({ oefeningen: kiesbaar, regels: staat.regels }), [kiesbaar, staat.regels])
   const huidigGewicht = useMemo(() => new Map(staat.regels.map((r) => [r.oefeningId, r.gewichtKg])), [staat.regels])
 
   return (
+    <VervangContext.Provider value={vervangBron}>
     <div className="club-training-editor">
       <EditorWerkbalk
-        schemaId={p.schemaId} naam={kop.naam} isSjabloon={p.isSjabloon} vestiging={p.vestiging} gewijzigd={gewijzigd} bezig={bezig}
-        onOpslaan={opslaan} editorHref={p.editorHref} terugHref={p.terugHref}
+        schemaId={p.schemaId} naam={kop.naam} isSjabloon={p.isSjabloon} status={kop.status} vestiging={p.vestiging} gewijzigd={gewijzigd} bezig={bezig}
+        onOpslaan={() => void opslaan()} onActiveren={() => void opslaan({ status: 'actief' })} editorHref={p.editorHref} terugHref={p.terugHref}
         kanOngedaan={ed.kanOngedaan} kanOpnieuw={ed.kanOpnieuw} onOngedaan={ed.ongedaan} onOpnieuw={ed.opnieuw}
       />
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
@@ -202,9 +210,10 @@ export function SchemaEditor(p: SchemaEditorProps) {
         </div>
         <div className="club-k4 club-training-zij">
           <EditorKop kop={kop} zet={zetKop} trainers={p.trainers} isSjabloon={p.isSjabloon} />
+          <WaaromSchema notitie={kop.notitie} />
           {p.progressie && <ProgressieKaart regels={p.progressie} huidig={huidigGewicht} onOvernemen={(id, kg) => wijzig((s) => zetGewicht(s, id, kg))} />}
-          <SpierOverzicht staat={staat} oefeningen={perId} />
           {p.zijkant}
+          <SpierOverzicht staat={staat} oefeningen={perId} />
         </div>
       </div>
       {kiesVoor !== null && (
@@ -218,5 +227,6 @@ export function SchemaEditor(p: SchemaEditorProps) {
       )}
       <SchemaPrint naam={kop.naam} lidNaam={p.lidNaam} doel={kop.doel} weken={kop.weken} trainer={trainer} notitie={kop.notitie} staat={staat} oefeningen={perId} />
     </div>
+    </VervangContext.Provider>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leesGelogdeSets, samenvatting, toonDuur, toonKlok, type SetInvoer } from './sets'
+import { leesGelogdeSets, nieuweRecords, samenvatting, toonDuur, toonKlok, type SetInvoer } from './sets'
 
 const A = '11111111-1111-4111-8111-111111111111'
 const B = '22222222-2222-4222-8222-222222222222'
@@ -45,6 +45,14 @@ describe('samenvatting', () => {
     expect(samenvatting([set(A, 1, 8, 60)], new Map(), namen).records).toEqual([])
     expect(samenvatting([set(A, 1, 20, null)], new Map([[A, { gewichtKg: null, herhalingen: 10 }]]), namen).records).toEqual([])
     expect(samenvatting([set(A, 1, 8, 55)], new Map([[A, { gewichtKg: 60, herhalingen: 5 }]]), namen).records).toEqual([])
+  })
+})
+
+describe('nieuweRecords', () => {
+  it('geeft het nieuwe en het oude record', () => {
+    const s = (setNr: number, herhalingen: number, gewichtKg: number): SetInvoer => ({ oefeningId: A, setNr, herhalingen, gewichtKg, tijdSec: null })
+    const r = nieuweRecords([s(1, 8, 60), s(2, 6, 62.5)], new Map([[A, { gewichtKg: 60, herhalingen: 10 }]]), new Map([[A, 'Back squat']]))
+    expect(r).toEqual([{ oefeningId: A, naam: 'Back squat', gewichtKg: 62.5, herhalingen: 6, vorigKg: 60, vorigHerhalingen: 10 }])
   })
 })
 

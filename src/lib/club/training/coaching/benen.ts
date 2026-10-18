@@ -33,7 +33,7 @@ export const COACHING_BENEN: CoachingBoek = {
   'Achterwaartse lunge met dumbbells': {
     kernpunten: [
       { punt: 'Schouders laag', uitleg: 'Laat de dumbbells hangen aan gestrekte armen en trek je schouders niet op naar je oren.' },
-      { punt: 'Stap ver genoeg terug', uitleg: 'Een ruime pas houdt je voorste scheen redelijk verticaal en spaart je knie.' },
+      { punt: 'Stap ver genoeg terug', uitleg: 'Met een ruime pas blijft je voorste scheen bijna verticaal en blijft je gewicht op je voorste hiel.' },
       { punt: 'Druk via je voorste hiel', uitleg: 'Je voelt het in bil en bovenbeen van het voorste been. Dat been tilt je omhoog.' },
       { punt: 'Romp blijft rechtop', uitleg: 'De dumbbells trekken je niet naar voren. Borst omhoog, buik licht aangespannen.' },
     ],
@@ -173,7 +173,7 @@ export const COACHING_BENEN: CoachingBoek = {
       { punt: 'Zwaai je armen mee', uitleg: 'Armen naar achteren bij het inzakken en krachtig naar voren en omhoog. Dat geeft je sprong extra hoogte.' },
       { punt: 'Land zacht', uitleg: 'Land met je hele voet op de box en buig door je knieen en heupen, alsof je geluidloos wilt landen.' },
       { punt: 'Knieen naar buiten bij landing', uitleg: 'Je knieen wijzen in de richting van je tenen. Vallen ze naar binnen, dan is de box te hoog.' },
-      { punt: 'Stap rustig af', uitleg: 'Stap een voor een naar beneden. Terugspringen belast je achillespezen onnodig.' },
+      { punt: 'Stap rustig af', uitleg: 'Stap met een been tegelijk naar beneden. Terugspringen geeft een harde landing zonder dat het iets toevoegt.' },
     ],
     opstelling: [
       'Kies een stevige box die niet kan schuiven en begin laag, bijvoorbeeld 30 tot 40 cm.',
@@ -186,7 +186,7 @@ export const COACHING_BENEN: CoachingBoek = {
       'Stap rustig met een been tegelijk naar beneden.',
     ],
     fouten: [
-      { fout: 'Box te hoog gekozen', beter: 'Je landt hoger dan je diepste squat. Kies een box waarop je rechtop en ontspannen landt.' },
+      { fout: 'Box te hoog gekozen', beter: 'Land je in een diepe squat of met je knieen tegen je borst, dan is de box te hoog. Kies een box waarop je rechtop landt.' },
       { fout: 'Hard landen met gestrekte benen', beter: 'Buig door bij de landing en vang je gewicht op met heupen en knieen.' },
       { fout: 'Doorgaan als je moe bent', beter: 'Stop als je sprongen lager of slordiger worden. Kwaliteit boven aantal, een misser op een box doet pijn.' },
     ],
@@ -227,7 +227,7 @@ export const COACHING_BENEN: CoachingBoek = {
   Deadlift: {
     kernpunten: [
       { punt: 'Stang boven je middenvoet', uitleg: 'Van bovenaf gezien loopt de stang over het midden van je voet. Zo trek je in een rechte lijn omhoog.' },
-      { punt: 'Rug recht, borst trots', uitleg: 'Je rug blijft neutraal van begin tot eind. Denk aan borst iets naar voren, niet aan hol of bol.' },
+      { punt: 'Rug recht, borst trots', uitleg: 'Je rug blijft neutraal van begin tot eind, niet hol en niet bol. Kijk een paar meter voor je op de grond.' },
       { punt: 'Spanning voor je trekt', uitleg: 'Trek de stang strak tegen de schijven zodat er geen ruimte meer is. Pas dan duw je de grond weg.' },
       { punt: 'Stang langs je benen', uitleg: 'De stang schuift langs je scheenbenen en dijen omhoog. Zo blijft de last dicht bij je lichaam.' },
       { punt: 'Bovenaan rechtop, niet hol', uitleg: 'Eindig met gestrekte heupen en aangespannen billen. Leun niet achterover.' },
@@ -235,7 +235,7 @@ export const COACHING_BENEN: CoachingBoek = {
     opstelling: [
       'Sta met je voeten op heupbreedte en de stang boven je middenvoet.',
       'Buig voorover en pak de stang net buiten je knieen. Laat je scheenbenen de stang raken zonder hem weg te duwen.',
-      'Trek je schouderbladen licht naar achteren en omlaag, alsof je je oksels naar de stang trekt.',
+      'Strek je armen en span je brede rugspieren aan, alsof je je oksels naar je heupen trekt.',
     ],
     stappen: [
       'Adem diep in, span je buik aan en trek de spanning uit de stang.',
@@ -333,7 +333,7 @@ export const COACHING_BENEN: CoachingBoek = {
       { fout: 'Knieen vallen naar binnen', beter: 'Duw je knieen actief naar buiten. Lukt dat niet, neem dan minder gewicht.' },
       { fout: 'Onderin stuiteren', beter: 'Rem af en draai rustig om onderin. Niet terugveren op je knieen.' },
     ],
-    ademhaling: 'Adem in tijdens het zakken, adem uit bij het omhoog duwen.',
+    ademhaling: 'Adem in en zet je buik vast voor je zakt, adem uit als je bijna boven bent.',
     tempo: '3 tellen omlaag, kort stil, 1 tel omhoog.',
     makkelijker: 'Minder gewicht en minder diep, of eerst de leg press.',
     zwaarder: 'Houd onderin 2 tellen stil of zet je voeten wat lager voor meer werk in je bovenbenen.',
@@ -422,7 +422,7 @@ export const COACHING_BENEN: CoachingBoek = {
 
   'Leg extension': {
     kernpunten: [
-      { punt: 'Knie bij het draaipunt', uitleg: 'Je knie ligt op een lijn met de as van de machine. Zo beweegt het kussen mee en is het werk prettig voor je knie.' },
+      { punt: 'Knie bij het draaipunt', uitleg: 'Je knie ligt op een lijn met de as van de machine. Zo loopt de beweging soepel en schuift het kussen niet over je scheen.' },
       { punt: 'Rustig strekken', uitleg: 'Strek je benen zonder klap of zwaai. Je voelt de voorkant van je bovenbenen aanspannen.' },
       { punt: 'Bovenaan kort vasthouden', uitleg: 'Houd de strekking 1 tel vast en span je bovenbeen bewust aan voor je laat zakken.' },
       { punt: 'Billen op de stoel', uitleg: 'Houd de handgrepen vast en blijf zitten. Kom je omhoog uit de stoel, dan is het te zwaar.' },
@@ -469,7 +469,7 @@ export const COACHING_BENEN: CoachingBoek = {
       { fout: 'Knieen klikken op slot bovenaan', beter: 'Stop net voor volledige strekking en houd een kleine buiging in je knieen.' },
       { fout: 'Duwen met je handen op je knieen', beter: 'Houd de handgrepen vast. Lukt de herhaling niet zonder hulp, neem dan minder gewicht.' },
     ],
-    ademhaling: 'Adem in als het plateau zakt, adem uit als je het wegduwt.',
+    ademhaling: 'Adem in en zet je buik vast voor het plateau zakt, adem uit als je bijna gestrekt bent.',
     tempo: '3 tellen omlaag, kort stil, 1 tel omhoog.',
     makkelijker: 'Minder gewicht en minder diep zakken.',
     zwaarder: 'Houd onderin 2 tellen stil of duw met een been tegelijk.',
@@ -496,7 +496,7 @@ export const COACHING_BENEN: CoachingBoek = {
       { fout: 'Romp valt voorover', beter: 'Houd je borst omhoog en je ellebogen onder de stang. Neem minder gewicht.' },
       { fout: 'Achterste knie klapt op de grond', beter: 'Stop net boven de vloer en kom gecontroleerd omhoog.' },
     ],
-    ademhaling: 'Adem in voor je stap en tijdens het zakken, adem uit bij het terugduwen.',
+    ademhaling: 'Adem in en zet je buik vast voor je stapt, adem uit als je terug bent bij de start.',
     tempo: '2 tellen omlaag, krachtig terug naar de start.',
     makkelijker: 'Doe de lunge met dumbbells of de achterwaartse lunge.',
     zwaarder: 'Verhoog het gewicht in kleine stappen zolang je stabiel blijft.',
@@ -548,9 +548,9 @@ export const COACHING_BENEN: CoachingBoek = {
     fouten: [
       { fout: 'Rug wordt bol onderin', beter: 'Stop eerder. Je zakt alleen zo ver als je rug recht blijft, vaak net onder je knieen.' },
       { fout: 'Knieen buigen steeds verder', beter: 'Zet je knieen in een lichte buiging vast en beweeg alleen vanuit je heupen.' },
-      { fout: 'Stang hangt voor je uit', beter: 'Trek de stang naar je toe met je schouderbladen. Hij raakt bijna je broek.' },
+      { fout: 'Stang hangt voor je uit', beter: 'Span je brede rugspieren aan, alsof je je oksels naar je heupen trekt. De stang schuift langs je broek.' },
     ],
-    ademhaling: 'Adem in tijdens het zakken, adem uit als je omhoog komt.',
+    ademhaling: 'Adem in en zet je buik vast voor je zakt, adem uit als je bijna rechtop staat.',
     tempo: '3 tellen omlaag, kort stil, 1 tel omhoog.',
     makkelijker: 'Doe hem met dumbbells of een lichte stang en zak minder diep.',
     zwaarder: 'Verhoog het gewicht of houd onderin 2 tellen stil in de rek.',
@@ -575,7 +575,7 @@ export const COACHING_BENEN: CoachingBoek = {
     fouten: [
       { fout: 'Te diep zakken met een bolle rug', beter: 'Stop zodra je rug wil krommen. Diepte komt met de tijd, rechte rug komt eerst.' },
       { fout: 'Het wordt een squat', beter: 'Houd je knieen in een lichte buiging en duw je heupen naar achteren, niet naar beneden.' },
-      { fout: 'Kijken naar de spiegel omhoog', beter: 'Houd je nek in lijn met je rug en kijk een stukje voor je op de grond.' },
+      { fout: 'Hoofd omhoog naar de spiegel', beter: 'Houd je nek in lijn met je rug en kijk een stukje voor je op de grond.' },
     ],
     ademhaling: 'Adem in tijdens het zakken, adem uit als je omhoog komt.',
     tempo: '3 tellen omlaag, kort stil, 1 tel omhoog.',
@@ -602,7 +602,7 @@ export const COACHING_BENEN: CoachingBoek = {
       'Haak de stang na de laatste herhaling weer in door je polsen terug te draaien.',
     ],
     fouten: [
-      { fout: 'Voeten recht onder de stang', beter: 'Zet je voeten een klein stukje naar voren. Zo blijft je gewicht op je middenvoet en spaar je je knieen.' },
+      { fout: 'Voeten recht onder de stang', beter: 'Zet je voeten een klein stukje naar voren. Zo blijft je gewicht op je middenvoet en blijven je hielen aan de grond.' },
       { fout: 'Leunen tegen de stang', beter: 'Sta zelf stevig. De stang loopt mee, maar je romp draagt het gewicht.' },
       { fout: 'Te diep met een kantelend bekken', beter: 'Zak alleen zo ver als je onderrug neutraal blijft.' },
     ],
@@ -739,7 +739,7 @@ export const COACHING_BENEN: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Knieen schieten naar binnen', beter: 'Duw je knieen naar buiten, in lijn met je tenen.' },
-      { fout: 'Hielen komen omhoog', beter: 'Zit meer naar achteren en houd je gewicht op je hielen. Zet je voeten eventueel iets breder.' },
+      { fout: 'Hielen komen omhoog', beter: 'Zit meer naar achteren en houd je gewicht op je middenvoet en hielen. Zet je voeten eventueel iets breder.' },
       { fout: 'Ronde rug onderin', beter: 'Zak minder diep. Diepte komt vanzelf als je mobiliteit beter wordt.' },
     ],
     ademhaling: 'Adem in tijdens het zakken, adem uit bij het omhoog komen.',
@@ -919,16 +919,16 @@ export const COACHING_BENEN: CoachingBoek = {
     ],
     opstelling: [
       'Sta met je rug tegen een muur en zet je voeten ongeveer twee voetlengtes naar voren, op heupbreedte.',
-      'Schuif langs de muur naar beneden tot je knieen ongeveer een rechte hoek maken.',
+      'Leg je armen gekruist voor je borst of laat ze ontspannen langs je lichaam hangen.',
     ],
     stappen: [
-      'Glijd langs de muur omlaag tot de gekozen diepte.',
+      'Glijd langs de muur omlaag tot je knieen ongeveer een rechte hoek maken.',
       'Houd die positie vast voor de afgesproken tijd en adem rustig door.',
       'Schuif langs de muur weer omhoog of zet je handen op je dijen om op te staan.',
     ],
     fouten: [
       { fout: 'Voeten te dicht bij de muur', beter: 'Zet je voeten verder naar voren tot je knieen boven je enkels staan en niet over je tenen.' },
-      { fout: 'Adem inhouden', beter: 'Adem rustig door, ook als het zwaar wordt.' },
+      { fout: 'Knieen vallen naar binnen', beter: 'Duw je knieen licht naar buiten, in lijn met je tenen. Je voeten blijven plat op heupbreedte.' },
       { fout: 'Steunen op je dijen', beter: 'Haal je handen van je benen. Moet je steunen, kies dan een hogere positie.' },
     ],
     ademhaling: 'Adem rustig en regelmatig door, houd je adem niet vast.',

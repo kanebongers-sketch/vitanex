@@ -3,7 +3,7 @@
 // alvast ingevuld met wat het lid de vorige keer deed. Rust komt uit het
 // schema; in een superset pas na de laatste oefening van de ronde.
 
-import { blokken, uitvoerVolgorde } from '@/lib/club/training/blokken'
+import { blokken, uitvoerVolgorde, type BlokSoort } from '@/lib/club/training/blokken'
 import { bereik } from '@/lib/club/training/progressie'
 import type { AppOefening, AppSchemaDag, OefeningHistorie, VorigeSet } from './schema'
 import type { SetInvoer } from './sets'
@@ -21,7 +21,8 @@ export const setSleutel = (regelId: string, setNr: number): string => `${regelId
 
 export const aantalSets = (o: AppOefening): number => Math.max(1, Math.min(20, o.sets ?? 3))
 
-const komma = (v: number): string => String(v).replace('.', ',')
+/** 42.5 wordt "42,5". */
+export const komma = (v: number): string => String(v).replace('.', ',')
 
 export function opTijd(o: AppOefening): boolean {
   return o.tijdSec !== null && !o.herhalingen
@@ -88,6 +89,8 @@ export function naarSets(dag: AppSchemaDag, invoer: Invoer, historie: Readonly<R
 
 export interface TrainingStap {
   sleutel: string
+  /** Het id van de schemaregel (AppOefening.id). */
+  regelId: string
   naam: string
   set: number
   rustNa: number
@@ -98,6 +101,7 @@ export function stappenVanDag(dag: AppSchemaDag): TrainingStap[] {
   return blokken(dag.oefeningen).flatMap((blok) =>
     uitvoerVolgorde({ ...blok, items: blok.items.map((o) => ({ ...o, sets: aantalSets(o) })) }).map((stap) => ({
       sleutel: setSleutel(stap.item.id, stap.set),
+      regelId: stap.item.id,
       naam: stap.item.naam,
       set: stap.set,
       rustNa: stap.rustNa,
@@ -110,10 +114,15 @@ export function rustNaSet(dag: AppSchemaDag): Map<string, number> {
   return new Map(stappenVanDag(dag).map((s) => [s.sleutel, s.rustNa]))
 }
 
+/** De eerstvolgende stap die nog open staat na `sleutel` (daarna van voren af aan), of null. */
+export function volgendeOpen(stappen: readonly TrainingStap[], invoer: Invoer, sleutel: string): TrainingStap | null {
+  const i = stappen.findIndex((s) => s.sleutel === sleutel)
+  return [...stappen.slice(i + 1), ...stappen.slice(0, Math.max(0, i))].find((s) => !invoer[s.sleutel]?.klaar && s.sleutel !== sleutel) ?? null
+}
+
 /** De eerstvolgende set die nog open staat na `sleutel`, als tekst: "set 2 Back squat". */
 export function volgendeSet(stappen: readonly TrainingStap[], invoer: Invoer, sleutel: string): string | null {
-  const i = stappen.findIndex((s) => s.sleutel === sleutel)
-  const volgende = [...stappen.slice(i + 1), ...stappen.slice(0, Math.max(0, i))].find((s) => !invoer[s.sleutel]?.klaar && s.sleutel !== sleutel)
+  const volgende = volgendeOpen(stappen, invoer, sleutel)
   return volgende ? `set ${volgende.set} ${volgende.naam}` : null
 }
 
@@ -122,4 +131,62 @@ export function voortgang(dag: AppSchemaDag, invoer: Invoer): { klaar: number; t
   const totaal = dag.oefeningen.reduce((n, o) => n + aantalSets(o), 0)
   const klaar = Object.entries(invoer).filter(([k, v]) => v.klaar && dag.oefeningen.some((o) => k.startsWith(`${o.id}:`))).length
   return { klaar, totaal }
+}
+
+export interface OefeningPlek {
+  /** "A" voor een losse oefening, "B1", "B2" in een superset of circuit. */
+  label: string
+  soort: BlokSoort
+  /** De andere oefeningen in hetzelfde blok (leeg bij een losse oefening). */
+  samenMet: string[]
+}
+
+/** Labels zoals op de vloer: elk blok een letter, in een superset of circuit genummerd (A1, A2). */
+export function oefeningPlekken(dag: AppSchemaDag): Map<string, OefeningPlek> {
+  const uit = new Map<string, OefeningPlek>()
+  blokken(dag.oefeningen).forEach((blok, i) => {
+    const letter = String.fromCharCode(65 + Math.min(i, 25))
+    blok.items.forEach((o, j) => {
+      uit.set(o.id, {
+        label: blok.items.length === 1 ? letter : `${letter}${j + 1}`,
+        soort: blok.soort,
+        samenMet: blok.items.filter((x) => x.id !== o.id).map((x) => x.naam),
+      })
+    })
+  })
+  return uit
+}
+
+/** Een stap omhoog of omlaag. Leeg veld: vanaf het grijze voorstel. Nooit onder 0 of boven `max`. */
+export function stapWaarde(waarde: string, voorstel: string, delta: number, max: number): string {
+  const huidig = getal(waarde) ?? getal(voorstel) ?? 0
+  const n = Math.min(max, Math.max(0, Math.round((huidig + delta) * 100) / 100))
+  return komma(n)
+}
+
+/** Hoe groot een stap met + of min is: kilo's per 2,5 (onder 10 kg per 1), herhalingen per 1, tijd per 5 seconden. */
+export function stapGrootte(soort: 'kg' | 'herh' | 'tijd', waarde: string): number {
+  if (soort === 'herh') return 1
+  if (soort === 'tijd') return 5
+  const n = getal(waarde) ?? 0
+  return n < 10 ? 1 : 2.5
+}
+
+/** De set die nu aan de beurt is: de eerste open set van deze oefening, of null als alles gedaan is. */
+export function huidigeSet(o: AppOefening, invoer: Invoer): number | null {
+  for (let n = 1; n <= aantalSets(o); n++) if (!invoer[setSleutel(o.id, n)]?.klaar) return n
+  return null
+}
+
+/** Een afgevinkte set als korte tekst: "42,5 kg x 9", "30 sec" of "12". Lege velden nemen het voorstel over. */
+export function setTekst(o: AppOefening, v: SetVeld | undefined, voorstel: { herh: string; tijd: string }): string {
+  const kg = v ? getal(v.kg) : null
+  const maat = opTijd(o) ? `${v?.tijd || voorstel.tijd || '0'} sec` : v?.herh || voorstel.herh || '0'
+  return kg !== null && kg > 0 ? `${komma(kg)} kg x ${maat}` : maat
+}
+
+/** Hoort er een kiloveld bij: niet bij een oefening op tijd zonder gewicht. */
+export function metKilo(o: AppOefening, h: OefeningHistorie | undefined): boolean {
+  if (!opTijd(o)) return true
+  return (o.gewichtKg ?? 0) > 0 || (h?.vorige?.sets ?? []).some((s) => (s.gewichtKg ?? 0) > 0)
 }

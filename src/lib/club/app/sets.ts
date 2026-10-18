@@ -78,11 +78,22 @@ export interface Samenvatting {
   records: string[]
 }
 
-/** De samenvatting na "training klaar". `namen`: oefening-id naar naam. */
-export function samenvatting(sets: readonly SetInvoer[], besten: ReadonlyMap<string, VorigeBeste>, namen: ReadonlyMap<string, string>): Samenvatting {
+export interface NieuwRecord {
+  oefeningId: string
+  naam: string
+  /** Het nieuwe record: zwaarste gewicht van vandaag, met de meeste herhalingen daarop. */
+  gewichtKg: number
+  herhalingen: number
+  /** Het oude record, ter vergelijking. */
+  vorigKg: number
+  vorigHerhalingen: number | null
+}
+
+/** Nieuwe records: zwaarder dan ooit, of meer herhalingen op het zwaarste gewicht. Alleen met een eerdere training. */
+export function nieuweRecords(sets: readonly SetInvoer[], besten: ReadonlyMap<string, VorigeBeste>, namen: ReadonlyMap<string, string>): NieuwRecord[] {
   const perOefening = new Map<string, SetInvoer[]>()
   for (const s of sets) perOefening.set(s.oefeningId, [...(perOefening.get(s.oefeningId) ?? []), s])
-  const records: string[] = []
+  const uit: NieuwRecord[] = []
   for (const [id, lijst] of perOefening) {
     const vorig = besten.get(id)
     const metGewicht = lijst.filter((s) => s.gewichtKg !== null && s.gewichtKg > 0)
@@ -90,14 +101,21 @@ export function samenvatting(sets: readonly SetInvoer[], besten: ReadonlyMap<str
     const zwaarst = Math.max(...metGewicht.map((s) => s.gewichtKg as number))
     const meesteOpZwaarst = Math.max(...metGewicht.filter((s) => s.gewichtKg === zwaarst).map((s) => s.herhalingen ?? 0))
     const beter = zwaarst > vorig.gewichtKg || (zwaarst === vorig.gewichtKg && meesteOpZwaarst > (vorig.herhalingen ?? 0))
-    if (beter) records.push(namen.get(id) ?? 'Oefening')
+    if (beter) {
+      uit.push({ oefeningId: id, naam: namen.get(id) ?? 'Oefening', gewichtKg: zwaarst, herhalingen: meesteOpZwaarst, vorigKg: vorig.gewichtKg, vorigHerhalingen: vorig.herhalingen })
+    }
   }
+  return uit
+}
+
+/** De samenvatting na "training klaar". `namen`: oefening-id naar naam. */
+export function samenvatting(sets: readonly SetInvoer[], besten: ReadonlyMap<string, VorigeBeste>, namen: ReadonlyMap<string, string>): Samenvatting {
   return {
     sets: sets.length,
-    oefeningen: perOefening.size,
+    oefeningen: new Set(sets.map((s) => s.oefeningId)).size,
     herhalingen: sets.reduce((n, s) => n + (s.herhalingen ?? 0), 0),
     volumeKg: Math.round(sets.reduce((n, s) => n + (s.gewichtKg ?? 0) * (s.herhalingen ?? 0), 0)),
-    records,
+    records: nieuweRecords(sets, besten, namen).map((r) => r.naam),
   }
 }
 

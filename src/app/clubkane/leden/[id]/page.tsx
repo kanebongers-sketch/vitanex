@@ -25,6 +25,7 @@ import { isUuid, moduleAan } from '@/lib/club/kern/organisatie'
 import { AvgKaart } from '@/components/club/leden/AvgKaart'
 import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
 import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
+import { LidTraining } from '@/components/club/training/LidTraining'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -86,6 +87,8 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const nu = new Date()
   // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
   const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
+  // Training (schema's en intakes) alleen als het onderdeel aan staat en deze persoon het mag.
+  const toonTraining = moduleAan(t.organisatie, 'training') && magOnderdeel(t.onderdelen, 'schemas')
   // Voortgang, voeding en verwijderverzoek hangen alleen van het lid-id af (alles filtert op de
   // sportschool): tegelijk met de kaart ophalen. Hoort het lid niet bij deze persoon, dan vervalt het.
   const [gelezen, voortgang, voeding, verzoek] = await Promise.all([
@@ -107,6 +110,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
       <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} />
       <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
+        {toonTraining && <a href="#training">Training</a>}
         <a href="#voortgang">Voortgang</a>
         {toonVoeding && <a href="#voeding">Voeding</a>}
         <a href="#notities">Notities</a>
@@ -149,7 +153,12 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
           </div>
           {toonVoeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
         </div>
-        <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
+        <aside className="club-k4 club-leden-kolom" aria-label="Training, notities en gegevens">
+          {toonTraining && (
+            <Suspense fallback={<div className="club-skelet" style={{ minHeight: 160 }} aria-hidden />}>
+              <LidTraining t={t} lidId={lid.id} voornaam={lid.voornaam} vestiging={vestiging} />
+            </Suspense>
+          )}
           {moduleAan(t.organisatie, 'app') && <LedenappLink lidId={lid.id} voornaam={lid.voornaam} />}
           <Notities lidId={lid.id} notities={kaart.notities} />
           <LidGegevens

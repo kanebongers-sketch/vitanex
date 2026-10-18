@@ -1,5 +1,5 @@
 // ─── Fit Factory Club, training: alle coaching bij elkaar (SERVER) ──────────
-// Ongeveer 150 oefeningen met uitgebreide tekst: te zwaar om naar de browser te
+// Ongeveer 180 oefeningen met uitgebreide tekst: te zwaar om naar de browser te
 // sturen. De pagina's halen de coaching van een oefening op via
 // /api/club/training/coaching, alleen als die oefening open gaat.
 
@@ -10,6 +10,8 @@ import { COACHING_DUWEN } from './duwen'
 import { COACHING_TREKKEN } from './trekken'
 import { COACHING_SCHOUDERS_CARDIO } from './schouders-cardio'
 import { COACHING_BUIK } from './buik'
+import { COACHING_AANVULLING_ONDER } from './aanvulling-onder'
+import { COACHING_AANVULLING_BOVEN } from './aanvulling-boven'
 
 export const COACHING_BOEKEN: readonly CoachingBoek[] = [
   COACHING_BENEN,
@@ -18,6 +20,8 @@ export const COACHING_BOEKEN: readonly CoachingBoek[] = [
   COACHING_TREKKEN,
   COACHING_SCHOUDERS_CARDIO,
   COACHING_BUIK,
+  COACHING_AANVULLING_ONDER,
+  COACHING_AANVULLING_BOVEN,
 ]
 
 /** Sleutel zonder verschil in hoofdletters of dubbele spaties. */

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { REPDB_ALLE_KOPPELINGEN, REPDB_GEEN_MATCH } from '../beelden-repdb'
 import { COACHING_BOEKEN, coachingSleutel, coachingVoor } from './index'
+import { GRENZEN, leesCoaching } from './invoer'
 import type { Coaching } from './typen'
 
 // De coaching is het belangrijkste wat leden lezen: dezelfde lat voor elke oefening.
@@ -20,43 +22,76 @@ function teksten(c: Coaching): string[] {
   ]
 }
 
+/** Zinnen die een lid leest als uitleg: hoofdletter of cijfer vooraan, punt achteraan. */
+function zinnen(c: Coaching): string[] {
+  return [
+    ...c.kernpunten.map((k) => k.uitleg),
+    ...c.opstelling,
+    ...c.stappen,
+    ...c.fouten.map((f) => f.beter),
+    c.ademhaling,
+    c.tempo,
+    ...(c.makkelijker ? [c.makkelijker] : []),
+    ...(c.zwaarder ? [c.zwaarder] : []),
+  ]
+}
+
+/** Geen beloftes over gezondheid: coaching gaat over uitvoering, niet over genezen of voorkomen. */
+const MEDISCH = /\b(voorkomt blessures|blessures voorkomen|voorkom je blessures|geneest|genezen|therapie|therapeutisch|blessurevrij|vetverbranding|verbrandt vet|ontgift)/i
+
 describe('coaching per oefening', () => {
-  it('dekt de hele bibliotheek, zonder dubbele namen', () => {
-    expect(ALLES.length).toBeGreaterThanOrEqual(140)
+  it('dekt elke actieve oefening uit de standaardbibliotheek', () => {
+    const zonder = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).filter((naam) => coachingVoor(naam) === null)
+    expect(zonder).toEqual([])
+  })
+
+  it('heeft geen coaching voor oefeningen die niet (meer) in de bibliotheek staan', () => {
+    const bekend = new Set([...REPDB_ALLE_KOPPELINGEN.map((k) => k.naam), ...REPDB_GEEN_MATCH].map(coachingSleutel))
+    const los = ALLES.map(([naam]) => naam).filter((naam) => !bekend.has(coachingSleutel(naam)))
+    expect(los).toEqual([])
+  })
+
+  it('heeft geen dubbele namen', () => {
     const sleutels = ALLES.map(([naam]) => coachingSleutel(naam))
     expect(new Set(sleutels).size).toBe(sleutels.length)
   })
 
+  it.each(ALLES)('%s voldoet aan dezelfde regels als eigen coaching van een sportschool', (_naam, c) => {
+    const uitslag = leesCoaching(c)
+    expect(uitslag.ok ? null : uitslag.fout).toBeNull()
+    // Niets valt weg of verandert bij het controleren: de tekst is al schoon.
+    expect(uitslag.ok && uitslag.waarde).toEqual(c)
+  })
+
   it.each(ALLES)('%s heeft de juiste opbouw', (_naam, c) => {
-    expect(c.kernpunten.length).toBeGreaterThanOrEqual(3)
-    expect(c.kernpunten.length).toBeLessThanOrEqual(5)
+    expect(c.kernpunten.length).toBeGreaterThanOrEqual(GRENZEN.kernpunten[0])
+    expect(c.kernpunten.length).toBeLessThanOrEqual(GRENZEN.kernpunten[1])
     for (const k of c.kernpunten) {
+      // Een commando zoals de trainer het zegt: kort, met hoofdletter, zonder punt.
       expect(k.punt.length).toBeGreaterThan(2)
-      expect(k.punt.length).toBeLessThanOrEqual(32)
-      expect(k.uitleg.length).toBeLessThanOrEqual(140)
+      expect(k.punt.length).toBeLessThanOrEqual(GRENZEN.punt)
+      expect(k.punt).toMatch(/^[A-Z0-9]/)
+      expect(k.punt).not.toMatch(/[.!?:;,]$/)
+      expect(k.uitleg.length).toBeGreaterThan(15)
     }
-    expect(c.opstelling.length).toBeGreaterThanOrEqual(1)
-    expect(c.opstelling.length).toBeLessThanOrEqual(3)
-    expect(c.stappen.length).toBeGreaterThanOrEqual(2)
-    expect(c.stappen.length).toBeLessThanOrEqual(4)
-    expect(c.fouten.length).toBeGreaterThanOrEqual(2)
-    expect(c.fouten.length).toBeLessThanOrEqual(4)
+    for (const z of zinnen(c)) {
+      expect(z, z).toMatch(/^[A-Z0-9]/)
+      expect(z, z).toMatch(/[.!?]$/)
+    }
     for (const f of c.fouten) {
-      expect(f.fout.length).toBeLessThanOrEqual(60)
-      expect(f.beter.length).toBeLessThanOrEqual(140)
+      expect(f.fout, f.fout).toMatch(/^[A-Z0-9]/)
+      expect(f.fout, f.fout).not.toMatch(/[.!?]$/)
     }
-    expect(c.ademhaling.length).toBeGreaterThan(10)
-    expect(c.tempo.length).toBeGreaterThan(5)
-    expect((c.makkelijker ?? '').length).toBeLessThanOrEqual(140)
-    expect((c.zwaarder ?? '').length).toBeLessThanOrEqual(140)
   })
 
   it.each(ALLES)('%s volgt de schrijfstijl', (_naam, c) => {
     for (const t of teksten(c)) {
       expect(t).not.toMatch(/[–—]/)
       expect(t).not.toMatch(/\s-\s/)
-      expect(t).not.toMatch(/\b(één|één|vóór|wél|níet|ín|zéér|dát|dié)\b/i)
+      expect(t).not.toMatch(/[áéíóúàèìòù]/i)
       expect(t).not.toMatch(/\p{Extended_Pictographic}/u)
+      expect(t).not.toMatch(/\s{2,}/)
+      expect(t).not.toMatch(MEDISCH)
       expect(t).toBe(t.trim())
     }
     // Kernpunten zijn uniek binnen een oefening (ze dienen ook als React-key).

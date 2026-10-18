@@ -60,8 +60,8 @@ export function EditorDag(p: EditorDagProps) {
           <input className="club-invoer" value={p.titel} maxLength={40} onChange={(e) => p.onTitel(e.target.value)} aria-labelledby={`dag-${p.dag}`} />
         </label>
         <div className="club-training-dagacties">
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onKopieer} disabled={!p.magKopieren} title="Deze dag dupliceren als nieuwe dag">
-            <Copy aria-hidden size={15} /> Dupliceren
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onKopieer} disabled={!p.magKopieren} title="Deze dag dupliceren als nieuwe dag" aria-label={`Dag ${letter} dupliceren`}>
+            <Copy aria-hidden size={15} /> <span className="club-training-dagactie-tekst">Dupliceren</span>
           </button>
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onVerwijderDag} disabled={!p.magVerwijderen} aria-label={`Dag ${letter} verwijderen`}>
             <Trash2 aria-hidden size={15} />

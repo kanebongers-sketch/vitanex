@@ -10,7 +10,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Terug vanuit je buik', uitleg: 'Trek jezelf terug door je ribben naar je bekken te brengen, niet door je heupen naar achteren te duwen.' },
     ],
     opstelling: [
-      'Kniel op een matje met je knieën op heupbreedte en het wiel recht onder je schouders.',
+      'Kniel op een matje met je knieen op heupbreedte en het wiel recht onder je schouders.',
       'Pak de handvatten met gestrekte armen en rond je bovenrug een klein beetje.',
     ],
     stappen: [
@@ -27,11 +27,11 @@ export const COACHING_BUIK: CoachingBoek = {
     ademhaling: 'Adem in voordat je wegrolt, houd je buik vast tijdens de beweging en adem uit als je terugkomt.',
     tempo: '3 tellen naar voren, kort stil, 2 tellen terug.',
     makkelijker: 'Rol tegen een muur zodat je niet te ver kunt, of rol schuin omhoog tegen een helling.',
-    zwaarder: 'Begin staand in plaats van op je knieën, alleen als de geknielde versie volledig strak lukt.',
+    zwaarder: 'Rol verder uit met dezelfde strakke romp. Staand uitrollen pas als de geknielde versie volledig lukt.',
   },
   'Cable crunch': {
     kernpunten: [
-      { punt: 'Heupen blijven stil', uitleg: 'Je billen gaan niet naar achteren of omlaag. Alleen je romp rolt op, anders trekken je heupbuigers mee.' },
+      { punt: 'Heupen blijven stil', uitleg: 'Je billen zakken niet naar je hielen. Alleen je romp rolt op, anders trekt je lichaamsgewicht het gewicht omlaag.' },
       { punt: 'Ribben naar je bekken', uitleg: 'Denk aan je borstbeen dat naar je navel krult. Je voelt je buik samentrekken, niet je armen.' },
       { punt: 'Handen vast bij je hoofd', uitleg: 'Het touw blijft naast je oren. Je armen trekken niet, ze houden alleen vast.' },
       { punt: 'Rustig terug', uitleg: 'Laat het gewicht niet terugschieten. Ook omhoog houd je spanning op je buik.' },
@@ -41,13 +41,13 @@ export const COACHING_BUIK: CoachingBoek = {
       'Kniel een halve meter voor de kabel, pak het touw en houd de uiteinden naast je hoofd.',
     ],
     stappen: [
-      'Kom rechtop op je knieën met je heupen licht gebogen.',
+      'Kom rechtop op je knieen met je heupen licht gebogen.',
       'Rol je romp naar beneden tot je ellebogen richting je dijen gaan.',
       'Knijp onderin kort je buik aan.',
       'Rol gecontroleerd terug tot je rug weer lang is.',
     ],
     fouten: [
-      { fout: 'Op en neer gaan met de heupen', beter: 'Houd je billen boven je knieën. Rol alleen je ruggengraat, alsof je een bal oprolt.' },
+      { fout: 'Op en neer gaan met de heupen', beter: 'Houd je billen boven je knieen. Rol alleen je ruggengraat, alsof je een bal oprolt.' },
       { fout: 'Trekken met de armen', beter: 'Zet je handen vast bij je hoofd en laat de afstand tussen handen en hoofd gelijk blijven.' },
       { fout: 'Te zwaar gewicht', beter: 'Kies een gewicht waarbij je 12 tot 15 rustige herhalingen haalt met volle controle.' },
     ],
@@ -64,7 +64,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Langzaam terug', uitleg: 'Zak rustig terug en laat je hoofd niet op de grond ploffen. Ook dat deel telt.' },
     ],
     opstelling: [
-      'Lig op je rug met je knieën gebogen en je voeten plat op heupbreedte.',
+      'Lig op je rug met je knieen gebogen en je voeten plat op heupbreedte.',
       'Leg je vingertoppen bij je slapen of kruis je armen over je borst.',
     ],
     stappen: [
@@ -85,19 +85,19 @@ export const COACHING_BUIK: CoachingBoek = {
   },
   'Crunch met benen op een bank': {
     kernpunten: [
-      { punt: 'Onderrug plat op de grond', uitleg: 'Met je benen op de bank kan je onderrug niet hol trekken. Voel hem de hele set tegen de grond.' },
-      { punt: 'Knieën in een rechte hoek', uitleg: 'Je dijen staan recht omhoog en je onderbenen liggen op de bank. Zo blijven je heupbuigers rustig.' },
-      { punt: 'Kin los van je borst', uitleg: 'Kijk schuin omhoog naar je knieën. Zo blijft je nek lang en ontspannen.' },
+      { punt: 'Onderrug plat op de grond', uitleg: 'Met je benen op de bank trekt je onderrug minder snel hol. Voel hem de hele set tegen de grond.' },
+      { punt: 'Knieen in een rechte hoek', uitleg: 'Je dijen staan recht omhoog en je onderbenen liggen op de bank. Zo blijven je heupbuigers rustig.' },
+      { punt: 'Kin los van je borst', uitleg: 'Kijk schuin omhoog naar je knieen. Zo blijft je nek lang en ontspannen.' },
       { punt: 'Klein en gecontroleerd', uitleg: 'Rol alleen je schouderbladen van de grond. Meer hoogte levert hier niets op.' },
     ],
     opstelling: [
       'Lig op je rug voor een vlakke bank en leg je kuiten op de zitting.',
-      'Schuif zo dicht naar de bank dat je knieën en heupen een rechte hoek maken.',
+      'Schuif zo dicht naar de bank dat je knieen en heupen een rechte hoek maken.',
       'Leg je vingertoppen licht bij je slapen of kruis je armen over je borst.',
     ],
     stappen: [
       'Druk je onderrug zacht tegen de grond en span je buik aan.',
-      'Rol je schouders van de grond richting je knieën.',
+      'Rol je schouders van de grond richting je knieen.',
       'Zak rustig terug tot je schouders net de grond raken.',
     ],
     fouten: [
@@ -117,7 +117,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Heupen blijven liggen', uitleg: 'Je onderlichaam beweegt niet mee. Alleen je bovenlichaam draait.' },
     ],
     opstelling: [
-      'Lig op je rug met je knieën gebogen en je voeten plat op de grond.',
+      'Lig op je rug met je knieen gebogen en je voeten plat op de grond.',
       'Leg je vingertoppen bij je oren met je ellebogen wijd.',
     ],
     stappen: [
@@ -134,7 +134,7 @@ export const COACHING_BUIK: CoachingBoek = {
     ademhaling: 'Adem uit tijdens het oprollen en draaien, adem in als je terugzakt.',
     tempo: '1 tel op en draaien, kort stil, 2 tellen terug.',
     makkelijker: 'Kruis je armen over je borst en draai alleen een klein stukje.',
-    zwaarder: 'Leg de enkel van je ene been op de andere knie en doe eerst alle herhalingen naar die kant.',
+    zwaarder: 'Houd elke draai bovenin 2 tellen vast of houd een lichte halterschijf tegen je borst.',
   },
   'Dead bug': {
     kernpunten: [
@@ -145,7 +145,7 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     opstelling: [
       'Lig op je rug met je armen recht omhoog boven je schouders.',
-      'Til je benen op met je knieën in een rechte hoek boven je heupen.',
+      'Til je benen op met je knieen in een rechte hoek boven je heupen.',
     ],
     stappen: [
       'Druk je onderrug zacht in de grond en span je buik aan.',
@@ -161,7 +161,7 @@ export const COACHING_BUIK: CoachingBoek = {
     ademhaling: 'Adem lang uit terwijl je arm en been strekken en adem in als je terugkomt.',
     tempo: '3 tellen uitstrekken, kort stil, 2 tellen terug.',
     makkelijker: 'Beweeg alleen je benen en tik met je hak op de grond terwijl je knie gebogen blijft.',
-    zwaarder: 'Houd een lichte dumbbell in je handen of strek arm en been van dezelfde kant tegelijk.',
+    zwaarder: 'Houd een lichte dumbbell in je handen of houd de gestrekte stand 3 tellen vast.',
   },
   'Fietsende crunch': {
     kernpunten: [
@@ -172,7 +172,7 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     opstelling: [
       'Lig op je rug met je vingertoppen bij je oren en je ellebogen wijd.',
-      'Til je schouders licht van de grond en je benen op met je knieën boven je heupen.',
+      'Til je schouders licht van de grond en je benen op met je knieen boven je heupen.',
     ],
     stappen: [
       'Trek je rechterknie in en draai je linkerschouder ernaartoe terwijl je linkerbeen strekt.',
@@ -187,13 +187,13 @@ export const COACHING_BUIK: CoachingBoek = {
     ademhaling: 'Adem uit bij elke draai en adem in als je door het midden gaat.',
     tempo: '1 tel draaien, 1 tel vasthouden, rustig wisselen.',
     makkelijker: 'Houd je voeten op de grond en draai alleen je bovenlichaam om en om.',
-    zwaarder: 'Strek het gestrekte been lager, met je onderrug nog steeds plat op de grond.',
+    zwaarder: 'Strek je been lager boven de grond, zolang je onderrug plat blijft liggen.',
   },
   'Hanging knee raise': {
     kernpunten: [
       { punt: 'Stil hangen, niet schommelen', uitleg: 'Begin elke herhaling vanuit stilstand. Zwaai je, dan doet de vaart het werk in plaats van je buik.' },
       { punt: 'Schouders actief', uitleg: 'Trek je schouders iets weg van je oren. Zo hang je niet slap in je gewrichten.' },
-      { punt: 'Bekken oprollen', uitleg: 'Breng je knieën op en kantel je bekken mee naar voren. Pas dan werkt je buik volledig.' },
+      { punt: 'Bekken oprollen', uitleg: 'Breng je knieen op en kantel je bekken mee naar voren. Pas dan werkt je buik volledig.' },
       { punt: 'Gecontroleerd zakken', uitleg: 'Laat je benen rustig zakken. Vallen ze, dan begin je de volgende herhaling met een zwaai.' },
     ],
     opstelling: [
@@ -202,17 +202,17 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     stappen: [
       'Trek je schouders licht omlaag en zet je romp vast.',
-      'Trek je knieën op tot boven heuphoogte en rol je bekken naar je borst.',
+      'Trek je knieen op tot boven heuphoogte en rol je bekken naar je borst.',
       'Laat je benen in 2 tot 3 tellen zakken tot ze weer recht hangen.',
     ],
     fouten: [
-      { fout: 'Heen en weer schommelen', beter: 'Wacht onderaan tot je stil hangt. Een trainingsmaatje kan licht je onderrug tegenhouden.' },
-      { fout: 'Knieën alleen tot heuphoogte', beter: 'Rol door tot je bekken kantelt en je knieën richting je borst gaan. Dat laatste stuk is je buik.' },
+      { fout: 'Heen en weer schommelen', beter: 'Wacht onderaan tot je stil hangt en span je buik al aan voordat je knieen omhoog gaan.' },
+      { fout: 'Knieen alleen tot heuphoogte', beter: 'Rol door tot je bekken kantelt en je knieen richting je borst gaan. Dat laatste stuk is je buik.' },
       { fout: 'Slap hangen in de schouders', beter: 'Houd je schouders actief en weg van je oren. Lukt dat niet meer, stop dan de set.' },
     ],
-    ademhaling: 'Adem uit als je je knieën optrekt en adem in als je ze laat zakken.',
+    ademhaling: 'Adem uit als je je knieen optrekt en adem in als je ze laat zakken.',
     tempo: '1 tel omhoog, kort stil, 3 tellen omlaag.',
-    makkelijker: 'Doe het liggend op een bank of steun op je onderarmen in een dipstation.',
+    makkelijker: 'Steun met je onderarmen in een kniehefstation, dan hoeft je grip niet mee te werken.',
     zwaarder: 'Houd je benen gestrekt bij het optillen of klem een lichte dumbbell tussen je voeten.',
   },
   'Leg raise liggend': {
@@ -232,19 +232,19 @@ export const COACHING_BUIK: CoachingBoek = {
       'Laat ze in 3 tellen zakken tot net boven de grond.',
     ],
     fouten: [
-      { fout: 'Onderrug komt los en wordt hol', beter: 'Buig je knieën een beetje of laat je benen minder ver zakken. Rug op de grond gaat voor diepte.' },
+      { fout: 'Onderrug komt los en wordt hol', beter: 'Buig je knieen een beetje of laat je benen minder ver zakken. Rug op de grond gaat voor diepte.' },
       { fout: 'Benen laten vallen', beter: 'Tel hardop 3 tellen naar beneden. Lukt dat niet meer, stop dan de set.' },
       { fout: 'Met vaart omhoog zwaaien', beter: 'Begin elke herhaling vanuit stilstand net boven de grond.' },
     ],
     ademhaling: 'Adem uit als je je benen optilt en adem in terwijl ze zakken.',
     tempo: '2 tellen omhoog, 3 tellen omlaag.',
-    makkelijker: 'Buig je knieën in een rechte hoek of laat om en om een been zakken.',
+    makkelijker: 'Buig je knieen in een rechte hoek of laat om en om een been zakken.',
     zwaarder: 'Til bovenin je bekken iets van de grond of houd je benen 5 cm boven de grond vast.',
   },
   'Mountain climber': {
     kernpunten: [
       { punt: 'Schouders boven je handen', uitleg: 'Je schouders blijven recht boven je polsen. Schuiven ze naar achteren, dan verlies je de stevige basis.' },
-      { punt: 'Heupen laag', uitleg: 'Je heupen blijven in lijn met je schouders. Gaan ze omhoog, dan wordt het een makkelijke wandeling.' },
+      { punt: 'Heupen in lijn', uitleg: 'Je heupen blijven op een lijn met schouders en hielen. Niet omhoog steken en niet doorzakken.' },
       { punt: 'Knie naar je borst', uitleg: 'Trek je knie echt onder je borst en zet je voet licht neer. Zo werkt je buik bij elke stap.' },
       { punt: 'Tempo dat je kunt houden', uitleg: 'Snel mag, maar je houding gaat voor. Gaat het slordig, ga dan langzamer.' },
     ],
@@ -263,7 +263,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { fout: 'Alleen met de voeten tikken', beter: 'Maak de pas groter: je knie komt tot onder je borst en niet alleen een stukje naar voren.' },
     ],
     ademhaling: 'Adem rustig en ritmisch door, bijvoorbeeld uit bij elke twee stappen.',
-    tempo: 'Vlot en ritmisch, of langzaam met een tel per knie.',
+    tempo: 'Blokken van 20 tot 40 seconden, vlot of langzaam met een tel per knie.',
     makkelijker: 'Zet je handen op een bank of step en beweeg in een rustig tempo.',
     zwaarder: 'Breng je knie naar de tegenovergestelde elleboog of verhoog het tempo met behoud van houding.',
   },
@@ -272,7 +272,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Laat je niet wegdraaien', uitleg: 'De kabel trekt je naar opzij. Jouw taak is stilstaan. Dat is het werk voor je buik.' },
       { punt: 'Heupen en schouders recht', uitleg: 'Je heupen en schouders blijven recht naar voren wijzen, ook als je armen gestrekt zijn.' },
       { punt: 'Langzaam uitduwen', uitleg: 'Hoe verder je armen van je borst komen, hoe harder de kabel trekt. Duw rustig en houd vast.' },
-      { punt: 'Billen aan, knieën zacht', uitleg: 'Een stevige basis met licht gebogen knieën en aangespannen billen maakt je romp stabieler.' },
+      { punt: 'Billen aan, knieen zacht', uitleg: 'Een stevige basis met licht gebogen knieen en aangespannen billen maakt je romp stabieler.' },
     ],
     opstelling: [
       'Zet de katrol op borsthoogte met een enkel handvat.',
@@ -298,7 +298,7 @@ export const COACHING_BUIK: CoachingBoek = {
   Plank: {
     kernpunten: [
       { punt: 'Rechte lijn hoofd tot hielen', uitleg: 'Je heupen zakken niet en steken niet omhoog. Denk aan een plank waar een stok op past.' },
-      { punt: 'Ellebogen onder je schouders', uitleg: 'Zo rust je gewicht op je botten in plaats van op je schouderspieren alleen.' },
+      { punt: 'Ellebogen onder je schouders', uitleg: 'Zo draag je je gewicht stabiel en hoeft je schouder niet te compenseren.' },
       { punt: 'Billen en buik aan', uitleg: 'Knijp je billen aan en trek je navel licht in. Je voelt je hele voorkant werken.' },
       { punt: 'Duw de grond weg', uitleg: 'Druk je onderarmen in de grond zodat je bovenrug niet inzakt tussen je schouderbladen.' },
       { punt: 'Blijf ademen', uitleg: 'Adem rustig door. Moet je je adem inhouden, dan is de houdtijd te lang.' },
@@ -319,27 +319,27 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     ademhaling: 'Adem rustig en gelijkmatig door, in door je neus en uit door je mond.',
     tempo: 'Houd 20 tot 45 seconden vast met goede houding.',
-    makkelijker: 'Steun op je knieën in plaats van je tenen, met je lichaam recht van knie tot schouder.',
+    makkelijker: 'Steun op je knieen in plaats van je tenen, met je lichaam recht van knie tot schouder.',
     zwaarder: 'Til om en om een voet een paar centimeter op of zet je ellebogen iets verder naar voren.',
   },
   'Reverse crunch': {
     kernpunten: [
       { punt: 'Bekken oprollen', uitleg: 'Je rolt je billen van de grond door je bekken naar je ribben te brengen. Een paar centimeter is genoeg.' },
-      { punt: 'Geen zwaai met de benen', uitleg: 'Je knieën blijven in dezelfde hoek. Zwaai je, dan doen je benen het werk in plaats van je buik.' },
+      { punt: 'Geen zwaai met de benen', uitleg: 'Je knieen blijven in dezelfde hoek. Zwaai je, dan doen je benen het werk in plaats van je buik.' },
       { punt: 'Langzaam terugrollen', uitleg: 'Rol wervel voor wervel terug tot je billen weer liggen. Plof niet neer.' },
       { punt: 'Handen ontspannen', uitleg: 'Je armen liggen naast je voor balans. Druk je je hard af, dan helpen je armen te veel.' },
     ],
     opstelling: [
       'Lig op je rug met je armen langs je lichaam en je handpalmen op de grond.',
-      'Til je benen op met je knieën gebogen en je knieën boven je heupen.',
+      'Til je benen op tot je knieen gebogen boven je heupen staan.',
     ],
     stappen: [
       'Span je buik aan en trek je navel naar binnen.',
       'Rol je bekken op zodat je billen net van de grond komen.',
-      'Rol gecontroleerd terug tot je knieën weer boven je heupen zijn.',
+      'Rol gecontroleerd terug tot je knieen weer boven je heupen zijn.',
     ],
     fouten: [
-      { fout: 'Benen naar het hoofd zwaaien', beter: 'Houd je knieën in een vaste hoek en beweeg alleen je bekken. Begin elke herhaling stil.' },
+      { fout: 'Benen naar het hoofd zwaaien', beter: 'Houd je knieen in een vaste hoek en beweeg alleen je bekken. Begin elke herhaling stil.' },
       { fout: 'Duwen met de handen', beter: 'Leg je handen licht neer of til ze een paar centimeter van de grond.' },
       { fout: 'Terugvallen op de grond', beter: 'Zak in 2 tellen terug. Het afremmen telt net zo hard als het oprollen.' },
     ],
@@ -352,11 +352,11 @@ export const COACHING_BUIK: CoachingBoek = {
     kernpunten: [
       { punt: 'Rug lang, borst open', uitleg: 'Leun achterover met een lange rug, niet met een ronde. Zo blijft de belasting op je buik en niet je onderrug.' },
       { punt: 'Draai met je borst', uitleg: 'Je borst en schouders draaien mee, niet alleen je handen. Je handen volgen je borstbeen.' },
-      { punt: 'Knieën stil', uitleg: 'Je knieën blijven naar voren wijzen. Gaan ze mee heen en weer, dan draai je niet vanuit je romp.' },
+      { punt: 'Knieen stil', uitleg: 'Je knieen blijven naar voren wijzen. Gaan ze mee heen en weer, dan draai je niet vanuit je romp.' },
       { punt: 'Rustig tempo', uitleg: 'Kort stoppen aan elke kant. Snel wisselen voelt zwaar, maar je zwiept vooral.' },
     ],
     opstelling: [
-      'Zit op een matje met je knieën gebogen en je hielen op de grond.',
+      'Zit op een matje met je knieen gebogen en je hielen op de grond.',
       'Leun iets achterover tot je buik aanspant en vouw je handen voor je borst.',
     ],
     stappen: [
@@ -391,13 +391,13 @@ export const COACHING_BUIK: CoachingBoek = {
       'Houd vast terwijl je rustig doorademt en wissel daarna van kant.',
     ],
     fouten: [
-      { fout: 'Heupen zakken naar de grond', beter: 'Duw je onderste heup actief omhoog. Lukt dat niet meer, stop de set of ga naar je knieën.' },
+      { fout: 'Heupen zakken naar de grond', beter: 'Duw je onderste heup actief omhoog. Lukt dat niet meer, stop de set of ga naar je knieen.' },
       { fout: 'Hangen in de schouder', beter: 'Druk je onderarm in de grond en duw je lichaam weg, zodat er ruimte is tussen schouder en oor.' },
       { fout: 'Heupen knikken naar achteren', beter: 'Breng je heupen naar voren tot ze in lijn zijn met je schouders en voeten.' },
     ],
     ademhaling: 'Adem rustig en gelijkmatig door tijdens het vasthouden.',
     tempo: 'Houd per kant 15 tot 30 seconden vast met goede houding.',
-    makkelijker: 'Steun op je onderste knie met je knieën gebogen en je lichaam recht van knie tot schouder.',
+    makkelijker: 'Steun op je onderste knie met je knieen gebogen en je lichaam recht van knie tot schouder.',
     zwaarder: 'Til je bovenste been op of beweeg je heupen langzaam op en neer.',
   },
   'Zijwaarts buigen met dumbbell': {
@@ -408,7 +408,7 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Niet te ver', uitleg: 'Ga zo ver als je zonder draaien kunt, meestal tot de dumbbell rond je knie is.' },
     ],
     opstelling: [
-      'Sta rechtop met je voeten op heupbreedte en je knieën zacht.',
+      'Sta rechtop met je voeten op heupbreedte en je knieen zacht.',
       'Houd een dumbbell met gestrekte arm naast je bovenbeen en leg je andere hand op je heup of bij je hoofd.',
     ],
     stappen: [

@@ -30,8 +30,8 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
 
   'Band pull-apart': {
     kernpunten: [
-      { punt: 'Ribben omlaag', uitleg: 'Houd je buik licht vast zodat je onderrug niet hol trekt als je armen naar achteren gaan.' },
       { punt: 'Schouderbladen samen', uitleg: 'Je voelt de spieren tussen je schouderbladen werken, daar zit het doel van deze oefening.' },
+      { punt: 'Ribben omlaag', uitleg: 'Houd je buik licht vast zodat je onderrug niet hol trekt als je armen naar achteren gaan.' },
       { punt: 'Schouders laag', uitleg: 'Trek je schouders niet op richting je oren. Hoe langer je nek, hoe beter je bovenrug werkt.' },
       { punt: 'Rustig terug', uitleg: 'Laat het elastiek niet terugschieten. De weg terug is net zo belangrijk als het trekken.' },
     ],
@@ -74,10 +74,10 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       { fout: 'Op de tenen staan', beter: 'Zet je hele voet neer en druk vanuit je hiel. Dan blijven je kuiten ontspannen en werken je billen mee.' },
       { fout: 'Weerstand te laag', beter: 'Voel je geen weerstand, zet hem dan een paar standen hoger. Je moet het in je bovenbenen merken.' },
     ],
-    ademhaling: 'Adem rustig en ritmisch door je neus of mond, in een ritme dat past bij je tempo.',
+    ademhaling: 'Adem rustig en ritmisch door en houd je adem nooit vast, ook niet op hoge weerstand.',
     tempo: 'Gelijkmatig tempo waarbij je nog korte zinnen kunt praten.',
     makkelijker: 'Laat de armhendels los, houd de vaste steunen vast en kies een lage weerstand.',
-    zwaarder: 'Doe intervallen: 1 minuut op hoge weerstand, 1 minuut rustig, of fiets af en toe achteruit.',
+    zwaarder: 'Doe intervallen: 1 minuut op hoge weerstand, 1 minuut rustig, of trap af en toe een blok achteruit.',
   },
 
   'Dumbbell shoulder press': {
@@ -169,7 +169,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       { punt: 'Tempo waarin je kort praat', uitleg: 'Bij duurwerk kun je nog korte zinnen zeggen. Lukt dat niet meer, zet de snelheid lager.' },
     ],
     opstelling: [
-      'Ga met je voeten op de zijranden staan, zet de band aan op wandelsnelheid en stap erop. Doe het noodkoord aan je kleding.',
+      'Ga met je voeten op de zijranden staan, zet de band aan op wandelsnelheid en stap erop. Klem het noodkoord aan je kleding.',
       'Zet de helling op 1 procent, dat voelt het meest als buiten lopen.',
     ],
     stappen: [
@@ -321,7 +321,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
     ademhaling: 'Adem in en houd je adem kort vast tijdens het drukken, adem bovenin uit.',
     tempo: '1 tel omhoog, 2 tellen gecontroleerd omlaag.',
     makkelijker: 'Begin met de dumbbell shoulder press of de landmine press tot je schoudermobiliteit goed is.',
-    zwaarder: 'Houd de stang 2 tellen stil net boven je hoofd voordat je hem helemaal uitdrukt.',
+    zwaarder: 'Voeg in kleine stappen gewicht toe of houd de stang onderin 2 tellen stil voordat je drukt.',
   },
 
   'Pike push-up': {
@@ -329,7 +329,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       { punt: 'Heupen hoog', uitleg: 'Je lichaam vormt een omgekeerde V. Hoe hoger je heupen, hoe meer je schouders het werk doen.' },
       { punt: 'Hoofd voor je handen', uitleg: 'Je hoofd zakt naar een punt voor je handen, zodat je handen en hoofd samen een driehoek vormen.' },
       { punt: 'Ellebogen schuin naar achter', uitleg: 'Ellebogen niet wijd opzij maar schuin naar achteren. Dat is vriendelijker voor je schouders.' },
-      { punt: 'Duw de grond weg', uitleg: 'Duw jezelf terug omhoog tot je armen gestrekt zijn en je je schouders naar je oren voelt duwen.' },
+      { punt: 'Duw de grond weg', uitleg: 'Duw jezelf terug tot je armen gestrekt zijn en je heupen weer hoog staan, als een omgekeerde V.' },
     ],
     opstelling: [
       'Begin in een push-uppositie met je handen op schouderbreedte. Loop met je voeten naar je handen tot je heupen hoog staan en je benen bijna gestrekt zijn.',
@@ -500,7 +500,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Holle rug en weg van de leuning', beter: 'Druk je rug tegen de leuning en span je buik aan. Lukt dat niet, dan is het gewicht te zwaar.' },
-      { fout: 'Stoel te laag', beter: 'Zet de stoel hoger tot de grepen op schouderhoogte zitten. Te diep zakken voelt vaak onprettig in de schouder.' },
+      { fout: 'Stoel verkeerd ingesteld', beter: 'Stel de stoel zo in dat de grepen onderin op schouderhoogte staan. Dieper voelt vaak onprettig, hoger maakt de beweging kort.' },
       { fout: 'Gewicht laten vallen', beter: 'Neem 2 tellen voor de weg naar beneden en houd de gewichten net los van de stapel.' },
     ],
     ademhaling: 'Adem in onderin, adem uit terwijl je de grepen omhoog drukt.',
@@ -595,7 +595,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       { punt: 'Armen mee', uitleg: 'Laat je armen actief meezwaaien. Dat helpt je tempo en je ritme.' },
     ],
     opstelling: [
-      'Ga met je voeten op de zijranden staan, zet de band op een lage snelheid en stap erop. Doe het noodkoord aan je kleding.',
+      'Ga met je voeten op de zijranden staan, zet de band op een lage snelheid en stap erop. Klem het noodkoord aan je kleding.',
       'Begin met een lage helling van 1 tot 3 procent.',
     ],
     stappen: [

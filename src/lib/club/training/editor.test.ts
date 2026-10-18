@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   koppelAanVorige, kopieerDag, naarPayloadRegels, nieuweDag, ontkoppel, uitOpgeslagen, verplaats, verplaatsNaar, verwijderDag, verwijderRegel,
-  voegToe, zetGewicht, zetInspanning, zetMaat, wijzigRegel, type EditorStaat,
+  vervangOefening, voegToe, zetGewicht, zetInspanning, zetMaat, wijzigRegel, type EditorStaat,
 } from './editor'
 import type { SchemaRegel } from './rijen'
 
@@ -145,5 +145,22 @@ describe('editor', () => {
 
   it('zet een gewicht uit de suggestie met een komma', () => {
     expect(zetGewicht(staat(), 'o1', 22.5).regels[0].gewichtKg).toBe('22,5')
+  })
+})
+
+describe('vervangOefening', () => {
+  it('zet een andere oefening op dezelfde plek, zonder het oude gewicht', () => {
+    const s = metSupersets()
+    const na = vervangOefening(s, 'b', 'o-nieuw')
+    const b = na.regels.find((r) => r.sleutel === 'b')!
+    expect(b.oefeningId).toBe('o-nieuw')
+    expect(b.gewichtKg).toBe('')
+    expect(b.groep).toBe(s.regels.find((r) => r.sleutel === 'b')!.groep)
+    expect(volgorde(na, 1)).toEqual(volgorde(s, 1))
+    expect(s.regels.find((r) => r.sleutel === 'b')!.oefeningId).toBe('o-b')
+  })
+  it('houdt sets, herhalingen en rust', () => {
+    const na = vervangOefening(staat(), 'a', 'o9')
+    expect(na.regels.find((r) => r.sleutel === 'a')).toMatchObject({ oefeningId: 'o9', sets: '3', herhalingen: '8 tot 10', rustSec: '90', gewichtKg: '' })
   })
 })

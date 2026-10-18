@@ -50,10 +50,10 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
         <div>
           <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${naamVan(t.vestigingen, vestiging)}`}</p>
           <h1>{kop.naam}</h1>
-          {!isSjabloon && kop.status === 'concept' && <p>Concept: zet het op actief zodra het klaar is voor het lid.</p>}
+          {!isSjabloon && kop.status === 'concept' && <p>Concept: pas aan waar nodig en kies Activeren zodra het klaar is voor het lid.</p>}
         </div>
         <Link className="club-knop club-knop--stil" href={terug}>
-          <ArrowLeft aria-hidden size={16} /> {isSjabloon ? 'Sjablonen' : "Schema's van dit lid"}
+          <ArrowLeft aria-hidden size={16} /> {isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`}
         </Link>
       </section>
       {!oefeningen && <p className="club-melding club-melding--fout">De oefeningen konden niet worden geladen.</p>}

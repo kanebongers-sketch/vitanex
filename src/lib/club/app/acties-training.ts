@@ -10,6 +10,9 @@ import { alsAntwoord } from '@/lib/club/rooster/api'
 import { annuleerReservering, haalReservering, reserveer } from '@/lib/club/rooster/reserveren-opslag'
 import { isUuid } from './invoer'
 import { leesGelogdeSets } from './sets'
+import { leesTrainingId } from './training-id'
+import { trainingDag, trainingTijdstip } from './training-tijd'
+import { oefeningNamen, toegestaanOpDag } from '@/lib/club/training/alternatieven-opslag'
 
 export interface TrainingVraag {
   schemaId: unknown
@@ -17,6 +20,42 @@ export interface TrainingVraag {
   /** Optioneel: per set wat het lid deed (zie sets.ts). Zonder sets is het afvinken. */
   sets?: unknown
   duurSec?: unknown
+  /** Vast id van deze training (uuid, gemaakt bij het starten). Zelfde id nog eens: niets dubbel opslaan. */
+  clientId?: unknown
+  /** Moment van afronden op de telefoon (ms of ISO). Bepaalt de datum, binnen de grenzen van training-tijd.ts. */
+  afgerondOp?: unknown
+}
+
+interface OpgeslagenLog {
+  id: string
+  op: string
+}
+
+/** Het succesantwoord van een opgeslagen training; voor een herhaalde inzending precies hetzelfde. */
+function trainingOpgeslagen(log: OpgeslagenLog, sets: number): NextResponse {
+  return clubJson({ id: log.id, op: log.op, datum: trainingDag(new Date(log.op)), sets }, 201)
+}
+
+/**
+ * Staat deze training (zelfde id, zelfde lid) er al? Dan het succesantwoord,
+ * zonder iets opnieuw te schrijven. Er nog niet: null. Leesfout: een 500.
+ */
+async function alOpgeslagen(s: ClubSchrijver, lidId: string, clientId: string): Promise<NextResponse | null> {
+  const { data, error } = await s.admin
+    .from('club_trainingslog')
+    .select('id, op')
+    .eq('user_id', s.userId)
+    .eq('lid_id', lidId)
+    .eq('client_id', clientId)
+    .maybeSingle()
+  if (error) {
+    console.error('[club/app] eerdere training zoeken mislukt', error.message)
+    return clubFout('Afvinken is niet gelukt. Probeer het opnieuw.', 500)
+  }
+  if (!data || typeof data.id !== 'string' || typeof data.op !== 'string') return null
+  const telling = await s.admin.from('club_set_logs').select('id', { count: 'exact', head: true }).eq('user_id', s.userId).eq('trainingslog_id', data.id)
+  if (telling.error) console.error('[club/app] sets tellen mislukt', telling.error.message)
+  return trainingOpgeslagen({ id: data.id, op: data.op }, telling.count ?? 0)
 }
 
 /** De oefeningen (club_oefeningen.id) op deze dag van het schema; null bij een leesfout. */
@@ -29,26 +68,48 @@ async function oefeningenVanDag(s: ClubSchrijver, schemaId: string, dag: number)
   return new Set((data ?? []).map((r) => (typeof r.oefening_id === 'string' ? r.oefening_id : '')).filter(Boolean))
 }
 
+/** Staat er een set in met een oefening die niet op de dag staat? Alleen dan zijn de alternatieven nodig. */
+function heeftAndereOefening(sets: unknown, opDag: ReadonlySet<string>): boolean {
+  if (!Array.isArray(sets)) return false
+  return sets.some((x: unknown) => typeof x === 'object' && x !== null && 'oefeningId' in x && typeof x.oefeningId === 'string' && !opDag.has(x.oefeningId))
+}
+
 /** Een training uit het eigen schema afvinken, met of zonder gelogde sets. */
 export async function vinkTrainingAf(s: ClubSchrijver, lid: Lid, v: TrainingVraag): Promise<NextResponse> {
   if (!isUuid(v.schemaId)) return clubFout('Onbekend schema.', 400)
   if (typeof v.dag !== 'number' || !Number.isInteger(v.dag) || v.dag < 1 || v.dag > 7) return clubFout('Onbekende trainingsdag.', 400)
+  // Zonder id (oudere app): zoals vroeger. Met een ongeldig id: weigeren, anders kan dubbel opslaan weer.
+  const clientId = v.clientId === undefined || v.clientId === null ? null : leesTrainingId(v.clientId)
+  if (v.clientId !== undefined && v.clientId !== null && !clientId) return clubFout('Ongeldige training.', 400)
+  if (clientId) {
+    const eerder = await alOpgeslagen(s, lid.id, clientId)
+    if (eerder) return eerder
+  }
   const schema = await s.admin.from('club_schemas').select('id').eq('user_id', s.userId).eq('id', v.schemaId).eq('lid_id', lid.id).maybeSingle()
   if (schema.error) {
     console.error('[club/app] schema lezen mislukt', schema.error.message)
     return clubFout('Het schema kon niet worden gelezen.', 500)
   }
   if (!schema.data) return clubFout('Dit schema hoort niet bij dit lid.', 404)
-  const toegestaan = v.sets === undefined || v.sets === null ? new Set<string>() : await oefeningenVanDag(s, v.schemaId, v.dag)
-  if (!toegestaan) return clubFout('Het schema kon niet worden gelezen.', 500)
+  const opDag = v.sets === undefined || v.sets === null ? new Set<string>() : await oefeningenVanDag(s, v.schemaId, v.dag)
+  // Toestel bezet: een lid mag ook een veilig alternatief van een oefening van de dag loggen (alternatieven.ts).
+  const toegestaan = opDag && heeftAndereOefening(v.sets, opDag) ? await toegestaanOpDag(s, opDag) : opDag
+  if (!opDag || !toegestaan) return clubFout('Het schema kon niet worden gelezen.', 500)
   const invoer = leesGelogdeSets(v.sets, v.duurSec, toegestaan)
   if (typeof invoer === 'string') return clubFout(invoer, 400)
+  const anders = await oefeningNamen(s, invoer.sets.map((x) => x.oefeningId).filter((id) => !opDag.has(id)))
 
+  const op = trainingTijdstip(v.afgerondOp, new Date()).toISOString()
   const { data, error } = await s.admin
     .from('club_trainingslog')
-    .insert({ user_id: s.userId, lid_id: lid.id, schema_id: v.schemaId, dag: v.dag, uitgevoerd: [], duur_sec: invoer.duurSec, demo: lid.demo })
+    .insert({ user_id: s.userId, lid_id: lid.id, schema_id: v.schemaId, dag: v.dag, uitgevoerd: [], duur_sec: invoer.duurSec, demo: lid.demo, op, client_id: clientId })
     .select('id, op')
     .single()
+  // Tegelijk binnengekomen (twee verzoeken met hetzelfde id): de ander was net eerder, dat is de opgeslagen training.
+  if (error?.code === '23505' && clientId) {
+    const eerder = await alOpgeslagen(s, lid.id, clientId)
+    if (eerder) return eerder
+  }
   if (error || !data) {
     console.error('[club/app] training afvinken mislukt', error?.message)
     return clubFout('Afvinken is niet gelukt. Probeer het opnieuw.', 500)
@@ -65,8 +126,11 @@ export async function vinkTrainingAf(s: ClubSchrijver, lid: Lid, v: TrainingVraa
       return clubFout('De sets konden niet worden opgeslagen. Je invoer staat er nog: probeer het opnieuw.', 500)
     }
   }
-  await logActie(s, invoer.sets.length > 0 ? 'Training gelogd in ledenapp' : 'Training afgevinkt in ledenapp', volledigeNaam(lid), lid.vestiging)
-  return clubJson({ id: data.id, op: data.op, sets: invoer.sets.length }, 201)
+  // De trainer ziet in het logboek welke andere oefening het lid koos; de sets staan op die oefening.
+  const actie = anders.length > 0 ? 'Training gelogd in ledenapp, met andere oefening' : invoer.sets.length > 0 ? 'Training gelogd in ledenapp' : 'Training afgevinkt in ledenapp'
+  const onderwerp = anders.length > 0 ? `${volledigeNaam(lid)} · andere oefening: ${anders.join(', ')}` : volledigeNaam(lid)
+  await logActie(s, actie, onderwerp, lid.vestiging)
+  return trainingOpgeslagen(data, invoer.sets.length)
 }
 
 /** Een afgevinkte training ongedaan maken. Met `lidId`: alleen een training van dat lid. */

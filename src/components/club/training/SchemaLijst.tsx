@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 import type { LogRegel, SchemaKop } from '@/lib/club/training/rijen'
 import { DOEL_LABEL, NIVEAU_LABEL, SCHEMA_STATUS_LABEL, type SchemaStatus } from '@/lib/club/training/typen'
 import { toonDatum } from '@/lib/club/training/weergave'
@@ -28,44 +29,45 @@ function samenvatting(log: LogRegel[]): Map<string, { laatste: string; aantal: n
   return uit
 }
 
-/** Schema's van leden: status, trainer en wanneer er voor het laatst mee getraind is. */
+function dagen(n: number): string {
+  const aantal = n || 1
+  return `${aantal} ${aantal === 1 ? 'dag' : 'dagen'}`
+}
+
+/**
+ * Schema's van leden als rijen: de hele rij opent de editor (ook op de telefoon).
+ * Per rij: naam, lid, opbouw, status, trainer en wanneer er voor het laatst mee getraind is.
+ */
 export function SchemaLijst({ schemas, log, trainers, editorHref, toonLid }: SchemaLijstProps) {
   const perSchema = samenvatting(log)
   return (
-    <div className="club-tabel-wrap">
-      <table className="club-tabel">
-        <thead>
-          <tr>
-            <th scope="col">Schema</th>
-            {toonLid && <th scope="col">Lid</th>}
-            <th scope="col">Status</th>
-            <th scope="col">Trainer</th>
-            <th scope="col">Getraind</th>
-            <th scope="col">Bijgewerkt</th>
-          </tr>
-        </thead>
-        <tbody>
-          {schemas.map((s) => {
-            const l = perSchema.get(s.id)
-            return (
-              <tr key={s.id}>
-                <td>
-                  <Link href={editorHref.replace('__id__', s.id)}>{s.naam}</Link>
-                  <div className="club-zacht club-training-klein">
-                    {[s.doel ? DOEL_LABEL[s.doel] : null, NIVEAU_LABEL[s.niveau], `${s.dagTitels.length || 1} ${s.dagTitels.length === 1 ? 'dag' : 'dagen'}`].filter(Boolean).join(' · ')}
-                  </div>
-                </td>
-                {toonLid && <td>{s.lidNaam ?? <span className="club-zacht">onbekend</span>}</td>}
-                <td><span className={`club-chip ${STATUS_CHIP[s.status]}`}>{SCHEMA_STATUS_LABEL[s.status]}</span></td>
-                <td>{s.medewerkerId && trainers[s.medewerkerId] ? trainers[s.medewerkerId] : <span className="club-zacht">geen</span>}</td>
-                <td className="club-getal">{l ? `${l.aantal}x, laatst ${toonDatum(l.laatste)}` : <span className="club-zacht">nog niet</span>}</td>
-                <td className="club-zacht">{s.bijgewerktOp ? toonDatum(s.bijgewerktOp) : ''}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+    <ul className="club-lijst club-kaart club-training-schemas">
+      {schemas.map((s) => {
+        const l = perSchema.get(s.id)
+        const trainer = s.medewerkerId ? trainers[s.medewerkerId] ?? null : null
+        return (
+          <li key={s.id}>
+            <Link href={editorHref.replace('__id__', s.id)} className="club-training-schemarij">
+              <span className="club-training-schemarij-hoofd">
+                <span className="club-training-schemarij-titel">
+                  {toonLid && <span className="club-training-schemarij-lid">{s.lidNaam ?? 'Lid onbekend'}</span>}
+                  <strong>{s.naam}</strong>
+                </span>
+                <span className="club-rij-sub">
+                  {[s.doel ? DOEL_LABEL[s.doel] : null, NIVEAU_LABEL[s.niveau], dagen(s.dagTitels.length), trainer ? `Trainer ${trainer}` : null].filter(Boolean).join(' · ')}
+                </span>
+              </span>
+              <span className="club-training-schemarij-getraind">
+                {l ? <span><b className="club-getal">{l.aantal}x</b> getraind, laatst {toonDatum(l.laatste)}</span> : <span className="club-zacht">Nog niet getraind</span>}
+                {s.bijgewerktOp && <small>Bijgewerkt {toonDatum(s.bijgewerktOp)}</small>}
+              </span>
+              <span className={`club-chip ${STATUS_CHIP[s.status]}`}>{SCHEMA_STATUS_LABEL[s.status]}</span>
+              <ChevronRight aria-hidden size={18} className="club-training-schemarij-pijl" />
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 

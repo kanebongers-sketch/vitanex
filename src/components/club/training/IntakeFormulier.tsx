@@ -61,10 +61,10 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
       <section className="club-kaart club-kaart--accent club-training-klaar" aria-live="polite">
         <p className="club-boventitel">Intake opgeslagen</p>
         <h2>{lid.naam}</h2>
-        <p className="club-hint">Maak direct een schemavoorstel op basis van deze intake. Je past het daarna aan in de editor.</p>
+        <p className="club-hint">Volgende stap: een schemavoorstel op basis van deze intake. Je past het aan in de editor en activeert het daar.</p>
         <div className="club-acties">
-          <VoorstelKnop intakeId={opgeslagen} editorHref={editorHref} />
-          <Link className="club-knop" href={lidHref.replace('__lid__', lid.id)}>Naar de intakes van {lid.naam.split(' ')[0]}</Link>
+          <VoorstelKnop intakeId={opgeslagen} editorHref={editorHref} groot />
+          <Link className="club-knop club-knop--stil" href={lidHref.replace('__lid__', lid.id)}>Later, naar de intakes van {lid.naam.split(' ')[0]}</Link>
         </div>
       </section>
     )

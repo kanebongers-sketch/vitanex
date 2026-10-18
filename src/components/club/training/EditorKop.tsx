@@ -25,7 +25,8 @@ interface EditorKopProps {
 /** De gegevens van het schema: naam, doel, niveau, duur, status en trainer. */
 export function EditorKop({ kop, zet, trainers, isSjabloon }: EditorKopProps) {
   return (
-    <section className="club-kaart club-training-kopvelden" aria-label="Gegevens van het schema">
+    <section className="club-kaart club-training-kopvelden" aria-labelledby="kopvelden-kop">
+      <h2 id="kopvelden-kop">{isSjabloon ? 'Sjabloon' : 'Schema'}</h2>
       <label className="club-veld">
         <span>Naam</span>
         <input className="club-invoer" value={kop.naam} maxLength={80} onChange={(e) => zet({ naam: e.target.value })} required />

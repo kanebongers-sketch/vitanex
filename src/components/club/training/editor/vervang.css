@@ -1,0 +1,17 @@
+/* ── Editor: oefening vervangen en "Waarom dit schema" ────────────────────── */
+.club-training-vervangknop { gap: 5px; }
+.club-training-vervangknop span { font-size: 12.5px; }
+@media (max-width: 640px) { .club-training-vervangknop span { display: none; } }
+.club-training-vervanglijst { margin-top: 4px; }
+.club-training-vervang-match { flex: none; align-self: center; padding: 3px 9px; border-radius: 999px; background: var(--club-vlak); font-size: 11.5px; letter-spacing: 0.04em; color: var(--text-2); white-space: nowrap; }
+.club-training-vervang-match[data-zelfde] { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
+.club-training-vervang-let { color: var(--club-let-op); }
+
+.club-training-waarom { display: grid; gap: 10px; }
+.club-training-waarom h2 { margin: 0; }
+.club-training-waarom ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: waarom; }
+.club-training-waarom li { position: relative; padding-left: 28px; font-size: 13.5px; line-height: 1.5; color: var(--text-2); counter-increment: waarom; }
+.club-training-waarom li::before { content: counter(waarom); position: absolute; left: 0; top: 0; width: 20px; font-family: var(--ff-kop); font-size: 15px; font-weight: 700; color: var(--brand-tekst, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-training-waarom-letop { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--club-let-op) 12%, transparent); font-size: 13px; line-height: 1.45; color: var(--text-1); }
+.club-training-waarom-letop svg { flex: none; margin-top: 2px; color: var(--club-let-op); }
+.club-training-waarom .club-hint { margin: 0; }

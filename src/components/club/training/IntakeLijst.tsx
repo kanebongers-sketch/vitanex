@@ -21,7 +21,7 @@ interface IntakeLijstProps {
   toonLid: boolean
 }
 
-/** De intakes als rijen; een klik opent de hele intake in een zijpaneel. */
+/** De intakes als rijen: een klik opent de hele intake in een zijpaneel, het voorstel kan direct vanuit de rij. */
 export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }: IntakeLijstProps) {
   const [open, setOpen] = useState<Intake | null>(null)
   const sluit = useCallback(() => setOpen(null), [])
@@ -48,10 +48,11 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
                 </span>
               </button>
               {i.toestemmingGezondheid && (
-                <span className="club-chip club-chip--ok club-chip--geen" title="Toestemming voor gezondheidsgegevens">
+                <span className="club-chip club-chip--ok club-chip--geen club-training-avgchip" title="Toestemming voor gezondheidsgegevens">
                   <ShieldCheck aria-hidden size={13} /> AVG
                 </span>
               )}
+              <VoorstelKnop intakeId={i.id} editorHref={editorHref} primair={false} klein label="Schemavoorstel" />
               {toonLid && (
                 <Link href={lidHref.replace('__lid__', i.lidId)} className="club-knop club-knop--stil club-knop--klein" aria-label={`Alles van ${i.lidNaam ?? 'dit lid'}`}>
                   <ChevronRight aria-hidden size={16} />
@@ -63,8 +64,8 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
       </ul>
       {open && (
         <Zijpaneel titel={open.lidNaam ?? 'Intake'} boventitel="Intake" onSluit={sluit}>
-          <IntakeDetail intake={open} trainer={open.medewerkerId ? trainers[open.medewerkerId] ?? null : null} />
           <VoorstelKnop intakeId={open.id} editorHref={editorHref} />
+          <IntakeDetail intake={open} trainer={open.medewerkerId ? trainers[open.medewerkerId] ?? null : null} />
         </Zijpaneel>
       )}
     </>

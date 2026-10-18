@@ -4,7 +4,7 @@ import type { CoachingBoek } from './typen'
 export const COACHING_DUWEN: CoachingBoek = {
   'Bankdrukken in de smith machine': {
     kernpunten: [
-      { punt: 'Stang boven je middenborst', uitleg: 'Zet de bank zo dat de stang recht op je middenborst zakt. Ligt de bank verkeerd, dan drukt de geleiding je schouders in een rare lijn.' },
+      { punt: 'Stang boven je middenborst', uitleg: 'Zet de bank zo dat de stang recht op je middenborst zakt. De geleiding loopt recht, dus jij moet goed liggen.' },
       { punt: 'Schouderbladen samen en laag', uitleg: 'Knijp je schouderbladen naar elkaar en naar je broekzak. Je borst staat dan bol en je schouders liggen veilig op de bank.' },
       { punt: 'Polsen boven de ellebogen', uitleg: 'Je onderarmen staan in de laagste stand verticaal. Zo gaat de kracht recht de stang in en niet via je polsen.' },
       { punt: 'Ellebogen schuin naar beneden', uitleg: 'Houd je ellebogen ongeveer 45 graden van je romp, niet wijd naar buiten. Dat spaart je schouders.' },
@@ -24,7 +24,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       { fout: 'Veiligheidsstops staan te laag of uit', beter: 'Zet ze altijd net onder je borst. Lukt een herhaling niet, dan laat je de stang daarop rusten.' },
       { fout: 'Billen komen los van de bank', beter: 'Houd je billen op de bank en druk met je voeten in de grond. Te zwaar? Haal er een schijf af.' },
     ],
-    ademhaling: 'Adem in terwijl de stang zakt en adem uit terwijl je hem omhoog duwt.',
+    ademhaling: 'Adem in en zet je buik vast voor je laat zakken, adem uit terwijl je de stang omhoog duwt.',
     tempo: '2 tellen omlaag, kort stil, 1 tel omhoog.',
     makkelijker: 'Begin met alleen de stang of kies de chest press machine om het duwen eerst rustig te leren.',
     zwaarder: 'Voeg gewicht toe in kleine stappen of maak de zakfase 4 tellen lang.',
@@ -80,7 +80,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       { fout: 'Ellebogen klappen naar buiten', beter: 'Houd ze dicht langs je romp. Waaieren ze uit, dan wordt het gewoon bankdrukken en neemt je borst het over.' },
       { fout: 'Stang zakt naar je hals', beter: 'Mik op je onderste borst. Met smalle handen hoort de stang daar uit te komen.' },
     ],
-    ademhaling: 'Adem in terwijl je zakt en adem uit terwijl je de stang omhoog duwt.',
+    ademhaling: 'Adem in en zet je buik vast voor je laat zakken, adem uit terwijl je de stang omhoog duwt.',
     tempo: '2 tellen omlaag, kort stil, 1 tel omhoog.',
     makkelijker: 'Doe een push-up met smalle handen of gebruik de smith machine voor meer houvast.',
     zwaarder: 'Houd de stang een tel boven je borst stil voor je duwt.',
@@ -118,7 +118,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       { punt: 'Kabels op schouderhoogte', uitleg: 'Zet de katrollen op schouderhoogte. Je handen bewegen dan recht voor je borst langs en dat raakt het midden van je borst.' },
       { punt: 'Ellebogen licht gebogen', uitleg: 'Een kleine buiging, alsof je een grote boom omarmt. Die buiging blijft de hele herhaling gelijk.' },
       { punt: 'Borst vooruit, schouders laag', uitleg: 'Houd je borst open en je schouders naar achteren en omlaag. Zo blijft de spanning op je borst en niet op je schouders.' },
-      { punt: 'Rustig terug', uitleg: 'De terugweg is het belangrijkste deel. Laat de kabels je armen niet open trekken, rem ze zelf af.' },
+      { punt: 'Rustig terug', uitleg: 'De terugweg telt net zo hard mee. Laat de kabels je armen niet open trekken, rem ze zelf af.' },
     ],
     opstelling: [
       'Zet beide kabels op schouderhoogte, pak de grepen en stap een halve meter naar voren.',
@@ -211,7 +211,7 @@ export const COACHING_DUWEN: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Lichaam drijft weg van de bank', beter: 'Houd je billen bijna tegen de bank. Hoe verder weg, hoe meer je schouder in een kwetsbare stand komt.' },
-      { fout: 'Zakken met je benen in plaats van armen', beter: 'Je heupen gaan recht omlaag doordat je ellebogen buigen. Je benen helpen niet mee duwen.' },
+      { fout: 'Zakken met je benen in plaats van armen', beter: 'Buig je ellebogen, niet je knieen. Je heupen zakken recht omlaag langs de rand van de bank.' },
       { fout: 'Vingers naar opzij of achter', beter: 'Zet je vingers naar voren over de rand. Dat is prettiger voor je polsen en houdt je ellebogen naar achteren.' },
     ],
     ademhaling: 'Adem in terwijl je zakt en adem uit terwijl je omhoog duwt.',
@@ -259,7 +259,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       'Houd ze boven je borst, voeten plat op de grond, handpalmen naar je voeten of licht naar elkaar.',
     ],
     stappen: [
-      'Laat de dumbbells zakken tot je ellebogen net onder de bank komen.',
+      'Laat de dumbbells zakken tot ze naast je borst zijn en je een lichte rek voelt.',
       'Duw ze terug omhoog en iets naar elkaar toe.',
       'Stop als je armen bijna gestrekt zijn en begin opnieuw.',
     ],
@@ -279,7 +279,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       { punt: 'Ellebogen licht gebogen', uitleg: 'Een kleine buiging die de hele herhaling gelijk blijft. Je armen bewegen als een vaste boog vanuit je schouders.' },
       { punt: 'Wijde boog', uitleg: 'Laat de dumbbells opzij zakken alsof je een groot vat omarmt. Je voelt een rek over je borst.' },
       { punt: 'Stop bij een lichte rek', uitleg: 'Ga niet verder dan je ellebogen ongeveer op bankhoogte. Dieper trekt vooral aan de voorkant van je schouder.' },
-      { punt: 'Licht gewicht', uitleg: 'Met gestrekte armen is de hefboom lang. Kies een gewicht dat je rustig onder controle houdt.' },
+      { punt: 'Schouderbladen samen', uitleg: 'Houd je schouderbladen samen en je borst open, ook onderin. Zo blijft de rek in je borst en niet in je schouder.' },
     ],
     opstelling: [
       'Lig op een vlakke bank met de dumbbells boven je borst, handpalmen naar elkaar en ellebogen licht gebogen.',
@@ -575,8 +575,8 @@ export const COACHING_DUWEN: CoachingBoek = {
     kernpunten: [
       { punt: 'Bovenarmen stil', uitleg: 'Je bovenarmen blijven op dezelfde plek, licht naar achteren gekanteld. Alleen je ellebogen buigen en strekken.' },
       { punt: 'Ellebogen naar je voeten', uitleg: 'Je ellebogen wijzen naar je voeten, niet naar buiten. Zo blijft de spanning op je triceps.' },
-      { punt: 'Stang naar je voorhoofd', uitleg: 'Laat de stang gecontroleerd zakken tot net boven je voorhoofd of iets erachter. Rustig, met volle controle.' },
-      { punt: 'Gewicht onder controle', uitleg: 'Kies een gewicht dat je rustig laat zakken. Dit is geen oefening om zwaar te gaan.' },
+      { punt: 'Stang naar je voorhoofd', uitleg: 'Laat de stang zakken tot net boven je voorhoofd of iets erachter. Je ellebogen blijven op hun plek.' },
+      { punt: 'Licht en gecontroleerd', uitleg: 'De stang zakt richting je hoofd. Kies een gewicht dat je rustig laat zakken, dit is geen oefening om zwaar te gaan.' },
     ],
     opstelling: [
       'Lig op een vlakke bank met je voeten plat op de grond en pak de EZ-stang op de schuine delen met je handpalmen schuin naar je voeten.',

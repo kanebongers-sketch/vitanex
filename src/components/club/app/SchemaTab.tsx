@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronRight, ClipboardList, Play, Undo2 } from 'lucide-react'
+import { Check, ChevronRight, ClipboardList, CloudUpload, Play, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
@@ -15,6 +15,7 @@ import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
 import { TrainingModus } from './training/TrainingModus'
+import { useWachtrij, type Wachtrij } from './training/useWachtrij'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
 // de training: per set gewicht en herhalingen invullen met de vorige keer
@@ -41,6 +42,8 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const [open, setOpen] = useState<AppOefening | null>(null)
   const [traint, setTraint] = useState(false)
   const sluit = useCallback(() => setOpen(null), [])
+  // Trainingen die zonder bereik werden afgerond: gaan vanzelf de deur uit zodra er verbinding is.
+  const wachtrij = useWachtrij(useCallback(() => router.refresh(), [router]))
   const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
     return (
@@ -74,7 +77,8 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
     return (
       <div className="club-lidapp-tab">
         <TrainingModus
-          lidId={lidId} schema={schema} dag={dag} historie={historie} onInfo={setOpen} onStop={() => setTraint(false)}
+          lidId={lidId} schema={schema} dag={dag} historie={historie} logs={logs} kernpunten={kernpunten} wachtrij={wachtrij}
+          onInfo={setOpen} onStop={() => setTraint(false)}
           onOpgeslagen={() => {
             setTraint(false)
             router.refresh()
@@ -151,6 +155,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
           {fout}
         </p>
       )}
+      <WachtrijStatus wachtrij={wachtrij} />
       {recent.length > 0 && (
         <section className="club-lidapp-recent" aria-label="Laatst gedaan">
           <h3>Laatst gedaan</h3>
@@ -185,4 +190,25 @@ function OefeningHint({ notitie, punten, aandachtspunten }: { notitie: string | 
     )
   }
   return aandachtspunten ? <em>{aandachtspunten}</em> : null
+}
+
+/** Rustig onder de startknop: een training die nog op bereik wacht, of die de server weigerde. */
+function WachtrijStatus({ wachtrij }: { wachtrij: Wachtrij }) {
+  if (wachtrij.fout) {
+    return (
+      <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="alert">
+        {wachtrij.fout}{' '}
+        <button type="button" className="club-lidapp-tekstknop" onClick={wachtrij.sluitFout}>Sluiten</button>
+      </p>
+    )
+  }
+  if (wachtrij.aantal === 0) return null
+  return (
+    <p className="club-tm-wacht" role="status">
+      <CloudUpload aria-hidden size={16} />
+      {wachtrij.aantal === 1
+        ? `Een training ${wachtrij.online ? 'wordt nu verstuurd.' : 'staat op je telefoon en gaat vanzelf weg zodra je bereik hebt.'}`
+        : `${wachtrij.aantal} trainingen ${wachtrij.online ? 'worden nu verstuurd.' : 'staan op je telefoon en gaan vanzelf weg zodra je bereik hebt.'}`}
+    </p>
+  )
 }

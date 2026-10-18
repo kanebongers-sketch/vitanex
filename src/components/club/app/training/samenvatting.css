@@ -1,0 +1,47 @@
+/* ─── Fit Factory Club, ledenapp: na de training ───────────────────────────
+   Kort en rustig: een grote tijd, drie cijfers, records met een zachte gloed
+   en de week in streepjes. Alleen tokens. */
+
+.club-tm-klaar { display: grid; gap: 16px; padding-top: 8px; }
+.club-tm-klaar-kop { display: grid; justify-items: start; gap: 6px; }
+.club-tm-klaar-kop p { margin: 8px 0 0; font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-tm-klaar-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: 44px; font-weight: 700; line-height: 0.92; text-transform: uppercase; }
+.club-tm-klaar-vink { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 999px; background: var(--club-ok); color: var(--bg-app); animation: club-tm-klaar-vink 420ms var(--ease) both; }
+
+.club-tm-klaar-cijfers { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.club-tm-klaar-cijfers div { display: grid; gap: 2px; align-content: start; padding: 14px 12px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); min-width: 0; }
+.club-tm-klaar-cijfers .club-tm-klaar-tijd { grid-column: 1 / -1; padding: 18px 16px; background: radial-gradient(120% 140% at 100% 0%, var(--brand-soft), transparent 60%), var(--bg-card); }
+.club-tm-klaar-cijfers dt { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); }
+.club-tm-klaar-cijfers dd { margin: 0; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.club-tm-klaar-tijd dd { font-size: 52px; line-height: 1; }
+.club-tm-klaar-cijfers small { font-size: 14px; color: var(--text-3); }
+
+.club-tm-records { position: relative; overflow: hidden; display: grid; gap: 10px; padding: 16px; border-radius: var(--lidapp-radius, 18px); background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 40%, transparent); }
+.club-tm-records::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--brand) 22%, transparent) 50%, transparent 70%); transform: translateX(-100%); animation: club-tm-gloed 1600ms 400ms var(--ease) both; pointer-events: none; }
+.club-tm-records h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-tm-records ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-tm-records li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; }
+.club-tm-records li span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-tm-records li strong { font-family: var(--ff-kop); font-size: 20px; font-variant-numeric: tabular-nums; }
+.club-tm-records li small { grid-column: 2; justify-self: end; color: var(--text-3); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.club-tm-week { display: grid; gap: 10px; padding: 16px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); }
+.club-tm-week p { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.club-tm-week p span { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-tm-week p strong { font-family: var(--ff-kop); font-size: 19px; text-transform: uppercase; }
+.club-tm-week ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.club-tm-week li { flex: 1; height: 10px; border-radius: 999px; background: var(--club-vlak-hover); }
+.club-tm-week li[data-gedaan] { background: var(--brand); }
+.club-tm-week li[data-extra] { background: color-mix(in srgb, var(--brand) 55%, transparent); }
+
+.club-tm-opslag { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; color: var(--text-3); font-size: 13.5px; text-align: center; }
+.club-tm-opslag[data-status='opgeslagen'] svg { color: var(--club-ok); }
+.club-tm-opslag[data-status='wacht'] svg { color: var(--brand-tekst, var(--brand)); }
+
+@keyframes club-tm-klaar-vink { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes club-tm-gloed { to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-tm-klaar-vink { animation: none; }
+  .club-tm-records::after { display: none; }
+}

@@ -73,12 +73,12 @@ export function BasisSjablonen({ vestiging, lid, alOpgeslagen, editorHref }: Bas
               <p className="club-zacht club-training-klein">{s.perWeek} · {aantalOefeningen(s)} oefeningen</p>
               <div className="club-training-basis-acties">
                 <button
-                  type="button" className="club-knop club-knop--primair club-knop--klein" disabled={bezig !== null}
+                  type="button" className="club-knop club-knop--klein club-training-knop-merk" disabled={bezig !== null}
                   onClick={() => (lid ? maak(s, lid.id) : setKiesLidVoor(s))}
                 >
                   <UserPlus aria-hidden size={15} /> {lid ? `Op ${lid.naam.split(' ')[0]}` : 'Op een lid'}
                 </button>
-                <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null || opgeslagen} onClick={() => maak(s, null)}>
+                <button type="button" className="club-knop club-knop--stil club-knop--klein" disabled={bezig !== null || opgeslagen} onClick={() => maak(s, null)}>
                   {opgeslagen ? <><Check aria-hidden size={15} /> Bij je sjablonen</> : <><BookmarkPlus aria-hidden size={15} /> Als eigen sjabloon</>}
                 </button>
               </div>

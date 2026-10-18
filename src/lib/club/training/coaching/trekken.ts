@@ -47,7 +47,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Achterover leunen om de stang op te zwiepen', beter: 'Neem minder gewicht en zet je billen en buik vast. Je bovenlichaam staat stil.' },
-      { fout: 'Ellebogen schuiven naar voren bovenin', beter: 'Stop de beweging als je ellebogen willen meegaan. Bovenin houden je biceps spanning.' },
+      { fout: 'Ellebogen schuiven naar voren bovenin', beter: 'Stop bovenin voordat je ellebogen naar voren schuiven. Dan blijft de spanning op je biceps.' },
       { fout: 'Stang valt omlaag', beter: 'Rem de stang af. Laat hem niet in je armen vallen, dat belast je ellebogen.' },
     ],
     ademhaling: 'Adem uit tijdens het omhoog krullen en adem in als de stang zakt.',
@@ -73,8 +73,8 @@ export const COACHING_TREKKEN: CoachingBoek = {
       'Laat de stang gecontroleerd zakken tot je armen weer gestrekt zijn, zonder je rug te bewegen.',
     ],
     fouten: [
-      { fout: 'Onderrug wordt bol', beter: 'Neem minder gewicht, borst iets naar voren en buik vast. Kan je rug niet recht blijven, kies dan de row met borststeun.' },
-      { fout: 'Steeds rechter gaan staan', beter: 'Houd dezelfde hoek in je romp. Stil staan en alleen je armen en rug laten bewegen.' },
+      { fout: 'Onderrug wordt bol', beter: 'Neem minder gewicht, borst iets naar voren en buik vast. Blijft je rug niet recht, kies dan de row met borststeun.' },
+      { fout: 'Stang ver voor je lichaam', beter: 'Houd de stang dicht langs je benen en trek hem naar je navel. Ver voor je lichaam trekt hij aan je onderrug.' },
       { fout: 'Rukken met de hele romp', beter: 'Elke herhaling begint stil. Trek met je ellebogen, niet met een zwiep vanuit je heupen.' },
     ],
     ademhaling: 'Adem in en zet je buik vast voor je trekt, adem uit als de stang bij je buik is.',
@@ -88,7 +88,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
       { punt: 'Rug recht en stil', uitleg: 'Je romp blijft schuin en stil staan. Je onderrug houdt zijn natuurlijke holling.' },
       { punt: 'Ellebogen langs je lijf', uitleg: 'Met de onderhandse greep schuren je ellebogen bijna langs je zij. Zo werk je onderin je brede rugspier.' },
       { punt: 'Trek naar je buik', uitleg: 'De stang komt laag, bij je navel of iets eronder. Hoger trekken maakt het een schouderoefening.' },
-      { punt: 'Begin licht', uitleg: 'Je biceps werken flink mee en je ellebogen zijn kwetsbaarder. Wen eerst aan de greep.' },
+      { punt: 'Begin licht', uitleg: 'Je biceps werken flink mee en de greep vraagt meer van je ellebogen. Bouw het gewicht rustig op.' },
     ],
     opstelling: [
       'Pak de stang op schouderbreedte met je handpalmen naar voren, van je af gekeerd.',
@@ -106,7 +106,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     ademhaling: 'Adem in en zet je buik vast, adem uit terwijl je de stang naar je buik trekt.',
     tempo: '1 tel omhoog, kort stil, 2 tellen omlaag.',
-    makkelijker: 'Gebruik de Smith machine of een row met borststeun zodat je romp gesteund is.',
+    makkelijker: 'Doe de row op een schuine bank met dumbbells, dan draagt de bank je romp.',
     zwaarder: 'Laat de stang in 3 tot 4 tellen zakken.',
   },
 
@@ -153,7 +153,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
       'Zak rustig terug tot je armen gestrekt zijn.',
     ],
     fouten: [
-      { fout: 'Kippen en zwaaien met de benen', beter: 'Buik vast en benen stil. Liever minder herhalingen dan meezwaaien.' },
+      { fout: 'Meezwaaien met de benen', beter: 'Buik vast en benen stil. Liever minder herhalingen dan meezwaaien.' },
       { fout: 'Alleen het bovenste stuk', beter: 'Ga elke keer terug tot gestrekte armen. Halve herhalingen tellen niet.' },
       { fout: 'Kin over de stang reiken', beter: 'Hoofd neutraal. Kom je er niet, neem dan de assisted variant.' },
     ],
@@ -379,7 +379,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     kernpunten: [
       { punt: 'Borst omhoog', uitleg: 'Zit rechtop met je borst naar de stang. Zo trek je met je rug en niet met je armen.' },
       { punt: 'Ellebogen naar beneden', uitleg: 'Denk aan je ellebogen naar je broekzakken trekken. Je handen zijn alleen haken.' },
-      { punt: 'Naar je bovenste borst', uitleg: 'De stang komt voor je gezicht langs tot net onder je sleutelbeenderen. Nooit achter je hoofd.' },
+      { punt: 'Naar je bovenste borst', uitleg: 'De stang komt voor je gezicht langs tot net onder je sleutelbeenderen. Je borst gaat er iets naar toe.' },
       { punt: 'Rustig terug omhoog', uitleg: 'Laat de stang gecontroleerd terug tot je armen gestrekt zijn en je rek voelt onder je oksels.' },
     ],
     opstelling: [
@@ -403,7 +403,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
 
   'Lat pulldown met onderhandse greep': {
     kernpunten: [
-      { punt: 'Ellebogen dicht langs je lijf', uitleg: 'Met deze greep trek je je ellebogen naar voren en omlaag langs je zij. Je voelt het onderin je rug.' },
+      { punt: 'Ellebogen dicht langs je lijf', uitleg: 'Met deze greep trek je je ellebogen recht omlaag langs je zij. Je voelt het onderin je brede rugspier.' },
       { punt: 'Borst omhoog', uitleg: 'Zit rechtop met je borst naar de stang. Je schouders blijven laag.' },
       { punt: 'Niet hangen of zwaaien', uitleg: 'Je romp blijft stil. Je biceps helpen veel mee, dus het gewicht mag niet je lichaam meetrekken.' },
       { punt: 'Gecontroleerd terug', uitleg: 'Laat de stang rustig omhoog tot je armen gestrekt zijn. Niet laten wegschieten.' },
@@ -490,9 +490,9 @@ export const COACHING_TREKKEN: CoachingBoek = {
       'Pak de stang op schouderbreedte met je handpalmen naar boven. Een EZ-stang kan prettiger zijn voor je polsen.',
     ],
     stappen: [
-      'Begin bovenin of laat iemand de stang aangeven.',
-      'Laat de stang langzaam zakken tot je armen bijna gestrekt zijn.',
-      'Krul de stang terug omhoog tot je onderarmen bijna verticaal staan.',
+      'Pak de stang uit de houder en begin met je armen bijna gestrekt op het kussen.',
+      'Krul de stang omhoog tot je onderarmen bijna verticaal staan.',
+      'Laat hem in 3 tellen zakken tot je armen bijna gestrekt zijn.',
     ],
     fouten: [
       { fout: 'Stang valt de laatste centimeters', beter: 'Rem juist onderin extra af. Daar is je elleboog het kwetsbaarst.' },
@@ -519,7 +519,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     stappen: [
       'Trek je schouders omlaag vanuit stil hangen.',
       'Trek jezelf op tot je kin boven de stang is.',
-      'Zak in een paar tellen terug tot je armen gestrekt zijn.',
+      'Zak in 2 tot 3 tellen terug tot je armen gestrekt zijn.',
     ],
     fouten: [
       { fout: 'Zwaaien en schoppen met de benen', beter: 'Buik vast en benen stil. Liever 3 nette herhalingen dan 8 met zwaai.' },
@@ -595,7 +595,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     opstelling: [
       'Zet de rugleuning op ongeveer 30 tot 45 graden en lig met je borst erop.',
-      'Zet je voeten stevig op de grond of tegen het voetsteun en laat een dumbbell in elke hand recht naar beneden hangen.',
+      'Zet je voeten stevig op de grond of tegen de voetsteun en laat een dumbbell in elke hand recht naar beneden hangen.',
     ],
     stappen: [
       'Laat de dumbbells hangen met gestrekte armen.',
@@ -667,7 +667,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
   'Straight arm pulldown': {
     kernpunten: [
       { punt: 'Armen bijna gestrekt', uitleg: 'Je ellebogen houden de hele tijd dezelfde lichte buiging. Buig je ze meer, dan wordt het een triceps-oefening.' },
-      { punt: 'Duw in een boog', uitleg: 'Breng de stang in een halve cirkel van ooghoogte naar je bovenbenen. Je voelt het onder je oksels.' },
+      { punt: 'Duw in een boog', uitleg: 'Breng de stang in een halve cirkel van hoofdhoogte naar je bovenbenen. Je voelt het onder je oksels.' },
       { punt: 'Romp blijft stil', uitleg: 'Je staat licht voorover en blijft op die hoek. Niet meebuigen om de stang omlaag te krijgen.' },
       { punt: 'Schouders laag', uitleg: 'Houd je schouders weg van je oren, ook als de stang bovenin is.' },
     ],

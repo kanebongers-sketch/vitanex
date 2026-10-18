@@ -1,50 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { stelSchemaVoor, type VoorstelIntake } from './voorstel'
-import { aantalOefeningen, dosering, hoofddoel, kiesSplit } from './voorstel-regels'
+import type { Gezondheid } from './intake'
 import type { Oefening } from './rijen'
-import type { Spier } from './spieren'
-import type { Materiaal, Niveau, Patroon, Spiergroep, Zone } from './typen'
-
-let teller = 0
-function oef(naam: string, patroon: Patroon, spiergroep: Spiergroep, materiaal: Materiaal, niveau: Niveau = 1, belast: Zone[] = [], spieren: Spier[] = []): Oefening {
-  teller += 1
-  const id = `00000000-0000-4000-8000-${String(teller).padStart(12, '0')}`
-  return { id, naam, spiergroep, spierenPrimair: spieren, spierenSecundair: [], materiaal, niveau, patroon, belast, uitleg: null, aandachtspunten: null, actief: true, beeld: null }
-}
-
-const BIB: Oefening[] = [
-  oef('Leg press', 'squat', 'benen', 'machine', 1, ['knie'], ['quadriceps', 'bilspieren']),
-  oef('Goblet squat', 'squat', 'benen', 'dumbbell', 1, ['knie'], ['quadriceps', 'bilspieren']),
-  oef('Back squat', 'squat', 'benen', 'barbell', 3, ['knie', 'rug'], ['quadriceps', 'bilspieren']),
-  oef('Box squat lichaamsgewicht', 'squat', 'benen', 'geen', 1, ['knie'], ['quadriceps', 'bilspieren']),
-  oef('Hip thrust', 'heupscharnier', 'billen', 'barbell', 2, [], ['bilspieren']),
-  oef('Glute bridge', 'heupscharnier', 'billen', 'geen', 1, [], ['bilspieren']),
-  oef('Roemeense deadlift', 'heupscharnier', 'benen', 'dumbbell', 2, ['rug'], ['hamstrings', 'bilspieren']),
-  oef('Deadlift', 'heupscharnier', 'onderrug', 'barbell', 3, ['rug'], ['bilspieren', 'hamstrings', 'onderrug']),
-  oef('Lunge', 'lunge', 'benen', 'dumbbell', 2, ['knie'], ['quadriceps', 'bilspieren']),
-  oef('Step-up', 'lunge', 'benen', 'bank', 1, ['knie'], ['quadriceps', 'bilspieren']),
-  oef('Chest press machine', 'duwen_horizontaal', 'borst', 'machine', 1, ['schouder'], ['borstspieren']),
-  oef('Push-up', 'duwen_horizontaal', 'borst', 'geen', 1, ['schouder', 'pols']),
-  oef('Bankdrukken', 'duwen_horizontaal', 'borst', 'barbell', 2, ['schouder']),
-  oef('Dumbbell press', 'duwen_horizontaal', 'borst', 'dumbbell', 2, ['schouder']),
-  oef('Shoulder press machine', 'duwen_verticaal', 'schouders', 'machine', 1, ['schouder'], ['voorste_schouder']),
-  oef('Dumbbell shoulder press', 'duwen_verticaal', 'schouders', 'dumbbell', 2, ['schouder']),
-  oef('Lat pulldown', 'trekken_verticaal', 'rug', 'kabel', 1, ['schouder'], ['latissimus']),
-  oef('Pull-up', 'trekken_verticaal', 'rug', 'geen', 3, ['schouder']),
-  oef('Seated row', 'trekken_horizontaal', 'rug', 'kabel', 1, []),
-  oef('Dumbbell row', 'trekken_horizontaal', 'rug', 'dumbbell', 1, []),
-  oef('Band row', 'trekken_horizontaal', 'rug', 'band', 1, []),
-  oef('Biceps curl', 'isolatie', 'biceps', 'dumbbell', 1, [], ['biceps']),
-  oef('Triceps pushdown', 'isolatie', 'triceps', 'kabel', 1, ['elleboog']),
-  oef('Lateral raise', 'isolatie', 'schouders', 'dumbbell', 1, ['schouder']),
-  oef('Leg extension', 'isolatie', 'benen', 'machine', 1, ['knie'], ['quadriceps']),
-  oef('Leg curl', 'isolatie', 'benen', 'machine', 1, [], ['hamstrings']),
-  oef('Calf raise', 'isolatie', 'kuiten', 'machine', 1, [], ['kuiten']),
-  oef('Plank', 'core', 'buik', 'geen', 1, []),
-  oef('Dead bug', 'core', 'buik', 'geen', 1, []),
-  oef('Roeiergometer', 'cardio', 'cardio', 'cardio_apparaat', 1, []),
-  oef('Crosstrainer', 'cardio', 'cardio', 'cardio_apparaat', 1, []),
-]
+import { stelSchemaVoor, type Voorstel, type VoorstelIntake } from './voorstel'
+import { BIB, PER_ID } from './voorstel-test-bib'
+import { volgordeRang } from './voorstel-regels'
 
 const basis: VoorstelIntake = {
   doelen: ['spiermassa'],
@@ -55,116 +14,249 @@ const basis: VoorstelIntake = {
   gezondheid: null,
 }
 
-const perId = new Map(BIB.map((o) => [o.id, o]))
-const oefeningenVan = (v: ReturnType<typeof stelSchemaVoor>) => v.dagen.flatMap((d) => d.regels.map((r) => perId.get(r.oefeningId)!))
+function gezond(deel: Partial<Gezondheid>): Gezondheid {
+  return { blessures: [], blessureToelichting: null, klachten: null, medicatie: null, parqJa: [], ...deel }
+}
 
-describe('kiesSplit', () => {
-  it('kiest full body bij 1 tot 3 dagen', () => {
-    expect(kiesSplit(1, 2).dagen).toHaveLength(1)
-    expect(kiesSplit(2, 2).dagen.map((d) => d.titel)).toEqual(['Full body A', 'Full body B'])
-    expect(kiesSplit(3, 2).naam).toBe('Full body')
-  })
-  it('kiest boven en onder bij 4 dagen', () => {
-    const s = kiesSplit(4, 2)
-    expect(s.naam).toBe('Boven en onder')
-    expect(s.dagen).toHaveLength(4)
-  })
-  it('kiest vijf dagen bij 5 of meer, met een hint boven de 5', () => {
-    expect(kiesSplit(5, 3).dagen).toHaveLength(5)
-    expect(kiesSplit(6, 3).uitleg).toContain('herstel')
-  })
-  it('houdt een beginner op maximaal drie full body dagen', () => {
-    const s = kiesSplit(5, 1)
-    expect(s.dagen).toHaveLength(3)
-    expect(s.uitleg).toContain('beginner')
-  })
-})
+const oefeningenVan = (v: Voorstel): Oefening[] => v.dagen.flatMap((d) => d.regels.map((r) => PER_ID.get(r.oefeningId)!))
+const dagOef = (v: Voorstel, i: number): Oefening[] => v.dagen[i].regels.map((r) => PER_ID.get(r.oefeningId)!)
+const DUWEN = ['duwen_horizontaal', 'duwen_verticaal']
+const TREKKEN = ['trekken_horizontaal', 'trekken_verticaal']
+const STREEPJES = /[–—]| - /
+const ACCENTEN = /[éèëêáàäóòöúùüíìï]/
 
-describe('dosering en hoofddoel', () => {
-  it('geeft per doel andere herhalingen en rust', () => {
-    expect(dosering('kracht', 'squat', 3)).toEqual({ sets: 4, herhalingen: '4-6', rustSec: 150 })
-    expect(dosering('spiermassa', 'squat', 2).herhalingen).toBe('8-12')
-    expect(dosering('conditie', 'squat', 2).rustSec).toBeLessThan(dosering('kracht', 'squat', 2).rustSec)
+describe('stelSchemaVoor: split per aantal dagen', () => {
+  it.each([
+    [1, ['Full body A']],
+    [2, ['Full body A', 'Full body B']],
+    [3, ['Full body A', 'Full body B', 'Full body C']],
+    [4, ['Bovenlichaam', 'Onderlichaam', 'Bovenlichaam 2', 'Onderlichaam 2']],
+    [5, ['Duwen', 'Trekken', 'Benen', 'Bovenlichaam', 'Onderlichaam']],
+  ])('%i dagen geeft %j', (dagen, titels) => {
+    const v = stelSchemaVoor({ ...basis, dagenPerWeek: dagen }, BIB)
+    expect(v.dagen.map((d) => d.titel)).toEqual(titels)
+    expect(v.dagen.every((d) => d.regels.length >= 3)).toBe(true)
   })
-  it('maakt het voor een beginner lichter', () => {
-    expect(dosering('kracht', 'squat', 1)).toEqual({ sets: 3, herhalingen: '6-8', rustSec: 150 })
-  })
-  it('doseert core en cardio in tijd', () => {
-    expect(dosering('afvallen', 'core', 2).herhalingen).toBe('30-45 sec')
-    expect(dosering('afvallen', 'cardio', 2)).toEqual({ sets: 1, herhalingen: '20-30 min', rustSec: 0 })
-  })
-  it('zet revalidatie altijd voorop', () => {
-    expect(hoofddoel(['afvallen', 'revalidatie', 'kracht'])).toBe('revalidatie')
-    expect(hoofddoel(['conditie', 'spiermassa'])).toBe('spiermassa')
-    expect(hoofddoel([])).toBe('gezondheid')
-  })
-  it('rekent het aantal oefeningen uit de tijd', () => {
-    expect(aantalOefeningen(30)).toBe(3)
-    expect(aantalOefeningen(60)).toBe(6)
-    expect(aantalOefeningen(180)).toBe(8)
-  })
-})
 
-describe('stelSchemaVoor', () => {
-  it('maakt drie gevulde full body dagen zonder dubbele oefening per dag', () => {
-    const v = stelSchemaVoor(basis, BIB)
+  it('houdt een beginner die 5 dagen wil op drie full body trainingen', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 1, dagenPerWeek: 5 }, BIB)
     expect(v.dagen).toHaveLength(3)
-    for (const dag of v.dagen) {
-      expect(dag.regels.length).toBe(6)
-      expect(new Set(dag.regels.map((r) => r.oefeningId)).size).toBe(dag.regels.length)
+    expect(v.waarom[0]).toContain('beginner')
+  })
+
+  it('zet bij vier dagen alleen beenoefeningen en romp op de onderdag', () => {
+    const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4 }, BIB)
+    expect(dagOef(v, 1).every((o) => ['benen', 'billen', 'kuiten', 'buik', 'onderrug'].includes(o.spiergroep))).toBe(true)
+    expect(dagOef(v, 0).every((o) => !['benen', 'billen', 'kuiten'].includes(o.spiergroep))).toBe(true)
+  })
+})
+
+describe('stelSchemaVoor: balans en volgorde', () => {
+  it('geeft elke full body dag een been-, duw- en trekoefening', () => {
+    const v = stelSchemaVoor(basis, BIB)
+    for (let i = 0; i < 3; i++) {
+      const p = dagOef(v, i).map((o) => o.patroon)
+      expect(p.some((x) => x === 'squat' || x === 'lunge' || x === 'heupscharnier')).toBe(true)
+      expect(p.some((x) => DUWEN.includes(x ?? ''))).toBe(true)
+      expect(p.some((x) => TREKKEN.includes(x ?? ''))).toBe(true)
     }
-    expect(v.doel).toBe('spiermassa')
-    expect(v.notitie).not.toMatch(/[–—]/)
   })
 
-  it('kiest geen oefeningen boven het niveau van het lid', () => {
+  it.each([2, 3, 4, 5])('traint bij %i dagen minstens zoveel trekken als duwen', (dagen) => {
+    const alle = oefeningenVan(stelSchemaVoor({ ...basis, dagenPerWeek: dagen, minutenPerSessie: 75 }, BIB))
+    const duwen = alle.filter((o) => DUWEN.includes(o.patroon ?? '')).length
+    const trekken = alle.filter((o) => TREKKEN.includes(o.patroon ?? '')).length
+    expect(trekken).toBeGreaterThanOrEqual(duwen)
+  })
+
+  it('zet elke dag van groot naar klein: samengesteld, isolatie, romp, cardio', () => {
+    for (const doelen of [['spiermassa'], ['afvallen'], ['sport']] as const) {
+      const v = stelSchemaVoor({ ...basis, doelen: [...doelen], minutenPerSessie: 90 }, BIB)
+      for (let i = 0; i < v.dagen.length; i++) {
+        const rangen = dagOef(v, i).map((o) => volgordeRang(o.patroon))
+        expect(rangen).toEqual([...rangen].sort((a, b) => a - b))
+      }
+    }
+  })
+
+  it('kiest geen oefening twee keer op een dag en wisselt tussen de dagen', () => {
+    const v = stelSchemaVoor(basis, BIB)
+    for (const dag of v.dagen) expect(new Set(dag.regels.map((r) => r.oefeningId)).size).toBe(dag.regels.length)
+    expect(new Set(v.dagen[0].regels.map((r) => r.oefeningId))).not.toEqual(new Set(v.dagen[1].regels.map((r) => r.oefeningId)))
+  })
+
+  it('geeft een benendag quadriceps, hamstrings en bilspieren, ook in korte tijd', () => {
+    for (const minuten of [30, 60]) {
+      const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4, minutenPerSessie: minuten }, BIB)
+      const spieren = new Set(dagOef(v, 1).flatMap((o) => o.spierenPrimair))
+      expect(spieren.has('quadriceps') && spieren.has('hamstrings') && spieren.has('bilspieren')).toBe(true)
+    }
+  })
+})
+
+describe('stelSchemaVoor: dosering per doel', () => {
+  const eerste = (v: Voorstel) => v.dagen[0].regels[0]
+
+  it('kracht: 4 sets van 4 tot 6, lange rust, 2 in reserve', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['kracht'], niveau: 3 }, BIB)
+    expect(eerste(v)).toMatchObject({ sets: 4, herhalingen: '4-6', rustSec: 150, rir: 2 })
+  })
+
+  it('spiermassa: 3 sets van 8 tot 12, 1 in reserve', () => {
+    expect(eerste(stelSchemaVoor(basis, BIB))).toMatchObject({ sets: 3, herhalingen: '8-12', rustSec: 90, rir: 1 })
+  })
+
+  it('afvallen: korte rust en elke dag cardio als afsluiter', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['afvallen'] }, BIB)
+    expect(eerste(v).rustSec).toBe(60)
+    for (const dag of v.dagen) {
+      const laatste = dag.regels[dag.regels.length - 1]
+      expect(PER_ID.get(laatste.oefeningId)?.patroon).toBe('cardio')
+      expect(laatste.herhalingen).toBe('20-30 min')
+    }
+  })
+
+  it('conditie met weinig tijd: kortere cardio', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['conditie'], minutenPerSessie: 40 }, BIB)
+    const laatste = v.dagen[0].regels[v.dagen[0].regels.length - 1]
+    expect(laatste.herhalingen).toBe('10-15 min')
+  })
+
+  it('fit en gezond: 10 tot 12 herhalingen, ruim in reserve, geen cardio', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['gezondheid'] }, BIB)
+    expect(eerste(v)).toMatchObject({ herhalingen: '10-12', rir: 3 })
+    expect(oefeningenVan(v).some((o) => o.patroon === 'cardio')).toBe(false)
+  })
+
+  it('sport: een explosieve oefening vooraan, niet voor beginners', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['sport'] }, BIB)
+    for (let i = 0; i < v.dagen.length; i++) expect(dagOef(v, i)[0].patroon).toBe('explosief')
+    expect(eerste(v)).toMatchObject({ sets: 3, herhalingen: '3-5', rir: null })
+    const beginner = stelSchemaVoor({ ...basis, doelen: ['sport'], niveau: 1 }, BIB)
+    expect(oefeningenVan(beginner).some((o) => o.patroon === 'explosief')).toBe(false)
+  })
+
+  it('revalidatie gaat voor en zet alles op niveau 1 met lichte dosering', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 3, doelen: ['revalidatie', 'kracht'] }, BIB)
+    expect(v.niveau).toBe(1)
+    expect(v.doel).toBe('revalidatie')
+    expect(eerste(v)).toMatchObject({ sets: 2, rir: 3 })
+  })
+
+  it('romp in tijd, zonder RIR', () => {
+    const core = stelSchemaVoor({ ...basis, minutenPerSessie: 90 }, BIB).dagen[0].regels.find((r) => PER_ID.get(r.oefeningId)?.patroon === 'core')
+    expect(core).toMatchObject({ herhalingen: '30-45 sec', rir: null })
+  })
+})
+
+describe('stelSchemaVoor: ervaring en materiaal', () => {
+  it('kiest voor een beginner alleen niveau 1 en eerst machines en kabels', () => {
     const v = stelSchemaVoor({ ...basis, niveau: 1 }, BIB)
-    expect(oefeningenVan(v).every((o) => o.niveau === 1)).toBe(true)
-  })
-
-  it('laat oefeningen weg die een geblesseerde knie of schouder belasten', () => {
-    const v = stelSchemaVoor({ ...basis, gezondheid: { blessures: ['knie', 'schouder'], blessureToelichting: null, klachten: null, medicatie: null, parqJa: [] } }, BIB)
     const gekozen = oefeningenVan(v)
-    expect(gekozen.length).toBeGreaterThan(0)
-    expect(gekozen.some((o) => o.belast.includes('knie') || o.belast.includes('schouder'))).toBe(false)
-    expect(v.waarschuwingen.join(' ')).toContain('knie')
+    expect(gekozen.every((o) => o.niveau === 1)).toBe(true)
+    expect(dagOef(v, 0)[0].naam).toBe('Leg press')
+    expect(gekozen.some((o) => o.materiaal === 'barbell')).toBe(false)
+    expect(eerste3(v).every((r) => r.rir === 3)).toBe(true)
   })
 
-  it('vermijdt de rug bij rugklachten', () => {
-    const v = stelSchemaVoor({ ...basis, niveau: 3, gezondheid: { blessures: ['rug'], blessureToelichting: null, klachten: null, medicatie: null, parqJa: [] } }, BIB)
-    expect(oefeningenVan(v).some((o) => o.belast.includes('rug'))).toBe(false)
+  it('kiest voor een gevorderde vrije gewichten als basis', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 3, doelen: ['kracht'] }, BIB)
+    expect(dagOef(v, 0)[0].naam).toBe('Back squat')
   })
 
   it('gebruikt thuis alleen thuismateriaal', () => {
     const v = stelSchemaVoor({ ...basis, voorkeuren: ['thuis'] }, BIB)
     expect(oefeningenVan(v).every((o) => ['geen', 'band', 'dumbbell', 'kettlebell'].includes(o.materiaal))).toBe(true)
+    expect(v.waarom.join(' ')).toContain('thuis')
+  })
+})
+
+function eerste3(v: Voorstel) {
+  return v.dagen[0].regels.slice(0, 3)
+}
+
+describe('stelSchemaVoor: tijd', () => {
+  it('past meer oefeningen in meer tijd en altijd tussen 3 en 8', () => {
+    const aantal = (min: number) => stelSchemaVoor({ ...basis, minutenPerSessie: min }, BIB).dagen[0].regels.length
+    expect(aantal(30)).toBeGreaterThanOrEqual(3)
+    expect(aantal(45)).toBeLessThanOrEqual(aantal(75))
+    expect(aantal(180)).toBeLessThanOrEqual(8)
   })
 
-  it('sluit bij afvallen af met cardio', () => {
-    const v = stelSchemaVoor({ ...basis, doelen: ['afvallen'] }, BIB)
-    for (const dag of v.dagen) {
-      expect(perId.get(dag.regels[dag.regels.length - 1].oefeningId)?.patroon).toBe('cardio')
+  it('past bij kracht minder oefeningen in een uur dan bij conditie (langere rust)', () => {
+    const kracht = stelSchemaVoor({ ...basis, niveau: 3, doelen: ['kracht'] }, BIB).dagen[0].regels.length
+    const conditie = stelSchemaVoor({ ...basis, doelen: ['gezondheid'] }, BIB).dagen[0].regels.length
+    expect(kracht).toBeLessThan(conditie)
+  })
+
+  it('haalt een set eraf als drie oefeningen niet in de tijd passen', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 3, doelen: ['kracht'], minutenPerSessie: 30 }, BIB)
+    expect(v.dagen[0].regels[0].sets).toBe(3)
+    expect(v.waarom.join(' ')).toContain('set minder')
+  })
+})
+
+describe('stelSchemaVoor: blessures en klachten', () => {
+  it('knie: geen oefening die de knie belast, de benen via heupscharnier en leg curl', () => {
+    const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4, gezondheid: gezond({ blessures: ['knie'] }) }, BIB)
+    const gekozen = oefeningenVan(v)
+    expect(gekozen.some((o) => o.belast.includes('knie'))).toBe(false)
+    expect(dagOef(v, 1).some((o) => o.patroon === 'heupscharnier')).toBe(true)
+    expect(v.waarschuwingen.join(' ')).toMatch(/knie spaart voor: squat, lunge/)
+    expect(v.waarom.join(' ')).toContain('Overleg met je trainer')
+  })
+
+  it('schouder: duwen met elastiek in plaats van de machine, met notitie voor de trainer', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 1, gezondheid: gezond({ blessures: ['schouder'] }) }, BIB)
+    const gekozen = oefeningenVan(v)
+    expect(gekozen.some((o) => o.belast.includes('schouder'))).toBe(false)
+    const duw = v.dagen[0].regels.find((r) => PER_ID.get(r.oefeningId)?.naam === 'Band chest press')
+    expect(duw?.notitie).toMatch(/^In plaats van (Push-up|Chest press machine) \(belast je schouder\)\. Overleg met je trainer/)
+  })
+
+  it('rug: geen deadlift of back squat, ook niet voor een gevorderde', () => {
+    const v = stelSchemaVoor({ ...basis, niveau: 3, gezondheid: gezond({ blessures: ['rug'] }) }, BIB)
+    expect(oefeningenVan(v).some((o) => o.belast.includes('rug'))).toBe(false)
+  })
+
+  it('met een klacht geen zware lasten en ruim in reserve, ook bij kracht', () => {
+    const v = stelSchemaVoor({ ...basis, doelen: ['kracht'], niveau: 3, gezondheid: gezond({ blessures: ['pols'] }) }, BIB)
+    expect(v.dagen[0].regels[0]).toMatchObject({ herhalingen: '8-12', rir: 3 })
+  })
+
+  it('waarschuwt bij een ja op de gezondheidsvragen en bij genoemde klachten', () => {
+    const v = stelSchemaVoor({ ...basis, gezondheid: gezond({ parqJa: ['hart', 'duizelig'], klachten: 'Soms last van mijn heup' }) }, BIB)
+    expect(v.waarschuwingen[0]).toContain('huisarts')
+    expect(v.notitie).toContain('Let op: Bij de gezondheidsvragen is 2 keer ja')
+    expect(v.waarom[v.waarom.length - 1]).toContain('klachten')
+  })
+})
+
+describe('stelSchemaVoor: uitleg en randgevallen', () => {
+  it('geeft 3 tot 5 korte zinnen zonder streepjes of accenten, ook in de notitie', () => {
+    const intakes: VoorstelIntake[] = [
+      basis,
+      { ...basis, doelen: ['kracht'], niveau: 3, dagenPerWeek: 4, minutenPerSessie: 90 },
+      { ...basis, doelen: ['afvallen'], niveau: 1, dagenPerWeek: 2, minutenPerSessie: 45, voorkeuren: ['thuis'] },
+      { ...basis, doelen: ['sport'], dagenPerWeek: 5, gezondheid: gezond({ blessures: ['knie', 'schouder'], parqJa: ['gewricht'] }) },
+    ]
+    for (const intake of intakes) {
+      const v = stelSchemaVoor(intake, BIB)
+      expect(v.waarom.length).toBeGreaterThanOrEqual(3)
+      expect(v.waarom.length).toBeLessThanOrEqual(5)
+      const tekst = [v.notitie, ...v.waarom, ...v.dagen.flatMap((d) => d.regels.map((r) => r.notitie ?? ''))].join('\n')
+      expect(tekst).not.toMatch(STREEPJES)
+      expect(tekst).not.toMatch(ACCENTEN)
+      expect(v.notitie.length).toBeLessThanOrEqual(1000)
+      expect(v.notitie.startsWith('Waarom dit schema\n')).toBe(true)
     }
   })
 
-  it('zet revalidatie op niveau 1 met lichte dosering', () => {
-    const v = stelSchemaVoor({ ...basis, niveau: 3, doelen: ['revalidatie', 'kracht'] }, BIB)
-    expect(v.niveau).toBe(1)
-    expect(v.doel).toBe('revalidatie')
-    expect(v.dagen[0].regels[0].sets).toBe(2)
-  })
-
-  it('waarschuwt bij een ja op de gezondheidsvragen', () => {
-    const v = stelSchemaVoor({ ...basis, gezondheid: { blessures: [], blessureToelichting: null, klachten: null, medicatie: null, parqJa: ['hart', 'duizelig'] } }, BIB)
-    expect(v.waarschuwingen[0]).toContain('huisarts')
-    expect(v.notitie).toContain('huisarts')
-  })
-
-  it('kiest bij vier dagen boven en onder', () => {
-    const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4 }, BIB)
-    expect(v.dagen.map((d) => d.titel)).toEqual(['Bovenlichaam', 'Onderlichaam', 'Bovenlichaam 2', 'Onderlichaam 2'])
-    const onder = v.dagen[1].regels.map((r) => perId.get(r.oefeningId)!)
-    expect(onder.every((o) => ['benen', 'billen', 'kuiten', 'buik', 'onderrug'].includes(o.spiergroep))).toBe(true)
+  it('gebruikt alleen oefeningen met coaching als dat gevraagd wordt', () => {
+    const metCoaching = new Set(['Goblet squat', 'Dumbbell press', 'Dumbbell row', 'Roemeense deadlift', 'Plank', 'Lat pulldown'])
+    const v = stelSchemaVoor(basis, BIB, { heeftCoaching: (o) => metCoaching.has(o.naam) })
+    expect(oefeningenVan(v).every((o) => metCoaching.has(o.naam))).toBe(true)
+    expect(oefeningenVan(v).length).toBeGreaterThan(0)
   })
 
   it('geeft lege dagen zonder oefeningen en negeert inactieve oefeningen', () => {
@@ -173,28 +265,18 @@ describe('stelSchemaVoor', () => {
     expect(stelSchemaVoor(basis, inactief).dagen.every((d) => d.regels.length === 0)).toBe(true)
   })
 
-  it('is deterministisch', () => {
+  it('is deterministisch, ook met een andere volgorde van de bibliotheek', () => {
     expect(stelSchemaVoor(basis, BIB)).toEqual(stelSchemaVoor(basis, [...BIB].reverse()))
-  })
-
-  it('geeft een benendag quadriceps, hamstrings en bilspieren, ook in korte tijd', () => {
-    for (const minuten of [30, 60]) {
-      const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4, minutenPerSessie: minuten }, BIB)
-      const spieren = new Set(v.dagen[1].regels.flatMap((r) => perId.get(r.oefeningId)!.spierenPrimair))
-      expect(spieren.has('quadriceps') && spieren.has('hamstrings') && spieren.has('bilspieren')).toBe(true)
-    }
-  })
-
-  it('kiest na een squat een heupscharnier dat de hamstrings toevoegt', () => {
-    const v = stelSchemaVoor({ ...basis, minutenPerSessie: 60 }, BIB)
-    const dagA = v.dagen[0].regels.map((r) => perId.get(r.oefeningId)!)
-    const scharnier = dagA.find((o) => o.patroon === 'heupscharnier')
-    expect(scharnier?.spierenPrimair).toContain('hamstrings')
   })
 
   it('werkt ook met oefeningen zonder spieren (terugval op de grove spiergroep)', () => {
     const zonder = BIB.map((o) => ({ ...o, spierenPrimair: [] }))
     const v = stelSchemaVoor({ ...basis, dagenPerWeek: 4 }, zonder)
     expect(v.dagen.every((d) => d.regels.length > 0)).toBe(true)
+  })
+
+  it('kiest na een squat een heupscharnier dat de hamstrings toevoegt', () => {
+    const scharnier = dagOef(stelSchemaVoor(basis, BIB), 0).find((o) => o.patroon === 'heupscharnier')
+    expect(scharnier?.spierenPrimair).toContain('hamstrings')
   })
 })

@@ -1,6 +1,8 @@
-// POST /api/club/lid/training  { schemaId, dag, sets?, duurSec? }
+// POST /api/club/lid/training  { schemaId, dag, sets?, duurSec?, clientId?, afgerondOp? }
 // Het ingelogde lid vinkt een training uit het eigen schema af, of logt per
 // set wat het deed: sets = [{ oefeningId, setNr, herhalingen, gewichtKg, tijdSec }].
+// clientId maakt het opnieuw versturen veilig (geen dubbele training), afgerondOp
+// geeft de datum van de training.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
@@ -16,5 +18,5 @@ export async function POST(req: NextRequest) {
   const gelezen = await leesJsonOfTeGroot(req, 40_000)
   if (gelezen instanceof NextResponse) return gelezen
   const b = zonderLid(gelezen.body)
-  return vinkTrainingAf(l, l.lid, { schemaId: b.schemaId, dag: b.dag, sets: b.sets, duurSec: b.duurSec })
+  return vinkTrainingAf(l, l.lid, { schemaId: b.schemaId, dag: b.dag, sets: b.sets, duurSec: b.duurSec, clientId: b.clientId, afgerondOp: b.afgerondOp })
 }

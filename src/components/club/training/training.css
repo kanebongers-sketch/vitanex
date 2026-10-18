@@ -11,6 +11,11 @@
 /* ── Balk met tabs en lidfilter ───────────────────────────────────────────── */
 .club-training-balk { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; }
 .club-training-tabs a { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 640px) {
+  .club-training-balk { align-items: stretch; }
+  .club-training-tabs { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .club-training-tabs a { flex: none; padding: 8px 10px; }
+}
 .club-training-teller { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-3); }
 .club-training-lidfilter { display: inline-flex; align-items: center; gap: 10px; padding: 4px 4px 4px 6px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--club-vlak); }
 .club-training-lidfilter .club-avatar { width: 30px; height: 30px; font-size: 13px; }
@@ -18,6 +23,9 @@
 .club-training-lidfilter--zoek { border-radius: var(--club-radius); padding: 10px; align-items: flex-end; min-width: min(420px, 100%); }
 .club-training-lidfilter--zoek .club-training-lidkiezer { flex: 1; }
 .club-training-actie { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* Een actie per kaart of rij in de merkkleur, rustiger dan de hoofdactie van het scherm. */
+.club-training-knop-merk { background: var(--brand-soft); border-color: transparent; color: var(--club-merk-inkt); }
+.club-training-knop-merk:hover { background: color-mix(in srgb, var(--brand) 24%, transparent); border-color: transparent; }
 
 /* ── Zoeken en lidkiezer ──────────────────────────────────────────────────── */
 .club-training-zoekveld { position: relative; display: block; }
@@ -101,11 +109,27 @@
 .club-training-bmi .club-tegel-getal { font-size: 32px; color: var(--brand-tekst, var(--brand)); }
 
 .club-training-klaar { display: grid; gap: 12px; max-width: 720px; }
+.club-training-klaar .club-acties { align-items: center; }
 .club-training-klaar h2 { margin: 0; font-family: var(--ff-kop); font-size: 34px; text-transform: uppercase; }
 .club-training-voorstelknop { display: grid; gap: 6px; justify-items: start; }
 
+/* ── Lege staat met acties ────────────────────────────────────────────────── */
+.club-training-leeg { display: grid; gap: 14px; justify-items: center; padding: 36px 20px; }
+.club-training-leeg p { margin: 0; max-width: 60ch; }
+.club-training-leeg strong { display: block; margin-bottom: 4px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-1); }
+.club-training-leeg .club-acties { justify-content: center; }
+
 /* ── Intakes: lijst, detail en meetverloop ────────────────────────────────── */
 .club-training-intakes { padding: 4px 18px; }
+.club-training-intakes .club-rij { gap: 10px 12px; }
+.club-training-intakes .club-training-voorstelknop { flex: none; }
+@media (max-width: 640px) {
+  .club-training-intakes { padding: 4px 14px; }
+  .club-training-intakes .club-rij { flex-wrap: wrap; }
+  .club-training-intakes .club-training-datumblok { width: 100%; font-size: 13px; color: var(--text-3); }
+  .club-training-intakes .club-rij-hoofd { flex: 1 1 100%; }
+  .club-training-intakes .club-training-voorstelknop { margin-right: auto; }
+}
 .club-training-rijknop { border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; }
 .club-training-rijknop:hover .club-rij-titel { color: var(--brand-tekst, var(--brand)); }
 .club-training-datumblok { flex: none; width: 92px; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); }
@@ -135,17 +159,79 @@
 
 /* ── Schema's en sjablonen ────────────────────────────────────────────────── */
 .club-training-klein { font-size: 12.5px; margin-top: 2px; }
+/* Schema's als rijen: de hele rij is een link naar de editor, ook op de telefoon. */
+.club-training-schemas { padding: 4px; }
+.club-training-schemas > li { border-bottom: 1px solid var(--line); }
+.club-training-schemas > li:last-child { border-bottom: 0; }
+.club-training-schemarij { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 18px; align-items: center; gap: 6px 20px; padding: 14px; border-radius: var(--club-radius-klein); color: var(--text-1); text-decoration: none; transition: background-color 140ms var(--ease); }
+.club-training-schemarij:hover { background: var(--club-vlak-hover); }
+.club-training-schemarij:hover strong { color: var(--brand-tekst, var(--brand)); }
+.club-training-schemarij-hoofd { display: grid; gap: 3px; min-width: 0; }
+.club-training-schemarij-titel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; min-width: 0; }
+.club-training-schemarij-titel strong { font-family: var(--ff-kop); font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.1; transition: color 140ms var(--ease); }
+.club-training-schemarij-lid { font-weight: 600; font-size: 14.5px; color: var(--text-2); }
+.club-training-schemarij-getraind { display: grid; justify-items: end; gap: 1px; font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.club-training-schemarij-getraind b { font-family: var(--ff-kop); font-size: 17px; color: var(--text-1); }
+.club-training-schemarij-getraind small { font-size: 12px; color: var(--text-3); }
+.club-training-schemarij-pijl { color: var(--text-4); transition: transform 140ms var(--ease), color 140ms var(--ease); }
+.club-training-schemarij:hover .club-training-schemarij-pijl { color: var(--brand-tekst, var(--brand)); transform: translateX(2px); }
+@media (max-width: 640px) {
+  .club-training-schemarij { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 10px; }
+  .club-training-schemarij-hoofd { grid-column: 1 / -1; }
+  .club-training-schemarij-getraind { justify-items: start; grid-row: 2; }
+  .club-training-schemarij > .club-chip { grid-row: 2; justify-self: end; }
+  .club-training-schemarij-pijl { display: none; }
+}
+
+/* Training op de ledenkaart. */
+.club-training-lidkaart { display: grid; gap: 4px; }
+.club-training-lidkaart .club-sectiekop { margin-bottom: 4px; }
+.club-training-lidrij { display: flex; align-items: center; gap: 10px; padding: 10px 6px; margin: 0 -6px; border-radius: var(--club-radius-klein); color: var(--text-1); text-decoration: none; }
+.club-training-lidrij:hover { background: var(--club-vlak-hover); }
+.club-training-lidkaart .club-lijst > li { border-bottom: 1px solid var(--line); }
+.club-training-lidkaart .club-lijst > li:last-child { border-bottom: 0; }
+.club-training-lidleeg { display: grid; gap: 10px; justify-items: start; padding: 4px 0; color: var(--text-3); font-size: 14px; }
+.club-training-lidleeg p { margin: 0; line-height: 1.5; }
+.club-training-lidmeer { justify-self: start; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--brand-tekst, var(--brand)); text-decoration: underline; text-underline-offset: 3px; }
 .club-training-sjablonen { padding: 4px 18px; }
 .club-training-link { color: var(--text-1); text-decoration: none; }
 .club-training-link:hover { color: var(--brand-tekst, var(--brand)); }
 
 /* ── Editor ───────────────────────────────────────────────────────────────── */
-.club-training-werkbalk { position: sticky; top: 104px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: color-mix(in srgb, var(--bg-app) 88%, transparent); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: var(--club-radius); }
-.club-training-werkmelding { margin: 0 0 0 auto; }
+.club-training-werkbalk { position: sticky; top: 104px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 8px 8px 14px; background: color-mix(in srgb, var(--bg-app) 88%, transparent); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: var(--club-radius); box-shadow: var(--club-schaduw); }
+.club-training-werkbalk-status { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.club-training-opslag { font-size: 13px; color: var(--text-3); white-space: nowrap; }
+.club-training-opslag[data-gewijzigd] { color: var(--text-1); font-weight: 600; }
+.club-training-opslag[data-gewijzigd]::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 999px; background: var(--brand); vertical-align: 1px; }
+.club-training-werkbalk-acties { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; margin-left: auto; }
+.club-training-werkmelding { flex-basis: 100%; margin: 0; }
+@media (max-width: 640px) {
+  .club-training-werkbalk { padding: 8px; }
+  .club-training-werkbalk-tekst, .club-training-meer-tekst { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .club-training-werkbalk-acties .club-knop { padding: 0 12px; }
+}
+
+/* Menu Meer in de werkbalk. */
+.club-training-meer { position: relative; }
+.club-training-meer-paneel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: max-content; min-width: 240px; max-width: min(320px, calc(100vw - 32px)); padding: 6px; background: var(--bg-card); border: 1px solid var(--line-strong); border-radius: var(--club-radius); box-shadow: var(--club-schaduw); animation: club-melding-in 160ms var(--ease); }
+.club-training-meer-paneel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.club-training-meer-paneel button { width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 0; border-radius: var(--club-radius-klein); background: transparent; color: var(--text-1); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.club-training-meer-paneel button > svg { flex: none; margin-top: 2px; color: var(--text-3); }
+.club-training-meer-paneel button > span { display: grid; gap: 2px; }
+.club-training-meer-paneel button small { font-size: 12px; color: var(--text-3); }
+.club-training-meer-paneel button:hover:not(:disabled), .club-training-meer-paneel button:focus-visible { background: var(--club-vlak-hover); }
+.club-training-meer-paneel button:disabled { cursor: not-allowed; color: var(--text-3); }
+.club-training-meer-paneel button[data-gevaar] { color: var(--club-let-op-inkt); }
+.club-training-meer-paneel button[data-gevaar] > svg { color: currentColor; }
+.club-training-meer-paneel li:has(> [data-gevaar]):not(:first-child) { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line); }
+.club-training-meer-voet { margin: 6px 0 0; padding: 8px 10px 4px; border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.9; color: var(--text-3); }
+.club-training-meer-voet kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; font: inherit; font-size: 11px; color: var(--text-2); text-align: center; }
+@media (max-width: 1100px) { .club-training-meer-voet { display: none; } }
 .club-training-werkmelding a { color: var(--brand-tekst, var(--brand)); }
-.club-training-dagen, .club-training-zij { display: grid; gap: 16px; align-content: start; }
+.club-training-dagen, .club-training-zij { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; }
 .club-training-zij .club-kaart > h2 { margin: 0 0 10px; }
 .club-training-kopvelden { display: grid; gap: 14px; }
+.club-training-kopvelden > h2 { margin: 0; }
 
 .club-training-dag { display: grid; gap: 12px; padding: 16px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); }
 .club-training-dagkop { display: flex; align-items: center; gap: 12px; }
@@ -154,13 +240,23 @@
 .club-training-dagtitel .club-invoer { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: transparent; border-color: transparent; padding-left: 6px; }
 .club-training-dagtitel .club-invoer:hover { border-color: var(--line-strong); }
 .club-training-dagacties { display: flex; gap: 4px; }
+@media (max-width: 640px) {
+  .club-training-dag { padding: 12px; gap: 10px; }
+  .club-training-dagkop { gap: 8px; }
+  .club-training-dagletter { width: 40px; height: 40px; font-size: 26px; border-radius: 8px; }
+  .club-training-dagtitel .club-invoer { font-size: 17px; padding-left: 4px; }
+  .club-training-dagactie-tekst { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .club-training-dagacties .club-knop--klein { min-height: 40px; min-width: 40px; padding: 0; }
+}
 
 .club-training-regeltekst { display: grid; gap: 1px; min-width: 0; }
 .club-training-regeltekst strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .club-training-regeltekst .club-zacht { font-size: 12px; }
 .club-training-weg:hover { color: var(--club-let-op); }
-.club-training-toevoegen, .club-training-nieuwedag { justify-self: start; border-style: dashed; }
-.club-training-nieuwedag { width: 100%; min-height: 56px; }
+.club-training-toevoegen, .club-training-nieuwedag { border-style: dashed; }
+.club-training-toevoegen { width: 100%; min-height: 48px; color: var(--club-merk-inkt); border-color: color-mix(in srgb, var(--brand) 45%, var(--line-strong)); background: color-mix(in srgb, var(--brand) 5%, transparent); }
+.club-training-toevoegen:hover { background: var(--brand-soft); border-color: var(--brand); }
+.club-training-nieuwedag { width: 100%; min-height: 56px; color: var(--text-2); }
 
 /* Oefening kiezen */
 .club-training-kieslijst { gap: 2px; }

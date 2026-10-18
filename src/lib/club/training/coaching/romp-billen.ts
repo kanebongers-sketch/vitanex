@@ -60,7 +60,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { punt: 'Lage, stevige houding', uitleg: 'Knieën licht gebogen, heupen iets naar achteren. Zo vang je de kracht op met je benen en niet met je onderrug.' },
       { punt: 'Romp blijft stil', uitleg: 'Je armen maken de golf, je bovenlichaam niet. Buik aangespannen alsof iemand er zacht tegen duwt.' },
       { punt: 'Golven tot aan het anker', uitleg: 'Maak de golven groot genoeg dat ze tot het einde van het touw lopen. Dan doen je schouders echt werk.' },
-      { punt: 'Blijf ademen', uitleg: 'Bij korte harde blokken houd je snel je adem in. Adem ritmisch door, dan houd je het blok vol.' },
+      { punt: 'Grip stevig, armen los', uitleg: 'Houd de uiteinden vast zonder te verkrampen. Ellebogen licht gebogen, de beweging komt uit je schouders.' },
     ],
     opstelling: [
       'Sta zo ver van het anker dat het touw net niet strak staat, met een kleine boog op de grond.',
@@ -68,7 +68,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
     ],
     stappen: [
       'Zak in je lichte squat en span je buik aan.',
-      'Beweeg je armen om en om snel op en neer vanuit je schouders, ellebogen licht gebogen.',
+      'Beweeg je armen om en om snel op en neer, zodat er golven door het touw lopen.',
       'Houd het tempo vast tot het einde van het blok en zet het touw dan rustig neer.',
     ],
     fouten: [
@@ -243,7 +243,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
 
   'Farmer walk': {
     kernpunten: [
-      { punt: 'Schouders laag en naar achter', uitleg: 'Trek je schouders weg van je oren. Zo houd je het gewicht met je hele rug en niet alleen met je nek.' },
+      { punt: 'Schouders laag en naar achteren', uitleg: 'Trek je schouders weg van je oren. Zo houd je het gewicht met je hele rug en niet alleen met je nek.' },
       { punt: 'Rechtop, kijk vooruit', uitleg: 'Je loopt lang en trots, kin licht ingetrokken. Niet naar een kant hangen en niet voorover buigen.' },
       { punt: 'Stevig knijpen', uitleg: 'Knijp de handvatten vast alsof je ze wilt platdrukken. Een stevige greep maakt je hele lichaam stabieler.' },
       { punt: 'Korte, rustige passen', uitleg: 'Zet je voeten kort en gecontroleerd neer. Grote passen laten de gewichten slingeren.' },
@@ -557,7 +557,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { fout: 'Holle rug bij het drukken', beter: 'Span je buik en billen aan bovenin. Je armen gaan omhoog, je ribben blijven laag.' },
       { fout: 'Dumbbells vallen op je schouders', beter: 'Laat ze rustig zakken en vang ze op met je armen voordat je weer in de squat gaat.' },
     ],
-    ademhaling: 'Adem in tijdens het zakken, adem uit als je omhoog komt en drukt.',
+    ademhaling: 'Adem in en zet je buik vast voor je zakt, adem krachtig uit tijdens het drukken.',
     tempo: '2 tellen omlaag, explosief omhoog en doordrukken.',
     makkelijker: 'Doe de squat en de schouderpress los na elkaar, of gebruik maar een dumbbell met twee handen.',
     zwaarder: 'Gebruik zwaardere dumbbells of een barbell, of doe het in een vaste tijd.',
@@ -568,7 +568,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { punt: 'Ellebogen hoog', uitleg: 'De stang rust voor op je schouders met je ellebogen naar voren. Zo blijft je romp rechtop in de squat.' },
       { punt: 'Knieen in lijn met je tenen', uitleg: 'Duw je knieen licht naar buiten bij het zakken. Niet naar binnen laten vallen.' },
       { punt: 'Een vloeiende beweging', uitleg: 'De kracht uit je benen loopt door in de druk boven je hoofd. Geen squat en daarna een losse press.' },
-      { punt: 'Stang recht boven je midden', uitleg: 'Bovenin staat de stang boven je middenvoet, armen naast je oren en je hoofd iets door je armen.' },
+      { punt: 'Stang boven je middenvoet', uitleg: 'Bovenin staat de stang recht boven je middenvoet, armen naast je oren en je hoofd iets door je armen.' },
       { punt: 'Bovenin ribben laag', uitleg: 'Span buik en billen aan zodat je rug niet hol trekt als je armen gestrekt zijn.' },
     ],
     opstelling: [
@@ -586,7 +586,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { fout: 'Holle rug bij het drukken', beter: 'Span je buik en billen aan bovenin. Je armen gaan omhoog, je ribben blijven laag.' },
       { fout: 'Stang valt hard op je schouders', beter: 'Vang hem op met je armen en buig licht door je knieen voordat je weer in de squat gaat.' },
     ],
-    ademhaling: 'Adem in en span aan voor het zakken, adem uit als je omhoog komt en drukt.',
+    ademhaling: 'Adem in en zet je buik vast voor je zakt, adem krachtig uit tijdens het drukken.',
     tempo: '2 tellen omlaag, explosief omhoog en doordrukken.',
     makkelijker: 'Gebruik een lege stang of doe de thruster met lichte dumbbells.',
     zwaarder: 'Voeg gewicht toe in kleine stappen of doe een vast aantal herhalingen op tijd.',

@@ -37,6 +37,8 @@ export interface LedenappRoutes {
   coaching(zoek: URLSearchParams): string
   /** De wisselende check-in QR-code (Home). */
   checkinCode(lidId: string): string
+  /** Andere oefeningen voor een schemaregel (toestel bezet). */
+  alternatieven(lidId: string, regelId: string): string
 }
 
 const deel = encodeURIComponent
@@ -55,6 +57,7 @@ export const BEHEER_ROUTES: LedenappRoutes = {
   coaching: (zoek) => `/api/club/training/coaching?${zoek}`,
   // Alleen Kane kan in de voorvertoning een echte code zien (zie vereisLidToegang).
   checkinCode: (lidId) => `/api/club/lid/checkin-code?voor=${deel(lidId)}`,
+  alternatieven: (lidId, regelId) => `/api/club/app/training/alternatieven?${new URLSearchParams({ lid: lidId, regel: regelId })}`,
 }
 
 /** Voegt ?voor=<id> toe (alleen bij Kane in de voorvertoning van /mijn). */
@@ -78,5 +81,6 @@ export function ledenRoutes(voor: string | null = null): LedenappRoutes {
     challenge: (id) => ({ url: u(`/challenges/${deel(id)}`), body: {} }),
     coaching: (zoek) => u(`/coaching?${zoek}`),
     checkinCode: () => u('/checkin-code'),
+    alternatieven: (_lidId, regelId) => u(`/training/alternatieven?${new URLSearchParams({ regel: regelId })}`),
   }
 }

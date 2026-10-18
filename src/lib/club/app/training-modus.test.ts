@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AppOefening, AppSchemaDag, OefeningHistorie } from './schema'
-import { beginInvoer, naarSets, rustNaSet, setSleutel, stappenVanDag, volgendeSet, voortgang, vorigeTekst, voorstelSet } from './training-modus'
+import { beginInvoer, huidigeSet, metKilo, naarSets, oefeningPlekken, rustNaSet, setSleutel, setTekst, stapGrootte, stapWaarde, stappenVanDag, volgendeOpen, volgendeSet, voortgang, vorigeTekst, voorstelSet } from './training-modus'
 
 const oef = (id: string, deel: Partial<AppOefening> = {}): AppOefening => ({
   id, oefeningId: `o-${id}`, dag: 1, volgorde: 0, naam: id, spiergroep: null, spierenPrimair: [], spierenSecundair: [],
@@ -64,5 +64,40 @@ describe('training doen', () => {
     expect(volgendeSet(stappen, inv, 'b:1')).toBe('set 1 c')
     inv['c:1'] = { ...inv['c:1'], klaar: true }
     expect(volgendeSet(stappen, inv, 'b:1')).toBe('set 2 b')
+  })
+
+  it('labels zoals op de vloer: A, dan B1 en B2 voor een superset', () => {
+    const p = oefeningPlekken(dag([oef('a'), oef('b', { groep: 1 }), oef('c', { groep: 1 }), oef('d')]))
+    expect([...p.values()].map((x) => x.label)).toEqual(['A', 'B1', 'B2', 'C'])
+    expect(p.get('b')).toEqual({ label: 'B1', soort: 'superset', samenMet: ['c'] })
+    expect(p.get('a')?.samenMet).toEqual([])
+  })
+
+  it('plus en min: vanaf het voorstel, nooit onder 0, met komma', () => {
+    expect(stapWaarde('40', '', 2.5, 1000)).toBe('42,5')
+    expect(stapWaarde('', '10', 1, 300)).toBe('11')
+    expect(stapWaarde('1', '', -2.5, 1000)).toBe('0')
+    expect(stapWaarde('22,5', '', -2.5, 1000)).toBe('20')
+    expect(stapGrootte('kg', '8')).toBe(1)
+    expect(stapGrootte('kg', '40')).toBe(2.5)
+    expect(stapGrootte('tijd', '')).toBe(5)
+  })
+
+  it('weet welke set aan de beurt is en wat er na een superset-set komt', () => {
+    const d = dag([oef('b', { groep: 1, sets: 2 }), oef('c', { groep: 1, sets: 2 })])
+    const inv = beginInvoer(d, {})
+    expect(huidigeSet(d.oefeningen[0], inv)).toBe(1)
+    inv['b:1'] = { ...inv['b:1'], klaar: true }
+    expect(huidigeSet(d.oefeningen[0], inv)).toBe(2)
+    expect(volgendeOpen(stappenVanDag(d), inv, 'b:1')?.regelId).toBe('c')
+  })
+
+  it('toont een set kort en laat het kiloveld weg bij een oefening op tijd', () => {
+    const o = oef('a')
+    expect(setTekst(o, { kg: '42,5', herh: '', tijd: '', klaar: true }, { herh: '9', tijd: '' })).toBe('42,5 kg x 9')
+    const plank = oef('p', { herhalingen: null, tijdSec: 45 })
+    expect(setTekst(plank, { kg: '', herh: '', tijd: '', klaar: true }, { herh: '', tijd: '45' })).toBe('45 sec')
+    expect(metKilo(plank, undefined)).toBe(false)
+    expect(metKilo(o, undefined)).toBe(true)
   })
 })

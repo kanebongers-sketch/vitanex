@@ -168,6 +168,14 @@ export function zetInspanning(s: EditorStaat, sleutel: string, inspanning: Inspa
   return { ...s, regels: s.regels.map((r) => (r.sleutel === sleutel ? { ...r, inspanning, inspanningWaarde: inspanning === 'geen' ? '' : r.inspanningWaarde } : r)) }
 }
 
+/**
+ * Een andere oefening op dezelfde plek: sets, herhalingen, rust, superset en
+ * notitie blijven, het gewicht niet (een andere oefening, ander gewicht).
+ */
+export function vervangOefening(s: EditorStaat, sleutel: string, oefeningId: string): EditorStaat {
+  return { ...s, regels: s.regels.map((r) => (r.sleutel === sleutel ? { ...r, oefeningId, gewichtKg: '' } : r)) }
+}
+
 export function verwijderRegel(s: EditorStaat, sleutel: string): EditorStaat {
   return { ...s, regels: normaliseerGroepen(s.regels.filter((r) => r.sleutel !== sleutel)) }
 }

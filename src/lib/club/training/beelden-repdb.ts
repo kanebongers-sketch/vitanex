@@ -13,8 +13,8 @@
 // `titel` de Engelse naam daar, ter controle door het importscript.
 //
 // Gebruikt door scripts/club/repdb-import.mjs (haalt de beelden op) en migratie
-// 395_club_oefening_repdb.sql en 400_club_oefeningen_repdb_vervangen.sql (zetten
-// de paden in de database).
+// 395_club_oefening_repdb.sql, 400_club_oefeningen_repdb_vervangen.sql en
+// 444_club_oefeningen_uitbreiding.sql (zetten de paden in de database).
 
 export interface RepdbKoppeling {
   naam: string
@@ -184,6 +184,56 @@ export const REPDB_KOPPELING_400: readonly RepdbKoppeling[] = [
 ]
 
 /**
+ * Migratie 444: uitbreiding van de bibliotheek met veelgebruikte oefeningen die
+ * nog ontbraken (varianten van deadlift, split squat, rows, presses, machines
+ * en romp). Alleen oefeningen waarvan het RepDB-beeld precies de beweging en
+ * het materiaal laat zien. Bewust niet: Single Leg Romanian Deadlift (begin en
+ * eind omgedraaid) en Hanging Leg Raise (toont gebogen knieen, dat is al
+ * Hanging knee raise).
+ */
+export const REPDB_KOPPELING_444: readonly RepdbKoppeling[] = [
+  // Benen en billen
+  { naam: 'Trap bar deadlift', id: 'hex-bar-deadlift', titel: 'Hex Bar Deadlift' },
+  { naam: 'Sumo deadlift', id: 'sumo-deadlift', titel: 'Sumo Deadlift' },
+  { naam: 'Deadlift met kettlebell', id: 'kettlebell-deadlift', titel: 'Kettlebell Deadlift' },
+  { naam: 'Pull-through aan de kabel', id: 'cable-pull-through', titel: 'Cable Pull-Through' },
+  { naam: 'Hip thrust met dumbbell', id: 'dumbbell-hip-thrust', titel: 'Dumbbell Hip Thrust' },
+  { naam: 'Split squat met dumbbells', id: 'dumbbell-split-squat', titel: 'Dumbbell Split Squat' },
+  { naam: 'Split squat', id: 'split-squat', titel: 'Split Squat' },
+  { naam: 'Zijwaartse lunge', id: 'side-lunge', titel: 'Side Lunge' },
+  { naam: 'Nordic hamstring curl', id: 'nordic-hamstring-curl', titel: 'Nordic Hamstring Curl' },
+  { naam: 'Leg press zittend', id: 'horizontal-leg-press', titel: 'Horizontal Leg Press' },
+  // Duwen
+  { naam: 'Push-up met handen verhoogd', id: 'incline-push-ups', titel: 'Incline Push-Up' },
+  { naam: 'Schuin bankdrukken in de smith machine', id: 'smith-machine-incline-bench-press', titel: 'Smith Machine Incline Bench Press' },
+  { naam: 'Arnold press', id: 'arnold-press', titel: 'Arnold Press' },
+  { naam: 'Assisted dips', id: 'assisted-dips', titel: 'Machine Assisted Dips' },
+  { naam: 'Dips machine', id: 'seated-dip-machine', titel: 'Seated Dip Machine' },
+  { naam: 'Triceps extension boven het hoofd aan de kabel', id: 'cable-overhead-tricep-extension', titel: 'Cable Overhead Tricep Extension' },
+  // Trekken
+  { naam: 'Voorovergebogen row met dumbbells', id: 'bent-over-db-row', titel: 'Bent-Over Dumbbell Row' },
+  { naam: 'TRX row', id: 'trx-row', titel: 'TRX Row' },
+  { naam: 'Negatieve pull-up', id: 'negative-pull-ups', titel: 'Negative Pull Ups' },
+  { naam: 'Eenarmige lat pulldown', id: 'one-arm-lat-pulldown', titel: 'One-Arm Lat Pulldown' },
+  { naam: 'Seated cable row met brede greep', id: 'wide-grip-seated-cable-row', titel: 'Wide Grip Seated Cable Row' },
+  { naam: 'Biceps curl machine', id: 'machine-bicep-curl', titel: 'Machine Bicep Curl' },
+  { naam: 'Hammer curl aan de kabel', id: 'cable-hammer-curl', titel: 'Cable Hammer Curl' },
+  // Schouders
+  { naam: 'Reverse fly machine', id: 'machine-reverse-fly', titel: 'Machine Reverse Fly' },
+  { naam: 'Exorotatie aan de kabel', id: 'cable-external-rotation', titel: 'Cable External Rotation' },
+  { naam: 'Schouders ophalen met barbell', id: 'shrug', titel: 'Barbell Shrug' },
+  // Romp, dragen en conditie
+  { naam: 'Crunch machine', id: 'machine-seated-crunch', titel: 'Machine Seated Crunch' },
+  { naam: 'Hollow hold', id: 'hollow-body-hold', titel: 'Hollow Body Hold' },
+  { naam: 'Suitcase carry', id: 'suitcase-carry', titel: 'Suitcase Carry' },
+  { naam: 'Slee duwen', id: 'sled-push', titel: 'Sled Push' },
+  { naam: 'Wall ball', id: 'wall-ball', titel: 'Wall Ball' },
+]
+
+/** Alle oefeningen met een RepDB-beeld: samen precies de actieve standaardbibliotheek. */
+export const REPDB_ALLE_KOPPELINGEN: readonly RepdbKoppeling[] = [...REPDB_KOPPELING, ...REPDB_KOPPELING_400, ...REPDB_KOPPELING_444]
+
+/**
  * Migratie 400: elke oefening uit REPDB_GEEN_MATCH staat op inactief en is
  * vervangen door de dichtstbijzijnde oefening met een RepDB-beeld (zelfde
  * beweging, zo dicht mogelijk materiaal). Schema's verwijzen nu naar de nieuwe.
@@ -244,13 +294,17 @@ export const REPDB_ENKELE_HOUDING: ReadonlySet<string> = new Set([
   'burpees',
   'dumbbell-farmers-walk',
   'elliptical-trainer',
+  'hollow-body-hold',
   'incline-treadmill-walk',
   'jump-rope',
   'plank',
   'side-plank',
+  'sled-push',
   'stair-climber',
   'stationary-bike',
+  'suitcase-carry',
   'treadmill-running',
+  'wall-ball',
   'wall-sit',
 ])
 

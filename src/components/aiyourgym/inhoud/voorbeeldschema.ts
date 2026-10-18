@@ -4,9 +4,9 @@
 // de regels van het schemavoorstel. Niets is voor de website herschreven: wat
 // hier staat, staat zo in Club. Alleen het lid en de dag zijn een voorbeeld.
 
-import { COACHING_BOEKEN, coachingVoor } from '@/lib/club/training/coaching'
+import { coachingVoor } from '@/lib/club/training/coaching'
 import type { Coaching } from '@/lib/club/training/coaching/typen'
-import { REPDB_KOPPELING } from '@/lib/club/training/beelden-repdb'
+import { REPDB_ALLE_KOPPELINGEN } from '@/lib/club/training/beelden-repdb'
 import { dosering } from '@/lib/club/training/voorstel-regels'
 import type { Patroon } from '@/lib/club/training/typen'
 
@@ -34,7 +34,7 @@ export function toonBereik(herhalingen: string): string {
 }
 
 function beeldId(naam: string): string | null {
-  return REPDB_KOPPELING.find((k) => k.naam === naam)?.id ?? null
+  return REPDB_ALLE_KOPPELINGEN.find((k) => k.naam === naam)?.id ?? null
 }
 
 /** De oefeningen van het voorbeeldschema (doel spiermassa, gemiddeld niveau). */
@@ -57,12 +57,12 @@ export function voorbeeldOefeningen(): VoorbeeldOefening[] {
   })
 }
 
-/** Hoeveel oefeningen er uitgeschreven coaching hebben (geteld, niet geschat). */
+/** Hoeveel oefeningen uit de actieve bibliotheek uitgeschreven coaching hebben (geteld, niet geschat). */
 export function aantalMetCoaching(): number {
-  return COACHING_BOEKEN.reduce((som, boek) => som + Object.keys(boek).length, 0)
+  return REPDB_ALLE_KOPPELINGEN.filter((k) => coachingVoor(k.naam) !== null).length
 }
 
 /** Hoeveel oefeningen een RepDB-illustratie hebben. */
 export function aantalMetBeeld(): number {
-  return REPDB_KOPPELING.length
+  return REPDB_ALLE_KOPPELINGEN.length
 }

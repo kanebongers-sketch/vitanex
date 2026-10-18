@@ -4,9 +4,11 @@ import { describe, expect, it } from 'vitest'
 import {
   isEnkeleHouding,
   isRepdbBeeldPad,
+  REPDB_ALLE_KOPPELINGEN,
   REPDB_ENKELE_HOUDING,
   REPDB_GEEN_MATCH,
   REPDB_KOPPELING,
+  REPDB_KOPPELING_444,
   REPDB_SLUG,
   repdbBeeldBestand,
 } from './beelden-repdb'
@@ -54,7 +56,7 @@ describe('koppeling oefening naar RepDB-illustratie', () => {
   })
 
   it('heeft voor elke koppeling beide beelden in public', () => {
-    for (const k of REPDB_KOPPELING) {
+    for (const k of REPDB_ALLE_KOPPELINGEN) {
       for (const houding of ['start', 'eind'] as const) {
         expect(existsSync(join(ROOT, 'public', repdbBeeldBestand(k.id, houding))), `${k.id} ${houding}`).toBe(true)
       }
@@ -63,15 +65,30 @@ describe('koppeling oefening naar RepDB-illustratie', () => {
   })
 
   it('markeert precies de oefeningen met gelijke start en eind als enkele houding', () => {
-    const ids = new Set(REPDB_KOPPELING.map((k) => k.id))
+    const ids = new Set(REPDB_ALLE_KOPPELINGEN.map((k) => k.id))
     for (const id of REPDB_ENKELE_HOUDING) expect(ids.has(id), id).toBe(true)
-    for (const k of REPDB_KOPPELING) {
+    for (const k of REPDB_ALLE_KOPPELINGEN) {
       const pad = (h: 'start' | 'eind') => join(ROOT, 'public', repdbBeeldBestand(k.id, h))
       const gelijk = readFileSync(pad('start')).equals(readFileSync(pad('eind')))
       expect(REPDB_ENKELE_HOUDING.has(k.id), k.id).toBe(gelijk)
     }
     expect(isEnkeleHouding('/club/oefeningen-repdb/plank-eind.webp')).toBe(true)
     expect(isEnkeleHouding('/club/oefeningen-repdb/push-up-start.webp')).toBe(false)
+  })
+
+  it('heeft over alle migraties heen geen dubbele namen of beelden', () => {
+    const namen = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam.toLowerCase())
+    const ids = REPDB_ALLE_KOPPELINGEN.map((k) => k.id)
+    expect(new Set(namen).size).toBe(namen.length)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const k of REPDB_ALLE_KOPPELINGEN) expect(k.id).toMatch(REPDB_SLUG)
+  })
+
+  it('zet de uitbreiding met naam en beeld in migratie 444', () => {
+    const sql444 = lees('444_club_oefeningen_uitbreiding.sql')
+    // Elke rij: ('naam', ... ,'repdb-id') in dezelfde volgorde als de koppeling.
+    const rijen = [...sql444.matchAll(/^\s+\('([^']+)',[\s\S]*?'([a-z0-9-]+)'\)/gm)].map((m) => ({ naam: m[1], id: m[2] }))
+    expect(rijen).toEqual(REPDB_KOPPELING_444.map((k) => ({ naam: k.naam, id: k.id })))
   })
 
   it('staat met dezelfde id in migratie 395', () => {

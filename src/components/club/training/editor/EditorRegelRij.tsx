@@ -8,6 +8,7 @@ import { MATERIAAL_LABEL } from '@/lib/club/training/typen'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeld } from '../OefeningBeeld'
 import { SpierChips } from '../SpierChips'
+import { VervangOefening } from './VervangOefening'
 
 export interface RegelActies {
   onWijzig: (sleutel: string, veld: TekstVeld, waarde: string) => void
@@ -21,6 +22,7 @@ export interface RegelActies {
   onSleepEinde: () => void
   onSleepOver: (sleutel: string) => void
   onLaatVallen: (voorSleutel: string) => void
+  onVervang: (sleutel: string, oefeningId: string) => void
 }
 
 interface EditorRegelRijProps {
@@ -94,6 +96,7 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
           </div>
         </div>
         <div className="club-training-r-acties">
+          <VervangOefening regel={r} oefening={o} onVervang={(id) => a.onVervang(r.sleutel, id)} />
           {inBlok ? (
             <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onOntkoppel(r.sleutel)} aria-label={`${naam} uit de superset halen`} title="Uit superset halen">
               <Unlink2 aria-hidden size={15} />

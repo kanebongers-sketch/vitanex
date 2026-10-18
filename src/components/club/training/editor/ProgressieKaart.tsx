@@ -86,7 +86,7 @@ export function ProgressieKaart({ regels, huidig, onOvernemen }: ProgressieKaart
         <TrendingUp aria-hidden size={18} />
         <h2 id="progressie-kop">Progressie</h2>
       </header>
-      <p className="club-hint">{REGEL_NAAM}: eerst herhalingen omhoog tot de bovenkant van het bereik, dan gewicht de kleinste stap omhoog. Geen AI, gewoon het vak.</p>
+      <p className="club-hint">{REGEL_NAAM}. Eerst de herhalingen omhoog tot de bovenkant van het bereik, dan het gewicht de kleinste stap omhoog.</p>
       {gelogd.length === 0 && !alles ? (
         <p className="club-hint">Nog geen sets gelogd. Zodra het lid in de app per set invult wat het deed, zie je hier het verloop en de volgende stap.</p>
       ) : (
