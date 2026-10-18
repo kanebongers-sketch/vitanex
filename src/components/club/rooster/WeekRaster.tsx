@@ -91,12 +91,29 @@ export function WeekRaster({ dagen, lessen, bereik, vandaag, nuMinuten, nuMs, st
   )
 }
 
+/** Anker van een dag in de daglijst, voor de dagkiezer. */
+function dagAnker(datum: string): string {
+  return `club-rooster-dag-${datum}`
+}
+
 export function DagLijst({ dagen, lessen, vandaag, nuMs, staat }: Omit<Props, 'bereik' | 'nuMinuten'>) {
   const perDag = groepeerPerDag(lessen, dagen)
   return (
     <section className="club-rooster-daglijst" aria-label="Lessen per dag">
+      <nav className="club-rooster-dagkiezer" aria-label="Naar een dag">
+        {dagen.map((d, i) => {
+          const aantal = perDag[d].filter((l) => !l.geannuleerd).length
+          return (
+            <a key={d} href={`#${dagAnker(d)}`} data-vandaag={d === vandaag || undefined} data-leeg={aantal === 0 || undefined}>
+              <span>{WEEKDAG_KORT[i]}</span>
+              <strong className="club-getal">{dagNummer(d)}</strong>
+              <small>{aantal === 0 ? 'geen' : aantal === 1 ? '1 les' : `${aantal} lessen`}</small>
+            </a>
+          )
+        })}
+      </nav>
       {dagen.map((d, i) => (
-        <section key={d} className="club-rooster-daglijst-dag" data-vandaag={d === vandaag || undefined}>
+        <section key={d} id={dagAnker(d)} className="club-rooster-daglijst-dag" data-vandaag={d === vandaag || undefined}>
           <h2>
             {WEEKDAG_LABEL[i]} <span className="club-zacht">{MAAND.format(new Date(`${d}T12:00:00Z`))}</span>
             {d === vandaag && <span className="club-chip club-chip--merk">Vandaag</span>}

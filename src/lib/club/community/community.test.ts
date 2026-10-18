@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { filterBericht, normaliseer, woorden } from './filter'
 import { BERICHT_REM, MELD_REM, remVenster, remt } from './rem'
 import { leesBerichtTekst, leesGroep, leesMelding, leesReactie, leesVoorkeur, schoneTekst } from './invoer'
-import { bezoekdagenInMaand, groepRanglijst, maandVenster } from './ranglijst'
+import { BLOK_IDS, bezoekdagenInMaand, groepRanglijst, inBlokken, maandVenster } from './ranglijst'
 import { fragment, groepUitRij, groepZichtbaarVoor, ranglijstBron, telReacties, zietBericht } from './model'
 import { communityBasis, groepHref } from './paden'
 import { MAX_TEKST } from './model'
@@ -18,12 +18,30 @@ describe('woordfilter', () => {
       expect(filterBericht(t).vasthouden, t).toBe(false)
     }
   })
+  it('ziet een uitroepteken of streep aan het eind als leesteken, niet als letter', () => {
+    for (const t of ['je bent een lul!', 'slet!', 'hoer!', 'teef!', 'tyf!', 'kut!!', 'lul|', 'k|ootzak', 'f|ikker']) {
+      expect(filterBericht(t).vasthouden, t).toBe(true)
+    }
+    expect(woorden('lul! ok|')).toEqual(['lul', 'ok'])
+    expect(filterBericht('Top les!! Tot morgen!').vasthouden).toBe(false)
+  })
   it('noemt het woord nooit in de reden', () => {
     expect(filterBericht('kut').reden).not.toContain('kut')
   })
   it('normaliseert accenten en nagebootste letters', () => {
     expect(normaliseer('Kéés 4 $')).toBe('kees a s')
     expect(woorden('k-u-t, prima')).toEqual(['kut', 'prima'])
+  })
+})
+
+describe('inBlokken', () => {
+  it('knipt lange id-lijsten in blokken van 150', () => {
+    const ids = Array.from({ length: 320 }, (_, i) => `id${i}`)
+    const blokken = inBlokken(ids)
+    expect(BLOK_IDS).toBe(150)
+    expect(blokken.map((b) => b.length)).toEqual([150, 150, 20])
+    expect(blokken.flat()).toEqual(ids)
+    expect(inBlokken([])).toEqual([])
   })
 })
 

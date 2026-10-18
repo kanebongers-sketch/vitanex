@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { CalendarPlus } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
@@ -82,7 +83,11 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
           <RoosterFilters staat={staat} zalen={zalen} lestypen={lestypen} instructeurs={instructeurs} />
           {lessen.length === 0 ? (
             <div className="club-leeg club-rooster-leeg">
-              <p>Er staan nog geen lessen in deze week.</p>
+              <CalendarPlus aria-hidden size={28} />
+              <p>
+                <strong>Nog geen lessen in deze week</strong>
+                Zet je vaste lessen in het weekrooster en maak ze daar aan voor de komende weken.
+              </p>
               <Link className="club-knop club-knop--primair" href={clubPad('/instellingen/weekrooster', vestiging)}>
                 Naar het weekrooster
               </Link>

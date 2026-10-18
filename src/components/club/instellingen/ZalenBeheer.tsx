@@ -17,14 +17,14 @@ function ZaalRij({ zaal, vestiging }: { zaal: Zaal; vestiging: string }) {
 
   return (
     <tr data-uit={!zaal.actief || undefined}>
-      <td>
+      <td data-label="Zaal">
         <input className="club-invoer" aria-label="Naam van de zaal" value={naam} maxLength={60} onChange={(e) => setNaam(e.target.value)} />
         {fout && <span className="club-fout" role="alert">{fout}</span>}
       </td>
-      <td className="club-instellingen-smal">
+      <td className="club-instellingen-smal" data-label="Capaciteit">
         <input className="club-invoer club-instellingen-getal" type="number" min={1} max={500} aria-label="Capaciteit" value={capaciteit} onChange={(e) => setCapaciteit(e.target.value)} />
       </td>
-      <td>
+      <td data-label="Status">
         <label className="club-instellingen-check">
           <input type="checkbox" checked={zaal.actief} disabled={bezig} onChange={(e) => voerUit(() => bewaarItem('zalen', vestiging, zaal.id, { actief: e.target.checked }))} />
           <span>{zaal.actief ? 'In gebruik' : 'Uit'}</span>
@@ -79,7 +79,7 @@ export function ZalenBeheer({ zalen, vestiging }: { zalen: Zaal[]; vestiging: st
         <p className="club-leeg">Nog geen zalen voor deze vestiging.</p>
       ) : (
         <div className="club-tabel-wrap">
-          <table className="club-tabel">
+          <table className="club-tabel club-instellingen-tabel">
             <thead>
               <tr>
                 <th scope="col">Zaal</th>

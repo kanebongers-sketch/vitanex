@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leesHerhalingen, leesOefening, leesSchema, metVolgorde, oefeningNaarRij } from './invoer'
+import { GEEN_EXTRA, leesHerhalingen, leesOefening, leesSchema, leesTempo, metVolgorde, oefeningNaarRij } from './invoer'
 import { filterNaarParams, filterOefeningen, filterUitParams, keuzeNaarWaarde, LEEG_FILTER, waardeNaarKeuze } from './filter'
 import type { Oefening } from './rijen'
 import { lijnPunten, toonHerhalingen, toonRust, toonVerschil, trainingenPerWeek } from './weergave'
@@ -44,12 +44,30 @@ describe('herhalingen', () => {
   })
 })
 
+describe('extra velden per oefening', () => {
+  const basis = { naam: 'S', niveau: 1, status: 'concept' }
+  const regel = (extra: Record<string, unknown>) => leesSchema({ ...basis, regels: [{ dag: 1, oefeningId: OEF, ...extra }] })
+  it('leest superset, tijd, RPE, RIR en tempo', () => {
+    const u = regel({ groep: 2, tijdSec: '45', rpe: '7,5', tempo: '3 1 x 0' })
+    if (!u.ok) throw new Error(u.fout)
+    expect(u.waarde.regels[0]).toMatchObject({ groep: 2, tijdSec: 45, rpe: 7.5, rir: null, tempo: '31X0' })
+  })
+  it('weigert onzin en RPE met RIR tegelijk', () => {
+    expect(regel({ rpe: 7.3 }).ok).toBe(false)
+    expect(regel({ rpe: 8, rir: 2 }).ok).toBe(false)
+    expect(regel({ groep: 0 }).ok).toBe(false)
+    expect(regel({ tijdSec: 2 }).ok).toBe(false)
+    expect(leesTempo('31')).toBeUndefined()
+    expect(leesTempo('')).toBeNull()
+  })
+})
+
 describe('metVolgorde', () => {
   it('nummert per dag', () => {
     const r = metVolgorde([
-      { dag: 1, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null },
-      { dag: 2, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null },
-      { dag: 1, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null },
+      { dag: 1, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null, ...GEEN_EXTRA },
+      { dag: 2, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null, ...GEEN_EXTRA },
+      { dag: 1, oefeningId: OEF, sets: null, herhalingen: null, gewichtKg: null, rustSec: null, notitie: null, ...GEEN_EXTRA },
     ])
     expect(r.map((x) => x.volgorde)).toEqual([0, 0, 1])
   })
@@ -85,9 +103,9 @@ describe('weergave', () => {
     const nu = new Date('2026-10-14T10:00:00Z')
     const weken = trainingenPerWeek(
       [
-        { id: '1', schemaId: null, dag: 1, op: '2026-10-12T08:00:00Z', aantalOefeningen: 5 },
-        { id: '2', schemaId: null, dag: 2, op: '2026-10-13T08:00:00Z', aantalOefeningen: 5 },
-        { id: '3', schemaId: null, dag: 1, op: '2026-10-01T08:00:00Z', aantalOefeningen: 5 },
+        { id: '1', schemaId: null, dag: 1, op: '2026-10-12T08:00:00Z', aantalOefeningen: 5, duurSec: null },
+        { id: '2', schemaId: null, dag: 2, op: '2026-10-13T08:00:00Z', aantalOefeningen: 5, duurSec: null },
+        { id: '3', schemaId: null, dag: 1, op: '2026-10-01T08:00:00Z', aantalOefeningen: 5, duurSec: null },
       ],
       nu,
       4,

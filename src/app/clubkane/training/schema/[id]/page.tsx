@@ -8,7 +8,8 @@ import { recordInEigenVestiging } from '@/lib/club/kern/vestiging-toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
-import { haalOefeningen, haalSchema, haalTrainingslog } from '@/lib/club/training/data'
+import { haalOefeningen, haalSchema, haalSetLogs, haalTrainingslog } from '@/lib/club/training/data'
+import { progressieOverzicht } from '@/lib/club/training/progressie'
 import { uitOpgeslagen } from '@/lib/club/training/editor'
 import { SchemaEditor } from '@/components/club/training/SchemaEditor'
 import { TrainingslogKaart } from '@/components/club/training/TrainingslogKaart'
@@ -18,7 +19,7 @@ import '@/components/club/training/training.css'
 export const metadata: Metadata = { title: 'Schema' }
 
 // De schema-editor. Werkt voor schema's van leden en voor sjablonen (lid_id null).
-// Rechts: wat het lid in de app heeft afgevinkt (alleen lezen).
+// Rechts: de progressie per oefening en wat het lid in de app heeft afgevinkt.
 
 export default async function SchemaPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
   const t = await eisModule('training')
@@ -39,6 +40,9 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
   const isSjabloon = kop.lidId === null
   const terug = isSjabloon ? trainingPad(vestiging, 'sjablonen', null) : trainingPad(vestiging, 'schemas', kop.lidId)
   const beginStaat = uitOpgeslagen(schema.regels, kop.dagTitels)
+  // Progressie: wat het lid per set logde, met de volgende stap volgens de vaste vakregel.
+  const sets = kop.lidId ? await haalSetLogs(t.admin, t.userId, kop.lidId, schema.regels.map((r) => r.oefeningId)) : null
+  const progressie = sets && oefeningen ? progressieOverzicht(schema.regels, new Map(oefeningen.map((o) => [o.id, o])), sets) : null
 
   return (
     <div className="club-training-printpagina">
@@ -68,6 +72,7 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
         trainers={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
         editorHref={trainingPaden(vestiging).editor}
         terugHref={terug}
+        progressie={progressie}
         zijkant={isSjabloon ? null : <TrainingslogKaart log={log ?? []} dagTitels={beginStaat.dagTitels} nu={new Date()} />}
       />
     </div>

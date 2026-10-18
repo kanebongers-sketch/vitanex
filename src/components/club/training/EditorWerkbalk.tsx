@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { BookmarkPlus, Printer, Save, Trash2 } from 'lucide-react'
+import { BookmarkPlus, Printer, Redo2, Save, Trash2, Undo2 } from 'lucide-react'
 import { idUit, stuur } from './api'
 import { SjabloonToepassen } from './SchemaActies'
+import { KopieNaarLid } from './editor/KopieNaarLid'
 
 interface EditorWerkbalkProps {
   schemaId: string
@@ -17,6 +18,10 @@ interface EditorWerkbalkProps {
   onOpslaan: () => void
   editorHref: string
   terugHref: string
+  kanOngedaan: boolean
+  kanOpnieuw: boolean
+  onOngedaan: () => void
+  onOpnieuw: () => void
 }
 
 /** Opslaan, printen, sjabloon maken of toepassen en verwijderen. */
@@ -44,19 +49,33 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
       <button type="button" className="club-knop club-knop--primair" onClick={p.onOpslaan} disabled={p.bezig || !p.gewijzigd} title="Ctrl+S">
         <Save aria-hidden size={16} /> {p.bezig ? 'Opslaan...' : p.gewijzigd ? 'Opslaan' : 'Opgeslagen'}
       </button>
+      <span className="club-training-undo" role="group" aria-label="Ongedaan maken">
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOngedaan} disabled={!p.kanOngedaan} aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)">
+          <Undo2 aria-hidden size={16} />
+        </button>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOpnieuw} disabled={!p.kanOpnieuw} aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)">
+          <Redo2 aria-hidden size={16} />
+        </button>
+      </span>
       <button type="button" className="club-knop" onClick={() => window.print()}>
         <Printer aria-hidden size={16} /> Printen
       </button>
       {p.isSjabloon ? (
         <SjabloonToepassen sjabloonId={p.schemaId} sjabloonNaam={p.naam} vestiging={p.vestiging} lid={null} editorHref={p.editorHref} />
       ) : (
-        <button type="button" className="club-knop" onClick={alsSjabloon}>
-          <BookmarkPlus aria-hidden size={16} /> Opslaan als sjabloon
-        </button>
+        <>
+          <button type="button" className="club-knop" onClick={alsSjabloon}>
+            <BookmarkPlus aria-hidden size={16} /> Opslaan als sjabloon
+          </button>
+          <KopieNaarLid schemaId={p.schemaId} naam={p.naam} vestiging={p.vestiging} gewijzigd={p.gewijzigd} editorHref={p.editorHref} />
+        </>
       )}
       <button type="button" className="club-knop club-knop--gevaar club-knop--klein" onClick={verwijder} aria-label={`${p.naam} verwijderen`}>
         <Trash2 aria-hidden size={15} />
       </button>
+      <span className="club-training-sneltoetsen" aria-hidden>
+        <kbd>Ctrl</kbd> <kbd>S</kbd> opslaan · <kbd>Ctrl</kbd> <kbd>Z</kbd> terug · <kbd>Alt</kbd> <kbd>N</kbd> oefening · <kbd>Alt</kbd> <kbd>↑↓</kbd> verplaatsen
+      </span>
       {melding && (
         <p className={`club-training-werkmelding ${melding.fout ? 'club-fout' : 'club-hint'}`} role="status">
           {melding.tekst} {melding.href && <Link href={melding.href}>Bekijk het sjabloon</Link>}

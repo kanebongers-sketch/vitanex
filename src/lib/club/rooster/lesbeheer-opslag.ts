@@ -14,6 +14,7 @@ import { sorteerWachtlijst } from './regels'
 import { schuifWachtlijstDoor } from './reserveren-opslag'
 import { laatHerinneringenVervallen, planLesMeldingen } from '@/lib/club/meldingen/opslag'
 import { haalUitzonderingen } from '@/lib/club/sluiting/lezen'
+import { geefStrippenTerug, geraakteReserveringen } from '@/lib/club/betalen/terug-bij-annuleren'
 import { nlDelen, plusDagen } from './tijd'
 import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type LesRij, type ReserveringRij } from './typen'
 
@@ -97,6 +98,8 @@ export async function annuleerLes(t: ClubToegang, lesId: string, reden: string, 
     .select('id, lid_id, geboekt_op')
   if (f2) console.error('[club-rooster] reserveringen vervallen mislukt', f2.message)
   await meldLesGeannuleerd(t, { ...les, geannuleerd: true, annuleerReden: reden }, data ?? [], nu)
+  // De sportschool annuleert: wie met een strip betaalde, krijgt die terug (best effort).
+  await geefStrippenTerug(t.admin, t.userId, geraakteReserveringen(data ?? []), t.naam)
   const moment = nlDelen(new Date(les.startOp))
   await logActie(t, 'Les geannuleerd', `${moment.datum} ${moment.tijd}: ${reden}`, les.vestiging)
   return gelukt({ status: 'geannuleerd', geraakt: data?.length ?? 0 })

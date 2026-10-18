@@ -17,6 +17,8 @@ export interface NieuwSchema {
   medewerkerId: string | null
   notitie: string | null
   dagTitels: string[]
+  /** Alleen bij een sjabloon uit de basisset. */
+  basisSleutel?: string | null
 }
 
 export type Schrijfuitslag = { ok: true; id: string } | { ok: false; fout: string }
@@ -52,6 +54,11 @@ function regelRijen(userId: string, schemaId: string, regels: readonly RegelInvo
     gewicht_kg: r.gewichtKg,
     rust_sec: r.rustSec,
     notitie: r.notitie,
+    groep: r.groep,
+    tijd_sec: r.tijdSec,
+    rpe: r.rpe,
+    rir: r.rir,
+    tempo: r.tempo,
   }))
 }
 
@@ -91,6 +98,7 @@ export async function maakSchema(admin: SupabaseClient, userId: string, s: Nieuw
       medewerker_id: s.medewerkerId,
       notitie: s.notitie,
       dag_titels: s.dagTitels,
+      basis_sleutel: s.basisSleutel ?? null,
     })
     .select('id')
     .single()

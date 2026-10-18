@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 }
 
 function vestigingen(max: number | null): string {
-  if (max === null) return 'Onbeperkt vestigingen'
+  if (max === null) return 'Onbeperkt aantal vestigingen'
   return max === 1 ? '1 vestiging' : `Tot ${max} vestigingen`
 }
 

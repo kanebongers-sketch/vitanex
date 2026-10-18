@@ -2,7 +2,8 @@
 //                                         of de velden van de groep (zoals POST)
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout } from '@/lib/club/toegang'
+import { vereisCommunityBeheer } from '@/lib/club/community/api'
 import { alsAntwoord } from '@/lib/club/rooster/api'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { isUuid } from '@/lib/club/kern/organisatie'
@@ -13,7 +14,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisCommunityBeheer(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
   if (!isUuid(id)) return clubFout('Deze groep bestaat niet.', 404)

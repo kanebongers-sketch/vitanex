@@ -9,15 +9,16 @@ import type { LidToegang } from '@/lib/club/ledenlogin/toegang'
 import { volledigeNaam } from '@/lib/club/kern/lid'
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { haalLesRij } from '@/lib/club/rooster/basis-opslag'
-import { annuleerReservering, reserveer } from '@/lib/club/rooster/reserveren-opslag'
+import { reserveer, trekBoekingIn } from '@/lib/club/rooster/reserveren-opslag'
 import { haalVormVanLid, telLessenVanLid } from '@/lib/club/lidmaatschappen/toegang-opslag'
 import { appMelding, lesAanvraag } from '@/lib/club/lidmaatschappen/koppeling'
 import { magLesBoeken } from '@/lib/club/lidmaatschappen/regels'
 import { NIET_KLAAR, betalenActief, clubStripeSleutel, platformFeeCent } from './config'
 import { kopenAdressen } from './adressen'
-import { boekTegoedAf, geefTegoedTerug, haalBetaalAccount, haalProduct, haalTegoeden, kanAfrekenen, koppelSessie, maakVerkoop, telOpenVanLid } from './opslag'
+import { boekTegoedAf, haalBetaalAccount, haalProduct, haalTegoeden, kanAfrekenen, koppelSessie, maakVerkoop, telOpenVanLid } from './opslag'
 import { bruikbaarSaldo, productVoorVestiging, stripBesluit } from './regels'
 import { maakCheckoutSessie } from './stripe-api'
+import { stripTerugNaAnnuleren } from './terug-bij-annuleren'
 
 const MAX_OPEN_PER_UUR = 5
 const VOORVERTONING = 'In de voorvertoning reken je niet af en boek je geen strippen. Dat doet het lid zelf in de app.'
@@ -71,6 +72,13 @@ async function stripToets(l: LidToegang, les: { id: string; vestiging: string; s
   return bruikbaarSaldo(tegoeden, 'les', les.vestiging, nu) > 0 ? null : 'Je hebt geen geldige strippen voor deze vestiging. Koop een strippenkaart onder Kopen.'
 }
 
+/** Terugdraaien van een strip-boeking lukte niet: eerlijk melden en vastleggen voor de sportschool. */
+async function terugdraaienMislukt(l: LidToegang, reserveringId: string): Promise<NextResponse> {
+  console.error('[club/betalen] strip-boeking terugdraaien mislukt', reserveringId)
+  await logActie(l, 'Strip-boeking niet teruggedraaid', `${volledigeNaam(l.lid)}, reservering ${reserveringId}`, l.lid.vestiging)
+  return clubFout('Er ging iets mis met deze boeking. Kijk bij Mijn lessen of meld je daar af; er is geen strip afgeboekt.', 500)
+}
+
 /** Een groepsles boeken met de strippenkaart: boeken, dan een strip afboeken (of de boeking terugdraaien). */
 export async function boekMetStrippenkaart(l: LidToegang, lesId: unknown): Promise<NextResponse> {
   if (!betalenActief()) return clubFout('Niet gevonden.', 404)
@@ -88,12 +96,12 @@ export async function boekMetStrippenkaart(l: LidToegang, lesId: unknown): Promi
   const reserveringId = uit.waarde.id
   // Met een strip boek je alleen een vrije plek: de wachtlijst zou een strip vasthouden zonder les.
   if (uit.waarde.status === 'wachtlijst') {
-    await annuleerReservering(l, reserveringId, nu)
+    if (!(await trekBoekingIn(l, reserveringId, nu))) return terugdraaienMislukt(l, reserveringId)
     return clubFout('Deze les is net vol. Met een strip boek je alleen een vrije plek.', 409)
   }
   const af = await boekTegoedAf(l.admin, { userId: l.userId, lidId: l.lid.id, soort: 'les', vestiging: les.vestiging, reserveringId, afspraakId: null, door: l.naam })
   if (af === 'geen' || af === 'fout') {
-    await annuleerReservering(l, reserveringId, nu)
+    if (!(await trekBoekingIn(l, reserveringId, nu))) return terugdraaienMislukt(l, reserveringId)
     return clubFout(af === 'geen' ? 'Je hebt geen geldige strippen meer.' : 'De strip kon niet worden afgeboekt. Je bent niet geboekt; probeer het opnieuw.', af === 'geen' ? 409 : 500)
   }
   await logActie(l, 'Les geboekt met strippenkaart', volledigeNaam(l.lid), les.vestiging)
@@ -107,8 +115,6 @@ export async function boekMetStrippenkaart(l: LidToegang, lesId: unknown): Promi
  */
 export async function stripTerugNaAfmelden(l: LidToegang, reserveringId: string): Promise<void> {
   if (!betalenActief() || !isUuid(reserveringId)) return
-  const { data, error } = await l.admin.from('club_reserveringen').select('status, te_laat, lid_id').eq('user_id', l.userId).eq('id', reserveringId).maybeSingle()
-  if (error || !data || data.lid_id !== l.lid.id || data.status !== 'geannuleerd' || data.te_laat === true) return
-  const terug = await geefTegoedTerug(l.admin, { userId: l.userId, lidId: l.lid.id, reserveringId, afspraakId: null, door: l.naam })
+  const terug = await stripTerugNaAnnuleren(l.admin, l.userId, reserveringId, l.naam, l.lid.id)
   if (terug) await logActie(l, 'Strip teruggegeven na afmelden', volledigeNaam(l.lid), null)
 }

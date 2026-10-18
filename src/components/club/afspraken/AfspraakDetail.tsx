@@ -71,26 +71,25 @@ export function AfspraakDetail({ afspraak: a, vestiging, trainerNaam, trainers, 
       <PtTegoed afspraakId={a.id} typeNaam={a.typeNaam} />
 
       {opties.length > 0 ? (
-        <div className="club-acties" role="group" aria-label="Status zetten">
+        <div className="club-acties club-afspraken-detailacties" role="group" aria-label="Status zetten">
+          {a.status === 'gepland' && !verplaats ? (
+            <button type="button" className="club-knop club-knop--klein club-afspraken-verplaatsknop" onClick={() => setVerplaats(true)}>
+              <CalendarClock size={15} aria-hidden /> Verplaatsen
+            </button>
+          ) : null}
           {opties.map((s) => {
             const k = KNOP[s]
             const Icoon = k.icoon
-            return <button key={s} type="button" className={`${k.klasse} club-knop--klein`} disabled={bezig} onClick={() => zetStatus(s)}><Icoon size={15} aria-hidden /> {k.label}</button>
+            return <button key={s} type="button" className={`${k.klasse} club-knop--klein`} data-status={s} disabled={bezig} onClick={() => zetStatus(s)}><Icoon size={15} aria-hidden /> {k.label}</button>
           })}
         </div>
       ) : (
         <p className="club-hint">Deze afspraak is geannuleerd. Maak een nieuwe afspraak als het lid toch wil komen.</p>
       )}
 
-      {a.status === 'gepland' ? (
-        verplaats ? (
-          <Verplaatsen afspraak={a} vestiging={vestiging} trainers={trainers} vandaag={vandaag} bezig={bezig} onAnnuleer={() => setVerplaats(false)}
-            onBevestig={(d, tijd, mw) => void patch({ datum: d, tijd, medewerkerId: mw }, `Afspraak verplaatst naar ${tijd}.`)} />
-        ) : (
-          <button type="button" className="club-knop club-knop--klein club-afspraken-verplaatsknop" onClick={() => setVerplaats(true)}>
-            <CalendarClock size={15} aria-hidden /> Verplaatsen
-          </button>
-        )
+      {a.status === 'gepland' && verplaats ? (
+        <Verplaatsen afspraak={a} vestiging={vestiging} trainers={trainers} vandaag={vandaag} bezig={bezig} onAnnuleer={() => setVerplaats(false)}
+          onBevestig={(d, tijd, mw) => void patch({ datum: d, tijd, medewerkerId: mw }, `Afspraak verplaatst naar ${tijd}.`)} />
       ) : null}
 
       <label className="club-veld"><span>Notitie</span>

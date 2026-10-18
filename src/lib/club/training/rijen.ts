@@ -3,6 +3,7 @@
 // niet klopt wordt null en valt weg, in plaats van de pagina te breken.
 
 import { BEELD_KOLOMMEN, beeldenUitRij, type OefeningBeelden } from './beeld'
+import type { GelogdeSet } from './progressie'
 import { schoonSpieren, type Spier } from './spieren'
 import {
   isDoel, isMateriaal, isNiveau, isPatroon, isSchemaStatus, isSpiergroep, isZone,
@@ -40,9 +41,17 @@ export interface SchemaRegel {
   gewichtKg: number | null
   rustSec: number | null
   notitie: string | null
+  /** Superset of circuit: zelfde nummer, direct na elkaar (migratie 443). */
+  groep: number | null
+  /** Tijd per set in seconden, in plaats van herhalingen. */
+  tijdSec: number | null
+  rpe: number | null
+  rir: number | null
+  /** Vier tekens, bijvoorbeeld 3110 (omlaag, onder, omhoog, boven). */
+  tempo: string | null
 }
 
-export const REGEL_KOLOMMEN = 'id, dag, volgorde, oefening_id, sets, herhalingen, gewicht_kg, rust_sec, notitie'
+export const REGEL_KOLOMMEN = 'id, dag, volgorde, oefening_id, sets, herhalingen, gewicht_kg, rust_sec, notitie, groep, tijd_sec, rpe, rir, tempo'
 
 export interface SchemaKop {
   id: string
@@ -57,10 +66,12 @@ export interface SchemaKop {
   notitie: string | null
   dagTitels: string[]
   bijgewerktOp: string
+  /** Gemaakt uit de basisset (sleutel van het startschema), anders null. */
+  basisSleutel: string | null
 }
 
 export const SCHEMA_KOLOMMEN =
-  'id, lid_id, naam, doel, niveau, weken, medewerker_id, status, notitie, dag_titels, bijgewerkt_op, club_leden(voornaam, achternaam)'
+  'id, lid_id, naam, doel, niveau, weken, medewerker_id, status, notitie, dag_titels, bijgewerkt_op, basis_sleutel, club_leden(voornaam, achternaam)'
 
 export interface LogRegel {
   id: string
@@ -68,6 +79,8 @@ export interface LogRegel {
   dag: number | null
   op: string
   aantalOefeningen: number
+  /** Duur van "start" tot "training klaar" (alleen als het lid de sets logde). */
+  duurSec: number | null
 }
 
 type Rij = Record<string, unknown>
@@ -80,7 +93,7 @@ export function tekstOfNull(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v : null
 }
 
-function getalOfNull(v: unknown): number | null {
+export function getalOfNull(v: unknown): number | null {
   if (typeof v === 'number' && Number.isFinite(v)) return v
   if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v)
   return null
@@ -138,6 +151,11 @@ export function regelUitRij(rij: unknown): SchemaRegel | null {
     gewichtKg: getalOfNull(rij.gewicht_kg),
     rustSec: getalOfNull(rij.rust_sec),
     notitie: tekstOfNull(rij.notitie),
+    groep: getalOfNull(rij.groep),
+    tijdSec: getalOfNull(rij.tijd_sec),
+    rpe: getalOfNull(rij.rpe),
+    rir: getalOfNull(rij.rir),
+    tempo: tekstOfNull(rij.tempo),
   }
 }
 
@@ -159,6 +177,7 @@ export function schemaUitRij(rij: unknown): SchemaKop | null {
     notitie: tekstOfNull(rij.notitie),
     dagTitels: Array.isArray(rij.dag_titels) ? rij.dag_titels.map((t) => (typeof t === 'string' ? t : '')) : [],
     bijgewerktOp: tekstOfNull(rij.bijgewerkt_op) ?? '',
+    basisSleutel: tekstOfNull(rij.basis_sleutel),
   }
 }
 
@@ -173,5 +192,20 @@ export function logUitRij(rij: unknown): LogRegel | null {
     dag: getalOfNull(rij.dag),
     op,
     aantalOefeningen: Array.isArray(rij.uitgevoerd) ? rij.uitgevoerd.length : 0,
+    duurSec: getalOfNull(rij.duur_sec),
+  }
+}
+
+/** Een rij uit club_set_logs, met de oefening erbij. */
+export function setUitRij(rij: unknown): { oefeningId: string; set: GelogdeSet } | null {
+  if (!isRij(rij)) return null
+  const oefeningId = tekstOfNull(rij.oefening_id)
+  const trainingId = tekstOfNull(rij.trainingslog_id)
+  const op = tekstOfNull(rij.op)
+  const setNr = getalOfNull(rij.set_nr)
+  if (!oefeningId || !trainingId || !op || setNr === null) return null
+  return {
+    oefeningId,
+    set: { trainingId, op, setNr, herhalingen: getalOfNull(rij.herhalingen), gewichtKg: getalOfNull(rij.gewicht_kg), tijdSec: getalOfNull(rij.tijd_sec) },
   }
 }

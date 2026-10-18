@@ -76,6 +76,8 @@ export async function plaatsBericht(c: LidContext, groepId: string, tekst: strin
     .select('id')
     .single()
   if (error || typeof data?.id !== 'string') {
+    // De database remt ook (gelijktijdige verzoeken komen langs de telling hierboven).
+    if (error && /community_rem/.test(error.message)) return mislukt('Je plaatst te snel berichten achter elkaar. Probeer het straks opnieuw.', 429)
     if (error) meld('bericht plaatsen', error)
     return mislukt(LEESFOUT, 500)
   }

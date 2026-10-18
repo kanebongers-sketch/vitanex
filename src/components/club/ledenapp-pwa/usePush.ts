@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { isIos } from '@/lib/club/ledenapp-pwa/installeren'
-import { pushStand, sleutelNaarBytes, type PushStand } from '@/lib/club/push/toestel'
+import { GEMELD_SLEUTEL, gemeldWaarde, moetStilMelden, pushStand, sleutelNaarBytes, type PushStand } from '@/lib/club/push/toestel'
 import { SW_PAD, SW_SCOPE } from './RegistreerSw'
 
 // De stand van push op dit toestel, plus aan- en uitzetten. Toestemming vragen
@@ -53,7 +53,36 @@ async function stuur(methode: 'POST' | 'DELETE', body: unknown): Promise<boolean
   }
 }
 
-export function usePush(sleutel: string | null): PushStaat {
+/** Stil nakijken: 'aan', 'uit' (het lid zette push uit) of null bij een storing. */
+async function meldStil(abonnement: PushSubscription): Promise<'aan' | 'uit' | null> {
+  try {
+    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...abonnement.toJSON(), stil: true }), cache: 'no-store' })
+    if (!res.ok) return null
+    const json: unknown = await res.json().catch(() => null)
+    return typeof json === 'object' && json !== null && (json as { aan?: unknown }).aan === false ? 'uit' : 'aan'
+  } catch {
+    return null
+  }
+}
+
+function leesGemeld(): string | null {
+  try {
+    return window.localStorage.getItem(GEMELD_SLEUTEL)
+  } catch {
+    return null
+  }
+}
+
+function bewaarGemeld(waarde: string | null): void {
+  try {
+    if (waarde) window.localStorage.setItem(GEMELD_SLEUTEL, waarde)
+    else window.localStorage.removeItem(GEMELD_SLEUTEL)
+  } catch {
+    // Opslag geblokkeerd: dan meldt de app zich bij een volgende keer opnieuw, stil en zonder schade.
+  }
+}
+
+export function usePush(sleutel: string | null, merk: string | null = null): PushStaat {
   const [stand, zetStand] = useState<PushStand | null>(null)
   const [toestemming, zetToestemming] = useState<NotificationPermission | null>(null)
   const [aan, zetAan] = useState(false)
@@ -75,13 +104,18 @@ export function usePush(sleutel: string | null): PushStaat {
       zetToestemming(gelezen.toestemming)
       const isAan = abonnement !== null && gelezen.toestemming === 'granted'
       zetAan(isAan)
-      // Stil bijwerken: zo staat dit toestel zeker bij het ingelogde lid.
-      if (isAan && abonnement) void stuur('POST', abonnement.toJSON())
+      // Alleen als dit abonnement in deze sessie nog niet gemeld is: stil nakijken.
+      // De server zet een uitgezette voorkeur nooit weer aan; dan staat het hier ook uit.
+      if (!isAan || !abonnement || !merk || !moetStilMelden(leesGemeld(), merk, abonnement.endpoint)) return
+      const uitslag = await meldStil(abonnement)
+      if (weg || uitslag === null) return
+      if (uitslag === 'uit') zetAan(false)
+      bewaarGemeld(gemeldWaarde(merk, abonnement.endpoint))
     })()
     return () => {
       weg = true
     }
-  }, [sleutel])
+  }, [sleutel, merk])
 
   const aanzetten = useCallback(async () => {
     if (!sleutel || bezig) return
@@ -100,6 +134,7 @@ export function usePush(sleutel: string | null): PushStaat {
       const abonnement = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: sleutelNaarBytes(sleutel) })
       if (await stuur('POST', abonnement.toJSON())) {
         zetAan(true)
+        if (merk) bewaarGemeld(gemeldWaarde(merk, abonnement.endpoint))
       } else {
         await abonnement.unsubscribe().catch(() => false)
         zetFout('Meldingen aanzetten lukte niet. Probeer het straks opnieuw.')
@@ -110,7 +145,7 @@ export function usePush(sleutel: string | null): PushStaat {
     } finally {
       zetBezig(false)
     }
-  }, [sleutel, bezig])
+  }, [sleutel, merk, bezig])
 
   const uitzetten = useCallback(async () => {
     if (bezig) return
@@ -122,6 +157,7 @@ export function usePush(sleutel: string | null): PushStaat {
       const gelukt = await stuur('DELETE', { endpoint: abonnement?.endpoint ?? null })
       // Ook als de server even niet antwoordt: op dit toestel gaat hij hoe dan ook uit.
       if (abonnement) await abonnement.unsubscribe().catch(() => false)
+      bewaarGemeld(null)
       zetAan(false)
       if (!gelukt) zetFout('Uitgezet op dit toestel. De sportschool kon het nog niet bijwerken; dat gebeurt vanzelf.')
     } catch (err) {

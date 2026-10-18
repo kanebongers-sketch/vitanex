@@ -31,6 +31,17 @@ export interface GroepRanglijst {
 /** Zoveel plekken toont de app. */
 export const RANG_TOP = 10
 
+/** Zoveel lid-id's per verzoek, zodat de URL kort genoeg blijft (zoals haal-risico.ts). */
+export const BLOK_IDS = 150
+
+/** Knip een lijst in blokken van hoogstens `grootte`. */
+export function inBlokken<T>(lijst: readonly T[], grootte = BLOK_IDS): T[][] {
+  if (grootte < 1) return [[...lijst]]
+  const uit: T[][] = []
+  for (let i = 0; i < lijst.length; i += grootte) uit.push(lijst.slice(i, i + grootte))
+  return uit
+}
+
 /** Bezoekdagen per lid in een maand (yyyy-mm, Nederlandse tijd): een dag met een check-in telt een keer. */
 export function bezoekdagenInMaand(rijen: readonly { lidId: string; op: string }[], maand: string): Map<string, number> {
   const dagen = new Map<string, Set<string>>()

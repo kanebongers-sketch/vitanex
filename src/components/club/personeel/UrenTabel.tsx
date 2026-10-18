@@ -31,9 +31,11 @@ export function UrenTabel({ regels, team }: { regels: readonly UrenRegel[]; team
             const verschil = r.verschilMin
             return (
               <tr key={r.medewerkerId} data-kleur={l?.kleur}>
-                <th scope="row" className="club-personeel-urennaam">
-                  <span className="club-personeel-stip" aria-hidden />
-                  {l?.naam ?? 'Onbekend'}
+                <th scope="row">
+                  <span className="club-personeel-urennaam">
+                    <span className="club-personeel-stip" aria-hidden />
+                    {l?.naam ?? 'Onbekend'}
+                  </span>
                 </th>
                 <td className="club-getal">{urenKlok(r.geplandMin)}</td>
                 <td className="club-getal"><strong>{urenKlok(r.gewerktMin)}</strong></td>

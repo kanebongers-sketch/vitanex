@@ -14,7 +14,7 @@ interface StapPakketProps {
 }
 
 function vestigingenTekst(p: PakketKeuze): string {
-  if (p.onbeperkt) return 'Onbeperkt vestigingen'
+  if (p.onbeperkt) return 'Onbeperkt aantal vestigingen'
   return p.maxVestigingen === 1 ? 'Een vestiging' : `Tot ${p.maxVestigingen} vestigingen`
 }
 

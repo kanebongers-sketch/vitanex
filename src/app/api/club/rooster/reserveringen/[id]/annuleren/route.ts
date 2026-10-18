@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout, logActie, vereisClubToegang } from '@/lib/club/toegang'
+import { stripTerugNaAnnuleren } from '@/lib/club/betalen/terug-bij-annuleren'
 import { alsAntwoord } from '@/lib/club/rooster/api'
 import { isUuid } from '@/lib/club/rooster/invoer'
 import { annuleerReservering } from '@/lib/club/rooster/opslag'
@@ -16,5 +17,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const buiten = await eisVestigingVanRecord(t, 'club_reserveringen', id)
   if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Deze reservering bestaat niet.', 404)
-  return alsAntwoord(await annuleerReservering(t, id))
+  const uit = await annuleerReservering(t, id)
+  // Op tijd geannuleerd en met een strip betaald: de strip gaat terug (best effort).
+  if (uit.ok && (await stripTerugNaAnnuleren(t.admin, t.userId, id, t.naam))) await logActie(t, 'Strip teruggegeven na annuleren', null, null)
+  return alsAntwoord(uit)
 }

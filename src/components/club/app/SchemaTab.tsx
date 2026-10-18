@@ -2,9 +2,9 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronRight, ClipboardList, Undo2 } from 'lucide-react'
+import { Check, ChevronRight, ClipboardList, Play, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
-import type { AppOefening } from '@/lib/club/app/schema'
+import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
 import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
 import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
@@ -14,9 +14,12 @@ import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
+import { TrainingModus } from './training/TrainingModus'
 
-// Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en vink
-// af dat je de training gedaan hebt (club_trainingslog). Onder elke oefening
+// Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
+// de training: per set gewicht en herhalingen invullen met de vorige keer
+// ernaast, rusttimer en een samenvatting (club_trainingslog + club_set_logs).
+// Alleen afvinken kan ook. Onder elke oefening
 // staan de twee belangrijkste kernpunten, zodat je ze ziet tijdens het trainen;
 // tik op een oefening voor de bewegende illustratie met de volledige coaching.
 
@@ -24,16 +27,19 @@ interface Props {
   lidId: string
   schema: AppSchema | null
   logs: AppLog[]
+  /** Per oefening de vorige keer en het beste resultaat (voor de velden en records). */
+  historie: Record<string, OefeningHistorie>
   nu: string
 }
 
-export function SchemaTab({ lidId, schema, logs, nu }: Props) {
+export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const api = useLedenappApi()
   const router = useRouter()
   const [bezig, startBezig] = useTransition()
   const [fout, setFout] = useState<string | null>(null)
   const [gekozen, setGekozen] = useState<number | null>(null)
   const [open, setOpen] = useState<AppOefening | null>(null)
+  const [traint, setTraint] = useState(false)
   const sluit = useCallback(() => setOpen(null), [])
   const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
@@ -62,6 +68,21 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
       if (r.ok) router.refresh()
       else setFout(r.fout)
     })
+  }
+
+  if (traint) {
+    return (
+      <div className="club-lidapp-tab">
+        <TrainingModus
+          lidId={lidId} schema={schema} dag={dag} historie={historie} onInfo={setOpen} onStop={() => setTraint(false)}
+          onOpgeslagen={() => {
+            setTraint(false)
+            router.refresh()
+          }}
+        />
+        {open && <OefeningBlad oefening={open} onSluit={sluit} />}
+      </div>
+    )
   }
 
   return (
@@ -106,10 +127,20 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
         ))}
       </ol>
       <BeeldBron className="club-lidapp-beeldbron" bronnen={bronnenVan(dag.oefeningen.map((o) => o.beeld))} />
-      <button type="button" className={`club-lidapp-knop club-lidapp-knop--breed ${gedaan ? 'club-lidapp-knop--klaar' : 'club-lidapp-knop--primair'}`} onClick={vink} disabled={bezig || gedaan !== null}>
-        {gedaan ? <Check aria-hidden size={18} /> : null}
-        {bezig ? 'Bezig...' : gedaan ? `Dag ${dag.letter} gedaan vandaag` : `Training dag ${dag.letter} gedaan`}
-      </button>
+      {gedaan ? (
+        <button type="button" className="club-lidapp-knop club-lidapp-knop--breed club-lidapp-knop--klaar" disabled>
+          <Check aria-hidden size={18} /> Dag {dag.letter} gedaan vandaag
+        </button>
+      ) : (
+        <div className="club-lidapp-startrij">
+          <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" onClick={() => setTraint(true)} disabled={bezig}>
+            <Play aria-hidden size={18} /> Start training dag {dag.letter}
+          </button>
+          <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
+            {bezig ? 'Bezig...' : 'Alleen afvinken, zonder sets'}
+          </button>
+        </div>
+      )}
       {gedaan && (
         <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
           <Undo2 aria-hidden size={14} /> Ongedaan maken

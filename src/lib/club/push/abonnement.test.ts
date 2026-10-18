@@ -5,7 +5,8 @@ import { isToegestaneDienst, kortToestel, leesAbonnement, leesEndpoint } from '.
 import { pushBeslissing, type PushOntvanger } from './beleid'
 import { STANDAARD_URL, beoordeelAntwoord, bouwVerzoek, maakInhoud, veiligeUrl } from './bericht'
 import { leesVapidSleutels } from './sleutels'
-import { pushStand, sleutelNaarBytes, type PushToestel } from './toestel'
+import { gemeldWaarde, moetStilMelden, pushStand, sleutelNaarBytes, type PushToestel } from './toestel'
+import { pushSessieMerk } from './sessie-merk'
 import { DEMO_SPORTSCHOOL_ID } from '@/lib/club/meldingen/beleid'
 
 const ua = createECDH('prime256v1')
@@ -135,5 +136,26 @@ describe('pushStand', () => {
 
   it('zet de publieke sleutel om naar bytes voor de browser', () => {
     expect(Buffer.from(sleutelNaarBytes(KEYS.p256dh)).equals(ua.getPublicKey())).toBe(true)
+  })
+})
+
+describe('stil melden bij het openen van de app', () => {
+  const ep = 'https://fcm.googleapis.com/fcm/send/abc'
+  it('meldt alleen als deze sessie en dit abonnement nog niet gemeld zijn', () => {
+    expect(moetStilMelden(null, 'merk1', ep)).toBe(true)
+    expect(moetStilMelden(gemeldWaarde('merk1', ep), 'merk1', ep)).toBe(false)
+    expect(moetStilMelden(gemeldWaarde('merk1', ep), 'merk2', ep)).toBe(true)
+    expect(moetStilMelden(gemeldWaarde('merk1', ep), 'merk1', `${ep}2`)).toBe(true)
+  })
+  it('zonder sessiemerkje (voorvertoning) nooit stil melden', () => {
+    expect(moetStilMelden(null, null, ep)).toBe(false)
+  })
+  it('het sessiemerkje is kort, vast per sessie en verraadt de sessiehash niet', () => {
+    expect(pushSessieMerk(null)).toBeNull()
+    const a = pushSessieMerk('hash-a')
+    expect(a).toHaveLength(16)
+    expect(pushSessieMerk('hash-a')).toBe(a)
+    expect(pushSessieMerk('hash-b')).not.toBe(a)
+    expect(a).not.toContain('hash')
   })
 })

@@ -44,6 +44,9 @@ interface Stand {
   let?: boolean
 }
 
+/** Bij een leesfout: neutraal, zonder aandachtsteken. */
+const ONBEKEND: Stand = { stand: 'Onbekend' }
+
 /** Alleen lezen wat deze persoon ziet. */
 function als<T>(mag: boolean, laad: () => Promise<T>): Promise<T | null> {
   return mag ? laad() : Promise.resolve(null)
@@ -69,11 +72,11 @@ async function standen(t: ClubToegang, ziet: (id: string) => boolean): Promise<R
   const aanTal = MODULES.length - org.uit.length
   const voortgang = start?.ok ? start.voortgang : null
   return {
-    start: { stand: voortgang?.afgerondOp ? 'Afgerond' : voortgang ? `Bij stap ${voortgang.stap} van ${AANTAL_STAPPEN}` : 'Nog niet begonnen' },
+    start: start?.ok === false ? ONBEKEND : { stand: voortgang?.afgerondOp ? 'Afgerond' : voortgang ? `Bij stap ${voortgang.stap} van ${AANTAL_STAPPEN}` : 'Nog niet begonnen' },
     huisstijl: { stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? 'Eigen logo' : 'Logo geupload') : 'Nog geen logo', let: !org.logo },
     onderdelen: { stand: `${aanTal} van ${MODULES.length} aan` },
     adres: { stand: org.slug ? adresVan(org.slug) : 'Nog niet gekozen', let: !org.slug },
-    bedrijf: { stand: bedrijf?.gegevens.kvk ? 'KvK ingevuld' : 'Nog niet ingevuld', let: !bedrijf?.gegevens.kvk },
+    bedrijf: bedrijf === null ? ONBEKEND : { stand: bedrijf.gegevens.kvk ? 'KvK ingevuld' : 'Nog niet ingevuld', let: !bedrijf.gegevens.kvk },
     vestigingen: { stand: aantal(t.vestigingen.length, 'vestiging', 'vestigingen'), let: t.vestigingen.length === 0 },
     regels: { stand: 'Per vestiging' },
     sluiting: { stand: 'Feestdagen en sluitingen' },

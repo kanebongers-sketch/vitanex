@@ -2,7 +2,8 @@
 // Een nieuwe communitygroep voor de ledenapp. Antwoord: { id }.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout } from '@/lib/club/toegang'
+import { vereisCommunityBeheer } from '@/lib/club/community/api'
 import { alsAntwoord } from '@/lib/club/rooster/api'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { leesGroep } from '@/lib/club/community/invoer'
@@ -12,7 +13,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const t = await vereisClubToegang(req)
+  const t = await vereisCommunityBeheer(req)
   if (t instanceof NextResponse) return t
   const b = await leesJsonOfTeGroot(req, 4_000)
   if (b instanceof NextResponse) return b

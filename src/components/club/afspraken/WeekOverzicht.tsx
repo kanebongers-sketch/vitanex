@@ -32,7 +32,7 @@ export function WeekOverzicht({ dagen, vandaag, trainerNaam, onKies, onNieuw }: 
                 {d.afspraken.map((a) => (
                   <li key={a.id}>
                     <button type="button" className="club-afspraken-item" data-kleur={a.kleur} data-status={a.status} onClick={() => onKies(a)}>
-                      <span className="club-afspraken-tijd">{nlDatumTijd(a.start).tijd}</span>
+                      <span className="club-afspraken-itemtijd">{nlDatumTijd(a.start).tijd}</span>
                       <span className="club-afspraken-naam">{a.lidNaam}</span>
                       <span className="club-afspraken-meta">
                         {a.typeNaam} · {trainerNaam(a.medewerkerId).split(' ')[0]}

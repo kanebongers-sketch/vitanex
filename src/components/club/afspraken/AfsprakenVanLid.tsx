@@ -42,7 +42,7 @@ export async function AfsprakenVanLid({ lidId, vestiging }: Props) {
                 return (
                   <li key={a.id} data-kleur={a.kleur} data-status={a.status}>
                     <Link href={clubPad('/afspraken', a.vestiging, { weergave: 'dag', dag: datum })}>
-                      <span className="club-afspraken-tijd">{DAG.format(new Date(`${datum}T12:00:00Z`))}, {tijdvak(a)}</span>
+                      <span className="club-afspraken-itemtijd">{DAG.format(new Date(`${datum}T12:00:00Z`))}, {tijdvak(a)}</span>
                       <strong>{a.typeNaam}</strong>
                       <span className="club-afspraken-meta">met {naam.get(a.medewerkerId) ?? 'een trainer'}{a.status === 'gepland' ? '' : ` · ${STATUS_LABEL[a.status]}`}</span>
                     </Link>

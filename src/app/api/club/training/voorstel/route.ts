@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
 import { haalIntake, haalOefeningen } from '@/lib/club/training/data'
 import { isRij } from '@/lib/club/training/rijen'
+import { GEEN_EXTRA } from '@/lib/club/training/invoer'
 import { maakSchema } from '@/lib/club/training/schrijven'
 import { stelSchemaVoor } from '@/lib/club/training/voorstel'
 
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
       dagTitels: v.dagen.map((d) => d.titel),
     },
     v.dagen.flatMap((d) =>
-      d.regels.map((r) => ({ dag: d.dag, oefeningId: r.oefeningId, sets: r.sets, herhalingen: r.herhalingen, gewichtKg: null, rustSec: r.rustSec, notitie: r.notitie })),
+      d.regels.map((r) => ({ dag: d.dag, oefeningId: r.oefeningId, sets: r.sets, herhalingen: r.herhalingen, gewichtKg: null, rustSec: r.rustSec, notitie: r.notitie, ...GEEN_EXTRA })),
     ),
   )
   if (!uit.ok) return clubFout(uit.fout, 500)

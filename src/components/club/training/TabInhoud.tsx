@@ -3,6 +3,7 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalIntakes, haalOefeningen, haalSchemas, haalTrainingslog } from '@/lib/club/training/data'
 import type { OefeningFilter } from '@/lib/club/training/filter'
+import { BasisSjablonen } from './BasisSjablonen'
 import { IntakeLijst } from './IntakeLijst'
 import { MetingVerloop } from './MetingVerloop'
 import { OefeningenBeheer } from './OefeningenBeheer'
@@ -56,10 +57,21 @@ export async function TabSchemas({ t, vestiging, lid, trainers }: TabProps) {
 export async function TabSjablonen({ t, vestiging, lid }: TabProps) {
   const sjablonen = await haalSchemas(t.admin, t.userId, { vestiging, lidId: null, sjablonen: true })
   if (!sjablonen) return <Fout wat="De sjablonen" />
-  if (sjablonen.length === 0) {
-    return <p className="club-leeg">Nog geen sjablonen. Maak er een, of sla een goed schema op als sjabloon.</p>
-  }
-  return <SjabloonLijst sjablonen={sjablonen} vestiging={vestiging} lid={lid} editorHref={trainingPaden(vestiging).editor} />
+  const editorHref = trainingPaden(vestiging).editor
+  const alOpgeslagen = sjablonen.map((s) => s.basisSleutel).filter((k): k is string => k !== null)
+  return (
+    <div className="club-training-stapel">
+      <section className="club-training-stapel" aria-labelledby="eigen-kop">
+        <h2 id="eigen-kop" className="club-training-tussenkop">Eigen sjablonen</h2>
+        {sjablonen.length === 0 ? (
+          <p className="club-leeg">Nog geen eigen sjablonen. Bewaar een startschema hieronder, of sla een goed schema op als sjabloon.</p>
+        ) : (
+          <SjabloonLijst sjablonen={sjablonen} vestiging={vestiging} lid={lid} editorHref={editorHref} />
+        )}
+      </section>
+      <BasisSjablonen vestiging={vestiging} lid={lid} alOpgeslagen={alOpgeslagen} editorHref={editorHref} />
+    </div>
+  )
 }
 
 export async function TabOefeningen({ t, filter }: { t: ClubToegang; filter: OefeningFilter }) {

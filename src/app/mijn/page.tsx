@@ -40,6 +40,7 @@ import { haalKopenVoorLid } from '@/lib/club/betalen/ledenapp'
 import { KopenBlok, LedenappKopen } from '@/components/club/betalen/LedenappKopen'
 import { PushMeldingen } from '@/components/club/ledenapp-pwa/PushMeldingen'
 import { publiekeSleutelVoorApp } from '@/lib/club/push/sleutels'
+import { pushSessieMerk } from '@/lib/club/push/sessie-merk'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -108,6 +109,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const kopenTerug = eerste(zoek.betaald) === '1' ? 'betaald' : eerste(zoek.geannuleerd) === '1' ? 'geannuleerd' : null
   // Web push: alleen met CLUB_PUSH_ACTIEF=1 en kloppende sleutels, anders geen knop.
   const pushSleutel = publiekeSleutelVoorApp(process.env)
+  const pushMerk = pushSessieMerk(l.sessieHash)
 
   return (
     <LedenappSchil organisatie={org}>
@@ -133,7 +135,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               {/* Alles over meldingen op een plek: de lijst en meldingen op je telefoon aan of uit. */}
               {pushSleutel && (
                 <div className="club-mijn-blok">
-                  <PushMeldingen sleutel={pushSleutel} variant="profiel" voorvertoning={l.voorvertoning} />
+                  <PushMeldingen sleutel={pushSleutel} merk={pushMerk} variant="profiel" voorvertoning={l.voorvertoning} />
                 </div>
               )}
               {meldingen ? (
@@ -161,7 +163,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               {/* Zachte vraag om meldingen, pas na de eerste boeking. */}
               {data.lessen.some((les) => les.mijn !== null) && (
                 <div className="club-mijn-blok club-push-blok">
-                  <PushMeldingen sleutel={pushSleutel} variant="home" voorvertoning={l.voorvertoning} />
+                  <PushMeldingen sleutel={pushSleutel} merk={pushMerk} variant="home" voorvertoning={l.voorvertoning} />
                 </div>
               )}
               {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
@@ -169,7 +171,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
             </>
           )}
           {!apart && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} strippenkaart={kopen && kopen !== 'fout' && !l.voorvertoning ? { saldo: kopen.strippen, url: metVoor('/api/club/lid/betalen/strippenkaart') } : undefined} />}
-          {!apart && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {!apart && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} historie={data.historie} nu={nu.toISOString()} />}
           {!apart && tab === 'voeding' && voeding && (
             <div className="club-lidapp-tab">
               <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />

@@ -130,6 +130,11 @@
 .club-tegels { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 800px) { .club-tegels { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 1400px) { .club-tegels--6 { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 599px) {
+  .club-tegels { gap: 8px; }
+  .club-tegel { padding: 12px 14px; }
+  .club-tegel-getal { font-size: 30px; }
+}
 .club-tegel { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--club-radius); padding: 14px 16px; display: grid; gap: 2px; }
 .club-tegel-label { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
 .club-tegel-getal { font-family: var(--ff-kop); font-size: clamp(32px, 3.2vw, 44px); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -190,16 +195,23 @@
 .club-invoer, .club-app select.club-invoer, .club-app textarea.club-invoer { width: 100%; min-height: 40px; padding: 8px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-invoer-bg, rgba(0, 0, 0, 0.25)); color: var(--text-1); font: inherit; font-size: 14.5px; }
 .club-app textarea.club-invoer { min-height: 90px; resize: vertical; line-height: 1.5; }
 .club-invoer::placeholder { color: var(--text-4); }
+.club-invoer { transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease); }
+.club-invoer:hover:not(:disabled, :focus) { border-color: var(--text-4); }
 .club-invoer:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.club-invoer:disabled { opacity: 0.6; cursor: not-allowed; }
+/* Pas na een poging tot invullen (niet bij laden) een rode rand bij een ongeldig veld. */
+.club-invoer:user-invalid { border-color: var(--club-let-op); }
+.club-invoer:user-invalid:focus { box-shadow: 0 0 0 3px var(--club-let-op-zacht); }
 .club-invoer--zoek { min-height: 48px; font-size: 16px; padding-left: 14px; }
 .club-formrij { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-.club-fout { color: var(--club-let-op); font-size: 13px; }
+.club-fout { color: var(--club-let-op-inkt); font-size: 13px; font-weight: 600; line-height: 1.45; }
 .club-hint { color: var(--text-3); font-size: 13px; line-height: 1.5; }
 
 /* Segment-keuze (tabs binnen een pagina, filters). */
 .club-segment { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); background: var(--club-vlak); flex-wrap: wrap; }
-.club-segment a, .club-segment button { border: 0; background: transparent; padding: 6px 12px; border-radius: 7px; color: var(--text-3); font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
-.club-segment [aria-current='page'], .club-segment [aria-pressed='true'], .club-segment [aria-selected='true'] { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
+.club-segment a, .club-segment button { border: 0; background: transparent; padding: 6px 12px; border-radius: 7px; color: var(--text-3); font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: color 140ms var(--ease), background-color 140ms var(--ease); }
+.club-segment a:hover, .club-segment button:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+.club-segment [aria-current='page'], .club-segment [aria-pressed='true'], .club-segment [aria-selected='true'] { background: var(--brand-soft); color: var(--club-merk-inkt); }
 
 /* ── Lege staat, laden, melding ──────────────────────────────────────────── */
 .club-leeg { margin: 0; padding: 28px 18px; text-align: center; color: var(--text-3); border: 1px dashed var(--line-strong); border-radius: var(--club-radius); font-size: 14px; line-height: 1.5; text-wrap: pretty; }
@@ -207,8 +219,14 @@
 .club-skelet { position: relative; overflow: hidden; border-radius: var(--club-radius); border: 1px solid var(--line); background: var(--club-vlak); min-height: 72px; }
 .club-skelet::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, var(--club-vlak-hover) 50%, transparent 100%); transform: translateX(-100%); animation: club-skelet 1.6s var(--ease) infinite; }
 @keyframes club-skelet { to { transform: translateX(100%); } }
-.club-melding { padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-vlak); font-size: 14px; }
+.club-melding { padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-vlak); font-size: 14px; line-height: 1.45; }
+/* Een melding na opslaan of een fout schuift rustig in (alleen transform en opacity). */
+:is([role='status'], [role='alert']).club-melding, :is([role='status'], [role='alert']) > .club-melding { animation: club-melding-in 220ms var(--ease); }
+@keyframes club-melding-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .club-melding--ok { border-color: color-mix(in srgb, var(--club-ok) 50%, transparent); background: var(--club-ok-zacht); }
+/* Een link in een melding, hint of lege staat: in de merkkleur, altijd onderstreept. */
+:is(.club-melding, .club-hint, .club-leeg) a:not(.club-knop) { color: var(--brand-tekst, var(--brand)); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+:is(.club-melding, .club-hint, .club-leeg) a:not(.club-knop):hover { text-decoration-thickness: 2px; }
 .club-melding--fout { border-color: color-mix(in srgb, var(--club-let-op) 50%, transparent); background: var(--club-let-op-zacht); }
 
 /* ── Zijpaneel (details naast een lijst) ─────────────────────────────────── */
@@ -259,6 +277,8 @@
 
 /* Kruimelpad boven elke instel-pagina: terug naar Instellingen, en waar je bent. */
 .club-kruimel { margin: 0 0 6px; }
+/* Kruimelpad en kop horen bij elkaar: minder ruimte dan tussen de andere blokken. */
+.club-kruimel + .club-paginakop { margin-top: -14px; }
 .club-kruimel ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; font-size: 13px; color: var(--text-3); }
 .club-kruimel li { display: inline-flex; align-items: center; gap: 4px; }
 .club-kruimel li[aria-current='page'] { color: var(--text-1); }

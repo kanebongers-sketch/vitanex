@@ -6,9 +6,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { INTAKE_KOLOMMEN, intakeUitRij, type Intake } from './intake-rij'
 import {
-  OEFENING_KOLOMMEN, REGEL_KOLOMMEN, SCHEMA_KOLOMMEN, logUitRij, oefeningUitRij, regelUitRij, schemaUitRij,
+  OEFENING_KOLOMMEN, REGEL_KOLOMMEN, SCHEMA_KOLOMMEN, logUitRij, oefeningUitRij, regelUitRij, schemaUitRij, setUitRij,
   type LogRegel, type Oefening, type SchemaKop, type SchemaRegel,
 } from './rijen'
+import type { GelogdeSet } from './progressie'
 import { isUuid } from './typen'
 
 function meld(wat: string, fout: { message: string }): null {
@@ -85,11 +86,34 @@ export async function haalTrainingslog(admin: SupabaseClient, userId: string, sc
   if (ids.length === 0) return []
   const { data, error } = await admin
     .from('club_trainingslog')
-    .select('id, schema_id, dag, op, uitgevoerd')
+    .select('id, schema_id, dag, op, uitgevoerd, duur_sec')
     .eq('user_id', userId)
     .in('schema_id', ids)
     .order('op', { ascending: false })
     .limit(500)
   if (error) return meld('trainingslog lezen', error)
   return alle(data, logUitRij)
+}
+
+/** Gelogde sets van een lid per oefening (laatste 180 dagen), oudste eerst. Null bij een leesfout. */
+export async function haalSetLogs(admin: SupabaseClient, userId: string, lidId: string, oefeningIds: readonly string[]): Promise<Map<string, GelogdeSet[]> | null> {
+  const ids = [...new Set(oefeningIds)].filter(isUuid)
+  if (ids.length === 0 || !isUuid(lidId)) return new Map()
+  const vanaf = new Date(Date.now() - 180 * 86_400_000).toISOString()
+  const { data, error } = await admin
+    .from('club_set_logs')
+    .select('oefening_id, trainingslog_id, op, set_nr, herhalingen, gewicht_kg, tijd_sec')
+    .eq('user_id', userId)
+    .eq('lid_id', lidId)
+    .in('oefening_id', ids)
+    .gte('op', vanaf)
+    .order('op', { ascending: true })
+    .limit(5000)
+  if (error) return meld('set-logs lezen', error)
+  const uit = new Map<string, GelogdeSet[]>()
+  for (const rij of data ?? []) {
+    const set = setUitRij(rij)
+    if (set) uit.set(set.oefeningId, [...(uit.get(set.oefeningId) ?? []), set.set])
+  }
+  return uit
 }

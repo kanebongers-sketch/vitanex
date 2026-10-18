@@ -10,12 +10,13 @@
 .club-beheer-adres { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: var(--text-2); }
 .club-beheer-adres svg { color: var(--brand-tekst, var(--brand)); }
 .club-beheer-modules { margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.5; max-width: 80ch; }
-.club-beheer-tedoen { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 8px 0 0; padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent); color: var(--club-let-op); font-size: 13.5px; font-weight: 600; }
+.club-beheer-tedoen { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 8px 0 0; padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent); background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); font-size: 13.5px; font-weight: 600; }
 
 .club-beheer-groepen { display: grid; gap: 28px 40px; margin-top: 28px; }
 @media (min-width: 1100px) { .club-beheer-groepen { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
 .club-beheer-groep { display: grid; gap: 10px; min-width: 0; }
-.club-beheer-groepkop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-beheer-groepkop { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-beheer-groepkop::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .club-beheer-lijst { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
 .club-beheer-lijst li + li { border-top: 1px solid var(--line); }
 .club-beheer-regel {
@@ -31,9 +32,11 @@ a.club-beheer-regel:active { background: var(--brand-soft); }
 .club-beheer-tekst { display: grid; gap: 3px; min-width: 0; }
 .club-beheer-tekst strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; }
 .club-beheer-tekst span { color: var(--text-3); font-size: 13.5px; line-height: 1.4; }
-.club-beheer-stand { justify-self: end; max-width: 220px; text-align: right; color: var(--text-2); font-size: 13.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.club-beheer-stand.is-let { color: var(--club-let-op); font-weight: 600; }
+/* De stand als rustig label rechts: grijs als het ingesteld is, koraal met stip als het nog moet. */
+.club-beheer-stand { justify-self: end; max-width: 240px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--club-vlak); text-align: right; color: var(--text-2); font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.club-beheer-stand.is-let { color: var(--club-let-op-inkt); background: var(--club-let-op-zacht); border-color: transparent; font-weight: 600; }
 .club-beheer-stand.is-let::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 999px; background: currentColor; vertical-align: middle; }
+.club-beheer-regel.is-uit .club-beheer-stand { border-style: dashed; background: none; color: var(--text-3); }
 .club-beheer-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
 a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 @media (max-width: 560px) {
@@ -45,7 +48,10 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 
 /* ── Formulieren (ledenapp, rechten) ─────────────────────────────────────── */
 .club-beheer-formulier { display: grid; gap: 22px; max-width: 760px; margin-top: 20px; }
-.club-beheer-keuzes { display: grid; gap: 8px; }
+/* Een groep keuzes: geen browserkader, de legend als label erboven. */
+.club-beheer-keuzes { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.club-beheer-keuzes > legend { margin: 0 0 8px; padding: 0; }
+.club-beheer-keuzes > .club-hint { margin: -4px 0 4px; }
 .club-beheer-keuze { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-card); cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease); }
 .club-beheer-keuze:hover { border-color: var(--line-strong); }
 .club-beheer-keuze:has(input:checked) { border-color: color-mix(in srgb, var(--brand) 60%, var(--line)); background: color-mix(in srgb, var(--brand-soft) 60%, var(--bg-card)); }
@@ -54,6 +60,8 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 .club-beheer-keuze input { width: 18px; height: 18px; accent-color: var(--brand); }
 .club-beheer-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .club-beheer-acties .club-melding { margin: 0; flex: 1 1 240px; }
+.club-beheer-acties { padding-top: 16px; border-top: 1px solid var(--line); }
+.club-beheer-keuze small.club-hint { margin-top: 2px; }
 
 .club-beheer-matrix-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
 .club-beheer-matrix { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px; }

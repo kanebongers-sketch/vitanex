@@ -5,7 +5,7 @@ import { leesTrainingInvoer } from '@/lib/club/app/invoer'
 import { vinkTrainingAf } from '@/lib/club/app/acties-training'
 import { hoortBij } from '@/lib/club/kern/vestigingen'
 
-// POST /api/club/app/training  { lidId, schemaId, dag }
+// POST /api/club/app/training  { lidId, schemaId, dag, sets?, duurSec? }
 // Een lid vinkt in de ledenapp een training uit zijn schema af. Dit is de
 // voorvertoning: Kane doet dit namens een (demo)lid. Leden zelf gebruiken
 // /api/club/lid/training (lid uit de ledensessie).
@@ -23,5 +23,6 @@ export async function POST(req: NextRequest) {
   if (typeof invoer === 'string') return clubFout(invoer, 400)
   const lid = await haalLid(t.admin, t.userId, invoer.lidId)
   if (!lid || !hoortBij(t.vestigingen, lid.vestiging)) return clubFout('Lid niet gevonden.', 404)
-  return vinkTrainingAf(t, lid, invoer)
+  const extra = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
+  return vinkTrainingAf(t, lid, { ...invoer, sets: extra.sets, duurSec: extra.duurSec })
 }

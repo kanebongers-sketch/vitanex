@@ -20,6 +20,7 @@ export interface ExportRuw {
   metingen: Rij[]
   schemas: Rij[]
   trainingen: Rij[]
+  sets: Rij[]
   voeding: Rij[]
   notities: Rij[]
   challenges: Rij[]
@@ -137,11 +138,19 @@ export const SECTIES: readonly Sectie[] = [
     lijsten: {
       club_schema_oefeningen: {
         titel: 'Oefeningen',
-        velden: { dag: 'Dag', volgorde: 'Volgorde', 'club_oefeningen.naam': 'Oefening', sets: 'Sets', herhalingen: 'Herhalingen', gewicht_kg: 'Gewicht (kg)', rust_sec: 'Rust (seconden)', notitie: 'Notitie' },
+        velden: {
+          dag: 'Dag', volgorde: 'Volgorde', 'club_oefeningen.naam': 'Oefening', sets: 'Sets', herhalingen: 'Herhalingen', tijd_sec: 'Tijd per set (seconden)',
+          gewicht_kg: 'Gewicht (kg)', rpe: 'RPE', rir: 'RIR', tempo: 'Tempo', groep: 'Superset of circuit', rust_sec: 'Rust (seconden)', notitie: 'Notitie',
+        },
       },
     },
   },
-  { sleutel: 'trainingen', titel: 'Gelogde trainingen', velden: { op: 'Moment', dag: 'Trainingsdag', uitgevoerd: 'Uitgevoerd' } },
+  { sleutel: 'trainingen', titel: 'Gelogde trainingen', velden: { op: 'Moment', dag: 'Trainingsdag', duur_sec: 'Duur (seconden)', uitgevoerd: 'Uitgevoerd' } },
+  {
+    sleutel: 'sets',
+    titel: 'Gelogde sets',
+    velden: { op: 'Moment', 'club_oefeningen.naam': 'Oefening', set_nr: 'Set', herhalingen: 'Herhalingen', gewicht_kg: 'Gewicht (kg)', tijd_sec: 'Tijd (seconden)' },
+  },
   {
     sleutel: 'voeding',
     titel: 'Voedingsplan',
@@ -258,6 +267,7 @@ const PERIODE_KOLOM: Partial<Record<SectieSleutel, string>> = {
   intakes: 'datum',
   metingen: 'datum',
   trainingen: 'op',
+  sets: 'op',
   notities: 'aangemaakt_op',
   meldingen: 'gepland_op',
   communityBerichten: 'aangemaakt_op',

@@ -20,7 +20,15 @@ export interface RegelInvoer {
   gewichtKg: number | null
   rustSec: number | null
   notitie: string | null
+  groep: number | null
+  tijdSec: number | null
+  rpe: number | null
+  rir: number | null
+  tempo: string | null
 }
+
+/** De velden van migratie 443 die een regel zonder ze heeft (oude aanroepen, sjablonen). */
+export const GEEN_EXTRA = { groep: null, tijdSec: null, rpe: null, rir: null, tempo: null } as const
 
 export interface SchemaInvoer {
   naam: string
@@ -61,6 +69,37 @@ export function leesHerhalingen(v: unknown): string | null | undefined {
   return t
 }
 
+/** Tempo als vier tekens: "3110", "31X0". Spaties en punten mogen ertussen. */
+export function leesTempo(v: unknown): string | null | undefined {
+  if (leeg(v)) return null
+  if (typeof v !== 'string' && typeof v !== 'number') return undefined
+  const t = String(v).toUpperCase().replace(/[\s.:/]/g, '')
+  return /^[0-9X]{4}$/.test(t) ? t : undefined
+}
+
+interface Extra {
+  groep: number | null
+  tijdSec: number | null
+  rpe: number | null
+  rir: number | null
+  tempo: string | null
+}
+
+function leesExtra(r: Record<string, unknown>): Extra | string {
+  const groep = optGetal(r.groep, 1, 60)
+  if (groep === undefined) return 'ongeldige superset.'
+  const tijdSec = optGetal(r.tijdSec, 5, 3600)
+  if (tijdSec === undefined) return 'tijd moet tussen 5 seconden en een uur liggen.'
+  const rpe = optGetal(r.rpe, 1, 10, false)
+  if (rpe === undefined || (rpe !== null && (rpe * 2) % 1 !== 0)) return 'RPE moet tussen 1 en 10 liggen (halve stappen mogen).'
+  const rir = optGetal(r.rir, 0, 10)
+  if (rir === undefined) return 'RIR moet tussen 0 en 10 liggen.'
+  if (rpe !== null && rir !== null) return 'kies RPE of RIR, niet allebei.'
+  const tempo = leesTempo(r.tempo)
+  if (tempo === undefined) return 'tempo is vier cijfers, bijvoorbeeld 3110.'
+  return { groep, tijdSec, rpe, rir, tempo }
+}
+
 function leesRegel(r: unknown, i: number): Uitslag<RegelInvoer> {
   const fout = (tekst: string): Uitslag<RegelInvoer> => ({ ok: false, fout: `Oefening ${i + 1}: ${tekst}` })
   if (!isRij(r)) return fout('ongeldig.')
@@ -75,7 +114,9 @@ function leesRegel(r: unknown, i: number): Uitslag<RegelInvoer> {
   if (gewichtKg === undefined) return fout('gewicht moet tussen 0 en 1000 kg liggen.')
   const rustSec = optGetal(r.rustSec, 0, 600)
   if (rustSec === undefined) return fout('rust moet tussen 0 en 600 seconden liggen.')
-  return { ok: true, waarde: { dag, oefeningId: r.oefeningId, sets, herhalingen, gewichtKg, rustSec, notitie: kort(r.notitie, 300) } }
+  const extra = leesExtra(r)
+  if (typeof extra === 'string') return fout(extra)
+  return { ok: true, waarde: { dag, oefeningId: r.oefeningId, sets, herhalingen, gewichtKg, rustSec, notitie: kort(r.notitie, 300), ...extra } }
 }
 
 function leesRegels(ruw: unknown): Uitslag<RegelInvoer[]> {

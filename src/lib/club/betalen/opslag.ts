@@ -5,6 +5,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { PRODUCT_KOLOMMEN, TEGOED_KOLOMMEN, VERKOOP_KOLOMMEN, productUitRij, tegoedUitRij, verkoopUitRij, type Product, type Tegoed, type TegoedSoort, type Verkoop } from './model'
 import type { AccountStand } from './stripe-event'
+import { maandSleutel } from './cijfers'
+import { maandGrenzen } from '@/lib/club/cijfers/maand'
+import { alleRijen } from '@/lib/club/leden/data'
 
 function log(wat: string, code: string | undefined, bericht?: string): void {
   console.error(`[club/betalen] ${wat} mislukt`, code ?? '', bericht ?? '')
@@ -178,6 +181,27 @@ export async function haalVerkopen(admin: SupabaseClient, userId: string, max = 
     return null
   }
   return (data ?? []).map(verkoopUitRij).filter((v): v is Verkoop => v !== null)
+}
+
+/**
+ * Alle betaalde en terugbetaalde verkopen met `betaald_op` binnen de
+ * kalendermaand van `nu` (Nederlandse tijd), voor de maandcijfers. Los van de
+ * lijst met de laatste verkopen, zodat een drukke maand compleet telt.
+ */
+export async function haalVerkopenInMaand(admin: SupabaseClient, userId: string, nu: Date): Promise<Verkoop[] | null> {
+  const { van, tot } = maandGrenzen(maandSleutel(nu))
+  const rijen = await alleRijen('verkopen van de maand', (a, b) =>
+    admin
+      .from('club_betalen_verkopen')
+      .select(VERKOOP_KOLOMMEN)
+      .eq('user_id', userId)
+      .in('status', ['betaald', 'terugbetaald'])
+      .gte('betaald_op', van.toISOString())
+      .lt('betaald_op', tot.toISOString())
+      .order('id')
+      .range(a, b),
+  )
+  return rijen ? rijen.map(verkoopUitRij).filter((v): v is Verkoop => v !== null) : null
 }
 
 export interface VerkoopStripe extends Verkoop {

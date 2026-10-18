@@ -37,7 +37,7 @@ export function TrainingslogKaart({ log, dagTitels, nu }: TrainingslogKaartProps
                 <span className="club-rij-titel">{toonDatum(r.op)}</span>
                 <span className="club-rij-sub">
                   {r.dag ? `Dag ${dagLetter(r.dag)}${dagTitels[r.dag - 1] ? ` · ${dagTitels[r.dag - 1]}` : ''}` : 'Dag onbekend'}
-                  {` · ${r.aantalOefeningen} ${r.aantalOefeningen === 1 ? 'oefening' : 'oefeningen'}`}
+                  {r.duurSec ? ` · ${Math.round(r.duurSec / 60)} min` : r.aantalOefeningen > 0 ? ` · ${r.aantalOefeningen} ${r.aantalOefeningen === 1 ? 'oefening' : 'oefeningen'}` : ''}
                 </span>
               </span>
             </li>

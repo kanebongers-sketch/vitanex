@@ -40,25 +40,28 @@
 .club-afspraken-trainers { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
 .club-afspraken-trainers a { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-3); font-size: 13.5px; font-weight: 600; text-decoration: none; transition: color 160ms var(--ease), border-color 160ms var(--ease); }
 .club-afspraken-trainers a:hover { color: var(--text-1); border-color: var(--line-strong); }
-.club-afspraken-trainers a[aria-current='page'] { color: var(--brand-tekst, var(--brand)); border-color: var(--brand); background: var(--brand-soft); }
+.club-afspraken-trainers a[aria-current='page'] { color: var(--club-merk-inkt); border-color: var(--brand); background: var(--brand-soft); }
 .club-afspraken-tellers { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
 .club-afspraken-tellers div { display: flex; align-items: baseline; gap: 8px; }
 .club-afspraken-tellers dt { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 .club-afspraken-tellers dd { margin: 0; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 
 /* ── Week ─────────────────────────────────────────────────────────────────── */
-.club-afspraken-week { display: grid; gap: 10px; }
-@media (min-width: 1000px) { .club-afspraken-week { grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: start; } }
+.club-afspraken-week { display: grid; gap: 10px; align-items: start; }
+/* Zeven kolommen alleen als ze breed genoeg zijn; daaronder dagen naast elkaar die doorlopen. */
+@media (min-width: 700px) { .club-afspraken-week { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+@media (min-width: 1280px) { .club-afspraken-week { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
 .club-afspraken-dag { display: grid; gap: 8px; align-content: start; padding: 12px; border-radius: var(--club-radius); border: 1px solid var(--line); background: var(--bg-card); }
 .club-afspraken-dag[data-vandaag] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); box-shadow: inset 0 3px 0 var(--brand); }
 .club-afspraken-dag[data-voorbij] { background: var(--club-vlak); }
 .club-afspraken-dagkop { display: flex; justify-content: space-between; align-items: baseline; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
 .club-afspraken-dag[data-vandaag] .club-afspraken-dagkop { color: var(--brand-tekst, var(--brand)); }
 .club-afspraken-dagtel { font-size: 20px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.club-afspraken-dag:not(:has(.club-afspraken-items)) .club-afspraken-dagkop { color: var(--text-3); }
 .club-afspraken-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .club-afspraken-item { display: grid; gap: 1px; width: 100%; text-align: left; padding: 8px 10px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); border-left: 3px solid var(--club-afspraken-kleur); background: color-mix(in srgb, var(--club-afspraken-kleur) 8%, transparent); color: var(--text-1); font: inherit; cursor: pointer; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
 .club-afspraken-item:hover { border-color: var(--line-strong); border-left-color: var(--club-afspraken-kleur); transform: translateX(2px); }
-.club-afspraken-tijd { font-size: 12px; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-afspraken-itemtijd { font-size: 12px; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .club-afspraken-naam { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .club-afspraken-meta { font-size: 12px; color: var(--text-3); }
 [data-status='geannuleerd'].club-afspraken-item { opacity: 0.55; background: none; }
@@ -83,8 +86,9 @@
 .club-afspraken-blok span { font-size: 11.5px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .club-afspraken-blok[data-status='niet_gekomen'] { border-color: var(--club-let-op); }
 .club-afspraken-blok[data-status='geweest'] { opacity: 0.75; }
-.club-afspraken-nu { position: absolute; left: 0; right: 0; height: 2px; background: var(--club-let-op); z-index: 2; pointer-events: none; }
-.club-afspraken-nu::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 999px; background: var(--club-let-op); }
+/* De lijn van nu: merkkleur, net als in het lesrooster en het personeelsrooster. */
+.club-afspraken-nu { position: absolute; left: 0; right: 0; height: 2px; background: var(--brand); z-index: 2; pointer-events: none; }
+.club-afspraken-nu::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 999px; background: var(--brand); }
 
 /* ── Zijpaneel: formulier en detail ──────────────────────────────────────── */
 .club-afspraken-paneel { position: relative; }
@@ -98,8 +102,9 @@
 .club-afspraken-tijd strong { font-size: 14px; font-variant-numeric: tabular-nums; }
 .club-afspraken-tijd span { font-size: 11px; color: var(--text-3); }
 .club-afspraken-tijd:hover { border-color: var(--brand); }
-.club-afspraken-tijd[aria-checked='true'] { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
+.club-afspraken-tijd[aria-checked='true'] { border-color: var(--brand); background: var(--brand-soft); color: var(--club-merk-inkt); }
 .club-afspraken-tijden-stand { margin: 0; font-size: 14px; color: var(--text-3); }
+.club-afspraken-zoeker > label { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
 .club-afspraken-zoekveld { position: relative; display: flex; align-items: center; }
 .club-afspraken-zoekveld svg { position: absolute; left: 11px; color: var(--text-4); pointer-events: none; }
 .club-afspraken-zoekveld .club-invoer { padding-left: 34px; }
@@ -108,17 +113,20 @@
 .club-afspraken-treffers button:hover { background: var(--club-vlak-hover); }
 .club-afspraken-treffers span { color: var(--text-3); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .club-afspraken-lid-gekozen { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 0 6px 0 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--brand); background: var(--brand-soft); }
-.club-afspraken-feiten { display: grid; gap: 8px; margin: 0; }
-.club-afspraken-feiten div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: baseline; }
+.club-afspraken-feiten { display: grid; margin: 0; padding: 4px 14px; border-radius: var(--club-radius); border: 1px solid var(--line); background: var(--club-vlak); }
+.club-afspraken-feiten div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: baseline; padding: 9px 0; }
+.club-afspraken-feiten div + div { border-top: 1px solid var(--line); }
 .club-afspraken-feiten dt { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 .club-afspraken-feiten dd { margin: 0; font-size: 14.5px; }
 .club-afspraken-detail::before { content: ''; height: 4px; border-radius: 4px; background: var(--club-afspraken-kleur); width: 56px; }
-.club-afspraken-status--gepland { color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); border-color: transparent; }
-.club-afspraken-status--geweest { color: var(--club-ok); background: var(--club-ok-zacht); border-color: transparent; }
-.club-afspraken-status--niet_gekomen { color: var(--club-let-op); background: var(--club-let-op-zacht); border-color: transparent; }
+.club-afspraken-status--gepland { color: var(--club-merk-inkt); background: var(--brand-soft); border-color: transparent; }
+.club-afspraken-status--geweest { color: var(--club-ok-inkt); background: var(--club-ok-zacht); border-color: transparent; }
+.club-afspraken-status--niet_gekomen { color: var(--club-let-op-inkt); background: var(--club-let-op-zacht); border-color: transparent; }
 .club-afspraken-status--geannuleerd { color: var(--text-3); }
 .club-afspraken-link { justify-self: start; font-size: 14px; color: var(--brand-tekst, var(--brand)); }
 .club-afspraken-verplaatsknop { justify-self: start; }
+/* Acties in het detail: gewone acties links, annuleren apart rechts. */
+.club-afspraken-detailacties [data-status='geannuleerd'] { margin-left: auto; }
 .club-afspraken-vink { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); cursor: pointer; }
 .club-afspraken-vink input { width: 18px; height: 18px; accent-color: var(--brand); }
 .club-afspraken-kleuren { display: flex; flex-wrap: wrap; gap: 8px; }

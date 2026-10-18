@@ -238,6 +238,30 @@ export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new
   return gelukt({ status: 'geannuleerd', teLaat: oordeel.teLaat, doorgeschoven: doorgeschoven[0] ?? null })
 }
 
+/**
+ * Een boeking die net door het systeem is gemaakt weer intrekken, zonder de
+ * annuleerregels: geen "te laat", geen afmeldbericht en geen logregel als
+ * annulering door het lid. Geplande meldingen voor deze boeking vervallen en
+ * een vrijgekomen plek gaat naar de wachtlijst. Geeft false als intrekken niet lukte.
+ */
+export async function trekBoekingIn(t: ClubSchrijver, id: string, nu = new Date()): Promise<boolean> {
+  const res = await haalReservering(t.admin, t.userId, id)
+  if (!res) return false
+  if (res.status === 'geannuleerd') return true
+  const ok = await werkReserveringBij(t.admin, t.userId, res.id, { status: 'geannuleerd', wachtpositie: null, te_laat: false, geannuleerd_op: nu.toISOString() })
+  if (!ok) return false
+  const { error } = await t.admin
+    .from('club_meldingen')
+    .update({ status: 'overgeslagen', reden: 'Boeking ingetrokken', gewijzigd_op: nu.toISOString() })
+    .eq('user_id', t.userId)
+    .eq('bron_id', res.id)
+    .eq('status', 'gepland')
+  if (error) console.error('[club-rooster] meldingen van ingetrokken boeking overslaan mislukt', error.message)
+  const les = res.status === 'geboekt' ? await haalLesRij(t.admin, t.userId, res.lesId) : null
+  if (les) await schuifWachtlijstDoor(t.admin, t.userId, les, nu)
+  return true
+}
+
 /** Vink een deelnemer af: aanwezig, no-show, of terug naar geboekt. */
 export async function zetAfvinkStatus(t: ClubToegang, id: string, status: AfvinkStatus, nu = new Date()): Promise<Resultaat<{ id: string; status: AfvinkStatus }>> {
   const res = await haalReservering(t.admin, t.userId, id)

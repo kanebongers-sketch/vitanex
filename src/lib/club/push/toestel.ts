@@ -34,3 +34,21 @@ export function sleutelNaarBytes(b64u: string): Uint8Array<ArrayBuffer> {
 
 /** De sleutel in localStorage als het lid de vraag op Home wegklikte. */
 export const VRAAG_WEG_SLEUTEL = 'club-app-push-vraag-weg'
+
+/** De sleutel in localStorage met het abonnement dat al aan de server is gemeld (merkje plus endpoint). */
+export const GEMELD_SLEUTEL = 'club-app-push-gemeld'
+
+/** Wat we onthouden na een gelukte melding: het sessiemerkje en het endpoint samen. */
+export function gemeldWaarde(merk: string, endpoint: string): string {
+  return `${merk}|${endpoint}`
+}
+
+/**
+ * Moet de app dit abonnement stil (zonder tik) aan de server melden? Alleen
+ * met een sessiemerkje en als precies deze combinatie nog niet gemeld is: zo
+ * niet bij elke keer laden, wel na opnieuw inloggen of een nieuw abonnement.
+ */
+export function moetStilMelden(opgeslagen: string | null, merk: string | null, endpoint: string): boolean {
+  if (!merk) return false
+  return opgeslagen !== gemeldWaarde(merk, endpoint)
+}

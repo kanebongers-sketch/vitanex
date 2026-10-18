@@ -46,8 +46,7 @@ export interface Aanmelding {
   sessieHash: string | null
 }
 
-/** Meldingen aan op dit toestel. */
-export async function bewaarAbonnement(admin: SupabaseClient, a: Aanmelding): Promise<boolean> {
+async function schrijfAbonnement(admin: SupabaseClient, a: Aanmelding): Promise<boolean> {
   const { error } = await admin.from(TABEL).upsert(
     {
       user_id: a.userId,
@@ -64,7 +63,36 @@ export async function bewaarAbonnement(admin: SupabaseClient, a: Aanmelding): Pr
   log('abonnement opslaan', error)
   if (error) return false
   await houdBinnenGrens(admin, a.userId, a.lidId)
+  return true
+}
+
+/** Meldingen aan op dit toestel (na een tik van het lid): ook de voorkeur gaat aan. */
+export async function bewaarAbonnement(admin: SupabaseClient, a: Aanmelding): Promise<boolean> {
+  if (!(await schrijfAbonnement(admin, a))) return false
   return zetVoorkeur(admin, a.userId, a.lidId, true)
+}
+
+/** 'bekend' = stond er al, 'opgeslagen' = nu bewaard, 'uit' = het lid zette push uit, 'fout' = storing. */
+export type ToestelControle = 'bekend' | 'opgeslagen' | 'uit' | 'fout'
+
+/**
+ * Stil nakijken bij het openen van de app, zonder tik van het lid. Zette het
+ * lid push uit, dan blijft het uit (niets opslaan, de voorkeur blijft staan).
+ * Kent de server dit toestel al voor dit lid en deze sessie, dan wordt er niets
+ * geschreven. Anders wordt het abonnement bewaard, zonder de voorkeur te raken.
+ */
+export async function controleerAbonnement(admin: SupabaseClient, a: Aanmelding): Promise<ToestelControle> {
+  const [voorkeur, bestaand] = await Promise.all([
+    admin.from('club_meldingen_voorkeuren').select('push').eq('user_id', a.userId).eq('lid_id', a.lidId).maybeSingle(),
+    admin.from(TABEL).select('lid_id, sessie_hash').eq('user_id', a.userId).eq('endpoint', a.abonnement.endpoint).maybeSingle(),
+  ])
+  log('voorkeur lezen', voorkeur.error)
+  log('toestel lezen', bestaand.error)
+  if (voorkeur.error || bestaand.error) return 'fout'
+  if ((voorkeur.data as { push?: unknown } | null)?.push === false) return 'uit'
+  const rij = bestaand.data as { lid_id?: unknown; sessie_hash?: unknown } | null
+  if (rij && rij.lid_id === a.lidId && rij.sessie_hash === a.sessieHash) return 'bekend'
+  return (await schrijfAbonnement(admin, a)) ? 'opgeslagen' : 'fout'
 }
 
 /** Meldingen uit op dit toestel. Geen toestel meer over: de voorkeur gaat op uit. */

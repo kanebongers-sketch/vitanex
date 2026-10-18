@@ -17,6 +17,8 @@ import './push-meldingen.css'
 export interface PushMeldingenProps {
   /** Publieke VAPID-sleutel, of null als push niet beschikbaar is. */
   sleutel: string | null
+  /** Merkje van de sessie (pushSessieMerk): het toestel meldt zich alleen opnieuw bij een nieuw merkje. Null = nooit stil melden. */
+  merk?: string | null
   variant: 'profiel' | 'home'
   /** Kane kijkt mee: alles tonen, niets aanzetten. */
   voorvertoning?: boolean
@@ -40,8 +42,8 @@ function bewaarWeg(): void {
 
 const geenAbonnement = () => () => {}
 
-export function PushMeldingen({ sleutel, variant, voorvertoning = false }: PushMeldingenProps) {
-  const push = usePush(sleutel)
+export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = false }: PushMeldingenProps) {
+  const push = usePush(sleutel, voorvertoning ? null : merk)
   const eerderWeg = useSyncExternalStore(geenAbonnement, leesWeg, () => true)
   const [weg, zetWeg] = useState(false)
   if (!sleutel || push.stand === null) return null

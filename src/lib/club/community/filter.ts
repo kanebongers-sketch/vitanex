@@ -21,13 +21,18 @@ const DEEL: readonly string[] = ['klootzak', 'kloothommel', 'kankerlijer', 'teri
 
 const NABOOTSERS: Record<string, string> = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '@': 'a', $: 's', '!': 'i', '|': 'l' }
 
-/** Kleine letters, geen accenten, nagebootste letters terug, herhalingen ingekort. */
+/**
+ * Kleine letters, geen accenten, nagebootste letters terug, herhalingen ingekort.
+ * `!` en `|` zijn ook gewone leestekens: alleen midden in een woord (sl!t, f|ikker)
+ * tellen ze als letter, anders blijft "lul!" geen "luli" maar een scheiding.
+ */
 export function normaliseer(tekst: string): string {
   return tekst
     .toLowerCase()
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[0134578@$!|]/g, (t) => NABOOTSERS[t] ?? t)
+    .replace(/(?<=[a-z0-9@$])[!|](?=[a-z0-9@$])/g, (t) => NABOOTSERS[t] ?? t)
+    .replace(/[0134578@$]/g, (t) => NABOOTSERS[t] ?? t)
     .replace(/([a-z])\1{2,}/g, '$1')
 }
 

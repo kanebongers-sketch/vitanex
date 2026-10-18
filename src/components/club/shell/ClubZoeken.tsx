@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ToetsEvent } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ToetsEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { CornerDownLeft, Search, X } from 'lucide-react'
 import { filterZoek, zoekHref, type ZoekItem } from './zoeken'
@@ -14,6 +14,29 @@ interface ClubZoekenProps {
   vestiging: string | null
 }
 
+/** Alleen / zonder Ctrl, Alt of Cmd opent het zoeken (Ctrl / en dergelijke blijven van de browser). */
+function isSlashSneltoets(e: KeyboardEvent): boolean {
+  return e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey && !inInvoer(e.target)
+}
+
+/**
+ * Maak alles buiten het venster onbereikbaar (inert): langs de hele keten van
+ * ouders naar body krijgen de broers en zussen inert. Geeft een functie die
+ * het weer opheft (alleen wat wij zelf inert maakten).
+ */
+function maakRestInert(venster: HTMLElement): () => void {
+  const gezet: Element[] = []
+  for (let el: HTMLElement | null = venster; el && el !== document.body; el = el.parentElement) {
+    for (const broer of Array.from(el.parentElement?.children ?? [])) {
+      if (broer !== el && !broer.hasAttribute('inert')) {
+        broer.setAttribute('inert', '')
+        gezet.push(broer)
+      }
+    }
+  }
+  return () => gezet.forEach((e) => e.removeAttribute('inert'))
+}
+
 /** Typt de gebruiker in een veld? Dan is / gewoon een teken. */
 function inInvoer(doel: EventTarget | null): boolean {
   const el = doel as HTMLElement | null
@@ -22,10 +45,16 @@ function inInvoer(doel: EventTarget | null): boolean {
 
 export function ClubZoeken({ items, vestiging }: ClubZoekenProps) {
   const [open, setOpen] = useState(false)
+  const knop = useRef<HTMLButtonElement>(null)
+  // Bij sluiten gaat de focus terug naar de knop (na het opheffen van inert).
+  const sluit = useCallback(() => {
+    setOpen(false)
+    requestAnimationFrame(() => knop.current?.focus())
+  }, [])
   useEffect(() => {
     const opToets = (e: KeyboardEvent) => {
       const sneltoets = (e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)
-      if (sneltoets || (e.key === '/' && !inInvoer(e.target))) {
+      if (sneltoets || isSlashSneltoets(e)) {
         e.preventDefault()
         setOpen(true)
       }
@@ -35,12 +64,12 @@ export function ClubZoeken({ items, vestiging }: ClubZoekenProps) {
   }, [])
   return (
     <>
-      <button type="button" className="club-zoekknop" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-keyshortcuts="Control+K /">
+      <button ref={knop} type="button" className="club-zoekknop" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-keyshortcuts="Control+K /">
         <Search aria-hidden size={16} />
         <span className="club-zoekknop-tekst">Zoeken</span>
         <kbd className="club-zoekknop-toets" aria-hidden>Ctrl K</kbd>
       </button>
-      {open && <ZoekVenster items={items} vestiging={vestiging} onSluit={() => setOpen(false)} />}
+      {open && <ZoekVenster items={items} vestiging={vestiging} onSluit={sluit} />}
     </>
   )
 }
@@ -51,12 +80,16 @@ interface ZoekVensterProps extends ClubZoekenProps {
 
 function ZoekVenster({ items, vestiging, onSluit }: ZoekVensterProps) {
   const router = useRouter()
+  const scherm = useRef<HTMLDivElement>(null)
   const veld = useRef<HTMLInputElement>(null)
   const lijstId = useId()
   const [vraag, setVraag] = useState('')
   const [gekozen, setGekozen] = useState(0)
   const treffers = useMemo(() => filterZoek(items, vraag), [items, vraag])
   const actief = Math.min(gekozen, Math.max(treffers.length - 1, 0))
+
+  // Zolang het venster open is, is de pagina eronder niet tabbaar.
+  useEffect(() => (scherm.current ? maakRestInert(scherm.current) : undefined), [])
 
   useEffect(() => {
     veld.current?.focus()
@@ -83,7 +116,7 @@ function ZoekVenster({ items, vestiging, onSluit }: ZoekVensterProps) {
   }
 
   return (
-    <div className="club-zoek-scherm" onClick={(e) => e.target === e.currentTarget && onSluit()}>
+    <div ref={scherm} className="club-zoek-scherm" onClick={(e) => e.target === e.currentTarget && onSluit()}>
       <div className="club-zoek" role="dialog" aria-modal="true" aria-label="Zoeken in Club">
         <div className="club-zoek-veld">
           <Search aria-hidden size={18} />

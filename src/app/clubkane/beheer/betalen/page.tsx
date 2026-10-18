@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { eisBetalenBeheer } from '@/lib/club/betalen/toegang'
 import { clubStripeSleutel } from '@/lib/club/betalen/config'
-import { haalBetaalAccount, haalProducten, haalVerkopen } from '@/lib/club/betalen/opslag'
+import { haalBetaalAccount, haalProducten, haalVerkopen, haalVerkopenInMaand } from '@/lib/club/betalen/opslag'
 import { maandCijfers } from '@/lib/club/betalen/cijfers'
 import { euro } from '@/lib/club/betalen/model'
 import { StripeKaart } from '@/components/club/betalen/StripeKaart'
@@ -32,10 +32,16 @@ async function ledenNamen(admin: SupabaseClient, userId: string, ids: string[]):
 export default async function BetalenPagina({ searchParams }: { searchParams: Zoek }) {
   const t = await eisBetalenBeheer()
   const zoek = await searchParams
-  const [account, producten, verkopen] = await Promise.all([haalBetaalAccount(t.admin, t.userId), haalProducten(t.admin, t.userId), haalVerkopen(t.admin, t.userId)])
-  const namen = await ledenNamen(t.admin, t.userId, [...new Set((verkopen ?? []).flatMap((v) => (v.lidId ? [v.lidId] : [])))])
   const nu = new Date()
-  const cijfers = maandCijfers(verkopen ?? [], nu)
+  const [account, producten, verkopen, vanMaand] = await Promise.all([
+    haalBetaalAccount(t.admin, t.userId),
+    haalProducten(t.admin, t.userId),
+    haalVerkopen(t.admin, t.userId),
+    haalVerkopenInMaand(t.admin, t.userId, nu),
+  ])
+  const namen = await ledenNamen(t.admin, t.userId, [...new Set((verkopen ?? []).flatMap((v) => (v.lidId ? [v.lidId] : [])))])
+  // Maandcijfers uit een eigen query op betaald_op binnen de kalendermaand, niet uit de laatste 200 verkopen.
+  const cijfers = vanMaand ? maandCijfers(vanMaand, nu) : null
 
   return (
     <div className="club-betalen">
@@ -51,12 +57,16 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
         </div>
       </header>
 
-      <dl className="club-betalen-cijfers" aria-label={`Cijfers ${MAAND.format(nu)}`}>
-        <div><dt>Omzet {MAAND.format(nu)}</dt><dd>{euro(cijfers.omzetCent)}</dd></div>
-        <div><dt>Waarvan btw</dt><dd>{euro(cijfers.btwCent)}</dd></div>
-        <div><dt>Verkopen</dt><dd>{cijfers.verkopen}</dd></div>
-        <div><dt>Terugbetaald</dt><dd>{euro(cijfers.terugCent)}</dd></div>
-      </dl>
+      {cijfers ? (
+        <dl className="club-betalen-cijfers" aria-label={`Cijfers ${MAAND.format(nu)}`}>
+          <div><dt>Omzet {MAAND.format(nu)}</dt><dd>{euro(cijfers.omzetCent)}</dd></div>
+          <div><dt>Waarvan btw</dt><dd>{euro(cijfers.btwCent)}</dd></div>
+          <div><dt>Verkopen</dt><dd>{cijfers.verkopen}</dd></div>
+          <div><dt>Terugbetaald</dt><dd>{euro(cijfers.terugCent)}</dd></div>
+        </dl>
+      ) : (
+        <p className="club-melding club-melding--fout" role="status">De cijfers van deze maand konden niet worden gelezen. Probeer het later opnieuw.</p>
+      )}
 
       {account ? (
         <StripeKaart account={account} sleutelGezet={clubStripeSleutel() !== null} verversen={zoek.onboarding === 'klaar'} />

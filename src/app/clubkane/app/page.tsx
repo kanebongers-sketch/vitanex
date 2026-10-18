@@ -126,7 +126,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
-          {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} historie={data.historie} nu={nu.toISOString()} />}
           {tab === 'voeding' && (
             <div className="club-lidapp-tab">
               {voeding && <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />}

@@ -21,7 +21,7 @@ import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { haalPlan } from '@/lib/club/voeding/lezen'
 import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
 import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
-import { moduleAan } from '@/lib/club/kern/organisatie'
+import { isUuid, moduleAan } from '@/lib/club/kern/organisatie'
 import { AvgKaart } from '@/components/club/leden/AvgKaart'
 import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
 import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
@@ -81,6 +81,8 @@ function LaatsteBezoeken({ kaart, nu, vestigingen }: { kaart: LidKaart; nu: Date
 export default async function LidPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
   const t = await eisModule('leden')
   const [{ id }, ruw] = await Promise.all([params, searchParams])
+  // Geen geldig id: meteen 404, zonder vier queries met onzin.
+  if (!isUuid(id)) notFound()
   const nu = new Date()
   // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
   const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')

@@ -12,6 +12,7 @@ function leeg(): ExportRuw {
     metingen: [],
     schemas: [],
     trainingen: [],
+    sets: [],
     voeding: [],
     notities: [],
     challenges: [],

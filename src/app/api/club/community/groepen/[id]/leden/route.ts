@@ -2,7 +2,8 @@
 // DELETE /api/club/community/groepen/[id]/leden  { lidId }  lid uit de groep halen
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { clubFout, vereisClubToegang } from '@/lib/club/toegang'
+import { clubFout } from '@/lib/club/toegang'
+import { vereisCommunityBeheer } from '@/lib/club/community/api'
 import { alsAntwoord } from '@/lib/club/rooster/api'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { isUuid } from '@/lib/club/kern/organisatie'
@@ -17,7 +18,7 @@ interface Context {
 }
 
 async function pas(req: NextRequest, { params }: Context, toevoegen: boolean): Promise<NextResponse> {
-  const t = await vereisClubToegang(req)
+  const t = await vereisCommunityBeheer(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
   if (!isUuid(id)) return clubFout('Deze groep bestaat niet.', 404)

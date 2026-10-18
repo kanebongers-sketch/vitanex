@@ -27,7 +27,7 @@ import {
   type ReactieSoort,
   type TijdlijnBericht,
 } from './model'
-import { bezoekdagenInMaand, groepRanglijst, maandVenster, type GroepDeelnemer, type GroepRanglijst } from './ranglijst'
+import { bezoekdagenInMaand, groepRanglijst, inBlokken, maandVenster, type GroepDeelnemer, type GroepRanglijst } from './ranglijst'
 
 export interface LidContext {
   admin: SupabaseClient
@@ -206,20 +206,27 @@ async function haalDeelnemers(admin: SupabaseClient, userId: string, groepId: st
 
 async function haalOpLijst(admin: SupabaseClient, userId: string, ids: readonly string[]): Promise<Set<string> | null> {
   if (ids.length === 0) return new Set()
-  const { data, error } = await admin.from('club_community_voorkeuren').select('lid_id').eq('user_id', userId).eq('op_ranglijst', true).in('lid_id', [...ids])
-  if (error) {
-    meld('ranglijstvoorkeur lezen', error)
+  const uitkomsten = await Promise.all(
+    inBlokken(ids).map((blok) => admin.from('club_community_voorkeuren').select('lid_id').eq('user_id', userId).eq('op_ranglijst', true).in('lid_id', blok)),
+  )
+  const fout = uitkomsten.find((u) => u.error)?.error
+  if (fout) {
+    meld('ranglijstvoorkeur lezen', fout)
     return null
   }
-  return new Set(((data ?? []) as R[]).map((r) => r.lid_id as string))
+  return new Set(uitkomsten.flatMap((u) => ((u.data ?? []) as R[]).map((r) => r.lid_id as string)))
 }
 
 async function bezoekScores(admin: SupabaseClient, userId: string, ids: readonly string[], nu: Date): Promise<{ scores: Map<string, number>; titel: string } | null> {
   const maand = nlDelen(nu).datum.slice(0, 7)
   const venster = maandVenster(maand)
-  const rijen = ids.length === 0 ? [] : await alleRijen('bezoeken groep', (van, tot) => admin.from('club_checkins').select('id, lid_id, op').eq('user_id', userId).in('lid_id', [...ids]).gte('op', venster.van).lt('op', venster.tot).order('id').range(van, tot))
-  if (!rijen) return null
-  const momenten = (rijen as R[]).flatMap((r) => (typeof r.lid_id === 'string' && typeof r.op === 'string' ? [{ lidId: r.lid_id, op: r.op }] : []))
+  const uitkomsten = await Promise.all(
+    inBlokken(ids).map((blok) =>
+      alleRijen('bezoeken groep', (van, tot) => admin.from('club_checkins').select('id, lid_id, op').eq('user_id', userId).in('lid_id', blok).gte('op', venster.van).lt('op', venster.tot).order('id').range(van, tot)),
+    ),
+  )
+  if (uitkomsten.some((u) => !u)) return null
+  const momenten = uitkomsten.flatMap((rijen) => ((rijen ?? []) as R[]).flatMap((r) => (typeof r.lid_id === 'string' && typeof r.op === 'string' ? [{ lidId: r.lid_id, op: r.op }] : [])))
   const naam = new Intl.DateTimeFormat('nl-NL', { month: 'long', timeZone: 'UTC' }).format(new Date(`${maand}-15T12:00:00Z`))
   return { scores: bezoekdagenInMaand(momenten, maand), titel: `Bezoekdagen in ${naam}` }
 }

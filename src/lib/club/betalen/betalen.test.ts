@@ -3,7 +3,8 @@ import { PLATFORM_FEE_PROCENT, betalenActief, clubStripeSleutel, clubWebhookGehe
 import { btwDeel, euro, productInhoud, productUitRij, tegoedSoortVan, verkoopUitRij } from './model'
 import { bruikbaarSaldo, isPtAfspraakType, magTerugbetalen, productVoorVestiging, stripBesluit, tegoedBruikbaar } from './regels'
 import { leesProductInvoer, productRij } from './invoer'
-import { maandCijfers } from './cijfers'
+import { maandCijfers, maandSleutel } from './cijfers'
+import { maandGrenzen } from '@/lib/club/cijfers/maand'
 import { betaalOorsprong, kopenAdressen } from './adressen'
 import type { Tegoed, Verkoop } from './model'
 
@@ -147,5 +148,16 @@ describe('adressen', () => {
 
   it('terug naar Kopen in de ledenapp', () => {
     expect(kopenAdressen('https://fitfactorypt.nl', null)).toEqual({ succes: 'https://fitfactorypt.nl/mijn?tab=kopen&betaald=1', terug: 'https://fitfactorypt.nl/mijn?tab=kopen&geannuleerd=1' })
+  })
+})
+
+describe('venster voor de maandcijfers', () => {
+  it('loopt van de 1e 00:00 tot de 1e van de volgende maand, Nederlandse tijd', () => {
+    const { van, tot } = maandGrenzen(maandSleutel(new Date('2026-10-18T12:00:00Z')))
+    expect(van.toISOString()).toBe('2026-09-30T22:00:00.000Z')
+    expect(tot.toISOString()).toBe('2026-10-31T23:00:00.000Z')
+  })
+  it('kijkt in de nacht van de 1e al naar de nieuwe maand', () => {
+    expect(maandSleutel(new Date('2026-10-31T23:30:00Z'))).toBe('2026-11')
   })
 })

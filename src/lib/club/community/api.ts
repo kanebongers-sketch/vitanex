@@ -3,7 +3,8 @@
 // maar plaatst, reageert of meldt nooit namens dat lid.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { clubFout } from '@/lib/club/toegang'
+import { clubFout, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import { vereisLidToegang, type LidToegang } from '@/lib/club/ledenlogin/toegang'
 
 export async function vereisCommunityLid(req: NextRequest): Promise<LidToegang | NextResponse> {
@@ -15,3 +16,11 @@ export async function vereisCommunityLid(req: NextRequest): Promise<LidToegang |
 
 /** Maximale grootte van een JSON-body voor de community (ruim voor 500 tekens). */
 export const COMMUNITY_BODY_MAX = 4_000
+
+/** Poort voor de beheer-API van de community: dicht (404) als de ledenapp uit staat. */
+export async function vereisCommunityBeheer(req: NextRequest): Promise<ClubToegang | NextResponse> {
+  const t = await vereisClubToegang(req)
+  if (t instanceof NextResponse) return t
+  if (!moduleAan(t.organisatie, 'app')) return clubFout('Niet gevonden.', 404)
+  return t
+}

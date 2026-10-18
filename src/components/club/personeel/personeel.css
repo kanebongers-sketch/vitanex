@@ -208,6 +208,41 @@ a.club-personeel-urennaam:hover { color: var(--brand-tekst, var(--brand)); }
 .club-personeel-urentabel [data-verschil='min'] { color: var(--club-let-op); font-weight: 600; }
 .club-personeel-urentabel [data-verschil='plus'] { color: var(--club-info); font-weight: 600; }
 .club-personeel-tabelnoot { margin: 0; padding: 10px 14px; border-top: 1px solid var(--line); }
+/* Brede urentabel: de naam blijft staan als je opzij schuift. */
+.club-personeel-urentabel .club-tabel { min-width: 760px; }
+.club-personeel-urentabel :is(thead th:first-child, tbody th[scope='row']) { position: sticky; left: 0; z-index: 1; background: var(--bg-card); box-shadow: 1px 0 0 var(--line); }
+.club-personeel-urentabel thead th:first-child { z-index: 2; }
+.club-personeel-urentabel tbody th[scope='row'] { font-family: inherit; font-size: 14px; letter-spacing: 0; text-transform: none; }
+.club-personeel-urentabel .club-personeel-tabelnoot { position: sticky; left: 0; }
+.club-personeel-urentabel tbody tr:hover th[scope='row'] { background: color-mix(in srgb, var(--text-1) 5%, var(--bg-card)); }
+
+/* ── Weekrooster als lijst (telefoon) ────────────────────────────────────── */
+.club-personeel-dienstlijst { display: none; gap: 18px; }
+.club-personeel-lijstdag { display: grid; gap: 8px; }
+.club-personeel-lijstkop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-height: 36px; }
+.club-personeel-lijstkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-personeel-lijstkop h2 .club-zacht { font-size: 16px; font-weight: 600; }
+.club-personeel-lijstdag[data-vandaag] .club-personeel-lijstkop h2 { color: var(--brand-tekst, var(--brand)); }
+.club-personeel-lijstplus { margin-left: auto; width: 40px; padding: 0; }
+.club-personeel-lijstleeg { margin: 0; padding: 12px 14px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line-strong); font-size: 13.5px; color: var(--text-3); }
+.club-personeel-lijstrijen { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.club-personeel-lijstrij { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px 10px 16px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--bg-card); color: var(--text-1); text-decoration: none; transition: border-color 160ms var(--ease), transform 120ms var(--ease); }
+.club-personeel-lijstrij::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--club-personeel-kleur, var(--text-4)); }
+.club-personeel-lijstrij:active { transform: scale(0.99); }
+.club-personeel-lijstrij[aria-current='true'] { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.club-personeel-lijstrij[data-open] { border-style: dashed; border-color: color-mix(in srgb, var(--club-let-op) 60%, transparent); background: var(--club-let-op-zacht); }
+.club-personeel-lijstrij[data-open]::before { background: var(--club-let-op); }
+.club-personeel-lijstrij[data-open] strong { color: var(--club-let-op-inkt); }
+.club-personeel-lijstrij:is([data-uursoort='ziek'], [data-uursoort='verlof']) .club-personeel-lijsttijd { text-decoration: line-through; color: var(--text-3); }
+.club-personeel-lijsttijd { display: grid; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; line-height: 1.05; }
+.club-personeel-lijsttijd span { font-size: 13px; font-weight: 600; color: var(--text-3); }
+.club-personeel-lijstwie { display: grid; gap: 1px; min-width: 0; }
+.club-personeel-lijstwie strong { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-personeel-lijstwie span { font-size: 12.5px; color: var(--text-3); }
+.club-personeel-lijstrij > svg { color: var(--club-ok); }
+.club-personeel-lijstnotitie { display: flex; gap: 8px; align-items: baseline; padding: 8px 12px; border-radius: var(--club-radius-klein); background: var(--club-info-zacht); color: var(--club-info-inkt); font-size: 13px; text-decoration: none; }
+.club-personeel-lijstnotitie[data-soort='geen_afspraken'] { background: var(--club-vlak-hover); color: var(--text-2); }
+.club-personeel-lijstnotitie .club-getal { font-weight: 700; }
 
 /* ── Telefoon en tablet ──────────────────────────────────────────────────── */
 @media (max-width: 760px) {
@@ -218,6 +253,9 @@ a.club-personeel-urennaam:hover { color: var(--brand-tekst, var(--brand)); }
   .club-personeel-snel { justify-items: start; }
   .club-personeel-vastrij { grid-template-columns: 1fr; }
   .club-personeel-as { top: 96px; }
+  /* Op de telefoon de lijst per dag in plaats van de tijdbalk. */
+  .club-personeel-week { display: none; }
+  .club-personeel-dienstlijst { display: grid; }
 }
 
 /* ── Printen: de week voor op het prikbord ───────────────────────────────── */

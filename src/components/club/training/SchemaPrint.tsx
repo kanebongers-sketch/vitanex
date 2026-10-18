@@ -6,6 +6,7 @@ import { dagLetter, DOEL_LABEL, type Doel } from '@/lib/club/training/typen'
 import { BEELD_BRON, bronnenVan } from '@/lib/club/training/beeld'
 import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
 import { SPIER_INFO } from '@/lib/club/training/spieren'
+import { BLOK_LABEL, blokken, regelLabels } from '@/lib/club/training/blokken'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeldPrint } from './OefeningBeeld'
 import { useMerk } from '@/components/club/shell/MerkContext'
@@ -39,6 +40,8 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
       {staat.dagTitels.map((titel, i) => {
         const dag = i + 1
         const regels = staat.regels.filter((r) => r.dag === dag)
+        const labels = regelLabels(regels)
+        const blokVan = new Map(blokken(regels).flatMap((b) => b.items.map((r, j) => [r.sleutel, j === 0 && b.items.length > 1 ? BLOK_LABEL[b.soort] : null] as const)))
         return (
           <section key={dag}>
             <h2>Dag {dagLetter(dag)} · {titel}</h2>
@@ -47,7 +50,9 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
                 <tr>{metBeeld && <th>Uitvoering</th>}<th>Oefening</th><th>Sets</th><th>Herhalingen</th><th>Kg</th><th>Rust</th><th>Notitie</th></tr>
               </thead>
               <tbody>
-                {regels.map((r) => <PrintRegel key={r.sleutel} regel={r} oefening={oefeningen.get(r.oefeningId)} metBeeld={metBeeld} kernpunten={kernpunten} />)}
+                {regels.map((r) => (
+                  <PrintRegel key={r.sleutel} regel={r} label={labels.get(r.sleutel) ?? ''} blok={blokVan.get(r.sleutel) ?? null} oefening={oefeningen.get(r.oefeningId)} metBeeld={metBeeld} kernpunten={kernpunten} />
+                ))}
               </tbody>
             </table>
           </section>
@@ -65,12 +70,15 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
 
 interface PrintRegelProps {
   regel: EditorRegel
+  label: string
+  /** "Superset" of "Circuit" bij de eerste oefening van een blok. */
+  blok: string | null
   oefening: Oefening | undefined
   metBeeld: boolean
   kernpunten: KernpuntenPerNaam
 }
 
-function PrintRegel({ regel: r, oefening, metBeeld, kernpunten }: PrintRegelProps) {
+function PrintRegel({ regel: r, label, blok, oefening, metBeeld, kernpunten }: PrintRegelProps) {
   const naam = oefening?.naam ?? 'Onbekend'
   const punten = kernpunten[naam] ?? []
   return (
@@ -81,7 +89,8 @@ function PrintRegel({ regel: r, oefening, metBeeld, kernpunten }: PrintRegelProp
         </td>
       )}
       <td>
-        <span className="club-training-print-oefnaam">{naam}</span>
+        {blok && <span className="club-training-print-spieren">{blok}: om en om</span>}
+        <span className="club-training-print-oefnaam">{label}. {naam}</span>
         {oefening && oefening.spierenPrimair.length > 0 && (
           <span className="club-training-print-spieren">{oefening.spierenPrimair.map((s) => SPIER_INFO[s].naam).join(', ')}</span>
         )}
@@ -90,10 +99,10 @@ function PrintRegel({ regel: r, oefening, metBeeld, kernpunten }: PrintRegelProp
         )}
       </td>
       <td>{r.sets}</td>
-      <td>{toonHerhalingen(r.herhalingen)}</td>
-      <td>{r.gewichtKg}</td>
+      <td>{r.maat === 'tijd' ? (r.tijdSec ? `${r.tijdSec} sec` : '') : toonHerhalingen(r.herhalingen)}</td>
+      <td>{[r.gewichtKg, r.inspanning !== 'geen' && r.inspanningWaarde ? `${r.inspanning.toUpperCase()} ${r.inspanningWaarde}` : ''].filter(Boolean).join(' · ')}</td>
       <td>{r.rustSec ? toonRust(Number(r.rustSec)) : ''}</td>
-      <td>{r.notitie}</td>
+      <td>{[r.tempo ? `Tempo ${r.tempo}` : '', r.notitie].filter(Boolean).join('. ')}</td>
     </tr>
   )
 }

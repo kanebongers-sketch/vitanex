@@ -17,10 +17,12 @@ const BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'>, { tabel:
   metingen: { tabel: 'club_metingen', select: '*', volgorde: 'datum' },
   schemas: {
     tabel: 'club_schemas',
-    select: 'naam, doel, niveau, weken, status, notitie, dag_titels, medewerker_id, aangemaakt_op, bijgewerkt_op, club_schema_oefeningen(dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, club_oefeningen(naam))',
+    select: 'naam, doel, niveau, weken, status, notitie, dag_titels, medewerker_id, aangemaakt_op, bijgewerkt_op, club_schema_oefeningen(dag, volgorde, sets, herhalingen, tijd_sec, gewicht_kg, rpe, rir, tempo, groep, rust_sec, notitie, club_oefeningen(naam))',
     volgorde: 'aangemaakt_op',
   },
-  trainingen: { tabel: 'club_trainingslog', select: 'op, dag, uitgevoerd', volgorde: 'op' },
+  trainingen: { tabel: 'club_trainingslog', select: 'op, dag, duur_sec, uitgevoerd', volgorde: 'op' },
+  // Per set wat het lid in de ledenapp invulde (migratie 443).
+  sets: { tabel: 'club_set_logs', select: 'op, set_nr, herhalingen, gewicht_kg, tijd_sec, club_oefeningen(naam)', volgorde: 'op' },
   voeding: { tabel: 'club_voedingsplannen', select: '*' },
   notities: { tabel: 'club_notities', select: 'tekst, auteur, vastgepind, aangemaakt_op', volgorde: 'aangemaakt_op' },
   challenges: { tabel: 'club_challenge_deelnemers', select: 'ingeschreven_op, club_challenges(titel)', volgorde: 'ingeschreven_op' },

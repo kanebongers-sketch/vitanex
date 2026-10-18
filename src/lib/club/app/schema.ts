@@ -9,6 +9,8 @@ import type { Spier } from '@/lib/club/training/spieren'
 
 export interface AppOefening {
   id: string
+  /** club_oefeningen.id (voor de set-logs en het verloop). */
+  oefeningId: string
   dag: number
   volgorde: number
   naam: string
@@ -21,6 +23,12 @@ export interface AppOefening {
   gewichtKg: number | null
   rustSec: number | null
   notitie: string | null
+  /** Superset of circuit (zelfde nummer, direct na elkaar). */
+  groep: number | null
+  tijdSec: number | null
+  rpe: number | null
+  rir: number | null
+  tempo: string | null
   aandachtspunten: string | null
   uitleg: string | null
   /** Begin- en eindhouding, of null als er (nog) geen tekening is. */
@@ -49,11 +57,13 @@ export function dagLetter(dag: number): string {
 export function oefeningUitRij(v: unknown): AppOefening | null {
   const r = alsRij(v)
   const id = r ? tekst(r.id) : null
+  const oefeningId = r ? tekst(r.oefening_id) : null
   const dag = r ? getal(r.dag) : null
-  if (!r || !id || dag === null) return null
+  if (!r || !id || !oefeningId || dag === null) return null
   const oef = alsRij(Array.isArray(r.club_oefeningen) ? r.club_oefeningen[0] : r.club_oefeningen)
   return {
     id,
+    oefeningId,
     dag,
     volgorde: getal(r.volgorde) ?? 0,
     naam: ingeslotenNaam(r.club_oefeningen) ?? 'Oefening',
@@ -64,6 +74,11 @@ export function oefeningUitRij(v: unknown): AppOefening | null {
     gewichtKg: getal(r.gewicht_kg),
     rustSec: getal(r.rust_sec),
     notitie: tekst(r.notitie),
+    groep: getal(r.groep),
+    tijdSec: getal(r.tijd_sec),
+    rpe: getal(r.rpe),
+    rir: getal(r.rir),
+    tempo: tekst(r.tempo),
     aandachtspunten: oef ? tekst(oef.aandachtspunten) : null,
     uitleg: oef ? tekst(oef.uitleg) : null,
     beeld: oef ? beeldenUitRij(oef) : null,
@@ -95,12 +110,56 @@ export function volgendeDag(dagen: readonly AppSchemaDag[], logs: readonly AppLo
   return dagen[(i + 1) % dagen.length].dag
 }
 
-/** "3 x 10 · 40 kg · 90 s rust" */
+/** "3 x 8 tot 10 · 40 kg · RIR 2 · tempo 3110 · 90 s rust" */
 export function voorschrift(o: AppOefening): string {
+  const herh = o.herhalingen ? o.herhalingen.replace(/(\d)\s*-\s*(\d)/g, '$1 tot $2') : o.tijdSec ? `${o.tijdSec} sec` : null
   const delen = [
-    o.sets && o.herhalingen ? `${o.sets} x ${o.herhalingen}` : o.sets ? `${o.sets} sets` : o.herhalingen,
+    o.sets && herh ? `${o.sets} x ${herh}` : o.sets ? `${o.sets} sets` : herh,
     o.gewichtKg !== null && o.gewichtKg > 0 ? `${String(o.gewichtKg).replace('.', ',')} kg` : null,
+    o.rpe !== null ? `RPE ${String(o.rpe).replace('.', ',')}` : o.rir !== null ? `RIR ${o.rir}` : null,
+    o.tempo ? `tempo ${o.tempo}` : null,
     o.rustSec ? `${o.rustSec} s rust` : null,
   ]
   return delen.filter(Boolean).join(' · ')
+}
+
+export interface VorigeSet {
+  setNr: number
+  herhalingen: number | null
+  gewichtKg: number | null
+  tijdSec: number | null
+}
+
+export interface OefeningHistorie {
+  /** De laatste keer dat het lid deze oefening logde. */
+  vorige: { op: string; sets: VorigeSet[] } | null
+  /** Zwaarste gewicht ooit, met de meeste herhalingen daarop (voor records). */
+  beste: { gewichtKg: number | null; herhalingen: number | null }
+}
+
+export interface SetLogRij extends VorigeSet {
+  oefeningId: string
+  trainingId: string
+  op: string
+}
+
+/** Per oefening de vorige keer en het beste resultaat. */
+export function historiePerOefening(rijen: readonly SetLogRij[]): Record<string, OefeningHistorie> {
+  const uit: Record<string, OefeningHistorie> = {}
+  const perOefening = new Map<string, SetLogRij[]>()
+  for (const r of rijen) perOefening.set(r.oefeningId, [...(perOefening.get(r.oefeningId) ?? []), r])
+  for (const [id, lijst] of perOefening) {
+    const laatste = [...lijst].sort((a, b) => b.op.localeCompare(a.op))[0]
+    const vorigeSets = lijst.filter((r) => r.trainingId === laatste.trainingId).sort((a, b) => a.setNr - b.setNr)
+    const gewichten = lijst.filter((r) => r.gewichtKg !== null && r.gewichtKg > 0)
+    const zwaarst = gewichten.length > 0 ? Math.max(...gewichten.map((r) => r.gewichtKg as number)) : null
+    uit[id] = {
+      vorige: { op: laatste.op, sets: vorigeSets.map(({ setNr, herhalingen, gewichtKg, tijdSec }) => ({ setNr, herhalingen, gewichtKg, tijdSec })) },
+      beste: {
+        gewichtKg: zwaarst,
+        herhalingen: zwaarst === null ? null : Math.max(...gewichten.filter((r) => r.gewichtKg === zwaarst).map((r) => r.herhalingen ?? 0)),
+      },
+    }
+  }
+  return uit
 }

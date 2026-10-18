@@ -7,7 +7,7 @@ import type { Lid } from '@/lib/club/kern/lid'
 import { alsRij, datum, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import { dagSleutel, dagStart, plusDagen } from '@/lib/club/cijfers/tijd'
 import { appRegelsUitJson, bezoekenDezeMaand, wekenOpRij, type AppRegels, type MijnStatus } from './regels'
-import { oefeningUitRij, perDag, type AppLog, type AppSchemaDag } from './schema'
+import { historiePerOefening, oefeningUitRij, perDag, type AppLog, type AppSchemaDag, type OefeningHistorie, type SetLogRij } from './schema'
 
 export interface AppLes {
   id: string
@@ -42,6 +42,8 @@ export interface LidAppData {
   lessen: AppLes[]
   schema: AppSchema | null
   logs: AppLog[]
+  /** Per oefening (club_oefeningen.id) de vorige keer en het beste resultaat. */
+  historie: Record<string, OefeningHistorie>
   meldingen: string[]
 }
 
@@ -106,7 +108,7 @@ async function haalSchema(admin: SupabaseClient, userId: string, lidId: string):
   if (error || !r || !id) return { schema: null, fout: error?.message ?? null }
   const oef = await admin
     .from('club_schema_oefeningen')
-    .select('id, dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, club_oefeningen(naam, spiergroep, spieren_primair, spieren_secundair, uitleg, aandachtspunten, beeld_start, beeld_eind, beeld_bron)')
+    .select('id, oefening_id, dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, groep, tijd_sec, rpe, rir, tempo, club_oefeningen(naam, spiergroep, spieren_primair, spieren_secundair, uitleg, aandachtspunten, beeld_start, beeld_eind, beeld_bron)')
     .eq('user_id', userId)
     .eq('schema_id', id)
     .order('dag')
@@ -116,6 +118,31 @@ async function haalSchema(admin: SupabaseClient, userId: string, lidId: string):
     schema: { id, naam: tekst(r.naam) ?? 'Schema', doel: tekst(r.doel), weken: getal(r.weken), notitie: tekst(r.notitie), dagen: perDag(oefeningen) },
     fout: oef.error?.message ?? null,
   }
+}
+
+/** De set-logs van dit lid voor de oefeningen in het schema (laatste 120 dagen). */
+async function haalHistorie(admin: SupabaseClient, userId: string, lidId: string, schema: AppSchema | null, nu: Date): Promise<{ historie: Record<string, OefeningHistorie>; fout: string | null }> {
+  const ids = [...new Set((schema?.dagen ?? []).flatMap((d) => d.oefeningen.map((o) => o.oefeningId)))]
+  if (ids.length === 0) return { historie: {}, fout: null }
+  const { data, error } = await admin
+    .from('club_set_logs')
+    .select('oefening_id, trainingslog_id, op, set_nr, herhalingen, gewicht_kg, tijd_sec')
+    .eq('user_id', userId)
+    .eq('lid_id', lidId)
+    .in('oefening_id', ids)
+    .gte('op', new Date(nu.getTime() - 120 * DAG_MS).toISOString())
+    .order('op', { ascending: false })
+    .limit(3000)
+  const rijen: SetLogRij[] = (data ?? []).flatMap((v) => {
+    const r = alsRij(v)
+    const oefeningId = r ? tekst(r.oefening_id) : null
+    const trainingId = r ? tekst(r.trainingslog_id) : null
+    const op = r ? datum(r.op) : null
+    const setNr = r ? getal(r.set_nr) : null
+    if (!r || !oefeningId || !trainingId || !op || setNr === null) return []
+    return [{ oefeningId, trainingId, op: op.toISOString(), setNr, herhalingen: getal(r.herhalingen), gewichtKg: getal(r.gewicht_kg), tijdSec: getal(r.tijd_sec) }]
+  })
+  return { historie: historiePerOefening(rijen), fout: error?.message ?? null }
 }
 
 async function haalBezoek(admin: SupabaseClient, userId: string, lidId: string, nu: Date) {
@@ -157,7 +184,8 @@ export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid
     haalSchema(admin, userId, lid.id),
     haalLogs(admin, userId, lid.id, nu),
   ])
-  const fouten = [vestiging.error?.message, bezoek.fout, lessen.fout, schema.fout, logs.fout].filter(Boolean)
+  const historie = await haalHistorie(admin, userId, lid.id, schema.schema, nu)
+  const fouten = [vestiging.error?.message, bezoek.fout, lessen.fout, schema.fout, logs.fout, historie.fout].filter(Boolean)
   for (const f of fouten) console.error('[club/app] laden mislukt', f)
   return {
     regels: appRegelsUitJson(alsRij(vestiging.data)?.regels),
@@ -166,6 +194,7 @@ export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid
     lessen: lessen.lessen,
     schema: schema.schema,
     logs: logs.logs,
+    historie: historie.historie,
     meldingen: fouten.length > 0 ? ['Niet alles kon worden geladen.'] : [],
   }
 }

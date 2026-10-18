@@ -30,8 +30,14 @@
 .club-rooster-filter select { appearance: none; min-height: 36px; padding: 0 30px 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-2); font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
 .club-rooster-filter::after { content: ''; position: absolute; right: 13px; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; color: var(--text-3); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 .club-rooster-filter select:hover { color: var(--text-1); border-color: var(--text-4); }
-.club-rooster-filter[data-actief] select { border-color: var(--brand); color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); }
+.club-rooster-filter[data-actief] select { border-color: var(--brand); color: var(--club-merk-inkt); background: var(--brand-soft); }
 .club-rooster-filter select option { background: var(--bg-card); color: var(--text-1); text-transform: none; }
+/* Op de telefoon de filters op een rij die opzij schuift, zodat de lessen hoger beginnen. */
+@media (max-width: 599px) {
+  .club-rooster-filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * var(--ff-rand)); padding-right: var(--ff-rand); }
+  .club-rooster-filters::-webkit-scrollbar { display: none; }
+  .club-rooster-filter, .club-rooster-filters .club-knop { flex: none; }
+}
 
 /* ── Het raster (pc en tablet) ────────────────────────────────────────────── */
 .club-rooster-raster { display: none; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: clip; }
@@ -55,6 +61,9 @@
 .club-rooster-les { position: absolute; top: calc(var(--van) * var(--club-rooster-minuut) + 1px); height: calc(var(--duur) * var(--club-rooster-minuut) - 2px); left: calc(var(--baan) / var(--banen) * 100% + 3px); width: calc(100% / var(--banen) - 6px); display: flex; flex-direction: column; gap: 1px; padding: 6px 8px 7px 11px; border-radius: var(--club-radius-klein); background: var(--club-vlak-hover); border: 1px solid var(--line); color: var(--text-1); text-decoration: none; overflow: hidden; container-type: size; transition: transform 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
 .club-rooster-les::before, .club-rooster-rij::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: var(--club-rooster-soort); }
 .club-rooster-les:hover { z-index: 2; transform: translateY(-1px); border-color: var(--line-strong); background: color-mix(in srgb, var(--text-1) 8%, var(--bg-card)); }
+/* Volle les: een zachte koraal tint, zodat je volle lessen in een oogopslag ziet. */
+:is(.club-rooster-les, .club-rooster-rij):has(.club-rooster-bezetting[data-niveau='vol']) { background: color-mix(in srgb, var(--club-let-op) 9%, var(--bg-card)); border-color: color-mix(in srgb, var(--club-let-op) 28%, var(--line)); }
+.club-rooster-les:has(.club-rooster-bezetting[data-niveau='vol']):hover { background: color-mix(in srgb, var(--club-let-op) 14%, var(--bg-card)); }
 .club-rooster-les[aria-current='true'], .club-rooster-rij[aria-current='true'] { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
 .club-rooster-les[data-voorbij], .club-rooster-rij[data-voorbij] { opacity: 0.55; }
 .club-rooster-les[data-geannuleerd] .club-rooster-les-naam, .club-rooster-rij[data-geannuleerd] .club-rooster-les-naam { text-decoration: line-through; color: var(--text-3); }
@@ -91,6 +100,17 @@
 
 /* ── Daglijst (telefoon) ──────────────────────────────────────────────────── */
 .club-rooster-daglijst { display: grid; gap: 22px; }
+/* Dagkiezer boven de daglijst: tik op een dag om erheen te springen. */
+.club-rooster-dagkiezer { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.club-rooster-dagkiezer a { display: grid; justify-items: center; gap: 0; padding: 8px 2px 7px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--bg-card); color: var(--text-1); text-decoration: none; transition: border-color 140ms var(--ease), transform 120ms var(--ease); }
+.club-rooster-dagkiezer a:active { transform: scale(0.97); }
+.club-rooster-dagkiezer span { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-rooster-dagkiezer strong { font-family: var(--ff-kop); font-size: 20px; line-height: 1.1; font-weight: 700; }
+.club-rooster-dagkiezer small { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+.club-rooster-dagkiezer a[data-leeg] strong { color: var(--text-3); }
+.club-rooster-dagkiezer a[data-vandaag] { border-color: var(--brand); background: var(--brand-soft); }
+.club-rooster-dagkiezer a[data-vandaag] :is(span, strong, small) { color: var(--club-merk-inkt); }
+.club-rooster-daglijst-dag { scroll-margin-top: 112px; }
 .club-rooster-daglijst-dag h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
 .club-rooster-daglijst-dag[data-vandaag] h2 { color: var(--brand-tekst, var(--brand)); }
 .club-rooster-daglijst-leeg { margin: 0; font-size: 13px; color: var(--text-4); }
@@ -147,4 +167,9 @@
 .club-rooster-beheer { display: grid; gap: 10px; justify-items: start; margin-bottom: 16px; }
 .club-rooster-beheer .club-formrij, .club-rooster-beheer .club-veld { width: 100%; }
 .club-rooster-beheer .club-formrij { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-.club-rooster-leeg .club-knop { margin-top: 12px; }
+/* Lege week: rustig, met een duidelijke volgende stap. */
+.club-rooster-leeg { display: grid; justify-items: center; gap: 10px; padding: 48px 18px; }
+.club-rooster-leeg > svg { color: var(--text-3); }
+.club-rooster-leeg p { margin: 0; max-width: 46ch; }
+.club-rooster-leeg strong { display: block; margin-bottom: 4px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-1); }
+.club-rooster-leeg .club-knop { margin-top: 6px; }

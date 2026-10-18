@@ -7,6 +7,7 @@ import { geplandPerPersoon, isWerk, MIN_RUST_UREN } from '@/lib/club/personeel/r
 import { personeelHref, zonderPaneel, type PersoneelStaat } from '@/lib/club/personeel/url'
 import type { PersoneelLid } from '@/lib/club/personeel/typen'
 import { DagRij } from './DagRij'
+import { DienstLijst } from './DienstLijst'
 import { ControleLijst, UrenBalk } from './WeekZij'
 import { SnelPlannen } from './SnelPlannen'
 import { PrintWeek } from './PrintWeek'
@@ -95,6 +96,7 @@ export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props)
             />
           ))}
         </section>
+        <DienstLijst dagen={dagen} diensten={data.week} notities={data.notities} bemand={data.bemand} team={team} soortNamen={soortNamen} staat={staat} vandaag={nu.datum} />
         <aside className="club-personeel-zij">
           <UrenBalk team={team} gepland={gepland} staat={staat} />
           <ControleLijst meldingen={meldingen} staat={staat} />
