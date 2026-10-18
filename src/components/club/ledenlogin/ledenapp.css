@@ -24,7 +24,27 @@
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
 }
-.club-mijn-merk { display: flex; justify-content: center; align-items: center; min-height: 36px; }
+.club-mijn-merk { position: relative; display: flex; justify-content: center; align-items: center; min-height: 36px; padding: 0 52px; }
+
+/* ── De bel rechts in de kop ─────────────────────────────────────────────── */
+.club-mijn-bel {
+  position: absolute; right: -6px; top: 50%;
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px;
+  color: var(--text-2); text-decoration: none;
+  transform: translateY(-50%);
+  transition: color 160ms var(--ease), background-color 160ms var(--ease), transform 120ms var(--ease);
+}
+.club-mijn-bel:active { transform: translateY(-50%) scale(0.92); }
+.club-mijn-bel:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.club-mijn-bel[aria-current='page'] { color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); }
+@media (hover: hover) { .club-mijn-bel:hover { color: var(--text-1); background: var(--club-vlak-hover, var(--brand-soft)); } }
+.club-mijn-bel-teller {
+  position: absolute; top: 7px; right: 6px;
+  display: grid; place-items: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+  background: var(--brand); color: var(--brand-inkt, var(--bg-app));
+  box-shadow: 0 0 0 2px var(--bg-app);
+  font-size: 11px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+}
 .club-mijn-merk img, .club-mijn-merk .ff-logo { height: 28px; width: auto; max-width: 70%; object-fit: contain; }
 .club-mijn-merk span { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .club-mijn-voorvertoning { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); font-size: 12.5px; font-weight: 600; }
@@ -69,6 +89,37 @@
 .club-mijn-uitlog { display: grid; gap: 10px; padding: 16px; border-radius: var(--lidapp-radius); background: var(--bg-card); }
 .club-mijn-uitlog h3 { margin: 0; font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
 .club-mijn-uitlog p { margin: 0; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+
+/* ── Profiel: hulp of vraag aan de sportschool ───────────────────────────── */
+.club-mijn-hulp { border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); overflow: hidden; }
+.club-mijn-hulp summary {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  min-height: 56px; padding: 0 16px; cursor: pointer; list-style: none;
+  font-weight: 700; font-size: 15.5px; color: var(--text-1);
+}
+.club-mijn-hulp summary::-webkit-details-marker { display: none; }
+.club-mijn-hulp summary > svg:first-child { color: var(--brand-tekst, var(--brand)); }
+.club-mijn-hulp summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: var(--lidapp-radius); }
+.club-mijn-hulp-pijl { color: var(--text-3); transition: transform 200ms var(--ease); }
+.club-mijn-hulp[open] .club-mijn-hulp-pijl { transform: rotate(180deg); }
+.club-mijn-hulp-inhoud { display: grid; gap: 8px; padding: 0 16px 16px; }
+.club-mijn-hulp-inhoud p { margin: 0 0 4px; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.club-mijn-hulp-link {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px;
+  min-height: 52px; padding: 8px 14px; border-radius: 14px;
+  background: var(--club-vlak, var(--bg-raised)); border: 1px solid var(--line);
+  color: var(--text-1); text-decoration: none; font-weight: 700; overflow-wrap: anywhere;
+  transition: border-color 160ms var(--ease), transform 120ms var(--ease);
+}
+.club-mijn-hulp-link svg { color: var(--brand-tekst, var(--brand)); }
+.club-mijn-hulp-link span { display: grid; gap: 1px; }
+.club-mijn-hulp-link small { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.club-mijn-hulp-link:active { transform: scale(0.98); }
+.club-mijn-hulp-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) { .club-mijn-hulp-link:hover { border-color: var(--line-strong); } }
+@media (prefers-reduced-motion: reduce) {
+  .club-mijn-bel, .club-mijn-hulp-pijl, .club-mijn-hulp-link { transition: none; }
+}
 
 /* ── Inloggen ────────────────────────────────────────────────────────────── */
 .club-mijn-inlog {

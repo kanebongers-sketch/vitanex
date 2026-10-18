@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { CalendarCheck, Flame } from 'lucide-react'
-import type { Lid } from '@/lib/club/kern/lid'
+import type { LidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
 import type { LidAppData } from '@/lib/club/app/data'
 import { dagNaamKort, groet } from '@/lib/club/app/regels'
 import { dagLetter, volgendeDag } from '@/lib/club/app/schema'
@@ -14,7 +14,8 @@ import { CheckinQr } from './CheckinQr'
 // en de check-in QR-code (wisselt elke 30 seconden, zie CheckinQr).
 
 interface Props {
-  lid: Lid
+  /** Alleen wat de app toont (in de voorvertoning mag ook een volledig Lid). */
+  lid: Pick<LidVoorApp, 'id' | 'voornaam'>
   data: LidAppData
   nu: Date
   tabPad: (tab: string) => string

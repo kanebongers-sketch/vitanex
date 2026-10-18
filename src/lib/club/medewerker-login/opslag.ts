@@ -99,10 +99,23 @@ export async function logInMedewerker(admin: SupabaseClient, t: MedewerkerToegan
 
 async function blokkeer(admin: SupabaseClient, t: MedewerkerToegang, nu: Date): Promise<InlogUitkomst> {
   const blokkades = t.blokkades + 1
-  const totOp = blokkades >= MAX_BLOKKADES ? null : new Date(nu.getTime() + blokkadeDuurMin(blokkades) * 60_000).toISOString()
+  const dicht = blokkades >= MAX_BLOKKADES
+  const totOp = dicht ? null : new Date(nu.getTime() + blokkadeDuurMin(blokkades) * 60_000).toISOString()
   const { error } = await admin.from('club_medewerker_toegang').update({ mislukt: 0, geblokkeerd_tot: totOp, blokkades }).eq('id', t.id)
   if (error) return { staat: 'db' }
-  return totOp ? { staat: 'geblokkeerd', totOp } : { staat: 'gesloten' }
+  if (dicht) {
+    // De link gaat dicht: ook elk toestel waar deze medewerker nog op ingelogd is (zoals bij leden).
+    await wisSessiesVanMedewerker(admin, t.userId, t.medewerkerId)
+    return { staat: 'gesloten' }
+  }
+  return { staat: 'geblokkeerd', totOp: totOp as string }
+}
+
+/** Alle sessies van een medewerker binnen zijn sportschool, ook die van een oudere link. */
+async function wisSessiesVanMedewerker(admin: SupabaseClient, userId: string, medewerkerId: string): Promise<boolean> {
+  const { error } = await admin.from('club_medewerker_sessies').delete().eq('user_id', userId).eq('medewerker_id', medewerkerId)
+  if (error) console.error('[club] sessies van medewerker wissen mislukt', error.message)
+  return !error
 }
 
 // ─── Sessies ────────────────────────────────────────────────────────────────

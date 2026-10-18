@@ -62,6 +62,31 @@ describe('recordInEigenVestiging', () => {
   })
 })
 
+describe('recordInEigenVestiging voor medewerkers', () => {
+  const alsMedewerker = (admin: SupabaseClient) => ({ ...eigen(admin), rol: 'medewerker' })
+  it('laat een collega toe die een vestiging deelt', async () => {
+    const admin = nepAdmin({ club_medewerkers: { vestigingen: ['eersel', 'budel'] } })
+    expect(await recordInEigenVestiging(alsMedewerker(admin), 'club_medewerkers', ID)).toBe(true)
+  })
+  it('weigert een collega uit een andere vestiging of zonder vestiging', async () => {
+    expect(await recordInEigenVestiging(alsMedewerker(nepAdmin({ club_medewerkers: { vestigingen: ['eersel'] } })), 'club_medewerkers', ID)).toBe(false)
+    expect(await recordInEigenVestiging(alsMedewerker(nepAdmin({ club_medewerkers: { vestigingen: [] } })), 'club_medewerkers', ID)).toBe(false)
+  })
+  it('Kane en de eigenaar zien elke collega', async () => {
+    const admin = nepAdmin({ club_medewerkers: { vestigingen: [] } })
+    expect(await recordInEigenVestiging({ ...eigen(admin), rol: 'beheerder' }, 'club_medewerkers', ID)).toBe(true)
+  })
+  it('volgt beschikbaarheid naar de medewerker', async () => {
+    const nee = nepAdmin({ club_beschikbaarheid: { medewerker_id: LID }, club_medewerkers: { vestigingen: ['eersel'] } })
+    const ja = nepAdmin({ club_beschikbaarheid: { medewerker_id: LID }, club_medewerkers: { vestigingen: ['budel'] } })
+    expect(await recordInEigenVestiging(alsMedewerker(nee), 'club_beschikbaarheid', ID)).toBe(false)
+    expect(await recordInEigenVestiging(alsMedewerker(ja), 'club_beschikbaarheid', ID)).toBe(true)
+  })
+  it('sluit bij een leesfout', async () => {
+    expect(await recordInEigenVestiging(alsMedewerker(nepAdmin({ club_medewerkers: 'fout' })), 'club_medewerkers', ID)).toBe(false)
+  })
+})
+
 describe('eisVestigingVanRecord', () => {
   it('geeft null als het mag en een 404 als het niet mag', async () => {
     expect(await eisVestigingVanRecord(eigen(nepAdmin({ club_leden: { vestiging: 'budel' } })), 'club_leden', ID)).toBeNull()

@@ -1,5 +1,7 @@
 // PATCH /api/club/afspraken/typen/[id]: een soort afspraak wijzigen of op
 // inactief zetten. Weggooien kan niet: oude afspraken verwijzen ernaar.
+// Een type is sportschoolbreed (geen vestiging); de vestigingscontrole zit op
+// de gekoppelde medewerkers (zie typen-api.ts).
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
@@ -19,10 +21,12 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (!isUuid(id)) return clubFout('Type niet gevonden.', 404)
   const invoer = leesType(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
-  if (!(await medewerkersHoren(t, invoer.waarde.medewerkerIds))) return clubFout('Een van de medewerkers hoort niet bij deze sportschool.', 400)
   const bestaand = await haalTypen(t.admin, t.userId)
   if (!bestaand) return clubFout('De typen konden niet worden geladen.', 500)
-  if (!bestaand.some((b) => b.id === id)) return clubFout('Type niet gevonden.', 404)
+  const huidig = bestaand.find((b) => b.id === id)
+  if (!huidig) return clubFout('Type niet gevonden.', 404)
+  // Een medewerker koppelt of ontkoppelt alleen collega's uit zijn eigen vestigingen.
+  if (!(await medewerkersHoren(t, invoer.waarde.medewerkerIds, huidig.medewerkerIds))) return clubFout('Een van de medewerkers hoort niet bij deze sportschool of jouw vestigingen.', 400)
   if (bestaand.some((b) => b.id !== id && b.naam.toLowerCase() === invoer.waarde.naam.toLowerCase())) return clubFout('Er is al een type met deze naam.', 409)
   const type = await werkTypeBij(t.admin, t.userId, id, invoer.waarde)
   if (!type) return clubFout('Het type kon niet worden opgeslagen. Probeer het opnieuw.', 500)

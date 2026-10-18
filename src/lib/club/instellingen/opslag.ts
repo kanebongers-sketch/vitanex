@@ -7,6 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { naamVan } from '@/lib/club/kern/vestigingen'
+import { behoudVreemdeVestigingen, zietHeleSportschool } from '@/lib/club/kern/medewerker-vestigingen'
 import { logActie, type ClubToegang } from '@/lib/club/toegang'
 import { gelukt, haalRegels, haalStamdata, mislukt, type Resultaat, type VestigingInstellingen } from '@/lib/club/rooster/basis-opslag'
 import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type LesSerie, type Lestype, type Zaal } from '@/lib/club/rooster/typen'
@@ -125,11 +126,27 @@ export async function maakItem(t: ClubToegang, soort: InstellingSoort, vestiging
   return gelukt({ id: data.id })
 }
 
+/**
+ * Een medewerker die een collega aanpast, raakt de vestigingen buiten zijn
+ * eigen niet aan: die blijven zoals ze in de database staan. Null bij een leesfout.
+ */
+async function metVreemdeVestigingen(t: ClubToegang, id: string, velden: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  if (zietHeleSportschool(t) || !Array.isArray(velden.vestigingen)) return velden
+  const { data, error } = await t.admin.from('club_medewerkers').select('vestigingen').eq('user_id', t.userId).eq('id', id).maybeSingle()
+  if (error) {
+    console.error('[club-instellingen] vestigingen van medewerker lezen mislukt', error.message)
+    return null
+  }
+  const oud = Array.isArray(data?.vestigingen) ? data.vestigingen.filter((v: unknown): v is string => typeof v === 'string') : []
+  return { ...velden, vestigingen: behoudVreemdeVestigingen(t, velden.vestigingen as string[], oud) }
+}
+
 /** Een bestaand item wijzigen (alleen de meegegeven velden). */
 export async function wijzigItem(t: ClubToegang, soort: InstellingSoort, id: string, vestiging: Vestiging, ruw: unknown): Promise<Resultaat<{ id: string }>> {
   const gelezen = leesVolgensSchema(ruw, schemaVoor(t, soort), true)
   if (!gelezen.ok) return mislukt(gelezen.fout)
-  const velden = gelezen.waarde
+  const velden = soort === 'medewerkers' ? await metVreemdeVestigingen(t, id, gelezen.waarde) : gelezen.waarde
+  if (!velden) return mislukt('Opslaan is niet gelukt. Probeer het opnieuw.', 500)
   if (soort === 'weekrooster') {
     const fout = await controleerVerwijzingen(t.admin, t.userId, vestiging, velden)
     if (fout) return mislukt(fout)

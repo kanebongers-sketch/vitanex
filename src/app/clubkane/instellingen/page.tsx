@@ -4,6 +4,7 @@ import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { haalInstellingen, type Instellingen } from '@/lib/club/instellingen/opslag'
+import { zichtbareMedewerkers } from '@/lib/club/kern/medewerker-vestigingen'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { RegelsFormulier } from '@/components/club/instellingen/RegelsFormulier'
 import { ZalenBeheer } from '@/components/club/instellingen/ZalenBeheer'
@@ -78,7 +79,7 @@ async function TabInhoud({ tab, data, vestiging, t }: TabInhoudProps) {
     case 'medewerkers':
       return (
         <MedewerkersBeheer
-          medewerkers={data.medewerkers}
+          medewerkers={zichtbareMedewerkers(t, data.medewerkers)}
           vestiging={vestiging}
           login={await haalLoginBeheer(t)}
           ikZelf={t.rol === 'medewerker' ? t.persoonId : null}

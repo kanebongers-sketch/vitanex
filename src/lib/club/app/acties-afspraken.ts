@@ -139,7 +139,7 @@ export async function annuleerAfspraakVoorLid(s: ClubSchrijver, lid: Lid, id: st
   const mag = magLidAnnuleren(type, afspraak, new Date())
   if (!mag.ok) return clubFout(mag.fout, 409)
   // Alleen een afspraak die nog gepland staat (niet een die de trainer net op 'geweest' zette).
-  const uit = await werkAfspraakBij(s.admin, s.userId, id, { status: 'geannuleerd', geannuleerd_op: new Date().toISOString() }, 'gepland')
+  const uit = await werkAfspraakBij(s.admin, s.userId, id, { status: 'geannuleerd', geannuleerd_op: new Date().toISOString() }, 'gepland', 'lid')
   if (!uit.ok) return clubFout(uit.fout, uit.status)
   await logActie(s, 'afspraak geannuleerd in de app', `${type.naam}, ${volledigeNaam(lid)}`, lid.vestiging)
   return clubJson({ ok: true })

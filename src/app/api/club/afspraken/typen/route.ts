@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (t instanceof NextResponse) return t
   const invoer = leesType(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
-  if (!(await medewerkersHoren(t, invoer.waarde.medewerkerIds))) return clubFout('Een van de medewerkers hoort niet bij deze sportschool.', 400)
+  if (!(await medewerkersHoren(t, invoer.waarde.medewerkerIds))) return clubFout('Een van de medewerkers hoort niet bij deze sportschool of jouw vestigingen.', 400)
   const bestaand = await haalTypen(t.admin, t.userId)
   if (!bestaand) return clubFout('De typen konden niet worden geladen.', 500)
   if (bestaand.some((b) => b.naam.toLowerCase() === invoer.waarde.naam.toLowerCase())) return clubFout('Er is al een type met deze naam.', 409)

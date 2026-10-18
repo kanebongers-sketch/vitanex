@@ -29,7 +29,7 @@ const CODE = 'abcdefghijklmnopqrstuvwx'
 
 const mocks = vi.hoisted(() => ({
   clubToegang: vi.fn(), haalEigenOrganisatie: vi.fn(), hostPastBij: vi.fn(), haalLid: vi.fn(),
-  lidVanSessie: vi.fn(), vindLidToegang: vi.fn(), logInLid: vi.fn(), kiesLidPin: vi.fn(), boekLesVoorLid: vi.fn(),
+  lidVanSessie: vi.fn(), vindLidToegang: vi.fn(), logInLid: vi.fn(), kiesLidPin: vi.fn(), boekLesVoorLid: vi.fn(), markeerMeldingenGelezen: vi.fn(),
 }))
 vi.mock('@/lib/club/toegang', async (orig) => ({
   ...(await orig<typeof import('@/lib/club/toegang')>()),
@@ -40,6 +40,7 @@ vi.mock('./opslag', async (orig) => ({
   ...(await orig<typeof import('./opslag')>()),
   lidVanSessie: mocks.lidVanSessie, vindLidToegang: mocks.vindLidToegang, logInLid: mocks.logInLid, kiesLidPin: mocks.kiesLidPin,
 }))
+vi.mock('@/lib/club/meldingen/opslag', async (orig) => ({ ...(await orig<typeof import('@/lib/club/meldingen/opslag')>()), markeerMeldingenGelezen: mocks.markeerMeldingenGelezen }))
 vi.mock('@/lib/club/app/acties-training', async (orig) => ({ ...(await orig<typeof import('@/lib/club/app/acties-training')>()), boekLesVoorLid: mocks.boekLesVoorLid }))
 
 import { nepSupabase } from '@/lib/club/beheerders/nep-supabase'
@@ -51,6 +52,7 @@ import { LINK_WERKT_NIET } from './inlog-api'
 import { POST as reserveer } from '@/app/api/club/lid/reserveringen/route'
 import { POST as inloggen } from '@/app/api/club/lid/inloggen/route'
 import { POST as kiesPin } from '@/app/api/club/lid/pin/route'
+import { POST as meldingenGelezen } from '@/app/api/club/lid/meldingen/gelezen/route'
 
 const ORG = {
   id: GYM, naam: 'Gym A', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: 'gyma',
@@ -147,6 +149,32 @@ describe('leden-API', () => {
     stand.aan = false
     const r = await vereisLidToegang(req(`/api/club/lid/ik?voor=${SANNE_ID}`, null, zelf, 'GET'))
     expect((r as NextResponse).status).toBe(404)
+  })
+})
+
+describe('meldingen gelezen', () => {
+  it('zet de meldingen van het lid uit de sessie op gelezen', async () => {
+    mocks.markeerMeldingenGelezen.mockResolvedValue(true)
+    const r = await meldingenGelezen(req(`/api/club/lid/meldingen/gelezen?voor=${PIET_ID}`, null))
+    expect(r.status).toBe(200)
+    expect(mocks.markeerMeldingenGelezen).toHaveBeenCalledWith(expect.anything(), GYM, SANNE_ID)
+  })
+  it('niemand binnen of van een andere site: niets gewijzigd', async () => {
+    expect((await meldingenGelezen(req('/api/club/lid/meldingen/gelezen', null, { 'sec-fetch-site': 'cross-site' }))).status).toBe(403)
+    stand.cookies.clear()
+    expect((await meldingenGelezen(req('/api/club/lid/meldingen/gelezen', null))).status).toBe(404)
+    expect(mocks.markeerMeldingenGelezen).not.toHaveBeenCalled()
+  })
+  it('in de voorvertoning van Kane verandert er niets voor het lid', async () => {
+    stand.cookies.clear()
+    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isKane: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
+    const r = await meldingenGelezen(req(`/api/club/lid/meldingen/gelezen?voor=${PIET_ID}`, null))
+    expect(r.status).toBe(200)
+    expect(mocks.markeerMeldingenGelezen).not.toHaveBeenCalled()
+  })
+  it('een databasefout geeft een nette 500', async () => {
+    mocks.markeerMeldingenGelezen.mockResolvedValue(false)
+    expect((await meldingenGelezen(req('/api/club/lid/meldingen/gelezen', null))).status).toBe(500)
   })
 })
 

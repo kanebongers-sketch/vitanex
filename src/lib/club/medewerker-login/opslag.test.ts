@@ -73,6 +73,18 @@ describe('pincode kiezen en inloggen', () => {
     expect(await logInMedewerker(db().admin, toegang(), '000000', NU)).toEqual({ staat: 'fout', over: 4 })
     expect((await logInMedewerker(db().admin, toegang({ pin_status: 'wacht' }), PIN, NU)).staat).toBe('niet_actief')
   })
+  it('de laatste blokkade sluit de link en wist alle sessies van de medewerker', async () => {
+    const { admin, vragen } = db()
+    const uit = await logInMedewerker(admin, toegang({ blokkades: 5, mislukt: 4 }), '000000', NU)
+    expect(uit.staat).toBe('gesloten')
+    const wis = vragen.find((v) => v.actie === 'delete' && v.tabel === 'club_medewerker_sessies')
+    expect(wis && heeftFilter(wis, 'user_id', GYM) && heeftFilter(wis, 'medewerker_id', MW)).toBe(true)
+  })
+  it('een tijdelijke blokkade wist geen sessies', async () => {
+    const { admin, vragen } = db()
+    expect((await logInMedewerker(admin, toegang({ mislukt: 4 }), '000000', NU)).staat).toBe('geblokkeerd')
+    expect(vragen.some((v) => v.actie === 'delete')).toBe(false)
+  })
   it('na te veel blokkades blijft de link dicht', async () => {
     expect((await logInMedewerker(db().admin, toegang({ blokkades: 6 }), PIN, NU)).staat).toBe('gesloten')
   })

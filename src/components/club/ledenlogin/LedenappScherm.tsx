@@ -9,7 +9,8 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 // (safe-area) en heeft tikvlakken van minstens 48 pixels.
 
 interface Props {
-  tab: AppTab
+  /** Het actieve tabblad; null als er een scherm buiten de onderbalk open staat (Meldingen). */
+  tab: AppTab | null
   tabPad: (tab: AppTab) => string
   merkNaam: string
   merkLogo: string | null
@@ -17,10 +18,12 @@ interface Props {
   tabsUit: readonly string[]
   /** Alleen bij Kane: met wie hij meekijkt. */
   voorvertoningNaam: string | null
+  /** Rechts in de kop, bijvoorbeeld de bel met meldingen. */
+  kopActie?: ReactNode
   children: ReactNode
 }
 
-export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, tabsUit, voorvertoningNaam, children }: Props) {
+export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, tabsUit, voorvertoningNaam, kopActie, children }: Props) {
   const tabs = APP_TABS.filter((t) => !tabsUit.includes(t.sleutel))
   return (
     <div className="club-mijn-scherm">
@@ -32,6 +35,7 @@ export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, ta
         )}
         <div className="club-mijn-merk">
           {fitFactory ? <FfLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} height={28} /> : <span>{merkNaam}</span>}
+          {kopActie}
         </div>
       </header>
       <main className="club-mijn-inhoud" id="lidapp-inhoud">

@@ -204,4 +204,12 @@ describe('inloggen', () => {
     const r = await kiesPin(req(`/api/club/inloggen/${CODE}/pin`, { pin: '482915' }), ctx({ code: CODE }))
     expect(await r.json()).toEqual({ staat: 'wacht', controle: '1234' })
   })
+  it('een zwakke pincode kiezen: 400 en er wordt niets opgeslagen', async () => {
+    opslag.kiesBeheerderPin.mockClear()
+    for (const pin of ['123456', '000000', '121212']) {
+      const r = await kiesPin(req(`/api/club/inloggen/${CODE}/pin`, { pin }), ctx({ code: CODE }))
+      expect(r.status).toBe(400)
+    }
+    expect(opslag.kiesBeheerderPin).not.toHaveBeenCalled()
+  })
 })

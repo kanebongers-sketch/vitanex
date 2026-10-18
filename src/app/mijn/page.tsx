@@ -29,12 +29,20 @@ import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { UitlogKnoppen } from '@/components/club/ledenlogin/UitlogKnoppen'
 import { InstalleerHulp } from '@/components/club/ledenapp-pwa/InstalleerHulp'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
+import { lidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
+import { haalVestigingContact } from '@/lib/club/ledenlogin/vestiging-contact'
+import { haalLedenappMeldingen } from '@/lib/club/meldingen/opslag'
+import { LedenappMeldingen } from '@/components/club/meldingen/LedenappMeldingen'
+import { MeldingenBel } from '@/components/club/ledenlogin/MeldingenBel'
+import { HulpSportschool } from '@/components/club/ledenlogin/HulpSportschool'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
 // schakelaar aan naar de inlogpagina, anders een gewone 404.
 // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag,
-// notities van trainers of gegevens van andere leden).
+// notities van trainers of gegevens van andere leden). Componenten krijgen een
+// slank LidVoorApp, nooit het volledige Lid.
+// ?tab=meldingen opent de meldingen (via de bel in de kop, niet in de onderbalk).
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +64,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const tabsUit = tabsUitVoor(org)
   const gekozen = kiesTab(zoek.tab)
   const tab: AppTab = tabsUit.includes(gekozen) ? 'home' : gekozen
+  const toonMeldingen = eerste(zoek.tab) === 'meldingen'
+  const appLid = lidVoorApp(lid)
+  const vestigingNaam = naamVan(l.vestigingen, lid.vestiging)
   // In de voorvertoning blijft het lid in elke link staan; voor een lid nooit.
   const tabPad = (nieuw: AppTab | string) => {
     const vraag = new URLSearchParams(l.voorvertoning ? { lid: lid.id } : {})
@@ -69,55 +80,78 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(admin, userId, lid.id, nu)) : null
   const challenges = tab === 'voortgang' ? await haalLedenappChallenges(admin, userId, lid, nu) : null
   const voedingPlan = tab === 'voeding' ? await haalPlan(admin, userId, lid.id) : undefined
+  // Meldingen voor de bel (aantal ongelezen) en het meldingenscherm; null bij een leesfout.
+  const meldingen = await haalLedenappMeldingen(admin, userId, lid.id)
+  const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
+  const contact = tab === 'profiel' && !toonMeldingen ? await haalVestigingContact(admin, userId, lid.vestiging, vestigingNaam) : null
 
   return (
     <LedenappSchil organisatie={org}>
       <LedenApiProvider voor={l.voorvertoning ? lid.id : null}>
         <LedenappScherm
-          tab={tab}
+          tab={toonMeldingen ? null : tab}
           tabPad={tabPad}
           merkNaam={org.naam}
           merkLogo={l.merk.logoUrl}
           fitFactory={org.logo === LOGO_FIT_FACTORY}
           tabsUit={tabsUit}
           voorvertoningNaam={l.voorvertoning ? volledigeNaam(lid) : null}
+          kopActie={<MeldingenBel href={tabPad('meldingen')} ongelezen={toonMeldingen ? 0 : ongelezen} open={toonMeldingen} />}
         >
           {data.meldingen.map((m) => (
             <p key={m} className="club-melding club-melding--fout club-mijn-blok" role="status">
               {m}
             </p>
           ))}
-          {tab === 'home' && (
+          {toonMeldingen && (
+            <div className="club-lidapp-tab">
+              <h2 className="club-lidapp-kop">Meldingen</h2>
+              {meldingen ? (
+                <LedenappMeldingen meldingen={meldingen} gelezenUrl={l.voorvertoning ? undefined : '/api/club/lid/meldingen/gelezen'} nu={nu.toISOString()} />
+              ) : (
+                <p className="club-melding club-melding--fout" role="alert">
+                  De meldingen konden niet worden geladen. Probeer het straks opnieuw.
+                </p>
+              )}
+            </div>
+          )}
+          {!toonMeldingen && tab === 'home' && (
             <>
               <div className="club-mijn-blok">
                 <SluitingenBinnenkort admin={admin} userId={userId} vestiging={lid.vestiging} variant="app" />
               </div>
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) }} berichten={berichten ?? []} />
+              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) }} berichten={berichten ?? []} />
             </>
           )}
-          {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
-          {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
-          {tab === 'voeding' && (
+          {!toonMeldingen && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
+          {!toonMeldingen && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {!toonMeldingen && tab === 'voeding' && (
             <div className="club-lidapp-tab">
               <LedenappVoeding plan={voedingPlan ? planVoorLid(voedingPlan) : null} />
             </div>
           )}
-          {tab === 'afspraken' && (
+          {!toonMeldingen && tab === 'afspraken' && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Afspraken</h2>
               <LedenappAfspraken lidId={lid.id} />
             </div>
           )}
-          {tab === 'voortgang' && voortgang && (
+          {!toonMeldingen && tab === 'voortgang' && voortgang && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Voortgang</h2>
               <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
               {challenges && <LedenappChallenges data={challenges} />}
             </div>
           )}
-          {tab === 'profiel' && (
+          {!toonMeldingen && tab === 'profiel' && (
             <>
-              <ProfielTab lid={lid} vestigingNaam={naamVan(l.vestigingen, lid.vestiging)} teksten={bedrijf?.teksten ?? null} sportschool={org.naam} />
+              <ProfielTab
+                lid={appLid}
+                vestigingNaam={vestigingNaam}
+                teksten={bedrijf?.teksten ?? null}
+                sportschool={org.naam}
+                hulp={contact ? <HulpSportschool contact={contact} /> : null}
+              />
               {!l.voorvertoning && (
                 <div className="club-mijn-blok">
                   <UitlogKnoppen />

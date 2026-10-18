@@ -10,6 +10,7 @@ import { isRateLimited } from '@/lib/utils/rate-limit'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { kiesBeheerderPin, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { isZwakkePin } from '@/lib/club/ledenlogin/pin-keuze'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,8 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (!organisatie || !(await hostPastBij(organisatie))) return clubFout('Niet gevonden.', 404)
   const pin = leesPin(await req.json().catch(() => null))
   if (!pin) return clubFout('Kies een pincode van precies 6 cijfers.', 400)
+  // Een beheerder ziet de hele sportschool: zeker geen pincode die iedereen als eerste probeert.
+  if (isZwakkePin(pin)) return clubFout('Deze pincode is te makkelijk te raden. Kies een andere.', 400)
 
   const uit = await kiesBeheerderPin(admin, b, pin, new Date())
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)
