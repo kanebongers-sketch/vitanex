@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
@@ -11,6 +12,8 @@ import { lidToegang } from '@/lib/club/ledenlogin/toegang'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { InlogKaart } from '@/components/club/ledenlogin/InlogKaart'
 import { LidInlogFormulier } from '@/components/club/ledenlogin/LidInlogFormulier'
+import { AANVRAAG_PAD } from '@/lib/club/app-uitnodigen/velden'
+import { leesSportschoolSleutel } from '@/lib/club/app-uitnodigen/regels'
 
 // /mijn/inloggen: opnieuw inloggen na een verlopen sessie of na uitloggen. Dit
 // toestel onthoudt de persoonlijke link (httpOnly-cookie), dus alleen de
@@ -35,7 +38,15 @@ function adminOfNull(): SupabaseClient | null {
   }
 }
 
-export default async function MijnInloggen() {
+type Zoek = Promise<Record<string, string | string[] | undefined>>
+
+/** Naar de aanvraagpagina, met de sportschool erbij als die in de vraag stond. */
+function aanvraagHref(s: unknown): string {
+  const sleutel = leesSportschoolSleutel(s)
+  return sleutel ? `${AANVRAAG_PAD}?s=${encodeURIComponent(sleutel.waarde)}` : AANVRAAG_PAD
+}
+
+export default async function MijnInloggen({ searchParams }: { searchParams: Zoek }) {
   if (!CLUB_LEDEN_LOGIN) notFound()
   if (await lidToegang(null)) redirect('/mijn')
   const admin = adminOfNull()
@@ -51,8 +62,10 @@ export default async function MijnInloggen() {
           fitFactory={false}
           boven="Ledenapp"
           kop="Inloggen"
-          uitleg="Open de persoonlijke link of scan de QR-code die je van je sportschool kreeg. Werkt je link niet meer? Vraag aan de balie om een nieuwe."
-        />
+          uitleg="Open de persoonlijke link of scan de QR-code die je van je sportschool kreeg. Werkt je link niet meer? Vraag hem opnieuw aan of vraag het aan de balie."
+        >
+          <Link href={aanvraagHref((await searchParams).s)} className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed">Nog geen link? Vraag hem aan</Link>
+        </InlogKaart>
       </LedenappSchil>
     )
   }

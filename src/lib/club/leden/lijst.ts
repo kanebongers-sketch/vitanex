@@ -15,6 +15,8 @@ export interface LedenRij {
   bezoeken30: number
   /** Alleen voor leden die horen te komen (actief, proef); anders null. */
   behoud: Behoud | null
+  /** Gebruikt de ledenapp: een actieve link met een gekozen pincode. */
+  heeftApp: boolean
 }
 
 export const SORTEER_SLEUTELS = ['naam', 'lidnummer', 'status', 'abonnement', 'bezoek', 'bezoeken', 'behoud'] as const
@@ -28,13 +30,18 @@ export interface LijstParams {
   /** Een medewerker-id, 'geen' (zonder coach) of null (alle). */
   coach: string | null
   risico: boolean
+  /** 'ja' = heeft de app, 'nee' = nog niet, null = alle. */
+  app: AppFilter | null
   sort: SorteerSleutel
   oplopend: boolean
   pagina: number
 }
 
+export const APP_FILTERS = ['ja', 'nee'] as const
+export type AppFilter = (typeof APP_FILTERS)[number]
+
 export const STANDAARD_PARAMS: LijstParams = {
-  q: '', status: null, abonnement: null, tag: null, coach: null, risico: false, sort: 'naam', oplopend: true, pagina: 1,
+  q: '', status: null, abonnement: null, tag: null, coach: null, risico: false, app: null, sort: 'naam', oplopend: true, pagina: 1,
 }
 
 type RuweParams = Record<string, string | string[] | undefined>
@@ -58,6 +65,7 @@ export function leesLijstParams(ruw: RuweParams): LijstParams {
   const sortRuw = een(ruw.sort)
   const sortSleutel = sortRuw.replace(/^-/, '')
   const pagina = Number.parseInt(een(ruw.p), 10)
+  const app = APP_FILTERS.find((a) => a === een(ruw.app)) ?? null
   return {
     q: een(ruw.q),
     status: isStatus(status) ? status : null,
@@ -65,6 +73,7 @@ export function leesLijstParams(ruw: RuweParams): LijstParams {
     tag: een(ruw.tag) || null,
     coach: een(ruw.coach) || null,
     risico: een(ruw.risico) === '1',
+    app,
     sort: isSorteerSleutel(sortSleutel) ? sortSleutel : 'naam',
     oplopend: !sortRuw.startsWith('-'),
     pagina: Number.isFinite(pagina) && pagina > 0 ? Math.min(pagina, 10_000) : 1,
@@ -81,6 +90,7 @@ export function lijstZoek(p: LijstParams, wijziging: Partial<LijstParams> = {}):
   if (n.tag) uit.tag = n.tag
   if (n.coach) uit.coach = n.coach
   if (n.risico) uit.risico = '1'
+  if (n.app) uit.app = n.app
   if (n.sort !== 'naam' || !n.oplopend) uit.sort = `${n.oplopend ? '' : '-'}${n.sort}`
   if (n.pagina > 1) uit.p = String(n.pagina)
   return uit
@@ -90,6 +100,7 @@ export function lijstZoek(p: LijstParams, wijziging: Partial<LijstParams> = {}):
  * Een rij per lid, met laatste bezoek, bezoeken in 30 dagen en behoud.
  * `bezoeken`: check-ins van de laatste 12 weken in alle vestigingen.
  * `eerder`: het laatste bezoek van voor die 12 weken, voor leden zonder recent bezoek.
+ * `metApp`: de leden die de ledenapp gebruiken.
  */
 export function bouwRijen(
   leden: readonly Lid[],
@@ -97,13 +108,14 @@ export function bouwRijen(
   noShows: ReadonlyMap<string, number>,
   nu: Date,
   eerder: ReadonlyMap<string, Date> = new Map(),
+  metApp: ReadonlySet<string> = new Set(),
 ): LedenRij[] {
   return leden.map((lid) => {
     const eigen = bezoeken.get(lid.id) ?? []
     const recent = eigen.reduce<Date | null>((max, b) => (!max || b > max ? b : max), null)
     const dagen30 = new Set(eigen.filter((b) => { const d = dagenGeleden(b, nu); return d >= 0 && d < 30 }).map(dagSleutel))
     const behoud = behoudVoorLid(lid, eigen, noShows.get(lid.id) ?? 0, nu)
-    return { lid, laatsteBezoek: recent ?? eerder.get(lid.id) ?? null, bezoeken30: dagen30.size, behoud }
+    return { lid, laatsteBezoek: recent ?? eerder.get(lid.id) ?? null, bezoeken30: dagen30.size, behoud, heeftApp: metApp.has(lid.id) }
   })
 }
 
@@ -113,13 +125,14 @@ function zoekTekst(lid: Lid): string {
 
 export function filterRijen(rijen: readonly LedenRij[], p: LijstParams): LedenRij[] {
   const termen = p.q.toLowerCase().split(/\s+/).filter(Boolean)
-  return rijen.filter(({ lid, behoud }) => {
+  return rijen.filter(({ lid, behoud, heeftApp }) => {
     if (p.status && lid.status !== p.status) return false
     if (p.abonnement && lid.abonnement !== p.abonnement) return false
     if (p.tag && !lid.tags.includes(p.tag)) return false
     if (p.coach === 'geen' && lid.coachId) return false
     if (p.coach && p.coach !== 'geen' && lid.coachId !== p.coach) return false
     if (p.risico && behoud?.label !== 'risico') return false
+    if (p.app && heeftApp !== (p.app === 'ja')) return false
     if (termen.length) {
       const tekst = zoekTekst(lid)
       if (!termen.every((t) => tekst.includes(t))) return false
@@ -193,7 +206,7 @@ export const SORTEER_KEUZES: readonly { sort: SorteerSleutel; oplopend: boolean;
 ]
 
 export function heeftFilter(p: LijstParams): boolean {
-  return Boolean(p.q || p.status || p.abonnement || p.tag || p.coach || p.risico)
+  return Boolean(p.q || p.status || p.abonnement || p.tag || p.coach || p.risico || p.app)
 }
 
 export interface LedenTellingen {

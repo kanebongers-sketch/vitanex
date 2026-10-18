@@ -63,6 +63,8 @@ export interface BronStand {
 
 /** Hoe lang een directe melding mag blijven liggen voordat hij niet meer zinvol is. */
 export const MAX_VERTRAGING_MS = 48 * 3_600_000
+/** Een zelf aangevraagde inloglink: na twee uur is hij niet meer verwacht (het lid vraagt gerust opnieuw). */
+export const MAX_VERTRAGING_LINK_MS = 2 * 3_600_000
 
 /**
  * Klopt de melding nog? Een herinnering alleen als de boeking nog staat, de
@@ -70,7 +72,7 @@ export const MAX_VERTRAGING_MS = 48 * 3_600_000
  * alleen als hij niet te lang is blijven liggen.
  */
 export function nogGeldig(soort: Soort, rij: { geplandOp: string; bronStart: string | null }, bron: BronStand | null, nu: Date): boolean {
-  if (!isHerinnering(soort)) return nu.getTime() - Date.parse(rij.geplandOp) <= MAX_VERTRAGING_MS
+  if (!isHerinnering(soort)) return nu.getTime() - Date.parse(rij.geplandOp) <= (soort === 'app_link' ? MAX_VERTRAGING_LINK_MS : MAX_VERTRAGING_MS)
   if (!bron || !rij.bronStart) return false
   const start = Date.parse(bron.start)
   if (Number.isNaN(start) || start <= nu.getTime() || start !== Date.parse(rij.bronStart)) return false

@@ -10,7 +10,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { mailBeslissing, nogGeldig, volgendePoging, type MailOmgeving } from './beleid'
 import { afmeldUrl, haalContext, haalWachtrij, logoVoorMail, zorgVoorToken, type Context, type WachtrijRij } from './context'
 import { mailHtml, platteTekst } from './mail-html'
-import { isHerinnering } from './soorten'
+import { isAppSoort, isHerinnering } from './soorten'
+import { ledenappLinkVoorMail } from '@/lib/club/app-uitnodigen/link-voor-mail'
+import { KNOP_LABEL } from '@/lib/club/app-uitnodigen/regels'
 
 export interface Mail {
   aan: string
@@ -80,24 +82,33 @@ async function ruimVastgelopenOp(admin: SupabaseClient, nu: Date): Promise<void>
   if (error) console.error('[club-meldingen] vastgelopen rijen opruimen mislukt', error.message)
 }
 
-async function bouwMail(admin: SupabaseClient, rij: WachtrijRij, ctx: Context, aan: string): Promise<Mail | null> {
+async function bouwMail(admin: SupabaseClient, rij: WachtrijRij, ctx: Context, aan: string, knop: MailKnop): Promise<Mail | null> {
   const org = ctx.orgs.get(rij.userId)
   if (!org) return null
   const herinnering = isHerinnering(rij.soort)
   const token = herinnering ? (ctx.voorkeuren.get(`${rij.userId}:${rij.lidId}`)?.token ?? (await zorgVoorToken(admin, rij.userId, rij.lidId))) : null
   const afmelden = token ? afmeldUrl(token) : null
-  const inhoud = { tekst: rij.inhoud, knop: null, afmeldUrl: afmelden }
+  const inhoud = { tekst: rij.inhoud, knop, afmeldUrl: afmelden }
   const huisstijl = { naam: org.naam, logoUrl: await logoVoorMail(admin, org.logo), accent: org.accent, donker: org.donker }
   const headers: Record<string, string> = afmelden ? { 'List-Unsubscribe': `<${afmelden}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}
   return { aan, onderwerp: rij.onderwerp, tekst: platteTekst(inhoud), html: mailHtml(huisstijl, inhoud), headers }
 }
 
 type Uitkomst = 'verstuurd' | 'inApp' | 'overgeslagen' | 'mislukt' | 'later'
+type MailKnop = { label: string; url: string } | null
+
+/** Mails rond de ledenapp krijgen de persoonlijke link als knop, pas nu gemaakt. */
+async function knopVoor(admin: SupabaseClient, rij: WachtrijRij, nu: Date): Promise<{ knop: MailKnop } | { reden: string }> {
+  if (!isAppSoort(rij.soort)) return { knop: null }
+  const link = await ledenappLinkVoorMail(admin, rij.userId, rij.lidId, nu)
+  return link.ok ? { knop: { label: KNOP_LABEL, url: link.url } } : { reden: link.reden }
+}
 
 async function verwerkMail(admin: SupabaseClient, rij: WachtrijRij, ctx: Context, deps: VerstuurDeps, nu: Date): Promise<Uitkomst> {
   const lid = ctx.leden.get(rij.lidId)
   const org = ctx.orgs.get(rij.userId)
-  const voorkeur = ctx.voorkeuren.get(`${rij.userId}:${rij.lidId}`) ?? null
+  // Een zelf aangevraagde link gaat ook naar wie zich voor andere mails afmeldde.
+  const voorkeur = rij.soort === 'app_link' ? null : (ctx.voorkeuren.get(`${rij.userId}:${rij.lidId}`) ?? null)
   const besluit = mailBeslissing(
     rij.soort,
     { organisatieId: rij.userId, organisatieDemo: org?.demo ?? true, lidDemo: lid?.demo ?? true, rijDemo: rij.demo, email: lid?.email ?? null, voorkeur },
@@ -107,7 +118,12 @@ async function verwerkMail(admin: SupabaseClient, rij: WachtrijRij, ctx: Context
     await zet(admin, rij.id, { status: 'overgeslagen', reden: besluit.reden })
     return 'overgeslagen'
   }
-  const mail = await bouwMail(admin, rij, ctx, besluit.email)
+  const knop = await knopVoor(admin, rij, nu)
+  if ('reden' in knop) {
+    await zet(admin, rij.id, { status: 'overgeslagen', reden: knop.reden })
+    return 'overgeslagen'
+  }
+  const mail = await bouwMail(admin, rij, ctx, besluit.email, knop.knop)
   if (!mail) {
     await zet(admin, rij.id, { status: 'overgeslagen', reden: 'Sportschool niet gevonden' })
     return 'overgeslagen'

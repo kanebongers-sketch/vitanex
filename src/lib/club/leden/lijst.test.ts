@@ -140,3 +140,22 @@ describe('heeftFilter en SORTEER_KEUZES', () => {
     expect(SORTEER_KEUZES[0]).toMatchObject({ sort: STANDAARD_PARAMS.sort, oplopend: STANDAARD_PARAMS.oplopend })
   })
 })
+
+describe('heeft de app', () => {
+  const rijen = bouwRijen(LEDEN, BEZOEK, new Map(), NU, new Map(), new Set(['1', '3']))
+
+  it('markeert wie de ledenapp gebruikt', () => {
+    expect(rijen.map((r) => r.heeftApp)).toEqual([true, false, true, false])
+    expect(RIJEN.every((r) => !r.heeftApp)).toBe(true)
+  })
+
+  it('filtert op wel of geen app, via de URL', () => {
+    const ja = leesLijstParams({ app: 'ja' })
+    expect(ja.app).toBe('ja')
+    expect(heeftFilter(ja)).toBe(true)
+    expect(filterRijen(rijen, ja).map((r) => r.lid.id)).toEqual(['1', '3'])
+    expect(filterRijen(rijen, { ...ja, app: 'nee' }).map((r) => r.lid.id)).toEqual(['2', '4'])
+    expect(lijstZoek(ja)).toEqual({ app: 'ja' })
+    expect(leesLijstParams({ app: 'misschien' }).app).toBeNull()
+  })
+})

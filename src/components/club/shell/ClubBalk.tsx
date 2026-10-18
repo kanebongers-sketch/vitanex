@@ -171,7 +171,7 @@ export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
           ) : (
             <UitlogKnop />
           )}
-          <button type="button" className="club-knop club-knop--klein club-menuknop" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+          <button type="button" className="club-knop club-knop--klein club-menuknop" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
             <Menu aria-hidden size={18} />
             Menu
           </button>

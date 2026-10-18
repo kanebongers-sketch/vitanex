@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
-import { heeftFilter as metFilter, lijstZoek, SORTEER_KEUZES, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
+import { APP_FILTERS, heeftFilter as metFilter, lijstZoek, SORTEER_KEUZES, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
 
 // Zoeken en filteren boven de ledenlijst. Alles gaat via de URL, zodat terug,
 // vooruit en delen werken. "/" zet de cursor in het zoekveld.
@@ -110,6 +110,14 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
             <option value="">Alle coaches</option>
             <option value="geen">Zonder coach</option>
             {coaches.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+          </select>
+        </label>
+        <label className="club-leden-filter">
+          <span className="club-sr">Ledenapp</span>
+          <select className="club-invoer" value={params.app ?? ''} onChange={(e) => ga({ app: APP_FILTERS.find((f) => f === e.target.value) ?? null })}>
+            <option value="">App: iedereen</option>
+            <option value="ja">Heeft de app</option>
+            <option value="nee">Nog geen app</option>
           </select>
         </label>
         <label className="club-leden-filter club-leden-sorteerkeuze">

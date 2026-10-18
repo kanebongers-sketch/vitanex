@@ -16,6 +16,14 @@
 .club-leden-tegel-getal { font-family: var(--ff-kop); font-size: clamp(40px, 4.2vw, 64px); line-height: 0.95; font-weight: 700; letter-spacing: -0.01em; }
 .club-leden-tegel--risico .club-leden-tegel-getal { color: var(--club-let-op); }
 .club-leden-tegel--risico::before { background: var(--club-let-op); }
+.club-leden-tegel:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+/* Telefoon: compacter, risico als brede strook met het getal rechts. */
+@media (max-width: 699px) {
+  .club-leden-tegel { padding: 12px 14px; }
+  .club-leden-tegel-getal { font-size: 36px; }
+  .club-leden-tegel--risico:last-child:nth-child(odd) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
+  .club-leden-tegel--risico:last-child:nth-child(odd) .club-leden-tegel-getal { grid-column: 2; grid-row: 1 / span 2; }
+}
 
 /* ── Zoeken en filters ────────────────────────────────────────────────────── */
 .club-leden-filters { display: grid; gap: 10px; transition: opacity 160ms var(--ease); }
@@ -25,6 +33,7 @@
 .club-leden-zoek .club-invoer { padding-left: 44px; padding-right: 44px; }
 .club-leden-kbd { position: absolute; right: 12px; min-width: 22px; padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--text-3); font: 600 12px/1.4 var(--ff-inter), system-ui, sans-serif; text-align: center; }
 .club-leden-zoek:focus-within .club-leden-kbd { opacity: 0; }
+@media (hover: none) { .club-leden-kbd { display: none; } }
 .club-leden-filterrij { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .club-leden-filter { flex: 1 1 160px; max-width: 240px; }
 .club-leden-filter .club-invoer { min-height: 38px; font-size: 14px; }
@@ -44,8 +53,15 @@
 .club-leden-getalkolom .club-leden-sorteer { justify-content: flex-end; }
 .club-leden-rij { cursor: pointer; }
 .club-leden-rij td { padding-top: 9px; padding-bottom: 9px; }
-.club-leden-naamcel { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 300px; }
-.club-leden-abonnement { color: var(--text-2); white-space: nowrap; }
+/* Hover en toetsenbord: de rij licht op en krijgt links een streep in de merkkleur. */
+.club-leden-rij > td:first-child { box-shadow: inset 0 0 0 transparent; transition: box-shadow 160ms var(--ease); }
+.club-leden-rij:hover > td:first-child, .club-leden-rij:focus-within > td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+.club-leden-rij:focus-within { background: var(--club-vlak-hover); }
+.club-leden-rij:hover .club-avatar, .club-leden-rij:focus-within .club-avatar { background: var(--brand); color: var(--brand-inkt); }
+.club-leden-rij .club-avatar { transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+.club-leden-naamcel { display: flex; align-items: center; gap: 12px; min-width: 220px; max-width: 300px; }
+.club-leden-abonnement { color: var(--text-2); min-width: 120px; max-width: 220px; line-height: 1.35; }
+.club-leden-cel-bezoek { white-space: nowrap; }
 .club-leden-nooit { display: grid; gap: 1px; }
 .club-leden-nooit .club-zacht { font-size: 12.5px; }
 .club-leden-leeg { display: grid; justify-items: center; gap: 12px; }
@@ -59,15 +75,21 @@
   .club-leden-tabel { min-width: 0; }
   .club-leden-tabel thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .club-leden-tabel tbody { display: block; }
-  .club-leden-rij { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 14px; border-bottom: 1px solid var(--line); }
+  /* Kaart: naam met de status rechtsboven, dan drie korte feiten naast elkaar, dan het behoud. */
+  .club-leden-rij { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 12px; padding: 16px 14px 14px; border-bottom: 1px solid var(--line); }
   .club-leden-rij:last-child { border-bottom: 0; }
-  .club-leden-rij td { display: grid; gap: 3px; align-content: start; padding: 0; border: 0; text-align: left; }
+  .club-leden-rij td { display: grid; gap: 3px; align-content: start; padding: 0; border: 0; text-align: left; font-size: 13.5px; }
   .club-leden-rij td[data-label]::before { content: attr(data-label); font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+  .club-leden-rij td[data-kort]::before { content: attr(data-kort); }
   .club-leden-rij .club-leden-cel-naam, .club-leden-rij .club-leden-cel-behoud { grid-column: 1 / -1; }
+  .club-leden-rij .club-leden-cel-naam { padding-right: 104px; }
+  .club-leden-rij .club-leden-cel-status { position: absolute; top: 18px; right: 14px; }
+  .club-leden-rij .club-leden-cel-status::before, .club-leden-rij .club-leden-cel-behoud::before { display: none; }
+  .club-leden-rij .club-leden-cel-behoud { padding-top: 10px; border-top: 1px solid var(--line); }
   .club-leden-rij .club-leden-cel-nummer { display: none; }
   .club-leden-rij .club-chip { justify-self: start; }
-  .club-leden-naamcel { max-width: none; }
-  .club-leden-abonnement { white-space: normal; }
+  .club-leden-naamcel { min-width: 0; max-width: none; }
+  .club-leden-abonnement, .club-leden-cel-bezoek { white-space: normal; max-width: none; }
   .club-leden-behoud { min-width: 0; max-width: none; }
 }
 
@@ -91,6 +113,13 @@
 .club-leden-kop-hoofd { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; }
 .club-leden-kop-avatar { width: 76px; height: 76px; font-size: 30px; box-shadow: 0 0 0 1px var(--line-strong), 0 0 0 6px var(--bg-app), 0 0 0 7px var(--line); }
 .club-leden-kop-naam { flex: 1 1 280px; min-width: 0; }
+/* Telefoon: avatar klein naast de naam, geen eigen regel. */
+@media (max-width: 599px) {
+  .club-leden-kop-hoofd { align-items: flex-start; gap: 14px; }
+  .club-leden-kop-avatar { width: 52px; height: 52px; font-size: 21px; margin-top: 4px; box-shadow: 0 0 0 1px var(--line-strong), 0 0 0 4px var(--bg-app), 0 0 0 5px var(--line); }
+  .club-leden-kop-naam { flex-basis: 0; }
+  .club-leden-kop-acties { flex-basis: 100%; }
+}
 .club-leden-kop-naam h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(36px, 5vw, 64px); line-height: 0.92; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
 .club-leden-kop-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .club-leden-kop-acties { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -103,7 +132,9 @@
 
 /* Springlinks alleen als de kolommen onder elkaar staan; niet sticky, zodat ze
    nooit over de inhoud schuiven. */
-.club-leden-secties { width: fit-content; }
+.club-leden-secties { width: fit-content; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.club-leden-secties::-webkit-scrollbar { display: none; }
+.club-leden-secties a { flex: none; }
 @media (min-width: 1000px) { .club-leden-secties { display: none; } }
 .club-leden-kolom { display: grid; gap: 16px; align-content: start; }
 .club-leden-tweekolom { display: grid; gap: 16px; }
@@ -193,3 +224,8 @@
 @media (prefers-reduced-motion: reduce) {
   .club-leden-tegel::before, .club-leden-filters { transition: none; }
 }
+
+/* ── Heeft de app ─────────────────────────────────────────────────────────── */
+.club-leden-naamregel { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.club-leden-appchip { flex: none; padding: 1px 8px; font-size: 11px; letter-spacing: 0.04em; }
+.club-leden-kopknoppen { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }

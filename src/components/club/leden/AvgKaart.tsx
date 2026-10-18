@@ -77,7 +77,7 @@ export function AvgKaart({ lidId, voornaam, achternaam, magVerwijderen, verzoekT
 
       <p className="club-hint">Een lid mag altijd vragen welke gegevens de sportschool bewaart. Het bestand bevat alles uit Club, ook metingen en intake.</p>
       <div className="club-avg-knoppen">
-        <a className="club-knop club-knop--primair" href={`${basis}/gegevens`} download>
+        <a className="club-knop" href={`${basis}/gegevens`} download>
           <Download size={16} aria-hidden /> Gegevens van dit lid downloaden
         </a>
         <a className="club-knop club-knop--stil" href={`${basis}/gegevens?vorm=tekst`} download>

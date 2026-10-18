@@ -13,9 +13,11 @@
 @media (min-width: 900px) { .club-vandaag-hero { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
 .club-vandaag-nu { position: relative; display: grid; align-content: end; gap: 4px; padding: 22px 24px 24px; min-height: 220px; background: radial-gradient(120% 90% at 0% 100%, var(--brand-soft) 0%, transparent 62%), var(--bg-card); border-bottom: 1px solid var(--line); }
 @media (min-width: 900px) { .club-vandaag-nu { border-bottom: 0; border-right: 1px solid var(--line); } }
-.club-vandaag-nu::before { content: ''; position: absolute; top: 24px; left: 24px; width: 10px; height: 10px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 0 var(--brand-glow); animation: club-vandaag-hartslag 2.4s var(--ease) infinite; }
-@keyframes club-vandaag-hartslag { 0% { transform: scale(1); opacity: 1; } 60% { transform: scale(1.6); opacity: 0.35; } 100% { transform: scale(1); opacity: 1; } }
-.club-vandaag-label { font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-vandaag-label { position: relative; display: inline-flex; align-items: center; gap: 10px; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+/* Live-stip: een vaste kern met een zachte ring die uitdijt (alleen transform en opacity). */
+.club-vandaag-label::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 4px var(--brand-soft); }
+.club-vandaag-label::after { content: ''; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 999px; background: var(--brand); opacity: 0; animation: club-vandaag-hartslag 2.4s var(--ease) infinite; }
+@keyframes club-vandaag-hartslag { 0% { transform: scale(1); opacity: 0.55; } 70%, 100% { transform: scale(3); opacity: 0; } }
 .club-vandaag-reus { font-family: var(--ff-kop); font-weight: 700; line-height: 0.82; font-size: clamp(96px, 13vw, 176px); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .club-vandaag-nu-sub { font-size: 13px; color: var(--text-3); }
 
@@ -34,8 +36,14 @@
 @media (min-width: 700px) and (max-width: 999px) {
   .club-raster.club-vandaag-raster > .club-k5, .club-raster.club-vandaag-raster > .club-k7 { grid-column: span 6; }
 }
+/* De stapel rechts vult de rij; links (lessen, risico) eindigt een kaart waar de
+   inhoud eindigt, zodat er geen lege vlakken in een kaart staan. */
 .club-vandaag-raster > div { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.club-vandaag-raster > div > :last-child { flex: 1 1 auto; }
+.club-vandaag-raster > .club-k5 > :last-child { flex: 1 1 auto; }
+@media (min-width: 1000px) and (min-height: 860px) {
+  /* Blijft in beeld terwijl je de stapel rechts leest; een lange dag scrolt binnen de kaart. */
+  .club-vandaag-lessen { position: sticky; top: 124px; max-height: calc(100dvh - 148px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
 .club-vandaag-kaart { display: flex; flex-direction: column; min-width: 0; }
 .club-vandaag-sectiekop { flex-wrap: wrap; row-gap: 4px; }
 .club-vandaag-telling { margin-left: 6px; color: var(--club-let-op); }
@@ -113,7 +121,7 @@
 .club-vandaag-eerder summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; border: 1px dashed var(--line-strong); border-radius: 999px; font-size: 13px; color: var(--text-3); list-style: none; transition: color 160ms var(--ease), border-color 160ms var(--ease); }
 .club-vandaag-eerder summary::-webkit-details-marker { display: none; }
 .club-vandaag-eerder summary::before { content: '+'; margin-right: 6px; font-weight: 700; }
-.club-vandaag-eerder details[open] summary::before { content: '2'; }
+.club-vandaag-eerder details[open] summary::before { content: '\2212'; }
 .club-vandaag-eerder summary:hover { color: var(--text-1); border-color: var(--text-3); }
 .club-vandaag-eerder summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
@@ -128,7 +136,6 @@
 @media (max-width: 480px) {
   .club-vandaag-feit { padding: 14px 16px; }
   .club-vandaag-nu { padding: 18px 16px 20px; min-height: 180px; }
-  .club-vandaag-nu::before { left: 16px; top: 18px; }
   .club-vandaag-les { grid-template-columns: 48px 18px minmax(0, 1fr); gap: 0 8px; }
   .club-vandaag-les::before { left: 64px; }
   .club-vandaag-lestijd { font-size: 19px; }
@@ -136,7 +143,14 @@
   .club-vandaag-gezichten { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Binnenkomst: de blokken komen rustig na elkaar binnen. */
+.club-vandaag-hero, .club-vandaag-raster > div { animation: club-vandaag-in 420ms var(--ease) both; }
+.club-vandaag-raster > div:nth-child(1) { animation-delay: 60ms; }
+.club-vandaag-raster > div:nth-child(2) { animation-delay: 110ms; }
+.club-vandaag-raster > div:nth-child(n + 3) { animation-delay: 160ms; }
+@keyframes club-vandaag-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .club-vandaag-nu::before { animation: none; }
+  .club-vandaag-label::after, .club-vandaag-hero, .club-vandaag-raster > div { animation: none; }
   .club-vandaag-balk span { transition: none; }
 }

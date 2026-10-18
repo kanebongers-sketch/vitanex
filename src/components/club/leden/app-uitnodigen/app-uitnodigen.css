@@ -1,0 +1,40 @@
+/* ─── Club, leden: uitnodigen voor de ledenapp ──────────────────────────────
+   Een rustig venster boven de ledenlijst. Alleen .club-appuit-*; tokens uit
+   club.css. Grote condensed cijfers voor wat er gaat gebeuren. */
+
+.club-appuit { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--line-strong); border-radius: var(--club-radius); background: var(--bg-card); color: var(--text-1); box-shadow: var(--club-schaduw); overflow: auto; }
+.club-appuit[open] { animation: club-appuit-in 220ms var(--ease) both; }
+.club-appuit::backdrop { background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(3px); }
+@keyframes club-appuit-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .club-appuit[open] { animation: none; } }
+
+.club-appuit-kop { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 22px 24px 0; }
+.club-appuit-kop h2 { margin: 2px 0 0; font-size: 28px; line-height: 1; }
+.club-appuit-sluit { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--text-2); cursor: pointer; transition: color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-appuit-sluit:hover { color: var(--text-1); border-color: var(--text-3); }
+.club-appuit-sluit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-appuit-uitleg { margin: 12px 24px 0; color: var(--text-2); font-size: 14.5px; line-height: 1.55; }
+
+.club-appuit-groep { margin: 20px 24px 0; padding: 0; border: 0; }
+.club-appuit-groep legend { margin-bottom: 8px; color: var(--text-3); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.club-appuit-keuzes { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-appuit-keuze { position: relative; display: inline-flex; align-items: center; min-height: 38px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text-2); font-size: 14px; cursor: pointer; transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
+.club-appuit-keuze input { position: absolute; opacity: 0; pointer-events: none; }
+.club-appuit-keuze:hover { color: var(--text-1); }
+.club-appuit-keuze[data-aan] { color: var(--text-1); border-color: color-mix(in srgb, var(--brand) 70%, transparent); background: color-mix(in srgb, var(--brand) 14%, transparent); }
+.club-appuit-keuze:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.club-appuit-schakel { display: flex; align-items: center; gap: 10px; margin: 16px 24px 0; font-size: 14.5px; cursor: pointer; }
+.club-appuit-schakel input { width: 18px; height: 18px; accent-color: var(--brand); }
+
+.club-appuit-uitkomst { display: grid; gap: 12px; margin: 20px 24px 0; padding: 18px; border-radius: var(--club-radius); background: var(--club-vlak); transition: opacity 160ms var(--ease); }
+.club-appuit-uitkomst[data-laden] { opacity: 0.6; }
+.club-appuit-uitkomst .club-hint, .club-appuit-uitkomst .club-melding { margin: 0; }
+.club-appuit-telling { display: grid; gap: 6px; margin: 0; }
+.club-appuit-telling > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; color: var(--text-2); }
+.club-appuit-telling dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--text-1); }
+.club-appuit-telling .club-appuit-hoofd { padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line); color: var(--text-1); }
+.club-appuit-telling .club-appuit-hoofd dd { font-family: var(--ff-kop); font-size: 44px; line-height: 0.95; font-weight: 700; color: var(--brand); }
+
+.club-appuit-voet { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 20px 24px 24px; }
+@media (max-width: 480px) { .club-appuit-voet > * { flex: 1 1 100%; justify-content: center; } }

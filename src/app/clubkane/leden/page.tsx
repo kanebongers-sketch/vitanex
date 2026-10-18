@@ -11,6 +11,8 @@ import { filterKeuzes, filterRijen, heeftFilter, leesLijstParams, pagineer, sort
 import { LedenTegels } from '@/components/club/leden/LedenTegels'
 import { LedenFilters } from '@/components/club/leden/LedenFilters'
 import { LedenTabel } from '@/components/club/leden/LedenTabel'
+import { UitnodigApp } from '@/components/club/leden/app-uitnodigen/UitnodigApp'
+import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Leden' }
@@ -30,7 +32,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   if (!rijen) {
     return (
       <>
-        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} />
+        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} vestigingen={t.vestigingen} />
         <p className="club-melding club-melding--fout" role="alert">De leden konden niet worden geladen. Ververs de pagina of probeer het zo nog eens.</p>
       </>
     )
@@ -40,7 +42,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   const keuzes = filterKeuzes(rijen)
   return (
     <>
-      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} />
+      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} vestigingen={t.vestigingen} />
       <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
@@ -54,7 +56,14 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   )
 }
 
-function LedenKop({ vestiging, naam, totaal }: { vestiging: Vestiging; naam: string; totaal: number | null }) {
+interface LedenKopProps {
+  vestiging: Vestiging
+  naam: string
+  totaal: number | null
+  vestigingen: readonly VestigingInfo[]
+}
+
+function LedenKop({ vestiging, naam, totaal, vestigingen }: LedenKopProps) {
   return (
     <header className="club-paginakop">
       <div>
@@ -64,9 +73,12 @@ function LedenKop({ vestiging, naam, totaal }: { vestiging: Vestiging; naam: str
           {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in Sportivity.
         </p>
       </div>
-      <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
-        <Upload size={16} aria-hidden /> Ledenbestand inlezen
-      </Link>
+      <div className="club-leden-kopknoppen">
+        <UitnodigApp vestigingen={vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} huidig={vestiging} posterHref={clubPad('/leden/app-poster', vestiging)} />
+        <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
+          <Upload size={16} aria-hidden /> Ledenbestand inlezen
+        </Link>
+      </div>
     </header>
   )
 }

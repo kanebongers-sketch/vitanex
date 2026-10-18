@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowUpCircle, BellOff, BellRing, CalendarCheck, CalendarClock, CalendarX, Hourglass } from 'lucide-react'
+import { ArrowUpCircle, BellOff, Smartphone, BellRing, CalendarCheck, CalendarClock, CalendarX, Hourglass } from 'lucide-react'
 import { geledenLabel, type LedenappMelding } from '@/lib/club/meldingen/model'
 import type { Soort } from '@/lib/club/meldingen/soorten'
 import { LegeStaat } from '@/components/club/app/LegeStaat'
@@ -34,6 +34,8 @@ const ICOON: Record<Soort, { Icoon: typeof BellRing; toon: Toon }> = {
   afspraak_herinnering: { Icoon: BellRing, toon: 'info' },
   afspraak_afgemeld: { Icoon: CalendarX, toon: 'info' },
   afspraak_geannuleerd: { Icoon: CalendarX, toon: 'let' },
+  app_uitnodiging: { Icoon: Smartphone, toon: 'info' },
+  app_link: { Icoon: Smartphone, toon: 'info' },
 }
 
 export function LedenappMeldingen({ meldingen, gelezenUrl, nu }: LedenappMeldingenProps) {

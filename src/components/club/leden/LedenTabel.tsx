@@ -75,16 +75,19 @@ function Rij({ rij, vestiging, nu }: { rij: LedenRij; vestiging: Vestiging; nu: 
         <div className="club-leden-naamcel">
           <span className="club-avatar" aria-hidden>{initialen(lid)}</span>
           <span className="club-rij-hoofd">
-            <Link href={href} className="club-rij-titel">{volledigeNaam(lid)}</Link>
+            <span className="club-leden-naamregel">
+              <Link href={href} className="club-rij-titel">{volledigeNaam(lid)}</Link>
+              {rij.heeftApp ? <span className="club-chip club-chip--ok club-leden-appchip" title="Gebruikt de ledenapp">App</span> : null}
+            </span>
             <span className="club-rij-sub">{lid.tags.length ? lid.tags.join(' · ') : (lid.email ?? '')}</span>
           </span>
         </div>
       </td>
       <td className="club-getal club-zacht club-leden-cel-nummer" data-label="Lidnummer">{lid.lidnummer ?? 'Onbekend'}</td>
-      <td data-label="Status"><span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span></td>
+      <td className="club-leden-cel-status" data-label="Status"><span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span></td>
       <td className="club-leden-abonnement" data-label="Abonnement">{lid.abonnement ?? <span className="club-zacht">Onbekend</span>}</td>
-      <td data-label="Laatste bezoek"><LaatsteBezoek rij={rij} nu={nu} /></td>
-      <td className="club-getal club-leden-getalkolom" data-label="Bezoeken 30 dagen">{rij.bezoeken30}</td>
+      <td className="club-leden-cel-bezoek" data-label="Laatste bezoek"><LaatsteBezoek rij={rij} nu={nu} /></td>
+      <td className="club-getal club-leden-getalkolom" data-label="Bezoeken 30 dagen" data-kort="30 dagen">{rij.bezoeken30}</td>
       <td className="club-leden-cel-behoud" data-label="Behoud">
         <Behoudsignaal behoud={rij.behoud} geenTekst={lid.status === 'opgezegd' ? 'Opgezegd: geen score' : 'Geen score: geen bezoek verwacht'} />
       </td>
@@ -109,7 +112,14 @@ function Paginering({ pagina, params, vestiging }: Pick<LedenTabelProps, 'pagina
 }
 
 function Leeg({ params, vestiging, gefilterd }: Pick<LedenTabelProps, 'params' | 'vestiging' | 'gefilterd'>) {
-  if (!gefilterd) return <p className="club-leeg">Er staan nog geen leden in deze vestiging.</p>
+  if (!gefilterd) {
+    return (
+      <div className="club-leeg club-leden-leeg" role="status">
+        <p>Er staan nog geen leden in deze vestiging. Lees een export uit Sportivity of Excel in om te beginnen.</p>
+        <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop club-knop--klein">Ledenbestand inlezen</Link>
+      </div>
+    )
+  }
   const wis = clubPad('/leden', vestiging, lijstZoek({ ...STANDAARD_PARAMS, sort: params.sort, oplopend: params.oplopend }))
   return (
     <div className="club-leeg club-leden-leeg" role="status">

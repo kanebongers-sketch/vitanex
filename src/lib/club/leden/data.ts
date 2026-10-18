@@ -11,6 +11,7 @@ import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { NO_SHOW_DAGEN, VENSTER_DAGEN } from './behoud'
 import { bouwRijen, type LedenRij } from './lijst'
 import { checkinUitRij, reserveringUitRij } from './rijen'
+import { haalLedenMetApp } from '@/lib/club/app-uitnodigen/met-app'
 
 const BLOK = 1000
 const MAX_RIJEN = 50_000
@@ -109,14 +110,16 @@ async function haalEerdereBezoeken(admin: SupabaseClient, userId: string, ids: s
 /** Alle ledenrijen van een vestiging, of null als iets niet te lezen was. */
 export async function haalLedenRijen(admin: SupabaseClient, userId: string, v: Vestiging, nu: Date): Promise<LedenRij[] | null> {
   const vensterStart = new Date(nu.getTime() - (VENSTER_DAGEN + 1) * MS_DAG)
-  const [leden, bezoeken, noShows] = await Promise.all([
+  const [leden, bezoeken, noShows, metApp] = await Promise.all([
     haalLedenVanVestiging(admin, userId, v),
     haalBezoeken(admin, userId, v, vensterStart),
     haalNoShows(admin, userId, v, new Date(nu.getTime() - NO_SHOW_DAGEN * MS_DAG), nu),
+    haalLedenMetApp(admin, userId),
   ])
   if (!leden || !bezoeken || !noShows) return null
   const zonderRecent = leden.filter((l) => !bezoeken.has(l.id)).map((l) => l.id)
   const eerder = await haalEerdereBezoeken(admin, userId, zonderRecent, vensterStart)
   if (!eerder) return null
-  return bouwRijen(leden, bezoeken, noShows, nu, eerder)
+  // Wie de app heeft is extra informatie: lukt dat lezen niet (gelogd), dan toont de lijst niemand met app.
+  return bouwRijen(leden, bezoeken, noShows, nu, eerder, metApp ?? new Set())
 }

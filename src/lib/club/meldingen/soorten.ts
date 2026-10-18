@@ -16,7 +16,11 @@ export const SOORTEN = [
   'afspraak_afgemeld',
   'afspraak_geannuleerd',
 ] as const
-export type Soort = (typeof SOORTEN)[number]
+/** Mails rond de ledenapp (migratie 435): geen gebeurtenis, alleen per mail. */
+export const APP_SOORTEN = ['app_uitnodiging', 'app_link'] as const
+export type GebeurtenisSoort = (typeof SOORTEN)[number]
+export type AppSoort = (typeof APP_SOORTEN)[number]
+export type Soort = GebeurtenisSoort | AppSoort
 export type LesSoort = Extract<Soort, `les_${string}`>
 export type AfspraakSoort = Extract<Soort, `afspraak_${string}`>
 
@@ -38,13 +42,23 @@ export const SOORT_LABEL: Record<Soort, { label: string; uitleg: string }> = {
   afspraak_herinnering: { label: 'Herinnering voor de afspraak', uitleg: 'Een tijd voor de afspraak begint.' },
   afspraak_afgemeld: { label: 'Annulering door het lid bevestigd', uitleg: 'Als het lid de afspraak zelf annuleert in de app.' },
   afspraak_geannuleerd: { label: 'Afspraak gaat niet door', uitleg: 'Als de club de afspraak annuleert.' },
+  app_uitnodiging: { label: 'Uitnodiging voor de app', uitleg: 'Als de club leden uitnodigt voor de ledenapp.' },
+  app_link: { label: 'Inloglink aangevraagd', uitleg: 'Als een lid zelf een inloglink aanvraagt.' },
 }
 
 export const SOORTEN_LES: readonly Soort[] = SOORTEN.filter((s) => s.startsWith('les_'))
 export const SOORTEN_AFSPRAAK: readonly Soort[] = SOORTEN.filter((s) => s.startsWith('afspraak_'))
 
 export function isSoort(v: unknown): v is Soort {
+  return isGebeurtenisSoort(v) || isAppSoort(v)
+}
+
+export function isGebeurtenisSoort(v: unknown): v is GebeurtenisSoort {
   return typeof v === 'string' && (SOORTEN as readonly string[]).includes(v)
+}
+
+export function isAppSoort(v: unknown): v is AppSoort {
+  return typeof v === 'string' && (APP_SOORTEN as readonly string[]).includes(v)
 }
 
 export function isHerinnering(soort: Soort): boolean {
@@ -84,7 +98,7 @@ function binnen(v: unknown, keuzes: readonly number[]): number | null {
 export function instellingenUitRij(rij: unknown): MeldingInstellingen {
   if (typeof rij !== 'object' || rij === null) return STANDAARD_INSTELLINGEN
   const r = rij as Record<string, unknown>
-  const uit = Array.isArray(r.uit) ? [...new Set(r.uit.filter(isSoort))] : []
+  const uit = Array.isArray(r.uit) ? [...new Set(r.uit.filter(isGebeurtenisSoort))] : []
   const lesMin = typeof r.les_herinnering_min === 'number' && r.les_herinnering_min >= 15 ? r.les_herinnering_min : STANDAARD_LES_MIN
   const afsMin = typeof r.afspraak_herinnering_min === 'number' && r.afspraak_herinnering_min >= 15 ? r.afspraak_herinnering_min : STANDAARD_AFSPRAAK_MIN
   return { uit, lesHerinneringMin: lesMin, afspraakHerinneringMin: afsMin }
@@ -100,7 +114,7 @@ export type Invoer<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 export function leesInstellingenInvoer(body: unknown): Invoer<MeldingInstellingen> {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return { ok: false, fout: 'Onleesbare invoer.' }
   const b = body as Record<string, unknown>
-  if (!Array.isArray(b.uit) || b.uit.length > SOORTEN.length || !b.uit.every(isSoort)) return { ok: false, fout: 'Kies geldige meldingen.' }
+  if (!Array.isArray(b.uit) || b.uit.length > SOORTEN.length || !b.uit.every(isGebeurtenisSoort)) return { ok: false, fout: 'Kies geldige meldingen.' }
   const les = binnen(b.lesHerinneringMin, LES_HERINNER_KEUZES)
   if (les === null) return { ok: false, fout: 'Kies een geldige herinnertijd voor lessen.' }
   const afspraak = binnen(b.afspraakHerinneringMin, AFSPRAAK_HERINNER_KEUZES)

@@ -46,6 +46,19 @@ interface Props {
 
 type Doel = { lid: UitkomstLid } | { qr: string }
 
+/** Leeg baliescherm: rustig, groot en duidelijk wat je kunt doen. */
+function Wachtstand() {
+  return (
+    <div className="club-checkin-wacht">
+      <span className="club-checkin-wacht-icoon" aria-hidden>
+        <ScanLine size={30} />
+      </span>
+      <p className="club-checkin-wacht-titel">Klaar voor het volgende lid</p>
+      <p className="club-checkin-wacht-tekst">Scan de QR-code uit de app of een bandje, of typ een naam of lidnummer.</p>
+    </div>
+  )
+}
+
 function foutUit(data: unknown): string | null {
   return typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
 }
@@ -225,10 +238,11 @@ export function CheckinBalie({ vestiging, methode }: Props) {
       {methode !== 'balie' && <BalieCamera startOpen={methode === 'qr'} pauze={bezig} onCode={cameraScan} />}
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
       {afgerond ? (
-        <Uitkomst lid={afgerond.lid} antwoord={afgerond.antwoord} bezig={bezig} onToch={() => void inchecken({ lid: afgerond.lid }, afgerond.bron, true)} onNiet={wis} />
+        <Uitkomst key={`${afgerond.lid.id}-${afgerond.antwoord.soort}`} lid={afgerond.lid} antwoord={afgerond.antwoord} bezig={bezig} duurMs={UITKOMST_MS} onToch={() => void inchecken({ lid: afgerond.lid }, afgerond.bron, true)} onNiet={wis} />
       ) : null}
       {lijstOpen ? <Resultaten id="checkin-resultaten" leden={leden} gekozen={gekozen} onKies={(i) => { setGekozen(i); veld.current?.focus() }} /> : null}
       {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken({ lid }, resultaat?.exact ? resultaat.bron : 'balie', lid.vormWaarschuwing !== null)} /> : null}
+      {!query && !afgerond && !fout && methode !== 'qr' ? <Wachtstand /> : null}
       {resultaat && resultaat.query === query.trim() && !leden.length ? (
         <p className="club-leeg">Niemand gevonden voor &ldquo;{resultaat.query}&rdquo;. Controleer de spelling of zoek op lidnummer.</p>
       ) : null}

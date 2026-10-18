@@ -118,6 +118,11 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
       ) : null}
       <div className="club-raster">
         <div className="club-k8 club-leden-kolom" id="overzicht">
+          {/* Eerst de hoofdzaak: hoe staat dit lid ervoor (behoud) en wanneer was het er. */}
+          <div className="club-leden-tweekolom">
+            <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
+            <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
+          </div>
           <section className="club-kaart" aria-labelledby="patroon-kop">
             <div className="club-sectiekop">
               <h2 id="patroon-kop">Bezoekpatroon</h2>
@@ -125,10 +130,6 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             </div>
             <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
           </section>
-          <div className="club-leden-tweekolom">
-            <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
-            <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
-          </div>
           <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
           <AfsprakenVanLid lidId={kaart.lid.id} vestiging={kaart.lid.vestiging} />
           <div id="voortgang">

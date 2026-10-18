@@ -82,6 +82,12 @@ export default async function BeheerPagina() {
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },
   ]
 
+  const abonnement: InstellingRegel[] = [
+    { titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Pakket, status en facturen', href: '/clubkane/beheer/abonnement', uit: !(t.isKane || t.rol === 'eigenaar') },
+    { titel: 'Hulp en support', uitleg: 'Handleidingen per onderdeel en een vraag of probleem melden.', stand: 'Handleidingen', href: '/clubkane/hulp' },
+  ]
+  const teDoen = [...sportschool, ...locaties].filter((r) => r.let && !r.uit).map((r) => r.titel)
+
   return (
     <>
       <BeheerKop
@@ -90,6 +96,8 @@ export default async function BeheerPagina() {
         adres={org.slug ? adresVan(org.slug) : null}
         kleur={org.kleurAccent}
         modules={MODULES.filter((m) => !org.uit.includes(m)).map((m) => MODULE_LABEL[m].label)}
+        teDoen={teDoen}
+        magNieuw={t.isKane}
       />
       <div className="club-beheer-groepen">
         <InstellingenGroep titel="Sportschool" regels={sportschool} />
@@ -98,13 +106,7 @@ export default async function BeheerPagina() {
         <InstellingenGroep titel="Planning" regels={planning} />
         <InstellingenGroep titel="Training" regels={training} />
         <InstellingenGroep titel="Leden" regels={ledenRegels} />
-        <InstellingenGroep
-          titel="Abonnement"
-          regels={[
-            { titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Pakket, status en facturen', href: '/clubkane/beheer/abonnement', uit: !(t.isKane || t.rol === 'eigenaar') },
-            { titel: 'Hulp en support', uitleg: 'Handleidingen per onderdeel en een vraag of probleem melden.', stand: 'Handleidingen', href: '/clubkane/hulp' },
-          ]}
-        />
+        <InstellingenGroep titel="Abonnement" regels={abonnement} />
       </div>
     </>
   )

@@ -68,3 +68,21 @@ describe('volgendePoging', () => {
     expect(volgendePoging(2, nu).status).toBe('mislukt')
   })
 })
+
+describe('mails rond de ledenapp', () => {
+  const nu = new Date('2026-10-18T12:00:00Z')
+  const rij = (uurGeleden: number) => ({ geplandOp: new Date(nu.getTime() - uurGeleden * 3_600_000).toISOString(), bronStart: null })
+
+  it('een aangevraagde link geldt twee uur, een uitnodiging twee dagen', () => {
+    expect(nogGeldig('app_link', rij(1), null, nu)).toBe(true)
+    expect(nogGeldig('app_link', rij(3), null, nu)).toBe(false)
+    expect(nogGeldig('app_uitnodiging', rij(30), null, nu)).toBe(true)
+    expect(nogGeldig('app_uitnodiging', rij(49), null, nu)).toBe(false)
+  })
+
+  it('volgt het beleid: nooit naar demo of zonder schakelaar', () => {
+    expect(mailBeslissing('app_uitnodiging', lid, AAN)).toEqual({ ok: true, email: 'sanne@gmail.com' })
+    expect(mailBeslissing('app_uitnodiging', { ...lid, lidDemo: true }, AAN).ok).toBe(false)
+    expect(mailBeslissing('app_link', lid, { actief: false, ingesteld: true }).ok).toBe(false)
+  })
+})

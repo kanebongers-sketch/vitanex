@@ -81,7 +81,7 @@ interface LidKaartProps {
 
 export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
   return (
-    <article className={`club-checkin-kaart ${lid.magTrainen ? 'club-checkin-kaart--mag' : 'club-checkin-kaart--niet'}`} aria-live="polite">
+    <article className={`club-checkin-kaart ${!lid.magTrainen ? 'club-checkin-kaart--niet' : lid.vormWaarschuwing ? 'club-checkin-kaart--let' : 'club-checkin-kaart--mag'}`} aria-live="polite">
       <div className="club-checkin-kaart-kop">
         <span className="club-avatar club-avatar--groot" aria-hidden>{lid.initialen}</span>
         <div className="club-checkin-kaart-naam">
@@ -117,9 +117,17 @@ interface UitkomstProps {
   /** Bij een waarschuwing van het lidmaatschap: toch inchecken of laten. */
   onToch: () => void
   onNiet: () => void
+  /** Zo lang blijft de uitkomst staan; een dunne balk telt af. Leeg = geen balk. */
+  duurMs?: number
 }
 
-export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps) {
+/** De balk onderaan die laat zien dat de uitkomst zo verdwijnt (alleen transform). */
+function Aftellen({ duurMs }: { duurMs?: number }) {
+  if (!duurMs) return null
+  return <span className="club-checkin-aftellen" style={{ animationDuration: `${duurMs}ms` }} aria-hidden />
+}
+
+export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: UitkomstProps) {
   if (antwoord.soort === 'vorm_waarschuwing') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--let-op" role="alert">
@@ -143,6 +151,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps
         <p className="club-checkin-uitkomst-woord">Niet actief</p>
         <h2>{lid.naam}</h2>
         <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt: verwijs naar Sportivity voor het abonnement.</p>
+        <Aftellen duurMs={duurMs} />
       </article>
     )
   }
@@ -152,6 +161,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps
         <p className="club-checkin-uitkomst-woord">Geen toegang</p>
         <h2>{lid.naam}</h2>
         <p>Lid van {antwoord.vestigingLabel}: niet ingecheckt. Alleen leden van Eersel sporten bij alle clubs; andere leden overal behalve Eersel.</p>
+        <Aftellen duurMs={duurMs} />
       </article>
     )
   }
@@ -161,6 +171,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps
         <p className="club-checkin-uitkomst-woord">Al binnen</p>
         <h2>{lid.naam}</h2>
         <p>Ingecheckt om {tijd(antwoord.op)}. Deze keer telt niet opnieuw mee.</p>
+        <Aftellen duurMs={duurMs} />
       </article>
     )
   }
@@ -173,6 +184,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet }: UitkomstProps
         {lid.andereVestiging ? ` Lid van ${lid.vestigingLabel}.` : ''}
         {antwoord.les ? ` Aanwezig gezet bij ${antwoord.les.naam} van ${tijd(antwoord.les.start)}.` : lid.les ? ` Vandaag ${lid.les.naam} om ${tijd(lid.les.start)}.` : ''}
       </p>
+      <Aftellen duurMs={duurMs} />
     </article>
   )
 }
