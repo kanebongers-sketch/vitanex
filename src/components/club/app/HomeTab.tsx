@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarCheck, Flame, QrCode } from 'lucide-react'
+import { CalendarCheck, Flame } from 'lucide-react'
 import type { Lid } from '@/lib/club/kern/lid'
 import type { LidAppData } from '@/lib/club/app/data'
 import { dagNaamKort, groet } from '@/lib/club/app/regels'
@@ -8,16 +8,17 @@ import { dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import type { LedenappInstellingen } from '@/lib/club/kern/org-instellingen'
 import type { Bericht } from '@/lib/club/berichten/model'
 import { LedenappBerichten } from '@/components/club/berichten/LedenappBerichten'
+import { CheckinQr } from './CheckinQr'
 
 // Home in de ledenapp: begroeting, de volgende geboekte les, bezoek en reeks,
-// en de check-in QR-code (alleen het token, nooit naam of lidnummer).
+// en de check-in QR-code (wisselt elke 30 seconden, zie CheckinQr).
 
 interface Props {
   lid: Lid
   data: LidAppData
   nu: Date
   tabPad: (tab: string) => string
-  /** Wat de sportschool heeft ingesteld voor de app (welkom, tabbladen, QR). */
+  /** Wat de sportschool heeft ingesteld voor de app (welkom, tabbladen, QR). QR alleen als de check-in methode QR toelaat. */
   instellingen: LedenappInstellingen
   /** Nieuws en acties van de sportschool voor dit lid. */
   berichten: readonly Bericht[]
@@ -81,19 +82,7 @@ export function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }: Prop
         </Link>
       )}
 
-      {instellingen.qr && (
-        <section className="club-lidapp-qr" aria-labelledby="lidapp-qr">
-          <h3 id="lidapp-qr">
-            <QrCode aria-hidden size={16} /> Inchecken
-          </h3>
-          {data.qrBron ? (
-            <img src={data.qrBron} alt="Jouw persoonlijke check-in code" width={168} height={168} />
-          ) : (
-            <p className="club-lidapp-leeg">De code kon niet worden gemaakt.</p>
-          )}
-          <p>Houd je telefoon bij de scanner bij de ingang.</p>
-        </section>
-      )}
+      {instellingen.qr && <CheckinQr lidId={lid.id} />}
     </div>
   )
 }

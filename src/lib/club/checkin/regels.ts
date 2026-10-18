@@ -136,3 +136,23 @@ export function leesCheckinInvoer(body: unknown): CheckinInvoer | null {
   const bron = BRONNEN.find((b) => b === o.bron) ?? 'balie'
   return { lidId: o.lidId, vestiging: o.vestiging, bron, toch: o.toch === true }
 }
+
+export interface QrCheckinInvoer {
+  /** De gescande code uit de ledenapp; de server controleert hem. */
+  qr: string
+  vestiging: string
+  toch: boolean
+}
+
+/** Langer dan dit is nooit een check-in code (zie qr-formaat.ts). */
+const QR_INVOER_MAX = 200
+
+/** Systeemgrens: een check-in met de QR-code uit de app ({ qr, vestiging, toch? }). */
+export function leesQrCheckinInvoer(body: unknown): QrCheckinInvoer | null {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return null
+  const o = body as Record<string, unknown>
+  if (typeof o.qr !== 'string' || typeof o.vestiging !== 'string') return null
+  const qr = o.qr.trim()
+  if (!qr || qr.length > QR_INVOER_MAX) return null
+  return { qr, vestiging: o.vestiging, toch: o.toch === true }
+}

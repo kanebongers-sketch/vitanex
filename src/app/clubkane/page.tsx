@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { redirect } from 'next/navigation'
+import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
@@ -17,7 +18,10 @@ import { perDag } from '@/lib/club/agenda/model'
 import { haalKladblok } from '@/lib/club/kladblok/data'
 import { overdrachtVoorVandaag } from '@/lib/club/kladblok/model'
 import { maandagVan } from '@/lib/club/rooster/tijd'
-import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { magBeheerdersBeheren, magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { moetNaarWizard } from '@/lib/club/start/stappen'
+import { haalStart } from '@/lib/club/start/opslag'
+import { StartKaart } from '@/components/club/start/StartKaart'
 import { beperkVandaag } from '@/lib/club/beheerders/vandaag-filter'
 import '@/components/club/vandaag/vandaag.css'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
@@ -30,10 +34,25 @@ import '@/components/club/automatisering/automatisering.css'
 
 export const metadata: Metadata = { title: 'Vandaag' }
 
+/** Een nieuwe sportschool (geen voortgang in de startwizard) gaat eerst naar de wizard; Fit Factory en een demo nooit. */
+async function naarStartwizard(t: ClubToegang): Promise<boolean> {
+  if (!magBeheerdersBeheren(t) || t.organisatie.demo || t.organisatie.id === t.beheerderId) return false
+  const start = await haalStart(t)
+  return start.ok && moetNaarWizard(t.organisatie, t.beheerderId, start.voortgang)
+}
+
 export default async function ClubVandaag({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
+  if (await naarStartwizard(t)) redirect('/clubkane/start')
   const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
-  if (!vestiging) return <GeenVestigingen />
+  if (!vestiging) {
+    return (
+      <>
+        <StartKaart t={t} vestiging={null} />
+        <GeenVestigingen />
+      </>
+    )
+  }
   const mag = (onderdeel: string) => magOnderdeel(t.onderdelen, onderdeel)
   const data = beperkVandaag(await haalVandaag(t.admin, t.userId, vestiging), mag)
   // Agenda en overdracht naast de rest; een fout hier breekt het scherm niet (null = melding in het blok).
@@ -58,6 +77,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           Stand van <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
         </p>
       </header>
+
+      <StartKaart t={t} vestiging={vestiging} />
 
       <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={vestiging} />
 

@@ -56,7 +56,7 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
         ) : (
           <li>Inloggen opent na de lancering. Dan kies je via deze link een pincode van 6 cijfers en zetten wij hem aan zodra je ons de controlecode noemt.</li>
         )}
-        <li>In je portaal stel je alles zelf in: huisstijl, vestigingen, medewerkers, rechten en lessen.</li>
+        <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestigingen, lessen, team en leden neer. Elke stap kun je overslaan en later afmaken.</li>
       </ol>
     </>
   )

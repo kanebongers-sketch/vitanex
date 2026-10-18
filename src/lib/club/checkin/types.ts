@@ -69,3 +69,36 @@ export function isCheckinAntwoord(v: unknown): v is CheckinAntwoord {
   if (v.soort === 'vorm_waarschuwing') return typeof v.reden === 'string'
   return v.soort === 'niet_actief' && typeof v.statusLabel === 'string'
 }
+
+/** Antwoord van GET /api/club/lid/checkin-code: de wisselende QR-code, of waarom er geen is. */
+export type CheckinCodeAntwoord =
+  | { soort: 'code'; beeld: string; naam: string; vakSec: number; vernieuwOverMs: number }
+  | { soort: 'uit'; melding: string }
+
+export function isCheckinCodeAntwoord(v: unknown): v is CheckinCodeAntwoord {
+  if (!isObject(v)) return false
+  if (v.soort === 'uit') return typeof v.melding === 'string'
+  return v.soort === 'code' && typeof v.beeld === 'string' && v.beeld.startsWith('data:image/') && typeof v.naam === 'string'
+    && typeof v.vakSec === 'number' && typeof v.vernieuwOverMs === 'number'
+}
+
+/** Wie er met de QR-code incheckte (voor het scherm; de voornaam voor de kiosk). */
+export interface QrLid {
+  id: string
+  naam: string
+  voornaam: string
+  andereVestiging: boolean
+  vestigingLabel: string
+}
+
+/** Antwoord van POST /api/club/checkin met { qr }: de uitkomst plus het lid uit de code. */
+export type QrCheckinAntwoord = CheckinAntwoord & { lid: QrLid }
+
+function isQrLid(v: unknown): v is QrLid {
+  return isObject(v) && typeof v.id === 'string' && typeof v.naam === 'string' && typeof v.voornaam === 'string'
+    && typeof v.andereVestiging === 'boolean' && typeof v.vestigingLabel === 'string'
+}
+
+export function isQrCheckinAntwoord(v: unknown): v is QrCheckinAntwoord {
+  return isObject(v) && isQrLid(v.lid) && isCheckinAntwoord(v)
+}

@@ -35,6 +35,8 @@ export interface LedenappRoutes {
   challenge(id: string, lidId: string): Verzoek
   /** Coaching van oefeningen (?naam= of ?kern=...). */
   coaching(zoek: URLSearchParams): string
+  /** De wisselende check-in QR-code (Home). */
+  checkinCode(lidId: string): string
 }
 
 const deel = encodeURIComponent
@@ -51,6 +53,8 @@ export const BEHEER_ROUTES: LedenappRoutes = {
   afspraakAnnuleren: (id, lidId) => ({ url: `/api/club/afspraken/app/${deel(id)}/annuleren`, body: { lidId } }),
   challenge: (id, lidId) => ({ url: `/api/club/challenges/${deel(id)}/deelnemers`, body: { lidId } }),
   coaching: (zoek) => `/api/club/training/coaching?${zoek}`,
+  // Alleen Kane kan in de voorvertoning een echte code zien (zie vereisLidToegang).
+  checkinCode: (lidId) => `/api/club/lid/checkin-code?voor=${deel(lidId)}`,
 }
 
 /** Voegt ?voor=<id> toe (alleen bij Kane in de voorvertoning van /mijn). */
@@ -73,5 +77,6 @@ export function ledenRoutes(voor: string | null = null): LedenappRoutes {
     afspraakAnnuleren: (id) => ({ url: u(`/afspraken/${deel(id)}/annuleren`), body: {} }),
     challenge: (id) => ({ url: u(`/challenges/${deel(id)}`), body: {} }),
     coaching: (zoek) => u(`/coaching?${zoek}`),
+    checkinCode: () => u('/checkin-code'),
   }
 }

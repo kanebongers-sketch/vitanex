@@ -6,6 +6,7 @@ import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
+import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { AppUitleg } from '@/components/club/app/AppUitleg'
 import { HomeTab } from '@/components/club/app/HomeTab'
 import { LessenTab } from '@/components/club/app/LessenTab'
@@ -115,7 +116,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'home' && (
             <>
               <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit }} berichten={berichten ?? []} />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) }} berichten={berichten ?? []} />
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}

@@ -48,6 +48,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'voeding', pad: '/voeding', label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid', groep: 'coaching' },
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
   { sleutel: 'rapporten', pad: '/rapporten', label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren', groep: 'beheer' },
+  { sleutel: 'start', pad: '/start', label: 'Start', uitleg: 'Je sportschool in een kwartier inrichten', groep: 'beheer' },
   { sleutel: 'beheer', pad: '/beheer', label: 'Instellingencentrum', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer' },
   { sleutel: 'bedrijf', pad: '/beheer/bedrijf', label: 'Bedrijf en huisregels', uitleg: 'KvK, btw, contact en de teksten voor je leden', groep: 'beheer' },
   { sleutel: 'lidmaatschappen', pad: '/beheer/lidmaatschappen', label: 'Lidmaatschappen', uitleg: 'Vormen uit Sportivity met hun toegang, en labels voor leden', groep: 'beheer' },

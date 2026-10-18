@@ -5,6 +5,7 @@ import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { naamVan } from '@/lib/club/kern/vestigingen'
 import { volledigeNaam } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
+import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
@@ -91,7 +92,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               <div className="club-mijn-blok">
                 <SluitingenBinnenkort admin={admin} userId={userId} vestiging={lid.vestiging} variant="app" />
               </div>
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit }} berichten={berichten ?? []} />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) }} berichten={berichten ?? []} />
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}

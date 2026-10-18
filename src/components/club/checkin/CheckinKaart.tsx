@@ -1,5 +1,5 @@
 import { CircleCheck, CircleAlert, Clock3, MapPin, TriangleAlert } from 'lucide-react'
-import type { BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
+import type { BalieLes, BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
 
 // De grote kaarten van het baliescherm: het gevonden lid (met Inchecken) en
 // de uitkomst na het inchecken. Gemaakt om vanaf een meter afstand te lezen.
@@ -101,8 +101,17 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
   )
 }
 
+/** Genoeg van een lid voor de uitkomst: uit het zoeken (BalieLid) of uit een QR-scan. */
+export interface UitkomstLid {
+  id: string
+  naam: string
+  andereVestiging: boolean
+  vestigingLabel: string
+  les?: BalieLes | null
+}
+
 interface UitkomstProps {
-  lid: BalieLid
+  lid: UitkomstLid
   antwoord: CheckinAntwoord
   bezig: boolean
   /** Bij een waarschuwing van het lidmaatschap: toch inchecken of laten. */

@@ -8,15 +8,17 @@ describe('ledenapp-routes', () => {
     const r = ledenRoutes()
     const alles = JSON.stringify([
       r.lesBoeken('les', LID), r.trainingAfvinken(LID, 'schema', 2), r.afspraken(LID), r.sloten(LID, { type: 't', datum: '2026-10-20', medewerker: '' }),
-      r.afspraakBoeken(LID, { typeId: 't', medewerkerId: null, datum: '2026-10-20', tijd: '10:00' }), r.afspraakAnnuleren('a', LID), r.challenge('c', LID),
+      r.afspraakBoeken(LID, { typeId: 't', medewerkerId: null, datum: '2026-10-20', tijd: '10:00' }), r.afspraakAnnuleren('a', LID), r.challenge('c', LID), r.checkinCode(LID),
     ])
     expect(alles).not.toContain(LID)
     expect(r.lesBoeken('les', LID)).toEqual({ url: '/api/club/lid/reserveringen', body: { lesId: 'les' } })
     expect(r.coaching(new URLSearchParams({ naam: 'Back squat' }))).toBe('/api/club/lid/coaching?naam=Back+squat')
+    expect(r.checkinCode(LID)).toBe('/api/club/lid/checkin-code')
   })
   it('in de voorvertoning van Kane krijgt elke URL ?voor=', () => {
     const r = ledenRoutes(LID)
     expect(r.afspraken(LID)).toBe(`/api/club/lid/afspraken?voor=${LID}`)
+    expect(r.checkinCode(LID)).toBe(`/api/club/lid/checkin-code?voor=${LID}`)
     expect(r.sloten(LID, { type: 't', datum: 'd', medewerker: '' })).toBe(`/api/club/lid/afspraken/sloten?type=t&datum=d&medewerker=&voor=${LID}`)
   })
   it('de voorvertoning in Club houdt de beheerder-routes', () => {

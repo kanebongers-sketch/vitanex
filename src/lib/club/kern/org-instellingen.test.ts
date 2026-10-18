@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { leesOrgInstellingenInvoer, orgInstellingenNaarJson, orgInstellingenUitRij, standaardRechten, STANDAARD_LEDENAPP } from './org-instellingen'
+import { leesOrgInstellingenInvoer, orgInstellingenNaarJson, orgInstellingenUitRij, qrCheckinAan, standaardRechten, STANDAARD_CHECKIN, STANDAARD_LEDENAPP } from './org-instellingen'
 
 const ONDERDELEN = ['vandaag', 'checkin', 'leden', 'berichten', 'schemas', 'voeding', 'rooster', 'afspraken', 'leads', 'personeel', 'taken', 'opvolgen', 'challenges', 'cijfers', 'instellingen']
 
 describe('instellingen van een sportschool', () => {
   it('geeft de standaard bij een lege of kapotte rij', () => {
-    expect(orgInstellingenUitRij({}, ONDERDELEN)).toEqual({ ledenapp: STANDAARD_LEDENAPP, rechten: standaardRechten() })
+    expect(orgInstellingenUitRij({}, ONDERDELEN)).toEqual({ ledenapp: STANDAARD_LEDENAPP, rechten: standaardRechten(), checkin: STANDAARD_CHECKIN })
+    expect(STANDAARD_CHECKIN.methode).toBe('beide')
     expect(orgInstellingenUitRij('x', ONDERDELEN).ledenapp.qr).toBe(true)
   })
 
@@ -31,6 +32,22 @@ describe('instellingen van een sportschool', () => {
     expect(leesOrgInstellingenInvoer({ rechten: { trainer: ['kassa'] } }, huidig, ONDERDELEN).ok).toBe(false)
     const rechten = leesOrgInstellingenInvoer({ rechten: { trainer: ['leden', 'leden', 'checkin'] } }, huidig, ONDERDELEN)
     expect(rechten.ok && rechten.waarde.rechten.trainer).toEqual(['leden', 'checkin'])
+  })
+})
+
+describe('check-in methode', () => {
+  it('leest, bewaart en valideert de methode', () => {
+    expect(orgInstellingenUitRij({ checkin: { methode: 'qr' } }, ONDERDELEN).checkin).toEqual({ methode: 'qr' })
+    expect(orgInstellingenUitRij({ checkin: { methode: 'kaart' } }, ONDERDELEN).checkin).toEqual(STANDAARD_CHECKIN)
+    const i = orgInstellingenUitRij({ checkin: { methode: 'balie' } }, ONDERDELEN)
+    expect(orgInstellingenUitRij(orgInstellingenNaarJson(i), ONDERDELEN)).toEqual(i)
+    const huidig = orgInstellingenUitRij({}, ONDERDELEN)
+    const goed = leesOrgInstellingenInvoer({ checkin: { methode: 'qr' } }, huidig, ONDERDELEN)
+    expect(goed.ok && goed.waarde.checkin).toEqual({ methode: 'qr' })
+    expect(goed.ok && goed.waarde.ledenapp).toEqual(huidig.ledenapp)
+    expect(leesOrgInstellingenInvoer({ checkin: { methode: 'gezicht' } }, huidig, ONDERDELEN).ok).toBe(false)
+    expect(qrCheckinAan({ methode: 'balie' })).toBe(false)
+    expect(qrCheckinAan({ methode: 'beide' })).toBe(true)
   })
 })
 

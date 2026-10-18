@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckinRij, LidReservering } from '@/lib/club/leden/rijen'
 import { isCheckinAntwoord, isZoekAntwoord } from './types'
-import { beoordeelCheckin, bronVoorMatch, isCode, isDubbel, leesCheckinInvoer, leesVenster, lesInVenster, lesVandaag, magInVestiging, vatDagSamen } from './regels'
+import { beoordeelCheckin, bronVoorMatch, isCode, isDubbel, leesCheckinInvoer, leesQrCheckinInvoer, leesVenster, lesInVenster, lesVandaag, magInVestiging, vatDagSamen } from './regels'
 
 const NU = new Date('2026-10-14T18:50:00+02:00')
 const MIN = 60_000
@@ -156,5 +156,20 @@ describe('magInVestiging (regel van fitfactory.nl)', () => {
   it('isCheckinAntwoord kent de waarschuwing van het lidmaatschap', () => {
     expect(isCheckinAntwoord({ soort: 'vorm_waarschuwing', reden: 'Buiten de daluren.' })).toBe(true)
     expect(isCheckinAntwoord({ soort: 'vorm_waarschuwing' })).toBe(false)
+  })
+})
+
+describe('leesQrCheckinInvoer', () => {
+  it('leest een scan en laat een lidId links liggen', () => {
+    expect(leesQrCheckinInvoer({ qr: ' FFC1.abc ', vestiging: 'budel', lidId: 'x' })).toEqual({ qr: 'FFC1.abc', vestiging: 'budel', toch: false })
+    expect(leesQrCheckinInvoer({ qr: 'FFC1.abc', vestiging: 'budel', toch: true })?.toch).toBe(true)
+  })
+
+  it('weigert onzin', () => {
+    expect(leesQrCheckinInvoer({ qr: '', vestiging: 'budel' })).toBeNull()
+    expect(leesQrCheckinInvoer({ qr: 'x'.repeat(201), vestiging: 'budel' })).toBeNull()
+    expect(leesQrCheckinInvoer({ qr: 5, vestiging: 'budel' })).toBeNull()
+    expect(leesQrCheckinInvoer({ qr: 'FFC1.abc' })).toBeNull()
+    expect(leesQrCheckinInvoer([])).toBeNull()
   })
 })

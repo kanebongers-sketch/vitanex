@@ -70,8 +70,19 @@
 .club-lidapp-duo span { font-size: 13.5px; color: var(--text-2); }
 .club-lidapp-qr { display: grid; justify-items: center; gap: 10px; padding: 18px; border-radius: var(--lidapp-radius); background: var(--bg-card); text-align: center; }
 .club-lidapp-qr h3 { justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin: 0; font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; }
-.club-lidapp-qr img { width: 168px; height: 168px; border-radius: 14px; background: var(--text-1); padding: 6px; }
+/* Wit vlak, altijd licht (ook in het donkere thema): camera's lezen donker op wit het best. */
+.club-lidapp-qr-vlak { box-sizing: border-box; width: min(100%, 300px); aspect-ratio: 1; padding: 10px; border-radius: 18px; background: #ffffff; box-shadow: 0 0 0 1px var(--line), 0 12px 32px rgb(0 0 0 / 0.28); }
+.club-lidapp-qr-vlak img { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.club-lidapp-qr-vlak--laden { background: color-mix(in srgb, #ffffff 12%, var(--bg-card)); animation: club-lidapp-qr-puls 1.4s ease-in-out infinite; }
+.club-lidapp-qr .club-lidapp-qr-naam { font-family: var(--ff-kop); font-size: 24px; font-weight: 700; line-height: 1.05; text-transform: uppercase; color: var(--text-1); overflow-wrap: anywhere; }
+.club-lidapp-qr-tijd { width: min(100%, 300px); height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.club-lidapp-qr-tijd span { display: block; height: 100%; background: var(--brand); transform-origin: left center; animation-name: club-lidapp-qr-af; animation-timing-function: linear; animation-fill-mode: forwards; }
 .club-lidapp-qr p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-qr .club-lidapp-qr-tip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.club-lidapp-qr-tip svg { flex: none; color: var(--brand-tekst, var(--brand)); }
+@keyframes club-lidapp-qr-af { to { transform: scaleX(0); } }
+@keyframes club-lidapp-qr-puls { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .club-lidapp-qr-vlak--laden { animation: none; } }
 
 /* ── Lessen ──────────────────────────────────────────────────────────────── */
 .club-lidapp-regels { border-radius: 14px; background: var(--bg-card); padding: 0 14px; }

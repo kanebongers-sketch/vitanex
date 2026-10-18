@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { MonitorSmartphone } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalDagPaneel } from '@/lib/club/checkin/data'
 import { CheckinBalie } from '@/components/club/checkin/CheckinBalie'
@@ -16,6 +19,7 @@ export default async function CheckinPagina({ searchParams }: { searchParams: Zo
   const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
   if (!vestiging) return <GeenVestigingen />
   const samenvatting = await haalDagPaneel(t.admin, t.userId, vestiging, new Date())
+  const { checkin } = t.organisatie.instellingen
   return (
     <>
       <header className="club-paginakop">
@@ -23,9 +27,14 @@ export default async function CheckinPagina({ searchParams }: { searchParams: Zo
           <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · balie</p>
           <h1>Check-in</h1>
         </div>
+        {qrCheckinAan(checkin) && (
+          <Link href={`/clubkane/checkin/kiosk?v=${encodeURIComponent(vestiging)}`} className="club-knop club-knop--stil">
+            <MonitorSmartphone aria-hidden size={17} /> Zelf-check-in scherm
+          </Link>
+        )}
       </header>
       <div className="club-checkin-raster">
-        <CheckinBalie key={vestiging} vestiging={vestiging} />
+        <CheckinBalie key={vestiging} vestiging={vestiging} methode={checkin.methode} />
         <NuBinnen samenvatting={samenvatting} vestiging={vestiging} />
       </div>
       <Verversen />

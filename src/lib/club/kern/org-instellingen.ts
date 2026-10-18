@@ -10,7 +10,7 @@ import { MEDEWERKER_ROLLEN, RECHTEN, type MedewerkerRol } from './medewerker'
  * als ONDERDELEN in src/components/club/shell/onderdelen.ts (een test bewaakt dat).
  */
 export const ONDERDEEL_SLEUTELS = [
-  'vandaag', 'checkin', 'taken', 'opvolgen', 'notities', 'leden', 'leads', 'challenges', 'app', 'rooster', 'afspraken', 'personeel', 'agenda', 'schemas', 'voeding', 'cijfers', 'rapporten', 'beheer', 'bedrijf', 'lidmaatschappen', 'sluiting', 'berichten', 'huisstijl', 'instellingen', 'hulp',
+  'vandaag', 'checkin', 'taken', 'opvolgen', 'notities', 'leden', 'leads', 'challenges', 'app', 'rooster', 'afspraken', 'personeel', 'agenda', 'schemas', 'voeding', 'cijfers', 'rapporten', 'start', 'beheer', 'bedrijf', 'lidmaatschappen', 'sluiting', 'berichten', 'huisstijl', 'instellingen', 'hulp',
 ] as const
 
 export const LEDENAPP_TABS = ['lessen', 'afspraken', 'schema', 'voeding', 'voortgang'] as const
@@ -35,12 +35,34 @@ export interface LedenappInstellingen {
   qr: boolean
 }
 
+/** Hoe leden inchecken: QR-code in de app, zoeken aan de balie, of allebei. */
+export const CHECKIN_METHODES = ['beide', 'qr', 'balie'] as const
+export type CheckinMethode = (typeof CHECKIN_METHODES)[number]
+
+export const CHECKIN_METHODE_LABEL: Record<CheckinMethode, string> = {
+  beide: 'Beide: QR-code in de app en zoeken aan de balie',
+  qr: 'QR-code in de app (de balie kan altijd nog op naam zoeken)',
+  balie: 'Alleen aan de balie (zoeken op naam, lidnummer of pasje)',
+}
+
+export interface CheckinInstellingen {
+  methode: CheckinMethode
+}
+
+export const STANDAARD_CHECKIN: CheckinInstellingen = { methode: 'beide' }
+
+/** Toont de app de wisselende QR-code en mogen balie en kioskscherm hem scannen? */
+export function qrCheckinAan(i: CheckinInstellingen): boolean {
+  return i.methode !== 'balie'
+}
+
 /** Per rol de sleutels van de onderdelen die die rol ziet (zie shell/onderdelen.ts). */
 export type Rechten = Record<MedewerkerRol, string[]>
 
 export interface OrgInstellingen {
   ledenapp: LedenappInstellingen
   rechten: Rechten
+  checkin: CheckinInstellingen
 }
 
 export const STANDAARD_LEDENAPP: LedenappInstellingen = { welkom: null, tabsUit: [], qr: true }
@@ -87,13 +109,23 @@ function leesRechten(v: unknown, onderdelen: readonly string[]): Rechten {
 /** Uit de database, vergevingsgezind: alles wat niet klopt wordt de standaard. */
 export function orgInstellingenUitRij(v: unknown, onderdelen: readonly string[]): OrgInstellingen {
   const o = object(v)
-  return { ledenapp: leesLedenapp(o?.ledenapp), rechten: leesRechten(o?.rechten, onderdelen) }
+  return { ledenapp: leesLedenapp(o?.ledenapp), rechten: leesRechten(o?.rechten, onderdelen), checkin: leesCheckin(o?.checkin) }
+}
+
+function isMethode(v: unknown): v is CheckinMethode {
+  return (CHECKIN_METHODES as readonly unknown[]).includes(v)
+}
+
+function leesCheckin(v: unknown): CheckinInstellingen {
+  const o = object(v)
+  return o && isMethode(o.methode) ? { methode: o.methode } : STANDAARD_CHECKIN
 }
 
 /** Naar de database (snake_case zoals de kolom). */
 export function orgInstellingenNaarJson(i: OrgInstellingen): Record<string, unknown> {
   return {
     ledenapp: { welkom: i.ledenapp.welkom, tabs_uit: i.ledenapp.tabsUit, qr: i.ledenapp.qr },
+    checkin: { methode: i.checkin.methode },
     rechten: i.rechten,
   }
 }
@@ -126,5 +158,11 @@ export function leesOrgInstellingenInvoer(body: unknown, huidig: OrgInstellingen
     }
     rechten = nieuw
   }
-  return { ok: true, waarde: { ledenapp, rechten } }
+  let checkin = huidig.checkin
+  if ('checkin' in o) {
+    const c = object(o.checkin)
+    if (!c || !isMethode(c.methode)) return { ok: false, fout: 'Kies hoe leden inchecken.' }
+    checkin = { methode: c.methode }
+  }
+  return { ok: true, waarde: { ledenapp, rechten, checkin } }
 }

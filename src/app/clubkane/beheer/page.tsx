@@ -7,6 +7,7 @@ import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { InstellingenGroep, type InstellingRegel } from '@/components/club/beheer/InstellingenGroep'
 import { BeheerKop } from '@/components/club/beheer/BeheerKop'
 import '@/components/club/beheer/beheer.css'
+import { CHECKIN_METHODE_LABEL } from '@/lib/club/kern/org-instellingen'
 
 export const metadata: Metadata = { title: 'Instellingencentrum' }
 
@@ -77,6 +78,7 @@ export default async function BeheerPagina() {
     { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
     { titel: 'Meldingen aan leden', uitleg: 'Bevestigingen, herinneringen en annuleringen van lessen en afspraken, per mail en in de app.', stand: 'Herinnertijden en welke aan staan', href: '/clubkane/beheer/meldingen' },
     { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
+    { titel: 'Check-in', uitleg: 'Hoe leden inchecken: QR-code in de app, zoeken aan de balie, of allebei.', stand: CHECKIN_METHODE_LABEL[org.instellingen.checkin.methode].split(' (')[0].split(':')[0], href: '/clubkane/beheer/checkin', uit: org.uit.includes('checkin') },
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },
   ]
 

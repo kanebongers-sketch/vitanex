@@ -3,8 +3,6 @@
 // queries. Geen bedragen: abonnement en betalingen staan in Sportivity.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import QRCode from 'qrcode'
-import { FIT_FACTORY } from '@/components/marketing/theme'
 import type { Lid } from '@/lib/club/kern/lid'
 import { alsRij, datum, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import { dagSleutel, dagStart, plusDagen } from '@/lib/club/cijfers/tijd'
@@ -44,29 +42,13 @@ export interface LidAppData {
   lessen: AppLes[]
   schema: AppSchema | null
   logs: AppLog[]
-  /** De QR-code als data-URL (SVG), voor een gewone <img>. */
-  qrBron: string | null
   meldingen: string[]
 }
 
 const DAG_MS = 86_400_000
-/** Scanners lezen een QR het best als donker op wit. */
-const QR_LICHT = '#ffffff'
 
 function isMijnStatus(v: unknown): v is MijnStatus {
   return v === 'geboekt' || v === 'wachtlijst' || v === 'aanwezig' || v === 'no_show' || v === 'geannuleerd'
-}
-
-/** De QR-code als SVG-data-URL. Bevat alleen het qr_token, nooit naam of lidnummer. */
-async function qrBron(token: string | null): Promise<string | null> {
-  if (!token) return null
-  try {
-    const svg = await QRCode.toString(token, { type: 'svg', errorCorrectionLevel: 'M', margin: 1, color: { dark: FIT_FACTORY.zwart, light: QR_LICHT } })
-    return `data:image/svg+xml;base64,${Buffer.from(svg, 'utf8').toString('base64')}`
-  } catch (e) {
-    console.error('[club/app] QR maken mislukt', e instanceof Error ? e.message : e)
-    return null
-  }
 }
 
 async function haalLessen(admin: SupabaseClient, userId: string, lid: Lid, nu: Date, dagen: number) {
@@ -167,15 +149,15 @@ async function haalLogs(admin: SupabaseClient, userId: string, lidId: string, nu
 }
 
 export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid, nu = new Date()): Promise<LidAppData> {
-  const [vestiging, token, bezoek, lessen, schema, logs] = await Promise.all([
+  // De check-in QR-code haalt de app zelf (wisselt elke 30 seconden): /api/club/lid/checkin-code.
+  const [vestiging, bezoek, lessen, schema, logs] = await Promise.all([
     admin.from('club_vestigingen').select('regels').eq('vestiging', lid.vestiging).maybeSingle(),
-    admin.from('club_leden').select('qr_token').eq('user_id', userId).eq('id', lid.id).maybeSingle(),
     haalBezoek(admin, userId, lid.id, nu),
     haalLessen(admin, userId, lid, nu, 7),
     haalSchema(admin, userId, lid.id),
     haalLogs(admin, userId, lid.id, nu),
   ])
-  const fouten = [vestiging.error?.message, token.error?.message, bezoek.fout, lessen.fout, schema.fout, logs.fout].filter(Boolean)
+  const fouten = [vestiging.error?.message, bezoek.fout, lessen.fout, schema.fout, logs.fout].filter(Boolean)
   for (const f of fouten) console.error('[club/app] laden mislukt', f)
   return {
     regels: appRegelsUitJson(alsRij(vestiging.data)?.regels),
@@ -184,7 +166,6 @@ export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid
     lessen: lessen.lessen,
     schema: schema.schema,
     logs: logs.logs,
-    qrBron: await qrBron(tekst(alsRij(token.data)?.qr_token)),
     meldingen: fouten.length > 0 ? ['Niet alles kon worden geladen.'] : [],
   }
 }
