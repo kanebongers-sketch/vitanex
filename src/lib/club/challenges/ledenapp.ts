@@ -8,8 +8,11 @@ import { alleRijen } from '@/lib/club/leden/data'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { appChallenge, gehaaldeChallenges, momentenVoor, sorteerApp, toonInApp, type LedenappChallengesData } from './app'
 import { berekenBadges } from './badges'
-import { haalChallenges, haalInschrijvingen, haalMomenten, haalStand } from './lezen'
+import { haalChallenges, haalInschrijvingen, haalMomenten, haalStand, type StandData } from './lezen'
+import type { Challenge } from './model'
 import { statusVan } from './periode'
+import { maakStandCache, standSleutel, standVoorLid } from './stand-cache'
+import type { Stand } from './voortgang'
 
 export type { LedenappChallengesData } from './app'
 
@@ -22,6 +25,15 @@ async function haalAfgerondeSchemas(admin: SupabaseClient, userId: string, lidId
   )
   if (!rijen) return null
   return rijen.map((r) => (r as { bijgewerkt_op?: unknown }).bijgewerkt_op).filter((op): op is string => typeof op === 'string')
+}
+
+/** De stand per challenge, een minuut gedeeld door alle leden die de app openen (zie stand-cache.ts). */
+const STANDEN = maakStandCache<StandData>()
+
+/** De top van de stand plus de eigen plek; de volledige stand wordt hoogstens eens per minuut gerekend. */
+async function haalAppStand(admin: SupabaseClient, userId: string, c: Challenge, lidId: string): Promise<Stand[] | null> {
+  const data = await STANDEN.haal(standSleutel(userId, c), () => haalStand(admin, userId, c))
+  return data ? standVoorLid(data.stand, lidId) : null
 }
 
 /**
@@ -46,9 +58,9 @@ export async function haalLedenappChallenges(admin: SupabaseClient, userId: stri
   const ins = ingeschreven ?? new Set<string>()
   const zichtbaar = (lijst ?? []).filter((c) => toonInApp(c, lid.vestiging, vandaag))
   const standen = await Promise.all(
-    zichtbaar.map((c) => (c.ranglijst && statusVan(c, vandaag) !== 'gepland' ? haalStand(admin, userId, c) : Promise.resolve(null))),
+    zichtbaar.map((c) => (c.ranglijst && statusVan(c, vandaag) !== 'gepland' ? haalAppStand(admin, userId, c, lid.id) : Promise.resolve(null))),
   )
-  const challenges = sorteerApp(zichtbaar.map((c, i) => appChallenge(c, lid, ins.has(c.id), momentenVoor(c.soort, m), vandaag, standen[i]?.stand ?? null)))
+  const challenges = sorteerApp(zichtbaar.map((c, i) => appChallenge(c, lid, ins.has(c.id), momentenVoor(c.soort, m), vandaag, standen[i])))
   const badges = berekenBadges({
     bezoeken: m.bezoeken,
     lessen: m.lessen,

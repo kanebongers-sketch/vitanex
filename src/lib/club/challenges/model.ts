@@ -18,7 +18,7 @@ export interface SoortInfo {
 }
 
 export const SOORT_INFO: Record<ChallengeSoort, SoortInfo> = {
-  bezoeken: { label: 'Bezoeken', enkel: 'bezoek', meer: 'bezoeken', uitleg: 'Elke check-in telt, in elke vestiging.' },
+  bezoeken: { label: 'Bezoeken', enkel: 'bezoek', meer: 'bezoeken', uitleg: 'Elke dag met een check-in telt als een bezoek, in elke vestiging.' },
   trainingen: { label: 'Trainingen', enkel: 'training', meer: 'trainingen', uitleg: 'Afgevinkte trainingen uit het schema in de ledenapp.' },
   lessen: { label: 'Groepslessen', enkel: 'groepsles', meer: 'groepslessen', uitleg: 'Groepslessen waarbij het lid aanwezig was.' },
   weken_op_rij: { label: 'Weken op rij', enkel: 'week op rij', meer: 'weken op rij', uitleg: 'Weken achter elkaar met minstens een bezoek.' },

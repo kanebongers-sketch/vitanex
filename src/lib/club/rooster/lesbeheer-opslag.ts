@@ -63,8 +63,10 @@ export async function haalLesDetail(admin: SupabaseClient, userId: string, lesId
     haalProefleden(admin, userId, les.id),
   ])
   if (!rijen || !stam) return null
-  const leden = await haalLedenOpId(admin, userId, [...new Set(rijen.map((r) => r.lidId))])
-  const metLid = (r: ReserveringRij): Deelnemer => ({ reservering: r, lid: leden.get(r.lidId) ?? null })
+  const ids = rijen.flatMap((r) => (r.lidId ? [r.lidId] : []))
+  const leden = await haalLedenOpId(admin, userId, [...new Set(ids)])
+  // Een reservering zonder lid (verwijderd na AVG) blijft staan, zonder naam.
+  const metLid = (r: ReserveringRij): Deelnemer => ({ reservering: r, lid: r.lidId ? (leden.get(r.lidId) ?? null) : null })
   const [overzicht] = maakOverzicht([les], stam, telPerLes(rijen))
   return {
     les: overzicht,

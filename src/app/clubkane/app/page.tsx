@@ -25,7 +25,7 @@ import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang
 import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
 import { LedenappChallenges } from '@/components/club/challenges/LedenappChallenges'
 import { haalPlan } from '@/lib/club/voeding/lezen'
-import { planVoorLid } from '@/lib/club/voeding/model'
+import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
@@ -93,7 +93,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
   const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(t.admin, t.userId, lid.id, nu)) : null
   const challenges = tab === 'voortgang' ? await haalLedenappChallenges(t.admin, t.userId, lid, nu) : null
-  const voedingPlan = tab === 'voeding' ? await haalPlan(t.admin, t.userId, lid.id) : undefined
+  const voeding = tab === 'voeding' ? voedingVoorApp(await haalPlan(t.admin, t.userId, lid.id)) : null
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>
@@ -123,7 +123,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
           {tab === 'voeding' && (
             <div className="club-lidapp-tab">
-              <LedenappVoeding plan={voedingPlan ? planVoorLid(voedingPlan) : null} />
+              {voeding && <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />}
             </div>
           )}
           {tab === 'afspraken' && (

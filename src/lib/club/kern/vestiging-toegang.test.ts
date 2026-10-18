@@ -56,6 +56,10 @@ describe('recordInEigenVestiging', () => {
   it('een schema zonder lid is voor de hele sportschool', async () => {
     expect(await recordInEigenVestiging(eigen(nepAdmin({ club_schemas: { lid_id: null } })), 'club_schemas', ID)).toBe(true)
   })
+  it('toetst een opvolgtaak op zijn eigen vestiging', async () => {
+    expect(await recordInEigenVestiging(eigen(nepAdmin({ club_opvolgtaken: { vestiging: 'budel' } })), 'club_opvolgtaken', ID)).toBe(true)
+    expect(await recordInEigenVestiging(eigen(nepAdmin({ club_opvolgtaken: { vestiging: 'eersel' } })), 'club_opvolgtaken', ID)).toBe(false)
+  })
   it('volgt een reservering naar de les', async () => {
     const nee = nepAdmin({ club_reserveringen: { les_id: LID }, club_lessen: { vestiging: 'eersel' } })
     expect(await recordInEigenVestiging(eigen(nee), 'club_reserveringen', ID)).toBe(false)

@@ -4,7 +4,7 @@
 // Een badge is erkenning, geen beloning: er hoort geen prijs bij.
 
 import { nlDatum } from './periode'
-import { reeksBehaaldOp } from './voortgang'
+import { eenPerDag, reeksBehaaldOp } from './voortgang'
 
 export type BadgeIcoon = 'deur' | 'tien' | 'vijfentwintig' | 'vijftig' | 'honderd' | 'reeks' | 'groepsles' | 'schema' | 'challenge'
 
@@ -24,7 +24,7 @@ export interface Badge extends BadgeDef {
 }
 
 export interface BadgeBron {
-  /** Alle check-ins van het lid (ISO), in willekeurige volgorde. */
+  /** Alle check-ins van het lid (ISO), in willekeurige volgorde. Een bezoek is een dag met een check-in. */
   bezoeken: readonly string[]
   /** Begin van de groepslessen waarbij het lid aanwezig was (ISO). */
   lessen: readonly string[]
@@ -36,10 +36,10 @@ export interface BadgeBron {
 
 const BEZOEK_DOELEN = [
   { n: 1, sleutel: 'eerste-bezoek', titel: 'Eerste bezoek', uitleg: 'Je eerste check-in.', icoon: 'deur' },
-  { n: 10, sleutel: 'bezoeken-10', titel: '10 bezoeken', uitleg: 'Tien keer ingecheckt.', icoon: 'tien' },
-  { n: 25, sleutel: 'bezoeken-25', titel: '25 bezoeken', uitleg: 'Vijfentwintig keer ingecheckt.', icoon: 'vijfentwintig' },
-  { n: 50, sleutel: 'bezoeken-50', titel: '50 bezoeken', uitleg: 'Vijftig keer ingecheckt.', icoon: 'vijftig' },
-  { n: 100, sleutel: 'bezoeken-100', titel: '100 bezoeken', uitleg: 'Honderd keer ingecheckt.', icoon: 'honderd' },
+  { n: 10, sleutel: 'bezoeken-10', titel: '10 bezoeken', uitleg: 'Op tien verschillende dagen ingecheckt.', icoon: 'tien' },
+  { n: 25, sleutel: 'bezoeken-25', titel: '25 bezoeken', uitleg: 'Op vijfentwintig verschillende dagen ingecheckt.', icoon: 'vijfentwintig' },
+  { n: 50, sleutel: 'bezoeken-50', titel: '50 bezoeken', uitleg: 'Op vijftig verschillende dagen ingecheckt.', icoon: 'vijftig' },
+  { n: 100, sleutel: 'bezoeken-100', titel: '100 bezoeken', uitleg: 'Op honderd verschillende dagen ingecheckt.', icoon: 'honderd' },
 ] as const
 
 export const REEKS_DOEL = 4
@@ -74,7 +74,8 @@ function badge(sleutel: string, op: string | null, stand: Badge['stand'] = null)
 
 /** Alle badges met behaald ja of nee, in vaste volgorde. */
 export function berekenBadges(bron: BadgeBron): Badge[] {
-  const bezoeken = [...bron.bezoeken].sort()
+  // Een bezoek is een kalenderdag (Nederlandse tijd), net als in de rest van Club.
+  const bezoeken = eenPerDag(bron.bezoeken)
   return [
     ...BEZOEK_DOELEN.map((b) => badge(b.sleutel, dag(bezoeken[b.n - 1] ?? null), { nu: bezoeken.length, doel: b.n })),
     badge('weken-4', dag(reeksBehaaldOp(bezoeken, REEKS_DOEL))),

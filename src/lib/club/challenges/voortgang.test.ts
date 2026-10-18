@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Challenge } from './model'
-import { fractie, gehaaldOp, langsteReeks, perLid, privacyNaam, ranglijst, reeksBehaaldOp, scoreVoor, vatSamen } from './voortgang'
+import { eenPerDag, fractie, gehaaldOp, langsteReeks, perLid, privacyNaam, ranglijst, reeksBehaaldOp, scoreVoor, vatSamen } from './voortgang'
 
 const basis: Challenge = {
   id: 'c1',
@@ -26,6 +26,20 @@ describe('scoreVoor', () => {
     const score = scoreVoor(basis, ops)
     // Assert
     expect(score).toBe(2)
+  })
+
+  it('telt bij bezoeken unieke dagen in Nederlandse tijd, niet elke check-in', () => {
+    // Arrange: twee check-ins op 15 okt, en 15 okt 23:30 UTC is al 16 okt in Nederland.
+    const ops = ['2026-10-15T06:00:00Z', '2026-10-15T17:00:00Z', '2026-10-15T23:30:00Z', '2026-10-16T08:00:00Z']
+    // Act en Assert
+    expect(scoreVoor(basis, ops)).toBe(2)
+    expect(gehaaldOp({ ...basis, doel: 2 }, ops)).toBe('2026-10-16')
+    expect(gehaaldOp({ ...basis, doel: 3 }, ops)).toBeNull()
+  })
+
+  it('telt bij trainingen wel elk moment', () => {
+    const ops = ['2026-10-15T06:00:00Z', '2026-10-15T17:00:00Z']
+    expect(scoreVoor({ ...basis, soort: 'trainingen' }, ops)).toBe(2)
   })
 
   it('stopt met tellen op de dag dat de challenge gestopt is', () => {
@@ -111,5 +125,14 @@ describe('hulpfuncties', () => {
   it('vatSamen telt deelnemers, actieven en gehaald', () => {
     const stand = ranglijst([{ lidId: 'a', voornaam: 'A', achternaam: 'B' }, { lidId: 'b', voornaam: 'C', achternaam: 'D' }, { lidId: 'c', voornaam: 'E', achternaam: 'F' }], new Map([['a', 4], ['b', 1]]), 3)
     expect(vatSamen(stand)).toEqual({ deelnemers: 3, actief: 2, gehaald: 1, gemiddeld: 2.5 })
+  })
+})
+
+describe('eenPerDag', () => {
+  it('houdt per Nederlandse dag het eerste moment over, oplopend', () => {
+    expect(eenPerDag(['2026-10-16T08:00:00Z', '2026-10-15T17:00:00Z', '2026-10-15T06:00:00Z', '2026-10-15T23:30:00Z'])).toEqual([
+      '2026-10-15T06:00:00Z',
+      '2026-10-15T23:30:00Z',
+    ])
   })
 })

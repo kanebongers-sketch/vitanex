@@ -1,17 +1,31 @@
 // ─── Club: rapporten over lessen, no-shows en leads (PUUR) ──────────────────
 
-import { telPerLes } from '@/lib/club/cijfers/lessen'
+import { telPerLes, type LesBasis } from '@/lib/club/cijfers/lessen'
 import { LEAD_BRON_LABEL, LEAD_STATUS_LABEL } from '@/lib/club/leads/model'
 import type { CsvWaarde } from './csv'
 import { momentDatum, momentTijd, procent, vergelijkNaam } from './opmaak'
 import type { VestigingNaam } from './bouw-leden'
 import type { AfspraakRij, LeadRij, LesRij, LidNaam, ReserveringRij } from './rijen'
 
+/** De volgorde van het bezettingsrapport: op begintijd, dan op lesnaam. */
+function lesVolgorde(a: LesBasis, b: LesBasis): number {
+  return a.start.getTime() - b.start.getTime() || vergelijkNaam(a.lestype, b.lestype)
+}
+
+/**
+ * De eerste `n` lessen in de volgorde van het bezettingsrapport. Voor het
+ * voorbeeld op de pagina: dan zijn alleen de reserveringen van deze lessen
+ * nodig, en bezettingPerLes() geeft precies dezelfde eerste rijen als de CSV.
+ */
+export function eersteLessen<T extends LesBasis>(lessen: readonly T[], n: number): T[] {
+  return [...lessen].sort(lesVolgorde).slice(0, Math.max(0, n))
+}
+
 /** Elke les met capaciteit, bezet, aanwezig, no-show, wachtlijst en bezetting. Op begintijd. */
 export function bezettingPerLes(lessen: readonly LesRij[], reserveringen: readonly ReserveringRij[], medewerkers: ReadonlyMap<string, string>, vestiging: VestigingNaam): CsvWaarde[][] {
   const instructeur = new Map(lessen.map((l) => [l.id, l.instructeurId]))
   return telPerLes(lessen, reserveringen)
-    .sort((a, b) => a.start.getTime() - b.start.getTime() || vergelijkNaam(a.lestype, b.lestype))
+    .sort(lesVolgorde)
     .map((l) => {
       const id = instructeur.get(l.id) ?? null
       return [

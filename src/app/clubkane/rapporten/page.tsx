@@ -5,7 +5,7 @@ import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
 import { isAlles, keuzeZoek, maandKeuzes, rapportKeuze } from '@/lib/club/rapporten/keuze'
-import { haalRapportTabel } from '@/lib/club/rapporten/haal'
+import { haalRapportVoorbeeld } from '@/lib/club/rapporten/haal'
 import { RapportKeuzes } from '@/components/club/rapporten/RapportKeuzes'
 import { RapportVoorbeeld } from '@/components/club/rapporten/RapportVoorbeeld'
 import '@/components/club/rapporten/rapporten.css'
@@ -25,7 +25,7 @@ export default async function ClubRapporten({ searchParams }: { searchParams: Zo
   const balk = kiesUit(t.vestigingen, zoek.v)
   const keuze = rapportKeuze(zoek, t.vestigingen, balk, vandaag)
   const alle = isAlles(keuze, t.vestigingen)
-  const uitkomst = await haalRapportTabel(t.admin, t.userId, t.vestigingen, keuze)
+  const uitkomst = await haalRapportVoorbeeld(t.admin, t.userId, t.vestigingen, keuze)
   const csvHref = `/api/club/rapporten/csv?${keuzeZoek(keuze, alle).toString()}`
 
   return (

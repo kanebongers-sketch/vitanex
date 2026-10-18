@@ -7,12 +7,14 @@ import './voeding.css'
 // Voeding in de ledenapp: het dagdoel als rustige cijfers en balken, de
 // adviezen en de voorbeelddag. Alleen wat een lid mag zien (planVoorLid():
 // geen interne notitie, geen rekenhulp). Data komt van de server:
-//   const plan = await haalPlan(admin, userId, lid.id)
-//   <LedenappVoeding plan={plan ? planVoorLid(plan) : null} />
+//   const voeding = voedingVoorApp(await haalPlan(admin, userId, lid.id))
+//   <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />
 
 export interface LedenappVoedingProps {
-  /** null = de trainer heeft nog geen plan gemaakt (of het kon niet worden geladen). */
+  /** null = de trainer heeft nog geen plan gemaakt, of het kon niet worden geladen (zie fout). */
   plan: PlanVoorLid | null
+  /** Het plan kon niet worden gelezen: een foutmelding in plaats van "nog geen plan". */
+  fout?: boolean
 }
 
 const RIJEN = [
@@ -21,7 +23,15 @@ const RIJEN = [
   { sleutel: 'vet', label: 'Vet', veld: 'vetG', klasse: 'is-vet' },
 ] as const
 
-export function LedenappVoeding({ plan }: LedenappVoedingProps) {
+export function LedenappVoeding({ plan, fout = false }: LedenappVoedingProps) {
+  if (fout) {
+    return (
+      <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
+        <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">Voeding</h2>
+        <p className="club-melding club-melding--fout" role="alert">Je voedingsplan kon niet worden geladen. Probeer het straks opnieuw.</p>
+      </section>
+    )
+  }
   if (!plan) {
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">

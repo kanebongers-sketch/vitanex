@@ -12,7 +12,7 @@ import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
 import { haalPlan } from '@/lib/club/voeding/lezen'
-import { planVoorLid } from '@/lib/club/voeding/model'
+import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { kiesTab, type AppTab } from '@/components/club/app/Toestel'
 import { HomeTab } from '@/components/club/app/HomeTab'
 import { LessenTab } from '@/components/club/app/LessenTab'
@@ -79,7 +79,8 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const [data, bedrijf, berichten] = await Promise.all([haalLidApp(admin, userId, lid, nu), haalBedrijf(admin, userId), haalBerichtenVoorLid(admin, userId, lid, nu)])
   const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(admin, userId, lid.id, nu)) : null
   const challenges = tab === 'voortgang' ? await haalLedenappChallenges(admin, userId, lid, nu) : null
-  const voedingPlan = tab === 'voeding' ? await haalPlan(admin, userId, lid.id) : undefined
+  // null = leesfout (nette melding), undefined = nog geen plan.
+  const voeding = tab === 'voeding' ? voedingVoorApp(await haalPlan(admin, userId, lid.id)) : null
   // Meldingen voor de bel (aantal ongelezen) en het meldingenscherm; null bij een leesfout.
   const meldingen = await haalLedenappMeldingen(admin, userId, lid.id)
   const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
@@ -125,9 +126,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {!toonMeldingen && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {!toonMeldingen && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
-          {!toonMeldingen && tab === 'voeding' && (
+          {!toonMeldingen && tab === 'voeding' && voeding && (
             <div className="club-lidapp-tab">
-              <LedenappVoeding plan={voedingPlan ? planVoorLid(voedingPlan) : null} />
+              <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />
             </div>
           )}
           {!toonMeldingen && tab === 'afspraken' && (

@@ -44,3 +44,12 @@ export function naamVan(lijst: readonly VestigingInfo[], sleutel: VestigingSleut
 export function hoortBij(lijst: readonly VestigingInfo[], sleutel: unknown): sleutel is VestigingSleutel {
   return typeof sleutel === 'string' && lijst.some((v) => v.sleutel === sleutel)
 }
+
+/**
+ * Het record als het bij een van deze vestigingen hoort, anders null. Voor
+ * pagina's die een lid per id openen: een medewerker met beperkte vestigingen
+ * krijgt dan dezelfde 404 als bij een onbekend id.
+ */
+export function binnenVestigingen<T extends { vestiging: string }>(lijst: readonly VestigingInfo[], record: T | null): T | null {
+  return record && hoortBij(lijst, record.vestiging) ? record : null
+}

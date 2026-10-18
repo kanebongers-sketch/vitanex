@@ -1,16 +1,17 @@
 'use client'
 
 import { Check, UserX, X } from 'lucide-react'
-import { initialen, volledigeNaam } from '@/lib/club/kern/lid'
+import { initialen } from '@/lib/club/kern/lid'
 import type { Deelnemer } from '@/lib/club/rooster/lesbeheer-opslag'
 import type { AfvinkStatus } from '@/lib/club/rooster/regels'
+import { reserveringNaam } from '@/lib/club/rooster/typen'
 import { stuur, useClubActie } from './vraag'
 
 // Deelnemers afvinken (instructeur), reserveringen annuleren (balie) en de
 // wachtlijst. Elke actie gaat via de rooster-API en ververst daarna het paneel.
 
 function naamVan(d: Deelnemer): string {
-  return d.lid ? volledigeNaam(d.lid) : 'Onbekend lid'
+  return reserveringNaam(d.lid, d.reservering.lidId)
 }
 
 function Avatar({ d }: { d: Deelnemer }) {

@@ -71,7 +71,8 @@ export interface LesRij {
 export interface ReserveringRij {
   id: string
   lesId: string
-  lidId: string
+  /** null = het lid is verwijderd (AVG); de reservering telt nog mee in de bezetting. */
+  lidId: string | null
   status: ReserveringStatus
   wachtpositie: number | null
   geboektOp: string
@@ -195,18 +196,24 @@ export function reserveringUitRij(ruw: unknown): ReserveringRij | null {
   if (!r) return null
   const id = tekst(r.id)
   const lesId = tekst(r.les_id)
-  const lidId = tekst(r.lid_id)
-  if (!id || !lesId || !lidId || !isReserveringStatus(r.status)) return null
+  if (!id || !lesId || !isReserveringStatus(r.status)) return null
   return {
     id,
     lesId,
-    lidId,
+    // Na het verwijderen van een lid (AVG) blijft de reservering zonder lid staan.
+    lidId: tekst(r.lid_id),
     status: r.status,
     wachtpositie: geheel(r.wachtpositie),
     geboektOp: tekst(r.geboekt_op) ?? '',
     bron: isReserveringBron(r.bron) ? r.bron : 'app',
     teLaat: r.te_laat === true,
   }
+}
+
+/** De naam bij een reservering: het lid, "Verwijderd lid" na AVG-verwijdering, anders "Onbekend lid". */
+export function reserveringNaam(lid: { voornaam: string; achternaam: string } | null, lidId: string | null): string {
+  if (lid) return `${lid.voornaam} ${lid.achternaam}`.trim()
+  return lidId === null ? 'Verwijderd lid' : 'Onbekend lid'
 }
 
 /** Een lijst ruwe rijen naar nette objecten; onbruikbare rijen vallen weg. */

@@ -88,7 +88,7 @@ export async function schuifWachtlijstDoor(admin: SupabaseClient, userId: string
   const wachtlijst = rijen.filter((r) => r.status === 'wachtlijst')
   const magDoor = !les.geannuleerd && Date.parse(les.startOp) > nu.getTime()
   const plan = planDoorschuiven(wachtlijst, magDoor ? les.capaciteit - bezet : 0)
-  const doorgeschoven: Array<{ id: string; lidId: string; geboektOp: string }> = []
+  const doorgeschoven: Array<{ id: string; lidId: string | null; geboektOp: string }> = []
   for (const r of plan.naarGeboekt) {
     if (await werkReserveringBij(admin, userId, r.id, { status: 'geboekt', wachtpositie: null })) doorgeschoven.push(r)
   }
@@ -96,8 +96,10 @@ export async function schuifWachtlijstDoor(admin: SupabaseClient, userId: string
     await werkReserveringBij(admin, userId, r.id, { wachtpositie: r.wachtpositie })
   }
   // Meldingen (best effort): wie doorschoof, krijgt bericht en een herinnering.
-  await planLesMeldingen(admin, userId, les, doorgeschoven.map((r) => ({ lidId: r.lidId, reserveringId: r.id, geboektOp: r.geboektOp, soort: 'les_doorgeschoven' as const })), nu)
-  return doorgeschoven.map((r) => r.lidId)
+  // Een reservering zonder lid (verwijderd na AVG) krijgt geen melding.
+  const metLid = doorgeschoven.flatMap((r) => (r.lidId ? [{ ...r, lidId: r.lidId }] : []))
+  await planLesMeldingen(admin, userId, les, metLid.map((r) => ({ lidId: r.lidId, reserveringId: r.id, geboektOp: r.geboektOp, soort: 'les_doorgeschoven' as const })), nu)
+  return metLid.map((r) => r.lidId)
 }
 
 /** Na een boeking: is de les toch overboekt (twee boekingen tegelijk), dan gaat de laatste naar de wachtlijst. */
@@ -221,9 +223,9 @@ export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new
   if (!ok) return mislukt('Annuleren is niet gelukt. Probeer het opnieuw.', 500)
   // Meldingen (best effort): de herinnering vervalt, het lid krijgt een bevestiging.
   await laatHerinneringenVervallen(t.admin, t.userId, [res.id])
-  await planLesMeldingen(t.admin, t.userId, les, [{ lidId: res.lidId, reserveringId: res.id, geboektOp: res.geboektOp, soort: 'les_afgemeld' }], nu)
+  if (res.lidId) await planLesMeldingen(t.admin, t.userId, les, [{ lidId: res.lidId, reserveringId: res.id, geboektOp: res.geboektOp, soort: 'les_afgemeld' }], nu)
   const doorgeschoven = await schuifWachtlijstDoor(t.admin, t.userId, les, nu)
-  const lid = await haalLid(t.admin, t.userId, res.lidId)
+  const lid = res.lidId ? await haalLid(t.admin, t.userId, res.lidId) : null
   const moment = nlDelen(new Date(les.startOp))
   const wie = lid ? volledigeNaam(lid) : 'Lid'
   await logActie(t, oordeel.teLaat ? 'Reservering te laat geannuleerd' : 'Reservering geannuleerd', `${wie}, les ${moment.datum} ${moment.tijd}`, les.vestiging)

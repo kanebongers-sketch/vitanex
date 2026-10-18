@@ -11,10 +11,10 @@ import { rijenVan } from '@/lib/club/cijfers/rijen'
 import { naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { dienstUitRij } from '@/lib/club/personeel/typen'
 import { RAPPORTEN, type RapportSleutel } from './definities'
-import { begrens, type Begrensd, type CsvWaarde } from './csv'
+import { MAX_RIJEN, VOORBEELD_RIJEN, begrens, type Begrensd, type CsvWaarde } from './csv'
 import { rapportPeriode, type RapportKeuze, type RapportPeriode } from './keuze'
 import { bezoekPerLid, instroom, ledenlijst, type VestigingNaam } from './bouw-leden'
-import { bezettingPerLes, leadsLijst, noShows } from './bouw-lessen'
+import { bezettingPerLes, eersteLessen, leadsLijst, noShows } from './bouw-lessen'
 import { afsprakenPerTrainer, opvolgPerMedewerker, urenPerMedewerker, type DienstRij } from './bouw-team'
 import {
   LID_NAAM_KOLOMMEN,
@@ -49,6 +49,18 @@ interface Ctx {
   periode: RapportPeriode
   vestiging: VestigingNaam
   lees: (wat: string, vraag: PaginaVraag) => Promise<unknown[]>
+  /** Alleen de eerste zoveel rijen nodig (het voorbeeld op de pagina), of null voor alles (CSV). */
+  voorbeeld: number | null
+}
+
+/** De rijen van een rapport plus het totaal aantal (bij een voorbeeld kan dat meer zijn dan de rijen). */
+interface Gebouwd {
+  rijen: CsvWaarde[][]
+  totaal: number
+}
+
+function alles(rijen: CsvWaarde[][]): Gebouwd {
+  return { rijen, totaal: rijen.length }
 }
 
 function maakLezer(): { lees: Ctx['lees']; onvolledig: () => boolean } {
@@ -146,10 +158,12 @@ async function bezoek(c: Ctx): Promise<CsvWaarde[][]> {
   return bezoekPerLid(checkins, await ledenNamen(c, checkins.map((x) => x.lidId)), c.vestiging)
 }
 
-async function bezetting(c: Ctx): Promise<CsvWaarde[][]> {
+async function bezetting(c: Ctx): Promise<Gebouwd> {
   const lessen = await lessenVanMaand(c)
-  const [reserveringen, namen] = await Promise.all([reserveringenVan(c, lessen.map((l) => l.id)), medewerkers(c)])
-  return bezettingPerLes(lessen, reserveringen, namen, c.vestiging)
+  // Een rij per les. Voor het voorbeeld alleen de reserveringen van de eerste lessen (de grootste bron).
+  const tellen = c.voorbeeld === null ? lessen : eersteLessen(lessen, c.voorbeeld)
+  const [reserveringen, namen] = await Promise.all([reserveringenVan(c, tellen.map((l) => l.id)), medewerkers(c)])
+  return { rijen: bezettingPerLes(tellen, reserveringen, namen, c.vestiging), totaal: lessen.length }
 }
 
 async function gemist(c: Ctx): Promise<CsvWaarde[][]> {
@@ -214,7 +228,7 @@ async function opvolging(c: Ctx): Promise<CsvWaarde[][]> {
   return opvolgPerMedewerker(rijenVan(rijen, opvolgUitRij), c.vestiging)
 }
 
-async function bouw(c: Ctx, rapport: RapportSleutel, maand: string): Promise<CsvWaarde[][]> {
+async function bouwRijen(c: Ctx, rapport: Exclude<RapportSleutel, 'bezetting'>, maand: string): Promise<CsvWaarde[][]> {
   const p = c.periode
   switch (rapport) {
     case 'ledenlijst':
@@ -223,8 +237,6 @@ async function bouw(c: Ctx, rapport: RapportSleutel, maand: string): Promise<Csv
       return instroom(await ledenRapport(c, `and(lid_sinds.gte.${p.eerste},lid_sinds.lte.${p.laatste}),and(einddatum.gte.${p.eerste},einddatum.lte.${p.laatste})`), p, c.vestiging)
     case 'bezoek':
       return bezoek(c)
-    case 'bezetting':
-      return bezetting(c)
     case 'noshows':
       return gemist(c)
     case 'leads':
@@ -238,18 +250,45 @@ async function bouw(c: Ctx, rapport: RapportSleutel, maand: string): Promise<Csv
   }
 }
 
-/** Het gekozen rapport als tabel, begrensd op MAX_RIJEN. */
-export async function haalRapportTabel(admin: SupabaseClient, userId: string, lijst: readonly VestigingInfo[], keuze: RapportKeuze): Promise<RapportUitkomst> {
+/**
+ * Bezetting kan voor het voorbeeld minder lezen (alleen de eerste lessen).
+ * De andere rapporten tellen per lid of medewerker over de hele maand of
+ * sorteren op naam: daar staan de eerste rijen pas vast als alles gelezen is.
+ */
+async function bouw(c: Ctx, rapport: RapportSleutel, maand: string): Promise<Gebouwd> {
+  return rapport === 'bezetting' ? bezetting(c) : alles(await bouwRijen(c, rapport, maand))
+}
+
+function maakCtx(admin: SupabaseClient, userId: string, lijst: readonly VestigingInfo[], keuze: RapportKeuze, lees: Ctx['lees'], voorbeeld: number | null): Ctx {
+  return { admin, userId, vestigingen: keuze.vestigingen, periode: rapportPeriode(keuze.maand), vestiging: (s) => naamVan(lijst, s), lees, voorbeeld }
+}
+
+async function haalGebouwd(admin: SupabaseClient, userId: string, lijst: readonly VestigingInfo[], keuze: RapportKeuze, voorbeeld: number | null): Promise<RapportUitkomst> {
   const def = RAPPORTEN[keuze.rapport]
   if (keuze.vestigingen.length === 0) return { ok: false, fout: 'Deze sportschool heeft nog geen vestigingen.' }
   const lezer = maakLezer()
-  const c: Ctx = { admin, userId, vestigingen: keuze.vestigingen, periode: rapportPeriode(keuze.maand), vestiging: (s) => naamVan(lijst, s), lees: lezer.lees }
   try {
-    const rijen = await bouw(c, keuze.rapport, keuze.maand)
-    return { ok: true, tabel: begrens({ kolommen: def.kolommen, rijen }), onvolledig: lezer.onvolledig() }
+    const { rijen, totaal } = await bouw(maakCtx(admin, userId, lijst, keuze, lezer.lees, voorbeeld), keuze.rapport, keuze.maand)
+    const tabel = begrens({ kolommen: def.kolommen, rijen })
+    const begrensd = voorbeeld === null ? tabel : { ...tabel, rijen: tabel.rijen.slice(0, voorbeeld), totaal, afgekapt: totaal > MAX_RIJEN }
+    return { ok: true, tabel: begrensd, onvolledig: lezer.onvolledig() }
   } catch (e) {
     if (e instanceof LeesFout) return { ok: false, fout: `${e.message} kon niet worden gelezen. Probeer het later opnieuw.` }
     console.error('[club/rapporten] rapport maken mislukt', e)
     return { ok: false, fout: 'Het rapport kon niet worden gemaakt. Probeer het later opnieuw.' }
   }
+}
+
+/** Het gekozen rapport als tabel, begrensd op MAX_RIJEN (voor de CSV). */
+export async function haalRapportTabel(admin: SupabaseClient, userId: string, lijst: readonly VestigingInfo[], keuze: RapportKeuze): Promise<RapportUitkomst> {
+  return haalGebouwd(admin, userId, lijst, keuze, null)
+}
+
+/**
+ * Het voorbeeld voor de pagina: alleen de eerste VOORBEELD_RIJEN rijen, met in
+ * `tabel.totaal` het aantal rijen van het hele rapport. De rijen zijn precies
+ * de eerste rijen van de CSV.
+ */
+export async function haalRapportVoorbeeld(admin: SupabaseClient, userId: string, lijst: readonly VestigingInfo[], keuze: RapportKeuze): Promise<RapportUitkomst> {
+  return haalGebouwd(admin, userId, lijst, keuze, VOORBEELD_RIJEN)
 }

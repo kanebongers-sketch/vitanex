@@ -7,12 +7,16 @@ import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { REGEL_DEFINITIES, isUuid } from '@/lib/club/automatisering/regels'
 import { actieNaarWijziging, leesTaakActie } from '@/lib/club/automatisering/taken'
 import { werkTaakBij } from '@/lib/club/automatisering/opslag'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
   if (!isUuid(id)) return clubFout('Deze taak bestaat niet.', 404)
+  // Een medewerker met beperkte vestigingen mag alleen taken van die vestigingen afhandelen.
+  const dicht = await eisVestigingVanRecord(t, 'club_opvolgtaken', id)
+  if (dicht) return dicht
 
   const b = await leesJsonOfTeGroot(req, 2_000)
   if (b instanceof NextResponse) return b

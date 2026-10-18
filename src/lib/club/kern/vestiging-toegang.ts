@@ -26,6 +26,7 @@ type DirecteTabel =
   | 'club_rooster_notities'
   | 'club_takenlijsten'
   | 'club_taak_notities'
+  | 'club_opvolgtaken'
 
 /** Tabellen met een lijst `vestigingen` (een medewerker werkt op een of meer plekken). */
 type LijstTabel = 'club_medewerkers'

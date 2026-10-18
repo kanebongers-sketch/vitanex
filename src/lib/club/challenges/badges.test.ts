@@ -43,6 +43,17 @@ describe('berekenBadges', () => {
     expect(per.get('challenge-gehaald')?.op).toBe('2026-09-28')
   })
 
+  it('telt bezoeken als unieke dagen in Nederlandse tijd, niet per check-in', () => {
+    // Arrange: 10 check-ins op 5 dagen. 22:30 UTC op 6 juli is 7 juli in Nederland.
+    const dagen = ['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04', '2026-07-05']
+    const bezoeken = [...dagen.flatMap((d) => [`${d}T07:00:00Z`, `${d}T15:00:00Z`]), '2026-07-06T22:30:00Z', '2026-07-07T06:00:00Z']
+    // Act
+    const per = new Map(berekenBadges({ ...leeg, bezoeken }).map((b) => [b.sleutel, b]))
+    // Assert: 6 bezoekdagen, dus nog geen 10.
+    expect(per.get('bezoeken-10')?.behaald).toBe(false)
+    expect(per.get('bezoeken-10')?.stand).toEqual({ nu: 6, doel: 10 })
+  })
+
   it('geen 4 weken op rij bij een gat', () => {
     const ops = wekelijks(5).filter((_, i) => i !== 2)
     expect(berekenBadges({ ...leeg, bezoeken: ops }).find((b) => b.sleutel === 'weken-4')?.behaald).toBe(false)

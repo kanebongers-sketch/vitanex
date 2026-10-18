@@ -5,7 +5,7 @@ import { eisModule } from '@/lib/club/toegang'
 import { haalLid, initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
-import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { binnenVestigingen, kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { filterUitParams } from '@/lib/club/training/filter'
 import { LidFilter } from '@/components/club/training/LidFilter'
@@ -28,10 +28,12 @@ export default async function TrainingPagina({ searchParams }: { searchParams: Z
   const tab = kiesTab(zoek.tab)
   const lidParam = typeof zoek.lid === 'string' ? zoek.lid : null
 
-  const [lidRij, medewerkers] = await Promise.all([
+  const [gelezenLid, medewerkers] = await Promise.all([
     lidParam ? haalLid(t.admin, t.userId, lidParam) : Promise.resolve(null),
     haalMedewerkers(t.admin, t.userId, vestiging, 'trainer'),
   ])
+  // Een lid uit een andere vestiging dan die van deze persoon telt niet (geen schema's of intakes van anderen).
+  const lidRij = binnenVestigingen(t.vestigingen, gelezenLid)
   const lid = lidRij ? { id: lidRij.id, naam: volledigeNaam(lidRij), initialen: initialen(lidRij) } : null
   const trainers = Object.fromEntries((medewerkers ?? []).map((m) => [m.id, m.naam]))
   const paden = trainingPaden(vestiging)

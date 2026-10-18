@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hoortBij, isVestigingSlug, kiesUit, naamVan, vestigingenUitRijen, type VestigingInfo } from './vestigingen'
+import { binnenVestigingen, hoortBij, isVestigingSlug, kiesUit, naamVan, vestigingenUitRijen, type VestigingInfo } from './vestigingen'
 
 const FIT_FACTORY: VestigingInfo[] = [
   { sleutel: 'budel', naam: 'Budel', standaard: true },
@@ -79,5 +79,14 @@ describe('hoortBij', () => {
     expect(hoortBij(FIT_FACTORY, null)).toBe(false)
     expect(hoortBij(FIT_FACTORY, 7)).toBe(false)
     expect(hoortBij([], 'budel')).toBe(false)
+  })
+})
+
+describe('binnenVestigingen', () => {
+  it('geeft het record alleen terug bij een eigen vestiging', () => {
+    const lid = { id: 'l1', vestiging: 'bergeijk' }
+    expect(binnenVestigingen(FIT_FACTORY, lid)).toBe(lid)
+    expect(binnenVestigingen([FIT_FACTORY[0]], lid)).toBeNull()
+    expect(binnenVestigingen(FIT_FACTORY, null)).toBeNull()
   })
 })

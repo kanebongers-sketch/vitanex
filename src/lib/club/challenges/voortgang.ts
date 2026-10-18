@@ -48,19 +48,40 @@ export function reeksBehaaldOp(ops: readonly string[], n: number): string | null
   return reeksen(ops).find((w) => w.lengte >= n)?.eerste ?? null
 }
 
+/**
+ * Per Nederlandse kalenderdag alleen het eerste moment, oplopend. Een bezoek is
+ * een dag met minstens een check-in (zoals overal in Club): twee keer inchecken
+ * op een dag telt als een bezoek.
+ */
+export function eenPerDag(ops: readonly string[]): string[] {
+  const per = new Map<string, string>()
+  for (const op of ops) {
+    const dag = nlDatum(op)
+    const oud = per.get(dag)
+    if (!oud || Date.parse(op) < Date.parse(oud)) per.set(dag, op)
+  }
+  return [...per.values()].sort((a, b) => Date.parse(a) - Date.parse(b))
+}
+
 function binnen(c: Periode, ops: readonly string[]): string[] {
   return ops.filter((op) => inPeriode(c, op)).sort()
 }
 
+/** De momenten die tellen: bij bezoeken een per dag, anders elk moment. */
+function telbaar(c: Periode & Pick<Challenge, 'soort'>, ops: readonly string[]): string[] {
+  const hier = binnen(c, ops)
+  return c.soort === 'bezoeken' ? eenPerDag(hier) : hier
+}
+
 /** De score van een lid binnen de periode: een aantal, of de langste reeks weken. */
 export function scoreVoor(c: Periode & Pick<Challenge, 'soort'>, ops: readonly string[]): number {
-  const hier = binnen(c, ops)
+  const hier = telbaar(c, ops)
   return c.soort === 'weken_op_rij' ? langsteReeks(hier) : hier.length
 }
 
 /** De dag (yyyy-mm-dd) waarop het doel gehaald werd, of null. */
 export function gehaaldOp(c: Periode & Pick<Challenge, 'soort' | 'doel'>, ops: readonly string[]): string | null {
-  const hier = binnen(c, ops)
+  const hier = telbaar(c, ops)
   const moment = c.soort === 'weken_op_rij' ? reeksBehaaldOp(hier, c.doel) : (hier[c.doel - 1] ?? null)
   return moment ? nlDatum(moment) : null
 }

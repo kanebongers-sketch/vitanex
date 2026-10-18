@@ -193,3 +193,12 @@ export interface PlanVoorLid extends Doelen {
 export function planVoorLid(p: VoedingPlan): PlanVoorLid {
   return { kcal: p.kcal, eiwitG: p.eiwitG, koolhydratenG: p.koolhydratenG, vetG: p.vetG, doel: p.doel, adviezen: p.adviezen, maaltijden: p.maaltijden, bijgewerktOp: p.bijgewerktOp }
 }
+
+/** Wat de ledenapp bij voeding toont: het plan, nog geen plan, of een leesfout. */
+export type VoedingInApp = { staat: 'plan'; plan: PlanVoorLid } | { staat: 'geen' } | { staat: 'fout' }
+
+/** Uit haalPlan(): undefined = er is geen plan, null = leesfout (dan niet doen alsof er geen plan is). */
+export function voedingVoorApp(p: VoedingPlan | undefined | null): VoedingInApp {
+  if (p === null) return { staat: 'fout' }
+  return p === undefined ? { staat: 'geen' } : { staat: 'plan', plan: planVoorLid(p) }
+}

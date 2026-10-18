@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { eisModule } from '@/lib/club/toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
-import { hoortBij, naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
+import { binnenVestigingen, hoortBij, naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
 import { haalLidKaart, type LidKaart } from '@/lib/club/leden/kaart'
 import { datumKort, datumUitSleutel, laatsteBezoekTekst, leeftijd, tijdNl } from '@/lib/club/leden/tijd'
@@ -81,7 +81,9 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const t = await eisModule('leden')
   const [{ id }, ruw] = await Promise.all([params, searchParams])
   const nu = new Date()
-  const kaart = await haalLidKaart(t.admin, t.userId, id, nu)
+  const gelezen = await haalLidKaart(t.admin, t.userId, id, nu)
+  // Een lid van een vestiging die niet van deze persoon is: dezelfde 404 als een onbekend lid.
+  const kaart = gelezen && binnenVestigingen(t.vestigingen, gelezen.lid) ? gelezen : null
   if (!kaart) notFound()
   // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
   const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')

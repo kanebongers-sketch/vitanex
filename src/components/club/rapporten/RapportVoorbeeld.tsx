@@ -28,6 +28,11 @@ function Cel({ waarde }: { waarde: CsvWaarde }) {
   return <td>{waarde}</td>
 }
 
+/** Rijen in het hele rapport (en dus in de CSV, hoogstens MAX_RIJEN); de tabel zelf heeft alleen het voorbeeld. */
+function aantalRijen(uitkomst: RapportUitkomst): number {
+  return uitkomst.ok ? Math.min(uitkomst.tabel.totaal, MAX_RIJEN) : 0
+}
+
 function waarNaam(keuze: RapportKeuze, vestigingen: readonly VestigingInfo[], alle: boolean): string {
   if (alle && vestigingen.length > 1) return `Alle ${vestigingen.length} vestigingen`
   return keuze.vestigingen.map((v) => naamVan(vestigingen, v)).join(', ')
@@ -37,6 +42,7 @@ export function RapportVoorbeeld({ keuze, uitkomst, vestigingen, alle, vandaag, 
   const def = RAPPORTEN[keuze.rapport]
   const lopend = maandVan(vandaag) === keuze.maand
   const eind = Number(laatsteDag(keuze.maand).slice(8, 10))
+  const aantal = aantalRijen(uitkomst)
   return (
     <section className="club-rapporten-resultaat" aria-labelledby="rapport-titel" aria-live="polite">
       <header className="club-rapporten-samenvatting">
@@ -55,11 +61,11 @@ export function RapportVoorbeeld({ keuze, uitkomst, vestigingen, alle, vandaag, 
         </div>
         {uitkomst.ok && (
           <div className="club-rapporten-teller">
-            <span className="club-rapporten-reus">{AANTAL.format(uitkomst.tabel.rijen.length)}</span>
-            <span className="club-rapporten-teller-label">{uitkomst.tabel.rijen.length === 1 ? 'rij' : 'rijen'}</span>
+            <span className="club-rapporten-reus">{AANTAL.format(aantal)}</span>
+            <span className="club-rapporten-teller-label">{aantal === 1 ? 'rij' : 'rijen'}</span>
           </div>
         )}
-        {uitkomst.ok && uitkomst.tabel.rijen.length > 0 && (
+        {uitkomst.ok && aantal > 0 && (
           <a className="club-knop club-knop--primair club-knop--groot club-rapporten-download" href={csvHref} download>
             <Download aria-hidden size={18} />
             Download CSV
@@ -87,7 +93,8 @@ export function RapportVoorbeeld({ keuze, uitkomst, vestigingen, alle, vandaag, 
 
 function Inhoud({ uitkomst }: { uitkomst: Extract<RapportUitkomst, { ok: true }> }) {
   const { tabel, onvolledig } = uitkomst
-  if (tabel.rijen.length === 0) return <p className="club-leeg">Geen gegevens in deze maand voor de gekozen vestigingen.</p>
+  const aantal = aantalRijen(uitkomst)
+  if (aantal === 0) return <p className="club-leeg">Geen gegevens in deze maand voor de gekozen vestigingen.</p>
   const voorbeeld = tabel.rijen.slice(0, VOORBEELD_RIJEN)
   return (
     <>
@@ -122,9 +129,9 @@ function Inhoud({ uitkomst }: { uitkomst: Extract<RapportUitkomst, { ok: true }>
         </table>
       </div>
       <p className="club-rapporten-meer">
-        {tabel.rijen.length > voorbeeld.length
-          ? `Je ziet de eerste ${voorbeeld.length} van ${AANTAL.format(tabel.rijen.length)} rijen. De download bevat ze allemaal.`
-          : `Dit zijn alle ${AANTAL.format(tabel.rijen.length)} ${tabel.rijen.length === 1 ? 'rij' : 'rijen'}.`}
+        {aantal > voorbeeld.length
+          ? `Je ziet de eerste ${voorbeeld.length} van ${AANTAL.format(aantal)} rijen. De download bevat ze allemaal.`
+          : `Dit zijn alle ${AANTAL.format(aantal)} ${aantal === 1 ? 'rij' : 'rijen'}.`}
       </p>
     </>
   )

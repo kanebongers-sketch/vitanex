@@ -54,14 +54,18 @@ interface Totalen {
   voor: number
 }
 
-async function haalBezoekTotalen(admin: SupabaseClient, userId: string, vestiging: Vestiging, voor: Date): Promise<Map<string, Totalen> | null> {
-  const { data, error } = await admin.rpc('club_bezoek_totalen', { p_user: userId, p_vestiging: vestiging, p_voor: voor.toISOString() })
-  if (error) {
-    console.error('[club] bezoektotalen lezen mislukt', error.message)
-    return null
-  }
+/**
+ * Bezoekdagen per lid (ooit en voor `voor`). De functie geeft een rij per lid;
+ * PostgREST geeft hoogstens 1000 rijen per verzoek, dus we lezen in blokken
+ * (op lid_id gesorteerd, zodat de blokken elkaar niet overlappen).
+ */
+export async function haalBezoekTotalen(admin: SupabaseClient, userId: string, vestiging: Vestiging, voor: Date): Promise<Map<string, Totalen> | null> {
+  const rijen = await alleRijen('bezoektotalen', (van, tot) =>
+    admin.rpc('club_bezoek_totalen', { p_user: userId, p_vestiging: vestiging, p_voor: voor.toISOString() }).order('lid_id').range(van, tot),
+  )
+  if (!rijen) return null
   const uit = new Map<string, Totalen>()
-  for (const r of (Array.isArray(data) ? data : []) as Record<string, unknown>[]) {
+  for (const r of rijen as Record<string, unknown>[]) {
     if (typeof r.lid_id === 'string') uit.set(r.lid_id, { totaal: Number(r.totaal) || 0, voor: Number(r.voor) || 0 })
   }
   return uit

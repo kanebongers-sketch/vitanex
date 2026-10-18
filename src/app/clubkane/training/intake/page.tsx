@@ -5,7 +5,7 @@ import { eisModule } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
-import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
+import { binnenVestigingen, kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
@@ -25,11 +25,13 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
   const lidParam = typeof zoek.lid === 'string' ? zoek.lid : null
-  const [lid, medewerkers, vragen] = await Promise.all([
+  const [gelezenLid, medewerkers, vragen] = await Promise.all([
     lidParam ? haalLid(t.admin, t.userId, lidParam) : Promise.resolve(null),
     haalMedewerkers(t.admin, t.userId, vestiging, 'trainer'),
     haalIntakeVragen(t.admin, t.userId),
   ])
+  // Een lid uit een andere vestiging dan die van deze persoon wordt niet klaargezet.
+  const lid = binnenVestigingen(t.vestigingen, gelezenLid)
   const paden = trainingPaden(vestiging)
 
   return (

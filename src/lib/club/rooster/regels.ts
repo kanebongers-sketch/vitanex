@@ -202,7 +202,7 @@ export function beoordeelAfvinken(huidig: ReserveringStatus, nieuw: AfvinkStatus
 
 export interface WachtRij {
   id: string
-  lidId: string
+  lidId: string | null
   wachtpositie: number | null
   geboektOp: string
 }

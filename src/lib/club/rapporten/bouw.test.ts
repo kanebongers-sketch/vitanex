@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RAPPORTEN } from './definities'
 import { bezoekPerLid, instroom, ledenlijst, lidInMaand } from './bouw-leden'
-import { bezettingPerLes, leadsLijst, noShows } from './bouw-lessen'
+import { bezettingPerLes, eersteLessen, leadsLijst, noShows } from './bouw-lessen'
 import { afsprakenPerTrainer, opvolgPerMedewerker, urenPerMedewerker, type DienstRij } from './bouw-team'
 import type { AfspraakRij, CheckinRij, LeadRij, LesRij, LidNaam, LidRij, OpvolgRij, ReserveringRij } from './rijen'
 
@@ -89,6 +89,27 @@ describe('bezettingPerLes', () => {
     const rijen = bezettingPerLes([LES], [res('aanwezig'), res('aanwezig'), res('no_show'), res('geboekt'), res('wachtlijst'), res('geannuleerd')], MEDEWERKERS, VEST)
     expect(rijen).toEqual([['07-09-2026', '19:30', 'Spinning', 'Sanne', 'Budel', 12, 4, 2, 1, 1, 33, 'Gepland']])
     expect(rijen[0]).toHaveLength(RAPPORTEN.bezetting.kolommen.length)
+  })
+})
+
+describe('eersteLessen', () => {
+  it('geeft voor het voorbeeld dezelfde eerste rijen als het hele rapport', () => {
+    // Arrange: 30 lessen in willekeurige volgorde, sommige op hetzelfde tijdstip, met reserveringen.
+    const lessen: LesRij[] = Array.from({ length: 30 }, (_, i) => ({
+      ...LES,
+      id: `les${i}`,
+      lestype: i % 2 ? 'Yoga' : 'Spinning',
+      start: new Date(Date.UTC(2026, 8, 1 + ((i * 7) % 28), 17 + (i % 3))),
+    }))
+    const reserveringen = lessen.flatMap((l, i) => Array.from({ length: i % 5 }, () => ({ lesId: l.id, lidId: 'l1', status: 'aanwezig' as const, teLaat: false })))
+    // Act
+    const voorbeeld = eersteLessen(lessen, 20)
+    const ids = new Set(voorbeeld.map((l) => l.id))
+    const deel = bezettingPerLes(voorbeeld, reserveringen.filter((r) => ids.has(r.lesId)), MEDEWERKERS, VEST)
+    const geheel = bezettingPerLes(lessen, reserveringen, MEDEWERKERS, VEST)
+    // Assert
+    expect(voorbeeld).toHaveLength(20)
+    expect(deel).toEqual(geheel.slice(0, 20))
   })
 })
 

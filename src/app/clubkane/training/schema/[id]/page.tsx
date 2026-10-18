@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
+import { recordInEigenVestiging } from '@/lib/club/kern/vestiging-toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
@@ -25,13 +26,15 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
 
-  const [schema, oefeningen, medewerkers, log] = await Promise.all([
+  const [schema, eigen, oefeningen, medewerkers, log] = await Promise.all([
     haalSchema(t.admin, t.userId, id),
+    // Het schema van een lid uit een andere vestiging: 404 (een sjabloon is sportschoolbreed).
+    recordInEigenVestiging(t, 'club_schemas', id),
     haalOefeningen(t.admin, t.userId),
     haalMedewerkers(t.admin, t.userId, vestiging, 'trainer'),
     haalTrainingslog(t.admin, t.userId, [id]),
   ])
-  if (!schema) notFound()
+  if (!schema || !eigen) notFound()
   const { kop } = schema
   const isSjabloon = kop.lidId === null
   const terug = isSjabloon ? trainingPad(vestiging, 'sjablonen', null) : trainingPad(vestiging, 'schemas', kop.lidId)
