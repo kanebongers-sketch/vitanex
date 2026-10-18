@@ -96,6 +96,30 @@ export function inktOp(accent: string): string {
   return contrast(accent, '#0A0B09') >= contrast(accent, '#FFFFFF') ? '#0A0B09' : '#FFFFFF'
 }
 
+/** Minimaal contrast van zwarte of witte tekst op een knop in de accentkleur. */
+export const MIN_CONTRAST_INKT = 4.5
+
+function inktContrast(kleur: string): number {
+  return Math.max(contrast(kleur, '#0A0B09'), contrast(kleur, '#FFFFFF'))
+}
+
+/**
+ * Het accent voor vlakken en knoppen. Een middentoon (bv. #2F6BFF) haalt met
+ * zwart en met wit net geen 4.5:1; dan schuift de helderheid tot de tekst op de
+ * knop leesbaar is: lichter in het donkere thema (zwarte tekst, meer contrast
+ * met de achtergrond), donkerder in het lichte thema (witte tekst).
+ */
+export function vlakAccent(accent: string, thema: Thema): string {
+  const basis = bruikbaarAccent(accent, thema, MIN_CONTRAST_VLAK).kleur
+  if (inktContrast(basis) >= MIN_CONTRAST_INKT) return basis
+  const richting = thema === 'donker' ? 1 : -1
+  for (let stap = 1; stap <= 40; stap++) {
+    const kleur = meng(basis, (richting * stap) / 40)
+    if (inktContrast(kleur) >= MIN_CONTRAST_INKT && genoegContrast(kleur, thema, MIN_CONTRAST_VLAK)) return kleur
+  }
+  return basis
+}
+
 function alpha(hex: string, a: number): string {
   const { r, g, b } = hexNaarRgb(hex)
   return `rgba(${r}, ${g}, ${b}, ${a})`
@@ -105,7 +129,7 @@ function alpha(hex: string, a: number): string {
 export function huisstijlVariabelen(accentKeuze: string, thema: Thema): Record<string, string> {
   const basis = THEMA_BASIS[thema]
   const keuze = HEX.test(accentKeuze) ? accentKeuze : '#B58E5C'
-  const { kleur: accent } = bruikbaarAccent(keuze, thema, MIN_CONTRAST_VLAK)
+  const accent = vlakAccent(keuze, thema)
   const { kleur: accentTekst } = bruikbaarAccent(keuze, thema, MIN_CONTRAST_ACCENT)
   const inkt = (a: number) => `rgba(${basis.inkt}, ${a})`
   const licht = thema === 'licht'

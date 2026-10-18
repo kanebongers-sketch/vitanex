@@ -144,3 +144,14 @@ describe('accent als tekst', () => {
     }
   })
 })
+
+describe('tekst op een accentknop', () => {
+  it('is altijd minstens 4.5:1, ook bij een middentoon', () => {
+    for (const kleur of ['#2F6BFF', '#3E63DD', '#E5484D', '#12A594', '#B58E5C', '#C9F03E', '#7C3AED', '#FF6B3D']) {
+      for (const thema of ['donker', 'licht'] as const) {
+        const v = huisstijlVariabelen(kleur, thema)
+        expect(contrast(v['--brand'], v['--brand-inkt'])).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+})
