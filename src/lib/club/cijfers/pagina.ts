@@ -21,14 +21,22 @@ export interface Opgehaald {
   afgekapt: boolean
 }
 
+/** Na het eerste volle blok lopen zoveel blokken tegelijk; een kort blok betekent het einde. */
+const GOLF = 4
+
 export async function haalAlles(vraag: PaginaVraag, plafond = 60_000): Promise<Opgehaald> {
   const rijen: unknown[] = []
-  for (let van = 0; van < plafond; van += PAGINA) {
-    const { data, error } = await vraag(van, van + PAGINA - 1)
-    if (error) return { rijen, fout: error.message, code: error.code ?? null, afgekapt: false }
-    const blok = data ?? []
-    rijen.push(...blok)
-    if (blok.length < PAGINA) return { rijen, fout: null, code: null, afgekapt: false }
+  for (let van = 0; van < plafond; ) {
+    const golf = van === 0 ? 1 : GOLF
+    const vanafs = Array.from({ length: golf }, (_, i) => van + i * PAGINA).filter((v) => v < plafond)
+    const antwoorden = await Promise.all(vanafs.map((v) => vraag(v, v + PAGINA - 1)))
+    for (const { data, error } of antwoorden) {
+      if (error) return { rijen, fout: error.message, code: error.code ?? null, afgekapt: false }
+      const blok = data ?? []
+      rijen.push(...blok)
+      if (blok.length < PAGINA) return { rijen, fout: null, code: null, afgekapt: false }
+    }
+    van += golf * PAGINA
   }
   return { rijen, fout: null, code: null, afgekapt: true }
 }

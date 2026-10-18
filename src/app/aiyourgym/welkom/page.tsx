@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
+import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { Kopieer } from '@/components/aiyourgym/aanmelden/Kopieer'
 import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
@@ -40,6 +41,11 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
             <p className="aan-link-tekst">{w.link}</p>
             <div className="ayg-knoppen">
               <Kopieer tekst={w.link} />
+              {w.loginOpen && (
+                <a href={w.link} className="ayg-knop ayg-knop--rand" rel="noreferrer">
+                  Open de link
+                </a>
+              )}
             </div>
           </>
         ) : (
@@ -58,7 +64,21 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
         )}
         <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestigingen, lessen, team en leden neer. Elke stap kun je overslaan en later afmaken.</li>
       </ol>
+      {heeftContact() && <Contact />}
     </>
+  )
+}
+
+/** Hoe je ons bereikt voor de controlecode; alleen als Kane contactgegevens heeft ingevuld. */
+function Contact() {
+  const { telefoon, email } = AYG_CONTACT
+  return (
+    <p className="ayg-klein">
+      Je bereikt ons op{' '}
+      {telefoon && <a href={telLink(telefoon)}>{telefoon}</a>}
+      {telefoon && email && ' of '}
+      {email && <a href={`mailto:${email}`}>{email}</a>}.
+    </p>
   )
 }
 

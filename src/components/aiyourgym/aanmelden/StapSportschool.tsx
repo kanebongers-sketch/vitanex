@@ -11,13 +11,14 @@ import type { Invoer, Wijzig } from './types'
 interface StapSportschoolProps {
   invoer: Invoer
   maxVestigingen: number
+  onbeperkt: boolean
   fouten: Partial<Record<AanmeldVeld, string>>
   wijzig: Wijzig
 }
 
 const ICOON: Partial<Record<AdresStatus, typeof Check>> = { controleren: LoaderCircle, vrij: Check, bezet: X, ongeldig: X }
 
-export function StapSportschool({ invoer, maxVestigingen, fouten, wijzig }: StapSportschoolProps) {
+export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig }: StapSportschoolProps) {
   const adres = useAdresCheck(invoer.slug)
   const Icoon = ICOON[adres.status]
 
@@ -49,7 +50,7 @@ export function StapSportschool({ invoer, maxVestigingen, fouten, wijzig }: Stap
             <Plus size={18} aria-hidden="true" />
           </button>
         </div>
-        <p className="aan-hint">{maxVestigingen === 1 ? 'Dit pakket is voor een vestiging.' : `In dit pakket tot ${maxVestigingen}. Je betaalt per vestiging.`}</p>
+        <p className="aan-hint">{maxVestigingen === 1 ? 'Dit pakket is voor een vestiging.' : onbeperkt ? 'Met hoeveel vestigingen start je? Je betaalt per vestiging.' : `In dit pakket tot ${maxVestigingen}. Je betaalt per vestiging.`}</p>
         {fouten.aantalVestigingen && <p className="aan-fout" role="alert">{fouten.aantalVestigingen}</p>}
       </div>
 

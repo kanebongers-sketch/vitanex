@@ -4,6 +4,7 @@
 // check-in) en schrijven hem terug met alle andere sleutels erin.
 // Altijd voor de sportschool die open staat: het id komt nooit van de pagina.
 
+import { cache } from 'react'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { instellingenMetStart, leesStart, vestigingIngericht, type StartFeiten, type StartVoortgang } from './stappen'
 
@@ -27,6 +28,13 @@ export async function haalStart(t: Lezer): Promise<GelezenStart> {
   const r = await leesRuw(t)
   return r ? { ok: true, voortgang: leesStart(r.ruw) } : { ok: false }
 }
+
+/**
+ * Als haalStart, maar een keer per verzoek (per toegang): Vandaag leest de
+ * voortgang voor de doorverwijzing en voor de kaart. Alleen voor het renderen
+ * van pagina's, niet in routes die daarna schrijven.
+ */
+export const haalStartVoorPagina = cache((t: Lezer): Promise<GelezenStart> => haalStart(t))
 
 /** Voortgang opslaan; de andere instellingen blijven precies staan. */
 export async function bewaarStart(t: Schrijver, v: StartVoortgang): Promise<boolean> {

@@ -22,18 +22,26 @@ interface Antwoord {
   error: { message: string } | null
 }
 
-/** Leest alle rijen in blokken van 1000. Null bij een fout (gelogd). */
+/** Na het eerste volle blok lopen zoveel blokken van 1000 tegelijk; een korter blok betekent het einde. */
+const GOLF = 4
+
+/** Leest alle rijen in blokken van 1000 (de meeste lijsten zijn een blok; daarna een golf tegelijk). Null bij een fout (gelogd). */
 export async function alleRijen(waar: string, maak: (van: number, tot: number) => PromiseLike<Antwoord>): Promise<unknown[] | null> {
   const rijen: unknown[] = []
-  for (let van = 0; van < MAX_RIJEN; van += BLOK) {
-    const { data, error } = await maak(van, van + BLOK - 1)
-    if (error) {
-      console.error(`[club] ${waar} lezen mislukt`, error.message)
-      return null
+  for (let van = 0; van < MAX_RIJEN; ) {
+    const golf = van === 0 ? 1 : GOLF
+    const vanafs = Array.from({ length: golf }, (_, i) => van + i * BLOK).filter((v) => v < MAX_RIJEN)
+    const antwoorden = await Promise.all(vanafs.map((v) => maak(v, v + BLOK - 1)))
+    for (const { data, error } of antwoorden) {
+      if (error) {
+        console.error(`[club] ${waar} lezen mislukt`, error.message)
+        return null
+      }
+      const blok = data ?? []
+      rijen.push(...blok)
+      if (blok.length < BLOK) return rijen
     }
-    const blok = data ?? []
-    rijen.push(...blok)
-    if (blok.length < BLOK) break
+    van += golf * BLOK
   }
   return rijen
 }
@@ -53,7 +61,11 @@ async function haalBezoeken(admin: SupabaseClient, userId: string, v: Vestiging,
   if (!rijen) return null
   const perLid = new Map<string, Date[]>()
   for (const c of rijen.map(checkinUitRij)) {
-    if (c) perLid.set(c.lidId, [...(perLid.get(c.lidId) ?? []), c.op])
+    if (c) {
+      const lijst = perLid.get(c.lidId)
+      if (lijst) lijst.push(c.op)
+      else perLid.set(c.lidId, [c.op])
+    }
   }
   return perLid
 }

@@ -75,6 +75,8 @@ const API_ONDERDEEL: Record<string, string> = {
   meldingen: 'beheer',
   hulp: 'hulp',
   start: 'beheer',
+  community: 'community',
+  betalen: 'beheer',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

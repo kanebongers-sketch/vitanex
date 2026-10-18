@@ -1,0 +1,74 @@
+/* ─── Club ledenapp: "Meldingen op je telefoon" in Profiel ──────────────────
+   Rustige kaart in de stijl van de installeerhulp. Alleen .club-push-*.
+   Kleuren uit de club-variabelen: huisstijl van de sportschool, donker en licht. */
+
+.club-push {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--club-radius, 12px);
+  background: var(--bg-card);
+  color: var(--text-1);
+}
+
+.club-push-regel { display: flex; align-items: center; gap: 12px; }
+
+.club-push-teken {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--club-vlak, transparent);
+  color: var(--text-3);
+}
+.club-push-teken[data-aan='true'] { background: var(--brand-soft, var(--club-vlak)); color: var(--brand-tekst, var(--brand)); }
+
+.club-push-tekst { display: grid; gap: 2px; min-width: 0; }
+.club-push-tekst h3 {
+  margin: 0;
+  font-family: var(--ff-kop, inherit);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.club-push-status { margin: 0; font-size: 14px; color: var(--text-2); }
+
+.club-push-uitleg { margin: 0; display: grid; gap: 8px; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.club-push-uitleg p { margin: 0; }
+.club-push-noot { margin: 0; font-size: 13px; color: var(--text-3); }
+.club-push-fout { margin: 0; font-size: 14px; color: var(--status-let-op, var(--text-1)); }
+
+.club-push-knop {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-inkt, #0A0B09);
+  font-family: var(--ff-kop, inherit);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease, ease), transform 120ms var(--ease, ease);
+}
+.club-push-knop:hover { background: var(--brand-strong, var(--brand)); }
+.club-push-knop:active { transform: translateY(1px); }
+.club-push-knop--uit { background: transparent; color: var(--text-1); border-color: var(--line-strong); }
+.club-push-knop--uit:hover { background: var(--club-vlak-hover, transparent); }
+.club-push-knop:disabled,
+.club-installeer-knop:disabled { opacity: 0.55; cursor: default; transform: none; }
+.club-push-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-push-knop { transition: none; }
+}
+/* Een leeg blok (geen vraag te tonen) neemt geen ruimte in. */
+.club-push-blok:empty { display: none; }

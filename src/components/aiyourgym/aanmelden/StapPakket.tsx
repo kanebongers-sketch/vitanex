@@ -13,8 +13,9 @@ interface StapPakketProps {
   onKies: (sleutel: PakketSleutel) => void
 }
 
-function vestigingenTekst(max: number): string {
-  return max === 1 ? 'Een vestiging' : `Tot ${max} vestigingen`
+function vestigingenTekst(p: PakketKeuze): string {
+  if (p.onbeperkt) return 'Onbeperkt vestigingen'
+  return p.maxVestigingen === 1 ? 'Een vestiging' : `Tot ${p.maxVestigingen} vestigingen`
 }
 
 export function StapPakket({ pakketten, gekozen, proefdagen, fout, onKies }: StapPakketProps) {
@@ -32,7 +33,7 @@ export function StapPakket({ pakketten, gekozen, proefdagen, fout, onKies }: Sta
             </span>
             <span className="aan-pakket-voor">{p.voorWie}</span>
             <span className="aan-pakket-meta">
-              <span>{vestigingenTekst(p.maxVestigingen)}</span>
+              <span>{vestigingenTekst(p)}</span>
               <span aria-hidden="true">·</span>
               <span>{p.open ? `${proefdagen} dagen gratis proberen` : 'Op aanvraag'}</span>
             </span>

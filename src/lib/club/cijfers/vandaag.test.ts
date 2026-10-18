@@ -64,13 +64,13 @@ describe('systeemgrens en ophalen', () => {
     })
   })
 
-  it('haalt in blokken tot de laatste onvolle pagina', async () => {
+  it('haalt in blokken tot de laatste onvolle pagina (na de eerste pagina een golf tegelijk)', async () => {
     const vragen: number[] = []
     const r = await haalAlles(async (van) => {
       vragen.push(van)
       return { data: Array.from({ length: van === 0 ? 1000 : 3 }, () => ({})), error: null }
     })
-    expect(vragen).toEqual([0, 1000])
+    expect(vragen).toEqual([0, 1000, 2000, 3000, 4000])
     expect(r.rijen).toHaveLength(1003)
     expect(r.afgekapt).toBe(false)
   })

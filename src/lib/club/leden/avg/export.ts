@@ -26,11 +26,17 @@ export interface ExportRuw {
   opvolgtaken: Rij[]
   meldingen: Rij[]
   meldingVoorkeuren: Rij[]
+  pushToestellen: Rij[]
   ledenapp: Rij[]
   sessies: Rij[]
   leads: Rij[]
   leadHistorie: Rij[]
   verwijderverzoek: Rij[]
+  communityGroepen: Rij[]
+  communityBerichten: Rij[]
+  communityReacties: Rij[]
+  communityMeldingen: Rij[]
+  communityVoorkeur: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -153,7 +159,8 @@ export const SECTIES: readonly Sectie[] = [
     titel: 'Berichten en mails aan het lid',
     velden: { soort: 'Soort', kanaal: 'Kanaal', onderwerp: 'Onderwerp', inhoud: 'Inhoud', status: 'Status', gepland_op: 'Gepland op', verstuurd_op: 'Verstuurd op', gelezen_op: 'Gelezen op' },
   },
-  { sleutel: 'meldingVoorkeuren', titel: 'Voorkeuren voor berichten', velden: { herinneringen_per_mail: 'Herinneringen per mail', mails: 'Mails', gewijzigd_op: 'Gewijzigd op' } },
+  { sleutel: 'meldingVoorkeuren', titel: 'Voorkeuren voor berichten', velden: { herinneringen_per_mail: 'Herinneringen per mail', mails: 'Mails', push: 'Meldingen op de telefoon', gewijzigd_op: 'Gewijzigd op' } },
+  { sleutel: 'pushToestellen', titel: 'Toestellen met meldingen', velden: { user_agent: 'Toestel', aangemaakt_op: 'Aangezet op', laatst_gebruikt_op: 'Laatste melding op' } },
   { sleutel: 'ledenapp', titel: 'Ledenapp', velden: { actief: 'Link actief', pin_gekozen_op: 'Pincode gekozen op', laatst_ingelogd_op: 'Laatst ingelogd op', aangemaakt_op: 'Link gemaakt op' } },
   { sleutel: 'sessies', titel: 'Ingelogde toestellen', velden: { aangemaakt_op: 'Ingelogd op', laatst_gebruikt_op: 'Laatst gebruikt op', verloopt_op: 'Verloopt op' } },
   {
@@ -163,6 +170,12 @@ export const SECTIES: readonly Sectie[] = [
   },
   { sleutel: 'leadHistorie', titel: 'Contactmomenten als belangstellende', velden: { soort: 'Soort', tekst: 'Tekst', auteur: 'Door', op: 'Moment' } },
   { sleutel: 'verwijderverzoek', titel: 'Verzoek tot verwijderen', velden: { aangevraagd_op: 'Aangevraagd op', definitief_op: 'Wordt definitief verwijderd op' } },
+  // Community in de ledenapp (migratie 440).
+  { sleutel: 'communityGroepen', titel: 'Community: groepen', velden: { 'club_community_groepen.naam': 'Groep', status: 'Status', toegevoegd_door: 'Toegevoegd door', aangemaakt_op: 'Sinds' } },
+  { sleutel: 'communityBerichten', titel: 'Community: berichten', velden: { 'club_community_groepen.naam': 'Groep', tekst: 'Tekst', status: 'Status', aangemaakt_op: 'Geplaatst op' } },
+  { sleutel: 'communityReacties', titel: 'Community: reacties', velden: { soort: 'Reactie', aangemaakt_op: 'Gegeven op' } },
+  { sleutel: 'communityMeldingen', titel: 'Community: gemelde berichten', velden: { reden: 'Reden', toelichting: 'Toelichting', status: 'Status', aangemaakt_op: 'Gemeld op' } },
+  { sleutel: 'communityVoorkeur', titel: 'Community: voorkeuren', velden: { op_ranglijst: 'Op ranglijsten', gewijzigd_op: 'Gewijzigd op' } },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */
@@ -247,6 +260,7 @@ const PERIODE_KOLOM: Partial<Record<SectieSleutel, string>> = {
   trainingen: 'op',
   notities: 'aangemaakt_op',
   meldingen: 'gepland_op',
+  communityBerichten: 'aangemaakt_op',
 }
 
 /** Een korte samenvatting in gewone tekst, om mee te sturen met het bestand. */

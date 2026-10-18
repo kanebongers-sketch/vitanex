@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { eisModule } from '@/lib/club/toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
@@ -81,17 +82,19 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const t = await eisModule('leden')
   const [{ id }, ruw] = await Promise.all([params, searchParams])
   const nu = new Date()
-  const gelezen = await haalLidKaart(t.admin, t.userId, id, nu)
+  // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
+  const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
+  // Voortgang, voeding en verwijderverzoek hangen alleen van het lid-id af (alles filtert op de
+  // sportschool): tegelijk met de kaart ophalen. Hoort het lid niet bij deze persoon, dan vervalt het.
+  const [gelezen, voortgang, voeding, verzoek] = await Promise.all([
+    haalLidKaart(t.admin, t.userId, id, nu),
+    haalVoortgang(t.admin, t.userId, id, nu),
+    toonVoeding ? haalPlan(t.admin, t.userId, id) : Promise.resolve(null),
+    haalVerwijderverzoek(t.admin, t.userId, id),
+  ])
   // Een lid van een vestiging die niet van deze persoon is: dezelfde 404 als een onbekend lid.
   const kaart = gelezen && binnenVestigingen(t.vestigingen, gelezen.lid) ? gelezen : null
   if (!kaart) notFound()
-  // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
-  const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
-  const [voortgang, voeding, verzoek] = await Promise.all([
-    haalVoortgang(t.admin, t.userId, kaart.lid.id, nu),
-    toonVoeding ? haalPlan(t.admin, t.userId, kaart.lid.id) : Promise.resolve(null),
-    haalVerwijderverzoek(t.admin, t.userId, kaart.lid.id),
-  ])
   const { lid } = kaart
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
   const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
@@ -131,7 +134,9 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
           </section>
           <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
-          <AfsprakenVanLid lidId={kaart.lid.id} vestiging={kaart.lid.vestiging} />
+          <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
+            <AfsprakenVanLid lidId={kaart.lid.id} vestiging={kaart.lid.vestiging} />
+          </Suspense>
           <div id="voortgang">
             <Voortgangskaart
               begin={voortgang}

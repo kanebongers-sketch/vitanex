@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react'
-import { leesAanmelding } from '@/lib/aiyourgym/aanmelding'
+import { leesAanmelding, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import { STAPPEN, eersteStapMetFout, foutenVanStap, isStripeCheckout, type Fouten } from './stappen'
 import { Voortgang } from './Voortgang'
@@ -57,6 +57,17 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
     requestAnimationFrame(() => kopRef.current?.focus())
   }
 
+  /** Na een fout: de focus naar het eerste veld met een fout, zodat je meteen ziet wat er mist. */
+  function naarEersteFout(f: Fouten) {
+    const veld = STAPPEN.flatMap((s) => s.velden as readonly AanmeldVeld[]).find((v) => f[v])
+    if (!veld) return
+    requestAnimationFrame(() => {
+      const el = veld === 'pakket' ? document.querySelector<HTMLElement>('input[name="pakket"]') : document.getElementById(veld)
+      el?.focus()
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }
+
   function body() {
     return { ...invoer, slugZelf: undefined }
   }
@@ -66,6 +77,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
     const hier = uitslag.ok ? {} : foutenVanStap(stap, uitslag.fouten)
     if (Object.keys(hier).length > 0) {
       setFouten(hier)
+      naarEersteFout(hier)
       return
     }
     setFouten({})
@@ -80,6 +92,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
       setFouten(uitslag.fouten)
       const eerste = eersteStapMetFout(uitslag.fouten)
       if (eerste !== null && eerste !== stap) naarStap(eerste)
+      else naarEersteFout(uitslag.fouten)
       return
     }
     setVerzenden({ staat: 'bezig' })
@@ -119,7 +132,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
         </h2>
         <div className="aan-stap" key={stap}>
           {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakket} proefdagen={proefdagen} fout={stapFouten.pakket} onKies={kiesPakket} />}
-          {stap === 1 && <StapSportschool invoer={invoer} maxVestigingen={maxVestigingen} fouten={stapFouten} wijzig={wijzig} />}
+          {stap === 1 && <StapSportschool invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 2 && <StapEigenaar invoer={invoer} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 3 && <StapAkkoord invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>

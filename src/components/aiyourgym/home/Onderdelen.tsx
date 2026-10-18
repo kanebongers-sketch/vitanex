@@ -16,7 +16,7 @@ export function Onderdelen() {
         <SectieKop
           naast
           id="onderdelen-titel"
-          label="Een systeem"
+          label="Functies"
           titel="Vijf hoofdstukken. Alles wat je club nodig heeft."
           tekst="Geen losse apps en lijstjes meer. Van de balie en de vloer tot de groei van je club en de app van je leden."
         />

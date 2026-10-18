@@ -10,6 +10,7 @@ import { nlDatumTijd, tijdvak } from '@/lib/club/afspraken/weergave'
 import { stuur } from '@/components/club/leden/stuur'
 import { Verplaatsen } from './Verplaatsen'
 import type { Persoon } from './AfspraakFormulier'
+import { PtTegoed } from '@/components/club/betalen/PtTegoed'
 
 // Een afspraak in het zijpaneel: wie, wat en wanneer, de status zetten,
 // verplaatsen en de notitie bijwerken.
@@ -67,6 +68,7 @@ export function AfspraakDetail({ afspraak: a, vestiging, trainerNaam, trainers, 
         <div><dt>Geboekt via</dt><dd>{GEBOEKT_DOOR_LABEL[a.geboektDoor]}</dd></div>
       </dl>
       <Link className="club-afspraken-link" href={clubPad(`/leden/${a.lidId}`, vestiging)}>Naar de ledenkaart</Link>
+      <PtTegoed afspraakId={a.id} typeNaam={a.typeNaam} />
 
       {opties.length > 0 ? (
         <div className="club-acties" role="group" aria-label="Status zetten">

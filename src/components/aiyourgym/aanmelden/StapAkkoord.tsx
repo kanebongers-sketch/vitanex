@@ -1,4 +1,5 @@
 import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
+import { aygPad } from '@/components/aiyourgym/site/paden'
 import type { Invoer, PakketKeuze, Wijzig } from './types'
 
 // Stap 4: alles nog een keer op een rij, en akkoord met de voorwaarden.
@@ -46,8 +47,8 @@ export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarSt
           aria-invalid={fouten.akkoord ? true : undefined} aria-describedby={fouten.akkoord ? 'akkoord-fout' : undefined} />
         <label htmlFor="akkoord">
           Ik ga akkoord met de{' '}
-          <a href="/aiyourgym/voorwaarden" target="_blank" rel="noopener">algemene voorwaarden</a> en heb de{' '}
-          <a href="/aiyourgym/privacy" target="_blank" rel="noopener">privacyverklaring</a> gelezen.
+          <a href={aygPad('/voorwaarden')} target="_blank" rel="noopener">algemene voorwaarden</a> en heb de{' '}
+          <a href={aygPad('/privacy')} target="_blank" rel="noopener">privacyverklaring</a> gelezen.
         </label>
       </div>
       {fouten.akkoord && <p id="akkoord-fout" className="aan-fout" role="alert">{fouten.akkoord}</p>}

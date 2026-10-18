@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalVandaag } from '@/lib/club/cijfers/haal-vandaag'
-import { dagLang, tijdNl } from '@/lib/club/cijfers/tijd'
+import { dagLang, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import { VandaagHero } from '@/components/club/vandaag/VandaagHero'
 import { LesTijdlijn } from '@/components/club/vandaag/LesTijdlijn'
 import { LeadsOpvolgen } from '@/components/club/vandaag/Opvolgen'
@@ -20,7 +21,7 @@ import { overdrachtVoorVandaag } from '@/lib/club/kladblok/model'
 import { maandagVan } from '@/lib/club/rooster/tijd'
 import { magBeheerdersBeheren, magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moetNaarWizard } from '@/lib/club/start/stappen'
-import { haalStart } from '@/lib/club/start/opslag'
+import { haalStartVoorPagina } from '@/lib/club/start/opslag'
 import { StartKaart } from '@/components/club/start/StartKaart'
 import { beperkVandaag } from '@/lib/club/beheerders/vandaag-filter'
 import '@/components/club/vandaag/vandaag.css'
@@ -37,15 +38,15 @@ export const metadata: Metadata = { title: 'Vandaag' }
 /** Een nieuwe sportschool (geen voortgang in de startwizard) gaat eerst naar de wizard; Fit Factory en een demo nooit. */
 async function naarStartwizard(t: ClubToegang): Promise<boolean> {
   if (!magBeheerdersBeheren(t) || t.organisatie.demo || t.organisatie.id === t.beheerderId) return false
-  const start = await haalStart(t)
+  const start = await haalStartVoorPagina(t)
   return start.ok && moetNaarWizard(t.organisatie, t.beheerderId, start.voortgang)
 }
 
 export default async function ClubVandaag({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
-  if (await naarStartwizard(t)) redirect('/clubkane/start')
   const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
   if (!vestiging) {
+    if (await naarStartwizard(t)) redirect('/clubkane/start')
     return (
       <>
         <StartKaart t={t} vestiging={null} />
@@ -54,13 +55,19 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
     )
   }
   const mag = (onderdeel: string) => magOnderdeel(t.onderdelen, onderdeel)
-  const data = beperkVandaag(await haalVandaag(t.admin, t.userId, vestiging), mag)
-  // Agenda en overdracht naast de rest; een fout hier breekt het scherm niet (null = melding in het blok).
-  const maandag = maandagVan(data.vandaag)
-  const [week, kladblok] = await Promise.all([
+  // Alles tegelijk: de doorverwijzing naar de wizard, de cijfers, de agenda en de overdracht.
+  // Agenda en overdracht hangen alleen af van de dag, niet van de cijfers; een fout daarin
+  // breekt het scherm niet (null = melding in het blok).
+  const nu = new Date()
+  const maandag = maandagVan(dagSleutel(nu))
+  const [wizard, ruweData, week, kladblok] = await Promise.all([
+    naarStartwizard(t),
+    haalVandaag(t.admin, t.userId, vestiging, nu),
     mag('agenda') ? haalAgendaWeek(t.admin, t.userId, vestiging, maandag) : null,
     mag('notities') ? haalKladblok(t.admin, t.userId, vestiging) : null,
   ])
+  if (wizard) redirect('/clubkane/start')
+  const data = beperkVandaag(ruweData, mag)
   const agendaVandaag = week ? (perDag(week, maandag).find((d) => d.datum === data.vandaag)?.items ?? []) : null
   const overdracht = kladblok ? overdrachtVoorVandaag(kladblok, data.nu) : null
   const [weekdag, ...rest] = dagLang(data.vandaag).split(' ')
@@ -78,9 +85,13 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </p>
       </header>
 
-      <StartKaart t={t} vestiging={vestiging} />
+      <Suspense fallback={null}>
+        <StartKaart t={t} vestiging={vestiging} />
+      </Suspense>
 
-      <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={vestiging} />
+      <Suspense fallback={null}>
+        <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={vestiging} />
+      </Suspense>
 
       {data.meldingen.map((m) => (
         <p key={m} className="club-melding club-melding--fout" role="status">
@@ -104,7 +115,11 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           {mag('leden') && <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />}
         </div>
         <div className="club-k5 club-vandaag-stapel">
-          {mag('opvolgen') && <OpvolgenVandaag admin={t.admin} userId={t.userId} vestiging={vestiging} />}
+          {mag('opvolgen') && (
+            <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
+              <OpvolgenVandaag admin={t.admin} userId={t.userId} vestiging={vestiging} />
+            </Suspense>
+          )}
           {mag('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}
           {mag('leden') && <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />}
         </div>

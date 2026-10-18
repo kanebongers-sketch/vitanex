@@ -27,6 +27,7 @@ import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinne
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { UitlogKnoppen } from '@/components/club/ledenlogin/UitlogKnoppen'
+import { CommunityProfielBlok } from '@/components/club/community/CommunityProfielBlok'
 import { InstalleerHulp } from '@/components/club/ledenapp-pwa/InstalleerHulp'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
 import { lidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
@@ -35,6 +36,10 @@ import { haalLedenappMeldingen } from '@/lib/club/meldingen/opslag'
 import { LedenappMeldingen } from '@/components/club/meldingen/LedenappMeldingen'
 import { MeldingenBel } from '@/components/club/ledenlogin/MeldingenBel'
 import { HulpSportschool } from '@/components/club/ledenlogin/HulpSportschool'
+import { haalKopenVoorLid } from '@/lib/club/betalen/ledenapp'
+import { KopenBlok, LedenappKopen } from '@/components/club/betalen/LedenappKopen'
+import { PushMeldingen } from '@/components/club/ledenapp-pwa/PushMeldingen'
+import { publiekeSleutelVoorApp } from '@/lib/club/push/sleutels'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -65,6 +70,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const gekozen = kiesTab(zoek.tab)
   const tab: AppTab = tabsUit.includes(gekozen) ? 'home' : gekozen
   const toonMeldingen = eerste(zoek.tab) === 'meldingen'
+  // ?tab=kopen: betalen in de ledenapp (via het blok op Home, niet in de onderbalk).
+  const toonKopen = !toonMeldingen && eerste(zoek.tab) === 'kopen'
+  const apart = toonMeldingen || toonKopen
   const appLid = lidVoorApp(lid)
   const vestigingNaam = naamVan(l.vestigingen, lid.vestiging)
   // In de voorvertoning blijft het lid in elke link staan; voor een lid nooit.
@@ -76,21 +84,34 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   }
 
   const nu = new Date()
-  const [data, bedrijf, berichten] = await Promise.all([haalLidApp(admin, userId, lid, nu), haalBedrijf(admin, userId), haalBerichtenVoorLid(admin, userId, lid, nu)])
-  const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(admin, userId, lid.id, nu)) : null
-  const challenges = tab === 'voortgang' ? await haalLedenappChallenges(admin, userId, lid, nu) : null
-  // null = leesfout (nette melding), undefined = nog geen plan.
-  const voeding = tab === 'voeding' ? voedingVoorApp(await haalPlan(admin, userId, lid.id)) : null
-  // Meldingen voor de bel (aantal ongelezen) en het meldingenscherm; null bij een leesfout.
-  const meldingen = await haalLedenappMeldingen(admin, userId, lid.id)
+  // Alles tegelijk: de basis, de meldingen en wat alleen het open tabblad nodig heeft.
+  // voeding: null = leesfout (nette melding), undefined = nog geen plan.
+  const [data, bedrijf, berichten, meldingen, ruweVoortgang, challenges, ruwPlan, contact] = await Promise.all([
+    haalLidApp(admin, userId, lid, nu),
+    haalBedrijf(admin, userId),
+    haalBerichtenVoorLid(admin, userId, lid, nu),
+    // Meldingen voor de bel (aantal ongelezen) en het meldingenscherm; null bij een leesfout.
+    haalLedenappMeldingen(admin, userId, lid.id),
+    tab === 'voortgang' ? haalVoortgang(admin, userId, lid.id, nu) : null,
+    tab === 'voortgang' ? haalLedenappChallenges(admin, userId, lid, nu) : null,
+    tab === 'voeding' ? haalPlan(admin, userId, lid.id) : null,
+    tab === 'profiel' && !apart ? haalVestigingContact(admin, userId, lid.vestiging, vestigingNaam) : null,
+  ])
+  const voortgang = ruweVoortgang ? voortgangVoorLid(ruweVoortgang) : null
+  const voeding = tab === 'voeding' ? voedingVoorApp(ruwPlan) : null
   const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
-  const contact = tab === 'profiel' && !toonMeldingen ? await haalVestigingContact(admin, userId, lid.vestiging, vestigingNaam) : null
+  // Betalen in de ledenapp (null = uit bij deze sportschool of CLUB_BETALEN_ACTIEF uit).
+  const kopen = toonKopen || (!apart && (tab === 'home' || tab === 'lessen')) ? await haalKopenVoorLid(admin, userId, lid, nu) : null
+  const metVoor = (pad: string) => (l.voorvertoning ? `${pad}?voor=${encodeURIComponent(lid.id)}` : pad)
+  const kopenTerug = eerste(zoek.betaald) === '1' ? 'betaald' : eerste(zoek.geannuleerd) === '1' ? 'geannuleerd' : null
+  // Web push: alleen met CLUB_PUSH_ACTIEF=1 en kloppende sleutels, anders geen knop.
+  const pushSleutel = publiekeSleutelVoorApp(process.env)
 
   return (
     <LedenappSchil organisatie={org}>
       <LedenApiProvider voor={l.voorvertoning ? lid.id : null}>
         <LedenappScherm
-          tab={toonMeldingen ? null : tab}
+          tab={apart ? null : tab}
           tabPad={tabPad}
           merkNaam={org.naam}
           merkLogo={l.merk.logoUrl}
@@ -116,43 +137,64 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               )}
             </div>
           )}
-          {!toonMeldingen && tab === 'home' && (
+          {toonKopen &&
+            (kopen === 'fout' ? (
+              <p className="club-melding club-melding--fout club-mijn-blok" role="alert">Kopen kon niet worden geladen. Probeer het straks opnieuw.</p>
+            ) : kopen ? (
+              <LedenappKopen producten={kopen.producten} strippen={kopen.strippen} ptSessies={kopen.ptSessies} open={kopen.open} kopenUrl={metVoor('/api/club/lid/betalen/kopen')} voorvertoning={l.voorvertoning} terug={kopenTerug} sportschool={org.naam} />
+            ) : (
+              <p className="club-melding club-mijn-blok" role="status">Kopen in de app staat bij {org.naam} niet aan.</p>
+            ))}
+          {!apart && tab === 'home' && (
             <>
               <div className="club-mijn-blok">
                 <SluitingenBinnenkort admin={admin} userId={userId} vestiging={lid.vestiging} variant="app" />
               </div>
+              {/* Zachte vraag om meldingen, pas na de eerste boeking. */}
+              {data.lessen.some((les) => les.mijn !== null) && (
+                <div className="club-mijn-blok club-push-blok">
+                  <PushMeldingen sleutel={pushSleutel} variant="home" voorvertoning={l.voorvertoning} />
+                </div>
+              )}
+              {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
               <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) }} berichten={berichten ?? []} />
             </>
           )}
-          {!toonMeldingen && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
-          {!toonMeldingen && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
-          {!toonMeldingen && tab === 'voeding' && voeding && (
+          {!apart && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} strippenkaart={kopen && kopen !== 'fout' && !l.voorvertoning ? { saldo: kopen.strippen, url: metVoor('/api/club/lid/betalen/strippenkaart') } : undefined} />}
+          {!apart && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} nu={nu.toISOString()} />}
+          {!apart && tab === 'voeding' && voeding && (
             <div className="club-lidapp-tab">
               <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />
             </div>
           )}
-          {!toonMeldingen && tab === 'afspraken' && (
+          {!apart && tab === 'afspraken' && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Afspraken</h2>
               <LedenappAfspraken lidId={lid.id} />
             </div>
           )}
-          {!toonMeldingen && tab === 'voortgang' && voortgang && (
+          {!apart && tab === 'voortgang' && voortgang && (
             <div className="club-lidapp-tab">
               <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
               {challenges && <LedenappChallenges data={challenges} />}
             </div>
           )}
-          {!toonMeldingen && tab === 'profiel' && (
+          {!apart && tab === 'profiel' && (
             <>
               <ProfielTab
                 lid={appLid}
                 vestigingNaam={vestigingNaam}
                 teksten={bedrijf?.teksten ?? null}
                 sportschool={org.naam}
-                hulp={contact ? <HulpSportschool contact={contact} /> : null}
+                hulp={
+                  <>
+                    <PushMeldingen sleutel={pushSleutel} variant="profiel" voorvertoning={l.voorvertoning} />
+                    {contact ? <HulpSportschool contact={contact} /> : null}
+                  </>
+                }
                 pilotNoot={false}
               />
+              <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />
               {!l.voorvertoning && (
                 <div className="club-mijn-blok">
                   <UitlogKnoppen />

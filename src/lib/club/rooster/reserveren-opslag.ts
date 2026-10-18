@@ -119,8 +119,12 @@ export type ReserveerAntwoord =
   /** Balie: past niet bij het lidmaatschap. Niets geboekt; opnieuw met toch = true boekt wel. */
   | { status: 'waarschuwing'; waarschuwing: string }
 
-/** Boek een lid in een les (of zet het op de wachtlijst). */
-export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = new Date()): Promise<Resultaat<ReserveerAntwoord>> {
+/**
+ * Boek een lid in een les (of zet het op de wachtlijst). `metStrippenkaart`:
+ * het lid betaalt deze les met een strip (src/lib/club/betalen); dan telt de
+ * lidmaatschapsvorm niet, alle andere regels van het rooster wel.
+ */
+export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = new Date(), opties: { metStrippenkaart?: boolean } = {}): Promise<Resultaat<ReserveerAntwoord>> {
   const [les, lid] = await Promise.all([haalLesRij(t.admin, t.userId, invoer.lesId), haalLid(t.admin, t.userId, invoer.lidId)])
   if (!les) return mislukt('Deze les bestaat niet.', 404)
   if (!lid) return mislukt('Dit lid bestaat niet.', 404)
@@ -144,7 +148,9 @@ export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = 
     noShows,
   })
   if (!uitkomst.ok) return mislukt(uitkomst.fout, 409)
-  const vorm = await toetsBoeking(t.admin, t.userId, { lidId: lid.id, abonnement: lid.abonnement, les, bron: invoer.bron, toch: invoer.toch })
+  const vorm: Awaited<ReturnType<typeof toetsBoeking>> = opties.metStrippenkaart
+    ? { soort: 'door', ondanks: null }
+    : await toetsBoeking(t.admin, t.userId, { lidId: lid.id, abonnement: lid.abonnement, les, bron: invoer.bron, toch: invoer.toch })
   if (vorm.soort === 'weiger') return mislukt(vorm.melding, 409)
   if (vorm.soort === 'waarschuw') return gelukt({ status: 'waarschuwing', waarschuwing: vorm.reden })
   const velden = { status: uitkomst.status, wachtpositie: uitkomst.wachtpositie, bron: invoer.bron, geboekt_op: nu.toISOString() }

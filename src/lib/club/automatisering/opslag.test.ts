@@ -28,7 +28,8 @@ describe('haalBezoekTotalen', () => {
     const uit = await haalBezoekTotalen(admin, 'org', 'budel', new Date('2026-10-01T00:00:00Z'))
     expect(uit?.size).toBe(2_345)
     expect(uit?.get('lid-02344')).toEqual({ totaal: 3, voor: 1 })
-    expect(verzoeken).toEqual([[0, 999], [1000, 1999], [2000, 2999]])
+    // Eerste blok alleen, daarna een golf van vier tegelijk (blokken na het einde komen leeg terug).
+    expect(verzoeken).toEqual([[0, 999], [1000, 1999], [2000, 2999], [3000, 3999], [4000, 4999]])
   })
 
   it('geeft null bij een leesfout', async () => {

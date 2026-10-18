@@ -18,11 +18,17 @@ function leeg(): ExportRuw {
     opvolgtaken: [],
     meldingen: [],
     meldingVoorkeuren: [],
+    pushToestellen: [],
     ledenapp: [],
     sessies: [],
     leads: [],
     leadHistorie: [],
     verwijderverzoek: [],
+    communityGroepen: [],
+    communityBerichten: [],
+    communityReacties: [],
+    communityMeldingen: [],
+    communityVoorkeur: [],
   }
 }
 

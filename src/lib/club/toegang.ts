@@ -129,15 +129,22 @@ async function toegangVoorKane(admin: SupabaseClient): Promise<ClubToegang | nul
   if (!token) return null
   const [link, sessie] = await Promise.all([vindLink(admin, code), leesSessie(admin, token)])
   if (!link || link.rol !== 'beheerder') return null
-  const ingelogd = await beoordeelSessie(admin, link, token, sessie, new Date())
+  // De sessiebeoordeling (kan een schrijfactie zijn), de sportscholen en de vestigingen
+  // van de waarschijnlijk gekozen sportschool lopen tegelijk. Niets daarvan wordt gebruikt
+  // zolang de sessie niet geldig is.
+  const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
+  const gok = isUuid(gekozen) ? gekozen : link.userId
+  const [ingelogd, organisaties, gokVestigingen] = await Promise.all([
+    beoordeelSessie(admin, link, token, sessie, new Date()),
+    haalOrganisaties(admin, link.userId),
+    haalVestigingen(admin, gok),
+  ])
   if (!ingelogd) return null
-  const organisaties = await haalOrganisaties(admin, link.userId)
   const vanHost = await organisatieUitHost(organisaties)
   if (vanHost === null) return null
   // Anders de gekozen sportschool, alleen als die bij deze beheerder hoort; anders de eigen.
-  const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
-  const vestigingen = await haalVestigingen(admin, organisatie.id)
+  const vestigingen = organisatie.id === gok ? gokVestigingen : await haalVestigingen(admin, organisatie.id)
   return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, persoonId: null, onderdelen: null, vestigingen, medewerkerRollen: [], naam: link.naam, code }
 }
 
@@ -156,12 +163,12 @@ async function toegangVoorBeheerder(admin: SupabaseClient): Promise<ClubToegang 
   if (!token) return null
   const b = await beheerderVanSessie(admin, token, new Date())
   if (!b) return null
-  const { organisatie, eigenaarId } = await haalEigenOrganisatie(admin, b.organisatieId)
+  // De vestigingen horen bij dezelfde sportschool (externeToegangVelden eist dat het id klopt).
+  const [{ organisatie, eigenaarId }, vestigingen] = await Promise.all([haalEigenOrganisatie(admin, b.organisatieId), haalVestigingen(admin, b.organisatieId)])
   const velden = externeToegangVelden(b, organisatie, eigenaarId)
   if (!velden) return null
   // Op het subdomein van een andere sportschool bestaat Club voor deze beheerder niet.
   if ((await organisatieUitHost(velden.organisaties)) === null) return null
-  const vestigingen = await haalVestigingen(admin, velden.userId)
   return { admin, ...velden, onderdelen: toegestaneOnderdelen(velden, velden.organisatie.instellingen.rechten), vestigingen, medewerkerRollen: [] }
 }
 
@@ -172,10 +179,13 @@ async function toegangVoorMedewerker(admin: SupabaseClient): Promise<ClubToegang
   if (!token) return null
   const gevonden = await medewerkerVanSessie(admin, token, new Date())
   if (!gevonden) return null
-  const { organisatie, eigenaarId } = await haalEigenOrganisatie(admin, gevonden.toegang.userId)
+  const [{ organisatie, eigenaarId }, vestigingen] = await Promise.all([
+    haalEigenOrganisatie(admin, gevonden.toegang.userId),
+    haalVestigingen(admin, gevonden.toegang.userId),
+  ])
   // Op het subdomein van een andere sportschool bestaat Club voor deze medewerker niet.
   if (!organisatie || (await organisatieUitHost([organisatie])) === null) return null
-  const velden = medewerkerToegangVelden({ ...gevonden, organisatie, eigenaarId, vestigingen: await haalVestigingen(admin, organisatie.id) })
+  const velden = medewerkerToegangVelden({ ...gevonden, organisatie, eigenaarId, vestigingen })
   if (!velden) return null
   const { rollen, ...rest } = velden
   return { admin, ...rest, medewerkerRollen: rollen }

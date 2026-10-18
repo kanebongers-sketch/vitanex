@@ -33,6 +33,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     voorWie: p.voorWie,
     inbegrepen: p.inbegrepen,
     maxVestigingen: maxVestigingenVoor(p.sleutel),
+    onbeperkt: p.maxVestigingen === null,
     aanbevolen: p.aanbevolen === true,
     open: afsluitbaar(p.sleutel),
   }))
@@ -44,7 +45,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
           <p className="ayg-label ayg-label--accent">{PROEFDAGEN} dagen gratis proberen</p>
           <h1 className="aan-titel">Start je proefperiode in vier korte stappen.</h1>
           <p className="ayg-lead">Kies een pakket, je adres en wie de eigenaar is. Daarna staat je eigen omgeving klaar en leidt een startwizard je door de inrichting.</p>
-          <Geruststelling />
+          <Geruststelling aantal={3} />
         </header>
         {geannuleerd && (
           <p className="aan-melding aan-melding--rustig" role="status">

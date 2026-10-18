@@ -27,6 +27,24 @@ export default async function AfsprakenPagina({ searchParams }: { searchParams: 
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
   const tab = eerste(zoek.tab) === 'typen' ? 'typen' : 'agenda'
+  const nu = new Date()
+  const vandaag = nlDelen(nu).datum
+  const weergave = isWeergave(eerste(zoek.weergave)) ? (eerste(zoek.weergave) as 'week' | 'dag') : 'week'
+  const dagParam = eerste(zoek.dag)
+  const dag = isDatum(dagParam) ? dagParam : vandaag
+  const maandag = weergave === 'dag' ? maandagVan(dag) : maandagUitWeekParam(zoek.week, vandaag)
+  const [vanDatum, totDatum] = weergave === 'dag' ? [dag, plusDagen(dag, 1)] : [maandag, plusDagen(maandag, 7)]
+
+  // De agenda-gegevens hangen niet van de afspraaktypen af: meteen tegelijk starten (alleen op het tabblad Agenda).
+  const agendaVraag =
+    tab === 'agenda'
+      ? Promise.all([
+          haalMedewerkers(t.admin, t.userId, vestiging),
+          haalAfspraken(t.admin, t.userId, { van: nlNaarUtc(vanDatum, '00:00'), tot: nlNaarUtc(totDatum, '00:00'), vestiging, metGeannuleerd: true }),
+          haalOpenLeads(t.admin, t.userId, vestiging),
+          haalOpeningstijden(t.admin, t.userId, vestiging),
+        ])
+      : null
   const [typen, alleMedewerkers] = await Promise.all([haalTypen(t.admin, t.userId), haalAlleMedewerkers(t.admin, t.userId)])
 
   const kop = (sub: string) => (
@@ -56,20 +74,7 @@ export default async function AfsprakenPagina({ searchParams }: { searchParams: 
     )
   }
 
-  const nu = new Date()
-  const vandaag = nlDelen(nu).datum
-  const weergave = isWeergave(eerste(zoek.weergave)) ? (eerste(zoek.weergave) as 'week' | 'dag') : 'week'
-  const dagParam = eerste(zoek.dag)
-  const dag = isDatum(dagParam) ? dagParam : vandaag
-  const maandag = weergave === 'dag' ? maandagVan(dag) : maandagUitWeekParam(zoek.week, vandaag)
-  const [vanDatum, totDatum] = weergave === 'dag' ? [dag, plusDagen(dag, 1)] : [maandag, plusDagen(maandag, 7)]
-
-  const [medewerkers, ruw, leads, opening] = await Promise.all([
-    haalMedewerkers(t.admin, t.userId, vestiging),
-    haalAfspraken(t.admin, t.userId, { van: nlNaarUtc(vanDatum, '00:00'), tot: nlNaarUtc(totDatum, '00:00'), vestiging, metGeannuleerd: true }),
-    haalOpenLeads(t.admin, t.userId, vestiging),
-    haalOpeningstijden(t.admin, t.userId, vestiging),
-  ])
+  const [medewerkers, ruw, leads, opening] = await (agendaVraag as NonNullable<typeof agendaVraag>)
   const lijst = ruw && typen ? await metNamen(t.admin, t.userId, ruw.filter((a) => nlDatumTijd(a.start).datum >= vanDatum), typen) : null
 
   const actieveTypen = (typen ?? []).filter((ty) => ty.actief)

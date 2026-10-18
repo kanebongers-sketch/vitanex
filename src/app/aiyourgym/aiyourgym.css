@@ -21,6 +21,9 @@
   --ayg-accent-tekst: #0f1412; /* 14.2:1 op accent */
   --ayg-fout: #b42318;
   --ayg-ok: #1b7238; /* 4.75:1 op vlak-2 */
+  /* Hoeveel volt er in de zachte gloed achter de held en de aanmeldband zit */
+  --ayg-gloed: 30%;
+  --ayg-gloed-band: 26%;
 
   /* Donker podium (productbeelden) */
   --ayg-inkt: #0f1412;
@@ -54,7 +57,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
-  color-scheme: only light;
+  color-scheme: light dark;
   display: flex;
   flex-direction: column;
   background: var(--ayg-bg);
@@ -132,6 +135,49 @@
   overflow: clip;
 }
 .ayg-podium--rond { border-radius: clamp(20px, 3vw, 36px); margin-inline: clamp(8px, 1.4vw, 20px); }
+
+/* ── Donker ──────────────────────────────────────────────────────────────────
+   Een eigen, ontworpen donkere versie: bijna zwart papier, lichte inkt en
+   dezelfde volt. Omdat de site licht EN donker meldt (color-scheme en de
+   viewport in layout.tsx), maakt Chrome hem niet meer zelf automatisch donker.
+   Het podium ligt hier iets hoger dan het papier in plaats van dieper.
+   Alle paren worden getoetst in contrast.test.ts. */
+@media (prefers-color-scheme: dark) {
+  .ayg {
+    --ayg-bg: #0c0f0d;
+    --ayg-vlak: #141815;
+    --ayg-vlak-2: #1c211d;
+    --ayg-tekst: #eceae2;
+    --ayg-tekst-2: #a8aea6;
+    --ayg-tekst-spook: #7a8179;
+    --ayg-lijn: #29302b;
+    --ayg-lijn-sterk: #737a73;
+    --ayg-accent: #c9f03e;
+    --ayg-accent-tekst: #0f1412;
+    --ayg-fout: #ff8f80;
+    --ayg-ok: #72d69b;
+    --ayg-gloed: 12%;
+    --ayg-gloed-band: 16%;
+    --ayg-inkt: #161b18;
+    --ayg-inkt-2: #1f2621;
+    --ayg-inkt-lijn: #313934;
+    --ayg-inkt-tekst: #f2f0e9;
+    --ayg-inkt-tekst-2: #c2c8c1;
+    --ayg-inkt-spook: #78807a;
+    --ayg-h-beheer: #c9f03e;
+    --ayg-h-coaching: #ffa477;
+    --ayg-h-planning: #8fc8ff;
+    --ayg-h-groei: #7fe0ae;
+    --ayg-h-betrokkenheid: #c9b0ff;
+    --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
+    --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
+  }
+  /* Korrel als lichte spikkel in plaats van donkere */
+  .ayg::before { filter: invert(1); mix-blend-mode: screen; opacity: 0.22; }
+  /* Volt onder lichte tekst leest niet: de markering wordt volt als tekst */
+  .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
+  .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
+}
 
 /* ── Typografie ──────────────────────────────────────────────────────────── */
 .ayg-label {
@@ -305,7 +351,7 @@
 .ayg-band { display: grid; gap: 32px; padding: clamp(36px, 6vw, 80px); }
 .ayg-band .ayg-h2 { max-width: 14ch; }
 @media (min-width: 900px) { .ayg-band { grid-template-columns: 1.4fr 1fr; align-items: end; } }
-.ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) 26%, transparent), transparent); pointer-events: none; }
+.ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed-band), transparent), transparent); pointer-events: none; }
 
 /* Concept (juridisch) */
 .ayg-concept { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--ayg-radius); background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-weight: 500; }

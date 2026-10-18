@@ -15,6 +15,7 @@ export const DEMO_AANVRAGEN = aygPad('/demo-aanvragen')
 
 export const NAV_LINKS = [
   { label: 'Functies', pad: aygPad('/functies'), uitleg: 'Beheer, coaching, planning, groei en betrokkenheid' },
+  { label: 'Schema’s', pad: aygPad('/trainingsschemas'), uitleg: 'Van intake tot voortgang, met coaching per oefening' },
   { label: 'Voor wie', pad: aygPad('/voor-wie'), uitleg: 'Van gym en PT-studio tot yoga, vechtsport en keten' },
   { label: 'Ledenapp', pad: aygPad('/ledenapp'), uitleg: 'Een web-app in jouw huisstijl' },
   { label: 'Prijzen', pad: aygPad('/prijzen'), uitleg: 'Drie pakketten, een prijs op maat' },

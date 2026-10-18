@@ -67,7 +67,7 @@ export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afger
       </div>
       <div className="club-start-voet-rechts" aria-live="polite">
         {fout && <p className="club-fout" role="alert">{fout}</p>}
-        {!laatste && (
+        {!laatste && sleutel !== 'welkom' && (
           <button type="button" className="club-knop" disabled={bezig} onClick={() => void naar({ stap: stap + 1 }, startPad(stap + 1, vestiging), false)}>
             Overslaan
           </button>

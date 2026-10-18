@@ -24,7 +24,8 @@ export type Soort = GebeurtenisSoort | AppSoort
 export type LesSoort = Extract<Soort, `les_${string}`>
 export type AfspraakSoort = Extract<Soort, `afspraak_${string}`>
 
-export const KANALEN = ['email', 'app'] as const
+/** 'push' (migratie 438): web push naar de toestellen van het lid. */
+export const KANALEN = ['email', 'app', 'push'] as const
 export type Kanaal = (typeof KANALEN)[number]
 
 export const STATUSSEN = ['gepland', 'bezig', 'verstuurd', 'mislukt', 'overgeslagen'] as const

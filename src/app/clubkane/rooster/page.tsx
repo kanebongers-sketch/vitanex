@@ -49,12 +49,13 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
   const { van, tot } = weekBereik(maandag)
   const dagen = dagenVanWeek(maandag)
 
-  const stam = await haalStamdata(t.admin, t.userId, vestiging)
-  const [lessen, instellingen, detail] = await Promise.all([
-    stam ? haalLessen(t.admin, t.userId, vestiging, van, tot, stam) : Promise.resolve(null),
+  // Regels en lesdetail hangen niet van de stamdata af: samen met de stamdata ophalen.
+  const [stam, instellingen, detail] = await Promise.all([
+    haalStamdata(t.admin, t.userId, vestiging),
     haalRegels(t.admin, t.userId, vestiging),
     staat.les ? haalLesDetail(t.admin, t.userId, staat.les) : Promise.resolve(null),
   ])
+  const lessen = stam ? await haalLessen(t.admin, t.userId, vestiging, van, tot, stam) : null
 
   const optie = (x: { id: string; naam: string }) => ({ id: x.id, naam: x.naam })
   const zalen = (stam?.zalen ?? []).filter((z) => z.actief).map(optie)

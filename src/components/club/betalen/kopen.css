@@ -1,0 +1,22 @@
+/* ─── Ledenapp: Kopen ─────────────────────────────────────────────────────────
+   Tegoeden als grote tellers bovenaan (wat heb ik nog), daaronder de producten
+   als kaarten met een royale prijs en een pilknop. Alleen .club-kopen-*.
+   Tokens van de ledenapp (app.css), dus mee in de huisstijl van de sportschool. */
+
+.club-kopen { display: grid; gap: 18px; }
+.club-kopen-tegoed { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.club-kopen-teller { display: grid; gap: 2px; padding: 16px; border-radius: var(--lidapp-radius); background: linear-gradient(135deg, var(--brand-soft), transparent 70%), var(--bg-card); border: 1px solid var(--line); }
+.club-kopen-teller strong { font-family: var(--ff-kop); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-kopen-teller span { font-size: 13px; color: var(--text-2); }
+.club-kopen-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-kopen-product { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 16px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); }
+.club-kopen-product h3 { margin: 0; font-family: var(--ff-kop); font-size: 19px; letter-spacing: 0.02em; text-transform: uppercase; }
+.club-kopen-product p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+.club-kopen-prijs { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.club-kopen-product .club-lidapp-knop { grid-column: 1 / -1; margin-top: 8px; }
+.club-kopen-noot { margin: 0; font-size: 12.5px; color: var(--text-3); }
+.club-kopen-blok { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); color: var(--text-1); text-decoration: none; transition: transform 140ms var(--ease); }
+.club-kopen-blok:active { transform: scale(0.98); }
+.club-kopen-blok:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-kopen-blok span { font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-strip { margin-top: 6px; }

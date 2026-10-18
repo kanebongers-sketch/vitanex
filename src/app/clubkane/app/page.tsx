@@ -85,15 +85,17 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   }
 
   const nu = new Date()
-  const [data, bedrijf, berichten] = await Promise.all([
+  // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
+  const [data, bedrijf, berichten, ruweVoortgang, challenges, ruwPlan] = await Promise.all([
     haalLidApp(t.admin, t.userId, lid, nu),
     haalBedrijf(t.admin, t.userId),
     haalBerichtenVoorLid(t.admin, t.userId, lid, nu),
+    tab === 'voortgang' ? haalVoortgang(t.admin, t.userId, lid.id, nu) : null,
+    tab === 'voortgang' ? haalLedenappChallenges(t.admin, t.userId, lid, nu) : null,
+    tab === 'voeding' ? haalPlan(t.admin, t.userId, lid.id) : null,
   ])
-  // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
-  const voortgang = tab === 'voortgang' ? voortgangVoorLid(await haalVoortgang(t.admin, t.userId, lid.id, nu)) : null
-  const challenges = tab === 'voortgang' ? await haalLedenappChallenges(t.admin, t.userId, lid, nu) : null
-  const voeding = tab === 'voeding' ? voedingVoorApp(await haalPlan(t.admin, t.userId, lid.id)) : null
+  const voortgang = ruweVoortgang ? voortgangVoorLid(ruweVoortgang) : null
+  const voeding = tab === 'voeding' ? voedingVoorApp(ruwPlan) : null
   const tabPad = (nieuw: AppTab | string) => clubPad('/app', vestiging, { lid: lid.id, tab: nieuw })
   return (
     <>

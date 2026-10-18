@@ -9,7 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Afspraak } from '@/lib/club/afspraken/model'
 import type { LesRij } from '@/lib/club/rooster/typen'
 import { LEDENAPP_KOLOMMEN, ledenappMeldingUitRij, type LedenappMelding } from './model'
-import { bouwMeldingen, type Gebeurtenis, type LesGebeurtenis } from './plannen'
+import { bouwMeldingen, metPush, type Gebeurtenis, type LesGebeurtenis } from './plannen'
 import type { LesGegevens, Ontvanger } from './sjablonen'
 import { instellingenNaarRij, instellingenUitRij, type AfspraakSoort, type MeldingInstellingen } from './soorten'
 
@@ -84,7 +84,7 @@ async function schrijf(admin: SupabaseClient, userId: string, plannen: readonly 
   const inst = await haalMeldingInstellingen(admin, userId)
   const rijen = plannen.flatMap((p) => {
     const o = ontvangers.get(p.lidId)
-    return o ? bouwMeldingen(p.gebeurtenis, o, inst, nu).map((m) => ({ ...m, user_id: userId, lid_id: p.lidId })) : []
+    return o ? metPush(bouwMeldingen(p.gebeurtenis, o, inst, nu)).map((m) => ({ ...m, user_id: userId, lid_id: p.lidId })) : []
   })
   if (rijen.length === 0) return
   const { error } = await admin.from('club_meldingen').upsert(rijen, { onConflict: 'user_id,sleutel,kanaal', ignoreDuplicates: true })

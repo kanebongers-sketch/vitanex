@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
 import { AANTAL_STAPPEN, aantalAf, startPad, stappenStand, toonStartKaart, volgendeOpen } from '@/lib/club/start/stappen'
-import { haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
+import { haalStartVoorPagina, haalStartFeiten } from '@/lib/club/start/opslag'
 import './start.css'
 
 // Op Vandaag, zolang de startwizard loopt: een opvallende kaart met de stand
@@ -11,7 +11,7 @@ import './start.css'
 
 export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: string | null }) {
   if (!magBeheerdersBeheren(t)) return null
-  const gelezen = await haalStart(t)
+  const gelezen = await haalStartVoorPagina(t)
   if (!gelezen.ok || !toonStartKaart(gelezen.voortgang)) return null
   const stand = stappenStand(gelezen.voortgang, await haalStartFeiten(t))
   const af = aantalAf(stand)

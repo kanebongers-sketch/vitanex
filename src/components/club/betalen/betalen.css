@@ -1,0 +1,67 @@
+/* ─── Club: betalen in de ledenapp (beheer) ───────────────────────────────────
+   Editoriaal zoals Lidmaatschappen: cijferstrook per kalendermaand, een
+   stappenkaart voor Stripe, producten als lijst met grote prijs, verkopen als
+   rustige tabel. Alleen .club-betalen-*. Kleuren uit de tokens van club.css. */
+
+.club-betalen { display: grid; gap: 26px; }
+.club-betalen .club-paginakop { margin-bottom: 0; }
+
+/* ── Cijfers van deze maand ──────────────────────────────────────────────── */
+.club-betalen-cijfers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.club-betalen-cijfers > div { padding: 14px 18px 14px 0; display: grid; gap: 2px; }
+.club-betalen-cijfers > div + div { padding-left: 18px; border-left: 1px solid var(--line); }
+.club-betalen-cijfers dt { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-betalen-cijfers dd { margin: 0; font-family: var(--ff-kop); font-size: clamp(26px, 3vw, 38px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* ── Kop van een blok ────────────────────────────────────────────────────── */
+.club-betalen-kop {
+  margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--brand);
+  font-family: var(--ff-kop); font-size: clamp(22px, 2.4vw, 30px); line-height: 1; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+
+/* ── Stripe-kaart met stappen ────────────────────────────────────────────── */
+.club-betalen-stripe { display: grid; gap: 18px; padding: 22px; border-radius: var(--club-radius); background: var(--club-vlak); border: 1px solid var(--line); }
+@media (min-width: 900px) { .club-betalen-stripe { grid-template-columns: minmax(0, 1fr) auto; align-items: center; } }
+.club-betalen-stappen { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: stap; }
+.club-betalen-stap { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; counter-increment: stap; }
+.club-betalen-stap::before {
+  content: counter(stap); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px;
+  font-family: var(--ff-kop); font-weight: 700; font-size: 14px; border: 1px solid var(--line); color: var(--text-3);
+}
+.club-betalen-stap[data-klaar='true']::before { content: '\2713'; background: var(--club-ok-zacht); border-color: transparent; color: var(--club-ok-inkt); }
+.club-betalen-stap strong { display: block; }
+.club-betalen-stap span { color: var(--text-3); font-size: 14px; }
+.club-betalen-knoppen { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+/* ── Werkvlak producten ──────────────────────────────────────────────────── */
+.club-betalen-werkvlak { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 1100px) { .club-betalen-werkvlak { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 40px; } }
+.club-betalen-lijst { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-betalen-product {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: center;
+  padding: 16px 8px 16px 16px; border-bottom: 1px solid var(--line); border-left: 3px solid var(--brand);
+  transition: background-color 160ms var(--ease);
+}
+.club-betalen-product:hover { background: var(--club-vlak-hover); }
+.club-betalen-product[data-actief='false'] { border-left-color: var(--line); opacity: 0.7; }
+.club-betalen-product h3 { margin: 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; letter-spacing: 0.02em; }
+.club-betalen-product p { margin: 0; color: var(--text-3); font-size: 14px; }
+.club-betalen-prijs { font-family: var(--ff-kop); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.club-betalen-prijs small { display: block; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; }
+.club-betalen-acties { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.club-betalen-formulier { display: grid; gap: 12px; padding: 20px; border-radius: var(--club-radius); background: var(--club-vlak); border: 1px solid var(--line); }
+@media (min-width: 1100px) { .club-betalen-formulier { position: sticky; top: 88px; } }
+.club-betalen-rij { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.club-betalen-vinkjes { display: flex; flex-wrap: wrap; gap: 8px 16px; border: 0; padding: 0; margin: 0; }
+.club-betalen-vinkjes legend { font-size: 14px; color: var(--text-3); margin-bottom: 6px; }
+
+/* ── Verkopen ────────────────────────────────────────────────────────────── */
+.club-betalen-tabel-wrap { overflow-x: auto; }
+.club-betalen-tabel { width: 100%; border-collapse: collapse; font-size: 14px; }
+.club-betalen-tabel th { text-align: left; font-family: var(--ff-kop); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.club-betalen-tabel td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.club-betalen-tabel td.bedrag { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.club-betalen-status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--club-vlak); }
+.club-betalen-status[data-status='betaald'] { background: var(--club-ok-zacht); color: var(--club-ok-inkt); }
+.club-betalen-status[data-status='terugbetaald'] { background: var(--club-info-zacht); color: var(--club-info-inkt); }
+.club-betalen-status[data-status='mislukt'], .club-betalen-status[data-status='verlopen'] { background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); }

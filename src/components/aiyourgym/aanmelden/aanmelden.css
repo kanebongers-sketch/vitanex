@@ -164,6 +164,7 @@
 .ayg .aan-link-tekst { font: 500 15px/1.5 ui-monospace, 'SFMono-Regular', Menlo, monospace; color: var(--ayg-accent); overflow-wrap: anywhere; user-select: all; }
 .ayg .aan-link-tekst--rustig { font-family: var(--ayg-font-tekst); color: var(--ayg-inkt-tekst); user-select: text; }
 .ayg .aan-uitleg-lijst { width: 100%; }
+@media (max-width: 560px) { .ayg .aan-uitleg-lijst > li { grid-template-columns: 40px 1fr; gap: 8px; padding-block: 18px; } }
 
 /* ── Beweging ────────────────────────────────────────────────────────────── */
 @keyframes aan-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

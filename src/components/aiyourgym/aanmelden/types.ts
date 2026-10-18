@@ -7,6 +7,8 @@ export interface PakketKeuze {
   voorWie: string
   inbegrepen: readonly string[]
   maxVestigingen: number
+  /** Geen grens aan vestigingen in het pakket (online starten kan tot maxVestigingen). */
+  onbeperkt: boolean
   aanbevolen: boolean
   /** Online af te sluiten (Stripe-prijs ingesteld)? Anders een aanvraag. */
   open: boolean

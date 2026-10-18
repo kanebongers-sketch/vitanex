@@ -103,3 +103,63 @@ self.addEventListener('fetch', (event) => {
   if (isServerData(request, url)) return
   if (isStatisch(url)) event.respondWith(staleWhileRevalidate(event))
 })
+
+/* ─── Push-meldingen ──────────────────────────────────────────────────────
+   De server stuurt een versleutelde push (src/lib/club/push) met alleen wat op
+   het scherm komt: { t: titel, b: tekst, u: link binnen /mijn, i: icoon,
+   g: tag }. Geen andere ledengegevens. Een tik opent de app (of de link). */
+
+const STANDAARD_LINK = '/mijn?tab=meldingen'
+const STANDAARD_ICOON = '/club-app/icoon-192.png'
+
+function veiligeLink(link) {
+  return typeof link === 'string' && link.startsWith('/mijn') && !link.startsWith('//') ? link : STANDAARD_LINK
+}
+
+function leesPush(event) {
+  try {
+    const data = event.data ? event.data.json() : {}
+    return {
+      titel: typeof data.t === 'string' && data.t ? data.t.slice(0, 80) : 'Nieuwe melding',
+      tekst: typeof data.b === 'string' ? data.b.slice(0, 240) : '',
+      link: veiligeLink(data.u),
+      icoon: typeof data.i === 'string' && data.i.startsWith('/') && !data.i.startsWith('//') ? data.i : STANDAARD_ICOON,
+      tag: typeof data.g === 'string' ? data.g.slice(0, 80) : undefined,
+    }
+  } catch {
+    return { titel: 'Nieuwe melding', tekst: '', link: STANDAARD_LINK, icoon: STANDAARD_ICOON, tag: undefined }
+  }
+}
+
+self.addEventListener('push', (event) => {
+  const melding = leesPush(event)
+  event.waitUntil(
+    self.registration.showNotification(melding.titel, {
+      body: melding.tekst,
+      icon: melding.icoon,
+      badge: STANDAARD_ICOON,
+      tag: melding.tag,
+      data: { link: melding.link },
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const link = veiligeLink(event.notification.data && event.notification.data.link)
+  event.waitUntil(
+    (async () => {
+      const doel = new URL(link, self.location.origin).href
+      const vensters = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      // Staat de app al open, gebruik dan dat venster.
+      for (const venster of vensters) {
+        if (new URL(venster.url).pathname.startsWith('/mijn') && 'focus' in venster) {
+          await venster.focus()
+          if ('navigate' in venster) await venster.navigate(doel).catch(() => undefined)
+          return
+        }
+      }
+      await self.clients.openWindow(doel)
+    })(),
+  )
+})

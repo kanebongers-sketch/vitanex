@@ -2,7 +2,8 @@
 // Een lid logt dit toestel uit (de sessie verdwijnt uit de database en de
 // cookie wordt gewist), of met overal = true alle toestellen tegelijk. De
 // onthouden link blijft, zodat opnieuw inloggen alleen de pincode vraagt;
-// bij "overal" verdwijnt ook die.
+// bij "overal" verdwijnt ook die. Push-meldingen van dit toestel (of bij
+// "overal" van alle toestellen) stoppen ook.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
@@ -13,6 +14,8 @@ import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { lidCookie } from '@/lib/club/ledenlogin/regels'
 import { lidVanSessie, logUitLid, wisSessies } from '@/lib/club/ledenlogin/opslag'
 import { wisLidCookies } from '@/lib/club/ledenlogin/inlog-api'
+import { wisAbonnementenBijUitloggen } from '@/lib/club/push/opslag'
+import { tokenHash } from '@/lib/lifeos/leads/pin'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,6 +33,7 @@ export async function POST(req: NextRequest) {
       const admin = createLifeosAdminClient()
       const sessie = overal ? await lidVanSessie(admin, token, new Date()) : null
       gelukt = sessie ? await wisSessies(admin, sessie.toegang.userId, sessie.toegang.lidId) : await logUitLid(admin, token)
+      if (token.length <= 100) await wisAbonnementenBijUitloggen(admin, sessie ? { userId: sessie.toegang.userId, lidId: sessie.toegang.lidId } : { sessieHash: tokenHash(token) })
     } catch (fout) {
       console.error('[club/ledenlogin] uitloggen mislukt', fout instanceof Error ? fout.message : fout)
       gelukt = false

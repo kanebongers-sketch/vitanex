@@ -44,6 +44,8 @@ export interface VoorkeurInfo {
   token: string
   mails: boolean
   herinneringenPerMail: boolean
+  /** false = het lid zette push uit. */
+  push: boolean
 }
 
 export interface Context {
@@ -57,7 +59,7 @@ const WACHTRIJ_KOLOMMEN = 'id, user_id, lid_id, soort, kanaal, onderwerp, inhoud
 
 function rijUit(r: Record<string, unknown>): WachtrijRij | null {
   if (typeof r.id !== 'string' || typeof r.user_id !== 'string' || typeof r.lid_id !== 'string' || !isSoort(r.soort)) return null
-  if ((r.kanaal !== 'email' && r.kanaal !== 'app') || typeof r.onderwerp !== 'string' || typeof r.inhoud !== 'string' || typeof r.gepland_op !== 'string') return null
+  if ((r.kanaal !== 'email' && r.kanaal !== 'app' && r.kanaal !== 'push') || typeof r.onderwerp !== 'string' || typeof r.inhoud !== 'string' || typeof r.gepland_op !== 'string') return null
   return {
     id: r.id,
     userId: r.user_id,
@@ -120,14 +122,14 @@ export async function haalContext(admin: SupabaseClient, rijen: readonly Wachtri
   const [orgRijen, ledenRijen, voorkeurRijen, bronnen] = await Promise.all([
     lees(admin, 'club_organisaties', 'id, naam, logo, kleur_accent, thema, demo', 'id', rijen.map((r) => r.userId)),
     lees(admin, 'club_leden', 'id, user_id, email, demo', 'id', rijen.map((r) => r.lidId)),
-    lees(admin, 'club_meldingen_voorkeuren', 'user_id, lid_id, afmeld_token, mails, herinneringen_per_mail', 'lid_id', rijen.map((r) => r.lidId)),
+    lees(admin, 'club_meldingen_voorkeuren', 'user_id, lid_id, afmeld_token, mails, herinneringen_per_mail, push', 'lid_id', rijen.map((r) => r.lidId)),
     haalBronnen(admin, rijen),
   ])
   return {
     orgs: new Map(orgRijen.map((o) => [String(o.id), { naam: tekst(o.naam) ?? 'Je sportschool', logo: tekst(o.logo), accent: tekst(o.kleur_accent) ?? '#B58E5C', donker: o.thema !== 'licht', demo: o.demo === true }])),
     leden: new Map(ledenRijen.map((l) => [String(l.id), { userId: String(l.user_id), email: tekst(l.email), demo: l.demo === true }])),
     voorkeuren: new Map(
-      voorkeurRijen.map((v) => [`${v.user_id}:${v.lid_id}`, { token: String(v.afmeld_token), mails: v.mails !== false, herinneringenPerMail: v.herinneringen_per_mail !== false }]),
+      voorkeurRijen.map((v) => [`${v.user_id}:${v.lid_id}`, { token: String(v.afmeld_token), mails: v.mails !== false, herinneringenPerMail: v.herinneringen_per_mail !== false, push: v.push !== false }]),
     ),
     bronnen,
   }

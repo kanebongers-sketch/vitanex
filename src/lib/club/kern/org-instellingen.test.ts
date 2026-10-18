@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { leesOrgInstellingenInvoer, orgInstellingenNaarJson, orgInstellingenUitRij, qrCheckinAan, standaardRechten, STANDAARD_CHECKIN, STANDAARD_LEDENAPP } from './org-instellingen'
 
-const ONDERDELEN = ['vandaag', 'checkin', 'leden', 'berichten', 'schemas', 'voeding', 'rooster', 'afspraken', 'leads', 'personeel', 'taken', 'opvolgen', 'challenges', 'cijfers', 'instellingen']
+const ONDERDELEN = ['vandaag', 'checkin', 'leden', 'berichten', 'schemas', 'voeding', 'rooster', 'afspraken', 'leads', 'personeel', 'taken', 'opvolgen', 'challenges', 'community', 'cijfers', 'instellingen']
 
 describe('instellingen van een sportschool', () => {
   it('geeft de standaard bij een lege of kapotte rij', () => {

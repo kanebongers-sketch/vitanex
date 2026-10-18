@@ -8,6 +8,7 @@ import { InstellingenGroep, type InstellingRegel } from '@/components/club/behee
 import { BeheerKop } from '@/components/club/beheer/BeheerKop'
 import '@/components/club/beheer/beheer.css'
 import { CHECKIN_METHODE_LABEL } from '@/lib/club/kern/org-instellingen'
+import { betalenActief } from '@/lib/club/betalen/config'
 
 export const metadata: Metadata = { title: 'Instellingencentrum' }
 
@@ -84,6 +85,7 @@ export default async function BeheerPagina() {
 
   const abonnement: InstellingRegel[] = [
     { titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Pakket, status en facturen', href: '/clubkane/beheer/abonnement', uit: !(t.isKane || t.rol === 'eigenaar') },
+    { titel: 'Betalen in de ledenapp', uitleg: 'Losse lessen, strippenkaarten, PT-pakketten en producten verkopen via Stripe.', stand: 'Stripe, producten en verkopen', href: '/clubkane/beheer/betalen', uit: !betalenActief() || !(t.isKane || t.rol === 'eigenaar') },
     { titel: 'Hulp en support', uitleg: 'Handleidingen per onderdeel en een vraag of probleem melden.', stand: 'Handleidingen', href: '/clubkane/hulp' },
   ]
   const teDoen = [...sportschool, ...locaties].filter((r) => r.let && !r.uit).map((r) => r.titel)

@@ -105,3 +105,13 @@ export function bouwMeldingen(g: Gebeurtenis, ontvanger: Ontvanger, inst: Meldin
   const op = herinnerMoment(start, minuten, nu)
   return op ? [...uit, ...rijen(herinnering, g, ontvanger, op, false)] : uit
 }
+
+/**
+ * Bij elke melding voor de app ook een push (migratie 438): zelfde soort,
+ * sleutel en korte tekst, altijd via de wachtrij. De cron beslist of hij echt
+ * gaat (schakelaar, abonnement, voorkeur van het lid, nooit demo).
+ */
+export function metPush(meldingen: readonly NieuweMelding[]): NieuweMelding[] {
+  const push = meldingen.filter((m) => m.kanaal === 'app').map((m): NieuweMelding => ({ ...m, kanaal: 'push', status: 'gepland', verstuurd_op: null }))
+  return [...meldingen, ...push]
+}

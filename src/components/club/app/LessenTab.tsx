@@ -9,6 +9,10 @@ import { dagKort, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
+import { appMelding } from '@/lib/club/lidmaatschappen/koppeling'
+
+/** De melding als het lidmaatschap geen groepslessen heeft: dan kan een strip uitkomst bieden. */
+const GEEN_GROEPSLESSEN = appMelding('groepslessen', '')
 
 // Lessen in de ledenapp: de komende 7 dagen, met vrije plekken en een knop die
 // boekt, op de wachtlijst zet of annuleert. Boeken en annuleren lopen via de
@@ -20,6 +24,8 @@ interface Props {
   lessen: AppLes[]
   regels: AppRegels
   nu: string
+  /** Betalen in de ledenapp: strippen van het lid en de route om ermee te boeken (alleen in /mijn). */
+  strippenkaart?: { saldo: number; url: string }
 }
 
 function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer'): string {
@@ -31,20 +37,35 @@ function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer'): str
   return data.teLaat === true ? `Geannuleerd, maar te laat: dit telt als laat afgemeld.${extra}` : `Geannuleerd.${extra}`
 }
 
-export function LessenTab({ lidId, lessen, regels, nu }: Props) {
+export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
   const router = useRouter()
   const api = useLedenappApi()
   const [bezig, startBezig] = useTransition()
   const [actief, setActief] = useState<string | null>(null)
   const [bevestig, setBevestig] = useState<string | null>(null)
   const [bericht, setBericht] = useState<{ tekst: string; fout: boolean } | null>(null)
+  // Na een geweigerde boeking: deze les kan het lid met een strip boeken.
+  const [stripLes, setStripLes] = useState<AppLes | null>(null)
   const nuDatum = new Date(nu)
   const vandaag = dagSleutel(nuDatum)
   const dagen = [...new Set(lessen.map((l) => dagSleutel(new Date(l.start))))]
 
+  function boekMetStrip(les: AppLes) {
+    if (!strippenkaart) return
+    setActief(les.id)
+    startBezig(async () => {
+      const r = await stuur(strippenkaart.url, 'POST', { lesId: les.id })
+      setBericht(r.ok ? { tekst: 'Geboekt met je strippenkaart. Tot dan!', fout: false } : { tekst: r.fout, fout: true })
+      setStripLes(null)
+      if (r.ok) router.refresh()
+      setActief(null)
+    })
+  }
+
   function actie(les: AppLes, soort: 'boek' | 'annuleer') {
     setActief(les.id)
     setBevestig(null)
+    setStripLes(null)
     startBezig(async () => {
       const boek = api.lesBoeken(les.id, lidId)
       const r = soort === 'boek' ? await stuur(boek.url, 'POST', boek.body) : await stuur(api.lesAnnuleren(les.mijn?.reserveringId ?? ''), 'POST')
@@ -53,6 +74,7 @@ export function LessenTab({ lidId, lessen, regels, nu }: Props) {
         router.refresh()
       } else {
         setBericht({ tekst: r.fout, fout: true })
+        if (soort === 'boek' && r.fout === GEEN_GROEPSLESSEN && strippenkaart && strippenkaart.saldo > 0) setStripLes(les)
       }
       setActief(null)
     })
@@ -102,6 +124,11 @@ export function LessenTab({ lidId, lessen, regels, nu }: Props) {
           {bericht.fout ? <TriangleAlert aria-hidden size={18} /> : <Check aria-hidden size={18} />}
           <span>{bericht.tekst}</span>
         </p>
+      )}
+      {stripLes && strippenkaart && (
+        <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-strip" onClick={() => boekMetStrip(stripLes)} disabled={bezig}>
+          {bezig && actief === stripLes.id ? 'Bezig...' : `Boek met strippenkaart (${strippenkaart.saldo} over)`}
+        </button>
       )}
       {dagen.length === 0 && (
         <LegeStaat Icoon={CalendarX2} titel="Nog geen lessen">

@@ -120,9 +120,17 @@
 .club-start-voet-rechts { margin-left: auto; justify-content: flex-end; }
 .club-start-voet .club-fout { margin: 0; flex-basis: 100%; text-align: right; }
 @media (max-width: 640px) {
+  .club-start-voet { padding: 10px; }
   .club-start-voet-rechts { width: 100%; }
   .club-start-voet-rechts .club-knop--primair { flex: 1; }
-  .club-start-later { display: none; }
+  /* Vorige en Later verder klein op een eigen regel, zodat je ook op de telefoon kunt stoppen */
+  .club-start-voet-links { order: 2; width: 100%; justify-content: space-between; }
+  .club-start-voet-links .club-knop { min-height: 36px; padding-inline: 8px; font-size: 13px; }
+  .club-start-voet-links:empty { display: none; }
+  /* De teller naast elkaar in plaats van een groot los getal */
+  .club-start-teller { display: flex; align-items: baseline; gap: 8px; }
+  .club-start-teller strong { font-size: 32px; }
+  .club-start-teller span { margin-top: 0; }
 }
 
 /* ── De kaart op Vandaag ─────────────────────────────────────────────────── */

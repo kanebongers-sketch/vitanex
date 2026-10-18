@@ -162,7 +162,7 @@ export function StapKlaar({ stand, vestiging }: StapKlaarProps) {
       <section className="club-start-blok club-start-hulp" aria-labelledby="start-hulp-kop">
         <LifeBuoy aria-hidden size={28} />
         <h2 id="start-hulp-kop">Hulp nodig?</h2>
-        <p>Kom je er niet uit, of wil je dat we meekijken? Bij de duurdere pakketten zit persoonlijke hulp bij het inrichten gratis inbegrepen.</p>
+        <p>Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.</p>
         <Link href="/clubkane/hulp" className="club-knop">
           Naar hulp en support
         </Link>

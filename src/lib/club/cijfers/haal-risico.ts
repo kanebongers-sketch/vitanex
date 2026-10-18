@@ -39,14 +39,24 @@ async function haalVerwachteLeden(admin: SupabaseClient, userId: string, v: Vest
 
 /** Bezoeken per lid op alle vestigingen sinds `sinds`. */
 async function haalBezoeken(admin: SupabaseClient, userId: string, ids: readonly string[], sinds: Date): Promise<Map<string, Date[]> | null> {
+  // De blokken lopen tegelijk; samenvoegen in de oorspronkelijke volgorde.
+  const uitkomsten = await Promise.all(
+    blokken(ids, BLOK_IDS).map((blok) =>
+      alleRijen('bezoeken (risico)', (van, tot) =>
+        admin.from('club_checkins').select('id, lid_id, op').eq('user_id', userId).in('lid_id', blok)
+          .gte('op', sinds.toISOString()).order('op').order('id').range(van, tot),
+      ),
+    ),
+  )
   const perLid = new Map<string, Date[]>()
-  for (const blok of blokken(ids, BLOK_IDS)) {
-    const rijen = await alleRijen('bezoeken (risico)', (van, tot) =>
-      admin.from('club_checkins').select('id, lid_id, op').eq('user_id', userId).in('lid_id', blok)
-        .gte('op', sinds.toISOString()).order('op').order('id').range(van, tot),
-    )
+  for (const rijen of uitkomsten) {
     if (!rijen) return null
-    for (const c of rijen.map(checkinUitRij)) if (c) perLid.set(c.lidId, [...(perLid.get(c.lidId) ?? []), c.op])
+    for (const c of rijen.map(checkinUitRij)) {
+      if (!c) continue
+      const lijst = perLid.get(c.lidId)
+      if (lijst) lijst.push(c.op)
+      else perLid.set(c.lidId, [c.op])
+    }
   }
   return perLid
 }

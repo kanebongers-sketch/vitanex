@@ -26,12 +26,19 @@ const BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'>, { tabel:
   challenges: { tabel: 'club_challenge_deelnemers', select: 'ingeschreven_op, club_challenges(titel)', volgorde: 'ingeschreven_op' },
   opvolgtaken: { tabel: 'club_opvolgtaken', select: 'regel, reden, status, medewerker_id, notitie, afgehandeld_door, afgehandeld_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   meldingen: { tabel: 'club_meldingen', select: 'soort, kanaal, onderwerp, inhoud, status, gepland_op, verstuurd_op, gelezen_op', volgorde: 'gepland_op' },
-  meldingVoorkeuren: { tabel: 'club_meldingen_voorkeuren', select: 'herinneringen_per_mail, mails, gewijzigd_op' },
+  meldingVoorkeuren: { tabel: 'club_meldingen_voorkeuren', select: 'herinneringen_per_mail, mails, push, gewijzigd_op' },
+  // Nooit het endpoint of de sleutels: alleen welk toestel en wanneer.
+  pushToestellen: { tabel: 'club_push_abonnementen', select: 'user_agent, aangemaakt_op, laatst_gebruikt_op', volgorde: 'aangemaakt_op' },
   // Nooit de code, pin_hash of token_hash: alleen wat het lid mag weten.
   ledenapp: { tabel: 'club_lid_toegang', select: 'actief, pin_gekozen_op, laatst_ingelogd_op, aangemaakt_op' },
   sessies: { tabel: 'club_lid_sessies', select: 'aangemaakt_op, laatst_gebruikt_op, verloopt_op', volgorde: 'aangemaakt_op' },
   leads: { tabel: 'club_leads', select: 'id, naam, email, telefoon, vestiging, bron, interesse, status, proefles_op, verloren_reden, toestemming_contact, aangemaakt_op', volgorde: 'aangemaakt_op' },
   verwijderverzoek: { tabel: 'club_lid_verwijderingen', select: 'aangevraagd_op, definitief_op' },
+  communityGroepen: { tabel: 'club_community_groepsleden', select: 'status, toegevoegd_door, aangemaakt_op, club_community_groepen(naam)', volgorde: 'aangemaakt_op' },
+  communityBerichten: { tabel: 'club_community_berichten', select: 'tekst, status, aangemaakt_op, club_community_groepen(naam)', volgorde: 'aangemaakt_op' },
+  communityReacties: { tabel: 'club_community_reacties', select: 'soort, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  communityMeldingen: { tabel: 'club_community_meldingen', select: 'reden, toelichting, status, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  communityVoorkeur: { tabel: 'club_community_voorkeuren', select: 'op_ranglijst, gewijzigd_op' },
 }
 
 const MAX_RIJEN = 10_000

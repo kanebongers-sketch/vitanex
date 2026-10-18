@@ -37,6 +37,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer' },
   { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden' },
   { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads' },
+  { sleutel: 'community', pad: '/community', label: 'Community', uitleg: 'Groepen, berichten en meldingen van leden', groep: 'leden', module: 'app' },
   { sleutel: 'challenges', pad: '/challenges', label: 'Challenges', uitleg: 'Doelen, voortgang en badges voor leden', groep: 'leden' },
   { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties voor de ledenapp', groep: 'leden' },
   { sleutel: 'app', pad: '/app', label: 'Ledenapp', uitleg: 'Zo ziet een lid het op zijn telefoon', groep: 'leden', module: 'app' },
