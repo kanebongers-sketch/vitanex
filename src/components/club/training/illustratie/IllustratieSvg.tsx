@@ -1,7 +1,11 @@
+import type { CSSProperties } from 'react'
 import type { Laag } from '@/lib/club/training/illustratie/laag'
 import type { Animatie } from '@/lib/club/training/illustratie/scene'
 import type { Kader } from '@/lib/club/training/illustratie/scene'
-import { keyTimes, padStijl, viewBox, waarden } from '@/lib/club/training/illustratie/svg'
+import { keyTimes, padStijl as padStijlRuw, viewBox, waarden } from '@/lib/club/training/illustratie/svg'
+
+// PadStijl bevat CSS-variabelen; React kent die niet als CSSProperties.
+const padStijl = (l: Laag): CSSProperties => padStijlRuw(l) as unknown as CSSProperties
 
 // De tekening zelf: een SVG met een pad per laag. Stilstaand (lagen) of
 // bewegend (animatie): dan krijgt elk pad een SMIL-animatie op zijn vorm. Dat
