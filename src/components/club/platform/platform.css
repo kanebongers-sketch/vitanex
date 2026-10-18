@@ -1,0 +1,84 @@
+/* ── /clubkane/platform: het overzicht van AI Your Gym (alleen Kane) ──────── */
+
+.club-platform-klein { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-platform-sub { display: block; font-size: 12.5px; color: var(--text-3); }
+.club-platform-actie { display: block; font-weight: 600; color: var(--text-1); }
+.club-platform-pakket { font-size: 13px; color: var(--text-2); }
+
+/* Meldingen bovenaan */
+.club-platform-probleemkop { margin: 0 0 4px; font-weight: 600; }
+.club-platform-problemen { margin: 0; padding-left: 18px; font-size: 13.5px; }
+
+/* Kerncijfers: vijf tegels, op de telefoon twee per rij */
+.club-platform-tegels { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 760px) { .club-platform-tegels { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .club-platform-tegels { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.club-platform-tegel { position: relative; overflow: hidden; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
+.club-platform-tegel[data-aandacht='merk'] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+.club-platform-tegel[data-aandacht='merk'] .club-tegel-getal { color: var(--brand-tekst, var(--brand)); }
+.club-platform-tegel[data-aandacht='let-op'] { border-color: color-mix(in srgb, var(--club-let-op) 50%, var(--line)); }
+.club-platform-tegel[data-aandacht='let-op'] .club-tegel-getal { color: var(--club-let-op); }
+.club-platform-tegel[data-aandacht]::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--brand); }
+.club-platform-tegel[data-aandacht='let-op']::before { background: var(--club-let-op); }
+.club-platform-tegel:has(.club-platform-tegel-link:hover) { border-color: var(--line-strong); transform: translateY(-1px); }
+.club-platform-tegel-link { display: grid; gap: 2px; color: inherit; text-decoration: none; }
+.club-platform-tegel-link::after { content: ''; position: absolute; inset: 0; }
+.club-platform-tegel-link:focus-visible { outline: none; }
+.club-platform-tegel:has(.club-platform-tegel-link:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Sportscholen: een rij op de pc, een kaart op de telefoon */
+.club-platform-scholen { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-platform-school {
+  display: grid;
+  gap: 14px 20px;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--club-radius);
+  box-shadow: var(--club-schaduw);
+}
+.club-platform-school[aria-current='true'] { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-platform-naam h3 { margin: 0; font-family: var(--ff-kop); font-size: 21px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; overflow-wrap: anywhere; }
+.club-platform-naam p { margin: 3px 0 0; }
+.club-platform-adres { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.club-platform-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-platform-chips:empty { display: none; }
+
+.club-platform-cijfers { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-platform-cijfers > div { padding: 8px 10px; min-width: 0; }
+.club-platform-cijfers > div + div { border-left: 1px solid var(--line); }
+.club-platform-cijfers dt { font-size: 11px; line-height: 1.2; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.club-platform-cijfers dd { margin: 2px 0 0; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+
+.club-platform-start, .club-platform-info { display: grid; gap: 4px; min-width: 0; }
+.club-platform-meter { display: block; height: 6px; border-radius: 999px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-platform-meter > span { display: block; height: 100%; background: var(--brand); transform-origin: left center; transition: transform 300ms var(--ease); }
+.club-platform-meter[data-af] > span { background: var(--club-ok); }
+
+.club-platform-open { display: grid; gap: 4px; justify-items: start; }
+
+@media (min-width: 700px) {
+  .club-platform-school { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr); }
+  .club-platform-open { justify-items: end; }
+}
+@media (min-width: 1240px) {
+  .club-platform-school { grid-template-columns: minmax(170px, 1.1fr) minmax(300px, 1.7fr) minmax(130px, 0.9fr) minmax(150px, 1fr) minmax(150px, 1fr) auto; }
+}
+
+/* Aanmeldingen */
+.club-platform-aanvraag-melding { margin: 0 0 12px; border-color: color-mix(in srgb, var(--brand) 55%, transparent); background: var(--brand-soft); }
+.club-platform-tabel td { vertical-align: top; }
+.club-platform-tabel tr[data-aanvraag] td { background: color-mix(in srgb, var(--brand) 7%, transparent); }
+.club-platform-tabel tr[data-aanvraag] td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+.club-platform-zelf { display: block; margin-top: 6px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-platform-contact { display: grid; gap: 2px; font-size: 13px; }
+.club-platform-contact a { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); text-decoration: none; overflow-wrap: anywhere; }
+.club-platform-contact a:hover { color: var(--brand-tekst, var(--brand)); text-decoration: underline; text-underline-offset: 3px; }
+.club-platform-datum { white-space: nowrap; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-platform-tegel, .club-platform-meter > span { transition: none; }
+  .club-platform-tegel:has(.club-platform-tegel-link:hover) { transform: none; }
+}
