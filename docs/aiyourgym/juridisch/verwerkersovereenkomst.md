@@ -57,7 +57,7 @@ AI Your Gym houdt de persoonsgegevens geheim. Iedereen die namens AI Your Gym to
 
 1. Leden en medewerkers richten verzoeken (inzage, correctie, verwijdering, beperking, bezwaar, overdraagbaarheid) aan de Sportschool. Komt een verzoek bij AI Your Gym binnen, dan stuurt AI Your Gym het zonder inhoudelijke reactie door naar de Sportschool.
 2. De Sportschool kan veel verzoeken zelf in de Dienst afhandelen: gegevens van een lid inzien en aanpassen, en exporteren als CSV via Rapporten. Een lid ziet in de ledenapp de eigen gegevens.
-3. Waar de Sportschool een verzoek niet zelf kan afhandelen, helpt AI Your Gym binnen redelijke termijn. [Stand 17-10-2026: een lid helemaal verwijderen (in plaats van de status "gestopt" of "opgezegd") kan nog niet in de software zelf; dat doet AI Your Gym op verzoek tot de functie er is. Te bouwen voor de livegang.] [In te vullen: of hulp kosten met zich meebrengt.]
+3. De Sportschool handelt inzage en verwijdering van een lid zelf af in de Dienst (stand 18-10-2026): op de ledenkaart downloadt zij alle gegevens van het lid als bestand (inzage, overdraagbaarheid), en verwijdert zij het lid in twee stappen (zie Bijlage 1, "Verwijderen van een lid"). Waar de Sportschool een verzoek niet zelf kan afhandelen, helpt AI Your Gym binnen redelijke termijn. [In te vullen: of hulp kosten met zich meebrengt.]
 
 ## Artikel 9. Inbreuken in verband met persoonsgegevens (datalekken)
 
@@ -132,6 +132,14 @@ De lijst volgt de tabellen van de Dienst (database `club_*`, stand 17-10-2026). 
 | Beheerders | naam, e-mail, rol (eigenaar, clubmanager), gehashte pincode, laatste inlog, mislukte pogingen | toegang tot de beheeromgeving | [in te vullen] |
 | Logboek | wie (naam van de medewerker), wat (actie), onderwerp (bijvoorbeeld een naam), vestiging, tijdstip | controle wie wat deed | [in te vullen] |
 
+### Verwijderen van een lid
+Op verzoek van het lid (of als de Sportschool dat zelf wil) verwijdert de eigenaar van de Sportschool een lid op de ledenkaart. Dat gaat in twee stappen:
+
+1. **Wordt verwijderd (30 dagen).** Het lid kan direct niet meer inloggen, inchecken of boeken. Geplande lessen, afspraken en berichten aan het lid vervallen. Binnen 30 dagen kan de Sportschool dit terugdraaien, bijvoorbeeld bij een vergissing.
+2. **Definitief (na 30 dagen, automatisch elke nacht).** Alle persoonsgegevens van het lid gaan uit alle onderdelen van de Dienst: ledengegevens, intakes, metingen, schema's, trainingen, voeding, notities, afspraken, challenges, opvolging, berichten, ledenapp en een eventuele lead waaruit het lid voortkwam. Alleen tellingen zonder persoon blijven bestaan, zodat de maandcijfers van de Sportschool kloppen: het aantal bezoeken per dag en per uur, en de bezetting van lessen die al gegeven zijn. Die zijn niet meer aan het lid te koppelen. Regels in het logboek die de naam van het lid noemen, verliezen die naam; er komt een regel "Lid verwijderd" zonder naam bij.
+
+Vrije tekst die een medewerker elders schreef (bijvoorbeeld in het kladblok of de agenda) kan de Dienst niet automatisch herkennen; die past de Sportschool zelf aan. Kopieen in back-ups verdwijnen volgens de bewaartijd van die back-ups (Bijlage 2). Staat het lid nog in de ledenadministratie van de Sportschool (Sportivity), dan verwijdert de Sportschool het daar ook, anders kan een nieuwe import het lid opnieuw aanmaken.
+
 ### Wat de Dienst niet verwerkt
 - Geen betaalgegevens van leden: incasso, abonnementen en betalingen van leden lopen buiten de Dienst (bijvoorbeeld via Sportivity).
 - Geen burgerservicenummers.
@@ -149,6 +157,7 @@ Alleen maatregelen die echt in de software zitten:
 - **Rechten per rol**: een clubmanager ziet alleen de onderdelen die de eigenaar aanzet. Niet-toegestane pagina's en API's geven een gewone 404.
 - **Bescherming tegen vervalste verzoeken**: wijzigingen moeten van de eigen app komen (controle op herkomst).
 - **Logboek** van acties in de beheeromgeving.
+- **Rechten van leden in de software**: inzage per lid als download (gelogd zonder inhoud, zonder pincodes of inloglinks) en verwijderen in twee stappen (30 dagen terug te draaien, daarna definitief in een databasefunctie die alles in een keer doet). Alleen de eigenaar van de Sportschool (en het beheer van AI Your Gym) kan een lid verwijderen; een clubmanager of medewerker niet.
 - **Gezondheidsgegevens**: een meting kan niet worden opgeslagen zonder vastgelegde toestemming (databaseregel). In de ledenapp ziet een lid geen trainersnotities en geen gegevens zoals bloeddruk.
 - **Versleutelde verbindingen** (https) naar de app; de database draait in de EU (Frankfurt).
 - **Foutregistratie zonder persoonsgegevens** en een uptime-controle.

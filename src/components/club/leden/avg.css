@@ -1,0 +1,20 @@
+/* ─── Club, ledenkaart: privacy (AVG), inzage en verwijderen ──────────────── */
+
+.club-avg { display: grid; gap: 12px; }
+.club-avg .club-sectiekop, .club-avg .club-hint { margin: 0; }
+.club-avg-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-avg-knoppen a.club-knop { text-decoration: none; }
+.club-avg-start { justify-self: start; }
+.club-avg-verzoek,
+.club-avg-bevestig {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--club-radius);
+  border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent);
+  background: var(--club-let-op-zacht);
+}
+.club-avg-verzoek p, .club-avg-bevestig p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-1); }
+.club-avg-verzoek .club-knop { justify-self: start; }
+.club-avg-status { margin: 0; min-height: 1em; font-size: 13.5px; color: var(--text-2); }
+.club-avg-status:empty, .club-avg .club-melding:empty { display: none; }

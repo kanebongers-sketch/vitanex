@@ -21,6 +21,9 @@ import { haalPlan } from '@/lib/club/voeding/lezen'
 import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
 import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
 import { moduleAan } from '@/lib/club/kern/organisatie'
+import { AvgKaart } from '@/components/club/leden/AvgKaart'
+import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
+import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -82,9 +85,10 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   if (!kaart) notFound()
   // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
   const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
-  const [voortgang, voeding] = await Promise.all([
+  const [voortgang, voeding, verzoek] = await Promise.all([
     haalVoortgang(t.admin, t.userId, kaart.lid.id, nu),
     toonVoeding ? haalPlan(t.admin, t.userId, kaart.lid.id) : Promise.resolve(null),
+    haalVerwijderverzoek(t.admin, t.userId, kaart.lid.id),
   ])
   const { lid } = kaart
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
@@ -100,7 +104,13 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
         {toonVoeding && <a href="#voeding">Voeding</a>}
         <a href="#notities">Notities</a>
         <a href="#gegevens">Gegevens</a>
+        <a href="#privacy">Privacy</a>
       </nav>
+      {verzoek ? (
+        <p className="club-melding club-melding--fout" role="status">
+          {verzoekTekst(verzoek, nu)} Dit lid kan niet meer inloggen, inchecken of boeken.{magLidVerwijderen(t) ? <> <a href="#privacy">Terugdraaien</a></> : null}
+        </p>
+      ) : null}
       {kaart.fouten.length ? (
         <p className="club-melding club-melding--fout" role="alert">Niet alles kon worden geladen ({kaart.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.</p>
       ) : null}
@@ -141,6 +151,13 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             coachId={lid.coachId}
             trainers={coachKeuzes(kaart.medewerkers, lid.coachId)}
             tags={lid.tags}
+          />
+          <AvgKaart
+            lidId={lid.id}
+            voornaam={lid.voornaam}
+            achternaam={lid.achternaam}
+            magVerwijderen={magLidVerwijderen(t)}
+            verzoekTekst={verzoek ? verzoekTekst(verzoek, nu) : null}
           />
         </aside>
       </div>
