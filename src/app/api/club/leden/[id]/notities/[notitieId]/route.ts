@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { isUuid, leesVastpinnen } from '@/lib/club/leden/invoer'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // PATCH  /api/club/leden/[id]/notities/[notitieId]  { vastgepind }
 // DELETE /api/club/leden/[id]/notities/[notitieId]
@@ -12,6 +13,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id, notitieId } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_leden', id)
+  if (buiten) return buiten
   if (!isUuid(id) || !isUuid(notitieId)) return clubFout('Niet gevonden.', 404)
   const invoer = leesVastpinnen(await req.json().catch(() => null))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
@@ -29,6 +32,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id, notitieId } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_leden', id)
+  if (buiten) return buiten
   if (!isUuid(id) || !isUuid(notitieId)) return clubFout('Niet gevonden.', 404)
   const lid = await haalLid(t.admin, t.userId, id)
   if (!lid) return clubFout('Dit lid bestaat niet (meer).', 404)

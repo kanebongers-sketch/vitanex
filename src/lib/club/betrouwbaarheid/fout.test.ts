@@ -119,3 +119,16 @@ describe('maakRem', () => {
     expect(mag(1500)).toBe(true)
   })
 })
+
+describe('persoonlijke links zonder cijfer', () => {
+  const CODE_ZONDER_CIJFER = 'AbcdefghIjklmnopQrstuvwx'
+  it('haalt een ledenlink of afmeldtoken uit een pad, ook zonder cijfer', () => {
+    expect(schoonRoute(`/mijn/start/${CODE_ZONDER_CIJFER}`)).toBe('/mijn/start/:code')
+    expect(schoonRoute(`/api/club-afmelden/${CODE_ZONDER_CIJFER}AbcdefgH`)).toBe('/api/club-afmelden/:code')
+  })
+  it('haalt zo een link uit een foutmelding', () => {
+    const uit = schoonMelding(`Fout bij /mijn/start/${CODE_ZONDER_CIJFER} en /clubinloggen/medewerker/${CODE_ZONDER_CIJFER}`)
+    expect(uit).not.toContain(CODE_ZONDER_CIJFER)
+    expect(uit).toContain('/mijn/start/<code>')
+  })
+})

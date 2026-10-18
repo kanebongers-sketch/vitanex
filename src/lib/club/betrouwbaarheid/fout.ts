@@ -56,6 +56,8 @@ export function schoonRoute(pad: string): string {
     if (UUID_DEEL.test(deel)) return ':id'
     if (/^\d+$/.test(deel)) return ':n'
     if (/^[A-Za-z0-9_-]{16,}$/.test(deel) && /\d/.test(deel)) return ':code'
+    // Een inlogcode of afmeldtoken zonder cijfer (ongeveer 1 op 60) moet er ook uit.
+    if (/^[A-Za-z0-9_-]{20,}$/.test(deel) && /[A-Z]/.test(deel)) return ':code'
     if (deel.includes('@')) return ':email'
     return deel
   })
@@ -66,6 +68,8 @@ export function schoonRoute(pad: string): string {
 export function schoonMelding(ruw: string): string {
   const schoon = ruw
     .replace(EMAIL, '<email>')
+    // Persoonlijke links en tokens in een pad: nooit meenemen, ook niet zonder cijfer.
+    .replace(/\/(mijn\/start|clubinloggen(?:\/medewerker)?|inloggen(?:\/medewerker)?|club-afmelden)\/[A-Za-z0-9_-]+/g, '/$1/<code>')
     .replace(UUID, '<id>')
     .replace(CODE, '<code>')
     // Postgres: Key (email)=(jan@voorbeeld.nl) en "waarde=..." niet meenemen.

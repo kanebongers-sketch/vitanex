@@ -3,6 +3,7 @@ import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toeg
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { leesNotitie } from '@/lib/club/leden/invoer'
 import { notitieUitRij } from '@/lib/club/leden/rijen'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // POST /api/club/leden/[id]/notities  { tekst, vastgepind? }
 
@@ -10,6 +11,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_leden', id)
+  if (buiten) return buiten
   const invoer = leesNotitie(await req.json().catch(() => null))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const lid = await haalLid(t.admin, t.userId, id)

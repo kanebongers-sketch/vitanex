@@ -9,6 +9,7 @@ import { ipVan, isZelfdeOorsprong, leesPin } from '@/lib/lifeos/leads/toegang'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { kiesMedewerkerPin, vindMedewerkerLink } from '@/lib/club/medewerker-login/opslag'
+import { isZwakkePin } from '@/lib/club/ledenlogin/pin-keuze'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 
 export const runtime = 'nodejs'
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (!organisatie || !(await hostPastBij(organisatie))) return clubFout('Niet gevonden.', 404)
   const pin = leesPin(await req.json().catch(() => null))
   if (!pin) return clubFout('Kies een pincode van precies 6 cijfers.', 400)
+
+  if (isZwakkePin(pin)) return clubFout('Deze pincode is te makkelijk te raden. Kies een andere.', 400)
 
   const uit = await kiesMedewerkerPin(admin, gevonden.toegang, pin, new Date())
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)

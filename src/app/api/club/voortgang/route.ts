@@ -11,13 +11,14 @@ import { isUuid } from '@/lib/club/training/typen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { leesNieuweMeting } from '@/lib/club/voortgang/meting'
 import { haalVoortgang, voegMetingToe } from '@/lib/club/voortgang/data'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 
 export async function GET(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const lidId = req.nextUrl.searchParams.get('lid')
   const vestiging = isUuid(lidId) ? await lidVestiging(t.admin, t.userId, lidId) : null
-  if (!isUuid(lidId) || !vestiging) return clubFout('Lid niet gevonden.', 404)
+  if (!isUuid(lidId) || !hoortBij(t.vestigingen, vestiging)) return clubFout('Lid niet gevonden.', 404)
   // Inzage in gezondheidsgegevens wordt gelogd (AVG).
   await logActie(t, 'Metingen bekeken', null, vestiging)
   return clubJson({ voortgang: await haalVoortgang(t.admin, t.userId, lidId) })
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
   const m = invoer.waarde
 
   const vestiging = await lidVestiging(t.admin, t.userId, m.lidId)
-  if (!vestiging) return clubFout('Dit lid bestaat niet (meer).', 404)
+  if (!hoortBij(t.vestigingen, vestiging)) return clubFout('Dit lid bestaat niet (meer).', 404)
   if (!(await medewerkerBestaat(t.admin, t.userId, m.medewerkerId))) return clubFout('Onbekende medewerker.', 400)
   if (!(await voegMetingToe(t.admin, t.userId, m, t.naam))) return clubFout('De meting kon niet worden opgeslagen. Probeer het opnieuw.', 500)
 

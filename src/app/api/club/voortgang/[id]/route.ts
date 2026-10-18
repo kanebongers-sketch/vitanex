@@ -9,6 +9,7 @@ import { lidVestiging } from '@/lib/club/training/schrijven'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { leesMetingVelden } from '@/lib/club/voortgang/meting'
 import { haalMeting, haalVoortgang, verwijderMeting, werkMetingBij } from '@/lib/club/voortgang/data'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 interface Context {
   params: Promise<{ id: string }>
@@ -18,6 +19,8 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
+  const buiten = await eisVestigingVanRecord(t, 'club_metingen', id)
+  if (buiten) return buiten
   const meting = await haalMeting(t.admin, t.userId, id)
   if (!meting) return clubFout('Meting niet gevonden.', 404)
 
@@ -35,6 +38,8 @@ export async function DELETE(req: NextRequest, ctx: Context) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
+  const buiten = await eisVestigingVanRecord(t, 'club_metingen', id)
+  if (buiten) return buiten
   const meting = await haalMeting(t.admin, t.userId, id)
   if (!meting) return clubFout('Meting niet gevonden.', 404)
   if (!(await verwijderMeting(t.admin, t.userId, meting.id))) return clubFout('De meting kon niet worden verwijderd. Probeer het opnieuw.', 500)

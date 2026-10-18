@@ -5,6 +5,7 @@ import { leesSchema } from '@/lib/club/training/invoer'
 import { isRij } from '@/lib/club/training/rijen'
 import { lidVestiging, oefeningenBestaan, vervangRegels } from '@/lib/club/training/schrijven'
 import { isUuid } from '@/lib/club/training/typen'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // PUT    /api/club/training/schemas/[id]: het hele schema opslaan (kop en oefeningen).
 // DELETE /api/club/training/schemas/[id]: schema of sjabloon verwijderen.
@@ -34,6 +35,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_schemas', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Onbekend schema.', 404)
 
   const body: unknown = await req.json().catch(() => null)
@@ -71,6 +74,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_schemas', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Onbekend schema.', 404)
 
   const { data, error } = await t.admin.from('club_schemas').delete().eq('user_id', t.userId).eq('id', id).select('id')

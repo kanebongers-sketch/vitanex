@@ -8,6 +8,8 @@
 
 import type { NextRequest } from 'next/server'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
+import { ipVan } from '@/lib/lifeos/leads/toegang'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 import { escape } from '@/lib/club/meldingen/mail-html'
 import { haalAfmeldStand, meldAf, type AfmeldKeuze } from '@/lib/club/meldingen/afmelden'
 
@@ -34,7 +36,13 @@ function onbekend(): Response {
   return pagina('Link werkt niet', '<p style="color:#c9c9c4">Deze afmeldlink bestaat niet (meer). Neem contact op met je sportschool als je geen mails meer wilt.</p>', 404)
 }
 
-export async function GET(_req: NextRequest, ctx: Context): Promise<Response> {
+/** Openbaar, dus begrensd: per IP, en met een grens voor iedereen samen (het IP is te vervalsen). */
+function teVeel(req: NextRequest): boolean {
+  return isRateLimited(`club-afmelden:${ipVan(req)}`, 30, 15 * 60_000) || isRateLimited('club-afmelden:alles', 300, 15 * 60_000)
+}
+
+export async function GET(req: NextRequest, ctx: Context): Promise<Response> {
+  if (teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
   const { token } = await ctx.params
   const stand = await haalAfmeldStand(createLifeosAdminClient(), token)
   if (!stand) return onbekend()
@@ -56,6 +64,7 @@ async function leesKeuze(req: NextRequest): Promise<AfmeldKeuze> {
 }
 
 export async function POST(req: NextRequest, ctx: Context): Promise<Response> {
+  if (teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
   const { token } = await ctx.params
   const keuze = await leesKeuze(req)
   const admin = createLifeosAdminClient()

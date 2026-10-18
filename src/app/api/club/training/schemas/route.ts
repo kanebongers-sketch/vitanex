@@ -3,6 +3,7 @@ import { clubFout, clubJson, vereisClubToegang } from '@/lib/club/toegang'
 import { isRij } from '@/lib/club/training/rijen'
 import { lidVestiging, maakSchema } from '@/lib/club/training/schrijven'
 import { isUuid } from '@/lib/club/training/typen'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 
 // POST /api/club/training/schemas: een nieuw, leeg schema (concept) voor een lid,
 // of een nieuw sjabloon als lidId leeg is. Body: { lidId?: string | null, naam?: string }
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!isRij(body)) return clubFout('Ongeldig verzoek.', 400)
   const lidId = body.lidId === null || body.lidId === undefined || body.lidId === '' ? null : body.lidId
   if (lidId !== null && !isUuid(lidId)) return clubFout('Onbekend lid.', 400)
-  if (lidId && !(await lidVestiging(t.admin, t.userId, lidId))) return clubFout('Dit lid bestaat niet (meer).', 404)
+  if (lidId && !hoortBij(t.vestigingen, await lidVestiging(t.admin, t.userId, lidId))) return clubFout('Dit lid bestaat niet (meer).', 404)
   const naam = typeof body.naam === 'string' && body.naam.trim() ? body.naam.trim().slice(0, 80) : lidId ? 'Nieuw schema' : 'Nieuw sjabloon'
 
   const uit = await maakSchema(

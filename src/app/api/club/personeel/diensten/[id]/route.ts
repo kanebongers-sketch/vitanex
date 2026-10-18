@@ -4,6 +4,7 @@ import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { alsAntwoord, leesJson } from '@/lib/club/personeel/api'
 import { verwijderDienst, wijzigDienst } from '@/lib/club/personeel/diensten-opslag'
 import { isUuid, leesDienst } from '@/lib/club/personeel/invoer'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // PATCH  /api/club/personeel/diensten/[id]  zelfde body als POST (de hele dienst)
 // DELETE /api/club/personeel/diensten/[id]  alleen zolang er geen uren op staan
@@ -16,6 +17,8 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_diensten', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Deze dienst bestaat niet.', 404)
   const invoer = leesDienst(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
@@ -27,6 +30,8 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_diensten', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Deze dienst bestaat niet.', 404)
   return alsAntwoord(await verwijderDienst(t, id))
 }

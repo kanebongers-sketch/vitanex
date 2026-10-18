@@ -26,7 +26,8 @@ async function dbStand(): Promise<DbStand> {
 export async function GET(req: NextRequest) {
   // Een uptime-dienst vraagt hooguit een paar keer per minuut; dit remt misbruik.
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'onbekend'
-  if (isRateLimited(`status:${ip}`, 30, 60_000)) {
+  // Het IP uit X-Forwarded-For is te vervalsen: daarom ook een grens voor iedereen samen.
+  if (isRateLimited(`status:${ip}`, 30, 60_000) || isRateLimited('status:alles', 120, 60_000)) {
     return NextResponse.json({ ok: false, db: 'onbekend' }, { status: 429, headers: GEEN_CACHE })
   }
   const { body, status } = statusAntwoord(await dbStand())

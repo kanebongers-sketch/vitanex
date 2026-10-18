@@ -10,6 +10,7 @@ import { haalAfspraak, haalType, werkAfspraakBij } from '@/lib/club/afspraken/op
 import { STATUS_LABEL, type Afspraak } from '@/lib/club/afspraken/model'
 import { eindVan, magStatusZetten, magVerplaatsen } from '@/lib/club/afspraken/regels'
 import { controleerTijd, leesJson } from '@/lib/club/afspraken/api'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 interface Context {
   params: Promise<{ id: string }>
@@ -19,6 +20,8 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
+  const buiten = await eisVestigingVanRecord(t, 'club_afspraken', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Afspraak niet gevonden.', 404)
   const afspraak = await haalAfspraak(t.admin, t.userId, id)
   if (!afspraak) return clubFout('Afspraak niet gevonden.', 404)

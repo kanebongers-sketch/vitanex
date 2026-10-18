@@ -4,6 +4,7 @@ import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { alsAntwoord, leesJson } from '@/lib/club/personeel/api'
 import { isUuid, leesToepassen } from '@/lib/club/personeel/invoer'
 import { pasPatroonToe } from '@/lib/club/personeel/plannen-opslag'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // POST /api/club/personeel/patronen/[id]/toepassen  { vestiging, maandag, weken (1 tot 12), vervang? }
 //   Antwoord: { toegevoegd }
@@ -12,6 +13,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_dienst_sjablonen', id)
+  if (buiten) return buiten
   if (!isUuid(id)) return clubFout('Dit patroon bestaat niet.', 404)
   const invoer = leesToepassen(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)

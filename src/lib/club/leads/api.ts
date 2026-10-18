@@ -5,6 +5,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, type ClubToegang } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
+import { hoortBij } from '@/lib/club/kern/vestigingen'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalLead } from './data'
 import { isUuid } from './filters'
@@ -19,7 +20,8 @@ export async function leadUitRoute(t: ClubToegang, ctx: LeadContext): Promise<Le
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Lead niet gevonden.', 404)
   const lead = await haalLead(t.admin, t.userId, id)
-  return lead ?? clubFout('Lead niet gevonden.', 404)
+  // Een medewerker ziet alleen leads van de eigen vestigingen.
+  return lead && hoortBij(t.vestigingen, lead.vestiging) ? lead : clubFout('Lead niet gevonden.', 404)
 }
 
 /** De JSON-body, of null bij onleesbare invoer. */

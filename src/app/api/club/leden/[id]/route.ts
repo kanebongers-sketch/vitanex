@@ -3,6 +3,7 @@ import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toeg
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { leesLidWijziging } from '@/lib/club/leden/invoer'
+import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 
 // PATCH /api/club/leden/[id]  { coachId?: uuid | null, tags?: string[] }
 // Alleen wat in onze software hoort: coach en tags. Contact, abonnement en
@@ -12,6 +13,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const { id } = await params
+  const buiten = await eisVestigingVanRecord(t, 'club_leden', id)
+  if (buiten) return buiten
   const wijziging = leesLidWijziging(await req.json().catch(() => null))
   if (!wijziging.ok) return clubFout(wijziging.fout, 400)
   const lid = await haalLid(t.admin, t.userId, id)
