@@ -2,19 +2,11 @@
 
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { bruikbaarAccent, huisstijlVariabelen, MIN_CONTRAST_VLAK, type Thema } from '@/lib/club/kern/huisstijl'
+import { STALEN } from './stalen'
 
 // Probeer het zelf: kies een kleur en een thema, en de ledenapp kleurt mee.
 // Dezelfde rekenregels als in Club (huisstijlVariabelen): een kleur met te weinig
 // contrast schuift automatisch bij, zodat alles leesbaar blijft.
-
-const STALEN = [
-  { naam: 'Volt', hex: '#C9F03E' },
-  { naam: 'Koraal', hex: '#FF5A36' },
-  { naam: 'Oceaan', hex: '#2F6BFF' },
-  { naam: 'Framboos', hex: '#E0336E' },
-  { naam: 'Smaragd', hex: '#12A150' },
-  { naam: 'Goud', hex: '#D4A017' },
-] as const
 
 interface Props {
   /** De telefoon met de ledenapp, door de server getekend. */

@@ -14,19 +14,21 @@
   --ayg-vlak-2: #e8e5db;
   --ayg-tekst: #0f1412;
   --ayg-tekst-2: #545a55; /* 6.2:1 op bg, 5.6:1 op vlak-2 */
+  --ayg-tekst-spook: #767b73; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
   --ayg-lijn: #d6d2c5;
-  --ayg-lijn-sterk: #82877f; /* 3:1, voor invoervelden */
+  --ayg-lijn-sterk: #7a7f77; /* 3.25:1 op vlak-2, voor invoervelden en randknoppen */
   --ayg-accent: #c9f03e;
   --ayg-accent-tekst: #0f1412; /* 14.2:1 op accent */
   --ayg-fout: #b42318;
-  --ayg-ok: #1f7a3d;
+  --ayg-ok: #1b7238; /* 4.75:1 op vlak-2 */
 
   /* Donker podium (productbeelden) */
   --ayg-inkt: #0f1412;
   --ayg-inkt-2: #1a201d;
   --ayg-inkt-lijn: #2b322e;
   --ayg-inkt-tekst: #f2f0e9;
-  --ayg-inkt-tekst-2: #a9afa8; /* 8.3:1 op inkt */
+  --ayg-inkt-tekst-2: #b8beb7; /* 9.8:1 op inkt, 4.8:1 waar de volt gloed het sterkst is */
+  --ayg-inkt-spook: #666d67; /* grote sierletters op inkt: 3.5:1 */
 
   /* Letters */
   --ayg-font-kop: var(--ayg-f-kop), 'Arial Narrow', Arial, sans-serif;
@@ -87,6 +89,7 @@
 .ayg :where(ul, ol) { margin: 0; padding: 0; list-style: none; }
 .ayg :where(a) { color: inherit; }
 .ayg :where(img) { display: block; max-width: 100%; }
+.ayg ::placeholder { color: var(--ayg-tekst-2); opacity: 1; }
 
 .ayg :where(a, button, summary, input, select, textarea):focus-visible {
   outline: 2px solid var(--ayg-tekst);
@@ -111,6 +114,7 @@
   background: var(--ayg-inkt);
   color: var(--ayg-inkt-tekst);
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
+  --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
   position: relative;
   overflow: clip;
@@ -234,7 +238,7 @@
 .ayg-voet a { text-decoration: none; color: var(--ayg-inkt-tekst); }
 .ayg-voet a:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--ayg-accent); }
 .ayg-voet-onder { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--ayg-inkt-lijn); font-size: 14px; color: var(--ayg-tekst-2); }
-.ayg-voet-woord { margin-top: 56px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-inkt-2); user-select: none; white-space: nowrap; }
+.ayg-voet-woord { margin-top: 56px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-inkt-spook); user-select: none; white-space: nowrap; }
 @media (min-width: 760px) { .ayg-voet-raster { grid-template-columns: 1.6fr repeat(3, 1fr); } }
 
 /* ── Sectiekop en paginakop ──────────────────────────────────────────────── */
@@ -282,6 +286,30 @@
 .ayg-tekst ul { list-style: disc; padding-left: 1.2em; display: grid; gap: 8px; }
 .ayg-tekst p, .ayg-tekst li { color: var(--ayg-tekst-2); }
 .ayg-tekst a { text-underline-offset: 3px; }
+
+/* ── Geruststelling en oproepen ──────────────────────────────────────────── */
+/* Vlak bij elke aanmeldknop: wat het risico wegneemt. */
+.ayg-gerust { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; font-weight: 500; color: var(--ayg-tekst-2); }
+.ayg-gerust li { display: inline-flex; align-items: center; gap: 7px; }
+.ayg-gerust svg { flex-shrink: 0; width: 18px; height: 18px; padding: 2px; border-radius: 5px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-sectie-actie { display: grid; gap: 16px; justify-items: start; margin-top: clamp(36px, 5vw, 56px); padding-top: clamp(24px, 3vw, 32px); border-top: 1px solid var(--ayg-lijn); }
+.ayg-gesplitst-tekst .ayg-sectie-actie, .ayg-start-kop .ayg-sectie-actie, .ayg-gesplitst--boven .ayg-sectie-actie { margin-top: 4px; }
+.ayg-sectie-actie-zin { font-weight: 600; }
+
+/* Vaste aanmeldknop onderin op de telefoon, na het eerste scherm */
+.ayg-plak {
+  position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 48;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 6px; border-radius: 16px;
+  background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); box-shadow: 0 18px 40px -16px rgb(15 20 18 / 0.55);
+  transform: translateY(calc(100% + 24px)); opacity: 0; visibility: hidden;
+  transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s linear 360ms;
+}
+.ayg-plak[data-zichtbaar] { transform: none; opacity: 1; visibility: visible; transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s; }
+.ayg-plak .ayg-knop { min-height: 50px; box-shadow: none; }
+.ayg-plak-demo { display: inline-flex; align-items: center; padding: 0 18px; border-radius: 11px; color: var(--ayg-inkt-tekst); font-weight: 600; font-size: 15px; text-decoration: none; box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
+.ayg .ayg-plak :where(a):focus-visible { outline-color: var(--ayg-accent); box-shadow: none; }
+@media (max-width: 899px) { .ayg-voet { padding-bottom: 104px; } }
+@media (min-width: 900px) { .ayg-plak { display: none; } }
 
 /* ── Beweging ────────────────────────────────────────────────────────────── */
 @keyframes ayg-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

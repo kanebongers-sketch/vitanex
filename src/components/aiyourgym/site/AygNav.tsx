@@ -68,7 +68,7 @@ export function AygNav() {
       </nav>
       <div className="ayg-kop-acties">
         <Link href={DEMO} className="ayg-kop-demo" aria-current={isHuidig(DEMO, pad) ? 'page' : undefined}>
-          Probeer de demo
+          Bekijk de demo
         </Link>
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent ayg-knop--klein">
           Probeer gratis <ArrowRight size={16} aria-hidden />
@@ -109,7 +109,7 @@ export function AygNav() {
             Probeer {PROEFDAGEN} dagen gratis <ArrowRight size={16} aria-hidden />
           </Link>
           <Link href={DEMO} className="ayg-knop ayg-knop--rand">
-            Probeer de demo
+            Bekijk de demo
           </Link>
         </div>
       </div>

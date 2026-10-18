@@ -2,13 +2,13 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
+import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
 
-// De opening van de voorpagina: een grote belofte die we waarmaken, en het
-// product zelf als beeld (rooster in Club, ledenapp op de telefoon).
-
-const KENMERKEN = ['Gegevens in de EU', 'Je eigen logo en kleuren', `${PROEFDAGEN} dagen gratis`] as const
+// De opening van de voorpagina: een belofte die we waarmaken, een primaire knop
+// (gratis proberen) en een rustige tweede (de demo), met direct eronder wat het
+// risico wegneemt. Het product zelf staat ernaast als beeld.
 
 export function Held() {
   return (
@@ -17,25 +17,21 @@ export function Held() {
         <div className="ayg-held-tekst ayg-intro">
           <p className="ayg-label ayg-label--accent">Clubsoftware voor sportscholen</p>
           <h1 className="ayg-display" id="held-titel">
-            Je sportschool, <mark className="ayg-markeer">strak</mark> geregeld.
+            Je hele sportschool in <mark className="ayg-markeer">een systeem</mark>.
           </h1>
           <p className="ayg-lead">
-            Check-in, groepslessen, personeel, trainingsschema&rsquo;s met coaching en een ledenapp in je eigen huisstijl. Een systeem
-            voor de hele werkvloer, van balie tot vloer.
+            Check-in, groepslessen, personeelsrooster, trainingsschema&rsquo;s met coaching en een ledenapp in je eigen naam en kleuren.
+            Je team werkt vanuit een plek, je leden hebben jouw app op zak.
           </p>
           <div className="ayg-knoppen">
             <Knop href={AANMELDEN} soort="accent" pijl>
               Probeer {PROEFDAGEN} dagen gratis
             </Knop>
             <Knop href={DEMO} soort="rand">
-              Probeer de demo
+              Bekijk de demo
             </Knop>
           </div>
-          <ul className="ayg-held-kenmerken">
-            {KENMERKEN.map((k) => (
-              <li key={k}>{k}</li>
-            ))}
-          </ul>
+          <Geruststelling />
         </div>
         <div
           className="ayg-held-beeld aygm"

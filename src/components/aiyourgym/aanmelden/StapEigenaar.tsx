@@ -21,7 +21,8 @@ export function StapEigenaar({ invoer, fouten, wijzig }: StapEigenaarProps) {
         <Veld id="eigenaarEmail" label="E-mailadres" type="email" autoComplete="email" inputMode="email" maxLength={MAX_EMAIL} value={invoer.eigenaarEmail}
           onChange={(e) => wijzig('eigenaarEmail', e.target.value)} fout={fouten.eigenaarEmail} required />
         <Veld id="eigenaarTelefoon" label="Telefoonnummer" type="tel" autoComplete="tel" inputMode="tel" maxLength={20} value={invoer.eigenaarTelefoon}
-          onChange={(e) => wijzig('eigenaarTelefoon', e.target.value)} fout={fouten.eigenaarTelefoon} required />
+          onChange={(e) => wijzig('eigenaarTelefoon', e.target.value)} fout={fouten.eigenaarTelefoon} required
+          hint="Voor als er iets is met je aanmelding of bij het inrichten." />
       </div>
     </fieldset>
   )

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { Figuur, RepdbBron } from '@/components/aiyourgym/mockups/kaders'
 import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
+import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 
 // Het hart van Club: trainingsschema's met coaching per oefening.
@@ -34,6 +35,7 @@ export function Training() {
               </li>
             ))}
           </ul>
+          <SectieActie />
         </div>
         <Figuur
           className="ayg-onthul"

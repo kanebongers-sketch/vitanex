@@ -55,20 +55,42 @@ export interface VeelgesteldeVraag {
   antwoord: string
 }
 
+/** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
+export const VRAAG_CONTRACT: VeelgesteldeVraag = {
+  vraag: 'Zit ik ergens aan vast?',
+  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. In die tijd stop je kosteloos. Daarna betaal je per maand, per vestiging. Je prijs krijg je vooraf en schriftelijk, en het bedrag zie je bij Stripe voordat je iets bevestigt.`,
+}
+
+/** Ook gebruikt op de prijzenpagina: van wie de gegevens zijn. */
+export const VRAAG_GEGEVENS: VeelgesteldeVraag = {
+  vraag: 'Van wie zijn mijn gegevens, en krijg ik ze mee?',
+  antwoord:
+    'Van jou. AI Your Gym gebruikt ze alleen om de software voor jou te laten werken. De ledenlijst, leads, bezoek, bezetting en gewerkte uren exporteer je als CSV via de rapporten, en per lid download je alle gegevens van de ledenkaart.',
+}
+
+// De volgorde volgt de bezwaren die een eigenaar heeft voor hij begint:
+// overstappen, gegevens, vastzitten, hulp, privacy, en daarna de praktische vragen.
 export const VEELGESTELDE_VRAGEN: readonly VeelgesteldeVraag[] = [
   {
-    vraag: 'Vervangt AI Your Gym mijn ledenadministratie?',
-    antwoord:
-      'Nee. Incasso, abonnementen en betalingen blijven waar ze nu zijn. AI Your Gym regelt de rest: check-in, lessen, personeel, coaching en de ledenapp. Je leden lees je in met een CSV-bestand.',
+    vraag: 'Is overstappen veel werk?',
+    antwoord: `Minder dan je denkt. Je leest je leden in met een CSV-bestand uit je huidige systeem of uit Excel. Gangbare kolommen worden herkend en je ziet eerst wat er verandert; er wordt nooit iemand verwijderd. De startwizard zet daarna in ${STAPPEN.length} stappen, samen ongeveer ${START_MINUTEN} minuten, de rest neer. Elke stap kun je overslaan en later afmaken.`,
   },
-  {
-    vraag: 'Hoe snel staat mijn sportschool erin?',
-    antwoord: `Na het aanmelden loop je een startwizard van ${STAPPEN.length} stappen door, samen ongeveer ${START_MINUTEN} minuten. Elke stap kun je overslaan en later afmaken. Hoe groot je ledenbestand en rooster zijn bepaalt hoeveel tijd de rest kost.`,
-  },
+  VRAAG_GEGEVENS,
+  VRAAG_CONTRACT,
   {
     vraag: 'Krijg ik hulp bij het inrichten?',
     antwoord:
-      'In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten, zonder extra kosten. We lopen je ledenbestand, rooster en eerste schema’s samen met je door.',
+      'Ja. Elke sportschool krijgt de startwizard. In de pakketten Club en Keten zit daarnaast persoonlijke hulp bij het inrichten, zonder extra kosten: we lopen je ledenbestand, rooster en eerste schema’s samen met je door.',
+  },
+  {
+    vraag: 'Is het veilig en volgens de AVG?',
+    antwoord:
+      'De gegevens staan in een database in Frankfurt, binnen de EU. Elke sportschool heeft een eigen, gescheiden omgeving. Gezondheidsgegevens slaan we alleen op met toestemming van het lid, en een lid kun je zelf exporteren of laten verwijderen.',
+  },
+  {
+    vraag: 'Vervangt AI Your Gym mijn ledenadministratie?',
+    antwoord:
+      'Nee. Incasso, abonnementen en betalingen blijven waar ze nu zijn. AI Your Gym regelt de rest: check-in, lessen, personeel, coaching en de ledenapp. Zo kun je overstappen zonder dat je club stilvalt.',
   },
   {
     vraag: 'Moeten mijn leden een app downloaden?',
@@ -77,7 +99,7 @@ export const VEELGESTELDE_VRAGEN: readonly VeelgesteldeVraag[] = [
   },
   {
     vraag: 'Kan ik het eerst zien?',
-    antwoord: `Ja. In de demo bekijk je de schermen met voorbeeldgegevens, zonder account. Daarna probeer je alles ${PROEFDAGEN} dagen gratis in je eigen omgeving.`,
+    antwoord: `Ja. In de demo bekijk je de echte schermen met voorbeeldgegevens, zonder account. Daarna probeer je alles ${PROEFDAGEN} dagen gratis in je eigen omgeving.`,
   },
   {
     vraag: 'Wat kost het?',

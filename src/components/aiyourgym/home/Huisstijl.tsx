@@ -1,6 +1,7 @@
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { HuisstijlDemo } from '@/components/aiyourgym/mockups/HuisstijlDemo'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
+import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { Knop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 
@@ -24,14 +25,15 @@ export function Huisstijl({ metLink = true }: Props) {
                 Jouw naam. Jouw kleuren. <mark className="ayg-markeer">Jouw app.</mark>
               </>
             }
-            tekst="Leden zien jouw sportschool, niet de onze. Kies een kleur en een thema en kijk hoe de ledenapp meekleurt. Zo werkt het in de software ook."
+            tekst="Leden zien jouw sportschool, niet de onze. Kies een kleur en een thema en kijk hoe de ledenapp meekleurt. Zo werkt het in de software ook, en het zit in elk pakket."
           />
+          <SectieActie />
           {metLink && (
-          <div>
-            <Knop href={aygPad('/ledenapp')} soort="rand" pijl>
-              Alles over de ledenapp
-            </Knop>
-          </div>
+            <div>
+              <Knop href={aygPad('/ledenapp')} soort="rand" pijl>
+                Alles over de ledenapp
+              </Knop>
+            </div>
           )}
         </div>
         <HuisstijlDemo>

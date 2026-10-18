@@ -9,9 +9,10 @@ import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
+import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
-import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
 
 export const metadata: Metadata = {
   title: 'Voor wie',
@@ -83,7 +84,15 @@ export default function VoorWiePagina() {
         titel="Voor elke sportschool die het goed wil regelen."
         tekst="Een zelfstandige gym, een boutique studio, een PT-studio of een keten: dezelfde software, ingericht op jouw manier."
       >
-        <nav aria-label="Soorten sportscholen op deze pagina">
+        <div className="ayg-knoppen">
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Probeer {PROEFDAGEN} dagen gratis
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Bekijk de demo
+          </Knop>
+        </div>
+        <nav aria-label="Soorten sportscholen op deze pagina" className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {DOELGROEPEN.map((d) => (
               <li key={d.sleutel}>
@@ -116,11 +125,7 @@ export default function VoorWiePagina() {
               </li>
             ))}
           </ul>
-          <div className="ayg-knoppen ayg-ruim-boven">
-            <Knop href={DEMO} pijl>
-              Probeer de demo
-            </Knop>
-          </div>
+          <SectieActie />
         </div>
       </section>
       <AanmeldBand titel="Welke sportschool je ook hebt: probeer het zelf." />

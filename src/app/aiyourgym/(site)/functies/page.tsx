@@ -7,7 +7,9 @@ import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
-import { PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
+import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
+import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
+import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 
 export const metadata: Metadata = {
   title: 'Functies',
@@ -69,7 +71,15 @@ export default function FunctiesPagina() {
         titel="Alles voor je club. Niets wat je niet gebruikt."
         tekst="Vijf onderdelen, ingedeeld zoals een sportschool werkt. Onderdelen die je niet nodig hebt zet je uit, dan zie je ze ook nergens."
       >
-        <nav aria-label="Onderdelen op deze pagina">
+        <div className="ayg-knoppen">
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Probeer {PROEFDAGEN} dagen gratis
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Bekijk de demo
+          </Knop>
+        </div>
+        <nav aria-label="Onderdelen op deze pagina" className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {FUNCTIE_GROEPEN.map((g) => (
               <li key={g.sleutel}>

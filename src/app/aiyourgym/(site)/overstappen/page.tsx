@@ -75,7 +75,7 @@ export default function OverstappenPagina() {
             Begin met {PROEFDAGEN} dagen gratis
           </Knop>
           <Knop href={DEMO} soort="rand">
-            Probeer de demo
+            Bekijk de demo
           </Knop>
         </div>
       </PaginaKop>

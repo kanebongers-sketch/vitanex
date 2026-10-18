@@ -21,14 +21,14 @@ export function StapPakket({ pakketten, gekozen, proefdagen, fout, onKies }: Sta
   return (
     <fieldset className="aan-fieldset" aria-describedby={fout ? 'pakket-fout' : undefined}>
       <legend className="aan-legend">Kies je pakket</legend>
-      <p className="aan-uitleg">Je kunt later altijd wisselen. Opzeggen kan per maand.</p>
+      <p className="aan-uitleg">Elk pakket heeft de ledenapp in je eigen huisstijl. In Club en Keten zit persoonlijke hulp bij het inrichten.</p>
       <div className="aan-pakketten">
         {pakketten.map((p) => (
           <label key={p.sleutel} className="aan-pakket" data-gekozen={gekozen === p.sleutel ? 'ja' : undefined}>
             <input type="radio" name="pakket" value={p.sleutel} checked={gekozen === p.sleutel} onChange={() => onKies(p.sleutel)} className="ayg-sr" />
             <span className="aan-pakket-kop">
               <span className="aan-pakket-naam">{p.naam}</span>
-              {p.aanbevolen && <span className="aan-chip aan-chip--accent">Meest gekozen</span>}
+              {p.aanbevolen && <span className="aan-chip aan-chip--accent">Aanbevolen</span>}
             </span>
             <span className="aan-pakket-voor">{p.voorWie}</span>
             <span className="aan-pakket-meta">

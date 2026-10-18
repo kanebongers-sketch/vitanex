@@ -29,7 +29,7 @@ export function AygVoet() {
                 </li>
               ))}
               <li>
-                <Link href={DEMO}>Probeer de demo</Link>
+                <Link href={DEMO}>Bekijk de demo</Link>
               </li>
               <li>
                 <Link href={AANMELDEN}>Probeer gratis</Link>

@@ -20,8 +20,7 @@
   .aygd-stap-tekst { position: sticky; top: 150px; }
 }
 .aygd-stap-tekst { display: grid; gap: 20px; align-content: start; }
-.aygd-stap-nr { font: 800 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-lijn); }
-.ayg-podium .aygd-stap-nr { color: color-mix(in srgb, var(--ayg-inkt-tekst-2) 30%, transparent); }
+.aygd-stap-nr { font: 800 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-tekst-spook); }
 .aygd-beeld > .aygm { min-width: 0; container-type: inline-size; }
 .aygd-bron { padding-bottom: 24px; font-size: 13px; color: var(--ayg-tekst-2); }
 .aygd-bron a { color: inherit; }
@@ -29,7 +28,7 @@
 /* ── Bouwstenen in de schermen ───────────────────────────────────────────── */
 .aygd-dag { font: 700 20px/1.1 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
 .aygd-tegel--accent { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt); }
-.aygd-tegel--accent .aygm-boven { color: inherit; opacity: 0.75; }
+.aygd-tegel--accent .aygm-boven { color: inherit; }
 .aygd-getal--klein { font-size: 20px; }
 .aygd-twee { display: grid; gap: 10px; }
 @container (min-width: 620px) { .aygd-twee { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } .aygd-twee--breed { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }

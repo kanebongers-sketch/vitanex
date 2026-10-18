@@ -7,6 +7,7 @@ import { DEMO_STAPPEN } from '@/components/aiyourgym/demo/stappen'
 import { LidScherm, RoosterWeekScherm, VandaagScherm } from '@/components/aiyourgym/demo/WerkSchermen'
 import { RepdbBron } from '@/components/aiyourgym/mockups/kaders'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
+import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN } from '@/components/aiyourgym/site/paden'
 import { haalDemo } from '@/lib/aiyourgym/demo/bron'
@@ -83,6 +84,9 @@ export default async function DemoPagina() {
           <Knop href={`#${DEMO_STAPPEN.vandaag.sleutel}`} soort="rand">
             Begin de rondleiding
           </Knop>
+        </div>
+        <div className="ayg-ruim-boven">
+          <Geruststelling />
         </div>
       </PaginaKop>
       <nav className="aygd-gids" aria-label="Schermen in de demo">

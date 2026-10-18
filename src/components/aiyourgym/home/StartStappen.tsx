@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, LifeBuoy } from 'lucide-react'
 import { START_MINUTEN, START_STAPPEN } from '@/components/aiyourgym/inhoud/vertrouwen'
+import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 
@@ -34,6 +35,7 @@ export function StartStappen({ metLink = true }: Props) {
               <p>We richten je sportschool samen met je in: ledenbestand, rooster en je eerste schema&rsquo;s.</p>
             </div>
           </aside>
+          <SectieActie />
           {metLink && (
             <p>
               <Link href={aygPad('/overstappen')} className="ayg-pijllink">

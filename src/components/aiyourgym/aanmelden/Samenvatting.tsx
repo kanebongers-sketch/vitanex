@@ -34,6 +34,7 @@ export function Samenvatting({ invoer, pakket, proefdagen }: SamenvattingProps) 
           <dd>{invoer.aantalVestigingen}</dd>
         </div>
       </dl>
+      <p className="aan-samen-label">Na het aanmelden</p>
       <ol className="aan-samen-stappen">
         {stappen.map(({ Icoon, tekst }) => (
           <li key={tekst}>

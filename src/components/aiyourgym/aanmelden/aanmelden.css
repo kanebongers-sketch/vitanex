@@ -39,7 +39,7 @@
   width: 100%; display: grid; gap: 10px; justify-items: start; padding: 0 0 2px; border: 0; background: none; color: var(--ayg-tekst-2);
   font: 600 13.5px/1.2 var(--ayg-font-tekst); text-align: left; cursor: pointer;
 }
-.ayg .aan-voortgang button:disabled { cursor: default; opacity: 0.6; }
+.ayg .aan-voortgang button:disabled { cursor: default; }
 .ayg .aan-voortgang button::before { content: ''; width: 100%; height: 3px; border-radius: 3px; background: var(--ayg-lijn); transition: background 260ms var(--ayg-ease); }
 .ayg .aan-voortgang [data-staat='klaar'] button::before { background: var(--ayg-tekst); }
 .ayg .aan-voortgang [data-staat='nu'] button { color: var(--ayg-tekst); }
@@ -60,15 +60,15 @@
 /* Velden */
 .ayg .aan-rij { display: grid; gap: 22px; }
 @media (min-width: 640px) { .ayg .aan-rij { grid-template-columns: 1fr 1fr; } }
-.ayg .aan-veld { display: grid; gap: 8px; min-width: 0; }
+.ayg .aan-veld { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
 .ayg .aan-label { font-weight: 600; font-size: 15px; }
 .ayg .aan-invoer {
-  display: flex; align-items: center; min-height: 52px; background: var(--ayg-bg); border-radius: var(--ayg-radius-klein, 9px);
+  display: flex; align-items: center; min-width: 0; min-height: 52px; background: var(--ayg-bg); border-radius: var(--ayg-radius-klein, 9px);
   box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk, #82877f); transition: box-shadow 200ms var(--ayg-ease);
 }
 .ayg .aan-invoer:hover { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst-2); }
 .ayg .aan-invoer:focus-within { box-shadow: inset 0 0 0 2px var(--ayg-tekst), 0 0 0 5px color-mix(in srgb, var(--ayg-accent) 65%, transparent); }
-.ayg .aan-invoer input { flex: 1; min-width: 0; height: 52px; padding: 0 16px; border: 0; background: none; color: var(--ayg-tekst); font: 500 16px/1 var(--ayg-font-tekst); }
+.ayg .aan-invoer input { flex: 1; width: 100%; min-width: 0; height: 52px; padding: 0 16px; border: 0; background: none; color: var(--ayg-tekst); font: 500 16px/1 var(--ayg-font-tekst); }
 .ayg .aan-invoer input:focus-visible { outline: none; box-shadow: none; }
 .ayg .aan-achter { padding-right: 16px; color: var(--ayg-tekst-2); font-weight: 500; white-space: nowrap; }
 .ayg .aan-veld[data-fout] .aan-invoer { box-shadow: inset 0 0 0 2px var(--ayg-fout); }
@@ -126,11 +126,13 @@
 .ayg .aan-val { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
 /* Acties en meldingen */
+.ayg .aan-hierna { margin-bottom: -12px; font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg .aan-intro .ayg-gerust { margin-top: 4px; }
 .ayg .aan-acties { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--ayg-lijn); }
 .ayg .aan-acties .aan-verder { margin-left: auto; }
 .ayg .aan-knop-vol { width: 100%; }
 @media (max-width: 479px) { .ayg .aan-acties .ayg-knop { flex: 1 1 auto; } }
-.ayg .ayg-knop:disabled { opacity: 0.6; cursor: progress; transform: none; }
+.ayg .ayg-knop:disabled { opacity: 0.85; cursor: progress; transform: none; }
 .ayg .ayg-knop:hover .aan-terug-pijl { transform: translateX(-3px); }
 .ayg .aan-melding { padding: 14px 16px; border-radius: var(--ayg-radius-klein); background: color-mix(in srgb, var(--ayg-fout) 10%, var(--ayg-vlak)); color: var(--ayg-fout); font-weight: 600; }
 .ayg .aan-melding--rustig { margin-bottom: 24px; background: var(--ayg-vlak-2); color: var(--ayg-tekst); font-weight: 500; }

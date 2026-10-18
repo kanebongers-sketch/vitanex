@@ -1,6 +1,7 @@
 import { PAKKETTEN, PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO, aygPad } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, aygPad } from '@/components/aiyourgym/site/paden'
 
 // De pakketten in het kort, met een link naar de prijzen en de demo.
 
@@ -24,15 +25,15 @@ export function PakkettenKort() {
           ))}
         </ul>
         <div className="ayg-knoppen ayg-ruim-boven">
-          <Knop href={aygPad('/prijzen')} pijl>
-            Bekijk de pakketten
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Probeer {PROEFDAGEN} dagen gratis
           </Knop>
-          <Knop href={DEMO} soort="rand">
-            Probeer de demo
+          <Knop href={aygPad('/prijzen')} soort="rand">
+            Vergelijk de pakketten
           </Knop>
-          <Knop href={AANMELDEN} soort="rand">
-            Probeer gratis
-          </Knop>
+        </div>
+        <div className="ayg-ruim">
+          <Geruststelling />
         </div>
       </div>
     </section>

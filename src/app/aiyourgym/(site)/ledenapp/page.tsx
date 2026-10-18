@@ -6,7 +6,8 @@ import { AppHome, AppPincode, AppSchema, AppVoeding } from '@/components/aiyourg
 import { RepdbBron, Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { DEMO } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
+import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 
 export const metadata: Metadata = {
   title: 'Ledenapp',
@@ -80,9 +81,14 @@ export default function LedenappPagina() {
         titel="Jouw sportschool op het beginscherm."
         tekst="Een app in jouw naam, logo en kleuren. Leden checken in, boeken lessen en afspraken, volgen het schema van hun trainer en zien hun voortgang."
       >
-        <Knop href={DEMO} soort="rand" pijl>
-          Bekijk de app in de demo
-        </Knop>
+        <div className="ayg-knoppen">
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Probeer {PROEFDAGEN} dagen gratis
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Bekijk de app in de demo
+          </Knop>
+        </div>
       </PaginaKop>
       <section className="ayg-sectie--krap" aria-label="De ledenapp op vier schermen">
         <div className="ayg-wrap">

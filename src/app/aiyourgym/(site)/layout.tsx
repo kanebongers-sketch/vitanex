@@ -6,6 +6,7 @@ import '@/components/aiyourgym/home/home.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 import { AygKop } from '@/components/aiyourgym/site/AygKop'
 import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
+import { PlakActie } from '@/components/aiyourgym/site/PlakActie'
 
 // De pagina's van de verkoopwebsite met kop en voet. De poort (alleen Kane zolang
 // de schakelaar uit staat) zit in ../layout.tsx.
@@ -28,6 +29,7 @@ export default function AiYourGymSiteLayout({ children }: { children: ReactNode 
         {children}
       </main>
       <AygVoet />
+      <PlakActie />
     </div>
   )
 }

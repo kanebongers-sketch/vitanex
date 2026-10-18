@@ -1,4 +1,5 @@
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { Geruststelling } from './Actie'
 import { Knop } from './bouwstenen'
 import { AANMELDEN, DEMO } from './paden'
 
@@ -25,12 +26,13 @@ export function AanmeldBand({ titel = 'Zet je sportschool er vandaag in.' }: Pro
             </p>
             <div className="ayg-knoppen">
               <Knop href={AANMELDEN} soort="accent" pijl>
-                Probeer gratis
+                Probeer {PROEFDAGEN} dagen gratis
               </Knop>
               <Knop href={DEMO} soort="rand">
-                Probeer de demo
+                Bekijk de demo
               </Knop>
             </div>
+            <Geruststelling />
           </div>
         </div>
       </div>

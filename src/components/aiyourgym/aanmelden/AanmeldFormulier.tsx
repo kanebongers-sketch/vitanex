@@ -124,6 +124,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
           {stap === 3 && <StapAkkoord invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>
         {verzenden.staat === 'fout' && <p className="aan-melding" role="alert">{verzenden.melding}</p>}
+        {STAPPEN[stap].hierna && <p className="aan-hierna">{STAPPEN[stap].hierna}</p>}
         <div className="aan-acties">
           {stap > 0 && (
             <button type="button" className="ayg-knop ayg-knop--rand" onClick={() => naarStap(stap - 1)}>
@@ -133,7 +134,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
           )}
           <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={verzenden.staat === 'bezig'}>
             {verzenden.staat === 'bezig' ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-            {!laatste ? 'Volgende' : pakket?.open ? 'Naar veilig betalen' : 'Aanvraag versturen'}
+            {!laatste ? 'Volgende' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
             {verzenden.staat !== 'bezig' && <ArrowRight size={18} aria-hidden="true" />}
           </button>
         </div>

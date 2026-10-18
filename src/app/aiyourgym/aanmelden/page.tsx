@@ -4,6 +4,7 @@ import { maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
 import { afsluitbaar } from '@/lib/aiyourgym/config'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
+import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import type { PakketKeuze } from '@/components/aiyourgym/aanmelden/types'
 
 // /aiyourgym/aanmelden: een sportschool meldt zich aan. De poort (alleen Kane
@@ -40,9 +41,10 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     <AanmeldSchil>
       <section className="aan-pagina ayg-wrap">
         <header className="aan-intro">
-          <p className="ayg-label">Aanmelden</p>
-          <h1 className="aan-titel">Zet je sportschool in vier stappen klaar.</h1>
-          <p className="ayg-lead">Kies je pakket, kies je adres en vertel wie de eigenaar is. Daarna krijg je een eigen omgeving met je eigen portaal.</p>
+          <p className="ayg-label ayg-label--accent">{PROEFDAGEN} dagen gratis proberen</p>
+          <h1 className="aan-titel">Start je proefperiode in vier korte stappen.</h1>
+          <p className="ayg-lead">Kies een pakket, je adres en wie de eigenaar is. Daarna staat je eigen omgeving klaar en leidt een startwizard je door de inrichting.</p>
+          <Geruststelling />
         </header>
         {geannuleerd && (
           <p className="aan-melding aan-melding--rustig" role="status">

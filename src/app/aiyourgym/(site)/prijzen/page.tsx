@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
 import { PAKKETTEN, PROEFDAGEN, type Pakket } from '@/lib/aiyourgym/pakketten'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
+import { VRAAG_CONTRACT, VRAAG_GEGEVENS } from '@/components/aiyourgym/inhoud/vertrouwen'
+import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
 
@@ -44,7 +46,7 @@ function PakketKaart({ pakket }: { pakket: Pakket }) {
       </ul>
       <div className="ayg-knoppen">
         <Knop href={`${AANMELDEN}?pakket=${pakket.sleutel}`} soort={pakket.aanbevolen ? 'accent' : 'inkt'} pijl>
-          Probeer gratis
+          Probeer {PROEFDAGEN} dagen gratis
         </Knop>
         <Knop href={`${AANMELDEN}?pakket=${pakket.sleutel}&soort=prijs`} soort="rand">
           Vraag een prijs op maat
@@ -64,6 +66,8 @@ const VRAGEN = [
     vraag: 'Hoe werkt de proefperiode?',
     antwoord: `Je probeert AI Your Gym ${PROEFDAGEN} dagen gratis, met je eigen logo, kleuren en team. Zo zie je in je eigen club of het past.`,
   },
+  VRAAG_CONTRACT,
+  VRAAG_GEGEVENS,
   {
     vraag: 'Zit hulp bij het inrichten erbij?',
     antwoord:
@@ -82,7 +86,7 @@ const VRAGEN = [
     vraag: 'Komen er nieuwe functies bij?',
     antwoord: 'Ja. Elke maand nieuwe functies, automatisch voor iedereen. Je hoeft niets te installeren.',
   },
-] as const
+]
 
 export default function PrijzenPagina() {
   return (
@@ -93,8 +97,11 @@ export default function PrijzenPagina() {
         tekst={`Alles wat je van serieuze clubsoftware verwacht, scherp geprijsd en op maat. Voor een vestiging of een hele keten. Probeer eerst ${PROEFDAGEN} dagen gratis.`}
       >
         <div className="ayg-knoppen">
-          <Knop href={DEMO} soort="rand" pijl>
-            Probeer de demo
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Probeer {PROEFDAGEN} dagen gratis
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Bekijk de demo
           </Knop>
         </div>
       </PaginaKop>
@@ -104,6 +111,9 @@ export default function PrijzenPagina() {
             {PAKKETTEN.map((p) => (
               <PakketKaart key={p.sleutel} pakket={p} />
             ))}
+          </div>
+          <div className="ayg-ruim-boven">
+            <Geruststelling />
           </div>
         </div>
       </section>

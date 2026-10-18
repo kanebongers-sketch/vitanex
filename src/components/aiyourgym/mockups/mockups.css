@@ -94,7 +94,7 @@
 /* App-schermen */
 .aygm-hallo { font: 700 22px/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
 .aygm-volgende { background: var(--brand); color: var(--brand-inkt); border-radius: 14px; padding: 14px; display: grid; gap: 4px; }
-.aygm-volgende .aygm-boven { color: inherit; opacity: 0.7; }
+.aygm-volgende .aygm-boven { color: inherit; }
 .aygm-volgende b { font: 700 19px/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
 .aygm-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .aygm-qr { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
