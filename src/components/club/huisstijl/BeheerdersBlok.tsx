@@ -79,7 +79,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
     <section className="club-kaart club-beheerders" aria-labelledby="beheerders-kop">
       <h2 id="beheerders-kop">Beheerders van {sportschool}</h2>
       <p className="club-hint">
-        Eigenaren en clubmanagers loggen in met een persoonlijke link en een pincode die jij goedkeurt. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt in het instellingencentrum.
+        Eigenaren en clubmanagers loggen in met een persoonlijke link en een pincode die jij goedkeurt. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt bij Instellingen, Rechten per rol.
         {!loginAan && ' De eigen login staat nog uit: de links werken pas als de schakelaar aan gaat.'}
       </p>
 

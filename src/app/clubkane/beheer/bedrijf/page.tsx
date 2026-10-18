@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { haalBedrijf, haalVestigingContact } from '@/lib/club/bedrijf/opslag'
@@ -9,6 +8,7 @@ import { GegevensFormulier } from '@/components/club/bedrijf/GegevensFormulier'
 import { TekstenEditor } from '@/components/club/bedrijf/TekstenEditor'
 import { VestigingenContact } from '@/components/club/bedrijf/VestigingenContact'
 import '@/components/club/bedrijf/bedrijf.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Bedrijfsgegevens en huisregels' }
 
@@ -28,10 +28,10 @@ function kiesTab(ruw: string | string[] | undefined): Tab {
 }
 
 export default async function BedrijfPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('bedrijf')
   const tab = kiesTab((await searchParams).tab)
   const v = kiesUit(t.vestigingen, null)
-  const naarVestigingen = v ? clubPad('/instellingen', v, { tab: 'vestigingen' }) : '/clubkane/instellingen?tab=vestigingen'
+  const naarVestigingen = v ? clubPad('/instellingen/vestigingen', v) : '/clubkane/instellingen/vestigingen'
   const [bedrijf, vestigingen] = await Promise.all([
     haalBedrijf(t.admin, t.userId),
     tab === 'gegevens' ? haalVestigingContact(t.admin, t.userId) : Promise.resolve(null),
@@ -39,9 +39,7 @@ export default async function BedrijfPagina({ searchParams }: { searchParams: Zo
 
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="bedrijf" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

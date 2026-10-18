@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, ListChecks } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { ListChecks } from 'lucide-react'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import { clubPad } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { haalAlleMedewerkers, haalRegels } from '@/lib/club/automatisering/opslag'
 import { RegelsBeheer } from '@/components/club/automatisering/RegelsBeheer'
 import '@/components/club/automatisering/automatisering.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Automatiseringen' }
 
@@ -15,16 +16,14 @@ export const metadata: Metadata = { title: 'Automatiseringen' }
 // De regels gelden voor alle vestigingen van de sportschool.
 
 export default async function AutomatiseringenPagina() {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('beheer')
   const [regels, medewerkers] = await Promise.all([haalRegels(t.admin, t.userId), haalAlleMedewerkers(t.admin, t.userId)])
   const v = kiesUit(t.vestigingen, null)
   const vestigingNaam = v ? naamVan(t.vestigingen, v) : t.organisatie.naam
 
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="opvolgregels" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

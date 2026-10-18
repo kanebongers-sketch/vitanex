@@ -8,7 +8,9 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { VESTIGING_PARAM, type Vestiging } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { Module } from '@/lib/club/kern/organisatie'
-import { GROEPEN, actiefOnderdeel, groepenMet, isActief, onderdelenVan } from './onderdelen'
+import { GROEPEN, groepenMet, menuOnderdeel, onderdelenVan } from './onderdelen'
+import type { ZoekItem } from './zoeken'
+import { ClubZoeken } from './ClubZoeken'
 import { useVestigingen } from './VestigingenContext'
 import { UitlogKnop } from './UitlogKnop'
 
@@ -17,6 +19,8 @@ import { UitlogKnop } from './UitlogKnop'
 // Rij 1: logo, vestiging en de vijf groepen. Rij 2: de onderdelen van de groep
 // waarin je zit. Op de telefoon een knop Menu met een paneel met alle groepen.
 // De vestiging staat in de URL; wisselen houdt je op hetzelfde onderdeel.
+// Instel-pagina's staan niet in het menu maar onder Instellingen (het
+// instellingencentrum); het zoekveld (Ctrl K of /) vindt ze allemaal.
 
 /** Zonder vestiging (sportschool heeft er nog geen) blijft de link zonder ?v=. */
 function href(pad: string, vestiging: Vestiging | null): string {
@@ -74,11 +78,14 @@ interface MenuPaneelProps {
   uit: readonly Module[]
   /** Wat deze persoon mag zien; null = alles. */
   toegestaan: readonly string[] | null
+  /** Staat Instellingen (het instellingencentrum) in het menu? */
+  instellingen: boolean
   onSluit: () => void
   onWissel: (v: string) => void
 }
 
-function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, onSluit, onWissel }: MenuPaneelProps) {
+function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, instellingen, onSluit, onWissel }: MenuPaneelProps) {
+  const huidig = menuOnderdeel(pad)
   const sluitKnop = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -95,13 +102,13 @@ function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, onSluit, onWissel 
             <X aria-hidden size={20} />
           </button>
         </div>
-        {groepenMet(uit, toegestaan).map((g) => (
+        {groepenMet(uit, toegestaan, instellingen).map((g) => (
           <section key={g.sleutel} className="club-menu-groep" aria-label={g.label}>
             <h2>{g.label}</h2>
             <ul>
-              {onderdelenVan(g.sleutel, uit, toegestaan).map((o) => (
+              {onderdelenVan(g.sleutel, uit, toegestaan, instellingen).map((o) => (
                 <li key={o.sleutel}>
-                  <Link href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} onClick={onSluit}>
+                  <Link href={href(o.pad, vestiging)} aria-current={huidig.sleutel === o.sleutel ? 'page' : undefined} onClick={onSluit}>
                     <span>{o.label}</span>
                     <small>{o.uitleg}</small>
                   </Link>
@@ -123,14 +130,18 @@ interface ClubBalkProps {
   uit: readonly Module[]
   /** Wat deze persoon mag zien; null = alles. */
   toegestaan: readonly string[] | null
+  /** Staat Instellingen (het instellingencentrum) in het menu? Zie heeftInstellingen. */
+  instellingen: boolean
+  /** Alles wat deze persoon via het zoekveld kan vinden. */
+  zoek: readonly ZoekItem[]
 }
 
-export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
+export function ClubBalk({ ptCode, merk, uit, toegestaan, instellingen, zoek: zoekItems }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
   const vestiging = kiesUit(useVestigingen(), zoek.get(VESTIGING_PARAM))
-  const huidig = actiefOnderdeel(pad)
+  const huidig = menuOnderdeel(pad)
   const [menuOpen, setMenuOpen] = useState(false)
 
   function wissel(nieuw: string) {
@@ -147,8 +158,8 @@ export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
           <span className="club-merk-woord">CLUB</span>
         </Link>
         <nav className="club-groepen" aria-label="Groepen">
-          {groepenMet(uit, toegestaan).map((g) => {
-            const eerste = onderdelenVan(g.sleutel, uit, toegestaan)[0]
+          {groepenMet(uit, toegestaan, instellingen).map((g) => {
+            const eerste = onderdelenVan(g.sleutel, uit, toegestaan, instellingen)[0]
             return (
               <Link key={g.sleutel} href={href(eerste?.pad ?? '', vestiging)} aria-current={huidig.groep === g.sleutel ? 'true' : undefined} title={g.uitleg}>
                 {g.label}
@@ -157,6 +168,7 @@ export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
           })}
         </nav>
         <div className="club-balk-rechts">
+          <ClubZoeken items={zoekItems} vestiging={vestiging} />
           <VestigingKeuze vestiging={vestiging} pilot={merk.fitFactory} onWissel={wissel} />
           {ptCode && (
             <span className="club-test" title="Alleen zichtbaar voor Kane tot de presentatie">
@@ -178,13 +190,13 @@ export function ClubBalk({ ptCode, merk, uit, toegestaan }: ClubBalkProps) {
         </div>
       </div>
       <nav className="club-nav" aria-label={`Onderdelen van ${GROEPEN.find((g) => g.sleutel === huidig.groep)?.label ?? 'de groep'}`}>
-        {onderdelenVan(huidig.groep, uit, toegestaan).map((o) => (
-          <Link key={o.sleutel} href={href(o.pad, vestiging)} aria-current={isActief(o, pad) ? 'page' : undefined} title={o.uitleg}>
+        {onderdelenVan(huidig.groep, uit, toegestaan, instellingen).map((o) => (
+          <Link key={o.sleutel} href={href(o.pad, vestiging)} aria-current={huidig.sleutel === o.sleutel ? 'page' : undefined} title={o.uitleg}>
             {o.label}
           </Link>
         ))}
       </nav>
-      {menuOpen && <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} toegestaan={toegestaan} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
+      {menuOpen && <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} toegestaan={toegestaan} instellingen={instellingen} onSluit={() => setMenuOpen(false)} onWissel={wissel} />}
     </header>
   )
 }

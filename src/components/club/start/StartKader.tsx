@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { AANTAL_STAPPEN, aantalAf, startPad, type StapStand } from '@/lib/club/start/stappen'
 
 // Het kader om elke stap: grote kop, de teller, en de voortgang als negen
@@ -25,6 +26,7 @@ export function StartKader({ sportschool, stand, huidig, vestiging, intro, child
   const af = aantalAf(stand)
   return (
     <div className="club-start">
+      <InstelKruimel id="start" vestiging={vestiging} />
       <header className="club-start-kop">
         <div className="club-start-kop-tekst">
           <p className="club-boventitel">

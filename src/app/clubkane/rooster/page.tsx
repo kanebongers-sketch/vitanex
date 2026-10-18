@@ -83,7 +83,7 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
           {lessen.length === 0 ? (
             <div className="club-leeg club-rooster-leeg">
               <p>Er staan nog geen lessen in deze week.</p>
-              <Link className="club-knop club-knop--primair" href={clubPad('/instellingen', vestiging, { tab: 'weekrooster' })}>
+              <Link className="club-knop club-knop--primair" href={clubPad('/instellingen/weekrooster', vestiging)}>
                 Naar het weekrooster
               </Link>
             </div>

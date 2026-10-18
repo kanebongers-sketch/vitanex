@@ -8,7 +8,7 @@ export function GeenVestigingen() {
         <h1>Nog geen vestigingen</h1>
         <p>Deze sportschool heeft nog geen vestigingen. Voeg er eerst een toe, dan werkt de rest van Club.</p>
         <p>
-          <Link href="/clubkane/instellingen?tab=vestigingen" className="club-knop club-knop--primair">
+          <Link href="/clubkane/instellingen/vestigingen" className="club-knop club-knop--primair">
             Vestiging toevoegen
           </Link>
         </p>

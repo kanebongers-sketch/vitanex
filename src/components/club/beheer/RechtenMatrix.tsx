@@ -15,12 +15,18 @@ interface Onderdeel {
   uitleg: string
 }
 
-interface RechtenMatrixProps {
-  begin: Rechten
+export interface RechtenGroep {
+  label: string
   onderdelen: Onderdeel[]
 }
 
-export function RechtenMatrix({ begin, onderdelen }: RechtenMatrixProps) {
+interface RechtenMatrixProps {
+  begin: Rechten
+  /** Per groep uit het menu, plus Instellingen; elk onderdeel een keer. */
+  groepen: RechtenGroep[]
+}
+
+export function RechtenMatrix({ begin, groepen }: RechtenMatrixProps) {
   const router = useRouter()
   const [rechten, setRechten] = useState<Rechten>(begin)
   const [bezig, setBezig] = useState(false)
@@ -54,8 +60,12 @@ export function RechtenMatrix({ begin, onderdelen }: RechtenMatrixProps) {
               ))}
             </tr>
           </thead>
-          <tbody>
-            {onderdelen.map((o) => (
+          {groepen.map((g) => (
+          <tbody key={g.label}>
+            <tr className="club-beheer-matrix-groep">
+              <th scope="colgroup" colSpan={MEDEWERKER_ROLLEN.length + 1}>{g.label}</th>
+            </tr>
+            {g.onderdelen.map((o) => (
               <tr key={o.sleutel}>
                 <th scope="row">
                   {o.label}
@@ -74,6 +84,7 @@ export function RechtenMatrix({ begin, onderdelen }: RechtenMatrixProps) {
               </tr>
             ))}
           </tbody>
+          ))}
         </table>
       </div>
       <div className="club-beheer-acties">

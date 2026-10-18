@@ -47,7 +47,9 @@ import { publiekeSleutelVoorApp } from '@/lib/club/push/sleutels'
 // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag,
 // notities van trainers of gegevens van andere leden). Componenten krijgen een
 // slank LidVoorApp, nooit het volledige Lid.
-// ?tab=meldingen opent de meldingen (via de bel in de kop, niet in de onderbalk).
+// ?tab=meldingen opent de meldingen (via de bel in de kop, niet in de onderbalk):
+// de lijst en meldingen op je telefoon aan of uit, op een plek. Een plek per
+// ding: kopen via het blok op Home, de community via Profiel, meldingen via de bel.
 
 export const dynamic = 'force-dynamic'
 
@@ -128,6 +130,12 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
           {toonMeldingen && (
             <div className="club-lidapp-tab">
               <h2 className="club-lidapp-kop">Meldingen</h2>
+              {/* Alles over meldingen op een plek: de lijst en meldingen op je telefoon aan of uit. */}
+              {pushSleutel && (
+                <div className="club-mijn-blok">
+                  <PushMeldingen sleutel={pushSleutel} variant="profiel" voorvertoning={l.voorvertoning} />
+                </div>
+              )}
               {meldingen ? (
                 <LedenappMeldingen meldingen={meldingen} gelezenUrl={l.voorvertoning ? undefined : '/api/club/lid/meldingen/gelezen'} nu={nu.toISOString()} />
               ) : (
@@ -186,12 +194,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 vestigingNaam={vestigingNaam}
                 teksten={bedrijf?.teksten ?? null}
                 sportschool={org.naam}
-                hulp={
-                  <>
-                    <PushMeldingen sleutel={pushSleutel} variant="profiel" voorvertoning={l.voorvertoning} />
-                    {contact ? <HulpSportschool contact={contact} /> : null}
-                  </>
-                }
+                hulp={contact ? <HulpSportschool contact={contact} /> : null}
                 pilotNoot={false}
               />
               <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />

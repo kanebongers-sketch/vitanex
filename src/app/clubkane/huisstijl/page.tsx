@@ -9,6 +9,7 @@ import { BeheerdersBlok } from '@/components/club/huisstijl/BeheerdersBlok'
 import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import '@/components/club/huisstijl/huisstijl.css'
 
 export const metadata: Metadata = { title: 'Huisstijl' }
@@ -27,6 +28,7 @@ export default async function HuisstijlPagina() {
   const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
   return (
     <>
+      <InstelKruimel id="huisstijl" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{org.naam}{org.demo ? ' · demo' : ''}</p>

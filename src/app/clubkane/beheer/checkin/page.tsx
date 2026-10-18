@@ -1,19 +1,17 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisModule } from '@/lib/club/toegang'
+import { eisModule, eisOnderdeel } from '@/lib/club/toegang'
 import { CheckinMethodeFormulier } from '@/components/club/beheer/CheckinMethodeFormulier'
 import '@/components/club/beheer/beheer.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Check-in instellen' }
 
 export default async function CheckinInstellenPagina() {
+  await eisOnderdeel('beheer')
   const t = await eisModule('checkin')
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="checkin" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

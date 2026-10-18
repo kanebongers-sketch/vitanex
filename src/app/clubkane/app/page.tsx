@@ -4,6 +4,7 @@ import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
 import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
@@ -31,7 +32,7 @@ import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
 // Kies een (demo)lid; tabblad en lid staan in de URL.
 
-export const metadata: Metadata = { title: 'Ledenapp' }
+export const metadata: Metadata = { title: 'Ledenapp bekijken' }
 
 export default async function ClubLedenapp({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('app')
@@ -60,10 +61,12 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   const lid = opties.find((l) => l.id === gevraagd) ?? opties[0]
 
   const kop = (
+    <>
+    <InstelKruimel id="ledenapp-bekijken" vestiging={vestiging} />
     <header className="club-paginakop">
       <div>
         <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · voorvertoning</p>
-        <h1>Ledenapp</h1>
+        <h1>Ledenapp bekijken</h1>
         <p>Zo ziet een lid de app op zijn telefoon. Kies een lid om mee te kijken.</p>
       </div>
       {lid && (
@@ -74,6 +77,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
         />
       )}
     </header>
+    </>
   )
   if (!lid) {
     return (

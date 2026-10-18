@@ -57,7 +57,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
     setBezig(null)
     if (!uit.ok) return setFout(uit.fout)
     setNieuw(null)
-    window.location.assign('/clubkane/instellingen?tab=vestigingen')
+    window.location.assign('/clubkane/instellingen/vestigingen')
   }
 
   return (

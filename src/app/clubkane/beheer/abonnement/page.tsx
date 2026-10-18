@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
 import { abonnementWeergave, nlDatum, type AbonnementWeergave } from '@/lib/aiyourgym/abonnement'
 import { stripeAbonnementVan, vindAbonnement } from '@/lib/aiyourgym/abonnement-opslag'
 import { stripeSleutel } from '@/lib/aiyourgym/config'
 import { PortaalKnop } from '@/components/club/abonnement/PortaalKnop'
 import '@/components/club/abonnement/abonnement.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Abonnement en facturen' }
 export const dynamic = 'force-dynamic'
@@ -74,9 +74,7 @@ export default async function AbonnementPagina() {
 
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="abonnement" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

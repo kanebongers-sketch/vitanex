@@ -1,14 +1,15 @@
 import Link from 'next/link'
-import { CircleAlert, Globe, Plus, Palette } from 'lucide-react'
+import { CircleAlert, Globe, Plus } from 'lucide-react'
 
 // De kop van het instellingencentrum: welke sportschool, haar adres en welke
-// onderdelen aan staan, wat nog ingesteld moet worden, en snelkoppelingen naar
-// de huisstijl en (alleen Kane) een nieuwe sportschool.
+// onderdelen aan staan, wat nog ingesteld moet worden, en (alleen Kane) een
+// nieuwe sportschool. De huisstijl zelf is een regel in de groep Sportschool.
 
 interface BeheerKopProps {
   naam: string
   demo: boolean
-  adres: string | null
+  /** Het eigen adres, null als het nog niet gekozen is; undefined = niet tonen (geen recht op de huisstijl). */
+  adres?: string | null
   kleur: string
   modules: string[]
   /** Titels van onderdelen die nog aandacht vragen (nog niet ingesteld). */
@@ -21,15 +22,17 @@ export function BeheerKop({ naam, demo, adres, kleur, modules, teDoen, magNieuw 
   return (
     <header className="club-beheer-kop">
       <div className="club-beheer-kopinhoud">
-        <p className="club-boventitel">Instellingencentrum</p>
+        <p className="club-boventitel">Instellingen</p>
         <h1>
           <span className="club-beheer-stip" style={{ background: kleur }} aria-hidden />
           {naam}
           {demo && <span className="club-chip club-chip--info">Demo</span>}
         </h1>
-        <p className="club-beheer-adres">
-          <Globe aria-hidden size={15} /> {adres ?? 'Nog geen eigen adres gekozen'}
-        </p>
+        {adres !== undefined && (
+          <p className="club-beheer-adres">
+            <Globe aria-hidden size={15} /> {adres ?? 'Nog geen eigen adres gekozen'}
+          </p>
+        )}
         <p className="club-beheer-modules">{modules.join(' · ')}</p>
         {teDoen.length > 0 && (
           <p className="club-beheer-tedoen">
@@ -37,16 +40,13 @@ export function BeheerKop({ naam, demo, adres, kleur, modules, teDoen, magNieuw 
           </p>
         )}
       </div>
-      <div className="club-acties">
-        <Link href="/clubkane/huisstijl" className="club-knop">
-          <Palette aria-hidden size={16} /> Huisstijl
-        </Link>
-        {magNieuw && (
+      {magNieuw && (
+        <div className="club-acties">
           <Link href="/clubkane/huisstijl#sportscholen-kop" className="club-knop club-knop--primair">
             <Plus aria-hidden size={16} /> Nieuwe sportschool
           </Link>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   )
 }

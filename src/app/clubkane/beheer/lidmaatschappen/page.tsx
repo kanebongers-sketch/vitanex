@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { vormSleutel } from '@/lib/club/lidmaatschappen/model'
@@ -10,6 +9,7 @@ import { ledenMetLabel, ledenMetVorm, losseAbonnementen, losseTags, telLeden } f
 import { VormenBeheer } from '@/components/club/lidmaatschappen/VormenBeheer'
 import { LabelsBeheer } from '@/components/club/lidmaatschappen/LabelsBeheer'
 import '@/components/club/lidmaatschappen/lidmaatschappen.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Lidmaatschappen en labels' }
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: 'Lidmaatschappen en labels' }
 type Tab = 'vormen' | 'labels'
 
 export default async function LidmaatschappenPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('lidmaatschappen')
   const ruw = await searchParams
   const tab: Tab = ruw.tab === 'labels' ? 'labels' : 'vormen'
   const vestiging = kiesUit(t.vestigingen, null)
@@ -29,9 +29,7 @@ export default async function LidmaatschappenPagina({ searchParams }: { searchPa
 
   return (
     <div className="club-lidm">
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="lidmaatschappen" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

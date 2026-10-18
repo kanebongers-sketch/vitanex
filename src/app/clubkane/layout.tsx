@@ -6,6 +6,9 @@ import { clubToegang, eisClubToegang } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { ClubBalk } from '@/components/club/shell/ClubBalk'
+import { zoekItems } from '@/components/club/shell/zoeken'
+import { heeftInstellingen } from '@/lib/club/kern/instel-paginas'
+import { instelKijker } from '@/lib/club/instel-toegang'
 import { MerkProvider } from '@/components/club/shell/MerkContext'
 import { VestigingenProvider } from '@/components/club/shell/VestigingenContext'
 import { FfMaker } from '@/components/lifeos/pt-dashboard/FfMaker'
@@ -44,12 +47,15 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
     fitFactory: org.logo === LOGO_FIT_FACTORY,
     logoUrl: org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null,
   }
+  // Instellingen staat in het menu als je iets mag instellen; het zoekveld vindt ook elke instel-pagina.
+  const kijker = instelKijker(t)
+  const instellingen = heeftInstellingen(kijker)
   return (
     <div className={`lifeos-root ff club-app ${barlow.variable} ${inter.variable}`} style={stijl} data-thema={org.thema}>
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>
           <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-            <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} toegestaan={t.onderdelen} />
+            <ClubBalk ptCode={t.code} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} />
           </Suspense>
           <main className="club-werkvlak">{children}</main>
         </VestigingenProvider>

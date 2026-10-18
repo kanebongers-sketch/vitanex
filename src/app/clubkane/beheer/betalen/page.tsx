@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { eisBetalenBeheer } from '@/lib/club/betalen/toegang'
 import { clubStripeSleutel } from '@/lib/club/betalen/config'
@@ -11,6 +9,7 @@ import { StripeKaart } from '@/components/club/betalen/StripeKaart'
 import { ProductenBeheer } from '@/components/club/betalen/ProductenBeheer'
 import { VerkopenLijst } from '@/components/club/betalen/VerkopenLijst'
 import '@/components/club/betalen/betalen.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Betalen in de ledenapp' }
 export const dynamic = 'force-dynamic'
@@ -40,9 +39,7 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
 
   return (
     <div className="club-betalen">
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="betalen" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

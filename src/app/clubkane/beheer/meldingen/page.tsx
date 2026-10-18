@@ -1,16 +1,15 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import { haalMeldingInstellingen, telMails, type MailTelling } from '@/lib/club/meldingen/opslag'
 import { MeldingenInstellingen } from '@/components/club/meldingen/MeldingenInstellingen'
 import '@/components/club/beheer/beheer.css'
 import '@/components/club/meldingen/meldingen.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Meldingen aan leden' }
 
 // Meldingen aan leden: bevestigingen, herinneringen en annuleringen per mail en
-// in de ledenapp. Valt onder de beheer-layout (eisOnderdeel('beheer')).
+// in de ledenapp. Alleen met het recht Beheer (eisOnderdeel('beheer')).
 
 function MailStatus({ actief, isKane, telling }: { actief: boolean; isKane: boolean; telling: MailTelling }) {
   const getal = (n: number | null) => (n === null ? 'onbekend' : n)
@@ -39,14 +38,12 @@ function MailStatus({ actief, isKane, telling }: { actief: boolean; isKane: bool
 }
 
 export default async function MeldingenPagina() {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('beheer')
   const [instellingen, telling] = await Promise.all([haalMeldingInstellingen(t.admin, t.userId), telMails(t.admin, t.userId)])
   const actief = process.env.CLUB_MAILS_ACTIEF === '1' && Boolean(process.env.CLUB_RESEND_API_KEY?.trim() && process.env.CLUB_RESEND_FROM?.trim())
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="meldingen" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

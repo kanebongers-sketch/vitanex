@@ -1,20 +1,28 @@
 import type { Metadata } from 'next'
-import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
+import type { ClubToegang } from '@/lib/club/toegang'
+import { eisInstellingencentrum } from '@/lib/club/instel-toegang'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { MODULES, MODULE_LABEL, LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
-import { clubPad } from '@/lib/club/kern/vestiging'
+import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
+import { CHECKIN_METHODE_LABEL } from '@/lib/club/kern/org-instellingen'
+import { INSTEL_GROEPEN, INSTEL_PAGINAS, instelHref, magInstelPagina, type InstelKijker } from '@/lib/club/kern/instel-paginas'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
+import { haalRegels } from '@/lib/club/automatisering/opslag'
+import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
+import { haalStart } from '@/lib/club/start/opslag'
+import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
 import { InstellingenGroep, type InstellingRegel } from '@/components/club/beheer/InstellingenGroep'
 import { BeheerKop } from '@/components/club/beheer/BeheerKop'
 import '@/components/club/beheer/beheer.css'
-import { CHECKIN_METHODE_LABEL } from '@/lib/club/kern/org-instellingen'
-import { betalenActief } from '@/lib/club/betalen/config'
 
-export const metadata: Metadata = { title: 'Instellingencentrum' }
+export const metadata: Metadata = { title: 'Instellingen' }
 
-// Het instellingencentrum: alles wat de eigenaar van een sportschool instelt,
-// op een plek, met per onderdeel de huidige stand. Elk onderdeel opent de
-// plek waar je het aanpast (besluit Kane: de eigenaar stelt alles zelf in).
+// Het instellingencentrum: alles wat je instelt, op een plek, in acht groepen
+// zonder overlap (zie src/lib/club/kern/instel-paginas.ts). Per regel de huidige
+// stand en een klik naar de plek waar je het aanpast. Iedereen ziet alleen de
+// regels die hij mag; de stand wordt alleen gelezen voor die regels.
 
 /** Het aantal rijen van deze sportschool in een tabel; null bij een fout (gelogd). */
 async function tel(t: ClubToegang, tabel: string, alleenEigenCoaching = false): Promise<number | null> {
@@ -30,85 +38,107 @@ function aantal(n: number | null, enkel: string, meer: string): string {
   return `${n} ${n === 1 ? enkel : meer}`
 }
 
-export default async function BeheerPagina() {
-  const t = await eisClubToegang()
+interface Stand {
+  stand: string
+  /** Vraagt aandacht (nog niet ingesteld). */
+  let?: boolean
+}
+
+/** Alleen lezen wat deze persoon ziet. */
+function als<T>(mag: boolean, laad: () => Promise<T>): Promise<T | null> {
+  return mag ? laad() : Promise.resolve(null)
+}
+
+/** De stand per instel-pagina, in een paar woorden. */
+async function standen(t: ClubToegang, ziet: (id: string) => boolean): Promise<Record<string, Stand>> {
   const org = t.organisatie
-  const v = kiesUit(t.vestigingen, null)
-  const pad = (p: string, extra?: Record<string, string>) => (v ? clubPad(p, v, extra) : `/clubkane${p}`)
-  const [medewerkers, leden, oefeningen, eigenCoaching, lestypen, zalen, vormen] = await Promise.all([
-    tel(t, 'club_medewerkers'),
-    tel(t, 'club_leden'),
-    tel(t, 'club_oefeningen'),
-    tel(t, 'club_oefeningen', true),
-    tel(t, 'club_lestypen'),
-    tel(t, 'club_zalen'),
-    tel(t, 'club_lidmaatschapsvormen'),
+  const [medewerkers, leden, oefeningen, eigenCoaching, lestypen, zalen, vormen, bedrijf, regels, beheerders, start] = await Promise.all([
+    als(ziet('medewerkers'), () => tel(t, 'club_medewerkers')),
+    als(ziet('importeren'), () => tel(t, 'club_leden')),
+    als(ziet('oefeningen'), () => tel(t, 'club_oefeningen')),
+    als(ziet('oefeningen'), () => tel(t, 'club_oefeningen', true)),
+    als(ziet('lestypen'), () => tel(t, 'club_lestypen')),
+    als(ziet('zalen'), () => tel(t, 'club_zalen')),
+    als(ziet('lidmaatschappen'), () => tel(t, 'club_lidmaatschapsvormen')),
+    als(ziet('bedrijf'), () => haalBedrijf(t.admin, t.userId)),
+    als(ziet('opvolgregels'), () => haalRegels(t.admin, t.userId)),
+    als(ziet('beheerders'), () => haalBeheerders(t.admin, t.userId)),
+    als(ziet('start'), () => haalStart(t)),
   ])
-  const aanTal = MODULES.length - org.uit.length
   const app = org.instellingen.ledenapp
+  const aanTal = MODULES.length - org.uit.length
+  const voortgang = start?.ok ? start.voortgang : null
+  return {
+    start: { stand: voortgang?.afgerondOp ? 'Afgerond' : voortgang ? `Bij stap ${voortgang.stap} van ${AANTAL_STAPPEN}` : 'Nog niet begonnen' },
+    huisstijl: { stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? 'Eigen logo' : 'Logo geupload') : 'Nog geen logo', let: !org.logo },
+    onderdelen: { stand: `${aanTal} van ${MODULES.length} aan` },
+    adres: { stand: org.slug ? adresVan(org.slug) : 'Nog niet gekozen', let: !org.slug },
+    bedrijf: { stand: bedrijf?.gegevens.kvk ? 'KvK ingevuld' : 'Nog niet ingevuld', let: !bedrijf?.gegevens.kvk },
+    vestigingen: { stand: aantal(t.vestigingen.length, 'vestiging', 'vestigingen'), let: t.vestigingen.length === 0 },
+    regels: { stand: 'Per vestiging' },
+    sluiting: { stand: 'Feestdagen en sluitingen' },
+    zalen: { stand: aantal(zalen, 'zaal', 'zalen') },
+    medewerkers: { stand: aantal(medewerkers, 'medewerker', 'medewerkers') },
+    rechten: { stand: 'Vier rollen' },
+    beheerders: { stand: beheerders ? aantal(beheerders.length, 'beheerder', 'beheerders') : 'Eigenaren en clubmanagers' },
+    lestypen: { stand: aantal(lestypen, 'lestype', 'lestypen') },
+    weekrooster: { stand: 'Per vestiging' },
+    afspraaktypen: { stand: 'Intake, personal training, metingen' },
+    intake: { stand: 'Vaste en eigen vragen' },
+    oefeningen: { stand: `${aantal(oefeningen, 'oefening', 'oefeningen')}${eigenCoaching ? `, ${eigenCoaching} met eigen coaching` : ''}` },
+    lidmaatschappen: { stand: aantal(vormen, 'vorm', 'vormen') },
+    importeren: { stand: aantal(leden, 'lid', 'leden') },
+    checkin: { stand: CHECKIN_METHODE_LABEL[org.instellingen.checkin.methode].split(' (')[0].split(':')[0] },
+    ledenapp: { stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}` },
+    'ledenapp-bekijken': { stand: 'Voorvertoning als lid' },
+    meldingen: { stand: 'Herinnertijden en welke aan staan' },
+    opvolgregels: { stand: regels ? `${regels.filter((r) => r.aan).length} van ${regels.length} aan` : 'Onbekend' },
+    betalen: { stand: 'Stripe, producten en verkopen' },
+    abonnement: { stand: 'Pakket, status en facturen' },
+  }
+}
 
-  const sportschool: InstellingRegel[] = [
-    { titel: 'Huisstijl', uitleg: 'Naam, slogan, logo, accentkleur en donker of licht.', stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? 'Eigen logo' : 'Logo geupload') : 'Nog geen logo', href: '/clubkane/huisstijl' },
-    { titel: 'Bedrijf en huisregels', uitleg: 'KvK, btw, hoofdkantoor, social links, huisregels, voorwaarden en privacy.', stand: 'Gegevens en teksten', href: '/clubkane/beheer/bedrijf' },
-    { titel: 'Adres', uitleg: 'Je eigen adres voor medewerkers en leden.', stand: org.slug ? adresVan(org.slug) : 'Nog niet gekozen', href: '/clubkane/huisstijl#adres-kop', let: !org.slug },
-    { titel: 'Onderdelen', uitleg: 'Zet uit wat je sportschool niet gebruikt.', stand: `${aanTal} van ${MODULES.length} aan`, href: '/clubkane/huisstijl#modules-kop' },
-  ]
-  const locaties: InstellingRegel[] = [
-    { titel: 'Vestigingen', uitleg: 'Toevoegen, naam, volgorde en welke standaard open gaat.', stand: aantal(t.vestigingen.length, 'vestiging', 'vestigingen'), href: pad('/instellingen', { tab: 'vestigingen' }), let: t.vestigingen.length === 0 },
-    { titel: 'Regels en openingstijden', uitleg: 'Boeken, annuleren, no-shows en openingstijden per vestiging.', stand: 'Per vestiging', href: pad('/instellingen', { tab: 'regels' }), uit: !v },
-    { titel: 'Sluitingsdagen en feestdagen', uitleg: 'Dagen dat een vestiging dicht is of andere tijden heeft; het rooster houdt er rekening mee.', stand: 'Feestdagen en sluitingen', href: '/clubkane/beheer/sluiting' },
-    { titel: 'Zalen', uitleg: 'De ruimtes voor groepslessen en hoeveel mensen erin passen.', stand: aantal(zalen, 'zaal', 'zalen'), href: pad('/instellingen', { tab: 'zalen' }), uit: !v },
-  ]
-  const mensen: InstellingRegel[] = [
-    { titel: 'Medewerkers', uitleg: 'Wie er werkt, in welke rol en op welke vestiging.', stand: aantal(medewerkers, 'medewerker', 'medewerkers'), href: pad('/instellingen', { tab: 'medewerkers' }), uit: !v },
-    { titel: 'Rechten per rol', uitleg: 'Welke onderdelen trainers, instructeurs, clubmanagers en de administratie zien.', stand: 'Vier rollen', href: '/clubkane/beheer/rechten' },
-  ]
-  const planning: InstellingRegel[] = [
-    { titel: 'Lestypen', uitleg: 'De groepslessen die je geeft.', stand: aantal(lestypen, 'lestype', 'lestypen'), href: pad('/instellingen', { tab: 'lestypen' }), uit: !v || org.uit.includes('rooster') },
-    { titel: 'Afspraaktypen', uitleg: 'Soorten afspraken, duur, buffer en boekregels voor de app.', stand: 'Intake, personal training, metingen', href: '/clubkane/afspraken?tab=typen', uit: org.uit.includes('afspraken') },
-    { titel: 'Weekrooster', uitleg: 'De vaste lessen per week.', stand: 'Per vestiging', href: pad('/instellingen', { tab: 'weekrooster' }), uit: !v || org.uit.includes('rooster') },
-  ]
-  const training: InstellingRegel[] = [
-    { titel: 'Intakeformulier', uitleg: 'De vragen bij een intake: eigen vragen, secties, volgorde en wat aan staat.', stand: 'Vaste en eigen vragen', href: '/clubkane/beheer/intake', uit: org.uit.includes('training') },
-    { titel: 'Oefeningen en coaching', uitleg: 'Je bibliotheek met beelden, eigen oefeningen en je eigen coachteksten.', stand: `${aantal(oefeningen, 'oefening', 'oefeningen')}${eigenCoaching ? `, ${eigenCoaching} met eigen coaching` : ''}`, href: pad('/training', { tab: 'oefeningen' }), uit: org.uit.includes('training') },
-  ]
-  const ledenRegels: InstellingRegel[] = [
-    { titel: 'Lidmaatschappen en labels', uitleg: 'Vormen zoals in Sportivity, met vestigingen, groepslessen en daluren, en de labels voor leden.', stand: aantal(vormen, 'vorm', 'vormen'), href: '/clubkane/beheer/lidmaatschappen' },
-    { titel: 'Automatiseringen', uitleg: 'Wie het team opvolgt: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', stand: 'Zeven regels', href: '/clubkane/beheer/automatiseringen' },
-    { titel: 'Challenges en badges', uitleg: 'Doelen voor leden met voortgang, ranglijst en badges.', stand: 'Lopend en gepland', href: '/clubkane/challenges' },
-    { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
-    { titel: 'Meldingen aan leden', uitleg: 'Bevestigingen, herinneringen en annuleringen van lessen en afspraken, per mail en in de app.', stand: 'Herinnertijden en welke aan staan', href: '/clubkane/beheer/meldingen' },
-    { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
-    { titel: 'Check-in', uitleg: 'Hoe leden inchecken: QR-code in de app, zoeken aan de balie, of allebei.', stand: CHECKIN_METHODE_LABEL[org.instellingen.checkin.methode].split(' (')[0].split(':')[0], href: '/clubkane/beheer/checkin', uit: org.uit.includes('checkin') },
-    { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },
-  ]
+/** De regels per groep die deze persoon mag zien. Onderdeel uit of geen vestiging: zichtbaar maar niet beschikbaar. */
+function groepen(kijker: InstelKijker, stand: Record<string, Stand>, vestiging: string | null) {
+  return INSTEL_GROEPEN.map((g) => ({
+    titel: g.label,
+    regels: INSTEL_PAGINAS.filter((p) => p.groep === g.sleutel && magInstelPagina(p, kijker)).map(
+      (p): InstellingRegel => ({
+        titel: p.titel,
+        uitleg: p.uitleg,
+        stand: stand[p.id]?.stand ?? '',
+        href: instelHref(p, vestiging),
+        let: stand[p.id]?.let,
+        uit: Boolean((p.module && kijker.uit.includes(p.module)) || (p.perVestiging && !vestiging)),
+      }),
+    ),
+  })).filter((g) => g.regels.length > 0)
+}
 
-  const abonnement: InstellingRegel[] = [
-    { titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Pakket, status en facturen', href: '/clubkane/beheer/abonnement', uit: !(t.isKane || t.rol === 'eigenaar') },
-    { titel: 'Betalen in de ledenapp', uitleg: 'Losse lessen, strippenkaarten, PT-pakketten en producten verkopen via Stripe.', stand: 'Stripe, producten en verkopen', href: '/clubkane/beheer/betalen', uit: !betalenActief() || !(t.isKane || t.rol === 'eigenaar') },
-    { titel: 'Hulp en support', uitleg: 'Handleidingen per onderdeel en een vraag of probleem melden.', stand: 'Handleidingen', href: '/clubkane/hulp' },
-  ]
-  const teDoen = [...sportschool, ...locaties].filter((r) => r.let && !r.uit).map((r) => r.titel)
+export default async function InstellingenCentrum({ searchParams }: { searchParams: ZoekParams }) {
+  const { t, kijker } = await eisInstellingencentrum()
+  const org = t.organisatie
+  const v = kiesUit(t.vestigingen, (await searchParams).v)
+  const ziet = (id: string) => INSTEL_PAGINAS.some((p) => p.id === id && magInstelPagina(p, kijker))
+  const lijst = groepen(kijker, await standen(t, ziet), v)
+  const teDoen = lijst.flatMap((g) => g.regels).filter((r) => r.let && !r.uit).map((r) => r.titel)
+  const huisstijl = magOnderdeel(t.onderdelen, 'huisstijl')
 
   return (
     <>
       <BeheerKop
         naam={org.naam}
         demo={org.demo}
-        adres={org.slug ? adresVan(org.slug) : null}
+        adres={huisstijl ? (org.slug ? adresVan(org.slug) : null) : undefined}
         kleur={org.kleurAccent}
         modules={MODULES.filter((m) => !org.uit.includes(m)).map((m) => MODULE_LABEL[m].label)}
         teDoen={teDoen}
         magNieuw={t.isKane}
       />
       <div className="club-beheer-groepen">
-        <InstellingenGroep titel="Sportschool" regels={sportschool} />
-        <InstellingenGroep titel="Locaties" regels={locaties} />
-        <InstellingenGroep titel="Mensen en rechten" regels={mensen} />
-        <InstellingenGroep titel="Planning" regels={planning} />
-        <InstellingenGroep titel="Training" regels={training} />
-        <InstellingenGroep titel="Leden" regels={ledenRegels} />
-        <InstellingenGroep titel="Abonnement" regels={abonnement} />
+        {lijst.map((g) => (
+          <InstellingenGroep key={g.titel} titel={g.titel} regels={g.regels} />
+        ))}
       </div>
     </>
   )

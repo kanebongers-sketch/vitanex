@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
-import { eisOnderdeel } from '@/lib/club/toegang'
+import { eisInstellingencentrum } from '@/lib/club/instel-toegang'
 
-// Een clubmanager zonder recht op dit onderdeel krijgt een gewone 404 (zie src/lib/club/beheerders/rechten.ts).
+// Het instellingencentrum is open voor wie minstens een instel-pagina mag zien.
+// Elke pagina hieronder controleert zelf haar eigen recht (meestal Beheer, dus
+// alleen Kane en de eigenaar); een clubmanager of medewerker krijgt daar een 404.
 export default async function Layout({ children }: { children: ReactNode }) {
-  await eisOnderdeel('beheer')
+  await eisInstellingencentrum()
   return children
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { MAX_JAAR, MIN_JAAR } from '@/lib/club/sluiting/feestdagen'
@@ -10,6 +9,7 @@ import { haalSluitingen, haalToekomstigeLessen } from '@/lib/club/sluiting/lezen
 import { geraaktPerSluiting } from '@/lib/club/sluiting/regels'
 import { SluitingBeheer } from '@/components/club/sluiting/SluitingBeheer'
 import '@/components/club/sluiting/sluiting.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Sluitingsdagen' }
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: 'Sluitingsdagen' }
 // alleen lessen binnen de tijden; lessen die er al staan krijgen een waarschuwing.
 
 export default async function SluitingsdagenPagina({ searchParams }: { searchParams: ZoekParams }) {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('sluiting')
   const nu = new Date()
   const vandaag = nlDelen(nu).datum
   const huidig = Number(vandaag.slice(0, 4))
@@ -31,9 +31,7 @@ export default async function SluitingsdagenPagina({ searchParams }: { searchPar
 
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="sluiting" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

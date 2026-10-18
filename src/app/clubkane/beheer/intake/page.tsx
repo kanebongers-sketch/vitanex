@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisOnderdeel } from '@/lib/club/toegang'
 import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { IntakeVragenBeheer } from '@/components/club/intakevragen/IntakeVragenBeheer'
 import '@/components/club/training/training.css'
 import '@/components/club/intakevragen/intakevragen.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Intakeformulier' }
 
@@ -15,14 +14,12 @@ export const metadata: Metadata = { title: 'Intakeformulier' }
 // Zonder eigen vragen geldt de standaardset van Club.
 
 export default async function IntakeformulierPagina() {
-  const t = await eisClubToegang()
+  const t = await eisOnderdeel('beheer')
   const set = await haalIntakeVragen(t.admin, t.userId)
 
   return (
     <>
-      <Link href="/clubkane/beheer" className="club-terug">
-        <ArrowLeft size={16} aria-hidden /> Instellingencentrum
-      </Link>
+      <InstelKruimel id="intake" />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

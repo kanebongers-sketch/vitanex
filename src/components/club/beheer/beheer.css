@@ -70,3 +70,5 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 @media (prefers-reduced-motion: reduce) {
   .club-beheer-regel, .club-beheer-pijl, .club-beheer-keuze, .club-beheer-tekst strong { transition: none; }
 }
+.club-beheer-matrix tr.club-beheer-matrix-groep th { position: static; padding: 14px 12px 6px; text-align: left; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); background: var(--club-vlak, transparent); }
+.club-beheer-matrix tbody tr.club-beheer-matrix-groep:hover { background: none; }
