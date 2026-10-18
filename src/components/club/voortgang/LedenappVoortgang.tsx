@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Award, Flame } from 'lucide-react'
+import { Award, Flame, Ruler } from 'lucide-react'
 import { gemiddeldPerWeek, mijlpalen, perWeek, volgendeMijlpaal, wekenOpRij } from '@/lib/club/voortgang/frequentie'
 import type { VoortgangData } from '@/lib/club/voortgang/model'
 import { beschikbareReeksen, reeksVoor, toonVerschilGetal, verschillen, type ReeksSleutel } from '@/lib/club/voortgang/tijdlijn'
+import { LegeStaat } from '@/components/club/app/LegeStaat'
 import { VoortgangGrafiek } from './VoortgangGrafiek'
 import { WeekBalken } from './WeekBalken'
 import { datumKort, getal } from './weergave'
@@ -39,36 +40,36 @@ export function LedenappVoortgang({ voortgang, nu }: LedenappVoortgangProps) {
     <section className="club-voortgang-app" aria-labelledby="lidapp-voortgang-kop">
       <h2 id="lidapp-voortgang-kop" className="club-lidapp-kop">Voortgang</h2>
 
-      <div className="club-voortgang-app-blok">
-        {info && verschil ? (
-          <>
-            <div className="club-voortgang-app-kop">
-              <span className="club-lidapp-label">{info.label}</span>
-              <span className="club-voortgang-app-getal">
-                {getal(verschil.laatste.waarde)}
-                <small>{info.eenheid}</small>
-              </span>
-              <span className="club-voortgang-app-sub">
-                {verschil.sindsStart === null
-                  ? `Eerste meting op ${datumKort(verschil.laatste.datum)}`
-                  : `${toonVerschilGetal(verschil.sindsStart)} ${info.eenheid} sinds ${datumKort(verschil.start.datum)}`}
-              </span>
+      {info && verschil ? (
+        <div className="club-voortgang-app-blok">
+          <div className="club-voortgang-app-kop">
+            <span className="club-lidapp-label">{info.label}</span>
+            <span className="club-voortgang-app-getal">
+              {getal(verschil.laatste.waarde)}
+              <small>{info.eenheid}</small>
+            </span>
+            <span className="club-voortgang-app-sub">
+              {verschil.sindsStart === null
+                ? `Eerste meting op ${datumKort(verschil.laatste.datum)}`
+                : `${toonVerschilGetal(verschil.sindsStart)} ${info.eenheid} sinds ${datumKort(verschil.start.datum)}`}
+            </span>
+          </div>
+          {reeksen.length > 1 && (
+            <div className="club-voortgang-app-wissel" role="group" aria-label="Kies meetwaarde">
+              {reeksen.map((r) => (
+                <button key={r.sleutel} type="button" aria-pressed={r.sleutel === info.sleutel} onClick={() => setKeuze(r.sleutel)}>
+                  {r.kort}
+                </button>
+              ))}
             </div>
-            {reeksen.length > 1 && (
-              <div className="club-voortgang-app-wissel" role="group" aria-label="Kies meetwaarde">
-                {reeksen.map((r) => (
-                  <button key={r.sleutel} type="button" aria-pressed={r.sleutel === info.sleutel} onClick={() => setKeuze(r.sleutel)}>
-                    {r.kort}
-                  </button>
-                ))}
-              </div>
-            )}
-            <VoortgangGrafiek reeks={reeks} info={info} compact />
-          </>
-        ) : (
-          <p className="club-voortgang-app-leeg">Nog geen metingen. Vraag je trainer om een meting; dan zie je hier je verloop.</p>
-        )}
-      </div>
+          )}
+          <VoortgangGrafiek reeks={reeks} info={info} compact />
+        </div>
+      ) : (
+        <LegeStaat Icoon={Ruler} titel="Nog geen metingen">
+          Vraag je trainer om een meting. Daarna zie je hier je verloop.
+        </LegeStaat>
+      )}
 
       <div className="club-voortgang-app-blok">
         <div className="club-voortgang-app-rij">

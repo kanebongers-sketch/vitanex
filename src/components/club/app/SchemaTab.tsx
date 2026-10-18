@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronRight, Undo2 } from 'lucide-react'
+import { Check, ChevronRight, ClipboardList, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
@@ -13,6 +13,7 @@ import { useKernpunten } from '@/components/club/training/coaching/useKernpunten
 import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
+import { LegeStaat } from './LegeStaat'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en vink
 // af dat je de training gedaan hebt (club_trainingslog). Onder elke oefening
@@ -39,7 +40,9 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
     return (
       <div className="club-lidapp-tab">
         <h2 className="club-lidapp-kop">Schema</h2>
-        <p className="club-lidapp-leeg">Je hebt nog geen actief schema. Vraag je trainer om er een voor je te maken.</p>
+        <LegeStaat Icoon={ClipboardList} titel="Nog geen schema">
+          Je hebt nog geen actief schema. Vraag je trainer om er een voor je te maken.
+        </LegeStaat>
       </div>
     )
   }
@@ -65,8 +68,11 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
     <div className="club-lidapp-tab">
       <h2 className="club-lidapp-kop">Schema</h2>
       <p className="club-lidapp-schemanaam">
-        {schema.naam}
-        {schema.weken ? <span> · {schema.weken} weken</span> : null}
+        <strong>{schema.naam}</strong>
+        {schema.weken ? <span>{schema.weken} weken</span> : null}
+        <span>
+          {dag.oefeningen.length} {dag.oefeningen.length === 1 ? 'oefening' : 'oefeningen'}
+        </span>
       </p>
       <div className="club-lidapp-dagkeuze" role="group" aria-label="Trainingsdag">
         {schema.dagen.map((d) => (

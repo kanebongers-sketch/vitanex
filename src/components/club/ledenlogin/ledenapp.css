@@ -32,14 +32,14 @@
   display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px;
   color: var(--text-2); text-decoration: none;
   transform: translateY(-50%);
-  transition: color 160ms var(--ease), background-color 160ms var(--ease), transform 120ms var(--ease);
+  transition: transform 120ms var(--ease);
 }
 .club-mijn-bel:active { transform: translateY(-50%) scale(0.92); }
 .club-mijn-bel:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .club-mijn-bel[aria-current='page'] { color: var(--brand-tekst, var(--brand)); background: var(--brand-soft); }
 @media (hover: hover) { .club-mijn-bel:hover { color: var(--text-1); background: var(--club-vlak-hover, var(--brand-soft)); } }
 .club-mijn-bel-teller {
-  position: absolute; top: 7px; right: 6px;
+  position: absolute; top: 6px; left: 25px;
   display: grid; place-items: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
   background: var(--brand); color: var(--brand-inkt, var(--bg-app));
   box-shadow: 0 0 0 2px var(--bg-app);
@@ -47,7 +47,7 @@
 }
 .club-mijn-merk img, .club-mijn-merk .ff-logo { height: 28px; width: auto; max-width: 70%; object-fit: contain; }
 .club-mijn-merk span { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.club-mijn-voorvertoning { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); font-size: 12.5px; font-weight: 600; }
+.club-mijn-voorvertoning { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--text-1); font-size: 12.5px; font-weight: 600; }
 
 .club-mijn-inhoud {
   width: 100%; max-width: 640px; margin: 0 auto;
@@ -67,28 +67,43 @@
 }
 .club-mijn-tabs a {
   display: grid; justify-items: center; align-content: center; gap: 3px;
-  min-height: 52px; padding: 4px 2px; border-radius: 14px;
-  color: var(--text-3); text-decoration: none; font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
-  transition: color 160ms var(--ease), transform 120ms var(--ease);
+  min-height: 56px; padding: 4px 0; border-radius: 14px;
+  color: var(--text-3); text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.club-mijn-tabs a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-mijn-tabs a:active { transform: scale(0.94); }
+/* Het actieve tabblad: een zachte pil achter het icoon die openschuift. */
+.club-mijn-tab-icoon { position: relative; display: grid; place-items: center; width: 46px; height: 30px; transition: transform 140ms var(--ease); }
+.club-mijn-tab-icoon::before {
+  content: ''; position: absolute; inset: 0; border-radius: 999px; background: var(--brand-soft);
+  opacity: 0; transform: scaleX(0.4);
+  transition: opacity 200ms var(--ease), transform 280ms var(--ease);
+}
+.club-mijn-tab-icoon svg { position: relative; }
+.club-mijn-tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 600; letter-spacing: 0; }
+@media (min-width: 400px) { .club-mijn-tab-label { font-size: 11px; } }
+.club-mijn-tabs a:active .club-mijn-tab-icoon { transform: scale(0.9); }
 .club-mijn-tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .club-mijn-tabs a[aria-current='page'] { color: var(--brand-tekst, var(--brand)); }
-.club-mijn-tabs a[aria-current='page'] svg { transform: translateY(-1px); }
-@media (hover: hover) { .club-mijn-tabs a:hover { color: var(--text-1); } }
+.club-mijn-tabs a[aria-current='page'] .club-mijn-tab-label { font-weight: 700; }
+.club-mijn-tabs a[aria-current='page'] .club-mijn-tab-icoon::before { opacity: 1; transform: none; }
+@media (hover: hover) { .club-mijn-tabs a:not([aria-current='page']):hover { color: var(--text-1); } }
 
 /* Een oefening groot: over het hele scherm, boven de onderbalk. */
 .club-mijn .club-lidapp-blad-scherm { position: fixed; z-index: 50; }
 .club-mijn .club-lidapp-blad { padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
 /* Grotere tikvlakken in de app. */
 .club-mijn .club-lidapp-knop { min-height: 48px; }
-.club-mijn .club-lidapp-dagkeuze button { min-height: 48px; }
+.club-mijn .club-lidapp-dagkeuze button { min-height: 44px; }
+/* Bevestigen van een afspraak plakt boven de onderbalk, niet erachter. */
+.club-mijn .club-afspraken-app-bevestig { bottom: calc(var(--club-mijn-balk) + 12px); z-index: 5; }
+/* Meldingen van de pagina zelf (leesfouten) in de stijl van de app. */
+.club-mijn .club-melding--fout { margin: 0; padding: 14px 16px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--club-let-op) 35%, var(--line)); background: var(--club-let-op-zacht); color: var(--text-1); font-size: 14.5px; line-height: 1.45; }
 
 /* ── Profiel: uitloggen ──────────────────────────────────────────────────── */
-.club-mijn-uitlog { display: grid; gap: 10px; padding: 16px; border-radius: var(--lidapp-radius); background: var(--bg-card); }
-.club-mijn-uitlog h3 { margin: 0; font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
-.club-mijn-uitlog p { margin: 0; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.club-mijn-uitlog { display: grid; gap: 10px; padding: 18px 16px 10px; border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); }
+.club-mijn-uitlog h3 { margin: 0; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+.club-mijn-uitlog p { margin: 0 0 4px; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.club-mijn-uitlog .club-lidapp-knop--breed { min-height: 52px; font-family: inherit; font-size: 15.5px; letter-spacing: 0; text-transform: none; }
 
 /* ── Profiel: hulp of vraag aan de sportschool ───────────────────────────── */
 .club-mijn-hulp { border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); overflow: hidden; }
@@ -109,7 +124,7 @@
   min-height: 52px; padding: 8px 14px; border-radius: 14px;
   background: var(--club-vlak, var(--bg-raised)); border: 1px solid var(--line);
   color: var(--text-1); text-decoration: none; font-weight: 700; overflow-wrap: anywhere;
-  transition: border-color 160ms var(--ease), transform 120ms var(--ease);
+  transition: transform 120ms var(--ease);
 }
 .club-mijn-hulp-link svg { color: var(--brand-tekst, var(--brand)); }
 .club-mijn-hulp-link span { display: grid; gap: 1px; }
@@ -123,23 +138,37 @@
 
 /* ── Inloggen ────────────────────────────────────────────────────────────── */
 .club-mijn-inlog {
+  position: relative; isolation: isolate; overflow: hidden;
   min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 28px;
   padding: calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px);
 }
-.club-mijn-inlog-kaart { width: min(100%, 400px); display: grid; gap: 18px; padding: 28px 22px; border-radius: 26px; background: var(--bg-card); border: 1px solid var(--line); box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.8); }
-.club-mijn-inlog-kaart h1 { margin: 0; font-family: var(--ff-kop); font-size: 34px; font-weight: 700; line-height: 1; text-transform: uppercase; }
+/* Sfeer: een zachte gloed in de accentkleur achter de kaart. */
+.club-mijn-inlog::before {
+  content: ''; position: absolute; z-index: -1; left: 50%; top: 18%; width: 140vw; max-width: 900px; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--brand-glow), transparent 70%); opacity: 0.55;
+  transform: translate(-50%, -50%);
+}
+.club-mijn-inlog > .club-mijn-merk { animation: club-lidapp-in 420ms var(--ease) both; }
+.club-mijn-inlog-kaart {
+  width: min(100%, 400px); display: grid; gap: 16px; padding: 28px 22px 24px; border-radius: 28px;
+  background: var(--bg-card); border: 1px solid var(--line); box-shadow: var(--club-schaduw);
+  animation: club-lidapp-in 480ms var(--ease) 80ms both;
+}
+.club-mijn-inlog-kaart h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 11vw, 44px); font-weight: 700; line-height: 0.95; text-transform: uppercase; overflow-wrap: anywhere; }
 .club-mijn-inlog-kaart p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 1.5; }
 .club-mijn-inlog-boven { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)) !important; }
+.club-mijn-inlog-kaart form { padding-top: 6px; gap: 14px; }
 .club-mijn-pin { display: grid; gap: 8px; }
 .club-mijn-pin label { font-size: 13.5px; font-weight: 600; color: var(--text-2); }
 .club-mijn-pin input {
-  width: 100%; min-height: 60px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--line-strong); background: var(--bg-app);
-  color: var(--text-1); font: inherit; font-family: var(--ff-kop); font-size: 30px; font-weight: 700; letter-spacing: 0.5em; text-align: center; font-variant-numeric: tabular-nums;
-  transition: border-color 160ms var(--ease);
+  width: 100%; min-height: 64px; padding: 0 16px; border-radius: 18px; border: 1px solid var(--line-strong); background: var(--club-invoer-bg, var(--bg-app));
+  color: var(--text-1); font: inherit; font-family: var(--ff-kop); font-size: 30px; font-weight: 700; letter-spacing: 0.5em; text-indent: 0.5em; text-align: center; font-variant-numeric: tabular-nums;
+  caret-color: var(--brand);
 }
 .club-mijn-pin input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-color: var(--brand); }
-.club-mijn-inlog-fout { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--club-let-op-zacht); color: var(--text-1) !important; font-size: 14.5px; }
+.club-mijn-inlog-fout { display: flex; gap: 8px; margin: 0; padding: 12px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--club-let-op) 35%, transparent); background: var(--club-let-op-zacht); color: var(--text-1) !important; font-size: 14.5px; line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) {
-  .club-mijn-tabs a, .club-mijn-pin input { transition: none; }
+  .club-mijn-tabs a, .club-mijn-tab-icoon, .club-mijn-tab-icoon::before { transition: none; }
+  .club-mijn-inlog > .club-mijn-merk, .club-mijn-inlog-kaart { animation: none; }
 }

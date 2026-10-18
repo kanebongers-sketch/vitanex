@@ -6,7 +6,8 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 
 // De ledenapp als echte app op de telefoon: merk bovenin, inhoud die scrolt,
 // onderbalk met tabbladen. Houdt rekening met de notch en de thuisbalk
-// (safe-area) en heeft tikvlakken van minstens 48 pixels.
+// (safe-area) en heeft tikvlakken van minstens 48 pixels. Het actieve tabblad
+// krijgt een pil achter het icoon (alleen transform en opacity bewegen).
 
 interface Props {
   /** Het actieve tabblad; null als er een scherm buiten de onderbalk open staat (Meldingen). */
@@ -44,8 +45,10 @@ export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, ta
       <nav className="club-mijn-tabs" aria-label="Ledenapp" style={{ ['--club-mijn-tabs' as string]: tabs.length }}>
         {tabs.map(({ sleutel, label, Icoon }) => (
           <Link key={sleutel} href={tabPad(sleutel)} aria-current={sleutel === tab ? 'page' : undefined} scroll={false} prefetch={false}>
-            <Icoon aria-hidden size={22} />
-            <span>{label}</span>
+            <span className="club-mijn-tab-icoon" aria-hidden>
+              <Icoon size={22} strokeWidth={sleutel === tab ? 2.25 : 1.75} />
+            </span>
+            <span className="club-mijn-tab-label">{label}</span>
           </Link>
         ))}
       </nav>

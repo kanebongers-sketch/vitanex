@@ -131,11 +131,16 @@
 .club-voeding-melding .club-melding { margin: 0; }
 
 /* ── Ledenapp ─────────────────────────────────────────────────────────────── */
-.club-voeding-app { display: grid; gap: 18px; }
-.club-voeding-app-blok { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line); }
-.club-voeding-app-doel { font-size: 13px; color: var(--text-3); }
+.club-voeding-app { display: grid; gap: 16px; }
+.club-voeding-app-blok { display: grid; gap: 12px; padding: 18px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); }
+.club-voeding-app-blok p { margin: 0; }
+/* Het dagdoel is de grote focus van dit scherm. */
+.club-voeding-app > .club-voeding-app-blok:nth-of-type(1) { gap: 14px; padding: 20px 18px; border-radius: 24px; background: radial-gradient(130% 110% at 100% 0%, var(--brand-soft) 0%, transparent 60%), var(--bg-card); border-color: color-mix(in srgb, var(--brand) 30%, var(--line)); box-shadow: var(--club-schaduw); }
+.club-voeding-app .club-voeding-kcal strong { font-size: 64px; }
+.club-voeding-app-doel { font-size: 13.5px; color: var(--text-3); }
+.club-voeding-app-blok > .club-voeding-app-doel:last-child { padding-top: 12px; border-top: 1px solid var(--line); }
 .club-voeding-app-rij { display: grid; gap: 6px; }
-.club-voeding-app-rij-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.club-voeding-app-rij-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 14.5px; }
 .club-voeding-app-rij-kop span:first-child { font-weight: 600; }
 .club-voeding-app-rij-kop span:last-child { font-variant-numeric: tabular-nums; color: var(--text-2); }
 .club-voeding-app-spoor { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
@@ -147,4 +152,4 @@
   .club-voeding-app-spoor span { animation: club-voeding-groei 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 }
 @keyframes club-voeding-groei { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.club-voeding-app-leeg { margin: 0; color: var(--text-3); line-height: 1.5; }
+.club-voeding-app-leeg { margin: 0; color: var(--text-2); line-height: 1.5; }

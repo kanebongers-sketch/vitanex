@@ -134,7 +134,6 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {tab === 'voortgang' && voortgang && (
             <div className="club-lidapp-tab">
-              <h2 className="club-lidapp-kop">Voortgang</h2>
               <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
               {challenges && <LedenappChallenges data={challenges} />}
             </div>

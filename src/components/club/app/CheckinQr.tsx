@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useEffectEvent, useState } from 'react'
-import { QrCode, Sun } from 'lucide-react'
+import { QrCode, ScanLine, Sun, WifiOff } from 'lucide-react'
 import { isCheckinCodeAntwoord, type CheckinCodeAntwoord } from '@/lib/club/checkin/types'
 import { useLedenappApi } from './LedenappApi'
 
@@ -70,19 +70,39 @@ export function CheckinQr({ lidId }: { lidId: string }) {
   }, [url])
 
   return (
-    <section className="club-lidapp-qr" aria-labelledby="lidapp-qr">
-      <h3 id="lidapp-qr">
-        <QrCode aria-hidden size={16} /> Inchecken
-      </h3>
+    <section className="club-lidapp-qr" aria-labelledby="lidapp-qr" data-stand={stand.soort}>
+      <div className="club-lidapp-qr-kop">
+        <h3 id="lidapp-qr">
+          <QrCode aria-hidden size={16} /> Inchecken
+        </h3>
+        {stand.soort === 'code' && (
+          <span className="club-lidapp-qr-live">
+            <span aria-hidden /> Live
+          </span>
+        )}
+      </div>
       <QrInhoud stand={stand} />
     </section>
   )
 }
 
 function QrInhoud({ stand }: { stand: Stand }) {
-  if (stand.soort === 'laden') return <div className="club-lidapp-qr-vlak club-lidapp-qr-vlak--laden" aria-busy="true" aria-label="Code laden" />
-  if (stand.soort === 'uit') return <p className="club-lidapp-leeg">{stand.melding}</p>
-  if (stand.soort === 'fout') return <p className="club-lidapp-leeg" role="status">De code kon niet worden geladen. We proberen het zo opnieuw.</p>
+  if (stand.soort === 'laden') {
+    return (
+      <div className="club-lidapp-qr-vlak club-lidapp-qr-vlak--laden" role="status" aria-busy="true">
+        <ScanLine aria-hidden size={40} strokeWidth={1.5} />
+        <span className="club-sr">Code laden</span>
+      </div>
+    )
+  }
+  if (stand.soort === 'uit') return <p className="club-lidapp-qr-melding">{stand.melding}</p>
+  if (stand.soort === 'fout') {
+    return (
+      <p className="club-lidapp-qr-melding club-lidapp-qr-melding--fout" role="status">
+        <WifiOff aria-hidden size={18} /> De code kon niet worden geladen. We proberen het zo opnieuw.
+      </p>
+    )
+  }
   const totaalMs = stand.vakSec * 1000
   return (
     <>
@@ -96,7 +116,7 @@ function QrInhoud({ stand }: { stand: Stand }) {
           style={{ animationDuration: `${stand.vernieuwOverMs}ms`, transform: `scaleX(${Math.min(1, stand.vernieuwOverMs / totaalMs)})` }}
         />
       </div>
-      <p>Houd je telefoon voor de camera of scanner bij de ingang. De code wisselt elke {stand.vakSec} seconden.</p>
+      <p className="club-lidapp-qr-uitleg">Houd je telefoon voor de scanner bij de ingang. De code wisselt elke {stand.vakSec} seconden.</p>
       <p className="club-lidapp-qr-tip">
         <Sun aria-hidden size={14} /> Zet je scherm op de hoogste helderheid, dan scant hij het snelst.
       </p>

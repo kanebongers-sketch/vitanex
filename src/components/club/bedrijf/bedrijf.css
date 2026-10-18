@@ -68,7 +68,8 @@
 
 /* ── Ledenapp: uitklapbare blokken op Profiel ────────────────────────────── */
 .club-bedrijf-lidapp { display: grid; gap: 8px; }
-.club-bedrijf-lidapp > h3 { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 2px; font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.club-bedrijf-lidapp > h3 { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 2px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+.club-bedrijf-lidapp > h3 svg { color: var(--brand-tekst, var(--brand)); }
 .club-bedrijf-lidapp-blok { border: 1px solid var(--line); border-radius: var(--lidapp-radius, var(--club-radius)); background: var(--bg-card); overflow: hidden; }
 .club-bedrijf-lidapp-blok summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px; font-weight: 600; cursor: pointer; list-style: none; }
 .club-bedrijf-lidapp-blok summary::-webkit-details-marker { display: none; }

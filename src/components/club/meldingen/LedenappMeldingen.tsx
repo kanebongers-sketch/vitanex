@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowUpCircle, BellRing, CalendarCheck, CalendarClock, CalendarX, Hourglass } from 'lucide-react'
+import { ArrowUpCircle, BellOff, BellRing, CalendarCheck, CalendarClock, CalendarX, Hourglass } from 'lucide-react'
 import { geledenLabel, type LedenappMelding } from '@/lib/club/meldingen/model'
 import type { Soort } from '@/lib/club/meldingen/soorten'
+import { LegeStaat } from '@/components/club/app/LegeStaat'
 import './meldingen.css'
 
 // De meldingen van een lid in de ledenapp: bevestigingen, herinneringen en
@@ -46,7 +47,11 @@ export function LedenappMeldingen({ meldingen, gelezenUrl, nu }: LedenappMelding
   }, [gelezenUrl, nieuw])
 
   if (meldingen.length === 0) {
-    return <p className="club-lidapp-leeg">Nog geen meldingen. Boek je een les of afspraak, dan zie je hier de bevestiging en een herinnering.</p>
+    return (
+      <LegeStaat Icoon={BellOff} titel="Nog geen meldingen">
+        Boek je een les of afspraak, dan zie je hier de bevestiging en een herinnering.
+      </LegeStaat>
+    )
   }
 
   return (

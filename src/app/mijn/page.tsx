@@ -139,7 +139,6 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {!toonMeldingen && tab === 'voortgang' && voortgang && (
             <div className="club-lidapp-tab">
-              <h2 className="club-lidapp-kop">Voortgang</h2>
               <LedenappVoortgang voortgang={voortgang} nu={nu.toISOString()} />
               {challenges && <LedenappChallenges data={challenges} />}
             </div>
@@ -152,6 +151,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 teksten={bedrijf?.teksten ?? null}
                 sportschool={org.naam}
                 hulp={contact ? <HulpSportschool contact={contact} /> : null}
+                pilotNoot={false}
               />
               {!l.voorvertoning && (
                 <div className="club-mijn-blok">

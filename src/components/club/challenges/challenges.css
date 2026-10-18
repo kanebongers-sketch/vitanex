@@ -122,7 +122,7 @@
 .club-challenges-app-teller { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .club-challenges-app-melding:empty { display: none; }
 .club-challenges-app-melding p { margin: 0; padding: 10px 14px; border-radius: var(--lidapp-radius, 18px); background: var(--brand-soft); color: var(--text-1); font-size: 14px; }
-.club-challenges-app-leeg { margin: 0; padding: 16px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); color: var(--text-2); line-height: 1.5; }
+.club-challenges-app-leeg { margin: 0; padding: 16px 18px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px dashed var(--line-strong); color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
 .club-challenges-app-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 
 .club-challenges-app-kaart { position: relative; display: grid; gap: 8px; padding: 18px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); overflow: hidden; }
@@ -140,7 +140,7 @@
 .club-challenges-app-gehaald { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; color: var(--club-ok); }
 
 .club-challenges-app-mee, .club-challenges-app-uit {
-  justify-self: start; min-height: 40px; padding: 0 18px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  justify-self: start; min-height: 44px; padding: 0 20px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
   transition: transform 160ms var(--ease), opacity 160ms var(--ease);
 }
 .club-challenges-app-mee { border: 0; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); }

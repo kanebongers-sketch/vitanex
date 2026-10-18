@@ -1,13 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarPlus } from 'lucide-react'
+import { CalendarOff, CalendarPlus, TriangleAlert } from 'lucide-react'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { stuur } from '@/components/club/leden/stuur'
 import { haal } from './haal'
 import { appDataUit, type AppAfspraak, type AppData } from './app-data'
 import { AppBoeken } from './AppBoeken'
 import { useLedenappApi } from '@/components/club/app/LedenappApi'
+import { LegeStaat } from '@/components/club/app/LegeStaat'
 import './afspraken.css'
 
 // Afspraken in de ledenapp: je komende afspraken (annuleren binnen de regels)
@@ -88,8 +89,23 @@ export function LedenappAfspraken({ lidId }: Props) {
     await laad()
   }
 
-  if (fout && !data) return <div className="club-afspraken-app"><p className="club-melding club-melding--fout" role="alert">{fout}</p></div>
-  if (!data) return <div className="club-afspraken-app"><p className="club-afspraken-app-tijden-stand" aria-live="polite">Afspraken laden…</p></div>
+  if (fout && !data) {
+    return (
+      <div className="club-afspraken-app">
+        <LegeStaat Icoon={TriangleAlert} titel="Even niet beschikbaar" fout>{fout}</LegeStaat>
+      </div>
+    )
+  }
+  if (!data) {
+    return (
+      <div className="club-afspraken-app" role="status" aria-busy="true">
+        <span className="club-sr">Afspraken laden</span>
+        <span className="club-lidapp-skelet club-lidapp-skelet--kop" aria-hidden />
+        <span className="club-lidapp-skelet club-lidapp-skelet--kaart" aria-hidden />
+        <span className="club-lidapp-skelet club-lidapp-skelet--kaart" aria-hidden />
+      </div>
+    )
+  }
 
   return (
     <div className="club-afspraken-app">
@@ -104,15 +120,17 @@ export function LedenappAfspraken({ lidId }: Props) {
               {data.komend.map((a) => <Komend key={a.id} a={a} bezig={bezig} onAnnuleer={(x) => void annuleer(x)} />)}
             </ul>
           ) : (
-            <p className="club-afspraken-app-leeg">Je hebt geen afspraken gepland.</p>
+            <LegeStaat Icoon={CalendarOff} titel="Geen afspraken gepland">
+              {data.typen.length > 0 ? 'Plan hieronder een afspraak met een trainer.' : 'Een afspraak maken kan nu alleen via de balie.'}
+            </LegeStaat>
           )}
           {data.typen.length > 0 ? (
             <button type="button" className="club-afspraken-app-knop" onClick={() => { setMelding(null); setBoeken(true) }}>
               <CalendarPlus size={18} aria-hidden /> Afspraak maken
             </button>
-          ) : (
+          ) : data.komend.length > 0 ? (
             <p className="club-afspraken-app-leeg">Afspraken maken kan nu alleen via de balie.</p>
-          )}
+          ) : null}
         </>
       )}
     </div>

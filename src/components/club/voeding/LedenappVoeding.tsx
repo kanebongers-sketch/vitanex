@@ -1,5 +1,7 @@
 import { DISCLAIMER, type PlanVoorLid } from '@/lib/club/voeding/model'
 import { verdeling } from '@/lib/club/voeding/rekenhulp'
+import { Apple, TriangleAlert } from 'lucide-react'
+import { LegeStaat } from '@/components/club/app/LegeStaat'
 import { PlanInhoud } from './PlanInhoud'
 import { datumLang, doelLabel } from './weergave'
 import './voeding.css'
@@ -28,7 +30,9 @@ export function LedenappVoeding({ plan, fout = false }: LedenappVoedingProps) {
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
         <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">Voeding</h2>
-        <p className="club-melding club-melding--fout" role="alert">Je voedingsplan kon niet worden geladen. Probeer het straks opnieuw.</p>
+        <LegeStaat Icoon={TriangleAlert} titel="Even niet beschikbaar" fout>
+          Je voedingsplan kon niet worden geladen. Probeer het straks opnieuw.
+        </LegeStaat>
       </section>
     )
   }
@@ -36,7 +40,9 @@ export function LedenappVoeding({ plan, fout = false }: LedenappVoedingProps) {
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
         <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">Voeding</h2>
-        <p className="club-voeding-app-leeg">Je hebt nog geen voedingsplan. Vraag je trainer ernaar; die maakt samen met jou een dagdoel dat bij je past.</p>
+        <LegeStaat Icoon={Apple} titel="Nog geen voedingsplan">
+          Vraag je trainer ernaar. Samen maken jullie een dagdoel dat bij je past.
+        </LegeStaat>
       </section>
     )
   }

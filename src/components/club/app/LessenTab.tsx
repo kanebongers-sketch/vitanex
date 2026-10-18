@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Info } from 'lucide-react'
+import { CalendarX2, Check, Info, TriangleAlert } from 'lucide-react'
 import type { AppLes } from '@/lib/club/app/data'
 import { dagNaamKort, lesKeuze, magGratisAnnuleren, regelTeksten, vrijePlekken, type AppRegels } from '@/lib/club/app/regels'
 import { dagKort, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
+import { LegeStaat } from './LegeStaat'
 
 // Lessen in de ledenapp: de komende 7 dagen, met vrije plekken en een knop die
 // boekt, op de wachtlijst zet of annuleert. Boeken en annuleren lopen via de
@@ -98,10 +99,15 @@ export function LessenTab({ lidId, lessen, regels, nu }: Props) {
       </details>
       {bericht && (
         <p className={`club-lidapp-bericht ${bericht.fout ? 'club-lidapp-bericht--fout' : ''}`} role="status">
-          {bericht.tekst}
+          {bericht.fout ? <TriangleAlert aria-hidden size={18} /> : <Check aria-hidden size={18} />}
+          <span>{bericht.tekst}</span>
         </p>
       )}
-      {dagen.length === 0 && <p className="club-lidapp-leeg">De komende 7 dagen staan er geen lessen op het rooster.</p>}
+      {dagen.length === 0 && (
+        <LegeStaat Icoon={CalendarX2} titel="Nog geen lessen">
+          De komende 7 dagen staan er geen lessen op het rooster. Kijk later nog eens.
+        </LegeStaat>
+      )}
       {dagen.map((dag) => (
         <section key={dag} className="club-lidapp-dag" aria-label={`${dagNaamKort(dag, vandaag)} ${dagKort(dag)}`}>
           <h3>
@@ -112,16 +118,22 @@ export function LessenTab({ lidId, lessen, regels, nu }: Props) {
               .filter((l) => dagSleutel(new Date(l.start)) === dag)
               .map((les) => {
                 const vrij = vrijePlekken(les.capaciteit, les.bezet)
+                const bezet = les.capaciteit > 0 ? Math.min(1, les.bezet / les.capaciteit) : 1
                 return (
                   <li key={les.id} className="club-lidapp-les" data-mijn={les.mijn?.status}>
                     <time dateTime={les.start}>{tijdNl(new Date(les.start))}</time>
                     <div className="club-lidapp-les-hoofd">
                       <strong>{les.naam}</strong>
                       <span>{[les.instructeur, les.zaal].filter(Boolean).join(' · ')}</span>
-                      <span className={vrij === 0 ? 'club-lidapp-vol' : 'club-lidapp-vrij'}>
-                        {les.mijn?.status === 'geboekt' && 'Jij bent geboekt · '}
-                        {les.mijn?.status === 'wachtlijst' && `Wachtlijst plek ${les.mijn.wachtpositie ?? '?'} · `}
-                        {vrij > 0 ? `${vrij} ${vrij === 1 ? 'plek' : 'plekken'} vrij` : `Vol${les.wachtlijst > 0 ? `, ${les.wachtlijst} wachtend` : ''}`}
+                      <span className="club-lidapp-les-plekken">
+                        {les.mijn?.status === 'geboekt' && <span className="club-lidapp-chip club-lidapp-chip--merk">Geboekt</span>}
+                        {les.mijn?.status === 'wachtlijst' && <span className="club-lidapp-chip club-lidapp-chip--info">Wachtlijst plek {les.mijn.wachtpositie ?? '?'}</span>}
+                        <span className={vrij === 0 ? 'club-lidapp-vol' : 'club-lidapp-vrij'}>
+                          {vrij > 0 ? `${vrij} ${vrij === 1 ? 'plek' : 'plekken'} vrij` : `Vol${les.wachtlijst > 0 ? `, ${les.wachtlijst} wachtend` : ''}`}
+                        </span>
+                      </span>
+                      <span className="club-lidapp-les-meter" aria-hidden data-vol={vrij === 0 || undefined}>
+                        <span style={{ transform: `scaleX(${bezet})` }} />
                       </span>
                       {bevestig === les.id && <span className="club-lidapp-waarschuwing">Binnen {regels.annuleerUren} uur voor de les: dit telt als te laat.</span>}
                     </div>

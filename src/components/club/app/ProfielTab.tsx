@@ -17,9 +17,11 @@ interface ProfielTabProps {
   sportschool: string
   /** Extra blok onder het abonnement, bijvoorbeeld hulp of een vraag aan de sportschool. */
   hulp?: ReactNode
+  /** De voetnoot over inloggen bij de pilot (alleen in de voorvertoning; in /mijn is het lid al ingelogd). */
+  pilotNoot?: boolean
 }
 
-export function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp }: ProfielTabProps) {
+export function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp, pilotNoot = true }: ProfielTabProps) {
   const regels: [string, string | null][] = [
     ['Lidnummer', lid.lidnummer],
     ['E-mail', lid.email],
@@ -35,7 +37,9 @@ export function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp }: P
         </span>
         <div>
           <h2 className="club-lidapp-kop">{volledigeNaam(lid)}</h2>
-          <span className="club-lidapp-status">{LID_STATUS_LABEL[lid.status]}</span>
+          <span className="club-lidapp-status" data-status={lid.status}>
+            {LID_STATUS_LABEL[lid.status]}
+          </span>
         </div>
       </div>
       <dl className="club-lidapp-gegevens">
@@ -55,9 +59,11 @@ export function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp }: P
       </section>
       {hulp}
       {teksten && <LedenappJuridisch teksten={teksten} sportschool={sportschool} />}
-      <p className="club-lidapp-voetnoot">
-        <LockKeyhole aria-hidden size={14} /> Inloggen met je eigen account komt bij de pilot.
-      </p>
+      {pilotNoot && (
+        <p className="club-lidapp-voetnoot">
+          <LockKeyhole aria-hidden size={14} /> Inloggen met je eigen account komt bij de pilot.
+        </p>
+      )}
     </div>
   )
 }
