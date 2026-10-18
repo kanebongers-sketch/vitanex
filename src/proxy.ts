@@ -7,7 +7,8 @@ import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
 import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
 import { beslisClub } from '@/lib/club/kern/subdomein'
 import { beslisAyg } from '@/lib/aiyourgym/host'
-import { siteActief } from '@/lib/aiyourgym/schakelaar'
+import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
+import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -90,12 +91,21 @@ function clubOpSubdomein(request: NextRequest): NextResponse | null {
  * subdomein van een sportschool is van Club (stap hierboven).
  */
 function aiyourgymSite(request: NextRequest): NextResponse | null {
-  const besluit = beslisAyg(request.headers.get('host'), request.nextUrl.pathname, siteActief())
+  const host = request.headers.get('host')
+  const besluit = beslisAyg(host, request.nextUrl.pathname, siteActief())
   if (besluit.soort === 'niet-van-mij') return null
-  if (besluit.soort === 'door') return NextResponse.next()
-  const doel = request.nextUrl.clone()
-  doel.pathname = besluit.pad
-  return NextResponse.rewrite(doel)
+  let response: NextResponse
+  if (besluit.soort === 'door') {
+    response = NextResponse.next()
+  } else {
+    const doel = request.nextUrl.clone()
+    doel.pathname = besluit.pad
+    response = NextResponse.rewrite(doel)
+  }
+  // Nog niet in zoekmachines (src/lib/aiyourgym/indexeren.ts); de /aiyourgym-paden op
+  // andere domeinen krijgen dezelfde kop via next.config.ts.
+  if (moetNoindex(host, request.nextUrl.pathname, aygIndexeren())) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
+  return response
 }
 
 export function proxy(request: NextRequest) {

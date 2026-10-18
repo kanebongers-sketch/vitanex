@@ -1,11 +1,13 @@
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { FUNCTIE_GROEPEN } from '@/components/aiyourgym/inhoud/functies'
+import { HOOFDSTUKKEN } from '@/components/aiyourgym/inhoud/functies'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 
-// De vijf onderdelen van Club als redactionele index: groot nummer, naam,
-// waar het over gaat, en de functies erin.
+// De functies in vijf hoofdstukken als redactionele index: een eigen kleuraccent
+// per hoofdstuk, de naam groot, waar het over gaat, de functies erin en een
+// "Bekijk"-link naar het eigen stuk op de pagina Functies.
 
 export function Onderdelen() {
   return (
@@ -15,22 +17,25 @@ export function Onderdelen() {
           naast
           id="onderdelen-titel"
           label="Een systeem"
-          titel="Vijf onderdelen. Alles wat je club nodig heeft."
-          tekst="Geen losse apps en lijstjes meer. AI Your Gym is ingedeeld zoals een sportschool werkt: van de werkvloer tot de cijfers van de eigenaar."
+          titel="Vijf hoofdstukken. Alles wat je club nodig heeft."
+          tekst="Geen losse apps en lijstjes meer. Van de balie en de vloer tot de groei van je club en de app van je leden."
         />
         <ol className="ayg-index">
-          {FUNCTIE_GROEPEN.map((g, i) => (
-            <li key={g.sleutel}>
-              <Link href={aygPad(`/functies#${g.sleutel}`)} className="ayg-index-link">
+          {HOOFDSTUKKEN.map((h, i) => (
+            <li key={h.sleutel} style={{ '--hfd': `var(--ayg-h-${h.sleutel})` } as CSSProperties}>
+              <Link href={aygPad(`/functies#${h.sleutel}`)} className="ayg-index-link">
                 <span className="ayg-index-nr" aria-hidden>
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <span className="ayg-index-naam">{g.naam}</span>
+                <span className="ayg-index-naam">{h.naam}</span>
                 <span className="ayg-index-tekst">
-                  <span>{g.intro}</span>
-                  <span className="ayg-index-functies">{g.functies.map((f) => f.titel).join(' · ')}</span>
+                  <span>{h.intro}</span>
+                  <span className="ayg-index-functies">{h.functies.map((f) => f.titel).join(' · ')}</span>
                 </span>
-                <ArrowUpRight className="ayg-index-pijl" size={26} aria-hidden />
+                <span className="ayg-index-bekijk">
+                  Bekijk <span className="ayg-sr">{h.naam.toLowerCase()}</span>
+                  <ArrowUpRight size={18} aria-hidden />
+                </span>
               </Link>
             </li>
           ))}

@@ -30,6 +30,14 @@
   --ayg-inkt-tekst-2: #b8beb7; /* 9.8:1 op inkt, 4.8:1 waar de volt gloed het sterkst is */
   --ayg-inkt-spook: #666d67; /* grote sierletters op inkt: 3.5:1 */
 
+  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, altijd met inkt
+     erop (tekst op het vlak) of als tekst op het donkere podium; zie contrast.test.ts */
+  --ayg-h-beheer: #c9f03e;
+  --ayg-h-coaching: #ffa477;
+  --ayg-h-planning: #8fc8ff;
+  --ayg-h-groei: #7fe0ae;
+  --ayg-h-betrokkenheid: #c9b0ff;
+
   /* Letters */
   --ayg-font-kop: var(--ayg-f-kop), 'Arial Narrow', Arial, sans-serif;
   --ayg-font-tekst: var(--ayg-f-tekst), system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -46,6 +54,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
+  color-scheme: only light;
   display: flex;
   flex-direction: column;
   background: var(--ayg-bg);
@@ -113,6 +122,9 @@
 .ayg-podium {
   background: var(--ayg-inkt);
   color: var(--ayg-inkt-tekst);
+  /* Ook de hoofdtekstkleur om, zodat niets dat --ayg-tekst gebruikt (koppen, links,
+     lijnen) donker op donker komt. Een inktknop wordt hier licht (zie .ayg-knop hieronder). */
+  --ayg-tekst: var(--ayg-inkt-tekst);
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
@@ -172,12 +184,25 @@
 .ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); }
 .ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
 .ayg-podium .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
+.ayg-podium .ayg-knop:not(.ayg-knop--rand, .ayg-knop--accent) { --k-tekst: var(--ayg-inkt); }
 .ayg-knop--klein { min-height: 40px; padding: 0 16px; font-size: 14.5px; border-radius: 10px; }
 .ayg-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
 .ayg-pijllink { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
 .ayg-pijllink svg { transition: transform 260ms var(--ayg-ease); }
 .ayg-pijllink:hover svg { transform: translateX(3px); }
+
+/* ── Contactbalk boven de kop ────────────────────────────────────────────── */
+.ayg-contactbalk { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); font-size: 13.5px; }
+.ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 38px; flex-wrap: wrap; }
+.ayg-contactbalk-lijst { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-right: auto; }
+.ayg-contactbalk a { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; color: var(--ayg-inkt-tekst); text-decoration: none; }
+.ayg-contactbalk-lijst a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--ayg-accent); }
+.ayg-contactbalk-lijst svg { color: var(--ayg-accent); }
+.ayg-contactbalk-demo { font-weight: 600; border-bottom: 1.5px solid var(--ayg-accent); }
+.ayg-contactbalk-demo svg { transition: transform 260ms var(--ayg-ease); }
+.ayg-contactbalk-demo:hover svg { transform: translateX(3px); }
+.ayg .ayg-contactbalk :where(a):focus-visible { outline-color: var(--ayg-accent); box-shadow: none; }
 
 /* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
 /* Bovenaan valt de kop weg in het papier (data-bovenaan, gezet door JavaScript); anders een licht vlak met lijn. */
@@ -203,7 +228,7 @@
 .ayg-menuknop-icoon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
 /* Menupaneel (telefoon): over het hele scherm onder de kop */
-.ayg-menupaneel { position: fixed; inset: 68px 0 0 0; z-index: 49; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 8px var(--ayg-rand) max(24px, env(safe-area-inset-bottom)); background: var(--ayg-bg); overflow-y: auto; overscroll-behavior: contain; }
+.ayg-menupaneel { position: fixed; inset: var(--ayg-paneel-top, 68px) 0 0 0; z-index: 49; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 8px var(--ayg-rand) max(24px, env(safe-area-inset-bottom)); background: var(--ayg-bg); overflow-y: auto; overscroll-behavior: contain; }
 .ayg-menupaneel[hidden] { display: none; }
 .ayg-menupaneel-lijst { display: grid; border-top: 1.5px solid var(--ayg-tekst); }
 .ayg-menupaneel-lijst li { border-bottom: 1px solid var(--ayg-lijn); }
@@ -215,6 +240,7 @@
 .ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent); text-decoration-thickness: 4px; text-underline-offset: 6px; }
 .ayg-menupaneel-onder { display: grid; gap: 10px; }
 .ayg-menupaneel-onder .ayg-knop { width: 100%; min-height: 54px; }
+.ayg-menupaneel-live { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-weight: 600; text-decoration: none; }
 @media (prefers-reduced-motion: no-preference) {
   .ayg-menupaneel[data-open] { animation: ayg-paneel 320ms var(--ayg-ease) both; }
   .ayg-menupaneel[data-open] .ayg-menupaneel-lijst li { animation: ayg-in 460ms var(--ayg-ease) both; animation-delay: calc(60ms + var(--i, 0) * 45ms); }
@@ -224,8 +250,11 @@
   .ayg-nav, .ayg-kop-acties { display: flex; }
   .ayg-menuknop, .ayg-menupaneel { display: none; }
 }
-@media (min-width: 900px) and (max-width: 1080px) {
+@media (min-width: 900px) and (max-width: 1239px) {
   .ayg-kop-demo { display: none; }
+}
+@media (max-width: 1179px) {
+  .ayg-kop-lang { display: none; }
 }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
@@ -256,7 +285,7 @@
 .ayg-podium .ayg-kaart { background: var(--ayg-inkt-2); }
 .ayg-vinklijst { display: grid; gap: 12px; }
 .ayg-vinklijst li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; }
-.ayg-vinklijst svg { margin-top: 3px; color: var(--ayg-tekst); background: var(--ayg-accent); border-radius: 6px; padding: 3px; }
+.ayg-vinklijst svg { margin-top: 3px; color: var(--ayg-accent-tekst); background: var(--ayg-accent); border-radius: 6px; padding: 3px; }
 .ayg-genummerd { counter-reset: n; display: grid; gap: 0; }
 .ayg-genummerd > li { counter-increment: n; display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding-block: 26px; border-top: 1px solid var(--ayg-lijn); }
 .ayg-genummerd > li::before { content: counter(n, decimal-leading-zero); font: 700 15px/1.6 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; color: var(--ayg-tekst-2); }

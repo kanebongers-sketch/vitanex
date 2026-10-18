@@ -21,6 +21,7 @@ const ALLE_CSS = [
   'src/components/aiyourgym/home/home.css',
   'src/components/aiyourgym/demo/demo.css',
   'src/components/aiyourgym/aanmelden/aanmelden.css',
+  'src/components/aiyourgym/demo-aanvraag/demo-aanvraag.css',
 ]
 
 /** De custom properties in het eerste blok met precies deze selector. */
@@ -104,6 +105,37 @@ const SITE_PAREN: Paar[] = [
   { waar: 'uitgeschakelde voltknop (85%)', tekst: meng(t('ayg-accent-tekst'), t('ayg-vlak'), 0.85), op: meng(t('ayg-accent'), t('ayg-vlak'), 0.85), min: NORMAAL },
   { waar: 'uitgeschakelde inktknop (85%)', tekst: meng(t('ayg-bg'), t('ayg-vlak'), 0.85), op: meng(t('ayg-tekst'), t('ayg-vlak'), 0.85), min: NORMAAL },
 ]
+
+// Elk hoofdstuk van de functies heeft een eigen accent: altijd inkt erop (het
+// nummer, het label, de hover-vulling) en als tekst op inkt (het nummer bij hover).
+const HOOFDSTUK_TOKENS = Object.keys(S).filter((k) => k.startsWith('ayg-h-'))
+const HOOFDSTUK_PAREN: Paar[] = HOOFDSTUK_TOKENS.flatMap((k) => [
+  { waar: `inkt op het hoofdstukaccent ${k}`, tekst: t('ayg-accent-tekst'), op: t(k), min: NORMAAL },
+  { waar: `hoofdstukaccent ${k} als tekst op inkt`, tekst: t(k), op: t('ayg-inkt'), min: NORMAAL },
+])
+
+// Op een donker podium worden de tekstkleuren omgezet; een gewone inktknop wordt daar licht.
+const P = tokens(SITE_CSS, '.ayg-podium')
+/** De kleur die een token op het podium krijgt (daar staat var(--ander-token)). */
+const podium = (naam: string) => t((P[naam] ?? '').replace(/^var\(--|\)$/g, ''))
+const PODIUM_PAREN: Paar[] = [
+  { waar: 'podium: koppen en tekst (--ayg-tekst) op inkt', tekst: podium('ayg-tekst'), op: t('ayg-inkt'), min: NORMAAL },
+  { waar: 'podium: koppen en tekst (--ayg-tekst) op inkt-2', tekst: podium('ayg-tekst'), op: t('ayg-inkt-2'), min: NORMAAL },
+  { waar: 'podium: bijschriften (--ayg-tekst-2) op inkt', tekst: podium('ayg-tekst-2'), op: t('ayg-inkt'), min: NORMAAL },
+  { waar: 'podium: lichte knop (inkt op --ayg-tekst)', tekst: t('ayg-inkt'), op: podium('ayg-tekst'), min: NORMAAL },
+]
+
+describe('contrast van de hoofdstukken en het podium', () => {
+  it('er zijn vijf hoofdstukaccenten', () => {
+    expect(HOOFDSTUK_TOKENS.sort()).toEqual(['ayg-h-beheer', 'ayg-h-betrokkenheid', 'ayg-h-coaching', 'ayg-h-groei', 'ayg-h-planning'])
+  })
+  it('het podium zet --ayg-tekst om naar de lichte inkttekst', () => {
+    expect(P['ayg-tekst']).toBe('var(--ayg-inkt-tekst)')
+  })
+  it.each([...HOOFDSTUK_PAREN, ...PODIUM_PAREN])('$waar', ({ tekst, op, min }) => {
+    expect(contrast(tekst, op)).toBeGreaterThanOrEqual(min)
+  })
+})
 
 describe('contrast van de website-tokens', () => {
   it.each(SITE_PAREN)('$waar', ({ tekst, op, min }) => {

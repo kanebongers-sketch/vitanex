@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { AANMELDEN, DEMO } from './paden'
+import { AANMELDEN, DEMO_AANVRAGEN } from './paden'
 
 // Op de telefoon: na het eerste scherm een vaste aanmeldknop onderin, zodat de
 // volgende stap altijd een duim ver weg is. Hij verdwijnt weer bij de voet,
@@ -42,8 +42,8 @@ export function PlakActie() {
       <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
         Probeer {PROEFDAGEN} dagen gratis
       </Link>
-      <Link href={DEMO} className="ayg-plak-demo">
-        Demo
+      <Link href={DEMO_AANVRAGEN} className="ayg-plak-demo">
+        Plan demo
       </Link>
     </div>
   )

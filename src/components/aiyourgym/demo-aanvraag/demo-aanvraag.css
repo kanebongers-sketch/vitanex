@@ -1,0 +1,46 @@
+/* AI Your Gym | demo aanvragen. Bouwt op aanmelden.css (velden, akkoord, melding)
+   en de tokens van .ayg. Alles met het voorvoegsel dem-. */
+
+.ayg .dem-formulier { gap: 24px; }
+.ayg .dem-formulier .aan-rij { align-items: start; }
+.ayg .dem-optioneel { font-weight: 500; color: var(--ayg-tekst-2); }
+
+/* Keuzelijst en tekstvak in dezelfde vorm als de invoervelden */
+.ayg .dem-keuzelijst { position: relative; }
+.ayg .dem-keuzelijst::after { content: ''; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; border-right: 2px solid var(--ayg-tekst); border-bottom: 2px solid var(--ayg-tekst); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.ayg .dem-keuzelijst select { flex: 1; width: 100%; min-width: 0; height: 52px; padding: 0 44px 0 16px; border: 0; background: none; color: var(--ayg-tekst); font: 500 16px/1 var(--ayg-font-tekst); appearance: none; cursor: pointer; }
+.ayg .dem-keuzelijst select:focus-visible, .ayg .dem-tekstvak textarea:focus-visible { outline: none; box-shadow: none; }
+.ayg .dem-tekstvak { align-items: stretch; }
+.ayg .dem-tekstvak textarea { flex: 1; width: 100%; min-width: 0; min-height: 112px; padding: 14px 16px; border: 0; background: none; color: var(--ayg-tekst); font: 500 16px/1.5 var(--ayg-font-tekst); resize: vertical; }
+.ayg .aan-veld[data-fout] .dem-keuzelijst, .ayg .aan-veld[data-fout] .dem-tekstvak { box-shadow: inset 0 0 0 2px var(--ayg-fout); }
+
+/* Moment: keuzechips */
+.ayg .dem-momenten { gap: 12px; }
+.ayg .dem-momenten legend { float: left; width: 100%; margin-bottom: 12px; padding: 0; }
+.ayg .dem-chips { clear: both; display: flex; flex-wrap: wrap; gap: 8px; }
+.ayg .dem-chip { position: relative; display: inline-flex; align-items: center; min-height: 46px; padding: 0 18px; border-radius: 99px; background: var(--ayg-bg); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); font-weight: 600; font-size: 15px; cursor: pointer; transition: box-shadow 200ms var(--ayg-ease), transform 200ms var(--ayg-ease); }
+.ayg .dem-chip:hover { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst-2); }
+.ayg .dem-chip:active { transform: scale(0.97); }
+.ayg .dem-chip input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.ayg .dem-chip[data-gekozen] { background: var(--ayg-accent); color: var(--ayg-accent-tekst); box-shadow: inset 0 0 0 2px var(--ayg-tekst); }
+.ayg .dem-chip:has(input:focus-visible) { outline: 2px solid var(--ayg-tekst); outline-offset: 3px; }
+.ayg .dem-momenten[data-fout] .dem-chip { box-shadow: inset 0 0 0 2px var(--ayg-fout); }
+
+.ayg .dem-versturen { display: grid; gap: 10px; justify-items: start; padding-top: 8px; border-top: 1px solid var(--ayg-lijn); }
+.ayg .dem-knop { min-height: 54px; padding-inline: 26px; font-size: 16.5px; }
+@media (max-width: 479px) { .ayg .dem-knop { width: 100%; } }
+
+/* Zo gaat het (podium rechts) */
+.ayg .dem-samen { gap: 22px; }
+.ayg .dem-stappen { position: relative; z-index: 1; display: grid; gap: 0; border-top: 1px solid var(--ayg-inkt-lijn); }
+.ayg .dem-stappen li { display: grid; grid-template-columns: 36px 1fr; gap: 14px; padding-block: 18px; border-bottom: 1px solid var(--ayg-inkt-lijn); }
+.ayg .dem-stap-nr { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font: 700 15px/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; }
+.ayg .dem-stappen h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 1.15rem; letter-spacing: -0.02em; }
+.ayg .dem-stappen h2 svg { color: var(--ayg-accent); flex-shrink: 0; }
+.ayg .dem-stappen p { font-size: 15px; color: var(--ayg-inkt-tekst-2); }
+.ayg .dem-direct { position: relative; z-index: 1; font-size: 15px; color: var(--ayg-inkt-tekst-2); }
+.ayg .dem-direct a { color: var(--ayg-inkt-tekst); font-weight: 600; text-underline-offset: 3px; text-decoration-color: var(--ayg-accent); }
+.ayg .dem-anders { position: relative; z-index: 1; display: grid; gap: 12px; justify-items: start; padding-top: 18px; border-top: 1px solid var(--ayg-inkt-lijn); }
+.ayg .dem-anders p { font-weight: 600; }
+.ayg .dem-samen .ayg-gerust { position: relative; z-index: 1; }
+.ayg .dem-bedankt h2 { max-width: 22ch; }

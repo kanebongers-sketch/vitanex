@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 import path from 'path'
 import fs from 'fs'
 import { SITE_VERBORGEN } from './src/lib/site-modus'
+import { aygIndexeren } from './src/lib/aiyourgym/schakelaar'
+import { AYG_NOINDEX } from './src/lib/aiyourgym/indexeren'
 
 // Walk up from __dirname until we find node_modules/next.
 // This makes the config work in both the main checkout and git worktrees.
@@ -291,6 +293,18 @@ const nextConfig: NextConfig = {
       // houdt de webshop-headers.
       { source: '/mentaforce', has: [RELEASEV_HOST], headers: mentaforceHeaders },
       { source: '/mentaforce/:pad*', has: [RELEASEV_HOST], headers: mentaforceHeaders },
+      // AI Your Gym hoort nog niet in zoekmachines, ook niet als de site actief is
+      // (schakelaar AIYOURGYM_INDEXEREN, src/lib/aiyourgym/indexeren.ts). Op elk
+      // domein voor de /aiyourgym-paden en op aiyourgym.com voor alles. Voor de
+      // Fit Factory-regel hieronder, zodat die op fitfactorypt.nl de strengste blijft.
+      ...(aygIndexeren()
+        ? []
+        : [
+            { source: '/aiyourgym', headers: [{ key: 'X-Robots-Tag', value: AYG_NOINDEX }] },
+            { source: '/aiyourgym/:pad*', headers: [{ key: 'X-Robots-Tag', value: AYG_NOINDEX }] },
+            { source: '/api/aiyourgym/:pad*', headers: [{ key: 'X-Robots-Tag', value: AYG_NOINDEX }] },
+            { source: '/(.*)', has: [AYG_HOST], headers: [{ key: 'X-Robots-Tag', value: AYG_NOINDEX }] },
+          ]),
       // Het Fit Factory-domein hoort NOOIT in zoekmachines, los van de site-modus:
       // het is een besloten team-app met gegevens van leads en klanten. Crawlen
       // blijft toegestaan (zie app/robots.ts), zodat Google deze kop ook ziet.

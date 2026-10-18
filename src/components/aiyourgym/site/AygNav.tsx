@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { AANMELDEN, DEMO, NAV_LINKS, isHuidig } from './paden'
+import { AANMELDEN, DEMO, DEMO_AANVRAGEN, NAV_LINKS, isHuidig } from './paden'
 
 // De links in de kop, met de huidige pagina gemarkeerd, en het menupaneel voor
 // de telefoon: over het hele scherm, de pagina eronder staat stil. Het paneel
@@ -17,9 +17,13 @@ const BREED = '(min-width: 900px)'
 function useMenuPaneel(open: boolean, sluit: () => void) {
   const knop = useRef<HTMLButtonElement>(null)
   const eersteLink = useRef<HTMLAnchorElement>(null)
+  const paneel = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
+    // Het paneel begint precies onder de kop (bovenaan de pagina staat de contactbalk erboven).
+    const onderKop = knop.current?.closest('.ayg-kop')?.getBoundingClientRect().bottom
+    if (onderKop !== undefined) paneel.current?.style.setProperty('--ayg-paneel-top', `${Math.max(0, Math.round(onderKop))}px`)
     const vorige = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     eersteLink.current?.focus()
@@ -39,7 +43,7 @@ function useMenuPaneel(open: boolean, sluit: () => void) {
     }
   }, [open, sluit])
 
-  return { knop, eersteLink }
+  return { knop, eersteLink, paneel }
 }
 
 export function AygNav() {
@@ -51,7 +55,7 @@ export function AygNav() {
     setOpen(false)
   }
   const sluit = useCallback(() => setOpen(false), [])
-  const { knop, eersteLink } = useMenuPaneel(open, sluit)
+  const { knop, eersteLink, paneel } = useMenuPaneel(open, sluit)
 
   return (
     <>
@@ -68,7 +72,16 @@ export function AygNav() {
       </nav>
       <div className="ayg-kop-acties">
         <Link href={DEMO} className="ayg-kop-demo" aria-current={isHuidig(DEMO, pad) ? 'page' : undefined}>
-          Bekijk de demo
+          Live demo
+        </Link>
+        <Link
+          href={DEMO_AANVRAGEN}
+          className="ayg-knop ayg-knop--rand ayg-knop--klein"
+          aria-current={isHuidig(DEMO_AANVRAGEN, pad) ? 'page' : undefined}
+        >
+          <span>
+            Plan <span className="ayg-kop-lang">een gratis </span>demo
+          </span>
         </Link>
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent ayg-knop--klein">
           Probeer gratis <ArrowRight size={16} aria-hidden />
@@ -87,7 +100,7 @@ export function AygNav() {
         </span>
         {open ? 'Sluit' : 'Menu'}
       </button>
-      <div id="ayg-menupaneel" className="ayg-menupaneel" data-open={open ? '' : undefined} hidden={!open}>
+      <div ref={paneel} id="ayg-menupaneel" className="ayg-menupaneel" data-open={open ? '' : undefined} hidden={!open}>
         <nav aria-label="Menu">
           <ol className="ayg-menupaneel-lijst">
             {NAV_LINKS.map((l, i) => (
@@ -108,8 +121,11 @@ export function AygNav() {
           <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
             Probeer {PROEFDAGEN} dagen gratis <ArrowRight size={16} aria-hidden />
           </Link>
-          <Link href={DEMO} className="ayg-knop ayg-knop--rand">
-            Bekijk de demo
+          <Link href={DEMO_AANVRAGEN} className="ayg-knop ayg-knop--rand">
+            Plan een gratis demo
+          </Link>
+          <Link href={DEMO} className="ayg-menupaneel-live">
+            Of bekijk de live demo <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
       </div>

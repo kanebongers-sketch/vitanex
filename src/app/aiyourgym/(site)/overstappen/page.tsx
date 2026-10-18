@@ -5,7 +5,7 @@ import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { ImportScherm } from '@/components/aiyourgym/mockups/ImportScherm'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
 
 export const metadata: Metadata = {
   title: 'Overstappen',
@@ -74,8 +74,8 @@ export default function OverstappenPagina() {
           <Knop href={AANMELDEN} soort="accent" pijl>
             Begin met {PROEFDAGEN} dagen gratis
           </Knop>
-          <Knop href={DEMO} soort="rand">
-            Bekijk de demo
+          <Knop href={DEMO_AANVRAGEN} soort="rand">
+            Plan een gratis demo
           </Knop>
         </div>
       </PaginaKop>

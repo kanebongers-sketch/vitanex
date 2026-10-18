@@ -3,7 +3,7 @@ import { ArrowRight, Check } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { GERUSTSTELLING } from '@/components/aiyourgym/inhoud/conversie'
 import { Knop } from './bouwstenen'
-import { AANMELDEN, DEMO } from './paden'
+import { AANMELDEN, DEMO, DEMO_AANVRAGEN } from './paden'
 
 // De oproep om te beginnen, met vlak erbij wat het risico wegneemt. Staat onder
 // de held, na elke grote sectie en in de aanmeldband.
@@ -31,17 +31,29 @@ interface SectieActieProps {
   zin?: string
 }
 
-/** Na een grote sectie: de primaire knop, de demo als rustige tweede keus en geruststelling. */
+/** De twee routes naast elkaar: zelf proberen, of een persoonlijke demo plannen. */
+export function TweeRoutes() {
+  return (
+    <div className="ayg-knoppen">
+      <Knop href={AANMELDEN} soort="accent" pijl>
+        Probeer {PROEFDAGEN} dagen gratis
+      </Knop>
+      <Knop href={DEMO_AANVRAGEN} soort="rand">
+        Plan een gratis demo
+      </Knop>
+    </div>
+  )
+}
+
+/** Na een grote sectie: gratis proberen, een demo plannen, de live demo als rustige derde keus en geruststelling. */
 export function SectieActie({ zin }: SectieActieProps) {
   return (
     <div className="ayg-sectie-actie">
       {zin && <p className="ayg-sectie-actie-zin">{zin}</p>}
       <div className="ayg-knoppen">
-        <Knop href={AANMELDEN} soort="accent" pijl>
-          Probeer {PROEFDAGEN} dagen gratis
-        </Knop>
+        <TweeRoutes />
         <Link href={DEMO} className="ayg-pijllink">
-          Of bekijk eerst de demo <ArrowRight size={16} aria-hidden />
+          Of bekijk de live demo <ArrowRight size={16} aria-hidden />
         </Link>
       </div>
       <Geruststelling aantal={2} />

@@ -49,6 +49,13 @@ export default function PrivacyPagina() {
             Leden die hun gegevens willen inzien, laten aanpassen of verwijderen, kunnen terecht bij hun sportschool. Sportscholen kunnen
             daarvoor bij ons terecht. De contactgegevens volgen in de definitieve versie.
           </p>
+          <h2>Een demo aanvragen</h2>
+          <p>
+            Vraag je op deze website een demo aan, dan bewaren we je naam, de naam van je sportschool, je e-mailadres, je
+            telefoonnummer, het aantal vestigingen, het soort sportschool, wanneer het je uitkomt en je opmerking. We gebruiken die
+            alleen om contact met je op te nemen over de demo. Tegen misbruik bewaren we daarnaast een gehashte code van je
+            IP-adres, niet het adres zelf. We sturen je geen nieuwsbrief.
+          </p>
           <h2>Deze website</h2>
           <p>We plaatsen op deze website geen advertentiecookies.</p>
         </div>

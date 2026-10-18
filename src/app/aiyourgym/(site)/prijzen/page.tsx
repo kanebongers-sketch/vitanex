@@ -5,7 +5,7 @@ import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { VRAAG_CONTRACT, VRAAG_GEGEVENS } from '@/components/aiyourgym/inhoud/vertrouwen'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
 
 // Besluit Kane: geen bedragen op de website. De pakketten en wat erin zit komen
 // uit src/lib/aiyourgym/pakketten.ts; de prijs is altijd op maat.
@@ -100,8 +100,8 @@ export default function PrijzenPagina() {
           <Knop href={AANMELDEN} soort="accent" pijl>
             Probeer {PROEFDAGEN} dagen gratis
           </Knop>
-          <Knop href={DEMO} soort="rand">
-            Bekijk de demo
+          <Knop href={DEMO_AANVRAGEN} soort="rand">
+            Plan een gratis demo
           </Knop>
         </div>
       </PaginaKop>

@@ -4,11 +4,13 @@
 
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
 
-export type DoelgroepSleutel = 'zelfstandig' | 'boutique' | 'pt-studio' | 'keten'
+export type DoelgroepSleutel = 'zelfstandig' | 'boutique' | 'pt-studio' | 'keten' | 'yoga' | 'vechtsport' | 'bootcamp'
 
 export interface Doelgroep {
   sleutel: DoelgroepSleutel
   naam: string
+  /** Kort, voor het wisselende woord in de kop van de voorpagina. */
+  kort: string
   /** Korte omschrijving van de sportschool zelf. */
   wie: string
   /** De kern in een zin: wat het oplost. */
@@ -22,6 +24,7 @@ export interface Doelgroep {
 export const DOELGROEPEN: readonly Doelgroep[] = [
   {
     sleutel: 'zelfstandig',
+    kort: 'gym',
     naam: 'Zelfstandige sportschool',
     wie: 'Een vestiging, een klein team dat de vloer en de balie samen doet.',
     kop: 'Een systeem voor de hele dienst, van openen tot afsluiten.',
@@ -35,6 +38,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
   },
   {
     sleutel: 'boutique',
+    kort: 'boutique studio',
     naam: 'Boutique studio',
     wie: 'Lessen staan centraal: spinning, yoga, HIIT of kracht in kleine groepen.',
     kop: 'Volle lessen, minder lege plekken en geen gedoe met lijstjes.',
@@ -49,6 +53,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
   },
   {
     sleutel: 'pt-studio',
+    kort: 'PT-studio',
     naam: 'PT-studio',
     wie: 'Personal training en kleine groepen, waar begeleiding het verschil maakt.',
     kop: 'Elk lid een schema met een trainer erin.',
@@ -63,6 +68,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
   },
   {
     sleutel: 'keten',
+    kort: 'keten',
     naam: 'Keten',
     wie: 'Meerdere vestigingen, clubmanagers per vestiging en een centrale administratie.',
     kop: 'Elke vestiging eigen regels, een plek voor het overzicht.',
@@ -74,5 +80,50 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Rapporten per kalendermaand en een eigen adres op naam.aiyourgym.com',
     ],
     pakket: 'keten',
+  },
+  {
+    sleutel: 'yoga',
+    kort: 'yogastudio',
+    naam: 'Yoga, pilates en dans',
+    wie: 'Een studio met vaste lessen en kleine groepen, waar rust en een goede sfeer tellen.',
+    kop: 'Je lessen vol, zonder lijstjes of appjes heen en weer.',
+    punten: [
+      'Een lesrooster per zaal met een maximum aantal plekken en een wachtlijst',
+      'Leden reserveren en annuleren zelf in de app, volgens jouw regels',
+      'Een ledenapp met de naam, het logo en de kleuren van je studio',
+      'Challenges zoals weken op rij, met voortgang in de app',
+      'Bezetting per les en per kalendermaand in de cijfers',
+    ],
+    pakket: 'start',
+  },
+  {
+    sleutel: 'vechtsport',
+    kort: 'vechtsportschool',
+    naam: 'Vechtsport en boksen',
+    wie: 'Trainingen per groep en niveau, met vaste leden die er week na week staan.',
+    kop: 'Elke groep op tijd op de mat, elk lid in beeld.',
+    punten: [
+      'Lessen per groep en zaal, met een maximum aantal plekken en een wachtlijst',
+      'Inchecken met de QR-code en zien of het lidmaatschap toegang geeft',
+      'Een ledenkaart met bezoek, labels en notities van de trainers',
+      'Een opvolglijst voor leden die lang niet zijn geweest',
+      'Challenges en badges die leden in de app zien',
+    ],
+    pakket: 'club',
+  },
+  {
+    sleutel: 'bootcamp',
+    kort: 'bootcamp',
+    naam: 'Bootcamp en HIIT',
+    wie: 'Korte, intensieve groepstrainingen met een volle planning en veel energie.',
+    kop: 'Volle groepen, vaste ritmes en leden die terugkomen.',
+    punten: [
+      'Een rooster met plekken per training en een wachtlijst die vanzelf doorschuift',
+      'Leden reserveren in de app en krijgen een bevestiging',
+      'Challenges zoals een aantal trainingen per maand',
+      'Automatiseringen voor proefleden en leden die afhaken, met jouw drempels',
+      'Bezetting en no-shows per kalendermaand in de cijfers en rapporten',
+    ],
+    pakket: 'club',
   },
 ]

@@ -157,6 +157,8 @@ export interface KerncijfersInvoer {
 
 export interface Kerncijfers {
   actief: number | null
+  /** Open demo-aanvragen van de website (los geteld, zie demo-aanvragen.ts); null = niet te lezen. */
+  demoOpen?: number | null
   inProef: number | null
   aanvragen: number | null
   supportOpen: number | null

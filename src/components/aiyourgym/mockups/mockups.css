@@ -200,3 +200,44 @@
 .aygm-pin-toetsen span { display: grid; place-items: center; height: 44px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); font: 600 18px/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; }
 .aygm-pin-toetsen span[data-leeg] { background: none; border: 0; }
 .aygm-pin-voet { font-size: 11px; color: var(--text-3); padding-inline: 8px; }
+
+/* ── Held: het samengestelde scherm Vandaag ──────────────────────────────── */
+.aygm-dash-tegels { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.aygm-tegel[data-accent] { background: var(--brand); border-color: transparent; color: var(--brand-inkt); }
+.aygm-tegel[data-accent] .aygm-boven { color: var(--brand-inkt); }
+.aygm-dash-raster { display: grid; gap: 10px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; }
+.aygm-dash-lessen { display: grid; gap: 4px; padding: 12px 14px; }
+.aygm-dash-lessen > .aygm-boven { margin-bottom: 4px; }
+.aygm-dash-les { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.aygm-dash-tijd { font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.aygm-dash-les-naam { display: grid; gap: 5px; min-width: 0; }
+.aygm-dash-les-naam b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-dash-les-naam .aygm-balk { height: 4px; }
+.aygm-dash-les[data-vol] .aygm-balk > span { background: var(--club-let-op); }
+.aygm-dash-stand { font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aygm-dash-les[data-vol] .aygm-dash-stand { color: var(--club-let-op); font-weight: 600; }
+.aygm-dash-lid { display: grid; gap: 12px; padding: 12px 14px; }
+.aygm-dash-lid-naam { display: grid; gap: 5px; min-width: 0; }
+.aygm-dash-lid-naam b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygm-dash-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.aygm-dash-feiten { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aygm-dash-feiten > div { display: grid; gap: 4px; padding: 9px 10px; border-radius: 10px; background: var(--bg-raised); }
+.aygm-dash-feiten .aygm-getal { font-size: 22px; }
+.aygm-dash-schema { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.aygm-dash-schema b { font-size: 12.5px; font-weight: 600; }
+
+/* Het oefenkaartje dat over het venster valt */
+.aygm-dash-oef { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.75); }
+.aygm-dash-oef .aygm-beeld { border-radius: 10px; overflow: hidden; }
+.aygm-dash-speel { position: absolute; left: 6px; bottom: 6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-inkt); }
+.aygm-dash-oef-tekst { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.aygm-dash-oef .aygm-kernpunten { gap: 6px; }
+.aygm-dash-oef .aygm-kernpunten li { grid-template-columns: 20px 1fr; gap: 7px; align-items: center; }
+.aygm-dash-oef .aygm-kernpunten li::before { width: 18px; height: 18px; font-size: 10px; }
+.aygm-dash-oef .aygm-kernpunten b { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@container (max-width: 560px) {
+  .aygm-dash-raster { grid-template-columns: minmax(0, 1fr); }
+  .aygm-dash-lid { display: none; }
+  .aygm-dash-tegels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

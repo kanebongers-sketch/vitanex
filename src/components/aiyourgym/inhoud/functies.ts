@@ -1,58 +1,39 @@
-// ─── AI Your Gym: wat Club kan, in gewone taal (PUUR) ───────────────────────
+// ─── AI Your Gym: wat Club kan, in vijf hoofdstukken (PUUR) ─────────────────
 // Alleen functies die Club echt heeft (zie src/components/club/shell/onderdelen.ts
 // en src/lib/club/**). Nieuwe functie in Club? Pas hem hier pas aan als hij af is.
+// De hoofdstukken zijn de indeling van de website (Beheer, Coaching, Planning,
+// Groei, Betrokkenheid); het menu in Club zelf heeft een eigen indeling.
+// Elk hoofdstuk heeft een eigen kleuraccent (--ayg-h-<sleutel> in aiyourgym.css,
+// het contrast staat in contrast.test.ts) en een anker op /aiyourgym/functies.
 
-export type GroepSleutel = 'werkvloer' | 'leden' | 'planning' | 'coaching' | 'beheer'
+export type HoofdstukSleutel = 'beheer' | 'coaching' | 'planning' | 'groei' | 'betrokkenheid'
 
 export interface Functie {
   titel: string
   tekst: string
 }
 
-export interface FunctieGroep {
-  sleutel: GroepSleutel
+export interface Hoofdstuk {
+  sleutel: HoofdstukSleutel
   naam: string
   kop: string
   intro: string
   functies: readonly Functie[]
 }
 
-export const FUNCTIE_GROEPEN: readonly FunctieGroep[] = [
+export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
   {
-    sleutel: 'werkvloer',
-    naam: 'Werkvloer',
-    kop: 'Wat er vandaag in je club gebeurt.',
-    intro: 'Een startscherm voor de dienst: wie er binnen is, wat er nog moet gebeuren en wie je vandaag even aanspreekt.',
+    sleutel: 'beheer',
+    naam: 'Beheer',
+    kop: 'Je club draait, ook als jij er niet bent.',
+    intro: 'De balie, de dienst en de instellingen van je sportschool. Je team weet wat er moet gebeuren, jij bepaalt de regels.',
     functies: [
       { titel: 'Check-in aan de balie', tekst: 'Inchecken met de QR-code uit de ledenapp of op naam. Je ziet direct wie er binnen is, en AI Your Gym checkt of het lidmaatschap toegang geeft tot deze vestiging.' },
       { titel: 'Taken en poetslijsten', tekst: 'Dagelijkse taken, de afsluitronde en een poetsrooster met een minimum per week. In een overzichtelijke tabel per dag of per week, afvinken met een tik.' },
-      { titel: 'Opvolgen', tekst: 'Een lijst van wie je vandaag belt of aanspreekt: nieuwe leden, proefleden, leden die lang niet zijn geweest. Zo valt niemand tussen wal en schip.' },
       { titel: 'Notities en overdracht', tekst: 'Afspraken en kennis voor de volgende dienst op een vaste plek, in plaats van op een briefje achter de balie.' },
-    ],
-  },
-  {
-    sleutel: 'leden',
-    naam: 'Leden',
-    kop: 'Ieder lid in beeld, en blijvend betrokken.',
-    intro: 'Van eerste proefles tot trouw lid: alles over een lid op een kaart, en hulpmiddelen om leden te houden.',
-    functies: [
-      { titel: 'Ledenkaart', tekst: 'Gegevens, bezoek, lidmaatschap, labels, notities en status van een lid op een plek. Gezondheidsgegevens alleen met toestemming van het lid.' },
-      { titel: 'Leads en proeflessen', tekst: 'Nieuwe aanmeldingen met bron en status. Je ziet wie een proefles had en wie nog opgevolgd moet worden.' },
-      { titel: 'Automatiseringen voor ledenbehoud', tekst: 'Zeven regels die je per sportschool aan of uit zet: welkomstgesprek, proeflid opvolgen, lang niet gezien, risico op afhaken, verjaardag, exitgesprek en mijlpaal. Met een eigen drempel en een voorbeeldtekst.' },
-      { titel: 'Challenges en badges', tekst: 'Doelen voor je leden, zoals een aantal trainingen per maand. Voortgang en badges zijn zichtbaar in de ledenapp.' },
-      { titel: 'Berichten', tekst: 'Nieuws en acties die je leden in de ledenapp zien.' },
-    ],
-  },
-  {
-    sleutel: 'planning',
-    naam: 'Planning',
-    kop: 'Lessen, afspraken en diensten zonder gepuzzel.',
-    intro: 'Het groepslesrooster, afspraken met trainers en het personeelsrooster met uren, allemaal op dezelfde plek.',
-    functies: [
-      { titel: 'Groepslessen', tekst: 'Een lesrooster per vestiging en zaal. Leden reserveren in de app, met wachtlijst bij volle lessen en eigen regels voor annuleren en no-shows.' },
-      { titel: 'Afspraken met trainers', tekst: 'Intakes, personal training en metingen per trainer. Leden boeken een vrij moment, de trainer ziet het in zijn agenda.' },
-      { titel: 'Personeelsrooster en uren', tekst: 'Diensten van het fitnesspersoneel per week, met uren die van gepland naar gewerkt, goedgekeurd en verwerkt gaan. De uren exporteer je voor de administratie.' },
-      { titel: 'Agenda en sluitingsdagen', tekst: 'Overleg en afspraken per week, plus feestdagen en afwijkende openingstijden die overal meteen kloppen.' },
+      { titel: 'Meerdere vestigingen', tekst: 'Elke vestiging met eigen zalen, lessen, openingstijden en regels, en lidmaatschappen die bepalen waar een lid mag sporten.' },
+      { titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Voor de clubmanager vink je zelf aan welke onderdelen die ziet.' },
+      { titel: 'Eigen logo, kleuren en adres', tekst: 'Je eigen naam, logo en accentkleur in de software en in de ledenapp, op naam.aiyourgym.com. Een kleur met te weinig contrast wordt automatisch bijgesteld. Onderdelen die je niet gebruikt zet je uit.' },
     ],
   },
   {
@@ -70,17 +51,40 @@ export const FUNCTIE_GROEPEN: readonly FunctieGroep[] = [
     ],
   },
   {
-    sleutel: 'beheer',
-    naam: 'Beheer',
-    kop: 'Jouw sportschool, jouw regels.',
-    intro: 'Een instellingencentrum waar de eigenaar alles regelt, en cijfers die je per kalendermaand vergelijkt.',
+    sleutel: 'planning',
+    naam: 'Planning',
+    kop: 'Lessen, afspraken en diensten zonder gepuzzel.',
+    intro: 'Het groepslesrooster, afspraken met trainers en het personeelsrooster met uren, allemaal op dezelfde plek.',
     functies: [
+      { titel: 'Groepslessen', tekst: 'Een lesrooster per vestiging en zaal. Leden reserveren in de app, met wachtlijst bij volle lessen en eigen regels voor annuleren en no-shows.' },
+      { titel: 'Afspraken met trainers', tekst: 'Intakes, personal training en metingen per trainer. Leden boeken een vrij moment, de trainer ziet het in zijn agenda.' },
+      { titel: 'Personeelsrooster en uren', tekst: 'Diensten van het fitnesspersoneel per week, met uren die van gepland naar gewerkt, goedgekeurd en verwerkt gaan. De uren exporteer je voor de administratie.' },
+      { titel: 'Agenda en sluitingsdagen', tekst: 'Overleg en afspraken per week, plus feestdagen en afwijkende openingstijden die overal meteen kloppen.' },
+    ],
+  },
+  {
+    sleutel: 'groei',
+    naam: 'Groei',
+    kop: 'Meer leden binnen, en zien wat werkt.',
+    intro: 'Van proefles tot nieuw lid, en cijfers die je per kalendermaand vergelijkt. Zo weet je waar je groei vandaan komt.',
+    functies: [
+      { titel: 'Leads en proeflessen', tekst: 'Nieuwe aanmeldingen met bron en status. Je ziet wie een proefles had en wie nog opgevolgd moet worden.' },
+      { titel: 'Opvolgen', tekst: 'Een lijst van wie je vandaag belt of aanspreekt: nieuwe leden, proefleden, leden die lang niet zijn geweest. Zo valt niemand tussen wal en schip.' },
       { titel: 'Cijfers per kalendermaand', tekst: 'Groei, bezoek, bezetting van lessen en behoud, steeds van de eerste tot de laatste dag van de maand.' },
       { titel: 'Rapporten en exports', tekst: 'Ledenlijst, instroom en opzeggingen, bezoek, bezetting, no-shows, leads, afspraken, uren en opvolging. Als tabel of als CSV.' },
-      { titel: 'Eigen logo en kleuren', tekst: 'Je eigen naam, logo, accentkleur en een donker of licht thema, in de software en in de ledenapp. Een kleur met te weinig contrast wordt automatisch bijgesteld.' },
-      { titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Voor de clubmanager vink je zelf aan welke onderdelen die ziet.' },
-      { titel: 'Meerdere vestigingen', tekst: 'Elke vestiging met eigen zalen, lessen, openingstijden en regels, en lidmaatschappen die bepalen waar een lid mag sporten.' },
-      { titel: 'Eigen adres', tekst: 'Je eigen omgeving op naam.aiyourgym.com. Onderdelen die je niet gebruikt zet je uit.' },
+    ],
+  },
+  {
+    sleutel: 'betrokkenheid',
+    naam: 'Betrokkenheid',
+    kop: 'Leden die blijven, omdat ze zich gezien voelen.',
+    intro: 'Een eigen app voor je leden, alles over een lid op een kaart, en hulpmiddelen die leden betrokken houden.',
+    functies: [
+      { titel: 'Ledenapp in je eigen huisstijl', tekst: 'Een web-app met jouw naam, logo en kleuren die leden op hun beginscherm zetten. Lessen reserveren, inchecken met de QR-code, hun schema, voeding en voortgang.' },
+      { titel: 'Ledenkaart', tekst: 'Gegevens, bezoek, lidmaatschap, labels, notities en status van een lid op een plek. Gezondheidsgegevens alleen met toestemming van het lid.' },
+      { titel: 'Automatiseringen voor ledenbehoud', tekst: 'Zeven regels die je per sportschool aan of uit zet: welkomstgesprek, proeflid opvolgen, lang niet gezien, risico op afhaken, verjaardag, exitgesprek en mijlpaal. Met een eigen drempel en een voorbeeldtekst.' },
+      { titel: 'Challenges en badges', tekst: 'Doelen voor je leden, zoals een aantal trainingen per maand. Voortgang en badges zijn zichtbaar in de ledenapp.' },
+      { titel: 'Berichten', tekst: 'Nieuws en acties die je leden in de ledenapp zien.' },
     ],
   },
 ]

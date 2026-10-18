@@ -25,6 +25,7 @@ import {
   type PlatformAanmelding,
   type StartStand,
 } from './tellingen'
+import { haalDemoAanvragen, telOpen, type PlatformDemoAanvraag } from './demo-aanvragen'
 
 /** Grenzen per vraag, zodat de pagina ook bij veel klanten snel en klein blijft. */
 export const MAX_SPORTSCHOLEN = 60
@@ -65,6 +66,8 @@ export interface PlatformStand {
   sportscholen: SportschoolRegel[]
   /** Nieuwste eerst; null = niet te lezen. */
   aanmeldingen: PlatformAanmelding[] | null
+  /** Demo-aanvragen van de website, open eerst; null = niet te lezen. */
+  demoAanvragen: PlatformDemoAanvraag[] | null
   cijfers: Kerncijfers
   /** Korte meldingen over wat niet te lezen was. */
   problemen: string[]
@@ -190,8 +193,9 @@ export async function haalPlatform(t: ClubToegang, nu: Date): Promise<PlatformSt
   const admin = t.admin
   const lijst = t.organisaties.slice(0, MAX_SPORTSCHOLEN)
   const ids = lijst.map((o) => o.id)
-  const [aanmeldingen, instellingen, supportStatussen, fouten24] = await Promise.all([
+  const [aanmeldingen, demoAanvragen, instellingen, supportStatussen, fouten24] = await Promise.all([
     haalAanmeldingen(admin, problemen),
+    haalDemoAanvragen(admin, problemen),
     haalInstellingen(admin, t.beheerderId, problemen),
     haalSupportStatussen(admin, ids, problemen),
     telFouten24(admin, nu, problemen),
@@ -207,7 +211,8 @@ export async function haalPlatform(t: ClubToegang, nu: Date): Promise<PlatformSt
   return {
     sportscholen,
     aanmeldingen,
-    cijfers: kerncijfers({ aanmeldingen, inProef, supportStatussen, fouten24 }),
+    demoAanvragen,
+    cijfers: { ...kerncijfers({ aanmeldingen, inProef, supportStatussen, fouten24 }), demoOpen: telOpen(demoAanvragen) },
     problemen: [...problemen],
     afgekapt: t.organisaties.length > lijst.length,
   }

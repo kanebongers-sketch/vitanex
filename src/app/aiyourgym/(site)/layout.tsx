@@ -6,6 +6,7 @@ import '@/components/aiyourgym/home/home.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 import { AygKop } from '@/components/aiyourgym/site/AygKop'
 import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
+import { ContactBalk } from '@/components/aiyourgym/site/ContactBalk'
 import { PlakActie } from '@/components/aiyourgym/site/PlakActie'
 
 // De pagina's van de verkoopwebsite met kop en voet. De poort (alleen Kane zolang
@@ -24,6 +25,7 @@ export default function AiYourGymSiteLayout({ children }: { children: ReactNode 
       <a href="#inhoud" className="ayg-overslaan">
         Naar de inhoud
       </a>
+      <ContactBalk />
       <AygKop />
       <main id="inhoud" className="ayg-main">
         {children}

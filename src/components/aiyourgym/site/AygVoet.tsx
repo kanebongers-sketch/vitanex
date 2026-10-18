@@ -1,14 +1,9 @@
 import Link from 'next/link'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
-import { AANMELDEN, DEMO, NAV_LINKS, aygPad } from './paden'
+import { HOOFDSTUKKEN } from '@/components/aiyourgym/inhoud/functies'
+import { AANMELDEN, DEMO, DEMO_AANVRAGEN, NAV_LINKS, aygPad } from './paden'
 
-const PRODUCT = [
-  { label: 'Werkvloer', pad: aygPad('/functies#werkvloer') },
-  { label: 'Leden en ledenbehoud', pad: aygPad('/functies#leden') },
-  { label: 'Planning en personeel', pad: aygPad('/functies#planning') },
-  { label: 'Coaching en schema’s', pad: aygPad('/functies#coaching') },
-  { label: 'Beheer en cijfers', pad: aygPad('/functies#beheer') },
-] as const
+const PRODUCT = HOOFDSTUKKEN.map((h) => ({ label: h.naam, pad: aygPad(`/functies#${h.sleutel}`) }))
 
 export function AygVoet() {
   const jaar = new Date().getFullYear()
@@ -18,7 +13,7 @@ export function AygVoet() {
         <div className="ayg-voet-raster">
           <div className="ayg-voet-merk">
             <AygLogo opDonker />
-            <p>Clubsoftware voor sportscholen. Werkvloer, leden, planning en coaching op een plek.</p>
+            <p>Clubsoftware voor sportscholen. Beheer, coaching, planning, groei en betrokkenheid op een plek.</p>
           </div>
           <nav aria-labelledby="voet-site">
             <h2 id="voet-site">Website</h2>
@@ -29,7 +24,10 @@ export function AygVoet() {
                 </li>
               ))}
               <li>
-                <Link href={DEMO}>Bekijk de demo</Link>
+                <Link href={DEMO_AANVRAGEN}>Plan een gratis demo</Link>
+              </li>
+              <li>
+                <Link href={DEMO}>Bekijk de live demo</Link>
               </li>
               <li>
                 <Link href={AANMELDEN}>Probeer gratis</Link>

@@ -18,12 +18,19 @@ function getal(n: number | null): string {
   return n === null ? '?' : String(n)
 }
 
-// Vijf compacte tegels met alleen echte tellingen (geen omzet: de prijzen staan in Stripe).
+// Zes compacte tegels met alleen echte tellingen (geen omzet: de prijzen staan in Stripe).
 export function Kerncijfers({ cijfers: c }: KerncijfersProps) {
   const tegels: Tegel[] = [
     { label: 'Actieve sportscholen', waarde: c.actief, sub: 'Met een lopend abonnement.' },
     { label: 'In proefperiode', waarde: c.inProef, sub: c.inProef === null ? 'Stripe niet te lezen.' : 'Proef loopt nog, volgens Stripe.' },
     { label: 'Open aanvragen', waarde: c.aanvragen, sub: 'Wachten op jouw contact.', aandacht: c.aanvragen ? 'merk' : undefined, href: '#platform-aanmeldingen-kop' },
+    {
+      label: 'Demo-aanvragen',
+      waarde: c.demoOpen ?? null,
+      sub: c.demoOpen === null || c.demoOpen === undefined ? 'Niet te lezen.' : 'Open, binnen een werkdag bellen.',
+      aandacht: c.demoOpen ? 'merk' : undefined,
+      href: '#platform-demo-kop',
+    },
     {
       label: 'Supportmeldingen',
       waarde: c.supportOpen,

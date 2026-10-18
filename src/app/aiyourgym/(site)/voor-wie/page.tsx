@@ -3,28 +3,40 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { DOELGROEPEN, type Doelgroep, type DoelgroepSleutel } from '@/components/aiyourgym/inhoud/doelgroepen'
-import { PersoneelScherm } from '@/components/aiyourgym/mockups/BeheerSchermen'
-import { Figuur, RepdbBron } from '@/components/aiyourgym/mockups/kaders'
+import { AppLessen } from '@/components/aiyourgym/mockups/AppSchermen'
+import { CijfersScherm, PersoneelScherm } from '@/components/aiyourgym/mockups/BeheerSchermen'
+import { Figuur, RepdbBron, Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
-import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
+import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
 
 export const metadata: Metadata = {
   title: 'Voor wie',
   description:
-    'AI Your Gym voor een zelfstandige sportschool, een boutique studio, een PT-studio of een keten: wat elk soort sportschool aan de software heeft.',
+    'AI Your Gym voor een zelfstandige sportschool, boutique studio, PT-studio, keten, yoga- of pilatesstudio, vechtsportschool of bootcamp: wat elk soort sportschool aan de software heeft.',
 }
 
-const BEELD: Record<DoelgroepSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode }> = {
+const BEELD: Record<DoelgroepSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
   zelfstandig: { label: 'De check-in met de leden die net binnen zijn en hun status', inhoud: <CheckinScherm /> },
   boutique: { label: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst', inhoud: <RoosterScherm /> },
   'pt-studio': { label: 'Een oefening met bewegende illustratie, genummerde kernpunten, ademhaling en tempo', inhoud: <Oefening />, bron: <RepdbBron /> },
   keten: { label: 'Het personeelsrooster met diensten en de status van de uren', inhoud: <PersoneelScherm /> },
+  yoga: {
+    label: 'De ledenapp op een telefoon met de lessen van vandaag, vrije plekken en knoppen om te reserveren of op de wachtlijst te gaan',
+    inhoud: (
+      <Toestel tab="Lessen">
+        <AppLessen />
+      </Toestel>
+    ),
+    smal: true,
+  },
+  vechtsport: { label: 'De opvolglijst van vandaag met leden en de reden om ze aan te spreken', inhoud: <OpvolgScherm /> },
+  bootcamp: { label: 'De cijfers van een kalendermaand met tegels en een staafgrafiek', inhoud: <CijfersScherm /> },
 }
 
 const AANPASSEN = [
@@ -67,7 +79,7 @@ function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
               <Link href={`${AANMELDEN}?pakket=${pakket.sleutel}`}>Probeer {pakket.naam} gratis</Link>
             </p>
           )}
-          <Figuur className="ayg-groep-beeld ayg-onthul" label={beeld.label} bijschrift={beeld.bron}>
+          <Figuur className={beeld.smal ? 'ayg-groep-beeld ayg-groep-beeld--smal ayg-onthul' : 'ayg-groep-beeld ayg-onthul'} label={beeld.label} bijschrift={beeld.bron}>
             {beeld.inhoud}
           </Figuur>
         </div>
@@ -82,14 +94,14 @@ export default function VoorWiePagina() {
       <PaginaKop
         label="Voor wie"
         titel="Voor elke sportschool die het goed wil regelen."
-        tekst="Een zelfstandige gym, een boutique studio, een PT-studio of een keten: dezelfde software, ingericht op jouw manier."
+        tekst="Een zelfstandige gym, een boutique studio, een PT-studio, een keten, een yogastudio, een vechtsportschool of een bootcamp: dezelfde software, ingericht op jouw manier."
       >
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
             Probeer {PROEFDAGEN} dagen gratis
           </Knop>
-          <Knop href={DEMO} soort="rand">
-            Bekijk de demo
+          <Knop href={DEMO_AANVRAGEN} soort="rand">
+            Plan een gratis demo
           </Knop>
         </div>
         <nav aria-label="Soorten sportscholen op deze pagina" className="ayg-ruim-boven">
