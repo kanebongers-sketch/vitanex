@@ -58,7 +58,7 @@ export interface VeelgesteldeVraag {
 /** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
 export const VRAAG_CONTRACT: VeelgesteldeVraag = {
   vraag: 'Zit ik ergens aan vast?',
-  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. In die tijd stop je kosteloos. Daarna betaal je per maand, per vestiging. Je prijs krijg je vooraf en schriftelijk, en het bedrag zie je bij Stripe voordat je iets bevestigt.`,
+  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. Stop je in die tijd, dan betaal je niets. Ga je door, dan loopt je abonnement een jaar en betaal je per maand, per vestiging. Opstartkosten rekenen we nu niet. Het bedrag zie je bij Stripe voordat je iets bevestigt.`,
 }
 
 /** Ook gebruikt op de prijzenpagina: van wie de gegevens zijn. */
