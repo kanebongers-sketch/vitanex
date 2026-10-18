@@ -1,0 +1,55 @@
+/* ─── Fit Factory Club: vergelijkpagina oefenbeelden (prototype) ────────────
+   Per oefening een rij: uitleg, het huidige beeld en het nieuwe in vier
+   varianten. Selectors: .club-beelden. */
+
+.club-beelden { display: grid; gap: 14px; margin-top: 24px; }
+
+.club-beelden-rij {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(200px, 1fr) minmax(0, 1.9fr);
+  gap: 20px;
+  align-items: start;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--club-radius, 12px);
+  background: var(--club-vlak);
+}
+
+.club-beelden-info h2 {
+  margin: 0;
+  font-family: var(--ff-kop);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.club-beelden-meta { margin: 6px 0 0; font-size: 12px; color: var(--text-3); }
+.club-beelden-toont { margin: 14px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; line-height: 1.4; color: var(--text-2); }
+.club-beelden-toont li::marker { color: var(--brand-tekst, var(--brand)); }
+.club-beelden-knoppen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.club-beelden-knoppen .club-knop[aria-pressed='true']:not(.club-knop--primair) { border-color: var(--brand); color: var(--text-1); }
+
+.club-beelden-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.club-beelden-huidig .club-training-beeld--groot { width: 100%; }
+
+.club-beelden-varianten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.club-beelden-variant { margin: 0; display: grid; gap: 6px; }
+.club-beelden-variant figcaption { font-size: 11px; color: var(--text-4); text-align: center; }
+
+.club-beelden-materiaal { margin-top: 32px; }
+.club-beelden-materiaalraster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+
+@media (max-width: 1100px) {
+  .club-beelden-rij { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .club-beelden-nieuw { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .club-beelden-rij { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+}

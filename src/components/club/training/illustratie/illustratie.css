@@ -1,0 +1,95 @@
+/* ─── Fit Factory Club: eigen oefenillustraties (prototype) ──────────────────
+   Alle kleuren als variabelen: het figuur is neutraal, de werkende spieren
+   krijgen het accent van de sportschool (--ill-accent, standaard --brand).
+   Twee thema's: donker (standaard, zoals de club-app) en licht. Selectors: .club-ill. */
+
+.club-ill {
+  --ill-accent: var(--brand, #b58e5c);
+  --ill-vlak: #18191b;
+  --ill-vlak-rand: rgba(255, 255, 255, 0.07);
+  --ill-vlak-gloed: rgba(255, 255, 255, 0.035);
+  --ill-vloer: rgba(0, 0, 0, 0.42);
+  --ill-huid: #c7c2b9;
+  --ill-huid-ver: #8e8981;
+  --ill-huid-nabij: #d6d1c8;
+  --ill-schaduw: rgba(28, 22, 16, 0.2);
+  --ill-glans: rgba(255, 255, 255, 0.16);
+  --ill-spier: var(--ill-accent);
+  --ill-spier-zacht: color-mix(in srgb, var(--ill-accent) 48%, var(--ill-huid));
+  --ill-spier-ver: color-mix(in srgb, var(--ill-accent) 68%, #000);
+  --ill-spier-ver-zacht: color-mix(in srgb, var(--ill-accent) 40%, var(--ill-huid-ver));
+  --ill-haar: #37342f;
+  --ill-schoen: #2c2d31;
+  --ill-schoen-ver: #1f2023;
+  --ill-zool: #e4e0d9;
+  --ill-metaal: #b5b8be;
+  --ill-metaal-donker: #5d6067;
+  --ill-schijf: #393b41;
+  --ill-schijf-ver: #2a2c30;
+  --ill-schijf-rand: #55585f;
+  --ill-schijf-glas: rgba(70, 72, 78, 0.42);
+  --ill-kussen: #44454b;
+  --ill-kussen-ver: #34353a;
+  --ill-frame: #74777f;
+  --ill-frame-ver: #3e4045;
+  --ill-kabel: #a3a6ac;
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: var(--club-radius, 12px);
+  background:
+    radial-gradient(120% 90% at 50% 18%, var(--ill-vlak-gloed), transparent 62%),
+    var(--ill-vlak);
+  box-shadow: inset 0 0 0 1px var(--ill-vlak-rand);
+  overflow: hidden;
+}
+
+.club-ill--licht {
+  --ill-vlak: #f2f0eb;
+  --ill-vlak-rand: rgba(0, 0, 0, 0.07);
+  --ill-vlak-gloed: rgba(255, 255, 255, 0.9);
+  --ill-vloer: rgba(40, 32, 20, 0.12);
+  --ill-huid: #b9b3a9;
+  --ill-huid-ver: #9a948a;
+  --ill-huid-nabij: #c7c1b7;
+  --ill-schaduw: rgba(40, 30, 18, 0.14);
+  --ill-glans: rgba(255, 255, 255, 0.28);
+  --ill-spier-ver: color-mix(in srgb, var(--ill-accent) 75%, #2a241c);
+  --ill-haar: #4a463f;
+  --ill-schoen: #2e2f33;
+  --ill-schoen-ver: #45464b;
+  --ill-zool: #fbfaf7;
+  --ill-metaal: #9da1a8;
+  --ill-metaal-donker: #4c4f55;
+  --ill-schijf: #2f3136;
+  --ill-schijf-ver: #4a4c52;
+  --ill-schijf-rand: #5c5f66;
+  --ill-schijf-glas: rgba(47, 49, 54, 0.22);
+  --ill-kussen: #3b3c41;
+  --ill-kussen-ver: #55565c;
+  --ill-frame: #8a8d94;
+  --ill-frame-ver: #d3d0ca;
+  --ill-kabel: #6c6f76;
+}
+
+.club-ill svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Stilstaand begin en eind naast elkaar (rustige beweging, of zonder afspelen). */
+.club-ill-paar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.club-ill-paar figure { margin: 0; display: grid; gap: 4px; }
+.club-ill-paar figcaption {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-3, #8b8b8b);
+}
