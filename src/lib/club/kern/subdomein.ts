@@ -8,6 +8,8 @@
 //    /clubkane/...   door (alle bestaande links blijven werken)
 //    /api/...        door
 //    /clubinloggen/  door (persoonlijke inloglink van een eigenaar of clubmanager)
+//    /mijn, /mijn/   door (de ledenapp voor leden, src/app/mijn)
+//    /club-app/      door (service worker en iconen van de ledenapp)
 //    /...            herschrijven naar /clubkane/...
 //  www.aiyourgym.com, aiyourgym.com, gereserveerde namen: niet van Club (nog)
 //  elk ander domein: niet van Club
@@ -78,6 +80,8 @@ export function beslisClub(host: string | null | undefined, pad: string, actief:
   if (!actief) return { soort: 'niet-van-mij' }
   const slug = slugUitHost(host)
   if (!slug) return { soort: 'niet-van-mij' }
-  if (pad === CLUB_PREFIX || pad.startsWith(`${CLUB_PREFIX}/`) || pad.startsWith('/api/') || pad.startsWith('/clubinloggen/')) return { soort: 'door', slug }
+  const door = pad === CLUB_PREFIX || pad.startsWith(`${CLUB_PREFIX}/`) || pad.startsWith('/api/') || pad.startsWith('/clubinloggen/')
+    || pad === '/mijn' || pad.startsWith('/mijn/') || pad.startsWith('/club-app/')
+  if (door) return { soort: 'door', slug }
   return { soort: 'herschrijven', slug, pad: pad === '/' ? CLUB_PREFIX : `${CLUB_PREFIX}${pad}` }
 }

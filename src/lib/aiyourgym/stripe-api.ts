@@ -1,8 +1,8 @@
 // ─── AI Your Gym: de Stripe-API (SERVER-ONLY) ───────────────────────────────
 // Rechtstreeks via fetch op api.stripe.com met de eigen sleutel
-// AIYOURGYM_STRIPE_SECRET_KEY (los van MentaForce en de webshop). Twee
-// aanroepen: een Checkout Session maken en er een ophalen. De sleutel gaat
-// nooit naar de browser of in een log.
+// AIYOURGYM_STRIPE_SECRET_KEY (los van MentaForce en de webshop): een Checkout
+// Session maken en ophalen, een abonnement ophalen en een sessie in het Customer
+// Portal maken. De sleutel gaat nooit naar de browser of in een log.
 
 import { PROEFDAGEN } from './pakketten'
 import type { Aanmelding } from './aanmelding'
@@ -69,4 +69,19 @@ export async function maakCheckoutSessie(sleutel: string, c: CheckoutInvoer): Pr
 /** Een bestaande Checkout Session ophalen (ruwe JSON, lees met leesSessie). */
 export async function haalCheckoutSessie(sleutel: string, sessieId: string): Promise<unknown | null> {
   return stripeVraag(sleutel, `/checkout/sessions/${encodeURIComponent(sessieId)}`, { method: 'GET' })
+}
+
+/** Een abonnement ophalen (ruwe JSON, lees met leesStripeAbonnement in abonnement.ts). */
+export async function haalAbonnement(sleutel: string, abonnementId: string): Promise<unknown | null> {
+  return stripeVraag(sleutel, `/subscriptions/${encodeURIComponent(abonnementId)}`, { method: 'GET' })
+}
+
+/**
+ * Een sessie in het Stripe Customer Portal (facturen, betaalgegevens,
+ * opzeggen): alleen de url, of null. Het formulier komt uit portaalFormulier.
+ */
+export async function maakPortaalSessie(sleutel: string, formulier: URLSearchParams): Promise<string | null> {
+  const json = await stripeVraag(sleutel, '/billing_portal/sessions', { method: 'POST', body: formulier })
+  const url = (json as { url?: unknown } | null)?.url
+  return typeof url === 'string' && url.startsWith('https://') ? url : null
 }

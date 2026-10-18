@@ -9,6 +9,7 @@ import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
 import { openingstijdenUitJson, type Openingstijden } from '@/lib/club/rooster/openingstijden'
 import { AFSPRAAK_KOLOMMEN, TYPE_KOLOMMEN, afspraakUitRij, rijen, typeUitRij, type Afspraak, type AfspraakType, type AfspraakWeergave } from './model'
 import type { TypeInvoer } from './invoer'
+import { laatHerinneringenVervallen, planAfspraakMelding } from '@/lib/club/meldingen/opslag'
 
 const MAX_RIJEN = 3000
 
@@ -136,11 +137,27 @@ export async function maakAfspraak(admin: SupabaseClient, userId: string, n: Nie
     .single()
   if (error) return schrijfFout(error)
   const afspraak = afspraakUitRij(data)
-  return afspraak ? { ok: true, waarde: afspraak } : { ok: false, status: 500, fout: 'De afspraak kon niet worden gelezen.' }
+  if (!afspraak) return { ok: false, status: 500, fout: 'De afspraak kon niet worden gelezen.' }
+  // Melding (best effort, breekt de boeking nooit): bevestiging en herinnering.
+  await planAfspraakMelding(admin, userId, afspraak, 'afspraak_geboekt')
+  return { ok: true, waarde: afspraak }
 }
 
-/** Een afspraak bijwerken. Met `alleenAlsStatus` alleen als de status nog die is (geen stille overschrijving). */
-export async function werkAfspraakBij(admin: SupabaseClient, userId: string, id: string, patch: Record<string, unknown>, alleenAlsStatus?: string): Promise<Opgeslagen<Afspraak>> {
+/**
+ * Een afspraak bijwerken. Met `alleenAlsStatus` alleen als de status nog die is
+ * (geen stille overschrijving). `door` zegt wie annuleert: het lid zelf in de
+ * app of de club; dat bepaalt welke melding het lid krijgt. Zonder `door`:
+ * annuleren met `alleenAlsStatus` 'gepland' is het lid in de app (zo doen de
+ * app-routes het), anders de club.
+ */
+export async function werkAfspraakBij(
+  admin: SupabaseClient,
+  userId: string,
+  id: string,
+  patch: Record<string, unknown>,
+  alleenAlsStatus?: string,
+  door?: 'lid' | 'club',
+): Promise<Opgeslagen<Afspraak>> {
   let q = admin
     .from('club_afspraken')
     .update({ ...patch, gewijzigd_op: new Date().toISOString() })
@@ -152,7 +169,19 @@ export async function werkAfspraakBij(admin: SupabaseClient, userId: string, id:
     .maybeSingle()
   if (error) return schrijfFout(error)
   const afspraak = afspraakUitRij(data)
-  return afspraak ? { ok: true, waarde: afspraak } : { ok: false, status: 404, fout: 'Afspraak niet gevonden.' }
+  if (!afspraak) return { ok: false, status: 404, fout: 'Afspraak niet gevonden.' }
+  await meldWijziging(admin, userId, afspraak, patch, door ?? (alleenAlsStatus === 'gepland' ? 'lid' : 'club'))
+  return { ok: true, waarde: afspraak }
+}
+
+/** Meldingen na een wijziging (best effort): annulering of verplaatsing. */
+async function meldWijziging(admin: SupabaseClient, userId: string, a: Afspraak, patch: Record<string, unknown>, door: 'lid' | 'club'): Promise<void> {
+  if (patch.status === 'geannuleerd') {
+    await laatHerinneringenVervallen(admin, userId, [a.id])
+    await planAfspraakMelding(admin, userId, a, door === 'lid' ? 'afspraak_afgemeld' : 'afspraak_geannuleerd')
+  } else if ('start_op' in patch && a.status === 'gepland') {
+    await planAfspraakMelding(admin, userId, a, 'afspraak_verplaatst')
+  }
 }
 
 /** Hoeveel geplande afspraken in de toekomst heeft dit lid? null bij een fout. */

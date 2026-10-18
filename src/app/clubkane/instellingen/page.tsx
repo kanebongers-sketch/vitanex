@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { eisClubToegang } from '@/lib/club/toegang'
+import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { haalInstellingen, type Instellingen } from '@/lib/club/instellingen/opslag'
@@ -9,7 +9,11 @@ import { RegelsFormulier } from '@/components/club/instellingen/RegelsFormulier'
 import { ZalenBeheer } from '@/components/club/instellingen/ZalenBeheer'
 import { LestypenBeheer } from '@/components/club/instellingen/LestypenBeheer'
 import { WeekroosterBeheer } from '@/components/club/instellingen/WeekroosterBeheer'
-import { MedewerkersBeheer } from '@/components/club/instellingen/MedewerkersBeheer'
+import { MedewerkersBeheer, type LoginBeheer } from '@/components/club/instellingen/MedewerkersBeheer'
+import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
+import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
+import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { adresVan } from '@/lib/club/kern/subdomein'
 import { VestigingenBeheer, type VestigingContact } from '@/components/club/instellingen/VestigingenBeheer'
 import '@/components/club/rooster/rooster.css'
 import '@/components/club/instellingen/instellingen.css'
@@ -32,7 +36,25 @@ function kiesTab(ruw: string | string[] | undefined): Tab {
   return TABS.find((t) => t.sleutel === w)?.sleutel ?? 'regels'
 }
 
-function TabInhoud({ tab, data, vestiging }: { tab: Exclude<Tab, 'vestigingen'>; data: Instellingen; vestiging: Vestiging }) {
+interface TabInhoudProps {
+  tab: Exclude<Tab, 'vestigingen'>
+  data: Instellingen
+  vestiging: Vestiging
+  t: ClubToegang
+}
+
+/** Inloglinks van medewerkers: alleen voor Kane, de eigenaar en de clubmanager. */
+async function haalLoginBeheer(t: ClubToegang): Promise<LoginBeheer | null> {
+  if (!magMedewerkerLoginsBeheren(t)) return null
+  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
+  return {
+    logins: await haalMedewerkerLogins(t.admin, t.userId),
+    linkBasis: subdomeinen && t.organisatie.slug ? `https://${adresVan(t.organisatie.slug)}` : null,
+    loginAan: CLUB_EIGEN_LOGIN,
+  }
+}
+
+async function TabInhoud({ tab, data, vestiging, t }: TabInhoudProps) {
   const optie = (m: { id: string; naam: string }) => ({ id: m.id, naam: m.naam })
   switch (tab) {
     case 'regels':
@@ -54,7 +76,14 @@ function TabInhoud({ tab, data, vestiging }: { tab: Exclude<Tab, 'vestigingen'>;
         />
       )
     case 'medewerkers':
-      return <MedewerkersBeheer medewerkers={data.medewerkers} vestiging={vestiging} />
+      return (
+        <MedewerkersBeheer
+          medewerkers={data.medewerkers}
+          vestiging={vestiging}
+          login={await haalLoginBeheer(t)}
+          ikZelf={t.rol === 'medewerker' ? t.persoonId : null}
+        />
+      )
   }
 }
 
@@ -63,13 +92,16 @@ export default async function InstellingenPagina({ searchParams }: { searchParam
   const params = await searchParams
   const vestiging = kiesUit(t.vestigingen, params.v)
   // Zonder vestigingen kan alleen het tabblad Vestigingen: daar voeg je de eerste toe.
-  const tab = vestiging ? kiesTab(params.tab) : 'vestigingen'
+  // Vestigingen beheren is sportschoolbreed: niet voor een medewerker (de API is voor hem ook dicht).
+  const metVestigingen = t.rol !== 'medewerker'
+  const gekozen = vestiging ? kiesTab(params.tab) : 'vestigingen'
+  const tab = gekozen === 'vestigingen' && !metVestigingen && vestiging ? 'regels' : gekozen
   const huidig = TABS.find((x) => x.sleutel === tab)
   if (tab === 'vestigingen' || !vestiging) {
     return (
       <>
         <InstellingenKop boven={vestiging ? naamVan(t.vestigingen, vestiging) : t.organisatie.naam} uitleg={huidig?.uitleg} />
-        {vestiging && <Tabs vestiging={vestiging} tab={tab} />}
+        {vestiging && <Tabs vestiging={vestiging} tab={tab} metVestigingen={metVestigingen} />}
         <VestigingenBeheer vestigingen={t.vestigingen} contact={await haalContact(t)} />
       </>
     )
@@ -79,9 +111,9 @@ export default async function InstellingenPagina({ searchParams }: { searchParam
   return (
     <>
       <InstellingenKop boven={naamVan(t.vestigingen, vestiging)} uitleg={huidig?.uitleg} />
-      <Tabs vestiging={vestiging} tab={tab} />
+      <Tabs vestiging={vestiging} tab={tab} metVestigingen={metVestigingen} />
       {data ? (
-        <TabInhoud tab={tab} data={data} vestiging={vestiging} />
+        <TabInhoud tab={tab} data={data} vestiging={vestiging} t={t} />
       ) : (
         <p className="club-melding club-melding--fout" role="alert">De instellingen konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
       )}
@@ -101,10 +133,10 @@ function InstellingenKop({ boven, uitleg }: { boven: string; uitleg: string | un
   )
 }
 
-function Tabs({ vestiging, tab }: { vestiging: Vestiging; tab: Tab }) {
+function Tabs({ vestiging, tab, metVestigingen }: { vestiging: Vestiging; tab: Tab; metVestigingen: boolean }) {
   return (
     <nav className="club-segment club-instellingen-tabs" aria-label="Onderdelen van de instellingen">
-      {TABS.map((x) => (
+      {TABS.filter((x) => metVestigingen || x.sleutel !== 'vestigingen').map((x) => (
         <Link key={x.sleutel} href={clubPad('/instellingen', vestiging, { tab: x.sleutel })} aria-current={x.sleutel === tab ? 'page' : undefined} scroll={false}>
           {x.label}
         </Link>
@@ -114,7 +146,7 @@ function Tabs({ vestiging, tab }: { vestiging: Vestiging; tab: Tab }) {
 }
 
 /** Adres, telefoon en e-mail van de vestigingen van deze sportschool. */
-async function haalContact(t: Awaited<ReturnType<typeof eisClubToegang>>): Promise<VestigingContact> {
+async function haalContact(t: ClubToegang): Promise<VestigingContact> {
   const { data, error } = await t.admin.from('club_vestigingen').select('vestiging, adres, telefoon, email').eq('user_id', t.userId)
   if (error) console.error('[club] contact vestigingen lezen mislukt', error.message)
   const tekst = (v: unknown) => (typeof v === 'string' && v.trim() ? v : null)

@@ -1,0 +1,115 @@
+/* ─── Club ledenapp: "Zet de app op je beginscherm" ──────────────────────────
+   Een rustige kaart: teken links, kop in de kapitale kopletter, accent alleen
+   op de knop en het teken. Alleen .club-installeer-*. Kleuren uit de club-
+   variabelen, dus in de huisstijl van de sportschool, donker en licht. */
+
+.club-installeer {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 12px 16px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--club-radius, 12px);
+  background:
+    linear-gradient(135deg, var(--brand-soft, transparent), transparent 55%),
+    var(--bg-card);
+  box-shadow: var(--club-schaduw, none);
+  color: var(--text-1);
+  animation: club-installeer-in 320ms var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.club-installeer-teken {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--brand-soft, var(--club-vlak));
+  color: var(--brand-tekst, var(--brand));
+}
+
+.club-installeer-tekst { display: grid; gap: 8px; min-width: 0; padding-top: 2px; }
+
+.club-installeer-kop {
+  margin: 0;
+  font-family: var(--ff-kop, inherit);
+  font-size: 18px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.club-installeer-uitleg { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+
+.club-installeer-stappen { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 8px; }
+.club-installeer-stappen li { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.4; color: var(--text-2); }
+.club-installeer-stappen strong { color: var(--text-1); font-weight: 600; }
+.club-installeer-nr {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--ff-kop, inherit);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+.club-installeer-icoon { display: inline-block; vertical-align: -3px; color: var(--brand-tekst, var(--brand)); }
+
+.club-installeer-knop {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 18px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-inkt, #0A0B09);
+  font-family: var(--ff-kop, inherit);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease, ease), transform 120ms var(--ease, ease);
+}
+.club-installeer-knop:hover { background: var(--brand-strong, var(--brand)); }
+.club-installeer-knop:active { transform: translateY(1px); }
+
+.club-installeer-sluit {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: -4px -2px 0 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 160ms var(--ease, ease), background-color 160ms var(--ease, ease);
+}
+.club-installeer-sluit:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+
+.club-installeer-knop:focus-visible,
+.club-installeer-sluit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+@keyframes club-installeer-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-installeer { animation: none; }
+  .club-installeer-knop, .club-installeer-sluit { transition: none; }
+}

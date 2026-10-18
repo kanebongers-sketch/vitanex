@@ -100,3 +100,13 @@
 .club-instellingen-vestvelden { display: grid; gap: 10px; padding: 10px 0 4px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); align-items: end; }
 .club-instellingen-vestnieuw { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .club-instellingen-vestnieuw .club-veld { flex: 1 1 260px; }
+
+/* Eigen login van een medewerker: link, QR-code en goedkeuren */
+.club-mwlogin { display: grid; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.club-mwlogin-kop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--text-2); }
+.club-mwlogin-kop .club-label { margin: 0; }
+.club-mwlogin-acties { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-mwlogin-controle { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.club-mwlogin-controle .club-invoer { width: 104px; min-height: 34px; font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.22em; text-align: center; }
+.club-mwlogin-qr { display: grid; justify-items: start; gap: 8px; margin: 4px 0 0; }
+.club-mwlogin-qr img { display: block; width: 220px; height: 220px; max-width: 100%; padding: 10px; border-radius: 14px; background: #fff; box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.6); }

@@ -12,6 +12,7 @@ import { bronnenVan } from '@/lib/club/training/beeld'
 import { useKernpunten } from '@/components/club/training/coaching/useKernpunten'
 import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
+import { useLedenappApi } from './LedenappApi'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en vink
 // af dat je de training gedaan hebt (club_trainingslog). Onder elke oefening
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function SchemaTab({ lidId, schema, logs, nu }: Props) {
+  const api = useLedenappApi()
   const router = useRouter()
   const [bezig, startBezig] = useTransition()
   const [fout, setFout] = useState<string | null>(null)
@@ -52,7 +54,8 @@ export function SchemaTab({ lidId, schema, logs, nu }: Props) {
   function vink() {
     setFout(null)
     startBezig(async () => {
-      const r = gedaan ? await stuur(`/api/club/app/training/${gedaan.id}`, 'DELETE') : await stuur('/api/club/app/training', 'POST', { lidId, schemaId: schema?.id, dag: dag.dag })
+      const afvink = api.trainingAfvinken(lidId, schema?.id, dag.dag)
+      const r = gedaan ? await stuur(api.trainingWeg(gedaan.id), 'DELETE') : await stuur(afvink.url, 'POST', afvink.body)
       if (r.ok) router.refresh()
       else setFout(r.fout)
     })

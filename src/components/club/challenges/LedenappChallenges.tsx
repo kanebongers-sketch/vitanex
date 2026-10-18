@@ -6,6 +6,7 @@ import { stuur } from '@/components/club/leden/stuur'
 import type { AppChallenge, LedenappChallengesData } from '@/lib/club/challenges/app'
 import { AppChallengeKaart } from './AppChallengeKaart'
 import { BadgeRaster } from './BadgeRaster'
+import { useLedenappApi } from '@/components/club/app/LedenappApi'
 import './challenges.css'
 
 // Challenges en badges in de ledenapp. Data komt uit haalLedenappChallenges()
@@ -19,13 +20,15 @@ export interface LedenappChallengesProps {
 
 export function LedenappChallenges({ data }: LedenappChallengesProps) {
   const router = useRouter()
+  const api = useLedenappApi()
   const [bezig, setBezig] = useState<string | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
 
   async function wissel(c: AppChallenge) {
     setBezig(c.id)
     setMelding(null)
-    const uit = await stuur(`/api/club/challenges/${c.id}/deelnemers`, c.doetMee ? 'DELETE' : 'POST', { lidId: data.lidId })
+    const verzoek = api.challenge(c.id, data.lidId)
+    const uit = await stuur(verzoek.url, c.doetMee ? 'DELETE' : 'POST', verzoek.body)
     setBezig(null)
     if (!uit.ok) return setMelding(uit.fout)
     setMelding(c.doetMee ? `Je bent uitgeschreven voor ${c.titel}.` : `Je doet mee met ${c.titel}.`)

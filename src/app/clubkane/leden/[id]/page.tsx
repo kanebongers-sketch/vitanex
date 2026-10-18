@@ -19,6 +19,8 @@ import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { haalPlan } from '@/lib/club/voeding/lezen'
 import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
+import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -128,6 +130,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
           {toonVoeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
         </div>
         <aside className="club-k4 club-leden-kolom" aria-label="Notities en gegevens">
+          {moduleAan(t.organisatie, 'app') && <LedenappLink lidId={lid.id} voornaam={lid.voornaam} />}
           <Notities lidId={lid.id} notities={kaart.notities} />
           <LidGegevens
             lidId={lid.id}

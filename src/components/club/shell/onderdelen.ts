@@ -5,6 +5,7 @@
 // de groep eronder, en op de telefoon een menupaneel).
 
 import type { Module } from '@/lib/club/kern/organisatie'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 
 export const GROEPEN = [
   { sleutel: 'werkvloer', label: 'Werkvloer', uitleg: 'Wat er vandaag in de club gebeurt' },
@@ -52,6 +53,7 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'lidmaatschappen', pad: '/beheer/lidmaatschappen', label: 'Lidmaatschappen', uitleg: 'Vormen uit Sportivity met hun toegang, en labels voor leden', groep: 'beheer' },
   { sleutel: 'sluiting', pad: '/beheer/sluiting', label: 'Sluitingsdagen', uitleg: 'Feestdagen, sluitingen en andere openingstijden', groep: 'beheer' },
   { sleutel: 'huisstijl', pad: '/huisstijl', label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool', groep: 'beheer' },
+  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp en support', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer' },
   { sleutel: 'instellingen', pad: '/instellingen', label: 'Instellingen', uitleg: 'Zalen, lessen, regels en medewerkers', groep: 'beheer' },
 ]
 
@@ -74,7 +76,7 @@ export function actiefOnderdeel(pad: string): Onderdeel {
  * eigenaar aan de rol gaf (zie src/lib/club/beheerders/rechten.ts).
  */
 export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): boolean {
-  if (toegestaan !== null && !toegestaan.includes(onderdeel.sleutel)) return false
+  if (!magOnderdeel(toegestaan, onderdeel.sleutel)) return false
   return !onderdeel.module || !uit.includes(onderdeel.module)
 }
 

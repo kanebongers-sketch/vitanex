@@ -5,6 +5,10 @@
 //   2. Een eigenaar of clubmanager van een sportschool (club_beheerders), met
 //      een eigen sessie na link plus pincode. Ziet ALLEEN de eigen sportschool.
 //      Alleen als de schakelaar CLUB_EIGEN_LOGIN aan staat; standaard uit.
+//   3. Een medewerker (club_medewerkers) met een eigen sessie na link plus
+//      pincode die de eigenaar of clubmanager goedkeurde. Ziet alleen de eigen
+//      sportschool, alleen de eigen vestigingen en alleen de onderdelen van
+//      zijn rollen. Ook alleen met CLUB_EIGEN_LOGIN aan.
 // Alle anderen: /clubkane bestaat niet. Pagina's geven een gewone 404 en de API
 // ook (geen 401/403 die verraadt dat er iets achter zit).
 
@@ -21,14 +25,19 @@ import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigi
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
+import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { beheerderCookie, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
 import { beheerderVanSessie } from '@/lib/club/beheerders/beheerder-opslag'
 import { externeToegangVelden } from '@/lib/club/beheerders/externe-toegang'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { magApi, magBeheerdersBeheren, magOnderdeel, toegestaneOnderdelen } from '@/lib/club/beheerders/rechten'
+import { medewerkerCookie } from '@/lib/club/medewerker-login/medewerker-login'
+import { medewerkerVanSessie } from '@/lib/club/medewerker-login/opslag'
+import { magApiAlsMedewerker } from '@/lib/club/medewerker-login/rechten'
+import { medewerkerToegangVelden } from '@/lib/club/medewerker-login/toegang-velden'
 
-/** Wie er binnen is: Kane (beheerder) of een eigenaar of clubmanager van een sportschool. */
-export type ClubRol = 'beheerder' | BeheerderRol
+/** Wie er binnen is: Kane (beheerder), een eigenaar of clubmanager van een sportschool, of een medewerker. */
+export type ClubRol = 'beheerder' | BeheerderRol | 'medewerker'
 
 export interface ClubToegang {
   admin: SupabaseClient
@@ -51,13 +60,15 @@ export interface ClubToegang {
   rol: ClubRol
   /** Alleen Kane wisselt van sportschool en maakt sportscholen aan. */
   isKane: boolean
-  /** Het id in club_beheerders van een eigenaar of clubmanager; null voor Kane. */
+  /** Het id in club_beheerders (eigenaar, clubmanager) of club_medewerkers (medewerker); null voor Kane. */
   persoonId: string | null
   /** De onderdelen die deze persoon ziet (sleutels uit shell/onderdelen.ts); null = alles. */
   onderdelen: readonly string[] | null
   /** De vestigingen van de actieve sportschool, in vaste volgorde; de standaard eerst. */
   vestigingen: VestigingInfo[]
-  /** Wie er werkt, voor het logboek ("Kane"). */
+  /** De rollen van een ingelogde medewerker; leeg voor Kane en beheerders. */
+  medewerkerRollen?: readonly MedewerkerRol[]
+  /** Wie er werkt, voor het logboek ("Kane", of de naam van de medewerker). */
   naam: string
   /** De PT-code van Kane, voor de link terug naar de PT-app; null voor anderen. */
   code: string | null
@@ -127,7 +138,7 @@ async function toegangVoorKane(admin: SupabaseClient): Promise<ClubToegang | nul
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
   const vestigingen = await haalVestigingen(admin, organisatie.id)
-  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, persoonId: null, onderdelen: null, vestigingen, naam: link.naam, code }
+  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, persoonId: null, onderdelen: null, vestigingen, medewerkerRollen: [], naam: link.naam, code }
 }
 
 /** De sportschool van een eigenaar of clubmanager, met de eigenaar van het record. */
@@ -151,7 +162,23 @@ async function toegangVoorBeheerder(admin: SupabaseClient): Promise<ClubToegang 
   // Op het subdomein van een andere sportschool bestaat Club voor deze beheerder niet.
   if ((await organisatieUitHost(velden.organisaties)) === null) return null
   const vestigingen = await haalVestigingen(admin, velden.userId)
-  return { admin, ...velden, onderdelen: toegestaneOnderdelen(velden, velden.organisatie.instellingen.rechten), vestigingen }
+  return { admin, ...velden, onderdelen: toegestaneOnderdelen(velden, velden.organisatie.instellingen.rechten), vestigingen, medewerkerRollen: [] }
+}
+
+/** Een medewerker met een eigen sessie; alleen met de schakelaar aan. */
+async function toegangVoorMedewerker(admin: SupabaseClient): Promise<ClubToegang | null> {
+  if (!CLUB_EIGEN_LOGIN) return null
+  const token = (await cookies()).get(medewerkerCookie())?.value
+  if (!token) return null
+  const gevonden = await medewerkerVanSessie(admin, token, new Date())
+  if (!gevonden) return null
+  const { organisatie, eigenaarId } = await haalEigenOrganisatie(admin, gevonden.toegang.userId)
+  // Op het subdomein van een andere sportschool bestaat Club voor deze medewerker niet.
+  if (!organisatie || (await organisatieUitHost([organisatie])) === null) return null
+  const velden = medewerkerToegangVelden({ ...gevonden, organisatie, eigenaarId, vestigingen: await haalVestigingen(admin, organisatie.id) })
+  if (!velden) return null
+  const { rollen, ...rest } = velden
+  return { admin, ...rest, medewerkerRollen: rollen }
 }
 
 /**
@@ -162,7 +189,7 @@ export async function hostPastBij(org: Organisatie): Promise<boolean> {
   return (await organisatieUitHost([org])) !== null
 }
 
-/** Wie is er binnen: Kane, of een eigenaar of clubmanager? Per request een keer gevraagd. */
+/** Wie is er binnen: Kane, een eigenaar of clubmanager, of een medewerker? Per request een keer gevraagd. */
 export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   let admin: SupabaseClient
   try {
@@ -170,7 +197,7 @@ export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   } catch {
     return null
   }
-  return (await toegangVoorKane(admin)) ?? (await toegangVoorBeheerder(admin))
+  return (await toegangVoorKane(admin)) ?? (await toegangVoorBeheerder(admin)) ?? (await toegangVoorMedewerker(admin))
 })
 
 /** Voor pagina's en layouts: de toegang, of een gewone 404. */
@@ -202,6 +229,8 @@ export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang |
   if (!t) return clubFout('Niet gevonden.', 404)
   // Een clubmanager: alleen de API's van onderdelen die de eigenaar hem geeft.
   if (!magApi(t.onderdelen, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+  // Een medewerker: daarnaast nooit de sportschoolbrede acties (vestigingen, inloglinks).
+  if (t.rol === 'medewerker' && !magApiAlsMedewerker(req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
   const leest = req.method === 'GET' || req.method === 'HEAD'
   if (!leest && !isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
   return t
@@ -221,8 +250,11 @@ export async function vereisKane(req: NextRequest): Promise<ClubToegang | NextRe
   return t.isKane ? t : clubFout('Niet gevonden.', 404)
 }
 
+/** Wat een opslagfunctie van de toegang nodig heeft: de database, de sportschool en wie er werkt. */
+export type ClubSchrijver = Pick<ClubToegang, 'admin' | 'userId' | 'naam'>
+
 /** Een regel in het logboek. Best-effort: een mislukte log breekt de actie niet. */
-export async function logActie(t: ClubToegang, actie: string, onderwerp: string | null, vestiging: string | null): Promise<void> {
+export async function logActie(t: ClubSchrijver, actie: string, onderwerp: string | null, vestiging: string | null): Promise<void> {
   const { error } = await t.admin.from('club_logboek').insert({
     user_id: t.userId,
     wie: t.naam.slice(0, 80),

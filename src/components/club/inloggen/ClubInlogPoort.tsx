@@ -5,7 +5,7 @@ import { LockKeyhole } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { BeheerderPinStatus } from '@/lib/club/beheerders/beheerder'
 
-// De poort van een eigenaar of clubmanager: eerste keer een pincode kiezen (met
+// De poort van een eigenaar, clubmanager of medewerker: eerste keer een pincode kiezen (met
 // een controlecode die de beheerder doorgeeft), dan wachten op goedkeuring, daarna
 // inloggen op dit toestel.
 
@@ -17,6 +17,8 @@ interface ClubInlogPoortProps {
   sportschool: string
   voornaam: string
   rol: string
+  /** De inlog-API; standaard die van beheerders. Medewerkers: /api/club/inloggen/medewerker/<code>. */
+  apiBasis?: string
 }
 
 function leesControle(data: unknown): string | null {
@@ -28,7 +30,7 @@ function alleenCijfers(v: string): string {
   return v.replace(/\D/g, '').slice(0, 6)
 }
 
-export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol }: ClubInlogPoortProps) {
+export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, apiBasis }: ClubInlogPoortProps) {
   const [staat, setStaat] = useState<BeheerderPinStatus>(pinStatus)
   const [pin, setPin] = useState('')
   const [herhaal, setHerhaal] = useState('')
@@ -36,7 +38,7 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol }: 
   const [fout, setFout] = useState<string | null>(null)
   const [controle, setControle] = useState<string | null>(null)
   const kiezen = staat === 'geen'
-  const basis = `/api/club/inloggen/${encodeURIComponent(code)}`
+  const basis = apiBasis ?? `/api/club/inloggen/${encodeURIComponent(code)}`
 
   async function verstuur(e: FormEvent) {
     e.preventDefault()

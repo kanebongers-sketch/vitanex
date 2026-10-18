@@ -7,6 +7,7 @@ import { stuur } from '@/components/club/leden/stuur'
 import { haal } from './haal'
 import { appDataUit, type AppAfspraak, type AppData } from './app-data'
 import { AppBoeken } from './AppBoeken'
+import { useLedenappApi } from '@/components/club/app/LedenappApi'
 import './afspraken.css'
 
 // Afspraken in de ledenapp: je komende afspraken (annuleren binnen de regels)
@@ -46,20 +47,22 @@ export function LedenappAfspraken({ lidId }: Props) {
   const [melding, setMelding] = useState<string | null>(null)
   const [boeken, setBoeken] = useState(false)
   const [bezig, setBezig] = useState(false)
+  const api = useLedenappApi()
+  const overzichtUrl = api.afspraken(lidId)
 
   const laad = useCallback(async () => {
-    const uit = await haal(`/api/club/afspraken/app?lid=${encodeURIComponent(lidId)}`)
+    const uit = await haal(overzichtUrl)
     if (uit.ok) {
       setData(appDataUit(uit.data))
       setFout(null)
     } else {
       setFout(uit.fout || 'Je afspraken konden niet worden geladen.')
     }
-  }, [lidId])
+  }, [overzichtUrl])
 
   useEffect(() => {
     let weg = false
-    void haal(`/api/club/afspraken/app?lid=${encodeURIComponent(lidId)}`).then((uit) => {
+    void haal(overzichtUrl).then((uit) => {
       if (weg) return
       if (uit.ok) setData(appDataUit(uit.data))
       else setFout(uit.fout || 'Je afspraken konden niet worden geladen.')
@@ -67,12 +70,13 @@ export function LedenappAfspraken({ lidId }: Props) {
     return () => {
       weg = true
     }
-  }, [lidId])
+  }, [overzichtUrl])
 
   async function annuleer(a: AppAfspraak) {
     if (!window.confirm(`${a.typeNaam} op ${DAG.format(new Date(a.start))} annuleren?`)) return
     setBezig(true)
-    const uit = await stuur(`/api/club/afspraken/app/${a.id}/annuleren`, 'POST', { lidId })
+    const verzoek = api.afspraakAnnuleren(a.id, lidId)
+    const uit = await stuur(verzoek.url, 'POST', verzoek.body)
     setBezig(false)
     setMelding(uit.ok ? 'Je afspraak is geannuleerd.' : uit.fout)
     if (uit.ok) await laad()

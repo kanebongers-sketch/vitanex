@@ -9,6 +9,7 @@ import { checkoutAdressen, oorsprongVan } from '@/lib/aiyourgym/links'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
+import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 
 // POST /api/aiyourgym/checkout
 // Een sportschool meldt zich aan. Is het pakket online af te sluiten (Stripe-
@@ -20,6 +21,12 @@ export const dynamic = 'force-dynamic'
 
 const AANVRAAG = `${NIET_OPEN} We hebben je gegevens ontvangen en nemen zelf contact met je op.`
 const MISLUKT = 'Aanmelden lukte niet. Probeer het later opnieuw.'
+
+/** Een stap die misging vastleggen in club_fouten (zonder gegevens van de aanmelder). */
+async function mislukt(stap: string, melding: string, status: number) {
+  await meldFout({ fout: `Aanmelden mislukt: ${stap}`, route: '/api/aiyourgym/checkout', methode: 'POST', soort: 'handmatig' })
+  return aygFout(melding, status)
+}
 
 export async function POST(req: NextRequest) {
   if (!(await poortOpen())) return aygFout('Niet gevonden.', 404)
@@ -39,26 +46,26 @@ export async function POST(req: NextRequest) {
   const nu = new Date()
   // Harde rem in de database (de rate limit hierboven is per serverinstantie en per IP-kop).
   const teVeel = await teVeelRecent(admin, a.eigenaarEmail, nu)
-  if (teVeel === null) return aygFout(MISLUKT, 500)
+  if (teVeel === null) return mislukt('rem lezen', MISLUKT, 500)
   if (teVeel) return aygFout('Te veel pogingen. Probeer het later opnieuw.', 429)
   const vrij = await slugVrij(admin, a.slug, nu)
-  if (vrij === null) return aygFout(MISLUKT, 500)
+  if (vrij === null) return mislukt('adres controleren', MISLUKT, 500)
   if (!vrij) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }, 409)
 
   const sleutel = stripeSleutel()
   const prijs = stripePrijs(a.pakket)
   if (!afsluitbaar(a.pakket) || !sleutel || !prijs) {
     const id = await maakAanmelding(admin, a, 'aanvraag', nu)
-    return id ? aygJson({ staat: 'aanvraag', melding: AANVRAAG }) : aygFout(MISLUKT, 500)
+    return id ? aygJson({ staat: 'aanvraag', melding: AANVRAAG }) : mislukt('aanvraag bewaren', MISLUKT, 500)
   }
 
   const host = publiekeHost(req)
   const oorsprong = oorsprongVan(host)
   if (!oorsprong) return aygFout(MISLUKT, 400)
   const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu)
-  if (!id) return aygFout(MISLUKT, 500)
+  if (!id) return mislukt('aanmelding bewaren', MISLUKT, 500)
   const adressen = checkoutAdressen(oorsprong, host, siteActief())
   const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, prijsId: prijs, succesUrl: adressen.succes, terugUrl: adressen.terug })
-  if (!sessie || !(await koppelSessie(admin, id, sessie.id))) return aygFout('Betalen kon niet worden gestart. Probeer het later opnieuw.', 502)
+  if (!sessie || !(await koppelSessie(admin, id, sessie.id))) return mislukt(sessie ? 'sessie koppelen' : 'Stripe-sessie maken', 'Betalen kon niet worden gestart. Probeer het later opnieuw.', 502)
   return aygJson({ staat: 'betalen', url: sessie.url })
 }

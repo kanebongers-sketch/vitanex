@@ -5,7 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
-import { logActie, type ClubToegang } from '@/lib/club/toegang'
+import { logActie, type ClubSchrijver, type ClubToegang } from '@/lib/club/toegang'
 import { toetsBoeking } from '@/lib/club/lidmaatschappen/toegang-opslag'
 import { gelukt, haalLesRij, haalRegels, haalReserveringenVanLes, mislukt, type Resultaat } from './basis-opslag'
 import type { ReserveerInvoer } from './invoer'
@@ -20,6 +20,7 @@ import {
   type AfvinkStatus,
 } from './regels'
 import { nlDelen } from './tijd'
+import { laatHerinneringenVervallen, planLesMeldingen } from '@/lib/club/meldingen/opslag'
 import { RESERVERING_KOLOMMEN, reserveringUitRij, type LesRij, type ReserveringRij } from './typen'
 
 const DAG_MS = 86_400_000
@@ -87,14 +88,16 @@ export async function schuifWachtlijstDoor(admin: SupabaseClient, userId: string
   const wachtlijst = rijen.filter((r) => r.status === 'wachtlijst')
   const magDoor = !les.geannuleerd && Date.parse(les.startOp) > nu.getTime()
   const plan = planDoorschuiven(wachtlijst, magDoor ? les.capaciteit - bezet : 0)
-  const doorgeschoven: string[] = []
+  const doorgeschoven: Array<{ id: string; lidId: string; geboektOp: string }> = []
   for (const r of plan.naarGeboekt) {
-    if (await werkReserveringBij(admin, userId, r.id, { status: 'geboekt', wachtpositie: null })) doorgeschoven.push(r.lidId)
+    if (await werkReserveringBij(admin, userId, r.id, { status: 'geboekt', wachtpositie: null })) doorgeschoven.push(r)
   }
   for (const r of gewijzigdePosities(wachtlijst, plan)) {
     await werkReserveringBij(admin, userId, r.id, { wachtpositie: r.wachtpositie })
   }
-  return doorgeschoven
+  // Meldingen (best effort): wie doorschoof, krijgt bericht en een herinnering.
+  await planLesMeldingen(admin, userId, les, doorgeschoven.map((r) => ({ lidId: r.lidId, reserveringId: r.id, geboektOp: r.geboektOp, soort: 'les_doorgeschoven' as const })), nu)
+  return doorgeschoven.map((r) => r.lidId)
 }
 
 /** Na een boeking: is de les toch overboekt (twee boekingen tegelijk), dan gaat de laatste naar de wachtlijst. */
@@ -115,7 +118,7 @@ export type ReserveerAntwoord =
   | { status: 'waarschuwing'; waarschuwing: string }
 
 /** Boek een lid in een les (of zet het op de wachtlijst). */
-export async function reserveer(t: ClubToegang, invoer: ReserveerInvoer, nu = new Date()): Promise<Resultaat<ReserveerAntwoord>> {
+export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = new Date()): Promise<Resultaat<ReserveerAntwoord>> {
   const [les, lid] = await Promise.all([haalLesRij(t.admin, t.userId, invoer.lesId), haalLid(t.admin, t.userId, invoer.lidId)])
   if (!les) return mislukt('Deze les bestaat niet.', 404)
   if (!lid) return mislukt('Dit lid bestaat niet.', 404)
@@ -157,6 +160,8 @@ export async function reserveer(t: ClubToegang, invoer: ReserveerInvoer, nu = ne
   const moment = nlDelen(new Date(les.startOp))
   await logActie(t, status === 'geboekt' ? 'Les geboekt' : 'Op wachtlijst gezet', `${volledigeNaam(lid)}, les ${moment.datum} ${moment.tijd}`, les.vestiging)
   if (vorm.ondanks) await logActie(t, 'Geboekt ondanks lidmaatschap', `${volledigeNaam(lid)}, les ${moment.datum} ${moment.tijd}: ${vorm.ondanks}`, les.vestiging)
+  // Meldingen (best effort, breekt de boeking nooit): bevestiging en herinnering.
+  await planLesMeldingen(t.admin, t.userId, les, [{ lidId: lid.id, reserveringId: id, geboektOp: nu.toISOString(), soort: status === 'geboekt' ? 'les_geboekt' : 'les_wachtlijst', wachtpositie }], nu)
   return gelukt({ id, status, wachtpositie })
 }
 
@@ -199,7 +204,7 @@ export interface AnnuleerAntwoord {
 }
 
 /** Annuleer een reservering; een vrijgekomen plek gaat naar de eerste op de wachtlijst. */
-export async function annuleerReservering(t: ClubToegang, id: string, nu = new Date()): Promise<Resultaat<AnnuleerAntwoord>> {
+export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new Date()): Promise<Resultaat<AnnuleerAntwoord>> {
   const res = await haalReservering(t.admin, t.userId, id)
   if (!res) return mislukt('Deze reservering bestaat niet.', 404)
   const les = await haalLesRij(t.admin, t.userId, res.lesId)
@@ -214,6 +219,9 @@ export async function annuleerReservering(t: ClubToegang, id: string, nu = new D
     geannuleerd_op: nu.toISOString(),
   })
   if (!ok) return mislukt('Annuleren is niet gelukt. Probeer het opnieuw.', 500)
+  // Meldingen (best effort): de herinnering vervalt, het lid krijgt een bevestiging.
+  await laatHerinneringenVervallen(t.admin, t.userId, [res.id])
+  await planLesMeldingen(t.admin, t.userId, les, [{ lidId: res.lidId, reserveringId: res.id, geboektOp: res.geboektOp, soort: 'les_afgemeld' }], nu)
   const doorgeschoven = await schuifWachtlijstDoor(t.admin, t.userId, les, nu)
   const lid = await haalLid(t.admin, t.userId, res.lidId)
   const moment = nlDelen(new Date(les.startOp))

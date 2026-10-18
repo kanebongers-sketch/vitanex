@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLedenappApi } from '@/components/club/app/LedenappApi'
 import type { Coaching } from '@/lib/club/training/coaching/typen'
 
 // Haalt de coaching van een oefening op zodra die open gaat. Eenmaal opgehaald
@@ -34,11 +35,12 @@ export function vergeetCoaching(naam: string): void {
 export function useCoaching(naam: string, versie = 0): CoachingStaat {
   const [fout, setFout] = useState<string | null>(null)
   const [, setGeladen] = useState(0)
+  const api = useLedenappApi()
 
   useEffect(() => {
     if (GEHEUGEN.has(naam)) return
     const stop = new AbortController()
-    fetch(`/api/club/training/coaching?naam=${encodeURIComponent(naam)}`, { signal: stop.signal })
+    fetch(api.coaching(new URLSearchParams({ naam })), { signal: stop.signal })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: unknown) => {
         const geladen = leesAntwoord(data)
@@ -50,7 +52,7 @@ export function useCoaching(naam: string, versie = 0): CoachingStaat {
         if (!(e instanceof DOMException && e.name === 'AbortError')) setFout(naam)
       })
     return () => stop.abort()
-  }, [naam, versie])
+  }, [naam, versie, api])
 
   const geladen = GEHEUGEN.get(naam)
   if (geladen) return { status: 'klaar', ...geladen }

@@ -3,7 +3,7 @@
 // terug te zien) en inschrijven of uitschrijven. Alles op user_id van de
 // actieve sportschool; een id van buiten wordt altijd tegen user_id gecontroleerd.
 
-import { logActie, type ClubToegang } from '@/lib/club/toegang'
+import { logActie, type ClubSchrijver, type ClubToegang } from '@/lib/club/toegang'
 import { gelukt, mislukt, type Resultaat } from '@/lib/club/rooster/basis-opslag'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import type { ChallengeInvoer } from './invoer'
@@ -70,13 +70,13 @@ export async function stopChallenge(t: ClubToegang, id: string): Promise<Resulta
   return gelukt({ id })
 }
 
-async function haalLidVestiging(t: ClubToegang, lidId: string): Promise<string | null> {
+async function haalLidVestiging(t: ClubSchrijver, lidId: string): Promise<string | null> {
   const { data, error } = await t.admin.from('club_leden').select('vestiging').eq('user_id', t.userId).eq('id', lidId).maybeSingle()
   if (error) console.error('[club] lid lezen (challenge) mislukt', error.message)
   return typeof data?.vestiging === 'string' ? data.vestiging : null
 }
 
-export async function schrijfIn(t: ClubToegang, challengeId: string, lidId: string): Promise<Resultaat<{ ingeschreven: true }>> {
+export async function schrijfIn(t: ClubSchrijver, challengeId: string, lidId: string): Promise<Resultaat<{ ingeschreven: true }>> {
   const [c, vestiging] = await Promise.all([haalChallenge(t.admin, t.userId, challengeId), haalLidVestiging(t, lidId)])
   if (!c) return mislukt(NIET_GEVONDEN, 404)
   if (!vestiging) return mislukt('Dit lid bestaat niet.', 404)
@@ -92,7 +92,7 @@ export async function schrijfIn(t: ClubToegang, challengeId: string, lidId: stri
   return gelukt({ ingeschreven: true })
 }
 
-export async function schrijfUit(t: ClubToegang, challengeId: string, lidId: string): Promise<Resultaat<{ uitgeschreven: true }>> {
+export async function schrijfUit(t: ClubSchrijver, challengeId: string, lidId: string): Promise<Resultaat<{ uitgeschreven: true }>> {
   const c = await haalChallenge(t.admin, t.userId, challengeId)
   if (!c) return mislukt(NIET_GEVONDEN, 404)
   if (statusVan(c, vandaag()) === 'afgelopen') return mislukt('Deze challenge is al afgelopen.', 409)

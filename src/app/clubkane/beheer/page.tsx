@@ -75,6 +75,7 @@ export default async function BeheerPagina() {
     { titel: 'Automatiseringen', uitleg: 'Wie het team opvolgt: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', stand: 'Zeven regels', href: '/clubkane/beheer/automatiseringen' },
     { titel: 'Challenges en badges', uitleg: 'Doelen voor leden met voortgang, ranglijst en badges.', stand: 'Lopend en gepland', href: '/clubkane/challenges' },
     { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit Sportivity of Excel inlezen.', stand: aantal(leden, 'lid', 'leden'), href: pad('/leden/importeren'), uit: !v || org.uit.includes('leden') },
+    { titel: 'Meldingen aan leden', uitleg: 'Bevestigingen, herinneringen en annuleringen van lessen en afspraken, per mail en in de app.', stand: 'Herinnertijden en welke aan staan', href: '/clubkane/beheer/meldingen' },
     { titel: 'Berichten aan leden', uitleg: 'Nieuws, acties en mededelingen op Home in de ledenapp.', stand: 'Nieuws en acties', href: '/clubkane/berichten', uit: org.uit.includes('app') },
     { titel: 'Ledenapp', uitleg: 'Welkomsttekst, tabbladen en de check-in code in de app voor leden.', stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}`, href: '/clubkane/beheer/ledenapp', uit: org.uit.includes('app') },
   ]
@@ -97,7 +98,10 @@ export default async function BeheerPagina() {
         <InstellingenGroep titel="Leden" regels={ledenRegels} />
         <InstellingenGroep
           titel="Abonnement"
-          regels={[{ titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Komt later', href: null }]}
+          regels={[
+            { titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', stand: 'Pakket, status en facturen', href: '/clubkane/beheer/abonnement', uit: !(t.isKane || t.rol === 'eigenaar') },
+            { titel: 'Hulp en support', uitleg: 'Handleidingen per onderdeel en een vraag of probleem melden.', stand: 'Handleidingen', href: '/clubkane/hulp' },
+          ]}
         />
       </div>
     </>

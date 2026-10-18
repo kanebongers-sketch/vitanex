@@ -5,6 +5,7 @@ import { leesEvent } from '@/lib/aiyourgym/stripe-event'
 import { verwerkEvent } from '@/lib/aiyourgym/verwerk'
 import { standaardDeps } from '@/lib/aiyourgym/welkom-mail'
 import { adminOfNull, aygFout, aygJson } from '@/lib/aiyourgym/api'
+import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 
 // POST /api/aiyourgym/stripe/webhook
 // Alleen Stripe: de handtekening (AIYOURGYM_STRIPE_WEBHOOK_SECRET) over de ruwe
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
   if (!event) return aygFout('Ongeldig.', 400)
 
   const uitkomst = await verwerkEvent(admin, event, standaardDeps())
-  if (uitkomst === 'fout') return aygFout('Verwerking mislukt.', 500)
+  if (uitkomst === 'fout') {
+    await meldFout({ fout: `Stripe-event (${event.soort}) niet verwerkt`, route: '/api/aiyourgym/stripe/webhook', methode: 'POST', soort: 'handmatig' }, admin)
+    return aygFout('Verwerking mislukt.', 500)
+  }
   return aygJson({ ontvangen: true })
 }

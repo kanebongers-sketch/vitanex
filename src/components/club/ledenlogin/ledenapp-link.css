@@ -1,0 +1,13 @@
+/* ─── Club, ledenkaart: de ledenapp-link met QR-code ─────────────────────── */
+
+.club-lidlink { display: grid; gap: 12px; }
+.club-lidlink .club-sectiekop { margin: 0; }
+.club-lidlink .club-hint { margin: 0; }
+.club-lidlink-feit { margin: 0; font-size: 14px; color: var(--text-2); }
+.club-lidlink-qr { display: grid; justify-items: center; gap: 10px; padding: 16px; border-radius: var(--club-radius); background: var(--club-vlak); }
+.club-lidlink-qr img, .club-lidlink-qr-leeg { width: 200px; height: 200px; border-radius: 14px; background: #fff; padding: 8px; }
+.club-lidlink-url { width: 100%; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg-app); color: var(--text-1); font: inherit; font-size: 13px; text-overflow: ellipsis; }
+.club-lidlink-url:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-lidlink-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-lidlink-status { margin: 0; min-height: 1em; font-size: 13.5px; color: var(--text-2); }
+.club-lidlink-status:empty, .club-lidlink .club-melding:empty { display: none; }

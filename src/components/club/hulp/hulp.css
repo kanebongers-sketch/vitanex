@@ -1,0 +1,68 @@
+/* ─── Club: helpcentrum en meldingen ──────────────────────────────────────────
+   Editoriaal: genummerde handleidingen als strakke uitklaplijst, daaronder het
+   meldformulier en de eigen meldingen. Alleen .club-hulp-*. */
+
+.club-hulp { display: grid; gap: 40px; margin-top: 24px; }
+@media (min-width: 1100px) {
+  .club-hulp { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; gap: 40px 48px; }
+  .club-hulp-artikelen { grid-row: span 2; }
+}
+.club-hulp-kop { margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-hulp-leeg { margin: 0; padding: 18px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); color: var(--text-3); font-size: 14px; }
+
+/* ── Handleidingen ──────────────────────────────────────────────────────── */
+.club-hulp-artikelen { display: grid; gap: 14px; min-width: 0; }
+.club-hulp-zoekrij { display: grid; gap: 10px; }
+.club-hulp-zoek { position: relative; display: block; }
+.club-hulp-zoek svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.club-hulp-zoek .club-invoer { padding-left: 42px; }
+.club-hulp-lijst { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
+.club-hulp-lijst > li + li { border-top: 1px solid var(--line); }
+.club-hulp-artikel summary { display: grid; grid-template-columns: 44px minmax(0, 1fr) 18px; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; list-style: none; transition: background-color 160ms var(--ease); }
+.club-hulp-artikel summary::-webkit-details-marker { display: none; }
+.club-hulp-artikel summary::after { content: '+'; justify-self: end; font-size: 20px; line-height: 1; color: var(--text-3); transition: transform 160ms var(--ease); }
+.club-hulp-artikel[open] summary::after { transform: rotate(45deg); color: var(--brand-tekst, var(--brand)); }
+.club-hulp-artikel summary:hover { background: var(--club-vlak-hover); }
+.club-hulp-artikel summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.club-hulp-nummer { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; line-height: 1; color: var(--brand-tekst, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-hulp-titel { display: grid; gap: 3px; min-width: 0; }
+.club-hulp-titel strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-hulp-titel span { color: var(--text-3); font-size: 13.5px; line-height: 1.4; }
+.club-hulp-inhoud { display: grid; gap: 14px; padding: 0 18px 20px 76px; }
+.club-hulp-stappen { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--text-2); font-size: 14.5px; line-height: 1.55; }
+.club-hulp-stappen li::marker { color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-hulp-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.club-hulp-links a { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text-1); font-size: 13.5px; text-decoration: none; transition: border-color 160ms var(--ease), background-color 160ms var(--ease); }
+.club-hulp-links a:hover { border-color: var(--brand); background: var(--brand-soft); }
+.club-hulp-links a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .club-hulp-artikel summary { grid-template-columns: 34px minmax(0, 1fr) 18px; gap: 10px; }
+  .club-hulp-nummer { font-size: 20px; }
+  .club-hulp-inhoud { padding-left: 18px; }
+}
+
+/* ── Melden ─────────────────────────────────────────────────────────────── */
+.club-hulp-melden { display: grid; gap: 14px; padding: 22px; border: 1px solid var(--line); border-top: 3px solid var(--brand); border-radius: var(--club-radius); background: var(--bg-card); scroll-margin-top: 90px; }
+.club-hulp-meldenkop { display: grid; gap: 6px; }
+.club-hulp-meldenkop p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.club-hulp-formulier { display: grid; gap: 16px; }
+.club-hulp-soorten { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.club-hulp-verstuur { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.club-hulp-verstuur .club-melding { margin: 0; flex: 1 1 220px; }
+
+/* ── Meldingen ──────────────────────────────────────────────────────────── */
+.club-hulp-mijn { display: grid; gap: 12px; min-width: 0; }
+.club-hulp-meldingen { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.club-hulp-meldingen--beheer { margin-top: 20px; max-width: 900px; }
+.club-hulp-melding { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-hulp-meldingkop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.club-hulp-meldingkop h3 { margin: 2px 0; font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+.club-hulp-meta { margin: 0; color: var(--text-3); font-size: 12.5px; overflow-wrap: anywhere; }
+.club-hulp-beschrijving { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+.club-hulp-antwoord { display: grid; gap: 4px; padding: 12px 14px; border-left: 3px solid var(--brand); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; background: var(--brand-soft); }
+.club-hulp-antwoord p:last-child { margin: 0; font-size: 14px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+.club-hulp-afhandelen { display: grid; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-hulp-artikel summary, .club-hulp-artikel summary::after, .club-hulp-links a { transition: none; }
+}

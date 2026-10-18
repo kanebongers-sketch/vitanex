@@ -10,11 +10,11 @@ import type { Rechten } from '@/lib/club/kern/org-instellingen'
 import type { BeheerderRol } from './beheerder'
 
 /** Onderdelen die alleen Kane en de eigenaar hebben, wat de rechten ook zeggen. */
-const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen'])
+export const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen'])
 
 export interface WieMag {
   isKane: boolean
-  rol: 'beheerder' | BeheerderRol
+  rol: 'beheerder' | BeheerderRol | 'medewerker'
 }
 
 /** Beheerders (eigenaren en clubmanagers) en het adres van de sportschool: Kane en de eigenaar. */
@@ -25,12 +25,17 @@ export function magBeheerdersBeheren(t: WieMag): boolean {
 /** De onderdelen die deze persoon ziet; null = alles. */
 export function toegestaneOnderdelen(t: WieMag, rechten: Rechten): readonly string[] | null {
   if (t.isKane || t.rol === 'eigenaar') return null
+  // Een medewerker heeft zijn eigen rechten (medewerker-login/rechten.ts); hier nooit iets.
+  if (t.rol === 'medewerker') return ['vandaag']
   // Een clubmanager: de rechten van de rol Clubmanager, altijd met Vandaag (de startpagina).
   return [...new Set(['vandaag', ...rechten.manager])].filter((s) => !NOOIT_VOOR_CLUBMANAGER.has(s))
 }
 
+/** Onderdelen die iedereen die binnen is altijd heeft (hulp vragen kan altijd). */
+const ALTIJD: ReadonlySet<string> = new Set(['hulp'])
+
 export function magOnderdeel(toegestaan: readonly string[] | null, sleutel: string): boolean {
-  return toegestaan === null || toegestaan.includes(sleutel)
+  return toegestaan === null || ALTIJD.has(sleutel) || toegestaan.includes(sleutel)
 }
 
 /**
@@ -44,6 +49,8 @@ const API_ONDERDEEL: Record<string, string> = {
   checkin: 'checkin',
   instellingen: 'instellingen',
   vestigingen: 'instellingen',
+  // Inloglinks van medewerkers: in Instellingen > Medewerkers (alleen eigenaar en clubmanager, zie medewerker-login/rechten.ts).
+  'medewerker-toegang': 'instellingen',
   kladblok: 'notities',
   leads: 'leads',
   leden: 'leden',
@@ -65,6 +72,8 @@ const API_ONDERDEEL: Record<string, string> = {
   challenges: 'challenges',
   rapporten: 'rapporten',
   voeding: 'voeding',
+  meldingen: 'beheer',
+  hulp: 'hulp',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */
@@ -90,5 +99,5 @@ export function magApi(toegestaan: readonly string[] | null, pad: string, method
   const schoon = pad.split('?')[0]
   if (methode === 'GET' && schoon === '/api/club/organisatie/logo') return true
   const sleutel = apiOnderdeel(schoon)
-  return sleutel !== null && toegestaan.includes(sleutel)
+  return sleutel !== null && magOnderdeel(toegestaan, sleutel)
 }

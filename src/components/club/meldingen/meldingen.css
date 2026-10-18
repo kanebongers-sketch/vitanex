@@ -1,0 +1,41 @@
+/* ─── Club: meldingen aan leden ───────────────────────────────────────────────
+   Instellingen (in het instellingencentrum) en de lijst in de ledenapp.
+   Alleen tokens uit club.css en .lifeos-root.ff. Alleen .club-meldingen-*. */
+
+/* ── Instellingen ────────────────────────────────────────────────────────── */
+.club-meldingen-status { display: grid; gap: 6px; max-width: 760px; margin-top: 20px; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--club-let-op); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-meldingen-status.is-aan { border-left-color: var(--club-ok); }
+.club-meldingen-status strong { font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-meldingen-status p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.club-meldingen-status code { font-size: 13px; }
+.club-meldingen-cijfers { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 4px 0 0; padding: 0; list-style: none; color: var(--text-3); font-size: 13px; font-variant-numeric: tabular-nums; }
+.club-meldingen-cijfers b { color: var(--text-1); font-weight: 700; }
+
+.club-meldingen-groep { gap: 10px; }
+.club-meldingen-keuze { align-items: flex-start; transition: border-color 160ms var(--ease), background-color 160ms var(--ease); }
+.club-meldingen-keuze:hover { border-color: var(--line-strong); }
+.club-meldingen-keuze:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-meldingen-keuze input { margin-top: 2px; flex: none; }
+.club-meldingen-keuze span { display: grid; gap: 2px; }
+.club-meldingen-keuze strong { font-weight: 600; }
+.club-meldingen-keuze small { color: var(--text-3); font-size: 13px; line-height: 1.4; }
+.club-meldingen-tijd { max-width: 320px; margin-top: 6px; }
+
+/* ── Lijst in de ledenapp ────────────────────────────────────────────────── */
+.club-meldingen-lijst { display: grid; gap: 10px; }
+.club-meldingen-teller { margin: 0; font-family: var(--ff-kop); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-meldingen-lijst ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.club-meldingen-item { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 12px; padding: 14px; border-radius: var(--lidapp-radius, 18px); background: var(--bg-card); border: 1px solid var(--line); }
+.club-meldingen-item.is-nieuw { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); background: color-mix(in srgb, var(--brand) 6%, var(--bg-card)); }
+.club-meldingen-icoon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--club-info-zacht); color: var(--club-info); }
+.is-ok .club-meldingen-icoon { background: var(--club-ok-zacht); color: var(--club-ok); }
+.is-let .club-meldingen-icoon { background: var(--club-let-op-zacht); color: var(--club-let-op); }
+.club-meldingen-tekst { display: grid; gap: 4px; min-width: 0; }
+.club-meldingen-tekst strong { font-size: 15px; line-height: 1.3; }
+.club-meldingen-tekst p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.club-meldingen-tekst time { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 12.5px; }
+.club-meldingen-stip { padding: 1px 8px; border-radius: 999px; background: var(--brand); color: var(--bg-app); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-meldingen-keuze { transition: none; }
+}

@@ -7,6 +7,7 @@ import { stuur } from '@/components/club/leden/stuur'
 import { VrijeTijden, slotSleutel, useVrijeTijden } from './VrijeTijden'
 import type { SlotOptie } from './haal'
 import type { AppType } from './app-data'
+import { useLedenappApi } from '@/components/club/app/LedenappApi'
 
 // "Afspraak maken" in de ledenapp, in vier stappen: soort, trainer (of maakt
 // niet uit), dag en tijd, en dan bevestigen. Alleen echt vrije tijden binnen
@@ -35,15 +36,17 @@ export function AppBoeken({ lidId, typen, horizonDagen, onGeboekt, onTerug }: Pr
   const [slot, setSlot] = useState<SlotOptie | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
+  const api = useLedenappApi()
 
-  const url = type ? `/api/club/afspraken/app/sloten?${new URLSearchParams({ lid: lidId, type: type.id, datum, medewerker: trainer })}` : null
+  const url = type ? api.sloten(lidId, { type: type.id, datum, medewerker: trainer }) : null
   const tijden = useVrijeTijden(url)
 
   async function bevestig() {
     if (!type || !slot || bezig) return
     setBezig(true)
     setFout(null)
-    const uit = await stuur('/api/club/afspraken/app', 'POST', { lidId, typeId: type.id, medewerkerId: trainer || null, datum, tijd: slot.tijd })
+    const verzoek = api.afspraakBoeken(lidId, { typeId: type.id, medewerkerId: trainer || null, datum, tijd: slot.tijd })
+    const uit = await stuur(verzoek.url, 'POST', verzoek.body)
     setBezig(false)
     if (!uit.ok) {
       setSlot(null)

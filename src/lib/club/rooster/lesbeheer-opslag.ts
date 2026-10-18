@@ -12,9 +12,10 @@ import type { LesWijziging } from './invoer'
 import { telPerLes, type LesOverzicht } from './raster'
 import { sorteerWachtlijst } from './regels'
 import { schuifWachtlijstDoor } from './reserveren-opslag'
+import { laatHerinneringenVervallen, planLesMeldingen } from '@/lib/club/meldingen/opslag'
 import { haalUitzonderingen } from '@/lib/club/sluiting/lezen'
 import { nlDelen, plusDagen } from './tijd'
-import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type ReserveringRij } from './typen'
+import { SERIE_KOLOMMEN, rijenNaar, serieUitRij, type LesRij, type ReserveringRij } from './typen'
 
 export interface Deelnemer {
   reservering: ReserveringRij
@@ -91,11 +92,23 @@ export async function annuleerLes(t: ClubToegang, lesId: string, reden: string, 
     .eq('user_id', t.userId)
     .eq('les_id', les.id)
     .in('status', ['geboekt', 'wachtlijst'])
-    .select('id')
+    .select('id, lid_id, geboekt_op')
   if (f2) console.error('[club-rooster] reserveringen vervallen mislukt', f2.message)
+  await meldLesGeannuleerd(t, { ...les, geannuleerd: true, annuleerReden: reden }, data ?? [], nu)
   const moment = nlDelen(new Date(les.startOp))
   await logActie(t, 'Les geannuleerd', `${moment.datum} ${moment.tijd}: ${reden}`, les.vestiging)
   return gelukt({ status: 'geannuleerd', geraakt: data?.length ?? 0 })
+}
+
+/** Meldingen bij een geannuleerde les (best effort): herinneringen vervallen, leden krijgen bericht. */
+async function meldLesGeannuleerd(t: ClubToegang, les: LesRij, rijen: ReadonlyArray<Record<string, unknown>>, nu: Date): Promise<void> {
+  const voor = rijen.flatMap((r) =>
+    typeof r.id === 'string' && typeof r.lid_id === 'string'
+      ? [{ lidId: r.lid_id, reserveringId: r.id, geboektOp: typeof r.geboekt_op === 'string' ? r.geboekt_op : '', soort: 'les_geannuleerd' as const }]
+      : [],
+  )
+  await laatHerinneringenVervallen(t.admin, t.userId, voor.map((v) => v.reserveringId))
+  await planLesMeldingen(t.admin, t.userId, les, voor, nu)
 }
 
 /** Pas capaciteit, instructeur of zaal aan voor deze ene les. Meer plekken = wachtlijst schuift door. */

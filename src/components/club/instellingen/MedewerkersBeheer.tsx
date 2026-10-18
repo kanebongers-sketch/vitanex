@@ -7,10 +7,12 @@ import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { useVestigingen, useVestigingNaam } from '@/components/club/shell/VestigingenContext'
 import { ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { useClubActie } from '@/components/club/rooster/vraag'
+import type { LoginOverzicht } from '@/lib/club/medewerker-login/medewerker-login'
 import { bewaarItem } from './opslaan'
+import { MedewerkerLogin } from './MedewerkerLogin'
 
-// Medewerkers met hun rollen en vestigingen. De rollen bepalen straks wat
-// iemand ziet; in de testfase werkt alleen Kane erin.
+// Medewerkers met hun rollen en vestigingen. De rollen bepalen wat iemand ziet
+// als hij zelf inlogt; de eigenaar of clubmanager deelt hier de inloglink uit.
 
 const ONDERDEEL_LABEL = new Map(ONDERDELEN.map((o) => [o.sleutel, o.label]))
 
@@ -26,7 +28,7 @@ export function RollenUitleg() {
           </div>
         ))}
       </dl>
-      <p className="club-hint">Nu, in de testfase, ziet alleen Kane de clubsoftware. Deze rechten gaan pas gelden als medewerkers zelf inloggen.</p>
+      <p className="club-hint">Een medewerker die zelf inlogt, ziet de onderdelen van al zijn rollen samen, en alleen zijn eigen vestigingen. Je past de rechten per rol aan bij Beheer, Rechten per rol.</p>
     </section>
   )
 }
@@ -101,7 +103,23 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
   )
 }
 
-export function MedewerkersBeheer({ medewerkers, vestiging }: { medewerkers: Medewerker[]; vestiging: Vestiging }) {
+/** Alleen voor wie inloglinks mag uitdelen (Kane, eigenaar, clubmanager); anders null. */
+export interface LoginBeheer {
+  logins: LoginOverzicht[] | null
+  linkBasis: string | null
+  loginAan: boolean
+}
+
+interface MedewerkersBeheerProps {
+  medewerkers: Medewerker[]
+  vestiging: Vestiging
+  login: LoginBeheer | null
+  /** Het eigen id als een medewerker dit beheert: die rij is niet aan te passen. */
+  ikZelf: string | null
+}
+
+export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf }: MedewerkersBeheerProps) {
+  const perMedewerker = new Map((login?.logins ?? []).map((l) => [l.medewerkerId, l]))
   const hier = medewerkers.filter((m) => m.vestigingen.includes(vestiging))
   const elders = medewerkers.filter((m) => !m.vestigingen.includes(vestiging))
   const naam = useVestigingNaam(vestiging)
@@ -112,7 +130,21 @@ export function MedewerkersBeheer({ medewerkers, vestiging }: { medewerkers: Med
         <span className="club-zacht">{m.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Geen rol'}</span>
         {!m.actief && <span className="club-chip club-chip--uit">Uit dienst</span>}
       </summary>
-      <MedewerkerFormulier key={`${m.naam}-${m.email}-${m.rollen.join()}-${m.vestigingen.join()}`} mens={m} vestiging={vestiging} />
+      {m.id === ikZelf ? (
+        <p className="club-hint">Dit ben jij. Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.</p>
+      ) : (
+        <MedewerkerFormulier key={`${m.naam}-${m.email}-${m.rollen.join()}-${m.vestigingen.join()}`} mens={m} vestiging={vestiging} />
+      )}
+      {login && (
+        <MedewerkerLogin
+          medewerkerId={m.id}
+          naam={m.naam}
+          login={perMedewerker.get(m.id) ?? null}
+          inDienst={m.actief}
+          linkBasis={login.linkBasis}
+          loginAan={login.loginAan}
+        />
+      )}
     </details>
   )
   return (
@@ -136,6 +168,9 @@ export function MedewerkersBeheer({ medewerkers, vestiging }: { medewerkers: Med
         </div>
       </div>
       <RollenUitleg />
+      {login?.logins === null && (
+        <p className="club-melding club-melding--fout" role="alert">De inloglinks konden niet worden gelezen. Is migratie 425 al gedraaid?</p>
+      )}
     </section>
   )
 }

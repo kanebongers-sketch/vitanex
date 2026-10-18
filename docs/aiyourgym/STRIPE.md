@@ -58,9 +58,28 @@ Render deployt na het opslaan vanzelf opnieuw.
 3. Je komt op `/aiyourgym/welkom` met "Je sportschool staat klaar" en de inloglink.
 4. Controleer in Club, Huisstijl, dat de nieuwe sportschool in de wissel staat met de eigenaar bij Beheerders.
 
+## 6. Customer Portal (facturen en betaalgegevens)
+
+De eigenaar van een sportschool opent in Club, Instellingencentrum, **Abonnement en facturen** (`/clubkane/beheer/abonnement`) de knop "Facturen en betaalgegevens". Die opent het Customer Portal van Stripe en komt daarna terug op die pagina. Zet het portaal eerst aan in Stripe, anders geeft de knop een foutmelding.
+
+In Stripe: Instellingen, Billing, **Customer portal** (eerst in testmodus, later ook in livemodus):
+
+1. Sla de instellingen van het portaal minstens een keer op; zonder opgeslagen instellingen maakt Stripe geen portaalsessie.
+2. **Facturen**: aan (factuurgeschiedenis tonen, zodat de eigenaar pdf's kan downloaden).
+3. **Betaalmethoden**: aan (bijwerken van de betaalmethode).
+4. **Klantgegevens**: aan voor factuuradres, e-mail en btw-nummer.
+5. **Abonnement opzeggen**: aan, met "Aan het einde van de factuurperiode" (dan toont Club "Opgezegd, loopt nog tot ..."). Een reden vragen mag.
+6. **Abonnement wijzigen** (ander pakket of aantal): voorlopig uit. Het aantal vestigingen hoort bij wat in Club staat; dat regel je zelf.
+7. **Bedrijfsgegevens**: naam AI Your Gym, en links naar de algemene voorwaarden en het privacybeleid zodra die er zijn.
+8. Standaard terugkeer-url mag leeg blijven: de app geeft bij elke sessie zelf de juiste url mee (alleen eigen domeinen en het subdomein van de sportschool).
+
+Er is geen nieuwe Render-variabele nodig: de knop gebruikt `AIYOURGYM_STRIPE_SECRET_KEY` en de klant uit `ayg_aanmeldingen.stripe_customer_id`. Fit Factory, de demo-sportschool en het testaccount hebben geen klant bij Stripe; daar toont de pagina een uitleg in plaats van de knop.
+
+Status en einddatum van de proefperiode leest de pagina rechtstreeks bij Stripe (`/v1/subscriptions`). Is Stripe even onbereikbaar, dan toont hij de status uit `ayg_aanmeldingen` zonder datums.
+
 ## Live gaan
 
-Herhaal stap 2 tot en met 4 in de livemodus van Stripe (nieuwe prijs-id's, nieuwe webhook met een eigen `whsec_`, sleutel `sk_live_...`).
+Herhaal stap 2 tot en met 4 en stap 6 in de livemodus van Stripe (nieuwe prijs-id's, nieuwe webhook met een eigen `whsec_`, sleutel `sk_live_...`).
 
 ## Goed om te weten
 

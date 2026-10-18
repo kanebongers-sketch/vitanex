@@ -1,0 +1,28 @@
+/* ─── Club: abonnement en facturen ───────────────────────────────────────────
+   Een grote statusregel bovenaan, daaronder een strakke feitenlijst en de
+   knop naar Stripe. Alleen .club-abo-*. */
+
+.club-abo { display: grid; gap: 24px; max-width: 760px; margin-top: 24px; }
+.club-abo-status { display: grid; gap: 6px; padding: 22px 24px; border: 1px solid var(--line); border-left: 4px solid var(--abo-toon, var(--line-strong)); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-abo-status[data-toon='goed'] { --abo-toon: var(--club-ok); }
+.club-abo-status[data-toon='let'] { --abo-toon: var(--brand); }
+.club-abo-status[data-toon='fout'] { --abo-toon: var(--club-let-op); }
+.club-abo-label { margin: 0; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-abo-waarde { margin: 0; font-family: var(--ff-kop); font-size: clamp(26px, 3.2vw, 38px); line-height: 1; font-weight: 700; text-transform: uppercase; }
+.club-abo-toelichting { margin: 4px 0 0; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+
+.club-abo-feiten { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
+.club-abo-feit { display: grid; gap: 4px; padding: 16px 18px; border-right: 1px solid var(--line); }
+.club-abo-feit:last-child { border-right: 0; }
+.club-abo-feit dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-abo-feit dd { margin: 0; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .club-abo-feit { border-right: 0; border-bottom: 1px solid var(--line); }
+  .club-abo-feit:last-child { border-bottom: 0; }
+}
+
+.club-abo-actie { display: grid; gap: 10px; justify-items: start; }
+.club-abo-actie .club-hint { margin: 0; max-width: 560px; }
+.club-abo-uitleg { display: grid; gap: 8px; padding: 20px 22px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); color: var(--text-2); line-height: 1.55; }
+.club-abo-uitleg h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; color: var(--text-1); }
+.club-abo-uitleg p { margin: 0; }

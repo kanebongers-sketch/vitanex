@@ -1,0 +1,315 @@
+// ─── Club: de handleidingen van het helpcentrum (PUUR) ──────────────────────
+// Korte, echte handleidingen per onderdeel, gebaseerd op wat de pagina's doen.
+// Elk artikel hoort bij een onderdeel uit src/components/club/shell/onderdelen.ts
+// (of null: altijd zichtbaar), zodat iemand alleen handleidingen ziet van wat
+// aan staat en wat hij mag openen. De test controleert dat elke link naar een
+// bestaande pagina van een onderdeel wijst. Wijzig je een pagina: werk de tekst bij.
+
+import { ONDERDELEN, actiefOnderdeel, isZichtbaar } from '@/components/club/shell/onderdelen'
+import type { Module } from '@/lib/club/kern/organisatie'
+
+export interface ArtikelLink {
+  label: string
+  /** Een pad binnen /clubkane, eventueel met ?tab= of andere parameters. */
+  pad: string
+}
+
+export interface Artikel {
+  sleutel: string
+  titel: string
+  samenvatting: string
+  /** Sleutel van het onderdeel (zichtbaarheid); null = altijd tonen. */
+  onderdeel: string | null
+  stappen: readonly string[]
+  links: readonly ArtikelLink[]
+  /** Extra zoekwoorden die niet in de tekst staan. */
+  trefwoorden: readonly string[]
+}
+
+export const ARTIKELEN: readonly Artikel[] = [
+  {
+    sleutel: 'eerste-stappen',
+    titel: 'Eerste stappen',
+    samenvatting: 'Hoe het menu werkt, de vestiging kiezen en wat Vandaag laat zien.',
+    onderdeel: null,
+    stappen: [
+      'Bovenin staan vijf groepen: Werkvloer, Leden, Planning, Coaching en Beheer. Kies een groep; de onderdelen staan eronder. Op de telefoon open je alles met de knop Menu.',
+      'Kies rechts in de balk de vestiging. Je blijft op dezelfde pagina, alleen de vestiging wisselt. Zonder keuze opent de standaard vestiging.',
+      'Vandaag toont wie er nu binnen is, check-ins, lessen en proeflessen van vandaag, wie er werkt, de overdracht, taken, leden met risico, opvolging, verjaardagen en nieuwe leden.',
+      'Nog geen vestiging? Voeg die eerst toe bij Instellingen, tabblad Vestigingen. Daarna werken alle pagina\'s per vestiging.',
+      'Onderdelen die je sportschool niet gebruikt zet je uit bij Huisstijl. Ze verdwijnen dan uit het menu.',
+    ],
+    links: [
+      { label: 'Vandaag', pad: '/clubkane' },
+      { label: 'Vestiging toevoegen', pad: '/clubkane/instellingen?tab=vestigingen' },
+      { label: 'Instellingencentrum', pad: '/clubkane/beheer' },
+    ],
+    trefwoorden: ['start', 'begin', 'menu', 'vestiging wisselen', 'dashboard'],
+  },
+  {
+    sleutel: 'leden-inlezen',
+    titel: 'Leden inlezen en de ledenlijst',
+    samenvatting: 'Een export uit Sportivity of Excel inlezen, en leden zoeken en filteren.',
+    onderdeel: 'leden',
+    stappen: [
+      'Maak in Sportivity of Excel een CSV-bestand (puntkomma, komma of tab; Club herkent het zelf). Hooguit 10 MB en 5000 rijen per bestand.',
+      'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht, de rest kies je of zet je op Niet inlezen.',
+      'Druk op Controleren. Elke rij krijgt Nieuw, Bijwerken, Al gelijk of Dubbel. Daarna lees je de leden in voor de gekozen vestiging.',
+      'Inlezen verwijdert nooit iemand, en een lege cel wist niets. Coach, tags en QR-code blijven zoals ze zijn.',
+      'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities.',
+    ],
+    links: [
+      { label: 'Ledenbestand inlezen', pad: '/clubkane/leden/importeren' },
+      { label: 'Ledenlijst', pad: '/clubkane/leden' },
+    ],
+    trefwoorden: ['import', 'importeren', 'csv', 'excel', 'sportivity', 'ledenkaart', 'behoud'],
+  },
+  {
+    sleutel: 'checkin',
+    titel: 'Check-in aan de balie',
+    samenvatting: 'Leden inchecken met QR, bandje, naam of lidnummer.',
+    onderdeel: 'checkin',
+    stappen: [
+      'Open Check-in en scan de QR-code of het bandje: het lid is meteen ingecheckt.',
+      'Of typ een naam of lidnummer, kies met de pijltjestoetsen en druk op Enter. Esc maakt het veld leeg.',
+      'Je ziet direct de uitkomst: Welkom, Al binnen, Niet actief, Geen toegang, of Let op met de keuze Toch inchecken of Niet inchecken.',
+      'Rechts staan Nu binnen, de check-ins van vandaag en de laatste check-ins met de bron (balie, QR, bandje of les). Nu binnen is een schatting: er is geen uitchecken.',
+      'Een tweede check-in binnen 30 minuten telt niet nog een keer. De pagina ververst elke minuut vanzelf.',
+    ],
+    links: [{ label: 'Check-in', pad: '/clubkane/checkin' }],
+    trefwoorden: ['balie', 'scannen', 'qr', 'bandje', 'binnen'],
+  },
+  {
+    sleutel: 'rooster',
+    titel: 'Groepslessen, reserveren en wachtlijst',
+    samenvatting: 'Het weekrooster, deelnemers beheren en lessen aanpassen.',
+    onderdeel: 'rooster',
+    stappen: [
+      'De vaste lessen per week zet je klaar bij Instellingen, tabblad Weekrooster. Lestypen en zalen staan daar ook.',
+      'In Groepslessen blader je per week en filter je op zaal, les en instructeur. De tegels tonen het aantal lessen, de gemiddelde bezetting, de wachtlijst en no-shows.',
+      'Klik een les aan voor de deelnemers. Zodra de check-in open is, zet je iemand op Aanwezig of No-show.',
+      'Iemand toevoegen: zoek op naam, lidnummer of telefoon en druk op Boek. Is de les vol, dan gaat het lid op de wachtlijst en schuift vanzelf door als er plek vrijkomt.',
+      'Met Deze les aanpassen wijzig je capaciteit, zaal of instructeur. Les annuleren vraagt een reden; de reserveringen vervallen dan.',
+    ],
+    links: [
+      { label: 'Groepslessen', pad: '/clubkane/rooster' },
+      { label: 'Weekrooster instellen', pad: '/clubkane/instellingen?tab=weekrooster' },
+      { label: 'Regels voor boeken', pad: '/clubkane/instellingen?tab=regels' },
+    ],
+    trefwoorden: ['les', 'lessen', 'reserveren', 'boeken', 'wachtlijst', 'no-show', 'capaciteit', 'zaal'],
+  },
+  {
+    sleutel: 'afspraken',
+    titel: 'Afspraken plannen',
+    samenvatting: 'Intakes, personal training en metingen per trainer.',
+    onderdeel: 'afspraken',
+    stappen: [
+      'Leg eerst je soorten afspraken vast bij Afspraaktypen: naam, duur, buffer na afloop, kleur, wie hem geeft en tot hoeveel uur van tevoren leden in de app boeken en annuleren.',
+      'In de agenda kies je Week of Dag en filter je op trainer.',
+      'Nieuwe afspraak: kies de soort, een trainer (of de eerste die vrij is), de dag en een vrije tijd. Alleen vrije tijden zijn te kiezen, dus dubbel boeken kan niet.',
+      'Na afloop zet je de afspraak op Geweest of Niet gekomen. Verplaatsen, annuleren en een notitie kan ook.',
+    ],
+    links: [
+      { label: 'Afspraken', pad: '/clubkane/afspraken' },
+      { label: 'Afspraaktypen', pad: '/clubkane/afspraken?tab=typen' },
+    ],
+    trefwoorden: ['intake', 'personal training', 'meting', 'agenda', 'trainer'],
+  },
+  {
+    sleutel: 'personeel',
+    titel: 'Personeelsrooster en uren',
+    samenvatting: 'Diensten plannen, gewerkte uren bevestigen en exporteren.',
+    onderdeel: 'personeel',
+    stappen: [
+      'In het Weekrooster maak je diensten met datum, begin, eind, medewerker en uursoort (werk, ziek of verlof). Kopieer vorige week of gebruik een vast patroon.',
+      'Medewerkers geven hun vaste week en afwezigheid op bij Beschikbaarheid.',
+      'Na een dienst vul je de gewerkte tijd en pauze in en druk je op Bevestig gewerkt. Een dienst gaat van Gepland naar Gewerkt, Goedgekeurd en Verwerkt.',
+      'Op het tabblad Uren kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris.',
+    ],
+    links: [
+      { label: 'Personeel', pad: '/clubkane/personeel' },
+      { label: 'Uren', pad: '/clubkane/personeel?tab=uren' },
+      { label: 'Beschikbaarheid', pad: '/clubkane/personeel?tab=team' },
+    ],
+    trefwoorden: ['dienst', 'diensten', 'rooster', 'uren', 'salaris', 'ziek', 'verlof', 'administratie'],
+  },
+  {
+    sleutel: 'taken',
+    titel: 'Taken en poetslijsten',
+    samenvatting: 'Dagelijkse taken afvinken en de afsluitronde.',
+    onderdeel: 'taken',
+    stappen: [
+      'Kies in Dag bij Afvinken als wie je bent, en tik taken af. Iets anders gedaan? Zet het erbij als notitie.',
+      'Sluit de dag af met de Afsluitronde.',
+      'Week toont dezelfde tabel voor de hele week; Overzicht toont gemiste dagtaken, weektaken die achterlopen en afgemelde afsluitrondes.',
+      'Bij Beheer maak je lijsten en taken met hoe vaak (elke dag, minimaal een aantal keer per week, indien nodig) en het moment. Een lijst kopieer je naar een andere vestiging.',
+    ],
+    links: [
+      { label: 'Taken van vandaag', pad: '/clubkane/taken' },
+      { label: 'Week', pad: '/clubkane/taken/week' },
+      { label: 'Overzicht', pad: '/clubkane/taken/overzicht' },
+      { label: 'Taken beheren', pad: '/clubkane/taken/beheer' },
+    ],
+    trefwoorden: ['poetsen', 'schoonmaak', 'afsluiten', 'checklist'],
+  },
+  {
+    sleutel: 'training',
+    titel: "Intakes en trainingsschema's",
+    samenvatting: 'Een intake afnemen, een schema maken en sjablonen gebruiken.',
+    onderdeel: 'schemas',
+    stappen: [
+      'Ga naar Training en druk op Intake afnemen bij een lid. Alle vragen staan op een scherm. Gezondheidsgegevens worden alleen bewaard met toestemming.',
+      'Na Intake opslaan maakt Maak schemavoorstel een eerste schema. Of begin met een leeg schema of een sjabloon.',
+      'In het schema geef je naam, status (concept, actief of afgerond), doel, niveau en weken op, en per dag (A tot en met G) de oefeningen met sets, herhalingen, kg en rust.',
+      'Opslaan kan ook met Ctrl+S. Rechts zie je wat het lid in de app heeft afgevinkt. Een goed schema bewaar je als sjabloon.',
+      'De vragen van de intake pas je aan in het instellingencentrum; oefeningen en coaching staan op het tabblad Oefeningen.',
+    ],
+    links: [
+      { label: "Schema's", pad: '/clubkane/training' },
+      { label: 'Intakes', pad: '/clubkane/training?tab=intakes' },
+      { label: 'Oefeningen', pad: '/clubkane/training?tab=oefeningen' },
+    ],
+    trefwoorden: ['schema', 'oefening', 'oefeningen', 'sjabloon', 'coaching', 'intakeformulier'],
+  },
+  {
+    sleutel: 'voeding',
+    titel: 'Voeding per lid',
+    samenvatting: 'Een dagdoel met rekenhulp, adviezen en sjablonen.',
+    onderdeel: 'voeding',
+    stappen: [
+      'Zoek bij Voeding een lid en open het plan.',
+      'Stel het dagdoel in: kcal, eiwit, koolhydraten en vet. De rekenhulp schat het met de formule van Mifflin-St Jeor op basis van geslacht, activiteit en doel.',
+      'Voeg adviezen en een voorbeeld van een dag toe. De notitie voor trainers ziet het lid niet.',
+      'Maak bij Sjablonen een vast plan dat je op meer leden toepast.',
+    ],
+    links: [
+      { label: 'Voeding', pad: '/clubkane/voeding' },
+      { label: 'Sjablonen', pad: '/clubkane/voeding?tab=sjablonen' },
+    ],
+    trefwoorden: ['kcal', 'calorieen', 'eiwit', 'macro', 'dieet'],
+  },
+  {
+    sleutel: 'challenges',
+    titel: 'Challenges en badges',
+    samenvatting: 'Doelen voor leden met voortgang en een ranglijst.',
+    onderdeel: 'challenges',
+    stappen: [
+      'Druk op Nieuwe challenge en kies wat telt: bezoeken, trainingen, groepslessen of weken op rij. Geef een doel, start en eind.',
+      'Kies voor welke vestigingen hij geldt, en of iedereen meedoet of leden zich inschrijven.',
+      'Zet aan of hij in de ledenapp staat en of de ranglijst zichtbaar is (voornaam en eerste letter).',
+      'Challenges staan in lopend, gepland en afgelopen. Een lopende challenge kun je stoppen.',
+    ],
+    links: [{ label: 'Challenges', pad: '/clubkane/challenges' }],
+    trefwoorden: ['doel', 'wedstrijd', 'ranglijst', 'motivatie'],
+  },
+  {
+    sleutel: 'opvolgen',
+    titel: 'Opvolgen en automatiseringen',
+    samenvatting: 'Wie je vandaag belt of aanspreekt, en de regels daarachter.',
+    onderdeel: 'opvolgen',
+    stappen: [
+      'Opvolgen toont per regel wie je vandaag spreekt, met een voorbeeldtekst. Zet een notitie en druk op Gedaan of Overslaan.',
+      'Club verstuurt zelf niets: jij of het team belt, appt of spreekt het lid aan.',
+      'De zeven regels (welkomstgesprek, proeflid, lang niet gezien, risico op afhaken, verjaardag, exitgesprek en mijlpaal) zet je aan of uit bij Automatiseringen, met een drempel, wie het oppakt en de voorbeeldtekst.',
+      'Recent afgehandeld toont wat de afgelopen 7 dagen is gedaan.',
+    ],
+    links: [
+      { label: 'Opvolgen', pad: '/clubkane/opvolgen' },
+      { label: 'Automatiseringen', pad: '/clubkane/beheer/automatiseringen' },
+    ],
+    trefwoorden: ['bellen', 'retentie', 'behoud', 'opzegging', 'verjaardag'],
+  },
+  {
+    sleutel: 'rapporten',
+    titel: 'Rapporten en cijfers',
+    samenvatting: 'Exports per kalendermaand en de cijfers van je club.',
+    onderdeel: 'rapporten',
+    stappen: [
+      'Kies bij Rapporten het rapport, de kalendermaand en de vestigingen. Niets aangevinkt is de vestiging uit de balk.',
+      'Er zijn negen rapporten, onder meer de ledenlijst, nieuwe leden en opzeggingen, bezoek, bezetting, no-shows, leads, afspraken, uren en opvolgtaken.',
+      'Download CSV geeft een bestand met puntkomma\'s dat Excel goed opent. Elke download wordt gelogd.',
+      'Cijfers toont leden, bezoek, lessen en leads per maand, vergeleken met de vorige maand en dezelfde maand vorig jaar. Kies Alle vestigingen voor het totaal.',
+    ],
+    links: [
+      { label: 'Rapporten', pad: '/clubkane/rapporten' },
+      { label: 'Cijfers', pad: '/clubkane/cijfers' },
+    ],
+    trefwoorden: ['export', 'excel', 'csv', 'maand', 'statistiek', 'kpi'],
+  },
+  {
+    sleutel: 'instellingen',
+    titel: 'Huisstijl en instellingen',
+    samenvatting: 'Logo en kleuren, onderdelen aan of uit, en alles op een plek.',
+    onderdeel: 'beheer',
+    stappen: [
+      'Het instellingencentrum toont alles wat je instelt, met de huidige stand, en opent de plek waar je het aanpast.',
+      'Bij Huisstijl stel je naam, slogan, logo (PNG, WebP, SVG of JPEG, hooguit 1 MB), donker of licht en je eigen kleur in. Het geldt meteen voor Club en de ledenapp.',
+      'Ook bij Huisstijl zet je onderdelen uit die je niet gebruikt, zoals check-in of personeel.',
+      'Bij Instellingen staan per vestiging de regels en openingstijden, zalen, het weekrooster en medewerkers. Lestypen gelden voor alle vestigingen.',
+      'Bij Rechten per rol kies je welke onderdelen trainers, instructeurs, clubmanagers en de administratie zien.',
+    ],
+    links: [
+      { label: 'Instellingencentrum', pad: '/clubkane/beheer' },
+      { label: 'Huisstijl', pad: '/clubkane/huisstijl' },
+      { label: 'Instellingen', pad: '/clubkane/instellingen' },
+      { label: 'Rechten per rol', pad: '/clubkane/beheer/rechten' },
+    ],
+    trefwoorden: ['logo', 'kleur', 'thema', 'modules', 'openingstijden', 'medewerkers', 'rollen'],
+  },
+  {
+    sleutel: 'ledenapp',
+    titel: 'Ledenapp en berichten',
+    samenvatting: 'Wat leden in de app zien, en nieuws en acties plaatsen.',
+    onderdeel: 'app',
+    stappen: [
+      'Bij Ledenapp zie je de app zoals een lid hem ziet: kies een lid en blader door Home, Lessen, Afspraken, Schema, Voeding, Voortgang en Profiel.',
+      'In het instellingencentrum, Ledenapp, stel je de welkomsttekst in, welke tabbladen aan staan en of de QR-code voor de check-in zichtbaar is.',
+      'Bij Berichten plaats je nieuws, een actie of iets belangrijks, met begin en eind, voor welke vestigingen en eventueel alleen voor bepaalde leden. Een bericht kun je vastpinnen of meteen stoppen.',
+      'Abonnement en betalingen van leden blijven in Sportivity.',
+    ],
+    links: [
+      { label: 'Ledenapp bekijken', pad: '/clubkane/app' },
+      { label: 'Ledenapp instellen', pad: '/clubkane/beheer/ledenapp' },
+      { label: 'Berichten', pad: '/clubkane/berichten' },
+    ],
+    trefwoorden: ['app', 'telefoon', 'nieuws', 'mededeling', 'qr'],
+  },
+]
+
+/** Alles waarop een artikel gevonden wordt, in kleine letters. */
+function zoektekst(a: Artikel): string {
+  return [a.titel, a.samenvatting, ...a.stappen, ...a.trefwoorden, ...a.links.map((l) => l.label)].join(' ').toLowerCase()
+}
+
+/** Kleine letters en zonder accenten, zodat zoeken met of zonder accent hetzelfde vindt. */
+export function normaliseer(tekst: string): string {
+  return tekst.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+/** Simpel filter: elk woord van de zoekvraag moet ergens in het artikel staan. */
+export function filterArtikelen(lijst: readonly Artikel[], zoek: string): Artikel[] {
+  const woorden = normaliseer(zoek).split(/\s+/).filter(Boolean)
+  if (woorden.length === 0) return [...lijst]
+  return lijst.filter((a) => {
+    const tekst = normaliseer(zoektekst(a))
+    return woorden.every((w) => tekst.includes(w))
+  })
+}
+
+/** Het pad zonder parameters of anker. */
+export function kaalPad(pad: string): string {
+  return pad.split(/[?#]/)[0]
+}
+
+/**
+ * De artikelen die deze persoon ziet: van onderdelen die aan staan en die hij
+ * mag openen, en alleen met links naar pagina's die hij ook mag openen.
+ */
+export function zichtbareArtikelen(uit: readonly Module[], toegestaan: readonly string[] | null): Artikel[] {
+  const mag = (sleutel: string) => {
+    const o = ONDERDELEN.find((x) => x.sleutel === sleutel)
+    return o !== undefined && isZichtbaar(o, uit, toegestaan)
+  }
+  return ARTIKELEN.filter((a) => a.onderdeel === null || mag(a.onderdeel))
+    .map((a) => ({ ...a, links: a.links.filter((l) => mag(actiefOnderdeel(kaalPad(l.pad)).sleutel)) }))
+}

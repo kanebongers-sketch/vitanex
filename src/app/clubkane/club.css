@@ -203,6 +203,7 @@
 /* ── Voet ─────────────────────────────────────────────────────────────────── */
 .club-voet { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 16px var(--ff-rand) calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--text-4); font-size: 12px; }
 .club-voet-wissel { color: var(--brand-tekst); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.club-voet-links { display: inline-flex; flex-wrap: wrap; gap: 16px; }
 .club-voet-wissel:hover { text-decoration-thickness: 2px; }
 .club-voet-wissel:focus-visible { outline: 2px solid var(--brand-tekst); outline-offset: 2px; border-radius: 4px; }
 

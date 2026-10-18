@@ -14,6 +14,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ so
   if (t instanceof NextResponse) return t
   const { soort, id } = await params
   if (!isInstellingSoort(soort) || !isUuid(id)) return clubFout('Niet gevonden.', 404)
+  // Een ingelogde medewerker past zijn eigen rollen en vestigingen niet aan (anders geeft hij zichzelf meer rechten).
+  if (soort === 'medewerkers' && t.rol === 'medewerker' && id === t.persoonId) return clubFout('Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.', 403)
   const body = await leesJson(req)
   const vestiging = leesVestiging(body)
   if (!vestiging) return clubFout('Kies een vestiging.', 400)

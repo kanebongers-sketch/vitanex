@@ -61,6 +61,13 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             Andere sportschool
           </Link>
         )}
+        {t.isKane && (
+          <span className="club-voet-links">
+            <Link href="/aiyourgym?bekijk=1" className="club-voet-wissel">Website AI Your Gym</Link>
+            <Link href="/clubkane/hulp/meldingen" className="club-voet-wissel">Supportmeldingen</Link>
+            <Link href="/clubkane/systeem" className="club-voet-wissel">Systeem</Link>
+          </span>
+        )}
         <FfMaker />
       </footer>
     </div>

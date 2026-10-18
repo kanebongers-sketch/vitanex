@@ -7,10 +7,12 @@ import type { AppLes } from '@/lib/club/app/data'
 import { dagNaamKort, lesKeuze, magGratisAnnuleren, regelTeksten, vrijePlekken, type AppRegels } from '@/lib/club/app/regels'
 import { dagKort, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import { stuur } from './verzoek'
+import { useLedenappApi } from './LedenappApi'
 
 // Lessen in de ledenapp: de komende 7 dagen, met vrije plekken en een knop die
 // boekt, op de wachtlijst zet of annuleert. Boeken en annuleren lopen via de
-// API van het rooster-onderdeel (zelfde regels als aan de balie).
+// API van het rooster-onderdeel (zelfde regels als aan de balie), in /mijn via
+// de leden-API (zie LedenappApi.tsx).
 
 interface Props {
   lidId: string
@@ -18,8 +20,6 @@ interface Props {
   regels: AppRegels
   nu: string
 }
-
-const ROOSTER_API = '/api/club/rooster/reserveringen'
 
 function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer'): string {
   if (actie === 'boek') {
@@ -32,6 +32,7 @@ function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer'): str
 
 export function LessenTab({ lidId, lessen, regels, nu }: Props) {
   const router = useRouter()
+  const api = useLedenappApi()
   const [bezig, startBezig] = useTransition()
   const [actief, setActief] = useState<string | null>(null)
   const [bevestig, setBevestig] = useState<string | null>(null)
@@ -44,10 +45,8 @@ export function LessenTab({ lidId, lessen, regels, nu }: Props) {
     setActief(les.id)
     setBevestig(null)
     startBezig(async () => {
-      const r =
-        soort === 'boek'
-          ? await stuur(ROOSTER_API, 'POST', { lesId: les.id, lidId, bron: 'app' })
-          : await stuur(`${ROOSTER_API}/${les.mijn?.reserveringId ?? ''}/annuleren`, 'POST')
+      const boek = api.lesBoeken(les.id, lidId)
+      const r = soort === 'boek' ? await stuur(boek.url, 'POST', boek.body) : await stuur(api.lesAnnuleren(les.mijn?.reserveringId ?? ''), 'POST')
       if (r.ok) {
         setBericht({ tekst: melding(r.data, soort), fout: false })
         router.refresh()
