@@ -3,7 +3,7 @@ import { Check } from 'lucide-react'
 import { PAKKETTEN, PROEFDAGEN, type Pakket } from '@/lib/aiyourgym/pakketten'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
 
 // Besluit Kane: geen bedragen op de website. De pakketten en wat erin zit komen
 // uit src/lib/aiyourgym/pakketten.ts; de prijs is altijd op maat.
@@ -65,6 +65,15 @@ const VRAGEN = [
     antwoord: `Je probeert AI Your Gym ${PROEFDAGEN} dagen gratis, met je eigen logo, kleuren en team. Zo zie je in je eigen club of het past.`,
   },
   {
+    vraag: 'Zit hulp bij het inrichten erbij?',
+    antwoord:
+      'Elke sportschool krijgt de startwizard. In Club en Keten zit daarnaast persoonlijke hulp bij het inrichten, zonder extra kosten.',
+  },
+  {
+    vraag: 'Kan ik het eerst zien zonder aan te melden?',
+    antwoord: 'Ja. De demo laat de echte schermen zien met een voorbeeldsportschool, zonder account en zonder gegevens van echte leden.',
+  },
+  {
     vraag: 'Zitten incasso en abonnementen erin?',
     antwoord:
       'Nee. AI Your Gym werkt naast je ledenadministratie. Incasso en abonnementen blijven daar, je leden lees je in met een CSV-bestand.',
@@ -81,8 +90,14 @@ export default function PrijzenPagina() {
       <PaginaKop
         label="Prijzen"
         titel="Een prijs die past bij je sportschool."
-        tekst={`Scherp geprijsd en op maat, voor een vestiging of een hele keten. Probeer eerst ${PROEFDAGEN} dagen gratis.`}
-      />
+        tekst={`Alles wat je van serieuze clubsoftware verwacht, scherp geprijsd en op maat. Voor een vestiging of een hele keten. Probeer eerst ${PROEFDAGEN} dagen gratis.`}
+      >
+        <div className="ayg-knoppen">
+          <Knop href={DEMO} soort="rand" pijl>
+            Probeer de demo
+          </Knop>
+        </div>
+      </PaginaKop>
       <section className="ayg-sectie--krap" aria-label="Pakketten">
         <div className="ayg-wrap">
           <div className="ayg-prijzen">

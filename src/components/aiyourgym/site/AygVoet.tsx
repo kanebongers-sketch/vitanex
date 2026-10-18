@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
-import { AANMELDEN, NAV_LINKS, aygPad } from './paden'
+import { AANMELDEN, DEMO, NAV_LINKS, aygPad } from './paden'
 
 const PRODUCT = [
   { label: 'Werkvloer', pad: aygPad('/functies#werkvloer') },
@@ -28,6 +28,9 @@ export function AygVoet() {
                   <Link href={l.pad}>{l.label}</Link>
                 </li>
               ))}
+              <li>
+                <Link href={DEMO}>Probeer de demo</Link>
+              </li>
               <li>
                 <Link href={AANMELDEN}>Probeer gratis</Link>
               </li>
@@ -60,7 +63,7 @@ export function AygVoet() {
         </p>
         <div className="ayg-voet-onder">
           <span>© {jaar} AI Your Gym</span>
-          <span>Gegevens opgeslagen in de EU</span>
+          <span>Database in Frankfurt, binnen de EU</span>
         </div>
       </div>
     </footer>

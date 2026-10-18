@@ -1,6 +1,6 @@
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { Knop } from './bouwstenen'
-import { AANMELDEN, aygPad } from './paden'
+import { AANMELDEN, DEMO } from './paden'
 
 interface Props {
   titel?: string
@@ -27,8 +27,8 @@ export function AanmeldBand({ titel = 'Zet je sportschool er vandaag in.' }: Pro
               <Knop href={AANMELDEN} soort="accent" pijl>
                 Probeer gratis
               </Knop>
-              <Knop href={aygPad('/functies')} soort="rand">
-                Bekijk de functies
+              <Knop href={DEMO} soort="rand">
+                Probeer de demo
               </Knop>
             </div>
           </div>

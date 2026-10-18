@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { CalendarClock, CalendarDays, Dumbbell, House, Lock, TrendingUp, UserRound } from 'lucide-react'
+import { CalendarClock, CalendarDays, Dumbbell, House, Lock, Salad, TrendingUp, UserRound } from 'lucide-react'
 
 // Kaders voor de productbeelden: een browservenster en een telefoon. De inhoud
 // is een tekening van onze eigen schermen in HTML en CSS; voor schermlezers is
@@ -86,6 +86,7 @@ const TABS = [
   { label: 'Lessen', Icoon: CalendarDays },
   { label: 'Afspraken', Icoon: CalendarClock },
   { label: 'Schema', Icoon: Dumbbell },
+  { label: 'Voeding', Icoon: Salad },
   { label: 'Voortgang', Icoon: TrendingUp },
   { label: 'Profiel', Icoon: UserRound },
 ] as const

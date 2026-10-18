@@ -4,7 +4,7 @@ import { Check, Trophy } from 'lucide-react'
 // Alleen de inhoud; het telefoonkader komt uit kaders.tsx.
 
 /** Een vaste, nette QR-tekening (geen echte code) voor het inchecken. */
-function QrBeeld() {
+export function QrBeeld() {
   const n = 21
   const vinder = (x: number, y: number) => {
     const inBlok = (bx: number, by: number) => x >= bx && x < bx + 7 && y >= by && y < by + 7
@@ -150,5 +150,81 @@ export function AppSchema() {
         ))}
       </div>
     </>
+  )
+}
+
+const MACROS = [
+  { naam: 'Eiwit', gram: 150, deel: 0.62 },
+  { naam: 'Koolhydraten', gram: 240, deel: 0.48 },
+  { naam: 'Vet', gram: 70, deel: 0.35 },
+] as const
+
+const MAALTIJDEN = [
+  { naam: 'Ontbijt', tekst: 'Kwark met havermout en blauwe bessen' },
+  { naam: 'Lunch', tekst: 'Volkoren wrap met kip en groente' },
+  { naam: 'Na de training', tekst: 'Shake en een banaan' },
+] as const
+
+/** Het voedingsplan dat de trainer voor het lid maakte. */
+export function AppVoeding() {
+  return (
+    <>
+      <p className="aygm-hallo">Voeding</p>
+      <div className="aygm-kaart aygm-voeding">
+        <div>
+          <p className="aygm-boven">Doel · spieropbouw</p>
+          <p className="aygm-getal">2.300</p>
+          <p className="aygm-boven">kcal per dag</p>
+        </div>
+        <div className="aygm-macros">
+          {MACROS.map((m) => (
+            <div key={m.naam}>
+              <span className="aygm-macro-tekst">
+                <span>{m.naam}</span>
+                <b>{m.gram} g</b>
+              </span>
+              <span className="aygm-balk">
+                <span style={{ transform: `scaleX(${m.deel})` }} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="aygm-lijst">
+        {MAALTIJDEN.map((m) => (
+          <div key={m.naam} className="aygm-rij">
+            <div className="aygm-rij-tekst">
+              <b>{m.naam}</b>
+              <span>{m.tekst}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+/** Inloggen in de web-app: het lid kiest zelf een pincode van zes cijfers. */
+export function AppPincode() {
+  return (
+    <div className="aygm-pin">
+      <div className="aygm-pin-kop">
+        <p className="aygm-hallo">Kies je pincode</p>
+        <p className="aygm-boven">Zes cijfers, alleen voor jou</p>
+      </div>
+      <div className="aygm-pin-vakjes" aria-hidden>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span key={i} data-vol={i < 4 ? '' : undefined} />
+        ))}
+      </div>
+      <div className="aygm-pin-toetsen" aria-hidden>
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map((t, i) => (
+          <span key={i} data-leeg={t === '' ? '' : undefined}>
+            {t}
+          </span>
+        ))}
+      </div>
+      <p className="aygm-pin-voet">Daarna zet je de app met een tik op je beginscherm.</p>
+    </div>
   )
 }

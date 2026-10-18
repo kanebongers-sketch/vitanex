@@ -3,18 +3,24 @@ import { Fundament } from '@/components/aiyourgym/home/Fundament'
 import { Held } from '@/components/aiyourgym/home/Held'
 import { Huisstijl } from '@/components/aiyourgym/home/Huisstijl'
 import { Onderdelen } from '@/components/aiyourgym/home/Onderdelen'
-import { Overstap, PakkettenKort } from '@/components/aiyourgym/home/Pakketten'
+import { PakkettenKort } from '@/components/aiyourgym/home/Pakketten'
 import { Planning } from '@/components/aiyourgym/home/Planning'
+import { StartStappen } from '@/components/aiyourgym/home/StartStappen'
 import { Training } from '@/components/aiyourgym/home/Training'
+import { Veelgesteld } from '@/components/aiyourgym/home/Veelgesteld'
+import { Veilig } from '@/components/aiyourgym/home/Veilig'
+import { VoorWieKort } from '@/components/aiyourgym/home/VoorWieKort'
 import { Werkvloer } from '@/components/aiyourgym/home/Werkvloer'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 
 export const metadata: Metadata = {
   title: { absolute: 'AI Your Gym | Clubsoftware voor sportscholen' },
   description:
-    "Check-in, groepslessen, personeelsrooster, trainingsschema's met coaching per oefening en een ledenapp in je eigen huisstijl. Clubsoftware voor sportscholen, met data in de EU.",
+    "Check-in, groepslessen, personeelsrooster, trainingsschema's met coaching per oefening en een ledenapp in je eigen huisstijl. Clubsoftware voor elk soort sportschool, met data in de EU.",
 }
 
+// Volgorde: wat het is, het hart (coaching), de werkvloer, voor wie, de
+// ledenapp, planning, hoe je start, veiligheid, fundament, pakketten en vragen.
 export default function AiYourGymHome() {
   return (
     <>
@@ -22,11 +28,14 @@ export default function AiYourGymHome() {
       <Onderdelen />
       <Training />
       <Werkvloer />
+      <VoorWieKort />
       <Huisstijl />
       <Planning />
+      <StartStappen />
+      <Veilig />
       <Fundament />
-      <Overstap />
       <PakkettenKort />
+      <Veelgesteld />
       <AanmeldBand />
     </>
   )

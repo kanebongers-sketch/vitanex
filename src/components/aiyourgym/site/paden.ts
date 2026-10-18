@@ -9,12 +9,14 @@ export function aygPad(sub = ''): string {
 }
 
 export const AANMELDEN = aygPad('/aanmelden')
+export const DEMO = aygPad('/demo')
 
 export const NAV_LINKS = [
-  { label: 'Functies', pad: aygPad('/functies') },
-  { label: 'Ledenapp', pad: aygPad('/ledenapp') },
-  { label: 'Prijzen', pad: aygPad('/prijzen') },
-  { label: 'Overstappen', pad: aygPad('/overstappen') },
+  { label: 'Functies', pad: aygPad('/functies'), uitleg: 'Werkvloer, leden, planning, coaching en beheer' },
+  { label: 'Voor wie', pad: aygPad('/voor-wie'), uitleg: 'Zelfstandig, boutique, PT-studio of keten' },
+  { label: 'Ledenapp', pad: aygPad('/ledenapp'), uitleg: 'Een web-app in jouw huisstijl' },
+  { label: 'Prijzen', pad: aygPad('/prijzen'), uitleg: 'Drie pakketten, een prijs op maat' },
+  { label: 'Overstappen', pad: aygPad('/overstappen'), uitleg: 'Zo zet je je club erin' },
 ] as const
 
 function zonderBasis(pad: string): string {

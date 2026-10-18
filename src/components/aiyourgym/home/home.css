@@ -158,5 +158,80 @@
 .ayg-podium .ayg-tabs-lijst svg { background: var(--ayg-inkt-2); color: var(--ayg-accent); }
 .ayg-tabs-lijst p { color: var(--ayg-tekst-2); }
 
+/* ── Gesplitst, uitgelijnd aan de bovenkant ──────────────────────────────── */
+@media (min-width: 1000px) { .ayg-gesplitst--boven { align-items: start; } .ayg-gesplitst--boven > :first-child { position: sticky; top: 100px; } }
+
+/* ── Voor wie (kort) ─────────────────────────────────────────────────────── */
+.ayg-doelen { display: grid; gap: 12px; }
+@media (min-width: 760px) { .ayg-doelen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1180px) { .ayg-doelen { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ayg-doel { position: relative; isolation: isolate; display: grid; grid-template-rows: auto auto 1fr; gap: 14px; min-height: 260px; height: 100%; padding: 26px; border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); text-decoration: none; overflow: hidden; transition: transform 420ms var(--ayg-ease), border-color 200ms, color 300ms; }
+.ayg-doel::after { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--ayg-inkt); transform: translateY(101%); transition: transform 520ms var(--ayg-ease); }
+.ayg-doel:hover { transform: translateY(-4px); border-color: var(--ayg-inkt); color: var(--ayg-inkt-tekst); }
+.ayg-doel:hover::after { transform: none; }
+.ayg-doel-nr { font-size: 13px; font-weight: 600; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; transition: color 300ms; }
+.ayg-doel-naam { font: 700 clamp(1.6rem, 2.4vw, 2rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 84; padding-right: 28px; }
+.ayg-doel-kop { align-self: end; color: var(--ayg-tekst-2); max-width: 30ch; transition: color 300ms; }
+.ayg-doel:hover :is(.ayg-doel-nr, .ayg-doel-kop) { color: var(--ayg-inkt-tekst-2); }
+.ayg-doel-pijl { position: absolute; top: 24px; right: 24px; transition: transform 320ms var(--ayg-ease), color 300ms; }
+.ayg-doel:hover .ayg-doel-pijl { transform: translate(3px, -3px); color: var(--ayg-accent); }
+
+/* ── Zo simpel start je ──────────────────────────────────────────────────── */
+.ayg-start { background: var(--ayg-vlak-2); }
+.ayg-start-raster { display: grid; gap: clamp(40px, 6vw, 72px); }
+@media (min-width: 1040px) { .ayg-start-raster { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: start; } .ayg-start-kop { position: sticky; top: 100px; } }
+.ayg-start .ayg-sectiekop { margin-bottom: 0; }
+.ayg-start-hulp { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 20px; border-radius: var(--ayg-radius); background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); box-shadow: var(--ayg-schaduw); }
+.ayg-start-hulp svg { width: 44px; height: 44px; padding: 11px; border-radius: 12px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-start-hulp-kop { font-weight: 700; margin-bottom: 4px; }
+.ayg-start-hulp p:not(.ayg-start-hulp-kop) { color: var(--ayg-inkt-tekst-2); font-size: 15px; }
+.ayg-start-stappen { display: grid; gap: 10px; }
+@media (min-width: 620px) { .ayg-start-stappen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1240px) { .ayg-start-stappen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ayg-start-stappen li { position: relative; display: grid; gap: 8px; align-content: start; min-height: 150px; padding: 22px; border-radius: var(--ayg-radius); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+.ayg-start-stappen li[data-laatste] { background: var(--ayg-accent); border-color: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-start-nr { font: 800 2.4rem/0.9 var(--ayg-font-kop); letter-spacing: -0.05em; font-variation-settings: 'wdth' 78; color: var(--ayg-lijn-sterk); font-variant-numeric: tabular-nums; }
+.ayg-start-stappen li[data-laatste] .ayg-start-nr { color: var(--ayg-accent-tekst); }
+.ayg-start-titel { font-size: 1.2rem; letter-spacing: -0.02em; }
+.ayg-start-stappen p { font-size: 15px; color: var(--ayg-tekst-2); }
+.ayg-start-stappen li[data-laatste] p { color: var(--ayg-accent-tekst); }
+
+/* ── Veilig en volgens de AVG ────────────────────────────────────────────── */
+.ayg-veilig { padding-block: clamp(56px, 8vw, 112px); }
+.ayg-veilig-raster { display: grid; gap: clamp(40px, 6vw, 80px); }
+@media (min-width: 1000px) { .ayg-veilig-raster { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: start; } }
+.ayg-veilig .ayg-sectiekop { margin-bottom: 0; }
+.ayg-veilig-plek { display: grid; margin-top: 16px; font: 800 clamp(3.6rem, 10vw, 8rem)/0.82 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; }
+.ayg-veilig-plek span:first-child { color: var(--ayg-accent); }
+.ayg-veilig-plek span:last-child { color: color-mix(in srgb, var(--ayg-inkt-tekst-2) 30%, transparent); }
+.ayg-veilig-lijst { display: grid; border-top: 1px solid var(--ayg-inkt-lijn); }
+.ayg-veilig-lijst li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-block: 22px; border-bottom: 1px solid var(--ayg-inkt-lijn); }
+.ayg-veilig-lijst svg { width: 40px; height: 40px; padding: 10px; border-radius: 11px; background: var(--ayg-inkt-2); color: var(--ayg-accent); }
+.ayg-veilig-lijst h3 { margin-bottom: 6px; }
+.ayg-veilig-lijst p { color: var(--ayg-inkt-tekst-2); max-width: 54ch; }
+
+/* ── Voor wie (pagina) ───────────────────────────────────────────────────── */
+.ayg-vinklijst--groot { gap: 16px; font-size: clamp(1rem, 1.3vw, 1.1rem); }
+.ayg-past { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; padding: 14px 18px; border-radius: var(--ayg-radius); border: 1px dashed var(--ayg-lijn-sterk); font-size: 15px; }
+.ayg-podium .ayg-past { border-color: var(--ayg-inkt-tekst-2); }
+.ayg-past a { font-weight: 600; text-underline-offset: 3px; text-decoration-color: var(--ayg-accent); text-decoration-thickness: 2px; }
+.ayg-aanpassen { display: grid; gap: 0; border-top: 1.5px solid var(--ayg-tekst); }
+@media (min-width: 760px) { .ayg-aanpassen { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; } }
+@media (min-width: 1100px) { .ayg-aanpassen { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ayg-aanpassen li { display: grid; gap: 10px; align-content: start; padding-block: 26px; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-aanpassen-nr { font-size: 13px; font-weight: 600; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; }
+.ayg-aanpassen p { color: var(--ayg-tekst-2); }
+
+/* ── Ledenapp: instap en functies ────────────────────────────────────────── */
+.ayg-toestellen--vier { justify-content: flex-start; }
+@media (min-width: 1240px) { .ayg-toestellen--vier { justify-content: center; } }
+.ayg-toestellen--vier > *:nth-child(4) { margin-top: 48px; }
+.ayg-instap { display: grid; gap: 12px; }
+@media (min-width: 860px) { .ayg-instap { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ayg-instap li { display: grid; gap: 12px; align-content: start; padding: 28px; border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+.ayg-instap-nr { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ayg-inkt); color: var(--ayg-accent); font: 700 17px/1 var(--ayg-font-tekst); }
+.ayg-instap p { color: var(--ayg-tekst-2); }
+@media (min-width: 700px) { .ayg-tabs-lijst--twee { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; } }
+
 /* Rasteritems mogen nooit breder worden dan hun kolom (lange tekst, schermbeelden) */
-:where(.ayg-bento-vak, .ayg-stapel, .ayg-held-raster, .ayg-gesplitst, .ayg-bento, .ayg-duo, .ayg-groep-raster, .ayg-prijzen, .ayg-pakket-rij, .ayg-fundament) > * { min-width: 0; }
+:where(.ayg-bento-vak, .ayg-stapel, .ayg-held-raster, .ayg-gesplitst, .ayg-bento, .ayg-duo, .ayg-groep-raster, .ayg-prijzen, .ayg-pakket-rij, .ayg-fundament, .ayg-start-raster, .ayg-veilig-raster, .ayg-doelen, .ayg-instap, .ayg-aanpassen) > * { min-width: 0; }

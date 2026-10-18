@@ -3,7 +3,7 @@ import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { Knop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, aygPad } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
 
 // De opening van de voorpagina: een grote belofte die we waarmaken, en het
 // product zelf als beeld (rooster in Club, ledenapp op de telefoon).
@@ -27,8 +27,8 @@ export function Held() {
             <Knop href={AANMELDEN} soort="accent" pijl>
               Probeer {PROEFDAGEN} dagen gratis
             </Knop>
-            <Knop href={aygPad('/functies')} soort="rand">
-              Bekijk de functies
+            <Knop href={DEMO} soort="rand">
+              Probeer de demo
             </Knop>
           </div>
           <ul className="ayg-held-kenmerken">

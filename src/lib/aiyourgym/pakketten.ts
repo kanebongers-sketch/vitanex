@@ -38,7 +38,7 @@ export const PAKKETTEN: readonly Pakket[] = [
     voorWie: 'Alles voor trainers, coaching en ledenbehoud.',
     prijsPerVestiging: null,
     maxVestigingen: 3,
-    inbegrepen: ['Alles uit Start', "Intakes en trainingsschema's met coaching", 'Afspraken en personeelsrooster', 'Challenges, badges en automatiseringen', 'Cijfers per maand'],
+    inbegrepen: ['Alles uit Start', "Intakes en trainingsschema's met coaching", 'Afspraken en personeelsrooster', 'Challenges, badges en automatiseringen', 'Cijfers per maand', 'Persoonlijke hulp bij het inrichten'],
     aanbevolen: true,
   },
   {
@@ -47,7 +47,7 @@ export const PAKKETTEN: readonly Pakket[] = [
     voorWie: 'Voor ketens met meerdere vestigingen.',
     prijsPerVestiging: null,
     maxVestigingen: null,
-    inbegrepen: ['Alles uit Club', 'Onbeperkt vestigingen', 'Rechten per rol en clubmanagers', 'Eigen adres naam.aiyourgym.com'],
+    inbegrepen: ['Alles uit Club', 'Onbeperkt vestigingen', 'Rechten per rol en clubmanagers', 'Eigen adres naam.aiyourgym.com', 'Persoonlijke hulp bij het inrichten'],
   },
 ]
 

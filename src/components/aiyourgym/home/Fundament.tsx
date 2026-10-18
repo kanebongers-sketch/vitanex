@@ -1,4 +1,4 @@
-import { Building2, Globe, KeyRound, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
+import { Building2, Globe, KeyRound, MonitorSmartphone, Sparkles, Workflow } from 'lucide-react'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 
 // Waarom je erop kunt bouwen: groei, rechten, privacy, en hoe het product
@@ -7,7 +7,7 @@ import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 const PUNTEN = [
   { Icoon: Building2, titel: 'Meerdere vestigingen', tekst: 'Elke vestiging met eigen zalen, lessen en openingstijden. Lidmaatschappen bepalen waar een lid mag sporten.' },
   { Icoon: KeyRound, titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Wat een clubmanager ziet, vink je zelf aan.' },
-  { Icoon: ShieldCheck, titel: 'AVG en data in de EU', tekst: 'Gegevens staan in de EU. Elke sportschool heeft een strikt gescheiden omgeving, gezondheidsgegevens alleen met toestemming.' },
+  { Icoon: MonitorSmartphone, titel: 'Niets te installeren', tekst: 'Club werkt in de browser aan de balie en op de vloer, de ledenapp op elke telefoon.' },
   { Icoon: Globe, titel: 'Je eigen adres', tekst: 'Je omgeving op naam.aiyourgym.com, met je eigen logo en kleuren.' },
   { Icoon: Sparkles, titel: 'Elke maand nieuwe functies', tekst: 'Automatisch voor iedereen. Geen updates installeren, geen nieuwe versie kopen.' },
   { Icoon: Workflow, titel: 'Gebouwd met AI', tekst: 'Daardoor komen verbeteringen snel bij jou en je team.' },

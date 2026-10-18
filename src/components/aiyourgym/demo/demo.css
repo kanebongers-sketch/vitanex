@@ -1,0 +1,89 @@
+/* AI Your Gym | live demo: rondleiding langs de echte schermen */
+
+/* ── Gids: de zes schermen, plakt onder de kop ───────────────────────────── */
+.aygd-gids { position: sticky; top: 68px; z-index: 40; background: color-mix(in srgb, var(--ayg-bg) 90%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-block: 1px solid var(--ayg-lijn); }
+.aygd-gids ol { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-block: 10px; }
+.aygd-gids ol::-webkit-scrollbar { display: none; }
+.aygd-gids a { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 99px; white-space: nowrap; text-decoration: none; font-size: 14.5px; font-weight: 600; transition: background-color 200ms, color 200ms; }
+.aygd-gids a span { font-size: 12px; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; }
+.aygd-gids a:hover { background: var(--ayg-tekst); color: var(--ayg-bg); }
+.aygd-gids a:hover span { color: var(--ayg-accent); }
+
+/* ── Stap: uitleg en scherm ──────────────────────────────────────────────── */
+.aygd-stap { scroll-margin-top: 130px; }
+.aygd-stap-raster { display: grid; gap: clamp(36px, 5vw, 64px); align-items: start; }
+.aygd-stap-raster > * { min-width: 0; }
+@media (min-width: 1080px) {
+  .aygd-stap-raster { grid-template-columns: minmax(0, 0.74fr) minmax(0, 1.26fr); }
+  .aygd-stap-raster[data-om] { grid-template-columns: minmax(0, 1.26fr) minmax(0, 0.74fr); }
+  .aygd-stap-raster[data-om] > .aygd-stap-tekst { order: 2; }
+  .aygd-stap-tekst { position: sticky; top: 150px; }
+}
+.aygd-stap-tekst { display: grid; gap: 20px; align-content: start; }
+.aygd-stap-nr { font: 800 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-lijn); }
+.ayg-podium .aygd-stap-nr { color: color-mix(in srgb, var(--ayg-inkt-tekst-2) 30%, transparent); }
+.aygd-beeld > .aygm { min-width: 0; container-type: inline-size; }
+.aygd-bron { padding-bottom: 24px; font-size: 13px; color: var(--ayg-tekst-2); }
+.aygd-bron a { color: inherit; }
+
+/* ── Bouwstenen in de schermen ───────────────────────────────────────────── */
+.aygd-dag { font: 700 20px/1.1 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
+.aygd-tegel--accent { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt); }
+.aygd-tegel--accent .aygm-boven { color: inherit; opacity: 0.75; }
+.aygd-getal--klein { font-size: 20px; }
+.aygd-twee { display: grid; gap: 10px; }
+@container (min-width: 620px) { .aygd-twee { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } .aygd-twee--breed { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+.aygd-stapel { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.aygd-blok { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.aygd-lijst { display: grid; gap: 6px; }
+.aygd-leeg { font-size: 12px; color: var(--text-3); }
+.aygd-les { display: grid; grid-template-columns: 42px minmax(0, 1fr) minmax(0, 0.9fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--bg-raised); }
+.aygd-tijd { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.aygd-bezetting { display: grid; gap: 4px; font-size: 10.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.aygd-bezetting[data-vol] { color: var(--club-let-op); }
+.aygd-bezetting[data-vol] .aygm-balk > span { background: var(--club-let-op); }
+.aygd-regel { padding-block: 4px; }
+.aygd-regel--uit { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* Rooster per week */
+.aygd-week { display: grid; grid-template-columns: repeat(7, minmax(92px, 1fr)); gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.aygd-weekdag { display: grid; gap: 5px; align-content: start; }
+.aygd-weekdag-kop { font-size: 11px; color: var(--text-3); padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.aygd-weekdag-kop span { text-transform: capitalize; font-weight: 700; color: var(--text-1); }
+.aygd-weekles { display: grid; }
+
+/* Ledenkaart */
+.aygd-lid-kop { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.aygd-lid-avatar { width: 52px; height: 52px; border-radius: 16px; background: var(--brand); color: var(--brand-inkt); display: grid; place-items: center; font: 700 18px/1 var(--ayg-font-kop); flex-shrink: 0; }
+.aygd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Schema met coaching */
+.aygd-schema { display: grid; gap: 12px; }
+@container (min-width: 700px) { .aygd-schema { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: start; } }
+.aygd-oef { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 6px; border-radius: 10px; }
+.aygd-oef[data-uit] { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
+.aygd-oef img, .aygd-oef-leeg { width: 40px; height: 40px; border-radius: 8px; background: #f2f0e9; object-fit: cover; }
+.aygd-coaching { box-shadow: none; }
+.aygd-coaching .aygm-oefening, .aygd-schema .aygm-oefening { grid-template-columns: 1fr; }
+.aygd-coaching .aygm-beeld { aspect-ratio: 16 / 10; }
+.aygd-coaching .aygm-coaching { padding: 18px; gap: 14px; }
+.aygd-coaching .aygm-coaching-titel { font-size: 22px; }
+.aygd-fout { display: grid; gap: 3px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--club-let-op) 12%, transparent); }
+.aygd-fout b { font-size: 12.5px; }
+.aygd-fout span { font-size: 12px; color: var(--text-2); }
+
+/* Cijfers */
+.aygd-staven { display: flex; align-items: end; gap: 4px; height: 120px; }
+.aygd-staven span { flex: 1; height: 100%; display: flex; align-items: end; }
+.aygd-staven i { display: block; width: 100%; height: 100%; border-radius: 4px 4px 2px 2px; background: var(--bg-raised); transform-origin: bottom; }
+.aygd-staven span[data-nu] i { background: var(--brand); }
+.aygd-bronnen { display: grid; gap: 10px; }
+.aygd-bronnen > div { display: grid; gap: 5px; }
+
+/* Ledenapp: telefoons naast elkaar */
+.aygd-toestellen { display: flex; gap: 14px; overflow-x: auto; padding: 4px 4px 12px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.aygd-toestellen::-webkit-scrollbar { display: none; }
+.aygd-toestellen > * { flex: 1 1 0; min-width: 210px; max-width: 260px; scroll-snap-align: start; }
+.aygd-toestellen > *:nth-child(2) { margin-top: 32px; }
+@container (max-width: 560px) { .aygd-toestellen > *:nth-child(2) { margin-top: 0; } }
+.aygd-oef-leeg { display: block; }

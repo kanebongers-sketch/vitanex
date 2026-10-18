@@ -1,50 +1,8 @@
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { PAKKETTEN, PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { Knop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, aygPad } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO, aygPad } from '@/components/aiyourgym/site/paden'
 
-// Overstappen en pakketten in het kort, met een link naar de volledige pagina's.
-
-export function Overstap() {
-  return (
-    <section className="ayg-sectie" aria-labelledby="overstap-titel">
-      <div className="ayg-wrap ayg-gesplitst">
-        <SectieKop
-          id="overstap-titel"
-          label="Overstappen"
-          titel="Werkt naast je ledenadministratie."
-          tekst="Incasso en abonnementen blijven waar ze nu zijn. Je leden lees je in met een CSV-bestand uit je huidige systeem of uit Excel, en je ziet eerst precies wat er verandert."
-        />
-        <ol className="ayg-genummerd">
-          <li>
-            <div>
-              <h3 className="ayg-h3">Ledenbestand inlezen</h3>
-              <p>AI Your Gym herkent de kolommen. Nieuwe leden komen erbij, bestaande worden bijgewerkt, er wordt nooit iemand verwijderd.</p>
-            </div>
-          </li>
-          <li>
-            <div>
-              <h3 className="ayg-h3">Huisstijl en vestigingen</h3>
-              <p>Logo, kleuren, zalen, lessen en openingstijden. Daarna staat het rooster klaar voor je leden.</p>
-            </div>
-          </li>
-          <li>
-            <div>
-              <h3 className="ayg-h3">Team erbij</h3>
-              <p>Trainers en clubmanagers krijgen toegang tot wat zij nodig hebben.</p>
-              <p className="ayg-ruim">
-                <Link href={aygPad('/overstappen')} className="ayg-pijllink">
-                  Zo stap je over <ArrowRight size={16} aria-hidden />
-                </Link>
-              </p>
-            </div>
-          </li>
-        </ol>
-      </div>
-    </section>
-  )
-}
+// De pakketten in het kort, met een link naar de prijzen en de demo.
 
 export function PakkettenKort() {
   return (
@@ -68,6 +26,9 @@ export function PakkettenKort() {
         <div className="ayg-knoppen ayg-ruim-boven">
           <Knop href={aygPad('/prijzen')} pijl>
             Bekijk de pakketten
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Probeer de demo
           </Knop>
           <Knop href={AANMELDEN} soort="rand">
             Probeer gratis

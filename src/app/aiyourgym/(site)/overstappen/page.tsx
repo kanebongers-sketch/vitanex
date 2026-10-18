@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { StartStappen } from '@/components/aiyourgym/home/StartStappen'
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { ImportScherm } from '@/components/aiyourgym/mockups/ImportScherm'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
 
 export const metadata: Metadata = {
   title: 'Overstappen',
@@ -57,7 +58,7 @@ const VRAGEN = [
   },
   {
     vraag: 'Krijg ik hulp bij de start?',
-    antwoord: 'Ja. We lopen de inrichting met je door: het ledenbestand, je rooster en je eerste schema’s. Zo staat je club goed voordat je leden de app krijgen.',
+    antwoord: 'Een startwizard leidt je door de inrichting. In de pakketten Club en Keten zit daarnaast persoonlijke hulp, zonder extra kosten: we lopen je ledenbestand, je rooster en je eerste schema’s samen met je door, zodat je club goed staat voordat je leden de app krijgen.',
   },
 ] as const
 
@@ -69,9 +70,14 @@ export default function OverstappenPagina() {
         titel="Overstappen zonder dat je club stilvalt."
         tekst="Je ledenadministratie blijft gewoon draaien. Stap voor stap zet je je club erin, en je ziet steeds eerst wat er gebeurt."
       >
-        <Knop href={AANMELDEN} soort="accent" pijl>
-          Begin met {PROEFDAGEN} dagen gratis
-        </Knop>
+        <div className="ayg-knoppen">
+          <Knop href={AANMELDEN} soort="accent" pijl>
+            Begin met {PROEFDAGEN} dagen gratis
+          </Knop>
+          <Knop href={DEMO} soort="rand">
+            Probeer de demo
+          </Knop>
+        </div>
       </PaginaKop>
       <section className="ayg-sectie" aria-labelledby="stappen-titel">
         <div className="ayg-wrap ayg-gesplitst">
@@ -93,17 +99,7 @@ export default function OverstappenPagina() {
           </ol>
         </div>
       </section>
-      <section className="ayg-sectie ayg-podium" aria-labelledby="hulp-titel">
-        <div className="ayg-wrap">
-          <SectieKop
-            naast
-            id="hulp-titel"
-            label="Hulp bij de start"
-            titel="Je staat er niet alleen voor."
-            tekst="We lopen de inrichting samen met je door, zodat je ledenbestand, rooster en eerste schema's goed staan voordat je leden de app krijgen."
-          />
-        </div>
-      </section>
+      <StartStappen metLink={false} />
       <section className="ayg-sectie" aria-labelledby="overstap-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst">
           <SectieKop id="overstap-vragen-titel" label="Vragen" titel="Over overstappen." />
