@@ -411,8 +411,8 @@ function KoppelingenInhoud() {
         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
           {isIos
             ? ahVerbonden
-              ? 'Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
-              : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
+              ? 'Slaap, hartslag, HRV, beweging en trainingen uit Apple Health worden automatisch gesynchroniseerd.'
+              : 'Koppel Apple Health om je slaap, hartslag, HRV, beweging en trainingen automatisch mee te nemen. Jij kiest per soort wat je deelt.'
             : 'Apple Health kan alleen vanuit een iPhone-app gekoppeld worden. Die iPhone-app is er nog niet.'}
         </p>
       </Card>

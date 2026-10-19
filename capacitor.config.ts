@@ -5,6 +5,14 @@ import type { CapacitorConfig } from '@capacitor/cli'
 // gezondheid-sync, de server). Lokaal testen via de laptop: CAP_DEV=1 npx cap sync.
 const isProd = process.env.CAP_DEV !== '1'
 
+/** Capacitor-plugins die op iOS en Android allebei meegaan. */
+const BASIS_PLUGINS = [
+  '@capacitor/app',
+  '@capacitor/push-notifications',
+  '@capacitor/splash-screen',
+  '@capacitor/status-bar',
+]
+
 const config: CapacitorConfig = {
   appId: 'nl.mentaforce.app',
   appName: 'MentaForce',
@@ -42,13 +50,29 @@ const config: CapacitorConfig = {
     },
   },
 
+  // Welke native plugins per platform meegaan (`npx cap sync`). LET OP: dit is
+  // een allowlist; voeg een nieuwe Capacitor-plugin hier ook toe.
+  // Apple Health en Health Connect: op iOS @capgo/capacitor-health (leest ook
+  // slaap, HRV, rusthartslag), op Android blijft capacitor-health + Health
+  // Connect. Beide registreren zich native als "HealthPlugin", dus ze mogen
+  // nooit samen op hetzelfde platform staan. Op Android zou de Capgo-plugin
+  // bovendien schrijfrechten voor tientallen gezondheidssoorten aanvragen.
   android: {
+    includePlugins: [
+      ...BASIS_PLUGINS,
+      '@devmaxime/capacitor-health-connect',
+      'capacitor-health',
+    ],
     buildOptions: {
       releaseType: 'AAB',
     },
   },
 
   ios: {
+    includePlugins: [
+      ...BASIS_PLUGINS,
+      '@capgo/capacitor-health',
+    ],
     contentInset: 'always',
   },
 }

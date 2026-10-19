@@ -1,9 +1,11 @@
-// Highlights als redactionele zinnen, elk met een link naar de metriek.
+// Highlights als redactionele zinnen met de afgelopen week naast je normaal,
+// elk met een link naar de metriek.
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { METRIEKEN } from '@/lib/health/gezondheid-metrics'
 import type { Highlight } from '@/lib/gezondheid/highlights'
+import { HighlightVergelijking } from './HighlightVergelijking'
 import styles from './gezondheid.module.css'
 
 interface HighlightLijstProps {
@@ -28,6 +30,7 @@ export function HighlightLijst({ highlights, metLink = true }: HighlightLijstPro
           {metLink ? (
             <Link href={`/gezondheid/${h.sleutel}`} className={styles.highlight}>
               <p className={styles.highlightTekst}>{h.tekst}</p>
+              <HighlightVergelijking highlight={h} />
               <span className={styles.highlightMeta}>
                 {METRIEKEN[h.sleutel].label} bekijken
                 <ArrowRight size={14} aria-hidden="true" />
@@ -36,6 +39,7 @@ export function HighlightLijst({ highlights, metLink = true }: HighlightLijstPro
           ) : (
             <div className={styles.highlight}>
               <p className={styles.highlightTekst}>{h.tekst}</p>
+              <HighlightVergelijking highlight={h} />
               <span className={styles.highlightMeta}><Onderbouwing highlight={h} /></span>
             </div>
           )}

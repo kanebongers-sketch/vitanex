@@ -1,34 +1,43 @@
 /**
- * Apple Health (HealthKit) via capacitor-health. Werkt alleen in de iOS-app;
- * in de browser en op Android geeft alles "niet beschikbaar" terug.
+ * Apple Health (HealthKit) via @capgo/capacitor-health. Werkt alleen in de
+ * iOS-app; in de browser en op Android geeft alles "niet beschikbaar" terug.
  *
- * Eerlijke beperking: capacitor-health 8.x leest op iOS alleen stappen,
- * actieve kcal en trainingen (met hartslag en afstand per training). Slaap,
- * rusthartslag, HRV, VO2max en gewicht kan deze plugin op iOS niet lezen;
- * daarvoor is een andere plugin nodig (zie rapport). We vullen dus alleen
- * wat de plugin echt levert en verzinnen niets.
+ * Leest per dag: stappen, afstand, actieve kcal, gemiddelde hartslag,
+ * rusthartslag, HRV (SDNN, zie health-data.ts), VO2max, gewicht, ademhaling,
+ * zuurstof, slaap (met fases en bed-/wektijd) en trainingen. De omzetting zelf
+ * staat (getest) in apple-health-parser.ts; we vullen alleen wat HealthKit
+ * echt heeft en verzinnen niets.
  *
  * Voorwaarden in de native app: HealthKit-capability + entitlement en
- * NSHealthShareUsageDescription in Info.plist.
+ * NSHealthShareUsageDescription in Info.plist (zie docs/apple-health.md).
  */
 import { Capacitor } from '@capacitor/core'
-import type { HealthPermission, Workout } from 'capacitor-health'
+import type { HealthDataType, HealthSample } from '@capgo/capacitor-health'
 import {
-  alsVeld, bucketsPerDag, combineerPerDag, workoutMinutenPerDag, type Interval,
+  alsVeld, bucketsPerDag, combineerPerDag, puntenPerDag, slaapPerNacht, workoutMinutenPerDag, type Interval,
 } from './health-aggregatie'
+import {
+  alsProcent, intervallenUitAggregaat, puntenUitSamples, slaapSessiesUitHealthKit, workoutUitHealthKit,
+} from './apple-health-parser'
 import { datumDagenTerug, middernachtNL, type DagMeting, type WorkoutMeting } from './health-data'
-import { normaliseerSoort } from './health-validatie'
 
-export const IOS_RECHTEN: HealthPermission[] = [
-  'READ_STEPS', 'READ_ACTIVE_CALORIES', 'READ_WORKOUTS', 'READ_HEART_RATE', 'READ_DISTANCE',
+export { workoutUitHealthKit } from './apple-health-parser'
+
+/** Wat MentaForce uit Apple Health leest (ook de lijst die we als "rechten" opslaan). */
+export const IOS_RECHTEN: HealthDataType[] = [
+  'steps', 'distance', 'calories', 'heartRate', 'restingHeartRate', 'heartRateVariability',
+  'vo2Max', 'weight', 'respiratoryRate', 'oxygenSaturation', 'sleep', 'workouts',
 ]
+
+/** Ruim boven wat er in het syncvenster (max. 62 dagen) aan samples kan zijn. */
+const MAX_SAMPLES = 10_000
 
 export const isIosApp = (): boolean =>
   Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
 
 async function getPlugin() {
   if (!isIosApp()) return null
-  const { Health } = await import('capacitor-health')
+  const { Health } = await import('@capgo/capacitor-health')
   return Health
 }
 
@@ -40,9 +49,9 @@ export async function vraagAppleHealthPermissies(): Promise<boolean> {
   const plugin = await getPlugin()
   if (!plugin) return false
   try {
-    const { available } = await plugin.isHealthAvailable()
+    const { available } = await plugin.isAvailable()
     if (!available) return false
-    await plugin.requestHealthPermissions({ permissions: IOS_RECHTEN })
+    await plugin.requestAuthorization({ read: IOS_RECHTEN })
     return true
   } catch (err) {
     console.error('[apple-health] toestemming vragen', err)
@@ -53,42 +62,35 @@ export async function vraagAppleHealthPermissies(): Promise<boolean> {
 type Plugin = NonNullable<Awaited<ReturnType<typeof getPlugin>>>
 
 async function leesDagBuckets(
-  plugin: Plugin, dataType: 'steps' | 'active-calories', start: Date, eind: Date,
+  plugin: Plugin, dataType: HealthDataType, aggregation: 'sum' | 'average', start: Date, eind: Date,
 ): Promise<Interval[]> {
   try {
     const res = await plugin.queryAggregated({
-      startDate: start.toISOString(), endDate: eind.toISOString(), dataType, bucket: 'day',
+      dataType, aggregation, bucket: 'day', startDate: start.toISOString(), endDate: eind.toISOString(),
     })
-    return (res.aggregatedData ?? []).map(a => ({ start: a.startDate, eind: a.endDate, waarde: a.value }))
+    return intervallenUitAggregaat(res.samples)
   } catch (err) {
     console.error(`[apple-health] ${dataType} lezen`, err)
     return []
   }
 }
 
-function gemiddeldeHartslag(w: Workout): number | null {
-  const bpm = (w.heartRate ?? []).map(h => h.bpm).filter(b => Number.isFinite(b) && b > 0)
-  return bpm.length > 0 ? bpm.reduce((a, b) => a + b, 0) / bpm.length : null
-}
-
-/** Een HealthKit-training naar ons formaat. */
-export function workoutUitHealthKit(w: Workout): WorkoutMeting {
-  return {
-    externId: w.id ?? `${w.startDate}|${w.workoutType}`,
-    soort: normaliseerSoort(w.workoutType),
-    start: w.startDate,
-    eind: w.endDate,
-    kcal: Number.isFinite(w.calories) && w.calories > 0 ? w.calories : null,
-    afstandM: w.distance !== undefined && w.distance > 0 ? w.distance : null,
-    gemHartslag: gemiddeldeHartslag(w),
+async function leesSamples(plugin: Plugin, dataType: HealthDataType, start: Date, eind: Date): Promise<HealthSample[]> {
+  try {
+    const res = await plugin.readSamples({
+      dataType, startDate: start.toISOString(), endDate: eind.toISOString(), limit: MAX_SAMPLES, ascending: true,
+    })
+    return res.samples ?? []
+  } catch (err) {
+    console.error(`[apple-health] ${dataType} lezen`, err)
+    return []
   }
 }
 
 async function leesWorkouts(plugin: Plugin, start: Date, eind: Date): Promise<WorkoutMeting[]> {
   try {
     const res = await plugin.queryWorkouts({
-      startDate: start.toISOString(), endDate: eind.toISOString(),
-      includeHeartRate: true, includeRoute: false, includeSteps: false,
+      startDate: start.toISOString(), endDate: eind.toISOString(), limit: 300, ascending: true,
     })
     return (res.workouts ?? []).map(workoutUitHealthKit)
   } catch (err) {
@@ -103,16 +105,36 @@ export async function leesAppleHealth(vanafDatum: string): Promise<{ dagen: DagM
   if (!plugin) return { dagen: [], workouts: [] }
 
   const start = middernachtNL(vanafDatum)
+  // Slaap van de eerste nacht begint de avond ervoor.
+  const slaapStart = new Date(start.getTime() - 12 * 60 * 60 * 1000)
   const eind = new Date()
-  const [stappen, actief, workouts] = await Promise.all([
-    leesDagBuckets(plugin, 'steps', start, eind),
-    leesDagBuckets(plugin, 'active-calories', start, eind),
+  const [stappen, afstand, actief, hartslag, rust, hrv, vo2, gewicht, adem, zuurstof, slaap, workouts] = await Promise.all([
+    leesDagBuckets(plugin, 'steps', 'sum', start, eind),
+    leesDagBuckets(plugin, 'distance', 'sum', start, eind),
+    leesDagBuckets(plugin, 'calories', 'sum', start, eind),
+    leesDagBuckets(plugin, 'heartRate', 'average', start, eind),
+    leesSamples(plugin, 'restingHeartRate', start, eind),
+    leesSamples(plugin, 'heartRateVariability', start, eind),
+    leesSamples(plugin, 'vo2Max', start, eind),
+    leesSamples(plugin, 'weight', start, eind),
+    leesSamples(plugin, 'respiratoryRate', start, eind),
+    leesSamples(plugin, 'oxygenSaturation', start, eind),
+    leesSamples(plugin, 'sleep', slaapStart, eind),
     leesWorkouts(plugin, start, eind),
   ])
 
   const dagen = combineerPerDag(
     alsVeld('stappen', bucketsPerDag(stappen)),
+    alsVeld('afstandM', bucketsPerDag(afstand)),
     alsVeld('actieveKcal', bucketsPerDag(actief)),
+    alsVeld('hartslag', bucketsPerDag(hartslag)),
+    alsVeld('rusthartslag', puntenPerDag(puntenUitSamples(rust), 'gemiddelde')),
+    alsVeld('hrvMs', puntenPerDag(puntenUitSamples(hrv), 'gemiddelde')),
+    alsVeld('vo2max', puntenPerDag(puntenUitSamples(vo2), 'laatste')),
+    alsVeld('gewichtKg', puntenPerDag(puntenUitSamples(gewicht), 'laatste')),
+    alsVeld('ademhalingPm', puntenPerDag(puntenUitSamples(adem), 'gemiddelde')),
+    alsVeld('zuurstofPct', puntenPerDag(puntenUitSamples(zuurstof, alsProcent), 'gemiddelde')),
+    slaapPerNacht(slaapSessiesUitHealthKit(slaap)),
     alsVeld('beweegminuten', workoutMinutenPerDag(workouts)),
   ).filter(d => d.datum >= vanafDatum)
   return { dagen, workouts }

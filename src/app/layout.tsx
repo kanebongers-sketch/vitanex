@@ -49,7 +49,11 @@ export default async function RootLayout({
   const [woordenboek, bron] = await Promise.all([laadWoordenboek(taal), laadBron()]);
 
   return (
+    // suppressHydrationWarning: public/theme-init.js (MentaForce) zet vóór React
+    // het thema als class op <html>; dat verschil is bedoeld. Geldt alleen voor
+    // de attributen van <html> zelf, niet voor de pagina's eronder.
     <html
+      suppressHydrationWarning
       lang={taal}
       dir={richtingVan(taal)}
       className={`${tekst.variable} ${barlow.variable} h-full antialiased`}
