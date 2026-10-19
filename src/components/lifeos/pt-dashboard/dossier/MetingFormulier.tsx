@@ -6,6 +6,8 @@ import {
   KRACHT_RM, MAAT_VELDEN, METING_SOORTEN, METING_SOORT_LABEL, leesMeting, leesMetingInvoer, type KrachtRm, type MaatSleutel, type Meting,
 } from '@/lib/lifeos/pt-dashboard/metingen'
 import type { MetingSoort } from '@/lib/lifeos/pt-dashboard/traject'
+import { extraBody, type ExtraSleutel } from '@/lib/lifeos/pt-dashboard/meting-extra'
+import { ExtraVelden } from './ExtraVelden'
 import { Keuzes, Veld } from '../velden'
 import { ptApi } from '../api'
 
@@ -17,6 +19,8 @@ interface Props {
   klantId: string
   vandaag: string
   standaardSoort: MetingSoort
+  /** Extra meetopties die bij deze klant eerder gemeten zijn: staan al klaar. */
+  voorselectie: readonly ExtraSleutel[]
   onOpgeslagen: (m: Meting) => void
   onAnnuleer: () => void
 }
@@ -31,16 +35,19 @@ interface Concept {
   krachtKg: string
   fotosGemaakt: boolean
   notitie: string
+  gekozen: ExtraSleutel[]
+  extra: Record<string, string>
 }
 
 const SOORT_OPTIES = METING_SOORTEN.map((s) => ({ waarde: s, label: METING_SOORT_LABEL[s] }))
 const RM_OPTIES = KRACHT_RM.map((r) => ({ waarde: String(r) as '1' | '5', label: `${r}RM` }))
 const LEEG = Object.fromEntries(MAAT_VELDEN.map((v) => [v.sleutel, ''])) as Record<MaatSleutel, string>
 
-export function MetingFormulier({ code, klantId, vandaag, standaardSoort, onOpgeslagen, onAnnuleer }: Props) {
-  const [c, setC] = useState<Concept>({
+export function MetingFormulier({ code, klantId, vandaag, standaardSoort, voorselectie, onOpgeslagen, onAnnuleer }: Props) {
+  const [c, setC] = useState<Concept>(() => ({
     datum: vandaag, soort: standaardSoort, maten: LEEG, cardiotest: '', krachtOefening: '', krachtRm: null, krachtKg: '', fotosGemaakt: false, notitie: '',
-  })
+    gekozen: [...voorselectie], extra: {},
+  }))
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const zet = <K extends keyof Concept>(k: K, w: Concept[K]) => setC((x) => ({ ...x, [k]: w }))
@@ -48,7 +55,7 @@ export function MetingFormulier({ code, klantId, vandaag, standaardSoort, onOpge
   async function opslaan(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    const body = { ...c, ...c.maten, maten: undefined }
+    const body = { ...c, ...c.maten, maten: undefined, gekozen: undefined, extra: extraBody(c.gekozen, c.extra) }
     const check = leesMetingInvoer(body, vandaag)
     if (!check.ok) return setFout(check.fout)
     setBezig(true)
@@ -83,6 +90,14 @@ export function MetingFormulier({ code, klantId, vandaag, standaardSoort, onOpge
           </Veld>
         ))}
       </div>
+
+      <ExtraVelden
+        idPrefix="meting"
+        gekozen={c.gekozen}
+        waarden={c.extra}
+        onGekozen={(g) => zet('gekozen', g)}
+        onWaarde={(s, w) => setC((x) => ({ ...x, extra: { ...x.extra, [s]: w } }))}
+      />
 
       <div className="ptd-raster">
         <Veld label="Cardiotest (eGym)" id="meting-cardio" hint="De uitkomst zoals het toestel hem geeft.">

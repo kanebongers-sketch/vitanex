@@ -4206,6 +4206,37 @@ body {
 .lifeos-root .ffdos-punt { fill: var(--bg-card); stroke: var(--brand); stroke-width: 2; }
 .lifeos-root .ffdos-as-tekst { fill: var(--text-3); font-size: 11px; }
 .lifeos-root .ffdos-waarde { fill: var(--text-1); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lifeos-root .ffdos-grafiek-kop { display: grid; gap: 10px; }
+.lifeos-root .ffdos-reeksen { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 2px; scroll-padding-inline: 16px; }
+.lifeos-root .ffdos-reeksen::-webkit-scrollbar { display: none; }
+
+/* Extra meetopties (meting-extra.ts): velden met weghaalknop, keuzelijst per groep, historie. */
+.lifeos-root .ffdos-extra { display: grid; gap: 10px; }
+.lifeos-root .ffdos-extra-velden { display: grid; gap: 10px 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); align-items: end; }
+.lifeos-root .ffdos-extra-invoer { position: relative; }
+.lifeos-root .ffdos-extra-invoer .ptd-invoer { padding-right: 42px; font-variant-numeric: tabular-nums; }
+.lifeos-root .ffdos-extra-weg { position: absolute; top: 50%; right: 5px; transform: translateY(-50%); display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--text-3); cursor: pointer; transition: color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ffdos-extra-weg:hover { color: var(--text-1); background: var(--bg-card); }
+.lifeos-root .ffdos-extra-weg:focus-visible { outline: 2px solid var(--brand); outline-offset: 0; }
+.lifeos-root .ffdos-extra-knop { justify-self: start; border-style: dashed; }
+.lifeos-root .ffdos-extra-knop[aria-expanded='true'] { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 50%, transparent); border-style: solid; }
+.lifeos-root .ffdos-extra-kies { display: grid; gap: 14px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-raised); }
+.lifeos-root .ffdos-extra-groep { display: grid; gap: 8px; }
+.lifeos-root .ffdos-extra-groep .ptd-label { font-size: 12px; color: var(--text-3); }
+.lifeos-root .ffdos-extra-hist { margin: 2px 0 0; display: grid; gap: 4px 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); padding-top: 8px; border-top: 1px solid var(--line); }
+.lifeos-root .ffdos-extra-regel { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; font-size: 13.5px; }
+.lifeos-root .ffdos-extra-regel dt { flex: 1 1 auto; color: var(--text-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lifeos-root .ffdos-extra-regel dd { flex: none; margin: 0; display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-2); }
+.lifeos-root .ffdos-extra-regel strong { color: var(--text-1); font-weight: 600; }
+.lifeos-root .ffdos-extra-delta { font-size: 12.5px; }
+.lifeos-root .ffdos-extra-delta small { font-size: 11px; color: var(--text-3); }
+/* Op een breed scherm even breed als de vaste maten erboven (.ptd-raster). */
+@media (min-width: 640px) {
+  .lifeos-root .ffdos-extra-velden { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root .ffdos-extra-weg { transition: none; }
+}
 
 @media (min-width: 768px) {
   .lifeos-root .ffdos-week { height: 42px; font-size: 14px; }

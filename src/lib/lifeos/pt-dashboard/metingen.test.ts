@@ -3,7 +3,7 @@ import { gewichtLijn, leesMeting, leesMetingInvoer, sorteer, verschilSindsStart,
 
 const meting = (over: Partial<Meting> = {}): Meting => ({
   id: 'm', datum: '2026-09-07', soort: 'start', gewichtKg: null, vetPct: null, tailleCm: null, heupCm: null, borstCm: null, armCm: null, beenCm: null,
-  cardiotest: null, krachtOefening: null, krachtRm: null, krachtKg: null, fotosGemaakt: false, notitie: null, ...over,
+  cardiotest: null, krachtOefening: null, krachtRm: null, krachtKg: null, fotosGemaakt: false, notitie: null, extra: {}, ...over,
 })
 
 describe('leesMetingInvoer', () => {

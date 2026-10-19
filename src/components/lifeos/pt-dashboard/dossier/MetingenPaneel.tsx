@@ -5,10 +5,12 @@ import { Plus, Scale, Trash2 } from 'lucide-react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import {
-  CHECK_SOORTEN, MAAT_VELDEN, METING_SOORT_LABEL, getalNl, sorteer, verschilSindsStart, verschilTekst, type Meting,
+  CHECK_SOORTEN, MAAT_VELDEN, METING_SOORT_LABEL, extraRegels, getalNl, sorteer, verschilSindsStart, verschilTekst, type Meting,
 } from '@/lib/lifeos/pt-dashboard/metingen'
+import { extraVoorselectie } from '@/lib/lifeos/pt-dashboard/meting-extra'
 import { trajectWeek, verwachteMetingen, type MetingSoort } from '@/lib/lifeos/pt-dashboard/traject'
 import { leesLeeg, ptApi } from '../api'
+import { ExtraHistorie } from './ExtraHistorie'
 import { GewichtLijn } from './GewichtLijn'
 import { MetingFormulier } from './MetingFormulier'
 import { WegingFormulier } from './WegingFormulier'
@@ -50,6 +52,8 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
   const verwacht = verwachteMetingen(week)
   const verschillen = useMemo(() => verschilSindsStart(metingen), [metingen])
   const nieuwsteEerst = useMemo(() => sorteer(metingen).reverse(), [metingen])
+  const extraPerMeting = useMemo(() => extraRegels(metingen), [metingen])
+  const voorselectie = useMemo(() => extraVoorselectie(metingen), [metingen])
   const telling = (s: MetingSoort) => metingen.filter((m) => m.soort === s).length
 
   async function verwijder(m: Meting) {
@@ -82,6 +86,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
           klantId={klantId}
           vandaag={vandaag}
           standaardSoort={standaardSoort(metingen, week)}
+          voorselectie={voorselectie}
           onOpgeslagen={(m) => {
             onWijzig([...metingen, m])
             setNieuw(null)
@@ -93,6 +98,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
           code={code}
           klantId={klantId}
           vandaag={vandaag}
+          voorselectie={voorselectie}
           onOpgeslagen={(m) => {
             onWijzig([...metingen, m])
             setNieuw(null)
@@ -149,7 +155,8 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
                 <span className="ptd-naam">{dagKort(m.datum)}</span>
                 <span className={m.soort === 'weging' ? 'ptd-badge ptd-badge--stil' : 'ptd-badge'}>{METING_SOORT_LABEL[m.soort]}</span>
               </div>
-              <p className="ptd-tekst">{samenvatting(m)}</p>
+              {samenvatting(m) ? <p className="ptd-tekst">{samenvatting(m)}</p> : null}
+              <ExtraHistorie regels={extraPerMeting.get(m.id) ?? []} />
               {m.notitie ? <p className="ptd-hint">{m.notitie}</p> : null}
               {alleenLezen ? null : (
                 <div className="ptd-acties">

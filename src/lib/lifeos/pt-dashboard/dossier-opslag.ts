@@ -15,7 +15,7 @@ export type DossierUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: '
 export const MAX_METINGEN_PER_KLANT = 200
 
 const METING_KOLOMMEN =
-  'id, datum, soort, gewicht_kg, vet_pct, taille_cm, heup_cm, borst_cm, arm_cm, been_cm, cardiotest, kracht_oefening, kracht_rm, kracht_kg, fotos_gemaakt, notitie'
+  'id, datum, soort, gewicht_kg, vet_pct, taille_cm, heup_cm, borst_cm, arm_cm, been_cm, cardiotest, kracht_oefening, kracht_rm, kracht_kg, fotos_gemaakt, notitie, extra'
 
 interface MetingRij {
   id: string
@@ -34,6 +34,8 @@ interface MetingRij {
   kracht_kg: number | string | null
   fotos_gemaakt: boolean
   notitie: string | null
+  /** Extra meetopties (migratie 446); oude rijen of testdata kunnen hem missen. */
+  extra?: unknown
 }
 
 function vanMetingRij(r: MetingRij): Meting | null {
@@ -41,7 +43,7 @@ function vanMetingRij(r: MetingRij): Meting | null {
     id: r.id, datum: r.datum, soort: r.soort,
     gewichtKg: r.gewicht_kg, vetPct: r.vet_pct, tailleCm: r.taille_cm, heupCm: r.heup_cm, borstCm: r.borst_cm, armCm: r.arm_cm, beenCm: r.been_cm,
     cardiotest: r.cardiotest, krachtOefening: r.kracht_oefening, krachtRm: r.kracht_rm, krachtKg: r.kracht_kg,
-    fotosGemaakt: r.fotos_gemaakt, notitie: r.notitie,
+    fotosGemaakt: r.fotos_gemaakt, notitie: r.notitie, extra: r.extra,
   })
 }
 
@@ -50,7 +52,7 @@ function naarMetingRij(m: MetingInvoer) {
     datum: m.datum, soort: m.soort,
     gewicht_kg: m.gewichtKg, vet_pct: m.vetPct, taille_cm: m.tailleCm, heup_cm: m.heupCm, borst_cm: m.borstCm, arm_cm: m.armCm, been_cm: m.beenCm,
     cardiotest: m.cardiotest, kracht_oefening: m.krachtOefening, kracht_rm: m.krachtRm, kracht_kg: m.krachtKg,
-    fotos_gemaakt: m.fotosGemaakt, notitie: m.notitie,
+    fotos_gemaakt: m.fotosGemaakt, notitie: m.notitie, extra: m.extra,
   }
 }
 

@@ -5,6 +5,7 @@
 // Opslag: pt_metingen (migratie 356), zie dossier-opslag.ts.
 
 import type { MetingSoort } from './traject'
+import { EXTRA_VELDEN, leesExtraInvoer, leesExtraOpgeslagen, type ExtraSleutel, type ExtraWaarden } from './meting-extra'
 
 export const METING_SOORTEN = ['start', 'tussen', 'eind', 'weging'] as const satisfies readonly MetingSoort[]
 export const METING_SOORT_LABEL: Record<MetingSoort, string> = { start: 'Startmeting', tussen: 'Tussenmeting', eind: 'Eindmeting', weging: 'Weging' }
@@ -40,6 +41,8 @@ export interface Meting extends Record<MaatSleutel, number | null> {
   krachtKg: number | null
   fotosGemaakt: boolean
   notitie: string | null
+  /** Extra meetopties die de PT'er zelf koos (meting-extra.ts); {} als er niets is. */
+  extra: ExtraWaarden
 }
 export type MetingInvoer = Omit<Meting, 'id'>
 
@@ -86,6 +89,8 @@ export function leesMetingInvoer(body: unknown, vandaag?: string): Lees<MetingIn
   const krachtKg = maat(o.krachtKg, 0, 500)
   if (krachtKg === 'fout') return { ok: false, fout: 'Krachttest: vul een gewicht tussen 0 en 500 kg in.' }
   const krachtRm = o.krachtRm === 1 || o.krachtRm === 5 ? o.krachtRm : null
+  const extra = leesExtraInvoer(o.extra)
+  if (!extra.ok) return extra
   const waarde: MetingInvoer = {
     datum: o.datum,
     soort: o.soort,
@@ -96,8 +101,11 @@ export function leesMetingInvoer(body: unknown, vandaag?: string): Lees<MetingIn
     krachtKg,
     fotosGemaakt: o.fotosGemaakt === true,
     notitie: tekst(o.notitie, 500),
+    extra: extra.waarde,
   }
-  const iets = MAAT_VELDEN.some((v) => waarde[v.sleutel] !== null) || waarde.cardiotest || waarde.krachtKg !== null || waarde.fotosGemaakt
+  const iets =
+    MAAT_VELDEN.some((v) => waarde[v.sleutel] !== null) || waarde.cardiotest || waarde.krachtKg !== null || waarde.fotosGemaakt ||
+    Object.keys(waarde.extra).length > 0
   return iets ? { ok: true, waarde } : { ok: false, fout: 'Vul minstens één meetwaarde in.' }
 }
 
@@ -105,7 +113,8 @@ export function leesMeting(ruw: unknown): Meting | null {
   if (typeof ruw !== 'object' || ruw === null) return null
   const o = ruw as Record<string, unknown>
   if (typeof o.id !== 'string') return null
-  const r = leesMetingInvoer(o)
+  // Opgeslagen extra waarden mild lezen: oude rijen hebben geen extra.
+  const r = leesMetingInvoer({ ...o, extra: leesExtraOpgeslagen(o.extra) })
   return r.ok ? { id: o.id, ...r.waarde } : null
 }
 
@@ -153,6 +162,13 @@ export function verschilSindsStart(metingen: readonly Meting[]): Verschil[] {
     const naam = [kVan.krachtOefening, kVan.krachtRm ? `${kVan.krachtRm}RM` : null].filter(Boolean).join(' ')
     uit.push(verschil(naam ? `Kracht (${naam})` : 'Kracht', 'kg', kVan, kNaar, kVan.krachtKg as number, kNaar.krachtKg as number))
   }
+  for (const v of EXTRA_VELDEN) {
+    const met = reeks.filter((m) => m.extra[v.sleutel] !== undefined)
+    const van = met.find((m) => m.soort === 'start') ?? met[0]
+    const naar = met.at(-1)
+    if (!van || !naar || van === naar || naar.datum < van.datum) continue
+    uit.push(verschil(v.label, v.eenheid, van, naar, van.extra[v.sleutel] as number, naar.extra[v.sleutel] as number))
+  }
   return uit
 }
 
@@ -164,7 +180,7 @@ export function getalNl(n: number): string {
 /** "+1,5 kg", "−0,8 cm", "0 kg" */
 export function verschilTekst(v: Pick<Verschil, 'verschil' | 'eenheid'>): string {
   const teken = v.verschil > 0 ? '+' : v.verschil < 0 ? '−' : ''
-  return `${teken}${getalNl(Math.abs(v.verschil))} ${v.eenheid}`
+  return `${teken}${getalNl(Math.abs(v.verschil))}${v.eenheid ? ` ${v.eenheid}` : ''}`
 }
 
 export interface LijnPunt {
@@ -174,16 +190,42 @@ export interface LijnPunt {
   waarde: number
 }
 
+/** Een reeks in de grafiek: een vaste maat of een extra meetoptie. */
+export type ReeksSleutel = MaatSleutel | ExtraSleutel
+
+export interface Reeks {
+  sleutel: ReeksSleutel
+  label: string
+  eenheid: string
+}
+
+const ALLE_REEKSEN: readonly Reeks[] = [
+  ...MAAT_VELDEN.map((v) => ({ sleutel: v.sleutel, label: v.label, eenheid: v.eenheid })),
+  ...EXTRA_VELDEN.map((v) => ({ sleutel: v.sleutel, label: v.label, eenheid: v.eenheid })),
+]
+
+const isMaat = (s: ReeksSleutel): s is MaatSleutel => MAAT_VELDEN.some((v) => v.sleutel === s)
+
+/** De waarde van een reeks in deze meting, of null als die niet gemeten is. */
+export function reeksWaarde(m: Meting, sleutel: ReeksSleutel): number | null {
+  return isMaat(sleutel) ? m[sleutel] : (m.extra[sleutel] ?? null)
+}
+
+/** De reeksen met minstens twee metingen (alleen die geven een lijn), gewicht eerst. */
+export function grafiekReeksen(metingen: readonly Meting[]): Reeks[] {
+  return ALLE_REEKSEN.filter((r) => metingen.filter((m) => reeksWaarde(m, r.sleutel) !== null).length >= 2)
+}
+
 /**
- * Gewicht door de tijd als punten in een vlak van `breedte` × `hoogte`
+ * Een reeks door de tijd als punten in een vlak van `breedte` × `hoogte`
  * (x naar datum, y naar waarde, met wat lucht boven en onder). Minder dan twee
- * metingen met gewicht → leeg.
+ * metingen met die waarde → leeg.
  */
-export function gewichtLijn(metingen: readonly Meting[], breedte: number, hoogte: number): LijnPunt[] {
-  const reeks = sorteer(metingen).filter((m) => m.gewichtKg !== null)
+export function waardeLijn(metingen: readonly Meting[], sleutel: ReeksSleutel, breedte: number, hoogte: number): LijnPunt[] {
+  const reeks = sorteer(metingen).filter((m) => reeksWaarde(m, sleutel) !== null)
   if (reeks.length < 2) return []
   const t = reeks.map((m) => Date.parse(`${m.datum}T12:00:00Z`))
-  const w = reeks.map((m) => m.gewichtKg as number)
+  const w = reeks.map((m) => reeksWaarde(m, sleutel) as number)
   const [t0, t1] = [t[0], t[t.length - 1]]
   const lucht = Math.max(0.5, (Math.max(...w) - Math.min(...w)) * 0.15)
   const [lo, hi] = [Math.min(...w) - lucht, Math.max(...w) + lucht]
@@ -193,4 +235,48 @@ export function gewichtLijn(metingen: readonly Meting[], breedte: number, hoogte
     datum: m.datum,
     waarde: w[i],
   }))
+}
+
+/** Gewicht door de tijd (zie waardeLijn). */
+export function gewichtLijn(metingen: readonly Meting[], breedte: number, hoogte: number): LijnPunt[] {
+  return waardeLijn(metingen, 'gewichtKg', breedte, hoogte)
+}
+
+// ─── Extra waarden in de historie ─────────────────────────────────────────────
+
+export interface ExtraRegel {
+  sleutel: ExtraSleutel
+  label: string
+  eenheid: string
+  waarde: number
+  /** Verschil met de vorige meting met deze waarde, of null als die er niet is. */
+  sindsVorige: number | null
+  /** Verschil met de start (startmeting, anders de oudste), of null als dit de start is. */
+  sindsStart: number | null
+}
+
+/**
+ * Per meting (op id) de extra waarden met het verschil sinds de vorige meting
+ * en sinds de start, net als bij de vaste maten. Geen oordeel, alleen verschil.
+ */
+export function extraRegels(metingen: readonly Meting[]): Map<string, ExtraRegel[]> {
+  const reeks = sorteer(metingen)
+  const uit = new Map<string, ExtraRegel[]>(reeks.map((m) => [m.id, []]))
+  for (const v of EXTRA_VELDEN) {
+    const met = reeks.filter((m) => m.extra[v.sleutel] !== undefined)
+    const start = met.find((m) => m.soort === 'start') ?? met[0]
+    const f = 10 ** v.decimalen
+    const rond = (n: number) => Math.round(n * f) / f
+    met.forEach((m, i) => {
+      const waarde = m.extra[v.sleutel] as number
+      const vorige = i > 0 ? (met[i - 1].extra[v.sleutel] as number) : null
+      const beginWaarde = start && start !== m && start.datum <= m.datum ? (start.extra[v.sleutel] as number) : null
+      uit.get(m.id)?.push({
+        sleutel: v.sleutel, label: v.label, eenheid: v.eenheid, waarde,
+        sindsVorige: vorige === null ? null : rond(waarde - vorige),
+        sindsStart: beginWaarde === null ? null : rond(waarde - beginWaarde),
+      })
+    })
+  }
+  return uit
 }

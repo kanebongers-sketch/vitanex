@@ -26,7 +26,7 @@ const metingRij = (id: string, persoonId: string) => ({
 
 const meting: MetingInvoer = {
   datum: '2026-10-01', soort: 'tussen', gewichtKg: 80, vetPct: null, tailleCm: null, heupCm: null, borstCm: null, armCm: null, beenCm: null,
-  cardiotest: null, krachtOefening: null, krachtRm: null, krachtKg: null, fotosGemaakt: false, notitie: null,
+  cardiotest: null, krachtOefening: null, krachtRm: null, krachtKg: null, fotosGemaakt: false, notitie: null, extra: {},
 }
 
 /** Klant is verplaatst naar Sam; de meting draagt nog Joey's persoon_id (scheve staat van vóór migratie 361). */
