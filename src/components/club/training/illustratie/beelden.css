@@ -57,3 +57,28 @@
 @media (max-width: 640px) {
   .club-beelden-rij { grid-template-columns: minmax(0, 1fr); padding: 16px; }
 }
+
+/* Alleen 3D (besluit Kane 20-10-2026): een raster van kaarten. */
+.club-beelden-raster3d {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+.club-beelden-kaart3d {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--club-radius, 12px);
+  background: var(--club-vlak);
+  overflow: hidden;
+}
+.club-beelden-kaart3d-beeld { aspect-ratio: 1 / 1; }
+.club-beelden-kaart3d-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px 18px;
+  flex: 1;
+}
+.club-beelden-kaart3d-info h2 { margin: 0; font-size: 1.15rem; }
+.club-beelden-kaart3d-info .club-beelden-knoppen { margin-top: auto; }
