@@ -7,7 +7,7 @@
 .aygd-gids a { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 99px; white-space: nowrap; text-decoration: none; font-size: 14.5px; font-weight: 600; transition: background-color 200ms, color 200ms; }
 .aygd-gids a span { font-size: 12px; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; }
 .aygd-gids a:hover { background: var(--ayg-tekst); color: var(--ayg-bg); }
-.aygd-gids a:hover span { color: var(--ayg-accent); }
+.aygd-gids a:hover span { color: inherit; }
 
 /* ── Stap: uitleg en scherm ──────────────────────────────────────────────── */
 .aygd-stap { scroll-margin-top: 130px; }

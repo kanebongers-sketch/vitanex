@@ -48,7 +48,7 @@ async function organisatie(admin: SupabaseClient): Promise<DemoRuw['organisatie'
   if (error) throw new Error(`Demo: sportschool ophalen mislukt: ${error.message}`)
   if (!data) return null
   const r = data as { naam: string; kleur_accent: string | null; thema: string | null }
-  return { naam: r.naam, kleur: r.kleur_accent ?? '#C9F03E', thema: r.thema === 'licht' ? 'licht' : 'donker' }
+  return { naam: r.naam, kleur: r.kleur_accent ?? '#1FA77A', thema: r.thema === 'licht' ? 'licht' : 'donker' }
 }
 
 async function peildagVan(admin: SupabaseClient, vestiging: string, nu: Date): Promise<string> {

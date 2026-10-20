@@ -1,5 +1,5 @@
 // Het beeldmerk van AI Your Gym: een figuur met de armen omhoog, die ook een Y
-// vormt (Your). Inkt met volt; op een donkere ondergrond draait het om.
+// vormt (Your). Inkt met smaragd; op een donkere ondergrond draait het om.
 
 interface Props {
   /** Op een donkere ondergrond: kalkwit vlak in plaats van inkt. */
@@ -9,7 +9,7 @@ interface Props {
 
 export function AygSymboolPaden({ opDonker = false }: { opDonker?: boolean }) {
   const vlak = opDonker ? 'var(--ayg-inkt-tekst, #f2f0e9)' : 'var(--ayg-inkt, #0f1412)'
-  const figuur = opDonker ? 'var(--ayg-inkt, #0f1412)' : 'var(--ayg-accent, #c9f03e)'
+  const figuur = opDonker ? 'var(--ayg-inkt, #0f1412)' : 'var(--ayg-accent, #1fa77a)'
   return (
     <>
       <rect width="32" height="32" rx="8.5" fill={vlak} />

@@ -6,10 +6,10 @@
    ========================================================================== */
 
 .aygm {
-  --brand: #c9f03e;
+  --brand: #2db886;
   --brand-inkt: #0a0b09;
-  --brand-tekst: #c9f03e;
-  --brand-soft: rgba(201, 240, 62, 0.14);
+  --brand-tekst: #2db886;
+  --brand-soft: rgba(45, 184, 134, 0.14);
   --bg-app: #0a0b09;
   --bg-card: #141513;
   --bg-raised: #1e1f1c;
@@ -20,7 +20,7 @@
   --text-3: rgba(255, 255, 255, 0.62);
   --club-ok: #6fd69a;
   --club-let-op: #f47c66;
-  --club-info: #8fb3ff;
+  --club-info: #7fc4cf;
   font-family: var(--ayg-font-tekst);
   color: var(--text-1);
   font-size: 13px;

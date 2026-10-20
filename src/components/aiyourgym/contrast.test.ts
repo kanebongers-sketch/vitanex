@@ -116,22 +116,27 @@ function paletParen(naam: string, S: Record<string, string>): PaletParen {
       { waar: `randen van invoervelden en randknoppen op ${v}`, tekst: t('ayg-lijn-sterk'), op: t(v), min: GROOT },
       { waar: `foutmelding op ${v}`, tekst: t('ayg-fout'), op: t(v), min: NORMAAL },
       { waar: `beschikbaar-melding op ${v}`, tekst: t('ayg-ok'), op: t(v), min: NORMAAL },
+      { waar: `smaragd als tekst en icoon op het papier (accent-sterk) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: NORMAAL },
+      { waar: `smaragd als lijn (menu, labelstreep) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: GROOT },
+      { waar: `smaragdknop, vinkje en badge afgetekend tegen ${v}`, tekst: t('ayg-accent'), op: t(v), min: naam === 'donker' ? GROOT : 1 },
     ]),
     ...DONKER_VLAKKEN.flatMap((v) => [
       { waar: `tekst op ${v}`, tekst: t('ayg-inkt-tekst'), op: t(v), min: NORMAAL },
       { waar: `bijschriften op ${v}`, tekst: t('ayg-inkt-tekst-2'), op: t(v), min: NORMAAL },
       { waar: `grote sierletters op ${v}`, tekst: t('ayg-inkt-spook'), op: t(v), min: GROOT },
-      { waar: `volt als tekst en icoon op ${v}`, tekst: t('ayg-accent'), op: t(v), min: NORMAAL },
+      { waar: `smaragd als tekst en icoon op ${v}`, tekst: t('ayg-accent'), op: t(v), min: NORMAAL },
     ]),
-    { waar: 'tekst op de voltknop, badges en chips', tekst: t('ayg-accent-tekst'), op: t('ayg-accent'), min: NORMAAL },
+    { waar: 'tekst op de smaragdknop, badges, chips en vinkjes', tekst: t('ayg-accent-tekst'), op: t('ayg-accent'), min: NORMAAL },
+    { waar: 'tekst op het zachte smaragdvlak (markering)', tekst: t('ayg-tekst'), op: t('ayg-accent-zacht'), min: NORMAAL },
+    { waar: 'smaragden speelknop en focusrand op de bedieningsbalk (86% inkt over het oefenbeeld)', tekst: t('ayg-accent'), op: meng('#0f1412', '#e9f3f7', 0.86), min: GROOT },
     { waar: 'tekst op de inktknop', tekst: t('ayg-bg'), op: t('ayg-tekst'), min: NORMAAL },
     { waar: 'gekozen thema in de huisstijl-demo', tekst: t('ayg-inkt'), op: t('ayg-inkt-tekst'), min: NORMAAL },
     { waar: 'foutmelding in het meldingvlak (10% fout)', tekst: t('ayg-fout'), op: meng(t('ayg-fout'), t('ayg-vlak'), 0.1), min: NORMAAL },
     { waar: 'bijschrift op de held-gloed', tekst: t('ayg-tekst-2'), op: meng(t('ayg-accent'), t('ayg-bg'), procent(t('ayg-gloed'))), min: NORMAAL },
     { waar: 'bijschrift op de gloed van de aanmeldband', tekst: t('ayg-inkt-tekst-2'), op: meng(t('ayg-accent'), t('ayg-inkt'), procent(t('ayg-gloed-band'))), min: NORMAAL },
-    { waar: 'uitgeschakelde voltknop (85%)', tekst: meng(t('ayg-accent-tekst'), t('ayg-vlak'), 0.85), op: meng(t('ayg-accent'), t('ayg-vlak'), 0.85), min: NORMAAL },
+    { waar: 'uitgeschakelde smaragdknop (85%)', tekst: meng(t('ayg-accent-tekst'), t('ayg-vlak'), 0.85), op: meng(t('ayg-accent'), t('ayg-vlak'), 0.85), min: NORMAAL },
     { waar: 'uitgeschakelde inktknop (85%)', tekst: meng(t('ayg-bg'), t('ayg-vlak'), 0.85), op: meng(t('ayg-tekst'), t('ayg-vlak'), 0.85), min: NORMAAL },
-    { waar: 'volt als tekst op het papier (de markering in de donkere versie)', tekst: t('ayg-accent'), op: t('ayg-bg'), min: naam === 'donker' ? NORMAAL : 1 },
+    { waar: 'smaragd als tekst op het papier (de markering in de donkere versie)', tekst: t('ayg-accent'), op: t('ayg-bg'), min: naam === 'donker' ? NORMAAL : 1 },
     { waar: 'hover op een hoofdstuk: lichte knop met inkt erop', tekst: t('ayg-accent-tekst'), op: t('ayg-inkt-tekst'), min: NORMAAL },
   ]
   // Elk hoofdstuk van de functies heeft een eigen accent: altijd inkt erop (het
@@ -150,6 +155,8 @@ function paletParen(naam: string, S: Record<string, string>): PaletParen {
     { waar: 'podium: koppen en tekst (--ayg-tekst) op inkt-2', tekst: podiumToken('ayg-tekst'), op: t('ayg-inkt-2'), min: NORMAAL },
     { waar: 'podium: bijschriften (--ayg-tekst-2) op inkt', tekst: podiumToken('ayg-tekst-2'), op: t('ayg-inkt'), min: NORMAAL },
     { waar: 'podium: lichte knop (inkt op --ayg-tekst)', tekst: t('ayg-inkt'), op: podiumToken('ayg-tekst'), min: NORMAAL },
+    { waar: 'podium: smaragd als tekst en lijn (--ayg-accent-sterk) op inkt', tekst: podiumToken('ayg-accent-sterk'), op: t('ayg-inkt'), min: NORMAAL },
+    { waar: 'podium: smaragd als tekst en lijn (--ayg-accent-sterk) op inkt-2', tekst: podiumToken('ayg-accent-sterk'), op: t('ayg-inkt-2'), min: NORMAAL },
   ]
   const metNaam = (p: Paar): Paar => ({ ...p, waar: `${naam}: ${p.waar}` })
   return { site: site.map(metNaam), hoofdstuk: hoofdstuk.map(metNaam), podium: podium.map(metNaam) }
@@ -160,6 +167,17 @@ const SITE_PAREN = PAREN.flatMap((p) => p.site)
 const HOOFDSTUK_PAREN = PAREN.flatMap((p) => p.hoofdstuk)
 const PODIUM_PAREN = PAREN.flatMap((p) => p.podium)
 const HOOFDSTUK_TOKENS = Object.keys(LICHT).filter((k) => k.startsWith('ayg-h-'))
+
+describe('de accentkleur', () => {
+  it('is smaragdgroen #1FA77A (besluit Kane 20-10-2026)', () => {
+    expect(LICHT['ayg-accent'].toLowerCase()).toBe('#1fa77a')
+    expect(LICHT['ayg-h-beheer'].toLowerCase()).toBe('#1fa77a')
+  })
+  it('nergens nog de oude volt (#c9f03e)', () => {
+    const bestanden = [...ALLE_CSS, 'src/components/aiyourgym/merk/AygSymbool.tsx', 'src/components/aiyourgym/mockups/stalen.ts', 'src/lib/aiyourgym/demo/bron.ts']
+    for (const bestand of bestanden) expect(readFileSync(path.join(WORTEL, bestand), 'utf8'), bestand).not.toMatch(/c9f03e|201,\s*240,\s*62/i)
+  })
+})
 
 describe('de donkere versie', () => {
   it('zet elk kleurtoken van de lichte versie opnieuw', () => {
@@ -179,6 +197,10 @@ describe('contrast van de hoofdstukken en het podium', () => {
   })
   it('het podium zet --ayg-tekst om naar de lichte inkttekst', () => {
     expect(P['ayg-tekst']).toBe('var(--ayg-inkt-tekst)')
+  })
+  it('het podium en de voet zetten de donkere smaragd om naar de lichte', () => {
+    expect(P['ayg-accent-sterk']).toBe('var(--ayg-accent)')
+    expect(lees(SITE_CSS)).toMatch(/\.ayg-voet \{[^}]*--ayg-accent-sterk:\s*var\(--ayg-accent\)/)
   })
   it.each([...HOOFDSTUK_PAREN, ...PODIUM_PAREN])('$waar', ({ tekst, op, min }) => {
     expect(contrast(tekst, op)).toBeGreaterThanOrEqual(min)

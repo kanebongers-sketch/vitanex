@@ -1,8 +1,9 @@
 /* ==========================================================================
    AI Your Gym | verkoopwebsite
-   Richting "Kalk, inkt en volt": warm kalkwit papier, bijna zwarte inkt en een
-   felle volt als signaalkleur. Editoriaal, grote koppen, donkere podia voor de
-   productbeelden. Alles hangt aan de root-klasse .ayg, zodat niets van Fit
+   Richting "Kalk, inkt en smaragd": warm kalkwit papier, bijna zwarte inkt en
+   smaragdgroen #1FA77A als accent (besluit Kane 20-10-2026). Daaromheen een
+   rustig palet van salie, groenblauw, zand en mist. Editoriaal, grote koppen,
+   donkere podia voor de productbeelden. Alles hangt aan de root-klasse .ayg, zodat niets van Fit
    Factory, MentaForce of RELEASE V wordt geraakt.
    De tokennamen hieronder zijn vast: het aanmeldformulier bouwt erop.
    ========================================================================== */
@@ -17,29 +18,32 @@
   --ayg-tekst-spook: #767b73; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
   --ayg-lijn: #d6d2c5;
   --ayg-lijn-sterk: #7a7f77; /* 3.25:1 op vlak-2, voor invoervelden en randknoppen */
-  --ayg-accent: #c9f03e;
-  --ayg-accent-tekst: #0f1412; /* 14.2:1 op accent */
+  --ayg-accent: #1fa77a; /* smaragd: vlakken, knoppen, vinkjes; als tekst alleen op inkt (6.1:1) */
+  --ayg-accent-tekst: #0f1412; /* 6.1:1 op smaragd (wit haalt maar 3.1:1) */
+  --ayg-accent-sterk: #08704e; /* smaragd als tekst, icoon of lijn op het papier: 5.4:1 op bg, 4.9:1 op vlak-2 */
+  --ayg-accent-zacht: #b9decc; /* zacht smaragdvlak (markering onder inkt): 13:1 */
   --ayg-fout: #b42318;
   --ayg-ok: #1b7238; /* 4.75:1 op vlak-2 */
-  /* Hoeveel volt er in de zachte gloed achter de held en de aanmeldband zit */
-  --ayg-gloed: 30%;
-  --ayg-gloed-band: 26%;
+  /* Hoeveel smaragd er in de zachte gloed achter de held en de aanmeldband zit */
+  --ayg-gloed: 24%;
+  --ayg-gloed-band: 24%;
 
   /* Donker podium (productbeelden) */
   --ayg-inkt: #0f1412;
   --ayg-inkt-2: #1a201d;
   --ayg-inkt-lijn: #2b322e;
   --ayg-inkt-tekst: #f2f0e9;
-  --ayg-inkt-tekst-2: #b8beb7; /* 9.8:1 op inkt, 4.8:1 waar de volt gloed het sterkst is */
+  --ayg-inkt-tekst-2: #b8beb7; /* 9.8:1 op inkt, 6.8:1 waar de smaragdgloed het sterkst is */
   --ayg-inkt-spook: #666d67; /* grote sierletters op inkt: 3.5:1 */
 
-  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, altijd met inkt
-     erop (tekst op het vlak) of als tekst op het donkere podium; zie contrast.test.ts */
-  --ayg-h-beheer: #c9f03e;
-  --ayg-h-coaching: #ffa477;
-  --ayg-h-planning: #8fc8ff;
-  --ayg-h-groei: #7fe0ae;
-  --ayg-h-betrokkenheid: #c9b0ff;
+  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een palet rond
+     smaragd (smaragd, salie, groenblauw, zand, mist). Altijd met inkt erop (tekst
+     op het vlak) of als tekst op het donkere podium; zie contrast.test.ts */
+  --ayg-h-beheer: #1fa77a;
+  --ayg-h-coaching: #a8c3a0;
+  --ayg-h-planning: #4fb0bb;
+  --ayg-h-groei: #d6c29c;
+  --ayg-h-betrokkenheid: #9fb8c4;
 
   /* Letters */
   --ayg-font-kop: var(--ayg-f-kop), 'Arial Narrow', Arial, sans-serif;
@@ -131,6 +135,8 @@
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
+  /* Donkere smaragd voor op papier wordt hier de lichte (anders donker op donker) */
+  --ayg-accent-sterk: var(--ayg-accent);
   position: relative;
   overflow: clip;
 }
@@ -138,7 +144,7 @@
 
 /* ── Donker ──────────────────────────────────────────────────────────────────
    Een eigen, ontworpen donkere versie: bijna zwart papier, lichte inkt en
-   dezelfde volt. Omdat de site licht EN donker meldt (color-scheme en de
+   een iets lichtere smaragd, zodat hij als tekst en lijn goed leest. Omdat de site licht EN donker meldt (color-scheme en de
    viewport in layout.tsx), maakt Chrome hem niet meer zelf automatisch donker.
    Het podium ligt hier iets hoger dan het papier in plaats van dieper.
    Alle paren worden getoetst in contrast.test.ts. */
@@ -152,11 +158,13 @@
     --ayg-tekst-spook: #7a8179;
     --ayg-lijn: #29302b;
     --ayg-lijn-sterk: #737a73;
-    --ayg-accent: #c9f03e;
+    --ayg-accent: #2db886; /* 7.6:1 op bg, inkt erop 7.4:1 */
     --ayg-accent-tekst: #0f1412;
+    --ayg-accent-sterk: #2db886;
+    --ayg-accent-zacht: #173a2d;
     --ayg-fout: #ff8f80;
     --ayg-ok: #72d69b;
-    --ayg-gloed: 12%;
+    --ayg-gloed: 14%;
     --ayg-gloed-band: 16%;
     --ayg-inkt: #161b18;
     --ayg-inkt-2: #1f2621;
@@ -164,17 +172,17 @@
     --ayg-inkt-tekst: #f2f0e9;
     --ayg-inkt-tekst-2: #c2c8c1;
     --ayg-inkt-spook: #78807a;
-    --ayg-h-beheer: #c9f03e;
-    --ayg-h-coaching: #ffa477;
-    --ayg-h-planning: #8fc8ff;
-    --ayg-h-groei: #7fe0ae;
-    --ayg-h-betrokkenheid: #c9b0ff;
+    --ayg-h-beheer: #2db886;
+    --ayg-h-coaching: #a8c3a0;
+    --ayg-h-planning: #4fb0bb;
+    --ayg-h-groei: #d6c29c;
+    --ayg-h-betrokkenheid: #9fb8c4;
     --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
     --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
   }
   /* Korrel als lichte spikkel in plaats van donkere */
   .ayg::before { filter: invert(1); mix-blend-mode: screen; opacity: 0.22; }
-  /* Volt onder lichte tekst leest niet: de markering wordt volt als tekst */
+  /* Een vlak onder lichte tekst leest niet: de markering wordt smaragd als tekst */
   .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
   .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
 }
@@ -192,14 +200,14 @@
   font-variant-numeric: tabular-nums;
 }
 .ayg-label::before { content: ''; width: 18px; height: 2px; background: currentColor; opacity: 0.7; }
-.ayg-label--accent::before { background: var(--ayg-accent); opacity: 1; height: 3px; }
+.ayg-label--accent::before { background: var(--ayg-accent-sterk); opacity: 1; height: 3px; }
 
 .ayg-display { font-size: clamp(2.7rem, 7.2vw, 6.6rem); line-height: 0.93; letter-spacing: -0.048em; font-variation-settings: 'wdth' 82; }
 .ayg-h2 { font-size: clamp(2rem, 4.6vw, 3.9rem); line-height: 0.98; letter-spacing: -0.042em; }
 .ayg-h3 { font-size: clamp(1.25rem, 1.9vw, 1.6rem); line-height: 1.12; letter-spacing: -0.025em; font-variation-settings: 'wdth' 94; }
 .ayg-lead { font-size: clamp(1.08rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--ayg-tekst-2); max-width: 38em; }
 .ayg-klein { font-size: 14px; color: var(--ayg-tekst-2); }
-.ayg-markeer { background: linear-gradient(transparent 58%, var(--ayg-accent) 58%, var(--ayg-accent) 92%, transparent 92%); color: inherit; padding-inline: 0.04em; }
+.ayg-markeer { background: linear-gradient(transparent 58%, var(--ayg-accent-zacht) 58%, var(--ayg-accent-zacht) 92%, transparent 92%); color: inherit; padding-inline: 0.04em; }
 .ayg-podium .ayg-markeer { background: none; color: var(--ayg-accent); }
 
 /* ── Knoppen ─────────────────────────────────────────────────────────────── */
@@ -261,7 +269,7 @@
 .ayg-nav { display: none; flex: 1; }
 .ayg-nav ul { display: flex; gap: 2px; }
 .ayg-nav a { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 9px; color: var(--ayg-tekst-2); font-size: 15px; font-weight: 500; text-decoration: none; transition: color 160ms, background-color 160ms; }
-.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--ayg-accent); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 320ms var(--ayg-ease); }
+.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--ayg-accent-sterk); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 320ms var(--ayg-ease); }
 .ayg-nav a:hover { color: var(--ayg-tekst); }
 .ayg-nav a:hover::after { transform: scaleX(0.45); }
 .ayg-nav a[aria-current='page'] { color: var(--ayg-tekst); }
@@ -283,7 +291,7 @@
 .ayg-menupaneel-naam { font: 700 clamp(1.9rem, 9vw, 2.6rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 82; }
 .ayg-menupaneel-uitleg { grid-column: 2; font-size: 14px; color: var(--ayg-tekst-2); }
 .ayg-menupaneel-pijl { grid-column: 3; grid-row: 1; align-self: center; color: var(--ayg-tekst-2); }
-.ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent); text-decoration-thickness: 4px; text-underline-offset: 6px; }
+.ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent-sterk); text-decoration-thickness: 4px; text-underline-offset: 6px; }
 .ayg-menupaneel-onder { display: grid; gap: 10px; }
 .ayg-menupaneel-onder .ayg-knop { width: 100%; min-height: 54px; }
 .ayg-menupaneel-live { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-weight: 600; text-decoration: none; }
@@ -304,7 +312,7 @@
 }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
-.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); padding-block: 72px 32px; margin-top: auto; }
+.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent-sterk: var(--ayg-accent); padding-block: 72px 32px; margin-top: auto; }
 .ayg-voet-raster { display: grid; gap: 40px; grid-template-columns: 1fr; }
 .ayg-voet-merk svg { height: 34px; width: auto; color: var(--ayg-inkt-tekst); }
 .ayg-voet-merk p { margin-top: 18px; max-width: 30ch; color: var(--ayg-tekst-2); }
@@ -356,6 +364,8 @@
 /* Concept (juridisch) */
 .ayg-concept { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--ayg-radius); background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-weight: 500; }
 .ayg-concept strong { font-weight: 700; }
+/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op smaragd altijd inkt */
+.ayg .ayg-concept { color: var(--ayg-accent-tekst); }
 .ayg-tekst { max-width: 68ch; display: grid; gap: 18px; }
 .ayg-tekst h2 { font-size: clamp(1.4rem, 2.2vw, 1.8rem); margin-top: 28px; }
 .ayg-tekst ul { list-style: disc; padding-left: 1.2em; display: grid; gap: 8px; }
