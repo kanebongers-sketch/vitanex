@@ -23,6 +23,7 @@ export function NieuwSchemaKnop({ lidId, editorHref, label, primair = true }: Ni
 
   async function maak() {
     setBezig(true)
+    setFout(null)
     const u = await stuur('/schemas', 'POST', { lidId })
     const id = u.ok ? idUit(u.data) : null
     if (!id) {

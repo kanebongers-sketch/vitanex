@@ -201,6 +201,16 @@
 .club-lidapp-schemanaam { display: flex; flex-wrap: wrap; align-items: center; margin: -8px 0 0; font-size: 14.5px; color: var(--text-2); }
 .club-lidapp-schemanaam strong { color: var(--text-1); font-weight: 700; }
 .club-lidapp-schemanaam span::before { content: '\00B7'; margin: 0 8px; color: var(--text-3); }
+/* Notitie van de trainer bij het schema: ingeklapt, een tik opent hem. */
+.club-lidapp-schemanotitie { border-radius: var(--lidapp-radius); background: var(--bg-card); border: 1px solid var(--line); }
+.club-lidapp-schemanotitie summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px; list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--text-1); }
+.club-lidapp-schemanotitie summary::-webkit-details-marker { display: none; }
+.club-lidapp-schemanotitie summary > svg:first-child { flex: none; color: var(--brand-tekst, var(--brand)); }
+.club-lidapp-schemanotitie summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: var(--lidapp-radius); }
+.club-lidapp-schemanotitie-pijl { margin-left: auto; color: var(--text-3); transition: transform 160ms var(--ease); }
+.club-lidapp-schemanotitie[open] .club-lidapp-schemanotitie-pijl { transform: rotate(180deg); }
+.club-lidapp-schemanotitie p { margin: 0; padding: 0 16px 14px; white-space: pre-line; font-size: 14.5px; line-height: 1.5; color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .club-lidapp-schemanotitie-pijl { transition: none; } }
 .club-lidapp-dagkeuze { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--club-vlak-hover); border: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .club-lidapp-dagkeuze::-webkit-scrollbar { display: none; }
 .club-lidapp-dagkeuze button { position: relative; flex: 1 0 auto; min-width: 76px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: transparent; color: var(--text-2); font: inherit; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: transform 140ms var(--ease); }

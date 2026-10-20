@@ -93,8 +93,8 @@ export const ARTIKELEN: readonly Artikel[] = [
     ],
     links: [
       { label: 'Groepslessen', pad: '/clubkane/rooster' },
-      { label: 'Weekrooster instellen', pad: '/clubkane/instellingen/weekrooster' },
-      { label: 'Regels voor boeken', pad: '/clubkane/instellingen/regels' },
+      { label: 'Weekrooster', pad: '/clubkane/instellingen/weekrooster' },
+      { label: 'Regels en openingstijden', pad: '/clubkane/instellingen/regels' },
     ],
     trefwoorden: ['les', 'lessen', 'reserveren', 'boeken', 'wachtlijst', 'no-show', 'capaciteit', 'zaal'],
   },
@@ -204,18 +204,18 @@ export const ARTIKELEN: readonly Artikel[] = [
   },
   {
     sleutel: 'opvolgen',
-    titel: 'Opvolgen en automatiseringen',
+    titel: 'Opvolgen en opvolgregels',
     samenvatting: 'Wie je vandaag belt of aanspreekt, en de regels daarachter.',
     onderdeel: 'opvolgen',
     stappen: [
       'Opvolgen toont per regel wie je vandaag spreekt, met een voorbeeldtekst. Zet een notitie en druk op Gedaan of Overslaan.',
       'Club verstuurt zelf niets: jij of het team belt, appt of spreekt het lid aan.',
-      'De zeven regels (welkomstgesprek, proeflid, lang niet gezien, risico op afhaken, verjaardag, exitgesprek en mijlpaal) zet je aan of uit bij Automatiseringen, met een drempel, wie het oppakt en de voorbeeldtekst.',
+      'De zeven regels (welkomstgesprek, proeflid, lang niet gezien, risico op afhaken, verjaardag, exitgesprek en mijlpaal) zet je aan of uit bij Opvolgregels (Instellingen), met een drempel, wie het oppakt en de voorbeeldtekst.',
       'Recent afgehandeld toont wat de afgelopen 7 dagen is gedaan.',
     ],
     links: [
       { label: 'Opvolgen', pad: '/clubkane/opvolgen' },
-      { label: 'Automatiseringen', pad: '/clubkane/beheer/automatiseringen' },
+      { label: 'Opvolgregels', pad: '/clubkane/beheer/automatiseringen' },
     ],
     trefwoorden: ['bellen', 'retentie', 'behoud', 'opzegging', 'verjaardag'],
   },
@@ -269,7 +269,7 @@ export const ARTIKELEN: readonly Artikel[] = [
     ],
     links: [
       { label: 'Ledenapp bekijken', pad: '/clubkane/app' },
-      { label: 'Ledenapp instellen', pad: '/clubkane/beheer/ledenapp' },
+      { label: 'Ledenapp', pad: '/clubkane/beheer/ledenapp' },
       { label: 'Berichten', pad: '/clubkane/berichten' },
     ],
     trefwoorden: ['app', 'telefoon', 'nieuws', 'mededeling', 'qr'],

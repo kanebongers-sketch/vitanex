@@ -58,7 +58,7 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
         <div>
           <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${naamVan(t.vestigingen, vestiging)}`}</p>
           <h1>{kop.naam}</h1>
-          {!isSjabloon && kop.status === 'concept' && <p>Concept: pas aan waar nodig en kies Activeren zodra het klaar is voor het lid.</p>}
+          {!isSjabloon && kop.status === 'concept' && <p>Concept: pas aan waar nodig en kies Activeren zodra het klaar is. Dan ziet het lid het in de app; een eerder actief schema van dit lid gaat naar afgerond.</p>}
         </div>
       </section>
       {!oefeningen && <p className="club-melding club-melding--fout">De oefeningen konden niet worden geladen.</p>}

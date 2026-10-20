@@ -2,13 +2,14 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronRight, ClipboardList, CloudUpload, Play, Undo2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, ClipboardList, CloudUpload, MessageSquareText, Play, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
 import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
 import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
 import { bronnenVan } from '@/lib/club/training/beeld'
+import { WAAROM_KOP } from '@/lib/club/training/voorstel-uitleg'
 import { useKernpunten } from '@/components/club/training/coaching/useKernpunten'
 import { OefeningBlad } from './OefeningBlad'
 import { stuur } from './verzoek'
@@ -99,6 +100,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
           {dag.oefeningen.length} {dag.oefeningen.length === 1 ? 'oefening' : 'oefeningen'}
         </span>
       </p>
+      {schema.notitie && <SchemaNotitie notitie={schema.notitie} />}
       <div className="club-lidapp-dagkeuze" role="group" aria-label="Trainingsdag">
         {schema.dagen.map((d) => (
           <button key={d.dag} type="button" aria-pressed={d.dag === dag.dag} onClick={() => setGekozen(d.dag)}>
@@ -172,6 +174,23 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
       {schemaBronnen.includes('repdb') && <RepdbVermelding className="club-lidapp-beeldbron" />}
       {open && <OefeningBlad oefening={open} onSluit={sluit} />}
     </div>
+  )
+}
+
+/** De notitie van de trainer bij het hele schema, of de uitleg "Waarom dit schema". Ingeklapt, een tik opent hem. */
+function SchemaNotitie({ notitie }: { notitie: string }) {
+  const regels = notitie.split('\n')
+  const isWaarom = regels[0] === WAAROM_KOP
+  const tekst = (isWaarom ? regels.slice(1) : regels).join('\n').trim()
+  return (
+    <details className="club-lidapp-schemanotitie">
+      <summary>
+        <MessageSquareText aria-hidden size={17} />
+        {isWaarom ? WAAROM_KOP : 'Van je trainer'}
+        <ChevronDown aria-hidden size={16} className="club-lidapp-schemanotitie-pijl" />
+      </summary>
+      <p>{tekst}</p>
+    </details>
   )
 }
 

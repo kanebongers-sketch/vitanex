@@ -9,9 +9,9 @@ import { RegelsBeheer } from '@/components/club/automatisering/RegelsBeheer'
 import '@/components/club/automatisering/automatisering.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
-export const metadata: Metadata = { title: 'Automatiseringen' }
+export const metadata: Metadata = { title: 'Opvolgregels' }
 
-// Automatiseringen voor ledenbehoud: welke regels de opvolglijst vullen, met
+// Opvolgregels (in de database: automatiseringen) voor ledenbehoud: welke regels de opvolglijst vullen, met
 // welke drempel, wie het oppakt en welke voorbeeldtekst het team krijgt.
 // De regels gelden voor alle vestigingen van de sportschool.
 
@@ -27,7 +27,7 @@ export default async function AutomatiseringenPagina() {
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Automatiseringen</h1>
+          <h1>Opvolgregels</h1>
           <p>Regels die elke dag klaarzetten wie het team even aanspreekt: nieuwe leden, proefleden, wie wegblijft, verjaardagen, opzeggingen en mijlpalen. Ze vullen de opvolglijst met een voorbeeldtekst. Club verstuurt zelf nog niets; automatisch versturen per mail of app komt later.</p>
         </div>
         {v && (

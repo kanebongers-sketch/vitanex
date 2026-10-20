@@ -21,6 +21,8 @@ interface EditorWerkbalkProps {
   onOpslaan: () => void
   /** Opslaan en meteen op actief zetten (alleen bij een concept van een lid). */
   onActiveren: () => void
+  /** Wijzigingen opslaan zonder de editor te verversen; true als het lukte. Voor acties die het opgeslagen schema gebruiken. */
+  onOpslaanEerst: () => Promise<boolean>
   editorHref: string
   terugHref: string
   kanOngedaan: boolean
@@ -30,7 +32,6 @@ interface EditorWerkbalkProps {
 }
 
 const STATUS_CHIP: Record<SchemaStatus, string> = { concept: 'club-chip--info', actief: 'club-chip--ok', afgerond: 'club-chip--uit' }
-const OPSLAAN_EERST = 'Sla eerst je wijzigingen op'
 
 /**
  * De werkbalk van de editor. Een hoofdactie: Opslaan, of bij een concept van een lid
@@ -43,6 +44,13 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
   const [kopieOpen, setKopieOpen] = useState(false)
   const sluitKopie = useCallback(() => setKopieOpen(false), [])
   const isConcept = !p.isSjabloon && p.status === 'concept'
+
+  /** Een actie op het opgeslagen schema: eerst de wijzigingen opslaan, dan pas de actie (een klik minder). */
+  async function naOpslaan(actie: () => void | Promise<void>) {
+    setMelding(null)
+    if (p.gewijzigd && !(await p.onOpslaanEerst())) return
+    await actie()
+  }
 
   async function alsSjabloon() {
     const u = await stuur(`/schemas/${p.schemaId}/kopie`, 'POST', { lidId: null })
@@ -62,8 +70,8 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
     ...(p.isSjabloon
       ? []
       : [
-          { sleutel: 'sjabloon', label: 'Opslaan als sjabloon', icoon: <BookmarkPlus aria-hidden size={16} />, onKies: alsSjabloon, uit: p.gewijzigd ? OPSLAAN_EERST : undefined },
-          { sleutel: 'kopie', label: 'Kopie naar ander lid', icoon: <UserPlus aria-hidden size={16} />, onKies: () => setKopieOpen(true), uit: p.gewijzigd ? OPSLAAN_EERST : undefined },
+          { sleutel: 'sjabloon', label: 'Opslaan als sjabloon', icoon: <BookmarkPlus aria-hidden size={16} />, onKies: () => void naOpslaan(alsSjabloon), uit: p.bezig ? 'Even geduld...' : undefined },
+          { sleutel: 'kopie', label: 'Kopie naar ander lid', icoon: <UserPlus aria-hidden size={16} />, onKies: () => void naOpslaan(() => setKopieOpen(true)), uit: p.bezig ? 'Even geduld...' : undefined },
         ]),
     { sleutel: 'weg', label: p.isSjabloon ? 'Sjabloon verwijderen' : 'Schema verwijderen', icoon: <Trash2 aria-hidden size={16} />, onKies: verwijder, gevaar: true },
   ]
@@ -99,7 +107,7 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
                 <Save aria-hidden size={16} /> <span className="club-training-werkbalk-tekst">Concept</span> opslaan
               </button>
             )}
-            <button type="button" className="club-knop club-knop--primair" onClick={p.onActiveren} disabled={p.bezig} title="Opslaan en op actief zetten">
+            <button type="button" className="club-knop club-knop--primair" onClick={p.onActiveren} disabled={p.bezig} title="Opslaan en naar de app van het lid. Een eerder actief schema van dit lid gaat naar afgerond.">
               <CheckCircle2 aria-hidden size={16} /> Activeren
             </button>
           </>

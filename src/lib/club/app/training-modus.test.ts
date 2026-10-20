@@ -27,6 +27,16 @@ describe('training doen', () => {
     expect(Object.keys(inv)).toHaveLength(5)
   })
 
+  it('neemt een zwaarder gewicht van de trainer over, maar nooit een lichter', () => {
+    const omhoog = beginInvoer(dag([oef('a', { gewichtKg: 45 })]), historie)
+    expect([1, 2, 3].map((n) => omhoog[setSleutel('a', n)].kg)).toEqual(['45', '45', '45'])
+    const lager = beginInvoer(dag([oef('a', { gewichtKg: 30 })]), historie)
+    expect(lager[setSleutel('a', 1)].kg).toBe('40')
+    expect(lager[setSleutel('a', 2)].kg).toBe('42,5')
+    // Gelijk aan het zwaarste van de vorige keer: de vorige keer per set blijft staan.
+    expect(beginInvoer(dag([oef('a', { gewichtKg: 42.5 })]), historie)[setSleutel('a', 1)].kg).toBe('40')
+  })
+
   it('toont de vorige keer en een voorstel', () => {
     expect(vorigeTekst(historie['o-a'], 2)).toBe('42,5 kg x 9')
     expect(vorigeTekst(historie['o-a'], 3)).toBeNull()

@@ -22,7 +22,7 @@ import { Klaargezet } from '@/components/club/start/Klaargezet'
 import { STAP_INTRO, StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
 import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze, bronVan } from '@/components/club/start/StapInstellingen'
 
-export const metadata: Metadata = { title: 'Start' }
+export const metadata: Metadata = { title: 'Startwizard' }
 export const dynamic = 'force-dynamic'
 
 // /clubkane/start?stap=N: de startwizard van een nieuwe sportschool. Acht

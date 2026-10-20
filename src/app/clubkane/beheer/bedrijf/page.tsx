@@ -10,7 +10,7 @@ import { VestigingenContact } from '@/components/club/bedrijf/VestigingenContact
 import '@/components/club/bedrijf/bedrijf.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
-export const metadata: Metadata = { title: 'Bedrijfsgegevens en huisregels' }
+export const metadata: Metadata = { title: 'Bedrijf en huisregels' }
 
 // Bedrijfsgegevens (KvK, btw, hoofdkantoor, contact, social) en de teksten voor
 // leden (huisregels, voorwaarden, privacy). Het tabblad staat in de URL.

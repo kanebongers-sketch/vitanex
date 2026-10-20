@@ -33,14 +33,26 @@ function vorigeSet(h: OefeningHistorie | undefined, setNr: number): VorigeSet | 
   return sets.find((s) => s.setNr === setNr) ?? sets[sets.length - 1] ?? null
 }
 
-/** Startwaarden: het gewicht van de vorige keer (zelfde set), anders uit het schema. */
+/**
+ * Het gewicht om mee te beginnen voor een set: dat van de vorige keer (zelfde set),
+ * anders uit het schema. Zet de trainer in het schema een zwaarder gewicht dan het
+ * lid de vorige keer gebruikte (de progressiestap), dan wint het schema.
+ */
+export function beginGewicht(o: AppOefening, h: OefeningHistorie | undefined, setNr: number): number | null {
+  const vorige = vorigeSet(h, setNr)?.gewichtKg ?? null
+  const schema = o.gewichtKg !== null && o.gewichtKg > 0 ? o.gewichtKg : null
+  if (vorige === null || vorige <= 0) return schema
+  const zwaarsteVorige = Math.max(0, ...(h?.vorige?.sets ?? []).map((s) => s.gewichtKg ?? 0))
+  return schema !== null && schema > zwaarsteVorige ? schema : vorige
+}
+
+/** Startwaarden per set: het gewicht uit `beginGewicht`, herhalingen en tijd leeg (het voorstel staat grijs). */
 export function beginInvoer(dag: AppSchemaDag, historie: Readonly<Record<string, OefeningHistorie>>): Invoer {
   const uit: Invoer = {}
   for (const o of dag.oefeningen) {
     for (let n = 1; n <= aantalSets(o); n++) {
-      const v = vorigeSet(historie[o.oefeningId], n)
-      const kg = v?.gewichtKg ?? o.gewichtKg
-      uit[setSleutel(o.id, n)] = { kg: kg !== null && kg > 0 ? komma(kg) : '', herh: '', tijd: '', klaar: false }
+      const kg = beginGewicht(o, historie[o.oefeningId], n)
+      uit[setSleutel(o.id, n)] = { kg: kg !== null ? komma(kg) : '', herh: '', tijd: '', klaar: false }
     }
   }
   return uit

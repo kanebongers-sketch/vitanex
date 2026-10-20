@@ -228,11 +228,15 @@ export function zetGewicht(s: EditorStaat, oefeningId: string, kg: number): Edit
   return { ...s, regels: s.regels.map((r) => (r.oefeningId === oefeningId ? { ...r, gewichtKg: waarde } : r)) }
 }
 
+/** De regels in de volgorde waarin ze naar de API gaan: per dag, binnen de dag zoals in de editor. */
+export function payloadVolgorde(s: EditorStaat): EditorRegel[] {
+  return [...s.regels].sort((a, b) => a.dag - b.dag)
+}
+
 /** Naar het formaat van de API (PUT /api/club/training/schemas/[id]). */
 export function naarPayloadRegels(s: EditorStaat) {
   const leeg = (v: string) => (v.trim() === '' ? null : v.trim())
-  return [...s.regels]
-    .sort((a, b) => a.dag - b.dag)
+  return payloadVolgorde(s)
     .map((r) => ({
       dag: r.dag,
       oefeningId: r.oefeningId,

@@ -7,6 +7,7 @@ import type { Lid } from '@/lib/club/kern/lid'
 import { alsRij, datum, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import { dagSleutel, dagStart, plusDagen } from '@/lib/club/cijfers/tijd'
 import { appRegelsUitJson, bezoekenDezeMaand, wekenOpRij, type AppRegels, type MijnStatus } from './regels'
+import { notitieVoorLid } from '@/lib/club/training/voorstel-uitleg'
 import { historiePerOefening, oefeningUitRij, perDag, type AppLog, type AppSchemaDag, type OefeningHistorie, type SetLogRij } from './schema'
 
 export interface AppLes {
@@ -31,6 +32,7 @@ export interface AppSchema {
   naam: string
   doel: string | null
   weken: number | null
+  /** De notitie voor het lid (zonder de regels die alleen voor de trainer zijn, zie notitieVoorLid). */
   notitie: string | null
   dagen: AppSchemaDag[]
 }
@@ -115,7 +117,7 @@ async function haalSchema(admin: SupabaseClient, userId: string, lidId: string):
     .order('volgorde')
   const oefeningen = (oef.data ?? []).map(oefeningUitRij).filter((o) => o !== null)
   return {
-    schema: { id, naam: tekst(r.naam) ?? 'Schema', doel: tekst(r.doel), weken: getal(r.weken), notitie: tekst(r.notitie), dagen: perDag(oefeningen) },
+    schema: { id, naam: tekst(r.naam) ?? 'Schema', doel: tekst(r.doel), weken: getal(r.weken), notitie: notitieVoorLid(tekst(r.notitie)), dagen: perDag(oefeningen) },
     fout: oef.error?.message ?? null,
   }
 }

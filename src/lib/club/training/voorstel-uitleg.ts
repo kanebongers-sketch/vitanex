@@ -115,6 +115,18 @@ export interface WaaromUitleg {
   letOp: string[]
 }
 
+/**
+ * Wat het lid van de schemanotitie ziet. Een eigen notitie van de trainer blijft
+ * zoals hij is; bij de uitleg van het voorstel gaan de "Let op"-regels eruit
+ * (die zijn voor de trainer, zoals het advies over de huisarts). Leeg wordt null.
+ */
+export function notitieVoorLid(notitie: string | null | undefined): string | null {
+  const regels = (notitie ?? '').split('\n').map((r) => r.trim())
+  const zicht = regels[0] === WAAROM_KOP ? regels.filter((r) => r && !r.startsWith(LET_OP)) : regels
+  const tekst = zicht.join('\n').trim()
+  return tekst && tekst !== WAAROM_KOP ? tekst : null
+}
+
 /** De uitleg terug uit de notitie, of null als de notitie niet met de kop begint (de trainer heeft hem aangepast). */
 export function waaromUitNotitie(notitie: string | null | undefined): WaaromUitleg | null {
   const regels = (notitie ?? '').split('\n').map((r) => r.trim()).filter(Boolean)

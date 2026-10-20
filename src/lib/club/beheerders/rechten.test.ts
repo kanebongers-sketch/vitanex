@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { standaardRechten } from '@/lib/club/kern/org-instellingen'
 import { ONDERDELEN } from '@/components/club/shell/onderdelen'
@@ -74,5 +76,34 @@ describe('magApi', () => {
   it('het logo ophalen mag altijd (de balk toont het), uploaden niet', () => {
     expect(magApi(manager, '/api/club/organisatie/logo', 'GET')).toBe(true)
     expect(magApi(manager, '/api/club/organisatie/logo', 'POST')).toBe(false)
+  })
+})
+
+describe('elke API-map onder /api/club hoort bij een onderdeel', () => {
+  // Bewust zonder onderdeel (dus dicht voor een clubmanager via magApi, of buiten vereisClubToegang):
+  const BEWUST_ZONDER: Record<string, string> = {
+    beheerders: 'alleen Kane en de eigenaar (vereisBeheerdersBeheer)',
+    inloggen: 'voor het inloggen, nog geen sessie',
+    uitloggen: 'sessie beeindigen, geen onderdeel',
+    ledenapp: 'icoon en manifest van de PWA, openbaar',
+    lid: 'ledenapp, eigen sessie (ledenlogin/toegang.ts)',
+    platform: 'alleen Kane (vereisKane)',
+    organisatie: 'eigen tabel ORGANISATIE_ONDERDEEL',
+  }
+  const mappen = readdirSync(join(process.cwd(), 'src/app/api/club'), { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+
+  it('staat in API_ONDERDEEL of is bewust uitgezonderd', () => {
+    const sleutels = new Set(ONDERDELEN.map((o) => o.sleutel))
+    for (const map of mappen) {
+      if (map in BEWUST_ZONDER) continue
+      const sleutel = apiOnderdeel(`/api/club/${map}`)
+      expect(sleutel, `/api/club/${map} mist in API_ONDERDEEL (rechten.ts)`).not.toBeNull()
+      expect(sleutels.has(sleutel ?? ''), `/api/club/${map} wijst naar onbekend onderdeel ${sleutel}`).toBe(true)
+    }
+  })
+  it('de uitzonderingen bestaan nog', () => {
+    for (const map of Object.keys(BEWUST_ZONDER)) expect(mappen, map).toContain(map)
   })
 })

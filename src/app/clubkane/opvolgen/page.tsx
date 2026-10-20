@@ -51,7 +51,7 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
         {magInstellen && (
           <div className="club-acties">
             <Link href="/clubkane/beheer/automatiseringen" className="club-knop">
-              <Settings2 size={16} aria-hidden /> Regels instellen
+              <Settings2 size={16} aria-hidden /> Opvolgregels
             </Link>
           </div>
         )}
@@ -59,7 +59,7 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
 
       {ronde === null && <p className="club-melding club-melding--fout" role="status">De taken van vandaag konden niet allemaal worden klaargezet. Je ziet wat er al stond; ververs de pagina later opnieuw.</p>}
       {open === null && <p className="club-melding club-melding--fout" role="status">De opvolglijst kon niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>}
-      {allesUit && <p className="club-melding" role="status">Alle regels staan uit, dus Club zet niemand klaar.{magInstellen ? ' Zet ze aan bij Regels instellen.' : ''}</p>}
+      {allesUit && <p className="club-melding" role="status">Alle regels staan uit, dus Club zet niemand klaar.{magInstellen ? ' Zet ze aan bij Opvolgregels.' : ''}</p>}
 
       {open !== null && (
         <nav className="club-opvolg-index" aria-label="Opvolgen per regel">

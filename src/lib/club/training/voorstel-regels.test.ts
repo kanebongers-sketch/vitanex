@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cardioDosering, dosering, hoofddoel, kiesSplit, metExplosief, minutenVoor, reserve, volgordeRang } from './voorstel-regels'
-import { notitieMetWaarom, WAAROM_KOP, waaromUitNotitie } from './voorstel-uitleg'
+import { notitieMetWaarom, notitieVoorLid, WAAROM_KOP, waaromUitNotitie } from './voorstel-uitleg'
 
 describe('kiesSplit', () => {
   it('kiest full body bij 1 tot 3 dagen, boven en onder bij 4, vijf dagen bij 5 of meer', () => {
@@ -76,6 +76,15 @@ describe('waarom in de notitie', () => {
     expect(waaromUitNotitie('Eigen notitie')).toBeNull()
     expect(waaromUitNotitie(null)).toBeNull()
     expect(waaromUitNotitie(WAAROM_KOP)).toBeNull()
+  })
+  it('laat het lid de uitleg zien zonder de Let op-regels voor de trainer', () => {
+    const notitie = notitieMetWaarom(['Zin een.', 'Zin twee.'], ['Overleg met de huisarts.'])
+    expect(notitieVoorLid(notitie)).toBe(`${WAAROM_KOP}\nZin een.\nZin twee.`)
+    expect(notitieVoorLid('Eigen notitie\n\nTweede alinea')).toBe('Eigen notitie\n\nTweede alinea')
+    expect(notitieVoorLid('Let op: houd je rug recht')).toBe('Let op: houd je rug recht')
+    expect(notitieVoorLid(`${WAAROM_KOP}\nLet op: alleen voor de trainer`)).toBeNull()
+    expect(notitieVoorLid('  ')).toBeNull()
+    expect(notitieVoorLid(null)).toBeNull()
   })
   it('blijft binnen 1000 tekens', () => {
     expect(notitieMetWaarom(Array.from({ length: 40 }, () => 'x'.repeat(60)), []).length).toBeLessThanOrEqual(1000)

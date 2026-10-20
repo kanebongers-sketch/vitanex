@@ -7,6 +7,7 @@ import {
   hernoemDag, koppelAanVorige, kopieerDag, naarPayloadRegels, nieuweDag, ontkoppel, verplaats, verplaatsNaar, verwijderDag, verwijderRegel, vervangOefening,
   voegToe, wijzigRegel, zetGewicht, zetInspanning, zetMaat, type EditorStaat,
 } from '@/lib/club/training/editor'
+import { foutMetNaam, nietKlaarVoorLid } from '@/lib/club/training/controle'
 import { bronnenVan } from '@/lib/club/training/beeld'
 import type { ProgressieRegel } from '@/lib/club/training/progressie'
 import type { Oefening } from '@/lib/club/training/rijen'
@@ -65,6 +66,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
   const [sleepDoel, setSleepDoel] = useState<string | null>(null)
   const sleep = useRef<string | null>(null)
   const teller = useRef(0)
+  const opgeslagenStatus = useRef(p.beginKop.status)
   const perId = useMemo(() => new Map(p.oefeningen.map((o) => [o.id, o])), [p.oefeningen])
   const kiesbaar = useMemo(() => p.oefeningen.filter((o) => o.actief), [p.oefeningen])
   const gewijzigd = JSON.stringify([kop, staat]) !== bewaard
@@ -73,8 +75,16 @@ export function SchemaEditor(p: SchemaEditorProps) {
   const sluitKiezer = useCallback(() => setKiesVoor(null), [])
 
   // Opslaan; met `extra` wijzigt er eerst iets aan de kop (Activeren zet de status op actief).
-  const opslaan = useCallback(async (extra: Partial<KopStaat> = {}) => {
+  // Zonder `verversen` blijft de editor staan (opslaan vlak voor een kopie of sjabloon).
+  const opslaan = useCallback(async (extra: Partial<KopStaat> = {}, verversen = true): Promise<boolean> => {
     const nieuw = { ...kop, ...extra }
+    // Alleen bij de stap naar actief: dan krijgt het lid het schema in de app.
+    const wordtActief = !p.isSjabloon && nieuw.status === 'actief' && opgeslagenStatus.current !== 'actief'
+    const mist = wordtActief ? nietKlaarVoorLid(staat) : null
+    if (mist) {
+      setFout(mist)
+      return false
+    }
     setBezig(true)
     setFout(null)
     const u = await stuur(`/schemas/${p.schemaId}`, 'PUT', {
@@ -85,11 +95,16 @@ export function SchemaEditor(p: SchemaEditorProps) {
       regels: naarPayloadRegels(staat),
     })
     setBezig(false)
-    if (!u.ok) return setFout(u.fout)
+    if (!u.ok) {
+      setFout(foutMetNaam(u.fout, staat, (id) => perId.get(id)?.naam))
+      return false
+    }
     setKop(nieuw)
     setBewaard(JSON.stringify([nieuw, staat]))
-    router.refresh()
-  }, [kop, staat, p.schemaId, router])
+    opgeslagenStatus.current = nieuw.status
+    if (verversen) router.refresh()
+    return true
+  }, [kop, staat, p.schemaId, p.isSjabloon, perId, router])
 
   useEffect(() => {
     function toets(e: KeyboardEvent) {
@@ -173,7 +188,8 @@ export function SchemaEditor(p: SchemaEditorProps) {
     <div className="club-training-editor">
       <EditorWerkbalk
         schemaId={p.schemaId} naam={kop.naam} isSjabloon={p.isSjabloon} status={kop.status} vestiging={p.vestiging} gewijzigd={gewijzigd} bezig={bezig}
-        onOpslaan={() => void opslaan()} onActiveren={() => void opslaan({ status: 'actief' })} editorHref={p.editorHref} terugHref={p.terugHref}
+        onOpslaan={() => void opslaan()} onActiveren={() => void opslaan({ status: 'actief' })} onOpslaanEerst={() => opslaan({}, false)}
+        editorHref={p.editorHref} terugHref={p.terugHref}
         kanOngedaan={ed.kanOngedaan} kanOpnieuw={ed.kanOpnieuw} onOngedaan={ed.ongedaan} onOpnieuw={ed.opnieuw}
       />
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
