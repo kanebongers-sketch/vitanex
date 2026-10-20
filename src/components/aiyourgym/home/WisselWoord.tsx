@@ -8,8 +8,8 @@ import { useEffect, useState } from 'react'
 // het volgende op (alleen opacity en transform). Bij prefers-reduced-motion,
 // zonder JavaScript en voor de eerste wissel staat er gewoon `start`.
 
-const WACHT_MS = 2600
-const WEG_MS = 280
+const WACHT_MS = 3200
+const WEG_MS = 260
 
 interface WisselWoordProps {
   start: string
@@ -50,9 +50,9 @@ export function WisselWoord({ start, woorden }: WisselWoordProps) {
   const woord = index < 0 ? start : woorden[index]
   return (
     <span className="ayg-wissel" aria-hidden="true">
-      <mark key={woord} className="ayg-markeer ayg-wissel-woord" data-weg={weg ? '' : undefined}>
+      <span key={woord} className="ayg-wissel-woord" data-weg={weg ? '' : undefined}>
         {woord}
-      </mark>
+      </span>
     </span>
   )
 }

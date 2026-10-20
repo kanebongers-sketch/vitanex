@@ -42,7 +42,7 @@
   box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2), 0 10px 24px -12px rgb(0 0 0 / 0.8);
   transition: transform 260ms var(--ayg-ease), background-color 200ms, color 200ms;
 }
-.ayg-sys-knoop:hover { transform: scale(1.05); }
+.ayg-sys-knoop:is(:hover, :focus-visible) { transform: scale(1.05); }
 .ayg-sys-knoop[aria-pressed='true'] { background: var(--ayg-accent); color: var(--ayg-accent-tekst); box-shadow: 0 0 0 6px color-mix(in srgb, var(--ayg-accent) 22%, transparent), 0 14px 30px -12px rgb(0 0 0 / 0.8); }
 @media (max-width: 560px) { .ayg-sys-knoop { gap: 6px; min-height: 40px; padding: 0 12px 0 9px; } .ayg-sys-knoop svg { width: 15px; height: 15px; } }
 
@@ -67,7 +67,7 @@
   background: var(--ayg-inkt-2); color: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn);
   transition: box-shadow 200ms, transform 220ms var(--ayg-ease);
 }
-.ayg-sys-moment button:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-tekst-2); }
+.ayg-sys-moment button:is(:hover, :focus-visible) { transform: translateY(-2px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-tekst-2); }
 .ayg-sys-moment button[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--ayg-accent); }
 .ayg-sys-moment-tijd { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ayg-accent); font-variant-numeric: tabular-nums; }
 
@@ -80,7 +80,7 @@
   background: var(--ayg-vlak); color: var(--ayg-tekst); box-shadow: inset 0 0 0 1px var(--ayg-lijn);
   transition: box-shadow 200ms, transform 220ms var(--ayg-ease);
 }
-.ayg-cd-keuze button:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
+.ayg-cd-keuze button:is(:hover, :focus-visible) { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
 .ayg-cd-keuze button[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--ayg-tekst); }
 .ayg-cd-keuze img { width: 48px; height: 48px; border-radius: 10px; background: #f2f0e9; object-fit: cover; }
 
@@ -88,11 +88,11 @@
 @media (min-width: 1180px) { .ayg-cd-raster { grid-template-columns: minmax(0, 1fr) auto; } }
 
 .ayg-cd-kaart { display: grid; overflow: hidden; border-radius: calc(var(--ayg-radius) + 8px); background: var(--ayg-vlak); box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw); }
-@media (min-width: 820px) { .ayg-cd-kaart { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); } }
+@media (min-width: 820px) { .ayg-cd-kaart { grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); align-items: start; } }
 
 .ayg-cd-speler { position: relative; margin: 0; align-self: start; padding: clamp(10px, 1.4vw, 16px); }
 @media (min-width: 820px) { .ayg-cd-speler { position: sticky; top: 84px; } }
-.ayg-cd-beeld { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: calc(var(--ayg-radius) + 2px); background: #e9f3f7; }
+.ayg-cd-beeld { position: relative; aspect-ratio: 1; max-height: min(560px, 72vh); margin-inline: auto; overflow: hidden; border-radius: calc(var(--ayg-radius) + 2px); background: #e9f3f7; }
 .ayg-cd-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .ayg-cd-speler[data-stand='start'] .ayg-cd-eind { opacity: 0; }
 .ayg-cd-speler[data-stand='eind'] .ayg-cd-eind { opacity: 1; }
@@ -109,12 +109,14 @@
 }
 .ayg-cd-bediening {
   position: absolute; left: calc(clamp(10px, 1.4vw, 16px) + 12px); right: calc(clamp(10px, 1.4vw, 16px) + 12px); bottom: calc(clamp(10px, 1.4vw, 16px) + 12px); display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 6px; border-radius: 14px; background: rgb(15 20 18 / 0.86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  padding: 6px; border-radius: 14px; background: rgb(15 20 18 / 0.86);
 }
 .ayg-cd-bediening button {
   display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; cursor: pointer;
-  font: 600 14px/1 var(--ayg-font-tekst); background: transparent; color: #f2f0e9;
+  font: 600 14px/1 var(--ayg-font-tekst); background: transparent; color: #f2f0e9; transition: background-color 180ms var(--ayg-ease), color 180ms var(--ayg-ease);
 }
+.ayg-cd-standen button:is(:hover, :focus-visible):not([aria-pressed='true']) { background: rgb(242 240 233 / 0.14); }
+.ayg-cd-bediening .ayg-cd-speel:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--ayg-accent) 88%, #ffffff); }
 .ayg-cd-bediening .ayg-cd-speel { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 .ayg-cd-standen { display: inline-flex; gap: 4px; }
 .ayg-cd-standen button { box-shadow: inset 0 0 0 1px rgb(242 240 233 / 0.35); }
@@ -130,7 +132,8 @@
 .ayg-cd-kern strong { display: block; font: 700 clamp(1.1rem, 1.6vw, 1.3rem)/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
 .ayg-cd-kern li span span { display: block; margin-top: 4px; font-size: 15px; color: var(--ayg-tekst-2); }
 .ayg-cd-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.ayg-cd-tabs button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 99px; cursor: pointer; font: 600 14px/1 var(--ayg-font-tekst); background: transparent; color: var(--ayg-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); transition: background-color 200ms, color 200ms; }
+.ayg-cd-tabs button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 99px; cursor: pointer; font: 600 14px/1 var(--ayg-font-tekst); background: transparent; color: var(--ayg-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); transition: background-color 200ms, color 200ms, box-shadow 200ms; }
+.ayg-cd-tabs button:is(:hover, :focus-visible):not([aria-pressed='true']) { background: var(--ayg-vlak-2); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
 .ayg-cd-tabs button[aria-pressed='true'] { background: var(--ayg-tekst); color: var(--ayg-bg); box-shadow: none; }
 .ayg-cd-paneel { min-height: 9.5em; }
 .ayg-cd-fouten { display: grid; gap: 10px; }
@@ -167,6 +170,7 @@
   border: 0; border-radius: 10px; cursor: pointer; font: inherit; background: var(--bg-card); color: var(--text-1); box-shadow: inset 0 0 0 1px transparent;
   transition: box-shadow 200ms;
 }
+.ayg-cd-app-lijst button:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1px var(--line-strong); }
 .ayg-cd-app-lijst :is(button[aria-pressed='true'], .ayg-cd-app-rij[data-gekozen]) { box-shadow: inset 0 0 0 1.5px var(--brand); }
 .ayg-cd-app-lijst img { width: 34px; height: 34px; border-radius: 7px; background: #f2f0e9; object-fit: cover; }
 .ayg-cd-app-nr { font-size: 10px; font-weight: 700; color: var(--text-2); text-align: center; }

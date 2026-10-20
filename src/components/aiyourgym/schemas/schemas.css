@@ -7,7 +7,7 @@
   border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 15px; color: var(--ayg-tekst);
   background: var(--ayg-vlak); box-shadow: inset 0 0 0 1px var(--ayg-lijn); transition: box-shadow 200ms, transform 220ms var(--ayg-ease);
 }
-.ayg-ss-route a:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
+.ayg-ss-route a:is(:hover, :focus-visible) { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
 .ayg-ss-route a span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* ── Stappen ─────────────────────────────────────────────────────────────── */

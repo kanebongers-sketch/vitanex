@@ -42,7 +42,7 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
             <div className="ayg-knoppen">
               <Kopieer tekst={w.link} />
               {w.loginOpen && (
-                <a href={w.link} className="ayg-knop ayg-knop--rand" rel="noreferrer">
+                <a href={w.link} className="ayg-knop ayg-knop--rand ayg-knop--klein" rel="noreferrer">
                   Open de link
                 </a>
               )}

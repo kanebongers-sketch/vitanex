@@ -7,19 +7,24 @@
 
 /* ── Held ────────────────────────────────────────────────────────────────── */
 .ayg-held { position: relative; padding-block: clamp(48px, 7vw, 104px) 24px; overflow: clip; }
-.ayg-held::before { content: ''; position: absolute; inset: auto -20% 0 30%; height: 70%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed), transparent), transparent 70%); filter: blur(10px); pointer-events: none; z-index: -1; }
+.ayg-held::before { content: ''; position: absolute; inset: auto -20% 0 30%; height: 70%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed), transparent), transparent 70%); pointer-events: none; z-index: -1; }
 .ayg-held-raster { display: grid; gap: clamp(48px, 6vw, 72px); align-items: center; }
 .ayg-held-tekst { display: grid; gap: 26px; }
 .ayg-held-tekst .ayg-display { max-width: none; }
 .ayg-held-kop { display: grid; justify-items: start; }
-/* Het wisselende woord staat op een eigen regel: een ander woord verschuift niets eromheen. */
-.ayg-wissel { display: block; font-size: clamp(2.3rem, 5vw, 5.2rem); line-height: 1.02; white-space: nowrap; padding-block: 0.04em 0.08em; }
-.ayg-wissel-woord { display: inline-block; transition: opacity 280ms var(--ayg-ease), transform 280ms var(--ayg-ease); }
-.ayg-wissel-woord[data-weg] { opacity: 0; transform: translateY(-0.22em); }
+/* Het wisselende woord staat op een eigen regel: een ander woord verschuift niets eromheen.
+   Smaragd (de tekstkleur voor accent op papier) met volle dekking en een strakke
+   streep er direct onder die bij elk nieuw woord van links intekent. */
+.ayg-wissel { display: block; font-size: clamp(2.3rem, 4.8vw, 5.6rem); line-height: 1.02; white-space: nowrap; padding-block: 0.02em 0.14em; }
+.ayg-wissel-woord { position: relative; display: inline-block; background: none; color: var(--ayg-accent-sterk); transition: opacity 260ms var(--ayg-ease), transform 260ms var(--ayg-ease); }
+.ayg-wissel-woord::after { content: ''; position: absolute; left: 0.02em; right: 0.02em; bottom: -0.04em; height: 0.07em; border-radius: 99px; background: var(--ayg-accent); transform-origin: left; }
+.ayg-wissel-woord[data-weg] { opacity: 0; transform: translateY(-0.16em); }
 @media (prefers-reduced-motion: no-preference) {
-  .ayg-wissel-woord { animation: ayg-woord-op 420ms var(--ayg-ease) both; }
+  .ayg-wissel-woord { animation: ayg-woord-op 520ms var(--ayg-ease) both; }
+  .ayg-wissel-woord::after { animation: ayg-streep 640ms 120ms var(--ayg-ease) both; }
 }
-@keyframes ayg-woord-op { from { opacity: 0; transform: translateY(0.28em); } to { opacity: 1; transform: none; } }
+@keyframes ayg-woord-op { from { opacity: 0; transform: translateY(0.2em); } to { opacity: 1; transform: none; } }
+@keyframes ayg-streep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Het oefenkaartje valt rechtsonder over het venster */
 .ayg-held-oef { display: none; }
 @media (min-width: 700px) {
@@ -55,21 +60,26 @@
 /* Elk hoofdstuk zet --hfd (zijn eigen accent uit aiyourgym.css); daarop staat altijd inkt. */
 .ayg-index { border-top: 1.5px solid var(--ayg-tekst); }
 .ayg-index li { --hfd: var(--ayg-accent); border-bottom: 1px solid var(--ayg-lijn); }
-.ayg-index-link { position: relative; isolation: isolate; color: var(--ayg-tekst); display: grid; grid-template-columns: 44px 1fr; gap: 10px 16px; align-items: baseline; padding-block: clamp(22px, 3vw, 34px); text-decoration: none; }
-.ayg-index-link::after { content: ''; position: absolute; inset: 0 calc(-1 * var(--ayg-rand)); background: var(--hfd); transform: scaleY(0); transform-origin: bottom; transition: transform 380ms var(--ayg-ease); z-index: -1; }
-.ayg-index-link:hover::after { transform: scaleY(1); }
+/* Hover en focus: het hoofdstukaccent vult de rij van onder naar boven (alleen transform
+   en opacity), met altijd inkt erop. De vulling ligt in de rij, de inhoud erboven. */
+.ayg-index-link { position: relative; color: var(--ayg-tekst); display: grid; grid-template-columns: 44px 1fr; gap: 10px 16px; align-items: baseline; padding-block: clamp(22px, 3vw, 34px); text-decoration: none; transition: color 200ms var(--ayg-ease); }
+.ayg-index-link::before { content: ''; position: absolute; inset: 0 calc(-1 * min(var(--ayg-rand), 32px)); border-radius: 14px; background: var(--hfd); transform: scaleY(0); transform-origin: bottom; opacity: 0; transition: transform 300ms var(--ayg-ease), opacity 200ms var(--ayg-ease); pointer-events: none; }
+.ayg-index-link > * { position: relative; }
+.ayg-index-link:is(:hover, :focus-visible)::before { transform: none; opacity: 1; }
 /* Op de lichte hoofdstukkleur altijd inkt, ook in de donkere versie */
-.ayg-index-link:hover { --ayg-tekst: var(--ayg-accent-tekst); --ayg-tekst-2: var(--ayg-accent-tekst); --ayg-bg: var(--ayg-inkt-tekst); }
-.ayg-index-nr { display: inline-grid; place-items: center; width: 40px; height: 40px; align-self: center; border-radius: 12px; background: var(--hfd); color: var(--ayg-accent-tekst); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; transition: transform 300ms var(--ayg-ease); }
-.ayg-index-naam { font: 700 clamp(2.2rem, 5.4vw, 4.4rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.045em; font-variation-settings: 'wdth' 80; }
-.ayg-index-tekst { grid-column: 2 / -1; display: grid; gap: 8px; color: var(--ayg-tekst-2); max-width: 52ch; }
-.ayg-index-functies { font-size: 14px; color: var(--ayg-tekst); }
-.ayg-index-bekijk { grid-column: 2 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 99px; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); font-size: 14.5px; font-weight: 600; color: var(--ayg-tekst); transition: background-color 260ms var(--ayg-ease), box-shadow 260ms var(--ayg-ease); }
-.ayg-index-bekijk svg { transition: transform 300ms var(--ayg-ease); }
-.ayg-index-link:hover .ayg-index-bekijk { background: var(--ayg-tekst); color: var(--ayg-bg); box-shadow: none; }
-.ayg-index-link:hover .ayg-index-bekijk svg { transform: translate(3px, -3px); }
-.ayg-index-link:hover .ayg-index-nr { background: var(--ayg-tekst); color: var(--hfd); transform: rotate(-6deg); }
-.ayg-index-link:hover .ayg-index-tekst { color: var(--ayg-tekst); }
+.ayg-index-link:is(:hover, :focus-visible) { --ayg-tekst: var(--ayg-accent-tekst); --ayg-tekst-2: var(--ayg-accent-tekst); --ayg-bg: var(--ayg-inkt-tekst); --ayg-lijn-sterk: var(--ayg-accent-tekst); }
+.ayg .ayg-index-link:focus-visible { outline: none; box-shadow: none; }
+.ayg-index-nr { display: inline-grid; place-items: center; width: 40px; height: 40px; align-self: center; border-radius: 12px; background: var(--hfd); color: var(--ayg-accent-tekst); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; transition: transform 260ms var(--ayg-ease), background-color 200ms, color 200ms; }
+.ayg-index-naam { font: 700 clamp(2.2rem, 4.8vw, 5rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.045em; font-variation-settings: 'wdth' 80; transition: transform 300ms var(--ayg-ease); }
+.ayg-index-link:is(:hover, :focus-visible) .ayg-index-naam { transform: translateX(6px); }
+.ayg-index-tekst { grid-column: 2 / -1; display: grid; gap: 8px; color: var(--ayg-tekst-2); max-width: 52ch; transition: color 200ms; }
+.ayg-index-functies { font-size: 0.84em; color: var(--ayg-tekst); }
+.ayg-index-bekijk { grid-column: 2 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 99px; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); font-size: 14.5px; font-weight: 600; color: var(--ayg-tekst); transition: background-color 200ms var(--ayg-ease), color 200ms, box-shadow 200ms var(--ayg-ease); }
+.ayg-index-bekijk svg { transition: transform 260ms var(--ayg-ease); }
+.ayg-index-link:is(:hover, :focus-visible) .ayg-index-bekijk { background: var(--ayg-tekst); color: var(--ayg-bg); box-shadow: none; }
+.ayg-index-link:is(:hover, :focus-visible) .ayg-index-bekijk svg { transform: translate(3px, -3px); }
+.ayg-index-link:is(:hover, :focus-visible) .ayg-index-nr { background: var(--ayg-tekst); color: var(--hfd); transform: rotate(-6deg); }
+.ayg-index-link:is(:hover, :focus-visible) .ayg-index-tekst { color: var(--ayg-tekst); }
 @media (min-width: 900px) {
   .ayg-index-link { grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; }
   .ayg-index-tekst { grid-column: 3; grid-row: 1; }
@@ -81,14 +91,20 @@
 .ayg-gesplitst .ayg-sectiekop { margin-bottom: 0; }
 .ayg-gesplitst-tekst { gap: 32px; }
 @media (min-width: 1000px) {
-  .ayg-gesplitst { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+  .ayg-gesplitst { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); column-gap: clamp(48px, 5vw, 96px); }
   .ayg-gesplitst--om { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* Vragen naast een kop: kop bovenaan en blijft staan, niet zwevend in het midden */
+@media (min-width: 1000px) {
+  .ayg-gesplitst:has(> .ayg-vragen) { align-items: start; }
+  .ayg-gesplitst:has(> .ayg-vragen) > :first-child { position: sticky; top: 100px; }
 }
 
 /* ── Bento ───────────────────────────────────────────────────────────────── */
 .ayg-bento { display: grid; gap: 16px; }
-.ayg-bento-vak { display: grid; gap: 24px; align-content: space-between; padding: clamp(20px, 2.6vw, 32px); border-radius: calc(var(--ayg-radius) + 8px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); overflow: hidden; transition: transform 400ms var(--ayg-ease); }
-.ayg-bento-vak:hover { transform: translateY(-3px); }
+.ayg-bento-vak { display: grid; gap: 24px; align-content: space-between; padding: clamp(20px, 2.6vw, 32px); border-radius: calc(var(--ayg-radius) + 8px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); overflow: hidden; transition: transform 240ms var(--ayg-ease), border-color 200ms var(--ayg-ease); }
+.ayg-bento-vak:hover { transform: translateY(-3px); border-color: var(--ayg-lijn-sterk); }
 .ayg-bento-vak--groot { background: var(--ayg-vlak-2); }
 .ayg-bento-tekst { display: grid; gap: 10px; max-width: 46ch; }
 .ayg-bento-tekst p { color: var(--ayg-tekst-2); }
@@ -119,7 +135,9 @@
 
 /* ── Pakketten (kort) ────────────────────────────────────────────────────── */
 .ayg-pakket-rij { display: grid; gap: 12px; }
-.ayg-pakket-rij li { display: grid; gap: 10px; padding: 28px; border-radius: var(--ayg-radius); border: 1px solid var(--ayg-lijn); background: var(--ayg-vlak); }
+.ayg-pakket-rij li { display: grid; gap: 10px; padding: 28px; border-radius: var(--ayg-radius); border: 1px solid var(--ayg-lijn); background: var(--ayg-vlak); transition: transform 240ms var(--ayg-ease), border-color 200ms var(--ayg-ease); }
+.ayg-pakket-rij li:hover { transform: translateY(-3px); border-color: var(--ayg-lijn-sterk); }
+.ayg-pakket-rij li[data-aanbevolen]:hover { border-color: var(--ayg-accent); }
 .ayg-pakket-rij li[data-aanbevolen] { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); border-color: var(--ayg-inkt); box-shadow: var(--ayg-schaduw); }
 .ayg-pakket-rij p { color: var(--ayg-tekst-2); }
 .ayg-pakket-rij li[data-aanbevolen] p { color: var(--ayg-inkt-tekst-2); }
@@ -137,7 +155,9 @@
 /* ── Prijzen ─────────────────────────────────────────────────────────────── */
 .ayg-prijzen { display: grid; gap: 16px; align-items: stretch; }
 @media (min-width: 960px) { .ayg-prijzen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.ayg-pakket { display: grid; grid-template-rows: auto auto 1fr auto; gap: 24px; padding: clamp(26px, 3vw, 36px); border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+.ayg-pakket { display: grid; grid-template-rows: auto auto 1fr auto; gap: 24px; padding: clamp(26px, 3vw, 40px); border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); transition: transform 240ms var(--ayg-ease), border-color 200ms var(--ayg-ease); }
+.ayg-pakket:hover { transform: translateY(-3px); border-color: var(--ayg-lijn-sterk); }
+.ayg-pakket[data-aanbevolen]:hover { border-color: var(--ayg-accent); }
 .ayg-pakket[data-aanbevolen] { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); border-color: var(--ayg-inkt); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-lijn: var(--ayg-inkt-lijn); box-shadow: var(--ayg-schaduw); }
 .ayg-pakket[data-aanbevolen] .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
 .ayg-pakket-kop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -146,13 +166,14 @@
 .ayg-pakket-prijs strong { font: 700 1.5rem/1.1 var(--ayg-font-kop); letter-spacing: -0.03em; }
 .ayg-pakket-prijs span { font-size: 14px; color: var(--ayg-tekst-2); }
 .ayg-pakket .ayg-knoppen { display: grid; gap: 10px; }
+.ayg-pakket .ayg-vinklijst { align-content: start; }
 .ayg-pakket .ayg-knop { width: 100%; }
 .ayg-badge { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 99px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
 
 /* ── Functies-pagina ─────────────────────────────────────────────────────── */
 .ayg-inhoudsopgave { display: flex; flex-wrap: wrap; gap: 8px; }
-.ayg-inhoudsopgave a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--ayg-lijn-sterk); text-decoration: none; font-size: 14.5px; font-weight: 500; transition: background-color 200ms, color 200ms; }
-.ayg-inhoudsopgave a:hover { background: var(--ayg-tekst); color: var(--ayg-bg); }
+.ayg-inhoudsopgave a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--ayg-lijn-sterk); text-decoration: none; font-size: 14.5px; font-weight: 500; transition: background-color 200ms, color 200ms, border-color 200ms; }
+.ayg-inhoudsopgave a:focus-visible, .ayg-inhoudsopgave a:hover { background: var(--ayg-tekst); color: var(--ayg-bg); }
 .ayg-groep { scroll-margin-top: 90px; }
 .ayg-groep-raster { display: grid; gap: clamp(36px, 5vw, 64px); }
 @media (min-width: 1000px) { .ayg-groep-raster { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: start; } }
@@ -195,17 +216,19 @@
 .ayg-doelen { display: grid; gap: 12px; }
 @media (min-width: 760px) { .ayg-doelen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1180px) { .ayg-doelen { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.ayg-doel { position: relative; isolation: isolate; display: grid; grid-template-rows: auto auto 1fr; gap: 14px; min-height: 260px; height: 100%; padding: 26px; border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); text-decoration: none; overflow: hidden; transition: transform 420ms var(--ayg-ease), border-color 200ms, color 300ms; }
-.ayg-doel::after { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--ayg-inkt); transform: translateY(101%); transition: transform 520ms var(--ayg-ease); }
-.ayg-doel:hover { transform: translateY(-4px); border-color: var(--ayg-inkt); color: var(--ayg-inkt-tekst); }
-.ayg-doel:hover::after { transform: none; }
-.ayg-doel-nr { font-size: 13px; font-weight: 600; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; transition: color 300ms; }
-.ayg-doel-naam { font: 700 clamp(1.6rem, 2.4vw, 2rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 84; padding-right: 28px; }
-.ayg-doel-kop { align-self: end; color: var(--ayg-tekst-2); max-width: 30ch; transition: color 300ms; }
-.ayg-doel:hover :is(.ayg-doel-nr, .ayg-doel-kop) { color: var(--ayg-inkt-tekst-2); }
-.ayg-doel-pijl { position: absolute; top: 24px; right: 24px; transition: transform 320ms var(--ayg-ease), color 300ms; }
-.ayg-doel:hover .ayg-doel-pijl { transform: translate(3px, -3px); color: var(--ayg-accent); }
+.ayg-doel { position: relative; display: grid; grid-template-rows: auto auto 1fr; gap: 14px; min-height: 260px; height: 100%; padding: 26px; border-radius: calc(var(--ayg-radius) + 6px); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); text-decoration: none; overflow: hidden; transition: transform 240ms var(--ayg-ease), border-color 200ms, color 200ms; }
+.ayg-doel::before { content: ''; position: absolute; inset: 0; background: var(--ayg-inkt); transform: translateY(101%); transition: transform 300ms var(--ayg-ease); pointer-events: none; }
+.ayg-doel > * { position: relative; }
+.ayg-doel:is(:hover, :focus-visible) { transform: translateY(-4px); border-color: var(--ayg-inkt); color: var(--ayg-inkt-tekst); }
+.ayg-doel:is(:hover, :focus-visible)::before { transform: none; }
+.ayg-doel-nr { font-size: 13px; font-weight: 600; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; transition: color 200ms; }
+.ayg-doel-naam { font: 700 clamp(1.6rem, 2vw, 2.2rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 84; padding-right: 28px; }
+.ayg-doel-kop { align-self: end; color: var(--ayg-tekst-2); max-width: 30ch; transition: color 200ms; }
+.ayg-doel:is(:hover, :focus-visible) :is(.ayg-doel-nr, .ayg-doel-kop) { color: var(--ayg-inkt-tekst-2); }
+.ayg-doel-pijl { position: absolute; top: 24px; right: 24px; transition: transform 260ms var(--ayg-ease), color 200ms; }
+.ayg-doel:is(:hover, :focus-visible) .ayg-doel-pijl { transform: translate(3px, -3px); color: var(--ayg-accent); }
 .ayg-doel--demo { background: var(--ayg-accent); border-color: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-doel--demo:is(:hover, :focus-visible) { color: var(--ayg-inkt-tekst); }
 .ayg-doel--demo :is(.ayg-doel-nr, .ayg-doel-kop) { color: var(--ayg-accent-tekst); }
 
 /* ── Zo simpel start je ──────────────────────────────────────────────────── */

@@ -4,6 +4,7 @@ import './aanmelden.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 import { AygKop } from '@/components/aiyourgym/site/AygKop'
 import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
+import { BuitenBeeld } from '@/components/aiyourgym/site/BuitenBeeld'
 
 // Dezelfde kop en voet als de website, rond het aanmelden en de welkomstpagina.
 
@@ -18,6 +19,7 @@ export function AanmeldSchil({ children }: { children: ReactNode }) {
         {children}
       </main>
       <AygVoet />
+      <BuitenBeeld />
     </div>
   )
 }

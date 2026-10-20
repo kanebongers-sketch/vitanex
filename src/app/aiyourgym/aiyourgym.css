@@ -59,7 +59,8 @@
   --ayg-schaduw: 0 1px 0 rgb(15 20 18 / 0.04), 0 12px 32px -12px rgb(15 20 18 / 0.18), 0 40px 80px -40px rgb(15 20 18 / 0.28);
   --ayg-schaduw-zacht: 0 1px 2px rgb(15 20 18 / 0.06), 0 8px 20px -10px rgb(15 20 18 / 0.14);
   --ayg-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --ayg-breed: 100vw; /* volle breedte (besluit Kane 18-10-2026); tekstblokken houden hun eigen ch-breedte */
+  --ayg-breed: 100vw; /* volle breedte (besluit Kane 18-10-2026) voor vlakken en beelden */
+  --ayg-inhoud: 1680px; /* inhoud stopt hier op heel brede schermen, de vlakken lopen door */
   --ayg-rand: clamp(16px, 4vw, 80px);
 
   position: relative;
@@ -71,7 +72,7 @@
   background: var(--ayg-bg);
   color: var(--ayg-tekst);
   font-family: var(--ayg-font-tekst);
-  font-size: 17px;
+  font-size: clamp(17px, 0.42vw + 11.6px, 19px);
   line-height: 1.55;
   font-feature-settings: 'ss01', 'cv11';
   -webkit-user-select: text;
@@ -81,17 +82,9 @@
 
 .ayg, .ayg *, .ayg *::before, .ayg *::after { box-sizing: border-box; }
 
-/* Korrel: een vleugje papier, nooit bewegend */
-.ayg::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.5;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.06 0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23k)'/%3E%3C/svg%3E");
-}
+/* Geen korrellaag meer (20-10-2026): een vaste laag met mix-blend-mode, en ook
+   een herhalende korreltegel over de hele pagina van ruim 20.000 px, liet de browser bij
+   elke hover en scroll alles opnieuw tekenen. Het papier is nu een effen vlak. */
 
 .ayg ::selection { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
@@ -124,7 +117,7 @@
 .ayg-overslaan:focus { top: 12px; }
 
 /* ── Ritme en raster ─────────────────────────────────────────────────────── */
-.ayg-wrap { width: 100%; max-width: none; margin-inline: auto; padding-inline: var(--ayg-rand); }
+.ayg-wrap { width: 100%; max-width: calc(var(--ayg-inhoud) + 2 * var(--ayg-rand)); margin-inline: auto; padding-inline: var(--ayg-rand); }
 .ayg-main { flex: 1; }
 .ayg-sectie { padding-block: clamp(72px, 10vw, 148px); }
 .ayg-sectie--krap { padding-block: clamp(48px, 6vw, 88px); }
@@ -187,8 +180,6 @@
     --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
     --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
   }
-  /* Korrel als lichte spikkel in plaats van donkere */
-  .ayg::before { filter: invert(1); mix-blend-mode: screen; opacity: 0.22; }
   /* Een vlak onder lichte tekst leest niet: de markering wordt smaragd als tekst */
   .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
   .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
@@ -209,11 +200,11 @@
 .ayg-label::before { content: ''; width: 18px; height: 2px; background: currentColor; opacity: 0.7; }
 .ayg-label--accent::before { background: var(--ayg-accent-sterk); opacity: 1; height: 3px; }
 
-.ayg-display { font-size: clamp(2.7rem, 7.2vw, 6.6rem); line-height: 0.93; letter-spacing: -0.048em; font-variation-settings: 'wdth' 82; }
-.ayg-h2 { font-size: clamp(2rem, 4.6vw, 3.9rem); line-height: 0.98; letter-spacing: -0.042em; }
-.ayg-h3 { font-size: clamp(1.25rem, 1.9vw, 1.6rem); line-height: 1.12; letter-spacing: -0.025em; font-variation-settings: 'wdth' 94; }
-.ayg-lead { font-size: clamp(1.08rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--ayg-tekst-2); max-width: 38em; }
-.ayg-klein { font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg-display { font-size: clamp(2.7rem, 6.6vw, 7.4rem); line-height: 0.93; letter-spacing: -0.048em; font-variation-settings: 'wdth' 82; }
+.ayg-h2 { font-size: clamp(2rem, 4.2vw, 4.6rem); line-height: 0.98; letter-spacing: -0.042em; }
+.ayg-h3 { font-size: clamp(1.25rem, 1.6vw, 1.8rem); line-height: 1.12; letter-spacing: -0.025em; font-variation-settings: 'wdth' 94; }
+.ayg-lead { font-size: clamp(1.08rem, 0.5vw + 0.95rem, 1.42rem); line-height: 1.5; color: var(--ayg-tekst-2); max-width: 36em; }
+.ayg-klein { font-size: 0.84em; color: var(--ayg-tekst-2); }
 .ayg-markeer { background: linear-gradient(transparent 58%, var(--ayg-accent-zacht) 58%, var(--ayg-accent-zacht) 92%, transparent 92%); color: inherit; padding-inline: 0.04em; }
 .ayg-podium .ayg-markeer { background: none; color: var(--ayg-accent); }
 
@@ -221,6 +212,7 @@
 .ayg-knop {
   --k-bg: var(--ayg-tekst);
   --k-tekst: var(--ayg-bg);
+  --k-hover: color-mix(in srgb, var(--k-bg) 86%, var(--ayg-bg));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -236,41 +228,50 @@
   text-decoration: none;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px rgb(15 20 18 / 0.1), 0 1px 0 rgb(255 255 255 / 0.25) inset, var(--ayg-schaduw-zacht);
-  transition: transform 220ms var(--ayg-ease), opacity 220ms var(--ayg-ease);
+  transition: transform 200ms var(--ayg-ease), background-color 200ms var(--ayg-ease), color 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease);
 }
-.ayg-knop svg { transition: transform 260ms var(--ayg-ease); }
-.ayg-knop:hover { transform: translateY(-1px); }
-.ayg-knop:hover svg { transform: translateX(3px); }
+.ayg-knop svg { transition: transform 220ms var(--ayg-ease); }
+.ayg-knop:is(:hover, :focus-visible) { transform: translateY(-1px); background: var(--k-hover); }
+.ayg-knop:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 .ayg-knop:active { transform: translateY(0) scale(0.985); }
-.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); }
-.ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
+.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); --k-hover: color-mix(in srgb, var(--ayg-accent) 88%, #ffffff); }
+.ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); --k-hover: color-mix(in srgb, var(--ayg-tekst) 7%, transparent); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
+.ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
 .ayg-podium .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
+.ayg-podium .ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst); }
 .ayg-podium .ayg-knop:not(.ayg-knop--rand, .ayg-knop--accent) { --k-tekst: var(--ayg-inkt); }
 .ayg-knop--klein { min-height: 40px; padding: 0 16px; font-size: 14.5px; border-radius: 10px; }
 .ayg-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
-.ayg-pijllink { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
-.ayg-pijllink svg { transition: transform 260ms var(--ayg-ease); }
-.ayg-pijllink:hover svg { transform: translateX(3px); }
+.ayg-pijllink { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; transition: color 180ms var(--ayg-ease), border-color 180ms var(--ayg-ease); }
+.ayg-pijllink:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
+.ayg-pijllink svg { transition: transform 220ms var(--ayg-ease); }
+.ayg-pijllink:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 
 /* ── Contactbalk boven de kop ────────────────────────────────────────────── */
-/* Een rustige smaragdtint met inkt erop: hoort bij het papier, geen zwarte balk. */
-.ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13.5px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
-.ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 38px; flex-wrap: wrap; }
+/* Een dunne, rustige smaragdtint met inkt erop. Alleen als er telefoon of e-mail is;
+   zonder contactgegevens staat er alleen een smalle regel op schermen waar de
+   demoknop niet in de kop past (900 tot 1079 px), en verder niets. */
+.ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
+.ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 34px; flex-wrap: wrap; }
 .ayg-contactbalk-lijst { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-right: auto; }
-.ayg-contactbalk a { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; color: var(--ayg-tekst); text-decoration: none; }
-.ayg-contactbalk-lijst a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--ayg-accent-sterk); }
+.ayg-contactbalk a { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; color: var(--ayg-tekst); text-decoration: none; transition: color 180ms var(--ayg-ease); }
+.ayg-contactbalk a:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
 .ayg-contactbalk-lijst svg { color: var(--ayg-accent-sterk); }
-.ayg-contactbalk-demo { font-weight: 600; border-bottom: 1.5px solid var(--ayg-accent-sterk); }
-.ayg-contactbalk-demo svg { color: var(--ayg-accent-sterk); transition: transform 260ms var(--ayg-ease); }
-.ayg-contactbalk-demo:hover svg { transform: translateX(3px); }
+.ayg-contactbalk-demo { font-weight: 600; }
+.ayg-contactbalk-demo svg { color: var(--ayg-accent-sterk); transition: transform 220ms var(--ayg-ease); }
+.ayg-contactbalk-demo:is(:hover, :focus-visible) svg { transform: translateX(3px); }
+.ayg-contactbalk--leeg { display: none; }
+@media (min-width: 900px) and (max-width: 1079px) {
+  .ayg-contactbalk--leeg { display: block; background: transparent; box-shadow: inset 0 -1px 0 var(--ayg-lijn); }
+}
 
 /* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
 /* Licht met smaragd (besluit Kane 20-10-2026): kalkwit met inkt en een groene hoofdknop.
    Bovenaan valt de kop weg in het papier (data-bovenaan, gezet door JavaScript); bij
    scrollen een licht kalkwit vlak met een fijne lijn en zachte blur, nooit een donkere balk. */
 .ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; }
-.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 90%, transparent); backdrop-filter: saturate(1.3) blur(18px); -webkit-backdrop-filter: saturate(1.3) blur(18px); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(15 20 18 / 0.22); transition: opacity 260ms var(--ayg-ease); }
+.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(15 20 18 / 0.22); transition: opacity 260ms var(--ayg-ease); }
 .ayg-kop[data-bovenaan]:not(:has(.ayg-menupaneel[data-open]))::before { opacity: 0; }
 .ayg-kop-rij { display: flex; align-items: center; gap: 28px; min-height: 68px; transition: transform 260ms var(--ayg-ease); }
 .ayg-kop-logo { display: inline-flex; flex-shrink: 0; color: var(--ayg-tekst); text-decoration: none; }
@@ -278,16 +279,17 @@
 .ayg-nav { display: none; flex: 1; }
 .ayg-nav ul { display: flex; gap: 2px; }
 .ayg-nav a { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 9px; color: var(--ayg-tekst-2); font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none; transition: color 160ms, background-color 160ms; }
-.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--ayg-accent-sterk); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 320ms var(--ayg-ease); }
-.ayg-nav a:hover { color: var(--ayg-tekst); }
-.ayg-nav a:hover::after { transform: scaleX(0.45); }
+.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--ayg-accent-sterk); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 240ms var(--ayg-ease), opacity 240ms var(--ayg-ease); }
+.ayg-nav a:is(:hover, :focus-visible) { color: var(--ayg-tekst); }
+.ayg-nav a:is(:hover, :focus-visible)::after { transform: scaleX(1); opacity: 0.55; }
 .ayg-nav a[aria-current='page'] { color: var(--ayg-tekst); }
-.ayg-nav a[aria-current='page']::after { transform: scaleX(1); }
+.ayg-nav a[aria-current='page']::after { transform: scaleX(1); opacity: 1; }
 .ayg-kop-acties { display: none; margin-left: auto; align-items: center; gap: 6px; }
 .ayg-kop-demo { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 10px; font-size: 14.5px; font-weight: 600; text-decoration: none; color: var(--ayg-tekst); transition: background-color 160ms; }
-.ayg-kop-demo:hover, .ayg-kop-demo[aria-current='page'] { background: color-mix(in srgb, var(--ayg-vlak-2) 80%, transparent); }
+.ayg-kop-demo:is(:hover, :focus-visible), .ayg-kop-demo[aria-current='page'] { background: color-mix(in srgb, var(--ayg-vlak-2) 80%, transparent); }
 .ayg-menuknop { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 6px; border: 0; border-radius: 99px; background: var(--ayg-vlak); color: var(--ayg-tekst); font: 600 15px/1 var(--ayg-font-tekst); cursor: pointer; box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw-zacht); transition: transform 200ms var(--ayg-ease); }
 .ayg-menuknop[aria-expanded='true'] { box-shadow: inset 0 0 0 1.5px var(--ayg-accent-sterk); }
+.ayg-menuknop:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst), var(--ayg-schaduw-zacht); }
 .ayg-menuknop:active { transform: scale(0.97); }
 .ayg-menuknop-icoon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
@@ -301,7 +303,7 @@
 .ayg-menupaneel-naam { font: 700 clamp(1.9rem, 9vw, 2.6rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 82; }
 .ayg-menupaneel-uitleg { grid-column: 2; font-size: 14px; color: var(--ayg-tekst-2); }
 .ayg-menupaneel-pijl { grid-column: 3; grid-row: 1; align-self: center; color: var(--ayg-tekst-2); transition: transform 260ms var(--ayg-ease); }
-.ayg-menupaneel-lijst a:hover .ayg-menupaneel-pijl { transform: translate(2px, -2px); }
+.ayg-menupaneel-lijst a:is(:hover, :focus-visible) .ayg-menupaneel-pijl { color: var(--ayg-accent-sterk);  transform: translate(2px, -2px); }
 .ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent-sterk); text-decoration-thickness: 4px; text-underline-offset: 6px; }
 .ayg-menupaneel-onder { display: grid; gap: 10px; }
 .ayg-menupaneel-onder .ayg-knop { width: 100%; min-height: 54px; }
@@ -322,7 +324,7 @@
   .ayg-nav a { padding-inline: 9px; font-size: 14.5px; }
   .ayg-nav a::after { left: 9px; right: 9px; }
 }
-/* Nog krapper: de demoknop staat dan alleen in de contactbalk erboven */
+/* Nog krapper: de demoknop staat dan alleen in de dunne regel erboven (ContactBalk) */
 @media (min-width: 900px) and (max-width: 1079px) {
   .ayg-kop-acties .ayg-knop--rand { display: none; }
 }
@@ -339,21 +341,22 @@
 .ayg-voet-merk p { margin-top: 18px; max-width: 30ch; color: var(--ayg-tekst-2); }
 .ayg-voet h2 { font: 600 12.5px/1 var(--ayg-font-tekst); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); margin-bottom: 16px; }
 .ayg-voet ul { display: grid; gap: 10px; }
-.ayg-voet a { text-decoration: none; color: var(--ayg-inkt-tekst); }
-.ayg-voet a:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--ayg-accent); }
+.ayg-voet a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; text-decoration-thickness: 1.5px; color: var(--ayg-inkt-tekst); transition: color 180ms var(--ayg-ease), text-decoration-color 180ms var(--ayg-ease); }
+.ayg-voet a:is(:hover, :focus-visible) { color: var(--ayg-accent); text-decoration-color: var(--ayg-accent); }
 .ayg-voet-onder { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--ayg-inkt-lijn); font-size: 14px; color: var(--ayg-tekst-2); }
 .ayg-voet-woord { margin-top: 56px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-voet-woord); user-select: none; white-space: nowrap; }
 @media (min-width: 760px) { .ayg-voet-raster { grid-template-columns: 1.6fr repeat(3, 1fr); } }
 
 /* ── Sectiekop en paginakop ──────────────────────────────────────────────── */
-.ayg-sectiekop { display: grid; gap: 20px; max-width: 860px; margin-bottom: clamp(40px, 6vw, 72px); }
-.ayg-sectiekop--naast { max-width: none; }
+.ayg-sectiekop { display: grid; gap: 20px; max-width: 62rem; margin-bottom: clamp(40px, 6vw, 72px); }
+.ayg-sectiekop--naast { max-width: 1360px; }
 @media (min-width: 960px) {
-  .ayg-sectiekop--naast { grid-template-columns: 1.15fr 1fr; align-items: end; column-gap: 64px; }
+  .ayg-sectiekop--naast { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; column-gap: clamp(48px, 5vw, 96px); }
   .ayg-sectiekop--naast .ayg-label { grid-column: 1 / -1; }
 }
 .ayg-paginakop { padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 80px); }
-.ayg-paginakop .ayg-display { margin-block: 22px 26px; max-width: 13ch; }
+.ayg-paginakop .ayg-display { margin-block: 22px 26px; max-width: 16ch; }
+.ayg-paginakop .ayg-lead { max-width: 40em; }
 
 /* ── Kaarten en lijsten ──────────────────────────────────────────────────── */
 .ayg-kaart { position: relative; background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); border-radius: var(--ayg-radius); padding: clamp(22px, 2.4vw, 32px); }
@@ -370,11 +373,13 @@
 /* Vragen */
 .ayg-vragen { display: grid; border-top: 1px solid var(--ayg-lijn); }
 .ayg-vragen details { border-bottom: 1px solid var(--ayg-lijn); }
-.ayg-vragen summary { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 22px; cursor: pointer; list-style: none; font: 600 clamp(1.05rem, 1.5vw, 1.2rem)/1.3 var(--ayg-font-tekst); }
+.ayg-vragen summary { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 22px; cursor: pointer; list-style: none; font: 600 clamp(1.05rem, 0.4vw + 0.95rem, 1.3rem)/1.3 var(--ayg-font-tekst); transition: color 180ms var(--ayg-ease); }
 .ayg-vragen summary::-webkit-details-marker { display: none; }
-.ayg-vragen summary svg { flex-shrink: 0; transition: transform 260ms var(--ayg-ease); }
+.ayg-vragen summary svg { flex-shrink: 0; box-sizing: content-box; padding: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); transition: transform 240ms var(--ayg-ease), background-color 200ms var(--ayg-ease), color 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease); }
+.ayg-vragen summary:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
+.ayg-vragen summary:is(:hover, :focus-visible) svg { background: var(--ayg-tekst); color: var(--ayg-bg); box-shadow: none; }
 .ayg-vragen details[open] summary svg { transform: rotate(45deg); }
-.ayg-vragen details p { padding-bottom: 24px; max-width: 64ch; color: var(--ayg-tekst-2); }
+.ayg-vragen details p { padding-bottom: 24px; padding-right: 56px; max-width: 68ch; color: var(--ayg-tekst-2); }
 
 /* Aanmeldband */
 .ayg-band { display: grid; gap: 32px; padding: clamp(36px, 6vw, 80px); }
@@ -388,6 +393,9 @@
 /* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op smaragd altijd inkt */
 .ayg .ayg-concept { color: var(--ayg-accent-tekst); }
 .ayg-tekst { max-width: 68ch; display: grid; gap: 18px; }
+/* Juridische teksten: de kolom lijnt links uit met de paginakop erboven */
+.ayg-wrap.ayg-tekst { max-width: calc(var(--ayg-inhoud) + 2 * var(--ayg-rand)); }
+.ayg-wrap.ayg-tekst > * { max-width: 68ch; }
 .ayg-tekst h2 { font-size: clamp(1.4rem, 2.2vw, 1.8rem); margin-top: 28px; }
 .ayg-tekst ul { list-style: disc; padding-left: 1.2em; display: grid; gap: 8px; }
 .ayg-tekst p, .ayg-tekst li { color: var(--ayg-tekst-2); }
@@ -406,8 +414,7 @@
 .ayg-plak {
   position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 48;
   display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 6px; border-radius: 16px;
-  background: color-mix(in srgb, var(--ayg-vlak) 92%, transparent); color: var(--ayg-tekst);
-  backdrop-filter: saturate(1.3) blur(18px); -webkit-backdrop-filter: saturate(1.3) blur(18px);
+  background: color-mix(in srgb, var(--ayg-vlak) 97%, transparent); color: var(--ayg-tekst);
   box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw);
   transform: translateY(calc(100% + 24px)); opacity: 0; visibility: hidden;
   transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s linear 360ms;
@@ -427,10 +434,14 @@
   .ayg-intro > *:nth-child(2) { animation-delay: 80ms; }
   .ayg-intro > *:nth-child(3) { animation-delay: 160ms; }
   .ayg-intro > *:nth-child(4) { animation-delay: 240ms; }
-  @supports (animation-timeline: view()) {
-    .ayg-onthul { animation: ayg-op linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
-  }
+  /* Productbeelden komen een keer rustig op zodra ze in beeld scrollen. BuitenBeeld.tsx
+     zet data-onthul op .ayg (dan pas verbergen we ze) en data-in op elk beeld dat in
+     beeld komt; daarna loopt er niets meer mee met het scrollen. */
+  .ayg[data-onthul] .ayg-onthul { transition: opacity 700ms var(--ayg-ease), transform 900ms var(--ayg-ease); }
+  .ayg[data-onthul] .ayg-onthul:not([data-in]) { opacity: 0; transform: translateY(32px) scale(0.985); }
 }
+/* Doorlopende animaties staan stil zolang ze buiten beeld zijn (BuitenBeeld.tsx zet data-buiten) */
+.ayg [data-buiten], .ayg [data-buiten] * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   .ayg *, .ayg *::before, .ayg *::after { animation: none !important; transition: none !important; }
 }

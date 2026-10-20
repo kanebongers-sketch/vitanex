@@ -7,6 +7,7 @@ import '@/components/aiyourgym/home/hoofdpunten.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 import { AygKop } from '@/components/aiyourgym/site/AygKop'
 import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
+import { BuitenBeeld } from '@/components/aiyourgym/site/BuitenBeeld'
 import { ContactBalk } from '@/components/aiyourgym/site/ContactBalk'
 import { PlakActie } from '@/components/aiyourgym/site/PlakActie'
 
@@ -33,6 +34,7 @@ export default function AiYourGymSiteLayout({ children }: { children: ReactNode 
       </main>
       <AygVoet />
       <PlakActie />
+      <BuitenBeeld />
     </div>
   )
 }

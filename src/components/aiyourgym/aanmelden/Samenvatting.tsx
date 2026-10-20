@@ -1,4 +1,4 @@
-import { CalendarCheck, KeyRound, LayoutDashboard } from 'lucide-react'
+import { CalendarCheck, KeyRound, LayoutDashboard, Lock } from 'lucide-react'
 import type { Invoer, PakketKeuze } from './types'
 
 // Het donkere paneel naast het formulier: je adres groot in beeld, je keuze
@@ -20,10 +20,16 @@ export function Samenvatting({ invoer, pakket, proefdagen }: SamenvattingProps) 
   return (
     <aside className="aan-samen ayg-podium" aria-label="Je aanmelding">
       <p className="aan-samen-label">Je eigen adres</p>
-      <p className="aan-samen-adres" aria-live="polite">
-        <span className="aan-samen-slug">{naam}</span>
-        <span className="aan-samen-domein">.aiyourgym.com</span>
-      </p>
+      <div className="aan-samen-adres">
+        <p className="aan-samen-url" aria-live="polite">
+          <Lock size={16} strokeWidth={2.2} aria-hidden="true" />
+          <span>
+            <span className="aan-samen-slug">{naam}</span>
+            <span className="aan-samen-domein">.aiyourgym.com</span>
+          </span>
+        </p>
+        <p className="aan-samen-uitleg">Hier werken jij en je team. Je leden krijgen de app in jouw naam en kleuren.</p>
+      </div>
       <dl className="aan-samen-keuze">
         <div>
           <dt>Pakket</dt>

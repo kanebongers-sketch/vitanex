@@ -96,8 +96,8 @@ const procent = (w: string) => Number.parseFloat(w) / 100
 const P = tokens(SITE_CSS, '.ayg-podium')
 
 /** Hoe dekkend het lichte vlak van de kop (gescrold) en van de vaste knop onderin is; gecontroleerd tegen de css hieronder. */
-const KOP_DEKKING = 0.9
-const PLAK_DEKKING = 0.92
+const KOP_DEKKING = 0.96
+const PLAK_DEKKING = 0.97
 
 /**
  * De kop, de contactbalk, het menupaneel en de vaste knop onderin (licht met smaragd,
@@ -259,11 +259,14 @@ describe('kop, contactbalk en menu: licht met smaragd (besluit Kane 20-10-2026)'
     expect(regels('.ayg-contactbalk')).toMatch(/background:\s*var\(--ayg-balk\)/)
     expect(regels('.ayg-contactbalk')).toMatch(/color:\s*var\(--ayg-tekst\)/)
   })
-  it('de kop wordt bij scrollen een licht kalkwit vlak met blur en fijne lijn', () => {
+  it('de kop wordt bij scrollen een licht kalkwit vlak met fijne lijn, zonder blur (die liet scrollen haperen)', () => {
     const r = regels('.ayg-kop::before')
     expect(r).toMatch(new RegExp(`color-mix\\(in srgb, var\\(--ayg-vlak\\) ${KOP_DEKKING * 100}%, transparent\\)`))
-    expect(r).toMatch(/backdrop-filter:[^;]*blur/)
+    expect(r).not.toMatch(/backdrop-filter/)
     expect(r).toMatch(/0 1px 0 var\(--ayg-lijn\)/)
+  })
+  it('geen mix-blend-mode en geen backdrop-filter in de css van de website', () => {
+    for (const bestand of ALLE_CSS) expect(lees(bestand), bestand).not.toMatch(/mix-blend-mode|backdrop-filter/)
   })
   it('het menupaneel en de vaste knop onderin zijn licht', () => {
     expect(regels('.ayg-menupaneel')).toMatch(/background:\s*var\(--ayg-vlak\)/)

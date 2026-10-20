@@ -38,6 +38,11 @@ async function laadDemo(): Promise<DemoRuw | null> {
   }
 }
 
+// De schermen in de demo volgen de smaragd van de website (dezelfde tint als de
+// productbeelden in mockups.css), los van de accentkleur die de Voorbeeld Gym in
+// Club heeft: een eigen kleur van een sportschool vloekt hier met de website.
+const DEMO_ACCENT = '#2DB886'
+
 function NietBeschikbaar() {
   return (
     <PaginaKop label="Live demo" titel="De demo is even niet beschikbaar." tekst={`Probeer het later nog eens, of start meteen je eigen omgeving en probeer alles ${PROEFDAGEN} dagen gratis.`}>
@@ -58,7 +63,7 @@ export default async function DemoPagina() {
   if (!ruw) return <NietBeschikbaar />
 
   const hoofd = ruw.vestigingen.find((v) => v.standaard) ?? ruw.vestigingen[0]
-  const huisstijl = huisstijlVariabelen(ruw.organisatie.kleur, ruw.organisatie.thema) as CSSProperties
+  const huisstijl = huisstijlVariabelen(DEMO_ACCENT, ruw.organisatie.thema) as CSSProperties
   const vandaag = bouwVandaag(ruw, hoofd.vestiging)
   const week = bouwWeek(ruw)
   const kaart = bouwLidKaart(ruw)
