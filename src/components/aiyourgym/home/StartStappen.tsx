@@ -5,7 +5,7 @@ import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 
-// "Zo simpel start je": de negen stappen van de startwizard uit Club, en de
+// "Zo simpel start je": de stappen van de startwizard uit Club, en de
 // persoonlijke hulp die in de duurdere pakketten zit.
 
 interface Props {

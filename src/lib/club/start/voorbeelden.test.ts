@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { LESTYPE_SCHEMA, SERIE_SCHEMA, leesNieuw } from '@/lib/club/instellingen/validatie'
-import { VOORBEELD_LESSEN, VOORBEELD_LESTYPEN, lesVoorstellen, zelfdeNaam } from './voorbeelden'
+import { ALLE_LESSEN, ALLE_LESTYPEN, EXTRA_LESTYPEN, VOORBEELD_LESSEN, VOORBEELD_LESTYPEN, lesVoorstellen, lestypeOpNaam, zelfdeNaam } from './voorbeelden'
 
 describe('voorbeeldlestypen', () => {
   it('slaagt voor dezelfde controle als de API', () => {
@@ -49,6 +49,27 @@ describe('lesVoorstellen', () => {
 
   it('is leeg zonder lestypen', () => {
     expect(lesVoorstellen([], [])).toEqual([])
+  })
+
+  it('werkt ook met de lessen van een eigen richting', () => {
+    const uit = lesVoorstellen([{ id: 'k', naam: 'Kickboksen', duurMin: 60 }], [], ALLE_LESSEN)
+    expect(uit.map((l) => `${l.weekdag} ${l.starttijd}`)).toEqual(['1 19:00', '3 19:00'])
+  })
+})
+
+describe('alle voorbeelden', () => {
+  it('heeft unieke namen en geldige lestypen voor de API', () => {
+    const namen = ALLE_LESTYPEN.map((v) => v.naam.toLowerCase())
+    expect(new Set(namen).size).toBe(namen.length)
+    for (const v of EXTRA_LESTYPEN) {
+      expect(leesNieuw({ naam: v.naam, omschrijving: v.omschrijving, soort: v.soort, duurMin: v.duurMin, intensiteit: v.intensiteit }, LESTYPE_SCHEMA, { actief: true }).ok, v.naam).toBe(true)
+    }
+  })
+
+  it('heeft voor elke les een lestype en vindt een lestype op naam', () => {
+    for (const les of ALLE_LESSEN) expect(lestypeOpNaam(les.lestype), les.lestype).not.toBeNull()
+    expect(lestypeOpNaam(' yin  YOGA')?.naam).toBe('Yin yoga')
+    expect(lestypeOpNaam('Zumba')).toBeNull()
   })
 })
 

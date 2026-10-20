@@ -1,173 +1,162 @@
 import Link from 'next/link'
-import { Check, Clock, FileSpreadsheet, ImageIcon, LifeBuoy, MapPin, QrCode, Smartphone, Users, CalendarDays, ArrowRight } from 'lucide-react'
-import { STAPPEN, startPad, type StapSleutel, type StapStand } from '@/lib/club/start/stappen'
+import { ArrowRight, Check, Circle, Eye, FileSpreadsheet, LifeBuoy } from 'lucide-react'
+import { startPad, type StapSleutel, type StapStand } from '@/lib/club/start/stappen'
+import { demoInlezen, type DemoUitkomst } from '@/lib/club/start/demo-leden'
+import { eersteDagStand, type EersteDagPunt } from '@/lib/club/start/eerste-dag'
 
-// De stappen zonder eigen invoer: welkom, leden inlezen, ledenapp en check-in,
-// en het overzicht aan het eind. Alleen uitleg en links naar de plek waar het
-// echt gebeurt; niets hier belooft meer dan Club doet.
+// De stappen zonder eigen formulier: leden inlezen (met een voorbeeld dat
+// niets opslaat) en "Klaar voor je eerste dag". Plus de introductie per stap.
+// Niets hier belooft meer dan Club doet.
 
 export const STAP_INTRO: Record<StapSleutel, string> = {
-  welkom: 'In een kwartier zet je je sportschool neer. Elke stap kun je overslaan; je gaat later verder waar je was.',
-  huisstijl: 'Je logo en kleur staan straks overal: in Club, in de ledenapp en in de mails aan leden. Rechts zie je meteen hoe het wordt.',
-  vestigingen: 'Waar je sportschool zit en wanneer hij open is. Heb je meer vestigingen, dan voeg je ze hier toe.',
-  onderdelen: 'Zet uit wat je niet gebruikt. Het verdwijnt dan uit het menu, voor jou en je team.',
-  lessen: 'Kies de groepslessen die je geeft en zet een paar vaste lessen in je week. Neem een voorbeeld over met een klik.',
-  team: 'Voeg je medewerkers toe met hun rol. Ieder krijgt een eigen inloglink en ziet alleen wat bij die rol hoort.',
-  leden: 'Lees je leden in uit je huidige systeem. Je ziet eerst precies wat er verandert; er wordt nooit iemand verwijderd.',
-  ledenapp: 'Je leden checken in met de QR-code in de app op hun telefoon. Zo werkt het, en hier pas je het aan.',
-  klaar: 'Dit staat er. Wat nog open staat kun je altijd later doen, hier of in het instellingencentrum.',
+  soort: 'Binnen een kwartier staat je sportschool live. Kies wat voor sportschool je hebt; wij zetten de rest alvast klaar. Elke stap kun je overslaan.',
+  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. Rechts zie je meteen hoe de ledenapp eruitziet.',
+  vestigingen: 'Waar je sportschool zit en wanneer hij open is. Een klik voor de standaardtijden, of stel ze per dag in.',
+  onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
+  lessen: 'De groepslessen die je geeft, en eventueel een paar vaste lessen in je week.',
+  team: 'Alleen naam, e-mail en rol. De inloglink voor je team maak je later.',
+  leden: 'Lees je leden in uit je huidige systeem, of doe het later. Bekijk eerst hoe het werkt met een voorbeeld.',
+  klaar: 'Je sportschool staat. Loop dit lijstje na, dan ben je klaar voor je eerste dag.',
 }
 
-const NODIG = [
-  { icoon: ImageIcon, tekst: 'Je logo, het liefst als PNG of SVG met een doorzichtige achtergrond' },
-  { icoon: MapPin, tekst: 'Adres en openingstijden van elke vestiging' },
-  { icoon: CalendarDays, tekst: 'Welke groepslessen je geeft, en wanneer' },
-  { icoon: Users, tekst: 'Namen en e-mailadressen van je team' },
-  { icoon: FileSpreadsheet, tekst: 'Een export van je ledenbestand (CSV of Excel)' },
-]
+const UITKOMST: Record<DemoUitkomst, { label: string; chip: string }> = {
+  nieuw: { label: 'Nieuw lid', chip: 'club-chip--ok' },
+  bijwerken: { label: 'Wordt bijgewerkt', chip: 'club-chip--info' },
+  gelijk: { label: 'Al gelijk', chip: 'club-chip--uit' },
+  dubbel: { label: 'Dubbel', chip: 'club-chip--info' },
+  fout: { label: 'Kan niet mee', chip: 'club-chip--let-op' },
+}
 
-export function StapWelkom() {
+function DemoLeden({ vandaag }: { vandaag: string }) {
+  const demo = demoInlezen(vandaag)
   return (
-    <div className="club-start-twee">
-      <section className="club-start-blok" aria-labelledby="start-nodig-kop">
-        <h2 id="start-nodig-kop">Wat je nodig hebt</h2>
-        <ul className="club-start-nodig" role="list">
-          {NODIG.map(({ icoon: Icoon, tekst }) => (
-            <li key={tekst}>
-              <Icoon aria-hidden size={18} />
-              <span>{tekst}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="club-hint">Heb je iets nog niet bij de hand? Sla die stap over en kom later terug.</p>
-      </section>
-      <section className="club-start-blok" aria-labelledby="start-route-kop">
-        <h2 id="start-route-kop">Zo gaat het</h2>
-        <ol className="club-start-route">
-          {STAPPEN.slice(1).map((s) => (
-            <li key={s.sleutel}>
-              <span className="club-start-route-titel">{s.titel}</span>
-              <span className="club-zacht">{s.kort}</span>
-              <span className="club-start-route-tijd">
-                <Clock aria-hidden size={12} /> {s.minuten} min
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </div>
+    <details className="club-start-uitklap club-start-demo">
+      <summary>
+        <Eye aria-hidden size={16} /> Bekijk eerst een voorbeeld
+      </summary>
+      <p className="club-hint">
+        Een verzonnen bestand met {demo.rijen.length} rijen, door precies dezelfde controle als jouw bestand. <strong>Er wordt niets opgeslagen.</strong>
+      </p>
+      <p className="club-start-demo-herkend">
+        <span className="club-zacht">Zelf herkend:</span> {demo.herkend.join(', ')}
+      </p>
+      <ul className="club-start-demo-rijen" role="list">
+        {demo.rijen.map((r) => (
+          <li key={r.regel}>
+            <span className="club-start-demo-regel club-getal">{r.regel}</span>
+            <span className="club-start-demo-naam">
+              <strong>{r.naam}</strong>
+              {r.melding && <span className="club-zacht">{r.melding}</span>}
+            </span>
+            <span className={`club-chip ${UITKOMST[r.uitkomst].chip}`}>{UITKOMST[r.uitkomst].label}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="club-start-demo-som">
+        Uitkomst: <strong>{demo.telling.nieuw} nieuwe leden</strong>, {demo.telling.dubbel} dubbel overgeslagen, {demo.telling.fout} rij die je eerst aanvult. Er wordt nooit iemand verwijderd.
+      </p>
+    </details>
   )
 }
 
-export function StapLedenInlezen({ importPad }: { importPad: string | null }) {
+interface StapLedenProps {
+  importPad: string | null
+  vandaag: string
+}
+
+export function StapLedenInlezen({ importPad, vandaag }: StapLedenProps) {
   return (
     <div className="club-start-twee">
-      <section className="club-start-blok" aria-labelledby="start-csv-kop">
-        <h2 id="start-csv-kop">Zo maak je het bestand</h2>
-        <ol className="club-start-genummerd">
-          <li>Exporteer je leden uit je huidige systeem (bijvoorbeeld Sportivity) als CSV.</li>
-          <li>Werk je met Excel? Kies Bestand, Opslaan als, en dan CSV. Puntkomma of komma maakt niet uit.</li>
-          <li>Voornaam en achternaam zijn verplicht. E-mail, telefoon, geboortedatum, abonnement, status, lid sinds en lidnummer nemen we mee als ze erin staan.</li>
-          <li>Club herkent de kolommen zelf. Klopt er een niet, dan kies je hem met de hand.</li>
-        </ol>
-      </section>
       <section className="club-start-blok club-start-actie" aria-labelledby="start-inlezen-kop">
-        <h2 id="start-inlezen-kop">Inlezen</h2>
-        <p>Je ziet eerst een controle: wie nieuw is, wie wordt bijgewerkt en welke rijen niet kloppen. Pas daarna lees je in. Nieuwe leden worden toegevoegd, bestaande bijgewerkt.</p>
+        <h2 id="start-inlezen-kop">Je ledenbestand</h2>
+        <ol className="club-start-genummerd">
+          <li>Exporteer je leden uit je huidige systeem als CSV, of sla je Excel-lijst op als CSV.</li>
+          <li>Voornaam en achternaam zijn genoeg. Andere kolommen herkent Club zelf.</li>
+          <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
+        </ol>
         {importPad ? (
           <Link href={importPad} className="club-knop club-knop--primair">
-            <FileSpreadsheet aria-hidden size={16} /> Ledenbestand inlezen
+            <FileSpreadsheet aria-hidden size={16} /> Bestand kiezen
           </Link>
         ) : (
           <p className="club-melding">Leden staat uit of er is nog geen vestiging. Zet Leden aan bij Onderdelen of voeg eerst een vestiging toe.</p>
         )}
+        <DemoLeden vandaag={vandaag} />
+      </section>
+      <section className="club-start-blok" aria-labelledby="start-later-kop">
+        <h2 id="start-later-kop">Later doen</h2>
+        <p>Geen bestand bij de hand? Ga gewoon verder. Je vindt het inlezen later bij Leden, en het staat op de checklist aan het eind van de wizard.</p>
         <p className="club-hint">Na het inlezen kom je terug in de wizard via Start op Vandaag.</p>
       </section>
     </div>
   )
 }
 
-interface StapLedenappProps {
-  appAan: boolean
-  checkinAan: boolean
-}
-
-export function StapLedenapp({ appAan, checkinAan }: StapLedenappProps) {
-  return (
-    <div className="club-start-twee">
-      <section className="club-start-blok" aria-labelledby="start-qr-kop">
-        <h2 id="start-qr-kop">Inchecken met de telefoon</h2>
-        <ol className="club-start-stappen-qr">
-          <li>
-            <Smartphone aria-hidden size={20} />
-            <span>Een lid zet de ledenapp op het beginscherm van de telefoon en logt in.</span>
-          </li>
-          <li>
-            <QrCode aria-hidden size={20} />
-            <span>In de app staat een persoonlijke QR-code. Die laat het lid bij binnenkomst zien.</span>
-          </li>
-          <li>
-            <Check aria-hidden size={20} />
-            <span>Aan de balie scan je de code, of zoek je het lid op naam. Het bezoek telt meteen mee in de cijfers.</span>
-          </li>
-        </ol>
-        <p className="club-hint">QR met de telefoon is de standaard. Geen pasjes nodig en niets te kopen.</p>
-      </section>
-      <section className="club-start-blok club-start-actie" aria-labelledby="start-app-kop">
-        <h2 id="start-app-kop">Bekijken en aanpassen</h2>
-        {appAan ? (
-          <ul className="club-start-links" role="list">
-            <li><Link href="/clubkane/app">Zo ziet een lid de app <ArrowRight aria-hidden size={14} /></Link></li>
-            <li><Link href="/clubkane/beheer/ledenapp">Welkomsttekst, tabbladen en check-in code <ArrowRight aria-hidden size={14} /></Link></li>
-            {checkinAan && <li><Link href="/clubkane/checkin">De check-in aan de balie <ArrowRight aria-hidden size={14} /></Link></li>}
-          </ul>
-        ) : (
-          <p className="club-melding">De ledenapp staat uit. Zet hem aan bij Onderdelen als je hem wilt gebruiken.</p>
-        )}
-      </section>
-    </div>
-  )
-}
-
 interface StapKlaarProps {
+  punten: readonly EersteDagPunt[]
   stand: readonly StapStand[]
   vestiging: string | null
 }
 
-export function StapKlaar({ stand, vestiging }: StapKlaarProps) {
-  const lijst = stand.filter((s) => s.sleutel !== 'klaar' && s.sleutel !== 'welkom')
+function PuntStatus({ af }: { af: boolean | null }) {
+  if (af === true) return <Check aria-hidden size={14} strokeWidth={3} />
+  return <Circle aria-hidden size={10} strokeWidth={2.5} />
+}
+
+export function StapKlaar({ punten, stand, vestiging }: StapKlaarProps) {
+  const { af, meetbaar } = eersteDagStand(punten)
+  const open = stand.filter((s) => !s.af && s.sleutel !== 'klaar')
   return (
     <div className="club-start-twee">
-      <section className="club-start-blok" aria-labelledby="start-overzicht-kop">
-        <h2 id="start-overzicht-kop">Overzicht</h2>
-        <ul className="club-start-overzicht" role="list">
-          {lijst.map((s) => (
-            <li key={s.sleutel} data-af={s.af || undefined}>
-              <span className="club-start-bol" aria-hidden>{s.af ? <Check size={12} strokeWidth={3} /> : s.nummer}</span>
-              <span className="club-start-overzicht-tekst">
-                <strong>{s.titel}</strong>
-                <span className="club-zacht">{s.kort}</span>
+      <section className="club-start-blok" aria-labelledby="start-eerste-kop">
+        <div className="club-start-blokkop">
+          <h2 id="start-eerste-kop">Klaar voor je eerste dag</h2>
+          <span className="club-chip club-chip--merk">
+            {af} van {meetbaar} staat er
+          </span>
+        </div>
+        <ul className="club-start-eerste" role="list">
+          {punten.map((p) => (
+            <li key={p.id} data-af={p.af === true || undefined}>
+              <span className="club-start-bol" aria-hidden>
+                <PuntStatus af={p.af} />
               </span>
-              {s.af ? (
-                <span className="club-chip club-chip--ok">{s.vanzelf ? 'Al ingesteld' : 'Af'}</span>
-              ) : (
-                <Link href={startPad(s.nummer, vestiging)} className="club-knop club-knop--klein">
-                  Nu doen
-                </Link>
-              )}
+              <span className="club-start-eerste-tekst">
+                <strong>{p.titel}</strong>
+                <span className="club-zacht">{p.uitleg}</span>
+              </span>
+              <Link href={p.pad} className="club-knop club-knop--klein" aria-label={`${p.titel}: ${p.af === true ? 'bekijken' : 'nu doen'}`}>
+                {p.af === true ? 'Bekijken' : p.af === false ? 'Nu doen' : 'Openen'} <ArrowRight aria-hidden size={14} />
+              </Link>
             </li>
           ))}
         </ul>
       </section>
-      <section className="club-start-blok club-start-hulp" aria-labelledby="start-hulp-kop">
-        <LifeBuoy aria-hidden size={28} />
-        <h2 id="start-hulp-kop">Hulp nodig?</h2>
-        <p>Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.</p>
-        <Link href="/clubkane/hulp" className="club-knop">
-          Naar hulp en support
-        </Link>
-        <p className="club-hint">Alles uit deze wizard vind je later ook terug in het instellingencentrum onder Beheer.</p>
-      </section>
+      <div className="club-start-stapel">
+        {open.length > 0 && (
+          <section className="club-start-blok" aria-labelledby="start-open-kop">
+            <h2 id="start-open-kop">Nog open in de wizard</h2>
+            <ul className="club-start-links" role="list">
+              {open.map((s) => (
+                <li key={s.sleutel}>
+                  <Link href={startPad(s.nummer, vestiging)}>
+                    {s.nummer}. {s.titel} <ArrowRight aria-hidden size={14} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <section className="club-start-blok club-start-hulp" aria-labelledby="start-hulp-kop">
+          <LifeBuoy aria-hidden size={28} />
+          <h2 id="start-hulp-kop">Hulp nodig?</h2>
+          <p>Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.</p>
+          <Link href="/clubkane/hulp" className="club-knop">
+            Naar hulp en support
+          </Link>
+          <p className="club-hint">Alles uit deze wizard vind je later terug in het instellingencentrum onder Beheer.</p>
+        </section>
+      </div>
     </div>
   )
 }

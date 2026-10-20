@@ -1,15 +1,18 @@
 // ─── Club: de startwizard van een nieuwe sportschool (PUUR) ─────────────────
-// Na aanmelden en betalen loopt de eigenaar negen stappen door, elk over te
-// slaan en later te hervatten. De voortgang staat per sportschool in
-// club_organisaties.instellingen onder `start`: { stap, klaar[], afgerond_op }.
+// Na aanmelden en betalen loopt de eigenaar acht korte stappen door, elk over
+// te slaan en later te hervatten. De eerste stap is de soort sportschool: die
+// zet alvast slimme standaarden klaar, zodat de rest vooral "Klopt" is.
+// De voortgang staat per sportschool in club_organisaties.instellingen onder
+// `start`: { stap, klaar[], afgerond_op, soort }.
 // Wat al af is, leiden we daarnaast af uit de echte data (een logo, een
 // vestiging met adres, lestypen, medewerkers, leden): wie het via een andere
 // weg al deed, hoeft hier niets dubbel te doen.
 // Lezen is vergevingsgezind (kapot = geen voortgang), opslaan is streng.
 
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { isSportschoolSoort, type SportschoolSoort } from './soorten'
 
-export const STAP_SLEUTELS = ['welkom', 'huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'ledenapp', 'klaar'] as const
+export const STAP_SLEUTELS = ['soort', 'huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'klaar'] as const
 export type StapSleutel = (typeof STAP_SLEUTELS)[number]
 
 export const AANTAL_STAPPEN = STAP_SLEUTELS.length
@@ -19,32 +22,33 @@ export interface StapInfo {
   titel: string
   /** Een regel voor de stappenlijst en de kaart op Vandaag. */
   kort: string
-  /** Hoe lang het ongeveer duurt, in minuten (samen ongeveer een kwartier). */
+  /** Hoe lang het ongeveer duurt, in minuten (samen binnen een kwartier). */
   minuten: number
 }
 
 export const STAPPEN: readonly StapInfo[] = [
-  { sleutel: 'welkom', titel: 'Welkom', kort: 'Wat je nodig hebt en hoe het werkt', minuten: 1 },
-  { sleutel: 'huisstijl', titel: 'Huisstijl', kort: 'Logo, accentkleur en licht of donker', minuten: 2 },
-  { sleutel: 'vestigingen', titel: 'Vestigingen', kort: 'Naam, adres en openingstijden', minuten: 2 },
-  { sleutel: 'onderdelen', titel: 'Onderdelen', kort: 'Zet aan wat je sportschool gebruikt', minuten: 1 },
-  { sleutel: 'lessen', titel: 'Lessen en rooster', kort: 'Lestypen en een paar vaste lessen', minuten: 3 },
-  { sleutel: 'team', titel: 'Team', kort: 'Medewerkers met hun rol en inloglink', minuten: 2 },
-  { sleutel: 'leden', titel: 'Leden inlezen', kort: 'Je ledenbestand uit CSV of Excel', minuten: 2 },
-  { sleutel: 'ledenapp', titel: 'Ledenapp en check-in', kort: 'Inchecken met de QR-code op de telefoon', minuten: 1 },
-  { sleutel: 'klaar', titel: 'Klaar', kort: 'Wat af is en wat nog open staat', minuten: 1 },
+  { sleutel: 'soort', titel: 'Je sportschool', kort: 'Kies de soort, wij zetten de rest klaar', minuten: 1 },
+  { sleutel: 'huisstijl', titel: 'Huisstijl', kort: 'Logo uploaden, de kleur komt er vanzelf uit', minuten: 2 },
+  { sleutel: 'vestigingen', titel: 'Vestiging', kort: 'Adres en openingstijden', minuten: 2 },
+  { sleutel: 'onderdelen', titel: 'Onderdelen', kort: 'Wat je sportschool gebruikt', minuten: 1 },
+  { sleutel: 'lessen', titel: 'Lessen', kort: 'Lestypen en een paar vaste lessen', minuten: 2 },
+  { sleutel: 'team', titel: 'Team', kort: 'Naam, e-mail en rol van je medewerkers', minuten: 2 },
+  { sleutel: 'leden', titel: 'Leden', kort: 'Je ledenbestand inlezen, of later', minuten: 2 },
+  { sleutel: 'klaar', titel: 'Klaar', kort: 'Klaar voor je eerste dag', minuten: 1 },
 ]
 
 export interface StartVoortgang {
-  /** De stap waar de eigenaar is gebleven (1 tot en met 9). */
+  /** De stap waar de eigenaar is gebleven (1 tot en met het aantal stappen). */
   stap: number
   /** Stappen die de eigenaar zelf op klaar zette. */
   klaar: StapSleutel[]
   /** Wanneer de wizard is afgerond (ISO), of null. */
   afgerondOp: string | null
+  /** De gekozen soort sportschool (bepaalt de standaarden), of null. */
+  soort: SportschoolSoort | null
 }
 
-export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null }
+export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null, soort: null }
 
 function object(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
@@ -58,7 +62,7 @@ export function isStapNummer(v: unknown): v is number {
   return typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= AANTAL_STAPPEN
 }
 
-/** Het stapnummer (1 tot en met 9) van een sleutel. */
+/** Het stapnummer van een sleutel. */
 export function stapNummer(sleutel: StapSleutel): number {
   return STAP_SLEUTELS.indexOf(sleutel) + 1
 }
@@ -97,12 +101,13 @@ export function leesStart(instellingen: unknown): StartVoortgang | null {
     stap: isStapNummer(s.stap) ? s.stap : 1,
     klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)),
     afgerondOp: isIsoDatum(s.afgerond_op) ? s.afgerond_op : null,
+    soort: isSportschoolSoort(s.soort) ? s.soort : null,
   }
 }
 
 /** Naar de database (snake_case zoals de rest van de kolom). */
 export function startNaarJson(v: StartVoortgang): Record<string, unknown> {
-  return { stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp }
+  return { stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp, soort: v.soort }
 }
 
 /** De hele kolom met de nieuwe voortgang erin; andere sleutels (ledenapp, rechten) blijven staan. */
@@ -121,11 +126,13 @@ export interface StartInvoer {
   open?: StapSleutel
   /** true = afronden, false = weer openen. */
   afronden?: boolean
+  /** De gekozen soort sportschool. */
+  soort?: SportschoolSoort
 }
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
-const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden'])
+const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden', 'soort'])
 
 /** Streng: alleen bekende velden met geldige waarden, en minstens een. */
 export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
@@ -136,6 +143,7 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
   if ('klaar' in o && !isStapSleutel(o.klaar)) return { ok: false, fout: 'Onbekende stap.' }
   if ('open' in o && !isStapSleutel(o.open)) return { ok: false, fout: 'Onbekende stap.' }
   if ('afronden' in o && typeof o.afronden !== 'boolean') return { ok: false, fout: 'Kies afronden of openen.' }
+  if ('soort' in o && !isSportschoolSoort(o.soort)) return { ok: false, fout: 'Onbekende soort sportschool.' }
   if (Object.keys(o).length === 0) return { ok: false, fout: 'Er is niets om op te slaan.' }
   return {
     ok: true,
@@ -144,6 +152,7 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
       ...(isStapSleutel(o.klaar) ? { klaar: o.klaar } : {}),
       ...(isStapSleutel(o.open) ? { open: o.open } : {}),
       ...(typeof o.afronden === 'boolean' ? { afronden: o.afronden } : {}),
+      ...(isSportschoolSoort(o.soort) ? { soort: o.soort } : {}),
     },
   }
 }
@@ -161,7 +170,7 @@ export function pasToe(huidig: StartVoortgang, invoer: StartInvoer, nu: Date): S
     afgerondOp = null
     klaar = klaar.filter((k) => k !== 'klaar')
   }
-  return { stap: invoer.stap ?? huidig.stap, klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)), afgerondOp }
+  return { stap: invoer.stap ?? huidig.stap, klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)), afgerondOp, soort: invoer.soort ?? huidig.soort }
 }
 
 // ── Wat al af is volgens de echte data ────────────────────────────────────
@@ -189,14 +198,13 @@ export function vestigingIngericht(rij: { adres?: unknown; openingstijden?: unkn
 export function afUitData(f: StartFeiten): StapSleutel[] {
   const uit = (m: string) => f.uit.includes(m)
   const af: Record<StapSleutel, boolean> = {
-    welkom: false,
+    soort: false,
     huisstijl: f.heeftLogo,
     vestigingen: f.vestigingenIngericht > 0,
     onderdelen: false,
     lessen: uit('rooster') || f.lestypen > 0,
     team: f.medewerkers > 0,
     leden: uit('leden') || f.leden > 0,
-    ledenapp: uit('app') && uit('checkin'),
     klaar: false,
   }
   return STAP_SLEUTELS.filter((k) => af[k])
@@ -215,7 +223,7 @@ export function stappenStand(v: StartVoortgang | null, f: StartFeiten): StapStan
   const zelf = v?.klaar ?? []
   return STAPPEN.map((s, i) => {
     const doorData = vanzelf.includes(s.sleutel)
-    const isKlaar = s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) : zelf.includes(s.sleutel)
+    const isKlaar = s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) : zelf.includes(s.sleutel) || (s.sleutel === 'soort' && Boolean(v?.soort))
     return { ...s, nummer: i + 1, af: isKlaar || doorData, vanzelf: doorData && !isKlaar }
   })
 }

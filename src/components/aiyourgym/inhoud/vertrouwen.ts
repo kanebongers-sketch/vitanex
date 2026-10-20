@@ -16,7 +16,7 @@ export interface StartStap {
   kort: string
 }
 
-/** De negen stappen van de startwizard, uit Club zelf. */
+/** De stappen van de startwizard, uit Club zelf. */
 export const START_STAPPEN: readonly StartStap[] = STAPPEN.map((s, i) => ({ nr: i + 1, titel: s.titel, kort: s.kort }))
 
 /** Hoe lang de wizard samen ongeveer duurt, in minuten (uit Club). */

@@ -118,16 +118,16 @@ describe('ordenen', () => {
 
 describe('startStand', () => {
   it('geen voortgang is niet gestart', () => {
-    expect(startStand({})).toEqual({ soort: 'niet', klaar: 0, totaal: 9 })
-    expect(startStand(null)).toEqual({ soort: 'niet', klaar: 0, totaal: 9 })
+    expect(startStand({})).toEqual({ soort: 'niet', klaar: 0, totaal: 8 })
+    expect(startStand(null)).toEqual({ soort: 'niet', klaar: 0, totaal: 8 })
   })
 
   it('telt de stappen die klaar zijn', () => {
-    expect(startStand({ start: { stap: 4, klaar: ['welkom', 'huisstijl', 'onzin'], afgerond_op: null } })).toEqual({ soort: 'bezig', klaar: 2, totaal: 9 })
+    expect(startStand({ start: { stap: 4, klaar: ['soort', 'huisstijl', 'onzin'], afgerond_op: null } })).toEqual({ soort: 'bezig', klaar: 2, totaal: 8 })
   })
 
   it('ziet een afgeronde wizard', () => {
-    expect(startStand({ start: { stap: 9, klaar: ['welkom'], afgerond_op: '2026-10-12T09:00:00Z' } })).toMatchObject({ soort: 'af', afgerondOp: '2026-10-12T09:00:00Z' })
+    expect(startStand({ start: { stap: 8, klaar: ['soort'], afgerond_op: '2026-10-12T09:00:00Z' } })).toMatchObject({ soort: 'af', afgerondOp: '2026-10-12T09:00:00Z' })
   })
 })
 

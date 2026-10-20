@@ -1,47 +1,46 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { naamVan } from '@/lib/club/kern/vestigingen'
-import { adresVan } from '@/lib/club/kern/subdomein'
+import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
-import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
-import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
-import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { SOORT_INFO, rechtenTekst, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { startPad } from '@/lib/club/start/stappen'
-import { VestigingenBeheer, type VestigingContact } from '@/components/club/instellingen/VestigingenBeheer'
-import { RegelsFormulier } from '@/components/club/instellingen/RegelsFormulier'
-import { MedewerkersBeheer, RollenUitleg, type LoginBeheer } from '@/components/club/instellingen/MedewerkersBeheer'
+import { Klaargezet } from './Klaargezet'
+import { StapVestiging } from './StapVestiging'
+import { TeamFormulier } from './TeamFormulier'
+import type { StartVoetProps } from './StartVoet'
 
-// Stap 3 (vestigingen met adres en openingstijden) en stap 6 (het team): de
-// bestaande onderdelen van Instellingen, met de wizard eromheen.
+// Stap 3 (vestiging: adres en openingstijden) en stap 6 (het team): de data
+// van de server, de invoer in kleine client-onderdelen.
+
+type Voet = Omit<StartVoetProps, 'voorVerder' | 'primair'>
 
 interface StapMetVestigingProps {
   t: ClubToegang
   vestiging: string | null
+  soort: SportschoolSoort | null
+  voet: Voet
 }
 
 export function GeenVestiging() {
   return (
     <p className="club-melding">
-      Voeg eerst een vestiging toe in de stap <Link href={startPad(3, null)}>Vestigingen</Link>.
+      Voeg eerst een vestiging toe in de stap <Link href={startPad(3, null)}>Vestiging</Link>.
     </p>
   )
 }
 
-function LaadFout() {
+export function LaadFout() {
   return <p className="club-melding club-melding--fout" role="alert">Dit kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
 }
 
-/** Adres, telefoon en e-mail van de vestigingen van deze sportschool. */
-async function haalContact(t: ClubToegang): Promise<VestigingContact> {
-  const { data, error } = await t.admin.from('club_vestigingen').select('vestiging, adres, telefoon, email').eq('user_id', t.userId)
-  if (error) console.error('[club-start] contact vestigingen lezen mislukt', error.message)
-  const tekst = (v: unknown) => (typeof v === 'string' && v.trim() ? v : null)
-  return Object.fromEntries((data ?? []).map((r) => [String(r.vestiging), { adres: tekst(r.adres), telefoon: tekst(r.telefoon), email: tekst(r.email) }]))
+/** "Voor een yoga en pilates studio", of null zonder soort. */
+export function bronVan(soort: SportschoolSoort | null): string | null {
+  return soort ? `Voor een ${SOORT_INFO[soort].titel.toLowerCase()}` : null
 }
 
 /** Wissel van vestiging binnen de stap (alleen als er meer dan een is). */
-function VestigingKeuze({ t, vestiging, stap }: { t: ClubToegang; vestiging: string; stap: number }) {
+export function VestigingKeuze({ t, vestiging, stap }: { t: ClubToegang; vestiging: string; stap: number }) {
   if (t.vestigingen.length < 2) return null
   return (
     <nav className="club-segment club-start-vestkeuze" aria-label="Kies een vestiging">
@@ -54,56 +53,48 @@ function VestigingKeuze({ t, vestiging, stap }: { t: ClubToegang; vestiging: str
   )
 }
 
-export async function StapVestigingen({ t, vestiging }: StapMetVestigingProps) {
-  const [contact, data] = await Promise.all([haalContact(t), vestiging ? haalInstellingen(t.admin, t.userId, vestiging) : null])
+async function haalAdres(t: ClubToegang, vestiging: string): Promise<string | null> {
+  const { data, error } = await t.admin.from('club_vestigingen').select('adres').eq('user_id', t.userId).eq('vestiging', vestiging).maybeSingle()
+  if (error) console.error('[club-start] adres lezen mislukt', error.message)
+  const adres: unknown = (data as { adres?: unknown } | null)?.adres
+  return typeof adres === 'string' && adres.trim() ? adres : null
+}
+
+export async function StapVestigingen({ t, vestiging, soort, voet }: StapMetVestigingProps) {
+  if (!vestiging) return <GeenVestiging />
+  const [adres, data] = await Promise.all([haalAdres(t, vestiging), haalInstellingen(t.admin, t.userId, vestiging)])
+  if (!data) return <LaadFout />
   return (
-    <div className="club-start-stapel">
-      <section className="club-start-sectie" aria-labelledby="start-vest-kop">
-        <h2 id="start-vest-kop" className="club-start-sectiekop">Je vestigingen</h2>
-        <p className="club-hint">Klik op Contact om het adres, telefoonnummer en e-mailadres in te vullen.</p>
-        <VestigingenBeheer vestigingen={t.vestigingen} contact={contact} />
-      </section>
-      {vestiging && (
-        <section className="club-start-sectie" aria-labelledby="start-open-kop">
-          <div className="club-start-blokkop">
-            <h2 id="start-open-kop" className="club-start-sectiekop">Openingstijden van {naamVan(t.vestigingen, vestiging)}</h2>
-            <VestigingKeuze t={t} vestiging={vestiging} stap={3} />
-          </div>
-          <p className="club-hint">De regels voor reserveren staan al op een gangbare stand. Pas ze aan als je wilt; anders is alleen de openingstijd genoeg.</p>
-          {data ? <RegelsFormulier key={vestiging} vestiging={vestiging} regels={data.regels} openingstijden={data.openingstijden} /> : <LaadFout />}
-        </section>
-      )}
-    </div>
+    <>
+      <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
+      <StapVestiging key={vestiging} sleutel={vestiging} naam={naamVan(t.vestigingen, vestiging)} adres={adres} week={data.openingstijden} regels={data.regels} bron={bronVan(soort)} voet={voet} />
+    </>
   )
 }
 
-async function haalLoginBeheer(t: ClubToegang): Promise<LoginBeheer | null> {
-  if (!magMedewerkerLoginsBeheren(t)) return null
-  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
-  return {
-    logins: await haalMedewerkerLogins(t.admin, t.userId),
-    linkBasis: subdomeinen && t.organisatie.slug ? `https://${adresVan(t.organisatie.slug)}` : null,
-    loginAan: CLUB_EIGEN_LOGIN,
-  }
+/** Alle actieve medewerkers van de sportschool, op naam. */
+async function haalTeam(t: ClubToegang): Promise<Medewerker[]> {
+  const { data, error } = await t.admin.from('club_medewerkers').select('id, naam, email, rollen, vestigingen, actief').eq('user_id', t.userId).eq('actief', true).order('naam')
+  if (error) console.error('[club-start] team lezen mislukt', error.message)
+  return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }
 
-export async function StapTeam({ t, vestiging }: StapMetVestigingProps) {
+export async function StapTeam({ t, vestiging, soort, voet }: StapMetVestigingProps) {
   if (!vestiging) return <GeenVestiging />
-  const [data, login] = await Promise.all([haalInstellingen(t.admin, t.userId, vestiging), haalLoginBeheer(t)])
-  if (!data) return <LaadFout />
+  const team = await haalTeam(t)
   return (
     <div className="club-start-stapel">
-      <div className="club-start-blokkop">
-        <p className="club-hint club-start-teamuitleg">
-          Voeg iemand toe met naam, rol en vestiging. Open daarna de medewerker voor de persoonlijke inloglink: die deel je zelf, bijvoorbeeld via WhatsApp of mail. Met die link kiest je medewerker een pincode die jij goedkeurt.
-        </p>
-        <VestigingKeuze t={t} vestiging={vestiging} stap={6} />
-      </div>
-      <MedewerkersBeheer medewerkers={data.medewerkers} vestiging={vestiging} login={login} ikZelf={null} />
-      <RollenUitleg />
-      <Link href="/clubkane/beheer/rechten" className="club-start-link">
-        Rechten per rol aanpassen <ArrowRight aria-hidden size={14} />
-      </Link>
+      <TeamFormulier
+        vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))}
+        vestiging={vestiging}
+        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen }))}
+      />
+      <Klaargezet
+        bron={bronVan(soort)}
+        gang={voet}
+        aanpassenHref="/clubkane/beheer/rechten"
+        regels={[{ titel: 'Wat elke rol ziet', tekst: rechtenTekst(t.organisatie.instellingen.rechten) }]}
+      />
     </div>
   )
 }

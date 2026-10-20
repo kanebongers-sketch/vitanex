@@ -26,14 +26,14 @@ const LEEG: StartFeiten = { heeftLogo: false, vestigingenIngericht: 0, lestypen:
 const NU = new Date('2026-10-18T10:00:00.000Z')
 
 describe('stappen', () => {
-  it('heeft negen stappen in vaste volgorde, met welkom eerst en klaar laatst', () => {
-    expect(AANTAL_STAPPEN).toBe(9)
+  it('heeft acht stappen in vaste volgorde, met de soort eerst en klaar laatst', () => {
+    expect(AANTAL_STAPPEN).toBe(8)
     expect(STAPPEN.map((s) => s.sleutel)).toEqual([...STAP_SLEUTELS])
-    expect(stapNummer('welkom')).toBe(1)
-    expect(stapNummer('klaar')).toBe(9)
+    expect(stapNummer('soort')).toBe(1)
+    expect(stapNummer('klaar')).toBe(8)
   })
 
-  it('duurt samen ongeveer een kwartier', () => {
+  it('past binnen een kwartier', () => {
     const totaal = STAPPEN.reduce((som, s) => som + s.minuten, 0)
     expect(totaal).toBeGreaterThanOrEqual(10)
     expect(totaal).toBeLessThanOrEqual(15)
@@ -45,15 +45,15 @@ describe('stappen', () => {
   })
 
   it('vindt de eerste open stap', () => {
-    expect(volgendeOpen(stappenStand({ stap: 1, klaar: ['welkom'], afgerondOp: null }, { ...LEEG, heeftLogo: true }))).toBe(3)
-    expect(volgendeOpen([{ af: true, nummer: 1 }])).toBe(9)
+    expect(volgendeOpen(stappenStand({ ...NIEUWE_START, soort: 'gym' }, { ...LEEG, heeftLogo: true }))).toBe(3)
+    expect(volgendeOpen([{ af: true, nummer: 1 }])).toBe(8)
   })
 
   it('leest een stapnummer uit de URL', () => {
     expect(stapUitParam('3')).toBe(3)
     expect(stapUitParam(['5', '6'])).toBe(5)
     expect(stapUitParam('0')).toBeNull()
-    expect(stapUitParam('10')).toBeNull()
+    expect(stapUitParam('9')).toBeNull()
     expect(stapUitParam('2a')).toBeNull()
     expect(stapUitParam(undefined)).toBeNull()
   })
@@ -68,22 +68,26 @@ describe('leesStart', () => {
   })
 
   it('leest een geldige voortgang', () => {
-    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'welkom'], afgerond_op: null } })).toEqual({ stap: 4, klaar: ['welkom', 'huisstijl'], afgerondOp: null })
+    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'soort'], afgerond_op: null, soort: 'yoga' } })).toEqual({ stap: 4, klaar: ['soort', 'huisstijl'], afgerondOp: null, soort: 'yoga' })
   })
 
   it('maakt kapotte velden de standaard en laat onbekende stappen weg', () => {
-    expect(leesStart({ start: { stap: 42, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null })
+    expect(leesStart({ start: { stap: 42, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum', soort: 'zwembad' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null })
+  })
+
+  it('leest oude voortgang zonder soort en met stappen die niet meer bestaan', () => {
+    expect(leesStart({ start: { stap: 9, klaar: ['welkom', 'ledenapp', 'team'], afgerond_op: null } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null })
   })
 
   it('heen en terug geeft hetzelfde', () => {
-    const v = { stap: 9, klaar: ['welkom' as const, 'klaar' as const], afgerondOp: NU.toISOString() }
+    const v = { stap: 8, klaar: ['soort' as const, 'klaar' as const], afgerondOp: NU.toISOString(), soort: 'boutique' as const }
     expect(leesStart({ start: startNaarJson(v) })).toEqual(v)
   })
 
   it('laat andere instellingen staan bij opslaan', () => {
     const uit = instellingenMetStart({ ledenapp: { qr: false }, rechten: { trainer: [] } }, NIEUWE_START)
-    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { stap: 1, klaar: [], afgerond_op: null } })
-    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { stap: 1, klaar: [], afgerond_op: null } })
+    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { stap: 1, klaar: [], afgerond_op: null, soort: null } })
+    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { stap: 1, klaar: [], afgerond_op: null, soort: null } })
   })
 })
 
@@ -92,6 +96,7 @@ describe('leesStartInvoer', () => {
     expect(leesStartInvoer({ stap: 3, klaar: 'huisstijl' })).toEqual({ ok: true, waarde: { stap: 3, klaar: 'huisstijl' } })
     expect(leesStartInvoer({ afronden: true })).toEqual({ ok: true, waarde: { afronden: true } })
     expect(leesStartInvoer({ open: 'team' })).toEqual({ ok: true, waarde: { open: 'team' } })
+    expect(leesStartInvoer({ soort: 'pt', klaar: 'soort' })).toEqual({ ok: true, waarde: { klaar: 'soort', soort: 'pt' } })
   })
 
   it('weigert onbekende of foute invoer', () => {
@@ -99,9 +104,11 @@ describe('leesStartInvoer', () => {
     expect(leesStartInvoer([]).ok).toBe(false)
     expect(leesStartInvoer({}).ok).toBe(false)
     expect(leesStartInvoer({ stap: 0 }).ok).toBe(false)
-    expect(leesStartInvoer({ stap: 10 }).ok).toBe(false)
+    expect(leesStartInvoer({ stap: 9 }).ok).toBe(false)
     expect(leesStartInvoer({ stap: 2.5 }).ok).toBe(false)
     expect(leesStartInvoer({ klaar: 'alles' }).ok).toBe(false)
+    expect(leesStartInvoer({ klaar: 'welkom' }).ok).toBe(false)
+    expect(leesStartInvoer({ soort: 'zwembad' }).ok).toBe(false)
     expect(leesStartInvoer({ afronden: 'ja' }).ok).toBe(false)
     expect(leesStartInvoer({ stap: 2, extra: 1 }).ok).toBe(false)
   })
@@ -109,22 +116,28 @@ describe('leesStartInvoer', () => {
 
 describe('pasToe', () => {
   it('gaat naar een stap en zet een stap op klaar, zonder dubbelen', () => {
-    const een = pasToe(NIEUWE_START, { stap: 2, klaar: 'welkom' }, NU)
-    expect(een).toEqual({ stap: 2, klaar: ['welkom'], afgerondOp: null })
-    expect(pasToe(een, { klaar: 'welkom' }, NU)).toEqual(een)
+    const een = pasToe(NIEUWE_START, { stap: 2, klaar: 'soort' }, NU)
+    expect(een).toEqual({ stap: 2, klaar: ['soort'], afgerondOp: null, soort: null })
+    expect(pasToe(een, { klaar: 'soort' }, NU)).toEqual(een)
     expect(NIEUWE_START.klaar).toEqual([])
   })
 
+  it('bewaart de gekozen soort en houdt hem bij volgende stappen', () => {
+    const gekozen = pasToe(NIEUWE_START, { soort: 'vechtsport', klaar: 'soort', stap: 2 }, NU)
+    expect(gekozen.soort).toBe('vechtsport')
+    expect(pasToe(gekozen, { stap: 3 }, NU).soort).toBe('vechtsport')
+  })
+
   it('zet een stap weer open', () => {
-    expect(pasToe({ stap: 5, klaar: ['welkom', 'team'], afgerondOp: null }, { open: 'team' }, NU).klaar).toEqual(['welkom'])
+    expect(pasToe({ ...NIEUWE_START, stap: 5, klaar: ['soort', 'team'] }, { open: 'team' }, NU).klaar).toEqual(['soort'])
   })
 
   it('rondt af en opent weer', () => {
-    const af = pasToe({ stap: 9, klaar: ['welkom'], afgerondOp: null }, { afronden: true }, NU)
-    expect(af).toEqual({ stap: 9, klaar: ['welkom', 'klaar'], afgerondOp: NU.toISOString() })
+    const af = pasToe({ ...NIEUWE_START, stap: 8, klaar: ['soort'] }, { afronden: true }, NU)
+    expect(af).toEqual({ stap: 8, klaar: ['soort', 'klaar'], afgerondOp: NU.toISOString(), soort: null })
     // Nog een keer afronden houdt de eerste datum.
     expect(pasToe(af, { afronden: true }, new Date('2027-01-01')).afgerondOp).toBe(NU.toISOString())
-    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 9, klaar: ['welkom'], afgerondOp: null })
+    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 8, klaar: ['soort'], afgerondOp: null, soort: null })
   })
 })
 
@@ -139,8 +152,7 @@ describe('afUitData', () => {
 
   it('maakt de stap van een onderdeel dat uit staat af', () => {
     expect(afUitData({ ...LEEG, uit: ['rooster', 'leden'] })).toEqual(['lessen', 'leden'])
-    expect(afUitData({ ...LEEG, uit: ['app'] })).toEqual([])
-    expect(afUitData({ ...LEEG, uit: ['app', 'checkin'] })).toEqual(['ledenapp'])
+    expect(afUitData({ ...LEEG, uit: ['app', 'checkin'] })).toEqual([])
   })
 
   it('telt een vestiging met adres of openingstijden als ingericht', () => {
@@ -153,17 +165,22 @@ describe('afUitData', () => {
 
 describe('stappenStand', () => {
   it('combineert zelf aangevinkt en af door de data', () => {
-    const stand = stappenStand({ stap: 3, klaar: ['welkom'], afgerondOp: null }, { ...LEEG, heeftLogo: true })
-    expect(stand.filter((s) => s.af).map((s) => s.sleutel)).toEqual(['welkom', 'huisstijl'])
+    const stand = stappenStand({ ...NIEUWE_START, stap: 3, klaar: ['soort'] }, { ...LEEG, heeftLogo: true })
+    expect(stand.filter((s) => s.af).map((s) => s.sleutel)).toEqual(['soort', 'huisstijl'])
     expect(stand.find((s) => s.sleutel === 'huisstijl')?.vanzelf).toBe(true)
-    expect(stand.find((s) => s.sleutel === 'welkom')?.vanzelf).toBe(false)
-    expect(stand.map((s) => s.nummer)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(stand.find((s) => s.sleutel === 'soort')?.vanzelf).toBe(false)
+    expect(stand.map((s) => s.nummer)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
     expect(aantalAf(stand)).toBe(2)
   })
 
+  it('telt de soort als af zodra er een gekozen is', () => {
+    expect(stappenStand({ ...NIEUWE_START, soort: 'pt' }, LEEG)[0].af).toBe(true)
+    expect(stappenStand(NIEUWE_START, LEEG)[0].af).toBe(false)
+  })
+
   it('telt klaar alleen als de wizard is afgerond', () => {
-    expect(stappenStand({ stap: 9, klaar: ['klaar'], afgerondOp: null }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(false)
-    expect(stappenStand({ stap: 9, klaar: [], afgerondOp: NU.toISOString() }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(true)
+    expect(stappenStand({ ...NIEUWE_START, stap: 8, klaar: ['klaar'] }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(false)
+    expect(stappenStand({ ...NIEUWE_START, stap: 8, afgerondOp: NU.toISOString() }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(true)
   })
 
   it('werkt zonder voortgang', () => {

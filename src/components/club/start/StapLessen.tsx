@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Check, Plus } from 'lucide-react'
 import { SOORT_LABEL } from '@/lib/club/rooster/typen'
 import { WEEKDAG_LABEL } from '@/lib/club/rooster/openingstijden'
-import { VOORBEELD_LESTYPEN, lesVoorstellen, zelfdeNaam, type BestaandLestype, type BestaandeLes, type VoorbeeldLestype, type LesVoorstel } from '@/lib/club/start/voorbeelden'
+import { VOORBEELD_LESSEN, VOORBEELD_LESTYPEN, lesVoorstellen, zelfdeNaam, type BestaandLestype, type BestaandeLes, type VoorbeeldLes, type VoorbeeldLestype, type LesVoorstel } from '@/lib/club/start/voorbeelden'
 import { stuur } from '@/components/club/leden/stuur'
 
-// Stap 5: lestypen en een paar vaste lessen, met voorbeelden die je met een
-// klik overneemt. Gaat via dezelfde API als Instellingen, dus alles is daarna
+// Stap 5: lestypen en een paar vaste lessen, met voorbeelden (passend bij de
+// soort sportschool) die je met een klik overneemt. Gaat via dezelfde API als Instellingen, dus alles is daarna
 // gewoon aan te passen.
 
 const INTENSITEIT = ['', 'Rustig', 'Gemiddeld', 'Zwaar']
@@ -21,6 +21,10 @@ interface StapLessenProps {
   lessen: BestaandeLes[]
   /** Vandaag als jjjj-mm-dd: vaste lessen lopen vanaf vandaag. */
   vandaag: string
+  /** De voorbeeldlestypen voor deze soort sportschool (standaard de gangbare). */
+  voorbeelden?: readonly VoorbeeldLestype[]
+  /** De voorbeeldweek voor deze soort sportschool. */
+  voorbeeldLessen?: readonly VoorbeeldLes[]
 }
 
 function lestypeBody(v: VoorbeeldLestype, vestiging: string) {
@@ -31,13 +35,14 @@ function lesBody(l: LesVoorstel, vestiging: string, vandaag: string) {
   return { vestiging, lestypeId: l.lestypeId, weekdag: l.weekdag, starttijd: l.starttijd, duurMin: l.duurMin, capaciteit: l.capaciteit, vanaf: vandaag }
 }
 
-export function StapLessen({ vestiging, vestigingNaam, lestypen, lessen, vandaag }: StapLessenProps) {
+export function StapLessen({ vestiging, vestigingNaam, lestypen, lessen, vandaag, voorbeelden = VOORBEELD_LESTYPEN, voorbeeldLessen = VOORBEELD_LESSEN }: StapLessenProps) {
   const router = useRouter()
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [gemaakt, setGemaakt] = useState<string | null>(null)
-  const nieuw = VOORBEELD_LESTYPEN.filter((v) => !lestypen.some((t) => zelfdeNaam(t.naam, v.naam)))
-  const voorstellen = lesVoorstellen(lestypen, lessen)
+  const nieuw = voorbeelden.filter((v) => !lestypen.some((t) => zelfdeNaam(t.naam, v.naam)))
+  const voorstellen = lesVoorstellen(lestypen, lessen, voorbeeldLessen)
+  const openLessen = voorstellen.filter((l) => !l.bestaat)
 
   /** Een of meer items aanmaken, een voor een; stopt bij de eerste fout. */
   async function maak(sleutel: string, url: string, bodies: Record<string, unknown>[]) {
@@ -81,7 +86,7 @@ export function StapLessen({ vestiging, vestigingNaam, lestypen, lessen, vandaag
         </div>
         <p className="club-hint">Kies de lessen die je geeft. Naam, duur en uitleg pas je later aan in Instellingen.</p>
         <ul className="club-start-voorbeelden" role="list">
-          {VOORBEELD_LESTYPEN.map((v) => {
+          {voorbeelden.map((v) => {
             const staat = lestypen.some((t) => zelfdeNaam(t.naam, v.naam))
             return (
               <li key={v.naam} className="club-start-voorbeeld club-rooster-soortstreep" data-af={staat || undefined} data-soort={v.soort}>
@@ -108,6 +113,11 @@ export function StapLessen({ vestiging, vestigingNaam, lestypen, lessen, vandaag
       <section className="club-start-blok" aria-labelledby="start-lessen-kop">
         <div className="club-start-blokkop">
           <h2 id="start-lessen-kop">Vaste lessen in {vestigingNaam}</h2>
+          {openLessen.length > 1 && (
+            <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null} onClick={() => void maak('week', '/api/club/instellingen/weekrooster', openLessen.map((l) => lesBody(l, vestiging, vandaag)))}>
+              <Plus aria-hidden size={14} /> {bezig === 'week' ? 'Bezig...' : `Hele week toevoegen (${openLessen.length})`}
+            </button>
+          )}
         </div>
         <p className="club-hint">Een vaste les komt elke week terug. Zet ze daarna in het rooster, dan kunnen leden reserveren. Een zaal en instructeur kies je later.</p>
         {voorstellen.length === 0 ? (

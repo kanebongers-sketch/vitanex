@@ -4,8 +4,8 @@ import { Check } from 'lucide-react'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { AANTAL_STAPPEN, aantalAf, startPad, type StapStand } from '@/lib/club/start/stappen'
 
-// Het kader om elke stap: grote kop, de teller, en de voortgang als negen
-// segmenten die je ook kunt aanklikken (elke stap is los te openen).
+// Het kader om elke stap: grote kop, de teller, en de voortgang als een
+// segment per stap dat je ook kunt aanklikken (elke stap is los te openen).
 
 interface StartKaderProps {
   sportschool: string
