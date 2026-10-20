@@ -12,7 +12,7 @@ import { isGeldigeMedewerker, leadUitRoute, leesJson, medewerkerNaam, type LeadC
 export async function GET(req: NextRequest, ctx: LeadContext) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
-  const lead = await leadUitRoute(t, ctx)
+  const lead = await leadUitRoute(t, ctx, { ookGewist: true })
   if (lead instanceof NextResponse) return lead
   const historie = await haalHistorie(t.admin, t.userId, lead.id)
   if (!historie) return clubFout('De historie kon niet worden geladen.', 500)

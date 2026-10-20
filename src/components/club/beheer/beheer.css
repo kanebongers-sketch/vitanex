@@ -80,3 +80,26 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 }
 .club-beheer-matrix tr.club-beheer-matrix-groep th { position: static; padding: 14px 12px 6px; text-align: left; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); background: var(--club-vlak, transparent); }
 .club-beheer-matrix tbody tr.club-beheer-matrix-groep:hover { background: none; }
+
+/* ── Privacy en bewaren ───────────────────────────────────────────────────── */
+.club-privacy-intro { max-width: 760px; margin: 4px 0 0; padding: 12px 14px; border-left: 2px solid var(--brand); background: var(--bg-card); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; color: var(--text-2); }
+.club-privacy-termijn { display: grid; grid-template-columns: minmax(0, 1fr) 180px; align-items: start; gap: 8px 20px; padding: 16px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-card); transition: border-color 160ms var(--ease); }
+.club-privacy-termijn:hover, .club-privacy-termijn:focus-within { border-color: var(--line-strong); }
+.club-privacy-termijn .club-hint { margin: 0; line-height: 1.5; }
+.club-privacy-keuze { cursor: pointer; }
+@media (max-width: 560px) {
+  .club-privacy-termijn { grid-template-columns: minmax(0, 1fr); }
+}
+.club-privacy-vast { display: grid; gap: 10px; max-width: 960px; margin-top: 40px; }
+.club-privacy-vast h2 { margin: 0; }
+.club-privacy-vast > .club-hint { margin: 0 0 4px; }
+.club-privacy-vast .club-tabel { min-width: 560px; }
+.club-privacy-vast .club-tabel tbody th { position: static; font-family: inherit; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--text-1); white-space: normal; border-bottom: 1px solid var(--line); }
+.club-privacy-vast .club-tabel tbody tr:last-child th { border-bottom: 0; }
+.club-privacy-vast .club-tabel td { color: var(--text-2); vertical-align: top; }
+.club-privacy-vast .club-tabel tbody th { vertical-align: top; }
+.club-privacy-termijntekst { white-space: nowrap; font-weight: 600; color: var(--text-1); }
+.club-privacy-vast .club-tabel td.club-privacy-termijntekst { color: var(--text-1); }
+@media (prefers-reduced-motion: reduce) {
+  .club-privacy-termijn { transition: none; }
+}

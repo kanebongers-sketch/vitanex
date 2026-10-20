@@ -89,7 +89,7 @@ describe('rem en IP', () => {
     expect(isTeVeel({ email: 0, ip: 0, totaal: DEMO_REM.totaal })).toBe(true)
   })
 
-  it('bewaart het IP nooit zelf, alleen een vaste sha256', () => {
+  it('bewaart het IP nooit zelf, alleen een vaste HMAC', () => {
     const h = ipHash('203.0.113.7')
     expect(h).toMatch(/^[0-9a-f]{64}$/)
     expect(h).toBe(ipHash(' 203.0.113.7 '))

@@ -8,6 +8,8 @@ import { zichtbareMedewerkers } from '@/lib/club/kern/medewerker-vestigingen'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
 import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
+import { magMedewerkerWissen } from '@/lib/club/personeel/avg'
+import { haalGewisteMedewerkers } from '@/lib/club/personeel/avg-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { instelPagina } from '@/lib/club/kern/instel-paginas'
@@ -86,6 +88,7 @@ async function Inhoud({ onderdeel, data, vestiging, t }: InhoudProps) {
           vestiging={vestiging}
           login={await haalLoginBeheer(t)}
           ikZelf={t.rol === 'medewerker' ? t.persoonId : null}
+          privacy={{ magWissen: magMedewerkerWissen(t), gewist: await haalGewisteMedewerkers(t.admin, t.userId) }}
         />
       )
   }

@@ -15,13 +15,18 @@ export interface LeadContext {
   params: Promise<{ id: string }>
 }
 
-/** De lead uit de route, of een 404-antwoord. */
-export async function leadUitRoute(t: ClubToegang, ctx: LeadContext): Promise<Lead | NextResponse> {
+/**
+ * De lead uit de route, of een 404-antwoord. Een gewiste lead (AVG) is niet
+ * meer te bewerken: 409, tenzij de route hem alleen leest (ookGewist).
+ */
+export async function leadUitRoute(t: ClubToegang, ctx: LeadContext, opties: { ookGewist?: boolean } = {}): Promise<Lead | NextResponse> {
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Lead niet gevonden.', 404)
   const lead = await haalLead(t.admin, t.userId, id)
   // Een medewerker ziet alleen leads van de eigen vestigingen.
-  return lead && hoortBij(t.vestigingen, lead.vestiging) ? lead : clubFout('Lead niet gevonden.', 404)
+  if (!lead || !hoortBij(t.vestigingen, lead.vestiging)) return clubFout('Lead niet gevonden.', 404)
+  if (lead.geanonimiseerdOp && !opties.ookGewist) return clubFout('Deze lead is gewist (AVG) en kan niet meer worden aangepast.', 409)
+  return lead
 }
 
 /** De JSON-body, of null bij onleesbare invoer. */

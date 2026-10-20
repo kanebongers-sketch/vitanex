@@ -153,12 +153,16 @@ export async function wijzigItem(t: ClubToegang, soort: InstellingSoort, id: str
   }
   let q = t.admin.from(TABEL[soort]).update(velden).eq('user_id', t.userId).eq('id', id)
   if (soort === 'zalen' || soort === 'weekrooster') q = q.eq('vestiging', vestiging)
+  // Een gewiste medewerker (AVG) blijft gewist: niet meer aan te passen of op actief te zetten.
+  if (soort === 'medewerkers') q = q.is('geanonimiseerd_op', null)
   const { data, error } = await q.select('id')
   if (error) {
     console.error('[club-instellingen] wijzigen mislukt', error.message)
     return mislukt('Opslaan is niet gelukt. Probeer het opnieuw.', 500)
   }
-  if (!data || data.length === 0) return mislukt('Dit item bestaat niet (meer).', 404)
+  if (!data || data.length === 0) {
+    return soort === 'medewerkers' ? mislukt('Deze medewerker bestaat niet (meer) of is gewist (AVG).', 404) : mislukt('Dit item bestaat niet (meer).', 404)
+  }
   await logActie(t, `${LABEL[soort]} aangepast`, naamVoorLog(velden), vestiging)
   return gelukt({ id })
 }

@@ -5,8 +5,8 @@
 // mailt en plant de proefles zelf in. Loopt er al een lead met dit
 // e-mailadres in deze vestiging, dan komt de aanvraag daarbij als notitie.
 
-import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { remSleutel } from '@/lib/club/kern/rem-hash'
 import { LEAD_KOLOMMEN, leadUitRij } from '@/lib/club/leads/model'
 import { schrijfHistorie } from '@/lib/club/leads/data'
 import type { WidgetAanvraag } from './invoer'
@@ -19,7 +19,7 @@ function log(wat: string, bericht: string): void {
 }
 
 export function hashVoorRem(soort: 'ip' | 'email', waarde: string): string {
-  return createHash('sha256').update(`club-widget|${soort}|${waarde}`).digest('hex')
+  return remSleutel(`club-widget|${soort}`, waarde)
 }
 
 /** De rem in de database (migratie 448): true = mag door. Bij een fout liever dicht. */

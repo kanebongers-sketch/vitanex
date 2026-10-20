@@ -132,7 +132,7 @@ const LEAD_KOLOMMEN = 'id, naam, status, opvolgen_op, proefles_op, interesse'
 
 /** Leads om vandaag op te volgen (eerste 6 plus het totaal) en de proeflessen van vandaag. */
 async function haalLeadsVandaag(admin: SupabaseClient, userId: string, vestiging: Vestiging, vandaag: string, start: Date, morgen: Date) {
-  const basis = () => admin.from('club_leads').select(LEAD_KOLOMMEN, { count: 'exact' }).eq('user_id', userId).eq('vestiging', vestiging)
+  const basis = () => admin.from('club_leads').select(LEAD_KOLOMMEN, { count: 'exact' }).eq('user_id', userId).eq('vestiging', vestiging).is('geanonimiseerd_op', null)
   const [opvolgen, proef] = await Promise.all([
     basis().in('status', ['nieuw', 'contact', 'proefles_geweest']).lte('opvolgen_op', vandaag).order('opvolgen_op').limit(6),
     basis().gte('proefles_op', start.toISOString()).lt('proefles_op', morgen.toISOString()).order('proefles_op'),

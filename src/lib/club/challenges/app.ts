@@ -65,15 +65,32 @@ export function toonInApp(c: Challenge, vestiging: string, vandaag: string): boo
   return dagenTussen(laatsteDag(c), vandaag) <= RECENT_AFGELOPEN_DAGEN + 1
 }
 
-/** De top van de ranglijst, plus het lid zelf als dat er niet in staat. */
-export function ranglijstVoorApp(stand: readonly Stand[], lidId: string, top = RANGLIJST_TOP): AppStand[] {
+/** Wie op de ranglijst van een ander lid mag staan; standaard iedereen. */
+export type MagTonen = (lidId: string) => boolean
+
+const IEDEREEN: MagTonen = () => true
+
+/**
+ * De top van de ranglijst, plus het lid zelf als dat er niet in staat. Andere
+ * leden alleen als `magTonen` dat zegt (AVG: bij automatisch meedoen alleen
+ * wie zelf koos voor de ranglijst). De posities blijven die van de hele stand.
+ */
+export function ranglijstVoorApp(stand: readonly Stand[], lidId: string, top = RANGLIJST_TOP, magTonen: MagTonen = IEDEREEN): AppStand[] {
   const naarApp = (s: Stand): AppStand => ({ naam: s.naam, score: s.score, positie: s.positie, isIk: s.lidId === lidId })
-  const bovenaan = stand.slice(0, top).filter((s) => s.score > 0 || s.lidId === lidId).map(naarApp)
+  const bovenaan = stand.filter((s) => s.lidId === lidId || magTonen(s.lidId)).slice(0, top).filter((s) => s.score > 0 || s.lidId === lidId).map(naarApp)
   const ik = stand.find((s) => s.lidId === lidId)
   return ik && !bovenaan.some((s) => s.isIk) ? [...bovenaan, naarApp(ik)] : bovenaan
 }
 
-export function appChallenge(c: Challenge, lid: { id: string; vestiging: string }, ingeschreven: boolean, momenten: readonly string[], vandaag: string, stand: readonly Stand[] | null): AppChallenge {
+export function appChallenge(
+  c: Challenge,
+  lid: { id: string; vestiging: string },
+  ingeschreven: boolean,
+  momenten: readonly string[],
+  vandaag: string,
+  stand: readonly Stand[] | null,
+  magTonen: MagTonen = IEDEREEN,
+): AppChallenge {
   const mee = doetMee(c, lid, ingeschreven)
   const score = mee ? scoreVoor(c, momenten) : 0
   return {
@@ -91,7 +108,7 @@ export function appChallenge(c: Challenge, lid: { id: string; vestiging: string 
     fractie: fractie(score, c.doel),
     gehaaldOp: mee ? gehaaldOp(c, momenten) : null,
     dagenTeGaan: dagenTeGaan(c, vandaag),
-    ranglijst: c.ranglijst && stand ? ranglijstVoorApp(stand, lid.id) : null,
+    ranglijst: c.ranglijst && stand ? ranglijstVoorApp(stand, lid.id, RANGLIJST_TOP, magTonen) : null,
   }
 }
 

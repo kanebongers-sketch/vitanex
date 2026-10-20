@@ -57,7 +57,7 @@ AI Your Gym houdt de persoonsgegevens geheim. Iedereen die namens AI Your Gym to
 
 1. Leden en medewerkers richten verzoeken (inzage, correctie, verwijdering, beperking, bezwaar, overdraagbaarheid) aan de Sportschool. Komt een verzoek bij AI Your Gym binnen, dan stuurt AI Your Gym het zonder inhoudelijke reactie door naar de Sportschool.
 2. De Sportschool kan veel verzoeken zelf in de Dienst afhandelen: gegevens van een lid inzien en aanpassen, en exporteren als CSV via Rapporten. Een lid ziet in de ledenapp de eigen gegevens.
-3. De Sportschool handelt inzage en verwijdering van een lid zelf af in de Dienst (stand 18-10-2026): op de ledenkaart downloadt zij alle gegevens van het lid als bestand (inzage, overdraagbaarheid), en verwijdert zij het lid in twee stappen (zie Bijlage 1, "Verwijderen van een lid"). Waar de Sportschool een verzoek niet zelf kan afhandelen, helpt AI Your Gym binnen redelijke termijn. [In te vullen: of hulp kosten met zich meebrengt.]
+3. De Sportschool handelt inzage en verwijdering van een lid, een lead en een medewerker zelf af in de Dienst (stand 20-10-2026): op de ledenkaart downloadt zij alle gegevens van het lid als bestand (inzage, overdraagbaarheid), en verwijdert zij het lid in twee stappen (zie Bijlage 1, "Verwijderen van een lid"). Waar de Sportschool een verzoek niet zelf kan afhandelen, helpt AI Your Gym binnen redelijke termijn. [In te vullen: of hulp kosten met zich meebrengt.]
 
 ## Artikel 9. Inbreuken in verband met persoonsgegevens (datalekken)
 
@@ -102,7 +102,7 @@ Ondertekend:
 
 ## Bijlage 1. Welke gegevens, van wie, waarvoor, hoe lang
 
-De lijst volgt de tabellen van de Dienst (database `club_*`, stand 17-10-2026). Elke sportschool heeft een eigen, gescheiden omgeving.
+De lijst volgt de tabellen van de Dienst (database `club_*`, stand 20-10-2026). Elke sportschool heeft een eigen, gescheiden omgeving. Bewaartermijn standaard; de Sportschool kan de termijnen met een ster (*) zelf instellen in Instellingen > Privacy en bewaren. Automatisch uitgevoerd door de Dienst (elke nacht). Het volledige register staat in `docs/club/AVG.md`.
 
 ### Betrokkenen
 - Leden en oud-leden van de Sportschool, en proefleden.
@@ -113,24 +113,26 @@ De lijst volgt de tabellen van de Dienst (database `club_*`, stand 17-10-2026). 
 
 | Onderdeel | Gegevens | Doel | Bewaartermijn |
 |---|---|---|---|
-| Leden | voornaam, achternaam, e-mail, telefoon, geboortedatum, geslacht, lidnummer, id in de ledenadministratie (Sportivity), vestiging, abonnement (naam), status, lid sinds en einddatum, labels, vaste coach, QR-code voor inchecken | ledenadministratie voor begeleiding, inchecken en contact | [in te vullen, bijvoorbeeld zolang lid plus X maanden] |
-| Bezoek (check-in) | lid, vestiging, tijdstip, manier (balie, QR, bandje, les) | toegang en bezoekcijfers | [in te vullen] |
-| Lessen en reserveringen | reserveringen, aanwezigheid, wachtlijst | lesrooster en reserveren | [in te vullen] |
-| Afspraken | lid, medewerker, tijd, soort afspraak, status (gepland, geweest, niet gekomen, geannuleerd), notitie | afspraken plannen, zoals intakes | [in te vullen] |
-| Intakes | antwoorden op de intakevragen van de Sportschool, metingen, notitie, en of het lid toestemming gaf voor gezondheidsgegevens | intake en begeleiding | [in te vullen] |
-| Lichaamsmetingen | gewicht, lengte, vetpercentage, buik- en heupomtrek, spiermassa, rusthartslag, bloeddruk, notitie. **Gezondheidsgegevens**: alleen op te slaan met vastgelegde uitdrukkelijke toestemming van het lid | voortgang meten en begeleiden | [in te vullen] |
-| Trainingsschema's en trainingslog | schema's per lid, uitgevoerde trainingen (oefeningen, sets, gewichten) | training begeleiden | [in te vullen] |
-| Voeding | doel (afvallen, onderhoud, aankomen), dagelijkse calorieen en macro's, adviezen, maaltijden, notitie, berekening | voedingsbegeleiding | [in te vullen] |
-| Challenges | deelname en voortgang | activiteiten in de club | [in te vullen] |
-| Notities en kladblok | vrije notities van medewerkers over een lid | begeleiding. Let op: geen gezondheidsgegevens in vrije notities zonder toestemming | [in te vullen] |
-| Leads | naam, e-mail, telefoon, bron, interesse, status, proefles, opvolgdatum, reden verloren, toestemming voor contact | geinteresseerden opvolgen | [in te vullen] |
-| Berichten | nieuwsberichten aan leden (geen persoonsgegevens van leden, wel naam van de schrijver) | informeren via de ledenapp | [in te vullen] |
-| Ledenapp | inloglink, gehashte pincode, sessies (gehasht), laatste inlog, mislukte pogingen | inloggen in de ledenapp | sessies verlopen vanzelf; [in te vullen] |
-| Medewerkers | naam, e-mail, functies, vestigingen, actief | personeelsplanning en rechten | [in te vullen] |
-| Personeelsrooster en uren | diensten (datum, tijden, soort), ziek, verlof, ruilen, gewerkte tijden, pauze, opmerkingen, wie het bevestigde en goedkeurde | rooster en urenadministratie | [in te vullen, let op fiscale bewaarplicht van loonadministratie] |
-| Taken en poetslijsten | wie welke taak afvinkte en wanneer | dagelijkse taken en afsluitronde | [in te vullen] |
-| Beheerders | naam, e-mail, rol (eigenaar, clubmanager), gehashte pincode, laatste inlog, mislukte pogingen | toegang tot de beheeromgeving | [in te vullen] |
-| Logboek | wie (naam van de medewerker), wat (actie), onderwerp (bijvoorbeeld een naam), vestiging, tijdstip | controle wie wat deed | [in te vullen] |
+| Leden | voornaam, achternaam, e-mail, telefoon, geboortedatum, geslacht, lidnummer, id in de ledenadministratie (Sportivity), vestiging, abonnement (naam), status, lid sinds en einddatum, labels, vaste coach, QR-code voor inchecken | ledenadministratie voor begeleiding, inchecken en contact | zolang lid; oud-leden 24 maanden na einde (*): dan start automatisch het verwijderen, 30 dagen terug te draaien |
+| Bezoek (check-in) | lid, vestiging, tijdstip, manier (balie, QR, bandje, les) | toegang en bezoekcijfers | 24 maanden (*), daarna alleen nog anoniem als telling |
+| Lessen en reserveringen | reserveringen, aanwezigheid, wachtlijst | lesrooster en reserveren | gegeven lessen: als bezoek (*), daarna anoniem |
+| Afspraken | lid, medewerker, tijd, soort afspraak, status (gepland, geweest, niet gekomen, geannuleerd), notitie | afspraken plannen, zoals intakes | zolang lid |
+| Intakes | antwoorden op de intakevragen van de Sportschool, metingen, notitie, en of het lid toestemming gaf voor gezondheidsgegevens | intake en begeleiding | zolang lid. Zonder toestemming slaat de Dienst geen metingen of gezondheidsantwoorden op |
+| Lichaamsmetingen | gewicht, lengte, vetpercentage, buik- en heupomtrek, spiermassa, rusthartslag, bloeddruk, notitie. **Gezondheidsgegevens**: alleen op te slaan met vastgelegde uitdrukkelijke toestemming van het lid | voortgang meten en begeleiden | zolang lid |
+| Trainingsschema's en trainingslog | schema's per lid, uitgevoerde trainingen (oefeningen, sets, gewichten) | training begeleiden | zolang lid |
+| Voeding | doel (afvallen, onderhoud, aankomen), dagelijkse calorieen en macro's, adviezen, maaltijden, notitie, berekening | voedingsbegeleiding | zolang lid |
+| Challenges | deelname en voortgang | activiteiten in de club | zolang lid |
+| Notities en kladblok | vrije notities van medewerkers over een lid | begeleiding. Let op: geen gezondheidsgegevens in vrije notities zonder toestemming | notities bij een lid: zolang lid; kladblok en agenda: beheert de Sportschool zelf |
+| Leads | naam, e-mail, telefoon, bron, interesse, status, proefles, opvolgdatum, reden verloren, toestemming voor contact | geinteresseerden opvolgen | 12 maanden na het laatste contact (*), daarna automatisch gewist (naam, contact en vrije tekst weg) |
+| Berichten | nieuwsberichten aan leden (geen persoonsgegevens van leden, wel naam van de schrijver) | informeren via de ledenapp | zolang de Sportschool het bericht laat staan; persoonlijke mails en meldingen aan leden 12 maanden |
+| Ledenapp | inloglink, gehashte pincode, sessies (gehasht), laatste inlog, mislukte pogingen | inloggen in de ledenapp | verlopen sessies elke nacht weg; push-toestellen na 6 maanden zonder melding |
+| Medewerkers | naam, e-mail, functies, vestigingen, actief | personeelsplanning en rechten | zolang in dienst; daarna op verzoek gewist (naam wordt "Oud-medewerker") |
+| Personeelsrooster en uren | diensten (datum, tijden, soort), ziek, verlof, ruilen, gewerkte tijden, pauze, opmerkingen, wie het bevestigde en goedkeurde | rooster en urenadministratie | diensten en uren 7 jaar (fiscale bewaarplicht); beschikbaarheid (kan ziekte of verlof noemen) en roosternotities 24 maanden |
+| Taken en poetslijsten | wie welke taak afvinkte en wanneer | dagelijkse taken en afsluitronde | 24 maanden |
+| Beheerders | naam, e-mail, rol (eigenaar, clubmanager), gehashte pincode, laatste inlog, mislukte pogingen | toegang tot de beheeromgeving | zolang beheerder; verlopen sessies elke nacht weg |
+| Betalen in de ledenapp (als de Sportschool dat aanzet) | aankopen (product, bedrag, status), tegoeden en het gebruik ervan. Betaalgegevens zelf (kaart, rekening) verwerkt Stripe, niet de Dienst | verkoop van losse lessen en pakketten | verkopen 7 jaar (fiscale bewaarplicht), bij verwijderen van het lid zonder naam; tegoeden zolang lid |
+| Proefles via de widget | naam, e-mail, telefoon, gekozen les, opmerking | aanvraag proefles of kennismaking (wordt een lead) | als leads (*) |
+| Logboek | wie (naam van de medewerker), wat (actie), onderwerp (bijvoorbeeld een naam), vestiging, tijdstip | controle wie wat deed | 24 maanden (*); namen gaan eruit bij verwijderen |
 
 ### Verwijderen van een lid
 Op verzoek van het lid (of als de Sportschool dat zelf wil) verwijdert de eigenaar van de Sportschool een lid op de ledenkaart. Dat gaat in twee stappen:
@@ -140,12 +142,16 @@ Op verzoek van het lid (of als de Sportschool dat zelf wil) verwijdert de eigena
 
 Vrije tekst die een medewerker elders schreef (bijvoorbeeld in het kladblok of de agenda) kan de Dienst niet automatisch herkennen; die past de Sportschool zelf aan. Kopieen in back-ups verdwijnen volgens de bewaartijd van die back-ups (Bijlage 2). Staat het lid nog in de ledenadministratie van de Sportschool (Sportivity), dan verwijdert de Sportschool het daar ook, anders kan een nieuwe import het lid opnieuw aanmaken.
 
+### Leads en medewerkers wissen
+- **Lead:** op de leadkaart downloadt de Sportschool alle gegevens van de lead, en wist zij de lead (naam, contact, vrije tekst en contactmomenten weg; status en bron blijven als telling). Dit kan de eigenaar of een clubmanager. Na de bewaartermijn gebeurt dit automatisch.
+- **Medewerker:** na uit dienst (eerst op inactief) downloadt de Sportschool de gegevens en wist zij de medewerker: naam, e-mail, inlog, beschikbaarheid en vrije opmerkingen gaan weg; diensten en uren blijven 7 jaar (fiscale bewaarplicht) onder "Oud-medewerker". Alleen de eigenaar.
+
 ### Wat de Dienst niet verwerkt
-- Geen betaalgegevens van leden: incasso, abonnementen en betalingen van leden lopen buiten de Dienst (bijvoorbeeld via Sportivity).
+- Geen incasso of abonnementen van leden: die lopen buiten de Dienst (bijvoorbeeld via Sportivity). Alleen als de Sportschool Betalen in de ledenapp aanzet, staan aankopen in de app in de Dienst (zie hierboven); kaart- en rekeninggegevens verwerkt Stripe.
 - Geen burgerservicenummers.
 - Foutregistratie van de Dienst (`club_fouten`) slaat bewust geen persoonsgegevens op.
 
-## Bijlage 2. Beveiligingsmaatregelen (stand 17-10-2026)
+## Bijlage 2. Beveiligingsmaatregelen (stand 20-10-2026)
 
 Alleen maatregelen die echt in de software zitten:
 
@@ -160,7 +166,10 @@ Alleen maatregelen die echt in de software zitten:
 - **Rechten van leden in de software**: inzage per lid als download (gelogd zonder inhoud, zonder pincodes of inloglinks) en verwijderen in twee stappen (30 dagen terug te draaien, daarna definitief in een databasefunctie die alles in een keer doet). Alleen de eigenaar van de Sportschool (en het beheer van AI Your Gym) kan een lid verwijderen; een clubmanager of medewerker niet.
 - **Gezondheidsgegevens**: een meting kan niet worden opgeslagen zonder vastgelegde toestemming (databaseregel). In de ledenapp ziet een lid geen trainersnotities en geen gegevens zoals bloeddruk.
 - **Versleutelde verbindingen** (https) naar de app; de database draait in de EU (Frankfurt).
-- **Foutregistratie zonder persoonsgegevens** en een uptime-controle.
+- **Foutregistratie zonder persoonsgegevens** (90 dagen bewaard) en een uptime-controle.
+- **Geen IP-adressen bewaard**: remmen tegen misbruik bewaren alleen een HMAC met een servergeheim, 7 dagen.
+- **Bewaartermijnen automatisch**: elke nacht ruimt de Dienst op of anonimiseert volgens Bijlage 1 (database-taak `club_privacy_opruimen`).
+- **Alleen functionele cookies** (sessies), geen analytische of trackingcookies en geen scripts van derden.
 - **Back-ups**: [EERLIJK, stand 17-10-2026: de database draait op het gratis plan van Supabase, dat geen automatische back-ups maakt. Voor de livegang regelen (Pro-plan met dagelijkse back-ups, of eigen versleutelde back-ups) en hier de bewaartijd invullen.]
 - [In te vullen: tweestapsverificatie op de beheeraccounts van AI Your Gym bij Supabase, Render, Stripe, Resend en GitHub; wie bij AI Your Gym toegang heeft.]
 
@@ -171,6 +180,7 @@ Alleen maatregelen die echt in de software zitten:
 | Supabase Inc. | database en bestandsopslag (logo's) | AWS eu-central-1, Frankfurt (Duitsland), nagekeken 17-10-2026 | Supabase is een Amerikaans bedrijf; [te controleren: DPA van Supabase en de grondslag voor eventuele toegang vanuit de VS] |
 | Render Services, Inc. | hosting van de app (de server die de gegevens verwerkt) | [in te vullen: regio van de Render-dienst, controleren in het Render-dashboard; als het niet Frankfurt is, overwegen te verhuizen] | Render is een Amerikaans bedrijf; [te controleren: DPA en grondslag] |
 | Resend (Plus Five Five, Inc.) | versturen van e-mails (welkomstmail AI Your Gym, meldingen uit Club als die aan staan) | [in te vullen: regio van het Resend-account] | Amerikaans bedrijf; [te controleren: DPA en grondslag] |
-| Stripe | betaling van het abonnement van de Sportschool bij AI Your Gym. Verwerkt geen gegevens van leden | [in te vullen] | Stripe heeft een eigen DPA; [te controleren of Stripe hier verwerker of zelfstandig verantwoordelijke is] |
+| Stripe | betaling van het abonnement van de Sportschool bij AI Your Gym. Als de Sportschool Betalen in de ledenapp aanzet, betalen leden via het eigen Stripe-account van de Sportschool (Stripe Connect) | [in te vullen] | Stripe heeft een eigen DPA; [te controleren of Stripe hier verwerker of zelfstandig verantwoordelijke is; bij Betalen in de app is de Sportschool zelf klant van Stripe] |
+| Push-diensten van de browser (Google Firebase Cloud Messaging, Apple Push, Mozilla Push) | doorgeven van meldingen naar de telefoon van een lid dat meldingen aanzet. Het bericht is versleuteld (Web Push), de dienst ziet alleen het toestel-adres | wereldwijd | [te controleren: voorwaarden per dienst] |
 
 Geen andere partijen krijgen persoonsgegevens van leden of medewerkers. De Dienst gebruikt op dit moment geen AI-dienst van derden voor gegevens van leden. [Als dat verandert: hier toevoegen en vooraf melden volgens artikel 7.]

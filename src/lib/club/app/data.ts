@@ -178,7 +178,7 @@ async function haalLogs(admin: SupabaseClient, userId: string, lidId: string, nu
 export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid, nu = new Date()): Promise<LidAppData> {
   // De check-in QR-code haalt de app zelf (wisselt elke 30 seconden): /api/club/lid/checkin-code.
   const [vestiging, bezoek, lessen, schema, logs] = await Promise.all([
-    admin.from('club_vestigingen').select('regels').eq('vestiging', lid.vestiging).maybeSingle(),
+    admin.from('club_vestigingen').select('regels').eq('user_id', userId).eq('vestiging', lid.vestiging).maybeSingle(),
     haalBezoek(admin, userId, lid.id, nu),
     haalLessen(admin, userId, lid, nu, 7),
     haalSchema(admin, userId, lid.id),

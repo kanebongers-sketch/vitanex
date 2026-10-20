@@ -10,6 +10,7 @@ import { useClubActie } from '@/components/club/rooster/vraag'
 import type { LoginOverzicht } from '@/lib/club/medewerker-login/medewerker-login'
 import { bewaarItem } from './opslaan'
 import { MedewerkerLogin } from './MedewerkerLogin'
+import { MedewerkerPrivacy } from './MedewerkerPrivacy'
 
 // Medewerkers met hun rollen en vestigingen. De rollen bepalen wat iemand ziet
 // als hij zelf inlogt; de eigenaar of clubmanager deelt hier de inloglink uit.
@@ -116,9 +117,12 @@ interface MedewerkersBeheerProps {
   login: LoginBeheer | null
   /** Het eigen id als een medewerker dit beheert: die rij is niet aan te passen. */
   ikZelf: string | null
+  /** Privacy (AVG): wie mag wissen (Kane, eigenaar) en welke medewerkers al gewist zijn. */
+  privacy: { magWissen: boolean; gewist: readonly string[] }
 }
 
-export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf }: MedewerkersBeheerProps) {
+export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, privacy }: MedewerkersBeheerProps) {
+  const gewist = new Set(privacy.gewist)
   const perMedewerker = new Map((login?.logins ?? []).map((l) => [l.medewerkerId, l]))
   const hier = medewerkers.filter((m) => m.vestigingen.includes(vestiging))
   const elders = medewerkers.filter((m) => !m.vestigingen.includes(vestiging))
@@ -128,10 +132,12 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf }: Med
       <summary>
         <span className="club-instellingen-item-naam">{m.naam}</span>
         <span className="club-zacht">{m.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Geen rol'}</span>
-        {!m.actief && <span className="club-chip club-chip--uit">Uit dienst</span>}
+        {!m.actief && <span className="club-chip club-chip--uit">{gewist.has(m.id) ? 'Gewist' : 'Uit dienst'}</span>}
       </summary>
       {m.id === ikZelf ? (
         <p className="club-hint">Dit ben jij. Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.</p>
+      ) : gewist.has(m.id) ? (
+        <p className="club-hint">De gegevens van deze oud-medewerker zijn gewist (AVG). Diensten en uren blijven zonder naam bewaard.</p>
       ) : (
         <MedewerkerFormulier key={`${m.naam}-${m.email}-${m.rollen.join()}-${m.vestigingen.join()}`} mens={m} vestiging={vestiging} />
       )}
@@ -145,6 +151,7 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf }: Med
           loginAan={login.loginAan}
         />
       )}
+      {m.id !== ikZelf && <MedewerkerPrivacy medewerkerId={m.id} naam={m.naam} actief={m.actief} gewist={gewist.has(m.id)} magWissen={privacy.magWissen} />}
     </details>
   )
   return (

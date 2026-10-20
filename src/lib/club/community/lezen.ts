@@ -204,7 +204,8 @@ async function haalDeelnemers(admin: SupabaseClient, userId: string, groepId: st
   })
 }
 
-async function haalOpLijst(admin: SupabaseClient, userId: string, ids: readonly string[]): Promise<Set<string> | null> {
+/** Welke van deze leden zelf kozen voor ranglijsten (community en automatische challenges). */
+export async function haalOpLijst(admin: SupabaseClient, userId: string, ids: readonly string[]): Promise<Set<string> | null> {
   if (ids.length === 0) return new Set()
   const uitkomsten = await Promise.all(
     inBlokken(ids).map((blok) => admin.from('club_community_voorkeuren').select('lid_id').eq('user_id', userId).eq('op_ranglijst', true).in('lid_id', blok)),

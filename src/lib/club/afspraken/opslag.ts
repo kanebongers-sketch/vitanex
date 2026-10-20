@@ -232,6 +232,8 @@ export async function haalOpenLeads(admin: SupabaseClient, userId: string, vesti
     .eq('user_id', userId)
     .eq('vestiging', vestiging)
     .not('status', 'in', '(lid,verloren)')
+    // Gewiste leads (AVG) zijn geen persoon meer om een afspraak mee te maken.
+    .is('geanonimiseerd_op', null)
     .order('aangemaakt_op', { ascending: false })
     .limit(200)
   if (error) return meld('leads lezen', error)

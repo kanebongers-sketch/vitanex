@@ -82,6 +82,8 @@ export interface Lead {
   demo: boolean
   aangemaaktOp: string
   bijgewerktOp: string
+  /** Gewist op verzoek of na de bewaartermijn (AVG, migratie 449); null = niet gewist. */
+  geanonimiseerdOp: string | null
 }
 
 export interface HistorieRegel {
@@ -93,7 +95,7 @@ export interface HistorieRegel {
 }
 
 export const LEAD_KOLOMMEN =
-  'id, vestiging, naam, email, telefoon, bron, interesse, status, proefles_op, proefles_les_id, opvolgen_op, verloren_reden, medewerker_id, lid_id, toestemming_contact, demo, aangemaakt_op, bijgewerkt_op'
+  'id, vestiging, naam, email, telefoon, bron, interesse, status, proefles_op, proefles_les_id, opvolgen_op, verloren_reden, medewerker_id, lid_id, toestemming_contact, demo, aangemaakt_op, bijgewerkt_op, geanonimiseerd_op'
 
 export const HISTORIE_KOLOMMEN = 'id, soort, tekst, auteur, op'
 
@@ -140,6 +142,7 @@ export function leadUitRij(rij: unknown): Lead | null {
     demo: r.demo === true,
     aangemaaktOp,
     bijgewerktOp: tekst(r.bijgewerkt_op) ?? aangemaaktOp,
+    geanonimiseerdOp: tekst(r.geanonimiseerd_op),
   }
 }
 
@@ -152,6 +155,7 @@ export function leadUitJson(v: unknown): Lead | null {
     interesse: r.interesse, status: r.status, proefles_op: r.proeflesOp, proefles_les_id: r.proeflesLesId,
     opvolgen_op: r.opvolgenOp, verloren_reden: r.verlorenReden, medewerker_id: r.medewerkerId, lid_id: r.lidId,
     toestemming_contact: r.toestemmingContact, demo: r.demo, aangemaakt_op: r.aangemaaktOp, bijgewerkt_op: r.bijgewerktOp,
+    geanonimiseerd_op: r.geanonimiseerdOp,
   })
 }
 

@@ -2,18 +2,18 @@
 // Tabel ayg_demo_aanvragen (migratie 436) in de LifeOS-database, alleen via de
 // service role. Er gaat niets automatisch naar buiten: Kane neemt zelf contact op.
 
-import { createHash } from 'node:crypto'
+import { remSleutel } from '@/lib/club/kern/rem-hash'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { DemoAanvraag } from './demo-aanvraag'
 
 /** Grenzen per uur: per e-mailadres, per IP en in totaal (tegen misbruik). */
 export const DEMO_REM = { perEmail: 3, perIp: 5, totaal: 100 } as const
 
-/** Het IP-adres als sha256: genoeg voor de rem, zonder het adres zelf te bewaren. */
+/** Het IP-adres als HMAC met een servergeheim: genoeg voor de rem, zonder het adres zelf te bewaren. */
 export function ipHash(ip: string): string | null {
   const schoon = ip.trim()
   if (!schoon || schoon === 'onbekend') return null
-  return createHash('sha256').update(`ayg-demo:${schoon}`).digest('hex')
+  return remSleutel('ayg-demo|ip', schoon)
 }
 
 export interface RemTellingen {

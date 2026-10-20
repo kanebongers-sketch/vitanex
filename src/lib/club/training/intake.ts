@@ -79,8 +79,12 @@ export const METING_GRENZEN = {
 } as const
 type GetalMeting = keyof typeof METING_GRENZEN
 
-/** Metingen die gezondheidsgegevens zijn en dus alleen met toestemming mogen. */
-export const GEZONDHEIDSMETINGEN: readonly (keyof Metingen)[] = ['rusthartslag', 'bloeddruk']
+/**
+ * Metingen die gezondheidsgegevens zijn en dus alleen met toestemming mogen.
+ * Alle metingen van een intake: net als bij een losse meting (databaseregel in
+ * migratie 430) gaan lichaamsmetingen alleen met vastgelegde toestemming mee.
+ */
+export const GEZONDHEIDSMETINGEN: readonly (keyof Metingen)[] = [...(Object.keys(METING_GRENZEN) as (keyof Metingen)[]), 'bloeddruk']
 
 function korteTekst(v: unknown, max: number): string | null {
   const t = tekstOfNull(v)
@@ -118,7 +122,7 @@ function leesGetalMeting(r: Record<string, unknown>, sleutel: GetalMeting): Uits
   return { ok: true, waarde: Math.round(n * 10) / 10 }
 }
 
-/** Valideer de metingen. Zonder toestemming vallen de gezondheidsmetingen weg. */
+/** Valideer de metingen. Zonder toestemming vallen alle metingen weg (gezondheidsgegevens). */
 export function leesMetingen(ruw: unknown, toestemming: boolean): Uitslag<Metingen> {
   if (ruw === undefined || ruw === null) return { ok: true, waarde: {} }
   if (!isRij(ruw)) return { ok: false, fout: 'De metingen zijn ongeldig.' }

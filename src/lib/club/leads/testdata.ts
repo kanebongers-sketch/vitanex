@@ -24,6 +24,7 @@ export function maakLead(over: Partial<Lead> = {}): Lead {
     demo: true,
     aangemaaktOp: '2026-10-01T10:00:00Z',
     bijgewerktOp: '2026-10-01T10:00:00Z',
+    geanonimiseerdOp: null,
     ...over,
   }
 }

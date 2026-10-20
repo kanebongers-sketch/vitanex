@@ -26,12 +26,14 @@ interface LeadsWerkvlakProps {
   vandaagDag: string
   nuIso: string
   paneel: { leadId: string | null; stap: PaneelStap | null; nieuw: boolean }
+  /** Kane, eigenaar of clubmanager: mag een lead wissen (AVG). */
+  magWissen: boolean
 }
 
 // Het interactieve deel van de leadspagina: vandaag, de pijplijn of de lijst,
 // en het zijpaneel. Data komt van de server; dit eiland stuurt alleen acties.
 export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
-  const { vestiging, leads, vandaag, medewerkers, lessen, weergave, zoek, vandaagDag, nuIso, paneel } = props
+  const { vestiging, leads, vandaag, medewerkers, lessen, weergave, zoek, vandaagDag, nuIso, paneel, magWissen } = props
   const acties = useLeadsActies(vestiging, zoek)
   const namen = useMemo(() => new Map(medewerkers.map((m) => [m.id, m.naam])), [medewerkers])
   const nu = useMemo(() => new Date(nuIso), [nuIso])
@@ -71,6 +73,7 @@ export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
           lessen={lessen}
           vandaag={vandaagDag}
           nuIso={nuIso}
+          magWissen={magWissen}
           onSluit={acties.sluit}
         />
       )}

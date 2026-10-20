@@ -9,6 +9,7 @@ import { ContactKnoppen } from './ContactKnoppen'
 import { PaneelContact } from './PaneelContact'
 import { PaneelGegevens } from './PaneelGegevens'
 import { PaneelHistorie } from './PaneelHistorie'
+import { PaneelPrivacy } from './PaneelPrivacy'
 import { PaneelStap } from './PaneelStap'
 import { ZijPaneel } from './ZijPaneel'
 import { usePaneel } from './usePaneel'
@@ -22,12 +23,15 @@ interface LeadPaneelProps {
   lessen: ProeflesLes[]
   vandaag: string
   nuIso: string
+  /** Kane, eigenaar of clubmanager: mag een lead wissen (AVG). */
+  magWissen: boolean
   onSluit: () => void
 }
 
 // Het zijpaneel van een lead: wie het is, de volgende stap, contact vastleggen,
-// gegevens en de historie. Alles inline, geen aparte pagina's.
-export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vandaag, nuIso, onSluit }: LeadPaneelProps) {
+// gegevens, de historie en privacy (AVG). Alles inline, geen aparte pagina's.
+// Een gewiste lead toont alleen nog wat er anoniem over is, zonder acties.
+export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vandaag, nuIso, magWissen, onSluit }: LeadPaneelProps) {
   const p = usePaneel(leadId)
   const [melding, setMelding] = useState<string | null>(null)
   const { lead } = p
@@ -51,9 +55,11 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
               </p>
             </div>
           </header>
-          <div className="club-acties">
-            <ContactKnoppen naam={lead.naam} telefoon={lead.telefoon} email={lead.email} klein={false} />
-          </div>
+          {!lead.geanonimiseerdOp && (
+            <div className="club-acties">
+              <ContactKnoppen naam={lead.naam} telefoon={lead.telefoon} email={lead.email} klein={false} />
+            </div>
+          )}
           {melding && (
             <div className="club-melding club-melding--ok" role="status">
               <strong>{melding}</strong>
@@ -69,10 +75,15 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
               {p.fout}
             </p>
           )}
-          <PaneelStap lead={lead} stap={stap} lessen={lessen} vandaag={vandaag} nu={new Date(nuIso)} bezig={p.bezig} doe={p.doe} onLid={setMelding} />
-          <PaneelContact lead={lead} vandaag={vandaag} bezig={p.bezig} doe={p.doe} />
-          <PaneelGegevens lead={lead} medewerkers={medewerkers} bezig={p.bezig} doe={p.doe} />
-          <PaneelHistorie historie={p.historie} />
+          {!lead.geanonimiseerdOp && (
+            <>
+              <PaneelStap lead={lead} stap={stap} lessen={lessen} vandaag={vandaag} nu={new Date(nuIso)} bezig={p.bezig} doe={p.doe} onLid={setMelding} />
+              <PaneelContact lead={lead} vandaag={vandaag} bezig={p.bezig} doe={p.doe} />
+              <PaneelGegevens lead={lead} medewerkers={medewerkers} bezig={p.bezig} doe={p.doe} />
+              <PaneelHistorie historie={p.historie} />
+            </>
+          )}
+          <PaneelPrivacy lead={lead} magWissen={magWissen} bezig={p.bezig} doe={p.doe} />
         </>
       )}
     </ZijPaneel>

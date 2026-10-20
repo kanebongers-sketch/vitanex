@@ -9,7 +9,7 @@
 // versturen (link-voor-mail.ts). Hier: invoer lezen, wie een uitnodiging
 // krijgt, de rem, de sleutels, de teksten en het adres op de poster.
 
-import { createHash } from 'node:crypto'
+import { remSleutel } from '@/lib/club/kern/rem-hash'
 import { magTrainen, type LidStatus } from '@/lib/club/kern/lid'
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { leesSlug } from '@/lib/club/kern/subdomein'
@@ -74,7 +74,7 @@ export const AANVRAAG_VENSTER_MS = 60 * 60_000
 
 /** Een hash voor de rem: zo staat er geen adres of IP in de database. */
 export function remHash(soort: 'email' | 'ip', waarde: string): string {
-  return createHash('sha256').update(`club-app-aanvraag:${soort}:${waarde}`).digest('hex')
+  return remSleutel(`club-app-aanvraag|${soort}`, waarde)
 }
 
 export type RemOordeel = 'ok' | 'adres' | 'ip'

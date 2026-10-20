@@ -25,7 +25,7 @@ function verzoek(extra: Record<string, unknown> = {}) {
 
 describe('leesIntake', () => {
   it('valideert en ordent de antwoorden', () => {
-    const u = leesIntake(verzoek(), VANDAAG)
+    const u = leesIntake(verzoek({ toestemmingGezondheid: true }), VANDAAG)
     expect(u.ok).toBe(true)
     if (!u.ok) return
     expect(u.waarde.antwoorden.doelen).toEqual(['afvallen', 'kracht'])
@@ -37,8 +37,7 @@ describe('leesIntake', () => {
     const u = leesIntake(verzoek(), VANDAAG)
     if (!u.ok) throw new Error(u.fout)
     expect(u.waarde.antwoorden.gezondheid).toBeNull()
-    expect(u.waarde.metingen.rusthartslag).toBeUndefined()
-    expect(u.waarde.metingen.bloeddruk).toBeUndefined()
+    expect(u.waarde.metingen).toEqual({})
     expect(JSON.stringify(u.waarde)).not.toContain('bloeddrukverlagers')
   })
 
@@ -62,7 +61,7 @@ describe('leesIntake', () => {
     expect(leesIntake(verzoek({ datum: '2030-01-01' }), VANDAAG).ok).toBe(false)
     expect(leesIntake({ ...verzoek(), antwoorden: { ...verzoek().antwoorden, doelen: [] } }, VANDAAG)).toEqual({ ok: false, fout: 'Kies minstens een doel.' })
     expect(leesIntake({ ...verzoek(), antwoorden: { ...verzoek().antwoorden, dagenPerWeek: 9 } }, VANDAAG).ok).toBe(false)
-    const zwaar = leesIntake(verzoek({ metingen: { gewicht_kg: 900 } }), VANDAAG)
+    const zwaar = leesIntake(verzoek({ toestemmingGezondheid: true, metingen: { gewicht_kg: 900 } }), VANDAAG)
     expect(zwaar.ok === false && zwaar.fout).toContain('Gewicht')
     const bd = leesIntake(verzoek({ toestemmingGezondheid: true, metingen: { bloeddruk: '80/120' } }), VANDAAG)
     expect(bd.ok).toBe(false)
@@ -92,7 +91,8 @@ describe('intakeUitRij', () => {
       club_leden: { voornaam: 'Sanne', achternaam: 'Bos' },
     })
     expect(i?.antwoorden?.gezondheid).toBeNull()
-    expect(i?.metingen).toEqual({ gewicht_kg: 70 })
+    // Ook gewicht is een gezondheidsgegeven: zonder toestemming niets.
+    expect(i?.metingen).toEqual({})
     expect(i?.lidNaam).toBe('Sanne Bos')
   })
   it('geeft null bij een onbruikbare rij', () => {

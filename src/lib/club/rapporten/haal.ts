@@ -274,7 +274,8 @@ async function haalGebouwd(admin: SupabaseClient, userId: string, lijst: readonl
     return { ok: true, tabel: begrensd, onvolledig: lezer.onvolledig() }
   } catch (e) {
     if (e instanceof LeesFout) return { ok: false, fout: `${e.message} kon niet worden gelezen. Probeer het later opnieuw.` }
-    console.error('[club/rapporten] rapport maken mislukt', e)
+    // Alleen naam en melding van de fout, nooit het object (dat kan rijen met persoonsgegevens bevatten).
+    console.error('[club/rapporten] rapport maken mislukt', e instanceof Error ? `${e.name}: ${e.message.slice(0, 200)}` : 'onbekende fout')
     return { ok: false, fout: 'Het rapport kon niet worden gemaakt. Probeer het later opnieuw.' }
   }
 }

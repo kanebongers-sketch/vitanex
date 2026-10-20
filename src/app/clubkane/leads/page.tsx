@@ -11,6 +11,7 @@ import { berekenCijfers } from '@/lib/club/leads/cijfers'
 import { filterParams, isUuid, leesFilters, pasFiltersToe } from '@/lib/club/leads/filters'
 import { dagVan, vandaagOpvolgen } from '@/lib/club/leads/regels'
 import { isPaneelStap } from '@/lib/club/leads/model'
+import { magLeadWissen } from '@/lib/club/leads/avg'
 import { LeadsCijfers } from '@/components/club/leads/LeadsCijfers'
 import { LeadsFilters } from '@/components/club/leads/LeadsFilters'
 import { LeadsWerkvlak } from '@/components/club/leads/LeadsWerkvlak'
@@ -42,9 +43,11 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
   const stap = eerste(zoek.stap)
   const mw = (medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))
   const alle = leads ?? []
-  const zichtbaar = pasFiltersToe(alle, filters, nu)
+  // Gewiste leads (AVG) tellen anoniem mee in de cijfers, maar staan niet meer in de pijplijn of op Vandaag.
+  const werklijst = alle.filter((l) => !l.geanonimiseerdOp)
+  const zichtbaar = pasFiltersToe(werklijst, filters, nu)
   // "Vandaag" volgt bron en medewerker, maar niet de periode: oude achterstand blijft zichtbaar.
-  const vandaag = vandaagOpvolgen(pasFiltersToe(alle, { ...filters, periode: 'alle' }, nu), nu)
+  const vandaag = vandaagOpvolgen(pasFiltersToe(werklijst, { ...filters, periode: 'alle' }, nu), nu)
 
   return (
     <>
@@ -77,6 +80,7 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
         vandaagDag={dagVan(nu)}
         nuIso={nu.toISOString()}
         paneel={{ leadId: isUuid(leadId) ? leadId : null, stap: isPaneelStap(stap) ? stap : null, nieuw: eerste(zoek.nieuw) === '1' }}
+        magWissen={magLeadWissen(t)}
       />
     </>
   )

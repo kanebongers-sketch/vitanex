@@ -4,6 +4,7 @@
 // inschrijvingen en, waar de ranglijst aan staat, de stand. Alles op user_id.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { haalOpLijst } from '@/lib/club/community/lezen'
 import { alleRijen } from '@/lib/club/leden/data'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { appChallenge, gehaaldeChallenges, momentenVoor, sorteerApp, toonInApp, type LedenappChallengesData } from './app'
@@ -60,7 +61,14 @@ export async function haalLedenappChallenges(admin: SupabaseClient, userId: stri
   const standen = await Promise.all(
     zichtbaar.map((c) => (c.ranglijst && statusVan(c, vandaag) !== 'gepland' ? haalAppStand(admin, userId, c, lid.id) : Promise.resolve(null))),
   )
-  const challenges = sorteerApp(zichtbaar.map((c, i) => appChallenge(c, lid, ins.has(c.id), momentenVoor(c.soort, m), vandaag, standen[i])))
+  // AVG: bij automatisch meedoen staan andere leden alleen op de ranglijst als
+  // ze daar zelf voor kozen (dezelfde keuze als bij de community). Wie zich
+  // voor een challenge inschreef, koos zelf om mee te doen.
+  const anderen = [...new Set(standen.flatMap((s, i) => (s && zichtbaar[i].deelname !== 'inschrijven' ? s.map((x) => x.lidId) : [])))].filter((id) => id !== lid.id)
+  const opLijst = (await haalOpLijst(admin, userId, anderen)) ?? new Set<string>()
+  const challenges = sorteerApp(
+    zichtbaar.map((c, i) => appChallenge(c, lid, ins.has(c.id), momentenVoor(c.soort, m), vandaag, standen[i], c.deelname === 'inschrijven' ? undefined : (id) => opLijst.has(id))),
+  )
   const badges = berekenBadges({
     bezoeken: m.bezoeken,
     lessen: m.lessen,

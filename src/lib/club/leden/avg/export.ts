@@ -38,6 +38,9 @@ export interface ExportRuw {
   communityReacties: Rij[]
   communityMeldingen: Rij[]
   communityVoorkeur: Rij[]
+  aankopen: Rij[]
+  tegoeden: Rij[]
+  tegoedMutaties: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -185,6 +188,14 @@ export const SECTIES: readonly Sectie[] = [
   { sleutel: 'communityReacties', titel: 'Community: reacties', velden: { soort: 'Reactie', aangemaakt_op: 'Gegeven op' } },
   { sleutel: 'communityMeldingen', titel: 'Community: gemelde berichten', velden: { reden: 'Reden', toelichting: 'Toelichting', status: 'Status', aangemaakt_op: 'Gemeld op' } },
   { sleutel: 'communityVoorkeur', titel: 'Community: voorkeuren', velden: { op_ranglijst: 'Op ranglijsten', gewijzigd_op: 'Gewijzigd op' } },
+  // Betalen in de ledenapp (migratie 439). Nooit de Stripe-kenmerken.
+  {
+    sleutel: 'aankopen',
+    titel: 'Aankopen in de app',
+    velden: { product_naam: 'Product', type: 'Soort', bedrag_cent: 'Bedrag (eurocent)', btw_procent: 'Btw (%)', status: 'Status', betaald_op: 'Betaald op', terugbetaald_cent: 'Terugbetaald (eurocent)', terugbetaald_op: 'Terugbetaald op', aangemaakt_op: 'Gestart op' },
+  },
+  { sleutel: 'tegoeden', titel: 'Tegoeden', velden: { product_naam: 'Product', soort: 'Soort', totaal: 'Totaal', saldo: 'Over', geldig_tot: 'Geldig tot', aangemaakt_op: 'Sinds' } },
+  { sleutel: 'tegoedMutaties', titel: 'Gebruik van tegoeden', velden: { aantal: 'Aantal', reden: 'Reden', door: 'Door', op: 'Moment' } },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */
@@ -227,7 +238,7 @@ export interface ExportMeta {
 
 export const EXPORT_UITLEG =
   'Dit bestand bevat alle gegevens die de sportschool in Club over dit lid bewaart, op het moment van downloaden. ' +
-  'Geld, contracten en incasso staan niet in Club maar in de ledenadministratie van de sportschool (Sportivity). ' +
+  'Abonnementen, contracten en incasso staan niet in Club maar in de ledenadministratie van de sportschool (Sportivity); aankopen in de app staan er wel in. ' +
   'Pincodes en inloglinks zijn om veiligheidsredenen niet opgenomen.'
 
 /** Het volledige bestand: per onderdeel een lijst rijen met Nederlandse sleutels. */
@@ -271,6 +282,8 @@ const PERIODE_KOLOM: Partial<Record<SectieSleutel, string>> = {
   notities: 'aangemaakt_op',
   meldingen: 'gepland_op',
   communityBerichten: 'aangemaakt_op',
+  aankopen: 'aangemaakt_op',
+  tegoedMutaties: 'op',
 }
 
 /** Een korte samenvatting in gewone tekst, om mee te sturen met het bestand. */

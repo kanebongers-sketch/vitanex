@@ -6,6 +6,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
 import { medewerkerBestaat } from '@/lib/club/kern/medewerker'
+import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
 import { lidVestiging } from '@/lib/club/training/schrijven'
 import { isUuid } from '@/lib/club/training/typen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
@@ -17,10 +18,10 @@ export async function GET(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
   const lidId = req.nextUrl.searchParams.get('lid')
-  const vestiging = isUuid(lidId) ? await lidVestiging(t.admin, t.userId, lidId) : null
-  if (!isUuid(lidId) || !hoortBij(t.vestigingen, vestiging)) return clubFout('Lid niet gevonden.', 404)
-  // Inzage in gezondheidsgegevens wordt gelogd (AVG).
-  await logActie(t, 'Metingen bekeken', null, vestiging)
+  const lid = isUuid(lidId) ? await haalLid(t.admin, t.userId, lidId) : null
+  if (!isUuid(lidId) || !lid || !hoortBij(t.vestigingen, lid.vestiging)) return clubFout('Lid niet gevonden.', 404)
+  // Inzage in gezondheidsgegevens wordt gelogd met het lid (AVG: wie keek bij wie).
+  await logActie(t, 'Metingen bekeken', volledigeNaam(lid), lid.vestiging)
   return clubJson({ voortgang: await haalVoortgang(t.admin, t.userId, lidId) })
 }
 

@@ -20,15 +20,15 @@ export const INTAKE_KOLOMMEN =
   'id, lid_id, medewerker_id, datum, antwoorden, metingen, toestemming_gezondheid, notitie, club_leden(voornaam, achternaam)'
 
 function metingenUitRij(ruw: unknown, toestemming: boolean): Metingen {
-  if (!isRij(ruw)) return {}
+  // Metingen zijn gezondheidsgegevens: zonder vastgelegde toestemming niet tonen.
+  if (!toestemming || !isRij(ruw)) return {}
   const uit: Metingen = {}
   for (const [sleutel, [min, max]] of Object.entries(METING_GRENZEN)) {
     const n = ruw[sleutel]
     if (typeof n !== 'number' || n < min || n > max) continue
-    if (!toestemming && sleutel === 'rusthartslag') continue
     uit[sleutel as keyof typeof METING_GRENZEN] = n
   }
-  const bd = toestemming ? leesBloeddruk(ruw.bloeddruk) : null
+  const bd = leesBloeddruk(ruw.bloeddruk)
   if (bd) uit.bloeddruk = bd
   return uit
 }

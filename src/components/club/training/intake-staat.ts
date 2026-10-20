@@ -71,10 +71,10 @@ export function naarVerzoek(s: IntakeStaat, lidId: string, vragen: readonly Inta
         : null,
       eigen: eigenVoorVerzoek(s, vragen),
     },
-    metingen: {
-      gewicht_kg: s.gewicht, lengte_cm: s.lengte, vetpercentage: s.vet, buikomtrek_cm: s.buik,
-      ...(s.toestemming ? { rusthartslag: s.hartslag, bloeddruk: s.bloeddruk } : {}),
-    },
+    // Metingen zijn gezondheidsgegevens: alleen met toestemming.
+    metingen: s.toestemming
+      ? { gewicht_kg: s.gewicht, lengte_cm: s.lengte, vetpercentage: s.vet, buikomtrek_cm: s.buik, rusthartslag: s.hartslag, bloeddruk: s.bloeddruk }
+      : {},
     notitie: s.notitie,
   }
 }
@@ -126,5 +126,7 @@ export function sectieKlaar(vragen: readonly IntakeVraag[], s: IntakeStaat): boo
 }
 
 export function metingenKlaar(s: IntakeStaat): boolean {
+  // Zonder toestemming valt er niets te meten: de stap is dan klaar.
+  if (!s.toestemming) return true
   return getal(s.gewicht) !== undefined || getal(s.lengte) !== undefined
 }

@@ -49,6 +49,19 @@ describe('ranglijstVoorApp', () => {
     ])
     expect(Object.keys(uit[0])).not.toContain('volledigeNaam')
   })
+
+  it('toont andere leden alleen als ze zelf voor de ranglijst kozen', () => {
+    // Arrange
+    const deelnemers = ['a', 'b', 'ik'].map((id) => ({ lidId: id, voornaam: id.toUpperCase(), achternaam: 'Bos' }))
+    const stand = ranglijst(deelnemers, new Map([['a', 9], ['b', 8], ['ik', 1]]), 10)
+    // Act
+    const uit = ranglijstVoorApp(stand, 'ik', 10, (id) => id === 'b')
+    // Assert
+    expect(uit.map((s) => [s.naam, s.positie])).toEqual([
+      ['B B.', 2],
+      ['IK B.', 3],
+    ])
+  })
 })
 
 describe('appChallenge', () => {

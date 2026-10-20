@@ -30,6 +30,9 @@ function leeg(): ExportRuw {
     communityReacties: [],
     communityMeldingen: [],
     communityVoorkeur: [],
+    aankopen: [],
+    tegoeden: [],
+    tegoedMutaties: [],
   }
 }
 

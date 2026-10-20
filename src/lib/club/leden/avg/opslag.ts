@@ -9,7 +9,7 @@ import { verzoekUitRij, type Verwijderverzoek } from './verwijderen'
 type Uitslag = { ok: true; ruw: ExportRuw; medewerkers: Map<string, string> } | { ok: false; fout: string }
 
 /** Tabel, kolommen en het lid-filter per onderdeel van de export. */
-const BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'>, { tabel: string; select: string; volgorde?: string }> = {
+export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'>, { tabel: string; select: string; volgorde?: string }> = {
   bezoeken: { tabel: 'club_checkins', select: 'op, vestiging, bron', volgorde: 'op' },
   lesboekingen: { tabel: 'club_reserveringen', select: 'status, wachtpositie, bron, geboekt_op, geannuleerd_op, te_laat, club_lessen(start_op, vestiging, club_lestypen(naam))', volgorde: 'geboekt_op' },
   afspraken: { tabel: 'club_afspraken', select: 'start_op, eind_op, vestiging, medewerker_id, status, notitie, geboekt_door, geannuleerd_op, club_afspraak_typen(naam)', volgorde: 'start_op' },
@@ -41,11 +41,15 @@ const BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'>, { tabel:
   communityReacties: { tabel: 'club_community_reacties', select: 'soort, aangemaakt_op', volgorde: 'aangemaakt_op' },
   communityMeldingen: { tabel: 'club_community_meldingen', select: 'reden, toelichting, status, aangemaakt_op', volgorde: 'aangemaakt_op' },
   communityVoorkeur: { tabel: 'club_community_voorkeuren', select: 'op_ranglijst, gewijzigd_op' },
+  // Betalen (migratie 439): nooit Stripe-kenmerken of de platformfee.
+  aankopen: { tabel: 'club_betalen_verkopen', select: 'product_naam, type, bedrag_cent, btw_procent, status, betaald_op, terugbetaald_cent, terugbetaald_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  tegoeden: { tabel: 'club_betalen_tegoeden', select: 'product_naam, soort, totaal, saldo, geldig_tot, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  tegoedMutaties: { tabel: 'club_betalen_mutaties', select: 'aantal, reden, door, op', volgorde: 'op' },
 }
 
 const MAX_RIJEN = 10_000
 
-async function leesAlles(admin: SupabaseClient, userId: string, lidId: string, bron: (typeof BRONNEN)[keyof typeof BRONNEN]): Promise<Rij[] | null> {
+async function leesAlles(admin: SupabaseClient, userId: string, lidId: string, bron: (typeof AVG_BRONNEN)[keyof typeof AVG_BRONNEN]): Promise<Rij[] | null> {
   const uit: Rij[] = []
   for (let van = 0; van < MAX_RIJEN; van += 1000) {
     let q = admin.from(bron.tabel).select(bron.select).eq('user_id', userId).eq('lid_id', lidId)
@@ -86,10 +90,10 @@ export async function haalExportRuw(admin: SupabaseClient, userId: string, lidId
   const { data: lid, error } = await admin.from('club_leden').select('*').eq('user_id', userId).eq('id', lidId).maybeSingle()
   if (error) return { ok: false, fout: 'lezen mislukt' }
   if (!lid) return { ok: false, fout: 'niet gevonden' }
-  const sleutels = Object.keys(BRONNEN) as (keyof typeof BRONNEN)[]
-  const [delen, medewerkers] = await Promise.all([Promise.all(sleutels.map((s) => leesAlles(admin, userId, lidId, BRONNEN[s]))), leesMedewerkers(admin, userId)])
+  const sleutels = Object.keys(AVG_BRONNEN) as (keyof typeof AVG_BRONNEN)[]
+  const [delen, medewerkers] = await Promise.all([Promise.all(sleutels.map((s) => leesAlles(admin, userId, lidId, AVG_BRONNEN[s]))), leesMedewerkers(admin, userId)])
   if (delen.some((d) => d === null) || !medewerkers) return { ok: false, fout: 'lezen mislukt' }
-  const per = Object.fromEntries(sleutels.map((s, i) => [s, delen[i] as Rij[]])) as Record<keyof typeof BRONNEN, Rij[]>
+  const per = Object.fromEntries(sleutels.map((s, i) => [s, delen[i] as Rij[]])) as Record<keyof typeof AVG_BRONNEN, Rij[]>
   const leadIds = per.leads.map((l) => l.id).filter((id): id is string => typeof id === 'string')
   const leadHistorie = await leesLeadHistorie(admin, userId, leadIds)
   if (!leadHistorie) return { ok: false, fout: 'lezen mislukt' }
