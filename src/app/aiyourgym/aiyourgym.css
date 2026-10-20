@@ -418,3 +418,9 @@
 .ayg-paginakop-extra { margin-top: 34px; }
 .ayg-concept-icoon { flex-shrink: 0; }
 :where(.ayg-band, .ayg-sectiekop, .ayg-voet-raster) > * { min-width: 0; }
+
+/* De site staat in de body van de app, en die body is een flexkolom met de
+   schermhoogte die zelf scrolt. Zonder flex-shrink: 0 kromp .ayg tot een
+   schermhoogte: daaronder scheen de donkere achtergrond van de app door
+   terwijl de tekst donker bleef (donker op donker). */
+.ayg { flex-shrink: 0; }
