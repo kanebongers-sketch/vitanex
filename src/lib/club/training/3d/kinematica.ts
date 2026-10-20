@@ -85,7 +85,15 @@ export function tweeBotten(begin: Vector3, doel: Vector3, l1: number, l2: number
   return { begin, midden, eind, buiging, reik: afstand / (l1 + l2) }
 }
 
-function romp(h: Houding): { bekken: Frame; lende: Frame; borst: Frame; hoofd: Frame } {
+export interface Romp {
+  readonly bekken: Frame
+  readonly lende: Frame
+  readonly borst: Frame
+  readonly hoofd: Frame
+}
+
+/** Romp en hoofd in een houding (voorwaartse kinematica vanuit het bekken). */
+export function romp(h: Houding): Romp {
   const bekken: Frame = { pos: new Vector3(0, h.bekkenY, h.bekkenZ), rot: rx(h.kantel) }
   const lende = kind(bekken, new Vector3(0, MATEN.bekkenNaarLende.y, MATEN.bekkenNaarLende.z), h.lende)
   const borst = kind(lende, new Vector3(0, MATEN.lende, 0), h.borst)
@@ -96,8 +104,19 @@ function romp(h: Houding): { bekken: Frame; lende: Frame; borst: Frame; hoofd: F
 /** Hoe gestrekt hangende armen zijn (net niet op slot). */
 export const HANG_STREK = 0.997
 
-function lastFrame(o: Oefening3d, h: Houding, borst: Frame, schouder: Vector3): Frame {
-  if (o.last === 'romp') return kind(borst, new Vector3(0, h.lastY, h.lastZ), 0)
+/** Het linker schoudergewricht in de wereld. */
+export function schouderIn(h: Houding, r: Romp = romp(h)): Vector3 {
+  return kind(r.borst, new Vector3(MATEN.schouder.x, MATEN.schouder.y + h.schouders, MATEN.schouder.z), 0).pos
+}
+
+/** Het linker heupgewricht in de wereld. */
+export function heupIn(h: Houding, r: Romp = romp(h)): Vector3 {
+  return kind(r.bekken, new Vector3(MATEN.heupBreedte, 0, 0), 0).pos
+}
+
+function lastFrame(o: Oefening3d, h: Houding, r: Romp, schouder: Vector3): Frame {
+  if (o.last === 'romp') return kind(r.borst, new Vector3(0, h.lastY, h.lastZ), 0)
+  if (o.last === 'bekken') return kind(r.bekken, new Vector3(0, h.lastY, h.lastZ), 0)
   if (o.last === 'hangend') {
     const arm = (MATEN.bovenarm + ARM_GREEP) * HANG_STREK
     const dx = h.greep - schouder.x
@@ -108,9 +127,15 @@ function lastFrame(o: Oefening3d, h: Houding, borst: Frame, schouder: Vector3): 
   return { pos: new Vector3(0, h.lastY, h.lastZ), rot: new Quaternion() }
 }
 
-function voetFrame(o: Oefening3d, zijde: number): Frame {
-  const rot = new Quaternion().setFromEuler(new Euler(o.voet.kanteling * GRAAD, o.voet.uitdraai * GRAAD * zijde, 0, 'YXZ'))
-  return { pos: v(o.enkel, zijde), rot }
+function voetFrame(o: Oefening3d, h: Houding, zijde: number): Frame {
+  const rechts = zijde < 0
+  const eigen = rechts && o.enkelRechts !== undefined
+  const voet = rechts && o.voetRechts ? o.voetRechts : o.voet
+  const kanteling = voet.kanteling + h.voetKantel + (rechts ? h.stapKantel : 0)
+  const rot = new Quaternion().setFromEuler(new Euler(kanteling * GRAAD, voet.uitdraai * GRAAD * zijde, 0, 'YXZ'))
+  const basis = eigen && o.enkelRechts ? v(o.enkelRechts) : v(o.enkel, zijde)
+  const pos = basis.add(new Vector3(0, h.voetY + (rechts ? h.stapY : 0), h.voetZ + (rechts ? h.stapZ : 0)))
+  return { pos, rot }
 }
 
 function handFrame(o: Oefening3d, arm: Ledemaat, last: Frame): Frame {
@@ -119,7 +144,8 @@ function handFrame(o: Oefening3d, arm: Ledemaat, last: Frame): Frame {
     return { pos: arm.eind.clone(), rot: new Quaternion().setFromAxisAngle(X, Math.PI / 2) }
   }
   const lengte = arm.eind.clone().sub(arm.midden).normalize()
-  const as = X.clone().applyQuaternion(last.rot)
+  const as = o.greepRichting ? v(o.greepRichting).normalize() : X.clone().applyQuaternion(last.rot)
+  if (Math.abs(as.dot(lengte)) > 0.98) as.copy(X)
   const x = as.sub(lengte.clone().multiplyScalar(as.dot(lengte))).normalize()
   const z = new Vector3().crossVectors(x, lengte)
   const rot = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(x, lengte, z))
@@ -137,9 +163,9 @@ export function figuurIn(o: Oefening3d, h: Houding): Figuur {
   const schouders = ZIJDEN.map(
     (z) => kind(r.borst, new Vector3(MATEN.schouder.x * z, MATEN.schouder.y + h.schouders, MATEN.schouder.z), 0).pos,
   )
-  const last = lastFrame(o, h, r.borst, schouders[0])
+  const last = lastFrame(o, h, r, schouders[0])
   const lastAs = X.clone().applyQuaternion(last.rot)
-  const voeten = ZIJDEN.map((z) => voetFrame(o, z)) as unknown as Paar<Frame>
+  const voeten = ZIJDEN.map((z) => voetFrame(o, h, z)) as unknown as Paar<Frame>
   const benen = ZIJDEN.map((z, i) => {
     const heup = kind(r.bekken, new Vector3(MATEN.heupBreedte * z, 0, 0), 0).pos
     return tweeBotten(heup, voeten[i].pos, MATEN.dij, MATEN.scheen, v(o.knieRichting, z))

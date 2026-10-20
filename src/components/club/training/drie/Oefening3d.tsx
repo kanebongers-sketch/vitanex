@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { oefening3dOpNaam, standTijd } from '@/lib/club/training/3d'
 import { maakScene3d, type Scene3d, type Thema } from './scene'
 
 // Een oefening als 3D-animatie in een canvas. Alleen in de browser (WebGL);
 // laad dit bestand via Oefening3dLazy (dynamic, ssr: false).
 // Loopt alleen zolang het beeld in zicht is. Bij prefers-reduced-motion staat
-// het beeld stil op de gekozen houding.
+// het beeld stil op de gekozen houding. Het WebGL-doek bestaat alleen als het
+// beeld in of vlak bij beeld is: een browser houdt maar ongeveer 16 doeken
+// tegelijk vast, en de vergelijkpagina heeft er veel meer.
 
 export type Stand3d = 'begin' | 'eind' | 'speelt'
 
@@ -38,11 +40,20 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
   const canvas = useRef<HTMLCanvasElement>(null)
   const scene = useRef<Scene3d | null>(null)
   const oefening = oefening3dOpNaam(naam)
+  const [dichtbij, setDichtbij] = useState(false)
+
+  useEffect(() => {
+    const el = vak.current
+    if (!el) return
+    const kijker = new IntersectionObserver(([e]) => setDichtbij(e.isIntersecting), { rootMargin: '400px 0px' })
+    kijker.observe(el)
+    return () => kijker.disconnect()
+  }, [])
 
   useEffect(() => {
     const el = vak.current
     const doek = canvas.current
-    if (!el || !doek || !oefening) return
+    if (!el || !doek || !oefening || !dichtbij) return
     let s: Scene3d
     try {
       s = maakScene3d(doek, oefening, { accent: accentVan(el, accent), thema })
@@ -64,12 +75,12 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
       scene.current = null
       s.ruimOp()
     }
-  }, [oefening, thema, accent])
+  }, [oefening, thema, accent, dichtbij])
 
   useEffect(() => {
     const el = vak.current
     const s = scene.current
-    if (!el || !s || !oefening) return
+    if (!el || !s || !oefening || !dichtbij) return
     const stil = stand !== 'speelt' || minderBeweging()
     if (stil) {
       s.teken(standTijd(oefening.sleutels, stand === 'eind' ? 'eind' : 'begin'))
@@ -102,12 +113,12 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
       kijker.disconnect()
       cancelAnimationFrame(frame)
     }
-  }, [oefening, stand, thema, accent])
+  }, [oefening, stand, thema, accent, dichtbij])
 
   const klasse = `club-ill club-ill-3d${thema === 'licht' ? ' club-ill--licht' : ''}${oefening ? '' : ' club-ill-3d--leeg'}`
   return (
     <div ref={vak} className={klasse} role="img" aria-label={label}>
-      <canvas ref={canvas} aria-hidden />
+      {dichtbij && <canvas ref={canvas} aria-hidden />}
       <p className="club-ill-3d-melding">3D-beeld is op dit apparaat niet beschikbaar.</p>
     </div>
   )

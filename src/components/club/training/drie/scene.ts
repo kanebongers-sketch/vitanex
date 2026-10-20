@@ -1,10 +1,11 @@
 // ─── Fit Factory Club, 3D-oefenbeelden: scene ────────────────────────────────
-// Renderer, belichting (zachte studio met omgevingslicht), vloer met schaduw,
-// camera iets schuin van voren, figuur en materiaal. Geen React: dezelfde code
-// draait in het losse prototype en in de app.
+// Renderer, studiobelichting (hoofdlicht, vullicht en twee randlichten die met
+// de camera meedraaien), zacht omgevingslicht, vloer met schaduw, zachte
+// contactschaduw onder voeten en handen, figuur en materiaal. Geen zware
+// nabewerking: soepel op een telefoon. Geen React: dezelfde code draait in het
+// losse prototype en in de app.
 
 import {
-  ACESFilmicToneMapping,
   CanvasTexture,
   Color,
   DirectionalLight,
@@ -12,6 +13,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  NeutralToneMapping,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -19,15 +21,18 @@ import {
   Scene,
   ShadowMaterial,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
   type Texture,
 } from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { figuurIn } from '@/lib/club/training/3d/kinematica'
+import { figuurIn, type Figuur } from '@/lib/club/training/3d/kinematica'
 import { houdingOp, lusDuur } from '@/lib/club/training/3d/interpolatie'
-import type { Oefening3d } from '@/lib/club/training/3d/typen'
+import type { Camera, Oefening3d } from '@/lib/club/training/3d/typen'
 import { bouwFiguur } from './figuur'
 import { bouwMateriaal } from './materiaal'
+import type { Palet } from './palet'
+import { maakFiguurMaterialen, ruimMaterialenOp } from './stoffen'
 import { GeoBak } from './vormen'
 
 export type Thema = 'donker' | 'licht'
@@ -35,11 +40,15 @@ export type Thema = 'donker' | 'licht'
 export interface SceneOpties {
   readonly accent: string
   readonly thema: Thema
+  /** Eigen camerastandpunt (bijvoorbeeld een close-up); standaard dat van de oefening. */
+  readonly camera?: Camera
 }
 
 export interface Scene3d {
   /** Lengte van een herhaling in seconden. */
   readonly duur: number
+  /** Aantal driehoeken van het figuur (voor het meten). */
+  readonly driehoeken: number
   /** Zet de beweging op tijd `t` (seconden) en teken. */
   teken(t: number): void
   grootte(breedte: number, hoogte: number): void
@@ -47,92 +56,154 @@ export interface Scene3d {
 }
 
 const KLEUREN = {
-  donker: { huid: '#a8a5a0', kleding: '#4a4c52', haar: '#33322f', schaduw: 0.55, vlek: 0.6, hemel: 0.35 },
-  licht: { huid: '#b4b1ab', kleding: '#5d5f66', haar: '#3e3c38', schaduw: 0.22, vlek: 0.32, hemel: 0.5 },
+  donker: {
+    huid: '#b38b72', shirt: '#33363d', broek: '#1c1e22', schoen: '#2b2d33', zool: '#e9e6e0', haar: '#2b221c',
+    schaduw: 0.5, vlek: 0.55, contact: 0.7, hemel: 0.45, rand: 2.4, omgeving: 0.55, gloed: 0.32, glans: 0.22, belichting: 1.05,
+  },
+  licht: {
+    huid: '#b38b72', shirt: '#3b3f47', broek: '#24262b', schoen: '#30333a', zool: '#f1eee8', haar: '#2b221c',
+    schaduw: 0.24, vlek: 0.3, contact: 0.42, hemel: 0.6, rand: 1.4, omgeving: 0.65, gloed: 0.26, glans: 0.08, belichting: 1.0,
+  },
 } as const
 
-function vlekTextuur(): Texture {
+function verloop(stops: readonly [number, string][]): Texture {
   const c = document.createElement('canvas')
   c.width = 128
   c.height = 128
   const ctx = c.getContext('2d')
   if (ctx) {
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
-    g.addColorStop(0, 'rgba(0,0,0,0.9)')
-    g.addColorStop(0.35, 'rgba(0,0,0,0.4)')
-    g.addColorStop(0.7, 'rgba(0,0,0,0.1)')
-    g.addColorStop(1, 'rgba(0,0,0,0)')
+    for (const [o, kleur] of stops) g.addColorStop(o, kleur)
     ctx.fillStyle = g
     ctx.fillRect(0, 0, 128, 128)
   }
-  return new CanvasTexture(c)
+  const t = new CanvasTexture(c)
+  t.colorSpace = SRGBColorSpace
+  return t
 }
 
-function materialen(opties: SceneOpties) {
+function maakPalet(o: Oefening3d, opties: SceneOpties): Palet {
   const k = KLEUREN[opties.thema]
-  const accent = new Color(opties.accent)
-  const huid = new MeshStandardMaterial({ color: k.huid, roughness: 0.62, metalness: 0 })
-  const spier = new MeshStandardMaterial({ color: new Color(k.huid).lerp(accent, 0.62), roughness: 0.6, metalness: 0 })
   return {
-    figuur: {
-      romp: new MeshStandardMaterial({ vertexColors: true, roughness: 0.64, metalness: 0 }),
-      kleuren: { huid: new Color(k.huid), kleding: new Color(k.kleding), accent },
-      huid,
-      spier,
-      kleding: new MeshStandardMaterial({ color: k.kleding, roughness: 0.85 }),
-      schoen: new MeshStandardMaterial({ color: '#2a2b2f', roughness: 0.7 }),
-      haar: new MeshStandardMaterial({ color: k.haar, roughness: 0.9 }),
-    },
-    materiaal: {
-      staal: new MeshStandardMaterial({ color: '#d4d7dc', roughness: 0.22, metalness: 0.95 }),
-      staalMat: new MeshStandardMaterial({ color: '#b9bcc2', roughness: 0.42, metalness: 0.9 }),
-      schijf: new MeshStandardMaterial({ color: '#2b2d32', roughness: 0.55, metalness: 0.15 }),
-      accent: new MeshStandardMaterial({ color: accent, roughness: 0.45, metalness: 0.3 }),
-      kussen: new MeshStandardMaterial({ color: '#2f3036', roughness: 0.78 }),
-      frame: new MeshStandardMaterial({ color: '#8b8f97', roughness: 0.38, metalness: 0.75 }),
-      mat: new MeshStandardMaterial({ color: '#34363b', roughness: 0.95 }),
-      kabel: new MeshStandardMaterial({ color: '#1e1f22', roughness: 0.6 }),
-    },
+    huid: new Color(k.huid),
+    shirt: new Color(k.shirt),
+    broek: new Color(k.broek),
+    schoen: new Color(k.schoen),
+    zool: new Color(k.zool),
+    haar: new Color(k.haar),
+    accent: new Color(opties.accent),
+    spieren: new Set(o.spieren),
   }
 }
 
-function camera(o: Oefening3d, aspect: number): PerspectiveCamera {
-  const c = new PerspectiveCamera(30, aspect, 0.1, 50)
-  const h = (o.camera.hoek * Math.PI) / 180
-  const v = (o.camera.hoogte * Math.PI) / 180
-  const d = o.camera.afstand
-  c.position.set(o.camera.doel.x + Math.sin(h) * Math.cos(v) * d, o.camera.doel.y + Math.sin(v) * d, o.camera.doel.z + Math.cos(h) * Math.cos(v) * d)
-  c.lookAt(o.camera.doel.x, o.camera.doel.y, o.camera.doel.z)
+function materiaalMaterialen(accent: Color) {
+  return {
+    staal: new MeshStandardMaterial({ color: '#d4d7dc', roughness: 0.22, metalness: 0.95 }),
+    staalMat: new MeshStandardMaterial({ color: '#b9bcc2', roughness: 0.42, metalness: 0.9 }),
+    schijf: new MeshStandardMaterial({ color: '#2b2d32', roughness: 0.55, metalness: 0.15 }),
+    accent: new MeshStandardMaterial({ color: accent, roughness: 0.45, metalness: 0.3 }),
+    kussen: new MeshStandardMaterial({ color: '#2f3036', roughness: 0.78 }),
+    frame: new MeshStandardMaterial({ color: '#8b8f97', roughness: 0.38, metalness: 0.75 }),
+    mat: new MeshStandardMaterial({ color: '#34363b', roughness: 0.95 }),
+    kabel: new MeshStandardMaterial({ color: '#1e1f22', roughness: 0.6 }),
+  }
+}
+
+function camera(k: Camera, aspect: number): PerspectiveCamera {
+  const c = new PerspectiveCamera(30, aspect, 0.05, 50)
+  const h = (k.hoek * Math.PI) / 180
+  const v = (k.hoogte * Math.PI) / 180
+  const d = k.afstand
+  c.position.set(k.doel.x + Math.sin(h) * Math.cos(v) * d, k.doel.y + Math.sin(v) * d, k.doel.z + Math.cos(h) * Math.cos(v) * d)
+  c.lookAt(k.doel.x, k.doel.y, k.doel.z)
   return c
 }
 
-function lichten(scene: Scene, hemel: number): void {
-  scene.add(new HemisphereLight('#ffffff', '#6d6a66', hemel))
-  const sleutel = new DirectionalLight('#fff4e8', 2.6)
-  sleutel.position.set(1.6, 4.2, 2.6)
+/** Plek van een licht: hoek ten opzichte van de camera, hoogte in graden. */
+function rondom(o: Oefening3d, hoek: number, hoogte: number, afstand: number): Vector3 {
+  const h = ((o.camera.hoek + hoek) * Math.PI) / 180
+  const v = (hoogte * Math.PI) / 180
+  return new Vector3(Math.sin(h) * Math.cos(v) * afstand, Math.sin(v) * afstand, Math.cos(h) * Math.cos(v) * afstand)
+    .add(new Vector3(o.camera.doel.x, 0, o.camera.doel.z))
+}
+
+function lichten(scene: Scene, o: Oefening3d, thema: Thema): void {
+  const k = KLEUREN[thema]
+  const doel = new Vector3(o.camera.doel.x, 0.7, o.camera.doel.z)
+  scene.add(new HemisphereLight('#f4f1ec', '#4a4542', k.hemel))
+  const sleutel = new DirectionalLight('#fff2e2', 2.5)
+  sleutel.position.copy(rondom(o, 38, 52, 5))
+  sleutel.target.position.copy(doel)
   sleutel.castShadow = true
-  sleutel.shadow.mapSize.set(2048, 2048)
-  sleutel.shadow.camera.left = -1.8
-  sleutel.shadow.camera.right = 1.8
-  sleutel.shadow.camera.top = 1.8
-  sleutel.shadow.camera.bottom = -1.8
-  sleutel.shadow.camera.near = 0.5
-  sleutel.shadow.camera.far = 10
-  sleutel.shadow.bias = -0.0004
-  sleutel.shadow.normalBias = 0.02
-  sleutel.shadow.radius = 5
-  scene.add(sleutel)
-  const rand = new DirectionalLight('#e8eefc', 1.3)
-  rand.position.set(-2.5, 2.4, -3)
-  scene.add(rand)
+  sleutel.shadow.mapSize.set(1024, 1024)
+  const s = sleutel.shadow.camera
+  s.left = -1.6
+  s.right = 1.6
+  s.top = 1.6
+  s.bottom = -1.6
+  s.near = 1
+  s.far = 10
+  sleutel.shadow.bias = -0.0005
+  sleutel.shadow.normalBias = 0.025
+  const vul = new DirectionalLight('#dfe7ff', 0.55)
+  vul.position.copy(rondom(o, -55, 18, 5))
+  vul.target.position.copy(doel)
+  const rand1 = new DirectionalLight('#ffffff', k.rand)
+  rand1.position.copy(rondom(o, 150, 30, 5))
+  rand1.target.position.copy(doel)
+  const rand2 = new DirectionalLight('#e6edff', k.rand * 0.7)
+  rand2.position.copy(rondom(o, -140, 40, 5))
+  rand2.target.position.copy(doel)
+  scene.add(sleutel, sleutel.target, vul, vul.target, rand1, rand1.target, rand2, rand2.target)
+}
+
+interface Contact {
+  readonly meshes: readonly Mesh[]
+  zet(f: Figuur): void
+}
+
+/** Zachte donkere vlekjes waar voeten en handen de vloer raken. */
+function contactSchaduw(bak: GeoBak, tex: Texture, sterkte: number, handen: boolean): Contact {
+  const maak = (b: number, l: number) => {
+    const m = new Mesh(bak.houd(new PlaneGeometry(b, l)), new MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: sterkte }))
+    m.rotation.x = -Math.PI / 2
+    m.renderOrder = 1
+    return m
+  }
+  const voeten = [maak(0.2, 0.38), maak(0.2, 0.38)]
+  const hand = [maak(0.14, 0.2), maak(0.14, 0.2)]
+  const vooruit = new Vector3()
+  const zet = (m: Mesh, x: number, y: number, z: number, hoek: number, laag: number) => {
+    const op = Math.max(0, 1 - y / laag)
+    m.visible = op > 0.02
+    m.position.set(x, 0.0015, z)
+    m.rotation.z = hoek
+    ;(m.material as MeshBasicMaterial).opacity = sterkte * op
+  }
+  return {
+    meshes: handen ? [...voeten, ...hand] : voeten,
+    zet(f: Figuur) {
+      for (let i = 0; i < 2; i++) {
+        const v = f.voeten[i]
+        vooruit.set(0, 0, 0.07).applyQuaternion(v.rot)
+        zet(voeten[i], v.pos.x + vooruit.x, v.pos.y - 0.08, v.pos.z + vooruit.z, Math.atan2(vooruit.x, vooruit.z), 0.2)
+        if (handen) {
+          const h = f.handen[i]
+          vooruit.set(0, 0.05, 0).applyQuaternion(h.rot)
+          zet(hand[i], h.pos.x + vooruit.x, h.pos.y - 0.035, h.pos.z + vooruit.z, 0, 0.15)
+        }
+      }
+    },
+  }
 }
 
 export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: SceneOpties): Scene3d {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.outputColorSpace = SRGBColorSpace
-  renderer.toneMapping = ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1
+  renderer.toneMapping = NeutralToneMapping
+  const k = KLEUREN[opties.thema]
+  renderer.toneMappingExposure = k.belichting
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = PCFSoftShadowMap
   renderer.setClearColor(0x000000, 0)
@@ -141,48 +212,57 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
   const pmrem = new PMREMGenerator(renderer)
   const omgeving = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = omgeving
-  scene.environmentIntensity = 0.4
-  const k = KLEUREN[opties.thema]
-  lichten(scene, k.hemel)
+  scene.environmentIntensity = k.omgeving
+  lichten(scene, o, opties.thema)
 
   const bak = new GeoBak()
-  const mat = materialen(opties)
+  const accent = new Color(opties.accent)
+  const mat = materiaalMaterialen(accent)
+  const figuurMat = maakFiguurMaterialen({ accent, gloed: k.gloed, glans: k.glans })
   const vloer = new Mesh(bak.houd(new PlaneGeometry(12, 12)), new ShadowMaterial({ opacity: k.schaduw }))
   vloer.rotation.x = -Math.PI / 2
   vloer.receiveShadow = true
   scene.add(vloer)
-  const vlekTex = vlekTextuur()
-  const vlek = new Mesh(bak.houd(new PlaneGeometry(2.4, 2.4)), new MeshBasicMaterial({ map: vlekTex, transparent: true, opacity: k.vlek, depthWrite: false }))
+  const vlekTex = verloop([[0, 'rgba(0,0,0,0.85)'], [0.35, 'rgba(0,0,0,0.4)'], [0.7, 'rgba(0,0,0,0.1)'], [1, 'rgba(0,0,0,0)']])
+  const vlek = new Mesh(bak.houd(new PlaneGeometry(2.6, 2.6)), new MeshBasicMaterial({ map: vlekTex, transparent: true, opacity: k.vlek, depthWrite: false }))
   vlek.rotation.x = -Math.PI / 2
-  vlek.position.set(0, 0.001, o.camera.doel.z)
+  vlek.position.set(o.camera.doel.x, 0.001, o.camera.doel.z)
   scene.add(vlek)
+  const contactTex = verloop([[0, 'rgba(0,0,0,0.9)'], [0.45, 'rgba(0,0,0,0.45)'], [1, 'rgba(0,0,0,0)']])
+  const contact = contactSchaduw(bak, contactTex, k.contact, o.handen === 'plat')
+  scene.add(...contact.meshes)
 
-  const figuur = bouwFiguur(bak, mat.figuur, o.spieren, o.handen)
-  const materiaal = bouwMateriaal(bak, mat.materiaal, o.materiaal)
+  const figuur = bouwFiguur(bak, figuurMat, o, maakPalet(o, opties))
+  const materiaal = bouwMateriaal(bak, mat, o.materiaal)
   scene.add(figuur.groep, materiaal.groep)
 
-  let cam = camera(o, 1)
+  const kader = opties.camera ?? o.camera
+  let cam = camera(kader, 1)
 
   return {
     duur: lusDuur(o.sleutels),
+    driehoeken: figuur.driehoeken,
     teken(t: number) {
       const h = houdingOp(o.sleutels, t)
       const f = figuurIn(o, h)
       figuur.zet(f)
+      contact.zet(f)
       materiaal.zet(f, h)
       renderer.render(scene, cam)
     },
     grootte(breedte: number, hoogte: number) {
       renderer.setSize(breedte, hoogte, false)
-      cam = camera(o, breedte / Math.max(1, hoogte))
+      cam = camera(kader, breedte / Math.max(1, hoogte))
     },
     ruimOp() {
       bak.ruimOp()
       vlekTex.dispose()
+      contactTex.dispose()
       omgeving.dispose()
       pmrem.dispose()
-      const { romp, huid, spier, kleding, schoen, haar } = mat.figuur
-      for (const m of [romp, huid, spier, kleding, schoen, haar, ...Object.values(mat.materiaal), vloer.material, vlek.material]) m.dispose()
+      ruimMaterialenOp(figuurMat)
+      const losse = [...Object.values(mat), vloer.material, vlek.material, ...contact.meshes.map((m) => m.material as MeshBasicMaterial)]
+      for (const m of losse) m.dispose()
       renderer.dispose()
     },
   }

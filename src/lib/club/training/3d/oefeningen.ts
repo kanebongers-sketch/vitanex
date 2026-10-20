@@ -1,24 +1,26 @@
-// ─── Fit Factory Club, 3D-oefenbeelden: de zes oefeningen als data (PUUR) ────
+// ─── Fit Factory Club, 3D-oefenbeelden: alle oefeningen als data (PUUR) ──────
 // Per oefening de sleutelhoudingen met tempo zoals een trainer het voordoet:
 // rustig zakken (2 tot 2,5 s), korte pauze onderin, krachtig maar gecontroleerd
 // omhoog (1 tot 1,5 s), even stil bovenin. Voeten staan vast op de vloer en de
 // handen vast aan de last; armen en benen volgen met inverse kinematica.
 
-import type { Houding, Oefening3d } from './typen'
+import { houding } from './bouw/basis'
+import { BIBLIOTHEEK_3D } from './bibliotheek'
+import type { Oefening3d } from './typen'
 
 // ── Back squat ──────────────────────────────────────────────────────────────
 // Stang hoog op de bovenrug, voeten iets breder dan de heupen, tenen licht naar
 // buiten. Heupen naar achteren en omlaag tot de dij ongeveer horizontaal is,
 // knieen in de lijn van de tenen, borst omhoog en blik vooruit.
 
-const SQUAT_BOVEN: Houding = {
+const SQUAT_BOVEN = houding({
   bekkenY: 0.944, bekkenZ: -0.02, kantel: 6, lende: 0, borst: 0, nek: 0,
   schouders: 0.01, lastY: 0.27, lastZ: -0.125, greep: 0.42,
-}
-const SQUAT_ONDER: Houding = {
+})
+const SQUAT_ONDER = houding({
   bekkenY: 0.47, bekkenZ: -0.2, kantel: 42, lende: 4, borst: -4, nek: -26,
   schouders: 0.01, lastY: 0.27, lastZ: -0.125, greep: 0.42,
-}
+})
 
 export const BACK_SQUAT_3D: Oefening3d = {
   naam: 'Back squat',
@@ -42,18 +44,18 @@ export const BACK_SQUAT_3D: Oefening3d = {
 // de stang, rug neutraal. Eerst duwen met de benen, dan heupen naar voren tot
 // rechtop. Terug: heupen eerst naar achteren, stang langs de dijen.
 
-const DEADLIFT_ONDER: Houding = {
+const DEADLIFT_ONDER = houding({
   bekkenY: 0.66, bekkenZ: -0.3, kantel: 65, lende: 2, borst: 2, nek: -30,
   schouders: -0.01, lastY: 0, lastZ: 0.1, greep: 0.25,
-}
-const DEADLIFT_KNIE: Houding = {
+})
+const DEADLIFT_KNIE = houding({
   bekkenY: 0.82, bekkenZ: -0.2, kantel: 48, lende: 1, borst: 1, nek: -24,
   schouders: -0.01, lastY: 0, lastZ: 0.1, greep: 0.25,
-}
-const DEADLIFT_BOVEN: Houding = {
+})
+const DEADLIFT_BOVEN = houding({
   bekkenY: 0.948, bekkenZ: 0, kantel: 3, lende: -2, borst: -1, nek: 0,
   schouders: -0.02, lastY: 0, lastZ: 0.1, greep: 0.25,
-}
+})
 
 export const DEADLIFT_3D: Oefening3d = {
   naam: 'Deadlift',
@@ -80,14 +82,14 @@ export const DEADLIFT_3D: Oefening3d = {
 // De stang zakt gecontroleerd naar de onderste borst, onderarmen verticaal,
 // ellebogen schuin langs het lichaam; dan uitdrukken tot boven de schouders.
 
-const BANK_BOVEN: Houding = {
+const BANK_BOVEN = houding({
   bekkenY: 0.535, bekkenZ: 0.24, kantel: -90, lende: 0, borst: 0, nek: 0,
   schouders: -0.015, lastY: 1.1, lastZ: -0.23, greep: 0.4,
-}
-const BANK_ONDER: Houding = {
+})
+const BANK_ONDER = houding({
   bekkenY: 0.535, bekkenZ: 0.24, kantel: -90, lende: 0, borst: 0, nek: 0,
   schouders: -0.015, lastY: 0.69, lastZ: -0.12, greep: 0.4,
-}
+})
 
 export const BANKDRUKKEN_3D: Oefening3d = {
   naam: 'Bankdrukken met barbell',
@@ -111,14 +113,14 @@ export const BANKDRUKKEN_3D: Oefening3d = {
 // eerst omlaag, dan de stang naar de bovenkant van de borst trekken met de
 // ellebogen naar beneden en iets naar achteren. Gecontroleerd terug.
 
-const LAT_BOVEN: Houding = {
+const LAT_BOVEN = houding({
   bekkenY: 0.555, bekkenZ: 0, kantel: -8, lende: 0, borst: 0, nek: 0,
   schouders: 0.04, lastY: 1.655, lastZ: -0.06, greep: 0.42,
-}
-const LAT_ONDER: Houding = {
+})
+const LAT_ONDER = houding({
   bekkenY: 0.555, bekkenZ: 0, kantel: -18, lende: -2, borst: -6, nek: 8,
   schouders: -0.02, lastY: 1.04, lastZ: -0.03, greep: 0.42,
-}
+})
 
 export const LAT_PULLDOWN_3D: Oefening3d = {
   naam: 'Lat pulldown',
@@ -142,14 +144,14 @@ export const LAT_PULLDOWN_3D: Oefening3d = {
 // hoofd. Zakken tot de borst net boven de vloer, ellebogen schuin naar achteren
 // (ongeveer 45 graden), dan in een stuk terug omhoog.
 
-const PUSH_BOVEN: Houding = {
+const PUSH_BOVEN = houding({
   bekkenY: 0.42, bekkenZ: -0.17, kantel: 74, lende: 0, borst: 0, nek: 0,
   schouders: 0, lastY: 0.035, lastZ: 0.2, greep: 0.27,
-}
-const PUSH_ONDER: Houding = {
+})
+const PUSH_ONDER = houding({
   bekkenY: 0.215, bekkenZ: -0.132, kantel: 89, lende: 0, borst: 0, nek: 2,
   schouders: 0, lastY: 0.035, lastZ: 0.2, greep: 0.27,
-}
+})
 
 export const PUSH_UP_3D: Oefening3d = {
   naam: 'Push-up',
@@ -173,14 +175,14 @@ export const PUSH_UP_3D: Oefening3d = {
 // oorhoogte, onderarmen verticaal; recht omhoog drukken tot de armen bijna
 // gestrekt zijn en de halters boven het hoofd bij elkaar komen.
 
-const PRESS_ONDER: Houding = {
+const PRESS_ONDER = houding({
   bekkenY: 0.535, bekkenZ: -0.02, kantel: -4, lende: 0, borst: 0, nek: 0,
   schouders: 0, lastY: 1.21, lastZ: 0.0, greep: 0.42,
-}
-const PRESS_BOVEN: Houding = {
+})
+const PRESS_BOVEN = houding({
   bekkenY: 0.535, bekkenZ: -0.02, kantel: -4, lende: 0, borst: 0, nek: 0,
   schouders: 0.03, lastY: 1.68, lastZ: -0.04, greep: 0.16,
-}
+})
 
 export const SCHOUDERDRUKKEN_3D: Oefening3d = {
   naam: 'Dumbbell shoulder press',
@@ -199,8 +201,8 @@ export const SCHOUDERDRUKKEN_3D: Oefening3d = {
   camera: { hoek: 34, hoogte: 9, afstand: 4.1, doel: { x: 0, y: 0.88, z: 0.06 } },
 }
 
-/** De zes oefeningen van het 3D-prototype, in volgorde. */
-export const OEFENINGEN_3D: readonly Oefening3d[] = [
+/** De zes oefeningen van het eerste prototype (met de hand afgesteld). */
+export const PROTOTYPE_3D: readonly Oefening3d[] = [
   BACK_SQUAT_3D,
   BANKDRUKKEN_3D,
   DEADLIFT_3D,
@@ -208,6 +210,9 @@ export const OEFENINGEN_3D: readonly Oefening3d[] = [
   PUSH_UP_3D,
   SCHOUDERDRUKKEN_3D,
 ]
+
+/** Alle oefeningen in 3D: het prototype plus de bibliotheek via de bouwstenen. */
+export const OEFENINGEN_3D: readonly Oefening3d[] = [...PROTOTYPE_3D, ...BIBLIOTHEEK_3D]
 
 export function oefening3dOpNaam(naam: string): Oefening3d | undefined {
   return OEFENINGEN_3D.find((o) => o.naam === naam)
