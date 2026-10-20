@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Eye } from 'lucide-react'
 import { APP_TABS, type AppTab } from '@/components/club/app/Toestel'
+import { TabIcoon } from '@/components/club/app/TabIcoon'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 
 // De ledenapp als echte app op de telefoon: merk bovenin, inhoud die scrolt,
@@ -45,9 +46,9 @@ export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, ta
       <nav className="club-mijn-tabs" aria-label="Ledenapp" style={{ ['--club-mijn-tabs' as string]: tabs.length }}>
         {tabs.map(({ sleutel, label, Icoon }) => (
           <Link key={sleutel} href={tabPad(sleutel)} aria-current={sleutel === tab ? 'page' : undefined} scroll={false} prefetch={false}>
-            <span className="club-mijn-tab-icoon" aria-hidden>
+            <TabIcoon>
               <Icoon size={22} strokeWidth={sleutel === tab ? 2.25 : 1.75} />
-            </span>
+            </TabIcoon>
             <span className="club-mijn-tab-label">{label}</span>
           </Link>
         ))}

@@ -197,6 +197,6 @@ export async function haalLidApp(admin: SupabaseClient, userId: string, lid: Lid
     schema: schema.schema,
     logs: logs.logs,
     historie: historie.historie,
-    meldingen: fouten.length > 0 ? ['Niet alles kon worden geladen.'] : [],
+    meldingen: fouten.length > 0 ? ['Niet alles kon worden geladen. Probeer het zo opnieuw.'] : [],
   }
 }

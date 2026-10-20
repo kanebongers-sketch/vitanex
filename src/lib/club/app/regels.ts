@@ -64,15 +64,29 @@ export function magGratisAnnuleren(start: Date, nu: Date, r: AppRegels): boolean
 
 export type MijnStatus = 'geboekt' | 'wachtlijst' | 'aanwezig' | 'no_show' | 'geannuleerd'
 
-export type LesKeuze = 'geboekt' | 'wachtlijst' | 'vrij' | 'vol' | 'voorbij' | 'geannuleerd'
+export type LesKeuze = 'geboekt' | 'wachtlijst' | 'vrij' | 'vol' | 'voorbij' | 'geannuleerd' | 'aanwezig'
 
-/** Wat de knop bij een les moet doen of zeggen, vanuit het lid gezien. */
+/**
+ * Wat de knop bij een les moet doen of zeggen, vanuit het lid gezien. Een les
+ * die al begon kan niet meer geannuleerd worden (het rooster weigert dat), en
+ * wie al is afgevinkt als aanwezig ook niet: dan geen knop maar een label.
+ */
 export function lesKeuze(les: { start: Date; capaciteit: number; bezet: number; geannuleerd: boolean }, mijn: MijnStatus | null, nu: Date): LesKeuze {
   if (les.geannuleerd) return 'geannuleerd'
-  if (mijn === 'geboekt' || mijn === 'aanwezig') return 'geboekt'
-  if (mijn === 'wachtlijst') return 'wachtlijst'
+  if (mijn === 'aanwezig') return 'aanwezig'
   if (les.start.getTime() <= nu.getTime()) return 'voorbij'
+  if (mijn === 'geboekt') return 'geboekt'
+  if (mijn === 'wachtlijst') return 'wachtlijst'
   return les.bezet >= les.capaciteit ? 'vol' : 'vrij'
+}
+
+/**
+ * Kan dit lid deze les nog gratis annuleren? Van de wachtlijst afgaan telt
+ * nooit als te laat (zie beoordeelAnnulering in het rooster); een boeking wel
+ * binnen de annuleertermijn.
+ */
+export function annulerenZonderGevolg(keuze: LesKeuze, start: Date, nu: Date, r: AppRegels): boolean {
+  return keuze === 'wachtlijst' || magGratisAnnuleren(start, nu, r)
 }
 
 export function vrijePlekken(capaciteit: number, bezet: number): number {

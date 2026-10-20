@@ -149,7 +149,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
       )}
       {gedaan && (
         <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
-          <Undo2 aria-hidden size={14} /> Ongedaan maken
+          <Undo2 aria-hidden size={14} /> {bezig ? 'Bezig...' : 'Ongedaan maken'}
         </button>
       )}
       {fout && (

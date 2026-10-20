@@ -55,6 +55,8 @@
 }
 .club-mijn-inhoud > .club-lidapp-tab, .club-mijn-inhoud > .club-mijn-blok { padding-left: 16px; padding-right: 16px; }
 .club-mijn-blok { display: grid; gap: 12px; padding-top: 4px; padding-bottom: 8px; }
+.club-mijn-opnieuw { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-1); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.club-mijn-opnieuw:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
 .club-mijn-tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -86,6 +88,10 @@
 .club-mijn-tabs a[aria-current='page'] { color: var(--brand-tekst, var(--brand)); }
 .club-mijn-tabs a[aria-current='page'] .club-mijn-tab-label { font-weight: 700; }
 .club-mijn-tabs a[aria-current='page'] .club-mijn-tab-icoon::before { opacity: 1; transform: none; }
+/* Na een tik, terwijl het tabblad laadt: het icoon ademt zacht (TabIcoon.tsx). */
+.club-mijn-tab-icoon[data-laden] svg { animation: club-mijn-tab-laden 900ms ease-in-out infinite; }
+@keyframes club-mijn-tab-laden { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .club-mijn-tab-icoon[data-laden] svg { animation: none; opacity: 0.5; } }
 @media (hover: hover) { .club-mijn-tabs a:not([aria-current='page']):hover { color: var(--text-1); } }
 
 /* Een oefening groot: over het hele scherm, boven de onderbalk. */
@@ -166,6 +172,8 @@
   caret-color: var(--brand);
 }
 .club-mijn-pin input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-color: var(--brand); }
+.club-mijn-pin input[aria-invalid='true'] { border-color: var(--club-let-op); }
+.club-mijn-inlog-kaart .club-mijn-pin-hint { margin-top: -4px; font-size: 13px; color: var(--text-3); }
 .club-mijn-inlog-fout { display: flex; gap: 8px; margin: 0; padding: 12px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--club-let-op) 35%, transparent); background: var(--club-let-op-zacht); color: var(--text-1) !important; font-size: 14.5px; line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) {

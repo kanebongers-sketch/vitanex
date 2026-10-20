@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { appRegelsUitJson, bezoekenDezeMaand, dagNaamKort, groet, lesKeuze, magGratisAnnuleren, regelTeksten, STANDAARD_APP_REGELS, vrijePlekken, wekenOpRij } from './regels'
+import { annulerenZonderGevolg, appRegelsUitJson, bezoekenDezeMaand, dagNaamKort, groet, lesKeuze, magGratisAnnuleren, regelTeksten, STANDAARD_APP_REGELS, vrijePlekken, wekenOpRij } from './regels'
 
 describe('regels uit de vestiging', () => {
   it('leest de jsonb en valt terug op de standaard bij rommel', () => {
@@ -38,6 +38,10 @@ describe('les vanuit het lid', () => {
     expect(lesKeuze(les, 'geannuleerd', nu)).toBe('vol')
     expect(lesKeuze({ ...les, geannuleerd: true }, 'geboekt', nu)).toBe('geannuleerd')
     expect(lesKeuze({ ...les, start: new Date('2026-10-14T09:00:00Z') }, null, nu)).toBe('voorbij')
+    // Begonnen: geen annuleerknop meer, ook niet met een boeking of wachtlijstplek.
+    expect(lesKeuze({ ...les, start: new Date('2026-10-14T09:00:00Z') }, 'geboekt', nu)).toBe('voorbij')
+    expect(lesKeuze({ ...les, start: new Date('2026-10-14T09:00:00Z') }, 'wachtlijst', nu)).toBe('voorbij')
+    expect(lesKeuze(les, 'aanwezig', nu)).toBe('aanwezig')
     expect(vrijePlekken(10, 12)).toBe(0)
   })
 })
@@ -65,5 +69,17 @@ describe('bezoek en motivatie', () => {
     expect(dagNaamKort('2026-10-14', '2026-10-14')).toBe('Vandaag')
     expect(dagNaamKort('2026-10-15', '2026-10-14')).toBe('Morgen')
     expect(dagNaamKort('2026-10-17', '2026-10-14')).toBe('Zaterdag')
+  })
+})
+
+describe('annuleren zonder gevolg', () => {
+  const nu = new Date('2026-10-14T10:00:00Z')
+  const straks = new Date('2026-10-14T11:00:00Z') // binnen de standaard 2 uur
+  it('van de wachtlijst af telt nooit als te laat', () => {
+    expect(annulerenZonderGevolg('wachtlijst', straks, nu, STANDAARD_APP_REGELS)).toBe(true)
+  })
+  it('een boeking binnen de termijn wel', () => {
+    expect(annulerenZonderGevolg('geboekt', straks, nu, STANDAARD_APP_REGELS)).toBe(false)
+    expect(annulerenZonderGevolg('geboekt', new Date('2026-10-14T13:00:00Z'), nu, STANDAARD_APP_REGELS)).toBe(true)
   })
 })

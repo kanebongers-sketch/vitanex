@@ -6,8 +6,9 @@ import { LID_STATUS_LABEL, initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import type { LidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 
-// Profiel in de ledenapp: eigen gegevens. Geld en contract staan in Sportivity;
-// hier alleen de naam van het abonnement.
+// Profiel in de ledenapp: eigen gegevens. Geld en contract regelt de
+// sportschool buiten de app (bij Fit Factory in Sportivity); hier alleen de naam
+// van het abonnement. Geen systeemnamen voor het lid: die zeggen hem niets.
 
 interface ProfielTabProps {
   lid: LidVoorApp
@@ -54,8 +55,8 @@ export function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp, pil
         <h3 id="lidapp-abonnement">
           <CreditCard aria-hidden size={16} /> Abonnement en betalingen
         </h3>
-        <p className="club-lidapp-abo">{lid.abonnement ?? 'Abonnement onbekend'}</p>
-        <p>Je abonnement, facturen en betalingen regel je in Sportivity. Vragen? Loop even langs de balie.</p>
+        <p className="club-lidapp-abo">{lid.abonnement ?? 'Nog niet bekend in de app'}</p>
+        <p>Vragen over je abonnement, facturen of betalingen? Vraag het aan de balie van {sportschool}.</p>
       </section>
       {hulp}
       {teksten && <LedenappJuridisch teksten={teksten} sportschool={sportschool} />}

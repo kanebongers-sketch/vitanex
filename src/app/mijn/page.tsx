@@ -126,7 +126,11 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
         >
           {data.meldingen.map((m) => (
             <p key={m} className="club-melding club-melding--fout club-mijn-blok" role="status">
-              {m}
+              {m}{' '}
+              {/* Een gewone link: laadt dit scherm opnieuw, ook in de web-app zonder vernieuwknop. */}
+              <a href={tabPad(toonMeldingen ? 'meldingen' : toonKopen ? 'kopen' : tab)} className="club-mijn-opnieuw">
+                Opnieuw laden
+              </a>
             </p>
           ))}
           {toonMeldingen && (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useEffectEvent, useState } from 'react'
-import { QrCode, ScanLine, Sun, WifiOff } from 'lucide-react'
+import { QrCode, RotateCcw, ScanLine, Sun, WifiOff } from 'lucide-react'
 import { isCheckinCodeAntwoord, type CheckinCodeAntwoord } from '@/lib/club/checkin/types'
 import { useLedenappApi } from './LedenappApi'
 
@@ -21,6 +21,8 @@ type Stand =
 export function CheckinQr({ lidId }: { lidId: string }) {
   const api = useLedenappApi()
   const [stand, setStand] = useState<Stand>({ soort: 'laden' })
+  // Ophogen = meteen opnieuw proberen (knop bij een fout); het lid staat vaak al bij de ingang.
+  const [poging, setPoging] = useState(0)
   const url = api.checkinCode(lidId)
 
   const haal = useEffectEvent(async (): Promise<number | null> => {
@@ -67,7 +69,12 @@ export function CheckinQr({ lidId }: { lidId: string }) {
       window.clearTimeout(klok)
       document.removeEventListener('visibilitychange', zichtbaar)
     }
-  }, [url])
+  }, [url, poging])
+
+  function opnieuw() {
+    setStand({ soort: 'laden' })
+    setPoging((n) => n + 1)
+  }
 
   return (
     <section className="club-lidapp-qr" aria-labelledby="lidapp-qr" data-stand={stand.soort}>
@@ -81,12 +88,12 @@ export function CheckinQr({ lidId }: { lidId: string }) {
           </span>
         )}
       </div>
-      <QrInhoud stand={stand} />
+      <QrInhoud stand={stand} onOpnieuw={opnieuw} />
     </section>
   )
 }
 
-function QrInhoud({ stand }: { stand: Stand }) {
+function QrInhoud({ stand, onOpnieuw }: { stand: Stand; onOpnieuw: () => void }) {
   if (stand.soort === 'laden') {
     return (
       <div className="club-lidapp-qr-vlak club-lidapp-qr-vlak--laden" role="status" aria-busy="true">
@@ -98,9 +105,14 @@ function QrInhoud({ stand }: { stand: Stand }) {
   if (stand.soort === 'uit') return <p className="club-lidapp-qr-melding">{stand.melding}</p>
   if (stand.soort === 'fout') {
     return (
-      <p className="club-lidapp-qr-melding club-lidapp-qr-melding--fout" role="status">
-        <WifiOff aria-hidden size={18} /> De code kon niet worden geladen. We proberen het zo opnieuw.
-      </p>
+      <>
+        <p className="club-lidapp-qr-melding club-lidapp-qr-melding--fout" role="status">
+          <WifiOff aria-hidden size={18} /> De code kon niet worden geladen. Controleer je internet; we proberen het over 10 seconden vanzelf opnieuw.
+        </p>
+        <button type="button" className="club-lidapp-knop" onClick={onOpnieuw}>
+          <RotateCcw aria-hidden size={16} /> Nu opnieuw proberen
+        </button>
+      </>
     )
   }
   const totaalMs = stand.vakSec * 1000
