@@ -6,7 +6,7 @@
 import { payloadVolgorde, type EditorStaat } from './editor'
 import { dagLetter } from './typen'
 
-const OEFENING_NR = /^Oefening (\d+): (.+)$/s
+const OEFENING_NR = /^Oefening (\d+): ([\s\S]+)$/
 
 /**
  * Een melding van de server ("Oefening 7: sets moet tussen 1 en 20 liggen.")
