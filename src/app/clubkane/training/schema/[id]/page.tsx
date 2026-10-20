@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { recordInEigenVestiging } from '@/lib/club/kern/vestiging-toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
+import { ClubKruimel, stappenNaarLid, type KruimelStap } from '@/components/club/shell/ClubKruimel'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import { haalOefeningen, haalSchema, haalSetLogs, haalTrainingslog } from '@/lib/club/training/data'
 import { progressieOverzicht } from '@/lib/club/training/progressie'
 import { uitOpgeslagen } from '@/lib/club/training/editor'
@@ -43,18 +44,22 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
   // Progressie: wat het lid per set logde, met de volgende stap volgens de vaste vakregel.
   const sets = kop.lidId ? await haalSetLogs(t.admin, t.userId, kop.lidId, schema.regels.map((r) => r.oefeningId)) : null
   const progressie = sets && oefeningen ? progressieOverzicht(schema.regels, new Map(oefeningen.map((o) => [o.id, o])), sets) : null
+  // De weg terug: bij een lid via de ledenkaart (daar komt de trainer vandaan), anders via Training.
+  const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
+  const naarLid = kop.lidId ? stappenNaarLid(magLeden, { id: kop.lidId, naam: kop.lidNaam ?? 'Lid' }, vestiging) : []
+  const kruimel: KruimelStap[] = naarLid.length
+    ? naarLid
+    : [{ label: 'Training', href: trainingPad(vestiging, isSjabloon ? 'sjablonen' : 'schemas', null) }, { label: isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`, href: terug }]
 
   return (
     <div className="club-training-printpagina">
+      <ClubKruimel stappen={kruimel} huidig={kop.naam} />
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${naamVan(t.vestigingen, vestiging)}`}</p>
           <h1>{kop.naam}</h1>
           {!isSjabloon && kop.status === 'concept' && <p>Concept: pas aan waar nodig en kies Activeren zodra het klaar is voor het lid.</p>}
         </div>
-        <Link className="club-knop club-knop--stil" href={terug}>
-          <ArrowLeft aria-hidden size={16} /> {isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`}
-        </Link>
       </section>
       {!oefeningen && <p className="club-melding club-melding--fout">De oefeningen konden niet worden geladen.</p>}
       <SchemaEditor

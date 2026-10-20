@@ -113,7 +113,7 @@ export async function zoekLeden(
   limiet = 20,
 ): Promise<Lid[] | null> {
   let q = admin.from('club_leden').select(LID_KOLOMMEN).eq('user_id', userId).eq('vestiging', vestiging)
-  const term = zoekterm.trim().replace(/[%,()*]/g, ' ').slice(0, 60).trim()
+  const term = zoekterm.trim().replace(/[%,()*"\\]/g, ' ').slice(0, 60).trim()
   if (term) {
     const delen = term.split(/\s+/).slice(0, 3)
     for (const deel of delen) {

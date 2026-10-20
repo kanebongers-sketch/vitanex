@@ -74,7 +74,8 @@ export function leesStaat(p: RuweParams, vestiging: string): PersoneelStaat {
 export function personeelHref(staat: PersoneelStaat, wijziging: Partial<PersoneelStaat> = {}): string {
   const s = { ...staat, ...wijziging }
   const p = new URLSearchParams({ v: s.v })
-  if (s.tab !== 'week') p.set('tab', s.tab)
+  // Altijd het tabblad erbij: zonder tab opent een medewerker zijn eigen diensten (zie personeel/page.tsx).
+  p.set('tab', s.tab)
   if (s.week) p.set('week', s.week)
   if (s.mw) p.set('mw', s.mw)
   if (s.tab === 'uren') {

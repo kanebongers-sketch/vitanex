@@ -77,6 +77,8 @@ const API_ONDERDEEL: Record<string, string> = {
   start: 'beheer',
   community: 'community',
   betalen: 'beheer',
+  // Boekingswidget op de eigen website (alleen Kane en de eigenaar, zie /api/club/widget).
+  widget: 'beheer',
 }
 
 /** Onder /api/club/organisatie: wat bij welk onderdeel hoort. */

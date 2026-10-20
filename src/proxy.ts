@@ -9,6 +9,7 @@ import { beslisClub } from '@/lib/club/kern/subdomein'
 import { beslisAyg } from '@/lib/aiyourgym/host'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
+import { widgetProxy } from '@/lib/club/widget/proxy-widget'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -108,7 +109,12 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   return response
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  // De boekingswidget (/widget/..., /api/widget/...) eerst: op elk domein behalve
+  // releasev.nl dezelfde plek, met een eigen CSP (src/lib/club/widget/proxy-widget.ts).
+  const widget = await widgetProxy(request)
+  if (widget) return widget
+
   const club = clubOpSubdomein(request)
   if (club) return club
 

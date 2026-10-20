@@ -107,7 +107,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
 
   return (
     <>
-      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} />
+      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} naar={{ training: toonTraining, rooster: moduleAan(t.organisatie, 'rooster') && magOnderdeel(t.onderdelen, 'rooster') }} />
       <nav className="club-segment club-leden-secties" aria-label="Spring naar">
         <a href="#overzicht">Overzicht</a>
         {toonTraining && <a href="#training">Training</a>}

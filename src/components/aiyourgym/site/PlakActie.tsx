@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { AANMELDEN, DEMO_AANVRAGEN } from './paden'
+import { scrollPositie, volgScroll } from './scrollpositie'
 
 // Op de telefoon: na het eerste scherm een vaste aanmeldknop onderin, zodat de
 // volgende stap altijd een duim ver weg is. Hij verdwijnt weer bij de voet,
@@ -17,24 +18,12 @@ export function PlakActie() {
   const [zichtbaar, setZichtbaar] = useState(false)
 
   useEffect(() => {
-    let frame = 0
     const kijk = () => {
-      frame = 0
-      const y = window.scrollY
-      const onder = document.documentElement.scrollHeight - (y + window.innerHeight)
-      setZichtbaar(y > window.innerHeight * VANAF_SCHERMEN && onder > VOET_MARGE_PX)
-    }
-    const opScroll = () => {
-      if (!frame) frame = requestAnimationFrame(kijk)
+      const { y, rest, scherm } = scrollPositie()
+      setZichtbaar(y > scherm * VANAF_SCHERMEN && rest > VOET_MARGE_PX)
     }
     kijk()
-    window.addEventListener('scroll', opScroll, { passive: true })
-    window.addEventListener('resize', opScroll)
-    return () => {
-      if (frame) cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', opScroll)
-      window.removeEventListener('resize', opScroll)
-    }
+    return volgScroll(kijk)
   }, [])
 
   return (

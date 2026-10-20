@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { eisClubToegang } from '@/lib/club/toegang'
 import { clubPad } from '@/lib/club/kern/vestiging'
 import { naamVan } from '@/lib/club/kern/vestigingen'
@@ -11,6 +9,9 @@ import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { haalEigenLid, haalPlan, haalSjablonen } from '@/lib/club/voeding/lezen'
 import { startVelden } from '@/lib/club/voeding/startwaarden'
 import { PlanEditor } from '@/components/club/voeding/PlanEditor'
+import { ClubKruimel, stappenNaarLid } from '@/components/club/shell/ClubKruimel'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/voeding/voeding.css'
 
 export const metadata: Metadata = { title: 'Voedingsplan' }
@@ -26,14 +27,15 @@ export default async function VoedingLidPagina({ params }: { params: Promise<{ i
   const nu = new Date()
   const [plan, sjablonen, voortgang] = await Promise.all([haalPlan(t.admin, t.userId, lid.id), haalSjablonen(t.admin, t.userId), haalVoortgang(t.admin, t.userId, lid.id, nu)])
   const naam = volledigeNaam(lid)
+  const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
+  const naarLid = stappenNaarLid(magLeden, { id: lid.id, naam }, lid.vestiging)
+  const kruimel = naarLid.length ? naarLid : [{ label: 'Voeding', href: clubPad('/voeding', lid.vestiging) }]
 
   return (
     <>
+      <ClubKruimel stappen={kruimel} huidig={plan ? 'Voedingsplan' : 'Nieuw voedingsplan'} />
       <section className="club-paginakop">
         <div>
-          <Link href={clubPad(`/leden/${lid.id}`, lid.vestiging)} className="club-terug">
-            <ArrowLeft size={15} aria-hidden /> {naam}
-          </Link>
           <p className="club-boventitel">{naamVan(t.vestigingen, lid.vestiging)} · voeding</p>
           <h1>{plan ? 'Voedingsplan' : 'Nieuw voedingsplan'}</h1>
           <p>Zet een dagdoel neer met de rekenhulp of een sjabloon, voeg adviezen en een voorbeelddag toe. Het lid ziet het plan in de ledenapp, zonder je notitie.</p>

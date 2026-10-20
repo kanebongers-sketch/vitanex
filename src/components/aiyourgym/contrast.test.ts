@@ -95,6 +95,38 @@ const DONKER_VLAKKEN = ['ayg-inkt', 'ayg-inkt-2'] as const
 const procent = (w: string) => Number.parseFloat(w) / 100
 const P = tokens(SITE_CSS, '.ayg-podium')
 
+/** Hoe dekkend het lichte vlak van de kop (gescrold) en van de vaste knop onderin is; gecontroleerd tegen de css hieronder. */
+const KOP_DEKKING = 0.9
+const PLAK_DEKKING = 0.92
+
+/**
+ * De kop, de contactbalk, het menupaneel en de vaste knop onderin (licht met smaragd,
+ * besluit Kane 20-10-2026). De kop en de vaste knop zijn half doorzichtig: we rekenen
+ * met het slechtste geval eronder, het donkere podium en de lichte inkttekst.
+ */
+function kopParen(t: (token: string) => string): Paar[] {
+  const onder = [t('ayg-inkt'), t('ayg-inkt-tekst')]
+  const doorzichtig = (dekking: number, plek: string) =>
+    onder.flatMap((o) => {
+      const vlak = meng(t('ayg-vlak'), o, dekking)
+      return [
+        { waar: `${plek} over ${o}: tekst`, tekst: t('ayg-tekst'), op: vlak, min: NORMAAL },
+        { waar: `${plek} over ${o}: menulinks (tekst-2)`, tekst: t('ayg-tekst-2'), op: vlak, min: NORMAAL },
+        { waar: `${plek} over ${o}: smaragden streep onder de huidige pagina`, tekst: t('ayg-accent-sterk'), op: vlak, min: GROOT },
+        { waar: `${plek} over ${o}: rand van de randknop`, tekst: t('ayg-lijn-sterk'), op: vlak, min: GROOT },
+      ]
+    })
+  return [
+    { waar: 'contactbalk: tekst op de smaragdtint', tekst: t('ayg-tekst'), op: t('ayg-balk'), min: NORMAAL },
+    { waar: 'contactbalk: smaragden iconen en streep op de smaragdtint', tekst: t('ayg-accent-sterk'), op: t('ayg-balk'), min: NORMAAL },
+    { waar: 'contactbalk: de tint is te onderscheiden van het papier eronder', tekst: t('ayg-balk'), op: t('ayg-bg'), min: 1.05 },
+    { waar: 'menuknop: inkt op het kalkwitte vlak', tekst: t('ayg-tekst'), op: t('ayg-vlak'), min: NORMAAL },
+    { waar: 'menupaneel: smaragden lijn bovenaan', tekst: t('ayg-accent-sterk'), op: t('ayg-vlak'), min: GROOT },
+    ...doorzichtig(KOP_DEKKING, 'kop gescrold'),
+    ...doorzichtig(PLAK_DEKKING, 'vaste knop onderin'),
+  ]
+}
+
 interface PaletParen {
   site: Paar[]
   hoofdstuk: Paar[]
@@ -138,6 +170,7 @@ function paletParen(naam: string, S: Record<string, string>): PaletParen {
     { waar: 'uitgeschakelde inktknop (85%)', tekst: meng(t('ayg-bg'), t('ayg-vlak'), 0.85), op: meng(t('ayg-tekst'), t('ayg-vlak'), 0.85), min: NORMAAL },
     { waar: 'smaragd als tekst op het papier (de markering in de donkere versie)', tekst: t('ayg-accent'), op: t('ayg-bg'), min: naam === 'donker' ? NORMAAL : 1 },
     { waar: 'hover op een hoofdstuk: lichte knop met inkt erop', tekst: t('ayg-accent-tekst'), op: t('ayg-inkt-tekst'), min: NORMAAL },
+    ...kopParen(t),
   ]
   // Elk hoofdstuk van de functies heeft een eigen accent: altijd inkt erop (het
   // nummer, het label, de hover-vulling) en als tekst op inkt (het nummer bij hover).
@@ -207,13 +240,62 @@ describe('contrast van de hoofdstukken en het podium', () => {
   })
 })
 
+/** De regels van een selector in de site-css (alle blokken die precies zo beginnen). */
+function regels(selector: string): string {
+  const css = lees(SITE_CSS)
+  const esc = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return [...css.matchAll(new RegExp(`(?:^|\\n|\\})\\s*${esc}\\s*\\{([^}]*)\\}`, 'g'))].map((m) => m[1]).join(';')
+}
+
+describe('kop, contactbalk en menu: licht met smaragd (besluit Kane 20-10-2026)', () => {
+  const DONKER_VLAK = /background(?:-color)?\s*:\s*var\(--ayg-(?:inkt|tekst)\)/
+
+  it.each(['.ayg-contactbalk', '.ayg-kop', '.ayg-kop::before', '.ayg-menuknop', '.ayg-menupaneel', '.ayg-plak'])('%s heeft geen donker vlak', (sel) => {
+    const r = regels(sel)
+    expect(r, sel).not.toBe('')
+    expect(r, sel).not.toMatch(DONKER_VLAK)
+  })
+  it('de contactbalk is de smaragdtint met inkt erop', () => {
+    expect(regels('.ayg-contactbalk')).toMatch(/background:\s*var\(--ayg-balk\)/)
+    expect(regels('.ayg-contactbalk')).toMatch(/color:\s*var\(--ayg-tekst\)/)
+  })
+  it('de kop wordt bij scrollen een licht kalkwit vlak met blur en fijne lijn', () => {
+    const r = regels('.ayg-kop::before')
+    expect(r).toMatch(new RegExp(`color-mix\\(in srgb, var\\(--ayg-vlak\\) ${KOP_DEKKING * 100}%, transparent\\)`))
+    expect(r).toMatch(/backdrop-filter:[^;]*blur/)
+    expect(r).toMatch(/0 1px 0 var\(--ayg-lijn\)/)
+  })
+  it('het menupaneel en de vaste knop onderin zijn licht', () => {
+    expect(regels('.ayg-menupaneel')).toMatch(/background:\s*var\(--ayg-vlak\)/)
+    expect(regels('.ayg-plak')).toMatch(new RegExp(`color-mix\\(in srgb, var\\(--ayg-vlak\\) ${PLAK_DEKKING * 100}%, transparent\\)`))
+  })
+  it('de hoofdknop in de kop is smaragd', () => {
+    const nav = readFileSync(path.join(WORTEL, 'src/components/aiyourgym/site/AygNav.tsx'), 'utf8')
+    expect(nav).toMatch(/href=\{AANMELDEN\} className="ayg-knop ayg-knop--accent/)
+  })
+  it('kop en vaste knop kijken naar de body die scrolt, niet naar window.scrollY', () => {
+    for (const bestand of ['AygKop.tsx', 'PlakActie.tsx']) {
+      const code = readFileSync(path.join(WORTEL, 'src/components/aiyourgym/site', bestand), 'utf8')
+      expect(code, bestand).toMatch(/volgScroll\(/)
+      expect(code, bestand).not.toMatch(/window\.scrollY|addEventListener\('scroll'/)
+    }
+  })
+  it('het grote woordmerk in de voet is rustig: zichtbaar, maar geen grijs blok', () => {
+    for (const S of [LICHT, DONKER]) {
+      const c = contrast(S['ayg-voet-woord'], S['ayg-inkt'])
+      expect(c).toBeGreaterThanOrEqual(1.3)
+      expect(c).toBeLessThanOrEqual(2.5)
+    }
+  })
+})
+
 describe('contrast van de website-tokens', () => {
   it.each(SITE_PAREN)('$waar', ({ tekst, op, min }) => {
     expect(contrast(tekst, op)).toBeGreaterThanOrEqual(min)
   })
 
   it('elke tekstkleur in de css staat in de lijst hierboven', () => {
-    const gecontroleerd = new Set(['ayg-tekst', 'ayg-tekst-2', 'ayg-tekst-spook', 'ayg-inkt', 'ayg-inkt-tekst', 'ayg-inkt-tekst-2', 'ayg-inkt-spook', 'ayg-accent', 'ayg-accent-tekst', 'ayg-bg', 'ayg-fout', 'ayg-ok', 'k-tekst'])
+    const gecontroleerd = new Set(['ayg-tekst', 'ayg-tekst-2', 'ayg-tekst-spook', 'ayg-inkt', 'ayg-inkt-tekst', 'ayg-inkt-tekst-2', 'ayg-inkt-spook', 'ayg-accent', 'ayg-accent-tekst', 'ayg-accent-sterk', 'ayg-bg', 'ayg-fout', 'ayg-ok', 'ayg-voet-woord', 'k-tekst'])
     const gebruikt = new Set<string>()
     for (const bestand of ALLE_CSS) {
       for (const m of lees(bestand).matchAll(/(?<![-\w])color\s*:\s*var\(--([\w-]+)/g)) gebruikt.add(m[1])

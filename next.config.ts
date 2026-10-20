@@ -20,7 +20,7 @@ while (
 // kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
 // op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
 // een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
-const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'clubkane', 'clubinloggen', 'aiyourgym', 'mijn', 'api', 'fonts', 'lead', 'releasev'])
+const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'clubkane', 'clubinloggen', 'aiyourgym', 'mijn', 'api', 'fonts', 'lead', 'releasev', 'widget'])
 function mentaforceRoutes(): string[] {
   const appDir = path.join(__dirname, 'src', 'app')
   const mappen = (dir: string) =>
@@ -283,10 +283,27 @@ const nextConfig: NextConfig = {
       ...(SITE_VERBORGEN ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
     ]
 
+    // Alleen voor /widget/...: alles van mentaforceHeaders behalve X-Frame-Options,
+    // de CSP (komt uit de proxy) en COOP. CORP cross-origin: het script en de pagina
+    // worden op de site van de sportschool geladen.
+    const widgetHeaders = [
+      { key: 'X-Content-Type-Options',             value: 'nosniff' },
+      { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy',                 value: permissionsPolicy },
+      { key: 'Cross-Origin-Resource-Policy',       value: 'cross-origin' },
+      { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
+      { key: 'X-Robots-Tag',                       value: 'noindex, nofollow' },
+      ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
+    ]
+
     return [
       // RELEASE V: eigen headers (andere CSP: Unsplash-foto's, GA4, Meta Pixel)
       { source: '/(.*)', has: [RELEASEV_HOST], headers: releaseVHeaders(isProd) },
-      { source: '/(.*)', missing: [RELEASEV_HOST], headers: mentaforceHeaders },
+      // De boekingswidget (/widget/..., src/lib/club/widget) mag in een iframe op de
+      // website van een sportschool: daar geen X-Frame-Options en geen algemene CSP.
+      // De CSP met frame-ancestors per sportschool zet src/proxy.ts (widgetProxy).
+      { source: '/((?!widget/).*)', missing: [RELEASEV_HOST], headers: mentaforceHeaders },
+      { source: '/widget/:pad*', missing: [RELEASEV_HOST], headers: widgetHeaders },
       // MentaForce onder releasev.nl/mentaforce (src/lib/mentaforce/basis.ts) houdt
       // zijn eigen headers (o.a. de CSP voor Supabase). Deze regels staan ná die van
       // de webshop: bij dezelfde header wint de laatste. De rest van releasev.nl
@@ -322,6 +339,8 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'no-cache' },
         ],
       },
+      // Het script van de boekingswidget (public/widget/aiyourgym-widget.js): een uur cachen.
+      { source: '/widget/aiyourgym-widget.js', headers: [{ key: 'Cache-Control', value: 'public, max-age=3600' }] },
       // Cache static assets aggressively — alleen in productie.
       // In dev zijn Turbopack-chunknamen stabiel: immutable caching laat de
       // browser dan voor altijd oude code serveren.

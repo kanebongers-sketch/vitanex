@@ -24,7 +24,9 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   const params = await searchParams
   const vestiging = kiesUit(t.vestigingen, params.v)
   if (!vestiging) return <GeenVestigingen />
-  const staat = leesStaat(params, vestiging)
+  const gelezen = leesStaat(params, vestiging)
+  // Een ingelogde medewerker komt standaard bij zijn eigen diensten uit (besluit Kane 20-10-2026: de trainer op de vloer eerst).
+  const staat = t.rol === 'medewerker' && !params.tab ? { ...gelezen, tab: 'mijn' as const } : gelezen
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)
   const team = await haalTeam(t.admin, t.userId, vestiging)

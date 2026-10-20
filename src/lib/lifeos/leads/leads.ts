@@ -318,7 +318,7 @@ export function linkCodeVoor(naam: string, bezet: ReadonlySet<string>): string {
  * deze lijst de mappen in src/app dekt.
  */
 export const GERESERVEERD: ReadonlySet<string> = new Set([
-  '1', 'achievements', 'aiyourgym', 'mijn', 'actief', 'ademhaling', 'admin', 'agent', 'api', 'auth', 'bedankt', 'bestanden', 'burnout', 'chat',
+  '1', 'achievements', 'aiyourgym', 'mijn', 'widget', 'actief', 'ademhaling', 'admin', 'agent', 'api', 'auth', 'bedankt', 'bestanden', 'burnout', 'chat',
   'checkin', 'clubinloggen', 'clubkane', 'coach', 'coaching', 'contact', 'content', 'dankbaarheid', 'dashboard', 'declaraties', 'directory', 'disc',
   'doelen', 'doelkeuze', 'enps', 'focus', 'fonts', 'gezondheid', 'groeien', 'groeiplan', 'home', 'hr', 'instellingen',
   'inzichten', 'journal', 'kanebongers', 'koppelingen', 'lead', 'FitFactoryPT', 'fitfactorypt', 'lifeos', 'lifeoskane', 'login', 'loonstroken', 'meditatie',

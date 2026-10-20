@@ -1,0 +1,36 @@
+/* ─── Club: boekingswidget instellen (/clubkane/beheer/widget) ───────────────
+   Bouwt op het instellingencentrum (beheer.css). Alleen .club-wb-*. */
+
+.club-wb-melding { max-width: 760px; margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--club-vlak); color: var(--text-2); font-size: 14px; }
+.club-wb-melding.is-let { border-color: transparent; background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); }
+.club-wb-melding a { color: inherit; font-weight: 600; }
+.club-wb-melding code { font-size: 13px; }
+
+.club-wb-vestigingen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.club-wb-vestigingen a { padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--text-2); font-size: 13.5px; text-decoration: none; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
+.club-wb-vestigingen a:hover { border-color: var(--line-strong); color: var(--text-1); }
+.club-wb-vestigingen a[aria-current='page'] { border-color: var(--brand); background: var(--brand-soft); color: var(--text-1); font-weight: 600; }
+.club-wb-vestigingen a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.club-wb-blok { display: block; }
+.club-wb-veld { display: grid; gap: 6px; }
+.club-wb-veld textarea, .club-wb-veld input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: var(--club-radius-klein); background: var(--club-invoer-bg, var(--bg-card));
+  color: var(--text-1); font: inherit; font-size: 14.5px;
+}
+.club-wb-veld textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
+.club-wb-veld textarea:focus-visible, .club-wb-veld input:focus-visible { outline: 2px solid var(--brand); outline-offset: 0; border-color: var(--brand); }
+.club-wb-lessen { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.club-wb-modi { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+
+.club-wb-plakken { display: grid; gap: 10px; padding-top: 22px; border-top: 1px solid var(--line); }
+.club-wb-plakken h2 { margin: 0; }
+.club-wb-code { display: grid; gap: 10px; }
+.club-wb-code pre {
+  margin: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-raised, var(--bg-card));
+  color: var(--text-1); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.club-wb-code pre:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-wb-code .club-knop { justify-self: start; display: inline-flex; align-items: center; gap: 8px; }
+.club-wb-voorbeeld { display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: var(--brand-tekst, var(--brand)); font-weight: 600; font-size: 14px; }
+.club-wb-voorbeeld:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

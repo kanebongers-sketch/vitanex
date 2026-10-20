@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowLeft, CalendarDays, Dumbbell } from 'lucide-react'
+import { CalendarDays, Dumbbell } from 'lucide-react'
+import { ClubKruimel } from '@/components/club/shell/ClubKruimel'
 import { initialen, LID_STATUS_LABEL, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { datumUitSleutel } from '@/lib/club/leden/tijd'
@@ -14,6 +15,8 @@ interface LidKopProps {
   /** De naam van de vestiging van het lid. */
   vestigingNaam: string
   coachNaam: string | null
+  /** Knoppen alleen naar onderdelen die aan staan en die deze persoon mag zien (geen dode links). */
+  naar?: { training: boolean; rooster: boolean }
 }
 
 function Feit({ label, waarde }: { label: string; waarde: string | null }) {
@@ -25,12 +28,10 @@ function Feit({ label, waarde }: { label: string; waarde: string | null }) {
   )
 }
 
-export function LidKop({ lid, vestiging, vestigingNaam, coachNaam }: LidKopProps) {
+export function LidKop({ lid, vestiging, vestigingNaam, coachNaam, naar = { training: true, rooster: true } }: LidKopProps) {
   return (
     <header className="club-leden-kop">
-      <Link href={clubPad('/leden', vestiging)} className="club-leden-terug">
-        <ArrowLeft aria-hidden size={15} /> Alle leden
-      </Link>
+      <ClubKruimel stappen={[{ label: 'Leden', href: clubPad('/leden', vestiging) }]} huidig={volledigeNaam(lid)} />
       <div className="club-leden-kop-hoofd">
         <span className="club-avatar club-avatar--groot club-leden-kop-avatar" aria-hidden>{initialen(lid)}</span>
         <div className="club-leden-kop-naam">
@@ -43,14 +44,20 @@ export function LidKop({ lid, vestiging, vestigingNaam, coachNaam }: LidKopProps
             {lid.einddatum ? <span className="club-chip club-chip--let-op">Tot {datumUitSleutel(lid.einddatum)}</span> : null}
           </div>
         </div>
-        <nav className="club-leden-kop-acties" aria-label="Naar andere onderdelen">
-          <Link href={clubPad('/training', vestiging, { lid: lid.id })} className="club-knop">
-            <Dumbbell aria-hidden size={16} /> Training
-          </Link>
-          <Link href={clubPad('/rooster', vestiging)} className="club-knop">
-            <CalendarDays aria-hidden size={16} /> Rooster
-          </Link>
-        </nav>
+        {(naar.training || naar.rooster) && (
+          <nav className="club-leden-kop-acties" aria-label="Naar andere onderdelen">
+            {naar.training && (
+              <Link href={clubPad('/training', vestiging, { lid: lid.id })} className="club-knop">
+                <Dumbbell aria-hidden size={16} /> Training
+              </Link>
+            )}
+            {naar.rooster && (
+              <Link href={clubPad('/rooster', vestiging)} className="club-knop">
+                <CalendarDays aria-hidden size={16} /> Rooster
+              </Link>
+            )}
+          </nav>
+        )}
       </div>
       <dl className="club-leden-feiten">
         <Feit label="Lid sinds" waarde={datumUitSleutel(lid.lidSinds)} />

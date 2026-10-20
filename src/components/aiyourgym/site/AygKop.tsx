@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
 import { AygNav } from './AygNav'
 import { aygPad } from './paden'
+import { scrollPositie, volgScroll } from './scrollpositie'
 
 // Kop van de verkoopwebsite: logo, de hoofdpagina's, de demo en "Probeer gratis".
 // Bovenaan de pagina valt de kop weg in het papier (data-bovenaan); zodra je
-// scrolt krijgt hij een lichte achtergrond met een dunne lijn. Zonder JavaScript
+// scrolt krijgt hij een licht kalkwit vlak met een fijne lijn en zachte blur.
+// Let op: de body scrolt, niet het venster (zie scrollpositie.ts). Zonder JavaScript
 // (of voor het eerste effect) staat de achtergrond er gewoon.
 // Inloggen komt erbij zodra /clubinloggen voor sportscholen open is.
 
@@ -18,10 +20,9 @@ export function AygKop() {
   const [bovenaan, setBovenaan] = useState(false)
 
   useEffect(() => {
-    const kijk = () => setBovenaan(window.scrollY <= DREMPEL_PX)
+    const kijk = () => setBovenaan(scrollPositie().y <= DREMPEL_PX)
     kijk()
-    window.addEventListener('scroll', kijk, { passive: true })
-    return () => window.removeEventListener('scroll', kijk)
+    return volgScroll(kijk)
   }, [])
 
   return (

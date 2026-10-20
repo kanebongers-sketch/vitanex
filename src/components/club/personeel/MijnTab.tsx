@@ -11,7 +11,7 @@ import { dagMaand, uurTekst, weekdagKort } from './weergave'
 
 // "Mijn diensten": de komende vier weken van een medewerker, per week met de
 // uren tegenover het contract, en de afgelopen twee weken met de urenstatus.
-// Later ziet een medewerker dit zelf; nu kiest Kane wie.
+// Een ingelogde medewerker ziet meteen zijn eigen diensten; anderen kiezen wie.
 
 interface Props {
   t: ClubToegang
@@ -53,7 +53,9 @@ function DienstRegel({ d, staat, toonStatus, vestigingen }: DienstRegelProps) {
 }
 
 export async function MijnTab({ t, staat, team, vandaag }: Props) {
-  const gekozen = team.find((l) => l.id === staat.mw) ?? null
+  // Een ingelogde medewerker ziet zonder keuze meteen zijn eigen diensten.
+  const wie = staat.mw ?? (t.rol === 'medewerker' ? t.persoonId : null)
+  const gekozen = team.find((l) => l.id === wie) ?? null
   const kiezer = (
     <form className="club-personeel-kiezer club-personeel-geen-print" method="get" action="/clubkane/personeel">
       <input type="hidden" name="v" value={staat.v} />

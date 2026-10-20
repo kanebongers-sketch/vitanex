@@ -33,29 +33,31 @@ export interface Onderdeel {
   module?: Module
   /** false: niet in de menubalk, alleen via het instellingencentrum (wel in de rechten en het zoekveld). */
   inMenu?: false
+  /** Sneltoets op de pc: G en dan deze letter (bijvoorbeeld G dan L voor Leden). */
+  toets?: string
 }
 
 export const ONDERDELEN: readonly Onderdeel[] = [
-  { sleutel: 'vandaag', pad: '', label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging', groep: 'werkvloer' },
-  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is', groep: 'werkvloer', module: 'checkin' },
-  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster', groep: 'werkvloer', module: 'taken' },
-  { sleutel: 'opvolgen', pad: '/opvolgen', label: 'Opvolgen', uitleg: 'Leden die je vandaag belt of aanspreekt (nieuwe leads volg je op bij Leads)', groep: 'werkvloer' },
-  { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer' },
-  { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden' },
-  { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads' },
-  { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties op Home in de ledenapp', groep: 'leden' },
+  { sleutel: 'vandaag', pad: '', label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging', groep: 'werkvloer', toets: 'v' },
+  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is', groep: 'werkvloer', module: 'checkin', toets: 'c' },
+  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster', groep: 'werkvloer', module: 'taken', toets: 'k' },
+  { sleutel: 'opvolgen', pad: '/opvolgen', label: 'Opvolgen', uitleg: 'Leden die je vandaag belt of aanspreekt (nieuwe leads volg je op bij Leads)', groep: 'werkvloer', toets: 'o' },
+  { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer', toets: 'n' },
+  { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden', toets: 'l' },
+  { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads', toets: 'e' },
+  { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties op Home in de ledenapp', groep: 'leden', toets: 'b' },
   { sleutel: 'community', pad: '/community', label: 'Community', uitleg: 'Groepen, berichten en meldingen van leden', groep: 'leden', module: 'app' },
   { sleutel: 'challenges', pad: '/challenges', label: 'Challenges', uitleg: 'Doelen, voortgang en badges voor leden', groep: 'leden' },
-  { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster' },
-  { sleutel: 'afspraken', pad: '/afspraken', label: 'Afspraken', uitleg: 'Intakes, personal training en metingen per trainer', groep: 'planning', module: 'afspraken' },
-  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel' },
+  { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster', toets: 'r' },
+  { sleutel: 'afspraken', pad: '/afspraken', label: 'Afspraken', uitleg: 'Intakes, personal training en metingen per trainer', groep: 'planning', module: 'afspraken', toets: 'a' },
+  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel', toets: 'p' },
   { sleutel: 'agenda', pad: '/agenda', label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week', groep: 'planning' },
-  { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training' },
+  { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training', toets: 't' },
   { sleutel: 'voeding', pad: '/voeding', label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid', groep: 'coaching' },
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
   { sleutel: 'rapporten', pad: '/rapporten', label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren', groep: 'beheer' },
-  { sleutel: 'beheer', pad: '/beheer', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer' },
-  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer' },
+  { sleutel: 'beheer', pad: '/beheer', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer', toets: 'i' },
+  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer', toets: 'h' },
   // Alleen via het instellingencentrum (en het zoekveld); wel hier voor de rechten per rol.
   { sleutel: 'instellingen', pad: '/instellingen', label: 'Vestigingen, rooster en team', uitleg: 'Regels, openingstijden, zalen, lestypen, weekrooster en medewerkers', groep: 'beheer', inMenu: false },
   { sleutel: 'app', pad: '/app', label: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon', groep: 'beheer', module: 'app', inMenu: false },
@@ -113,4 +115,37 @@ export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = [], 
 /** De groepen met minstens een onderdeel in het menu. */
 export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): (typeof GROEPEN)[number][] {
   return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit, toegestaan, instellingen).length > 0)
+}
+
+// ── Onderbalk (telefoon en tablet staand) ────────────────────────────────────
+// Besluit Kane (20-10-2026): de trainer op de vloer moet het makkelijk hebben.
+// Onder in beeld staan de vier onderdelen die deze persoon het meest nodig heeft,
+// plus Meer (het menupaneel met alles). Vaste volgorde op basis van de rechten,
+// niet op gebruik: een knop die verspringt kost meer dan hij oplevert.
+
+/** Volgorde van belang op de werkvloer; de eerste vier die iemand mag, komen in de onderbalk. */
+export const ONDERBALK_VOLGORDE: readonly string[] = ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'taken', 'personeel', 'afspraken', 'opvolgen', 'leads', 'agenda', 'voeding', 'notities']
+
+export const ONDERBALK_MAX = 4
+
+/** De onderdelen in de onderbalk voor deze persoon (zonder Meer). */
+export function onderbalkOnderdelen(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+  return ONDERBALK_VOLGORDE.map((s) => ONDERDELEN.find((o) => o.sleutel === s))
+    .filter((o): o is Onderdeel => !!o && isZichtbaar(o, uit, toegestaan))
+    .slice(0, ONDERBALK_MAX)
+}
+
+// ── Sneltoetsen (pc) ─────────────────────────────────────────────────────────
+
+/** Het onderdeel achter G en dan deze letter, als deze persoon het in het menu heeft. */
+export function onderdeelVoorToets(letter: string, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel | null {
+  const l = letter.toLowerCase()
+  const o = ONDERDELEN.find((x) => x.toets === l && inMenu(x))
+  if (!o) return null
+  return onderdelenVan(o.groep, uit, toegestaan, instellingen).includes(o) ? o : null
+}
+
+/** De toets als tekst voor in beeld, bijvoorbeeld "G L". */
+export function toetsTekst(o: Pick<Onderdeel, 'toets'>): string | null {
+  return o.toets ? `G ${o.toets.toUpperCase()}` : null
 }
