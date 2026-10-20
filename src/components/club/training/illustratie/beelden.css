@@ -43,6 +43,9 @@
 .club-beelden-variant { margin: 0; display: grid; gap: 6px; }
 .club-beelden-variant figcaption { font-size: 11px; color: var(--text-4); text-align: center; }
 
+.club-beelden-3d { margin-bottom: 16px; }
+.club-beelden-3d + .club-beelden-label { margin-top: 4px; }
+
 .club-beelden-materiaal { margin-top: 32px; }
 .club-beelden-materiaalraster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 

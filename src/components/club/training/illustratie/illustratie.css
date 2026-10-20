@@ -93,3 +93,27 @@
   text-align: center;
   color: var(--text-3, #8b8b8b);
 }
+
+/* 3D-versie (prototype): het canvas vult het vlak, de schaduw valt op de vloer. */
+.club-ill-3d canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.club-ill-3d--laden {
+  background:
+    radial-gradient(60% 40% at 50% 70%, var(--ill-vlak-gloed), transparent 70%),
+    var(--ill-vlak);
+}
+.club-ill-3d-melding { display: none; }
+.club-ill-3d--leeg { display: grid; place-items: center; padding: 16px; }
+.club-ill-3d--leeg canvas { display: none; }
+.club-ill-3d--leeg .club-ill-3d-melding {
+  display: block;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-3, #8b8b8b);
+}

@@ -8,6 +8,7 @@ import { repdbBeeldBestand, REPDB_BRON } from '@/lib/club/training/beelden-repdb
 import { OefeningBeeld } from '@/components/club/training/OefeningBeeld'
 import { IllustratieStil } from '@/components/club/training/illustratie/IllustratieSvg'
 import { VergelijkRij } from '@/components/club/training/illustratie/VergelijkRij'
+import { Vergelijk3dRij } from '@/components/club/training/drie/Vergelijk3dRij'
 import '@/components/club/training/illustratie/illustratie.css'
 import '@/components/club/training/illustratie/beelden.css'
 
@@ -17,6 +18,14 @@ export const metadata: Metadata = { title: 'Oefenbeelden' }
 // eigen illustratie die volledig in code wordt getekend (skelet, houdingen als
 // gewrichtshoeken, materiaal als losse onderdelen). Alleen een prototype: in de
 // bibliotheek, de editor en de ledenapp verandert niets.
+// Zes oefeningen hebben daarnaast een 3D-versie (three.js, eigen figuur en
+// materiaal, houdingen als data in src/lib/club/training/3d).
+
+const PUSH_UP_TOONT = [
+  'Handen iets breder dan de schouders, lichaam een rechte lijn',
+  'Ellebogen schuin naar achteren, ongeveer 45 graden',
+  'Borst tot net boven de vloer, dan in een stuk omhoog',
+] as const
 
 export default async function BeeldenPagina() {
   await eisKane()
@@ -28,7 +37,7 @@ export default async function BeeldenPagina() {
           <p className="club-boventitel">Training · prototype · alleen Kane</p>
           <h1>Oefenbeelden</h1>
           <p>
-            Eigen tekeningen in code naast de huidige beelden. Begin- en eindhouding zijn gewrichtshoeken; de beweging ertussen wordt uitgerekend,
+            Eigen tekeningen in code naast de huidige beelden, voor zes oefeningen ook in 3D. Begin- en eindhouding zijn gewrichtshoeken; de beweging ertussen wordt uitgerekend,
             met handen en voeten vast op het materiaal. De werkende spieren krijgen de accentkleur van de sportschool. Er is nog niets vervangen.
           </p>
         </div>
@@ -53,6 +62,17 @@ export default async function BeeldenPagina() {
             }
           />
         ))}
+        <Vergelijk3dRij
+          naam="Push-up"
+          toont={PUSH_UP_TOONT}
+          huidig={
+            <OefeningBeeld
+              naam="Push-up"
+              formaat="groot"
+              beeld={{ start: repdbBeeldBestand('push-up', 'start'), eind: repdbBeeldBestand('push-up', 'eind'), bron: 'repdb', enkel: false }}
+            />
+          }
+        />
       </div>
 
       <section className="club-beelden-materiaal" aria-labelledby="ill-materiaal">

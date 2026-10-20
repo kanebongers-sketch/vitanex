@@ -3,12 +3,15 @@
 import { useMemo, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { animatieVan, houdingVan, PROTOTYPE_OEFENINGEN } from '@/lib/club/training/illustratie'
+import { oefening3dOpNaam } from '@/lib/club/training/3d'
+import { Oefening3dLazy } from '../drie/Oefening3dLazy'
 import { IllustratieBewegend, IllustratieStil } from './IllustratieSvg'
 
 // Een rij op de vergelijkpagina: links wat het beeld moet laten zien, dan het
 // huidige RepDB-beeld, dan het nieuwe beeld in vier varianten (donker en licht,
 // twee accentkleuren). De knoppen werken voor alle vier tegelijk.
 // Bij prefers-reduced-motion speelt niets af: dan staan begin en eind naast elkaar.
+// Heeft de oefening ook een 3D-versie, dan staat die boven de tekeningen.
 
 type Stand = 'begin' | 'eind' | 'speelt'
 
@@ -46,6 +49,7 @@ export function VergelijkRij({ index, huidig }: VergelijkRijProps) {
   const eind = useMemo(() => houdingVan(o, 'eind').lagen, [o])
   const speelt = stand === 'speelt'
   const kopId = `ill-${index}`
+  const heeft3d = oefening3dOpNaam(o.naam) !== undefined
 
   const tegel = (thema: string, accent: string, naam: string) => {
     const stijl = { '--ill-accent': accent } as CSSProperties
@@ -93,6 +97,14 @@ export function VergelijkRij({ index, huidig }: VergelijkRijProps) {
         {huidig}
       </div>
       <div className="club-beelden-nieuw">
+        {heeft3d && (
+          <>
+            <p className="club-beelden-label">Nieuw in 3D (prototype)</p>
+            <div className="club-beelden-3d">
+              <Oefening3dLazy naam={o.naam} stand={stand} label={`${o.naam} in 3D`} />
+            </div>
+          </>
+        )}
         <p className="club-beelden-label">Nieuw (eigen tekening)</p>
         <div className="club-beelden-varianten">
           {VARIANTEN.map((v) => (
