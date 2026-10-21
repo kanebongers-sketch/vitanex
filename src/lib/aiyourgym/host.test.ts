@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { beslisAyg, isAygHost, zichtbaarPad } from './host'
+import { aygDomeinDicht, beslisAyg, isAygHost, zichtbaarPad } from './host'
 import { beslisClub, slugUitHost } from '@/lib/club/kern/subdomein'
 import { isReleaseVHost } from '@/releasev/lib/host-routing'
 
@@ -55,5 +55,23 @@ describe('zichtbaarPad', () => {
   it('elders met voorvoegsel', () => {
     expect(zichtbaarPad('fitfactorypt.nl', '/aiyourgym/welkom', true)).toBe('/aiyourgym/welkom')
     expect(zichtbaarPad('aiyourgym.com', '/welkom', false)).toBe('/aiyourgym/welkom')
+  })
+})
+
+describe('aygDomeinDicht', () => {
+  it('houdt aiyourgym.com dicht zolang de website uit staat', () => {
+    expect(aygDomeinDicht('aiyourgym.com', false, false)).toBe(true)
+    expect(aygDomeinDicht('www.aiyourgym.com:443', false, true)).toBe(true)
+    expect(aygDomeinDicht('aiyourgym.com', true, false)).toBe(false)
+  })
+  it('houdt subdomeinen dicht zolang die schakelaar uit staat', () => {
+    expect(aygDomeinDicht('budel.aiyourgym.com', true, false)).toBe(true)
+    expect(aygDomeinDicht('budel.aiyourgym.com', false, true)).toBe(false)
+    expect(aygDomeinDicht('budel.aiyourgym.localhost', false, false)).toBe(true)
+  })
+  it('laat andere domeinen met rust', () => {
+    expect(aygDomeinDicht('fitfactorypt.nl', false, false)).toBe(false)
+    expect(aygDomeinDicht('aiyourgym.com.evil.nl', false, false)).toBe(false)
+    expect(aygDomeinDicht('notaiyourgym.com', false, false)).toBe(false)
   })
 })

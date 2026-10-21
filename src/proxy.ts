@@ -6,7 +6,7 @@ import { isReleaseVHost } from '@/releasev/lib/host-routing'
 import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
 import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
 import { beslisClub } from '@/lib/club/kern/subdomein'
-import { beslisAyg } from '@/lib/aiyourgym/host'
+import { aygDomeinDicht, beslisAyg } from '@/lib/aiyourgym/host'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
 import { widgetProxy } from '@/lib/club/widget/proxy-widget'
@@ -114,6 +114,12 @@ export async function proxy(request: NextRequest) {
   // releasev.nl dezelfde plek, met een eigen CSP (src/lib/club/widget/proxy-widget.ts).
   const widget = await widgetProxy(request)
   if (widget) return widget
+
+  // aiyourgym.com en de subdomeinen blijven dicht tot de schakelaars aan staan:
+  // nooit de Fit Factory-app op dat domein.
+  if (aygDomeinDicht(request.headers.get('host'), siteActief(), process.env.CLUB_SUBDOMEINEN_ACTIEF === '1')) {
+    return new NextResponse('Niet gevonden', { status: 404, headers: { 'X-Robots-Tag': 'noindex, nofollow', 'content-type': 'text/plain; charset=utf-8' } })
+  }
 
   const club = clubOpSubdomein(request)
   if (club) return club

@@ -44,3 +44,17 @@ export function zichtbaarPad(host: string | null | undefined, pad: string, actie
   const zonder = pad.startsWith(`${AYG_PREFIX}/`) ? pad.slice(AYG_PREFIX.length) : pad === AYG_PREFIX ? '/' : pad
   return actief && isAygHost(host) ? zonder : `${AYG_PREFIX}${zonder === '/' ? '' : zonder}`
 }
+
+/**
+ * Is dit adres van AI Your Gym nog dicht? Zolang de schakelaars uit staan mag er
+ * op aiyourgym.com en zijn subdomeinen niets van de app verschijnen (ook niet de
+ * Fit Factory-app): dan een kale 404. De website gaat open met
+ * AIYOURGYM_SITE_ACTIEF, de subdomeinen van sportscholen met CLUB_SUBDOMEINEN_ACTIEF.
+ */
+export function aygDomeinDicht(host: string | null | undefined, siteAan: boolean, subdomeinenAan: boolean): boolean {
+  const h = schoon(host)
+  const basis = h.endsWith('.localhost') ? 'aiyourgym.localhost' : 'aiyourgym.com'
+  if (h === basis || h === `www.${basis}`) return !siteAan
+  if (h.endsWith(`.${basis}`)) return !subdomeinenAan
+  return false
+}
