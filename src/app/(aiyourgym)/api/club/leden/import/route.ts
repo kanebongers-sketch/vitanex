@@ -15,8 +15,11 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
+  const teGroot = () => clubFout('Dit bestand is te groot. Splits het in kleinere bestanden.', 413)
+  // Eerst de opgegeven lengte: zo lezen we een te groot bericht niet eens in.
+  if (Number(req.headers.get('content-length') ?? 0) > MAX_IMPORT_BYTES) return teGroot()
   const tekst = await req.text().catch(() => '')
-  if (tekst.length > MAX_IMPORT_BYTES) return clubFout('Dit bestand is te groot. Splits het in kleinere bestanden.', 413)
+  if (Buffer.byteLength(tekst) > MAX_IMPORT_BYTES) return teGroot()
   const body: unknown = (() => {
     try {
       return JSON.parse(tekst)
