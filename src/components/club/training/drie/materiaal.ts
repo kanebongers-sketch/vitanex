@@ -14,6 +14,7 @@ import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-ba
 import { kabel, kabelstation } from './materiaal-kabels'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
+import { smithMachine } from './materiaal-smith'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
 export type { Zicht } from './materiaal-zicht'
@@ -95,6 +96,8 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return chestPress(bak, m, zicht)
     case 'kuitMachine':
       return kuitMachine(bak, m, plek, zicht)
+    case 'smith':
+      return smithMachine(bak, m, plek)
   }
 }
 

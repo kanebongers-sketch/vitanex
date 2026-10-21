@@ -73,6 +73,7 @@ export type MateriaalSoort =
   | 'chestPress' // chest press machine, grepen aan de handen
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
   | 'verhoging' // lage plank onder de voorvoeten
+  | 'smith' // smith machine: geleiders op `plek` (z = baan van de stang), sleden volgen de last
   | 'mat'
 
 export type KabelGreep = 'stang' | 'touw' | 'vgreep' | 'handvat'
