@@ -62,6 +62,8 @@ export type MateriaalSoort =
   | 'halters' // een dumbbell in elke hand
   | 'halterStaand' // een dumbbell verticaal in beide handen (goblet)
   | 'kettlebell' // een kettlebell aan beide handen
+  | 'trapBar' // zeskantige trap bar, handvatten aan de zijkant (greep 0,28)
+  | 'halterDwars' // een dumbbell dwars aan de last (hip thrust), handen naast elkaar op de greep
   | 'bank' // vlakke bank met steunen voor de stang
   | 'bankKaal' // vlakke bank zonder steunen, te draaien (hip thrust: dwars)
   | 'bankSchuin' // verstelbare bank, rugleuning op `hoek` graden

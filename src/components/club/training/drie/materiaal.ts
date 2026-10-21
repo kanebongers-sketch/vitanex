@@ -14,6 +14,7 @@ import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-ba
 import { kabel, kabelstation } from './materiaal-kabels'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
+import { trapBar } from './materiaal-trapbar'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
 export type { Zicht } from './materiaal-zicht'
@@ -70,6 +71,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
     case 'kettlebell': {
       const k = kettlebell(bak, m)
       return { groep: k, zet: zetKettlebell(k) }
+    }
+    case 'trapBar':
+      return trapBar(bak, m, item.schijven ?? 2, zicht)
+    case 'halterDwars': {
+      const d = halter(bak, m, 1.2)
+      return { groep: d, zet: aanLast(d) }
     }
     case 'bank':
       return vast(vlakkeBank(bak, m, plek, true, item.draai), bak)

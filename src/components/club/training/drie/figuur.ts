@@ -30,6 +30,8 @@ export interface FiguurMeshes {
  */
 const GREEP_STRAAL: Partial<Record<MateriaalSoort, number>> = {
   kettlebell: 0.0175,
+  trapBar: 0.0165,
+  halterDwars: 0.0198,
   halters: 0.0165,
   halterStaand: 0.0165,
   kabelstation: 0.0185,
