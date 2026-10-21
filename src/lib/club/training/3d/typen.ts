@@ -25,6 +25,14 @@ export const KANALEN = [
   'stapY', // alleen de rechtervoet: extra omhoog (m), voor een stap
   'stapZ', // alleen de rechtervoet: extra naar voren (m)
   'stapKantel', // alleen de rechtervoet: extra kanteling (graden)
+  // Asymmetrie en polsen. Alles 0 = beide kanten gespiegeld, zoals altijd.
+  'handRechtsX', // alleen de rechterhand: verschuiving ten opzichte van de gespiegelde linkerhand (m, wereld)
+  'handRechtsY',
+  'handRechtsZ',
+  'draai', // polsdraai van beide handen om de onderarm (graden, positief = richting supinatie), zie `greepAnatomisch`
+  'draaiRechts', // alleen de rechterhand: extra polsdraai bovenop `draai` (graden)
+  'elleboog', // draait de elleboog om de lijn schouder-hand (graden, rechts gespiegeld), bijvoorbeeld naar buiten bij een Arnold press
+  'rol', // romp gedraaid om de lengteas (graden): met kantel 90 en rol -90 ligt het figuur op de linkerzij
 ] as const
 
 export type Kanaal = (typeof KANALEN)[number]
@@ -37,6 +45,12 @@ export interface Sleutel {
   readonly vast: number
   /** Seconden van deze houding naar de volgende. */
   readonly naarVolgende: number
+}
+
+export interface Voetstand {
+  readonly kanteling: number
+  readonly uitdraai: number
+  readonly rol?: number
 }
 
 export interface Vec3 {
@@ -53,7 +67,11 @@ export interface Vec3 {
  */
 export type LastBevestiging = 'wereld' | 'romp' | 'hangend' | 'bekken'
 
-/** Greep: hand om een stang of halter, of plat op de vloer (push-up). */
+/**
+ * Greep: hand om een stang of halter, of plat op een vlak (vloer, bank, knie,
+ * heup). Plat ligt de handpalm naar beneden met de vingers naar +z; het kanaal
+ * `draai` draait de vingers dan om de verticale as (positief = naar buiten).
+ */
 export type HandModus = 'greep' | 'plat'
 
 export type MateriaalSoort =
@@ -95,6 +113,8 @@ export interface Materiaal {
   readonly soort: MateriaalSoort
   /** Plek van vast materiaal in de wereld (bank, station, mat, katrol van de kabel). */
   readonly plek?: Vec3
+  /** Halters: alleen de halter in deze hand (eenarmige oefening). Zonder: in beide handen. */
+  readonly zijde?: 'links' | 'rechts'
   /** Gewicht als aantal schijven per kant (stang) of grootte (halters). */
   readonly schijven?: number
   /** Draaiing om de verticale as in graden (dwarse bank). */
@@ -148,17 +168,37 @@ export interface Oefening3d {
   readonly handen: HandModus
   /** Enkel van de linkervoet (rechts gespiegeld in x). */
   readonly enkel: Vec3
-  /** Voet: kanteling (90 = op de tenen, tenen naar beneden) en tenen naar buiten (graden). */
-  readonly voet: { readonly kanteling: number; readonly uitdraai: number }
+  /**
+   * Voet: kanteling (90 = op de tenen, tenen naar beneden), tenen naar buiten en
+   * rol om de lengte van de voet (graden, op de zij liggen). Uitdraai en rol worden
+   * voor rechts gespiegeld, ook bij `voetRechts`.
+   */
+  readonly voet: Voetstand
   /** Richting waar knie en elleboog heen buigen, voor de linkerkant (x wordt gespiegeld). */
   readonly knieRichting: Vec3
   readonly elleboogRichting: Vec3
   /** Rechtervoet op een eigen plek (lunge, split squat). Zonder: gespiegeld van links. */
   readonly enkelRechts?: Vec3
-  readonly voetRechts?: { readonly kanteling: number; readonly uitdraai: number }
+  readonly voetRechts?: Voetstand
   /**
-   * Richting van het handvat in de wereld (neutrale greep, touw). Zonder: langs de
-   * last (dwars, x).
+   * Eigen buigrichting voor de rechterknie of -elleboog, als wereldrichting (niet
+   * gespiegeld). Nodig als het figuur op de zij ligt of de armen iets anders doen.
+   */
+  readonly knieRichtingRechts?: Vec3
+  readonly elleboogRichtingRechts?: Vec3
+  /** Rechterhand anders dan links: plat (steunt op knie of bank) of om een greep. */
+  readonly handenRechts?: HandModus
+  /**
+   * De greep draait mee met de onderarm in plaats van een vaste richting in de
+   * wereld aan te houden. `draai` is dan de polsstand: 0 = bovenhands (pronatie),
+   * 90 = neutraal (duim boven, hammer), 180 = onderhands (supinatie). Zo blijft
+   * de hand bij een curl of press vloeiend en anatomisch, voor beide handen.
+   */
+  readonly greepAnatomisch?: boolean
+  /**
+   * Richting van het handvat in de wereld voor de linkerhand (neutrale greep,
+   * touw), van de duim naar de pink. Rechts wordt gespiegeld. Zonder: langs de
+   * last (dwars, x). Bij `greepAnatomisch` niet gebruikt.
    */
   readonly greepRichting?: Vec3
   readonly materiaal: readonly Materiaal[]

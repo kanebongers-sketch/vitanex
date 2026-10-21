@@ -12,7 +12,7 @@ export const CHEST_PRESS_MACHINE: Oefening3d = armOefening({
   voet: { kanteling: 0, uitdraai: 12 },
   knieRichting: { x: 0.3, y: 0.4, z: 1 },
   elleboogRichting: { x: 1, y: -0.7, z: -0.5 },
-  greepRichting: { x: 0, y: 1, z: 0 },
+  greepRichting: { x: 0, y: -1, z: 0 },
   materiaal: [{ soort: 'chestPress', plek: { x: 0, y: 0, z: 0 } }],
   spieren: ['borst', 'bovenarm', 'schouder'],
   camera: { hoek: 58, hoogte: 12, afstand: 4.4, doel: { x: 0, y: 0.95, z: 0.2 } },

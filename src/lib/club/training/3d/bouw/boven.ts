@@ -53,6 +53,8 @@ export interface ArmOpties {
   readonly knieRichting?: Vec3
   readonly elleboogRichting: Vec3
   readonly greepRichting?: Vec3
+  /** Greep draait mee met de onderarm; de polsstand staat dan in het kanaal `draai` van `lichaam`. */
+  readonly greepAnatomisch?: boolean
   readonly handen?: HandModus
   readonly materiaal: readonly Materiaal[]
   readonly spieren: readonly Lichaamsdeel[]
@@ -97,6 +99,7 @@ export function armOefening(op: ArmOpties): Oefening3d {
     knieRichting: op.knieRichting ?? STAAND.knieRichting,
     elleboogRichting: op.elleboogRichting,
     ...(op.greepRichting ? { greepRichting: op.greepRichting } : {}),
+    ...(op.greepAnatomisch ? { greepAnatomisch: true } : {}),
     materiaal: op.materiaal,
     spieren: op.spieren,
     ...(op.spierenSecundair ? { spierenSecundair: op.spierenSecundair } : {}),

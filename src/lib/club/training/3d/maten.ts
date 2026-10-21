@@ -12,6 +12,12 @@ export const MATEN = {
   onderarm: 0.265,
   /** Pols tot het midden van de greep. */
   hand: 0.085,
+  /**
+   * De greep ligt iets aan de handpalmkant van de as van de onderarm: de as loopt
+   * door het midden van de vuist, niet door de stang. Zonder lijkt de pols naar
+   * achteren te knikken (vooral bij een greep boven schouderhoogte).
+   */
+  greepVoor: 0.016,
   /** Halve afstand tussen de heupgewrichten. */
   heupBreedte: 0.092,
   /** Bekken tot begin van de onderrug, onderrug tot borst. */
@@ -42,4 +48,9 @@ export const GRENZEN = {
    */
   nek: { min: -45, max: 35 },
   schouders: { min: -0.04, max: 0.05 },
+  /**
+   * Polsdraai bij een anatomische greep: 0 = bovenhands (pronatie), 180 =
+   * onderhands (supinatie). De onderarm draait samen ongeveer 160 tot 180 graden.
+   */
+  draai: { min: -10, max: 190 },
 } as const

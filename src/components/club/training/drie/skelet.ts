@@ -174,8 +174,11 @@ export function maakSkelet(o: Oefening3d): Skelet {
   }
   const skelet = new Skeleton(botten, inverse)
   // Voorkant van dij en scheen wijst naar de knie, van de arm weg van de elleboog.
-  const knie = [richting(o.knieRichting, 1, 1), richting(o.knieRichting, -1, 1)]
-  const arm = [richting(o.elleboogRichting, 1, -1), richting(o.elleboogRichting, -1, -1)]
+  const knie = [richting(o.knieRichting, 1, 1), richting(o.knieRichtingRechts ?? o.knieRichting, o.knieRichtingRechts ? 1 : -1, 1)]
+  const arm = [
+    richting(o.elleboogRichting, 1, -1),
+    richting(o.elleboogRichtingRechts ?? o.elleboogRichting, o.elleboogRichtingRechts ? 1 : -1, -1),
+  ]
   const pols = new Vector3()
 
   /** Het hulpbot staat in het gewricht en draait half zo ver als het onderste bot. */

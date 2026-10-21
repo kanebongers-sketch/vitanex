@@ -16,7 +16,7 @@ export const TRAP_BAR_DEADLIFT: Oefening3d = vloertrek({
   materiaal: [{ soort: 'trapBar', schijven: 2 }],
   // Handvatten op 56 cm: de armen hangen recht langs de benen.
   greep: 0.28,
-  greepRichting: { x: 0, y: 0, z: 1 },
+  greepRichting: { x: 0, y: 0, z: -1 },
   enkel: { x: 0.12, y: 0.08, z: 0 },
   uitdraai: 8,
   knieRichting: { x: 0.12, y: 0, z: 1 },

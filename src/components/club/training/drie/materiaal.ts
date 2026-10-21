@@ -71,6 +71,8 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       const paar = [halter(bak, m), halter(bak, m)]
       const g = new Group()
       g.add(...paar)
+      // Eenarmig: alleen de halter in die hand.
+      if (item.zijde) paar[item.zijde === 'links' ? 1 : 0].visible = false
       return { groep: g, zet: zetHalters(paar) }
     }
     case 'halterStaand': {

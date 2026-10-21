@@ -46,7 +46,7 @@ const BASIS: Oefening3d = {
   // Omlaag en vooruit: de voorste knie volgt de tenen, de achterste wijst naar de vloer.
   knieRichting: { x: 0.1, y: -1, z: 1 },
   elleboogRichting: { x: 0.35, y: 0, z: -1 },
-  greepRichting: { x: 0, y: 0, z: 1 },
+  greepRichting: { x: 0, y: 0, z: -1 },
   materiaal: [
     { soort: 'bankKaal', plek: { x: 0, y: 0, z: BANK_Z }, draai: 90 },
     { soort: 'halters' },

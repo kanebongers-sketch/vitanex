@@ -22,7 +22,7 @@ export const PEC_DECK: Oefening3d = boogOefening({
   voet: { kanteling: 0, uitdraai: 12 },
   knieRichting: { x: 0.3, y: 0.4, z: 1 },
   elleboogRichting: { x: 1, y: -0.5, z: -1 },
-  greepRichting: { x: 0, y: 1, z: 0 },
+  greepRichting: { x: 0, y: -1, z: 0 },
   materiaal: [{ soort: 'pecDeck' }],
   spieren: ['borst'],
   spierenSecundair: ['schouder'],

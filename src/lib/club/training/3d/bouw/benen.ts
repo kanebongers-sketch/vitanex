@@ -53,7 +53,7 @@ export function staandeLast(last: StaandeLast, greep = 0.25, voorZ = 0.1, neutra
           last: 'hangend',
           materiaal: [{ soort: 'halters' }],
           elleboogRichting: { x: 0.3, y: 0, z: -1 },
-          ...(neutraal ? { greepRichting: { x: 0, y: 0, z: 1 } } : {}),
+          ...(neutraal ? { greepRichting: { x: 0, y: 0, z: -1 } } : {}),
         },
         zet: (h) => ({ ...h, greep, lastZ: schouderIn(h).z + voorZ }),
         gewicht: 0.25,
@@ -67,7 +67,7 @@ export function staandeLast(last: StaandeLast, greep = 0.25, voorZ = 0.1, neutra
     case 'goblet':
       // Dumbbell verticaal tegen de borst, handen onder de bovenste schijf.
       return {
-        o: { last: 'romp', materiaal: [{ soort: 'halterStaand' }], elleboogRichting: { x: 0.25, y: -1, z: 0.1 }, greepRichting: { x: 0, y: 1, z: 0 } },
+        o: { last: 'romp', materiaal: [{ soort: 'halterStaand' }], elleboogRichting: { x: 0.25, y: -1, z: 0.1 }, greepRichting: { x: 0, y: -1, z: 0 } },
         zet: (h) => ({ ...h, lastY: 0.19, lastZ: 0.2, greep: 0.05 }),
         gewicht: 0.2,
       }
@@ -437,7 +437,7 @@ export function legPress(op: LegPressOpties): Oefening3d {
     voet: { kanteling, uitdraai: 10 },
     knieRichting: { x: 0.3, y: 0.75, z: -0.6 },
     elleboogRichting: { x: 0.4, y: 0, z: -1 },
-    greepRichting: { x: 0, y: 0, z: 1 },
+    greepRichting: { x: 0, y: 0, z: -1 },
     materiaal: [{ soort: 'legPress', hoek: op.hoek, plek: { x: 0, y: 0, z: 0 } }],
     spieren: ['dij', 'bil'],
     spierenSecundair: ['hamstring'],
@@ -476,7 +476,7 @@ export function beenMachine(op: BeenMachineOpties): Oefening3d {
     voet: { kanteling: 0, uitdraai: 4 },
     knieRichting: { x: 0, y: 1, z: 0.25 },
     elleboogRichting: { x: 0.4, y: 0, z: -1 },
-    greepRichting: { x: 0, y: 0, z: 1 },
+    greepRichting: { x: 0, y: 0, z: -1 },
     materiaal: [{ soort: 'beenMachine', variant: op.variant, plek: { x: 0, y: 0, z: heup.z + MATEN.dij } }],
     spieren: ext ? ['dij'] : ['hamstring'],
     ...(ext ? {} : { spierenSecundair: ['kuit'] as const }),

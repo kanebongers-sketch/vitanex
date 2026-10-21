@@ -13,7 +13,7 @@ export const SEATED_CABLE_ROW: Oefening3d = armOefening({
   voet: { kanteling: -62, uitdraai: 6 },
   knieRichting: { x: 0.25, y: 1, z: 0.2 },
   elleboogRichting: { x: 0.25, y: -0.4, z: -1 },
-  greepRichting: { x: 0, y: 1, z: 0.25 },
+  greepRichting: { x: 0, y: -1, z: -0.25 },
   materiaal: [
     { soort: 'bankKaal', plek: { x: 0, y: 0, z: 0.1 } },
     { soort: 'kabel', greep: 'vgreep', plek: { x: 0, y: 0.32, z: 1.02 } },

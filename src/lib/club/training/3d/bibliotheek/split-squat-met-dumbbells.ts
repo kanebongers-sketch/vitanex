@@ -56,7 +56,7 @@ const BASIS: Oefening3d = {
   voet: { kanteling: 0, uitdraai: 4 },
   knieRichting: { x: 0.1, y: 0, z: 1 },
   elleboogRichting: { x: 0.35, y: 0, z: -1 },
-  greepRichting: { x: 0, y: 0, z: 1 },
+  greepRichting: { x: 0, y: 0, z: -1 },
   materiaal: [{ soort: 'halters' }],
   spieren: ['dij', 'bil'],
   camera: { hoek: 56, hoogte: 9, afstand: 4.5, doel: { x: 0, y: 0.78, z: -0.32 } },

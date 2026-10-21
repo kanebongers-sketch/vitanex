@@ -10,10 +10,12 @@
 // - `balanceer()` schuift het bekken tot het zwaartepunt boven de voeten ligt;
 // - `BLIK`, `TEMPO` en `CAMERA_PATROON`: standaarden per bewegingspatroon;
 // - `metMoment()` legt het zwaarste moment op de helft van de lus en
-//   `langsBeen()` laat een hangende last langs de benen glijden.
+//   `langsBeen()` laat een hangende last langs de benen glijden;
+// - `rechtsNaar()` en `rechtsHangend()` geven de rechterhand een eigen plek
+//   (eenarmige oefening: de andere hand steunt of hangt vrij).
 
 import { Vector3 } from 'three'
-import { figuurIn, heupIn, schouderIn } from '../kinematica'
+import { figuurIn, handDoelen, heupIn, schouderIn } from '../kinematica'
 import { startVoorSleutel } from '../interpolatie'
 import { ARM_GREEP, MATEN } from '../maten'
 import { KANALEN, type Blik, type Camera, type Houding, type Kanaal, type Oefening3d, type Sleutel, type Vec3 } from '../typen'
@@ -297,4 +299,25 @@ export function langsBeen(o: Oefening3d, h: Houding, afstand: number): Houding {
     uit = { ...uit, lastZ: beenZOp(o, uit, y) + afstand }
   }
   return uit
+}
+
+/**
+ * Zet de rechterhand los van de linker op `doel` in de wereld (kanalen
+ * handRechtsX, -Y, -Z), bijvoorbeeld op de knie of op de bank. De linkerhand en
+ * de rest van de houding blijven gelijk.
+ */
+export function rechtsNaar(o: Oefening3d, h: Houding, doel: Vec3): Houding {
+  const nul = { ...h, handRechtsX: 0, handRechtsY: 0, handRechtsZ: 0 }
+  const gespiegeld = handDoelen(o, nul)[1]
+  return { ...nul, handRechtsX: doel.x - gespiegeld.x, handRechtsY: doel.y - gespiegeld.y, handRechtsZ: doel.z - gespiegeld.z }
+}
+
+/**
+ * De rechterarm hangt ontspannen langs het lichaam (eenarmige oefening zonder
+ * steun): de hand een fractie onder de schouder, iets voor de dij.
+ */
+export function rechtsHangend(o: Oefening3d, h: Houding, voor = 0.04): Houding {
+  const s = schouderIn(h)
+  const lengte = (MATEN.bovenarm + ARM_GREEP) * 0.985
+  return rechtsNaar(o, h, { x: -s.x - 0.03, y: s.y - Math.sqrt(lengte * lengte - voor * voor - 0.0009), z: s.z + voor })
 }

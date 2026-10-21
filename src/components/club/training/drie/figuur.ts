@@ -71,7 +71,7 @@ export function bouwFiguur(bak: GeoBak, m: FiguurMaterialen, o: Oefening3d, p: P
   bouwHoofd(huid, p)
   bouwBenen(huid, stof, p)
   bouwArmen(huid, stof, p)
-  bouwHanden(huid, p, o.handen, greepStraal(o))
+  bouwHanden(huid, p, [o.handen, o.handenRechts ?? o.handen], greepStraal(o))
   bouwKleding(stof, p)
   bouwSchoenen(schoen, p)
   bouwHaar(haar, p)

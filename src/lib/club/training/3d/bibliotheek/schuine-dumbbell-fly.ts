@@ -7,7 +7,7 @@
 // 3 tellen open, kort stil in de rek, 2 tellen terug.
 
 import { boogOefening } from '../bouw/boog'
-import { NEUTRAAL } from './gedeeld'
+import { NEUTRAAL_LIGGEND } from './gedeeld'
 import type { Oefening3d } from '../typen'
 
 export const SCHUINE_DUMBBELL_FLY: Oefening3d = boogOefening({
@@ -21,7 +21,7 @@ export const SCHUINE_DUMBBELL_FLY: Oefening3d = boogOefening({
   voet: { kanteling: 0, uitdraai: 15 },
   knieRichting: { x: 0.3, y: 0.8, z: 0.5 },
   elleboogRichting: { x: 1, y: -1, z: 0.1 },
-  greepRichting: NEUTRAAL,
+  greepRichting: NEUTRAAL_LIGGEND,
   materiaal: [{ soort: 'bankSchuin', hoek: 32, plek: { x: 0, y: 0, z: 0 } }, { soort: 'halters' }],
   spieren: ['borst'],
   spierenSecundair: ['schouder'],

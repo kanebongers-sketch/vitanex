@@ -56,7 +56,7 @@ const BASIS: Oefening3d = {
   // last en onderin binnen de knieen (negatieve x is naar de middenlijn).
   elleboogRichting: { x: -0.4, y: -1, z: 0.5 },
   // Beide handen om de verticale stang, direct onder de bovenste schijf, duimen eromheen.
-  greepRichting: { x: 0, y: 1, z: 0 },
+  greepRichting: { x: 0, y: -1, z: 0 },
   enkel: { x: 0.175, y: 0.08, z: 0 },
   voet: { kanteling: 0, uitdraai: 20 },
   // Voeten iets breder dan de heupen, tenen licht naar buiten. Knieen in lijn met

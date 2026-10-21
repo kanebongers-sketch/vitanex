@@ -260,7 +260,7 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
   vlek.position.set(o.camera.doel.x, 0.001, o.camera.doel.z)
   scene.add(vlek)
   const contactTex = verloop([[0, 'rgba(0,0,0,0.9)'], [0.45, 'rgba(0,0,0,0.45)'], [1, 'rgba(0,0,0,0)']])
-  const contact = contactSchaduw(bak, contactTex, k.contact, o.handen === 'plat')
+  const contact = contactSchaduw(bak, contactTex, k.contact, o.handen === 'plat' || o.handenRechts === 'plat')
   scene.add(...contact.meshes)
 
   const figuur = bouwFiguur(bak, figuurMat, o, maakPalet(o, opties))

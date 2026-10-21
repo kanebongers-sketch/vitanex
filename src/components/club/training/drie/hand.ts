@@ -193,10 +193,12 @@ const PLATTE_PALM: Palm = {
   pols: true,
 }
 
-export function bouwHanden(b: Bouwer, p: Palet, modus: HandModus, stang: number): void {
+/** Bouwt beide handen; `modi` is een modus voor beide handen of een per kant (index 0 = links). */
+export function bouwHanden(b: Bouwer, p: Palet, modi: HandModus | readonly [HandModus, HandModus], stang: number): void {
   const m = 0.35 * sterkteVan(p, 'onderarm')
   const nagelKleur = p.huid.clone().lerp(new Color(0.96, 0.84, 0.8), 0.45)
   ;[1, -1].forEach((k, i) => {
+    const modus = typeof modi === 'string' ? modi : modi[i]
     const info: PuntInfo = { kleur: kleurMet(p.huid, p, m), spier: m, a: BOT.hand[i] }
     const vingers = modus === 'plat' ? platteVingers(k) : greepVingers(k, stang)
     const def = modus === 'plat' ? PLATTE_PALM : GREEP_PALM

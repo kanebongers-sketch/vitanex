@@ -13,7 +13,7 @@ const OMLAAG = { x: 0, y: -1, z: 0 } as const
 import type { Oefening3d } from '../typen'
 
 /** Handvat in het vlak van de arm, haaks op de onderarm (palmen naar elkaar). */
-const GREEP = { x: 0, y: -0.66, z: 0.75 } as const
+const GREEP = { x: 0, y: 0.66, z: -0.75 } as const
 
 export const TRICEPS_KICKBACK: Oefening3d = armOefening({
   naam: 'Triceps kickback',

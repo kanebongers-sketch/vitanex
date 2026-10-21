@@ -26,7 +26,7 @@ const BASIS: Oefening3d = {
   materiaal: [{ soort: 'halters' }],
   elleboogRichting: { x: 0.3, y: 0, z: -1 },
   // Handpalmen naar het lichaam: de dumbbells wijzen naar voren.
-  greepRichting: { x: 0, y: 0, z: 1 },
+  greepRichting: { x: 0, y: 0, z: -1 },
   // Voeten op heupbreedte, als op twee rails.
   enkel: { x: 0.11, y: 0.08, z: 0 },
   voet: { kanteling: 0, uitdraai: 4 },

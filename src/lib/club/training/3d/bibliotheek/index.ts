@@ -10,7 +10,10 @@
 //    extensie en raise (../bouw/boven), boogOefening voor fly, pec deck en
 //    crossover (../bouw/boog), smithDrukken (../bouw/smith), pushUp
 //    (../bouw/push-up), plank of crunch (../bouw/core), reverseCrunch, legRaise
-//    of hollowHold (../bouw/liggend);
+//    of hollowHold (../bouw/liggend), zijplank op de zij (../bouw/core);
+//    eenarmig of asymmetrisch: kanalen handRechtsX/Y/Z via `rechtsNaar()` en
+//    `rechtsHangend()` (../bouw/basis), `handenRechts`, `elleboogRichtingRechts`,
+//    `halters` met `zijde`; polsdraai: `greepAnatomisch` met het kanaal `draai`;
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
 //    dan de standaard (kopieer de dichtstbijzijnde oefening);
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,
@@ -33,6 +36,7 @@ import { TRAP_BAR_DEADLIFT } from './trap-bar-deadlift'
 import { SUMO_DEADLIFT } from './sumo-deadlift'
 import { DEADLIFT_KETTLEBELL } from './deadlift-met-kettlebell'
 import { LUNGE_DUMBBELLS } from './lunge-met-dumbbells'
+import { LUNGE_BARBELL } from './lunge-met-barbell'
 import { ACHTERWAARTSE_LUNGE_DB } from './achterwaartse-lunge-met-dumbbells'
 import { SPLIT_SQUAT_DB } from './split-squat-met-dumbbells'
 import { HIP_THRUST } from './hip-thrust-met-barbell'
@@ -74,20 +78,26 @@ import { STRAIGHT_ARM_PULLDOWN } from './straight-arm-pulldown'
 import { REVERSE_FLY_MACHINE } from './reverse-fly-machine'
 import { DUMBBELL_CURL } from './dumbbell-curl'
 import { HAMMER_CURL } from './hammer-curl'
+import { CONCENTRATIECURL } from './concentratiecurl'
+import { ARNOLD_PRESS } from './arnold-press'
+import { ZIJPLANK } from './zijplank'
 import { BARBELL_CURL } from './barbell-curl'
 import { CURL_AAN_DE_KABEL } from './curl-aan-de-kabel'
 import { CURL_EZ_STANG } from './curl-met-ez-stang'
 import { CURL_SCHUINE_BANK } from './curl-op-een-schuine-bank'
 import { HAMMER_CURL_KABEL } from './hammer-curl-aan-de-kabel'
 import { BICEPS_CURL_MACHINE } from './biceps-curl-machine'
+import { PREACHER_CURL_MACHINE } from './preacher-curl-machine'
 import { TRICEPS_PUSHDOWN } from './triceps-pushdown'
 import { OVERHEAD_EXTENSION } from './triceps-extension-boven-het-hoofd'
 import { SKULL_CRUSHER } from './skull-crusher'
 import { TRICEPS_KICKBACK } from './triceps-kickback'
 import { TRICEPS_EXTENSION_LIGGEND } from './triceps-extension-liggend-met-dumbbell'
+import { PULLOVER_DUMBBELL } from './pullover-met-dumbbell'
 import { TRICEPS_EXTENSION_KABEL } from './triceps-extension-boven-het-hoofd-aan-de-kabel'
 import { DIPS_OP_EEN_BANK } from './dips-op-een-bank'
 import { LATERAL_RAISE } from './lateral-raise'
+import { LATERAL_RAISE_KABEL } from './lateral-raise-aan-de-kabel'
 import { FRONT_RAISE } from './front-raise-met-dumbbells'
 import { SHOULDER_PRESS_MACHINE } from './shoulder-press-machine'
 import { REVERSE_FLY } from './reverse-fly'
@@ -99,12 +109,16 @@ import { CRUNCH } from './crunch'
 import { REVERSE_CRUNCH } from './reverse-crunch'
 import { LEG_RAISE_LIGGEND } from './leg-raise-liggend'
 import { HOLLOW_HOLD } from './hollow-hold'
+import { SUPERMAN } from './superman'
 import { SQUAT_NAAR_BANK } from './squat-naar-een-bank'
 import { ACHTERWAARTSE_LUNGE } from './achterwaartse-lunge'
 import { BULGARIAN_SPLIT_SQUAT } from './bulgarian-split-squat'
+import { STEP_UP } from './step-up'
 import { SUMO_SQUAT_DB } from './sumo-squat-met-dumbbell'
 import { SQUAT_SMITH } from './squat-in-de-smith-machine'
+import { EENARMIGE_DUMBBELL_ROW } from './eenarmige-dumbbell-row'
 import type { Oefening3d } from '../typen'
+import { EENARMIGE_TRICEPS_EXTENSION_BOVEN_HET_HOOFD } from './eenarmige-triceps-extension-boven-het-hoofd'
 
 /** De zes oefeningen van het eerste prototype (met de hand afgesteld, eigen houdingen). */
 export const PROTOTYPE_3D: readonly Oefening3d[] = [
@@ -132,10 +146,12 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   SUMO_DEADLIFT,
   DEADLIFT_KETTLEBELL,
   LUNGE_DUMBBELLS,
+  LUNGE_BARBELL,
   ACHTERWAARTSE_LUNGE_DB,
   ACHTERWAARTSE_LUNGE,
   SPLIT_SQUAT_DB,
   BULGARIAN_SPLIT_SQUAT,
+  STEP_UP,
   HIP_THRUST,
   GLUTE_BRIDGE,
   HIP_THRUST_DUMBBELL,
@@ -168,6 +184,7 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   ROW_SCHUINE_BANK,
   SEATED_ROW_MACHINE,
   SEATED_CABLE_ROW_BREED,
+  EENARMIGE_DUMBBELL_ROW,
   FACE_PULL,
   LAT_PULLDOWN_ONDERHANDS,
   LAT_PULLDOWN_V_GREEP,
@@ -175,20 +192,25 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   REVERSE_FLY_MACHINE,
   DUMBBELL_CURL,
   HAMMER_CURL,
+  CONCENTRATIECURL,
+  ARNOLD_PRESS,
   BARBELL_CURL,
   CURL_AAN_DE_KABEL,
   CURL_EZ_STANG,
   CURL_SCHUINE_BANK,
   HAMMER_CURL_KABEL,
   BICEPS_CURL_MACHINE,
+  PREACHER_CURL_MACHINE,
   TRICEPS_PUSHDOWN,
   OVERHEAD_EXTENSION,
   SKULL_CRUSHER,
   TRICEPS_KICKBACK,
   TRICEPS_EXTENSION_LIGGEND,
+  PULLOVER_DUMBBELL,
   TRICEPS_EXTENSION_KABEL,
   DIPS_OP_EEN_BANK,
   LATERAL_RAISE,
+  LATERAL_RAISE_KABEL,
   FRONT_RAISE,
   SHOULDER_PRESS_MACHINE,
   REVERSE_FLY,
@@ -196,8 +218,11 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   SCHOUDERS_OPHALEN_DUMBBELLS,
   SCHOUDERS_OPHALEN_BARBELL,
   PLANK,
+  ZIJPLANK,
   CRUNCH,
   REVERSE_CRUNCH,
   LEG_RAISE_LIGGEND,
   HOLLOW_HOLD,
+  SUPERMAN,
+  EENARMIGE_TRICEPS_EXTENSION_BOVEN_HET_HOOFD,
 ]

@@ -147,7 +147,9 @@ describe('3D-oefeningen: beweging', () => {
     for (const { f } of monsters(o)) {
       // De knie ligt aan de kant van de knierichting (niet achterstevoren).
       f.benen.forEach((b, i) => {
-        const r = new Vector3(o.knieRichting.x * (i === 0 ? 1 : -1), o.knieRichting.y, o.knieRichting.z)
+        const eigen = i === 1 ? o.knieRichtingRechts : undefined
+        const k = eigen ?? o.knieRichting
+        const r = new Vector3(k.x * (i === 0 || eigen ? 1 : -1), k.y, k.z)
         const lijn = b.eind.clone().sub(b.begin).normalize()
         const uit = b.midden.clone().sub(b.begin)
         uit.sub(lijn.clone().multiplyScalar(uit.dot(lijn)))
@@ -156,8 +158,9 @@ describe('3D-oefeningen: beweging', () => {
     }
   })
 
-  it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: links en rechts doen hetzelfde (alleen een lunge mag verschillen)', (_, o) => {
-    const asymmetrisch = o.enkelRechts !== undefined || o.sleutels.some((s) => s.houding.stapZ !== 0 || s.houding.stapY !== 0)
+  it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: links en rechts doen hetzelfde (alleen een lunge of eenarmige oefening mag verschillen)', (_, o) => {
+    const eenarmig = o.handenRechts !== undefined || o.sleutels.some((s) => s.houding.handRechtsX !== 0 || s.houding.handRechtsY !== 0 || s.houding.handRechtsZ !== 0)
+    const asymmetrisch = eenarmig || o.enkelRechts !== undefined || o.sleutels.some((s) => s.houding.stapZ !== 0 || s.houding.stapY !== 0)
     if (asymmetrisch) return
     for (const { f } of monsters(o)) {
       expect(f.benen[0].buiging).toBeCloseTo(f.benen[1].buiging, 3)

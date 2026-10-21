@@ -29,7 +29,7 @@ export const REVERSE_FLY_MACHINE: Oefening3d = armOefening({
   knieRichting: { x: 0.3, y: 0.4, z: 1 },
   elleboogRichting: { x: 1, y: 0.15, z: -1 },
   // Verticale handvatten: handpalmen naar elkaar.
-  greepRichting: { x: 0, y: 1, z: 0 },
+  greepRichting: { x: 0, y: -1, z: 0 },
   materiaal: [{ soort: 'reverseFly', plek: { x: 0, y: 0, z: 0 } }],
   spieren: ['schouder'],
   spierenSecundair: ['rug'],

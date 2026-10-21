@@ -9,7 +9,7 @@
 
 import { boogOefening } from '../bouw/boog'
 import { LICHAAM } from '../bouw/boven'
-import { NEUTRAAL } from './gedeeld'
+import { NEUTRAAL_LIGGEND } from './gedeeld'
 import type { Oefening3d } from '../typen'
 
 export const DUMBBELL_FLY: Oefening3d = boogOefening({
@@ -23,7 +23,7 @@ export const DUMBBELL_FLY: Oefening3d = boogOefening({
   voet: { kanteling: 0, uitdraai: 15 },
   knieRichting: { x: 0.3, y: 1, z: 0.4 },
   elleboogRichting: { x: 1, y: -1, z: 0.3 },
-  greepRichting: NEUTRAAL,
+  greepRichting: NEUTRAAL_LIGGEND,
   materiaal: [{ soort: 'bankKaal', plek: { x: 0, y: 0, z: -0.15 } }, { soort: 'halters' }],
   spieren: ['borst'],
   spierenSecundair: ['schouder'],
