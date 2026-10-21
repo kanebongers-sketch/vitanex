@@ -54,5 +54,5 @@ Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruike
 - Logica: `src/lib/club/betalen/**` (config, model, regels, invoer, Stripe-API, events, webhookverwerking, opslag, acties).
 - Webhook: `src/app/api/club-betalen/stripe/route.ts`.
 - Beheer-API: `src/app/api/club/betalen/**`; ledenapp-API: `src/app/api/club/lid/betalen/**`; PT afboeken: `src/app/api/club/afspraken/[id]/tegoed`.
-- Pagina: `src/app/clubkane/beheer/betalen`; componenten: `src/components/club/betalen/**`.
+- Pagina: `src/app/(hoofd)/clubkane/beheer/betalen`; componenten: `src/components/club/betalen/**`.
 - Database: `supabase/lifeos-migrations/439_club_betalen.sql`.

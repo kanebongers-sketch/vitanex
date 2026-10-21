@@ -8,6 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { lifeosUserId } from '@/lib/lifeos/admin'
 import { mailAfzender } from './config'
+import { siteActief } from './schakelaar'
 import { portaalLink } from './links'
 import type { AanmeldingRij } from './opslag'
 import { eigenaarCode, maakSportschool, ruimSportschoolOp } from './sportschool'
@@ -41,7 +42,7 @@ export async function stuurWelkomMail(admin: SupabaseClient, a: AanmeldingRij, o
   if (!van) return
   const code = await eigenaarCode(admin, organisatieId, a.eigenaarEmail)
   if (!code) return
-  const link = portaalLink({ code, slug: a.slug, subdomeinenAan: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', portaalUrl: process.env.AIYOURGYM_PORTAAL_URL ?? null, oorsprong: null, host: null })
+  const link = portaalLink({ code, slug: a.slug, subdomeinenAan: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', portaalUrl: process.env.AIYOURGYM_PORTAAL_URL ?? null, oorsprong: null, host: null, siteAan: siteActief() })
   const { onderwerp, tekst } = welkomTekst(a.eigenaarNaam.split(' ')[0], a.sportschoolNaam, link, CLUB_EIGEN_LOGIN)
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)

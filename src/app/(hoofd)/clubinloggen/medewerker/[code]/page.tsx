@@ -5,18 +5,18 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { clubToegang, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
-import { ROL_LABEL } from '@/lib/club/beheerders/beheerder'
-import { vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
+import { ROL_LABEL } from '@/lib/club/kern/medewerker'
+import { vindMedewerkerLink } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { ClubInlogPoort } from '@/components/club/inloggen/ClubInlogPoort'
 import { barlow, inter } from '@/app/fonts/fit-factory'
-import '@/app/clubkane/club.css'
+import '@/app/(hoofd)/clubkane/club.css'
 import '@/components/club/inloggen/inloggen.css'
 
-// /clubinloggen/<code>: de persoonlijke link van een eigenaar of clubmanager.
-// Pincode kiezen, wachten op goedkeuring van Kane, of inloggen. Met de
-// schakelaar uit of een onbekende link: een gewone 404. De code staat in de
-// URL, dus nooit een referrer meesturen en nooit in zoekmachines.
+// /clubinloggen/medewerker/<code>: de persoonlijke link van een medewerker.
+// Pincode kiezen, wachten op goedkeuring van de eigenaar of clubmanager, of
+// inloggen. Met de schakelaar uit, een onbekende of ingetrokken link, of een
+// medewerker uit dienst: een gewone 404. Nooit een referrer, nooit in zoekmachines.
 
 export const dynamic = 'force-dynamic'
 
@@ -38,24 +38,33 @@ function adminOfNull(): SupabaseClient | null {
   }
 }
 
-export default async function ClubInloggenPagina({ params }: PaginaProps) {
+export default async function MedewerkerInloggenPagina({ params }: PaginaProps) {
   if (!CLUB_EIGEN_LOGIN) notFound()
   const { code } = await params
   const admin = adminOfNull()
   if (!admin) notFound()
-  const b = await vindBeheerder(admin, code)
-  if (!b) notFound()
-  const { organisatie } = await haalEigenOrganisatie(admin, b.organisatieId)
+  const gevonden = await vindMedewerkerLink(admin, code)
+  if (!gevonden) notFound()
+  const { toegang, medewerker } = gevonden
+  const { organisatie } = await haalEigenOrganisatie(admin, toegang.userId)
   if (!organisatie || !(await hostPastBij(organisatie))) notFound()
   // Al binnen bij deze sportschool: meteen door.
   const t = await clubToegang()
   if (t && !t.isKane && t.userId === organisatie.id) redirect('/clubkane')
 
   const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
+  const rol = medewerker.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Medewerker'
   return (
     <div className={`lifeos-root ff club-app club-inlog ${barlow.variable} ${inter.variable}`} style={stijl} data-thema={organisatie.thema}>
       <main className="club-inlog-vlak">
-        <ClubInlogPoort code={b.code} pinStatus={b.pinStatus} sportschool={organisatie.naam} voornaam={b.naam.split(' ')[0]} rol={ROL_LABEL[b.rol]} />
+        <ClubInlogPoort
+          code={toegang.code}
+          pinStatus={toegang.pinStatus}
+          sportschool={organisatie.naam}
+          voornaam={medewerker.naam.split(' ')[0]}
+          rol={rol}
+          apiBasis={`/api/club/inloggen/medewerker/${encodeURIComponent(toegang.code)}`}
+        />
       </main>
     </div>
   )

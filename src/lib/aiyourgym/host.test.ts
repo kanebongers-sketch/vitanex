@@ -34,6 +34,9 @@ describe('beslisAyg', () => {
     expect(beslisAyg('aiyourgym.com', '/api/club/leden', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/api/club/leden' })
     expect(beslisAyg('aiyourgym.com', '/api/aiyourgymx', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/api/aiyourgymx' })
   })
+  it('geen sitemap van de app: /sitemap.xml blijft binnen de website (404 daar)', () => {
+    expect(beslisAyg('aiyourgym.com', '/sitemap.xml', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/sitemap.xml' })
+  })
   it('een subdomein van een sportschool blijft van Club', () => {
     expect(beslisAyg('fitfactory.aiyourgym.com', '/', true)).toEqual({ soort: 'niet-van-mij' })
     expect(beslisClub('fitfactory.aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', slug: 'fitfactory', pad: '/clubkane' })

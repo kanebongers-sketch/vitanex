@@ -12,7 +12,7 @@ import { scrollPositie, volgScroll } from './scrollpositie'
 // scrolt krijgt hij een licht kalkwit vlak met een fijne lijn en zachte blur.
 // Let op: de body scrolt, niet het venster (zie scrollpositie.ts). Zonder JavaScript
 // (of voor het eerste effect) staat de achtergrond er gewoon.
-// Inloggen komt erbij zodra /clubinloggen voor sportscholen open is.
+// Inloggen staat in de voet en verwijst naar /inloggen op de website zelf.
 
 const DREMPEL_PX = 8
 

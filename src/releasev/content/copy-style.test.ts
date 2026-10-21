@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
  * zoals "één", "én", "wél" of "vóór". Echte leenwoorden (privé, café) mogen wel.
  * Commentaarregels tellen niet mee; alleen tekst die bezoekers kunnen zien.
  */
-const ROOTS = ["src/releasev/content", "src/releasev/config", "src/releasev/components", "src/app/releasev", "src/releasev/lib"];
+const ROOTS = ["src/releasev/content", "src/releasev/config", "src/releasev/components", "src/app/(hoofd)/releasev", "src/releasev/lib"];
 const FORBIDDEN = /[—–]/;
 const ACCENTED_WORD = /[\p{L}]*[áéíóúÁÉÍÓÚ][\p{L}]*/gu;
 const ALLOWED_WORDS = new Set(["privé", "café", "cafés", "logé", "comité", "coupé", "exposé", "rosé"]);

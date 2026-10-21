@@ -3,9 +3,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { GEEN_CACHE } from '@/lib/lifeos/leads/toegang'
 import { clubToegang } from '@/lib/club/toegang'
 import { siteActief } from './schakelaar'
+
+/** Antwoorden van de API nooit cachen en nooit in zoekmachines. */
+const GEEN_CACHE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } as const
 
 export function aygJson(data: unknown, status = 200): NextResponse {
   return NextResponse.json(data, { status, headers: GEEN_CACHE })

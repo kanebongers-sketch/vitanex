@@ -5,7 +5,7 @@ import { ledenappMerkVoorVerzoek } from '@/lib/club/ledenapp-pwa/merk-server'
 // GET /api/club/ledenapp/manifest  het web-app-manifest van /mijn
 //
 // Per sportschool (naam, kleuren, iconen), zie merk-server.ts voor hoe we de
-// sportschool kiezen. Onder /api in plaats van src/app/mijn/manifest.webmanifest:
+// sportschool kiezen. Onder /api in plaats van src/app/(hoofd)/mijn/manifest.webmanifest:
 // een manifest-bestand is in deze Next alleen in de root van app een speciaal
 // bestand, en op een subdomein herschrijft de proxy alles buiten /api naar
 // /clubkane. De ledenapp nog dicht en geen Kane: een gewone 404.

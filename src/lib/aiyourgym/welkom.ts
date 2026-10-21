@@ -7,6 +7,7 @@
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { stripeSleutel } from './config'
+import { siteActief } from './schakelaar'
 import { portaalLink, oorsprongVan } from './links'
 import { vindOpSessie, type AanmeldingRij } from './opslag'
 import { eigenaarCode } from './sportschool'
@@ -51,7 +52,7 @@ export async function haalWelkom(ruweSessie: unknown, host: string, nu: Date): P
 
   const code = await eigenaarCode(admin, a.organisatieId, a.eigenaarEmail)
   const link = code
-    ? portaalLink({ code, slug: a.slug, subdomeinenAan: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', portaalUrl: process.env.AIYOURGYM_PORTAAL_URL ?? null, oorsprong: oorsprongVan(host), host })
+    ? portaalLink({ code, slug: a.slug, subdomeinenAan: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', portaalUrl: process.env.AIYOURGYM_PORTAAL_URL ?? null, oorsprong: oorsprongVan(host), host, siteAan: siteActief() })
     : null
   return { soort: 'klaar', sportschool: a.sportschoolNaam, adres: adresVan(a.slug), link, loginOpen: CLUB_EIGEN_LOGIN }
 }

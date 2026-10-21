@@ -6,7 +6,7 @@ import { ONDERDEEL_SLEUTELS } from './org-instellingen'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
 import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelHref, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
 
-const APP = join(process.cwd(), 'src', 'app', 'clubkane')
+const APP = join(process.cwd(), 'src', 'app', '(hoofd)', 'clubkane')
 const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true }
 
 describe('INSTEL_PAGINAS', () => {

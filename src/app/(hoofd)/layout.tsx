@@ -1,7 +1,7 @@
 import type { Viewport } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
-import { barlow } from "./fonts/fit-factory";
+import "../globals.css";
+import { barlow } from "../fonts/fit-factory";
 import { headers } from "next/headers";
 import { isPtHost } from "@/lib/fit-factory/domein";
 import { isReleaseVHost } from "@/releasev/lib/host-routing";
@@ -10,6 +10,10 @@ import { STANDAARD_TAAL, richtingVan, type Taal } from "@/lib/i18n/talen";
 import { huidigeTaal, laadBron, laadWoordenboek } from "@/lib/i18n/server";
 import { TaalProvider } from "@/lib/i18n/TaalProvider";
 
+// Root layout van de groep (hoofd): Fit Factory PT, Club, LifeOS, MentaForce en
+// RELEASE V. De verkoopwebsite AI Your Gym heeft een eigen root layout in
+// src/app/(aiyourgym) en ziet hier niets van (geen globals.css, geen woordenboek).
+//
 // Huisstijl van fitfactory.nl (14-10-2026): tekst in Roboto, koppen in Oswald.
 // Beide zelf gehost (OFL, zie src/app/fonts/OFL-*.txt), de Render-build heeft zo
 // geen netwerk nodig.
@@ -17,7 +21,7 @@ import { TaalProvider } from "@/lib/i18n/TaalProvider";
 // Roboto krijgt de variabele --font-grotesk: die naam gebruikt de hele app al als
 // "de tekstletter" (FONT.grotesk, font-grotesk), dus zo wisselt alles in een keer.
 const tekst = localFont({
-  src: './fonts/roboto-latin-wght-normal.woff2',
+  src: '../fonts/roboto-latin-wght-normal.woff2',
   variable: '--font-grotesk',
   weight: '100 900',
   display: 'swap',

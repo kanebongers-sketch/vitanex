@@ -6,7 +6,7 @@ import { SquarePlus, X } from 'lucide-react'
 // "Zet op je beginscherm" — een korte, wegklikbare tip op het overzicht van de
 // PT'er. Alleen op een telefoon/tablet, niet als het dashboard al als app open
 // staat, en niet meer na wegklikken (onthouden in localStorage, best-effort).
-// Het manifest zelf staat in src/app/[pt]/manifest.webmanifest/route.ts.
+// Het manifest zelf staat in src/app/(hoofd)/[pt]/manifest.webmanifest/route.ts.
 
 const SLEUTEL = 'ptd-beginscherm-hint-weg'
 

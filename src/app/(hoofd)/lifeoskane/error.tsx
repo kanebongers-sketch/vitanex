@@ -10,7 +10,7 @@ import { TriangleAlert } from 'lucide-react'
 // eiland de hele pagina mee en kijkt Kane naar een wit scherm.
 //
 // Next 16.3-conventie: error.tsx krijgt `{ error, retry }`, niet
-// `reset` zoals in oudere Next-versies. Zie `src/app/error.tsx`, dezelfde vorm.
+// `reset` zoals in oudere Next-versies. Zie `src/app/(hoofd)/error.tsx`, dezelfde vorm.
 //
 // We tonen bewust GEEN interne details (message, stack, digest): die horen in de
 // server-logs, niet op het scherm. Wat er wel staat is een weg terug.

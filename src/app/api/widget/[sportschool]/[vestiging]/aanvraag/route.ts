@@ -1,6 +1,6 @@
 // POST /api/widget/<sportschool>/<vestiging>/aanvraag
 // Een proefles of kennismaking aanvragen vanuit de boekingswidget op de website
-// van een sportschool (src/app/widget). Wordt een lead in Club, geen reservering.
+// van een sportschool (src/app/(hoofd)/widget). Wordt een lead in Club, geen reservering.
 //
 // Beveiliging: alleen met CLUB_WIDGET_ACTIEF=1 en de widget aan voor deze
 // vestiging, anders een gewone 404 (geen verschil tussen onbekend en uit). De

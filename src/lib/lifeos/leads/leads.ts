@@ -329,7 +329,7 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'team', 'team-uitdagingen', 'training', 'uitdagingen', 'uitnodiging', 'uren', 'vandaag', 'verlof', 'voeding',
   'voortgang', 'voorwaarden', 'wachtwoord-reset', 'wachtwoord-vergeten', 'water', 'welzijn', 'werkgeluk',
   'favicon', 'models', 'brand', 'logo', 'brain', 'theme-init',
-  // RELEASE V-webshop (src/app/releasev), bereikbaar via releasev.nl
+  // RELEASE V-webshop (src/app/(hoofd)/releasev), bereikbaar via releasev.nl
   'releasev',
 ])
 

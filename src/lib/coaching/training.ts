@@ -9,8 +9,8 @@
 // `toegewezen_door = coach` (migratie 041). De klant volgt het in de bestaande
 // /sport-UI, die het actieve schema van de ingelogde gebruiker laadt.
 //
-// BELANGRIJK — schema_json-vorm: exact de vorm die src/app/(app)/sport/page.tsx
-// én src/app/(app)/sport/training/page.tsx consumeren (Trainingsdag[] met
+// BELANGRIJK — schema_json-vorm: exact de vorm die src/app/(hoofd)/(app)/sport/page.tsx
+// én src/app/(hoofd)/(app)/sport/training/page.tsx consumeren (Trainingsdag[] met
 // oefeningen). Wijk hier niet van af, anders rendert het schema niet in /sport.
 
 export type TrainingNiveau = 'beginner' | 'gemiddeld' | 'gevorderd'

@@ -12,6 +12,8 @@ export const AANMELDEN = aygPad('/aanmelden')
 export const DEMO = aygPad('/demo')
 /** Een persoonlijke demo aanvragen (gesprek), naast de live demo hierboven. */
 export const DEMO_AANVRAGEN = aygPad('/demo-aanvragen')
+/** Uitleg hoe een sportschool inlogt (met de persoonlijke link), op de website zelf. */
+export const INLOGGEN = aygPad('/inloggen')
 
 export const NAV_LINKS = [
   { label: 'Functies', pad: aygPad('/functies'), uitleg: 'Beheer, coaching, planning, groei en betrokkenheid' },

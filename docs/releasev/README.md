@@ -5,7 +5,7 @@ Webshop voor de Recovery & Mobility Kit, onderdeel van deze app (naast Fit Facto
 ## Waar staat wat
 | Wat | Waar |
 |---|---|
-| Pagina's | `src/app/releasev/` (bezoekers zien gewoon `releasev.nl/product`, enz.) |
+| Pagina's | `src/app/(hoofd)/releasev/` (bezoekers zien gewoon `releasev.nl/product`, enz.) |
 | Componenten, teksten, config, logica | `src/releasev/` (import met `@rv/…`) |
 | Merk, contact, bedrijfsgegevens, verzending | `src/releasev/config/site.ts` |
 | Prijs, product, duo-pakket | `src/releasev/config/product.ts` |
@@ -39,7 +39,7 @@ Alles met het voorvoegsel `RELEASEV_`, zodat het nooit botst met MentaForce/Fit 
 
 ## MentaForce onder releasev.nl/mentaforce (sinds 12-10-2026)
 - `releasev.nl/mentaforce/…` is MentaForce; alle andere adressen blijven van de webshop (ook `/contact`, `/bedankt` en de webshop-API's).
-- Regels en tests: `src/lib/mentaforce/basis.ts`. De webshop-pagina's en -API's worden tijdens de build uit `src/app/releasev` gelezen (`RELEASEV_ROUTES`, `RELEASEV_APIS` in `next.config.ts`), zodat MentaForce er nooit tussen komt.
+- Regels en tests: `src/lib/mentaforce/basis.ts`. De webshop-pagina's en -API's worden tijdens de build uit `src/app/(hoofd)/releasev` gelezen (`RELEASEV_ROUTES`, `RELEASEV_APIS` in `next.config.ts`), zodat MentaForce er nooit tussen komt.
 - Onder `/mentaforce` gelden de headers (CSP) van MentaForce; de verborgen stand van de webshop (noindex) geldt er ook.
 - Supabase: `https://releasev.nl/mentaforce/**` moet in de toegestane terugkeeradressen staan (Authentication > URL Configuration), anders werken Google-login en wachtwoord-reset niet.
 - Render: `MENTAFORCE_APP_URL=https://releasev.nl/mentaforce` voor links in mails (uitnodiging, welkom, herinnering), de Stripe-terugkeer en de Fitbit/Google Agenda-koppeling. `NEXT_PUBLIC_APP_URL` niet aanpassen: LifeOS gebruikt die. Bij Fitbit en Google het terugkeeradres `https://releasev.nl/mentaforce/api/<fitbit|google-calendar>/callback` toevoegen.

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
-import FfFout from '@/app/FitFactoryPT/error'
+import FfFout from '@/app/(hoofd)/FitFactoryPT/error'
 
 // Next 16.3-conventie: error.tsx krijgt { error, retry }. De docs
 // adviseren retry() (her-fetch + her-render) boven reset(). We tonen

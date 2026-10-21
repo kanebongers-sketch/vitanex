@@ -4,7 +4,8 @@
 //  aiyourgym.com en www.aiyourgym.com (schakelaar AIYOURGYM_SITE_ACTIEF aan)
 //    /api/aiyourgym/...  door (aanmelden, beschikbaarheid, Stripe-webhook)
 //    /aiyourgym/...      door (bestaande links blijven werken)
-//    /favicon.ico, /robots.txt, /sitemap.xml  door
+//    /favicon.ico, /robots.txt  door (er is geen sitemap: /sitemap.xml gaat
+//                        naar /aiyourgym/sitemap.xml en wordt een 404 van de site)
 //    /...                herschrijven naar /aiyourgym/... (ook andere /api/: die bestaan daar niet)
 //  <slug>.aiyourgym.com: niet van de website, dat is Club (src/lib/club/kern/subdomein.ts)
 //  elk ander domein: niet van de website
@@ -15,7 +16,7 @@ export const AYG_PREFIX = '/aiyourgym'
 export const AYG_API = '/api/aiyourgym'
 
 const AYG_HOSTS: ReadonlySet<string> = new Set(['aiyourgym.com', 'www.aiyourgym.com', 'aiyourgym.localhost', 'www.aiyourgym.localhost'])
-const ALTIJD_DOOR: ReadonlySet<string> = new Set(['/favicon.ico', '/robots.txt', '/sitemap.xml'])
+const ALTIJD_DOOR: ReadonlySet<string> = new Set(['/favicon.ico', '/robots.txt'])
 
 function schoon(host: string | null | undefined): string {
   return (host ?? '').split(':')[0].trim().toLowerCase()

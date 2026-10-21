@@ -77,12 +77,15 @@ describe('geen botsing met de webshop', () => {
     const { LANDING_SLUGS } = await import('@/releasev/content/landing')
     const app = path.join(process.cwd(), 'src', 'app')
     const routes = new Set<string>()
-    for (const d of fs.readdirSync(app, { withFileTypes: true })) {
-      if (!d.isDirectory()) continue
-      if (d.name.startsWith('(')) {
-        for (const k of fs.readdirSync(path.join(app, d.name), { withFileTypes: true })) if (k.isDirectory()) routes.add(k.name)
-      } else routes.add(d.name)
+    // Route-groepen tellen niet als segment en kunnen genest zijn (src/app/(hoofd)/(app)/home is /home).
+    const verzamel = (dir: string) => {
+      for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!d.isDirectory()) continue
+        if (d.name.startsWith('(')) verzamel(path.join(dir, d.name))
+        else routes.add(d.name)
+      }
     }
+    verzamel(app)
     for (const slug of LANDING_SLUGS) expect(routes.has(slug)).toBe(false)
     expect(routes.has('mentaforce')).toBe(false)
   })

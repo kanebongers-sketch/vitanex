@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
-import FfLaden from '@/app/FitFactoryPT/loading'
+import FfLaden from '@/app/(hoofd)/FitFactoryPT/loading'
 
 export default async function Loading() {
   // Dit scherm staat vóór elke pagina, ook vóór de PT-app (bij verversen zie je

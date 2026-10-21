@@ -27,7 +27,7 @@ export async function generateViewport(): Promise<Viewport> {
   return ledenappViewport(await merkVoorVerzoek())
 }
 
-// De installeerhulp staat in de app zelf (src/app/mijn/page.tsx), binnen de
+// De installeerhulp staat in de app zelf (src/app/(hoofd)/mijn/page.tsx), binnen de
 // huisstijl van de sportschool en pas na het inloggen.
 export default function MijnLayout({ children }: { children: ReactNode }) {
   return (

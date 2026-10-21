@@ -27,7 +27,7 @@ import './instellingen.css'
 // De instel-pagina's onder /clubkane/instellingen/<onderdeel>. Vroeger tabbladen
 // op een pagina Instellingen, nu elk een eigen plek in het instellingencentrum
 // (besluit Kane 18-10-2026: elk ding een naam en een plek). Oude links met
-// ?tab= sturen door (src/app/clubkane/instellingen/page.tsx).
+// ?tab= sturen door (src/app/(hoofd)/clubkane/instellingen/page.tsx).
 
 export const INSTELLINGEN_ONDERDELEN = ['regels', 'zalen', 'lestypen', 'weekrooster', 'medewerkers', 'vestigingen'] as const
 export type InstellingenOnderdeelSleutel = (typeof INSTELLINGEN_ONDERDELEN)[number]

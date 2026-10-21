@@ -20,27 +20,30 @@ while (
 // kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
 // op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
 // een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
+// Route-groepen kunnen genest zijn: src/app/(hoofd)/(app)/home telt als /home.
+// De groep (aiyourgym) heeft een eigen root layout en is nooit van MentaForce.
 const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'clubkane', 'clubinloggen', 'aiyourgym', 'mijn', 'api', 'fonts', 'lead', 'releasev', 'widget'])
+const GEEN_MENTAFORCE_GROEP = new Set(['(aiyourgym)'])
 function mentaforceRoutes(): string[] {
-  const appDir = path.join(__dirname, 'src', 'app')
   const mappen = (dir: string) =>
     fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
   const routes = new Set<string>()
-  for (const naam of mappen(appDir)) {
-    if (naam.startsWith('(') && naam.endsWith(')')) {
-      for (const kind of mappen(path.join(appDir, naam))) routes.add(kind)
-    } else {
-      routes.add(naam)
+  const verzamel = (dir: string) => {
+    for (const naam of mappen(dir)) {
+      if (GEEN_MENTAFORCE_GROEP.has(naam)) continue
+      if (naam.startsWith('(') && naam.endsWith(')')) verzamel(path.join(dir, naam))
+      else routes.add(naam)
     }
   }
+  verzamel(path.join(__dirname, 'src', 'app'))
   return [...routes].filter((r) => !GEEN_MENTAFORCE_ROUTE.has(r) && !r.startsWith('_') && !r.startsWith('['))
 }
 
 // MentaForce draait op releasev.nl/mentaforce (src/lib/mentaforce/basis.ts). Wat
 // van de webshop is, blijft van de webshop: de top-level pagina's en API's van
-// src/app/releasev, ook afgeleid tijdens de build.
+// src/app/(hoofd)/releasev, ook afgeleid tijdens de build.
 function webshopMappen(...deel: string[]): string[] {
-  const dir = path.join(__dirname, 'src', 'app', 'releasev', ...deel)
+  const dir = path.join(__dirname, 'src', 'app', '(hoofd)', 'releasev', ...deel)
   const namen = new Set<string>()
   for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
     if (!d.isDirectory()) continue
@@ -53,7 +56,7 @@ function webshopMappen(...deel: string[]): string[] {
   return [...namen].filter((n) => !n.startsWith('[') && !n.startsWith('_'))
 }
 
-// RELEASE V (releasev.nl) draait in dezelfde app (src/releasev, src/app/releasev).
+// RELEASE V (releasev.nl) draait in dezelfde app (src/releasev, src/app/(hoofd)/releasev).
 // De redirects en de CSP hieronder zijn van MentaForce/Fit Factory en gelden NIET
 // voor releasev.nl; de webshop krijgt zijn eigen headers (RELEASEV_HEADERS).
 const RELEASEV_HOST = { type: 'host' as const, value: '(www\\.)?releasev\\.(nl|localhost)' }
@@ -99,6 +102,13 @@ function releaseVHeaders(isProd: boolean) {
 }
 
 const nextConfig: NextConfig = {
+  // Twee root layouts: src/app/(hoofd) (Fit Factory, LifeOS, MentaForce, RELEASE V) en
+  // src/app/(aiyourgym) (de verkoopwebsite, volledig los). Een adres zonder pagina
+  // krijgt dan src/app/global-not-found.tsx (een neutrale 404 zonder merk).
+  experimental: {
+    globalNotFound: true,
+  },
+
   env: {
     MENTAFORCE_ROUTES: mentaforceRoutes().join(','),
     RELEASEV_ROUTES: webshopMappen().join(','),
@@ -147,7 +157,7 @@ const nextConfig: NextConfig = {
     // De ingang van het PT-team heet mentaforce.nl/FitFactoryPT; oude links
     // (/lead, /lead/joey) sturen door. LET OP: redirects matchen hoofdletter-
     // ONgevoelig — een regel /fitfactorypt → /FitFactoryPT zou op zichzelf
-    // lussen. Andere schrijfwijzen vangt src/app/[pt]/layout.tsx op.
+    // lussen. Andere schrijfwijzen vangt src/app/(hoofd)/[pt]/layout.tsx op.
     // Op mentaforce.nl (schakelaar aan) meteen naar het PT-domein, in één stap.
     const opMentaforce = [{ type: 'host' as const, value: '(www\\.)?mentaforce\\.nl' }]
     const leadNaarPtDomein = process.env.FIT_FACTORY_DOMEIN_ACTIEF === '1'

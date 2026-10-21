@@ -2,7 +2,7 @@
  * RELEASE V — domeinlogica (puur, zonder Next of env, zodat het te testen is).
  *
  * De webshop draait in dezelfde app als Fit Factory PT. De pagina's staan in
- * src/app/releasev/…; op releasev.nl herschrijft src/proxy.ts elk verzoek
+ * src/app/(hoofd)/releasev/…; op releasev.nl herschrijft src/proxy.ts elk verzoek
  * daarheen. Bezoekers zien dus gewoon releasev.nl/product, /kennis, enz.
  *
  *  releasev.nl

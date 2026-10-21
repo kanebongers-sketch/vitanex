@@ -2,7 +2,7 @@
 // De PT-app van Fit Factory draait in dezelfde Next-app als MentaForce, maar
 // hoort op zijn eigen domein: fitfactorypt.nl/<naam> i.p.v. mentaforce.nl/<naam>.
 // Dit bestand beslist per verzoek wat er moet gebeuren; `src/proxy.ts` voert het
-// uit en `src/app/[pt]/layout.tsx` stuurt oude PT-links door.
+// uit en `src/app/(hoofd)/[pt]/layout.tsx` stuurt oude PT-links door.
 //
 // ─── DE SCHAKELAAR ──────────────────────────────────────────────────────────
 // Doorsturen van mentaforce.nl naar fitfactorypt.nl gebeurt pas als

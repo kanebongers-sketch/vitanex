@@ -8,7 +8,7 @@
 //    /clubkane/...   door (alle bestaande links blijven werken)
 //    /api/...        door
 //    /clubinloggen/  door (persoonlijke inloglink van een eigenaar of clubmanager)
-//    /mijn, /mijn/   door (de ledenapp voor leden, src/app/mijn)
+//    /mijn, /mijn/   door (de ledenapp voor leden, src/app/(hoofd)/mijn)
 //    /club-app/      door (service worker en iconen van de ledenapp)
 //    /...            herschrijven naar /clubkane/...
 //  www.aiyourgym.com, aiyourgym.com, gereserveerde namen: niet van Club (nog)

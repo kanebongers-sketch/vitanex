@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import type { Organisatie } from '@/lib/club/kern/organisatie'
 import { barlow, inter } from '@/app/fonts/fit-factory'
-import '@/app/clubkane/club.css'
+import '@/app/(hoofd)/clubkane/club.css'
 import '@/components/club/app/app.css'
 import './ledenapp.css'
 

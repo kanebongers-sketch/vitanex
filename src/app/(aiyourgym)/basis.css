@@ -1,0 +1,48 @@
+/* ==========================================================================
+   AI Your Gym | basis van de eigen root layout
+   De verkoopwebsite heeft een eigen <html> en <body> (src/app/(aiyourgym)/layout.tsx)
+   en laadt niets van de rest van de app (geen globals.css). Hier alleen de reset
+   van Tailwind (preflight) en het papier onder de pagina; alle merkstijlen staan
+   in aiyourgym/aiyourgym.css onder de klasse .ayg.
+   ========================================================================== */
+@import "tailwindcss/preflight.css" layer(base);
+
+:root {
+  --ayg-pagina: #f2f0e9;
+  --ayg-pagina-tekst: #0f1412;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ayg-pagina: #0c0f0d;
+    --ayg-pagina-tekst: #eceae2;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--ayg-pagina);
+  color: var(--ayg-pagina-tekst);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/* Laadscherm en foutscherm van de groep (geen merknaam, zie loading.tsx en error.tsx) */
+@keyframes ayg-basis-draai {
+  to { transform: rotate(360deg); }
+}
+
+.ayg-basis-draai {
+  animation: ayg-basis-draai 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayg-basis-draai { animation: none; }
+}

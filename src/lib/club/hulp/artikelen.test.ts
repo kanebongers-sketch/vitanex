@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ONDERDELEN, isActief } from '@/components/club/shell/onderdelen'
 import { ARTIKELEN, filterArtikelen, kaalPad, normaliseer, zichtbareArtikelen } from './artikelen'
 
-const APP = join(process.cwd(), 'src', 'app')
+const APP = join(process.cwd(), 'src', 'app', '(hoofd)')
 
 /** Bestaat er een page.tsx voor dit pad onder src/app? */
 function paginaBestaat(pad: string): boolean {

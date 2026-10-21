@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
 import { HOOFDSTUKKEN } from '@/components/aiyourgym/inhoud/functies'
-import { AANMELDEN, DEMO, DEMO_AANVRAGEN, NAV_LINKS, aygPad } from './paden'
+import { AANMELDEN, DEMO, DEMO_AANVRAGEN, INLOGGEN, NAV_LINKS, aygPad } from './paden'
 
 const PRODUCT = HOOFDSTUKKEN.map((h) => ({ label: h.naam, pad: aygPad(`/functies#${h.sleutel}`) }))
 
@@ -31,6 +31,9 @@ export function AygVoet() {
               </li>
               <li>
                 <Link href={AANMELDEN}>Probeer gratis</Link>
+              </li>
+              <li>
+                <Link href={INLOGGEN}>Inloggen</Link>
               </li>
             </ul>
           </nav>

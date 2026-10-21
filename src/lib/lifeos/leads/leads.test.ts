@@ -66,8 +66,9 @@ describe('link-code', () => {
   test('elke vaste pagina op het hoogste niveau staat in GERESERVEERD', () => {
     const app = join(process.cwd(), 'src/app')
     const mappen = (dir: string) => readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
-    const top = mappen(app).flatMap((m) => (m.startsWith('(') ? mappen(join(app, m)) : [m]))
-    const vast = top.filter((m) => !m.startsWith('[') && !m.startsWith('_'))
+    // Route-groepen tellen niet als segment en kunnen genest zijn: src/app/(hoofd)/(app)/home is /home.
+    const top = (dir: string): string[] => mappen(dir).flatMap((m) => (m.startsWith('(') ? top(join(dir, m)) : [m]))
+    const vast = top(app).filter((m) => !m.startsWith('[') && !m.startsWith('_'))
     expect(vast.filter((m) => !GERESERVEERD.has(m))).toEqual([])
   })
 })

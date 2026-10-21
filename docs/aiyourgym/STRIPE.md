@@ -47,7 +47,7 @@ Kopieer daarna het ondertekeningsgeheim (begint met `whsec_`).
 | `AIYOURGYM_STRIPE_WEBHOOK_SECRET` | het `whsec_...` van stap 3 |
 | `AIYOURGYM_STRIPE_PRIJS_START`, `_CLUB`, `_KETEN` | de prijs-id's van stap 2 |
 | `AIYOURGYM_RESEND_FROM` (optioneel) | afzender voor de welkomstmail met de inloglink, bijv. `AI Your Gym <welkom@aiyourgym.com>`. Alleen als dat domein in Resend geverifieerd is. Zonder deze variabele wordt er niet gemaild en staat de link alleen op de welkomstpagina. |
-| `AIYOURGYM_PORTAAL_URL` (optioneel) | basis voor de inloglink zolang subdomeinen uit staan, bijv. `https://fitfactorypt.nl` |
+| `AIYOURGYM_PORTAAL_URL` (optioneel) | basis voor de inloglink zolang subdomeinen uit staan. Met `AIYOURGYM_SITE_ACTIEF=1` telt hij alleen als hij op aiyourgym.com of een subdomein ervan staat; een ander domein (zoals fitfactorypt.nl) wordt dan genegeerd en de link komt niet in mail of op de welkomstpagina. |
 
 Render deployt na het opslaan vanzelf opnieuw.
 

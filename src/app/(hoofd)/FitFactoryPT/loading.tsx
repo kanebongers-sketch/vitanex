@@ -2,7 +2,7 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { barlow, inter } from '@/app/fonts/fit-factory'
 
 // Het Fit Factory-laadscherm: logo bovenin en een rustig skelet, i.p.v. het
-// algemene laadscherm van de app. Ook gebruikt door src/app/loading.tsx op
+// algemene laadscherm van de app. Ook gebruikt door src/app/(hoofd)/loading.tsx op
 // fitfactorypt.nl, zodat je bij verversen nooit iets anders ziet.
 
 export default function FfLaden() {
