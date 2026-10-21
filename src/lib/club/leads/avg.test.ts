@@ -80,10 +80,10 @@ describe('leadExportBestandsnaam', () => {
 
 describe('magLeadWissen', () => {
   it('laat Kane, de eigenaar en de clubmanager wissen, een medewerker niet', () => {
-    expect(magLeadWissen({ isKane: true, rol: 'beheerder' })).toBe(true)
-    expect(magLeadWissen({ isKane: false, rol: 'eigenaar' })).toBe(true)
-    expect(magLeadWissen({ isKane: false, rol: 'clubmanager' })).toBe(true)
-    expect(magLeadWissen({ isKane: false, rol: 'medewerker' })).toBe(false)
+    expect(magLeadWissen({ isPlatformEigenaar: true, rol: 'beheerder' })).toBe(true)
+    expect(magLeadWissen({ isPlatformEigenaar: false, rol: 'eigenaar' })).toBe(true)
+    expect(magLeadWissen({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(true)
+    expect(magLeadWissen({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
   })
 })
 

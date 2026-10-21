@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImageUp, Trash2 } from 'lucide-react'
-import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 import { LOGO_TYPES, MAX_LOGO_BYTES } from '@/lib/club/kern/organisatie-invoer'
 import { stuur } from '@/components/club/leden/stuur'
 
@@ -60,7 +60,7 @@ export function LogoBlok({ logoUrl, ingebouwd, naam }: LogoBlokProps) {
     <div className="club-huisstijl-logo">
       <div className="club-huisstijl-logovlak">
         {ingebouwd ? (
-          <FfLogo />
+          <FitFactoryLogo />
         ) : logoUrl ? (
           <img src={logoUrl} alt={`Logo van ${naam}`} />
         ) : (

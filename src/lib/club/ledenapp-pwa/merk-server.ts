@@ -12,7 +12,7 @@
 
 import { headers } from 'next/headers'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
+import { clubDatabase } from '@/lib/club/kern/database'
 import { clubToegang } from '@/lib/club/toegang'
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Organisatie } from '@/lib/club/kern/organisatie'
@@ -32,7 +32,7 @@ export interface MerkVraag {
 
 function adminOfNull(): SupabaseClient | null {
   try {
-    return createLifeosAdminClient()
+    return clubDatabase()
   } catch (fout) {
     console.error('[club-app] geen databaseverbinding', fout instanceof Error ? fout.message : fout)
     return null

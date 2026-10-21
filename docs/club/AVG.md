@@ -77,7 +77,7 @@ De grondslag is een **voorstel**; de sportschool bepaalt hem en zet hem in haar 
 | `club_lid_verwijderingen_afronden` | 03:50 | verzoeken tot verwijderen na 30 dagen definitief |
 | `club_privacy_opruimen` (migratie 449) | 04:05 | per sportschool: leads wissen, oud-leden aanvragen, bezoek en boekingen loskoppelen, logboek inkorten; voor iedereen: meldingen 12 maanden, verlopen sessies (leden, medewerkers, beheerders), push 6 maanden, remmen 7 dagen, hulpvragen 24 maanden, beschikbaarheid, roosternotities en taken 24 maanden, diensten 7 jaar, website-aanvragen 12 maanden |
 
-De termijnen per sportschool staan in `club_privacy_instellingen` en zijn in te stellen op **Instellingen > Sportschool > Privacy en bewaren** (`/clubkane/beheer/privacy`, alleen Kane en eigenaar). Demodata (`demo = true`) valt erbuiten.
+De termijnen per sportschool staan in `club_privacy_instellingen` en zijn in te stellen op **Instellingen > Sportschool > Privacy en bewaren** (`/club/beheer/privacy`, alleen Kane en eigenaar). Demodata (`demo = true`) valt erbuiten.
 
 ## 7. Logging, foutregistratie en IP-adressen
 

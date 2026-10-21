@@ -126,7 +126,7 @@
   .club-cm-groep-link, .club-cm-groep-pijl, .club-cm-schakelaar span, .club-cm-reactie { transition: none; }
 }
 
-/* ── Beheer in Club (/clubkane/community) ────────────────────────────────── */
+/* ── Beheer in Club (/club/community) ────────────────────────────────── */
 .club-cmb-werkvlak { display: grid; gap: 24px; align-items: start; }
 @media (min-width: 1100px) { .club-cmb-werkvlak { grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); } }
 .club-cmb-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }

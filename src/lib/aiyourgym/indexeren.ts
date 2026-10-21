@@ -2,7 +2,7 @@
 // Zolang de schakelaar aygIndexeren() uit staat (src/lib/aiyourgym/schakelaar.ts)
 // hoort niets van de verkoopwebsite in zoekmachines, ook niet als de site
 // actief is. Uitgevoerd door src/proxy.ts (header op aiyourgym.com),
-// next.config.ts (header op de /aiyourgym-paden), src/app/(aiyourgym)/aiyourgym/layout.tsx
+// next.config.ts (header op de /aiyourgym-paden), src/app/(aiyourgym)/(website)/aiyourgym/layout.tsx
 // (robots-metadata) en src/app/robots.ts (alles afschermen op aiyourgym.com).
 
 import { AYG_API, AYG_PREFIX, isAygHost } from './host'

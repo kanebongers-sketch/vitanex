@@ -1,5 +1,5 @@
 // ─── AI Your Gym: het platformoverzicht van Kane (PUUR) ─────────────────────
-// Tellen en ordenen voor /clubkane/platform: aanmeldingen uit ayg_aanmeldingen,
+// Tellen en ordenen voor /club/platform: aanmeldingen uit ayg_aanmeldingen,
 // de voortgang van de startwizard en de kerncijfers bovenaan. Alleen echte
 // tellingen, nooit een geschatte omzet (de prijzen staan alleen in Stripe).
 // Zonder Next, Supabase of env, zodat alles te testen is.

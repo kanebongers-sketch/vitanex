@@ -151,7 +151,7 @@ export function StapKlaar({ punten, stand, vestiging }: StapKlaarProps) {
           <LifeBuoy aria-hidden size={28} />
           <h2 id="start-hulp-kop">Hulp nodig?</h2>
           <p>Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.</p>
-          <Link href="/clubkane/hulp" className="club-knop">
+          <Link href="/club/hulp" className="club-knop">
             Naar hulp en support
           </Link>
           <p className="club-hint">Alles uit deze wizard vind je later terug in het instellingencentrum onder Beheer.</p>

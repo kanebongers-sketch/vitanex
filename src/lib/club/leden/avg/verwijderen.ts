@@ -16,7 +16,7 @@ import type { WieMag } from '@/lib/club/beheerders/rechten'
 export const VERWIJDER_DAGEN = 30
 
 export function magLidVerwijderen(t: WieMag): boolean {
-  return t.isKane || t.rol === 'eigenaar'
+  return t.isPlatformEigenaar || t.rol === 'eigenaar'
 }
 
 /** Voor de vergelijking: kleine letters, zonder accenten en dubbele spaties. */

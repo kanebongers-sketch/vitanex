@@ -6,7 +6,7 @@
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LOGO_PAD } from '@/lib/club/kern/organisatie'
-import { ptUrl } from '@/lib/fit-factory/domein'
+import { aygUrl } from '@/lib/club/kern/subdomein'
 import type { BronStand } from './beleid'
 import { isSoort, type Kanaal, type Soort } from './soorten'
 
@@ -159,5 +159,5 @@ export async function logoVoorMail(admin: SupabaseClient, logo: string | null): 
 
 /** De afmeldlink voor een token. */
 export function afmeldUrl(token: string): string {
-  return ptUrl(`/api/club-afmelden/${encodeURIComponent(token)}`)
+  return aygUrl(`/api/club-afmelden/${encodeURIComponent(token)}`)
 }

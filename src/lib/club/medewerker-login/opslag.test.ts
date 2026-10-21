@@ -3,7 +3,7 @@
 // controlecode, en sessies die alleen bij de huidige link horen.
 
 import { describe, expect, it } from 'vitest'
-import { controleCode, hashPin, tokenHash } from '@/lib/lifeos/leads/pin'
+import { controleCode, hashPin, tokenHash } from '@/lib/club/kern/pin'
 import { heeftFilter, nepSupabase, type Vraag } from '@/lib/club/beheerders/nep-supabase'
 import { beheerMedewerkerLogin, kiesMedewerkerPin, logInMedewerker, medewerkerVanSessie, vindMedewerkerLink } from './opslag'
 import { toegangUitRij, type MedewerkerToegang } from './medewerker-login'

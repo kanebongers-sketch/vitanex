@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { Dumbbell, QrCode } from 'lucide-react'
-import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 import { HEX, huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import type { HuisstijlWaarden } from './HuisstijlPortaal'
 
@@ -16,7 +16,7 @@ interface VoorbeeldProps {
 }
 
 function Merk({ waarden, logoUrl, ingebouwdLogo }: VoorbeeldProps) {
-  if (ingebouwdLogo) return <FfLogo />
+  if (ingebouwdLogo) return <FitFactoryLogo />
   if (logoUrl) return <img src={logoUrl} alt="" className="club-merk-logo" />
   return <span className="club-merk-naam">{waarden.naam || 'Je sportschool'}</span>
 }

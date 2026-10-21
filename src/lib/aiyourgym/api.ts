@@ -2,7 +2,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
+import { clubDatabase } from '@/lib/club/kern/database'
 import { clubToegang } from '@/lib/club/toegang'
 import { siteActief } from './schakelaar'
 
@@ -21,12 +21,12 @@ export function aygFout(fout: string, status: number): NextResponse {
 export async function poortOpen(): Promise<boolean> {
   if (siteActief()) return true
   const t = await clubToegang()
-  return t?.isKane === true
+  return t?.isPlatformEigenaar === true
 }
 
 export function adminOfNull(): SupabaseClient | null {
   try {
-    return createLifeosAdminClient()
+    return clubDatabase()
   } catch {
     return null
   }

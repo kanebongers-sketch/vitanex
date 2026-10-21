@@ -1,5 +1,5 @@
 // ─── Club: wie mag in het instellingencentrum ───────────────────────────────
-// Het instellingencentrum (/clubkane/beheer) is open voor iedereen die minstens
+// Het instellingencentrum (/club/beheer) is open voor iedereen die minstens
 // een instel-pagina mag zien (zie src/lib/club/kern/instel-paginas.ts); het toont
 // dan alleen die pagina's. Elke instel-pagina controleert zelf nog haar eigen
 // recht, zodat een clubmanager of medewerker nooit iets extra ziet.

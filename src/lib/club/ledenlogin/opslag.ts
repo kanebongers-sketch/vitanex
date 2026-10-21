@@ -6,7 +6,7 @@
 
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from '@/lib/lifeos/leads/pin'
+import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from '@/lib/club/kern/pin'
 import {
   LID_CODE, LID_SESSIE_DAGEN, LID_TOEGANG_KOLOMMEN, MAX_LID_SESSIES, beoordeelLidSessie, linkOverzicht, linkStaat, lidToegangUitRij, sessiePastBij,
   type LidLinkOverzicht, type LidSessieRij, type LidToegangRij,

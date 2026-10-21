@@ -4,7 +4,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import { naamVan, type VestigingInfo, type VestigingSleutel } from '@/lib/club/kern/vestigingen'
 
 // De vestigingen van de sportschool die open staat, voor client-componenten.
-// De layout van /clubkane vult hem met ClubToegang.vestigingen.
+// De layout van /club vult hem met ClubToegang.vestigingen.
 
 const VestigingenContext = createContext<readonly VestigingInfo[]>([])
 

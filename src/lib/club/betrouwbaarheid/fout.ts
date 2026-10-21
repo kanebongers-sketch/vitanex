@@ -6,7 +6,7 @@
 // Hard: er gaat NOOIT een persoonsgegeven, token of body mee. De melding wordt
 // geschoond (e-mail, uuid's, lange codes, cijfers, tekst tussen aanhalingstekens
 // en waarden na "=") en ingekort. Een route bevat alleen het patroon
-// (/clubkane/leden/[id]) of een pad waarin id's en codes zijn vervangen.
+// (/club/leden/[id]) of een pad waarin id's en codes zijn vervangen.
 
 import { createHash } from 'node:crypto'
 
@@ -21,7 +21,7 @@ const GEBIEDEN: ReadonlyArray<{ prefix: string; gebied: FoutGebied }> = [
   // De ledenapp eerst: /api/club/lid valt anders onder /api/club.
   { prefix: '/api/club/lid', gebied: 'leden' },
   { prefix: '/mijn', gebied: 'leden' },
-  { prefix: '/clubkane', gebied: 'club' },
+  { prefix: '/club', gebied: 'club' },
   { prefix: '/clubinloggen', gebied: 'club' },
   { prefix: '/api/club', gebied: 'club' },
   { prefix: '/aiyourgym', gebied: 'aiyourgym' },

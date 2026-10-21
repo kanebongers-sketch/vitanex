@@ -10,7 +10,7 @@ import type { Module } from '@/lib/club/kern/organisatie'
 
 export interface ArtikelLink {
   label: string
-  /** Een pad binnen /clubkane, eventueel met ?tab= of andere parameters. */
+  /** Een pad binnen /club, eventueel met ?tab= of andere parameters. */
   pad: string
 }
 
@@ -40,9 +40,9 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Onderdelen die je sportschool niet gebruikt zet je uit bij Instellingen, Onderdelen aan of uit. Ze verdwijnen dan uit het menu.',
     ],
     links: [
-      { label: 'Vandaag', pad: '/clubkane' },
-      { label: 'Vestiging toevoegen', pad: '/clubkane/instellingen/vestigingen' },
-      { label: 'Instellingen', pad: '/clubkane/beheer' },
+      { label: 'Vandaag', pad: '/club' },
+      { label: 'Vestiging toevoegen', pad: '/club/instellingen/vestigingen' },
+      { label: 'Instellingen', pad: '/club/beheer' },
     ],
     trefwoorden: ['start', 'begin', 'menu', 'vestiging wisselen', 'dashboard'],
   },
@@ -59,8 +59,8 @@ export const ARTIKELEN: readonly Artikel[] = [
       'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities.',
     ],
     links: [
-      { label: 'Ledenbestand inlezen', pad: '/clubkane/leden/importeren' },
-      { label: 'Ledenlijst', pad: '/clubkane/leden' },
+      { label: 'Ledenbestand inlezen', pad: '/club/leden/importeren' },
+      { label: 'Ledenlijst', pad: '/club/leden' },
     ],
     trefwoorden: ['import', 'importeren', 'csv', 'excel', 'sportivity', 'ledenkaart', 'behoud'],
   },
@@ -76,7 +76,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Rechts staan Nu binnen, de check-ins van vandaag en de laatste check-ins met de bron (balie, QR, bandje of les). Nu binnen is een schatting: er is geen uitchecken.',
       'Een tweede check-in binnen 30 minuten telt niet nog een keer. De pagina ververst elke minuut vanzelf.',
     ],
-    links: [{ label: 'Check-in', pad: '/clubkane/checkin' }],
+    links: [{ label: 'Check-in', pad: '/club/checkin' }],
     trefwoorden: ['balie', 'scannen', 'qr', 'bandje', 'binnen'],
   },
   {
@@ -92,9 +92,9 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Met Deze les aanpassen wijzig je capaciteit, zaal of instructeur. Les annuleren vraagt een reden; de reserveringen vervallen dan.',
     ],
     links: [
-      { label: 'Groepslessen', pad: '/clubkane/rooster' },
-      { label: 'Weekrooster', pad: '/clubkane/instellingen/weekrooster' },
-      { label: 'Regels en openingstijden', pad: '/clubkane/instellingen/regels' },
+      { label: 'Groepslessen', pad: '/club/rooster' },
+      { label: 'Weekrooster', pad: '/club/instellingen/weekrooster' },
+      { label: 'Regels en openingstijden', pad: '/club/instellingen/regels' },
     ],
     trefwoorden: ['les', 'lessen', 'reserveren', 'boeken', 'wachtlijst', 'no-show', 'capaciteit', 'zaal'],
   },
@@ -110,8 +110,8 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Na afloop zet je de afspraak op Geweest of Niet gekomen. Verplaatsen, annuleren en een notitie kan ook.',
     ],
     links: [
-      { label: 'Afspraken', pad: '/clubkane/afspraken' },
-      { label: 'Afspraaktypen', pad: '/clubkane/afspraken?tab=typen' },
+      { label: 'Afspraken', pad: '/club/afspraken' },
+      { label: 'Afspraaktypen', pad: '/club/afspraken?tab=typen' },
     ],
     trefwoorden: ['intake', 'personal training', 'meting', 'agenda', 'trainer'],
   },
@@ -127,9 +127,9 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Op het tabblad Uren kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris.',
     ],
     links: [
-      { label: 'Personeel', pad: '/clubkane/personeel' },
-      { label: 'Uren', pad: '/clubkane/personeel?tab=uren' },
-      { label: 'Beschikbaarheid', pad: '/clubkane/personeel?tab=team' },
+      { label: 'Personeel', pad: '/club/personeel' },
+      { label: 'Uren', pad: '/club/personeel?tab=uren' },
+      { label: 'Beschikbaarheid', pad: '/club/personeel?tab=team' },
     ],
     trefwoorden: ['dienst', 'diensten', 'rooster', 'uren', 'salaris', 'ziek', 'verlof', 'administratie'],
   },
@@ -145,10 +145,10 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Bij Beheer maak je lijsten en taken met hoe vaak (elke dag, minimaal een aantal keer per week, indien nodig) en het moment. Een lijst kopieer je naar een andere vestiging.',
     ],
     links: [
-      { label: 'Taken van vandaag', pad: '/clubkane/taken' },
-      { label: 'Week', pad: '/clubkane/taken/week' },
-      { label: 'Overzicht', pad: '/clubkane/taken/overzicht' },
-      { label: 'Taken beheren', pad: '/clubkane/taken/beheer' },
+      { label: 'Taken van vandaag', pad: '/club/taken' },
+      { label: 'Week', pad: '/club/taken/week' },
+      { label: 'Overzicht', pad: '/club/taken/overzicht' },
+      { label: 'Taken beheren', pad: '/club/taken/beheer' },
     ],
     trefwoorden: ['poetsen', 'schoonmaak', 'afsluiten', 'checklist'],
   },
@@ -165,9 +165,9 @@ export const ARTIKELEN: readonly Artikel[] = [
       'De vragen van de intake pas je aan bij Instellingen, Intakeformulier; oefeningen en coaching staan op het tabblad Oefeningen.',
     ],
     links: [
-      { label: "Schema's", pad: '/clubkane/training' },
-      { label: 'Intakes', pad: '/clubkane/training?tab=intakes' },
-      { label: 'Oefeningen', pad: '/clubkane/training?tab=oefeningen' },
+      { label: "Schema's", pad: '/club/training' },
+      { label: 'Intakes', pad: '/club/training?tab=intakes' },
+      { label: 'Oefeningen', pad: '/club/training?tab=oefeningen' },
     ],
     trefwoorden: ['schema', 'oefening', 'oefeningen', 'sjabloon', 'coaching', 'intakeformulier'],
   },
@@ -183,8 +183,8 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Maak bij Sjablonen een vast plan dat je op meer leden toepast.',
     ],
     links: [
-      { label: 'Voeding', pad: '/clubkane/voeding' },
-      { label: 'Sjablonen', pad: '/clubkane/voeding?tab=sjablonen' },
+      { label: 'Voeding', pad: '/club/voeding' },
+      { label: 'Sjablonen', pad: '/club/voeding?tab=sjablonen' },
     ],
     trefwoorden: ['kcal', 'calorieen', 'eiwit', 'macro', 'dieet'],
   },
@@ -199,7 +199,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Zet aan of hij in de ledenapp staat en of de ranglijst zichtbaar is (voornaam en eerste letter).',
       'Challenges staan in lopend, gepland en afgelopen. Een lopende challenge kun je stoppen.',
     ],
-    links: [{ label: 'Challenges', pad: '/clubkane/challenges' }],
+    links: [{ label: 'Challenges', pad: '/club/challenges' }],
     trefwoorden: ['doel', 'wedstrijd', 'ranglijst', 'motivatie'],
   },
   {
@@ -214,8 +214,8 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Recent afgehandeld toont wat de afgelopen 7 dagen is gedaan.',
     ],
     links: [
-      { label: 'Opvolgen', pad: '/clubkane/opvolgen' },
-      { label: 'Opvolgregels', pad: '/clubkane/beheer/automatiseringen' },
+      { label: 'Opvolgen', pad: '/club/opvolgen' },
+      { label: 'Opvolgregels', pad: '/club/beheer/automatiseringen' },
     ],
     trefwoorden: ['bellen', 'retentie', 'behoud', 'opzegging', 'verjaardag'],
   },
@@ -231,8 +231,8 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Cijfers toont leden, bezoek, lessen en leads per maand, vergeleken met de vorige maand en dezelfde maand vorig jaar. Kies Alle vestigingen voor het totaal.',
     ],
     links: [
-      { label: 'Rapporten', pad: '/clubkane/rapporten' },
-      { label: 'Cijfers', pad: '/clubkane/cijfers' },
+      { label: 'Rapporten', pad: '/club/rapporten' },
+      { label: 'Cijfers', pad: '/club/cijfers' },
     ],
     trefwoorden: ['export', 'excel', 'csv', 'maand', 'statistiek', 'kpi'],
   },
@@ -249,10 +249,10 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Bij Rechten per rol kies je welke onderdelen trainers, instructeurs, clubmanagers en de administratie zien.',
     ],
     links: [
-      { label: 'Instellingen', pad: '/clubkane/beheer' },
-      { label: 'Huisstijl', pad: '/clubkane/huisstijl' },
-      { label: 'Medewerkers', pad: '/clubkane/instellingen/medewerkers' },
-      { label: 'Rechten per rol', pad: '/clubkane/beheer/rechten' },
+      { label: 'Instellingen', pad: '/club/beheer' },
+      { label: 'Huisstijl', pad: '/club/huisstijl' },
+      { label: 'Medewerkers', pad: '/club/instellingen/medewerkers' },
+      { label: 'Rechten per rol', pad: '/club/beheer/rechten' },
     ],
     trefwoorden: ['logo', 'kleur', 'thema', 'modules', 'openingstijden', 'medewerkers', 'rollen'],
   },
@@ -268,9 +268,9 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Abonnement en betalingen van leden blijven in Sportivity.',
     ],
     links: [
-      { label: 'Ledenapp bekijken', pad: '/clubkane/app' },
-      { label: 'Ledenapp', pad: '/clubkane/beheer/ledenapp' },
-      { label: 'Berichten', pad: '/clubkane/berichten' },
+      { label: 'Ledenapp bekijken', pad: '/club/app' },
+      { label: 'Ledenapp', pad: '/club/beheer/ledenapp' },
+      { label: 'Berichten', pad: '/club/berichten' },
     ],
     trefwoorden: ['app', 'telefoon', 'nieuws', 'mededeling', 'qr'],
   },

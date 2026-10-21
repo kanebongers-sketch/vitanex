@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { controleCode, hashPin, tokenHash } from '@/lib/lifeos/leads/pin'
+import { controleCode, hashPin, tokenHash } from '@/lib/club/kern/pin'
 import type { Beheerder } from './beheerder'
 import { beheerderVanSessie, beoordeelBeheerder, haalBeheerders, kiesBeheerderPin, logInBeheerder, nieuweBeheerderCode, vindBeheerder } from './beheerder-opslag'
 import { heeftFilter, nepSupabase, type Antwoord, type Vraag } from './nep-supabase'

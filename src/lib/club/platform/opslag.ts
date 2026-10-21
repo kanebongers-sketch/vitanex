@@ -1,5 +1,5 @@
 // ─── AI Your Gym: het platformoverzicht ophalen (SERVER-ONLY) ───────────────
-// Alleen voor Kane (/clubkane/platform, layout met eisKane). Leest per
+// Alleen voor Kane (/club/platform, layout met eisPlatformEigenaar). Leest per
 // sportschool van Kane de tellingen, de aanmeldingen uit ayg_aanmeldingen, de
 // open supportmeldingen en de fouten van de laatste 24 uur. Elke vraag is
 // begrensd; wat niet te lezen is wordt null en komt als melding op de pagina,
@@ -187,7 +187,7 @@ async function regelVoor(admin: SupabaseClient, o: Organisatie, t: ClubToegang, 
   }
 }
 
-/** Alles voor /clubkane/platform. Alleen aanroepen voor Kane (eisKane). */
+/** Alles voor /club/platform. Alleen aanroepen voor Kane (eisPlatformEigenaar). */
 export async function haalPlatform(t: ClubToegang, nu: Date): Promise<PlatformStand> {
   const problemen = new Set<string>()
   const admin = t.admin

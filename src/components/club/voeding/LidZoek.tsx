@@ -17,7 +17,7 @@ export function LidZoek({ vestiging, term, leden, metPlan }: LidZoekProps) {
   return (
     <section className="club-kaart club-voeding-blok" aria-labelledby="voeding-zoek-kop">
       <h2 id="voeding-zoek-kop">Plan voor een lid</h2>
-      <form className="club-voeding-zoek" action="/clubkane/voeding" method="get" role="search">
+      <form className="club-voeding-zoek" action="/club/voeding" method="get" role="search">
         <input type="hidden" name="v" value={vestiging} />
         <input className="club-invoer" type="search" name="q" defaultValue={term} placeholder="Naam, lidnummer of e-mail" aria-label="Lid zoeken" minLength={2} />
         <button type="submit" className="club-knop">

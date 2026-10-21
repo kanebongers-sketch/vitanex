@@ -39,7 +39,7 @@ describe('beslisAyg', () => {
   })
   it('een subdomein van een sportschool blijft van Club', () => {
     expect(beslisAyg('fitfactory.aiyourgym.com', '/', true)).toEqual({ soort: 'niet-van-mij' })
-    expect(beslisClub('fitfactory.aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', slug: 'fitfactory', pad: '/clubkane' })
+    expect(beslisClub('fitfactory.aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', slug: 'fitfactory', pad: '/club' })
   })
   it('www en de kale website zijn nooit een sportschool, en releasev.nl is niet van ons', () => {
     expect(slugUitHost('www.aiyourgym.com')).toBeNull()

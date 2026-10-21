@@ -1,7 +1,8 @@
-// ─── Fit Factory clubsoftware: het slot (SERVER-ONLY) ───────────────────────
-// Twee ingangen:
-//   1. Kane: een geldige beheerder-sessie van de PT-app (de httpOnly-cookie van
-//      het hoofdaccount). Ziet alle eigen sportscholen en wisselt ertussen.
+// ─── AI Your Gym, Club: het slot (SERVER-ONLY) ──────────────────────────────
+// Drie ingangen, alleen op aiyourgym.com en de subdomeinen (src/proxy.ts):
+//   1. De platform-eigenaar (Kane, master account): een eigen sessie na link
+//      plus pincode (src/lib/club/platform-login). Ziet alle sportscholen en
+//      wisselt ertussen. Los van de PT-app: geen gedeelde cookie of sessie.
 //   2. Een eigenaar of clubmanager van een sportschool (club_beheerders), met
 //      een eigen sessie na link plus pincode. Ziet ALLEEN de eigen sportschool.
 //      Alleen als de schakelaar CLUB_EIGEN_LOGIN aan staat; standaard uit.
@@ -9,7 +10,7 @@
 //      pincode die de eigenaar of clubmanager goedkeurde. Ziet alleen de eigen
 //      sportschool, alleen de eigen vestigingen en alleen de onderdelen van
 //      zijn rollen. Ook alleen met CLUB_EIGEN_LOGIN aan.
-// Alle anderen: /clubkane bestaat niet. Pagina's geven een gewone 404 en de API
+// Alle anderen: /club bestaat niet. Pagina's geven een gewone 404 en de API
 // ook (geen 401/403 die verraadt dat er iets achter zit).
 
 import { cache } from 'react'
@@ -17,10 +18,10 @@ import { cookies, headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { beoordeelSessie, leesSessie, vindLink } from '@/lib/lifeos/leads/links'
-import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
-import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
+import { clubDatabase } from '@/lib/club/kern/database'
+import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
+import { platformCookie } from '@/lib/club/platform-login/platform'
+import { platformVanSessie } from '@/lib/club/platform-login/opslag'
 import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
@@ -36,7 +37,7 @@ import { medewerkerVanSessie } from '@/lib/club/medewerker-login/opslag'
 import { magApiAlsMedewerker } from '@/lib/club/medewerker-login/rechten'
 import { medewerkerToegangVelden } from '@/lib/club/medewerker-login/toegang-velden'
 
-/** Wie er binnen is: Kane (beheerder), een eigenaar of clubmanager van een sportschool, of een medewerker. */
+/** Wie er binnen is: de platform-eigenaar (rol beheerder), een eigenaar of clubmanager van een sportschool, of een medewerker. */
 export type ClubRol = 'beheerder' | BeheerderRol | 'medewerker'
 
 export interface ClubToegang {
@@ -58,8 +59,8 @@ export interface ClubToegang {
   beheerderId: string
   /** Kane, of een eigenaar of clubmanager van de actieve sportschool. */
   rol: ClubRol
-  /** Alleen Kane wisselt van sportschool en maakt sportscholen aan. */
-  isKane: boolean
+  /** Alleen de platform-eigenaar (master account van Kane) wisselt van sportschool en maakt sportscholen aan. */
+  isPlatformEigenaar: boolean
   /** Het id in club_beheerders (eigenaar, clubmanager) of club_medewerkers (medewerker); null voor Kane. */
   persoonId: string | null
   /** De onderdelen die deze persoon ziet (sleutels uit shell/onderdelen.ts); null = alles. */
@@ -70,21 +71,6 @@ export interface ClubToegang {
   medewerkerRollen?: readonly MedewerkerRol[]
   /** Wie er werkt, voor het logboek ("Kane", of de naam van de medewerker). */
   naam: string
-  /** De PT-code van Kane, voor de link terug naar de PT-app; null voor anderen. */
-  code: string | null
-}
-
-/** De code van de (enige) actieve beheerder-link, of null. */
-async function beheerderCode(admin: SupabaseClient): Promise<string | null> {
-  const { data, error } = await admin
-    .from('pt_lead_links')
-    .select('code')
-    .eq('rol', 'beheerder')
-    .eq('actief', true)
-    .limit(1)
-    .maybeSingle()
-  if (error || !data || typeof data.code !== 'string') return null
-  return data.code
 }
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
@@ -121,31 +107,25 @@ async function haalVestigingen(admin: SupabaseClient, organisatieId: string): Pr
   return vestigingenUitRijen(data ?? [])
 }
 
-/** Kane: een geldige beheerder-sessie van de PT-app. */
-async function toegangVoorKane(admin: SupabaseClient): Promise<ClubToegang | null> {
-  const code = await beheerderCode(admin)
-  if (!code) return null
-  const token = (await cookies()).get(sessieCookieNaam(code))?.value
+/** De platform-eigenaar: een geldige sessie van het master account (link plus pincode). */
+async function toegangVoorPlatform(admin: SupabaseClient): Promise<ClubToegang | null> {
+  const token = (await cookies()).get(platformCookie())?.value
   if (!token) return null
-  const [link, sessie] = await Promise.all([vindLink(admin, code), leesSessie(admin, token)])
-  if (!link || link.rol !== 'beheerder') return null
-  // De sessiebeoordeling (kan een schrijfactie zijn), de sportscholen en de vestigingen
-  // van de waarschijnlijk gekozen sportschool lopen tegelijk. Niets daarvan wordt gebruikt
-  // zolang de sessie niet geldig is.
+  const account = await platformVanSessie(admin, token, new Date())
+  if (!account) return null
+  // De sportscholen en de vestigingen van de waarschijnlijk gekozen sportschool tegelijk.
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
-  const gok = isUuid(gekozen) ? gekozen : link.userId
-  const [ingelogd, organisaties, gokVestigingen] = await Promise.all([
-    beoordeelSessie(admin, link, token, sessie, new Date()),
-    haalOrganisaties(admin, link.userId),
-    haalVestigingen(admin, gok),
-  ])
-  if (!ingelogd) return null
+  const gok = isUuid(gekozen) ? gekozen : account.beheerderId
+  const [organisaties, gokVestigingen] = await Promise.all([haalOrganisaties(admin, account.beheerderId), haalVestigingen(admin, gok)])
   const vanHost = await organisatieUitHost(organisaties)
   if (vanHost === null) return null
-  // Anders de gekozen sportschool, alleen als die bij deze beheerder hoort; anders de eigen.
+  // Anders de gekozen sportschool, alleen als die bij dit account hoort; anders de eigen.
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
   const vestigingen = organisatie.id === gok ? gokVestigingen : await haalVestigingen(admin, organisatie.id)
-  return { admin, userId: organisatie.id, organisatie, organisaties, beheerderId: link.userId, rol: 'beheerder', isKane: true, persoonId: null, onderdelen: null, vestigingen, medewerkerRollen: [], naam: link.naam, code }
+  return {
+    admin, userId: organisatie.id, organisatie, organisaties, beheerderId: account.beheerderId, rol: 'beheerder',
+    isPlatformEigenaar: true, persoonId: null, onderdelen: null, vestigingen, medewerkerRollen: [], naam: account.naam,
+  }
 }
 
 /** De sportschool van een eigenaar of clubmanager, met de eigenaar van het record. */
@@ -199,15 +179,15 @@ export async function hostPastBij(org: Organisatie): Promise<boolean> {
   return (await organisatieUitHost([org])) !== null
 }
 
-/** Wie is er binnen: Kane, een eigenaar of clubmanager, of een medewerker? Per request een keer gevraagd. */
+/** Wie is er binnen: de platform-eigenaar, een eigenaar of clubmanager, of een medewerker? Per request een keer gevraagd. */
 export const clubToegang = cache(async (): Promise<ClubToegang | null> => {
   let admin: SupabaseClient
   try {
-    admin = createLifeosAdminClient()
+    admin = clubDatabase()
   } catch {
     return null
   }
-  return (await toegangVoorKane(admin)) ?? (await toegangVoorBeheerder(admin)) ?? (await toegangVoorMedewerker(admin))
+  return (await toegangVoorPlatform(admin)) ?? (await toegangVoorBeheerder(admin)) ?? (await toegangVoorMedewerker(admin))
 })
 
 /** Voor pagina's en layouts: de toegang, of een gewone 404. */
@@ -247,17 +227,17 @@ export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang |
 }
 
 /** Voor pagina's die alleen Kane mag zien (sportscholen, beheerders): anders een gewone 404. */
-export async function eisKane(): Promise<ClubToegang> {
+export async function eisPlatformEigenaar(): Promise<ClubToegang> {
   const t = await eisClubToegang()
-  if (!t.isKane) notFound()
+  if (!t.isPlatformEigenaar) notFound()
   return t
 }
 
 /** Als vereisClubToegang, maar alleen voor Kane; anderen krijgen een 404. */
-export async function vereisKane(req: NextRequest): Promise<ClubToegang | NextResponse> {
+export async function vereisPlatformEigenaar(req: NextRequest): Promise<ClubToegang | NextResponse> {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
-  return t.isKane ? t : clubFout('Niet gevonden.', 404)
+  return t.isPlatformEigenaar ? t : clubFout('Niet gevonden.', 404)
 }
 
 /** Wat een opslagfunctie van de toegang nodig heeft: de database, de sportschool en wie er werkt. */

@@ -19,7 +19,7 @@ vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), c
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
 
 const db = vi.hoisted(() => ({ admin: null as unknown }))
-vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => db.admin }))
+vi.mock('@/lib/club/kern/database', () => ({ clubDatabase: () => db.admin }))
 
 const GYM = 'de000000-0000-4000-8000-0000000000c1'
 const ANDER = 'be000000-0000-4000-8000-0000000000b2'
@@ -49,10 +49,10 @@ db.admin = nepSupabase((v) => (v.tabel === 'club_vestigingen' ? { data: [{ vesti
 import { lidToegang, vereisLidToegang } from './toegang'
 import { lidApparaatCookie, lidCookie } from './regels'
 import { LINK_WERKT_NIET } from './inlog-api'
-import { POST as reserveer } from '@/app/api/club/lid/reserveringen/route'
-import { POST as inloggen } from '@/app/api/club/lid/inloggen/route'
-import { POST as kiesPin } from '@/app/api/club/lid/pin/route'
-import { POST as meldingenGelezen } from '@/app/api/club/lid/meldingen/gelezen/route'
+import { POST as reserveer } from '@/app/(aiyourgym)/api/club/lid/reserveringen/route'
+import { POST as inloggen } from '@/app/(aiyourgym)/api/club/lid/inloggen/route'
+import { POST as kiesPin } from '@/app/(aiyourgym)/api/club/lid/pin/route'
+import { POST as meldingenGelezen } from '@/app/(aiyourgym)/api/club/lid/meldingen/gelezen/route'
 
 const ORG = {
   id: GYM, naam: 'Gym A', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: 'gyma',
@@ -110,14 +110,14 @@ describe('lidToegang', () => {
     stand.aan = false
     expect(await lidToegang(null)).toBeNull()
     expect(mocks.lidVanSessie).not.toHaveBeenCalled()
-    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isKane: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
+    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isPlatformEigenaar: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
     const l = await lidToegang(PIET_ID)
     expect(l?.lid.id).toBe(PIET_ID)
     expect(l?.voorvertoning).toBe(true)
   })
   it('een eigenaar of clubmanager is geen Kane: geen voorvertoning', async () => {
     stand.aan = false
-    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isKane: false, vestigingen: [], naam: 'X' })
+    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isPlatformEigenaar: false, vestigingen: [], naam: 'X' })
     expect(await lidToegang(PIET_ID)).toBeNull()
   })
 })
@@ -167,7 +167,7 @@ describe('meldingen gelezen', () => {
   })
   it('in de voorvertoning van Kane verandert er niets voor het lid', async () => {
     stand.cookies.clear()
-    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isKane: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
+    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isPlatformEigenaar: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
     const r = await meldingenGelezen(req(`/api/club/lid/meldingen/gelezen?voor=${PIET_ID}`, null))
     expect(r.status).toBe(200)
     expect(mocks.markeerMeldingenGelezen).not.toHaveBeenCalled()

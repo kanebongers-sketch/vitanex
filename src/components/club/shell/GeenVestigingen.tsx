@@ -21,7 +21,7 @@ export async function GeenVestigingen() {
           <>
             <p>Deze sportschool heeft nog geen vestigingen. Voeg er eerst een toe, dan werkt de rest van Club.</p>
             <p>
-              <Link href="/clubkane/instellingen/vestigingen" className="club-knop club-knop--primair">
+              <Link href="/club/instellingen/vestigingen" className="club-knop club-knop--primair">
                 Vestiging toevoegen
               </Link>
             </p>

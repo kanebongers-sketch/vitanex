@@ -46,7 +46,7 @@ export function Opvolglijst({ groepen, ledenkaarten }: Props) {
               </header>
               <ul className="club-opvolg-taken">
                 {g.items.map((item) => (
-                  <OpvolgTaak key={item.id} item={item} ledenkaart={ledenkaarten[item.lidId] ?? '/clubkane/leden'} onKlaar={klaar} />
+                  <OpvolgTaak key={item.id} item={item} ledenkaart={ledenkaarten[item.lidId] ?? '/club/leden'} onKlaar={klaar} />
                 ))}
               </ul>
             </section>

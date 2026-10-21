@@ -34,10 +34,10 @@ describe('subdomein per sportschool', () => {
     expect(beslisClub('fitfactory.aiyourgym.com', '/leden', false)).toEqual({ soort: 'niet-van-mij' })
   })
 
-  it('herschrijft op een subdomein naar /clubkane en laat bestaande paden door', () => {
-    expect(beslisClub('gym.aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/clubkane' })
-    expect(beslisClub('gym.aiyourgym.com', '/leden', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/clubkane/leden' })
-    expect(beslisClub('gym.aiyourgym.com', '/clubkane/leden', true)).toEqual({ soort: 'door', slug: 'gym' })
+  it('herschrijft op een subdomein naar /club en laat bestaande paden door', () => {
+    expect(beslisClub('gym.aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/club' })
+    expect(beslisClub('gym.aiyourgym.com', '/leden', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/club/leden' })
+    expect(beslisClub('gym.aiyourgym.com', '/club/leden', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('gym.aiyourgym.com', '/api/club/leden', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('gym.aiyourgym.com', '/clubinloggen/abcdefghijklmnopqrstuvwx', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('fitfactorypt.nl', '/leden', true)).toEqual({ soort: 'niet-van-mij' })
@@ -47,6 +47,6 @@ describe('subdomein per sportschool', () => {
     expect(beslisClub('gym.aiyourgym.com', '/mijn', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('gym.aiyourgym.com', '/mijn/start/abcdefghijklmnopqrstuvwx', true)).toEqual({ soort: 'door', slug: 'gym' })
     expect(beslisClub('gym.aiyourgym.com', '/club-app/sw.js', true)).toEqual({ soort: 'door', slug: 'gym' })
-    expect(beslisClub('gym.aiyourgym.com', '/mijnheer', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/clubkane/mijnheer' })
+    expect(beslisClub('gym.aiyourgym.com', '/mijnheer', true)).toEqual({ soort: 'herschrijven', slug: 'gym', pad: '/club/mijnheer' })
   })
 })

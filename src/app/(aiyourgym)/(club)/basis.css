@@ -1,0 +1,90 @@
+/* ==========================================================================
+   AI Your Gym | basis van Club, de ledenapp, de widget en de inlogpagina's
+   Eigen root layout (src/app/(aiyourgym)/(club)/layout.tsx), los van de rest van
+   de app: geen globals.css en niets van Fit Factory PT, LifeOS of MentaForce.
+   Hier de reset (Tailwind preflight), de standaardtokens van .club-app en de
+   paar basisregels die Club nodig heeft. De huisstijl van de sportschool zet
+   de kleurtokens daarna inline (src/lib/club/kern/huisstijl.ts) en wint dus.
+   ========================================================================== */
+@import "tailwindcss/preflight.css" layer(base);
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  background: #0a0b09;
+  color: #f4f4f5;
+  font-family: var(--ff-inter), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/* Standaardtokens (donker, brons). Gelden ook als een pagina geen huisstijl zet. */
+.club-app {
+  --brand: #b58e5c;
+  --brand-strong: #c9a574;
+  --brand-soft: rgba(181, 142, 92, 0.14);
+  --brand-glow: rgba(181, 142, 92, 0.3);
+  --bg-app: #0a0b09;
+  --bg-card: #141513;
+  --bg-raised: #1e1f1c;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text-1: rgba(255, 255, 255, 0.96);
+  --text-2: rgba(255, 255, 255, 0.78);
+  --text-3: rgba(255, 255, 255, 0.62);
+  --text-4: rgba(255, 255, 255, 0.5);
+  --status-let-op: #f47c66;
+  --ff-kop: var(--ff-barlow), 'Oswald', 'Arial Narrow', sans-serif;
+  --ff-rand: clamp(16px, 3vw, 48px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.club-app :where(h1, h2, h3) {
+  font-family: var(--ff-kop);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+.club-app :where(h4, h5, h6) {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.club-app :where(button, a) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.club-app :where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Het ingebouwde Fit Factory-logo (een sportschool kan het als eigen logo hebben). */
+.club-app .ff-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import '@/app/(aiyourgym)/aiyourgym/aiyourgym.css'
+import '@/app/(aiyourgym)/(website)/aiyourgym/aiyourgym.css'
 import './aanmelden.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 import { AygKop } from '@/components/aiyourgym/site/AygKop'

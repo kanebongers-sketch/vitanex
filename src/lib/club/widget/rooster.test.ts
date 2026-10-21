@@ -94,7 +94,7 @@ describe('interesseTekst', () => {
 })
 
 describe('widgetWeergave', () => {
-  const basis = { actief: true, aan: true, voorbeeld: false, isKane: false, isBeheerder: false }
+  const basis = { actief: true, aan: true, voorbeeld: false, isPlatformEigenaar: false, isBeheerder: false }
 
   it('openbaar alleen met schakelaar aan en widget aan', () => {
     expect(widgetWeergave(basis)).toBe('openbaar')
@@ -103,7 +103,7 @@ describe('widgetWeergave', () => {
   })
 
   it('schakelaar uit: alleen een voorvertoning voor Kane', () => {
-    expect(widgetWeergave({ ...basis, actief: false, aan: false, voorbeeld: true, isKane: true })).toBe('voorbeeld')
+    expect(widgetWeergave({ ...basis, actief: false, aan: false, voorbeeld: true, isPlatformEigenaar: true })).toBe('voorbeeld')
     expect(widgetWeergave({ ...basis, actief: false, voorbeeld: true, isBeheerder: true })).toBeNull()
     expect(widgetWeergave({ ...basis, actief: false, voorbeeld: true })).toBeNull()
   })

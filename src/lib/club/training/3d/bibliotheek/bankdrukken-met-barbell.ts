@@ -6,15 +6,15 @@
 // verticaal, ellebogen ongeveer 45 graden van de romp. Omhoog gaat de stang eerst
 // terug richting de schouders en dan recht omhoog: de J-boog.
 
-import { houding } from '../bouw/basis'
+import { houding, metMoment } from '../bouw/basis'
 import { schouderIn } from '../kinematica'
 import { ARM_GREEP, MATEN } from '../maten'
 import type { Houding, Oefening3d } from '../typen'
 
 /** Romp met lichte boog: bekken op de bank, lende hol, bovenrug plat, borst omhoog. */
 const ROMP = {
-  bekkenY: 0.52, bekkenZ: 0.24, kantel: -68, lende: -15, borst: -13, nek: 6,
-  schouders: -0.04, greep: 0.33,
+  bekkenY: 0.52, bekkenZ: 0.24, kantel: -68, lende: -15, borst: -13, nek: 0,
+  schouders: -0.04, greep: 0.37,
 } as const
 
 function stand(lastY: number, lastZ: number): Houding {
@@ -24,7 +24,7 @@ function stand(lastY: number, lastZ: number): Houding {
 /** Gestrekte armen (net niet op slot) met de stang recht boven de schouders. */
 function boven(): Houding {
   const s = schouderIn(stand(0, 0))
-  const arm = (MATEN.bovenarm + ARM_GREEP) * 0.985
+  const arm = (MATEN.bovenarm + ARM_GREEP) * 0.975
   const z = s.z + 0.03
   const dx = ROMP.greep - s.x
   const dz = z - s.z
@@ -32,16 +32,22 @@ function boven(): Houding {
 }
 
 const BOVEN = boven()
-/** Stang licht op de onderste borst, op de lijn van de tepels. */
-const ONDER = stand(0.672, -0.06)
-/** Omlaag in een rechte, schuine lijn naar de onderste borst. */
-const ZAKKEN_1 = stand(0.97, -0.13)
-const ZAKKEN_2 = stand(0.8, -0.09)
-/** Omhoog eerst terug richting de schouders, dan recht omhoog. */
-const DUWEN_1 = stand(0.79, -0.11)
-const DUWEN_2 = stand(0.96, -0.16)
+/** Stang licht op de onderste borst, net onder de lijn van de tepels. */
+const ONDER = stand(0.672, 0.06)
 
-export const BANKDRUKKEN_3D: Oefening3d = {
+/** Een punt op de rechte lijn tussen twee standen van de stang. */
+function langs(a: Houding, b: Houding, f: number, extraZ = 0): Houding {
+  return stand(a.lastY + (b.lastY - a.lastY) * f, a.lastZ + (b.lastZ - a.lastZ) * f + extraZ)
+}
+
+/** Omlaag in een rechte, schuine lijn naar de onderste borst. */
+const ZAKKEN_1 = langs(BOVEN, ONDER, 0.35)
+const ZAKKEN_2 = langs(BOVEN, ONDER, 0.72)
+/** Omhoog eerst terug richting de schouders, dan recht omhoog: de J-boog. */
+const DUWEN_1 = stand(ONDER.lastY + 0.1, ONDER.lastZ - 0.07)
+const DUWEN_2 = stand(ONDER.lastY + (BOVEN.lastY - ONDER.lastY) * 0.62, BOVEN.lastZ - 0.01)
+
+export const BANKDRUKKEN_3D: Oefening3d = metMoment({
   naam: 'Bankdrukken met barbell',
   // 2 s gecontroleerd omlaag, kort stil op de borst, 1,1 s krachtig omhoog, even
   // stil boven. Het moment dat de stang de borst raakt valt midden in de lus.
@@ -56,11 +62,20 @@ export const BANKDRUKKEN_3D: Oefening3d = {
   ],
   last: 'wereld',
   handen: 'greep',
-  enkel: { x: 0.21, y: 0.08, z: 0.42 },
+  // Voeten plat, iets breder dan de heupen, knieen recht boven de voeten en het
+  // scheenbeen licht naar achteren (enkel net achter de knie): stevige leg drive.
+  enkel: { x: 0.21, y: 0.08, z: 0.56 },
   voet: { kanteling: 0, uitdraai: 10 },
-  knieRichting: { x: 0.08, y: 1, z: 0.3 },
-  elleboogRichting: { x: 0.5, y: -0.5, z: 0.62 },
+  knieRichting: { x: 0.25, y: 0.3, z: 1 },
+  // Onderin bovenarmen ongeveer 45 graden van de romp, onderarmen bijna verticaal.
+  elleboogRichting: { x: 0.85, y: -0.2, z: 1 },
   materiaal: [{ soort: 'bank', plek: { x: 0, y: 0, z: -0.24 } }, { soort: 'stang', schijven: 2 }],
-  spieren: ['borst', 'bovenarm', 'schouder'],
-  camera: { hoek: 40, hoogte: 10, afstand: 3.5, doel: { x: 0, y: 0.72, z: 0.02 } },
-}
+  spieren: ['borst'],
+  spierenSecundair: ['bovenarm', 'schouder'],
+  // Hoofd plat op de bank, ogen recht naar het plafond.
+  blik: { hoek: -84 },
+  // Schuin zijaanzicht vanaf de kant van heup en knieen, op borsthoogte: de J-boog,
+  // de verticale onderarm en het raakpunt op de borst zijn te zien. Puur van opzij
+  // staat de schijf voor de hand en de staander van het rek voor het hoofd.
+  camera: { hoek: 66, hoogte: 11, afstand: 3.6, doel: { x: 0, y: 0.68, z: 0.04 } },
+})

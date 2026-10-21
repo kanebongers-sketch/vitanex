@@ -61,7 +61,7 @@ describe('url', () => {
   it('leest en schrijft de staat', () => {
     const s = leesStaat({ v: 'budel', tab: 'uren', periode: 'maand', op: '2026-10-01', week: 'fout', dienst: ID }, 'budel')
     expect(s).toMatchObject({ tab: 'uren', periode: 'maand', op: '2026-10-01', week: null, dienst: ID })
-    expect(personeelHref(zonderPaneel(s))).toBe('/clubkane/personeel?v=budel&tab=uren&periode=maand&op=2026-10-01')
+    expect(personeelHref(zonderPaneel(s))).toBe('/club/personeel?v=budel&tab=uren&periode=maand&op=2026-10-01')
   })
 
   it('valt terug op het weekrooster', () => {

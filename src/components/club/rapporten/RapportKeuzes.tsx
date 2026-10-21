@@ -19,7 +19,7 @@ interface Props {
   maanden: readonly MaandKeuze[]
 }
 
-const PAD = '/clubkane/rapporten'
+const PAD = '/club/rapporten'
 
 function adresVan(form: HTMLFormElement): string {
   const data = new FormData(form)

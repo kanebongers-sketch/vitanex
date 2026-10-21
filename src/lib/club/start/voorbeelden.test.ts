@@ -74,7 +74,7 @@ describe('alle voorbeelden', () => {
 })
 
 // Schrijfstijl van de wizard: geen gedachtestreepjes en geen klemtoon-accenten in zichtbare tekst.
-const MAPPEN = ['src/lib/club/start', 'src/components/club/start', 'src/app/(hoofd)/clubkane/start']
+const MAPPEN = ['src/lib/club/start', 'src/components/club/start', 'src/app/(aiyourgym)/(club)/club/start']
 const VERBODEN = /[—–]/
 const ACCENT = /[\p{L}]*[áéíóúÁÉÍÓÚ][\p{L}]*/gu
 const TOEGESTAAN = new Set(['privé', 'café'])

@@ -1,5 +1,5 @@
 // ─── AI Your Gym: het abonnement van een sportschool tonen (PUUR) ───────────
-// Voor /clubkane/beheer/abonnement: wat de eigenaar ziet (pakket, vestigingen,
+// Voor /club/beheer/abonnement: wat de eigenaar ziet (pakket, vestigingen,
 // status) en de velden voor een sessie in het Stripe Customer Portal. Puur en
 // zonder Next of env, zodat het te testen is.
 
@@ -8,8 +8,8 @@ import { oorsprongVan } from './links'
 import { vindPakket } from './pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 
-/** Het pad van de abonnementspagina (op een subdomein gaat /clubkane gewoon door). */
-export const ABONNEMENT_PAD = '/clubkane/beheer/abonnement'
+/** Het pad van de abonnementspagina (op een subdomein gaat /club gewoon door). */
+export const ABONNEMENT_PAD = '/club/beheer/abonnement'
 
 /** De aanmelding achter een sportschool, met wat de pagina nodig heeft. */
 export interface AbonnementRij {

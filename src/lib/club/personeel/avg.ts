@@ -121,7 +121,7 @@ export function medewerkerExportBestandsnaam(naam: string, op: Date): string {
 
 /** Kane en de eigenaar (de werkgever); een clubmanager of medewerker nooit. */
 export function magMedewerkerWissen(t: WieMag): boolean {
-  return t.isKane || t.rol === 'eigenaar'
+  return t.isPlatformEigenaar || t.rol === 'eigenaar'
 }
 
 /** Dezelfde naamcontrole als bij leden: hoofdletters, accenten en dubbele spaties tellen niet. */

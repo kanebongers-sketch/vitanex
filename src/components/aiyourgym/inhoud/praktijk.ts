@@ -4,7 +4,7 @@
 // beloftes die we waarmaken. Nooit de naam van een werkgever noemen.
 // Waar het staat:
 // - naam: besluit Kane 18-10-2026 (mag in het verhaal); null = geen naam tonen
-// - reactie binnen een werkdag: Kane belt zelf (demo-aanvragen op /clubkane/platform)
+// - reactie binnen een werkdag: Kane belt zelf (demo-aanvragen op /club/platform)
 // - persoonlijke hulp bij inrichten: de pakketten Club en Keten in src/lib/aiyourgym/pakketten.ts
 // - gegevens mee: exports in src/lib/club/rapporten (CSV), voorwaarden
 
@@ -15,14 +15,14 @@ export const OPRICHTER: { naam: string | null } = {
 export const PRAKTIJK = {
   label: 'Gebouwd vanuit de praktijk',
   kop: 'Gemaakt door iemand die zelf op de vloer staat.',
-  rol: 'Personal trainer en regiomanager',
+  rol: 'Personal Trainer en PT-manager van 8 locaties',
   alineas: [
-    'AI Your Gym is gebouwd door een personal trainer en regiomanager die al jaren meerdere clubs aanstuurt en een team van coaches opleidt.',
+    'AI Your Gym is gebouwd door een Personal Trainer en PT-manager van 8 locaties, die al jaren een team van coaches aanstuurt en opleidt.',
     'De problemen die het oplost komen van de werkvloer zelf: een balie die tegelijk moet inchecken en opvolgen, roosters in losse lijstjes, uren die iemand moet natellen, en schema’s die zonder uitleg in een la verdwijnen.',
     'Daarom zit coaching per oefening in elk schema, en is alles ingedeeld zoals een sportschool echt werkt. Elke maand komen er functies bij, op basis van wat clubs nodig hebben.',
   ],
   feiten: [
-    { titel: 'Meerdere clubs', tekst: 'Jarenlang de dagelijkse aansturing van meerdere vestigingen.' },
+    { titel: '8 locaties', tekst: 'PT-manager van 8 locaties, met de dagelijkse aansturing van de coaches.' },
     { titel: 'Coaches opleiden', tekst: 'Een team van trainers dat begeleid en opgeleid wordt.' },
     { titel: 'Zelf op de vloer', tekst: 'Personal trainer, dus de oefeningen en de coaching zijn uit de praktijk.' },
   ],

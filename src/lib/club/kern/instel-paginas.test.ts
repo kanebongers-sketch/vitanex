@@ -6,7 +6,7 @@ import { ONDERDEEL_SLEUTELS } from './org-instellingen'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
 import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelHref, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
 
-const APP = join(process.cwd(), 'src', 'app', '(hoofd)', 'clubkane')
+const APP = join(process.cwd(), 'src', 'app', '(aiyourgym)', '(club)', 'club')
 const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true }
 
 describe('INSTEL_PAGINAS', () => {
@@ -22,7 +22,7 @@ describe('INSTEL_PAGINAS', () => {
       const kaal = kaalInstelPad(p.pad)
       expect(existsSync(join(APP, ...kaal.split('/').filter(Boolean), 'page.tsx')), p.id).toBe(true)
       expect((ONDERDEEL_SLEUTELS as readonly string[]).includes(p.sleutel), p.id).toBe(true)
-      expect(actiefOnderdeel(`/clubkane${kaal}`).sleutel, p.id).toBe(p.sleutel)
+      expect(actiefOnderdeel(`/club${kaal}`).sleutel, p.id).toBe(p.sleutel)
     }
   })
 
@@ -73,10 +73,10 @@ describe('zichtbareInstelPaginas', () => {
 
 describe('instelHref', () => {
   it('vestiging alleen waar de pagina per vestiging werkt, met behoud van ?tab en #anker', () => {
-    expect(instelHref({ pad: '/instellingen/zalen', perVestiging: true }, 'budel')).toBe('/clubkane/instellingen/zalen?v=budel')
-    expect(instelHref({ pad: '/training?tab=oefeningen', perVestiging: true }, 'budel')).toBe('/clubkane/training?tab=oefeningen&v=budel')
-    expect(instelHref({ pad: '/huisstijl#adres-kop' }, 'budel')).toBe('/clubkane/huisstijl#adres-kop')
-    expect(instelHref({ pad: '/instellingen/regels', perVestiging: true }, null)).toBe('/clubkane/instellingen/regels')
+    expect(instelHref({ pad: '/instellingen/zalen', perVestiging: true }, 'budel')).toBe('/club/instellingen/zalen?v=budel')
+    expect(instelHref({ pad: '/training?tab=oefeningen', perVestiging: true }, 'budel')).toBe('/club/training?tab=oefeningen&v=budel')
+    expect(instelHref({ pad: '/huisstijl#adres-kop' }, 'budel')).toBe('/club/huisstijl#adres-kop')
+    expect(instelHref({ pad: '/instellingen/regels', perVestiging: true }, null)).toBe('/club/instellingen/regels')
   })
 })
 
@@ -97,9 +97,9 @@ describe('menu', () => {
   })
 
   it('een instel-pagina licht Instellingen op', () => {
-    expect(menuOnderdeel('/clubkane/instellingen/zalen').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/clubkane/huisstijl').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/clubkane/beheer/sluiting').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/clubkane/rooster').sleutel).toBe('rooster')
+    expect(menuOnderdeel('/club/instellingen/zalen').sleutel).toBe('beheer')
+    expect(menuOnderdeel('/club/huisstijl').sleutel).toBe('beheer')
+    expect(menuOnderdeel('/club/beheer/sluiting').sleutel).toBe('beheer')
+    expect(menuOnderdeel('/club/rooster').sleutel).toBe('rooster')
   })
 })

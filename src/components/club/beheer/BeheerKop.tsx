@@ -42,7 +42,7 @@ export function BeheerKop({ naam, demo, adres, kleur, modules, teDoen, magNieuw 
       </div>
       {magNieuw && (
         <div className="club-acties">
-          <Link href="/clubkane/huisstijl#sportscholen-kop" className="club-knop club-knop--primair">
+          <Link href="/club/huisstijl#sportscholen-kop" className="club-knop club-knop--primair">
             <Plus aria-hidden size={16} /> Nieuwe sportschool
           </Link>
         </div>

@@ -18,7 +18,7 @@ vi.mock('next/headers', () => ({
 }))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
-vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => db.admin }))
+vi.mock('@/lib/club/kern/database', () => ({ clubDatabase: () => db.admin }))
 const opslag = vi.hoisted(() => ({
   beheerderVanSessie: vi.fn(), vindBeheerder: vi.fn(), logInBeheerder: vi.fn(), kiesBeheerderPin: vi.fn(),
   haalBeheerders: vi.fn(), maakBeheerder: vi.fn(), beoordeelBeheerder: vi.fn(),
@@ -53,12 +53,12 @@ db.admin = nepSupabase((v: Vraag) => {
 }).admin
 
 import { clubToegang, vereisClubToegang } from '@/lib/club/toegang'
-import { POST as inloggen } from '@/app/api/club/inloggen/[code]/route'
-import { POST as kiesPin } from '@/app/api/club/inloggen/[code]/pin/route'
-import { POST as wissel } from '@/app/api/club/organisatie/wissel/route'
-import { POST as nieuweSportschool } from '@/app/api/club/organisatie/nieuw/route'
-import { POST as nieuweBeheerder } from '@/app/api/club/beheerders/route'
-import { PATCH as beoordeel } from '@/app/api/club/beheerders/[id]/route'
+import { POST as inloggen } from '@/app/(aiyourgym)/api/club/inloggen/[code]/route'
+import { POST as kiesPin } from '@/app/(aiyourgym)/api/club/inloggen/[code]/pin/route'
+import { POST as wissel } from '@/app/(aiyourgym)/api/club/organisatie/wissel/route'
+import { POST as nieuweSportschool } from '@/app/(aiyourgym)/api/club/organisatie/nieuw/route'
+import { POST as nieuweBeheerder } from '@/app/(aiyourgym)/api/club/beheerders/route'
+import { PATCH as beoordeel } from '@/app/(aiyourgym)/api/club/beheerders/[id]/route'
 import { beheerderCookie } from './beheerder'
 
 const BEHEERDER_COOKIE = beheerderCookie()
@@ -89,8 +89,7 @@ describe('clubToegang voor een eigenaar of clubmanager', () => {
     const t = await clubToegang()
     expect(t?.userId).toBe(GYM_A)
     expect(t?.organisaties.map((o) => o.id)).toEqual([GYM_A])
-    expect(t?.isKane).toBe(false)
-    expect(t?.code).toBeNull()
+    expect(t?.isPlatformEigenaar).toBe(false)
   })
   it('schakelaar uit: niemand behalve Kane, ook niet met een geldige sessie', async () => {
     stand.aan = false

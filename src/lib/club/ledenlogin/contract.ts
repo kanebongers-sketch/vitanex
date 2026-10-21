@@ -1,7 +1,7 @@
 // ─── Club, ledenlogin: het contract tussen de inlog en de web-app (PUUR) ────
 // Leden loggen zelf in op de ledenapp (de web-app op het beginscherm). Dit
 // bestand legt vast wat beide kanten van elkaar weten, zodat de inlog
-// (src/lib/club/ledenlogin/**) en de schil van de web-app (src/app/(hoofd)/mijn/**,
+// (src/lib/club/ledenlogin/**) en de schil van de web-app (src/app/(aiyourgym)/(club)/mijn/**,
 // manifest, service worker) los van elkaar gebouwd kunnen worden.
 //
 // Schakelaar CLUB_LEDEN_LOGIN (src/lib/club/ledenlogin/schakelaar.ts) staat UIT

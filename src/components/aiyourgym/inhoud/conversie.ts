@@ -9,7 +9,7 @@
 // - ledenapp in eigen huisstijl in elk pakket: 'Ledenapp in je eigen huisstijl' in Start, de rest bouwt daarop
 // - ledenimport met voorbeeld, nooit verwijderen: src/lib/club/leden/import
 // - opvolgen met eigen drempels: src/lib/club/automatisering/regels.ts
-// - uren goedkeuren en exporteren: src/lib/club/personeel/uren.ts, src/app/api/club/personeel/uren/csv
+// - uren goedkeuren en exporteren: src/lib/club/personeel/uren.ts, src/app/(aiyourgym)/api/club/personeel/uren/csv
 // Geen prijzen, geen concurrenten bij naam, geen aantallen klanten of reviews.
 
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'

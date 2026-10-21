@@ -10,7 +10,7 @@ Migratie `supabase/lifeos-migrations/423_ayg_testaccount.sql` (uitgevoerd op 17-
 
 ## Erbij komen als Kane
 
-1. Log in op de PT-app als beheerder en open Club (`fitfactorypt.nl/clubkane`).
+1. Log in op de PT-app als beheerder en open Club (`aiyourgym.com/club`).
 2. Ga naar **Huisstijl** en kies bij de sportschool-wissel **Test Gym**.
 
 ## De inloglink van de test-eigenaar

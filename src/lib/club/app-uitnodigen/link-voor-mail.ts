@@ -5,12 +5,11 @@
 // is niet ingetrokken. Anders geen mail, met een korte reden.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ptUrl } from '@/lib/fit-factory/domein'
 import { haalEigenOrganisatie } from '@/lib/club/toegang'
 import { moduleAan } from '@/lib/club/kern/organisatie'
 import { haalLid } from '@/lib/club/kern/lid'
 import { vestigingenUitRijen } from '@/lib/club/kern/vestigingen'
-import { CLUB_DOMEIN } from '@/lib/club/kern/subdomein'
+import { CLUB_DOMEIN, aygUrl } from '@/lib/club/kern/subdomein'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { linkBasis, startPad } from '@/lib/club/ledenlogin/regels'
 import { haalLinkOverzicht, maakLidLink } from '@/lib/club/ledenlogin/opslag'
@@ -22,7 +21,7 @@ export type LinkVoorMail = { ok: true; url: string } | { ok: false; reden: strin
 /** De volledige url van de persoonlijke link voor deze code. */
 export function linkUrl(slug: string | null, code: string): string {
   const basis = linkBasis(slug, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', CLUB_DOMEIN)
-  return basis ? `${basis}${startPad(code)}` : ptUrl(startPad(code))
+  return basis ? `${basis}${startPad(code)}` : aygUrl(startPad(code))
 }
 
 async function codeVan(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<LinkVoorMail | string> {

@@ -68,14 +68,14 @@ describe('API voor een medewerker', () => {
 
 describe('wie beheert wat', () => {
   it('inloglinks: Kane, eigenaar en clubmanager; een medewerker nooit', () => {
-    expect(magMedewerkerLoginsBeheren({ isKane: true, rol: 'beheerder' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isKane: false, rol: 'eigenaar' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isKane: false, rol: 'clubmanager' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isKane: false, rol: 'medewerker' })).toBe(false)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: true, rol: 'beheerder' })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'eigenaar' })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
   })
   it('een medewerker beheert geen beheerders en krijgt via de oude weg niets extra', () => {
-    expect(magBeheerdersBeheren({ isKane: false, rol: 'medewerker' })).toBe(false)
-    expect(toegestaneOnderdelen({ isKane: false, rol: 'medewerker' }, standaardRechten())).toEqual(['vandaag'])
+    expect(magBeheerdersBeheren({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
+    expect(toegestaneOnderdelen({ isPlatformEigenaar: false, rol: 'medewerker' }, standaardRechten())).toEqual(['vandaag'])
   })
 })
 
@@ -87,7 +87,7 @@ describe('medewerkerToegangVelden', () => {
 
   it('een sportschool, eigen vestigingen, rechten van de rol en de volle naam voor het logboek', () => {
     const v = medewerkerToegangVelden(bron)
-    expect(v).toMatchObject({ userId: GYM, rol: 'medewerker', isKane: false, persoonId: MW, naam: 'Lotte de Vries', code: null, beheerderId: KANE })
+    expect(v).toMatchObject({ userId: GYM, rol: 'medewerker', isPlatformEigenaar: false, persoonId: MW, naam: 'Lotte de Vries', beheerderId: KANE })
     expect(v?.organisaties.map((o) => o.id)).toEqual([GYM])
     expect(v?.vestigingen.map((x) => x.sleutel)).toEqual(['eersel'])
     expect(v?.onderdelen).toEqual(['vandaag', 'leden', 'rooster'])

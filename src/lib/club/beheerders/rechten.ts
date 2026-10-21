@@ -13,18 +13,18 @@ import type { BeheerderRol } from './beheerder'
 export const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start'])
 
 export interface WieMag {
-  isKane: boolean
+  isPlatformEigenaar: boolean
   rol: 'beheerder' | BeheerderRol | 'medewerker'
 }
 
 /** Beheerders (eigenaren en clubmanagers) en het adres van de sportschool: Kane en de eigenaar. */
 export function magBeheerdersBeheren(t: WieMag): boolean {
-  return t.isKane || t.rol === 'eigenaar'
+  return t.isPlatformEigenaar || t.rol === 'eigenaar'
 }
 
 /** De onderdelen die deze persoon ziet; null = alles. */
 export function toegestaneOnderdelen(t: WieMag, rechten: Rechten): readonly string[] | null {
-  if (t.isKane || t.rol === 'eigenaar') return null
+  if (t.isPlatformEigenaar || t.rol === 'eigenaar') return null
   // Een medewerker heeft zijn eigen rechten (medewerker-login/rechten.ts); hier nooit iets.
   if (t.rol === 'medewerker') return ['vandaag']
   // Een clubmanager: de rechten van de rol Clubmanager, altijd met Vandaag (de startpagina).

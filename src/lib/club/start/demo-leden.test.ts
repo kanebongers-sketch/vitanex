@@ -46,8 +46,8 @@ describe('klaar voor je eerste dag', () => {
   it('geeft alle punten met links naar de juiste plek', () => {
     const punten = eersteDag(LEEG, 'budel')
     expect(punten.map((p) => p.id)).toEqual(['huisstijl', 'tijden', 'rooster', 'team', 'leden', 'checkin', 'app', 'sluiting'])
-    expect(punten.find((p) => p.id === 'leden')?.pad).toBe('/clubkane/leden/importeren?v=budel')
-    expect(eersteDag(LEEG, null).find((p) => p.id === 'checkin')?.pad).toBe('/clubkane/checkin')
+    expect(punten.find((p) => p.id === 'leden')?.pad).toBe('/club/leden/importeren?v=budel')
+    expect(eersteDag(LEEG, null).find((p) => p.id === 'checkin')?.pad).toBe('/club/checkin')
   })
 
   it('leest af wat al staat', () => {

@@ -6,7 +6,7 @@
 import { Resend } from 'resend'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
-import { lifeosUserId } from '@/lib/lifeos/admin'
+import { platformEigenaarId } from '@/lib/club/kern/database'
 import { mailAfzender } from './config'
 import { siteActief } from './schakelaar'
 import { portaalLink } from './links'
@@ -63,7 +63,7 @@ export async function stuurWelkomMail(admin: SupabaseClient, a: AanmeldingRij, o
 export function standaardDeps(): VerwerkDeps {
   return {
     maakSportschool,
-    ruimOp: (admin, id) => ruimSportschoolOp(admin, id, lifeosUserId()),
+    ruimOp: (admin, id) => ruimSportschoolOp(admin, id, platformEigenaarId()),
     welkom: stuurWelkomMail,
     nu: () => new Date(),
   }

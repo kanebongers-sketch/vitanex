@@ -6,8 +6,8 @@ const goed = { soort: 'probleem', onderwerp: 'Rooster laadt niet', beschrijving:
 describe('leesMelding', () => {
   it('een goede melding, met en zonder pagina', () => {
     expect(leesMelding(goed)).toEqual({ ok: true, waarde: { ...goed, pagina: null } })
-    const r = leesMelding({ ...goed, pagina: 'https://fitfactorypt.nl/clubkane/rooster?v=budel#x' })
-    expect(r.ok && r.waarde.pagina).toBe('/clubkane/rooster')
+    const r = leesMelding({ ...goed, pagina: 'https://aiyourgym.com/club/rooster?v=budel#x' })
+    expect(r.ok && r.waarde.pagina).toBe('/club/rooster')
   })
   it('ruimt spaties en stuurtekens op', () => {
     const r = leesMelding({ ...goed, onderwerp: '  Rooster \n  laadt\tniet  ', beschrijving: 'Regel een\r\nregel twee\u0007 en nog wat' })
@@ -25,10 +25,10 @@ describe('leesMelding', () => {
 
 describe('leesPagina', () => {
   it('alleen paden binnen Club', () => {
-    expect(leesPagina('/clubkane')).toBe('/clubkane')
-    expect(leesPagina('/clubkane/leden/importeren')).toBe('/clubkane/leden/importeren')
+    expect(leesPagina('/club')).toBe('/club')
+    expect(leesPagina('/club/leden/importeren')).toBe('/club/leden/importeren')
     expect(leesPagina('/mijn')).toBeNull()
-    expect(leesPagina('/clubkane/../api')).toBeNull()
+    expect(leesPagina('/club/../api')).toBeNull()
     expect(leesPagina('javascript:alert(1)')).toBeNull()
     expect(leesPagina('')).toBeNull()
     expect(leesPagina(42)).toBeNull()
