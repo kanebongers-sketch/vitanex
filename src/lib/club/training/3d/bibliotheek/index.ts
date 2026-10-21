@@ -52,6 +52,11 @@ import { LAT_PULLDOWN_ONDERHANDS } from './lat-pulldown-met-onderhandse-greep'
 import { DUMBBELL_CURL } from './dumbbell-curl'
 import { HAMMER_CURL } from './hammer-curl'
 import { BARBELL_CURL } from './barbell-curl'
+import { CURL_AAN_DE_KABEL } from './curl-aan-de-kabel'
+import { CURL_EZ_STANG } from './curl-met-ez-stang'
+import { CURL_SCHUINE_BANK } from './curl-op-een-schuine-bank'
+import { HAMMER_CURL_KABEL } from './hammer-curl-aan-de-kabel'
+import { BICEPS_CURL_MACHINE } from './biceps-curl-machine'
 import { TRICEPS_PUSHDOWN } from './triceps-pushdown'
 import { OVERHEAD_EXTENSION } from './triceps-extension-boven-het-hoofd'
 import { LATERAL_RAISE } from './lateral-raise'
@@ -108,6 +113,11 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   DUMBBELL_CURL,
   HAMMER_CURL,
   BARBELL_CURL,
+  CURL_AAN_DE_KABEL,
+  CURL_EZ_STANG,
+  CURL_SCHUINE_BANK,
+  HAMMER_CURL_KABEL,
+  BICEPS_CURL_MACHINE,
   TRICEPS_PUSHDOWN,
   OVERHEAD_EXTENSION,
   LATERAL_RAISE,
