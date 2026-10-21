@@ -12,6 +12,8 @@ import { voegSamen, type MateriaalMaterialen, type Stuk, type Zetter } from './m
 import { curlStang, halter, kettlebell, stang, zetHalters, zetHalterStaand, zetKettlebell } from './materiaal-vrij'
 import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-banken'
 import { kabel, kabelstation } from './materiaal-kabels'
+import { latstationMetGreep } from './materiaal-latstation'
+import { reverseFly } from './materiaal-reversefly'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 
@@ -84,7 +86,7 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
     case 'mat':
       return vast(mat(bak, m, plek), bak)
     case 'kabelstation':
-      return kabelstation(bak, m, plek, zicht)
+      return item.greep ? latstationMetGreep(bak, m, plek, item.greep, zicht) : kabelstation(bak, m, plek, zicht)
     case 'kabel':
       return kabel(bak, m, plek, item.greep ?? 'handvat', zicht)
     case 'legPress':
@@ -93,6 +95,8 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return beenMachine(bak, m, item.variant ?? 'extension', zicht)
     case 'chestPress':
       return chestPress(bak, m, zicht)
+    case 'reverseFly':
+      return reverseFly(bak, m, plek, zicht)
     case 'kuitMachine':
       return kuitMachine(bak, m, plek, zicht)
   }
