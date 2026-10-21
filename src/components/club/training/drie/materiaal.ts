@@ -15,6 +15,7 @@ import { kabel, kabelLaag, kabelstation } from './materiaal-kabels'
 import { ezStang } from './materiaal-ezstang'
 import { curlMachine } from './materiaal-curlmachine'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
+import { schouderPress } from './materiaal-schouderpress'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
@@ -103,6 +104,8 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return ezStang(bak, m)
     case 'curlMachine':
       return curlMachine(bak, m, zicht)
+    case 'schouderPress':
+      return schouderPress(bak, m, zicht)
   }
 }
 

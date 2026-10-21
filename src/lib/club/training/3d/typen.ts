@@ -75,6 +75,7 @@ export type MateriaalSoort =
   | 'kabelLaag' // kabelkolom met de katrol laag op `plek` (curl), greep volgens `greep`
   | 'ezStang' // EZ-curlstang met schuine handgrepen en kleine schijven, aan de last
   | 'curlMachine' // biceps curl machine: zitting, schuin armkussen, hefboom om de ellebogen
+  | 'schouderPress' // shoulder press machine, hefbomen met grepen aan de handen (zie bouw/schouderpress)
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
 
