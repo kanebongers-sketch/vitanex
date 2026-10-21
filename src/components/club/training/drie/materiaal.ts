@@ -12,6 +12,7 @@ import { voegSamen, type MateriaalMaterialen, type Stuk, type Zetter } from './m
 import { curlStang, halter, kettlebell, stang, zetHalters, zetHalterStaand, zetKettlebell } from './materiaal-vrij'
 import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-banken'
 import { kabel, kabelstation } from './materiaal-kabels'
+import { kabelAchter } from './materiaal-kabel-achter'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 
@@ -87,6 +88,8 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return kabelstation(bak, m, plek, zicht)
     case 'kabel':
       return kabel(bak, m, plek, item.greep ?? 'handvat', zicht)
+    case 'kabelAchter':
+      return kabelAchter(bak, m, plek, item.greep ?? 'handvat', zicht)
     case 'legPress':
       return legPress(bak, m, item.hoek ?? 45)
     case 'beenMachine':
