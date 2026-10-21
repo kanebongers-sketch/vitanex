@@ -64,6 +64,11 @@ import { HAMMER_CURL_KABEL } from './hammer-curl-aan-de-kabel'
 import { BICEPS_CURL_MACHINE } from './biceps-curl-machine'
 import { TRICEPS_PUSHDOWN } from './triceps-pushdown'
 import { OVERHEAD_EXTENSION } from './triceps-extension-boven-het-hoofd'
+import { SKULL_CRUSHER } from './skull-crusher'
+import { TRICEPS_KICKBACK } from './triceps-kickback'
+import { TRICEPS_EXTENSION_LIGGEND } from './triceps-extension-liggend-met-dumbbell'
+import { TRICEPS_EXTENSION_KABEL } from './triceps-extension-boven-het-hoofd-aan-de-kabel'
+import { DIPS_OP_EEN_BANK } from './dips-op-een-bank'
 import { LATERAL_RAISE } from './lateral-raise'
 import { FRONT_RAISE } from './front-raise-met-dumbbells'
 import { SHOULDER_PRESS_MACHINE } from './shoulder-press-machine'
@@ -135,6 +140,11 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   BICEPS_CURL_MACHINE,
   TRICEPS_PUSHDOWN,
   OVERHEAD_EXTENSION,
+  SKULL_CRUSHER,
+  TRICEPS_KICKBACK,
+  TRICEPS_EXTENSION_LIGGEND,
+  TRICEPS_EXTENSION_KABEL,
+  DIPS_OP_EEN_BANK,
   LATERAL_RAISE,
   FRONT_RAISE,
   SHOULDER_PRESS_MACHINE,

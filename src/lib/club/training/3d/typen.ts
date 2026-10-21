@@ -68,6 +68,7 @@ export type MateriaalSoort =
   | 'bankRug' // bank met rechte rugleuning
   | 'kabelstation' // lat pulldown met stang
   | 'kabel' // kabeltoren met katrol op `plek`, greep volgens `greep`
+  | 'kabelAchter' // kabelkolom achter de sporter (rug naar het toestel), katrol op `plek`, greep volgens `greep`
   | 'legPress' // leg press met plateau aan de voeten
   | 'beenMachine' // leg extension of leg curl zittend, kussen aan de enkels
   | 'chestPress' // chest press machine, grepen aan de handen
