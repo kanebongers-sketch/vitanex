@@ -6,11 +6,10 @@
 // Een nieuwe oefening toevoegen:
 // 1. kies het patroon: squat, hinge, swing, lunge, heupstrek, legPress,
 //    beenMachine, calfRaise (../bouw/benen), armOefening voor drukken, trekken,
-//    curl, extensie en raise (../bouw/boven), plank of crunch (../bouw/core),
-//    reverseCrunch, legRaise of hollowHold (../bouw/liggend);
 //    curl, extensie en raise (../bouw/boven), boogOefening voor fly, pec deck
-//    en crossover (../bouw/boog), smithDrukken (../bouw/smith), plank of
-//    crunch (../bouw/core);
+//    en crossover (../bouw/boog), smithDrukken (../bouw/smith), pushUp
+//    (../bouw/push-up), plank of crunch (../bouw/core), reverseCrunch, legRaise
+//    of hollowHold (../bouw/liggend);
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
 //    dan de standaard (kopieer de dichtstbijzijnde oefening);
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,

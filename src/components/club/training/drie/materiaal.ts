@@ -14,7 +14,6 @@ import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-ba
 import { kabel, kabelLaag, kabelstation } from './materiaal-kabels'
 import { ezStang } from './materiaal-ezstang'
 import { curlMachine } from './materiaal-curlmachine'
-import { kabel, kabelstation } from './materiaal-kabels'
 import { kabelAchter } from './materiaal-kabel-achter'
 import { latstationMetGreep } from './materiaal-latstation'
 import { reverseFly } from './materiaal-reversefly'
