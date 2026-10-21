@@ -5,9 +5,10 @@
 //
 // Een nieuwe oefening toevoegen:
 // 1. kies het patroon: squat, hinge, swing, lunge, heupstrek, legPress,
-//    beenMachine, calfRaise (../bouw/benen), armOefening voor drukken, trekken,
-//    curl, extensie en raise (../bouw/boven), boogOefening voor fly, pec deck
-//    en crossover (../bouw/boog), smithDrukken (../bouw/smith), pushUp
+//    beenMachine, calfRaise (../bouw/benen), vloertrek voor deadlifts vanaf de
+//    vloer (../bouw/vloertrek), armOefening voor drukken, trekken, curl,
+//    extensie en raise (../bouw/boven), boogOefening voor fly, pec deck en
+//    crossover (../bouw/boog), smithDrukken (../bouw/smith), pushUp
 //    (../bouw/push-up), plank of crunch (../bouw/core), reverseCrunch, legRaise
 //    of hollowHold (../bouw/liggend);
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
@@ -27,11 +28,17 @@ import { SQUAT_DUMBBELLS } from './squat-met-dumbbells'
 import { RDL_BARBELL } from './roemeense-deadlift-met-barbell'
 import { RDL_DUMBBELLS } from './roemeense-deadlift-met-dumbbells'
 import { KETTLEBELL_SWING } from './kettlebell-swing'
+import { GOOD_MORNING } from './good-morning'
+import { TRAP_BAR_DEADLIFT } from './trap-bar-deadlift'
+import { SUMO_DEADLIFT } from './sumo-deadlift'
+import { DEADLIFT_KETTLEBELL } from './deadlift-met-kettlebell'
 import { LUNGE_DUMBBELLS } from './lunge-met-dumbbells'
 import { ACHTERWAARTSE_LUNGE_DB } from './achterwaartse-lunge-met-dumbbells'
 import { SPLIT_SQUAT_DB } from './split-squat-met-dumbbells'
 import { HIP_THRUST } from './hip-thrust-met-barbell'
 import { GLUTE_BRIDGE } from './glute-bridge'
+import { HIP_THRUST_DUMBBELL } from './hip-thrust-met-dumbbell'
+import { GLUTE_BRIDGE_EEN_BEEN } from './glute-bridge-op-een-been'
 import { LEG_PRESS } from './leg-press'
 import { LEG_EXTENSION } from './leg-extension'
 import { LEG_CURL_ZITTEND } from './leg-curl-zittend'
@@ -120,6 +127,10 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   RDL_BARBELL,
   RDL_DUMBBELLS,
   KETTLEBELL_SWING,
+  GOOD_MORNING,
+  TRAP_BAR_DEADLIFT,
+  SUMO_DEADLIFT,
+  DEADLIFT_KETTLEBELL,
   LUNGE_DUMBBELLS,
   ACHTERWAARTSE_LUNGE_DB,
   ACHTERWAARTSE_LUNGE,
@@ -127,6 +138,8 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   BULGARIAN_SPLIT_SQUAT,
   HIP_THRUST,
   GLUTE_BRIDGE,
+  HIP_THRUST_DUMBBELL,
+  GLUTE_BRIDGE_EEN_BEEN,
   LEG_PRESS,
   LEG_EXTENSION,
   LEG_CURL_ZITTEND,

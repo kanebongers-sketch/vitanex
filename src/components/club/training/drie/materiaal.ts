@@ -23,6 +23,7 @@ import { kabelCrossover, pecDeck } from './materiaal-borst'
 import { smithMachine } from './materiaal-smith'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 import { buikBank, roeiMachine, tBar } from './materiaal-roeien'
+import { trapBar } from './materiaal-trapbar'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
 export type { Zicht } from './materiaal-zicht'
@@ -79,6 +80,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
     case 'kettlebell': {
       const k = kettlebell(bak, m)
       return { groep: k, zet: zetKettlebell(k) }
+    }
+    case 'trapBar':
+      return trapBar(bak, m, item.schijven ?? 2, zicht)
+    case 'halterDwars': {
+      const d = halter(bak, m, 1.2)
+      return { groep: d, zet: aanLast(d) }
     }
     case 'bank':
       return vast(vlakkeBank(bak, m, plek, true, item.draai), bak)
