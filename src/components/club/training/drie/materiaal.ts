@@ -17,6 +17,7 @@ import { curlMachine } from './materiaal-curlmachine'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { schouderPress } from './materiaal-schouderpress'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
+import { buikBank, roeiMachine, tBar } from './materiaal-roeien'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
 export type { Zicht } from './materiaal-zicht'
@@ -106,6 +107,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return curlMachine(bak, m, zicht)
     case 'schouderPress':
       return schouderPress(bak, m, zicht)
+    case 'roeiMachine':
+      return roeiMachine(bak, m, plek, zicht)
+    case 'buikBank':
+      return buikBank(bak, m)
+    case 'tBar':
+      return tBar(bak, m, plek, item.schijven ?? 2)
   }
 }
 

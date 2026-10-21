@@ -48,6 +48,11 @@ import { ROW_DUMBBELLS } from './voorovergebogen-row-met-dumbbells'
 import { BARBELL_ROW } from './barbell-row'
 import { SEATED_CABLE_ROW } from './seated-cable-row'
 import { FACE_PULL } from './face-pull'
+import { BARBELL_ROW_ONDERHANDS } from './barbell-row-met-onderhandse-greep'
+import { T_BAR_ROW } from './t-bar-row'
+import { ROW_SCHUINE_BANK } from './row-op-een-schuine-bank'
+import { SEATED_ROW_MACHINE } from './seated-row-machine'
+import { SEATED_CABLE_ROW_BREED } from './seated-cable-row-met-brede-greep'
 import { LAT_PULLDOWN_ONDERHANDS } from './lat-pulldown-met-onderhandse-greep'
 import { DUMBBELL_CURL } from './dumbbell-curl'
 import { HAMMER_CURL } from './hammer-curl'
@@ -113,6 +118,11 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   ROW_DUMBBELLS,
   BARBELL_ROW,
   SEATED_CABLE_ROW,
+  BARBELL_ROW_ONDERHANDS,
+  T_BAR_ROW,
+  ROW_SCHUINE_BANK,
+  SEATED_ROW_MACHINE,
+  SEATED_CABLE_ROW_BREED,
   FACE_PULL,
   LAT_PULLDOWN_ONDERHANDS,
   DUMBBELL_CURL,
