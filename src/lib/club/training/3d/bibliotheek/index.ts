@@ -8,6 +8,9 @@
 //    beenMachine, calfRaise (../bouw/benen), armOefening voor drukken, trekken,
 //    curl, extensie en raise (../bouw/boven), plank of crunch (../bouw/core),
 //    reverseCrunch, legRaise of hollowHold (../bouw/liggend);
+//    curl, extensie en raise (../bouw/boven), boogOefening voor fly, pec deck
+//    en crossover (../bouw/boog), smithDrukken (../bouw/smith), plank of
+//    crunch (../bouw/core);
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
 //    dan de standaard (kopieer de dichtstbijzijnde oefening);
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,
@@ -43,6 +46,12 @@ import { PUSH_UP_KNIEEN } from './push-up-op-knieen'
 import { PUSH_UP_VOETEN_VERHOOGD } from './push-up-met-voeten-verhoogd'
 import { PUSH_UP_HANDEN_VERHOOGD } from './push-up-met-handen-verhoogd'
 import { PUSH_UP_SMALLE_HANDEN } from './push-up-met-smalle-handen'
+import { BANKDRUKKEN_SMITH } from './bankdrukken-in-de-smith-machine'
+import { SCHUIN_BANKDRUKKEN_SMITH } from './schuin-bankdrukken-in-de-smith-machine'
+import { DUMBBELL_FLY } from './dumbbell-fly'
+import { SCHUINE_DUMBBELL_FLY } from './schuine-dumbbell-fly'
+import { PEC_DECK } from './pec-deck'
+import { CABLE_CROSSOVER } from './cable-crossover'
 import { OVERHEAD_PRESS } from './overhead-press'
 import { ROW_DUMBBELLS } from './voorovergebogen-row-met-dumbbells'
 import { BARBELL_ROW } from './barbell-row'
@@ -122,6 +131,12 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   PUSH_UP_VOETEN_VERHOOGD,
   PUSH_UP_HANDEN_VERHOOGD,
   PUSH_UP_SMALLE_HANDEN,
+  BANKDRUKKEN_SMITH,
+  SCHUIN_BANKDRUKKEN_SMITH,
+  DUMBBELL_FLY,
+  SCHUINE_DUMBBELL_FLY,
+  PEC_DECK,
+  CABLE_CROSSOVER,
   OVERHEAD_PRESS,
   ROW_DUMBBELLS,
   BARBELL_ROW,

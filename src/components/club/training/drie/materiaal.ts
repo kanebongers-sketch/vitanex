@@ -20,6 +20,8 @@ import { latstationMetGreep } from './materiaal-latstation'
 import { reverseFly } from './materiaal-reversefly'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { schouderPress } from './materiaal-schouderpress'
+import { kabelCrossover, pecDeck } from './materiaal-borst'
+import { smithMachine } from './materiaal-smith'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 import { buikBank, roeiMachine, tBar } from './materiaal-roeien'
 
@@ -121,6 +123,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return buikBank(bak, m)
     case 'tBar':
       return tBar(bak, m, plek, item.schijven ?? 2)
+    case 'pecDeck':
+      return pecDeck(bak, m, zicht)
+    case 'kabelCrossover':
+      return kabelCrossover(bak, m, plek, zicht)
+    case 'smith':
+      return smithMachine(bak, m, plek, zicht)
   }
 }
 

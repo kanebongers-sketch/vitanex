@@ -78,6 +78,9 @@ export type MateriaalSoort =
   | 'ezStang' // EZ-curlstang met schuine handgrepen en kleine schijven, aan de last
   | 'curlMachine' // biceps curl machine: zitting, schuin armkussen, hefboom om de ellebogen
   | 'schouderPress' // shoulder press machine, hefbomen met grepen aan de handen (zie bouw/schouderpress)
+  | 'pecDeck' // pec deck (butterfly), armen draaien om een as boven de schouders
+  | 'kabelCrossover' // crossover-station met twee hoge katrollen, torens op z = `plek.z`
+  | 'smith' // smith machine: frame en geleidestangen, de stang op z = `plek.z`
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
   | 'roeiMachine' // seated row machine met borstkussen, hefbomen en grepen aan de handen
