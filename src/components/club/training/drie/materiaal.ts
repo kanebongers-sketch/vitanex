@@ -11,7 +11,9 @@ import type { GeoBak } from './vormen'
 import { voegSamen, type MateriaalMaterialen, type Stuk, type Zetter } from './materiaal-delen'
 import { curlStang, halter, kettlebell, stang, zetHalters, zetHalterStaand, zetKettlebell } from './materiaal-vrij'
 import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-banken'
-import { kabel, kabelstation } from './materiaal-kabels'
+import { kabel, kabelLaag, kabelstation } from './materiaal-kabels'
+import { ezStang } from './materiaal-ezstang'
+import { curlMachine } from './materiaal-curlmachine'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 
@@ -95,6 +97,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return chestPress(bak, m, zicht)
     case 'kuitMachine':
       return kuitMachine(bak, m, plek, zicht)
+    case 'kabelLaag':
+      return kabelLaag(bak, m, plek, item.greep ?? 'handvat', zicht)
+    case 'ezStang':
+      return ezStang(bak, m)
+    case 'curlMachine':
+      return curlMachine(bak, m, zicht)
   }
 }
 

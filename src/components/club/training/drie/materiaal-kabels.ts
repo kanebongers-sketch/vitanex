@@ -223,3 +223,8 @@ export function kabel(bak: GeoBak, m: MateriaalMaterialen, k: Vector3, greep: Ka
   const kolom = k.y > 1.1 ? hogeKolom(bak, m, k) : lageKolom(bak, m, k)
   return kabelMachine(bak, m, kolom, greep, zicht)
 }
+
+/** Kabelkolom met de slede helemaal laag (curl aan de kabel): zelfde kolom als hoog, zonder voetplaten. */
+export function kabelLaag(bak: GeoBak, m: MateriaalMaterialen, k: Vector3, greep: KabelGreep, zicht: Zicht): Stuk {
+  return kabelMachine(bak, m, hogeKolom(bak, m, k), greep, zicht)
+}
