@@ -22,8 +22,6 @@
 .aygd-stap-tekst { display: grid; gap: 20px; align-content: start; }
 .aygd-stap-nr { font: 800 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-tekst-spook); }
 .aygd-beeld > .aygm { min-width: 0; container-type: inline-size; }
-.aygd-bron { padding-bottom: 24px; font-size: 13px; color: var(--ayg-tekst-2); }
-.aygd-bron a { color: inherit; }
 
 /* ── Bouwstenen in de schermen ───────────────────────────────────────────── */
 .aygd-dag { font: 700 20px/1.1 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
@@ -61,7 +59,6 @@
 @container (min-width: 700px) { .aygd-schema { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: start; } }
 .aygd-oef { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 6px; border-radius: 10px; }
 .aygd-oef[data-uit] { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
-.aygd-oef img, .aygd-oef-leeg { width: 40px; height: 40px; border-radius: 8px; background: #f2f0e9; object-fit: cover; }
 .aygd-coaching { box-shadow: none; }
 .aygd-coaching .aygm-oefening, .aygd-schema .aygm-oefening { grid-template-columns: 1fr; }
 .aygd-coaching .aygm-beeld { aspect-ratio: 16 / 10; }
@@ -85,4 +82,3 @@
 .aygd-toestellen > * { flex: 1 1 0; min-width: 210px; max-width: 260px; scroll-snap-align: start; }
 .aygd-toestellen > *:nth-child(2) { margin-top: 32px; }
 @container (max-width: 560px) { .aygd-toestellen > *:nth-child(2) { margin-top: 0; } }
-.aygd-oef-leeg { display: block; }

@@ -1,10 +1,11 @@
-import { Play, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
 import { Venster } from './kaders'
+import { Oefenbeeld3d } from './Oefenbeeld3d'
 
 // Het samengestelde productbeeld van de voorpagina: het scherm Vandaag van Club
 // met de lessen van de dag en een ledenkaart, plus een oefening met coaching
-// (ernaast) en de ledenapp met QR (in de Held). Allemaal onze echte schermen,
+// in 3D (ernaast) en de ledenapp met QR (in de Held). Allemaal onze echte schermen,
 // getekend met voorbeeldgegevens; de coaching komt uit de oefenbibliotheek van Club.
 
 const TEGELS = [
@@ -113,20 +114,15 @@ export function HeldDashboard() {
 }
 
 const OEFENING = 'Goblet squat'
-const OEFENING_BEELD = 'goblet-squat'
 
-/** Een oefening uit een schema, klein: bewegend beeld en de eerste kernpunten. */
+/** Een oefening uit een schema, klein: het eigen 3D-figuur en de eerste kernpunten. */
 export function OefeningKaartje() {
   const coaching = COACHING_BENEN[OEFENING]
   if (!coaching) return null
   return (
     <div className="aygm-dash-oef">
       <div className="aygm-beeld">
-        <img src={`/club/oefeningen-repdb/${OEFENING_BEELD}-start.webp`} alt="" width={512} height={512} decoding="async" />
-        <img className="aygm-beeld-eind" src={`/club/oefeningen-repdb/${OEFENING_BEELD}-eind.webp`} alt="" width={512} height={512} decoding="async" />
-        <span className="aygm-dash-speel">
-          <Play size={11} aria-hidden />
-        </span>
+        <Oefenbeeld3d naam={OEFENING} label={`${OEFENING} als bewegend 3D-beeld`} className="ayg-3d--vul" />
       </div>
       <div className="aygm-dash-oef-tekst">
         <p className="aygm-boven">Schema · dag A · 1</p>

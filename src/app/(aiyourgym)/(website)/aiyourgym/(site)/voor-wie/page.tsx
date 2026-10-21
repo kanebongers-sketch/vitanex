@@ -5,7 +5,7 @@ import { Check } from 'lucide-react'
 import { DOELGROEPEN, type Doelgroep, type DoelgroepSleutel } from '@/components/aiyourgym/inhoud/doelgroepen'
 import { AppLessen } from '@/components/aiyourgym/mockups/AppSchermen'
 import { CijfersScherm, PersoneelScherm } from '@/components/aiyourgym/mockups/BeheerSchermen'
-import { Figuur, RepdbBron, Toestel } from '@/components/aiyourgym/mockups/kaders'
+import { Figuur, Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 const BEELD: Record<DoelgroepSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
   zelfstandig: { label: 'De check-in met de leden die net binnen zijn en hun status', inhoud: <CheckinScherm /> },
   boutique: { label: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst', inhoud: <RoosterScherm /> },
-  'pt-studio': { label: 'Een oefening met bewegende illustratie, genummerde kernpunten, ademhaling en tempo', inhoud: <Oefening />, bron: <RepdbBron /> },
+  'pt-studio': { label: 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo', inhoud: <Oefening /> },
   keten: { label: 'Het personeelsrooster met diensten en de status van de uren', inhoud: <PersoneelScherm /> },
   yoga: {
     label: 'De ledenapp op een telefoon met de lessen van vandaag, vrije plekken en knoppen om te reserveren of op de wachtlijst te gaan',

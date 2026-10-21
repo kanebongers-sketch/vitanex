@@ -3,14 +3,14 @@
 import { useEffect } from 'react'
 
 // Twee dingen die de website licht houden bij scrollen en hover:
-// 1. Doorlopende animaties (oefenbeelden die wisselen, de puls in het systeemplaatje)
-//    lopen alleen als ze in beeld zijn. Buiten beeld krijgt het blok data-buiten,
-//    waarop de css de animatie pauzeert; een SVG-animatie wordt stilgezet.
+// 1. Doorlopende animaties (laadrondjes) lopen alleen als ze in beeld zijn. Buiten
+//    beeld krijgt het blok data-buiten, waarop de css de animatie pauzeert; een
+//    SVG-animatie wordt stilgezet. De 3D-oefenbeelden regelen dat zelf.
 // 2. Productbeelden (.ayg-onthul) komen een keer rustig op als ze in beeld scrollen
 //    (data-in), in plaats van een animatie die bij elke scrollstap meeloopt.
 // Ook blokken die later verschijnen (andere pagina, andere tab) worden gevolgd.
 
-const DOORLOPEND = ['.ayg-cd-speler', '.aygm-beeld', '.aygm-speler', '.ayg-ss-blad', '.ayg-sys-lijnen', '.aan-draai'].join(', ')
+const DOORLOPEND = '.aan-draai'
 
 function zetBuiten(el: Element, buiten: boolean) {
   if (buiten) el.setAttribute('data-buiten', '')

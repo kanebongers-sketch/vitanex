@@ -31,15 +31,6 @@ export function Figuur({ label, children, bijschrift, className, stijl }: Figuur
   )
 }
 
-/** Bronvermelding die de licentie van RepDB vraagt, overal waar hun beelden staan. */
-export function RepdbBron() {
-  return (
-    <span>
-      Exercise data by RepDB (<a href="https://repdb.co" rel="noopener" target="_blank">repdb.co</a>)
-    </span>
-  )
-}
-
 const GROEPEN = ['Werkvloer', 'Leden', 'Planning', 'Coaching', 'Beheer'] as const
 export type Groep = (typeof GROEPEN)[number]
 

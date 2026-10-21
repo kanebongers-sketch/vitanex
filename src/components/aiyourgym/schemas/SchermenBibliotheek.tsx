@@ -2,9 +2,12 @@ import { Award, Flame, RotateCcw, Search, X } from 'lucide-react'
 import { volgendeMijlpaal } from '@/lib/club/voortgang/frequentie'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
+import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
+import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
 
 // Bibliotheek, eigen coachtekst, een oefening in de ledenapp en voortgang.
-// Getekend in HTML en CSS met voorbeeldgegevens; de coaching is de echte tekst.
+// Getekend in HTML en CSS met voorbeeldgegevens; de coaching is de echte tekst
+// en de geopende oefening is ons eigen 3D-figuur.
 
 interface Props {
   oefeningen: readonly VoorbeeldOefening[]
@@ -31,7 +34,7 @@ export function BibliotheekScherm({ oefeningen, aantal }: Props & { aantal: numb
       <span className="ayg-ss-bieb">
         {oefeningen.map((o) => (
           <span key={o.naam} className="ayg-ss-bieb-kaart">
-            <img src={o.beeldStart} alt="" width={120} height={120} loading="lazy" decoding="async" />
+            <OefTegel naam={o.naam} />
             <b>{o.naam}</b>
             <small>{o.coaching.kernpunten.length} kernpunten</small>
           </span>
@@ -82,8 +85,7 @@ export function OefeningToestel({ oefening }: { oefening: VoorbeeldOefening }) {
         <div className="ayg-ss-blad">
           <p className="ayg-cd-app-kop">{oefening.naam}</p>
           <span className="ayg-ss-blad-beeld">
-            <img src={oefening.beeldStart} alt="" width={240} height={240} loading="lazy" decoding="async" />
-            <img className="ayg-ss-blad-eind" src={oefening.beeldEind} alt="" width={240} height={240} loading="lazy" decoding="async" />
+            <Oefenbeeld3d naam={oefening.naam} label={`${oefening.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
           </span>
           <span className="ayg-ss-blad-regel">{oefening.voorschrift}</span>
           <span className="ayg-ss-blad-notitie">Van je trainer: hielen op de grond</span>

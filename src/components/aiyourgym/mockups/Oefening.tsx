@@ -1,12 +1,11 @@
-import { Play } from 'lucide-react'
 import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
+import { Oefenbeeld3d } from './Oefenbeeld3d'
 
-// Een oefening zoals een lid en trainer hem in Club zien: bewegend beeld (begin-
-// en eindhouding van RepDB, zachte wissel) en de coaching uit de echte
-// oefenbibliotheek van Club. Geen verzonnen tekst: dit komt uit de app zelf.
+// Een oefening zoals een lid en trainer hem in Club zien: ons eigen 3D-figuur
+// dat de beweging voordoet en de coaching uit de echte oefenbibliotheek van
+// Club. Geen verzonnen tekst: dit komt uit de app zelf.
 
 const NAAM = 'Goblet squat'
-const BEELD = 'goblet-squat'
 
 export function Oefening() {
   const coaching = COACHING_BENEN[NAAM]
@@ -14,26 +13,7 @@ export function Oefening() {
   return (
     <div className="aygm-oefening">
       <div className="aygm-beeld">
-        <img src={`/club/oefeningen-repdb/${BEELD}-start.webp`} alt="" width={512} height={512} loading="lazy" decoding="async" />
-        <img
-          className="aygm-beeld-eind"
-          src={`/club/oefeningen-repdb/${BEELD}-eind.webp`}
-          alt=""
-          width={512}
-          height={512}
-          loading="lazy"
-          decoding="async"
-        />
-        <div className="aygm-speler">
-          <i>
-            <Play size={12} aria-hidden />
-          </i>
-          <span>Begin</span>
-          <span className="aygm-balk">
-            <span />
-          </span>
-          <span>Eind</span>
-        </div>
+        <Oefenbeeld3d naam={NAAM} label={`${NAAM} als bewegend 3D-beeld`} className="ayg-3d--vul" />
       </div>
       <div className="aygm-coaching">
         <div>

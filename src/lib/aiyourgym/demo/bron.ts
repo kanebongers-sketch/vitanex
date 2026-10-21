@@ -142,15 +142,15 @@ async function schemaVan(admin: SupabaseClient, schemaId: string | null): Promis
   const sa = s as Antwoord<RuwSchema>
   if (sa.error) throw new Error(`Demo: schema ophalen mislukt: ${sa.error.message}`)
   const schema = sa.data
-  const r = rijen(regels as Antwoord<(Omit<RuwOefening, 'naam' | 'beeld_start' | 'beeld_eind'> & { oefening_id: string })[]>, 'schema-oefeningen')
+  const r = rijen(regels as Antwoord<(Omit<RuwOefening, 'naam'> & { oefening_id: string })[]>, 'schema-oefeningen')
   const ids = [...new Set(r.map((x) => x.oefening_id))]
   const oef = ids.length
-    ? rijen((await tabel(admin, 'club_oefeningen').rijen('id, naam, beeld_start, beeld_eind').in('id', ids)) as Antwoord<{ id: string; naam: string; beeld_start: string | null; beeld_eind: string | null }[]>, 'oefeningen')
+    ? rijen((await tabel(admin, 'club_oefeningen').rijen('id, naam').in('id', ids)) as Antwoord<{ id: string; naam: string }[]>, 'oefeningen')
     : []
   const opId = new Map(oef.map((o) => [o.id, o]))
   const oefeningen = r.flatMap((x) => {
     const o = opId.get(x.oefening_id)
-    return o ? [{ dag: x.dag, volgorde: x.volgorde, sets: x.sets, herhalingen: x.herhalingen, rust_sec: x.rust_sec, naam: o.naam, beeld_start: o.beeld_start, beeld_eind: o.beeld_eind }] : []
+    return o ? [{ dag: x.dag, volgorde: x.volgorde, sets: x.sets, herhalingen: x.herhalingen, rust_sec: x.rust_sec, naam: o.naam }] : []
   })
   return { schema, oefeningen }
 }

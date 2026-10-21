@@ -1,6 +1,5 @@
 import { Clock, Download, Handshake } from 'lucide-react'
 import { BELOFTES, OPRICHTER, PRAKTIJK } from '@/components/aiyourgym/inhoud/praktijk'
-import { SectieActie } from '@/components/aiyourgym/site/Actie'
 
 // Sociaal bewijs zonder te liegen: wie het bouwt en wat we beloven. Geen
 // aantallen klanten, reviews, sterren of logo's (die hebben we nog niet).
@@ -37,43 +36,22 @@ export function Praktijk() {
               <span>{PRAKTIJK.rol}</span>
             </p>
           </div>
-          <div className="ayg-praktijk-tekst">
-            {PRAKTIJK.alineas.map((a) => (
-              <p key={a}>{a}</p>
-            ))}
-          </div>
-          <ul className="ayg-praktijk-feiten">
-            {PRAKTIJK.feiten.map((f) => (
-              <li key={f.titel}>
-                <h3>{f.titel}</h3>
-                <p>{f.tekst}</p>
-              </li>
-            ))}
-          </ul>
+          <p className="ayg-praktijk-tekst">{PRAKTIJK.tekst}</p>
         </div>
-        <aside className="ayg-beloftes ayg-podium" aria-labelledby="beloftes-titel">
-          <p className="ayg-beloftes-label">Onze beloftes</p>
-          <h3 className="ayg-h3" id="beloftes-titel">
-            Wat je van ons mag verwachten.
-          </h3>
-          <ol>
-            {BELOFTES.map((b, i) => {
-              const Icoon = ICONEN[i % ICONEN.length]
-              return (
-                <li key={b.titel}>
-                  <Icoon aria-hidden />
-                  <div>
-                    <h4>{b.titel}</h4>
-                    <p>{b.tekst}</p>
-                  </div>
-                </li>
-              )
-            })}
-          </ol>
-        </aside>
-      </div>
-      <div className="ayg-wrap">
-        <SectieActie zin="Liever eerst even praten? Plan een gratis demo, dan laten we het je persoonlijk zien." />
+        <ul className="ayg-praktijk-beloftes" aria-label="Wat je van ons mag verwachten">
+          {BELOFTES.map((b, i) => {
+            const Icoon = ICONEN[i % ICONEN.length]
+            return (
+              <li key={b.titel}>
+                <Icoon aria-hidden />
+                <div>
+                  <h3>{b.titel}</h3>
+                  <p>{b.tekst}</p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       </div>
     </section>
   )

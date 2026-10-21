@@ -110,22 +110,13 @@
 .aygm-dagen span[data-actief] { background: var(--brand); color: var(--brand-inkt); }
 .aygm-dagen span[data-actief] b { color: var(--brand-inkt); }
 .aygm-oef { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); }
-.aygm-oef img { width: 52px; height: 52px; border-radius: 9px; background: #f2f0e9; object-fit: cover; }
 .aygm-vink { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); display: grid; place-items: center; }
 .aygm-vink[data-aan] { background: var(--brand); color: var(--brand-inkt); box-shadow: none; }
 
 /* ── Oefening met coaching ───────────────────────────────────────────────── */
 .aygm-oefening { display: grid; gap: 0; border-radius: 18px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--line); box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.7); }
 @media (min-width: 720px) { .aygm-oefening { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
-.aygm-beeld { position: relative; aspect-ratio: 1; background: #f2f0e9; }
-.aygm-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.aygm-beeld-eind { animation: aygm-wissel 3.2s ease-in-out infinite; }
-@keyframes aygm-wissel { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
-.aygm-speler { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(15, 20, 18, 0.86); color: #f2f0e9; font-size: 11px; font-weight: 600; }
-.aygm-speler i { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); display: grid; place-items: center; font-style: normal; }
-.aygm-speler .aygm-balk { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.18); }
-.aygm-speler .aygm-balk > span { animation: aygm-voortgang 3.2s linear infinite; }
-@keyframes aygm-voortgang { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.aygm-beeld { position: relative; aspect-ratio: 1; background: var(--bg-raised); }
 .aygm-coaching { padding: 22px; display: grid; gap: 16px; align-content: start; }
 .aygm-coaching-titel { font: 700 26px/1 var(--ayg-font-kop); letter-spacing: -0.035em; font-variation-settings: 'wdth' 86; }
 .aygm-kernpunten { display: grid; gap: 10px; counter-reset: k; }
@@ -167,10 +158,6 @@
 .aygm-wissel button:is(:hover, :focus-visible):not([aria-pressed='true']) { color: var(--ayg-inkt-tekst); background: var(--ayg-inkt); }
 .aygm-wissel button[aria-pressed='true'] { background: var(--ayg-inkt-tekst); color: var(--ayg-inkt); }
 .aygm-melding { font-size: 13.5px; color: var(--ayg-inkt-tekst-2); min-height: 1.4em; }
-
-@media (prefers-reduced-motion: reduce) {
-  .aygm-beeld-eind, .aygm-speler .aygm-balk > span { animation: none !important; }
-}
 
 /* Smalle containers (onderaan, zodat deze regels winnen) */
 @container (max-width: 540px) {
@@ -228,9 +215,8 @@
 .aygm-dash-schema b { font-size: 12.5px; font-weight: 600; }
 
 /* Het oefenkaartje dat over het venster valt */
-.aygm-dash-oef { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.75); }
+.aygm-dash-oef { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 10px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.75); }
 .aygm-dash-oef .aygm-beeld { border-radius: 10px; overflow: hidden; }
-.aygm-dash-speel { position: absolute; left: 6px; bottom: 6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-inkt); }
 .aygm-dash-oef-tekst { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .aygm-dash-oef .aygm-kernpunten { gap: 6px; }
 .aygm-dash-oef .aygm-kernpunten li { grid-template-columns: 20px 1fr; gap: 7px; align-items: center; }
@@ -241,4 +227,18 @@
   .aygm-dash-raster { grid-template-columns: minmax(0, 1fr); }
   .aygm-dash-lid { display: none; }
   .aygm-dash-tegels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ── Eigen 3D-oefenbeelden en tegels met beginletters ─────────────────────
+   Het figuur kleurt mee met --brand van het productbeeld eromheen, en buiten
+   een productbeeld met de smaragd van de website (nooit het brons van Club). */
+.ayg-3d { display: block; width: 100%; }
+.ayg-3d > .club-ill { --ill-accent: var(--brand, var(--ayg-accent)); }
+.ayg-3d--vul { position: absolute; inset: 0; }
+.ayg-3d--vul > .club-ill { height: 100%; aspect-ratio: auto; border-radius: 0; }
+.aygm-oef-tegel {
+  display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 22%;
+  background: var(--brand-soft, var(--ayg-accent-zacht)); color: var(--brand-tekst, var(--ayg-accent-sterk));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand, var(--ayg-accent)) 28%, transparent);
+  font-family: var(--ayg-font-kop); font-weight: 700; letter-spacing: -0.02em; line-height: 1;
 }

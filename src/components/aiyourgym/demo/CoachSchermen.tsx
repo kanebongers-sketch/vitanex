@@ -1,12 +1,15 @@
-import { Play, Trophy } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 import { QrBeeld } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
+import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
+import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 import type { Coaching } from '@/lib/club/training/coaching/typen'
 import type { DemoApp, DemoCijfers, DemoOefening, DemoSchema } from '@/lib/aiyourgym/demo/model'
 
 // De coaching-, cijfer- en app-schermen van de demo. Coaching komt uit de
-// oefenbibliotheek van Club zelf (coachingVoor op de server).
+// oefenbibliotheek van Club zelf (coachingVoor op de server); de uitgelichte
+// oefening is ons eigen 3D-figuur, in lijsten staat een tegel met beginletters.
 
 const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
 
@@ -41,7 +44,7 @@ export function SchemaScherm({ schema, uitgelicht, coaching }: SchemaProps) {
               <div className="aygd-lijst">
                 {d.oefeningen.map((o) => (
                   <div key={`${d.titel}-${o.naam}`} className="aygd-oef" data-uit={o.naam === uitgelicht?.naam ? '' : undefined}>
-                    {o.beeldStart ? <img src={o.beeldStart} alt="" width={40} height={40} loading="lazy" decoding="async" /> : <span className="aygd-oef-leeg" />}
+                    <OefTegel naam={o.naam} maat={40} />
                     <span className="aygm-rij-tekst">
                       <b>{o.naam}</b>
                       <span>
@@ -57,22 +60,9 @@ export function SchemaScherm({ schema, uitgelicht, coaching }: SchemaProps) {
         </div>
         {uitgelicht && coaching && (
           <div className="aygm-oefening aygd-coaching">
-            {uitgelicht.beeldStart && (
-              <div className="aygm-beeld">
-                <img src={uitgelicht.beeldStart} alt="" width={512} height={512} loading="lazy" decoding="async" />
-                {uitgelicht.beeldEind && <img className="aygm-beeld-eind" src={uitgelicht.beeldEind} alt="" width={512} height={512} loading="lazy" decoding="async" />}
-                <div className="aygm-speler">
-                  <i>
-                    <Play size={12} aria-hidden />
-                  </i>
-                  <span>Begin</span>
-                  <span className="aygm-balk">
-                    <span />
-                  </span>
-                  <span>Eind</span>
-                </div>
-              </div>
-            )}
+            <div className="aygm-beeld">
+              <Oefenbeeld3d naam={uitgelicht.naam} label={`${uitgelicht.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
+            </div>
             <div className="aygm-coaching">
               <p className="aygm-coaching-titel">{uitgelicht.naam}</p>
               <ol className="aygm-kernpunten">
@@ -239,7 +229,7 @@ export function AppSchemaDemo({ schema }: { schema: DemoSchema }) {
       <div className="aygm-lijst">
         {dag?.oefeningen.map((o) => (
           <div key={o.naam} className="aygm-oef">
-            {o.beeldStart ? <img src={o.beeldStart} alt="" width={52} height={52} loading="lazy" decoding="async" /> : <span className="aygd-oef-leeg" />}
+            <OefTegel naam={o.naam} maat={52} />
             <div className="aygm-rij-tekst">
               <b>{o.naam}</b>
               <span>{o.dosis}</span>

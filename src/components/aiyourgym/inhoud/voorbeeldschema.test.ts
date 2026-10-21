@@ -1,12 +1,9 @@
-import { existsSync } from 'node:fs'
-import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { aantalMetBeeld, aantalMetCoaching, toonBereik, voorbeeldOefeningen } from './voorbeeldschema'
+import { oefening3dOpNaam } from '@/lib/club/training/3d'
+import { aantalMetCoaching, toonBereik, voorbeeldOefeningen } from './voorbeeldschema'
 
 // Het voorbeeldschema op de website komt uit de echte bibliotheek: elke
-// oefening heeft coaching en een RepDB-beeld dat echt in /public staat.
-
-const PUBLIC = path.resolve(__dirname, '../../../../public')
+// oefening heeft coaching en een eigen 3D-beeld.
 
 describe('voorbeeldschema', () => {
   const oefeningen = voorbeeldOefeningen()
@@ -20,11 +17,8 @@ describe('voorbeeldschema', () => {
     }
   })
 
-  it('elk beeld bestaat in public', () => {
-    for (const o of oefeningen) {
-      expect(existsSync(path.join(PUBLIC, o.beeldStart)), o.beeldStart).toBe(true)
-      expect(existsSync(path.join(PUBLIC, o.beeldEind)), o.beeldEind).toBe(true)
-    }
+  it('elke oefening heeft een eigen 3D-beeld', () => {
+    for (const o of oefeningen) expect(oefening3dOpNaam(o.naam), o.naam).toBeDefined()
   })
 
   it('schrijft bereiken met "tot"', () => {
@@ -35,6 +29,5 @@ describe('voorbeeldschema', () => {
 
   it('telt de bibliotheek in plaats van te schatten', () => {
     expect(aantalMetCoaching()).toBeGreaterThan(100)
-    expect(aantalMetBeeld()).toBeGreaterThan(100)
   })
 })

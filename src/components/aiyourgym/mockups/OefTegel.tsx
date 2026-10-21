@@ -17,8 +17,8 @@ export function beginletters(naam: string): string {
 
 interface OefTegelProps {
   naam: string
-  /** Breedte en hoogte in pixels. */
-  maat: number
+  /** Breedte en hoogte in pixels; zonder maat bepaalt de CSS het formaat. */
+  maat?: number
   className?: string
 }
 
@@ -26,7 +26,7 @@ export function OefTegel({ naam, maat, className }: OefTegelProps) {
   return (
     <span
       className={className ? `aygm-oef-tegel ${className}` : 'aygm-oef-tegel'}
-      style={{ width: maat, height: maat, fontSize: Math.max(10, Math.round(maat * 0.3)) }}
+      style={maat ? { width: maat, height: maat, fontSize: Math.max(10, Math.round(maat * 0.3)) } : undefined}
       aria-hidden
     >
       {beginletters(naam)}

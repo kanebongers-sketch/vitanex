@@ -1,6 +1,7 @@
 import { Check, ChevronRight } from 'lucide-react'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
+import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
 
 // Het schema zoals het lid het in de ledenapp ziet: dag A, de oefeningen met
 // het voorschrift en de eerste twee kernpunten eronder (zoals in Club), en de
@@ -60,7 +61,7 @@ function Regel({ o, i }: { o: VoorbeeldOefening; i: number }) {
       <span className="ayg-cd-app-nr" aria-hidden>
         {i + 1}
       </span>
-      <img src={o.beeldStart} alt="" width={40} height={40} loading="lazy" decoding="async" />
+      <OefTegel naam={o.naam} maat={34} />
       <span className="ayg-cd-app-tekst">
         <b>{o.naam}</b>
         <span>{o.voorschrift.split(',')[0]}</span>

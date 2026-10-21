@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, Pause, Play, Timer, Wind, X } from 'lucide-react'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
+import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
+import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
+import type { Stand3d } from '@/components/club/training/drie/Oefening3d'
 import { SchemaToestel } from './SchemaToestel'
 
 // Het hart van de voorpagina: een echte oefening uit de bibliotheek van Club,
-// zoals trainer en lid hem zien. Kies een oefening, speel de beweging af of
-// zet hem stil op begin of eind, lees de genummerde kernpunten en de fouten
-// met correctie, en zie ernaast hoe het schema in de ledenapp staat.
-
-type Stand = 'loop' | 'start' | 'eind'
+// zoals trainer en lid hem zien. Kies een oefening, speel de beweging van ons
+// eigen 3D-figuur af of zet hem stil op begin of eind, lees de genummerde
+// kernpunten en de fouten met correctie, en zie ernaast hoe het schema in de
+// ledenapp staat. Een 3D-doek dat van oefening wisselt.
 type Paneel = 'fouten' | 'uitvoering' | 'adem'
 
 const PANELEN: { sleutel: Paneel; label: string }[] = [
@@ -25,14 +27,14 @@ interface CoachingDemoProps {
 
 export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
   const [index, setIndex] = useState(0)
-  const [stand, setStand] = useState<Stand>('loop')
+  const [stand, setStand] = useState<Stand3d>('speelt')
   const [paneel, setPaneel] = useState<Paneel>('fouten')
   const o = oefeningen[index]
   if (!o) return null
 
   function kies(i: number) {
     setIndex(i)
-    setStand('loop')
+    setStand('speelt')
   }
 
   return (
@@ -40,7 +42,7 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
       <div className="ayg-cd-keuze" role="group" aria-label="Kies een oefening">
         {oefeningen.map((x, i) => (
           <button key={x.naam} type="button" aria-pressed={i === index} onClick={() => kies(i)}>
-            <img src={x.beeldStart} alt="" width={48} height={48} loading="lazy" decoding="async" />
+            <OefTegel naam={x.naam} maat={48} />
             <span>{x.kort}</span>
           </button>
         ))}
@@ -88,21 +90,20 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
   )
 }
 
-function Speler({ o, stand, zet }: { o: VoorbeeldOefening; stand: Stand; zet: (s: Stand) => void }) {
-  const speelt = stand === 'loop'
+function Speler({ o, stand, zet }: { o: VoorbeeldOefening; stand: Stand3d; zet: (s: Stand3d) => void }) {
+  const speelt = stand === 'speelt'
   return (
-    <figure className="ayg-cd-speler" data-stand={stand}>
-      <div className="ayg-cd-beeld" key={o.naam}>
-        <img src={o.beeldStart} alt={`${o.naam}, beginhouding`} width={512} height={512} decoding="async" />
-        <img className="ayg-cd-eind" src={o.beeldEind} alt={`${o.naam}, eindhouding`} width={512} height={512} decoding="async" />
+    <figure className="ayg-cd-speler">
+      <div className="ayg-cd-beeld">
+        <Oefenbeeld3d naam={o.naam} stand={stand} label={`${o.naam} als 3D-beeld`} className="ayg-3d--vul" />
       </div>
       <figcaption className="ayg-cd-bediening">
-        <button type="button" className="ayg-cd-speel" onClick={() => zet(speelt ? 'start' : 'loop')}>
+        <button type="button" className="ayg-cd-speel" onClick={() => zet(speelt ? 'begin' : 'speelt')}>
           {speelt ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
           {speelt ? 'Pauze' : 'Afspelen'}
         </button>
         <span className="ayg-cd-standen">
-          <button type="button" aria-pressed={stand === 'start'} onClick={() => zet('start')}>
+          <button type="button" aria-pressed={stand === 'begin'} onClick={() => zet('begin')}>
             Begin
           </button>
           <button type="button" aria-pressed={stand === 'eind'} onClick={() => zet('eind')}>

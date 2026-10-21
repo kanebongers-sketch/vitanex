@@ -16,16 +16,8 @@ export const PRAKTIJK = {
   label: 'Gebouwd vanuit de praktijk',
   kop: 'Gemaakt door iemand die zelf op de vloer staat.',
   rol: 'Personal Trainer en PT-manager van 8 locaties',
-  alineas: [
-    'AI Your Gym is gebouwd door een Personal Trainer en PT-manager van 8 locaties, die al jaren een team van coaches aanstuurt en opleidt.',
-    'De problemen die het oplost komen van de werkvloer zelf: een balie die tegelijk moet inchecken en opvolgen, roosters in losse lijstjes, uren die iemand moet natellen, en schema’s die zonder uitleg in een la verdwijnen.',
-    'Daarom zit coaching per oefening in elk schema, en is alles ingedeeld zoals een sportschool echt werkt. Elke maand komen er functies bij, op basis van wat clubs nodig hebben.',
-  ],
-  feiten: [
-    { titel: '8 locaties', tekst: 'PT-manager van 8 locaties, met de dagelijkse aansturing van de coaches.' },
-    { titel: 'Coaches opleiden', tekst: 'Een team van trainers dat begeleid en opgeleid wordt.' },
-    { titel: 'Zelf op de vloer', tekst: 'Personal trainer, dus de oefeningen en de coaching zijn uit de praktijk.' },
-  ],
+  tekst:
+    'De problemen die AI Your Gym oplost komen van de werkvloer zelf: een balie die tegelijk moet inchecken en opvolgen, roosters in losse lijstjes en schema’s die zonder uitleg in een la verdwijnen. Elke maand komen er functies bij, op basis van wat clubs nodig hebben.',
 } as const
 
 export interface Belofte {

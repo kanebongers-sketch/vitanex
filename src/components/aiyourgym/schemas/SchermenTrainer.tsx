@@ -4,6 +4,7 @@ import { stelSchemaVoor } from '@/lib/club/training/voorstel'
 import { DOEL_LABEL, DOELEN, NIVEAU_LABEL } from '@/lib/club/training/typen'
 import { toonBereik, type VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Venster } from '@/components/aiyourgym/mockups/kaders'
+import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
 
 // De schermen van de trainer: intake, schemavoorstel en editor. Getekend in
 // HTML en CSS; de labels, gezondheidsvragen en de tekst van het voorstel komen
@@ -126,7 +127,7 @@ export function VoorstelScherm({ oefeningen }: { oefeningen: readonly VoorbeeldO
       <ol className="ayg-ss-regels">
         {oefeningen.map((o) => (
           <li key={o.naam}>
-            <img src={o.beeldStart} alt="" width={34} height={34} loading="lazy" decoding="async" />
+            <OefTegel naam={o.naam} maat={34} />
             <b>{o.naam}</b>
             <span>{o.voorschrift}</span>
           </li>
@@ -181,7 +182,7 @@ export function EditorScherm({ oefeningen }: { oefeningen: readonly VoorbeeldOef
           return (
             <span key={o.naam} className="ayg-ss-tabel-rij">
               <span className="ayg-ss-oef">
-                <img src={o.beeldStart} alt="" width={28} height={28} loading="lazy" decoding="async" />
+                <OefTegel naam={o.naam} maat={28} />
                 <b>{o.naam}</b>
               </span>
               <i>{sets}</i>

@@ -1,4 +1,5 @@
 import { Check, Trophy } from 'lucide-react'
+import { OefTegel } from './OefTegel'
 
 // De schermen van de ledenapp: Home, Lessen en Schema, zoals Club ze toont.
 // Alleen de inhoud; het telefoonkader komt uit kaders.tsx.
@@ -118,10 +119,10 @@ export function AppLessen() {
 }
 
 const OEFENINGEN = [
-  { naam: 'Goblet squat', dosis: '3 × 10 · 16 kg', beeld: 'goblet-squat', klaar: true },
-  { naam: 'Roemeense deadlift', dosis: '3 × 8 · 40 kg', beeld: 'romanian-deadlift', klaar: true },
-  { naam: 'Lat pulldown', dosis: '3 × 12 · 45 kg', beeld: 'lat-pulldown', klaar: false },
-  { naam: 'Kettlebell swing', dosis: '4 × 15 · 16 kg', beeld: 'kettlebell-swing', klaar: false },
+  { naam: 'Goblet squat', dosis: '3 × 10 · 16 kg', klaar: true },
+  { naam: 'Roemeense deadlift', dosis: '3 × 8 · 40 kg', klaar: true },
+  { naam: 'Lat pulldown', dosis: '3 × 12 · 45 kg', klaar: false },
+  { naam: 'Kettlebell swing', dosis: '4 × 15 · 16 kg', klaar: false },
 ] as const
 
 export function AppSchema() {
@@ -138,7 +139,7 @@ export function AppSchema() {
       <div className="aygm-lijst">
         {OEFENINGEN.map((o) => (
           <div key={o.naam} className="aygm-oef">
-            <img src={`/club/oefeningen-repdb/${o.beeld}-start.webp`} alt="" width={52} height={52} loading="lazy" decoding="async" />
+            <OefTegel naam={o.naam} maat={52} />
             <div className="aygm-rij-tekst">
               <b>{o.naam}</b>
               <span>{o.dosis}</span>

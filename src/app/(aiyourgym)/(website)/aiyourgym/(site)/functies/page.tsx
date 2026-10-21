@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { HOOFDSTUKKEN, type Hoofdstuk, type HoofdstukSleutel } from '@/components/aiyourgym/inhoud/functies'
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { CijfersScherm } from '@/components/aiyourgym/mockups/BeheerSchermen'
-import { Figuur, RepdbBron, Toestel } from '@/components/aiyourgym/mockups/kaders'
+import { Figuur, Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
@@ -21,9 +21,8 @@ export const metadata: Metadata = {
 const BEELD: Record<HoofdstukSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
   beheer: { label: 'De check-in van AI Your Gym met de leden die net binnen zijn en hun status', inhoud: <CheckinScherm /> },
   coaching: {
-    label: 'Een oefening met bewegende illustratie, genummerde kernpunten, ademhaling en tempo',
+    label: 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo',
     inhoud: <Oefening />,
-    bron: <RepdbBron />,
   },
   planning: { label: 'Het groepslesrooster van een week met de bezetting per les en volle lessen met wachtlijst', inhoud: <RoosterScherm /> },
   groei: { label: 'De cijfers van een kalendermaand met tegels en een staafgrafiek', inhoud: <CijfersScherm /> },

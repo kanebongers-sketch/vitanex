@@ -58,8 +58,6 @@
 .ayg-ss-dagtabs { margin-bottom: 10px; }
 .ayg-ss-regels { display: grid; gap: 6px; }
 .ayg-ss-regels li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 6px 10px 6px 6px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line); }
-.ayg-ss-regels img, .ayg-ss-oef img, .ayg-ss-bieb img, .ayg-ss-blad-beeld img { background: #e9f3f7; object-fit: cover; }
-.ayg-ss-regels img { width: 34px; height: 34px; border-radius: 7px; }
 .ayg-ss-regels b { font-size: 12.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ayg-ss-regels span { font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 @container (max-width: 460px) { .ayg-ss-regels li { grid-template-columns: 34px 1fr; } .ayg-ss-regels span { grid-column: 2; } }
@@ -74,7 +72,6 @@
 .ayg-ss-tabel-rij > i { font-style: normal; padding: 5px 6px; border-radius: 6px; background: var(--bg-app); border: 1px solid var(--line-strong); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ayg-ss-notitie { color: var(--text-2); }
 .ayg-ss-oef { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.ayg-ss-oef img { width: 28px; height: 28px; border-radius: 6px; flex: none; }
 .ayg-ss-oef b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ayg-ss-toevoegen { display: flex; align-items: center; justify-content: center; gap: 5px; height: 32px; border-radius: 10px; border: 1px dashed var(--line-strong); color: var(--text-2); font-weight: 600; }
 @container (max-width: 520px) {
@@ -86,7 +83,7 @@
 .ayg-ss-zoek { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 160px; height: 28px; padding: 0 10px; border-radius: 8px; background: var(--bg-app); border: 1px solid var(--line-strong); color: var(--text-3); font-size: 11.5px; }
 .ayg-ss-bieb { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
 .ayg-ss-bieb-kaart { display: grid; gap: 4px; padding: 6px 6px 9px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line); }
-.ayg-ss-bieb-kaart img { width: 100%; height: auto; aspect-ratio: 1; border-radius: 7px; }
+.ayg-ss-bieb-kaart .aygm-oef-tegel { width: 100%; border-radius: 7px; font-size: 26px; }
 .ayg-ss-bieb-kaart b { font-size: 11.5px; line-height: 1.25; }
 .ayg-ss-bieb-kaart small { font-size: 10px; color: var(--brand-tekst); }
 
@@ -101,9 +98,6 @@
 /* Een oefening in de ledenapp */
 .ayg-ss-blad { display: grid; gap: 7px; }
 .ayg-ss-blad-beeld { position: relative; display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
-.ayg-ss-blad-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ayg-ss-blad-eind { opacity: 0; }
-@media (prefers-reduced-motion: no-preference) { .ayg-ss-blad-eind { animation: ayg-cd-wissel 2.6s var(--ayg-ease) infinite alternate; } }
 .ayg-ss-blad-regel { font-size: 11px; font-weight: 600; color: var(--text-1); }
 .ayg-ss-blad-notitie { font-size: 10.5px; padding: 6px 8px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-tekst); }
 .ayg-ss-blad-kern { display: grid; gap: 5px; }

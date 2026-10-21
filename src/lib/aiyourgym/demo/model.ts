@@ -57,8 +57,6 @@ export interface RuwOefening {
   herhalingen: string | null
   rust_sec: number | null
   naam: string
-  beeld_start: string | null
-  beeld_eind: string | null
 }
 
 export interface RuwSchema {
@@ -286,8 +284,6 @@ export interface DemoOefening {
   naam: string
   dosis: string
   rust: string | null
-  beeldStart: string | null
-  beeldEind: string | null
 }
 
 export interface DemoSchema {
@@ -300,11 +296,6 @@ export interface DemoSchema {
 function dosisVan(o: RuwOefening): string {
   if (!o.sets) return o.herhalingen ?? ''
   return o.herhalingen ? `${o.sets} × ${o.herhalingen}` : `${o.sets} sets`
-}
-
-/** Alleen beelden uit onze eigen map; nooit een willekeurige url uit de database. */
-export function veiligBeeld(pad: string | null): string | null {
-  return pad && /^\/club\/oefeningen-repdb\/[a-z0-9-]+\.webp$/.test(pad) ? pad : null
 }
 
 export function bouwSchema(ruw: DemoRuw): DemoSchema | null {
@@ -324,8 +315,6 @@ export function bouwSchema(ruw: DemoRuw): DemoSchema | null {
           naam: o.naam,
           dosis: dosisVan(o),
           rust: o.rust_sec ? `${o.rust_sec} sec rust` : null,
-          beeldStart: veiligBeeld(o.beeld_start),
-          beeldEind: veiligBeeld(o.beeld_eind),
         })),
     })),
   }

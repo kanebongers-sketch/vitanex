@@ -5,7 +5,6 @@ import { CijfersMaandScherm, AppHomeDemo, AppSchemaDemo, AppVoedingDemo, SchemaS
 import { DemoStap } from '@/components/aiyourgym/demo/DemoStap'
 import { DEMO_STAPPEN } from '@/components/aiyourgym/demo/stappen'
 import { LidScherm, RoosterWeekScherm, VandaagScherm } from '@/components/aiyourgym/demo/WerkSchermen'
-import { RepdbBron } from '@/components/aiyourgym/mockups/kaders'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
@@ -15,6 +14,7 @@ import { bouwApp, bouwCijfers, bouwLidKaart, bouwSchema, bouwVandaag, bouwWeek, 
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { dagLang, weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
+import { oefening3dOpNaam } from '@/lib/club/training/3d'
 import { coachingVoor } from '@/lib/club/training/coaching'
 import { clubDatabase } from '@/lib/club/kern/database'
 
@@ -71,7 +71,7 @@ export default async function DemoPagina() {
   const cijfers = bouwCijfers(ruw)
   const app = bouwApp(ruw, kaart, dagNaam)
   const alleOefeningen = schema?.dagen.flatMap((d) => d.oefeningen) ?? []
-  const uitgelicht = alleOefeningen.find((o) => o.beeldStart && o.beeldEind && coachingVoor(o.naam)) ?? null
+  const uitgelicht = alleOefeningen.find((o) => coachingVoor(o.naam) && oefening3dOpNaam(o.naam)) ?? null
   const coaching = uitgelicht ? coachingVoor(uitgelicht.naam) : null
   const stappen = Object.values(DEMO_STAPPEN)
 
@@ -131,9 +131,6 @@ export default async function DemoPagina() {
           {app.voeding && <AppVoedingDemo voeding={app.voeding} />}
         </div>
       </DemoStap>
-      <p className="ayg-wrap aygd-bron">
-        <RepdbBron />
-      </p>
       <AanmeldBand titel="Nu met jouw sportschool erin." />
     </>
   )

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bouwApp, bouwCijfers, bouwLidKaart, bouwSchema, bouwVandaag, bouwWeek, korteNaam, korteNaamUit, veiligBeeld, wekenOpRij, type DemoRuw } from './model'
+import { bouwApp, bouwCijfers, bouwLidKaart, bouwSchema, bouwVandaag, bouwWeek, korteNaam, korteNaamUit, wekenOpRij, type DemoRuw } from './model'
 
 const PEILDAG = '2026-10-15' // donderdag
 
@@ -42,9 +42,9 @@ function ruw(over: Partial<DemoRuw> = {}): DemoRuw {
       bezoekDagen: ['2026-10-14', '2026-10-01', '2026-10-06', '2026-09-29', '2026-09-10', '2026-10-20'],
       schema: { naam: 'Full body', doel: 'afvallen', weken: 8, dag_titels: ['Full body A', 'Full body B'] },
       oefeningen: [
-        { dag: 2, volgorde: 1, sets: 3, herhalingen: '10-12', rust_sec: 75, naam: 'Goblet squat', beeld_start: '/club/oefeningen-repdb/goblet-squat-start.webp', beeld_eind: 'https://kwaad.nl/x.webp' },
-        { dag: 1, volgorde: 2, sets: 3, herhalingen: '30 sec', rust_sec: null, naam: 'Plank', beeld_start: null, beeld_eind: null },
-        { dag: 1, volgorde: 1, sets: null, herhalingen: '10 min', rust_sec: 60, naam: 'Roeien', beeld_start: null, beeld_eind: null },
+        { dag: 2, volgorde: 1, sets: 3, herhalingen: '10-12', rust_sec: 75, naam: 'Goblet squat' },
+        { dag: 1, volgorde: 2, sets: 3, herhalingen: '30 sec', rust_sec: null, naam: 'Plank' },
+        { dag: 1, volgorde: 1, sets: null, herhalingen: '10 min', rust_sec: 60, naam: 'Roeien' },
       ],
       metingen: [
         { datum: '2026-09-01', gewicht_kg: 84, buikomtrek_cm: 92 },
@@ -66,15 +66,6 @@ describe('namen', () => {
     expect(korteNaam('Daan', 'van Dijk')).toBe('Daan D.')
     expect(korteNaam('Sem', '')).toBe('Sem')
     expect(korteNaamUit('Iris de Wit')).toBe('Iris W.')
-  })
-})
-
-describe('veiligBeeld', () => {
-  it('alleen eigen oefenbeelden', () => {
-    expect(veiligBeeld('/club/oefeningen-repdb/goblet-squat-start.webp')).toBe('/club/oefeningen-repdb/goblet-squat-start.webp')
-    expect(veiligBeeld('https://kwaad.nl/x.webp')).toBeNull()
-    expect(veiligBeeld('/club/oefeningen-repdb/../geheim.webp')).toBeNull()
-    expect(veiligBeeld(null)).toBeNull()
   })
 })
 
@@ -123,13 +114,13 @@ describe('bouwLidKaart', () => {
 })
 
 describe('bouwSchema', () => {
-  it('dagen op volgorde met titels en veilige beelden', () => {
+  it('dagen op volgorde met titels, zonder beelden uit de database', () => {
     const s = bouwSchema(ruw())
     expect(s?.dagen.map((d) => d.titel)).toEqual(['Full body A', 'Full body B'])
     expect(s?.dagen[0].oefeningen.map((o) => o.naam)).toEqual(['Roeien', 'Plank'])
     expect(s?.dagen[0].oefeningen[0].dosis).toBe('10 min')
     expect(s?.dagen[0].oefeningen[1]).toMatchObject({ dosis: '3 × 30 sec', rust: null })
-    expect(s?.dagen[1].oefeningen[0]).toMatchObject({ beeldStart: '/club/oefeningen-repdb/goblet-squat-start.webp', beeldEind: null })
+    expect(s?.dagen[1].oefeningen[0]).toEqual({ naam: 'Goblet squat', dosis: '3 × 10-12', rust: '75 sec rust' })
   })
   it('geen schema, geen scherm', () => {
     const r = ruw()

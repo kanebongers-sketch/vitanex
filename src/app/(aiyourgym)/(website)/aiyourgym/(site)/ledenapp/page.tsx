@@ -3,7 +3,7 @@ import type { ComponentType } from 'react'
 import { Bell, CalendarClock, CalendarDays, Dumbbell, QrCode, Salad, TrendingUp, Trophy } from 'lucide-react'
 import { Huisstijl } from '@/components/aiyourgym/home/Huisstijl'
 import { AppHome, AppPincode, AppSchema, AppVoeding } from '@/components/aiyourgym/mockups/AppSchermen'
-import { RepdbBron, Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
+import { Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
@@ -106,7 +106,6 @@ export default function LedenappPagina() {
           </div>
           <p className="aygm-bijschrift">
             <span>Schermvoorbeelden met voorbeeldgegevens</span>
-            <RepdbBron />
           </p>
         </div>
       </section>

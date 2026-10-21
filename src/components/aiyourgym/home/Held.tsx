@@ -1,14 +1,14 @@
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { HeldDashboard, OefeningKaartje } from '@/components/aiyourgym/mockups/HeldDashboard'
-import { RepdbBron, Toestel } from '@/components/aiyourgym/mockups/kaders'
+import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { DOELGROEPEN } from '@/components/aiyourgym/inhoud/doelgroepen'
 import { Geruststelling, TweeRoutes } from '@/components/aiyourgym/site/Actie'
 import { WisselWoord } from './WisselWoord'
 
 // De opening van de voorpagina: een belofte met wisselend publiek (gym,
-// PT-studio, keten ...), twee routes (zelf gratis proberen of een persoonlijke
-// demo plannen) en direct eronder wat het risico wegneemt. Ernaast het product
-// zelf: het scherm Vandaag, een oefening met coaching en de ledenapp met QR.
+// PT-studio, keten ...), een zin, twee routes (zelf gratis proberen of een
+// persoonlijke demo plannen) en kort wat het risico wegneemt. Ernaast het
+// product zelf: het scherm Vandaag, een oefening in 3D en de ledenapp met QR.
 
 const WOORDEN = DOELGROEPEN.map((d) => d.kort)
 
@@ -27,16 +27,15 @@ export function Held() {
             </span>
           </h1>
           <p className="ayg-lead">
-            Check-in, groepslessen, personeelsrooster, trainingsschema&rsquo;s met coaching en een ledenapp in je eigen naam en kleuren.
-            Je team werkt vanuit een plek, je leden hebben jouw app op zak.
+            Check-in, lessen, rooster, trainingsschema&rsquo;s met coaching en een ledenapp in jouw naam en kleuren.
           </p>
           <TweeRoutes />
-          <Geruststelling />
+          <Geruststelling aantal={3} />
         </div>
         <div
           className="ayg-held-beeld aygm"
           role="img"
-          aria-label="AI Your Gym in een samengesteld beeld: het scherm Vandaag met tegels, de lessen van de dag met bezetting en een ledenkaart, een oefening uit een trainingsschema met genummerde kernpunten, en de ledenapp op een telefoon met de QR-code om in te checken"
+          aria-label="AI Your Gym in een samengesteld beeld: het scherm Vandaag met tegels, de lessen van de dag met bezetting en een ledenkaart, een oefening uit een trainingsschema als 3D-beeld met genummerde kernpunten, en de ledenapp op een telefoon met de QR-code om in te checken"
         >
           <div className="ayg-held-venster">
             <HeldDashboard />
@@ -50,7 +49,7 @@ export function Held() {
         </div>
       </div>
       <p className="ayg-wrap ayg-held-bijschrift">
-        Schermvoorbeeld met voorbeeldgegevens · <RepdbBron />
+        Schermvoorbeeld met voorbeeldgegevens
       </p>
     </section>
   )
