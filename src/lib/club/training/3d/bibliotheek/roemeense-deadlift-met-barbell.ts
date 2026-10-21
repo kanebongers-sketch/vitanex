@@ -2,11 +2,12 @@
 // Eigen houdingen in plaats van de algemene hinge: de heupen gaan ver naar
 // achteren terwijl de knieen in een vaste lichte buiging blijven (schenen bijna
 // verticaal), de stang schuift in elke stand langs de dijen tot net onder de knie
-// en de nek blijft in lijn met de rug. Bovenaan staat de heup helemaal gestrekt
-// (billen aan), zonder achterover te leunen.
+// en de nek blijft in lijn met de rug, de ogen een paar meter voor je op de vloer.
+// Bovenaan staat de heup helemaal gestrekt (billen aan), zonder achterover te leunen.
 
-import { bereikbaar, houding, zwaartepuntZ } from '../bouw/basis'
+import { BLIK, TEMPO, bereikbaar, houding, langsBeen, zwaartepuntZ } from '../bouw/basis'
 import { staandeLast } from '../bouw/benen'
+import { startVoorSleutel } from '../interpolatie'
 import { figuurIn } from '../kinematica'
 import { BEEN } from '../maten'
 import type { Houding, Oefening3d, Sleutel } from '../typen'
@@ -16,13 +17,19 @@ const GREEP = 0.215
 /** Reik van het been (heup tot enkel ten opzichte van de beenlengte) bovenaan: knie zacht, niet op slot. */
 const REIK_BOVEN = 0.995
 /** Reik tijdens de hele beweging: een vaste kniebuiging van ongeveer 20 graden. */
-const REIK_VAST = 0.976
+const REIK_VAST = 0.979
 /** Bekkenkanteling onderin (graden voorover): stang net onder de knie, rug neutraal. */
-const KANTEL_ONDER = 70
-/** Afstand van het midden van de stang tot de lijn van het been (dikte dij plus stang). */
-const STANG_AAN_BEEN = 0.085
+const KANTEL_ONDER = 95
+/** Afstand van het midden van de stang tot de lijn van het been: de stang raakt de broek. */
+const STANG_AAN_BEEN = 0.055
 /** Zwaartepunt boven het midden van de voet. */
 const MIDDEN_VOET = 0.04
+
+/**
+ * Blik bij de RDL: de nek strekt onderin iets meer dan de algemene scharnierblik,
+ * zodat de ogen een paar meter voor je op de vloer blijven en de kin niet naar de borst zakt.
+ */
+const BLIK_RDL = { hoek: BLIK.scharnier.hoek, sterkte: 0.68 }
 
 const LAST = staandeLast('stang', GREEP, 0.1, false)
 
@@ -34,27 +41,16 @@ const BASIS: Oefening3d = {
   enkel: { x: 0.11, y: 0.08, z: 0 },
   voet: { kanteling: 0, uitdraai: 5 },
   knieRichting: { x: 0.1, y: 0, z: 1 },
-  spieren: ['bil', 'dij', 'rug'],
-  // Zijaanzicht licht van achteren (schijf voor de benen weg): heupen naar achteren, rechte rug en een verticale stangbaan.
-  camera: { hoek: 114, hoogte: 22, afstand: 4.3, doel: { x: 0, y: 0.8, z: -0.08 } },
-}
-
-/** Z van de voorkant van het linkerbeen op hoogte y (lijn heup, knie, enkel). */
-function beenZOp(h: Houding, y: number): number {
-  const b = figuurIn(BASIS, h).benen[0]
-  const [boven, onder] = y >= b.midden.y ? [b.begin, b.midden] : [b.midden, b.eind]
-  const f = Math.min(1, Math.max(0, (boven.y - y) / Math.max(1e-6, boven.y - onder.y)))
-  return boven.z + (onder.z - boven.z) * f
-}
-
-/** Stang tegen de dijen: zoek de plek waar hij net voor het been hangt. */
-function stangLangsBeen(h: Houding): Houding {
-  let uit = h
-  for (let i = 0; i < 4; i++) {
-    const stangY = figuurIn(BASIS, uit).last.pos.y
-    uit = { ...uit, lastZ: beenZOp(uit, stangY) + STANG_AAN_BEEN }
-  }
-  return uit
+  // Het werk zit in de achterkant van de dij en de billen; de onderrug houdt de rug
+  // recht en de brede rugspieren houden de stang tegen de benen.
+  spieren: ['hamstring', 'bil'],
+  spierenSecundair: ['onderrug', 'rug'],
+  blik: BLIK_RDL,
+  // 3/4 van achteren-opzij op borsthoogte: heupen naar achteren, rechte lijn van nek
+  // tot stuit en de achterkant van de dij (hoofdspier) goed in beeld. Puur van opzij
+  // valt onderin de schijf voor de schenen; vanuit deze hoek staan knieen, schenen en
+  // voeten vrij en zie je de stang langs de benen schuiven.
+  camera: { hoek: 117, hoogte: 13, afstand: 3.7, doel: { x: 0, y: 0.78, z: 0.1 } },
 }
 
 /** Zet de heuphoogte zo dat het been precies de gevraagde reik heeft (vaste kniebuiging). */
@@ -72,47 +68,67 @@ function zetReik(h: Houding, doel: number): Houding {
 function inBalans(h: Houding, reik: number): Houding {
   let uit = h
   for (let i = 0; i < 6; i++) {
-    uit = stangLangsBeen(uit)
+    uit = langsBeen(BASIS, uit, STANG_AAN_BEEN)
     const fout = zwaartepuntZ(BASIS, uit, LAST.gewicht) - MIDDEN_VOET
     uit = zetReik({ ...uit, bekkenZ: uit.bekkenZ - fout * 1.2 }, reik)
   }
-  return stangLangsBeen(uit)
+  return langsBeen(BASIS, uit, STANG_AAN_BEEN)
 }
 
-function maak(d: number, reik: number): Houding {
+/** Reik bij diepte d: bovenaan zacht gestrekt, na de eerste centimeters de vaste buiging. */
+function reikBij(d: number): number {
+  const f = Math.min(1, d / 0.12)
+  return REIK_BOVEN + (REIK_VAST - REIK_BOVEN) * (f * f * (3 - 2 * f))
+}
+
+function maak(d: number): Houding {
+  // De heup leidt meteen: de kanteling loopt in het begin sneller op dan de diepte.
+  const k = 1 - (1 - d) ** 1.12
   const h = houding({
     bekkenY: 0.94,
-    // Bovenaan rechtop met billen aan, daarna heupen naar achteren.
-    kantel: KANTEL_ONDER * d,
+    // Bovenaan het bekken iets achterover (billen aan), daarna heupen naar achteren.
+    kantel: -3 + (KANTEL_ONDER + 3) * k,
     // Rug neutraal: onderrug vast, bovenrug licht gestrekt (borst open).
-    lende: -2,
-    borst: -3 * d,
-    // Nek volgt de rug: geen extra buiging, de blik zakt mee met de romp.
-    nek: -6 * d,
+    lende: 2 - 9 * k,
+    borst: -2 - 13 * k,
+    // De blik (scharnier) houdt onderin de ogen een paar meter voor je op de vloer;
+    // rechtop heft de nek dat op zodat je gewoon vooruit kijkt.
+    nek: -22 * (1 - k),
     // Schouders laag en naar achteren: oksels naar de heupen.
-    schouders: -0.035 - 0.005 * d,
+    schouders: -0.035 - 0.005 * k,
     greep: GREEP,
   })
-  return inBalans(h, reik)
+  return inBalans(h, reikBij(d))
 }
 
-/** Een sleutel op diepte d met de vaste kniebuiging. */
-function vast(d: number, rust: number, duur: number): Sleutel {
-  return { houding: maak(d, REIK_VAST), vast: rust, naarVolgende: duur }
+/** Een sleutel op diepte d. */
+function op(d: number, rust: number, duur: number): Sleutel {
+  return { houding: maak(d), vast: rust, naarVolgende: duur }
 }
 
-// Rechtop met billen aan, knieen eerst in de vaste buiging, dan drie tellen
-// omlaag met de heupen voorop, kort stil in de rek en een tel omhoog.
+const HEEN = TEMPO.hinge.heen / 4
+/** Bovenaan langer stil: heup helemaal gestrekt, billen aan, nek neutraal. */
+const BOVEN_STIL = TEMPO.hinge.begin + 0.6
+/** Omhoog in ruim een tel: de diepere scharnier vraagt iets meer tijd dan de standaard. */
+const TERUG = (TEMPO.hinge.terug + 0.2) / 3
+
+// Rechtop met billen aan, drie tellen omlaag met de heupen voorop, kort stil in de
+// rek en een tel omhoog door de heupen naar voren te duwen.
+const SLEUTELS: readonly Sleutel[] = [
+  op(0, BOVEN_STIL, HEEN),
+  op(0.3, 0, HEEN),
+  op(0.58, 0, HEEN),
+  op(0.82, 0, HEEN),
+  op(1, TEMPO.hinge.eind, TERUG),
+  op(0.68, 0, TERUG),
+  op(0.3, 0, TERUG),
+]
+
+/** Index van de diepste stand: die valt op de helft van de lus. */
+const ONDERIN = 4
+
 export const RDL_BARBELL: Oefening3d = {
   ...BASIS,
-  sleutels: [
-    { houding: maak(0, REIK_BOVEN), vast: 0.5, naarVolgende: 0.3 },
-    vast(0, 0, 0.75),
-    vast(0.25, 0, 0.75),
-    vast(0.5, 0, 0.75),
-    vast(0.75, 0, 0.75),
-    vast(1, 0.7, 0.4),
-    vast(0.6, 0, 0.4),
-    vast(0.2, 0, 0.3),
-  ],
+  sleutels: SLEUTELS,
+  start: startVoorSleutel(SLEUTELS, ONDERIN, 0.5),
 }

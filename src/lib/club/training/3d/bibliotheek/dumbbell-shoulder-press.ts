@@ -1,11 +1,11 @@
 // 3D-oefening: Dumbbell shoulder press. Naam exact zoals in de oefenbibliotheek.
 // Zittend op een rechte bank, rug tegen het kussen, voeten plat op heupbreedte.
-// Halters op oorhoogte, ellebogen een hand voor het lichaam en de onderarmen
+// Onderin halters net boven schouderhoogte, ellebogen een hand voor het lichaam en de onderarmen
 // rechtop onder de halter. De hele baan blijft de onderarm verticaal (pols boven
 // elleboog), zodat de halters horizontaal blijven. Bovenin net niet gestrekt en
 // net niet tegen elkaar.
 
-import { houding } from '../bouw/basis'
+import { BLIK, houding, metMoment, TEMPO } from '../bouw/basis'
 import { schouderIn } from '../kinematica'
 import { ARM_GREEP, MATEN } from '../maten'
 import type { Houding, Oefening3d, Sleutel } from '../typen'
@@ -38,7 +38,7 @@ function stand(hoogte: number, voor: number, schouders: number, binnen = 0): Hou
 }
 
 /** Halve afstand tussen de greepmiddens bovenin: een handbreedte tussen de koppen. */
-const GREEP_BOVEN = 0.2
+const GREEP_BOVEN = 0.235
 /** Schouder tot greep bovenin: armen hoog, ellebogen net niet op slot. */
 const REIK_BOVEN = 0.62
 
@@ -49,7 +49,7 @@ const REIK_BOVEN = 0.62
 function boven(schouders: number): Houding {
   const s = schouderIn(houding({ ...ROMP, schouders }))
   const dx = GREEP_BOVEN - s.x
-  const dz = 0.04
+  const dz = 0.07
   return houding({
     ...ROMP,
     schouders,
@@ -59,26 +59,29 @@ function boven(schouders: number): Houding {
   })
 }
 
-const ONDER = stand(-28, 26, 0)
+const ONDER = stand(-30, 30, 0)
 const BOVEN = boven(0.02)
 
-const LAAG = stand(5, 27, 0.004)
-const HALF = stand(32, 27, 0.01, 0.015)
-const HOOG = stand(55, 22, 0.016, 0.05)
+const LAAG = stand(-6, 28, 0.004)
+const HALF = stand(24, 25, 0.01, 0.015)
+const HOOG = stand(53, 23, 0.016, 0.05)
 
-/** 1,2 tel omhoog, kort boven, 2 tellen gecontroleerd terug, kort stil onder. */
+/**
+ * Volgens de coaching: 2 tellen gecontroleerd omlaag, kort stil onderin, 1 tel
+ * omhoog (vaste tempo-opbouw `TEMPO.zakken`). De lus begint bovenin, zodat de
+ * zware startpositie onderin (onderarmen rechtop) op het midden valt.
+ */
+const T = TEMPO.zakken
+const OMLAAG = [HOOG, HALF, LAAG]
+const OMHOOG = [LAAG, HALF, HOOG]
 const SLEUTELS: Sleutel[] = [
-  { houding: ONDER, vast: 0.45, naarVolgende: 0.3 },
-  { houding: LAAG, vast: 0, naarVolgende: 0.3 },
-  { houding: HALF, vast: 0, naarVolgende: 0.3 },
-  { houding: HOOG, vast: 0, naarVolgende: 0.3 },
-  { houding: BOVEN, vast: 0.25, naarVolgende: 0.5 },
-  { houding: HOOG, vast: 0, naarVolgende: 0.5 },
-  { houding: HALF, vast: 0, naarVolgende: 0.5 },
-  { houding: LAAG, vast: 0, naarVolgende: 0.5 },
+  { houding: BOVEN, vast: T.begin, naarVolgende: T.heen / 4 },
+  ...OMLAAG.map((h) => ({ houding: h, vast: 0, naarVolgende: T.heen / 4 })),
+  { houding: ONDER, vast: T.eind, naarVolgende: T.terug / 4 },
+  ...OMHOOG.map((h) => ({ houding: h, vast: 0, naarVolgende: T.terug / 4 })),
 ]
 
-export const SCHOUDERDRUKKEN_3D: Oefening3d = {
+export const SCHOUDERDRUKKEN_3D: Oefening3d = metMoment({
   naam: 'Dumbbell shoulder press',
   sleutels: SLEUTELS,
   last: 'wereld',
@@ -86,8 +89,10 @@ export const SCHOUDERDRUKKEN_3D: Oefening3d = {
   enkel: { x: 0.14, y: 0.08, z: 0.38 },
   voet: { kanteling: 0, uitdraai: 10 },
   knieRichting: { x: 0.08, y: 0.3, z: 1 },
-  elleboogRichting: { x: 1, y: -0.75, z: 0.45 },
+  elleboogRichting: { x: 1, y: -0.5, z: 0.6 },
   materiaal: [{ soort: 'bankRug', plek: { x: 0, y: 0, z: -0.02 } }, { soort: 'halters' }],
-  spieren: ['schouder', 'bovenarm'],
-  camera: { hoek: -25, hoogte: 9, afstand: 4.1, doel: { x: 0, y: 0.88, z: 0.06 } },
-}
+  spieren: ['schouder'],
+  spierenSecundair: ['bovenarm', 'romp'],
+  blik: BLIK.vooruit,
+  camera: { hoek: -50, hoogte: 12, afstand: 4.2, doel: { x: 0, y: 0.9, z: 0.06 } },
+})

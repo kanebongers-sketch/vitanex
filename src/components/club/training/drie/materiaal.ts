@@ -11,9 +11,19 @@ import type { GeoBak } from './vormen'
 import { voegSamen, type MateriaalMaterialen, type Stuk, type Zetter } from './materiaal-delen'
 import { curlStang, halter, kettlebell, stang, zetHalters, zetHalterStaand, zetKettlebell } from './materiaal-vrij'
 import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-banken'
-import { kabel, kabelstation } from './materiaal-kabels'
+import { kabel, kabelLaag, kabelstation } from './materiaal-kabels'
+import { ezStang } from './materiaal-ezstang'
+import { curlMachine } from './materiaal-curlmachine'
+import { kabelAchter } from './materiaal-kabel-achter'
+import { latstationMetGreep } from './materiaal-latstation'
+import { reverseFly } from './materiaal-reversefly'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
+import { schouderPress } from './materiaal-schouderpress'
+import { kabelCrossover, pecDeck } from './materiaal-borst'
+import { smithMachine } from './materiaal-smith'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
+import { buikBank, roeiMachine, tBar } from './materiaal-roeien'
+import { trapBar } from './materiaal-trapbar'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
 export type { Zicht } from './materiaal-zicht'
@@ -71,6 +81,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       const k = kettlebell(bak, m)
       return { groep: k, zet: zetKettlebell(k) }
     }
+    case 'trapBar':
+      return trapBar(bak, m, item.schijven ?? 2, zicht)
+    case 'halterDwars': {
+      const d = halter(bak, m, 1.2)
+      return { groep: d, zet: aanLast(d) }
+    }
     case 'bank':
       return vast(vlakkeBank(bak, m, plek, true, item.draai), bak)
     case 'bankKaal':
@@ -84,17 +100,41 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
     case 'mat':
       return vast(mat(bak, m, plek), bak)
     case 'kabelstation':
-      return kabelstation(bak, m, plek, zicht)
+      return item.greep ? latstationMetGreep(bak, m, plek, item.greep, zicht) : kabelstation(bak, m, plek, zicht)
     case 'kabel':
       return kabel(bak, m, plek, item.greep ?? 'handvat', zicht)
+    case 'kabelAchter':
+      return kabelAchter(bak, m, plek, item.greep ?? 'handvat', zicht)
     case 'legPress':
       return legPress(bak, m, item.hoek ?? 45)
     case 'beenMachine':
       return beenMachine(bak, m, item.variant ?? 'extension', zicht)
     case 'chestPress':
       return chestPress(bak, m, zicht)
+    case 'reverseFly':
+      return reverseFly(bak, m, plek, zicht)
     case 'kuitMachine':
       return kuitMachine(bak, m, plek, zicht)
+    case 'kabelLaag':
+      return kabelLaag(bak, m, plek, item.greep ?? 'handvat', zicht)
+    case 'ezStang':
+      return ezStang(bak, m)
+    case 'curlMachine':
+      return curlMachine(bak, m, zicht)
+    case 'schouderPress':
+      return schouderPress(bak, m, zicht)
+    case 'roeiMachine':
+      return roeiMachine(bak, m, plek, zicht)
+    case 'buikBank':
+      return buikBank(bak, m)
+    case 'tBar':
+      return tBar(bak, m, plek, item.schijven ?? 2)
+    case 'pecDeck':
+      return pecDeck(bak, m, zicht)
+    case 'kabelCrossover':
+      return kabelCrossover(bak, m, plek, zicht)
+    case 'smith':
+      return smithMachine(bak, m, plek, zicht)
   }
 }
 

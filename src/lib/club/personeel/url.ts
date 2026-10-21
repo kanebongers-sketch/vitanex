@@ -87,7 +87,7 @@ export function personeelHref(staat: PersoneelStaat, wijziging: Partial<Personee
   if (s.van) p.set('van', s.van)
   if (s.tot) p.set('tot', s.tot)
   if (s.paneel) p.set('paneel', s.paneel)
-  return `/clubkane/personeel?${p.toString()}`
+  return `/club/personeel?${p.toString()}`
 }
 
 /** Zonder open paneel (voor sluiten). */

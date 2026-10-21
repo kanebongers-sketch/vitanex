@@ -5,13 +5,13 @@ Stand 17-10-2026. Alles hieronder werkt zonder nieuwe betaalde diensten.
 ## 1. Foutregistratie
 
 **Wat er gebeurt**
-- Elke serverfout die Next zelf opvangt op een pagina, API-route of server action van Club (`/clubkane`, `/clubinloggen`, `/api/club`), de ledenapp (`/mijn`, `/api/club/lid`) of AI Your Gym (`/aiyourgym`, `/api/aiyourgym`) komt in de tabel `club_fouten`. Dat loopt via `src/instrumentation.ts` (de Next-hook `onRequestError`).
+- Elke serverfout die Next zelf opvangt op een pagina, API-route of server action van Club (`/club`, `/clubinloggen`, `/api/club`), de ledenapp (`/mijn`, `/api/club/lid`) of AI Your Gym (`/aiyourgym`, `/api/aiyourgym`) komt in de tabel `club_fouten`. Dat loopt via `src/instrumentation.ts` (de Next-hook `onRequestError`).
 - Fouten die een route zelf afvangt en netjes beantwoordt, ziet Next niet. Die leg je vast met `meldFout()` uit `src/lib/club/betrouwbaarheid/melden.ts`. Dat gebeurt nu al in de aanmelding (`/api/aiyourgym/checkout`) en de Stripe-webhook van AI Your Gym.
 - Per dag een rij per soort fout (fingerprint). Herhalingen tellen op in "aantal". Na 90 dagen ruimt pg_cron (`club_fouten_opruimen`, elke nacht) ze op.
-- Er gaat **geen** persoonsgegeven mee: geen headers, body, cookies, tokens of ip-adressen. De melding wordt geschoond (e-mail, id's, codes, cijfers en tekst tussen aanhalingstekens eruit) en is hooguit 200 tekens. De route is het patroon (`/clubkane/leden/[id]`). Als sportschool staat alleen de slug van het subdomein of het id uit de cookie `club-org`.
+- Er gaat **geen** persoonsgegeven mee: geen headers, body, cookies, tokens of ip-adressen. De melding wordt geschoond (e-mail, id's, codes, cijfers en tekst tussen aanhalingstekens eruit) en is hooguit 200 tekens. De route is het patroon (`/club/leden/[id]`). Als sportschool staat alleen de slug van het subdomein of het id uit de cookie `club-org`.
 - De rest van de app (PT-app, LifeOS, webshop, MentaForce) wordt bewust overgeslagen.
 
-**Bekijken**: `fitfactorypt.nl/clubkane/systeem` (alleen Kane, anderen een 404). Daar staan de stand van de database (bereikbaar, reactietijd, opslag van de 500 MB in het gratis plan), de fouten per dag (14 dagen, per onderdeel) en de laatste 30 fouten. Er staat nog geen knop in het menu: typ het adres of zet het in je bladwijzers.
+**Bekijken**: `aiyourgym.com/club/systeem` (alleen Kane, anderen een 404). Daar staan de stand van de database (bereikbaar, reactietijd, opslag van de 500 MB in het gratis plan), de fouten per dag (14 dagen, per onderdeel) en de laatste 30 fouten. Er staat nog geen knop in het menu: typ het adres of zet het in je bladwijzers.
 
 **Wat het niet is**: geen meldingen per mail of telefoon en geen fouten uit de browser. Kijk dus zelf af en toe op de pagina, bijvoorbeeld na elke update.
 
@@ -76,5 +76,5 @@ Met Pro gaat terugzetten via Database > Backups in het dashboard. Let op: dan li
 - [ ] Migratie 428 staat op de database (is uitgevoerd op 17-10-2026).
 - [ ] `fitfactorypt.nl/api/status` geeft `200`.
 - [ ] Cron-job.org-taak staat aan met mail bij mislukken.
-- [ ] `fitfactorypt.nl/clubkane/systeem` opent en toont de database als bereikbaar.
+- [ ] `aiyourgym.com/club/systeem` opent en toont de database als bereikbaar.
 - [ ] Eerste eigen back-up gemaakt en een keer teruggezet in een testproject.

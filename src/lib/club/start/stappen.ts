@@ -69,7 +69,7 @@ export function stapNummer(sleutel: StapSleutel): number {
 
 /** Het adres van een stap, met de gekozen vestiging erbij als die er is. */
 export function startPad(stap: number, vestiging: Vestiging | null): string {
-  return vestiging ? clubPad('/start', vestiging, { stap: String(stap) }) : `/clubkane/start?stap=${stap}`
+  return vestiging ? clubPad('/start', vestiging, { stap: String(stap) }) : `/club/start?stap=${stap}`
 }
 
 /** De eerste stap die nog open staat (de laatste als alles af is). */

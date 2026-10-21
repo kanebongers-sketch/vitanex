@@ -54,14 +54,14 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
       setBezig(false)
       if (!gelukt) return
     }
-    if (laatste) return naar({ afronden: true }, '/clubkane', true)
+    if (laatste) return naar({ afronden: true }, '/club', true)
     await naar({ stap: stap + 1, klaar: sleutel }, startPad(stap + 1, vestiging), true)
   }
 
   const vorige = () => naar({ stap: stap - 1 }, startPad(stap - 1, vestiging), false)
   const overslaan = () => naar({ stap: stap + 1 }, startPad(stap + 1, vestiging), false)
-  const later = () => naar({ stap }, '/clubkane', false)
-  return { bezig, fout, laatste, verder, vorige, overslaan, later, naarClub: () => router.push('/clubkane') }
+  const later = () => naar({ stap }, '/club', false)
+  return { bezig, fout, laatste, verder, vorige, overslaan, later, naarClub: () => router.push('/club') }
 }
 
 export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false }: StartVoetProps) {

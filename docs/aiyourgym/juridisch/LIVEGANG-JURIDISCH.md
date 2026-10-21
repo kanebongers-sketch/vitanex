@@ -42,7 +42,7 @@
 
 ## 6. Wat in de concepten nog ontbreekt
 
-**Privacyverklaring (`src/app/(aiyourgym)/aiyourgym/(site)/privacy/page.tsx`)**
+**Privacyverklaring (`src/app/(aiyourgym)/(website)/aiyourgym/(site)/privacy/page.tsx`)**
 - Wie AI Your Gym is: bedrijfsnaam, adres, KvK-nummer en contactgegevens voor privacyvragen (staat nu "volgen in de definitieve versie").
 - De eigen verwerkingen van AI Your Gym als verantwoordelijke: gegevens van de eigenaar bij aanmelden (naam, e-mail, telefoon, sportschoolnaam), betaling via Stripe, welkomstmail via Resend. Met doel en grondslag per verwerking.
 - Grondslagen (overeenkomst, gerechtvaardigd belang, toestemming).
@@ -54,7 +54,7 @@
 - Klachtrecht bij de Autoriteit Persoonsgegevens.
 - Datum of versie van de verklaring.
 
-**Voorwaarden (`src/app/(aiyourgym)/aiyourgym/(site)/voorwaarden/page.tsx`)**
+**Voorwaarden (`src/app/(aiyourgym)/(website)/aiyourgym/(site)/voorwaarden/page.tsx`)**
 - Partijen en identiteit van AI Your Gym (naam, KvK, adres).
 - Totstandkoming, looptijd, verlenging en opzegging (staat nu "nog uit te werken").
 - Wat er gebeurt na de proefperiode (automatisch betaald of niet).

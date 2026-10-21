@@ -41,5 +41,5 @@ export function magApiAlsMedewerker(pad: string, methode: string): boolean {
  * de rol Clubmanager: dan kan niemand zichzelf of een collega binnenlaten.
  */
 export function magMedewerkerLoginsBeheren(t: WieMag): boolean {
-  return t.isKane || t.rol === 'eigenaar' || t.rol === 'clubmanager'
+  return t.isPlatformEigenaar || t.rol === 'eigenaar' || t.rol === 'clubmanager'
 }

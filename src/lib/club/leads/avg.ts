@@ -95,7 +95,7 @@ export function leadExportBestandsnaam(naam: string, op: Date): string {
 
 /** Kane, de eigenaar en de clubmanager; een medewerker nooit. */
 export function magLeadWissen(t: WieMag): boolean {
-  return t.isKane || t.rol === 'eigenaar' || t.rol === 'clubmanager'
+  return t.isPlatformEigenaar || t.rol === 'eigenaar' || t.rol === 'clubmanager'
 }
 
 /** Dezelfde naamcontrole als bij leden: hoofdletters, accenten en dubbele spaties tellen niet. */

@@ -15,9 +15,8 @@ export interface MedewerkerToegangVelden {
   organisaties: Organisatie[]
   beheerderId: string
   naam: string
-  code: null
   rol: 'medewerker'
-  isKane: false
+  isPlatformEigenaar: false
   /** Het id in club_medewerkers. */
   persoonId: string
   rollen: MedewerkerRol[]
@@ -47,9 +46,8 @@ export function medewerkerToegangVelden({ toegang, medewerker, organisatie, eige
     organisaties: [organisatie],
     beheerderId: eigenaarId,
     naam: medewerker.naam.slice(0, 80),
-    code: null,
     rol: 'medewerker',
-    isKane: false,
+    isPlatformEigenaar: false,
     persoonId: medewerker.id,
     rollen: medewerker.rollen,
     onderdelen: medewerkerOnderdelen(medewerker.rollen, organisatie.instellingen.rechten),

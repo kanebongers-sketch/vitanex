@@ -42,7 +42,7 @@ export function Afgehandeld({ items, ledenkaarten }: Props) {
             <span className={`club-chip ${i.status === 'gedaan' ? 'club-chip--ok' : 'club-chip--uit'}`}>{i.statusLabel}</span>
             <div className="club-opvolg-historie-tekst">
               <p>
-                <Link href={ledenkaarten[i.lidId] ?? '/clubkane/leden'}>{i.naam}</Link>
+                <Link href={ledenkaarten[i.lidId] ?? '/club/leden'}>{i.naam}</Link>
                 <span className="club-zacht"> · {i.regelTitel}</span>
               </p>
               <p className="club-zacht">

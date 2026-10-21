@@ -62,20 +62,34 @@ export type MateriaalSoort =
   | 'halters' // een dumbbell in elke hand
   | 'halterStaand' // een dumbbell verticaal in beide handen (goblet)
   | 'kettlebell' // een kettlebell aan beide handen
+  | 'trapBar' // zeskantige trap bar, handvatten aan de zijkant (greep 0,28)
+  | 'halterDwars' // een dumbbell dwars aan de last (hip thrust), handen naast elkaar op de greep
   | 'bank' // vlakke bank met steunen voor de stang
   | 'bankKaal' // vlakke bank zonder steunen, te draaien (hip thrust: dwars)
   | 'bankSchuin' // verstelbare bank, rugleuning op `hoek` graden
   | 'bankRug' // bank met rechte rugleuning
   | 'kabelstation' // lat pulldown met stang
   | 'kabel' // kabeltoren met katrol op `plek`, greep volgens `greep`
+  | 'kabelAchter' // kabelkolom achter de sporter (rug naar het toestel), katrol op `plek`, greep volgens `greep`
   | 'legPress' // leg press met plateau aan de voeten
   | 'beenMachine' // leg extension of leg curl zittend, kussen aan de enkels
   | 'chestPress' // chest press machine, grepen aan de handen
+  | 'reverseFly' // reverse fly machine: borstkussen, hefbomen draaien boven de schouders
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
+  | 'kabelLaag' // kabelkolom met de katrol laag op `plek` (curl), greep volgens `greep`
+  | 'ezStang' // EZ-curlstang met schuine handgrepen en kleine schijven, aan de last
+  | 'curlMachine' // biceps curl machine: zitting, schuin armkussen, hefboom om de ellebogen
+  | 'schouderPress' // shoulder press machine, hefbomen met grepen aan de handen (zie bouw/schouderpress)
+  | 'pecDeck' // pec deck (butterfly), armen draaien om een as boven de schouders
+  | 'kabelCrossover' // crossover-station met twee hoge katrollen, torens op z = `plek.z`
+  | 'smith' // smith machine: frame en geleidestangen, de stang op z = `plek.z`
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
+  | 'roeiMachine' // seated row machine met borstkussen, hefbomen en grepen aan de handen
+  | 'buikBank' // schuine roeibank om met de borst op te liggen (row met borststeun), ligt tegen de romp
+  | 'tBar' // T-bar row: stang vanuit een scharnier op de vloer, schijven voorop, greep aan de handen
 
-export type KabelGreep = 'stang' | 'touw' | 'vgreep' | 'handvat'
+export type KabelGreep = 'stang' | 'touw' | 'vgreep' | 'handvat' | 'lat'
 
 export interface Materiaal {
   readonly soort: MateriaalSoort

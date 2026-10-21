@@ -92,9 +92,9 @@ export function MeldFormulier() {
       </label>
       <label className="club-veld">
         <span>Pagina waar het gebeurde (optioneel)</span>
-        <input className="club-invoer" value={pagina} onChange={(e) => setPagina(e.target.value)} maxLength={GRENZEN.pagina} aria-invalid={Boolean(fouten.pagina)} aria-describedby={beschrijf('pagina', `${id}-pagina-tip`)} placeholder="/clubkane/rooster" />
+        <input className="club-invoer" value={pagina} onChange={(e) => setPagina(e.target.value)} maxLength={GRENZEN.pagina} aria-invalid={Boolean(fouten.pagina)} aria-describedby={beschrijf('pagina', `${id}-pagina-tip`)} placeholder="/club/rooster" />
         <span id={`${id}-pagina-tip`} className="club-hint">
-          Plak het adres uit de adresbalk, of typ het pad, bijvoorbeeld /clubkane/rooster.
+          Plak het adres uit de adresbalk, of typ het pad, bijvoorbeeld /club/rooster.
         </span>
         <Fout id={foutId('pagina')} tekst={fouten.pagina} />
       </label>

@@ -5,12 +5,12 @@
 // kiest op een subdomein de sportschool uit de slug.
 //
 //  <slug>.aiyourgym.com (schakelaar aan)
-//    /clubkane/...   door (alle bestaande links blijven werken)
+//    /club/...   door (alle bestaande links blijven werken)
 //    /api/...        door
 //    /clubinloggen/  door (persoonlijke inloglink van een eigenaar of clubmanager)
-//    /mijn, /mijn/   door (de ledenapp voor leden, src/app/(hoofd)/mijn)
+//    /mijn, /mijn/   door (de ledenapp voor leden, src/app/(aiyourgym)/(club)/mijn)
 //    /club-app/      door (service worker en iconen van de ledenapp)
-//    /...            herschrijven naar /clubkane/...
+//    /...            herschrijven naar /club/...
 //  www.aiyourgym.com, aiyourgym.com, gereserveerde namen: niet van Club (nog)
 //  elk ander domein: niet van Club
 //
@@ -19,7 +19,7 @@
 
 export const CLUB_DOMEIN = 'aiyourgym.com'
 export const CLUB_LOKAAL = 'club.localhost'
-export const CLUB_PREFIX = '/clubkane'
+export const CLUB_PREFIX = '/club'
 
 /** Een slug: kleine letters, cijfers en koppeltekens, 3 tot 40 tekens, niet beginnen of eindigen met een koppelteken. */
 export const SLUG = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/
@@ -67,6 +67,11 @@ export function slugUitHost(host: string | null | undefined): string | null {
     return uitslag.ok ? uitslag.slug : null
   }
   return null
+}
+
+/** Een volledig adres op aiyourgym.com, voor alles buiten de browser (mails, Stripe, push). */
+export function aygUrl(pad: string): string {
+  return `https://${CLUB_DOMEIN}${pad.startsWith('/') ? pad : `/${pad}`}`
 }
 
 export function adresVan(slug: string): string {

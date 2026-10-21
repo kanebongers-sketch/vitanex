@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { Eye } from 'lucide-react'
 import { APP_TABS, type AppTab } from '@/components/club/app/Toestel'
 import { TabIcoon } from '@/components/club/app/TabIcoon'
-import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 
 // De ledenapp als echte app op de telefoon: merk bovenin, inhoud die scrolt,
 // onderbalk met tabbladen. Houdt rekening met de notch en de thuisbalk
@@ -36,7 +36,7 @@ export function LedenappScherm({ tab, tabPad, merkNaam, merkLogo, fitFactory, ta
           </p>
         )}
         <div className="club-mijn-merk">
-          {fitFactory ? <FfLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} height={28} /> : <span>{merkNaam}</span>}
+          {fitFactory ? <FitFactoryLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} height={28} /> : <span>{merkNaam}</span>}
           {kopActie}
         </div>
       </header>

@@ -59,7 +59,7 @@ Rechts in de balk: **Zoeken** (Ctrl K, / of het vergrootglas). Vindt leden (wie 
 | Mijn diensten | 5 (Menu, Personeel, tab, medewerker, Toon) | 2 (Meer, Personeel) |
 | Les en deelnemers, taken, opvolgen | 3, 3, 2 | 3, 3, 2 (via Meer); op de pc G R, G K, G O |
 
-### Instellingen (het instellingencentrum, `/clubkane/beheer`)
+### Instellingen (het instellingencentrum, `/club/beheer`)
 
 | Groep | Regels |
 |---|---|
@@ -85,8 +85,8 @@ Elke regel toont de stand. Elke instel-pagina heeft bovenaan een kruimelpad met 
 
 | Oud | Nieuw |
 |---|---|
-| `/clubkane/instellingen?tab=regels` (en zalen, lestypen, weekrooster, medewerkers, vestigingen) | `/clubkane/instellingen/<tab>`, de vestiging gaat mee |
-| `/clubkane/instellingen` zonder tab | `/clubkane/beheer` |
+| `/club/instellingen?tab=regels` (en zalen, lestypen, weekrooster, medewerkers, vestigingen) | `/club/instellingen/<tab>`, de vestiging gaat mee |
+| `/club/instellingen` zonder tab | `/club/beheer` |
 
 Alle andere adressen zijn gelijk gebleven.
 
@@ -95,7 +95,7 @@ Alle andere adressen zijn gelijk gebleven.
 - `src/lib/club/kern/instel-paginas.ts`: de lijst van instel-pagina's (groep, pad, rechtensleutel, onderdeel, alleen eigenaar, per vestiging). Stuurt het centrum, het kruimelpad (`InstelKruimel`) en het zoekveld (`src/components/club/shell/zoeken.ts`). Een test bewaakt dat elk pad bestaat en bij zijn rechtensleutel hoort.
 - Navigatie: `ClubBalk.tsx` (balk en rij 2), `Onderbalk.tsx`, `MenuPaneel.tsx`, `VestigingKeuze.tsx`, `ClubZoeken.tsx` (met leden via `GET /api/club/leden/zoek`, recht Leden), `useSneltoetsen.ts`, `ClubKruimel.tsx`. Volgorde van de onderbalk en de letters staan in `onderdelen.ts` (`ONDERBALK_VOLGORDE`, `toets`); tests in `navigatie.test.ts`.
 - `src/components/club/shell/onderdelen.ts`: alle rechtensleutels blijven bestaan (gelijk aan `ONDERDEEL_SLEUTELS`). Instel-onderdelen hebben `inMenu: false`: wel in rechten en zoeken, niet in de balk. Instellingen staat in het menu voor wie minstens een instel-pagina mag (`heeftInstellingen`); tabbladen van dagelijkse onderdelen (snelkoppelingen) tellen daarvoor niet.
-- Het centrum (`beheer/layout.tsx`) is open voor wie iets mag instellen en toont alleen die regels. Elke pagina onder `/clubkane/beheer/*` controleert zelf haar recht (`eisOnderdeel`), zodat een clubmanager of medewerker niets extra ziet.
+- Het centrum (`beheer/layout.tsx`) is open voor wie iets mag instellen en toont alleen die regels. Elke pagina onder `/club/beheer/*` controleert zelf haar recht (`eisOnderdeel`), zodat een clubmanager of medewerker niets extra ziet.
 - Rechten per rol: gegroepeerd zoals het menu plus de groep Instellingen; zonder de onderdelen die alleen de eigenaar heeft en zonder Hulp (heeft iedereen).
-- API-rechten: elke map onder `src/app/api/club/` staat in `API_ONDERDEEL` (`rechten.ts`) of in de lijst bewuste uitzonderingen in `rechten.test.ts` (beheerders, inloggen, uitloggen, ledenapp, lid, platform, organisatie); de test faalt bij een nieuwe map zonder plek.
-- Namen (20-10-2026): de regels van Opvolgen heten overal Opvolgregels (adres blijft `/clubkane/beheer/automatiseringen`); titels en koppen van instel-pagina's zijn gelijk aan `instel-paginas.ts`.
+- API-rechten: elke map onder `src/app/(aiyourgym)/api/club/` staat in `API_ONDERDEEL` (`rechten.ts`) of in de lijst bewuste uitzonderingen in `rechten.test.ts` (beheerders, inloggen, uitloggen, ledenapp, lid, platform, organisatie); de test faalt bij een nieuwe map zonder plek.
+- Namen (20-10-2026): de regels van Opvolgen heten overal Opvolgregels (adres blijft `/club/beheer/automatiseringen`); titels en koppen van instel-pagina's zijn gelijk aan `instel-paginas.ts`.

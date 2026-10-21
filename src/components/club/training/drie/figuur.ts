@@ -30,14 +30,19 @@ export interface FiguurMeshes {
  */
 const GREEP_STRAAL: Partial<Record<MateriaalSoort, number>> = {
   kettlebell: 0.0175,
+  trapBar: 0.0165,
+  halterDwars: 0.0198,
   halters: 0.0165,
   halterStaand: 0.0165,
   kabelstation: 0.0185,
   chestPress: 0.019,
+  schouderPress: 0.019,
   kuitMachine: 0.018,
   beenMachine: 0.018,
   stang: 0.0142,
   curlStang: 0.0142,
+  roeiMachine: 0.019,
+  tBar: 0.0175,
 }
 
 const KABEL_GREEP_STRAAL: Record<KabelGreep, number> = {
@@ -45,6 +50,7 @@ const KABEL_GREEP_STRAAL: Record<KabelGreep, number> = {
   touw: 0.0135,
   vgreep: 0.0175,
   handvat: 0.0175,
+  lat: 0.0185,
 }
 
 function greepStraal(o: Oefening3d): number {

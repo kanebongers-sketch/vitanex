@@ -40,8 +40,8 @@ describe('stappen', () => {
   })
 
   it('maakt het adres van een stap', () => {
-    expect(startPad(3, null)).toBe('/clubkane/start?stap=3')
-    expect(startPad(5, 'budel')).toBe('/clubkane/start?v=budel&stap=5')
+    expect(startPad(3, null)).toBe('/club/start?stap=3')
+    expect(startPad(5, 'budel')).toBe('/club/start?v=budel&stap=5')
   })
 
   it('vindt de eerste open stap', () => {

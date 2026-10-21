@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 import { VESTIGING_PARAM, type Vestiging } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { Module } from '@/lib/club/kern/organisatie'
@@ -29,7 +28,7 @@ import { UitlogKnop } from './UitlogKnop'
 
 /** Zonder vestiging (sportschool heeft er nog geen) blijft de link zonder ?v=. */
 function href(pad: string, vestiging: Vestiging | null): string {
-  const basis = `/clubkane${pad}`
+  const basis = `/club${pad}`
   return vestiging ? `${basis}?${VESTIGING_PARAM}=${encodeURIComponent(vestiging)}` : basis
 }
 
@@ -43,7 +42,7 @@ export interface ClubMerkInfo {
 }
 
 function Merk({ merk }: { merk: ClubMerkInfo }) {
-  if (merk.fitFactory) return <FfLogo />
+  if (merk.fitFactory) return <FitFactoryLogo />
   if (merk.logoUrl) {
     return <img src={merk.logoUrl} alt={merk.naam} className="club-merk-logo" />
   }
@@ -63,8 +62,8 @@ function useActiefInBeeld(nav: RefObject<HTMLElement | null>, pad: string): void
 }
 
 interface ClubBalkProps {
-  /** De PT-code van Kane (link terug naar de PT-app); null voor een eigenaar of clubmanager. */
-  ptCode: string | null
+  /** De platform-eigenaar ziet het label Testomgeving (tot de presentatie). */
+  testomgeving: boolean
   merk: ClubMerkInfo
   /** Onderdelen die bij deze sportschool uit staan. */
   uit: readonly Module[]
@@ -78,7 +77,7 @@ interface ClubBalkProps {
   ledenZoeken: boolean
 }
 
-export function ClubBalk({ ptCode, merk, uit, toegestaan, instellingen, zoek: zoekItems, ledenZoeken }: ClubBalkProps) {
+export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zoek: zoekItems, ledenZoeken }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
@@ -121,19 +120,12 @@ export function ClubBalk({ ptCode, merk, uit, toegestaan, instellingen, zoek: zo
             <span className="club-balk-vestiging">
               <VestigingKeuze vestiging={vestiging} pilot={merk.fitFactory} onWissel={wissel} />
             </span>
-            {ptCode && (
-              <span className="club-test" title="Alleen zichtbaar voor Kane tot de presentatie">
+            {testomgeving && (
+              <span className="club-test" title="Alleen zichtbaar voor de platform-eigenaar tot de presentatie">
                 Testomgeving
               </span>
             )}
-            {ptCode ? (
-              <Link href={`/${ptCode}`} className="club-terug" prefetch={false}>
-                <ArrowLeft aria-hidden size={15} />
-                <span>PT-app</span>
-              </Link>
-            ) : (
-              <UitlogKnop />
-            )}
+            <UitlogKnop />
           </div>
         </div>
         <nav ref={navRef} className="club-nav" aria-label={`Onderdelen van ${groep?.label ?? 'de groep'}`}>

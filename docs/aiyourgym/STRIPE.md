@@ -60,7 +60,7 @@ Render deployt na het opslaan vanzelf opnieuw.
 
 ## 6. Customer Portal (facturen en betaalgegevens)
 
-De eigenaar van een sportschool opent in Club, Instellingencentrum, **Abonnement en facturen** (`/clubkane/beheer/abonnement`) de knop "Facturen en betaalgegevens". Die opent het Customer Portal van Stripe en komt daarna terug op die pagina. Zet het portaal eerst aan in Stripe, anders geeft de knop een foutmelding.
+De eigenaar van een sportschool opent in Club, Instellingencentrum, **Abonnement en facturen** (`/club/beheer/abonnement`) de knop "Facturen en betaalgegevens". Die opent het Customer Portal van Stripe en komt daarna terug op die pagina. Zet het portaal eerst aan in Stripe, anders geeft de knop een foutmelding.
 
 In Stripe: Instellingen, Billing, **Customer portal** (eerst in testmodus, later ook in livemodus):
 

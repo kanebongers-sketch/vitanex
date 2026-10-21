@@ -13,7 +13,7 @@ import { STALEN } from './mockups/stalen'
 const WORTEL = path.resolve(__dirname, '../../..')
 const lees = (bestand: string) => readFileSync(path.join(WORTEL, bestand), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
-const SITE_CSS = 'src/app/(aiyourgym)/aiyourgym/aiyourgym.css'
+const SITE_CSS = 'src/app/(aiyourgym)/(website)/aiyourgym/aiyourgym.css'
 const MOCKUP_CSS = 'src/components/aiyourgym/mockups/mockups.css'
 const ALLE_CSS = [
   SITE_CSS,
@@ -220,7 +220,7 @@ describe('de donkere versie', () => {
   })
   it('meldt licht en donker, zodat Chrome de site niet zelf donker maakt', () => {
     expect(lees(SITE_CSS)).toMatch(/color-scheme:\s*light dark/)
-    expect(lees('src/app/(aiyourgym)/aiyourgym/layout.tsx')).toMatch(/colorScheme:\s*'light dark'/)
+    expect(lees('src/app/(aiyourgym)/(website)/aiyourgym/layout.tsx')).toMatch(/colorScheme:\s*'light dark'/)
   })
 })
 

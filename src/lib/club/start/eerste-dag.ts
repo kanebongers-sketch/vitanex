@@ -40,7 +40,7 @@ export function eersteDag(f: StartFeiten, vestiging: Vestiging | null): EersteDa
     id: p.id,
     titel: p.titel,
     uitleg: p.uitleg,
-    pad: vestiging ? clubPad(p.pad, vestiging) : `/clubkane${p.pad}`,
+    pad: vestiging ? clubPad(p.pad, vestiging) : `/club${p.pad}`,
     af: p.af(f),
   }))
 }

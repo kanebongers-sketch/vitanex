@@ -44,5 +44,5 @@ export function roosterHref(staat: RoosterStaat, wijziging: Partial<RoosterStaat
   if (s.lestype) p.set('type', s.lestype)
   if (s.instructeur) p.set('instructeur', s.instructeur)
   if (s.les) p.set('les', s.les)
-  return `/clubkane/rooster?${p.toString()}`
+  return `/club/rooster?${p.toString()}`
 }

@@ -13,7 +13,7 @@ Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruike
 
 ## Hoe het werkt
 
-1. De eigenaar (of Kane) opent Club, Instellingencentrum, **Betalen in de ledenapp** (`/clubkane/beheer/betalen`), klikt **Stripe koppelen** en vult bij Stripe de bedrijfsgegevens, KvK, rekeningnummer en identiteit in.
+1. De eigenaar (of Kane) opent Club, Instellingencentrum, **Betalen in de ledenapp** (`/club/beheer/betalen`), klikt **Stripe koppelen** en vult bij Stripe de bedrijfsgegevens, KvK, rekeningnummer en identiteit in.
 2. Zodra Stripe betalingen open zet, zet de eigenaar **Kopen in de app** aan en voegt producten toe (prijs in euro incl. btw, btw 9 of 21 procent, aantal lessen of sessies, geldigheid in dagen, vestigingen, te koop ja of nee).
 3. Het lid ziet op Home het blok **Kopen** (`/mijn?tab=kopen`), kiest een product en betaalt op de pagina van Stripe met iDEAL of kaart. Wij zien geen bank- of kaartgegevens.
 4. Stripe meldt de betaling via de webhook. Pas dan zet Club het tegoed op het lid. Het bedrag komt altijd uit onze eigen verkoopregel; klopt het bedrag of account van Stripe niet, dan gebeurt er niets en komt er een melding in Systeem.
@@ -52,7 +52,7 @@ Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruike
 ## Code
 
 - Logica: `src/lib/club/betalen/**` (config, model, regels, invoer, Stripe-API, events, webhookverwerking, opslag, acties).
-- Webhook: `src/app/api/club-betalen/stripe/route.ts`.
-- Beheer-API: `src/app/api/club/betalen/**`; ledenapp-API: `src/app/api/club/lid/betalen/**`; PT afboeken: `src/app/api/club/afspraken/[id]/tegoed`.
-- Pagina: `src/app/(hoofd)/clubkane/beheer/betalen`; componenten: `src/components/club/betalen/**`.
+- Webhook: `src/app/(aiyourgym)/api/club-betalen/stripe/route.ts`.
+- Beheer-API: `src/app/(aiyourgym)/api/club/betalen/**`; ledenapp-API: `src/app/(aiyourgym)/api/club/lid/betalen/**`; PT afboeken: `src/app/(aiyourgym)/api/club/afspraken/[id]/tegoed`.
+- Pagina: `src/app/(aiyourgym)/(club)/club/beheer/betalen`; componenten: `src/components/club/betalen/**`.
 - Database: `supabase/lifeos-migrations/439_club_betalen.sql`.

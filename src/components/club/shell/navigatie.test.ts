@@ -78,16 +78,16 @@ describe('leden zoeken', () => {
     const items = ledenItems([{ id: 'abc', naam: 'Anna de Vries', lidnummer: 'FF1', status: 'Actief' }], ' anna ')
     expect(items.map((i) => i.label)).toEqual(['Anna de Vries', 'Alle leden met "anna"'])
     expect(items[0].uitleg).toBe('Lidnummer FF1 · Actief')
-    expect(zoekHref(items[0], 'budel')).toBe('/clubkane/leden/abc?v=budel')
-    expect(zoekHref(items[1], 'budel')).toBe('/clubkane/leden?q=anna&v=budel')
+    expect(zoekHref(items[0], 'budel')).toBe('/club/leden/abc?v=budel')
+    expect(zoekHref(items[1], 'budel')).toBe('/club/leden?q=anna&v=budel')
   })
 })
 
 describe('kruimelpad naar een lid', () => {
   it('Leden › naam, met de vestiging', () => {
     expect(stappenNaarLid(true, { id: 'abc', naam: 'Anna' }, 'budel')).toEqual([
-      { label: 'Leden', href: '/clubkane/leden?v=budel' },
-      { label: 'Anna', href: '/clubkane/leden/abc?v=budel' },
+      { label: 'Leden', href: '/club/leden?v=budel' },
+      { label: 'Anna', href: '/club/leden/abc?v=budel' },
     ])
   })
 

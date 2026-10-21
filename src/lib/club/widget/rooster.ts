@@ -135,7 +135,7 @@ export type WidgetWeergave = 'openbaar' | 'voorbeeld' | null
  *   voorvertoning voor Kane of de eigenaar ook als hij (nog) uit staat.
  * null = een gewone 404, zodat niemand kan zien welke sportscholen bestaan.
  */
-export function widgetWeergave(p: { actief: boolean; aan: boolean; voorbeeld: boolean; isKane: boolean; isBeheerder: boolean }): WidgetWeergave {
-  if (p.voorbeeld && (p.isKane || (p.actief && p.isBeheerder))) return 'voorbeeld'
+export function widgetWeergave(p: { actief: boolean; aan: boolean; voorbeeld: boolean; isPlatformEigenaar: boolean; isBeheerder: boolean }): WidgetWeergave {
+  if (p.voorbeeld && (p.isPlatformEigenaar || (p.actief && p.isBeheerder))) return 'voorbeeld'
   return p.actief && p.aan ? 'openbaar' : null
 }

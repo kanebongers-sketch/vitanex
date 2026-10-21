@@ -27,7 +27,7 @@ export function OpenKnop({ id, naam, actief }: OpenKnopProps) {
         return setFout(uit.fout)
       }
     }
-    window.location.assign('/clubkane')
+    window.location.assign('/club')
   }
 
   return (

@@ -40,7 +40,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
       return setFout(uit.fout)
     }
     // Heel Club opnieuw laden: menu, huisstijl en vestigingen horen bij de nieuwe sportschool.
-    window.location.assign('/clubkane/huisstijl')
+    window.location.assign('/club/huisstijl')
   }
 
   // Een slot dat meteen dicht gaat, zodat twee snelle klikken niet twee keer aanmaken.
@@ -57,7 +57,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
     setBezig(null)
     if (!uit.ok) return setFout(uit.fout)
     setNieuw(null)
-    window.location.assign('/clubkane/instellingen/vestigingen')
+    window.location.assign('/club/instellingen/vestigingen')
   }
 
   return (

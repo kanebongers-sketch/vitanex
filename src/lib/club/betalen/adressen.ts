@@ -24,5 +24,5 @@ export function kopenAdressen(oorsprong: string, voorvertoningLid: string | null
 
 /** Waar de eigenaar na de onboarding van Stripe terugkomt. */
 export function onboardingAdressen(oorsprong: string): { terug: string; opnieuw: string } {
-  return { terug: `${oorsprong}/clubkane/beheer/betalen?onboarding=klaar`, opnieuw: `${oorsprong}/clubkane/beheer/betalen?onboarding=opnieuw` }
+  return { terug: `${oorsprong}/club/beheer/betalen?onboarding=klaar`, opnieuw: `${oorsprong}/club/beheer/betalen?onboarding=opnieuw` }
 }

@@ -25,8 +25,8 @@ describe('sportschoolUitHeaders', () => {
 
 describe('regelUitVerzoek', () => {
   it('gebruikt het routepatroon en de soort van Next', () => {
-    const r = regelUitVerzoek(new Error('stuk'), { path: `/leden/${ORG}`, method: 'GET', headers: { host: 'testgym.aiyourgym.com', cookie: 'pt-sessie=geheim' } }, { routePath: '/clubkane/leden/[id]', routeType: 'render' })
-    expect(r).toMatchObject({ gebied: 'club', route: '/clubkane/leden/[id]', methode: 'GET', soort: 'render', sportschool: 'testgym', melding: 'stuk' })
+    const r = regelUitVerzoek(new Error('stuk'), { path: `/leden/${ORG}`, method: 'GET', headers: { host: 'testgym.aiyourgym.com', cookie: 'pt-sessie=geheim' } }, { routePath: '/club/leden/[id]', routeType: 'render' })
+    expect(r).toMatchObject({ gebied: 'club', route: '/club/leden/[id]', methode: 'GET', soort: 'render', sportschool: 'testgym', melding: 'stuk' })
     expect(JSON.stringify(r)).not.toContain('geheim')
   })
 

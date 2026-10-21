@@ -48,8 +48,8 @@ export interface VerzoekContext {
 
 /**
  * De regel voor een fout uit onRequestError, of null als hij niet bij Club,
- * de ledenapp of AI Your Gym hoort. Het routepatroon (/clubkane/leden/[id])
- * gaat voor het echte pad; op een subdomein is het pad zonder /clubkane.
+ * de ledenapp of AI Your Gym hoort. Het routepatroon (/club/leden/[id])
+ * gaat voor het echte pad; op een subdomein is het pad zonder /club.
  */
 export function regelUitVerzoek(fout: unknown, verzoek: VerzoekFout, context: VerzoekContext): FoutRegel | null {
   const patroon = context.routePath && context.routePath.startsWith('/') ? context.routePath : null

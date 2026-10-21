@@ -5,9 +5,9 @@ import { standaardRechten } from '@/lib/club/kern/org-instellingen'
 import { ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { apiOnderdeel, magApi, magBeheerdersBeheren, magOnderdeel, toegestaneOnderdelen } from './rechten'
 
-const KANE = { isKane: true, rol: 'beheerder' } as const
-const EIGENAAR = { isKane: false, rol: 'eigenaar' } as const
-const MANAGER = { isKane: false, rol: 'clubmanager' } as const
+const KANE = { isPlatformEigenaar: true, rol: 'beheerder' } as const
+const EIGENAAR = { isPlatformEigenaar: false, rol: 'eigenaar' } as const
+const MANAGER = { isPlatformEigenaar: false, rol: 'clubmanager' } as const
 
 describe('wie beheert beheerders en het adres', () => {
   it('Kane en de eigenaar wel, de clubmanager niet', () => {
@@ -87,10 +87,10 @@ describe('elke API-map onder /api/club hoort bij een onderdeel', () => {
     uitloggen: 'sessie beeindigen, geen onderdeel',
     ledenapp: 'icoon en manifest van de PWA, openbaar',
     lid: 'ledenapp, eigen sessie (ledenlogin/toegang.ts)',
-    platform: 'alleen Kane (vereisKane)',
+    platform: 'alleen Kane (vereisPlatformEigenaar)',
     organisatie: 'eigen tabel ORGANISATIE_ONDERDEEL',
   }
-  const mappen = readdirSync(join(process.cwd(), 'src/app/api/club'), { withFileTypes: true })
+  const mappen = readdirSync(join(process.cwd(), 'src/app/(aiyourgym)/api/club'), { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
 
