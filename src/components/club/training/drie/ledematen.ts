@@ -281,7 +281,7 @@ export function bouwArmen(b: Bouwer, stof: Bouwer, p: Palet): void {
       boven: { lid: BOVENARM, bot: BOT.bovenarm[i], delen: ['bovenarm', 'schouder'], ao: AO_OKSEL },
       onder: { lid: ONDERARM, bot: BOT.onderarm[i], delen: ['onderarm'], ao: AO_ELLEBOOG },
       gewricht: BOT.elleboog[i],
-      kop: { bot: BOT.schouder[i], sterk: 0.6, tot: 0.1 },
+      kop: { bot: BOT.schouder[i], sterk: 0.82, tot: 0.1 },
       kant,
       p,
       meng: 0.045,

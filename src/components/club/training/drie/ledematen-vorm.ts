@@ -91,7 +91,9 @@ export const BOVENARM: Lid = {
     { t: 0.36, dt: 0.25, hoek: -138, dh: 35, h: 0.007 },
     { t: 0.42, dt: 0.08, hoek: -90, dh: 30, h: -0.003 },
   ],
-  kapBoven: 0.85,
+  // Lage dop: de schouderkop loopt over in de deltaspier en monnikskap van de
+  // romp en steekt bij geheven armen niet als een knop boven de schouder uit.
+  kapBoven: 0.55,
   kapOnder: 0.8,
   ringen: 20,
 }
@@ -111,6 +113,7 @@ export const ONDERARM: Lid = {
     { t: 0.0, dt: 0.09, hoek: 180, dh: 35, h: 0.008 },
   ],
   kapBoven: 0.85,
-  kapOnder: 0.95,
+  // Korte dop bij de pols: de hand sluit erop aan, de dop mag er niet doorheen steken.
+  kapOnder: 0.35,
   ringen: 16,
 }

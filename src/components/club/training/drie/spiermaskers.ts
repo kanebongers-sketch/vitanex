@@ -6,7 +6,7 @@
 // een gekleurde legging.
 
 import type { Lichaamsdeel } from '@/lib/club/training/3d/typen'
-import { hoekVerschil, klok } from './bouwer'
+import { glad, hoekVerschil, klok } from './bouwer'
 
 export type Masker = (t: number, hoek: number) => number
 
@@ -18,8 +18,9 @@ export const MASKERS: Partial<Record<Lichaamsdeel, Masker>> = {
     Math.max(klok((t - 0.5) / 0.44) * rond(h, -14, 105), 0.85 * klok((t - 0.8) / 0.16) * rond(h, 48, 40)),
   // Hamstrings: achterkant, van de bilplooi tot net boven de knieholte.
   hamstring: (t, h) => klok((t - 0.48) / 0.42) * rond(h, 178, 92),
-  // Onderste deel van de bilspier, dat over de bovenkant van de dij valt.
-  bil: (t, h) => klok(t / 0.2) * rond(h, 168, 85),
+  // Onderste deel van de bilspier, dat over de bovenkant van de dij valt: vol tot
+  // vlak boven de bilplooi, zodat de hele bil oplicht en niet alleen de bovenrand.
+  bil: (t, h) => glad(0.3, 0.14, t) * rond(h, 168, 88),
   // Kuit: dikste deel aan de achterkant.
   kuit: (t, h) => klok((t - 0.32) / 0.28) * rond(h, 180, 105),
   // Biceps (voor) en triceps (achter); de zijkanten blijven vrij.

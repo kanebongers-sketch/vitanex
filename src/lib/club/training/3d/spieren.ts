@@ -4,9 +4,9 @@
 // `spierSterkte()`; zo hoeft het tekenen niets van primair of secundair te weten.
 //
 // Delen die het tekenen (nog) niet als eigen zone kent, lichten op via een
-// reservedeel: de achterkant van de dij (hamstring) via de dij, de onderrug via
-// de rug. Zodra het tekenen een eigen zone heeft, gaat het deel hier uit
-// SPIER_RESERVE.
+// reservedeel. Inmiddels heeft elk deel een eigen zone (hamstring op de
+// achterkant van de dij, onderrug op de rugstrekkers), dus de lijst is leeg; een
+// nieuw deel zonder zone komt hier tijdelijk bij.
 
 import type { Lichaamsdeel, Oefening3d } from './typen'
 
@@ -14,10 +14,7 @@ import type { Lichaamsdeel, Oefening3d } from './typen'
 export const SPIER_STERKTE = { primair: 1, secundair: 0.45 } as const
 
 /** Delen die het tekenen nog niet los kent, met het deel dat in hun plaats oplicht. */
-export const SPIER_RESERVE: Readonly<Partial<Record<Lichaamsdeel, Lichaamsdeel>>> = {
-  hamstring: 'dij',
-  onderrug: 'rug',
-}
+export const SPIER_RESERVE: Readonly<Partial<Record<Lichaamsdeel, Lichaamsdeel>>> = {}
 
 type SpierBron = Pick<Oefening3d, 'spieren' | 'spierenSecundair'>
 
@@ -46,4 +43,18 @@ export function getekendeSpieren(o: SpierBron): readonly Lichaamsdeel[] {
     if (reserve) uit.add(reserve)
   }
   return [...uit]
+}
+
+/**
+ * Sterkte per getekend deel (primair 1, secundair lager), voor het palet van het
+ * tekenen. Delen die niet werken staan er niet in.
+ */
+export function spierSterktes(o: SpierBron): Partial<Record<Lichaamsdeel, number>> {
+  const uit: Partial<Record<Lichaamsdeel, number>> = {}
+  for (const d of [...o.spieren, ...(o.spierenSecundair ?? [])]) {
+    for (const deel of [d, SPIER_RESERVE[d]]) {
+      if (deel) uit[deel] = spierSterkte(o, deel)
+    }
+  }
+  return uit
 }

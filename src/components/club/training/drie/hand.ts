@@ -28,6 +28,8 @@ interface Palm {
   readonly knokkelY: number
   /** Kant van de handrug: -1 als de rug naar -z wijst. */
   readonly rug: number
+  /** De pols loopt de onderarm in (plat): daar rond als de onderarm. */
+  readonly pols?: boolean
 }
 
 /** Rug van de hand: lichte bulten van de knokkels en pezen ertussen. */
@@ -39,7 +41,17 @@ function rugRelief(def: Palm, x: number, y: number, rug: number): number {
   return knokkel * rug ** 1.5
 }
 
-function palm(b: Bouwer, info: PuntInfo, def: Palm): void {
+/**
+ * Waar de huid van de palm aan hangt: plat loopt de pols (y onder 0) over naar
+ * het polsbot, dat in het verlengde van de onderarm staat.
+ */
+function palmInfo(info: PuntInfo, y: number, pols: number | undefined): PuntInfo {
+  if (pols === undefined) return info
+  const w = glad(0.018, -0.024, y)
+  return w > 0 ? { ...info, b: pols, w } : info
+}
+
+function palm(b: Bouwer, info: PuntInfo, def: Palm, pols?: number): void {
   const n = 18
   const rond = 28
   const van = def.rijen[0][0]
@@ -51,12 +63,14 @@ function palm(b: Bouwer, info: PuntInfo, def: Palm): void {
       const y = van + ((tot - van) * i) / (n - 1)
       const kap = i === 0 || i === n - 1 ? 0.55 : i === 1 || i === n - 2 ? 0.9 : 1
       const h = (j / rond) * Math.PI * 2
-      const x = tabel(def.rijen, y, 1) * macht(Math.cos(h), 3.2) * kap
+      // In de pols (plat) rond als de onderarm, verderop de plattere hand.
+      const vorm = def.pols ? 3.2 - 0.9 * glad(0.012, -0.012, y) : 3.2
+      const x = tabel(def.rijen, y, 1) * macht(Math.cos(h), vorm) * kap
       const zijde = Math.sin(h)
       const relief = rugRelief(def, x, y, zijde * def.rug)
-      return uit.set(x, y, tabel(def.rijen, y, 3) + tabel(def.rijen, y, 2) * macht(zijde, 3.2) * kap + def.rug * relief)
+      return uit.set(x, y, tabel(def.rijen, y, 3) + tabel(def.rijen, y, 2) * macht(zijde, vorm) * kap + def.rug * relief)
     },
-    info: () => info,
+    info: (i) => palmInfo(info, van + ((tot - van) * i) / (n - 1), pols),
   })
 }
 
@@ -157,12 +171,18 @@ const GREEP_PALM: Palm = {
   rug: -1,
 }
 
-/** Plat: de muis van de hand loopt omhoog de pols in (z naar de vloer). */
+/**
+ * Plat: de muis van de hand loopt vloeiend de pols in (z naar de vloer). De
+ * pols begint een stukje in de onderarm, met diens doorsnede net iets ruimer,
+ * zodat het einde van de onderarm erin verdwijnt en er geen plooi ontstaat, of
+ * de onderarm nu rechtop staat (push-up) of op de vloer ligt (plank).
+ */
 const PLATTE_PALM: Palm = {
   rijen: [
-    [-0.022, 0.025, 0.017, -0.022],
-    [-0.004, 0.031, 0.0165, -0.004],
-    [0.022, 0.04, 0.0145, 0.012],
+    [-0.034, 0.026, 0.0168, 0],
+    [-0.014, 0.0272, 0.0178, 0],
+    [0.002, 0.031, 0.0189, 0.001],
+    [0.022, 0.04, 0.0148, 0.0105],
     [0.055, 0.044, 0.0122, 0.019],
     [0.08, 0.044, 0.011, 0.02],
     [0.094, 0.041, 0.0098, 0.021],
@@ -170,6 +190,7 @@ const PLATTE_PALM: Palm = {
   knokkels: [-0.028, -0.0095, 0.0095, 0.027],
   knokkelY: 0.084,
   rug: -1,
+  pols: true,
 }
 
 export function bouwHanden(b: Bouwer, p: Palet, modus: HandModus, stang: number): void {
@@ -179,7 +200,7 @@ export function bouwHanden(b: Bouwer, p: Palet, modus: HandModus, stang: number)
     const info: PuntInfo = { kleur: kleurMet(p.huid, p, m), spier: m, a: BOT.hand[i] }
     const vingers = modus === 'plat' ? platteVingers(k) : greepVingers(k, stang)
     const def = modus === 'plat' ? PLATTE_PALM : GREEP_PALM
-    palm(b, info, { ...def, knokkels: def.knokkels.map((x) => x * k) })
+    palm(b, info, { ...def, knokkels: def.knokkels.map((x) => x * k) }, modus === 'plat' ? BOT.pols[i] : undefined)
     for (const f of vingers) vinger(b, info, nagelKleur, f)
   })
 }

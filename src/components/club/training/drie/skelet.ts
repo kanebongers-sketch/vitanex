@@ -1,5 +1,5 @@
 // ─── Fit Factory Club, 3D-oefenbeelden: skelet ──────────────────────────────
-// Vierentwintig botten die per beeld de stand uit de kinematica overnemen. Het
+// Achtentwintig botten die per beeld de stand uit de kinematica overnemen. Het
 // lichaam is een SkinnedMesh: de videokaart buigt de huid, de processor zet
 // alleen de botten (geen nieuwe objecten per beeld).
 //
@@ -9,7 +9,7 @@
 // Romp en nek mengen tussen bekken, onderrug, borst en hoofd, zodat de rug
 // vloeiend buigt.
 
-import { Bone, Matrix4, Skeleton, Vector3 } from 'three'
+import { Bone, Matrix4, Quaternion, Skeleton, Vector3 } from 'three'
 import type { Figuur, Frame, Ledemaat } from '@/lib/club/training/3d/kinematica'
 import { MATEN } from '@/lib/club/training/3d/maten'
 import type { Oefening3d, Vec3 } from '@/lib/club/training/3d/typen'
@@ -36,9 +36,21 @@ export const BOT = {
    */
   schouder: [20, 21],
   heup: [22, 23],
+  /**
+   * Schouderdak (monnikskap en bovenkant van de deltaspier op de romp): volgt
+   * het schoudergewricht en gaat mee omhoog als de arm geheven wordt, zoals het
+   * schouderblad meedraait. Zo loopt de lijn van nek naar arm vloeiend door.
+   */
+  dak: [24, 25],
+  /**
+   * Pols: op de pols, met de hand recht in het verlengde van de onderarm. De
+   * muis van een platte hand hangt eraan, zodat die bij een geknikte pols
+   * (push-up) vloeiend de onderarm in loopt in plaats van een plooi te maken.
+   */
+  pols: [26, 27],
 } as const
 
-const AANTAL = 24
+const AANTAL = 28
 
 /** Bindhouding van de wervelkolom (rechtop), zoals de kinematica die opbouwt. */
 export const BIND = {
@@ -97,10 +109,12 @@ function zetLid(bot: Bone, van: Vector3, naar: Vector3, voor: Vector3): void {
 }
 
 /**
- * Hulpbot in schouder of heup: op het gewricht, half gedraaid tussen de
- * rusthouding (langs de -y van de romp, zelfde voorkant als het lid) en het lid.
+ * Hulpbot in schouder of heup: op het gewricht, deels gedraaid (fractie `mee`)
+ * tussen de rusthouding (langs de -y van de romp, zelfde voorkant als het lid)
+ * en het lid. In de schouder draait hij minder mee, zodat de schouderkop bij
+ * geheven armen laag blijft en niet als een knop boven de monnikskap uitsteekt.
  */
-function zetKop(hulp: Bone, lid: Bone, romp: Bone): void {
+function zetKop(hulp: Bone, lid: Bone, romp: Bone, mee = 0.5): void {
   RUST_Y.set(0, -1, 0).applyQuaternion(romp.quaternion)
   RUST_Z.set(0, 0, 1).applyQuaternion(lid.quaternion)
   RUST_Z.addScaledVector(RUST_Y, -RUST_Z.dot(RUST_Y))
@@ -109,8 +123,42 @@ function zetKop(hulp: Bone, lid: Bone, romp: Bone): void {
   RUST_X.crossVectors(RUST_Y, RUST_Z)
   RUST.makeBasis(RUST_X, RUST_Y, RUST_Z)
   hulp.position.copy(lid.position)
-  hulp.quaternion.setFromRotationMatrix(RUST).slerp(lid.quaternion, 0.5)
+  hulp.quaternion.setFromRotationMatrix(RUST).slerp(lid.quaternion, mee)
 }
+
+const POLS_Q = new Quaternion()
+
+/** Polsbot: op de pols, de hand gedraaid tot zijn y in de richting van de onderarm wijst. */
+function zetPols(pols: Bone, hand: Bone, onderarm: Bone): void {
+  RUST_X.set(0, 1, 0).applyQuaternion(hand.quaternion)
+  RUST_Z.set(0, 1, 0).applyQuaternion(onderarm.quaternion)
+  POLS_Q.setFromUnitVectors(RUST_X, RUST_Z)
+  pols.position.copy(hand.position)
+  pols.quaternion.copy(POLS_Q).multiply(hand.quaternion)
+}
+
+/** Hoe ver het lid geheven is ten opzichte van de romp: 0 hangend, 1 recht omhoog. */
+function geheven(lid: Bone, romp: Bone): number {
+  RUST_Y.set(0, -1, 0).applyQuaternion(romp.quaternion)
+  RUST_X.set(0, 1, 0).applyQuaternion(lid.quaternion)
+  return (1 - RUST_X.dot(RUST_Y)) / 2
+}
+
+/** Schouderdak op het schoudergewricht, met de stand van de borst, iets hoger bij een geheven arm. */
+function zetDak(dak: Bone, lid: Bone, borst: Bone): void {
+  // Al bij een half geheven arm (zijwaarts of achter de stang) gaat het dak mee.
+  const hef = SCHOUDER_HEF * Math.min(1, 1.6 * geheven(lid, borst))
+  dak.quaternion.copy(borst.quaternion)
+  dak.position.copy(lid.position).add(RUST_Y.set(0, 1, 0).applyQuaternion(borst.quaternion).multiplyScalar(hef))
+}
+
+/** Hoe ver het hulpbot in de schouder met de bovenarm meedraait. */
+const SCHOUDER_MEE = 0.38
+/** Hoeveel het schouderdak omhoog gaat bij een arm recht omhoog (m). */
+const SCHOUDER_HEF = 0.04
+
+/** Schoudergewricht in de bindhouding (links; rechts gespiegeld). */
+export const SCHOUDER_BIND = new Vector3(MATEN.schouder.x, BIND.borst.y + MATEN.schouder.y, BIND.borst.z + MATEN.schouder.z)
 
 export function maakSkelet(o: Oefening3d): Skelet {
   const botten = Array.from({ length: AANTAL }, () => new Bone())
@@ -119,6 +167,8 @@ export function maakSkelet(o: Oefening3d): Skelet {
   inverse[BOT.borst].makeTranslation(-BIND.borst.x, -BIND.borst.y, -BIND.borst.z)
   inverse[BOT.hoofd].makeTranslation(-BIND.hoofd.x, -BIND.hoofd.y, -BIND.hoofd.z)
   for (let i = 0; i < 2; i++) {
+    const z = i === 0 ? 1 : -1
+    inverse[BOT.dak[i]].makeTranslation(-SCHOUDER_BIND.x * z, -SCHOUDER_BIND.y, -SCHOUDER_BIND.z)
     for (const k of [BOT.scheen[i], BOT.knie[i]]) inverse[k].makeTranslation(0, -LID_BIND.been, 0)
     for (const k of [BOT.onderarm[i], BOT.elleboog[i]]) inverse[k].makeTranslation(0, -LID_BIND.arm, 0)
   }
@@ -144,7 +194,8 @@ export function maakSkelet(o: Oefening3d): Skelet {
     pols.copy(a.eind).sub(a.midden).normalize().multiplyScalar(MATEN.onderarm).add(a.midden)
     zetLid(botten[BOT.onderarm[i]], a.midden, pols, arm[i])
     zetGewricht(botten[BOT.elleboog[i]], botten[BOT.bovenarm[i]], botten[BOT.onderarm[i]])
-    zetKop(botten[BOT.schouder[i]], botten[BOT.bovenarm[i]], botten[BOT.borst])
+    zetKop(botten[BOT.schouder[i]], botten[BOT.bovenarm[i]], botten[BOT.borst], SCHOUDER_MEE)
+    zetDak(botten[BOT.dak[i]], botten[BOT.bovenarm[i]], botten[BOT.borst])
   }
 
   return {
@@ -162,6 +213,7 @@ export function maakSkelet(o: Oefening3d): Skelet {
       for (let i = 0; i < 2; i++) {
         zetFrame(botten[BOT.voet[i]], f.voeten[i])
         zetFrame(botten[BOT.hand[i]], f.handen[i])
+        zetPols(botten[BOT.pols[i]], botten[BOT.hand[i]], botten[BOT.onderarm[i]])
       }
     },
   }

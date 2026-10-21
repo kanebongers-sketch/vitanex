@@ -9,7 +9,8 @@
 import { Vector3 } from 'three'
 import { glad, hoekVerschil, klok, raster, tabel, type Bouwer, type PuntInfo } from './bouwer'
 import { nekKleur } from './hoofd'
-import { kleurMet, werkt, type Palet } from './palet'
+import type { Lichaamsdeel } from '@/lib/club/training/3d/typen'
+import { kleurMet, sterkteVan, type Palet } from './palet'
 import { BIND, BOT } from './skelet'
 
 /** Rijen [hoogte s, halve breedte, voorkant, achterkant, midden voor/achter]. */
@@ -25,10 +26,13 @@ const DOORSNEDE: readonly (readonly number[])[] = [
   [0.32, 0.173, 0.118, 0.1, -0.016],
   [0.38, 0.186, 0.124, 0.106, -0.018],
   [0.43, 0.186, 0.116, 0.106, -0.021],
-  [0.47, 0.176, 0.098, 0.1, -0.024],
-  [0.5, 0.15, 0.07, 0.086, -0.026],
-  [0.525, 0.118, 0.054, 0.07, -0.026],
-  [0.548, 0.07, 0.05, 0.06, -0.022],
+  // Schouders: de monnikskap loopt in een vloeiende, licht bolle lijn van de nek
+  // naar de schouderkop, zodat er bij geheven armen geen knik of knop ontstaat.
+  [0.47, 0.18, 0.1, 0.101, -0.024],
+  [0.5, 0.164, 0.076, 0.091, -0.026],
+  [0.525, 0.136, 0.06, 0.078, -0.026],
+  [0.548, 0.098, 0.052, 0.066, -0.022],
+  [0.565, 0.06, 0.05, 0.057, -0.018],
   [0.58, 0.051, 0.05, 0.054, -0.016],
   [0.63, 0.048, 0.048, 0.052, -0.012],
   [0.67, 0.045, 0.044, 0.047, -0.01],
@@ -63,17 +67,27 @@ const BULTEN: readonly Bult[] = [
   { s: 0.25, ds: 0.22, hoek: 180, dh: 9, h: -0.007 },
   { s: 0.14, ds: 0.1, hoek: 166, dh: 12, h: 0.006, paar: true },
   { s: 0.41, ds: 0.06, hoek: 148, dh: 22, h: 0.007, paar: true },
-  { s: 0.5, ds: 0.045, hoek: 155, dh: 42, h: 0.009, paar: true },
+  { s: 0.505, ds: 0.05, hoek: 140, dh: 46, h: 0.01, paar: true },
+  // Deltaspier en schouderdak op de romp: blijft staan als de arm omhoog gaat.
+  { s: 0.478, ds: 0.045, hoek: 90, dh: 34, h: 0.009, paar: true },
   // Bilspieren en bilplooi
   { s: -0.03, ds: 0.068, hoek: 152, dh: 33, h: 0.022, paar: true },
   { s: -0.085, ds: 0.02, hoek: 160, dh: 40, h: -0.006, paar: true },
 ]
 
 const ROND = 64
-const MACHT = 2.6
 
-function macht(x: number): number {
-  return Math.sign(x) * Math.abs(x) ** (2 / MACHT)
+/**
+ * Hoe hoekig de doorsnede is: de romp is wat vierkant, de schouders ronder. De
+ * nek weer als het hoofd (macht 2,6, zie hoofd-vorm.ts), zodat de nek van romp
+ * en hoofd precies samenvallen.
+ */
+function machtOp(s: number): number {
+  return 2.6 - 0.45 * glad(0.43, 0.5, s) * (1 - glad(0.515, 0.545, s))
+}
+
+function macht(x: number, m: number): number {
+  return Math.sign(x) * Math.abs(x) ** (2 / m)
 }
 
 /** Hoe sterk bulten en groeven door een laag heen te zien zijn. */
@@ -105,24 +119,56 @@ function rompPunt(s: number, hoek: number, extra: number, d: Demping, uit: Vecto
   const cz = Math.cos(r)
   const b = bultOp(s, hoek, d) + extra
   const diepte = cz >= 0 ? tabel(DOORSNEDE, s, 2) : tabel(DOORSNEDE, s, 3)
-  return uit.set(tabel(DOORSNEDE, s, 1) * macht(sx) + sx * b, s, tabel(DOORSNEDE, s, 4) + diepte * macht(cz) + cz * b)
+  const m = machtOp(s)
+  return uit.set(tabel(DOORSNEDE, s, 1) * macht(sx, m) + sx * b, s, tabel(DOORSNEDE, s, 4) + diepte * macht(cz, m) + cz * b)
 }
 
-/** Aan welke botten een ring hangt (overgangen rond de wervels). */
-function botten(s: number): { a: number; b: number; w: number } {
+/**
+ * Aan welke botten een punt hangt (overgangen rond de wervels). Hoog en opzij
+ * (monnikskap en schouderdak) hangt de romp deels aan het schouderdak, dat met
+ * een geheven arm meegaat; de nek volgt het hoofd.
+ */
+function botten(s: number, x = 0): { a: number; b: number; w: number } {
+  const opzij = Math.abs(x)
+  // Schouderdak: hoog en opzij hangt de romp deels aan het schoudergewricht.
+  const dak = glad(0.4, 0.47, s) * glad(0.095, 0.16, opzij)
+  if (dak > 0) return { a: BOT.borst, b: BOT.dak[x > 0 ? 0 : 1], w: dak }
   if (s > 0.5) return { a: BOT.borst, b: BOT.hoofd, w: glad(0.53, 0.585, s) }
   if (s > 0.16) return { a: BOT.lende, b: BOT.borst, w: glad(BIND.borst.y - 0.05, BIND.borst.y + 0.05, s) }
   return { a: BOT.bekken, b: BOT.lende, w: glad(BIND.lende.y - 0.05, BIND.lende.y + 0.05, s) }
 }
 
+type Zone = (s: number, a: number) => number
+
+/**
+ * Waar een werkende spier op de romp ligt: s is de hoogte, a de hoek vanaf de
+ * voorkant (0 voor, 90 opzij, 180 achter, beide kanten gelijk).
+ */
+const ZONES: Partial<Record<Lichaamsdeel, Zone>> = {
+  romp: (s, a) => glad(0.05, 0.1, s) * (1 - glad(0.3, 0.34, s)) * klok(a / 75),
+  borst: (s, a) => klok((s - 0.4) / 0.095) * klok((a - 26) / 52),
+  // Lats als een V die naar de taille smaller wordt, plus monnikskap en
+  // ruitvormige spieren tussen de schouderbladen.
+  rug: (s, a) =>
+    Math.max(
+      klok((s - 0.33) / 0.14) * klok((a - (160 - 48 * glad(0.2, 0.43, s))) / 40),
+      klok((s - 0.44) / 0.11) * glad(122, 152, a),
+    ),
+  // Rugstrekkers: twee strengen naast de wervelkolom, van het bekken tot de
+  // onderste ribben.
+  onderrug: (s, a) => klok((s - 0.12) / 0.115) * klok((a - 180) / 36),
+  // Bilspier: van de bekkenkam tot de bilplooi, het dikste deel achter het heupgewricht.
+  bil: (s, a) => klok((s + 0.03) / 0.1) * glad(100, 135, a),
+  schouder: (s, a) => klok((s - 0.48) / 0.05) * klok((a - 90) / 35),
+}
+
 function spierOp(p: Palet, s: number, hoek: number): number {
   const a = Math.abs(hoekVerschil(hoek, 0))
   let m = 0
-  if (werkt(p, 'romp')) m = Math.max(m, glad(0.05, 0.1, s) * (1 - glad(0.3, 0.34, s)) * klok(a / 75))
-  if (werkt(p, 'borst')) m = Math.max(m, klok((s - 0.4) / 0.095) * klok((a - 26) / 52))
-  if (werkt(p, 'rug')) m = Math.max(m, klok((s - 0.33) / 0.21) * glad(92, 122, a))
-  if (werkt(p, 'bil')) m = Math.max(m, klok((s + 0.025) / 0.085) * glad(108, 138, a))
-  if (werkt(p, 'schouder')) m = Math.max(m, klok((s - 0.48) / 0.05) * klok((a - 90) / 35))
+  for (const [deel, zone] of Object.entries(ZONES) as [Lichaamsdeel, Zone][]) {
+    const sterk = sterkteVan(p, deel)
+    if (sterk > 0) m = Math.max(m, sterk * zone(s, a))
+  }
   return m
 }
 
@@ -150,7 +196,7 @@ function huid(b: Bouwer, p: Palet): void {
       // In de nek dezelfde huidkleur en schaduw als het hoofd: geen naad.
       const nek = glad(0.54, 0.556, s)
       const basis = nek > 0 ? p.huid.clone().lerp(nekKleur(p, NEK_Q.copy(q).sub(BIND.hoofd)), nek) : p.huid
-      return { kleur: kleurMet(basis, p, m, false, oksel(s, hoekVan(j))), spier: m, ...botten(s) }
+      return { kleur: kleurMet(basis, p, m, false, oksel(s, hoekVan(j))), spier: m, ...botten(s, q.x) }
     },
   })
 }
@@ -181,11 +227,11 @@ function shirt(b: Bouwer, p: Palet): void {
       const rand = i === 0 || i === n - 1
       return rompPunt(s, hoekVan(j), rand ? 0.0015 : extra(s) + (i === n - 2 ? 0.002 : 0), STOF, uit)
     },
-    info: (i, j): PuntInfo => {
+    info: (i, j, q): PuntInfo => {
       const s = hoogte(i, hoekVan(j))
       const m = spierOp(p, s, hoekVan(j))
       const rand = i <= 1 || i >= n - 2 ? 0.16 : 0
-      return { kleur: kleurMet(p.shirt, p, m, true, rand + oksel(s, hoekVan(j))), spier: m * 0.7, ...botten(s) }
+      return { kleur: kleurMet(p.shirt, p, m, true, rand + oksel(s, hoekVan(j))), spier: m * 0.7, ...botten(s, q.x) }
     },
   })
 }

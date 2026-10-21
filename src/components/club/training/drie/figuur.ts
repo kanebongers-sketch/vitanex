@@ -5,7 +5,7 @@
 
 import { Group, Matrix4, SkinnedMesh, type BufferGeometry, type Material } from 'three'
 import type { Figuur } from '@/lib/club/training/3d/kinematica'
-import type { Oefening3d } from '@/lib/club/training/3d/typen'
+import type { KabelGreep, MateriaalSoort, Oefening3d } from '@/lib/club/training/3d/typen'
 import { Bouwer } from './bouwer'
 import { bouwHaar, bouwHoofd } from './hoofd'
 import { bouwHanden, bouwSchoenen } from './handvoet'
@@ -23,11 +23,37 @@ export interface FiguurMeshes {
   zet(f: Figuur): void
 }
 
-/** Straal van wat de hand vasthoudt (stang, halter of greep van de kabel). */
+/**
+ * Straal van wat de hand vasthoudt, gelijk aan de echte greep in het materiaal
+ * (materiaal-vrij, -grepen en -machines), zodat de vingers er precies omheen
+ * sluiten en er niet in zakken.
+ */
+const GREEP_STRAAL: Partial<Record<MateriaalSoort, number>> = {
+  kettlebell: 0.0175,
+  halters: 0.0165,
+  halterStaand: 0.0165,
+  kabelstation: 0.0185,
+  chestPress: 0.019,
+  kuitMachine: 0.018,
+  beenMachine: 0.018,
+  stang: 0.0142,
+  curlStang: 0.0142,
+}
+
+const KABEL_GREEP_STRAAL: Record<KabelGreep, number> = {
+  stang: 0.0152,
+  touw: 0.0135,
+  vgreep: 0.0175,
+  handvat: 0.0175,
+}
+
 function greepStraal(o: Oefening3d): number {
-  if (o.materiaal.some((m) => m.soort === 'halters')) return 0.016
-  if (o.materiaal.some((m) => m.soort === 'kabelstation')) return 0.018
-  return 0.0135
+  for (const m of o.materiaal) {
+    if (m.soort === 'kabel') return KABEL_GREEP_STRAAL[m.greep ?? 'handvat']
+    const r = GREEP_STRAAL[m.soort]
+    if (r !== undefined) return r
+  }
+  return GREEP_STRAAL.stang ?? 0.0142
 }
 
 export function bouwFiguur(bak: GeoBak, m: FiguurMaterialen, o: Oefening3d, p: Palet): FiguurMeshes {

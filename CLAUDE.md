@@ -2,7 +2,7 @@
 
 # RELEASE V-webshop (releasev.nl) in deze app
 
-Sinds 11-10-2026 draait de RELEASE V-webshop in dezelfde app als Fit Factory PT. Zie `docs/releasev/README.md`.
+Sinds 11-10-2026 draait de RELEASE V-webshop in dezelfde app als Fit Factory PT. Zie `docs/releasev/README.md`. Besluit Kane (21-10-2026): releasev.nl is losgekoppeld in Render (webshop en MentaForce offline); de code blijft bewaard. Render serveert alleen nog fitfactorypt.nl en aiyourgym.com (plus www).
 - Code: `src/releasev/` (alias `@rv/*`), pagina's: `src/app/releasev/`. `src/proxy.ts` herschrijft verzoeken op releasev.nl naar `/releasev/…` (logica: `src/releasev/lib/host-routing.ts`).
 - Raak voor Fit Factory nooit `src/releasev` aan en andersom; gedeeld zijn alleen `src/proxy.ts`, `next.config.ts` (redirects/CSP gelden niet voor releasev.nl) en `src/app/layout.tsx`.
 - Webshopstijlen staan in `src/releasev/styles/releasev.css` (eigen Tailwind-build, alleen op webshoppagina's) met unieke `--rv-…`-variabelen. Nieuwe algemene regels in `src/app/globals.css` buiten de Tailwind-lagen kunnen de webshop raken: check dan releasev.nl.

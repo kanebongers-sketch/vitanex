@@ -4,7 +4,7 @@ import { houdingVan, metKnie, reikBijKnie, standTijdVan } from './beweging'
 import { houdingOp, lusDuur, sleutelTijd, standTijd, startVoorSleutel } from './interpolatie'
 import { figuurIn, nekMetBlik, rompHoek, type Figuur } from './kinematica'
 import { GRENZEN } from './maten'
-import { getekendeSpieren, SPIER_STERKTE, spierSterkte } from './spieren'
+import { getekendeSpieren, SPIER_STERKTE, spierSterkte, spierSterktes } from './spieren'
 import { BLIK, CAMERA_PATROON, houding, TEMPO } from './bouw/basis'
 import { hinge, lunge, squat, swing, calfRaise, heupstrek, beenMachine, legPress } from './bouw/benen'
 import { armOefening, CAMERA, LICHAAM } from './bouw/boven'
@@ -270,10 +270,18 @@ describe('3D-beweging: spieren en camera', () => {
     expect(SPIER_STERKTE.secundair).toBeLessThan(SPIER_STERKTE.primair)
   })
 
-  it('delen zonder eigen zone lichten op via hun reservedeel', () => {
-    expect(spierSterkte(o, 'dij')).toBe(SPIER_STERKTE.primair)
-    expect(spierSterkte(o, 'rug')).toBe(SPIER_STERKTE.secundair)
-    expect(getekendeSpieren(o)).toEqual(['hamstring', 'dij', 'bil'])
+  it('hamstring en onderrug hebben een eigen zone: dij en rug lichten niet mee op', () => {
+    expect(spierSterkte(o, 'dij')).toBe(0)
+    expect(spierSterkte(o, 'rug')).toBe(0)
+    expect(getekendeSpieren(o)).toEqual(['hamstring', 'bil'])
+  })
+
+  it('spierSterktes: elk werkend deel met zijn sterkte, voor het palet', () => {
+    expect(spierSterktes(o)).toEqual({
+      hamstring: SPIER_STERKTE.primair,
+      bil: SPIER_STERKTE.primair,
+      onderrug: SPIER_STERKTE.secundair,
+    })
   })
 
   it('camera per patroon past binnen de regels van de bibliotheek', () => {

@@ -29,7 +29,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { figuurIn, type Figuur } from '@/lib/club/training/3d/kinematica'
 import { lusDuur } from '@/lib/club/training/3d/interpolatie'
 import { houdingVan } from '@/lib/club/training/3d/beweging'
-import { getekendeSpieren } from '@/lib/club/training/3d/spieren'
+import { getekendeSpieren, spierSterktes } from '@/lib/club/training/3d/spieren'
 import type { Camera, Oefening3d } from '@/lib/club/training/3d/typen'
 import { bouwFiguur } from './figuur'
 import { bouwMateriaal, type MateriaalMeshes, type Zicht } from './materiaal'
@@ -96,6 +96,7 @@ function maakPalet(o: Oefening3d, opties: SceneOpties): Palet {
     haar: new Color(k.haar),
     accent: new Color(opties.accent),
     spieren: new Set(getekendeSpieren(o)),
+    sterkte: spierSterktes(o),
   }
 }
 
