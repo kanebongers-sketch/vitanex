@@ -72,6 +72,7 @@ export type MateriaalSoort =
   | 'legPress' // leg press met plateau aan de voeten
   | 'beenMachine' // leg extension of leg curl zittend, kussen aan de enkels
   | 'chestPress' // chest press machine, grepen aan de handen
+  | 'reverseFly' // reverse fly machine: borstkussen, hefbomen draaien boven de schouders
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
   | 'kabelLaag' // kabelkolom met de katrol laag op `plek` (curl), greep volgens `greep`
   | 'ezStang' // EZ-curlstang met schuine handgrepen en kleine schijven, aan de last
