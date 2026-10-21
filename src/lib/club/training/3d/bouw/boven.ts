@@ -5,8 +5,8 @@
 // extensie: een echte boog om schouder en elleboog).
 
 import { schouderIn } from '../kinematica'
-import type { Camera, HandModus, Houding, LastBevestiging, Lichaamsdeel, Materiaal, Oefening3d, Vec3 } from '../typen'
-import { balanceer, handPlek, HEUP_STAAND, houding, lus, STAAND, TEMPO, type ArmStand, type Tempo } from './basis'
+import type { Blik, Camera, HandModus, Houding, LastBevestiging, Lichaamsdeel, Materiaal, Oefening3d, Vec3 } from '../typen'
+import { balanceer, handPlek, HEUP_STAAND, houding, lus, metMoment, STAAND, staandeBlik, TEMPO, type ArmStand, type Tempo } from './basis'
 
 /** Hand ten opzichte van de linkerschouder (m): opzij, omhoog, naar voren. */
 export interface HandRelatief {
@@ -56,10 +56,26 @@ export interface ArmOpties {
   readonly handen?: HandModus
   readonly materiaal: readonly Materiaal[]
   readonly spieren: readonly Lichaamsdeel[]
+  readonly spierenSecundair?: readonly Lichaamsdeel[]
   readonly camera: Camera
   readonly tempo?: Tempo
   /** Tussenstanden per richting; meer bij een boog. */
   readonly tussen?: number
+  /**
+   * Blik in de wereld. Standaard bij een staande oefening (met `balans`): vooruit,
+   * of naar de vloer als de romp ver voorover staat (row). Null = hoofd volgt de romp.
+   */
+  readonly blik?: Blik | null
+  /** Fractie van de lus waarop de eindstand valt (standaard de helft), zie `metMoment()`. */
+  readonly moment?: number
+}
+
+/** De blik voor deze oefening: eigen keuze, of de standaard voor staand. */
+function blikVoor(op: ArmOpties): Blik | undefined {
+  if (op.blik !== undefined) return op.blik ?? undefined
+  if (op.balans === undefined) return undefined
+  const kantel = Math.max(op.lichaam.kantel ?? 0, op.lichaamEind?.kantel ?? 0)
+  return staandeBlik(kantel)
 }
 
 function handKanalen(h: Houding, doel: HandDoel, plat: boolean): Pick<Houding, 'lastY' | 'lastZ' | 'greep'> {
@@ -70,6 +86,7 @@ function handKanalen(h: Houding, doel: HandDoel, plat: boolean): Pick<Houding, '
 
 /** Een oefening met een vaste of meebewegende romp en een handbaan. */
 export function armOefening(op: ArmOpties): Oefening3d {
+  const blik = blikVoor(op)
   const o: Oefening3d = {
     naam: op.naam,
     sleutels: [],
@@ -82,7 +99,9 @@ export function armOefening(op: ArmOpties): Oefening3d {
     ...(op.greepRichting ? { greepRichting: op.greepRichting } : {}),
     materiaal: op.materiaal,
     spieren: op.spieren,
+    ...(op.spierenSecundair ? { spierenSecundair: op.spierenSecundair } : {}),
     camera: op.camera,
+    ...(blik ? { blik } : {}),
   }
   const plat = o.handen === 'plat'
   const zet = (lichaam: Partial<Houding>, hand: HandDoel) => {
@@ -98,7 +117,7 @@ export function armOefening(op: ArmOpties): Oefening3d {
     const h = mengHouding(begin, eind, p.f)
     return { ...h, ...handKanalen(h, mengDoel(op.van, op.naar, p.f), plat) }
   }
-  return { ...o, sleutels: lus({ f: 0 }, { f: 1 }, maak, op.tempo ?? TEMPO.trekken, op.tussen ?? 2) }
+  return metMoment({ ...o, sleutels: lus({ f: 0 }, { f: 1 }, maak, op.tempo ?? TEMPO.trekken, op.tussen ?? 2) }, op.moment)
 }
 
 // ── Lichaamshoudingen die vaak terugkomen ───────────────────────────────────
@@ -115,7 +134,7 @@ export const LICHAAM = {
   zittend: { bekkenY: 0.555, kantel: -10, schouders: -0.005 },
 } as const satisfies Record<string, Partial<Houding>>
 
-/** Standaardcamera's: schuin van voren, van opzij en van boven-opzij voor liggen. */
+/** Standaardcamera's: schuin van voren, van opzij en van boven-opzij voor liggen (zie ook CAMERA_PATROON in basis). */
 export const CAMERA = {
   schuin: { hoek: 36, hoogte: 9, afstand: 4.2, doel: { x: 0, y: 1.0, z: 0.05 } },
   opzij: { hoek: 72, hoogte: 9, afstand: 4.2, doel: { x: 0, y: 0.95, z: 0.05 } },

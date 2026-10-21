@@ -1,12 +1,32 @@
 // ─── Fit Factory Club, 3D-oefenbeelden: bouwstenen onderlichaam (PUUR) ──────
 // Squat, hinge, lunge, heupstrek (hip thrust, bridge), leg press, beenmachine
 // en kuit. Elke bouwsteen neemt een paar parameters en geeft een complete
-// oefening terug; de getallen per oefening staan in ../oefeningen-*.ts.
+// oefening terug; de getallen per oefening staan in ../bibliotheek.
+// Staande bouwstenen hebben standaard een blik vooruit in de wereld, heup en
+// knie die samen buigen (kniePad), primaire en secundaire spieren, een camera
+// per patroon en het zwaarste moment op de helft van de lus.
 
 import { MATEN } from '../maten'
-import { heupIn, schouderIn } from '../kinematica'
-import type { Camera, Houding, Lichaamsdeel, Materiaal, Oefening3d, Vec3 } from '../typen'
-import { balanceer, enkelPlek, HEUP_STAAND, houding, lus, opTenen, STAAND, steunOp, TEMPO, type Tempo } from './basis'
+import { metKnie } from '../beweging'
+import { figuurIn, heupIn, schouderIn } from '../kinematica'
+import type { Blik, Camera, Houding, Lichaamsdeel, Materiaal, Oefening3d, Vec3 } from '../typen'
+import {
+  balanceer,
+  BLIK,
+  CAMERA_PATROON,
+  enkelPlek,
+  HEUP_STAAND,
+  houding,
+  langsBeen,
+  lus,
+  metMoment,
+  opTenen,
+  STAAND,
+  steunOp,
+  TEMPO,
+  zwaartepuntZ,
+  type Tempo,
+} from './basis'
 
 /** Wat een sportschool in de handen heeft bij een staande oefening. */
 export type StaandeLast = 'stang' | 'goblet' | 'halters' | 'kettlebell' | 'armenVooruit' | 'geen'
@@ -70,12 +90,17 @@ export function staandeLast(last: StaandeLast, greep = 0.25, voorZ = 0.1, neutra
   }
 }
 
-function staandeOefening(
-  naam: string,
-  last: LastInstelling,
-  sleutels: Oefening3d['sleutels'],
-  extra: { enkel?: Vec3; uitdraai?: number; spieren: readonly Lichaamsdeel[]; camera: Camera; knieRichting?: Vec3 },
-): Oefening3d {
+interface StaandExtra {
+  readonly enkel?: Vec3
+  readonly uitdraai?: number
+  readonly spieren: readonly Lichaamsdeel[]
+  readonly spierenSecundair?: readonly Lichaamsdeel[]
+  readonly camera: Camera
+  readonly knieRichting?: Vec3
+  readonly blik?: Blik
+}
+
+function staandeOefening(naam: string, last: LastInstelling, sleutels: Oefening3d['sleutels'], extra: StaandExtra): Oefening3d {
   return {
     naam,
     sleutels,
@@ -85,7 +110,10 @@ function staandeOefening(
     voet: { kanteling: 0, uitdraai: extra.uitdraai ?? STAAND.voet.uitdraai },
     knieRichting: extra.knieRichting ?? STAAND.knieRichting,
     spieren: extra.spieren,
+    ...(extra.spierenSecundair ? { spierenSecundair: extra.spierenSecundair } : {}),
     camera: extra.camera,
+    blik: extra.blik ?? BLIK.vooruit,
+    kniePad: true,
   }
 }
 
@@ -109,7 +137,11 @@ export interface SquatOpties {
   readonly greep?: number
   readonly camera?: Camera
   readonly tempo?: Tempo
+  readonly blik?: Blik
 }
+
+/** Ruimte tussen het midden van de knie en een halter die ernaast hangt (m). */
+const HALTER_NAAST_KNIE = 0.12
 
 export function squat(op: SquatOpties): Oefening3d {
   const last = staandeLast(op.last, op.greep ?? 0.24)
@@ -121,21 +153,33 @@ export function squat(op: SquatOpties): Oefening3d {
     uitdraai: 18,
     knieRichting: { x: 0.35, y: 0, z: 1 },
     spieren: ['dij', 'bil'],
-    camera: op.camera ?? { hoek: 38, hoogte: 10, afstand: 4.2, doel: { x: 0, y: 0.86, z: 0 } },
+    spierenSecundair: ['hamstring', 'onderrug'],
+    camera: op.camera ?? CAMERA_PATROON.squat,
+    ...(op.blik ? { blik: op.blik } : {}),
   })
-  const maak = (p: { d: number }) => {
-    const h = houding({
-      bekkenY: HEUP_STAAND + (diepte - HEUP_STAAND) * p.d,
-      bekkenZ: -0.1 * p.d,
-      kantel: 5 + (kantel - 5) * p.d,
-      lende: 3 * p.d,
-      borst: -3 * p.d,
-      nek: -(kantel * 0.6) * p.d,
+  const ruw = (d: number) =>
+    houding({
+      bekkenY: HEUP_STAAND + (diepte - HEUP_STAAND) * d,
+      bekkenZ: -0.1 * d,
+      kantel: 5 + (kantel - 5) * d,
+      lende: 3 * d,
+      borst: -3 * d,
       schouders: 0.005,
     })
-    return opbouwen(basis, last, h, 0.05)
+  // Knie en heup samen: de kniebuiging loopt even hard op als de kanteling.
+  const knieBij = (d: number) => figuurIn(basis, opbouwen(basis, last, ruw(d), 0.05)).benen[0].buiging
+  const knieBoven = knieBij(0)
+  const knieOnder = knieBij(1)
+  const maak = (p: { d: number }) => {
+    const kb = knieBoven + (knieOnder - knieBoven) * p.d
+    let uit = ruw(p.d)
+    for (let i = 0; i < 3; i++) uit = opbouwen(basis, last, metKnie(basis, uit, kb), 0.05)
+    if (op.last !== 'halters') return uit
+    // Halters hangen naast de knieen, ook als die onderin naar buiten gaan.
+    const knie = figuurIn(basis, uit).benen[0].midden.x
+    return { ...uit, greep: Math.max(uit.greep, knie + HALTER_NAAST_KNIE) }
   }
-  return { ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, op.tempo ?? TEMPO.zakken, 1) }
+  return metMoment({ ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, op.tempo ?? TEMPO.squat, 2) })
 }
 
 // ── Hinge (heupscharnier) ───────────────────────────────────────────────────
@@ -145,38 +189,61 @@ export interface HingeOpties {
   readonly last: StaandeLast
   /** Kanteling van het bekken onderin (graden voorover). */
   readonly kantel?: number
-  /** Hoogte van de heup onderin (zachte knieen). */
-  readonly heup?: number
+  /**
+   * Vaste kniebuiging tijdens het scharnieren (graden), los van de diepte: een RDL
+   * houdt 15 tot 20, een stiff leg deadlift 5 tot 10. Bovenaan zijn de knieen zacht.
+   */
+  readonly knie?: number
+  /** Stang of halters: afstand tot de beenlijn (m), de last glijdt langs de benen. Null = vrij hangen. */
+  readonly langsBeen?: number | null
   readonly greep?: number
   readonly breedte?: number
   readonly camera?: Camera
   readonly tempo?: Tempo
   readonly spieren?: readonly Lichaamsdeel[]
+  readonly spierenSecundair?: readonly Lichaamsdeel[]
+  readonly blik?: Blik
 }
+
+/** Zachte knieen bovenaan een heupscharnier (graden). */
+const KNIE_ZACHT = 5
 
 export function hinge(op: HingeOpties): Oefening3d {
   const last = staandeLast(op.last, op.greep ?? 0.23, 0.1, false)
   const kantel = op.kantel ?? 68
-  const heup = op.heup ?? 0.85
+  const knie = op.knie ?? 18
+  const hangt = op.last === 'stang' || op.last === 'halters'
+  const standaard = op.last === 'stang' ? 0.085 : 0.07
+  const afstand = hangt ? (op.langsBeen === undefined ? standaard : op.langsBeen) : null
   const basis = staandeOefening(op.naam, last, [], {
     enkel: { x: op.breedte ?? 0.12, y: 0.08, z: 0 },
     uitdraai: 6,
     knieRichting: { x: 0.15, y: 0, z: 1 },
-    spieren: op.spieren ?? ['bil', 'dij', 'rug'],
-    camera: op.camera ?? { hoek: 70, hoogte: 9, afstand: 4.2, doel: { x: 0, y: 0.82, z: -0.05 } },
+    spieren: op.spieren ?? ['hamstring', 'bil'],
+    spierenSecundair: op.spierenSecundair ?? ['onderrug'],
+    camera: op.camera ?? CAMERA_PATROON.scharnier,
+    blik: op.blik ?? BLIK.scharnier,
   })
   const maak = (p: { d: number }) => {
-    const h = houding({
-      bekkenY: HEUP_STAAND + (heup - HEUP_STAAND) * p.d,
+    // Eerst de knieen in hun vaste buiging, daarna alleen de heupen naar achteren.
+    const kb = KNIE_ZACHT + (knie - KNIE_ZACHT) * Math.min(1, p.d / 0.25)
+    let h = houding({
+      bekkenY: HEUP_STAAND,
       kantel: 3 + (kantel - 3) * p.d,
       lende: -1,
-      borst: 0,
-      nek: -kantel * 0.35 * p.d,
-      schouders: -0.015,
+      borst: -3 * p.d,
+      schouders: -0.015 - 0.02 * p.d,
     })
-    return opbouwen(basis, last, h, 0.04)
+    for (let i = 0; i < 5; i++) {
+      h = metKnie(basis, last.zet(h), kb)
+      if (afstand !== null) h = langsBeen(basis, h, afstand)
+      const fout = zwaartepuntZ(basis, h, last.gewicht) - 0.04
+      h = { ...h, bekkenZ: h.bekkenZ - fout * 1.2 }
+    }
+    h = metKnie(basis, h, kb)
+    return afstand === null ? h : langsBeen(basis, h, afstand)
   }
-  return { ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, op.tempo ?? TEMPO.zakken, 1) }
+  return metMoment({ ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, op.tempo ?? TEMPO.hinge, 2) })
 }
 
 /** Kettlebell swing: heupen naar achteren met de bel tussen de benen, dan explosief strekken tot borsthoogte. */
@@ -186,8 +253,10 @@ export function swing(naam: string): Oefening3d {
     enkel: { x: 0.2, y: 0.08, z: 0 },
     uitdraai: 14,
     knieRichting: { x: 0.35, y: 0, z: 1 },
-    spieren: ['bil', 'dij', 'rug'],
+    spieren: ['bil', 'hamstring'],
+    spierenSecundair: ['onderrug', 'schouder'],
     camera: { hoek: 72, hoogte: 8, afstand: 4.3, doel: { x: 0, y: 0.85, z: 0.05 } },
+    blik: BLIK.scharnier,
   })
   const maak = (p: { d: number }) => {
     const d = p.d
@@ -195,7 +264,6 @@ export function swing(naam: string): Oefening3d {
       bekkenY: 0.925 + (0.8 - 0.925) * d,
       kantel: 2 + 60 * d,
       lende: -1,
-      nek: -22 * d,
       schouders: -0.01,
     })
     const vast = balanceer(basis, { ...h, greep: 0.035, lastZ: 0 }, 0.04, 0.2)
@@ -205,7 +273,7 @@ export function swing(naam: string): Oefening3d {
     return { ...vast, greep: 0.035, lastZ }
   }
   const sleutels = lus({ d: 0 }, { d: 1 }, maak, TEMPO.explosief, 3)
-  return { ...basis, sleutels }
+  return metMoment({ ...basis, sleutels })
 }
 
 // ── Lunge ───────────────────────────────────────────────────────────────────
@@ -237,12 +305,12 @@ export function lunge(op: LungeOpties): Oefening3d {
       uitdraai: 4,
       knieRichting: { x: 0.12, y: 0, z: 1 },
       spieren: ['dij', 'bil'],
-      camera: op.camera ?? { hoek: 74, hoogte: 9, afstand: 4.4, doel: { x: 0, y: 0.8, z: voor ? 0.3 : -0.3 } },
+      spierenSecundair: ['hamstring'],
+      camera: op.camera ?? { ...CAMERA_PATROON.lunge, doel: { ...CAMERA_PATROON.lunge.doel, z: voor ? 0.3 : -0.3 } },
     }),
     ...(plek ? { enkelRechts: { x: -0.11, y: 0.08, z: -pas } } : {}),
   }
   const hielOp = 55
-  const tenen = opTenen(hielOp)
   const maak = (p: { t: number }) => {
     const stap = plek ? 1 : Math.min(1, p.t * 1.6)
     const d = plek ? p.t : Math.max(0, (p.t - 0.3) / 0.7)
@@ -263,7 +331,10 @@ export function lunge(op: LungeOpties): Oefening3d {
         stapZ: pas * stap - lk.voetZ,
       }
     } else if (plek) {
-      voetKanalen = { stapKantel: hielOp, stapY: tenen.voetY, stapZ: tenen.voetZ }
+      // Achterste hiel: hoger naarmate de achterste knie zakt.
+      const hielPlek = hielOp - 10 + 18 * d
+      const tenen = opTenen(hielPlek)
+      voetKanalen = { stapKantel: hielPlek, stapY: tenen.voetY, stapZ: tenen.voetZ }
     } else {
       voetKanalen = { stapKantel: hiel, stapY: til + kant.voetY, stapZ: -pas * stap + kant.voetZ }
     }
@@ -275,14 +346,13 @@ export function lunge(op: LungeOpties): Oefening3d {
       kantel: 6 + 6 * d,
       lende: 0,
       borst: -2 * d,
-      nek: -6 * d,
       ...voetKanalen,
     })
     const doel = voorZ * stap * 0.55 + achterZ * stap * 0.42 + 0.04
     return opbouwen(basis, last, h, doel)
   }
-  const tempo = plek ? TEMPO.zakken : { begin: 0.4, heen: 2.2, eind: 0.3, terug: 1.6 }
-  return { ...basis, sleutels: lus({ t: 0 }, { t: 1 }, maak, tempo, plek ? 1 : 3) }
+  const tempo = plek ? TEMPO.squat : { begin: 0.4, heen: 2.2, eind: 0.3, terug: 1.6 }
+  return metMoment({ ...basis, sleutels: lus({ t: 0 }, { t: 1 }, maak, tempo, plek ? 2 : 3) })
 }
 
 // ── Heupstrek liggend: hip thrust en glute bridge ───────────────────────────
@@ -315,8 +385,9 @@ export function heupstrek(op: HeupstrekOpties): Oefening3d {
     knieRichting: { x: 0.3, y: 1, z: 0.4 },
     elleboogRichting: op.last === 'stang' ? { x: 0.6, y: 0.5, z: -0.5 } : { x: 0.2, y: 0.3, z: -1 },
     materiaal,
-    spieren: ['bil', 'dij'],
-    camera: op.camera ?? { hoek: 78, hoogte: 14, afstand: 4.2, doel: { x: 0, y: 0.45, z: 0.05 } },
+    spieren: ['bil'],
+    spierenSecundair: ['hamstring', 'dij'],
+    camera: op.camera ?? CAMERA_PATROON.heupstrek,
   }
   const onder = bank ? -52 : -90
   // Boven: romp en dijen in een lijn (bank: horizontaal; vloer: heupen hoger dan schouders).
@@ -328,7 +399,7 @@ export function heupstrek(op: HeupstrekOpties): Oefening3d {
     if (op.last === 'stang') return { ...h, lastY: 0.0, lastZ: 0.15, greep: 0.3 }
     return { ...h, lastY: 0.03, lastZ: steunPunt.z + 0.36, greep: 0.25 }
   }
-  return { ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, TEMPO.trekken, 1) }
+  return metMoment({ ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, TEMPO.trekken, 1) })
 }
 
 // ── Leg press ───────────────────────────────────────────────────────────────
@@ -369,13 +440,14 @@ export function legPress(op: LegPressOpties): Oefening3d {
     greepRichting: { x: 0, y: 0, z: 1 },
     materiaal: [{ soort: 'legPress', hoek: op.hoek, plek: { x: 0, y: 0, z: 0 } }],
     spieren: ['dij', 'bil'],
+    spierenSecundair: ['hamstring'],
     camera: op.camera ?? { hoek: 74, hoogte: 13, afstand: 4.9, doel: { x: 0, y: 0.78, z: 0.42 } },
   }
   const maak = (p: { d: number }) => {
     const pos = plek(boven + (onder - boven) * p.d)
     return { ...h0, voetY: pos.y - start.y, voetZ: pos.z - start.z, lastY: heup.y - 0.02, lastZ: heup.z + 0.08, greep: 0.29 }
   }
-  return { ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, TEMPO.zakken, 1) }
+  return metMoment({ ...basis, sleutels: lus({ d: 0 }, { d: 1 }, maak, TEMPO.zakken, 1) })
 }
 
 // ── Beenmachine: leg extension en leg curl zittend ──────────────────────────
@@ -406,7 +478,8 @@ export function beenMachine(op: BeenMachineOpties): Oefening3d {
     elleboogRichting: { x: 0.4, y: 0, z: -1 },
     greepRichting: { x: 0, y: 0, z: 1 },
     materiaal: [{ soort: 'beenMachine', variant: op.variant, plek: { x: 0, y: 0, z: heup.z + MATEN.dij } }],
-    spieren: ext ? ['dij'] : ['dij', 'kuit'],
+    spieren: ext ? ['dij'] : ['hamstring'],
+    ...(ext ? {} : { spierenSecundair: ['kuit'] as const }),
     camera: op.camera ?? { hoek: 72, hoogte: 12, afstand: 4.2, doel: { x: 0, y: 0.75, z: 0.25 } },
   }
   const maak = (p: { k: number }) => {
@@ -421,7 +494,7 @@ export function beenMachine(op: BeenMachineOpties): Oefening3d {
       greep: 0.27,
     }
   }
-  return { ...basis, sleutels: lus({ k: van }, { k: naar }, maak, TEMPO.trekken, 2) }
+  return metMoment({ ...basis, sleutels: lus({ k: van }, { k: naar }, maak, TEMPO.trekken, 2) })
 }
 
 // ── Kuit: calf raise ────────────────────────────────────────────────────────
@@ -440,6 +513,7 @@ export function calfRaise(naam: string): Oefening3d {
     materiaal: [{ soort: 'kuitMachine', plek: { x: 0, y: 0, z: 0.13 } }],
     spieren: ['kuit'],
     camera: { hoek: 70, hoogte: 6, afstand: 4.2, doel: { x: 0, y: 0.95, z: 0 } },
+    blik: BLIK.vooruit,
   }
   const maak = (p: { a: number }) => {
     const t = opTenen(p.a)
@@ -456,5 +530,5 @@ export function calfRaise(naam: string): Oefening3d {
       greep: 0.28,
     })
   }
-  return { ...basis, sleutels: lus({ a: -14 }, { a: 34 }, maak, { begin: 0.7, heen: 1.0, eind: 0.6, terug: 1.6 }, 1) }
+  return metMoment({ ...basis, sleutels: lus({ a: -14 }, { a: 34 }, maak, { begin: 0.7, heen: 1.0, eind: 0.6, terug: 1.6 }, 1) })
 }

@@ -3,6 +3,8 @@
 // in src/components/club/training/drie.
 
 export { OEFENINGEN_3D, oefening3dOpNaam } from './oefeningen'
-export { houdingOp, lusDuur, sleutelTijd, standTijd } from './interpolatie'
+export { houdingOp, lusDuur, sleutelTijd, standTijd, startVoorSleutel } from './interpolatie'
+export { houdingVan, standTijdVan } from './beweging'
+export { getekendeSpieren, spierSterkte } from './spieren'
 export { figuurIn } from './kinematica'
-export type { Houding, Oefening3d, Sleutel } from './typen'
+export type { Blik, Houding, Oefening3d, Sleutel } from './typen'

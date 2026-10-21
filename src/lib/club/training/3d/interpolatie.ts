@@ -62,3 +62,14 @@ export function sleutelTijd(sleutels: readonly Sleutel[], i: number): number {
 export function standTijd(sleutels: readonly Sleutel[], stand: 'begin' | 'eind'): number {
   return stand === 'begin' ? 0 : sleutelTijd(sleutels, Math.floor(sleutels.length / 2))
 }
+
+/**
+ * Startfractie zodat het midden van de pauze op sleutel `i` op fractie `op` van de
+ * lus valt (standaard de helft). Bedoeld voor `Oefening3d.start`.
+ */
+export function startVoorSleutel(sleutels: readonly Sleutel[], i: number, op = 0.5): number {
+  const duur = lusDuur(sleutels)
+  if (duur <= 0 || i < 0 || i >= sleutels.length) return 0
+  const midden = (sleutelTijd(sleutels, i) + sleutels[i].vast / 2) / duur
+  return (((midden - op) % 1) + 1) % 1
+}

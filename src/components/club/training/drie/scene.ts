@@ -6,13 +6,13 @@
 // losse prototype en in de app.
 
 import {
+  Box3,
   CanvasTexture,
   Color,
   DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
   NeutralToneMapping,
   PCFSoftShadowMap,
   PerspectiveCamera,
@@ -27,15 +27,18 @@ import {
 } from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { figuurIn, type Figuur } from '@/lib/club/training/3d/kinematica'
-import { houdingOp, lusDuur } from '@/lib/club/training/3d/interpolatie'
+import { lusDuur } from '@/lib/club/training/3d/interpolatie'
+import { houdingVan } from '@/lib/club/training/3d/beweging'
+import { getekendeSpieren } from '@/lib/club/training/3d/spieren'
 import type { Camera, Oefening3d } from '@/lib/club/training/3d/typen'
 import { bouwFiguur } from './figuur'
-import { bouwMateriaal } from './materiaal'
+import { bouwMateriaal, type MateriaalMeshes, type Zicht } from './materiaal'
+import { maakMateriaalMaterialen, type Thema } from './materiaal-delen'
 import type { Palet } from './palet'
 import { maakFiguurMaterialen, ruimMaterialenOp } from './stoffen'
 import { GeoBak } from './vormen'
 
-export type Thema = 'donker' | 'licht'
+export type { Thema } from './materiaal-delen'
 
 export interface SceneOpties {
   readonly accent: string
@@ -57,11 +60,11 @@ export interface Scene3d {
 
 const KLEUREN = {
   donker: {
-    huid: '#b38b72', shirt: '#33363d', broek: '#1c1e22', schoen: '#2b2d33', zool: '#e9e6e0', haar: '#2b221c',
+    huid: '#ad8b79', shirt: '#33363d', broek: '#1c1e22', schoen: '#2b2d33', zool: '#e9e6e0', haar: '#2b221c',
     schaduw: 0.5, vlek: 0.55, contact: 0.7, hemel: 0.45, rand: 2.4, omgeving: 0.55, gloed: 0.32, glans: 0.22, belichting: 1.05,
   },
   licht: {
-    huid: '#b38b72', shirt: '#3b3f47', broek: '#24262b', schoen: '#30333a', zool: '#f1eee8', haar: '#2b221c',
+    huid: '#ad8b79', shirt: '#3b3f47', broek: '#24262b', schoen: '#30333a', zool: '#f1eee8', haar: '#2b221c',
     schaduw: 0.24, vlek: 0.3, contact: 0.42, hemel: 0.6, rand: 1.4, omgeving: 0.65, gloed: 0.26, glans: 0.08, belichting: 1.0,
   },
 } as const
@@ -92,20 +95,7 @@ function maakPalet(o: Oefening3d, opties: SceneOpties): Palet {
     zool: new Color(k.zool),
     haar: new Color(k.haar),
     accent: new Color(opties.accent),
-    spieren: new Set(o.spieren),
-  }
-}
-
-function materiaalMaterialen(accent: Color) {
-  return {
-    staal: new MeshStandardMaterial({ color: '#d4d7dc', roughness: 0.22, metalness: 0.95 }),
-    staalMat: new MeshStandardMaterial({ color: '#b9bcc2', roughness: 0.42, metalness: 0.9 }),
-    schijf: new MeshStandardMaterial({ color: '#2b2d32', roughness: 0.55, metalness: 0.15 }),
-    accent: new MeshStandardMaterial({ color: accent, roughness: 0.45, metalness: 0.3 }),
-    kussen: new MeshStandardMaterial({ color: '#2f3036', roughness: 0.78 }),
-    frame: new MeshStandardMaterial({ color: '#8b8f97', roughness: 0.38, metalness: 0.75 }),
-    mat: new MeshStandardMaterial({ color: '#34363b', roughness: 0.95 }),
-    kabel: new MeshStandardMaterial({ color: '#1e1f22', roughness: 0.6 }),
+    spieren: new Set(getekendeSpieren(o)),
   }
 }
 
@@ -119,42 +109,81 @@ function camera(k: Camera, aspect: number): PerspectiveCamera {
   return c
 }
 
-/** Plek van een licht: hoek ten opzichte van de camera, hoogte in graden. */
-function rondom(o: Oefening3d, hoek: number, hoogte: number, afstand: number): Vector3 {
-  const h = ((o.camera.hoek + hoek) * Math.PI) / 180
+/** Richting van een licht: hoek ten opzichte van de camera die echt kijkt, hoogte in graden. */
+function rondom(kader: Camera, hoek: number, hoogte: number): Vector3 {
+  const h = ((kader.hoek + hoek) * Math.PI) / 180
   const v = (hoogte * Math.PI) / 180
-  return new Vector3(Math.sin(h) * Math.cos(v) * afstand, Math.sin(v) * afstand, Math.cos(h) * Math.cos(v) * afstand)
-    .add(new Vector3(o.camera.doel.x, 0, o.camera.doel.z))
+  return new Vector3(Math.sin(h) * Math.cos(v), Math.sin(v), Math.cos(h) * Math.cos(v))
 }
 
-function lichten(scene: Scene, o: Oefening3d, thema: Thema): void {
+/** Hoofdlicht hoog en iets opzij (korte, rustige slagschaduw), vul- en randlichten volgen de camera. */
+function lichten(scene: Scene, kader: Camera, thema: Thema): DirectionalLight {
   const k = KLEUREN[thema]
-  const doel = new Vector3(o.camera.doel.x, 0.7, o.camera.doel.z)
+  const doel = new Vector3(kader.doel.x, 0.7, kader.doel.z)
   scene.add(new HemisphereLight('#f4f1ec', '#4a4542', k.hemel))
   const sleutel = new DirectionalLight('#fff2e2', 2.5)
-  sleutel.position.copy(rondom(o, 38, 52, 5))
+  sleutel.position.copy(rondom(kader, 32, 62)).multiplyScalar(5).add(doel)
   sleutel.target.position.copy(doel)
   sleutel.castShadow = true
-  sleutel.shadow.mapSize.set(1024, 1024)
-  const s = sleutel.shadow.camera
-  s.left = -1.6
-  s.right = 1.6
-  s.top = 1.6
-  s.bottom = -1.6
-  s.near = 1
-  s.far = 10
-  sleutel.shadow.bias = -0.0005
-  sleutel.shadow.normalBias = 0.025
+  sleutel.shadow.bias = -0.0004
+  sleutel.shadow.normalBias = 0.02
   const vul = new DirectionalLight('#dfe7ff', 0.55)
-  vul.position.copy(rondom(o, -55, 18, 5))
+  vul.position.copy(rondom(kader, -55, 18)).multiplyScalar(5).add(doel)
   vul.target.position.copy(doel)
   const rand1 = new DirectionalLight('#ffffff', k.rand)
-  rand1.position.copy(rondom(o, 150, 30, 5))
+  rand1.position.copy(rondom(kader, 150, 30)).multiplyScalar(5).add(doel)
   rand1.target.position.copy(doel)
   const rand2 = new DirectionalLight('#e6edff', k.rand * 0.7)
-  rand2.position.copy(rondom(o, -140, 40, 5))
+  rand2.position.copy(rondom(kader, -140, 40)).multiplyScalar(5).add(doel)
   rand2.target.position.copy(doel)
   scene.add(sleutel, sleutel.target, vul, vul.target, rand1, rand1.target, rand2, rand2.target)
+  return sleutel
+}
+
+/**
+ * Meet de hele beweging (figuur en materiaal over de lus) en zet de
+ * schaduwcamera van het hoofdlicht er precies omheen: geen afgekapte
+ * schaduw bij elke camerahoek, en zo scherp mogelijk binnen de schaduwkaart.
+ */
+function pasSchaduwAan(licht: DirectionalLight, doos: Box3): void {
+  const midden = doos.getCenter(new Vector3())
+  const straal = Math.max(0.8, doos.getSize(new Vector3()).length() / 2 + 0.25)
+  const richting = licht.position.clone().sub(licht.target.position).normalize()
+  licht.target.position.copy(midden)
+  licht.position.copy(midden).addScaledVector(richting, straal + 3)
+  const s = licht.shadow.camera
+  s.left = -straal
+  s.right = straal
+  s.top = straal
+  s.bottom = -straal
+  s.near = 0.5
+  s.far = 2 * straal + 6
+  s.updateProjectionMatrix()
+  const kaart = straal > 1.5 ? 2048 : 1024
+  licht.shadow.mapSize.set(kaart, kaart)
+}
+
+/**
+ * Loop de beweging een keer door: het materiaal meet zijn slag (kabel,
+ * hefboom) en we krijgen de ruimte die figuur en materiaal samen innemen.
+ */
+function meetBeweging(o: Oefening3d, materiaal: MateriaalMeshes): Box3 {
+  const duur = lusDuur(o.sleutels)
+  const stappen = 24
+  const standen = Array.from({ length: stappen }, (_, i) => {
+    const h = houdingVan(o, (i / stappen) * duur)
+    return { h, f: figuurIn(o, h) }
+  })
+  for (const { f, h } of standen) materiaal.meet(f, h)
+  const doos = new Box3()
+  for (const { f, h } of standen.filter((_, i) => i % 6 === 0)) {
+    materiaal.zet(f, h)
+    doos.expandByObject(materiaal.groep)
+    const punten = [f.hoofd.pos, f.borst.pos, f.bekken.pos, ...f.handen.map((x) => x.pos), ...f.voeten.map((x) => x.pos), ...f.benen.map((x) => x.midden), ...f.armen.map((x) => x.midden)]
+    for (const p of punten) doos.expandByPoint(p)
+  }
+  // Ruimte voor hoofd, schouders en schoenen rond de gewrichtspunten.
+  return doos.expandByScalar(0.12)
 }
 
 interface Contact {
@@ -213,11 +242,12 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
   const omgeving = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = omgeving
   scene.environmentIntensity = k.omgeving
-  lichten(scene, o, opties.thema)
+  const kader = opties.camera ?? o.camera
+  const sleutel = lichten(scene, kader, opties.thema)
 
   const bak = new GeoBak()
   const accent = new Color(opties.accent)
-  const mat = materiaalMaterialen(accent)
+  const mat = maakMateriaalMaterialen(accent, opties.thema)
   const figuurMat = maakFiguurMaterialen({ accent, gloed: k.gloed, glans: k.glans })
   const vloer = new Mesh(bak.houd(new PlaneGeometry(12, 12)), new ShadowMaterial({ opacity: k.schaduw }))
   vloer.rotation.x = -Math.PI / 2
@@ -233,17 +263,17 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
   scene.add(...contact.meshes)
 
   const figuur = bouwFiguur(bak, figuurMat, o, maakPalet(o, opties))
-  const materiaal = bouwMateriaal(bak, mat, o.materiaal)
-  scene.add(figuur.groep, materiaal.groep)
-
-  const kader = opties.camera ?? o.camera
   let cam = camera(kader, 1)
+  const zicht: Zicht = { oog: cam.position.clone() }
+  const materiaal = bouwMateriaal(bak, mat, o.materiaal, zicht)
+  scene.add(figuur.groep, materiaal.groep)
+  pasSchaduwAan(sleutel, meetBeweging(o, materiaal))
 
   return {
     duur: lusDuur(o.sleutels),
     driehoeken: figuur.driehoeken,
     teken(t: number) {
-      const h = houdingOp(o.sleutels, t)
+      const h = houdingVan(o, t)
       const f = figuurIn(o, h)
       figuur.zet(f)
       contact.zet(f)
@@ -253,6 +283,7 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
     grootte(breedte: number, hoogte: number) {
       renderer.setSize(breedte, hoogte, false)
       cam = camera(kader, breedte / Math.max(1, hoogte))
+      zicht.oog.copy(cam.position)
     },
     ruimOp() {
       bak.ruimOp()
@@ -261,7 +292,8 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
       omgeving.dispose()
       pmrem.dispose()
       ruimMaterialenOp(figuurMat)
-      const losse = [...Object.values(mat), vloer.material, vlek.material, ...contact.meshes.map((m) => m.material as MeshBasicMaterial)]
+      mat.ruimOp()
+      const losse = [vloer.material, vlek.material, ...contact.meshes.map((m) => m.material as MeshBasicMaterial)]
       for (const m of losse) m.dispose()
       renderer.dispose()
     },

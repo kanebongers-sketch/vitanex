@@ -8,6 +8,7 @@
 
 import { Vector3 } from 'three'
 import { glad, hoekVerschil, klok, raster, tabel, type Bouwer, type PuntInfo } from './bouwer'
+import { nekKleur } from './hoofd'
 import { kleurMet, werkt, type Palet } from './palet'
 import { BIND, BOT } from './skelet'
 
@@ -28,9 +29,9 @@ const DOORSNEDE: readonly (readonly number[])[] = [
   [0.5, 0.15, 0.07, 0.086, -0.026],
   [0.525, 0.118, 0.054, 0.07, -0.026],
   [0.548, 0.07, 0.05, 0.06, -0.022],
-  [0.58, 0.058, 0.052, 0.056, -0.016],
-  [0.63, 0.054, 0.05, 0.054, -0.012],
-  [0.67, 0.048, 0.044, 0.048, -0.01],
+  [0.58, 0.051, 0.05, 0.054, -0.016],
+  [0.63, 0.048, 0.048, 0.052, -0.012],
+  [0.67, 0.045, 0.044, 0.047, -0.01],
 ]
 
 interface Bult {
@@ -66,8 +67,6 @@ const BULTEN: readonly Bult[] = [
   // Bilspieren en bilplooi
   { s: -0.03, ds: 0.068, hoek: 152, dh: 33, h: 0.022, paar: true },
   { s: -0.085, ds: 0.02, hoek: 160, dh: 40, h: -0.006, paar: true },
-  // Nekspieren
-  { s: 0.585, ds: 0.03, hoek: 38, dh: 18, h: 0.003, paar: true },
 ]
 
 const ROND = 64
@@ -133,6 +132,7 @@ function oksel(s: number, hoek: number): number {
 }
 
 const hoekVan = (j: number) => (j / ROND) * 360
+const NEK_Q = new Vector3()
 
 /** Huid van de borst omhoog, met nek tot in het hoofd. */
 function huid(b: Bouwer, p: Palet): void {
@@ -144,10 +144,13 @@ function huid(b: Bouwer, p: Palet): void {
     rond: ROND,
     openBegin: true,
     punt: (i, j, uit) => rompPunt(van + ((tot - van) * i) / (n - 1), hoekVan(j), 0, HUID, uit),
-    info: (i, j): PuntInfo => {
+    info: (i, j, q): PuntInfo => {
       const s = van + ((tot - van) * i) / (n - 1)
       const m = spierOp(p, s, hoekVan(j))
-      return { kleur: kleurMet(p.huid, p, m, false, oksel(s, hoekVan(j))), spier: m, ...botten(s) }
+      // In de nek dezelfde huidkleur en schaduw als het hoofd: geen naad.
+      const nek = glad(0.54, 0.556, s)
+      const basis = nek > 0 ? p.huid.clone().lerp(nekKleur(p, NEK_Q.copy(q).sub(BIND.hoofd)), nek) : p.huid
+      return { kleur: kleurMet(basis, p, m, false, oksel(s, hoekVan(j))), spier: m, ...botten(s) }
     },
   })
 }

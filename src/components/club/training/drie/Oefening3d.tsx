@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { oefening3dOpNaam, standTijd } from '@/lib/club/training/3d'
+import { oefening3dOpNaam, standTijdVan } from '@/lib/club/training/3d'
 import { maakScene3d, type Scene3d, type Thema } from './scene'
 
 // Een oefening als 3D-animatie in een canvas. Alleen in de browser (WebGL);
@@ -83,8 +83,8 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
     if (!el || !s || !oefening || !dichtbij) return
     const stil = stand !== 'speelt' || minderBeweging()
     if (stil) {
-      s.teken(standTijd(oefening.sleutels, stand === 'eind' ? 'eind' : 'begin'))
-      const opnieuw = new ResizeObserver(() => s.teken(standTijd(oefening.sleutels, stand === 'eind' ? 'eind' : 'begin')))
+      s.teken(standTijdVan(oefening, stand === 'eind' ? 'eind' : 'begin'))
+      const opnieuw = new ResizeObserver(() => s.teken(standTijdVan(oefening, stand === 'eind' ? 'eind' : 'begin')))
       opnieuw.observe(el)
       return () => opnieuw.disconnect()
     }

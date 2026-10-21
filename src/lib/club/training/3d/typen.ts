@@ -95,11 +95,13 @@ export interface Materiaal {
 
 export type Lichaamsdeel =
   | 'dij'
+  | 'hamstring' // achterkant van de dij
   | 'kuit'
   | 'bil'
   | 'romp'
   | 'borst'
   | 'rug'
+  | 'onderrug' // rugstrekkers laag in de rug
   | 'schouder'
   | 'bovenarm'
   | 'onderarm'
@@ -111,6 +113,18 @@ export interface Camera {
   readonly hoogte: number
   readonly afstand: number
   readonly doel: Vec3
+}
+
+/**
+ * Blik: het hoofd houdt een hoek ten opzichte van de wereld (borst omhoog, blik
+ * vooruit) in plaats van mee te kantelen met de romp. De nek vangt het verschil
+ * op, binnen GRENZEN.nek.
+ */
+export interface Blik {
+  /** Richting van de blik in graden onder horizontaal: 0 = recht vooruit, 40 = naar de vloer een paar meter verderop. */
+  readonly hoek: number
+  /** Hoeveel de blik het wint van het kanaal nek (0 tot 1, standaard 1): 0,5 = halverwege meekantelen en de wereldhoek. */
+  readonly sterkte?: number
 }
 
 export interface Oefening3d {
@@ -134,7 +148,22 @@ export interface Oefening3d {
    */
   readonly greepRichting?: Vec3
   readonly materiaal: readonly Materiaal[]
-  /** Werkende spieren: krijgen de accentkleur. */
+  /** Werkende spieren (primair): krijgen de volle accentkleur. */
   readonly spieren: readonly Lichaamsdeel[]
+  /** Meewerkende spieren (secundair): krijgen de accentkleur zachter, zie spieren.ts. */
+  readonly spierenSecundair?: readonly Lichaamsdeel[]
   readonly camera: Camera
+  /** Blik vooruit in de wereld; zonder volgt het hoofd de romp plus het kanaal nek. */
+  readonly blik?: Blik
+  /**
+   * Waar in de lus het afspelen begint (fractie 0 tot 1 van de lusduur). Zo valt het
+   * belangrijkste moment op een logische plek, zie `startVoorSleutel()`.
+   */
+  readonly start?: number
+  /**
+   * Heup en knie samen: tussen twee sleutels buigt de knie in hetzelfde tempo als de
+   * andere kanalen en volgt de hoogte van het bekken daaruit. Zonder zakt het bekken
+   * lineair en buigt de knie bovenin eerst (knie-eerst).
+   */
+  readonly kniePad?: boolean
 }

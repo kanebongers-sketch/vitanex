@@ -12,6 +12,12 @@
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,
 //    handen, vloer, lus, naam in de bibliotheek).
 
+import { BACK_SQUAT_3D } from './back-squat'
+import { BANKDRUKKEN_3D } from './bankdrukken-met-barbell'
+import { DEADLIFT_3D } from './deadlift'
+import { LAT_PULLDOWN_3D } from './lat-pulldown'
+import { PUSH_UP_3D } from './push-up'
+import { SCHOUDERDRUKKEN_3D } from './dumbbell-shoulder-press'
 import { GOBLET_SQUAT } from './goblet-squat'
 import { SQUAT_LICHAAMSGEWICHT } from './squat-met-lichaamsgewicht'
 import { SQUAT_DUMBBELLS } from './squat-met-dumbbells'
@@ -46,6 +52,16 @@ import { FRONT_RAISE } from './front-raise-met-dumbbells'
 import { PLANK } from './plank'
 import { CRUNCH } from './crunch'
 import type { Oefening3d } from '../typen'
+
+/** De zes oefeningen van het eerste prototype (met de hand afgesteld, eigen houdingen). */
+export const PROTOTYPE_3D: readonly Oefening3d[] = [
+  BACK_SQUAT_3D,
+  BANKDRUKKEN_3D,
+  DEADLIFT_3D,
+  LAT_PULLDOWN_3D,
+  PUSH_UP_3D,
+  SCHOUDERDRUKKEN_3D,
+]
 
 /** Alle oefeningen die via de bouwstenen in 3D staan, gegroepeerd per patroon. */
 export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [

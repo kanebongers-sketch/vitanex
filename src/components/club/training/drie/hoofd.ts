@@ -1,170 +1,122 @@
 // ─── Fit Factory Club, 3D-oefenbeelden: hoofd en haar ───────────────────────
-// Een rustig, neutraal hoofd: schedel, kaaklijn en kin, wenkbrauwboog, zachte
-// oogkassen, jukbeenderen, neus en lippen als lichte vormen, oren en kort haar
-// (vol op de kruin, kort aan de zijkant). Geen ogen of uitdrukking.
+// Een realistisch, rustig hoofd van een atletische man. De vorm komt uit een
+// afstandsveld (hoofd-vorm): schedel, voorhoofd, wenkbrauwboog, oogkassen,
+// jukbeenderen, neus, lippen, kaaklijn, kin en een vloeiende overgang naar de
+// nek. De huid krijgt kleurverschil (wangen, neus, lippen met lichte rand,
+// lichte baardschaduw, zachte haarlijn, rustige vlekjes) en zachte schaduw in
+// plooien. Daarbij ogen met oogleden, oren, kort haar en wenkbrauwen. De vorm
+// wordt een keer berekend en daarna hergebruikt; per beeld kost het hoofd
+// niets extra.
+//
+// De nek van de romp krijgt dezelfde kleur en schaduw (nekKleur), en de nek
+// van het hoofd hangt aan dezelfde botten als de romp op die hoogte. Zo loopt
+// de huid zonder naad van het hoofd in de nek over.
 
 import { Color, Vector3 } from 'three'
-import { glad, raster, tabel, type Bouwer, type PuntInfo } from './bouwer'
+import { glad, raster, type Bouwer, type PuntInfo } from './bouwer'
+import { bouwHaarlaag, bouwWenkbrauwen, haarGrens, hoekenVan } from './hoofd-haar'
+import { bouwOgen } from './hoofd-ogen'
+import { bouwOren } from './hoofd-oor'
+import { huidvorm, RINGEN, ROND } from './hoofd-raster'
+import { lipGewicht, lipRand, mondGewicht, normaal, occlusie } from './hoofd-vorm'
 import type { Palet } from './palet'
-import { BOT, HOOFD_NAAR_BIND } from './skelet'
+import { BIND, BOT, HOOFD_NAAR_BIND } from './skelet'
 
-const MIDDEN = new Vector3(0, 0.16, 0.014)
-const LIP = new Color('#8a4f47')
+const KLEUR = {
+  warm: new Color('#b8675f'),
+  lip: new Color('#a4524c'),
+  wal: new Color('#6b5552'),
+  baard: new Color('#4a4442'),
+  koel: new Color('#8d8a93'),
+} as const
 
-function macht(x: number, n: number): number {
-  return Math.sign(x) * Math.abs(x) ** (2 / n)
+function vlek(dx: number, dy: number, dz: number, s: number): number {
+  return Math.exp(-(dx * dx + dy * dy + dz * dz) / (s * s))
 }
 
-function gauss(x: number, y: number, sx: number, sy: number): number {
-  return Math.exp(-((x * x) / (sx * sx) + (y * y) / (sy * sy)))
+/** Rustige, lage ruis (-1 tot 1) voor kleurverschil in de huid. */
+function golf(q: Vector3): number {
+  return (
+    0.5 * Math.sin(q.x * 97 + q.y * 41 + 1.3) * Math.sin(q.y * 83 - q.z * 57 + 0.4) +
+    0.3 * Math.sin(q.x * 211 - q.z * 173 + 2.1) * Math.sin(q.y * 233 + q.x * 67) +
+    0.2 * Math.sin(q.z * 151 + q.y * 199 + 0.7)
+  )
 }
 
-/** Gezicht: alleen aan de voorkant. */
-function voor(dz: number, vanaf = 0.55): number {
-  return glad(vanaf, vanaf + 0.25, dz)
+/** Baardschaduw: kaak, kin, bovenlip en een beetje onder de kaak. */
+function baard(q: Vector3, b: number, lip: number): number {
+  const ax = Math.abs(q.x)
+  const hoogte = glad(0.124, 0.098, q.y) * glad(0.05, 0.072, q.y)
+  const zij = glad(118, 96, Math.abs(b))
+  const wang = 1 - 0.6 * vlek(ax - 0.04, q.y - 0.11, q.z - 0.06, 0.016)
+  return hoogte * zij * wang * (1 - lip)
 }
 
-function vorm(dx: number, dy: number, dz: number): number {
-  const ax = Math.abs(dx)
-  const f = voor(dz)
-  const onder = glad(0.15, 0.4, dz)
-  // Neus: smalle rug die naar de punt toe voller wordt, daaronder terug.
-  const neus = glad(0.1, -0.3, dy) * (1 - glad(-0.33, -0.42, dy))
-  let r = 0.0145 * neus * gauss(dx, 0, 0.06 + 0.04 * glad(0, -0.3, dy), 1) * voor(dz, 0.78)
-  r += 0.0065 * gauss(dx, dy - 0.16, 0.45, 0.07) * f
-  r -= 0.008 * gauss(ax - 0.3, dy - 0.03, 0.12, 0.08) * f
-  r += 0.005 * gauss(ax - 0.55, dy + 0.15, 0.16, 0.12) * f
-  r += 0.008 * gauss(dx, dy + 0.88, 0.26, 0.12) * onder
-  r += 0.004 * gauss(ax - 0.62, dy + 0.62, 0.2, 0.14)
-  r -= 0.003 * gauss(ax - 0.82, dy - 0.25, 0.12, 0.15)
-  r += 0.006 * gauss(dz + 0.9, dy, 0.3, 0.35)
-  return r
-}
-
-/** Kleur van het gezicht: wenkbrauwen, schaduw in de oogkassen, lippen. */
-function gezicht(p: Palet, dx: number, dy: number, dz: number): Color {
-  const ax = Math.abs(dx)
-  const f = voor(dz)
+/** Kleur van de huid op punt q (hoofdruimte) met schaduw ao. */
+function huidKleur(p: Palet, q: Vector3, ao: number): Color {
+  const ax = Math.abs(q.x)
   const k = p.huid.clone()
-  k.lerp(LIP, 0.16 * gauss(dx, dy + 0.65, 0.15, 0.05) * glad(0.15, 0.4, dz))
-  k.lerp(p.haar, 0.55 * gauss(ax - 0.25, dy - 0.18, 0.12, 0.025) * f)
-  const lijn = tabel(HAARLIJN, (Math.abs(Math.atan2(dx, dz)) * 180) / Math.PI, 1)
-  k.lerp(p.haar, 0.55 * glad(lijn - 0.07, lijn + 0.01, dy))
-  k.lerp(LIP, 0.25 * gauss(dx, dy + 0.645, 0.15, 0.014) * glad(0.15, 0.4, dz))
-  const ao = 0.06 * gauss(ax - 0.29, dy - 0.05, 0.12, 0.07) * f + 0.12 * glad(-0.55, -0.9, dy) * glad(-0.2, 0.4, dz)
-  return k.multiplyScalar(1 - ao)
+  // Rustig kleurverschil: iets lichter en geler op voorhoofd, roder op wangen en neus.
+  k.multiplyScalar(1 + 0.025 * golf(q))
+  k.multiplyScalar(1 + 0.03 * vlek(q.x, q.y - 0.205, q.z - 0.075, 0.04))
+  const wang = vlek(ax - 0.044, q.y - 0.126, q.z - 0.072, 0.02)
+  const neus = vlek(q.x, q.y - 0.118, q.z - 0.11, 0.011)
+  const oor = vlek(ax - 0.07, q.y - 0.14, q.z + 0.01, 0.02)
+  k.lerp(KLEUR.warm, 0.12 * wang + 0.14 * neus + 0.08 * oor)
+  // Onder de ogen iets koeler en donkerder.
+  k.lerp(KLEUR.wal, 0.07 * vlek(ax - 0.031, q.y - 0.1425, q.z - 0.079, 0.0085))
+  const { a, b } = hoekenVan(q)
+  const lip = lipGewicht(q.x, q.y, q.z)
+  const bw = baard(q, b, lip)
+  k.lerp(KLEUR.baard, 0.1 * bw).lerp(KLEUR.koel, 0.04 * bw)
+  // Lippen: natuurlijk rood met een lichte rand, de spleet donker.
+  k.lerp(KLEUR.lip, 0.74 * lip).multiplyScalar(1 + 0.07 * lipRand(q.x, q.y, q.z))
+  k.multiplyScalar(1 - 0.6 * mondGewicht(q.x, q.y, q.z))
+  // Neusgaten: zacht donker.
+  k.multiplyScalar(1 - 0.28 * vlek(ax - 0.0058, q.y - 0.1078, q.z - 0.1045, 0.0026))
+  // Haarlijn: kort haar dat naar de huid toe dunner wordt (gaat over in de rand van het haar).
+  const grens = haarGrens(b)
+  const dun = glad(grens + 9, grens - 1, a) ** 2 * glad(122, 100, Math.abs(b))
+  k.lerp(p.haar, 0.45 * dun * (0.8 + 0.2 * golf(q)))
+  return k.multiply(new Color(1 - 0.4 * ao, 1 - 0.46 * ao, 1 - 0.48 * ao))
 }
 
-/** Punt op de huid van het hoofd in de richting (dx, dy, dz), plus `extra`. */
-function hoofdPunt(dx: number, dy: number, dz: number, extra: number, uit: Vector3): Vector3 {
-  const kaak = 1 - 0.1 * glad(-0.35, -0.95, dy)
-  const rx = 0.074 * kaak
-  const ry = dy > 0 ? 0.106 : 0.116
-  let rz = dz > 0 ? 0.09 : 0.1
-  if (dz < 0) rz *= 1 - 0.3 * glad(-0.3, -0.9, dy)
-  else rz *= 1 - 0.28 * glad(-0.84, -1, dy)
-  // Onderste helft hoekiger (kaak en kin), het gezicht iets vlakker.
-  const n = 2 + 0.75 * glad(-0.05, -0.6, dy)
-  const nz = dz > 0 ? 2.25 : 2
-  const r = vorm(dx, dy, dz) + extra
-  return uit.set(rx * macht(dx, n) + dx * r, ry * macht(dy, n) + dy * r, rz * macht(dz, nz) + dz * r).add(MIDDEN)
+const N = new Vector3()
+
+/** Kleur van de huid van de nek (romp of hoofd) op punt q in hoofdruimte, met dezelfde schaduw. */
+export function nekKleur(p: Palet, q: Vector3): Color {
+  return huidKleur(p, q, occlusie(q, normaal(q, N)))
 }
 
-const RINGEN = 60
-const ROND = 96
-
-/** Verdeling met meer punten rond het gezicht (u van 0 tot 1). */
-function dichter(u: number, midden: number, c: number): number {
-  const w = (x: number) => x - (c * Math.sin(2 * Math.PI * (x - midden))) / (2 * Math.PI)
-  return (w(u) - w(0)) / (w(1) - w(0))
+/** Botten van een punt van het hoofd: in de nek dezelfde menging als de romp. */
+function bottenVan(q: Vector3): { readonly a: number; readonly b: number; readonly w: number } {
+  const s = q.y + BIND.hoofd.y
+  const nek = glad(0.53, 0.585, s)
+  const kin = glad(0.056, 0.07, q.z)
+  return { a: BOT.borst, b: BOT.hoofd, w: nek + (1 - nek) * kin }
 }
 
-function richting(i: number, j: number, eind: number): [number, number, number] {
-  const a = (0.04 + (eind - 0.04) * dichter(i / (RINGEN - 1), 0.6, 0.55)) * Math.PI
-  const b = dichter(j / ROND, 0, 0.55) * Math.PI * 2
-  return [Math.sin(a) * Math.sin(b), Math.cos(a), Math.sin(a) * Math.cos(b)]
-}
-
-/** Haarlijn (hoogte dy) per hoek vanaf de voorkant. */
-const HAARLIJN: readonly (readonly number[])[] = [
-  [0, 0.68],
-  [30, 0.62],
-  [55, 0.47],
-  [80, 0.26],
-  [95, 0.12],
-  [112, 0.0],
-  [125, -0.12],
-  [140, -0.28],
-  [180, -0.45],
-]
-
-/** Hoek vanaf de kruin (radialen) waar het haar ophoudt, per richting om het hoofd. */
-function haarGrens(b: number): number {
-  const hoek = (Math.abs(((b * 180) / Math.PI + 540) % 360 - 180))
-  return Math.acos(tabel(HAARLIJN, hoek, 1))
-}
-
-function haarDikte(dy: number, u: number): number {
-  const dik = 0.0025 + 0.0065 * glad(0.1, 0.9, dy)
-  return 0.0016 + dik * glad(1, 0.8, u)
-}
-
-function oor(b: Bouwer, p: Palet, kant: number): void {
-  const n = 14
-  const rond = 18
-  raster(b, {
-    ringen: n,
-    rond,
-    naarBind: HOOFD_NAAR_BIND,
-    punt: (i, j, uit) => {
-      const a = (0.06 + (0.88 * i) / (n - 1)) * Math.PI
-      const h = (j / rond) * Math.PI * 2
-      const x = Math.sin(a) * Math.cos(h) * 0.008
-      const y = Math.cos(a) * 0.026
-      const z = Math.sin(a) * Math.sin(h) * 0.016
-      // Licht naar achteren gekanteld, de achterkant iets van het hoofd af.
-      return uit.set(kant * (0.07 + x + Math.max(0, -z) * 0.22), 0.15 + y - z * 0.15, -0.006 + z + y * 0.12)
-    },
-    info: (): PuntInfo => ({ kleur: p.huid.clone().multiplyScalar(0.94), spier: 0, a: BOT.hoofd }),
-  })
-}
-
-export function bouwHoofd(b: Bouwer, p: Palet): void {
+function bouwHuid(b: Bouwer, p: Palet): void {
+  const vorm = huidvorm()
   raster(b, {
     ringen: RINGEN,
     rond: ROND,
     naarBind: HOOFD_NAAR_BIND,
-    punt: (i, j, uit) => hoofdPunt(...richting(i, j, 0.96), 0, uit),
-    info: (i, j): PuntInfo => {
-      const [dx, dy, dz] = richting(i, j, 0.96)
-      return { kleur: gezicht(p, dx, dy, dz), spier: 0, a: BOT.hoofd }
+    punt: (i, j, uit) => {
+      const k = (i * ROND + j) * 3
+      return uit.set(vorm.punten[k], vorm.punten[k + 1], vorm.punten[k + 2])
     },
+    info: (i, j, q): PuntInfo => ({ kleur: huidKleur(p, q, vorm.schaduw[i * ROND + j]), spier: 0, ...bottenVan(q) }),
   })
-  oor(b, p, 1)
-  oor(b, p, -1)
+}
+
+export function bouwHoofd(b: Bouwer, p: Palet): void {
+  bouwHuid(b, p)
+  bouwOgen(b, (q, ao) => huidKleur(p, q, ao))
+  bouwOren(b, p)
 }
 
 export function bouwHaar(b: Bouwer, p: Palet): void {
-  const n = 26
-  const richtingHaar = (i: number, j: number): [number, number, number, number] => {
-    const u = i / (n - 1)
-    const be = (j / ROND) * Math.PI * 2
-    const a = 0.03 * Math.PI + (haarGrens(be) - 0.03 * Math.PI) * Math.min(1, u)
-    return [Math.sin(a) * Math.sin(be), Math.cos(a), Math.sin(a) * Math.cos(be), u]
-  }
-  raster(b, {
-    ringen: n,
-    rond: ROND,
-    openEind: true,
-    naarBind: HOOFD_NAAR_BIND,
-    punt: (i, j, uit) => {
-      const [dx, dy, dz, u] = richtingHaar(i, j)
-      return hoofdPunt(dx, dy, dz, haarDikte(dy, u), uit)
-    },
-    info: (i, j): PuntInfo => {
-      const [, dy, , u] = richtingHaar(i, j)
-      const licht = 0.82 + 0.18 * glad(-0.3, 0.8, dy) - 0.1 * glad(0.75, 1, u)
-      return { kleur: p.haar.clone().multiplyScalar(licht), spier: 0, a: BOT.hoofd }
-    },
-  })
+  bouwHaarlaag(b, p, (q) => huidKleur(p, q, 0))
+  bouwWenkbrauwen(b, p)
 }

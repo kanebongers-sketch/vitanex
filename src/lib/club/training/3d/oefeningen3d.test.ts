@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Vector3 } from 'three'
+import { Quaternion, Vector3 } from 'three'
 import { houdingOp, lusDuur } from './interpolatie'
+import { houdingVan } from './beweging'
 import { figuurIn, tweeBotten, type Figuur } from './kinematica'
 import { GRENZEN } from './maten'
 import { OEFENINGEN_3D, PROTOTYPE_3D, oefening3dOpNaam } from './oefeningen'
@@ -20,7 +21,7 @@ function monsters(o: Oefening3d): { t: number; f: Figuur }[] {
   const duur = lusDuur(o.sleutels)
   return Array.from({ length: STAPPEN }, (_, i) => {
     const t = (i / STAPPEN) * duur
-    return { t, f: figuurIn(o, houdingOp(o.sleutels, t)) }
+    return { t, f: figuurIn(o, houdingVan(o, t)) }
   })
 }
 
@@ -81,6 +82,14 @@ describe('3D-oefeningen: data', () => {
     }
   })
 
+  it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: secundaire spieren staan niet ook bij de primaire, startfractie tussen 0 en 1', (_, o) => {
+    for (const d of o.spierenSecundair ?? []) expect(o.spieren).not.toContain(d)
+    if (o.start !== undefined) {
+      expect(o.start).toBeGreaterThanOrEqual(0)
+      expect(o.start).toBeLessThan(1)
+    }
+  })
+
   it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: tempo zoals een trainer, met pauze en een herhaling van 2,5 tot 6 seconden (ballistisch korter)', (_, o) => {
     const duur = lusDuur(o.sleutels)
     expect(duur).toBeGreaterThanOrEqual(BALLISTISCH.has(o.naam) ? 1.6 : 2.5)
@@ -90,6 +99,15 @@ describe('3D-oefeningen: data', () => {
 })
 
 describe('3D-oefeningen: beweging', () => {
+  it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: de nek die getekend wordt (ook met blik) blijft binnen de grenzen', (_, o) => {
+    for (const { f } of monsters(o)) {
+      const nek = new Quaternion().copy(f.borst.rot).invert().multiply(f.hoofd.rot)
+      const graden = (2 * Math.atan2(nek.x, nek.w) * 180) / Math.PI
+      expect(graden).toBeGreaterThanOrEqual(GRENZEN.nek.min - 0.01)
+      expect(graden).toBeLessThanOrEqual(GRENZEN.nek.max + 0.01)
+    }
+  })
+
   it.each(OEFENINGEN_3D.map((o) => [o.naam, o] as const))('%s: knieen, ellebogen en heupen blijven binnen anatomische grenzen', (_, o) => {
     for (const { f } of monsters(o)) {
       for (const b of f.benen) {
@@ -166,14 +184,17 @@ describe('3D-oefeningen: beweging', () => {
     const duur = lusDuur(o.sleutels)
     const dt = 1 / 60
     for (let t = 0; t < duur; t += dt) {
-      const a = houdingOp(o.sleutels, t)
-      const b = houdingOp(o.sleutels, t + dt)
+      const a = houdingVan(o, t)
+      const b = houdingVan(o, t + dt)
       expect(Math.abs(a.bekkenY - b.bekkenY)).toBeLessThan(0.02)
       expect(Math.abs(a.kantel - b.kantel)).toBeLessThan(BALLISTISCH.has(o.naam) ? 3.5 : 2)
       expect(Math.abs(a.lastY - b.lastY)).toBeLessThan(0.02)
     }
     expect(houdingOp(o.sleutels, duur)).toEqual(houdingOp(o.sleutels, 0))
     expect(houdingOp(o.sleutels, 0)).toEqual(o.sleutels[0].houding)
+    const eind = houdingVan(o, duur)
+    const begin = houdingVan(o, 0)
+    for (const k of KANALEN) expect(eind[k]).toBeCloseTo(begin[k], 6)
   })
 })
 

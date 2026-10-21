@@ -1,132 +1,47 @@
 // ─── Fit Factory Club, 3D-oefenbeelden: armen en benen ──────────────────────
-// Elk lidmaat is een gevormde buis langs zijn bot: per hoogte een doorsnede
-// (breedte, voorkant, achterkant) plus spierbuiken als zachte bulten op een
-// plek en hoek (quadriceps, hamstrings, kuit, deltaspier, biceps, triceps).
-// Hoek 0 is de voorkant, 90 de binnenkant, -90 de buitenkant, 180 de achterkant.
-// Kleding (mouw, broekspijp) is een eigen laag over de huid.
+// Arm en been zijn elk een doorlopende huid van schouder of heup tot pols of
+// enkel (geen losse stukken, dus geen naad bij elleboog en knie). De vorm komt
+// uit `ledematen-vorm.ts`. Rond het gewricht hangt de huid aan het hulpbot dat
+// half meedraait (zie skelet.ts), zodat knie en elleboog rond blijven.
+// Kleding (mouw, broekspijp) is een eigen, strakke laag over de huid.
 
 import { Vector3 } from 'three'
-import { MATEN } from '@/lib/club/training/3d/maten'
 import type { Lichaamsdeel } from '@/lib/club/training/3d/typen'
 import { glad, hoekVerschil, klok, raster, tabel, type Bouwer, type PuntInfo } from './bouwer'
-import { kleurMet, werkt, type Palet } from './palet'
+import { BOVENARM, DIJ, ONDERARM, SCHEEN, type Lid } from './ledematen-vorm'
+import { kleurMet, sterkteVan, type Palet } from './palet'
 import { BOT } from './skelet'
-
-interface Bult {
-  readonly t: number
-  readonly dt: number
-  readonly hoek: number
-  readonly dh: number
-  readonly h: number
-}
-
-interface Lid {
-  readonly lengte: number
-  /** Rijen [t, halve breedte, voorkant, achterkant] in meter. */
-  readonly doorsnede: readonly (readonly number[])[]
-  readonly bulten: readonly Bult[]
-  /** Lengte van de ronde doppen als deel van de straal. */
-  readonly kapBoven: number
-  readonly kapOnder: number
-  readonly ringen: number
-}
-
-const DIJ: Lid = {
-  lengte: MATEN.dij,
-  doorsnede: [
-    [0, 0.092, 0.0899, 0.0942],
-    [0.12, 0.0899, 0.0877, 0.092],
-    [0.35, 0.0824, 0.0813, 0.0803],
-    [0.6, 0.0728, 0.0706, 0.0663],
-    [0.82, 0.0599, 0.0578, 0.0535],
-    [0.94, 0.0535, 0.0503, 0.0492],
-    [1, 0.0524, 0.0481, 0.0481],
-  ],
-  bulten: [
-    { t: 0.55, dt: 0.38, hoek: -72, dh: 55, h: 0.011 },
-    { t: 0.84, dt: 0.14, hoek: 52, dh: 42, h: 0.013 },
-    { t: 0.42, dt: 0.36, hoek: -4, dh: 34, h: 0.008 },
-    { t: 0.5, dt: 0.4, hoek: 180, dh: 62, h: 0.007 },
-    { t: 0.2, dt: 0.26, hoek: 102, dh: 42, h: 0.008 },
-    { t: 1.0, dt: 0.08, hoek: 0, dh: 30, h: 0.013 },
-    { t: 0.62, dt: 0.3, hoek: -108, dh: 14, h: -0.003 },
-  ],
-  kapBoven: 0.7,
-  kapOnder: 0.8,
-  ringen: 24,
-}
-
-const SCHEEN: Lid = {
-  lengte: MATEN.scheen,
-  doorsnede: [
-    [0, 0.0515, 0.0473, 0.0483],
-    [0.12, 0.0525, 0.041, 0.0588],
-    [0.3, 0.0483, 0.0357, 0.063],
-    [0.55, 0.0389, 0.0315, 0.0441],
-    [0.8, 0.0305, 0.0273, 0.0305],
-    [1, 0.0326, 0.0305, 0.0315],
-  ],
-  bulten: [
-    { t: 0.28, dt: 0.21, hoek: 142, dh: 45, h: 0.012 },
-    { t: 0.25, dt: 0.17, hoek: -145, dh: 40, h: 0.009 },
-    { t: 0.36, dt: 0.3, hoek: -38, dh: 30, h: 0.005 },
-    { t: 0.03, dt: 0.08, hoek: 0, dh: 50, h: 0.005 },
-    { t: 0.985, dt: 0.05, hoek: 90, dh: 30, h: 0.007 },
-    { t: 0.99, dt: 0.05, hoek: -90, dh: 30, h: 0.006 },
-  ],
-  kapBoven: 0.85,
-  kapOnder: 0.6,
-  ringen: 22,
-}
-
-const BOVENARM: Lid = {
-  lengte: MATEN.bovenarm,
-  doorsnede: [
-    [0, 0.047, 0.048, 0.05],
-    [0.2, 0.044, 0.045, 0.048],
-    [0.5, 0.041, 0.045, 0.046],
-    [0.8, 0.038, 0.038, 0.04],
-    [1, 0.036, 0.033, 0.036],
-  ],
-  bulten: [
-    { t: 0.1, dt: 0.3, hoek: -90, dh: 80, h: 0.011 },
-    { t: 0.08, dt: 0.22, hoek: -30, dh: 45, h: 0.008 },
-    { t: 0.08, dt: 0.22, hoek: -150, dh: 45, h: 0.007 },
-    { t: 0.58, dt: 0.3, hoek: 5, dh: 50, h: 0.01 },
-    { t: 0.4, dt: 0.36, hoek: 172, dh: 45, h: 0.009 },
-    { t: 0.36, dt: 0.25, hoek: -138, dh: 35, h: 0.007 },
-    { t: 0.42, dt: 0.08, hoek: -90, dh: 30, h: -0.003 },
-  ],
-  kapBoven: 0.9,
-  kapOnder: 0.8,
-  ringen: 20,
-}
-
-const ONDERARM: Lid = {
-  lengte: MATEN.onderarm,
-  doorsnede: [
-    [0, 0.038, 0.034, 0.038],
-    [0.2, 0.042, 0.036, 0.037],
-    [0.5, 0.035, 0.03, 0.03],
-    [0.8, 0.029, 0.022, 0.022],
-    [1, 0.028, 0.018, 0.019],
-  ],
-  bulten: [
-    { t: 0.24, dt: 0.26, hoek: -62, dh: 45, h: 0.009 },
-    { t: 0.3, dt: 0.3, hoek: 60, dh: 50, h: 0.006 },
-    { t: 0.0, dt: 0.09, hoek: 180, dh: 35, h: 0.008 },
-  ],
-  kapBoven: 0.85,
-  kapOnder: 0.55,
-  ringen: 16,
-}
+import { MASKERS, type Masker } from './spiermaskers'
 
 const ROND = 36
 const MACHT = 2.3
 const KAP = 10
 
+interface Deel {
+  readonly lid: Lid
+  readonly bot: number
+  readonly delen: readonly Lichaamsdeel[]
+  /** Schaduw in plooien als functie van t en hoek. */
+  readonly ao?: Masker
+}
+
+/** Een arm of been: twee delen met een hulpbot in het gewricht. */
+interface Ketting {
+  readonly boven: Deel
+  readonly onder: Deel
+  readonly gewricht: number
+  /** Hulpbot in schouder of heup, met hoe sterk de bovenkant eraan hangt. */
+  readonly kop: { readonly bot: number; readonly sterk: number; readonly tot: number }
+  readonly kant: number
+  readonly p: Palet
+  /** Halve breedte van de zone rond het gewricht die meebuigt (m). */
+  readonly meng: number
+  /** Hoogte van een sok boven het uiteinde (alleen benen, m). */
+  readonly sok?: number
+}
+
 interface RingDef {
-  /** Hoogte langs het bot (m). */
+  /** Hoogte langs de ketting in de bindhouding (m). */
   readonly y: number
   /** Schaal van de dop (1 buiten de doppen). */
   readonly k: number
@@ -134,29 +49,71 @@ interface RingDef {
   readonly extra: number
 }
 
-function grootste(l: Lid, t: number): number {
-  return Math.max(tabel(l.doorsnede, t, 1), tabel(l.doorsnede, t, 2), tabel(l.doorsnede, t, 3))
+const grens = (x: number) => Math.min(1, Math.max(0, x))
+const lengteVan = (k: Ketting) => k.boven.lid.lengte + k.onder.lid.lengte
+
+/** Fractie langs het bovenste en het onderste deel. */
+function fracties(k: Ketting, y: number): [number, number] {
+  const lb = k.boven.lid.lengte
+  return [y / lb, (y - lb) / k.onder.lid.lengte]
+}
+
+/** Maat uit de doorsnede (kolom 1 tot 3), vloeiend over het gewricht. */
+function maat(k: Ketting, y: number, kolom: number): number {
+  const [t1, t2] = fracties(k, y)
+  const lb = k.boven.lid.lengte
+  const a = tabel(k.boven.lid.doorsnede, grens(t1), kolom)
+  const b = tabel(k.onder.lid.doorsnede, grens(t2), kolom)
+  return a + (b - a) * glad(lb - 0.025, lb + 0.025, y)
+}
+
+function grootste(k: Ketting, y: number): number {
+  return Math.max(maat(k, y, 1), maat(k, y, 2), maat(k, y, 3))
+}
+
+function bultOp(k: Ketting, y: number, hoek: number, kleding: boolean): number {
+  const [t1, t2] = fracties(k, y)
+  let som = 0
+  for (const [lid, t] of [[k.boven.lid, t1], [k.onder.lid, t2]] as const) {
+    for (const b of lid.bulten) {
+      const h = kleding && b.h < 0 ? b.h * 0.3 : b.h
+      som += h * klok((t - b.t) / b.dt) * klok(hoekVerschil(hoek, b.hoek) / b.dh)
+    }
+  }
+  return som
+}
+
+/** Rijen dichter bij het gewricht, zodat de buiging glad blijft. */
+function rijen(k: Ketting, tot: number): number[] {
+  const lb = k.boven.lid.lengte
+  const boord = k.sok ? lengteVan(k) - k.sok : -1
+  const lijst: number[] = []
+  let y = 0
+  while (y < tot - 0.004) {
+    lijst.push(y)
+    const gewricht = 0.007 + 0.012 * glad(0.03, 0.09, Math.abs(y - lb))
+    y += Math.min(gewricht, 0.004 + 0.015 * glad(0.008, 0.025, Math.abs(y - boord)))
+  }
+  lijst.push(tot)
+  return lijst
 }
 
 /** Ringen van boven (met dop) tot `tot` (m), met een dop onderaan als `dicht`. */
-function ringen(l: Lid, tot: number, dicht: boolean, extra: (y: number) => number): RingDef[] {
+function ringen(k: Ketting, tot: number, dicht: boolean, extra: (y: number) => number): RingDef[] {
   const lijst: RingDef[] = []
   // Een kledinglaag krijgt een eigen, iets grotere dop (geen samenvallende vlakken).
-  const kb = (grootste(l, 0) + extra(0) * 1.6) * l.kapBoven
+  const kb = (grootste(k, 0) + extra(0) * 1.6) * k.boven.lid.kapBoven
   for (let i = 1; i < KAP; i++) {
     const a = (i / KAP) * (Math.PI / 2)
     lijst.push({ y: -kb * Math.cos(a), k: Math.sin(a), extra: extra(0) })
   }
-  const stappen = Math.max(4, Math.round((l.ringen * tot) / l.lengte))
-  for (let i = 0; i <= stappen; i++) {
-    const y = (i / stappen) * tot
-    lijst.push({ y, k: 1, extra: extra(y) })
-  }
+  for (const y of rijen(k, tot)) lijst.push({ y, k: 1, extra: extra(y) })
   if (dicht) {
-    const ko = grootste(l, 1) * l.kapOnder
+    const l = lengteVan(k)
+    const ko = grootste(k, l) * k.onder.lid.kapOnder
     for (let i = KAP - 1; i >= 1; i--) {
       const a = (i / KAP) * (Math.PI / 2)
-      lijst.push({ y: l.lengte + ko * Math.cos(a), k: Math.sin(a), extra: extra(l.lengte) })
+      lijst.push({ y: l + ko * Math.cos(a), k: Math.sin(a), extra: extra(l) })
     }
   }
   return lijst
@@ -166,62 +123,72 @@ function macht(x: number): number {
   return Math.sign(x) * Math.abs(x) ** (2 / MACHT)
 }
 
-/** Punt op het lid: hoek in graden, stof dempt de groeven. */
-function lidPunt(l: Lid, r: RingDef, hoek: number, kant: number, schaal: number, uit: Vector3): Vector3 {
-  const t = Math.min(1, Math.max(0, r.y / l.lengte))
+/** Punt op de ketting: hoek in graden, kleding dempt de groeven. */
+function kettingPunt(k: Ketting, r: RingDef, hoek: number, schaal: number, uit: Vector3): Vector3 {
+  const y = Math.min(lengteVan(k), Math.max(0, r.y))
   const rad = (hoek * Math.PI) / 180
   const s = Math.sin(rad)
   const c = Math.cos(rad)
-  let bult = 0
-  for (const b of l.bulten) {
-    const h = r.extra > 0 && b.h < 0 ? b.h * 0.3 : b.h
-    bult += h * klok((t - b.t) / b.dt) * klok(hoekVerschil(hoek, b.hoek) / b.dh)
-  }
-  const m = (tabel(l.doorsnede, t, 1) * macht(s) + s * bult) * schaal + s * r.extra
-  const z = ((c >= 0 ? tabel(l.doorsnede, t, 2) : tabel(l.doorsnede, t, 3)) * macht(c) + c * bult) * schaal + c * r.extra
-  return uit.set(kant * m * r.k, r.y, z * r.k)
+  const bult = bultOp(k, r.y, hoek, r.extra > 0)
+  const m = (maat(k, y, 1) * macht(s) + s * bult) * schaal + s * r.extra
+  const z = ((c >= 0 ? maat(k, y, 2) : maat(k, y, 3)) * macht(c) + c * bult) * schaal + c * r.extra
+  return uit.set(k.kant * m * r.k, r.y, z * r.k)
 }
 
-type Masker = (t: number, hoek: number) => number
-
-const MASKERS: Partial<Record<Lichaamsdeel, Masker>> = {
-  dij: (t) => glad(0.04, 0.22, t) * (1 - glad(0.78, 0.93, t)),
-  kuit: (t, h) => klok((t - 0.36) / 0.3) * klok(hoekVerschil(h, 180) / 100),
-  bovenarm: (t) => glad(0.24, 0.4, t) * (1 - glad(0.76, 0.92, t)),
-  schouder: (t, h) => klok((t - 0.04) / 0.4) * (1 - 0.85 * klok(hoekVerschil(h, 90) / 75)),
-  onderarm: (t) => glad(0.1, 0.24, t) * (1 - glad(0.74, 0.9, t)),
+/** Aan welke botten een punt hangt: rond het gewricht aan het hulpbot. */
+function botten(k: Ketting, y: number): { a: number; b?: number; w?: number } {
+  const d = y - k.boven.lid.lengte
+  if (y < k.kop.tot) return { a: k.boven.bot, b: k.kop.bot, w: k.kop.sterk * (1 - glad(-0.02, k.kop.tot, y)) }
+  if (d <= -k.meng) return { a: k.boven.bot }
+  if (d < 0) return { a: k.boven.bot, b: k.gewricht, w: glad(-k.meng, 0, d) }
+  if (d < k.meng) return { a: k.gewricht, b: k.onder.bot, w: glad(0, k.meng, d) }
+  return { a: k.onder.bot }
 }
 
-interface LidOpties {
-  readonly lid: Lid
-  readonly bot: number
-  readonly kant: number
-  readonly delen: readonly Lichaamsdeel[]
-  readonly p: Palet
-  /** Schaduw in plooien als functie van t en hoek. */
-  readonly ao?: Masker
-}
-
-function spierOp(o: LidOpties, t: number, hoek: number): number {
+function deelWaarde(p: Palet, d: Deel, t: number, hoek: number): number {
   let m = 0
-  for (const d of o.delen) {
-    const f = MASKERS[d]
-    if (f && werkt(o.p, d)) m = Math.max(m, f(t, hoek))
+  for (const naam of d.delen) {
+    const f = MASKERS[naam]
+    const sterk = f ? sterkteVan(p, naam) : 0
+    if (f && sterk > 0) m = Math.max(m, sterk * f(t, hoek))
   }
   return m
 }
 
-function huid(b: Bouwer, o: LidOpties): void {
-  const lijst = ringen(o.lid, o.lid.lengte, true, () => 0)
+/** Spierwaarde en plooischaduw op hoogte y, vloeiend over het gewricht. */
+function kenmerken(k: Ketting, y: number, hoek: number): { spier: number; ao: number } {
+  const [t1, t2] = fracties(k, y)
+  const s = glad(k.boven.lid.lengte - 0.01, k.boven.lid.lengte + 0.01, y)
+  const mb = deelWaarde(k.p, k.boven, grens(t1), hoek)
+  const mo = deelWaarde(k.p, k.onder, grens(t2), hoek)
+  const ab = k.boven.ao?.(grens(t1), hoek) ?? 0
+  const ao = k.onder.ao?.(grens(t2), hoek) ?? 0
+  return { spier: mb + (mo - mb) * s, ao: ab + (ao - ab) * s }
+}
+
+/** Sok over de enkel: van de onderkant tot `sok` m erboven, met een geribde boord. */
+function sokOp(k: Ketting, y: number): number {
+  if (!k.sok) return 0
+  return glad(lengteVan(k) - k.sok - 0.002, lengteVan(k) - k.sok + 0.002, y)
+}
+
+function huid(b: Bouwer, k: Ketting): void {
+  const l = lengteVan(k)
+  const lijst = ringen(k, l, true, (y) => {
+    const sok = sokOp(k, y)
+    return sok > 0 ? 0.0012 * sok + 0.0014 * klok((y - (l - (k.sok ?? 0) + 0.005)) / 0.006) : 0
+  })
+  const sokKleur = k.p.zool.clone().multiplyScalar(0.94)
   raster(b, {
     ringen: lijst.length,
     rond: ROND,
-    punt: (i, j, uit) => lidPunt(o.lid, lijst[i], (j / ROND) * 360, o.kant, 1, uit),
+    punt: (i, j, uit) => kettingPunt(k, lijst[i], (j / ROND) * 360, 1, uit),
     info: (i, j): PuntInfo => {
-      const t = Math.min(1, Math.max(0, lijst[i].y / o.lid.lengte))
-      const hoek = (j / ROND) * 360
-      const m = spierOp(o, t, hoek)
-      return { kleur: kleurMet(o.p.huid, o.p, m, false, o.ao?.(t, hoek) ?? 0), spier: m, a: o.bot }
+      const y = lijst[i].y
+      const { spier, ao } = kenmerken(k, y, (j / ROND) * 360)
+      const sok = sokOp(k, y)
+      if (sok > 0.5) return { kleur: sokKleur.clone().multiplyScalar(1 - ao * 0.5), spier: 0, ...botten(k, y) }
+      return { kleur: kleurMet(k.p.huid, k.p, spier, false, ao), spier, ...botten(k, y) }
     },
   })
 }
@@ -229,66 +196,104 @@ function huid(b: Bouwer, o: LidOpties): void {
 interface Laag {
   readonly tot: number
   readonly dikte: number
+  /** Extra wijdte naar de zoom toe. */
   readonly wijd: number
-  readonly schaal: number
+  readonly kleur: 'shirt' | 'broek'
+  /** Welke werkende spieren door deze laag heen kleuren. */
+  readonly delen: readonly Lichaamsdeel[]
+  /** Plooien: [hoek, diepte] van zachte, schuine plooien in de stof. */
+  readonly plooien: readonly (readonly [number, number])[]
 }
 
-/** Een kledinglaag met een zoom (dubbele rand) aan de onderkant. */
-function kleding(b: Bouwer, o: LidOpties, laag: Laag): void {
-  const extra = (y: number) => laag.dikte + laag.wijd * glad(laag.tot * 0.4, laag.tot, y)
-  const lijst = ringen(o.lid, laag.tot, false, extra)
-  lijst.push({ y: laag.tot + 0.002, k: 1, extra: 0.0015 })
+/** Zachte plooien als lichte golving in de dikte van de stof. */
+function plooi(laag: Laag, y: number, hoek: number): number {
+  let som = 0
+  const t = y / laag.tot
+  for (const [h, diep] of laag.plooien) {
+    som += diep * klok(hoekVerschil(hoek - t * 25, h) / 22) * klok((t - 0.55) / 0.5)
+  }
+  return som
+}
+
+/** Een strakke kledinglaag met een omgeslagen zoom en een stiksel erboven. */
+function kleding(b: Bouwer, k: Ketting, laag: Laag): void {
+  const extra = (y: number) => laag.dikte + laag.wijd * glad(laag.tot * 0.45, laag.tot, y)
+  const lijst = ringen(k, laag.tot, false, extra)
+  const zoom = lijst.length
+  lijst.push({ y: laag.tot + 0.0015, k: 1, extra: 0.0012 })
+  const basis = laag.kleur === 'shirt' ? k.p.shirt : k.p.broek
   raster(b, {
     ringen: lijst.length,
     rond: ROND,
     openEind: true,
-    punt: (i, j, uit) => lidPunt(o.lid, lijst[i], (j / ROND) * 360, o.kant, laag.schaal, uit),
-    info: (i, j): PuntInfo => {
-      const t = Math.min(1, Math.max(0, lijst[i].y / o.lid.lengte))
+    punt: (i, j, uit) => {
       const hoek = (j / ROND) * 360
-      const m = spierOp(o, t, hoek)
-      const zoom = i >= lijst.length - 2 ? 0.18 : 0
-      const kleur = o.bot === BOT.bovenarm[0] || o.bot === BOT.bovenarm[1] ? o.p.shirt : o.p.broek
-      return { kleur: kleurMet(kleur, o.p, m, true, zoom), spier: m * 0.7, a: o.bot }
+      const r = lijst[i]
+      const vouw = r.y > 0 && i < zoom ? plooi(laag, r.y, hoek) : 0
+      return kettingPunt(k, { ...r, extra: r.extra + vouw }, hoek, 1, uit)
+    },
+    info: (i, j): PuntInfo => {
+      const hoek = (j / ROND) * 360
+      const y = lijst[i].y
+      const t = grens(y / k.boven.lid.lengte)
+      const spier = 0.75 * deelWaarde(k.p, { ...k.boven, delen: laag.delen }, t, hoek)
+      // Stiksel net boven de zoom (lichte lijn), de zoom zelf iets donkerder.
+      const vanZoom = laag.tot - y
+      const stiksel = klok((vanZoom - 0.014) / 0.0035)
+      const ao = i >= zoom ? 0.12 : 0.04 * glad(0.006, 0, vanZoom) - 0.18 * stiksel
+      return { kleur: kleurMet(basis, k.p, spier, true, ao), spier, ...botten(k, y) }
     },
   })
 }
 
+const AO_DIJ: Masker = (t, h) => 0.22 * klok(t / 0.2) * klok(hoekVerschil(h, 95) / 60)
+const AO_KNIEHOLTE: Masker = (t, h) => 0.14 * klok(t / 0.12) * klok(hoekVerschil(h, 180) / 55)
+const AO_OKSEL: Masker = (t, h) => 0.26 * klok(t / 0.22) * klok(hoekVerschil(h, 90) / 55)
+const AO_ELLEBOOG: Masker = (t, h) => 0.1 * klok(t / 0.1) * klok(hoekVerschil(h, 0) / 50)
+
 export function bouwBenen(b: Bouwer, stof: Bouwer, p: Palet): void {
   ;[1, -1].forEach((kant, i) => {
-    const dij: LidOpties = {
-      lid: DIJ,
-      bot: BOT.dij[i],
+    const been: Ketting = {
+      boven: { lid: DIJ, bot: BOT.dij[i], delen: ['dij', 'hamstring', 'bil'], ao: AO_DIJ },
+      onder: { lid: SCHEEN, bot: BOT.scheen[i], delen: ['kuit'], ao: AO_KNIEHOLTE },
+      gewricht: BOT.knie[i],
+      kop: { bot: BOT.heup[i], sterk: 0.4, tot: 0.12 },
       kant,
-      delen: ['dij'],
       p,
-      ao: (t, h) => 0.28 * klok(t / 0.22) * klok(hoekVerschil(h, 95) / 60) + 0.15 * klok((t - 1) / 0.12) * klok(hoekVerschil(h, 180) / 50),
+      meng: 0.055,
+      sok: 0.06,
     }
-    huid(b, dij)
-    kleding(stof, dij, { tot: DIJ.lengte * 0.4, dikte: 0.006, wijd: 0.008, schaal: 1.03 })
-    huid(b, {
-      lid: SCHEEN,
-      bot: BOT.scheen[i],
-      kant,
-      delen: ['kuit'],
-      p,
-      ao: (t, h) => 0.15 * klok(t / 0.12) * klok(hoekVerschil(h, 180) / 50),
+    huid(b, been)
+    kleding(stof, been, {
+      tot: DIJ.lengte * 0.4,
+      dikte: 0.0045,
+      wijd: 0.007,
+      kleur: 'broek',
+      delen: ['dij', 'hamstring', 'bil'],
+      plooien: [[-70, 0.0022], [60, 0.0018], [175, 0.0016]],
     })
   })
 }
 
 export function bouwArmen(b: Bouwer, stof: Bouwer, p: Palet): void {
   ;[1, -1].forEach((kant, i) => {
-    const boven: LidOpties = {
-      lid: BOVENARM,
-      bot: BOT.bovenarm[i],
+    const arm: Ketting = {
+      boven: { lid: BOVENARM, bot: BOT.bovenarm[i], delen: ['bovenarm', 'schouder'], ao: AO_OKSEL },
+      onder: { lid: ONDERARM, bot: BOT.onderarm[i], delen: ['onderarm'], ao: AO_ELLEBOOG },
+      gewricht: BOT.elleboog[i],
+      kop: { bot: BOT.schouder[i], sterk: 0.6, tot: 0.1 },
       kant,
-      delen: ['bovenarm', 'schouder'],
       p,
-      ao: (t, h) => 0.3 * klok(t / 0.25) * klok(hoekVerschil(h, 90) / 55),
+      meng: 0.045,
     }
-    huid(b, boven)
-    kleding(stof, boven, { tot: BOVENARM.lengte * 0.36, dikte: 0.004, wijd: 0.005, schaal: 1.0 })
-    huid(b, { lid: ONDERARM, bot: BOT.onderarm[i], kant, delen: ['onderarm'], p })
+    huid(b, arm)
+    kleding(stof, arm, {
+      tot: BOVENARM.lengte * 0.37,
+      dikte: 0.0028,
+      wijd: 0.0035,
+      kleur: 'shirt',
+      delen: ['schouder'],
+      plooien: [[60, 0.0016], [-120, 0.0012]],
+    })
   })
 }

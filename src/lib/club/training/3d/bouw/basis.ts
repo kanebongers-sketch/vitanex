@@ -7,12 +7,16 @@
 // - `handPlek()` en `enkelPlek()` rekenen vanuit gewrichtshoeken uit waar een
 //   hand of enkel zit (voorwaartse kinematica), zodat de inverse kinematica
 //   precies die arm of dat been terugvindt;
-// - `balanceer()` schuift het bekken tot het zwaartepunt boven de voeten ligt.
+// - `balanceer()` schuift het bekken tot het zwaartepunt boven de voeten ligt;
+// - `BLIK`, `TEMPO` en `CAMERA_PATROON`: standaarden per bewegingspatroon;
+// - `metMoment()` legt het zwaarste moment op de helft van de lus en
+//   `langsBeen()` laat een hangende last langs de benen glijden.
 
 import { Vector3 } from 'three'
 import { figuurIn, heupIn, schouderIn } from '../kinematica'
+import { startVoorSleutel } from '../interpolatie'
 import { ARM_GREEP, MATEN } from '../maten'
-import { KANALEN, type Houding, type Kanaal, type Oefening3d, type Sleutel, type Vec3 } from '../typen'
+import { KANALEN, type Blik, type Camera, type Houding, type Kanaal, type Oefening3d, type Sleutel, type Vec3 } from '../typen'
 
 const GRAAD = Math.PI / 180
 
@@ -41,7 +45,46 @@ export const TEMPO = {
   explosief: { begin: 0.15, heen: 0.75, eind: 0.2, terug: 0.85 },
   /** Vasthouden met rustige ademhaling (plank). */
   houden: { begin: 1.4, heen: 1.1, eind: 1.0, terug: 1.1 },
+  /** Squat en lunge volgens de coaching: 3 tellen omlaag, kort stil, 1 tel omhoog. */
+  squat: { begin: 0.5, heen: 3.0, eind: 0.4, terug: 1.1 },
+  /** Heupscharnier (RDL): 3 tellen omlaag met de heupen naar achteren, even voelen, 1 tel omhoog. */
+  hinge: { begin: 0.5, heen: 3.0, eind: 0.5, terug: 1.1 },
 } as const satisfies Record<string, Tempo>
+
+/**
+ * Blik in de wereld (zie `Oefening3d.blik`): het hoofd kantelt niet mee met de romp.
+ * - `vooruit`: staand en squat, borst omhoog en ogen recht vooruit;
+ * - `vloer`: voorover (row), ogen naar de vloer een meter of twee verderop;
+ * - `scharnier`: heupscharnier, de nek blijft half in lijn met de rug en strekt
+ *   onderin licht, zoals "kijk een paar meter voor je op de vloer".
+ */
+export const BLIK = {
+  vooruit: { hoek: 6 },
+  vloer: { hoek: 40 },
+  scharnier: { hoek: 24, sterkte: 0.55 },
+} as const satisfies Record<string, Blik>
+
+/** De blik die past bij een staande romp die tot `kantel` graden voorover gaat. */
+export function staandeBlik(kantel: number): Blik {
+  if (kantel >= 50) return BLIK.vloer
+  return BLIK.vooruit
+}
+
+/**
+ * Standaardcamera per bewegingspatroon, zo dat het materiaal het lichaam niet
+ * afdekt: zijaanzicht (licht van achteren, schijven voor de heupen weg) bij een
+ * heupscharnier, zijaanzicht van boven bij liggen op een bank, 3/4 van voren bij
+ * squat en lunge (beide knieen en de voetstand zichtbaar).
+ */
+export const CAMERA_PATROON = {
+  squat: { hoek: 40, hoogte: 12, afstand: 4.3, doel: { x: 0, y: 0.84, z: 0 } },
+  lunge: { hoek: 52, hoogte: 10, afstand: 4.5, doel: { x: 0, y: 0.78, z: -0.2 } },
+  scharnier: { hoek: 108, hoogte: 16, afstand: 4.3, doel: { x: 0, y: 0.8, z: -0.06 } },
+  bank: { hoek: 78, hoogte: 24, afstand: 4.4, doel: { x: 0, y: 0.62, z: -0.05 } },
+  heupstrek: { hoek: 80, hoogte: 14, afstand: 4.2, doel: { x: 0, y: 0.45, z: 0.05 } },
+  machine: { hoek: 66, hoogte: 12, afstand: 4.4, doel: { x: 0, y: 0.78, z: 0.25 } },
+  staand: { hoek: 36, hoogte: 9, afstand: 4.2, doel: { x: 0, y: 1.0, z: 0.05 } },
+} as const satisfies Record<string, Camera>
 
 export type Params = Readonly<Record<string, number>>
 
@@ -228,3 +271,30 @@ export const STAAND = {
 
 /** Hoogte van het heupgewricht staand met bijna gestrekte benen. */
 export const HEUP_STAAND = 0.944
+
+/**
+ * Zet de startfractie zo dat de eindstand (de sleutel halverwege, zoals `lus()` hem
+ * maakt) met het midden van zijn pauze op fractie `op` van de lus valt. Op een
+ * contactblad staat dan 0 bij het begin van de beweging en 0,5 op het zwaarste moment.
+ */
+export function metMoment(o: Oefening3d, op = 0.5): Oefening3d {
+  return { ...o, start: startVoorSleutel(o.sleutels, Math.floor(o.sleutels.length / 2), op) }
+}
+
+/** Z van de voorkant van de beenlijn (heup, knie, enkel) van het linkerbeen op hoogte y. */
+export function beenZOp(o: Oefening3d, h: Houding, y: number): number {
+  const b = figuurIn(o, h).benen[0]
+  const [boven, onder] = y >= b.midden.y ? [b.begin, b.midden] : [b.midden, b.eind]
+  const f = Math.min(1, Math.max(0, (boven.y - y) / Math.max(1e-6, boven.y - onder.y)))
+  return boven.z + (onder.z - boven.z) * f
+}
+
+/** Een hangende last (stang, halters) tegen de benen: net voor de beenlijn op zijn eigen hoogte. */
+export function langsBeen(o: Oefening3d, h: Houding, afstand: number): Houding {
+  let uit = h
+  for (let i = 0; i < 4; i++) {
+    const y = figuurIn(o, uit).last.pos.y
+    uit = { ...uit, lastZ: beenZOp(o, uit, y) + afstand }
+  }
+  return uit
+}

@@ -35,6 +35,11 @@ export const GRENZEN = {
   heupbuiging: { min: -20, max: 140 },
   lende: { min: -15, max: 25 },
   borst: { min: -15, max: 35 },
-  nek: { min: -30, max: 35 },
+  /**
+   * Nek: strekken tot -45 (de halswervels strekken tot ongeveer 60 graden), zodat
+   * de blik vooruit kan blijven als de romp ver voorover kantelt (back squat).
+   * Buigen tot 35 (kin naar de borst gaat tot ongeveer 50).
+   */
+  nek: { min: -45, max: 35 },
   schouders: { min: -0.04, max: 0.05 },
 } as const

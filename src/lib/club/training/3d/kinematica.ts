@@ -5,8 +5,8 @@
 // greep aan de last), met een buigrichting voor knie en elleboog.
 
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three'
-import { ARM_GREEP, BEEN, MATEN } from './maten'
-import type { Houding, Oefening3d, Vec3 } from './typen'
+import { ARM_GREEP, BEEN, GRENZEN, MATEN } from './maten'
+import type { Blik, Houding, Oefening3d, Vec3 } from './typen'
 
 const GRAAD = Math.PI / 180
 const X = new Vector3(1, 0, 0)
@@ -92,12 +92,31 @@ export interface Romp {
   readonly hoofd: Frame
 }
 
+/** Voorwaartse kanteling van de borst in de wereld (graden): bekken plus onder- en bovenrug. */
+export function rompHoek(h: Houding): number {
+  return h.kantel + h.lende + h.borst
+}
+
+/**
+ * De nekbuiging die het hoofd echt krijgt. Zonder blik is dat het kanaal nek. Met
+ * blik vangt de nek de kanteling van de romp op zodat het hoofd de wereldhoek van
+ * de blik houdt (gemengd met het kanaal volgens de sterkte), altijd binnen
+ * GRENZEN.nek.
+ */
+export function nekMetBlik(h: Houding, blik?: Blik): number {
+  if (!blik) return h.nek
+  const s = Math.min(1, Math.max(0, blik.sterkte ?? 1))
+  const doel = blik.hoek - rompHoek(h)
+  const nek = h.nek + (doel - h.nek) * s
+  return Math.min(GRENZEN.nek.max, Math.max(GRENZEN.nek.min, nek))
+}
+
 /** Romp en hoofd in een houding (voorwaartse kinematica vanuit het bekken). */
-export function romp(h: Houding): Romp {
+export function romp(h: Houding, blik?: Blik): Romp {
   const bekken: Frame = { pos: new Vector3(0, h.bekkenY, h.bekkenZ), rot: rx(h.kantel) }
   const lende = kind(bekken, new Vector3(0, MATEN.bekkenNaarLende.y, MATEN.bekkenNaarLende.z), h.lende)
   const borst = kind(lende, new Vector3(0, MATEN.lende, 0), h.borst)
-  const hoofd = kind(borst, new Vector3(0, MATEN.borst, -0.005), h.nek)
+  const hoofd = kind(borst, new Vector3(0, MATEN.borst, -0.005), nekMetBlik(h, blik))
   return { bekken, lende, borst, hoofd }
 }
 
@@ -159,7 +178,7 @@ function heupbuiging(bekken: Frame, been: Ledemaat): number {
 
 /** Het hele figuur in een houding. */
 export function figuurIn(o: Oefening3d, h: Houding): Figuur {
-  const r = romp(h)
+  const r = romp(h, o.blik)
   const schouders = ZIJDEN.map(
     (z) => kind(r.borst, new Vector3(MATEN.schouder.x * z, MATEN.schouder.y + h.schouders, MATEN.schouder.z), 0).pos,
   )
