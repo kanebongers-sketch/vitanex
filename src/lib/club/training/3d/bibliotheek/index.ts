@@ -6,7 +6,8 @@
 // Een nieuwe oefening toevoegen:
 // 1. kies het patroon: squat, hinge, swing, lunge, heupstrek, legPress,
 //    beenMachine, calfRaise (../bouw/benen), armOefening voor drukken, trekken,
-//    curl, extensie en raise (../bouw/boven), plank of crunch (../bouw/core);
+//    curl, extensie en raise (../bouw/boven), plank of crunch (../bouw/core),
+//    reverseCrunch, legRaise of hollowHold (../bouw/liggend);
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
 //    dan de standaard (kopieer de dichtstbijzijnde oefening);
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,
@@ -51,6 +52,9 @@ import { LATERAL_RAISE } from './lateral-raise'
 import { FRONT_RAISE } from './front-raise-met-dumbbells'
 import { PLANK } from './plank'
 import { CRUNCH } from './crunch'
+import { REVERSE_CRUNCH } from './reverse-crunch'
+import { LEG_RAISE_LIGGEND } from './leg-raise-liggend'
+import { HOLLOW_HOLD } from './hollow-hold'
 import type { Oefening3d } from '../typen'
 
 /** De zes oefeningen van het eerste prototype (met de hand afgesteld, eigen houdingen). */
@@ -98,4 +102,7 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   FRONT_RAISE,
   PLANK,
   CRUNCH,
+  REVERSE_CRUNCH,
+  LEG_RAISE_LIGGEND,
+  HOLLOW_HOLD,
 ]
