@@ -36,6 +36,12 @@ import { CALF_RAISE } from './calf-raise-staand'
 import { DUMBBELL_BANKDRUKKEN } from './dumbbell-bankdrukken'
 import { SCHUIN_BANKDRUKKEN_DB } from './schuin-bankdrukken-met-dumbbells'
 import { CHEST_PRESS_MACHINE } from './chest-press-machine'
+import { SCHUIN_BANKDRUKKEN_BARBELL } from './schuin-bankdrukken-met-barbell'
+import { BANKDRUKKEN_SMALLE_GREEP } from './bankdrukken-met-smalle-greep'
+import { PUSH_UP_KNIEEN } from './push-up-op-knieen'
+import { PUSH_UP_VOETEN_VERHOOGD } from './push-up-met-voeten-verhoogd'
+import { PUSH_UP_HANDEN_VERHOOGD } from './push-up-met-handen-verhoogd'
+import { PUSH_UP_SMALLE_HANDEN } from './push-up-met-smalle-handen'
 import { OVERHEAD_PRESS } from './overhead-press'
 import { ROW_DUMBBELLS } from './voorovergebogen-row-met-dumbbells'
 import { BARBELL_ROW } from './barbell-row'
@@ -83,6 +89,12 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   DUMBBELL_BANKDRUKKEN,
   SCHUIN_BANKDRUKKEN_DB,
   CHEST_PRESS_MACHINE,
+  SCHUIN_BANKDRUKKEN_BARBELL,
+  BANKDRUKKEN_SMALLE_GREEP,
+  PUSH_UP_KNIEEN,
+  PUSH_UP_VOETEN_VERHOOGD,
+  PUSH_UP_HANDEN_VERHOOGD,
+  PUSH_UP_SMALLE_HANDEN,
   OVERHEAD_PRESS,
   ROW_DUMBBELLS,
   BARBELL_ROW,
