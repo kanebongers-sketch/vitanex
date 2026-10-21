@@ -31,7 +31,7 @@ describe('beslisAyg', () => {
     expect(beslisAyg('aiyourgym.com', '/robots.txt', true)).toEqual({ soort: 'door' })
   })
   it('andere API-paden gaan niet naar de app van Fit Factory', () => {
-    expect(beslisAyg('aiyourgym.com', '/api/club/leden', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/api/club/leden' })
+    expect(beslisAyg('aiyourgym.com', '/api/lifeos/taken', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/api/lifeos/taken' })
     expect(beslisAyg('aiyourgym.com', '/api/aiyourgymx', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/api/aiyourgymx' })
   })
   it('geen sitemap van de app: /sitemap.xml blijft binnen de website (404 daar)', () => {
@@ -76,5 +76,17 @@ describe('aygDomeinDicht', () => {
     expect(aygDomeinDicht('fitfactorypt.nl', false, false)).toBe(false)
     expect(aygDomeinDicht('aiyourgym.com.evil.nl', false, false)).toBe(false)
     expect(aygDomeinDicht('notaiyourgym.com', false, false)).toBe(false)
+  })
+})
+
+describe('Club op aiyourgym.com', () => {
+  it('laat Club, inloggen en de ledenapp door', () => {
+    for (const pad of ['/club', '/club/leden', '/clubinloggen/platform/abc', '/mijn', '/mijn/start/x', '/api/club/leden', '/api/club-afmelden/t']) {
+      expect(beslisAyg('aiyourgym.com', pad, true)).toEqual({ soort: 'door' })
+    }
+  })
+  it('stuurt lijkende paden gewoon naar de website', () => {
+    expect(beslisAyg('aiyourgym.com', '/clubs', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/clubs' })
+    expect(beslisAyg('aiyourgym.com', '/mijnheer', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/mijnheer' })
   })
 })

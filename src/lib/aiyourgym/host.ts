@@ -4,6 +4,7 @@
 //  aiyourgym.com en www.aiyourgym.com (schakelaar AIYOURGYM_SITE_ACTIEF aan)
 //    /api/aiyourgym/...  door (aanmelden, beschikbaarheid, Stripe-webhook)
 //    /aiyourgym/...      door (bestaande links blijven werken)
+//    /club, /clubinloggen, /mijn, /club-app, /api/club..., /api/widget  door (Club)
 //    /favicon.ico, /robots.txt  door (er is geen sitemap: /sitemap.xml gaat
 //                        naar /aiyourgym/sitemap.xml en wordt een 404 van de site)
 //    /...                herschrijven naar /aiyourgym/... (ook andere /api/: die bestaan daar niet)
@@ -17,6 +18,14 @@ export const AYG_API = '/api/aiyourgym'
 
 const AYG_HOSTS: ReadonlySet<string> = new Set(['aiyourgym.com', 'www.aiyourgym.com', 'aiyourgym.localhost', 'www.aiyourgym.localhost'])
 const ALTIJD_DOOR: ReadonlySet<string> = new Set(['/favicon.ico', '/robots.txt'])
+
+// Club, ledenapp en inloggen staan op aiyourgym.com zelf (besluit Kane 21-10-2026):
+// die paden gaan door naar hun eigen routes in src/app/(aiyourgym)/(club).
+const CLUB_VOORVOEGSELS: readonly string[] = ['/club', '/clubinloggen', '/mijn', '/club-app', '/api/club', '/api/club-afmelden', '/api/widget']
+
+function isClubPad(pad: string): boolean {
+  return CLUB_VOORVOEGSELS.some((v) => pad === v || pad.startsWith(`${v}/`))
+}
 
 function schoon(host: string | null | undefined): string {
   return (host ?? '').split(':')[0].trim().toLowerCase()
@@ -34,6 +43,7 @@ export function beslisAyg(host: string | null | undefined, pad: string, actief: 
   if (pad === AYG_API || pad.startsWith(`${AYG_API}/`)) return { soort: 'door' }
   if (pad === AYG_PREFIX || pad.startsWith(`${AYG_PREFIX}/`)) return { soort: 'door' }
   if (ALTIJD_DOOR.has(pad)) return { soort: 'door' }
+  if (isClubPad(pad)) return { soort: 'door' }
   return { soort: 'herschrijven', pad: pad === '/' ? AYG_PREFIX : `${AYG_PREFIX}${pad}` }
 }
 
