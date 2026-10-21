@@ -49,6 +49,11 @@ import { TRICEPS_PUSHDOWN } from './triceps-pushdown'
 import { OVERHEAD_EXTENSION } from './triceps-extension-boven-het-hoofd'
 import { LATERAL_RAISE } from './lateral-raise'
 import { FRONT_RAISE } from './front-raise-met-dumbbells'
+import { SHOULDER_PRESS_MACHINE } from './shoulder-press-machine'
+import { REVERSE_FLY } from './reverse-fly'
+import { UPRIGHT_ROW_DUMBBELLS } from './upright-row-met-dumbbells'
+import { SCHOUDERS_OPHALEN_DUMBBELLS } from './schouders-ophalen-met-dumbbells'
+import { SCHOUDERS_OPHALEN_BARBELL } from './schouders-ophalen-met-barbell'
 import { PLANK } from './plank'
 import { CRUNCH } from './crunch'
 import type { Oefening3d } from '../typen'
@@ -96,6 +101,11 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   OVERHEAD_EXTENSION,
   LATERAL_RAISE,
   FRONT_RAISE,
+  SHOULDER_PRESS_MACHINE,
+  REVERSE_FLY,
+  UPRIGHT_ROW_DUMBBELLS,
+  SCHOUDERS_OPHALEN_DUMBBELLS,
+  SCHOUDERS_OPHALEN_BARBELL,
   PLANK,
   CRUNCH,
 ]

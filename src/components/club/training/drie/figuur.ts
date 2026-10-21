@@ -34,6 +34,7 @@ const GREEP_STRAAL: Partial<Record<MateriaalSoort, number>> = {
   halterStaand: 0.0165,
   kabelstation: 0.0185,
   chestPress: 0.019,
+  schouderPress: 0.019,
   kuitMachine: 0.018,
   beenMachine: 0.018,
   stang: 0.0142,

@@ -72,6 +72,7 @@ export type MateriaalSoort =
   | 'beenMachine' // leg extension of leg curl zittend, kussen aan de enkels
   | 'chestPress' // chest press machine, grepen aan de handen
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
+  | 'schouderPress' // shoulder press machine, hefbomen met grepen aan de handen (zie bouw/schouderpress)
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
 
