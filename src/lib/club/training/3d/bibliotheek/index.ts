@@ -92,6 +92,11 @@ import { CRUNCH } from './crunch'
 import { REVERSE_CRUNCH } from './reverse-crunch'
 import { LEG_RAISE_LIGGEND } from './leg-raise-liggend'
 import { HOLLOW_HOLD } from './hollow-hold'
+import { SQUAT_NAAR_BANK } from './squat-naar-een-bank'
+import { ACHTERWAARTSE_LUNGE } from './achterwaartse-lunge'
+import { BULGARIAN_SPLIT_SQUAT } from './bulgarian-split-squat'
+import { SUMO_SQUAT_DB } from './sumo-squat-met-dumbbell'
+import { SQUAT_SMITH } from './squat-in-de-smith-machine'
 import type { Oefening3d } from '../typen'
 
 /** De zes oefeningen van het eerste prototype (met de hand afgesteld, eigen houdingen). */
@@ -109,12 +114,17 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   GOBLET_SQUAT,
   SQUAT_LICHAAMSGEWICHT,
   SQUAT_DUMBBELLS,
+  SQUAT_NAAR_BANK,
+  SUMO_SQUAT_DB,
+  SQUAT_SMITH,
   RDL_BARBELL,
   RDL_DUMBBELLS,
   KETTLEBELL_SWING,
   LUNGE_DUMBBELLS,
   ACHTERWAARTSE_LUNGE_DB,
+  ACHTERWAARTSE_LUNGE,
   SPLIT_SQUAT_DB,
+  BULGARIAN_SPLIT_SQUAT,
   HIP_THRUST,
   GLUTE_BRIDGE,
   LEG_PRESS,
