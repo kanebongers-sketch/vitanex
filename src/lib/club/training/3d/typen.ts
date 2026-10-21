@@ -74,8 +74,11 @@ export type MateriaalSoort =
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
+  | 'roeiMachine' // seated row machine met borstkussen, hefbomen en grepen aan de handen
+  | 'buikBank' // schuine roeibank om met de borst op te liggen (row met borststeun), ligt tegen de romp
+  | 'tBar' // T-bar row: stang vanuit een scharnier op de vloer, schijven voorop, greep aan de handen
 
-export type KabelGreep = 'stang' | 'touw' | 'vgreep' | 'handvat'
+export type KabelGreep = 'stang' | 'touw' | 'vgreep' | 'handvat' | 'lat'
 
 export interface Materiaal {
   readonly soort: MateriaalSoort
