@@ -6,7 +6,9 @@
 // Een nieuwe oefening toevoegen:
 // 1. kies het patroon: squat, hinge, swing, lunge, heupstrek, legPress,
 //    beenMachine, calfRaise (../bouw/benen), armOefening voor drukken, trekken,
-//    curl, extensie en raise (../bouw/boven), plank of crunch (../bouw/core);
+//    curl, extensie en raise (../bouw/boven), boogOefening voor fly, pec deck
+//    en crossover (../bouw/boog), smithDrukken (../bouw/smith), plank of
+//    crunch (../bouw/core);
 // 2. maak een bestand <naam>.ts met de naam en de paar getallen die anders zijn
 //    dan de standaard (kopieer de dichtstbijzijnde oefening);
 // 3. zet hem hieronder in BIBLIOTHEEK_3D en draai de test (grenzen, voeten,
@@ -36,6 +38,12 @@ import { CALF_RAISE } from './calf-raise-staand'
 import { DUMBBELL_BANKDRUKKEN } from './dumbbell-bankdrukken'
 import { SCHUIN_BANKDRUKKEN_DB } from './schuin-bankdrukken-met-dumbbells'
 import { CHEST_PRESS_MACHINE } from './chest-press-machine'
+import { BANKDRUKKEN_SMITH } from './bankdrukken-in-de-smith-machine'
+import { SCHUIN_BANKDRUKKEN_SMITH } from './schuin-bankdrukken-in-de-smith-machine'
+import { DUMBBELL_FLY } from './dumbbell-fly'
+import { SCHUINE_DUMBBELL_FLY } from './schuine-dumbbell-fly'
+import { PEC_DECK } from './pec-deck'
+import { CABLE_CROSSOVER } from './cable-crossover'
 import { OVERHEAD_PRESS } from './overhead-press'
 import { ROW_DUMBBELLS } from './voorovergebogen-row-met-dumbbells'
 import { BARBELL_ROW } from './barbell-row'
@@ -83,6 +91,12 @@ export const BIBLIOTHEEK_3D: readonly Oefening3d[] = [
   DUMBBELL_BANKDRUKKEN,
   SCHUIN_BANKDRUKKEN_DB,
   CHEST_PRESS_MACHINE,
+  BANKDRUKKEN_SMITH,
+  SCHUIN_BANKDRUKKEN_SMITH,
+  DUMBBELL_FLY,
+  SCHUINE_DUMBBELL_FLY,
+  PEC_DECK,
+  CABLE_CROSSOVER,
   OVERHEAD_PRESS,
   ROW_DUMBBELLS,
   BARBELL_ROW,

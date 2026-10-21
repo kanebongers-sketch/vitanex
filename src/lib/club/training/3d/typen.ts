@@ -72,6 +72,9 @@ export type MateriaalSoort =
   | 'beenMachine' // leg extension of leg curl zittend, kussen aan de enkels
   | 'chestPress' // chest press machine, grepen aan de handen
   | 'kuitMachine' // staande kuitmachine met verhoging en schouderkussens
+  | 'pecDeck' // pec deck (butterfly), armen draaien om een as boven de schouders
+  | 'kabelCrossover' // crossover-station met twee hoge katrollen, torens op z = `plek.z`
+  | 'smith' // smith machine: frame en geleidestangen, de stang op z = `plek.z`
   | 'verhoging' // lage plank onder de voorvoeten
   | 'mat'
 

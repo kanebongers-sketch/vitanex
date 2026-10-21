@@ -13,6 +13,8 @@ import { curlStang, halter, kettlebell, stang, zetHalters, zetHalterStaand, zetK
 import { mat, rugBank, schuineBank, verhoging, vlakkeBank } from './materiaal-banken'
 import { kabel, kabelstation } from './materiaal-kabels'
 import { beenMachine, chestPress, kuitMachine, legPress } from './materiaal-machines'
+import { kabelCrossover, pecDeck } from './materiaal-borst'
+import { smithMachine } from './materiaal-smith'
 import { zetDoorzicht, type Zicht } from './materiaal-zicht'
 
 export type { MateriaalMaterialen } from './materiaal-delen'
@@ -95,6 +97,12 @@ function stuk(bak: GeoBak, m: MateriaalMaterialen, item: Materiaal, zicht: Zicht
       return chestPress(bak, m, zicht)
     case 'kuitMachine':
       return kuitMachine(bak, m, plek, zicht)
+    case 'pecDeck':
+      return pecDeck(bak, m, zicht)
+    case 'kabelCrossover':
+      return kabelCrossover(bak, m, plek, zicht)
+    case 'smith':
+      return smithMachine(bak, m, plek, zicht)
   }
 }
 
