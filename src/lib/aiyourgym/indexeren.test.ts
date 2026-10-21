@@ -24,7 +24,7 @@ describe('moetNoindex', () => {
   it('raakt andere paden en hosts niet', () => {
     expect(moetNoindex('releasev.nl', '/', false)).toBe(false)
     expect(moetNoindex('fitfactorypt.nl', '/aiyourgymx', false)).toBe(false)
-    expect(moetNoindex('fitfactorypt.nl', '/clubkane', false)).toBe(false)
+    expect(moetNoindex('fitfactorypt.nl', '/club', false)).toBe(false)
   })
   it('laat alles door als indexeren aan staat', () => {
     expect(moetNoindex('aiyourgym.com', '/', true)).toBe(false)

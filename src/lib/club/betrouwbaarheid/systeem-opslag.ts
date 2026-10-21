@@ -1,5 +1,5 @@
 // ─── Systeemoverzicht: gegevens ophalen (SERVER-ONLY) ───────────────────────
-// Alleen voor Kane (/clubkane/systeem, layout met eisKane). club_fouten is
+// Alleen voor Kane (/club/systeem, layout met eisPlatformEigenaar). club_fouten is
 // bewust niet per sportschool: het is het overzicht van het hele platform.
 
 import type { SupabaseClient } from '@supabase/supabase-js'

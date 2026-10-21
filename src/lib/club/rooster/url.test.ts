@@ -12,7 +12,7 @@ describe('rooster-URL', () => {
 
   it('bouwt een URL met wijzigingen', () => {
     const s = leesRoosterStaat({ week: '2026-W42', zaal: ID }, 'budel')
-    expect(roosterHref(s, { les: ID })).toBe(`/clubkane/rooster?v=budel&week=2026-W42&zaal=${ID}&les=${ID}`)
-    expect(roosterHref(s, { zaal: null, week: null })).toBe('/clubkane/rooster?v=budel')
+    expect(roosterHref(s, { les: ID })).toBe(`/club/rooster?v=budel&week=2026-W42&zaal=${ID}&les=${ID}`)
+    expect(roosterHref(s, { zaal: null, week: null })).toBe('/club/rooster?v=budel')
   })
 })

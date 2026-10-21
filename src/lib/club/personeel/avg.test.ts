@@ -69,10 +69,10 @@ describe('medewerkerExportBestandsnaam', () => {
 
 describe('magMedewerkerWissen', () => {
   it('laat alleen Kane en de eigenaar wissen', () => {
-    expect(magMedewerkerWissen({ isKane: true, rol: 'beheerder' })).toBe(true)
-    expect(magMedewerkerWissen({ isKane: false, rol: 'eigenaar' })).toBe(true)
-    expect(magMedewerkerWissen({ isKane: false, rol: 'clubmanager' })).toBe(false)
-    expect(magMedewerkerWissen({ isKane: false, rol: 'medewerker' })).toBe(false)
+    expect(magMedewerkerWissen({ isPlatformEigenaar: true, rol: 'beheerder' })).toBe(true)
+    expect(magMedewerkerWissen({ isPlatformEigenaar: false, rol: 'eigenaar' })).toBe(true)
+    expect(magMedewerkerWissen({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(false)
+    expect(magMedewerkerWissen({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
   })
 })
 

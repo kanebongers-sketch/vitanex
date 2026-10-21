@@ -13,7 +13,7 @@ export interface ZoekItem {
   uitleg: string
   /** Waar het staat, bijvoorbeeld "Planning" of "Instellingen · Locaties". */
   plek: string
-  /** Pad binnen /clubkane, eventueel met ?tab= of #anker. */
+  /** Pad binnen /club, eventueel met ?tab= of #anker. */
   pad: string
   /** Neemt de gekozen vestiging mee. */
   perVestiging: boolean

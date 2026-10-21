@@ -16,7 +16,7 @@ export function LeadsFilters({ vestiging, filters, medewerkers }: LeadsFiltersPr
   const zonderWeergave = { ...filters, weergave: 'pijplijn' as const }
   return (
     <section className="club-leads-filterbalk" aria-label="Filters en weergave">
-      <form method="get" action="/clubkane/leads" className="club-leads-filters">
+      <form method="get" action="/club/leads" className="club-leads-filters">
         <input type="hidden" name={VESTIGING_PARAM} value={vestiging} />
         {filters.weergave === 'lijst' && <input type="hidden" name="weergave" value="lijst" />}
         <label className="club-veld">

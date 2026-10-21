@@ -8,7 +8,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ClubToegang } from '@/lib/club/toegang'
-import { lifeosUserId } from '@/lib/lifeos/admin'
+import { platformEigenaarId } from '@/lib/club/kern/database'
 import { ORGANISATIE_KOLOMMEN, organisatieUitRij, type Organisatie } from '@/lib/club/kern/organisatie'
 import { maakOrganisatie } from '@/lib/club/kern/organisatie-opslag'
 import { maakVestiging } from '@/lib/club/instellingen/vestigingen-opslag'
@@ -22,8 +22,8 @@ import type { AanmeldingRij } from './opslag'
  */
 function systeemToegang(admin: SupabaseClient, beheerderId: string, organisaties: Organisatie[], userId: string): ClubToegang {
   return {
-    admin, userId, organisatie: organisaties[0], organisaties, beheerderId, rol: 'beheerder', isKane: true,
-    persoonId: null, onderdelen: null, vestigingen: [], naam: 'AI Your Gym', code: null,
+    admin, userId, organisatie: organisaties[0], organisaties, beheerderId, rol: 'beheerder', isPlatformEigenaar: true,
+    persoonId: null, onderdelen: null, vestigingen: [], naam: 'AI Your Gym',
   }
 }
 
@@ -49,7 +49,7 @@ export async function ruimSportschoolOp(admin: SupabaseClient, organisatieId: st
 export type SportschoolUitslag = { ok: true; organisatieId: string } | { ok: false }
 
 export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, onthoud: (organisatieId: string) => Promise<boolean>): Promise<SportschoolUitslag> {
-  const beheerderId = lifeosUserId()
+  const beheerderId = platformEigenaarId()
   const organisaties = await organisatiesVan(admin, beheerderId)
   if (!organisaties || organisaties.length === 0) return { ok: false }
   const t = systeemToegang(admin, beheerderId, organisaties, beheerderId)

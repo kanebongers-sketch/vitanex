@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ONDERDELEN, isActief } from '@/components/club/shell/onderdelen'
 import { ARTIKELEN, filterArtikelen, kaalPad, normaliseer, zichtbareArtikelen } from './artikelen'
 
-const APP = join(process.cwd(), 'src', 'app', '(hoofd)')
+const APP = join(process.cwd(), 'src', 'app', '(aiyourgym)', '(club)')
 
 /** Bestaat er een page.tsx voor dit pad onder src/app? */
 function paginaBestaat(pad: string): boolean {
@@ -24,7 +24,7 @@ describe('ARTIKELEN', () => {
     for (const a of ARTIKELEN) {
       expect(a.links.length, a.sleutel).toBeGreaterThan(0)
       for (const l of a.links) {
-        expect(l.pad.startsWith('/clubkane'), l.pad).toBe(true)
+        expect(l.pad.startsWith('/club'), l.pad).toBe(true)
         expect(paginaBestaat(l.pad), `${a.sleutel}: ${l.pad}`).toBe(true)
         expect(ONDERDELEN.some((o) => isActief(o, kaalPad(l.pad))), `${a.sleutel}: ${l.pad}`).toBe(true)
       }
@@ -72,7 +72,7 @@ describe('zichtbareArtikelen', () => {
     const lijst = zichtbareArtikelen([], ['vandaag', 'rooster'])
     expect(lijst.map((a) => a.sleutel)).toEqual(['eerste-stappen', 'rooster'])
     const rooster = lijst.find((a) => a.sleutel === 'rooster')
-    expect(rooster?.links.map((l) => l.pad)).toEqual(['/clubkane/rooster'])
+    expect(rooster?.links.map((l) => l.pad)).toEqual(['/club/rooster'])
     expect(ARTIKELEN.find((a) => a.sleutel === 'rooster')?.links.length).toBe(3)
   })
 })

@@ -1,6 +1,6 @@
 // ─── Club, community: eenvoudige woordfilter (PUUR) ─────────────────────────
 // Een bericht met een scheldwoord wordt niet geweigerd maar vastgehouden: de
-// sportschool beoordeelt het in Club (/clubkane/community). Bewust eenvoudig
+// sportschool beoordeelt het in Club (/club/community). Bewust eenvoudig
 // en aan de voorzichtige kant: liever een keer te veel vasthouden dan een
 // grof bericht in de groep. Geen woorden uitschrijven in meldingen aan leden.
 //

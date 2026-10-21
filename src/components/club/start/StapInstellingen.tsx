@@ -92,7 +92,7 @@ export async function StapTeam({ t, vestiging, soort, voet }: StapMetVestigingPr
       <Klaargezet
         bron={bronVan(soort)}
         gang={voet}
-        aanpassenHref="/clubkane/beheer/rechten"
+        aanpassenHref="/club/beheer/rechten"
         regels={[{ titel: 'Wat elke rol ziet', tekst: rechtenTekst(t.organisatie.instellingen.rechten) }]}
       />
     </div>

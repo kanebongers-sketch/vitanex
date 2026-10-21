@@ -47,7 +47,7 @@ describe('filterZoek', () => {
 
 describe('zoekHref', () => {
   it('vestiging mee waar dat hoort', () => {
-    expect(zoekHref({ pad: '', perVestiging: true }, 'budel')).toBe('/clubkane?v=budel')
-    expect(zoekHref({ pad: '/beheer/rechten', perVestiging: false }, 'budel')).toBe('/clubkane/beheer/rechten')
+    expect(zoekHref({ pad: '', perVestiging: true }, 'budel')).toBe('/club?v=budel')
+    expect(zoekHref({ pad: '/beheer/rechten', perVestiging: false }, 'budel')).toBe('/club/beheer/rechten')
   })
 })

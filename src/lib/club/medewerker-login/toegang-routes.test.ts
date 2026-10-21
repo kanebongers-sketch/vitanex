@@ -17,7 +17,7 @@ vi.mock('next/headers', () => ({
 }))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
-vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => db.admin }))
+vi.mock('@/lib/club/kern/database', () => ({ clubDatabase: () => db.admin }))
 const beheer = vi.hoisted(() => ({ beheerderVanSessie: vi.fn() }))
 vi.mock('@/lib/club/beheerders/beheerder-opslag', async (orig) => ({ ...(await orig<typeof import('@/lib/club/beheerders/beheerder-opslag')>()), ...beheer }))
 const opslag = vi.hoisted(() => ({ medewerkerVanSessie: vi.fn(), vindMedewerkerLink: vi.fn(), logInMedewerker: vi.fn(), kiesMedewerkerPin: vi.fn(), beheerMedewerkerLogin: vi.fn() }))
@@ -61,10 +61,10 @@ db.admin = nepSupabase((v: Vraag) => {
 }).admin
 
 import { clubToegang, logActie, vereisClubToegang } from '@/lib/club/toegang'
-import { POST as inloggen } from '@/app/api/club/inloggen/medewerker/[code]/route'
-import { POST as kiesPin } from '@/app/api/club/inloggen/medewerker/[code]/pin/route'
-import { PATCH as beheerLink } from '@/app/api/club/medewerker-toegang/[id]/route'
-import { POST as uitloggen } from '@/app/api/club/uitloggen/route'
+import { POST as inloggen } from '@/app/(aiyourgym)/api/club/inloggen/medewerker/[code]/route'
+import { POST as kiesPin } from '@/app/(aiyourgym)/api/club/inloggen/medewerker/[code]/pin/route'
+import { PATCH as beheerLink } from '@/app/(aiyourgym)/api/club/medewerker-toegang/[id]/route'
+import { POST as uitloggen } from '@/app/(aiyourgym)/api/club/uitloggen/route'
 import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
 import { medewerkerCookie } from './medewerker-login'
 
@@ -92,7 +92,7 @@ describe('clubToegang voor een medewerker', () => {
   it('alleen de eigen sportschool, de eigen vestigingen en de rechten van de rol', async () => {
     stand.cookies.set('club-org', GYM_B)
     const t = await clubToegang()
-    expect(t).toMatchObject({ userId: GYM_A, rol: 'medewerker', isKane: false, persoonId: MW, code: null, naam: 'Lotte de Vries' })
+    expect(t).toMatchObject({ userId: GYM_A, rol: 'medewerker', isPlatformEigenaar: false, persoonId: MW, code: null, naam: 'Lotte de Vries' })
     expect(t?.organisaties.map((o) => o.id)).toEqual([GYM_A])
     expect(t?.vestigingen.map((v) => v.sleutel)).toEqual(['eersel'])
     // Beheer valt eraf, ook al vinkte de eigenaar het aan.

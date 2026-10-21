@@ -3,7 +3,7 @@
 // hij helemaal in het geheugen staat. 'te-groot' = weigeren met 413.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { GEEN_CACHE } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE } from '@/lib/club/kern/verzoek'
 
 export async function leesJsonBegrensd(req: NextRequest, maxBytes: number): Promise<unknown | 'te-groot'> {
   const lengte = Number(req.headers.get('content-length') ?? NaN)

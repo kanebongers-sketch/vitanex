@@ -1,4 +1,4 @@
-// ─── Systeemoverzicht: rekenwerk voor /clubkane/systeem (PUUR) ──────────────
+// ─── Systeemoverzicht: rekenwerk voor /club/systeem (PUUR) ──────────────
 
 import type { FoutGebied, FoutSoort } from './fout'
 

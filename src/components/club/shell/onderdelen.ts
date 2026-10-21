@@ -23,7 +23,7 @@ export type GroepSleutel = (typeof GROEPEN)[number]['sleutel']
 
 export interface Onderdeel {
   sleutel: string
-  /** Pad binnen /clubkane ('' = Vandaag). */
+  /** Pad binnen /club ('' = Vandaag). */
   pad: string
   label: string
   /** Korte uitleg voor de zoekbalk en de presentatie. */
@@ -70,8 +70,8 @@ export const ONDERDELEN: readonly Onderdeel[] = [
 
 /** Is dit onderdeel actief op dit pad? */
 export function isActief(onderdeel: Onderdeel, pad: string): boolean {
-  const basis = `/clubkane${onderdeel.pad}`
-  if (onderdeel.pad === '') return pad === '/clubkane' || pad === '/clubkane/'
+  const basis = `/club${onderdeel.pad}`
+  if (onderdeel.pad === '') return pad === '/club' || pad === '/club/'
   return pad === basis || pad.startsWith(`${basis}/`)
 }
 

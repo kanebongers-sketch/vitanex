@@ -1,6 +1,6 @@
 // ─── Club, ledenapp: welke API de app aanroept (PUUR) ───────────────────────
 // Dezelfde componenten draaien op twee plekken:
-//   - /clubkane/app: voorvertoning in Club, beheerder-routes, lid in de body.
+//   - /club/app: voorvertoning in Club, beheerder-routes, lid in de body.
 //   - /mijn: de echte ledenapp, leden-API (/api/club/lid), het lid komt uit de
 //     sessie en wordt nooit meegestuurd. Kijkt Kane mee op /mijn?lid=, dan
 //     krijgt elke URL ?voor=<id> (de server leest die alleen voor Kane).

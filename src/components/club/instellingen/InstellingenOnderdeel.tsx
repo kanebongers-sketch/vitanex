@@ -24,10 +24,10 @@ import { VestigingenBeheer, type VestigingContact } from './VestigingenBeheer'
 import '@/components/club/rooster/rooster.css'
 import './instellingen.css'
 
-// De instel-pagina's onder /clubkane/instellingen/<onderdeel>. Vroeger tabbladen
+// De instel-pagina's onder /club/instellingen/<onderdeel>. Vroeger tabbladen
 // op een pagina Instellingen, nu elk een eigen plek in het instellingencentrum
 // (besluit Kane 18-10-2026: elk ding een naam en een plek). Oude links met
-// ?tab= sturen door (src/app/(hoofd)/clubkane/instellingen/page.tsx).
+// ?tab= sturen door (src/app/(aiyourgym)/(club)/club/instellingen/page.tsx).
 
 export const INSTELLINGEN_ONDERDELEN = ['regels', 'zalen', 'lestypen', 'weekrooster', 'medewerkers', 'vestigingen'] as const
 export type InstellingenOnderdeelSleutel = (typeof INSTELLINGEN_ONDERDELEN)[number]
@@ -130,7 +130,7 @@ export async function InstellingenOnderdeel({ onderdeel, zoek }: InstellingenOnd
   }
   // Zonder vestigingen kan alleen Vestigingen: daar voeg je de eerste toe.
   if (!vestiging) {
-    if (metVestigingen) redirect('/clubkane/instellingen/vestigingen')
+    if (metVestigingen) redirect('/club/instellingen/vestigingen')
     return <GeenVestigingen />
   }
   const data = await haalInstellingen(t.admin, t.userId, vestiging)

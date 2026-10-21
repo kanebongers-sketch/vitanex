@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 // Bewust neutraal: het verschijnt op elk domein (fitfactorypt.nl, releasev.nl,
 // aiyourgym.com), dus zonder merknaam, logo of stijlbestand van een van de merken.
 // notFound() binnen een pagina valt hier niet onder: daarvoor zijn er
-// src/app/(hoofd)/not-found.tsx en src/app/(aiyourgym)/not-found.tsx.
+// src/app/(hoofd)/not-found.tsx en src/app/(aiyourgym)/(website)/not-found.tsx.
 
 export const metadata: Metadata = {
   title: 'Pagina niet gevonden',

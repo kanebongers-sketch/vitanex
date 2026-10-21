@@ -1,6 +1,6 @@
 // ─── Club: een vraag of probleem melden (PUUR) ──────────────────────────────
 // Invoer controleren en rijen uit club_support (migratie 427) lezen. Er gaat
-// geen mail naar buiten: Kane leest de meldingen op /clubkane/hulp/meldingen en
+// geen mail naar buiten: Kane leest de meldingen op /club/hulp/meldingen en
 // zijn antwoord staat bij de melder in het helpcentrum.
 
 export const SOORTEN = ['vraag', 'probleem', 'wens'] as const
@@ -67,7 +67,7 @@ export function isStatus(v: unknown): v is MeldingStatus {
 }
 
 /**
- * De pagina waar het gebeurde: alleen een pad binnen Club (/clubkane/...),
+ * De pagina waar het gebeurde: alleen een pad binnen Club (/club/...),
  * zonder query of hash. Een volledige url van de eigen app mag ook; die wordt
  * een pad. Leeg of iets anders: null.
  */
@@ -77,7 +77,7 @@ export function leesPagina(v: unknown): string | null {
   const url = /^https?:\/\/[^/]+(\/.*)?$/i.exec(tekst)
   if (url) tekst = url[1] ?? '/'
   const pad = tekst.split(/[?#]/)[0]
-  if (!/^\/clubkane(\/[A-Za-z0-9._~%-]*)*$/.test(pad) || pad.includes('..')) return null
+  if (!/^\/club(\/[A-Za-z0-9._~%-]*)*$/.test(pad) || pad.includes('..')) return null
   return pad.slice(0, GRENZEN.pagina)
 }
 
@@ -100,7 +100,7 @@ export function leesMelding(body: unknown): Uitslag<MeldingInvoer> {
   if (fBeschrijving) fouten.beschrijving = fBeschrijving
   const ruwePagina = schoneTekst(veld(body, 'pagina'))
   const pagina = leesPagina(ruwePagina)
-  if (ruwePagina && !pagina) fouten.pagina = 'Geef een pagina binnen Club, bijvoorbeeld /clubkane/rooster.'
+  if (ruwePagina && !pagina) fouten.pagina = 'Geef een pagina binnen Club, bijvoorbeeld /club/rooster.'
   if (Object.keys(fouten).length > 0 || !isSoort(soort)) return { ok: false, fouten }
   return { ok: true, waarde: { soort, onderwerp, beschrijving, pagina } }
 }

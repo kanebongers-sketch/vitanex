@@ -5,7 +5,7 @@
 // pin-hash gaat nooit naar de browser of naar het scherm van de sportschool.
 
 import { isUuid } from '@/lib/club/kern/organisatie'
-import { MAX_BLOKKADES } from '@/lib/lifeos/leads/pin'
+import { MAX_BLOKKADES } from '@/lib/club/kern/pin'
 
 /** Het geheime deel van de link: 24 tekens base64url (144 bits). */
 export const LID_CODE = /^[A-Za-z0-9_-]{24}$/

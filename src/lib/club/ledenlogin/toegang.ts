@@ -12,8 +12,8 @@ import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { ipVan, isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
+import { clubDatabase } from '@/lib/club/kern/database'
+import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { clubFout, clubToegang, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, isUuid, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
@@ -44,7 +44,7 @@ export interface LidToegang {
 
 function adminOfNull(): SupabaseClient | null {
   try {
-    return createLifeosAdminClient()
+    return clubDatabase()
   } catch {
     return null
   }
@@ -88,7 +88,7 @@ async function toegangVoorLid(admin: SupabaseClient): Promise<LidToegang | null>
 async function voorvertoningVoorKane(lidId: string | null | undefined): Promise<LidToegang | null> {
   if (!isUuid(lidId)) return null
   const t = await clubToegang()
-  if (!t || !t.isKane || !moduleAan(t.organisatie, 'app')) return null
+  if (!t || !t.isPlatformEigenaar || !moduleAan(t.organisatie, 'app')) return null
   const lid = await haalLid(t.admin, t.userId, lidId)
   if (!lidMagApp(lid, t.vestigingen)) return null
   return { admin: t.admin, userId: t.userId, organisatie: t.organisatie, lid, merk: merkVan(t.organisatie, true), voorvertoning: true, vestigingen: t.vestigingen, naam: `${t.naam} (voorvertoning ledenapp)`.slice(0, 80), sessieHash: null }

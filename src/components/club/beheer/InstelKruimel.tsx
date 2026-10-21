@@ -14,7 +14,7 @@ interface InstelKruimelProps {
 
 export function InstelKruimel({ id, vestiging = null }: InstelKruimelProps) {
   const pagina = instelPagina(id)
-  const terug = vestiging ? `/clubkane/beheer?v=${encodeURIComponent(vestiging)}` : '/clubkane/beheer'
+  const terug = vestiging ? `/club/beheer?v=${encodeURIComponent(vestiging)}` : '/club/beheer'
   return (
     <nav className="club-kruimel" aria-label="Kruimelpad">
       <ol>

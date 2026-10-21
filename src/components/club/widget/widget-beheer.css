@@ -1,4 +1,4 @@
-/* ─── Club: boekingswidget instellen (/clubkane/beheer/widget) ───────────────
+/* ─── Club: boekingswidget instellen (/club/beheer/widget) ───────────────
    Bouwt op het instellingencentrum (beheer.css). Alleen .club-wb-*. */
 
 .club-wb-melding { max-width: 760px; margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--club-vlak); color: var(--text-2); font-size: 14px; }

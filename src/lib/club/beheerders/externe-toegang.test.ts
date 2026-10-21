@@ -25,7 +25,7 @@ describe('externeToegangVelden', () => {
     expect(v?.userId).toBe(GYM_A)
     expect(v?.organisatie.id).toBe(GYM_A)
     expect(v?.organisaties.map((o) => o.id)).toEqual([GYM_A])
-    expect(v?.isKane).toBe(false)
+    expect(v?.isPlatformEigenaar).toBe(false)
     expect(v?.rol).toBe('clubmanager')
     expect(v?.code).toBeNull()
     expect(v?.naam).toBe('Sanne')

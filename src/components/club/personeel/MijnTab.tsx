@@ -57,7 +57,7 @@ export async function MijnTab({ t, staat, team, vandaag }: Props) {
   const wie = staat.mw ?? (t.rol === 'medewerker' ? t.persoonId : null)
   const gekozen = team.find((l) => l.id === wie) ?? null
   const kiezer = (
-    <form className="club-personeel-kiezer club-personeel-geen-print" method="get" action="/clubkane/personeel">
+    <form className="club-personeel-kiezer club-personeel-geen-print" method="get" action="/club/personeel">
       <input type="hidden" name="v" value={staat.v} />
       <input type="hidden" name="tab" value="mijn" />
       <label className="club-veld">

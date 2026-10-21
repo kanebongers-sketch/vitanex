@@ -3,7 +3,7 @@ import { fingerprintVan, gebiedVan, maakFoutRegel, maakRem, meldingVan, schoonMe
 
 describe('gebiedVan', () => {
   it('herkent Club, ledenapp en AI Your Gym', () => {
-    expect(gebiedVan('/clubkane/leden/[id]')).toBe('club')
+    expect(gebiedVan('/club/leden/[id]')).toBe('club')
     expect(gebiedVan('/api/club/leden')).toBe('club')
     expect(gebiedVan('/clubinloggen/[code]')).toBe('club')
     expect(gebiedVan('/api/club/lid/rooster')).toBe('leden')
@@ -15,7 +15,7 @@ describe('gebiedVan', () => {
   it('slaat de rest van de app over', () => {
     expect(gebiedVan('/lifeoskane')).toBeNull()
     expect(gebiedVan('/api/pt/klanten')).toBeNull()
-    expect(gebiedVan('/clubkaner')).toBeNull()
+    expect(gebiedVan('/clubber')).toBeNull()
     expect(gebiedVan('/api/clubs')).toBeNull()
     expect(gebiedVan('')).toBeNull()
     expect(gebiedVan(undefined)).toBeNull()
@@ -24,18 +24,18 @@ describe('gebiedVan', () => {
 
 describe('schoonRoute', () => {
   it('haalt query, id’s en codes weg', () => {
-    expect(schoonRoute('/clubkane/leden/0d3c5e1a-1111-4abc-8def-123456789abc?tab=intake')).toBe('/clubkane/leden/:id')
+    expect(schoonRoute('/club/leden/0d3c5e1a-1111-4abc-8def-123456789abc?tab=intake')).toBe('/club/leden/:id')
     expect(schoonRoute('/clubinloggen/AbCdEf1234567890XyZ_-abc')).toBe('/clubinloggen/:code')
     expect(schoonRoute('/api/club/leden/42')).toBe('/api/club/leden/:n')
     expect(schoonRoute('/mijn/jan@voorbeeld.nl')).toBe('/mijn/:email')
   })
 
   it('laat een routepatroon staan', () => {
-    expect(schoonRoute('/clubkane/leden/[id]')).toBe('/clubkane/leden/[id]')
+    expect(schoonRoute('/club/leden/[id]')).toBe('/club/leden/[id]')
   })
 
   it('kort lange routes in', () => {
-    expect(schoonRoute(`/clubkane/${'a'.repeat(300)}`).length).toBeLessThanOrEqual(160)
+    expect(schoonRoute(`/club/${'a'.repeat(300)}`).length).toBeLessThanOrEqual(160)
   })
 })
 
@@ -81,8 +81,8 @@ describe('meldingVan', () => {
 
 describe('fingerprintVan', () => {
   it('is gelijk voor dezelfde fout met andere id’s', () => {
-    const a = maakFoutRegel({ fout: new Error('lid 11111111-1111-4111-8111-111111111111 weg'), route: '/clubkane/leden/11111111-1111-4111-8111-111111111111', soort: 'render' })
-    const b = maakFoutRegel({ fout: new Error('lid 22222222-2222-4222-8222-222222222222 weg'), route: '/clubkane/leden/22222222-2222-4222-8222-222222222222', soort: 'render' })
+    const a = maakFoutRegel({ fout: new Error('lid 11111111-1111-4111-8111-111111111111 weg'), route: '/club/leden/11111111-1111-4111-8111-111111111111', soort: 'render' })
+    const b = maakFoutRegel({ fout: new Error('lid 22222222-2222-4222-8222-222222222222 weg'), route: '/club/leden/22222222-2222-4222-8222-222222222222', soort: 'render' })
     expect(a?.fingerprint).toBe(b?.fingerprint)
   })
 

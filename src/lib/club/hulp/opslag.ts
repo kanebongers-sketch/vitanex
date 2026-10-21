@@ -4,7 +4,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubToegang, type ClubToegang } from '@/lib/club/toegang'
-import { isZelfdeOorsprong } from '@/lib/lifeos/leads/toegang'
+import { isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { MELDING_KOLOMMEN, meldingUitRij, sorteerMeldingen, type Afhandeling, type Melding, type MeldingInvoer } from './melding'
 
 /** Hoeveel meldingen een sportschool per uur mag doen (harde rem in de database). */
@@ -14,7 +14,7 @@ const MAX_LIJST = 200
 
 /**
  * De poort voor /api/club/hulp: iedereen die in Club binnen is mag hulp vragen
- * (net als de pagina /clubkane/hulp), ook een clubmanager zonder rechten op
+ * (net als de pagina /club/hulp), ook een clubmanager zonder rechten op
  * andere onderdelen. Muterende verzoeken alleen vanaf de app zelf.
  */
 export async function vereisHulpToegang(req: NextRequest): Promise<ClubToegang | NextResponse> {
@@ -72,7 +72,7 @@ export async function eigenMeldingen(t: ClubToegang): Promise<Melding[] | null> 
 
 /** Voor Kane: de meldingen van al zijn sportscholen. Null bij een fout. */
 export async function alleMeldingen(t: ClubToegang): Promise<Melding[] | null> {
-  if (!t.isKane) return null
+  if (!t.isPlatformEigenaar) return null
   const ids = t.organisaties.map((o) => o.id)
   const { data, error } = await t.admin.from('club_support').select(MELDING_KOLOMMEN).in('user_id', ids).order('aangemaakt_op', { ascending: false }).limit(MAX_LIJST)
   if (error) {
@@ -84,7 +84,7 @@ export async function alleMeldingen(t: ClubToegang): Promise<Melding[] | null> {
 
 /** Kane handelt een melding af; alleen in een van zijn eigen sportscholen. */
 export async function handelAf(t: ClubToegang, id: string, a: Afhandeling, nu: Date): Promise<Melding | null | 'niet-gevonden'> {
-  if (!t.isKane) return 'niet-gevonden'
+  if (!t.isPlatformEigenaar) return 'niet-gevonden'
   const ids = t.organisaties.map((o) => o.id)
   const wijziging: Record<string, string | null> = { status: a.status, bijgewerkt_op: nu.toISOString() }
   if (a.antwoord !== undefined) {

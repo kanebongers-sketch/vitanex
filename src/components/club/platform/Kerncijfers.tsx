@@ -36,9 +36,9 @@ export function Kerncijfers({ cijfers: c }: KerncijfersProps) {
       waarde: c.supportOpen,
       sub: c.supportNietOpgepakt === null ? 'Open of in behandeling.' : `${c.supportNietOpgepakt} nog niet opgepakt.`,
       aandacht: c.supportNietOpgepakt ? 'merk' : undefined,
-      href: '/clubkane/hulp/meldingen?status=open',
+      href: '/club/hulp/meldingen?status=open',
     },
-    { label: 'Fouten 24 uur', waarde: c.fouten24, sub: 'Verschillende serverfouten.', aandacht: c.fouten24 ? 'let-op' : undefined, href: '/clubkane/systeem' },
+    { label: 'Fouten 24 uur', waarde: c.fouten24, sub: 'Verschillende serverfouten.', aandacht: c.fouten24 ? 'let-op' : undefined, href: '/club/systeem' },
   ]
   return (
     <section aria-labelledby="platform-cijfers-kop">

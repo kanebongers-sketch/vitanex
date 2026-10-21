@@ -14,7 +14,7 @@
 // Best-effort: melden mag nooit zelf een fout gooien of een verzoek breken.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
+import { clubDatabase } from '@/lib/club/kern/database'
 import { maakFoutRegel, maakRem, type FoutInvoer, type FoutRegel } from './fout'
 import { regelUitVerzoek, type VerzoekContext, type VerzoekFout } from './verzoek'
 
@@ -24,7 +24,7 @@ const magMelden = maakRem(60, 60_000)
 async function bewaar(regel: FoutRegel, admin?: SupabaseClient): Promise<void> {
   if (!magMelden()) return
   try {
-    const db = admin ?? createLifeosAdminClient()
+    const db = admin ?? clubDatabase()
     const { error } = await db.rpc('club_fout_melden', {
       p_fingerprint: regel.fingerprint,
       p_gebied: regel.gebied,

@@ -1,7 +1,7 @@
 // ─── Club: alle instel-pagina's op een plek (PUUR) ──────────────────────────
 // Besluit Kane (18-10-2026): uitgebreid maar zo simpel mogelijk. Het menu is
 // voor dagelijks werk; alles wat je instelt staat alleen in het
-// instellingencentrum (/clubkane/beheer), elk ding met een naam en een plek.
+// instellingencentrum (/club/beheer), elk ding met een naam en een plek.
 // Deze lijst stuurt het instellingencentrum, het kruimelpad op elke
 // instel-pagina en het zoekveld in de balk. Wie een pagina mag zien volgt de
 // rechten (sleutel = onderdeel uit ONDERDEEL_SLEUTELS); een test bewaakt dat
@@ -27,7 +27,7 @@ export interface InstelPagina {
   titel: string
   uitleg: string
   groep: InstelGroep
-  /** Pad binnen /clubkane, eventueel met ?tab= of #anker. */
+  /** Pad binnen /club, eventueel met ?tab= of #anker. */
   pad: string
   /** Het onderdeel (rechten per rol) dat iemand nodig heeft. */
   sleutel: string
@@ -135,7 +135,7 @@ export function kaalInstelPad(pad: string): string {
 /** De link naar een instel-pagina, met de vestiging erbij als die per vestiging werkt. */
 export function instelHref(p: Pick<InstelPagina, 'pad' | 'perVestiging'>, vestiging: string | null): string {
   const [voor, anker] = p.pad.split('#')
-  const basis = `/clubkane${voor}`
+  const basis = `/club${voor}`
   if (!p.perVestiging || !vestiging) return anker ? `${basis}#${anker}` : basis
   const sep = basis.includes('?') ? '&' : '?'
   return `${basis}${sep}v=${encodeURIComponent(vestiging)}${anker ? `#${anker}` : ''}`

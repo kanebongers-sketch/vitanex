@@ -1,5 +1,5 @@
 // ─── AI Your Gym: demo-aanvragen op het platformoverzicht ───────────────────
-// Alleen voor Kane (/clubkane/platform en PATCH /api/club/platform/demo-aanvragen).
+// Alleen voor Kane (/club/platform en PATCH /api/club/platform/demo-aanvragen).
 // Leest ayg_demo_aanvragen (migratie 436): open aanvragen eerst, dan de rest.
 // De functies boven de streep zijn puur en getest.
 

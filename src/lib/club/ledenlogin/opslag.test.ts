@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hashPin, pinKlopt, tokenHash } from '@/lib/lifeos/leads/pin'
+import { hashPin, pinKlopt, tokenHash } from '@/lib/club/kern/pin'
 import { heeftFilter, nepSupabase, type Antwoord } from '@/lib/club/beheerders/nep-supabase'
 import type { LidToegangRij } from './regels'
 import { kiesLidPin, lidVanSessie, logInLid, maakLidLink, trekLidLinkIn, vindLidToegang } from './opslag'

@@ -50,7 +50,7 @@ export function stappenNaarLid(magLeden: boolean, lid: { id: string; naam: strin
   if (!magLeden) return []
   const v = `v=${encodeURIComponent(vestiging)}`
   return [
-    { label: 'Leden', href: `/clubkane/leden?${v}` },
-    { label: lid.naam, href: `/clubkane/leden/${encodeURIComponent(lid.id)}?${v}` },
+    { label: 'Leden', href: `/club/leden?${v}` },
+    { label: lid.naam, href: `/club/leden/${encodeURIComponent(lid.id)}?${v}` },
   ]
 }

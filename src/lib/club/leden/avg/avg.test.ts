@@ -124,10 +124,10 @@ describe('exportBestandsnaam', () => {
 
 describe('verwijderen', () => {
   it('alleen Kane en de eigenaar mogen verwijderen', () => {
-    expect(magLidVerwijderen({ isKane: true, rol: 'beheerder' })).toBe(true)
-    expect(magLidVerwijderen({ isKane: false, rol: 'eigenaar' })).toBe(true)
-    expect(magLidVerwijderen({ isKane: false, rol: 'clubmanager' })).toBe(false)
-    expect(magLidVerwijderen({ isKane: false, rol: 'medewerker' })).toBe(false)
+    expect(magLidVerwijderen({ isPlatformEigenaar: true, rol: 'beheerder' })).toBe(true)
+    expect(magLidVerwijderen({ isPlatformEigenaar: false, rol: 'eigenaar' })).toBe(true)
+    expect(magLidVerwijderen({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(false)
+    expect(magLidVerwijderen({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
   })
 
   it('de bevestiging moet de volledige naam zijn; hoofdletters, spaties en accenten tellen niet', () => {

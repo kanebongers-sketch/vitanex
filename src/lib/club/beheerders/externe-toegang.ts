@@ -13,9 +13,8 @@ export interface ExterneToegangVelden {
   organisaties: Organisatie[]
   beheerderId: string
   naam: string
-  code: null
   rol: BeheerderRol
-  isKane: false
+  isPlatformEigenaar: false
   persoonId: string
 }
 
@@ -32,9 +31,8 @@ export function externeToegangVelden(b: Beheerder, organisatie: Organisatie | nu
     organisaties: [organisatie],
     beheerderId: eigenaarId,
     naam: b.naam.split(' ')[0].slice(0, 40),
-    code: null,
     rol: b.rol,
-    isKane: false,
+    isPlatformEigenaar: false,
     persoonId: b.id,
   }
 }

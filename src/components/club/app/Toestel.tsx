@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Apple, CalendarClock, CalendarDays, Dumbbell, House, TrendingUp, UserRound } from 'lucide-react'
 import { tijdNl } from '@/lib/club/cijfers/tijd'
-import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
+import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 
 // Het telefoonframe van de voorvertoning. Op een telefoon zelf valt het frame
 // weg en vult de app het hele scherm.
@@ -49,7 +49,7 @@ export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory
         </div>
         <div className="club-lidapp-inhoud" id="lidapp-inhoud">
           <div className="club-lidapp-merk">
-            {fitFactory ? <FfLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} /> : <span>{merkNaam}</span>}
+            {fitFactory ? <FitFactoryLogo /> : merkLogo ? <img src={merkLogo} alt={merkNaam} /> : <span>{merkNaam}</span>}
           </div>
           {children}
         </div>
