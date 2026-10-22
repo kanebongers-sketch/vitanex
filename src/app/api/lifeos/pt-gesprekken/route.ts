@@ -13,7 +13,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
-import { haalEvents } from '@/lib/lifeos/agenda/google'
+import { haalEventsMetCoachAgenda } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { bepaalStatus, type PtEvent, type PtGesprekkenAntwoord } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { teamExtra, type AgendaBlok } from '@/lib/lifeos/pt-gesprek/team'
 import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
@@ -73,7 +73,8 @@ export async function GET(req: NextRequest) {
   const van = new Date(nu.getTime() - TERUG_DAGEN * 24 * 60 * 60 * 1000)
   const tot = new Date(nu.getTime() + (VENSTER_DAGEN + 7) * 24 * 60 * 60 * 1000)
 
-  const events = await haalEvents(token.toegangstoken, van, tot, kalenderId)
+  // Gekozen agenda plus "Coachgesprekken PT" (als die bestaat), zonder dubbelen.
+  const events = await haalEventsMetCoachAgenda(toegang.admin, toegang.userId, token.toegangstoken, van, tot, kalenderId)
   if (events.staat === 'verlopen') {
     const antwoord: PtGesprekkenAntwoord = { gekoppeld: false }
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })

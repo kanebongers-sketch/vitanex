@@ -25,6 +25,8 @@ import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
+import { haalExtraCoachEvents } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
+import { ontdubbelEvents } from '@/lib/lifeos/pt-gesprek/coach-agenda'
 import { maakAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
 import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
@@ -215,11 +217,15 @@ export async function GET(req: NextRequest): Promise<Response> {
   dagStart.setHours(0, 0, 0, 0)
   const dagEind = new Date(dagStart.getTime() + 24 * 60 * 60 * 1000)
 
-  const gelezen = await haalEvents(token.toegangstoken, dagStart, dagEind, kalenderId)
+  // Plus de coachgesprekken uit "Coachgesprekken PT" (als die bestaat), zonder dubbelen.
+  const [gelezen, coachExtra] = await Promise.all([
+    haalEvents(token.toegangstoken, dagStart, dagEind, kalenderId),
+    haalExtraCoachEvents(admin, userId, token.toegangstoken, dagStart, dagEind, kalenderId),
+  ])
   if (gelezen.staat === 'verlopen') return fout('Agenda-koppeling verlopen.', 503)
   if (gelezen.staat === 'fout') return fout('Kon de agenda niet lezen.', 502)
 
-  const afspraken: Afspraak[] = gelezen.events.map((e) => ({
+  const afspraken: Afspraak[] = ontdubbelEvents([gelezen.events, coachExtra]).map((e) => ({
     id: e.externId,
     titel: e.titel,
     startOp: e.startOp,

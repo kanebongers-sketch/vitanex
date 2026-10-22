@@ -19,7 +19,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang, type LifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { logGebeurtenis } from '@/lib/lifeos/crm/historie'
-import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
+import { coachgesprekSchrijfAgenda } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 import { coachgesprekTitel } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat, type EvaluatieInvoer } from '@/lib/lifeos/pt-coaching/pt-coaching'
@@ -173,7 +173,8 @@ async function rondAf(
       afspraakFout = 'De datum/tijd voor de volgende afspraak was ongeldig; plan de volgende handmatig in.'
     } else {
       const eind = new Date(start.getTime() + GESPREK_DUUR_MIN * 60_000)
-      const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+      // In "Coachgesprekken PT" als die bestaat, anders in de gekozen agenda.
+      const kalenderId = await coachgesprekSchrijfAgenda(toegang.admin, toegang.userId)
       try {
         await maakAgendaEvent(
           toegang.admin,

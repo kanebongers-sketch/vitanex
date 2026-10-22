@@ -11,6 +11,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
+import { isCoachgesprekTitel } from '@/lib/lifeos/pt-gesprek/coach-agenda'
+import { coachgesprekSchrijfAgenda, metCoachTerugval } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { kalenderVanEvent } from '@/lib/lifeos/agenda/opslag'
 import {
   leesEventPatch,
@@ -37,12 +39,24 @@ export async function PATCH(req: NextRequest, ctx: Context) {
     return NextResponse.json({ fout: patch.fout }, { status: 400 })
   }
 
-  // De agenda waar het event écht in staat; onbekend → je schrijf-agenda.
-  const kalenderId =
-    (await kalenderVanEvent(toegang.admin, toegang.userId, id)) ?? (await leesGekozenKalender(toegang.admin, toegang.userId))
+  // De agenda waar het event echt in staat; onbekend: voor een coachgesprek de
+  // agenda "Coachgesprekken PT" (als die bestaat), anders je schrijf-agenda.
+  // Staat hij daar niet (404), dan probeert LifeOS de andere agenda een keer.
+  const bekend = await kalenderVanEvent(toegang.admin, toegang.userId, id)
 
   try {
-    const event = await wijzigAgendaEvent(toegang.admin, toegang.userId, id, patch.waarde, kalenderId)
+    const wijzig = (kalenderId: string | null) =>
+      wijzigAgendaEvent(toegang.admin, toegang.userId, id, patch.waarde, kalenderId)
+    const event = bekend
+      ? await wijzig(bekend)
+      : await metCoachTerugval(
+          toegang.admin,
+          toegang.userId,
+          isCoachgesprekTitel(patch.waarde.titel)
+            ? await coachgesprekSchrijfAgenda(toegang.admin, toegang.userId)
+            : await leesGekozenKalender(toegang.admin, toegang.userId),
+          wijzig,
+        )
     return NextResponse.json({ event })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)
@@ -57,12 +71,14 @@ export async function DELETE(req: NextRequest, ctx: Context) {
 
   const { id } = await ctx.params
 
-  // De agenda waar het event écht in staat; onbekend → je schrijf-agenda.
-  const kalenderId =
-    (await kalenderVanEvent(toegang.admin, toegang.userId, id)) ?? (await leesGekozenKalender(toegang.admin, toegang.userId))
+  // De agenda waar het event echt in staat; onbekend: je schrijf-agenda, en bij een
+  // 404 daar een keer de agenda "Coachgesprekken PT" (als die bestaat).
+  const bekend = await kalenderVanEvent(toegang.admin, toegang.userId, id)
 
   try {
-    await verwijderAgendaEvent(toegang.admin, toegang.userId, id, kalenderId)
+    const verwijder = (kalenderId: string | null) => verwijderAgendaEvent(toegang.admin, toegang.userId, id, kalenderId)
+    if (bekend) await verwijder(bekend)
+    else await metCoachTerugval(toegang.admin, toegang.userId, await leesGekozenKalender(toegang.admin, toegang.userId), verwijder)
     return new NextResponse(null, { status: 204 })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)

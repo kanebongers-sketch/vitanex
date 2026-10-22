@@ -13,6 +13,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
+import { isCoachgesprekTitel } from '@/lib/lifeos/pt-gesprek/coach-agenda'
+import { coachgesprekSchrijfAgenda } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { leesNieuwEvent, maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 
 export async function POST(req: NextRequest) {
@@ -27,7 +29,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: invoer.fout }, { status: 400 })
   }
 
-  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+  // Een coachgesprek ("Coachgesprek PT - Kane (Naam)") gaat naar de agenda
+  // "Coachgesprekken PT" als die bestaat; al het andere naar je gekozen agenda.
+  const kalenderId = isCoachgesprekTitel(invoer.waarde.titel)
+    ? await coachgesprekSchrijfAgenda(toegang.admin, toegang.userId)
+    : await leesGekozenKalender(toegang.admin, toegang.userId)
 
   try {
     const event = await maakAgendaEvent(toegang.admin, toegang.userId, invoer.waarde, kalenderId)

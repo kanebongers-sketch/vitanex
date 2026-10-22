@@ -7,7 +7,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
-import { haalEvents, type GoogleAfspraak } from '@/lib/lifeos/agenda/google'
+import type { GoogleAfspraak } from '@/lib/lifeos/agenda/google'
+import { haalEventsMetCoachAgenda } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { huidigeWeek } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckinsVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
@@ -57,7 +58,7 @@ async function haalAgenda(admin: SupabaseClient, userId: string, nu: Date): Prom
   const kalenderId = await leesGekozenKalender(admin, userId)
   const van = new Date(nu.getTime() - TERUG_DAGEN * 24 * 60 * 60 * 1000)
   const tot = new Date(nu.getTime() + VOORUIT_DAGEN * 24 * 60 * 60 * 1000)
-  const events = await haalEvents(token.toegangstoken, van, tot, kalenderId)
+  const events = await haalEventsMetCoachAgenda(admin, userId, token.toegangstoken, van, tot, kalenderId)
   if (events.staat === 'verlopen') return { staat: 'niet_gekoppeld', events: [] }
   if (events.staat === 'fout') return { staat: 'fout', events: [] }
   return { staat: 'ok', events: events.events }

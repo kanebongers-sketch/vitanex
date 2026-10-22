@@ -29,6 +29,8 @@ import {
 import { bepaalWeekStatus, maandagVan, type PtEvent, type PtWeekStatus } from './pt-klant'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { coachAchterstand, type CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import { ontdubbelEvents } from '@/lib/lifeos/pt-gesprek/coach-agenda'
+import { haalExtraCoachEvents } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 
 /** Het venster dat `bepaalAfhaak` nodig heeft om "gestopt" van "net begonnen" te scheiden. */
 export const AFHAAK_VENSTER_DAGEN = 56
@@ -67,8 +69,15 @@ export async function haalPtSignalen(
     const weekVan = maandagVan(nu)
     const van = new Date(Math.min(weekVan.getTime() - WEEK_MS, nu.getTime() - AFHAAK_VENSTER_DAGEN * 24 * 60 * 60 * 1000))
     const tot = new Date(Math.max(weekVan.getTime() + 2 * WEEK_MS, nu.getTime() + COACH_VOORUIT_MS))
-    const gelezen = await haalEvents(token.toegangstoken, van, tot, kalenderId)
+    const [gelezen, coachExtra] = await Promise.all([
+      haalEvents(token.toegangstoken, van, tot, kalenderId),
+      haalExtraCoachEvents(admin, userId, token.toegangstoken, van, tot, kalenderId),
+    ])
     if (gelezen.staat !== 'ok') return LEEG
+    // Coachgesprekken ook uit "Coachgesprekken PT"; de klantsignalen blijven op de
+    // gekozen agenda, zodat automatisch hernoemen alleen daar afspraken aanwijst.
+    const coachEvents: PtEvent[] = ontdubbelEvents([gelezen.events, coachExtra])
+      .map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString(), id: e.externId }))
 
     // Afhaak, statusHints en onbekend kijken zelf alleen naar het verleden (t ≤ nu);
     // de toekomst in dit venster is er voor de weekstatus.
@@ -88,7 +97,7 @@ export async function haalPtSignalen(
       typfoutenAlle,
       coachgesprekken: coachAchterstand(
         personen.filter((p) => p.groep === 'pt_team' && p.status !== 'inactief'),
-        events,
+        coachEvents,
         nu,
       ),
     }
