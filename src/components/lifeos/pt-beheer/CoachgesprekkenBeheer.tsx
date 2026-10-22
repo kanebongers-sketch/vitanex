@@ -2,6 +2,7 @@
 
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
+import { CoachgesprekkenVerplaatsen } from './CoachgesprekkenVerplaatsen'
 
 // De coachgesprekken met het PT-team (inplannen, verslag, pincodes van PT'ers
 // goedkeuren) — voor de beheerder op de Coach-pagina van de PT-app.
@@ -16,6 +17,9 @@ export function CoachgesprekkenBeheer() {
       <RefreshProvider>
         <PtGesprekkenKaart />
       </RefreshProvider>
+      <div style={{ marginTop: 16 }}>
+        <CoachgesprekkenVerplaatsen />
+      </div>
     </section>
   )
 }

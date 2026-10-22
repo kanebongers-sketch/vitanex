@@ -485,10 +485,10 @@ async function geldigTokenOfFout(admin: SupabaseClient, userId: string): Promise
  * alleen `niet_gekoppeld` bij een echte intrekking (`invalid_grant`). Een hik bij
  * Google mag nooit als "niet gekoppeld" eindigen.
  */
-async function googleFetchMetVernieuwing(
+export async function googleFetchMetVernieuwing(
   admin: SupabaseClient,
   userId: string,
-  method: 'POST' | 'PATCH' | 'DELETE',
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   url: string,
   body?: Record<string, unknown>,
 ): Promise<Response> {
@@ -504,7 +504,7 @@ async function googleFetchMetVernieuwing(
 }
 
 async function googleFetch(
-  method: 'POST' | 'PATCH' | 'DELETE',
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   url: string,
   token: string,
   body?: Record<string, unknown>,
