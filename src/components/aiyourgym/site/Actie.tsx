@@ -11,11 +11,16 @@ import { AANMELDEN, DEMO, DEMO_AANVRAGEN } from './paden'
 interface GeruststellingProps {
   /** Hoeveel punten (vanaf het begin van de lijst). */
   aantal?: number
+  /** Met wat ruimte erboven, direct onder een rij knoppen. */
+  onder?: boolean
 }
 
-export function Geruststelling({ aantal = GERUSTSTELLING.length }: GeruststellingProps) {
+/** Onder elke aanmeldknop: minstens de eerste drie (proef, stoppen kost niets, geen opstartkosten). */
+export const GERUST_BIJ_KNOP = 3
+
+export function Geruststelling({ aantal = GERUSTSTELLING.length, onder = false }: GeruststellingProps) {
   return (
-    <ul className="ayg-gerust" aria-label="Zonder risico">
+    <ul className={onder ? 'ayg-gerust ayg-gerust--onder' : 'ayg-gerust'} aria-label="Zonder risico">
       {GERUSTSTELLING.slice(0, aantal).map((g) => (
         <li key={g}>
           <Check size={15} strokeWidth={2.6} aria-hidden />
@@ -56,7 +61,7 @@ export function SectieActie({ zin }: SectieActieProps) {
           Of bekijk de live demo <ArrowRight size={16} aria-hidden />
         </Link>
       </div>
-      <Geruststelling aantal={2} />
+      <Geruststelling aantal={GERUST_BIJ_KNOP} />
     </div>
   )
 }

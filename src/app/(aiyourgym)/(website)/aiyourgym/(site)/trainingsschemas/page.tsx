@@ -7,9 +7,10 @@ import { aantalMetCoaching, voorbeeldOefeningen, type VoorbeeldOefening } from '
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { CoachingDemo } from '@/components/aiyourgym/schemas/CoachingDemo'
 import { SchemaToestel } from '@/components/aiyourgym/schemas/SchemaToestel'
+import { StapScherm } from '@/components/aiyourgym/schemas/StapScherm'
 import { EditorScherm, IntakeScherm, VoorstelScherm } from '@/components/aiyourgym/schemas/SchermenTrainer'
 import { BibliotheekScherm, CoachtekstScherm, OefeningToestel, VoortgangToestel } from '@/components/aiyourgym/schemas/SchermenBibliotheek'
-import { TweeRoutes, SectieActie } from '@/components/aiyourgym/site/Actie'
+import { GERUST_BIJ_KNOP, Geruststelling, TweeRoutes, SectieActie } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 
@@ -27,6 +28,18 @@ const BEELD_LABEL: Record<SchemaStapSleutel, string> = {
   eigen: 'De coaching van een oefening aanpassen: eigen kernpunten, opslaan of terug naar de standaard',
   ledenapp: 'De ledenapp: het schema van dag A en een geopende oefening met het 3D-beeld en de kernpunten',
   voortgang: 'De voortgang in de ledenapp: weken op rij, trainingen per week, gewicht in een lijn en de volgende mijlpaal',
+}
+
+// Voor de knop op de telefoon, waar de schermen ingeklapt staan zodat de pagina
+// kort blijft (concurrentenonderzoek item 16). Op de pc staan ze er altijd.
+const SCHERM_NAAM: Record<SchemaStapSleutel, string> = {
+  intake: 'het intakescherm',
+  voorstel: 'het voorstel',
+  editor: 'de editor',
+  bibliotheek: 'de bibliotheek',
+  eigen: 'het aanpassen',
+  ledenapp: 'de ledenapp',
+  voortgang: 'de voortgang',
 }
 
 const VRAGEN = [
@@ -89,6 +102,7 @@ export default function TrainingsschemasPagina() {
         tekst="Van de intake tot de voortgang: een route die je trainers kennen van de vloer. Met coaching bij elke oefening, voor het lid altijd bij de hand in de app."
       >
         <TweeRoutes />
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
 
       <nav className="ayg-wrap ayg-ss-route" aria-label="De route van een schema">
@@ -137,9 +151,11 @@ export default function TrainingsschemasPagina() {
                 ))}
               </ul>
             </div>
-            <Figuur className="ayg-onthul" label={BEELD_LABEL[s.sleutel]}>
-              <Beeld sleutel={s.sleutel} oefeningen={oefeningen} aantal={aantal} />
-            </Figuur>
+            <StapScherm naam={SCHERM_NAAM[s.sleutel]}>
+              <Figuur className="ayg-onthul" label={BEELD_LABEL[s.sleutel]}>
+                <Beeld sleutel={s.sleutel} oefeningen={oefeningen} aantal={aantal} />
+              </Figuur>
+            </StapScherm>
           </div>
         </section>
       ))}

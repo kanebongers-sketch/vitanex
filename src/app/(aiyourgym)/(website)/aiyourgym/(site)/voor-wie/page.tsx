@@ -10,7 +10,7 @@ import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
-import { SectieActie } from '@/components/aiyourgym/site/Actie'
+import { SectieActie, Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
@@ -104,6 +104,7 @@ export default function VoorWiePagina() {
             Plan een gratis demo
           </Knop>
         </div>
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
         <nav aria-label="Soorten sportscholen op deze pagina" className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {DOELGROEPEN.map((d) => (

@@ -1,12 +1,15 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { ArrowRight, ListChecks } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { StartStappen } from '@/components/aiyourgym/home/StartStappen'
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { ImportScherm } from '@/components/aiyourgym/mockups/ImportScherm'
+import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { WatKomtMee } from '@/components/aiyourgym/home/WatKomtMee'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO_AANVRAGEN, OVERSTAPCHECKLIST } from '@/components/aiyourgym/site/paden'
 
 export const metadata: Metadata = {
   title: 'Overstappen',
@@ -79,6 +82,7 @@ export default function OverstappenPagina() {
             Plan een gratis demo
           </Knop>
         </div>
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
       <section className="ayg-sectie" aria-labelledby="stappen-titel">
         <div className="ayg-wrap ayg-gesplitst">
@@ -98,6 +102,16 @@ export default function OverstappenPagina() {
               </li>
             ))}
           </ol>
+        </div>
+        <div className="ayg-wrap">
+          <Link href={OVERSTAPCHECKLIST} className="ayg-cl-tip">
+            <ListChecks size={20} aria-hidden />
+            <span>
+              <strong>Gratis overstapchecklist</strong>
+              <span>Alles wat je regelt, van voorbereiden tot de eerste maand. Zonder account, ook te printen.</span>
+            </span>
+            <ArrowRight size={18} aria-hidden />
+          </Link>
         </div>
       </section>
       <WatKomtMee />

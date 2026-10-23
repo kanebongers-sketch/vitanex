@@ -43,7 +43,7 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'icon', 'apple-icon', 'opengraph-image', 'manifest', 'next',
   // Pagina's van de website (src/app/(aiyourgym)/(website)/aiyourgym)
   'aanmelden', 'welkom', 'testbetaling', 'functies', 'prijzen', 'privacy', 'voorwaarden', 'overstappen', 'trainingsschemas',
-  'voor-wie', 'demo-aanvragen', 'ledenapp', 'prijs-op-maat', 'privacy-en-beveiliging',
+  'voor-wie', 'demo-aanvragen', 'ledenapp', 'prijs-op-maat', 'privacy-en-beveiliging', 'nieuw', 'overstapchecklist',
   // Club, ledenapp, widget en inloggen (src/app/(aiyourgym)/(club) en api)
   'mijn', 'clubinloggen', 'club-app', 'club-afmelden', 'club-betalen', 'widget',
   // Mappen in public/ en andere apps op dezelfde server. Niet "fitfactory": dat

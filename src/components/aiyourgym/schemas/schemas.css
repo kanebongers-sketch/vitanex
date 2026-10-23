@@ -124,3 +124,26 @@
 .ayg-ss-vg-mijlpaal svg { color: var(--brand-tekst); flex: none; }
 .ayg-ss-vg-mijlpaal b { display: block; font-size: 11.5px; }
 .ayg-ss-vg-mijlpaal small { font-size: 10px; color: var(--text-2); }
+
+/* ── Telefoon: schermen bij de stappen ingeklapt ────────────────────────────
+   Op 390px was de pagina zo'n 15.900px lang, vooral door zeven grote schermen
+   onder elkaar. Onder 768px staat elk scherm achter een knop (StapScherm.tsx)
+   en is de ruimte per stap kleiner; vanaf 768px blijft alles zoals het was. */
+.ayg-ss-scherm-knop { display: none; }
+@media (max-width: 767px) {
+  .ayg-ss-stap.ayg-sectie { padding-block: 56px; }
+  .ayg-ss-stap-raster { gap: 24px; }
+  .ayg-ss-scherm-knop {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 0 18px;
+    border: 0; border-radius: var(--ayg-radius); background: var(--ayg-vlak); color: var(--ayg-tekst); cursor: pointer;
+    font: 600 15px/1.2 var(--ayg-font-tekst); box-shadow: inset 0 0 0 1px var(--ayg-lijn);
+    transition: box-shadow 200ms var(--ayg-ease), transform 200ms var(--ayg-ease);
+  }
+  .ayg-ss-scherm-knop:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
+  .ayg-ss-scherm-knop:focus-visible { outline: 2px solid var(--ayg-accent-sterk); outline-offset: 2px; }
+  .ayg-ss-scherm-knop:active { transform: scale(0.99); }
+  .ayg-ss-scherm-knop svg { flex-shrink: 0; transition: transform 240ms var(--ayg-ease); }
+  .ayg-ss-scherm[data-open] .ayg-ss-scherm-knop svg { transform: rotate(180deg); }
+  .ayg-ss-scherm:not([data-open]) .ayg-ss-scherm-inhoud { display: none; }
+  .ayg-ss-scherm[data-open] .ayg-ss-scherm-inhoud { margin-top: 16px; }
+}

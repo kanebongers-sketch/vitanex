@@ -4,7 +4,7 @@ import { PAKKETTEN, PROEFDAGEN, type Pakket } from '@/lib/aiyourgym/pakketten'
 import { testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { VRAAG_CONTRACT, VRAAG_GEGEVENS } from '@/components/aiyourgym/inhoud/vertrouwen'
-import { Geruststelling } from '@/components/aiyourgym/site/Actie'
+import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO_AANVRAGEN, PRIJS_OP_MAAT } from '@/components/aiyourgym/site/paden'
 
@@ -109,6 +109,7 @@ export default function PrijzenPagina() {
             Plan een gratis demo
           </Knop>
         </div>
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
       <section className="ayg-sectie--krap" aria-label="Pakketten">
         <div className="ayg-wrap">

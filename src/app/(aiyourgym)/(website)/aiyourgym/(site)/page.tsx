@@ -6,6 +6,7 @@ import { Oogopslag } from '@/components/aiyourgym/home/Oogopslag'
 import { Overstappen } from '@/components/aiyourgym/home/Overstappen'
 import { Praktijk } from '@/components/aiyourgym/home/Praktijk'
 import { Schemas } from '@/components/aiyourgym/home/Schemas'
+import { SoortKeuze } from '@/components/aiyourgym/home/SoortKeuze'
 import { WelNiet } from '@/components/aiyourgym/home/WelNiet'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 }
 
 // Kort en gericht op aanmelden (besluit Kane 21-10-2026): de belofte met twee
-// routes en het product, wat het is in een oogopslag, trainingsschema's met
+// routes en het product, direct daaronder een snelle keuze per soort sportschool, wat het is in een oogopslag, trainingsschema's met
 // 3D als blikvanger, de ledenapp, wie het bouwt en waarom, eerlijk wat het wel
 // en niet doet, overstappen in drie stappen, ingeklapte vragen en de afsluitende oproep. De details staan op de subpagina's
 // (functies, trainingsschema's, ledenapp, voor wie, overstappen).
@@ -24,6 +25,7 @@ export default function AiYourGymHome() {
   return (
     <>
       <Held />
+      <SoortKeuze />
       <Oogopslag />
       <Schemas />
       <Ledenapp />

@@ -19,6 +19,14 @@ export const PRIJS_OP_MAAT = aygPad('/prijs-op-maat')
 export const OVERSTAPPEN = aygPad('/overstappen')
 export const PRIVACY_BEVEILIGING = aygPad('/privacy-en-beveiliging')
 export const PRIJZEN_VRAGEN = aygPad('/prijzen#vragen')
+/** Wat er elke maand is bijgekomen, alleen wat live is. */
+export const NIEUW = aygPad('/nieuw')
+/** Gratis overstapchecklist, zonder e-mailadres. */
+export const OVERSTAPCHECKLIST = aygPad('/overstapchecklist')
+/** De soorten sportscholen op /voor-wie, met het anker van een soort. */
+export function voorWie(sleutel?: string): string {
+  return aygPad(sleutel ? `/voor-wie#${sleutel}` : '/voor-wie')
+}
 
 export const NAV_LINKS = [
   { label: 'Functies', pad: aygPad('/functies'), uitleg: 'Beheer, coaching, planning, groei en betrokkenheid' },

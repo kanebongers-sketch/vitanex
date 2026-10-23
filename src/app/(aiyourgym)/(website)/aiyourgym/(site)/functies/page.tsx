@@ -7,6 +7,7 @@ import { Figuur, Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { Oefening } from '@/components/aiyourgym/mockups/Oefening'
 import { RoosterScherm } from '@/components/aiyourgym/mockups/RoosterScherm'
 import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
+import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
@@ -92,6 +93,7 @@ export default function FunctiesPagina() {
             Plan een gratis demo
           </Knop>
         </div>
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
         <nav aria-label="Hoofdstukken op deze pagina" className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {HOOFDSTUKKEN.map((g) => (

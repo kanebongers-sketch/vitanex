@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { InlogFormulier } from '@/components/aiyourgym/inloggen/InlogFormulier'
 import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
@@ -61,6 +62,7 @@ export default function InloggenPagina() {
                 Probeer gratis
               </Knop>
             </div>
+            <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
           </div>
         </div>
       </section>

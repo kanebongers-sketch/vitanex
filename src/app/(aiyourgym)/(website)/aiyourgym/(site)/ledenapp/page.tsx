@@ -4,6 +4,7 @@ import { Bell, CalendarClock, CalendarDays, Dumbbell, QrCode, Salad, TrendingUp,
 import { Huisstijl } from '@/components/aiyourgym/home/Huisstijl'
 import { AppHome, AppInloggen, AppSchema, AppVoeding } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
+import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO } from '@/components/aiyourgym/site/paden'
@@ -89,6 +90,7 @@ export default function LedenappPagina() {
             Bekijk de app in de demo
           </Knop>
         </div>
+        <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
       <section className="ayg-sectie--krap" aria-label="De ledenapp op vier schermen">
         <div className="ayg-wrap">
