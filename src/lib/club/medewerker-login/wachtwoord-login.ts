@@ -9,8 +9,8 @@ import type { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { hashWachtwoord, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
-import { medewerkerCookie } from './medewerker-login'
 import { logInMedewerkerMetWachtwoord, vindMedewerkerOpEmail } from './opslag'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
 export const INLOG_FOUT = 'E-mailadres of wachtwoord klopt niet.'
 
@@ -35,9 +35,7 @@ export async function logInAlsMedewerker(admin: SupabaseClient, email: unknown, 
   const uit = await logInMedewerkerMetWachtwoord(admin, gevonden, wachtwoord, nu)
   switch (uit.staat) {
     case 'ok': {
-      const res = clubJson({ staat: 'ok' })
-      res.cookies.set(medewerkerCookie(), uit.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: uit.verlooptOp })
-      return res
+      return zetClubSessie(clubJson({ staat: 'ok' }), 'medewerker', uit.token, uit.verlooptOp)
     }
     case 'fout':
     case 'niet_actief':

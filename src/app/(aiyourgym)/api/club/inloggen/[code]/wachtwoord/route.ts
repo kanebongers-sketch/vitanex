@@ -11,9 +11,9 @@ import { isRateLimited } from '@/lib/utils/rate-limit'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { hashWachtwoord, wachtwoordFout } from '@/lib/club/kern/wachtwoord'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
-import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
 import { kiesBeheerderWachtwoord, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -42,7 +42,5 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (uit.staat === 'al_gekozen') return clubFout('Met deze link is al een wachtwoord gekozen. Log in met je e-mailadres en wachtwoord.', 409)
   if (uit.staat === 'email_bezet') return clubFout('Met dit e-mailadres is al een account. Vraag de eigenaar om je met een ander adres uit te nodigen.', 409)
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)
-  const res = clubJson({ staat: 'ok' })
-  res.cookies.set(beheerderCookie(), uit.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: uit.verlooptOp })
-  return res
+  return zetClubSessie(clubJson({ staat: 'ok' }), 'beheerder', uit.token, uit.verlooptOp)
 }

@@ -12,9 +12,9 @@ import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
-import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
 import { logInMetWachtwoord, vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 import { logInPlatform, vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
 import { zetPlatformCookie } from '@/lib/club/platform-login/route-hulp'
 import { hashWachtwoord, MAX_LENGTE, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
@@ -60,8 +60,7 @@ function antwoord(uit: Uitkomst, cookie: (res: NextResponse, token: string, tot:
 }
 
 function beheerderCookieZetten(res: NextResponse, token: string, tot: Date): NextResponse {
-  res.cookies.set(beheerderCookie(), token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: tot })
-  return res
+  return zetClubSessie(res, 'beheerder', token, tot)
 }
 
 export async function POST(req: NextRequest) {

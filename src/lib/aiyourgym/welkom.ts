@@ -24,7 +24,7 @@ export type Welkom =
   | { soort: 'bezig' }
   | { soort: 'verlopen' }
   | { soort: 'gestopt' }
-  | { soort: 'klaar'; sportschool: string; adres: string; email: string; loginOpen: boolean }
+  | { soort: 'klaar'; sportschool: string; adres: string; adresActief: boolean; email: string; loginOpen: boolean }
 
 const LOPEND = new Set(['actief', 'betaling_mislukt', 'gepauzeerd'])
 
@@ -51,5 +51,5 @@ export async function haalWelkom(ruweSessie: unknown, nu: Date): Promise<Welkom>
   if (a.status === 'opgezegd') return { soort: 'gestopt' }
   if (!LOPEND.has(a.status) || !a.organisatieId) return { soort: 'bezig' }
 
-  return { soort: 'klaar', sportschool: a.sportschoolNaam, adres: adresVan(a.slug), email: a.eigenaarEmail, loginOpen: CLUB_EIGEN_LOGIN }
+  return { soort: 'klaar', sportschool: a.sportschoolNaam, adres: adresVan(a.slug), adresActief: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', email: a.eigenaarEmail, loginOpen: CLUB_EIGEN_LOGIN }
 }
