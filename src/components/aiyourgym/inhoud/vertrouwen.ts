@@ -3,7 +3,7 @@
 // wat echt zo is gebouwd:
 // - database in Frankfurt: docs/club/LIVEGANG.md (Supabase eu-central-1)
 // - gescheiden data: elke club_*-query filtert op de sportschool (src/lib/club/toegang.ts)
-// - gehashte pincodes en blokkade: src/lib/club/ledenlogin/opslag.ts
+// - gehashte wachtwoorden en blokkade: src/lib/club/ledenlogin/opslag.ts
 // - gezondheid alleen met toestemming: src/lib/club/training/intake.ts, voortgang/meting.ts
 // - export en verwijderen per lid: src/lib/club/leden/avg (ledenkaart, 30 dagen, dan definitief)
 

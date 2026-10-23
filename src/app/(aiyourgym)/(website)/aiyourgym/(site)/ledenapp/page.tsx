@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import type { ComponentType } from 'react'
 import { Bell, CalendarClock, CalendarDays, Dumbbell, QrCode, Salad, TrendingUp, Trophy } from 'lucide-react'
 import { Huisstijl } from '@/components/aiyourgym/home/Huisstijl'
-import { AppHome, AppPincode, AppSchema, AppVoeding } from '@/components/aiyourgym/mockups/AppSchermen'
+import { AppHome, AppInloggen, AppSchema, AppVoeding } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
@@ -12,11 +12,11 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 export const metadata: Metadata = {
   title: 'Ledenapp',
   description:
-    'De ledenapp van AI Your Gym: een web-app op het beginscherm in de huisstijl van je sportschool. Inloggen met link en pincode, inchecken met de QR-code, lessen en afspraken boeken, schema met coaching, voeding, voortgang, challenges en meldingen.',
+    'De ledenapp van AI Your Gym: een web-app op het beginscherm in de huisstijl van je sportschool. Inloggen met e-mailadres en wachtwoord, inchecken met de QR-code, lessen en afspraken boeken, schema met coaching, voeding, voortgang, challenges en meldingen.',
 }
 
 const SCHERMEN: readonly { tab: AppTab; titel: string; label: string; Scherm: ComponentType }[] = [
-  { tab: 'Profiel', titel: 'Inloggen', label: 'Inloggen: het lid kiest zelf een pincode van zes cijfers', Scherm: AppPincode },
+  { tab: 'Profiel', titel: 'Inloggen', label: 'Inloggen: het lid logt in met e-mailadres en een eigen wachtwoord', Scherm: AppInloggen },
   { tab: 'Home', titel: 'Home', label: 'Home: volgende les, bezoeken deze maand, weken op rij, QR-code en een challenge', Scherm: AppHome },
   { tab: 'Schema', titel: 'Schema', label: 'Schema: dag A met vier oefeningen, twee afgevinkt', Scherm: AppSchema },
   { tab: 'Voeding', titel: 'Voeding', label: 'Voeding: calorieen per dag, eiwit, koolhydraten en vet, en de maaltijden', Scherm: AppVoeding },
@@ -24,12 +24,12 @@ const SCHERMEN: readonly { tab: AppTab; titel: string; label: string; Scherm: Co
 
 const INSTAP = [
   {
-    titel: 'Een persoonlijke link',
-    tekst: 'Op de ledenkaart maak je een link met QR-code voor het lid. Die is zeven dagen geldig om in te loggen.',
+    titel: 'Een uitnodiging',
+    tekst: 'Op de ledenkaart maak je een link met QR-code voor het lid. Daarmee activeert het lid binnen zeven dagen zijn account.',
   },
   {
-    titel: 'Een eigen pincode',
-    tekst: 'Het lid kiest zelf zes cijfers. Te makkelijke codes zoals 123456 worden geweigerd.',
+    titel: 'Een eigen wachtwoord',
+    tekst: 'Het lid kiest zelf een sterk wachtwoord en logt daarna in met e-mailadres en wachtwoord. Te makkelijke wachtwoorden worden geweigerd.',
   },
   {
     titel: 'Op het beginscherm',
@@ -116,7 +116,7 @@ export default function LedenappPagina() {
             id="instap-titel"
             label="Zo komt een lid erin"
             titel="Geen wachtwoord, geen app store."
-            tekst="Een web-app die leden met een persoonlijke link en een eigen pincode openen. Veilig, en snel geregeld aan de balie."
+            tekst="Een web-app waarin leden inloggen met hun e-mailadres en een eigen wachtwoord. Veilig, en snel geregeld aan de balie."
           />
           <ol className="ayg-instap">
             {INSTAP.map((s, i) => (

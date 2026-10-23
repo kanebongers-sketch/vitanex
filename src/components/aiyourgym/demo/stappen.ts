@@ -44,7 +44,7 @@ export const DEMO_STAPPEN = {
     label: 'Ledenapp',
     titel: 'Wat hetzelfde lid in de app ziet.',
     uitleg: 'De ledenapp in de kleur van de Voorbeeld Gym: de volgende les, bezoek deze maand, de QR-code om in te checken, de challenge en het schema.',
-    punten: ['Een web-app op het beginscherm', 'Inloggen met link en pincode', 'In jouw naam, logo en kleuren'],
+    punten: ['Een web-app op het beginscherm', 'Inloggen met e-mail en wachtwoord', 'In jouw naam, logo en kleuren'],
   },
 } as const satisfies Record<string, DemoStapInfo>
 

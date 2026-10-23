@@ -86,7 +86,7 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
           ))}
         </dl>
         <p className="aan-uitleg">
-          <CreditCard size={16} aria-hidden="true" /> Na het starten staat je eigen omgeving direct klaar en kies je je pincode. Daarna leidt de startwizard je door de inrichting.
+          <CreditCard size={16} aria-hidden="true" /> Na het starten staat je eigen omgeving direct klaar en ben je meteen ingelogd. De startwizard leidt je door de inrichting.
         </p>
         <TestbetaalKnop sessie={String(sessie)} />
       </section>
