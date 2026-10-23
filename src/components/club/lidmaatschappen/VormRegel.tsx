@@ -9,6 +9,8 @@ import { naamVan } from '@/lib/club/kern/vestigingen'
 import type { Lidmaatschapsvorm } from '@/lib/club/lidmaatschappen/model'
 import { regelsTekst } from '@/lib/club/lidmaatschappen/regels'
 import { ledenTekst } from '@/lib/club/lidmaatschappen/tellen'
+import type { PlanWeergave } from '@/lib/club/betalen/plannen/weergave'
+import { PrijsEnContract } from '@/components/club/betalen/plannen/PrijsEnContract'
 import { VormFormulier } from './VormFormulier'
 
 // Een vorm in de lijst: kleurstreep, naam, omschrijving, de regels in het kort
@@ -22,9 +24,11 @@ interface Props {
   /** Vestiging voor de link naar de ledenlijst; null = geen link. */
   vestiging: string | null
   onKlaar: (tekst: string, ok?: boolean) => void
+  /** Prijs en contract (lidgeld aan): de plannen van deze vorm en vandaag; null = niet tonen. */
+  lidgeld?: { plannen: readonly PlanWeergave[]; vandaag: string } | null
 }
 
-export function VormRegel({ vorm: v, vestiging, onKlaar }: Props) {
+export function VormRegel({ vorm: v, vestiging, onKlaar, lidgeld = null }: Props) {
   const vestigingen = useVestigingen()
   const [bewerken, setBewerken] = useState(false)
   const [bevestig, setBevestig] = useState(false)
@@ -101,6 +105,7 @@ export function VormRegel({ vorm: v, vestiging, onKlaar }: Props) {
         </div>
         {bevestig && v.leden > 0 && <p className="club-hint club-lidm-let">{ledenTekst(v.leden)} {v.leden === 1 ? 'houdt' : 'houden'} dit abonnement, maar dan zonder regels.</p>}
       </div>
+      {lidgeld && <PrijsEnContract vormId={v.id} vormNaam={v.naam} plannen={lidgeld.plannen} vandaag={lidgeld.vandaag} onKlaar={onKlaar} />}
     </li>
   )
 }

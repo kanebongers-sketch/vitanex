@@ -42,6 +42,8 @@ export interface InstelPagina {
   nietVoorMedewerker?: boolean
   /** Alleen als betalen in de ledenapp beschikbaar is (CLUB_BETALEN_ACTIEF). */
   betalen?: boolean
+  /** Alleen als lidgeld beschikbaar is (CLUB_LIDGELD_ACTIEF). */
+  lidgeld?: boolean
   /**
    * Een tabblad van een dagelijks onderdeel (Afspraken, Training, Leden). Staat
    * in het instellingencentrum, maar geeft op zichzelf geen toegang tot het
@@ -87,6 +89,7 @@ export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   { id: 'opvolgregels', titel: 'Opvolgregels', uitleg: 'Wie Club op de opvolglijst zet: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', groep: 'communicatie', pad: '/beheer/automatiseringen', sleutel: 'beheer', trefwoorden: 'automatiseringen opvolgen regels' },
   // Betalen en abonnement
   { id: 'betalen', titel: 'Betalen in de ledenapp', uitleg: 'Losse lessen, strippenkaarten, PT-pakketten en producten verkopen via Stripe.', groep: 'betalen', pad: '/beheer/betalen', sleutel: 'beheer', alleenEigenaar: true, betalen: true, trefwoorden: 'stripe strippenkaart producten kopen' },
+  { id: 'kortingen', titel: 'Kortingen en acties', uitleg: 'Kortingscodes, acties met een begin- en einddatum en de gezinskorting voor lidgeld.', groep: 'betalen', pad: '/beheer/lidmaatschappen/kortingen', sleutel: 'lidmaatschappen', lidgeld: true, trefwoorden: 'korting actie code gezin gezinskorting procent' },
   { id: 'abonnement', titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', groep: 'betalen', pad: '/beheer/abonnement', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'pakket factuur' },
 ]
 
@@ -98,11 +101,14 @@ export interface InstelKijker {
   toegestaan: readonly string[] | null
   medewerker: boolean
   betalenAan: boolean
+  /** Staat lidgeld aan (CLUB_LIDGELD_ACTIEF)? Ontbreekt = uit. */
+  lidgeldAan?: boolean
 }
 
 /** Mag deze persoon de pagina zien (los van het onderdeel dat uit staat)? */
 export function magInstelPagina(p: InstelPagina, k: Omit<InstelKijker, 'uit'>): boolean {
   if (p.betalen && !k.betalenAan) return false
+  if (p.lidgeld && !k.lidgeldAan) return false
   if (p.nietVoorMedewerker && k.medewerker) return false
   if (k.toegestaan === null) return true
   if (p.alleenEigenaar) return false

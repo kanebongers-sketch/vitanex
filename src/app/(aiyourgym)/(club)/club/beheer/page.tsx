@@ -97,6 +97,7 @@ async function standen(t: ClubToegang, ziet: (id: string) => boolean): Promise<R
     meldingen: { stand: 'Herinnertijden en welke aan staan' },
     opvolgregels: { stand: regels ? `${regels.filter((r) => r.aan).length} van ${regels.length} aan` : 'Onbekend' },
     betalen: { stand: 'Stripe, producten en verkopen' },
+    kortingen: { stand: 'Codes, acties en gezinskorting' },
     abonnement: { stand: 'Pakket, status en facturen' },
   }
 }

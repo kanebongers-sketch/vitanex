@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { eisBetalenBeheer } from '@/lib/club/betalen/toegang'
-import { clubStripeSleutel } from '@/lib/club/betalen/config'
+import { clubStripeSleutel, lidgeldActief } from '@/lib/club/betalen/config'
+import { haalLidgeldStand } from '@/lib/club/betalen/plannen/toegang'
+import { LidgeldKaart } from '@/components/club/betalen/plannen/LidgeldKaart'
+import '@/components/club/betalen/plannen/plannen.css'
 import { haalBetaalAccount, haalProducten, haalVerkopen, haalVerkopenInMaand } from '@/lib/club/betalen/opslag'
 import { maandCijfers } from '@/lib/club/betalen/cijfers'
 import { euro } from '@/lib/club/betalen/model'
@@ -33,15 +36,18 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
   const t = await eisBetalenBeheer()
   const zoek = await searchParams
   const nu = new Date()
-  const [account, producten, verkopen, vanMaand] = await Promise.all([
+  const [account, producten, verkopen, vanMaand, lidgeld] = await Promise.all([
     haalBetaalAccount(t.admin, t.userId),
     haalProducten(t.admin, t.userId),
     haalVerkopen(t.admin, t.userId),
     haalVerkopenInMaand(t.admin, t.userId, nu),
+    lidgeldActief() ? haalLidgeldStand(t.admin, t.userId) : Promise.resolve(null),
   ])
   const namen = await ledenNamen(t.admin, t.userId, [...new Set((verkopen ?? []).flatMap((v) => (v.lidId ? [v.lidId] : [])))])
   // Maandcijfers uit een eigen query op betaald_op binnen de kalendermaand, niet uit de laatste 200 verkopen.
   const cijfers = vanMaand ? maandCijfers(vanMaand, nu) : null
+  // Pas als lidgeld aan staat en niet in schaduwmodus is het niet meer waar dat lidmaatschappen en incasso in de ledenadministratie blijven.
+  const lidgeldBuitenAdministratie = lidgeld !== null && lidgeld.lidgeldAan && !lidgeld.schaduw
 
   return (
     <div className="club-betalen">
@@ -52,7 +58,7 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
           <h1>Betalen in de ledenapp</h1>
           <p>
             Leden kopen in de app een losse les, een strippenkaart, een PT-pakket of een product. Ze betalen met iDEAL of kaart bij Stripe en het geld
-            komt rechtstreeks bij jouw sportschool. Lidmaatschappen en incasso blijven in je ledenadministratie.
+            komt rechtstreeks bij jouw sportschool. {lidgeldBuitenAdministratie ? 'Lidgeld en prijzen van lidmaatschappen stel je in bij Lidmaatschappen.' : 'Lidmaatschappen en incasso blijven in je ledenadministratie.'}
           </p>
         </div>
       </header>
@@ -73,6 +79,13 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
       ) : (
         <p className="club-melding club-melding--fout" role="status">De koppeling met Stripe kon niet worden gelezen. Probeer het later opnieuw.</p>
       )}
+
+      {lidgeldActief() &&
+        (lidgeld ? (
+          <LidgeldKaart stand={lidgeld} />
+        ) : (
+          <p className="club-melding club-melding--fout" role="status">De stand van lidgeld kon niet worden gelezen. Probeer het later opnieuw.</p>
+        ))}
 
       {producten ? (
         <ProductenBeheer producten={producten} vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} />

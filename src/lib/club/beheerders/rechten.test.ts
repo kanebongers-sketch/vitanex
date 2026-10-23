@@ -107,3 +107,20 @@ describe('elke API-map onder /api/club hoort bij een onderdeel', () => {
     for (const map of Object.keys(BEWUST_ZONDER)) expect(mappen, map).toContain(map)
   })
 })
+
+describe('betalen: plannen en kortingen horen bij Lidmaatschappen', () => {
+  it('plannen en kortingen onder lidmaatschappen, de rest van betalen onder beheer', () => {
+    expect(apiOnderdeel('/api/club/betalen/plannen')).toBe('lidmaatschappen')
+    expect(apiOnderdeel('/api/club/betalen/plannen/abc/prijzen?vanaf=2026-12-01')).toBe('lidmaatschappen')
+    expect(apiOnderdeel('/api/club/betalen/kortingen/gezinnen/abc')).toBe('lidmaatschappen')
+    expect(apiOnderdeel('/api/club/betalen/connect')).toBe('beheer')
+    expect(apiOnderdeel('/api/club/betalen/lidgeld')).toBe('beheer')
+    expect(apiOnderdeel('/api/club/betalen')).toBe('beheer')
+  })
+  it('een clubmanager komt er nooit bij, ook niet met het recht in zijn lijst', () => {
+    const manager = toegestaneOnderdelen(MANAGER, { ...standaardRechten(), manager: ['lidmaatschappen', 'beheer', 'leden'] })
+    expect(magApi(manager, '/api/club/betalen/plannen', 'POST')).toBe(false)
+    expect(magApi(manager, '/api/club/betalen/kortingen', 'POST')).toBe(false)
+    expect(magApi(null, '/api/club/betalen/plannen', 'POST')).toBe(true)
+  })
+})

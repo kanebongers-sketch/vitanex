@@ -5,12 +5,12 @@
 // recht, zodat een clubmanager of medewerker nooit iets extra ziet.
 
 import { notFound } from 'next/navigation'
-import { betalenActief } from '@/lib/club/betalen/config'
+import { betalenActief, lidgeldActief } from '@/lib/club/betalen/config'
 import { heeftInstellingen, type InstelKijker } from '@/lib/club/kern/instel-paginas'
 import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 
 export function instelKijker(t: Pick<ClubToegang, 'organisatie' | 'onderdelen' | 'rol'>): InstelKijker {
-  return { uit: t.organisatie.uit, toegestaan: t.onderdelen, medewerker: t.rol === 'medewerker', betalenAan: betalenActief() }
+  return { uit: t.organisatie.uit, toegestaan: t.onderdelen, medewerker: t.rol === 'medewerker', betalenAan: betalenActief(), lidgeldAan: lidgeldActief() }
 }
 
 /** Voor het instellingencentrum zelf: wie er niets mag instellen krijgt een gewone 404. */

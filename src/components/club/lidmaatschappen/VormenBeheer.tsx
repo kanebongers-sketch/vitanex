@@ -8,6 +8,8 @@ import { VormFormulier } from './VormFormulier'
 import { VormRegel, type VormMetAantal } from './VormRegel'
 import { LosseLijst } from './LosseLijst'
 import { useMelding } from './useMelding'
+import type { PlanWeergave } from '@/lib/club/betalen/plannen/weergave'
+import { LidgeldMelding, type LidgeldInfo } from '@/components/club/betalen/plannen/LidgeldMelding'
 
 // Het tabblad Lidmaatschapsvormen: links de vormen met hun leden, rechts een
 // vorm toevoegen en de abonnementsnamen uit de ledenlijst die nog geen vorm zijn.
@@ -18,9 +20,11 @@ interface Props {
   /** null = de leden konden niet worden geteld. */
   totaalLeden: number | null
   vestiging: string | null
+  /** Lidgeld aan: per vorm de plannen met prijs en contract; null = geen prijs en contract tonen. */
+  lidgeld?: (LidgeldInfo & { perVorm: Readonly<Record<string, readonly PlanWeergave[]>>; vandaag: string }) | null
 }
 
-export function VormenBeheer({ vormen, los, totaalLeden, vestiging }: Props) {
+export function VormenBeheer({ vormen, los, totaalLeden, vestiging, lidgeld = null }: Props) {
   const router = useRouter()
   const { melding, klaar } = useMelding(() => router.refresh())
   const [bezig, setBezig] = useState(false)
@@ -39,6 +43,7 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging }: Props) {
   return (
     <>
       {melding}
+      {lidgeld && <LidgeldMelding schaduw={lidgeld.schaduw} incassoAan={lidgeld.incassoAan} alleenKane={lidgeld.alleenKane} />}
       <dl className="club-lidm-cijfers">
         <div>
           <dt>Vormen</dt>
@@ -67,7 +72,7 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging }: Props) {
           ) : (
             <ul className="club-lidm-lijst">
               {vormen.map((v) => (
-                <VormRegel key={v.id} vorm={v} vestiging={vestiging} onKlaar={klaar} />
+                <VormRegel key={v.id} vorm={v} vestiging={vestiging} onKlaar={klaar} lidgeld={lidgeld ? { plannen: lidgeld.perVorm[v.id] ?? [], vandaag: lidgeld.vandaag } : null} />
               ))}
             </ul>
           )}

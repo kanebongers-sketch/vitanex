@@ -64,6 +64,8 @@ export async function wijzigVorm(t: ClubToegang, id: string, v: VormInvoer): Pro
 export async function verwijderVorm(t: ClubToegang, id: string): Promise<Resultaat<{ verwijderd: true }>> {
   const { data, error } = await t.admin.from('club_lidmaatschapsvormen').delete().eq('user_id', t.userId).eq('id', id).select('naam')
   if (error) {
+    // 23503: er hangen plannen met prijs en contract aan deze vorm (lidgeld).
+    if (error.code === '23503') return mislukt('Deze vorm heeft plannen met prijs en contract. Haal eerst de plannen weg, of zet de vorm op niet meer te koop.', 409)
     console.error('[club] lidmaatschapsvorm verwijderen mislukt', error.message)
     return mislukt('Verwijderen is niet gelukt. Probeer het opnieuw.', 500)
   }

@@ -92,10 +92,21 @@ const ORGANISATIE_ONDERDEEL: Record<string, string> = {
   instellingen: 'beheer',
 }
 
+/**
+ * Onder /api/club/betalen: plannen en kortingen horen bij Lidmaatschappen (prijs
+ * en contract staan op die pagina), de rest (Stripe, producten, verkopen,
+ * lidgeld aan of uit) bij Beheer.
+ */
+const BETALEN_ONDERDEEL: Record<string, string> = {
+  plannen: 'lidmaatschappen',
+  kortingen: 'lidmaatschappen',
+}
+
 export function apiOnderdeel(pad: string): string | null {
   const delen = pad.split('?')[0].split('/').filter(Boolean)
   if (delen[0] !== 'api' || delen[1] !== 'club') return null
   if (delen[2] === 'organisatie') return ORGANISATIE_ONDERDEEL[delen[3] ?? ''] ?? null
+  if (delen[2] === 'betalen') return BETALEN_ONDERDEEL[delen[3] ?? ''] ?? 'beheer'
   return API_ONDERDEEL[delen[2] ?? ''] ?? null
 }
 

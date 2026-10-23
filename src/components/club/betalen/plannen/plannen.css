@@ -1,0 +1,100 @@
+/* ─── Club: prijs en contract per lidmaatschapsvorm, kortingen en lidgeld ─────
+   Onder elke vorm een eigen strook "Prijs en contract": per plan de prijs groot
+   in de koppenletter, het contract als dunne rij kenmerken en het voorbeeld als
+   rustig vlak met een accentlijn. Alleen .club-plan*, .club-korting* en
+   .club-lidgeld*. Kleuren uit de tokens van club.css (donker en licht thema). */
+
+.club-plannen {
+  grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 6px; padding: 14px 0 2px;
+  border-top: 1px dashed var(--line-strong);
+}
+.club-plannen-kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.club-plannen-kop h4 { margin: 0; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-plannen-leeg { margin: 0; color: var(--text-3); font-size: 14px; }
+.club-plannen-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+@media (min-width: 900px) { .club-plannen-lijst { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); } }
+
+.club-plan {
+  display: grid; gap: 10px; align-content: start; padding: 16px 16px 12px; border-radius: var(--club-radius-klein);
+  background: var(--club-vlak); border: 1px solid var(--line);
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.club-plan:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-plan.is-uit { opacity: 0.7; }
+.club-plan.is-bewerken { grid-column: 1 / -1; background: var(--bg-card); border-color: var(--brand); }
+.club-plan-kop { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 12px; }
+.club-plan-naam {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0;
+  font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere;
+}
+.club-plan-prijs { grid-row: span 2; margin: 0; font-family: var(--ff-kop); font-size: clamp(22px, 2.4vw, 28px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; text-align: right; }
+.club-plan-leden { margin: 0; color: var(--text-3); font-size: 13px; }
+.club-plan-knoppen { align-items: center; }
+.club-plan-knoppen .club-hint { margin: 0 6px 0 0; }
+
+.club-plan-komend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.club-plan-komend li {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+  padding: 8px 10px; border-radius: var(--club-radius-klein); background: var(--club-info-zacht); color: var(--club-info-inkt); font-size: 13.5px;
+}
+
+/* ── Voorbeeld ───────────────────────────────────────────────────────────── */
+.club-plan-voorbeeld { margin: 0; padding: 12px 14px; border-left: 3px solid var(--brand); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; background: color-mix(in srgb, var(--brand) 7%, transparent); }
+.club-plan-voorbeeld--wacht { border-left-color: var(--line-strong); background: transparent; color: var(--text-3); font-size: 14px; }
+.club-plan-voorbeeld-kop { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-plan-voorbeeld dl { display: grid; gap: 8px; margin: 0; }
+.club-plan-voorbeeld dl > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; }
+.club-plan-voorbeeld dt { color: var(--text-3); font-size: 13px; }
+.club-plan-voorbeeld dd { margin: 0; font-size: 14px; line-height: 1.45; }
+.club-plan-voorbeeld strong { font-variant-numeric: tabular-nums; }
+.club-plan-voorbeeld-klein { display: block; color: var(--text-3); font-size: 12.5px; }
+.club-plan-wet { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 13px; line-height: 1.5; }
+
+/* ── Formulier ───────────────────────────────────────────────────────────── */
+.club-plan-form { display: grid; gap: 20px; }
+@media (min-width: 1000px) { .club-plan-form { grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); align-items: start; } }
+.club-plan-velden { display: grid; gap: 12px; min-width: 0; }
+.club-plan-velden .club-hint { margin: -4px 0 0; }
+.club-plan-zij { display: grid; gap: 12px; min-width: 0; }
+@media (min-width: 1000px) { .club-plan-zij { position: sticky; top: 88px; } }
+.club-plan-zij [role='alert']:empty { display: none; }
+.club-plan-zij [role='alert'] .club-melding { margin: 0; }
+.club-plan-rij3 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.club-plan-groep { display: grid; gap: 10px; margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+.club-plan-groep > legend { float: left; width: 100%; margin-bottom: 4px; padding: 0; }
+.club-plan-smal { max-width: 240px; }
+.club-plan-vestigingen { display: grid; gap: 6px; }
+.club-plan-prijsdatum { display: grid; gap: 8px; padding: 12px 14px; border-radius: var(--club-radius-klein); background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); }
+.club-plan-prijsdatum p { margin: 0; font-size: 14px; line-height: 1.5; }
+
+/* ── Lidgeld: melding en schakelaar ──────────────────────────────────────── */
+.club-lidgeld-melding {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0; padding: 12px 16px;
+  border-radius: var(--club-radius-klein); background: var(--club-info-zacht); color: var(--club-info-inkt); font-size: 14px;
+}
+.club-lidgeld-melding strong { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+.club-lidgeld { display: grid; gap: 12px; }
+.club-lidgeld-rij { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-lidgeld-rij p { margin: 4px 0 0; color: var(--text-2); font-size: 14px; max-width: 70ch; }
+.club-lidgeld-schakel { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
+.club-lidgeld-schakel input { width: 44px; height: 24px; margin: 0; accent-color: var(--brand); cursor: pointer; }
+
+/* ── Kortingen ───────────────────────────────────────────────────────────── */
+.club-korting-waarde { margin: 0; font-family: var(--ff-kop); font-size: clamp(20px, 2.2vw, 26px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-korting-code {
+  display: inline-block; padding: 2px 8px; border-radius: 6px; border: 1px dashed var(--brand);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: none;
+}
+.club-korting-form { display: grid; gap: 12px; }
+
+@media (max-width: 600px) {
+  .club-plan-kop { grid-template-columns: minmax(0, 1fr); }
+  .club-plan-prijs { grid-row: auto; text-align: left; }
+  .club-plan-voorbeeld dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-plan { transition: none; }
+}
+.club-lidgeld-meldingen { display: grid; gap: 8px; }
+.club-lidgeld-meldingen:empty { display: none; }

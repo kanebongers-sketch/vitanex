@@ -8,7 +8,7 @@ import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
 import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelHref, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
 
 const APP = join(process.cwd(), 'src', 'app', '(aiyourgym)', '(club)', 'club')
-const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true }
+const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true, lidgeldAan: true }
 
 describe('INSTEL_PAGINAS', () => {
   it('elk ding een naam en een plek: unieke ids, titels en paden', () => {
@@ -55,6 +55,9 @@ describe('zichtbareInstelPaginas', () => {
   it('Kane en de eigenaar zien alles wat aan staat', () => {
     expect(zichtbareInstelPaginas(ALLES)).toHaveLength(INSTEL_PAGINAS.length)
     expect(zichtbareInstelPaginas({ ...ALLES, betalenAan: false }).some((p) => p.id === 'betalen')).toBe(false)
+    // Kortingen en acties alleen met lidgeld aan (CLUB_LIDGELD_ACTIEF).
+    expect(zichtbareInstelPaginas({ ...ALLES, lidgeldAan: false }).some((p) => p.id === 'kortingen')).toBe(false)
+    expect(zichtbareInstelPaginas(ALLES).some((p) => p.id === 'kortingen')).toBe(true)
     expect(zichtbareInstelPaginas({ ...ALLES, uit: ['rooster'] }).some((p) => p.id === 'weekrooster')).toBe(false)
   })
 
