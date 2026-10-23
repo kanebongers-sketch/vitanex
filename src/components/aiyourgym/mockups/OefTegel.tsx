@@ -1,6 +1,10 @@
-// Een klein vierkant met de beginletters van een oefening, voor lijsten in de
-// productbeelden (schema, editor, ledenapp). Een 3D-doek per regel is te zwaar;
-// het grote 3D-beeld staat bij de geopende oefening.
+import { renderVoor } from '@/components/aiyourgym/inhoud/oefenrenders'
+
+// Een klein vierkant bij een oefening in lijsten van de productbeelden (schema,
+// editor, ledenapp). Heeft de oefening een eigen render, dan het stilstaande
+// beginbeeld daarvan (ruim 20 KB, pas geladen als het in beeld komt); anders de
+// beginletters. Een 3D-doek per regel is te zwaar; het bewegende beeld staat bij
+// de geopende oefening.
 
 const VULWOORDEN = new Set(['met', 'op', 'de', 'het', 'een'])
 
@@ -23,6 +27,19 @@ interface OefTegelProps {
 }
 
 export function OefTegel({ naam, maat, className }: OefTegelProps) {
+  const render = renderVoor(naam)
+  if (render) {
+    const b = render.begin
+    return (
+      <span
+        className={className ? `aygm-oef-tegel aygm-oef-tegel--beeld ${className}` : 'aygm-oef-tegel aygm-oef-tegel--beeld'}
+        style={maat ? { width: maat, height: maat } : undefined}
+        aria-hidden
+      >
+        <img src={b.src} width={b.breedte} height={b.hoogte} alt="" loading="lazy" decoding="async" />
+      </span>
+    )
+  }
   return (
     <span
       className={className ? `aygm-oef-tegel ${className}` : 'aygm-oef-tegel'}

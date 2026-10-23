@@ -14,6 +14,11 @@ export const DEMO = aygPad('/demo')
 export const DEMO_AANVRAGEN = aygPad('/demo-aanvragen')
 /** Inloggen voor sportscholen (e-mailadres en wachtwoord), op de website zelf. */
 export const INLOGGEN = aygPad('/inloggen')
+/** Een prijs op maat aanvragen in drie stappen, zonder bedragen. */
+export const PRIJS_OP_MAAT = aygPad('/prijs-op-maat')
+export const OVERSTAPPEN = aygPad('/overstappen')
+export const PRIVACY_BEVEILIGING = aygPad('/privacy-en-beveiliging')
+export const PRIJZEN_VRAGEN = aygPad('/prijzen#vragen')
 
 export const NAV_LINKS = [
   { label: 'Functies', pad: aygPad('/functies'), uitleg: 'Beheer, coaching, planning, groei en betrokkenheid' },

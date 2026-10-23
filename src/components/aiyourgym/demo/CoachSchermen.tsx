@@ -2,7 +2,7 @@ import { Trophy } from 'lucide-react'
 import { QrBeeld } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
 import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
-import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
+import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 import { dagKort } from '@/lib/club/cijfers/tijd'
 import type { Coaching } from '@/lib/club/training/coaching/typen'
 import type { DemoApp, DemoCijfers, DemoOefening, DemoSchema } from '@/lib/aiyourgym/demo/model'
@@ -61,7 +61,7 @@ export function SchemaScherm({ schema, uitgelicht, coaching }: SchemaProps) {
         {uitgelicht && coaching && (
           <div className="aygm-oefening aygd-coaching">
             <div className="aygm-beeld">
-              <Oefenbeeld3d naam={uitgelicht.naam} label={`${uitgelicht.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
+              <Oefenbeeld naam={uitgelicht.naam} label={`${uitgelicht.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
             </div>
             <div className="aygm-coaching">
               <p className="aygm-coaching-titel">{uitgelicht.naam}</p>

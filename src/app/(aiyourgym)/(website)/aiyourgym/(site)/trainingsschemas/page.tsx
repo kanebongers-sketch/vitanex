@@ -110,7 +110,7 @@ export default function TrainingsschemasPagina() {
             id="probeer-titel"
             label="Probeer het zelf"
             titel="Een oefening zoals je lid hem ziet."
-            tekst="Kies een oefening, speel de beweging van het 3D-figuur af of zet hem stil op begin of eind. Dit is de echte tekst uit de bibliotheek."
+            tekst="Kies een oefening, speel de beweging af of zet hem stil op begin of eind. Dit is de echte tekst uit de bibliotheek."
           />
           <CoachingDemo oefeningen={oefeningen} />
           <p className="ayg-klein ayg-ruim-boven">Schermvoorbeeld met voorbeeldgegevens</p>

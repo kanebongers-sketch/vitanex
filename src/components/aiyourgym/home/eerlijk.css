@@ -1,0 +1,109 @@
+/* AI Your Gym | eerlijk en vertrouwen: de routes onder de held, het blok wat we
+   wel en niet doen, de vragen op de voorpagina, wat er bij overstappen meekomt,
+   de pagina Privacy en beveiliging en de voortgang van de prijsaanvraag.
+   Alleen tokens van .ayg (aiyourgym.css); beweging alleen transform en opacity. */
+
+/* ── Routes onder de held ───────────────────────────────────────────────── */
+.ayg-held-routes { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 22px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-held-route {
+  display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 18px 8px 8px;
+  border-radius: 99px; background: color-mix(in srgb, var(--ayg-vlak) 70%, transparent); color: var(--ayg-tekst); text-decoration: none;
+  box-shadow: inset 0 0 0 1px var(--ayg-lijn);
+  transition: transform 220ms var(--ayg-ease), box-shadow 220ms var(--ayg-ease), background-color 220ms var(--ayg-ease);
+}
+.ayg-held-route:is(:hover, :focus-visible) { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst), var(--ayg-schaduw-zacht); background: var(--ayg-vlak); }
+.ayg-held-route:active { transform: scale(0.985); }
+.ayg-held-route-icoon { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--ayg-tekst); color: var(--ayg-bg); transition: background-color 220ms var(--ayg-ease), color 220ms var(--ayg-ease); }
+.ayg-held-route:is(:hover, :focus-visible) .ayg-held-route-icoon { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-held-route-tekst { display: grid; gap: 1px; line-height: 1.2; }
+.ayg-held-route-kop { font-size: 12.5px; color: var(--ayg-tekst-2); }
+.ayg-held-route-naam { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
+.ayg-held-route-naam svg { transition: transform 220ms var(--ayg-ease); }
+.ayg-held-route:is(:hover, :focus-visible) .ayg-held-route-naam svg { transform: translateX(3px); }
+@media (max-width: 479px) { .ayg-held-route { flex: 1 1 100%; } }
+
+/* ── Wat we wel en niet doen ────────────────────────────────────────────── */
+.ayg-welniet-raster { display: grid; gap: 16px; }
+@media (min-width: 900px) { .ayg-welniet-raster { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; } }
+.ayg-welniet-kolom { border-radius: var(--ayg-radius); padding: clamp(22px, 2.6vw, 36px); }
+.ayg-welniet-kolom[data-soort='wel'] { background: var(--ayg-vlak); box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw); }
+/* Wat niet: bewust lichter, een stippellijn in plaats van een vlak */
+.ayg-welniet-kolom[data-soort='niet'] { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ayg-lijn-sterk); outline-offset: -1.5px; }
+.ayg-welniet-kop { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: clamp(1.3rem, 1.8vw, 1.9rem); }
+.ayg-welniet-teken { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; }
+[data-soort='wel'] .ayg-welniet-teken { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+[data-soort='niet'] .ayg-welniet-teken { background: var(--ayg-vlak-2); color: var(--ayg-tekst); box-shadow: inset 0 0 0 1px var(--ayg-lijn-sterk); }
+.ayg-welniet-kolom ul { display: grid; }
+.ayg-welniet-kolom li { display: grid; gap: 4px; padding-block: 16px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-welniet-kolom li strong { font-weight: 650; font-size: 1.02em; }
+.ayg-welniet-kolom li span { color: var(--ayg-tekst-2); font-size: 0.94em; }
+@media (min-width: 640px) {
+  [data-soort='wel'] ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+}
+
+/* ── Vragen: link onder een antwoord ────────────────────────────────────── */
+.ayg-vragen details .ayg-vragen-link { margin: -8px 0 24px; font-size: 15px; }
+
+/* ── Overstappen: wat komt mee ──────────────────────────────────────────── */
+.ayg-mee-raster { display: grid; gap: clamp(24px, 3vw, 40px); }
+@media (min-width: 1100px) { .ayg-mee-raster { grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.9fr); align-items: start; } }
+.ayg-mee { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+.ayg-mee th, .ayg-mee td { padding: 16px 14px 16px 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-mee thead th { padding-block: 0 12px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ayg-tekst-2); border-bottom: 1.5px solid var(--ayg-tekst); }
+.ayg-mee tbody th { font-weight: 650; white-space: nowrap; }
+.ayg-mee td:last-child { color: var(--ayg-tekst-2); }
+.ayg-mee tr[data-mee='nee'] th { color: var(--ayg-tekst-2); font-weight: 600; }
+.ayg-mee-teken { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 6px; border-radius: 99px; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+[data-mee='ja'] .ayg-mee-teken { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+[data-mee='nee'] .ayg-mee-teken { background: var(--ayg-vlak-2); color: var(--ayg-tekst); }
+/* Telefoon: de tabel wordt een lijst van kaartjes, zonder horizontaal scrollen */
+@media (max-width: 639px) {
+  .ayg-mee thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ayg-mee tr { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding-block: 16px; border-bottom: 1px solid var(--ayg-lijn); }
+  .ayg-mee th, .ayg-mee td { padding: 0; border: 0; }
+  .ayg-mee tbody th { white-space: normal; }
+  .ayg-mee td:last-child { grid-column: 1 / -1; }
+}
+.ayg-mee-tips ol { counter-reset: tip; display: grid; gap: 14px; margin-top: 18px; }
+.ayg-mee-tips li { counter-increment: tip; display: grid; grid-template-columns: 28px 1fr; gap: 10px; color: var(--ayg-tekst-2); }
+.ayg-mee-tips li::before { content: counter(tip); display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ayg-tekst); color: var(--ayg-bg); font: 700 13px/1 var(--ayg-font-tekst); }
+@media (min-width: 1100px) { .ayg-mee-tips { position: sticky; top: 100px; } }
+
+/* ── Privacy en beveiliging ─────────────────────────────────────────────── */
+.ayg-pb-kern { display: grid; gap: 0; padding-block: clamp(32px, 5vw, 64px); }
+.ayg-pb-kern li { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 6px 18px; padding-block: 20px; border-top: 1px solid var(--ayg-inkt-lijn); }
+.ayg-pb-kern li:first-child { border-top: 0; }
+.ayg-pb-kern-nr { font-size: 13px; font-weight: 600; color: var(--ayg-accent); font-variant-numeric: tabular-nums; }
+.ayg-pb-kern-woord { font: 700 clamp(2.4rem, 5.4vw, 5.2rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.045em; font-variation-settings: 'wdth' 82; }
+.ayg-pb-kern li > span:last-child { grid-column: 2; color: var(--ayg-inkt-tekst-2); max-width: 32ch; }
+@media (min-width: 960px) {
+  .ayg-pb-kern { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 48px); }
+  .ayg-pb-kern li { grid-template-columns: 1fr; border-top: 0; padding-block: 0; }
+  .ayg-pb-kern li + li { border-left: 1px solid var(--ayg-inkt-lijn); padding-left: clamp(24px, 3vw, 48px); }
+  .ayg-pb-kern li > span:last-child { grid-column: 1; }
+}
+.ayg-pb-groep + .ayg-pb-groep { border-top: 1px solid var(--ayg-lijn); }
+.ayg-pb-rij { display: grid; gap: clamp(24px, 4vw, 48px); }
+@media (min-width: 960px) { .ayg-pb-rij { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); column-gap: clamp(48px, 5vw, 96px); align-items: start; } }
+.ayg-pb-titel { font-size: clamp(1.8rem, 3.2vw, 3.4rem); max-width: 12ch; }
+.ayg-pb-punten { display: grid; }
+.ayg-pb-punten li { display: grid; gap: 8px; padding-block: 22px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-pb-punten li:first-child { border-top: 0; padding-top: 0; }
+.ayg-pb-punten p { color: var(--ayg-tekst-2); max-width: 60ch; }
+.ayg-pb-dpa { display: grid; gap: 14px; justify-items: start; }
+.ayg-pb-dpa p { color: var(--ayg-tekst-2); }
+.ayg-pb-sub-kop { font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); margin-bottom: 8px; font-family: var(--ayg-font-tekst); }
+.ayg-pb-sub dl { display: grid; margin: 0; }
+.ayg-pb-sub dl > div { display: grid; grid-template-columns: minmax(0, 9rem) 1fr; gap: 16px; padding-block: 12px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-pb-sub dt { font-weight: 650; }
+.ayg-pb-sub dd { margin: 0; color: var(--ayg-tekst-2); }
+.ayg-pb-rij .ayg-klein a { color: var(--ayg-tekst); text-underline-offset: 3px; }
+
+/* ── Prijs op maat: drie stappen in de voortgang ────────────────────────── */
+.ayg .prijs-voortgang { grid-template-columns: repeat(3, 1fr); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ayg-held-route, .ayg-held-route svg, .ayg-held-route-icoon { transition: none; }
+  .ayg-held-route:is(:hover, :focus-visible) { transform: none; }
+}
+.ayg-voet .ayg-voet-onder a { color: inherit; }

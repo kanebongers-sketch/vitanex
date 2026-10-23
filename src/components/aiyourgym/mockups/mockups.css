@@ -234,9 +234,46 @@
 .ayg-3d > .club-ill { --ill-accent: var(--brand, var(--ayg-accent)); }
 .ayg-3d--vul { position: absolute; inset: 0; }
 .ayg-3d--vul > .club-ill { height: 100%; aspect-ratio: auto; border-radius: 0; }
+
+/* ── Eigen Blender-renders (OefenLus) ──────────────────────────────────────
+   Een donker vlak met een zachte lichtbundel en een schaduw op de vloer; de
+   render zelf is transparant. Eerst het stille beeld, daarna vervaagt de lus
+   erin en verdwijnt het stille beeld (anders zie je beide door elkaar). */
+.ayg-lus {
+  --lus-vlak: var(--ayg-inkt-2, #1a201d);
+  --lus-gloed: rgb(255 255 255 / 0.075);
+  --lus-rand: rgb(255 255 255 / 0.07);
+  --lus-vloer: rgb(0 0 0 / 0.55);
+  position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; isolation: isolate;
+  border-radius: var(--club-radius, 12px);
+  background: radial-gradient(75% 60% at 50% 40%, var(--lus-gloed), transparent 70%), var(--lus-vlak);
+  box-shadow: inset 0 0 0 1px var(--lus-rand);
+}
+.ayg-lus::before {
+  content: ''; position: absolute; left: 22%; right: 22%; bottom: 7%; height: 9%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--lus-vloer), transparent);
+}
+.ayg-lus img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.ayg-lus-beweging { opacity: 0; transition: opacity 360ms var(--ayg-ease); }
+.ayg-lus-still { transition: opacity 360ms var(--ayg-ease) 120ms; }
+.ayg-lus[data-speelt] .ayg-lus-beweging { opacity: 1; }
+.ayg-lus[data-speelt] .ayg-lus-still { opacity: 0; }
+.ayg-lus.ayg-3d--vul { aspect-ratio: auto; border-radius: 0; }
+.ayg-lus-knop {
+  position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 38px; height: 38px;
+  border: 0; border-radius: 50%; cursor: pointer; color: var(--ayg-inkt-tekst, #f2f0e9); background: color-mix(in srgb, var(--ayg-inkt, #0f1412) 74%, transparent);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  transition: background-color 180ms var(--ayg-ease), color 180ms var(--ayg-ease), transform 180ms var(--ayg-ease);
+}
+.ayg-lus-knop:is(:hover, :focus-visible) { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.ayg-lus-knop:active { transform: scale(0.94); }
+.ayg-lus-knop:focus-visible { outline: 2px solid var(--ayg-accent); outline-offset: 3px; }
 .aygm-oef-tegel {
   display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 22%;
   background: var(--brand-soft, var(--ayg-accent-zacht)); color: var(--brand-tekst, var(--ayg-accent-sterk));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand, var(--ayg-accent)) 28%, transparent);
   font-family: var(--ayg-font-kop); font-weight: 700; letter-spacing: -0.02em; line-height: 1;
 }
+/* Met een eigen render: het stille beginbeeld op het donkere vlak van de renders */
+.aygm-oef-tegel--beeld { overflow: hidden; background: var(--ayg-inkt-2, #1a201d); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06); }
+.aygm-oef-tegel--beeld img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); }

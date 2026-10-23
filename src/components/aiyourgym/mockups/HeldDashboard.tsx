@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
 import { Venster } from './kaders'
-import { Oefenbeeld3d } from './Oefenbeeld3d'
+import { Oefenbeeld } from './Oefenbeeld'
 
 // Het samengestelde productbeeld van de voorpagina: het scherm Vandaag van Club
 // met de lessen van de dag en een ledenkaart, plus een oefening met coaching
@@ -113,16 +113,16 @@ export function HeldDashboard() {
   )
 }
 
-const OEFENING = 'Goblet squat'
+const OEFENING = 'Front squat'
 
-/** Een oefening uit een schema, klein: het eigen 3D-figuur en de eerste kernpunten. */
+/** Een oefening uit een schema, klein: onze eigen render (of het 3D-figuur) en de eerste kernpunten. */
 export function OefeningKaartje() {
   const coaching = COACHING_BENEN[OEFENING]
   if (!coaching) return null
   return (
     <div className="aygm-dash-oef">
       <div className="aygm-beeld">
-        <Oefenbeeld3d naam={OEFENING} label={`${OEFENING} als bewegend 3D-beeld`} className="ayg-3d--vul" />
+        <Oefenbeeld naam={OEFENING} label={`${OEFENING} als bewegend beeld`} className="ayg-3d--vul" sizes="112px" />
       </div>
       <div className="aygm-dash-oef-tekst">
         <p className="aygm-boven">Schema · dag A · 1</p>

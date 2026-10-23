@@ -1,11 +1,11 @@
 import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
-import { Oefenbeeld3d } from './Oefenbeeld3d'
+import { Oefenbeeld } from './Oefenbeeld'
 
-// Een oefening zoals een lid en trainer hem in Club zien: ons eigen 3D-figuur
+// Een oefening zoals een lid en trainer hem in Club zien: ons eigen figuur
 // dat de beweging voordoet en de coaching uit de echte oefenbibliotheek van
 // Club. Geen verzonnen tekst: dit komt uit de app zelf.
 
-const NAAM = 'Goblet squat'
+const NAAM = 'Front squat'
 
 export function Oefening() {
   const coaching = COACHING_BENEN[NAAM]
@@ -13,7 +13,7 @@ export function Oefening() {
   return (
     <div className="aygm-oefening">
       <div className="aygm-beeld">
-        <Oefenbeeld3d naam={NAAM} label={`${NAAM} als bewegend 3D-beeld`} className="ayg-3d--vul" />
+        <Oefenbeeld naam={NAAM} label={`${NAAM} als bewegend beeld`} className="ayg-3d--vul" sizes="(max-width: 720px) 90vw, 420px" />
       </div>
       <div className="aygm-coaching">
         <div>

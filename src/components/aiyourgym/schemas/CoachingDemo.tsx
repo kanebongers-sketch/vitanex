@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, Pause, Play, Timer, Wind, X } from 'lucide-react'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
-import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
+import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 import type { Stand3d } from '@/components/club/training/drie/Oefening3d'
 import { SchemaToestel } from './SchemaToestel'
 
@@ -95,7 +95,7 @@ function Speler({ o, stand, zet }: { o: VoorbeeldOefening; stand: Stand3d; zet: 
   return (
     <figure className="ayg-cd-speler">
       <div className="ayg-cd-beeld">
-        <Oefenbeeld3d naam={o.naam} stand={stand} label={`${o.naam} als 3D-beeld`} className="ayg-3d--vul" />
+        <Oefenbeeld naam={o.naam} stand={stand} label={`${o.naam} als 3D-beeld`} className="ayg-3d--vul" />
       </div>
       <figcaption className="ayg-cd-bediening">
         <button type="button" className="ayg-cd-speel" onClick={() => zet(speelt ? 'begin' : 'speelt')}>

@@ -7,12 +7,15 @@ import { BELOFTES, OPRICHTER, PRAKTIJK, VLOER } from './praktijk'
 import { ROLLEN } from './systeem'
 import { SCHEMA_STAPPEN } from './trainingsschemas'
 import { OVERSTAP_STAPPEN, START_MINUTEN, START_STAPPEN } from './vertrouwen'
+import { HOME_VRAGEN, KOMT_MEE, KOMT_NIET_MEE, NIET, OVERSTAP_TIPS, WEL } from './eerlijk'
+import { GROEPEN, KERN, SUBVERWERKERS } from './beveiliging'
 
 // Bewaakt de teksten van de website: de schrijfregels van Kane (geen
 // gedachtestreepjes, geen klemtoon-accenten) en de eerlijkheid (geen verzonnen
 // aantallen, reviews of contactgegevens).
 
-const ALLE_TEKST = JSON.stringify({ HOOFDSTUKKEN, DOELGROEPEN, PRAKTIJK, VLOER, BELOFTES, DEMO_SOORTEN, ROLLEN, SCHEMA_STAPPEN, OVERSTAP_STAPPEN })
+const EERLIJK = { HOME_VRAGEN, WEL, NIET, KOMT_MEE, KOMT_NIET_MEE, OVERSTAP_TIPS, KERN, GROEPEN, SUBVERWERKERS }
+const ALLE_TEKST = JSON.stringify({ HOOFDSTUKKEN, DOELGROEPEN, PRAKTIJK, VLOER, BELOFTES, DEMO_SOORTEN, ROLLEN, SCHEMA_STAPPEN, OVERSTAP_STAPPEN, ...EERLIJK })
 
 describe('teksten van de website', () => {
   it('geen gedachtestreepjes', () => {
@@ -84,5 +87,20 @@ describe('overstappen op de voorpagina', () => {
     expect(OVERSTAP_STAPPEN).toHaveLength(3)
     expect(START_MINUTEN).toBeLessThanOrEqual(15)
     expect(START_STAPPEN.length).toBeGreaterThan(0)
+  })
+})
+
+describe('eerlijk en vertrouwen', () => {
+  const tekst = JSON.stringify(EERLIJK)
+  it('noemt geen bedragen, keurmerken of concurrenten', () => {
+    expect(tekst).not.toMatch(/€|euro|ISO|certific|keurmerk|virtuagym|sportivity|fit ?factory/i)
+  })
+  it('zegt eerlijk dat incasso en abonnementen van leden er niet in zitten', () => {
+    expect(JSON.stringify(NIET)).toMatch(/Incasso/)
+    expect(HOME_VRAGEN[0].antwoord).toMatch(/^Nee\./)
+  })
+  it('zes vragen op de voorpagina, links alleen naar eigen paginas', () => {
+    expect(HOME_VRAGEN).toHaveLength(6)
+    for (const v of HOME_VRAGEN) if (v.link) expect(v.link.pad).toMatch(/^(\/[a-z-]+|#[a-z-]+)$/)
   })
 })

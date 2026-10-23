@@ -15,6 +15,8 @@
    Smaragd (de tekstkleur voor accent op papier) met volle dekking en een strakke
    streep er direct onder die bij elk nieuw woord van links intekent. */
 .ayg-wissel { display: block; font-size: clamp(2.3rem, 4.8vw, 5.6rem); line-height: 1.02; white-space: nowrap; padding-block: 0.02em 0.14em; }
+/* Telefoon: het langste woord ("vechtsportschool") moet op 320 px op een regel passen */
+@media (max-width: 520px) { .ayg-wissel { font-size: min(2.3rem, 9vw); } }
 .ayg-wissel-woord { position: relative; display: inline-block; background: none; color: var(--ayg-accent-sterk); transition: opacity 260ms var(--ayg-ease), transform 260ms var(--ayg-ease); }
 .ayg-wissel-woord::after { content: ''; position: absolute; left: 0.02em; right: 0.02em; bottom: -0.04em; height: 0.07em; border-radius: 99px; background: var(--ayg-accent); transform-origin: left; }
 .ayg-wissel-woord[data-weg] { opacity: 0; transform: translateY(-0.16em); }
@@ -207,6 +209,14 @@
 .ayg-oog-plek p { color: var(--ayg-tekst-2); font-size: 15px; }
 .ayg-oog-pijl { position: absolute; right: 20px; bottom: 20px; color: var(--ayg-accent-sterk); transition: transform 260ms var(--ayg-ease); }
 .ayg-oog-plek:is(:hover, :focus-visible) .ayg-oog-pijl { transform: translate(3px, -3px); }
+/* Telefoon: vijf compacte regels (icoon, naam en zin) in plaats van vijf hoge kaarten */
+@media (max-width: 639px) {
+  .ayg-oog-plek { min-height: 0; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 16px; row-gap: 4px; padding: 18px 52px 18px 18px; }
+  .ayg-oog-boven { grid-row: 1 / span 2; align-self: start; }
+  .ayg-oog-nr { display: none; }
+  .ayg-oog-pijl { top: 50%; bottom: auto; right: 18px; translate: 0 -50%; }
+  .ayg-oog-naam { font-size: 1.4rem; }
+}
 .ayg-oog-verder { display: flex; flex-wrap: wrap; gap: 14px 32px; margin-top: clamp(28px, 4vw, 40px); }
 
 /* ── Trainingsschema's met 3D als blikvanger ─────────────────────────────── */
@@ -227,8 +237,12 @@
   .ayg-blik-beeld { max-width: none; align-self: stretch; display: grid; }
   .ayg-blik-beeld .ayg-3d, .ayg-blik-beeld .club-ill { height: 100%; }
   .ayg-blik-beeld .club-ill { aspect-ratio: auto; min-height: 560px; }
+  .ayg-blik-beeld .ayg-lus { height: 100%; aspect-ratio: auto; min-height: 560px; }
 }
-.ayg-blik-beeld .club-ill { --club-radius: calc(var(--ayg-radius) + 12px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn), 0 50px 120px -50px rgb(0 0 0 / 0.8); }
+.ayg-blik-beeld :is(.club-ill, .ayg-lus) { --club-radius: calc(var(--ayg-radius) + 12px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn), 0 50px 120px -50px rgb(0 0 0 / 0.8); }
+/* De render krijgt een lichtbundel in smaragd: het podium en het beeld horen bij elkaar */
+.ayg-blik-beeld .ayg-lus { --lus-gloed: color-mix(in srgb, var(--ayg-accent) 13%, transparent); }
+.ayg-blik-beeld figcaption .ayg-blik-spieren { margin-top: 4px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: var(--ayg-accent); }
 /* Telefoon en tablet: naam en voorschrift onder het doek, zodat niets over het
    figuur valt. Pc (hoog doek): als kaartje linksboven, boven het hoofd. */
 .ayg-blik-beeld figcaption { display: grid; gap: 2px; margin-top: 12px; color: var(--ayg-inkt-tekst); }

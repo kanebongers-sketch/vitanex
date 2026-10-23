@@ -3,7 +3,7 @@ import { volgendeMijlpaal } from '@/lib/club/voortgang/frequentie'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
 import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
-import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
+import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 
 // Bibliotheek, eigen coachtekst, een oefening in de ledenapp en voortgang.
 // Getekend in HTML en CSS met voorbeeldgegevens; de coaching is de echte tekst
@@ -85,7 +85,7 @@ export function OefeningToestel({ oefening }: { oefening: VoorbeeldOefening }) {
         <div className="ayg-ss-blad">
           <p className="ayg-cd-app-kop">{oefening.naam}</p>
           <span className="ayg-ss-blad-beeld">
-            <Oefenbeeld3d naam={oefening.naam} label={`${oefening.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
+            <Oefenbeeld naam={oefening.naam} label={`${oefening.naam} als bewegend 3D-beeld`} className="ayg-3d--vul" />
           </span>
           <span className="ayg-ss-blad-regel">{oefening.voorschrift}</span>
           <span className="ayg-ss-blad-notitie">Van je trainer: hielen op de grond</span>

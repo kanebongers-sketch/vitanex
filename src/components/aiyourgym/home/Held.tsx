@@ -3,11 +3,13 @@ import { HeldDashboard, OefeningKaartje } from '@/components/aiyourgym/mockups/H
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { DOELGROEPEN } from '@/components/aiyourgym/inhoud/doelgroepen'
 import { Geruststelling, TweeRoutes } from '@/components/aiyourgym/site/Actie'
+import { HeldRoutes } from './HeldRoutes'
 import { WisselWoord } from './WisselWoord'
 
 // De opening van de voorpagina: een belofte met wisselend publiek (gym,
 // PT-studio, keten ...), een zin, twee routes (zelf gratis proberen of een
-// persoonlijke demo plannen) en kort wat het risico wegneemt. Ernaast het
+// persoonlijke demo plannen), kort wat het risico wegneemt en twee rustige
+// routes: overstappen voor wie al software heeft, en de live demo zonder account. Ernaast het
 // product zelf: het scherm Vandaag, een oefening in 3D en de ledenapp met QR.
 
 const WOORDEN = DOELGROEPEN.map((d) => d.kort)
@@ -31,6 +33,7 @@ export function Held() {
           </p>
           <TweeRoutes />
           <Geruststelling aantal={3} />
+          <HeldRoutes />
         </div>
         <div
           className="ayg-held-beeld aygm"

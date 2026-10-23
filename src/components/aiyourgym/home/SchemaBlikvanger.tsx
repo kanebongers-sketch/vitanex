@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
+import { renderVoor, spierZin } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 
 // De blikvanger van de voorpagina: een echte oefening uit de bibliotheek als
-// eigen 3D-figuur, met de kop en de genummerde kernpunten ernaast. Een doek dat
-// van oefening wisselt, dus nooit meer dan een 3D-beeld tegelijk in dit blok.
-// Het figuur staat passend in het doek: hoofd tot voeten altijd in beeld.
+// onze eigen render (besluit Kane 23-10-2026), met de kop en de genummerde
+// kernpunten ernaast. Zonder render valt het beeld terug op het 3D-figuur in
+// een doek dat van oefening wisselt, dus nooit meer dan een 3D-beeld tegelijk.
+// Bij een render staan de werkende spieren onder de naam.
 
 export interface BlikOefening {
   naam: string
@@ -27,14 +29,22 @@ export function SchemaBlikvanger({ oefeningen, kop, onder }: Props) {
   const [index, setIndex] = useState(0)
   const o = oefeningen[index]
   if (!o) return null
+  const spieren = renderVoor(o.naam)?.spieren
   return (
     <div className="ayg-blik">
       <div className="ayg-blik-kop">{kop}</div>
       <figure className="ayg-blik-beeld">
-        <Oefenbeeld3d naam={o.naam} passend label={`${o.naam} als bewegend 3D-beeld, zoals het lid hem in de app ziet`} />
+        <Oefenbeeld
+          naam={o.naam}
+          passend
+          bediening
+          sizes="(max-width: 959px) min(90vw, 560px), 46vw"
+          label={`${o.naam} als bewegend beeld, zoals het lid hem in de app ziet`}
+        />
         <figcaption>
           <b>{o.naam}</b>
           <span>{o.voorschrift}</span>
+          {spieren && spieren.length > 0 && <span className="ayg-blik-spieren">Werkt vooral op {spierZin(spieren)}</span>}
         </figcaption>
       </figure>
       <div className="ayg-blik-tekst">

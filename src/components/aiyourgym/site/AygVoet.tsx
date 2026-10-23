@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
 import { HOOFDSTUKKEN } from '@/components/aiyourgym/inhoud/functies'
-import { AANMELDEN, DEMO, DEMO_AANVRAGEN, INLOGGEN, NAV_LINKS, aygPad } from './paden'
+import { AANMELDEN, DEMO, DEMO_AANVRAGEN, INLOGGEN, NAV_LINKS, PRIJS_OP_MAAT, PRIVACY_BEVEILIGING, aygPad } from './paden'
 
 const PRODUCT = HOOFDSTUKKEN.map((h) => ({ label: h.naam, pad: aygPad(`/functies#${h.sleutel}`) }))
 
@@ -30,6 +30,9 @@ export function AygVoet() {
                 <Link href={DEMO}>Bekijk de live demo</Link>
               </li>
               <li>
+                <Link href={PRIJS_OP_MAAT}>Vraag een prijs op maat</Link>
+              </li>
+              <li>
                 <Link href={AANMELDEN}>Probeer gratis</Link>
               </li>
               <li>
@@ -51,7 +54,10 @@ export function AygVoet() {
             <h2 id="voet-afspraken">Afspraken</h2>
             <ul>
               <li>
-                <Link href={aygPad('/privacy')}>Privacy</Link>
+                <Link href={PRIVACY_BEVEILIGING}>Privacy en beveiliging</Link>
+              </li>
+              <li>
+                <Link href={aygPad('/privacy')}>Privacyverklaring</Link>
               </li>
               <li>
                 <Link href={aygPad('/voorwaarden')}>Voorwaarden</Link>
@@ -62,7 +68,7 @@ export function AygVoet() {
         <AygLogo vorm="woordmerk" sier className="ayg-voet-woord" />
         <div className="ayg-voet-onder">
           <span>© {jaar} AI Your Gym</span>
-          <span>Database in Frankfurt, binnen de EU</span>
+          <Link href={PRIVACY_BEVEILIGING}>Database en server in Frankfurt, binnen de EU</Link>
         </div>
       </div>
     </footer>

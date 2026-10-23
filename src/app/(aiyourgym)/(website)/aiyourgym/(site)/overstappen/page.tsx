@@ -4,6 +4,7 @@ import { StartStappen } from '@/components/aiyourgym/home/StartStappen'
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { ImportScherm } from '@/components/aiyourgym/mockups/ImportScherm'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
+import { WatKomtMee } from '@/components/aiyourgym/home/WatKomtMee'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
 
@@ -99,6 +100,7 @@ export default function OverstappenPagina() {
           </ol>
         </div>
       </section>
+      <WatKomtMee />
       <StartStappen metLink={false} />
       <section className="ayg-sectie" aria-labelledby="overstap-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst">

@@ -4,6 +4,7 @@ import { isRateLimited } from '@/lib/utils/rate-limit'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { isRobot } from '@/lib/aiyourgym/aanmelding'
 import { DEMO_MAX_BODY_BYTES, leesDemoAanvraag } from '@/lib/aiyourgym/demo-aanvraag'
+import { isPrijsAanvraag, leesPrijsAanvraag } from '@/lib/aiyourgym/prijs-aanvraag'
 import { bewaarDemoAanvraag, ipHash, teVeelDemoAanvragen } from '@/lib/aiyourgym/demo-aanvraag-opslag'
 import { adminOfNull, aygFout, aygJson, poortOpen } from '@/lib/aiyourgym/api'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
@@ -12,6 +13,8 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 // Een sportschool vraagt een gratis demo aan. We bewaren de aanvraag in
 // ayg_demo_aanvragen (migratie 436); Kane ziet hem op /club/platform en
 // neemt zelf contact op. Er gaat geen mail naar buiten.
+// Met doel 'prijs' komt hij van /aiyourgym/prijs-op-maat: dezelfde tabel en rem,
+// met pakket en aantal leden in de opmerking (src/lib/aiyourgym/prijs-aanvraag.ts).
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)
   // Een robot krijgt hetzelfde antwoord als een mens, maar we bewaren niets.
   if (isRobot(body)) return aygJson({ ok: true })
-  const invoer = leesDemoAanvraag(body)
+  const invoer = isPrijsAanvraag(body) ? leesPrijsAanvraag(body) : leesDemoAanvraag(body)
   if (!invoer.ok) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }, 400)
 
   const admin = adminOfNull()

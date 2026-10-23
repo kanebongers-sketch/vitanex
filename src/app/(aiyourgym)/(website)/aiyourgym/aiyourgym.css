@@ -242,6 +242,10 @@
 .ayg-podium .ayg-knop:not(.ayg-knop--rand, .ayg-knop--accent) { --k-tekst: var(--ayg-inkt); }
 .ayg-knop--klein { min-height: 40px; padding: 0 16px; font-size: 14.5px; border-radius: 10px; }
 .ayg-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+/* Smalle telefoon: de knoppen even breed onder elkaar, niet een rafelige rij */
+@media (max-width: 479px) {
+  .ayg-knoppen > :is(.ayg-knop, .ayg-knoppen) { flex: 1 1 100%; }
+}
 
 .ayg-pijllink { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; transition: color 180ms var(--ayg-ease), border-color 180ms var(--ayg-ease); }
 .ayg-pijllink:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }

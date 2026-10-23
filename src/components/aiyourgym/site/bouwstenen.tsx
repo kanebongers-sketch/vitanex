@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ArrowRight, FileWarning, Plus } from 'lucide-react'
+import { aygPad } from './paden'
 
 // Kleine gedeelde bouwstenen van de verkoopwebsite: knop, sectiekop,
 // paginakop, vragen en de conceptmelding.
@@ -65,6 +66,8 @@ export function PaginaKop({ label, titel, tekst, children }: PaginaKopProps) {
 export interface Vraag {
   vraag: string
   antwoord: string
+  /** Optioneel: een pad op de website (zonder /aiyourgym) om verder te lezen. */
+  link?: { label: string; pad: string }
 }
 
 /** Veelgestelde vragen als uitklapbare blokken (werkt zonder JavaScript). */
@@ -78,6 +81,11 @@ export function Vragen({ vragen }: { vragen: readonly Vraag[] }) {
             <Plus size={20} aria-hidden />
           </summary>
           <p>{v.antwoord}</p>
+          {v.link && (
+            <Link href={aygPad(v.link.pad)} className="ayg-pijllink ayg-vragen-link">
+              {v.link.label} <ArrowRight size={16} aria-hidden />
+            </Link>
+          )}
         </details>
       ))}
     </div>

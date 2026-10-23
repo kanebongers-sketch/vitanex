@@ -6,7 +6,7 @@ import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { VRAAG_CONTRACT, VRAAG_GEGEVENS } from '@/components/aiyourgym/inhoud/vertrouwen'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, DEMO_AANVRAGEN, PRIJS_OP_MAAT } from '@/components/aiyourgym/site/paden'
 
 // Besluit Kane: geen bedragen op de website. De pakketten en wat erin zit komen
 // uit src/lib/aiyourgym/pakketten.ts; de prijs is altijd op maat.
@@ -49,7 +49,7 @@ function PakketKaart({ pakket }: { pakket: Pakket }) {
         <Knop href={`${AANMELDEN}?pakket=${pakket.sleutel}`} soort={pakket.aanbevolen ? 'accent' : 'inkt'} pijl>
           Probeer {PROEFDAGEN} dagen gratis
         </Knop>
-        <Knop href={`${AANMELDEN}?pakket=${pakket.sleutel}&soort=prijs`} soort="rand">
+        <Knop href={`${PRIJS_OP_MAAT}?pakket=${pakket.sleutel}`} soort="rand">
           Vraag een prijs op maat
         </Knop>
       </div>
@@ -65,7 +65,7 @@ const vragen = (zonderStripe: boolean) => [
   {
     vraag: 'Wat kost AI Your Gym?',
     antwoord:
-      'Dat hangt af van het pakket en het aantal vestigingen. Vraag een prijs op maat aan, dan krijg je een prijs die past bij je sportschool.',
+      'Dat hangt af van het pakket en het aantal vestigingen. Vraag een prijs op maat aan in drie korte stappen, dan krijg je een prijs die past bij je sportschool.',
   },
   {
     vraag: 'Hoe werkt de proefperiode?',
@@ -122,7 +122,7 @@ export default function PrijzenPagina() {
           </div>
         </div>
       </section>
-      <section className="ayg-sectie" aria-labelledby="prijs-vragen-titel">
+      <section className="ayg-sectie" id="vragen" aria-labelledby="prijs-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst">
           <SectieKop id="prijs-vragen-titel" label="Vragen" titel="Over pakketten en proberen." />
           <Vragen vragen={vragen(PAKKETTEN.some((p) => testbetalen(p.sleutel)))} />

@@ -43,13 +43,13 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'icon', 'apple-icon', 'opengraph-image', 'manifest', 'next',
   // Pagina's van de website (src/app/(aiyourgym)/(website)/aiyourgym)
   'aanmelden', 'welkom', 'testbetaling', 'functies', 'prijzen', 'privacy', 'voorwaarden', 'overstappen', 'trainingsschemas',
-  'voor-wie', 'demo-aanvragen', 'ledenapp',
+  'voor-wie', 'demo-aanvragen', 'ledenapp', 'prijs-op-maat', 'privacy-en-beveiliging',
   // Club, ledenapp, widget en inloggen (src/app/(aiyourgym)/(club) en api)
   'mijn', 'clubinloggen', 'club-app', 'club-afmelden', 'club-betalen', 'widget',
   // Mappen in public/ en andere apps op dezelfde server. Niet "fitfactory": dat
   // is de slug van Fit Factory zelf, en public/fitfactory heeft alleen beelden
   // (de proxy slaat bestanden met zo'n extensie over, een pagina heeft er geen).
-  'brand', 'icons', 'models', 'releasev', 'fonts', 'clubkane', 'lifeoskane', 'mentaforce',
+  'brand', 'icons', 'models', 'releasev', 'fonts', 'clubkane', 'lifeoskane', 'mentaforce', 'oefenbeelden',
 ])
 
 export type SlugUitslag = { ok: true; slug: string } | { ok: false; fout: string }

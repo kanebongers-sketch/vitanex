@@ -1,6 +1,6 @@
 // ─── AI Your Gym: een voorbeeldschema uit de echte bibliotheek (SERVER) ─────
 // De coaching komt uit de oefenbibliotheek van Club (src/lib/club/training/
-// coaching), het beeld is ons eigen 3D-figuur (src/lib/club/training/3d) en de
+// coaching), het beeld is onze eigen render of het 3D-figuur en de
 // sets en herhalingen komen uit de regels van het schemavoorstel. Niets is
 // voor de website herschreven: wat hier staat, staat zo in Club. Alleen het
 // lid en de dag zijn een voorbeeld.
@@ -21,7 +21,7 @@ export interface VoorbeeldOefening {
 }
 
 const KEUZE: readonly { naam: string; kort: string; patroon: Patroon }[] = [
-  { naam: 'Goblet squat', kort: 'Goblet squat', patroon: 'squat' },
+  { naam: 'Back squat', kort: 'Back squat', patroon: 'squat' },
   { naam: 'Roemeense deadlift met dumbbells', kort: 'Roemeense deadlift', patroon: 'heupscharnier' },
   { naam: 'Dumbbell bankdrukken', kort: 'Bankdrukken', patroon: 'duwen_horizontaal' },
   { naam: 'Lat pulldown', kort: 'Lat pulldown', patroon: 'trekken_verticaal' },
