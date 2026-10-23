@@ -2,14 +2,20 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react'
 import { Pause, Play } from 'lucide-react'
-import type { OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { srcSetVan, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
 
-// Een oefening als onze eigen Blender-render. Eerst staat er een licht
-// stilstaand beginbeeld (ruim 20 KB) met vaste maten, dus geen verspringen.
+// Een oefening als onze eigen Blender-render, in HD. Eerst staat er een
+// stilstaand beginbeeld met vaste maten, dus geen verspringen.
 // Pas als het beeld in beeld komt laden we de bewegende lus erover en die
 // vervaagt erin zodra hij binnen is; buiten beeld halen we de lus weer weg,
 // zodat de browser niets doorrekent. Bij prefers-reduced-motion, of als de
 // bezoeker op pauze drukt, blijft het stilstaande beeld staan.
+//
+// Welk bestand: op de telefoon (tot 640 px breed) kiest de browser alleen
+// tussen de lus van 480 en 720 px, zodat een telefoon met 3x scherm geen
+// HD-lus van een paar MB over mobiele data haalt. Daarboven kiest de browser met
+// srcset en sizes zelf: 720 px op een gewoon scherm, de HD-lus op retina en
+// op grote vlakken.
 
 export type OefenLusStand = 'speelt' | 'begin' | 'eind'
 
@@ -19,12 +25,15 @@ interface OefenLusProps {
   label: string
   /** Afspelen, of stil op het begin of het zwaarste punt. */
   stand?: OefenLusStand
-  /** Hoe breed het beeld op de pagina staat, voor de keuze tussen de kleine en de grote lus. */
+  /** Hoe breed het beeld op de pagina staat (sizes): de browser kiest daarmee 720 px of HD. */
   sizes?: string
   className?: string
   /** Een kleine knop om de beweging stil te zetten (WCAG 2.2.2). */
   bediening?: boolean
 }
+
+/** Tot deze breedte telt het scherm als telefoon. */
+const TELEFOON = '(max-width: 640px)'
 
 /** Hoe ver van het scherm we de lus alvast ophalen. */
 const VOORLADEN = '200px 0px'
@@ -61,36 +70,46 @@ export function OefenLus({ render, label, stand = 'speelt', sizes = '(max-width:
   const [gepauzeerd, setGepauzeerd] = useState(false)
   const [geladen, setGeladen] = useState<string | null>(null)
 
-  const still = stand === 'eind' ? render.piek : render.begin
+  const eind = stand === 'eind'
+  const still = eind ? render.piek : render.begin
+  const stillKlein = eind ? render.piekKlein : render.beginKlein
   const speelt = stand === 'speelt' && !minder && !gepauzeerd
   const lusAan = speelt && inBeeld
-  const lusSrc = render.lus.src
-  const lusZichtbaar = lusAan && geladen === lusSrc
+  const lusSleutel = render.lusHd.src
+  const lusZichtbaar = lusAan && geladen === lusSleutel
 
   return (
     <div ref={vak} className={className ? `ayg-lus ${className}` : 'ayg-lus'} data-speelt={lusZichtbaar || undefined}>
-      <img
-        className="ayg-lus-still"
-        src={still.src}
-        width={still.breedte}
-        height={still.hoogte}
-        alt={label}
-        loading="lazy"
-        decoding="async"
-      />
-      {lusAan && (
+      <picture>
+        <source media={TELEFOON} srcSet={srcSetVan([stillKlein, still])} sizes={sizes} />
         <img
-          className="ayg-lus-beweging"
-          src={lusSrc}
-          srcSet={`${render.lusKlein.src} ${render.lusKlein.breedte}w, ${render.lus.src} ${render.lus.breedte}w`}
+          className="ayg-lus-still"
+          src={still.src}
+          srcSet={srcSetVan([stillKlein, still])}
           sizes={sizes}
-          width={render.lus.breedte}
-          height={render.lus.hoogte}
-          alt=""
-          aria-hidden
+          width={still.breedte}
+          height={still.hoogte}
+          alt={label}
+          loading="lazy"
           decoding="async"
-          onLoad={() => setGeladen(lusSrc)}
         />
+      </picture>
+      {lusAan && (
+        <picture>
+          <source media={TELEFOON} srcSet={srcSetVan([render.lusKlein, render.lus])} sizes={sizes} />
+          <img
+            className="ayg-lus-beweging"
+            src={render.lus.src}
+            srcSet={srcSetVan([render.lusKlein, render.lus, render.lusHd])}
+            sizes={sizes}
+            width={render.lusHd.breedte}
+            height={render.lusHd.hoogte}
+            alt=""
+            aria-hidden
+            decoding="async"
+            onLoad={() => setGeladen(lusSleutel)}
+          />
+        </picture>
       )}
       {bediening && stand === 'speelt' && !minder && (
         <button

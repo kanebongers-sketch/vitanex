@@ -2,7 +2,7 @@ import { renderVoor } from '@/components/aiyourgym/inhoud/oefenrenders'
 
 // Een klein vierkant bij een oefening in lijsten van de productbeelden (schema,
 // editor, ledenapp). Heeft de oefening een eigen render, dan het stilstaande
-// beginbeeld daarvan (ruim 20 KB, pas geladen als het in beeld komt); anders de
+// kleine beginbeeld daarvan (480 px, 10 tot 21 KB, pas geladen als het in beeld komt); anders de
 // beginletters. Een 3D-doek per regel is te zwaar; het bewegende beeld staat bij
 // de geopende oefening.
 
@@ -29,7 +29,7 @@ interface OefTegelProps {
 export function OefTegel({ naam, maat, className }: OefTegelProps) {
   const render = renderVoor(naam)
   if (render) {
-    const b = render.begin
+    const b = render.beginKlein
     return (
       <span
         className={className ? `aygm-oef-tegel aygm-oef-tegel--beeld ${className}` : 'aygm-oef-tegel aygm-oef-tegel--beeld'}

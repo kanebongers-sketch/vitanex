@@ -1,7 +1,8 @@
 // ─── AI Your Gym: onze eigen Blender-renders van oefeningen (PUUR) ──────────
 // Besluit Kane (23-10-2026): de renders zijn de oefenbeelden op de website.
-// Per oefening een bewegende lus (groot en klein) en twee stilstaande beelden
-// (begin en zwaarste punt), klaargezet door scripts/oefenbeelden-web.mjs in
+// Per oefening een bewegende lus in drie maten (HD, 720 en 480 px, alle op 24
+// beelden per seconde) en twee stilstaande beelden (begin en zwaarste punt, HD
+// en 480 px), klaargezet door scripts/oefenbeelden-web.mjs in
 // public/oefenbeelden/<slug>/. De gegevens (naam, spieren, maten, versie)
 // schrijft dat script in oefenrenders.data.ts; dit bestand maakt er een
 // getypeerde lijst van. Een oefening zonder render valt terug op Oefenbeeld3d.
@@ -43,26 +44,41 @@ export interface OefenRender {
   spieren: readonly string[]
   /** Meewerkende spieren (secundair), als label. */
   spierenSecundair: readonly string[]
+  /** Bewegende lus op de volle bronmaat (tot 1440 px), 24 beelden per seconde: retina en grote schermen. */
+  lusHd: OefenRenderBestand
+  /** Bewegende lus van 720 px: gewone schermen. */
   lus: OefenRenderBestand
+  /** Bewegende lus van 480 px: telefoons en kaartjes. */
   lusKlein: OefenRenderBestand
+  /** Stilstaand beginbeeld op HD-maat (poster), zelfde uitsnede als de lus. */
   begin: OefenRenderBestand
+  beginKlein: OefenRenderBestand
+  /** Stilstaand beeld op het zwaarste punt, HD-maat. */
   piek: OefenRenderBestand
+  piekKlein: OefenRenderBestand
 }
 
 type Data = (typeof OEFENRENDER_DATA)[number]
+type Naam = keyof Data['bytes'] & keyof Data['maten']
 
-function bestand(d: Data, naam: keyof Data['bytes'], breedte: number): OefenRenderBestand {
-  const verhouding = d.hoogte / d.breedte
+function bestand(d: Data, naam: Naam): OefenRenderBestand {
+  const breedte = d.maten[naam]
   return {
     src: `${OEFENRENDER_MAP}/${d.slug}/${naam}.webp?v=${d.versie}`,
     breedte,
-    hoogte: Math.round(breedte * verhouding),
+    hoogte: Math.round((breedte * d.hoogte) / d.breedte),
     bytes: d.bytes[naam],
   }
 }
 
-/** Breedte van de kleine lus (zie KLEIN in het script). */
-export const LUS_KLEIN_BREEDTE = 360
+/** srcset van dezelfde beelden in verschillende maten, klein naar groot. */
+export function srcSetVan(bestanden: readonly OefenRenderBestand[]): string {
+  return [...bestanden]
+    .sort((a, b) => a.breedte - b.breedte)
+    .filter((b, i, lijst) => i === 0 || b.breedte > lijst[i - 1].breedte)
+    .map((b) => `${b.src} ${b.breedte}w`)
+    .join(', ')
+}
 
 function render(d: Data): OefenRender {
   return {
@@ -70,10 +86,13 @@ function render(d: Data): OefenRender {
     naam: d.naam,
     spieren: (d.spieren as readonly Lichaamsdeel[]).map((s) => SPIER_LABEL[s]),
     spierenSecundair: (d.spierenSecundair as readonly Lichaamsdeel[]).map((s) => SPIER_LABEL[s]),
-    lus: bestand(d, 'lus', d.breedte),
-    lusKlein: bestand(d, 'lus-klein', Math.min(LUS_KLEIN_BREEDTE, d.breedte)),
-    begin: bestand(d, 'begin', d.breedte),
-    piek: bestand(d, 'piek', d.breedte),
+    lusHd: bestand(d, 'lus-hd'),
+    lus: bestand(d, 'lus'),
+    lusKlein: bestand(d, 'lus-klein'),
+    begin: bestand(d, 'begin'),
+    beginKlein: bestand(d, 'begin-klein'),
+    piek: bestand(d, 'piek'),
+    piekKlein: bestand(d, 'piek-klein'),
   }
 }
 

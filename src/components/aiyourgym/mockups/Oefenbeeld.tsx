@@ -17,7 +17,7 @@ interface OefenbeeldProps {
   className?: string
   /** Alleen voor het 3D-figuur: hoofd tot voeten altijd in beeld. */
   passend?: boolean
-  /** Breedte op de pagina, voor de keuze tussen de kleine en de grote lus. */
+  /** Breedte op de pagina (sizes), voor de keuze tussen de lus van 480, 720 px en HD. */
   sizes?: string
   /** Pauzeknop bij de render. */
   bediening?: boolean
