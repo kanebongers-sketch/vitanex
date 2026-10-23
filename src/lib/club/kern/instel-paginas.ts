@@ -5,7 +5,8 @@
 // Deze lijst stuurt het instellingencentrum, het kruimelpad op elke
 // instel-pagina en het zoekveld in de balk. Wie een pagina mag zien volgt de
 // rechten (sleutel = onderdeel uit ONDERDEEL_SLEUTELS); een test bewaakt dat
-// elk pad bestaat en bij dat onderdeel hoort.
+// elk pad bestaat en bij dat onderdeel hoort. De voorvertoning van de ledenapp
+// staat niet hier maar onderaan in de hulpbalk (src/components/club/shell/hulpbalk.ts).
 
 import type { Module } from './organisatie'
 
@@ -79,9 +80,8 @@ export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   { id: 'lidmaatschappen', titel: 'Lidmaatschappen en labels', uitleg: 'Je lidmaatschapsvormen met vestigingen, groepslessen en daluren, en de labels voor leden.', groep: 'leden', pad: '/beheer/lidmaatschappen', sleutel: 'lidmaatschappen', trefwoorden: 'abonnementsvorm label dal' },
   { id: 'importeren', titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem (zoals Virtuagym of Sportivity) of Excel inlezen.', groep: 'leden', pad: '/leden/importeren', sleutel: 'leden', perVestiging: true, module: 'leden', snelkoppeling: true, trefwoorden: 'import csv excel sportivity virtuagym overstappen' },
   { id: 'checkin', titel: 'Check-in', uitleg: 'Hoe leden inchecken: QR-code in de app, zoeken aan de balie, of allebei.', groep: 'leden', pad: '/beheer/checkin', sleutel: 'beheer', module: 'checkin', trefwoorden: 'qr balie inchecken' },
-  { id: 'ledenapp', titel: 'Ledenapp', uitleg: 'Welkomsttekst, welke tabbladen aan staan en de check-in code in de app.', groep: 'leden', pad: '/beheer/ledenapp', sleutel: 'beheer', module: 'app', trefwoorden: 'app tabbladen welkom' },
+  { id: 'ledenapp', titel: 'Ledenapp instellen', uitleg: 'Welkomsttekst, welke tabbladen aan staan en de check-in code in de app.', groep: 'leden', pad: '/beheer/ledenapp', sleutel: 'beheer', module: 'app', trefwoorden: 'app tabbladen welkom' },
   { id: 'widget', titel: 'Boekingswidget', uitleg: 'Je lesrooster en proeflesaanvragen op je eigen website.', groep: 'leden', pad: '/beheer/widget', sleutel: 'beheer', perVestiging: true, module: 'rooster', alleenEigenaar: true, trefwoorden: 'website rooster proefles inbedden iframe embed kennismaking' },
-  { id: 'ledenapp-bekijken', titel: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon.', groep: 'leden', pad: '/app', sleutel: 'app', perVestiging: true, module: 'app', trefwoorden: 'voorvertoning voorbeeld telefoon' },
   // Communicatie
   { id: 'meldingen', titel: 'Meldingen aan leden', uitleg: 'Bevestigingen, herinneringen en annuleringen van lessen en afspraken, per mail en in de app.', groep: 'communicatie', pad: '/beheer/meldingen', sleutel: 'beheer', trefwoorden: 'herinnering mail push bevestiging' },
   { id: 'opvolgregels', titel: 'Opvolgregels', uitleg: 'Wie Club op de opvolglijst zet: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', groep: 'communicatie', pad: '/beheer/automatiseringen', sleutel: 'beheer', trefwoorden: 'automatiseringen opvolgen regels' },

@@ -33,6 +33,20 @@ function leeg(): ExportRuw {
     aankopen: [],
     tegoeden: [],
     tegoedMutaties: [],
+    betaalklant: [],
+    betaalmethoden: [],
+    contracten: [],
+    contractPauzes: [],
+    facturen: [],
+    betalingen: [],
+    terugbetalingen: [],
+    geschillen: [],
+    betaalherinneringen: [],
+    kasboek: [],
+    betaalopdrachten: [],
+    healthToestemmingen: [],
+    healthKoppelingen: [],
+    healthMetingen: [],
   }
 }
 

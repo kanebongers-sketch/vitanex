@@ -23,10 +23,10 @@ export const metadata: Metadata = {
 const BEELD_LABEL: Record<SchemaStapSleutel, string> = {
   intake: 'Het intakescherm: doelen, niveau, dagen en minuten, metingen en drie gezondheidsvragen met toestemming',
   voorstel: 'Het schemavoorstel: full body in drie dagen, een waarschuwing over de gezondheidsvragen en de oefeningen van dag A',
-  editor: 'De schema-editor: dag A met per oefening sets, herhalingen, gewicht, rust en notitie, en knoppen voor opslaan, printen en sjabloon',
+  editor: 'De schema-editor: dag A met per oefening sets, herhalingen, gewicht, rust en notitie, en knoppen voor opslaan, ongedaan maken, printen en sjabloon',
   bibliotheek: 'De oefenbibliotheek met zoeken, filters en oefeningen met het aantal kernpunten',
   eigen: 'De coaching van een oefening aanpassen: eigen kernpunten, opslaan of terug naar de standaard',
-  ledenapp: 'De ledenapp: het schema van dag A en een geopende oefening met het 3D-beeld en de kernpunten',
+  ledenapp: 'De ledenapp: het schema van dag A en een geopende oefening met een bewegend beeld en de kernpunten',
   voortgang: 'De voortgang in de ledenapp: weken op rij, trainingen per week, gewicht in een lijn en de volgende mijlpaal',
 }
 
@@ -123,8 +123,8 @@ export default function TrainingsschemasPagina() {
           <SectieKop
             id="probeer-titel"
             label="Probeer het zelf"
-            titel="Een oefening zoals je lid hem ziet."
-            tekst="Kies een oefening, speel de beweging af of zet hem stil op begin of eind. Dit is de echte tekst uit de bibliotheek."
+            titel="Een oefening met de coaching erbij."
+            tekst="Kies een oefening, speel de beweging af of zet hem stil op begin of eind. De tekst is de echte coaching uit de bibliotheek. De beelden op deze website zijn onze eigen 3D-renders; in Club staat bij elke oefening een bewegende illustratie van begin- en eindhouding."
           />
           <CoachingDemo oefeningen={oefeningen} />
           <p className="ayg-klein ayg-ruim-boven">Schermvoorbeeld met voorbeeldgegevens</p>

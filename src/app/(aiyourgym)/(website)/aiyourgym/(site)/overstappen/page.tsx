@@ -15,35 +15,35 @@ import { AANMELDEN, DEMO_AANVRAGEN, OVERSTAPCHECKLIST } from '@/components/aiyou
 export const metadata: Metadata = {
   title: 'Overstappen',
   description:
-    "Zo stap je over op AI Your Gym: ledenbestand inlezen met een CSV-bestand, huisstijl en vestigingen instellen, schema's opbouwen en je team erbij halen. Met hulp bij de start.",
+    "Zo stap je over op AI Your Gym: aanmelden, de startwizard in acht stappen, je ledenbestand inlezen als CSV of Excel en je team uitnodigen per mail. Met hulp bij de start.",
 }
 
 const STAPPEN = [
   {
     titel: 'Maak je omgeving aan',
-    tekst: `Je krijgt een eigen omgeving voor je sportschool en probeert alles ${PROEFDAGEN} dagen gratis.`,
+    tekst: `Je kiest een pakket en je eigen adres, zoals aiyourgym.com/jouwgym. Je omgeving staat direct klaar en je probeert alles ${PROEFDAGEN} dagen gratis.`,
   },
   {
-    titel: 'Huisstijl en vestigingen',
-    tekst: 'Logo, naam en kleuren. Per vestiging de zalen, openingstijden, sluitingsdagen en de regels voor reserveren.',
+    titel: 'Kies je soort sportschool',
+    tekst: 'Hier begint de startwizard. Gym, boutique, PT-studio, keten of iets anders: onderdelen, lestypen, openingstijden en rechten staan daarna alvast klaar. Je kiest ook een streefdatum om live te gaan.',
+  },
+  {
+    titel: 'Huisstijl, vestiging en lessen',
+    tekst: 'Logo, kleur en adres. Per vestiging de openingstijden en de regels voor reserveren. Je lestypen en je vaste week met zaal en instructeur zet je direct in de wizard.',
+  },
+  {
+    titel: 'Haal je team erbij',
+    tekst: 'Trainers, groepslesinstructeurs en clubmanagers. Je nodigt ze in de wizard uit: ze krijgen een mail met een link om hun wachtwoord te kiezen. De eigenaar bepaalt wat elke rol ziet.',
   },
   {
     titel: 'Lees je ledenbestand in',
     tekst:
-      'Exporteer je leden als CSV uit je huidige systeem of uit Excel. AI Your Gym herkent de gangbare kolommen en je koppelt de rest met de hand. Je ziet eerst precies wat er verandert: nieuwe leden komen erbij, bestaande worden bijgewerkt, er wordt nooit iemand verwijderd.',
+      'Exporteer je leden als CSV uit je huidige systeem, of kies je Excel-lijst (.xlsx). AI Your Gym herkent de gangbare kolommen en je koppelt de rest met de hand. Je ziet eerst precies wat er verandert: nieuwe leden komen erbij, bestaande worden bijgewerkt, er wordt nooit iemand verwijderd.',
   },
   {
-    titel: 'Zet je lessen in het rooster',
-    tekst: 'Groepslessen per zaal met het aantal plekken. Daarna kunnen leden reserveren, met wachtlijst bij volle lessen.',
-  },
-  {
-    titel: 'Bouw je schema’s op',
+    titel: 'Live, en je leden op de app',
     tekst:
-      'De oefenbibliotheek staat klaar, met coaching en beelden bij de oefeningen. Bij een nieuwe intake maakt AI Your Gym een startvoorstel dat de trainer aanpast. Bestaande schema’s zet je over in de editor.',
-  },
-  {
-    titel: 'Haal je team erbij',
-    tekst: 'Trainers, groepslesinstructeurs en clubmanagers. De eigenaar bepaalt wat de clubmanager ziet.',
+      'Pas als alles echt staat, staat je sportschool live en gaat de rest van Club open. Dan print je de poster met QR-code, nodig je je leden uit voor de app en check je de eerste leden in. De oefenbibliotheek met coaching staat al klaar voor je schema’s.',
   },
 ] as const
 
@@ -51,7 +51,7 @@ const VRAGEN = [
   {
     vraag: 'Moet ik stoppen met mijn ledenadministratie?',
     antwoord:
-      'Nee. AI Your Gym werkt naast je ledenadministratie. Incasso, abonnementen en betalingen blijven daar. Je leest je leden in met een CSV-bestand, en later opnieuw als er veel is veranderd.',
+      'Nee. AI Your Gym werkt naast je ledenadministratie. Incasso, abonnementen en betalingen blijven daar. Je leest je leden in met een CSV- of Excel-bestand, en later opnieuw als er veel is veranderd.',
   },
   {
     vraag: 'Wat als mijn bestand andere kolomnamen heeft?',
@@ -63,7 +63,7 @@ const VRAGEN = [
   },
   {
     vraag: 'Krijg ik hulp bij de start?',
-    antwoord: 'Een startwizard leidt je door de inrichting. In de pakketten Club en Keten zit daarnaast persoonlijke hulp, zonder extra kosten: we lopen je ledenbestand, je rooster en je eerste schema’s samen met je door, zodat je club goed staat voordat je leden de app krijgen.',
+    antwoord: 'Een startwizard leidt je in acht stappen door de inrichting, met hulp bij elke stap. In de pakketten Club en Keten zit daarnaast persoonlijke hulp, zonder extra kosten: we lopen je ledenbestand, je rooster en je eerste schema’s samen met je door, zodat je club goed staat voordat je leden de app krijgen.',
   },
 ] as const
 

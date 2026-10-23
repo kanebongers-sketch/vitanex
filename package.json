@@ -26,6 +26,7 @@
     "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
+    "@capgo/capacitor-health": "8.11.12",
     "@devmaxime/capacitor-health-connect": "^1.1.0",
     "@radix-ui/react-collapsible": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.17",
@@ -69,6 +70,7 @@
     "@types/three": "^0.176.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "fast-check": "^4.10.2",
     "tailwindcss": "^4.2.4",
     "typescript": "^5",
     "vitest": "^4.1.9"

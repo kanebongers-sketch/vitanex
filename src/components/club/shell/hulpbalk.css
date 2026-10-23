@@ -1,0 +1,83 @@
+/* ─── Club: de hulpbalk onderaan ─────────────────────────────────────────────
+   Idee Kane (23-10-2026): een rustige balk met Instellingen, Koppelingen,
+   Ledenapp, Wat is nieuw en Hulp. Zelfde taal als het submenu bovenin (volle
+   breedte, rand --ff-rand, vakken die de breedte verdelen), maar stiller: geen
+   gevulde knoppen, het actieve vak krijgt een streep in de accentkleur en een
+   zacht merkvlak. Alle kleuren komen uit de huisstijl van de sportschool.
+
+   Geen vaste balk over de inhoud: de app wordt een kolom, het werkvlak groeit,
+   zodat de balk op een korte pagina onderaan het scherm staat en op een lange
+   pagina na de inhoud komt. Op de telefoon staat hij niet hier maar onderaan in
+   het menupaneel (.club-menu-hulp). */
+
+.club-app:has(> .club-hulpbalk) { display: flex; flex-direction: column; }
+.club-app:has(> .club-hulpbalk) > .club-werkvlak { flex: 1 0 auto; }
+
+.club-hulpbalk {
+  display: none;
+  padding: 0 var(--ff-rand);
+  border-top: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
+  background: color-mix(in srgb, var(--brand) 3%, var(--bg-card));
+}
+@media (min-width: 1000px) { .club-hulpbalk { display: block; } }
+
+.club-hulp-lijst { list-style: none; margin: 0; padding: 0; display: flex; }
+.club-hulpbalk .club-hulp-lijst > li { flex: 1 1 0; min-width: 0; display: flex; }
+.club-hulpbalk .club-hulp-lijst > li + li { border-left: 1px solid var(--line); }
+
+.club-hulp-lijst a {
+  position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;
+  min-height: 64px; padding: 10px 18px;
+  color: var(--text-2); text-decoration: none;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease);
+}
+/* De streep bovenaan: dezelfde vorm als de onderbalk op de telefoon, hier aan de bovenrand. */
+.club-hulp-lijst a::before {
+  content: ''; position: absolute; top: -1px; left: 18px; right: 18px; height: 2px; border-radius: 0 0 2px 2px;
+  background: var(--brand); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease);
+}
+.club-hulp-lijst a:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+.club-hulp-lijst a:hover::before { transform: scaleX(0.35); }
+.club-hulp-lijst a:active { background: var(--club-vlak); }
+.club-hulp-lijst a:focus-visible { outline: 2px solid var(--brand); outline-offset: -4px; border-radius: var(--club-radius-klein); }
+.club-hulp-lijst a[aria-current='page'] { color: var(--text-1); background: var(--brand-soft); }
+.club-hulp-lijst a[aria-current='page']::before { transform: scaleX(1); }
+
+.club-hulp-icoon {
+  flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px;
+  border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-vlak);
+  color: var(--text-3); transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+.club-hulp-lijst a:hover .club-hulp-icoon { color: var(--text-1); border-color: var(--text-4); }
+.club-hulp-lijst a[aria-current='page'] .club-hulp-icoon { color: var(--brand-inkt, #0A0B09); background: var(--brand); border-color: var(--brand); }
+
+.club-hulp-tekst { min-width: 0; display: grid; gap: 2px; }
+.club-hulp-label { font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.club-hulp-lijst a[aria-current='page'] .club-hulp-label { font-weight: 700; }
+.club-hulp-uitleg { display: none; font-size: 12.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1400px) { .club-hulp-uitleg { display: block; } }
+
+/* De teller bij Wat is nieuw: een kleine pil in de accentkleur. */
+.club-hulp-teller {
+  flex: none; margin-left: auto; display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px;
+  border-radius: 999px; background: var(--brand); color: var(--brand-inkt, #0A0B09);
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+/* Telefoon en tablet staand: onderaan in het menupaneel, een kolom met grote tikvlakken. */
+.club-menu-hulp { padding-top: 16px; border-top: 1px solid var(--line); }
+.club-menu-hulp h2 { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-3); }
+.club-menu-hulp[data-hier='true'] h2 { color: var(--brand-tekst, var(--brand)); }
+.club-menu-hulp .club-hulp-lijst { flex-direction: column; gap: 6px; }
+.club-menu-hulp .club-hulp-lijst a { min-height: 52px; padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--club-vlak); color: var(--text-1); }
+.club-menu-hulp .club-hulp-lijst a::before { top: 8px; bottom: 8px; left: -1px; right: auto; width: 3px; height: auto; border-radius: 0 3px 3px 0; transform: scaleY(0); transform-origin: center; }
+.club-menu-hulp .club-hulp-lijst a:hover::before { transform: scaleY(0); }
+.club-menu-hulp .club-hulp-lijst a[aria-current='page'] { border-color: color-mix(in srgb, var(--brand) 55%, transparent); }
+.club-menu-hulp .club-hulp-lijst a[aria-current='page']::before { transform: scaleY(1); }
+.club-menu-hulp .club-hulp-icoon { width: 32px; height: 32px; }
+
+/* De rij onder de balk op een pagina uit de hulpbalk: waar je bent, zonder knoppen. */
+.club-nav-uitleg { color: var(--text-3); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+@media print { .club-hulpbalk { display: none !important; } }

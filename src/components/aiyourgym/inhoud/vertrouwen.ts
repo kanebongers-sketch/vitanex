@@ -41,11 +41,11 @@ export interface OverstapStap {
 export const OVERSTAP_STAPPEN: readonly OverstapStap[] = [
   {
     titel: 'Ledenlijst inlezen',
-    tekst: 'Exporteer je leden als CSV uit je huidige systeem of uit Excel. Gangbare kolommen worden herkend en je ziet eerst wat er verandert.',
+    tekst: 'Exporteer je leden als CSV uit je huidige systeem, of gebruik je Excel-lijst (.xlsx). Gangbare kolommen worden herkend en je ziet eerst wat er verandert.',
   },
   {
     titel: 'Startwizard doorlopen',
-    tekst: 'De wizard zet huisstijl, vestiging, lessen en team voor je klaar, samen in ongeveer een kwartier.',
+    tekst: 'Acht stappen, samen ongeveer een kwartier. Je kiest je soort sportschool, de wizard zet de rest klaar en elke stap stelt zijn deel meteen in: huisstijl, vestiging, lessen, team en leden.',
   },
   {
     titel: 'Leden op de app',

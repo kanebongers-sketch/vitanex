@@ -28,11 +28,12 @@ export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
     kop: 'Je club draait, ook als jij er niet bent.',
     intro: 'De balie, de dienst en de instellingen van je sportschool. Je team weet wat er moet gebeuren, jij bepaalt de regels.',
     functies: [
+      { titel: 'Startwizard', tekst: 'Acht stappen van soort sportschool tot live, samen ongeveer een kwartier. Kies je soort en de wizard zet onderdelen, lestypen, openingstijden en rechten alvast klaar. Je team nodig je vanuit de wizard uit, je ledenbestand lees je er direct in.' },
       { titel: 'Check-in aan de balie', tekst: 'Inchecken met de QR-code uit de ledenapp of op naam. Je ziet direct wie er binnen is, en AI Your Gym checkt of het lidmaatschap toegang geeft tot deze vestiging.' },
       { titel: 'Taken en poetslijsten', tekst: 'Dagelijkse taken, de afsluitronde en een poetsrooster met een minimum per week. In een overzichtelijke tabel per dag of per week, afvinken met een tik.' },
       { titel: 'Notities en overdracht', tekst: 'Afspraken en kennis voor de volgende dienst op een vaste plek, in plaats van op een briefje achter de balie.' },
       { titel: 'Meerdere vestigingen', tekst: 'Elke vestiging met eigen zalen, lessen, openingstijden en regels, en lidmaatschappen die bepalen waar een lid mag sporten.' },
-      { titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Voor de clubmanager vink je zelf aan welke onderdelen die ziet.' },
+      { titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Voor de clubmanager vink je zelf aan welke onderdelen die ziet. Iedereen logt in met e-mailadres en een eigen wachtwoord.' },
       { titel: 'Eigen logo, kleuren en adres', tekst: 'Je eigen naam, logo en accentkleur in de software en in de ledenapp, op je eigen adres zoals aiyourgym.com/jouwgym. Een kleur met te weinig contrast wordt automatisch bijgesteld. Onderdelen die je niet gebruikt zet je uit.' },
     ],
   },
@@ -43,11 +44,11 @@ export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
     intro: 'Van intake tot schema, met coaching bij elke oefening zoals een goede trainer die op de vloer geeft.',
     functies: [
       { titel: 'Intakes', tekst: 'Een intakeformulier dat je zelf samenstelt, met metingen en een gezondheidsvragenlijst. Uit de intake maakt AI Your Gym een startvoorstel voor een schema.' },
-      { titel: 'Trainingsschema’s', tekst: 'Schema’s per trainingsdag, met sets, herhalingen, gewicht en rust. De trainer past het voorstel aan in de editor, het lid ziet het in de app en vinkt af.' },
+      { titel: 'Trainingsschema’s', tekst: 'Schema’s per trainingsdag, met supersets en circuits, en per oefening sets, herhalingen of tijd, gewicht, RPE of RIR, rust en tempo. De trainer past het voorstel aan in de editor, het lid vult in de app per set in wat hij deed.' },
       { titel: 'Coaching per oefening', tekst: 'Bij elke oefening 3 tot 5 genummerde kernpunten, de opstelling, de stappen, veelgemaakte fouten met correctie, ademhaling en tempo.' },
       { titel: 'Bewegende oefenbeelden', tekst: 'Begin- en eindhouding als illustratie die rustig in elkaar overloopt, in een stijl voor de hele bibliotheek.' },
       { titel: 'Voeding', tekst: 'Een voedingsplan per lid met calorieen, eiwit, koolhydraten en vet, maaltijden en adviezen. Een rekenhulp geeft de trainer een startpunt, sjablonen besparen tijd.' },
-      { titel: 'Voortgang', tekst: 'Metingen en trainingen op een tijdlijn. Het lid ziet zijn eigen lichaamsmaten en trainingen terug, nooit de notities van de trainer.' },
+      { titel: 'Voortgang', tekst: 'Metingen, trainingen en per oefening de gelogde sets op een tijdlijn, met een vaste regel voor wanneer het zwaarder kan. Het lid ziet zijn eigen lichaamsmaten en trainingen terug, nooit de notities van de trainer.' },
     ],
   },
   {

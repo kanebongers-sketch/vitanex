@@ -76,7 +76,7 @@ const vragen = (zonderStripe: boolean) => [
   {
     vraag: 'Zit hulp bij het inrichten erbij?',
     antwoord:
-      'Elke sportschool krijgt de startwizard. In Club en Keten zit daarnaast persoonlijke hulp bij het inrichten, zonder extra kosten.',
+      'Elke sportschool krijgt de startwizard, die in acht stappen alles meteen instelt. In Club en Keten zit daarnaast persoonlijke hulp bij het inrichten, zonder extra kosten.',
   },
   {
     vraag: 'Kan ik het eerst zien zonder aan te melden?',
@@ -85,7 +85,7 @@ const vragen = (zonderStripe: boolean) => [
   {
     vraag: 'Zitten incasso en abonnementen erin?',
     antwoord:
-      'Nee. AI Your Gym werkt naast je ledenadministratie. Incasso en abonnementen blijven daar, je leden lees je in met een CSV-bestand.',
+      'Nee. AI Your Gym werkt naast je ledenadministratie. Incasso en abonnementen blijven daar, je leden lees je in met een CSV- of Excel-bestand.',
   },
   {
     vraag: 'Komen er nieuwe functies bij?',

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { ArrowRight, LifeBuoy } from 'lucide-react'
 import { START_MINUTEN, START_STAPPEN } from '@/components/aiyourgym/inhoud/vertrouwen'
+import { Figuur } from '@/components/aiyourgym/mockups/kaders'
+import { WizardScherm } from '@/components/aiyourgym/mockups/WizardScherm'
 import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
@@ -26,7 +28,7 @@ export function StartStappen({ metLink = true }: Props) {
                 {START_STAPPEN.length} stappen. <mark className="ayg-markeer">Een kwartier.</mark>
               </>
             }
-            tekst={`Na het aanmelden leidt een startwizard je door de inrichting, samen ongeveer ${START_MINUTEN} minuten. Elke stap sla je over als je wilt en maak je later af.`}
+            tekst={`Na het aanmelden leidt een startwizard je door de inrichting, samen ongeveer ${START_MINUTEN} minuten. Elke stap stelt zijn deel meteen in, je stopt wanneer je wilt en gaat later verder waar je was. Pas als alles echt staat, staat je sportschool live.`}
           />
           <aside className="ayg-start-hulp" aria-label="Persoonlijke hulp">
             <LifeBuoy size={22} aria-hidden />
@@ -55,6 +57,14 @@ export function StartStappen({ metLink = true }: Props) {
             </li>
           ))}
         </ol>
+      </div>
+      <div className="ayg-wrap ayg-ruim-boven">
+        <Figuur
+          className="ayg-onthul"
+          label="De startwizard bij stap 5, Lessen: de teller met 4 van 8 stappen af en de tijd die nog over is, een balk per stap, de regel dat alles alvast is ingevuld voor de soort sportschool, de lestypen en de vaste week, en de knoppen Opslaan en stoppen en Klaar, verder"
+        >
+          <WizardScherm />
+        </Figuur>
       </div>
     </section>
   )

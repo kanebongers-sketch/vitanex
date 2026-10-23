@@ -58,6 +58,8 @@ const API_ONDERDEEL: Record<string, string> = {
   rooster: 'rooster',
   taken: 'taken',
   training: 'schemas',
+  // Metingen uit apps van een lid (alleen met toestemming van het lid): bij Training.
+  health: 'schemas',
   // Metingen en voortgang van een lid horen bij de ledenkaart.
   voortgang: 'leden',
   berichten: 'berichten',

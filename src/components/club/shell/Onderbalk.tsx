@@ -28,8 +28,8 @@ const ICOON: Record<string, LucideIcon> = {
 
 interface OnderbalkProps {
   onderdelen: readonly Onderdeel[]
-  /** Het menu-onderdeel waar je nu bent. */
-  huidig: Onderdeel
+  /** Het menu-onderdeel waar je nu bent; null in de hulpbalk (die staat onder Meer). */
+  huidig: Onderdeel | null
   href: (pad: string) => string
   menuOpen: boolean
   onMeer: () => void
@@ -38,12 +38,12 @@ interface OnderbalkProps {
 }
 
 export function Onderbalk({ onderdelen, huidig, href, menuOpen, onMeer, onKies }: OnderbalkProps) {
-  const inBalk = onderdelen.some((o) => o.sleutel === huidig.sleutel)
+  const inBalk = huidig !== null && onderdelen.some((o) => o.sleutel === huidig?.sleutel)
   return (
     <nav className="club-onderbalk" aria-label="Snel naar">
       {onderdelen.map((o) => {
         const Icoon = ICOON[o.sleutel] ?? LayoutGrid
-        const hier = !menuOpen && o.sleutel === huidig.sleutel
+        const hier = !menuOpen && o.sleutel === huidig?.sleutel
         return (
           <Link key={o.sleutel} href={href(o.pad)} aria-current={hier ? 'page' : undefined} onClick={onKies}>
             <Icoon aria-hidden size={22} strokeWidth={hier ? 2.25 : 1.75} />

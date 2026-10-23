@@ -30,7 +30,7 @@ export const PAKKETTEN: readonly Pakket[] = [
     voorWie: 'Voor een sportschool met een vestiging.',
     prijsPerVestiging: null,
     maxVestigingen: 1,
-    inbegrepen: ['Leden en check-in', 'Groepslessen en reserveren', 'Ledenapp in je eigen huisstijl', 'Leads en opvolgen'],
+    inbegrepen: ['Leden en check-in', 'Groepslessen en reserveren', 'Ledenapp in je eigen huisstijl', 'Leads en opvolgen', 'Eigen adres, zoals aiyourgym.com/jouwgym'],
   },
   {
     sleutel: 'club',
@@ -47,7 +47,7 @@ export const PAKKETTEN: readonly Pakket[] = [
     voorWie: 'Voor ketens met meerdere vestigingen.',
     prijsPerVestiging: null,
     maxVestigingen: null,
-    inbegrepen: ['Alles uit Club', 'Onbeperkt aantal vestigingen', 'Rechten per rol en clubmanagers', 'Eigen adres, zoals aiyourgym.com/jouwgym', 'Persoonlijke hulp bij het inrichten'],
+    inbegrepen: ['Alles uit Club', 'Onbeperkt aantal vestigingen', 'Rechten per rol en clubmanagers', 'Persoonlijke hulp bij het inrichten'],
   },
 ]
 

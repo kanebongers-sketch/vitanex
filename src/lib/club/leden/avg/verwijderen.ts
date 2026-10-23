@@ -74,5 +74,6 @@ export function verzoekTekst(v: Verwijderverzoek, nu: Date): string {
 export function aanvraagFout(code: string | undefined): { status: number; fout: string } {
   if (code === '23505') return { status: 409, fout: 'Voor dit lid loopt al een verzoek tot verwijderen.' }
   if (code === 'P0002') return { status: 404, fout: 'Dit lid bestaat niet (meer).' }
+  if (code === 'AYG01') return { status: 409, fout: 'Dit lid heeft nog een lopend contract of een openstaande betaling. Los dat eerst op.' }
   return { status: 500, fout: 'Verwijderen aanvragen lukte niet. Probeer het opnieuw.' }
 }

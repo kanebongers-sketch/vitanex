@@ -1,0 +1,4 @@
+{ "data": [
+  { "id": "slaap-1", "day": "2026-10-21", "type": "long_sleep", "bedtime_start": "2026-10-20T23:10:00+02:00", "bedtime_end": "2026-10-21T07:05:00+02:00", "total_sleep_duration": 25200, "average_hrv": 48, "lowest_heart_rate": 52 },
+  { "id": "dutje-1", "day": "2026-10-21", "type": "late_nap", "bedtime_end": "2026-10-21T15:00:00+02:00", "total_sleep_duration": 1200 }
+], "next_token": "volgende" }

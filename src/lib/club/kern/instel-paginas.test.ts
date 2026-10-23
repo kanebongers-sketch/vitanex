@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { ONDERDELEN, actiefOnderdeel, groepenMet, inMenu, menuOnderdeel, onderdelenVan } from '@/components/club/shell/onderdelen'
+import { HULPBALK, hulpItemOp } from '@/components/club/shell/hulpbalk'
 import { ONDERDEEL_SLEUTELS } from './org-instellingen'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
 import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelHref, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
@@ -30,8 +31,16 @@ describe('INSTEL_PAGINAS', () => {
     for (const g of INSTEL_GROEPEN) expect(INSTEL_PAGINAS.some((p) => p.groep === g.sleutel), g.sleutel).toBe(true)
   })
 
-  it('elk onderdeel buiten het menu is te vinden in het instellingencentrum', () => {
-    for (const o of ONDERDELEN.filter((x) => !inMenu(x))) expect(INSTEL_PAGINAS.some((p) => p.sleutel === o.sleutel), o.sleutel).toBe(true)
+  it('elk onderdeel buiten het menu is te vinden in het instellingencentrum of in de hulpbalk', () => {
+    for (const o of ONDERDELEN.filter((x) => !inMenu(x))) {
+      const ergens = INSTEL_PAGINAS.some((p) => p.sleutel === o.sleutel) || HULPBALK.some((i) => i.onderdeel === o.sleutel)
+      expect(ergens, o.sleutel).toBe(true)
+    }
+  })
+
+  it('niets dubbel: geen instel-pagina naar een pad uit de hulpbalk', () => {
+    const hulpPaden = HULPBALK.map((i) => i.pad)
+    for (const p of INSTEL_PAGINAS) expect(hulpPaden, p.id).not.toContain(kaalInstelPad(p.pad))
   })
 
   it('schrijfstijl: geen gedachtestreepjes en geen klemtoon-accenten', () => {
@@ -81,25 +90,27 @@ describe('instelHref', () => {
 })
 
 describe('menu', () => {
-  it('Beheer in het menu: alleen Cijfers, Rapporten, Instellingen en Hulp', () => {
-    expect(onderdelenVan('beheer').map((o) => o.label)).toEqual(['Cijfers', 'Rapporten', 'Instellingen', 'Hulp'])
+  it('Beheer in het menu: alleen Cijfers en Rapporten (Instellingen en Hulp staan in de hulpbalk)', () => {
+    expect(onderdelenVan('beheer').map((o) => o.label)).toEqual(['Cijfers', 'Rapporten'])
   })
 
   it('geen instel-pagina in de menubalk', () => {
     const inBalk = groepenMet().flatMap((g) => onderdelenVan(g.sleutel)).map((o) => o.sleutel)
-    for (const s of ['huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start', 'instellingen', 'app']) expect(inBalk).not.toContain(s)
+    for (const s of ['huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start', 'instellingen', 'app', 'beheer', 'hulp']) expect(inBalk).not.toContain(s)
     expect(new Set(inBalk).size).toBe(inBalk.length)
   })
 
-  it('Instellingen alleen voor wie iets mag instellen', () => {
-    expect(onderdelenVan('beheer', [], ['vandaag', 'cijfers'], false).map((o) => o.sleutel)).toEqual(['cijfers', 'hulp'])
-    expect(onderdelenVan('beheer', [], ['vandaag', 'cijfers'], true).map((o) => o.sleutel)).toEqual(['cijfers', 'beheer', 'hulp'])
+  it('zonder Cijfers en Rapporten geen groep Beheer', () => {
+    expect(onderdelenVan('beheer', [], ['vandaag', 'cijfers']).map((o) => o.sleutel)).toEqual(['cijfers'])
+    expect(groepenMet([], ['vandaag', 'leden']).map((g) => g.sleutel)).not.toContain('beheer')
   })
 
-  it('een instel-pagina licht Instellingen op', () => {
-    expect(menuOnderdeel('/club/instellingen/zalen').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/club/huisstijl').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/club/beheer/sluiting').sleutel).toBe('beheer')
-    expect(menuOnderdeel('/club/rooster').sleutel).toBe('rooster')
+  it('een instel-pagina licht geen groep op maar Instellingen in de hulpbalk', () => {
+    for (const pad of ['/club/instellingen/zalen', '/club/huisstijl', '/club/beheer/sluiting', '/club/beheer', '/club/start']) {
+      expect(menuOnderdeel(pad), pad).toBeNull()
+      expect(hulpItemOp(pad), pad).toBe('instellingen')
+    }
+    expect(menuOnderdeel('/club/rooster')?.sleutel).toBe('rooster')
+    expect(hulpItemOp('/club/rooster')).toBeNull()
   })
 })

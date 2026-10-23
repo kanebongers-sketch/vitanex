@@ -1,5 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { CalendarClock, CalendarDays, Dumbbell, House, Lock, Salad, TrendingUp, UserRound } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { CalendarClock, CalendarDays, Dumbbell, House, LifeBuoy, Lock, Plug, Salad, Settings2, Smartphone, Sparkles, TrendingUp, UserRound } from 'lucide-react'
+import { GROEPEN as CLUB_GROEPEN, onderdelenVan } from '@/components/club/shell/onderdelen'
+import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk'
 
 // Kaders voor de productbeelden: een browservenster en een telefoon. De inhoud
 // is een tekening van onze eigen schermen in HTML en CSS; voor schermlezers is
@@ -31,16 +34,63 @@ export function Figuur({ label, children, bijschrift, className, stijl }: Figuur
   )
 }
 
-const GROEPEN = ['Werkvloer', 'Leden', 'Planning', 'Coaching', 'Beheer'] as const
-export type Groep = (typeof GROEPEN)[number]
+// De groepen, het submenu en de hulpbalk komen uit Club zelf, zodat het
+// productbeeld altijd het echte menu laat zien.
+const GROEPEN = CLUB_GROEPEN.map((g) => g.label)
+export type Groep = (typeof CLUB_GROEPEN)[number]['label']
+
+const HULP_ICOON: Record<HulpSleutel, LucideIcon> = {
+  instellingen: Settings2,
+  koppelingen: Plug,
+  ledenapp: Smartphone,
+  nieuw: Sparkles,
+  hulp: LifeBuoy,
+}
+
+/** Rij 2 van Club: de groep waar je bent en haar onderdelen over de volle breedte, het actieve gevuld. */
+function Submenu({ groep, hier }: { groep: Groep; hier?: string }) {
+  const g = CLUB_GROEPEN.find((x) => x.label === groep)
+  if (!g) return null
+  const items = onderdelenVan(g.sleutel)
+  const actief = hier ?? items[0]?.label
+  return (
+    <div className="aygm-app-sub">
+      <span className="aygm-app-sub-groep">{groep}</span>
+      {items.map((o) => (
+        <span key={o.sleutel} data-actief={o.label === actief ? '' : undefined}>
+          {o.label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** De hulpbalk onderaan elke pagina van Club. */
+function Hulpbalk() {
+  return (
+    <div className="aygm-hulpbalk">
+      {HULPBALK.map((i) => {
+        const Icoon = HULP_ICOON[i.sleutel]
+        return (
+          <span key={i.sleutel}>
+            <Icoon aria-hidden />
+            {i.label}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
 
 interface VensterProps {
   actief: Groep
+  /** Het onderdeel waar je bent (label uit het menu); standaard het eerste van de groep. */
+  hier?: string
   children: ReactNode
 }
 
 /** Club in een browservenster, met het eigen adres van de sportschool. */
-export function Venster({ actief, children }: VensterProps) {
+export function Venster({ actief, hier, children }: VensterProps) {
   return (
     <div className="aygm-venster">
       <div className="aygm-venster-balk">
@@ -67,7 +117,9 @@ export function Venster({ actief, children }: VensterProps) {
           ))}
         </span>
       </div>
+      <Submenu groep={actief} hier={hier} />
       <div className="aygm-app-inhoud">{children}</div>
+      <Hulpbalk />
     </div>
   )
 }

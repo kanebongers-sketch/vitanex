@@ -1,10 +1,11 @@
 // ─── Club: het zoekveld in de balk (PUUR) ───────────────────────────────────
 // Vindt alles waar iemand heen mag: leden (wie Leden mag), de onderdelen uit het
-// menu en elke instel-pagina uit het instellingencentrum. Zo hoeft een instel-pagina niet in
-// het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
+// menu, de hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
+// een instel-pagina niet in het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
 
 import { instelGroepLabel, instelHref, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
 import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar, toetsTekst } from './onderdelen'
+import { hulpbalkVoor, hulpItems, hulpToets } from './hulpbalk'
 
 export interface ZoekItem {
   /** Uniek binnen de lijst. */
@@ -28,18 +29,25 @@ export function normaliseerZoek(tekst: string): string {
   return tekst.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
-/** Alles wat deze persoon kan vinden: eerst het menu, dan de instellingen. */
+/** Waar de hulpbalk staat, voor in het zoekvenster. */
+export const HULPBALK_PLEK = 'Onderaan'
+
+/** Alles wat deze persoon kan vinden: eerst het menu, dan de hulpbalk, dan de instellingen. */
 export function zoekItems(k: InstelKijker, instellingen: boolean): ZoekItem[] {
-  const menu = ONDERDELEN.filter((o) => inMenu(o) && (o.sleutel === 'beheer' ? instellingen : isZichtbaar(o, k.uit, k.toegestaan))).map((o) => {
+  const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).map((o) => {
     const plek = GROEPEN.find((g) => g.sleutel === o.groep)?.label ?? ''
     const toets = toetsTekst(o) ?? undefined
     return { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${plek}`), toets }
   })
+  const hulp = hulpItems(hulpbalkVoor(k, instellingen)).map((i) => ({
+    id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: HULPBALK_PLEK, pad: i.pad, perVestiging: true,
+    zoektekst: normaliseerZoek(`${i.label} ${i.uitleg} ${HULPBALK_PLEK} ${i.trefwoorden}`), toets: hulpToets(i) ?? undefined,
+  }))
   const instel = zichtbareInstelPaginas(k).map((p) => {
     const plek = `Instellingen · ${instelGroepLabel(p.groep)}`
     return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${p.titel} ${p.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
   })
-  return [...menu, ...instel]
+  return [...menu, ...hulp, ...instel]
 }
 
 /** Alle woorden moeten passen; treffers op de naam eerst. Leeg zoeken geeft alles. */

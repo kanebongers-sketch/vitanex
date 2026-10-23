@@ -21,8 +21,18 @@ describe('zoekItems', () => {
   it('een clubmanager vindt niets wat hij niet mag', () => {
     const items = zoekItems({ ...ALLES, toegestaan: ['vandaag', 'leden'] }, false)
     const labels = items.map((i) => i.label)
-    expect(labels).toEqual(expect.arrayContaining(['Vandaag', 'Leden', 'Hulp']))
-    for (const verboden of ['Huisstijl', 'Rechten per rol', 'Instellingen', 'Zalen', 'Cijfers', 'Abonnement en facturen']) expect(labels).not.toContain(verboden)
+    expect(labels).toEqual(expect.arrayContaining(['Vandaag', 'Leden', 'Hulp', 'Wat is nieuw']))
+    for (const verboden of ['Huisstijl', 'Rechten per rol', 'Instellingen', 'Zalen', 'Cijfers', 'Abonnement en facturen', 'Ledenapp']) expect(labels).not.toContain(verboden)
+  })
+
+  it('de hulpbalk is te vinden, met plek Onderaan en de sneltoets', () => {
+    const items = zoekItems(ALLES, true)
+    const hulp = items.filter((i) => i.id.startsWith('hulp-'))
+    expect(hulp.map((i) => i.label)).toEqual(['Instellingen', 'Koppelingen', 'Ledenapp', 'Wat is nieuw', 'Hulp'])
+    expect(hulp.every((i) => i.plek === 'Onderaan')).toBe(true)
+    expect(hulp.find((i) => i.label === 'Instellingen')?.toets).toBe('G I')
+    expect(filterZoek(items, 'koppelingen')[0].pad).toBe('/koppelingen')
+    expect(filterZoek(items, 'updates')[0].pad).toBe('/nieuw')
   })
 
   it('onderdeel uit: niet te vinden', () => {
@@ -41,7 +51,7 @@ describe('filterZoek', () => {
   it('alle woorden moeten passen en accenten maken niet uit', () => {
     expect(normaliseerZoek('  Ideeën  ')).toBe('ideeen')
     expect(filterZoek(items, 'ideeen').map((i) => i.label)).toContain('Notities')
-    expect(filterZoek(items, 'ledenapp bekijken')[0].label).toBe('Ledenapp bekijken')
+    expect(filterZoek(items, 'ledenapp bekijken')[0].id).toBe('hulp-ledenapp')
   })
 })
 

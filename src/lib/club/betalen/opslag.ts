@@ -306,7 +306,10 @@ export async function nettoVoorAfspraak(admin: SupabaseClient, userId: string, a
 export type EventClaim = 'nieuw' | 'dubbel' | 'fout'
 
 export async function claimEvent(admin: SupabaseClient, eventId: string, type: string): Promise<EventClaim> {
-  const { error } = await admin.from('club_betalen_stripe_events').insert({ event_id: eventId, type: type.slice(0, 80) })
+  // Dit kanaal verwerkt het event meteen zelf (bij een fout verdwijnt de rij weer),
+  // dus de rij is 'verwerkt': zonder dit zou de kolomstandaard van migratie 461
+  // ('ontvangen') haar als onverwerkt laten staan.
+  const { error } = await admin.from('club_betalen_stripe_events').insert({ event_id: eventId, type: type.slice(0, 80), status: 'verwerkt', verwerkt_op: new Date().toISOString() })
   if (!error) return 'nieuw'
   if (error.code === '23505') return 'dubbel'
   log('event registreren', error.code)

@@ -125,7 +125,7 @@ export default function VoorWiePagina() {
             id="aanpassen-titel"
             label="Alles aan te passen"
             titel="Onze basis als start. Jouw club als eindresultaat."
-            tekst="Je begint niet met een leeg scherm, maar met een ingerichte basis. Daarna maak je het helemaal van jezelf."
+            tekst="Je begint niet met een leeg scherm. In de startwizard kies je je soort sportschool, en die zet onderdelen, lestypen, openingstijden en rechten alvast klaar. Daarna maak je het helemaal van jezelf."
           />
           <ul className="ayg-aanpassen">
             {AANPASSEN.map((a, i) => (

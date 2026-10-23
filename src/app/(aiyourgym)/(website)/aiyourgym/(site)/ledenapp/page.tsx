@@ -13,7 +13,7 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 export const metadata: Metadata = {
   title: 'Ledenapp',
   description:
-    'De ledenapp van AI Your Gym: een web-app op het beginscherm in de huisstijl van je sportschool. Inloggen met e-mailadres en wachtwoord, inchecken met de QR-code, lessen en afspraken boeken, schema met coaching, voeding, voortgang, challenges en meldingen.',
+    'De ledenapp van AI Your Gym: een web-app op het beginscherm in de huisstijl van je sportschool. Inloggen met e-mailadres en wachtwoord, inchecken met de QR-code, lessen en afspraken boeken, schema met coaching, voeding, voortgang, challenges en bevestigingen per mail.',
 }
 
 const SCHERMEN: readonly { tab: AppTab; titel: string; label: string; Scherm: ComponentType }[] = [
@@ -26,7 +26,7 @@ const SCHERMEN: readonly { tab: AppTab; titel: string; label: string; Scherm: Co
 const INSTAP = [
   {
     titel: 'Een uitnodiging',
-    tekst: 'Op de ledenkaart maak je een link met QR-code voor het lid. Daarmee activeert het lid binnen zeven dagen zijn account.',
+    tekst: 'Een mail met een link, de QR-code op de ledenkaart of de poster bij de balie. Daarmee activeert het lid binnen zeven dagen zijn account.',
   },
   {
     titel: 'Een eigen wachtwoord',
@@ -42,11 +42,11 @@ const FUNCTIES = [
   { Icoon: QrCode, titel: 'Inchecken', tekst: 'De QR-code staat op het startscherm. Telefoon tonen bij binnenkomst en het lid is binnen.' },
   { Icoon: CalendarDays, titel: 'Lessen', tekst: 'Het rooster met vrije plekken. Reserveren, annuleren en op de wachtlijst bij een volle les.' },
   { Icoon: CalendarClock, titel: 'Afspraken', tekst: 'Een intake, personal training of meting boeken bij een trainer.' },
-  { Icoon: Dumbbell, titel: 'Schema met coaching', tekst: 'Het schema van de trainer per dag, met kernpunten en bewegende beelden bij elke oefening. Afvinken wat gedaan is.' },
+  { Icoon: Dumbbell, titel: 'Schema met coaching', tekst: 'Het schema van de trainer per dag, met kernpunten en een bewegend beeld bij elke oefening. Per set invullen wat het lid deed.' },
   { Icoon: Salad, titel: 'Voeding', tekst: 'Het voedingsplan van de trainer: calorieen, eiwit, koolhydraten, vet, maaltijden en adviezen.' },
   { Icoon: TrendingUp, titel: 'Voortgang', tekst: 'Trainingen per week en de eigen lichaamsmaten op een tijdlijn.' },
   { Icoon: Trophy, titel: 'Challenges en badges', tekst: 'Doelen zoals een aantal trainingen per maand of weken op rij, met de voortgang erbij.' },
-  { Icoon: Bell, titel: 'Meldingen', tekst: 'Bevestiging en herinnering van een les of afspraak, en bericht als iemand van de wachtlijst door mag.' },
+  { Icoon: Bell, titel: 'Meldingen', tekst: 'Bevestiging en herinnering van een les of afspraak per mail, en bericht als iemand van de wachtlijst door mag.' },
 ] as const
 
 const VRAGEN = [

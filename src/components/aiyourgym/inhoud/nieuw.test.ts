@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { HOOFDSTUKKEN } from './functies'
 import { NIEUW, aantalNieuw, korteDatum, maandNaam } from './nieuw'
+import { allePunten, allesGezien, leesGezien, nieuwSleutel, ongelezenPunten, tellerTekst } from '@/lib/aiyourgym/nieuw'
 
 // Wat er nieuw is: alleen wat al live is, met een echte datum, en volgens de
 // schrijfregels van Kane.
@@ -45,5 +46,39 @@ describe('wat er nieuw is', () => {
     expect(maandNaam('2026-10')).toBe('Oktober 2026')
     expect(korteDatum('2026-10-03')).toBe('3 okt')
     expect(aantalNieuw()).toBe(NIEUW.reduce((s, m) => s + m.punten.length, 0))
+  })
+})
+
+describe('gelezen of niet (Wat is nieuw in Club)', () => {
+  const lijst = [
+    { maand: '2026-10', samenvatting: 'x', punten: [
+      { datum: '2026-10-20', titel: 'B', tekst: 'b', hoofdstuk: 'beheer' as const },
+      { datum: '2026-10-10', titel: 'A', tekst: 'a', hoofdstuk: 'groei' as const },
+    ] },
+  ]
+
+  it('zonder bewaarde lijst is alles ongelezen, kapotte opslag telt als niets gezien', () => {
+    expect(ongelezenPunten(null, lijst)).toHaveLength(2)
+    expect(ongelezenPunten('{kapot', lijst)).toHaveLength(2)
+    expect(ongelezenPunten('{"a":1}', lijst)).toHaveLength(2)
+  })
+
+  it('na openen alles gelezen; een nieuw punt telt daarna weer', () => {
+    const bewaard = allesGezien(lijst)
+    expect(ongelezenPunten(bewaard, lijst)).toEqual([])
+    const later = [{ ...lijst[0], punten: [{ datum: '2026-10-22', titel: 'C', tekst: 'c', hoofdstuk: 'coaching' as const }, ...lijst[0].punten] }]
+    expect(ongelezenPunten(bewaard, later).map((p) => p.titel)).toEqual(['C'])
+  })
+
+  it('sleutels zijn uniek over de echte lijst', () => {
+    const sleutels = allePunten().map(nieuwSleutel)
+    expect(new Set(sleutels).size).toBe(sleutels.length)
+    expect(leesGezien(allesGezien()).size).toBe(aantalNieuw())
+  })
+
+  it('de teller toont nooit 0 en hoogstens 9+', () => {
+    expect(tellerTekst(0)).toBeNull()
+    expect(tellerTekst(6)).toBe('6')
+    expect(tellerTekst(24)).toBe('9+')
   })
 })

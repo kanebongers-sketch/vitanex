@@ -51,7 +51,7 @@ const DIENSTEN = [
 export function PersoneelScherm() {
   const kolommen = 'minmax(0, 0.8fr) minmax(0, 1.3fr) auto'
   return (
-    <Venster actief="Planning">
+    <Venster actief="Planning" hier="Personeel">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">Personeel · week 43</p>

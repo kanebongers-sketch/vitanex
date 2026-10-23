@@ -1,4 +1,4 @@
-import { BookmarkPlus, Check, Plus, Printer, Save, TriangleAlert } from 'lucide-react'
+import { BookmarkPlus, Check, Plus, Printer, Save, TriangleAlert, Undo2 } from 'lucide-react'
 import { PARQ_VRAGEN } from '@/lib/club/training/intake'
 import { stelSchemaVoor } from '@/lib/club/training/voorstel'
 import { DOEL_LABEL, DOELEN, NIVEAU_LABEL } from '@/lib/club/training/typen'
@@ -152,6 +152,9 @@ export function EditorScherm({ oefeningen }: { oefeningen: readonly VoorbeeldOef
         <span className="ayg-ss-werkbalk">
           <span className="aygm-knopje">
             <Save size={11} aria-hidden /> Opslaan
+          </span>
+          <span className="ayg-ss-knop">
+            <Undo2 size={11} aria-hidden /> Ongedaan maken
           </span>
           <span className="ayg-ss-knop">
             <Printer size={11} aria-hidden /> Printen

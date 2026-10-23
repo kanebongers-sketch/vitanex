@@ -6,6 +6,8 @@
 //   CLUB_BETALEN_ACTIEF           1 = aan. Standaard uit: dan bestaat alles hiervan niet (404).
 //   CLUB_STRIPE_SECRET_KEY        sk_... of rk_... van het AI Your Gym-platformaccount (met Connect aan)
 //   CLUB_STRIPE_WEBHOOK_SECRET    whsec_... van het Connect-webhook-endpoint
+//   CLUB_LIDGELD_ACTIEF           1 = lidgeld (contracten, facturen, incasso) aan: inbox en
+//                                 outbox werken pas dan. Standaard uit: alles doet niets.
 
 type Env = Record<string, string | undefined>
 
@@ -26,6 +28,17 @@ function waarde(env: Env, naam: string): string | null {
 export function betalenActief(env: Env = process.env): boolean {
   const v = waarde(env, 'CLUB_BETALEN_ACTIEF')
   return v === '1' || v === 'true'
+}
+
+/** Staat lidgeld (inbox, outbox, incasso) aan (env)? Standaard uit. */
+export function lidgeldActief(env: Env = process.env): boolean {
+  const v = waarde(env, 'CLUB_LIDGELD_ACTIEF')
+  return v === '1' || v === 'true'
+}
+
+/** Live of test, afgeleid van de sleutel; events met een andere livemode tellen niet. */
+export function sleutelIsLive(sleutel: string): boolean {
+  return /^(sk|rk)_live_/.test(sleutel)
 }
 
 export function clubStripeSleutel(env: Env = process.env): string | null {

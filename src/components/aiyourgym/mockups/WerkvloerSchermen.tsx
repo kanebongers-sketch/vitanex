@@ -14,7 +14,7 @@ const BINNEN = [
 
 export function CheckinScherm() {
   return (
-    <Venster actief="Werkvloer">
+    <Venster actief="Werkvloer" hier="Check-in">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">Check-in · balie</p>
@@ -58,7 +58,7 @@ const TAKEN = [
 export function TakenScherm() {
   const kolommen = 'minmax(0, 1fr) repeat(5, 26px)'
   return (
-    <Venster actief="Werkvloer">
+    <Venster actief="Werkvloer" hier="Taken">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">Taken · week</p>
@@ -99,7 +99,7 @@ const OPVOLGEN = [
 
 export function OpvolgScherm() {
   return (
-    <Venster actief="Werkvloer">
+    <Venster actief="Werkvloer" hier="Opvolgen">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">Opvolgen · vandaag</p>

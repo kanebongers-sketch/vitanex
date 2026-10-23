@@ -4,9 +4,11 @@
 // zoals Virtuagym, maar op onze eigen manier: groepen bovenin, de onderdelen van
 // de groep eronder, en op de telefoon een menupaneel).
 // Het menu is voor dagelijks werk (besluit Kane 18-10-2026). In Beheer staan
-// alleen Cijfers, Rapporten, Instellingen en Hulp; alles wat je instelt staat in
-// het instellingencentrum (src/lib/club/kern/instel-paginas.ts). Onderdelen met
+// alleen Cijfers en Rapporten; alles wat je instelt staat in het
+// instellingencentrum (src/lib/club/kern/instel-paginas.ts). Onderdelen met
 // inMenu: false bestaan voor de rechten en het zoekveld, niet in de balk.
+// Instellingen, de Ledenapp en Hulp staan onderaan in de hulpbalk (hulpbalk:
+// true, idee Kane 23-10-2026, zie hulpbalk.ts), niet in het menu: niets dubbel.
 
 import type { Module } from '@/lib/club/kern/organisatie'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
@@ -16,7 +18,7 @@ export const GROEPEN = [
   { sleutel: 'leden', label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
   { sleutel: 'planning', label: 'Planning', uitleg: 'Groepslessen, personeel en taken' },
   { sleutel: 'coaching', label: 'Coaching', uitleg: "Intakes, schema's en oefeningen" },
-  { sleutel: 'beheer', label: 'Beheer', uitleg: 'Cijfers, rapporten, instellingen en hulp' },
+  { sleutel: 'beheer', label: 'Beheer', uitleg: 'Cijfers en rapporten' },
 ] as const
 
 export type GroepSleutel = (typeof GROEPEN)[number]['sleutel']
@@ -33,6 +35,8 @@ export interface Onderdeel {
   module?: Module
   /** false: niet in de menubalk, alleen via het instellingencentrum (wel in de rechten en het zoekveld). */
   inMenu?: false
+  /** true: niet in het menu maar onderaan in de hulpbalk (Instellingen, Ledenapp, Hulp). */
+  hulpbalk?: true
   /** Sneltoets op de pc: G en dan deze letter (bijvoorbeeld G dan L voor Leden). */
   toets?: string
 }
@@ -56,11 +60,11 @@ export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'voeding', pad: '/voeding', label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid', groep: 'coaching' },
   { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
   { sleutel: 'rapporten', pad: '/rapporten', label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren', groep: 'beheer' },
-  { sleutel: 'beheer', pad: '/beheer', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer', toets: 'i' },
-  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer', toets: 'h' },
+  { sleutel: 'beheer', pad: '/beheer', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer', toets: 'i', hulpbalk: true },
+  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer', toets: 'h', hulpbalk: true },
   // Alleen via het instellingencentrum (en het zoekveld); wel hier voor de rechten per rol.
   { sleutel: 'instellingen', pad: '/instellingen', label: 'Vestigingen, rooster en team', uitleg: 'Regels, openingstijden, zalen, lestypen, weekrooster en medewerkers', groep: 'beheer', inMenu: false },
-  { sleutel: 'app', pad: '/app', label: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon', groep: 'beheer', module: 'app', inMenu: false },
+  { sleutel: 'app', pad: '/app', label: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon', groep: 'beheer', module: 'app', hulpbalk: true },
   { sleutel: 'start', pad: '/start', label: 'Startwizard', uitleg: 'Je sportschool stap voor stap inrichten', groep: 'beheer', inMenu: false },
   { sleutel: 'huisstijl', pad: '/huisstijl', label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool', groep: 'beheer', inMenu: false },
   { sleutel: 'bedrijf', pad: '/beheer/bedrijf', label: 'Bedrijf en huisregels', uitleg: 'KvK, btw, contact en de teksten voor je leden', groep: 'beheer', inMenu: false },
@@ -91,30 +95,30 @@ export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = [], t
   return !onderdeel.module || !uit.includes(onderdeel.module)
 }
 
+/** Staat dit onderdeel in de menubalk (niet in het instellingencentrum en niet in de hulpbalk)? */
 export function inMenu(onderdeel: Onderdeel): boolean {
-  return onderdeel.inMenu !== false
-}
-
-const INSTELLINGEN = ONDERDELEN.find((o) => o.sleutel === 'beheer') as Onderdeel
-
-/** Het menu-onderdeel dat oplicht op dit pad: een instel-pagina valt onder Instellingen. */
-export function menuOnderdeel(pad: string): Onderdeel {
-  const o = actiefOnderdeel(pad)
-  return inMenu(o) ? o : INSTELLINGEN
+  return onderdeel.inMenu !== false && !onderdeel.hulpbalk
 }
 
 /**
- * De onderdelen van een groep in het menu, in vaste volgorde. Instellingen staat
- * erin als de persoon iets in het instellingencentrum mag (`instellingen`, zie
- * heeftInstellingen in instel-paginas.ts); standaard alleen bij alle rechten.
+ * Het menu-onderdeel dat oplicht op dit pad, of null als je buiten het menu
+ * bent: in de hulpbalk (Instellingen en elke instel-pagina, Koppelingen,
+ * Ledenapp, Wat is nieuw, Hulp) of op een pagina zonder onderdeel.
  */
-export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel[] {
-  return ONDERDELEN.filter((o) => o.groep === groep && inMenu(o) && (o === INSTELLINGEN ? instellingen : isZichtbaar(o, uit, toegestaan)))
+export function menuOnderdeel(pad: string): Onderdeel | null {
+  const o = actiefOnderdeel(pad)
+  if (!isActief(o, pad)) return null
+  return inMenu(o) ? o : null
+}
+
+/** De onderdelen van een groep in het menu, in vaste volgorde. */
+export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+  return ONDERDELEN.filter((o) => o.groep === groep && inMenu(o) && isZichtbaar(o, uit, toegestaan))
 }
 
 /** De groepen met minstens een onderdeel in het menu. */
-export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): (typeof GROEPEN)[number][] {
-  return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit, toegestaan, instellingen).length > 0)
+export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): (typeof GROEPEN)[number][] {
+  return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit, toegestaan).length > 0)
 }
 
 // ── Onderbalk (telefoon en tablet staand) ────────────────────────────────────
@@ -137,12 +141,18 @@ export function onderbalkOnderdelen(uit: readonly Module[] = [], toegestaan: rea
 
 // ── Sneltoetsen (pc) ─────────────────────────────────────────────────────────
 
-/** Het onderdeel achter G en dan deze letter, als deze persoon het in het menu heeft. */
+/**
+ * Het onderdeel achter G en dan deze letter, als deze persoon het in het menu
+ * of in de hulpbalk heeft. Instellingen (G I) volgt `instellingen` (zie
+ * heeftInstellingen in instel-paginas.ts); standaard alleen bij alle rechten.
+ */
 export function onderdeelVoorToets(letter: string, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel | null {
   const l = letter.toLowerCase()
-  const o = ONDERDELEN.find((x) => x.toets === l && inMenu(x))
+  const o = ONDERDELEN.find((x) => x.toets === l && (inMenu(x) || x.hulpbalk))
   if (!o) return null
-  return onderdelenVan(o.groep, uit, toegestaan, instellingen).includes(o) ? o : null
+  if (o.sleutel === 'beheer') return instellingen ? o : null
+  if (o.hulpbalk) return isZichtbaar(o, uit, toegestaan) ? o : null
+  return onderdelenVan(o.groep, uit, toegestaan).includes(o) ? o : null
 }
 
 /** De toets als tekst voor in beeld, bijvoorbeeld "G L". */

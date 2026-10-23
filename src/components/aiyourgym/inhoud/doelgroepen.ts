@@ -45,7 +45,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
     punten: [
       'Een lesrooster per zaal met plekken, wachtlijst en jouw regels voor annuleren en niet komen',
       'Leden reserveren zelf in de app en schuiven automatisch door vanaf de wachtlijst',
-      'Bevestigingen en herinneringen per e-mail of in de app',
+      'Bevestigingen en herinneringen per e-mail',
       'Challenges zoals weken op rij, met voortgang in de app',
       'Bezetting per les en per kalendermaand in de cijfers',
     ],

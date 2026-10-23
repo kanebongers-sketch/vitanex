@@ -1,0 +1,15 @@
+{
+  "status": 0,
+  "body": {
+    "updatetime": 1761200000,
+    "timezone": "Europe/Amsterdam",
+    "measuregrps": [
+      { "grpid": 12, "attrib": 0, "date": 1761100000, "created": 1761100010, "modified": 1761100010, "category": 1, "deviceid": "abc",
+        "measures": [ { "value": 82450, "type": 1, "unit": -3, "algo": 0, "fm": 3 }, { "value": 214, "type": 6, "unit": -1 }, { "value": 6123, "type": 76, "unit": -2 }, { "value": 70, "type": 11, "unit": 0 } ] },
+      { "grpid": 13, "attrib": 1, "date": 1761150000, "category": 1, "measures": [ { "value": 95000, "type": 1, "unit": -3 } ] },
+      { "grpid": 14, "attrib": 2, "date": 1761160000, "category": 2, "measures": [ { "value": 80000, "type": 1, "unit": -3 } ] }
+    ],
+    "more": 1,
+    "offset": 3
+  }
+}

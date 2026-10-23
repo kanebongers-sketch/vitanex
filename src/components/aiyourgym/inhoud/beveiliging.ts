@@ -78,5 +78,5 @@ export const SUBVERWERKERS: readonly Waarborg[] = [
   { titel: 'Render', tekst: 'De server waarop de software draait, in Frankfurt.' },
   { titel: 'Resend', tekst: 'Het versturen van e-mails, zoals uitnodigingen en meldingen.' },
   { titel: 'Stripe', tekst: 'Het betalen van je abonnement bij AI Your Gym.' },
-  { titel: 'Push van de browser', tekst: 'Meldingen op de telefoon van leden die ze aanzetten. Het bericht is versleuteld.' },
+  { titel: 'Push van de browser', tekst: 'Alleen in gebruik als meldingen op de telefoon voor je sportschool aan staan. Het bericht is versleuteld.' },
 ]

@@ -1,0 +1,69 @@
+/* Club, koppelingen met health-apps: ledenapp (/mijn/koppelingen) en ledenkaart.
+   Alleen tokens uit de ledenapp en Club (--brand, --line, --text-*, --club-ok). */
+
+.club-hl { --hl-radius: 18px; --hl-gap: 12px; display: grid; gap: 22px; }
+.club-hl-kop { display: grid; gap: 6px; }
+.club-hl-kop p { margin: 0; color: var(--text-2); font-size: 14.5px; line-height: 1.55; max-width: 60ch; }
+.club-hl-sectie { display: grid; gap: var(--hl-gap); }
+.club-hl-sectie > h3 { margin: 0; font-family: var(--ff-kop); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+
+/* Bronnen */
+.club-hl-bronnen { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.club-hl-bron {
+  position: relative; display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: start;
+  padding: 16px; border-radius: var(--hl-radius); border: 1px solid var(--line); background: var(--bg-raised);
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.club-hl-bron[data-status='beschikbaar'], .club-hl-bron[data-status='alleen_app'] { border-color: var(--line-strong); }
+.club-hl-bron[data-gekoppeld='ja'] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); box-shadow: 0 14px 30px -24px var(--brand-glow, transparent); }
+.club-hl-bron[data-status='binnenkort'] { opacity: 0.78; }
+.club-hl-logo {
+  width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; overflow: hidden;
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-card)); color: var(--brand);
+  font-family: var(--ff-kop); font-size: 20px; font-weight: 700;
+}
+.club-hl-logo img { width: 100%; height: 100%; object-fit: contain; }
+.club-hl-bron-tekst { display: grid; gap: 4px; min-width: 0; }
+.club-hl-bron-naam { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15.5px; }
+.club-hl-bron-tekst p { margin: 0; color: var(--text-2); font-size: 13.5px; line-height: 1.5; }
+.club-hl-noot { color: var(--text-3) !important; font-size: 12.5px !important; }
+.club-hl-acties { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.club-hl-status {
+  flex: none; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+  border: 1px solid var(--line-strong); color: var(--text-2);
+}
+.club-hl-status[data-toon='aan'] { border-color: transparent; background: var(--club-ok-zacht); color: var(--club-ok); }
+.club-hl-status[data-toon='let'] { border-color: transparent; background: var(--club-let-op-zacht); color: var(--club-let-op); }
+
+/* Toestemming */
+.club-hl-uitleg { margin: 0; padding: 14px 16px; border-radius: var(--hl-radius); background: var(--bg-raised); border: 1px solid var(--line); display: grid; gap: 8px; }
+.club-hl-uitleg p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-2); }
+.club-hl-tabel { display: grid; gap: 2px; border-radius: var(--hl-radius); overflow: hidden; border: 1px solid var(--line); }
+.club-hl-rij { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; background: var(--bg-raised); }
+.club-hl-rij--kop { background: transparent; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding-block: 8px; }
+.club-hl-rij strong { display: block; font-size: 14.5px; }
+.club-hl-rij span { font-size: 12.5px; color: var(--text-3); }
+.club-hl-vink { width: 22px; height: 22px; accent-color: var(--brand); cursor: pointer; }
+.club-hl-vink:disabled { cursor: not-allowed; opacity: 0.4; }
+.club-hl-vink:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-hl-kolom { width: 64px; text-align: center; }
+.club-hl-akkoord { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--text-1); }
+.club-hl-melding { margin: 0; font-size: 13.5px; color: var(--text-2); min-height: 1em; }
+.club-hl-melding[data-soort='fout'] { color: var(--club-let-op); }
+.club-hl-melding[data-soort='goed'] { color: var(--club-ok); }
+
+/* Ontkoppelen */
+.club-hl-ontkoppel { grid-column: 1 / -1; display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1px dashed var(--line-strong); }
+.club-hl-ontkoppel p { margin: 0; font-size: 13px; color: var(--text-2); }
+
+/* Metingen */
+.club-hl-tegels { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.club-hl-tegel { padding: 12px 14px; border-radius: 14px; background: var(--bg-raised); border: 1px solid var(--line); display: grid; gap: 2px; }
+.club-hl-tegel span { font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.club-hl-tegel strong { font-family: var(--ff-kop); font-size: 22px; font-variant-numeric: tabular-nums; }
+.club-hl-tegel small { font-size: 12px; color: var(--text-3); }
+.club-hl-via { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-hl-bron { transition: none; }
+}

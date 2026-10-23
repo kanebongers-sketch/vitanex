@@ -30,6 +30,7 @@ import { UitlogKnoppen } from '@/components/club/ledenlogin/UitlogKnoppen'
 import { WachtwoordFormulier } from '@/components/club/ledenlogin/WachtwoordFormulier'
 import { normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
 import { CommunityProfielBlok } from '@/components/club/community/CommunityProfielBlok'
+import { KoppelingenProfielLink } from '@/components/club/health/KoppelingenProfielLink'
 import { InstalleerHulp } from '@/components/club/ledenapp-pwa/InstalleerHulp'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
 import { lidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
@@ -206,6 +207,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 pilotNoot={false}
               />
               <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />
+              <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />
               {l.account && !l.account.wachtwoordHash && (
                 <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">
                   <h3 id="mijn-wachtwoord">Kies een wachtwoord</h3>

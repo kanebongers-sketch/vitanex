@@ -48,8 +48,8 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
       </div>
       <ol className="ayg-genummerd aan-uitleg-lijst">
         {!w.loginOpen && <li>Inloggen opent na de lancering. Je account staat al klaar.</li>}
-        <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestigingen, lessen, team en leden neer. Elke stap kun je overslaan en later afmaken.</li>
-        <li>Je team nodig je daarna uit vanuit Instellingen.</li>
+        <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestiging, lessen, team en leden neer. Stop je halverwege, dan ga je later verder waar je was.</li>
+        <li>Je team nodig je uit in de stap Team van de wizard. De rest van Club gaat open zodra de wizard klaar is.</li>
       </ol>
       {heeftContact() && <Contact />}
     </>

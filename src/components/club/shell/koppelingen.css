@@ -1,0 +1,31 @@
+/* ─── Club: Koppelingen (/club/koppelingen) ──────────────────────────────────
+   Een kaart per koppeling: icoon, naam en stand bovenaan, wat het is, hoe het
+   er nu voor staat, en de knop naar de pagina waar je het instelt. De stand
+   heeft een vaste kleur (groen werkt, blauw bijna klaar, grijs uit) en staat
+   ook als tekst in beeld, nooit alleen als kleur. */
+
+.club-koppelingen { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+
+.club-koppeling {
+  position: relative; display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px;
+  padding: 18px; border: 1px solid var(--line); border-radius: var(--club-radius);
+  background: var(--bg-card); box-shadow: var(--club-schaduw);
+}
+/* Een koppeling die werkt krijgt links een dunne streep in de statuskleur. */
+.club-koppeling[data-stand='aan'] { box-shadow: inset 3px 0 0 var(--club-ok), var(--club-schaduw); }
+.club-koppeling[data-stand='bezig'] { box-shadow: inset 3px 0 0 var(--club-info), var(--club-schaduw); }
+.club-koppeling[data-stand='onbekend'] { box-shadow: inset 3px 0 0 var(--club-let-op), var(--club-schaduw); }
+
+.club-koppeling-kop { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.club-koppeling-kop h2 { flex: 1; min-width: 0; margin: 0; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.1; }
+.club-koppeling-icoon {
+  flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px;
+  border-radius: var(--club-radius-klein); background: var(--brand-soft); color: var(--brand-tekst, var(--brand));
+}
+.club-koppeling[data-stand='uit'] .club-koppeling-icoon,
+.club-koppeling[data-stand='dicht'] .club-koppeling-icoon { background: var(--club-vlak); color: var(--text-3); }
+
+.club-koppeling-uitleg { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.club-koppeling-stand { margin: 0; align-self: start; padding: 10px 12px; border-radius: var(--club-radius-klein); background: var(--club-vlak); color: var(--text-1); font-size: 13.5px; line-height: 1.45; }
+.club-koppeling-knop { justify-self: start; }
+.club-koppeling-knop.club-hint { margin: 0; font-size: 13px; color: var(--text-3); padding: 6px 0; }

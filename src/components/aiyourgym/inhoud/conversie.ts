@@ -27,7 +27,7 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
  */
 export const GERUSTSTELLING = [
   `${PROEFDAGEN} dagen gratis proberen`,
-  'Stop je in de proefperiode, dan betaal je niets',
+  'Stoppen in de proefperiode kost niets',
   'Nu geen opstartkosten',
   'Je gegevens blijven van jou',
   'Persoonlijke hulp in Club en Keten',

@@ -39,7 +39,7 @@ export function SchemaBlikvanger({ oefeningen, kop, onder }: Props) {
           passend
           bediening
           sizes="(max-width: 959px) min(90vw, 560px), 46vw"
-          label={`${o.naam} als bewegend beeld, zoals het lid hem in de app ziet`}
+          label={`${o.naam} als bewegend 3D-beeld`}
         />
         <figcaption>
           <b>{o.naam}</b>

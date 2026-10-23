@@ -30,7 +30,7 @@ export const OVERSTAP_CHECKLIST: readonly ChecklistGroep[] = [
     titel: 'Voorbereiden',
     wanneer: 'Een paar weken vooraf',
     punten: [
-      { id: 'startdatum', tekst: 'Kies een startdatum buiten je drukste weken', uitleg: 'Na een vakantie of begin van de maand werkt vaak het rustigst.' },
+      { id: 'startdatum', tekst: 'Kies een startdatum buiten je drukste weken', uitleg: 'Na een vakantie of begin van de maand werkt vaak het rustigst. In de startwizard zet je hem als streefdatum.' },
       { id: 'wat-nu', tekst: 'Schrijf op wat je huidige systeem nu voor je doet', uitleg: 'Check-in, lesrooster, schema’s, ledenapp, roosters van het team, cijfers.' },
       { id: 'wat-blijft', tekst: 'Bepaal wat in je ledenadministratie blijft', uitleg: 'Incasso, abonnementen en facturen van leden horen daar, niet in je clubsoftware.' },
       { id: 'opzegtermijn', tekst: 'Zoek je opzegtermijn en einddatum op bij je huidige leverancier' },
@@ -42,7 +42,7 @@ export const OVERSTAP_CHECKLIST: readonly ChecklistGroep[] = [
     titel: 'Gegevens verzamelen',
     wanneer: 'De week voor de start',
     punten: [
-      { id: 'ledenlijst', tekst: 'Exporteer je ledenlijst als CSV', uitleg: 'Naam, e-mailadres, telefoon, geboortedatum, lidmaatschap, lid sinds en je eigen lidnummer.' },
+      { id: 'ledenlijst', tekst: 'Exporteer je ledenlijst als CSV of Excel-bestand', uitleg: 'Naam, e-mailadres, telefoon, geboortedatum, lidmaatschap, lid sinds en je eigen lidnummer.' },
       { id: 'opschonen', tekst: 'Haal dubbele leden en lege e-mailadressen uit de lijst', uitleg: 'Zonder e-mailadres kan een lid geen uitnodiging voor de app krijgen.' },
       { id: 'rooster', tekst: 'Noteer je lesrooster', uitleg: 'Lessen, zalen, dagen, tijden en het maximum aantal plekken.' },
       { id: 'regels', tekst: 'Schrijf je regels op voor reserveren, annuleren en niet komen' },
@@ -57,7 +57,7 @@ export const OVERSTAP_CHECKLIST: readonly ChecklistGroep[] = [
     punten: [
       { id: 'huisstijl', tekst: 'Zet je logo en accentkleur klaar' },
       { id: 'vestigingen', tekst: 'Vul per vestiging de openingstijden en sluitingsdagen in' },
-      { id: 'team', tekst: 'Nodig je team uit en bepaal wat elke rol mag zien' },
+      { id: 'team', tekst: 'Nodig je team uit en bepaal wat elke rol mag zien', uitleg: 'In de startwizard, stap Team: Club mailt elke medewerker een link om een wachtwoord te kiezen.' },
       { id: 'inlezen', tekst: 'Lees de ledenlijst in en controleer het voorbeeld voordat je opslaat' },
       { id: 'proefdraaien', tekst: 'Proefdraaien met je team', uitleg: 'Inchecken, een les reserveren, een schema maken en de ledenapp op een telefoon.' },
     ],

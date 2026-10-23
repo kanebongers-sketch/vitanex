@@ -1,0 +1,4 @@
+{ "records": [
+  { "cycle_id": 93845, "sleep_id": "ecfc6a15-4661-442f-a9a4-f160dd7afae8", "user_id": 10129, "created_at": "2026-10-21T07:25:44.774Z", "score_state": "SCORED", "score": { "recovery_score": 44, "resting_heart_rate": 64, "hrv_rmssd_milli": 31.81 } },
+  { "cycle_id": 93846, "created_at": "2026-10-22T07:25:44.774Z", "score_state": "PENDING_SCORE" }
+], "next_token": "MTIzOjEyMzEyMw" }

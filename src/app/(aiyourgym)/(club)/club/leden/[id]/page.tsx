@@ -26,6 +26,9 @@ import { AvgKaart } from '@/components/club/leden/AvgKaart'
 import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
 import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
 import { LidTraining } from '@/components/club/training/LidTraining'
+import { MetingenUitApps } from '@/components/club/health/MetingenUitApps'
+import { healthActief } from '@/lib/club/health/schakelaar'
+import { volledigeNaam } from '@/lib/club/kern/lid'
 import '@/components/club/leden/leden.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
@@ -89,6 +92,8 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
   // Training (schema's en intakes) alleen als het onderdeel aan staat en deze persoon het mag.
   const toonTraining = moduleAan(t.organisatie, 'training') && magOnderdeel(t.onderdelen, 'schemas')
+  // Metingen uit apps: alleen met de schakelaar aan, voor wie Training mag, en alleen wat het lid toestaat.
+  const toonApps = healthActief() && magOnderdeel(t.onderdelen, 'schemas')
   // Voortgang, voeding en verwijderverzoek hangen alleen van het lid-id af (alles filtert op de
   // sportschool): tegelijk met de kaart ophalen. Hoort het lid niet bij deze persoon, dan vervalt het.
   const [gelezen, voortgang, voeding, verzoek] = await Promise.all([
@@ -157,6 +162,11 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
           {toonTraining && (
             <Suspense fallback={<div className="club-skelet" style={{ minHeight: 160 }} aria-hidden />}>
               <LidTraining t={t} lidId={lid.id} voornaam={lid.voornaam} vestiging={vestiging} />
+            </Suspense>
+          )}
+          {toonApps && (
+            <Suspense fallback={null}>
+              <MetingenUitApps t={t} lidId={lid.id} naam={volledigeNaam(lid)} vestiging={lid.vestiging} />
             </Suspense>
           )}
           {moduleAan(t.organisatie, 'app') && <LedenappLink lidId={lid.id} voornaam={lid.voornaam} />}

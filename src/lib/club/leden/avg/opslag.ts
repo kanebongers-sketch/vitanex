@@ -45,6 +45,30 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   aankopen: { tabel: 'club_betalen_verkopen', select: 'product_naam, type, bedrag_cent, btw_procent, status, betaald_op, terugbetaald_cent, terugbetaald_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   tegoeden: { tabel: 'club_betalen_tegoeden', select: 'product_naam, soort, totaal, saldo, geldig_tot, aangemaakt_op', volgorde: 'aangemaakt_op' },
   tegoedMutaties: { tabel: 'club_betalen_mutaties', select: 'aantal, reden, door, op', volgorde: 'op' },
+  // Lidgeld (migratie 460 en 461): nooit stripe_*-kolommen, hashes of pdf-paden.
+  betaalklant: { tabel: 'club_betalen_klanten', select: 'aangemaakt_op' },
+  betaalmethoden: { tabel: 'club_betalen_mandaten', select: 'type, laatste4, status, is_standaard, bron, machtiging_kenmerk, ondertekend_op, laatste_incasso_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  contracten: {
+    tabel: 'club_betalen_contracten',
+    select: 'plan_naam, status, interval_soort, bedrag_cent, btw_procent, contract_maanden, opzegtermijn_dagen, startdatum, einddatum, opgezegd_op, opzeg_einddatum, voorwaarden_versie, akkoord_op, notitie, aangemaakt_op',
+    volgorde: 'aangemaakt_op',
+  },
+  contractPauzes: { tabel: 'club_betalen_pauzes', select: 'van, tot, status, reden, verrekening_cent, aangemaakt_op', volgorde: 'van' },
+  facturen: {
+    tabel: 'club_betalen_facturen',
+    select: 'nummer, soort, status, uitgegeven_op, vervaldatum, periode_van, periode_tot, subtotaal_excl_cent, btw_cent, totaal_cent, betaald_cent, betaald_op, klant_naam, klant_adres, klant_email, club_betalen_factuurregels(volgorde, omschrijving, aantal, bedrag_excl_cent, btw_procent, btw_cent, bedrag_incl_cent)',
+    volgorde: 'aangemaakt_op',
+  },
+  betalingen: { tabel: 'club_betalen_betalingen', select: 'soort, poging, bedrag_cent, status, fout_categorie, aangeboden_op, verwerkt_op, mislukt_op, gestorneerd_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  terugbetalingen: { tabel: 'club_betalen_terugbetalingen', select: 'bedrag_cent, status, reden_code, toelichting, aangemaakt_op, verwerkt_op', volgorde: 'aangemaakt_op' },
+  geschillen: { tabel: 'club_betalen_geschillen', select: 'bedrag_cent, status, reden_code, toelichting, aangemaakt_op, gesloten_op', volgorde: 'aangemaakt_op' },
+  betaalherinneringen: { tabel: 'club_betalen_herinneringen', select: 'stap, kanaal, status, gepland_op, verstuurd_op', volgorde: 'gepland_op' },
+  kasboek: { tabel: 'club_betalen_boekingen', select: 'soort, bedrag_cent, boekdatum, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  betaalopdrachten: { tabel: 'club_betalen_opdrachten', select: 'soort, status, aangemaakt_op, klaar_op', volgorde: 'aangemaakt_op' },
+  // Health-apps (migratie 463): nooit tokens_versleuteld, cursor of het id bij de leverancier.
+  healthToestemmingen: { tabel: 'club_health_toestemmingen', select: 'delen, trainer_zien, trainer_bronnen, tekst_versie, gegeven_op, ingetrokken_op', volgorde: 'gegeven_op' },
+  healthKoppelingen: { tabel: 'club_health_koppelingen', select: 'bron, status, laatste_sync_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  healthMetingen: { tabel: 'club_health_metingen', select: 'gemeten_op, soort, waarde, training, bron', volgorde: 'gemeten_op' },
 }
 
 const MAX_RIJEN = 10_000

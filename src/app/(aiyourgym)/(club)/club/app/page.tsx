@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
-import { eisModule } from '@/lib/club/toegang'
-import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
+import { eisModule, type ClubToegang } from '@/lib/club/toegang'
+import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
-import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import Link from 'next/link'
+import { Printer, Send, Settings2 } from 'lucide-react'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { instelHref, instelPagina, magInstelPagina } from '@/lib/club/kern/instel-paginas'
+import { instelKijker } from '@/lib/club/instel-toegang'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
 import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
@@ -30,9 +34,30 @@ import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
-// Kies een (demo)lid; tabblad en lid staan in de URL.
+// Kies een (demo)lid; tabblad en lid staan in de URL. Dit is Ledenapp in de
+// hulpbalk onderaan: bovenaan ook de poster met QR-code, leden uitnodigen (de
+// activatielink per lid) en de instellingen van de app, voor wie dat mag.
 
-export const metadata: Metadata = { title: 'Ledenapp bekijken' }
+/** De knoppen naar de poster, het uitnodigen en de instellingen; alleen wat deze persoon mag. */
+function LedenappActies({ t, vestiging }: { t: ClubToegang; vestiging: string }) {
+  const leden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
+  const instel = instelPagina('ledenapp')
+  const magInstellen = instel ? magInstelPagina(instel, instelKijker(t)) : false
+  if (!leden && !magInstellen) return null
+  return (
+    <div className="club-acties" aria-label="Ledenapp">
+      {leden && (
+        <>
+          <Link href={clubPad('/leden/app-poster', vestiging)} className="club-knop club-knop--klein"><Printer size={15} aria-hidden /> Poster met QR-code</Link>
+          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--klein" title="Bij Leden nodig je leden uit; op de ledenkaart staat de activatielink per lid"><Send size={15} aria-hidden /> Leden uitnodigen</Link>
+        </>
+      )}
+      {instel && magInstellen && <Link href={instelHref(instel, vestiging)} className="club-knop club-knop--klein"><Settings2 size={15} aria-hidden /> {instel.titel}</Link>}
+    </div>
+  )
+}
+
+export const metadata: Metadata = { title: 'Ledenapp' }
 
 export default async function ClubLedenapp({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('app')
@@ -62,13 +87,13 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
 
   const kop = (
     <>
-    <InstelKruimel id="ledenapp-bekijken" vestiging={vestiging} />
     <header className="club-paginakop">
       <div>
         <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · voorvertoning</p>
-        <h1>Ledenapp bekijken</h1>
+        <h1>Ledenapp</h1>
         <p>Zo ziet een lid de app op zijn telefoon. Kies een lid om mee te kijken.</p>
       </div>
+      <LedenappActies t={t} vestiging={vestiging} />
       {lid && (
         <LidKiezer
           opties={opties.map((l) => ({ id: l.id, naam: volledigeNaam(l), heeftSchema: metSchema.has(l.id) }))}

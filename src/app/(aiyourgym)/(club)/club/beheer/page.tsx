@@ -94,7 +94,6 @@ async function standen(t: ClubToegang, ziet: (id: string) => boolean): Promise<R
     importeren: { stand: aantal(leden, 'lid', 'leden') },
     checkin: { stand: CHECKIN_METHODE_LABEL[org.instellingen.checkin.methode].split(' (')[0].split(':')[0] },
     ledenapp: { stand: `${app.welkom ? 'Eigen welkom' : 'Standaard welkom'}, QR ${app.qr ? 'aan' : 'uit'}` },
-    'ledenapp-bekijken': { stand: 'Voorvertoning als lid' },
     meldingen: { stand: 'Herinnertijden en welke aan staan' },
     opvolgregels: { stand: regels ? `${regels.filter((r) => r.aan).length} van ${regels.length} aan` : 'Onbekend' },
     betalen: { stand: 'Stripe, producten en verkopen' },

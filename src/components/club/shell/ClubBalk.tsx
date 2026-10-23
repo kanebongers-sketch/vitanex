@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
-import { VESTIGING_PARAM, type Vestiging } from '@/lib/club/kern/vestiging'
+import { VESTIGING_PARAM } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { Module } from '@/lib/club/kern/organisatie'
 import { GROEPEN, groepenMet, menuOnderdeel, onderbalkOnderdelen, onderdelenVan, toetsTekst } from './onderdelen'
+import { HULPBALK, clubHref, hulpItemOp, type HulpSleutel } from './hulpbalk'
 import type { ZoekItem } from './zoeken'
 import { ClubZoeken } from './ClubZoeken'
 import { MenuPaneel } from './MenuPaneel'
@@ -26,12 +27,9 @@ import { UitlogKnop } from './UitlogKnop'
 // vaste balk met de vier onderdelen die je het meest nodig hebt plus Meer (het
 // menupaneel met alles). Zoeken (Ctrl K, / of het vergrootglas) vindt ook leden.
 // Sneltoetsen op de pc: G en dan een letter (G dan L is Leden).
-
-/** Zonder vestiging (sportschool heeft er nog geen) blijft de link zonder ?v=. */
-function href(pad: string, vestiging: Vestiging | null): string {
-  const basis = `/club${pad}`
-  return vestiging ? `${basis}?${VESTIGING_PARAM}=${encodeURIComponent(vestiging)}` : basis
-}
+// Instellingen, Koppelingen, Ledenapp, Wat is nieuw en Hulp staan niet hier
+// maar onderaan in de hulpbalk (Hulpbalk.tsx); op de telefoon onderaan in Meer.
+// Ben je daar, dan licht geen groep op en noemt rij 2 waar je bent.
 
 /** Het merk van de sportschool die open staat: haar logo, of haar naam als woordmerk. */
 export interface ClubMerkInfo {
@@ -76,18 +74,23 @@ interface ClubBalkProps {
   zoek: readonly ZoekItem[]
   /** Mag deze persoon leden zoeken (recht Leden en het onderdeel aan)? */
   ledenZoeken: boolean
+  /** Wat deze persoon in de hulpbalk heeft (ook onderaan in het menupaneel). */
+  hulpbalk: readonly HulpSleutel[]
+  /** Wie er kijkt, voor de teller bij Wat is nieuw. */
+  persoon: string
 }
 
-export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zoek: zoekItems, ledenZoeken }: ClubBalkProps) {
+export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zoek: zoekItems, ledenZoeken, hulpbalk, persoon }: ClubBalkProps) {
   const pad = usePathname()
   const zoek = useSearchParams()
   const router = useRouter()
   const vestiging = kiesUit(useVestigingen(), zoek.get(VESTIGING_PARAM))
   const huidig = menuOnderdeel(pad)
-  const groep = GROEPEN.find((g) => g.sleutel === huidig.groep)
+  const groep = huidig ? GROEPEN.find((g) => g.sleutel === huidig.groep) : undefined
+  const hulpHier = huidig ? undefined : HULPBALK.find((i) => i.sleutel === hulpItemOp(pad))
   const [menuOpen, setMenuOpen] = useState(false)
   const navRef = useRef<HTMLElement>(null)
-  const naar = useCallback((p: string) => href(p, vestiging), [vestiging])
+  const naar = useCallback((p: string) => clubHref(p, vestiging), [vestiging])
   const sluitMenu = useCallback(() => setMenuOpen(false), [setMenuOpen])
   useSneltoetsen({ uit, toegestaan, instellingen, href: naar })
   useActiefInBeeld(navRef, pad)
@@ -107,10 +110,10 @@ export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zo
             <span className="club-merk-woord">CLUB</span>
           </Link>
           <nav className="club-groepen" aria-label="Groepen">
-            {groepenMet(uit, toegestaan, instellingen).map((g) => {
-              const eerste = onderdelenVan(g.sleutel, uit, toegestaan, instellingen)[0]
+            {groepenMet(uit, toegestaan).map((g) => {
+              const eerste = onderdelenVan(g.sleutel, uit, toegestaan)[0]
               return (
-                <Link key={g.sleutel} href={naar(eerste?.pad ?? '')} aria-current={huidig.groep === g.sleutel ? 'true' : undefined} title={g.uitleg}>
+                <Link key={g.sleutel} href={naar(eerste?.pad ?? '')} aria-current={huidig?.groep === g.sleutel ? 'true' : undefined} title={g.uitleg}>
                   {g.label}
                 </Link>
               )
@@ -129,14 +132,22 @@ export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zo
             <UitlogKnop />
           </div>
         </div>
-        <nav ref={navRef} className="club-nav" aria-label={`Onderdelen van ${groep?.label ?? 'de groep'}`}>
+        {(groep || hulpHier) && (
+        <nav ref={navRef} className="club-nav" aria-label={groep ? `Onderdelen van ${groep.label}` : 'Waar je bent'}>
           {/* De groep staat altijd voor de knoppen, zodat je ziet waar je zit (besluit Kane 23-10-2026). */}
-          {groep && (
+          {groep && huidig && (
             <span className="club-nav-groep" data-zelfde={groep.label === huidig.label ? '' : undefined} aria-hidden>
               {groep.label}
             </span>
           )}
-          {onderdelenVan(huidig.groep, uit, toegestaan, instellingen).map((o) => {
+          {/* In de hulpbalk: de naam van het item en wat het is, zonder knoppen (die staan onderaan). */}
+          {hulpHier && (
+            <>
+              <span className="club-nav-groep">{hulpHier.label}</span>
+              <span className="club-nav-uitleg">{hulpHier.uitleg}</span>
+            </>
+          )}
+          {huidig && onderdelenVan(huidig.groep, uit, toegestaan).map((o) => {
             const toets = toetsTekst(o)
             return (
               <Link key={o.sleutel} href={naar(o.pad)} aria-current={huidig.sleutel === o.sleutel ? 'page' : undefined} title={toets ? `${o.uitleg} (${toets})` : o.uitleg}>
@@ -145,10 +156,11 @@ export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zo
             )
           })}
         </nav>
+        )}
       </header>
       <Onderbalk onderdelen={onderbalkOnderdelen(uit, toegestaan)} huidig={huidig} href={naar} menuOpen={menuOpen} onMeer={() => setMenuOpen((o) => !o)} onKies={sluitMenu} />
       {menuOpen && (
-        <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} toegestaan={toegestaan} instellingen={instellingen} href={naar} onSluit={sluitMenu} onWissel={wissel} />
+        <MenuPaneel vestiging={vestiging} pilot={merk.fitFactory} pad={pad} uit={uit} toegestaan={toegestaan} hulpbalk={hulpbalk} persoon={persoon} href={naar} onSluit={sluitMenu} onWissel={wissel} />
       )}
     </>
   )

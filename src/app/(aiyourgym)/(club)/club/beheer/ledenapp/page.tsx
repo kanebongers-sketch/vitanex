@@ -18,7 +18,7 @@ export default async function LedenappInstellenPagina() {
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Ledenapp</h1>
+          <h1>Ledenapp instellen</h1>
           <p>Wat je leden zien in de app: een eigen welkom, welke tabbladen er zijn en de check-in code.</p>
         </div>
         {magOnderdeel(t.onderdelen, 'app') && (

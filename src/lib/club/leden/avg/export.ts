@@ -41,6 +41,22 @@ export interface ExportRuw {
   aankopen: Rij[]
   tegoeden: Rij[]
   tegoedMutaties: Rij[]
+  // Lidgeld (migratie 460 en 461).
+  betaalklant: Rij[]
+  betaalmethoden: Rij[]
+  contracten: Rij[]
+  contractPauzes: Rij[]
+  facturen: Rij[]
+  betalingen: Rij[]
+  terugbetalingen: Rij[]
+  geschillen: Rij[]
+  betaalherinneringen: Rij[]
+  kasboek: Rij[]
+  betaalopdrachten: Rij[]
+  // Koppelingen met health-apps (migratie 463).
+  healthToestemmingen: Rij[]
+  healthKoppelingen: Rij[]
+  healthMetingen: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -196,6 +212,52 @@ export const SECTIES: readonly Sectie[] = [
   },
   { sleutel: 'tegoeden', titel: 'Tegoeden', velden: { product_naam: 'Product', soort: 'Soort', totaal: 'Totaal', saldo: 'Over', geldig_tot: 'Geldig tot', aangemaakt_op: 'Sinds' } },
   { sleutel: 'tegoedMutaties', titel: 'Gebruik van tegoeden', velden: { aantal: 'Aantal', reden: 'Reden', door: 'Door', op: 'Moment' } },
+  // Lidgeld (migratie 460 en 461). Nooit Stripe-kenmerken, nooit een IBAN of kaartnummer.
+  { sleutel: 'betaalklant', titel: 'Betaalgegevens: klant', velden: { aangemaakt_op: 'Klant sinds' } },
+  {
+    sleutel: 'betaalmethoden',
+    titel: 'Betaalmethoden en machtigingen',
+    velden: { type: 'Soort', laatste4: 'Laatste vier cijfers', status: 'Status', is_standaard: 'Standaard', bron: 'Afgesloten via', machtiging_kenmerk: 'Kenmerk van de machtiging', ondertekend_op: 'Machtiging gegeven op', laatste_incasso_op: 'Laatste incasso op', aangemaakt_op: 'Toegevoegd op' },
+  },
+  {
+    sleutel: 'contracten',
+    titel: 'Lidmaatschapscontracten',
+    velden: {
+      plan_naam: 'Abonnement', status: 'Status', interval_soort: 'Betaling per', bedrag_cent: 'Bedrag per termijn (eurocent)', btw_procent: 'Btw (%)',
+      contract_maanden: 'Looptijd (maanden)', opzegtermijn_dagen: 'Opzegtermijn (dagen)', startdatum: 'Begindatum', einddatum: 'Einddatum', opgezegd_op: 'Opgezegd op',
+      opzeg_einddatum: 'Eindigt na opzeggen op', voorwaarden_versie: 'Versie van de voorwaarden', akkoord_op: 'Akkoord gegeven op', notitie: 'Notitie', aangemaakt_op: 'Afgesloten op',
+    },
+  },
+  { sleutel: 'contractPauzes', titel: 'Pauzes van het abonnement', velden: { van: 'Van', tot: 'Tot en met', status: 'Status', reden: 'Reden', verrekening_cent: 'Verrekend (eurocent)', aangemaakt_op: 'Aangevraagd op' } },
+  {
+    sleutel: 'facturen',
+    titel: 'Facturen',
+    velden: {
+      nummer: 'Factuurnummer', soort: 'Soort', status: 'Status', uitgegeven_op: 'Factuurdatum', vervaldatum: 'Te betalen voor', periode_van: 'Periode van', periode_tot: 'Periode tot',
+      subtotaal_excl_cent: 'Bedrag excl. btw (eurocent)', btw_cent: 'Btw (eurocent)', totaal_cent: 'Totaal (eurocent)', betaald_cent: 'Betaald (eurocent)', betaald_op: 'Betaald op',
+      klant_naam: 'Naam op de factuur', klant_adres: 'Adres op de factuur', klant_email: 'E-mail',
+    },
+    lijsten: {
+      club_betalen_factuurregels: {
+        titel: 'Regels',
+        velden: { volgorde: 'Volgorde', omschrijving: 'Omschrijving', aantal: 'Aantal', bedrag_excl_cent: 'Excl. btw (eurocent)', btw_procent: 'Btw (%)', btw_cent: 'Btw (eurocent)', bedrag_incl_cent: 'Incl. btw (eurocent)' },
+      },
+    },
+  },
+  { sleutel: 'betalingen', titel: 'Betalingen en incasso', velden: { soort: 'Soort', poging: 'Poging', bedrag_cent: 'Bedrag (eurocent)', status: 'Status', fout_categorie: 'Reden van mislukken', aangeboden_op: 'Aangeboden op', verwerkt_op: 'Verwerkt op', mislukt_op: 'Mislukt op', gestorneerd_op: 'Teruggeboekt op', aangemaakt_op: 'Gestart op' } },
+  { sleutel: 'terugbetalingen', titel: 'Terugbetalingen', velden: { bedrag_cent: 'Bedrag (eurocent)', status: 'Status', reden_code: 'Reden', toelichting: 'Toelichting', aangemaakt_op: 'Aangevraagd op', verwerkt_op: 'Verwerkt op' } },
+  { sleutel: 'geschillen', titel: 'Betwiste betalingen', velden: { bedrag_cent: 'Bedrag (eurocent)', status: 'Status', reden_code: 'Reden', toelichting: 'Toelichting', aangemaakt_op: 'Gemeld op', gesloten_op: 'Afgesloten op' } },
+  { sleutel: 'betaalherinneringen', titel: 'Betalingsherinneringen', velden: { stap: 'Stap', kanaal: 'Kanaal', status: 'Status', gepland_op: 'Gepland op', verstuurd_op: 'Verstuurd op' } },
+  { sleutel: 'kasboek', titel: 'Boekingen in het kasboek', velden: { soort: 'Soort', bedrag_cent: 'Bedrag (eurocent)', boekdatum: 'Boekdatum', aangemaakt_op: 'Vastgelegd op' } },
+  { sleutel: 'betaalopdrachten', titel: 'Opdrachten aan de betaalprovider', velden: { soort: 'Soort', status: 'Status', aangemaakt_op: 'Gemaakt op', klaar_op: 'Klaar op' } },
+  // Koppelingen met health-apps (migratie 463). Nooit de tokens.
+  {
+    sleutel: 'healthToestemmingen',
+    titel: 'Toestemming voor gegevens uit apps',
+    velden: { delen: 'Mag ophalen en bewaren', trainer_zien: 'Trainers mogen zien', trainer_bronnen: 'Trainers mogen ook zien van', tekst_versie: 'Versie van de uitleg', gegeven_op: 'Gekozen op', ingetrokken_op: 'Ingetrokken op' },
+  },
+  { sleutel: 'healthKoppelingen', titel: 'Gekoppelde apps en apparaten', velden: { bron: 'App of apparaat', status: 'Status', laatste_sync_op: 'Laatst bijgewerkt op', aangemaakt_op: 'Gekoppeld op' } },
+  { sleutel: 'healthMetingen', titel: 'Metingen uit apps', velden: { gemeten_op: 'Moment', soort: 'Soort', waarde: 'Waarde', training: 'Training', bron: 'Uit' } },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */
@@ -238,7 +300,7 @@ export interface ExportMeta {
 
 export const EXPORT_UITLEG =
   'Dit bestand bevat alle gegevens die de sportschool in Club over dit lid bewaart, op het moment van downloaden. ' +
-  'Abonnementen, contracten en incasso staan niet in Club maar in de ledenadministratie van de sportschool; aankopen in de app staan er wel in. ' +
+  'Abonnementen en incasso staan alleen in Club als de sportschool die daar laat lopen, anders in de ledenadministratie van de sportschool; aankopen in de app staan er altijd in. ' +
   'Pincodes en inloglinks zijn om veiligheidsredenen niet opgenomen.'
 
 /** Het volledige bestand: per onderdeel een lijst rijen met Nederlandse sleutels. */
@@ -284,6 +346,10 @@ const PERIODE_KOLOM: Partial<Record<SectieSleutel, string>> = {
   communityBerichten: 'aangemaakt_op',
   aankopen: 'aangemaakt_op',
   tegoedMutaties: 'op',
+  facturen: 'uitgegeven_op',
+  betalingen: 'aangemaakt_op',
+  kasboek: 'boekdatum',
+  healthMetingen: 'gemeten_op',
 }
 
 /** Een korte samenvatting in gewone tekst, om mee te sturen met het bestand. */

@@ -20,7 +20,7 @@ export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: Samenv
   const stappen = [
     { Icoon: CalendarCheck, tekst: aanvraag ? 'We nemen zelf contact met je op om je sportschool te starten.' : `Je start met ${proefdagen} dagen gratis. Daarna per maand, per vestiging.` },
     { Icoon: LayoutDashboard, tekst: aanvraag ? 'Na de start staat je eigen omgeving klaar, met een basisbibliotheek met oefeningen.' : 'Je eigen omgeving staat direct klaar, met een basisbibliotheek met oefeningen.' },
-    { Icoon: KeyRound, tekst: 'Je logt in met je e-mailadres en het wachtwoord dat je hier kiest. Een startwizard helpt je met huisstijl, vestigingen, lessen en team.' },
+    { Icoon: KeyRound, tekst: 'Je logt in met je e-mailadres en het wachtwoord dat je hier kiest. Daarna richt de startwizard in acht stappen alles in: huisstijl, vestiging, lessen, team en leden.' },
   ]
   return (
     <aside className="aan-samen ayg-podium" aria-label="Je aanmelding">

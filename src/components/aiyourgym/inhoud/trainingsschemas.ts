@@ -45,9 +45,9 @@ export const SCHEMA_STAPPEN: readonly SchemaStap[] = [
     kop: 'Aanpassen zoals jij traint.',
     tekst: 'In de editor zet de trainer het schema naar zijn hand. Tot zeven trainingsdagen, per oefening alles wat je op de vloer wilt afspreken.',
     punten: [
-      'Per oefening sets, herhalingen, gewicht, rust en een notitie voor het lid',
-      'Oefeningen zoeken op naam en filteren op spier, materiaal en niveau',
-      'Opslaan als sjabloon en een sjabloon toepassen op een ander lid',
+      'Supersets en circuits, en per oefening sets, herhalingen of tijd, gewicht, RPE of RIR, rust, tempo en een notitie',
+      'Slepen om de volgorde te bepalen, en ongedaan maken als het per ongeluk was',
+      'Starten vanuit een basisschema of een eigen sjabloon, en een schema kopieren naar een ander lid',
       'Printen voor wie liever met papier traint',
     ],
   },
@@ -84,7 +84,7 @@ export const SCHEMA_STAPPEN: readonly SchemaStap[] = [
       'Dag A, B en C, met de volgende training al aangegeven',
       'Tik op een oefening voor de bewegende illustratie en alle coaching',
       'De notitie van de trainer bij de oefening',
-      'Na de training afvinken met een tik, en ongedaan maken als het per ongeluk was',
+      'Per set invullen wat het lid deed, of de training alleen afvinken',
     ],
   },
   {
@@ -94,9 +94,9 @@ export const SCHEMA_STAPPEN: readonly SchemaStap[] = [
     tekst: 'Elke afgevinkte training en elke meting komt op een tijdlijn. De trainer ziet of het schema gevolgd wordt, het lid ziet zijn eigen vooruitgang.',
     punten: [
       'Trainingen per week en hoeveel weken op rij, met mijlpalen',
+      'Per oefening de gelogde sets, met een vaste regel voor wanneer het zwaarder kan',
       'Lichaamsmaten in een grafiek: gewicht, omtrek, vetpercentage en spiermassa',
       'Het lid ziet alleen zijn eigen maten en trainingen, nooit de notities van de trainer',
-      'De trainer ziet het verloop van de metingen over alle intakes',
     ],
   },
 ]

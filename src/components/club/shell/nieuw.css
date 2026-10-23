@@ -1,0 +1,25 @@
+/* ─── Club: Wat is nieuw (/club/nieuw) ───────────────────────────────────────
+   Een tijdlijn per maand: datum links in condensed kapitalen, de update rechts.
+   Wat je bij deze keer openen nog niet zag, krijgt een streep in de
+   accentkleur en het label Nieuw (ook als tekst, niet alleen als kleur). */
+
+.club-nieuw { display: grid; gap: 32px; }
+.club-nieuw-maandkop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 12px; }
+.club-nieuw-maandkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.club-nieuw-maandkop p { margin: 0; color: var(--text-3); font-size: 14px; max-width: var(--club-lees); }
+
+.club-nieuw-punten { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.club-nieuw-punt { position: relative; display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 16px; padding: 16px 0 16px 14px; border-bottom: 1px solid var(--line); }
+.club-nieuw-punt::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 3px; background: var(--brand); transform: scaleY(0); }
+.club-nieuw-punt[data-nieuw='true'] { background: linear-gradient(to right, var(--brand-soft), transparent 60%); }
+.club-nieuw-punt[data-nieuw='true']::before { transform: scaleY(1); }
+
+.club-nieuw-datum { padding-top: 2px; font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-nieuw-inhoud { display: grid; gap: 4px; max-width: var(--club-lees); }
+.club-nieuw-inhoud h3 { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--text-1); }
+.club-nieuw-inhoud p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.55; text-wrap: pretty; }
+.club-nieuw-onderwerp { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+
+@media (max-width: 599px) {
+  .club-nieuw-punt { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}

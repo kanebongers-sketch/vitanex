@@ -1,0 +1,5 @@
+[
+  { "id": 154504250376823, "name": "Ochtendloop", "type": "Run", "sport_type": "Run", "start_date": "2026-10-20T06:30:00Z", "elapsed_time": 2100, "moving_time": 1980, "has_heartrate": true, "average_heartrate": 151.3 },
+  { "id": 154504250376824, "name": "Rit", "type": "Ride", "sport_type": "MountainBikeRide", "start_date": "2026-10-21T15:00:00Z", "elapsed_time": 5400, "moving_time": 5000, "has_heartrate": false, "kilojoules": 900 },
+  { "id": 3, "name": "kapot" }
+]

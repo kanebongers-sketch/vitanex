@@ -25,7 +25,7 @@ export const HOME_VRAGEN: readonly VraagMetLink[] = [
   {
     vraag: 'Doet AI Your Gym ook de incasso en abonnementen van mijn leden?',
     antwoord:
-      'Nee. Incasso, abonnementen en facturen van leden blijven in je eigen ledenadministratie. AI Your Gym doet de rest van de club: check-in, lessen en reserveren, trainingsschema’s, de ledenapp, leads, personeel en cijfers. Je leden lees je in met een CSV-bestand.',
+      'Nee. Incasso, abonnementen en facturen van leden blijven in je eigen ledenadministratie. AI Your Gym doet de rest van de club: check-in, lessen en reserveren, trainingsschema’s, de ledenapp, leads, personeel en cijfers. Je leden lees je in met een CSV- of Excel-bestand.',
     link: { label: 'Alles wat we wel en niet doen', pad: '/overstappen#wel-niet' },
   },
   VRAAG_CONTRACT,
@@ -51,7 +51,7 @@ export interface WelNietPunt {
 export const WEL: readonly WelNietPunt[] = [
   { titel: 'Check-in en balie', tekst: 'Leden checken in met de QR-code in de ledenapp; de balie ziet wie er komt.' },
   { titel: 'Lessen en rooster', tekst: 'Groepslessen per zaal, reserveren met wachtlijst, en het personeelsrooster met uren.' },
-  { titel: 'Trainingsschema’s', tekst: 'Intakes en schema’s met coaching en een 3D-beeld bij de oefeningen.' },
+  { titel: 'Trainingsschema’s', tekst: 'Intakes en schema’s met coaching en een bewegend beeld bij elke oefening.' },
   { titel: 'Ledenapp', tekst: 'Een web-app in je eigen naam en kleuren, voor lessen, schema en check-in.' },
   { titel: 'Leads en opvolgen', tekst: 'Belangstellenden en proeflessen, en leden die wegblijven op tijd in beeld.' },
   { titel: 'Cijfers', tekst: 'Bezoek, bezetting, leden en uren per kalendermaand, te exporteren als CSV.' },
@@ -61,7 +61,7 @@ export const WEL: readonly WelNietPunt[] = [
 export const NIET: readonly WelNietPunt[] = [
   { titel: 'Incasso en facturen van leden', tekst: 'Die blijven in je eigen ledenadministratie. AI Your Gym werkt ernaast.' },
   { titel: 'Abonnementen van leden beheren', tekst: 'De naam van het abonnement lees je mee in; het contract zelf blijft waar het nu staat.' },
-  { titel: 'Een koppeling met je ledenadministratie', tekst: 'Er is nog geen automatische koppeling. Je leest je leden in met een CSV-bestand, en opnieuw als er veel veranderd is.' },
+  { titel: 'Een koppeling met je ledenadministratie', tekst: 'Er is nog geen automatische koppeling. Je leest je leden in met een CSV- of Excel-bestand, en opnieuw als er veel veranderd is.' },
   { titel: 'Een eigen app in de app stores', tekst: 'De ledenapp is een web-app die leden op hun beginscherm zetten, zonder app store.' },
 ]
 

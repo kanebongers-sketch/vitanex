@@ -8,6 +8,8 @@ import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { ClubBalk } from '@/components/club/shell/ClubBalk'
 import { zoekItems } from '@/components/club/shell/zoeken'
+import { hulpbalkVoor, kijkerSleutel } from '@/components/club/shell/hulpbalk'
+import { Hulpbalk } from '@/components/club/shell/Hulpbalk'
 import { heeftInstellingen } from '@/lib/club/kern/instel-paginas'
 import { instelKijker } from '@/lib/club/instel-toegang'
 import { MerkProvider } from '@/components/club/shell/MerkContext'
@@ -57,6 +59,10 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   // hulp en het abonnement; het team wacht tot de eigenaar klaar is.
   const poortDicht = await wizardPoortDicht(t)
   const eigenaar = magBeheerdersBeheren(t)
+  // De hulpbalk onderaan (Instellingen, Koppelingen, Ledenapp, Wat is nieuw, Hulp), alleen wat deze persoon mag.
+  const hulpbalk = hulpbalkVoor(kijker, instellingen)
+  // Wie er kijkt, voor wat hij al zag bij Wat is nieuw (alleen in zijn eigen browser bewaard).
+  const persoon = kijkerSleutel(t)
   return (
     <div className="club-app" style={stijl} data-thema={org.thema}>
       <MerkProvider merk={merk}>
@@ -65,10 +71,15 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
           ) : (
             <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} ledenZoeken={ledenZoeken} />
+              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk} persoon={persoon} />
             </Suspense>
           )}
           <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>
+          {!poortDicht && (
+            <Suspense fallback={null}>
+              <Hulpbalk sleutels={hulpbalk} persoon={persoon} />
+            </Suspense>
+          )}
         </VestigingenProvider>
       </MerkProvider>
       <footer className="club-voet">
