@@ -8,6 +8,9 @@ import { modulesNaarJson, type HuisstijlInvoer } from './organisatie-invoer'
 import { LOGO_FIT_FACTORY } from './organisatie'
 import { isStandaardOefening } from '@/lib/club/training/beelden-repdb'
 
+/** Een nieuwe sportschool start in de kleur van AI Your Gym (smaragd), niet in die van een andere klant; in de startwizard kiest ze haar eigen kleur. */
+const NIEUWE_SPORTSCHOOL_ACCENT = '#1FA77A'
+
 export const LOGO_BUCKET = 'club-logo'
 
 export async function bewaarHuisstijl(t: ClubToegang, invoer: HuisstijlInvoer): Promise<boolean> {
@@ -104,7 +107,7 @@ export async function maakOrganisatie(t: ClubToegang, naam: string): Promise<Nie
   const bibliotheek = await basisBibliotheek(t)
   if (!bibliotheek) return { ok: false, fout: 'De oefenbibliotheek kon niet worden gelezen. Probeer het opnieuw.', status: 500 }
   const id = randomUUID()
-  const { error } = await t.admin.from('club_organisaties').insert({ id, beheerder_id: t.beheerderId, naam, kleur_accent: '#B58E5C', thema: 'donker' })
+  const { error } = await t.admin.from('club_organisaties').insert({ id, beheerder_id: t.beheerderId, naam, kleur_accent: NIEUWE_SPORTSCHOOL_ACCENT, thema: 'donker' })
   if (error) {
     if (error.code === '23505') return { ok: false, fout: 'Er is al een sportschool met deze naam.', status: 409 }
     console.error('[club] sportschool aanmaken mislukt', error.message)
