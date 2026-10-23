@@ -50,3 +50,60 @@ export function eersteDagStand(punten: readonly EersteDagPunt[]): { af: number; 
   const meetbaar = punten.filter((p) => p.af !== null)
   return { af: meetbaar.filter((p) => p.af === true).length, meetbaar: meetbaar.length }
 }
+
+// ── "Je bent live": de drie dingen voor dag 1 ─────────────────────────────
+// Na afronden: poster met QR printen, leden uitnodigen voor de app en de
+// check-in openen. Alleen links naar pagina's die echt bestaan, en alleen als
+// de onderdelen aan staan die ze nodig hebben.
+
+export interface LiveActie {
+  id: 'poster' | 'uitnodigen' | 'checkin'
+  titel: string
+  uitleg: string
+  /** Tekst op de knop. */
+  knop: string
+  pad: string
+}
+
+interface LiveBron extends Omit<LiveActie, 'pad'> {
+  pad: string
+  nodig: readonly Module[]
+}
+
+const LIVE: readonly LiveBron[] = [
+  {
+    id: 'poster',
+    titel: 'Poster met QR-code',
+    uitleg: 'Een A4 voor de balie of de muur, in je eigen kleur en met je logo. Leden scannen de code, vullen hun e-mailadres in en kiezen een wachtwoord.',
+    knop: 'Poster printen',
+    pad: '/leden/app-poster',
+    nodig: ['leden', 'app'],
+  },
+  {
+    id: 'uitnodigen',
+    titel: 'Leden uitnodigen voor de app',
+    uitleg: 'Bij Leden kies je Leden uitnodigen voor de app. Je ziet eerst hoeveel mails er gaan; pas na bevestigen worden ze verstuurd.',
+    knop: 'Naar Leden',
+    pad: '/leden',
+    nodig: ['leden', 'app'],
+  },
+  {
+    id: 'checkin',
+    titel: 'Check-in openen',
+    uitleg: 'Open de check-in op de tablet of pc bij de ingang. Leden checken in met de QR-code uit hun app.',
+    knop: 'Check-in openen',
+    pad: '/checkin',
+    nodig: ['checkin'],
+  },
+]
+
+/** De acties voor dag 1, zonder wat niet kan omdat een onderdeel uit staat. */
+export function liveActies(uit: readonly string[], vestiging: Vestiging | null): LiveActie[] {
+  return LIVE.filter((a) => a.nodig.every((m) => !uit.includes(m))).map((a) => ({
+    id: a.id,
+    titel: a.titel,
+    uitleg: a.uitleg,
+    knop: a.knop,
+    pad: vestiging ? clubPad(a.pad, vestiging) : `/club${a.pad}`,
+  }))
+}

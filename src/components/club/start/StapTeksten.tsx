@@ -9,14 +9,14 @@ import { eersteDagStand, type EersteDagPunt } from '@/lib/club/start/eerste-dag'
 // Niets hier belooft meer dan Club doet.
 
 export const STAP_INTRO: Record<StapSleutel, string> = {
-  soort: 'Binnen een kwartier staat je sportschool live. Kies wat voor sportschool je hebt; wij zetten de rest alvast klaar. Elke stap kun je overslaan.',
-  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. Rechts zie je meteen hoe de ledenapp eruitziet.',
+  soort: 'In ongeveer een kwartier staat je sportschool live. Kies wat voor sportschool je hebt, dan zetten wij de rest alvast klaar. Elke stap kun je overslaan en je voortgang wordt steeds bewaard.',
+  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
   vestigingen: 'Waar je sportschool zit en wanneer hij open is. Een klik voor de standaardtijden, of stel ze per dag in.',
   onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
   lessen: 'De groepslessen die je geeft, en eventueel een paar vaste lessen in je week.',
   team: 'Alleen naam, e-mail en rol. Uitnodigen om in te loggen doe je later bij Medewerkers, wanneer het jou uitkomt.',
   leden: 'Lees je leden in uit je huidige systeem, of doe het later. Bekijk eerst hoe het werkt met een voorbeeld.',
-  klaar: 'Je sportschool staat. Loop dit lijstje na, dan ben je klaar voor je eerste dag.',
+  klaar: 'Je sportschool staat. Hier zie je je eigen adressen en een kort lijstje voor je eerste dag. Rond af als het klopt.',
 }
 
 const UITKOMST: Record<DemoUitkomst, { label: string; chip: string }> = {

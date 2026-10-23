@@ -31,10 +31,15 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   const router = useRouter()
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const [gelukt, setGelukt] = useState(false)
   const laatste = stap >= AANTAL_STAPPEN
 
-  /** Voortgang opslaan en door. `moetLukken`: alleen bij klaar en afronden blijft een fout staan. */
-  async function naar(body: Record<string, unknown>, href: string, moetLukken: boolean) {
+  /**
+   * Voortgang opslaan en door. `moetLukken`: alleen bij klaar en afronden blijft
+   * een fout staan. Zonder adres blijf je op deze stap en ververst de pagina
+   * (afronden: je ziet meteen wat er live staat).
+   */
+  async function naar(body: Record<string, unknown>, href: string | null, moetLukken: boolean) {
     setBezig(true)
     setFout(null)
     const uit = await stuur('/api/club/start', 'PATCH', body)
@@ -43,25 +48,30 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
       setFout(uit.fout)
       return
     }
-    router.push(href)
+    if (href) return router.push(href)
+    setBezig(false)
+    setGelukt(true)
+    router.refresh()
+    const zacht = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: 0, behavior: zacht ? 'smooth' : 'auto' })
   }
 
   /** Deze stap is klaar: eerst opslaan (als dat moet), dan door naar de volgende. */
   async function verder(voorVerder?: () => Promise<boolean>) {
     if (voorVerder) {
       setBezig(true)
-      const gelukt = await voorVerder()
+      const opgeslagen = await voorVerder()
       setBezig(false)
-      if (!gelukt) return
+      if (!opgeslagen) return
     }
-    if (laatste) return naar({ afronden: true }, '/club', true)
+    if (laatste) return naar({ afronden: true }, null, true)
     await naar({ stap: stap + 1, klaar: sleutel }, startPad(stap + 1, vestiging), true)
   }
 
   const vorige = () => naar({ stap: stap - 1 }, startPad(stap - 1, vestiging), false)
   const overslaan = () => naar({ stap: stap + 1 }, startPad(stap + 1, vestiging), false)
   const later = () => naar({ stap }, '/club', false)
-  return { bezig, fout, laatste, verder, vorige, overslaan, later, naarClub: () => router.push('/club') }
+  return { bezig, fout, gelukt, laatste, verder, vorige, overslaan, later, naarClub: () => router.push('/club') }
 }
 
 export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false }: StartVoetProps) {
@@ -82,6 +92,7 @@ export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afger
       </div>
       <div className="club-start-voet-rechts" aria-live="polite">
         {fout && <p className="club-fout" role="alert">{fout}</p>}
+        {gang.gelukt && <span className="sr-only">Afgerond. Je sportschool staat live.</span>}
         {!laatste && (
           <button type="button" className="club-knop" disabled={bezig} onClick={() => void gang.overslaan()}>
             Overslaan

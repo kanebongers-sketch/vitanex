@@ -1,17 +1,19 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
-import type { ZoekParams } from '@/lib/club/kern/vestiging'
+import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
-import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
+import { LOGO_FIT_FACTORY, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
+import { adresVan, sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { nlDelen } from '@/lib/club/rooster/tijd'
-import { NIEUWE_START, STAPPEN, moetNaarWizard, stapUitParam, stappenStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
+import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
 import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
 import { pakketVoor, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { ALLE_LESSEN, VOORBEELD_LESTYPEN } from '@/lib/club/start/voorbeelden'
-import { eersteDag } from '@/lib/club/start/eerste-dag'
+import { eersteDag, liveActies } from '@/lib/club/start/eerste-dag'
 import { StartKader } from '@/components/club/start/StartKader'
 import { StartVoet } from '@/components/club/start/StartVoet'
 import { StapSoort } from '@/components/club/start/StapSoort'
@@ -20,6 +22,8 @@ import { StapOnderdelen } from '@/components/club/start/StapOnderdelen'
 import { StapLessen } from '@/components/club/start/StapLessen'
 import { Klaargezet } from '@/components/club/start/Klaargezet'
 import { STAP_INTRO, StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
+import { StapLive, type LiveAdressen } from '@/components/club/start/StapLive'
+import { StreefdatumKiezer } from '@/components/club/start/StreefdatumKiezer'
 import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze, bronVan } from '@/components/club/start/StapInstellingen'
 
 export const metadata: Metadata = { title: 'Startwizard' }
@@ -40,6 +44,17 @@ interface StapProps {
   afgerond: boolean
   feiten: StartFeiten
   stand: ReturnType<typeof stappenStand>
+  /** De gekozen streefdatum voor livegang (YYYY-MM-DD), of null. */
+  streefdatum: string | null
+}
+
+/** De keuze van de streefdatum, met de stand erbij als er al een datum is. */
+function Streef({ streefdatum, stand }: Pick<StapProps, 'streefdatum' | 'stand'>) {
+  const vandaag = nlDelen(new Date()).datum
+  const open = stand.filter((s) => !s.af).length
+  const streef = streefdatum ? streefStand(streefdatum, vandaag, open) : null
+  const tekst = streef ? `${streef.kop}. ${streef.dagen}.` : null
+  return <StreefdatumKiezer huidig={streefdatum} vandaag={vandaag} stand={tekst} />
 }
 
 function MetVoet({ voet, children }: { voet: Parameters<typeof StartVoet>[0]; children: ReactNode }) {
@@ -49,6 +64,18 @@ function MetVoet({ voet, children }: { voet: Parameters<typeof StartVoet>[0]; ch
       <StartVoet {...voet} />
     </>
   )
+}
+
+/** Het geuploade logo als adres; het ingebouwde logo of geen logo = null. */
+function logoAdres(org: Organisatie): string | null {
+  return org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
+}
+
+/** De echte adressen van deze sportschool, of null als er nog geen eigen adres is. */
+function liveAdressen(org: Organisatie): LiveAdressen | null {
+  if (!org.slug) return null
+  const sub = subdomeinenActief()
+  return { basis: adresVan(org.slug, sub), ledenapp: sportschoolUrl(org.slug, sub, '/mijn'), inloggen: sportschoolUrl(org.slug, sub, '/inloggen') }
 }
 
 /** Per vestiging of er al zelf gekozen openingstijden zijn, en de namen van de lestypen (voor stap 1). */
@@ -111,17 +138,22 @@ async function Lessen({ t, voet, soort }: Pick<StapProps, 't' | 'voet' | 'soort'
 }
 
 /** Stappen met eigen invoer brengen hun eigen voet mee; de rest krijgt de standaardvoet. */
-async function StapInhoud({ t, voet, soort, afgerond, feiten, stand }: StapProps) {
+async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum }: StapProps) {
   const org = t.organisatie
   const waarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
   const vestiging = voet.vestiging
   switch (voet.sleutel) {
     case 'soort': {
       const bestaand = await haalBestaand(t)
-      return <StapSoort key={org.id} gekozen={soort} organisatie={waarden} vestigingen={bestaand.vestigingen} lestypen={bestaand.lestypen} lesVestiging={vestiging ?? t.vestigingen[0]?.sleutel ?? null} voet={voet} />
+      return (
+        <>
+          <Streef streefdatum={streefdatum} stand={stand} />
+          <StapSoort key={org.id} gekozen={soort} organisatie={waarden} vestigingen={bestaand.vestigingen} lestypen={bestaand.lestypen} lesVestiging={vestiging ?? t.vestigingen[0]?.sleutel ?? null} voet={voet} />
+        </>
+      )
     }
     case 'huisstijl': {
-      const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
+      const logoUrl = logoAdres(org)
       return <StapHuisstijl key={org.id} organisatie={waarden} logoUrl={logoUrl} ingebouwdLogo={org.logo === LOGO_FIT_FACTORY} voet={voet} />
     }
     case 'vestigingen':
@@ -137,7 +169,24 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand }: StapProps
       return <MetVoet voet={voet}><StapLedenInlezen importPad={importPad} vandaag={nlDelen(new Date()).datum} /></MetVoet>
     }
     case 'klaar':
-      return <MetVoet voet={{ ...voet, afgerond }}><StapKlaar punten={eersteDag(feiten, vestiging)} stand={stand} vestiging={vestiging} /></MetVoet>
+      return (
+        <MetVoet voet={{ ...voet, afgerond }}>
+          <StapLive
+            afgerond={afgerond}
+            af={aantalAf(stand)}
+            totaal={AANTAL_STAPPEN}
+            adressen={liveAdressen(org)}
+            adresKiezenPad={vestiging ? clubPad('/huisstijl', vestiging) : '/club/huisstijl'}
+            naam={org.naam}
+            kleur={org.kleurAccent}
+            thema={org.thema}
+            logo={logoAdres(org)}
+            acties={liveActies(feiten.uit, vestiging)}
+          />
+          {!afgerond && <Streef streefdatum={streefdatum} stand={stand} />}
+          <StapKlaar punten={eersteDag(feiten, vestiging)} stand={stand} vestiging={vestiging} />
+        </MetVoet>
+      )
   }
 }
 
@@ -150,11 +199,12 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   if (gelezen.ok && moetNaarWizard(t.organisatie, t.beheerderId, voortgang) && (await bewaarStart(t, NIEUWE_START))) voortgang = NIEUWE_START
   const feiten = await haalStartFeiten(t)
   const stand = stappenStand(voortgang, feiten)
-  const huidig = stapUitParam(params.stap) ?? voortgang?.stap ?? 1
+  const stapInUrl = stapUitParam(params.stap)
+  const huidig = stapInUrl ?? voortgang?.stap ?? 1
   const sleutel = STAPPEN[huidig - 1].sleutel
   const vestiging = kiesUit(t.vestigingen, params.v)
   return (
-    <StartKader sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]}>
+    <StartKader sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
       {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">Je voortgang kon niet worden gelezen. Je kunt gewoon verder; probeer het later opnieuw als iets niet wordt bewaard.</p>}
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}
@@ -164,6 +214,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
         afgerond={Boolean(voortgang?.afgerondOp)}
         feiten={feiten}
         stand={stand}
+        streefdatum={voortgang?.streefdatum ?? null}
       />
     </StartKader>
   )

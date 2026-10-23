@@ -3,7 +3,7 @@
 // te slaan en later te hervatten. De eerste stap is de soort sportschool: die
 // zet alvast slimme standaarden klaar, zodat de rest vooral "Klopt" is.
 // De voortgang staat per sportschool in club_organisaties.instellingen onder
-// `start`: { stap, klaar[], afgerond_op, soort }.
+// `start`: { stap, klaar[], afgerond_op, soort, streefdatum }.
 // Wat al af is, leiden we daarnaast af uit de echte data (een logo, een
 // vestiging met adres, lestypen, medewerkers, leden): wie het via een andere
 // weg al deed, hoeft hier niets dubbel te doen.
@@ -47,9 +47,11 @@ export interface StartVoortgang {
   afgerondOp: string | null
   /** De gekozen soort sportschool (bepaalt de standaarden), of null. */
   soort: SportschoolSoort | null
+  /** Wanneer de eigenaar live wil (YYYY-MM-DD, zelf gekozen en optioneel), of null. */
+  streefdatum: string | null
 }
 
-export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null, soort: null }
+export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null, soort: null, streefdatum: null }
 
 function object(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
@@ -90,6 +92,15 @@ function isIsoDatum(v: unknown): v is string {
   return typeof v === 'string' && v.length <= 40 && !Number.isNaN(Date.parse(v))
 }
 
+/** Een echte kalenderdag als YYYY-MM-DD, tussen 2020 en 2100 (geen 31 februari). */
+export function isStreefdatum(v: unknown): v is string {
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
+  const [j, m, d] = v.split('-').map(Number)
+  if (j < 2020 || j > 2100) return false
+  const dag = new Date(Date.UTC(j, m - 1, d))
+  return dag.getUTCFullYear() === j && dag.getUTCMonth() === m - 1 && dag.getUTCDate() === d
+}
+
 /**
  * Uit de jsonb van club_organisaties.instellingen de voortgang, of null als er
  * (nog) geen voortgang is. Kapotte velden worden de standaard.
@@ -103,12 +114,13 @@ export function leesStart(instellingen: unknown): StartVoortgang | null {
     klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)),
     afgerondOp: isIsoDatum(s.afgerond_op) ? s.afgerond_op : null,
     soort: isSportschoolSoort(s.soort) ? s.soort : null,
+    streefdatum: isStreefdatum(s.streefdatum) ? s.streefdatum : null,
   }
 }
 
 /** Naar de database (snake_case zoals de rest van de kolom). */
 export function startNaarJson(v: StartVoortgang): Record<string, unknown> {
-  return { stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp, soort: v.soort }
+  return { stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp, soort: v.soort, streefdatum: v.streefdatum }
 }
 
 /** De hele kolom met de nieuwe voortgang erin; andere sleutels (ledenapp, rechten) blijven staan. */
@@ -129,11 +141,13 @@ export interface StartInvoer {
   afronden?: boolean
   /** De gekozen soort sportschool. */
   soort?: SportschoolSoort
+  /** De streefdatum voor livegang (YYYY-MM-DD); null = weghalen. */
+  streefdatum?: string | null
 }
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
-const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden', 'soort'])
+const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden', 'soort', 'streefdatum'])
 
 /** Streng: alleen bekende velden met geldige waarden, en minstens een. */
 export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
@@ -145,6 +159,7 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
   if ('open' in o && !isStapSleutel(o.open)) return { ok: false, fout: 'Onbekende stap.' }
   if ('afronden' in o && typeof o.afronden !== 'boolean') return { ok: false, fout: 'Kies afronden of openen.' }
   if ('soort' in o && !isSportschoolSoort(o.soort)) return { ok: false, fout: 'Onbekende soort sportschool.' }
+  if ('streefdatum' in o && o.streefdatum !== null && !isStreefdatum(o.streefdatum)) return { ok: false, fout: 'Kies een geldige datum.' }
   if (Object.keys(o).length === 0) return { ok: false, fout: 'Er is niets om op te slaan.' }
   return {
     ok: true,
@@ -154,6 +169,7 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
       ...(isStapSleutel(o.open) ? { open: o.open } : {}),
       ...(typeof o.afronden === 'boolean' ? { afronden: o.afronden } : {}),
       ...(isSportschoolSoort(o.soort) ? { soort: o.soort } : {}),
+      ...('streefdatum' in o ? { streefdatum: isStreefdatum(o.streefdatum) ? o.streefdatum : null } : {}),
     },
   }
 }
@@ -171,7 +187,13 @@ export function pasToe(huidig: StartVoortgang, invoer: StartInvoer, nu: Date): S
     afgerondOp = null
     klaar = klaar.filter((k) => k !== 'klaar')
   }
-  return { stap: invoer.stap ?? huidig.stap, klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)), afgerondOp, soort: invoer.soort ?? huidig.soort }
+  return {
+    stap: invoer.stap ?? huidig.stap,
+    klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)),
+    afgerondOp,
+    soort: invoer.soort ?? huidig.soort,
+    streefdatum: invoer.streefdatum === undefined ? huidig.streefdatum : invoer.streefdatum,
+  }
 }
 
 // ── Wat al af is volgens de echte data ────────────────────────────────────
@@ -234,6 +256,71 @@ export function stappenStand(v: StartVoortgang | null, f: StartFeiten): StapStan
 
 export function aantalAf(stand: readonly StapStand[]): number {
   return stand.filter((s) => s.af).length
+}
+
+/** Hoeveel minuten de open stappen samen nog ongeveer kosten. */
+export function minutenOver(stand: readonly Pick<StapStand, 'af' | 'minuten'>[]): number {
+  return stand.filter((s) => !s.af).reduce((som, s) => som + s.minuten, 0)
+}
+
+/** "Nog ongeveer 9 minuten", in gewone taal. */
+export function minutenTekst(minuten: number): string {
+  if (minuten <= 0) return 'Alles staat'
+  if (minuten === 1) return 'Nog ongeveer een minuut'
+  return `Nog ongeveer ${minuten} minuten`
+}
+
+/** Komt de eigenaar terug zonder stap in de URL, ergens halverwege? Dan heten we hem welkom terug. */
+export function isHervatten(v: StartVoortgang | null, stapInUrl: number | null): boolean {
+  return stapInUrl === null && v !== null && v.afgerondOp === null && v.stap > 1
+}
+
+// ── Streefdatum voor livegang ─────────────────────────────────────────────
+
+const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'] as const
+
+function dagNummer(datum: string): number {
+  const [j, m, d] = datum.split('-').map(Number)
+  return Math.round(Date.UTC(j, m - 1, d) / 86_400_000)
+}
+
+/** Hoeveel dagen het nog is tot de streefdatum (negatief = voorbij). Beide als YYYY-MM-DD. */
+export function dagenTot(streefdatum: string, vandaag: string): number {
+  return dagNummer(streefdatum) - dagNummer(vandaag)
+}
+
+/** "1 november", met het jaar erbij als het niet dit jaar is. */
+export function datumTekst(datum: string, vandaag: string): string {
+  const [j, m, d] = datum.split('-').map(Number)
+  const jaar = j === Number(vandaag.slice(0, 4)) ? '' : ` ${j}`
+  return `${d} ${MAANDEN[m - 1]}${jaar}`
+}
+
+function stappenTekst(open: number): string {
+  if (open <= 0) return 'alle stappen staan'
+  return open === 1 ? 'nog 1 stap' : `nog ${open} stappen`
+}
+
+/** Zonder druk: hoeveel dagen nog, of dat de datum voorbij is (zonder punt aan het eind). */
+export function dagenTekst(dagen: number): string {
+  if (dagen < 0) return 'De datum is voorbij, kies gerust een nieuwe'
+  if (dagen === 0) return 'Vandaag'
+  if (dagen === 1) return 'Morgen'
+  return `Nog ${dagen} dagen`
+}
+
+export interface StreefStand {
+  /** "Live op 1 november, nog 3 stappen". */
+  kop: string
+  /** "Nog 9 dagen". */
+  dagen: string
+  voorbij: boolean
+}
+
+/** De streefdatum met de open stappen, voor de kaart op Vandaag en de wizard. */
+export function streefStand(streefdatum: string, vandaag: string, open: number): StreefStand {
+  const dagen = dagenTot(streefdatum, vandaag)
+  return { kop: `Live op ${datumTekst(streefdatum, vandaag)}, ${stappenTekst(open)}`, dagen: dagenTekst(dagen), voorbij: dagen < 0 }
 }
 
 // ── Wie de wizard krijgt ──────────────────────────────────────────────────

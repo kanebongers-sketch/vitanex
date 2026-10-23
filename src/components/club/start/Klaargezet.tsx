@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState, type ReactNode } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { Check, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { useStartGang, type StartGangProps } from './StartVoet'
@@ -32,7 +32,19 @@ interface KlaargezetProps {
 export function Klaargezet({ bron, regels, gang, voorVerder, children, aanpassenHref, beginOpen = false }: KlaargezetProps) {
   const { bezig, fout, verder } = useStartGang(gang)
   const [open, setOpen] = useState(beginOpen)
+  const invoer = useRef<HTMLDivElement>(null)
   const id = useId()
+
+  /** Openklappen en meteen naar het eerste veld, zodat je met het toetsenbord direct verder kunt. */
+  function wissel() {
+    const wordtOpen = !open
+    setOpen(wordtOpen)
+    if (!wordtOpen) return
+    requestAnimationFrame(() => {
+      const eerste = invoer.current?.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])')
+      eerste?.focus()
+    })
+  }
   return (
     <div className="club-start-klaargezet-wrap">
       <section className="club-start-klaargezet" aria-labelledby={`${id}-kop`}>
@@ -63,7 +75,7 @@ export function Klaargezet({ bron, regels, gang, voorVerder, children, aanpassen
             </Link>
           ) : (
             children && (
-              <button type="button" className="club-knop" aria-expanded={open} aria-controls={`${id}-invoer`} onClick={() => setOpen((o) => !o)}>
+              <button type="button" className="club-knop" aria-expanded={open} aria-controls={`${id}-invoer`} onClick={wissel}>
                 <SlidersHorizontal aria-hidden size={16} /> {open ? 'Inklappen' : 'Aanpassen'}
               </button>
             )
@@ -72,7 +84,7 @@ export function Klaargezet({ bron, regels, gang, voorVerder, children, aanpassen
         </div>
       </section>
       {children && (
-        <div id={`${id}-invoer`} className="club-start-aanpassen" hidden={!open}>
+        <div ref={invoer} id={`${id}-invoer`} className="club-start-aanpassen" hidden={!open}>
           {children}
         </div>
       )}

@@ -7,7 +7,10 @@ import {
   aantalAf,
   afUitData,
   instellingenMetStart,
+  isHervatten,
   leesStart,
+  minutenOver,
+  minutenTekst,
   leesStartInvoer,
   moetNaarWizard,
   pasToe,
@@ -69,26 +72,26 @@ describe('leesStart', () => {
   })
 
   it('leest een geldige voortgang', () => {
-    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'soort'], afgerond_op: null, soort: 'yoga' } })).toEqual({ stap: 4, klaar: ['soort', 'huisstijl'], afgerondOp: null, soort: 'yoga' })
+    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'soort'], afgerond_op: null, soort: 'yoga' } })).toEqual({ stap: 4, klaar: ['soort', 'huisstijl'], afgerondOp: null, soort: 'yoga', streefdatum: null })
   })
 
   it('maakt kapotte velden de standaard en laat onbekende stappen weg', () => {
-    expect(leesStart({ start: { stap: 42, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum', soort: 'zwembad' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null })
+    expect(leesStart({ start: { stap: 42, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum', soort: 'zwembad' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null, streefdatum: null })
   })
 
   it('leest oude voortgang zonder soort en met stappen die niet meer bestaan', () => {
-    expect(leesStart({ start: { stap: 9, klaar: ['welkom', 'ledenapp', 'team'], afgerond_op: null } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null })
+    expect(leesStart({ start: { stap: 9, klaar: ['welkom', 'ledenapp', 'team'], afgerond_op: null } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null, streefdatum: null })
   })
 
   it('heen en terug geeft hetzelfde', () => {
-    const v = { stap: 8, klaar: ['soort' as const, 'klaar' as const], afgerondOp: NU.toISOString(), soort: 'boutique' as const }
+    const v = { stap: 8, klaar: ['soort' as const, 'klaar' as const], afgerondOp: NU.toISOString(), soort: 'boutique' as const, streefdatum: '2026-11-01' }
     expect(leesStart({ start: startNaarJson(v) })).toEqual(v)
   })
 
   it('laat andere instellingen staan bij opslaan', () => {
     const uit = instellingenMetStart({ ledenapp: { qr: false }, rechten: { trainer: [] } }, NIEUWE_START)
-    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { stap: 1, klaar: [], afgerond_op: null, soort: null } })
-    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { stap: 1, klaar: [], afgerond_op: null, soort: null } })
+    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { stap: 1, klaar: [], afgerond_op: null, soort: null, streefdatum: null } })
+    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { stap: 1, klaar: [], afgerond_op: null, soort: null, streefdatum: null } })
   })
 })
 
@@ -118,7 +121,7 @@ describe('leesStartInvoer', () => {
 describe('pasToe', () => {
   it('gaat naar een stap en zet een stap op klaar, zonder dubbelen', () => {
     const een = pasToe(NIEUWE_START, { stap: 2, klaar: 'soort' }, NU)
-    expect(een).toEqual({ stap: 2, klaar: ['soort'], afgerondOp: null, soort: null })
+    expect(een).toEqual({ stap: 2, klaar: ['soort'], afgerondOp: null, soort: null, streefdatum: null })
     expect(pasToe(een, { klaar: 'soort' }, NU)).toEqual(een)
     expect(NIEUWE_START.klaar).toEqual([])
   })
@@ -135,10 +138,10 @@ describe('pasToe', () => {
 
   it('rondt af en opent weer', () => {
     const af = pasToe({ ...NIEUWE_START, stap: 8, klaar: ['soort'] }, { afronden: true }, NU)
-    expect(af).toEqual({ stap: 8, klaar: ['soort', 'klaar'], afgerondOp: NU.toISOString(), soort: null })
+    expect(af).toEqual({ stap: 8, klaar: ['soort', 'klaar'], afgerondOp: NU.toISOString(), soort: null, streefdatum: null })
     // Nog een keer afronden houdt de eerste datum.
     expect(pasToe(af, { afronden: true }, new Date('2027-01-01')).afgerondOp).toBe(NU.toISOString())
-    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 8, klaar: ['soort'], afgerondOp: null, soort: null })
+    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 8, klaar: ['soort'], afgerondOp: null, soort: null, streefdatum: null })
   })
 })
 
@@ -193,6 +196,30 @@ describe('stappenStand', () => {
 
   it('werkt zonder voortgang', () => {
     expect(aantalAf(stappenStand(null, LEEG))).toBe(0)
+  })
+})
+
+describe('tijd en hervatten', () => {
+  it('telt de minuten van de open stappen', () => {
+    const totaal = STAPPEN.reduce((som, s) => som + s.minuten, 0)
+    expect(minutenOver(stappenStand(null, LEEG))).toBe(totaal)
+    const stand = stappenStand({ ...NIEUWE_START, soort: 'gym' }, { ...LEEG, heeftLogo: true })
+    expect(minutenOver(stand)).toBe(totaal - STAPPEN[0].minuten - STAPPEN[1].minuten)
+    expect(minutenOver(stappenStand({ ...NIEUWE_START, afgerondOp: NU.toISOString(), klaar: [...STAP_SLEUTELS] }, LEEG))).toBe(0)
+  })
+
+  it('zegt de tijd in gewone taal', () => {
+    expect(minutenTekst(0)).toBe('Alles staat')
+    expect(minutenTekst(1)).toBe('Nog ongeveer een minuut')
+    expect(minutenTekst(9)).toBe('Nog ongeveer 9 minuten')
+  })
+
+  it('heet alleen welkom terug halverwege en zonder stap in de URL', () => {
+    expect(isHervatten({ ...NIEUWE_START, stap: 4 }, null)).toBe(true)
+    expect(isHervatten({ ...NIEUWE_START, stap: 4 }, 4)).toBe(false)
+    expect(isHervatten({ ...NIEUWE_START, stap: 1 }, null)).toBe(false)
+    expect(isHervatten({ ...NIEUWE_START, stap: 4, afgerondOp: NU.toISOString() }, null)).toBe(false)
+    expect(isHervatten(null, null)).toBe(false)
   })
 })
 

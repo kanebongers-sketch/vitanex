@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 // Een nieuwe sportschool loopt de startwizard, het inlezen van leden en het
 // uitnodigen van het team zelf door. Wat daar op het scherm staat mag niet
-// verwijzen naar de oude inlog (pincode, controlecode), naar het platform
+// verwijzen naar de oude inlog (inloglink met pincode, controlecode), naar het platform
 // (Kane, testomgeving, presentatie) of naar Fit Factory en zijn vestigingen.
 // We kijken naar de code zonder commentaar.
 
@@ -15,7 +15,7 @@ const LOSSE = [
   'src/components/club/instellingen/MedewerkerLogin.tsx',
   'src/lib/club/kern/instel-paginas.ts',
 ]
-const VERBODEN = /pincode|controlecode|\bKane\b|Fit Factory|Budel|Eersel|presentatie|testomgeving/i
+const VERBODEN = /pincode|controlecode|inloglink|vaste link|\bKane\b|Fit Factory|Budel|Eersel|presentatie|testomgeving/i
 // Bestaande medewerkers van voor 23-10-2026 zien eerlijk dat ze nog met een pincode inloggen.
 const UITZONDERING = /Nog met pincode|oude link en pincode/
 
@@ -40,5 +40,13 @@ describe('teksten voor een nieuwe sportschool', () => {
         .map(({ regel, i }) => `${pad}:${i + 1}: ${regel.trim()}`),
     )
     expect(fout).toEqual([])
+  })
+
+  it('leggen de inlog van nu uit: uitnodiging per e-mail, daarna e-mailadres en wachtwoord', () => {
+    const live = readFileSync('src/components/club/start/StapLive.tsx', 'utf8')
+    expect(live).toMatch(/uitnodiging per e-mail/)
+    expect(live).toMatch(/e-mailadres en wachtwoord/)
+    expect(live).toMatch(/link of QR-code/)
+    expect(readFileSync('src/components/club/start/TeamFormulier.tsx', 'utf8')).toMatch(/e-mailadres en een wachtwoord/)
   })
 })
