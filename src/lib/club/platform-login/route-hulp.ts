@@ -7,7 +7,7 @@ import type { NextRequest, NextResponse } from 'next/server'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { remSleutel } from '@/lib/club/kern/rem-hash'
 import { ipVan } from '@/lib/club/kern/verzoek'
-import { platformCookie } from './platform'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
 /** Per IP: ruim boven wat een mens tikt, ver onder wat bruteforce nodig heeft. */
 const IP_MAX = 10
@@ -18,14 +18,7 @@ export function platformGeremd(req: NextRequest, doel: 'inloggen' | 'wachtwoord'
   return isRateLimited(`platform-${doel}:${remSleutel(`platform-${doel}`, ipVan(req))}`, IP_MAX, IP_VENSTER_MS)
 }
 
-/** De sessiecookie op het antwoord: httpOnly, alleen deze host, alleen pad /. */
+/** De sessiecookie op het antwoord: httpOnly, alleen deze host, alleen pad /; een andere sessie in deze browser vervalt. */
 export function zetPlatformCookie(res: NextResponse, token: string, verlooptOp: Date): NextResponse {
-  res.cookies.set(platformCookie(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    expires: verlooptOp,
-  })
-  return res
+  return zetClubSessie(res, 'platform', token, verlooptOp)
 }

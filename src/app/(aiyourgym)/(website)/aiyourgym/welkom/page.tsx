@@ -29,7 +29,15 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
       <p className="ayg-label">Welkom bij AI Your Gym</p>
       <h1 className="aan-titel">Je sportschool staat klaar.</h1>
       <p className="ayg-lead">
-        {w.sportschool} heeft een eigen omgeving op <strong>{w.adres}</strong>, met een eerste vestiging en een basisbibliotheek met oefeningen.
+        {w.adresActief ? (
+          <>
+            {w.sportschool} heeft een eigen omgeving op <strong>{w.adres}</strong>, met een eerste vestiging en een basisbibliotheek met oefeningen.
+          </>
+        ) : (
+          <>
+            {w.sportschool} heeft een eigen omgeving met een eerste vestiging en een basisbibliotheek met oefeningen. Je adres <strong>{w.adres}</strong> is voor je vastgelegd; tot het actief is werk je op aiyourgym.com.
+          </>
+        )}
       </p>
       <div className="aan-link ayg-podium">
         <p className="aan-samen-label">

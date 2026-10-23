@@ -12,9 +12,9 @@ import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { wachtwoordFout } from '@/lib/club/kern/wachtwoord'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
-import { medewerkerCookie } from '@/lib/club/medewerker-login/medewerker-login'
 import { kiesWachtwoord, vindUitnodiging } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,9 +51,7 @@ export async function POST(req: NextRequest, ctx: Context) {
   const uit = await kiesWachtwoord(admin, gevonden, code, wachtwoord, nu)
   switch (uit.staat) {
     case 'ok': {
-      const res = clubJson({ staat: 'ok' })
-      res.cookies.set(medewerkerCookie(), uit.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: uit.verlooptOp })
-      return res
+      return zetClubSessie(clubJson({ staat: 'ok' }), 'medewerker', uit.token, uit.verlooptOp)
     }
     case 'email_bezet':
       return clubFout('Dit e-mailadres hoort al bij een ander account. Vraag je leidinggevende om je met een ander adres uit te nodigen.', 409)

@@ -88,5 +88,7 @@ export function beslisClub(host: string | null | undefined, pad: string, actief:
   const door = pad === CLUB_PREFIX || pad.startsWith(`${CLUB_PREFIX}/`) || pad.startsWith('/api/') || pad.startsWith('/clubinloggen/')
     || pad === '/mijn' || pad.startsWith('/mijn/') || pad.startsWith('/club-app/')
   if (door) return { soort: 'door', slug }
+  // Inloggen met e-mailadres en wachtwoord op het eigen adres (de sessie is per host).
+  if (pad === '/inloggen') return { soort: 'herschrijven', slug, pad: '/aiyourgym/inloggen' }
   return { soort: 'herschrijven', slug, pad: pad === '/' ? CLUB_PREFIX : `${CLUB_PREFIX}${pad}` }
 }

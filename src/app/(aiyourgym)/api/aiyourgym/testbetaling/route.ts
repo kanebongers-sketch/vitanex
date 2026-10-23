@@ -9,7 +9,7 @@ import { standaardDeps } from '@/lib/aiyourgym/welkom-mail'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 import { startSessie, vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
-import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
+import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
 // POST /api/aiyourgym/testbetaling  { sessie: 'test_...' }
 // Rondt een nagespeelde betaling af (zolang Stripe er niet is, besluit Kane
@@ -43,7 +43,5 @@ export async function POST(req: NextRequest) {
   const eigenaar = await vindBeheerderOpEmail(admin, uit.email)
   const login = eigenaar && eigenaar.organisatieId === uit.organisatieId ? await startSessie(admin, eigenaar, nu) : null
   if (!login) return welkom
-  const res = aygJson({ staat: 'ingelogd', url: '/club' })
-  res.cookies.set(beheerderCookie(), login.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', expires: login.verlooptOp })
-  return res
+  return zetClubSessie(aygJson({ staat: 'ingelogd', url: '/club' }), 'beheerder', login.token, login.verlooptOp)
 }

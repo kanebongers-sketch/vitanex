@@ -220,7 +220,8 @@ describe('inloggen als medewerker met e-mailadres en wachtwoord', () => {
     expect(r.status).toBe(200)
     expect(beheer.vindBeheerderOpEmail.mock.invocationCallOrder[0]).toBeLessThan(opslag.vindMedewerkerOpEmail.mock.invocationCallOrder[0])
     expect((r as NextResponse).cookies.get(MW_COOKIE)).toMatchObject({ value: 'geheim', httpOnly: true, sameSite: 'lax', path: '/' })
-    expect((r as NextResponse).cookies.get(beheerderCookie())).toBeUndefined()
+    // Een eventuele eigenaarssessie in deze browser vervalt (een sessie per browser).
+    expect((r as NextResponse).cookies.get(beheerderCookie())).toMatchObject({ value: '', maxAge: 0 })
   })
   it('een beheerder met dit adres gaat voor: de medewerkers worden niet bekeken', async () => {
     beheer.vindBeheerderOpEmail.mockResolvedValue({ ...SANNE, wachtwoordHash: 's2:x' })
