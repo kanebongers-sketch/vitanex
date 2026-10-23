@@ -115,7 +115,7 @@ function Leeg({ params, vestiging, gefilterd }: Pick<LedenTabelProps, 'params' |
   if (!gefilterd) {
     return (
       <div className="club-leeg club-leden-leeg" role="status">
-        <p>Er staan nog geen leden in deze vestiging. Lees een export uit Sportivity of Excel in om te beginnen.</p>
+        <p>Er staan nog geen leden in deze vestiging. Lees een export uit je huidige systeem of een Excel-lijst in om te beginnen.</p>
         <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop club-knop--klein">Ledenbestand inlezen</Link>
       </div>
     )

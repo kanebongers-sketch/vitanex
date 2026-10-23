@@ -78,7 +78,7 @@ export function LidGegevens(props: LidGegevensProps) {
     <section className="club-kaart" id="gegevens" aria-labelledby="gegevens-kop">
       <h2 id="gegevens-kop">Gegevens</h2>
       <Contact email={props.email} telefoon={props.telefoon} geboortedatum={props.geboortedatum} leeftijd={props.leeftijd} />
-      <p className="club-hint">Contactgegevens komen uit Sportivity en zijn daar te wijzigen.</p>
+      <p className="club-hint">Contactgegevens komen uit je ledenbestand. Pas ze aan in je ledenadministratie en lees het bestand opnieuw in.</p>
 
       <label className="club-veld club-leden-blok">
         <span>Coach</span>

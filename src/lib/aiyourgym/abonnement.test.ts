@@ -70,6 +70,15 @@ describe('abonnementWeergave', () => {
     expect(abonnementWeergave(rij({ status: 'gepauzeerd' }), null, NU).toon).toBe('let')
     expect(abonnementWeergave(rij({ status: 'opgezegd' }), null, NU)).toMatchObject({ status: 'Opgezegd', portaal: true })
   })
+  it('na een testbetaling (zonder Stripe): eerlijk de proefperiode en dat er niets wordt afgeschreven', () => {
+    const test = rij({ stripeKlantId: null, stripeAbonnementId: null, aangemaaktOp: '2026-10-10T10:00:00Z' })
+    const w = abonnementWeergave(test, null, NU)
+    expect(w).toMatchObject({ status: 'Proefperiode tot 24 oktober 2026', toon: 'goed', portaal: false })
+    expect(w.toelichting).toContain('niets afgeschreven')
+    const later = abonnementWeergave(test, null, new Date('2026-11-01T10:00:00Z'))
+    expect(later.status).toBe('Actief')
+    expect(later.toelichting).toContain('niets afgeschreven')
+  })
   it('testaccount en zonder klant-id: geen portaal', () => {
     expect(abonnementWeergave(rij({ status: 'test' }), null, NU)).toMatchObject({ status: 'Testaccount', portaal: false })
     expect(abonnementWeergave(rij({ stripeKlantId: null }), null, NU).portaal).toBe(false)

@@ -5,7 +5,7 @@ import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
-import { openingstijdenUitJson } from '@/lib/club/rooster/openingstijden'
+import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { NIEUWE_START, STAPPEN, moetNaarWizard, stapUitParam, stappenStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
 import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
@@ -51,7 +51,7 @@ function MetVoet({ voet, children }: { voet: Parameters<typeof StartVoet>[0]; ch
   )
 }
 
-/** Per vestiging of er al openingstijden zijn, en de namen van de lestypen (voor stap 1). */
+/** Per vestiging of er al zelf gekozen openingstijden zijn, en de namen van de lestypen (voor stap 1). */
 async function haalBestaand(t: ClubToegang): Promise<{ vestigingen: BestaandeVestiging[]; lestypen: string[] }> {
   const [vest, typen] = await Promise.all([
     t.admin.from('club_vestigingen').select('vestiging, openingstijden').eq('user_id', t.userId),
@@ -59,7 +59,8 @@ async function haalBestaand(t: ClubToegang): Promise<{ vestigingen: BestaandeVes
   ])
   if (vest.error) console.error('[club-start] vestigingen lezen mislukt', vest.error.message)
   if (typen.error) console.error('[club-start] lestypen lezen mislukt', typen.error.message)
-  const tijden = new Map((vest.data ?? []).map((r) => [String(r.vestiging), openingstijdenUitJson(r.openingstijden).some((d) => d !== null)]))
+  // De plaatshouder-tijden van een nieuwe vestiging tellen niet: dan zet de gekozen soort zijn eigen tijden neer.
+  const tijden = new Map((vest.data ?? []).map((r) => [String(r.vestiging), heeftEigenOpeningstijden(r.openingstijden)]))
   return {
     vestigingen: t.vestigingen.map((v) => ({ sleutel: v.sleutel, heeftTijden: tijden.get(v.sleutel) ?? false })),
     lestypen: (typen.data ?? []).map((r) => String(r.naam)),
@@ -132,7 +133,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand }: StapProps
     case 'team':
       return <MetVoet voet={voet}><StapTeam t={t} vestiging={vestiging} soort={soort} voet={voet} /></MetVoet>
     case 'leden': {
-      const importPad = vestiging && moduleAan(org, 'leden') ? `/club/leden/importeren?v=${encodeURIComponent(vestiging)}` : null
+      const importPad = vestiging && moduleAan(org, 'leden') ? `/club/leden/importeren?v=${encodeURIComponent(vestiging)}&van=start` : null
       return <MetVoet voet={voet}><StapLedenInlezen importPad={importPad} vandaag={nlDelen(new Date()).datum} /></MetVoet>
     }
     case 'klaar':

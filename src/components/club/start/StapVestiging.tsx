@@ -69,7 +69,7 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, bron, voet }
           <span>Straat, huisnummer en plaats</span>
           <span className="club-start-adresveld">
             <MapPin aria-hidden size={16} />
-            <input className="club-invoer" value={nieuwAdres} maxLength={MAX_ADRES} autoComplete="street-address" placeholder="Bijvoorbeeld Markt 1, 6021 AA Budel" onChange={(e) => setAdres(e.target.value)} />
+            <input className="club-invoer" value={nieuwAdres} maxLength={MAX_ADRES} autoComplete="street-address" placeholder="Bijvoorbeeld Dorpsstraat 1, 1234 AB Plaatsnaam" onChange={(e) => setAdres(e.target.value)} />
           </span>
         </label>
       </section>
@@ -133,7 +133,7 @@ function NieuweVestiging() {
       <form className="club-start-rij-form" onSubmit={(e) => void voegToe(e)}>
         <label className="club-veld">
           <span>Naam</span>
-          <input className="club-invoer" required value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} placeholder="Bijvoorbeeld Eersel" />
+          <input className="club-invoer" required value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} placeholder="Bijvoorbeeld Centrum of de plaatsnaam" />
         </label>
         <label className="club-veld">
           <span>Adres (mag later)</span>

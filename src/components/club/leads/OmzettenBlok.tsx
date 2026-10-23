@@ -94,7 +94,7 @@ export function OmzettenBlok({ lead, bezig, doe, onGelukt }: OmzettenBlokProps) 
           <dd>Proeflid, lid sinds vandaag</dd>
         </div>
       </dl>
-      <p className="club-hint">Inschrijving en abonnement rond je daarna af in Sportivity. Hier komen geen bedragen of contracten.</p>
+      <p className="club-hint">Inschrijving en abonnement rond je daarna af in je ledenadministratie. Hier komen geen bedragen of contracten.</p>
       <button
         type="button"
         className={`club-knop ${dubbelen.length > 0 ? '' : 'club-knop--primair'}`}

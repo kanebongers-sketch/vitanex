@@ -7,7 +7,7 @@ const KAN = [
   ['Home', 'Volgende les, bezoek deze maand, weken op rij en de QR-code om in te checken.'],
   ['Lessen', 'Rooster van de komende 7 dagen met vrije plekken. Reserveren, annuleren en wachtlijst.'],
   ['Schema', 'Het actieve schema van de trainer, per dag. Afvinken dat de training gedaan is.'],
-  ['Profiel', 'Eigen gegevens. Abonnement en betalingen blijven in Sportivity.'],
+  ['Profiel', 'Eigen gegevens. Abonnement en incasso blijven in je ledenadministratie.'],
 ] as const
 
 export function AppUitleg({ regels }: { regels: AppRegels }) {

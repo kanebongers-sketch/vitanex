@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { modulesNaarJson, type HuisstijlInvoer } from './organisatie-invoer'
 import { LOGO_FIT_FACTORY } from './organisatie'
+import { isStandaardOefening } from '@/lib/club/training/beelden-repdb'
 
 export const LOGO_BUCKET = 'club-logo'
 
@@ -73,7 +74,11 @@ const BLOK = 500
 
 export type NieuweOrganisatie = { ok: true; id: string } | { ok: false; fout: string; status: number }
 
-/** De basisbibliotheek: alle actieve oefeningen van de eigen sportschool van de beheerder (Fit Factory). */
+/**
+ * De basisbibliotheek: de actieve standaardoefeningen (REPDB_ALLE_KOPPELINGEN)
+ * uit de eigen sportschool van de beheerder. Eigen oefeningen van die
+ * sportschool gaan nooit mee naar een andere sportschool.
+ */
 async function basisBibliotheek(t: ClubToegang): Promise<Record<string, unknown>[] | null> {
   const rijen: Record<string, unknown>[] = []
   for (let van = 0; van < 20_000; van += BLOK) {
@@ -82,7 +87,7 @@ async function basisBibliotheek(t: ClubToegang): Promise<Record<string, unknown>
       console.error('[club] basisbibliotheek lezen mislukt', error.message)
       return null
     }
-    rijen.push(...(data ?? []))
+    rijen.push(...(data ?? []).filter((r) => isStandaardOefening((r as { naam?: unknown }).naam)))
     if ((data ?? []).length < BLOK) break
   }
   return rijen

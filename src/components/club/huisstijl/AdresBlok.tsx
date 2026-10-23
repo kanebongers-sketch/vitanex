@@ -38,7 +38,7 @@ export function AdresBlok({ slug, naam, actief }: AdresBlokProps) {
     <section className="club-huisstijl-blok" aria-labelledby="adres-kop">
       <h2 id="adres-kop" className="club-huisstijl-kop">Adres</h2>
       <p className="club-hint">
-        Je eigen adres voor medewerkers en leden. {actief ? 'Dit adres is actief.' : `Het adres wordt actief zodra ${CLUB_DOMEIN} live staat; tot dan reserveer je het.`}
+        Je eigen adres voor medewerkers en leden. {actief ? 'Dit adres is actief.' : `Eigen adressen op ${CLUB_DOMEIN} komen binnenkort. Kies het nu, dan houden we het voor je vast. Tot dan logt iedereen in op ${CLUB_DOMEIN}/inloggen.`}
       </p>
       <div className="club-huisstijl-adres">
         <Globe aria-hidden size={18} />

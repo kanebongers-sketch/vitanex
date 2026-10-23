@@ -5,7 +5,7 @@
 
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { oorsprongVan } from './links'
-import { vindPakket } from './pakketten'
+import { PROEFDAGEN, vindPakket } from './pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 
 /** Het pad van de abonnementspagina (op een subdomein gaat /club gewoon door). */
@@ -103,6 +103,22 @@ function lopendeStatus(s: StripeAbonnement | null, nu: Date): { status: string; 
   return { status: 'Actief', toon: 'goed', toelichting: s?.periodeTot ? `Volgende factuur rond ${nlDatum(s.periodeTot)}.` : null }
 }
 
+const DAG_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Afgerond met een testbetaling (geen Stripe-klant en geen abonnement, zie
+ * testbetaling.ts): er wordt niets afgeschreven. Dezelfde belofte als op de
+ * testbetaalpagina: eerst de proefperiode, daarna spreken we samen af hoe de
+ * sportschool betaalt.
+ */
+function zonderStripe(a: AbonnementRij, nu: Date): { status: string; toon: Toon; toelichting: string } {
+  const start = Date.parse(a.aangemaaktOp)
+  const proefTot = Number.isNaN(start) ? null : new Date(start + PROEFDAGEN * DAG_MS)
+  const uitleg = 'Online betalen is nog niet gekoppeld, dus er wordt niets afgeschreven. We spreken samen af hoe je verder betaalt.'
+  if (proefTot && proefTot > nu) return { status: `Proefperiode tot ${nlDatum(proefTot)}`, toon: 'goed', toelichting: uitleg }
+  return { status: 'Actief', toon: 'goed', toelichting: uitleg }
+}
+
 /** Wat de pagina toont, uit onze aanmelding en (als die er is) het abonnement bij Stripe. */
 export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date): AbonnementWeergave {
   const pakket = vindPakket(a.pakket)?.naam ?? 'Onbekend pakket'
@@ -111,7 +127,7 @@ export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null,
   const basis = { pakket, vestigingen, portaal }
   switch (a.status) {
     case 'actief':
-      return { ...basis, ...lopendeStatus(s, nu) }
+      return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(a, nu) : lopendeStatus(s, nu)) }
     case 'betaling_mislukt':
       return { ...basis, status: 'Betaling mislukt', toon: 'fout', toelichting: 'Een factuur is niet betaald. Stripe probeert het opnieuw; controleer je betaalgegevens.' }
     case 'gepauzeerd':

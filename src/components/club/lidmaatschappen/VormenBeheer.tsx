@@ -87,7 +87,7 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging }: Props) {
           )}
           <section className="club-kaart" aria-labelledby="lidm-nieuw">
             <h2 id="lidm-nieuw">Nieuwe vorm</h2>
-            <p className="club-hint">Gebruik precies de naam uit Sportivity: zo koppelt Club de leden aan de vorm.</p>
+            <p className="club-hint">Gebruik precies de naam uit je ledenbestand (de kolom Abonnement): zo koppelt Club de leden aan de vorm.</p>
             <VormFormulier onKlaar={klaar} />
           </section>
         </aside>
