@@ -56,7 +56,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht, de rest kies je of zet je op Niet inlezen.',
       'Druk op Controleren. Elke rij krijgt Nieuw, Bijwerken, Al gelijk of Dubbel. Daarna lees je de leden in voor de gekozen vestiging.',
       'Inlezen verwijdert nooit iemand, en een lege cel wist niets. Coach, tags en QR-code blijven zoals ze zijn.',
-      'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities.',
+      'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities. Daar pas je ook status, coach en tags aan, bijvoorbeeld als een proeflid lid wordt.',
     ],
     links: [
       { label: 'Ledenbestand inlezen', pad: '/club/leden/importeren' },
@@ -124,7 +124,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'In het Weekrooster maak je diensten met datum, begin, eind, medewerker en uursoort (werk, ziek of verlof). Kopieer vorige week of gebruik een vast patroon.',
       'Medewerkers geven hun vaste week en afwezigheid op bij Beschikbaarheid.',
       'Na een dienst vul je de gewerkte tijd en pauze in en druk je op Bevestig gewerkt. Een dienst gaat van Gepland naar Gewerkt, Goedgekeurd en Verwerkt.',
-      'Op het tabblad Uren kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris.',
+      'Op het tabblad Uren (eigenaar, clubmanager en administratie) kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris. Trainers en instructeurs bevestigen alleen hun eigen uren.',
     ],
     links: [
       { label: 'Personeel', pad: '/club/personeel' },
@@ -262,6 +262,7 @@ export const ARTIKELEN: readonly Artikel[] = [
     samenvatting: 'Wat leden in de app zien, en nieuws en acties plaatsen.',
     onderdeel: 'app',
     stappen: [
+      'Een lid nodig je uit op de ledenkaart, blok Ledenapp: het lid scant de QR-code, bevestigt het e-mailadres en kiest een wachtwoord. Daarna logt het in met e-mailadres en wachtwoord.',
       'Bij Instellingen, Ledenapp bekijken, zie je de app zoals een lid hem ziet: kies een lid en blader door Home, Lessen, Afspraken, Schema, Voeding, Voortgang en Profiel.',
       'Bij Instellingen, Ledenapp, stel je de welkomsttekst in, welke tabbladen aan staan en of de QR-code voor de check-in zichtbaar is.',
       'Bij Berichten plaats je nieuws, een actie of iets belangrijks, met begin en eind, voor welke vestigingen en eventueel alleen voor bepaalde leden. Een bericht kun je vastpinnen of meteen stoppen.',
