@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (t instanceof NextResponse) return t
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Niet gevonden.', 404)
-  if (id === t.persoonId) return clubFout('Je eigen toegang pas je hier niet aan. Vraag een andere eigenaar of Kane.', 400)
+  if (id === t.persoonId) return clubFout('Je eigen toegang pas je hier niet aan. Vraag een andere eigenaar, of neem contact met ons op.', 400)
   const invoer = leesBeoordeling(await req.json().catch(() => null))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const { actie } = invoer.waarde
