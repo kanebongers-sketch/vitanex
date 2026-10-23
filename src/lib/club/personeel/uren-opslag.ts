@@ -10,6 +10,7 @@ import { haalDienst, haalDiensten } from './opslag'
 import { afwijkingen, goedTeKeuren } from './uren'
 import type { UrenInvoer } from './invoer'
 import type { Dienst, UurStatus } from './typen'
+import { magUrenActie, magUrenBeheren, UREN_NIET_TOEGESTAAN } from './uren-rechten'
 
 function volgendeStatus(huidig: UurStatus, actie: UrenInvoer['actie']): UurStatus | null {
   if (actie === 'opslaan') return huidig
@@ -34,6 +35,7 @@ export async function registreerUren(t: ClubToegang, id: string, i: UrenInvoer):
   if (!d) return mislukt('Deze dienst bestaat niet (meer).', 404)
   if (d.uurStatus === 'verwerkt') return mislukt('Deze uren zijn al verwerkt door de administratie.', 409)
   if (!d.medewerkerId) return mislukt('Een open dienst heeft geen uren. Plan eerst iemand in.')
+  if (!magUrenActie(t, d, i.actie)) return mislukt(UREN_NIET_TOEGESTAAN, 403)
   const nieuw = volgendeStatus(d.uurStatus, i.actie)
   if (!nieuw) return mislukt('Deze stap kan niet vanuit de huidige status.', 409)
   const { error } = await t.admin
@@ -63,6 +65,7 @@ export async function urenInBulk(
   tot: string,
   nu: { datum: string; minuten: number },
 ): Promise<Resultaat<{ aantal: number; overgeslagen: number }>> {
+  if (!magUrenBeheren(t)) return mislukt(UREN_NIET_TOEGESTAAN, 403)
   const diensten = await haalDiensten(t.admin, t.userId, vestiging, van, tot)
   if (!diensten) return mislukt('De diensten konden niet worden gelezen.', 500)
   const stempel = new Date().toISOString()

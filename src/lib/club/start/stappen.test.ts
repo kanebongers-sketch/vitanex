@@ -21,6 +21,7 @@ import {
   vestigingIngericht,
   type StartFeiten,
 } from './stappen'
+import { STANDAARD_OPENINGSTIJDEN } from '@/lib/club/instellingen/vestigingen-invoer'
 
 const LEEG: StartFeiten = { heeftLogo: false, vestigingenIngericht: 0, lestypen: 0, vasteLessen: 0, medewerkers: 0, leden: 0, uit: [] }
 const NU = new Date('2026-10-18T10:00:00.000Z')
@@ -160,6 +161,13 @@ describe('afUitData', () => {
     expect(vestigingIngericht({ adres: null, openingstijden: { 1: ['06:00', '23:00'] } })).toBe(true)
     expect(vestigingIngericht({ adres: '  ', openingstijden: {} })).toBe(false)
     expect(vestigingIngericht({ adres: null, openingstijden: null })).toBe(false)
+  })
+
+  it('telt de plaatshouder-tijden van een nieuwe vestiging niet als ingericht', () => {
+    // Na het aanmelden heeft de eerste vestiging deze tijden al; de stap Vestiging moet dan nog open staan.
+    expect(vestigingIngericht({ adres: null, openingstijden: STANDAARD_OPENINGSTIJDEN })).toBe(false)
+    expect(vestigingIngericht({ adres: 'Dorpsstraat 1, Ergens', openingstijden: STANDAARD_OPENINGSTIJDEN })).toBe(true)
+    expect(vestigingIngericht({ adres: null, openingstijden: { ...STANDAARD_OPENINGSTIJDEN, 7: ['10:00', '14:00'] } })).toBe(true)
   })
 })
 

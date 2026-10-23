@@ -177,7 +177,7 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
       </div>
       <RollenUitleg />
       {login?.logins === null && (
-        <p className="club-melding club-melding--fout" role="alert">De logins van medewerkers konden niet worden gelezen. Is migratie 457 al gedraaid?</p>
+        <p className="club-melding club-melding--fout" role="alert">De logins van medewerkers konden niet worden gelezen. Probeer het over een paar minuten opnieuw.</p>
       )}
     </section>
   )

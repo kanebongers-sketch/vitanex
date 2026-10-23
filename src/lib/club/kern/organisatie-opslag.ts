@@ -6,6 +6,10 @@ import { randomUUID } from 'node:crypto'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { modulesNaarJson, type HuisstijlInvoer } from './organisatie-invoer'
 import { LOGO_FIT_FACTORY } from './organisatie'
+import { isStandaardOefening } from '@/lib/club/training/beelden-repdb'
+
+/** Een nieuwe sportschool start in de kleur van AI Your Gym (smaragd), niet in die van een andere klant; in de startwizard kiest ze haar eigen kleur. */
+const NIEUWE_SPORTSCHOOL_ACCENT = '#1FA77A'
 
 export const LOGO_BUCKET = 'club-logo'
 
@@ -73,7 +77,11 @@ const BLOK = 500
 
 export type NieuweOrganisatie = { ok: true; id: string } | { ok: false; fout: string; status: number }
 
-/** De basisbibliotheek: alle actieve oefeningen van de eigen sportschool van de beheerder (Fit Factory). */
+/**
+ * De basisbibliotheek: de actieve standaardoefeningen (REPDB_ALLE_KOPPELINGEN)
+ * uit de eigen sportschool van de beheerder. Eigen oefeningen van die
+ * sportschool gaan nooit mee naar een andere sportschool.
+ */
 async function basisBibliotheek(t: ClubToegang): Promise<Record<string, unknown>[] | null> {
   const rijen: Record<string, unknown>[] = []
   for (let van = 0; van < 20_000; van += BLOK) {
@@ -82,7 +90,7 @@ async function basisBibliotheek(t: ClubToegang): Promise<Record<string, unknown>
       console.error('[club] basisbibliotheek lezen mislukt', error.message)
       return null
     }
-    rijen.push(...(data ?? []))
+    rijen.push(...(data ?? []).filter((r) => isStandaardOefening((r as { naam?: unknown }).naam)))
     if ((data ?? []).length < BLOK) break
   }
   return rijen
@@ -99,7 +107,7 @@ export async function maakOrganisatie(t: ClubToegang, naam: string): Promise<Nie
   const bibliotheek = await basisBibliotheek(t)
   if (!bibliotheek) return { ok: false, fout: 'De oefenbibliotheek kon niet worden gelezen. Probeer het opnieuw.', status: 500 }
   const id = randomUUID()
-  const { error } = await t.admin.from('club_organisaties').insert({ id, beheerder_id: t.beheerderId, naam, kleur_accent: '#B58E5C', thema: 'donker' })
+  const { error } = await t.admin.from('club_organisaties').insert({ id, beheerder_id: t.beheerderId, naam, kleur_accent: NIEUWE_SPORTSCHOOL_ACCENT, thema: 'donker' })
   if (error) {
     if (error.code === '23505') return { ok: false, fout: 'Er is al een sportschool met deze naam.', status: 409 }
     console.error('[club] sportschool aanmaken mislukt', error.message)

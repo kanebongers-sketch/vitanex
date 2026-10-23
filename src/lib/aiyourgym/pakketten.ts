@@ -47,7 +47,7 @@ export const PAKKETTEN: readonly Pakket[] = [
     voorWie: 'Voor ketens met meerdere vestigingen.',
     prijsPerVestiging: null,
     maxVestigingen: null,
-    inbegrepen: ['Alles uit Club', 'Onbeperkt aantal vestigingen', 'Rechten per rol en clubmanagers', 'Eigen adres naam.aiyourgym.com', 'Persoonlijke hulp bij het inrichten'],
+    inbegrepen: ['Alles uit Club', 'Onbeperkt aantal vestigingen', 'Rechten per rol en clubmanagers', 'Eigen adres naam.aiyourgym.com (binnenkort)', 'Persoonlijke hulp bij het inrichten'],
   },
 ]
 

@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 const NEUTRAAL = { kleurAccent: '#B58E5C', thema: 'donker' as const }
 const UITLEG = 'Log in met je e-mailadres en wachtwoord.'
-const HULP = 'Eerste keer, wachtwoord vergeten of logde je eerder in met een pincode? Vraag een link aan om een wachtwoord te kiezen.'
+const HULP = 'Eerste keer of wachtwoord vergeten? Vraag een link aan, dan kies je een (nieuw) wachtwoord.'
 
 function adminOfNull(): SupabaseClient | null {
   try {

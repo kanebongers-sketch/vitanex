@@ -10,6 +10,7 @@
 // Lezen is vergevingsgezind (kapot = geen voortgang), opslaan is streng.
 
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { isSportschoolSoort, type SportschoolSoort } from './soorten'
 
 export const STAP_SLEUTELS = ['soort', 'huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'klaar'] as const
@@ -187,11 +188,14 @@ export interface StartFeiten {
   uit: readonly string[]
 }
 
-/** Een vestiging telt als ingericht met een adres of minstens een open dag. */
+/**
+ * Een vestiging telt als ingericht met een adres of met zelf gekozen
+ * openingstijden. De plaatshouder-tijden van een nieuwe vestiging tellen niet:
+ * anders staat de stap Vestiging bij een nieuwe sportschool meteen op af.
+ */
 export function vestigingIngericht(rij: { adres?: unknown; openingstijden?: unknown }): boolean {
   const adres = typeof rij.adres === 'string' && rij.adres.trim() !== ''
-  const tijden = object(rij.openingstijden)
-  return adres || (tijden !== null && Object.keys(tijden).length > 0)
+  return adres || heeftEigenOpeningstijden(rij.openingstijden)
 }
 
 /** De stappen die de data al af maakt. Een stap van een onderdeel dat uit staat is niet nodig, dus af. */

@@ -14,7 +14,7 @@ export const STAP_INTRO: Record<StapSleutel, string> = {
   vestigingen: 'Waar je sportschool zit en wanneer hij open is. Een klik voor de standaardtijden, of stel ze per dag in.',
   onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
   lessen: 'De groepslessen die je geeft, en eventueel een paar vaste lessen in je week.',
-  team: 'Alleen naam, e-mail en rol. De inloglink voor je team maak je later.',
+  team: 'Alleen naam, e-mail en rol. Uitnodigen om in te loggen doe je later bij Medewerkers, wanneer het jou uitkomt.',
   leden: 'Lees je leden in uit je huidige systeem, of doe het later. Bekijk eerst hoe het werkt met een voorbeeld.',
   klaar: 'Je sportschool staat. Loop dit lijstje na, dan ben je klaar voor je eerste dag.',
 }
@@ -70,8 +70,8 @@ export function StapLedenInlezen({ importPad, vandaag }: StapLedenProps) {
       <section className="club-start-blok club-start-actie" aria-labelledby="start-inlezen-kop">
         <h2 id="start-inlezen-kop">Je ledenbestand</h2>
         <ol className="club-start-genummerd">
-          <li>Exporteer je leden uit je huidige systeem als CSV, of sla je Excel-lijst op als CSV.</li>
-          <li>Voornaam en achternaam zijn genoeg. Andere kolommen herkent Club zelf.</li>
+          <li>Exporteer je leden uit je huidige systeem (zoals Virtuagym) als CSV, of sla je Excel-lijst op als CSV.</li>
+          <li>Een naam is genoeg: voornaam en achternaam, of de hele naam in een kolom. Andere kolommen herkent Club zelf.</li>
           <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
         </ol>
         {importPad ? (
@@ -86,7 +86,7 @@ export function StapLedenInlezen({ importPad, vandaag }: StapLedenProps) {
       <section className="club-start-blok" aria-labelledby="start-later-kop">
         <h2 id="start-later-kop">Later doen</h2>
         <p>Geen bestand bij de hand? Ga gewoon verder. Je vindt het inlezen later bij Leden, en het staat op de checklist aan het eind van de wizard.</p>
-        <p className="club-hint">Na het inlezen kom je terug in de wizard via Start op Vandaag.</p>
+        <p className="club-hint">Na het inlezen brengt de knop Verder met de startwizard je hier terug.</p>
       </section>
     </div>
   )

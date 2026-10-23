@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
 import { MEDEWERKER_ROLLEN, ROL_LABEL, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { clubPad } from '@/lib/club/kern/vestiging'
 
-// Stap 6: medewerkers toevoegen met alleen naam, e-mail en rol. De inloglink
-// maak je later, bij Medewerkers. Gaat via dezelfde API als Instellingen.
+// Stap 6: medewerkers toevoegen met alleen naam, e-mail en rol. Uitnodigen om
+// in te loggen (e-mailadres plus een zelfgekozen wachtwoord) doe je daarna bij
+// Medewerkers. Gaat via dezelfde API als Instellingen.
 
 export interface TeamLid {
   id: string
@@ -112,7 +115,10 @@ export function TeamFormulier({ vestigingen, vestiging, team }: TeamFormulierPro
       ) : (
         <p className="club-leeg">Nog niemand. Werk je alleen? Dan kun je deze stap overslaan.</p>
       )}
-      <p className="club-hint">Iedereen krijgt later een eigen inloglink met pincode. Die maak en deel je bij Medewerkers, wanneer het jou uitkomt.</p>
+      <p className="club-hint">
+        Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Stuur de uitnodiging wanneer het jou uitkomt: open bij{' '}
+        <Link href={clubPad('/instellingen/medewerkers', vestiging)}>Medewerkers</Link> iemand en kies Uitnodigen.
+      </p>
     </section>
   )
 }

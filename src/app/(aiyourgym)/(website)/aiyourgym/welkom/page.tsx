@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
-import { INLOGGEN } from '@/components/aiyourgym/site/paden'
+import { AANMELDEN, INLOGGEN } from '@/components/aiyourgym/site/paden'
 import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
 
 // /aiyourgym/welkom?sessie=cs_... (of test_...): na het betalen. Zegt dat de
@@ -90,7 +90,7 @@ function Melding({ w }: { w: Exclude<Welkom, { soort: 'klaar' }> }) {
   }
   const tekst = {
     onbekend: { kop: 'Deze link kennen we niet.', uitleg: 'Controleer of je de hele link hebt, of neem contact met ons op.' },
-    verlopen: { kop: 'Deze pagina is verlopen.', uitleg: 'Om veiligheidsredenen tonen we de inloglink hier maar een week. Neem contact met ons op, dan helpen we je verder.' },
+    verlopen: { kop: 'Deze pagina is verlopen.', uitleg: 'Om veiligheidsredenen tonen we deze pagina maar een week. Je account blijft gewoon werken: log in met je e-mailadres en wachtwoord. Lukt dat niet, neem dan contact met ons op.' },
     gestopt: { kop: 'Dit abonnement is beeindigd.', uitleg: 'Wil je opnieuw starten? Meld je dan opnieuw aan.' },
   }[w.soort]
   return (
@@ -98,6 +98,18 @@ function Melding({ w }: { w: Exclude<Welkom, { soort: 'klaar' }> }) {
       <Clock size={36} strokeWidth={1.7} aria-hidden="true" className="aan-klaar-icoon" />
       <h1 className="aan-titel">{tekst.kop}</h1>
       <p className="ayg-lead">{tekst.uitleg}</p>
+      <div className="ayg-knoppen">
+        {w.soort === 'gestopt' ? (
+          <a href={AANMELDEN} className="ayg-knop ayg-knop--accent">
+            Opnieuw aanmelden
+          </a>
+        ) : (
+          <a href={INLOGGEN} className="ayg-knop ayg-knop--accent">
+            Naar inloggen
+          </a>
+        )}
+      </div>
+      {heeftContact() && <Contact />}
     </>
   )
 }

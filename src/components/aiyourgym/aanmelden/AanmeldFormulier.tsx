@@ -21,6 +21,8 @@ interface AanmeldFormulierProps {
   pakketten: readonly PakketKeuze[]
   proefdagen: number
   startPakket: PakketSleutel | null
+  /** Werken de adressen naam.aiyourgym.com al? Anders leggen we het adres alleen vast. */
+  adresActief: boolean
 }
 
 const LEEG: Omit<Invoer, 'pakket'> = {
@@ -29,7 +31,7 @@ const LEEG: Omit<Invoer, 'pakket'> = {
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: AanmeldFormulierProps) {
+export function AanmeldFormulier({ pakketten, proefdagen, startPakket, adresActief }: AanmeldFormulierProps) {
   const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, pakket: startPakket ?? '' })
   const [stap, setStap] = useState(startPakket ? 1 : 0)
   const [verste, setVerste] = useState(startPakket ? 1 : 0)
@@ -142,7 +144,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
         </h2>
         <div className="aan-stap" key={stap}>
           {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakket} proefdagen={proefdagen} fout={stapFouten.pakket} onKies={kiesPakket} />}
-          {stap === 1 && <StapSportschool invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} />}
+          {stap === 1 && <StapSportschool invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} adresActief={adresActief} />}
           {stap === 2 && <StapEigenaar invoer={invoer} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 3 && <StapAkkoord invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>
@@ -157,12 +159,12 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
           )}
           <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={verzenden.staat === 'bezig'}>
             {verzenden.staat === 'bezig' ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-            {!laatste ? 'Volgende' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
+            {!laatste ? 'Volgende' : pakket?.open && pakket.test ? 'Verder naar je proefperiode' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
             {verzenden.staat !== 'bezig' && <ArrowRight size={18} aria-hidden="true" />}
           </button>
         </div>
       </form>
-      <Samenvatting invoer={invoer} pakket={pakket} proefdagen={proefdagen} />
+      <Samenvatting invoer={invoer} pakket={pakket} proefdagen={proefdagen} adresActief={adresActief} />
     </div>
   )
 }

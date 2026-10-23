@@ -15,6 +15,7 @@ import { DienstPaneel } from './DienstPaneel'
 import { PatroonPaneel } from './PatroonPaneel'
 import { NotitiePaneel } from './NotitiePaneel'
 import { bereikVan, laadWeek } from './week-data'
+import { magUrenActie, magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
 import { plekStijl, uurTekst, type Bereik } from './weergave'
 
 interface Props {
@@ -117,6 +118,7 @@ export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props)
           beschikbaarheid={data.beschikbaarheid}
           bemand={data.bemand}
           sluitHref={sluitHref}
+          uren={{ goedkeuren: magUrenBeheren(t), wijzigen: geopend ? magUrenActie(t, geopend, 'bevestig') : false }}
         />
       )}
       {staat.paneel === 'patroon' && <PatroonPaneel vestiging={vestiging} maandag={maandag} sjablonen={data.sjablonen} sluitHref={sluitHref} />}

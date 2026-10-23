@@ -10,17 +10,26 @@ import { API, stuur, useActie } from './vraag'
 // Urenregistratie van een dienst: standaard de geplande tijd, aan te passen
 // naar het werkelijke begin en eind, met pauze en opmerking. Daarna bevestigen
 // (medewerker of manager) en goedkeuren (manager). Verwerkt = op slot.
+// Een trainer of instructeur ziet alleen bij zijn eigen dienst knoppen en
+// nooit Goedkeuren (uren-rechten.ts; de API controleert hetzelfde).
 
 const STAPPEN = ['gepland', 'gewerkt', 'goedgekeurd', 'verwerkt'] as const
 
-export function DienstUren({ dienst }: { dienst: Dienst }) {
+interface Props {
+  dienst: Dienst
+  magGoedkeuren: boolean
+  /** Bevestigen of aanpassen (bij de eigen dienst, zolang niet goedgekeurd); wie goedkeurt, mag dit altijd. */
+  magWijzigen: boolean
+}
+
+export function DienstUren({ dienst, magGoedkeuren, magWijzigen }: Props) {
   const w = werkelijk(dienst)
   const [begin, setBegin] = useState(w.begin)
   const [eind, setEind] = useState(w.eind)
   const [pauze, setPauze] = useState(String(dienst.pauzeMin))
   const [opmerking, setOpmerking] = useState(dienst.urenOpmerking ?? '')
   const { bezig, fout, setFout, voerUit } = useActie()
-  const opSlot = dienst.uurStatus === 'verwerkt'
+  const opSlot = dienst.uurStatus === 'verwerkt' || !magWijzigen
   const pauzeMin = Number(pauze) || 0
   const netto = eind > begin ? duurMin(begin, eind) - pauzeMin : 0
   const afwijkend = begin !== dienst.begin || eind !== dienst.eind
@@ -65,6 +74,9 @@ export function DienstUren({ dienst }: { dienst: Dienst }) {
         Netto <strong className="club-getal">{urenKlok(netto)}</strong> uur
         {afwijkend && <span className="club-personeel-afwijkend"> · anders dan gepland ({dienst.begin} tot {dienst.eind})</span>}
       </p>
+      {!magWijzigen && dienst.uurStatus !== 'verwerkt' && (
+        <p className="club-hint">De uren van deze dienst bevestigt de medewerker zelf; goedkeuren doet de clubmanager of de administratie.</p>
+      )}
       {fout && <p className="club-fout" role="alert">{fout}</p>}
       {!opSlot && (
         <div className="club-acties">
@@ -73,7 +85,7 @@ export function DienstUren({ dienst }: { dienst: Dienst }) {
               {dienst.uurStatus === 'gepland' ? 'Bevestig gewerkt' : 'Opslaan'}
             </button>
           )}
-          {dienst.uurStatus !== 'goedgekeurd' && (
+          {magGoedkeuren && dienst.uurStatus !== 'goedgekeurd' && (
             <button type="button" className="club-knop" disabled={bezig} onClick={() => doe('goedkeuren')}>
               Goedkeuren
             </button>

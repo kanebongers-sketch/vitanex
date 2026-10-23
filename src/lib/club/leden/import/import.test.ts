@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { leesCsv, raadScheidingsteken } from './csv'
-import { ontbrekendeVelden, pasKoppelingToe, raadKoppeling } from './kolommen'
-import { controleerRij, leesDatum, leesGeslacht, leesStatus, ruweRijUit } from './rij'
+import { isVerplicht, ontbrekendeVelden, pasKoppelingToe, raadKoppeling } from './kolommen'
+import { controleerRij, leesDatum, leesGeslacht, leesStatus, ruweRijUit, splitsNaam } from './rij'
 import { maakPlan, type ImportRegel } from './plan'
 import type { Lid } from '@/lib/club/kern/lid'
 
@@ -216,5 +216,52 @@ describe('leesImportVerzoek', () => {
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [] }, VANDAAG).ok).toBe(false)
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [{ regel: 2 }, { regel: 2 }] }, VANDAAG).ok).toBe(false)
     expect(leesImportVerzoek({ vestiging: 'budel', rijen: [{ regel: 1.5 }] }, VANDAAG).ok).toBe(false)
+  })
+})
+
+describe('een kolom met de volledige naam (bijvoorbeeld een export met alleen Naam)', () => {
+  it('herkent Naam en Full name, en maakt voornaam en achternaam dan niet verplicht', () => {
+    const k = raadKoppeling(['Naam', 'E-mail', 'Member ID', 'Membership name'])
+    expect(k.volledigeNaam).toBe(0)
+    expect(k.lidnummer).toBe(2)
+    expect(k.abonnement).toBe(3)
+    expect(ontbrekendeVelden(k)).toEqual([])
+    expect(isVerplicht('voornaam', k)).toBe(false)
+    expect(raadKoppeling(['Full name']).volledigeNaam).toBe(0)
+    expect(isVerplicht('voornaam', raadKoppeling(['Email']))).toBe(true)
+  })
+
+  it('laat aparte kolommen voor voornaam en achternaam voorgaan', () => {
+    const k = raadKoppeling(['Voornaam', 'Achternaam', 'Naam'])
+    expect([k.voornaam, k.achternaam, k.volledigeNaam]).toEqual([0, 1, 2])
+  })
+
+  it('splitst een naam, ook met tussenvoegsel of achternaam eerst', () => {
+    expect(splitsNaam('Jan de Vries')).toEqual({ voornaam: 'Jan', achternaam: 'de Vries' })
+    expect(splitsNaam('  Sanne   Bakker ')).toEqual({ voornaam: 'Sanne', achternaam: 'Bakker' })
+    expect(splitsNaam('Vries, Jan de')).toEqual({ voornaam: 'Jan', achternaam: 'de Vries' })
+    expect(splitsNaam('Cher')).toBeNull()
+    expect(splitsNaam(', Jan')).toBeNull()
+    expect(splitsNaam('')).toBeNull()
+  })
+
+  it('maakt van een rij met alleen de hele naam een lid, en weigert een naam van een woord', () => {
+    const goed = controleerRij({ volledigeNaam: 'Lotte van Dijk', email: 'lotte@example.com' }, VANDAAG)
+    expect(goed.ok && goed.lid).toMatchObject({ voornaam: 'Lotte', achternaam: 'van Dijk', email: 'lotte@example.com' })
+    expect(controleerRij({ volledigeNaam: 'Lotte' }, VANDAAG)).toEqual({ ok: false, fout: 'Voornaam of achternaam ontbreekt.' })
+  })
+
+  it('vult alleen aan wat ontbreekt: met een voornaam is de rest de achternaam', () => {
+    const rest = controleerRij({ voornaam: 'Jan', volledigeNaam: 'Jan de Vries' }, VANDAAG)
+    expect(rest.ok && rest.lid).toMatchObject({ voornaam: 'Jan', achternaam: 'de Vries' })
+    // Sommige systemen noemen de achternaam zelf "Naam".
+    const alleenAchternaam = controleerRij({ voornaam: 'Jan', volledigeNaam: 'de Vries' }, VANDAAG)
+    expect(alleenAchternaam.ok && alleenAchternaam.lid).toMatchObject({ voornaam: 'Jan', achternaam: 'de Vries' })
+    const eigen = controleerRij({ voornaam: 'Jan', tussenvoegsel: 'de', achternaam: 'Vries', volledigeNaam: 'Iets Anders' }, VANDAAG)
+    expect(eigen.ok && eigen.lid).toMatchObject({ voornaam: 'Jan', achternaam: 'de Vries' })
+  })
+
+  it('stuurt de hele naam ook mee van de pagina naar de server', () => {
+    expect(ruweRijUit({ volledigeNaam: 'Jan de Vries', onbekend: 'x' })).toEqual({ volledigeNaam: 'Jan de Vries' })
   })
 })
