@@ -18,7 +18,6 @@ const ICOON: Record<RolSleutel, ComponentType<{ size?: number; 'aria-hidden'?: b
 const VERDER = [
   { label: 'Alle functies', pad: '/functies' },
   { label: 'Voor wie', pad: '/voor-wie' },
-  { label: 'Overstappen', pad: '/overstappen' },
 ] as const
 
 export function Oogopslag() {

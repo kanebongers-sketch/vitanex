@@ -7,14 +7,14 @@ import { BELOFTES, OPRICHTER, PRAKTIJK, VLOER } from './praktijk'
 import { ROLLEN } from './systeem'
 import { SCHEMA_STAPPEN } from './trainingsschemas'
 import { OVERSTAP_STAPPEN, START_MINUTEN, START_STAPPEN } from './vertrouwen'
-import { HOME_VRAGEN, KOMT_MEE, KOMT_NIET_MEE, NIET, OVERSTAP_TIPS, WEL } from './eerlijk'
+import { HOME_VRAGEN, KOMT_MEE, KOMT_NIET_MEE, NIET, NIET_KORT, OVERSTAP_TIPS, WEL, WEL_KORT } from './eerlijk'
 import { GROEPEN, KERN, SUBVERWERKERS } from './beveiliging'
 
 // Bewaakt de teksten van de website: de schrijfregels van Kane (geen
 // gedachtestreepjes, geen klemtoon-accenten) en de eerlijkheid (geen verzonnen
 // aantallen, reviews of contactgegevens).
 
-const EERLIJK = { HOME_VRAGEN, WEL, NIET, KOMT_MEE, KOMT_NIET_MEE, OVERSTAP_TIPS, KERN, GROEPEN, SUBVERWERKERS }
+const EERLIJK = { HOME_VRAGEN, WEL, NIET, WEL_KORT, NIET_KORT, KOMT_MEE, KOMT_NIET_MEE, OVERSTAP_TIPS, KERN, GROEPEN, SUBVERWERKERS }
 const ALLE_TEKST = JSON.stringify({ HOOFDSTUKKEN, DOELGROEPEN, PRAKTIJK, VLOER, BELOFTES, DEMO_SOORTEN, ROLLEN, SCHEMA_STAPPEN, OVERSTAP_STAPPEN, ...EERLIJK })
 
 describe('teksten van de website', () => {
@@ -99,8 +99,13 @@ describe('eerlijk en vertrouwen', () => {
     expect(JSON.stringify(NIET)).toMatch(/Incasso/)
     expect(HOME_VRAGEN[0].antwoord).toMatch(/^Nee\./)
   })
-  it('zes vragen op de voorpagina, links alleen naar eigen paginas', () => {
-    expect(HOME_VRAGEN).toHaveLength(6)
-    for (const v of HOME_VRAGEN) if (v.link) expect(v.link.pad).toMatch(/^(\/[a-z-]+|#[a-z-]+)$/)
+  it('hooguit vier vragen op de voorpagina, links alleen naar eigen paginas', () => {
+    expect(HOME_VRAGEN.length).toBeLessThanOrEqual(4)
+    for (const v of HOME_VRAGEN) if (v.link) expect(v.link.pad).toMatch(/^(\/[a-z-]+(#[a-z-]+)?|#[a-z-]+)$/)
+  })
+  it('de korte lijst wel en niet op de voorpagina is hooguit vier per kant en noemt incasso', () => {
+    expect(WEL_KORT.length).toBeLessThanOrEqual(4)
+    expect(NIET_KORT.length).toBeLessThanOrEqual(4)
+    expect(NIET_KORT.join(' ')).toMatch(/Incasso/)
   })
 })

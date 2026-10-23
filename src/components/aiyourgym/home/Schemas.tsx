@@ -33,9 +33,9 @@ export function Schemas() {
           }
           onder={
             <>
-              <p className="ayg-klein">Echte tekst uit de oefenbibliotheek. Pas de coaching aan in de taal van je eigen trainers.</p>
+              <p className="ayg-klein">Echte tekst uit de oefenbibliotheek, aan te passen in de taal van je eigen trainers.</p>
               <Link href={aygPad('/trainingsschemas')} className="ayg-pijllink">
-                Zo werken trainingsschema&rsquo;s, van intake tot voortgang <ArrowRight size={16} aria-hidden />
+                Zo werken trainingsschema&rsquo;s <ArrowRight size={16} aria-hidden />
               </Link>
             </>
           }

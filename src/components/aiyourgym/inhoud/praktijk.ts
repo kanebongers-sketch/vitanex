@@ -16,7 +16,7 @@ export const PRAKTIJK = {
   kop: 'Gebouwd door iemand die de vloer kent.',
   rol: 'Personal trainer en PT-manager van 8 locaties',
   tekst:
-    'Ik sta zelf als personal trainer op de vloer en begeleid als PT-manager de trainers van acht locaties. AI Your Gym bouw ik omdat ik elke week zie waar het schuurt. Dit zijn de drie dingen waar ik mee begon.',
+    'Ik sta zelf als personal trainer op de vloer en begeleid als PT-manager de trainers van acht locaties. AI Your Gym bouw ik omdat ik elke week zie waar het schuurt.',
 } as const
 
 export interface VloerProbleem {

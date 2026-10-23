@@ -1,10 +1,11 @@
 import { CalendarPlus, Clock, Smartphone, UserRound } from 'lucide-react'
-import { BELOFTES, OPRICHTER, PRAKTIJK, VLOER } from '@/components/aiyourgym/inhoud/praktijk'
+import { BELOFTES, OPRICHTER, PRAKTIJK } from '@/components/aiyourgym/inhoud/praktijk'
 
-// Sociaal bewijs zonder te liegen: wie het bouwt, waarom (drie problemen van
-// de werkvloer en wat AI Your Gym daaraan doet) en wat je mag verwachten.
-// Geen aantallen sportscholen, reviews, sterren of logo's (die hebben we nog
-// niet). De naam komt uit inhoud/praktijk.ts; is die null, dan alleen de rol.
+// Kane kort (besluit Kane 21-10-2026): wie het bouwt, in een paar zinnen, en
+// wat je mag verwachten. Sociaal bewijs zonder te liegen: geen aantallen
+// sportscholen, reviews, sterren of logo's (die hebben we nog niet). De naam
+// komt uit inhoud/praktijk.ts; is die null, dan alleen de rol. Op de telefoon
+// alleen de titels van de beloftes, op de pc ook de uitleg.
 
 const ICONEN = [Smartphone, CalendarPlus, UserRound, Clock] as const
 
@@ -42,22 +43,9 @@ export function Praktijk() {
               </span>
             </figcaption>
           </figure>
-          <ol className="ayg-praktijk-vloer" aria-label="Waar AI Your Gym mee begon">
-            {VLOER.map((v, i) => (
-              <li key={v.probleem}>
-                <span className="ayg-praktijk-nr" aria-hidden>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <div>
-                  <h3>{v.probleem}</h3>
-                  <p>{v.oplossing}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
         </div>
         <div className="ayg-praktijk-voorjou">
-          <p className="ayg-label">Wat dat voor jou betekent</p>
+          <p className="ayg-label">Wat je mag verwachten</p>
           <ul className="ayg-praktijk-beloftes">
             {BELOFTES.map((b, i) => {
               const Icoon = ICONEN[i % ICONEN.length]

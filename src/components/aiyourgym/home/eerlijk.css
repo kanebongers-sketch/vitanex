@@ -20,7 +20,12 @@
 .ayg-held-route-naam { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
 .ayg-held-route-naam svg { transition: transform 220ms var(--ayg-ease); }
 .ayg-held-route:is(:hover, :focus-visible) .ayg-held-route-naam svg { transform: translateX(3px); }
-@media (max-width: 479px) { .ayg-held-route { flex: 1 1 100%; } }
+/* Telefoon: de twee routes naast elkaar, zonder icoon, zodat de held kort blijft */
+@media (max-width: 479px) {
+  .ayg-held-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 16px; }
+  .ayg-held-route { min-height: 56px; padding: 8px 14px; border-radius: 16px; }
+  .ayg-held-route-icoon, .ayg-held-route-extra { display: none; }
+}
 
 /* ── Wat we wel en niet doen ────────────────────────────────────────────── */
 .ayg-welniet-raster { display: grid; gap: 16px; }

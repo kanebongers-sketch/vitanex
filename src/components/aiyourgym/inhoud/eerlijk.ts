@@ -12,28 +12,23 @@
 // Geen prijzen, geen concurrenten bij naam, geen koppelingen die er niet zijn.
 
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { VRAAG_CONTRACT, VRAAG_GEGEVENS, type VeelgesteldeVraag } from './vertrouwen'
+import { VRAAG_CONTRACT, type VeelgesteldeVraag } from './vertrouwen'
 
 export interface VraagMetLink extends VeelgesteldeVraag {
   /** Een pad op de website (zonder /aiyourgym) voor wie meer wil lezen. */
   link?: { label: string; pad: string }
 }
 
-/** Zes vragen op de voorpagina, ingeklapt, vlak boven de afsluitende oproep. */
+/** Vier vragen op de voorpagina, ingeklapt, vlak boven de afsluitende oproep.
+ *  Overstappen en eigendom van gegevens staan op /overstappen en /prijzen. */
 export const HOME_VRAGEN: readonly VraagMetLink[] = [
   {
     vraag: 'Doet AI Your Gym ook de incasso en abonnementen van mijn leden?',
     antwoord:
       'Nee. Incasso, abonnementen en facturen van leden blijven in je eigen ledenadministratie. AI Your Gym doet de rest van de club: check-in, lessen en reserveren, trainingsschema’s, de ledenapp, leads, personeel en cijfers. Je leden lees je in met een CSV-bestand.',
-    link: { label: 'Wat we wel en niet doen', pad: '#wel-niet' },
+    link: { label: 'Alles wat we wel en niet doen', pad: '/overstappen#wel-niet' },
   },
   VRAAG_CONTRACT,
-  {
-    vraag: 'Hoe stap ik over van mijn huidige software?',
-    antwoord:
-      'Je exporteert je leden als CSV, uit je huidige systeem of uit Excel, en leest ze in. Je ziet eerst wat er verandert, er wordt nooit iemand verwijderd. Daarna zet de startwizard huisstijl, vestiging, lessen en team voor je klaar.',
-    link: { label: 'Zo stap je over', pad: '/overstappen' },
-  },
   {
     vraag: 'Waar staan mijn gegevens?',
     antwoord:
@@ -45,7 +40,6 @@ export const HOME_VRAGEN: readonly VraagMetLink[] = [
     antwoord:
       'Ja. Per vestiging stel je zalen, openingstijden en regels in, en leden kunnen bij een vestiging horen. De eigenaar bepaalt per rol wat een clubmanager ziet. Het pakket Keten heeft geen grens aan het aantal vestigingen.',
   },
-  VRAAG_GEGEVENS,
 ]
 
 export interface WelNietPunt {
@@ -69,6 +63,16 @@ export const NIET: readonly WelNietPunt[] = [
   { titel: 'Abonnementen van leden beheren', tekst: 'De naam van het abonnement lees je mee in; het contract zelf blijft waar het nu staat.' },
   { titel: 'Een koppeling met je ledenadministratie', tekst: 'Er is nog geen automatische koppeling. Je leest je leden in met een CSV-bestand, en opnieuw als er veel veranderd is.' },
   { titel: 'Een eigen app in de app stores', tekst: 'De ledenapp is een web-app die leden op hun beginscherm zetten, zonder app store.' },
+]
+
+/** Kort voor de voorpagina: vier dingen die het doet, vier die het (nu) niet doet.
+ *  De volledige lijsten (WEL en NIET) staan op /overstappen#wel-niet. */
+export const WEL_KORT: readonly string[] = ['Check-in met QR', 'Lessen en reserveren', 'Schema’s met coaching', 'Ledenapp in je huisstijl']
+export const NIET_KORT: readonly string[] = [
+  'Incasso en facturen van leden',
+  'Abonnementen van leden',
+  'Koppeling met je ledenadministratie',
+  'Een app in de app stores',
 ]
 
 /** Wat er bij het inlezen van een ledenbestand meekomt (de velden van de import). */

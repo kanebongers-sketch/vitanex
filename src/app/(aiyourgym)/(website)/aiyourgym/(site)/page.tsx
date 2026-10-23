@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import { Held } from '@/components/aiyourgym/home/Held'
 import { HomeVragen } from '@/components/aiyourgym/home/HomeVragen'
-import { Ledenapp } from '@/components/aiyourgym/home/Ledenapp'
 import { Oogopslag } from '@/components/aiyourgym/home/Oogopslag'
-import { Overstappen } from '@/components/aiyourgym/home/Overstappen'
+import { OokGeregeld } from '@/components/aiyourgym/home/OokGeregeld'
 import { Praktijk } from '@/components/aiyourgym/home/Praktijk'
 import { Schemas } from '@/components/aiyourgym/home/Schemas'
 import { SoortKeuze } from '@/components/aiyourgym/home/SoortKeuze'
-import { WelNiet } from '@/components/aiyourgym/home/WelNiet'
+import { WelNietKort } from '@/components/aiyourgym/home/WelNietKort'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 
 export const metadata: Metadata = {
@@ -17,23 +16,24 @@ export const metadata: Metadata = {
 }
 
 // Kort en gericht op aanmelden (besluit Kane 21-10-2026): de belofte met twee
-// routes en het product, direct daaronder een snelle keuze per soort sportschool, wat het is in een oogopslag, trainingsschema's met
-// 3D als blikvanger, de ledenapp, wie het bouwt en waarom, eerlijk wat het wel
-// en niet doet, overstappen in drie stappen, ingeklapte vragen en de afsluitende oproep. De details staan op de subpagina's
-// (functies, trainingsschema's, ledenapp, voor wie, overstappen).
+// routes en het product, een snelle keuze per soort sportschool, wat het is in
+// een oogopslag, trainingsschema's met 3D als blikvanger, ledenapp en
+// overstappen als twee korte vakken, Kane kort, eerlijk wat het wel en niet
+// doet, vier vragen en de afsluitende oproep. De details staan op de
+// subpagina's (functies, trainingsschema's, ledenapp, voor wie, overstappen).
+// .ayg-home geeft de voorpagina een strakker ritme dan de subpagina's.
 export default function AiYourGymHome() {
   return (
-    <>
+    <div className="ayg-home">
       <Held />
       <SoortKeuze />
       <Oogopslag />
       <Schemas />
-      <Ledenapp />
+      <OokGeregeld />
       <Praktijk />
-      <WelNiet />
-      <Overstappen />
+      <WelNietKort />
       <HomeVragen />
       <AanmeldBand />
-    </>
+    </div>
   )
 }
