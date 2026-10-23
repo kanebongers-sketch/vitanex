@@ -209,9 +209,9 @@ describe('subdomein per sportschool', () => {
 describe('inloggen als medewerker met e-mailadres en wachtwoord', () => {
   const login = (body: unknown = { email: 'lotte@gym.nl', wachtwoord: WW }, koppen: Record<string, string> = zelf) => inloggen(req('/api/club/inloggen', body, koppen))
 
-  it('schakelaar uit: 404 zonder iets op te zoeken', async () => {
+  it('schakelaar uit: geen medewerker opzoeken (de route blijft open voor het master account, dus 401)', async () => {
     stand.aan = false
-    expect((await login()).status).toBe(404)
+    expect((await login()).status).toBe(401)
     expect(opslag.vindMedewerkerOpEmail).not.toHaveBeenCalled()
   })
   it('eerst de beheerders; zonder beheerder de medewerker, met de medewerkercookie', async () => {
