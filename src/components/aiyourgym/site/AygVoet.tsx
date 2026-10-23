@@ -59,9 +59,7 @@ export function AygVoet() {
             </ul>
           </nav>
         </div>
-        <p className="ayg-voet-woord" aria-hidden>
-          AI Your Gym
-        </p>
+        <AygLogo vorm="woordmerk" sier className="ayg-voet-woord" />
         <div className="ayg-voet-onder">
           <span>© {jaar} AI Your Gym</span>
           <span>Database in Frankfurt, binnen de EU</span>

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import { LockKeyhole } from 'lucide-react'
+import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
 import { stuur } from '@/components/club/leden/stuur'
 
 // De inlog van de platform-eigenaar (master account van Kane) op aiyourgym.com.
@@ -48,7 +49,7 @@ export function PlatformInlog({ code, stand }: PlatformInlogProps) {
   return (
     <section className="club-inlog-kaart" aria-labelledby="club-inlog-kop">
       <p className="club-inlog-merk">
-        <span>AI Your Gym</span>
+        <AygLogo opDonker className="club-inlog-ayg" />
         <span className="club-inlog-club">Platform</span>
       </p>
       <h1 id="club-inlog-kop">{kiezen ? 'Kies je pincode' : 'Inloggen'}</h1>

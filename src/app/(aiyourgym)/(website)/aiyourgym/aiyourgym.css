@@ -457,3 +457,31 @@
    schermhoogte: daaronder scheen de donkere achtergrond van de app door
    terwijl de tekst donker bleef (donker op donker). */
 .ayg { flex-shrink: 0; }
+
+/* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────
+   Vaste merkkleuren, los van de site-tokens: het logo is overal hetzelfde.
+   Op licht een inkten tegel met een smaragden figuur; op donker, in de voet en
+   op een podium draait dat om (een inkten tegel valt daar weg). */
+.ayg-logo {
+  --ayg-logo-smaragd: #1fa77a;
+  --ayg-logo-inkt: #0f1412;
+  --ayg-logo-vlak: var(--ayg-logo-inkt);
+  --ayg-logo-figuur: var(--ayg-logo-smaragd);
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.ayg-voet .ayg-logo,
+.ayg-podium .ayg-logo { --ayg-logo-vlak: var(--ayg-logo-smaragd); --ayg-logo-figuur: var(--ayg-logo-inkt); }
+@media (prefers-color-scheme: dark) {
+  .ayg-logo { --ayg-logo-vlak: var(--ayg-logo-smaragd); --ayg-logo-figuur: var(--ayg-logo-inkt); }
+}
+.ayg-kop-logo .ayg-logo { height: 30px; width: auto; }
+/* Krappe pc-breedte: het logo iets kleiner, zodat menu en knoppen op een regel blijven */
+@media (min-width: 900px) and (max-width: 1239px) { .ayg-kop-logo .ayg-logo { height: 25px; } }
+/* Telefoon: naast de menuknop; op de smalste schermen (320) nog iets kleiner */
+@media (max-width: 899px) { .ayg-kop-logo .ayg-logo { height: 26px; } }
+@media (max-width: 359px) { .ayg-kop-logo .ayg-logo { height: 21px; } }
+.ayg-voet-merk .ayg-logo { height: 36px; width: auto; }
+/* Het grote woordmerk onder in de voet: dezelfde paden, over de volle breedte */
+svg.ayg-voet-woord { display: block; width: 100%; height: auto; color: var(--ayg-voet-woord); }
