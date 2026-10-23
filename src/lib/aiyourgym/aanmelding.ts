@@ -3,6 +3,7 @@
 // hierdoor. Per veld een Nederlandse foutmelding, zodat het formulier hem bij
 // het juiste veld kan tonen.
 
+import { wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 import { vindPakket, type PakketSleutel } from './pakketten'
 
@@ -21,9 +22,11 @@ export interface Aanmelding {
   eigenaarNaam: string
   eigenaarEmail: string
   eigenaarTelefoon: string
+  /** Het gekozen wachtwoord, alleen onderweg naar de server; opgeslagen wordt alleen de hash. */
+  wachtwoord: string
 }
 
-export type AanmeldVeld = keyof Aanmelding | 'akkoord'
+export type AanmeldVeld = keyof Aanmelding | 'akkoord' | 'wachtwoordHerhaal'
 export type AanmeldUitslag = { ok: true; waarde: Aanmelding } | { ok: false; fouten: Partial<Record<AanmeldVeld, string>> }
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/
@@ -96,12 +99,18 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
   const eigenaarTelefoon = leesTelefoon(b.eigenaarTelefoon)
   if (!eigenaarTelefoon) fouten.eigenaarTelefoon = 'Vul een geldig telefoonnummer in.'
 
+  const wachtwoord = typeof b.wachtwoord === 'string' ? b.wachtwoord : ''
+  const wachtwoordProbleem = wachtwoordFout(wachtwoord, { email: eigenaarEmail, naam: eigenaarNaam })
+  if (wachtwoordProbleem) fouten.wachtwoord = wachtwoordProbleem
+  // De herhaling controleert alleen de browser; de server krijgt hem niet mee.
+  if (b.wachtwoordHerhaal !== undefined && b.wachtwoordHerhaal !== wachtwoord) fouten.wachtwoordHerhaal = 'De twee wachtwoorden zijn niet gelijk.'
+
   if (b.akkoord !== true) fouten.akkoord = 'Ga akkoord met de voorwaarden en de privacyverklaring.'
 
   if (Object.keys(fouten).length > 0 || !pakket || aantalVestigingen === null || !slug.ok || !eigenaarEmail || !eigenaarTelefoon) {
     return { ok: false, fouten }
   }
-  return { ok: true, waarde: { pakket: pakket.sleutel, sportschoolNaam, aantalVestigingen, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon } }
+  return { ok: true, waarde: { pakket: pakket.sleutel, sportschoolNaam, aantalVestigingen, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon, wachtwoord } }
 }
 
 /** Een onzichtbaar veld dat mensen leeg laten; robots vullen het vaak wel. */

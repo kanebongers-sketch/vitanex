@@ -4,7 +4,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react'
 import { leesAanmelding, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
-import { STAPPEN, eersteStapMetFout, foutenVanStap, isStripeCheckout, type Fouten } from './stappen'
+import { STAPPEN, eersteStapMetFout, foutenVanStap, isStripeCheckout, isTestbetaalAdres, type Fouten } from './stappen'
 import { Voortgang } from './Voortgang'
 import { Samenvatting } from './Samenvatting'
 import { StapPakket } from './StapPakket'
@@ -24,7 +24,7 @@ interface AanmeldFormulierProps {
 }
 
 const LEEG: Omit<Invoer, 'pakket'> = {
-  sportschoolNaam: '', aantalVestigingen: 1, slug: '', slugZelf: false, eigenaarNaam: '', eigenaarEmail: '', eigenaarTelefoon: '', akkoord: false, website: '',
+  sportschoolNaam: '', aantalVestigingen: 1, slug: '', slugZelf: false, eigenaarNaam: '', eigenaarEmail: '', eigenaarTelefoon: '', wachtwoord: '', wachtwoordHerhaal: '', akkoord: false, website: '',
 }
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
@@ -68,8 +68,14 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
     })
   }
 
+  /** Wat de browser controleert (met de herhaling van het wachtwoord). */
   function body() {
     return { ...invoer, slugZelf: undefined }
+  }
+
+  /** Wat naar de server gaat: zonder de herhaling. */
+  function verzendBody() {
+    return { ...body(), wachtwoordHerhaal: undefined }
   }
 
   function volgende() {
@@ -97,8 +103,12 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
     }
     setVerzenden({ staat: 'bezig' })
     try {
-      const res = await fetch('/api/aiyourgym/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body()) })
+      const res = await fetch('/api/aiyourgym/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verzendBody()) })
       const json = (await res.json().catch(() => null)) as { staat?: unknown; url?: unknown; melding?: unknown; fout?: unknown; fouten?: Fouten } | null
+      if (res.ok && json?.staat === 'testbetaling' && isTestbetaalAdres(json.url)) {
+        window.location.assign(json.url)
+        return
+      }
       if (res.ok && json?.staat === 'betalen' && isStripeCheckout(json.url)) {
         window.location.assign(json.url)
         return

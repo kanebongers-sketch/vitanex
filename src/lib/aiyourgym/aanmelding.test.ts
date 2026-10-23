@@ -9,6 +9,7 @@ const goed = {
   eigenaarNaam: 'Sanne de Vries',
   eigenaarEmail: 'Sanne@Voorbeeld.nl',
   eigenaarTelefoon: '+31 6 12345678',
+  wachtwoord: 'Blauwe-kat-rent-7',
   akkoord: true,
 }
 
@@ -16,14 +17,24 @@ describe('leesAanmelding', () => {
   it('maakt goede invoer schoon', () => {
     expect(leesAanmelding(goed)).toEqual({
       ok: true,
-      waarde: { pakket: 'club', sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678' },
+      waarde: { pakket: 'club', sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678', wachtwoord: 'Blauwe-kat-rent-7' },
     })
   })
   it('geeft per veld een fout', () => {
     const uit = leesAanmelding({})
     expect(uit.ok).toBe(false)
     if (uit.ok) return
-    expect(Object.keys(uit.fouten).sort()).toEqual(['aantalVestigingen', 'akkoord', 'eigenaarEmail', 'eigenaarNaam', 'eigenaarTelefoon', 'pakket', 'slug', 'sportschoolNaam'])
+    expect(Object.keys(uit.fouten).sort()).toEqual(['aantalVestigingen', 'akkoord', 'eigenaarEmail', 'eigenaarNaam', 'eigenaarTelefoon', 'pakket', 'slug', 'sportschoolNaam', 'wachtwoord'])
+  })
+  it('wachtwoord: sterk genoeg, zonder eigen naam, en de herhaling moet gelijk zijn', () => {
+    const fout = (extra: Record<string, unknown>) => {
+      const uit = leesAanmelding({ ...goed, ...extra })
+      return uit.ok ? null : uit.fouten
+    }
+    expect(fout({ wachtwoord: 'kort' })?.wachtwoord).toMatch(/minstens/)
+    expect(fout({ wachtwoord: 'Sanne-traint-veel-7' })?.wachtwoord).toMatch(/naam of e-mailadres/)
+    expect(fout({ wachtwoordHerhaal: 'iets-anders-dan-dit' })?.wachtwoordHerhaal).toMatch(/niet gelijk/)
+    expect(fout({ wachtwoordHerhaal: 'Blauwe-kat-rent-7' })).toBeNull()
   })
   it('zonder akkoord geen aanmelding, ook niet met een tekst "true"', () => {
     const uit = leesAanmelding({ ...goed, akkoord: 'true' })

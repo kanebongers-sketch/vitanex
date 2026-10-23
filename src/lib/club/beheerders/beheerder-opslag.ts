@@ -6,6 +6,7 @@
 
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { normaalEmail, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
 import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, controleCode, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from '@/lib/club/kern/pin'
 import {
   BEHEERDER_CODE, BEHEERDER_KOLOMMEN, BEHEERDER_SESSIE_DAGEN, MAX_BEHEERDER_SESSIES, beheerderUitRij, beoordeelBeheerderSessie, magBinnen,
@@ -62,6 +63,37 @@ export type InlogUitkomst =
  */
 export async function logInBeheerder(admin: SupabaseClient, b: Beheerder, pin: string, nu: Date): Promise<InlogUitkomst> {
   if (b.pinStatus !== 'actief') return { staat: 'niet_actief' }
+  return controleerEnStart(admin, b, () => pinKlopt(pin, b.pinHash), nu)
+}
+
+/** Inloggen op aiyourgym.com met e-mailadres en wachtwoord; dezelfde rem als de pincode. */
+export async function logInMetWachtwoord(admin: SupabaseClient, b: Beheerder, wachtwoord: string, nu: Date): Promise<InlogUitkomst> {
+  if (!b.actief || !b.wachtwoordHash) return { staat: 'niet_actief' }
+  return controleerEnStart(admin, b, () => wachtwoordKlopt(wachtwoord, b.wachtwoordHash), nu)
+}
+
+/** De actieve beheerder met dit e-mailadres en een wachtwoord, of null. */
+export async function vindBeheerderOpEmail(admin: SupabaseClient, ruw: unknown): Promise<Beheerder | null> {
+  const email = normaalEmail(ruw)
+  if (!email) return null
+  const { data, error } = await admin.from('club_beheerders').select(BEHEERDER_KOLOMMEN).eq('email', email).eq('actief', true).not('wachtwoord_hash', 'is', null).limit(2)
+  if (error) {
+    console.error('[club] beheerder op e-mail lezen mislukt', error.message)
+    return null
+  }
+  const rijen = (data ?? []).map(beheerderUitRij).filter((b): b is Beheerder => b !== null && b.email?.toLowerCase() === email)
+  return rijen.length === 1 ? rijen[0] : null
+}
+
+/** Een sessie zonder pin- of wachtwoordcontrole: alleen direct na een geslaagde aanmelding. */
+export async function startSessie(admin: SupabaseClient, b: Beheerder, nu: Date): Promise<{ token: string; verlooptOp: Date } | null> {
+  if (!magBinnen(b)) return null
+  const sessie = await maakSessie(admin, b.id, nu)
+  if (sessie) await admin.from('club_beheerders').update({ laatst_ingelogd_op: nu.toISOString() }).eq('id', b.id)
+  return sessie
+}
+
+async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () => boolean, nu: Date): Promise<InlogUitkomst> {
   if (b.blokkades >= MAX_BLOKKADES) return { staat: 'gesloten' }
   if (b.geblokkeerdTot && new Date(b.geblokkeerdTot).getTime() > nu.getTime()) return { staat: 'geblokkeerd', totOp: b.geblokkeerdTot }
 
@@ -77,7 +109,7 @@ export async function logInBeheerder(admin: SupabaseClient, b: Beheerder, pin: s
   if (resFout) return { staat: 'db' }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!pinKlopt(pin, b.pinHash)) {
+  if (!klopt()) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, b, nu)
   }
@@ -192,10 +224,10 @@ export async function haalBeheerders(admin: SupabaseClient, organisatieId: strin
   return (data ?? []).map(beheerderUitRij).filter((b): b is Beheerder => b !== null).map(overzicht)
 }
 
-export async function maakBeheerder(admin: SupabaseClient, organisatieId: string, invoer: NieuweBeheerder): Promise<{ id: string } | null> {
+export async function maakBeheerder(admin: SupabaseClient, organisatieId: string, invoer: NieuweBeheerder, wachtwoordHash: string | null = null): Promise<{ id: string } | null> {
   const { data, error } = await admin
     .from('club_beheerders')
-    .insert({ organisatie_id: organisatieId, naam: invoer.naam, email: invoer.email, rol: invoer.rol, code: nieuweBeheerderCode() })
+    .insert({ organisatie_id: organisatieId, naam: invoer.naam, email: invoer.email, rol: invoer.rol, code: nieuweBeheerderCode(), wachtwoord_hash: wachtwoordHash })
     .select('id')
     .single()
   if (error || !data) {

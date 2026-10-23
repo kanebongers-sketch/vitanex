@@ -1,17 +1,17 @@
-// ─── AI Your Gym: welkomstmail met de inloglink (SERVER-ONLY) ───────────────
+// ─── AI Your Gym: welkomstmail (SERVER-ONLY) ────────────────────────────────
 // Alleen naar de eigenaar die zich zelf aanmeldde, en alleen als Kane er een
 // afzender voor instelde (AIYOURGYM_RESEND_FROM plus RESEND_API_KEY). Zonder:
-// geen mail, de inloglink staat dan alleen op de welkomstpagina.
+// geen mail. Inloggen gaat met e-mailadres en wachtwoord; de mail bevat dus geen
+// geheime link en nooit het wachtwoord.
 
 import { Resend } from 'resend'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { platformEigenaarId } from '@/lib/club/kern/database'
 import { mailAfzender } from './config'
-import { siteActief } from './schakelaar'
-import { portaalLink } from './links'
+import { AYG_WEBSITE } from './links'
 import type { AanmeldingRij } from './opslag'
-import { eigenaarCode, maakSportschool, ruimSportschoolOp } from './sportschool'
+import { maakSportschool, ruimSportschoolOp } from './sportschool'
 import type { VerwerkDeps } from './verwerk'
 
 function escape(s: string): string {
@@ -19,31 +19,25 @@ function escape(s: string): string {
 }
 
 /** De tekst van de mail (PUUR). */
-export function welkomTekst(voornaam: string, sportschool: string, link: string | null, loginOpen: boolean): { onderwerp: string; tekst: string } {
+export function welkomTekst(voornaam: string, sportschool: string, inlogAdres: string, loginOpen: boolean): { onderwerp: string; tekst: string } {
   const regels = [
     `Hoi ${voornaam},`,
     '',
     `${sportschool} staat klaar in AI Your Gym.`,
     '',
-    link ? `Je persoonlijke inloglink: ${link}` : 'Je persoonlijke inloglink sturen we je apart.',
     loginOpen
-      ? 'Bij je eerste bezoek kies je een pincode van 6 cijfers. Je krijgt dan een controlecode van 4 cijfers: noem die aan ons, dan zetten we je pincode aan.'
-      : 'Inloggen opent na de lancering. Dan kies je via deze link een pincode van 6 cijfers; wij zetten hem aan zodra je ons de controlecode noemt.',
-    '',
-    'Bewaar deze link goed en deel hem met niemand: hij is alleen voor jou.',
+      ? `Log in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos. De startwizard helpt je daarna in ongeveer een kwartier op weg.`
+      : `Inloggen opent na de lancering. Dan log je in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos.`,
     '',
     'Team AI Your Gym',
   ]
   return { onderwerp: `${sportschool} staat klaar`, tekst: regels.join('\n') }
 }
 
-export async function stuurWelkomMail(admin: SupabaseClient, a: AanmeldingRij, organisatieId: string): Promise<void> {
+export async function stuurWelkomMail(_admin: SupabaseClient, a: AanmeldingRij): Promise<void> {
   const van = mailAfzender()
   if (!van) return
-  const code = await eigenaarCode(admin, organisatieId, a.eigenaarEmail)
-  if (!code) return
-  const link = portaalLink({ code, slug: a.slug, subdomeinenAan: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', portaalUrl: process.env.AIYOURGYM_PORTAAL_URL ?? null, oorsprong: null, host: null, siteAan: siteActief() })
-  const { onderwerp, tekst } = welkomTekst(a.eigenaarNaam.split(' ')[0], a.sportschoolNaam, link, CLUB_EIGEN_LOGIN)
+  const { onderwerp, tekst } = welkomTekst(a.eigenaarNaam.split(' ')[0], a.sportschoolNaam, `${AYG_WEBSITE}/inloggen`, CLUB_EIGEN_LOGIN)
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({

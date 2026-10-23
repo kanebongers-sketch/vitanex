@@ -178,3 +178,18 @@
   .ayg .aan-stap, .ayg .aan-draai { animation: none; }
   .ayg .aan-pakket, .ayg .aan-pakket:hover { transform: none; transition: none; }
 }
+
+/* Testbetaling: de plek van Stripe Checkout zolang online betalen niet gekoppeld is. */
+.ayg .aan-test-melding { display: flex; gap: 12px; align-items: flex-start; width: 100%; max-width: 640px; padding: 16px 18px; border-radius: var(--ayg-radius-klein); background: color-mix(in srgb, var(--ayg-accent) 10%, var(--ayg-vlak)); color: var(--ayg-tekst); }
+.ayg .aan-test-melding svg { flex: none; margin-top: 2px; color: var(--ayg-accent); }
+.ayg .aan-test-overzicht { display: grid; width: 100%; max-width: 640px; margin: 0; padding: clamp(20px, 3vw, 28px); border-radius: calc(var(--ayg-radius) + 4px); box-shadow: var(--ayg-schaduw); }
+.ayg .aan-test-overzicht > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 10px; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg .aan-test-overzicht > div:last-child { border-bottom: 0; }
+.ayg .aan-test-overzicht dt { color: var(--ayg-tekst-2); }
+.ayg .aan-test-overzicht dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.ayg .aan-uitleg svg { display: inline; vertical-align: -3px; margin-right: 4px; }
+.ayg .aan-test-actie { display: grid; gap: 12px; justify-items: start; }
+
+/* Inloggen met e-mailadres en wachtwoord (pagina Inloggen van de website). */
+.ayg .aan-inlog { display: grid; gap: 18px; width: 100%; max-width: 460px; padding: clamp(22px, 3vw, 32px); border-radius: calc(var(--ayg-radius) + 4px); box-shadow: var(--ayg-schaduw); }
+.ayg .aan-inlog .ayg-knop { justify-self: start; }

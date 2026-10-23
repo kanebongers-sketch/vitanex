@@ -25,7 +25,7 @@ export function nepSupabase(antwoord: (v: Vraag) => Antwoord): { admin: Supabase
         v.filters.push([op, kolom, waarde])
         return keten
       }
-      for (const op of ['eq', 'neq', 'lt', 'gt', 'in', 'is']) keten[op] = filter(op)
+      for (const op of ['eq', 'neq', 'lt', 'gt', 'in', 'is', 'not']) keten[op] = filter(op)
       for (const naam of ['order', 'range', 'limit']) keten[naam] = () => keten
       keten.select = () => keten
       keten.update = (w: unknown) => Object.assign(v, { actie: 'update', waarde: w }) && keten

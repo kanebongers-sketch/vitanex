@@ -50,13 +50,15 @@ export interface Beheerder {
   pinStatus: BeheerderPinStatus
   /** SERVER-ONLY. */
   pinHash: string | null
+  /** SERVER-ONLY. Inloggen met e-mail en wachtwoord (aiyourgym.com); null = alleen link plus pincode. */
+  wachtwoordHash: string | null
   mislukt: number
   geblokkeerdTot: string | null
   blokkades: number
   laatstIngelogdOp: string | null
 }
 
-export const BEHEERDER_KOLOMMEN = 'id, organisatie_id, naam, email, rol, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
+export const BEHEERDER_KOLOMMEN = 'id, organisatie_id, naam, email, rol, code, actief, pin_hash, pin_status, wachtwoord_hash, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
 
 function isRol(v: unknown): v is BeheerderRol {
   return (BEHEERDER_ROLLEN as readonly unknown[]).includes(v)
@@ -91,6 +93,7 @@ export function beheerderUitRij(rij: unknown): Beheerder | null {
     actief: r.actief === true,
     pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen',
     pinHash: tekstOfNull(r.pin_hash),
+    wachtwoordHash: tekstOfNull(r.wachtwoord_hash),
     mislukt: getal(r.mislukt),
     geblokkeerdTot: tekstOfNull(r.geblokkeerd_tot),
     blokkades: getal(r.blokkades),
@@ -169,9 +172,9 @@ export function beoordeelBeheerderSessie(s: BeheerderSessieRij, nu: Date): Sessi
   return t - laatst > BEHEERDER_AANRAAK_MS ? 'aanraken' : 'geldig'
 }
 
-/** Mag deze beheerder Club in (los van de sessie)? Actief en met een goedgekeurde pin. */
-export function magBinnen(b: Pick<Beheerder, 'actief' | 'pinStatus'>): boolean {
-  return b.actief && b.pinStatus === 'actief'
+/** Mag deze beheerder Club in (los van de sessie)? Actief, met een goedgekeurde pin of een eigen wachtwoord. */
+export function magBinnen(b: Pick<Beheerder, 'actief' | 'pinStatus' | 'wachtwoordHash'>): boolean {
+  return b.actief && (b.pinStatus === 'actief' || b.wachtwoordHash !== null)
 }
 
 /** Wat Kane in het portaal ziet: nooit de pin-hash. */

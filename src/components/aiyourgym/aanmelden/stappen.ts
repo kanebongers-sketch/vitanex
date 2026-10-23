@@ -6,8 +6,8 @@ import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 // De laatste stap legt dat zelf uit (betalen bij Stripe of een aanvraag).
 export const STAPPEN = [
   { sleutel: 'pakket', titel: 'Pakket', velden: ['pakket'], hierna: 'Hierna vul je de naam en het adres van je sportschool in.' },
-  { sleutel: 'sportschool', titel: 'Sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'], hierna: 'Hierna alleen nog je naam, e-mail en telefoon.' },
-  { sleutel: 'eigenaar', titel: 'Eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon'], hierna: 'Hierna zie je alles nog een keer. Er gebeurt niets tot je bevestigt.' },
+  { sleutel: 'sportschool', titel: 'Sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'], hierna: 'Hierna je naam, e-mail, telefoon en een wachtwoord.' },
+  { sleutel: 'eigenaar', titel: 'Eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon', 'wachtwoord', 'wachtwoordHerhaal'], hierna: 'Hierna zie je alles nog een keer. Er gebeurt niets tot je bevestigt.' },
   { sleutel: 'akkoord', titel: 'Bevestigen', velden: ['akkoord'], hierna: null },
 ] as const satisfies readonly { sleutel: string; titel: string; velden: readonly AanmeldVeld[]; hierna: string | null }[]
 
@@ -26,6 +26,17 @@ export function eersteStapMetFout(fouten: Fouten): number | null {
 }
 
 /** Alleen een echte Stripe Checkout-pagina; nooit een adres dat ergens anders heen stuurt. */
+/** De eigen testbetaalpagina (zolang Stripe er niet is): alleen op dezelfde site als de bezoeker. */
+export function isTestbetaalAdres(url: unknown, oorsprong: string = typeof window === 'undefined' ? '' : window.location.origin): url is string {
+  if (typeof url !== 'string') return false
+  try {
+    const u = new URL(url, oorsprong || undefined)
+    return (u.origin === oorsprong || u.origin === 'https://aiyourgym.com') && /\/testbetaling$/.test(u.pathname)
+  } catch {
+    return false
+  }
+}
+
 export function isStripeCheckout(url: unknown): url is string {
   if (typeof url !== 'string') return false
   try {

@@ -53,32 +53,19 @@ export function checkoutAdressen(oorsprong: string, host: string, siteAan: boole
   }
 }
 
-export interface PortaalInvoer {
-  code: string
-  slug: string | null
-  subdomeinenAan: boolean
-  /** AIYOURGYM_PORTAAL_URL, als die gezet is. */
-  portaalUrl: string | null
-  /** De oorsprong van de bezoeker van de welkomstpagina. */
-  oorsprong: string | null
-  host: string | null
-  /** AIYOURGYM_SITE_ACTIEF: dan alleen links op aiyourgym.com of een subdomein ervan. */
-  siteAan: boolean
+/**
+ * De betaalpagina van een testbetaling (geen Stripe): op dezelfde plek als
+ * waar Stripe na het betalen naartoe zou sturen, dus dezelfde regels als hierboven.
+ */
+export function testbetaalAdres(oorsprong: string, host: string, siteAan: boolean, sessieId: string): string {
+  const naarSite = siteAan && !isAygHost(host) && !isLokaal(host)
+  const basis = naarSite ? AYG_WEBSITE : oorsprong
+  const h = naarSite ? CLUB_DOMEIN : host
+  return `${basis}${zichtbaarPad(h, '/aiyourgym/testbetaling', siteAan)}?sessie=${encodeURIComponent(sessieId)}`
 }
 
-/**
- * De persoonlijke inloglink naar het portaal. Met subdomeinen aan op het eigen
- * adres (daar werkt de sessie); anders op de app zelf. Op aiyourgym.com zonder
- * subdomeinen bestaat /clubinloggen niet: dan alleen met AIYOURGYM_PORTAAL_URL.
- * Met de site aan wijst de link nooit buiten AI Your Gym (geen ander domein van
- * de app): kan dat niet, dan geen link en sturen we hem apart.
- */
-export function portaalLink(p: PortaalInvoer): string | null {
-  const pad = `/clubinloggen/${p.code}`
-  if (p.subdomeinenAan && p.slug) return `https://${adresVan(p.slug)}${pad}`
-  const basis = p.portaalUrl?.replace(/\/+$/, '')
-  const geldig = basis && /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i.test(basis) ? basis : null
-  if (geldig && (!p.siteAan || isAygDomein(new URL(geldig).host))) return `${geldig}${pad}`
-  if (p.oorsprong && !isAygHost(p.host) && (!p.siteAan || isLokaal(p.host))) return `${p.oorsprong}${pad}`
-  return null
+/** Waar de testbetaalpagina na het afronden naartoe gaat: de welkomstpagina op hetzelfde domein. */
+export function welkomPad(host: string, siteAan: boolean, sessieId: string): string {
+  return `${zichtbaarPad(host, '/aiyourgym/welkom', siteAan)}?sessie=${encodeURIComponent(sessieId)}`
 }
+

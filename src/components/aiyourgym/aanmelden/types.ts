@@ -10,8 +10,10 @@ export interface PakketKeuze {
   /** Geen grens aan vestigingen in het pakket (online starten kan tot maxVestigingen). */
   onbeperkt: boolean
   aanbevolen: boolean
-  /** Online af te sluiten (Stripe-prijs ingesteld)? Anders een aanvraag. */
+  /** Online af te sluiten (Stripe-prijs ingesteld, of een testbetaling)? Anders een aanvraag. */
   open: boolean
+  /** Afronden met een testbetaling: Stripe is nog niet gekoppeld, er wordt niets afgeschreven. */
+  test: boolean
 }
 
 export interface Invoer {
@@ -24,6 +26,8 @@ export interface Invoer {
   eigenaarNaam: string
   eigenaarEmail: string
   eigenaarTelefoon: string
+  wachtwoord: string
+  wachtwoordHerhaal: string
   akkoord: boolean
   /** Onzichtbaar veld tegen robots. */
   website: string

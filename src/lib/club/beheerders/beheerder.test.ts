@@ -86,9 +86,11 @@ describe('beoordeelBeheerderSessie', () => {
 })
 
 describe('magBinnen', () => {
-  it('alleen actief en met goedgekeurde pin', () => {
-    expect(magBinnen({ actief: true, pinStatus: 'actief' })).toBe(true)
-    expect(magBinnen({ actief: true, pinStatus: 'wacht' })).toBe(false)
-    expect(magBinnen({ actief: false, pinStatus: 'actief' })).toBe(false)
+  it('alleen actief, met goedgekeurde pin of een eigen wachtwoord', () => {
+    expect(magBinnen({ actief: true, pinStatus: 'actief', wachtwoordHash: null })).toBe(true)
+    expect(magBinnen({ actief: true, pinStatus: 'wacht', wachtwoordHash: null })).toBe(false)
+    expect(magBinnen({ actief: false, pinStatus: 'actief', wachtwoordHash: null })).toBe(false)
+    expect(magBinnen({ actief: true, pinStatus: 'geen', wachtwoordHash: 's2:x' })).toBe(true)
+    expect(magBinnen({ actief: false, pinStatus: 'geen', wachtwoordHash: 's2:x' })).toBe(false)
   })
 })

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { controleCode, hashPin, tokenHash } from '@/lib/club/kern/pin'
 import type { Beheerder } from './beheerder'
-import { beheerderVanSessie, beoordeelBeheerder, haalBeheerders, kiesBeheerderPin, logInBeheerder, nieuweBeheerderCode, vindBeheerder } from './beheerder-opslag'
+import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
+import { beheerderVanSessie, beoordeelBeheerder, haalBeheerders, kiesBeheerderPin, logInBeheerder, logInMetWachtwoord, nieuweBeheerderCode, vindBeheerder, vindBeheerderOpEmail } from './beheerder-opslag'
 import { heeftFilter, nepSupabase, type Antwoord, type Vraag } from './nep-supabase'
 
 const GYM_A = 'de000000-0000-4000-8000-0000000000c1'
@@ -17,7 +18,7 @@ const rij = (extra: Record<string, unknown> = {}) => ({
 
 const beheerder = (extra: Partial<Beheerder> = {}): Beheerder => ({
   id: ID, organisatieId: GYM_A, naam: 'Sanne', email: null, rol: 'eigenaar', code: 'abcdefghijklmnopqrstuvwx', actief: true,
-  pinStatus: 'actief', pinHash: hashPin(PIN), mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null, ...extra,
+  pinStatus: 'actief', pinHash: hashPin(PIN), wachtwoordHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null, ...extra,
 })
 
 const ok = (data: unknown): Antwoord => ({ data, error: null })
@@ -73,6 +74,31 @@ describe('logInBeheerder', () => {
     expect((await logInBeheerder(admin, beheerder({ blokkades: 6 }), PIN, NU)).staat).toBe('gesloten')
     expect((await logInBeheerder(admin, beheerder({ pinStatus: 'wacht' }), PIN, NU)).staat).toBe('niet_actief')
     expect(vragen).toHaveLength(0)
+  })
+})
+
+describe('inloggen met e-mail en wachtwoord', () => {
+  const WW = 'Blauwe-kat-rent-7'
+  const metWw = (extra: Partial<Beheerder> = {}) => beheerder({ email: 'mark@gym.nl', pinStatus: 'geen', pinHash: null, wachtwoordHash: hashWachtwoord(WW), ...extra })
+  it('goed wachtwoord: een sessie; fout: telt af met dezelfde rem als de pincode', async () => {
+    const { admin } = nepSupabase((v) => (v.actie === 'select' ? ok([]) : eenRij))
+    expect((await logInMetWachtwoord(admin, metWw(), WW, NU)).staat).toBe('ok')
+    expect(await logInMetWachtwoord(admin, metWw(), 'Fout-wachtwoord-99', NU)).toEqual({ staat: 'fout', over: 4 })
+    expect((await logInMetWachtwoord(admin, metWw({ mislukt: 4 }), 'Fout-wachtwoord-99', NU)).staat).toBe('geblokkeerd')
+  })
+  it('zonder wachtwoord of gestopt: niet actief, zonder de database', async () => {
+    const { admin, vragen } = nepSupabase(() => eenRij)
+    expect((await logInMetWachtwoord(admin, metWw({ wachtwoordHash: null }), WW, NU)).staat).toBe('niet_actief')
+    expect((await logInMetWachtwoord(admin, metWw({ actief: false }), WW, NU)).staat).toBe('niet_actief')
+    expect(vragen).toHaveLength(0)
+  })
+  it('op e-mail: alleen een geldig adres, in kleine letters, en alleen als er precies een is', async () => {
+    const { admin, vragen } = nepSupabase(() => ok([rij({ email: 'mark@gym.nl', wachtwoord_hash: 's2:x' })]))
+    expect((await vindBeheerderOpEmail(admin, ' Mark@Gym.nl '))?.id).toBe(ID)
+    expect(heeftFilter(vragen[0], 'email', 'mark@gym.nl')).toBe(true)
+    expect(await vindBeheerderOpEmail(admin, 'geen-adres')).toBeNull()
+    const twee = nepSupabase(() => ok([rij({ email: 'mark@gym.nl', wachtwoord_hash: 's2:x' }), rij({ id: '22222222-2222-4222-8222-222222222222', email: 'mark@gym.nl', wachtwoord_hash: 's2:x' })]))
+    expect(await vindBeheerderOpEmail(twee.admin, 'mark@gym.nl')).toBeNull()
   })
 })
 

@@ -1,14 +1,13 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
-import { Kopieer } from '@/components/aiyourgym/aanmelden/Kopieer'
+import { INLOGGEN } from '@/components/aiyourgym/site/paden'
 import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
 
-// /aiyourgym/welkom?sessie=cs_...: na Stripe Checkout. Toont de persoonlijke
-// inloglink naar het portaal. De sessie staat in de URL: nooit in zoekmachines
+// /aiyourgym/welkom?sessie=cs_... (of test_...): na het betalen. Zegt dat de
+// sportschool klaarstaat en wijst naar inloggen met e-mailadres en wachtwoord. De sessie staat in de URL: nooit in zoekmachines
 // en nooit als referrer naar een andere site.
 
 export const dynamic = 'force-dynamic'
@@ -34,42 +33,30 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
       </p>
       <div className="aan-link ayg-podium">
         <p className="aan-samen-label">
-          <KeyRound size={15} aria-hidden="true" /> Je persoonlijke inloglink
+          <KeyRound size={15} aria-hidden="true" /> Inloggen
         </p>
-        {w.link ? (
-          <>
-            <p className="aan-link-tekst">{w.link}</p>
-            <div className="ayg-knoppen">
-              <Kopieer tekst={w.link} />
-              {w.loginOpen && (
-                <a href={w.link} className="ayg-knop ayg-knop--rand ayg-knop--klein" rel="noreferrer">
-                  Open de link
-                </a>
-              )}
-            </div>
-          </>
-        ) : (
-          <p className="aan-link-tekst aan-link-tekst--rustig">Je link maken we voor je klaar; je krijgt hem van ons.</p>
+        <p>
+          Log in met <strong>{w.email}</strong> en het wachtwoord dat je bij het aanmelden koos.
+        </p>
+        {w.loginOpen && (
+          <div className="ayg-knoppen">
+            <a href={INLOGGEN} className="ayg-knop ayg-knop--accent">
+              Inloggen en starten
+            </a>
+          </div>
         )}
       </div>
       <ol className="ayg-genummerd aan-uitleg-lijst">
-        <li>Bewaar de link goed en deel hem met niemand. Hij is alleen voor jou.</li>
-        {w.loginOpen ? (
-          <>
-            <li>Open de link en kies een pincode van 6 cijfers.</li>
-            <li>Je krijgt een controlecode van 4 cijfers. Noem die aan ons: daarna zetten wij je pincode aan en log je in.</li>
-          </>
-        ) : (
-          <li>Inloggen opent na de lancering. Dan kies je via deze link een pincode van 6 cijfers en zetten wij hem aan zodra je ons de controlecode noemt.</li>
-        )}
+        {!w.loginOpen && <li>Inloggen opent na de lancering. Je account staat al klaar.</li>}
         <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestigingen, lessen, team en leden neer. Elke stap kun je overslaan en later afmaken.</li>
+        <li>Je team nodig je daarna uit vanuit Instellingen.</li>
       </ol>
       {heeftContact() && <Contact />}
     </>
   )
 }
 
-/** Hoe je ons bereikt voor de controlecode; alleen als Kane contactgegevens heeft ingevuld. */
+/** Hoe je ons bereikt bij vragen; alleen als Kane contactgegevens heeft ingevuld. */
 function Contact() {
   const { telefoon, email } = AYG_CONTACT
   return (
@@ -109,9 +96,7 @@ function Melding({ w }: { w: Exclude<Welkom, { soort: 'klaar' }> }) {
 
 export default async function WelkomPagina({ searchParams }: PaginaProps) {
   const zoek = await searchParams
-  const h = await headers()
-  const host = (h.get('x-forwarded-host')?.split(',')[0] ?? h.get('host') ?? '').trim().toLowerCase()
-  const w = await haalWelkom(zoek.sessie, host, new Date())
+  const w = await haalWelkom(zoek.sessie, new Date())
   return (
     <AanmeldSchil>
       <section className="aan-pagina aan-welkom ayg-wrap">{w.soort === 'klaar' ? <Klaar w={w} /> : <Melding w={w} />}</section>

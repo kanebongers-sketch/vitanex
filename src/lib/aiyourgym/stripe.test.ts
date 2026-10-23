@@ -92,8 +92,10 @@ describe('checkoutFormulier', () => {
       prijsId: 'price_1',
       succesUrl: 'https://aiyourgym.com/welkom?sessie={CHECKOUT_SESSION_ID}',
       terugUrl: 'https://aiyourgym.com/aanmelden',
-      aanmelding: { pakket: 'club', sportschoolNaam: 'Sterk', aantalVestigingen: 3, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678' },
+      aanmelding: { pakket: 'club', sportschoolNaam: 'Sterk', aantalVestigingen: 3, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678', wachtwoord: 'Geheim-Wachtwoord-77' },
     })
+    // Het wachtwoord gaat nooit naar Stripe.
+    expect([...f.values()].some((v) => v.includes('Geheim-Wachtwoord-77'))).toBe(false)
     expect(f.get('mode')).toBe('subscription')
     expect(f.get('line_items[0][quantity]')).toBe('3')
     expect(f.get('subscription_data[trial_period_days]')).toBe(String(PROEFDAGEN))
