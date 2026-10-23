@@ -11,11 +11,19 @@ import './start.css'
 // Op Vandaag, zolang de startwizard loopt: een opvallende kaart met de stand
 // en de volgende open stap, plus de streefdatum als de eigenaar die koos
 // ("Live op 1 november, nog 3 stappen"). Alleen voor Kane en de eigenaar.
+// Na de wizard staat hier alleen nog de proefregel, als het einde bekend is.
 
 export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: string | null }) {
   if (!magBeheerdersBeheren(t)) return null
   const gelezen = await haalStartVoorPagina(t)
-  if (!gelezen.ok || !toonStartKaart(gelezen.voortgang)) return null
+  // Wizard klaar (of niet te lezen): de kaart verdwijnt, de rustige proefregel blijft.
+  if (!gelezen.ok || !toonStartKaart(gelezen.voortgang)) {
+    return (
+      <div className="club-proef-los">
+        <Proefperiode t={t} />
+      </div>
+    )
+  }
   const stand = stappenStand(gelezen.voortgang, await haalStartFeiten(t))
   const af = aantalAf(stand)
   const volgende = stand[volgendeOpen(stand) - 1]

@@ -373,3 +373,4 @@
 .club-proef a:hover { color: var(--text-1); }
 .club-proef a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
 .club-startkaart-tekst p.club-proef { margin-top: 6px; color: var(--text-3); }
+.club-proef-los:has(.club-proef) { margin: 0 0 16px; }
