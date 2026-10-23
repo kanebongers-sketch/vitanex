@@ -66,7 +66,7 @@ const LID_VELDEN: Record<string, string> = {
   geslacht: 'Geslacht',
   vestiging: 'Vestiging',
   lidnummer: 'Lidnummer',
-  sportivity_id: 'Nummer in Sportivity',
+  sportivity_id: 'Klantnummer in de ledenadministratie',
   abonnement: 'Abonnement',
   status: 'Status',
   lid_sinds: 'Lid sinds',
@@ -238,7 +238,7 @@ export interface ExportMeta {
 
 export const EXPORT_UITLEG =
   'Dit bestand bevat alle gegevens die de sportschool in Club over dit lid bewaart, op het moment van downloaden. ' +
-  'Abonnementen, contracten en incasso staan niet in Club maar in de ledenadministratie van de sportschool (Sportivity); aankopen in de app staan er wel in. ' +
+  'Abonnementen, contracten en incasso staan niet in Club maar in de ledenadministratie van de sportschool; aankopen in de app staan er wel in. ' +
   'Pincodes en inloglinks zijn om veiligheidsredenen niet opgenomen.'
 
 /** Het volledige bestand: per onderdeel een lijst rijen met Nederlandse sleutels. */

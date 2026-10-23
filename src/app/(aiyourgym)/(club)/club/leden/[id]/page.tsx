@@ -170,6 +170,8 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             coachId={lid.coachId}
             trainers={coachKeuzes(kaart.medewerkers, lid.coachId)}
             tags={lid.tags}
+            status={lid.status}
+            statusVast={Boolean(verzoek)}
           />
           <AvgKaart
             lidId={lid.id}

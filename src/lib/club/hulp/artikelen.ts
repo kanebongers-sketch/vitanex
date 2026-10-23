@@ -49,10 +49,10 @@ export const ARTIKELEN: readonly Artikel[] = [
   {
     sleutel: 'leden-inlezen',
     titel: 'Leden inlezen en de ledenlijst',
-    samenvatting: 'Een export uit Sportivity of Excel inlezen, en leden zoeken en filteren.',
+    samenvatting: 'Een export uit je ledenadministratie of Excel inlezen, en leden zoeken en filteren.',
     onderdeel: 'leden',
     stappen: [
-      'Maak in Sportivity of Excel een CSV-bestand (puntkomma, komma of tab; Club herkent het zelf). Hooguit 10 MB en 5000 rijen per bestand.',
+      'Maak in je ledenadministratie of Excel een CSV-bestand (puntkomma, komma of tab; Club herkent het zelf). Hooguit 10 MB en 5000 rijen per bestand.',
       'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht, de rest kies je of zet je op Niet inlezen.',
       'Druk op Controleren. Elke rij krijgt Nieuw, Bijwerken, Al gelijk of Dubbel. Daarna lees je de leden in voor de gekozen vestiging.',
       'Inlezen verwijdert nooit iemand, en een lege cel wist niets. Coach, tags en QR-code blijven zoals ze zijn.',
@@ -265,7 +265,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Bij Instellingen, Ledenapp bekijken, zie je de app zoals een lid hem ziet: kies een lid en blader door Home, Lessen, Afspraken, Schema, Voeding, Voortgang en Profiel.',
       'Bij Instellingen, Ledenapp, stel je de welkomsttekst in, welke tabbladen aan staan en of de QR-code voor de check-in zichtbaar is.',
       'Bij Berichten plaats je nieuws, een actie of iets belangrijks, met begin en eind, voor welke vestigingen en eventueel alleen voor bepaalde leden. Een bericht kun je vastpinnen of meteen stoppen.',
-      'Abonnement en betalingen van leden blijven in Sportivity.',
+      'Abonnement en betalingen van leden blijven in je ledenadministratie.',
     ],
     links: [
       { label: 'Ledenapp bekijken', pad: '/club/app' },

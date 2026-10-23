@@ -70,7 +70,7 @@ function LedenKop({ vestiging, naam, totaal, vestigingen }: LedenKopProps) {
         <p className="club-boventitel">{naam}</p>
         <h1>Leden</h1>
         <p>
-          {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in Sportivity.
+          {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in je ledenadministratie.
         </p>
       </div>
       <div className="club-leden-kopknoppen">

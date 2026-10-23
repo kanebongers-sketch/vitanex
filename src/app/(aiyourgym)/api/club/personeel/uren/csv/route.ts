@@ -4,13 +4,16 @@ import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { isDatum, nlDelen } from '@/lib/club/rooster/tijd'
 import { haalDiensten, haalTeam } from '@/lib/club/personeel/opslag'
 import { PERIODE_SOORTEN, periodeVan, urenCsv, urenOverzicht } from '@/lib/club/personeel/uren'
+import { magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
 
 // GET /api/club/personeel/uren/csv?v=<vestiging>&periode=week|4weken|maand&op=<datum>
-//   CSV (puntkomma, decimale komma) voor de salarisadministratie.
+//   CSV (puntkomma, decimale komma) voor de salarisadministratie. Alleen voor wie
+//   uren beheert (eigenaar, clubmanager, administratie); anderen een 404.
 
 export async function GET(req: NextRequest) {
   const t = await vereisClubToegang(req)
   if (t instanceof NextResponse) return t
+  if (!magUrenBeheren(t)) return clubFout('Niet gevonden.', 404)
   const zoek = req.nextUrl.searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.get('v'))
   if (!vestiging) return clubFout('Onbekende vestiging.', 400)

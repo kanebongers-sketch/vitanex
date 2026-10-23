@@ -26,7 +26,7 @@ export default async function LedenImporterenPagina({ searchParams }: { searchPa
           <p className="club-boventitel">{label}</p>
           <h1>Ledenbestand inlezen</h1>
           <p>
-            Lees een export uit Sportivity of Excel in als CSV-bestand. Je ziet eerst precies wat er verandert. Nieuwe leden worden
+            Lees een export uit je ledenadministratie of Excel in als CSV-bestand. Je ziet eerst precies wat er verandert. Nieuwe leden worden
             toegevoegd, bestaande bijgewerkt; er wordt nooit iemand verwijderd.
           </p>
         </div>

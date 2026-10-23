@@ -68,7 +68,7 @@ export function leesVorm(body: unknown, eigen: Vestigingen): Uitslag<VormInvoer>
   const o = object(body)
   if (!o) return mis('Ongeldige invoer.')
   const naam = tekst(o.naam)
-  if (!naam) return mis('Geef de vorm een naam, zoals hij in Sportivity heet.')
+  if (!naam) return mis('Geef de vorm een naam, zoals hij in je ledenadministratie heet.')
   if (naam.length > MAX_NAAM) return mis(`Een naam mag maximaal ${MAX_NAAM} tekens zijn.`)
   const omschrijving = tekst(o.omschrijving)
   if (omschrijving.length > MAX_OMSCHRIJVING_VORM) return mis(`De omschrijving mag maximaal ${MAX_OMSCHRIJVING_VORM} tekens zijn.`)

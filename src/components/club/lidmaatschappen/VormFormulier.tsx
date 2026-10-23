@@ -87,7 +87,7 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
   return (
     <form className="club-lidm-form" onSubmit={(e) => void bewaar(e)} aria-describedby={fout ? `${id}-fout` : undefined}>
       <label className="club-veld">
-        <span>Naam zoals in Sportivity</span>
+        <span>Naam zoals in je ledenadministratie</span>
         <input className="club-invoer" required maxLength={MAX_NAAM} value={s.naam} onChange={(e) => zet('naam', e.target.value)} placeholder="All-in 12 maanden" />
       </label>
       <label className="club-veld">

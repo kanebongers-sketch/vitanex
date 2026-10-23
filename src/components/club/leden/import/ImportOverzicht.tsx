@@ -23,7 +23,7 @@ const ACTIE: Record<ImportActie, { label: string; sub: string; chip: string }> =
 const KOLOM_LABEL: Record<string, string> = {
   vestiging: 'verhuist naar deze vestiging', voornaam: 'voornaam', achternaam: 'achternaam', email: 'e-mail', telefoon: 'telefoon',
   geboortedatum: 'geboortedatum', geslacht: 'geslacht', abonnement: 'abonnement', status: 'status',
-  lid_sinds: 'lid sinds', einddatum: 'einddatum', lidnummer: 'lidnummer', sportivity_id: 'Sportivity-ID',
+  lid_sinds: 'lid sinds', einddatum: 'einddatum', lidnummer: 'lidnummer', sportivity_id: 'extern klantnummer',
 }
 
 const TOON = 150

@@ -11,6 +11,7 @@ import { WeekTab } from '@/components/club/personeel/WeekTab'
 import { TeamTab } from '@/components/club/personeel/TeamTab'
 import { MijnTab } from '@/components/club/personeel/MijnTab'
 import { UrenTab } from '@/components/club/personeel/UrenTab'
+import { magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
 import '@/components/club/personeel/personeel.css'
 
 // /club/personeel: het rooster van het fitnesspersoneel (balie, vloer,
@@ -26,17 +27,20 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   if (!vestiging) return <GeenVestigingen />
   const gelezen = leesStaat(params, vestiging)
   // Een ingelogde medewerker komt standaard bij zijn eigen diensten uit (besluit Kane 20-10-2026: de trainer op de vloer eerst).
-  const staat = t.rol === 'medewerker' && !params.tab ? { ...gelezen, tab: 'mijn' as const } : gelezen
+  // Het tabblad Uren (goedkeuren en exporteren) is voor wie uren beheert; een trainer ziet daar Mijn diensten.
+  const urenBeheer = magUrenBeheren(t)
+  const naarMijn = t.rol === 'medewerker' && (!params.tab || (gelezen.tab === 'uren' && !urenBeheer))
+  const staat = naarMijn ? { ...gelezen, tab: 'mijn' as const } : gelezen
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)
   const team = await haalTeam(t.admin, t.userId, vestiging)
 
   return (
     <div className="club-personeel-pagina">
-      <PersoneelKop staat={staat} vestigingNaam={naamVan(t.vestigingen, vestiging)} maandag={maandag} vandaag={nu.datum} />
+      <PersoneelKop staat={staat} vestigingNaam={naamVan(t.vestigingen, vestiging)} maandag={maandag} vandaag={nu.datum} metUren={urenBeheer} />
       {team === null ? (
         <p className="club-melding club-melding--fout" role="alert">
-          Het personeel kon niet worden geladen. Staat migratie 388 er al op? Ververs de pagina om het opnieuw te proberen.
+          Het personeel kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.
         </p>
       ) : staat.tab === 'team' ? (
         <TeamTab t={t} staat={staat} vestiging={vestiging} team={team} vandaag={nu.datum} />

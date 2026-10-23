@@ -1,7 +1,7 @@
 // GET  /api/club/leads/[id]/omzetten: mogelijke dubbele leden (zelfde e-mail of
 //      telefoon in deze vestiging), zodat het paneel vooraf kan waarschuwen.
 // POST /api/club/leads/[id]/omzetten: maak een proeflid in club_leden of koppel
-//      aan een bestaand lid. Inschrijving en abonnement gaan daarna in Sportivity.
+//      aan een bestaand lid. Inschrijving en abonnement gaan daarna in de ledenadministratie.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
@@ -13,7 +13,7 @@ import type { Lead } from '@/lib/club/leads/model'
 import { schrijfHistorie, werkLeadBij, zoekDubbeleLeden } from '@/lib/club/leads/data'
 import { leadUitRoute, leesJson, type LeadContext } from '@/lib/club/leads/api'
 
-const SPORTIVITY = 'Inschrijving en abonnement afronden in Sportivity.'
+const AFRONDEN = 'Inschrijving en abonnement afronden in je ledenadministratie.'
 
 export async function GET(req: NextRequest, ctx: LeadContext) {
   const t = await vereisClubToegang(req)
@@ -28,9 +28,9 @@ export async function GET(req: NextRequest, ctx: LeadContext) {
 async function koppel(t: ClubToegang, lead: Lead, lidId: string, historie: string): Promise<NextResponse> {
   const nieuw = await werkLeadBij(t.admin, t.userId, lead.id, { status: 'lid', lid_id: lidId, opvolgen_op: null, verloren_reden: null })
   if (!nieuw) return clubFout('De lead kon niet worden bijgewerkt. Probeer het opnieuw.', 500)
-  await schrijfHistorie(t.admin, t.userId, lead.id, { soort: 'status', tekst: `${historie} ${SPORTIVITY}`, auteur: t.naam })
+  await schrijfHistorie(t.admin, t.userId, lead.id, { soort: 'status', tekst: `${historie} ${AFRONDEN}`, auteur: t.naam })
   await logActie(t, 'lead omgezet naar lid', lead.naam, lead.vestiging)
-  return clubJson({ lead: nieuw, lidId, melding: SPORTIVITY })
+  return clubJson({ lead: nieuw, lidId, melding: AFRONDEN })
 }
 
 async function maakLid(t: ClubToegang, lead: Lead, nu: Date): Promise<{ id: string } | { fout: string; status: number }> {
