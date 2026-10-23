@@ -21,12 +21,14 @@ interface Oefenbeeld3dProps {
   /** Accentkleur als #rrggbb voor de werkende spieren. */
   accent?: string
   className?: string
+  /** Figuur over de hele beweging passend in het doek (hoofd tot voeten altijd in beeld). */
+  passend?: boolean
 }
 
 /** Hoe ver van het scherm we three.js alvast ophalen. */
 const VOORLADEN = '240px 0px'
 
-export function Oefenbeeld3d({ naam, label, stand = 'speelt', thema = 'donker', accent, className }: Oefenbeeld3dProps) {
+export function Oefenbeeld3d({ naam, label, stand = 'speelt', thema = 'donker', accent, className, passend = false }: Oefenbeeld3dProps) {
   const vak = useRef<HTMLDivElement>(null)
   const [laden, setLaden] = useState(false)
 
@@ -49,7 +51,7 @@ export function Oefenbeeld3d({ naam, label, stand = 'speelt', thema = 'donker', 
   return (
     <div ref={vak} className={className ? `ayg-3d ${className}` : 'ayg-3d'}>
       {laden ? (
-        <Oefening3dLazy naam={naam} stand={stand} thema={thema} accent={accent} label={label} />
+        <Oefening3dLazy naam={naam} stand={stand} thema={thema} accent={accent} label={label} passend={passend} />
       ) : (
         <div className={vlak} role="img" aria-label={label} />
       )}

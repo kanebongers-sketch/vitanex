@@ -23,7 +23,7 @@ export function StartStappen({ metLink = true }: Props) {
             label="Zo simpel start je"
             titel={
               <>
-                Negen stappen. <mark className="ayg-markeer">Een kwartier.</mark>
+                {START_STAPPEN.length} stappen. <mark className="ayg-markeer">Een kwartier.</mark>
               </>
             }
             tekst={`Na het aanmelden leidt een startwizard je door de inrichting, samen ongeveer ${START_MINUTEN} minuten. Elke stap sla je over als je wilt en maak je later af.`}

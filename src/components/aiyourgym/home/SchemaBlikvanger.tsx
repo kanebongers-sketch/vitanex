@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Oefenbeeld3d } from '@/components/aiyourgym/mockups/Oefenbeeld3d'
 
 // De blikvanger van de voorpagina: een echte oefening uit de bibliotheek als
-// eigen 3D-figuur, met de genummerde kernpunten ernaast. Een doek dat van
-// oefening wisselt, dus nooit meer dan een 3D-beeld tegelijk in dit blok.
+// eigen 3D-figuur, met de kop en de genummerde kernpunten ernaast. Een doek dat
+// van oefening wisselt, dus nooit meer dan een 3D-beeld tegelijk in dit blok.
+// Het figuur staat passend in het doek: hoofd tot voeten altijd in beeld.
 
 export interface BlikOefening {
   naam: string
@@ -16,16 +17,21 @@ export interface BlikOefening {
 
 interface Props {
   oefeningen: readonly BlikOefening[]
+  /** Label, kop en inleiding: op de pc rechts boven de kernpunten, op de telefoon boven het beeld. */
+  kop: ReactNode
+  /** De regel onder de kernpunten. */
+  onder: ReactNode
 }
 
-export function SchemaBlikvanger({ oefeningen }: Props) {
+export function SchemaBlikvanger({ oefeningen, kop, onder }: Props) {
   const [index, setIndex] = useState(0)
   const o = oefeningen[index]
   if (!o) return null
   return (
     <div className="ayg-blik">
+      <div className="ayg-blik-kop">{kop}</div>
       <figure className="ayg-blik-beeld">
-        <Oefenbeeld3d naam={o.naam} label={`${o.naam} als bewegend 3D-beeld, zoals het lid hem in de app ziet`} />
+        <Oefenbeeld3d naam={o.naam} passend label={`${o.naam} als bewegend 3D-beeld, zoals het lid hem in de app ziet`} />
         <figcaption>
           <b>{o.naam}</b>
           <span>{o.voorschrift}</span>
@@ -53,6 +59,7 @@ export function SchemaBlikvanger({ oefeningen }: Props) {
           ))}
         </ol>
       </div>
+      <div className="ayg-blik-onder">{onder}</div>
     </div>
   )
 }
