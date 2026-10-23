@@ -18,3 +18,10 @@ export function siteActief(env: Record<string, string | undefined> = process.env
 export function aygIndexeren(env: Record<string, string | undefined> = process.env): boolean {
   return env.AIYOURGYM_INDEXEREN === '1'
 }
+
+// Werken de eigen adressen naam.aiyourgym.com al? (CLUB_SUBDOMEINEN_ACTIEF=1 in
+// Render). Zolang niet, leggen we het adres bij het aanmelden alleen vast en
+// zegt de website dat eerlijk.
+export function subdomeinenActief(env: Record<string, string | undefined> = process.env): boolean {
+  return env.CLUB_SUBDOMEINEN_ACTIEF === '1'
+}

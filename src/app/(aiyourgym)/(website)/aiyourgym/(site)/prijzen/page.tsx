@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
 import { PAKKETTEN, PROEFDAGEN, type Pakket } from '@/lib/aiyourgym/pakketten'
+import { testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { VRAAG_CONTRACT, VRAAG_GEGEVENS } from '@/components/aiyourgym/inhoud/vertrouwen'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
@@ -56,7 +57,11 @@ function PakketKaart({ pakket }: { pakket: Pakket }) {
   )
 }
 
-const VRAGEN = [
+// Zolang Stripe niet gekoppeld is, start de proefperiode met een testbetaling
+// (besluit Kane 23-10-2026): dat zeggen we hier eerlijk.
+const ZONDER_STRIPE = ` Online betalen is nog niet gekoppeld: bij het starten wordt niets afgeschreven, en voor het einde van je proefperiode spreken we samen af hoe je verder betaalt.`
+
+const vragen = (zonderStripe: boolean) => [
   {
     vraag: 'Wat kost AI Your Gym?',
     antwoord:
@@ -64,7 +69,7 @@ const VRAGEN = [
   },
   {
     vraag: 'Hoe werkt de proefperiode?',
-    antwoord: `Je probeert AI Your Gym ${PROEFDAGEN} dagen gratis, met je eigen logo, kleuren en team. Zo zie je in je eigen club of het past.`,
+    antwoord: `Je probeert AI Your Gym ${PROEFDAGEN} dagen gratis, met je eigen logo, kleuren en team. Zo zie je in je eigen club of het past.${zonderStripe ? ZONDER_STRIPE : ''}`,
   },
   VRAAG_CONTRACT,
   VRAAG_GEGEVENS,
@@ -120,7 +125,7 @@ export default function PrijzenPagina() {
       <section className="ayg-sectie" aria-labelledby="prijs-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst">
           <SectieKop id="prijs-vragen-titel" label="Vragen" titel="Over pakketten en proberen." />
-          <Vragen vragen={VRAGEN} />
+          <Vragen vragen={vragen(PAKKETTEN.some((p) => testbetalen(p.sleutel)))} />
         </div>
       </section>
       <AanmeldBand />

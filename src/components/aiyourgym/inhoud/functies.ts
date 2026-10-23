@@ -33,7 +33,7 @@ export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
       { titel: 'Notities en overdracht', tekst: 'Afspraken en kennis voor de volgende dienst op een vaste plek, in plaats van op een briefje achter de balie.' },
       { titel: 'Meerdere vestigingen', tekst: 'Elke vestiging met eigen zalen, lessen, openingstijden en regels, en lidmaatschappen die bepalen waar een lid mag sporten.' },
       { titel: 'Rechten per rol', tekst: 'De eigenaar mag alles. Voor de clubmanager vink je zelf aan welke onderdelen die ziet.' },
-      { titel: 'Eigen logo, kleuren en adres', tekst: 'Je eigen naam, logo en accentkleur in de software en in de ledenapp, op naam.aiyourgym.com. Een kleur met te weinig contrast wordt automatisch bijgesteld. Onderdelen die je niet gebruikt zet je uit.' },
+      { titel: 'Eigen logo, kleuren en adres', tekst: 'Je eigen naam, logo en accentkleur in de software en in de ledenapp. Je adres naam.aiyourgym.com leg je bij het aanmelden al vast; die adressen gaan binnenkort live. Een kleur met te weinig contrast wordt automatisch bijgesteld. Onderdelen die je niet gebruikt zet je uit.' },
     ],
   },
   {

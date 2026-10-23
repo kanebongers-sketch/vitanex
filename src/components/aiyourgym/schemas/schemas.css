@@ -2,6 +2,8 @@
 
 /* ── Route bovenaan ──────────────────────────────────────────────────────── */
 .ayg-ss-route ol { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: thin; }
+/* Op brede schermen past de route op een of twee regels: niets half afgesneden aan de rand */
+@media (min-width: 900px) { .ayg-ss-route ol { flex-wrap: wrap; overflow: visible; } }
 .ayg-ss-route a {
   display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 8px; white-space: nowrap;
   border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 15px; color: var(--ayg-tekst);
