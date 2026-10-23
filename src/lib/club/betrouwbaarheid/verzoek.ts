@@ -1,10 +1,11 @@
 // ─── Foutregistratie: wat we uit een verzoek halen (PUUR) ───────────────────
 // Uit de headers van een mislukt verzoek halen we alleen de sportschool: de
-// slug van het subdomein (<slug>.aiyourgym.com) of het id uit de cookie
+// slug van het subdomein (<slug>.aiyourgym.com) of het pad (aiyourgym.com/<slug>), of het id uit de cookie
 // club-org (welke sportschool Kane bekijkt). Niets anders: geen ip, geen
 // user-agent, geen andere cookies en zeker geen sessietokens.
 
-import { slugUitHost } from '@/lib/club/kern/subdomein'
+import { leesSlug, slugUitHost } from '@/lib/club/kern/subdomein'
+import { SLUG_KOP } from '@/lib/club/kern/pad-adres'
 import { ORGANISATIE_COOKIE, isUuid } from '@/lib/club/kern/organisatie'
 import { maakFoutRegel, type FoutRegel, type FoutSoort } from './fout'
 
@@ -29,6 +30,9 @@ export function leesCookie(header: string | null, naam: string): string | null {
 export function sportschoolUitHeaders(headers: Headers): string | null {
   const slug = slugUitHost(eerste(headers.host))
   if (slug) return slug
+  // Het adres als pad (aiyourgym.com/<slug>): de proxy geeft de slug mee in een eigen kop.
+  const vanPad = leesSlug(eerste(headers[SLUG_KOP]))
+  if (vanPad.ok) return vanPad.slug
   const org = leesCookie(eerste(headers.cookie), ORGANISATIE_COOKIE)
   return isUuid(org) ? org : null
 }

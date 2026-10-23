@@ -2,6 +2,8 @@ import type { SportschoolRegel } from '@/lib/club/platform/opslag'
 import { STATUS_WEERGAVE, pakketNaam, type StartStand } from '@/lib/club/platform/tellingen'
 import { OpenKnop } from './OpenKnop'
 import { nlDatum, nlMoment } from './datum'
+import { adresVan } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 
 interface SportscholenProps {
   sportscholen: SportschoolRegel[]
@@ -70,7 +72,7 @@ function Regel({ s, maand }: { s: SportschoolRegel; maand: string }) {
       <div className="club-platform-naam">
         <h3>{s.naam}</h3>
         <p className="club-platform-sub">
-          {s.slug ? <span className="club-platform-adres">{s.slug}.aiyourgym.com</span> : 'Nog geen eigen adres'}
+          {s.slug ? <span className="club-platform-adres">{adresVan(s.slug, subdomeinenActief())}</span> : 'Nog geen eigen adres'}
         </p>
         <p className="club-platform-chips">
           {s.eigen && <span className="club-chip club-chip--merk">Eigen</span>}

@@ -10,6 +10,7 @@ import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { platformEigenaarId } from '@/lib/club/kern/database'
 import { mailAfzender } from './config'
 import { AYG_WEBSITE } from './links'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import type { AanmeldingRij } from './opslag'
 import { maakSportschool, ruimSportschoolOp } from './sportschool'
 import type { VerwerkDeps } from './verwerk'
@@ -37,7 +38,9 @@ export function welkomTekst(voornaam: string, sportschool: string, inlogAdres: s
 export async function stuurWelkomMail(_admin: SupabaseClient, a: AanmeldingRij): Promise<void> {
   const van = mailAfzender()
   if (!van) return
-  const { onderwerp, tekst } = welkomTekst(a.eigenaarNaam.split(' ')[0], a.sportschoolNaam, `${AYG_WEBSITE}/inloggen`, CLUB_EIGEN_LOGIN)
+  // Inloggen op het eigen adres: aiyourgym.com/<slug>/inloggen (of het subdomein met de schakelaar aan).
+  const inlog = a.slug ? sportschoolUrl(a.slug, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', '/inloggen') : `${AYG_WEBSITE}/inloggen`
+  const { onderwerp, tekst } = welkomTekst(a.eigenaarNaam.split(' ')[0], a.sportschoolNaam, inlog, CLUB_EIGEN_LOGIN)
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({

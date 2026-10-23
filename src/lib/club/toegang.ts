@@ -14,7 +14,7 @@
 // ook (geen 401/403 die verraadt dat er iets achter zit).
 
 import { cache } from 'react'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -23,7 +23,8 @@ import { GEEN_CACHE, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { platformCookie } from '@/lib/club/platform-login/platform'
 import { platformVanSessie } from '@/lib/club/platform-login/opslag'
 import { vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
-import { slugUitHost } from '@/lib/club/kern/subdomein'
+import { adresVanVerzoek } from '@/lib/club/kern/adres-verzoek'
+import { kiesOrganisatie, type AdresRegel } from '@/lib/club/kern/pad-adres'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
 import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
@@ -79,16 +80,14 @@ function standaardOrganisatie(id: string): Organisatie {
 }
 
 /**
- * Op een subdomein (<slug>.aiyourgym.com, schakelaar CLUB_SUBDOMEINEN_ACTIEF aan)
- * bepaalt het adres welke sportschool open staat; de cookie telt dan niet.
- * undefined = geen subdomein; null = subdomein van een sportschool die deze
- * beheerder niet mag openen (dan bestaat Club hier niet: 404).
+ * Het adres van het verzoek bepaalt welke sportschool open staat: het subdomein
+ * (<slug>.aiyourgym.com, schakelaar CLUB_SUBDOMEINEN_ACTIEF aan) of anders het
+ * pad aiyourgym.com/<slug> (src/lib/club/kern/pad-adres.ts, met de regels per
+ * soort sessie). undefined = het adres zegt niets; null = het adres hoort bij
+ * een sportschool die deze persoon niet mag openen (dan bestaat Club hier niet: 404).
  */
-async function organisatieUitHost(organisaties: readonly Organisatie[]): Promise<Organisatie | null | undefined> {
-  if (process.env.CLUB_SUBDOMEINEN_ACTIEF !== '1') return undefined
-  const slug = slugUitHost((await headers()).get('host'))
-  if (!slug) return undefined
-  return organisaties.find((o) => o.slug === slug) ?? null
+async function organisatieUitHost(organisaties: readonly Organisatie[], regel: AdresRegel = 'vast'): Promise<Organisatie | null | undefined> {
+  return kiesOrganisatie(organisaties, await adresVanVerzoek(), regel)
 }
 
 /** De sportscholen van deze beheerder; de eigen (Fit Factory) altijd eerst. */
@@ -117,7 +116,8 @@ async function toegangVoorPlatform(admin: SupabaseClient): Promise<ClubToegang |
   const gekozen = (await cookies()).get(ORGANISATIE_COOKIE)?.value
   const gok = isUuid(gekozen) ? gekozen : account.beheerderId
   const [organisaties, gokVestigingen] = await Promise.all([haalOrganisaties(admin, account.beheerderId), haalVestigingen(admin, gok)])
-  const vanHost = await organisatieUitHost(organisaties)
+  // Het pad (aiyourgym.com/<slug>) of het subdomein is hard; de cookie van de laatst geopende omgeving een keuze.
+  const vanHost = await organisatieUitHost(organisaties, 'voorkeur')
   if (vanHost === null) return null
   // Anders de gekozen sportschool, alleen als die bij dit account hoort; anders de eigen.
   const organisatie = vanHost ?? organisaties.find((o) => o.id === gekozen) ?? organisaties[0]
@@ -172,11 +172,21 @@ async function toegangVoorMedewerker(admin: SupabaseClient): Promise<ClubToegang
 }
 
 /**
- * Hoort deze sportschool bij de host van dit verzoek? Op het subdomein van een
- * andere sportschool niet; op een gewoon domein (of met de schakelaar uit) wel.
+ * Hoort deze sportschool bij het adres van dit verzoek? Voor inloggen en
+ * inloglinks: op het subdomein of pad (aiyourgym.com/<slug>) van een andere
+ * sportschool niet, en ook niet als de cookie de omgeving van een andere
+ * sportschool noemt; op gewoon aiyourgym.com wel.
  */
 export async function hostPastBij(org: Organisatie): Promise<boolean> {
-  return (await organisatieUitHost([org])) !== null
+  return (await organisatieUitHost([org], 'streng')) !== null
+}
+
+/**
+ * Voor een bestaande sessie (bijvoorbeeld van een lid): alleen het subdomein
+ * of het pad telt. Op het adres van een andere sportschool bestaat de sessie niet.
+ */
+export async function sessiePastBijAdres(org: Organisatie): Promise<boolean> {
+  return (await organisatieUitHost([org], 'vast')) !== null
 }
 
 /** Wie is er binnen: de platform-eigenaar, een eigenaar of clubmanager, of een medewerker? Per request een keer gevraagd. */

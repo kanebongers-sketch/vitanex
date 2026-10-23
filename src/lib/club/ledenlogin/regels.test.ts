@@ -124,9 +124,10 @@ describe('linkOverzicht', () => {
 describe('kleine helpers', () => {
   it('startPad, linkBasis en leesLinkActie', () => {
     expect(startPad('abc_-x')).toBe('/mijn/start/abc_-x')
-    expect(linkBasis('gym', true, 'aiyourgym.com')).toBe('https://gym.aiyourgym.com')
-    expect(linkBasis('gym', false, 'aiyourgym.com')).toBeNull()
-    expect(linkBasis(null, true, 'aiyourgym.com')).toBeNull()
+    expect(linkBasis('gym', true)).toBe('https://gym.aiyourgym.com')
+    expect(linkBasis('gym', false)).toBe('https://aiyourgym.com/gym')
+    expect(linkBasis(null, true)).toBeNull()
+    expect(linkBasis(null, false)).toBeNull()
     expect(leesLinkActie({ actie: 'maak' })).toBe('maak')
     expect(leesLinkActie({ actie: 'wis-alles' })).toBeNull()
   })

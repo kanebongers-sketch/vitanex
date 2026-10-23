@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { eisOnderdeel } from '@/lib/club/toegang'
 import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
-import { adresVan } from '@/lib/club/kern/subdomein'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { HuisstijlPortaal } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { SportscholenKeuze } from '@/components/club/huisstijl/SportscholenKeuze'
@@ -22,7 +23,7 @@ export const metadata: Metadata = { title: 'Huisstijl' }
 export default async function HuisstijlPagina() {
   const t = await eisOnderdeel('huisstijl')
   const beheren = magBeheerdersBeheren(t)
-  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
+  const subdomeinen = subdomeinenActief()
   const org = t.organisatie
   const beheerders = beheren ? await haalBeheerders(t.admin, t.userId) : null
   const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
@@ -42,7 +43,7 @@ export default async function HuisstijlPagina() {
           sportscholen={t.organisaties.map((o) => ({ id: o.id, naam: o.naam, demo: o.demo, kleurAccent: o.kleurAccent }))}
         />
       )}
-      {beheren && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} actief={subdomeinen} />}
+      {beheren && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} subdomeinen={subdomeinen} />}
       <HuisstijlPortaal
         key={org.id}
         organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }}
@@ -56,7 +57,7 @@ export default async function HuisstijlPagina() {
           loginAan={CLUB_EIGEN_LOGIN}
           eigenSportschool={t.isPlatformEigenaar && org.id === t.beheerderId}
           ikZelf={t.persoonId}
-          linkBasis={subdomeinen && org.slug ? `https://${adresVan(org.slug)}` : null}
+          linkBasis={org.slug ? sportschoolUrl(org.slug, subdomeinen) : null}
         />
       )}
     </>

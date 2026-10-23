@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, vereisPlatformEigenaar } from '@/lib/club/toegang'
 import { ORGANISATIE_COOKIE, isUuid } from '@/lib/club/kern/organisatie'
+import { ADRES_COOKIE } from '@/lib/club/kern/pad-adres'
 
 // POST /api/club/organisatie/wissel  { id }
 // Wissel van sportschool. Alleen naar een sportschool van deze beheerder; de
@@ -20,5 +21,7 @@ export async function POST(req: NextRequest) {
     path: '/',
     maxAge: 60 * 60 * 24 * 180,
   })
+  // De gekozen sportschool gaat voor de laatst geopende omgeving (aiyourgym.com/<slug>, pad-adres.ts).
+  antwoord.cookies.delete(ADRES_COOKIE)
   return antwoord
 }

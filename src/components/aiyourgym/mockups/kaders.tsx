@@ -5,7 +5,7 @@ import { CalendarClock, CalendarDays, Dumbbell, House, Lock, Salad, TrendingUp, 
 // is een tekening van onze eigen schermen in HTML en CSS; voor schermlezers is
 // het een afbeelding met een beschrijving (role="img").
 
-export const VOORBEELD_ADRES = 'voorbeeldgym.aiyourgym.com'
+export const VOORBEELD_ADRES = 'aiyourgym.com/voorbeeldgym'
 export const VOORBEELD_NAAM = 'Voorbeeld Gym'
 
 interface FiguurProps {

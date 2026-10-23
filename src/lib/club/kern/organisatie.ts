@@ -37,7 +37,7 @@ export interface Organisatie {
   /** Alleen de onderdelen die uit staan; ontbreekt er een, dan staat het aan. */
   uit: Module[]
   demo: boolean
-  /** Het eigen adres: <slug>.aiyourgym.com, of null als het nog niet gekozen is. */
+  /** De slug van het eigen adres (aiyourgym.com/<slug>, later <slug>.aiyourgym.com), of null als hij nog niet gekozen is. */
   slug: string | null
   /** Ledenapp en rechten per rol (club_organisaties.instellingen). */
   instellingen: OrgInstellingen

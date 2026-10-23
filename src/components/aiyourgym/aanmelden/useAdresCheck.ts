@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 
-// Is naam.aiyourgym.com nog vrij? Eerst de vorm in de browser (geen verzoek
+// Is dit adres (aiyourgym.com/naam, later naam.aiyourgym.com) nog vrij? Eerst de vorm in de browser (geen verzoek
 // voor een ongeldig adres), daarna na een korte pauze in het typen de server.
 
 export type AdresStatus = 'leeg' | 'ongeldig' | 'controleren' | 'vrij' | 'bezet' | 'onbekend'

@@ -8,12 +8,14 @@ interface VeldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string
   hint?: ReactNode
   fout?: string
+  /** Tekst die aan het begin in het veld staat, zoals "aiyourgym.com/". */
+  voor?: string
   /** Tekst die aan het eind in het veld staat, zoals ".aiyourgym.com". */
   achter?: string
   status?: ReactNode
 }
 
-export function Veld({ id, label, hint, fout, achter, status, ...input }: VeldProps) {
+export function Veld({ id, label, hint, fout, voor, achter, status, ...input }: VeldProps) {
   const beschrijving = [hint ? `${id}-hint` : null, fout ? `${id}-fout` : null].filter(Boolean).join(' ') || undefined
   return (
     <div className="aan-veld" data-fout={fout ? 'ja' : undefined}>
@@ -21,6 +23,11 @@ export function Veld({ id, label, hint, fout, achter, status, ...input }: VeldPr
         {label}
       </label>
       <div className="aan-invoer">
+        {voor && (
+          <span className="aan-voor" aria-hidden="true">
+            {voor}
+          </span>
+        )}
         <input id={id} aria-invalid={fout ? true : undefined} aria-describedby={beschrijving} {...input} />
         {achter && (
           <span className="aan-achter" aria-hidden="true">

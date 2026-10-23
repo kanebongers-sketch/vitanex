@@ -5,7 +5,7 @@
 // Stripe wel afgerond, dan richten we de sportschool hier al in (dezelfde,
 // idempotente stap). De eigenaar logt daarna in met e-mailadres en wachtwoord.
 
-import { adresVan } from '@/lib/club/kern/subdomein'
+import { adresVan, sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { stripeSleutel } from './config'
 import { vindOpSessie, type AanmeldingRij } from './opslag'
@@ -24,7 +24,7 @@ export type Welkom =
   | { soort: 'bezig' }
   | { soort: 'verlopen' }
   | { soort: 'gestopt' }
-  | { soort: 'klaar'; sportschool: string; adres: string; adresActief: boolean; email: string; loginOpen: boolean }
+  | { soort: 'klaar'; sportschool: string; adres: string; inlogUrl: string; email: string; loginOpen: boolean }
 
 const LOPEND = new Set(['actief', 'betaling_mislukt', 'gepauzeerd'])
 
@@ -51,5 +51,7 @@ export async function haalWelkom(ruweSessie: unknown, nu: Date): Promise<Welkom>
   if (a.status === 'opgezegd') return { soort: 'gestopt' }
   if (!LOPEND.has(a.status) || !a.organisatieId) return { soort: 'bezig' }
 
-  return { soort: 'klaar', sportschool: a.sportschoolNaam, adres: adresVan(a.slug), adresActief: process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', email: a.eigenaarEmail, loginOpen: CLUB_EIGEN_LOGIN }
+  // Het adres werkt meteen: aiyourgym.com/<slug> (of het subdomein met de schakelaar aan).
+  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
+  return { soort: 'klaar', sportschool: a.sportschoolNaam, adres: adresVan(a.slug, subdomeinen), inlogUrl: subdomeinen ? sportschoolUrl(a.slug, true, '/inloggen') : `/${a.slug}/inloggen`, email: a.eigenaarEmail, loginOpen: CLUB_EIGEN_LOGIN }
 }

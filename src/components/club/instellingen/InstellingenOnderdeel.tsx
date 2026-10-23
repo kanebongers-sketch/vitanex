@@ -11,7 +11,8 @@ import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
 import { magMedewerkerWissen } from '@/lib/club/personeel/avg'
 import { haalGewisteMedewerkers } from '@/lib/club/personeel/avg-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
-import { adresVan } from '@/lib/club/kern/subdomein'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { instelPagina } from '@/lib/club/kern/instel-paginas'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
@@ -37,10 +38,10 @@ type MetVestiging = Exclude<InstellingenOnderdeelSleutel, 'vestigingen'>
 /** Medewerkers uitnodigen: alleen voor Kane, de eigenaar en de clubmanager met Instellingen. */
 async function haalLoginBeheer(t: ClubToegang): Promise<LoginBeheer | null> {
   if (!magMedewerkerLoginsBeheren(t)) return null
-  const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
   return {
     logins: await haalMedewerkerLogins(t.admin, t.userId),
-    linkBasis: subdomeinen && t.organisatie.slug ? `https://${adresVan(t.organisatie.slug)}` : null,
+    // Het adres van de sportschool: aiyourgym.com/<slug>, of <slug>.aiyourgym.com met subdomeinen aan.
+    linkBasis: t.organisatie.slug ? sportschoolUrl(t.organisatie.slug, subdomeinenActief()) : null,
     loginAan: CLUB_EIGEN_LOGIN,
   }
 }

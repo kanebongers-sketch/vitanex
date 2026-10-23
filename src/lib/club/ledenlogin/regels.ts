@@ -9,6 +9,7 @@
 
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { MAX_BLOKKADES } from '@/lib/club/kern/pin'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 
 /** Het geheime deel van de link: 24 tekens base64url (144 bits). */
 export const LID_CODE = /^[A-Za-z0-9_-]{24}$/
@@ -184,11 +185,12 @@ export function linkOverzicht(t: LidToegangRij | null, toestellen: number, nu: D
 export { startPad } from './paden'
 
 /**
- * Waar de link naartoe wijst: met subdomeinen aan het adres van de sportschool
- * (de sessie werkt alleen daar), anders null en dan het adres van de pagina zelf.
+ * Waar de link naartoe wijst: het adres van de sportschool (aiyourgym.com/<slug>,
+ * of <slug>.aiyourgym.com met subdomeinen aan). Zonder slug null, dan het
+ * adres van de pagina zelf.
  */
-export function linkBasis(slug: string | null, subdomeinenActief: boolean, clubDomein: string): string | null {
-  return subdomeinenActief && slug ? `https://${slug}.${clubDomein}` : null
+export function linkBasis(slug: string | null, subdomeinenActief: boolean): string | null {
+  return slug ? sportschoolUrl(slug, subdomeinenActief) : null
 }
 
 export const LINK_ACTIES = ['maak', 'intrekken', 'uitloggen'] as const

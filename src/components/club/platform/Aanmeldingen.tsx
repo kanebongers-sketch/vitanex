@@ -1,6 +1,8 @@
 import { Mail, Phone } from 'lucide-react'
 import { STATUS_WEERGAVE, isAanvraag, pakketNaam, type PlatformAanmelding } from '@/lib/club/platform/tellingen'
 import { nlDatum } from './datum'
+import { adresVan } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 
 interface AanmeldingenProps {
   /** Nieuwste eerst; null = niet te lezen. */
@@ -62,7 +64,7 @@ export function Aanmeldingen({ aanmeldingen, max }: AanmeldingenProps) {
                   <tr key={a.id} data-aanvraag={aanvraag || undefined}>
                     <td>
                       <span className="club-platform-actie">{a.sportschoolNaam}</span>
-                      <span className="club-platform-sub">{a.slug}.aiyourgym.com</span>
+                      <span className="club-platform-sub">{adresVan(a.slug, subdomeinenActief())}</span>
                     </td>
                     <td>
                       <span className={`club-chip club-chip--${w.toon}`}>{w.label}</span>

@@ -20,7 +20,7 @@ interface BeheerdersBlokProps {
   eigenSportschool: boolean
   /** Het eigen id als een eigenaar dit beheert: die rij is niet aan te passen. */
   ikZelf: string | null
-  /** https://<slug>.aiyourgym.com als de sportschool een eigen adres heeft; anders dit domein. */
+  /** Het adres van de sportschool (https://aiyourgym.com/<slug>, of het subdomein) als ze een slug heeft; anders dit domein. */
   linkBasis: string | null
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PAKKETTEN, PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
 import { maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { aanmeldbaar, testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
@@ -16,7 +17,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Aanmelden | AI Your Gym',
-  description: 'Meld je sportschool aan bij AI Your Gym en krijg je eigen omgeving op naam.aiyourgym.com.',
+  description: 'Meld je sportschool aan bij AI Your Gym en krijg je eigen omgeving op een eigen adres, zoals aiyourgym.com/jouwgym.',
 }
 
 interface PaginaProps {
@@ -53,7 +54,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
             Je hebt het betalen afgebroken. Er is niets afgeschreven; vul het formulier opnieuw in als je verder wilt.
           </p>
         )}
-        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} />
+        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} subdomeinen={subdomeinenActief()} />
       </section>
     </AanmeldSchil>
   )

@@ -21,6 +21,8 @@ interface AanmeldFormulierProps {
   pakketten: readonly PakketKeuze[]
   proefdagen: number
   startPakket: PakketSleutel | null
+  /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
+  subdomeinen: boolean
 }
 
 const LEEG: Omit<Invoer, 'pakket'> = {
@@ -29,7 +31,7 @@ const LEEG: Omit<Invoer, 'pakket'> = {
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: AanmeldFormulierProps) {
+export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomeinen }: AanmeldFormulierProps) {
   const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, pakket: startPakket ?? '' })
   const [stap, setStap] = useState(startPakket ? 1 : 0)
   const [verste, setVerste] = useState(startPakket ? 1 : 0)
@@ -142,9 +144,9 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
         </h2>
         <div className="aan-stap" key={stap}>
           {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakket} proefdagen={proefdagen} fout={stapFouten.pakket} onKies={kiesPakket} />}
-          {stap === 1 && <StapSportschool invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} />}
+          {stap === 1 && <StapSportschool subdomeinen={subdomeinen} invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 2 && <StapEigenaar invoer={invoer} fouten={stapFouten} wijzig={wijzig} />}
-          {stap === 3 && <StapAkkoord invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
+          {stap === 3 && <StapAkkoord subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>
         {verzenden.staat === 'fout' && <p className="aan-melding" role="alert">{verzenden.melding}</p>}
         {STAPPEN[stap].hierna && <p className="aan-hierna">{STAPPEN[stap].hierna}</p>}
@@ -162,7 +164,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket }: Aanmeld
           </button>
         </div>
       </form>
-      <Samenvatting invoer={invoer} pakket={pakket} proefdagen={proefdagen} />
+      <Samenvatting subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} />
     </div>
   )
 }

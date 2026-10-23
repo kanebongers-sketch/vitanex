@@ -5,6 +5,8 @@
 //    /api/aiyourgym/...  door (aanmelden, beschikbaarheid, Stripe-webhook)
 //    /aiyourgym/...      door (bestaande links blijven werken)
 //    /club, /clubinloggen, /mijn, /club-app, /api/club..., /api/widget  door (Club)
+//    /<slug>/...         de omgeving van een sportschool (src/lib/club/kern/pad-adres.ts,
+//                        stap in de proxy voor deze); een onbekende slug komt hier en wordt een 404
 //    /favicon.ico, /robots.txt  door (er is geen sitemap: /sitemap.xml gaat
 //                        naar /aiyourgym/sitemap.xml en wordt een 404 van de site)
 //    /...                herschrijven naar /aiyourgym/... (ook andere /api/: die bestaan daar niet)

@@ -5,7 +5,8 @@ import { ArrowLeft } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
 import { bruikbaarAccent, HEX } from '@/lib/club/kern/huisstijl'
-import { CLUB_DOMEIN, aygUrl } from '@/lib/club/kern/subdomein'
+import { aygUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { qrDataUrl } from '@/lib/club/checkin/qr-beeld'
@@ -44,7 +45,7 @@ export default async function AppPoster({ searchParams }: { searchParams: ZoekPa
   const t = await eisModule('leden')
   const org = t.organisatie
   const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
-  const doel = posterDoel(org, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', CLUB_DOMEIN, aygUrl('/'))
+  const doel = posterDoel(org, subdomeinenActief(), aygUrl('/'))
   const qr = await qrDataUrl(doel)
   const accent = bruikbaarAccent(HEX.test(org.kleurAccent) ? org.kleurAccent : '#B58E5C', 'licht').kleur
   const eigenLogo = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null

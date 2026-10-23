@@ -7,6 +7,7 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { welkomPad } from '@/lib/aiyourgym/links'
 import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
 import { adresVan } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { vindOpSessie } from '@/lib/aiyourgym/opslag'
 import { isTestSessie } from '@/lib/aiyourgym/testbetaling'
 import { wachtendeTestbetaling } from '@/lib/aiyourgym/testbetaling-opslag'
@@ -61,7 +62,7 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
   const pakket = vindPakket(a.pakket)
   const regels = [
     { label: 'Sportschool', waarde: a.sportschoolNaam },
-    { label: 'Adres', waarde: adresVan(a.slug) },
+    { label: 'Adres', waarde: adresVan(a.slug, subdomeinenActief()) },
     { label: 'Pakket', waarde: pakket?.naam ?? a.pakket },
     { label: 'Vestigingen', waarde: String(a.aantalVestigingen) },
   ]

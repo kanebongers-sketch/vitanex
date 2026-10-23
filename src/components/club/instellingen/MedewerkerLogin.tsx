@@ -19,7 +19,7 @@ interface MedewerkerLoginProps {
   emailVoorstel: string | null
   login: LoginOverzicht | null
   inDienst: boolean
-  /** https://<slug>.aiyourgym.com als de sportschool een eigen adres heeft; anders dit domein. */
+  /** Het adres van de sportschool (https://aiyourgym.com/<slug>, of het subdomein) als ze een slug heeft; anders dit domein. */
   linkBasis: string | null
   loginAan: boolean
 }

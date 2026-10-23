@@ -6,7 +6,7 @@ import { slugVrij } from '@/lib/aiyourgym/opslag'
 import { adminOfNull, aygFout, aygJson, poortOpen } from '@/lib/aiyourgym/api'
 
 // GET /api/aiyourgym/beschikbaar?slug=<naam>
-// Is naam.aiyourgym.com nog vrij? Alleen ja of nee, nooit van wie het adres is.
+// Is dit adres (aiyourgym.com/naam, later naam.aiyourgym.com) nog vrij? Alleen ja of nee, nooit van wie het adres is.
 
 export const dynamic = 'force-dynamic'
 

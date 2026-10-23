@@ -12,7 +12,7 @@
 import { remSleutel } from '@/lib/club/kern/rem-hash'
 import { magTrainen, type LidStatus } from '@/lib/club/kern/lid'
 import { isUuid } from '@/lib/club/kern/organisatie'
-import { leesSlug } from '@/lib/club/kern/subdomein'
+import { leesSlug, sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { isEchtAdres } from '@/lib/club/meldingen/beleid'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { AANVRAAG_PAD, HONINGPOT_VELD } from './velden'
@@ -205,12 +205,12 @@ export function linkTekst(voornaam: string, sportschool: string): MailTekst {
 // ─── De poster ──────────────────────────────────────────────────────────────
 
 /**
- * Waar de QR-code op de poster naartoe wijst. Met subdomeinen aan het adres
- * van de sportschool zelf; anders de aanvraagpagina met ?s=<slug> (of het id
- * als er nog geen slug is).
+ * Waar de QR-code op de poster naartoe wijst: het adres van de sportschool zelf
+ * (aiyourgym.com/<slug>, of <slug>.aiyourgym.com met subdomeinen aan); zonder
+ * slug de aanvraagpagina met ?s=<id>.
  */
-export function posterDoel(org: { id: string; slug: string | null }, subdomeinenActief: boolean, clubDomein: string, basis: string): string {
-  if (subdomeinenActief && org.slug) return `https://${org.slug}.${clubDomein}${AANVRAAG_PAD}`
+export function posterDoel(org: { id: string; slug: string | null }, subdomeinenActief: boolean, basis: string): string {
+  if (org.slug) return sportschoolUrl(org.slug, subdomeinenActief, AANVRAAG_PAD)
   return `${basis.replace(/\/+$/, '')}${AANVRAAG_PAD}?s=${encodeURIComponent(org.slug ?? org.id)}`
 }
 

@@ -34,7 +34,7 @@ const mocks = vi.hoisted(() => ({
 }))
 vi.mock('@/lib/club/toegang', async (orig) => ({
   ...(await orig<typeof import('@/lib/club/toegang')>()),
-  clubToegang: mocks.clubToegang, haalEigenOrganisatie: mocks.haalEigenOrganisatie, hostPastBij: mocks.hostPastBij,
+  clubToegang: mocks.clubToegang, haalEigenOrganisatie: mocks.haalEigenOrganisatie, hostPastBij: mocks.hostPastBij, sessiePastBijAdres: mocks.hostPastBij,
 }))
 vi.mock('@/lib/club/kern/lid', async (orig) => ({ ...(await orig<typeof import('@/lib/club/kern/lid')>()), haalLid: mocks.haalLid }))
 vi.mock('./opslag', async (orig) => ({

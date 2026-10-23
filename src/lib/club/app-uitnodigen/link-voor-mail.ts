@@ -9,7 +9,7 @@ import { haalEigenOrganisatie } from '@/lib/club/toegang'
 import { moduleAan } from '@/lib/club/kern/organisatie'
 import { haalLid } from '@/lib/club/kern/lid'
 import { vestigingenUitRijen } from '@/lib/club/kern/vestigingen'
-import { CLUB_DOMEIN, aygUrl } from '@/lib/club/kern/subdomein'
+import { aygUrl } from '@/lib/club/kern/subdomein'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { linkBasis, startPad } from '@/lib/club/ledenlogin/regels'
 import { geefUitnodigingCode } from '@/lib/club/ledenlogin/opslag'
@@ -19,7 +19,7 @@ export type LinkVoorMail = { ok: true; url: string } | { ok: false; reden: strin
 
 /** De volledige url van de persoonlijke link voor deze code. */
 export function linkUrl(slug: string | null, code: string): string {
-  const basis = linkBasis(slug, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', CLUB_DOMEIN)
+  const basis = linkBasis(slug, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1')
   return basis ? `${basis}${startPad(code)}` : aygUrl(startPad(code))
 }
 

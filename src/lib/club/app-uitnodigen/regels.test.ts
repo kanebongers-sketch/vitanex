@@ -131,8 +131,8 @@ describe('teksten', () => {
 
 describe('poster', () => {
   it('wijst naar het subdomein of naar de aanvraagpagina met de sportschool', () => {
-    expect(posterDoel({ id: ID, slug: 'budel' }, true, 'aiyourgym.com', 'https://fitfactorypt.nl')).toBe('https://budel.aiyourgym.com/mijn/aanvragen')
-    expect(posterDoel({ id: ID, slug: 'budel' }, false, 'aiyourgym.com', 'https://fitfactorypt.nl/')).toBe('https://fitfactorypt.nl/mijn/aanvragen?s=budel')
-    expect(posterDoel({ id: ID, slug: null }, true, 'aiyourgym.com', 'https://fitfactorypt.nl')).toBe(`https://fitfactorypt.nl/mijn/aanvragen?s=${ID}`)
+    expect(posterDoel({ id: ID, slug: 'budel' }, true, 'https://fitfactorypt.nl')).toBe('https://budel.aiyourgym.com/mijn/aanvragen')
+    expect(posterDoel({ id: ID, slug: 'budel' }, false, 'https://fitfactorypt.nl/')).toBe('https://aiyourgym.com/budel/mijn/aanvragen')
+    expect(posterDoel({ id: ID, slug: null }, true, 'https://fitfactorypt.nl')).toBe(`https://fitfactorypt.nl/mijn/aanvragen?s=${ID}`)
   })
 })

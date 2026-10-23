@@ -15,7 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
-import { clubFout, clubToegang, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
+import { clubFout, clubToegang, haalEigenOrganisatie, sessiePastBijAdres } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, isUuid, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
 import { haalLid, magTrainen, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { hoortBij, vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
@@ -81,7 +81,7 @@ async function toegangVoorLid(admin: SupabaseClient): Promise<LidToegang | null>
   const [{ organisatie }, lid, vestigingen] = await Promise.all([haalEigenOrganisatie(admin, userId), haalLid(admin, userId, lidId), haalVestigingen(admin, userId)])
   if (!organisatie || organisatie.id !== userId || !moduleAan(organisatie, 'app')) return null
   // Op het subdomein van een andere sportschool bestaat deze sessie niet.
-  if (!(await hostPastBij(organisatie))) return null
+  if (!(await sessiePastBijAdres(organisatie))) return null
   if (!lidMagApp(lid, vestigingen) || lid.id !== lidId) return null
   return { admin, userId, organisatie, lid, merk: merkVan(organisatie, false), voorvertoning: false, vestigingen, naam: `${volledigeNaam(lid)} (ledenapp)`.slice(0, 80), account: sessie.toegang, sessieHash: sessie.tokenHash }
 }

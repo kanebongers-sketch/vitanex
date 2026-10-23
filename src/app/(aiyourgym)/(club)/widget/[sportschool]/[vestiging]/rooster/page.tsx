@@ -6,7 +6,8 @@ import { clubDatabase } from '@/lib/club/kern/database'
 import { clubToegang } from '@/lib/club/toegang'
 import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
 import { huisstijlVariabelen, type Thema } from '@/lib/club/kern/huisstijl'
-import { adresVan } from '@/lib/club/kern/subdomein'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { widgetActief } from '@/lib/club/widget/schakelaar'
 import { haalWidgetContext, haalWidgetLessen, type WidgetContext } from '@/lib/club/widget/opslag'
 import { widgetWeergave } from '@/lib/club/widget/rooster'
@@ -66,7 +67,8 @@ export default async function WidgetRoosterPagina({ params, searchParams }: Pagi
   const thema = themaVan(c, voorbeeld, zoek.modus)
   const stijl = huisstijlVariabelen(c.organisatie.kleurAccent, thema) as CSSProperties
   const slug = c.organisatie.slug
-  const ledenappUrl = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1' && slug ? `https://${adresVan(slug)}/mijn` : '/mijn'
+  // De ledenapp op het adres van de sportschool (aiyourgym.com/<slug>/mijn, of het subdomein).
+  const ledenappUrl = slug ? sportschoolUrl(slug, subdomeinenActief(), '/mijn') : '/mijn'
 
   return (
     <main className="ayg-w-pagina" style={stijl} data-thema={thema}>

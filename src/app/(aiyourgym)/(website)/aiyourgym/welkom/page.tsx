@@ -3,7 +3,6 @@ import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
-import { INLOGGEN } from '@/components/aiyourgym/site/paden'
 import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
 
 // /aiyourgym/welkom?sessie=cs_... (of test_...): na het betalen. Zegt dat de
@@ -29,15 +28,7 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
       <p className="ayg-label">Welkom bij AI Your Gym</p>
       <h1 className="aan-titel">Je sportschool staat klaar.</h1>
       <p className="ayg-lead">
-        {w.adresActief ? (
-          <>
-            {w.sportschool} heeft een eigen omgeving op <strong>{w.adres}</strong>, met een eerste vestiging en een basisbibliotheek met oefeningen.
-          </>
-        ) : (
-          <>
-            {w.sportschool} heeft een eigen omgeving met een eerste vestiging en een basisbibliotheek met oefeningen. Je adres <strong>{w.adres}</strong> is voor je vastgelegd; tot het actief is werk je op aiyourgym.com.
-          </>
-        )}
+        {w.sportschool} heeft een eigen omgeving op <strong>{w.adres}</strong>, met een eerste vestiging en een basisbibliotheek met oefeningen.
       </p>
       <div className="aan-link ayg-podium">
         <p className="aan-samen-label">
@@ -48,7 +39,7 @@ function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
         </p>
         {w.loginOpen && (
           <div className="ayg-knoppen">
-            <a href={INLOGGEN} className="ayg-knop ayg-knop--accent">
+            <a href={w.inlogUrl} className="ayg-knop ayg-knop--accent">
               Inloggen en starten
             </a>
           </div>

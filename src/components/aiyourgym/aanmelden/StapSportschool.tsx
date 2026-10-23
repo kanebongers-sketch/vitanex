@@ -1,5 +1,5 @@
 import { Check, LoaderCircle, Minus, Plus, X } from 'lucide-react'
-import { slugVoorstel } from '@/lib/club/kern/subdomein'
+import { adresVeld, slugVoorstel } from '@/lib/club/kern/subdomein'
 import { MAX_NAAM, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 import { useAdresCheck, type AdresStatus } from './useAdresCheck'
 import { Veld } from './Veld'
@@ -13,12 +13,15 @@ interface StapSportschoolProps {
   maxVestigingen: number
   onbeperkt: boolean
   fouten: Partial<Record<AanmeldVeld, string>>
+  /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
+  subdomeinen: boolean
   wijzig: Wijzig
 }
 
 const ICOON: Partial<Record<AdresStatus, typeof Check>> = { controleren: LoaderCircle, vrij: Check, bezet: X, ongeldig: X }
 
-export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig }: StapSportschoolProps) {
+export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig, subdomeinen }: StapSportschoolProps) {
+  const veld = adresVeld(subdomeinen)
   const adres = useAdresCheck(invoer.slug)
   const Icoon = ICOON[adres.status]
 
@@ -54,7 +57,7 @@ export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wij
         {fouten.aantalVestigingen && <p className="aan-fout" role="alert">{fouten.aantalVestigingen}</p>}
       </div>
 
-      <Veld id="slug" label="Je eigen adres" achter=".aiyourgym.com" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
+      <Veld id="slug" label="Je eigen adres" voor={veld.voor ?? undefined} achter={veld.achter ?? undefined} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
         value={invoer.slug} onChange={(e) => adresGewijzigd(e.target.value)} fout={fouten.slug}
         hint="Hier vinden je leden en je team straks Club. Kleine letters, cijfers en koppeltekens."
         status={

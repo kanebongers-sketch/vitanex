@@ -1,10 +1,13 @@
 import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
+import { adresVan } from '@/lib/club/kern/subdomein'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 import type { Invoer, PakketKeuze, Wijzig } from './types'
 
 // Stap 4: alles nog een keer op een rij, en akkoord met de voorwaarden.
 
 interface StapAkkoordProps {
+  /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
+  subdomeinen: boolean
   invoer: Invoer
   pakket: PakketKeuze | null
   proefdagen: number
@@ -13,12 +16,12 @@ interface StapAkkoordProps {
   naarStap: (stap: number) => void
 }
 
-export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarStap }: StapAkkoordProps) {
+export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarStap, subdomeinen }: StapAkkoordProps) {
   const rijen: { label: string; waarde: string; stap: number }[] = [
     { label: 'Pakket', waarde: pakket?.naam ?? 'Nog niet gekozen', stap: 0 },
     { label: 'Sportschool', waarde: invoer.sportschoolNaam || '...', stap: 1 },
     { label: 'Vestigingen', waarde: String(invoer.aantalVestigingen), stap: 1 },
-    { label: 'Adres', waarde: invoer.slug ? `${invoer.slug}.aiyourgym.com` : '...', stap: 1 },
+    { label: 'Adres', waarde: invoer.slug ? adresVan(invoer.slug, subdomeinen) : '...', stap: 1 },
     { label: 'Eigenaar', waarde: [invoer.eigenaarNaam, invoer.eigenaarEmail, invoer.eigenaarTelefoon].filter(Boolean).join(' · ') || '...', stap: 2 },
   ]
   return (

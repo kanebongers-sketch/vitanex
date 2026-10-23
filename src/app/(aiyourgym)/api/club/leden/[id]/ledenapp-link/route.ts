@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { hoortBij } from '@/lib/club/kern/vestigingen'
-import { CLUB_DOMEIN } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { leesLinkActie, linkBasis } from '@/lib/club/ledenlogin/regels'
 import { haalLinkOverzicht, maakLidLink, trekLidLinkIn, wisSessies } from '@/lib/club/ledenlogin/opslag'
@@ -32,7 +32,7 @@ async function lidVan(t: ClubToegang, ctx: Context): Promise<Lid | NextResponse>
 async function overzicht(t: ClubToegang, lid: Lid): Promise<NextResponse> {
   const link = await haalLinkOverzicht(t.admin, t.userId, lid.id, new Date())
   if (!link) return clubFout('De ledenapp-link kon niet worden geladen.', 500)
-  return clubJson({ link, basis: linkBasis(t.organisatie.slug, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', CLUB_DOMEIN) })
+  return clubJson({ link, basis: linkBasis(t.organisatie.slug, subdomeinenActief()) })
 }
 
 export async function GET(req: NextRequest, ctx: Context) {

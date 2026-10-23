@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { eisInstellingencentrum } from '@/lib/club/instel-toegang'
 import { adresVan } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { MODULES, MODULE_LABEL, LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
@@ -75,7 +76,7 @@ async function standen(t: ClubToegang, ziet: (id: string) => boolean): Promise<R
     start: start?.ok === false ? ONBEKEND : { stand: voortgang?.afgerondOp ? 'Afgerond' : voortgang ? `Bij stap ${voortgang.stap} van ${AANTAL_STAPPEN}` : 'Nog niet begonnen' },
     huisstijl: { stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? 'Eigen logo' : 'Logo geupload') : 'Nog geen logo', let: !org.logo },
     onderdelen: { stand: `${aanTal} van ${MODULES.length} aan` },
-    adres: { stand: org.slug ? adresVan(org.slug) : 'Nog niet gekozen', let: !org.slug },
+    adres: { stand: org.slug ? adresVan(org.slug, subdomeinenActief()) : 'Nog niet gekozen', let: !org.slug },
     bedrijf: bedrijf === null ? ONBEKEND : { stand: bedrijf.gegevens.kvk ? 'KvK ingevuld' : 'Nog niet ingevuld', let: !bedrijf.gegevens.kvk },
     vestigingen: { stand: aantal(t.vestigingen.length, 'vestiging', 'vestigingen'), let: t.vestigingen.length === 0 },
     regels: { stand: 'Per vestiging' },
@@ -132,7 +133,7 @@ export default async function InstellingenCentrum({ searchParams }: { searchPara
       <BeheerKop
         naam={org.naam}
         demo={org.demo}
-        adres={huisstijl ? (org.slug ? adresVan(org.slug) : null) : undefined}
+        adres={huisstijl ? (org.slug ? adresVan(org.slug, subdomeinenActief()) : null) : undefined}
         kleur={org.kleurAccent}
         modules={MODULES.filter((m) => !org.uit.includes(m)).map((m) => MODULE_LABEL[m].label)}
         teDoen={teDoen}

@@ -6,7 +6,9 @@ import { isReleaseVHost } from '@/releasev/lib/host-routing'
 import { NOINDEX_HEADER, isSiteHidden } from '@/releasev/lib/site-mode'
 import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/basis'
 import { beslisClub } from '@/lib/club/kern/subdomein'
-import { aygDomeinDicht, beslisAyg } from '@/lib/aiyourgym/host'
+import { ADRES_COOKIE, SLUG_KOP, beslisClubPad, splitsSlugPad, subdomeinUrl } from '@/lib/club/kern/pad-adres'
+import { slugBestaat } from '@/lib/club/kern/slug-bestaat'
+import { aygDomeinDicht, beslisAyg, isAygHost } from '@/lib/aiyourgym/host'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
 import { widgetProxy } from '@/lib/club/widget/proxy-widget'
@@ -85,6 +87,44 @@ function clubOpSubdomein(request: NextRequest): NextResponse | null {
   return response
 }
 
+/** De headers van het verzoek zonder de slug-kop: die zet alleen de proxy zelf. */
+function zonderSlugKop(request: NextRequest): Headers {
+  const headers = new Headers(request.headers)
+  headers.delete(SLUG_KOP)
+  return headers
+}
+
+/**
+ * De omgeving van een sportschool als pad: aiyourgym.com/<slug>/... (besluit
+ * Kane 23-10-2026, src/lib/club/kern/pad-adres.ts). Alleen op de host van de
+ * website met de site aan; een onbekende of gereserveerde slug is niet van
+ * Club (dan de website, met haar 404). De slug gaat mee als kop en als cookie,
+ * zodat de gewone links (/club/...) en de API bij deze sportschool blijven.
+ * Met subdomeinen aan een 308 naar <slug>.aiyourgym.com.
+ */
+async function clubOpPad(request: NextRequest): Promise<NextResponse | null> {
+  const host = request.headers.get('host')
+  if (!siteActief() || !isAygHost(host)) return null
+  const { pathname, search } = request.nextUrl
+  const gesplitst = splitsSlugPad(pathname)
+  if (!gesplitst) return null
+  const bestaat = await slugBestaat(gesplitst.slug)
+  const besluit = beslisClubPad(pathname, process.env.CLUB_SUBDOMEINEN_ACTIEF === '1', () => bestaat)
+  if (besluit.soort === 'niet-van-mij') return null
+  if (besluit.soort === 'omleiden') return NextResponse.redirect(subdomeinUrl(besluit.slug, besluit.rest, search, host), 308)
+  const headers = zonderSlugKop(request)
+  headers.set(SLUG_KOP, besluit.slug)
+  const doel = request.nextUrl.clone()
+  doel.pathname = besluit.pad
+  const response = NextResponse.rewrite(doel, { request: { headers } })
+  if (request.cookies.get(ADRES_COOKIE)?.value !== besluit.slug) {
+    response.cookies.set(ADRES_COOKIE, besluit.slug, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' })
+  }
+  // Club en de ledenapp zijn nooit voor zoekmachines.
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  return response
+}
+
 /**
  * De verkoopwebsite van AI Your Gym op aiyourgym.com en www.aiyourgym.com, zie
  * src/lib/aiyourgym/host.ts. Alleen met AIYOURGYM_SITE_ACTIEF=1; zonder die
@@ -95,13 +135,17 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   const host = request.headers.get('host')
   const besluit = beslisAyg(host, request.nextUrl.pathname, siteActief())
   if (besluit.soort === 'niet-van-mij') return null
+  const headers = zonderSlugKop(request)
   let response: NextResponse
   if (besluit.soort === 'door') {
-    response = NextResponse.next()
+    response = NextResponse.next({ request: { headers } })
   } else {
     const doel = request.nextUrl.clone()
     doel.pathname = besluit.pad
-    response = NextResponse.rewrite(doel)
+    response = NextResponse.rewrite(doel, { request: { headers } })
+    // Een pagina van de website: de omgeving van een sportschool is dan niet meer open
+    // (inloggen op aiyourgym.com/inloggen is weer voor elk account).
+    if (request.cookies.has(ADRES_COOKIE)) response.cookies.delete(ADRES_COOKIE)
   }
   // Nog niet in zoekmachines (src/lib/aiyourgym/indexeren.ts); de /aiyourgym-paden op
   // andere domeinen krijgen dezelfde kop via next.config.ts.
@@ -123,6 +167,9 @@ export async function proxy(request: NextRequest) {
 
   const club = clubOpSubdomein(request)
   if (club) return club
+
+  const clubPad = await clubOpPad(request)
+  if (clubPad) return clubPad
 
   const ayg = aiyourgymSite(request)
   if (ayg) return ayg

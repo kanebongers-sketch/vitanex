@@ -3,7 +3,7 @@ import { clubFout, clubJson, logActie, vereisBeheerdersBeheer } from '@/lib/club
 import { leesSlug } from '@/lib/club/kern/subdomein'
 
 // PATCH /api/club/organisatie/adres  { slug }
-// Het eigen adres van de sportschool die open staat: <slug>.aiyourgym.com.
+// Het eigen adres van de sportschool die open staat: aiyourgym.com/<slug> (met subdomeinen aan <slug>.aiyourgym.com).
 // Uniek over alle sportscholen (unieke index, migratie 408).
 
 export async function PATCH(req: NextRequest) {

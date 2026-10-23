@@ -5,16 +5,15 @@
 //      subdomein kiest clubToegang zelf die van het adres).
 //   2. Alleen als de ledenapp open is voor leden (LEDENAPP_OPEN):
 //      a. de sportschool van het ingelogde lid (organisatieId uit de lid-sessie),
-//      b. het subdomein <slug>.aiyourgym.com (schakelaar CLUB_SUBDOMEINEN_ACTIEF),
+//      b. het adres: aiyourgym.com/<slug>, of <slug>.aiyourgym.com met subdomeinen aan,
 //      c. anders een neutrale "Club".
 // Is de ledenapp nog dicht, dan bestaat er voor anderen niets: de routes geven
 // een gewone 404 (Club is geheim tot de presentatie).
 
-import { headers } from 'next/headers'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { clubToegang } from '@/lib/club/toegang'
-import { slugUitHost } from '@/lib/club/kern/subdomein'
+import { adresVanVerzoek } from '@/lib/club/kern/adres-verzoek'
 import { ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Organisatie } from '@/lib/club/kern/organisatie'
 import { LOGO_BUCKET } from '@/lib/club/kern/organisatie-opslag'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
@@ -45,10 +44,9 @@ async function zoekOrganisatie(admin: SupabaseClient, kolom: 'id' | 'slug', waar
   return organisatieUitRij(data)
 }
 
-/** De sportschool van het subdomein; undefined = geen subdomein, null = onbekend of niet te lezen. */
+/** De sportschool van het adres (subdomein of aiyourgym.com/<slug>); undefined = geen adres, null = onbekend of niet te lezen. */
 async function vanSubdomein(admin: SupabaseClient | null): Promise<Organisatie | null | undefined> {
-  if (process.env.CLUB_SUBDOMEINEN_ACTIEF !== '1') return undefined
-  const slug = slugUitHost((await headers()).get('host'))
+  const slug = (await adresVanVerzoek())?.slug
   if (!slug) return undefined
   return admin ? zoekOrganisatie(admin, 'slug', slug) : null
 }

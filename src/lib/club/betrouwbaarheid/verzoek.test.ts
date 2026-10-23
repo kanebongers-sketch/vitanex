@@ -43,3 +43,10 @@ describe('regelUitVerzoek', () => {
     expect(regelUitVerzoek(new Error('x'), { path: '/mijn', method: 'GET', headers: {} }, { routeType: 'iets' })?.soort).toBe('render')
   })
 })
+
+describe('sportschoolUitHeaders met het adres als pad', () => {
+  it('neemt de slug uit de kop van de proxy (aiyourgym.com/<slug>)', () => {
+    expect(sportschoolUitHeaders({ host: 'aiyourgym.com', 'x-ayg-sportschool': 'budel' })).toBe('budel')
+    expect(sportschoolUitHeaders({ host: 'aiyourgym.com', 'x-ayg-sportschool': '<script>' })).toBeNull()
+  })
+})
