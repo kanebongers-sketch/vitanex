@@ -6,10 +6,11 @@
    ========================================================================== */
 
 .aygm {
-  --brand: #2db886;
-  --brand-inkt: #0a0b09;
-  --brand-tekst: #2db886;
-  --brand-soft: rgba(45, 184, 134, 0.14);
+  /* Voorbeeld Gym in flessengroen: past bij het racegroen van de website */
+  --brand: #2f6153;
+  --brand-inkt: #f1ece1;
+  --brand-tekst: #9fc2b4;
+  --brand-soft: rgba(47, 97, 83, 0.24);
   --bg-app: #0a0b09;
   --bg-card: #141513;
   --bg-raised: #1e1f1c;
@@ -229,7 +230,7 @@
 
 /* ── Eigen 3D-oefenbeelden en tegels met beginletters ─────────────────────
    Het figuur kleurt mee met --brand van het productbeeld eromheen, en buiten
-   een productbeeld met de smaragd van de website (nooit het brons van Club). */
+   een productbeeld met het accent van de website (nooit het brons van Club). */
 .ayg-3d { display: block; width: 100%; }
 .ayg-3d > .club-ill { --ill-accent: var(--brand, var(--ayg-accent)); }
 .ayg-3d--vul { position: absolute; inset: 0; }

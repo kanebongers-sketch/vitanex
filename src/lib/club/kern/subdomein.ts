@@ -40,7 +40,7 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'docs', 'blog', 'login', 'inloggen', 'uitloggen', 'account', 'auth', 'demo', 'test', 'dev', 'staging', 'club', 'aiyourgym', 'portaal',
   'platform', 'registreren', 'aanmeldingen', 'wachtwoord', 'contact', 'over', 'nieuws', 'faq', 'pers', 'vacatures', 'partners',
   'kennisbank', 'home', 'start', 'abonnement', 'betalen', 'kopen', 'checkout', 'stripe', 'webhook', 'sitemap', 'robots', 'favicon',
-  'icon', 'apple-icon', 'opengraph-image', 'manifest', 'next',
+  'icon', 'apple-icon', 'opengraph-image', 'twitter-image', 'manifest', 'next',
   // Pagina's van de website (src/app/(aiyourgym)/(website)/aiyourgym)
   'aanmelden', 'welkom', 'testbetaling', 'functies', 'prijzen', 'privacy', 'voorwaarden', 'overstappen', 'trainingsschemas',
   'voor-wie', 'demo-aanvragen', 'ledenapp', 'prijs-op-maat', 'privacy-en-beveiliging', 'nieuw', 'overstapchecklist',

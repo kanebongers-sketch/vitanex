@@ -1,7 +1,8 @@
 # Logorichtingen AI Your Gym (keuzeblad)
 
-Vier richtingen om uit te kiezen. Het logo dat nu op de site staat (`docs/aiyourgym/brand/`,
-`src/components/aiyourgym/merk/`) is hiervoor niet aangepast.
+Vier richtingen om uit te kiezen. Gekozen (besluit Kane 23-10-2026): richting 4, het embleem, in de kleuren Racegroen.
+De definitieve bestanden staan in `docs/aiyourgym/brand/` en `src/components/aiyourgym/merk/`;
+dit keuzeblad (nog in de oude smaragd) blijft als archief.
 
 Open `richtingen.html` in een browser, of bekijk `richtingen.png` (1600 breed).
 

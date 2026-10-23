@@ -14,8 +14,8 @@ import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f2f0e9' },
-    { media: '(prefers-color-scheme: dark)', color: '#0c0f0d' },
+    { media: '(prefers-color-scheme: light)', color: '#f1ece1' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b0f0d' },
   ],
 }
 

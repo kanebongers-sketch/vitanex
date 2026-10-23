@@ -1,20 +1,22 @@
 import type { CSSProperties } from 'react'
-import { FIGUUR_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, TEGEL_PAD, WOORD_BREEDTE, WOORD_KAP, WOORD_ONDER, WOORD_PAD, WOORD_TRANSFORM } from './merk-paden'
+import { EMBLEEM_TEKEN_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_BREEDTE, WOORD_HOOGTE, WOORD_PAD, WOORD_TRANSFORM } from './merk-paden'
 
-// Het logo van AI Your Gym (merkgids: docs/aiyourgym/brand/). Beeldmerk: een
-// figuur met de armen omhoog die ook een Y (Your) vormt, in een zachte tegel.
-// Woordmerk: Bricolage Grotesque als paden, dus overal gelijk, ook zonder letters.
+// Het logo van AI Your Gym (merkgids: docs/aiyourgym/brand/). Beeldmerk: het
+// embleem, een plaat in vier vakken met A I boven Y G, het vak van de Y gevuld.
+// Woordmerk: Big Shoulders Bold als paden, dus overal gelijk, ook zonder letters.
 //
-// Kleuren: de tegel en de figuur lezen --ayg-logo-vlak en --ayg-logo-figuur
-// (gezet in aiyourgym.css: inkt met smaragd op licht, omgedraaid op donker en in
-// de voet). Zonder die css de vaste merkkleuren. Het woord volgt currentColor.
+// Het embleem is altijd tweekleurig: --ayg-logo-plaat (plaat en Y) en
+// --ayg-logo-teken (kruis, vak Y en de letters A, I, G). Zonder die css de vaste
+// merkkleuren: racegroen met creme op een licht kleurenschema, creme met racegroen
+// op een donker kleurenschema (light-dark volgt color-scheme van de site). Het
+// woord volgt currentColor.
 
 export type AygLogoVorm = 'logo' | 'beeldmerk' | 'woordmerk'
 
 interface Props {
   /** Liggend logo (standaard), alleen het beeldmerk, of alleen het woordmerk. */
   vorm?: AygLogoVorm
-  /** Altijd de donkere versie (smaragd tegel), los van het kleurenschema. */
+  /** Altijd de versie voor een donkere ondergrond (creme plaat), los van het kleurenschema. */
   opDonker?: boolean
   /** Puur sier naast zichtbare tekst: verborgen voor schermlezers. */
   sier?: boolean
@@ -22,26 +24,27 @@ interface Props {
 }
 
 const DONKER = {
-  '--ayg-logo-vlak': `var(--ayg-logo-smaragd, ${MERK_KLEUR.smaragd})`,
-  '--ayg-logo-figuur': `var(--ayg-logo-inkt, ${MERK_KLEUR.inkt})`,
+  '--ayg-logo-plaat': MERK_KLEUR.creme,
+  '--ayg-logo-teken': MERK_KLEUR.racegroen,
 } as CSSProperties
 
-const VLAK = `var(--ayg-logo-vlak, ${MERK_KLEUR.inkt})`
-const FIGUUR = `var(--ayg-logo-figuur, ${MERK_KLEUR.smaragd})`
+const PLAAT = `var(--ayg-logo-plaat, light-dark(${MERK_KLEUR.racegroen}, ${MERK_KLEUR.creme}))`
+const TEKEN = `var(--ayg-logo-teken, light-dark(${MERK_KLEUR.creme}, ${MERK_KLEUR.racegroen}))`
 
-function Tegel() {
+function Embleem() {
   return (
     <>
-      <path d={TEGEL_PAD} fill={VLAK} />
-      <path d={FIGUUR_PAD} fill={FIGUUR} />
+      <rect width="100" height="100" fill={PLAAT} />
+      <path d={EMBLEEM_TEKEN_PAD} fill={TEKEN} />
+      <path d={EMBLEEM_Y_PAD} fill={PLAAT} />
     </>
   )
 }
 
 const VIEWBOX: Record<AygLogoVorm, string> = {
   logo: `0 0 ${LOGO_BREEDTE} ${LOGO_HOOGTE}`,
-  beeldmerk: '0 0 32 32',
-  woordmerk: `0 0 ${WOORD_BREEDTE} ${Math.ceil(WOORD_KAP * WOORD_ONDER)}`,
+  beeldmerk: '0 0 100 100',
+  woordmerk: `0 0 ${WOORD_BREEDTE} ${WOORD_HOOGTE}`,
 }
 
 export function AygLogo({ vorm = 'logo', opDonker = false, sier = false, className }: Props) {
@@ -55,7 +58,7 @@ export function AygLogo({ vorm = 'logo', opDonker = false, sier = false, classNa
       focusable="false"
       {...toegankelijk}
     >
-      {vorm !== 'woordmerk' && <Tegel />}
+      {vorm !== 'woordmerk' && <Embleem />}
       {vorm === 'logo' && <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill="currentColor" />}
       {vorm === 'woordmerk' && <path d={WOORD_PAD} fill="currentColor" />}
     </svg>

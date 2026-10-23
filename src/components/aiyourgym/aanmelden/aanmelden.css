@@ -43,7 +43,7 @@
 .ayg .aan-voortgang button::before { content: ''; width: 100%; height: 3px; border-radius: 3px; background: var(--ayg-lijn); transition: background 260ms var(--ayg-ease); }
 .ayg .aan-voortgang [data-staat='klaar'] button::before { background: var(--ayg-tekst); }
 .ayg .aan-voortgang [data-staat='nu'] button { color: var(--ayg-tekst); }
-.ayg .aan-voortgang [data-staat='nu'] button::before { background: var(--ayg-accent); box-shadow: inset 0 0 0 1px rgb(15 20 18 / 0.18); }
+.ayg .aan-voortgang [data-staat='nu'] button::before { background: var(--ayg-accent-sterk); }
 .ayg .aan-voortgang-nr { display: none; }
 .ayg .aan-voortgang-titel { display: none; }
 @media (min-width: 560px) {
@@ -67,7 +67,10 @@
   box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk, #82877f); transition: box-shadow 200ms var(--ayg-ease);
 }
 .ayg .aan-invoer:hover { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst-2); }
-.ayg .aan-invoer:focus-within { box-shadow: inset 0 0 0 2px var(--ayg-tekst), 0 0 0 5px color-mix(in srgb, var(--ayg-accent) 65%, transparent); }
+.ayg .aan-invoer:focus-within { box-shadow: inset 0 0 0 2px var(--ayg-tekst), 0 0 0 5px color-mix(in srgb, var(--ayg-focus) 75%, transparent); }
+/* Op een podium (inloggen) een donker veld, anders staat de lichte tekst op licht */
+.ayg .ayg-podium .aan-invoer { background: var(--ayg-inkt-2); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
+.ayg .ayg-podium .aan-invoer:focus-within { box-shadow: inset 0 0 0 2px var(--ayg-inkt-tekst), 0 0 0 5px color-mix(in srgb, var(--ayg-accent-licht) 45%, transparent); }
 .ayg .aan-invoer input { flex: 1; width: 100%; min-width: 0; height: 52px; padding: 0 16px; border: 0; background: none; color: var(--ayg-tekst); font: 500 16px/1 var(--ayg-font-tekst); }
 .ayg .aan-invoer input:focus-visible { outline: none; box-shadow: none; }
 .ayg .aan-achter { padding-right: 16px; color: var(--ayg-tekst-2); font-weight: 500; white-space: nowrap; }
@@ -148,7 +151,7 @@
 .ayg .aan-samen { display: grid; gap: 26px; padding: clamp(24px, 3vw, 36px); border-radius: calc(var(--ayg-radius) + 6px); box-shadow: var(--ayg-schaduw); }
 .ayg .aan-samen::after {
   content: ''; position: absolute; inset: auto -30% -45% auto; width: 80%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) 22%, transparent), transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-inkt-2) 70%, transparent), transparent);
 }
 .ayg .aan-samen-label { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); }
 .ayg .aan-samen-adres { position: relative; z-index: 1; display: grid; gap: 6px; padding: 16px 18px; border-radius: var(--ayg-radius); background: var(--ayg-inkt-2); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
@@ -188,7 +191,7 @@
 
 /* Testbetaling: de plek van Stripe Checkout zolang online betalen niet gekoppeld is. */
 .ayg .aan-test-melding { display: flex; gap: 12px; align-items: flex-start; width: 100%; max-width: 640px; padding: 16px 18px; border-radius: var(--ayg-radius-klein); background: color-mix(in srgb, var(--ayg-accent) 10%, var(--ayg-vlak)); color: var(--ayg-tekst); }
-.ayg .aan-test-melding svg { flex: none; margin-top: 2px; color: var(--ayg-accent); }
+.ayg .aan-test-melding svg { flex: none; margin-top: 2px; color: var(--ayg-accent-sterk); }
 .ayg .aan-test-overzicht { display: grid; width: 100%; max-width: 640px; margin: 0; padding: clamp(20px, 3vw, 28px); border-radius: calc(var(--ayg-radius) + 4px); box-shadow: var(--ayg-schaduw); }
 .ayg .aan-test-overzicht > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 10px; border-bottom: 1px solid var(--ayg-lijn); }
 .ayg .aan-test-overzicht > div:last-child { border-bottom: 0; }

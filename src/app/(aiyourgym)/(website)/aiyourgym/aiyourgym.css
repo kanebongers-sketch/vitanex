@@ -1,53 +1,59 @@
 /* ==========================================================================
    AI Your Gym | verkoopwebsite
-   Richting "Kalk, inkt en smaragd": warm kalkwit papier, bijna zwarte inkt en
-   smaragdgroen #1FA77A als accent (besluit Kane 20-10-2026). Daaromheen een
-   rustig palet van salie, groenblauw, zand en mist. Editoriaal, grote koppen,
-   donkere podia voor de productbeelden. Alles hangt aan de root-klasse .ayg, zodat niets van Fit
-   Factory, MentaForce of RELEASE V wordt geraakt.
+   Richting "Racegroen" (besluit Kane 23-10-2026): premium en rustig, als een
+   besloten club. Creme papier #F1ECE1, inkt #111614 als tekst, racegroen #10302A
+   als hoofdkleur (knoppen, vinkjes, donkere podia), flessengroen #1E4A40 als
+   tweede groen (tekst en lijnen in accent, kaarten op het podium) en salie
+   #A7B5A8 als zacht accent (markering, accent op donker). Geen goud of brons.
+   Alles hangt aan de root-klasse .ayg, zodat niets van Fit Factory, MentaForce
+   of RELEASE V wordt geraakt.
    De tokennamen hieronder zijn vast: het aanmeldformulier bouwt erop.
    ========================================================================== */
 
 .ayg {
   /* Kleur */
-  --ayg-bg: #f2f0e9;
-  --ayg-vlak: #fbfaf6;
-  --ayg-vlak-2: #e8e5db;
-  --ayg-tekst: #0f1412;
-  --ayg-tekst-2: #545a55; /* 6.2:1 op bg, 5.6:1 op vlak-2 */
-  --ayg-tekst-spook: #767b73; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
-  --ayg-lijn: #d6d2c5;
-  --ayg-lijn-sterk: #7a7f77; /* 3.25:1 op vlak-2, voor invoervelden en randknoppen */
-  --ayg-accent: #1fa77a; /* smaragd: vlakken, knoppen, vinkjes; als tekst alleen op inkt (6.1:1) */
-  --ayg-accent-tekst: #0f1412; /* 6.1:1 op smaragd (wit haalt maar 3.1:1) */
-  --ayg-accent-sterk: #08704e; /* smaragd als tekst, icoon of lijn op het papier: 5.4:1 op bg, 4.9:1 op vlak-2 */
-  --ayg-accent-zacht: #b9decc; /* zacht smaragdvlak (markering onder inkt): 13:1 */
+  --ayg-bg: #f1ece1; /* creme papier */
+  --ayg-vlak: #f8f5ee;
+  --ayg-vlak-2: #e6e0d2;
+  --ayg-tekst: #111614; /* inkt: 15.5:1 op bg */
+  --ayg-tekst-2: #4f5651; /* 6.4:1 op bg, 5.7:1 op vlak-2 */
+  --ayg-tekst-spook: #73786f; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
+  --ayg-lijn: #d9d2c2;
+  --ayg-lijn-sterk: #767b72; /* 3.3:1 op vlak-2, voor invoervelden en randknoppen */
+  --ayg-accent: #10302a; /* racegroen: knoppen, vinkjes, badges, chips; creme erop */
+  --ayg-accent-tekst: #f1ece1; /* creme op racegroen: 12:1 */
+  --ayg-accent-sterk: #1e4a40; /* flessengroen als tekst, icoon of lijn op het papier: 8.5:1 op bg */
+  --ayg-accent-licht: #b9c6ba; /* lichte salie: accent als tekst of vlak op racegroen (8:1), racegroen erop */
+  --ayg-accent-zacht: #d3dbcd; /* zacht salievlak (markering onder inkt): 12.9:1 */
+  --ayg-focus: #a7b5a8; /* zachte saliehalo rond de inkten focusrand */
   --ayg-fout: #b42318;
-  --ayg-ok: #1b7238; /* 4.75:1 op vlak-2 */
-  /* Hoeveel smaragd er in de zachte gloed achter de held en de aanmeldband zit */
-  --ayg-gloed: 24%;
-  --ayg-gloed-band: 24%;
-  /* Contactbalk boven de kop: een rustige smaragdtint, geen zwarte balk */
-  --ayg-balk: #dcebe2;
-  --ayg-balk-lijn: #c3dacb;
+  --ayg-ok: #1b6b38; /* 5:1 op vlak-2 */
+  /* De held: een rustige papierschaduw naar onderen (geen gloed), en de aanmeldband
+     een diepere flessengroene plek op het racegroene podium */
+  --ayg-held-vlak: #e9e3d5;
+  --ayg-gloed-band: 55%;
+  /* Contactbalk boven de kop: een rustige salietint, geen zwarte balk */
+  --ayg-balk: #e3e5da;
+  --ayg-balk-lijn: #cfd4c6;
 
-  /* Donker podium (productbeelden) */
-  --ayg-inkt: #0f1412;
-  --ayg-inkt-2: #1a201d;
-  --ayg-inkt-lijn: #2b322e;
-  --ayg-inkt-tekst: #f2f0e9;
-  --ayg-inkt-tekst-2: #b8beb7; /* 9.8:1 op inkt, 6.8:1 waar de smaragdgloed het sterkst is */
-  --ayg-inkt-spook: #666d67; /* grote sierletters op inkt: 3.5:1 */
-  --ayg-voet-woord: #1b3a2d; /* het grote woordmerk in de voet: diep smaragd, puur sier (aria-hidden), bewust rustig */
+  /* Donker podium (productbeelden): racegroen met creme */
+  --ayg-inkt: #10302a;
+  --ayg-inkt-2: #1e4a40;
+  --ayg-inkt-lijn: #2d5a4f;
+  --ayg-inkt-tekst: #f1ece1;
+  --ayg-inkt-tekst-2: #c5cec3; /* 8.8:1 op racegroen, 6.2:1 op flessengroen */
+  --ayg-inkt-spook: #829f94; /* grote sierletters op het podium: 3.4:1 en meer */
+  --ayg-voet-woord: #1d4840; /* het grote woordmerk in de voet: net iets lichter dan racegroen, puur sier (aria-hidden) */
 
-  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een palet rond
-     smaragd (smaragd, salie, groenblauw, zand, mist). Altijd met inkt erop (tekst
-     op het vlak) of als tekst op het donkere podium; zie contrast.test.ts */
-  --ayg-h-beheer: #1fa77a;
-  --ayg-h-coaching: #a8c3a0;
-  --ayg-h-planning: #4fb0bb;
-  --ayg-h-groei: #d6c29c;
-  --ayg-h-betrokkenheid: #9fb8c4;
+  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een rustig palet rond
+     salie (salie, lichte salie, zeegroen, linnen, mist). Altijd met inkt erop of
+     als tekst op het racegroene podium; zie contrast.test.ts */
+  --ayg-h-tekst: #111614;
+  --ayg-h-beheer: #a7b5a8;
+  --ayg-h-coaching: #b7c6ae;
+  --ayg-h-planning: #9fbab2;
+  --ayg-h-groei: #cdc3b1;
+  --ayg-h-betrokkenheid: #aeb9c0;
 
   /* Letters */
   --ayg-font-kop: var(--ayg-f-kop), 'Arial Narrow', Arial, sans-serif;
@@ -107,10 +113,10 @@
 .ayg :where(a, button, summary, input, select, textarea):focus-visible {
   outline: 2px solid var(--ayg-tekst);
   outline-offset: 3px;
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ayg-accent) 70%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ayg-focus) 75%, transparent);
   border-radius: 6px;
 }
-.ayg .ayg-podium :where(a, button, summary):focus-visible { outline-color: var(--ayg-accent); box-shadow: none; }
+.ayg :is(.ayg-podium, .ayg-voet) :where(a, button, summary):focus-visible { outline-color: var(--ayg-accent-licht); box-shadow: none; }
 
 .ayg-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .ayg-overslaan { position: absolute; left: 16px; top: -60px; z-index: 100; padding: 10px 18px; border-radius: 10px; background: var(--ayg-tekst); color: var(--ayg-bg); text-decoration: none; font-weight: 600; }
@@ -132,55 +138,61 @@
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
-  /* Donkere smaragd voor op papier wordt hier de lichte (anders donker op donker) */
-  --ayg-accent-sterk: var(--ayg-accent);
+  /* Racegroen valt hier weg in het podium: het accent wordt de lichte salie met
+     racegroen erop, en het accent als tekst ook (anders donker op donker) */
+  --ayg-accent: var(--ayg-accent-licht);
+  --ayg-accent-tekst: var(--ayg-inkt);
+  --ayg-accent-sterk: var(--ayg-accent-licht);
   position: relative;
   overflow: clip;
 }
 .ayg-podium--rond { border-radius: clamp(20px, 3vw, 36px); margin-inline: clamp(8px, 1.4vw, 20px); }
 
 /* ── Donker ──────────────────────────────────────────────────────────────────
-   Een eigen, ontworpen donkere versie: bijna zwart papier, lichte inkt en
-   een iets lichtere smaragd, zodat hij als tekst en lijn goed leest. Omdat de site licht EN donker meldt (color-scheme en de
+   Een eigen, ontworpen donkere versie: bijna zwart papier met een groene ondertoon,
+   creme tekst en salie als accent (knoppen worden salie met racegroen erop). Omdat de site licht EN donker meldt (color-scheme en de
    viewport in layout.tsx), maakt Chrome hem niet meer zelf automatisch donker.
    Het podium ligt hier iets hoger dan het papier in plaats van dieper.
    Alle paren worden getoetst in contrast.test.ts. */
 @media (prefers-color-scheme: dark) {
   .ayg {
-    --ayg-bg: #0c0f0d;
-    --ayg-vlak: #141815;
-    --ayg-vlak-2: #1c211d;
-    --ayg-tekst: #eceae2;
-    --ayg-tekst-2: #a8aea6;
-    --ayg-tekst-spook: #7a8179;
-    --ayg-lijn: #29302b;
-    --ayg-lijn-sterk: #737a73;
-    --ayg-accent: #2db886; /* 7.6:1 op bg, inkt erop 7.4:1 */
-    --ayg-accent-tekst: #0f1412;
-    --ayg-accent-sterk: #2db886;
-    --ayg-accent-zacht: #173a2d;
+    --ayg-bg: #0b0f0d;
+    --ayg-vlak: #121916;
+    --ayg-vlak-2: #18211d;
+    --ayg-tekst: #ece6d9; /* creme */
+    --ayg-tekst-2: #a9b2aa;
+    --ayg-tekst-spook: #78827b;
+    --ayg-lijn: #26302b;
+    --ayg-lijn-sterk: #6f7a73;
+    --ayg-accent: #b4c2b5; /* salie: 10.4:1 op bg, racegroen erop 7.7:1 */
+    --ayg-accent-tekst: #10302a;
+    --ayg-accent-sterk: #b4c2b5;
+    --ayg-accent-licht: #b4c2b5;
+    --ayg-accent-zacht: #1e4a40;
+    --ayg-focus: #2d5a4f;
     --ayg-fout: #ff8f80;
-    --ayg-ok: #72d69b;
-    --ayg-gloed: 14%;
-    --ayg-gloed-band: 16%;
-    --ayg-balk: #10211a;
-    --ayg-balk-lijn: #1d3429;
-    --ayg-inkt: #161b18;
-    --ayg-inkt-2: #1f2621;
-    --ayg-inkt-lijn: #313934;
-    --ayg-inkt-tekst: #f2f0e9;
-    --ayg-inkt-tekst-2: #c2c8c1;
-    --ayg-inkt-spook: #78807a;
-    --ayg-voet-woord: #1f4032;
-    --ayg-h-beheer: #2db886;
-    --ayg-h-coaching: #a8c3a0;
-    --ayg-h-planning: #4fb0bb;
-    --ayg-h-groei: #d6c29c;
-    --ayg-h-betrokkenheid: #9fb8c4;
+    --ayg-ok: #86d1a2;
+    --ayg-held-vlak: #0f1c18;
+    --ayg-gloed-band: 45%;
+    --ayg-balk: #0f211c;
+    --ayg-balk-lijn: #1c3830;
+    --ayg-inkt: #10302a; /* het podium ligt als racegroen vlak boven het bijna zwart */
+    --ayg-inkt-2: #18403a;
+    --ayg-inkt-lijn: #2a5449;
+    --ayg-inkt-tekst: #f1ece1;
+    --ayg-inkt-tekst-2: #c3cdc2;
+    --ayg-inkt-spook: #829f94;
+    --ayg-voet-woord: #1c463d;
+    --ayg-h-tekst: #111614;
+    --ayg-h-beheer: #a7b5a8;
+    --ayg-h-coaching: #b7c6ae;
+    --ayg-h-planning: #9fbab2;
+    --ayg-h-groei: #cdc3b1;
+    --ayg-h-betrokkenheid: #aeb9c0;
     --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
     --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
   }
-  /* Een vlak onder lichte tekst leest niet: de markering wordt smaragd als tekst */
+  /* Een vlak onder lichte tekst leest niet: de markering wordt salie als tekst */
   .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
   .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
 }
@@ -253,7 +265,7 @@
 .ayg-pijllink:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 
 /* ── Contactbalk boven de kop ────────────────────────────────────────────── */
-/* Een dunne, rustige smaragdtint met inkt erop. Alleen als er telefoon of e-mail is;
+/* Een dunne, rustige salietint met inkt erop. Alleen als er telefoon of e-mail is;
    zonder contactgegevens staat er alleen een smalle regel op schermen waar de
    demoknop niet in de kop past (1024 tot 1079 px), en verder niets. */
 .ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
@@ -271,9 +283,9 @@
 }
 
 /* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
-/* Licht met smaragd (besluit Kane 20-10-2026): kalkwit met inkt en een groene hoofdknop.
+/* Licht met racegroen (besluit Kane 23-10-2026): creme met inkt en een racegroene hoofdknop.
    Bovenaan valt de kop weg in het papier (data-bovenaan, gezet door JavaScript); bij
-   scrollen een licht kalkwit vlak met een fijne lijn en zachte blur, nooit een donkere balk. */
+   scrollen een licht creme vlak met een fijne lijn, nooit een donkere balk. */
 .ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; }
 .ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(15 20 18 / 0.22); transition: opacity 260ms var(--ayg-ease); }
 .ayg-kop[data-bovenaan]:not(:has(.ayg-menupaneel[data-open]))::before { opacity: 0; }
@@ -356,9 +368,9 @@
 }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
-/* Bewust rustig donker: groenzwarte inkt als anker onder het papier, met smaragd
-   alleen als accent (lijnen, hover) en een diep smaragden woordmerk in plaats van grijs. */
-.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent-sterk: var(--ayg-accent); padding-block: 72px 32px; margin-top: auto; }
+/* Racegroen als anker onder het papier, met salie alleen als accent (lijnen, hover)
+   en een woordmerk dat net iets lichter is dan het vlak, in plaats van grijs. */
+.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 72px 32px; margin-top: auto; }
 .ayg-voet-raster { display: grid; gap: 40px; grid-template-columns: 1fr; }
 .ayg-voet-merk svg { height: 34px; width: auto; color: var(--ayg-inkt-tekst); }
 .ayg-voet-merk p { margin-top: 18px; max-width: 30ch; color: var(--ayg-tekst-2); }
@@ -410,12 +422,12 @@
 @media (min-width: 900px) { .ayg-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; column-gap: clamp(32px, 5vw, 96px); } }
 /* De derde keus is een rustige tekstlink: zo breed als de tekst, niet over de hele kolom */
 .ayg-band-live { justify-self: start; }
-.ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed-band), transparent), transparent); pointer-events: none; }
+.ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-inkt-2) var(--ayg-gloed-band), transparent), transparent); pointer-events: none; }
 
 /* Concept (juridisch) */
 .ayg-concept { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--ayg-radius); background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-weight: 500; }
 .ayg-concept strong { font-weight: 700; }
-/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op smaragd altijd inkt */
+/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op racegroen altijd creme */
 .ayg .ayg-concept { color: var(--ayg-accent-tekst); }
 .ayg-tekst { max-width: 68ch; display: grid; gap: 18px; }
 /* Juridische teksten: de kolom lijnt links uit met de paginakop erboven */
@@ -484,22 +496,23 @@
 .ayg { flex-shrink: 0; }
 
 /* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────
-   Vaste merkkleuren, los van de site-tokens: het logo is overal hetzelfde.
-   Op licht een inkten tegel met een smaragden figuur; op donker, in de voet en
-   op een podium draait dat om (een inkten tegel valt daar weg). */
+   Vaste merkkleuren, los van de site-tokens: het stempelembleem is overal hetzelfde.
+   Op licht een racegroene plaat met creme tekens; op donker, in de voet en op een
+   podium draait dat om (een racegroene plaat valt daar weg). De namen
+   --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
 .ayg-logo {
-  --ayg-logo-smaragd: #1fa77a;
-  --ayg-logo-inkt: #0f1412;
-  --ayg-logo-vlak: var(--ayg-logo-inkt);
-  --ayg-logo-figuur: var(--ayg-logo-smaragd);
+  --ayg-logo-racegroen: #10302a;
+  --ayg-logo-creme: #f1ece1;
+  --ayg-logo-plaat: var(--ayg-logo-racegroen);
+  --ayg-logo-teken: var(--ayg-logo-creme);
   display: block;
   flex-shrink: 0;
   overflow: visible;
 }
 .ayg-voet .ayg-logo,
-.ayg-podium .ayg-logo { --ayg-logo-vlak: var(--ayg-logo-smaragd); --ayg-logo-figuur: var(--ayg-logo-inkt); }
+.ayg-podium .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
 @media (prefers-color-scheme: dark) {
-  .ayg-logo { --ayg-logo-vlak: var(--ayg-logo-smaragd); --ayg-logo-figuur: var(--ayg-logo-inkt); }
+  .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
 }
 .ayg-kop-logo .ayg-logo { height: 30px; width: auto; }
 /* Krappe pc-breedte: het logo iets kleiner, zodat menu en knoppen op een regel blijven */

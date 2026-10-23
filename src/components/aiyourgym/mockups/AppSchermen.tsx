@@ -28,7 +28,7 @@ export function QrBeeld() {
   return (
     <svg viewBox={`0 0 ${n} ${n}`} shapeRendering="crispEdges" aria-hidden>
       {vakjes.map(({ x, y }) => (
-        <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#0f1412" />
+        <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#111614" />
       ))}
     </svg>
   )

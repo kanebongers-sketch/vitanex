@@ -8,15 +8,15 @@
 @import "tailwindcss/preflight.css" layer(base);
 
 :root {
-  --ayg-pagina: #f2f0e9;
-  --ayg-pagina-tekst: #0f1412;
+  --ayg-pagina: #f1ece1;
+  --ayg-pagina-tekst: #111614;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ayg-pagina: #0c0f0d;
-    --ayg-pagina-tekst: #eceae2;
+    --ayg-pagina: #0b0f0d;
+    --ayg-pagina-tekst: #ece6d9;
   }
 }
 

@@ -38,10 +38,10 @@ async function laadDemo(): Promise<DemoRuw | null> {
   }
 }
 
-// De schermen in de demo volgen de smaragd van de website (dezelfde tint als de
+// De schermen in de demo volgen het flessengroen van de website (dezelfde tint als de
 // productbeelden in mockups.css), los van de accentkleur die de Voorbeeld Gym in
 // Club heeft: een eigen kleur van een sportschool vloekt hier met de website.
-const DEMO_ACCENT = '#2DB886'
+const DEMO_ACCENT = '#2F6153'
 
 function NietBeschikbaar() {
   return (
