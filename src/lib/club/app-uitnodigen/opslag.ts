@@ -111,6 +111,13 @@ export async function registreerAanvraag(admin: SupabaseClient, emailHash: strin
 /** Hooguit zoveel leden per adres (een gezin deelt soms een adres). */
 const MAX_LEDEN_PER_ADRES = 3
 
+async function ledenMetIds(admin: SupabaseClient, userId: string, ids: string[]): Promise<unknown[]> {
+  if (ids.length === 0) return []
+  const { data, error } = await admin.from('club_leden').select(LID_KOLOMMEN).eq('user_id', userId).in('id', ids)
+  log('leden met inlogadres lezen', error)
+  return data ?? []
+}
+
 /**
  * Een linkmail voor elk lid van deze sportschool met dit adres dat de app mag
  * gebruiken. Draait na het antwoord (after), zodat de tijd niets verraadt.
@@ -118,15 +125,19 @@ const MAX_LEDEN_PER_ADRES = 3
  */
 export async function planAanvraag(admin: SupabaseClient, org: Pick<Organisatie, 'id' | 'naam'>, email: string, aanvraagId: string, nu: Date): Promise<void> {
   try {
-    const [{ data, error }, vest] = await Promise.all([
+    const [{ data, error }, vest, inlog] = await Promise.all([
       admin.from('club_leden').select(LID_KOLOMMEN).eq('user_id', org.id).ilike('email', exactPatroon(email)).limit(10),
       admin.from('club_vestigingen').select('vestiging, naam, volgorde, standaard').eq('user_id', org.id),
+      // Het lid koos bij het activeren misschien een ander inlogadres dan in de ledenlijst staat.
+      admin.from('club_lid_toegang').select('lid_id').eq('user_id', org.id).eq('email', email).eq('actief', true).limit(MAX_LEDEN_PER_ADRES),
     ])
-    log('leden zoeken', error ?? vest.error)
+    log('leden zoeken', error ?? vest.error ?? inlog.error)
     const vestigingen = vestigingenUitRijen(vest.data ?? [])
-    const leden = (data ?? [])
+    const metInlog = new Set(((inlog.data ?? []) as Array<{ lid_id?: unknown }>).map((r) => String(r.lid_id)))
+    const extra = await ledenMetIds(admin, org.id, [...metInlog].filter((id) => !(data ?? []).some((r) => (r as { id?: unknown }).id === id)))
+    const leden = [...(data ?? []), ...extra]
       .map(lidUitRij)
-      .filter((l): l is Lid => lidMagApp(l, vestigingen) && !l.demo && l.email?.trim().toLowerCase() === email)
+      .filter((l): l is Lid => lidMagApp(l, vestigingen) && !l.demo && (l.email?.trim().toLowerCase() === email || metInlog.has(l.id)))
       .slice(0, MAX_LEDEN_PER_ADRES)
     if (leden.length === 0) return
     const rijen = leden.map((lid) => {

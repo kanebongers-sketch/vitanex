@@ -1,24 +1,23 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
+import { LOGO_FIT_FACTORY, type Organisatie } from '@/lib/club/kern/organisatie'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
-import { lidApparaatCookie, linkStaat } from '@/lib/club/ledenlogin/regels'
-import { bruikbareLink } from '@/lib/club/ledenlogin/inlog-api'
 import { lidToegang } from '@/lib/club/ledenlogin/toegang'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { InlogKaart } from '@/components/club/ledenlogin/InlogKaart'
 import { LidInlogFormulier } from '@/components/club/ledenlogin/LidInlogFormulier'
 import { AANVRAAG_PAD } from '@/lib/club/app-uitnodigen/velden'
 import { leesSportschoolSleutel } from '@/lib/club/app-uitnodigen/regels'
+import { sportschoolVoorAanvraag } from '@/lib/club/app-uitnodigen/sportschool'
 
-// /mijn/inloggen: opnieuw inloggen na een verlopen sessie of na uitloggen. Dit
-// toestel onthoudt de persoonlijke link (httpOnly-cookie), dus alleen de
-// pincode is nodig. Zonder (geldige) onthouden link: open de link of QR van de
-// sportschool. Met de schakelaar uit: een gewone 404.
+// /mijn/inloggen: inloggen op de ledenapp met e-mailadres en wachtwoord
+// (besluit Kane 23-10-2026). De sportschool komt uit het subdomein of uit
+// ?s=<slug of id> (voor de huisstijl en om alleen daar te zoeken); zonder
+// sportschool zoekt de server op het adres. Eerste keer of wachtwoord
+// vergeten: een link aanvragen (/mijn/aanvragen). Schakelaar uit: 404.
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +28,8 @@ export const metadata: Metadata = {
 }
 
 const NEUTRAAL = { kleurAccent: '#B58E5C', thema: 'donker' as const }
+const UITLEG = 'Log in met je e-mailadres en wachtwoord.'
+const HULP = 'Eerste keer, wachtwoord vergeten of logde je eerder in met een pincode? Vraag een link aan om een wachtwoord te kiezen.'
 
 function adminOfNull(): SupabaseClient | null {
   try {
@@ -40,47 +41,26 @@ function adminOfNull(): SupabaseClient | null {
 
 type Zoek = Promise<Record<string, string | string[] | undefined>>
 
-/** Naar de aanvraagpagina, met de sportschool erbij als die in de vraag stond. */
-function aanvraagHref(s: unknown): string {
-  const sleutel = leesSportschoolSleutel(s)
-  return sleutel ? `${AANVRAAG_PAD}?s=${encodeURIComponent(sleutel.waarde)}` : AANVRAAG_PAD
-}
-
 export default async function MijnInloggen({ searchParams }: { searchParams: Zoek }) {
   if (!CLUB_LEDEN_LOGIN) notFound()
   if (await lidToegang(null)) redirect('/mijn')
   const admin = adminOfNull()
-  const nu = new Date()
-  const code = (await cookies()).get(lidApparaatCookie())?.value
-  const link = admin ? await bruikbareLink(admin, code, nu) : null
+  const sleutel = leesSportschoolSleutel((await searchParams).s)
+  const org: Organisatie | null = admin ? await sportschoolVoorAanvraag(admin, sleutel) : null
+  const aanvraagHref = org ? `${AANVRAAG_PAD}?s=${encodeURIComponent(org.slug ?? org.id)}` : sleutel ? `${AANVRAAG_PAD}?s=${encodeURIComponent(sleutel.waarde)}` : AANVRAAG_PAD
 
-  if (!link) {
-    return (
-      <LedenappSchil organisatie={NEUTRAAL}>
-        <InlogKaart
-          merkNaam="Ledenapp"
-          fitFactory={false}
-          boven="Ledenapp"
-          kop="Inloggen"
-          uitleg="Open de persoonlijke link of scan de QR-code die je van je sportschool kreeg. Werkt je link niet meer? Vraag hem opnieuw aan of vraag het aan de balie."
-        >
-          <Link href={aanvraagHref((await searchParams).s)} className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed">Nog geen link? Vraag hem aan</Link>
-        </InlogKaart>
-      </LedenappSchil>
-    )
-  }
-  const org = link.organisatie
-  const kiezen = linkStaat(link.toegang, nu) === 'kiezen'
   return (
-    <LedenappSchil organisatie={org}>
+    <LedenappSchil organisatie={org ?? NEUTRAAL}>
       <InlogKaart
-        merkNaam={org.naam}
-        fitFactory={org.logo === LOGO_FIT_FACTORY}
-        boven={org.naam}
-        kop={`Hoi ${link.lid.voornaam}`}
-        uitleg={kiezen ? 'Kies een pincode van 6 cijfers.' : 'Log in met je pincode van 6 cijfers. Pincode vergeten? Vraag aan de balie om een nieuwe link.'}
+        merkNaam={org?.naam ?? 'Ledenapp'}
+        fitFactory={org?.logo === LOGO_FIT_FACTORY}
+        boven={org?.naam ?? 'Ledenapp'}
+        kop="Inloggen"
+        uitleg={UITLEG}
       >
-        <LidInlogFormulier modus={kiezen ? 'kiezen' : 'inloggen'} code={null} />
+        <LidInlogFormulier sportschool={org?.id ?? null} />
+        <p className="club-mijn-veld-hint">{HULP}</p>
+        <Link href={aanvraagHref} className="club-mijn-inlog-link">Link aanvragen</Link>
       </InlogKaart>
     </LedenappSchil>
   )

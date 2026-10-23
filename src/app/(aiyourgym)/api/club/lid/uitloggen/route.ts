@@ -1,9 +1,8 @@
 // POST /api/club/lid/uitloggen  { overal?: boolean }
 // Een lid logt dit toestel uit (de sessie verdwijnt uit de database en de
-// cookie wordt gewist), of met overal = true alle toestellen tegelijk. De
-// onthouden link blijft, zodat opnieuw inloggen alleen de pincode vraagt;
-// bij "overal" verdwijnt ook die. Push-meldingen van dit toestel (of bij
-// "overal" van alle toestellen) stoppen ook.
+// cookie wordt gewist), of met overal = true alle toestellen tegelijk. Opnieuw
+// inloggen gaat met e-mailadres en wachtwoord. Push-meldingen van dit toestel
+// (of bij "overal" van alle toestellen) stoppen ook.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
@@ -41,6 +40,6 @@ export async function POST(req: NextRequest) {
   }
   // De cookie gaat hoe dan ook weg; mislukte het wissen in de database, dan zeggen we dat.
   const res = gelukt ? clubJson({ ok: true }) : clubFout('Uitgelogd op dit toestel, maar niet overal. Probeer het opnieuw.', 502)
-  wisLidCookies(res, overal)
+  wisLidCookies(res)
   return res
 }

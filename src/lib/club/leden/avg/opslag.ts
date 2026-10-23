@@ -31,8 +31,8 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   meldingVoorkeuren: { tabel: 'club_meldingen_voorkeuren', select: 'herinneringen_per_mail, mails, push, gewijzigd_op' },
   // Nooit het endpoint of de sleutels: alleen welk toestel en wanneer.
   pushToestellen: { tabel: 'club_push_abonnementen', select: 'user_agent, aangemaakt_op, laatst_gebruikt_op', volgorde: 'aangemaakt_op' },
-  // Nooit de code, pin_hash of token_hash: alleen wat het lid mag weten.
-  ledenapp: { tabel: 'club_lid_toegang', select: 'actief, pin_gekozen_op, laatst_ingelogd_op, aangemaakt_op' },
+  // Nooit de code, wachtwoord_hash, pin_hash of token_hash: alleen wat het lid mag weten.
+  ledenapp: { tabel: 'club_lid_toegang', select: 'actief, email, wachtwoord_gekozen_op, pin_gekozen_op, laatst_ingelogd_op, aangemaakt_op' },
   sessies: { tabel: 'club_lid_sessies', select: 'aangemaakt_op, laatst_gebruikt_op, verloopt_op', volgorde: 'aangemaakt_op' },
   leads: { tabel: 'club_leads', select: 'id, naam, email, telefoon, vestiging, bron, interesse, status, proefles_op, verloren_reden, toestemming_contact, aangemaakt_op', volgorde: 'aangemaakt_op' },
   verwijderverzoek: { tabel: 'club_lid_verwijderingen', select: 'aangevraagd_op, definitief_op' },

@@ -27,6 +27,8 @@ import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinne
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { UitlogKnoppen } from '@/components/club/ledenlogin/UitlogKnoppen'
+import { WachtwoordFormulier } from '@/components/club/ledenlogin/WachtwoordFormulier'
+import { normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
 import { CommunityProfielBlok } from '@/components/club/community/CommunityProfielBlok'
 import { InstalleerHulp } from '@/components/club/ledenapp-pwa/InstalleerHulp'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
@@ -204,6 +206,13 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 pilotNoot={false}
               />
               <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />
+              {l.account && !l.account.wachtwoordHash && (
+                <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">
+                  <h3 id="mijn-wachtwoord">Kies een wachtwoord</h3>
+                  <p className="club-mijn-veld-hint">Inloggen gaat voortaan met je e-mailadres en een wachtwoord, niet meer met een pincode. Kies het nu, dan kun je straks gewoon weer inloggen.</p>
+                  <WachtwoordFormulier code={null} standaardEmail={l.account.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop="Wachtwoord opslaan" />
+                </section>
+              )}
               {!l.voorvertoning && (
                 <div className="club-mijn-blok">
                   <UitlogKnoppen />

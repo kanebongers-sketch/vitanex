@@ -8,10 +8,11 @@ import { startPad } from '@/lib/club/ledenlogin/paden'
 import type { LidLinkOverzicht } from '@/lib/club/ledenlogin/regels'
 import './ledenapp-link.css'
 
-// "Ledenapp-link" op de ledenkaart: de persoonlijke link van het lid naar de
-// ledenapp, als QR-code om aan de balie te scannen. Opnieuw maken (de oude
-// werkt dan niet meer), intrekken en overal uitloggen. Het lid kiest daarna
-// zelf een pincode; de sportschool ziet die nooit.
+// "Ledenapp" op de ledenkaart: de uitnodiging van het lid voor de ledenapp,
+// als QR-code om aan de balie te scannen. Daarmee bevestigt het lid zijn
+// e-mailadres en kiest het een wachtwoord (eenmalig, 7 dagen geldig); daarna
+// logt het in met e-mail en wachtwoord. Opnieuw beginnen (wachtwoord gewist),
+// intrekken en overal uitloggen. De sportschool ziet het wachtwoord nooit.
 
 interface Props {
   lidId: string
@@ -19,11 +20,12 @@ interface Props {
 }
 
 const STAAT_TEKST: Record<LidLinkOverzicht['staat'], { label: string; chip: string }> = {
-  geen: { label: 'Nog geen link', chip: 'club-chip--geen' },
-  kiezen: { label: 'Wacht op pincode', chip: 'club-chip--info' },
+  geen: { label: 'Nog niet uitgenodigd', chip: 'club-chip--geen' },
+  kiezen: { label: 'Wacht op wachtwoord', chip: 'club-chip--info' },
   actief: { label: 'In gebruik', chip: 'club-chip--ok' },
+  pincode: { label: 'Nog geen wachtwoord', chip: 'club-chip--info' },
   verlopen: { label: 'Link verlopen', chip: 'club-chip--let-op' },
-  dicht: { label: 'Dicht na foute pincodes', chip: 'club-chip--let-op' },
+  dicht: { label: 'Dicht na foute wachtwoorden', chip: 'club-chip--let-op' },
   ingetrokken: { label: 'Ingetrokken', chip: 'club-chip--uit' },
 }
 
@@ -109,7 +111,12 @@ export function LedenappLink({ lidId, voornaam }: Props) {
   }
 
   const staat = stand ? STAAT_TEKST[stand.link.staat] : null
+  const s = stand?.link.staat
+  /** Er werkt nu een uitnodiging (QR te tonen). */
   const heeftLink = Boolean(stand?.link.code)
+  /** Er is een account of uitnodiging die door "Nieuwe link" opnieuw begint. */
+  const heeftAccount = s !== undefined && s !== 'geen' && s !== 'ingetrokken'
+  const ingelogd = (s === 'actief' || s === 'pincode') && (stand?.link.toestellen ?? 0) > 0
   return (
     <section className="club-kaart club-lidlink" aria-labelledby="lidlink-kop">
       <div className="club-sectiekop">
@@ -117,9 +124,9 @@ export function LedenappLink({ lidId, voornaam }: Props) {
         {staat ? <span className={`club-chip ${staat.chip}`}>{staat.label}</span> : null}
       </div>
       <p className="club-hint">
-        {voornaam} scant de QR-code, kiest een eigen pincode en zet de app op het beginscherm. Een link is 7 dagen geldig om de pincode te kiezen.
+        {voornaam} scant de QR-code, bevestigt het e-mailadres en kiest een wachtwoord. Daarna logt {voornaam} in met e-mail en wachtwoord. Een link werkt een keer en is 7 dagen geldig.
       </p>
-      {stand && stand.link.staat === 'actief' ? (
+      {stand && (s === 'actief' || s === 'pincode') ? (
         <p className="club-lidlink-feit">
           {stand.link.toestellen === 1 ? 'Ingelogd op 1 toestel' : `Ingelogd op ${stand.link.toestellen} toestellen`}
           {stand.link.laatstIngelogdOp ? ` · laatst ingelogd ${DATUM.format(new Date(stand.link.laatstIngelogdOp))}` : ''}
@@ -133,31 +140,37 @@ export function LedenappLink({ lidId, voornaam }: Props) {
           <button type="button" className="club-knop club-knop--klein" onClick={() => void kopieer()}>
             <Copy size={15} aria-hidden /> Kopieer link
           </button>
-          <p className="club-hint">Deel deze link alleen met {voornaam}: wie hem heeft, kan de pincode kiezen.</p>
+          <p className="club-hint">Deel deze link alleen met {voornaam}: wie hem heeft, kan het wachtwoord kiezen.</p>
         </div>
       ) : null}
 
       <div className="club-lidlink-knoppen">
-        {heeftLink && (stand?.link.staat === 'kiezen' || stand?.link.staat === 'actief') ? (
+        {heeftLink ? (
           <button type="button" className="club-knop club-knop--primair" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
             <QrCode size={16} aria-hidden /> {open ? 'Verberg QR-code' : 'Toon QR-code'}
           </button>
         ) : null}
         <button
           type="button"
-          className={heeftLink && stand?.link.staat !== 'verlopen' && stand?.link.staat !== 'dicht' ? 'club-knop' : 'club-knop club-knop--primair'}
+          className={heeftLink || s === 'actief' ? 'club-knop' : 'club-knop club-knop--primair'}
           disabled={bezig || !stand}
-          onClick={() => void doe('maak', heeftLink ? `Een nieuwe link maken? De oude link en pincode van ${voornaam} werken dan niet meer en alle toestellen worden uitgelogd.` : null, 'Nieuwe link gemaakt. Laat de QR-code scannen.')}
+          onClick={() =>
+            void doe(
+              'maak',
+              heeftAccount ? `Een nieuwe link maken? De oude link en het wachtwoord van ${voornaam} werken dan niet meer en alle toestellen worden uitgelogd. ${voornaam} kiest met de nieuwe link een nieuw wachtwoord.` : null,
+              'Nieuwe link gemaakt. Laat de QR-code scannen.',
+            )
+          }
         >
-          {heeftLink ? <RefreshCw size={16} aria-hidden /> : <Smartphone size={16} aria-hidden />} {heeftLink ? 'Nieuwe link' : 'Ledenapp-link maken'}
+          {heeftAccount ? <RefreshCw size={16} aria-hidden /> : <Smartphone size={16} aria-hidden />} {heeftAccount ? 'Nieuwe link' : 'Uitnodiging maken'}
         </button>
-        {stand?.link.staat === 'actief' && stand.link.toestellen > 0 ? (
+        {ingelogd ? (
           <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => void doe('uitloggen', `${voornaam} op alle toestellen uitloggen?`, 'Overal uitgelogd.')}>
             Overal uitloggen
           </button>
         ) : null}
-        {heeftLink ? (
-          <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => void doe('intrekken', `De ledenapp-link van ${voornaam} intrekken? De app werkt dan niet meer tot je een nieuwe link maakt.`, 'Link ingetrokken.')}>
+        {heeftAccount ? (
+          <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => void doe('intrekken', `De ledenapp van ${voornaam} intrekken? Inloggen werkt dan niet meer tot je een nieuwe link maakt.`, 'Ingetrokken.')}>
             Intrekken
           </button>
         ) : null}

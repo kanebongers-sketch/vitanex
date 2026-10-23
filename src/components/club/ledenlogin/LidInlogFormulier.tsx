@@ -3,102 +3,88 @@
 import { useState, type FormEvent } from 'react'
 import { stuur } from '@/components/club/app/verzoek'
 import { LEDENAPP_PAD } from '@/lib/club/ledenlogin/contract'
-import { isZwakkePin } from '@/lib/club/ledenlogin/pin-keuze'
+import { MAX_LENGTE } from '@/lib/club/kern/wachtwoord-regels'
+import { LidFout, LidVeld } from './LidVeld'
 
-// Pincode kiezen (eerste keer, twee keer intikken) of inloggen met de pincode.
-// De code van de link gaat alleen mee op /mijn/start/<code>; op /mijn/inloggen
-// leest de server de onthouden link uit een httpOnly-cookie.
+// Inloggen op de ledenapp met e-mailadres en wachtwoord (besluit Kane
+// 23-10-2026: geen link of pincode meer). Is het adres lid bij meer
+// sportscholen met dit wachtwoord, dan kiest het lid daarna de sportschool.
 
 interface Props {
-  modus: 'kiezen' | 'inloggen'
-  /** Alleen op /mijn/start/<code>. */
-  code: string | null
+  /** De sportschool van deze pagina (subdomein of ?s=), of null: dan zoekt de server. */
+  sportschool: string | null
 }
 
-const ALLEEN_CIJFERS = /\D/g
-const FOUT_ID = 'pin-fout'
-const HINT_ID = 'pin-hint'
-
-interface PinVeldProps {
+interface Keuze {
   id: string
-  label: string
-  waarde: string
-  onWaarde: (w: string) => void
-  autoFocus?: boolean
-  /** Uitleg onder het veld (voorgelezen bij het veld). */
-  hint?: string
-  /** Er staat een foutmelding: het veld wordt als ongeldig gemeld en verwijst ernaar. */
-  fout: boolean
+  naam: string
 }
 
-function PinVeld({ id, label, waarde, onWaarde, autoFocus, hint, fout }: PinVeldProps) {
-  const beschrijving = [hint ? HINT_ID : null, fout ? FOUT_ID : null].filter(Boolean).join(' ') || undefined
-  return (
-    <div className="club-mijn-pin">
-      <label htmlFor={id}>{label}</label>
-      {hint ? <p id={HINT_ID} className="club-mijn-pin-hint">{hint}</p> : null}
-      <input
-        id={id}
-        aria-invalid={fout || undefined}
-        aria-describedby={beschrijving}
-        type="password"
-        inputMode="numeric"
-        autoComplete={id === 'pin-nieuw' || id === 'pin-herhaal' ? 'new-password' : 'current-password'}
-        pattern="\d{6}"
-        maxLength={6}
-        required
-        autoFocus={autoFocus}
-        value={waarde}
-        onChange={(e) => onWaarde(e.target.value.replace(ALLEEN_CIJFERS, '').slice(0, 6))}
-      />
-    </div>
-  )
+function leesKeuzes(data: Record<string, unknown>): Keuze[] {
+  const lijst = Array.isArray(data.sportscholen) ? data.sportscholen : []
+  return lijst.filter((k): k is Keuze => typeof k === 'object' && k !== null && typeof (k as Keuze).id === 'string' && typeof (k as Keuze).naam === 'string')
 }
 
-export function LidInlogFormulier({ modus, code }: Props) {
-  const [pin, setPin] = useState('')
-  const [herhaal, setHerhaal] = useState('')
+export function LidInlogFormulier({ sportschool }: Props) {
+  const [email, setEmail] = useState('')
+  const [wachtwoord, setWachtwoord] = useState('')
+  const [keuzes, setKeuzes] = useState<Keuze[] | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
 
-  async function verstuur(e: FormEvent) {
-    e.preventDefault()
-    if (bezig) return
-    if (pin.length !== 6) return setFout('Vul 6 cijfers in.')
-    // Meteen hier, zonder wachten op de server: zo blijft de eerste pincode staan.
-    if (modus === 'kiezen' && isZwakkePin(pin)) return setFout('Deze pincode is te makkelijk te raden. Kies er een zonder reeks of herhaling.')
-    if (modus === 'kiezen' && pin !== herhaal) {
-      setHerhaal('')
-      return setFout('De twee pincodes zijn niet gelijk. Vul hem nog een keer in.')
-    }
+  async function logIn(gekozen: string | null) {
     setBezig(true)
     setFout(null)
-    const body = code ? { pin, code } : { pin }
-    const uit = await stuur(modus === 'kiezen' ? '/api/club/lid/pin' : '/api/club/lid/inloggen', 'POST', body)
+    const uit = await stuur('/api/club/lid/inloggen', 'POST', { email: email.trim(), wachtwoord, sportschool: gekozen ?? sportschool })
+    if (uit.ok && uit.data.staat === 'kies') {
+      setBezig(false)
+      return setKeuzes(leesKeuzes(uit.data))
+    }
     if (uit.ok) {
-      // Vervangen, niet toevoegen: terug gaat niet naar de inlogpagina met de code.
+      // Vervangen, niet toevoegen: terug gaat niet naar de inlogpagina.
       window.location.replace(LEDENAPP_PAD)
       return
     }
     setBezig(false)
-    setPin('')
-    setHerhaal('')
+    setKeuzes(null)
+    setWachtwoord('')
     setFout(uit.fout)
   }
 
+  function verstuur(e: FormEvent) {
+    e.preventDefault()
+    if (bezig) return
+    if (!email.trim() || !wachtwoord) return setFout('Vul je e-mailadres en wachtwoord in.')
+    void logIn(null)
+  }
+
+  if (keuzes && keuzes.length > 0) {
+    return (
+      <div className="club-mijn-blok" role="group" aria-labelledby="lid-kies-kop">
+        <p id="lid-kies-kop">Je bent lid bij meer sportscholen. Waar wil je inloggen?</p>
+        {keuzes.map((k) => (
+          <button key={k.id} type="button" className="club-lidapp-knop club-lidapp-knop--breed" disabled={bezig} onClick={() => void logIn(k.id)}>
+            {k.naam}
+          </button>
+        ))}
+        <LidFout fout={fout} />
+      </div>
+    )
+  }
+
   return (
-    <form className="club-mijn-blok" onSubmit={(e) => void verstuur(e)} noValidate>
-      {modus === 'kiezen' ? (
-        <>
-          <PinVeld id="pin-nieuw" label="Kies een pincode van 6 cijfers" hint="Geen reeks of herhaling, zoals 123456 of 111111." waarde={pin} onWaarde={setPin} autoFocus fout={fout !== null} />
-          <PinVeld id="pin-herhaal" label="Herhaal je pincode" waarde={herhaal} onWaarde={setHerhaal} fout={fout !== null} />
-        </>
-      ) : (
-        <PinVeld id="pin" label="Je pincode" waarde={pin} onWaarde={setPin} autoFocus fout={fout !== null} />
-      )}
-      <div aria-live="assertive">{fout ? <p id={FOUT_ID} className="club-mijn-inlog-fout" role="alert">{fout}</p> : null}</div>
-      <button type="submit" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig}>
-        {bezig ? 'Even geduld...' : modus === 'kiezen' ? 'Pincode opslaan' : 'Inloggen'}
+    <form className="club-mijn-blok" onSubmit={verstuur} noValidate>
+      <LidVeld
+        id="lid-email" label="E-mailadres" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
+        maxLength={120} required autoFocus waarde={email} onWaarde={setEmail} fout={fout !== null}
+      />
+      <LidVeld
+        id="lid-wachtwoord" label="Wachtwoord" type="password" autoComplete="current-password" maxLength={MAX_LENGTE} required
+        waarde={wachtwoord} onWaarde={setWachtwoord} fout={fout !== null}
+      />
+      <LidFout fout={fout} />
+      <button type="submit" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig} aria-busy={bezig}>
+        {bezig ? 'Even geduld...' : 'Inloggen'}
       </button>
     </form>
   )

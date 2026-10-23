@@ -1,6 +1,6 @@
 // ─── Club, ledenlogin: wie gebruikt de ledenapp? (SERVER-ONLY) ──────────────
 // Twee ingangen voor /mijn en /api/club/lid:
-//   1. Een lid met een eigen sessie (link plus pincode). Alleen met de
+//   1. Een lid met een eigen sessie (e-mail plus wachtwoord). Alleen met de
 //      schakelaar CLUB_LEDEN_LOGIN aan. Het lid komt ALTIJD uit de sessie.
 //   2. Kane (beheerder-sessie van Club) als voorvertoning: het lid komt uit de
 //      vraag (?lid= op de pagina, ?voor= op de API), alleen als het bij de
@@ -21,7 +21,7 @@ import { haalLid, magTrainen, volledigeNaam, type Lid } from '@/lib/club/kern/li
 import { hoortBij, vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import type { LedenappMerk, LedenappTabblad } from './contract'
 import { tabsUitVoor } from './tabs'
-import { lidCookie } from './regels'
+import { lidCookie, type LidToegangRij } from './regels'
 import { lidVanSessie } from './opslag'
 import { CLUB_LEDEN_LOGIN } from './schakelaar'
 
@@ -38,6 +38,8 @@ export interface LidToegang {
   vestigingen: VestigingInfo[]
   /** Wie er werkt, voor het logboek van de sportschool. */
   naam: string
+  /** Het account van het lid (SERVER-ONLY, met hashes); null in de voorvertoning. */
+  account: LidToegangRij | null
   /** De sha256 van het sessietoken; null in de voorvertoning. */
   sessieHash: string | null
 }
@@ -81,7 +83,7 @@ async function toegangVoorLid(admin: SupabaseClient): Promise<LidToegang | null>
   // Op het subdomein van een andere sportschool bestaat deze sessie niet.
   if (!(await hostPastBij(organisatie))) return null
   if (!lidMagApp(lid, vestigingen) || lid.id !== lidId) return null
-  return { admin, userId, organisatie, lid, merk: merkVan(organisatie, false), voorvertoning: false, vestigingen, naam: `${volledigeNaam(lid)} (ledenapp)`.slice(0, 80), sessieHash: sessie.tokenHash }
+  return { admin, userId, organisatie, lid, merk: merkVan(organisatie, false), voorvertoning: false, vestigingen, naam: `${volledigeNaam(lid)} (ledenapp)`.slice(0, 80), account: sessie.toegang, sessieHash: sessie.tokenHash }
 }
 
 /** Kane kijkt mee als dit lid; alleen in de sportschool die Kane open heeft. */
@@ -91,7 +93,7 @@ async function voorvertoningVoorKane(lidId: string | null | undefined): Promise<
   if (!t || !t.isPlatformEigenaar || !moduleAan(t.organisatie, 'app')) return null
   const lid = await haalLid(t.admin, t.userId, lidId)
   if (!lidMagApp(lid, t.vestigingen)) return null
-  return { admin: t.admin, userId: t.userId, organisatie: t.organisatie, lid, merk: merkVan(t.organisatie, true), voorvertoning: true, vestigingen: t.vestigingen, naam: `${t.naam} (voorvertoning ledenapp)`.slice(0, 80), sessieHash: null }
+  return { admin: t.admin, userId: t.userId, organisatie: t.organisatie, lid, merk: merkVan(t.organisatie, true), voorvertoning: true, vestigingen: t.vestigingen, naam: `${t.naam} (voorvertoning ledenapp)`.slice(0, 80), account: null, sessieHash: null }
 }
 
 /**

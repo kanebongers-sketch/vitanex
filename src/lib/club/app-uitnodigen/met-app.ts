@@ -1,5 +1,6 @@
 // ─── Club, leden op de app: wie heeft de app al (SERVER-ONLY) ───────────────
-// Een lid "heeft de app" met een actieve link en een gekozen pincode
+// Een lid "heeft de app" met een actieve toegang en een gekozen wachtwoord (of
+// nog een oude pincode)
 // (club_lid_toegang). Los bestand zodat de ledenlijst het kan lezen zonder
 // kringverwijzing.
 
@@ -17,7 +18,7 @@ export async function haalLedenMetApp(admin: SupabaseClient, userId: string): Pr
       .select('lid_id')
       .eq('user_id', userId)
       .eq('actief', true)
-      .not('pin_hash', 'is', null)
+      .or('wachtwoord_hash.not.is.null,pin_hash.not.is.null')
       .order('lid_id')
       .range(van, van + BLOK - 1)
     if (error) {
