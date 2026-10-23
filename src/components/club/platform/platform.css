@@ -96,3 +96,7 @@
   .club-platform-tegel, .club-platform-meter > span { transition: none; }
   .club-platform-tegel:has(.club-platform-tegel-link:hover) { transform: none; }
 }
+
+/* Wachtwoord kiezen voor het master account (alleen zolang er nog geen is). */
+.club-ww-form { display: grid; gap: 12px; max-width: 420px; margin-top: 12px; }
+.club-ww-form .club-knop { justify-self: start; }

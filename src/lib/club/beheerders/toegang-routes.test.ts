@@ -20,7 +20,7 @@ vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), c
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
 vi.mock('@/lib/club/kern/database', () => ({ clubDatabase: () => db.admin }))
 const opslag = vi.hoisted(() => ({
-  beheerderVanSessie: vi.fn(), vindBeheerder: vi.fn(), logInBeheerder: vi.fn(), kiesBeheerderPin: vi.fn(),
+  beheerderVanSessie: vi.fn(), vindBeheerder: vi.fn(), vindBeheerderOpEmail: vi.fn(), logInMetWachtwoord: vi.fn(), kiesBeheerderWachtwoord: vi.fn(),
   haalBeheerders: vi.fn(), maakBeheerder: vi.fn(), beoordeelBeheerder: vi.fn(),
 }))
 vi.mock('@/lib/club/beheerders/beheerder-opslag', async (orig) => ({ ...(await orig<typeof import('./beheerder-opslag')>()), ...opslag }))
@@ -31,8 +31,8 @@ const KANE = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const GYM_A = 'de000000-0000-4000-8000-0000000000c1'
 const GYM_B = 'be000000-0000-4000-8000-0000000000b2'
 const SANNE = {
-  id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne', email: null, rol: 'clubmanager', code: 'abcdefghijklmnopqrstuvwx',
-  actief: true, pinStatus: 'actief', pinHash: 'x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
+  id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne', email: 'sanne@gyma.nl', rol: 'clubmanager', code: 'abcdefghijklmnopqrstuvwx',
+  actief: true, pinStatus: 'geen', pinHash: null, wachtwoordHash: 's2:x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
 }
 const SANNE_EIGENAAR = { ...SANNE, id: '22222222-2222-4222-8222-222222222222', rol: 'eigenaar' }
 // De eigenaar gaf de rol Clubmanager alleen Leden.
@@ -53,8 +53,8 @@ db.admin = nepSupabase((v: Vraag) => {
 }).admin
 
 import { clubToegang, vereisClubToegang } from '@/lib/club/toegang'
-import { POST as inloggen } from '@/app/(aiyourgym)/api/club/inloggen/[code]/route'
-import { POST as kiesPin } from '@/app/(aiyourgym)/api/club/inloggen/[code]/pin/route'
+import { POST as inloggen } from '@/app/(aiyourgym)/api/club/inloggen/route'
+import { POST as kiesWachtwoord } from '@/app/(aiyourgym)/api/club/inloggen/[code]/wachtwoord/route'
 import { POST as wissel } from '@/app/(aiyourgym)/api/club/organisatie/wissel/route'
 import { POST as nieuweSportschool } from '@/app/(aiyourgym)/api/club/organisatie/nieuw/route'
 import { POST as nieuweBeheerder } from '@/app/(aiyourgym)/api/club/beheerders/route'
@@ -68,6 +68,7 @@ const req = (pad: string, body: unknown, koppen: Record<string, string> = zelf, 
   new NextRequest(`https://fitfactorypt.nl${pad}`, { method, body: JSON.stringify(body), headers: koppen })
 const ctx = <T,>(p: T) => ({ params: Promise.resolve(p) })
 const CODE = 'abcdefghijklmnopqrstuvwx'
+const LOGIN = { email: 'sanne@gyma.nl', wachtwoord: 'Blauwe-kat-rent-7' }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -81,6 +82,7 @@ beforeEach(() => {
   stand.cookies = new Map([[BEHEERDER_COOKIE, 'token']])
   opslag.beheerderVanSessie.mockResolvedValue(SANNE)
   opslag.vindBeheerder.mockResolvedValue(SANNE)
+  opslag.vindBeheerderOpEmail.mockResolvedValue(SANNE)
 })
 
 describe('clubToegang voor een eigenaar of clubmanager', () => {
@@ -108,10 +110,17 @@ describe('de eigenaar beheert de eigen beheerders, nooit zichzelf', () => {
   beforeEach(() => {
     opslag.beheerderVanSessie.mockResolvedValue(SANNE_EIGENAAR)
   })
-  it('zet een clubmanager klaar in de eigen sportschool', async () => {
-    const r = await nieuweBeheerder(req('/api/club/beheerders', { naam: 'Tom', rol: 'clubmanager' }))
+  it('nodigt een clubmanager uit in de eigen sportschool, met e-mailadres', async () => {
+    opslag.vindBeheerderOpEmail.mockResolvedValue(null)
+    expect((await nieuweBeheerder(req('/api/club/beheerders', { naam: 'Tom', rol: 'clubmanager' }))).status).toBe(400)
+    const r = await nieuweBeheerder(req('/api/club/beheerders', { naam: 'Tom', email: 'Tom@GymA.nl', rol: 'clubmanager' }))
     expect(r.status).toBe(201)
-    expect(opslag.maakBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, { naam: 'Tom', email: null, rol: 'clubmanager' })
+    expect(opslag.maakBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, { naam: 'Tom', email: 'tom@gyma.nl', rol: 'clubmanager' })
+  })
+  it('een e-mailadres met een account: 409, niets aangemaakt', async () => {
+    const r = await nieuweBeheerder(req('/api/club/beheerders', { naam: 'Tom', email: 'sanne@gyma.nl', rol: 'clubmanager' }))
+    expect(r.status).toBe(409)
+    expect(opslag.maakBeheerder).not.toHaveBeenCalled()
   })
   it('kan de eigen toegang niet stoppen of resetten', async () => {
     const r = await beoordeel(req(`/api/club/beheerders/${SANNE_EIGENAAR.id}`, { actie: 'stoppen' }, zelf, 'PATCH'), ctx({ id: SANNE_EIGENAAR.id }))
@@ -121,7 +130,7 @@ describe('de eigenaar beheert de eigen beheerders, nooit zichzelf', () => {
   it('stopt een andere beheerder, altijd binnen de eigen sportschool', async () => {
     const r = await beoordeel(req(`/api/club/beheerders/${SANNE.id}`, { actie: 'stoppen' }, zelf, 'PATCH'), ctx({ id: SANNE.id }))
     expect(r.status).toBe(200)
-    expect(opslag.beoordeelBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, SANNE.id, { actie: 'stoppen', controle: null })
+    expect(opslag.beoordeelBeheerder).toHaveBeenCalledWith(expect.anything(), GYM_A, SANNE.id, { actie: 'stoppen' })
   })
   it('ziet alles van de eigen sportschool, maar wisselt of maakt geen sportscholen', async () => {
     expect((await clubToegang())?.onderdelen).toBeNull()
@@ -150,13 +159,14 @@ describe('subdomein per sportschool', () => {
     stand.host = 'gymb.aiyourgym.com'
     expect(await clubToegang()).toBeNull()
   })
-  it('de inloglink werkt alleen op het eigen subdomein', async () => {
-    opslag.logInBeheerder.mockResolvedValue({ staat: 'fout', over: 4 })
+  it('inloggen werkt alleen op het eigen subdomein (anders hetzelfde antwoord als een fout wachtwoord)', async () => {
+    opslag.logInMetWachtwoord.mockResolvedValue({ staat: 'fout', over: 4 })
     stand.host = 'gymb.aiyourgym.com'
-    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(404)
-    expect(opslag.logInBeheerder).not.toHaveBeenCalled()
+    expect((await inloggen(req('/api/club/inloggen', LOGIN))).status).toBe(401)
+    expect(opslag.logInMetWachtwoord).not.toHaveBeenCalled()
     stand.host = 'gyma.aiyourgym.com'
-    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(401)
+    expect((await inloggen(req('/api/club/inloggen', LOGIN))).status).toBe(401)
+    expect(opslag.logInMetWachtwoord).toHaveBeenCalled()
   })
 })
 
@@ -167,48 +177,62 @@ describe('alleen Kane: sportscholen wisselen en aanmaken; clubmanager ook geen b
     expect((w as NextResponse).cookies.get('club-org')).toBeUndefined()
     expect((await nieuweSportschool(req('/api/club/organisatie/nieuw', { naam: 'Gym C' }))).status).toBe(404)
     expect((await nieuweBeheerder(req('/api/club/beheerders', { naam: 'X', rol: 'eigenaar' }))).status).toBe(404)
-    expect((await beoordeel(req(`/api/club/beheerders/${SANNE.id}`, { actie: 'goedkeuren' }, zelf, 'PATCH'), ctx({ id: SANNE.id }))).status).toBe(404)
+    expect((await beoordeel(req(`/api/club/beheerders/${SANNE.id}`, { actie: 'stoppen' }, zelf, 'PATCH'), ctx({ id: SANNE.id }))).status).toBe(404)
   })
 })
 
-describe('inloggen', () => {
-  it('schakelaar uit: 404, ook met een geldige link', async () => {
-    stand.aan = false
-    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(404)
-    expect((await kiesPin(req(`/api/club/inloggen/${CODE}/pin`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(404)
-    expect(opslag.vindBeheerder).not.toHaveBeenCalled()
-  })
-  it('onbekende link: 404 (verraadt niets)', async () => {
-    opslag.vindBeheerder.mockResolvedValue(null)
-    expect((await inloggen(req('/api/club/inloggen/onbekend', { pin: '482915' }), ctx({ code: 'onbekend' }))).status).toBe(404)
-  })
+describe('inloggen met e-mailadres en wachtwoord', () => {
   it('goed: httpOnly-cookie met het token', async () => {
-    opslag.logInBeheerder.mockResolvedValue({ staat: 'ok', token: 'geheim', verlooptOp: new Date('2026-11-17T00:00:00Z') })
-    const r = await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))
+    opslag.logInMetWachtwoord.mockResolvedValue({ staat: 'ok', token: 'geheim', verlooptOp: new Date('2026-11-17T00:00:00Z') })
+    const r = await inloggen(req('/api/club/inloggen', LOGIN))
     expect(r.status).toBe(200)
     expect((r as NextResponse).cookies.get(BEHEERDER_COOKIE)).toMatchObject({ value: 'geheim', httpOnly: true, sameSite: 'lax', path: '/' })
   })
-  it('te veel pogingen per IP: 429 zonder pincheck', async () => {
+  it('onbekend adres en fout wachtwoord: hetzelfde antwoord', async () => {
+    opslag.logInMetWachtwoord.mockResolvedValue({ staat: 'fout', over: 4 })
+    const fout = await inloggen(req('/api/club/inloggen', LOGIN))
+    opslag.vindBeheerderOpEmail.mockResolvedValue(null)
+    const onbekend = await inloggen(req('/api/club/inloggen', LOGIN))
+    expect(fout.status).toBe(401)
+    expect(onbekend.status).toBe(401)
+    expect(await onbekend.json()).toEqual(await fout.json())
+  })
+  it('schakelaar uit: een beheerder komt er niet in', async () => {
+    stand.aan = false
+    expect((await inloggen(req('/api/club/inloggen', LOGIN))).status).toBe(401)
+    expect(opslag.logInMetWachtwoord).not.toHaveBeenCalled()
+  })
+  it('te veel pogingen per IP: 429, en van een andere site: 403, zonder controle', async () => {
     stand.geremd = true
-    expect((await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }), ctx({ code: CODE }))).status).toBe(429)
-    expect(opslag.logInBeheerder).not.toHaveBeenCalled()
+    expect((await inloggen(req('/api/club/inloggen', LOGIN))).status).toBe(429)
+    stand.geremd = false
+    expect((await inloggen(req('/api/club/inloggen', LOGIN, { 'sec-fetch-site': 'cross-site' }))).status).toBe(403)
+    expect(opslag.logInMetWachtwoord).not.toHaveBeenCalled()
   })
-  it('van een andere site: 403 zonder pincheck', async () => {
-    const r = await inloggen(req(`/api/club/inloggen/${CODE}`, { pin: '482915' }, { 'sec-fetch-site': 'cross-site' }), ctx({ code: CODE }))
-    expect(r.status).toBe(403)
-    expect(opslag.logInBeheerder).not.toHaveBeenCalled()
+})
+
+describe('uitnodiging: wachtwoord kiezen', () => {
+  const uitgenodigd = { ...SANNE, wachtwoordHash: null }
+  beforeEach(() => {
+    opslag.vindBeheerder.mockResolvedValue(uitgenodigd)
   })
-  it('pincode kiezen geeft de controlecode', async () => {
-    opslag.kiesBeheerderPin.mockResolvedValue({ staat: 'ok', controle: '1234' })
-    const r = await kiesPin(req(`/api/club/inloggen/${CODE}/pin`, { pin: '482915' }), ctx({ code: CODE }))
-    expect(await r.json()).toEqual({ staat: 'wacht', controle: '1234' })
+  it('goed: meteen ingelogd met een httpOnly-cookie', async () => {
+    opslag.kiesBeheerderWachtwoord.mockResolvedValue({ staat: 'ok', token: 'geheim', verlooptOp: new Date('2026-11-17T00:00:00Z') })
+    const r = await kiesWachtwoord(req(`/api/club/inloggen/${CODE}/wachtwoord`, { wachtwoord: 'Blauwe-kat-rent-7' }), ctx({ code: CODE }))
+    expect(r.status).toBe(200)
+    expect((r as NextResponse).cookies.get(BEHEERDER_COOKIE)).toMatchObject({ value: 'geheim', httpOnly: true })
   })
-  it('een zwakke pincode kiezen: 400 en er wordt niets opgeslagen', async () => {
-    opslag.kiesBeheerderPin.mockClear()
-    for (const pin of ['123456', '000000', '121212']) {
-      const r = await kiesPin(req(`/api/club/inloggen/${CODE}/pin`, { pin }), ctx({ code: CODE }))
-      expect(r.status).toBe(400)
+  it('een zwak wachtwoord: 400 en er wordt niets opgeslagen', async () => {
+    for (const wachtwoord of ['kort', 'Wachtwoord2026!', 'Sanne-traint-veel-7']) {
+      expect((await kiesWachtwoord(req(`/api/club/inloggen/${CODE}/wachtwoord`, { wachtwoord }), ctx({ code: CODE }))).status).toBe(400)
     }
-    expect(opslag.kiesBeheerderPin).not.toHaveBeenCalled()
+    expect(opslag.kiesBeheerderWachtwoord).not.toHaveBeenCalled()
+  })
+  it('uitnodiging al gebruikt of onbekend: 404', async () => {
+    opslag.vindBeheerder.mockResolvedValue(SANNE)
+    expect((await kiesWachtwoord(req(`/api/club/inloggen/${CODE}/wachtwoord`, { wachtwoord: 'Blauwe-kat-rent-7' }), ctx({ code: CODE }))).status).toBe(404)
+    opslag.vindBeheerder.mockResolvedValue(null)
+    expect((await kiesWachtwoord(req(`/api/club/inloggen/${CODE}/wachtwoord`, { wachtwoord: 'Blauwe-kat-rent-7' }), ctx({ code: CODE }))).status).toBe(404)
+    expect(opslag.kiesBeheerderWachtwoord).not.toHaveBeenCalled()
   })
 })

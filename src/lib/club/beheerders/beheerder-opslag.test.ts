@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { controleCode, hashPin, tokenHash } from '@/lib/club/kern/pin'
 import type { Beheerder } from './beheerder'
 import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
-import { beheerderVanSessie, beoordeelBeheerder, haalBeheerders, kiesBeheerderPin, logInBeheerder, logInMetWachtwoord, nieuweBeheerderCode, vindBeheerder, vindBeheerderOpEmail } from './beheerder-opslag'
+import { beheerderVanSessie, beoordeelBeheerder, haalBeheerders, kiesBeheerderWachtwoord, logInMetWachtwoord, nieuweBeheerderCode, vindBeheerder, vindBeheerderOpEmail } from './beheerder-opslag'
 import { heeftFilter, nepSupabase, type Antwoord, type Vraag } from './nep-supabase'
 
 const GYM_A = 'de000000-0000-4000-8000-0000000000c1'
@@ -36,44 +36,27 @@ describe('vindBeheerder', () => {
   })
 })
 
-describe('kiesBeheerderPin', () => {
-  it('alleen als er nog geen pin is, en geeft een controlecode', async () => {
-    const { admin, vragen } = nepSupabase(() => eenRij)
-    const uit = await kiesBeheerderPin(admin, beheerder({ pinStatus: 'geen', pinHash: null }), PIN, NU)
-    expect(uit.staat).toBe('ok')
-    expect(heeftFilter(vragen[0], 'pin_status', 'geen')).toBe(true)
-    expect((vragen[0].waarde as Record<string, unknown>).pin_status).toBe('wacht')
-    expect(await kiesBeheerderPin(admin, beheerder({ pinStatus: 'wacht' }), PIN, NU)).toEqual({ staat: 'al_gekozen' })
-  })
-})
-
-describe('logInBeheerder', () => {
-  it('goede pin: een sessie, alleen de hash in de database', async () => {
+describe('uitnodiging: een keer een wachtwoord kiezen', () => {
+  const uitgenodigd = (extra: Partial<Beheerder> = {}) => beheerder({ email: 'sanne@gym.nl', pinStatus: 'geen', pinHash: null, wachtwoordHash: null, ...extra })
+  it('slaat de hash op (compare-and-set) en logt meteen in', async () => {
     const { admin, vragen } = nepSupabase((v) => (v.actie === 'select' ? ok([]) : eenRij))
-    const uit = await logInBeheerder(admin, beheerder(), PIN, NU)
+    const uit = await kiesBeheerderWachtwoord(admin, uitgenodigd(), 's2:hash', NU)
     expect(uit.staat).toBe('ok')
-    if (uit.staat !== 'ok') return
-    const insert = vragen.find((v) => v.tabel === 'club_beheerder_sessies' && v.actie === 'insert')
-    expect((insert?.waarde as Record<string, unknown>).token_hash).toBe(tokenHash(uit.token))
-    expect(JSON.stringify(insert?.waarde)).not.toContain(uit.token)
+    const update = vragen.find((v) => v.tabel === 'club_beheerders' && v.actie === 'update')
+    expect((update?.waarde as Record<string, unknown>).wachtwoord_hash).toBe('s2:hash')
+    expect(update && update.filters.some(([op, k]) => op === 'is' && k === 'wachtwoord_hash')).toBe(true)
+    expect(vragen.some((v) => v.tabel === 'club_beheerder_sessies' && v.actie === 'insert')).toBe(true)
   })
-  it('foute pin: telt af, en de vijfde fout blokkeert', async () => {
-    const { admin } = nepSupabase(() => eenRij)
-    expect(await logInBeheerder(admin, beheerder(), '000000', NU)).toEqual({ staat: 'fout', over: 4 })
-    const vijfde = await logInBeheerder(admin, beheerder({ mislukt: 4 }), '000000', NU)
-    expect(vijfde.staat).toBe('geblokkeerd')
-  })
-  it('poging niet gereserveerd (parallel verzoek): geen pincheck, geen sessie', async () => {
-    const { admin, vragen } = nepSupabase(() => ok([]))
-    expect((await logInBeheerder(admin, beheerder(), PIN, NU)).staat).toBe('fout')
-    expect(vragen.some((v) => v.tabel === 'club_beheerder_sessies')).toBe(false)
-  })
-  it('geblokkeerd, dicht of niet goedgekeurd: de database wordt niet aangeraakt', async () => {
+  it('al gekozen, gestopt of zonder e-mail: niet, zonder de database', async () => {
     const { admin, vragen } = nepSupabase(() => eenRij)
-    expect((await logInBeheerder(admin, beheerder({ geblokkeerdTot: '2026-10-17T13:00:00Z' }), PIN, NU)).staat).toBe('geblokkeerd')
-    expect((await logInBeheerder(admin, beheerder({ blokkades: 6 }), PIN, NU)).staat).toBe('gesloten')
-    expect((await logInBeheerder(admin, beheerder({ pinStatus: 'wacht' }), PIN, NU)).staat).toBe('niet_actief')
+    expect((await kiesBeheerderWachtwoord(admin, uitgenodigd({ wachtwoordHash: 's2:x' }), 's2:hash', NU)).staat).toBe('al_gekozen')
+    expect((await kiesBeheerderWachtwoord(admin, uitgenodigd({ actief: false }), 's2:hash', NU)).staat).toBe('al_gekozen')
+    expect((await kiesBeheerderWachtwoord(admin, uitgenodigd({ email: null }), 's2:hash', NU)).staat).toBe('al_gekozen')
     expect(vragen).toHaveLength(0)
+  })
+  it('e-mailadres al in gebruik (unieke index): email_bezet', async () => {
+    const { admin } = nepSupabase(() => ({ data: null, error: { code: '23505', message: 'dubbel' } }))
+    expect((await kiesBeheerderWachtwoord(admin, uitgenodigd(), 's2:hash', NU)).staat).toBe('email_bezet')
   })
 })
 
@@ -105,12 +88,12 @@ describe('inloggen met e-mail en wachtwoord', () => {
 describe('beheerderVanSessie', () => {
   const sessie = { beheerder_id: ID, verloopt_op: '2026-11-01T00:00:00Z', laatst_gebruikt_op: '2026-10-17T11:30:00Z', aangemaakt_op: '2026-10-10T00:00:00Z' }
   const db = (b: unknown) => (v: Vraag) => (v.tabel === 'club_beheerder_sessies' ? ok(sessie) : ok(b))
-  it('geldige sessie en actieve beheerder', async () => {
-    const { admin } = nepSupabase(db(rij({ pin_status: 'actief' })))
+  it('geldige sessie en actieve beheerder met wachtwoord', async () => {
+    const { admin } = nepSupabase(db(rij({ wachtwoord_hash: 's2:x' })))
     expect((await beheerderVanSessie(admin, 'token', NU))?.organisatieId).toBe(GYM_A)
   })
-  it('gestopt of pin gereset: geen toegang meer', async () => {
-    expect(await beheerderVanSessie(nepSupabase(db(rij({ pin_status: 'actief', actief: false }))).admin, 'token', NU)).toBeNull()
+  it('gestopt of nieuwe uitnodiging (wachtwoord weg): geen toegang meer', async () => {
+    expect(await beheerderVanSessie(nepSupabase(db(rij({ wachtwoord_hash: 's2:x', actief: false }))).admin, 'token', NU)).toBeNull()
     expect(await beheerderVanSessie(nepSupabase(db(rij({ pin_status: 'geen' }))).admin, 'token', NU)).toBeNull()
   })
   it('geen of een te lang token: null zonder database', async () => {
@@ -122,40 +105,28 @@ describe('beheerderVanSessie', () => {
 })
 
 describe('beheer door Kane blijft binnen de sportschool', () => {
-  it('lijst filtert op de organisatie en geeft nooit de pin-hash of controlecode', async () => {
-    const hash = hashPin(PIN)
-    const { admin, vragen } = nepSupabase(() => ok([rij({ pin_status: 'wacht', pin_hash: hash })]))
+  it('lijst filtert op de organisatie en geeft nooit een hash', async () => {
+    const { admin, vragen } = nepSupabase(() => ok([rij({ wachtwoord_hash: 's2:geheim' })]))
     const lijst = await haalBeheerders(admin, GYM_A)
     expect(heeftFilter(vragen[0], 'organisatie_id', GYM_A)).toBe(true)
-    expect(JSON.stringify(lijst)).not.toContain(hash)
-    expect(JSON.stringify(lijst)).not.toContain(controleCode(hash))
-    expect(lijst?.[0]).not.toHaveProperty('pinHash')
+    expect(JSON.stringify(lijst)).not.toContain('s2:geheim')
+    expect(lijst?.[0]?.heeftWachtwoord).toBe(true)
   })
   it('elke actie filtert op id EN organisatie; een beheerder van een andere sportschool: niet gevonden', async () => {
     const { admin, vragen } = nepSupabase((v) => (heeftFilter(v, 'organisatie_id', GYM_B) ? ok([]) : eenRij))
-    expect(await beoordeelBeheerder(admin, GYM_B, ID, { actie: 'stoppen', controle: null })).toBe('niet_gevonden')
+    expect(await beoordeelBeheerder(admin, GYM_B, ID, { actie: 'stoppen' })).toBe('niet_gevonden')
     expect(heeftFilter(vragen[0], 'id', ID)).toBe(true)
     expect(vragen.some((v) => v.tabel === 'club_beheerder_sessies')).toBe(false)
   })
-  it('stoppen, resetten en afwijzen loggen alle toestellen uit', async () => {
-    for (const actie of ['stoppen', 'reset', 'afwijzen'] as const) {
+  it('stoppen en nieuwe uitnodiging: wachtwoord weg en alle toestellen uit; een nieuwe uitnodiging krijgt een nieuwe link', async () => {
+    for (const actie of ['stoppen', 'reset'] as const) {
       const { admin, vragen } = nepSupabase(() => eenRij)
-      expect(await beoordeelBeheerder(admin, GYM_A, ID, { actie, controle: null })).toBe('ok')
+      expect(await beoordeelBeheerder(admin, GYM_A, ID, { actie })).toBe('ok')
+      const waarde = vragen[0].waarde as Record<string, unknown>
+      expect(waarde.wachtwoord_hash).toBeNull()
+      expect(actie === 'reset' ? typeof waarde.code : waarde.actief).toBe(actie === 'reset' ? 'string' : false)
       expect(vragen.some((v) => v.tabel === 'club_beheerder_sessies' && v.actie === 'delete' && heeftFilter(v, 'beheerder_id', ID))).toBe(true)
     }
-  })
-  it('goedkeuren alleen met de juiste controlecode, gebonden aan die ene pin', async () => {
-    const hash = hashPin(PIN)
-    const db = (v: Vraag) => (v.actie === 'select' ? ok({ pin_hash: hash }) : eenRij)
-    const fout = nepSupabase(db)
-    const andere = controleCode(hash) === '0000' ? '0001' : '0000'
-    expect(await beoordeelBeheerder(fout.admin, GYM_A, ID, { actie: 'goedkeuren', controle: andere })).toBe('controle_fout')
-    expect(fout.vragen.some((v) => v.actie === 'update')).toBe(false)
-    const goed = nepSupabase(db)
-    expect(await beoordeelBeheerder(goed.admin, GYM_A, ID, { actie: 'goedkeuren', controle: controleCode(hash) })).toBe('ok')
-    const update = goed.vragen.find((v) => v.actie === 'update')
-    expect(update && heeftFilter(update, 'pin_hash', hash) && heeftFilter(update, 'organisatie_id', GYM_A)).toBe(true)
-    expect(goed.vragen.some((v) => v.tabel === 'club_beheerder_sessies')).toBe(false)
   })
 })
 

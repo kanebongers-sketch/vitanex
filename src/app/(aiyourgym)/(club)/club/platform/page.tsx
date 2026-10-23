@@ -9,6 +9,8 @@ import { Sportscholen } from '@/components/club/platform/Sportscholen'
 import { Aanmeldingen } from '@/components/club/platform/Aanmeldingen'
 import { DemoAanvragen } from '@/components/club/platform/DemoAanvragen'
 import { MAX_DEMO_AANVRAGEN } from '@/lib/club/platform/demo-aanvragen'
+import { WachtwoordInstellen } from '@/components/club/platform/WachtwoordInstellen'
+import { huidigPlatformAccount } from '@/lib/club/platform-login/huidig'
 import '@/components/club/platform/platform.css'
 
 export const metadata: Metadata = { title: 'Platform' }
@@ -21,9 +23,10 @@ export const dynamic = 'force-dynamic'
 export default async function PlatformPagina() {
   const t = await eisPlatformEigenaar()
   const nu = new Date()
-  const stand = await haalPlatform(t, nu)
+  const [stand, account] = await Promise.all([haalPlatform(t, nu), huidigPlatformAccount()])
   return (
     <>
+      {account && !account.wachtwoordHash && <WachtwoordInstellen email={account.email} />}
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">AI Your Gym · alleen Kane</p>

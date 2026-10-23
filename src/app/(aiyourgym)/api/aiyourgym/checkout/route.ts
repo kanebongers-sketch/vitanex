@@ -10,6 +10,7 @@ import { nieuweTestSessie } from '@/lib/aiyourgym/testbetaling-opslag'
 import { testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
 import { vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
+import { vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
   if (vrij === null) return mislukt('adres controleren', MISLUKT, 500)
   if (!vrij) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }, 409)
   // Inloggen gaat op e-mailadres: een adres met een account kan geen tweede eigenaar worden.
-  if (await vindBeheerderOpEmail(admin, a.eigenaarEmail)) {
+  if ((await vindBeheerderOpEmail(admin, a.eigenaarEmail)) || (await vindPlatformOpEmail(admin, a.eigenaarEmail))) {
     return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: 'Met dit e-mailadres is al een account. Log in, of gebruik een ander adres.' } }, 409)
   }
 

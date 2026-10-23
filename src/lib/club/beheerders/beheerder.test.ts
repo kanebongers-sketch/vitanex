@@ -46,21 +46,19 @@ describe('leesNieuweBeheerder', () => {
     expect(leesNieuweBeheerder({ naam: 'A', rol: 'beheerder' }).ok).toBe(false)
     expect(leesNieuweBeheerder({ naam: 'x'.repeat(61), rol: 'eigenaar' }).ok).toBe(false)
   })
-  it('e-mail mag leeg blijven', () => {
-    expect(leesNieuweBeheerder({ naam: 'A', rol: 'eigenaar' })).toEqual({ ok: true, waarde: { naam: 'A', email: null, rol: 'eigenaar' } })
+  it('e-mail is verplicht (daarmee logt de beheerder in) en wordt kleine letters', () => {
+    expect(leesNieuweBeheerder({ naam: 'A', rol: 'eigenaar' }).ok).toBe(false)
+    expect(leesNieuweBeheerder({ naam: 'A', email: ' A@Gym.nl ', rol: 'eigenaar' })).toEqual({ ok: true, waarde: { naam: 'A', email: 'a@gym.nl', rol: 'eigenaar' } })
   })
 })
 
 describe('leesBeoordeling', () => {
-  it('kent alleen de vier acties', () => {
-    expect(leesBeoordeling({ actie: 'stoppen' })).toEqual({ ok: true, waarde: { actie: 'stoppen', controle: null } })
+  it('kent alleen nieuwe uitnodiging en stoppen (geen pincode meer)', () => {
+    expect(leesBeoordeling({ actie: 'stoppen' })).toEqual({ ok: true, waarde: { actie: 'stoppen' } })
+    expect(leesBeoordeling({ actie: 'reset' })).toEqual({ ok: true, waarde: { actie: 'reset' } })
+    expect(leesBeoordeling({ actie: 'goedkeuren' }).ok).toBe(false)
     expect(leesBeoordeling({ actie: 'verwijderen' }).ok).toBe(false)
     expect(leesBeoordeling(null).ok).toBe(false)
-  })
-  it('goedkeuren alleen met een controlecode van 4 cijfers', () => {
-    expect(leesBeoordeling({ actie: 'goedkeuren' }).ok).toBe(false)
-    expect(leesBeoordeling({ actie: 'goedkeuren', controle: '12a4' }).ok).toBe(false)
-    expect(leesBeoordeling({ actie: 'goedkeuren', controle: ' 0423 ' })).toEqual({ ok: true, waarde: { actie: 'goedkeuren', controle: '0423' } })
   })
 })
 
@@ -86,11 +84,9 @@ describe('beoordeelBeheerderSessie', () => {
 })
 
 describe('magBinnen', () => {
-  it('alleen actief, met goedgekeurde pin of een eigen wachtwoord', () => {
-    expect(magBinnen({ actief: true, pinStatus: 'actief', wachtwoordHash: null })).toBe(true)
-    expect(magBinnen({ actief: true, pinStatus: 'wacht', wachtwoordHash: null })).toBe(false)
-    expect(magBinnen({ actief: false, pinStatus: 'actief', wachtwoordHash: null })).toBe(false)
-    expect(magBinnen({ actief: true, pinStatus: 'geen', wachtwoordHash: 's2:x' })).toBe(true)
-    expect(magBinnen({ actief: false, pinStatus: 'geen', wachtwoordHash: 's2:x' })).toBe(false)
+  it('alleen actief en met een eigen wachtwoord', () => {
+    expect(magBinnen({ actief: true, wachtwoordHash: 's2:x' })).toBe(true)
+    expect(magBinnen({ actief: false, wachtwoordHash: 's2:x' })).toBe(false)
+    expect(magBinnen({ actief: true, wachtwoordHash: null })).toBe(false)
   })
 })
