@@ -1,6 +1,8 @@
 // ─── Fit Factory Club: invoer voor de ledenkaart (PUUR) ─────────────────────
-// Systeemgrens: wat er van de pagina binnenkomt (notities, coach, tags) wordt
+// Systeemgrens: wat er van de pagina binnenkomt (notities, coach, tags, status) wordt
 // hier gecontroleerd voordat het de database in gaat.
+
+import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
@@ -54,6 +56,8 @@ export interface LidWijziging {
   /** undefined = niet wijzigen, null = geen coach. */
   coachId?: string | null
   tags?: string[]
+  /** De status van het lid (proeflid, actief, gepauzeerd, opgezegd, gestopt). */
+  status?: LidStatus
 }
 
 function leesTags(v: unknown): Uitslag<string[]> {
@@ -81,6 +85,10 @@ export function leesLidWijziging(body: unknown): Uitslag<LidWijziging> {
     if (!tags.ok) return tags
     wijziging.tags = tags.waarde
   }
-  if (wijziging.coachId === undefined && wijziging.tags === undefined) return { ok: false, fout: 'Er is niets om te wijzigen.' }
+  if ('status' in o) {
+    if (!(LID_STATUSSEN as readonly unknown[]).includes(o.status)) return { ok: false, fout: 'Kies een geldige status.' }
+    wijziging.status = o.status as LidStatus
+  }
+  if (wijziging.coachId === undefined && wijziging.tags === undefined && wijziging.status === undefined) return { ok: false, fout: 'Er is niets om te wijzigen.' }
   return { ok: true, waarde: wijziging }
 }

@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, ctx: LeadContext) {
   if (patch.medewerker_id !== undefined && !(await isGeldigeMedewerker(t, lead.vestiging, patch.medewerker_id))) {
     return clubFout('Deze medewerker werkt niet in deze vestiging.', 400)
   }
-  if (patch.status && lead.status === 'lid') return clubFout('Deze lead is al lid. Pas het lid aan in Leden of Sportivity.', 409)
+  if (patch.status && lead.status === 'lid') return clubFout('Deze lead is al lid. Pas het lid aan bij Leden.', 409)
 
   // Een proefles die nog stond, vervalt als de lead handmatig een andere kant op gaat.
   const extra = patch.status && patch.status !== 'proefles_geweest' && lead.status === 'proefles' ? { proefles_op: null, proefles_les_id: null } : {}

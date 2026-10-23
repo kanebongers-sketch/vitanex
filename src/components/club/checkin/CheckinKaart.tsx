@@ -46,7 +46,7 @@ function Oordeel({ lid }: { lid: BalieLid }) {
   if (!lid.magTrainen) {
     return (
       <p className="club-checkin-oordeel club-checkin-oordeel--niet">
-        <CircleAlert aria-hidden size={22} /> <span>Niet actief: {lid.statusLabel.toLowerCase()}. Verwijs naar de ledenadministratie.</span>
+        <CircleAlert aria-hidden size={22} /> <span>Niet actief: {lid.statusLabel.toLowerCase()}. Klopt dat niet? Pas de status aan op de ledenkaart.</span>
       </p>
     )
   }
@@ -150,7 +150,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: Uitko
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
         <p className="club-checkin-uitkomst-woord">Niet actief</p>
         <h2>{lid.naam}</h2>
-        <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt: verwijs naar de ledenadministratie voor het abonnement.</p>
+        <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt. Klopt de status niet, pas hem dan aan op de ledenkaart.</p>
         <Aftellen duurMs={duurMs} />
       </article>
     )

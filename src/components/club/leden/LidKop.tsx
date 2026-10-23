@@ -62,7 +62,7 @@ export function LidKop({ lid, vestiging, vestigingNaam, coachNaam, naar = { trai
       <dl className="club-leden-feiten">
         <Feit label="Lid sinds" waarde={datumUitSleutel(lid.lidSinds)} />
         <Feit label="Lidnummer" waarde={lid.lidnummer} />
-        {lid.sportivityId && <Feit label="Sportivity-ID" waarde={lid.sportivityId} />}
+        {lid.sportivityId ? <Feit label="Extern klantnummer" waarde={lid.sportivityId} /> : null}
         <div className="club-leden-feit club-leden-feit--sportivity">
           <dt>Geld en contract</dt>
           <dd>In je ledenadministratie</dd>

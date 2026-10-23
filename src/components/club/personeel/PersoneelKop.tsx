@@ -12,6 +12,8 @@ interface Props {
   vestigingNaam: string
   maandag: string
   vandaag: string
+  /** Toon het tabblad Uren (alleen voor wie uren beheert). */
+  metUren: boolean
 }
 
 function weekLabel(maandag: string): string {
@@ -19,7 +21,7 @@ function weekLabel(maandag: string): string {
   return `${dagMaandLang(maandag)} tot ${dagMaandLang(zondag)} ${zondag.slice(0, 4)}`
 }
 
-export function PersoneelKop({ staat, vestigingNaam, maandag, vandaag }: Props) {
+export function PersoneelKop({ staat, vestigingNaam, maandag, vandaag, metUren }: Props) {
   const basis = zonderPaneel(staat)
   const toontWeek = staat.tab === 'week'
   const isDezeWeek = vandaag >= maandag && vandaag <= plusDagen(maandag, 6)
@@ -48,7 +50,7 @@ export function PersoneelKop({ staat, vestigingNaam, maandag, vandaag }: Props) 
         )}
       </div>
       <nav className="club-segment club-personeel-tabs" aria-label="Onderdeel van personeel">
-        {TABBLADEN.map((tab) => (
+        {TABBLADEN.filter((tab) => metUren || tab !== 'uren').map((tab) => (
           <Link key={tab} href={personeelHref(basis, { tab, mw: null })} aria-current={staat.tab === tab ? 'page' : undefined} scroll={false}>
             {TAB_LABEL[tab]}
           </Link>

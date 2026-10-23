@@ -43,6 +43,13 @@ describe('leesLidWijziging', () => {
     expect(leesLidWijziging({ tags: Array.from({ length: 13 }, (_, i) => `tag${i}`) }).ok).toBe(false)
     expect(leesLidWijziging({}).ok).toBe(false)
   })
+
+  it('leest een status (proeflid wordt lid) en weigert een onbekende', () => {
+    expect(leesLidWijziging({ status: 'actief' })).toEqual({ ok: true, waarde: { status: 'actief' } })
+    expect(leesLidWijziging({ status: 'proef', coachId: null })).toEqual({ ok: true, waarde: { status: 'proef', coachId: null } })
+    expect(leesLidWijziging({ status: 'vip' })).toEqual({ ok: false, fout: 'Kies een geldige status.' })
+    expect(leesLidWijziging({ status: null }).ok).toBe(false)
+  })
 })
 
 describe('rijen', () => {

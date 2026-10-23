@@ -37,7 +37,7 @@ export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
   lidSinds: 'Lid sinds',
   einddatum: 'Einddatum',
   lidnummer: 'Lidnummer',
-  sportivityId: 'Sportivity-ID',
+  sportivityId: 'Extern klantnummer',
   volledigeNaam: 'Volledige naam',
 }
 
