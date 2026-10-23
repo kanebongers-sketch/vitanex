@@ -90,7 +90,7 @@ export const MEDEWERKER_SECTIES: readonly Sectie[] = [
   { sleutel: 'afgevinkt', titel: 'Afgevinkte taken', velden: { datum: 'Datum', vestiging: 'Vestiging', 'club_taken.naam': 'Taak', afgevinkt_op: 'Afgevinkt op', wie: 'Afgevinkt als', notitie: 'Notitie' } },
   { sleutel: 'taakNotities', titel: 'Notities bij taken', velden: { datum: 'Datum', vestiging: 'Vestiging', tekst: 'Tekst', wie: 'Geschreven als', aangemaakt_op: 'Geschreven op' } },
   { sleutel: 'afsluitrondes', titel: 'Afsluitrondes', velden: { datum: 'Datum', vestiging: 'Vestiging', wie: 'Gedaan als', open_taken: 'Open taken', op: 'Moment' } },
-  { sleutel: 'inloggen', titel: 'Eigen login', velden: { actief: 'Link actief', pin_status: 'Status pincode', laatst_ingelogd_op: 'Laatst ingelogd op', aangemaakt_op: 'Link gemaakt op' } },
+  { sleutel: 'inloggen', titel: 'Eigen login', velden: { actief: 'Login actief', email: 'Inlogadres', pin_status: 'Status oude pincode', laatst_ingelogd_op: 'Laatst ingelogd op', aangemaakt_op: 'Login gemaakt op' } },
   { sleutel: 'sessies', titel: 'Ingelogde toestellen', velden: { aangemaakt_op: 'Ingelogd op', laatst_gebruikt_op: 'Laatst gebruikt op', verloopt_op: 'Verloopt op' } },
   { sleutel: 'logboek', titel: 'Logboek (acties van deze medewerker)', velden: { op: 'Moment', actie: 'Actie', onderwerp: 'Onderwerp', vestiging: 'Vestiging' } },
   { sleutel: 'hulpvragen', titel: 'Hulpvragen aan de leverancier', velden: { onderwerp: 'Onderwerp', status: 'Status', aangemaakt_op: 'Gesteld op' } },

@@ -1,6 +1,7 @@
 // POST /api/club/inloggen  { email, wachtwoord }
-// Een eigenaar of clubmanager logt op aiyourgym.com in met e-mailadres en
-// wachtwoord (besluit Kane 23-10-2026). Goed: een httpOnly-sessiecookie voor dit
+// Een eigenaar, clubmanager of medewerker logt op aiyourgym.com in met
+// e-mailadres en wachtwoord (besluit Kane 23-10-2026). Eerst de beheerders,
+// zonder beheerder met dit adres de medewerkers (medewerker-login/wachtwoord-login.ts). Goed: een httpOnly-sessiecookie voor dit
 // toestel. Een onbekend adres en een fout wachtwoord krijgen hetzelfde antwoord
 // (en ongeveer dezelfde rekentijd), zodat niemand kan uitzoeken wie een account heeft.
 
@@ -14,6 +15,7 @@ import { beheerderCookie } from '@/lib/club/beheerders/beheerder'
 import { logInMetWachtwoord, vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { hashWachtwoord, MAX_LENGTE, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
+import { logInAlsMedewerker } from '@/lib/club/medewerker-login/wachtwoord-login'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
 
   const admin = clubDatabase()
   const b = await vindBeheerderOpEmail(admin, email)
+  if (!b) return logInAlsMedewerker(admin, email, wachtwoord)
   const { organisatie } = b ? await haalEigenOrganisatie(admin, b.organisatieId) : { organisatie: null }
   if (!b || !organisatie || !(await hostPastBij(organisatie))) {
     schijnControle(wachtwoord)

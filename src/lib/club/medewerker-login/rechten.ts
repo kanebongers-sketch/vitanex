@@ -3,12 +3,12 @@
 // rol stelt de eigenaar in bij Beheer > Rechten), altijd met Vandaag, en nooit
 // de beheeronderdelen. Hij ziet alleen zijn eigen vestigingen. Een paar
 // sportschoolbrede acties blijven dicht, ook als hij Instellingen mag:
-// vestigingen beheren en inloglinks van collega's uitdelen.
+// vestigingen beheren en collega's uitnodigen of hun login intrekken.
 
 import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
 import type { Rechten } from '@/lib/club/kern/org-instellingen'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
-import { NOOIT_VOOR_CLUBMANAGER, type WieMag } from '@/lib/club/beheerders/rechten'
+import { NOOIT_VOOR_CLUBMANAGER, magOnderdeel, type WieMag } from '@/lib/club/beheerders/rechten'
 
 /** Minstens zo streng als voor een clubmanager; daarnaast zijn sommige API's dicht (zie hieronder). */
 export const NOOIT_VOOR_MEDEWERKER: ReadonlySet<string> = new Set([...NOOIT_VOOR_CLUBMANAGER])
@@ -36,10 +36,12 @@ export function magApiAlsMedewerker(pad: string, methode: string): boolean {
 }
 
 /**
- * Inloglinks van medewerkers uitdelen, goedkeuren en intrekken: Kane, de
- * eigenaar en de clubmanager (beheerder). Een medewerker nooit, ook niet met
- * de rol Clubmanager: dan kan niemand zichzelf of een collega binnenlaten.
+ * Medewerkers uitnodigen en hun login intrekken: Kane, de eigenaar, en de
+ * clubmanager (beheerder) die van de eigenaar het onderdeel Instellingen
+ * (met Medewerkers) heeft. Een medewerker nooit, ook niet met de rol
+ * Clubmanager: dan kan niemand zichzelf of een collega binnenlaten.
  */
-export function magMedewerkerLoginsBeheren(t: WieMag): boolean {
-  return t.isPlatformEigenaar || t.rol === 'eigenaar' || t.rol === 'clubmanager'
+export function magMedewerkerLoginsBeheren(t: WieMag & { onderdelen?: readonly string[] | null }): boolean {
+  if (t.isPlatformEigenaar || t.rol === 'eigenaar') return true
+  return t.rol === 'clubmanager' && t.onderdelen !== undefined && magOnderdeel(t.onderdelen, 'instellingen')
 }

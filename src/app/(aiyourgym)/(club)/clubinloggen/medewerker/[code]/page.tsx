@@ -1,21 +1,22 @@
 import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { clubToegang, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
+import { haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { ROL_LABEL } from '@/lib/club/kern/medewerker'
-import { vindMedewerkerLink } from '@/lib/club/medewerker-login/opslag'
+import { vindUitnodiging } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
-import { ClubInlogPoort } from '@/components/club/inloggen/ClubInlogPoort'
+import { MedewerkerWachtwoordKiezen } from '@/components/club/inloggen/MedewerkerWachtwoordKiezen'
 import '@/app/(aiyourgym)/(club)/club/club.css'
 import '@/components/club/inloggen/inloggen.css'
 
-// /clubinloggen/medewerker/<code>: de persoonlijke link van een medewerker.
-// Pincode kiezen, wachten op goedkeuring van de eigenaar of clubmanager, of
-// inloggen. Met de schakelaar uit, een onbekende of ingetrokken link, of een
-// medewerker uit dienst: een gewone 404. Nooit een referrer, nooit in zoekmachines.
+// /clubinloggen/medewerker/<token>: de eenmalige uitnodiging van een medewerker.
+// Een sterk wachtwoord kiezen en meteen binnen; daarna inloggen op /inloggen
+// met e-mailadres en wachtwoord (besluit Kane 23-10-2026). Met de schakelaar
+// uit, een onbekende, gebruikte of verlopen uitnodiging, of een medewerker uit
+// dienst: een gewone 404. Nooit een referrer, nooit in zoekmachines.
 
 export const dynamic = 'force-dynamic'
 
@@ -42,27 +43,25 @@ export default async function MedewerkerInloggenPagina({ params }: PaginaProps) 
   const { code } = await params
   const admin = adminOfNull()
   if (!admin) notFound()
-  const gevonden = await vindMedewerkerLink(admin, code)
-  if (!gevonden) notFound()
+  const gevonden = await vindUitnodiging(admin, code, new Date())
+  const email = gevonden?.toegang.email
+  if (!gevonden || !email) notFound()
   const { toegang, medewerker } = gevonden
   const { organisatie } = await haalEigenOrganisatie(admin, toegang.userId)
   if (!organisatie || !(await hostPastBij(organisatie))) notFound()
-  // Al binnen bij deze sportschool: meteen door.
-  const t = await clubToegang()
-  if (t && !t.isPlatformEigenaar && t.userId === organisatie.id) redirect('/club')
 
   const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
   const rol = medewerker.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Medewerker'
   return (
     <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema}>
       <main className="club-inlog-vlak">
-        <ClubInlogPoort
-          code={toegang.code}
-          pinStatus={toegang.pinStatus}
+        <MedewerkerWachtwoordKiezen
+          token={code}
           sportschool={organisatie.naam}
           voornaam={medewerker.naam.split(' ')[0]}
+          naam={medewerker.naam}
           rol={rol}
-          apiBasis={`/api/club/inloggen/medewerker/${encodeURIComponent(toegang.code)}`}
+          email={email}
         />
       </main>
     </div>

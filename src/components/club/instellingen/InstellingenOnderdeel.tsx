@@ -34,7 +34,7 @@ export type InstellingenOnderdeelSleutel = (typeof INSTELLINGEN_ONDERDELEN)[numb
 
 type MetVestiging = Exclude<InstellingenOnderdeelSleutel, 'vestigingen'>
 
-/** Inloglinks van medewerkers: alleen voor Kane, de eigenaar en de clubmanager. */
+/** Medewerkers uitnodigen: alleen voor Kane, de eigenaar en de clubmanager met Instellingen. */
 async function haalLoginBeheer(t: ClubToegang): Promise<LoginBeheer | null> {
   if (!magMedewerkerLoginsBeheren(t)) return null
   const subdomeinen = process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'

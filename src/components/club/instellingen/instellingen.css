@@ -124,7 +124,9 @@
 .club-mwlogin-kop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--text-2); }
 .club-mwlogin-kop .club-label { margin: 0; }
 .club-mwlogin-acties { display: flex; flex-wrap: wrap; gap: 6px; }
-.club-mwlogin-controle { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
-.club-mwlogin-controle .club-invoer { width: 104px; min-height: 34px; font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.22em; text-align: center; }
-.club-mwlogin-qr { display: grid; justify-items: start; gap: 8px; margin: 4px 0 0; }
+.club-mwlogin-acties--email { align-items: flex-end; }
+.club-mwlogin-email { display: grid; gap: 4px; flex: 1 1 220px; min-width: 0; font-size: 13px; color: var(--text-2); }
+.club-mwlogin-email .club-invoer, .club-mwlogin-link { width: 100%; min-height: 34px; }
+.club-mwlogin-link { font-size: 13px; }
+.club-mwlogin-qr { display: grid; justify-items: start; max-width: 100%; gap: 8px; margin: 4px 0 0; }
 .club-mwlogin-qr img { display: block; width: 220px; height: 220px; max-width: 100%; padding: 10px; border-radius: 14px; background: #fff; box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.6); }
