@@ -173,7 +173,7 @@ export const SECTIES: readonly Sectie[] = [
   },
   { sleutel: 'meldingVoorkeuren', titel: 'Voorkeuren voor berichten', velden: { herinneringen_per_mail: 'Herinneringen per mail', mails: 'Mails', push: 'Meldingen op de telefoon', gewijzigd_op: 'Gewijzigd op' } },
   { sleutel: 'pushToestellen', titel: 'Toestellen met meldingen', velden: { user_agent: 'Toestel', aangemaakt_op: 'Aangezet op', laatst_gebruikt_op: 'Laatste melding op' } },
-  { sleutel: 'ledenapp', titel: 'Ledenapp', velden: { actief: 'Link actief', pin_gekozen_op: 'Pincode gekozen op', laatst_ingelogd_op: 'Laatst ingelogd op', aangemaakt_op: 'Link gemaakt op' } },
+  { sleutel: 'ledenapp', titel: 'Ledenapp', velden: { actief: 'Account actief', email: 'Inlog e-mailadres', wachtwoord_gekozen_op: 'Wachtwoord gekozen op', pin_gekozen_op: 'Oude pincode gekozen op', laatst_ingelogd_op: 'Laatst ingelogd op', aangemaakt_op: 'Uitgenodigd op' } },
   { sleutel: 'sessies', titel: 'Ingelogde toestellen', velden: { aangemaakt_op: 'Ingelogd op', laatst_gebruikt_op: 'Laatst gebruikt op', verloopt_op: 'Verloopt op' } },
   {
     sleutel: 'leads',

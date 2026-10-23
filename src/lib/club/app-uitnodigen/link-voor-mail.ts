@@ -12,9 +12,8 @@ import { vestigingenUitRijen } from '@/lib/club/kern/vestigingen'
 import { CLUB_DOMEIN, aygUrl } from '@/lib/club/kern/subdomein'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { linkBasis, startPad } from '@/lib/club/ledenlogin/regels'
-import { haalLinkOverzicht, maakLidLink } from '@/lib/club/ledenlogin/opslag'
+import { geefUitnodigingCode } from '@/lib/club/ledenlogin/opslag'
 import { lidMagApp } from '@/lib/club/ledenlogin/toegang'
-import { linkKeuze } from './regels'
 
 export type LinkVoorMail = { ok: true; url: string } | { ok: false; reden: string }
 
@@ -24,15 +23,15 @@ export function linkUrl(slug: string | null, code: string): string {
   return basis ? `${basis}${startPad(code)}` : aygUrl(startPad(code))
 }
 
+/**
+ * Een werkende uitnodiging: de huidige als die nog werkt, anders een nieuwe.
+ * Nooit het wachtwoord of de sessies wissen (dan kon iedereen die het adres
+ * kent het lid uitloggen). Ingetrokken door de sportschool: niets.
+ */
 async function codeVan(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<LinkVoorMail | string> {
-  const overzicht = await haalLinkOverzicht(admin, userId, lidId, nu)
-  if (!overzicht) return { ok: false, reden: 'Link kon niet worden gelezen' }
-  const keuze = linkKeuze(overzicht.staat)
-  if (keuze === 'niet') return { ok: false, reden: 'Link ingetrokken door de sportschool' }
-  if (keuze === 'hergebruik' && overzicht.code) return overzicht.code
-  if (!(await maakLidLink(admin, userId, lidId, nu))) return { ok: false, reden: 'Link maken mislukt' }
-  const nieuw = await haalLinkOverzicht(admin, userId, lidId, nu)
-  return nieuw?.code ?? { ok: false, reden: 'Link maken mislukt' }
+  const uit = await geefUitnodigingCode(admin, userId, lidId, nu)
+  if (uit.staat === 'ok') return uit.code
+  return { ok: false, reden: uit.staat === 'ingetrokken' ? 'Link ingetrokken door de sportschool' : 'Link maken mislukt' }
 }
 
 /** De link voor de mail, of waarom er geen mail gaat. */

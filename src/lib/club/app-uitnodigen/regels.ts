@@ -15,7 +15,6 @@ import { isUuid } from '@/lib/club/kern/organisatie'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 import { isEchtAdres } from '@/lib/club/meldingen/beleid'
 import { nlDelen } from '@/lib/club/rooster/tijd'
-import type { LidLinkOverzicht } from '@/lib/club/ledenlogin/regels'
 import { AANVRAAG_PAD, HONINGPOT_VELD } from './velden'
 
 export { AANVRAAG_PAD, HONINGPOT_VELD }
@@ -84,22 +83,6 @@ export function remOordeel(perAdres: number, perIp: number): RemOordeel {
   if (perIp >= AANVRAAG_MAX_PER_IP) return 'ip'
   if (perAdres >= AANVRAAG_MAX_PER_ADRES) return 'adres'
   return 'ok'
-}
-
-// ─── Welke link gaat in de mail ─────────────────────────────────────────────
-
-export type LinkKeuze = 'hergebruik' | 'nieuw' | 'niet'
-
-/**
- * Een werkende link sturen we opnieuw (een nieuwe zou het lid overal uitloggen,
- * en dat kan dan iedereen die het adres kent). Geen, verlopen of dicht: een
- * nieuwe, want alleen wie de mail leest kan hem gebruiken. Ingetrokken door
- * de sportschool: niets, dat besluit blijft staan.
- */
-export function linkKeuze(staat: LidLinkOverzicht['staat']): LinkKeuze {
-  if (staat === 'actief' || staat === 'kiezen') return 'hergebruik'
-  if (staat === 'ingetrokken') return 'niet'
-  return 'nieuw'
 }
 
 // ─── Iedereen uitnodigen ────────────────────────────────────────────────────
@@ -200,8 +183,8 @@ export function uitnodigingTekst(voornaam: string, sportschool: string): MailTek
     mail: [
       aanhef(voornaam),
       `${sportschool} heeft een eigen app voor leden. Je boekt er lessen en afspraken, ziet je trainingsschema en houdt je voortgang bij.`,
-      'Open de app met de knop hieronder. De eerste keer kies je een pincode van 6 cijfers, daarna log je daarmee in. Zet de app daarna op je beginscherm, dan staat hij er altijd.',
-      'Deze link is persoonlijk. Stuur hem niet door.',
+      'Open de app met de knop hieronder, bevestig je e-mailadres en kies een wachtwoord. Daarna log je altijd in met je e-mailadres en dat wachtwoord. Zet de app op je beginscherm, dan staat hij er altijd.',
+      'Deze link is persoonlijk, werkt een keer en is 7 dagen geldig. Stuur hem niet door.',
       `Sportieve groet,\n${sportschool}`,
     ].join('\n\n'),
   }
@@ -212,8 +195,8 @@ export function linkTekst(voornaam: string, sportschool: string): MailTekst {
     onderwerp: `Je link voor de app van ${sportschool}`,
     mail: [
       aanhef(voornaam),
-      'Je vroeg een link aan voor de app. Open de app met de knop hieronder. De eerste keer kies je een pincode van 6 cijfers, daarna log je daarmee in.',
-      'Heb je dit niet zelf gevraagd? Dan kun je deze mail gewoon negeren. Deze link is persoonlijk: stuur hem niet door.',
+      'Je vroeg een link aan voor de app. Open de link met de knop hieronder en kies een wachtwoord (ook als je je wachtwoord vergeten bent). Daarna log je in met je e-mailadres en dat wachtwoord.',
+      'Heb je dit niet zelf gevraagd? Dan kun je deze mail gewoon negeren: je huidige wachtwoord blijft werken. Deze link is persoonlijk, werkt een keer en is 7 dagen geldig: stuur hem niet door.',
       `Sportieve groet,\n${sportschool}`,
     ].join('\n\n'),
   }

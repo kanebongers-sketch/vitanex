@@ -1,9 +1,9 @@
 // GET  /api/club/leden/[id]/ledenapp-link  hoe de ledenapp-link van dit lid ervoor staat
 // POST /api/club/leden/[id]/ledenapp-link  { actie: 'maak' | 'intrekken' | 'uitloggen' }
-//   maak       een nieuwe link (een oude wordt ongeldig, pincode gewist, alle toestellen uit)
-//   intrekken  de link werkt niet meer en alle toestellen zijn uitgelogd
-//   uitloggen  alle toestellen uitloggen, de link en pincode blijven
-// Voor de sportschool (onderdeel Leden). Nooit de pin-hash; het lid moet bij
+//   maak       een nieuwe uitnodiging (oude link en wachtwoord ongeldig, alle toestellen uit)
+//   intrekken  inloggen werkt niet meer en alle toestellen zijn uitgelogd
+//   uitloggen  alle toestellen uitloggen, het wachtwoord blijft
+// Voor de sportschool (onderdeel Leden). Nooit een hash; het lid moet bij
 // deze sportschool en een eigen vestiging horen.
 
 import { NextResponse, type NextRequest } from 'next/server'

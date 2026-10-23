@@ -150,7 +150,7 @@ export function UitnodigApp({ vestigingen, huidig, posterHref }: Props) {
           <button type="button" className="club-appuit-sluit" onClick={sluiten} aria-label="Sluiten"><X size={18} aria-hidden /></button>
         </header>
         <p className="club-appuit-uitleg">
-          Elk lid krijgt een mail met een persoonlijke link. De eerste keer kiest het lid een pincode en zet het de app op het beginscherm. Per lid hooguit een uitnodiging per dag.
+          Elk lid krijgt een mail met een persoonlijke link. Daarmee bevestigt het lid zijn e-mailadres, kiest het een wachtwoord en zet het de app op het beginscherm. Per lid hooguit een uitnodiging per dag.
         </p>
 
         <fieldset className="club-appuit-groep">

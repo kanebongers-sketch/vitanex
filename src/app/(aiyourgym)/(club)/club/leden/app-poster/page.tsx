@@ -25,7 +25,7 @@ export const metadata: Metadata = { title: 'Poster ledenapp' }
 
 const STAPPEN = [
   { kop: 'Scan', tekst: 'Richt de camera van je telefoon op de QR-code.' },
-  { kop: 'Vul je e-mail in', tekst: 'Je krijgt meteen een mail met je persoonlijke link. Kies een pincode van 6 cijfers.' },
+  { kop: 'Vul je e-mail in', tekst: 'Je krijgt meteen een mail met je persoonlijke link. Kies daarmee een wachtwoord.' },
   { kop: 'Zet de app op je beginscherm', tekst: 'Zo heb je lessen, afspraken en je schema altijd bij de hand.' },
 ] as const
 

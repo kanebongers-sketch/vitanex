@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   AANVRAAG_MAX_PER_ADRES, AANVRAAG_MAX_PER_IP, PER_RONDE, RONDE_MS, aanvraagSleutel, duurTekst, exactPatroon, leesAanvraag, leesSportschoolSleutel,
-  leesUitnodigInvoer, linkKeuze, linkTekst, mailKlaar, normaliseerEmail, posterDoel, remHash, remOordeel, selecteer, spreidMoment, uitnodigBlokkade,
+  leesUitnodigInvoer, linkTekst, mailKlaar, normaliseerEmail, posterDoel, remHash, remOordeel, selecteer, spreidMoment, uitnodigBlokkade,
   uitnodigingSleutel, uitnodigingTekst, type Kandidaat,
 } from './regels'
 
@@ -49,17 +49,6 @@ describe('de rem', () => {
     expect(h).toMatch(/^[0-9a-f]{64}$/)
     expect(h).not.toBe(remHash('ip', 'a@b.nl'))
     expect(remHash('email', 'a@b.nl')).toBe(h)
-  })
-})
-
-describe('welke link', () => {
-  it('stuurt een werkende link opnieuw en respecteert intrekken', () => {
-    expect(linkKeuze('actief')).toBe('hergebruik')
-    expect(linkKeuze('kiezen')).toBe('hergebruik')
-    expect(linkKeuze('geen')).toBe('nieuw')
-    expect(linkKeuze('verlopen')).toBe('nieuw')
-    expect(linkKeuze('dicht')).toBe('nieuw')
-    expect(linkKeuze('ingetrokken')).toBe('niet')
   })
 })
 

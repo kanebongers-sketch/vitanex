@@ -63,13 +63,14 @@ describe('bouwExport', () => {
 
   it('zet nooit geheimen of interne velden in het bestand', () => {
     const ruw = leeg()
-    ruw.ledenapp = [{ actief: true, code: 'GEHEIME-CODE', pin_hash: 'GEHEIME-HASH', laatst_ingelogd_op: '2026-10-01T10:00:00Z' }]
+    ruw.ledenapp = [{ actief: true, code: 'GEHEIME-CODE', pin_hash: 'GEHEIME-HASH', wachtwoord_hash: 'GEHEIM-WACHTWOORD', email: 'sanne@voorbeeld.nl', laatst_ingelogd_op: '2026-10-01T10:00:00Z' }]
     ruw.sessies = [{ token_hash: 'GEHEIM-TOKEN', aangemaakt_op: '2026-10-01T10:00:00Z' }]
     ruw.meldingVoorkeuren = [{ mails: true, afmeld_token: 'GEHEIM-AFMELD' }]
     const tekst = JSON.stringify(bouwExport(ruw, MEDEWERKERS, META))
     expect(tekst).not.toMatch(/GEHEIM/)
     expect(tekst).not.toContain('user_id')
     expect(tekst).toContain('Laatst ingelogd op')
+    expect(tekst).toContain('Inlog e-mailadres')
   })
 
   it('neemt gezondheidsgegevens wel mee (recht van het lid)', () => {

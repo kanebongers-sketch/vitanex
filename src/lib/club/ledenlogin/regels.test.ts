@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  LID_INACTIEF_DAGEN, LID_SESSIE_DAGEN, LINK_KIES_DAGEN, beoordeelLidSessie, leesLinkActie, lidApparaatCookie, lidCookie, lidToegangUitRij,
-  linkBasis, linkOverzicht, linkStaat, sessiePastBij, startPad, type LidToegangRij,
+  LID_INACTIEF_DAGEN, LID_SESSIE_DAGEN, LINK_KIES_DAGEN, beoordeelLidSessie, kanInloggen, leesLinkActie, lidApparaatCookie, lidCookie, lidToegangUitRij,
+  linkBasis, linkBruikbaar, linkOverzicht, sessiePastBij, sessieToegestaan, startPad, type LidToegangRij,
 } from './regels'
 import { isZwakkePin } from './pin-keuze'
 import { tabsUitVoor } from './tabs'
@@ -15,7 +15,7 @@ const ID = '22222222-2222-4222-8222-222222222222'
 
 const toegang = (extra: Partial<LidToegangRij> = {}): LidToegangRij => ({
   id: ID, userId: GYM, lidId: LID, code: 'abcdefghijklmnopqrstuvwx', codeGemaaktOp: NU.toISOString(), actief: true,
-  pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null, ...extra,
+  email: null, wachtwoordHash: null, pinHash: null, codeGebruiktOp: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null, ...extra,
 })
 
 describe('cookies', () => {
@@ -29,7 +29,8 @@ describe('cookies', () => {
 describe('lidToegangUitRij', () => {
   const rij = { id: ID, user_id: GYM, lid_id: LID, code: 'abcdefghijklmnopqrstuvwx', code_gemaakt_op: NU.toISOString(), actief: true, pin_hash: 'x', mislukt: 2 }
   it('leest een goede rij', () => {
-    expect(lidToegangUitRij(rij)).toMatchObject({ id: ID, userId: GYM, lidId: LID, pinHash: 'x', mislukt: 2 })
+    expect(lidToegangUitRij(rij)).toMatchObject({ id: ID, userId: GYM, lidId: LID, pinHash: 'x', mislukt: 2, email: null, wachtwoordHash: null, codeGebruiktOp: null })
+    expect(lidToegangUitRij({ ...rij, email: 'a@b.nl', wachtwoord_hash: 's2:x', code_gebruikt_op: NU.toISOString() })).toMatchObject({ email: 'a@b.nl', wachtwoordHash: 's2:x', codeGebruiktOp: NU.toISOString() })
   })
   it('weigert een rij met een rare code of zonder sportschool', () => {
     expect(lidToegangUitRij({ ...rij, code: '../x' })).toBeNull()
@@ -38,21 +39,36 @@ describe('lidToegangUitRij', () => {
   })
 })
 
-describe('linkStaat', () => {
-  it('verse link zonder pincode: kiezen', () => {
-    expect(linkStaat(toegang(), NU)).toBe('kiezen')
+describe('linkBruikbaar (de uitnodiging)', () => {
+  it('verse, ongebruikte link: bruikbaar', () => {
+    expect(linkBruikbaar(toegang(), NU)).toBe(true)
   })
-  it('na de kiestermijn is een ongebruikte link ongeldig', () => {
+  it('na 7 dagen of na gebruik: niet meer (eenmalig)', () => {
     const oud = new Date(NU.getTime() - (LINK_KIES_DAGEN + 1) * DAG).toISOString()
-    expect(linkStaat(toegang({ codeGemaaktOp: oud }), NU)).toBe('ongeldig')
+    expect(linkBruikbaar(toegang({ codeGemaaktOp: oud }), NU)).toBe(false)
+    expect(linkBruikbaar(toegang({ codeGebruiktOp: NU.toISOString() }), NU)).toBe(false)
+    expect(linkBruikbaar(toegang({ codeGemaaktOp: 'onzin' }), NU)).toBe(false)
   })
-  it('met pincode: inloggen, ook na de kiestermijn', () => {
-    const oud = new Date(NU.getTime() - 100 * DAG).toISOString()
-    expect(linkStaat(toegang({ pinHash: 'x', codeGemaaktOp: oud }), NU)).toBe('inloggen')
+  it('ingetrokken: niet; een dicht account mag via een verse uitnodiging weer open', () => {
+    expect(linkBruikbaar(toegang({ actief: false }), NU)).toBe(false)
+    expect(linkBruikbaar(toegang({ blokkades: 6, wachtwoordHash: 's2:x' }), NU)).toBe(true)
   })
-  it('ingetrokken of dicht na te veel blokkades: ongeldig', () => {
-    expect(linkStaat(toegang({ actief: false, pinHash: 'x' }), NU)).toBe('ongeldig')
-    expect(linkStaat(toegang({ blokkades: 6, pinHash: 'x' }), NU)).toBe('ongeldig')
+})
+
+describe('kanInloggen en sessieToegestaan', () => {
+  it('inloggen alleen met e-mail en wachtwoord, nooit met alleen een pincode', () => {
+    expect(kanInloggen(toegang({ email: 'a@b.nl', wachtwoordHash: 's2:x' }))).toBe(true)
+    expect(kanInloggen(toegang({ email: 'a@b.nl', pinHash: 'x' }))).toBe(false)
+    expect(kanInloggen(toegang({ email: null, wachtwoordHash: 's2:x' }))).toBe(false)
+    expect(kanInloggen(toegang({ email: 'a@b.nl', wachtwoordHash: 's2:x', blokkades: 6 }))).toBe(false)
+    expect(kanInloggen(toegang({ email: 'a@b.nl', wachtwoordHash: 's2:x', actief: false }))).toBe(false)
+  })
+  it('bestaande sessies van een oude pincode blijven geldig; ingetrokken of dicht niet', () => {
+    expect(sessieToegestaan(toegang({ pinHash: 'x' }))).toBe(true)
+    expect(sessieToegestaan(toegang({ wachtwoordHash: 's2:x' }))).toBe(true)
+    expect(sessieToegestaan(toegang())).toBe(false)
+    expect(sessieToegestaan(toegang({ pinHash: 'x', actief: false }))).toBe(false)
+    expect(sessieToegestaan(toegang({ wachtwoordHash: 's2:x', blokkades: 6 }))).toBe(false)
   })
 })
 
@@ -83,13 +99,25 @@ describe('sessiePastBij', () => {
 })
 
 describe('linkOverzicht', () => {
-  it('nooit de pin-hash, en de juiste staat', () => {
-    const o = linkOverzicht(toegang({ pinHash: 'geheim' }), 2, NU)
-    expect(o).toEqual({ code: 'abcdefghijklmnopqrstuvwx', staat: 'actief', laatstIngelogdOp: null, toestellen: 2 })
+  const gebruikt = NU.toISOString()
+  const oud = new Date(NU.getTime() - 30 * DAG).toISOString()
+  it('nooit een hash of het e-mailadres, en de juiste staat', () => {
+    const o = linkOverzicht(toegang({ wachtwoordHash: 'geheim', email: 'geheim@x.nl', codeGebruiktOp: gebruikt }), 2, NU)
+    expect(o).toEqual({ code: null, staat: 'actief', laatstIngelogdOp: null, toestellen: 2 })
     expect(JSON.stringify(o)).not.toContain('geheim')
     expect(linkOverzicht(null, 0, NU).staat).toBe('geen')
     expect(linkOverzicht(toegang({ actief: false }), 3, NU)).toMatchObject({ code: null, staat: 'ingetrokken', toestellen: 0 })
-    expect(linkOverzicht(toegang({ blokkades: 6, pinHash: 'x' }), 0, NU).staat).toBe('dicht')
+    expect(linkOverzicht(toegang({ blokkades: 6, wachtwoordHash: 'x' }), 0, NU).staat).toBe('dicht')
+  })
+  it('uitgenodigd: de code alleen zolang de uitnodiging werkt', () => {
+    expect(linkOverzicht(toegang(), 0, NU)).toMatchObject({ code: 'abcdefghijklmnopqrstuvwx', staat: 'kiezen' })
+    expect(linkOverzicht(toegang({ codeGemaaktOp: oud }), 0, NU)).toMatchObject({ code: null, staat: 'verlopen' })
+    // Wachtwoord vergeten: een verse uitnodiging naast een bestaand wachtwoord.
+    expect(linkOverzicht(toegang({ wachtwoordHash: 'x' }), 1, NU)).toMatchObject({ code: 'abcdefghijklmnopqrstuvwx', staat: 'actief' })
+  })
+  it('nog met een oude pincode binnen: pincode; zonder toestel: verlopen', () => {
+    expect(linkOverzicht(toegang({ pinHash: 'x', codeGemaaktOp: oud }), 1, NU).staat).toBe('pincode')
+    expect(linkOverzicht(toegang({ pinHash: 'x', codeGemaaktOp: oud }), 0, NU).staat).toBe('verlopen')
   })
 })
 

@@ -1,8 +1,11 @@
 // ─── Club, ledenlogin: de regels zonder database (PUUR) ─────────────────────
-// Een lid logt in op de ledenapp (/mijn) met een persoonlijke link van de
-// sportschool (/mijn/start/<code>) en een zelf gekozen pincode. Hier staan de
-// regels: rijen lezen, cookies, wanneer een link of sessie nog geldt. Een
-// pin-hash gaat nooit naar de browser of naar het scherm van de sportschool.
+// Een lid logt in op de ledenapp (/mijn) met e-mailadres en een sterk
+// wachtwoord (besluit Kane 23-10-2026). De persoonlijke link van de sportschool
+// (/mijn/start/<code>) is alleen nog een eenmalige uitnodiging: daarmee
+// bevestigt het lid zijn e-mailadres en kiest het een wachtwoord (ook bij
+// "wachtwoord vergeten"). Hier staan de regels: rijen lezen, cookies, wanneer
+// een link, account of sessie nog geldt. Een wachtwoord- of pin-hash gaat nooit
+// naar de browser of naar het scherm van de sportschool.
 
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { MAX_BLOKKADES } from '@/lib/club/kern/pin'
@@ -12,13 +15,13 @@ export const LID_CODE = /^[A-Za-z0-9_-]{24}$/
 
 /** Een sessie leeft hooguit zo lang. */
 export const LID_SESSIE_DAGEN = 90
-/** Zo lang de app niet geopend: opnieuw de pincode (vergeten of gestolen telefoon). */
+/** Zo lang de app niet geopend: opnieuw inloggen (vergeten of gestolen telefoon). */
 export const LID_INACTIEF_DAGEN = 30
 /** "Laatst gebruikt" hooguit een keer per uur bijwerken. */
 export const LID_AANRAAK_MS = 60 * 60 * 1000
 /** Meer toestellen dan dit: het oudste wordt uitgelogd. */
 export const MAX_LID_SESSIES = 5
-/** Zo lang na het maken kan op een nieuwe link een pincode gekozen worden. */
+/** Zo lang na het maken kan met een uitnodiging een wachtwoord gekozen worden. */
 export const LINK_KIES_DAGEN = 7
 
 const DAG_MS = 24 * 60 * 60 * 1000
@@ -33,16 +36,13 @@ export function lidCookie(productie = process.env.NODE_ENV === 'production'): st
 }
 
 /**
- * Onthoudt op dit toestel de persoonlijke link, zodat /mijn/inloggen na een
- * verlopen sessie meteen om de pincode vraagt. Zonder geldige pincode geeft hij
- * geen toegang; een nieuwe link maakt hem waardeloos.
+ * Vroeger onthield dit toestel hier de persoonlijke link (inloggen met alleen
+ * de pincode). Wordt niet meer gezet; alleen nog gewist bij inloggen en
+ * uitloggen, zodat er geen oude code op het toestel blijft staan.
  */
 export function lidApparaatCookie(productie = process.env.NODE_ENV === 'production'): string {
   return productie ? '__Host-club_lid_link' : 'club_lid_link'
 }
-
-/** Browsers bewaren een cookie hooguit 400 dagen. */
-export const APPARAAT_DAGEN = 400
 
 export interface LidToegangRij {
   id: string
@@ -51,15 +51,22 @@ export interface LidToegangRij {
   code: string
   codeGemaaktOp: string
   actief: boolean
+  /** Het e-mailadres om mee in te loggen (genormaliseerd), of null. */
+  email: string | null
   /** SERVER-ONLY. */
+  wachtwoordHash: string | null
+  /** SERVER-ONLY. Een oude pincode: alleen bestaande sessies tellen nog. */
   pinHash: string | null
+  /** Wanneer de uitnodiging gebruikt is (dan werkt de link niet meer). */
+  codeGebruiktOp: string | null
   mislukt: number
   geblokkeerdTot: string | null
   blokkades: number
   laatstIngelogdOp: string | null
 }
 
-export const LID_TOEGANG_KOLOMMEN = 'id, user_id, lid_id, code, code_gemaakt_op, actief, pin_hash, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
+export const LID_TOEGANG_KOLOMMEN =
+  'id, user_id, lid_id, code, code_gemaakt_op, code_gebruikt_op, actief, email, wachtwoord_hash, pin_hash, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
 
 function getal(v: unknown): number {
   return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0
@@ -83,7 +90,10 @@ export function lidToegangUitRij(rij: unknown): LidToegangRij | null {
     code: r.code,
     codeGemaaktOp: r.code_gemaakt_op,
     actief: r.actief === true,
+    email: tekstOfNull(r.email),
+    wachtwoordHash: tekstOfNull(r.wachtwoord_hash),
     pinHash: tekstOfNull(r.pin_hash),
+    codeGebruiktOp: tekstOfNull(r.code_gebruikt_op),
     mislukt: getal(r.mislukt),
     geblokkeerdTot: tekstOfNull(r.geblokkeerd_tot),
     blokkades: getal(r.blokkades),
@@ -91,20 +101,30 @@ export function lidToegangUitRij(rij: unknown): LidToegangRij | null {
   }
 }
 
-export type LinkStaat = 'kiezen' | 'inloggen' | 'ongeldig'
+/**
+ * Kan met deze uitnodiging nu een wachtwoord gekozen worden? Alleen eenmalig
+ * en kort na het maken (een oude link in iemands mail is dan waardeloos).
+ * Een dicht account (te vaak fout) mag via een verse uitnodiging weer open:
+ * wie de uitnodiging heeft, bewijst daarmee wie hij is.
+ */
+export function linkBruikbaar(t: Pick<LidToegangRij, 'actief' | 'codeGemaaktOp' | 'codeGebruiktOp'>, nu: Date): boolean {
+  if (!t.actief || t.codeGebruiktOp) return false
+  const gemaakt = new Date(t.codeGemaaktOp).getTime()
+  return !Number.isNaN(gemaakt) && nu.getTime() - gemaakt <= LINK_KIES_DAGEN * DAG_MS
+}
+
+/** Kan dit account inloggen met e-mail en wachtwoord? (De blokkade per tijd staat los.) */
+export function kanInloggen(t: Pick<LidToegangRij, 'actief' | 'wachtwoordHash' | 'email' | 'blokkades'>): boolean {
+  return t.actief && Boolean(t.wachtwoordHash) && Boolean(t.email) && t.blokkades < MAX_BLOKKADES
+}
 
 /**
- * Wat kan er met deze link? Een pincode kiezen kan alleen kort na het maken
- * (een oude, nooit gebruikte link in iemands mail is dan waardeloos); daarna
- * alleen inloggen met de gekozen pincode. Ingetrokken of dicht: ongeldig, en
- * dat ziet er voor de buitenwereld hetzelfde uit als een onbekende link.
+ * Telt een bestaande sessie van dit account nog? Met een wachtwoord, of (tot
+ * het lid een wachtwoord kiest) een oude pincode: bestaande sessies blijven
+ * geldig. Ingetrokken of dicht: niet.
  */
-export function linkStaat(t: Pick<LidToegangRij, 'actief' | 'pinHash' | 'codeGemaaktOp' | 'blokkades'>, nu: Date): LinkStaat {
-  if (!t.actief || t.blokkades >= MAX_BLOKKADES) return 'ongeldig'
-  if (t.pinHash) return 'inloggen'
-  const gemaakt = new Date(t.codeGemaaktOp).getTime()
-  if (Number.isNaN(gemaakt) || nu.getTime() - gemaakt > LINK_KIES_DAGEN * DAG_MS) return 'ongeldig'
-  return 'kiezen'
+export function sessieToegestaan(t: Pick<LidToegangRij, 'actief' | 'wachtwoordHash' | 'pinHash' | 'blokkades'>): boolean {
+  return t.actief && t.blokkades < MAX_BLOKKADES && Boolean(t.wachtwoordHash || t.pinHash)
 }
 
 export interface LidSessieRij {
@@ -137,11 +157,16 @@ export function sessiePastBij(s: Pick<LidSessieRij, 'toegang_id' | 'user_id' | '
   return s.toegang_id === t.id && s.user_id === t.userId && s.lid_id === t.lidId
 }
 
-/** Wat de sportschool op de ledenkaart ziet: nooit de pin-hash. */
+/** Wat de sportschool op de ledenkaart ziet: nooit een hash of het wachtwoord. */
 export interface LidLinkOverzicht {
-  /** null = nog nooit een link gemaakt of ingetrokken. */
+  /** De code van een uitnodiging die nu werkt; anders null. */
   code: string | null
-  staat: 'geen' | 'kiezen' | 'actief' | 'verlopen' | 'dicht' | 'ingetrokken'
+  /**
+   * kiezen: uitgenodigd, nog geen wachtwoord. actief: wachtwoord gekozen.
+   * pincode: logt nog in met een oude pincode-sessie, nog geen wachtwoord.
+   * verlopen: uitnodiging verlopen of gebruikt, nog geen wachtwoord.
+   */
+  staat: 'geen' | 'kiezen' | 'actief' | 'pincode' | 'verlopen' | 'dicht' | 'ingetrokken'
   laatstIngelogdOp: string | null
   toestellen: number
 }
@@ -149,10 +174,11 @@ export interface LidLinkOverzicht {
 export function linkOverzicht(t: LidToegangRij | null, toestellen: number, nu: Date): LidLinkOverzicht {
   if (!t) return { code: null, staat: 'geen', laatstIngelogdOp: null, toestellen: 0 }
   if (!t.actief) return { code: null, staat: 'ingetrokken', laatstIngelogdOp: t.laatstIngelogdOp, toestellen: 0 }
-  const basis = { code: t.code, laatstIngelogdOp: t.laatstIngelogdOp, toestellen }
+  const basis = { code: linkBruikbaar(t, nu) ? t.code : null, laatstIngelogdOp: t.laatstIngelogdOp, toestellen }
   if (t.blokkades >= MAX_BLOKKADES) return { ...basis, staat: 'dicht' }
-  const staat = linkStaat(t, nu)
-  return { ...basis, staat: staat === 'inloggen' ? 'actief' : staat === 'kiezen' ? 'kiezen' : 'verlopen' }
+  if (t.wachtwoordHash) return { ...basis, staat: 'actief' }
+  if (basis.code) return { ...basis, staat: 'kiezen' }
+  return { ...basis, staat: t.pinHash && toestellen > 0 ? 'pincode' : 'verlopen' }
 }
 
 export { startPad } from './paden'
