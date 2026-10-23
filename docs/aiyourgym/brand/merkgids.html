@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Merkgids AI Your Gym</title>
+<style>
+  :root {
+    --smaragd: #1fa77a; --smaragd-sterk: #08704e; --inkt: #0f1412; --kalk: #f2f0e9; --vlak: #fbfaf6;
+    --lijn: #d6d2c5; --tekst-2: #545a55; --salie: #a8c3a0; --groenblauw: #4fb0bb; --zand: #d6c29c; --mist: #9fb8c4;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--kalk); color: var(--inkt); font: 17px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 64px 24px 120px; }
+  h1, h2, h3 { line-height: 1.05; letter-spacing: -0.03em; margin: 0; }
+  h1 { font-size: clamp(2.6rem, 7vw, 4.6rem); }
+  h2 { font-size: 2rem; margin-top: 88px; padding-top: 28px; border-top: 2px solid var(--inkt); }
+  h3 { font-size: 1.15rem; margin-top: 32px; }
+  p, li { max-width: 68ch; }
+  .label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tekst-2); }
+  .intro { font-size: 1.25rem; color: var(--tekst-2); margin-top: 20px; }
+  .raster { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 24px; }
+  .raster.breed { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+  .tegel { border-radius: 16px; padding: 28px; min-height: 180px; display: grid; place-items: center; border: 1px solid var(--lijn); background: var(--vlak); }
+  .tegel.donker { background: var(--inkt); border-color: var(--inkt); }
+  .tegel.wit { background: #fff; }
+  .tegel img { max-width: 100%; height: 52px; }
+  .tegel img.vierkant { height: 96px; }
+  figcaption { font-size: 14px; color: var(--tekst-2); margin-top: 8px; }
+  code { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; background: #e8e5db; padding: 1px 6px; border-radius: 5px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--lijn); vertical-align: top; }
+  th { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tekst-2); }
+  .staal { display: inline-block; width: 22px; height: 22px; border-radius: 6px; vertical-align: middle; margin-right: 8px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12); }
+  .ruimte { position: relative; display: inline-block; padding: 40px; background: repeating-linear-gradient(45deg, #e3efe8 0 6px, #f2f0e9 6px 12px); border: 1px dashed var(--smaragd-sterk); border-radius: 8px; }
+  .ruimte img { display: block; height: 80px; background: var(--kalk); }
+  .ruimte span { position: absolute; font-size: 12px; color: var(--smaragd-sterk); font-weight: 600; }
+  .goed, .fout { border-radius: 14px; padding: 20px 22px; }
+  .goed { background: #dcebe2; } .fout { background: #f6e1dc; }
+  .goed h3, .fout h3 { margin-top: 0; }
+  ul { padding-left: 20px; }
+  .maten { display: flex; align-items: end; gap: 28px; flex-wrap: wrap; margin-top: 20px; }
+  .maten div { text-align: center; font-size: 13px; color: var(--tekst-2); }
+  .maten img { display: block; margin: 0 auto 8px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="label">Merkgids · versie 1 · 23 oktober 2026</p>
+  <h1>AI Your Gym</h1>
+  <p class="intro">Clubsoftware voor sportscholen. Het merk is rustig, precies en eerlijk: premium zonder opschepperij. Deze gids beschrijft het logo, de kleuren, de letters en de toon. Alle bestanden staan in deze map.</p>
+
+  <h2>Het beeldmerk</h2>
+  <p>Een figuur met de armen omhoog, die tegelijk de Y van <em>Your</em> vormt. Het staat voor het lid en de sportschool die vooruitgaan, niet voor de software zelf. De figuur is met de hand geconstrueerd in een raster van 32 bij 32: armen haaks afgesneden, romp recht, het hoofd vrij van de armen zodat het ook op 16 pixels los blijft. De tegel is een zachte superellips (geen gewone afgeronde rechthoek), zoals een app-icoon.</p>
+  <div class="raster">
+    <figure><div class="tegel"><img class="vierkant" src="ayg-beeldmerk.svg" alt="Beeldmerk op licht" /></div><figcaption>Beeldmerk op licht: inkten tegel, smaragden figuur.</figcaption></figure>
+    <figure><div class="tegel donker"><img class="vierkant" src="ayg-beeldmerk-donker.svg" alt="Beeldmerk op donker" /></div><figcaption>Beeldmerk op donker: smaragden tegel, inkten figuur.</figcaption></figure>
+    <figure><div class="tegel"><img class="vierkant" src="ayg-figuur.svg" alt="Alleen de figuur" /></div><figcaption>Alleen de figuur: als groot sierelement (zoals in de deelafbeelding), nooit als logo.</figcaption></figure>
+  </div>
+
+  <h2>Het logo</h2>
+  <p>Het liggende logo (beeldmerk plus woordmerk) is de standaard. Het woordmerk staat in Bricolage Grotesque, vast gezet op gewicht 640, breedte 96 en optische maat 24, en is omgezet naar paden. Typ het logo dus nooit na in een lettertype: gebruik de bestanden of het component <code>AygLogo</code>.</p>
+  <div class="raster breed">
+    <figure><div class="tegel"><img src="ayg-logo-licht.svg" alt="Logo op licht" /></div><figcaption><code>ayg-logo-licht.svg</code>: standaard op kalkwit of wit.</figcaption></figure>
+    <figure><div class="tegel donker"><img src="ayg-logo-donker.svg" alt="Logo op donker" /></div><figcaption><code>ayg-logo-donker.svg</code>: op inkt, donkere foto's en in de donkere modus.</figcaption></figure>
+    <figure><div class="tegel wit"><img src="ayg-logo-zwart.svg" alt="Logo in zwart" /></div><figcaption><code>ayg-logo-zwart.svg</code>: eenkleurig (stempel, fax, gravure). De figuur is uitgespaard.</figcaption></figure>
+    <figure><div class="tegel donker"><img src="ayg-logo-wit.svg" alt="Logo in wit" /></div><figcaption><code>ayg-logo-wit.svg</code>: eenkleurig wit op een donkere of drukke ondergrond.</figcaption></figure>
+    <figure><div class="tegel"><img src="ayg-woordmerk.svg" alt="Woordmerk" style="height: 40px" /></div><figcaption><code>ayg-woordmerk.svg</code>: alleen als het beeldmerk al vlakbij staat, of als groot sierwoord (voet van de website).</figcaption></figure>
+  </div>
+
+  <h3>Opbouw</h3>
+  <p>De tegel is 1,4 keer zo hoog als de hoofdletters van het woordmerk; de hoofdletters staan precies in het midden van de tegel. De afstand tussen tegel en woord is 0,46 keer de kapitaalhoogte. De staarten van y en g mogen iets onder de tegel uitsteken.</p>
+
+  <h3>Vrije ruimte</h3>
+  <p>Houd rondom het logo minstens een halve tegelhoogte vrij. Er komt in die ruimte geen tekst, rand of ander beeld.</p>
+  <div class="ruimte"><span style="top: 12px; left: 40px">½ tegel</span><img src="ayg-logo-licht.svg" alt="Vrije ruimte rond het logo" /></div>
+
+  <h3>Minimummaat</h3>
+  <div class="maten">
+    <div><img src="ayg-logo-licht.svg" alt="" style="height: 20px" />Liggend logo: 20 px hoog (scherm), 7 mm (druk)</div>
+    <div><img src="ayg-beeldmerk.svg" alt="" style="height: 16px" />Beeldmerk: 16 px (favicon)</div>
+    <div><img src="ayg-woordmerk.svg" alt="" style="height: 12px" />Woordmerk: 12 px hoog</div>
+  </div>
+
+  <div class="raster">
+    <div class="goed"><h3>Wel</h3><ul><li>De bestanden of <code>AygLogo</code> gebruiken.</li><li>Op een rustige ondergrond: kalkwit, wit of inkt.</li><li>Op donker de donkere versie (smaragden tegel).</li><li>Vrije ruimte en minimummaat aanhouden.</li></ul></div>
+    <div class="fout"><h3>Niet</h3><ul><li>Uitrekken, kantelen, omlijnen of een schaduw of gloed geven.</li><li>Andere kleuren dan smaragd, inkt, kalkwit, zwart of wit.</li><li>Het woord in een ander lettertype zetten of "AI" anders kleuren.</li><li>De inkten tegel op een donkere ondergrond (hij valt weg).</li><li>Op een drukke foto zonder rustig vlak eronder.</li></ul></div>
+  </div>
+
+  <h2>Kleuren</h2>
+  <p>Smaragd is het enige accent (besluit Kane 20-10-2026). Daaromheen kalkwit papier en bijna zwarte inkt; salie, groenblauw, zand en mist zijn bijkleuren voor de hoofdstukken van de website, nooit voor het logo. De waarden in de app staan als tokens in <code>src/app/(aiyourgym)/(website)/aiyourgym/aiyourgym.css</code>; de test <code>src/components/aiyourgym/contrast.test.ts</code> bewaakt het contrast.</p>
+  <table>
+    <thead><tr><th>Kleur</th><th>Waarde</th><th>Gebruik</th><th>Contrast (WCAG)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="staal" style="background:#1fa77a"></span>Smaragd</td><td>#1FA77A</td><td>Logo, knoppen, vinkjes, accentvlakken</td><td>Inkt erop 6,08:1 (AA). Wit erop 3,06:1: niet voor tekst. Smaragd op kalkwit 2,68:1: alleen vlak, nooit tekst.</td></tr>
+      <tr><td><span class="staal" style="background:#08704e"></span>Diep smaragd</td><td>#08704E</td><td>Smaragd als tekst, icoon of lijn op papier</td><td>Op kalkwit 5,36:1 (AA)</td></tr>
+      <tr><td><span class="staal" style="background:#0f1412"></span>Inkt</td><td>#0F1412</td><td>Tekst, logotegel op licht, donkere podia</td><td>Op kalkwit 16,31:1 (AAA). Smaragd op inkt 6,08:1.</td></tr>
+      <tr><td><span class="staal" style="background:#f2f0e9"></span>Kalkwit</td><td>#F2F0E9</td><td>Papier van de website, woord op donker</td><td>Op inkt 16,31:1 (AAA)</td></tr>
+      <tr><td><span class="staal" style="background:#545a55"></span>Grijs (tekst 2)</td><td>#545A55</td><td>Bijschriften op papier</td><td>Op kalkwit 6,20:1 (AA)</td></tr>
+      <tr><td><span class="staal" style="background:#a8c3a0"></span>Salie</td><td>#A8C3A0</td><td>Hoofdstuk Coaching</td><td>Inkt erop 9,72:1</td></tr>
+      <tr><td><span class="staal" style="background:#4fb0bb"></span>Groenblauw</td><td>#4FB0BB</td><td>Hoofdstuk Planning</td><td>Inkt erop 7,32:1</td></tr>
+      <tr><td><span class="staal" style="background:#d6c29c"></span>Zand</td><td>#D6C29C</td><td>Hoofdstuk Groei</td><td>Inkt erop 10,68:1</td></tr>
+      <tr><td><span class="staal" style="background:#9fb8c4"></span>Mist</td><td>#9FB8C4</td><td>Hoofdstuk Betrokkenheid</td><td>Inkt erop 8,97:1</td></tr>
+    </tbody>
+  </table>
+  <p>In de donkere modus van de website wordt het accent iets lichter (#2DB886, 7,63:1 op #0C0F0D) zodat het als tekst leest. Het logo zelf houdt overal de vaste merkkleuren.</p>
+
+  <h2>Letters</h2>
+  <ul>
+    <li><strong>Bricolage Grotesque</strong>: koppen en het woordmerk. Op de website smal (breedte 84 tot 88), vet en strak gespatieerd; het woordmerk is rustiger (breedte 96).</li>
+    <li><strong>Geist</strong>: lopende tekst, cijfers en de interface.</li>
+  </ul>
+  <p>Beide staan onder de SIL Open Font License 1.1: vrij te gebruiken, ook in een logo en in software die we verkopen. De website laadt ze via <code>next/font</code> (zelf gehost, geen verbinding met Google). Maximaal deze twee families.</p>
+
+  <h2>Toon van schrijven</h2>
+  <p>We schrijven zoals een goede trainer praat: kort, concreet en eerlijk. Nederlands, met je en jij.</p>
+  <div class="raster">
+    <div class="goed"><h3>Wel</h3><ul><li>Zeggen wat het product nu echt doet.</li><li>"Scherp geprijsd", "elke maand nieuwe functies", "gebouwd met AI".</li><li>Concrete voorbeelden uit de sportschool: de balie, de vloer, de les van half zeven.</li><li>De naam altijd als <strong>AI Your Gym</strong>.</li></ul></div>
+    <div class="fout"><h3>Niet</h3><ul><li>"De goedkoopste", "geavanceerde AI", "revolutionair" of andere claims die we niet kunnen onderbouwen.</li><li>Nep-schaarste, aftelklokken, verzonnen reviews, klantlogo's of aantallen.</li><li>Prijzen op de website (die staan alleen in Stripe).</li><li>Varianten als AIYourGym, AiYourGym of AYG in teksten voor klanten.</li></ul></div>
+  </div>
+
+  <h2>Iconen en deelafbeelding</h2>
+  <ul>
+    <li>Favicon: <code>src/app/(aiyourgym)/(website)/aiyourgym/icon.svg</code> en <code>(club)/club/icon.svg</code>. In een donkere browser draait de tegel om.</li>
+    <li>Apple-icoon (180 px, vol vlak; iOS rondt zelf af): <code>apple-icon.png</code> naast elk <code>icon.svg</code>.</li>
+    <li>Deelafbeelding (Open Graph, 1200 x 630): <code>src/app/(aiyourgym)/(website)/aiyourgym/(site)/opengraph-image.tsx</code>, alleen als de website openbaar is.</li>
+    <li>Beeldmerk als PNG voor drukwerk en presentaties: <code>ayg-beeldmerk-512.png</code>.</li>
+  </ul>
+
+  <h2>Aanpassen</h2>
+  <p>Alles komt uit een script: <code>node docs/aiyourgym/brand/bron/genereer.mjs</code> (vanuit de hoofdmap). Het schrijft de paden voor de app (<code>src/components/aiyourgym/merk/merk-paden.ts</code>), de SVG-bestanden in deze map en de iconen. Pas de maten van de figuur of het woordmerk alleen daar aan, nooit in de gegenereerde bestanden.</p>
+</main>
+</body>
+</html>

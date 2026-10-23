@@ -24,6 +24,8 @@
 .club-inlog-kaart::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--brand); }
 .club-inlog-merk { display: flex; align-items: baseline; gap: 10px; margin: 0 0 28px; font-family: var(--ff-kop); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 15px; color: var(--text-2); }
 .club-inlog-merk > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-inlog-merk:has(.club-inlog-ayg) { align-items: center; }
+.club-inlog-ayg { display: block; height: 24px; width: auto; color: var(--text-1); }
 .club-inlog-club { color: var(--brand-tekst, var(--brand)); letter-spacing: 0.18em; }
 .club-inlog-kaart h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 9vw, 44px); line-height: 1; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
 .club-inlog-rol { margin: 8px 0 24px; font-size: 14px; color: var(--text-3); }
