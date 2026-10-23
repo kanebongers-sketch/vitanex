@@ -67,11 +67,15 @@ describe('API voor een medewerker', () => {
 })
 
 describe('wie beheert wat', () => {
-  it('inloglinks: Kane, eigenaar en clubmanager; een medewerker nooit', () => {
-    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: true, rol: 'beheerder' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'eigenaar' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(true)
-    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
+  it('medewerkers uitnodigen: Kane, eigenaar en clubmanager met Instellingen; een medewerker nooit', () => {
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: true, rol: 'beheerder', onderdelen: null })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'eigenaar', onderdelen: null })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'clubmanager', onderdelen: ['vandaag', 'instellingen'] })).toBe(true)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'medewerker', onderdelen: ['vandaag', 'instellingen'] })).toBe(false)
+  })
+  it('een clubmanager zonder Instellingen (Medewerkers) of zonder bekende rechten: nee', () => {
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'clubmanager', onderdelen: ['vandaag', 'leden'] })).toBe(false)
+    expect(magMedewerkerLoginsBeheren({ isPlatformEigenaar: false, rol: 'clubmanager' })).toBe(false)
   })
   it('een medewerker beheert geen beheerders en krijgt via de oude weg niets extra', () => {
     expect(magBeheerdersBeheren({ isPlatformEigenaar: false, rol: 'medewerker' })).toBe(false)
@@ -81,7 +85,7 @@ describe('wie beheert wat', () => {
 
 describe('medewerkerToegangVelden', () => {
   const org = { id: GYM, naam: 'Gym A', instellingen: orgInstellingenUitRij({ rechten: { trainer: ['leden', 'rooster', 'beheer'] } }, ONDERDEEL_SLEUTELS) } as Organisatie
-  const toegang: MedewerkerToegang = { id: '44444444-4444-4444-8444-444444444444', userId: GYM, medewerkerId: MW, code: 'abcdefghijklmnopqrstuvwx', actief: true, pinStatus: 'actief', pinHash: 'x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null }
+  const toegang: MedewerkerToegang = { id: '44444444-4444-4444-8444-444444444444', userId: GYM, medewerkerId: MW, code: 'abcdefghijklmnopqrstuvwx', actief: true, email: 'lotte@gym.nl', pinStatus: 'geen', pinHash: null, wachtwoordHash: 's2:x', uitnodigingVerlooptOp: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null }
   const mens: MedewerkerMetOrg = { id: MW, userId: GYM, naam: 'Lotte de Vries', email: null, rollen: ['trainer'], vestigingen: ['eersel'], actief: true }
   const bron = { toegang, medewerker: mens, organisatie: org, eigenaarId: KANE, vestigingen: VESTIGINGEN }
 
@@ -97,9 +101,9 @@ describe('medewerkerToegangVelden', () => {
     expect(medewerkerToegangVelden({ ...bron, organisatie: null })).toBeNull()
     expect(medewerkerToegangVelden({ ...bron, eigenaarId: null })).toBeNull()
   })
-  it('zonder eigen vestiging, uit dienst of met een pin die wacht: null', () => {
+  it('zonder eigen vestiging, uit dienst, of zonder wachtwoord en met een pin die wacht: null', () => {
     expect(medewerkerToegangVelden({ ...bron, medewerker: { ...mens, vestigingen: ['weg'] } })).toBeNull()
     expect(medewerkerToegangVelden({ ...bron, medewerker: { ...mens, actief: false } })).toBeNull()
-    expect(medewerkerToegangVelden({ ...bron, toegang: { ...toegang, pinStatus: 'wacht' } })).toBeNull()
+    expect(medewerkerToegangVelden({ ...bron, toegang: { ...toegang, wachtwoordHash: null, pinStatus: 'wacht' } })).toBeNull()
   })
 })

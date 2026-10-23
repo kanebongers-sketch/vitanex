@@ -1,7 +1,8 @@
 // POST /api/club/inloggen  { email, wachtwoord }
 // Inloggen op aiyourgym.com met e-mailadres en wachtwoord (besluit Kane
-// 23-10-2026): de platform-eigenaar (master account van Kane) en eigenaren of
-// clubmanagers van een sportschool. Goed: een httpOnly-sessiecookie voor dit
+// 23-10-2026). Volgorde: het master account van het platform, dan eigenaren en
+// clubmanagers, dan medewerkers (medewerker-login/wachtwoord-login.ts). Goed:
+// een httpOnly-sessiecookie voor dit
 // toestel. Een onbekend adres en een fout wachtwoord krijgen hetzelfde antwoord
 // (en ongeveer dezelfde rekentijd), zodat niemand kan uitzoeken wie een account heeft.
 
@@ -17,6 +18,7 @@ import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { logInPlatform, vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
 import { zetPlatformCookie } from '@/lib/club/platform-login/route-hulp'
 import { hashWachtwoord, MAX_LENGTE, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
+import { logInAlsMedewerker } from '@/lib/club/medewerker-login/wachtwoord-login'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -79,6 +81,7 @@ export async function POST(req: NextRequest) {
   if (platform) return antwoord(await logInPlatform(admin, platform, wachtwoord, nu), zetPlatformCookie)
 
   const b = CLUB_EIGEN_LOGIN ? await vindBeheerderOpEmail(admin, email) : null
+  if (!b && CLUB_EIGEN_LOGIN) return logInAlsMedewerker(admin, email, wachtwoord)
   const { organisatie } = b ? await haalEigenOrganisatie(admin, b.organisatieId) : { organisatie: null }
   if (!b || !organisatie || !(await hostPastBij(organisatie))) {
     schijnControle(wachtwoord)
