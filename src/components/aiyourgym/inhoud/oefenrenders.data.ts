@@ -15,12 +15,12 @@ export const OEFENRENDER_DATA = [
     ],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "fdbd91fb",
+    "versie": "bf8381af",
     "bytes": {
-      "lus": 481836,
-      "lus-klein": 279128,
-      "begin": 25014,
-      "piek": 19190
+      "lus": 473086,
+      "lus-klein": 278004,
+      "begin": 24594,
+      "piek": 18842
     }
   },
   {
@@ -32,12 +32,12 @@ export const OEFENRENDER_DATA = [
     "spierenSecundair": [],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "2b227b52",
+    "versie": "2f6bc729",
     "bytes": {
-      "lus": 338120,
-      "lus-klein": 199232,
-      "begin": 22586,
-      "piek": 21782
+      "lus": 340454,
+      "lus-klein": 199948,
+      "begin": 22728,
+      "piek": 21800
     }
   },
   {
@@ -50,12 +50,12 @@ export const OEFENRENDER_DATA = [
     "spierenSecundair": [],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "a6d08dc1",
+    "versie": "0bb15f19",
     "bytes": {
-      "lus": 387438,
-      "lus-klein": 227768,
-      "begin": 26130,
-      "piek": 24972
+      "lus": 422766,
+      "lus-klein": 248396,
+      "begin": 27288,
+      "piek": 25868
     }
   },
   {
@@ -73,12 +73,12 @@ export const OEFENRENDER_DATA = [
     ],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "4bd7ba79",
+    "versie": "06fb5071",
     "bytes": {
-      "lus": 359004,
-      "lus-klein": 213972,
-      "begin": 24942,
-      "piek": 21222
+      "lus": 362782,
+      "lus-klein": 212486,
+      "begin": 25288,
+      "piek": 21260
     }
   },
   {
@@ -93,12 +93,12 @@ export const OEFENRENDER_DATA = [
     ],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "261f45f9",
+    "versie": "f2b45ce1",
     "bytes": {
-      "lus": 633996,
-      "lus-klein": 373194,
-      "begin": 21516,
-      "piek": 23858
+      "lus": 634156,
+      "lus-klein": 373078,
+      "begin": 21524,
+      "piek": 23848
     }
   },
   {
@@ -111,12 +111,12 @@ export const OEFENRENDER_DATA = [
     "spierenSecundair": [],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "96c4a0d9",
+    "versie": "1093263a",
     "bytes": {
-      "lus": 569728,
-      "lus-klein": 334230,
-      "begin": 18004,
-      "piek": 19914
+      "lus": 569516,
+      "lus-klein": 333984,
+      "begin": 17984,
+      "piek": 19952
     }
   },
   {
@@ -132,12 +132,12 @@ export const OEFENRENDER_DATA = [
     ],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "e89ef1fe",
+    "versie": "d34a9a88",
     "bytes": {
-      "lus": 568156,
-      "lus-klein": 336816,
-      "begin": 20236,
-      "piek": 22512
+      "lus": 569812,
+      "lus-klein": 336214,
+      "begin": 20226,
+      "piek": 22534
     }
   },
   {
@@ -150,12 +150,12 @@ export const OEFENRENDER_DATA = [
     "spierenSecundair": [],
     "breedte": 560,
     "hoogte": 560,
-    "versie": "14e6a5f6",
+    "versie": "3ddfe988",
     "bytes": {
-      "lus": 381288,
-      "lus-klein": 221184,
-      "begin": 22384,
-      "piek": 19580
+      "lus": 381390,
+      "lus-klein": 221192,
+      "begin": 22368,
+      "piek": 19632
     }
   },
   {

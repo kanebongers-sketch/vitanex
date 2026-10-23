@@ -8,7 +8,8 @@
 // creme, of creme met racegroen. Met de hand geconstrueerd in een raster van 100.
 // Letters: Big Shoulders Bold (SIL Open Font License 1.1, vrij voor logo's en
 // commercieel gebruik), omgezet naar paden. Bron: BigShoulders-Bold-merk.ttf
-// (alleen de letters van het merk), licentie ernaast.
+// (alleen de letters van het merk), licentie ernaast. De Y is een eigen tekening
+// (besluit Kane 23-10-2026, variant "A · Strak"), zie EIGEN_Y hieronder.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -39,6 +40,20 @@ const kort = (d) => d.replace(/-?\d+\.\d+/g, (v) => String(r2(+v)))
 // ── Letters naar paden ──────────────────────────────────────────────────────
 const font = openSync(path.join(BRON, 'BigShoulders-Bold-merk.ttf'))
 
+/**
+ * Eigen Y ("A · Strak"), in fonteenheden van Big Shoulders (2000 per em, y omhoog,
+ * basislijn 0, kapitaalhoogte 1600). Symmetrisch rond x = 433,5, zelfde breedte,
+ * zijkanten en voortgang (867) als de Y van de letter, dus de spatiering blijft gelijk.
+ * - Stam 257 breed (305 tot 562), net als de I.
+ * - Armen recht, kopjes plat en 270 breed: haaks op de haal 255, gelijk aan de
+ *   poten van de A (262) en de stam van de I (257).
+ * - De buitenkant van de armen raakt de stam precies op halve hoogte (800);
+ *   de binnenhoek (1200) is een scherpe V, zonder inkeping of trapje.
+ */
+const EIGEN_Y = [[305, 0], [305, 800], [22, 1600], [292, 1600], [433.5, 1200], [575, 1600], [845, 1600], [562, 800], [562, 0]]
+const EIGEN_GLYF = { Y: { punten: EIGEN_Y, minX: 22, maxX: 845 } }
+const glyfPad = (punten, s, tx, ty) => `M${punten.map(([x, y]) => `${r2(x * s + tx)} ${r2(-y * s + ty)}`).join('L')}Z`
+
 /** Tekst als pad: kapitaalhoogte `kap`, bovenkant kapitalen op y = 0, linkerrand van de inkt op x = 0. */
 function tekst(inhoud, { kap = 100, tracking = 0, spatie = 1, dx = 0, dy = 0 } = {}) {
   const s = kap / font.capHeight
@@ -50,14 +65,19 @@ function tekst(inhoud, { kap = 100, tracking = 0, spatie = 1, dx = 0, dy = 0 } =
   run.glyphs.forEach((g, i) => {
     const pos = run.positions[i]
     const isSpatie = inhoud[i] === ' '
-    if (g.path.commands.length) {
-      glyfen.push([g, x + pos.xOffset])
-      links = Math.min(links, x + pos.xOffset + g.path.bbox.minX)
-      rechts = Math.max(rechts, x + pos.xOffset + g.path.bbox.maxX)
+    const eigen = EIGEN_GLYF[inhoud[i]]
+    if (eigen || g.path.commands.length) {
+      glyfen.push([g, x + pos.xOffset, eigen])
+      links = Math.min(links, x + pos.xOffset + (eigen ? eigen.minX : g.path.bbox.minX))
+      rechts = Math.max(rechts, x + pos.xOffset + (eigen ? eigen.maxX : g.path.bbox.maxX))
     }
     x += (isSpatie ? pos.xAdvance * spatie : pos.xAdvance) + (isSpatie ? 0 : tracking * font.unitsPerEm)
   })
-  const d = glyfen.map(([g, gx]) => g.path.scale(s, -s).translate((gx - links) * s + dx, kap + dy).toSVG()).join('')
+  const d = glyfen
+    .map(([g, gx, eigen]) =>
+      eigen ? glyfPad(eigen.punten, s, (gx - links) * s + dx, kap + dy) : g.path.scale(s, -s).translate((gx - links) * s + dx, kap + dy).toSVG(),
+    )
+    .join('')
   return { d: kort(d), breedte: (rechts - links) * s, hoogte: kap }
 }
 

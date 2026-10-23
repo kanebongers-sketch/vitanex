@@ -57,3 +57,6 @@ deelafbeelding) en de iconen, en drukt de contrastwaarden af. Pas maten alleen d
 
 Letters van het logo: Big Shoulders Bold (`bron/BigShoulders-Bold-merk.ttf`, alleen de letters
 van het merk), SIL Open Font License 1.1, zie `bron/OFL-BigShoulders.txt`. Omgezet naar paden.
+De Y is een eigen tekening (variant "Strak", besluit Kane 23-10-2026), vastgelegd als `EIGEN_Y`
+in `bron/genereer.mjs`: symmetrisch, armen die op halve hoogte in de stam overgaan, zonder inkeping.
+Die Y staat in het embleem, in beide Y's van het woordmerk, in de iconen en in de deelafbeelding.
