@@ -77,7 +77,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Lidmaatschappen die bepalen op welke vestigingen een lid mag sporten',
       'Rechten per rol: de eigenaar bepaalt wat een clubmanager ziet',
       'Personeelsrooster met uren die je goedkeurt en exporteert voor de administratie',
-      'Rapporten per kalendermaand en een eigen adres, zoals aiyourgym.com/jouwgym',
+      'Rapporten per kalendermaand, te exporteren als CSV',
     ],
     pakket: 'keten',
   },

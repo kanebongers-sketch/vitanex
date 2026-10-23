@@ -1,13 +1,13 @@
 // ─── AI Your Gym, Club: het slot (SERVER-ONLY) ──────────────────────────────
 // Drie ingangen, alleen op aiyourgym.com en de subdomeinen (src/proxy.ts):
-//   1. De platform-eigenaar (Kane, master account): een eigen sessie na link
-//      plus pincode (src/lib/club/platform-login). Ziet alle sportscholen en
-//      wisselt ertussen. Los van de PT-app: geen gedeelde cookie of sessie.
+//   1. De platform-eigenaar (Kane, master account): een eigen sessie na
+//      e-mailadres en wachtwoord (src/lib/club/platform-login). Ziet alle
+//      sportscholen en wisselt ertussen. Los van de PT-app: geen gedeelde cookie.
 //   2. Een eigenaar of clubmanager van een sportschool (club_beheerders), met
-//      een eigen sessie na link plus pincode. Ziet ALLEEN de eigen sportschool.
-//      Alleen als de schakelaar CLUB_EIGEN_LOGIN aan staat; standaard uit.
-//   3. Een medewerker (club_medewerkers) met een eigen sessie na link plus
-//      pincode die de eigenaar of clubmanager goedkeurde. Ziet alleen de eigen
+//      een eigen sessie na e-mailadres en wachtwoord. Ziet ALLEEN de eigen
+//      sportschool. Alleen als de schakelaar CLUB_EIGEN_LOGIN aan staat.
+//   3. Een medewerker (club_medewerkers) met een eigen sessie na e-mailadres en
+//      wachtwoord (uitgenodigd door de eigenaar of clubmanager). Ziet alleen de eigen
 //      sportschool, alleen de eigen vestigingen en alleen de onderdelen van
 //      zijn rollen. Ook alleen met CLUB_EIGEN_LOGIN aan.
 // Alle anderen: /club bestaat niet. Pagina's geven een gewone 404 en de API

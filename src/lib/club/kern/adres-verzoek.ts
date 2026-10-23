@@ -5,13 +5,11 @@
 
 import { cookies, headers } from 'next/headers'
 import { isAygHost } from '@/lib/aiyourgym/host'
+import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { slugUitHost } from './subdomein'
 import { ADRES_COOKIE, SLUG_KOP, kiesAdres, type VerzoekAdres } from './pad-adres'
 
-/** Staan de subdomeinen per sportschool aan (CLUB_SUBDOMEINEN_ACTIEF)? */
-export function subdomeinenActief(): boolean {
-  return process.env.CLUB_SUBDOMEINEN_ACTIEF === '1'
-}
+export { subdomeinenActief }
 
 export async function adresVanVerzoek(): Promise<VerzoekAdres | null> {
   const [h, c] = await Promise.all([headers(), cookies()])

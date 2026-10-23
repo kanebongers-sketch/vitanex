@@ -17,8 +17,8 @@ export const metadata: Metadata = { title: 'Huisstijl' }
 
 // Het portaal van een sportschool: logo en naam, kleuren, onderdelen aan of uit.
 // Wat hier wordt opgeslagen geldt meteen voor heel Club en de ledenapp van die
-// sportschool. Bovenaan wissel je van sportschool en onderaan beheer je de
-// eigenaren en clubmanagers (beide alleen voor Kane).
+// sportschool. Bovenaan wisselt Kane van sportschool (alleen het platform);
+// het adres en de eigenaren en clubmanagers beheren Kane en de eigenaar.
 
 export default async function HuisstijlPagina() {
   const t = await eisOnderdeel('huisstijl')

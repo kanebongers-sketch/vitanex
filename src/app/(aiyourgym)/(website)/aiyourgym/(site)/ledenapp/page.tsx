@@ -69,7 +69,7 @@ const VRAGEN = [
   },
   {
     vraag: 'Wat als een lid zijn telefoon kwijt is?',
-    antwoord: 'Je maakt op de ledenkaart een nieuwe link. De oude link werkt dan niet meer en alle toestellen worden uitgelogd.',
+    antwoord: 'Je maakt op de ledenkaart een nieuwe link. Alle toestellen worden dan uitgelogd en met de nieuwe link kiest het lid een nieuw wachtwoord. De oude link werkt niet meer.',
   },
 ] as const
 
@@ -115,7 +115,7 @@ export default function LedenappPagina() {
             naast
             id="instap-titel"
             label="Zo komt een lid erin"
-            titel="Geen wachtwoord, geen app store."
+            titel="Geen app store, wel veilig."
             tekst="Een web-app waarin leden inloggen met hun e-mailadres en een eigen wachtwoord. Veilig, en snel geregeld aan de balie."
           />
           <ol className="ayg-instap">

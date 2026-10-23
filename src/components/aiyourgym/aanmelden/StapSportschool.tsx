@@ -59,7 +59,7 @@ export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wij
 
       <Veld id="slug" label="Je eigen adres" voor={veld.voor ?? undefined} achter={veld.achter ?? undefined} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
         value={invoer.slug} onChange={(e) => adresGewijzigd(e.target.value)} fout={fouten.slug}
-        hint="Hier vinden je leden en je team straks Club. Kleine letters, cijfers en koppeltekens."
+        hint="Hier vinden je leden en je team Club. Kleine letters, cijfers en koppeltekens."
         status={
           adres.melding && !fouten.slug ? (
             <p className="aan-adres" data-status={adres.status} aria-live="polite">

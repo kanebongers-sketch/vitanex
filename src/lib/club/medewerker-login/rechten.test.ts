@@ -107,3 +107,13 @@ describe('medewerkerToegangVelden', () => {
     expect(medewerkerToegangVelden({ ...bron, toegang: { ...toegang, wachtwoordHash: null, pinStatus: 'wacht' } })).toBeNull()
   })
 })
+
+describe('standaardrechten voor de werkvloer', () => {
+  it('trainer en clubmanager zien Notities (de overdracht tussen diensten), de instructeur niet', () => {
+    const r = standaardRechten()
+    expect(r.trainer).toContain('notities')
+    expect(r.manager).toContain('notities')
+    expect(r.instructeur).not.toContain('notities')
+    expect(medewerkerOnderdelen(['trainer'], r)).toContain('notities')
+  })
+})

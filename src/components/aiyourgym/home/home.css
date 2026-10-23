@@ -115,6 +115,9 @@
 .ayg-groep-beeld { margin-top: 40px; }
 .ayg-groep-beeld--smal { justify-items: center; }
 .ayg-groep-beeld--smal > * { container-type: normal; }
+/* Voor wie: de schermen zijn dezelfde als op Functies. Op de telefoon laten we ze weg,
+   zodat de pagina kort blijft; vanaf tabletbreedte staan ze er wel. */
+@media (max-width: 759px) { .ayg-groep-beeld--breed-alleen { display: none; } }
 .ayg-groep-beeld--smal .aygm-bijschrift { justify-content: center; }
 /* Hoofdstukken: een eigen accent (--hfd), altijd met inkt erop */
 .ayg-hoofdstuk-label { justify-self: start; display: inline-flex; align-items: center; min-height: 30px; padding: 0 14px; border-radius: 99px; background: var(--hfd, var(--ayg-accent)); color: var(--ayg-accent-tekst); font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }

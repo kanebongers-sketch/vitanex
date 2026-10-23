@@ -104,6 +104,11 @@
 .ayg .aan-pakket-naam { font: 700 1.6rem/1 var(--ayg-font-kop); letter-spacing: -0.03em; }
 .ayg .aan-pakket-voor { color: var(--ayg-tekst-2); font-size: 15px; }
 .ayg .aan-pakket-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13.5px; font-weight: 600; }
+/* Drie smalle kaarten naast elkaar: de twee feiten onder elkaar, zonder losse punt aan het eind van een regel */
+@media (min-width: 760px) {
+  .ayg .aan-pakket-meta { display: grid; gap: 2px; }
+  .ayg .aan-pakket-meta > [aria-hidden] { display: none; }
+}
 .ayg .aan-pakket-lijst { display: grid; gap: 7px; padding-top: 12px; border-top: 1px solid var(--ayg-lijn); font-size: 14.5px; }
 .ayg .aan-pakket-lijst li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
 .ayg .aan-pakket-lijst svg { margin-top: 4px; }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leesNieuweVestiging, leesVestigingWijziging, maakVestigingSlug, nieuweVolgorde } from './vestigingen-invoer'
+import { STANDAARD_OPENINGSTIJDEN, heeftEigenOpeningstijden, isStandaardOpen, leesNieuweVestiging, leesVestigingWijziging, maakVestigingSlug, nieuweVolgorde } from './vestigingen-invoer'
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 
 describe('vestigingen beheren', () => {
@@ -35,5 +35,22 @@ describe('contact van een vestiging', () => {
     expect(leesVestigingWijziging({ telefoon: '' })).toEqual({ ok: true, waarde: { telefoon: null } })
     expect(leesVestigingWijziging({ telefoon: 'bel me' }).ok).toBe(false)
     expect(leesVestigingWijziging({ email: 'geen-mail' }).ok).toBe(false)
+  })
+})
+
+describe('standaard openingstijden van een nieuwe vestiging', () => {
+  it('herkent de plaatshouder en niets anders', () => {
+    expect(isStandaardOpen(STANDAARD_OPENINGSTIJDEN)).toBe(true)
+    expect(isStandaardOpen({ ...STANDAARD_OPENINGSTIJDEN, 1: ['06:00', '23:00'] })).toBe(false)
+    const zonderZondag: Record<string, [string, string]> = { ...STANDAARD_OPENINGSTIJDEN }
+    delete zonderZondag['7']
+    expect(isStandaardOpen(zonderZondag)).toBe(false)
+  })
+
+  it('eigen tijden: minstens een open dag en niet de plaatshouder', () => {
+    expect(heeftEigenOpeningstijden(STANDAARD_OPENINGSTIJDEN)).toBe(false)
+    expect(heeftEigenOpeningstijden({})).toBe(false)
+    expect(heeftEigenOpeningstijden(null)).toBe(false)
+    expect(heeftEigenOpeningstijden({ 1: ['06:00', '23:00'] })).toBe(true)
   })
 })

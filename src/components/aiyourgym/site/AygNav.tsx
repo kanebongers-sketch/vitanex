@@ -12,7 +12,7 @@ import { AANMELDEN, DEMO, DEMO_AANVRAGEN, NAV_LINKS, isHuidig } from './paden'
 // sluit bij elke paginawissel, met Escape en als het scherm breed wordt; de
 // focus gaat dan terug naar de menuknop.
 
-const BREED = '(min-width: 900px)'
+const BREED = '(min-width: 1024px)'
 
 function useMenuPaneel(open: boolean, sluit: () => void) {
   const knop = useRef<HTMLButtonElement>(null)

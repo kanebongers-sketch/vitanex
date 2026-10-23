@@ -49,20 +49,20 @@ export const ARTIKELEN: readonly Artikel[] = [
   {
     sleutel: 'leden-inlezen',
     titel: 'Leden inlezen en de ledenlijst',
-    samenvatting: 'Een export uit Sportivity of Excel inlezen, en leden zoeken en filteren.',
+    samenvatting: 'Een export uit je huidige systeem of Excel inlezen, en leden zoeken en filteren.',
     onderdeel: 'leden',
     stappen: [
-      'Maak in Sportivity of Excel een CSV-bestand (puntkomma, komma of tab; Club herkent het zelf). Hooguit 10 MB en 5000 rijen per bestand.',
-      'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht, de rest kies je of zet je op Niet inlezen.',
+      'Exporteer je leden uit je huidige systeem (zoals Virtuagym of Sportivity) als CSV, of sla je Excel-lijst op als CSV (puntkomma, komma of tab; Club herkent het zelf). Hooguit 10 MB en 5000 rijen per bestand.',
+      'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht (of een kolom met de volledige naam), de rest kies je of zet je op Niet inlezen.',
       'Druk op Controleren. Elke rij krijgt Nieuw, Bijwerken, Al gelijk of Dubbel. Daarna lees je de leden in voor de gekozen vestiging.',
       'Inlezen verwijdert nooit iemand, en een lege cel wist niets. Coach, tags en QR-code blijven zoals ze zijn.',
-      'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities.',
+      'In de ledenlijst zoek je op naam en filter je op status, abonnement, tag en coach. De tegel Risico toont leden met een behoudsscore onder 45. Klik een lid aan voor de ledenkaart met bezoek, reserveringen, afspraken, voortgang en notities. Daar pas je ook status, coach en tags aan, bijvoorbeeld als een proeflid lid wordt.',
     ],
     links: [
       { label: 'Ledenbestand inlezen', pad: '/club/leden/importeren' },
       { label: 'Ledenlijst', pad: '/club/leden' },
     ],
-    trefwoorden: ['import', 'importeren', 'csv', 'excel', 'sportivity', 'ledenkaart', 'behoud'],
+    trefwoorden: ['import', 'importeren', 'csv', 'excel', 'sportivity', 'virtuagym', 'overstappen', 'ledenkaart', 'behoud'],
   },
   {
     sleutel: 'checkin',
@@ -124,7 +124,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'In het Weekrooster maak je diensten met datum, begin, eind, medewerker en uursoort (werk, ziek of verlof). Kopieer vorige week of gebruik een vast patroon.',
       'Medewerkers geven hun vaste week en afwezigheid op bij Beschikbaarheid.',
       'Na een dienst vul je de gewerkte tijd en pauze in en druk je op Bevestig gewerkt. Een dienst gaat van Gepland naar Gewerkt, Goedgekeurd en Verwerkt.',
-      'Op het tabblad Uren kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris.',
+      'Op het tabblad Uren (eigenaar, clubmanager en administratie) kies je week of maand. Keur alles in een keer goed (afwijkingen blijven over), markeer als verwerkt en download de CSV voor het salaris. Trainers en instructeurs bevestigen alleen hun eigen uren.',
     ],
     links: [
       { label: 'Personeel', pad: '/club/personeel' },
@@ -247,6 +247,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       'Ook bij Huisstijl zet je onderdelen uit die je niet gebruikt, zoals check-in of personeel.',
       'Per vestiging stel je de regels en openingstijden, zalen, het weekrooster en medewerkers in. Lestypen gelden voor alle vestigingen.',
       'Bij Rechten per rol kies je welke onderdelen trainers, instructeurs, clubmanagers en de administratie zien.',
+      'Je team logt in op de inlogpagina met het eigen e-mailadres en een eigen wachtwoord. Open bij Medewerkers iemand en kies Uitnodigen; je krijgt een link (of QR-code) die je doorstuurt. Daarmee kiest de medewerker een keer een wachtwoord. Een tweede eigenaar of een clubmanager die mee beheert nodig je op dezelfde manier uit bij Huisstijl, Beheerders.',
     ],
     links: [
       { label: 'Instellingen', pad: '/club/beheer' },
@@ -254,7 +255,7 @@ export const ARTIKELEN: readonly Artikel[] = [
       { label: 'Medewerkers', pad: '/club/instellingen/medewerkers' },
       { label: 'Rechten per rol', pad: '/club/beheer/rechten' },
     ],
-    trefwoorden: ['logo', 'kleur', 'thema', 'modules', 'openingstijden', 'medewerkers', 'rollen'],
+    trefwoorden: ['logo', 'kleur', 'thema', 'modules', 'openingstijden', 'medewerkers', 'rollen', 'inloggen', 'uitnodigen', 'wachtwoord'],
   },
   {
     sleutel: 'ledenapp',
@@ -262,10 +263,11 @@ export const ARTIKELEN: readonly Artikel[] = [
     samenvatting: 'Wat leden in de app zien, en nieuws en acties plaatsen.',
     onderdeel: 'app',
     stappen: [
+      'Een lid nodig je uit op de ledenkaart, blok Ledenapp: het lid scant de QR-code, bevestigt het e-mailadres en kiest een wachtwoord. Daarna logt het in met e-mailadres en wachtwoord.',
       'Bij Instellingen, Ledenapp bekijken, zie je de app zoals een lid hem ziet: kies een lid en blader door Home, Lessen, Afspraken, Schema, Voeding, Voortgang en Profiel.',
       'Bij Instellingen, Ledenapp, stel je de welkomsttekst in, welke tabbladen aan staan en of de QR-code voor de check-in zichtbaar is.',
       'Bij Berichten plaats je nieuws, een actie of iets belangrijks, met begin en eind, voor welke vestigingen en eventueel alleen voor bepaalde leden. Een bericht kun je vastpinnen of meteen stoppen.',
-      'Abonnement en betalingen van leden blijven in Sportivity.',
+      'Abonnementen en incasso van leden blijven in je eigen ledenadministratie; Club regelt die niet.',
     ],
     links: [
       { label: 'Ledenapp bekijken', pad: '/club/app' },

@@ -13,6 +13,7 @@ import { isTestSessie } from '@/lib/aiyourgym/testbetaling'
 import { wachtendeTestbetaling } from '@/lib/aiyourgym/testbetaling-opslag'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { TestbetaalKnop } from '@/components/aiyourgym/aanmelden/TestbetaalKnop'
+import { AANMELDEN, INLOGGEN } from '@/components/aiyourgym/site/paden'
 
 // /aiyourgym/testbetaling?sessie=test_...: de plek van Stripe Checkout zolang
 // Stripe er niet is (besluit Kane 23-10-2026). Zegt eerlijk dat er niets wordt
@@ -35,6 +36,14 @@ function Onbekend() {
     <>
       <h1 className="aan-titel">Deze link kennen we niet.</h1>
       <p className="ayg-lead">De aanmelding is verlopen of al afgerond. Meld je opnieuw aan als je wilt starten.</p>
+      <div className="ayg-knoppen">
+        <a href={AANMELDEN} className="ayg-knop ayg-knop--accent">
+          Opnieuw aanmelden
+        </a>
+        <a href={INLOGGEN} className="ayg-knop ayg-knop--rand">
+          Inloggen
+        </a>
+      </div>
     </>
   )
 }

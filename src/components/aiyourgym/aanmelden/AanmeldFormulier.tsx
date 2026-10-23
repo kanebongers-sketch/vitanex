@@ -159,7 +159,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
           )}
           <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={verzenden.staat === 'bezig'}>
             {verzenden.staat === 'bezig' ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-            {!laatste ? 'Volgende' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
+            {!laatste ? 'Volgende' : pakket?.open && pakket.test ? 'Verder naar je proefperiode' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
             {verzenden.staat !== 'bezig' && <ArrowRight size={18} aria-hidden="true" />}
           </button>
         </div>

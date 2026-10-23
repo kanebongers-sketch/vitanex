@@ -42,12 +42,12 @@ export function leesDomein(ruw: unknown): DomeinUitslag {
   if (host.startsWith('https://')) host = host.slice(8)
   else if (host.includes('://')) return { ok: false, fout: `${ruw.trim()}: alleen https-adressen.` }
   host = host.replace(/\/+$/, '')
-  if (host === '' || host.length > 253) return { ok: false, fout: 'Vul een domein in, zoals fitfactory.nl.' }
+  if (host === '' || host.length > 253) return { ok: false, fout: 'Vul een domein in, zoals mijngym.nl.' }
   const wildcard = host.startsWith('*.')
   const kaal = wildcard ? host.slice(2) : host
   const labels = kaal.split('.')
   const geldig = labels.length >= 2 && labels.every((l) => LABEL.test(l)) && !/^\d+$/.test(labels[labels.length - 1])
-  if (!geldig) return { ok: false, fout: `${ruw.trim()} is geen geldig domein. Schrijf het zoals fitfactory.nl.` }
+  if (!geldig) return { ok: false, fout: `${ruw.trim()} is geen geldig domein. Schrijf het zoals mijngym.nl.` }
   return { ok: true, domein: wildcard ? `*.${kaal}` : kaal }
 }
 

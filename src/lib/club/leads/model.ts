@@ -25,7 +25,7 @@ export const VOLGENDE_STAP: Record<LeadStatus, string> = {
   contact: 'Proefles inplannen',
   proefles: 'Proefles laten doen',
   proefles_geweest: 'Lid maken of nabellen',
-  lid: 'Inschrijving afronden in Sportivity',
+  lid: 'Inschrijving afronden in je ledenadministratie',
   verloren: 'Afgesloten',
 }
 

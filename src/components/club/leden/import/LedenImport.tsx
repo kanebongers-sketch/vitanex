@@ -18,6 +18,8 @@ import { ImportOverzicht, type Controle } from './ImportOverzicht'
 interface LedenImportProps {
   vestiging: Vestiging
   vestigingLabel: string
+  /** Kwam de eigenaar uit de startwizard? Dan na het inlezen een knop terug. */
+  terugNaarStart?: string | null
 }
 
 interface Klaar {
@@ -38,7 +40,7 @@ function leesKlaar(data: unknown): Klaar | null {
   return data as Klaar
 }
 
-export function LedenImport({ vestiging, vestigingLabel }: LedenImportProps) {
+export function LedenImport({ vestiging, vestigingLabel, terugNaarStart = null }: LedenImportProps) {
   const [bestand, setBestand] = useState<{ naam: string; tabel: CsvTabel } | null>(null)
   const [koppeling, setKoppeling] = useState<Koppeling | null>(null)
   const [controle, setControle] = useState<Controle | null>(null)
@@ -91,7 +93,7 @@ export function LedenImport({ vestiging, vestigingLabel }: LedenImportProps) {
     } else setControle(leesControle(uit.data))
   }
 
-  if (klaar) return <ImportKlaar klaar={klaar} vestiging={vestiging} vestigingLabel={vestigingLabel} />
+  if (klaar) return <ImportKlaar klaar={klaar} vestiging={vestiging} vestigingLabel={vestigingLabel} terugNaarStart={terugNaarStart} />
 
   const teGroot = rijen.length > MAX_IMPORT_RIJEN
   const teVeranderen = controle ? controle.telling.nieuw + controle.telling.bijwerken : 0
@@ -114,7 +116,7 @@ export function LedenImport({ vestiging, vestigingLabel }: LedenImportProps) {
         <section className="club-import-stap" aria-labelledby="stap-controle">
           <h2 id="stap-controle"><span className="club-import-nummer">3</span> Controleren en inlezen</h2>
           {ontbreekt.length > 0 && (
-            <p className="club-melding">Kies eerst een kolom voor: {ontbreekt.map((v) => IMPORT_VELD_LABEL[v]).join(' en ')}.</p>
+            <p className="club-melding">Kies eerst een kolom voor: {ontbreekt.map((v) => IMPORT_VELD_LABEL[v]).join(' en ')}. Staat de hele naam in een kolom? Kies die dan bij Volledige naam.</p>
           )}
           {controle && <ImportOverzicht controle={controle} />}
           <div className="club-acties">
@@ -136,7 +138,7 @@ export function LedenImport({ vestiging, vestigingLabel }: LedenImportProps) {
   )
 }
 
-function ImportKlaar({ klaar, vestiging, vestigingLabel }: { klaar: Klaar; vestiging: Vestiging; vestigingLabel: string }) {
+function ImportKlaar({ klaar, vestiging, vestigingLabel, terugNaarStart }: { klaar: Klaar; vestiging: Vestiging; vestigingLabel: string; terugNaarStart: string | null }) {
   const kop = useRef<HTMLHeadingElement>(null)
   // Het resultaat verschijnt in een keer: zet de focus erop, dan leest een schermlezer het voor.
   useEffect(() => kop.current?.focus(), [])
@@ -153,7 +155,8 @@ function ImportKlaar({ klaar, vestiging, vestigingLabel }: { klaar: Klaar; vesti
         </p>
       )}
       <div className="club-acties">
-        <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--primair">Naar de leden</Link>
+        {terugNaarStart && <Link href={terugNaarStart} className="club-knop club-knop--primair">Verder met de startwizard</Link>}
+        <Link href={clubPad('/leden', vestiging)} className={terugNaarStart ? 'club-knop' : 'club-knop club-knop--primair'}>Naar de leden</Link>
       </div>
     </section>
   )

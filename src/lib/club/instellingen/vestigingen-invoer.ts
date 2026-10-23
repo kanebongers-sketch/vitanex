@@ -4,12 +4,34 @@
 // sportscholen, dus naast de naam krijgt hij een kort willekeurig achtervoegsel.
 
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
+import { openingstijdenNaarJson, openingstijdenUitJson } from '@/lib/club/rooster/openingstijden'
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
 export const MAX_VESTIGING_NAAM = 60
 export const MAX_ADRES = 160
 export const MAX_VESTIGINGEN = 40
+
+/**
+ * De openingstijden die een nieuwe vestiging krijgt (ma tot en met vr 07:00 tot
+ * 22:00, za en zo 09:00 tot 16:00). Een plaatshouder, geen keuze van de
+ * sportschool: de startwizard telt ze daarom niet als "al ingesteld".
+ */
+export const STANDAARD_OPENINGSTIJDEN: Readonly<Record<string, [string, string]>> = Object.fromEntries(
+  [1, 2, 3, 4, 5, 6, 7].map((d) => [String(d), d <= 5 ? ['07:00', '22:00'] : ['09:00', '16:00']]),
+)
+
+/** Staan er precies de openingstijden van een nieuwe vestiging (dus nog niets zelf gekozen)? */
+export function isStandaardOpen(ruw: unknown): boolean {
+  const dagen = openingstijdenNaarJson(openingstijdenUitJson(ruw))
+  const standaard = Object.entries(STANDAARD_OPENINGSTIJDEN)
+  return Object.keys(dagen).length === standaard.length && standaard.every(([d, [van, tot]]) => dagen[d]?.[0] === van && dagen[d]?.[1] === tot)
+}
+
+/** Heeft de sportschool zelf openingstijden gekozen (minstens een open dag, en niet de plaatshouder)? */
+export function heeftEigenOpeningstijden(ruw: unknown): boolean {
+  return openingstijdenUitJson(ruw).some((d) => d !== null) && !isStandaardOpen(ruw)
+}
 
 /** "Eindhoven Centrum" wordt "eindhoven-centrum-k3f9". */
 export function maakVestigingSlug(naam: string, achtervoegsel: string): string {

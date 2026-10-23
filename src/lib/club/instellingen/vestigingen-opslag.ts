@@ -6,7 +6,7 @@
 import { randomUUID } from 'node:crypto'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { hoortBij } from '@/lib/club/kern/vestigingen'
-import { MAX_VESTIGINGEN, maakVestigingSlug, nieuweVolgorde, type NieuweVestiging, type VestigingWijziging } from './vestigingen-invoer'
+import { MAX_VESTIGINGEN, STANDAARD_OPENINGSTIJDEN, maakVestigingSlug, nieuweVolgorde, type NieuweVestiging, type VestigingWijziging } from './vestigingen-invoer'
 
 export type Opslag = { ok: true; sleutel: string } | { ok: false; fout: string; status: number }
 
@@ -18,7 +18,6 @@ const STANDAARD_REGELS = {
   max_open_reserveringen: 5,
   checkin_venster_min: 15,
 }
-const STANDAARD_OPEN = Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [String(d), d <= 5 ? ['07:00', '22:00'] : ['09:00', '16:00']]))
 
 export async function maakVestiging(t: ClubToegang, nieuw: NieuweVestiging): Promise<Opslag> {
   if (t.vestigingen.length >= MAX_VESTIGINGEN) return { ok: false, fout: `Maximaal ${MAX_VESTIGINGEN} vestigingen.`, status: 400 }
@@ -31,7 +30,7 @@ export async function maakVestiging(t: ClubToegang, nieuw: NieuweVestiging): Pro
       naam: nieuw.naam,
       adres: nieuw.adres,
       regels: STANDAARD_REGELS,
-      openingstijden: STANDAARD_OPEN,
+      openingstijden: STANDAARD_OPENINGSTIJDEN,
       volgorde: t.vestigingen.length + 1,
       standaard: t.vestigingen.length === 0,
     })

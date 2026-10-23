@@ -18,3 +18,10 @@ export function siteActief(env: Record<string, string | undefined> = process.env
 export function aygIndexeren(env: Record<string, string | undefined> = process.env): boolean {
   return env.AIYOURGYM_INDEXEREN === '1'
 }
+
+// Staan de subdomeinen naam.aiyourgym.com aan? (CLUB_SUBDOMEINEN_ACTIEF=1 in
+// Render). Zolang niet, heeft elke sportschool het adres aiyourgym.com/<slug>
+// (besluit Kane 23-10-2026, src/lib/club/kern/pad-adres.ts).
+export function subdomeinenActief(env: Record<string, string | undefined> = process.env): boolean {
+  return env.CLUB_SUBDOMEINEN_ACTIEF === '1'
+}

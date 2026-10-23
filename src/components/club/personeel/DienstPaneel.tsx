@@ -23,9 +23,11 @@ interface Props {
   beschikbaarheid: Beschikbaarheid[]
   bemand: Openingstijden
   sluitHref: string
+  /** Wat deze persoon met de uren mag (zie uren-rechten.ts). */
+  uren: { goedkeuren: boolean; wijzigen: boolean }
 }
 
-export function DienstPaneel({ vestiging, dienst, start, team, soorten, alle, beschikbaarheid, bemand, sluitHref }: Props) {
+export function DienstPaneel({ vestiging, dienst, start, team, soorten, alle, beschikbaarheid, bemand, sluitHref, uren }: Props) {
   const lid = dienst ? (team.find((l) => l.id === dienst.medewerkerId) ?? null) : null
   const titel = dienst ? (lid?.naam ?? 'Open dienst') : 'Nieuwe dienst'
   const sub = dienst ? (
@@ -53,7 +55,7 @@ export function DienstPaneel({ vestiging, dienst, start, team, soorten, alle, be
           sluitHref={sluitHref}
         />
       )}
-      {dienst && dienst.medewerkerId && <DienstUren dienst={dienst} />}
+      {dienst && dienst.medewerkerId && <DienstUren dienst={dienst} magGoedkeuren={uren.goedkeuren} magWijzigen={uren.wijzigen} />}
       {dienst && !opSlot && <DienstActies dienst={dienst} alle={alle} team={team} sluitHref={sluitHref} />}
     </Paneel>
   )

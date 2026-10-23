@@ -16,10 +16,11 @@ interface SamenvattingProps {
 export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: SamenvattingProps) {
   const veld = adresVeld(subdomeinen)
   const naam = invoer.slug || 'jouwgym'
+  const aanvraag = pakket !== null && !pakket.open
   const stappen = [
-    { Icoon: CalendarCheck, tekst: pakket && !pakket.open ? 'We nemen zelf contact met je op om je sportschool te starten.' : `Je start met ${proefdagen} dagen gratis. Daarna per maand, per vestiging.` },
-    { Icoon: LayoutDashboard, tekst: 'Je sportschool staat direct klaar met een eigen omgeving en een basisbibliotheek met oefeningen.' },
-    { Icoon: KeyRound, tekst: 'Je krijgt een persoonlijke inloglink naar je portaal. Daar stel je huisstijl, vestigingen en rechten in.' },
+    { Icoon: CalendarCheck, tekst: aanvraag ? 'We nemen zelf contact met je op om je sportschool te starten.' : `Je start met ${proefdagen} dagen gratis. Daarna per maand, per vestiging.` },
+    { Icoon: LayoutDashboard, tekst: aanvraag ? 'Na de start staat je eigen omgeving klaar, met een basisbibliotheek met oefeningen.' : 'Je eigen omgeving staat direct klaar, met een basisbibliotheek met oefeningen.' },
+    { Icoon: KeyRound, tekst: 'Je logt in met je e-mailadres en het wachtwoord dat je hier kiest. Een startwizard helpt je met huisstijl, vestigingen, lessen en team.' },
   ]
   return (
     <aside className="aan-samen ayg-podium" aria-label="Je aanmelding">
@@ -33,7 +34,9 @@ export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: Samenv
             {veld.achter && <span className="aan-samen-domein">{veld.achter}</span>}
           </span>
         </p>
-        <p className="aan-samen-uitleg">Hier werken jij en je team. Je leden krijgen de app in jouw naam en kleuren.</p>
+        <p className="aan-samen-uitleg">
+          Hier werken jij en je team. Je leden krijgen de app in jouw naam en kleuren.
+        </p>
       </div>
       <dl className="aan-samen-keuze">
         <div>

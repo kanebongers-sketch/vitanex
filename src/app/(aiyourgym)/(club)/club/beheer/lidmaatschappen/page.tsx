@@ -35,8 +35,8 @@ export default async function LidmaatschappenPagina({ searchParams }: { searchPa
           <p className="club-boventitel">{t.organisatie.naam}</p>
           <h1>Lidmaatschappen en labels</h1>
           <p>
-            De vormen zoals ze in Sportivity heten, met waar en wanneer een lid mag sporten, en de labels die je aan leden hangt. Prijzen,
-            contracten en incasso blijven in Sportivity.
+            De vormen zoals ze in je ledenadministratie heten, met waar en wanneer een lid mag sporten, en de labels die je aan leden hangt. Prijzen,
+            contracten en incasso blijven in je ledenadministratie.
           </p>
         </div>
         <nav aria-label="Onderdeel">

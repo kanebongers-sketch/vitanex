@@ -36,7 +36,8 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
   const [gekopieerd, setGekopieerd] = useState<string | null>(null)
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
-  const [rol, setRol] = useState<BeheerderRol>('eigenaar')
+  // Veilig standaard: een clubmanager ziet alleen wat de eigenaar aanvinkt; een tweede eigenaar kies je bewust.
+  const [rol, setRol] = useState<BeheerderRol>('clubmanager')
 
   async function voegToe() {
     if (bezig || !naam.trim() || !email.trim()) return
@@ -47,6 +48,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
     if (!uit.ok) return setFout(uit.fout)
     setNaam('')
     setEmail('')
+    setRol('clubmanager')
     router.refresh()
   }
 
@@ -76,12 +78,12 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
     <section className="club-kaart club-beheerders" aria-labelledby="beheerders-kop">
       <h2 id="beheerders-kop">Beheerders van {sportschool}</h2>
       <p className="club-hint">
-        Nodig eigenaren en clubmanagers uit met hun e-mailadres. Met de uitnodigingslink kiezen ze een keer een wachtwoord; daarna loggen ze in met e-mailadres en wachtwoord. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt bij Instellingen, Rechten per rol.
+        Nodig eigenaren en clubmanagers uit met hun e-mailadres. Kopieer daarna hun uitnodigingslink en stuur die door (bijvoorbeeld per mail of app): daarmee kiezen ze een keer een wachtwoord en loggen ze voortaan in met e-mailadres en wachtwoord. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt bij Instellingen, Rechten per rol.
         {!loginAan && ' De eigen login staat nog uit: uitnodigingen werken pas als de schakelaar aan gaat.'}
       </p>
 
       {beheerders === null ? (
-        <p className="club-melding club-melding--fout" role="alert">De beheerders konden niet worden gelezen. Is migratie 410 al gedraaid?</p>
+        <p className="club-melding club-melding--fout" role="alert">De beheerders konden niet worden gelezen. Ververs de pagina of probeer het later opnieuw.</p>
       ) : actieven.length === 0 ? (
         <p className="club-hint">Nog geen beheerders.</p>
       ) : (

@@ -233,6 +233,17 @@ export const REPDB_KOPPELING_444: readonly RepdbKoppeling[] = [
 /** Alle oefeningen met een RepDB-beeld: samen precies de actieve standaardbibliotheek. */
 export const REPDB_ALLE_KOPPELINGEN: readonly RepdbKoppeling[] = [...REPDB_KOPPELING, ...REPDB_KOPPELING_400, ...REPDB_KOPPELING_444]
 
+const STANDAARD_NAMEN: ReadonlySet<string> = new Set(REPDB_ALLE_KOPPELINGEN.map((k) => k.naam))
+
+/**
+ * Hoort deze oefening bij de standaardbibliotheek van AI Your Gym? Alleen die
+ * gaat mee naar een nieuwe sportschool; oefeningen die een sportschool zelf
+ * maakte (ook de eigen sportschool van het platform) blijven van die sportschool.
+ */
+export function isStandaardOefening(naam: unknown): boolean {
+  return typeof naam === 'string' && STANDAARD_NAMEN.has(naam)
+}
+
 /**
  * Migratie 400: elke oefening uit REPDB_GEEN_MATCH staat op inactief en is
  * vervangen door de dichtstbijzijnde oefening met een RepDB-beeld (zelfde

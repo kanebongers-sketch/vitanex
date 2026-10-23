@@ -18,11 +18,14 @@ export const ROL_LABEL: Record<MedewerkerRol, string> = {
   administratie: 'Administratie',
 }
 
-/** Welke onderdelen een rol straks ziet. De testfase is alleen Kane (alles). */
+/**
+ * Welke onderdelen een rol standaard ziet (de eigenaar past dit aan bij Rechten per rol).
+ * Notities (overdracht tussen diensten) hoort bij de werkvloer van trainer en clubmanager.
+ */
 export const RECHTEN: Record<MedewerkerRol, readonly string[]> = {
-  trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'voeding', 'rooster', 'afspraken', 'leads', 'personeel', 'taken', 'opvolgen'],
+  trainer: ['vandaag', 'checkin', 'leden', 'schemas', 'voeding', 'rooster', 'afspraken', 'leads', 'personeel', 'taken', 'opvolgen', 'notities'],
   instructeur: ['vandaag', 'rooster', 'personeel'],
-  manager: ['vandaag', 'checkin', 'leden', 'berichten', 'rooster', 'afspraken', 'personeel', 'taken', 'opvolgen', 'leads', 'challenges', 'community', 'schemas', 'voeding', 'cijfers', 'instellingen'],
+  manager: ['vandaag', 'checkin', 'leden', 'berichten', 'rooster', 'afspraken', 'personeel', 'taken', 'opvolgen', 'notities', 'leads', 'challenges', 'community', 'schemas', 'voeding', 'cijfers', 'instellingen'],
   administratie: ['personeel'],
 }
 

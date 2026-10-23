@@ -52,7 +52,7 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
           <h1>Betalen in de ledenapp</h1>
           <p>
             Leden kopen in de app een losse les, een strippenkaart, een PT-pakket of een product. Ze betalen met iDEAL of kaart bij Stripe en het geld
-            komt rechtstreeks bij jouw sportschool. Lidmaatschappen en incasso blijven in Sportivity.
+            komt rechtstreeks bij jouw sportschool. Lidmaatschappen en incasso blijven in je ledenadministratie.
           </p>
         </div>
       </header>

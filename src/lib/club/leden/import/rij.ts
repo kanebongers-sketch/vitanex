@@ -73,6 +73,38 @@ export function statusUitEinddatum(einddatum: string | null, vandaag: string): L
   return einddatum < vandaag ? 'gestopt' : 'opgezegd'
 }
 
+/**
+ * Een hele naam in voornaam en achternaam: "Jan de Vries" wordt Jan en
+ * "de Vries"; "Vries, Jan de" (achternaam eerst) ook. Een naam van een woord
+ * kan niet: dan weten we niet wat de achternaam is.
+ */
+export function splitsNaam(ruw: string | undefined): { voornaam: string; achternaam: string } | null {
+  const naam = (ruw ?? '').trim().replace(/\s+/g, ' ')
+  if (!naam) return null
+  const komma = naam.indexOf(',')
+  if (komma !== -1) {
+    const achter = naam.slice(0, komma).trim()
+    const [voornaam, ...tussen] = naam.slice(komma + 1).trim().split(' ').filter(Boolean)
+    return achter && voornaam ? { voornaam, achternaam: [...tussen, achter].join(' ') } : null
+  }
+  const [voornaam, ...rest] = naam.split(' ')
+  return rest.length > 0 ? { voornaam, achternaam: rest.join(' ') } : null
+}
+
+/**
+ * Een ontbrekende achternaam (en voornaam) uit de kolom met de hele naam. Is er
+ * al een voornaam, dan is de rest van de naam de achternaam ("Jan" en "Jan de
+ * Vries" wordt "de Vries"); begint de naam er niet mee, dan is die kolom zelf de
+ * achternaam (sommige systemen noemen de achternaam "Naam").
+ */
+function naamAanvullen(voornaam: string | null, volledig: string | undefined): { voornaam: string; achternaam: string } | null {
+  const naam = (volledig ?? '').trim().replace(/\s+/g, ' ')
+  if (!naam) return null
+  if (!voornaam) return splitsNaam(naam)
+  const rest = naam.toLowerCase().startsWith(`${voornaam.toLowerCase()} `) ? naam.slice(voornaam.length + 1).trim() : naam
+  return rest ? { voornaam, achternaam: rest } : null
+}
+
 function kort(waarde: string | undefined, max: number): string | null {
   const w = (waarde ?? '').trim().replace(/\s+/g, ' ')
   return w ? w.slice(0, max) : null
@@ -114,10 +146,13 @@ export function ruweRijUit(invoer: unknown): RuweRij | null {
 
 /** Een rij controleren en omzetten naar een lid. `vandaag` als JJJJ-MM-DD (voor de status). */
 export function controleerRij(rij: RuweRij, vandaag: string): RijUitslag {
-  const voornaam = kort(rij.voornaam, MAX.voornaam)
-  const achternaamZonder = kort(rij.achternaam, MAX.achternaam)
+  const eigenAchternaam = kort(rij.achternaam, MAX.achternaam)
+  const uitNaam = eigenAchternaam ? null : naamAanvullen(kort(rij.voornaam, MAX.voornaam), rij.volledigeNaam)
+  const voornaam = kort(rij.voornaam, MAX.voornaam) ?? kort(uitNaam?.voornaam, MAX.voornaam)
+  const achternaamZonder = eigenAchternaam ?? kort(uitNaam?.achternaam, MAX.achternaam)
   if (!voornaam || !achternaamZonder) return { ok: false, fout: 'Voornaam of achternaam ontbreekt.' }
-  const tussen = kort(rij.tussenvoegsel, 20)
+  // Een tussenvoegsel hoort bij een eigen kolom achternaam; uit de hele naam zit het er al in.
+  const tussen = eigenAchternaam ? kort(rij.tussenvoegsel, 20) : null
   const achternaam = (tussen ? `${tussen} ${achternaamZonder}` : achternaamZonder).slice(0, MAX.achternaam)
 
   const waarschuwingen: string[] = []

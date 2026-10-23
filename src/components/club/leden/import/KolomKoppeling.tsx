@@ -1,9 +1,10 @@
 'use client'
 
-import { IMPORT_VELDEN, IMPORT_VELD_LABEL, VERPLICHTE_VELDEN, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
+import { IMPORT_VELDEN, IMPORT_VELD_LABEL, isVerplicht, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
 
 // Stap 2: welke kolom uit het bestand hoort bij welk veld. Vooraf ingevuld met
-// wat we herkennen; met een voorbeeldwaarde uit de eerste rij ernaast.
+// wat we herkennen; met een voorbeeldwaarde uit de eerste rij ernaast. Met een
+// kolom Volledige naam zijn voornaam en achternaam niet meer verplicht.
 
 interface KolomKoppelingProps {
   koppen: string[]
@@ -18,12 +19,13 @@ export function KolomKoppeling({ koppen, eersteRij, koppeling, onWijzig }: Kolom
       {IMPORT_VELDEN.map((veld) => {
         const kolom = koppeling[veld]
         const voorbeeld = kolom !== null ? eersteRij?.[kolom] : null
-        const verplicht = VERPLICHTE_VELDEN.includes(veld)
+        const verplicht = isVerplicht(veld, koppeling)
         return (
           <label key={veld} className="club-import-veld" data-leeg={kolom === null || undefined}>
             <span className="club-import-veldnaam">
               {IMPORT_VELD_LABEL[veld]}
               {verplicht && <span className="club-import-verplicht"> verplicht</span>}
+              {veld === 'volledigeNaam' && <span className="club-zacht"> als er geen aparte voor- en achternaam is</span>}
             </span>
             <select
               aria-required={verplicht}
