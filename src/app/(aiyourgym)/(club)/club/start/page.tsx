@@ -9,9 +9,9 @@ import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { nlDelen } from '@/lib/club/rooster/tijd'
-import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, startPad, stapNummer, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
-import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
-import { voorstelLestypen, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
+import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, nogOpen, startPad, stapNummer, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten, type StartVoortgang } from '@/lib/club/start/stappen'
+import { bewaarStart, haalStart, haalStartFeiten, wizardPoortDicht } from '@/lib/club/start/opslag'
+import { voorbeeldLes, voorstelLestypen, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { ALLE_LESSEN, ALLE_LESTYPEN, VOORBEELD_LESTYPEN } from '@/lib/club/start/voorbeelden'
 import { eersteDag, liveActies } from '@/lib/club/start/eerste-dag'
 import { StartKader } from '@/components/club/start/StartKader'
@@ -24,6 +24,7 @@ import { OnderdeelAan } from '@/components/club/start/OnderdeelAan'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { STAP_INTRO, StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
 import { StapLive, type LiveAdressen } from '@/components/club/start/StapLive'
+import { LedenAfronden } from '@/components/club/start/LedenAfronden'
 import { StreefdatumKiezer } from '@/components/club/start/StreefdatumKiezer'
 import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze } from '@/components/club/start/StapInstellingen'
 
@@ -47,6 +48,8 @@ interface StapProps {
   afgerond: boolean
   feiten: StartFeiten
   stand: ReturnType<typeof stappenStand>
+  /** De voortgang (voor de bevestigingen zoals Ik werk alleen), of null. */
+  voortgang: StartVoortgang | null
   /** De gekozen streefdatum voor livegang (YYYY-MM-DD), of null. */
   streefdatum: string | null
 }
@@ -97,6 +100,13 @@ async function haalBestaand(t: ClubToegang): Promise<{ vestigingen: BestaandeVes
   }
 }
 
+/** De namen van de actieve lestypen, voor het voorbeeld van de ledenapp. */
+async function haalLesNamen(t: ClubToegang): Promise<string[]> {
+  const { data, error } = await t.admin.from('club_lestypen').select('naam').eq('user_id', t.userId).eq('actief', true).order('naam')
+  if (error) console.error('[club-start] lestypen lezen mislukt', error.message)
+  return (data ?? []).map((r) => String((r as { naam: unknown }).naam))
+}
+
 interface MedewerkerKort {
   id: string
   naam: string
@@ -112,7 +122,7 @@ function instructeursUit(medewerkers: readonly MedewerkerKort[], vestiging: stri
   return (lesgevers.length > 0 ? lesgevers : hier).map((m) => ({ id: m.id, naam: m.naam }))
 }
 
-async function Lessen({ t, voet, soort, waarden }: Pick<StapProps, 't' | 'voet' | 'soort'> & { waarden: HuisstijlWaarden }) {
+async function Lessen({ t, voet, soort, waarden, geenVasteLessen }: Pick<StapProps, 't' | 'voet' | 'soort'> & { waarden: HuisstijlWaarden; geenVasteLessen: boolean }) {
   const vestiging = voet.vestiging
   if (!moduleAan(t.organisatie, 'rooster')) {
     return (
@@ -140,6 +150,7 @@ async function Lessen({ t, voet, soort, waarden }: Pick<StapProps, 't' | 'voet' 
         passend={passend}
         bibliotheek={ALLE_LESTYPEN}
         voorbeeldLessen={ALLE_LESSEN}
+        geenVasteLessen={geenVasteLessen}
         voet={voet}
       />
     </>
@@ -147,7 +158,8 @@ async function Lessen({ t, voet, soort, waarden }: Pick<StapProps, 't' | 'voet' 
 }
 
 /** Stappen met eigen invoer brengen hun eigen voet mee; de rest krijgt de standaardvoet. */
-async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum }: StapProps) {
+async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum, voortgang }: StapProps) {
+  const bevestigd = voortgang?.bevestigd ?? []
   const org = t.organisatie
   const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
   const vestiging = voet.vestiging
@@ -163,16 +175,17 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
     }
     case 'huisstijl': {
       const logoUrl = logoAdres(org)
-      return <StapHuisstijl key={org.id} organisatie={waarden} logoUrl={logoUrl} ingebouwdLogo={org.logo === LOGO_FIT_FACTORY} slug={org.slug} subdomeinen={subdomeinenActief()} voet={voet} />
+      const les = voorbeeldLes(await haalLesNamen(t), soort)
+      return <StapHuisstijl key={org.id} organisatie={waarden} logoUrl={logoUrl} ingebouwdLogo={org.logo === LOGO_FIT_FACTORY} slug={org.slug} subdomeinen={subdomeinenActief()} voorbeeldLes={les} voet={voet} />
     }
     case 'vestigingen':
       return <StapVestigingen t={t} vestiging={vestiging} soort={soort} voet={voet} />
     case 'onderdelen':
       return <StapOnderdelen key={org.id} organisatie={waarden} soort={soort} voet={voet} />
     case 'lessen':
-      return <Lessen t={t} voet={voet} soort={soort} waarden={waarden} />
+      return <Lessen t={t} voet={voet} soort={soort} waarden={waarden} geenVasteLessen={bevestigd.includes('geen_vaste_lessen')} />
     case 'team':
-      return <MetVoet voet={voet}><StapTeam t={t} vestiging={vestiging} soort={soort} /></MetVoet>
+      return vestiging ? <StapTeam t={t} vestiging={vestiging} soort={soort} voet={voet} alleen={bevestigd.includes('alleen')} /> : <MetVoet voet={voet}><GeenVestiging /></MetVoet>
     case 'leden': {
       if (!moduleAan(org, 'leden')) {
         return (
@@ -183,17 +196,22 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
       }
       if (!vestiging) return <MetVoet voet={voet}><GeenVestiging /></MetVoet>
       return (
-        <MetVoet voet={voet}>
+        <>
           <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
           <StapLedenInlezen vestiging={vestiging} vestigingLabel={naamVan(t.vestigingen, vestiging)} verderPad={startPad(stapNummer('klaar'), vestiging)} vandaag={nlDelen(new Date()).datum} />
-        </MetVoet>
+          <LedenAfronden leden={feiten.leden} zonderLeden={bevestigd.includes('zonder_leden')} voet={voet} />
+        </>
       )
     }
-    case 'klaar':
+    case 'klaar': {
+      const open = nogOpen(stand).map((s) => ({ nummer: s.nummer, titel: s.titel, kort: s.kort, pad: startPad(s.nummer, vestiging) }))
+      const les = voorbeeldLes(await haalLesNamen(t), soort)
       return (
-        <MetVoet voet={{ ...voet, afgerond }}>
+        <MetVoet voet={{ ...voet, afgerond, kanAfronden: open.length === 0 }}>
           <StapLive
             afgerond={afgerond}
+            open={open}
+            voorbeeldLes={les}
             af={aantalAf(stand)}
             totaal={AANTAL_STAPPEN}
             adressen={liveAdressen(org)}
@@ -205,9 +223,10 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             acties={liveActies(feiten.uit, vestiging)}
           />
           {!afgerond && <Streef streefdatum={streefdatum} stand={stand} />}
-          <StapKlaar punten={eersteDag(feiten, vestiging, afgerond)} stand={stand} vestiging={vestiging} />
+          <StapKlaar punten={eersteDag(feiten, vestiging, afgerond, voortgang)} />
         </MetVoet>
       )
+    }
   }
 }
 
@@ -224,8 +243,10 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   const huidig = stapInUrl ?? voortgang?.stap ?? 1
   const sleutel = STAPPEN[huidig - 1].sleutel
   const vestiging = kiesUit(t.vestigingen, params.v)
+  // Het kruimelpad wijst naar Instellingen: alleen als die open zijn (het master account ziet altijd alles).
+  const kruimel = !(await wizardPoortDicht(t))
   return (
-    <StartKader t={t} kruimel={Boolean(voortgang?.afgerondOp)} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
+    <StartKader t={t} kruimel={kruimel} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
       {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">Je voortgang kon niet worden gelezen. Je kunt gewoon verder; probeer het later opnieuw als iets niet wordt bewaard.</p>}
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}
@@ -236,6 +257,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
         feiten={feiten}
         stand={stand}
         streefdatum={voortgang?.streefdatum ?? null}
+        voortgang={voortgang}
       />
     </StartKader>
   )

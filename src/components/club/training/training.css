@@ -108,7 +108,7 @@
 .club-training-bmi { display: grid; gap: 2px; padding: 10px 14px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
 .club-training-bmi .club-tegel-getal { font-size: 32px; color: var(--brand-tekst, var(--brand)); }
 
-.club-training-klaar { display: grid; gap: 12px; max-width: 720px; }
+.club-training-klaar { display: grid; gap: 12px; max-width: var(--club-formulier); }
 .club-training-klaar .club-acties { align-items: center; }
 .club-training-klaar h2 { margin: 0; font-family: var(--ff-kop); font-size: 34px; text-transform: uppercase; }
 .club-training-voorstelknop { display: grid; gap: 6px; justify-items: start; }
@@ -163,6 +163,13 @@
 .club-training-schemas { padding: 4px; }
 .club-training-schemas > li { border-bottom: 1px solid var(--line); }
 .club-training-schemas > li:last-child { border-bottom: 0; }
+/* Groot scherm: schema's en intakes in twee kolommen, zodat een rij niet over 1800px uitrekt.
+   De scheidingslijn loopt dan per kolom; de onderste rij van elke kolom heeft er geen. */
+@media (min-width: 1500px) {
+  .club-training-schemas, .club-training-intakes { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .club-training-schemas > li:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+  .club-training-intakes > .club-rij:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+}
 .club-training-schemarij { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 18px; align-items: center; gap: 6px 20px; padding: 14px; border-radius: var(--club-radius-klein); color: var(--text-1); text-decoration: none; transition: background-color 140ms var(--ease); }
 .club-training-schemarij:hover { background: var(--club-vlak-hover); }
 .club-training-schemarij:hover strong { color: var(--brand-tekst, var(--brand)); }

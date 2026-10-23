@@ -12,9 +12,11 @@ interface LedenappVoorbeeldProps {
   thema: Thema
   /** Het logo (adres of tijdelijke voorvertoning), of null: dan de naam als woordmerk. */
   logo: string | null
+  /** De les in het voorbeeld: het eerste lestype van de sportschool, of een die bij de soort past. */
+  les?: string
 }
 
-export function LedenappVoorbeeld({ naam, kleur, thema, logo }: LedenappVoorbeeldProps) {
+export function LedenappVoorbeeld({ naam, kleur, thema, logo, les = 'Groepsles' }: LedenappVoorbeeldProps) {
   const stijl: CSSProperties = huisstijlVariabelen(HEX.test(kleur) ? kleur : '#B58E5C', thema) as CSSProperties
   return (
     <figure className="club-start-telefoon-wrap" aria-label="Voorbeeld van de ledenapp">
@@ -30,7 +32,7 @@ export function LedenappVoorbeeld({ naam, kleur, thema, logo }: LedenappVoorbeel
           </span>
           <div className="club-start-tel-kaart">
             <span className="club-start-tel-label">Volgende les</span>
-            <strong>Spinning</strong>
+            <strong>{les}</strong>
             <span className="club-start-tel-meta">Vandaag 19:00 · nog 6 plekken</span>
             <span className="club-start-tel-knop">Reserveren</span>
           </div>

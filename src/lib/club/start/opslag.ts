@@ -59,22 +59,34 @@ async function tel(t: Pick<ClubToegang, 'admin' | 'userId'>, tabel: string, alle
   return error ? 0 : (count ?? 0)
 }
 
-async function telIngerichteVestigingen(t: Pick<ClubToegang, 'admin' | 'userId'>): Promise<number> {
-  const { data, error } = await t.admin.from('club_vestigingen').select('adres, openingstijden').eq('user_id', t.userId)
-  if (error) console.error('[club-start] vestigingen lezen mislukt', error.message)
-  return (data ?? []).filter((r) => vestigingIngericht(r as { adres?: unknown; openingstijden?: unknown })).length
+interface VestigingTelling {
+  vestigingen: number
+  vestigingenMetAdres: number
+  vestigingenIngericht: number
 }
 
-/** Wat de echte data zegt: logo, vestigingen, lestypen, vaste lessen, medewerkers en leden. */
+/** Alle vestigingen, die met een adres en die met adres of eigen tijden; 0 bij een fout (gelogd). */
+async function telVestigingen(t: Pick<ClubToegang, 'admin' | 'userId'>): Promise<VestigingTelling> {
+  const { data, error } = await t.admin.from('club_vestigingen').select('adres, openingstijden').eq('user_id', t.userId)
+  if (error) console.error('[club-start] vestigingen lezen mislukt', error.message)
+  const rijen = (data ?? []) as { adres?: unknown; openingstijden?: unknown }[]
+  return {
+    vestigingen: rijen.length,
+    vestigingenMetAdres: rijen.filter((r) => typeof r.adres === 'string' && r.adres.trim() !== '').length,
+    vestigingenIngericht: rijen.filter(vestigingIngericht).length,
+  }
+}
+
+/** Wat de echte data zegt: logo, adres, vestigingen, lestypen, vaste lessen, medewerkers en leden. */
 export async function haalStartFeiten(t: Pick<ClubToegang, 'admin' | 'userId' | 'organisatie'>): Promise<StartFeiten> {
-  const [vestigingenIngericht, lestypen, vasteLessen, medewerkers, leden] = await Promise.all([
-    telIngerichteVestigingen(t),
+  const [vest, lestypen, vasteLessen, medewerkers, leden] = await Promise.all([
+    telVestigingen(t),
     tel(t, 'club_lestypen', true),
     tel(t, 'club_lesseries', true),
     tel(t, 'club_medewerkers', true),
     tel(t, 'club_leden', false),
   ])
-  return { heeftLogo: t.organisatie.logo !== null, vestigingenIngericht, lestypen, vasteLessen, medewerkers, leden, uit: t.organisatie.uit }
+  return { heeftLogo: t.organisatie.logo !== null, heeftAdres: Boolean(t.organisatie.slug), ...vest, lestypen, vasteLessen, medewerkers, leden, uit: t.organisatie.uit }
 }
 
 /**

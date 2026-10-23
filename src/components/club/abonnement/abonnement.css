@@ -2,7 +2,7 @@
    Een grote statusregel bovenaan, daaronder een strakke feitenlijst en de
    knop naar Stripe. Alleen .club-abo-*. */
 
-.club-abo { display: grid; gap: 24px; max-width: 760px; margin-top: 24px; }
+.club-abo { display: grid; gap: 24px; max-width: var(--club-formulier-breed); margin-top: 24px; }
 .club-abo-status { display: grid; gap: 6px; padding: 22px 24px; border: 1px solid var(--line); border-left: 4px solid var(--abo-toon, var(--line-strong)); border-radius: var(--club-radius); background: var(--bg-card); }
 .club-abo-status[data-toon='goed'] { --abo-toon: var(--club-ok); }
 .club-abo-status[data-toon='let'] { --abo-toon: var(--brand); }
@@ -25,4 +25,4 @@
 .club-abo-actie .club-hint { margin: 0; max-width: 560px; }
 .club-abo-uitleg { display: grid; gap: 8px; padding: 20px 22px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); color: var(--text-2); line-height: 1.55; }
 .club-abo-uitleg h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; color: var(--text-1); }
-.club-abo-uitleg p { margin: 0; }
+.club-abo-uitleg p { margin: 0; max-width: var(--club-lees); }

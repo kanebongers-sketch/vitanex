@@ -9,11 +9,13 @@
 .club-beheer-stip { width: 18px; height: 18px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
 .club-beheer-adres { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: var(--text-2); }
 .club-beheer-adres svg { color: var(--brand-tekst, var(--brand)); }
-.club-beheer-modules { margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.5; max-width: 80ch; }
+.club-beheer-modules { margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.5; max-width: var(--club-lees); }
 .club-beheer-tedoen { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 8px 0 0; padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent); background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); font-size: 13.5px; font-weight: 600; }
 
 .club-beheer-groepen { display: grid; gap: 28px 40px; margin-top: 28px; }
 @media (min-width: 1100px) { .club-beheer-groepen { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+/* Groot scherm: drie kolommen, zodat het centrum de breedte vult in plaats van lange regels. */
+@media (min-width: 1640px) { .club-beheer-groepen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .club-beheer-groep { display: grid; gap: 10px; min-width: 0; }
 .club-beheer-groepkop { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
 .club-beheer-groepkop::after { content: ''; flex: 1; height: 1px; background: var(--line); }
@@ -47,7 +49,7 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 }
 
 /* ── Formulieren (ledenapp, rechten) ─────────────────────────────────────── */
-.club-beheer-formulier { display: grid; gap: 22px; max-width: 760px; margin-top: 20px; }
+.club-beheer-formulier { display: grid; gap: 22px; max-width: var(--club-formulier); margin-top: 20px; }
 /* Een groep keuzes: geen browserkader, de legend als label erboven. */
 .club-beheer-keuzes { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .club-beheer-keuzes > legend { margin: 0 0 8px; padding: 0; }
@@ -82,7 +84,7 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 .club-beheer-matrix tbody tr.club-beheer-matrix-groep:hover { background: none; }
 
 /* ── Privacy en bewaren ───────────────────────────────────────────────────── */
-.club-privacy-intro { max-width: 760px; margin: 4px 0 0; padding: 12px 14px; border-left: 2px solid var(--brand); background: var(--bg-card); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; color: var(--text-2); }
+.club-privacy-intro { max-width: var(--club-formulier); margin: 4px 0 0; padding: 12px 14px; border-left: 2px solid var(--brand); background: var(--bg-card); border-radius: 0 var(--club-radius-klein) var(--club-radius-klein) 0; color: var(--text-2); }
 .club-privacy-termijn { display: grid; grid-template-columns: minmax(0, 1fr) 180px; align-items: start; gap: 8px 20px; padding: 16px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-card); transition: border-color 160ms var(--ease); }
 .club-privacy-termijn:hover, .club-privacy-termijn:focus-within { border-color: var(--line-strong); }
 .club-privacy-termijn .club-hint { margin: 0; line-height: 1.5; }
@@ -90,7 +92,7 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 @media (max-width: 560px) {
   .club-privacy-termijn { grid-template-columns: minmax(0, 1fr); }
 }
-.club-privacy-vast { display: grid; gap: 10px; max-width: 960px; margin-top: 40px; }
+.club-privacy-vast { display: grid; gap: 10px; max-width: var(--club-formulier-breed); margin-top: 40px; }
 .club-privacy-vast h2 { margin: 0; }
 .club-privacy-vast > .club-hint { margin: 0 0 4px; }
 .club-privacy-vast .club-tabel { min-width: 560px; }

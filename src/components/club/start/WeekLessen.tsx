@@ -6,8 +6,9 @@ import type { LesRij, TypeRij } from '@/lib/club/start/lessen-plan'
 
 // De vaste week in stap Lessen. Het voorstel staat al aan; met de schakelaar
 // haal je een les eruit. Per les meteen dag, tijd, duur, plekken, zaal en
-// instructeur. Op de telefoon is elke les een kaartje met de velden in twee
-// kolommen.
+// instructeur. Op een breed scherm staat elke les op een regel, op de
+// telefoon is het een kaartje met de velden in twee kolommen. Geef je geen
+// vaste lessen (alleen afspraken of vrij trainen), dan vink je dat hier aan.
 
 export interface Keuze {
   id: string
@@ -22,6 +23,9 @@ interface WeekLessenProps {
   instructeurs: Keuze[]
   onWijzig: (sleutel: string, w: Partial<LesRij>) => void
   onNieuw: () => void
+  /** Bevestigd: geen vaste lessen. */
+  geen: boolean
+  onGeen: (geen: boolean) => void
 }
 
 function typeNaam(typen: readonly TypeRij[], sleutel: string): string {
@@ -97,7 +101,7 @@ function LesKaart({ l, typen, zalen, instructeurs, onWijzig }: LesKaartProps) {
   )
 }
 
-export function WeekLessen({ vestigingNaam, lessen, typen, zalen, instructeurs, onWijzig, onNieuw }: WeekLessenProps) {
+export function WeekLessen({ vestigingNaam, lessen, typen, zalen, instructeurs, onWijzig, onNieuw, geen, onGeen }: WeekLessenProps) {
   const aan = lessen.filter((l) => l.aan).length
   const heeftTypen = typen.some((t) => t.aan)
   return (
@@ -120,6 +124,15 @@ export function WeekLessen({ vestigingNaam, lessen, typen, zalen, instructeurs, 
         <button type="button" className="club-knop club-start-lesnieuw" onClick={onNieuw}>
           <Plus aria-hidden size={16} /> Les toevoegen
         </button>
+      )}
+      {heeftTypen && aan === 0 && (
+        <label className="club-start-bevestig">
+          <input type="checkbox" checked={geen} onChange={(e) => onGeen(e.target.checked)} />
+          <span>
+            <strong>Ik heb geen vaste lessen</strong>
+            <span className="club-zacht">Bijvoorbeeld alleen afspraken of vrij trainen.</span>
+          </span>
+        </label>
       )}
     </section>
   )

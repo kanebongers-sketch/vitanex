@@ -7,7 +7,9 @@ import { LedenappVoorbeeld } from './LedenappVoorbeeld'
 
 // Bovenaan de laatste stap: wat er nu echt live staat. Het eigen adres van de
 // sportschool (ledenapp en inloggen voor het team) met een kopieerknop, en de
-// ledenapp in de eigen kleur en met het eigen logo. Na Afronden wordt dit het
+// ledenapp in de eigen kleur en met het eigen logo. Staat nog niet alles, dan
+// zegt dit blok dat eerlijk en noemt het wat er nog open staat, met een knop
+// naar die stap. Pas na Afronden, en alleen als alles staat, wordt dit het
 // moment "Je sportschool staat live", met de drie dingen voor dag 1 (poster,
 // leden uitnodigen, check-in). Rustig, zonder confetti. Alleen echte adressen
 // en bestaande pagina's, niets beloofd.
@@ -19,8 +21,17 @@ export interface LiveAdressen {
   inloggen: string
 }
 
+export interface OpenStap {
+  nummer: number
+  titel: string
+  kort: string
+  pad: string
+}
+
 interface StapLiveProps {
   afgerond: boolean
+  /** De stappen die nog open staan (leeg = klaar om live te gaan). */
+  open: readonly OpenStap[]
   af: number
   totaal: number
   /** null = er is nog geen eigen adres gekozen. */
@@ -31,6 +42,8 @@ interface StapLiveProps {
   kleur: string
   thema: Thema
   logo: string | null
+  /** De les in het voorbeeld van de ledenapp. */
+  voorbeeldLes: string
   /** Wat je op dag 1 doet; alleen wat kan met de onderdelen die aan staan. */
   acties: readonly LiveActie[]
 }
@@ -85,43 +98,70 @@ function Adres({ titel, uitleg, url }: { titel: string; uitleg: string; url: str
   )
 }
 
-export function StapLive({ afgerond, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, logo, acties }: StapLiveProps) {
+function NogOpen({ open }: { open: readonly OpenStap[] }) {
+  return (
+    <ul className="club-start-nogopen" role="list">
+      {open.map((s) => (
+        <li key={s.nummer}>
+          <span className="club-start-bol" aria-hidden>{s.nummer}</span>
+          <span className="club-start-eerste-tekst">
+            <strong>{s.titel}</strong>
+            <span className="club-zacht">{s.kort}</span>
+          </span>
+          <Link href={s.pad} className="club-knop club-knop--klein" aria-label={`Naar stap ${s.nummer}: ${s.titel}`}>
+            Naar stap {s.nummer} <ArrowRight aria-hidden size={14} />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** Boventitel, kop en uitleg: alleen "staat live" als het echt zo is. */
+function kopTekst(afgerond: boolean, klaar: boolean, af: number, totaal: number, naam: string): { boven: string; kop: string; intro: string } {
+  const wie = naam || 'Je sportschool'
+  if (afgerond && klaar) return { boven: 'Afgerond', kop: `${wie} staat live`, intro: 'Je omgeving is ingericht. Hieronder je eigen adressen, wat je op je eerste dag doet en wat je nog even naloopt.' }
+  if (klaar) return { boven: `${af} van ${totaal} stappen af`, kop: 'Klaar om live te gaan', intro: 'Alles staat. Rond af als het klopt; je kunt daarna alles nog aanpassen.' }
+  return { boven: `${af} van ${totaal} stappen af`, kop: `${wie} is nog niet live`, intro: 'Deze stappen moeten eerst af. Daarna rond je hier af.' }
+}
+
+export function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, logo, voorbeeldLes, acties }: StapLiveProps) {
+  const klaar = open.length === 0
+  const live = afgerond && klaar
+  const tekst = kopTekst(afgerond, klaar, af, totaal, naam)
   return (
     <>
-      <section className="club-start-live" data-afgerond={afgerond || undefined} aria-labelledby="start-live-kop">
+      <section className="club-start-live" data-afgerond={live || undefined} aria-labelledby="start-live-kop">
         <div className="club-start-live-tekst">
           <span className="club-start-live-icoon" aria-hidden>
-            {afgerond ? <Check size={22} strokeWidth={3} /> : <Globe size={22} />}
+            {live ? <Check size={22} strokeWidth={3} /> : <Globe size={22} />}
           </span>
-          <p className="club-boventitel">{afgerond ? 'Afgerond' : `${af} van ${totaal} stappen af`}</p>
-          <h2 id="start-live-kop">{afgerond ? `${naam || 'Je sportschool'} staat live` : 'Dit staat al live'}</h2>
+          <p className="club-boventitel">{tekst.boven}</p>
+          <h2 id="start-live-kop">{tekst.kop}</h2>
           {adressen && <p className="club-start-live-basis club-getal">{adressen.basis}</p>}
-          <p className="club-start-live-intro">
-            {afgerond
-              ? 'Je omgeving is ingericht. Hieronder je eigen adressen, wat je op je eerste dag doet en wat je nog even naloopt.'
-              : 'Je eigen adres werkt al. Rond de wizard af als alles klopt; je kunt daarna alles nog aanpassen.'}
-          </p>
+          <p className="club-start-live-intro">{tekst.intro}</p>
+          {!klaar && <NogOpen open={open} />}
           {adressen ? (
             <dl className="club-start-live-adressen">
               <Adres titel="Ledenapp" uitleg="Leden activeren hun account met de link of QR-code van je sportschool en loggen daarna in met hun e-mailadres en wachtwoord." url={adressen.ledenapp} />
-              <Adres titel="Inloggen voor je team" uitleg="Je medewerkers krijgen een uitnodiging per e-mail en loggen daarna hier in met hun e-mailadres en wachtwoord." url={adressen.inloggen} />
+              <Adres titel="Inloggen voor je team" uitleg="Je medewerkers krijgen een uitnodiging per e-mail met een eenmalige link (staat mailen nog niet aan, dan stuur je die link zelf door) en loggen daarna hier in met hun e-mailadres en wachtwoord." url={adressen.inloggen} />
             </dl>
           ) : (
             <p className="club-melding">
               Je hebt nog geen eigen adres. <Link href={adresKiezenPad}>Kies het in de stap Huisstijl</Link>, dan vinden je leden en team je.
             </p>
           )}
-          {afgerond && (
+          {live && (
             <Link href="/club" className="club-knop club-knop--groot club-start-live-door">
               Naar Club <ArrowRight aria-hidden size={18} />
             </Link>
           )}
         </div>
         <div className="club-start-live-tel">
-          <LedenappVoorbeeld naam={naam} kleur={kleur} thema={thema} logo={logo} />
+          <LedenappVoorbeeld naam={naam} kleur={kleur} thema={thema} logo={logo} les={voorbeeldLes} />
         </div>
       </section>
-      {afgerond && <DagEen acties={acties} />}
+      {live && <DagEen acties={acties} />}
     </>
   )
 }

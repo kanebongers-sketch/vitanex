@@ -41,7 +41,7 @@ describe('demo-ledenlijst', () => {
 })
 
 describe('klaar voor je eerste dag', () => {
-  const LEEG: StartFeiten = { heeftLogo: false, vestigingenIngericht: 0, lestypen: 0, vasteLessen: 0, medewerkers: 0, leden: 0, uit: [] }
+  const LEEG: StartFeiten = { heeftLogo: false, heeftAdres: false, vestigingen: 1, vestigingenMetAdres: 0, vestigingenIngericht: 0, lestypen: 0, vasteLessen: 0, medewerkers: 0, leden: 0, uit: [] }
 
   it('wijst naar de stap in de wizard, en pas na afronden naar de rest van Club', () => {
     const punten = eersteDag(LEEG, 'budel')
@@ -54,10 +54,19 @@ describe('klaar voor je eerste dag', () => {
   })
 
   it('leest af wat al staat', () => {
-    const punten = eersteDag({ ...LEEG, heeftLogo: true, leden: 120, vasteLessen: 4 }, 'budel')
+    const punten = eersteDag({ ...LEEG, heeftLogo: true, heeftAdres: true, leden: 120, lestypen: 2, vasteLessen: 4 }, 'budel')
     expect(punten.filter((p) => p.af === true).map((p) => p.id)).toEqual(['huisstijl', 'rooster', 'leden'])
     expect(punten.find((p) => p.id === 'checkin')?.af).toBeNull()
     expect(eersteDagStand(punten)).toEqual({ af: 3, meetbaar: 5 })
+  })
+
+  it('zegt precies hetzelfde als de stappen, ook met een bewuste keuze voor geen', () => {
+    const v = { stap: 8, klaar: [], afgerondOp: null, soort: 'pt' as const, streefdatum: null, bevestigd: ['alleen' as const, 'zonder_leden' as const] }
+    const punten = eersteDag({ ...LEEG, lestypen: 1, vasteLessen: 0 }, null, false, v)
+    expect(punten.find((p) => p.id === 'team')?.af).toBe(true)
+    expect(punten.find((p) => p.id === 'leden')?.af).toBe(true)
+    // Een lestype zonder vaste lessen en zonder bevestiging is nog niet af.
+    expect(punten.find((p) => p.id === 'rooster')?.af).toBe(false)
   })
 
   it('laat onderdelen die uit staan weg', () => {

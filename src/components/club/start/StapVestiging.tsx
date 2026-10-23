@@ -16,6 +16,8 @@ import { StartVoet, type StartVoetProps } from './StartVoet'
 // reserveren van de vestiging, alles meteen in beeld. Stonden de tijden al
 // klaar uit de soort, dan zegt een regel bovenaan dat. Opslaan gaat via
 // dezelfde API's als Instellingen. Een tweede vestiging voeg je hier ook toe.
+// Het adres is nodig om live te gaan (leden zien het in de app): zonder adres
+// ga je niet verder, met een vriendelijke melding bij het veld. Stoppen mag wel.
 
 interface StapVestigingProps {
   sleutel: string
@@ -76,6 +78,7 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
   const [perDag, setPerDag] = useState(heeftTijden && weekTekst(week) !== weekTekst(standaardWeek()))
   const [regelWaarden, setRegelWaarden] = useState<RegelWaarden>(() => naarWaarden(regels))
   const [fout, setFout] = useState<string | null>(null)
+  const [adresFout, setAdresFout] = useState<string | null>(null)
   const adresGewijzigd = nieuwAdres.trim() !== (adres ?? '')
   const regelsGewijzigd = REGEL_SLEUTELS.some((s) => regelWaarden[s] !== String(regels[s]))
   const tijdenGewijzigd = !heeftTijden || weekTekst(tijden) !== weekTekst(week) || regelsGewijzigd
@@ -85,13 +88,19 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
     return false
   }
 
-  async function voorVerder(): Promise<boolean> {
+  async function voorVerder(doel: 'verder' | 'stoppen'): Promise<boolean> {
     setFout(null)
+    setAdresFout(null)
+    if (doel === 'verder' && !nieuwAdres.trim()) {
+      setAdresFout(`Vul het adres van ${naam} in. Je leden zien het in de app, dus het is nodig om live te gaan.`)
+      document.getElementById('start-adres')?.focus()
+      return false
+    }
     const controle = controleerOpeningstijden(tijden)
     if (!controle.ok) return setFoutTerug(controle.fout)
     const nieuweRegels = leesRegels(regelWaarden)
     if (!nieuweRegels.ok) return setFoutTerug(nieuweRegels.fout)
-    if (adresGewijzigd) {
+    if (adresGewijzigd && nieuwAdres.trim()) {
       const uit = await stuur(`/api/club/vestigingen/${encodeURIComponent(sleutel)}`, 'PATCH', { adres: nieuwAdres.trim() })
       if (!uit.ok) return setFoutTerug(uit.fout)
     }
@@ -107,31 +116,54 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
     <>
       <div className="club-start-stapel">
         {heeftTijden && <AlvastIngevuld soort={soort} />}
-        <section className="club-start-blok" aria-labelledby="start-adres-kop">
-          <h2 id="start-adres-kop">Adres van {naam}</h2>
-          <label className="club-veld">
-            <span>Straat, huisnummer en plaats</span>
-            <span className="club-start-adresveld">
-              <MapPin aria-hidden size={16} />
-              <input className="club-invoer" value={nieuwAdres} maxLength={MAX_ADRES} autoComplete="street-address" placeholder="Bijvoorbeeld Dorpsstraat 1, 1234 AB Plaatsnaam" onChange={(e) => setAdres(e.target.value)} />
-            </span>
-          </label>
-        </section>
-        <section className="club-start-blok" aria-labelledby="start-tijden-kop">
-          <h2 id="start-tijden-kop">Openingstijden</h2>
-          <TijdenKiezer week={tijden} perDag={perDag} onWeek={setTijden} onPerDag={setPerDag} />
-        </section>
-        {roosterAan && (
-          <RegelsBlok
-            waarden={regelWaarden}
-            onWijzig={(s, w) => {
-              setFout(null)
-              setRegelWaarden((oud) => ({ ...oud, [s]: w }))
-            }}
-          />
-        )}
+        <div className="club-start-twee">
+          <div className="club-start-stapel">
+            <section className="club-start-blok" aria-labelledby="start-adres-kop">
+              <h2 id="start-adres-kop">Adres van {naam}</h2>
+              <label className="club-veld" htmlFor="start-adres">
+                <span>Straat, huisnummer en plaats (verplicht)</span>
+                <span className="club-start-adresveld">
+                  <MapPin aria-hidden size={16} />
+                  <input
+                    id="start-adres"
+                    className="club-invoer"
+                    required
+                    aria-invalid={adresFout ? true : undefined}
+                    aria-describedby="start-adres-uitleg"
+                    value={nieuwAdres}
+                    maxLength={MAX_ADRES}
+                    autoComplete="street-address"
+                    placeholder="Bijvoorbeeld Dorpsstraat 1, 1234 AB Plaatsnaam"
+                    onChange={(e) => {
+                      setAdresFout(null)
+                      setAdres(e.target.value)
+                    }}
+                  />
+                </span>
+              </label>
+              <p id="start-adres-uitleg" className={adresFout ? 'club-melding club-melding--fout' : 'club-hint'} role={adresFout ? 'alert' : undefined}>
+                {adresFout ?? 'Je leden zien dit adres in de app.'}
+              </p>
+            </section>
+            <section className="club-start-blok" aria-labelledby="start-tijden-kop">
+              <h2 id="start-tijden-kop">Openingstijden</h2>
+              <TijdenKiezer week={tijden} perDag={perDag} onWeek={setTijden} onPerDag={setPerDag} />
+            </section>
+          </div>
+          <div className="club-start-stapel">
+            {roosterAan && (
+              <RegelsBlok
+                waarden={regelWaarden}
+                onWijzig={(s, w) => {
+                  setFout(null)
+                  setRegelWaarden((oud) => ({ ...oud, [s]: w }))
+                }}
+              />
+            )}
+            <NieuweVestiging />
+          </div>
+        </div>
         {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
-        <NieuweVestiging />
       </div>
       <StartVoet {...voet} voorVerder={voorVerder} primair={adresGewijzigd || tijdenGewijzigd ? 'Opslaan en verder' : undefined} />
     </>

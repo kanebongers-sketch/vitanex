@@ -24,6 +24,13 @@
   --club-tik: 44px;
   --club-onderbalk-h: 66px;
   --club-schaduw: 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  /* Breedte (besluit Kane 23-10-2026): Club gebruikt op de pc de hele schermbreedte met
+     de rand --ff-rand. Alleen formulieren blijven smal (--club-formulier), lijsten met
+     velden iets breder (--club-formulier-breed) en lopende tekst houdt een leesbare
+     regellengte (--club-lees). Nooit een vaste max-width op een pagina zelf. */
+  --club-formulier: 760px;
+  --club-formulier-breed: 1120px;
+  --club-lees: 72ch;
   /* Merkkleur als tekst op een zacht merkvlak (avatar, merk-chip): iets naar de inkt
      geschoven, zodat het ook op een licht thema 4.5:1 haalt. */
   --club-merk-inkt: color-mix(in srgb, var(--brand-tekst, var(--brand)) 72%, var(--text-1));
@@ -47,7 +54,7 @@
    bovenin; daaronder (telefoon en tablet staand) de onderbalk met Meer. */
 .club-kop { position: sticky; top: 0; z-index: 40; background: var(--club-kop-bg, rgba(16, 16, 20, 0.9)); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .club-kop--laden { height: 104px; }
-.club-balk { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: max(8px, env(safe-area-inset-top)) var(--ff-rand) 6px; }
+.club-balk { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: max(5px, env(safe-area-inset-top)) var(--ff-rand) 3px; }
 .club-merk { display: inline-flex; align-items: center; gap: 10px; min-height: var(--club-tik); text-decoration: none; color: var(--text-1); flex: none; }
 .club-merk .ff-logo, .club-merk img { height: 28px; width: auto; }
 .club-merk-logo { max-width: 160px; object-fit: contain; }
@@ -75,7 +82,7 @@
 .club-groepen { display: none; min-width: 0; overflow-x: auto; scrollbar-width: none; gap: 2px; margin-left: 12px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--club-vlak); }
 .club-groepen a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; font-family: var(--ff-kop); font-size: 14.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); text-decoration: none; transition: color 160ms var(--ease), background-color 160ms var(--ease); }
 .club-groepen a:hover { color: var(--text-1); background: var(--club-vlak-hover); }
-.club-groepen a[aria-current='true'] { color: var(--brand-inkt, #0A0B09); background: var(--brand); }
+.club-groepen a[aria-current='true'] { color: var(--brand-inkt, #0A0B09); background: var(--brand); font-weight: 700; }
 @media (min-width: 1000px) { .club-groepen { display: flex; } }
 @media (min-width: 1000px) and (max-width: 1199px) {
   .club-groepen a { padding: 0 11px; letter-spacing: 0.05em; }
@@ -84,17 +91,38 @@
 @media (pointer: coarse) and (min-width: 1000px) { .club-groepen a { min-height: 40px; } }
 
 /* Rij 2: de onderdelen van de groep; onder 1000px met de naam van de groep ervoor. */
-.club-nav { display: flex; align-items: stretch; gap: 2px; overflow-x: auto; scrollbar-width: none; padding: 0 var(--ff-rand); }
+.club-nav {
+  display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  padding: 3px var(--ff-rand); scroll-padding-inline: var(--ff-rand);
+  border-top: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
+  background: color-mix(in srgb, var(--brand) 5%, transparent);
+}
 .club-nav::-webkit-scrollbar { display: none; }
-.club-nav-groep { flex: none; display: inline-flex; align-items: center; gap: 10px; padding-right: 6px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
-.club-nav-groep::after { content: ''; width: 1px; height: 16px; background: var(--line-strong); }
-.club-nav a { position: relative; flex: none; display: inline-flex; align-items: center; min-height: var(--club-tik); padding: 0 12px 2px; font-family: var(--ff-kop); font-size: 14.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); text-decoration: none; transition: color 160ms var(--ease); }
-.club-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--brand); transform: scaleX(0); transform-origin: left; transition: transform 200ms var(--ease); }
-.club-nav a:hover { color: var(--text-1); }
-.club-nav a[aria-current='page'] { color: var(--text-1); }
-.club-nav a[aria-current='page']::after { transform: scaleX(1); }
-.club-nav a:focus-visible { outline-offset: -2px; }
-@media (min-width: 1000px) { .club-nav-groep { display: none; } }
+/* De groep waarin je zit, voor de knoppen: dezelfde naam als de gevulde groep in rij 1. */
+.club-nav-groep { flex: none; display: inline-flex; align-items: center; gap: 10px; min-height: var(--club-tik); padding-right: 6px; font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-nav-groep::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--brand); }
+.club-nav-groep::after { content: ''; width: 1px; height: 20px; margin-left: 4px; background: var(--line-strong); }
+/* Elk onderdeel is een echte knop (44px hoog); het onderdeel waar je zit is gevuld in de accentkleur. */
+.club-nav a {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--club-tik); padding: 0 18px;
+  border: 1px solid var(--line-strong); border-radius: var(--club-radius-klein); background: var(--club-vlak);
+  font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+  color: var(--text-2); text-decoration: none;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease);
+}
+.club-nav a:hover { color: var(--text-1); background: var(--club-vlak-hover); border-color: var(--text-4); }
+.club-nav a:active { transform: translateY(1px); }
+.club-nav a[aria-current='page'] { color: var(--brand-inkt, #0A0B09); background: var(--brand); border-color: var(--brand); font-weight: 700; box-shadow: 0 6px 18px -10px var(--brand-glow, var(--brand)); }
+.club-nav a[aria-current='page']:hover { background: var(--brand-strong, var(--brand)); border-color: var(--brand-strong, var(--brand)); }
+/* Binnen de scrollrij: de focusring aan de binnenkant, anders knipt de rij hem af. */
+.club-nav a:focus-visible { outline: 2px solid var(--brand); outline-offset: -4px; }
+.club-nav a[aria-current='page']:focus-visible { outline-color: var(--text-1); }
+/* Pc en tablet liggend: de knoppen verdelen de hele breedte, als een balk met vakken. */
+@media (min-width: 1000px) {
+  .club-nav a { flex: 1 1 0; min-width: max-content; }
+}
+/* Telefoon: de groepsnaam alleen als hij anders is dan het onderdeel (Leden onder Leden is dubbel). */
+@media (max-width: 999px) { .club-nav-groep[data-zelfde] { display: none; } }
 /* De onderdelen scrollen opzij: een zachte rand rechts laat zien dat er meer is. */
 @media (max-width: 699px) {
   .club-nav { padding-right: 40px; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent); }
@@ -141,7 +169,7 @@
 .club-paginakop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
 .club-boventitel { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
 .club-paginakop h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 4.4vw, 56px); line-height: 0.95; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; }
-.club-paginakop p { margin: 6px 0 0; color: var(--text-3); font-size: 14px; max-width: 70ch; }
+.club-paginakop p { margin: 6px 0 0; color: var(--text-3); font-size: 14px; max-width: var(--club-lees); }
 .club-acties { display: flex; flex-wrap: wrap; gap: 8px; }
 .club-sectiekop { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
 .club-sectiekop h2 { margin: 0; font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
@@ -157,8 +185,10 @@
   .club-raster > .club-k7 { grid-column: span 7; }
   .club-raster > .club-k8 { grid-column: span 8; }
 }
+/* Tablet: alleen gelijke paren (k6 + k6) naast elkaar. Een k4 of k5 hoort bij een k8 of k7
+   die hier de hele breedte pakt; half breed zou hij een lege halve rij naast zich laten. */
 @media (min-width: 700px) and (max-width: 999px) {
-  .club-raster > .club-k4, .club-raster > .club-k5, .club-raster > .club-k6 { grid-column: span 6; }
+  .club-raster > .club-k6 { grid-column: span 6; }
 }
 
 /* ── Kaart ────────────────────────────────────────────────────────────────── */

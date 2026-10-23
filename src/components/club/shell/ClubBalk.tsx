@@ -20,7 +20,8 @@ import { UitlogKnop } from './UitlogKnop'
 // De bovenkant van de clubsoftware (besluit Kane 20-10-2026: vooral de trainer
 // op de vloer moet er makkelijk doorheen, op telefoon, tablet en pc even goed).
 // Pc en tablet liggend: rij 1 met logo, de vijf groepen, zoeken en vestiging;
-// rij 2 met de onderdelen van de groep waarin je zit. Telefoon en tablet staand:
+// rij 2 met de onderdelen van de groep waarin je zit, als knoppen over de hele
+// breedte (het onderdeel waar je bent gevuld in de accentkleur). Telefoon en tablet staand:
 // bovenin logo en zoeken, rij 2 met de groep en haar onderdelen, en onderin een
 // vaste balk met de vier onderdelen die je het meest nodig hebt plus Meer (het
 // menupaneel met alles). Zoeken (Ctrl K, / of het vergrootglas) vindt ook leden.
@@ -129,8 +130,9 @@ export function ClubBalk({ testomgeving, merk, uit, toegestaan, instellingen, zo
           </div>
         </div>
         <nav ref={navRef} className="club-nav" aria-label={`Onderdelen van ${groep?.label ?? 'de groep'}`}>
-          {groep && groep.label !== huidig.label && (
-            <span className="club-nav-groep" aria-hidden>
+          {/* De groep staat altijd voor de knoppen, zodat je ziet waar je zit (besluit Kane 23-10-2026). */}
+          {groep && (
+            <span className="club-nav-groep" data-zelfde={groep.label === huidig.label ? '' : undefined} aria-hidden>
               {groep.label}
             </span>
           )}

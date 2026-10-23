@@ -1,9 +1,12 @@
-// PATCH /api/club/medewerker-toegang/[id]  { actie: uitnodigen, email } | { actie: intrekken }
+// PATCH /api/club/medewerker-toegang/[id]  { actie: uitnodigen, email, mailen? } | { actie: intrekken }
 // [id] is het id van de medewerker (club_medewerkers). Kane, de eigenaar of de
 // clubmanager met Instellingen nodigt een medewerker uit met zijn e-mailadres
 // (antwoord: het pad van de eenmalige uitnodigingslink, alleen nu te zien) of
 // trekt zijn login in. Altijd binnen de eigen sportschool en alleen voor
 // medewerkers van een vestiging die je zelf ziet. Een medewerker krijgt een 404.
+// Met `mailen: true` (de startwizard) gaat de link ook per e-mail naar de
+// medewerker, als er een afzender is ingesteld; `gemaild` zegt wat er gebeurde
+// (verstuurd, niet_ingesteld of mislukt), het pad komt altijd mee als reserve.
 // Het logboek krijgt de actie en de naam, nooit het e-mailadres of de link.
 
 import { type NextRequest, NextResponse } from 'next/server'
@@ -13,6 +16,9 @@ import { isRateLimited } from '@/lib/utils/rate-limit'
 import { leesLoginActie, uitnodigingPad, type LoginActie } from '@/lib/club/medewerker-login/medewerker-login'
 import { beheerMedewerkerLogin } from '@/lib/club/medewerker-login/opslag'
 import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
+import { stuurUitnodigMail, type MailUitkomst } from '@/lib/club/medewerker-login/uitnodig-mail'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 
 const LOG: Record<LoginActie, string> = {
   uitnodigen: 'Medewerker uitgenodigd',
@@ -45,7 +51,9 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (!magMedewerkerLoginsBeheren(t)) return clubFout('Niet gevonden.', 404)
   const { id } = await ctx.params
   if (!isUuid(id)) return clubFout('Niet gevonden.', 404)
-  const invoer = leesLoginActie(await req.json().catch(() => null))
+  const body: unknown = await req.json().catch(() => null)
+  const invoer = leesLoginActie(body)
+  const mailen = typeof body === 'object' && body !== null && (body as { mailen?: unknown }).mailen === true
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const naam = await naamBinnenBereik(t, id)
   if (naam === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
@@ -60,5 +68,11 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (uit.staat === 'niet_gevonden') return clubFout('Deze medewerker heeft geen login om in te trekken, of is niet meer in dienst.', 404)
   if (uit.staat === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
   await logActie(t, LOG[invoer.waarde.actie], naam, null)
-  return clubJson({ ok: true, pad: uit.token ? uitnodigingPad(uit.token) : null })
+  const pad = uit.token ? uitnodigingPad(uit.token) : null
+  let gemaild: MailUitkomst | null = null
+  if (mailen && pad && invoer.waarde.actie === 'uitnodigen') {
+    const link = t.organisatie.slug ? sportschoolUrl(t.organisatie.slug, subdomeinenActief(), pad) : `${req.nextUrl.origin}${pad}`
+    gemaild = await stuurUitnodigMail({ naar: invoer.waarde.email, naam, sportschool: t.organisatie.naam, link })
+  }
+  return clubJson({ ok: true, pad, gemaild })
 }

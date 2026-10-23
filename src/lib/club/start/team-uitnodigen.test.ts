@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { uitnodigLink, uitnodigStand } from './team-uitnodigen'
+import { uitnodigLink, uitnodigMelding, uitnodigStand } from './team-uitnodigen'
 
 describe('uitnodigStand', () => {
   it('nodigt uit als er een e-mailadres is en nog geen login', () => {
@@ -17,7 +17,7 @@ describe('uitnodigStand', () => {
   })
 
   it('biedt een nieuwe link bij een lopende of verlopen uitnodiging', () => {
-    expect(uitnodigStand('a@b.nl', 'uitgenodigd', true).knop).toBe('Nieuwe link')
+    expect(uitnodigStand('a@b.nl', 'uitgenodigd', true).knop).toBe('Opnieuw uitnodigen')
     expect(uitnodigStand('a@b.nl', 'verlopen', true).knop).toBe('Opnieuw uitnodigen')
   })
 
@@ -41,5 +41,15 @@ describe('uitnodigLink', () => {
   it('weigert alles wat geen uitnodigingspad is', () => {
     expect(uitnodigLink('https://elders.nl/x', null, 'https://aiyourgym.com')).toBeNull()
     expect(uitnodigLink(null, null, 'https://aiyourgym.com')).toBeNull()
+  })
+})
+
+describe('uitnodigMelding', () => {
+  it('zegt eerlijk of er is gemaild', () => {
+    expect(uitnodigMelding('verstuurd', 'Sanne', 'sanne@gym.nl')).toMatchObject({ ok: true })
+    expect(uitnodigMelding('verstuurd', 'Sanne', 'sanne@gym.nl').tekst).toContain('gemaild naar sanne@gym.nl')
+    expect(uitnodigMelding('niet_ingesteld', 'Sanne', 'sanne@gym.nl').tekst).toContain('niets gemaild')
+    expect(uitnodigMelding('mislukt', 'Sanne', 'sanne@gym.nl').tekst).toContain('Mailen lukte nu niet')
+    expect(uitnodigMelding(null, 'Sanne', 'sanne@gym.nl').ok).toBe(false)
   })
 })

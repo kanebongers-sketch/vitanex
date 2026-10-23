@@ -85,7 +85,7 @@
 /* ── Weekrooster ──────────────────────────────────────────────────────────── */
 .club-instellingen-genereer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 18px; border-radius: var(--club-radius); border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); background: var(--bg-card); }
 .club-instellingen-genereer strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase; }
-.club-instellingen-genereer p { margin: 4px 0 0; max-width: 70ch; }
+.club-instellingen-genereer p { margin: 4px 0 0; max-width: var(--club-lees); }
 .club-instellingen-week { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 @media (min-width: 1200px) { .club-instellingen-week { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: clip; } }
 .club-instellingen-weekdag { display: grid; gap: 6px; align-content: start; padding: 12px 10px; border-left: 1px solid var(--line); min-height: 160px; }
@@ -106,7 +106,7 @@
 .club-instellingen-paneelkop h2 { margin: 0; font-family: var(--ff-kop); font-size: 30px; line-height: 1; font-weight: 700; text-transform: uppercase; }
 
 /* ── Vestigingen ─────────────────────────────────────────────────────────── */
-.club-instellingen-vestigingen { display: grid; gap: 16px; max-width: 760px; }
+.club-instellingen-vestigingen { display: grid; gap: 16px; max-width: var(--club-formulier-breed); }
 .club-instellingen-vestlijst { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
 .club-instellingen-vestrij { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .club-instellingen-vestrij > .club-invoer { flex: 1 1 220px; min-width: 0; }

@@ -51,7 +51,7 @@
 /* ── Werkvlak: rooster links, zijbalk rechts op brede schermen ───────────── */
 .club-personeel-werkvlak { display: grid; gap: 18px; align-items: start; }
 @media (min-width: 1280px) {
-  .club-personeel-werkvlak { grid-template-columns: minmax(0, 1fr) 320px; }
+  .club-personeel-werkvlak { grid-template-columns: minmax(0, 1fr) clamp(320px, 20vw, 400px); }
   .club-personeel-zij { position: sticky; top: 120px; }
 }
 .club-personeel-zij { display: grid; gap: 16px; }
@@ -177,7 +177,7 @@ a.club-personeel-urennaam:hover { color: var(--brand-tekst, var(--brand)); }
 .club-personeel-teamnaam[aria-current='page'] { background: var(--brand-soft); color: var(--text-1); }
 .club-personeel-teamdetail { display: grid; gap: 16px; min-width: 0; }
 .club-personeel-gekozen { display: flex; align-items: center; gap: 10px; }
-.club-personeel-instellingen { display: grid; gap: 14px; max-width: 640px; }
+.club-personeel-instellingen { display: grid; gap: 14px; max-width: var(--club-formulier); }
 .club-personeel-kleuren { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
 .club-personeel-kleuren legend { margin-bottom: 6px; }
 .club-personeel-kleurkeuze { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 13px; cursor: pointer; }

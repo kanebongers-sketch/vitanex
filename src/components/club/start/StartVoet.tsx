@@ -11,6 +11,9 @@ import { AANTAL_STAPPEN, startPad, type StapSleutel } from '@/lib/club/start/sta
 // 23-10-2026). De voortgang gaat mee naar de server, zodat de eigenaar verder
 // kan waar hij was. Een stap met eigen invoer geeft `voorVerder` mee: die slaat
 // eerst op en houdt de stap vast als dat niet lukt; ook bij Opslaan en stoppen.
+// Er zijn geen losse opslaanknoppen in een stap: deze twee knoppen bewaren alles.
+// Verplichte velden (zoals het adres) controleert de stap alleen bij verder:
+// stoppen mag altijd, wat er staat wordt dan bewaard.
 
 export interface StartVoetProps {
   stap: number
@@ -19,10 +22,15 @@ export interface StartVoetProps {
   /** Tekst op de hoofdknop; standaard "Klaar, verder". */
   primair?: string
   /** Eerst opslaan; false = blijven staan (de stap toont zelf de fout). */
-  voorVerder?: () => Promise<boolean>
+  voorVerder?: VoorVerder
   /** Op de laatste stap: is de wizard al afgerond? */
   afgerond?: boolean
+  /** Op de laatste stap: staan alle stappen ervoor? Anders kan afronden nog niet. */
+  kanAfronden?: boolean
 }
+
+/** Opslaan voor verder of voor stoppen; bij stoppen slaat de stap op zonder verplichte velden te eisen. */
+export type VoorVerder = (doel: 'verder' | 'stoppen') => Promise<boolean>
 
 export type StartGangProps = Pick<StartVoetProps, 'stap' | 'sleutel' | 'vestiging'>
 
@@ -58,10 +66,11 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   }
 
   /** Deze stap is klaar: eerst opslaan (als dat moet), dan door naar de volgende. */
-  async function verder(voorVerder?: () => Promise<boolean>) {
+  async function verder(voorVerder?: VoorVerder) {
     if (voorVerder) {
       setBezig(true)
-      const opgeslagen = await voorVerder()
+      setFout(null)
+      const opgeslagen = await voorVerder('verder')
       setBezig(false)
       if (!opgeslagen) return
     }
@@ -72,10 +81,10 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   const vorige = () => naar({ stap: stap - 1 }, startPad(stap - 1, vestiging), false)
 
   /** Wat er op het scherm staat opslaan, de plek onthouden en stoppen; je gaat later verder op deze stap. */
-  async function stoppen(voorVerder?: () => Promise<boolean>) {
+  async function stoppen(voorVerder?: VoorVerder) {
     setBezig(true)
     setFout(null)
-    const opgeslagen = voorVerder ? await voorVerder() : true
+    const opgeslagen = voorVerder ? await voorVerder('stoppen') : true
     if (!opgeslagen) return setBezig(false)
     const uit = await stuur('/api/club/start', 'PATCH', { stap })
     setBezig(false)
@@ -85,7 +94,7 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   return { bezig, fout, gelukt, gestopt, laatste, verder, vorige, stoppen, naarClub: () => router.push('/club') }
 }
 
-export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false }: StartVoetProps) {
+export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false, kanAfronden = true }: StartVoetProps) {
   const gang = useStartGang({ stap, sleutel, vestiging })
   const { bezig, fout, laatste } = gang
 
@@ -111,12 +120,13 @@ export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afger
           </p>
         )}
         {gang.gelukt && <span className="sr-only">Afgerond. Je sportschool staat live.</span>}
+        {laatste && !afgerond && !kanAfronden && <p className="club-hint">Maak eerst de stappen af die hierboven nog open staan.</p>}
         {laatste && afgerond ? (
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig} onClick={gang.naarClub}>
             Naar Club <ArrowRight aria-hidden size={18} />
           </button>
         ) : (
-          <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig} onClick={() => void gang.verder(voorVerder)}>
+          <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig || (laatste && !kanAfronden)} onClick={() => void gang.verder(voorVerder)}>
             {laatste ? <Check aria-hidden size={18} /> : null}
             {bezig ? 'Even geduld...' : (primair ?? (laatste ? 'Afronden' : 'Klaar, verder'))}
             {!laatste && <ArrowRight aria-hidden size={18} />}

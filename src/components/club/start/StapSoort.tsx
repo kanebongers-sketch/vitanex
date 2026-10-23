@@ -6,11 +6,12 @@ import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPort
 import { stuur } from '@/components/club/leden/stuur'
 import { SOORT_INFO, SPORTSCHOOL_SOORTEN, klaargezet, pakketVoor, toepasPlan, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { taken, voerUit } from './pas-soort-toe'
-import { StartVoet, useStartGang, type StartVoetProps } from './StartVoet'
+import { StartVoet, type StartVoetProps } from './StartVoet'
 
 // Stap 1: wat voor sportschool is het? Een keuze zet alvast onderdelen,
 // lestypen, openingstijden, regels voor reserveren en rechten per rol klaar.
-// Eerst zie je precies wat er klaar komt te staan; pas bij Klopt gebeurt het.
+// Eerst zie je precies wat er klaar komt te staan; pas bij de knop onderaan
+// (Klopt, zet klaar) gebeurt het. De kaart rechts is alleen het overzicht.
 // Zonder soort ga je niet verder: de rest van de wizard bouwt erop.
 // Dezelfde soort nog een keer kiezen verandert niets meer (eigen werk blijft).
 
@@ -37,7 +38,6 @@ interface StapSoortProps {
 }
 
 export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVestiging, voet }: StapSoortProps) {
-  const gang = useStartGang(voet)
   const [soort, setSoort] = useState<SportschoolSoort | null>(gekozen)
   const voorstel = useRef<HTMLElement>(null)
   const [bezig, setBezig] = useState<{ klaar: number; totaal: number } | null>(null)
@@ -55,7 +55,8 @@ export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVest
   }
 
   /** Het pakket neerzetten (alleen als de soort nieuw is) en de soort onthouden; false = blijven staan. */
-  async function zetKlaar(): Promise<boolean> {
+  async function zetKlaar(doel: 'verder' | 'stoppen'): Promise<boolean> {
+    if ((!soort || !pakket) && doel === 'stoppen') return true
     if (!soort || !pakket) {
       setFout('Kies eerst wat voor sportschool je hebt. Dan vullen we de volgende stappen alvast voor je in.')
       return false
@@ -114,20 +115,15 @@ export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVest
                 ))}
               </dl>
               <p className="club-hint">
-                {soort === gekozen ? 'Dit staat er al. Kies een andere soort om het opnieuw klaar te zetten.' : 'Wat je zelf al hebt ingesteld blijft staan. In de volgende stappen pas je alles meteen aan.'}
+                {soort === gekozen ? 'Dit staat er al. Kies een andere soort om het opnieuw klaar te zetten.' : 'Klopt het? Druk onderaan op Klopt, zet klaar. Wat je zelf al hebt ingesteld blijft staan, en in de volgende stappen pas je alles meteen aan.'}
               </p>
-              <div className="club-start-klaargezet-knoppen">
-                <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig !== null || gang.bezig} onClick={() => void gang.verder(zetKlaar)}>
-                  <Check aria-hidden size={18} />
-                  {bezig ? `Klaarzetten ${bezig.klaar} van ${bezig.totaal}...` : soort === gekozen ? 'Klopt, verder' : 'Klopt, zet klaar'}
-                </button>
-              </div>
+              {bezig && <p className="club-hint" role="status">Klaarzetten {bezig.klaar} van {bezig.totaal}...</p>}
               {bezig && (
                 <div className="club-start-laadbalk" role="progressbar" aria-label="Klaarzetten" aria-valuemin={0} aria-valuemax={bezig.totaal} aria-valuenow={bezig.klaar}>
                   <span style={{ transform: `scaleX(${bezig.totaal ? bezig.klaar / bezig.totaal : 0})` }} />
                 </div>
               )}
-              {(fout ?? gang.fout) && <p className="club-melding club-melding--fout" role="alert">{fout ?? gang.fout}</p>}
+              {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
             </>
           ) : (
             <>

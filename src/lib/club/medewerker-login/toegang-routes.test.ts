@@ -157,7 +157,7 @@ describe('medewerkers uitnodigen door de clubmanager', () => {
   it('nodigt uit binnen de eigen sportschool, geeft het pad van de link en logt zonder adres of link', async () => {
     const r = await uitnodigen()
     expect(r.status).toBe(200)
-    expect(await r.json()).toEqual({ ok: true, pad: `/clubinloggen/medewerker/${TOKEN}` })
+    expect(await r.json()).toEqual({ ok: true, pad: `/clubinloggen/medewerker/${TOKEN}`, gemaild: null })
     expect(opslag.beheerMedewerkerLogin).toHaveBeenCalledWith(expect.anything(), GYM_A, MW, { actie: 'uitnodigen', email: 'lotte@gym.nl' }, expect.any(Date))
     expect(logboek[0]?.waarde).toMatchObject({ actie: 'Medewerker uitgenodigd', onderwerp: 'Lotte de Vries' })
     expect(JSON.stringify(logboek)).not.toContain('lotte@gym.nl')
@@ -178,7 +178,7 @@ describe('medewerkers uitnodigen door de clubmanager', () => {
   it('intrekken geeft geen link', async () => {
     opslag.beheerMedewerkerLogin.mockResolvedValue({ staat: 'ok', token: null })
     const r = await uitnodigen({ actie: 'intrekken' })
-    expect(await r.json()).toEqual({ ok: true, pad: null })
+    expect(await r.json()).toEqual({ ok: true, pad: null, gemaild: null })
     expect(logboek[0]?.waarde).toMatchObject({ actie: 'Login medewerker ingetrokken' })
   })
 })

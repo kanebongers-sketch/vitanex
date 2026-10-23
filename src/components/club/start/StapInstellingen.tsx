@@ -10,11 +10,9 @@ import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { moduleAan } from '@/lib/club/kern/organisatie'
 import type { SportschoolSoort } from '@/lib/club/start/soorten'
 import { startPad } from '@/lib/club/start/stappen'
-import { RechtenMatrix } from '@/components/club/beheer/RechtenMatrix'
 import { rechtenGroepen } from '@/components/club/beheer/rechten-groepen'
-import { AlvastIngevuld } from './AlvastIngevuld'
 import { StapVestiging } from './StapVestiging'
-import { TeamFormulier } from './TeamFormulier'
+import { StapTeamInvoer } from './StapTeamInvoer'
 import type { StartVoetProps } from './StartVoet'
 
 // Stap 3 (vestiging: adres, openingstijden en reserveren) en stap 6 (het team
@@ -82,27 +80,24 @@ async function haalTeam(t: ClubToegang): Promise<Medewerker[]> {
   return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }
 
-export async function StapTeam({ t, vestiging, soort }: Omit<StapMetVestigingProps, 'voet'>) {
+export async function StapTeam({ t, vestiging, soort, voet, alleen }: StapMetVestigingProps & { alleen: boolean }) {
   if (!vestiging) return <GeenVestiging />
   const [team, logins] = await Promise.all([haalTeam(t), haalMedewerkerLogins(t.admin, t.userId)])
   const loginVan = new Map((logins ?? []).map((l) => [l.medewerkerId, l.staat]))
   const linkBasis = t.organisatie.slug ? sportschoolUrl(t.organisatie.slug, subdomeinenActief()) : null
   return (
-    <div className="club-start-stapel">
-      <TeamFormulier
-        vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))}
-        vestiging={vestiging}
-        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen, vestigingen: m.vestigingen, login: loginVan.get(m.id) ?? 'geen' }))}
-        loginAan={CLUB_EIGEN_LOGIN}
-        linkBasis={linkBasis}
-      />
-      {logins === null && <p className="club-melding club-melding--fout" role="alert">Of je team al kan inloggen, kon niet worden gelezen. Uitnodigen werkt gewoon.</p>}
-      <section className="club-start-blok" aria-labelledby="start-rechten-kop">
-        <h2 id="start-rechten-kop">Wat elke functie ziet</h2>
-        <AlvastIngevuld soort={soort} />
-        <p className="club-hint">Vink per onderdeel aan welke functie het ziet. Jij als eigenaar ziet altijd alles.</p>
-        <RechtenMatrix begin={t.organisatie.instellingen.rechten} groepen={rechtenGroepen(t.organisatie.uit)} />
-      </section>
-    </div>
+    <StapTeamInvoer
+      vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))}
+      vestiging={vestiging}
+      team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen, vestigingen: m.vestigingen, login: loginVan.get(m.id) ?? 'geen' }))}
+      loginAan={CLUB_EIGEN_LOGIN}
+      linkBasis={linkBasis}
+      rechten={t.organisatie.instellingen.rechten}
+      groepen={rechtenGroepen(t.organisatie.uit)}
+      alleen={alleen}
+      soort={soort}
+      loginsFout={logins === null}
+      voet={voet}
+    />
   )
 }

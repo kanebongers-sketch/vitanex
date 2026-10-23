@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
@@ -9,8 +9,10 @@ import { TeamRij, wisselIn, type TeamLid } from './TeamRij'
 
 // Stap 6: het hele team in de wizard. Toevoegen met naam, e-mail, functie en
 // vestiging; elke medewerker daaronder meteen te bewerken, te verwijderen en
-// uit te nodigen (een eenmalige link die je zelf doorstuurt; de medewerker
-// kiest daar een wachtwoord). Gaat via dezelfde API's als Medewerkers.
+// uit te nodigen (Club mailt een eenmalige link als mailen aan staat, anders
+// stuur je hem zelf door; de medewerker kiest daar een wachtwoord). De
+// vestiging staat altijd in beeld; met een vestiging is die al gekozen.
+// Gaat via dezelfde API's als Medewerkers.
 
 export type { TeamLid } from './TeamRij'
 
@@ -23,9 +25,11 @@ interface TeamFormulierProps {
   loginAan: boolean
   /** Het adres van de sportschool voor de uitnodigingslink, of null (dan dit domein). */
   linkBasis: string | null
+  /** Wat er staat zolang er nog niemand is (de keuze Ik werk alleen). */
+  leeg?: ReactNode
 }
 
-export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasis }: TeamFormulierProps) {
+export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasis, leeg }: TeamFormulierProps) {
   const router = useRouter()
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
@@ -70,17 +74,15 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
             </label>
           ))}
         </fieldset>
-        {vestigingen.length > 1 && (
-          <fieldset className="club-start-keuzes">
-            <legend>Werkt in</legend>
-            {vestigingen.map((v) => (
-              <label key={v.sleutel} className="club-start-keuze" data-aan={waar.includes(v.sleutel) || undefined}>
-                <input type="checkbox" checked={waar.includes(v.sleutel)} onChange={() => setWaar((oud) => wisselIn(oud, v.sleutel))} />
-                {waar.includes(v.sleutel) && <Check aria-hidden size={14} strokeWidth={3} />} {v.naam}
-              </label>
-            ))}
-          </fieldset>
-        )}
+        <fieldset className="club-start-keuzes">
+          <legend>Vestiging</legend>
+          {vestigingen.map((v) => (
+            <label key={v.sleutel} className="club-start-keuze" data-aan={waar.includes(v.sleutel) || undefined}>
+              <input type="checkbox" checked={waar.includes(v.sleutel)} onChange={() => setWaar((oud) => wisselIn(oud, v.sleutel))} />
+              {waar.includes(v.sleutel) && <Check aria-hidden size={14} strokeWidth={3} />} {v.naam}
+            </label>
+          ))}
+        </fieldset>
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !naam.trim()}>
           <UserPlus aria-hidden size={16} /> {bezig ? 'Bezig...' : 'Toevoegen'}
         </button>
@@ -99,9 +101,9 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
           ))}
         </ul>
       ) : (
-        <p className="club-leeg">Nog niemand. Werk je alleen? Dan is je team hiermee klaar.</p>
+        (leeg ?? <p className="club-leeg">Nog niemand.</p>)
       )}
-      <p className="club-hint">Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen geeft een link die je zelf doorstuurt; Club mailt hem niet.</p>
+      <p className="club-hint">Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen mailt een eenmalige link naar die medewerker; staat mailen nog niet aan, dan zie je de link om zelf door te sturen.</p>
     </section>
   )
 }

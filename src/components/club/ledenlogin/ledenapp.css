@@ -54,6 +54,13 @@
   padding: 0 env(safe-area-inset-right, 0px) calc(var(--club-mijn-balk) + 16px) env(safe-area-inset-left, 0px);
 }
 .club-mijn-inhoud > .club-lidapp-tab, .club-mijn-inhoud > .club-mijn-blok { padding-left: 16px; padding-right: 16px; }
+/* Pc: de kolom krijgt dunne randen, zodat het een bewuste app-kolom is en geen smalle website. */
+@media (min-width: 760px) {
+  .club-mijn-inhoud { border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: color-mix(in srgb, var(--bg-app) 70%, transparent); }
+  /* Merk en bel boven dezelfde kolom, niet in de hoeken van het scherm. */
+  .club-mijn-merk { max-width: 640px; margin: 0 auto; }
+  .club-mijn-voorvertoning { max-width: 640px; margin: 0 auto 8px; }
+}
 .club-mijn-blok { display: grid; gap: 12px; padding-top: 4px; padding-bottom: 8px; }
 .club-mijn-opnieuw { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-1); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .club-mijn-opnieuw:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
@@ -61,7 +68,9 @@
 .club-mijn-tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   display: grid; grid-template-columns: repeat(var(--club-mijn-tabs, 7), minmax(0, 1fr));
-  padding: 6px max(6px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  /* Op tablet en pc blijft de app een telefoonkolom van 640px in het midden: de tabs staan
+     recht onder die kolom in plaats van over het hele scherm uit te rekken. */
+  padding: 6px max(6px, env(safe-area-inset-right, 0px), calc((100% - 640px) / 2)) max(8px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px), calc((100% - 640px) / 2));
   background: var(--club-kop-bg, color-mix(in srgb, var(--bg-app) 94%, transparent));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

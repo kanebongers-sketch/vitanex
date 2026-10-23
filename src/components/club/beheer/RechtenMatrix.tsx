@@ -8,6 +8,7 @@ import { stuur } from '@/components/club/leden/stuur'
 
 // Rechten per rol: per onderdeel aanvinken welke rol het ziet. De eigenaar en
 // clubmanagers met beheerrechten zien altijd alles; dit gaat over medewerkers.
+// Met `onWijzig` (de startwizard) zonder eigen opslaanknop: de stap bewaart.
 
 interface Onderdeel {
   sleutel: string
@@ -24,17 +25,24 @@ interface RechtenMatrixProps {
   begin: Rechten
   /** Per groep uit het menu, plus Instellingen; elk onderdeel een keer. */
   groepen: RechtenGroep[]
+  /** Geen eigen Opslaan: elke wijziging gaat naar de ouder, die zelf opslaat. */
+  onWijzig?: (rechten: Rechten) => void
 }
 
-export function RechtenMatrix({ begin, groepen }: RechtenMatrixProps) {
+export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) {
   const router = useRouter()
   const [rechten, setRechten] = useState<Rechten>(begin)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
 
+  function zet(nieuw: Rechten) {
+    setRechten(nieuw)
+    onWijzig?.(nieuw)
+  }
+
   function wissel(rol: MedewerkerRol, sleutel: string) {
     setMelding(null)
-    setRechten((r) => ({ ...r, [rol]: r[rol].includes(sleutel) ? r[rol].filter((x) => x !== sleutel) : [...r[rol], sleutel] }))
+    zet({ ...rechten, [rol]: rechten[rol].includes(sleutel) ? rechten[rol].filter((x) => x !== sleutel) : [...rechten[rol], sleutel] })
   }
 
   async function bewaar(nieuw: Rechten) {
@@ -88,17 +96,19 @@ export function RechtenMatrix({ begin, groepen }: RechtenMatrixProps) {
         </table>
       </div>
       <div className="club-beheer-acties">
-        <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar(rechten)}>
-          {bezig ? 'Opslaan...' : 'Opslaan'}
-        </button>
+        {!onWijzig && (
+          <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar(rechten)}>
+            {bezig ? 'Opslaan...' : 'Opslaan'}
+          </button>
+        )}
         <button
           type="button"
           className="club-knop club-knop--stil"
           disabled={bezig}
           onClick={() => {
             const standaard = standaardRechten()
-            setRechten(standaard)
-            void bewaar(standaard)
+            zet(standaard)
+            if (!onWijzig) void bewaar(standaard)
           }}
         >
           Terug naar de standaard

@@ -299,3 +299,17 @@ export function toepasPlan(p: SoortPakket, vestigingen: readonly BestaandeVestig
     lestypen: p.lestypen.filter((l) => !bestaandeLestypen.some((n) => zelfdeNaam(n, l.naam))),
   }
 }
+
+/** Zonder lestypen en zonder soort: een les die bij elke sportschool past. */
+export const NEUTRALE_LES = 'Groepsles'
+
+/**
+ * De les in het voorbeeld van de ledenapp: eerst een eigen lestype dat bij de
+ * soort past, dan het eerste eigen lestype, dan de eerste les van de soort,
+ * en anders een neutrale les. Nooit een les die niet bij de sportschool past.
+ */
+export function voorbeeldLes(eigen: readonly string[], soort: SportschoolSoort | null): string {
+  const passend = soort ? voorstelLestypen(soort).map((v) => v.naam) : []
+  const namen = eigen.map((n) => n.trim()).filter(Boolean)
+  return namen.find((n) => passend.some((p) => zelfdeNaam(p, n))) ?? namen[0] ?? passend[0] ?? NEUTRALE_LES
+}

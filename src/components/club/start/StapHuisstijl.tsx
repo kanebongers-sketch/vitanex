@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ImageUp, Pipette } from 'lucide-react'
 import { LOGO_TYPES, MAX_LOGO_BYTES, MAX_NAAM } from '@/lib/club/kern/organisatie-invoer'
 import { kleurVoorstel, type KleurVoorstel } from '@/lib/club/start/logo-kleur'
+import { leesSlug, slugVoorstel } from '@/lib/club/kern/subdomein'
 import { stuur } from '@/components/club/leden/stuur'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { KleurBlok } from '@/components/club/huisstijl/KleurBlok'
@@ -13,10 +14,17 @@ import { kleurUitAfbeelding } from './logo-kleur-browser'
 import { LedenappVoorbeeld } from './LedenappVoorbeeld'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 
+/** Het eigen adres opslaan; null = gelukt. */
+async function bewaarAdres(slug: string): Promise<string | null> {
+  const uit = await stuur('/api/club/organisatie/adres', 'PATCH', { slug })
+  return uit.ok ? null : uit.fout
+}
+
 // Stap 2: logo uploaden, en de accentkleur komt er vanzelf uit (de dominante
 // kleur, met de contrastcorrectie van huisstijl.ts). Rechts een levende
-// ledenapp. Het logo en het eigen adres worden meteen opgeslagen; naam, kleur
-// en thema bij "verder". Zelf een kleur kiezen kan hier ook.
+// ledenapp. Het logo wordt meteen opgeslagen (een bestand kies je niet twee
+// keer); naam, kleur, thema en het eigen adres bewaart de knop onderaan.
+// Zelf een kleur kiezen kan hier ook.
 
 /** Huisstijl en onderdelen samen naar de API (die wil altijd alles). */
 export async function bewaarOrganisatie(w: HuisstijlWaarden): Promise<string | null> {
@@ -44,10 +52,12 @@ interface StapHuisstijlProps {
   /** Het eigen adres (aiyourgym.com/<slug>), of null als het nog niet gekozen is. */
   slug: string | null
   subdomeinen: boolean
+  /** De les in het voorbeeld van de ledenapp: het eerste lestype van de sportschool, of een die bij de soort past. */
+  voorbeeldLes: string
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
 }
 
-export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdomeinen, voet }: StapHuisstijlProps) {
+export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdomeinen, voorbeeldLes, voet }: StapHuisstijlProps) {
   const router = useRouter()
   const invoer = useRef<HTMLInputElement>(null)
   const [waarden, setWaarden] = useState<HuisstijlWaarden>(organisatie)
@@ -56,7 +66,9 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
   const [bezig, setBezig] = useState(false)
   const [sleept, setSleept] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
-  const gewijzigd = JSON.stringify(waarden) !== JSON.stringify(organisatie)
+  const [adres, setAdres] = useState(slug ?? slugVoorstel(organisatie.naam))
+  const adresGewijzigd = adres.trim().toLowerCase() !== (slug ?? '')
+  const gewijzigd = JSON.stringify(waarden) !== JSON.stringify(organisatie) || adresGewijzigd
   const logo = voorbeeld ?? logoUrl
 
   useEffect(() => () => {
@@ -100,9 +112,16 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
 
   async function voorVerder(): Promise<boolean> {
     if (!gewijzigd) return true
-    const melding = await bewaarOrganisatie(waarden)
-    if (melding) {
-      setFout(melding)
+    setFout(null)
+    const controle = leesSlug(adres)
+    if (adresGewijzigd && !controle.ok) {
+      setFout(`Adres: ${controle.fout}`)
+      return false
+    }
+    const melding = JSON.stringify(waarden) !== JSON.stringify(organisatie) ? await bewaarOrganisatie(waarden) : null
+    const adresMelding = !melding && adresGewijzigd && controle.ok ? await bewaarAdres(controle.slug) : null
+    if (melding ?? adresMelding) {
+      setFout(melding ?? adresMelding)
       return false
     }
     router.refresh()
@@ -114,6 +133,7 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
     <>
       <div className="club-start-huisstijl">
         <section className="club-start-blok club-start-huisstijl-logo" aria-labelledby="start-logo-kop">
+          <div className="club-start-huisstijl-deel">
           <h2 id="start-logo-kop">Je logo</h2>
           <div
             className="club-start-dropzone"
@@ -166,13 +186,14 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
             <span>Naam van de sportschool</span>
             <input className="club-invoer" value={waarden.naam} maxLength={MAX_NAAM} onChange={(e) => zet('naam', e.target.value)} />
           </label>
-          <AdresBlok slug={slug} naam={waarden.naam} subdomeinen={subdomeinen} />
+          <AdresBlok slug={slug} naam={waarden.naam} subdomeinen={subdomeinen} begin={adres} onWijzig={(w) => { setFout(null); setAdres(w) }} />
+          </div>
+          <div className="club-start-huisstijl-deel">
+            <KleurBlok kleur={waarden.kleurAccent} thema={waarden.thema} onKleur={(k) => zet('kleurAccent', k)} onThema={(t) => zet('thema', t)} />
+          </div>
+          {fout && <p className="club-melding club-melding--fout club-start-huisstijl-fout" role="alert">{fout}</p>}
         </section>
-        <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} logo={logo} />
-        <div className="club-start-huisstijl-kleur">
-          <KleurBlok kleur={waarden.kleurAccent} thema={waarden.thema} onKleur={(k) => zet('kleurAccent', k)} onThema={(t) => zet('thema', t)} />
-          {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
-        </div>
+        <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} logo={logo} les={voorbeeldLes} />
       </div>
       <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? 'Opslaan en verder' : undefined} />
     </>

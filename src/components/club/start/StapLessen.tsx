@@ -24,12 +24,15 @@ import { WeekLessen, type Keuze } from './WeekLessen'
 import { ZalenEnInstructeurs } from './ZalenEnInstructeurs'
 import { slaLessenOp } from './lessen-opslaan'
 import { StartVoet, type StartVoetProps } from './StartVoet'
+import { stuur } from '@/components/club/leden/stuur'
 
 // Stap 5: alles voor de groepslessen in een scherm. De lestypen die bij de
 // soort sportschool passen staan al aan, de voorgestelde week ook. Naam, duur
 // en uitleg, en per les dag, tijd, plekken, zaal en instructeur pas je hier
 // meteen aan. Bij verder slaat de stap alles op (dezelfde API's als
 // Instellingen) en zet de vaste lessen in het rooster voor de komende 6 weken.
+// Verder kan alleen met minstens een lestype, en met vaste lessen of de keuze
+// "Ik heb geen vaste lessen" (de regel in stappen.ts).
 
 interface StapLessenProps {
   vestiging: string
@@ -46,6 +49,8 @@ interface StapLessenProps {
   /** Alle voorbeeldlestypen om uit te kiezen. */
   bibliotheek: readonly VoorbeeldLestype[]
   voorbeeldLessen: readonly VoorbeeldLes[]
+  /** Bevestigde de eigenaar al dat er geen vaste lessen zijn? */
+  geenVasteLessen: boolean
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
 }
 
@@ -62,6 +67,7 @@ export function StapLessen(p: StapLessenProps) {
   const [teller, setTeller] = useState(1)
   const [stand, setStand] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
+  const [geen, setGeen] = useState(p.geenVasteLessen)
   const zichtbaar = useMemo(() => zichtbareLessen(lessen, typen), [lessen, typen])
   const wijzigingen = aantalWijzigingen(lessenPlan(typen, lessen, basis.typen, basis.lessen))
 
@@ -92,13 +98,29 @@ export function StapLessen(p: StapLessenProps) {
     setTeller((n) => n + 1)
   }
 
-  async function voorVerder(): Promise<boolean> {
+  /** Alleen bij verder: minstens een lestype, en vaste lessen of bewust geen. */
+  function inhoudFout(): string | null {
+    if (!typen.some((t) => t.aan)) return 'Kies minstens een lestype dat je geeft.'
+    if (!zichtbaar.some((l) => l.aan) && !geen) return 'Zet minstens een vaste les in je week, of vink aan dat je geen vaste lessen hebt.'
+    return null
+  }
+
+  async function bewaarGeen(): Promise<boolean> {
+    const nu = geen && !zichtbaar.some((l) => l.aan)
+    if (nu === p.geenVasteLessen) return true
+    const uit = await stuur('/api/club/start', 'PATCH', { bevestig: { geen_vaste_lessen: nu } })
+    if (!uit.ok) setFout(uit.fout)
+    return uit.ok
+  }
+
+  async function voorVerder(doel: 'verder' | 'stoppen'): Promise<boolean> {
     setFout(null)
-    const controle = controleerLessen(typen, lessen)
+    const controle = controleerLessen(typen, lessen) ?? (doel === 'verder' ? inhoudFout() : null)
     if (controle) {
       setFout(controle)
       return false
     }
+    if (!(await bewaarGeen())) return false
     if (wijzigingen === 0) return true
     const uit = await slaLessenOp({ vestiging: p.vestiging, vandaag: p.vandaag, typen, lessen, basisTypen: basis.typen, basisLessen: basis.lessen, bij: setStand })
     setStand(null)
@@ -118,21 +140,36 @@ export function StapLessen(p: StapLessenProps) {
     <>
       <div className="club-start-lessen">
         <AlvastIngevuld soort={p.soort} />
-        <LestypeKeuze typen={typen} onWissel={wisselType} onWijzig={wijzigType} onNieuw={nieuwType} />
-        <ZalenEnInstructeurs
-          vestiging={p.vestiging}
-          zalen={zalen}
-          instructeurs={instructeurs}
-          onZaal={(z) => setZalen((oud) => [...oud, z])}
-          onInstructeur={(m) => setInstructeurs((oud) => [...oud, m])}
-        />
-        <WeekLessen vestigingNaam={p.vestigingNaam} lessen={zichtbaar} typen={typen} zalen={zalen} instructeurs={instructeurs} onWijzig={wijzigLes} onNieuw={nieuweLes} />
+        <LestypeKeuze typen={typen} onWissel={wisselType} onWijzig={wijzigType} onNieuw={nieuwType} soort={p.soort} />
+        <div className="club-start-lessen-onder">
+          <WeekLessen
+            vestigingNaam={p.vestigingNaam}
+            lessen={zichtbaar}
+            typen={typen}
+            zalen={zalen}
+            instructeurs={instructeurs}
+            onWijzig={wijzigLes}
+            onNieuw={nieuweLes}
+            geen={geen}
+            onGeen={(g) => {
+              setFout(null)
+              setGeen(g)
+            }}
+          />
+          <ZalenEnInstructeurs
+            vestiging={p.vestiging}
+            zalen={zalen}
+            instructeurs={instructeurs}
+            onZaal={(z) => setZalen((oud) => [...oud, z])}
+            onInstructeur={(m) => setInstructeurs((oud) => [...oud, m])}
+          />
+        </div>
         <div aria-live="polite">
           {stand && <p className="club-melding" role="status">Bezig met opslaan: {stand}...</p>}
           {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
         </div>
       </div>
-      <StartVoet {...p.voet} voorVerder={voorVerder} primair={wijzigingen > 0 ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...p.voet} voorVerder={voorVerder} primair={wijzigingen > 0 || geen !== p.geenVasteLessen ? 'Opslaan en verder' : undefined} />
     </>
   )
 }

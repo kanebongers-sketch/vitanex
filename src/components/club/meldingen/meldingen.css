@@ -3,7 +3,7 @@
    Alleen tokens uit club.css en .lifeos-root.ff. Alleen .club-meldingen-*. */
 
 /* ── Instellingen ────────────────────────────────────────────────────────── */
-.club-meldingen-status { display: grid; gap: 6px; max-width: 760px; margin-top: 20px; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--club-let-op); border-radius: var(--club-radius); background: var(--bg-card); }
+.club-meldingen-status { display: grid; gap: 6px; max-width: var(--club-formulier); margin-top: 20px; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--club-let-op); border-radius: var(--club-radius); background: var(--bg-card); }
 .club-meldingen-status.is-aan { border-left-color: var(--club-ok); }
 .club-meldingen-status strong { font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; }
 .club-meldingen-status p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }

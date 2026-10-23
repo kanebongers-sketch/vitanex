@@ -3,10 +3,12 @@
 import { Check, Plus } from 'lucide-react'
 import { LES_SOORTEN, SOORT_LABEL, type LesSoort } from '@/lib/club/rooster/typen'
 import type { Intensiteit, TypeRij } from '@/lib/club/start/lessen-plan'
+import { SOORT_INFO, type SportschoolSoort } from '@/lib/club/start/soorten'
 
 // De lestypen in stap Lessen: bovenaan een snelle keuze (een klik zet een
-// lestype aan of uit, de passende staan al aan), daaronder per gekozen lestype
-// meteen naam, soort, duur, zwaarte en uitleg om aan te passen.
+// lestype aan of uit, de passende staan al aan), in twee zichtbare groepen:
+// eerst wat bij de soort sportschool past (plus wat je al had), dan de rest.
+// Daaronder per gekozen lestype meteen naam, soort, duur, zwaarte en uitleg.
 
 const INTENSITEIT: Record<Intensiteit, string> = { 1: 'Rustig', 2: 'Gemiddeld', 3: 'Zwaar' }
 
@@ -15,6 +17,22 @@ interface LestypeKeuzeProps {
   onWissel: (sleutel: string) => void
   onWijzig: (sleutel: string, w: Partial<TypeRij>) => void
   onNieuw: () => void
+  soort: SportschoolSoort | null
+}
+
+/** De kop van de eerste groep: "Past bij een pt-studio", of zonder soort "Voorgesteld". */
+export function passendKop(soort: SportschoolSoort | null): string {
+  return soort ? `Past bij een ${SOORT_INFO[soort].titel.toLowerCase()}` : 'Voorgesteld'
+}
+
+function Chip({ t, onWissel }: { t: TypeRij; onWissel: LestypeKeuzeProps['onWissel'] }) {
+  return (
+    <label className="club-start-chip" data-aan={t.aan || undefined} data-past={t.past || undefined}>
+      <input type="checkbox" checked={t.aan} onChange={() => onWissel(t.sleutel)} />
+      <span className="club-start-chip-vink" aria-hidden>{t.aan ? <Check size={13} strokeWidth={3} /> : <Plus size={13} strokeWidth={2.5} />}</span>
+      {t.naam.trim() || 'Naamloos'}
+    </label>
+  )
 }
 
 function TypeKaart({ t, onWijzig, onWissel }: { t: TypeRij; onWijzig: LestypeKeuzeProps['onWijzig']; onWissel: LestypeKeuzeProps['onWissel'] }) {
@@ -58,28 +76,36 @@ function TypeKaart({ t, onWijzig, onWissel }: { t: TypeRij; onWijzig: LestypeKeu
   )
 }
 
-export function LestypeKeuze({ typen, onWissel, onWijzig, onNieuw }: LestypeKeuzeProps) {
+export function LestypeKeuze({ typen, onWissel, onWijzig, onNieuw, soort }: LestypeKeuzeProps) {
   const gekozen = typen.filter((t) => t.aan)
   const opties = typen.filter((t) => !t.sleutel.startsWith('nieuw:'))
+  const passend = opties.filter((t) => t.past || t.id !== null)
+  const anders = opties.filter((t) => !t.past && t.id === null)
   return (
     <section className="club-start-blok" aria-labelledby="start-lestypen-kop">
       <div className="club-start-blokkop">
         <h2 id="start-lestypen-kop">Welke lessen geef je?</h2>
         <span className="club-chip club-chip--merk">{gekozen.length} gekozen</span>
       </div>
-      <fieldset className="club-start-chips">
-        <legend className="club-sr">Kies je lestypen</legend>
-        {opties.map((t) => (
-          <label key={t.sleutel} className="club-start-chip" data-aan={t.aan || undefined} data-past={t.past || undefined}>
-            <input type="checkbox" checked={t.aan} onChange={() => onWissel(t.sleutel)} />
-            <span className="club-start-chip-vink" aria-hidden>{t.aan ? <Check size={13} strokeWidth={3} /> : <Plus size={13} strokeWidth={2.5} />}</span>
-            {t.naam.trim() || 'Naamloos'}
-          </label>
-        ))}
-        <button type="button" className="club-start-chip club-start-chip--eigen" onClick={onNieuw}>
-          <Plus aria-hidden size={13} strokeWidth={2.5} /> Eigen lestype
-        </button>
-      </fieldset>
+      <div className="club-start-chipgroepen">
+        <fieldset className="club-start-chips">
+          <legend className="club-start-chipkop">{passendKop(soort)}</legend>
+          {passend.map((t) => (
+            <Chip key={t.sleutel} t={t} onWissel={onWissel} />
+          ))}
+          <button type="button" className="club-start-chip club-start-chip--eigen" onClick={onNieuw}>
+            <Plus aria-hidden size={13} strokeWidth={2.5} /> Eigen lestype
+          </button>
+        </fieldset>
+        {anders.length > 0 && (
+          <fieldset className="club-start-chips club-start-chips--anders">
+            <legend className="club-start-chipkop">Andere lestypen</legend>
+            {anders.map((t) => (
+              <Chip key={t.sleutel} t={t} onWissel={onWissel} />
+            ))}
+          </fieldset>
+        )}
+      </div>
       {gekozen.length > 0 ? (
         <ul className="club-start-typekaarten" role="list">
           {gekozen.map((t) => (

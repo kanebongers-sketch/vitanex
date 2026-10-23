@@ -53,7 +53,8 @@
 /* ── Meldingen ──────────────────────────────────────────────────────────── */
 .club-hulp-mijn { display: grid; gap: 12px; min-width: 0; }
 .club-hulp-meldingen { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.club-hulp-meldingen--beheer { margin-top: 20px; max-width: 900px; }
+.club-hulp-meldingen--beheer { margin-top: 20px; align-items: start; }
+@media (min-width: 1400px) { .club-hulp-meldingen--beheer { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .club-hulp-melding { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); }
 .club-hulp-meldingkop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .club-hulp-meldingkop h3 { margin: 2px 0; font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
