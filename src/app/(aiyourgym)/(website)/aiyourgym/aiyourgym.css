@@ -251,7 +251,7 @@
 /* ── Contactbalk boven de kop ────────────────────────────────────────────── */
 /* Een dunne, rustige smaragdtint met inkt erop. Alleen als er telefoon of e-mail is;
    zonder contactgegevens staat er alleen een smalle regel op schermen waar de
-   demoknop niet in de kop past (900 tot 1079 px), en verder niets. */
+   demoknop niet in de kop past (1024 tot 1079 px), en verder niets. */
 .ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
 .ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 34px; flex-wrap: wrap; }
 .ayg-contactbalk-lijst { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-right: auto; }
@@ -262,7 +262,7 @@
 .ayg-contactbalk-demo svg { color: var(--ayg-accent-sterk); transition: transform 220ms var(--ayg-ease); }
 .ayg-contactbalk-demo:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 .ayg-contactbalk--leeg { display: none; }
-@media (min-width: 900px) and (max-width: 1079px) {
+@media (min-width: 1024px) and (max-width: 1079px) {
   .ayg-contactbalk--leeg { display: block; background: transparent; box-shadow: inset 0 -1px 0 var(--ayg-lijn); }
 }
 
@@ -307,25 +307,44 @@
 .ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent-sterk); text-decoration-thickness: 4px; text-underline-offset: 6px; }
 .ayg-menupaneel-onder { display: grid; gap: 10px; }
 .ayg-menupaneel-onder .ayg-knop { width: 100%; min-height: 54px; }
+/* Tablet: de twee knoppen naast elkaar in plaats van twee balken over de hele breedte */
+@media (min-width: 640px) {
+  .ayg-menupaneel-onder { grid-template-columns: 1fr 1fr; }
+  .ayg-menupaneel-live { grid-column: 1 / -1; }
+}
 .ayg-menupaneel-live { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-weight: 600; text-decoration: none; }
 @media (prefers-reduced-motion: no-preference) {
   .ayg-menupaneel[data-open] { animation: ayg-paneel 320ms var(--ayg-ease) both; }
   .ayg-menupaneel[data-open] .ayg-menupaneel-lijst li { animation: ayg-in 460ms var(--ayg-ease) both; animation-delay: calc(60ms + var(--i, 0) * 45ms); }
 }
 @keyframes ayg-paneel { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
-@media (min-width: 900px) {
+/* Omslagpunten van de kop (gemeten met de echte letters, 23-10-2026). Niets in de kop
+   mag ooit naar twee regels: knoppen en links breken nooit af (nowrap) en per trede
+   valt er iets weg tot alles op een regel past.
+   - tot 1023 px: menuknop met menupaneel (telefoon en tablet staand)
+   - 1024 tot 1079: menu en "Probeer gratis"; de demo staat in de dunne regel erboven
+   - 1080 tot 1179: plus "Plan demo" (kort)
+   - 1180 tot 1279: plus "Plan een gratis demo" (voluit)
+   - 1280 tot 1379: plus "Live demo", menu nog compact
+   - vanaf 1380: alles op ware grootte */
+.ayg-kop-acties { flex-shrink: 0; }
+.ayg-kop-acties > a, .ayg-nav a { white-space: nowrap; }
+.ayg-nav { min-width: 0; }
+@media (min-width: 1024px) {
   .ayg-nav, .ayg-kop-acties { display: flex; }
   .ayg-menuknop, .ayg-menupaneel { display: none; }
 }
-@media (min-width: 900px) and (max-width: 1239px) {
-  .ayg-kop-demo { display: none; }
+@media (min-width: 1024px) and (max-width: 1379px) {
   /* Krap: menulinks op een regel houden zonder dat de kop te breed wordt */
   .ayg-kop-rij { gap: 16px; }
   .ayg-nav a { padding-inline: 9px; font-size: 14.5px; }
   .ayg-nav a::after { left: 9px; right: 9px; }
 }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .ayg-kop-demo { display: none; }
+}
 /* Nog krapper: de demoknop staat dan alleen in de dunne regel erboven (ContactBalk) */
-@media (min-width: 900px) and (max-width: 1079px) {
+@media (min-width: 1024px) and (max-width: 1079px) {
   .ayg-kop-acties .ayg-knop--rand { display: none; }
 }
 @media (max-width: 1179px) {
@@ -384,7 +403,9 @@
 /* Aanmeldband */
 .ayg-band { display: grid; gap: 32px; padding: clamp(36px, 6vw, 80px); }
 .ayg-band .ayg-h2 { max-width: 14ch; }
-@media (min-width: 900px) { .ayg-band { grid-template-columns: 1.4fr 1fr; align-items: end; } }
+@media (min-width: 900px) { .ayg-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; column-gap: clamp(32px, 5vw, 96px); } }
+/* De derde keus is een rustige tekstlink: zo breed als de tekst, niet over de hele kolom */
+.ayg-band-live { justify-self: start; }
 .ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed-band), transparent), transparent); pointer-events: none; }
 
 /* Concept (juridisch) */
@@ -422,8 +443,8 @@
 .ayg-plak[data-zichtbaar] { transform: none; opacity: 1; visibility: visible; transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s; }
 .ayg-plak .ayg-knop { min-height: 50px; box-shadow: none; }
 .ayg-plak-demo { display: inline-flex; align-items: center; padding: 0 18px; border-radius: 11px; color: var(--ayg-tekst); font-weight: 600; font-size: 15px; text-decoration: none; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
-@media (max-width: 899px) { .ayg-voet { padding-bottom: 104px; } }
-@media (min-width: 900px) { .ayg-plak { display: none; } }
+@media (max-width: 1023px) { .ayg-voet { padding-bottom: 104px; } }
+@media (min-width: 1024px) { .ayg-plak { display: none; } }
 
 /* ── Beweging ────────────────────────────────────────────────────────────── */
 @keyframes ayg-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -478,10 +499,18 @@
 }
 .ayg-kop-logo .ayg-logo { height: 30px; width: auto; }
 /* Krappe pc-breedte: het logo iets kleiner, zodat menu en knoppen op een regel blijven */
-@media (min-width: 900px) and (max-width: 1239px) { .ayg-kop-logo .ayg-logo { height: 25px; } }
+@media (min-width: 1024px) and (max-width: 1379px) { .ayg-kop-logo .ayg-logo { height: 25px; } }
 /* Telefoon: naast de menuknop; op de smalste schermen (320) nog iets kleiner */
-@media (max-width: 899px) { .ayg-kop-logo .ayg-logo { height: 26px; } }
+@media (max-width: 1023px) { .ayg-kop-logo .ayg-logo { height: 26px; } }
 @media (max-width: 359px) { .ayg-kop-logo .ayg-logo { height: 21px; } }
 .ayg-voet-merk .ayg-logo { height: 36px; width: auto; }
 /* Het grote woordmerk onder in de voet: dezelfde paden, over de volle breedte */
 svg.ayg-voet-woord { display: block; width: 100%; height: auto; color: var(--ayg-voet-woord); }
+
+/* ── Inloggen ────────────────────────────────────────────────────────────── */
+/* Formulier en hulp naast elkaar op brede schermen, zodat er geen leeg vlak naast het
+   smalle formulier staat; op de telefoon onder elkaar. */
+.ayg-inlog-sectie { padding-top: 0; }
+.ayg-inlog-raster { display: grid; gap: clamp(40px, 6vw, 96px); align-items: start; }
+.ayg-inlog-raster > * { min-width: 0; }
+@media (min-width: 900px) { .ayg-inlog-raster { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); } }

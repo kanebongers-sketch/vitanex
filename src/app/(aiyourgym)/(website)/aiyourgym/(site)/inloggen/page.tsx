@@ -21,7 +21,7 @@ function WachtwoordVergeten() {
   if (heeftContact()) {
     return (
       <p>
-        Wachtwoord vergeten? Je bereikt ons op{' '}
+        Je bereikt ons op{' '}
         {telefoon && <a href={telLink(telefoon)}>{telefoon}</a>}
         {telefoon && email && ' of '}
         {email && <a href={`mailto:${email}`}>{email}</a>}. We helpen je dan aan een nieuw wachtwoord.
@@ -30,8 +30,8 @@ function WachtwoordVergeten() {
   }
   return (
     <p>
-      Ben je je link kwijt? Laat het ons weten via het formulier bij <Link href={DEMO_AANVRAGEN}>Plan een gratis demo</Link> en zet in je
-      opmerking dat het om je inloglink gaat. We helpen je dan aan een nieuw wachtwoord.
+      Laat het ons weten via het formulier bij <Link href={DEMO_AANVRAGEN}>Plan een gratis demo</Link> en zet in je
+      opmerking dat het om je wachtwoord gaat. We helpen je dan aan een nieuw wachtwoord.
     </p>
   )
 }
@@ -46,23 +46,21 @@ export default function InloggenPagina() {
           </p>
         )}
       </PaginaKop>
-      <section className="ayg-sectie--krap" aria-label="Inloggen">
-        <div className="ayg-wrap">
+      <section className="ayg-sectie--krap ayg-inlog-sectie" aria-label="Inloggen">
+        <div className="ayg-wrap ayg-inlog-raster">
           <InlogFormulier />
-        </div>
-      </section>
-      <section className="ayg-sectie--krap" aria-label="Hulp bij inloggen">
-        <div className="ayg-wrap ayg-tekst">
-          <h2>Wachtwoord vergeten</h2>
-          <WachtwoordVergeten />
-          <h2>Lid van een sportschool</h2>
-          <p>Ben je lid? Dan log je in via de ledenapp van je eigen sportschool. Vraag de link aan de balie of aan je trainer.</p>
-          <h2>Nog geen account</h2>
-          <p>Probeer AI Your Gym {PROEFDAGEN} dagen gratis. Je kiest je wachtwoord bij het aanmelden en bent daarna meteen binnen.</p>
-          <div className="ayg-knoppen">
-            <Knop href={AANMELDEN} soort="accent" pijl>
-              Probeer gratis
-            </Knop>
+          <div className="ayg-tekst" role="region" aria-label="Hulp bij inloggen">
+            <h2>Wachtwoord vergeten</h2>
+            <WachtwoordVergeten />
+            <h2>Lid van een sportschool</h2>
+            <p>Ben je lid? Dan log je in via de ledenapp van je eigen sportschool, met je e-mailadres en wachtwoord. Heb je de app nog niet, vraag dan aan de balie om een uitnodiging.</p>
+            <h2>Nog geen account</h2>
+            <p>Probeer AI Your Gym {PROEFDAGEN} dagen gratis. Je kiest je wachtwoord bij het aanmelden en bent daarna meteen binnen.</p>
+            <div className="ayg-knoppen">
+              <Knop href={AANMELDEN} soort="accent" pijl>
+                Probeer gratis
+              </Knop>
+            </div>
           </div>
         </div>
       </section>

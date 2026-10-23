@@ -14,11 +14,12 @@ interface StapSportschoolProps {
   onbeperkt: boolean
   fouten: Partial<Record<AanmeldVeld, string>>
   wijzig: Wijzig
+  adresActief: boolean
 }
 
 const ICOON: Partial<Record<AdresStatus, typeof Check>> = { controleren: LoaderCircle, vrij: Check, bezet: X, ongeldig: X }
 
-export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig }: StapSportschoolProps) {
+export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig, adresActief }: StapSportschoolProps) {
   const adres = useAdresCheck(invoer.slug)
   const Icoon = ICOON[adres.status]
 
@@ -56,7 +57,7 @@ export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wij
 
       <Veld id="slug" label="Je eigen adres" achter=".aiyourgym.com" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
         value={invoer.slug} onChange={(e) => adresGewijzigd(e.target.value)} fout={fouten.slug}
-        hint="Hier vinden je leden en je team straks Club. Kleine letters, cijfers en koppeltekens."
+        hint={`${adresActief ? 'Hier vinden je leden en je team Club.' : 'We leggen dit adres voor je vast; tot het live gaat werk je via aiyourgym.com.'} Kleine letters, cijfers en koppeltekens.`}
         status={
           adres.melding && !fouten.slug ? (
             <p className="aan-adres" data-status={adres.status} aria-live="polite">

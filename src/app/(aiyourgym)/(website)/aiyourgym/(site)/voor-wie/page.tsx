@@ -79,7 +79,7 @@ function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
               <Link href={`${AANMELDEN}?pakket=${pakket.sleutel}`}>Probeer {pakket.naam} gratis</Link>
             </p>
           )}
-          <Figuur className={beeld.smal ? 'ayg-groep-beeld ayg-groep-beeld--smal ayg-onthul' : 'ayg-groep-beeld ayg-onthul'} label={beeld.label} bijschrift={beeld.bron}>
+          <Figuur className={`ayg-groep-beeld ayg-groep-beeld--breed-alleen ayg-onthul${beeld.smal ? ' ayg-groep-beeld--smal' : ''}`} label={beeld.label} bijschrift={beeld.bron}>
             {beeld.inhoud}
           </Figuur>
         </div>

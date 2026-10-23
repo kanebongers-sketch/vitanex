@@ -49,14 +49,14 @@ export const OVERSTAP_STAPPEN: readonly OverstapStap[] = [
   },
   {
     titel: 'Leden op de app',
-    tekst: 'Leden krijgen een mail met hun eigen link naar de ledenapp, of scannen de QR-code op de poster bij de balie.',
+    tekst: 'Leden krijgen een mail met een link om eenmalig hun wachtwoord te kiezen, of scannen de QR-code op de poster bij de balie. Daarna loggen ze in met e-mailadres en wachtwoord.',
   },
 ]
 
 /** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
 export const VRAAG_CONTRACT: VeelgesteldeVraag = {
   vraag: 'Zit ik ergens aan vast?',
-  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. Stop je in die tijd, dan betaal je niets. Ga je door, dan loopt je abonnement een jaar en betaal je per maand, per vestiging. Opstartkosten rekenen we nu niet. Het bedrag zie je bij Stripe voordat je iets bevestigt.`,
+  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. Stop je in die tijd, dan betaal je niets. Ga je door, dan loopt je abonnement een jaar en betaal je per maand, per vestiging. Opstartkosten rekenen we nu niet. Het bedrag zie je altijd voordat je iets betaalt.`,
 }
 
 /** Ook gebruikt op de prijzenpagina: van wie de gegevens zijn. */

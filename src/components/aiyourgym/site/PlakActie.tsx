@@ -9,7 +9,7 @@ import { scrollPositie, volgScroll } from './scrollpositie'
 // Op de telefoon: na het eerste scherm een vaste aanmeldknop onderin, zodat de
 // volgende stap altijd een duim ver weg is. Hij verdwijnt weer bij de voet,
 // waar de aanmeldband en de voet zelf de knoppen al tonen. Op brede schermen
-// staat de knop al in de kop (css verbergt dit blok vanaf 900px).
+// staat de knop al in de kop (css verbergt dit blok vanaf 1024px).
 
 const VANAF_SCHERMEN = 0.9
 const VOET_MARGE_PX = 640
