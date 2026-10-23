@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { bezitPerPersoon, type KledingArtikel, type Uitgifte } from '@/lib/lifeos/pt-dashboard/kleding'
+import type { Kledingmaten } from '@/lib/lifeos/pt-dashboard/belangrijk'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { kledingActie } from './kleding-api'
@@ -15,9 +16,14 @@ interface Props {
   uitgiftes: readonly Uitgifte[]
   team: readonly { id: string; naam: string }[]
   magBewerken: boolean
+  /**
+   * De kledingmaten die elke PT'er zelf doorgaf: persoon_id → maten, null = nog
+   * niet doorgegeven. Wie er niet in staat (Kane) krijgt geen regel.
+   */
+  maten?: Readonly<Record<string, Kledingmaten | null>>
 }
 
-export function BezitLijst({ artikelen, uitgiftes, team, magBewerken }: Props) {
+export function BezitLijst({ artikelen, uitgiftes, team, magBewerken, maten }: Props) {
   const router = useRouter()
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
@@ -46,6 +52,7 @@ export function BezitLijst({ artikelen, uitgiftes, team, magBewerken }: Props) {
                 <span className="ptd-naam">{p.naam}</span>
                 <span className="ptd-badge">{regels.reduce((s, r) => s + r.aantal, 0)} stuks</span>
               </div>
+              {maten && p.id in maten ? <MatenRegel m={maten[p.id]} /> : null}
               {regels.length === 0 ? (
                 <p className="ptd-hint">Geen kleding uitgegeven.</p>
               ) : (
@@ -74,5 +81,19 @@ export function BezitLijst({ artikelen, uitgiftes, team, magBewerken }: Props) {
       </ul>
       {fout ? <Foutmelding bericht={fout} /> : null}
     </>
+  )
+}
+
+/** De maten die een PT'er doorgaf, of dat ze nog ontbreken. */
+function MatenRegel({ m }: { m: Kledingmaten | null }) {
+  return m ? (
+    <p className="ptd-meta">
+      <span>Shirts en hoodies <strong>{m.boven}</strong></span>
+      <span>Shorts en broeken <strong>{m.onder}</strong></span>
+    </p>
+  ) : (
+    <p className="ptd-meta">
+      <span className="ptd-badge ptd-badge--let-op">Maten nog niet doorgegeven</span>
+    </p>
   )
 }

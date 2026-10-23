@@ -48,6 +48,19 @@ export function zietKleding(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'
 }
 
+/**
+ * Mag deze rol de algemene aandachtspunten ("Belangrijk" op het startscherm van
+ * elke PT'er) beheren? Alleen de beheerder (Kane); eigenaren en clubmanagers niet.
+ */
+export function magAandachtspuntenBeheren(rol: LinkRol): boolean {
+  return rol === 'beheerder'
+}
+
+/** Krijgt deze rol "Belangrijk" op het startscherm (punten afvinken, kledingmaten doorgeven)? Alleen PT'ers. */
+export function krijgtBelangrijk(rol: LinkRol): boolean {
+  return rol === 'pt'
+}
+
 /** Ziet deze rol de coachgesprekken (check-ins, open punten, verslagen) van het team? */
 export function zietCoach(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'

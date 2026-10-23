@@ -13,8 +13,12 @@ import { EigenaarTeam } from '@/components/lifeos/pt-eigenaar/EigenaarTeam'
 import { zietGroeiplan } from '@/lib/lifeos/leads/links'
 import { haalGroeiplan } from '@/lib/lifeos/pt-dashboard/groeiplan-opslag'
 import { GroeiplanKaart } from '@/components/lifeos/pt-groei/GroeiplanKaart'
+import { haalBelangrijkVoorPt } from '@/lib/lifeos/pt-dashboard/belangrijk-opslag'
+import { Belangrijk } from '@/components/lifeos/pt-dashboard/Belangrijk'
 
 // /<naam> — het overzicht van de PT'er (of, voor een eigenaar, van het hele team).
+// Bovenaan bij een PT'er: "Belangrijk" (de algemene punten van Kane en, zolang
+// ze ontbreken, de kledingmaten).
 
 export default async function PtOverzichtPagina({ params }: { params: Promise<{ pt: string }> }) {
   const { pt } = await params
@@ -25,13 +29,19 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je gegevens konden niet geladen worden. Vernieuw de pagina." />
   const club = meestGebruikteClub(g.leads, g.klanten)
   const s = await ptSessie(pt)
-  const [stand, groeiplan] = s
-    ? await Promise.all([haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)), zietGroeiplan(g.link.rol) ? haalGroeiplan(s.admin, g.link.userId) : null])
-    : [new Map(), null]
+  const [stand, groeiplan, belangrijk] = s
+    ? await Promise.all([
+        haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)),
+        zietGroeiplan(g.link.rol) ? haalGroeiplan(s.admin, g.link.userId) : null,
+        // "Belangrijk" is een extra laag: niet leesbaar → het startscherm zonder dat blok.
+        haalBelangrijkVoorPt(s.admin, g.link.userId, g.link.persoonId),
+      ])
+    : [new Map(), null, null]
   const taken = dossierTaken(g.klanten, stand, g.vandaag)
   return (
     <>
       <FfHero boventitel={club ? `Personal Trainer · ${CLUB_LABEL[club]}` : 'Personal Trainer'} titel={`Hoi ${g.link.naam}`} />
+      {belangrijk ? <Belangrijk code={g.link.code} b={belangrijk.b} maten={belangrijk.maten} /> : null}
       <BeginschermHint />
       <Overzicht
         code={g.link.code}

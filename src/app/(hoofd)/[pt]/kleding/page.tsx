@@ -5,6 +5,8 @@ import { zietKleding } from '@/lib/lifeos/leads/links'
 import { haalKleding } from '@/lib/lifeos/pt-dashboard/kleding-opslag'
 import { haalTrainers } from '@/lib/lifeos/pt-dashboard/team-opslag'
 import { kledingTotalen } from '@/lib/lifeos/pt-dashboard/kleding'
+import { matenPerPt } from '@/lib/lifeos/pt-dashboard/belangrijk'
+import { haalAlleKledingmaten } from '@/lib/lifeos/pt-dashboard/belangrijk-opslag'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
@@ -25,8 +27,15 @@ export default async function KledingPagina({ params }: { params: Promise<{ pt: 
   if (!s?.ingelogd) return null
   if (!zietKleding(s.link.rol)) notFound()
 
-  const [kleding, team] = await Promise.all([haalKleding(s.admin, s.link.userId), haalTrainers(s.admin, s.link.userId)])
+  const [kleding, team, pts, maten] = await Promise.all([
+    haalKleding(s.admin, s.link.userId),
+    haalTrainers(s.admin, s.link.userId),
+    haalTrainers(s.admin, s.link.userId, { metBeheerder: false }),
+    haalAlleKledingmaten(s.admin, s.link.userId),
+  ])
   if (!kleding || !team) return <Foutmelding bericht="De kleding kon niet geladen worden. Vernieuw de pagina." />
+  // De maten die PT'ers zelf doorgeven (startscherm, "Belangrijk"); niet leesbaar → zonder maten.
+  const matenVan = pts && maten ? matenPerPt(pts, maten) : undefined
   const beheerder = s.link.rol === 'beheerder'
   const t = kledingTotalen(kleding.voorraad, kleding.uitgiftes)
 
@@ -62,9 +71,9 @@ export default async function KledingPagina({ params }: { params: Promise<{ pt: 
       <section className="ptd-sectie" aria-labelledby="kl-bezit-kop">
         <div className="ptd-sectiekop">
           <h2 id="kl-bezit-kop">Per PT&apos;er</h2>
-          <span>wat ze nu hebben</span>
+          <span>hun maten en wat ze nu hebben</span>
         </div>
-        <BezitLijst artikelen={kleding.artikelen} uitgiftes={kleding.uitgiftes} team={team} magBewerken={beheerder} />
+        <BezitLijst artikelen={kleding.artikelen} uitgiftes={kleding.uitgiftes} team={team} magBewerken={beheerder} maten={matenVan} />
       </section>
     </>
   )
