@@ -7,16 +7,21 @@ import { UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
 import { MEDEWERKER_ROLLEN, ROL_LABEL, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { clubPad } from '@/lib/club/kern/vestiging'
+import type { LoginStaat } from '@/lib/club/medewerker-login/medewerker-login'
+import { TeamUitnodiging } from './TeamUitnodiging'
 
-// Stap 6: medewerkers toevoegen met alleen naam, e-mail en rol. Uitnodigen om
-// in te loggen (e-mailadres plus een zelfgekozen wachtwoord) doe je daarna bij
-// Medewerkers. Gaat via dezelfde API als Instellingen.
+// Stap 6: medewerkers toevoegen met alleen naam, e-mail en rol, en per
+// medewerker meteen uitnodigen om in te loggen (een eenmalige link die je zelf
+// doorstuurt; de medewerker kiest daar een wachtwoord). Gaat via dezelfde
+// API's als Medewerkers in Instellingen.
 
 export interface TeamLid {
   id: string
   naam: string
   email: string | null
   rollen: MedewerkerRol[]
+  /** De stand van de login (geen, uitgenodigd, verlopen, actief, oud). */
+  login: LoginStaat
 }
 
 interface TeamFormulierProps {
@@ -24,11 +29,15 @@ interface TeamFormulierProps {
   /** De vestiging die open staat; nieuwe medewerkers werken daar standaard. */
   vestiging: string
   team: TeamLid[]
+  /** Staat inloggen voor medewerkers aan (CLUB_EIGEN_LOGIN)? */
+  loginAan: boolean
+  /** Het adres van de sportschool voor de uitnodigingslink, of null (dan dit domein). */
+  linkBasis: string | null
 }
 
 const ALLE = '__alle'
 
-export function TeamFormulier({ vestigingen, vestiging, team }: TeamFormulierProps) {
+export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasis }: TeamFormulierProps) {
   const router = useRouter()
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
@@ -109,6 +118,7 @@ export function TeamFormulier({ vestigingen, vestiging, team }: TeamFormulierPro
                 <span className="club-zacht">{m.email ?? 'Geen e-mail'}</span>
               </span>
               <span className="club-chip club-chip--merk">{m.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Geen rol'}</span>
+              <TeamUitnodiging medewerkerId={m.id} naam={m.naam} email={m.email} staat={m.login} loginAan={loginAan} linkBasis={linkBasis} />
             </li>
           ))}
         </ul>
@@ -116,8 +126,8 @@ export function TeamFormulier({ vestigingen, vestiging, team }: TeamFormulierPro
         <p className="club-leeg">Nog niemand. Werk je alleen? Dan kun je deze stap overslaan.</p>
       )}
       <p className="club-hint">
-        Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Stuur de uitnodiging wanneer het jou uitkomt: open bij{' '}
-        <Link href={clubPad('/instellingen/medewerkers', vestiging)}>Medewerkers</Link> iemand en kies Uitnodigen.
+        Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen geeft een link die je zelf doorstuurt; Club mailt hem niet. Liever later? Dat kan ook bij{' '}
+        <Link href={clubPad('/instellingen/medewerkers', vestiging)}>Medewerkers</Link>.
       </p>
     </section>
   )

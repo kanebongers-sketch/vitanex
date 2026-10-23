@@ -344,3 +344,32 @@
   .club-start-soortkaart, .club-start-voorbeeld { transition: none; }
   .club-start-soortkaart:hover, .club-start-voorbeeld:hover { transform: none; }
 }
+
+/* ── Ik kom er niet uit (onder elke stap) ────────────────────────────────── */
+.club-start-hulp { justify-self: start; max-width: 620px; display: grid; gap: 10px; }
+.club-start-hulp > summary { display: inline-flex; align-items: center; gap: 6px; width: fit-content; cursor: pointer; list-style: none; font-size: 13.5px; color: var(--text-3); border-radius: var(--club-radius-klein); transition: color 150ms var(--ease); }
+.club-start-hulp > summary::-webkit-details-marker { display: none; }
+.club-start-hulp > summary:hover { color: var(--text-1); text-decoration: underline; text-underline-offset: 3px; }
+.club-start-hulp > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+.club-start-hulp[open] > summary { color: var(--text-1); }
+.club-start-hulp-form { display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--club-radius); border: 1px solid var(--line); background: var(--bg-card); }
+.club-start-hulp-form .club-hint, .club-start-hulp-form .club-fout { margin: 0; }
+.club-start-hulp-form .club-knop { justify-self: start; }
+
+/* ── Stap Team: meteen uitnodigen ────────────────────────────────────────── */
+.club-start-uitnodig { display: grid; gap: 6px; justify-items: start; }
+@media (min-width: 760px) { .club-start-uitnodig { justify-items: end; text-align: right; } }
+.club-start-uitnodig-rij { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-start-uitnodig-hint { font-size: 13px; }
+.club-start-uitnodig-link { flex-basis: 100%; display: grid; gap: 6px; text-align: left; }
+.club-start-uitnodig-adres { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-start-uitnodig-adres .club-invoer { flex: 1; min-width: 0; font-size: 13px; }
+.club-start-team li .club-start-uitnodig:has(.club-start-uitnodig-link) { flex-basis: 100%; justify-items: stretch; }
+
+/* ── Proefperiode tot ... (rustig, alleen de datum) ──────────────────────── */
+.club-proef { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; font-size: 13px; color: var(--text-3); }
+.club-proef strong { font-weight: 600; color: var(--text-2); }
+.club-proef a { color: var(--text-3); text-decoration: underline; text-underline-offset: 3px; }
+.club-proef a:hover { color: var(--text-1); }
+.club-proef a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+.club-startkaart-tekst p.club-proef { margin-top: 6px; color: var(--text-3); }

@@ -14,7 +14,7 @@ export const STAP_INTRO: Record<StapSleutel, string> = {
   vestigingen: 'Waar je sportschool zit en wanneer hij open is. Een klik voor de standaardtijden, of stel ze per dag in.',
   onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
   lessen: 'De groepslessen die je geeft, en eventueel een paar vaste lessen in je week.',
-  team: 'Alleen naam, e-mail en rol. Uitnodigen om in te loggen doe je later bij Medewerkers, wanneer het jou uitkomt.',
+  team: 'Alleen naam, e-mail en rol. Nodig iedereen meteen uit om in te loggen, of doe dat later bij Medewerkers.',
   leden: 'Lees je leden in uit je huidige systeem, of doe het later. Bekijk eerst hoe het werkt met een voorbeeld.',
   klaar: 'Je sportschool staat. Hier zie je je eigen adressen en een kort lijstje voor je eerste dag. Rond af als het klopt.',
 }
@@ -70,7 +70,7 @@ export function StapLedenInlezen({ importPad, vandaag }: StapLedenProps) {
       <section className="club-start-blok club-start-actie" aria-labelledby="start-inlezen-kop">
         <h2 id="start-inlezen-kop">Je ledenbestand</h2>
         <ol className="club-start-genummerd">
-          <li>Exporteer je leden uit je huidige systeem (zoals Virtuagym) als CSV, of sla je Excel-lijst op als CSV.</li>
+          <li>Exporteer je leden uit je huidige systeem (zoals Virtuagym) als CSV, of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad.</li>
           <li>Een naam is genoeg: voornaam en achternaam, of de hele naam in een kolom. Andere kolommen herkent Club zelf.</li>
           <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
         </ol>

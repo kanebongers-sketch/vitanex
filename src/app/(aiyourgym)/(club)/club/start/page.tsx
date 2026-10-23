@@ -204,7 +204,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   const sleutel = STAPPEN[huidig - 1].sleutel
   const vestiging = kiesUit(t.vestigingen, params.v)
   return (
-    <StartKader sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
+    <StartKader t={t} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
       {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">Je voortgang kon niet worden gelezen. Je kunt gewoon verder; probeer het later opnieuw als iets niet wordt bewaard.</p>}
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}

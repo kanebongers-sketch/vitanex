@@ -2,16 +2,16 @@
 
 import { useRef, useState, type DragEvent } from 'react'
 import { FileSpreadsheet, Upload } from 'lucide-react'
-import { decodeerBestand } from '@/lib/club/leden/import/csv'
+import type { CsvTabel } from '@/lib/club/leden/import/csv'
+import { BESTAND_ACCEPT, controleerBestand, leesLedenBestand } from '@/lib/club/leden/import/bestand'
 
-// Stap 1: een CSV-bestand kiezen of erin slepen. Het bestand wordt in de browser
-// gelezen; er gaat niets naar de server tot Kane op "Controleren" drukt.
-
-const MAX_BYTES = 10 * 1024 * 1024
+// Stap 1: een CSV- of Excel-bestand (.xlsx) kiezen of erin slepen. Het bestand
+// wordt in de browser gelezen en nergens bewaard; er gaat niets naar de server
+// tot de eigenaar op "Controleren" drukt, en dan alleen de rijen.
 
 interface BestandKiezerProps {
   bestandsnaam: string | null
-  onGelezen: (naam: string, tekst: string) => void
+  onGelezen: (naam: string, tabel: CsvTabel) => void
 }
 
 export function BestandKiezer({ bestandsnaam, onGelezen }: BestandKiezerProps) {
@@ -22,16 +22,15 @@ export function BestandKiezer({ bestandsnaam, onGelezen }: BestandKiezerProps) {
   async function lees(bestand: File | undefined) {
     if (!bestand) return
     setFout(null)
-    if (!/\.(csv|txt)$/i.test(bestand.name)) {
-      setFout('Kies een CSV-bestand. Uit Excel: Opslaan als, dan "CSV (gescheiden door lijstscheidingsteken)".')
-      return
-    }
-    if (bestand.size > MAX_BYTES) {
-      setFout('Dit bestand is groter dan 10 MB. Splits het in kleinere bestanden.')
+    const vooraf = controleerBestand(bestand.name, bestand.size)
+    if (vooraf) {
+      setFout(vooraf)
       return
     }
     try {
-      onGelezen(bestand.name, decodeerBestand(await bestand.arrayBuffer()))
+      const uit = await leesLedenBestand(bestand.name, await bestand.arrayBuffer())
+      if (uit.ok) onGelezen(bestand.name, uit.tabel)
+      else setFout(uit.fout)
     } catch {
       setFout('Het bestand kon niet worden gelezen. Probeer het opnieuw.')
     }
@@ -59,12 +58,12 @@ export function BestandKiezer({ bestandsnaam, onGelezen }: BestandKiezerProps) {
       >
         {bestandsnaam ? <FileSpreadsheet size={28} aria-hidden /> : <Upload size={28} aria-hidden />}
         <span className="club-import-zone-titel">{bestandsnaam ?? 'Sleep het ledenbestand hierheen'}</span>
-        <span className="club-import-zone-sub">{bestandsnaam ? 'Klik om een ander bestand te kiezen' : 'of klik om een CSV-bestand te kiezen'}</span>
+        <span className="club-import-zone-sub">{bestandsnaam ? 'Klik om een ander bestand te kiezen' : 'of klik om een CSV- of Excel-bestand te kiezen'}</span>
       </button>
       <input
         ref={invoer}
         type="file"
-        accept=".csv,.txt,text/csv"
+        accept={BESTAND_ACCEPT}
         hidden
         onChange={(e) => {
           void lees(e.target.files?.[0])

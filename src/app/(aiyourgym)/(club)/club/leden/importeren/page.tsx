@@ -37,7 +37,7 @@ export default async function LedenImporterenPagina({ searchParams }: { searchPa
           <p className="club-boventitel">{label}</p>
           <h1>Ledenbestand inlezen</h1>
           <p>
-            Lees een export uit je huidige systeem (zoals Virtuagym of Sportivity) of een Excel-lijst in als CSV-bestand. Je ziet eerst
+            Lees een export uit je huidige systeem (zoals Virtuagym of Sportivity) of je eigen Excel-lijst in, als CSV of als Excel-bestand (.xlsx). Je ziet eerst
             precies wat er verandert. Nieuwe leden worden toegevoegd, bestaande bijgewerkt; er wordt nooit iemand verwijderd.
           </p>
         </div>

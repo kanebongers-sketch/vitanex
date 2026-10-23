@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { leesCsv, type CsvTabel } from '@/lib/club/leden/import/csv'
+import type { CsvTabel } from '@/lib/club/leden/import/csv'
 import { IMPORT_VELD_LABEL, ontbrekendeVelden, pasKoppelingToe, raadKoppeling, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
 import { MAX_IMPORT_RIJEN } from '@/lib/club/leden/import/verzoek'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
@@ -54,8 +54,7 @@ export function LedenImport({ vestiging, vestigingLabel, terugNaarStart = null }
     [bestand, koppeling],
   )
 
-  function nieuwBestand(naam: string, tekst: string) {
-    const tabel = leesCsv(tekst)
+  function nieuwBestand(naam: string, tabel: CsvTabel) {
     setControle(null)
     setKlaar(null)
     if (tabel.koppen.length === 0 || tabel.rijen.length === 0) {

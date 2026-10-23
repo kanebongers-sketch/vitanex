@@ -4,11 +4,15 @@ import { Check, Clock3 } from 'lucide-react'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { AANTAL_STAPPEN, aantalAf, minutenOver, minutenTekst, startPad, type StapStand } from '@/lib/club/start/stappen'
 import { StapTitel } from './StapTitel'
+import { HulpBijStap } from './HulpBijStap'
+import { Proefperiode } from './Proefperiode'
+import type { ClubToegang } from '@/lib/club/toegang'
 
 // Het kader om elke stap: grote kop, de teller, en de voortgang als een
 // segment per stap dat je ook kunt aanklikken (elke stap is los te openen).
 
 interface StartKaderProps {
+  t: ClubToegang
   sportschool: string
   stand: readonly StapStand[]
   huidig: number
@@ -24,7 +28,7 @@ function segmentLabel(s: StapStand, huidig: number): string {
   return `Stap ${s.nummer}: ${s.titel}, ${status}${s.nummer === huidig ? ', hier ben je' : ''}`
 }
 
-export function StartKader({ sportschool, stand, huidig, vestiging, intro, welkomTerug = false, children }: StartKaderProps) {
+export function StartKader({ t, sportschool, stand, huidig, vestiging, intro, welkomTerug = false, children }: StartKaderProps) {
   const stap = stand[huidig - 1]
   const af = aantalAf(stand)
   const over = minutenOver(stand)
@@ -51,6 +55,7 @@ export function StartKader({ sportschool, stand, huidig, vestiging, intro, welko
               {!stap.af && over > stap.minuten && <span className="club-start-tijd-stap"> · deze stap {stap.minuten === 1 ? 'een minuut' : `${stap.minuten} minuten`}</span>}
             </span>
           </p>
+          <Proefperiode t={t} />
         </div>
       </header>
 
@@ -77,6 +82,7 @@ export function StartKader({ sportschool, stand, huidig, vestiging, intro, welko
       </nav>
 
       <div className="club-start-vlak">{children}</div>
+      <HulpBijStap key={huidig} stap={huidig} />
     </div>
   )
 }

@@ -3,6 +3,10 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import { naamVan } from '@/lib/club/kern/vestigingen'
 import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
+import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
+import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { SOORT_INFO, rechtenTekst, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { startPad } from '@/lib/club/start/stappen'
 import { Klaargezet } from './Klaargezet'
@@ -81,14 +85,19 @@ async function haalTeam(t: ClubToegang): Promise<Medewerker[]> {
 
 export async function StapTeam({ t, vestiging, soort, voet }: StapMetVestigingProps) {
   if (!vestiging) return <GeenVestiging />
-  const team = await haalTeam(t)
+  const [team, logins] = await Promise.all([haalTeam(t), haalMedewerkerLogins(t.admin, t.userId)])
+  const loginVan = new Map((logins ?? []).map((l) => [l.medewerkerId, l.staat]))
+  const linkBasis = t.organisatie.slug ? sportschoolUrl(t.organisatie.slug, subdomeinenActief()) : null
   return (
     <div className="club-start-stapel">
       <TeamFormulier
         vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))}
         vestiging={vestiging}
-        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen }))}
+        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen, login: loginVan.get(m.id) ?? 'geen' }))}
+        loginAan={CLUB_EIGEN_LOGIN}
+        linkBasis={linkBasis}
       />
+      {logins === null && <p className="club-melding club-melding--fout" role="alert">Of je team al kan inloggen, kon niet worden gelezen. Uitnodigen werkt gewoon.</p>}
       <Klaargezet
         bron={bronVan(soort)}
         gang={voet}
