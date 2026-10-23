@@ -17,7 +17,7 @@ export interface UitnodigStand {
 export function uitnodigStand(email: string | null, staat: LoginStaat, loginAan: boolean): UitnodigStand {
   if (!loginAan) return { knop: null, chip: null, hint: 'Inloggen voor medewerkers staat nog uit.' }
   if (staat === 'actief') return { knop: null, chip: { label: 'Kan inloggen', klasse: 'club-chip--ok' }, hint: null }
-  if (!email) return { knop: null, chip: null, hint: 'Vul bij Medewerkers een e-mailadres in om uit te nodigen.' }
+  if (!email) return { knop: null, chip: null, hint: 'Vul hierboven een e-mailadres in en sla op, dan kun je uitnodigen.' }
   if (staat === 'uitgenodigd') return { knop: 'Nieuwe link', chip: { label: 'Uitgenodigd', klasse: 'club-chip--merk' }, hint: null }
   if (staat === 'verlopen') return { knop: 'Opnieuw uitnodigen', chip: { label: 'Link verlopen', klasse: 'club-chip--let-op' }, hint: null }
   return { knop: 'Uitnodigen', chip: null, hint: null }

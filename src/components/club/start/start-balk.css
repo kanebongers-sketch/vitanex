@@ -1,0 +1,16 @@
+/* ─── Club: de balk zolang de startwizard loopt ──────────────────────────────
+   Klein en rustig, in de huisstijl van de sportschool (alleen club-tokens). */
+
+.club-startbalk { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px clamp(16px, 3vw, 32px); background: color-mix(in srgb, var(--bg-app) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.club-startbalk-merk { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.club-startbalk-merk img { width: 32px; height: 32px; object-fit: contain; border-radius: 8px; }
+.club-startbalk-merk strong { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-startbalk-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.club-startbalk-link { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; color: var(--text-2); text-decoration: none; font-weight: 600; font-size: 14px; transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+.club-startbalk-link:hover { background: var(--brand-soft); color: var(--text-1); }
+.club-startbalk-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-startbalk-wacht { max-width: 620px; margin: 12vh auto; padding: 0 16px; display: grid; gap: 12px; }
+.club-startbalk-wacht h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(32px, 6vw, 56px); line-height: 0.95; text-transform: uppercase; }
+.club-startbalk-wacht p { margin: 0; color: var(--text-2); line-height: 1.55; }
+.club-start-poort { margin: 10vh auto; max-width: 480px; text-align: center; color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .club-startbalk-link { transition: none; } }

@@ -39,7 +39,7 @@ export function TeamUitnodiging({ medewerkerId, naam, email, staat, loginAan, li
     if (!uit.ok) return setFout(uit.fout)
     const pad = typeof uit.data === 'object' && uit.data !== null ? (uit.data as { pad?: unknown }).pad : null
     const volledig = uitnodigLink(pad, linkBasis, window.location.origin)
-    if (!volledig) return setFout('De uitnodiging is gemaakt, maar de link kwam niet mee. Maak hem opnieuw bij Medewerkers.')
+    if (!volledig) return setFout('De uitnodiging is gemaakt, maar de link kwam niet mee. Probeer het nog een keer.')
     setLink(volledig)
     router.refresh()
   }

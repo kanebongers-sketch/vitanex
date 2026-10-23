@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
-import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { LOGO_FIT_FACTORY, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
 import { adresVan, sportschoolUrl } from '@/lib/club/kern/subdomein'
@@ -9,10 +9,10 @@ import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { nlDelen } from '@/lib/club/rooster/tijd'
-import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
+import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, startPad, stapNummer, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten } from '@/lib/club/start/stappen'
 import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
-import { pakketVoor, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
-import { ALLE_LESSEN, VOORBEELD_LESTYPEN } from '@/lib/club/start/voorbeelden'
+import { voorstelLestypen, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
+import { ALLE_LESSEN, ALLE_LESTYPEN, VOORBEELD_LESTYPEN } from '@/lib/club/start/voorbeelden'
 import { eersteDag, liveActies } from '@/lib/club/start/eerste-dag'
 import { StartKader } from '@/components/club/start/StartKader'
 import { StartVoet } from '@/components/club/start/StartVoet'
@@ -20,20 +20,23 @@ import { StapSoort } from '@/components/club/start/StapSoort'
 import { StapHuisstijl } from '@/components/club/start/StapHuisstijl'
 import { StapOnderdelen } from '@/components/club/start/StapOnderdelen'
 import { StapLessen } from '@/components/club/start/StapLessen'
-import { Klaargezet } from '@/components/club/start/Klaargezet'
+import { OnderdeelAan } from '@/components/club/start/OnderdeelAan'
+import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { STAP_INTRO, StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
 import { StapLive, type LiveAdressen } from '@/components/club/start/StapLive'
 import { StreefdatumKiezer } from '@/components/club/start/StreefdatumKiezer'
-import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze, bronVan } from '@/components/club/start/StapInstellingen'
+import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze } from '@/components/club/start/StapInstellingen'
 
 export const metadata: Metadata = { title: 'Startwizard' }
 export const dynamic = 'force-dynamic'
 
 // /club/start?stap=N: de startwizard van een nieuwe sportschool. Acht
-// korte stappen, elk over te slaan en later te hervatten. De eerste stap (de
-// soort sportschool) zet slimme standaarden klaar; de stappen daarna tonen
-// wat er al staat met Klopt of Aanpassen. Alles gaat via dezelfde API's als
-// het instellingencentrum, dus wat je hier doet staat daar ook (en andersom).
+// korte stappen, te hervatten waar je was. De eerste stap (de soort
+// sportschool) zet slimme standaarden klaar; elke stap daarna toont meteen de
+// ingevulde invoer en stelt zijn deel echt en volledig in (besluit Kane
+// 23-10-2026: niets "doe je later"). Alles gaat via dezelfde API's als het
+// instellingencentrum, dus wat je hier doet staat daar ook (en andersom).
+// Tot de wizard is afgerond is de rest van Club dicht (src/lib/club/start/poort.ts).
 
 type Voet = { stap: number; sleutel: StapSleutel; vestiging: string | null }
 
@@ -94,45 +97,51 @@ async function haalBestaand(t: ClubToegang): Promise<{ vestigingen: BestaandeVes
   }
 }
 
-async function Lessen({ t, voet, soort }: Pick<StapProps, 't' | 'voet' | 'soort'>) {
+interface MedewerkerKort {
+  id: string
+  naam: string
+  rollen: readonly string[]
+  vestigingen: readonly string[]
+  actief: boolean
+}
+
+/** Wie een les kan geven: groepslesinstructeurs en trainers van deze vestiging (zonder die: iedereen hier). */
+function instructeursUit(medewerkers: readonly MedewerkerKort[], vestiging: string): { id: string; naam: string }[] {
+  const hier = medewerkers.filter((m) => m.actief && m.vestigingen.includes(vestiging))
+  const lesgevers = hier.filter((m) => m.rollen.includes('instructeur') || m.rollen.includes('trainer'))
+  return (lesgevers.length > 0 ? lesgevers : hier).map((m) => ({ id: m.id, naam: m.naam }))
+}
+
+async function Lessen({ t, voet, soort, waarden }: Pick<StapProps, 't' | 'voet' | 'soort'> & { waarden: HuisstijlWaarden }) {
   const vestiging = voet.vestiging
   if (!moduleAan(t.organisatie, 'rooster')) {
-    return <p className="club-melding">Groepslessen staan uit. Deze stap kun je overslaan; zet Groepslessen aan bij Onderdelen als je ze toch wilt.</p>
+    return (
+      <MetVoet voet={voet}>
+        <OnderdeelAan organisatie={waarden} module="rooster" tekst="Groepslessen staan uit, dus er zijn geen lessen om in te stellen." knop="Groepslessen aanzetten" />
+      </MetVoet>
+    )
   }
-  if (!vestiging) return <GeenVestiging />
+  if (!vestiging) return <MetVoet voet={voet}><GeenVestiging /></MetVoet>
   const data = await haalInstellingen(t.admin, t.userId, vestiging)
-  if (!data) return <LaadFout />
-  const naam = naamVan(t.vestigingen, vestiging)
-  const lessen = data.series.filter((s) => s.actief)
-  const eigen = soort ? pakketVoor(soort).lestypen : []
-  const invoer = (
-    <StapLessen
-      vestiging={vestiging}
-      vestigingNaam={naam}
-      lestypen={data.lestypen.map((l) => ({ id: l.id, naam: l.naam, duurMin: l.duurMin }))}
-      lessen={lessen.map((s) => ({ lestypeId: s.lestypeId, weekdag: s.weekdag, starttijd: s.starttijd }))}
-      vandaag={nlDelen(new Date()).datum}
-      voorbeelden={eigen.length > 0 ? eigen : VOORBEELD_LESTYPEN}
-      voorbeeldLessen={ALLE_LESSEN}
-    />
-  )
+  if (!data) return <MetVoet voet={voet}><LaadFout /></MetVoet>
+  const passend = soort ? voorstelLestypen(soort) : VOORBEELD_LESTYPEN.slice(0, 6)
   return (
     <>
       <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
-      {data.lestypen.length === 0 ? (
-        invoer
-      ) : (
-        <Klaargezet
-          bron={bronVan(soort)}
-          gang={voet}
-          regels={[
-            { titel: 'Lestypen', tekst: data.lestypen.map((l) => l.naam).join(', ') },
-            { titel: `Vaste lessen in ${naam}`, tekst: lessen.length > 0 ? `${lessen.length} per week` : 'Nog geen. Kies Aanpassen voor een voorstel voor je week.' },
-          ]}
-        >
-          {invoer}
-        </Klaargezet>
-      )}
+      <StapLessen
+        vestiging={vestiging}
+        vestigingNaam={naamVan(t.vestigingen, vestiging)}
+        soort={soort}
+        lestypen={data.lestypen.map((l) => ({ id: l.id, naam: l.naam, omschrijving: l.omschrijving, soort: l.soort, duurMin: l.duurMin, intensiteit: l.intensiteit, actief: l.actief }))}
+        series={data.series.filter((s) => s.actief).map((s) => ({ id: s.id, lestypeId: s.lestypeId, zaalId: s.zaalId, instructeurId: s.instructeurId, weekdag: s.weekdag, starttijd: s.starttijd, duurMin: s.duurMin, capaciteit: s.capaciteit }))}
+        zalen={data.zalen.filter((z) => z.actief).map((z) => ({ id: z.id, naam: z.naam }))}
+        instructeurs={instructeursUit(data.medewerkers, vestiging)}
+        vandaag={nlDelen(new Date()).datum}
+        passend={passend}
+        bibliotheek={ALLE_LESTYPEN}
+        voorbeeldLessen={ALLE_LESSEN}
+        voet={voet}
+      />
     </>
   )
 }
@@ -140,7 +149,7 @@ async function Lessen({ t, voet, soort }: Pick<StapProps, 't' | 'voet' | 'soort'
 /** Stappen met eigen invoer brengen hun eigen voet mee; de rest krijgt de standaardvoet. */
 async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum }: StapProps) {
   const org = t.organisatie
-  const waarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
+  const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
   const vestiging = voet.vestiging
   switch (voet.sleutel) {
     case 'soort': {
@@ -154,19 +163,31 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
     }
     case 'huisstijl': {
       const logoUrl = logoAdres(org)
-      return <StapHuisstijl key={org.id} organisatie={waarden} logoUrl={logoUrl} ingebouwdLogo={org.logo === LOGO_FIT_FACTORY} voet={voet} />
+      return <StapHuisstijl key={org.id} organisatie={waarden} logoUrl={logoUrl} ingebouwdLogo={org.logo === LOGO_FIT_FACTORY} slug={org.slug} subdomeinen={subdomeinenActief()} voet={voet} />
     }
     case 'vestigingen':
       return <StapVestigingen t={t} vestiging={vestiging} soort={soort} voet={voet} />
     case 'onderdelen':
-      return <StapOnderdelen key={org.id} organisatie={waarden} bron={bronVan(soort)} voet={voet} />
+      return <StapOnderdelen key={org.id} organisatie={waarden} soort={soort} voet={voet} />
     case 'lessen':
-      return <MetVoet voet={voet}><Lessen t={t} voet={voet} soort={soort} /></MetVoet>
+      return <Lessen t={t} voet={voet} soort={soort} waarden={waarden} />
     case 'team':
-      return <MetVoet voet={voet}><StapTeam t={t} vestiging={vestiging} soort={soort} voet={voet} /></MetVoet>
+      return <MetVoet voet={voet}><StapTeam t={t} vestiging={vestiging} soort={soort} /></MetVoet>
     case 'leden': {
-      const importPad = vestiging && moduleAan(org, 'leden') ? `/club/leden/importeren?v=${encodeURIComponent(vestiging)}&van=start` : null
-      return <MetVoet voet={voet}><StapLedenInlezen importPad={importPad} vandaag={nlDelen(new Date()).datum} /></MetVoet>
+      if (!moduleAan(org, 'leden')) {
+        return (
+          <MetVoet voet={voet}>
+            <OnderdeelAan organisatie={waarden} module="leden" tekst="Leden staat uit, dus er is geen ledenbestand om in te lezen." knop="Leden aanzetten" />
+          </MetVoet>
+        )
+      }
+      if (!vestiging) return <MetVoet voet={voet}><GeenVestiging /></MetVoet>
+      return (
+        <MetVoet voet={voet}>
+          <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
+          <StapLedenInlezen vestiging={vestiging} vestigingLabel={naamVan(t.vestigingen, vestiging)} verderPad={startPad(stapNummer('klaar'), vestiging)} vandaag={nlDelen(new Date()).datum} />
+        </MetVoet>
+      )
     }
     case 'klaar':
       return (
@@ -176,7 +197,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             af={aantalAf(stand)}
             totaal={AANTAL_STAPPEN}
             adressen={liveAdressen(org)}
-            adresKiezenPad={vestiging ? clubPad('/huisstijl', vestiging) : '/club/huisstijl'}
+            adresKiezenPad={startPad(stapNummer('huisstijl'), vestiging)}
             naam={org.naam}
             kleur={org.kleurAccent}
             thema={org.thema}
@@ -184,7 +205,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             acties={liveActies(feiten.uit, vestiging)}
           />
           {!afgerond && <Streef streefdatum={streefdatum} stand={stand} />}
-          <StapKlaar punten={eersteDag(feiten, vestiging)} stand={stand} vestiging={vestiging} />
+          <StapKlaar punten={eersteDag(feiten, vestiging, afgerond)} stand={stand} vestiging={vestiging} />
         </MetVoet>
       )
   }
@@ -204,7 +225,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   const sleutel = STAPPEN[huidig - 1].sleutel
   const vestiging = kiesUit(t.vestigingen, params.v)
   return (
-    <StartKader t={t} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
+    <StartKader t={t} kruimel={Boolean(voortgang?.afgerondOp)} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
       {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">Je voortgang kon niet worden gelezen. Je kunt gewoon verder; probeer het later opnieuw als iets niet wordt bewaard.</p>}
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}

@@ -1,7 +1,7 @@
 // ─── Club: de startwizard van een nieuwe sportschool (PUUR) ─────────────────
-// Na aanmelden en betalen loopt de eigenaar acht korte stappen door, elk over
-// te slaan en later te hervatten. De eerste stap is de soort sportschool: die
-// zet alvast slimme standaarden klaar, zodat de rest vooral "Klopt" is.
+// Na aanmelden en betalen loopt de eigenaar acht korte stappen door, te
+// hervatten waar hij was. De eerste stap is de soort sportschool: die vult de
+// stappen daarna alvast in; elke stap stelt zijn deel echt en volledig in.
 // De voortgang staat per sportschool in club_organisaties.instellingen onder
 // `start`: { stap, klaar[], afgerond_op, soort, streefdatum }.
 // Wat al af is, leiden we daarnaast af uit de echte data (een logo, een
@@ -29,12 +29,12 @@ export interface StapInfo {
 
 export const STAPPEN: readonly StapInfo[] = [
   { sleutel: 'soort', titel: 'Je sportschool', kort: 'Kies de soort, wij zetten de rest klaar', minuten: 1 },
-  { sleutel: 'huisstijl', titel: 'Huisstijl', kort: 'Logo uploaden, de kleur komt er vanzelf uit', minuten: 2 },
-  { sleutel: 'vestigingen', titel: 'Vestiging', kort: 'Adres en openingstijden', minuten: 2 },
+  { sleutel: 'huisstijl', titel: 'Huisstijl', kort: 'Logo, kleur en je eigen adres', minuten: 2 },
+  { sleutel: 'vestigingen', titel: 'Vestiging', kort: 'Adres, openingstijden en reserveren', minuten: 2 },
   { sleutel: 'onderdelen', titel: 'Onderdelen', kort: 'Wat je sportschool gebruikt', minuten: 1 },
-  { sleutel: 'lessen', titel: 'Lessen', kort: 'Lestypen en een paar vaste lessen', minuten: 2 },
-  { sleutel: 'team', titel: 'Team', kort: 'Naam, e-mail en rol van je medewerkers', minuten: 2 },
-  { sleutel: 'leden', titel: 'Leden', kort: 'Je ledenbestand inlezen, of later', minuten: 2 },
+  { sleutel: 'lessen', titel: 'Lessen', kort: 'Lestypen en je vaste week, met zaal en instructeur', minuten: 3 },
+  { sleutel: 'team', titel: 'Team', kort: 'Je medewerkers en wat elke functie ziet', minuten: 2 },
+  { sleutel: 'leden', titel: 'Leden', kort: 'Je ledenbestand inlezen', minuten: 2 },
   { sleutel: 'klaar', titel: 'Klaar', kort: 'Klaar voor je eerste dag', minuten: 1 },
 ]
 

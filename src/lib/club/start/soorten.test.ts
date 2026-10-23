@@ -13,6 +13,7 @@ import {
   STANDAARD_TIJD,
   isSportschoolSoort,
   klaargezet,
+  voorstelLestypen,
   onderdelenTekst,
   pakketVoor,
   rechtenTekst,
@@ -85,12 +86,19 @@ describe('startpakket per soort', () => {
     for (const les of p.lessen) expect(p.lestypen.map((l) => l.naam)).toContain(les.lestype)
   })
 
-  it('zet bij een PT-studio de groepslessen uit en maakt geen lestypen', () => {
+  it('geeft een PT-studio lessen die bij personal training passen', () => {
     const p = pakketVoor('pt')
-    expect(p.uit).toContain('rooster')
-    expect(p.lestypen).toEqual([])
-    expect(p.lessen).toEqual([])
+    const namen = p.lestypen.map((l) => l.naam)
+    expect(p.uit).not.toContain('rooster')
+    expect(namen).toEqual(['Small group training', 'Personal training', 'Kracht in de groep', 'Circuittraining', 'Intake'])
+    for (const fout of ['Spinning', 'Dance fitness', 'Yoga']) expect(namen).not.toContain(fout)
+    expect(p.lessen.length).toBeGreaterThan(0)
     expect(p.openingstijden[6]).toBeNull()
+  })
+
+  it('stelt ook lestypen voor als de groepslessen uit staan', () => {
+    expect(voorstelLestypen('pt').map((l) => l.naam)).toContain('Small group training')
+    expect(voorstelLestypen('yoga').map((l) => l.naam)).toContain('Yin yoga')
   })
 
   it('geeft een fitnessclub en een keten alles aan en de standaardtijden', () => {
@@ -150,7 +158,7 @@ describe('klaargezet', () => {
   })
 
   it('laat reserveren weg zonder groepslessen', () => {
-    const regels = klaargezet(pakketVoor('pt'))
+    const regels = klaargezet({ ...pakketVoor('gym'), uit: ['rooster'], lestypen: [], lessen: [] })
     expect(regels.map((r) => r.sleutel)).not.toContain('reserveren')
     expect(regels.find((r) => r.sleutel === 'lestypen')?.tekst).toContain('Geen groepslessen')
   })

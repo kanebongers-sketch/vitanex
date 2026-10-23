@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Save } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { AANTAL_STAPPEN, startPad, type StapSleutel } from '@/lib/club/start/stappen'
 
-// De voet van elke stap: terug, overslaan, of klaar en door. De voortgang gaat
-// mee naar de server, zodat de eigenaar later verder kan waar hij was. Een
-// stap met eigen invoer geeft `voorVerder` mee: die slaat eerst op en houdt de
-// stap vast als dat niet lukt. Dezelfde gang naar de volgende stap zit ook
-// achter de knop Klopt (useStartGang), zodat beide precies hetzelfde doen.
+// De voet van elke stap: terug, opslaan en stoppen, of klaar en door. Een stap
+// overslaan kan niet: elke stap stelt zijn deel echt in (besluit Kane
+// 23-10-2026). De voortgang gaat mee naar de server, zodat de eigenaar verder
+// kan waar hij was. Een stap met eigen invoer geeft `voorVerder` mee: die slaat
+// eerst op en houdt de stap vast als dat niet lukt; ook bij Opslaan en stoppen.
 
 export interface StartVoetProps {
   stap: number
@@ -32,6 +32,7 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [gelukt, setGelukt] = useState(false)
+  const [gestopt, setGestopt] = useState(false)
   const laatste = stap >= AANTAL_STAPPEN
 
   /**
@@ -69,9 +70,19 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   }
 
   const vorige = () => naar({ stap: stap - 1 }, startPad(stap - 1, vestiging), false)
-  const overslaan = () => naar({ stap: stap + 1 }, startPad(stap + 1, vestiging), false)
-  const later = () => naar({ stap }, '/club', false)
-  return { bezig, fout, gelukt, laatste, verder, vorige, overslaan, later, naarClub: () => router.push('/club') }
+
+  /** Wat er op het scherm staat opslaan, de plek onthouden en stoppen; je gaat later verder op deze stap. */
+  async function stoppen(voorVerder?: () => Promise<boolean>) {
+    setBezig(true)
+    setFout(null)
+    const opgeslagen = voorVerder ? await voorVerder() : true
+    if (!opgeslagen) return setBezig(false)
+    const uit = await stuur('/api/club/start', 'PATCH', { stap })
+    setBezig(false)
+    if (!uit.ok) return setFout(uit.fout)
+    setGestopt(true)
+  }
+  return { bezig, fout, gelukt, gestopt, laatste, verder, vorige, stoppen, naarClub: () => router.push('/club') }
 }
 
 export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false }: StartVoetProps) {
@@ -86,18 +97,20 @@ export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afger
             <ArrowLeft aria-hidden size={16} /> Vorige
           </button>
         )}
-        <button type="button" className="club-knop club-knop--stil club-start-later" disabled={bezig} onClick={() => void gang.later()}>
-          Later verder
-        </button>
+        {!(laatste && afgerond) && (
+          <button type="button" className="club-knop club-knop--stil club-start-later" disabled={bezig} onClick={() => void gang.stoppen(voorVerder)}>
+            <Save aria-hidden size={15} /> Opslaan en stoppen
+          </button>
+        )}
       </div>
       <div className="club-start-voet-rechts" aria-live="polite">
         {fout && <p className="club-fout" role="alert">{fout}</p>}
-        {gang.gelukt && <span className="sr-only">Afgerond. Je sportschool staat live.</span>}
-        {!laatste && (
-          <button type="button" className="club-knop" disabled={bezig} onClick={() => void gang.overslaan()}>
-            Overslaan
-          </button>
+        {gang.gestopt && (
+          <p className="club-start-gestopt" role="status">
+            Alles is bewaard. Sluit gerust dit venster: je gaat verder bij deze stap.
+          </p>
         )}
+        {gang.gelukt && <span className="sr-only">Afgerond. Je sportschool staat live.</span>}
         {laatste && afgerond ? (
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig} onClick={gang.naarClub}>
             Naar Club <ArrowRight aria-hidden size={18} />

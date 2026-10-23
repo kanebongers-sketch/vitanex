@@ -1,46 +1,57 @@
 // ─── Club startwizard: "Klaar voor je eerste dag" (PUUR) ────────────────────
 // Na de laatste stap een korte checklist met wat er op de eerste dag moet
-// kloppen, elk met een link naar de plek waar je het doet. Wat we uit de data
-// kunnen aflezen staat meteen op af; de rest is een gewone actie. Onderdelen
-// die uit staan komen niet in de lijst.
+// kloppen. Wat in de wizard zit, wijst naar die stap (nooit naar een andere
+// pagina: alles stel je in de wizard in). Wat pas na afronden kan (check-in,
+// de ledenapp bekijken, sluitingsdagen) krijgt een link zodra je hebt
+// afgerond. Onderdelen die uit staan komen niet in de lijst.
 
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { Module } from '@/lib/club/kern/organisatie'
-import type { StartFeiten } from './stappen'
+import { startPad, stapNummer, type StapSleutel, type StartFeiten } from './stappen'
 
 export interface EersteDagPunt {
   id: string
   titel: string
   uitleg: string
-  pad: string
+  /** Waar je het doet, of null als het pas na afronden kan. */
+  pad: string | null
   /** true = staat er al, false = nog doen, null = niet af te lezen (gewoon even nalopen). */
   af: boolean | null
 }
 
 interface Punt extends Omit<EersteDagPunt, 'pad' | 'af'> {
-  pad: string
+  /** De wizardstap waar je het instelt. */
+  stap?: StapSleutel
+  /** Of: de pagina die na afronden open gaat. */
+  pagina?: string
   module?: Module
   af: (f: StartFeiten) => boolean | null
 }
 
 const PUNTEN: readonly Punt[] = [
-  { id: 'huisstijl', titel: 'Logo en kleur', uitleg: 'Je leden zien je eigen merk in de app en in hun mails.', pad: '/huisstijl', af: (f) => f.heeftLogo },
-  { id: 'tijden', titel: 'Openingstijden', uitleg: 'Leden en de check-in weten wanneer je open bent.', pad: '/instellingen/regels', af: (f) => f.vestigingenIngericht > 0 },
-  { id: 'rooster', titel: 'Vaste lessen', uitleg: 'Je vaste lessen per week. Zet ze in het rooster, dan kunnen leden reserveren.', pad: '/instellingen/weekrooster', module: 'rooster', af: (f) => f.vasteLessen > 0 },
-  { id: 'team', titel: 'Je team', uitleg: 'Staat je team erin? Open een medewerker en kies Uitnodigen. Ieder kiest zelf een wachtwoord en logt in met het eigen e-mailadres.', pad: '/instellingen/medewerkers', af: (f) => f.medewerkers > 0 },
-  { id: 'leden', titel: 'Ledenbestand', uitleg: 'Lees je leden in, dan vindt de balie iedereen op naam.', pad: '/leden/importeren', module: 'leden', af: (f) => f.leden > 0 },
-  { id: 'checkin', titel: 'Check-in aan de balie', uitleg: 'Open de check-in op de tablet of pc bij de ingang en scan een QR-code.', pad: '/checkin', module: 'checkin', af: () => null },
-  { id: 'app', titel: 'Ledenapp bekijken', uitleg: 'Zie de app zoals een lid hem op de telefoon ziet.', pad: '/app', module: 'app', af: () => null },
-  { id: 'sluiting', titel: 'Feestdagen en sluiting', uitleg: 'Zet de dagen dat je dicht bent erin; het rooster houdt er rekening mee.', pad: '/beheer/sluiting', af: () => null },
+  { id: 'huisstijl', titel: 'Logo, kleur en adres', uitleg: 'Je leden zien je eigen merk in de app en in hun mails.', stap: 'huisstijl', af: (f) => f.heeftLogo },
+  { id: 'tijden', titel: 'Openingstijden', uitleg: 'Leden en de check-in weten wanneer je open bent.', stap: 'vestigingen', af: (f) => f.vestigingenIngericht > 0 },
+  { id: 'rooster', titel: 'Vaste lessen', uitleg: 'Je vaste lessen per week staan in het rooster, dus leden kunnen reserveren.', stap: 'lessen', module: 'rooster', af: (f) => f.vasteLessen > 0 },
+  { id: 'team', titel: 'Je team', uitleg: 'Staat je team erin en is iedereen uitgenodigd? Ieder kiest zelf een wachtwoord en logt in met het eigen e-mailadres.', stap: 'team', af: (f) => f.medewerkers > 0 },
+  { id: 'leden', titel: 'Ledenbestand', uitleg: 'Lees je leden in, dan vindt de balie iedereen op naam.', stap: 'leden', module: 'leden', af: (f) => f.leden > 0 },
+  { id: 'checkin', titel: 'Check-in aan de balie', uitleg: 'Open de check-in op de tablet of pc bij de ingang en scan een QR-code.', pagina: '/checkin', module: 'checkin', af: () => null },
+  { id: 'app', titel: 'Ledenapp bekijken', uitleg: 'Zie de app zoals een lid hem op de telefoon ziet.', pagina: '/app', module: 'app', af: () => null },
+  { id: 'sluiting', titel: 'Feestdagen en sluiting', uitleg: 'Zet de dagen dat je dicht bent erin; het rooster houdt er rekening mee.', pagina: '/beheer/sluiting', af: () => null },
 ]
 
+function padVan(p: Punt, vestiging: Vestiging | null, afgerond: boolean): string | null {
+  if (p.stap) return startPad(stapNummer(p.stap), vestiging)
+  if (!p.pagina || !afgerond) return null
+  return vestiging ? clubPad(p.pagina, vestiging) : `/club${p.pagina}`
+}
+
 /** De checklist voor de eerste dag, zonder onderdelen die uit staan. */
-export function eersteDag(f: StartFeiten, vestiging: Vestiging | null): EersteDagPunt[] {
+export function eersteDag(f: StartFeiten, vestiging: Vestiging | null, afgerond = false): EersteDagPunt[] {
   return PUNTEN.filter((p) => !p.module || !f.uit.includes(p.module)).map((p) => ({
     id: p.id,
     titel: p.titel,
     uitleg: p.uitleg,
-    pad: vestiging ? clubPad(p.pad, vestiging) : `/club${p.pad}`,
+    pad: padVan(p, vestiging, afgerond),
     af: p.af(f),
   }))
 }

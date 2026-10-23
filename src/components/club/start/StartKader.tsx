@@ -18,6 +18,8 @@ interface StartKaderProps {
   huidig: number
   vestiging: string | null
   intro: string
+  /** Het kruimelpad naar Instellingen: alleen als de wizard af is (daarvoor is de rest van Club dicht). */
+  kruimel?: boolean
   /** De eigenaar komt terug en gaat verder waar hij was. */
   welkomTerug?: boolean
   children: ReactNode
@@ -28,13 +30,13 @@ function segmentLabel(s: StapStand, huidig: number): string {
   return `Stap ${s.nummer}: ${s.titel}, ${status}${s.nummer === huidig ? ', hier ben je' : ''}`
 }
 
-export function StartKader({ t, sportschool, stand, huidig, vestiging, intro, welkomTerug = false, children }: StartKaderProps) {
+export function StartKader({ t, sportschool, stand, huidig, vestiging, intro, kruimel = false, welkomTerug = false, children }: StartKaderProps) {
   const stap = stand[huidig - 1]
   const af = aantalAf(stand)
   const over = minutenOver(stand)
   return (
     <div className="club-start">
-      <InstelKruimel id="start" vestiging={vestiging} />
+      {kruimel && <InstelKruimel id="start" vestiging={vestiging} />}
       <header className="club-start-kop">
         <div className="club-start-kop-tekst">
           <p className="club-boventitel">

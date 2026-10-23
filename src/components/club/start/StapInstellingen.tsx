@@ -7,15 +7,19 @@ import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
-import { SOORT_INFO, rechtenTekst, type SportschoolSoort } from '@/lib/club/start/soorten'
+import { moduleAan } from '@/lib/club/kern/organisatie'
+import type { SportschoolSoort } from '@/lib/club/start/soorten'
 import { startPad } from '@/lib/club/start/stappen'
-import { Klaargezet } from './Klaargezet'
+import { RechtenMatrix } from '@/components/club/beheer/RechtenMatrix'
+import { rechtenGroepen } from '@/components/club/beheer/rechten-groepen'
+import { AlvastIngevuld } from './AlvastIngevuld'
 import { StapVestiging } from './StapVestiging'
 import { TeamFormulier } from './TeamFormulier'
 import type { StartVoetProps } from './StartVoet'
 
-// Stap 3 (vestiging: adres en openingstijden) en stap 6 (het team): de data
-// van de server, de invoer in kleine client-onderdelen.
+// Stap 3 (vestiging: adres, openingstijden en reserveren) en stap 6 (het team
+// en wat elke rol ziet): de data van de server, de invoer in kleine
+// client-onderdelen. Alles wordt hier ingesteld, niets elders.
 
 type Voet = Omit<StartVoetProps, 'voorVerder' | 'primair'>
 
@@ -36,11 +40,6 @@ export function GeenVestiging() {
 
 export function LaadFout() {
   return <p className="club-melding club-melding--fout" role="alert">Dit kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
-}
-
-/** "Voor een yoga en pilates studio", of null zonder soort. */
-export function bronVan(soort: SportschoolSoort | null): string | null {
-  return soort ? `Voor een ${SOORT_INFO[soort].titel.toLowerCase()}` : null
 }
 
 /** Wissel van vestiging binnen de stap (alleen als er meer dan een is). */
@@ -71,7 +70,7 @@ export async function StapVestigingen({ t, vestiging, soort, voet }: StapMetVest
   return (
     <>
       <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
-      <StapVestiging key={vestiging} sleutel={vestiging} naam={naamVan(t.vestigingen, vestiging)} adres={adres} week={data.openingstijden} regels={data.regels} bron={bronVan(soort)} voet={voet} />
+      <StapVestiging key={vestiging} sleutel={vestiging} naam={naamVan(t.vestigingen, vestiging)} adres={adres} week={data.openingstijden} regels={data.regels} soort={soort} roosterAan={moduleAan(t.organisatie, 'rooster')} voet={voet} />
     </>
   )
 }
@@ -83,7 +82,7 @@ async function haalTeam(t: ClubToegang): Promise<Medewerker[]> {
   return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }
 
-export async function StapTeam({ t, vestiging, soort, voet }: StapMetVestigingProps) {
+export async function StapTeam({ t, vestiging, soort }: Omit<StapMetVestigingProps, 'voet'>) {
   if (!vestiging) return <GeenVestiging />
   const [team, logins] = await Promise.all([haalTeam(t), haalMedewerkerLogins(t.admin, t.userId)])
   const loginVan = new Map((logins ?? []).map((l) => [l.medewerkerId, l.staat]))
@@ -93,17 +92,17 @@ export async function StapTeam({ t, vestiging, soort, voet }: StapMetVestigingPr
       <TeamFormulier
         vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))}
         vestiging={vestiging}
-        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen, login: loginVan.get(m.id) ?? 'geen' }))}
+        team={team.map((m) => ({ id: m.id, naam: m.naam, email: m.email, rollen: m.rollen, vestigingen: m.vestigingen, login: loginVan.get(m.id) ?? 'geen' }))}
         loginAan={CLUB_EIGEN_LOGIN}
         linkBasis={linkBasis}
       />
       {logins === null && <p className="club-melding club-melding--fout" role="alert">Of je team al kan inloggen, kon niet worden gelezen. Uitnodigen werkt gewoon.</p>}
-      <Klaargezet
-        bron={bronVan(soort)}
-        gang={voet}
-        aanpassenHref="/club/beheer/rechten"
-        regels={[{ titel: 'Wat elke rol ziet', tekst: rechtenTekst(t.organisatie.instellingen.rechten) }]}
-      />
+      <section className="club-start-blok" aria-labelledby="start-rechten-kop">
+        <h2 id="start-rechten-kop">Wat elke functie ziet</h2>
+        <AlvastIngevuld soort={soort} />
+        <p className="club-hint">Vink per onderdeel aan welke functie het ziet. Jij als eigenaar ziet altijd alles.</p>
+        <RechtenMatrix begin={t.organisatie.instellingen.rechten} groepen={rechtenGroepen(t.organisatie.uit)} />
+      </section>
     </div>
   )
 }

@@ -1,28 +1,18 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { UserPlus } from 'lucide-react'
+import { Check, UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
 import { MEDEWERKER_ROLLEN, ROL_LABEL, type MedewerkerRol } from '@/lib/club/kern/medewerker'
-import { clubPad } from '@/lib/club/kern/vestiging'
-import type { LoginStaat } from '@/lib/club/medewerker-login/medewerker-login'
-import { TeamUitnodiging } from './TeamUitnodiging'
+import { TeamRij, wisselIn, type TeamLid } from './TeamRij'
 
-// Stap 6: medewerkers toevoegen met alleen naam, e-mail en rol, en per
-// medewerker meteen uitnodigen om in te loggen (een eenmalige link die je zelf
-// doorstuurt; de medewerker kiest daar een wachtwoord). Gaat via dezelfde
-// API's als Medewerkers in Instellingen.
+// Stap 6: het hele team in de wizard. Toevoegen met naam, e-mail, functie en
+// vestiging; elke medewerker daaronder meteen te bewerken, te verwijderen en
+// uit te nodigen (een eenmalige link die je zelf doorstuurt; de medewerker
+// kiest daar een wachtwoord). Gaat via dezelfde API's als Medewerkers.
 
-export interface TeamLid {
-  id: string
-  naam: string
-  email: string | null
-  rollen: MedewerkerRol[]
-  /** De stand van de login (geen, uitgenodigd, verlopen, actief, oud). */
-  login: LoginStaat
-}
+export type { TeamLid } from './TeamRij'
 
 interface TeamFormulierProps {
   vestigingen: { sleutel: string; naam: string }[]
@@ -35,14 +25,12 @@ interface TeamFormulierProps {
   linkBasis: string | null
 }
 
-const ALLE = '__alle'
-
 export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasis }: TeamFormulierProps) {
   const router = useRouter()
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
-  const [rol, setRol] = useState<MedewerkerRol>('trainer')
-  const [waar, setWaar] = useState(vestiging)
+  const [rollen, setRollen] = useState<MedewerkerRol[]>(['trainer'])
+  const [waar, setWaar] = useState<string[]>([vestiging])
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
 
@@ -50,11 +38,10 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
     e.preventDefault()
     setBezig(true)
     setMelding(null)
-    const lijst = waar === ALLE ? vestigingen.map((v) => v.sleutel) : [waar]
-    const uit = await stuur('/api/club/instellingen/medewerkers', 'POST', { vestiging: lijst[0], naam: naam.trim(), email: email.trim(), rollen: [rol], vestigingen: lijst })
+    const uit = await stuur('/api/club/instellingen/medewerkers', 'POST', { vestiging: waar[0] ?? vestiging, naam: naam.trim(), email: email.trim(), rollen, vestigingen: waar })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: `${naam.trim()} staat erin als ${ROL_LABEL[rol].toLowerCase()}.` })
+    setMelding({ ok: true, tekst: `${naam.trim()} staat erin. Nodig hieronder meteen uit om in te loggen.` })
     setNaam('')
     setEmail('')
     router.refresh()
@@ -63,37 +50,36 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
   return (
     <section className="club-start-blok" aria-labelledby="start-team-kop">
       <h2 id="start-team-kop">Wie werkt er?</h2>
-      <form className="club-start-team-form" onSubmit={(e) => void voegToe(e)}>
-        <label className="club-veld">
-          <span>Naam</span>
-          <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Voor- en achternaam" />
-        </label>
-        <label className="club-veld">
-          <span>E-mail</span>
-          <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@jouwsportschool.nl" />
-        </label>
-        <label className="club-veld">
-          <span>Rol</span>
-          <select className="club-invoer" value={rol} onChange={(e) => setRol(e.target.value as MedewerkerRol)}>
-            {MEDEWERKER_ROLLEN.map((r) => (
-              <option key={r} value={r}>
-                {ROL_LABEL[r]}
-              </option>
-            ))}
-          </select>
-        </label>
-        {vestigingen.length > 1 && (
+      <form className="club-start-teamnieuw" onSubmit={(e) => void voegToe(e)}>
+        <div className="club-start-teamrij-velden">
           <label className="club-veld">
-            <span>Werkt in</span>
-            <select className="club-invoer" value={waar} onChange={(e) => setWaar(e.target.value)}>
-              {vestigingen.map((v) => (
-                <option key={v.sleutel} value={v.sleutel}>
-                  {v.naam}
-                </option>
-              ))}
-              <option value={ALLE}>Alle vestigingen</option>
-            </select>
+            <span>Naam</span>
+            <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Voor- en achternaam" />
           </label>
+          <label className="club-veld">
+            <span>E-mail</span>
+            <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@jouwsportschool.nl" />
+          </label>
+        </div>
+        <fieldset className="club-start-keuzes">
+          <legend>Functie</legend>
+          {MEDEWERKER_ROLLEN.map((r) => (
+            <label key={r} className="club-start-keuze" data-aan={rollen.includes(r) || undefined}>
+              <input type="checkbox" checked={rollen.includes(r)} onChange={() => setRollen((oud) => wisselIn(oud, r))} />
+              {rollen.includes(r) && <Check aria-hidden size={14} strokeWidth={3} />} {ROL_LABEL[r]}
+            </label>
+          ))}
+        </fieldset>
+        {vestigingen.length > 1 && (
+          <fieldset className="club-start-keuzes">
+            <legend>Werkt in</legend>
+            {vestigingen.map((v) => (
+              <label key={v.sleutel} className="club-start-keuze" data-aan={waar.includes(v.sleutel) || undefined}>
+                <input type="checkbox" checked={waar.includes(v.sleutel)} onChange={() => setWaar((oud) => wisselIn(oud, v.sleutel))} />
+                {waar.includes(v.sleutel) && <Check aria-hidden size={14} strokeWidth={3} />} {v.naam}
+              </label>
+            ))}
+          </fieldset>
         )}
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !naam.trim()}>
           <UserPlus aria-hidden size={16} /> {bezig ? 'Bezig...' : 'Toevoegen'}
@@ -109,26 +95,13 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
       {team.length > 0 ? (
         <ul className="club-start-team" role="list">
           {team.map((m) => (
-            <li key={m.id}>
-              <span className="club-start-team-bol" aria-hidden>
-                {m.naam.trim().charAt(0).toUpperCase()}
-              </span>
-              <span className="club-start-team-naam">
-                <strong>{m.naam}</strong>
-                <span className="club-zacht">{m.email ?? 'Geen e-mail'}</span>
-              </span>
-              <span className="club-chip club-chip--merk">{m.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Geen rol'}</span>
-              <TeamUitnodiging medewerkerId={m.id} naam={m.naam} email={m.email} staat={m.login} loginAan={loginAan} linkBasis={linkBasis} />
-            </li>
+            <TeamRij key={`${m.id}-${m.naam}-${m.email ?? ''}-${m.rollen.join()}-${m.vestigingen.join()}`} lid={m} vestigingen={vestigingen} vestiging={vestiging} loginAan={loginAan} linkBasis={linkBasis} />
           ))}
         </ul>
       ) : (
-        <p className="club-leeg">Nog niemand. Werk je alleen? Dan kun je deze stap overslaan.</p>
+        <p className="club-leeg">Nog niemand. Werk je alleen? Dan is je team hiermee klaar.</p>
       )}
-      <p className="club-hint">
-        Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen geeft een link die je zelf doorstuurt; Club mailt hem niet. Liever later? Dat kan ook bij{' '}
-        <Link href={clubPad('/instellingen/medewerkers', vestiging)}>Medewerkers</Link>.
-      </p>
+      <p className="club-hint">Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen geeft een link die je zelf doorstuurt; Club mailt hem niet.</p>
     </section>
   )
 }

@@ -12,6 +12,10 @@ import { heeftInstellingen } from '@/lib/club/kern/instel-paginas'
 import { instelKijker } from '@/lib/club/instel-toegang'
 import { MerkProvider } from '@/components/club/shell/MerkContext'
 import { VestigingenProvider } from '@/components/club/shell/VestigingenContext'
+import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
+import { wizardPoortDicht } from '@/lib/club/start/opslag'
+import { WizardPoort } from '@/components/club/start/WizardPoort'
+import { StartBalk, WizardWacht } from '@/components/club/start/StartBalk'
 import './club.css'
 
 // aiyourgym.com/club: de all-in clubsoftware van AI Your Gym (leden,
@@ -49,14 +53,22 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   const instellingen = heeftInstellingen(kijker)
   // Leden vinden vanuit het zoekveld: alleen voor wie Leden mag zien.
   const ledenZoeken = moduleAan(org, 'leden') && magOnderdeel(t.onderdelen, 'leden')
+  // Eerst de startwizard (regel in src/lib/club/start/poort.ts): de eigenaar ziet alleen de wizard,
+  // hulp en het abonnement; het team wacht tot de eigenaar klaar is.
+  const poortDicht = await wizardPoortDicht(t)
+  const eigenaar = magBeheerdersBeheren(t)
   return (
     <div className="club-app" style={stijl} data-thema={org.thema}>
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>
-          <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-            <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} ledenZoeken={ledenZoeken} />
-          </Suspense>
-          <main className="club-werkvlak">{children}</main>
+          {poortDicht ? (
+            <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
+          ) : (
+            <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
+              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} ledenZoeken={ledenZoeken} />
+            </Suspense>
+          )}
+          <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>
         </VestigingenProvider>
       </MerkProvider>
       <footer className="club-voet">

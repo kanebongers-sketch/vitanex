@@ -11,6 +11,7 @@ import { StartVoet, useStartGang, type StartVoetProps } from './StartVoet'
 // Stap 1: wat voor sportschool is het? Een keuze zet alvast onderdelen,
 // lestypen, openingstijden, regels voor reserveren en rechten per rol klaar.
 // Eerst zie je precies wat er klaar komt te staan; pas bij Klopt gebeurt het.
+// Zonder soort ga je niet verder: de rest van de wizard bouwt erop.
 // Dezelfde soort nog een keer kiezen verandert niets meer (eigen werk blijft).
 
 const ICOON: Record<SportschoolSoort, LucideIcon> = {
@@ -55,7 +56,11 @@ export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVest
 
   /** Het pakket neerzetten (alleen als de soort nieuw is) en de soort onthouden; false = blijven staan. */
   async function zetKlaar(): Promise<boolean> {
-    if (!soort || !pakket || soort === gekozen) return true
+    if (!soort || !pakket) {
+      setFout('Kies eerst wat voor sportschool je hebt. Dan vullen we de volgende stappen alvast voor je in.')
+      return false
+    }
+    if (soort === gekozen) return true
     setFout(null)
     const lijst = taken(pakket, toepasPlan(pakket, vestigingen, lestypen), organisatie, lesVestiging)
     const totaal = lijst.length + 1
@@ -109,7 +114,7 @@ export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVest
                 ))}
               </dl>
               <p className="club-hint">
-                {soort === gekozen ? 'Dit staat er al. Kies een andere soort om het opnieuw klaar te zetten.' : 'Wat je zelf al hebt ingesteld blijft staan. Alles is daarna nog aan te passen.'}
+                {soort === gekozen ? 'Dit staat er al. Kies een andere soort om het opnieuw klaar te zetten.' : 'Wat je zelf al hebt ingesteld blijft staan. In de volgende stappen pas je alles meteen aan.'}
               </p>
               <div className="club-start-klaargezet-knoppen">
                 <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig !== null || gang.bezig} onClick={() => void gang.verder(zetKlaar)}>
@@ -128,11 +133,12 @@ export function StapSoort({ gekozen, organisatie, vestigingen, lestypen, lesVest
             <>
               <h2 id="soort-voorstel-kop">Kies je soort sportschool</h2>
               <p className="club-zacht">Dan zie je hier wat we alvast klaarzetten: onderdelen, lestypen, openingstijden, regels voor reserveren en wat je team ziet.</p>
+              {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
             </>
           )}
         </section>
       </div>
-      <StartVoet {...voet} voorVerder={zetKlaar} primair={!soort ? 'Zonder soort verder' : soort === gekozen ? undefined : 'Klopt, zet klaar'} />
+      <StartVoet {...voet} voorVerder={zetKlaar} primair={!soort || soort === gekozen ? undefined : 'Klopt, zet klaar'} />
     </>
   )
 }

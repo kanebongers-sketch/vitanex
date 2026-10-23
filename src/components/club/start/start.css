@@ -1,7 +1,7 @@
 /* ─── Club: de startwizard en de kaart op Vandaag ────────────────────────────
    Rustig en groot: een stap tegelijk, een duidelijke voortgang in segmenten,
-   bovenaan wat er al klaarstaat (Klopt of Aanpassen) en een voet die altijd
-   binnen bereik is. Alleen club-tokens (--brand, --brand-tekst, --bg-card,
+   bovenaan een regel dat er al is ingevuld, meteen de invoer zelf, en een voet
+   die altijd binnen bereik is. Alleen club-tokens (--brand, --brand-tekst, --bg-card,
    --line, ...), dus elke sportschool ziet de wizard in de eigen kleur. */
 
 .club-start { display: grid; gap: 28px; width: 100%; max-width: 1280px; margin: 0 auto; }
@@ -62,23 +62,13 @@
 .club-start-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .club-start-vestkeuze { justify-self: start; }
 
-/* Uitklappen (tweede vestiging, voorbeeld leden) */
-.club-start-uitklap { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 12px; }
-.club-start-uitklap > summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); border-radius: var(--club-radius-klein); width: fit-content; }
-.club-start-uitklap > summary::-webkit-details-marker { display: none; }
-.club-start-uitklap > summary:hover { text-decoration: underline; text-underline-offset: 3px; }
-.club-start-uitklap > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
 .club-start-rij-form { display: grid; gap: 12px; align-items: end; }
 @media (min-width: 720px) { .club-start-rij-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; } }
 
-/* ── "We hebben dit alvast voor je klaargezet" ──────────────────────────── */
-.club-start-klaargezet-wrap { display: grid; gap: 16px; min-width: 0; }
+/* ── Stap 1: het voorstel bij de gekozen soort ─────────────────────────── */
 .club-start-klaargezet { container-type: inline-size; position: relative; display: grid; gap: 16px; padding: clamp(18px, 2.6vw, 30px); border-radius: calc(var(--club-radius) + 6px); border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line)); background: radial-gradient(110% 120% at 100% 0%, var(--brand-soft), transparent 60%), var(--bg-card); box-shadow: var(--club-schaduw); overflow: hidden; min-width: 0; }
 .club-start-klaargezet::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand); }
 .club-start-klaargezet h2 { margin: 0; font-family: var(--ff-kop); font-size: clamp(22px, 2.4vw, 30px); line-height: 1.05; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
-.club-start-klaargezet-kop { display: flex; align-items: flex-start; gap: 14px; }
-.club-start-klaargezet-kop p { margin: 4px 0 0; font-size: 14px; }
-.club-start-klaargezet-icoon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--brand); color: var(--brand-inkt, #0A0B09); }
 .club-start-klaargezet-lijst { margin: 0; display: grid; }
 .club-start-klaargezet-lijst > div { display: grid; gap: 2px 20px; padding: 11px 0; border-top: 1px solid var(--line); }
 .club-start-klaargezet-lijst dt { font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); padding-top: 2px; }
@@ -86,8 +76,6 @@
 @container (min-width: 560px) { .club-start-klaargezet-lijst > div { grid-template-columns: 170px minmax(0, 1fr); } }
 .club-start-klaargezet-knoppen { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .club-start-klaargezet-knoppen .club-fout { margin: 0; flex-basis: 100%; }
-.club-start-aanpassen { animation: club-start-in 260ms var(--ease) both; }
-.club-start-aanpassen[hidden] { display: none; }
 
 /* ── Stap 1: de soort sportschool ───────────────────────────────────────── */
 .club-start-soort { display: grid; gap: 18px; align-items: start; }
@@ -180,45 +168,77 @@
 .club-start-dag-tijden { display: inline-flex; align-items: center; gap: 8px; }
 .club-start-dag-tijden .club-invoer { width: 112px; }
 
-/* ── Stap 5: lessen (voorbeeldkaarten en de voorgestelde week) ──────────── */
-.club-start-lessen { display: grid; gap: 20px; }
-.club-start-voorbeelden { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
-.club-start-voorbeeld { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding: 14px 14px 14px 18px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--club-vlak); overflow: hidden; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
-.club-start-voorbeeld::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--club-rooster-soort, var(--brand)); }
-.club-start-voorbeeld:hover { border-color: var(--line-strong); transform: translateY(-1px); }
-.club-start-voorbeeld[data-af] { border-color: color-mix(in srgb, var(--club-ok) 40%, var(--line)); }
-.club-start-voorbeeld > :last-child { align-self: flex-start; }
-.club-start-voorbeeld-tekst { display: grid; gap: 3px; }
-.club-start-voorbeeld-tekst strong { font-family: var(--ff-kop); font-size: 19px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
-.club-start-voorbeeld-tekst .club-zacht { font-size: 12.5px; }
-.club-start-voorbeeld-uitleg { font-size: 13.5px; line-height: 1.45; color: var(--text-2); margin-top: 4px; }
-.club-start-weekvoorstel { list-style: none; margin: 0; padding: 0; display: grid; }
-.club-start-les { display: grid; grid-template-columns: 110px 64px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--line); }
-.club-start-les:last-child { border-bottom: 0; }
-.club-start-les-dag { font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
-.club-start-les-tijd { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
-.club-start-les-naam { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-start-les-plek { font-size: 13px; }
-@media (max-width: 640px) {
-  .club-start-les { grid-template-columns: 64px minmax(0, 1fr) auto; grid-template-areas: 'tijd naam knop' 'dag plek knop'; row-gap: 2px; }
-  .club-start-les-tijd { grid-area: tijd; }
-  .club-start-les-naam { grid-area: naam; }
-  .club-start-les-dag { grid-area: dag; font-size: 12px; }
-  .club-start-les-plek { grid-area: plek; }
-  .club-start-les > :last-child { grid-area: knop; }
-}
-.club-start-rooster { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 6px; padding: 16px; border-radius: var(--club-radius); border: 1px dashed color-mix(in srgb, var(--brand) 50%, var(--line)); background: var(--brand-soft); }
-.club-start-rooster p { margin: 0; max-width: 62ch; }
+/* ── "Alvast ingevuld voor een ...": een regel boven de ingevulde invoer ── */
+.club-start-alvast { margin: 0; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--club-radius); border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--brand-soft); color: var(--text-1); font-size: 14.5px; line-height: 1.45; }
+.club-start-alvast svg { flex: none; margin-top: 2px; color: var(--brand-tekst, var(--brand)); }
 
-/* ── Stap 6: team ───────────────────────────────────────────────────────── */
-.club-start-team-form { display: grid; gap: 12px; align-items: end; }
-@media (min-width: 760px) { .club-start-team-form { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); } }
-.club-start-team-form .club-knop--primair { min-height: 40px; }
+/* ── Stap 3: regels voor reserveren ─────────────────────────────────────── */
+.club-start-regels { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+.club-start-regels .club-invoer { max-width: 140px; }
+
+/* ── Stap 5: lessen (keuze, lestypen, zalen en de week) ─────────────────── */
+.club-start-lessen { display: grid; gap: 20px; }
+/* Snelle keuze: een klik zet een lestype aan of uit */
+.club-start-chips { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.club-start-chip { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-app); color: var(--text-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; user-select: none; transition: background-color 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease), transform 160ms var(--ease); }
+.club-start-chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.club-start-chip:hover { border-color: var(--line-strong); color: var(--text-1); }
+.club-start-chip:active { transform: scale(0.98); }
+.club-start-chip:has(input:focus-visible), .club-start-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-start-chip[data-past]:not([data-aan]) { border-style: dashed; border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-start-chip[data-aan] { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt, #0A0B09); }
+.club-start-chip-vink { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.club-start-chip--eigen { border-style: dashed; color: var(--text-1); }
+/* Per gekozen lestype: meteen naam, soort, duur, zwaarte en uitleg */
+.club-start-typekaarten { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.club-start-typekaart { position: relative; display: grid; gap: 10px; padding: 14px 14px 12px 18px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-app); animation: club-start-in 220ms var(--ease) both; }
+.club-start-typekaart::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: var(--club-radius) 0 0 var(--club-radius); background: var(--club-rooster-soort, var(--brand)); }
+.club-start-typekaart-velden { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.club-start-typekaart-naam { grid-column: 1 / -1; }
+.club-start-typekaart textarea { resize: vertical; min-height: 58px; }
+.club-start-typekaart-uit { justify-self: start; }
+@media (min-width: 560px) { .club-start-typekaart-velden { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); } .club-start-typekaart-naam { grid-column: auto; } }
+/* Zalen en instructeurs */
+.club-start-lijstje { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.club-start-lijstje svg { flex: none; color: var(--brand-tekst, var(--brand)); }
+.club-start-minirij { display: grid; gap: 10px; align-items: end; grid-template-columns: minmax(0, 1fr) 96px; }
+.club-start-minirij > .club-knop { grid-column: 1 / -1; justify-self: start; }
+.club-start-minirij:has(input[type='email']) { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .club-start-minirij:has(input[type='email']) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* De week: elke les een kaartje met een schakelaar en de velden */
+.club-start-leskaarten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-start-leskaart { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-app); transition: opacity 160ms var(--ease), border-color 160ms var(--ease); }
+.club-start-leskaart[data-uit] { opacity: 0.55; border-style: dashed; }
+.club-start-leskaart-velden { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.club-start-leskaart-les { grid-column: 1 / -1; }
+@media (min-width: 760px) { .club-start-leskaart-velden { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) repeat(3, minmax(0, 0.9fr)) repeat(2, minmax(0, 1.3fr)); } .club-start-leskaart-les { grid-column: auto; } }
+.club-start-leskaart .club-veld > span { font-size: 12px; }
+.club-start-lesnieuw { justify-self: start; }
+/* Schakelaar aan of uit (een echte checkbox met role switch) */
+.club-start-schakel { position: relative; display: inline-flex; margin-top: 22px; cursor: pointer; }
+.club-start-schakel input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.club-start-schakel-baan { width: 44px; height: 26px; border-radius: 999px; background: var(--line-strong, var(--line)); position: relative; transition: background-color 160ms var(--ease); }
+.club-start-schakel-baan::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: var(--bg-card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 180ms var(--ease); }
+.club-start-schakel input:checked + .club-start-schakel-baan { background: var(--brand); }
+.club-start-schakel input:checked + .club-start-schakel-baan::after { transform: translateX(18px); }
+.club-start-schakel input:focus-visible + .club-start-schakel-baan { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── Stap 6: team (toevoegen, en iedereen meteen te bewerken) ───────────── */
+.club-start-teamnieuw { display: grid; gap: 12px; padding-bottom: 6px; }
+.club-start-teamnieuw > .club-knop { justify-self: start; }
+.club-start-teamrij-velden { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .club-start-teamrij-velden { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.club-start-keuzes { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.club-start-keuzes legend { width: 100%; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.club-start-keuze { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-app); font-size: 13.5px; font-weight: 600; color: var(--text-2); cursor: pointer; transition: background-color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-start-keuze input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.club-start-keuze:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-start-keuze[data-aan] { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); color: var(--text-1); }
 .club-start-team { list-style: none; margin: 0; padding: 0; display: grid; }
-.club-start-team li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 0; border-top: 1px solid var(--line); }
-.club-start-team-bol { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--brand-soft); color: var(--club-merk-inkt); font-family: var(--ff-kop); font-weight: 700; font-size: 16px; }
-.club-start-team-naam { flex: 1; min-width: 160px; display: grid; gap: 1px; }
-.club-start-team-naam .club-zacht { font-size: 13px; overflow-wrap: anywhere; }
+.club-start-teamrij { display: grid; gap: 10px; padding: 16px 0; border-top: 1px solid var(--line); }
+.club-start-teamrij-acties { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.club-start-teamrij-knoppen { display: inline-flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.club-start-teamrij .club-melding { margin: 0; }
 
 /* ── Stap 7: leden (uitleg en voorbeeld) ────────────────────────────────── */
 .club-start-genummerd { margin: 0; padding-left: 20px; display: grid; gap: 10px; line-height: 1.55; }
@@ -340,9 +360,9 @@
 @keyframes club-start-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes club-start-pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .club-start-kop h1, .club-start-vlak, .club-start-aanpassen, .club-start-welkom, .club-start-dageen, .club-start-live[data-afgerond] .club-start-live-icoon { animation: none; }
-  .club-start-soortkaart, .club-start-voorbeeld { transition: none; }
-  .club-start-soortkaart:hover, .club-start-voorbeeld:hover { transform: none; }
+  .club-start-kop h1, .club-start-vlak, .club-start-typekaart, .club-start-welkom, .club-start-dageen, .club-start-live[data-afgerond] .club-start-live-icoon { animation: none; }
+  .club-start-soortkaart, .club-start-chip, .club-start-keuze, .club-start-leskaart, .club-start-schakel-baan, .club-start-schakel-baan::after { transition: none; }
+  .club-start-soortkaart:hover, .club-start-chip:active { transform: none; }
 }
 
 /* ── Ik kom er niet uit (onder elke stap) ────────────────────────────────── */
@@ -374,3 +394,12 @@
 .club-proef a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
 .club-startkaart-tekst p.club-proef { margin-top: 6px; color: var(--text-3); }
 .club-proef-los:has(.club-proef) { margin: 0 0 16px; }
+
+/* De voet plakt onderaan: genoeg ruimte eronder zodat hij nooit de laatste rij bedekt,
+   en een veld dat focus krijgt schuift er altijd boven. */
+.club-start-vlak { padding-bottom: 12px; }
+.club-start-voet { margin-top: 24px; }
+.club-start-vlak :is(input, select, textarea, button) { scroll-margin-bottom: 140px; }
+.club-start-gestopt { margin: 0; flex-basis: 100%; text-align: right; font-size: 14px; color: var(--text-2); }
+@media (max-width: 640px) { .club-start-gestopt { text-align: left; } .club-start-vlak { padding-bottom: 24px; } }
+.club-start-demo h2 { display: inline-flex; align-items: center; gap: 8px; }

@@ -1,164 +1,138 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Plus } from 'lucide-react'
-import { SOORT_LABEL } from '@/lib/club/rooster/typen'
-import { WEEKDAG_LABEL } from '@/lib/club/rooster/openingstijden'
-import { VOORBEELD_LESSEN, VOORBEELD_LESTYPEN, lesVoorstellen, zelfdeNaam, type BestaandLestype, type BestaandeLes, type VoorbeeldLes, type VoorbeeldLestype, type LesVoorstel } from '@/lib/club/start/voorbeelden'
-import { stuur } from '@/components/club/leden/stuur'
+import type { SportschoolSoort } from '@/lib/club/start/soorten'
+import type { VoorbeeldLes, VoorbeeldLestype } from '@/lib/club/start/voorbeelden'
+import {
+  aantalWijzigingen,
+  beginLessen,
+  beginTypen,
+  controleerLessen,
+  legeLes,
+  leegType,
+  lessenPlan,
+  zichtbareLessen,
+  type BestaandeSerie,
+  type BestaandType,
+  type LesRij,
+  type TypeRij,
+} from '@/lib/club/start/lessen-plan'
+import { AlvastIngevuld } from './AlvastIngevuld'
+import { LestypeKeuze } from './LestypeKeuze'
+import { WeekLessen, type Keuze } from './WeekLessen'
+import { ZalenEnInstructeurs } from './ZalenEnInstructeurs'
+import { slaLessenOp } from './lessen-opslaan'
+import { StartVoet, type StartVoetProps } from './StartVoet'
 
-// Stap 5: lestypen en een paar vaste lessen, met voorbeelden (passend bij de
-// soort sportschool) die je met een klik overneemt. Gaat via dezelfde API als Instellingen, dus alles is daarna
-// gewoon aan te passen.
-
-const INTENSITEIT = ['', 'Rustig', 'Gemiddeld', 'Zwaar']
+// Stap 5: alles voor de groepslessen in een scherm. De lestypen die bij de
+// soort sportschool passen staan al aan, de voorgestelde week ook. Naam, duur
+// en uitleg, en per les dag, tijd, plekken, zaal en instructeur pas je hier
+// meteen aan. Bij verder slaat de stap alles op (dezelfde API's als
+// Instellingen) en zet de vaste lessen in het rooster voor de komende 6 weken.
 
 interface StapLessenProps {
   vestiging: string
   vestigingNaam: string
-  lestypen: BestaandLestype[]
-  lessen: BestaandeLes[]
+  soort: SportschoolSoort | null
+  lestypen: BestaandType[]
+  series: BestaandeSerie[]
+  zalen: Keuze[]
+  instructeurs: Keuze[]
   /** Vandaag als jjjj-mm-dd: vaste lessen lopen vanaf vandaag. */
   vandaag: string
-  /** De voorbeeldlestypen voor deze soort sportschool (standaard de gangbare). */
-  voorbeelden?: readonly VoorbeeldLestype[]
-  /** De voorbeeldweek voor deze soort sportschool. */
-  voorbeeldLessen?: readonly VoorbeeldLes[]
+  /** De lestypen die bij de soort passen (staan aan bij een nieuwe sportschool). */
+  passend: readonly VoorbeeldLestype[]
+  /** Alle voorbeeldlestypen om uit te kiezen. */
+  bibliotheek: readonly VoorbeeldLestype[]
+  voorbeeldLessen: readonly VoorbeeldLes[]
+  voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
 }
 
-function lestypeBody(v: VoorbeeldLestype, vestiging: string) {
-  return { vestiging, naam: v.naam, omschrijving: v.omschrijving, soort: v.soort, duurMin: v.duurMin, intensiteit: v.intensiteit }
-}
-
-function lesBody(l: LesVoorstel, vestiging: string, vandaag: string) {
-  return { vestiging, lestypeId: l.lestypeId, weekdag: l.weekdag, starttijd: l.starttijd, duurMin: l.duurMin, capaciteit: l.capaciteit, vanaf: vandaag }
-}
-
-export function StapLessen({ vestiging, vestigingNaam, lestypen, lessen, vandaag, voorbeelden = VOORBEELD_LESTYPEN, voorbeeldLessen = VOORBEELD_LESSEN }: StapLessenProps) {
+export function StapLessen(p: StapLessenProps) {
   const router = useRouter()
-  const [bezig, setBezig] = useState<string | null>(null)
+  const [basis, setBasis] = useState(() => {
+    const typen = beginTypen(p.lestypen, p.passend, p.bibliotheek)
+    return { typen, lessen: beginLessen(typen, p.series, p.voorbeeldLessen, p.zalen.length === 1 ? p.zalen[0].id : null) }
+  })
+  const [typen, setTypen] = useState<TypeRij[]>(basis.typen)
+  const [lessen, setLessen] = useState<LesRij[]>(basis.lessen)
+  const [zalen, setZalen] = useState<Keuze[]>(p.zalen)
+  const [instructeurs, setInstructeurs] = useState<Keuze[]>(p.instructeurs)
+  const [teller, setTeller] = useState(1)
+  const [stand, setStand] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
-  const [gemaakt, setGemaakt] = useState<string | null>(null)
-  const nieuw = voorbeelden.filter((v) => !lestypen.some((t) => zelfdeNaam(t.naam, v.naam)))
-  const voorstellen = lesVoorstellen(lestypen, lessen, voorbeeldLessen)
-  const openLessen = voorstellen.filter((l) => !l.bestaat)
+  const zichtbaar = useMemo(() => zichtbareLessen(lessen, typen), [lessen, typen])
+  const wijzigingen = aantalWijzigingen(lessenPlan(typen, lessen, basis.typen, basis.lessen))
 
-  /** Een of meer items aanmaken, een voor een; stopt bij de eerste fout. */
-  async function maak(sleutel: string, url: string, bodies: Record<string, unknown>[]) {
-    setBezig(sleutel)
+  function wisselType(sleutel: string) {
     setFout(null)
-    for (const body of bodies) {
-      const uit = await stuur(url, 'POST', body)
-      if (!uit.ok) {
-        setFout(uit.fout)
-        break
-      }
+    setTypen((oud) => (sleutel.startsWith('nieuw:') ? oud.filter((t) => t.sleutel !== sleutel) : oud.map((t) => (t.sleutel === sleutel ? { ...t, aan: !t.aan } : t))))
+  }
+
+  function wijzigType(sleutel: string, w: Partial<TypeRij>) {
+    setFout(null)
+    setTypen((oud) => oud.map((t) => (t.sleutel === sleutel ? { ...t, ...w } : t)))
+  }
+
+  function wijzigLes(sleutel: string, w: Partial<LesRij>) {
+    setFout(null)
+    setLessen((oud) => oud.map((l) => (l.sleutel === sleutel ? { ...l, ...w } : l)))
+  }
+
+  function nieuwType() {
+    setTypen((oud) => [...oud, leegType(teller)])
+    setTeller((n) => n + 1)
+  }
+
+  function nieuweLes() {
+    const les = legeLes(typen, teller, zalen.length === 1 ? zalen[0].id : null)
+    if (!les) return
+    setLessen((oud) => [...oud, les])
+    setTeller((n) => n + 1)
+  }
+
+  async function voorVerder(): Promise<boolean> {
+    setFout(null)
+    const controle = controleerLessen(typen, lessen)
+    if (controle) {
+      setFout(controle)
+      return false
     }
-    setBezig(null)
+    if (wijzigingen === 0) return true
+    const uit = await slaLessenOp({ vestiging: p.vestiging, vandaag: p.vandaag, typen, lessen, basisTypen: basis.typen, basisLessen: basis.lessen, bij: setStand })
+    setStand(null)
+    setTypen(uit.typen)
+    setLessen(uit.lessen)
+    if (uit.fout) {
+      setBasis((b) => ({ typen: uit.typen.map((t) => b.typen.find((x) => x.sleutel === t.sleutel && x.id === t.id) ?? t), lessen: uit.lessen.map((l) => b.lessen.find((x) => x.sleutel === l.sleutel && x.id === l.id) ?? l) }))
+      setFout(`${uit.fout} Wat al gelukt is blijft staan; probeer het nog een keer.`)
+      return false
+    }
+    setBasis({ typen: uit.typen, lessen: uit.lessen })
     router.refresh()
+    return true
   }
-
-  async function zetInRooster() {
-    setBezig('rooster')
-    setFout(null)
-    setGemaakt(null)
-    const uit = await stuur('/api/club/rooster/genereren', 'POST', { vestiging, weken: 6 })
-    setBezig(null)
-    if (!uit.ok) return setFout(uit.fout)
-    const n = typeof uit.data === 'object' && uit.data !== null && 'aangemaakt' in uit.data && typeof uit.data.aangemaakt === 'number' ? uit.data.aangemaakt : 0
-    setGemaakt(n === 0 ? 'Alles stond er al.' : `${n} lessen staan nu in het rooster voor de komende 6 weken.`)
-  }
-
-  const neemType = (v: VoorbeeldLestype) => maak(`type-${v.naam}`, '/api/club/instellingen/lestypen', [lestypeBody(v, vestiging)])
-  const neemLes = (l: LesVoorstel) => maak(`les-${l.lestype}-${l.weekdag}-${l.starttijd}`, '/api/club/instellingen/weekrooster', [lesBody(l, vestiging, vandaag)])
 
   return (
-    <div className="club-start-lessen">
-      <section className="club-start-blok" aria-labelledby="start-lestypen-kop">
-        <div className="club-start-blokkop">
-          <h2 id="start-lestypen-kop">Lestypen</h2>
-          {nieuw.length > 1 && (
-            <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null} onClick={() => void maak('alle', '/api/club/instellingen/lestypen', nieuw.map((v) => lestypeBody(v, vestiging)))}>
-              <Plus aria-hidden size={14} /> {bezig === 'alle' ? 'Bezig...' : `Alle ${nieuw.length} overnemen`}
-            </button>
-          )}
+    <>
+      <div className="club-start-lessen">
+        <AlvastIngevuld soort={p.soort} />
+        <LestypeKeuze typen={typen} onWissel={wisselType} onWijzig={wijzigType} onNieuw={nieuwType} />
+        <ZalenEnInstructeurs
+          vestiging={p.vestiging}
+          zalen={zalen}
+          instructeurs={instructeurs}
+          onZaal={(z) => setZalen((oud) => [...oud, z])}
+          onInstructeur={(m) => setInstructeurs((oud) => [...oud, m])}
+        />
+        <WeekLessen vestigingNaam={p.vestigingNaam} lessen={zichtbaar} typen={typen} zalen={zalen} instructeurs={instructeurs} onWijzig={wijzigLes} onNieuw={nieuweLes} />
+        <div aria-live="polite">
+          {stand && <p className="club-melding" role="status">Bezig met opslaan: {stand}...</p>}
+          {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
         </div>
-        <p className="club-hint">Kies de lessen die je geeft. Naam, duur en uitleg pas je later aan in Instellingen.</p>
-        <ul className="club-start-voorbeelden" role="list">
-          {voorbeelden.map((v) => {
-            const staat = lestypen.some((t) => zelfdeNaam(t.naam, v.naam))
-            return (
-              <li key={v.naam} className="club-start-voorbeeld club-rooster-soortstreep" data-af={staat || undefined} data-soort={v.soort}>
-                <div className="club-start-voorbeeld-tekst">
-                  <strong>{v.naam}</strong>
-                  <span className="club-zacht">{SOORT_LABEL[v.soort]} · {v.duurMin} min · {INTENSITEIT[v.intensiteit]}</span>
-                  <span className="club-start-voorbeeld-uitleg">{v.omschrijving}</span>
-                </div>
-                {staat ? (
-                  <span className="club-chip club-chip--ok">
-                    <Check aria-hidden size={13} /> Staat erin
-                  </span>
-                ) : (
-                  <button type="button" className="club-knop club-knop--klein" aria-label={`${v.naam} overnemen`} disabled={bezig !== null} onClick={() => void neemType(v)}>
-                    {bezig === `type-${v.naam}` ? 'Bezig...' : 'Overnemen'}
-                  </button>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      </section>
-
-      <section className="club-start-blok" aria-labelledby="start-lessen-kop">
-        <div className="club-start-blokkop">
-          <h2 id="start-lessen-kop">Vaste lessen in {vestigingNaam}</h2>
-          {openLessen.length > 1 && (
-            <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null} onClick={() => void maak('week', '/api/club/instellingen/weekrooster', openLessen.map((l) => lesBody(l, vestiging, vandaag)))}>
-              <Plus aria-hidden size={14} /> {bezig === 'week' ? 'Bezig...' : `Hele week toevoegen (${openLessen.length})`}
-            </button>
-          )}
-        </div>
-        <p className="club-hint">Een vaste les komt elke week terug. Zet ze daarna in het rooster, dan kunnen leden reserveren. Een zaal en instructeur kies je later.</p>
-        {voorstellen.length === 0 ? (
-          <p className="club-leeg">Neem eerst een paar lestypen over; dan zie je hier een voorstel voor je week.</p>
-        ) : (
-          <ul className="club-start-weekvoorstel" role="list">
-            {voorstellen.map((l) => {
-              const sleutel = `les-${l.lestype}-${l.weekdag}-${l.starttijd}`
-              return (
-                <li key={sleutel} className="club-start-les" data-af={l.bestaat || undefined}>
-                  <span className="club-start-les-dag">{WEEKDAG_LABEL[l.weekdag - 1]}</span>
-                  <span className="club-start-les-tijd club-getal">{l.starttijd}</span>
-                  <span className="club-start-les-naam">{l.lestype}</span>
-                  <span className="club-zacht club-start-les-plek">{l.capaciteit} plekken</span>
-                  {l.bestaat ? (
-                    <span className="club-chip club-chip--ok">In het rooster</span>
-                  ) : (
-                    <button type="button" className="club-knop club-knop--klein" aria-label={`${l.lestype} op ${WEEKDAG_LABEL[l.weekdag - 1]} om ${l.starttijd} toevoegen`} disabled={bezig !== null} onClick={() => void neemLes(l)}>
-                      {bezig === sleutel ? 'Bezig...' : 'Toevoegen'}
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
-        {lessen.length > 0 && (
-          <div className="club-start-rooster">
-            <p>
-              <strong>{lessen.length} vaste {lessen.length === 1 ? 'les' : 'lessen'}</strong> in {vestigingNaam}. Zet ze in het rooster voor de komende 6 weken; wat er al staat blijft staan.
-            </p>
-            <button type="button" className="club-knop club-knop--primair" disabled={bezig !== null} onClick={() => void zetInRooster()}>
-              {bezig === 'rooster' ? 'Bezig...' : 'In het rooster zetten'}
-            </button>
-          </div>
-        )}
-      </section>
-      <div aria-live="polite">
-        {gemaakt && <p className="club-melding club-melding--ok" role="status">{gemaakt}</p>}
-        {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
       </div>
-    </div>
+      <StartVoet {...p.voet} voorVerder={voorVerder} primair={wijzigingen > 0 ? 'Opslaan en verder' : undefined} />
+    </>
   )
 }

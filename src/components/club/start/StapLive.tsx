@@ -25,7 +25,7 @@ interface StapLiveProps {
   totaal: number
   /** null = er is nog geen eigen adres gekozen. */
   adressen: LiveAdressen | null
-  /** Waar je het adres kiest (Huisstijl). */
+  /** Waar je het adres kiest (de stap Huisstijl). */
   adresKiezenPad: string
   naam: string
   kleur: string
@@ -108,7 +108,7 @@ export function StapLive({ afgerond, af, totaal, adressen, adresKiezenPad, naam,
             </dl>
           ) : (
             <p className="club-melding">
-              Je hebt nog geen eigen adres. <Link href={adresKiezenPad}>Kies het bij Huisstijl</Link>, dan vinden je leden en team je.
+              Je hebt nog geen eigen adres. <Link href={adresKiezenPad}>Kies het in de stap Huisstijl</Link>, dan vinden je leden en team je.
             </p>
           )}
           {afgerond && (

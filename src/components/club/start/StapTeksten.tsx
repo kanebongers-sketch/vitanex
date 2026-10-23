@@ -1,21 +1,22 @@
 import Link from 'next/link'
-import { ArrowRight, Check, Circle, Eye, FileSpreadsheet, LifeBuoy } from 'lucide-react'
+import { ArrowRight, Check, Circle, Eye, LifeBuoy } from 'lucide-react'
+import { LedenImport } from '@/components/club/leden/import/LedenImport'
 import { startPad, type StapSleutel, type StapStand } from '@/lib/club/start/stappen'
 import { demoInlezen, type DemoUitkomst } from '@/lib/club/start/demo-leden'
 import { eersteDagStand, type EersteDagPunt } from '@/lib/club/start/eerste-dag'
 
-// De stappen zonder eigen formulier: leden inlezen (met een voorbeeld dat
-// niets opslaat) en "Klaar voor je eerste dag". Plus de introductie per stap.
-// Niets hier belooft meer dan Club doet.
+// Leden inlezen (het echte inlezen staat in de stap zelf, met een voorbeeld
+// dat niets opslaat) en "Klaar voor je eerste dag". Plus de introductie per
+// stap. Niets hier belooft meer dan Club doet.
 
 export const STAP_INTRO: Record<StapSleutel, string> = {
-  soort: 'In ongeveer een kwartier staat je sportschool live. Kies wat voor sportschool je hebt, dan zetten wij de rest alvast klaar. Elke stap kun je overslaan en je voortgang wordt steeds bewaard.',
-  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
-  vestigingen: 'Waar je sportschool zit en wanneer hij open is. Een klik voor de standaardtijden, of stel ze per dag in.',
+  soort: 'In ongeveer een kwartier staat je sportschool live. Kies wat voor sportschool je hebt, dan vullen wij de volgende stappen alvast in. Je voortgang wordt steeds bewaard.',
+  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
+  vestigingen: 'Waar je sportschool zit, wanneer hij open is en hoe leden een les boeken.',
   onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
-  lessen: 'De groepslessen die je geeft, en eventueel een paar vaste lessen in je week.',
-  team: 'Alleen naam, e-mail en rol. Nodig iedereen meteen uit om in te loggen, of doe dat later bij Medewerkers.',
-  leden: 'Lees je leden in uit je huidige systeem, of doe het later. Bekijk eerst hoe het werkt met een voorbeeld.',
+  lessen: 'De lessen die je geeft en je vaste week, met zaal en instructeur. Na opslaan staan ze in het rooster.',
+  team: 'Naam, e-mail, functie en vestiging van je medewerkers, en wat elke functie ziet. Nodig iedereen meteen uit om in te loggen.',
+  leden: 'Lees je leden in uit je huidige systeem. Je ziet eerst wat er gebeurt; pas daarna lees je in.',
   klaar: 'Je sportschool staat. Hier zie je je eigen adressen en een kort lijstje voor je eerste dag. Rond af als het klopt.',
 }
 
@@ -30,10 +31,10 @@ const UITKOMST: Record<DemoUitkomst, { label: string; chip: string }> = {
 function DemoLeden({ vandaag }: { vandaag: string }) {
   const demo = demoInlezen(vandaag)
   return (
-    <details className="club-start-uitklap club-start-demo">
-      <summary>
-        <Eye aria-hidden size={16} /> Bekijk eerst een voorbeeld
-      </summary>
+    <section className="club-start-blok club-start-demo" aria-labelledby="start-demo-kop">
+      <h2 id="start-demo-kop">
+        <Eye aria-hidden size={18} /> Zo werkt het
+      </h2>
       <p className="club-hint">
         Een verzonnen bestand met {demo.rijen.length} rijen, door precies dezelfde controle als jouw bestand. <strong>Er wordt niets opgeslagen.</strong>
       </p>
@@ -55,39 +56,34 @@ function DemoLeden({ vandaag }: { vandaag: string }) {
       <p className="club-start-demo-som">
         Uitkomst: <strong>{demo.telling.nieuw} nieuwe leden</strong>, {demo.telling.dubbel} dubbel overgeslagen, {demo.telling.fout} rij die je eerst aanvult. Er wordt nooit iemand verwijderd.
       </p>
-    </details>
+    </section>
   )
 }
 
 interface StapLedenProps {
-  importPad: string | null
+  vestiging: string
+  vestigingLabel: string
+  /** De volgende stap, voor de knop na het inlezen. */
+  verderPad: string
   vandaag: string
 }
 
-export function StapLedenInlezen({ importPad, vandaag }: StapLedenProps) {
+export function StapLedenInlezen({ vestiging, vestigingLabel, verderPad, vandaag }: StapLedenProps) {
   return (
     <div className="club-start-twee">
-      <section className="club-start-blok club-start-actie" aria-labelledby="start-inlezen-kop">
-        <h2 id="start-inlezen-kop">Je ledenbestand</h2>
-        <ol className="club-start-genummerd">
-          <li>Exporteer je leden uit je huidige systeem (zoals Virtuagym) als CSV, of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad.</li>
-          <li>Een naam is genoeg: voornaam en achternaam, of de hele naam in een kolom. Andere kolommen herkent Club zelf.</li>
-          <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
-        </ol>
-        {importPad ? (
-          <Link href={importPad} className="club-knop club-knop--primair">
-            <FileSpreadsheet aria-hidden size={16} /> Bestand kiezen
-          </Link>
-        ) : (
-          <p className="club-melding">Leden staat uit of er is nog geen vestiging. Zet Leden aan bij Onderdelen of voeg eerst een vestiging toe.</p>
-        )}
-        <DemoLeden vandaag={vandaag} />
-      </section>
-      <section className="club-start-blok" aria-labelledby="start-later-kop">
-        <h2 id="start-later-kop">Later doen</h2>
-        <p>Geen bestand bij de hand? Ga gewoon verder. Je vindt het inlezen later bij Leden, en het staat op de checklist aan het eind van de wizard.</p>
-        <p className="club-hint">Na het inlezen brengt de knop Verder met de startwizard je hier terug.</p>
-      </section>
+      <div className="club-start-stapel club-start-inlezen">
+        <section className="club-start-blok" aria-labelledby="start-inlezen-kop">
+          <h2 id="start-inlezen-kop">Je ledenbestand</h2>
+          <ol className="club-start-genummerd">
+            <li>Exporteer je leden uit je huidige systeem (zoals Virtuagym) als CSV, of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad.</li>
+            <li>Een naam is genoeg: voornaam en achternaam, of de hele naam in een kolom. Andere kolommen herkent Club zelf.</li>
+            <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
+          </ol>
+          <p className="club-hint">Begin je zonder leden, of komen ze straks via de app? Ga dan gewoon verder.</p>
+        </section>
+        <LedenImport vestiging={vestiging} vestigingLabel={vestigingLabel} terugNaarStart={verderPad} />
+      </div>
+      <DemoLeden vandaag={vandaag} />
     </div>
   )
 }
@@ -125,9 +121,13 @@ export function StapKlaar({ punten, stand, vestiging }: StapKlaarProps) {
                 <strong>{p.titel}</strong>
                 <span className="club-zacht">{p.uitleg}</span>
               </span>
-              <Link href={p.pad} className="club-knop club-knop--klein" aria-label={`${p.titel}: ${p.af === true ? 'bekijken' : 'nu doen'}`}>
-                {p.af === true ? 'Bekijken' : p.af === false ? 'Nu doen' : 'Openen'} <ArrowRight aria-hidden size={14} />
-              </Link>
+              {p.pad ? (
+                <Link href={p.pad} className="club-knop club-knop--klein" aria-label={`${p.titel}: ${p.af === true ? 'aanpassen' : 'nu doen'}`}>
+                  {p.af === true ? 'Aanpassen' : 'Nu doen'} <ArrowRight aria-hidden size={14} />
+                </Link>
+              ) : (
+                <span className="club-chip club-chip--uit">Na afronden</span>
+              )}
             </li>
           ))}
         </ul>
@@ -154,7 +154,6 @@ export function StapKlaar({ punten, stand, vestiging }: StapKlaarProps) {
           <Link href="/club/hulp" className="club-knop">
             Naar hulp en support
           </Link>
-          <p className="club-hint">Alles uit deze wizard vind je later terug in het instellingencentrum onder Beheer.</p>
         </section>
       </div>
     </div>

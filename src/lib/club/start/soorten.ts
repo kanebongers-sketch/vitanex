@@ -2,7 +2,7 @@
 // De eigenaar kiest eerst wat voor sportschool het is. Daaruit volgt een
 // startpakket: welke onderdelen aan of uit staan, welke lestypen er alvast
 // komen, openingstijden, regels voor reserveren en wat elke rol ziet. Het zijn
-// gangbare standaarden, geen beloftes: alles is daarna gewoon aan te passen.
+// gangbare standaarden, geen beloftes: in de stappen daarna pas je alles aan.
 
 import { MODULES, MODULE_LABEL, type Module } from '@/lib/club/kern/organisatie'
 import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
@@ -139,8 +139,8 @@ const RECEPTEN: Record<SportschoolSoort, Recept> = {
     extraRechten: INSTRUCTEUR_BIJ_LES,
   },
   pt: {
-    uit: ['rooster', 'taken'],
-    lestypen: [],
+    uit: ['taken'],
+    lestypen: ['Small group training', 'Personal training', 'Kracht in de groep', 'Circuittraining', 'Intake'],
     openingstijden: weekMet(tijd('07:00', '21:00'), tijd('08:00', '14:00'), null),
     regels: {},
     extraRechten: {},
@@ -192,6 +192,11 @@ export function rechtenVoor(uit: readonly Module[], extra: Partial<Record<Medewe
   return Object.fromEntries(
     MEDEWERKER_ROLLEN.map((rol) => [rol, [...new Set([...basis[rol], ...(extra[rol] ?? [])])].filter((o) => !dicht.has(o))]),
   ) as Rechten
+}
+
+/** De lestypen die bij een soort passen, ook als de groepslessen (nog) uit staan. */
+export function voorstelLestypen(soort: SportschoolSoort): VoorbeeldLestype[] {
+  return RECEPTEN[soort].lestypen.map(lestypeOpNaam).filter((v): v is VoorbeeldLestype => v !== null)
 }
 
 /** Het startpakket voor een soort sportschool. */
@@ -256,7 +261,7 @@ export function klaargezet(p: SoortPakket): KlaargezetRegel[] {
     {
       sleutel: 'lestypen',
       titel: 'Lestypen',
-      tekst: lessen && p.lestypen.length > 0 ? lijstTekst(p.lestypen.map((l) => l.naam)) : 'Geen groepslessen. Zet ze later aan als je ze toch geeft.',
+      tekst: lessen && p.lestypen.length > 0 ? lijstTekst(p.lestypen.map((l) => l.naam)) : 'Geen groepslessen. Geef je ze toch, zet dan Groepslessen aan bij Onderdelen.',
     },
     { sleutel: 'openingstijden', titel: 'Openingstijden', tekst: weekTekst(p.openingstijden) },
     ...(lessen ? [{ sleutel: 'reserveren' as const, titel: 'Reserveren', tekst: reserverenTekst(p.regels) }] : []),

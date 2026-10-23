@@ -8,14 +8,15 @@ import { kleurVoorstel, type KleurVoorstel } from '@/lib/club/start/logo-kleur'
 import { stuur } from '@/components/club/leden/stuur'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { KleurBlok } from '@/components/club/huisstijl/KleurBlok'
+import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import { kleurUitAfbeelding } from './logo-kleur-browser'
 import { LedenappVoorbeeld } from './LedenappVoorbeeld'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 
 // Stap 2: logo uploaden, en de accentkleur komt er vanzelf uit (de dominante
 // kleur, met de contrastcorrectie van huisstijl.ts). Rechts een levende
-// ledenapp. Het logo wordt meteen opgeslagen; naam, kleur en thema bij
-// "verder". Zelf een kleur kiezen kan altijd nog.
+// ledenapp. Het logo en het eigen adres worden meteen opgeslagen; naam, kleur
+// en thema bij "verder". Zelf een kleur kiezen kan hier ook.
 
 /** Huisstijl en onderdelen samen naar de API (die wil altijd alles). */
 export async function bewaarOrganisatie(w: HuisstijlWaarden): Promise<string | null> {
@@ -40,10 +41,13 @@ interface StapHuisstijlProps {
   organisatie: HuisstijlWaarden
   logoUrl: string | null
   ingebouwdLogo: boolean
+  /** Het eigen adres (aiyourgym.com/<slug>), of null als het nog niet gekozen is. */
+  slug: string | null
+  subdomeinen: boolean
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
 }
 
-export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, voet }: StapHuisstijlProps) {
+export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdomeinen, voet }: StapHuisstijlProps) {
   const router = useRouter()
   const invoer = useRef<HTMLInputElement>(null)
   const [waarden, setWaarden] = useState<HuisstijlWaarden>(organisatie)
@@ -162,6 +166,7 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, voet }: Sta
             <span>Naam van de sportschool</span>
             <input className="club-invoer" value={waarden.naam} maxLength={MAX_NAAM} onChange={(e) => zet('naam', e.target.value)} />
           </label>
+          <AdresBlok slug={slug} naam={waarden.naam} subdomeinen={subdomeinen} />
         </section>
         <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} logo={logo} />
         <div className="club-start-huisstijl-kleur">

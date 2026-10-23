@@ -19,6 +19,14 @@ const VERBODEN = /pincode|controlecode|inloglink|vaste link|\bKane\b|Fit Factory
 // Bestaande medewerkers van voor 23-10-2026 zien eerlijk dat ze nog met een pincode inloggen.
 const UITZONDERING = /Nog met pincode|oude link en pincode/
 
+// De wizard stelt alles meteen in: elke vorm van uitstel of wegsturen naar een andere plek is verboden.
+const UITSTEL = /doe je later|pas je later|kies je later|stel je later|later verder|later doen|doe het later|of later\b|later aan te passen|later aan\b|is later|overslaan|kun je overslaan|in Instellingen|bij Instellingen|bij Medewerkers|instellingencentrum/i
+const WIZARD = ['src/components/club/start', 'src/lib/club/start']
+
+function wizardBestanden(): string[] {
+  return [...WIZARD.flatMap((m) => readdirSync(m).filter((f) => /\.tsx?$/.test(f) && !f.includes('.test.')).map((f) => join(m, f))), 'src/app/(aiyourgym)/(club)/club/start/page.tsx']
+}
+
 function zonderCommentaar(bron: string): string[] {
   return bron
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -40,6 +48,22 @@ describe('teksten voor een nieuwe sportschool', () => {
         .map(({ regel, i }) => `${pad}:${i + 1}: ${regel.trim()}`),
     )
     expect(fout).toEqual([])
+  })
+
+  it('stellen niets uit: geen "doe je later", overslaan of verwijzing naar Instellingen (besluit Kane 23-10-2026)', () => {
+    const fout = wizardBestanden().flatMap((pad) =>
+      zonderCommentaar(readFileSync(pad, 'utf8'))
+        .map((regel, i) => ({ regel, i }))
+        .filter(({ regel }) => UITSTEL.test(regel))
+        .map(({ regel, i }) => `${pad}:${i + 1}: ${regel.trim()}`),
+    )
+    expect(fout).toEqual([])
+  })
+
+  it('heeft Opslaan en stoppen en geen knop Overslaan in de voet', () => {
+    const voet = zonderCommentaar(readFileSync('src/components/club/start/StartVoet.tsx', 'utf8')).join(' ')
+    expect(voet).toMatch(/Opslaan en stoppen/)
+    expect(voet).not.toMatch(/overslaan/i)
   })
 
   it('leggen de inlog van nu uit: uitnodiging per e-mail, daarna e-mailadres en wachtwoord', () => {

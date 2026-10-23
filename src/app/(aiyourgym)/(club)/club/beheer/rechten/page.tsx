@@ -1,27 +1,13 @@
 import type { Metadata } from 'next'
 import { eisBeheerdersBeheer } from '@/lib/club/toegang'
-import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar } from '@/components/club/shell/onderdelen'
-import { RechtenMatrix, type RechtenGroep } from '@/components/club/beheer/RechtenMatrix'
-import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
-import type { Module } from '@/lib/club/kern/organisatie'
+import { RechtenMatrix } from '@/components/club/beheer/RechtenMatrix'
+import { rechtenGroepen } from '@/components/club/beheer/rechten-groepen'
 import '@/components/club/beheer/beheer.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 
 export const metadata: Metadata = { title: 'Rechten per rol' }
 
-// Wat elke rol ziet, gegroepeerd zoals het menu, plus de groep Instellingen
-// voor wat alleen via het instellingencentrum gaat. Niet in de lijst: wat
-// alleen de eigenaar heeft (NOOIT_VOOR_CLUBMANAGER) en Hulp (heeft iedereen).
-
-const NIET_IN_LIJST: ReadonlySet<string> = new Set([...NOOIT_VOOR_CLUBMANAGER, 'hulp'])
-
-function rechtenGroepen(uit: readonly Module[]): RechtenGroep[] {
-  const kort = (o: (typeof ONDERDELEN)[number]) => ({ sleutel: o.sleutel, label: o.label, uitleg: o.uitleg })
-  const telt = ONDERDELEN.filter((o) => !NIET_IN_LIJST.has(o.sleutel) && isZichtbaar(o, uit))
-  const menu = GROEPEN.map((g) => ({ label: g.label, onderdelen: telt.filter((o) => inMenu(o) && o.groep === g.sleutel).map(kort) }))
-  const instellingen = { label: 'Instellingen', onderdelen: telt.filter((o) => !inMenu(o)).map(kort) }
-  return [...menu, instellingen].filter((g) => g.onderdelen.length > 0)
-}
+// Wat elke rol ziet, gegroepeerd zoals het menu (zie rechten-groepen.ts).
 
 export default async function RechtenPagina() {
   // Alleen Kane en de eigenaar: een clubmanager mag nooit zijn eigen rechten verruimen.

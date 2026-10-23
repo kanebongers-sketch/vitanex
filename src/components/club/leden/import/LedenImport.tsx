@@ -154,8 +154,12 @@ function ImportKlaar({ klaar, vestiging, vestigingLabel, terugNaarStart }: { kla
         </p>
       )}
       <div className="club-acties">
-        {terugNaarStart && <Link href={terugNaarStart} className="club-knop club-knop--primair">Verder met de startwizard</Link>}
-        <Link href={clubPad('/leden', vestiging)} className={terugNaarStart ? 'club-knop' : 'club-knop club-knop--primair'}>Naar de leden</Link>
+        {/* In de startwizard blijf je in de wizard: geen weg naar Leden. */}
+        {terugNaarStart ? (
+          <Link href={terugNaarStart} className="club-knop club-knop--primair">Verder met de startwizard</Link>
+        ) : (
+          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--primair">Naar de leden</Link>
+        )}
       </div>
     </section>
   )

@@ -1,7 +1,7 @@
 // ─── Club startwizard: voorbeelden om met een klik over te nemen (PUUR) ─────
 // Gangbare groepslessen met algemene namen (geen merknamen van lesconcepten)
-// en een paar vaste lessen als begin van het weekrooster. Alles is daarna
-// gewoon aan te passen in Instellingen.
+// en een paar vaste lessen als begin van het weekrooster. In de wizard pas je
+// naam, duur, uitleg, dag, tijd, plekken, zaal en instructeur meteen aan.
 
 import type { LesSoort } from '@/lib/club/rooster/typen'
 
@@ -26,8 +26,11 @@ export const VOORBEELD_LESTYPEN: readonly VoorbeeldLestype[] = [
   { naam: 'Dance fitness', soort: 'dans', duurMin: 55, intensiteit: 2, omschrijving: 'Bewegen op muziek met eenvoudige danspassen. Zweten zonder dat je het merkt.' },
 ]
 
-/** Lessen voor studio's met een eigen richting (yoga en pilates, vechtsport). */
+/** Lessen voor studio's met een eigen richting (PT-studio, yoga en pilates, vechtsport). */
 export const EXTRA_LESTYPEN: readonly VoorbeeldLestype[] = [
+  { naam: 'Small group training', soort: 'kracht', duurMin: 45, intensiteit: 2, omschrijving: 'Trainen in een klein groepje van hooguit zes, met persoonlijke aandacht van de trainer.' },
+  { naam: 'Personal training', soort: 'kracht', duurMin: 60, intensiteit: 2, omschrijving: 'Een op een met je trainer, helemaal afgestemd op jouw doel.' },
+  { naam: 'Intake', soort: 'overig', duurMin: 45, intensiteit: 1, omschrijving: 'Kennismaken, je doel bespreken en een eerste meting. Daarna weet je trainer waar je staat.' },
   { naam: 'Yin yoga', soort: 'mind_body', duurMin: 75, intensiteit: 1, omschrijving: 'Lang aanhouden in rustige houdingen. Goed voor soepelheid en om tot rust te komen.' },
   { naam: 'Vinyasa flow', soort: 'mind_body', duurMin: 60, intensiteit: 2, omschrijving: 'Vloeiend van houding naar houding, op het ritme van je adem.' },
   { naam: 'Meditatie', soort: 'mind_body', duurMin: 30, intensiteit: 1, omschrijving: 'Begeleid stilzitten en ademen. Geen ervaring nodig.' },
@@ -71,6 +74,12 @@ export const VOORBEELD_LESSEN: readonly VoorbeeldLes[] = [
 
 /** De startweek voor de extra lestypen. */
 export const EXTRA_LESSEN: readonly VoorbeeldLes[] = [
+  { lestype: 'Small group training', weekdag: 1, starttijd: '07:00', capaciteit: 6 },
+  { lestype: 'Small group training', weekdag: 3, starttijd: '19:00', capaciteit: 6 },
+  { lestype: 'Small group training', weekdag: 6, starttijd: '09:00', capaciteit: 6 },
+  { lestype: 'Personal training', weekdag: 2, starttijd: '18:00', capaciteit: 1 },
+  { lestype: 'Personal training', weekdag: 4, starttijd: '18:00', capaciteit: 1 },
+  { lestype: 'Intake', weekdag: 2, starttijd: '17:00', capaciteit: 1 },
   { lestype: 'Yin yoga', weekdag: 1, starttijd: '20:00', capaciteit: 15 },
   { lestype: 'Vinyasa flow', weekdag: 2, starttijd: '07:00', capaciteit: 15 },
   { lestype: 'Vinyasa flow', weekdag: 4, starttijd: '19:30', capaciteit: 15 },

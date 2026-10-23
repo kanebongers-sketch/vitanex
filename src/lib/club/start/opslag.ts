@@ -6,6 +6,7 @@
 
 import { cache } from 'react'
 import type { ClubToegang } from '@/lib/club/toegang'
+import { wizardVerplicht } from './poort'
 import { instellingenMetStart, leesStart, vestigingIngericht, type StartFeiten, type StartVoortgang } from './stappen'
 
 type Lezer = Pick<ClubToegang, 'admin' | 'organisatie'>
@@ -74,4 +75,22 @@ export async function haalStartFeiten(t: Pick<ClubToegang, 'admin' | 'userId' | 
     tel(t, 'club_leden', false),
   ])
   return { heeftLogo: t.organisatie.logo !== null, vestigingenIngericht, lestypen, vasteLessen, medewerkers, leden, uit: t.organisatie.uit }
+}
+
+/**
+ * Moet de sportschool die open staat eerst de wizard afronden? De regel staat
+ * in poort.ts; hier alleen het lezen (een keer per verzoek).
+ */
+export async function wizardPoortDicht(t: Pick<ClubToegang, 'admin' | 'userId' | 'organisatie' | 'beheerderId' | 'isPlatformEigenaar'>): Promise<boolean> {
+  if (t.isPlatformEigenaar || t.organisatie.demo || t.organisatie.id === t.beheerderId) return false
+  return wizardVerplicht({
+    isPlatformEigenaar: t.isPlatformEigenaar,
+    organisatie: t.organisatie,
+    beheerderId: t.beheerderId,
+    gelezen: await haalStartVoorPagina(t),
+    heeftData: async () => {
+      const f = await haalStartFeiten(t)
+      return f.lestypen + f.vasteLessen + f.medewerkers + f.leden > 0
+    },
+  })
 }
