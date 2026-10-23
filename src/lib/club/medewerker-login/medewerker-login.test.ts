@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  beoordeelMedewerkerSessie, leesLoginActie, magMedewerkerBinnen, medewerkerCookie, medewerkerLinkPad, medewerkerMetOrgUitRij, sessiePastBij, toegangUitRij,
+  beoordeelMedewerkerSessie, leesLoginActie, loginStaat, magMedewerkerBinnen, medewerkerCookie, medewerkerMetOrgUitRij, sessiePastBij, toegangUitRij, uitnodigingPad,
   type MedewerkerMetOrg, type MedewerkerToegang,
 } from './medewerker-login'
 
@@ -23,6 +23,11 @@ describe('toegangUitRij', () => {
     expect(toegangUitRij({ ...rij, user_id: 'x' })).toBeNull()
     expect(toegangUitRij(null)).toBeNull()
   })
+  it('leest e-mailadres (kleine letters), wachtwoord-hash en uitnodiging', () => {
+    const t = toegangUitRij({ ...rij, email: 'Lotte@Gym.NL', wachtwoord_hash: 's2:x', uitnodiging_verloopt_op: '2026-10-24T00:00:00Z' })
+    expect(t).toMatchObject({ email: 'lotte@gym.nl', wachtwoordHash: 's2:x', uitnodigingVerlooptOp: '2026-10-24T00:00:00Z' })
+    expect(toegangUitRij({ ...rij, email: 'geen-adres' })?.email).toBeNull()
+  })
   it('onbekende pinstatus wordt geen; actief alleen bij true', () => {
     expect(toegangUitRij({ ...rij, pin_status: 'raar', actief: 'ja' })).toMatchObject({ pinStatus: 'geen', actief: false })
   })
@@ -42,9 +47,12 @@ describe('magMedewerkerBinnen', () => {
   it('actieve link, goedgekeurde pin, in dienst, met een rol: ja', () => {
     expect(magMedewerkerBinnen(toegang, mens)).toBe(true)
   })
-  it('pin wacht of geen pin: nee', () => {
+  it('met een wachtwoord: ja, ook zonder pincode', () => {
+    expect(magMedewerkerBinnen({ ...toegang, pinStatus: 'geen', pinHash: null, wachtwoordHash: 's2:x' }, mens)).toBe(true)
+  })
+  it('alleen uitgenodigd, pin wacht of geen pin en geen wachtwoord: nee', () => {
     expect(magMedewerkerBinnen({ ...toegang, pinStatus: 'wacht' }, mens)).toBe(false)
-    expect(magMedewerkerBinnen({ ...toegang, pinStatus: 'geen' }, mens)).toBe(false)
+    expect(magMedewerkerBinnen({ ...toegang, pinStatus: 'geen', uitnodigingVerlooptOp: '2030-01-01T00:00:00Z' }, mens)).toBe(false)
   })
   it('link ingetrokken of medewerker uit dienst: nee', () => {
     expect(magMedewerkerBinnen({ ...toegang, actief: false }, mens)).toBe(false)
@@ -86,16 +94,30 @@ describe('sessiePastBij', () => {
 })
 
 describe('leesLoginActie', () => {
-  it('goedkeuren vraagt een controlecode van 4 cijfers', () => {
-    expect(leesLoginActie({ actie: 'goedkeuren' }).ok).toBe(false)
-    expect(leesLoginActie({ actie: 'goedkeuren', controle: '12a4' }).ok).toBe(false)
-    expect(leesLoginActie({ actie: 'goedkeuren', controle: ' 0420 ' })).toEqual({ ok: true, waarde: { actie: 'goedkeuren', controle: '0420' } })
+  it('uitnodigen vraagt een geldig e-mailadres en maakt het klein', () => {
+    expect(leesLoginActie({ actie: 'uitnodigen' }).ok).toBe(false)
+    expect(leesLoginActie({ actie: 'uitnodigen', email: 'geen adres' }).ok).toBe(false)
+    expect(leesLoginActie({ actie: 'uitnodigen', email: ' Lotte@Gym.NL ' })).toEqual({ ok: true, waarde: { actie: 'uitnodigen', email: 'lotte@gym.nl' } })
   })
-  it('andere acties zonder controlecode; onbekend wordt geweigerd', () => {
-    expect(leesLoginActie({ actie: 'maken', controle: '1234' })).toEqual({ ok: true, waarde: { actie: 'maken', controle: null } })
-    expect(leesLoginActie({ actie: 'intrekken' }).ok).toBe(true)
-    expect(leesLoginActie({ actie: 'stoppen' }).ok).toBe(false)
+  it('intrekken zonder meer; oude pincode-acties en onbekend worden geweigerd', () => {
+    expect(leesLoginActie({ actie: 'intrekken', email: 'x@y.nl' })).toEqual({ ok: true, waarde: { actie: 'intrekken' } })
+    for (const actie of ['maken', 'goedkeuren', 'afwijzen', 'reset', 'stoppen']) expect(leesLoginActie({ actie, controle: '1234' }).ok).toBe(false)
     expect(leesLoginActie(null).ok).toBe(false)
+  })
+})
+
+describe('loginStaat', () => {
+  const nu = new Date('2026-10-23T12:00:00Z')
+  const leeg = { ...toegang, pinStatus: 'geen' as const, pinHash: null }
+  it('wachtwoord gaat voor alles; ingetrokken is geen', () => {
+    expect(loginStaat({ ...leeg, wachtwoordHash: 's2:x', uitnodigingVerlooptOp: '2026-10-20T00:00:00Z' }, nu)).toBe('actief')
+    expect(loginStaat({ ...leeg, actief: false, wachtwoordHash: 's2:x' }, nu)).toBe('geen')
+  })
+  it('uitnodiging open of verlopen; oude pincode; niets', () => {
+    expect(loginStaat({ ...leeg, uitnodigingVerlooptOp: '2026-10-30T00:00:00Z' }, nu)).toBe('uitgenodigd')
+    expect(loginStaat({ ...leeg, uitnodigingVerlooptOp: '2026-10-23T11:59:00Z' }, nu)).toBe('verlopen')
+    expect(loginStaat(toegang, nu)).toBe('oud')
+    expect(loginStaat(leeg, nu)).toBe('geen')
   })
 })
 
@@ -104,7 +126,7 @@ describe('cookie en link', () => {
     expect(medewerkerCookie(true)).toBe('__Host-club_mw_sessie')
     expect(medewerkerCookie(false)).toBe('club_mw_sessie')
   })
-  it('de link staat onder /clubinloggen/ (gaat door op een subdomein)', () => {
-    expect(medewerkerLinkPad(CODE)).toBe(`/clubinloggen/medewerker/${CODE}`)
+  it('de uitnodiging staat onder /clubinloggen/ (gaat door op een subdomein)', () => {
+    expect(uitnodigingPad('t'.repeat(43))).toBe(`/clubinloggen/medewerker/${'t'.repeat(43)}`)
   })
 })

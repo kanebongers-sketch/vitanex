@@ -29,7 +29,7 @@ export function AygKop() {
     <header className="ayg-kop" data-bovenaan={bovenaan ? '' : undefined}>
       <div className="ayg-wrap ayg-kop-rij">
         <Link href={aygPad()} className="ayg-kop-logo" aria-label="AI Your Gym, naar de voorpagina">
-          <AygLogo />
+          <AygLogo sier />
         </Link>
         <AygNav />
       </div>

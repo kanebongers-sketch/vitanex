@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Aanmelding } from './aanmelding'
 import { isAanmeldStatus, volgendeStatus, type AanmeldStatus, type Gebeurtenis } from './status'
 
-export const AANMELDING_KOLOMMEN = 'id, pakket, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, stripe_customer_id, stripe_subscription_id, stripe_session_id, organisatie_id, aangemaakt_op, bijgewerkt_op'
+export const AANMELDING_KOLOMMEN = 'id, pakket, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, stripe_customer_id, stripe_subscription_id, stripe_session_id, organisatie_id, eigenaar_wachtwoord_hash, aangemaakt_op, bijgewerkt_op'
 
 export interface AanmeldingRij {
   id: string
@@ -23,6 +23,8 @@ export interface AanmeldingRij {
   organisatieId: string | null
   aangemaaktOp: string
   bijgewerktOp: string
+  /** SERVER-ONLY. Hash van het gekozen wachtwoord, tot de sportschool is ingericht. */
+  eigenaarWachtwoordHash: string | null
 }
 
 /** Een checkout die zo lang niet is afgerond, houdt het adres niet meer vast (Stripe laat hem na 24 uur verlopen). */
@@ -55,6 +57,7 @@ export function aanmeldingUitRij(rij: unknown): AanmeldingRij | null {
     stripeSessionId: tekstOfNull(r.stripe_session_id),
     stripeSubscriptionId: tekstOfNull(r.stripe_subscription_id),
     organisatieId: tekstOfNull(r.organisatie_id),
+    eigenaarWachtwoordHash: tekstOfNull(r.eigenaar_wachtwoord_hash),
     aangemaaktOp: tekst(r.aangemaakt_op),
     bijgewerktOp: tekst(r.bijgewerkt_op),
   }
@@ -89,7 +92,7 @@ export async function teVeelRecent(admin: SupabaseClient, email: string, nu: Dat
 
 // ─── Aanmeldingen ───────────────────────────────────────────────────────────
 
-export async function maakAanmelding(admin: SupabaseClient, a: Aanmelding, status: 'aanvraag' | 'wacht_op_betaling', nu: Date): Promise<string | null> {
+export async function maakAanmelding(admin: SupabaseClient, a: Aanmelding, status: 'aanvraag' | 'wacht_op_betaling', nu: Date, wachtwoordHash: string | null = null): Promise<string | null> {
   const { data, error } = await admin
     .from('ayg_aanmeldingen')
     .insert({
@@ -102,6 +105,8 @@ export async function maakAanmelding(admin: SupabaseClient, a: Aanmelding, statu
       eigenaar_telefoon: a.eigenaarTelefoon,
       status,
       akkoord_op: nu.toISOString(),
+      // Een aanvraag wordt geen sportschool via deze weg: dan ook geen wachtwoord bewaren.
+      eigenaar_wachtwoord_hash: status === 'wacht_op_betaling' ? wachtwoordHash : null,
     })
     .select('id')
     .single()
@@ -158,7 +163,7 @@ export async function bewaarOrganisatie(admin: SupabaseClient, id: string, organ
 export async function rondInrichtingAf(admin: SupabaseClient, id: string, s: { klantId: string | null; abonnementId: string | null }): Promise<boolean> {
   const { error } = await admin
     .from('ayg_aanmeldingen')
-    .update({ status: 'actief', stripe_customer_id: s.klantId, stripe_subscription_id: s.abonnementId, bijgewerkt_op: new Date().toISOString() })
+    .update({ status: 'actief', stripe_customer_id: s.klantId, stripe_subscription_id: s.abonnementId, eigenaar_wachtwoord_hash: null, bijgewerkt_op: new Date().toISOString() })
     .eq('id', id)
     .eq('status', 'inrichten')
   if (error) console.error('[aiyourgym] inrichting afronden mislukt', error.code ?? '')

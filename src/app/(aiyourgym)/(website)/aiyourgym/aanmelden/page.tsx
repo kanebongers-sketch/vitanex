@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { PAKKETTEN, PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
 import { maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
-import { afsluitbaar } from '@/lib/aiyourgym/config'
+import { aanmeldbaar, testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
@@ -35,7 +35,8 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     maxVestigingen: maxVestigingenVoor(p.sleutel),
     onbeperkt: p.maxVestigingen === null,
     aanbevolen: p.aanbevolen === true,
-    open: afsluitbaar(p.sleutel),
+    open: aanmeldbaar(p.sleutel),
+    test: testbetalen(p.sleutel),
   }))
 
   return (

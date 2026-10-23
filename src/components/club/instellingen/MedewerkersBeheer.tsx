@@ -104,7 +104,7 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
   )
 }
 
-/** Alleen voor wie inloglinks mag uitdelen (Kane, eigenaar, clubmanager); anders null. */
+/** Alleen voor wie medewerkers mag uitnodigen (Kane, eigenaar, clubmanager met Instellingen); anders null. */
 export interface LoginBeheer {
   logins: LoginOverzicht[] | null
   linkBasis: string | null
@@ -145,6 +145,7 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
         <MedewerkerLogin
           medewerkerId={m.id}
           naam={m.naam}
+          emailVoorstel={m.email}
           login={perMedewerker.get(m.id) ?? null}
           inDienst={m.actief}
           linkBasis={login.linkBasis}
@@ -176,7 +177,7 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
       </div>
       <RollenUitleg />
       {login?.logins === null && (
-        <p className="club-melding club-melding--fout" role="alert">De inloglinks konden niet worden gelezen. Is migratie 425 al gedraaid?</p>
+        <p className="club-melding club-melding--fout" role="alert">De logins van medewerkers konden niet worden gelezen. Is migratie 457 al gedraaid?</p>
       )}
     </section>
   )

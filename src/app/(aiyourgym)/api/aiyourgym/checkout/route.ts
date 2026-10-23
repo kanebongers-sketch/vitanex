@@ -5,7 +5,12 @@ import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { MAX_BODY_BYTES, isRobot, leesAanmelding } from '@/lib/aiyourgym/aanmelding'
 import { NIET_OPEN, afsluitbaar, stripePrijs, stripeSleutel } from '@/lib/aiyourgym/config'
-import { checkoutAdressen, oorsprongVan } from '@/lib/aiyourgym/links'
+import { checkoutAdressen, oorsprongVan, testbetaalAdres } from '@/lib/aiyourgym/links'
+import { nieuweTestSessie } from '@/lib/aiyourgym/testbetaling-opslag'
+import { testbetalen } from '@/lib/aiyourgym/testbetaling'
+import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
+import { vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
+import { vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
@@ -14,8 +19,10 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 // POST /api/aiyourgym/checkout
 // Een sportschool meldt zich aan. Is het pakket online af te sluiten (Stripe-
 // sleutel en prijs in env), dan volgt Stripe Checkout met een proefperiode.
-// Anders bewaren we de aanmelding als 'aanvraag' voor Kane en zeggen we eerlijk
-// dat aanmelden nog niet open is. Er gaat geen mail naar buiten.
+// Zonder Stripe volgt een nagespeelde betaling op onze eigen site
+// (src/lib/aiyourgym/testbetaling.ts, besluit Kane 23-10-2026). Staat ook die
+// uit, dan bewaren we de aanmelding als 'aanvraag' voor Kane en zeggen we
+// eerlijk dat aanmelden nog niet open is. Er gaat geen mail naar buiten.
 
 export const dynamic = 'force-dynamic'
 
@@ -51,18 +58,29 @@ export async function POST(req: NextRequest) {
   const vrij = await slugVrij(admin, a.slug, nu)
   if (vrij === null) return mislukt('adres controleren', MISLUKT, 500)
   if (!vrij) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }, 409)
+  // Inloggen gaat op e-mailadres: een adres met een account kan geen tweede eigenaar worden.
+  if ((await vindBeheerderOpEmail(admin, a.eigenaarEmail)) || (await vindPlatformOpEmail(admin, a.eigenaarEmail))) {
+    return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: 'Met dit e-mailadres is al een account. Log in, of gebruik een ander adres.' } }, 409)
+  }
 
   const sleutel = stripeSleutel()
   const prijs = stripePrijs(a.pakket)
+  const host = publiekeHost(req)
+  const oorsprong = oorsprongVan(host)
+  if (testbetalen(a.pakket)) {
+    if (!oorsprong) return aygFout(MISLUKT, 400)
+    const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, hashWachtwoord(a.wachtwoord))
+    const sessieId = nieuweTestSessie()
+    if (!id || !(await koppelSessie(admin, id, sessieId))) return mislukt('testbetaling starten', MISLUKT, 500)
+    return aygJson({ staat: 'testbetaling', url: testbetaalAdres(oorsprong, host, siteActief(), sessieId) })
+  }
   if (!afsluitbaar(a.pakket) || !sleutel || !prijs) {
     const id = await maakAanmelding(admin, a, 'aanvraag', nu)
     return id ? aygJson({ staat: 'aanvraag', melding: AANVRAAG }) : mislukt('aanvraag bewaren', MISLUKT, 500)
   }
 
-  const host = publiekeHost(req)
-  const oorsprong = oorsprongVan(host)
   if (!oorsprong) return aygFout(MISLUKT, 400)
-  const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu)
+  const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, hashWachtwoord(a.wachtwoord))
   if (!id) return mislukt('aanmelding bewaren', MISLUKT, 500)
   const adressen = checkoutAdressen(oorsprong, host, siteActief())
   const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, prijsId: prijs, succesUrl: adressen.succes, terugUrl: adressen.terug })

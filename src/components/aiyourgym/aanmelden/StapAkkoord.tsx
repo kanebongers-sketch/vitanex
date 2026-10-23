@@ -36,7 +36,9 @@ export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarSt
         ))}
       </dl>
 
-      {pakket?.open ? (
+      {pakket?.open && pakket.test ? (
+        <p className="aan-uitleg">Hierna start je je proefperiode van {proefdagen} dagen. Online betalen is nog niet gekoppeld: er wordt niets afgeschreven en we spreken samen af hoe je daarna betaalt.</p>
+      ) : pakket?.open ? (
         <p className="aan-uitleg">Hierna ga je naar de beveiligde betaalpagina van Stripe. Daar zie je het bedrag. De eerste {proefdagen} dagen zijn gratis en je kunt in die tijd kosteloos stoppen.</p>
       ) : (
         <p className="aan-uitleg">Online aanmelden voor dit pakket is nog niet open. Verstuur je aanvraag, dan nemen we zelf contact met je op. Je betaalt nu niets.</p>

@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   description:
     "Clubsoftware voor sportscholen: leden, check-in, groepslessen, personeel, trainingsschema's met coaching en een ledenapp in je eigen huisstijl.",
   applicationName: 'AI Your Gym',
+  // Deellinks wijzen altijd naar het eigen domein; de afbeelding zelf staat in
+  // ../opengraph-image.tsx (Next zet og:image en de maten automatisch).
+  metadataBase: new URL('https://aiyourgym.com'),
+  openGraph: { siteName: 'AI Your Gym', locale: 'nl_NL', type: 'website' },
+  twitter: { card: 'summary_large_image' },
 }
 
 export default function AiYourGymSiteLayout({ children }: { children: ReactNode }) {

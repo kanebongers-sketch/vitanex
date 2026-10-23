@@ -29,7 +29,8 @@ const CODE = 'abcdefghijklmnopqrstuvwx'
 
 const mocks = vi.hoisted(() => ({
   clubToegang: vi.fn(), haalEigenOrganisatie: vi.fn(), hostPastBij: vi.fn(), haalLid: vi.fn(),
-  lidVanSessie: vi.fn(), vindLidToegang: vi.fn(), logInLid: vi.fn(), kiesLidPin: vi.fn(), boekLesVoorLid: vi.fn(), markeerMeldingenGelezen: vi.fn(),
+  lidVanSessie: vi.fn(), vindLidToegang: vi.fn(), boekLesVoorLid: vi.fn(), markeerMeldingenGelezen: vi.fn(),
+  vindInlogKandidaten: vi.fn(), controleerWachtwoord: vi.fn(), maakSessie: vi.fn(), activeerLid: vi.fn(), kiesWachtwoordInApp: vi.fn(),
 }))
 vi.mock('@/lib/club/toegang', async (orig) => ({
   ...(await orig<typeof import('@/lib/club/toegang')>()),
@@ -38,7 +39,8 @@ vi.mock('@/lib/club/toegang', async (orig) => ({
 vi.mock('@/lib/club/kern/lid', async (orig) => ({ ...(await orig<typeof import('@/lib/club/kern/lid')>()), haalLid: mocks.haalLid }))
 vi.mock('./opslag', async (orig) => ({
   ...(await orig<typeof import('./opslag')>()),
-  lidVanSessie: mocks.lidVanSessie, vindLidToegang: mocks.vindLidToegang, logInLid: mocks.logInLid, kiesLidPin: mocks.kiesLidPin,
+  lidVanSessie: mocks.lidVanSessie, vindLidToegang: mocks.vindLidToegang, vindInlogKandidaten: mocks.vindInlogKandidaten,
+  controleerWachtwoord: mocks.controleerWachtwoord, maakSessie: mocks.maakSessie, activeerLid: mocks.activeerLid, kiesWachtwoordInApp: mocks.kiesWachtwoordInApp,
 }))
 vi.mock('@/lib/club/meldingen/opslag', async (orig) => ({ ...(await orig<typeof import('@/lib/club/meldingen/opslag')>()), markeerMeldingenGelezen: mocks.markeerMeldingenGelezen }))
 vi.mock('@/lib/club/app/acties-training', async (orig) => ({ ...(await orig<typeof import('@/lib/club/app/acties-training')>()), boekLesVoorLid: mocks.boekLesVoorLid }))
@@ -48,10 +50,11 @@ db.admin = nepSupabase((v) => (v.tabel === 'club_vestigingen' ? { data: [{ vesti
 
 import { lidToegang, vereisLidToegang } from './toegang'
 import { lidApparaatCookie, lidCookie } from './regels'
-import { LINK_WERKT_NIET } from './inlog-api'
+import { INLOG_FOUT, LINK_WERKT_NIET } from './inlog-api'
 import { POST as reserveer } from '@/app/(aiyourgym)/api/club/lid/reserveringen/route'
 import { POST as inloggen } from '@/app/(aiyourgym)/api/club/lid/inloggen/route'
-import { POST as kiesPin } from '@/app/(aiyourgym)/api/club/lid/pin/route'
+import { POST as activeren } from '@/app/(aiyourgym)/api/club/lid/activeren/route'
+import { POST as kiesWachtwoord } from '@/app/(aiyourgym)/api/club/lid/wachtwoord/route'
 import { POST as meldingenGelezen } from '@/app/(aiyourgym)/api/club/lid/meldingen/gelezen/route'
 
 const ORG = {
@@ -62,7 +65,12 @@ const lid = (id: string, extra: Record<string, unknown> = {}) => ({
   id, vestiging: 'budel', voornaam: id === SANNE_ID ? 'Sanne' : 'Piet', achternaam: 'Jansen', status: 'actief', demo: false, lidnummer: null, sportivityId: null,
   email: null, telefoon: null, geboortedatum: null, geslacht: null, abonnement: null, lidSinds: null, einddatum: null, tags: [], coachId: null, ...extra,
 })
-const toegangRij = { id: '22222222-2222-4222-8222-222222222222', userId: GYM, lidId: SANNE_ID, code: CODE, codeGemaaktOp: new Date().toISOString(), actief: true, pinHash: 'x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null }
+const toegangRij = {
+  id: '22222222-2222-4222-8222-222222222222', userId: GYM, lidId: SANNE_ID, code: CODE, codeGemaaktOp: new Date().toISOString(), actief: true,
+  email: 'sanne@voorbeeld.nl', wachtwoordHash: 's2:x', pinHash: null, codeGebruiktOp: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
+}
+const WW = 'Paars-fietsje-op-de-dijk-7'
+const SESSIE = { token: 'geheim', verlooptOp: new Date('2027-01-15T00:00:00Z') }
 
 const zelf = { 'sec-fetch-site': 'same-origin', 'content-type': 'application/json' }
 const req = (pad: string, body: unknown, koppen: Record<string, string> = zelf, method = 'POST') =>
@@ -79,6 +87,9 @@ beforeEach(() => {
   mocks.hostPastBij.mockResolvedValue(true)
   mocks.haalLid.mockImplementation(async (_a: unknown, userId: string, id: string) => (userId === GYM ? lid(id) : null))
   mocks.vindLidToegang.mockResolvedValue(toegangRij)
+  mocks.vindInlogKandidaten.mockResolvedValue([toegangRij])
+  mocks.controleerWachtwoord.mockResolvedValue({ staat: 'goed' })
+  mocks.maakSessie.mockResolvedValue(SESSIE)
   mocks.boekLesVoorLid.mockResolvedValue(NextResponse.json({ ok: true }))
 })
 
@@ -178,54 +189,139 @@ describe('meldingen gelezen', () => {
   })
 })
 
-describe('inloggen', () => {
-  it('schakelaar uit: 404 zonder de link op te zoeken', async () => {
+describe('inloggen met e-mail en wachtwoord', () => {
+  const inlog = (body: unknown, koppen: Record<string, string> = zelf) => inloggen(req('/api/club/lid/inloggen', body, koppen))
+  it('schakelaar uit: 404 zonder iets op te zoeken', async () => {
     stand.aan = false
-    expect((await inloggen(req('/api/club/lid/inloggen', { code: CODE, pin: '482915' }))).status).toBe(404)
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(404)
+    expect(mocks.vindInlogKandidaten).not.toHaveBeenCalled()
+  })
+  it('van een andere site: 403; te veel pogingen: 429', async () => {
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW }, { 'sec-fetch-site': 'cross-site' })).status).toBe(403)
+    stand.geremd = true
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(429)
+    expect(mocks.controleerWachtwoord).not.toHaveBeenCalled()
+  })
+  it('een pincode of een code werkt niet meer: alleen e-mail en wachtwoord', async () => {
+    expect((await inlog({ code: CODE, pin: '482915' })).status).toBe(400)
     expect(mocks.vindLidToegang).not.toHaveBeenCalled()
+    expect(mocks.vindInlogKandidaten).not.toHaveBeenCalled()
   })
-  it('onbekende en verlopen link geven precies hetzelfde antwoord', async () => {
-    mocks.vindLidToegang.mockResolvedValue(null)
-    const a = await inloggen(req('/api/club/lid/inloggen', { code: CODE, pin: '482915' }))
-    mocks.vindLidToegang.mockResolvedValue({ ...toegangRij, pinHash: null, codeGemaaktOp: '2020-01-01T00:00:00Z' })
-    const b = await inloggen(req('/api/club/lid/inloggen', { code: CODE, pin: '482915' }))
-    expect(a.status).toBe(404)
-    expect(b.status).toBe(404)
-    expect(await a.json()).toEqual({ fout: LINK_WERKT_NIET })
-    expect(await b.json()).toEqual({ fout: LINK_WERKT_NIET })
-  })
-  it('goed: httpOnly-sessiecookie en de onthouden link', async () => {
-    mocks.logInLid.mockResolvedValue({ staat: 'ok', sessie: { token: 'geheim', verlooptOp: new Date('2027-01-15T00:00:00Z') } })
-    const r = (await inloggen(req('/api/club/lid/inloggen', { code: CODE, pin: '482915' }))) as NextResponse
+  it('goed: httpOnly-sessiecookie, een oude onthouden link wordt gewist', async () => {
+    const r = (await inlog({ email: ' Sanne@Voorbeeld.nl ', wachtwoord: WW })) as NextResponse
     expect(r.status).toBe(200)
+    expect(mocks.vindInlogKandidaten).toHaveBeenCalledWith(expect.anything(), 'sanne@voorbeeld.nl', null)
+    expect(mocks.maakSessie).toHaveBeenCalledWith(expect.anything(), toegangRij, expect.any(Date))
     expect(r.cookies.get(lidCookie())).toMatchObject({ value: 'geheim', httpOnly: true, sameSite: 'lax', path: '/' })
-    expect(r.cookies.get(lidApparaatCookie())).toMatchObject({ value: CODE, httpOnly: true })
+    expect(r.cookies.get(lidApparaatCookie())).toMatchObject({ value: '', maxAge: 0 })
   })
-  it('zonder code in de body: de onthouden link van dit toestel', async () => {
-    mocks.logInLid.mockResolvedValue({ staat: 'fout', over: 3 })
-    stand.cookies.clear()
-    const r = await inloggen(new NextRequest('https://fitfactorypt.nl/api/club/lid/inloggen', { method: 'POST', body: JSON.stringify({ pin: '482915' }), headers: { ...zelf, cookie: `${lidApparaatCookie()}=${CODE}` } }))
-    expect(r.status).toBe(401)
-    expect(mocks.vindLidToegang).toHaveBeenCalledWith(expect.anything(), CODE)
+  it('onbekend adres en fout wachtwoord geven precies hetzelfde antwoord', async () => {
+    mocks.vindInlogKandidaten.mockResolvedValue([])
+    const a = await inlog({ email: 'onbekend@voorbeeld.nl', wachtwoord: WW })
+    mocks.vindInlogKandidaten.mockResolvedValue([toegangRij])
+    mocks.controleerWachtwoord.mockResolvedValue({ staat: 'fout', over: 3 })
+    const b = await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: 'Fout-wachtwoord-123' })
+    expect([a.status, b.status]).toEqual([401, 401])
+    expect(await a.json()).toEqual({ fout: INLOG_FOUT })
+    expect(await b.json()).toEqual({ fout: INLOG_FOUT })
+    expect(mocks.maakSessie).not.toHaveBeenCalled()
   })
-  it('van een andere site: 403', async () => {
-    expect((await inloggen(req('/api/club/lid/inloggen', { code: CODE, pin: '482915' }, { 'sec-fetch-site': 'cross-site' }))).status).toBe(403)
+  it('een lid dat de app niet (meer) mag gebruiken komt er niet in, ook met het goede wachtwoord', async () => {
+    mocks.haalLid.mockResolvedValue(lid(SANNE_ID, { status: 'gestopt' }))
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(401)
+    expect(mocks.controleerWachtwoord).not.toHaveBeenCalled()
+  })
+  it('op het subdomein van een andere sportschool bestaat het account niet', async () => {
+    mocks.hostPastBij.mockResolvedValue(false)
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(401)
+    expect(mocks.controleerWachtwoord).not.toHaveBeenCalled()
+  })
+  it('lid bij twee sportscholen met dit wachtwoord: eerst kiezen, dan inloggen bij de gekozen', async () => {
+    const tweede = { ...toegangRij, id: '55555555-5555-4555-8555-555555555555', userId: ANDER }
+    mocks.vindInlogKandidaten.mockResolvedValue([toegangRij, tweede])
+    mocks.haalEigenOrganisatie.mockImplementation(async (_a: unknown, id: string) => ({ organisatie: { ...ORG, id, naam: id === GYM ? 'Gym A' : 'Gym B' }, eigenaarId: null }))
+    mocks.haalLid.mockImplementation(async (_a: unknown, _u: string, id: string) => lid(id))
+    const r = await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })
+    expect(await r.json()).toEqual({ staat: 'kies', sportscholen: [{ id: GYM, naam: 'Gym A' }, { id: ANDER, naam: 'Gym B' }] })
+    expect(mocks.maakSessie).not.toHaveBeenCalled()
+
+    mocks.vindInlogKandidaten.mockResolvedValue([tweede])
+    const k = await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW, sportschool: ANDER })
+    expect(k.status).toBe(200)
+    expect(mocks.vindInlogKandidaten).toHaveBeenLastCalledWith(expect.anything(), 'sanne@voorbeeld.nl', ANDER)
+    expect(mocks.maakSessie).toHaveBeenCalledWith(expect.anything(), tweede, expect.any(Date))
+  })
+  it('blokkade en dicht account: een duidelijke melding', async () => {
+    mocks.controleerWachtwoord.mockResolvedValue({ staat: 'geblokkeerd', totOp: '2026-10-23T12:15:00Z' })
+    expect((await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(429)
+    mocks.controleerWachtwoord.mockResolvedValue({ staat: 'dicht' })
+    const r = await inlog({ email: 'sanne@voorbeeld.nl', wachtwoord: WW })
+    expect(r.status).toBe(429)
+    expect(((await r.json()) as { fout: string }).fout).toMatch(/nieuwe link/)
   })
 })
 
-describe('pincode kiezen', () => {
-  it('een te makkelijke pincode wordt geweigerd', async () => {
-    mocks.vindLidToegang.mockResolvedValue({ ...toegangRij, pinHash: null })
-    const r = await kiesPin(req('/api/club/lid/pin', { code: CODE, pin: '123456' }))
-    expect(r.status).toBe(400)
-    expect(mocks.kiesLidPin).not.toHaveBeenCalled()
+describe('uitnodiging gebruiken (wachtwoord kiezen)', () => {
+  const vers = { ...toegangRij, email: null, wachtwoordHash: null }
+  const activeer = (body: unknown) => activeren(req('/api/club/lid/activeren', body))
+  it('onbekende, gebruikte en verlopen link geven precies hetzelfde antwoord', async () => {
+    mocks.vindLidToegang.mockResolvedValue(null)
+    const a = await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord: WW })
+    mocks.vindLidToegang.mockResolvedValue({ ...vers, codeGebruiktOp: new Date().toISOString() })
+    const b = await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord: WW })
+    mocks.vindLidToegang.mockResolvedValue({ ...vers, codeGemaaktOp: '2020-01-01T00:00:00Z' })
+    const c = await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord: WW })
+    for (const r of [a, b, c]) {
+      expect(r.status).toBe(404)
+      expect(await r.json()).toEqual({ fout: LINK_WERKT_NIET })
+    }
+    expect(mocks.activeerLid).not.toHaveBeenCalled()
   })
-  it('een goede pincode: meteen ingelogd', async () => {
-    mocks.vindLidToegang.mockResolvedValue({ ...toegangRij, pinHash: null })
-    mocks.kiesLidPin.mockResolvedValue({ staat: 'ok', sessie: { token: 'nieuw', verlooptOp: new Date('2027-01-15T00:00:00Z') } })
-    const r = (await kiesPin(req('/api/club/lid/pin', { code: CODE, pin: '482915' }))) as NextResponse
+  it('een zwak wachtwoord of een wachtwoord met de eigen naam wordt geweigerd', async () => {
+    mocks.vindLidToegang.mockResolvedValue(vers)
+    for (const wachtwoord of ['kort', 'wachtwoord12345678', 'SanneJansen-2026!', '123456']) {
+      expect((await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord })).status).toBe(400)
+    }
+    expect((await activeer({ code: CODE, email: 'geen-adres', wachtwoord: WW })).status).toBe(400)
+    expect(mocks.activeerLid).not.toHaveBeenCalled()
+  })
+  it('goed: e-mailadres genormaliseerd, meteen ingelogd', async () => {
+    mocks.vindLidToegang.mockResolvedValue(vers)
+    mocks.activeerLid.mockResolvedValue({ staat: 'ok', sessie: SESSIE })
+    const r = (await activeer({ code: CODE, email: ' Sanne@Voorbeeld.NL', wachtwoord: WW })) as NextResponse
     expect(r.status).toBe(200)
-    expect(r.cookies.get(lidCookie())?.value).toBe('nieuw')
+    expect(mocks.activeerLid).toHaveBeenCalledWith(expect.anything(), vers, 'sanne@voorbeeld.nl', WW, expect.any(Date))
+    expect(r.cookies.get(lidCookie())?.value).toBe('geheim')
+  })
+  it('adres al in gebruik bij een ander lid: 409 met uitleg', async () => {
+    mocks.vindLidToegang.mockResolvedValue(vers)
+    mocks.activeerLid.mockResolvedValue({ staat: 'email_bezet' })
+    expect((await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(409)
+  })
+  it('schakelaar uit of van een andere site: niets', async () => {
+    expect((await activeren(req('/api/club/lid/activeren', { code: CODE }, { 'sec-fetch-site': 'cross-site' }))).status).toBe(403)
+    stand.aan = false
+    expect((await activeer({ code: CODE, email: 'sanne@voorbeeld.nl', wachtwoord: WW })).status).toBe(404)
+    expect(mocks.vindLidToegang).not.toHaveBeenCalled()
+  })
+})
+
+describe('wachtwoord kiezen in de app (oude pincode-sessie)', () => {
+  const metPin = { ...toegangRij, wachtwoordHash: null, pinHash: 'x' }
+  it('een lid met een pincode-sessie kiest een wachtwoord voor zijn eigen account', async () => {
+    mocks.lidVanSessie.mockResolvedValue({ toegang: metPin, tokenHash: 'h' })
+    mocks.kiesWachtwoordInApp.mockResolvedValue({ staat: 'ok' })
+    const r = await kiesWachtwoord(req(`/api/club/lid/wachtwoord?voor=${PIET_ID}`, { email: 'sanne@voorbeeld.nl', wachtwoord: WW, lidId: PIET_ID }))
+    expect(r.status).toBe(200)
+    expect(mocks.kiesWachtwoordInApp).toHaveBeenCalledWith(expect.anything(), metPin, 'sanne@voorbeeld.nl', WW, expect.any(Date))
+  })
+  it('al een wachtwoord, voorvertoning of niemand binnen: niets', async () => {
+    expect((await kiesWachtwoord(req('/api/club/lid/wachtwoord', { email: 'sanne@voorbeeld.nl', wachtwoord: WW }))).status).toBe(409)
+    stand.cookies.clear()
+    expect((await kiesWachtwoord(req('/api/club/lid/wachtwoord', { email: 'sanne@voorbeeld.nl', wachtwoord: WW }))).status).toBe(404)
+    mocks.clubToegang.mockResolvedValue({ admin: db.admin, userId: GYM, organisatie: ORG, isPlatformEigenaar: true, vestigingen: [{ sleutel: 'budel', naam: 'Budel', standaard: true }], naam: 'Kane' })
+    expect((await kiesWachtwoord(req(`/api/club/lid/wachtwoord?voor=${SANNE_ID}`, { email: 'sanne@voorbeeld.nl', wachtwoord: WW }))).status).toBe(403)
+    expect(mocks.kiesWachtwoordInApp).not.toHaveBeenCalled()
   })
 })
 

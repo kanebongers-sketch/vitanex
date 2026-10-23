@@ -45,6 +45,12 @@ export interface SceneOpties {
   readonly thema: Thema
   /** Eigen camerastandpunt (bijvoorbeeld een close-up); standaard dat van de oefening. */
   readonly camera?: Camera
+  /**
+   * Zet het figuur over de hele beweging passend in het doek: zelfde blikrichting,
+   * maar midden en afstand zo dat hoofd, handen en voeten er altijd in vallen.
+   * Voor een groot los beeld (de website); de app houdt het vaste standpunt.
+   */
+  readonly passend?: boolean
 }
 
 export interface Scene3d {
@@ -107,7 +113,44 @@ function camera(k: Camera, aspect: number): PerspectiveCamera {
   const d = k.afstand
   c.position.set(k.doel.x + Math.sin(h) * Math.cos(v) * d, k.doel.y + Math.sin(v) * d, k.doel.z + Math.cos(h) * Math.cos(v) * d)
   c.lookAt(k.doel.x, k.doel.y, k.doel.z)
+  c.updateMatrixWorld()
   return c
+}
+
+/** Tot hier van het midden mag een punt van het figuur komen (1 = de rand van het doek). */
+const PAS_RAND = 0.9
+
+function hoeken(doos: Box3): Vector3[] {
+  const { min, max } = doos
+  return [0, 1, 2, 3, 4, 5, 6, 7].map((i) => new Vector3(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z))
+}
+
+function valtErin(c: PerspectiveCamera, punten: readonly Vector3[], p: Vector3): boolean {
+  return punten.every((q) => {
+    p.copy(q).project(c)
+    return Math.abs(p.x) <= PAS_RAND && Math.abs(p.y) <= PAS_RAND
+  })
+}
+
+/**
+ * Het standpunt van de oefening, maar gericht op het midden van de beweging
+ * en op de kleinste afstand waarop alles in beeld valt (binnen grenzen, zodat
+ * het figuur nooit een postzegel of een close-up wordt).
+ */
+function passendKader(k: Camera, doos: Box3, aspect: number): Camera {
+  const m = doos.getCenter(new Vector3())
+  const punten = hoeken(doos)
+  const p = new Vector3()
+  const met = (afstand: number): Camera => ({ ...k, afstand, doel: { x: m.x, y: m.y, z: m.z } })
+  let laag = k.afstand * 0.6
+  let hoog = k.afstand * 2.4
+  if (!valtErin(camera(met(hoog), aspect), punten, p)) return met(hoog)
+  for (let i = 0; i < 18; i++) {
+    const mid = (laag + hoog) / 2
+    if (valtErin(camera(met(mid), aspect), punten, p)) hoog = mid
+    else laag = mid
+  }
+  return met(hoog)
 }
 
 /** Richting van een licht: hoek ten opzichte van de camera die echt kijkt, hoogte in graden. */
@@ -168,7 +211,7 @@ function pasSchaduwAan(licht: DirectionalLight, doos: Box3): void {
  * Loop de beweging een keer door: het materiaal meet zijn slag (kabel,
  * hefboom) en we krijgen de ruimte die figuur en materiaal samen innemen.
  */
-function meetBeweging(o: Oefening3d, materiaal: MateriaalMeshes): Box3 {
+function meetBeweging(o: Oefening3d, materiaal: MateriaalMeshes): { alles: Box3; figuur: Box3 } {
   const duur = lusDuur(o.sleutels)
   const stappen = 24
   const standen = Array.from({ length: stappen }, (_, i) => {
@@ -177,14 +220,21 @@ function meetBeweging(o: Oefening3d, materiaal: MateriaalMeshes): Box3 {
   })
   for (const { f, h } of standen) materiaal.meet(f, h)
   const doos = new Box3()
-  for (const { f, h } of standen.filter((_, i) => i % 6 === 0)) {
+  const figuur = new Box3()
+  for (const [i, { f, h }] of standen.entries()) {
+    const punten = [f.hoofd.pos, f.borst.pos, f.bekken.pos, ...f.handen.map((x) => x.pos), ...f.voeten.map((x) => x.pos), ...f.benen.map((x) => x.midden), ...f.armen.map((x) => x.midden)]
+    for (const p of punten) figuur.expandByPoint(p)
+    if (i % 6 !== 0) continue
     materiaal.zet(f, h)
     doos.expandByObject(materiaal.groep)
-    const punten = [f.hoofd.pos, f.borst.pos, f.bekken.pos, ...f.handen.map((x) => x.pos), ...f.voeten.map((x) => x.pos), ...f.benen.map((x) => x.midden), ...f.armen.map((x) => x.midden)]
     for (const p of punten) doos.expandByPoint(p)
   }
-  // Ruimte voor hoofd, schouders en schoenen rond de gewrichtspunten.
-  return doos.expandByScalar(0.12)
+  // Ruimte voor hoofd, schouders en schoenen rond de gewrichtspunten (en de vloer onder de zolen).
+  figuur.expandByScalar(0.12)
+  figuur.min.y = Math.min(figuur.min.y, 0)
+  // Het hoofdpunt is het midden van het hoofd: kruin en haar steken erboven uit.
+  figuur.max.y += 0.08
+  return { alles: doos.expandByScalar(0.12), figuur }
 }
 
 interface Contact {
@@ -268,7 +318,9 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
   const zicht: Zicht = { oog: cam.position.clone() }
   const materiaal = bouwMateriaal(bak, mat, o.materiaal, zicht)
   scene.add(figuur.groep, materiaal.groep)
-  pasSchaduwAan(sleutel, meetBeweging(o, materiaal))
+  const gemeten = meetBeweging(o, materiaal)
+  pasSchaduwAan(sleutel, gemeten.alles)
+  const standpunt = (aspect: number) => camera(opties.passend ? passendKader(kader, gemeten.figuur, aspect) : kader, aspect)
 
   return {
     duur: lusDuur(o.sleutels),
@@ -283,7 +335,7 @@ export function maakScene3d(canvas: HTMLCanvasElement, o: Oefening3d, opties: Sc
     },
     grootte(breedte: number, hoogte: number) {
       renderer.setSize(breedte, hoogte, false)
-      cam = camera(kader, breedte / Math.max(1, hoogte))
+      cam = standpunt(breedte / Math.max(1, hoogte))
       zicht.oog.copy(cam.position)
     },
     ruimOp() {

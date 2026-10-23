@@ -28,7 +28,7 @@ export function UitlogKnoppen() {
   const [fout, setFout] = useState<string | null>(null)
 
   async function uit(overal: boolean) {
-    if (overal && !window.confirm('Op alle toestellen uitloggen? Daarna log je overal opnieuw in met je pincode.')) return
+    if (overal && !window.confirm('Op alle toestellen uitloggen? Daarna log je overal opnieuw in met je e-mailadres en wachtwoord.')) return
     setBezig(true)
     setFout(null)
     const r = await stuur('/api/club/lid/uitloggen', 'POST', { overal })

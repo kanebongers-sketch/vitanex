@@ -1,24 +1,27 @@
-// PATCH /api/club/medewerker-toegang/[id]  { actie: maken | goedkeuren | afwijzen | reset | intrekken, controle? }
+// PATCH /api/club/medewerker-toegang/[id]  { actie: uitnodigen, email } | { actie: intrekken }
 // [id] is het id van de medewerker (club_medewerkers). Kane, de eigenaar of de
-// clubmanager deelt de persoonlijke inloglink uit (maken, ook opnieuw maken),
-// keurt de gekozen pincode goed met de controlecode die de medewerker noemt,
-// of trekt de link in. Altijd binnen de eigen sportschool en alleen voor
+// clubmanager met Instellingen nodigt een medewerker uit met zijn e-mailadres
+// (antwoord: het pad van de eenmalige uitnodigingslink, alleen nu te zien) of
+// trekt zijn login in. Altijd binnen de eigen sportschool en alleen voor
 // medewerkers van een vestiging die je zelf ziet. Een medewerker krijgt een 404.
+// Het logboek krijgt de actie en de naam, nooit het e-mailadres of de link.
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { isUuid } from '@/lib/club/kern/organisatie'
-import { leesLoginActie, type LoginActie } from '@/lib/club/medewerker-login/medewerker-login'
+import { isRateLimited } from '@/lib/utils/rate-limit'
+import { leesLoginActie, uitnodigingPad, type LoginActie } from '@/lib/club/medewerker-login/medewerker-login'
 import { beheerMedewerkerLogin } from '@/lib/club/medewerker-login/opslag'
 import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
 
 const LOG: Record<LoginActie, string> = {
-  maken: 'Inloglink medewerker gemaakt',
-  goedkeuren: 'Pincode medewerker goedgekeurd',
-  afwijzen: 'Pincode medewerker afgewezen',
-  reset: 'Pincode medewerker gereset',
-  intrekken: 'Inloglink medewerker ingetrokken',
+  uitnodigen: 'Medewerker uitgenodigd',
+  intrekken: 'Login medewerker ingetrokken',
 }
+
+/** Uitnodigen per sportschool: ruim voor een team, te weinig om e-mailadressen af te tasten. */
+const UITNODIGEN_MAX = 40
+const UITNODIGEN_VENSTER_MS = 60 * 60_000
 
 interface Context {
   params: Promise<{ id: string }>
@@ -48,10 +51,14 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (naam === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
   if (naam === null) return clubFout('Deze medewerker bestaat niet (meer).', 404)
 
+  if (invoer.waarde.actie === 'uitnodigen' && isRateLimited(`club-mw-uitnodigen:${t.userId}`, UITNODIGEN_MAX, UITNODIGEN_VENSTER_MS)) {
+    return clubFout('Te veel uitnodigingen in korte tijd. Probeer het over een uur opnieuw.', 429)
+  }
+
   const uit = await beheerMedewerkerLogin(t.admin, t.userId, id, invoer.waarde, new Date())
-  if (uit === 'controle_fout') return clubFout('Deze controlecode klopt niet. Vraag de medewerker opnieuw, of wijs de pincode af.', 400)
-  if (uit === 'niet_gevonden') return clubFout('Er is geen actieve link voor deze medewerker, of de pincode is al beoordeeld. Is de medewerker nog in dienst?', 404)
-  if (uit === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
+  if (uit.staat === 'email_bezet') return clubFout('Dit e-mailadres kan niet worden gebruikt voor deze medewerker. Kies een ander adres.', 409)
+  if (uit.staat === 'niet_gevonden') return clubFout('Deze medewerker heeft geen login om in te trekken, of is niet meer in dienst.', 404)
+  if (uit.staat === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
   await logActie(t, LOG[invoer.waarde.actie], naam, null)
-  return clubJson({ ok: true })
+  return clubJson({ ok: true, pad: uit.token ? uitnodigingPad(uit.token) : null })
 }

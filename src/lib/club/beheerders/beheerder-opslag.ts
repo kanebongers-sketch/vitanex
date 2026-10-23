@@ -1,12 +1,14 @@
 // ─── Club: beheerders van een sportschool, opslag (SERVER-ONLY) ─────────────
-// Pincode kiezen, inloggen (met bruteforce-rem), sessies, en het beheer door
-// Kane. Dezelfde hashing en blokkaderegels als de PT-app (lifeos/leads/pin.ts).
+// Uitnodiging (een keer een wachtwoord kiezen), inloggen met e-mailadres en
+// wachtwoord (met bruteforce-rem), sessies, en het beheer door Kane of de
+// eigenaar. Sinds 23-10-2026 geen pincode meer (besluit Kane).
 // Kane-functies filteren altijd op de organisatie die nu open staat; die komt
 // van de server (ClubToegang), nooit van de pagina.
 
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, controleCode, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from '@/lib/club/kern/pin'
+import { normaalEmail, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
+import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, nieuwSessieToken, tokenHash } from '@/lib/club/kern/pin'
 import {
   BEHEERDER_CODE, BEHEERDER_KOLOMMEN, BEHEERDER_SESSIE_DAGEN, MAX_BEHEERDER_SESSIES, beheerderUitRij, beoordeelBeheerderSessie, magBinnen,
   type Beheerder, type BeheerderOverzicht, type Beoordeling, type BeheerderSessieRij, type NieuweBeheerder,
@@ -26,25 +28,6 @@ export async function vindBeheerder(admin: SupabaseClient, code: string): Promis
   return b && b.actief ? b : null
 }
 
-// ─── Pincode kiezen ─────────────────────────────────────────────────────────
-
-export type KiesUitkomst = { staat: 'ok'; controle: string } | { staat: 'al_gekozen' } | { staat: 'db' }
-
-/** Een pin kiezen kan alleen als er nog geen is (of Kane resette). Daarna wacht hij op Kane. */
-export async function kiesBeheerderPin(admin: SupabaseClient, b: Beheerder, pin: string, nu: Date): Promise<KiesUitkomst> {
-  if (b.pinStatus !== 'geen') return { staat: 'al_gekozen' }
-  const hash = hashPin(pin)
-  const { data, error } = await admin
-    .from('club_beheerders')
-    .update({ pin_hash: hash, pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString(), ...TELLERS_SCHOON })
-    .eq('id', b.id)
-    .eq('pin_status', 'geen')
-    .eq('actief', true)
-    .select('id')
-  if (error) return { staat: 'db' }
-  return Array.isArray(data) && data.length === 1 ? { staat: 'ok', controle: controleCode(hash) } : { staat: 'al_gekozen' }
-}
-
 // ─── Inloggen ───────────────────────────────────────────────────────────────
 
 export type InlogUitkomst =
@@ -55,13 +38,34 @@ export type InlogUitkomst =
   | { staat: 'niet_actief' }
   | { staat: 'db' }
 
-/**
- * Pin controleren; goed: een nieuwe sessie voor dit toestel. Rem in drie lagen:
- * na MAX_POGINGEN fouten een blokkade die elke keer verdubbelt, na MAX_BLOKKADES
- * dicht tot Kane reset, en de route remt daarnaast per IP.
- */
-export async function logInBeheerder(admin: SupabaseClient, b: Beheerder, pin: string, nu: Date): Promise<InlogUitkomst> {
-  if (b.pinStatus !== 'actief') return { staat: 'niet_actief' }
+/** Inloggen op aiyourgym.com met e-mailadres en wachtwoord; dezelfde rem als de pincode. */
+export async function logInMetWachtwoord(admin: SupabaseClient, b: Beheerder, wachtwoord: string, nu: Date): Promise<InlogUitkomst> {
+  if (!b.actief || !b.wachtwoordHash) return { staat: 'niet_actief' }
+  return controleerEnStart(admin, b, () => wachtwoordKlopt(wachtwoord, b.wachtwoordHash), nu)
+}
+
+/** De actieve beheerder met dit e-mailadres en een wachtwoord, of null. */
+export async function vindBeheerderOpEmail(admin: SupabaseClient, ruw: unknown): Promise<Beheerder | null> {
+  const email = normaalEmail(ruw)
+  if (!email) return null
+  const { data, error } = await admin.from('club_beheerders').select(BEHEERDER_KOLOMMEN).eq('email', email).eq('actief', true).not('wachtwoord_hash', 'is', null).limit(2)
+  if (error) {
+    console.error('[club] beheerder op e-mail lezen mislukt', error.message)
+    return null
+  }
+  const rijen = (data ?? []).map(beheerderUitRij).filter((b): b is Beheerder => b !== null && b.email?.toLowerCase() === email)
+  return rijen.length === 1 ? rijen[0] : null
+}
+
+/** Een sessie zonder pin- of wachtwoordcontrole: alleen direct na een geslaagde aanmelding. */
+export async function startSessie(admin: SupabaseClient, b: Beheerder, nu: Date): Promise<{ token: string; verlooptOp: Date } | null> {
+  if (!magBinnen(b)) return null
+  const sessie = await maakSessie(admin, b.id, nu)
+  if (sessie) await admin.from('club_beheerders').update({ laatst_ingelogd_op: nu.toISOString() }).eq('id', b.id)
+  return sessie
+}
+
+async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () => boolean, nu: Date): Promise<InlogUitkomst> {
   if (b.blokkades >= MAX_BLOKKADES) return { staat: 'gesloten' }
   if (b.geblokkeerdTot && new Date(b.geblokkeerdTot).getTime() > nu.getTime()) return { staat: 'geblokkeerd', totOp: b.geblokkeerdTot }
 
@@ -77,7 +81,7 @@ export async function logInBeheerder(admin: SupabaseClient, b: Beheerder, pin: s
   if (resFout) return { staat: 'db' }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!pinKlopt(pin, b.pinHash)) {
+  if (!klopt()) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, b, nu)
   }
@@ -176,7 +180,7 @@ function overzicht(b: Beheerder): BeheerderOverzicht {
     rol: b.rol,
     code: b.code,
     actief: b.actief,
-    pinStatus: b.pinStatus,
+    heeftWachtwoord: b.wachtwoordHash !== null,
     gesloten: b.blokkades >= MAX_BLOKKADES,
     laatstIngelogdOp: b.laatstIngelogdOp,
   }
@@ -192,10 +196,10 @@ export async function haalBeheerders(admin: SupabaseClient, organisatieId: strin
   return (data ?? []).map(beheerderUitRij).filter((b): b is Beheerder => b !== null).map(overzicht)
 }
 
-export async function maakBeheerder(admin: SupabaseClient, organisatieId: string, invoer: NieuweBeheerder): Promise<{ id: string } | null> {
+export async function maakBeheerder(admin: SupabaseClient, organisatieId: string, invoer: NieuweBeheerder, wachtwoordHash: string | null = null): Promise<{ id: string } | null> {
   const { data, error } = await admin
     .from('club_beheerders')
-    .insert({ organisatie_id: organisatieId, naam: invoer.naam, email: invoer.email, rol: invoer.rol, code: nieuweBeheerderCode() })
+    .insert({ organisatie_id: organisatieId, naam: invoer.naam, email: invoer.email, rol: invoer.rol, code: nieuweBeheerderCode(), wachtwoord_hash: wachtwoordHash })
     .select('id')
     .single()
   if (error || !data) {
@@ -205,42 +209,45 @@ export async function maakBeheerder(admin: SupabaseClient, organisatieId: string
   return { id: String(data.id) }
 }
 
-export type BeoordeelUitkomst = 'ok' | 'niet_gevonden' | 'controle_fout' | 'db'
-
-/** De hash van een wachtende pin, alleen als de controlecode erbij past; anders de reden. */
-async function wachtendeHash(admin: SupabaseClient, organisatieId: string, id: string, controle: string | null): Promise<{ hash: string } | { fout: BeoordeelUitkomst }> {
-  const { data, error } = await admin.from('club_beheerders').select('pin_hash').eq('id', id).eq('organisatie_id', organisatieId).eq('pin_status', 'wacht').maybeSingle()
-  if (error) return { fout: 'db' }
-  const hash = (data as { pin_hash?: unknown } | null)?.pin_hash
-  if (typeof hash !== 'string' || !hash) return { fout: 'niet_gevonden' }
-  return controle !== null && controleCode(hash) === controle ? { hash } : { fout: 'controle_fout' }
-}
+export type BeoordeelUitkomst = 'ok' | 'niet_gevonden' | 'db'
 
 /**
- * Kane: een gekozen pin goedkeuren (alleen met de juiste controlecode, en
- * gebonden aan precies die pin) of afwijzen, een pin resetten (vergeten of
- * dichtgelopen), of een beheerder stoppen. Afwijzen, resetten en stoppen loggen
- * alle toestellen uit. Altijd binnen de eigen sportschool.
+ * Kane of de eigenaar: een beheerder een nieuwe uitnodiging geven (vergeten
+ * wachtwoord of dichtgelopen: wachtwoord weg, nieuwe link, de oude link werkt
+ * niet meer) of stoppen. Beide loggen alle toestellen uit. Altijd binnen de
+ * eigen sportschool.
  */
-export async function beoordeelBeheerder(admin: SupabaseClient, organisatieId: string, id: string, { actie, controle }: Beoordeling): Promise<BeoordeelUitkomst> {
-  const basis = admin.from('club_beheerders')
-  const leeg = { pin_hash: null, pin_status: 'geen', pin_aangevraagd_op: null, ...TELLERS_SCHOON }
-  let query
-  if (actie === 'goedkeuren') {
-    const gevonden = await wachtendeHash(admin, organisatieId, id, controle)
-    if ('fout' in gevonden) return gevonden.fout
-    query = basis.update({ pin_status: 'actief', ...TELLERS_SCHOON }).eq('pin_status', 'wacht').eq('pin_hash', gevonden.hash)
-  } else {
-    query = actie === 'afwijzen' ? basis.update(leeg).eq('pin_status', 'wacht')
-      : actie === 'reset' ? basis.update(leeg)
-        : basis.update({ actief: false, ...leeg })
-  }
-  const { data, error } = await query.eq('id', id).eq('organisatie_id', organisatieId).select('id')
+export async function beoordeelBeheerder(admin: SupabaseClient, organisatieId: string, id: string, { actie }: Beoordeling): Promise<BeoordeelUitkomst> {
+  const leeg = { pin_hash: null, pin_status: 'geen', pin_aangevraagd_op: null, wachtwoord_hash: null, ...TELLERS_SCHOON }
+  const wijziging = actie === 'reset' ? { ...leeg, code: nieuweBeheerderCode() } : { ...leeg, actief: false }
+  const { data, error } = await admin.from('club_beheerders').update(wijziging).eq('id', id).eq('organisatie_id', organisatieId).select('id')
   if (error) return 'db'
   if (!Array.isArray(data) || data.length !== 1) return 'niet_gevonden'
-  if (actie !== 'goedkeuren') {
-    const { error: uitFout } = await admin.from('club_beheerder_sessies').delete().eq('beheerder_id', id)
-    if (uitFout) return 'db'
-  }
-  return 'ok'
+  const { error: uitFout } = await admin.from('club_beheerder_sessies').delete().eq('beheerder_id', id)
+  return uitFout ? 'db' : 'ok'
+}
+
+// ─── Uitnodiging: een keer een wachtwoord kiezen ────────────────────────────
+
+export type WachtwoordKeuze = { staat: 'ok'; token: string; verlooptOp: Date } | { staat: 'al_gekozen' } | { staat: 'email_bezet' } | { staat: 'db' }
+
+/**
+ * Met de uitnodigingslink kiest de beheerder een keer een wachtwoord
+ * (compare-and-set: twee verzoeken tegelijk kunnen er niet allebei een zetten),
+ * en is daarna meteen ingelogd. Daarna werkt de link niet meer.
+ */
+export async function kiesBeheerderWachtwoord(admin: SupabaseClient, b: Beheerder, wachtwoordHash: string, nu: Date): Promise<WachtwoordKeuze> {
+  if (b.wachtwoordHash || !b.actief || !b.email) return { staat: 'al_gekozen' }
+  const { data, error } = await admin
+    .from('club_beheerders')
+    .update({ wachtwoord_hash: wachtwoordHash, pin_hash: null, pin_status: 'geen', ...TELLERS_SCHOON })
+    .eq('id', b.id)
+    .eq('actief', true)
+    .is('wachtwoord_hash', null)
+    .select('id')
+  // Unieke index op e-mail: dit adres logt al ergens anders in.
+  if (error) return error.code === '23505' ? { staat: 'email_bezet' } : { staat: 'db' }
+  if (!Array.isArray(data) || data.length !== 1) return { staat: 'al_gekozen' }
+  const sessie = await startSessie(admin, { ...b, wachtwoordHash }, nu)
+  return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
 }

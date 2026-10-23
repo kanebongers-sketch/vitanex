@@ -1,26 +1,33 @@
 // ─── Club, ledenlogin: opslag (SERVER-ONLY) ─────────────────────────────────
-// Pincode kiezen, inloggen (met bruteforce-rem in de database), sessies, en het
-// beheer van de link vanaf de ledenkaart. Dezelfde hashing en blokkaderegels
-// als de beheerders en de PT-app (lifeos/leads/pin.ts). Elke query filtert op
-// de sportschool (user_id); die komt altijd van de server, nooit van de pagina.
+// Een uitnodiging gebruiken (e-mailadres bevestigen en wachtwoord kiezen),
+// inloggen met e-mail en wachtwoord (met bruteforce-rem in de database),
+// sessies, en het beheer van de uitnodiging vanaf de ledenkaart. Dezelfde
+// wachtwoord-hashing als de beheerders (kern/wachtwoord.ts) en dezelfde
+// blokkaderegels als de pincodes (kern/pin.ts). Elke query filtert op de
+// sportschool (user_id); die komt altijd van de server, nooit van de pagina.
 
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from '@/lib/club/kern/pin'
+import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, nieuwSessieToken, tokenHash } from '@/lib/club/kern/pin'
+import { hashWachtwoord, normaalEmail, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
 import {
-  LID_CODE, LID_SESSIE_DAGEN, LID_TOEGANG_KOLOMMEN, MAX_LID_SESSIES, beoordeelLidSessie, linkOverzicht, linkStaat, lidToegangUitRij, sessiePastBij,
-  type LidLinkOverzicht, type LidSessieRij, type LidToegangRij,
+  LID_CODE, LID_SESSIE_DAGEN, LID_TOEGANG_KOLOMMEN, MAX_LID_SESSIES, beoordeelLidSessie, kanInloggen, linkBruikbaar, linkOverzicht, lidToegangUitRij,
+  sessiePastBij, sessieToegestaan, type LidLinkOverzicht, type LidSessieRij, type LidToegangRij,
 } from './regels'
 
 const TABEL = 'club_lid_toegang'
 const SESSIES = 'club_lid_sessies'
 const TELLERS_SCHOON = { mislukt: 0, geblokkeerd_tot: null, blokkades: 0 } as const
+/** Postgres: unieke index geschonden (e-mailadres al in gebruik binnen de sportschool). */
+const UNIEK = '23505'
+/** Hooguit zoveel accounts met hetzelfde adres worden bij inloggen bekeken. */
+export const MAX_KANDIDATEN = 5
 
 function log(wat: string, fout: { message: string } | null | undefined): void {
   if (fout) console.error(`[club/ledenlogin] ${wat} mislukt`, fout.message)
 }
 
-/** De toegang achter een link. Onbekend, ingetrokken of ongeldig: null (zelfde antwoord). */
+/** De toegang achter een uitnodiging. Onbekend of ingetrokken: null (zelfde antwoord). */
 export async function vindLidToegang(admin: SupabaseClient, code: string): Promise<LidToegangRij | null> {
   if (!LID_CODE.test(code)) return null
   const { data, error } = await admin.from(TABEL).select(LID_TOEGANG_KOLOMMEN).eq('code', code).maybeSingle()
@@ -31,57 +38,109 @@ export async function vindLidToegang(admin: SupabaseClient, code: string): Promi
 
 export type Sessie = { token: string; verlooptOp: Date }
 
-// ─── Pincode kiezen ─────────────────────────────────────────────────────────
+// ─── Uitnodiging gebruiken: e-mailadres bevestigen en wachtwoord kiezen ─────
 
-export type KiesUitkomst = { staat: 'ok'; sessie: Sessie } | { staat: 'al_gekozen' } | { staat: 'ongeldig' } | { staat: 'db' }
+export type ActiveerUitkomst = { staat: 'ok'; sessie: Sessie } | { staat: 'email_bezet' } | { staat: 'ongeldig' } | { staat: 'db' }
 
 /**
- * Een pincode kiezen kan alleen op een verse link zonder pincode. De compare-
- * and-set op pin_hash is null voorkomt dat twee toestellen tegelijk kiezen.
- * Daarna is dit toestel meteen ingelogd.
+ * Met een bruikbare uitnodiging een e-mailadres en wachtwoord vastleggen (de
+ * eerste keer, of opnieuw na "wachtwoord vergeten"). De compare-and-set op de
+ * code en code_gebruikt_op maakt de link eenmalig, ook als twee toestellen
+ * tegelijk proberen. Een oude pincode verdwijnt, alle toestellen worden
+ * uitgelogd en dit toestel is meteen ingelogd. De route controleert vooraf de
+ * sterkte van het wachtwoord en of het lid de app mag gebruiken.
  */
-export async function kiesLidPin(admin: SupabaseClient, t: LidToegangRij, pin: string, nu: Date): Promise<KiesUitkomst> {
-  const staat = linkStaat(t, nu)
-  if (staat === 'inloggen') return { staat: 'al_gekozen' }
-  if (staat === 'ongeldig') return { staat: 'ongeldig' }
+export async function activeerLid(admin: SupabaseClient, t: LidToegangRij, email: string, wachtwoord: string, nu: Date): Promise<ActiveerUitkomst> {
+  if (!linkBruikbaar(t, nu) || normaalEmail(email) !== email) return { staat: 'ongeldig' }
+  const tijd = nu.toISOString()
   const { data, error } = await admin
     .from(TABEL)
-    .update({ pin_hash: hashPin(pin), pin_gekozen_op: nu.toISOString(), ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString(), gewijzigd_op: nu.toISOString() })
+    .update({
+      email, wachtwoord_hash: hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, code_gebruikt_op: tijd,
+      pin_hash: null, ...TELLERS_SCHOON, laatst_ingelogd_op: tijd, gewijzigd_op: tijd,
+    })
     .eq('id', t.id)
     .eq('user_id', t.userId)
     .eq('code', t.code)
     .eq('actief', true)
-    .is('pin_hash', null)
+    .is('code_gebruikt_op', null)
     .select('id')
   if (error) {
-    log('pincode kiezen', error)
+    if (error.code === UNIEK) return { staat: 'email_bezet' }
+    log('wachtwoord kiezen', error)
     return { staat: 'db' }
   }
-  if (!Array.isArray(data) || data.length !== 1) return { staat: 'al_gekozen' }
+  if (!Array.isArray(data) || data.length !== 1) return { staat: 'ongeldig' }
+  if (!(await wisSessies(admin, t.userId, t.lidId))) return { staat: 'db' }
   const sessie = await maakSessie(admin, t, nu)
   return sessie ? { staat: 'ok', sessie } : { staat: 'db' }
 }
 
-// ─── Inloggen ───────────────────────────────────────────────────────────────
+export type InAppUitkomst = { staat: 'ok' } | { staat: 'al_gekozen' } | { staat: 'email_bezet' } | { staat: 'db' }
 
-export type InlogUitkomst =
-  | { staat: 'ok'; sessie: Sessie }
+/**
+ * Een lid dat nog met een oude pincode-sessie binnen is, kiest in de app een
+ * e-mailadres en wachtwoord. Alleen zolang er nog geen wachtwoord is; de
+ * huidige sessie blijft, de pincode verdwijnt.
+ */
+export async function kiesWachtwoordInApp(admin: SupabaseClient, t: LidToegangRij, email: string, wachtwoord: string, nu: Date): Promise<InAppUitkomst> {
+  if (t.wachtwoordHash) return { staat: 'al_gekozen' }
+  if (normaalEmail(email) !== email) return { staat: 'db' }
+  const tijd = nu.toISOString()
+  const { data, error } = await admin
+    .from(TABEL)
+    .update({ email, wachtwoord_hash: hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, pin_hash: null, gewijzigd_op: tijd })
+    .eq('id', t.id)
+    .eq('user_id', t.userId)
+    .eq('lid_id', t.lidId)
+    .eq('actief', true)
+    .is('wachtwoord_hash', null)
+    .select('id')
+  if (error) {
+    if (error.code === UNIEK) return { staat: 'email_bezet' }
+    log('wachtwoord kiezen in de app', error)
+    return { staat: 'db' }
+  }
+  return Array.isArray(data) && data.length === 1 ? { staat: 'ok' } : { staat: 'al_gekozen' }
+}
+
+// ─── Inloggen met e-mail en wachtwoord ──────────────────────────────────────
+
+/**
+ * De accounts met dit e-mailadres die kunnen inloggen; met `sportschool` alleen
+ * die van die sportschool. Hooguit MAX_KANDIDATEN. Een leesfout: geen.
+ */
+export async function vindInlogKandidaten(admin: SupabaseClient, ruw: unknown, sportschool: string | null): Promise<LidToegangRij[]> {
+  const email = normaalEmail(ruw)
+  if (!email) return []
+  let vraag = admin.from(TABEL).select(LID_TOEGANG_KOLOMMEN).eq('email', email).eq('actief', true).not('wachtwoord_hash', 'is', null)
+  if (sportschool) vraag = vraag.eq('user_id', sportschool)
+  const { data, error } = await vraag.order('user_id').limit(MAX_KANDIDATEN)
+  log('accounts op e-mail lezen', error)
+  if (error || !Array.isArray(data)) return []
+  return data.map(lidToegangUitRij).filter((t): t is LidToegangRij => t !== null && t.email === email && kanInloggen(t))
+}
+
+export type ControleUitkomst =
+  | { staat: 'goed' }
   | { staat: 'fout'; over: number }
   | { staat: 'geblokkeerd'; totOp: string }
-  | { staat: 'ongeldig' }
+  | { staat: 'dicht' }
   | { staat: 'db' }
 
 /**
- * Pincode controleren. Na MAX_POGINGEN (5) fouten een blokkade van 15 minuten
- * die elke keer verdubbelt; na MAX_BLOKKADES gaat de link dicht tot de
- * sportschool een nieuwe maakt. De route remt daarnaast per IP.
+ * Het wachtwoord van een account controleren, met de rem in de database: na
+ * MAX_POGINGEN (5) fouten een blokkade van 15 minuten die elke keer verdubbelt;
+ * na MAX_BLOKKADES gaat het account dicht en worden alle toestellen uitgelogd
+ * (weer open met een nieuwe uitnodiging). Goed: de tellers terug naar nul. De
+ * route remt daarnaast per IP en per e-mailadres.
  */
-export async function logInLid(admin: SupabaseClient, t: LidToegangRij, pin: string, nu: Date): Promise<InlogUitkomst> {
-  if (linkStaat(t, nu) !== 'inloggen') return { staat: 'ongeldig' }
+export async function controleerWachtwoord(admin: SupabaseClient, t: LidToegangRij, wachtwoord: string, nu: Date): Promise<ControleUitkomst> {
+  if (!kanInloggen(t)) return { staat: 'dicht' }
   if (t.geblokkeerdTot && new Date(t.geblokkeerdTot).getTime() > nu.getTime()) return { staat: 'geblokkeerd', totOp: t.geblokkeerdTot }
 
-  // Eerst een poging reserveren (compare-and-set op de teller), dan pas de pin
-  // checken: parallelle verzoeken kunnen zo niet allemaal "poging 1" zijn.
+  // Eerst een poging reserveren (compare-and-set op de teller), dan pas het
+  // wachtwoord checken: parallelle verzoeken kunnen zo niet allemaal "poging 1" zijn.
   const poging = t.mislukt + 1
   const { data: gereserveerd, error: resFout } = await admin
     .from(TABEL)
@@ -96,18 +155,16 @@ export async function logInLid(admin: SupabaseClient, t: LidToegangRij, pin: str
   }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!pinKlopt(pin, t.pinHash)) {
+  if (!wachtwoordKlopt(wachtwoord, t.wachtwoordHash)) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, t, nu)
   }
-  const sessie = await maakSessie(admin, t, nu)
-  if (!sessie) return { staat: 'db' }
   const { error } = await admin.from(TABEL).update({ ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() }).eq('id', t.id).eq('user_id', t.userId)
   log('tellers wissen', error)
-  return { staat: 'ok', sessie }
+  return { staat: 'goed' }
 }
 
-async function blokkeer(admin: SupabaseClient, t: LidToegangRij, nu: Date): Promise<InlogUitkomst> {
+async function blokkeer(admin: SupabaseClient, t: LidToegangRij, nu: Date): Promise<ControleUitkomst> {
   const blokkades = t.blokkades + 1
   const dicht = blokkades >= MAX_BLOKKADES
   const totOp = dicht ? null : new Date(nu.getTime() + blokkadeDuurMin(blokkades) * 60_000).toISOString()
@@ -118,14 +175,15 @@ async function blokkeer(admin: SupabaseClient, t: LidToegangRij, nu: Date): Prom
   }
   if (dicht) {
     await wisSessies(admin, t.userId, t.lidId)
-    return { staat: 'ongeldig' }
+    return { staat: 'dicht' }
   }
   return { staat: 'geblokkeerd', totOp: totOp as string }
 }
 
 // ─── Sessies ────────────────────────────────────────────────────────────────
 
-async function maakSessie(admin: SupabaseClient, t: LidToegangRij, nu: Date): Promise<Sessie | null> {
+/** Een nieuwe sessie voor dit toestel (na een goede controle of een gebruikte uitnodiging). */
+export async function maakSessie(admin: SupabaseClient, t: LidToegangRij, nu: Date): Promise<Sessie | null> {
   const token = nieuwSessieToken()
   const verlooptOp = new Date(nu.getTime() + LID_SESSIE_DAGEN * 24 * 60 * 60 * 1000)
   const { error } = await admin.from(SESSIES).insert({
@@ -166,8 +224,8 @@ export interface LidSessie {
 
 /**
  * De toegang achter een sessietoken, alleen als de sessie geldig is, bij deze
- * toegang, dit lid en deze sportschool hoort, en de link nog actief is met een
- * pincode. Anders null.
+ * toegang, dit lid en deze sportschool hoort, en het account nog actief is
+ * (met een wachtwoord, of nog een oude pincode). Anders null.
  */
 export async function lidVanSessie(admin: SupabaseClient, token: string | undefined, nu: Date): Promise<LidSessie | null> {
   if (!token || token.length > 100) return null
@@ -188,7 +246,7 @@ export async function lidVanSessie(admin: SupabaseClient, token: string | undefi
   const { data, error: tFout } = await admin.from(TABEL).select(LID_TOEGANG_KOLOMMEN).eq('id', sessie.toegang_id).eq('user_id', sessie.user_id).maybeSingle()
   log('toegang lezen', tFout)
   const toegang = tFout ? null : lidToegangUitRij(data)
-  if (!toegang || !sessiePastBij(sessie, toegang) || linkStaat(toegang, nu) !== 'inloggen') return null
+  if (!toegang || !sessiePastBij(sessie, toegang) || !sessieToegestaan(toegang)) return null
   if (oordeel === 'aanraken') await admin.from(SESSIES).update({ laatst_gebruikt_op: nu.toISOString() }).eq('token_hash', hash)
   return { toegang, tokenHash: hash }
 }
@@ -208,7 +266,7 @@ export async function wisSessies(admin: SupabaseClient, userId: string, lidId: s
   return !error
 }
 
-// ─── Beheer vanaf de ledenkaart ─────────────────────────────────────────────
+// ─── Beheer vanaf de ledenkaart en uitnodigingen ────────────────────────────
 
 export function nieuweLidCode(): string {
   return randomBytes(18).toString('base64url')
@@ -223,7 +281,7 @@ async function haalToegangVanLid(admin: SupabaseClient, userId: string, lidId: s
   return lidToegangUitRij(data)
 }
 
-/** Hoe staat de link van dit lid ervoor? undefined bij een leesfout. */
+/** Hoe staat de ledenapp van dit lid ervoor? undefined bij een leesfout. */
 export async function haalLinkOverzicht(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<LidLinkOverzicht | undefined> {
   const t = await haalToegangVanLid(admin, userId, lidId)
   if (t === undefined) return undefined
@@ -234,14 +292,18 @@ export async function haalLinkOverzicht(admin: SupabaseClient, userId: string, l
 }
 
 /**
- * Een nieuwe link voor dit lid. Bestond er al een, dan wordt die ongeldig: een
- * nieuwe code, de pincode gewist en alle toestellen uitgelogd. Het lid moet al
- * bij deze sportschool horen (dat controleert de route).
+ * Opnieuw beginnen voor dit lid (de knop "Nieuwe link" op de ledenkaart): een
+ * nieuwe uitnodiging, het wachtwoord en een oude pincode gewist en alle
+ * toestellen uitgelogd. Het lid kiest met de nieuwe link een nieuw wachtwoord.
+ * Het lid moet al bij deze sportschool horen (dat controleert de route).
  */
 export async function maakLidLink(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<boolean> {
   const bestaand = await haalToegangVanLid(admin, userId, lidId)
   if (bestaand === undefined) return false
-  const velden = { code: nieuweLidCode(), code_gemaakt_op: nu.toISOString(), actief: true, pin_hash: null, pin_gekozen_op: null, ...TELLERS_SCHOON, gewijzigd_op: nu.toISOString() }
+  const velden = {
+    code: nieuweLidCode(), code_gemaakt_op: nu.toISOString(), code_gebruikt_op: null, actief: true,
+    wachtwoord_hash: null, wachtwoord_gekozen_op: null, pin_hash: null, pin_gekozen_op: null, ...TELLERS_SCHOON, gewijzigd_op: nu.toISOString(),
+  }
   const { error } = bestaand
     ? await admin.from(TABEL).update(velden).eq('id', bestaand.id).eq('user_id', userId).eq('lid_id', lidId)
     : await admin.from(TABEL).insert({ ...velden, user_id: userId, lid_id: lidId })
@@ -252,12 +314,42 @@ export async function maakLidLink(admin: SupabaseClient, userId: string, lidId: 
   return wisSessies(admin, userId, lidId)
 }
 
-/** De link intrekken: niet meer bruikbaar en alle toestellen uitgelogd. */
+/** De toegang intrekken: geen uitnodiging, geen inloggen meer en alle toestellen uitgelogd. */
 export async function trekLidLinkIn(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<boolean> {
-  const { error } = await admin.from(TABEL).update({ actief: false, pin_hash: null, ...TELLERS_SCHOON, gewijzigd_op: nu.toISOString() }).eq('user_id', userId).eq('lid_id', lidId)
+  const { error } = await admin
+    .from(TABEL)
+    .update({ actief: false, wachtwoord_hash: null, pin_hash: null, ...TELLERS_SCHOON, gewijzigd_op: nu.toISOString() })
+    .eq('user_id', userId)
+    .eq('lid_id', lidId)
   if (error) {
     log('link intrekken', error)
     return false
   }
   return wisSessies(admin, userId, lidId)
+}
+
+export type UitnodigingCode = { staat: 'ok'; code: string } | { staat: 'ingetrokken' } | { staat: 'db' }
+
+/**
+ * Een werkende uitnodigingscode voor de mail (uitnodiging of zelf aangevraagd,
+ * ook bij "wachtwoord vergeten"). Werkt de huidige nog, dan die; anders een
+ * nieuwe code. Raakt nooit het wachtwoord of de sessies: wie een link aanvraagt
+ * voor andermans adres, kan dat account zo niet dichtzetten of uitloggen. Een
+ * ingetrokken toegang krijgt geen uitnodiging.
+ */
+export async function geefUitnodigingCode(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<UitnodigingCode> {
+  const bestaand = await haalToegangVanLid(admin, userId, lidId)
+  if (bestaand === undefined) return { staat: 'db' }
+  if (bestaand && !bestaand.actief) return { staat: 'ingetrokken' }
+  if (bestaand && linkBruikbaar(bestaand, nu)) return { staat: 'ok', code: bestaand.code }
+  const code = nieuweLidCode()
+  const velden = { code, code_gemaakt_op: nu.toISOString(), code_gebruikt_op: null, gewijzigd_op: nu.toISOString() }
+  const { error } = bestaand
+    ? await admin.from(TABEL).update(velden).eq('id', bestaand.id).eq('user_id', userId).eq('lid_id', lidId).eq('actief', true)
+    : await admin.from(TABEL).insert({ ...velden, actief: true, user_id: userId, lid_id: lidId })
+  if (error) {
+    log('uitnodiging maken', error)
+    return { staat: 'db' }
+  }
+  return { staat: 'ok', code }
 }

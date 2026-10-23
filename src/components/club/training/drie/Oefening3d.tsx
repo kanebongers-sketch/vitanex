@@ -20,6 +20,8 @@ export interface Oefening3dProps {
   /** Accentkleur als #rrggbb; standaard de accentkleur van het vlak (--ill-accent). */
   accent?: string
   label: string
+  /** Figuur over de hele beweging passend in het doek (zie SceneOpties.passend). */
+  passend?: boolean
 }
 
 const STANDAARD_ACCENT = '#B58E5C'
@@ -35,7 +37,7 @@ function minderBeweging(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oefening3dProps) {
+export function Oefening3d({ naam, stand, thema = 'donker', accent, label, passend = false }: Oefening3dProps) {
   const vak = useRef<HTMLDivElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const scene = useRef<Scene3d | null>(null)
@@ -56,7 +58,7 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
     if (!el || !doek || !oefening || !dichtbij) return
     let s: Scene3d
     try {
-      s = maakScene3d(doek, oefening, { accent: accentVan(el, accent), thema })
+      s = maakScene3d(doek, oefening, { accent: accentVan(el, accent), thema, passend })
     } catch {
       // Geen WebGL (oud apparaat, uitgezet): het vlak toont de melding.
       el.classList.add('club-ill-3d--leeg')
@@ -75,7 +77,7 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
       scene.current = null
       s.ruimOp()
     }
-  }, [oefening, thema, accent, dichtbij])
+  }, [oefening, thema, accent, dichtbij, passend])
 
   useEffect(() => {
     const el = vak.current
@@ -113,7 +115,7 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label }: Oef
       kijker.disconnect()
       cancelAnimationFrame(frame)
     }
-  }, [oefening, stand, thema, accent, dichtbij])
+  }, [oefening, stand, thema, accent, dichtbij, passend])
 
   const klasse = `club-ill club-ill-3d${thema === 'licht' ? ' club-ill--licht' : ''}${oefening ? '' : ' club-ill-3d--leeg'}`
   return (

@@ -3,15 +3,16 @@ import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { DEMO_SOORTEN } from '@/lib/aiyourgym/demo-aanvraag'
 import { DOELGROEPEN } from './doelgroepen'
 import { HOOFDSTUKKEN } from './functies'
-import { BELOFTES, OPRICHTER, PRAKTIJK } from './praktijk'
+import { BELOFTES, OPRICHTER, PRAKTIJK, VLOER } from './praktijk'
 import { ROLLEN } from './systeem'
 import { SCHEMA_STAPPEN } from './trainingsschemas'
+import { OVERSTAP_STAPPEN, START_MINUTEN, START_STAPPEN } from './vertrouwen'
 
 // Bewaakt de teksten van de website: de schrijfregels van Kane (geen
 // gedachtestreepjes, geen klemtoon-accenten) en de eerlijkheid (geen verzonnen
 // aantallen, reviews of contactgegevens).
 
-const ALLE_TEKST = JSON.stringify({ HOOFDSTUKKEN, DOELGROEPEN, PRAKTIJK, BELOFTES, DEMO_SOORTEN, ROLLEN, SCHEMA_STAPPEN })
+const ALLE_TEKST = JSON.stringify({ HOOFDSTUKKEN, DOELGROEPEN, PRAKTIJK, VLOER, BELOFTES, DEMO_SOORTEN, ROLLEN, SCHEMA_STAPPEN, OVERSTAP_STAPPEN })
 
 describe('teksten van de website', () => {
   it('geen gedachtestreepjes', () => {
@@ -24,7 +25,7 @@ describe('teksten van de website', () => {
     expect(ALLE_TEKST).not.toMatch(/★|review|klanten|sportscholen gebruiken|\d+\+/i)
   })
   it('noemt geen werkgever', () => {
-    expect(JSON.stringify({ PRAKTIJK, OPRICHTER })).not.toMatch(/fit ?factory|ruben/i)
+    expect(JSON.stringify({ PRAKTIJK, OPRICHTER, VLOER, BELOFTES })).not.toMatch(/fit ?factory|ruben/i)
   })
 })
 
@@ -75,5 +76,13 @@ describe('pagina trainingsschemas', () => {
   })
   it('belooft geen AI voor het voorstel', () => {
     expect(JSON.stringify(SCHEMA_STAPPEN)).not.toMatch(/AI(?! Your Gym)/)
+  })
+})
+
+describe('overstappen op de voorpagina', () => {
+  it('drie stappen, en de wizard past echt in een kwartier', () => {
+    expect(OVERSTAP_STAPPEN).toHaveLength(3)
+    expect(START_MINUTEN).toBeLessThanOrEqual(15)
+    expect(START_STAPPEN.length).toBeGreaterThan(0)
   })
 })

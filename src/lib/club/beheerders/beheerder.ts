@@ -50,13 +50,15 @@ export interface Beheerder {
   pinStatus: BeheerderPinStatus
   /** SERVER-ONLY. */
   pinHash: string | null
+  /** SERVER-ONLY. Inloggen met e-mail en wachtwoord (aiyourgym.com); null = alleen link plus pincode. */
+  wachtwoordHash: string | null
   mislukt: number
   geblokkeerdTot: string | null
   blokkades: number
   laatstIngelogdOp: string | null
 }
 
-export const BEHEERDER_KOLOMMEN = 'id, organisatie_id, naam, email, rol, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
+export const BEHEERDER_KOLOMMEN = 'id, organisatie_id, naam, email, rol, code, actief, pin_hash, pin_status, wachtwoord_hash, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
 
 function isRol(v: unknown): v is BeheerderRol {
   return (BEHEERDER_ROLLEN as readonly unknown[]).includes(v)
@@ -91,6 +93,7 @@ export function beheerderUitRij(rij: unknown): Beheerder | null {
     actief: r.actief === true,
     pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen',
     pinHash: tekstOfNull(r.pin_hash),
+    wachtwoordHash: tekstOfNull(r.wachtwoord_hash),
     mislukt: getal(r.mislukt),
     geblokkeerdTot: tekstOfNull(r.geblokkeerd_tot),
     blokkades: getal(r.blokkades),
@@ -102,6 +105,7 @@ export function beheerderUitRij(rij: unknown): Beheerder | null {
 
 export interface NieuweBeheerder {
   naam: string
+  /** Verplicht voor een uitnodiging: hiermee logt de beheerder in. */
   email: string | null
   rol: BeheerderRol
 }
@@ -116,32 +120,28 @@ export function leesNieuweBeheerder(body: unknown): Invoer<NieuweBeheerder> {
   if (!naam) return { ok: false, fout: 'Vul een naam in.' }
   if (naam.length > 60) return { ok: false, fout: 'De naam mag maximaal 60 tekens zijn.' }
   const ruwEmail = typeof b.email === 'string' ? b.email.trim().toLowerCase() : ''
-  if (ruwEmail && (ruwEmail.length > 120 || !EMAIL.test(ruwEmail))) return { ok: false, fout: 'Dit e-mailadres klopt niet.' }
+  if (!ruwEmail) return { ok: false, fout: 'Vul een e-mailadres in: daarmee logt deze beheerder in.' }
+  if (ruwEmail.length > 120 || !EMAIL.test(ruwEmail)) return { ok: false, fout: 'Dit e-mailadres klopt niet.' }
   if (!isRol(b.rol)) return { ok: false, fout: 'Kies eigenaar of clubmanager.' }
   return { ok: true, waarde: { naam, email: ruwEmail || null, rol: b.rol } }
 }
 
-export const BEHEERDER_ACTIES = ['goedkeuren', 'afwijzen', 'reset', 'stoppen'] as const
+/**
+ * Sinds 23-10-2026 (besluit Kane) zonder pincode: 'reset' maakt een nieuwe
+ * uitnodiging (wachtwoord weg, nieuwe link, alle toestellen uit), 'stoppen'
+ * zet de beheerder uit.
+ */
+export const BEHEERDER_ACTIES = ['reset', 'stoppen'] as const
 export type BeheerderActie = (typeof BEHEERDER_ACTIES)[number]
 
 export interface Beoordeling {
   actie: BeheerderActie
-  /** Bij goedkeuren verplicht: de controlecode die de beheerder aan Kane noemt. */
-  controle: string | null
 }
 
-/**
- * Goedkeuren kan alleen met de controlecode die de beheerder zelf noemt: zo
- * keurt Kane nooit een pincode goed die iemand anders op een gelekte link koos.
- */
 export function leesBeoordeling(body: unknown): Invoer<Beoordeling> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
   if (!(BEHEERDER_ACTIES as readonly unknown[]).includes(b.actie)) return { ok: false, fout: 'Onbekende actie.' }
-  const actie = b.actie as BeheerderActie
-  if (actie !== 'goedkeuren') return { ok: true, waarde: { actie, controle: null } }
-  const controle = typeof b.controle === 'string' ? b.controle.trim() : ''
-  if (!/^\d{4}$/.test(controle)) return { ok: false, fout: 'Vul de controlecode van 4 cijfers in die de beheerder je noemt.' }
-  return { ok: true, waarde: { actie, controle } }
+  return { ok: true, waarde: { actie: b.actie as BeheerderActie } }
 }
 
 // ─── Sessies ────────────────────────────────────────────────────────────────
@@ -169,9 +169,9 @@ export function beoordeelBeheerderSessie(s: BeheerderSessieRij, nu: Date): Sessi
   return t - laatst > BEHEERDER_AANRAAK_MS ? 'aanraken' : 'geldig'
 }
 
-/** Mag deze beheerder Club in (los van de sessie)? Actief en met een goedgekeurde pin. */
-export function magBinnen(b: Pick<Beheerder, 'actief' | 'pinStatus'>): boolean {
-  return b.actief && b.pinStatus === 'actief'
+/** Mag deze beheerder Club in (los van de sessie)? Actief en met een eigen wachtwoord. */
+export function magBinnen(b: Pick<Beheerder, 'actief' | 'wachtwoordHash'>): boolean {
+  return b.actief && b.wachtwoordHash !== null
 }
 
 /** Wat Kane in het portaal ziet: nooit de pin-hash. */
@@ -180,9 +180,11 @@ export interface BeheerderOverzicht {
   naam: string
   email: string | null
   rol: BeheerderRol
+  /** De code van de uitnodigingslink; alleen bruikbaar zolang er nog geen wachtwoord is. */
   code: string
   actief: boolean
-  pinStatus: BeheerderPinStatus
+  /** Heeft een wachtwoord gekozen (uitnodiging gebruikt) en kan inloggen. */
+  heeftWachtwoord: boolean
   gesloten: boolean
   laatstIngelogdOp: string | null
 }

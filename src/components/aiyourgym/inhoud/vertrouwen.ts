@@ -3,7 +3,7 @@
 // wat echt zo is gebouwd:
 // - database in Frankfurt: docs/club/LIVEGANG.md (Supabase eu-central-1)
 // - gescheiden data: elke club_*-query filtert op de sportschool (src/lib/club/toegang.ts)
-// - gehashte pincodes en blokkade: src/lib/club/ledenlogin/opslag.ts
+// - gehashte wachtwoorden en blokkade: src/lib/club/ledenlogin/opslag.ts
 // - gezondheid alleen met toestemming: src/lib/club/training/intake.ts, voortgang/meting.ts
 // - export en verwijderen per lid: src/lib/club/leden/avg (ledenkaart, 30 dagen, dan definitief)
 
@@ -26,6 +26,32 @@ export interface VeelgesteldeVraag {
   vraag: string
   antwoord: string
 }
+
+export interface OverstapStap {
+  titel: string
+  tekst: string
+}
+
+/**
+ * Overstappen in drie stappen, kort voor de voorpagina. Waar het staat:
+ * - CSV inlezen met herkende kolommen en eerst een overzicht: src/lib/club/leden/import (kolommen.ts, plan.ts)
+ * - startwizard: src/lib/club/start/stappen.ts (samen START_MINUTEN, binnen een kwartier)
+ * - leden op de app: uitnodiging per mail en de poster met QR (src/lib/club/app-uitnodigen, /club/leden/app-poster)
+ */
+export const OVERSTAP_STAPPEN: readonly OverstapStap[] = [
+  {
+    titel: 'Ledenlijst inlezen',
+    tekst: 'Exporteer je leden als CSV uit je huidige systeem of uit Excel. Gangbare kolommen worden herkend en je ziet eerst wat er verandert.',
+  },
+  {
+    titel: 'Startwizard doorlopen',
+    tekst: 'De wizard zet huisstijl, vestiging, lessen en team voor je klaar, samen in ongeveer een kwartier.',
+  },
+  {
+    titel: 'Leden op de app',
+    tekst: 'Leden krijgen een mail met hun eigen link naar de ledenapp, of scannen de QR-code op de poster bij de balie.',
+  },
+]
 
 /** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
 export const VRAAG_CONTRACT: VeelgesteldeVraag = {

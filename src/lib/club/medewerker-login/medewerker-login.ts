@@ -1,20 +1,26 @@
 // ─── Club: eigen login van medewerkers (PUUR) ───────────────────────────────
-// Een medewerker (trainer, groepslesinstructeur, clubmanager, administratie)
-// logt in met een persoonlijke link (/clubinloggen/medewerker/<code>) en een
-// zelf gekozen pincode. Ontwerp van de goedkeuring (zelfde als bij beheerders,
-// maar zonder Kane): de medewerker kiest de pin en ziet een controlecode van 4
-// cijfers. De eigenaar of clubmanager die de link uitdeelde, vult die code in
-// bij Instellingen > Medewerkers. Zo werkt een gelekte link of een gefotografeerde
-// QR-code nooit zonder dat de echte medewerker en zijn leidinggevende elkaar
-// spreken, en hoeft niemand een pincode door te geven.
+// Besluit Kane (23-10-2026): op aiyourgym.com logt een medewerker (trainer,
+// groepslesinstructeur, clubmanager, administratie) in met e-mailadres en een
+// sterk wachtwoord, net als de eigenaar. De eigenaar of clubmanager nodigt hem
+// uit bij Instellingen > Medewerkers; de medewerker krijgt een eenmalige
+// uitnodigingslink (/clubinloggen/medewerker/<token>, UITNODIGING_DAGEN geldig),
+// kiest een wachtwoord en is meteen binnen. Geen pincode en geen controlecode
+// meer. Sessies van de oude login (link plus pincode) blijven geldig tot de
+// medewerker een wachtwoord kiest of de toegang wordt ingetrokken.
 // Hier staan de regels zonder database: rijen lezen, invoer, sessies.
 
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
+import { normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
 import { BEHEERDER_AANRAAK_MS, BEHEERDER_CODE, BEHEERDER_INACTIEF_DAGEN, BEHEERDER_SESSIE_DAGEN, type BeheerderPinStatus } from '@/lib/club/beheerders/beheerder'
 
-/** Het geheime deel van de link: 24 tekens base64url (144 bits), zoals bij beheerders. */
+/** Intern kenmerk van een login (oude persoonlijke link): 24 tekens base64url. Werkt niet meer om in te loggen. */
 export const MEDEWERKER_CODE = BEHEERDER_CODE
+
+/** De uitnodigingstoken: 32 willekeurige bytes als base64url (43 tekens). In de database alleen de sha256. */
+export const UITNODIGING_TOKEN = /^[A-Za-z0-9_-]{43}$/
+/** Zo lang werkt een uitnodiging. */
+export const UITNODIGING_DAGEN = 7
 
 /**
  * De sessiecookie van een medewerker (httpOnly). In productie met __Host-:
@@ -40,16 +46,22 @@ export interface MedewerkerToegang {
   medewerkerId: string
   code: string
   actief: boolean
+  /** Het inlogadres (kleine letters), of null zolang er geen uitnodiging is. */
+  email: string | null
+  /** Oude login met pincode; blijft gelden tot er een wachtwoord is. */
   pinStatus: BeheerderPinStatus
   /** SERVER-ONLY. */
   pinHash: string | null
+  /** SERVER-ONLY. */
+  wachtwoordHash: string | null
+  uitnodigingVerlooptOp: string | null
   mislukt: number
   geblokkeerdTot: string | null
   blokkades: number
   laatstIngelogdOp: string | null
 }
 
-export const TOEGANG_KOLOMMEN = 'id, user_id, medewerker_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
+export const TOEGANG_KOLOMMEN = 'id, user_id, medewerker_id, code, actief, email, pin_hash, pin_status, wachtwoord_hash, uitnodiging_verloopt_op, mislukt, geblokkeerd_tot, blokkades, laatst_ingelogd_op'
 export const MEDEWERKER_KOLOMMEN = 'id, user_id, naam, email, rollen, vestigingen, actief'
 
 const PIN_STATUSSEN: readonly BeheerderPinStatus[] = ['geen', 'wacht', 'actief']
@@ -74,8 +86,11 @@ export function toegangUitRij(rij: unknown): MedewerkerToegang | null {
     medewerkerId: r.medewerker_id,
     code: r.code,
     actief: r.actief === true,
+    email: normaalEmail(r.email),
     pinStatus: PIN_STATUSSEN.includes(r.pin_status as BeheerderPinStatus) ? (r.pin_status as BeheerderPinStatus) : 'geen',
     pinHash: tekstOfNull(r.pin_hash),
+    wachtwoordHash: tekstOfNull(r.wachtwoord_hash),
+    uitnodigingVerlooptOp: tekstOfNull(r.uitnodiging_verloopt_op),
     mislukt: getal(r.mislukt),
     geblokkeerdTot: tekstOfNull(r.geblokkeerd_tot),
     blokkades: getal(r.blokkades),
@@ -94,13 +109,18 @@ export function medewerkerMetOrgUitRij(rij: unknown): MedewerkerMetOrg | null {
   return m && isUuid(userId) ? { ...m, userId } : null
 }
 
+/** Kan deze login inloggen: een wachtwoord, of nog de oude goedgekeurde pincode (alleen bestaande sessies). */
+export function heeftInlog(t: Pick<MedewerkerToegang, 'wachtwoordHash' | 'pinStatus'>): boolean {
+  return t.wachtwoordHash !== null || t.pinStatus === 'actief'
+}
+
 /**
- * Mag deze medewerker Club in (los van de sessie)? De link is actief, de pin is
- * goedgekeurd, de medewerker is in dienst, hoort bij dezelfde sportschool als
- * de link en heeft minstens een rol.
+ * Mag deze medewerker Club in (los van de sessie)? De login is actief en heeft
+ * een wachtwoord (of nog de oude goedgekeurde pincode), de medewerker is in
+ * dienst, hoort bij dezelfde sportschool als de login en heeft minstens een rol.
  */
 export function magMedewerkerBinnen(t: MedewerkerToegang, m: MedewerkerMetOrg): boolean {
-  return t.actief && t.pinStatus === 'actief' && m.actief && m.id === t.medewerkerId && m.userId === t.userId && m.rollen.length > 0
+  return t.actief && heeftInlog(t) && m.actief && m.id === t.medewerkerId && m.userId === t.userId && m.rollen.length > 0
 }
 
 // ─── Sessies ────────────────────────────────────────────────────────────────
@@ -126,50 +146,55 @@ export function beoordeelMedewerkerSessie(s: Pick<MedewerkerSessieRij, 'verloopt
   return t - laatst > MEDEWERKER_AANRAAK_MS ? 'aanraken' : 'geldig'
 }
 
-/** Past de sessie bij deze link en medewerker? Een sessie van een oude link telt niet. */
+/** Past de sessie bij deze login en medewerker? Een sessie van een oude login telt niet. */
 export function sessiePastBij(s: Pick<MedewerkerSessieRij, 'toegang_id' | 'medewerker_id' | 'user_id'>, t: MedewerkerToegang): boolean {
   return s.toegang_id === t.id && s.medewerker_id === t.medewerkerId && s.user_id === t.userId
 }
 
 // ─── Beheer door eigenaar of clubmanager ────────────────────────────────────
 
-export const LOGIN_ACTIES = ['maken', 'goedkeuren', 'afwijzen', 'reset', 'intrekken'] as const
+export const LOGIN_ACTIES = ['uitnodigen', 'intrekken'] as const
 export type LoginActie = (typeof LOGIN_ACTIES)[number]
 
-export interface LoginBeoordeling {
-  actie: LoginActie
-  /** Bij goedkeuren verplicht: de controlecode die de medewerker noemt. */
-  controle: string | null
-}
+export type LoginBeoordeling = { actie: 'uitnodigen'; email: string } | { actie: 'intrekken' }
 
 export type Invoer<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
 /**
- * maken: een nieuwe link (of opnieuw maken: de oude link en pincode vervallen,
- * alle toestellen uitgelogd). goedkeuren: alleen met de controlecode.
- * afwijzen, reset: de pin weg. intrekken: de link werkt niet meer.
+ * uitnodigen: een nieuwe eenmalige uitnodigingslink met dit e-mailadres (ook
+ * opnieuw: de vorige uitnodiging vervalt, een dichtgelopen login gaat weer open).
+ * intrekken: inloggen kan niet meer, e-mailadres en wachtwoord weg, alle toestellen uit.
  */
 export function leesLoginActie(body: unknown): Invoer<LoginBeoordeling> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
-  if (!(LOGIN_ACTIES as readonly unknown[]).includes(b.actie)) return { ok: false, fout: 'Onbekende actie.' }
-  const actie = b.actie as LoginActie
-  if (actie !== 'goedkeuren') return { ok: true, waarde: { actie, controle: null } }
-  const controle = typeof b.controle === 'string' ? b.controle.trim() : ''
-  if (!/^\d{4}$/.test(controle)) return { ok: false, fout: 'Vul de controlecode van 4 cijfers in die de medewerker je noemt.' }
-  return { ok: true, waarde: { actie, controle } }
+  if (b.actie === 'intrekken') return { ok: true, waarde: { actie: 'intrekken' } }
+  if (b.actie !== 'uitnodigen') return { ok: false, fout: 'Onbekende actie.' }
+  const email = normaalEmail(b.email)
+  if (!email) return { ok: false, fout: 'Vul een geldig e-mailadres in.' }
+  return { ok: true, waarde: { actie: 'uitnodigen', email } }
 }
 
-/** Wat de eigenaar of clubmanager ziet: nooit de pin-hash. */
+/** geen: nooit uitgenodigd of ingetrokken. uitgenodigd/verlopen: nog geen wachtwoord. actief: kan inloggen. oud: alleen de oude pincode. */
+export type LoginStaat = 'geen' | 'uitgenodigd' | 'verlopen' | 'actief' | 'oud'
+
+export function loginStaat(t: MedewerkerToegang, nu: Date): LoginStaat {
+  if (!t.actief) return 'geen'
+  if (t.wachtwoordHash) return 'actief'
+  if (t.uitnodigingVerlooptOp) return new Date(t.uitnodigingVerlooptOp).getTime() > nu.getTime() ? 'uitgenodigd' : 'verlopen'
+  return t.pinStatus === 'actief' ? 'oud' : 'geen'
+}
+
+/** Wat de eigenaar of clubmanager ziet: nooit een hash of token. */
 export interface LoginOverzicht {
   medewerkerId: string
-  code: string
-  actief: boolean
-  pinStatus: BeheerderPinStatus
+  email: string | null
+  staat: LoginStaat
   gesloten: boolean
+  uitnodigingTot: string | null
   laatstIngelogdOp: string | null
 }
 
-/** Het pad van de persoonlijke link. */
-export function medewerkerLinkPad(code: string): string {
-  return `/clubinloggen/medewerker/${code}`
+/** Het pad van de uitnodigingslink. */
+export function uitnodigingPad(token: string): string {
+  return `/clubinloggen/medewerker/${token}`
 }

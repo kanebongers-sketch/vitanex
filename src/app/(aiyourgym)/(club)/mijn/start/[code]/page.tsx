@@ -1,27 +1,33 @@
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
+import { volledigeNaam } from '@/lib/club/kern/lid'
+import { normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
-import { linkStaat } from '@/lib/club/ledenlogin/regels'
-import { bruikbareLink } from '@/lib/club/ledenlogin/inlog-api'
-import { lidToegang } from '@/lib/club/ledenlogin/toegang'
+import { LINK_WERKT_NIET, bruikbareLink } from '@/lib/club/ledenlogin/inlog-api'
+import { AANVRAAG_PAD } from '@/lib/club/app-uitnodigen/velden'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { InlogKaart } from '@/components/club/ledenlogin/InlogKaart'
-import { LidInlogFormulier } from '@/components/club/ledenlogin/LidInlogFormulier'
+import { WachtwoordFormulier } from '@/components/club/ledenlogin/WachtwoordFormulier'
 
-// /mijn/start/<code>: de persoonlijke link van een lid (als QR op de
-// ledenkaart). De eerste keer een pincode kiezen, daarna inloggen. Schakelaar
-// uit, onbekende, verlopen of ingetrokken link: een gewone 404, steeds gelijk.
+// /mijn/start/<code>: de uitnodiging van de sportschool (link in de mail of QR
+// aan de balie). Eenmalig en 7 dagen geldig: het lid bevestigt zijn
+// e-mailadres en kiest een sterk wachtwoord (eerste keer of wachtwoord
+// vergeten). Daarna alleen nog inloggen met e-mail plus wachtwoord. Onbekende,
+// gebruikte of verlopen link: steeds dezelfde neutrale kaart. Schakelaar uit: 404.
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Inloggen',
+  title: 'Wachtwoord kiezen',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
 }
+
+const NEUTRAAL = { kleurAccent: '#B58E5C', thema: 'donker' as const }
 
 interface PaginaProps {
   params: Promise<{ code: string }>
@@ -35,30 +41,41 @@ function adminOfNull(): SupabaseClient | null {
   }
 }
 
+function WerktNiet() {
+  return (
+    <LedenappSchil organisatie={NEUTRAAL}>
+      <InlogKaart merkNaam="Ledenapp" fitFactory={false} boven="Ledenapp" kop="Link werkt niet" uitleg={LINK_WERKT_NIET}>
+        <Link href="/mijn/inloggen" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed">Inloggen</Link>
+        <Link href={AANVRAAG_PAD} className="club-mijn-inlog-link">Nieuwe link aanvragen</Link>
+      </InlogKaart>
+    </LedenappSchil>
+  )
+}
+
 export default async function MijnStart({ params }: PaginaProps) {
   if (!CLUB_LEDEN_LOGIN) notFound()
   const { code } = await params
   const admin = adminOfNull()
   if (!admin) notFound()
-  const nu = new Date()
-  const link = await bruikbareLink(admin, code, nu)
-  if (!link) notFound()
-  // Al ingelogd als dit lid: meteen de app in.
-  const nuBinnen = await lidToegang(null)
-  if (nuBinnen && !nuBinnen.voorvertoning && nuBinnen.lid.id === link.lid.id) redirect('/mijn')
+  const link = await bruikbareLink(admin, code, new Date())
+  if (!link) return <WerktNiet />
 
-  const kiezen = linkStaat(link.toegang, nu) === 'kiezen'
-  const org = link.organisatie
+  const { organisatie: org, lid, toegang } = link
+  const opnieuw = Boolean(toegang.wachtwoordHash)
   return (
     <LedenappSchil organisatie={org}>
       <InlogKaart
         merkNaam={org.naam}
         fitFactory={org.logo === LOGO_FIT_FACTORY}
         boven={org.naam}
-        kop={kiezen ? `Welkom, ${link.lid.voornaam}` : `Hoi ${link.lid.voornaam}`}
-        uitleg={kiezen ? 'Kies een pincode van 6 cijfers. Daarmee log je voortaan in op je ledenapp. Deel hem met niemand.' : 'Log in met je pincode van 6 cijfers.'}
+        kop={opnieuw ? `Nieuw wachtwoord, ${lid.voornaam}` : `Welkom, ${lid.voornaam}`}
+        uitleg={
+          opnieuw
+            ? 'Kies een nieuw wachtwoord. Je oude wachtwoord werkt daarna niet meer en je wordt op andere toestellen uitgelogd.'
+            : 'Bevestig je e-mailadres en kies een wachtwoord. Daarmee log je voortaan in op je ledenapp. Deel het met niemand.'
+        }
       >
-        <LidInlogFormulier modus={kiezen ? 'kiezen' : 'inloggen'} code={link.toegang.code} />
+        <WachtwoordFormulier code={toegang.code} standaardEmail={toegang.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop="Opslaan en inloggen" />
       </InlogKaart>
     </LedenappSchil>
   )

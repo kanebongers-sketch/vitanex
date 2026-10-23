@@ -15,7 +15,7 @@ const org = (id: string, naam: string): Organisatie => ({ id, naam, slogan: null
 
 const SANNE: Beheerder = {
   id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne de Vries', email: null, rol: 'clubmanager',
-  code: 'abcdefghijklmnopqrstuvwx', actief: true, pinStatus: 'actief', pinHash: 'x', mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
+  code: 'abcdefghijklmnopqrstuvwx', actief: true, pinStatus: 'actief', pinHash: 'x', wachtwoordHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0, laatstIngelogdOp: null,
 }
 
 describe('externeToegangVelden', () => {

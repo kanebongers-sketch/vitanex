@@ -205,25 +205,20 @@ export function AppVoeding() {
   )
 }
 
-/** Inloggen in de web-app: het lid kiest zelf een pincode van zes cijfers. */
-export function AppPincode() {
+/** Inloggen in de web-app: het lid logt in met e-mailadres en een eigen wachtwoord. */
+export function AppInloggen() {
   return (
     <div className="aygm-pin">
       <div className="aygm-pin-kop">
-        <p className="aygm-hallo">Kies je pincode</p>
-        <p className="aygm-boven">Zes cijfers, alleen voor jou</p>
+        <p className="aygm-hallo">Welkom terug</p>
+        <p className="aygm-boven">Log in bij je sportschool</p>
       </div>
-      <div className="aygm-pin-vakjes" aria-hidden>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <span key={i} data-vol={i < 4 ? '' : undefined} />
-        ))}
-      </div>
-      <div className="aygm-pin-toetsen" aria-hidden>
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map((t, i) => (
-          <span key={i} data-leeg={t === '' ? '' : undefined}>
-            {t}
-          </span>
-        ))}
+      <div className="aygm-inlog-velden" aria-hidden>
+        <span className="aygm-inlog-label">E-mailadres</span>
+        <span className="aygm-inlog-veld">sanne@voorbeeld.nl</span>
+        <span className="aygm-inlog-label">Wachtwoord</span>
+        <span className="aygm-inlog-veld">••••••••••••••</span>
+        <span className="aygm-inlog-knop">Inloggen</span>
       </div>
       <p className="aygm-pin-voet">Daarna zet je de app met een tik op je beginscherm.</p>
     </div>

@@ -1,7 +1,8 @@
 // ─── AI Your Gym: een betaalde aanmelding wordt een sportschool (SERVER-ONLY) ─
 // Dezelfde aanmaak als in het portaal van Kane (maakOrganisatie: eigen lege
 // omgeving plus de basisbibliotheek, met rollback), daarna het adres, een
-// eerste vestiging en de eigenaar als beheerder met een persoonlijke inloglink.
+// eerste vestiging en de eigenaar als beheerder met het wachtwoord dat hij bij
+// het aanmelden koos (inloggen met e-mail en wachtwoord op aiyourgym.com).
 // De sportschool valt onder Kane (beheerder_id), dus Kane ziet hem meteen in de
 // sportschool-wissel van Club. Lukt een stap niet, dan gaat alles weer weg:
 // liever een herhaling van Stripe dan een halve omgeving.
@@ -72,27 +73,10 @@ export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, o
   }
 
   const vestiging = await maakVestiging(systeemToegang(admin, beheerderId, organisaties, id), { naam: a.sportschoolNaam, adres: null })
-  const eigenaar = vestiging.ok ? await maakBeheerder(admin, id, { naam: a.eigenaarNaam, email: a.eigenaarEmail, rol: 'eigenaar' }) : null
+  const eigenaar = vestiging.ok ? await maakBeheerder(admin, id, { naam: a.eigenaarNaam, email: a.eigenaarEmail.trim().toLowerCase(), rol: 'eigenaar' }, a.eigenaarWachtwoordHash) : null
   if (!eigenaar) {
     await ruimSportschoolOp(admin, id, beheerderId)
     return { ok: false }
   }
   return { ok: true, organisatieId: id }
-}
-
-/** De persoonlijke code van de eigenaar die bij deze aanmelding hoort. */
-export async function eigenaarCode(admin: SupabaseClient, organisatieId: string, email: string): Promise<string | null> {
-  const { data, error } = await admin
-    .from('club_beheerders')
-    .select('code')
-    .eq('organisatie_id', organisatieId)
-    .eq('rol', 'eigenaar')
-    .eq('email', email)
-    .eq('actief', true)
-    .order('aangemaakt_op')
-    .limit(1)
-    .maybeSingle()
-  if (error) return null
-  const code = (data as { code?: unknown } | null)?.code
-  return typeof code === 'string' ? code : null
 }

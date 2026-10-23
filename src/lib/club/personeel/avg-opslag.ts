@@ -32,7 +32,7 @@ const BRONNEN: Record<Exclude<MedewerkerSectieSleutel, 'logboek' | 'hulpvragen'>
   taakNotities: { tabel: 'club_taak_notities', select: 'datum, vestiging, tekst, wie, aangemaakt_op', volgorde: 'aangemaakt_op' },
   afsluitrondes: { tabel: 'club_taak_afsluitrondes', select: 'datum, vestiging, wie, open_taken, op', volgorde: 'op' },
   // Nooit de code, pin_hash of blokkades: alleen wat de medewerker mag weten.
-  inloggen: { tabel: 'club_medewerker_toegang', select: 'actief, pin_status, laatst_ingelogd_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  inloggen: { tabel: 'club_medewerker_toegang', select: 'actief, email, pin_status, laatst_ingelogd_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   // Nooit token_hash: alleen de tijden.
   sessies: { tabel: 'club_medewerker_sessies', select: 'aangemaakt_op, laatst_gebruikt_op, verloopt_op', volgorde: 'aangemaakt_op' },
 }

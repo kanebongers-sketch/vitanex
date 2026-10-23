@@ -107,7 +107,7 @@ async function haalVestigingen(admin: SupabaseClient, organisatieId: string): Pr
   return vestigingenUitRijen(data ?? [])
 }
 
-/** De platform-eigenaar: een geldige sessie van het master account (link plus pincode). */
+/** De platform-eigenaar: een geldige sessie van het master account (e-mailadres en wachtwoord). */
 async function toegangVoorPlatform(admin: SupabaseClient): Promise<ClubToegang | null> {
   const token = (await cookies()).get(platformCookie())?.value
   if (!token) return null

@@ -207,19 +207,36 @@
 .ayg-oog-verder { display: flex; flex-wrap: wrap; gap: 14px 32px; margin-top: clamp(28px, 4vw, 40px); }
 
 /* ── Trainingsschema's met 3D als blikvanger ─────────────────────────────── */
-.ayg-schemas-kop { display: grid; gap: 18px; max-width: 62ch; margin-bottom: clamp(32px, 4vw, 56px); }
-.ayg-schemas-kop .ayg-h2 { max-width: 13ch; }
-.ayg-blik { display: grid; gap: clamp(24px, 4vw, 56px); align-items: center; }
-@media (min-width: 960px) { .ayg-blik { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); } }
-.ayg-blik-beeld { position: relative; margin: 0; width: 100%; max-width: 620px; justify-self: center; }
-.ayg-blik-beeld .club-ill { --club-radius: calc(var(--ayg-radius) + 12px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn), 0 50px 120px -50px rgb(0 0 0 / 0.8); }
-.ayg-blik-beeld figcaption {
-  position: absolute; left: 16px; bottom: 16px; display: grid; gap: 2px; padding: 10px 14px; border-radius: 12px;
-  background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn);
+/* Telefoon: kop, beeld, kernpunten, regel eronder. Pc: het beeld links over de
+   volle hoogte, rechts kop, kernpunten en regel; geen leeg vlak naast de kop. */
+.ayg-blik { display: grid; gap: 28px; grid-template-areas: 'kop' 'beeld' 'tekst' 'onder'; }
+.ayg-blik-kop { grid-area: kop; display: grid; gap: 18px; }
+.ayg-blik-kop .ayg-h2 { max-width: 13ch; }
+.ayg-blik-beeld { grid-area: beeld; position: relative; margin: 0; width: 100%; max-width: 560px; justify-self: center; }
+.ayg-blik-tekst { grid-area: tekst; display: grid; gap: 22px; align-content: start; }
+.ayg-blik-onder { grid-area: onder; display: grid; gap: 14px; padding-top: 22px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-blik-onder .ayg-klein { color: var(--ayg-tekst-2); }
+@media (min-width: 960px) {
+  .ayg-blik {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr auto;
+    grid-template-areas: 'beeld kop' 'beeld tekst' 'beeld .' 'beeld onder'; gap: 28px clamp(40px, 5vw, 80px);
+  }
+  .ayg-blik-beeld { max-width: none; align-self: stretch; display: grid; }
+  .ayg-blik-beeld .ayg-3d, .ayg-blik-beeld .club-ill { height: 100%; }
+  .ayg-blik-beeld .club-ill { aspect-ratio: auto; min-height: 560px; }
 }
-.ayg-blik-beeld figcaption b { font: 700 1.05rem/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.ayg-blik-beeld .club-ill { --club-radius: calc(var(--ayg-radius) + 12px); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn), 0 50px 120px -50px rgb(0 0 0 / 0.8); }
+/* Telefoon en tablet: naam en voorschrift onder het doek, zodat niets over het
+   figuur valt. Pc (hoog doek): als kaartje linksboven, boven het hoofd. */
+.ayg-blik-beeld figcaption { display: grid; gap: 2px; margin-top: 12px; color: var(--ayg-inkt-tekst); }
+@media (min-width: 960px) {
+  .ayg-blik-beeld figcaption {
+    position: absolute; left: 14px; top: 14px; display: grid; gap: 2px; margin: 0; padding: 9px 13px; border-radius: 12px; max-width: calc(100% - 28px);
+    background: var(--ayg-inkt); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn);
+  }
+}
+.ayg-blik-beeld figcaption b { font: 700 1rem/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
 .ayg-blik-beeld figcaption span { font-size: 13px; color: var(--ayg-inkt-tekst-2); }
-.ayg-blik-tekst { display: grid; gap: 22px; align-content: center; }
 .ayg-blik-keuze { display: flex; flex-wrap: wrap; gap: 6px; }
 .ayg-blik-keuze button {
   min-height: 40px; padding: 0 16px; border: 0; border-radius: 99px; cursor: pointer; font: 600 14px/1 var(--ayg-font-tekst);
@@ -233,25 +250,90 @@
 .ayg-blik-nr { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font: 800 1.35rem/1 var(--ayg-font-kop); font-variant-numeric: tabular-nums; }
 .ayg-blik-kern strong { display: block; font: 700 clamp(1.15rem, 1.7vw, 1.45rem)/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
 .ayg-blik-kern li span span { display: block; margin-top: 4px; font-size: 15px; color: var(--ayg-tekst-2); }
-.ayg-schemas-onder { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; margin-top: clamp(32px, 4vw, 48px); padding-top: 24px; border-top: 1px solid var(--ayg-lijn); }
-.ayg-schemas-onder .ayg-klein { color: var(--ayg-tekst-2); }
 
-/* ── Gebouwd vanuit de praktijk en onze beloftes ─────────────────────────── */
-.ayg-praktijk-raster { display: grid; gap: clamp(40px, 6vw, 80px); align-items: center; }
-@media (min-width: 1040px) { .ayg-praktijk-raster { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); } }
-.ayg-praktijk-verhaal { display: grid; gap: 24px; }
-.ayg-praktijk-verhaal .ayg-h2 { max-width: 16ch; }
-.ayg-praktijk-wie { display: flex; align-items: center; gap: 16px; }
-.ayg-praktijk-monogram { display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: var(--ayg-inkt); color: var(--ayg-accent); font: 700 1.35rem/1 var(--ayg-font-kop); letter-spacing: -0.02em; }
-.ayg-praktijk-wie p { display: grid; gap: 2px; }
-.ayg-praktijk-wie strong { font: 700 1.25rem/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
-.ayg-praktijk-wie p span { color: var(--ayg-tekst-2); font-size: 15px; }
-.ayg-praktijk-tekst { max-width: 58ch; font-size: clamp(1.02rem, 1.3vw, 1.12rem); color: var(--ayg-tekst-2); }
+/* ── Gebouwd vanuit de praktijk en wat dat voor jou betekent ────────────── */
+.ayg-praktijk-raster { display: grid; gap: clamp(44px, 6vw, 88px); align-items: start; }
+@media (min-width: 1040px) { .ayg-praktijk-raster { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); } }
+.ayg-praktijk-verhaal { display: grid; gap: 28px; }
+.ayg-praktijk-verhaal .ayg-h2 { max-width: 15ch; }
+.ayg-praktijk-citaat { margin: 0; display: grid; gap: 20px; padding-left: clamp(18px, 2vw, 26px); border-left: 3px solid var(--ayg-accent); }
+.ayg-praktijk-citaat blockquote { margin: 0; }
+.ayg-praktijk-citaat blockquote p { max-width: 40em; font-size: clamp(1.08rem, 0.5vw + 0.95rem, 1.3rem); line-height: 1.55; color: var(--ayg-tekst); }
+.ayg-praktijk-wie { display: flex; align-items: center; gap: 14px; }
+.ayg-praktijk-monogram { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; background: var(--ayg-inkt); color: var(--ayg-accent); font: 700 1.15rem/1 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.ayg-praktijk-wie > span:last-child { display: grid; gap: 2px; }
+.ayg-praktijk-wie strong { font: 700 1.15rem/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.ayg-praktijk-wie > span:last-child > span { color: var(--ayg-tekst-2); font-size: 15px; }
+.ayg-praktijk-vloer { display: grid; gap: 12px; }
+@media (min-width: 720px) { .ayg-praktijk-vloer { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ayg-praktijk-vloer li { display: grid; grid-template-columns: 28px 1fr; align-content: start; gap: 12px; padding-block: 4px 16px; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-praktijk-vloer li:last-child { border-bottom: 0; padding-bottom: 0; }
+@media (min-width: 720px) {
+  .ayg-praktijk-vloer li { grid-template-columns: none; padding: 20px; border-radius: var(--ayg-radius); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+  .ayg-praktijk-vloer li:last-child { border-bottom: 1px solid var(--ayg-lijn); padding-bottom: 20px; }
+}
+.ayg-praktijk-nr { padding-top: 4px; font: 700 13px/1 var(--ayg-font-kop); letter-spacing: 0.08em; color: var(--ayg-accent-sterk); font-variant-numeric: tabular-nums; }
+.ayg-praktijk-vloer h3 { font-size: 1.08rem; line-height: 1.2; letter-spacing: -0.02em; }
+.ayg-praktijk-vloer p { margin-top: 6px; font-size: 14.5px; line-height: 1.5; color: var(--ayg-tekst-2); }
+.ayg-praktijk-voorjou { display: grid; gap: 18px; }
+@media (min-width: 1040px) { .ayg-praktijk-voorjou { padding-top: clamp(34px, 3vw, 46px); } }
 .ayg-praktijk-beloftes { display: grid; border-top: 1.5px solid var(--ayg-tekst); }
 .ayg-praktijk-beloftes li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-block: 20px; border-bottom: 1px solid var(--ayg-lijn); }
 .ayg-praktijk-beloftes svg { width: 40px; height: 40px; padding: 10px; border-radius: 11px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 .ayg-praktijk-beloftes h3 { font-size: 1.1rem; letter-spacing: -0.02em; margin-bottom: 4px; }
 .ayg-praktijk-beloftes p { color: var(--ayg-tekst-2); font-size: 15px; }
 
-/* Rasteritems mogen nooit breder worden dan hun kolom (lange tekst, schermbeelden) */
-:where(.ayg-stapel, .ayg-held-raster, .ayg-gesplitst, .ayg-groep-raster, .ayg-prijzen, .ayg-start-raster, .ayg-instap, .ayg-aanpassen, .ayg-oog-rij, .ayg-blik, .ayg-praktijk-raster) > * { min-width: 0; }
+/* ── Ledenapp: drie telefoons als blikvanger ─────────────────────────────── */
+/* Telefoon: kop, telefoons, punten. Pc: kop en punten links, telefoons rechts. */
+.ayg-ledenapp { position: relative; overflow: clip; padding-block: clamp(64px, 8vw, 120px); }
+.ayg-ledenapp-raster { display: grid; gap: 32px; grid-template-areas: 'kop' 'beeld' 'meer'; }
+@media (min-width: 1040px) {
+  .ayg-ledenapp-raster { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: 'kop beeld' 'meer beeld'; column-gap: clamp(36px, 5vw, 72px); align-items: center; }
+  .ayg-ledenapp-raster > .ayg-sectiekop { align-self: end; }
+  .ayg-ledenapp-meer { align-self: start; }
+}
+.ayg-ledenapp-raster > .ayg-sectiekop { grid-area: kop; margin-bottom: 0; }
+.ayg-ledenapp-raster .ayg-h2 { max-width: 14ch; }
+.ayg-ledenapp-meer { grid-area: meer; display: grid; gap: 28px; justify-items: start; }
+.ayg-ledenapp-punten { display: grid; width: 100%; border-top: 1.5px solid var(--ayg-tekst); }
+.ayg-ledenapp-punten li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-block: 16px; border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-ledenapp-punten svg { width: 40px; height: 40px; padding: 10px; border-radius: 11px; background: var(--ayg-inkt); color: var(--ayg-accent); }
+.ayg-ledenapp-punten h3 { font-size: 1.1rem; letter-spacing: -0.02em; margin-bottom: 2px; }
+.ayg-ledenapp-punten p { color: var(--ayg-tekst-2); font-size: 15px; }
+/* De telefoons: de middelste groot vooraan, lessen en schema schuin erachter.
+   Het kader is 300 x 620; schalen met `scale` houdt de inhoud scherp. */
+.ayg-ledenapp-podium { grid-area: beeld; }
+.ayg-ledenapp-beeld { position: relative; height: 470px; isolation: isolate; }
+.ayg-ledenapp-beeld::before { content: ''; position: absolute; inset: 8% 0 0; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-accent) var(--ayg-gloed), transparent), transparent 72%); z-index: -1; pointer-events: none; }
+.ayg-ledenapp-toestel { position: absolute; left: 50%; top: 0; margin-left: -150px; transform-origin: 50% 0; scale: 0.74; }
+.ayg-ledenapp-toestel--midden { z-index: 2; }
+.ayg-ledenapp-toestel--links { translate: -128px 46px; scale: 0.6; }
+.ayg-ledenapp-toestel--rechts { translate: 128px 46px; scale: 0.6; }
+@media (min-width: 640px) {
+  .ayg-ledenapp-beeld { height: 560px; }
+  .ayg-ledenapp-toestel { scale: 0.88; }
+  .ayg-ledenapp-toestel--links { translate: -190px 56px; scale: 0.72; }
+  .ayg-ledenapp-toestel--rechts { translate: 190px 56px; scale: 0.72; }
+}
+@media (min-width: 1240px) {
+  .ayg-ledenapp-beeld { height: 610px; }
+  .ayg-ledenapp-toestel { scale: 0.96; }
+  .ayg-ledenapp-toestel--links { translate: -200px 64px; scale: 0.78; }
+  .ayg-ledenapp-toestel--rechts { translate: 200px 64px; scale: 0.78; }
+}
+.ayg-ledenapp-bijschrift { margin-top: 4px; font-size: 13px; color: var(--ayg-tekst-2); text-align: right; }
+
+/* ── Overstappen in drie stappen ─────────────────────────────────────────── */
+.ayg-overstap { padding-block: clamp(64px, 8vw, 120px); }
+.ayg-overstap-raster { display: grid; gap: clamp(32px, 5vw, 72px); align-items: start; }
+@media (min-width: 1040px) { .ayg-overstap-raster { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.ayg-overstap-kop { display: grid; gap: 24px; justify-items: start; }
+.ayg-overstap-kop .ayg-sectiekop { margin-bottom: 0; }
+.ayg-overstap-kop .ayg-h2 { max-width: 12ch; }
+.ayg-overstap-stappen { display: grid; gap: 12px; counter-reset: stap; }
+.ayg-overstap-stappen li { display: grid; grid-template-columns: 48px 1fr; gap: 18px; align-items: start; padding: clamp(18px, 2vw, 24px); border-radius: var(--ayg-radius); background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); }
+.ayg-overstap-nr { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); font: 800 1.35rem/1 var(--ayg-font-kop); font-variant-numeric: tabular-nums; }
+.ayg-overstap-stappen h3 { font-size: clamp(1.1rem, 1.4vw, 1.3rem); letter-spacing: -0.02em; margin-bottom: 4px; }
+.ayg-overstap-stappen p { color: var(--ayg-tekst-2); font-size: 15px; max-width: 52ch; }
+
+:where(.ayg-stapel, .ayg-held-raster, .ayg-gesplitst, .ayg-groep-raster, .ayg-prijzen, .ayg-start-raster, .ayg-instap, .ayg-aanpassen, .ayg-oog-rij, .ayg-blik, .ayg-praktijk-raster, .ayg-ledenapp-raster, .ayg-overstap-raster) > * { min-width: 0; }

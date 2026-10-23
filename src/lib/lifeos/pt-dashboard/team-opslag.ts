@@ -50,9 +50,19 @@ async function haalBeheerder(admin: SupabaseClient, userId: string): Promise<{ i
   return p ? { id: p.id as string, naam: String(p.naam).split(' ')[0] } : null
 }
 
-/** Alleen de trainers (actieve PT'ers + de beheerder) met naam, zonder leads en klanten. Null = lezen mislukt. */
-export async function haalTrainers(admin: SupabaseClient, userId: string): Promise<{ id: string; naam: string }[] | null> {
-  const [personen, beheerder] = await Promise.all([haalPersonen(admin, userId, 'pt_team'), haalBeheerder(admin, userId)])
+/**
+ * Alleen de trainers (actieve PT'ers + de beheerder) met naam, zonder leads en
+ * klanten. `metBeheerder: false` = alleen de PT'ers. Null = lezen mislukt.
+ */
+export async function haalTrainers(
+  admin: SupabaseClient,
+  userId: string,
+  { metBeheerder = true }: { metBeheerder?: boolean } = {},
+): Promise<{ id: string; naam: string }[] | null> {
+  const [personen, beheerder] = await Promise.all([
+    haalPersonen(admin, userId, 'pt_team'),
+    metBeheerder ? haalBeheerder(admin, userId) : Promise.resolve(null),
+  ])
   if (!personen.ok || beheerder === 'fout') return null
   const pts = personen.waarde
     .filter((p) => p.status !== 'inactief' && !isVergadering(p.naam))

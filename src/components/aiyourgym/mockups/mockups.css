@@ -173,7 +173,7 @@
 }
 
 
-/* ── Ledenapp: voeding en pincode ────────────────────────────────────────── */
+/* ── Ledenapp: voeding en inloggen ───────────────────────────────────────── */
 .aygm-voeding { display: grid; gap: 14px; }
 .aygm-macros { display: grid; gap: 9px; }
 .aygm-macros > div { display: grid; gap: 5px; }
@@ -181,12 +181,10 @@
 .aygm-macro-tekst b { color: var(--text-1); font-variant-numeric: tabular-nums; }
 .aygm-pin { display: grid; gap: 22px; align-content: start; padding-top: 18px; text-align: center; }
 .aygm-pin-kop { display: grid; gap: 6px; }
-.aygm-pin-vakjes { display: flex; justify-content: center; gap: 10px; }
-.aygm-pin-vakjes span { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); }
-.aygm-pin-vakjes span[data-vol] { background: var(--brand); box-shadow: none; }
-.aygm-pin-toetsen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-inline: 10px; }
-.aygm-pin-toetsen span { display: grid; place-items: center; height: 44px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); font: 600 18px/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; }
-.aygm-pin-toetsen span[data-leeg] { background: none; border: 0; }
+.aygm-inlog-velden { display: grid; gap: 6px; padding-inline: 10px; text-align: left; }
+.aygm-inlog-label { font-size: 11px; color: var(--text-2); font-weight: 600; }
+.aygm-inlog-veld { display: block; height: 40px; padding: 11px 12px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); font-size: 12.5px; color: var(--text-1); }
+.aygm-inlog-knop { display: grid; place-items: center; height: 42px; margin-top: 8px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt); font-weight: 600; font-size: 13px; }
 .aygm-pin-voet { font-size: 11px; color: var(--text-3); padding-inline: 8px; }
 
 /* ── Held: het samengestelde scherm Vandaag ──────────────────────────────── */

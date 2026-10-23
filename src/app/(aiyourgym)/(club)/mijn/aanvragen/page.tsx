@@ -58,13 +58,13 @@ function Kaart({ org, voorvertoning }: { org: Organisatie; voorvertoning: boolea
   const kanMailen = mailKlaar(process.env)
   const uitleg = !kanMailen
     ? AANVRAAG_GEEN_MAIL
-    : 'Vul het e-mailadres in dat bij je lidmaatschap hoort. Je krijgt een mail met je persoonlijke link naar de app.'
+    : 'Vul het e-mailadres in dat bij je lidmaatschap hoort. Je krijgt een mail met een persoonlijke link waarmee je een wachtwoord kiest (ook als je het vergeten bent).'
   return (
     <LedenappSchil organisatie={org}>
       <InlogKaart merkNaam={org.naam} fitFactory={org.logo === LOGO_FIT_FACTORY} boven={org.naam} kop="Je link voor de app" uitleg={uitleg}>
         {voorvertoning ? <p className="club-mijn-inlog-fout">Voorvertoning: de ledenapp is nog niet open voor leden, versturen kan nog niet.</p> : null}
         {kanMailen && !voorvertoning ? <AanvraagFormulier sportschool={org.slug ?? org.id} /> : null}
-        <Link href="/mijn/inloggen" className="club-mijn-inlog-link">Heb je al een pincode? Inloggen</Link>
+        <Link href={org.slug ? `/mijn/inloggen?s=${encodeURIComponent(org.slug)}` : '/mijn/inloggen'} className="club-mijn-inlog-link">Heb je al een wachtwoord? Inloggen</Link>
       </InlogKaart>
     </LedenappSchil>
   )

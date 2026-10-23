@@ -15,7 +15,7 @@ export interface LedenRij {
   bezoeken30: number
   /** Alleen voor leden die horen te komen (actief, proef); anders null. */
   behoud: Behoud | null
-  /** Gebruikt de ledenapp: een actieve link met een gekozen pincode. */
+  /** Gebruikt de ledenapp: een actief account met een wachtwoord (of nog een oude pincode). */
   heeftApp: boolean
 }
 
