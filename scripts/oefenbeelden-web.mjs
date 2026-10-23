@@ -140,11 +140,29 @@ function uitBibliotheek(slug) {
   const bestand = join(BIBLIOTHEEK, `${slug}.ts`)
   if (!existsSync(bestand)) throw new Error(`geen 3D-oefening ${slug}.ts in de bibliotheek: de mapnaam moet het 3D-bestand volgen`)
   const tekst = readFileSync(bestand, 'utf8')
-  const naam = tekst.match(/naam:\s*'([^']+)'/)?.[1]
+  // naam: 'X' in het object, of als eerste argument van een bouwsteen: plank('Plank')
+  const naam = (tekst.match(/naam:\s*'([^']+)'/) ?? tekst.match(/=\s*\w+\(\s*'([^']+)'/))?.[1]
   if (!naam) throw new Error(`geen naam gevonden in ${slug}.ts`)
   const lijst = (sleutel) =>
     [...(tekst.match(new RegExp(`${sleutel}:\\s*\\[([^\\]]*)\\]`))?.[1] ?? '').matchAll(/'([a-z]+)'/g)].map((m) => m[1])
-  return { naam, spieren: lijst('spieren'), spierenSecundair: lijst('spierenSecundair') }
+  const spieren = lijst('spieren')
+  // Een bouwsteen (heupstrek, plank) rekent de spieren zelf uit; dan de oranje zones uit de pose.
+  if (spieren.length === 0) return { naam, spieren: uitPose(slug), spierenSecundair: [] }
+  return { naam, spieren, spierenSecundair: lijst('spierenSecundair') }
+}
+
+/** Oranje zones van de render (poses/<slug>.json) als lichaamsdelen van de 3D-bibliotheek. */
+const ZONE_DEEL = {
+  quadriceps: 'dij', hamstrings: 'hamstring', bilspieren: 'bil', kuiten: 'kuit', borst: 'borst',
+  voorste_schouder: 'schouder', zijschouder: 'schouder', triceps: 'bovenarm', biceps: 'bovenarm',
+  onderarm: 'onderarm', bovenrug: 'rug', onderrug: 'onderrug', buikspieren: 'romp', schuine_buikspieren: 'romp',
+}
+
+function uitPose(slug) {
+  const pose = join(STANDAARD_BRON, '..', 'poses', `${slug}.json`)
+  if (!existsSync(pose)) return []
+  const zones = JSON.parse(readFileSync(pose, 'utf8')).spieren ?? []
+  return [...new Set(zones.map((z) => ZONE_DEEL[z]).filter(Boolean))]
 }
 
 function verwerk(bin, bron, slug) {

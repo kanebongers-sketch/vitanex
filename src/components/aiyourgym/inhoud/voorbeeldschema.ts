@@ -22,9 +22,9 @@ export interface VoorbeeldOefening {
 
 const KEUZE: readonly { naam: string; kort: string; patroon: Patroon }[] = [
   { naam: 'Back squat', kort: 'Back squat', patroon: 'squat' },
-  { naam: 'Roemeense deadlift met dumbbells', kort: 'Roemeense deadlift', patroon: 'heupscharnier' },
-  { naam: 'Dumbbell bankdrukken', kort: 'Bankdrukken', patroon: 'duwen_horizontaal' },
-  { naam: 'Lat pulldown', kort: 'Lat pulldown', patroon: 'trekken_verticaal' },
+  { naam: 'Deadlift', kort: 'Deadlift', patroon: 'heupscharnier' },
+  { naam: 'Push-up', kort: 'Push-up', patroon: 'duwen_horizontaal' },
+  { naam: 'Barbell row', kort: 'Barbell row', patroon: 'trekken_horizontaal' },
 ]
 
 /** "8-12" wordt "8 tot 12" (schrijfregel: bereiken met "tot"). */
