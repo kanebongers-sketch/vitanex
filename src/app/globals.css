@@ -3928,6 +3928,27 @@ body {
 .lifeos-root .ptd-zoek { position: relative; }
 .lifeos-root .ptd-rechts { margin-left: auto; }
 .lifeos-root .ptd-zacht { color: var(--text-3); font-weight: 500; }
+
+/* "Belangrijk" bovenaan het startscherm van een PT'er (Belangrijk.tsx) en het
+   beheer ervan (BelangrijkBeheer.tsx). Open punten krijgen een bronzen lijn
+   links; het vinkje heeft een raakvlak van 44px voor de duim. */
+.lifeos-root .ptd-belangrijk-punt { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: 12px; border-left: 3px solid var(--brand); }
+.lifeos-root .ptd-belangrijk-punt--actie { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); border-left-color: var(--brand); }
+.lifeos-root .ptd-belangrijk-punt--gedaan { border-left-color: var(--line-strong); }
+.lifeos-root .ptd-belangrijk-punt--gedaan .ptd-naam { color: var(--text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.lifeos-root .ptd-belangrijk-punt--uit { border-style: dashed; }
+.lifeos-root .ptd-belangrijk-inhoud { display: grid; gap: 6px; min-width: 0; }
+.lifeos-root .ptd-belangrijk-icoon { display: grid; place-items: center; width: 32px; height: 32px; margin-top: 1px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+.lifeos-root .ptd-belangrijk-vink { display: grid; place-items: center; width: 44px; height: 44px; margin: -10px -6px -10px -10px; cursor: pointer; }
+.lifeos-root .ptd-belangrijk-vink input { width: 22px; height: 22px; margin: 0; accent-color: var(--brand); cursor: pointer; }
+.lifeos-root .ptd-belangrijk-vink input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.lifeos-root .ptd-belangrijk-vink input:disabled { cursor: default; opacity: 0.6; }
+.lifeos-root .ptd-belangrijk-link { display: inline-flex; align-items: center; gap: 4px; justify-self: start; min-height: 32px; }
+.lifeos-root .ptd-belangrijk-maten { display: grid; gap: 12px; margin-top: 6px; }
+.lifeos-root .ptd-belangrijk-matenregel svg { vertical-align: -2px; margin-right: 2px; }
+.lifeos-root .ptd-belangrijk-matenregel strong { color: var(--text-1); }
+.lifeos-root .ptd-belangrijk-gedaan { display: grid; gap: 8px; }
+.lifeos-root .ptd-belangrijk-gedaan > summary { display: inline-flex; align-items: center; min-height: 44px; }
 .lifeos-root .ptd-details > summary { padding: 14px 16px; font-size: 15px; font-weight: 600; color: var(--text-1); display: flex; justify-content: space-between; align-items: center; }
 .lifeos-root .ptd-details > summary::after { content: '+'; color: var(--brand); font-size: 20px; line-height: 1; }
 .lifeos-root .ptd-details[open] > summary::after { content: '−'; }
