@@ -48,7 +48,7 @@ describe('vloer en verhouding', () => {
     expect(vloerVan({ ...render, vloerY: 0.74 } as OefenRender)).toBe(0.74)
     expect(vloerVan({ ...render, vloerY: undefined, vloer_y: 0.62 } as unknown as OefenRender)).toBe(0.62)
     expect(vloerVan({ ...render, vloerY: 7 } as OefenRender)).toBe(VLOER_STANDAARD)
-    expect(vloerVan({ ...render, vloerY: undefined } as OefenRender)).toBeGreaterThan(0.3)
+    expect(vloerVan({ ...render, vloerY: undefined } as unknown as OefenRender)).toBeGreaterThan(0.3)
   })
 
   it('heeft voor elke render een geldige verhouding en vloer', () => {
