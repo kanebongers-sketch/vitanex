@@ -47,10 +47,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       schema: 'Schema',
       naam: 'Full body · Spiermassa',
       weken: (n: number) => `${n} weken`,
-      // Wat Club bij de voorbeeldintake voorstelt (stelSchemaVoor)
-      naam: VOORSTEL.naam,
-      dagen: VOORSTEL.dagen.map((d) => d.titel),
-      waarschuwingen: VOORSTEL.waarschuwingen,
       dagen: ['Dag A', 'Dag B', 'Dag C'],
       gedaan: 'Training dag A gedaan',
       uitleg: 'In de ledenapp: de eerste twee kernpunten onder elke oefening, tik voor de beweging en alle coaching.',
@@ -104,6 +100,10 @@ export const SCHEMA_SCHERMEN = woordenboek({
       voorstel: 'Voorstel',
       openen: 'Openen in de editor',
       weken: (n: number) => `${n} weken`,
+      // Wat Club bij de voorbeeldintake voorstelt (stelSchemaVoor)
+      naam: VOORSTEL.naam,
+      dagen: VOORSTEL.dagen.map((d) => d.titel),
+      waarschuwingen: VOORSTEL.waarschuwingen,
     },
     editor: {
       naam: 'Full body · Spiermassa',
@@ -157,9 +157,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       schema: 'Programme',
       naam: 'Full body · Muscle gain',
       weken: (n: number) => `${n} weeks`,
-      naam: 'Full body · Muscle gain',
-      dagen: ['Full body A', 'Full body B', 'Full body C'],
-      waarschuwingen: ['A health question was answered with yes. Ask the member to check with their GP before the intensity goes up.'],
       dagen: ['Day A', 'Day B', 'Day C'],
       gedaan: 'Day A workout done',
       uitleg: 'In the member app: the first two coaching cues under each exercise, tap for the movement and all the coaching.',
@@ -221,6 +218,9 @@ export const SCHEMA_SCHERMEN = woordenboek({
       voorstel: 'Draft',
       openen: 'Open in the editor',
       weken: (n: number) => `${n} weeks`,
+      naam: 'Full body · Muscle gain',
+      dagen: ['Full body A', 'Full body B', 'Full body C'],
+      waarschuwingen: ['A health question was answered with yes. Ask the member to check with their GP before the intensity goes up.'],
     },
     editor: {
       naam: 'Full body · Muscle gain',

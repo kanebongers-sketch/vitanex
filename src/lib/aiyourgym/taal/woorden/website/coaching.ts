@@ -180,7 +180,7 @@ export const SITE_COACHING_NAMEN: readonly string[] = Object.keys(SITE_COACHING.
  * zorgt dat elke oefening op de website erin staat).
  */
 export function siteCoaching(naam: string, taal: Taal): SiteCoachingTekst | undefined {
-  if (taal === 'nl') return coachingVoor(naam)
+  if (taal === 'nl') return coachingVoor(naam) ?? undefined
   const boek: Readonly<Record<string, SiteCoachingTekst | undefined>> = SITE_COACHING.en
   return boek[naam]
 }
