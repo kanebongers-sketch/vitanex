@@ -5,7 +5,7 @@ import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { BEVEILIGING } from '@/lib/aiyourgym/taal/woorden/website/beveiliging'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
-import { aygPad, sitePaden } from '@/components/aiyourgym/site/paden'
+import { aygPad, SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // Privacy en beveiliging in gewone taal. Alleen wat echt zo is gebouwd (bronnen
 // in inhoud/beveiliging.ts, Engels in woorden/website/beveiliging.ts); geen
@@ -70,7 +70,7 @@ export default async function PrivacyBeveiligingPagina() {
             <div className="ayg-kaart ayg-pb-dpa">
               <h3 className="ayg-h3">{t.dpaKop}</h3>
               <p>{t.dpaTekst}</p>
-              <Link href={sitePaden(taal).DEMO_AANVRAGEN} className="ayg-pijllink">
+              <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="ayg-pijllink">
                 {t.dpaLink} <ArrowRight size={16} aria-hidden />
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default async function PrivacyBeveiligingPagina() {
             </div>
             <p className="ayg-klein">
               {t.meer.voor}
-              <Link href={aygPad('/privacy', taal)}>{t.meer.link}</Link>
+              <Link href={aygPad('/privacy')}>{t.meer.link}</Link>
               {t.meer.na}
             </p>
           </div>

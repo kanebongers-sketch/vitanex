@@ -13,7 +13,7 @@ import { isTestSessie } from '@/lib/aiyourgym/testbetaling'
 import { wachtendeTestbetaling } from '@/lib/aiyourgym/testbetaling-opslag'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { TestbetaalKnop } from '@/components/aiyourgym/aanmelden/TestbetaalKnop'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { TESTBETALING } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -35,7 +35,7 @@ interface PaginaProps {
 
 function Onbekend({ taal }: { taal: Taal }) {
   const t = TESTBETALING[taal]
-  const { AANMELDEN, INLOGGEN } = sitePaden(taal)
+  const { AANMELDEN, INLOGGEN } = SITE_PADEN
   return (
     <>
       <h1 className="aan-titel">{t.onbekendKop}</h1>

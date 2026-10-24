@@ -6,7 +6,7 @@ import { CHECKLIST } from '@/lib/aiyourgym/taal/woorden/website/overstapchecklis
 import { Overstapchecklist } from '@/components/aiyourgym/hulpmiddel/Overstapchecklist'
 import { GERUST_BIJ_KNOP, Geruststelling, TweeRoutes } from '@/components/aiyourgym/site/Actie'
 import { PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // Een gratis hulpmiddel zonder poort (concurrentenonderzoek item 14): de
 // checklist werkt zonder account of e-mailadres, de vinkjes blijven in de
@@ -35,7 +35,7 @@ export default async function OverstapchecklistPagina() {
           <SectieKop id="cl-verder-titel" label={t.verderLabel} titel={t.verderTitel} tekst={t.verderTekst} />
           <TweeRoutes />
           <Geruststelling aantal={GERUST_BIJ_KNOP} />
-          <Link href={sitePaden(taal).OVERSTAPPEN} className="ayg-pijllink">
+          <Link href={SITE_PADEN.OVERSTAPPEN} className="ayg-pijllink">
             {t.zoWerkt} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>

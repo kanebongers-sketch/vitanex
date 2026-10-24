@@ -1,78 +1,64 @@
 import { describe, expect, it } from 'vitest'
 import { formatDatum, formatEuro, formatEuroCenten, formatGetal, formatProcent, formatTijd } from './formaat'
-import { taalAlternates } from './metadata'
-import { ontleedSitePad, splitsTaal, taalPad, wisselTaalPad } from './pad'
-import { isTaal, kiesTaal, taalUitAcceptLanguage } from './taal'
+import { siteAlternates } from './metadata'
+import { oudEngelsPad } from './pad'
+import { TAAL_COOKIE, TAAL_COOKIE_OPTIES, isTaal, kiesTaal } from './taal'
 
 // Spaties in Intl-uitvoer kunnen een harde spatie zijn; vergelijk zonder dat verschil.
 const gewoon = (s: string) => s.replace(/[  ]/g, ' ')
 
-describe('taal kiezen (Club en ledenapp)', () => {
+describe('taal kiezen (website, Club en ledenapp)', () => {
   it('herkent alleen nl en en', () => {
     expect(isTaal('nl')).toBe(true)
     expect(isTaal('en')).toBe(true)
     expect(isTaal('de')).toBe(false)
     expect(isTaal(undefined)).toBe(false)
   })
-  it('leest de beste taal uit Accept-Language', () => {
-    expect(taalUitAcceptLanguage('en-GB,en;q=0.9,nl;q=0.8')).toBe('en')
-    expect(taalUitAcceptLanguage('nl-NL,nl;q=0.9,en-US;q=0.8')).toBe('nl')
-    expect(taalUitAcceptLanguage('de-DE,de;q=0.9,en;q=0.5')).toBe('en')
-    expect(taalUitAcceptLanguage('en;q=0.4,nl;q=0.6')).toBe('nl')
-    expect(taalUitAcceptLanguage('fr,de')).toBeNull()
-    expect(taalUitAcceptLanguage('en;q=0')).toBeNull()
-    expect(taalUitAcceptLanguage('')).toBeNull()
-    expect(taalUitAcceptLanguage(null)).toBeNull()
+  it('zonder cookie altijd Nederlands', () => {
+    expect(kiesTaal(undefined)).toBe('nl')
+    expect(kiesTaal(null)).toBe('nl')
+    expect(kiesTaal('')).toBe('nl')
+    expect(kiesTaal('xx')).toBe('nl')
+    expect(kiesTaal('EN')).toBe('nl')
   })
-  it('voorkeur gaat voor de browser, daarna Nederlands', () => {
-    expect(kiesTaal('en', 'nl-NL')).toBe('en')
-    expect(kiesTaal('nl', 'en-GB')).toBe('nl')
-    expect(kiesTaal(undefined, 'en-GB')).toBe('en')
-    expect(kiesTaal('xx', 'en-GB')).toBe('en')
-    expect(kiesTaal(null, 'fr-FR')).toBe('nl')
-    expect(kiesTaal(null, null)).toBe('nl')
+  it('de cookie bepaalt de taal', () => {
+    expect(kiesTaal('en')).toBe('en')
+    expect(kiesTaal('nl')).toBe('nl')
+  })
+  it('de cookie heet ayg-taal, een jaar, voor de hele site en leesbaar voor de taalkeuze', () => {
+    expect(TAAL_COOKIE).toBe('ayg-taal')
+    expect(TAAL_COOKIE_OPTIES).toEqual({ path: '/', sameSite: 'lax', secure: true, httpOnly: false, maxAge: 60 * 60 * 24 * 365 })
   })
 })
 
-describe('taal in het adres', () => {
-  it('splitst /en eraf', () => {
-    expect(splitsTaal('/en')).toEqual({ taal: 'en', rest: '/' })
-    expect(splitsTaal('/en/functies')).toEqual({ taal: 'en', rest: '/functies' })
-    expect(splitsTaal('/en#vragen')).toEqual({ taal: 'en', rest: '/#vragen' })
-    expect(splitsTaal('/functies')).toEqual({ taal: 'nl', rest: '/functies' })
-    expect(splitsTaal('/english')).toEqual({ taal: 'nl', rest: '/english' })
+describe('oude Engelse adressen', () => {
+  it('haalt /en eraf', () => {
+    expect(oudEngelsPad('/en')).toBe('/')
+    expect(oudEngelsPad('/en/')).toBe('/')
+    expect(oudEngelsPad('/en/functies')).toBe('/functies')
+    expect(oudEngelsPad('/en/voor-wie/gym')).toBe('/voor-wie/gym')
   })
-  it('zet een pad in een taal', () => {
-    expect(taalPad('nl', '/functies')).toBe('/functies')
-    expect(taalPad('en', '/functies')).toBe('/en/functies')
-    expect(taalPad('en', '/')).toBe('/en')
-    expect(taalPad('en', '')).toBe('/en')
-    expect(taalPad('nl', '')).toBe('/')
+  it('ook onder /aiyourgym', () => {
+    expect(oudEngelsPad('/aiyourgym/en')).toBe('/aiyourgym')
+    expect(oudEngelsPad('/aiyourgym/en/')).toBe('/aiyourgym')
+    expect(oudEngelsPad('/aiyourgym/en/prijzen')).toBe('/aiyourgym/prijzen')
   })
-  it('wisselt van taal met en zonder /aiyourgym', () => {
-    expect(wisselTaalPad('/functies', 'en')).toBe('/en/functies')
-    expect(wisselTaalPad('/en/functies', 'nl')).toBe('/functies')
-    expect(wisselTaalPad('/', 'en')).toBe('/en')
-    expect(wisselTaalPad('/en', 'nl')).toBe('/')
-    expect(wisselTaalPad('/aiyourgym/functies', 'en')).toBe('/aiyourgym/en/functies')
-    expect(wisselTaalPad('/aiyourgym/en/functies', 'nl')).toBe('/aiyourgym/functies')
-    expect(wisselTaalPad('/aiyourgym', 'en')).toBe('/aiyourgym/en')
-    expect(wisselTaalPad('/aiyourgym/en', 'nl')).toBe('/aiyourgym')
-    expect(wisselTaalPad('/en/functies', 'en')).toBe('/en/functies')
+  it('laat gewone en lijkende paden met rust', () => {
+    expect(oudEngelsPad('/')).toBeNull()
+    expect(oudEngelsPad('/functies')).toBeNull()
+    expect(oudEngelsPad('/english')).toBeNull()
+    expect(oudEngelsPad('/EN/functies')).toBeNull()
+    expect(oudEngelsPad('/aiyourgym')).toBeNull()
+    expect(oudEngelsPad('/aiyourgym/enquete')).toBeNull()
+    expect(oudEngelsPad('/aiyourgymen')).toBeNull()
   })
-  it('ontleedt een websitepad tot route, taal en publiek pad', () => {
-    expect(ontleedSitePad('/en/prijzen')).toEqual({ taal: 'en', route: '/aiyourgym/prijzen', publiek: '/prijzen' })
-    expect(ontleedSitePad('/aiyourgym/en')).toEqual({ taal: 'en', route: '/aiyourgym', publiek: '/' })
-    expect(ontleedSitePad('/aiyourgym/prijzen')).toEqual({ taal: 'nl', route: '/aiyourgym/prijzen', publiek: '/prijzen' })
-    expect(ontleedSitePad('/aiyourgym')).toEqual({ taal: 'nl', route: '/aiyourgym', publiek: '/' })
-    expect(ontleedSitePad('/prijzen')).toBeNull()
-  })
-  it('geeft hreflang voor beide talen en x-default', () => {
-    expect(taalAlternates('/functies', 'en')).toEqual({
-      canonical: '/en/functies',
-      languages: { nl: '/functies', en: '/en/functies', 'x-default': '/functies' },
-    })
-    expect(taalAlternates('/', 'nl')).toEqual({ canonical: '/', languages: { nl: '/', en: '/en', 'x-default': '/' } })
+})
+
+describe('canonical', () => {
+  it('een adres per pagina, zonder hreflang en zonder /en', () => {
+    expect(siteAlternates('/functies')).toEqual({ canonical: '/functies' })
+    expect(siteAlternates('/')).toEqual({ canonical: '/' })
+    expect(siteAlternates('')).toEqual({ canonical: '/' })
   })
 })
 

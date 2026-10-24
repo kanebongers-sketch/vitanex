@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { PRIJS_OP_MAAT } from '@/lib/aiyourgym/taal/woorden/website/prijs-op-maat'
 
@@ -15,7 +15,7 @@ export function PrijsBedankt({ naam }: { naam: string }) {
   const kop = useRef<HTMLHeadingElement>(null)
   const taal = useTaal()
   const t = PRIJS_OP_MAAT[taal]
-  const { AANMELDEN, DEMO } = sitePaden(taal)
+  const { AANMELDEN, DEMO } = SITE_PADEN
   useEffect(() => kop.current?.focus(), [])
   return (
     <section className="aan-klaar ayg-kaart dem-bedankt" aria-live="polite">

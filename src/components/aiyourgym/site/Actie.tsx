@@ -5,7 +5,7 @@ import { GERUSTSTELLING } from '@/components/aiyourgym/inhoud/conversie'
 import { siteTekst, getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { Knop } from './bouwstenen'
-import { sitePaden } from './paden'
+import { SITE_PADEN } from './paden'
 
 // De oproep om te beginnen, met vlak erbij wat het risico wegneemt. Staat onder
 // de held, na elke grote sectie en in de aanmeldband. In de taal van de pagina
@@ -44,7 +44,7 @@ interface SectieActieProps {
 export async function TweeRoutes() {
   const taal = await getSiteTaal()
   const t = ACTIE[taal]
-  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN } = SITE_PADEN
   return (
     <div className="ayg-knoppen">
       <Knop href={AANMELDEN} soort="accent" pijl>
@@ -60,7 +60,7 @@ export async function TweeRoutes() {
 /** Na een grote sectie: gratis proberen, een demo plannen, de live demo als rustige derde keus en geruststelling. */
 export async function SectieActie({ zin }: SectieActieProps) {
   const taal = await getSiteTaal()
-  const { DEMO } = sitePaden(taal)
+  const { DEMO } = SITE_PADEN
   return (
     <div className="ayg-sectie-actie">
       {zin && <p className="ayg-sectie-actie-zin">{zin}</p>}

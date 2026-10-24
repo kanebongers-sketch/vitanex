@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowRight, Check } from 'lucide-react'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
 
@@ -51,7 +51,7 @@ export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, taal
             ))}
           </ul>
           <p>
-            <Link href={sitePaden(taal).AANMELDEN} className="ayg-pijllink">
+            <Link href={SITE_PADEN.AANMELDEN} className="ayg-pijllink">
               {t.startProef} <ArrowRight size={16} aria-hidden />
             </Link>
           </p>

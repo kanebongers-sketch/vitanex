@@ -8,8 +8,8 @@ import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/ba
 import { beslisClub } from '@/lib/club/kern/subdomein'
 import { ADRES_COOKIE, SLUG_KOP, beslisClubPad, splitsSlugPad, subdomeinUrl } from '@/lib/club/kern/pad-adres'
 import { slugBestaat } from '@/lib/club/kern/slug-bestaat'
-import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, isAygHost, type SiteTaal } from '@/lib/aiyourgym/host'
-import { SITE_PAD_KOP, TAAL_KOP } from '@/lib/aiyourgym/taal/taal'
+import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, engelsOmleidUrl, isAygHost } from '@/lib/aiyourgym/host'
+import { SITE_PAD_KOP, TAAL_COOKIE, TAAL_COOKIE_OPTIES } from '@/lib/aiyourgym/taal/taal'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
 import { widgetProxy } from '@/lib/club/widget/proxy-widget'
@@ -88,21 +88,30 @@ function clubOpSubdomein(request: NextRequest): NextResponse | null {
   return response
 }
 
-/** De headers van het verzoek zonder de koppen die alleen de proxy zelf zet (slug, taal, pad). */
+/** De headers van het verzoek zonder de koppen die alleen de proxy zelf zet (slug, pad). */
 function zonderSlugKop(request: NextRequest): Headers {
   const headers = new Headers(request.headers)
   headers.delete(SLUG_KOP)
-  headers.delete(TAAL_KOP)
   headers.delete(SITE_PAD_KOP)
   return headers
 }
 
-/** Taal en publiek pad van een websitepagina als kop, voor <html lang> en hreflang (src/lib/aiyourgym/taal/server.ts). */
-function metSiteTaal(headers: Headers, site: SiteTaal | undefined): Headers {
-  if (!site) return headers
-  headers.set(TAAL_KOP, site.taal)
-  headers.set(SITE_PAD_KOP, site.publiek)
+/** Het publieke pad van een websitepagina als kop, voor de canonical (src/lib/aiyourgym/taal/server.ts). */
+function metSitePad(headers: Headers, publiek: string | undefined): Headers {
+  if (publiek) headers.set(SITE_PAD_KOP, publiek)
   return headers
+}
+
+/**
+ * Een oud Engels adres (/en/...): 308 naar hetzelfde pad zonder /en en de
+ * cookie ayg-taal=en, zodat een gedeelde Engelse link Engels blijft (besluit
+ * Kane 24-10-2026: geen /en meer in adressen, docs/aiyourgym/TALEN.md).
+ */
+function engelsOmleiden(request: NextRequest, pad: string): NextResponse {
+  const response = NextResponse.redirect(engelsOmleidUrl(request.headers.get('host'), pad, request.nextUrl.search), 308)
+  response.cookies.set(TAAL_COOKIE, 'en', TAAL_COOKIE_OPTIES)
+  if (!aygIndexeren()) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
+  return response
 }
 
 /**
@@ -146,7 +155,8 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   const host = request.headers.get('host')
   const besluit = beslisAyg(host, request.nextUrl.pathname, siteActief())
   if (besluit.soort === 'niet-van-mij') return null
-  const headers = metSiteTaal(zonderSlugKop(request), besluit.site)
+  if (besluit.soort === 'engels-omleiden') return engelsOmleiden(request, besluit.pad)
+  const headers = metSitePad(zonderSlugKop(request), besluit.publiek)
   let response: NextResponse
   if (besluit.soort === 'door') {
     response = NextResponse.next({ request: { headers } })
@@ -165,18 +175,12 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
 }
 
 /**
- * De Engelse website onder /aiyourgym/en op een ander domein (fitfactorypt.nl,
- * zolang de schakelaar uit staat alleen voor Kane): dezelfde route als het
- * Nederlands, met de taal als kop. Nederlands verandert niet.
+ * Een oud Engels adres onder /aiyourgym/en op een ander domein (fitfactorypt.nl,
+ * zolang de schakelaar uit staat alleen voor Kane): dezelfde 308 met cookie.
  */
 function aiyourgymEngelsElders(request: NextRequest): NextResponse | null {
   const besluit = beslisAygTaalElders(request.nextUrl.pathname)
-  if (!besluit) return null
-  const doel = request.nextUrl.clone()
-  doel.pathname = besluit.pad
-  const response = NextResponse.rewrite(doel, { request: { headers: metSiteTaal(zonderSlugKop(request), besluit.site) } })
-  if (!aygIndexeren()) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
-  return response
+  return besluit ? engelsOmleiden(request, besluit.pad) : null
 }
 
 export async function proxy(request: NextRequest) {

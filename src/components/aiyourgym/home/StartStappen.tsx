@@ -49,7 +49,7 @@ export async function StartStappen({ metLink = true }: Props) {
           <SectieActie />
           {metLink && (
             <p>
-              <Link href={aygPad('/overstappen', taal)} className="ayg-pijllink">
+              <Link href={aygPad('/overstappen')} className="ayg-pijllink">
                 {t.link} <ArrowRight size={16} aria-hidden />
               </Link>
             </p>

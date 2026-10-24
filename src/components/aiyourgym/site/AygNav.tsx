@@ -8,7 +8,7 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { TaalKeuze } from '@/components/aiyourgym/taal/TaalKeuze'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { KOP } from '@/lib/aiyourgym/taal/woorden/website/kop'
-import { isHuidig, navLinks, sitePaden } from './paden'
+import { isHuidig, navLinks, SITE_PADEN } from './paden'
 
 // De links in de kop, met de huidige pagina gemarkeerd, en het menupaneel voor
 // de telefoon: over het hele scherm, de pagina eronder staat stil. Het paneel
@@ -54,7 +54,7 @@ export function AygNav() {
   const taal = useTaal()
   const t = KOP[taal]
   const links = navLinks(taal)
-  const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = SITE_PADEN
   const pad = usePathname()
   const [open, setOpen] = useState(false)
   const [vorigPad, setVorigPad] = useState(pad)

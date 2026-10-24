@@ -5,7 +5,7 @@
 
 import { instelGroepLabel, instelHref, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
 import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar, toetsTekst } from './onderdelen'
-import { hulpbalkVoor, hulpItems, hulpToets } from './hulpbalk'
+import { hulpbalkVoor, hulpItems, hulpToets } from './hulpbalk-items'
 
 export interface ZoekItem {
   /** Uniek binnen de lijst. */

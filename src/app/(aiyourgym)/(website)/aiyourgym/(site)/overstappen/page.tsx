@@ -13,7 +13,7 @@ import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { WatKomtMee } from '@/components/aiyourgym/home/WatKomtMee'
 import { WelNiet } from '@/components/aiyourgym/home/WelNiet'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // Teksten in beide talen: woorden/website/overstappen.ts. WelNiet, WatKomtMee,
 // StartStappen en ImportScherm zijn gedeeld met de voorpagina en de mockups.
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function OverstappenPagina() {
   const taal = await getSiteTaal()
   const t = OVERSTAPPEN[taal]
-  const { AANMELDEN, DEMO_AANVRAGEN, OVERSTAPCHECKLIST } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN, OVERSTAPCHECKLIST } = SITE_PADEN
   return (
     <>
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>

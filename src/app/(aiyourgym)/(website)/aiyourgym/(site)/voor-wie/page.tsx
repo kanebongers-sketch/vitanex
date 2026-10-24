@@ -12,9 +12,9 @@ import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/Werk
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { SectieActie, Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
-import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
@@ -23,7 +23,7 @@ import { VOOR_WIE } from '@/lib/aiyourgym/taal/woorden/website/voor-wie'
 export async function generateMetadata(): Promise<Metadata> {
   const taal = await getSiteTaal()
   const t = VOOR_WIE[taal]
-  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/voor-wie', taal) }
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: siteAlternates('/voor-wie') }
 }
 
 const BEELD: Record<DoelgroepSleutel, { inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
@@ -75,7 +75,7 @@ function Groep({ doel, nr, taal }: { doel: Doelgroep; nr: number; taal: Taal }) 
             <p className="ayg-past">
               {t.pastBij} <strong>{pakket.naam}</strong>
               <span aria-hidden> · </span>
-              <Link href={`${sitePaden(taal).AANMELDEN}?pakket=${pakket.sleutel}`}>{t.probeerPakket(pakket.naam)}</Link>
+              <Link href={`${SITE_PADEN.AANMELDEN}?pakket=${pakket.sleutel}`}>{t.probeerPakket(pakket.naam)}</Link>
             </p>
           )}
           <Figuur
@@ -95,7 +95,7 @@ export default async function VoorWiePagina() {
   const taal = await getSiteTaal()
   const t = VOOR_WIE[taal]
   const actie = ACTIE[taal]
-  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN } = SITE_PADEN
   return (
     <>
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>

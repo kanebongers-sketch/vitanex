@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { aygPad, sitePaden } from '@/components/aiyourgym/site/paden'
+import { aygPad, SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 
@@ -24,10 +24,10 @@ export function Ontvangen({ melding, sportschool }: { melding: string; sportscho
       <p className="ayg-lead">{melding}</p>
       <p className="ayg-klein">{t.ontvangenNiets}</p>
       <div className="ayg-knoppen">
-        <Link href={sitePaden(taal).DEMO} className="ayg-knop ayg-knop--accent">
+        <Link href={SITE_PADEN.DEMO} className="ayg-knop ayg-knop--accent">
           {t.bekijkDemo} <ArrowRight size={17} aria-hidden="true" />
         </Link>
-        <Link href={aygPad('', taal)} className="ayg-knop ayg-knop--rand">
+        <Link href={aygPad()} className="ayg-knop ayg-knop--rand">
           {t.terugWebsite}
         </Link>
       </div>

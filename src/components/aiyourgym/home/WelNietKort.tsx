@@ -52,7 +52,7 @@ export async function WelNietKort() {
           <Kolom soort="wel" titel={t.welTitel} punten={t.wel} />
           <Kolom soort="niet" titel={t.nietTitel} punten={t.niet} />
         </div>
-        <Link href={aygPad('/overstappen#wel-niet', taal)} className="ayg-pijllink ayg-welkort-link">
+        <Link href={aygPad('/overstappen#wel-niet')} className="ayg-pijllink ayg-welkort-link">
           {t.link} <ArrowRight size={16} aria-hidden />
         </Link>
       </div>

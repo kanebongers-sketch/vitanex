@@ -8,7 +8,7 @@ import { LidScherm, RoosterWeekScherm, VandaagScherm } from '@/components/aiyour
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
@@ -48,7 +48,7 @@ function NietBeschikbaar({ taal }: { taal: Taal }) {
   const t = DEMO[taal]
   return (
     <PaginaKop label={t.label} titel={t.nietKop} tekst={t.nietTekst(PROEFDAGEN)}>
-      <Knop href={sitePaden(taal).AANMELDEN} soort="accent" pijl>
+      <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
         {t.startProef}
       </Knop>
     </PaginaKop>
@@ -83,7 +83,7 @@ export default async function DemoPagina() {
         tekst={`${t.tekst.voor}${ruw.organisatie.naam}${t.tekst.na}${dagLang(ruw.peildag, taal)}.${t.gegevensNederlands}`}
       >
         <div className="ayg-knoppen">
-          <Knop href={sitePaden(taal).AANMELDEN} soort="accent" pijl>
+          <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
             {t.startProef}
           </Knop>
           <Knop href={`#${S.vandaag.sleutel}`} soort="rand">

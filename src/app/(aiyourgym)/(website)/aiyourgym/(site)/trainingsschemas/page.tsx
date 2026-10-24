@@ -13,7 +13,7 @@ import { BibliotheekScherm, CoachtekstScherm, OefeningToestel, VoortgangToestel 
 import { GERUST_BIJ_KNOP, Geruststelling, TweeRoutes, SectieActie } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMAS_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/trainingsschemas'
 
@@ -24,7 +24,7 @@ import { SCHEMAS_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/trainingssc
 export async function generateMetadata(): Promise<Metadata> {
   const taal = await getSiteTaal()
   const t = SCHEMAS_PAGINA[taal]
-  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/trainingsschemas', taal) }
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: siteAlternates('/trainingsschemas') }
 }
 
 function Beeld({ sleutel, oefeningen, aantal }: { sleutel: SchemaStapSleutel; oefeningen: readonly VoorbeeldOefening[]; aantal: number }): ReactNode {

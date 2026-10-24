@@ -4,7 +4,7 @@ import { AYG_CONTACT, telLink, type AygContact } from '@/lib/aiyourgym/contact'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { CONTACT_BALK } from '@/lib/aiyourgym/taal/woorden/website/contact'
-import { sitePaden } from './paden'
+import { SITE_PADEN } from './paden'
 
 // Een dunne balk boven de kop met direct contact. Telefoon en e-mail komen uit
 // src/lib/aiyourgym/contact.ts (we verzinnen geen nummer of adres). Zolang die
@@ -18,7 +18,7 @@ interface ContactBalkProps {
 
 export async function ContactBalk({ contact = AYG_CONTACT }: ContactBalkProps) {
   const taal = await getSiteTaal()
-  const { DEMO_AANVRAGEN } = sitePaden(taal)
+  const { DEMO_AANVRAGEN } = SITE_PADEN
   const telefoon = contact.telefoon?.trim() || null
   const email = contact.email?.trim() || null
   return (

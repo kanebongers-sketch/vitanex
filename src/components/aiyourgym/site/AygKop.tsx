@@ -32,7 +32,7 @@ export function AygKop() {
   return (
     <header className="ayg-kop" data-bovenaan={bovenaan ? '' : undefined}>
       <div className="ayg-wrap ayg-kop-rij">
-        <Link href={aygPad('', taal)} className="ayg-kop-logo" aria-label={KOP[taal].logoLabel}>
+        <Link href={aygPad()} className="ayg-kop-logo" aria-label={KOP[taal].logoLabel}>
           <AygLogo sier />
         </Link>
         <AygNav />

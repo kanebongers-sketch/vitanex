@@ -21,8 +21,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-// De taal is de voorkeur van de gebruiker (cookie ayg-taal), anders de browser,
-// anders Nederlands (src/lib/aiyourgym/taal/server.ts, getTaal). Clientcomponenten
+// De taal is de voorkeur van de gebruiker (cookie ayg-taal), anders Nederlands (src/lib/aiyourgym/taal/server.ts, getTaal). Clientcomponenten
 // lezen hem met useTaal().
 export default async function ClubRootLayout({ children }: { children: ReactNode }) {
   const taal = await getTaal()

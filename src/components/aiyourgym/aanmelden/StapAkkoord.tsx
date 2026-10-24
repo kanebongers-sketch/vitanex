@@ -56,8 +56,8 @@ export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarSt
           aria-invalid={fouten.akkoord ? true : undefined} aria-describedby={fouten.akkoord ? 'akkoord-fout' : undefined} />
         <label htmlFor="akkoord">
           {t.akkoord.voor}
-          <a href={aygPad('/voorwaarden', taal)} target="_blank" rel="noopener">{t.akkoord.voorwaarden}</a>{t.akkoord.midden}
-          <a href={aygPad('/privacy', taal)} target="_blank" rel="noopener">{t.akkoord.privacy}</a>{t.akkoord.na}
+          <a href={aygPad('/voorwaarden')} target="_blank" rel="noopener">{t.akkoord.voorwaarden}</a>{t.akkoord.midden}
+          <a href={aygPad('/privacy')} target="_blank" rel="noopener">{t.akkoord.privacy}</a>{t.akkoord.na}
         </label>
       </div>
       {fouten.akkoord && <p id="akkoord-fout" className="aan-fout" role="alert">{fouten.akkoord}</p>}

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { RECHTEN } from '@/lib/club/kern/medewerker'
 import type { InstelKijker } from '@/lib/club/kern/instel-paginas'
 import { heeftInstellingen } from '@/lib/club/kern/instel-paginas'
-import { HULPBALK, clubHref, hulpbalkVoor, hulpItemOp, hulpItems, hulpToets, kijkerSleutel } from './hulpbalk'
+import { HULPBALK, clubHref, hulpbalkVoor, hulpItemOp, hulpItems, hulpToets, kijkerSleutel } from './hulpbalk-items'
 import { menuOnderdeel, onderdeelVoorToets } from './onderdelen'
 
 // De hulpbalk onderaan (idee Kane 23-10-2026): vijf items, elk met een eigen

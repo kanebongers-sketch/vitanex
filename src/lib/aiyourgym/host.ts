@@ -9,18 +9,18 @@
 //                        stap in de proxy voor deze); een onbekende slug komt hier en wordt een 404
 //    /favicon.ico, /robots.txt  door (er is geen sitemap: /sitemap.xml gaat
 //                        naar /aiyourgym/sitemap.xml en wordt een 404 van de site)
-//    /en, /en/...        Engels: herschrijven naar /aiyourgym/... met taal en (src/lib/aiyourgym/taal/pad.ts)
-//    /aiyourgym/en/...   idem (de interne Engelse links)
+//    /en, /en/...        oude Engelse links: 308 naar hetzelfde pad zonder /en, met
+//    /aiyourgym/en/...   de cookie ayg-taal=en (src/lib/aiyourgym/taal/pad.ts)
 //    /...                herschrijven naar /aiyourgym/... (ook andere /api/: die bestaan daar niet)
-//  Elke websitepagina krijgt `site` mee: de taal en het publieke pad zonder taal
-//  (de proxy zet die als kop voor <html lang> en hreflang).
+//  Elke websitepagina krijgt `publiek` mee: het publieke pad (de proxy zet dat
+//  als kop voor de canonical). De taal komt uit de cookie, niet uit het pad
+//  (besluit Kane 24-10-2026, docs/aiyourgym/TALEN.md).
 //  <slug>.aiyourgym.com: niet van de website, dat is Club (src/lib/club/kern/subdomein.ts)
 //  elk ander domein: niet van de website
 //
 // Lokaal: aiyourgym.localhost:3000. Schakelaar uit: alles is "niet van mij".
 
-import { ontleedSitePad } from './taal/pad'
-import type { Taal } from './taal/taal'
+import { oudEngelsPad } from './taal/pad'
 
 export const AYG_PREFIX = '/aiyourgym'
 export const AYG_API = '/api/aiyourgym'
@@ -45,42 +45,46 @@ export function isAygHost(host: string | null | undefined): boolean {
   return AYG_HOSTS.has(schoon(host))
 }
 
-/** Bij een websitepagina: de taal en het publieke pad zonder taal ('/functies'). */
-export interface SiteTaal {
-  taal: Taal
-  publiek: string
-}
-
 export type AygBeslissing =
   | { soort: 'niet-van-mij' }
-  | { soort: 'door'; site?: SiteTaal }
-  | { soort: 'herschrijven'; pad: string; site?: SiteTaal }
+  | { soort: 'door'; publiek?: string }
+  | { soort: 'herschrijven'; pad: string; publiek: string }
+  /** Een oud Engels adres: 308 naar `pad` en de cookie ayg-taal=en. */
+  | { soort: 'engels-omleiden'; pad: string }
 
 export function beslisAyg(host: string | null | undefined, pad: string, actief: boolean): AygBeslissing {
   if (!actief || !isAygHost(host)) return { soort: 'niet-van-mij' }
   if (pad === AYG_API || pad.startsWith(`${AYG_API}/`)) return { soort: 'door' }
   if (ALTIJD_DOOR.has(pad)) return { soort: 'door' }
   if (isClubPad(pad)) return { soort: 'door' }
-  const site = ontleedSitePad(pad)
-  if (site) {
-    const taal: SiteTaal = { taal: site.taal, publiek: site.publiek }
-    // Nederlands onder /aiyourgym: precies zoals altijd door, alleen met de taal erbij.
-    if (site.taal === 'nl') return { soort: 'door', site: taal }
-    return { soort: 'herschrijven', pad: site.route, site: taal }
-  }
-  return { soort: 'herschrijven', pad: pad === '/' ? AYG_PREFIX : `${AYG_PREFIX}${pad}`, site: { taal: 'nl', publiek: pad } }
+  const zonderEn = oudEngelsPad(pad)
+  if (zonderEn !== null) return { soort: 'engels-omleiden', pad: zonderEn }
+  // Onder /aiyourgym: precies zoals altijd door, met het publieke pad erbij.
+  if (pad === AYG_PREFIX || pad.startsWith(`${AYG_PREFIX}/`)) return { soort: 'door', publiek: pad.slice(AYG_PREFIX.length) || '/' }
+  return { soort: 'herschrijven', pad: pad === '/' ? AYG_PREFIX : `${AYG_PREFIX}${pad}`, publiek: pad }
 }
 
 /**
- * Een Engelse websitepagina onder /aiyourgym/en op een ander domein dan
- * aiyourgym.com (fitfactorypt.nl/aiyourgym zolang de schakelaar uit staat).
- * null = niets te doen (Nederlands of geen websitepad).
+ * Een oud Engels websiteadres onder /aiyourgym/en op een ander domein dan
+ * aiyourgym.com (fitfactorypt.nl/aiyourgym zolang de schakelaar uit staat):
+ * het pad zonder /en voor de 308. null = niets te doen.
  */
-export function beslisAygTaalElders(pad: string): { pad: string; site: SiteTaal } | null {
+export function beslisAygTaalElders(pad: string): { pad: string } | null {
   if (pad !== AYG_PREFIX && !pad.startsWith(`${AYG_PREFIX}/`)) return null
-  const site = ontleedSitePad(pad)
-  if (!site || site.taal === 'nl') return null
-  return { pad: site.route, site: { taal: site.taal, publiek: site.publiek } }
+  const zonderEn = oudEngelsPad(pad)
+  return zonderEn === null ? null : { pad: zonderEn }
+}
+
+/**
+ * Het volle adres voor de 308 van een oud Engels adres, op dezelfde host (de
+ * zoekstring gaat mee). Lokaal (*.localhost) http, anders https: achter Render
+ * is request.url niet altijd het publieke adres.
+ */
+export function engelsOmleidUrl(host: string | null | undefined, pad: string, zoek: string): string {
+  const h = (host ?? '').trim().toLowerCase()
+  const naam = h.split(':')[0]
+  const lokaal = naam === 'localhost' || naam.endsWith('.localhost')
+  return `${lokaal ? 'http' : 'https'}://${h}${pad}${zoek}`
 }
 
 /**

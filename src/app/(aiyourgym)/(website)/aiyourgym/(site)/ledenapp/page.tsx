@@ -7,9 +7,9 @@ import { Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { LEDENAPP_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/ledenapp'
@@ -19,7 +19,7 @@ type Teksten = (typeof LEDENAPP_PAGINA)['nl']
 export async function generateMetadata(): Promise<Metadata> {
   const taal = await getSiteTaal()
   const t = LEDENAPP_PAGINA[taal]
-  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/ledenapp', taal) }
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: siteAlternates('/ledenapp') }
 }
 
 const SCHERMEN: readonly { sleutel: keyof Teksten['schermen']; tab: AppTab; Scherm: ComponentType }[] = [
@@ -43,7 +43,7 @@ const FUNCTIES: readonly { sleutel: keyof Teksten['functies']; Icoon: LucideIcon
 export default async function LedenappPagina() {
   const taal = await getSiteTaal()
   const t = LEDENAPP_PAGINA[taal]
-  const { AANMELDEN, DEMO } = sitePaden(taal)
+  const { AANMELDEN, DEMO } = SITE_PADEN
   return (
     <>
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>

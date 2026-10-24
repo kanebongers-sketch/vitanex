@@ -4,7 +4,7 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import type { MenuSleutel } from '@/lib/aiyourgym/taal/woorden/website/kop'
 import { VOET } from '@/lib/aiyourgym/taal/woorden/website/voet'
-import { aygPad, navLinks, sitePaden } from './paden'
+import { aygPad, navLinks, SITE_PADEN } from './paden'
 
 // Voet van de verkoopwebsite: kort en rustig (Kane 24-10-2026: "veel te veel").
 // Drie kolommen met hooguit vier links, niets dubbel met de kop: Probeer gratis,
@@ -26,7 +26,7 @@ interface VoetKolom {
 /** De kolommen van de voet in een taal. */
 export function voetKolommen(taal: Taal): readonly VoetKolom[] {
   const t = VOET[taal]
-  const p = sitePaden(taal)
+  const p = SITE_PADEN
   const menu = navLinks(taal)
   const uitMenu = (sleutel: MenuSleutel): VoetLink => {
     const l = menu.find((n) => n.sleutel === sleutel)
@@ -54,8 +54,8 @@ export function voetKolommen(taal: Taal): readonly VoetKolom[] {
       titel: t.afspraken,
       links: [
         { label: t.privacyBeveiliging, pad: p.PRIVACY_BEVEILIGING },
-        { label: t.privacyverklaring, pad: aygPad('/privacy', taal) },
-        { label: t.voorwaarden, pad: aygPad('/voorwaarden', taal) },
+        { label: t.privacyverklaring, pad: aygPad('/privacy') },
+        { label: t.voorwaarden, pad: aygPad('/voorwaarden') },
       ],
     },
   ]
@@ -67,7 +67,7 @@ export const VOET_KOLOMMEN: readonly VoetKolom[] = voetKolommen('nl')
 export async function AygVoet() {
   const taal = await getSiteTaal()
   const t = VOET[taal]
-  const { INLOGGEN, PRIVACY_BEVEILIGING } = sitePaden(taal)
+  const { INLOGGEN, PRIVACY_BEVEILIGING } = SITE_PADEN
   const jaar = new Date().getFullYear()
   return (
     <footer className="ayg-voet">

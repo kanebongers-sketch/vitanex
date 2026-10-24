@@ -5,7 +5,7 @@
 // tot het Engels er ook staat. Tabbladen per Nederlandse naam (zo geven de schermen ze door).
 
 import { GROEPEN, ONDERDELEN, inMenu, type GroepSleutel } from '@/components/club/shell/onderdelen'
-import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk'
+import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk-items'
 import { woordenboek } from '../../../woordenboek'
 
 const groepen = Object.fromEntries(GROEPEN.map((g) => [g.sleutel, g.label])) as Record<GroepSleutel, string>

@@ -12,7 +12,7 @@ import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
 import { BuitenBeeld } from '@/components/aiyourgym/site/BuitenBeeld'
 import { ContactBalk } from '@/components/aiyourgym/site/ContactBalk'
 import { PlakActie } from '@/components/aiyourgym/site/PlakActie'
-import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSitePad, getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { HTML_LANG, OG_LOCALE } from '@/lib/aiyourgym/taal/taal'
 import { KOP } from '@/lib/aiyourgym/taal/woorden/website/kop'
@@ -31,9 +31,10 @@ export async function generateMetadata(): Promise<Metadata> {
     // Deellinks wijzen altijd naar het eigen domein; de afbeelding zelf staat in
     // ../opengraph-image.tsx (Next zet og:image en de maten automatisch).
     metadataBase: new URL('https://aiyourgym.com'),
-    // hreflang: elke pagina in beide talen (Engels met /en). Alleen als de proxy
-    // het publieke pad meegaf (op aiyourgym.com); elders geen alternates.
-    ...(pad ? { alternates: taalAlternates(pad, taal) } : {}),
+    // Een adres per pagina in beide talen (de taal komt uit de cookie), dus alleen
+    // een canonical en geen hreflang. Alleen als de proxy het publieke pad meegaf
+    // (op aiyourgym.com); elders geen alternates. og:locale volgt de gekozen taal.
+    ...(pad ? { alternates: siteAlternates(pad) } : {}),
     openGraph: { siteName: 'AI Your Gym', locale: OG_LOCALE[taal], type: 'website' },
     twitter: { card: 'summary_large_image' },
   }

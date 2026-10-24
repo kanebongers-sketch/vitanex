@@ -9,7 +9,7 @@ import { INLOGGEN } from '@/lib/aiyourgym/taal/woorden/website/inloggen'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { InlogFormulier } from '@/components/aiyourgym/inloggen/InlogFormulier'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // /inloggen op aiyourgym.com: een sportschool logt in met e-mailadres en
 // wachtwoord (besluit Kane 23-10-2026). Leden gebruiken de ledenapp van hun
@@ -37,7 +37,7 @@ function WachtwoordVergeten({ taal }: { taal: Taal }) {
   return (
     <p>
       {t.formulier.voor}
-      <Link href={sitePaden(taal).DEMO_AANVRAGEN}>{t.formulier.link}</Link>
+      <Link href={SITE_PADEN.DEMO_AANVRAGEN}>{t.formulier.link}</Link>
       {t.formulier.na}
     </p>
   )
@@ -66,7 +66,7 @@ export default async function InloggenPagina() {
             <h2>{t.geenAccountKop}</h2>
             <p>{t.geenAccountTekst(PROEFDAGEN)}</p>
             <div className="ayg-knoppen">
-              <Knop href={sitePaden(taal).AANMELDEN} soort="accent" pijl>
+              <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
                 {t.probeer}
               </Knop>
             </div>

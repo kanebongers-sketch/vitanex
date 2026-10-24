@@ -3,7 +3,6 @@ import { ArrowRight, CalendarDays, Dumbbell, QrCode } from 'lucide-react'
 import { AppLessen } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { aygPad } from '@/components/aiyourgym/site/paden'
-import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { OOK_GEREGELD } from '@/lib/aiyourgym/taal/woorden/website/home'
 
@@ -16,11 +15,10 @@ import { OOK_GEREGELD } from '@/lib/aiyourgym/taal/woorden/website/home'
 const APP_ICONEN = [CalendarDays, QrCode, Dumbbell] as const
 
 interface VakProps {
-  taal: Taal
   t: (typeof OOK_GEREGELD)['nl']
 }
 
-function AppVak({ taal, t }: VakProps) {
+function AppVak({ t }: VakProps) {
   const { app } = t
   return (
     <article className="ayg-duo-vak ayg-duo-vak--app" aria-labelledby="duo-app-titel">
@@ -42,7 +40,7 @@ function AppVak({ taal, t }: VakProps) {
             )
           })}
         </ul>
-        <Link href={aygPad('/ledenapp', taal)} className="ayg-pijllink">
+        <Link href={aygPad('/ledenapp')} className="ayg-pijllink">
           {app.link} <ArrowRight size={16} aria-hidden />
         </Link>
       </div>
@@ -55,7 +53,7 @@ function AppVak({ taal, t }: VakProps) {
   )
 }
 
-function OverstapVak({ taal, t }: VakProps) {
+function OverstapVak({ t }: VakProps) {
   const { overstap } = t
   return (
     <article className="ayg-duo-vak ayg-duo-vak--overstap" aria-labelledby="duo-overstap-titel">
@@ -75,7 +73,7 @@ function OverstapVak({ taal, t }: VakProps) {
           </li>
         ))}
       </ol>
-      <Link href={aygPad('/overstappen', taal)} className="ayg-pijllink">
+      <Link href={aygPad('/overstappen')} className="ayg-pijllink">
         {overstap.link} <ArrowRight size={16} aria-hidden />
       </Link>
     </article>
@@ -88,8 +86,8 @@ export async function OokGeregeld() {
   return (
     <section className="ayg-sectie ayg-duo" aria-label={t.sectieLabel}>
       <div className="ayg-wrap ayg-duo-raster">
-        <AppVak taal={taal} t={t} />
-        <OverstapVak taal={taal} t={t} />
+        <AppVak t={t} />
+        <OverstapVak t={t} />
       </div>
     </section>
   )

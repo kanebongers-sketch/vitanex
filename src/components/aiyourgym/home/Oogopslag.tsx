@@ -43,7 +43,7 @@ export async function Oogopslag() {
             const tekst = t.rollen[i] ?? r
             return (
               <li key={r.sleutel}>
-                <Link href={aygPad(r.pad, taal)} className="ayg-oog-plek">
+                <Link href={aygPad(r.pad)} className="ayg-oog-plek">
                   <span className="ayg-oog-boven">
                     <Icoon size={20} aria-hidden />
                     <span className="ayg-oog-nr" aria-hidden>
@@ -60,7 +60,7 @@ export async function Oogopslag() {
         </ol>
         <nav className="ayg-oog-verder" aria-label={t.meerLabel}>
           {verder.map((v) => (
-            <Link key={v.pad} href={aygPad(v.pad, taal)} className="ayg-pijllink">
+            <Link key={v.pad} href={aygPad(v.pad)} className="ayg-pijllink">
               {v.label} <ArrowUpRight size={16} aria-hidden />
             </Link>
           ))}

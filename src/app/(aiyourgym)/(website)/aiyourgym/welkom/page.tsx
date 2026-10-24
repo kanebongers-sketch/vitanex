@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { WELKOM } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -80,7 +80,7 @@ function Contact({ taal }: { taal: Taal }) {
 
 function Melding({ w, taal }: { w: Exclude<Welkom, { soort: 'klaar' }>; taal: Taal }) {
   const t = WELKOM[taal]
-  const { AANMELDEN, INLOGGEN } = sitePaden(taal)
+  const { AANMELDEN, INLOGGEN } = SITE_PADEN
   if (w.soort === 'bezig') {
     return (
       <>

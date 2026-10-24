@@ -15,8 +15,8 @@ import { HTML_LANG } from '@/lib/aiyourgym/taal/taal'
 // verraden. Titels staan in aiyourgym/(site)/layout.tsx en per pagina; de poort,
 // viewport en robots-regels in aiyourgym/layout.tsx.
 //
-// De taal (Nederlands of Engels) komt uit het adres: de proxy geeft hem mee als
-// kop (src/lib/aiyourgym/taal). Eigen taalmodule, niet de MentaForce-i18n.
+// De taal (Nederlands of Engels) komt uit de cookie ayg-taal, anders Nederlands
+// (src/lib/aiyourgym/taal). Eigen taalmodule, niet de MentaForce-i18n.
 
 export default async function AiYourGymRootLayout({ children }: { children: ReactNode }) {
   const taal = await getSiteTaal()

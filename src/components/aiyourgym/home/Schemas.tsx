@@ -43,7 +43,7 @@ export async function Schemas() {
           onder={
             <>
               <p className="ayg-klein">{t.onder}</p>
-              <Link href={aygPad('/trainingsschemas', taal)} className="ayg-pijllink">
+              <Link href={aygPad('/trainingsschemas')} className="ayg-pijllink">
                 {t.link} <ArrowRight size={16} aria-hidden />
               </Link>
             </>

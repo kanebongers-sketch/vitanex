@@ -10,7 +10,7 @@ import { PRIJZEN } from '@/lib/aiyourgym/taal/woorden/website/prijzen'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // Besluit Kane: geen bedragen op de website. De pakketten en wat erin zit komen
 // uit src/lib/aiyourgym/pakketten.ts; de prijs is altijd op maat. Teksten in
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function PakketKaart({ pakket, taal }: { pakket: Pakket; taal: Taal }) {
   const tekst = pakketTekst(pakket.sleutel, taal)
-  const { AANMELDEN, PRIJS_OP_MAAT } = sitePaden(taal)
+  const { AANMELDEN, PRIJS_OP_MAAT } = SITE_PADEN
   return (
     <article className="ayg-pakket" data-aanbevolen={pakket.aanbevolen ? '' : undefined} aria-labelledby={`pakket-${pakket.sleutel}`}>
       <div className="ayg-stapel">
@@ -78,7 +78,7 @@ function vragen(taal: Taal, zonderStripe: boolean) {
 export default async function PrijzenPagina() {
   const taal = await getSiteTaal()
   const t = PRIJZEN[taal]
-  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN } = SITE_PADEN
   return (
     <>
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>

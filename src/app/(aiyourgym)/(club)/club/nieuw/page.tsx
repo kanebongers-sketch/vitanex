@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
 import { aantalNieuw } from '@/lib/aiyourgym/nieuw'
 import { NieuwLijst } from '@/components/club/shell/NieuwLijst'
-import { kijkerSleutel } from '@/components/club/shell/hulpbalk'
+import { kijkerSleutel } from '@/components/club/shell/hulpbalk-items'
 
 export const metadata: Metadata = { title: 'Wat is nieuw' }
 

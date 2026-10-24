@@ -10,9 +10,9 @@ import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { FUNCTIES_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/functies'
@@ -23,7 +23,7 @@ type HoofdstukTekst = Teksten['hoofdstukken'][HoofdstukSleutel]
 export async function generateMetadata(): Promise<Metadata> {
   const taal = await getSiteTaal()
   const t = FUNCTIES_PAGINA[taal]
-  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/functies', taal) }
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: siteAlternates('/functies') }
 }
 
 const BEELD: Record<HoofdstukSleutel, { inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
@@ -91,7 +91,7 @@ export default async function FunctiesPagina() {
   const taal = await getSiteTaal()
   const t = FUNCTIES_PAGINA[taal]
   const actie = ACTIE[taal]
-  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN } = SITE_PADEN
   return (
     <>
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>

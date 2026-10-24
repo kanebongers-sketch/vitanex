@@ -34,7 +34,7 @@ export async function SoortKeuze() {
             const Icoon = ICOON[d.sleutel]
             return (
               <li key={d.sleutel}>
-                <Link href={aygPad(`/voor-wie#${d.sleutel}`, taal)} className="ayg-soort">
+                <Link href={aygPad(`/voor-wie#${d.sleutel}`)} className="ayg-soort">
                   <span className="ayg-soort-icoon" aria-hidden>
                     <Icoon size={17} strokeWidth={2} />
                   </span>

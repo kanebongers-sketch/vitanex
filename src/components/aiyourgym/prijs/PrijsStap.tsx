@@ -76,7 +76,7 @@ function StapContact({ invoer, fouten, wijzig }: Omit<PrijsStapProps, 'stap'>) {
           aria-invalid={fouten.akkoord ? true : undefined} aria-describedby={fouten.akkoord ? 'prijs-akkoord-fout' : undefined} />
         <label htmlFor="prijs-akkoord">
           {t.akkoord.voor}
-          <a href={aygPad('/privacy', taal)} target="_blank" rel="noopener">{t.akkoord.privacy}</a>
+          <a href={aygPad('/privacy')} target="_blank" rel="noopener">{t.akkoord.privacy}</a>
           {t.akkoord.na}
         </label>
       </div>

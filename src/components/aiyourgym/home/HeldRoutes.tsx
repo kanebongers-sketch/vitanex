@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, MonitorPlay, Repeat2 } from 'lucide-react'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { HELD } from '@/lib/aiyourgym/taal/woorden/website/held'
 
@@ -12,7 +12,7 @@ import { HELD } from '@/lib/aiyourgym/taal/woorden/website/held'
 export async function HeldRoutes() {
   const taal = await getSiteTaal()
   const t = HELD[taal]
-  const { DEMO, OVERSTAPPEN } = sitePaden(taal)
+  const { DEMO, OVERSTAPPEN } = SITE_PADEN
   const routes = [
     { Icoon: Repeat2, pad: OVERSTAPPEN, ...t.overstappen },
     { Icoon: MonitorPlay, pad: DEMO, ...t.demo },

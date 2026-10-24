@@ -6,7 +6,7 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { PLAK_ACTIE } from '@/lib/aiyourgym/taal/woorden/website/contact'
-import { sitePaden } from './paden'
+import { SITE_PADEN } from './paden'
 import { scrollPositie, volgScroll } from './scrollpositie'
 
 // Op de telefoon: na het eerste scherm een vaste aanmeldknop onderin, zodat de
@@ -20,7 +20,7 @@ const VOET_MARGE_PX = 640
 
 export function PlakActie() {
   const taal = useTaal()
-  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
+  const { AANMELDEN, DEMO_AANVRAGEN } = SITE_PADEN
   const [zichtbaar, setZichtbaar] = useState(false)
 
   useEffect(() => {

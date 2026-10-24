@@ -6,7 +6,7 @@ import { X } from 'lucide-react'
 import type { Module } from '@/lib/club/kern/organisatie'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { groepenMet, menuOnderdeel, onderdelenVan } from './onderdelen'
-import { hulpItemOp, type HulpSleutel } from './hulpbalk'
+import { hulpItemOp, type HulpSleutel } from './hulpbalk-items'
 import { HulpLinks } from './Hulpbalk'
 import { VestigingKeuze } from './VestigingKeuze'
 

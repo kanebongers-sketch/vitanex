@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, isAygHost, zichtbaarPad } from './host'
+import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, engelsOmleidUrl, isAygHost, zichtbaarPad } from './host'
 import { GERESERVEERD } from '@/lib/club/kern/subdomein'
 import { beslisClub, slugUitHost } from '@/lib/club/kern/subdomein'
 import { isReleaseVHost } from '@/releasev/lib/host-routing'
@@ -23,16 +23,16 @@ describe('beslisAyg', () => {
     expect(beslisAyg('aiyourgym.com', '/', false)).toEqual({ soort: 'niet-van-mij' })
   })
   it('herschrijft pagina naar /aiyourgym', () => {
-    expect(beslisAyg('aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym', site: { taal: 'nl', publiek: '/' } })
+    expect(beslisAyg('aiyourgym.com', '/', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym', publiek: '/' })
     expect(beslisAyg('www.aiyourgym.com', '/aanmelden', true)).toEqual({
       soort: 'herschrijven',
       pad: '/aiyourgym/aanmelden',
-      site: { taal: 'nl', publiek: '/aanmelden' },
+      publiek: '/aanmelden',
     })
   })
   it('laat de eigen API, het voorvoegsel en vaste bestanden door', () => {
     expect(beslisAyg('aiyourgym.com', '/api/aiyourgym/checkout', true)).toEqual({ soort: 'door' })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/voorwaarden', true)).toEqual({ soort: 'door', site: { taal: 'nl', publiek: '/voorwaarden' } })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/voorwaarden', true)).toEqual({ soort: 'door', publiek: '/voorwaarden' })
     expect(beslisAyg('aiyourgym.com', '/robots.txt', true)).toEqual({ soort: 'door' })
   })
   it('andere API-paden gaan niet naar de app van Fit Factory', () => {
@@ -96,33 +96,28 @@ describe('Club op aiyourgym.com', () => {
   })
 })
 
-describe('Engels op aiyourgym.com (/en)', () => {
-  it('/en is de Engelse voorpagina', () => {
-    expect(beslisAyg('aiyourgym.com', '/en', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym', site: { taal: 'en', publiek: '/' } })
-    expect(beslisAyg('aiyourgym.com', '/en/', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym', site: { taal: 'en', publiek: '/' } })
+describe('oude Engelse links op aiyourgym.com (/en)', () => {
+  it('/en wordt een 308 naar dezelfde pagina zonder /en', () => {
+    expect(beslisAyg('aiyourgym.com', '/en', true)).toEqual({ soort: 'engels-omleiden', pad: '/' })
+    expect(beslisAyg('aiyourgym.com', '/en/', true)).toEqual({ soort: 'engels-omleiden', pad: '/' })
+    expect(beslisAyg('aiyourgym.com', '/en/functies', true)).toEqual({ soort: 'engels-omleiden', pad: '/functies' })
+    expect(beslisAyg('www.aiyourgym.com', '/en/voor-wie', true)).toEqual({ soort: 'engels-omleiden', pad: '/voor-wie' })
   })
-  it('/en/... is dezelfde route in het Engels', () => {
-    expect(beslisAyg('aiyourgym.com', '/en/functies', true)).toEqual({
-      soort: 'herschrijven',
-      pad: '/aiyourgym/functies',
-      site: { taal: 'en', publiek: '/functies' },
-    })
-    expect(beslisAyg('www.aiyourgym.com', '/en/voor-wie', true)).toMatchObject({ pad: '/aiyourgym/voor-wie', site: { taal: 'en' } })
+  it('ook de oude interne links (/aiyourgym/en/...)', () => {
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en', true)).toEqual({ soort: 'engels-omleiden', pad: '/aiyourgym' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en/prijzen', true)).toEqual({ soort: 'engels-omleiden', pad: '/aiyourgym/prijzen' })
   })
-  it('de interne Engelse links (/aiyourgym/en/...) werken ook', () => {
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym', site: { taal: 'en', publiek: '/' } })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en/prijzen', true)).toEqual({
-      soort: 'herschrijven',
-      pad: '/aiyourgym/prijzen',
-      site: { taal: 'en', publiek: '/prijzen' },
-    })
+  it('geen enkele pagina wordt naar een Engels pad herschreven', () => {
+    for (const pad of ['/', '/functies', '/prijzen', '/aiyourgym/functies']) {
+      expect(JSON.stringify(beslisAyg('aiyourgym.com', pad, true))).not.toMatch(/\/en(\/|"|$)/)
+    }
   })
   it('lijkende paden zijn geen Engels', () => {
-    expect(beslisAyg('aiyourgym.com', '/english', true)).toMatchObject({ pad: '/aiyourgym/english', site: { taal: 'nl' } })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/enquete', true)).toEqual({ soort: 'door', site: { taal: 'nl', publiek: '/enquete' } })
-    expect(beslisAyg('aiyourgym.com', '/EN/functies', true)).toMatchObject({ site: { taal: 'nl' } })
+    expect(beslisAyg('aiyourgym.com', '/english', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/english', publiek: '/english' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/enquete', true)).toEqual({ soort: 'door', publiek: '/enquete' })
+    expect(beslisAyg('aiyourgym.com', '/EN/functies', true)).toMatchObject({ soort: 'herschrijven', pad: '/aiyourgym/EN/functies' })
   })
-  it('Club, API en vaste bestanden krijgen geen taal en blijven door', () => {
+  it('Club, API en vaste bestanden blijven door', () => {
     for (const pad of ['/club', '/mijn', '/api/aiyourgym/checkout', '/api/club/leden', '/robots.txt', '/favicon.ico']) {
       expect(beslisAyg('aiyourgym.com', pad, true)).toEqual({ soort: 'door' })
     }
@@ -135,12 +130,18 @@ describe('Engels op aiyourgym.com (/en)', () => {
     expect(GERESERVEERD.has('en')).toBe(true)
     expect(GERESERVEERD.has('nl')).toBe(true)
   })
+  it('de 308 blijft op dezelfde host, met de zoekstring', () => {
+    expect(engelsOmleidUrl('aiyourgym.com', '/functies', '?pakket=club')).toBe('https://aiyourgym.com/functies?pakket=club')
+    expect(engelsOmleidUrl('www.aiyourgym.com', '/', '')).toBe('https://www.aiyourgym.com/')
+    expect(engelsOmleidUrl('aiyourgym.localhost:3000', '/prijzen', '')).toBe('http://aiyourgym.localhost:3000/prijzen')
+    expect(engelsOmleidUrl('fitfactorypt.nl', '/aiyourgym', '')).toBe('https://fitfactorypt.nl/aiyourgym')
+  })
 })
 
 describe('beslisAygTaalElders (fitfactorypt.nl/aiyourgym/en)', () => {
-  it('herschrijft de Engelse websitepaden', () => {
-    expect(beslisAygTaalElders('/aiyourgym/en')).toEqual({ pad: '/aiyourgym', site: { taal: 'en', publiek: '/' } })
-    expect(beslisAygTaalElders('/aiyourgym/en/functies')).toEqual({ pad: '/aiyourgym/functies', site: { taal: 'en', publiek: '/functies' } })
+  it('stuurt de oude Engelse websitepaden door zonder /en', () => {
+    expect(beslisAygTaalElders('/aiyourgym/en')).toEqual({ pad: '/aiyourgym' })
+    expect(beslisAygTaalElders('/aiyourgym/en/functies')).toEqual({ pad: '/aiyourgym/functies' })
   })
   it('laat Nederlands en andere paden met rust', () => {
     expect(beslisAygTaalElders('/aiyourgym/functies')).toBeNull()

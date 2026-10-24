@@ -36,7 +36,7 @@ export async function Huisstijl({ metLink = true }: Props) {
           <SectieActie />
           {metLink && (
             <div>
-              <Knop href={aygPad('/ledenapp', taal)} soort="rand" pijl>
+              <Knop href={aygPad('/ledenapp')} soort="rand" pijl>
                 {t.link}
               </Knop>
             </div>

@@ -9,7 +9,7 @@ import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { PRIJS_OP_MAAT } from '@/lib/aiyourgym/taal/woorden/website/prijs-op-maat'
 import { PrijsFormulier } from '@/components/aiyourgym/prijs/PrijsFormulier'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
-import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // /aiyourgym/prijs-op-maat: een prijs op maat aanvragen in drie stappen, zonder
 // bedragen (besluit Kane). Uitleg hoe de prijs werkt staat ernaast (zelfde
@@ -57,7 +57,7 @@ export default async function PrijsOpMaatPagina({ searchParams }: PaginaProps) {
           </ol>
           <div className="dem-anders">
             <p>{t.eerstZien}</p>
-            <Link href={sitePaden(taal).AANMELDEN} className="ayg-knop ayg-knop--accent">
+            <Link href={SITE_PADEN.AANMELDEN} className="ayg-knop ayg-knop--accent">
               {ACTIE[taal].probeerDagen(PROEFDAGEN)} <ArrowRight size={17} aria-hidden />
             </Link>
           </div>
