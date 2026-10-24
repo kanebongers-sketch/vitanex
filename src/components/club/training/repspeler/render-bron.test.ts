@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest'
+import fc from 'fast-check'
+import { OEFENRENDERS } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { planVoor } from '@/lib/club/training/repspeler/plan'
+import { standOp } from '@/lib/club/training/repspeler/tijdlijn'
+import { frameSrc, inclusief, kiesMaat, leesRepRender, repRenderVoor } from './render-bron'
+
+const MATEN = [{ breedte: 480 }, { breedte: 720 }, { breedte: 1080 }]
+
+describe('inclusief', () => {
+  it('halfopen naar inclusief', () => {
+    expect(inclusief([6, 32], 72)).toEqual([6, 31])
+    expect(inclusief([68, 72], 72)).toEqual([68, 71])
+  })
+
+  it('een lege fase houdt het beeld ervoor vast', () => {
+    expect(inclusief([32, 32], 72)).toEqual([31, 31])
+    expect(inclusief([0, 0], 72)).toEqual([0, 0])
+  })
+
+  it('altijd binnen de render', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: -50, max: 400 }), fc.integer({ min: -50, max: 400 }), fc.integer({ min: 1, max: 300 }), (a, b, n) => {
+        const [x, y] = inclusief([a, b], n)
+        return x >= 0 && y >= x && y <= n - 1
+      }),
+    )
+  })
+})
+
+describe('kiesMaat', () => {
+  it('kiest de kleinste scherpe maat voor breedte maal pixeldichtheid', () => {
+    expect(kiesMaat(MATEN, 360, 1)?.breedte).toBe(480)
+    expect(kiesMaat(MATEN, 360, 2)?.breedte).toBe(720)
+    expect(kiesMaat(MATEN, 390, 3)?.breedte).toBe(1080)
+    expect(kiesMaat(MATEN, 700, 2)?.breedte).toBe(1080)
+    expect(kiesMaat([], 300, 1)).toBeNull()
+  })
+})
+
+describe('renders uit de website', () => {
+  const metFrames = OEFENRENDERS.filter((r) => r.frames !== null)
+
+  it('alleen een render met losse beelden telt', () => {
+    for (const r of OEFENRENDERS) expect(leesRepRender(r) === null).toBe(r.frames === null)
+  })
+
+  it.each(metFrames.map((r) => [r.naam, r] as const))('%s: frames, fasen en adressen kloppen', (naam, r) => {
+    const rep = repRenderVoor(naam)
+    expect(rep).not.toBeNull()
+    if (!rep) return
+    expect(rep.maten.length).toBeGreaterThan(0)
+    expect(frameSrc(rep, rep.maten[0], 0)).toContain(`/oefenbeelden/${r.slug}/frames/`)
+    const plan = planVoor(rep, { herhalingen: '15', tijdSec: null, tempo: '2020' })
+    for (let t = 0; t <= plan.totaal; t += 0.1) {
+      const s = standOp(plan, t)
+      expect(s.frame).toBeGreaterThanOrEqual(0)
+      expect(s.frame).toBeLessThan(rep.frames)
+    }
+  })
+
+  it('zonder render: null', () => {
+    expect(repRenderVoor('Bestaat niet')).toBeNull()
+  })
+})

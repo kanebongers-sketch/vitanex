@@ -370,17 +370,20 @@
 /* ── Voet ────────────────────────────────────────────────────────────────── */
 /* Racegroen als anker onder het papier, met salie alleen als accent (lijnen, hover)
    en een woordmerk dat net iets lichter is dan het vlak, in plaats van grijs. */
-.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 72px 32px; margin-top: auto; }
-.ayg-voet-raster { display: grid; gap: 40px; grid-template-columns: 1fr; }
+.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 56px 28px; margin-top: auto; }
+.ayg-voet-raster { display: grid; gap: 32px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ayg-voet-merk { grid-column: 1 / -1; }
 .ayg-voet-merk svg { height: 34px; width: auto; color: var(--ayg-inkt-tekst); }
-.ayg-voet-merk p { margin-top: 18px; max-width: 30ch; color: var(--ayg-tekst-2); }
-.ayg-voet h2 { font: 600 12.5px/1 var(--ayg-font-tekst); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); margin-bottom: 16px; }
-.ayg-voet ul { display: grid; gap: 10px; }
+.ayg-voet-merk p { margin-top: 14px; max-width: 28ch; font-size: 15px; color: var(--ayg-tekst-2); }
+.ayg-voet h2 { font: 600 12.5px/1 var(--ayg-font-tekst); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); margin-bottom: 14px; }
+.ayg-voet ul { display: grid; gap: 4px; }
+.ayg-voet li a { display: inline-block; padding-block: 4px; font-size: 15px; }
 .ayg-voet a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; text-decoration-thickness: 1.5px; color: var(--ayg-inkt-tekst); transition: color 180ms var(--ayg-ease), text-decoration-color 180ms var(--ayg-ease); }
 .ayg-voet a:is(:hover, :focus-visible) { color: var(--ayg-accent); text-decoration-color: var(--ayg-accent); }
-.ayg-voet-onder { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--ayg-inkt-lijn); font-size: 14px; color: var(--ayg-tekst-2); }
-.ayg-voet-woord { margin-top: 56px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-voet-woord); user-select: none; white-space: nowrap; }
-@media (min-width: 760px) { .ayg-voet-raster { grid-template-columns: 1.6fr repeat(3, 1fr); } }
+.ayg-voet-onder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--ayg-inkt-lijn); font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg-voet-inloggen { margin-left: auto; font-weight: 600; }
+.ayg-voet-woord { margin-top: 40px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-voet-woord); user-select: none; white-space: nowrap; }
+@media (min-width: 760px) { .ayg-voet-raster { grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); } .ayg-voet-merk { grid-column: auto; } }
 
 /* ── Sectiekop en paginakop ──────────────────────────────────────────────── */
 .ayg-sectiekop { display: grid; gap: 20px; max-width: 62rem; margin-bottom: clamp(40px, 6vw, 72px); }

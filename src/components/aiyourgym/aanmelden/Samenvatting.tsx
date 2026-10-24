@@ -1,5 +1,7 @@
 import { CalendarCheck, KeyRound, LayoutDashboard, Lock } from 'lucide-react'
 import { adresVeld } from '@/lib/club/kern/subdomein'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 import type { Invoer, PakketKeuze } from './types'
 
 // Het donkere paneel naast het formulier: je adres groot in beeld, je keuze
@@ -14,17 +16,18 @@ interface SamenvattingProps {
 }
 
 export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: SamenvattingProps) {
+  const t = useTekst(AANMELD_FORMULIER)
   const veld = adresVeld(subdomeinen)
-  const naam = invoer.slug || 'jouwgym'
+  const naam = invoer.slug || t.jouwgym
   const aanvraag = pakket !== null && !pakket.open
   const stappen = [
-    { Icoon: CalendarCheck, tekst: aanvraag ? 'We nemen zelf contact met je op om je sportschool te starten.' : `Je start met ${proefdagen} dagen gratis. Daarna per maand, per vestiging.` },
-    { Icoon: LayoutDashboard, tekst: aanvraag ? 'Na de start staat je eigen omgeving klaar, met een basisbibliotheek met oefeningen.' : 'Je eigen omgeving staat direct klaar, met een basisbibliotheek met oefeningen.' },
-    { Icoon: KeyRound, tekst: 'Je logt in met je e-mailadres en het wachtwoord dat je hier kiest. Daarna richt de startwizard in acht stappen alles in: huisstijl, vestiging, lessen, team en leden.' },
+    { Icoon: CalendarCheck, tekst: aanvraag ? t.naAanvraag1 : t.naProef1(proefdagen) },
+    { Icoon: LayoutDashboard, tekst: aanvraag ? t.naAanvraag2 : t.naProef2 },
+    { Icoon: KeyRound, tekst: t.na3 },
   ]
   return (
-    <aside className="aan-samen ayg-podium" aria-label="Je aanmelding">
-      <p className="aan-samen-label">Je eigen adres</p>
+    <aside className="aan-samen ayg-podium" aria-label={t.samenLabel}>
+      <p className="aan-samen-label">{t.eigenAdresLabel}</p>
       <div className="aan-samen-adres">
         <p className="aan-samen-url" aria-live="polite">
           <Lock size={16} strokeWidth={2.2} aria-hidden="true" />
@@ -35,20 +38,20 @@ export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: Samenv
           </span>
         </p>
         <p className="aan-samen-uitleg">
-          Hier werken jij en je team. Je leden krijgen de app in jouw naam en kleuren.
+          {t.adresUitleg}
         </p>
       </div>
       <dl className="aan-samen-keuze">
         <div>
-          <dt>Pakket</dt>
-          <dd>{pakket?.naam ?? 'Nog kiezen'}</dd>
+          <dt>{t.rij.pakket}</dt>
+          <dd>{pakket?.naam ?? t.nogKiezen}</dd>
         </div>
         <div>
-          <dt>Vestigingen</dt>
+          <dt>{t.rij.vestigingen}</dt>
           <dd>{invoer.aantalVestigingen}</dd>
         </div>
       </dl>
-      <p className="aan-samen-label">Na het aanmelden</p>
+      <p className="aan-samen-label">{t.naAanmelden}</p>
       <ol className="aan-samen-stappen">
         {stappen.map(({ Icoon, tekst }) => (
           <li key={tekst}>

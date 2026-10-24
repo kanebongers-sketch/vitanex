@@ -1,0 +1,182 @@
+/* ─── Club, rep-speler ───────────────────────────────────────────────────────
+   Telefoon eerst: het beeld groot, de teller eronder als een rustige band, de
+   bediening met duimvlakken van 48px. Breder dan 560px: teller naast het beeld.
+   Alleen tokens uit club.css, app.css en de huisstijl van de sportschool; het
+   accent alleen voor wat telt (de ring, de startknop, vastleggen).
+   Beweging alleen met transform en opacity. */
+
+.club-rep {
+  --rep-radius: var(--lidapp-radius, var(--club-radius, 18px));
+  --rep-ring: 112px;
+  container-type: inline-size;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.club-rep-podium { display: grid; gap: 12px; }
+@container (min-width: 560px) {
+  .club-rep-podium { grid-template-columns: minmax(0, 1fr) 200px; align-items: center; }
+  .club-rep { --rep-ring: 148px; }
+}
+
+/* Het beeld: vierkant, poster en canvas op elkaar, een zachte vloer eronder */
+.club-rep-beeld {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--rep-radius);
+  background:
+    radial-gradient(70% 60% at 50% 42%, var(--brand-soft, transparent), transparent 72%),
+    var(--bg-card);
+  border: 1px solid var(--line);
+  isolation: isolate;
+}
+.club-rep-vloer {
+  position: absolute; left: 18%; right: 18%; bottom: 4%; height: 7%; z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--bg-app) 70%, transparent), transparent);
+  opacity: 0.55;
+}
+.club-rep-still, .club-rep-doek {
+  position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  transition: opacity 180ms var(--ease, ease-out);
+}
+.club-rep-still[data-weg] { opacity: 0; }
+.club-rep-doek { opacity: 0; }
+.club-rep-beeld[data-canvas] .club-rep-doek { opacity: 1; }
+.club-rep-laden {
+  position: absolute; left: 20%; right: 20%; bottom: 14px; z-index: 2; height: 3px;
+  border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--text-3) 30%, transparent);
+}
+.club-rep-laden span { display: block; height: 100%; background: var(--brand); transform-origin: left; transition: transform 200ms var(--ease, ease-out); }
+
+/* De teller: ring met het getal, de fase eronder */
+.club-rep-teller {
+  display: grid; grid-template-columns: var(--rep-ring) minmax(0, 1fr); align-items: center; gap: 4px 16px;
+  padding: 12px 16px;
+  border-radius: var(--rep-radius);
+  background: var(--bg-raised, var(--bg-card));
+  border: 1px solid var(--line-strong);
+}
+@container (min-width: 560px) {
+  .club-rep-teller { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 18px 12px; }
+}
+.club-rep-set { grid-column: 1 / -1; margin: 0; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-2); }
+.club-rep-set span { color: var(--text-3); }
+.club-rep-ring { position: relative; width: var(--rep-ring); aspect-ratio: 1; display: grid; place-items: center; }
+.club-rep-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.club-rep-ring circle { fill: none; stroke-width: 7; }
+.club-rep-ring-baan { stroke: var(--club-vlak-hover, var(--line)); }
+.club-rep-ring-vol { stroke: var(--brand); stroke-linecap: round; }
+.club-rep[data-status='klaar'] .club-rep-ring-vol { stroke: var(--club-ok, var(--brand)); }
+.club-rep-getal { position: relative; margin: 0; display: flex; align-items: baseline; gap: 4px; font-family: var(--ff-kop); font-variant-numeric: tabular-nums; line-height: 1; }
+.club-rep-getal strong { font-size: calc(var(--rep-ring) * 0.36); font-weight: 700; }
+.club-rep-getal span { font-size: calc(var(--rep-ring) * 0.15); font-weight: 600; color: var(--text-3); }
+.club-rep-fase {
+  margin: 0; min-width: 0;
+  font-family: var(--ff-kop); font-size: clamp(30px, 9cqi, 44px); font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: 0.02em;
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+@container (min-width: 560px) { .club-rep-fase { font-size: 30px; } }
+.club-rep-teller[data-segment='heen'] .club-rep-fase,
+.club-rep-teller[data-segment='terug'] .club-rep-fase { color: var(--brand-tekst, var(--brand)); }
+.club-rep-teller[data-segment='houden'] .club-rep-fase,
+.club-rep-teller[data-segment='rust'] .club-rep-fase { color: var(--text-2); }
+
+/* Na de set */
+.club-rep-na {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px;
+  padding: 14px 16px;
+  border-radius: var(--rep-radius);
+  background: color-mix(in srgb, var(--club-ok, var(--brand)) 10%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--club-ok, var(--brand)) 40%, transparent);
+  animation: club-rep-in 260ms var(--ease, ease-out) both;
+}
+.club-rep-na-vink { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: var(--club-ok, var(--brand)); color: var(--bg-app); }
+.club-rep-na-tekst { display: grid; gap: 2px; }
+.club-rep-na-tekst strong { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; text-transform: uppercase; }
+.club-rep-na-tekst span { color: var(--text-2); font-size: 14.5px; }
+.club-rep-na-tekst b { font-family: var(--ff-kop); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text-1); }
+.club-rep-na-knop { grid-column: 1 / -1; }
+
+/* Bediening */
+.club-rep-bediening { display: flex; align-items: center; gap: 8px; }
+.club-rep-hoofdknop {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 52px; padding: 0 22px;
+  border: 0; border-radius: 999px;
+  background: var(--brand); color: var(--brand-inkt, var(--bg-app));
+  font: inherit; font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 140ms var(--ease, ease-out), opacity 160ms var(--ease, ease-out);
+}
+.club-rep-hoofdknop:active { transform: scale(0.97); }
+.club-rep-hoofdknop:disabled { opacity: 0.55; cursor: progress; }
+.club-rep[data-status='loopt'] .club-rep-bediening .club-rep-hoofdknop { background: var(--club-vlak-hover, var(--bg-card)); color: var(--text-1); }
+.club-rep-knop {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 48px; height: 48px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid var(--line-strong);
+  background: var(--club-vlak, transparent); color: var(--text-2);
+  font: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms var(--ease, ease-out);
+}
+.club-rep-knop:active { transform: scale(0.94); }
+.club-rep-knop:disabled { opacity: 0.4; cursor: default; }
+.club-rep-knop[aria-pressed='true'] { color: var(--text-1); border-color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); }
+.club-rep-knoptekst { font-variant-numeric: tabular-nums; }
+.club-rep-hoofdknop:focus-visible, .club-rep-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) {
+  .club-rep-knop:not(:disabled):hover { color: var(--text-1); border-color: var(--text-3); }
+}
+
+.club-rep-tempo { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-2); font-size: 14px; }
+.club-rep-tempo svg { flex: none; color: var(--brand-tekst, var(--brand)); }
+
+/* Klein voorbeeld in een lijst: de poster, op hover de lus */
+.club-rep-duim { position: relative; display: block; flex: none; width: 52px; height: 52px; border-radius: var(--club-radius-klein, 8px); overflow: hidden; background: var(--bg-card); border: 1px solid var(--line); }
+.club-rep-duim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.club-rep-duim-lus { opacity: 0; transition: opacity 160ms var(--ease, ease-out); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .club-training-r:hover .club-rep-duim-lus, .club-rep-duim:hover .club-rep-duim-lus { opacity: 1; }
+}
+
+/* Coaching onder de speler */
+.club-repc { display: grid; gap: 14px; min-width: 0; }
+.club-repc-kop { margin: 0 0 8px; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-repc-tekst { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.club-repc-kern { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-repc-kern li { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: start; gap: 10px; }
+.club-repc-kern b {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px;
+  background: var(--brand); color: var(--brand-inkt, var(--bg-app));
+  font-family: var(--ff-kop); font-size: 14px; font-weight: 700;
+}
+.club-repc-kern span { display: grid; gap: 2px; min-width: 0; }
+.club-repc-kern strong { font-size: 15.5px; font-weight: 650; line-height: 1.3; }
+.club-repc-kern small { color: var(--text-3); font-size: 13.5px; line-height: 1.4; }
+.club-repc-fouten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-repc-fouten li { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--club-vlak, var(--bg-card)); }
+.club-repc-fout, .club-repc-beter { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 14px; line-height: 1.4; }
+.club-repc-fout { color: var(--text-2); }
+.club-repc-fout svg { margin-top: 2px; color: var(--club-let-op, var(--text-3)); }
+.club-repc-beter svg { margin-top: 2px; color: var(--club-ok, var(--brand)); }
+.club-repc-tegels { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin: 0; }
+.club-repc-tegels div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); }
+.club-repc-tegels dt { display: flex; align-items: center; gap: 6px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-repc-tegels dd { margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: var(--text-1); }
+
+@keyframes club-rep-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-rep-na { animation: none; }
+  .club-rep-still, .club-rep-doek, .club-rep-laden span { transition: none; }
+}

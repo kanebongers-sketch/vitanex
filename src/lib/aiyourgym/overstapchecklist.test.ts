@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { OVERSTAP_CHECKLIST, alleIds, bewaarVoortgang, leesVoortgang, totaleVoortgang, voortgangVan, wissel } from './overstapchecklist'
+import { OVERSTAP_CHECKLIST, OVERSTAP_CHECKLIST_EN, alleIds, checklistIn, bewaarVoortgang, leesVoortgang, totaleVoortgang, voortgangVan, wissel } from './overstapchecklist'
 
 describe('overstapchecklist', () => {
   it('heeft unieke id’s en groepen met punten', () => {
@@ -14,6 +14,19 @@ describe('overstapchecklist', () => {
     expect(tekst).not.toMatch(/[–—]| - /)
     expect(tekst).not.toMatch(/[éèëêáàóòúùíì]/i)
     expect(tekst).not.toMatch(/fit ?factory|virtuagym|sportivity/i)
+  })
+
+  it('heeft in het Engels dezelfde groepen, id’s en uitleg, zonder gedachtestreepjes', () => {
+    expect(alleIds(OVERSTAP_CHECKLIST_EN)).toEqual(alleIds())
+    expect(OVERSTAP_CHECKLIST_EN.map((g) => g.sleutel)).toEqual(OVERSTAP_CHECKLIST.map((g) => g.sleutel))
+    OVERSTAP_CHECKLIST.forEach((g, i) =>
+      g.punten.forEach((p, j) => expect(Boolean(OVERSTAP_CHECKLIST_EN[i].punten[j].uitleg)).toBe(Boolean(p.uitleg))),
+    )
+    const tekst = JSON.stringify(OVERSTAP_CHECKLIST_EN)
+    expect(tekst).not.toMatch(/[–—]| - | [,.;:!?]/)
+    expect(tekst).not.toMatch(/fit ?factory|virtuagym|sportivity/i)
+    expect(checklistIn('en')).toBe(OVERSTAP_CHECKLIST_EN)
+    expect(checklistIn('nl')).toBe(OVERSTAP_CHECKLIST)
   })
 
   it('leest alleen bekende id’s terug en overleeft kapotte opslag', () => {

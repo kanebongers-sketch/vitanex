@@ -124,14 +124,16 @@ export function TrainingModus(p: TrainingModusProps) {
     setConcept((c) => ({ ...c, invoer: { ...c.invoer, [k]: { ...(c.invoer[k] ?? LEEG), ...deel } } }))
   }
 
-  /** Set klaar: rust starten (superset pas na de ronde) en door naar de oefening van de volgende open set. */
-  function setGedaan(k: string) {
+  /** Set klaar: rust starten (superset pas na de ronde) en door naar de oefening van de volgende open set. Met `rustVanaf` telt de rust vanaf dat moment. */
+  function setGedaan(k: string, rustVanaf?: number) {
     signaal.ontgrendel()
     const invoer = { ...concept.invoer, [k]: { ...(concept.invoer[k] ?? LEEG), klaar: true } }
     const sec = stappen.find((s) => s.sleutel === k)?.rustNa ?? 0
     const volgende = volgendeOpen(stappen, invoer, k)
     const ander = volgende ? dag.oefeningen.findIndex((x) => x.id === volgende.regelId) : -1
-    const rust = sec > 0 && volgende ? { start: Date.now(), sec, volgende: `set ${volgende.set} ${volgende.naam}` } : null
+    const nu = Date.now()
+    const start = rustVanaf !== undefined && rustVanaf <= nu ? rustVanaf : nu
+    const rust = sec > 0 && volgende ? { start, sec, volgende: `set ${volgende.set} ${volgende.naam}` } : null
     if (ander >= 0 && ander !== index) {
       setRichting(ander > index ? 'vooruit' : 'terug')
       wortel.current?.scrollIntoView({ block: 'start' })

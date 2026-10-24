@@ -297,26 +297,42 @@ li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
 /* ── Eigen Blender-renders (OefenLus) ──────────────────────────────────────
    Een donker vlak met een zachte lichtbundel en een schaduw op de vloer; de
    render zelf is transparant. Eerst het stille beeld, daarna vervaagt de lus
-   erin en verdwijnt het stille beeld (anders zie je beide door elkaar). */
+   erin (pas na decode) en verdwijnt het stille beeld (anders zie je beide door
+   elkaar). Terug naar het stille beeld gaat zonder overgang: zo is er nooit een
+   moment met een leeg of half doorzichtig vlak.
+   .ayg-lus-vlak is precies het vlak van de render (zelfde verhouding, midden in
+   het vak), zodat de schaduw ook in een hoog vak onder de voeten staat:
+   --lus-vloer is de vloerlijn van de render (0 boven, 1 onder). */
 .ayg-lus {
   --lus-vlak: var(--ayg-inkt-2, #1a201d);
   --lus-gloed: rgb(255 255 255 / 0.075);
   --lus-rand: rgb(255 255 255 / 0.07);
-  --lus-vloer: rgb(0 0 0 / 0.55);
+  --lus-vloer-kleur: rgb(0 0 0 / 0.55);
   position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; isolation: isolate;
   border-radius: var(--club-radius, 12px);
   background: radial-gradient(75% 60% at 50% 40%, var(--lus-gloed), transparent 70%), var(--lus-vlak);
   box-shadow: inset 0 0 0 1px var(--lus-rand);
 }
-.ayg-lus::before {
-  content: ''; position: absolute; left: 22%; right: 22%; bottom: 7%; height: 9%; z-index: -1; border-radius: 50%;
-  background: radial-gradient(closest-side, var(--lus-vloer), transparent);
+.ayg-lus-vlak { position: absolute; inset: 0; }
+@supports (width: 1cqw) {
+  .ayg-lus { container-type: size; }
+  .ayg-lus-vlak {
+    inset: auto; left: 50%; top: 50%; translate: -50% -50%;
+    width: min(100cqw, 100cqh * var(--lus-ratio, 1)); aspect-ratio: var(--lus-ratio, 1);
+  }
+}
+.ayg-lus-vlak::before {
+  content: ''; position: absolute; left: 22%; right: 22%; top: calc(var(--lus-vloer, 0.93) * 100%); height: 9%; translate: 0 -50%;
+  z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, var(--lus-vloer-kleur), transparent);
 }
 .ayg-lus img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.ayg-lus-beweging { opacity: 0; transition: opacity 360ms var(--ayg-ease); }
-.ayg-lus-still { transition: opacity 360ms var(--ayg-ease) 120ms; }
+.ayg-lus-beweging { opacity: 0; transition: opacity 200ms var(--ayg-ease); }
+.ayg-lus-still { opacity: 1; transition: none; }
 .ayg-lus[data-speelt] .ayg-lus-beweging { opacity: 1; }
-.ayg-lus[data-speelt] .ayg-lus-still { opacity: 0; }
+.ayg-lus[data-speelt] .ayg-lus-still { opacity: 0; transition: opacity 160ms var(--ayg-ease) 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  .ayg-lus-beweging, .ayg-lus[data-speelt] .ayg-lus-still { transition: none; }
+}
 .ayg-lus.ayg-3d--vul { aspect-ratio: auto; border-radius: 0; }
 .ayg-lus-knop {
   position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 38px; height: 38px;

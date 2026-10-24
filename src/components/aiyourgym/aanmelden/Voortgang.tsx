@@ -1,4 +1,6 @@
 import { Check } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 import { STAPPEN } from './stappen'
 
 // Waar ben je in het formulier? Een genummerde lijst; afgeronde stappen zijn
@@ -11,8 +13,9 @@ interface VoortgangProps {
 }
 
 export function Voortgang({ huidig, verste, onKies }: VoortgangProps) {
+  const t = useTekst(AANMELD_FORMULIER)
   return (
-    <nav aria-label="Stappen van het aanmelden">
+    <nav aria-label={t.voortgangLabel}>
       <ol className="aan-voortgang">
         {STAPPEN.map((s, i) => {
           const staat = i === huidig ? 'nu' : i < huidig || i <= verste ? 'klaar' : 'later'
@@ -23,8 +26,8 @@ export function Voortgang({ huidig, verste, onKies }: VoortgangProps) {
                   {staat === 'klaar' && i !== huidig ? <Check size={14} strokeWidth={3} /> : i + 1}
                 </span>
                 <span className="aan-voortgang-titel">
-                  <span className="ayg-sr">Stap {i + 1}: </span>
-                  {s.titel}
+                  <span className="ayg-sr">{t.stapSr(i + 1)}</span>
+                  {t.stappen[s.sleutel].titel}
                 </span>
               </button>
             </li>

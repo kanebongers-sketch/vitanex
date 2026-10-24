@@ -1,65 +1,55 @@
 import { ArrowRight, FileSpreadsheet } from 'lucide-react'
-import { IMPORT_VELD_LABEL, type ImportVeld } from '@/lib/club/leden/import/kolommen'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { IMPORT } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
 import { Venster } from './kaders'
 
 // Het ledenbestand inlezen: kolommen uit het CSV-bestand gekoppeld aan de velden
-// van Club (de veldnamen komen uit Club zelf), met eerst een voorbeeld.
+// van Club (de veldnamen komen in het Nederlands uit Club zelf), met eerst een
+// voorbeeld. Teksten in de taal van de pagina (woordenboek IMPORT): kolom i hoort
+// bij veld i.
 
-const KOPPELINGEN: readonly { kolom: string; veld: ImportVeld }[] = [
-  { kolom: 'Roepnaam', veld: 'voornaam' },
-  { kolom: 'Achternaam', veld: 'achternaam' },
-  { kolom: 'E-mailadres', veld: 'email' },
-  { kolom: 'Mobiel', veld: 'telefoon' },
-  { kolom: 'Abonnement', veld: 'abonnement' },
-  { kolom: 'Lid sinds', veld: 'lidSinds' },
-]
+/** Nieuw, bijgewerkt, ongewijzigd en dubbel, in de volgorde van t.tegels. */
+const AANTALLEN = [214, 37, 412, 2] as const
 
-export function ImportScherm() {
+export async function ImportScherm() {
+  const taal = await getSiteTaal()
+  const t = IMPORT[taal]
   const kolommen = 'minmax(0, 1fr) 18px minmax(0, 1fr)'
   return (
     <Venster actief="Leden">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">Leden · ledenbestand inlezen</p>
+          <p className="aygm-boven">{t.boven}</p>
           <p className="aygm-kop">
-            <FileSpreadsheet size={14} aria-hidden /> leden-export.csv
+            <FileSpreadsheet size={14} aria-hidden /> {t.bestand}
           </p>
         </div>
-        <span className="aygm-chip aygm-chip--ok">Kolommen herkend</span>
+        <span className="aygm-chip aygm-chip--ok">{t.herkend}</span>
       </div>
       <div className="aygm-tabel">
         <div style={{ gridTemplateColumns: kolommen }}>
-          <span>Kolom in je bestand</span>
+          <span>{t.kolomInBestand}</span>
           <span />
-          <span>Veld</span>
+          <span>{t.veld}</span>
         </div>
-        {KOPPELINGEN.map((k) => (
-          <div key={k.kolom} style={{ gridTemplateColumns: kolommen }}>
-            <span>{k.kolom}</span>
+        {t.kolommen.map((kolom, i) => (
+          <div key={kolom} style={{ gridTemplateColumns: kolommen }}>
+            <span>{kolom}</span>
             <ArrowRight size={13} aria-hidden />
             <span>
-              <span className="aygm-chip">{IMPORT_VELD_LABEL[k.veld]}</span>
+              <span className="aygm-chip">{t.velden[i]}</span>
             </span>
           </div>
         ))}
       </div>
       <div className="aygm-tegels" style={{ marginTop: 12, marginBottom: 0 }}>
-        <div className="aygm-tegel">
-          <p className="aygm-boven">Nieuw</p>
-          <p className="aygm-getal">214</p>
-        </div>
-        <div className="aygm-tegel">
-          <p className="aygm-boven">Bijgewerkt</p>
-          <p className="aygm-getal">37</p>
-        </div>
-        <div className="aygm-tegel">
-          <p className="aygm-boven">Ongewijzigd</p>
-          <p className="aygm-getal">412</p>
-        </div>
-        <div className="aygm-tegel">
-          <p className="aygm-boven">Dubbel</p>
-          <p className="aygm-getal">2</p>
-        </div>
+        {AANTALLEN.map((aantal, i) => (
+          <div key={t.tegels[i]} className="aygm-tegel">
+            <p className="aygm-boven">{t.tegels[i]}</p>
+            <p className="aygm-getal">{formatGetal(aantal, taal)}</p>
+          </div>
+        ))}
       </div>
     </Venster>
   )

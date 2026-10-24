@@ -1,15 +1,22 @@
+'use client'
+
 import type { CSSProperties, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { CalendarClock, CalendarDays, Dumbbell, House, LifeBuoy, Lock, Plug, Salad, Settings2, Smartphone, Sparkles, TrendingUp, UserRound } from 'lucide-react'
 import { GROEPEN as CLUB_GROEPEN, onderdelenVan } from '@/components/club/shell/onderdelen'
 import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { KADERS } from '@/lib/aiyourgym/taal/woorden/website/mockups/kaders'
+import { VOORBEELD_ADRES, VOORBEELD_NAAM } from './voorbeeld'
 
 // Kaders voor de productbeelden: een browservenster en een telefoon. De inhoud
 // is een tekening van onze eigen schermen in HTML en CSS; voor schermlezers is
 // het een afbeelding met een beschrijving (role="img").
+// Een clientcomponent, omdat de kaders ook in clientcomponenten staan (zoals de
+// coachingdemo); de taal komt uit de context van de pagina (woordenboek KADERS).
+// Groepen, onderdelen en tabbladen worden doorgegeven met hun Nederlandse naam
+// uit Club en in de taal van de pagina getoond.
 
-export const VOORBEELD_ADRES = 'aiyourgym.com/voorbeeldgym'
-export const VOORBEELD_NAAM = 'Voorbeeld Gym'
 
 interface FiguurProps {
   label: string
@@ -21,13 +28,14 @@ interface FiguurProps {
 
 /** Een productbeeld met eerlijk bijschrift: het zijn voorbeeldgegevens. */
 export function Figuur({ label, children, bijschrift, className, stijl }: FiguurProps) {
+  const t = useTekst(KADERS)
   return (
     <figure className={className ? `aygm-figuur ${className}` : 'aygm-figuur'} style={stijl}>
       <div role="img" aria-label={label} className="aygm">
         {children}
       </div>
       <figcaption className="aygm-bijschrift">
-        <span>Schermvoorbeeld met voorbeeldgegevens</span>
+        <span>{t.bijschrift}</span>
         {bijschrift}
       </figcaption>
     </figure>
@@ -36,8 +44,9 @@ export function Figuur({ label, children, bijschrift, className, stijl }: Figuur
 
 // De groepen, het submenu en de hulpbalk komen uit Club zelf, zodat het
 // productbeeld altijd het echte menu laat zien.
-const GROEPEN = CLUB_GROEPEN.map((g) => g.label)
 export type Groep = (typeof CLUB_GROEPEN)[number]['label']
+
+type Teksten = (typeof KADERS)['nl']
 
 const HULP_ICOON: Record<HulpSleutel, LucideIcon> = {
   instellingen: Settings2,
@@ -47,18 +56,24 @@ const HULP_ICOON: Record<HulpSleutel, LucideIcon> = {
   hulp: LifeBuoy,
 }
 
+/** Een onderdeel van het menu in de taal van de pagina, met de naam uit Club als reserve. */
+function onderdeelNaam(t: Teksten, sleutel: string, label: string): string {
+  const namen: Readonly<Record<string, string | undefined>> = t.onderdelen
+  return namen[sleutel] ?? label
+}
+
 /** Rij 2 van Club: de groep waar je bent en haar onderdelen over de volle breedte, het actieve gevuld. */
-function Submenu({ groep, hier }: { groep: Groep; hier?: string }) {
+function Submenu({ groep, hier, t }: { groep: Groep; hier?: string; t: Teksten }) {
   const g = CLUB_GROEPEN.find((x) => x.label === groep)
   if (!g) return null
   const items = onderdelenVan(g.sleutel)
   const actief = hier ?? items[0]?.label
   return (
     <div className="aygm-app-sub">
-      <span className="aygm-app-sub-groep">{groep}</span>
+      <span className="aygm-app-sub-groep">{t.groepen[g.sleutel]}</span>
       {items.map((o) => (
         <span key={o.sleutel} data-actief={o.label === actief ? '' : undefined}>
-          {o.label}
+          {onderdeelNaam(t, o.sleutel, o.label)}
         </span>
       ))}
     </div>
@@ -66,7 +81,7 @@ function Submenu({ groep, hier }: { groep: Groep; hier?: string }) {
 }
 
 /** De hulpbalk onderaan elke pagina van Club. */
-function Hulpbalk() {
+function Hulpbalk({ t }: { t: Teksten }) {
   return (
     <div className="aygm-hulpbalk">
       {HULPBALK.map((i) => {
@@ -74,7 +89,7 @@ function Hulpbalk() {
         return (
           <span key={i.sleutel}>
             <Icoon aria-hidden />
-            {i.label}
+            {t.hulpbalk[i.sleutel]}
           </span>
         )
       })}
@@ -84,13 +99,14 @@ function Hulpbalk() {
 
 interface VensterProps {
   actief: Groep
-  /** Het onderdeel waar je bent (label uit het menu); standaard het eerste van de groep. */
+  /** Het onderdeel waar je bent (Nederlandse naam uit het menu); standaard het eerste van de groep. */
   hier?: string
   children: ReactNode
 }
 
 /** Club in een browservenster, met het eigen adres van de sportschool. */
 export function Venster({ actief, hier, children }: VensterProps) {
+  const t = useTekst(KADERS)
   return (
     <div className="aygm-venster">
       <div className="aygm-venster-balk">
@@ -110,16 +126,16 @@ export function Venster({ actief, hier, children }: VensterProps) {
           {VOORBEELD_NAAM}
         </span>
         <span className="aygm-app-groepen">
-          {GROEPEN.map((g) => (
-            <span key={g} data-actief={g === actief ? '' : undefined}>
-              {g}
+          {CLUB_GROEPEN.map((g) => (
+            <span key={g.sleutel} data-actief={g.label === actief ? '' : undefined}>
+              {t.groepen[g.sleutel]}
             </span>
           ))}
         </span>
       </div>
-      <Submenu groep={actief} hier={hier} />
+      <Submenu groep={actief} hier={hier} t={t} />
       <div className="aygm-app-inhoud">{children}</div>
-      <Hulpbalk />
+      <Hulpbalk t={t} />
     </div>
   )
 }
@@ -144,6 +160,7 @@ interface ToestelProps {
 
 /** De ledenapp op een telefoon, met de tabbladen zoals in Club. */
 export function Toestel({ tab, children, stijl, className }: ToestelProps) {
+  const t = useTekst(KADERS)
   return (
     <div className={className ? `aygm-toestel ${className}` : 'aygm-toestel'} style={stijl}>
       <div className="aygm-scherm">
@@ -163,7 +180,7 @@ export function Toestel({ tab, children, stijl, className }: ToestelProps) {
           {TABS.map(({ label, Icoon }) => (
             <span key={label} data-actief={label === tab ? '' : undefined}>
               <Icoon aria-hidden />
-              {label}
+              {t.tabs[label]}
             </span>
           ))}
         </div>

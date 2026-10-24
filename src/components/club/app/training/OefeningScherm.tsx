@@ -4,9 +4,12 @@ import { useState, type ReactNode } from 'react'
 import { ArrowRight, BookOpen, Check } from 'lucide-react'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { voorschrift } from '@/lib/club/app/schema'
-import { huidigeSet, type Invoer, type OefeningPlek, type SetVeld } from '@/lib/club/app/training-modus'
+import { aantalSets, huidigeSet, setSleutel, type Invoer, type OefeningPlek, type SetVeld } from '@/lib/club/app/training-modus'
 import { BLOK_LABEL } from '@/lib/club/training/blokken'
 import { OefeningSpeler } from '@/components/club/training/coaching/OefeningSpeler'
+import { RepCoaching } from '@/components/club/training/repspeler/RepCoaching'
+import { RepSpeler } from '@/components/club/training/repspeler/RepSpeler'
+import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
 import { SetLijst, SetPaneel } from './SetPaneel'
 
 interface OefeningSchermProps {
@@ -18,7 +21,8 @@ interface OefeningSchermProps {
   kernpunten: readonly string[] | undefined
   isLaatste: boolean
   onVeld: (sleutel: string, deel: Partial<SetVeld>) => void
-  onKlaar: (sleutel: string) => void
+  /** Set klaar; met `rustVanaf` (ms) telt de rust vanaf dat moment (de rep-speler was eerder klaar dan de tik). */
+  onKlaar: (sleutel: string, rustVanaf?: number) => void
   onOpen: (sleutel: string) => void
   onInfo: () => void
   onVolgende: () => void
@@ -26,7 +30,11 @@ interface OefeningSchermProps {
   andereOefening?: ReactNode
 }
 
-/** Een oefening per scherm: bewegend beeld, kernpunten, en de set die aan de beurt is groot. */
+/**
+ * Een oefening per scherm: bewegend beeld, kernpunten, en de set die aan de beurt is groot.
+ * Met een Blender-render (besluit Kane 24-10-2026) de rep-speler over de volle breedte,
+ * op het tempo van het schema, met de coaching er direct onder.
+ */
 export function OefeningScherm(p: OefeningSchermProps) {
   const { oefening: o, plek, invoer } = p
   const [gekozen, setGekozen] = useState<number | null>(null)
@@ -34,10 +42,11 @@ export function OefeningScherm(p: OefeningSchermProps) {
   const actief = gekozen ?? open
   const regel = voorschrift(o)
   const titelId = `oefening-${o.id}`
+  const render = repRenderVoor(o.naam)
 
-  function klaar(sleutel: string) {
+  function klaar(sleutel: string, rustVanaf?: number) {
     setGekozen(null)
-    p.onKlaar(sleutel)
+    p.onKlaar(sleutel, rustVanaf)
   }
 
   return (
@@ -49,12 +58,25 @@ export function OefeningScherm(p: OefeningSchermProps) {
           {regel && <p>{regel}</p>}
         </div>
       </header>
-      <div className="club-tm-top">
-        <div className="club-tm-beeld" data-geen-veeg>
-          <OefeningSpeler key={o.id} naam={o.naam} beeld={o.beeld} />
-        </div>
+      <div className="club-tm-top" data-rep={render ? true : undefined}>
+        {render ? (
+          <div className="club-tm-rep" data-geen-veeg>
+            <RepSpeler
+              key={`${o.id}:${actief ?? 'af'}`} render={render} naam={o.naam} herhalingen={o.herhalingen} tijdSec={o.tijdSec} tempo={o.tempo} rustSec={o.rustSec}
+              sets={aantalSets(o)} setNr={actief} onSetKlaar={actief !== null ? (vanaf) => klaar(setSleutel(o.id, actief), vanaf) : undefined}
+            />
+          </div>
+        ) : (
+          <div className="club-tm-beeld" data-geen-veeg>
+            <OefeningSpeler key={o.id} naam={o.naam} beeld={o.beeld} />
+          </div>
+        )}
         <div className="club-tm-uitleg">
-          <Kernpunten punten={p.kernpunten} aandachtspunten={o.aandachtspunten} />
+          {render ? (
+            <RepCoaching naam={o.naam} kernpunten={p.kernpunten} aandachtspunten={o.aandachtspunten} />
+          ) : (
+            <Kernpunten punten={p.kernpunten} aandachtspunten={o.aandachtspunten} />
+          )}
           <button type="button" className="club-tm-meer" onClick={p.onInfo} aria-haspopup="dialog">
             <BookOpen aria-hidden size={16} /> Meer uitleg
           </button>

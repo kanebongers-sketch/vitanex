@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import './basis.css'
 import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
+import { AygTaal } from '@/lib/aiyourgym/taal/client'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { HTML_LANG } from '@/lib/aiyourgym/taal/taal'
 
 // Eigen root layout van AI Your Gym (route-groep, de URL blijft /aiyourgym/...).
 // Staat volledig los van de rest van de app: geen globals.css, geen TaalProvider,
@@ -11,11 +14,17 @@ import { AYG_FONT_KLASSEN } from '@/components/aiyourgym/merk/fonts'
 // krijgt iedereen behalve Kane hier een 404, en die mag niets over AI Your Gym
 // verraden. Titels staan in aiyourgym/(site)/layout.tsx en per pagina; de poort,
 // viewport en robots-regels in aiyourgym/layout.tsx.
+//
+// De taal (Nederlands of Engels) komt uit het adres: de proxy geeft hem mee als
+// kop (src/lib/aiyourgym/taal). Eigen taalmodule, niet de MentaForce-i18n.
 
-export default function AiYourGymRootLayout({ children }: { children: ReactNode }) {
+export default async function AiYourGymRootLayout({ children }: { children: ReactNode }) {
+  const taal = await getSiteTaal()
   return (
-    <html lang="nl" className={AYG_FONT_KLASSEN}>
-      <body>{children}</body>
+    <html lang={HTML_LANG[taal]} className={AYG_FONT_KLASSEN}>
+      <body>
+        <AygTaal taal={taal}>{children}</AygTaal>
+      </body>
     </html>
   )
 }

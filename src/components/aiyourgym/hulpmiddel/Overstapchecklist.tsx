@@ -3,14 +3,16 @@
 import { useMemo, useSyncExternalStore, type CSSProperties } from 'react'
 import { Check, Printer, RotateCcw } from 'lucide-react'
 import {
-  OVERSTAP_CHECKLIST,
   bewaarVoortgang,
+  checklistIn,
   leesVoortgang,
   totaleVoortgang,
   voortgangVan,
   wissel,
   type ChecklistGroep,
 } from '@/lib/aiyourgym/overstapchecklist'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { CHECKLIST } from '@/lib/aiyourgym/taal/woorden/website/overstapchecklist'
 import { ruweVoortgang, ruweVoortgangServer, schrijfVoortgang, volgVoortgang } from './opslag'
 
 // De overstapchecklist om af te vinken. Zonder account of e-mailadres: de
@@ -25,6 +27,7 @@ interface GroepProps {
 }
 
 function Groep({ groep, nr, gedaan, onWissel }: GroepProps) {
+  const t = CHECKLIST[useTaal()]
   const v = voortgangVan(gedaan, groep.punten)
   const af = v.klaar === v.totaal
   return (
@@ -40,7 +43,7 @@ function Groep({ groep, nr, gedaan, onWissel }: GroepProps) {
           </h2>
         </div>
         <span className="ayg-cl-groep-tel">
-          {v.klaar} van {v.totaal}
+          {t.van(v.klaar, v.totaal)}
         </span>
       </header>
       <ul className="ayg-cl-punten">
@@ -71,6 +74,9 @@ function Groep({ groep, nr, gedaan, onWissel }: GroepProps) {
 }
 
 export function Overstapchecklist() {
+  const taal = useTaal()
+  const t = CHECKLIST[taal]
+  const groepen = checklistIn(taal)
   const ruw = useSyncExternalStore(volgVoortgang, ruweVoortgang, ruweVoortgangServer)
   const gedaan = useMemo(() => leesVoortgang(ruw), [ruw])
   const totaal = totaleVoortgang(gedaan)
@@ -78,33 +84,33 @@ export function Overstapchecklist() {
 
   const onWissel = (id: string) => schrijfVoortgang(bewaarVoortgang(wissel(gedaan, id)))
   const opnieuw = () => {
-    if (window.confirm('Alle vinkjes weghalen en opnieuw beginnen?')) schrijfVoortgang(null)
+    if (window.confirm(t.opnieuwVraag)) schrijfVoortgang(null)
   }
 
   return (
     <div className="ayg-wrap ayg-cl">
-      <aside className="ayg-cl-zij" aria-label="Voortgang">
+      <aside className="ayg-cl-zij" aria-label={t.voortgang}>
         <div className="ayg-cl-stand">
           <p className="ayg-cl-stand-getal" aria-live="polite">
             <strong>{totaal.klaar}</strong>
-            <span> van {totaal.totaal} gedaan</span>
+            <span>{t.gedaan(totaal.totaal)}</span>
           </p>
-          <div className="ayg-cl-balk" style={balk} role="progressbar" aria-valuemin={0} aria-valuemax={totaal.totaal} aria-valuenow={totaal.klaar} aria-label="Punten afgevinkt">
+          <div className="ayg-cl-balk" style={balk} role="progressbar" aria-valuemin={0} aria-valuemax={totaal.totaal} aria-valuenow={totaal.klaar} aria-label={t.afgevinkt}>
             <span />
           </div>
-          <p className="ayg-klein">Je vinkjes blijven in deze browser staan. Niets wordt naar ons gestuurd.</p>
+          <p className="ayg-klein">{t.browser}</p>
         </div>
         <div className="ayg-cl-acties">
           <button type="button" className="ayg-knop ayg-knop--rand ayg-knop--klein" onClick={() => window.print()}>
-            <Printer size={16} aria-hidden /> Printen
+            <Printer size={16} aria-hidden /> {t.printen}
           </button>
           <button type="button" className="ayg-cl-wis" onClick={opnieuw} disabled={totaal.klaar === 0}>
-            <RotateCcw size={15} aria-hidden /> Opnieuw beginnen
+            <RotateCcw size={15} aria-hidden /> {t.opnieuw}
           </button>
         </div>
       </aside>
       <div className="ayg-cl-groepen">
-        {OVERSTAP_CHECKLIST.map((g, i) => (
+        {groepen.map((g, i) => (
           <Groep key={g.sleutel} groep={g} nr={i + 1} gedaan={gedaan} onWissel={onWissel} />
         ))}
       </div>

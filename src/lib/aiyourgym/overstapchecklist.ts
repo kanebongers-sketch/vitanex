@@ -85,6 +85,77 @@ export const OVERSTAP_CHECKLIST: readonly ChecklistGroep[] = [
   },
 ]
 
+/**
+ * Dezelfde checklist in het Engels: dezelfde groepen, dezelfde id's in dezelfde
+ * volgorde (de voortgang hangt aan de id's, dus vinkjes blijven staan bij
+ * wisselen van taal). Zegt precies hetzelfde als het Nederlands, niets meer.
+ */
+export const OVERSTAP_CHECKLIST_EN: readonly ChecklistGroep[] = [
+  {
+    sleutel: 'voorbereiden',
+    titel: 'Prepare',
+    wanneer: 'A few weeks before',
+    punten: [
+      { id: 'startdatum', tekst: 'Choose a start date outside your busiest weeks', uitleg: 'Just after a holiday or at the start of a month is often calmest. In the start wizard you set it as your target date.' },
+      { id: 'wat-nu', tekst: 'Write down what your current system does for you today', uitleg: 'Check-in, class timetable, programmes, member app, team rotas, figures.' },
+      { id: 'wat-blijft', tekst: 'Decide what stays in your membership administration', uitleg: 'Direct debits, memberships and member invoices belong there, not in your club software.' },
+      { id: 'opzegtermijn', tekst: 'Look up your notice period and end date with your current supplier' },
+      { id: 'trekker', tekst: 'Agree who in your team leads the switch', uitleg: 'One person who keeps the overview and handles questions from the team.' },
+    ],
+  },
+  {
+    sleutel: 'gegevens',
+    titel: 'Gather your data',
+    wanneer: 'The week before the start',
+    punten: [
+      { id: 'ledenlijst', tekst: 'Export your member list as a CSV or spreadsheet file', uitleg: 'Name, email address, phone, date of birth, membership, member since and your own member number.' },
+      { id: 'opschonen', tekst: 'Remove duplicate members and empty email addresses from the list', uitleg: 'Without an email address a member cannot receive an invitation to the app.' },
+      { id: 'rooster', tekst: 'Note down your class timetable', uitleg: 'Classes, rooms, days, times and the maximum number of places.' },
+      { id: 'regels', tekst: 'Write down your rules for booking, cancelling and no-shows' },
+      { id: 'historie', tekst: 'Keep an export of visits and payments from your old system', uitleg: 'That history usually does not come across; this way you still have it.' },
+      { id: 'schemas', tekst: 'Collect your members’ current training programmes' },
+    ],
+  },
+  {
+    sleutel: 'inrichten',
+    titel: 'Set up',
+    wanneer: 'A few days before the start',
+    punten: [
+      { id: 'huisstijl', tekst: 'Have your logo and accent colour ready' },
+      { id: 'vestigingen', tekst: 'Enter the opening hours and closing days for each location' },
+      { id: 'team', tekst: 'Invite your team and decide what each role can see', uitleg: 'In the start wizard, Team step: Club emails each staff member a link to choose a password.' },
+      { id: 'inlezen', tekst: 'Import the member list and check the preview before you save' },
+      { id: 'proefdraaien', tekst: 'Do a trial run with your team', uitleg: 'Check in, book a class, create a programme and open the member app on a phone.' },
+    ],
+  },
+  {
+    sleutel: 'leden',
+    titel: 'Bring your members along',
+    wanneer: 'Around the start date',
+    punten: [
+      { id: 'aankondigen', tekst: 'Announce the switch, with the date the new app starts' },
+      { id: 'poster', tekst: 'Put up a poster with a QR code at the front desk', uitleg: 'Members can then add the app to their phone on the spot.' },
+      { id: 'balie', tekst: 'Tell your team what to say when members ask questions' },
+      { id: 'naast-elkaar', tekst: 'Run both systems side by side for a short while, with a clear end date' },
+    ],
+  },
+  {
+    sleutel: 'na-de-start',
+    titel: 'After the start',
+    wanneer: 'The first month',
+    punten: [
+      { id: 'nog-niet-in-app', tekst: 'After a week, check who is not in the app yet, and talk to them' },
+      { id: 'oude-opzeggen', tekst: 'Cancel the old system in good time before the end date' },
+      { id: 'evaluatie', tekst: 'After a month, plan a short review with your team' },
+    ],
+  },
+]
+
+/** De checklist in een taal. De id's (en dus de voortgang) zijn in beide talen gelijk. */
+export function checklistIn(taal: 'nl' | 'en'): readonly ChecklistGroep[] {
+  return taal === 'en' ? OVERSTAP_CHECKLIST_EN : OVERSTAP_CHECKLIST
+}
+
 /** Alle id's in de volgorde van de lijst. */
 export function alleIds(groepen: readonly ChecklistGroep[] = OVERSTAP_CHECKLIST): string[] {
   return groepen.flatMap((g) => g.punten.map((p) => p.id))

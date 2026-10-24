@@ -1,34 +1,41 @@
 import { Download } from 'lucide-react'
+import { formatGetal, formatProcent } from '@/lib/aiyourgym/taal/formaat'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { BEHEER } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
 import { Venster } from './kaders'
 
 // Beheer en planning: cijfers per kalendermaand en het personeelsrooster met uren.
+// Teksten in de taal van de pagina (woordenboek BEHEER), getallen via formaat.ts.
 
+/** Nieuwe leden, bezoeken, bezetting (fractie) en opzeggingen, in de volgorde van t.tegels. */
 const TEGELS = [
-  { label: 'Nieuwe leden', waarde: '38' },
-  { label: 'Bezoeken', waarde: '4.912' },
-  { label: 'Bezetting lessen', waarde: '81%' },
-  { label: 'Opzeggingen', waarde: '11' },
+  { waarde: 38, soort: 'getal' },
+  { waarde: 4912, soort: 'getal' },
+  { waarde: 0.81, soort: 'procent' },
+  { waarde: 11, soort: 'getal' },
 ] as const
 
 const MAANDEN = [52, 61, 48, 70, 66, 74, 69, 82, 78, 88] as const
 
-export function CijfersScherm() {
+export async function CijfersScherm() {
+  const taal = await getSiteTaal()
+  const t = BEHEER[taal]
   return (
     <Venster actief="Beheer">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">Cijfers · 1 tot en met 31 oktober</p>
-          <p className="aygm-kop">Oktober 2026</p>
+          <p className="aygm-boven">{t.periode}</p>
+          <p className="aygm-kop">{t.maand}</p>
         </div>
         <span className="aygm-knopje aygm-knopje--rand">
           <Download size={12} aria-hidden /> CSV
         </span>
       </div>
       <div className="aygm-tegels">
-        {TEGELS.map((t) => (
-          <div key={t.label} className="aygm-tegel">
-            <p className="aygm-boven">{t.label}</p>
-            <p className="aygm-getal">{t.waarde}</p>
+        {TEGELS.map((tegel, i) => (
+          <div key={t.tegels[i]} className="aygm-tegel">
+            <p className="aygm-boven">{t.tegels[i]}</p>
+            <p className="aygm-getal">{tegel.soort === 'procent' ? formatProcent(tegel.waarde, taal) : formatGetal(tegel.waarde, taal)}</p>
           </div>
         ))}
       </div>
@@ -41,39 +48,41 @@ export function CijfersScherm() {
   )
 }
 
+/** Dag is de index in t.dagen. */
 const DIENSTEN = [
-  { ini: 'DK', naam: 'Daan', dienst: 'Ma 07:00 tot 13:00', status: 'Verwerkt', soort: 'ok' },
-  { ini: 'IV', naam: 'Iris', dienst: 'Ma 13:00 tot 19:00', status: 'Goedgekeurd', soort: 'ok' },
-  { ini: 'SB', naam: 'Sem', dienst: 'Di 07:00 tot 13:00', status: 'Gewerkt', soort: '' },
-  { ini: 'FA', naam: 'Fleur', dienst: 'Di 17:00 tot 23:00', status: 'Gepland', soort: '' },
+  { ini: 'DK', naam: 'Daan', dag: 0, van: '07:00', tot: '13:00', status: 'verwerkt', soort: 'ok' },
+  { ini: 'IV', naam: 'Iris', dag: 0, van: '13:00', tot: '19:00', status: 'goedgekeurd', soort: 'ok' },
+  { ini: 'SB', naam: 'Sem', dag: 1, van: '07:00', tot: '13:00', status: 'gewerkt', soort: '' },
+  { ini: 'FA', naam: 'Fleur', dag: 1, van: '17:00', tot: '23:00', status: 'gepland', soort: '' },
 ] as const
 
-export function PersoneelScherm() {
+export async function PersoneelScherm() {
+  const t = BEHEER[await getSiteTaal()]
   const kolommen = 'minmax(0, 0.8fr) minmax(0, 1.3fr) auto'
   return (
     <Venster actief="Planning" hier="Personeel">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">Personeel · week 43</p>
-          <p className="aygm-kop">Diensten en uren</p>
+          <p className="aygm-boven">{t.personeelBoven}</p>
+          <p className="aygm-kop">{t.personeelKop}</p>
         </div>
-        <span className="aygm-knopje">Export uren</span>
+        <span className="aygm-knopje">{t.exportUren}</span>
       </div>
       <div className="aygm-tabel">
         <div style={{ gridTemplateColumns: kolommen }}>
-          <span>Medewerker</span>
-          <span>Dienst</span>
-          <span>Uren</span>
+          {t.kolommen.map((k) => (
+            <span key={k}>{k}</span>
+          ))}
         </div>
         {DIENSTEN.map((d) => (
-          <div key={d.dienst} style={{ gridTemplateColumns: kolommen }}>
+          <div key={`${d.ini}-${d.van}`} style={{ gridTemplateColumns: kolommen }}>
             <span className="aygm-wie">
               <span className="aygm-avatar">{d.ini}</span>
               <span>{d.naam}</span>
             </span>
-            <span>{d.dienst}</span>
+            <span>{t.dienst(t.dagen[d.dag] ?? '', d.van, d.tot)}</span>
             <span>
-              <span className={d.soort ? `aygm-chip aygm-chip--${d.soort}` : 'aygm-chip'}>{d.status}</span>
+              <span className={d.soort ? `aygm-chip aygm-chip--${d.soort}` : 'aygm-chip'}>{t.status[d.status]}</span>
             </span>
           </div>
         ))}

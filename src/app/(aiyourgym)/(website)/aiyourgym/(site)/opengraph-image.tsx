@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { ImageResponse } from 'next/og'
 import { connection } from 'next/server'
-import { EMBLEEM_TEKEN_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_PAD, WOORD_TRANSFORM } from '@/components/aiyourgym/merk/merk-paden'
+import { EMBLEEM_LETTER_PAD, EMBLEEM_RASTER_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_PAD, WOORD_TRANSFORM } from '@/components/aiyourgym/merk/merk-paden'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 
 // De deelafbeelding van de website (Open Graph en X, 1200 x 630). Racegroen vlak,
@@ -10,6 +10,8 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 // embleem in flessengroen (toon op toon). Met de schakelaar uit een 404: dan mag
 // niets over AI Your Gym uitlekken.
 // Letters: Bricolage Grotesque en Geist (beide SIL OFL 1.1), zie merk/letters/.
+// Het logo is vector (de paden uit merk-paden.ts) en wordt pas bij het maken van de
+// PNG getekend; plaat, kruis en vak Y met crispEdges, dus zonder zachte naden.
 
 export const alt = 'AI Your Gym: alles voor je sportschool, in een systeem.'
 export const size = { width: 1200, height: 630 }
@@ -18,12 +20,24 @@ export const contentType = 'image/png'
 const LETTERS = path.join(process.cwd(), 'src/components/aiyourgym/merk/letters')
 const K = MERK_KLEUR
 
+/**
+ * Het embleem als losse delen, voor in een svg (viewBox 0 0 100 100). Een gewone
+ * functie die elementen teruggeeft, geen component: in een svg accepteert de
+ * tekenaar van next/og alleen echte svg-elementen.
+ */
+function embleemDelen(plaat: string, teken: string) {
+  return [
+    <rect key="plaat" width="100" height="100" fill={plaat} shapeRendering="crispEdges" />,
+    <path key="raster" d={EMBLEEM_RASTER_PAD} fill={teken} shapeRendering="crispEdges" />,
+    <path key="letters" d={EMBLEEM_LETTER_PAD} fill={teken} />,
+    <path key="y" d={EMBLEEM_Y_PAD} fill={plaat} />,
+  ]
+}
+
 function Embleem({ plaat, teken, maat }: { plaat: string; teken: string; maat: number }) {
   return (
     <svg width={maat} height={maat} viewBox="0 0 100 100">
-      <rect width="100" height="100" fill={plaat} />
-      <path d={EMBLEEM_TEKEN_PAD} fill={teken} />
-      <path d={EMBLEEM_Y_PAD} fill={plaat} />
+      {embleemDelen(plaat, teken)}
     </svg>
   )
 }
@@ -42,9 +56,7 @@ export default async function Afbeelding() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '72px 80px', width: '100%' }}>
           <svg width={(LOGO_BREEDTE / LOGO_HOOGTE) * logoHoogte} height={logoHoogte} viewBox={`0 0 ${LOGO_BREEDTE} ${LOGO_HOOGTE}`}>
-            <rect width="100" height="100" fill={K.creme} />
-            <path d={EMBLEEM_TEKEN_PAD} fill={K.racegroen} />
-            <path d={EMBLEEM_Y_PAD} fill={K.creme} />
+            {embleemDelen(K.creme, K.racegroen)}
             <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={K.creme} />
           </svg>
           <div style={{ display: 'flex', fontFamily: 'Bricolage', fontSize: 84, lineHeight: 1.02, letterSpacing: -2.8, maxWidth: 760 }}>

@@ -10,6 +10,14 @@
 //   begin.webp       stilstaand beginbeeld op HD-maat, kwaliteit 92 (poster)
 //   piek.webp        stilstaand beeld op het zwaarste punt, HD-maat, kwaliteit 92
 //   begin-klein.webp en piek-klein.webp, 480 px: poster op de telefoon
+//   frames/<maat>/f000.webp ...  losse beelden voor de rep-speler (besluit Kane
+//                    24-10-2026): 480 (kwaliteit 80), 720 (85) en 1080 (85, alleen
+//                    als alle 1080-beelden samen onder FRAMES_1080_MAX_MB blijven).
+//                    Een geanimeerde WebP is niet per beeld te sturen; de speler
+//                    toont deze beelden een voor een op het tempo van het schema.
+// Daarnaast leidt het script uit "tempo" (of "sleutels" bij de hinge) in
+// poses/<slug>.json de fasen van de beweging af (rust_begin, heen, houden_ver,
+// terug, rust_eind) en schrijft die met heen_is en soort in de data.
 // Alle lussen houden de volle 24 beelden per seconde van de render: met 12
 // haperde de beweging zichtbaar.
 //
@@ -24,6 +32,8 @@
 //
 // Het beeld wordt vierkant bijgesneden rond het figuur met materiaal, over de
 // hele beweging (lege rand eraf), zodat elke oefening even groot in beeld staat.
+// De onderkant ligt vast op de vloer (MARGE_ONDER) en de vloerlijn gaat als
+// vloer_y in de data, zodat de site de schaduw precies onder het figuur legt.
 // De stills komen uit dezelfde lusbeelden (stil_frames in poses/<slug>.json) met
 // dezelfde uitsnede, zodat poster en lus precies op elkaar vallen als de lus
 // erin vervaagt. Daarna schrijft het script
@@ -34,7 +44,7 @@
 //            node scripts/oefenbeelden-web.mjs --bron D:\renders
 
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
@@ -53,8 +63,36 @@ const KLEIN = 480
 const FPS = 24
 /** Lege rand rond het figuur, als fractie van de grootste kant. */
 const MARGE = 0.06
+/** Rand onder het laagste punt (de vloer), als fractie van de zijde van de uitsnede. */
+const MARGE_ONDER = 0.04
 /** Alfa vanaf deze waarde telt als figuur bij het bijsnijden. */
 const ALFA_DREMPEL = 16
+
+/** Maten van de losse beelden voor de rep-speler (px), klein naar groot. */
+const FRAME_MATEN = [480, 720, 1080]
+/** 1080 valt weg als alle beelden op die maat samen zwaarder zijn dan dit (MB). */
+const FRAMES_1080_MAX_MB = 6
+
+/**
+ * Welke kant de heen-beweging (tempo 0 naar 1) op gaat, per oefening.
+ * excentrisch: eerst zakken onder belasting (squat, lunge, push-up, bankdrukken).
+ * concentrisch: eerst omhoog of trekken (curl, roeien, drukken boven het hoofd,
+ * deadlift vanaf de vloer, glute bridge).
+ * soort vasthouden: de houding blijft staan en de lus is alleen ademen (plank);
+ * heen_is is daar de inademing en telt voor de speler niet als richting.
+ */
+const BEWEGING = {
+  'back-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'front-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'lunge-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'push-up': { heen_is: 'excentrisch', soort: 'herhaling' },
+  deadlift: { heen_is: 'concentrisch', soort: 'herhaling' },
+  'barbell-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'barbell-curl': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'overhead-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'glute-bridge': { heen_is: 'concentrisch', soort: 'herhaling' },
+  plank: { heen_is: 'concentrisch', soort: 'vasthouden' },
+}
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
 const WEBP = {
@@ -62,6 +100,9 @@ const WEBP = {
   middel: { quality: 85, alphaQuality: 100, smartSubsample: true, effort: 5 },
   klein: { quality: 80, alphaQuality: 95, smartSubsample: true, effort: 5 },
   still: { quality: 92, alphaQuality: 100, smartSubsample: true, effort: 6 },
+  frame480: { quality: 80, alphaQuality: 95, smartSubsample: true, effort: 5 },
+  frame720: { quality: 85, alphaQuality: 100, smartSubsample: true, effort: 5 },
+  frame1080: { quality: 85, alphaQuality: 100, smartSubsample: true, effort: 5 },
 }
 
 // Zuinig met geheugen en processor: de pc van Kane crasht bij zware processen.
@@ -119,13 +160,30 @@ function vierkant(doos, maat) {
   const zijde = Math.min(bron, Math.round(Math.max(doos.x2 - doos.x1, doos.y2 - doos.y1) * (1 + 2 * MARGE)))
   const klem = (v, max) => Math.max(0, Math.min(max - zijde, v))
   const left = klem(Math.round((doos.x1 + doos.x2) / 2 - zijde / 2), maat.w)
-  const top = klem(Math.round((doos.y1 + doos.y2) / 2 - zijde / 2), maat.h)
+  // Onderkant vast: het laagste punt (voeten of lichaam op de vloer) komt bij
+  // elke oefening op dezelfde hoogte, met een smalle rand eronder voor de
+  // schaduw. Vroeger stond het figuur in het midden en hield een breed figuur
+  // (push-up, plank) een brede lege band onder zich: het leek te zweven.
+  // Een negatieve top mag: dan komt er boven de bron een doorzichtige strook bij
+  // (zie uitsnede()), want de camera zet een breed figuur midden in de bron.
+  const top = Math.min(maat.h - zijde, doos.y2 + 1 + Math.round(zijde * MARGE_ONDER) - zijde)
   return { left, top, width: zijde, height: zijde }
 }
 
+/** De uitsnede van een frame als sharp-stap; boven de bron zo nodig doorzichtig aangevuld. */
+async function uitsnede(bestand, snij) {
+  if (snij.top >= 0) return sharp(bestand).extract(snij)
+  const { data, info } = await sharp(bestand)
+    .ensureAlpha()
+    .extend({ top: -snij.top, bottom: 0, left: 0, right: 0, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  return sharp(data, { raw: info }).extract({ ...snij, top: 0 })
+}
+
 /** Een frame bijgesneden en verkleind, als PNG-buffer (verliesvrij tussenstation). */
-function beeld(bestand, snij, maat) {
-  const stap = sharp(bestand).extract(snij)
+async function beeld(bestand, snij, maat) {
+  const stap = await uitsnede(bestand, snij)
   const klaar = maat === snij.width ? stap : stap.resize(maat, maat, { kernel: 'lanczos3' })
   return klaar.png({ compressionLevel: 3 }).toBuffer()
 }
@@ -155,6 +213,78 @@ function stilFrames(bron, slug, aantal) {
   return { begin: binnen(stil.begin, 0), piek: binnen(stil.piek, Math.floor(aantal / 2)) }
 }
 
+const nummer = (i) => String(i).padStart(3, '0')
+
+/**
+ * Losse beelden per maat in uit/frames/<maat>/f000.webp, zelfde uitsnede als de
+ * lussen. Elke bronframe wordt een keer uitgesneden en dan per maat verkleind.
+ * Een maat groter dan de uitsnede valt weg (nooit opschalen); 1080 valt ook weg
+ * boven het budget. Geeft per maat pad, breedte, hoogte en totale bytes.
+ */
+async function maakFrames(frames, snij, uit) {
+  const map = join(uit, 'frames')
+  rmSync(map, { recursive: true, force: true })
+  const maten = FRAME_MATEN.filter((m) => m <= snij.width)
+  for (const m of maten) mkdirSync(join(map, String(m)), { recursive: true })
+  for (let i = 0; i < frames.length; i++) {
+    const vol = await (await uitsnede(frames[i], snij)).png({ compressionLevel: 1 }).toBuffer()
+    for (const m of maten) {
+      await sharp(vol)
+        .resize(m, m, { kernel: 'lanczos3' })
+        .webp(WEBP[`frame${m}`])
+        .toFile(join(map, String(m), `f${nummer(i)}.webp`))
+    }
+  }
+  const uitkomst = {}
+  for (const m of maten) {
+    const dir = join(map, String(m))
+    const bytes = readdirSync(dir).reduce((som, f) => som + statSync(join(dir, f)).size, 0)
+    if (m === 1080 && bytes > FRAMES_1080_MAX_MB * 1024 * 1024) {
+      console.log(`  1080 valt weg: ${(bytes / 1048576).toFixed(1)} MB boven ${FRAMES_1080_MAX_MB} MB`)
+      rmSync(dir, { recursive: true, force: true })
+      continue
+    }
+    uitkomst[m] = { pad: `frames/${m}/f{nnn}.webp`, breedte: m, hoogte: m, bytes }
+  }
+  return uitkomst
+}
+
+/** De tempo-sleutels [[frame, 0..1], ...] uit de pose: "tempo", of "sleutels" (h) bij de hinge. */
+function tempoVan(pose) {
+  if (Array.isArray(pose.tempo)) return pose.tempo.map(([f, v]) => [f, v])
+  if (Array.isArray(pose.sleutels)) return pose.sleutels.map((s) => [s.frame, s.h])
+  throw new Error('geen tempo of sleutels in de pose')
+}
+
+/**
+ * Fasen als halfopen reeksen [van, tot) van beeldnummers, aaneengesloten van 0
+ * tot het aantal beelden: rust_begin (nog op de beginstand), heen (naar de
+ * verste stand), houden_ver (op de verste stand), terug en rust_eind.
+ */
+function fasenUitTempo(tempo, aantal) {
+  const sleutels = [...tempo].sort((a, b) => a[0] - b[0])
+  const start = sleutels[0][1]
+  const ver = Math.max(...sleutels.map(([, v]) => v))
+  const gelijk = (a, b) => Math.abs(a - b) < 1e-6
+  const iVertrek = sleutels.findIndex(([, v]) => !gelijk(v, start))
+  if (iVertrek < 1) throw new Error('tempo vertrekt niet van een beginstand')
+  const iVerEerst = sleutels.findIndex(([, v]) => gelijk(v, ver))
+  let iVerLaatst = iVerEerst
+  while (iVerLaatst + 1 < sleutels.length && gelijk(sleutels[iVerLaatst + 1][1], ver)) iVerLaatst++
+  const iTerug = sleutels.findIndex(([, v], i) => i > iVerLaatst && gelijk(v, start))
+  if (iTerug < 0) throw new Error('tempo komt niet terug op de beginstand')
+  const klem = (f) => Math.max(0, Math.min(aantal, Math.round(f)))
+  const grens = [0, sleutels[iVertrek - 1][0], sleutels[iVerEerst][0], sleutels[iVerLaatst][0], sleutels[iTerug][0], aantal].map(klem)
+  const namen = ['rust_begin', 'heen', 'houden_ver', 'terug', 'rust_eind']
+  return Object.fromEntries(namen.map((n, i) => [n, [grens[i], grens[i + 1]]]))
+}
+
+function poseVan(bron, slug) {
+  const pose = join(bron, '..', 'poses', `${slug}.json`)
+  if (!existsSync(pose)) throw new Error(`geen pose ${pose}: nodig voor de fasen`)
+  return JSON.parse(readFileSync(pose, 'utf8'))
+}
+
 async function maakBestanden(bron, slug, uit) {
   const frames = framesVan(join(bron, slug))
   const { doos, maat } = await omhullende(frames)
@@ -178,7 +308,11 @@ async function maakBestanden(bron, slug, uit) {
     await maakStill(frame, snij, maten[stand], WEBP.still, join(uit, `${stand}.webp`))
     await maakStill(frame, snij, maten[`${stand}-klein`], WEBP.klein, join(uit, `${stand}-klein.webp`))
   }
-  return { breedte: hd, hoogte: hd, fps: FPS, beelden: frames.length, maten }
+  const losseMaten = await maakFrames(frames, snij, uit)
+  // Vloerlijn: de onderste rij met figuur over alle frames (voeten, of handen en
+  // lichaam bij vloeroefeningen), als fractie van de hoogte van de uitsnede.
+  const vloer_y = doos ? Math.round(((doos.y2 + 1 - snij.top) / snij.height) * 10000) / 10000 : 1
+  return { breedte: hd, hoogte: hd, fps: FPS, beelden: frames.length, maten, vloer_y, losseMaten }
 }
 
 /** Naam en spieren uit het 3D-bestand: de naam is exact die van de oefenbibliotheek. */
@@ -217,11 +351,29 @@ async function verwerk(bron, slug) {
   const uit = join(DOEL, slug)
   mkdirSync(uit, { recursive: true })
   const bib = uitBibliotheek(slug, bron)
-  const maat = await maakBestanden(bron, slug, uit)
+  const beweging = BEWEGING[slug]
+  if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
+  const pose = poseVan(bron, slug)
+  const { losseMaten, ...maat } = await maakBestanden(bron, slug, uit)
+  const fasen = fasenUitTempo(tempoVan(pose), maat.beelden)
   const bytes = Object.fromEntries(BESTANDEN.map((b) => [b, statSync(join(uit, `${b}.webp`)).size]))
   const hash = createHash('sha1')
   for (const b of BESTANDEN) hash.update(readFileSync(join(uit, `${b}.webp`)))
-  return { slug, ...bib, ...maat, versie: hash.digest('hex').slice(0, 8), bytes }
+  const frameHash = createHash('sha1')
+  for (const m of Object.keys(losseMaten)) {
+    const dir = join(uit, 'frames', m)
+    for (const f of readdirSync(dir).sort()) frameHash.update(readFileSync(join(dir, f)))
+  }
+  const frames = {
+    aantal: maat.beelden,
+    fps: FPS,
+    versie: frameHash.digest('hex').slice(0, 8),
+    maten: losseMaten,
+    fasen,
+    heen_is: beweging.heen_is,
+    soort: beweging.soort,
+  }
+  return { slug, ...bib, ...maat, versie: hash.digest('hex').slice(0, 8), bytes, frames }
 }
 
 function bestaandeData() {
@@ -250,7 +402,9 @@ async function hoofd() {
     const r = await verwerk(bron, slug)
     data.set(slug, r)
     const kb = Object.entries(r.bytes).map(([k, v]) => `${k} ${Math.round(v / 1024)} KB`).join(', ')
-    console.log(`${slug} (${r.naam}, ${r.breedte} px, ${r.beelden} beelden): ${kb}`)
+    const fr = Object.entries(r.frames.maten).map(([m, v]) => `frames ${m} ${(v.bytes / 1048576).toFixed(2)} MB`).join(', ')
+    console.log(`${slug} (${r.naam}, ${r.breedte} px, ${r.beelden} beelden): ${kb}, ${fr}`)
+    console.log(`  fasen ${JSON.stringify(r.frames.fasen)}, vloer_y ${r.vloer_y}`)
   }
   schrijfData([...data.values()])
   console.log(`Klaar: ${kies.length} oefening(en) in public/oefenbeelden, gegevens in ${DATA}`)

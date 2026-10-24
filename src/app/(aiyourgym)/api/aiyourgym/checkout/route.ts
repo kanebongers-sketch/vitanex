@@ -14,6 +14,7 @@ import { vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
+import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 
 // POST /api/aiyourgym/checkout
@@ -43,9 +44,9 @@ export async function POST(req: NextRequest) {
   const body = await leesJsonBegrensd(req, MAX_BODY_BYTES)
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)
   // Een robot krijgt hetzelfde antwoord als een aanvraag, maar we bewaren niets.
-  if (isRobot(body)) return aygJson({ staat: 'aanvraag', melding: AANVRAAG })
+  if (isRobot(body)) return aygJson(metEngels({ staat: 'aanvraag', melding: AANVRAAG }))
   const invoer = leesAanmelding(body)
-  if (!invoer.ok) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }, 400)
+  if (!invoer.ok) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }), 400)
   const a = invoer.waarde
 
   const admin = adminOfNull()
@@ -57,10 +58,10 @@ export async function POST(req: NextRequest) {
   if (teVeel) return aygFout('Te veel pogingen. Probeer het later opnieuw.', 429)
   const vrij = await slugVrij(admin, a.slug, nu)
   if (vrij === null) return mislukt('adres controleren', MISLUKT, 500)
-  if (!vrij) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }, 409)
+  if (!vrij) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }), 409)
   // Inloggen gaat op e-mailadres: een adres met een account kan geen tweede eigenaar worden.
   if ((await vindBeheerderOpEmail(admin, a.eigenaarEmail)) || (await vindPlatformOpEmail(admin, a.eigenaarEmail))) {
-    return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: 'Met dit e-mailadres is al een account. Log in, of gebruik een ander adres.' } }, 409)
+    return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: 'Met dit e-mailadres is al een account. Log in, of gebruik een ander adres.' } }), 409)
   }
 
   const sleutel = stripeSleutel()
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
   }
   if (!afsluitbaar(a.pakket) || !sleutel || !prijs) {
     const id = await maakAanmelding(admin, a, 'aanvraag', nu)
-    return id ? aygJson({ staat: 'aanvraag', melding: AANVRAAG }) : mislukt('aanvraag bewaren', MISLUKT, 500)
+    return id ? aygJson(metEngels({ staat: 'aanvraag', melding: AANVRAAG })) : mislukt('aanvraag bewaren', MISLUKT, 500)
   }
 
   if (!oorsprong) return aygFout(MISLUKT, 400)

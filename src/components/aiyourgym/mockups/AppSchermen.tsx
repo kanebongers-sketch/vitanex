@@ -1,8 +1,13 @@
 import { Check, Trophy } from 'lucide-react'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { APP_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { OefTegel } from './OefTegel'
 
 // De schermen van de ledenapp: Home, Lessen en Schema, zoals Club ze toont.
-// Alleen de inhoud; het telefoonkader komt uit kaders.tsx.
+// Alleen de inhoud; het telefoonkader komt uit kaders.tsx. Teksten in de taal
+// van de pagina (woordenboek APP_SCHERMEN); namen van leden, lessen en
+// oefeningen zijn voorbeelden uit de bibliotheek en blijven gelijk.
 
 /** Een vaste, nette QR-tekening (geen echte code) voor het inchecken. */
 export function QrBeeld() {
@@ -34,40 +39,41 @@ export function QrBeeld() {
   )
 }
 
-export function AppHome() {
+export async function AppHome() {
+  const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">Goedemorgen, Sanne</p>
+      <p className="aygm-hallo">{t.hallo('Sanne')}</p>
       <div className="aygm-volgende">
-        <span className="aygm-boven">Je volgende les</span>
+        <span className="aygm-boven">{t.volgendeLes}</span>
         <b>Spinning</b>
-        <span>Dinsdag 18:30 · Zaal 2</span>
+        <span>{t.volgendeWanneer}</span>
       </div>
       <div className="aygm-duo">
         <div className="aygm-kaart">
-          <p className="aygm-boven">Deze maand</p>
+          <p className="aygm-boven">{t.dezeMaand}</p>
           <p className="aygm-getal">9</p>
-          <p className="aygm-boven">bezoeken</p>
+          <p className="aygm-boven">{t.bezoeken}</p>
         </div>
         <div className="aygm-kaart">
-          <p className="aygm-boven">Op rij</p>
+          <p className="aygm-boven">{t.opRij}</p>
           <p className="aygm-getal">6</p>
-          <p className="aygm-boven">weken</p>
+          <p className="aygm-boven">{t.weken}</p>
         </div>
       </div>
       <div className="aygm-kaart aygm-qr">
         <QrBeeld />
         <div>
-          <p className="aygm-kop">Inchecken</p>
-          <p className="aygm-boven">Laat zien bij de balie</p>
+          <p className="aygm-kop">{t.inchecken}</p>
+          <p className="aygm-boven">{t.laatZien}</p>
         </div>
       </div>
       <div className="aygm-kaart">
         <div className="aygm-rij-tekst" style={{ marginBottom: 8 }}>
           <b>
-            <Trophy size={13} aria-hidden /> Oktober-challenge
+            <Trophy size={13} aria-hidden /> {t.challenge}
           </b>
-          <span>12 trainingen deze maand · nog 3</span>
+          <span>{t.challengeStand}</span>
         </div>
         <div className="aygm-balk">
           <span style={{ transform: 'scaleX(0.75)' }} />
@@ -77,42 +83,46 @@ export function AppHome() {
   )
 }
 
-const LESSEN = [
-  { naam: 'Spinning', tijd: '07:00 · Zaal 2 · 4 plekken', knop: 'Reserveer' },
-  { naam: 'Pilates', tijd: '09:00 · Studio · 2 plekken', knop: 'Gereserveerd' },
-  { naam: 'Lunchfit', tijd: '12:00 · Zaal 1 · 8 plekken', knop: 'Reserveer' },
-  { naam: 'Spinning', tijd: '18:30 · Zaal 2 · vol', knop: 'Wachtlijst' },
-  { naam: 'Yoga', tijd: '20:00 · Studio · 5 plekken', knop: 'Reserveer' },
-] as const
+type Knop = 'reserveer' | 'gereserveerd' | 'wachtlijst'
 
-export function AppLessen() {
+/** Zaal als nummer, of 'studio'; plekken null = vol. */
+const LESSEN: readonly { naam: string; tijd: string; zaal: number | 'studio'; plekken: number | null; knop: Knop }[] = [
+  { naam: 'Spinning', tijd: '07:00', zaal: 2, plekken: 4, knop: 'reserveer' },
+  { naam: 'Pilates', tijd: '09:00', zaal: 'studio', plekken: 2, knop: 'gereserveerd' },
+  { naam: 'Lunchfit', tijd: '12:00', zaal: 1, plekken: 8, knop: 'reserveer' },
+  { naam: 'Spinning', tijd: '18:30', zaal: 2, plekken: null, knop: 'wachtlijst' },
+  { naam: 'Yoga', tijd: '20:00', zaal: 'studio', plekken: 5, knop: 'reserveer' },
+]
+
+const DAGNUMMERS = ['19', '20', '21', '22', '23'] as const
+
+export async function AppLessen() {
+  const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">Lessen</p>
+      <p className="aygm-hallo">{t.lessen}</p>
       <div className="aygm-dagen">
-        {[
-          ['Ma', '19'],
-          ['Di', '20'],
-          ['Wo', '21'],
-          ['Do', '22'],
-          ['Vr', '23'],
-        ].map(([d, n], i) => (
+        {t.dagen.map((d, i) => (
           <span key={d} data-actief={i === 1 ? '' : undefined}>
             {d}
-            <b>{n}</b>
+            <b>{DAGNUMMERS[i]}</b>
           </span>
         ))}
       </div>
       <div className="aygm-lijst">
-        {LESSEN.map((l) => (
-          <div key={l.tijd} className="aygm-rij">
-            <div className="aygm-rij-tekst">
-              <b>{l.naam}</b>
-              <span>{l.tijd}</span>
+        {LESSEN.map((l) => {
+          const zaal = l.zaal === 'studio' ? t.studio : t.zaal(l.zaal)
+          const plekken = l.plekken === null ? t.vol : t.plekken(l.plekken)
+          return (
+            <div key={l.tijd} className="aygm-rij">
+              <div className="aygm-rij-tekst">
+                <b>{l.naam}</b>
+                <span>{`${l.tijd} · ${zaal} · ${plekken}`}</span>
+              </div>
+              <span className={l.knop === 'reserveer' ? 'aygm-knopje' : 'aygm-knopje aygm-knopje--rand'}>{t[l.knop]}</span>
             </div>
-            <span className={l.knop === 'Reserveer' ? 'aygm-knopje' : 'aygm-knopje aygm-knopje--rand'}>{l.knop}</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </>
   )
@@ -125,12 +135,13 @@ const OEFENINGEN = [
   { naam: 'Kettlebell swing', dosis: '4 × 15 · 16 kg', klaar: false },
 ] as const
 
-export function AppSchema() {
+export async function AppSchema() {
+  const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">Schema</p>
+      <p className="aygm-hallo">{t.schema}</p>
       <div className="aygm-dagen">
-        {['Dag A', 'Dag B', 'Dag C'].map((d, i) => (
+        {t.schemaDagen.map((d, i) => (
           <span key={d} data-actief={i === 0 ? '' : undefined}>
             <b>{d}</b>
           </span>
@@ -154,34 +165,31 @@ export function AppSchema() {
   )
 }
 
+/** Macro's in de volgorde van t.macros. */
 const MACROS = [
-  { naam: 'Eiwit', gram: 150, deel: 0.62 },
-  { naam: 'Koolhydraten', gram: 240, deel: 0.48 },
-  { naam: 'Vet', gram: 70, deel: 0.35 },
-] as const
-
-const MAALTIJDEN = [
-  { naam: 'Ontbijt', tekst: 'Kwark met havermout en blauwe bessen' },
-  { naam: 'Lunch', tekst: 'Volkoren wrap met kip en groente' },
-  { naam: 'Na de training', tekst: 'Shake en een banaan' },
+  { gram: 150, deel: 0.62 },
+  { gram: 240, deel: 0.48 },
+  { gram: 70, deel: 0.35 },
 ] as const
 
 /** Het voedingsplan dat de trainer voor het lid maakte. */
-export function AppVoeding() {
+export async function AppVoeding() {
+  const taal = await getSiteTaal()
+  const t = APP_SCHERMEN[taal]
   return (
     <>
-      <p className="aygm-hallo">Voeding</p>
+      <p className="aygm-hallo">{t.voeding}</p>
       <div className="aygm-kaart aygm-voeding">
         <div>
-          <p className="aygm-boven">Doel · spieropbouw</p>
-          <p className="aygm-getal">2.300</p>
-          <p className="aygm-boven">kcal per dag</p>
+          <p className="aygm-boven">{t.doel}</p>
+          <p className="aygm-getal">{formatGetal(2300, taal)}</p>
+          <p className="aygm-boven">{t.kcalPerDag}</p>
         </div>
         <div className="aygm-macros">
-          {MACROS.map((m) => (
-            <div key={m.naam}>
+          {MACROS.map((m, i) => (
+            <div key={t.macros[i]}>
               <span className="aygm-macro-tekst">
-                <span>{m.naam}</span>
+                <span>{t.macros[i]}</span>
                 <b>{m.gram} g</b>
               </span>
               <span className="aygm-balk">
@@ -192,7 +200,7 @@ export function AppVoeding() {
         </div>
       </div>
       <div className="aygm-lijst">
-        {MAALTIJDEN.map((m) => (
+        {t.maaltijden.map((m) => (
           <div key={m.naam} className="aygm-rij">
             <div className="aygm-rij-tekst">
               <b>{m.naam}</b>
@@ -206,21 +214,22 @@ export function AppVoeding() {
 }
 
 /** Inloggen in de web-app: het lid logt in met e-mailadres en een eigen wachtwoord. */
-export function AppInloggen() {
+export async function AppInloggen() {
+  const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <div className="aygm-pin">
       <div className="aygm-pin-kop">
-        <p className="aygm-hallo">Welkom terug</p>
-        <p className="aygm-boven">Log in bij je sportschool</p>
+        <p className="aygm-hallo">{t.welkom}</p>
+        <p className="aygm-boven">{t.logIn}</p>
       </div>
       <div className="aygm-inlog-velden" aria-hidden>
-        <span className="aygm-inlog-label">E-mailadres</span>
-        <span className="aygm-inlog-veld">sanne@voorbeeld.nl</span>
-        <span className="aygm-inlog-label">Wachtwoord</span>
+        <span className="aygm-inlog-label">{t.email}</span>
+        <span className="aygm-inlog-veld">{t.voorbeeldEmail}</span>
+        <span className="aygm-inlog-label">{t.wachtwoord}</span>
         <span className="aygm-inlog-veld">••••••••••••••</span>
-        <span className="aygm-inlog-knop">Inloggen</span>
+        <span className="aygm-inlog-knop">{t.inloggen}</span>
       </div>
-      <p className="aygm-pin-voet">Daarna zet je de app met een tik op je beginscherm.</p>
+      <p className="aygm-pin-voet">{t.beginscherm}</p>
     </div>
   )
 }

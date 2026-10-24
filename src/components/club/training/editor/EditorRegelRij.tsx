@@ -7,6 +7,7 @@ import type { Oefening } from '@/lib/club/training/rijen'
 import { MATERIAAL_LABEL } from '@/lib/club/training/typen'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeld } from '../OefeningBeeld'
+import { RenderDuim } from '../repspeler/OefeningVoorbeeld'
 import { SpierChips } from '../SpierChips'
 import { VervangOefening } from './VervangOefening'
 
@@ -84,7 +85,7 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
         </button>
         <span className="club-training-r-nr" aria-hidden>{label}</span>
         <div className="club-training-r-naam">
-          <OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />
+          <RenderDuim naam={naam} anders={<OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />} />
           <div className="club-training-regeltekst">
             <strong>{naam}</strong>
             {o && (

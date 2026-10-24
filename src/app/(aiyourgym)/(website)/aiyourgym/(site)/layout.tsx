@@ -12,27 +12,39 @@ import { AygVoet } from '@/components/aiyourgym/site/AygVoet'
 import { BuitenBeeld } from '@/components/aiyourgym/site/BuitenBeeld'
 import { ContactBalk } from '@/components/aiyourgym/site/ContactBalk'
 import { PlakActie } from '@/components/aiyourgym/site/PlakActie'
+import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { getSitePad, getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { HTML_LANG, OG_LOCALE } from '@/lib/aiyourgym/taal/taal'
+import { KOP } from '@/lib/aiyourgym/taal/woorden/website/kop'
+import { SITE_META } from '@/lib/aiyourgym/taal/woorden/website/meta'
 
 // De pagina's van de verkoopwebsite met kop en voet. De poort (alleen Kane zolang
 // de schakelaar uit staat) zit in ../layout.tsx.
 
-export const metadata: Metadata = {
-  title: { default: 'AI Your Gym | Clubsoftware voor sportscholen', template: '%s | AI Your Gym' },
-  description:
-    "Clubsoftware voor sportscholen: leden, check-in, groepslessen, personeel, trainingsschema's met coaching en een ledenapp in je eigen huisstijl.",
-  applicationName: 'AI Your Gym',
-  // Deellinks wijzen altijd naar het eigen domein; de afbeelding zelf staat in
-  // ../opengraph-image.tsx (Next zet og:image en de maten automatisch).
-  metadataBase: new URL('https://aiyourgym.com'),
-  openGraph: { siteName: 'AI Your Gym', locale: 'nl_NL', type: 'website' },
-  twitter: { card: 'summary_large_image' },
+export async function generateMetadata(): Promise<Metadata> {
+  const [taal, pad] = await Promise.all([getSiteTaal(), getSitePad()])
+  const t = SITE_META[taal]
+  return {
+    title: { default: t.titel, template: '%s | AI Your Gym' },
+    description: t.omschrijving,
+    applicationName: 'AI Your Gym',
+    // Deellinks wijzen altijd naar het eigen domein; de afbeelding zelf staat in
+    // ../opengraph-image.tsx (Next zet og:image en de maten automatisch).
+    metadataBase: new URL('https://aiyourgym.com'),
+    // hreflang: elke pagina in beide talen (Engels met /en). Alleen als de proxy
+    // het publieke pad meegaf (op aiyourgym.com); elders geen alternates.
+    ...(pad ? { alternates: taalAlternates(pad, taal) } : {}),
+    openGraph: { siteName: 'AI Your Gym', locale: OG_LOCALE[taal], type: 'website' },
+    twitter: { card: 'summary_large_image' },
+  }
 }
 
-export default function AiYourGymSiteLayout({ children }: { children: ReactNode }) {
+export default async function AiYourGymSiteLayout({ children }: { children: ReactNode }) {
+  const taal = await getSiteTaal()
   return (
-    <div className={`ayg ${AYG_FONT_KLASSEN}`} lang="nl">
+    <div className={`ayg ${AYG_FONT_KLASSEN}`} lang={HTML_LANG[taal]}>
       <a href="#inhoud" className="ayg-overslaan">
-        Naar de inhoud
+        {KOP[taal].overslaan}
       </a>
       <ContactBalk />
       <AygKop />

@@ -3,7 +3,10 @@ import { CheckCircle2, Clock, KeyRound, LoaderCircle } from 'lucide-react'
 import { haalWelkom, type Welkom } from '@/lib/aiyourgym/welkom'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
-import { AANMELDEN, INLOGGEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { WELKOM } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
 
 // /aiyourgym/welkom?sessie=cs_... (of test_...): na het betalen. Zegt dat de
@@ -12,79 +15,83 @@ import { Ververs } from '@/components/aiyourgym/aanmelden/Ververs'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Welkom | AI Your Gym',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(WELKOM)
+  return { title: t.metaTitel, robots: { index: false, follow: false }, referrer: 'no-referrer' }
 }
 
 interface PaginaProps {
   searchParams: Promise<{ [sleutel: string]: string | string[] | undefined }>
 }
 
-function Klaar({ w }: { w: Extract<Welkom, { soort: 'klaar' }> }) {
+function Klaar({ w, taal }: { w: Extract<Welkom, { soort: 'klaar' }>; taal: Taal }) {
+  const t = WELKOM[taal]
   return (
     <>
       <CheckCircle2 size={40} strokeWidth={1.7} aria-hidden="true" className="aan-klaar-icoon" />
-      <p className="ayg-label">Welkom bij AI Your Gym</p>
-      <h1 className="aan-titel">Je sportschool staat klaar.</h1>
+      <p className="ayg-label">{t.label}</p>
+      <h1 className="aan-titel">{t.titel}</h1>
       <p className="ayg-lead">
-        {w.sportschool} heeft een eigen omgeving op <strong>{w.adres}</strong>, met een eerste vestiging en een basisbibliotheek met oefeningen.
+        {w.sportschool}
+        {t.omgeving.voor}
+        <strong>{w.adres}</strong>
+        {t.omgeving.na}
       </p>
       <div className="aan-link ayg-podium">
         <p className="aan-samen-label">
-          <KeyRound size={15} aria-hidden="true" /> Inloggen
+          <KeyRound size={15} aria-hidden="true" /> {t.inloggen}
         </p>
         <p>
-          Log in met <strong>{w.email}</strong> en het wachtwoord dat je bij het aanmelden koos.
+          {t.logIn.voor}
+          <strong>{w.email}</strong>
+          {t.logIn.na}
         </p>
         {w.loginOpen && (
           <div className="ayg-knoppen">
             <a href={w.inlogUrl} className="ayg-knop ayg-knop--accent">
-              Inloggen en starten
+              {t.inloggenStarten}
             </a>
           </div>
         )}
       </div>
       <ol className="ayg-genummerd aan-uitleg-lijst">
-        {!w.loginOpen && <li>Inloggen opent na de lancering. Je account staat al klaar.</li>}
-        <li>Na het inloggen start de startwizard: in ongeveer een kwartier zet je huisstijl, vestiging, lessen, team en leden neer. Stop je halverwege, dan ga je later verder waar je was.</li>
-        <li>Je team nodig je uit in de stap Team van de wizard. De rest van Club gaat open zodra de wizard klaar is.</li>
+        {!w.loginOpen && <li>{t.naLancering}</li>}
+        <li>{t.wizard}</li>
+        <li>{t.team}</li>
       </ol>
-      {heeftContact() && <Contact />}
+      {heeftContact() && <Contact taal={taal} />}
     </>
   )
 }
 
 /** Hoe je ons bereikt bij vragen; alleen als Kane contactgegevens heeft ingevuld. */
-function Contact() {
+function Contact({ taal }: { taal: Taal }) {
   const { telefoon, email } = AYG_CONTACT
+  const t = WELKOM[taal]
   return (
     <p className="ayg-klein">
-      Je bereikt ons op{' '}
+      {t.bereik}
       {telefoon && <a href={telLink(telefoon)}>{telefoon}</a>}
-      {telefoon && email && ' of '}
+      {telefoon && email && t.of}
       {email && <a href={`mailto:${email}`}>{email}</a>}.
     </p>
   )
 }
 
-function Melding({ w }: { w: Exclude<Welkom, { soort: 'klaar' }> }) {
+function Melding({ w, taal }: { w: Exclude<Welkom, { soort: 'klaar' }>; taal: Taal }) {
+  const t = WELKOM[taal]
+  const { AANMELDEN, INLOGGEN } = sitePaden(taal)
   if (w.soort === 'bezig') {
     return (
       <>
         <LoaderCircle size={36} aria-hidden="true" className="aan-klaar-icoon aan-draai" />
-        <h1 className="aan-titel">We zetten je sportschool klaar.</h1>
-        <p className="ayg-lead" role="status">Dit duurt meestal maar even. Deze pagina ververst vanzelf.</p>
+        <h1 className="aan-titel">{t.bezigKop}</h1>
+        <p className="ayg-lead" role="status">{t.bezigUitleg}</p>
         <Ververs />
       </>
     )
   }
-  const tekst = {
-    onbekend: { kop: 'Deze link kennen we niet.', uitleg: 'Controleer of je de hele link hebt, of neem contact met ons op.' },
-    verlopen: { kop: 'Deze pagina is verlopen.', uitleg: 'Om veiligheidsredenen tonen we deze pagina maar een week. Je account blijft gewoon werken: log in met je e-mailadres en wachtwoord. Lukt dat niet, neem dan contact met ons op.' },
-    gestopt: { kop: 'Dit abonnement is beeindigd.', uitleg: 'Wil je opnieuw starten? Meld je dan opnieuw aan.' },
-  }[w.soort]
+  const tekst = t[w.soort]
   return (
     <>
       <Clock size={36} strokeWidth={1.7} aria-hidden="true" className="aan-klaar-icoon" />
@@ -93,25 +100,25 @@ function Melding({ w }: { w: Exclude<Welkom, { soort: 'klaar' }> }) {
       <div className="ayg-knoppen">
         {w.soort === 'gestopt' ? (
           <a href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-            Opnieuw aanmelden
+            {t.opnieuwAanmelden}
           </a>
         ) : (
           <a href={INLOGGEN} className="ayg-knop ayg-knop--accent">
-            Naar inloggen
+            {t.naarInloggen}
           </a>
         )}
       </div>
-      {heeftContact() && <Contact />}
+      {heeftContact() && <Contact taal={taal} />}
     </>
   )
 }
 
 export default async function WelkomPagina({ searchParams }: PaginaProps) {
   const zoek = await searchParams
-  const w = await haalWelkom(zoek.sessie, new Date())
+  const [w, taal] = await Promise.all([haalWelkom(zoek.sessie, new Date()), getSiteTaal()])
   return (
     <AanmeldSchil>
-      <section className="aan-pagina aan-welkom ayg-wrap">{w.soort === 'klaar' ? <Klaar w={w} /> : <Melding w={w} />}</section>
+      <section className="aan-pagina aan-welkom ayg-wrap">{w.soort === 'klaar' ? <Klaar w={w} taal={taal} /> : <Melding w={w} taal={taal} />}</section>
     </AanmeldSchil>
   )
 }

@@ -5,7 +5,8 @@ import { X } from 'lucide-react'
 import type { AppOefening } from '@/lib/club/app/schema'
 import { voorschrift } from '@/lib/club/app/schema'
 import { BeeldBron } from '@/components/club/training/OefeningBeeld'
-import { OefeningSpeler } from '@/components/club/training/coaching/OefeningSpeler'
+import { OefeningVoorbeeld } from '@/components/club/training/repspeler/OefeningVoorbeeld'
+import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
 import { OefeningCoaching } from '@/components/club/training/coaching/OefeningCoaching'
 import { SpierBlok } from '@/components/club/training/SpierChips'
 
@@ -44,7 +45,7 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
             <X aria-hidden size={20} />
           </button>
         </div>
-        <OefeningSpeler key={o.id} naam={o.naam} beeld={o.beeld} />
+        <OefeningVoorbeeld key={o.id} naam={o.naam} beeld={o.beeld} herhalingen={o.herhalingen} tijdSec={o.tijdSec} tempo={o.tempo} rustSec={o.rustSec} />
         {regel && <p className="club-lidapp-blad-regel">{regel}</p>}
         {o.notitie && <p className="club-lidapp-blad-notitie">Van je trainer: {o.notitie}</p>}
         <OefeningCoaching naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} kop="h4" leeg="Je trainer legt deze oefening aan je uit." />
@@ -54,7 +55,7 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
             <SpierBlok naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} />
           </section>
         )}
-        {o.beeld && <BeeldBron bronnen={[o.beeld.bron]} />}
+        {o.beeld && !repRenderVoor(o.naam) && <BeeldBron bronnen={[o.beeld.bron]} />}
       </div>
     </div>
   )

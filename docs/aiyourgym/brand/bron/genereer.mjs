@@ -103,11 +103,21 @@ function embleemDelen({ kap = 32, kruis = KRUIS, rand = RAND } = {}) {
   const cel = rect(rand, 50 - h, 50 + h - rand, 50 + h - rand)
   const letters = vak('A', 0, 0) + vak('I', 1, 0) + vak('G', 1, 1)
   const y = vak('Y', 0, 1)
-  return { lijnen, cel, letters, y }
+  // Hartlijnen van de zichtbare delen van het kruis (boven tussen A en I, rechts
+  // tussen I en G). Daarop tekent het embleem een lijn van precies 1 schermpixel
+  // (vector-effect: non-scaling-stroke) als ondergrens: klein in de kop wordt het
+  // kruis anders dunner dan een pixel en dan grijs of onzichtbaar. Groot valt die
+  // lijn binnen het kruis en zie je hem niet.
+  const kruisLijn = kruis ? `M50 ${rand}V${50 - h}M${50 + h} 50H${100 - rand}` : ''
+  return { lijnen, cel, letters, y, kruisLijn }
 }
 const E = embleemDelen()
-/** Alles in de tweede kleur: kruis, vak Y en de letters A, I en G. */
-const TEKEN_PAD = E.lijnen + E.cel + E.letters
+/** Rechte vlakken in de tweede kleur: kruis en vak Y. Met crispEdges, zodat de randen op hele pixels vallen. */
+const RASTER_PAD = E.lijnen + E.cel
+/** Ondergrens voor het kruis: 1 schermpixel, zie embleemDelen. */
+const KRUIS_LIJN = E.kruisLijn
+/** De letters A, I en G, in de tweede kleur (met gladde randen). */
+const LETTER_PAD = E.letters
 /** De Y, in de kleur van de plaat. */
 const Y_PAD = E.y
 
@@ -116,13 +126,21 @@ const VARIANT = {
   donker: { plaat: K.creme, teken: K.racegroen }, // op racegroen, inkt en donkere foto's
 }
 
+// Scherp op elk scherm: de rechte vlakken (plaat, kruis, vak Y) zonder anti-aliasing,
+// zodat hun randen op hele pixels vallen en er geen grijze haarlijnen of naden ontstaan.
+// De letters houden hun gladde randen.
+const SCHERP = 'shape-rendering="crispEdges"'
+const kruisLijn = (kleur) =>
+  KRUIS_LIJN ? `<path d="${KRUIS_LIJN}" fill="none" stroke="${kleur}" stroke-width="1" vector-effect="non-scaling-stroke" ${SCHERP}/>` : ''
+
 const embleem = ({ plaat, teken }) =>
-  `<rect width="100" height="100" fill="${plaat}"/><path d="${TEKEN_PAD}" fill="${teken}"/><path d="${Y_PAD}" fill="${plaat}"/>`
+  `<rect width="100" height="100" fill="${plaat}" ${SCHERP}/><path d="${RASTER_PAD}" fill="${teken}" ${SCHERP}/>${kruisLijn(teken)}` +
+  `<path d="${LETTER_PAD}" fill="${teken}"/><path d="${Y_PAD}" fill="${plaat}"/>`
 
 /** Eenkleurig: plaat en Y in de kleur, de rest uitgespaard (werkt op elke ondergrond). */
 const embleemEenkleurig = (kleur, id) =>
-  `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/>` +
-  `<path d="${TEKEN_PAD}" fill="#000"/><path d="${Y_PAD}" fill="#fff"/></mask><rect width="100" height="100" fill="${kleur}" mask="url(#${id})"/>`
+  `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">${embleem({ plaat: '#fff', teken: '#000' })}</mask>` +
+  `<rect width="100" height="100" fill="${kleur}" mask="url(#${id})" ${SCHERP}/>`
 
 /** Voor 16 tot 32 pixels: geen kruis (dat wordt een waas), grotere en zwaardere letters. */
 const KLEIN = { kap: 35, kruis: 0, rand: 6 }
@@ -130,7 +148,7 @@ function embleemKlein({ plaat, teken }) {
   const k = embleemDelen(KLEIN)
   const zwaar = (kleur) => `stroke="${kleur}" stroke-width="3.6" stroke-linejoin="round"`
   return (
-    `<rect width="100" height="100" fill="${plaat}"/><path d="${k.cel}" fill="${teken}"/>` +
+    `<rect width="100" height="100" fill="${plaat}" ${SCHERP}/><path d="${k.cel}" fill="${teken}" ${SCHERP}/>` +
     `<path d="${k.letters}" fill="${teken}" ${zwaar(teken)}/><path d="${k.y}" fill="${plaat}" ${zwaar(plaat)}/>`
   )
 }
@@ -161,8 +179,16 @@ export const MERK_KLEUR = {
   inkt: '${K.inkt}',
 } as const
 
-/** Kruis, vak Y en de letters A, I en G: in de tweede kleur, over de plaat. */
-export const EMBLEEM_TEKEN_PAD = '${TEKEN_PAD}'
+// Scherp tekenen (zie AygLogo): de plaat en EMBLEEM_RASTER_PAD met shape-rendering
+// crispEdges, daarover EMBLEEM_KRUIS_LIJN als lijn van 1 schermpixel
+// (vector-effect non-scaling-stroke), dan de letters en de Y met gladde randen.
+
+/** Kruis en vak Y: rechte vlakken in de tweede kleur, over de plaat. */
+export const EMBLEEM_RASTER_PAD = '${RASTER_PAD}'
+/** Hartlijnen van het kruis: ondergrens van 1 schermpixel, zodat het klein niet wegvalt. */
+export const EMBLEEM_KRUIS_LIJN = '${KRUIS_LIJN}'
+/** De letters A, I en G, in de tweede kleur. */
+export const EMBLEEM_LETTER_PAD = '${LETTER_PAD}'
 /** De Y, in de kleur van de plaat, over het gevulde vak. */
 export const EMBLEEM_Y_PAD = '${Y_PAD}'
 
@@ -225,24 +251,57 @@ const icoon = svg(
   '0 0 100 100',
   `<style>.p{fill:${K.racegroen}}.t{fill:${K.creme}}.ps{stroke:${K.racegroen}}.ts{stroke:${K.creme}}` +
     `@media (prefers-color-scheme:dark){.p{fill:${K.creme}}.t{fill:${K.racegroen}}.ps{stroke:${K.creme}}.ts{stroke:${K.racegroen}}}</style>` +
-    `<rect class="p" width="100" height="100"/><path class="t" d="${klein.cel}"/>` +
+    `<rect class="p" width="100" height="100" ${SCHERP}/><path class="t" ${SCHERP} d="${klein.cel}"/>` +
     `<path class="t ts" stroke-width="3.6" stroke-linejoin="round" d="${klein.letters}"/>` +
     `<path class="p ps" stroke-width="3.6" stroke-linejoin="round" d="${klein.y}"/>`,
 )
 fs.writeFileSync(path.join(WEBSITE, 'icon.svg'), icoon)
 fs.writeFileSync(path.join(CLUB, 'icon.svg'), icoon)
 
-async function png(svgTekst, b, h, uit) {
-  await sharp(Buffer.from(svgTekst), { density: 600 }).resize(b, h).png({ compressionLevel: 9 }).toFile(uit)
+// PNG: vanuit de vector direct op de doelmaat getekend, niet groot getekend en daarna
+// verkleind (dat maakt de rechte randen zacht). Zo vallen plaat, kruis en vak Y op hele
+// pixels en houden de letters gladde randen.
+async function png(vb, inhoud, b, h, uit, achtergrond) {
+  let beeld = sharp(Buffer.from(svg(vb, inhoud, b, h)), { density: 72 })
+  const { width, height } = await beeld.metadata()
+  if (width !== b || height !== h) throw new Error(`${path.basename(uit)}: ${width} x ${height} in plaats van ${b} x ${h}`)
+  if (achtergrond) beeld = beeld.flatten({ background: achtergrond })
+  await beeld.png({ compressionLevel: 9 }).toFile(uit)
 }
-// Apple-icoon: vol vlak zonder ronde hoeken (iOS rondt zelf af).
-const apple = svg('0 0 100 100', appIcoon(), 180, 180)
-await png(apple, 180, 180, path.join(WEBSITE, 'apple-icon.png'))
-await png(apple, 180, 180, path.join(CLUB, 'apple-icon.png'))
-await png(svg('0 0 100 100', appIcoon()), 512, 512, path.join(UIT_DOCS, 'ayg-app-icoon-512.png'))
-await png(svg('0 0 100 100', embleem(VARIANT.licht)), 512, 512, path.join(UIT_DOCS, 'ayg-embleem-512.png'))
-await png(svg(logoVb, embleem(VARIANT.licht) + woordG(K.racegroen, LOGO.transform)), LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-licht.png'))
-await png(svg(logoVb, embleem(VARIANT.donker) + woordG(K.creme, LOGO.transform)), LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-donker.png'))
+const VIERKANT = '0 0 100 100'
+const logoLicht = embleem(VARIANT.licht) + woordG(K.racegroen, LOGO.transform)
+const logoDonker = embleem(VARIANT.donker) + woordG(K.creme, LOGO.transform)
+// Liggend logo per pixeldichtheid: 40 px hoog (1x), plus 2x en 3x voor retina.
+const LOGO_PX = 40
+const logoMaat = (dichtheid) => px(LOGO.breedte, LOGO.hoogte, (LOGO_PX * dichtheid) / LOGO.hoogte)
+
+// Oude PNG-namen weg (vervangen door de namen met maat).
+for (const oud of ['ayg-embleem-512.png']) fs.rmSync(path.join(UIT_DOCS, oud), { force: true })
+
+// Apple-icoon: vol vlak zonder ronde hoeken (iOS rondt zelf af). 180 x 180 is de maat die iOS vraagt.
+await png(VIERKANT, appIcoon(), 180, 180, path.join(WEBSITE, 'apple-icon.png'))
+await png(VIERKANT, appIcoon(), 180, 180, path.join(CLUB, 'apple-icon.png'))
+for (const maat of [512, 1024]) {
+  await png(VIERKANT, appIcoon(), maat, maat, path.join(UIT_DOCS, `ayg-app-icoon-${maat}.png`))
+  await png(VIERKANT, embleem(VARIANT.licht), maat, maat, path.join(UIT_DOCS, `ayg-embleem-licht-${maat}.png`))
+  await png(VIERKANT, embleem(VARIANT.donker), maat, maat, path.join(UIT_DOCS, `ayg-embleem-donker-${maat}.png`))
+}
+// Groot (drukwerk, presentaties): 640 px hoog.
+await png(logoVb, logoLicht, LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-licht.png'))
+await png(logoVb, logoDonker, LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-donker.png'))
+for (const d of [1, 2, 3]) {
+  const [b, h] = logoMaat(d)
+  const achter = d === 1 ? '' : `@${d}x`
+  await png(logoVb, logoLicht, b, h, path.join(UIT_DOCS, `ayg-logo-licht-40${achter}.png`))
+  await png(logoVb, logoDonker, b, h, path.join(UIT_DOCS, `ayg-logo-donker-40${achter}.png`))
+}
+// Voor e-mail: 2x van 180 x 40, op een vaste witte ondergrond (een mailprogramma met
+// donkere modus maakt een doorzichtige achtergrond soms zwart, dan valt het woord weg).
+// In de mail: <img src="..." width="180" height="40" alt="AI Your Gym">.
+{
+  const [b, h] = logoMaat(2)
+  await png(logoVb, logoLicht, b, h, path.join(UIT_DOCS, 'ayg-logo-mail@2x.png'), '#ffffff')
+}
 
 // ── Contrast (WCAG 2.2) voor de merkgids ────────────────────────────────────
 const lum = (hex) => {

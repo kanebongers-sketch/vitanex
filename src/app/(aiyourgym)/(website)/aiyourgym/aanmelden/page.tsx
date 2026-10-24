@@ -7,6 +7,8 @@ import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import type { PakketKeuze } from '@/components/aiyourgym/aanmelden/types'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { AANMELDEN } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 
 // /aiyourgym/aanmelden: een sportschool meldt zich aan. De poort (alleen Kane
 // zolang de website uit staat) zit in ../layout.tsx. Welke pakketten online af
@@ -15,9 +17,9 @@ import type { PakketKeuze } from '@/components/aiyourgym/aanmelden/types'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Aanmelden | AI Your Gym',
-  description: 'Meld je sportschool aan bij AI Your Gym en start meteen in je eigen omgeving. Er wordt niets afgeschreven zolang online betalen nog niet gekoppeld is.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(AANMELDEN)
+  return { title: t.metaTitel, description: t.metaOmschrijving }
 }
 
 interface PaginaProps {
@@ -25,7 +27,8 @@ interface PaginaProps {
 }
 
 export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
-  const zoek = await searchParams
+  const [zoek, taal] = await Promise.all([searchParams, getSiteTaal()])
+  const t = AANMELDEN[taal]
   const startPakket = vindPakket(typeof zoek.pakket === 'string' ? zoek.pakket : null)?.sleutel ?? null
   const geannuleerd = zoek.geannuleerd === '1'
   const pakketten: PakketKeuze[] = PAKKETTEN.map((p) => ({
@@ -44,14 +47,14 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     <AanmeldSchil>
       <section className="aan-pagina ayg-wrap">
         <header className="aan-intro">
-          <p className="ayg-label ayg-label--accent">{PROEFDAGEN} dagen gratis proberen</p>
-          <h1 className="aan-titel">Start je proefperiode in vier korte stappen.</h1>
-          <p className="ayg-lead">Kies een pakket, je adres en wie de eigenaar is. Daarna staat je eigen omgeving klaar en leidt een startwizard je door de inrichting.</p>
+          <p className="ayg-label ayg-label--accent">{t.label(PROEFDAGEN)}</p>
+          <h1 className="aan-titel">{t.titel}</h1>
+          <p className="ayg-lead">{t.lead}</p>
           <Geruststelling aantal={3} />
         </header>
         {geannuleerd && (
           <p className="aan-melding aan-melding--rustig" role="status">
-            Je hebt het betalen afgebroken. Er is niets afgeschreven; vul het formulier opnieuw in als je verder wilt.
+            {t.geannuleerd}
           </p>
         )}
         <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} subdomeinen={subdomeinenActief()} />

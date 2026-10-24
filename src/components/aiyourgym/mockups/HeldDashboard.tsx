@@ -1,5 +1,8 @@
 import { Plus } from 'lucide-react'
 import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { DASHBOARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { Venster } from './kaders'
 import { Oefenbeeld } from './Oefenbeeld'
 
@@ -7,12 +10,19 @@ import { Oefenbeeld } from './Oefenbeeld'
 // met de lessen van de dag en een ledenkaart, plus een oefening met coaching
 // in 3D (ernaast) en de ledenapp met QR (in de Held). Allemaal onze echte schermen,
 // getekend met voorbeeldgegevens; de coaching komt uit de oefenbibliotheek van Club.
+// Teksten in de taal van de pagina (woordenboek DASHBOARD); de kernpunten uit de
+// coachingbibliotheek zijn nog Nederlands, die vertaling volgt met Club.
+
+/** De voorbeelddag van het scherm Vandaag (een dinsdag). */
+const VOORBEELD_DAG = '2026-10-20T12:00:00Z'
+
+type Teksten = (typeof DASHBOARD)['nl']
 
 const TEGELS = [
-  { label: 'Nu binnen', waarde: '23', accent: true },
-  { label: 'Lessen vandaag', waarde: '6' },
-  { label: 'Opvolgen', waarde: '5' },
-  { label: 'Taken', waarde: '7/12' },
+  { waarde: '23', accent: true },
+  { waarde: '6', accent: false },
+  { waarde: '5', accent: false },
+  { waarde: '7/12', accent: false },
 ] as const
 
 interface Les {
@@ -31,7 +41,7 @@ const LESSEN: readonly Les[] = [
   { tijd: '20:00', naam: 'Yoga', bezet: 9, plekken: 14 },
 ]
 
-function LesRij({ les }: { les: Les }) {
+function LesRij({ les, t }: { les: Les; t: Teksten }) {
   const vol = les.bezet >= les.plekken
   return (
     <div className="aygm-dash-les" data-vol={vol ? '' : undefined}>
@@ -42,72 +52,74 @@ function LesRij({ les }: { les: Les }) {
           <span style={{ transform: `scaleX(${Math.min(les.bezet / les.plekken, 1)})` }} />
         </span>
       </span>
-      <span className="aygm-dash-stand">{vol ? `Vol · wachtlijst ${les.wachtlijst ?? 0}` : `${les.bezet}/${les.plekken}`}</span>
+      <span className="aygm-dash-stand">{vol ? t.vol(les.wachtlijst ?? 0) : `${les.bezet}/${les.plekken}`}</span>
     </div>
   )
 }
 
-function Ledenkaart() {
+function Ledenkaart({ t }: { t: Teksten }) {
   return (
     <div className="aygm-kaart aygm-dash-lid">
-      <p className="aygm-boven">Ledenkaart</p>
+      <p className="aygm-boven">{t.ledenkaart}</p>
       <div className="aygm-wie">
         <span className="aygm-avatar">SB</span>
         <span className="aygm-dash-lid-naam">
           <b>Sanne Bakker</b>
           <span className="aygm-dash-chips">
-            <span className="aygm-chip aygm-chip--ok">Actief</span>
-            <span className="aygm-chip">Onbeperkt</span>
+            <span className="aygm-chip aygm-chip--ok">{t.actief}</span>
+            <span className="aygm-chip">{t.onbeperkt}</span>
           </span>
         </span>
       </div>
       <div className="aygm-dash-feiten">
         <div>
-          <p className="aygm-boven">Bezoeken 30 dagen</p>
+          <p className="aygm-boven">{t.bezoeken30}</p>
           <p className="aygm-getal">9</p>
         </div>
         <div>
-          <p className="aygm-boven">Weken op rij</p>
+          <p className="aygm-boven">{t.wekenOpRij}</p>
           <p className="aygm-getal">6</p>
         </div>
       </div>
       <div className="aygm-dash-schema">
-        <p className="aygm-boven">Trainingsschema</p>
-        <b>Kracht 3x per week · dag A</b>
+        <p className="aygm-boven">{t.schema}</p>
+        <b>{t.schemaNaam}</b>
       </div>
     </div>
   )
 }
 
 /** Het scherm Vandaag in een browservenster: tegels, de lessen van de dag en een ledenkaart. */
-export function HeldDashboard() {
+export async function HeldDashboard() {
+  const taal = await getSiteTaal()
+  const t = DASHBOARD[taal]
   return (
     <Venster actief="Werkvloer">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">Centrum · dinsdag 20 oktober</p>
-          <p className="aygm-kop">Vandaag</p>
+          <p className="aygm-boven">{t.vestiging(formatDatum(VOORBEELD_DAG, taal, 'dag'))}</p>
+          <p className="aygm-kop">{t.vandaag}</p>
         </div>
         <span className="aygm-knopje">
-          <Plus size={13} aria-hidden /> Check-in
+          <Plus size={13} aria-hidden /> {t.checkin}
         </span>
       </div>
       <div className="aygm-tegels aygm-dash-tegels">
-        {TEGELS.map((t) => (
-          <div key={t.label} className="aygm-tegel" data-accent={'accent' in t ? '' : undefined}>
-            <p className="aygm-boven">{t.label}</p>
-            <p className="aygm-getal">{t.waarde}</p>
+        {TEGELS.map((tegel, i) => (
+          <div key={t.tegels[i]} className="aygm-tegel" data-accent={tegel.accent ? '' : undefined}>
+            <p className="aygm-boven">{t.tegels[i]}</p>
+            <p className="aygm-getal">{tegel.waarde}</p>
           </div>
         ))}
       </div>
       <div className="aygm-dash-raster">
         <div className="aygm-kaart aygm-dash-lessen">
-          <p className="aygm-boven">Lessen vandaag</p>
+          <p className="aygm-boven">{t.lessenVandaag}</p>
           {LESSEN.map((l) => (
-            <LesRij key={`${l.tijd}-${l.naam}`} les={l} />
+            <LesRij key={`${l.tijd}-${l.naam}`} les={l} t={t} />
           ))}
         </div>
-        <Ledenkaart />
+        <Ledenkaart t={t} />
       </div>
     </Venster>
   )
@@ -116,16 +128,17 @@ export function HeldDashboard() {
 const OEFENING = 'Front squat'
 
 /** Een oefening uit een schema, klein: onze eigen render (of het 3D-figuur) en de eerste kernpunten. */
-export function OefeningKaartje() {
+export async function OefeningKaartje() {
+  const t = DASHBOARD[await getSiteTaal()]
   const coaching = COACHING_BENEN[OEFENING]
   if (!coaching) return null
   return (
     <div className="aygm-dash-oef">
       <div className="aygm-beeld">
-        <Oefenbeeld naam={OEFENING} label={`${OEFENING} als bewegend beeld`} className="ayg-3d--vul" sizes="112px" />
+        <Oefenbeeld naam={OEFENING} label={t.beeldLabel(OEFENING)} className="ayg-3d--vul" sizes="112px" voorrang />
       </div>
       <div className="aygm-dash-oef-tekst">
-        <p className="aygm-boven">Schema · dag A · 1</p>
+        <p className="aygm-boven">{t.oefBoven}</p>
         <p className="aygm-kop">{OEFENING}</p>
         <ol className="aygm-kernpunten">
           {coaching.kernpunten.slice(0, 3).map((k) => (

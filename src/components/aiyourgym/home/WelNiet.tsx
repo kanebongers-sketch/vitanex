@@ -1,9 +1,12 @@
 import { Check, Minus } from 'lucide-react'
-import { NIET, WEL, type WelNietPunt } from '@/components/aiyourgym/inhoud/eerlijk'
+import type { WelNietPunt } from '@/components/aiyourgym/inhoud/eerlijk'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
+import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { WEL_NIET } from '@/lib/aiyourgym/taal/woorden/website/home-vertrouwen'
 
 // Eerlijk als bewijs: wat AI Your Gym doet en wat (nu) niet. Zolang er geen
 // klantverhalen zijn, is open zijn over de grenzen ons sociaal bewijs.
+// Teksten in de taal van de pagina (woordenboek WEL_NIET).
 
 interface KolomProps {
   soort: 'wel' | 'niet'
@@ -33,24 +36,26 @@ function Kolom({ soort, titel, punten }: KolomProps) {
   )
 }
 
-export function WelNiet() {
+export async function WelNiet() {
+  const t = await siteTekst(WEL_NIET)
   return (
     <section className="ayg-sectie ayg-welniet" id="wel-niet" aria-labelledby="welniet-titel">
       <div className="ayg-wrap">
         <SectieKop
           id="welniet-titel"
-          label="Eerlijk"
+          label={t.label}
           naast
           titel={
             <>
-              Wat we doen. <mark className="ayg-markeer">En wat niet.</mark>
+              {t.titel.voor}
+              <mark className="ayg-markeer">{t.titel.accent}</mark>
             </>
           }
-          tekst="Liever nu duidelijk dan straks een verrassing. Dit is wat AI Your Gym voor je club doet, en wat bij je eigen ledenadministratie blijft."
+          tekst={t.tekst}
         />
         <div className="ayg-welniet-raster">
-          <Kolom soort="wel" titel="Dit doet AI Your Gym" punten={WEL} />
-          <Kolom soort="niet" titel="Dit doet het (nu) niet" punten={NIET} />
+          <Kolom soort="wel" titel={t.welTitel} punten={t.wel} />
+          <Kolom soort="niet" titel={t.nietTitel} punten={t.niet} />
         </div>
       </div>
     </section>

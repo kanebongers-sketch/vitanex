@@ -3,4 +3,4 @@
 // de website toont hem op /nieuw en Club onderaan bij Wat is nieuw. Nieuw werk
 // voeg je daar toe; deze pagina blijft precies hetzelfde.
 
-export { NIEUW, aantalNieuw, korteDatum, maandNaam, type NieuwMaand, type NieuwPunt } from '@/lib/aiyourgym/nieuw'
+export { NIEUW, aantalNieuw, korteDatum, maandNaam, maandSamenvatting, puntTekst, type NieuwMaand, type NieuwPunt } from '@/lib/aiyourgym/nieuw'

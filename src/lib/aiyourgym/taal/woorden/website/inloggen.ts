@@ -1,0 +1,59 @@
+// Inloggen voor sportscholen op de website ((site)/inloggen/page.tsx en
+// src/components/aiyourgym/inloggen). E-mailadres en wachtwoord (besluit Kane
+// 23-10-2026); leden loggen in via de ledenapp van hun eigen sportschool.
+
+import { woordenboek } from '../../woordenboek'
+
+export const INLOGGEN = woordenboek({
+  nl: {
+    metaTitel: 'Inloggen',
+    metaOmschrijving: 'Log in op AI Your Gym met je e-mailadres en wachtwoord.',
+    label: 'Inloggen',
+    titel: 'Welkom terug.',
+    tekst: 'Log in met het e-mailadres en wachtwoord van je account.',
+    naLancering: 'Inloggen opent na de lancering.',
+    hulpLabel: 'Hulp bij inloggen',
+    vergetenKop: 'Wachtwoord vergeten',
+    bereik: 'Je bereikt ons op ',
+    of: ' of ',
+    helpen: '. We helpen je dan aan een nieuw wachtwoord.',
+    formulier: { voor: 'Laat het ons weten via het formulier bij ', link: 'Plan een gratis demo', na: ' en zet in je opmerking dat het om je wachtwoord gaat. We helpen je dan aan een nieuw wachtwoord.' },
+    lidKop: 'Lid van een sportschool',
+    lidTekst: 'Ben je lid? Dan log je in via de ledenapp van je eigen sportschool, met je e-mailadres en wachtwoord. Heb je de app nog niet, vraag dan aan de balie om een uitnodiging.',
+    geenAccountKop: 'Nog geen account',
+    geenAccountTekst: (dagen: number) => `Probeer AI Your Gym ${dagen} dagen gratis. Je kiest je wachtwoord bij het aanmelden en bent daarna meteen binnen.`,
+    probeer: 'Probeer gratis',
+    // Het formulier
+    email: 'E-mailadres',
+    wachtwoord: 'Wachtwoord',
+    knop: 'Inloggen',
+    leeg: 'Vul je e-mailadres en wachtwoord in.',
+    mislukt: 'Inloggen lukte niet. Probeer het opnieuw.',
+    geenVerbinding: 'Geen verbinding. Controleer je internet en probeer het opnieuw.',
+  },
+  en: {
+    metaTitel: 'Sign in',
+    metaOmschrijving: 'Sign in to AI Your Gym with your email address and password.',
+    label: 'Sign in',
+    titel: 'Welcome back.',
+    tekst: 'Sign in with the email address and password of your account.',
+    naLancering: 'Sign-in opens after the launch.',
+    hulpLabel: 'Help with signing in',
+    vergetenKop: 'Forgotten your password',
+    bereik: 'You can reach us on ',
+    of: ' or ',
+    helpen: '. We will then help you set a new password.',
+    formulier: { voor: 'Let us know through the form at ', link: 'Book a free demo', na: ' and mention in your comment that it is about your password. We will then help you set a new password.' },
+    lidKop: 'Member of a gym',
+    lidTekst: 'Are you a member? Then you sign in through the member app of your own gym, with your email address and password. Do not have the app yet? Ask the front desk for an invitation.',
+    geenAccountKop: 'No account yet',
+    geenAccountTekst: (dagen: number) => `Try AI Your Gym free for ${dagen} days. You choose your password when you sign up and you are in straight away.`,
+    probeer: 'Try it free',
+    email: 'Email address',
+    wachtwoord: 'Password',
+    knop: 'Sign in',
+    leeg: 'Enter your email address and password.',
+    mislukt: 'Signing in did not work. Please try again.',
+    geenVerbinding: 'No connection. Check your internet and try again.',
+  },
+})

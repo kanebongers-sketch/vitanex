@@ -59,6 +59,10 @@
 .club-tm-beeld .club-speler { gap: 0; }
 .club-tm-beeld .club-speler-beeld { width: 100%; }
 .club-tm-beeld .club-speler-bediening { display: none; }
+/* Met een Blender-render: de rep-speler over de volle breedte, de coaching eronder (of ernaast op een groot scherm) */
+.club-tm-top[data-rep] { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .club-tm-top[data-rep] { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+.club-tm-rep { min-width: 0; }
 .club-tm-uitleg { display: grid; gap: 10px; align-content: start; min-width: 0; }
 .club-tm-blok { margin: 0; padding: 10px 14px; border-radius: 14px; border-left: 3px solid var(--brand); background: color-mix(in srgb, var(--brand) 8%, transparent); color: var(--text-2); font-size: 14px; line-height: 1.4; }
 .club-tm-blok strong { margin-right: 4px; font-family: var(--ff-kop); letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }

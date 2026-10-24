@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowRight, Check } from 'lucide-react'
-import { AANMELDEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
 
 // Een stap van de rondleiding: uitleg links, het echte scherm rechts (of om
 // en om), met de oproep om een eigen proefperiode te starten.
@@ -22,10 +24,12 @@ interface Props {
   /** CSS-variabelen van de huisstijl van de demo-sportschool. */
   huisstijl: CSSProperties
   donker?: boolean
+  taal: Taal
   children: ReactNode
 }
 
-export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, children }: Props) {
+export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, taal, children }: Props) {
+  const t = DEMO[taal]
   return (
     <section id={stap.sleutel} className={donker ? 'ayg-sectie ayg-podium aygd-stap' : 'ayg-sectie aygd-stap'} aria-labelledby={`${stap.sleutel}-titel`}>
       <div className="ayg-wrap aygd-stap-raster" data-om={nr % 2 === 0 ? '' : undefined}>
@@ -47,8 +51,8 @@ export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, chil
             ))}
           </ul>
           <p>
-            <Link href={AANMELDEN} className="ayg-pijllink">
-              Start je eigen proefperiode <ArrowRight size={16} aria-hidden />
+            <Link href={sitePaden(taal).AANMELDEN} className="ayg-pijllink">
+              {t.startProef} <ArrowRight size={16} aria-hidden />
             </Link>
           </p>
         </div>
@@ -57,7 +61,7 @@ export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, chil
             {children}
           </div>
           <figcaption className="aygm-bijschrift">
-            <span>Echt scherm van de Voorbeeld Gym, met voorbeeldgegevens</span>
+            <span>{t.bijschrift}</span>
           </figcaption>
         </figure>
       </div>

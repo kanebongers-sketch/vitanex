@@ -13,7 +13,10 @@ import { isTestSessie } from '@/lib/aiyourgym/testbetaling'
 import { wachtendeTestbetaling } from '@/lib/aiyourgym/testbetaling-opslag'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { TestbetaalKnop } from '@/components/aiyourgym/aanmelden/TestbetaalKnop'
-import { AANMELDEN, INLOGGEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { TESTBETALING } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 // /aiyourgym/testbetaling?sessie=test_...: de plek van Stripe Checkout zolang
 // Stripe er niet is (besluit Kane 23-10-2026). Zegt eerlijk dat er niets wordt
@@ -21,27 +24,28 @@ import { AANMELDEN, INLOGGEN } from '@/components/aiyourgym/site/paden'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Proefperiode starten | AI Your Gym',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(TESTBETALING)
+  return { title: t.metaTitel, robots: { index: false, follow: false }, referrer: 'no-referrer' }
 }
 
 interface PaginaProps {
   searchParams: Promise<{ [sleutel: string]: string | string[] | undefined }>
 }
 
-function Onbekend() {
+function Onbekend({ taal }: { taal: Taal }) {
+  const t = TESTBETALING[taal]
+  const { AANMELDEN, INLOGGEN } = sitePaden(taal)
   return (
     <>
-      <h1 className="aan-titel">Deze link kennen we niet.</h1>
-      <p className="ayg-lead">De aanmelding is verlopen of al afgerond. Meld je opnieuw aan als je wilt starten.</p>
+      <h1 className="aan-titel">{t.onbekendKop}</h1>
+      <p className="ayg-lead">{t.onbekendUitleg}</p>
       <div className="ayg-knoppen">
         <a href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-          Opnieuw aanmelden
+          {t.opnieuw}
         </a>
         <a href={INLOGGEN} className="ayg-knop ayg-knop--rand">
-          Inloggen
+          {t.inloggen}
         </a>
       </div>
     </>
@@ -50,6 +54,8 @@ function Onbekend() {
 
 export default async function TestbetalingPagina({ searchParams }: PaginaProps) {
   const sessie = (await searchParams).sessie
+  const taal = await getSiteTaal()
+  const t = TESTBETALING[taal]
   const h = await headers()
   const host = (h.get('x-forwarded-host')?.split(',')[0] ?? h.get('host') ?? '').trim().toLowerCase()
   const admin = adminOfNull()
@@ -62,7 +68,7 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
     return (
       <AanmeldSchil>
         <section className="aan-pagina aan-welkom ayg-wrap">
-          <Onbekend />
+          <Onbekend taal={taal} />
         </section>
       </AanmeldSchil>
     )
@@ -70,21 +76,21 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
 
   const pakket = vindPakket(a.pakket)
   const regels = [
-    { label: 'Sportschool', waarde: a.sportschoolNaam },
-    { label: 'Adres', waarde: adresVan(a.slug, subdomeinenActief()) },
-    { label: 'Pakket', waarde: pakket?.naam ?? a.pakket },
-    { label: 'Vestigingen', waarde: String(a.aantalVestigingen) },
+    { label: t.rij.sportschool, waarde: a.sportschoolNaam },
+    { label: t.rij.adres, waarde: adresVan(a.slug, subdomeinenActief()) },
+    { label: t.rij.pakket, waarde: pakket?.naam ?? a.pakket },
+    { label: t.rij.vestigingen, waarde: String(a.aantalVestigingen) },
   ]
   return (
     <AanmeldSchil>
       <section className="aan-pagina aan-welkom ayg-wrap">
-        <p className="ayg-label ayg-label--accent">Laatste stap</p>
-        <h1 className="aan-titel">Start je proefperiode.</h1>
+        <p className="ayg-label ayg-label--accent">{t.label}</p>
+        <h1 className="aan-titel">{t.titel}</h1>
         <div className="aan-test-melding" role="note">
           <ShieldCheck size={20} aria-hidden="true" />
           <p>
-            <strong>Er wordt niets afgeschreven.</strong> Online betalen is nog niet gekoppeld. Je start nu {PROEFDAGEN} dagen gratis; voor het
-            einde daarvan spreken we samen af hoe je verder betaalt.
+            <strong>{t.nietsAf}</strong>
+            {t.nietsAfUitleg(PROEFDAGEN)}
           </p>
         </div>
         <dl className="aan-test-overzicht ayg-podium">
@@ -96,7 +102,8 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
           ))}
         </dl>
         <p className="aan-uitleg">
-          <CreditCard size={16} aria-hidden="true" /> Na het starten staat je eigen omgeving direct klaar en ben je meteen ingelogd. De startwizard leidt je door de inrichting.
+          <CreditCard size={16} aria-hidden="true" />
+          {t.naStart}
         </p>
         <TestbetaalKnop sessie={String(sessie)} />
       </section>

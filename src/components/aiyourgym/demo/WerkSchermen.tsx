@@ -1,18 +1,15 @@
 import { Users } from 'lucide-react'
 import { Venster } from '@/components/aiyourgym/mockups/kaders'
-import { dagKort, dagLang, weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { DEMO_SCHERM } from '@/lib/aiyourgym/taal/woorden/website/demo'
 import type { DemoLes, DemoLidKaart, DemoVandaag, DemoWeek } from '@/lib/aiyourgym/demo/model'
+import { dagKort, dagLang, hoofdletter, weekdag } from './datums'
 
 // De schermen van de werkvloer in de demo: Vandaag, het lesrooster en een
 // ledenkaart. Getekend uit de echte rijen van de Voorbeeld Gym (zie
-// src/lib/aiyourgym/demo), alleen om te bekijken.
-
-const LEAD_STATUS: Record<string, string> = { nieuw: 'Nieuw', contact: 'In contact', proefles: 'Proefles' }
-const LID_STATUS: Record<string, string> = { actief: 'Actief', proef: 'Proeflid', gepauzeerd: 'Gepauzeerd', opgezegd: 'Opgezegd', gestopt: 'Gestopt' }
-
-function hoofdletter(t: string): string {
-  return t ? t[0].toUpperCase() + t.slice(1) : t
-}
+// src/lib/aiyourgym/demo), alleen om te bekijken. De labels in de taal van de
+// pagina (DEMO_SCHERM); de gegevens zelf blijven die van de Voorbeeld Gym.
 
 function initialen(naam: string): string {
   return naam
@@ -24,7 +21,16 @@ function initialen(naam: string): string {
     .toUpperCase()
 }
 
-function Bezetting({ les }: { les: DemoLes }) {
+/** De paar teksten die het model zelf in het Nederlands maakt (model.ts), in de taal van de pagina. */
+function dienstNaam(naam: string, taal: Taal): string {
+  return naam === DEMO_SCHERM.nl.openDienst ? DEMO_SCHERM[taal].openDienst : naam
+}
+
+function dienstTijd(tijd: string, taal: Taal): string {
+  return tijd.replace(DEMO_SCHERM.nl.tot, DEMO_SCHERM[taal].tot)
+}
+
+function Bezetting({ les, taal }: { les: DemoLes; taal: Taal }) {
   const deel = les.capaciteit > 0 ? Math.min(les.bezet / les.capaciteit, 1) : 0
   const vol = les.bezet >= les.capaciteit
   return (
@@ -34,43 +40,53 @@ function Bezetting({ les }: { les: DemoLes }) {
       </span>
       <span>
         {les.bezet}/{les.capaciteit}
-        {les.wachtlijst > 0 && ` · wachtlijst ${les.wachtlijst}`}
+        {les.wachtlijst > 0 && DEMO_SCHERM[taal].wachtlijst(les.wachtlijst)}
       </span>
     </span>
   )
 }
 
-export function VandaagScherm({ data, vestiging }: { data: DemoVandaag; vestiging: string }) {
+interface VandaagProps {
+  data: DemoVandaag
+  vestiging: string
+  taal: Taal
+}
+
+export function VandaagScherm({ data, vestiging, taal }: VandaagProps) {
+  const t = DEMO_SCHERM[taal]
+  const leadStatus: Record<string, string> = t.leadStatus
   return (
     <Venster actief="Werkvloer">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">{vestiging} · vandaag</p>
-          <p className="aygd-dag">{hoofdletter(dagLang(data.dag))}</p>
+          <p className="aygm-boven">
+            {vestiging} · {t.vandaag}
+          </p>
+          <p className="aygd-dag">{hoofdletter(dagLang(data.dag, taal))}</p>
         </div>
       </div>
       <div className="aygm-tegels">
         <div className="aygm-tegel aygd-tegel--accent">
-          <p className="aygm-boven">Bezoeken</p>
+          <p className="aygm-boven">{t.bezoeken}</p>
           <p className="aygm-getal">{data.binnen}</p>
         </div>
         <div className="aygm-tegel">
-          <p className="aygm-boven">Lessen</p>
+          <p className="aygm-boven">{t.lessen}</p>
           <p className="aygm-getal">{data.lessen.length}</p>
         </div>
         <div className="aygm-tegel">
-          <p className="aygm-boven">Diensten</p>
+          <p className="aygm-boven">{t.diensten}</p>
           <p className="aygm-getal">{data.diensten.length}</p>
         </div>
         <div className="aygm-tegel">
-          <p className="aygm-boven">Op te volgen</p>
+          <p className="aygm-boven">{t.opTeVolgen}</p>
           <p className="aygm-getal">{data.leads.length}</p>
         </div>
       </div>
       <div className="aygd-twee">
         <div className="aygm-kaart aygd-blok">
-          <p className="aygm-kop">Lessen</p>
-          {data.lessen.length === 0 && <p className="aygd-leeg">Geen lessen op deze dag.</p>}
+          <p className="aygm-kop">{t.lessen}</p>
+          {data.lessen.length === 0 && <p className="aygd-leeg">{t.geenLessenDag}</p>}
           <div className="aygd-lijst">
             {data.lessen.map((l) => (
               <div key={l.id} className="aygd-les">
@@ -79,34 +95,34 @@ export function VandaagScherm({ data, vestiging }: { data: DemoVandaag; vestigin
                   <b>{l.naam}</b>
                   <span>{l.zaal}</span>
                 </span>
-                <Bezetting les={l} />
+                <Bezetting les={l} taal={taal} />
               </div>
             ))}
           </div>
         </div>
         <div className="aygd-stapel">
           <div className="aygm-kaart aygd-blok">
-            <p className="aygm-kop">Wie werkt er</p>
-            {data.diensten.length === 0 && <p className="aygd-leeg">Geen diensten gepland.</p>}
+            <p className="aygm-kop">{t.wieWerkt}</p>
+            {data.diensten.length === 0 && <p className="aygd-leeg">{t.geenDiensten}</p>}
             {data.diensten.map((d) => (
               <div key={`${d.naam}-${d.tijd}`} className="aygm-wie aygd-regel">
-                <span className="aygm-avatar">{initialen(d.naam)}</span>
+                <span className="aygm-avatar">{initialen(dienstNaam(d.naam, taal))}</span>
                 <span className="aygm-rij-tekst">
-                  <b>{d.naam}</b>
-                  <span>{d.tijd}</span>
+                  <b>{dienstNaam(d.naam, taal)}</b>
+                  <span>{dienstTijd(d.tijd, taal)}</span>
                 </span>
               </div>
             ))}
           </div>
           <div className="aygm-kaart aygd-blok">
-            <p className="aygm-kop">Leads opvolgen</p>
+            <p className="aygm-kop">{t.leadsOpvolgen}</p>
             {data.leads.map((l) => (
               <div key={l.naam} className="aygd-regel aygd-regel--uit">
                 <span className="aygm-rij-tekst">
                   <b>{l.naam}</b>
-                  <span>Via {l.bron}</span>
+                  <span>{t.via(l.bron)}</span>
                 </span>
-                <span className="aygm-chip">{LEAD_STATUS[l.status] ?? l.status}</span>
+                <span className="aygm-chip">{leadStatus[l.status] ?? l.status}</span>
               </div>
             ))}
           </div>
@@ -116,22 +132,29 @@ export function VandaagScherm({ data, vestiging }: { data: DemoVandaag; vestigin
   )
 }
 
-export function RoosterWeekScherm({ week, vestiging }: { week: DemoWeek; vestiging: string }) {
+interface RoosterProps {
+  week: DemoWeek
+  vestiging: string
+  taal: Taal
+}
+
+export function RoosterWeekScherm({ week, vestiging, taal }: RoosterProps) {
+  const t = DEMO_SCHERM[taal]
   return (
     <Venster actief="Planning">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">Groepslessen · week van {dagKort(week.maandag)}</p>
-          <p className="aygm-kop">Lesrooster {vestiging}</p>
+          <p className="aygm-boven">{t.weekVan(dagKort(week.maandag, taal))}</p>
+          <p className="aygm-kop">{t.lesrooster(vestiging)}</p>
         </div>
       </div>
       <div className="aygd-week">
         {week.dagen.map((d) => (
           <div key={d.dag} className="aygd-weekdag">
             <p className="aygd-weekdag-kop">
-              <span>{weekdagNaam(weekdagVan(d.dag)).slice(0, 2)}</span> {dagKort(d.dag)}
+              <span>{weekdag(d.dag, taal).slice(0, 2)}</span> {dagKort(d.dag, taal)}
             </p>
-            {d.lessen.length === 0 && <p className="aygd-leeg">Geen lessen</p>}
+            {d.lessen.length === 0 && <p className="aygd-leeg">{t.geenLessen}</p>}
             {d.lessen.map((l) => (
               <div key={l.id} className="aygm-les aygd-weekles" data-vol={l.bezet >= l.capaciteit ? '' : undefined}>
                 <b>{l.naam}</b>
@@ -147,12 +170,14 @@ export function RoosterWeekScherm({ week, vestiging }: { week: DemoWeek; vestigi
   )
 }
 
-export function LidScherm({ kaart }: { kaart: DemoLidKaart }) {
+export function LidScherm({ kaart, taal }: { kaart: DemoLidKaart; taal: Taal }) {
+  const t = DEMO_SCHERM[taal]
+  const lidStatus: Record<string, string> = t.lidStatus
   const feiten = [
-    { label: 'Bezoeken 30 dagen', waarde: String(kaart.bezoeken30) },
-    { label: 'Weken op rij', waarde: String(kaart.wekenOpRij) },
-    { label: 'Laatste bezoek', waarde: kaart.laatsteBezoek ? dagKort(kaart.laatsteBezoek) : 'Nog niet' },
-    { label: 'Lid sinds', waarde: kaart.lidSinds ? dagKort(kaart.lidSinds) + ' ' + kaart.lidSinds.slice(0, 4) : 'Onbekend' },
+    { label: t.bezoeken30, waarde: String(kaart.bezoeken30) },
+    { label: t.wekenOpRij, waarde: String(kaart.wekenOpRij) },
+    { label: t.laatsteBezoek, waarde: kaart.laatsteBezoek ? dagKort(kaart.laatsteBezoek, taal) : t.nogNiet },
+    { label: t.lidSinds, waarde: kaart.lidSinds ? dagKort(kaart.lidSinds, taal) + ' ' + kaart.lidSinds.slice(0, 4) : t.onbekend },
   ]
   return (
     <Venster actief="Leden">
@@ -161,7 +186,7 @@ export function LidScherm({ kaart }: { kaart: DemoLidKaart }) {
         <div className="aygd-stapel">
           <p className="aygd-dag">{kaart.naam}</p>
           <p className="aygd-chips">
-            <span className="aygm-chip aygm-chip--ok">{LID_STATUS[kaart.status] ?? kaart.status}</span>
+            <span className="aygm-chip aygm-chip--ok">{lidStatus[kaart.status] ?? kaart.status}</span>
             <span className="aygm-chip">{kaart.abonnement}</span>
             <span className="aygm-chip">
               <Users size={11} aria-hidden /> {kaart.vestiging}
@@ -179,18 +204,21 @@ export function LidScherm({ kaart }: { kaart: DemoLidKaart }) {
       </div>
       <div className="aygd-twee">
         <div className="aygm-kaart aygd-blok">
-          <p className="aygm-boven">Trainingsschema</p>
-          <p className="aygm-kop">{kaart.schema ?? 'Nog geen schema'}</p>
+          <p className="aygm-boven">{t.trainingsschema}</p>
+          <p className="aygm-kop">{kaart.schema ?? t.geenSchema}</p>
         </div>
         <div className="aygm-kaart aygd-blok">
-          <p className="aygm-boven">Laatste meting{kaart.meting ? ` · ${dagKort(kaart.meting.datum)}` : ''}</p>
+          <p className="aygm-boven">
+            {t.laatsteMeting}
+            {kaart.meting ? ` · ${dagKort(kaart.meting.datum, taal)}` : ''}
+          </p>
           {kaart.meting ? (
             <p className="aygm-kop">
-              {kaart.meting.gewicht !== null && `${kaart.meting.gewicht.toLocaleString('nl-NL')} kg`}
-              {kaart.meting.buik !== null && ` · buik ${kaart.meting.buik.toLocaleString('nl-NL')} cm`}
+              {kaart.meting.gewicht !== null && `${formatGetal(kaart.meting.gewicht, taal)} kg`}
+              {kaart.meting.buik !== null && ` · ${t.buik} ${formatGetal(kaart.meting.buik, taal)} cm`}
             </p>
           ) : (
-            <p className="aygm-kop">Nog geen meting</p>
+            <p className="aygm-kop">{t.geenMeting}</p>
           )}
         </div>
       </div>

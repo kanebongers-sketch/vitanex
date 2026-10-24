@@ -3,63 +3,71 @@ import Link from 'next/link'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { INLOGGEN } from '@/lib/aiyourgym/taal/woorden/website/inloggen'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { InlogFormulier } from '@/components/aiyourgym/inloggen/InlogFormulier'
-import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
 
 // /inloggen op aiyourgym.com: een sportschool logt in met e-mailadres en
 // wachtwoord (besluit Kane 23-10-2026). Leden gebruiken de ledenapp van hun
 // eigen sportschool.
 
-export const metadata: Metadata = {
-  title: 'Inloggen',
-  description: 'Log in op AI Your Gym met je e-mailadres en wachtwoord.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(INLOGGEN)
+  return { title: t.metaTitel, description: t.metaOmschrijving }
 }
 
-function WachtwoordVergeten() {
+function WachtwoordVergeten({ taal }: { taal: Taal }) {
   const { telefoon, email } = AYG_CONTACT
+  const t = INLOGGEN[taal]
   if (heeftContact()) {
     return (
       <p>
-        Je bereikt ons op{' '}
+        {t.bereik}
         {telefoon && <a href={telLink(telefoon)}>{telefoon}</a>}
-        {telefoon && email && ' of '}
-        {email && <a href={`mailto:${email}`}>{email}</a>}. We helpen je dan aan een nieuw wachtwoord.
+        {telefoon && email && t.of}
+        {email && <a href={`mailto:${email}`}>{email}</a>}
+        {t.helpen}
       </p>
     )
   }
   return (
     <p>
-      Laat het ons weten via het formulier bij <Link href={DEMO_AANVRAGEN}>Plan een gratis demo</Link> en zet in je
-      opmerking dat het om je wachtwoord gaat. We helpen je dan aan een nieuw wachtwoord.
+      {t.formulier.voor}
+      <Link href={sitePaden(taal).DEMO_AANVRAGEN}>{t.formulier.link}</Link>
+      {t.formulier.na}
     </p>
   )
 }
 
-export default function InloggenPagina() {
+export default async function InloggenPagina() {
+  const taal = await getSiteTaal()
+  const t = INLOGGEN[taal]
   return (
     <>
-      <PaginaKop label="Inloggen" titel="Welkom terug." tekst="Log in met het e-mailadres en wachtwoord van je account.">
+      <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         {!CLUB_EIGEN_LOGIN && (
           <p className="ayg-klein" role="note">
-            Inloggen opent na de lancering.
+            {t.naLancering}
           </p>
         )}
       </PaginaKop>
-      <section className="ayg-sectie--krap ayg-inlog-sectie" aria-label="Inloggen">
+      <section className="ayg-sectie--krap ayg-inlog-sectie" aria-label={t.label}>
         <div className="ayg-wrap ayg-inlog-raster">
           <InlogFormulier />
-          <div className="ayg-tekst" role="region" aria-label="Hulp bij inloggen">
-            <h2>Wachtwoord vergeten</h2>
-            <WachtwoordVergeten />
-            <h2>Lid van een sportschool</h2>
-            <p>Ben je lid? Dan log je in via de ledenapp van je eigen sportschool, met je e-mailadres en wachtwoord. Heb je de app nog niet, vraag dan aan de balie om een uitnodiging.</p>
-            <h2>Nog geen account</h2>
-            <p>Probeer AI Your Gym {PROEFDAGEN} dagen gratis. Je kiest je wachtwoord bij het aanmelden en bent daarna meteen binnen.</p>
+          <div className="ayg-tekst" role="region" aria-label={t.hulpLabel}>
+            <h2>{t.vergetenKop}</h2>
+            <WachtwoordVergeten taal={taal} />
+            <h2>{t.lidKop}</h2>
+            <p>{t.lidTekst}</p>
+            <h2>{t.geenAccountKop}</h2>
+            <p>{t.geenAccountTekst(PROEFDAGEN)}</p>
             <div className="ayg-knoppen">
-              <Knop href={AANMELDEN} soort="accent" pijl>
-                Probeer gratis
+              <Knop href={sitePaden(taal).AANMELDEN} soort="accent" pijl>
+                {t.probeer}
               </Knop>
             </div>
             <Geruststelling aantal={GERUST_BIJ_KNOP} onder />

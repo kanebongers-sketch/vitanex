@@ -5,12 +5,16 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { AANMELDEN, DEMO, DEMO_AANVRAGEN, NAV_LINKS, isHuidig } from './paden'
+import { TaalKeuze } from '@/components/aiyourgym/taal/TaalKeuze'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { KOP } from '@/lib/aiyourgym/taal/woorden/website/kop'
+import { isHuidig, navLinks, sitePaden } from './paden'
 
 // De links in de kop, met de huidige pagina gemarkeerd, en het menupaneel voor
 // de telefoon: over het hele scherm, de pagina eronder staat stil. Het paneel
 // sluit bij elke paginawissel, met Escape en als het scherm breed wordt; de
-// focus gaat dan terug naar de menuknop.
+// focus gaat dan terug naar de menuknop. De taalkeuze (NL | EN) staat naast de
+// knoppen en op de telefoon onderaan het paneel.
 
 const BREED = '(min-width: 1024px)'
 
@@ -47,6 +51,10 @@ function useMenuPaneel(open: boolean, sluit: () => void) {
 }
 
 export function AygNav() {
+  const taal = useTaal()
+  const t = KOP[taal]
+  const links = navLinks(taal)
+  const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = sitePaden(taal)
   const pad = usePathname()
   const [open, setOpen] = useState(false)
   const [vorigPad, setVorigPad] = useState(pad)
@@ -59,9 +67,9 @@ export function AygNav() {
 
   return (
     <>
-      <nav className="ayg-nav" aria-label="Hoofdmenu">
+      <nav className="ayg-nav" aria-label={t.hoofdmenu}>
         <ul>
-          {NAV_LINKS.map((l) => (
+          {links.map((l) => (
             <li key={l.pad}>
               <Link href={l.pad} aria-current={isHuidig(l.pad, pad) ? 'page' : undefined}>
                 {l.label}
@@ -72,7 +80,7 @@ export function AygNav() {
       </nav>
       <div className="ayg-kop-acties">
         <Link href={DEMO} className="ayg-kop-demo" aria-current={isHuidig(DEMO, pad) ? 'page' : undefined}>
-          Live demo
+          {t.liveDemo}
         </Link>
         <Link
           href={DEMO_AANVRAGEN}
@@ -80,12 +88,15 @@ export function AygNav() {
           aria-current={isHuidig(DEMO_AANVRAGEN, pad) ? 'page' : undefined}
         >
           <span>
-            Plan <span className="ayg-kop-lang">een gratis </span>demo
+            {t.planDemo.voor}
+            <span className="ayg-kop-lang">{t.planDemo.lang}</span>
+            {t.planDemo.na}
           </span>
         </Link>
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent ayg-knop--klein">
-          Probeer gratis <ArrowRight size={16} aria-hidden />
+          {t.probeer} <ArrowRight size={16} aria-hidden />
         </Link>
+        <TaalKeuze />
       </div>
       <button
         ref={knop}
@@ -98,12 +109,12 @@ export function AygNav() {
         <span className="ayg-menuknop-icoon" aria-hidden>
           {open ? <X size={18} /> : <Menu size={18} />}
         </span>
-        {open ? 'Sluit' : 'Menu'}
+        {open ? t.sluit : t.menu}
       </button>
       <div ref={paneel} id="ayg-menupaneel" className="ayg-menupaneel" data-open={open ? '' : undefined} hidden={!open}>
-        <nav aria-label="Menu">
+        <nav aria-label={t.menuPaneel}>
           <ol className="ayg-menupaneel-lijst">
-            {NAV_LINKS.map((l, i) => (
+            {links.map((l, i) => (
               <li key={l.pad} style={{ '--i': i } as CSSProperties}>
                 <Link ref={i === 0 ? eersteLink : undefined} href={l.pad} aria-current={isHuidig(l.pad, pad) ? 'page' : undefined}>
                   <span className="ayg-menupaneel-nr" aria-hidden>
@@ -119,14 +130,15 @@ export function AygNav() {
         </nav>
         <div className="ayg-menupaneel-onder">
           <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-            Probeer {PROEFDAGEN} dagen gratis <ArrowRight size={16} aria-hidden />
+            {t.probeerDagen(PROEFDAGEN)} <ArrowRight size={16} aria-hidden />
           </Link>
           <Link href={DEMO_AANVRAGEN} className="ayg-knop ayg-knop--rand">
-            Plan een gratis demo
+            {t.planDemoVol}
           </Link>
           <Link href={DEMO} className="ayg-menupaneel-live">
-            Of bekijk de live demo <ArrowRight size={16} aria-hidden />
+            {t.ofLiveDemo} <ArrowRight size={16} aria-hidden />
           </Link>
+          <TaalKeuze className="ayg-taalkeuze--paneel" />
         </div>
       </div>
     </>

@@ -7,6 +7,7 @@ import { DEMO_MAX_BODY_BYTES, leesDemoAanvraag } from '@/lib/aiyourgym/demo-aanv
 import { isPrijsAanvraag, leesPrijsAanvraag } from '@/lib/aiyourgym/prijs-aanvraag'
 import { bewaarDemoAanvraag, ipHash, teVeelDemoAanvragen } from '@/lib/aiyourgym/demo-aanvraag-opslag'
 import { adminOfNull, aygFout, aygJson, poortOpen } from '@/lib/aiyourgym/api'
+import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 
 // POST /api/aiyourgym/demo-aanvraag
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   // Een robot krijgt hetzelfde antwoord als een mens, maar we bewaren niets.
   if (isRobot(body)) return aygJson({ ok: true })
   const invoer = isPrijsAanvraag(body) ? leesPrijsAanvraag(body) : leesDemoAanvraag(body)
-  if (!invoer.ok) return aygJson({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }, 400)
+  if (!invoer.ok) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }), 400)
 
   const admin = adminOfNull()
   if (!admin) return aygFout(MISLUKT, 503)

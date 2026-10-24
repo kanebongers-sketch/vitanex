@@ -6,63 +6,69 @@ import { WizardScherm } from '@/components/aiyourgym/mockups/WizardScherm'
 import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { START_SECTIE } from '@/lib/aiyourgym/taal/woorden/website/home-vertrouwen'
+import { WIZARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 
 // "Zo simpel start je": de stappen van de startwizard uit Club, en de
-// persoonlijke hulp die in de duurdere pakketten zit.
+// persoonlijke hulp die in de duurdere pakketten zit. Teksten in de taal van de
+// pagina (START_SECTIE, de stappen uit WIZARD in de volgorde van START_STAPPEN).
 
 interface Props {
   /** Toon de link naar de overstap-pagina (niet op die pagina zelf). */
   metLink?: boolean
 }
 
-export function StartStappen({ metLink = true }: Props) {
+export async function StartStappen({ metLink = true }: Props) {
+  const taal = await getSiteTaal()
+  const t = START_SECTIE[taal]
+  const stappen = WIZARD[taal].stappen
+  const titel = t.titel(START_STAPPEN.length)
   return (
     <section className="ayg-sectie ayg-start" aria-labelledby="start-titel">
       <div className="ayg-wrap ayg-start-raster">
         <div className="ayg-stapel ayg-start-kop">
           <SectieKop
             id="start-titel"
-            label="Zo simpel start je"
+            label={t.label}
             titel={
               <>
-                {START_STAPPEN.length} stappen. <mark className="ayg-markeer">Een kwartier.</mark>
+                {titel.voor}
+                <mark className="ayg-markeer">{titel.accent}</mark>
               </>
             }
-            tekst={`Na het aanmelden leidt een startwizard je door de inrichting, samen ongeveer ${START_MINUTEN} minuten. Elke stap stelt zijn deel meteen in, je stopt wanneer je wilt en gaat later verder waar je was. Pas als alles echt staat, staat je sportschool live.`}
+            tekst={t.tekst(START_MINUTEN)}
           />
-          <aside className="ayg-start-hulp" aria-label="Persoonlijke hulp">
+          <aside className="ayg-start-hulp" aria-label={t.hulpLabel}>
             <LifeBuoy size={22} aria-hidden />
             <div>
-              <p className="ayg-start-hulp-kop">Persoonlijke hulp, gratis in Club en Keten</p>
-              <p>We richten je sportschool samen met je in: ledenbestand, rooster en je eerste schema&rsquo;s.</p>
+              <p className="ayg-start-hulp-kop">{t.hulpKop}</p>
+              <p>{t.hulpTekst}</p>
             </div>
           </aside>
           <SectieActie />
           {metLink && (
             <p>
-              <Link href={aygPad('/overstappen')} className="ayg-pijllink">
-                Zo stap je over <ArrowRight size={16} aria-hidden />
+              <Link href={aygPad('/overstappen', taal)} className="ayg-pijllink">
+                {t.link} <ArrowRight size={16} aria-hidden />
               </Link>
             </p>
           )}
         </div>
         <ol className="ayg-start-stappen">
-          {START_STAPPEN.map((s) => (
+          {START_STAPPEN.map((s, i) => (
             <li key={s.nr} className="ayg-onthul" data-laatste={s.nr === START_STAPPEN.length ? '' : undefined}>
               <span className="ayg-start-nr" aria-hidden>
                 {String(s.nr).padStart(2, '0')}
               </span>
-              <h3 className="ayg-start-titel">{s.titel}</h3>
-              <p>{s.kort}</p>
+              <h3 className="ayg-start-titel">{stappen[i]?.titel ?? s.titel}</h3>
+              <p>{stappen[i]?.kort ?? s.kort}</p>
             </li>
           ))}
         </ol>
       </div>
       <div className="ayg-wrap ayg-ruim-boven">
-        <Figuur
-          className="ayg-onthul"
-          label="De startwizard bij stap 5, Lessen: de teller met 4 van 8 stappen af en de tijd die nog over is, een balk per stap, de regel dat alles alvast is ingevuld voor de soort sportschool, de lestypen en de vaste week, en de knoppen Opslaan en stoppen en Klaar, verder"
-        >
+        <Figuur className="ayg-onthul" label={t.figuurLabel}>
           <WizardScherm />
         </Figuur>
       </div>

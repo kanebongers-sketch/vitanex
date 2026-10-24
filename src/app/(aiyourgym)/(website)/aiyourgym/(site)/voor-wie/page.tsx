@@ -12,22 +12,26 @@ import { CheckinScherm, OpvolgScherm } from '@/components/aiyourgym/mockups/Werk
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { SectieActie, Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
+import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
+import { VOOR_WIE } from '@/lib/aiyourgym/taal/woorden/website/voor-wie'
 
-export const metadata: Metadata = {
-  title: 'Voor wie',
-  description:
-    'AI Your Gym voor een zelfstandige sportschool, boutique studio, PT-studio, keten, yoga- of pilatesstudio, vechtsportschool of bootcamp: wat elk soort sportschool aan de software heeft.',
+export async function generateMetadata(): Promise<Metadata> {
+  const taal = await getSiteTaal()
+  const t = VOOR_WIE[taal]
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/voor-wie', taal) }
 }
 
-const BEELD: Record<DoelgroepSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
-  zelfstandig: { label: 'De check-in met de leden die net binnen zijn en hun status', inhoud: <CheckinScherm /> },
-  boutique: { label: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst', inhoud: <RoosterScherm /> },
-  'pt-studio': { label: 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo', inhoud: <Oefening /> },
-  keten: { label: 'Het personeelsrooster met diensten en de status van de uren', inhoud: <PersoneelScherm /> },
+const BEELD: Record<DoelgroepSleutel, { inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
+  zelfstandig: { inhoud: <CheckinScherm /> },
+  boutique: { inhoud: <RoosterScherm /> },
+  'pt-studio': { inhoud: <Oefening /> },
+  keten: { inhoud: <PersoneelScherm /> },
   yoga: {
-    label: 'De ledenapp op een telefoon met de lessen van vandaag, vrije plekken en knoppen om te reserveren of op de wachtlijst te gaan',
     inhoud: (
       <Toestel tab="Lessen">
         <AppLessen />
@@ -35,18 +39,13 @@ const BEELD: Record<DoelgroepSleutel, { label: string; inhoud: ReactNode; bron?:
     ),
     smal: true,
   },
-  vechtsport: { label: 'De opvolglijst van vandaag met leden en de reden om ze aan te spreken', inhoud: <OpvolgScherm /> },
-  bootcamp: { label: 'De cijfers van een kalendermaand met tegels en een staafgrafiek', inhoud: <CijfersScherm /> },
+  vechtsport: { inhoud: <OpvolgScherm /> },
+  bootcamp: { inhoud: <CijfersScherm /> },
 }
 
-const AANPASSEN = [
-  { titel: 'Onderdelen aan of uit', tekst: 'Wat je niet gebruikt zet je uit. Dan zien je team en je leden het nergens.' },
-  { titel: 'Eigen oefeningen en coaching', tekst: 'Begin met onze bibliotheek en voeg je eigen oefeningen en coachteksten toe.' },
-  { titel: 'Lessen, zalen en regels', tekst: 'Jouw lestypen, zalen, openingstijden en regels voor reserveren en annuleren.' },
-  { titel: 'Jouw huisstijl', tekst: 'Naam, logo en accentkleur in de software en in de ledenapp.' },
-] as const
-
-function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
+function Groep({ doel, nr, taal }: { doel: Doelgroep; nr: number; taal: Taal }) {
+  const t = VOOR_WIE[taal]
+  const tekst = t.doelgroepen[doel.sleutel]
   const beeld = BEELD[doel.sleutel]
   const pakket = vindPakket(doel.pakket)
   const donker = doel.sleutel === 'pt-studio'
@@ -57,15 +56,15 @@ function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
           <span className="ayg-groep-nr" aria-hidden>
             {String(nr).padStart(2, '0')}
           </span>
-          <p className="ayg-label ayg-label--accent">{doel.naam}</p>
+          <p className="ayg-label ayg-label--accent">{tekst.naam}</p>
           <h2 className="ayg-h2" id={`${doel.sleutel}-titel`}>
-            {doel.kop}
+            {tekst.kop}
           </h2>
-          <p className="ayg-lead">{doel.wie}</p>
+          <p className="ayg-lead">{tekst.wie}</p>
         </div>
         <div className="ayg-stapel">
           <ul className="ayg-vinklijst ayg-vinklijst--groot">
-            {doel.punten.map((p) => (
+            {tekst.punten.map((p) => (
               <li key={p}>
                 <Check size={16} aria-hidden />
                 <span>{p}</span>
@@ -74,12 +73,16 @@ function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
           </ul>
           {pakket && (
             <p className="ayg-past">
-              Past meestal bij <strong>{pakket.naam}</strong>
+              {t.pastBij} <strong>{pakket.naam}</strong>
               <span aria-hidden> · </span>
-              <Link href={`${AANMELDEN}?pakket=${pakket.sleutel}`}>Probeer {pakket.naam} gratis</Link>
+              <Link href={`${sitePaden(taal).AANMELDEN}?pakket=${pakket.sleutel}`}>{t.probeerPakket(pakket.naam)}</Link>
             </p>
           )}
-          <Figuur className={`ayg-groep-beeld ayg-groep-beeld--breed-alleen ayg-onthul${beeld.smal ? ' ayg-groep-beeld--smal' : ''}`} label={beeld.label} bijschrift={beeld.bron}>
+          <Figuur
+            className={`ayg-groep-beeld ayg-groep-beeld--breed-alleen ayg-onthul${beeld.smal ? ' ayg-groep-beeld--smal' : ''}`}
+            label={t.beeld[doel.sleutel]}
+            bijschrift={beeld.bron}
+          >
             {beeld.inhoud}
           </Figuur>
         </div>
@@ -88,47 +91,41 @@ function Groep({ doel, nr }: { doel: Doelgroep; nr: number }) {
   )
 }
 
-export default function VoorWiePagina() {
+export default async function VoorWiePagina() {
+  const taal = await getSiteTaal()
+  const t = VOOR_WIE[taal]
+  const actie = ACTIE[taal]
+  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
   return (
     <>
-      <PaginaKop
-        label="Voor wie"
-        titel="Voor elke sportschool die het goed wil regelen."
-        tekst="Een zelfstandige gym, een boutique studio, een PT-studio, een keten, een yogastudio, een vechtsportschool of een bootcamp: dezelfde software, ingericht op jouw manier."
-      >
+      <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
-            Probeer {PROEFDAGEN} dagen gratis
+            {actie.probeerDagen(PROEFDAGEN)}
           </Knop>
           <Knop href={DEMO_AANVRAGEN} soort="rand">
-            Plan een gratis demo
+            {actie.planDemo}
           </Knop>
         </div>
         <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
-        <nav aria-label="Soorten sportscholen op deze pagina" className="ayg-ruim-boven">
+        <nav aria-label={t.soortenLabel} className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {DOELGROEPEN.map((d) => (
               <li key={d.sleutel}>
-                <a href={`#${d.sleutel}`}>{d.naam}</a>
+                <a href={`#${d.sleutel}`}>{t.doelgroepen[d.sleutel].naam}</a>
               </li>
             ))}
           </ul>
         </nav>
       </PaginaKop>
       {DOELGROEPEN.map((d, i) => (
-        <Groep key={d.sleutel} doel={d} nr={i + 1} />
+        <Groep key={d.sleutel} doel={d} nr={i + 1} taal={taal} />
       ))}
       <section className="ayg-sectie" aria-labelledby="aanpassen-titel">
         <div className="ayg-wrap">
-          <SectieKop
-            naast
-            id="aanpassen-titel"
-            label="Alles aan te passen"
-            titel="Onze basis als start. Jouw club als eindresultaat."
-            tekst="Je begint niet met een leeg scherm. In de startwizard kies je je soort sportschool, en die zet onderdelen, lestypen, openingstijden en rechten alvast klaar. Daarna maak je het helemaal van jezelf."
-          />
+          <SectieKop naast id="aanpassen-titel" label={t.aanpassenLabel} titel={t.aanpassenTitel} tekst={t.aanpassenTekst} />
           <ul className="ayg-aanpassen">
-            {AANPASSEN.map((a, i) => (
+            {t.aanpassen.map((a, i) => (
               <li key={a.titel}>
                 <span className="ayg-aanpassen-nr" aria-hidden>
                   {String(i + 1).padStart(2, '0')}
@@ -141,7 +138,7 @@ export default function VoorWiePagina() {
           <SectieActie />
         </div>
       </section>
-      <AanmeldBand titel="Welke sportschool je ook hebt: probeer het zelf." />
+      <AanmeldBand titel={t.band} />
     </>
   )
 }

@@ -1,13 +1,19 @@
 import type { Metadata } from 'next'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { Concept, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
 
-export const metadata: Metadata = {
-  title: 'Voorwaarden',
-  description: 'De afspraken tussen AI Your Gym en sportscholen die de software gebruiken. Concepttekst.',
+// De voorwaarden blijven Nederlands, ook op /en: juridische teksten vertalen we
+// niet zonder akkoord van Kane (docs/aiyourgym/TALEN.md).
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(JURIDISCH)
+  return { title: t.voorwaardenTitel, description: t.voorwaardenOmschrijving }
 }
 
-export default function VoorwaardenPagina() {
+export default async function VoorwaardenPagina() {
+  const taal = await getSiteTaal()
   return (
     <>
       <PaginaKop
@@ -15,8 +21,13 @@ export default function VoorwaardenPagina() {
         titel="Voorwaarden"
         tekst="De afspraken tussen AI Your Gym en de sportscholen die de software gebruiken."
       />
-      <section className="ayg-sectie--krap" aria-label="Voorwaarden">
+      <section className="ayg-sectie--krap" aria-label="Voorwaarden" lang="nl">
         <div className="ayg-wrap ayg-tekst">
+          {taal === 'en' && (
+            <p className="ayg-klein" role="note" lang="en">
+              {JURIDISCH.en.alleenNederlands}
+            </p>
+          )}
           <Concept />
           <h2>Wat je krijgt</h2>
           <p>

@@ -1,48 +1,42 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { CHECKLIST } from '@/lib/aiyourgym/taal/woorden/website/overstapchecklist'
 import { Overstapchecklist } from '@/components/aiyourgym/hulpmiddel/Overstapchecklist'
 import { GERUST_BIJ_KNOP, Geruststelling, TweeRoutes } from '@/components/aiyourgym/site/Actie'
 import { PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
-import { OVERSTAPPEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
 
 // Een gratis hulpmiddel zonder poort (concurrentenonderzoek item 14): de
 // checklist werkt zonder account of e-mailadres, de vinkjes blijven in de
 // browser van de bezoeker. Daarna pas de twee routes. Inhoud en rekenregels:
-// src/lib/aiyourgym/overstapchecklist.ts.
+// src/lib/aiyourgym/overstapchecklist.ts (beide talen).
 
-export const metadata: Metadata = {
-  title: 'Overstapchecklist',
-  description:
-    'Gratis checklist voor sportscholen die overstappen naar nieuwe clubsoftware: voorbereiden, gegevens verzamelen, inrichten, leden meenemen en de eerste maand. Zonder account, ook te printen.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(CHECKLIST)
+  return { title: t.metaTitel, description: t.metaOmschrijving }
 }
 
-export default function OverstapchecklistPagina() {
+export default async function OverstapchecklistPagina() {
+  const taal = await getSiteTaal()
+  const t = CHECKLIST[taal]
   return (
     <>
-      <PaginaKop
-        label="Gratis hulpmiddel"
-        titel="De overstapchecklist."
-        tekst="Alles wat je regelt als je overstapt naar nieuwe clubsoftware, in vijf fases. Vink af wat klaar is en print hem voor je team. Gratis, zonder account en zonder e-mailadres."
-      />
-      <section className="ayg-sectie--krap ayg-cl-print" aria-label="Checklist">
+      <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst} />
+      <section className="ayg-sectie--krap ayg-cl-print" aria-label={t.sectie}>
         <p className="ayg-cl-printkop" aria-hidden>
-          Overstapchecklist | AI Your Gym
+          {t.printkop}
         </p>
         <Overstapchecklist />
       </section>
       <section className="ayg-sectie ayg-podium ayg-cl-verder" aria-labelledby="cl-verder-titel">
         <div className="ayg-wrap ayg-stapel">
-          <SectieKop
-            id="cl-verder-titel"
-            label="En dan"
-            titel="Klaar om over te stappen?"
-            tekst="Probeer AI Your Gym in je eigen omgeving, of laat het je eerst persoonlijk zien. De checklist werkt hoe dan ook."
-          />
+          <SectieKop id="cl-verder-titel" label={t.verderLabel} titel={t.verderTitel} tekst={t.verderTekst} />
           <TweeRoutes />
           <Geruststelling aantal={GERUST_BIJ_KNOP} />
-          <Link href={OVERSTAPPEN} className="ayg-pijllink">
-            Zo werkt overstappen in AI Your Gym <ArrowRight size={16} aria-hidden />
+          <Link href={sitePaden(taal).OVERSTAPPEN} className="ayg-pijllink">
+            {t.zoWerkt} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
       </section>

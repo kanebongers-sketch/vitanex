@@ -3,6 +3,10 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, Check, LoaderCircle } from 'lucide-react'
 import { PRIJS_STAPPEN, eersteStapMetPrijsFout, leesPrijsAanvraag, prijsFoutenVanStap, type PrijsFouten, type PrijsVeld } from '@/lib/aiyourgym/prijs-aanvraag'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { foutenIn, kiesMeldingen } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
+import { PRIJS_OP_MAAT } from '@/lib/aiyourgym/taal/woorden/website/prijs-op-maat'
 import { PrijsBedankt } from './PrijsBedankt'
 import { PrijsStap, type PrijsInvoer, type WijzigPrijs } from './PrijsStap'
 
@@ -22,22 +26,22 @@ function body(invoer: PrijsInvoer) {
   return { ...invoer, doel: 'prijs', vestigingen: invoer.vestigingen.trim() }
 }
 
-async function verstuur(invoer: PrijsInvoer): Promise<{ ok: true } | { ok: false; melding: string; fouten?: PrijsFouten }> {
+async function verstuur(invoer: PrijsInvoer, taal: Taal): Promise<{ ok: true } | { ok: false; melding: string; fouten?: PrijsFouten }> {
+  const t = PRIJS_OP_MAAT[taal]
   try {
     const res = await fetch('/api/aiyourgym/demo-aanvraag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body(invoer)) })
     if (res.ok) return { ok: true }
-    const data: unknown = await res.json().catch(() => null)
-    const d = typeof data === 'object' && data !== null ? (data as { fout?: unknown; fouten?: unknown }) : {}
-    const fouten = typeof d.fouten === 'object' && d.fouten !== null ? (d.fouten as PrijsFouten) : undefined
-    return { ok: false, melding: typeof d.fout === 'string' ? d.fout : 'Versturen lukte niet. Probeer het later opnieuw.', fouten }
+    const m = kiesMeldingen(await res.json().catch(() => null), taal)
+    return { ok: false, melding: m.fout ?? t.mislukt, fouten: m.fouten as PrijsFouten | undefined }
   } catch {
-    return { ok: false, melding: 'Geen verbinding. Controleer het internet en probeer het opnieuw.' }
+    return { ok: false, melding: t.geenVerbinding }
   }
 }
 
 function Voortgang({ huidig, verste, onKies }: { huidig: number; verste: number; onKies: (stap: number) => void }) {
+  const t = PRIJS_OP_MAAT[useTaal()]
   return (
-    <nav aria-label="Stappen van de prijsaanvraag">
+    <nav aria-label={t.voortgangLabel}>
       <ol className="aan-voortgang prijs-voortgang">
         {PRIJS_STAPPEN.map((s, i) => {
           const staat = i === huidig ? 'nu' : i <= verste ? 'klaar' : 'later'
@@ -48,8 +52,8 @@ function Voortgang({ huidig, verste, onKies }: { huidig: number; verste: number;
                   {staat === 'klaar' ? <Check size={14} strokeWidth={3} /> : i + 1}
                 </span>
                 <span className="aan-voortgang-titel">
-                  <span className="ayg-sr">Stap {i + 1}: </span>
-                  {s.titel}
+                  <span className="ayg-sr">{t.stapSr(i + 1)}</span>
+                  {t.stappen[s.sleutel]}
                 </span>
               </button>
             </li>
@@ -68,6 +72,8 @@ export function PrijsFormulier({ startPakket }: PrijsFormulierProps) {
   const [verzenden, setVerzenden] = useState<Verzenden>({ staat: 'rust' })
   const kopRef = useRef<HTMLHeadingElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const taal = useTaal()
+  const t = PRIJS_OP_MAAT[taal]
 
   const wijzig: WijzigPrijs = (veld, waarde) => {
     setInvoer((oud) => ({ ...oud, [veld]: waarde }))
@@ -90,7 +96,7 @@ export function PrijsFormulier({ startPakket }: PrijsFormulierProps) {
     e.preventDefault()
     if (verzenden.staat === 'bezig') return
     const controle = leesPrijsAanvraag(body(invoer))
-    const hier = controle.ok ? {} : prijsFoutenVanStap(stap, controle.fouten)
+    const hier = controle.ok ? {} : foutenIn(prijsFoutenVanStap(stap, controle.fouten), taal)
     if (Object.keys(hier).length > 0) return toonFouten(hier)
     if (stap < PRIJS_STAPPEN.length - 1) {
       setFouten({})
@@ -99,10 +105,10 @@ export function PrijsFormulier({ startPakket }: PrijsFormulierProps) {
     if (!controle.ok) {
       const eerste = eersteStapMetPrijsFout(controle.fouten)
       if (eerste !== null) naarStap(eerste)
-      return setFouten(controle.fouten)
+      return setFouten(foutenIn(controle.fouten, taal))
     }
     setVerzenden({ staat: 'bezig' })
-    const uit = await verstuur(invoer)
+    const uit = await verstuur(invoer, taal)
     if (uit.ok) return setVerzenden({ staat: 'klaar' })
     if (uit.fouten) {
       const eerste = eersteStapMetPrijsFout(uit.fouten)
@@ -120,10 +126,8 @@ export function PrijsFormulier({ startPakket }: PrijsFormulierProps) {
     <form ref={formRef} className="aan-formulier dem-formulier" onSubmit={(e) => void opVersturen(e)} noValidate aria-busy={bezig}>
       <Voortgang huidig={stap} verste={verste} onKies={naarStap} />
       <h2 ref={kopRef} tabIndex={-1} className="aan-stapkop">
-        <span className="aan-stapkop-nr">
-          Stap {stap + 1} van {PRIJS_STAPPEN.length}
-        </span>
-        {PRIJS_STAPPEN[stap].titel}
+        <span className="aan-stapkop-nr">{t.stapVan(stap + 1, PRIJS_STAPPEN.length)}</span>
+        {t.stappen[PRIJS_STAPPEN[stap].sleutel]}
       </h2>
       <div className="aan-stap" key={stap}>
         <PrijsStap stap={stap} invoer={invoer} fouten={prijsFoutenVanStap(stap, fouten)} wijzig={wijzig} />
@@ -137,16 +141,16 @@ export function PrijsFormulier({ startPakket }: PrijsFormulierProps) {
         {stap > 0 && (
           <button type="button" className="ayg-knop ayg-knop--rand" onClick={() => naarStap(stap - 1)}>
             <ArrowLeft size={18} aria-hidden="true" className="aan-terug-pijl" />
-            Terug
+            {t.terug}
           </button>
         )}
         <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={bezig}>
           {bezig ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-          {bezig ? 'Versturen…' : laatste ? 'Vraag mijn prijs op maat aan' : 'Volgende'}
+          {bezig ? t.versturen : laatste ? t.aanvragen : t.volgende}
           {!bezig && <ArrowRight size={18} aria-hidden="true" />}
         </button>
       </div>
-      {laatste && <p className="aan-hint">Vrijblijvend. We sturen geen nieuwsbrief.</p>}
+      {laatste && <p className="aan-hint">{t.vrijblijvend}</p>}
     </form>
   )
 }

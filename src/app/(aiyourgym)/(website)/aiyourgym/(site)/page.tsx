@@ -8,11 +8,12 @@ import { Schemas } from '@/components/aiyourgym/home/Schemas'
 import { SoortKeuze } from '@/components/aiyourgym/home/SoortKeuze'
 import { WelNietKort } from '@/components/aiyourgym/home/WelNietKort'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
+import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { SITE_META } from '@/lib/aiyourgym/taal/woorden/website/meta'
 
-export const metadata: Metadata = {
-  title: { absolute: 'AI Your Gym | Clubsoftware voor sportscholen' },
-  description:
-    "Balie, vloer, trainers, eigenaar en leden in een systeem, met trainingsschema's zoals een trainer ze geeft: coaching en een bewegend beeld bij elke oefening. Clubsoftware voor elk soort sportschool, met data in de EU.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(SITE_META)
+  return { title: { absolute: t.titel }, description: t.homeOmschrijving }
 }
 
 // Kort en gericht op aanmelden (besluit Kane 21-10-2026): de belofte met twee

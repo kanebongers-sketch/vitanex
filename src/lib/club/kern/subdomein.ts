@@ -41,6 +41,9 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'platform', 'registreren', 'aanmeldingen', 'wachtwoord', 'contact', 'over', 'nieuws', 'faq', 'pers', 'vacatures', 'partners',
   'kennisbank', 'home', 'start', 'abonnement', 'betalen', 'kopen', 'checkout', 'stripe', 'webhook', 'sitemap', 'robots', 'favicon',
   'icon', 'apple-icon', 'opengraph-image', 'twitter-image', 'manifest', 'next',
+  // Talen van de website (aiyourgym.com/en/..., src/lib/aiyourgym/taal/pad.ts). Korter dan
+  // een slug mag zijn, maar zo blijft het ook gereserveerd als die grens ooit verandert.
+  'en', 'nl',
   // Pagina's van de website (src/app/(aiyourgym)/(website)/aiyourgym)
   'aanmelden', 'welkom', 'testbetaling', 'functies', 'prijzen', 'privacy', 'voorwaarden', 'overstappen', 'trainingsschemas',
   'voor-wie', 'demo-aanvragen', 'ledenapp', 'prijs-op-maat', 'privacy-en-beveiliging', 'nieuw', 'overstapchecklist',

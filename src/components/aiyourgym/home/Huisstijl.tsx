@@ -4,40 +4,46 @@ import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import { SectieActie } from '@/components/aiyourgym/site/Actie'
 import { Knop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { aygPad } from '@/components/aiyourgym/site/paden'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { HUISSTIJL_SECTIE } from '@/lib/aiyourgym/taal/woorden/website/home-vertrouwen'
 
 // De ledenapp in de huisstijl van de sportschool, om zelf te proberen.
+// Teksten in de taal van de pagina (woordenboek HUISSTIJL_SECTIE).
 
 interface Props {
   /** Toon de link naar de ledenapp-pagina (niet op die pagina zelf). */
   metLink?: boolean
 }
 
-export function Huisstijl({ metLink = true }: Props) {
+export async function Huisstijl({ metLink = true }: Props) {
+  const taal = await getSiteTaal()
+  const t = HUISSTIJL_SECTIE[taal]
   return (
     <section className="ayg-sectie ayg-podium" aria-labelledby="huisstijl-titel">
       <div className="ayg-wrap ayg-gesplitst ayg-gesplitst--om">
         <div className="ayg-stapel ayg-gesplitst-tekst">
           <SectieKop
             id="huisstijl-titel"
-            label="Ledenapp"
+            label={t.label}
             titel={
               <>
-                Jouw naam. Jouw kleuren. <mark className="ayg-markeer">Jouw app.</mark>
+                {t.titel.voor}
+                <mark className="ayg-markeer">{t.titel.accent}</mark>
               </>
             }
-            tekst="Leden zien jouw sportschool, niet de onze. Kies een kleur en een thema en kijk hoe de ledenapp meekleurt. Zo werkt het in de software ook, en het zit in elk pakket."
+            tekst={t.tekst}
           />
           <SectieActie />
           {metLink && (
             <div>
-              <Knop href={aygPad('/ledenapp')} soort="rand" pijl>
-                Alles over de ledenapp
+              <Knop href={aygPad('/ledenapp', taal)} soort="rand" pijl>
+                {t.link}
               </Knop>
             </div>
           )}
         </div>
         <HuisstijlDemo>
-          <div role="img" aria-label="De ledenapp in de gekozen kleur: volgende les, bezoeken deze maand, QR-code en een challenge">
+          <div role="img" aria-label={t.beeldLabel}>
             <Toestel tab="Home">
               <AppHome />
             </Toestel>

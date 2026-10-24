@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { EMBLEEM_TEKEN_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_BREEDTE, WOORD_HOOGTE, WOORD_PAD, WOORD_TRANSFORM } from './merk-paden'
+import { EMBLEEM_KRUIS_LIJN, EMBLEEM_LETTER_PAD, EMBLEEM_RASTER_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_BREEDTE, WOORD_HOOGTE, WOORD_PAD, WOORD_TRANSFORM } from './merk-paden'
 
 // Het logo van AI Your Gym (merkgids: docs/aiyourgym/brand/). Beeldmerk: het
 // embleem, een plaat in vier vakken met A I boven Y G, het vak van de Y gevuld.
@@ -10,6 +10,12 @@ import { EMBLEEM_TEKEN_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR
 // merkkleuren: racegroen met creme op een licht kleurenschema, creme met racegroen
 // op een donker kleurenschema (light-dark volgt color-scheme van de site). Het
 // woord volgt currentColor.
+//
+// Scherp op elk scherm (ook 1,5x en retina): plaat, kruis en vak Y zonder
+// anti-aliasing (crispEdges), zodat hun randen op hele pixels vallen en er geen
+// grijze haarlijnen of naden zijn. Het kruis krijgt een ondergrens van 1
+// schermpixel (non-scaling-stroke), anders valt het klein in de kop weg. De
+// letters houden hun gladde randen.
 
 export type AygLogoVorm = 'logo' | 'beeldmerk' | 'woordmerk'
 
@@ -34,8 +40,10 @@ const TEKEN = `var(--ayg-logo-teken, light-dark(${MERK_KLEUR.creme}, ${MERK_KLEU
 function Embleem() {
   return (
     <>
-      <rect width="100" height="100" fill={PLAAT} />
-      <path d={EMBLEEM_TEKEN_PAD} fill={TEKEN} />
+      <rect width="100" height="100" fill={PLAAT} shapeRendering="crispEdges" />
+      <path d={EMBLEEM_RASTER_PAD} fill={TEKEN} shapeRendering="crispEdges" />
+      <path d={EMBLEEM_KRUIS_LIJN} fill="none" stroke={TEKEN} strokeWidth={1} vectorEffect="non-scaling-stroke" shapeRendering="crispEdges" />
+      <path d={EMBLEEM_LETTER_PAD} fill={TEKEN} />
       <path d={EMBLEEM_Y_PAD} fill={PLAAT} />
     </>
   )

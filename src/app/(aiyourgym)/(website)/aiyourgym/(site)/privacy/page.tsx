@@ -1,12 +1,18 @@
 import type { Metadata } from 'next'
 import { Concept, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
+import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
 
-export const metadata: Metadata = {
-  title: 'Privacy',
-  description: 'Hoe AI Your Gym omgaat met gegevens van sportscholen, medewerkers en leden. Concepttekst.',
+// De privacyverklaring blijft Nederlands, ook op /en: juridische teksten vertalen
+// we niet zonder akkoord van Kane (docs/aiyourgym/TALEN.md).
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteTekst(JURIDISCH)
+  return { title: t.privacyTitel, description: t.privacyOmschrijving }
 }
 
-export default function PrivacyPagina() {
+export default async function PrivacyPagina() {
+  const taal = await getSiteTaal()
   return (
     <>
       <PaginaKop
@@ -14,8 +20,13 @@ export default function PrivacyPagina() {
         titel="Privacy"
         tekst="Hoe we omgaan met de gegevens van sportscholen, hun medewerkers en hun leden. In gewone taal."
       />
-      <section className="ayg-sectie--krap" aria-label="Privacyverklaring">
+      <section className="ayg-sectie--krap" aria-label="Privacyverklaring" lang="nl">
         <div className="ayg-wrap ayg-tekst">
+          {taal === 'en' && (
+            <p className="ayg-klein" role="note" lang="en">
+              {JURIDISCH.en.alleenNederlands}
+            </p>
+          )}
           <Concept />
           <h2>Wie is verantwoordelijk</h2>
           <p>

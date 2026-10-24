@@ -17,6 +17,8 @@ export interface VoorbeeldOefening {
   kort: string
   /** "3 x 8 tot 12, 90 sec rust" */
   voorschrift: string
+  /** De losse waarden achter het voorschrift, om het in een andere taal te schrijven. */
+  dosering: { sets: number; herhalingen: string; rustSec: number }
   coaching: Coaching
 }
 
@@ -43,6 +45,7 @@ export function voorbeeldOefeningen(): VoorbeeldOefening[] {
         naam: k.naam,
         kort: k.kort,
         voorschrift: `${d.sets} x ${toonBereik(d.herhalingen)}, ${d.rustSec} sec rust`,
+        dosering: { sets: d.sets, herhalingen: d.herhalingen, rustSec: d.rustSec },
         coaching,
       },
     ]

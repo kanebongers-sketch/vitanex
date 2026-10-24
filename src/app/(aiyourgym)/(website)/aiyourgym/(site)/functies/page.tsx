@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { CSSProperties, ReactNode } from 'react'
-import { HOOFDSTUKKEN, type Hoofdstuk, type HoofdstukSleutel } from '@/components/aiyourgym/inhoud/functies'
+import { HOOFDSTUKKEN, type HoofdstukSleutel } from '@/components/aiyourgym/inhoud/functies'
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { CijfersScherm } from '@/components/aiyourgym/mockups/BeheerSchermen'
 import { Figuur, Toestel } from '@/components/aiyourgym/mockups/kaders'
@@ -10,25 +10,28 @@ import { CheckinScherm } from '@/components/aiyourgym/mockups/WerkvloerSchermen'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
-import { AANMELDEN, DEMO_AANVRAGEN } from '@/components/aiyourgym/site/paden'
+import { sitePaden } from '@/components/aiyourgym/site/paden'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { taalAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
+import { FUNCTIES_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/functies'
 
-export const metadata: Metadata = {
-  title: 'Functies',
-  description:
-    "Alle functies van AI Your Gym in vijf hoofdstukken: beheer, coaching, planning, groei en betrokkenheid. Check-in, schema's met coaching, groepslessen met wachtlijst, personeelsrooster, leads, cijfers per maand en een ledenapp in je eigen huisstijl.",
+type Teksten = (typeof FUNCTIES_PAGINA)['nl']
+type HoofdstukTekst = Teksten['hoofdstukken'][HoofdstukSleutel]
+
+export async function generateMetadata(): Promise<Metadata> {
+  const taal = await getSiteTaal()
+  const t = FUNCTIES_PAGINA[taal]
+  return { title: t.metaTitel, description: t.metaOmschrijving, alternates: taalAlternates('/functies', taal) }
 }
 
-const BEELD: Record<HoofdstukSleutel, { label: string; inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
-  beheer: { label: 'De check-in van AI Your Gym met de leden die net binnen zijn en hun status', inhoud: <CheckinScherm /> },
-  coaching: {
-    label: 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo',
-    inhoud: <Oefening />,
-  },
-  planning: { label: 'Het groepslesrooster van een week met de bezetting per les en volle lessen met wachtlijst', inhoud: <RoosterScherm /> },
-  groei: { label: 'De cijfers van een kalendermaand met tegels en een staafgrafiek', inhoud: <CijfersScherm /> },
+const BEELD: Record<HoofdstukSleutel, { inhoud: ReactNode; bron?: ReactNode; smal?: boolean }> = {
+  beheer: { inhoud: <CheckinScherm /> },
+  coaching: { inhoud: <Oefening /> },
+  planning: { inhoud: <RoosterScherm /> },
+  groei: { inhoud: <CijfersScherm /> },
   betrokkenheid: {
-    label: 'De ledenapp op een telefoon met de volgende les, bezoeken, de QR-code om in te checken en een challenge',
     inhoud: (
       <Toestel tab="Home">
         <AppHome />
@@ -38,15 +41,22 @@ const BEELD: Record<HoofdstukSleutel, { label: string; inhoud: ReactNode; bron?:
   },
 }
 
-function Groep({ groep, nr }: { groep: Hoofdstuk; nr: number }) {
-  const beeld = BEELD[groep.sleutel]
-  const donker = groep.sleutel === 'coaching'
+interface GroepProps {
+  sleutel: HoofdstukSleutel
+  groep: HoofdstukTekst
+  label: string
+  nr: number
+}
+
+function Groep({ sleutel, groep, label, nr }: GroepProps) {
+  const beeld = BEELD[sleutel]
+  const donker = sleutel === 'coaching'
   return (
     <section
-      id={groep.sleutel}
+      id={sleutel}
       className={donker ? 'ayg-sectie ayg-podium ayg-groep' : 'ayg-sectie ayg-groep'}
-      aria-labelledby={`${groep.sleutel}-titel`}
-      style={{ '--hfd': `var(--ayg-h-${groep.sleutel})` } as CSSProperties}
+      aria-labelledby={`${sleutel}-titel`}
+      style={{ '--hfd': `var(--ayg-h-${sleutel})` } as CSSProperties}
     >
       <div className="ayg-wrap ayg-groep-raster">
         <div className="ayg-groep-kop">
@@ -54,7 +64,7 @@ function Groep({ groep, nr }: { groep: Hoofdstuk; nr: number }) {
             {String(nr).padStart(2, '0')}
           </span>
           <p className="ayg-hoofdstuk-label">{groep.naam}</p>
-          <h2 className="ayg-h2" id={`${groep.sleutel}-titel`}>
+          <h2 className="ayg-h2" id={`${sleutel}-titel`}>
             {groep.kop}
           </h2>
           <p className="ayg-lead">{groep.intro}</p>
@@ -68,7 +78,7 @@ function Groep({ groep, nr }: { groep: Hoofdstuk; nr: number }) {
               </li>
             ))}
           </ul>
-          <Figuur className={beeld.smal ? 'ayg-groep-beeld ayg-groep-beeld--smal ayg-onthul' : 'ayg-groep-beeld ayg-onthul'} label={beeld.label} bijschrift={beeld.bron}>
+          <Figuur className={beeld.smal ? 'ayg-groep-beeld ayg-groep-beeld--smal ayg-onthul' : 'ayg-groep-beeld ayg-onthul'} label={label} bijschrift={beeld.bron}>
             {beeld.inhoud}
           </Figuur>
         </div>
@@ -77,29 +87,29 @@ function Groep({ groep, nr }: { groep: Hoofdstuk; nr: number }) {
   )
 }
 
-export default function FunctiesPagina() {
+export default async function FunctiesPagina() {
+  const taal = await getSiteTaal()
+  const t = FUNCTIES_PAGINA[taal]
+  const actie = ACTIE[taal]
+  const { AANMELDEN, DEMO_AANVRAGEN } = sitePaden(taal)
   return (
     <>
-      <PaginaKop
-        label="Functies"
-        titel="Alles voor je club. Niets wat je niet gebruikt."
-        tekst="Vijf hoofdstukken: beheer, coaching, planning, groei en betrokkenheid. Onderdelen die je niet nodig hebt zet je uit, dan zie je ze ook nergens."
-      >
+      <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
-            Probeer {PROEFDAGEN} dagen gratis
+            {actie.probeerDagen(PROEFDAGEN)}
           </Knop>
           <Knop href={DEMO_AANVRAGEN} soort="rand">
-            Plan een gratis demo
+            {actie.planDemo}
           </Knop>
         </div>
         <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
-        <nav aria-label="Hoofdstukken op deze pagina" className="ayg-ruim-boven">
+        <nav aria-label={t.hoofdstukkenLabel} className="ayg-ruim-boven">
           <ul className="ayg-inhoudsopgave">
             {HOOFDSTUKKEN.map((g) => (
               <li key={g.sleutel} style={{ '--hfd': `var(--ayg-h-${g.sleutel})` } as CSSProperties}>
                 <a href={`#${g.sleutel}`} className="ayg-hoofdstuk-link">
-                  {g.naam}
+                  {t.hoofdstukken[g.sleutel].naam}
                 </a>
               </li>
             ))}
@@ -107,9 +117,9 @@ export default function FunctiesPagina() {
         </nav>
       </PaginaKop>
       {HOOFDSTUKKEN.map((g, i) => (
-        <Groep key={g.sleutel} groep={g} nr={i + 1} />
+        <Groep key={g.sleutel} sleutel={g.sleutel} groep={t.hoofdstukken[g.sleutel]} label={t.beeld[g.sleutel]} nr={i + 1} />
       ))}
-      <AanmeldBand titel="Zie het werken in je eigen club." />
+      <AanmeldBand titel={t.band} />
     </>
   )
 }

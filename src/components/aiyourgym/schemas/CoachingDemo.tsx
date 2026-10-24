@@ -6,6 +6,8 @@ import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeelds
 import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
 import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 import type { Stand3d } from '@/components/club/training/drie/Oefening3d'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 import { SchemaToestel } from './SchemaToestel'
 
 // Het hart van de voorpagina: een echte oefening uit de bibliotheek van Club,
@@ -13,13 +15,12 @@ import { SchemaToestel } from './SchemaToestel'
 // eigen 3D-figuur af of zet hem stil op begin of eind, lees de genummerde
 // kernpunten en de fouten met correctie, en zie ernaast hoe het schema in de
 // ledenapp staat. Een 3D-doek dat van oefening wisselt.
+// De coaching zelf komt uit de oefenbibliotheek van Club en blijft voorlopig
+// Nederlands, ook op de Engelse pagina (zie woorden/website/schemas.ts).
 type Paneel = 'fouten' | 'uitvoering' | 'adem'
+type Teksten = (typeof SCHEMA_SCHERMEN)['nl']
 
-const PANELEN: { sleutel: Paneel; label: string }[] = [
-  { sleutel: 'fouten', label: 'Fouten en correctie' },
-  { sleutel: 'uitvoering', label: 'Opstelling en stappen' },
-  { sleutel: 'adem', label: 'Ademhaling en tempo' },
-]
+const PANELEN: readonly Paneel[] = ['fouten', 'uitvoering', 'adem']
 
 interface CoachingDemoProps {
   oefeningen: readonly VoorbeeldOefening[]
@@ -29,6 +30,8 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
   const [index, setIndex] = useState(0)
   const [stand, setStand] = useState<Stand3d>('speelt')
   const [paneel, setPaneel] = useState<Paneel>('fouten')
+  const t = useTekst(SCHEMA_SCHERMEN)
+  const d = t.demo
   const o = oefeningen[index]
   if (!o) return null
 
@@ -39,7 +42,7 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
 
   return (
     <div className="ayg-cd">
-      <div className="ayg-cd-keuze" role="group" aria-label="Kies een oefening">
+      <div className="ayg-cd-keuze" role="group" aria-label={d.kiesOefening}>
         {oefeningen.map((x, i) => (
           <button key={x.naam} type="button" aria-pressed={i === index} onClick={() => kies(i)}>
             <OefTegel naam={x.naam} maat={48} />
@@ -49,17 +52,17 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
       </div>
       <div className="ayg-cd-raster">
         <article className="ayg-cd-kaart" aria-labelledby="ayg-cd-naam">
-          <Speler o={o} stand={stand} zet={setStand} />
+          <Speler o={o} stand={stand} zet={setStand} t={t} />
           <div className="ayg-cd-coaching">
             <div>
               <p className="ayg-cd-boven">
-                Oefening {index + 1} van {oefeningen.length} · {o.voorschrift}
+                {d.oefeningVan(index + 1, oefeningen.length)} · {t.voorschrift(o.voorschrift)}
               </p>
               <h3 className="ayg-cd-naam" id="ayg-cd-naam">
                 {o.naam}
               </h3>
             </div>
-            <ol className="ayg-cd-kern" aria-label="Kernpunten">
+            <ol className="ayg-cd-kern" aria-label={d.kernpunten}>
               {o.coaching.kernpunten.map((k, i) => (
                 <li key={k.punt}>
                   <span className="ayg-cd-nr" aria-hidden>
@@ -72,15 +75,15 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
                 </li>
               ))}
             </ol>
-            <div className="ayg-cd-tabs" role="group" aria-label="Meer coaching">
+            <div className="ayg-cd-tabs" role="group" aria-label={d.meerCoaching}>
               {PANELEN.map((p) => (
-                <button key={p.sleutel} type="button" aria-pressed={paneel === p.sleutel} onClick={() => setPaneel(p.sleutel)}>
-                  {p.label}
+                <button key={p} type="button" aria-pressed={paneel === p} onClick={() => setPaneel(p)}>
+                  {d.panelen[p]}
                 </button>
               ))}
             </div>
             <div className="ayg-cd-paneel" aria-live="polite">
-              <PaneelInhoud o={o} paneel={paneel} />
+              <PaneelInhoud o={o} paneel={paneel} t={t} />
             </div>
           </div>
         </article>
@@ -90,24 +93,32 @@ export function CoachingDemo({ oefeningen }: CoachingDemoProps) {
   )
 }
 
-function Speler({ o, stand, zet }: { o: VoorbeeldOefening; stand: Stand3d; zet: (s: Stand3d) => void }) {
+interface SpelerProps {
+  o: VoorbeeldOefening
+  stand: Stand3d
+  zet: (s: Stand3d) => void
+  t: Teksten
+}
+
+function Speler({ o, stand, zet, t }: SpelerProps) {
   const speelt = stand === 'speelt'
+  const d = t.demo
   return (
     <figure className="ayg-cd-speler">
       <div className="ayg-cd-beeld">
-        <Oefenbeeld naam={o.naam} stand={stand} label={`${o.naam} als 3D-beeld`} className="ayg-3d--vul" />
+        <Oefenbeeld naam={o.naam} stand={stand} label={d.als3d(o.naam)} className="ayg-3d--vul" />
       </div>
       <figcaption className="ayg-cd-bediening">
         <button type="button" className="ayg-cd-speel" onClick={() => zet(speelt ? 'begin' : 'speelt')}>
           {speelt ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
-          {speelt ? 'Pauze' : 'Afspelen'}
+          {speelt ? d.pauze : d.afspelen}
         </button>
         <span className="ayg-cd-standen">
           <button type="button" aria-pressed={stand === 'begin'} onClick={() => zet('begin')}>
-            Begin
+            {d.begin}
           </button>
           <button type="button" aria-pressed={stand === 'eind'} onClick={() => zet('eind')}>
-            Eind
+            {d.eind}
           </button>
         </span>
       </figcaption>
@@ -115,8 +126,9 @@ function Speler({ o, stand, zet }: { o: VoorbeeldOefening; stand: Stand3d; zet: 
   )
 }
 
-function PaneelInhoud({ o, paneel }: { o: VoorbeeldOefening; paneel: Paneel }) {
+function PaneelInhoud({ o, paneel, t }: { o: VoorbeeldOefening; paneel: Paneel; t: Teksten }) {
   const c = o.coaching
+  const d = t.demo
   if (paneel === 'fouten') {
     return (
       <ul className="ayg-cd-fouten">
@@ -125,14 +137,14 @@ function PaneelInhoud({ o, paneel }: { o: VoorbeeldOefening; paneel: Paneel }) {
             <span className="ayg-cd-fout">
               <X size={15} aria-hidden />
               <span>
-                <span className="ayg-sr">Fout: </span>
+                <span className="ayg-sr">{d.fout}</span>
                 {f.fout}
               </span>
             </span>
             <span className="ayg-cd-beter">
               <Check size={15} aria-hidden />
               <span>
-                <span className="ayg-sr">Beter: </span>
+                <span className="ayg-sr">{d.beter}</span>
                 {f.beter}
               </span>
             </span>
@@ -159,20 +171,20 @@ function PaneelInhoud({ o, paneel }: { o: VoorbeeldOefening; paneel: Paneel }) {
     <dl className="ayg-cd-feiten">
       <div>
         <dt>
-          <Wind size={14} aria-hidden /> Ademhaling
+          <Wind size={14} aria-hidden /> {d.ademhaling}
         </dt>
         <dd>{c.ademhaling}</dd>
       </div>
       <div>
         <dt>
-          <Timer size={14} aria-hidden /> Tempo
+          <Timer size={14} aria-hidden /> {d.tempo}
         </dt>
         <dd>{c.tempo}</dd>
       </div>
       {c.makkelijker && (
         <div>
           <dt>
-            <ChevronDown size={14} aria-hidden /> Makkelijker
+            <ChevronDown size={14} aria-hidden /> {d.makkelijker}
           </dt>
           <dd>{c.makkelijker}</dd>
         </div>
@@ -180,7 +192,7 @@ function PaneelInhoud({ o, paneel }: { o: VoorbeeldOefening; paneel: Paneel }) {
       {c.zwaarder && (
         <div>
           <dt>
-            <ChevronUp size={14} aria-hidden /> Zwaarder
+            <ChevronUp size={14} aria-hidden /> {d.zwaarder}
           </dt>
           <dd>{c.zwaarder}</dd>
         </div>

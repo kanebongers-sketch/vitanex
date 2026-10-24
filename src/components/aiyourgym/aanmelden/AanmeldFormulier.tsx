@@ -4,6 +4,9 @@ import { useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react'
 import { leesAanmelding, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
+import { foutenIn, kiesMeldingen } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 import { STAPPEN, eersteStapMetFout, foutenVanStap, isStripeCheckout, isTestbetaalAdres, type Fouten } from './stappen'
 import { Voortgang } from './Voortgang'
 import { Samenvatting } from './Samenvatting'
@@ -38,6 +41,8 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
   const [fouten, setFouten] = useState<Fouten>({})
   const [verzenden, setVerzenden] = useState<Verzenden>({ staat: 'rust' })
   const kopRef = useRef<HTMLHeadingElement>(null)
+  const taal = useTaal()
+  const t = AANMELD_FORMULIER[taal]
 
   const pakket = pakketten.find((p) => p.sleutel === invoer.pakket) ?? null
   const maxVestigingen = pakket?.maxVestigingen ?? 1
@@ -82,7 +87,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
 
   function volgende() {
     const uitslag = leesAanmelding(body())
-    const hier = uitslag.ok ? {} : foutenVanStap(stap, uitslag.fouten)
+    const hier = uitslag.ok ? {} : foutenIn(foutenVanStap(stap, uitslag.fouten), taal)
     if (Object.keys(hier).length > 0) {
       setFouten(hier)
       naarEersteFout(hier)
@@ -97,16 +102,18 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
     if (stap < STAPPEN.length - 1) return volgende()
     const uitslag = leesAanmelding(body())
     if (!uitslag.ok) {
-      setFouten(uitslag.fouten)
-      const eerste = eersteStapMetFout(uitslag.fouten)
+      const vertaald = foutenIn(uitslag.fouten, taal)
+      setFouten(vertaald)
+      const eerste = eersteStapMetFout(vertaald)
       if (eerste !== null && eerste !== stap) naarStap(eerste)
-      else naarEersteFout(uitslag.fouten)
+      else naarEersteFout(vertaald)
       return
     }
     setVerzenden({ staat: 'bezig' })
     try {
       const res = await fetch('/api/aiyourgym/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verzendBody()) })
-      const json = (await res.json().catch(() => null)) as { staat?: unknown; url?: unknown; melding?: unknown; fout?: unknown; fouten?: Fouten } | null
+      const json = (await res.json().catch(() => null)) as { staat?: unknown; url?: unknown } | null
+      const m = kiesMeldingen(json, taal)
       if (res.ok && json?.staat === 'testbetaling' && isTestbetaalAdres(json.url)) {
         window.location.assign(json.url)
         return
@@ -116,17 +123,18 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
         return
       }
       if (res.ok && json?.staat === 'aanvraag') {
-        setVerzenden({ staat: 'ontvangen', melding: typeof json.melding === 'string' ? json.melding : 'We hebben je aanvraag ontvangen.' })
+        setVerzenden({ staat: 'ontvangen', melding: m.melding ?? t.ontvangen })
         return
       }
-      if (json?.fouten) {
-        setFouten(json.fouten)
-        const eerste = eersteStapMetFout(json.fouten)
+      if (m.fouten) {
+        const fouten = m.fouten as Fouten
+        setFouten(fouten)
+        const eerste = eersteStapMetFout(fouten)
         if (eerste !== null) naarStap(eerste)
       }
-      setVerzenden({ staat: 'fout', melding: typeof json?.fout === 'string' ? json.fout : 'Aanmelden lukte niet. Probeer het later opnieuw.' })
+      setVerzenden({ staat: 'fout', melding: m.fout ?? t.mislukt })
     } catch {
-      setVerzenden({ staat: 'fout', melding: 'Geen verbinding. Controleer je internet en probeer het opnieuw.' })
+      setVerzenden({ staat: 'fout', melding: t.geenVerbinding })
     }
   }
 
@@ -134,13 +142,14 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
 
   const laatste = stap === STAPPEN.length - 1
   const stapFouten = foutenVanStap(stap, fouten)
+  const stapTekst = t.stappen[STAPPEN[stap].sleutel]
   return (
     <div className="aan-raster">
       <form className="aan-formulier" onSubmit={verstuur} noValidate aria-busy={verzenden.staat === 'bezig'}>
         <Voortgang huidig={stap} verste={verste} onKies={naarStap} />
         <h2 ref={kopRef} tabIndex={-1} className="aan-stapkop">
-          <span className="aan-stapkop-nr">Stap {stap + 1} van {STAPPEN.length}</span>
-          {STAPPEN[stap].titel}
+          <span className="aan-stapkop-nr">{t.stapVan(stap + 1, STAPPEN.length)}</span>
+          {stapTekst.titel}
         </h2>
         <div className="aan-stap" key={stap}>
           {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakket} proefdagen={proefdagen} fout={stapFouten.pakket} onKies={kiesPakket} />}
@@ -149,17 +158,17 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
           {stap === 3 && <StapAkkoord subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>
         {verzenden.staat === 'fout' && <p className="aan-melding" role="alert">{verzenden.melding}</p>}
-        {STAPPEN[stap].hierna && <p className="aan-hierna">{STAPPEN[stap].hierna}</p>}
+        {stapTekst.hierna && <p className="aan-hierna">{stapTekst.hierna}</p>}
         <div className="aan-acties">
           {stap > 0 && (
             <button type="button" className="ayg-knop ayg-knop--rand" onClick={() => naarStap(stap - 1)}>
               <ArrowLeft size={18} aria-hidden="true" className="aan-terug-pijl" />
-              Terug
+              {t.terug}
             </button>
           )}
           <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={verzenden.staat === 'bezig'}>
             {verzenden.staat === 'bezig' ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-            {!laatste ? 'Volgende' : pakket?.open && pakket.test ? 'Verder naar je proefperiode' : pakket?.open ? `Naar betalen, eerste ${proefdagen} dagen gratis` : 'Aanvraag versturen'}
+            {!laatste ? t.volgende : pakket?.open && pakket.test ? t.naarProef : pakket?.open ? t.naarBetalen(proefdagen) : t.aanvraagVersturen}
             {verzenden.staat !== 'bezig' && <ArrowRight size={18} aria-hidden="true" />}
           </button>
         </div>

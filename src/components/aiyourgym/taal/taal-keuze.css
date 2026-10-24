@@ -1,0 +1,89 @@
+/* De taalkeuze NL | EN (TaalKeuze.tsx). Neemt de tekstkleur van de omgeving over,
+   zodat hij op het papier, in de donkere voet en in Club past. Alleen opacity,
+   achtergrond en transform bewegen. */
+
+.ayg-taalkeuze {
+  --taal-hoogte: 32px;
+  --taal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.ayg-taalkeuze-optie {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: var(--taal-hoogte);
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: none;
+  opacity: 0.62;
+  cursor: pointer;
+  transition: opacity 160ms var(--taal-ease), background-color 160ms var(--taal-ease), transform 160ms var(--taal-ease);
+}
+
+.ayg-taalkeuze-optie:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.ayg-taalkeuze-optie:active {
+  transform: scale(0.96);
+}
+
+.ayg-taalkeuze-optie:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.ayg-taalkeuze-optie:is([aria-current='true'], [aria-pressed='true']) {
+  opacity: 1;
+  /* Een vol vlak in de tekstkleur, met de achtergrondkleur als letter. Elders dan
+     de website (Club) zet de omgeving --ayg-taal-actief-vlak en -tekst. */
+  background: var(--ayg-taal-actief-vlak, var(--ayg-tekst, #111614));
+  color: var(--ayg-taal-actief-tekst, var(--ayg-bg, #f1ece1));
+  cursor: default;
+}
+
+.ayg-taalkeuze-optie:disabled {
+  cursor: progress;
+}
+
+/* Op de telefoon: groter raakvlak (44px). */
+@media (pointer: coarse) {
+  .ayg-taalkeuze {
+    --taal-hoogte: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayg-taalkeuze-optie {
+    transition: none;
+  }
+}
+
+/* In het menupaneel op de telefoon: gecentreerd onder de knoppen, net als de live demo. */
+.ayg-taalkeuze--paneel {
+  justify-self: center;
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}
+
+/* In de kop naast de knoppen: een beetje lucht ervoor. */
+.ayg-kop-acties .ayg-taalkeuze {
+  margin-left: 4px;
+}

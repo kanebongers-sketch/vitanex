@@ -11,14 +11,18 @@ minimummaat, kleuren met contrast, letters en toon van schrijven.
 
 | Bestand | Wat |
 | --- | --- |
-| `ayg-logo-licht.svg` / `.png` | Liggend logo op licht (racegroen embleem, racegroen woord) |
-| `ayg-logo-donker.svg` / `.png` | Liggend logo op donker (creme embleem, creme woord) |
+| `ayg-logo-licht.svg` / `.png` | Liggend logo op licht (racegroen embleem, racegroen woord), PNG 640 px hoog |
+| `ayg-logo-donker.svg` / `.png` | Liggend logo op donker (creme embleem, creme woord), PNG 640 px hoog |
+| `ayg-logo-licht-40.png`, `-40@2x`, `-40@3x` | Liggend logo voor 40 px hoog (180 x 40), in 1x, 2x en 3x |
+| `ayg-logo-donker-40.png`, `-40@2x`, `-40@3x` | Idem op donker |
+| `ayg-logo-mail@2x.png` | Voor e-mail: 360 x 80 op wit, tonen als `width="180" height="40"` |
 | `ayg-logo-zwart.svg`, `ayg-logo-wit.svg` | Eenkleurig, embleem uitgespaard |
 | `ayg-embleem-licht.svg`, `-donker`, `-zwart`, `-wit` | Alleen het embleem |
 | `ayg-embleem-klein.svg` | Embleem voor 16 tot 32 px (geen kruis, zwaardere letters) |
-| `ayg-embleem-512.png` | Embleem als PNG |
+| `ayg-embleem-licht-512.png`, `-1024` | Embleem op licht als PNG |
+| `ayg-embleem-donker-512.png`, `-1024` | Embleem op donker als PNG |
 | `ayg-woordmerk-licht.svg`, `-donker`, `-zwart`, `-wit` | Alleen het woordmerk |
-| `ayg-app-icoon.svg`, `ayg-app-icoon-512.png` | App-icoon: creme embleem op racegroen |
+| `ayg-app-icoon.svg`, `ayg-app-icoon-512.png`, `-1024` | App-icoon: creme embleem op racegroen |
 | `ayg-deelafbeelding.png` | Voorbeeld van de deelafbeelding (1200 x 630) |
 
 ## Kleuren
@@ -48,6 +52,18 @@ flessengroen op racegroen 1,43:1 (alleen sier, toon op toon).
   `twitter-image.tsx` in `src/app/(aiyourgym)/(website)/aiyourgym/(site)/`.
 - De reserve-iconen van de ledenapp (`public/club-app/`) zijn bewust neutraal ("Club"):
   een lid ziet daar de sportschool, niet AI Your Gym.
+
+## Scherp op elk scherm
+
+- Gebruik op het scherm altijd de vector (`AygLogo` of een SVG), nooit een PNG.
+- Plaat, kruis en vak Y zijn rechte vlakken met `shape-rendering="crispEdges"`: hun randen
+  vallen op hele pixels, ook op 1,5x en retina, zonder grijze haarlijnen of naden.
+- Het kruis is 3 van de 100. In de kop (21 tot 30 px) is dat minder dan een pixel; daarom ligt
+  er een lijn van precies 1 schermpixel op (`vector-effect="non-scaling-stroke"`) als
+  ondergrens. Groot valt die lijn binnen het kruis.
+- De letters houden gladde randen (anti-aliasing).
+- PNG's tekent de generator direct op de doelmaat vanuit de vector (niet groot tekenen en
+  verkleinen, dat maakt de randen zacht). Het apple-icon blijft 180 x 180, de maat die iOS vraagt.
 
 ## Opnieuw maken
 

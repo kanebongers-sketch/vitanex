@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HOOFDSTUKKEN } from './functies'
-import { NIEUW, aantalNieuw, korteDatum, maandNaam } from './nieuw'
+import { NIEUW, aantalNieuw, korteDatum, maandNaam, maandSamenvatting, puntTekst } from './nieuw'
 import { allePunten, allesGezien, leesGezien, nieuwSleutel, ongelezenPunten, tellerTekst } from '@/lib/aiyourgym/nieuw'
 
 // Wat er nieuw is: alleen wat al live is, met een echte datum, en volgens de
@@ -47,13 +47,29 @@ describe('wat er nieuw is', () => {
     expect(korteDatum('2026-10-03')).toBe('3 okt')
     expect(aantalNieuw()).toBe(NIEUW.reduce((s, m) => s + m.punten.length, 0))
   })
+
+  it('heeft elk punt en elke maand ook in het Engels, volgens dezelfde regels', () => {
+    expect(maandNaam('2026-10', 'en')).toBe('October 2026')
+    expect(korteDatum('2026-10-03', 'en')).toBe('3 Oct')
+    for (const m of NIEUW) {
+      expect(maandSamenvatting(m, 'en').trim().length).toBeGreaterThan(10)
+      for (const p of m.punten) {
+        const en = puntTekst(p, 'en')
+        expect(en.titel.trim().length).toBeGreaterThan(3)
+        expect(en.tekst.trim().length).toBeGreaterThan(10)
+        expect(en.titel).not.toBe(p.titel)
+        expect(puntTekst(p, 'nl')).toEqual({ titel: p.titel, tekst: p.tekst })
+        for (const t of [en.titel, en.tekst]) expect(t).not.toMatch(/[–—]| - | [,;:!?]| \.(\s|$)/)
+      }
+    }
+  })
 })
 
 describe('gelezen of niet (Wat is nieuw in Club)', () => {
   const lijst = [
-    { maand: '2026-10', samenvatting: 'x', punten: [
-      { datum: '2026-10-20', titel: 'B', tekst: 'b', hoofdstuk: 'beheer' as const },
-      { datum: '2026-10-10', titel: 'A', tekst: 'a', hoofdstuk: 'groei' as const },
+    { maand: '2026-10', samenvatting: 'x', en: { samenvatting: 'x' }, punten: [
+      { datum: '2026-10-20', titel: 'B', tekst: 'b', hoofdstuk: 'beheer' as const, en: { titel: 'B', tekst: 'b' } },
+      { datum: '2026-10-10', titel: 'A', tekst: 'a', hoofdstuk: 'groei' as const, en: { titel: 'A', tekst: 'a' } },
     ] },
   ]
 
@@ -66,7 +82,7 @@ describe('gelezen of niet (Wat is nieuw in Club)', () => {
   it('na openen alles gelezen; een nieuw punt telt daarna weer', () => {
     const bewaard = allesGezien(lijst)
     expect(ongelezenPunten(bewaard, lijst)).toEqual([])
-    const later = [{ ...lijst[0], punten: [{ datum: '2026-10-22', titel: 'C', tekst: 'c', hoofdstuk: 'coaching' as const }, ...lijst[0].punten] }]
+    const later = [{ ...lijst[0], punten: [{ datum: '2026-10-22', titel: 'C', tekst: 'c', hoofdstuk: 'coaching' as const, en: { titel: 'C', tekst: 'c' } }, ...lijst[0].punten] }]
     expect(ongelezenPunten(bewaard, later).map((p) => p.titel)).toEqual(['C'])
   })
 

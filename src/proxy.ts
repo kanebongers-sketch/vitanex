@@ -8,7 +8,8 @@ import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/ba
 import { beslisClub } from '@/lib/club/kern/subdomein'
 import { ADRES_COOKIE, SLUG_KOP, beslisClubPad, splitsSlugPad, subdomeinUrl } from '@/lib/club/kern/pad-adres'
 import { slugBestaat } from '@/lib/club/kern/slug-bestaat'
-import { aygDomeinDicht, beslisAyg, isAygHost } from '@/lib/aiyourgym/host'
+import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, isAygHost, type SiteTaal } from '@/lib/aiyourgym/host'
+import { SITE_PAD_KOP, TAAL_KOP } from '@/lib/aiyourgym/taal/taal'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
 import { widgetProxy } from '@/lib/club/widget/proxy-widget'
@@ -87,10 +88,20 @@ function clubOpSubdomein(request: NextRequest): NextResponse | null {
   return response
 }
 
-/** De headers van het verzoek zonder de slug-kop: die zet alleen de proxy zelf. */
+/** De headers van het verzoek zonder de koppen die alleen de proxy zelf zet (slug, taal, pad). */
 function zonderSlugKop(request: NextRequest): Headers {
   const headers = new Headers(request.headers)
   headers.delete(SLUG_KOP)
+  headers.delete(TAAL_KOP)
+  headers.delete(SITE_PAD_KOP)
+  return headers
+}
+
+/** Taal en publiek pad van een websitepagina als kop, voor <html lang> en hreflang (src/lib/aiyourgym/taal/server.ts). */
+function metSiteTaal(headers: Headers, site: SiteTaal | undefined): Headers {
+  if (!site) return headers
+  headers.set(TAAL_KOP, site.taal)
+  headers.set(SITE_PAD_KOP, site.publiek)
   return headers
 }
 
@@ -135,7 +146,7 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   const host = request.headers.get('host')
   const besluit = beslisAyg(host, request.nextUrl.pathname, siteActief())
   if (besluit.soort === 'niet-van-mij') return null
-  const headers = zonderSlugKop(request)
+  const headers = metSiteTaal(zonderSlugKop(request), besluit.site)
   let response: NextResponse
   if (besluit.soort === 'door') {
     response = NextResponse.next({ request: { headers } })
@@ -150,6 +161,21 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   // Nog niet in zoekmachines (src/lib/aiyourgym/indexeren.ts); de /aiyourgym-paden op
   // andere domeinen krijgen dezelfde kop via next.config.ts.
   if (moetNoindex(host, request.nextUrl.pathname, aygIndexeren())) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
+  return response
+}
+
+/**
+ * De Engelse website onder /aiyourgym/en op een ander domein (fitfactorypt.nl,
+ * zolang de schakelaar uit staat alleen voor Kane): dezelfde route als het
+ * Nederlands, met de taal als kop. Nederlands verandert niet.
+ */
+function aiyourgymEngelsElders(request: NextRequest): NextResponse | null {
+  const besluit = beslisAygTaalElders(request.nextUrl.pathname)
+  if (!besluit) return null
+  const doel = request.nextUrl.clone()
+  doel.pathname = besluit.pad
+  const response = NextResponse.rewrite(doel, { request: { headers: metSiteTaal(zonderSlugKop(request), besluit.site) } })
+  if (!aygIndexeren()) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
   return response
 }
 
@@ -173,6 +199,9 @@ export async function proxy(request: NextRequest) {
 
   const ayg = aiyourgymSite(request)
   if (ayg) return ayg
+
+  const aygEngels = aiyourgymEngelsElders(request)
+  if (aygEngels) return aygEngels
 
   const mentaforce = mentaforceOpReleaseV(request)
   if (mentaforce) return mentaforce

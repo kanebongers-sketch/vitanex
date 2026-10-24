@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { clubToegang } from '@/lib/club/toegang'
 import { siteActief } from './schakelaar'
+import { metEngels } from './taal/woorden/website/meldingen'
 
 /** Antwoorden van de API nooit cachen en nooit in zoekmachines. */
 const GEEN_CACHE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } as const
@@ -13,8 +14,9 @@ export function aygJson(data: unknown, status = 200): NextResponse {
   return NextResponse.json(data, { status, headers: GEEN_CACHE })
 }
 
+/** Een foutmelding in het Nederlands, met `en` erbij voor de Engelse website. */
 export function aygFout(fout: string, status: number): NextResponse {
-  return aygJson({ fout }, status)
+  return aygJson(metEngels({ fout }), status)
 }
 
 /** Zolang de website uit staat bestaat de API alleen voor Kane (anders een gewone 404). */

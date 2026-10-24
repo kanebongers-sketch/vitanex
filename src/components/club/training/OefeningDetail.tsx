@@ -2,7 +2,8 @@ import { Pencil } from 'lucide-react'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { MATERIAAL_LABEL, NIVEAU_LABEL, PATROON_LABEL, SPIERGROEP_LABEL, ZONE_LABEL } from '@/lib/club/training/typen'
 import { BeeldBron } from './OefeningBeeld'
-import { OefeningSpeler } from './coaching/OefeningSpeler'
+import { OefeningVoorbeeld } from './repspeler/OefeningVoorbeeld'
+import { repRenderVoor } from './repspeler/render-bron'
 import { OefeningCoaching } from './coaching/OefeningCoaching'
 import { SpierBlok } from './SpierChips'
 
@@ -21,8 +22,8 @@ export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
   ] as const
   return (
     <div className="club-training-oefdetail">
-      <OefeningSpeler key={o.id} naam={o.naam} beeld={o.beeld} />
-      {o.beeld && <BeeldBron bronnen={[o.beeld.bron]} />}
+      <OefeningVoorbeeld key={o.id} naam={o.naam} beeld={o.beeld} />
+      {o.beeld && !repRenderVoor(o.naam) && <BeeldBron bronnen={[o.beeld.bron]} />}
       <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg="Nog geen uitleg. Voeg die toe via Bewerken." oefeningId={o.id} />
       <dl className="club-training-defs club-training-defs--twee">
         {kenmerken.map(([label, waarde]) => (
