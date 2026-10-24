@@ -14,14 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function VoorwaardenPagina() {
   const taal = await getSiteTaal()
+  const t = JURIDISCH[taal]
   return (
     <>
-      <PaginaKop
-        label="Voorwaarden"
-        titel="Voorwaarden"
-        tekst="De afspraken tussen AI Your Gym en de sportscholen die de software gebruiken."
-      />
-      <section className="ayg-sectie--krap" aria-label="Voorwaarden" lang="nl">
+      <PaginaKop label={t.voorwaardenLabel} titel={t.voorwaardenKop} tekst={t.voorwaardenTekst} />
+      <section className="ayg-sectie--krap" aria-label={t.voorwaardenSectie} lang="nl">
         <div className="ayg-wrap ayg-tekst">
           {taal === 'en' && (
             <p className="ayg-klein" role="note" lang="en">

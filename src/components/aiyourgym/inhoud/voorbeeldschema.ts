@@ -3,11 +3,13 @@
 // coaching), het beeld is onze eigen render of het 3D-figuur en de
 // sets en herhalingen komen uit de regels van het schemavoorstel. Niets is
 // voor de website herschreven: wat hier staat, staat zo in Club. Alleen het
-// lid en de dag zijn een voorbeeld.
+// lid en de dag zijn een voorbeeld. De coaching in het Engels staat in
+// woorden/website/coaching.ts (dezelfde tekst, vertaald).
 
 import { oefening3dOpNaam } from '@/lib/club/training/3d'
-import { COACHING_BOEKEN, coachingSleutel, coachingVoor } from '@/lib/club/training/coaching'
-import type { Coaching } from '@/lib/club/training/coaching/typen'
+import { COACHING_BOEKEN, coachingSleutel } from '@/lib/club/training/coaching'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { siteCoaching, type SiteCoachingTekst } from '@/lib/aiyourgym/taal/woorden/website/coaching'
 import { dosering } from '@/lib/club/training/voorstel-regels'
 import type { Patroon } from '@/lib/club/training/typen'
 
@@ -19,7 +21,7 @@ export interface VoorbeeldOefening {
   voorschrift: string
   /** De losse waarden achter het voorschrift, om het in een andere taal te schrijven. */
   dosering: { sets: number; herhalingen: string; rustSec: number }
-  coaching: Coaching
+  coaching: SiteCoachingTekst
 }
 
 const KEUZE: readonly { naam: string; kort: string; patroon: Patroon }[] = [
@@ -34,10 +36,10 @@ export function toonBereik(herhalingen: string): string {
   return herhalingen.replace(/(\d+)\s*-\s*(\d+)/g, '$1 tot $2')
 }
 
-/** De oefeningen van het voorbeeldschema (doel spiermassa, gemiddeld niveau). */
-export function voorbeeldOefeningen(): VoorbeeldOefening[] {
+/** De oefeningen van het voorbeeldschema (doel spiermassa, gemiddeld niveau), met de coaching in een taal. */
+export function voorbeeldOefeningen(taal: Taal = 'nl'): VoorbeeldOefening[] {
   return KEUZE.flatMap((k) => {
-    const coaching = coachingVoor(k.naam)
+    const coaching = siteCoaching(k.naam, taal)
     if (!coaching || !oefening3dOpNaam(k.naam)) return []
     const d = dosering('spiermassa', k.patroon, 2)
     return [

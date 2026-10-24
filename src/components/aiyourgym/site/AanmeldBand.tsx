@@ -1,41 +1,44 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { Geruststelling } from './Actie'
 import { Knop } from './bouwstenen'
-import { AANMELDEN, DEMO, DEMO_AANVRAGEN } from './paden'
+import { SITE_PADEN } from './paden'
 
 interface Props {
+  /** Eigen kop uit het woordenboek van de pagina; anders de standaardkop uit ACTIE. */
   titel?: string
 }
 
-// De afsluitende oproep onderaan elke pagina.
-export function AanmeldBand({ titel = 'Zet je sportschool er vandaag in.' }: Props) {
+// De afsluitende oproep onderaan elke pagina, in de taal van de pagina (woordenboek ACTIE).
+export async function AanmeldBand({ titel }: Props) {
+  const t = await siteTekst(ACTIE)
+  const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = SITE_PADEN
   return (
     <section className="ayg-sectie--krap" aria-labelledby="band-titel">
       <div className="ayg-podium ayg-podium--rond">
         <div className="ayg-band-gloed" aria-hidden />
         <div className="ayg-band ayg-wrap">
           <div className="ayg-stapel">
-            <p className="ayg-label ayg-label--accent">{PROEFDAGEN} dagen gratis proberen</p>
+            <p className="ayg-label ayg-label--accent">{t.bandLabel(PROEFDAGEN)}</p>
             <h2 className="ayg-h2" id="band-titel">
-              {titel}
+              {titel ?? t.bandTitel}
             </h2>
           </div>
           <div className="ayg-stapel">
-            <p className="ayg-lead">
-              Je krijgt een eigen omgeving met je eigen logo en kleuren. Probeer alles {PROEFDAGEN} dagen met je team, of laat het je eerst persoonlijk zien.
-            </p>
+            <p className="ayg-lead">{t.bandLead(PROEFDAGEN)}</p>
             <div className="ayg-knoppen">
               <Knop href={AANMELDEN} soort="accent" pijl>
-                Probeer {PROEFDAGEN} dagen gratis
+                {t.probeerDagen(PROEFDAGEN)}
               </Knop>
               <Knop href={DEMO_AANVRAGEN} soort="rand">
-                Plan een gratis demo
+                {t.planDemo}
               </Knop>
             </div>
             <Link href={DEMO} className="ayg-pijllink ayg-band-live">
-              Of bekijk de live demo <ArrowRight size={16} aria-hidden />
+              {t.ofLiveDemo} <ArrowRight size={16} aria-hidden />
             </Link>
             <Geruststelling />
           </div>

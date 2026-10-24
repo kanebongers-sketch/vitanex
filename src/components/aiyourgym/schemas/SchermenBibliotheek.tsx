@@ -10,7 +10,7 @@ import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 
 // Bibliotheek, eigen coachtekst, een oefening in de ledenapp en voortgang.
 // Getekend in HTML en CSS met voorbeeldgegevens; de coaching is de echte tekst
-// (uit de bibliotheek van Club, voorlopig alleen in het Nederlands) en de
+// (uit de bibliotheek van Club, in het Engels uit woorden/website/coaching.ts) en de
 // geopende oefening is ons eigen 3D-figuur.
 
 interface Props {

@@ -13,14 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PrivacyPagina() {
   const taal = await getSiteTaal()
+  const t = JURIDISCH[taal]
   return (
     <>
-      <PaginaKop
-        label="Privacy"
-        titel="Privacy"
-        tekst="Hoe we omgaan met de gegevens van sportscholen, hun medewerkers en hun leden. In gewone taal."
-      />
-      <section className="ayg-sectie--krap" aria-label="Privacyverklaring" lang="nl">
+      <PaginaKop label={t.privacyLabel} titel={t.privacyKop} tekst={t.privacyTekst} />
+      <section className="ayg-sectie--krap" aria-label={t.privacySectie} lang="nl">
         <div className="ayg-wrap ayg-tekst">
           {taal === 'en' && (
             <p className="ayg-klein" role="note" lang="en">

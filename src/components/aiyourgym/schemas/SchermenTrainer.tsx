@@ -4,24 +4,16 @@ import { stelSchemaVoor } from '@/lib/club/training/voorstel'
 import { DOELEN } from '@/lib/club/training/typen'
 import { toonBereik, type VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Venster } from '@/components/aiyourgym/mockups/kaders'
+import { VOORBEELD_INTAKE } from './voorbeeld-intake'
 import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 
 // De schermen van de trainer: intake, schemavoorstel en editor. Getekend in
-// HTML en CSS; de gezondheidsvragen en de tekst van het voorstel komen uit de
-// code van Club zelf (PARQ_VRAGEN, stelSchemaVoor) en blijven daarom voorlopig
-// Nederlands, ook op de Engelse pagina. De gegevens zijn een voorbeeld.
-
-const VOORBEELD_INTAKE = {
-  doelen: ['spiermassa' as const],
-  niveau: 2 as const,
-  dagenPerWeek: 3,
-  minutenPerSessie: 60,
-  voorkeuren: ['sportschool' as const],
-  gezondheid: { blessures: [], blessureToelichting: null, klachten: null, medicatie: null, parqJa: ['gewricht' as const] },
-}
+// HTML en CSS; de gezondheidsvragen en het voorstel komen uit de code van Club
+// zelf (PARQ_VRAGEN, stelSchemaVoor), met het Engels ernaast in SCHEMA_SCHERMEN.
+// De gegevens zijn een voorbeeld.
 
 const METINGEN = [
   ['gewicht', 74.5, 'kg'],
@@ -87,7 +79,7 @@ export async function IntakeScherm() {
           <p className="aygm-boven">{t.gezondheidsvragen}</p>
           {vragen.map((v) => (
             <span key={v.sleutel} className="ayg-ss-vraag">
-              <span>{v.vraag}</span>
+              <span>{t.parq[v.sleutel]}</span>
               <span className="ayg-ss-janee">
                 <i data-aan={v.sleutel === 'gewricht' ? '' : undefined}>{t.ja}</i>
                 <i data-aan={v.sleutel !== 'gewricht' ? '' : undefined}>{t.nee}</i>
@@ -112,7 +104,7 @@ export async function VoorstelScherm({ oefeningen }: { oefeningen: readonly Voor
     <Venster actief="Coaching">
       <div className="ayg-ss-kop">
         <span>
-          <b>{v.naam}</b>
+          <b>{t.naam}</b>
           <i>{t.voorstel}</i>
         </span>
         <span className="aygm-knopje">{t.openen}</span>
@@ -120,16 +112,16 @@ export async function VoorstelScherm({ oefeningen }: { oefeningen: readonly Voor
       <p className="ayg-ss-uitleg">
         {t.weken(v.weken)} · {s.doel[v.doel]} · {s.niveau[v.niveau]}
       </p>
-      {v.waarschuwingen.map((w) => (
+      {t.waarschuwingen.map((w) => (
         <p key={w} className="ayg-ss-let-op">
           <TriangleAlert size={13} aria-hidden />
           <span>{w}</span>
         </p>
       ))}
       <span className="ayg-ss-dagtabs">
-        {v.dagen.map((d, i) => (
-          <i key={d.dag} data-aan={i === 0 ? '' : undefined}>
-            {d.titel}
+        {t.dagen.map((dag, i) => (
+          <i key={dag} data-aan={i === 0 ? '' : undefined}>
+            {dag}
           </i>
         ))}
       </span>

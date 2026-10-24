@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ArrowRight, FileWarning, Plus } from 'lucide-react'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
 import { aygPad } from './paden'
 
 // Kleine gedeelde bouwstenen van de verkoopwebsite: knop, sectiekop,
@@ -92,14 +94,15 @@ export function Vragen({ vragen }: { vragen: readonly Vraag[] }) {
   )
 }
 
-/** Melding boven de juridische conceptteksten. */
-export function Concept() {
+/** Melding boven de juridische conceptteksten, in de taal van de pagina (de tekst eronder blijft Nederlands). */
+export async function Concept() {
+  const taal = await getSiteTaal()
+  const t = JURIDISCH[taal].concept
   return (
-    <p className="ayg-concept" role="note">
+    <p className="ayg-concept" role="note" lang={taal}>
       <FileWarning size={22} aria-hidden className="ayg-concept-icoon" />
       <span>
-        <strong>Concept.</strong> Deze tekst is een eerste versie en nog niet juridisch gecontroleerd. Er kunnen geen rechten
-        aan worden ontleend.
+        <strong>{t.kop}</strong> {t.tekst}
       </span>
     </p>
   )

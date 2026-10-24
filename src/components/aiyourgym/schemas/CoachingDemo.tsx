@@ -15,8 +15,8 @@ import { SchemaToestel } from './SchemaToestel'
 // eigen 3D-figuur af of zet hem stil op begin of eind, lees de genummerde
 // kernpunten en de fouten met correctie, en zie ernaast hoe het schema in de
 // ledenapp staat. Een 3D-doek dat van oefening wisselt.
-// De coaching zelf komt uit de oefenbibliotheek van Club en blijft voorlopig
-// Nederlands, ook op de Engelse pagina (zie woorden/website/schemas.ts).
+// De coaching zelf komt uit de oefenbibliotheek van Club, in de taal van de
+// pagina (woorden/website/coaching.ts).
 type Paneel = 'fouten' | 'uitvoering' | 'adem'
 type Teksten = (typeof SCHEMA_SCHERMEN)['nl']
 

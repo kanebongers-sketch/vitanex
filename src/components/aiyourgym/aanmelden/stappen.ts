@@ -2,14 +2,14 @@
 
 import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 
-// `hierna`: wat er na deze stap komt, zodat niemand voor verrassingen staat.
-// De laatste stap legt dat zelf uit (betalen bij Stripe of een aanvraag).
+// Welke velden bij welke stap horen. De titel en de regel `hierna` (wat er na
+// deze stap komt) staan per taal in het woordenboek van de aanmeldpagina.
 export const STAPPEN = [
-  { sleutel: 'pakket', titel: 'Pakket', velden: ['pakket'], hierna: 'Hierna vul je de naam en het adres van je sportschool in.' },
-  { sleutel: 'sportschool', titel: 'Sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'], hierna: 'Hierna je naam, e-mail, telefoon en een wachtwoord.' },
-  { sleutel: 'eigenaar', titel: 'Eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon', 'wachtwoord', 'wachtwoordHerhaal'], hierna: 'Hierna zie je alles nog een keer. Er gebeurt niets tot je bevestigt.' },
-  { sleutel: 'akkoord', titel: 'Bevestigen', velden: ['akkoord'], hierna: null },
-] as const satisfies readonly { sleutel: string; titel: string; velden: readonly AanmeldVeld[]; hierna: string | null }[]
+  { sleutel: 'pakket', velden: ['pakket'] },
+  { sleutel: 'sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'] },
+  { sleutel: 'eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon', 'wachtwoord', 'wachtwoordHerhaal'] },
+  { sleutel: 'akkoord', velden: ['akkoord'] },
+] as const satisfies readonly { sleutel: string; velden: readonly AanmeldVeld[] }[]
 
 export type Fouten = Partial<Record<AanmeldVeld, string>>
 

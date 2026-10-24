@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
-import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { siteCoaching } from '@/lib/aiyourgym/taal/woorden/website/coaching'
 import { DASHBOARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { Venster } from './kaders'
 import { Oefenbeeld } from './Oefenbeeld'
@@ -11,7 +11,7 @@ import { Oefenbeeld } from './Oefenbeeld'
 // in 3D (ernaast) en de ledenapp met QR (in de Held). Allemaal onze echte schermen,
 // getekend met voorbeeldgegevens; de coaching komt uit de oefenbibliotheek van Club.
 // Teksten in de taal van de pagina (woordenboek DASHBOARD); de kernpunten uit de
-// coachingbibliotheek zijn nog Nederlands, die vertaling volgt met Club.
+// coachingbibliotheek ook (siteCoaching).
 
 /** De voorbeelddag van het scherm Vandaag (een dinsdag). */
 const VOORBEELD_DAG = '2026-10-20T12:00:00Z'
@@ -129,8 +129,9 @@ const OEFENING = 'Front squat'
 
 /** Een oefening uit een schema, klein: onze eigen render (of het 3D-figuur) en de eerste kernpunten. */
 export async function OefeningKaartje() {
-  const t = DASHBOARD[await getSiteTaal()]
-  const coaching = COACHING_BENEN[OEFENING]
+  const taal = await getSiteTaal()
+  const t = DASHBOARD[taal]
+  const coaching = siteCoaching(OEFENING, taal)
   if (!coaching) return null
   return (
     <div className="aygm-dash-oef">

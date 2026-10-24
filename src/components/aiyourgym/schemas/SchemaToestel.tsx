@@ -11,7 +11,7 @@ import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 // het voorschrift en de eerste twee kernpunten eronder (zoals in Club), en de
 // knop om de training af te vinken. De gekozen oefening licht op.
 // Een clientcomponent (useTekst), omdat CoachingDemo hem ook gebruikt. De
-// kernpunten komen uit de bibliotheek van Club en blijven voorlopig Nederlands.
+// kernpunten komen uit de bibliotheek van Club, in de taal van de pagina.
 
 type Teksten = (typeof SCHEMA_SCHERMEN)['nl']
 

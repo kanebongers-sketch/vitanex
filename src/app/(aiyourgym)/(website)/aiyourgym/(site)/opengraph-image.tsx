@@ -4,6 +4,8 @@ import { ImageResponse } from 'next/og'
 import { connection } from 'next/server'
 import { EMBLEEM_LETTER_PAD, EMBLEEM_RASTER_PAD, EMBLEEM_Y_PAD, LOGO_BREEDTE, LOGO_HOOGTE, MERK_KLEUR, WOORD_PAD, WOORD_TRANSFORM } from '@/components/aiyourgym/merk/merk-paden'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
+import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { SCHERM } from '@/lib/aiyourgym/taal/woorden/website/scherm'
 
 // De deelafbeelding van de website (Open Graph en X, 1200 x 630). Racegroen vlak,
 // het logo met het creme embleem, de kop, en rechts groot en afgesneden het
@@ -12,8 +14,11 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 // Letters: Bricolage Grotesque en Geist (beide SIL OFL 1.1), zie merk/letters/.
 // Het logo is vector (de paden uit merk-paden.ts) en wordt pas bij het maken van de
 // PNG getekend; plaat, kruis en vak Y met crispEdges, dus zonder zachte naden.
+// De tekst volgt de taalcookie (SCHERM; zonder cookie, zoals bij de meeste
+// deeldiensten, Nederlands). De alt-tekst is een vaste waarde voor beide talen,
+// daarom alleen de merknaam.
 
-export const alt = 'AI Your Gym: alles voor je sportschool, in een systeem.'
+export const alt = 'AI Your Gym'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -44,8 +49,8 @@ function Embleem({ plaat, teken, maat }: { plaat: string; teken: string; maat: n
 
 export default async function Afbeelding() {
   await connection()
-  if (!siteActief()) return new Response('Niet gevonden', { status: 404 })
-  const [kop, tekst] = await Promise.all([readFile(path.join(LETTERS, 'bricolage-og.ttf')), readFile(path.join(LETTERS, 'geist-og.ttf'))])
+  if (!siteActief()) return new Response(null, { status: 404 })
+  const [kop, tekst, t] = await Promise.all([readFile(path.join(LETTERS, 'bricolage-og.ttf')), readFile(path.join(LETTERS, 'geist-og.ttf')), siteTekst(SCHERM)])
   const logoHoogte = 64
 
   return new ImageResponse(
@@ -60,13 +65,13 @@ export default async function Afbeelding() {
             <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={K.creme} />
           </svg>
           <div style={{ display: 'flex', fontFamily: 'Bricolage', fontSize: 84, lineHeight: 1.02, letterSpacing: -2.8, maxWidth: 760 }}>
-            Alles voor je sportschool, in een systeem.
+            {t.deelKop}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 24, color: K.salie }}>
             <div style={{ width: 40, height: 2, background: K.salie }} />
             aiyourgym.com
             <div style={{ width: 1, height: 22, background: K.flessengroen }} />
-            Database binnen de EU
+            {t.deelEu}
           </div>
         </div>
       </div>

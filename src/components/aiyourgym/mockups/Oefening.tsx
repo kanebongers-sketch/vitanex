@@ -1,19 +1,19 @@
-import { COACHING_BENEN } from '@/lib/club/training/coaching/benen'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { siteCoaching } from '@/lib/aiyourgym/taal/woorden/website/coaching'
 import { OEFENING } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { Oefenbeeld } from './Oefenbeeld'
 
 // Een oefening zoals een lid en trainer hem in Club zien: ons eigen figuur
 // dat de beweging voordoet en de coaching uit de echte oefenbibliotheek van
 // Club. Geen verzonnen tekst: dit komt uit de app zelf. De labels staan in de
-// taal van de pagina (woordenboek OEFENING); de coaching zelf is nog Nederlands,
-// die vertaling volgt met Club.
+// taal van de pagina (woordenboek OEFENING), de coaching ook (siteCoaching).
 
 const NAAM = 'Front squat'
 
 export async function Oefening() {
-  const t = OEFENING[await getSiteTaal()]
-  const coaching = COACHING_BENEN[NAAM]
+  const taal = await getSiteTaal()
+  const t = OEFENING[taal]
+  const coaching = siteCoaching(NAAM, taal)
   if (!coaching) return null
   return (
     <div className="aygm-oefening">

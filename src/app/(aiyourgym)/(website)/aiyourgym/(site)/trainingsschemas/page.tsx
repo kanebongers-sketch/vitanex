@@ -18,8 +18,8 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMAS_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/trainingsschemas'
 
 // De teksten staan in SCHEMAS_PAGINA (Nederlands uit inhoud/trainingsschemas.ts).
-// De coaching in de schermen komt uit de bibliotheek van Club en blijft voorlopig
-// Nederlands, ook op de Engelse pagina (zie woorden/website/schemas.ts).
+// De coaching in de schermen komt uit de bibliotheek van Club, in de taal van de
+// pagina (voorbeeldOefeningen(taal), woorden/website/coaching.ts).
 
 export async function generateMetadata(): Promise<Metadata> {
   const taal = await getSiteTaal()
@@ -53,8 +53,9 @@ function Beeld({ sleutel, oefeningen, aantal }: { sleutel: SchemaStapSleutel; oe
 }
 
 export default async function TrainingsschemasPagina() {
-  const t = SCHEMAS_PAGINA[await getSiteTaal()]
-  const oefeningen = voorbeeldOefeningen()
+  const taal = await getSiteTaal()
+  const t = SCHEMAS_PAGINA[taal]
+  const oefeningen = voorbeeldOefeningen(taal)
   const aantal = aantalMetCoaching()
   return (
     <>

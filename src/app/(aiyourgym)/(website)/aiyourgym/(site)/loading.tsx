@@ -1,4 +1,6 @@
 import type { CSSProperties } from 'react'
+import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { SCHERM } from '@/lib/aiyourgym/taal/woorden/website/scherm'
 
 // Laadscherm van de website, binnen de kop en voet van (site)/layout.tsx. Staat
 // bewust onder de poort in ../layout.tsx: wie de site niet mag zien, krijgt meteen
@@ -20,11 +22,12 @@ const RING: CSSProperties = {
   borderTopColor: 'var(--ayg-accent)',
 }
 
-export default function AiYourGymLaden() {
+export default async function AiYourGymLaden() {
+  const t = await siteTekst(SCHERM)
   return (
     <div style={VLAK} role="status" aria-live="polite">
       <span className="ayg-basis-draai" style={RING} aria-hidden="true" />
-      <p className="ayg-klein">Laden</p>
+      <p className="ayg-klein">{t.laden}</p>
     </div>
   )
 }

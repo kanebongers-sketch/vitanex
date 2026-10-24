@@ -1,17 +1,24 @@
 // De schermen bij de trainingsschema's (src/components/aiyourgym/schemas/**).
-// Wat uit de code van Club zelf komt blijft voorlopig Nederlands, tot Club vertaald is:
-// de coaching uit de oefenbibliotheek (kernpunten, fouten, opstelling, stappen,
-// ademhaling, tempo, varianten), de gezondheidsvragen (PARQ_VRAGEN) en wat
-// stelSchemaVoor teruggeeft (naam, dagen, waarschuwingen). Doelen en niveaus zijn
-// korte labels; die staan hier zodat de schermen in het Engels kloppen.
+// Wat uit de code van Club zelf komt is de Nederlandse bron: de gezondheidsvragen
+// (PARQ_VRAGEN) en wat stelSchemaVoor bij de voorbeeldintake teruggeeft (naam, dagen,
+// waarschuwingen); het Engels staat ernaast. De coaching staat in coaching.ts. Doelen
+// en niveaus zijn korte labels; die staan hier zodat de schermen in het Engels kloppen.
 
+import { VOORBEELD_INTAKE } from '@/components/aiyourgym/schemas/voorbeeld-intake'
+import { PARQ_VRAGEN, type ParqSleutel } from '@/lib/club/training/intake'
 import { DOEL_LABEL, NIVEAU_LABEL } from '@/lib/club/training/typen'
+import { stelSchemaVoor } from '@/lib/club/training/voorstel'
 import { woordenboek } from '../../woordenboek'
 
 /** Het voorschrift uit voorbeeldschema.ts ("3 x 8 tot 12, 90 sec rust") in het Engels. */
 function voorschriftEn(v: string): string {
   return String(v).replace(/ tot /g, ' to ').replace(/sec rust/g, 'sec rest')
 }
+
+/** Het voorstel bij de voorbeeldintake, zoals Club het maakt (Nederlands). */
+const VOORSTEL = stelSchemaVoor(VOORBEELD_INTAKE, [])
+
+const PARQ_NL = Object.fromEntries(PARQ_VRAGEN.map((v) => [v.sleutel, v.vraag])) as Record<ParqSleutel, string>
 
 export const SCHEMA_SCHERMEN = woordenboek({
   nl: {
@@ -40,6 +47,10 @@ export const SCHEMA_SCHERMEN = woordenboek({
       schema: 'Schema',
       naam: 'Full body · Spiermassa',
       weken: (n: number) => `${n} weken`,
+      // Wat Club bij de voorbeeldintake voorstelt (stelSchemaVoor)
+      naam: VOORSTEL.naam,
+      dagen: VOORSTEL.dagen.map((d) => d.titel),
+      waarschuwingen: VOORSTEL.waarschuwingen,
       dagen: ['Dag A', 'Dag B', 'Dag C'],
       gedaan: 'Training dag A gedaan',
       uitleg: 'In de ledenapp: de eerste twee kernpunten onder elke oefening, tik voor de beweging en alle coaching.',
@@ -86,6 +97,7 @@ export const SCHEMA_SCHERMEN = woordenboek({
       ja: 'Ja',
       nee: 'Nee',
       toestemming: 'Het lid geeft toestemming om deze gezondheidsgegevens te bewaren',
+      parq: PARQ_NL,
       voorstelMaken: 'Voorstel maken',
     },
     voorstel: {
@@ -145,6 +157,9 @@ export const SCHEMA_SCHERMEN = woordenboek({
       schema: 'Programme',
       naam: 'Full body · Muscle gain',
       weken: (n: number) => `${n} weeks`,
+      naam: 'Full body · Muscle gain',
+      dagen: ['Full body A', 'Full body B', 'Full body C'],
+      waarschuwingen: ['A health question was answered with yes. Ask the member to check with their GP before the intensity goes up.'],
       dagen: ['Day A', 'Day B', 'Day C'],
       gedaan: 'Day A workout done',
       uitleg: 'In the member app: the first two coaching cues under each exercise, tap for the movement and all the coaching.',
@@ -191,6 +206,15 @@ export const SCHEMA_SCHERMEN = woordenboek({
       ja: 'Yes',
       nee: 'No',
       toestemming: 'The member consents to these health details being stored',
+      parq: {
+        hart: 'Has a doctor ever said that you have a heart condition, or that you should only exercise under supervision?',
+        borstpijn: 'Do you have pain or pressure in your chest during exertion or at rest?',
+        duizelig: 'Do you ever feel dizzy or faint?',
+        gewricht: 'Do you have problems with bones or joints that could get worse with exercise?',
+        bloeddruk: 'Do you take medication for your blood pressure or heart?',
+        zwanger: 'Are you pregnant or have you recently given birth?',
+        anders: 'Is there any other reason why you need to be careful with exercise?',
+      },
       voorstelMaken: 'Create draft',
     },
     voorstel: {

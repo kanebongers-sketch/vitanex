@@ -10,7 +10,7 @@ import { SchemaBlikvanger, type BlikOefening } from './SchemaBlikvanger'
 // blikvanger. De coaching is de echte tekst uit de bibliotheek van Club; de
 // hele route (intake, voorstel, editor, ledenapp) staat op /trainingsschemas.
 // Teksten in de taal van de pagina (woordenboek SCHEMAS). De kernpunten komen uit
-// de coachingbibliotheek van Club en zijn nog Nederlands; de vertaling volgt met Club.
+// de coachingbibliotheek van Club, in het Engels uit woorden/website/coaching.ts.
 
 const KERNPUNTEN = 3
 
@@ -18,7 +18,7 @@ export async function Schemas() {
   const taal = await getSiteTaal()
   const t = SCHEMAS[taal]
   const bereik = (herhalingen: string) => herhalingen.replace(/(\d+)\s*-\s*(\d+)/g, (_, van: string, tot: string) => t.bereik(Number(van), Number(tot)))
-  const oefeningen: BlikOefening[] = voorbeeldOefeningen().map((o) => ({
+  const oefeningen: BlikOefening[] = voorbeeldOefeningen(taal).map((o) => ({
     naam: o.naam,
     kort: o.kort,
     voorschrift: t.voorschrift(o.dosering.sets, bereik(o.dosering.herhalingen), o.dosering.rustSec),
