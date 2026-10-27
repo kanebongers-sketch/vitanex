@@ -11,6 +11,8 @@ interface ReserveringenProps {
   recent: LidReservering[]
   checkins: CheckinRij[]
   nu: Date
+  /** Uit als de aankomende lessen elders op de kaart staan (blok Lessen, met annuleren). */
+  metAankomend?: boolean
 }
 
 function Regel({ r, checkins, nu }: { r: LidReservering; checkins: CheckinRij[]; nu: Date }) {
@@ -55,14 +57,17 @@ function Lijst({ titel, rijen, leeg, checkins, nu }: LijstProps) {
   )
 }
 
-export function Reserveringen({ aankomend, recent, checkins, nu }: ReserveringenProps) {
+export function Reserveringen({ aankomend, recent, checkins, nu, metAankomend = true }: ReserveringenProps) {
+  const recentLijst = <Lijst titel="Recent" rijen={recent} leeg="Geen lessen in de laatste 8 weken." checkins={checkins} nu={nu} />
   return (
     <section className="club-kaart" aria-labelledby="reserveringen-kop">
       <h2 id="reserveringen-kop">Reserveringen</h2>
-      <div className="club-leden-tweekolom">
-        <Lijst titel="Aankomend" rijen={aankomend} leeg="Geen lessen geboekt." checkins={checkins} nu={nu} />
-        <Lijst titel="Recent" rijen={recent} leeg="Geen lessen in de laatste 8 weken." checkins={checkins} nu={nu} />
-      </div>
+      {metAankomend ? (
+        <div className="club-leden-tweekolom">
+          <Lijst titel="Aankomend" rijen={aankomend} leeg="Geen lessen geboekt." checkins={checkins} nu={nu} />
+          {recentLijst}
+        </div>
+      ) : recentLijst}
     </section>
   )
 }

@@ -2,22 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
-import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
-import { isDatum, nlDelen, plusDagen, weekParam } from '@/lib/club/rooster/tijd'
-import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
-import { takenHref } from '@/lib/club/taken/url'
-import { weekContext } from '@/lib/club/taken/week'
+import { isDatum, nlDelen, plusDagen } from '@/lib/club/rooster/tijd'
 import { dagLang } from '@/lib/club/taken/weergave'
-import { AfvinkProvider } from '@/components/club/taken/AfvinkContext'
-import { DagAfsluiten } from '@/components/club/taken/DagAfsluiten'
-import { DagNotities } from '@/components/club/taken/DagNotities'
 import { AutoVerversen, PrintKnop } from '@/components/club/taken/Hulpjes'
-import { PersoonKiezer } from '@/components/club/taken/PersoonKiezer'
 import { TakenKop } from '@/components/club/taken/TakenKop'
-import { TakenRaster } from '@/components/club/taken/TakenRaster'
+import { TakenDag } from '@/components/club/taken/TakenDag'
 import '@/components/club/taken/taken.css'
 
 export const metadata: Metadata = { title: 'Taken' }
@@ -25,7 +17,8 @@ export const metadata: Metadata = { title: 'Taken' }
 // De dag, in dezelfde tabel als de week (zoals de Excel van Budel, besluit Kane):
 // per lijst de taken met een kolom voor deze dag, afvinken met een tik, de
 // weekteller ernaast. Bladeren per dag (?dag=2026-10-14); standaard vandaag.
-// Onderaan het notitieveld en "Afsluitronde klaar".
+// Onderaan het notitieveld en "Afsluitronde klaar". De tabel zelf (TakenDag)
+// staat voor vandaag ook als sectie op Vandaag (besluit Kane 27-10-2026).
 
 function kiesDag(ruw: string | string[] | undefined, vandaag: string): string {
   const w = Array.isArray(ruw) ? ruw[0] : ruw
@@ -39,15 +32,6 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
   if (!vestiging) return <GeenVestigingen />
   const vandaag = nlDelen(new Date()).datum
   const dag = kiesDag(params.dag, vandaag)
-  const w = weekContext(weekParam(dag), vandaag)
-  const [data, afvinkingen, notities, rondes, medewerkers] = await Promise.all([
-    haalTaken(t.admin, t.userId, vestiging),
-    haalAfvinkingen(t.admin, t.userId, vestiging, w.maandag, w.zondag),
-    haalNotities(t.admin, t.userId, vestiging, dag, dag),
-    haalAfsluitrondes(t.admin, t.userId, vestiging, dag, dag),
-    haalMedewerkers(t.admin, t.userId, vestiging),
-  ])
-  const actief = data ? alleenActief(data) : null
   const naam = dagLang(dag)
   const dagHref = (d: string) => clubPad('/taken', vestiging, d === vandaag ? undefined : { dag: d })
 
@@ -74,33 +58,7 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
         </nav>
         <PrintKnop />
       </TakenKop>
-      {!actief || !afvinkingen || !notities || !rondes ? (
-        <p className="club-melding club-melding--fout" role="alert">
-          De taken konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.
-        </p>
-      ) : actief.lijsten.length === 0 ? (
-        <div className="club-leeg">
-          <p>Deze vestiging heeft nog geen takenlijsten.</p>
-          <Link className="club-knop club-knop--primair" href={takenHref('beheer', vestiging)}>
-            Lijsten maken of kopieren
-          </Link>
-        </div>
-      ) : (
-        <AfvinkProvider
-          key={`${vestiging}-${dag}`}
-          vestiging={vestiging}
-          vandaag={vandaag}
-          medewerkers={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
-          begin={afvinkingen}
-        >
-          <PersoonKiezer />
-          {actief.lijsten.map((l) => (
-            <TakenRaster key={l.id} lijst={l} taken={actief.taken.filter((x) => x.lijstId === l.id)} dagen={[dag]} />
-          ))}
-          <DagNotities datum={dag} begin={notities} />
-          {dag === vandaag && <DagAfsluiten lijsten={actief.lijsten} taken={actief.taken} dagen={w.dagen} ronde={rondes[0] ?? null} />}
-        </AfvinkProvider>
-      )}
+      <TakenDag admin={t.admin} userId={t.userId} vestiging={vestiging} dag={dag} vandaag={vandaag} />
     </div>
   )
 }

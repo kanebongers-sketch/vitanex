@@ -15,6 +15,8 @@ import { RoosterFilters } from '@/components/club/rooster/RoosterFilters'
 import { RoosterKop, RoosterTegels } from '@/components/club/rooster/RoosterKop'
 import { DagLijst, WeekRaster } from '@/components/club/rooster/WeekRaster'
 import { LesPaneel } from '@/components/club/rooster/LesPaneel'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/rooster/rooster.css'
 
 export const metadata: Metadata = { title: 'Rooster' }
@@ -119,6 +121,7 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
           kanAfvinken={magAfvinken(detail, instellingen.regels, nu.getTime())}
           zalen={zalen}
           instructeurs={instructeurs}
+          magLeden={moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')}
         />
       )}
     </>

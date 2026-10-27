@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leesLidWijziging, leesNotitie, leesVastpinnen, normaliseerTag } from './invoer'
+import { isDatumSleutel, leesLidWijziging, leesNotitie, leesVastpinnen, normaliseerTag } from './invoer'
 import { notitieUitRij, reserveringUitRij, sorteerNotities } from './rijen'
 
 const UUID = '3f2b8c1e-7a4d-4e2b-9c1a-0d5e6f7a8b9c'
@@ -66,5 +66,30 @@ describe('rijen', () => {
     const n = (id: string, op: string, vastgepind = false) => notitieUitRij({ id, tekst: 't', vastgepind, aangemaakt_op: op })
     const lijst = [n('a', '2026-10-01T10:00:00Z'), n('b', '2026-10-05T10:00:00Z'), n('c', '2026-09-01T10:00:00Z', true)]
     expect(sorteerNotities(lijst.filter((x) => x !== null)).map((x) => x.id)).toEqual(['c', 'b', 'a'])
+  })
+})
+
+describe('leesLidWijziging: lidmaatschap op de ledenkaart', () => {
+  it('leest de vorm, netjes ingekort, en leeg als geen vorm', () => {
+    expect(leesLidWijziging({ abonnement: '  All-in   12 maanden ' })).toEqual({ ok: true, waarde: { abonnement: 'All-in 12 maanden' } })
+    expect(leesLidWijziging({ abonnement: '' })).toEqual({ ok: true, waarde: { abonnement: null } })
+    expect(leesLidWijziging({ abonnement: null })).toEqual({ ok: true, waarde: { abonnement: null } })
+    expect(leesLidWijziging({ abonnement: 5 }).ok).toBe(false)
+    expect(leesLidWijziging({ abonnement: 'x'.repeat(81) }).ok).toBe(false)
+  })
+
+  it('leest datums en weigert onzin of een omgekeerde pauze', () => {
+    expect(leesLidWijziging({ status: 'gepauzeerd', pauzeVan: '2026-11-01', pauzeTot: null }))
+      .toEqual({ ok: true, waarde: { status: 'gepauzeerd', pauzeVan: '2026-11-01', pauzeTot: null } })
+    expect(leesLidWijziging({ lidSinds: '2026-02-30' }).ok).toBe(false)
+    expect(leesLidWijziging({ einddatum: '27-10-2026' }).ok).toBe(false)
+    expect(leesLidWijziging({ pauzeVan: '2026-11-10', pauzeTot: '2026-11-01' })).toEqual({ ok: false, fout: 'De pauze kan niet eindigen voordat hij begint.' })
+  })
+
+  it('isDatumSleutel kent alleen echte dagen', () => {
+    expect(isDatumSleutel('2028-02-29')).toBe(true)
+    expect(isDatumSleutel('2026-02-29')).toBe(false)
+    expect(isDatumSleutel('2026-13-01')).toBe(false)
+    expect(isDatumSleutel(20261027)).toBe(false)
   })
 })

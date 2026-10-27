@@ -1,39 +1,42 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { eisModule } from '@/lib/club/toegang'
-import { type ZoekParams } from '@/lib/club/kern/vestiging'
-import { binnenVestigingen, hoortBij, naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
+import { eisModule, type ClubToegang } from '@/lib/club/toegang'
+import { type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { binnenVestigingen, hoortBij, naamVan } from '@/lib/club/kern/vestigingen'
 import type { Medewerker } from '@/lib/club/kern/medewerker'
 import { haalLidKaart, type LidKaart } from '@/lib/club/leden/kaart'
-import { datumKort, datumUitSleutel, laatsteBezoekTekst, leeftijd, tijdNl } from '@/lib/club/leden/tijd'
+import { datumKort, laatsteBezoekTekst, tijdNl } from '@/lib/club/leden/tijd'
+import { isUuid } from '@/lib/club/kern/organisatie'
+import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
+import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
+import { healthActief } from '@/lib/club/health/schakelaar'
+import { lidgeldOpen } from '@/lib/club/betalen/plannen/toegang'
+import { kaartRechten, type KaartRechten } from '@/lib/club/leden/hub/rechten'
+import { kiesLidTab, lidKaartPad, type LidTab } from '@/lib/club/leden/hub/tabs'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
+import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { LidKop } from '@/components/club/leden/LidKop'
 import { BehoudKaart } from '@/components/club/leden/BehoudKaart'
 import { Bezoekpatroon } from '@/components/club/leden/Bezoekpatroon'
-import { Reserveringen } from '@/components/club/leden/Reserveringen'
-import { Notities } from '@/components/club/leden/Notities'
 import { LidGegevens } from '@/components/club/leden/LidGegevens'
-import { Voortgangskaart } from '@/components/club/voortgang/Voortgangskaart'
-import { AfsprakenVanLid } from '@/components/club/afspraken/AfsprakenVanLid'
-import { haalVoortgang } from '@/lib/club/voortgang/data'
-import { dagSleutelNl } from '@/lib/club/kern/datum'
-import { magOnderdeel } from '@/lib/club/beheerders/rechten'
-import { haalPlan } from '@/lib/club/voeding/lezen'
-import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
-import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
-import { isUuid, moduleAan } from '@/lib/club/kern/organisatie'
 import { AvgKaart } from '@/components/club/leden/AvgKaart'
-import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijderen'
-import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
-import { LidTraining } from '@/components/club/training/LidTraining'
-import { MetingenUitApps } from '@/components/club/health/MetingenUitApps'
-import { healthActief } from '@/lib/club/health/schakelaar'
-import { volledigeNaam } from '@/lib/club/kern/lid'
+import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
+import { LidTabs } from '@/components/club/leden/hub/LidTabs'
+import { LaatsteBezoeken } from '@/components/club/leden/hub/LaatsteBezoeken'
+import { TrainingTab } from '@/components/club/leden/hub/TrainingTab'
+import { LidmaatschapTab } from '@/components/club/leden/hub/LidmaatschapTab'
+import { PlanningTab } from '@/components/club/leden/hub/PlanningTab'
+import { ContactTab } from '@/components/club/leden/hub/ContactTab'
 import '@/components/club/leden/leden.css'
+import '@/components/club/leden/hub/hub.css'
 
 export const metadata: Metadata = { title: 'Ledenkaart' }
 
-const BRON_LABEL: Record<string, string> = { balie: 'Balie', qr: 'QR-code', bandje: 'Bandje', les: 'Les' }
+// De ledenkaart is de plek voor alles van een lid (besluit Kane 27-10-2026):
+// een kop met de belangrijkste acties en zes tabbladen (?tab=). Elk tabblad
+// haalt alleen zijn eigen gegevens op; elk blok alleen met het recht erop.
 
 function geenBehoudTekst(kaart: LidKaart): string {
   if (kaart.lid.status === 'gepauzeerd') return 'Gepauzeerd: we verwachten nu geen bezoek, dus geen score.'
@@ -50,139 +53,67 @@ function coachKeuzes(medewerkers: Medewerker[], coachId: string | null): { id: s
   return lijst.map((m) => ({ id: m.id, naam: m.naam }))
 }
 
-function LaatsteBezoeken({ kaart, nu, vestigingen }: { kaart: LidKaart; nu: Date; vestigingen: readonly VestigingInfo[] }) {
-  const lijst = kaart.bezoeken.slice(0, 8)
+interface TabInhoud {
+  t: ClubToegang
+  kaart: LidKaart
+  vestiging: Vestiging
+  rechten: KaartRechten
+  nu: Date
+}
+
+async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
+  const alle = tekst(LEDENKAART, await getTaal())
+  const w = alle.overzicht
+  const volgende = kaart.aankomend.find((r) => !r.lesGeannuleerd && r.status !== 'geannuleerd') ?? null
+  const notitie = kaart.notities[0] ?? null
+  const { lid } = kaart
   return (
-    <section className="club-kaart" aria-labelledby="bezoeken-kop">
-      <h2 id="bezoeken-kop">Laatste bezoeken</h2>
-      {lijst.length ? (
-        <ul className="club-lijst">
-          {lijst.map((b) => {
-            const elders = b.vestiging && b.vestiging !== kaart.lid.vestiging ? naamVan(vestigingen, b.vestiging) : null
-            return (
-              <li key={b.id} className="club-rij">
-                <span className="club-rij-hoofd">
-                  <span className="club-rij-titel">{laatsteBezoekTekst(b.op, nu)}</span>
-                  <span className="club-rij-sub club-getal">{datumKort(b.op, nu)}, {tijdNl(b.op)}</span>
-                </span>
-                {elders ? <span className="club-chip club-chip--info">In {elders}</span> : null}
-                <span className="club-chip club-chip--geen">{BRON_LABEL[b.bron] ?? b.bron}</span>
-              </li>
-            )
-          })}
-        </ul>
-      ) : (
-        <p className="club-hint">
-          {kaart.laatsteBezoek
-            ? `Geen bezoek in de laatste 12 weken. Laatste bezoek: ${datumKort(kaart.laatsteBezoek, nu)}.`
-            : `Nog nooit geweest.${kaart.lid.lidSinds ? ` Ingeschreven op ${datumUitSleutel(kaart.lid.lidSinds)}.` : ''}`}
-        </p>
-      )}
-    </section>
+    <div className="club-lidhub-tab">
+      <div className="club-leden-tweekolom">
+        <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
+        <section className="club-kaart club-lidhub-kort" aria-labelledby="kort-kop">
+          <h2 id="kort-kop">{w.kort}</h2>
+          <dl className="club-lidhub-feiten">
+            <div>
+              <dt>{w.vorm}</dt>
+              <dd><Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')}>{lid.abonnement ?? alle.kop.geenVorm}</Link></dd>
+            </div>
+            <div>
+              <dt>{w.volgendeLes}</dt>
+              <dd>{volgende ? <Link href={lidKaartPad(lid.id, vestiging, 'planning')}>{volgende.lesNaam}, {datumKort(volgende.start, nu)} {tijdNl(volgende.start)}</Link> : <span className="club-zacht">{w.geenLes}</span>}</dd>
+            </div>
+            <div>
+              <dt>{w.laatsteNotitie}</dt>
+              <dd>{notitie ? <Link href={`${lidKaartPad(lid.id, vestiging, 'contact')}#notities`} className="club-lidhub-tweeregels">{notitie.tekst}</Link> : <span className="club-zacht">{w.geenNotitie}</span>}</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+      <section className="club-kaart" aria-labelledby="patroon-kop">
+        <div className="club-sectiekop">
+          <h2 id="patroon-kop">Bezoekpatroon</h2>
+          <span>Laatste 12 weken · {kaart.laatsteBezoek ? `laatste bezoek ${laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}` : 'nog nooit geweest'}</span>
+        </div>
+        <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
+      </section>
+      <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
+    </div>
   )
 }
 
-export default async function LidPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
-  const t = await eisModule('leden')
-  const [{ id }, ruw] = await Promise.all([params, searchParams])
-  // Geen geldig id: meteen 404, zonder vier queries met onzin.
-  if (!isUuid(id)) notFound()
-  const nu = new Date()
-  // Voeding alleen voor wie het onderdeel mag zien (een clubmanager kan het missen).
-  const toonVoeding = magOnderdeel(t.onderdelen, 'voeding')
-  // Training (schema's en intakes) alleen als het onderdeel aan staat en deze persoon het mag.
-  const toonTraining = moduleAan(t.organisatie, 'training') && magOnderdeel(t.onderdelen, 'schemas')
-  // Metingen uit apps: alleen met de schakelaar aan, voor wie Training mag, en alleen wat het lid toestaat.
-  const toonApps = healthActief() && magOnderdeel(t.onderdelen, 'schemas')
-  // Voortgang, voeding en verwijderverzoek hangen alleen van het lid-id af (alles filtert op de
-  // sportschool): tegelijk met de kaart ophalen. Hoort het lid niet bij deze persoon, dan vervalt het.
-  const [gelezen, voortgang, voeding, verzoek] = await Promise.all([
-    haalLidKaart(t.admin, t.userId, id, nu),
-    haalVoortgang(t.admin, t.userId, id, nu),
-    toonVoeding ? haalPlan(t.admin, t.userId, id) : Promise.resolve(null),
-    haalVerwijderverzoek(t.admin, t.userId, id),
-  ])
-  // Een lid van een vestiging die niet van deze persoon is: dezelfde 404 als een onbekend lid.
-  const kaart = gelezen && binnenVestigingen(t.vestigingen, gelezen.lid) ? gelezen : null
-  if (!kaart) notFound()
+async function Privacy({ t, kaart, rechten, verzoek, nu }: TabInhoud & { verzoek: Awaited<ReturnType<typeof haalVerwijderverzoek>> }) {
+  const w = tekst(LEDENKAART, await getTaal()).privacy
   const { lid } = kaart
-  // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
-  const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
-  const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
-
   return (
-    <>
-      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} naar={{ training: toonTraining, rooster: moduleAan(t.organisatie, 'rooster') && magOnderdeel(t.onderdelen, 'rooster') }} />
-      <nav className="club-segment club-leden-secties" aria-label="Spring naar">
-        <a href="#overzicht">Overzicht</a>
-        {toonTraining && <a href="#training">Training</a>}
-        <a href="#voortgang">Voortgang</a>
-        {toonVoeding && <a href="#voeding">Voeding</a>}
-        <a href="#notities">Notities</a>
-        <a href="#gegevens">Gegevens</a>
-        <a href="#privacy">Privacy</a>
-      </nav>
-      {verzoek ? (
-        <p className="club-melding club-melding--fout" role="status">
-          {verzoekTekst(verzoek, nu)} Dit lid kan niet meer inloggen, inchecken of boeken.{magLidVerwijderen(t) ? <> <a href="#privacy">Terugdraaien</a></> : null}
-        </p>
-      ) : null}
-      {kaart.fouten.length ? (
-        <p className="club-melding club-melding--fout" role="alert">Niet alles kon worden geladen ({kaart.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.</p>
-      ) : null}
-      <div className="club-raster">
-        <div className="club-k8 club-leden-kolom" id="overzicht">
-          {/* Eerst de hoofdzaak: hoe staat dit lid ervoor (behoud) en wanneer was het er. */}
-          <div className="club-leden-tweekolom">
-            <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
-            <LaatsteBezoeken kaart={kaart} nu={nu} vestigingen={t.vestigingen} />
-          </div>
-          <section className="club-kaart" aria-labelledby="patroon-kop">
-            <div className="club-sectiekop">
-              <h2 id="patroon-kop">Bezoekpatroon</h2>
-              <span>Laatste 12 weken · {kaart.laatsteBezoek ? `laatste bezoek ${laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}` : 'nog nooit geweest'}</span>
-            </div>
-            <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
+    <div className="club-lidhub-tab club-lidhub-twee">
+      <LidGegevens lidId={lid.id} coachId={lid.coachId} trainers={coachKeuzes(kaart.medewerkers, lid.coachId)} tags={lid.tags} />
+      <div className="club-leden-kolom">
+        {rechten.ledenapp && (
+          <section className="club-lidhub-blok" aria-label={w.ledenapp}>
+            <LedenappLink lidId={lid.id} voornaam={lid.voornaam} />
           </section>
-          <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} />
-          <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
-            <AfsprakenVanLid lidId={kaart.lid.id} vestiging={kaart.lid.vestiging} />
-          </Suspense>
-          <div id="voortgang">
-            <Voortgangskaart
-              begin={voortgang}
-              medewerkers={kaart.medewerkers.map((m) => ({ id: m.id, naam: m.naam }))}
-              vandaag={dagSleutelNl(nu)}
-              nu={nu.toISOString()}
-            />
-          </div>
-          {toonVoeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
-        </div>
-        <aside className="club-k4 club-leden-kolom" aria-label="Training, notities en gegevens">
-          {toonTraining && (
-            <Suspense fallback={<div className="club-skelet" style={{ minHeight: 160 }} aria-hidden />}>
-              <LidTraining t={t} lidId={lid.id} voornaam={lid.voornaam} vestiging={vestiging} />
-            </Suspense>
-          )}
-          {toonApps && (
-            <Suspense fallback={null}>
-              <MetingenUitApps t={t} lidId={lid.id} naam={volledigeNaam(lid)} vestiging={lid.vestiging} />
-            </Suspense>
-          )}
-          {moduleAan(t.organisatie, 'app') && <LedenappLink lidId={lid.id} voornaam={lid.voornaam} />}
-          <Notities lidId={lid.id} notities={kaart.notities} />
-          <LidGegevens
-            lidId={lid.id}
-            email={lid.email}
-            telefoon={lid.telefoon}
-            geboortedatum={datumUitSleutel(lid.geboortedatum)}
-            leeftijd={leeftijd(lid.geboortedatum, nu)}
-            coachId={lid.coachId}
-            trainers={coachKeuzes(kaart.medewerkers, lid.coachId)}
-            tags={lid.tags}
-            status={lid.status}
-            statusVast={Boolean(verzoek)}
-          />
+        )}
+        <div id="privacy">
           <AvgKaart
             lidId={lid.id}
             voornaam={lid.voornaam}
@@ -190,8 +121,52 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
             magVerwijderen={magLidVerwijderen(t)}
             verzoekTekst={verzoek ? verzoekTekst(verzoek, nu) : null}
           />
-        </aside>
+        </div>
       </div>
-    </>
+    </div>
+  )
+}
+
+export default async function LidPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
+  const t = await eisModule('leden')
+  const [{ id }, ruw] = await Promise.all([params, searchParams])
+  // Geen geldig id: meteen 404, zonder queries met onzin.
+  if (!isUuid(id)) notFound()
+  const nu = new Date()
+  const [gelezen, verzoek, betalen] = await Promise.all([
+    haalLidKaart(t.admin, t.userId, id, nu),
+    haalVerwijderverzoek(t.admin, t.userId, id),
+    lidgeldOpen(t),
+  ])
+  // Een lid van een vestiging die niet van deze persoon is: dezelfde 404 als een onbekend lid.
+  const kaart = gelezen && binnenVestigingen(t.vestigingen, gelezen.lid) ? gelezen : null
+  if (!kaart) notFound()
+  const { lid } = kaart
+  // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
+  const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
+  const rechten = kaartRechten({ onderdelen: t.onderdelen, modulesUit: t.organisatie.uit, healthAan: healthActief(), lidgeldOpen: betalen })
+  const tab: LidTab = kiesLidTab(ruw.tab)
+  const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
+  const inhoud: TabInhoud = { t, kaart, vestiging, rechten, nu }
+
+  return (
+    <div className="club-lidhub">
+      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} rechten={rechten} />
+      <LidTabs lidId={lid.id} vestiging={vestiging} actief={tab} />
+      {verzoek ? (
+        <p className="club-melding club-melding--fout" role="status">
+          {verzoekTekst(verzoek, nu)} Dit lid kan niet meer inloggen, inchecken of boeken.{magLidVerwijderen(t) ? <> <Link href={`${lidKaartPad(lid.id, vestiging, 'privacy')}#privacy`}>Terugdraaien</Link></> : null}
+        </p>
+      ) : null}
+      {kaart.fouten.length ? (
+        <p className="club-melding club-melding--fout" role="alert">Niet alles kon worden geladen ({kaart.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.</p>
+      ) : null}
+      {tab === 'overzicht' && <Overzicht {...inhoud} />}
+      {tab === 'training' && <TrainingTab t={t} lid={lid} vestiging={vestiging} medewerkers={kaart.medewerkers} rechten={rechten} maakOpen={ruw.maak === 'schema'} nu={nu} />}
+      {tab === 'lidmaatschap' && <LidmaatschapTab t={t} lid={lid} vestiging={vestiging} rechten={rechten} statusVast={Boolean(verzoek)} nu={nu} />}
+      {tab === 'planning' && <PlanningTab {...inhoud} />}
+      {tab === 'contact' && <ContactTab {...inhoud} />}
+      {tab === 'privacy' && <Privacy {...inhoud} verzoek={verzoek} />}
+    </div>
   )
 }

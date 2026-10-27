@@ -12,6 +12,7 @@ import { PlanEditor } from '@/components/club/voeding/PlanEditor'
 import { ClubKruimel, stappenNaarLid } from '@/components/club/shell/ClubKruimel'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moduleAan } from '@/lib/club/kern/organisatie'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/voeding/voeding.css'
 
 export const metadata: Metadata = { title: 'Voedingsplan' }
@@ -50,7 +51,7 @@ export default async function VoedingLidPagina({ params }: { params: Promise<{ i
           plan={plan}
           sjablonen={sjablonen ?? []}
           beginVelden={startVelden(plan, lid, voortgang.punten, nlDelen(nu).datum)}
-          terugHref={clubPad(`/leden/${lid.id}`, lid.vestiging)}
+          terugHref={magLeden ? lidKaartPad(lid.id, lid.vestiging, 'training') : clubPad('/voeding', lid.vestiging)}
           sjablonenHref={clubPad('/voeding', lid.vestiging, { tab: 'sjablonen' })}
         />
       )}

@@ -5,6 +5,7 @@ import { RISICO_ZICHTBAAR } from '@/lib/club/cijfers/haal-vandaag'
 import { aantal } from '@/lib/club/cijfers/opmaak'
 import { wegTekst, type RisicoLid } from '@/lib/club/cijfers/risico'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { initialen } from '@/lib/club/kern/lid'
 
 // Leden met risico: dezelfde lijst en hetzelfde aantal als de ledenlijst met
@@ -29,7 +30,7 @@ function Rij({ r, laatsteOoit, vandaag, vestiging }: { r: RisicoLid; laatsteOoit
   const reden = weg.getal === null && behoud.dagenSinds === null ? redenZonderBezoek(weg.tekst, behoud.noShows) : behoud.uitleg
   return (
     <li>
-      <Link href={clubPad(`/leden/${lid.id}`, vestiging)} className="club-rij club-vandaag-rijlink club-vandaag-risicorij">
+      <Link href={lidKaartPad(lid.id, vestiging)} className="club-rij club-vandaag-rijlink club-vandaag-risicorij">
         <span className="club-avatar" aria-hidden>
           {initialen(lid)}
         </span>

@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Settings2 } from 'lucide-react'
 import { eisOnderdeel } from '@/lib/club/toegang'
-import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
+import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalAlleMedewerkers, haalOpenTaken, haalRecentAfgehandeld, haalRegels, maakTakenVoorVandaag } from '@/lib/club/automatisering/opslag'
 import { groepeerPerRegel } from '@/lib/club/automatisering/taken'
@@ -35,7 +36,7 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
   const ctx: Context = { vestigingNaam, regels: regels ?? [], medewerkers: new Map((medewerkers ?? []).map((m) => [m.id, m.naam])) }
   const groepen = naarGroepen(groepeerPerRegel(open ?? []), ctx)
   const afgehandeld = (recent ?? []).map((taak) => naarItem(taak, ctx))
-  const ledenkaarten = Object.fromEntries([...(open ?? []), ...(recent ?? [])].map((taak) => [taak.lidId, clubPad(`/leden/${taak.lidId}`, vestiging)]))
+  const ledenkaarten = Object.fromEntries([...(open ?? []), ...(recent ?? [])].map((taak) => [taak.lidId, lidKaartPad(taak.lidId, vestiging, 'contact')]))
   const totaal = groepen.reduce((s, g) => s + g.items.length, 0)
   const allesUit = regels !== null && regels.every((r) => !r.aan)
   const magInstellen = magOnderdeel(t.onderdelen, 'beheer')

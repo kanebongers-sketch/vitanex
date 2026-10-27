@@ -1,5 +1,6 @@
 // ─── Fit Factory Club: invoer voor de ledenkaart (PUUR) ─────────────────────
-// Systeemgrens: wat er van de pagina binnenkomt (notities, coach, tags, status) wordt
+// Systeemgrens: wat er van de pagina binnenkomt (notities, coach, tags, status,
+// lidmaatschapsvorm en datums) wordt
 // hier gecontroleerd voordat het de database in gaat.
 
 import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
@@ -58,6 +59,48 @@ export interface LidWijziging {
   tags?: string[]
   /** De status van het lid (proeflid, actief, gepauzeerd, opgezegd, gestopt). */
   status?: LidStatus
+  /** De naam van de lidmaatschapsvorm (club_leden.abonnement); null = geen vorm. */
+  abonnement?: string | null
+  /** Datums als yyyy-mm-dd; null = leeg maken. */
+  lidSinds?: string | null
+  einddatum?: string | null
+  pauzeVan?: string | null
+  pauzeTot?: string | null
+}
+
+export const MAX_ABONNEMENT = 80
+const DATUM_VELDEN = ['lidSinds', 'einddatum', 'pauzeVan', 'pauzeTot'] as const
+type DatumVeld = (typeof DATUM_VELDEN)[number]
+const DATUM_NAAM: Record<DatumVeld, string> = { lidSinds: 'lid sinds', einddatum: 'einddatum', pauzeVan: 'pauze vanaf', pauzeTot: 'pauze tot' }
+
+/** Een echte kalenderdag als yyyy-mm-dd (geen 31 februari). */
+export function isDatumSleutel(v: unknown): v is string {
+  if (typeof v !== 'string') return false
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v)
+  if (!m) return false
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
+  return d.getUTCFullYear() === Number(m[1]) && d.getUTCMonth() === Number(m[2]) - 1 && d.getUTCDate() === Number(m[3])
+}
+
+function leesDatums(o: Record<string, unknown>, wijziging: LidWijziging): string | null {
+  for (const veld of DATUM_VELDEN) {
+    if (!(veld in o)) continue
+    const v = o[veld]
+    if (v !== null && !isDatumSleutel(v)) return `Kies een geldige datum bij ${DATUM_NAAM[veld]}.`
+    wijziging[veld] = v
+  }
+  const { pauzeVan, pauzeTot } = wijziging
+  if (pauzeVan && pauzeTot && pauzeTot < pauzeVan) return 'De pauze kan niet eindigen voordat hij begint.'
+  return null
+}
+
+function leesAbonnement(v: unknown): Uitslag<string | null> {
+  if (v === null) return { ok: true, waarde: null }
+  if (typeof v !== 'string') return { ok: false, fout: 'Kies een lidmaatschapsvorm.' }
+  const naam = v.trim().replace(/\s+/g, ' ')
+  if (naam === '') return { ok: true, waarde: null }
+  if (naam.length > MAX_ABONNEMENT) return { ok: false, fout: `De naam van de vorm is langer dan ${MAX_ABONNEMENT} tekens.` }
+  return { ok: true, waarde: naam }
 }
 
 function leesTags(v: unknown): Uitslag<string[]> {
@@ -89,6 +132,13 @@ export function leesLidWijziging(body: unknown): Uitslag<LidWijziging> {
     if (!(LID_STATUSSEN as readonly unknown[]).includes(o.status)) return { ok: false, fout: 'Kies een geldige status.' }
     wijziging.status = o.status as LidStatus
   }
-  if (wijziging.coachId === undefined && wijziging.tags === undefined && wijziging.status === undefined) return { ok: false, fout: 'Er is niets om te wijzigen.' }
+  if ('abonnement' in o) {
+    const abonnement = leesAbonnement(o.abonnement)
+    if (!abonnement.ok) return abonnement
+    wijziging.abonnement = abonnement.waarde
+  }
+  const datumFout = leesDatums(o, wijziging)
+  if (datumFout) return { ok: false, fout: datumFout }
+  if (Object.values(wijziging).every((w) => w === undefined)) return { ok: false, fout: 'Er is niets om te wijzigen.' }
   return { ok: true, waarde: wijziging }
 }

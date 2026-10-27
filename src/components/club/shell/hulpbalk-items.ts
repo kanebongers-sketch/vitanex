@@ -80,8 +80,10 @@ export function hulpToets(item: HulpItem): string | null {
 
 /** Een link binnen Club, met de gekozen vestiging erbij (zonder vestiging zonder ?v=). */
 export function clubHref(pad: string, vestiging: string | null): string {
-  const basis = `/club${pad}`
-  return vestiging ? `${basis}?${VESTIGING_PARAM}=${encodeURIComponent(vestiging)}` : basis
+  const [voor, anker] = pad.split('#')
+  const basis = `/club${voor}`
+  const staart = anker ? `#${anker}` : ''
+  return vestiging ? `${basis}?${VESTIGING_PARAM}=${encodeURIComponent(vestiging)}${staart}` : `${basis}${staart}`
 }
 
 /** Wie er kijkt, voor wat hij al zag bij Wat is nieuw: per sportschool en per persoon. */

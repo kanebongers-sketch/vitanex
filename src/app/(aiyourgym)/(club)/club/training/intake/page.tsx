@@ -13,12 +13,15 @@ import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
 import { standaardVragen } from '@/lib/club/intakevragen/kern'
 import { IntakeFormulier } from '@/components/club/training/IntakeFormulier'
 import { trainingPad, trainingPaden } from '@/components/club/training/TrainingTabs'
+import { kwamVanLid, lidKaartPad, metVanLid } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/training/training.css'
 import '@/components/club/intakevragen/intakevragen.css'
 
 export const metadata: Metadata = { title: 'Intake' }
 
-// Een nieuwe intake. ?lid=<id> zet het lid alvast klaar (vanuit de ledenkaart).
+// Een nieuwe intake. ?lid=<id> zet het lid alvast klaar. Met ?van=lid begon het
+// op de ledenkaart: het schemavoorstel en "Later" gaan daarna terug naar het
+// tabblad Training van het lid. Vanaf Training kies je eerst een lid.
 
 export default async function IntakePagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('training')
@@ -36,8 +39,12 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
   const paden = trainingPaden(vestiging)
   // Vanaf de ledenkaart terug naar het lid; anders naar de intakes bij Training.
   const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
-  const naarLid = lid ? stappenNaarLid(magLeden, { id: lid.id, naam: volledigeNaam(lid) }, vestiging) : []
+  const naarLid = lid ? stappenNaarLid(magLeden, { id: lid.id, naam: volledigeNaam(lid) }, vestiging).map((s, i) => (i === 1 ? { ...s, href: lidKaartPad(lid.id, vestiging, 'training') } : s)) : []
   const kruimel = naarLid.length ? naarLid : [{ label: 'Training', href: trainingPad(vestiging, 'intakes', lid?.id ?? null) }]
+  const vanLid = kwamVanLid(zoek.van) && magLeden && lid !== null
+  const editorHref = vanLid ? metVanLid(paden.editor) : paden.editor
+  // __lid__ vult het formulier in, ook als de trainer nog een ander lid kiest.
+  const lidHref = vanLid ? lidKaartPad('__lid__', vestiging, 'training') : paden.intakesVanLid
 
   return (
     <>
@@ -56,8 +63,8 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
         beginLid={lid ? { id: lid.id, naam: volledigeNaam(lid), lidnummer: lid.lidnummer } : null}
         trainers={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
         vandaag={dagSleutelNl(new Date())}
-        lidHref={paden.intakesVanLid}
-        editorHref={paden.editor}
+        lidHref={lidHref}
+        editorHref={editorHref}
         vragen={vragen?.vragen ?? standaardVragen()}
       />
     </>

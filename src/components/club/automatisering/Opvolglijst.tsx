@@ -12,9 +12,11 @@ interface Props {
   groepen: readonly OpvolgGroep[]
   /** Per lid-id de link naar de ledenkaart. */
   ledenkaarten: Readonly<Record<string, string>>
+  /** Kopniveau van de groepen: h3 als de lijst in een sectie van Vandaag staat. */
+  kop?: 'h2' | 'h3'
 }
 
-export function Opvolglijst({ groepen, ledenkaarten }: Props) {
+export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2' }: Props) {
   const router = useRouter()
   const [weg, setWeg] = useState<ReadonlySet<string>>(new Set())
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
@@ -39,9 +41,9 @@ export function Opvolglijst({ groepen, ledenkaarten }: Props) {
           {zichtbaar.map((g) => (
             <section key={g.regel} id={`regel-${g.regel}`} className="club-opvolg-groep" aria-labelledby={`kop-${g.regel}`}>
               <header className="club-opvolg-groepkop">
-                <h2 id={`kop-${g.regel}`}>
+                <Kop id={`kop-${g.regel}`}>
                   {g.titel} <span className="club-opvolg-aantal">{g.items.length}</span>
-                </h2>
+                </Kop>
                 <p>{g.uitleg}</p>
               </header>
               <ul className="club-opvolg-taken">

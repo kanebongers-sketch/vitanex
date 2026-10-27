@@ -42,6 +42,32 @@ describe('zoekItems', () => {
   })
 })
 
+describe('secties op Vandaag', () => {
+  it('check-in, taken en opvolgen landen op hun anker op Vandaag', () => {
+    const items = zoekItems(ALLES, true)
+    expect(filterZoek(items, 'check-in')[0]).toMatchObject({ id: 'vandaag-checkin', pad: '#checkin', plek: 'Werkvloer · Vandaag', toets: 'G C' })
+    expect(filterZoek(items, 'taken')[0]).toMatchObject({ id: 'vandaag-taken', pad: '#taken' })
+    expect(filterZoek(items, 'opvolgen')[0]).toMatchObject({ id: 'vandaag-opvolgen', pad: '#opvolgen' })
+    expect(zoekHref(filterZoek(items, 'opvolgen')[0], 'budel')).toBe('/club?v=budel#opvolgen')
+  })
+
+  it('de volledige schermen blijven te vinden', () => {
+    const items = zoekItems(ALLES, true)
+    expect(filterZoek(items, 'takenweek')[0].pad).toBe('/taken/week')
+    expect(filterZoek(items, 'zelf-check-in')[0].pad).toBe('/checkin/kiosk')
+    expect(filterZoek(items, 'check-in volledig scherm')[0].pad).toBe('/checkin')
+    expect(filterZoek(items, 'takenlijsten beheren')[0].pad).toBe('/taken/beheer')
+  })
+
+  it('niet zonder het recht of als het onderdeel uit staat', () => {
+    const trainerZonderTaken = zoekItems({ ...ALLES, toegestaan: ['vandaag', 'checkin'] }, false).map((i) => i.id)
+    expect(trainerZonderTaken).toContain('vandaag-checkin')
+    expect(trainerZonderTaken).not.toContain('vandaag-taken')
+    expect(trainerZonderTaken).not.toContain('scherm-taken-week')
+    expect(zoekItems({ ...ALLES, uit: ['checkin'] }, true).map((i) => i.id)).not.toContain('vandaag-checkin')
+  })
+})
+
 describe('filterZoek', () => {
   const items = zoekItems(ALLES, true)
   it('leeg geeft alles, onzin niets', () => {

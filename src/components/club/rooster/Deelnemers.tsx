@@ -5,6 +5,7 @@ import { initialen } from '@/lib/club/kern/lid'
 import type { Deelnemer } from '@/lib/club/rooster/lesbeheer-opslag'
 import type { AfvinkStatus } from '@/lib/club/rooster/regels'
 import { reserveringNaam } from '@/lib/club/rooster/typen'
+import { LidNaamLink } from '@/components/club/shell/LidNaamLink'
 import { stuur, useClubActie } from './vraag'
 
 // Deelnemers afvinken (instructeur), reserveringen annuleren (balie) en de
@@ -12,6 +13,20 @@ import { stuur, useClubActie } from './vraag'
 
 function naamVan(d: Deelnemer): string {
   return reserveringNaam(d.lid, d.reservering.lidId)
+}
+
+/** Vanuit het lid werken: de naam linkt naar de ledenkaart (tabblad Planning) voor wie Leden mag zien. */
+interface LinkInfo {
+  vestiging: string
+  magLeden: boolean
+}
+
+function Naam({ d, naam, link }: { d: Deelnemer; naam: string; link: LinkInfo }) {
+  return (
+    <LidNaamLink lidId={d.lid ? d.reservering.lidId : null} vestiging={link.vestiging} magLeden={link.magLeden} tab="planning" className="club-rij-titel">
+      {naam}
+    </LidNaamLink>
+  )
 }
 
 function Avatar({ d }: { d: Deelnemer }) {
@@ -22,9 +37,10 @@ interface RijProps {
   d: Deelnemer
   kanAfvinken: boolean
   kanAnnuleren: boolean
+  link: LinkInfo
 }
 
-function DeelnemerRij({ d, kanAfvinken, kanAnnuleren }: RijProps) {
+function DeelnemerRij({ d, kanAfvinken, kanAnnuleren, link }: RijProps) {
   const { bezig, fout, voerUit } = useClubActie()
   const status = d.reservering.status
   const naam = naamVan(d)
@@ -37,7 +53,7 @@ function DeelnemerRij({ d, kanAfvinken, kanAnnuleren }: RijProps) {
     <li className="club-rij club-rooster-deelnemer" data-status={status}>
       <Avatar d={d} />
       <span className="club-rij-hoofd">
-        <span className="club-rij-titel">{naam}</span>
+        <Naam d={d} naam={naam} link={link} />
         <span className="club-rij-sub">
           {d.lid?.status === 'proef' ? 'Proeflid · ' : ''}
           {d.reservering.bron === 'app' ? 'Via de app' : d.reservering.bron === 'balie' ? 'Via de balie' : 'Door instructeur'}
@@ -69,20 +85,21 @@ interface Props {
   deelnemers: Deelnemer[]
   kanAfvinken: boolean
   kanAnnuleren: boolean
+  link: LinkInfo
 }
 
-export function DeelnemerLijst({ deelnemers, kanAfvinken, kanAnnuleren }: Props) {
+export function DeelnemerLijst({ deelnemers, kanAfvinken, kanAnnuleren, link }: Props) {
   if (deelnemers.length === 0) return <p className="club-leeg">Nog niemand ingeschreven.</p>
   return (
     <ul className="club-lijst">
       {deelnemers.map((d) => (
-        <DeelnemerRij key={d.reservering.id} d={d} kanAfvinken={kanAfvinken} kanAnnuleren={kanAnnuleren} />
+        <DeelnemerRij key={d.reservering.id} d={d} kanAfvinken={kanAfvinken} kanAnnuleren={kanAnnuleren} link={link} />
       ))}
     </ul>
   )
 }
 
-function WachtRij({ d, kanAnnuleren }: { d: Deelnemer; kanAnnuleren: boolean }) {
+function WachtRij({ d, kanAnnuleren, link }: { d: Deelnemer; kanAnnuleren: boolean; link: LinkInfo }) {
   const { bezig, fout, voerUit } = useClubActie()
   const naam = naamVan(d)
   return (
@@ -91,7 +108,7 @@ function WachtRij({ d, kanAnnuleren }: { d: Deelnemer; kanAnnuleren: boolean }) 
         {d.reservering.wachtpositie ?? '·'}
       </span>
       <span className="club-rij-hoofd">
-        <span className="club-rij-titel">{naam}</span>
+        <Naam d={d} naam={naam} link={link} />
         {fout && <span className="club-fout" role="alert">{fout}</span>}
       </span>
       {kanAnnuleren && (
@@ -109,18 +126,18 @@ function WachtRij({ d, kanAnnuleren }: { d: Deelnemer; kanAnnuleren: boolean }) 
   )
 }
 
-export function Wachtlijst({ wachtlijst, kanAnnuleren }: { wachtlijst: Deelnemer[]; kanAnnuleren: boolean }) {
+export function Wachtlijst({ wachtlijst, kanAnnuleren, link }: { wachtlijst: Deelnemer[]; kanAnnuleren: boolean; link: LinkInfo }) {
   if (wachtlijst.length === 0) return <p className="club-hint">Niemand op de wachtlijst. Is de les vol, dan komen nieuwe boekingen hier en schuiven ze vanzelf door als er een plek vrijkomt.</p>
   return (
     <ol className="club-lijst">
       {wachtlijst.map((d) => (
-        <WachtRij key={d.reservering.id} d={d} kanAnnuleren={kanAnnuleren} />
+        <WachtRij key={d.reservering.id} d={d} kanAnnuleren={kanAnnuleren} link={link} />
       ))}
     </ol>
   )
 }
 
-export function Afmeldingen({ geannuleerd }: { geannuleerd: Deelnemer[] }) {
+export function Afmeldingen({ geannuleerd, link }: { geannuleerd: Deelnemer[]; link: LinkInfo }) {
   if (geannuleerd.length === 0) return null
   return (
     <details className="club-rooster-uitklap">
@@ -130,7 +147,7 @@ export function Afmeldingen({ geannuleerd }: { geannuleerd: Deelnemer[] }) {
           <li key={d.reservering.id} className="club-rij">
             <Avatar d={d} />
             <span className="club-rij-hoofd">
-              <span className="club-rij-titel">{naamVan(d)}</span>
+              <Naam d={d} naam={naamVan(d)} link={link} />
             </span>
             {d.reservering.teLaat && <span className="club-chip club-chip--let-op">Te laat</span>}
           </li>

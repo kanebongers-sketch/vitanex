@@ -333,7 +333,11 @@ li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .ayg-lus-beweging, .ayg-lus[data-speelt] .ayg-lus-still { transition: none; }
 }
-.ayg-lus.ayg-3d--vul { aspect-ratio: auto; border-radius: 0; }
+/* Vullend in een vak (telefoon, held, coaching): .ayg-lus hierboven zet position
+   relative en wint van .ayg-3d--vul (zelfde gewicht, later). Zonder absolute en
+   inset 0 heeft het vak met container-type: size en aspect-ratio auto geen hoogte,
+   dan is .ayg-lus-vlak 0 bij 0 en het beeld leeg (test: oefenlus-css.test.ts). */
+.ayg-lus.ayg-3d--vul { position: absolute; inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; }
 .ayg-lus-knop {
   position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 38px; height: 38px;
   border: 0; border-radius: 50%; cursor: pointer; color: var(--ayg-inkt-tekst, #f2f0e9); background: color-mix(in srgb, var(--ayg-inkt, #0f1412) 74%, transparent);

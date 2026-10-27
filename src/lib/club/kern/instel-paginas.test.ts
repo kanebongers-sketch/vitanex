@@ -31,8 +31,8 @@ describe('INSTEL_PAGINAS', () => {
     for (const g of INSTEL_GROEPEN) expect(INSTEL_PAGINAS.some((p) => p.groep === g.sleutel), g.sleutel).toBe(true)
   })
 
-  it('elk onderdeel buiten het menu is te vinden in het instellingencentrum of in de hulpbalk', () => {
-    for (const o of ONDERDELEN.filter((x) => !inMenu(x))) {
+  it('elk onderdeel buiten het menu is te vinden in het instellingencentrum of in de hulpbalk (secties staan op Vandaag)', () => {
+    for (const o of ONDERDELEN.filter((x) => !inMenu(x) && !x.sectie)) {
       const ergens = INSTEL_PAGINAS.some((p) => p.sleutel === o.sleutel) || HULPBALK.some((i) => i.onderdeel === o.sleutel)
       expect(ergens, o.sleutel).toBe(true)
     }

@@ -32,15 +32,17 @@ interface Props {
   vandaag: string
   onKlaar: (melding: string) => void
   onSluit: () => void
+  /** Vanaf de ledenkaart: het lid staat al klaar (en blijft te wijzigen). */
+  beginLid?: GekozenLid | null
 }
 
-export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, leads, start, vandaag, onKlaar, onSluit }: Props) {
+export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, leads, start, vandaag, onKlaar, onSluit, beginLid = null }: Props) {
   const id = useId()
   const actief = typen.filter((t) => t.actief)
   const [typeId, setTypeId] = useState(actief[0]?.id ?? '')
   const [medewerkerId, setMedewerkerId] = useState(start.medewerkerId ?? '')
   const [datum, setDatum] = useState(start.datum < vandaag ? vandaag : start.datum)
-  const [lid, setLid] = useState<GekozenLid | null>(null)
+  const [lid, setLid] = useState<GekozenLid | null>(beginLid)
   const [leadId, setLeadId] = useState('')
   const [notitie, setNotitie] = useState('')
   const [geboektDoor, setGeboektDoor] = useState<'balie' | 'trainer'>('balie')

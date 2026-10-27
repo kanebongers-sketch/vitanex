@@ -4,7 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { LEAD_BRON_LABEL, LEAD_STATUS_LABEL, leadInitialen } from '@/lib/club/leads/model'
 import type { ProeflesLes } from '@/lib/club/leads/lessen'
-import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { ContactKnoppen } from './ContactKnoppen'
 import { PaneelContact } from './PaneelContact'
 import { PaneelGegevens } from './PaneelGegevens'
@@ -65,7 +66,7 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
               <strong>{melding}</strong>
               {lead.lidId && (
                 <p>
-                  <Link href={clubPad(`/leden/${lead.lidId}`, vestiging)}>Open de ledenkaart</Link>
+                  <Link href={lidKaartPad(lead.lidId, vestiging)}>Open de ledenkaart</Link>
                 </p>
               )}
             </div>

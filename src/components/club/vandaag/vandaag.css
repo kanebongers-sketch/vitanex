@@ -143,6 +143,30 @@
   .club-vandaag-gezichten { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ── Secties: check-in, taken en opvolgen op het dagscherm ──────────────────
+   Besluit Kane 27-10-2026: geen eigen tabbladen meer. Elke sectie heeft een
+   anker (/club#checkin, #taken, #opvolgen); de kop blijft vrij van de vaste balk. */
+.club-vandaag-sectie { display: grid; gap: 14px; min-width: 0; scroll-margin-top: 124px; }
+.club-vandaag-sectie-kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.club-vandaag-sectie-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: clamp(26px, 3vw, 36px); font-weight: 700; line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; }
+.club-vandaag-sectie-kop p { margin: 4px 0 0; max-width: 62ch; font-size: 13.5px; line-height: 1.5; color: var(--text-3); }
+.club-vandaag-sectie-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-vandaag-sectie-links .club-knop { min-height: var(--club-tik, 44px); }
+
+/* Check-in: op Vandaag plakt "Nu binnen" niet (dat doet hij alleen op de vaste balie). */
+.club-vandaag-checkin .club-checkin-paneel { position: static; }
+.club-vandaag-checkin .club-checkin-zoek input { min-height: 64px; font-size: clamp(20px, 2.2vw, 26px); }
+
+/* Opvolgen: links de leden per regel, rechts leads en jarigen. */
+.club-vandaag-opvolgen { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 1000px) { .club-vandaag-opvolgen:not([data-alleen-rechts]) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+.club-vandaag-opvolgen[data-alleen-rechts] .club-vandaag-opvolg-rechts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.club-vandaag-opvolg-leden, .club-vandaag-opvolg-rechts { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.club-vandaag-opvolg-leden .club-opvolg-groepen { gap: 24px; }
+.club-vandaag-opvolg-leden .club-opvolg-groep { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.club-vandaag-opvolg-leden .club-opvolg-groepkop { position: static; }
+.club-vandaag-opvolg-leden .club-opvolg-groepkop :is(h2, h3) { font-size: 20px; }
+
 /* Binnenkomst: de blokken komen rustig na elkaar binnen. */
 .club-vandaag-hero, .club-vandaag-raster > div { animation: club-vandaag-in 420ms var(--ease) both; }
 .club-vandaag-raster > div:nth-child(1) { animation-delay: 60ms; }

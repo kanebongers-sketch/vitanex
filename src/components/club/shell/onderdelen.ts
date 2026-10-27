@@ -9,6 +9,9 @@
 // inMenu: false bestaan voor de rechten en het zoekveld, niet in de balk.
 // Instellingen, de Ledenapp en Hulp staan onderaan in de hulpbalk (hulpbalk:
 // true, idee Kane 23-10-2026, zie hulpbalk.ts), niet in het menu: niets dubbel.
+// Minder tabbladen (besluit Kane 27-10-2026): Check-in, Taken en Opvolgen zijn
+// een sectie op Vandaag (sectie: het anker), geen eigen tab. Hun rechtensleutels
+// blijven, net als hun volledige schermen (schermen), voor diepe links en API.
 
 import type { Module } from '@/lib/club/kern/organisatie'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
@@ -39,13 +42,38 @@ export interface Onderdeel {
   hulpbalk?: true
   /** Sneltoets op de pc: G en dan deze letter (bijvoorbeeld G dan L voor Leden). */
   toets?: string
+  /** Staat als sectie op Vandaag met dit anker (/club#anker), niet als tab in het menu. */
+  sectie?: string
+  /** Volledige schermen achter deze sectie (te vinden via zoeken en de links in de sectie). */
+  schermen?: readonly Scherm[]
+}
+
+/** Een volledig scherm achter een sectie op Vandaag, bijvoorbeeld de takenweek. */
+export interface Scherm {
+  id: string
+  label: string
+  uitleg: string
+  /** Pad binnen /club. */
+  pad: string
 }
 
 export const ONDERDELEN: readonly Onderdeel[] = [
   { sleutel: 'vandaag', pad: '', label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging', groep: 'werkvloer', toets: 'v' },
-  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Balie: leden inchecken en wie er binnen is', groep: 'werkvloer', module: 'checkin', toets: 'c' },
-  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster', groep: 'werkvloer', module: 'taken', toets: 'k' },
-  { sleutel: 'opvolgen', pad: '/opvolgen', label: 'Opvolgen', uitleg: 'Leden die je vandaag belt of aanspreekt (nieuwe leads volg je op bij Leads)', groep: 'werkvloer', toets: 'o' },
+  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Leden inchecken en wie er nu binnen is, bovenaan Vandaag', groep: 'werkvloer', module: 'checkin', toets: 'c', sectie: 'checkin',
+    schermen: [
+      { id: 'balie', label: 'Check-in op volledig scherm', uitleg: 'De balie voor een vaste tablet of pc, met scanner of bandjeslezer', pad: '/checkin' },
+      { id: 'kiosk', label: 'Zelf-check-in scherm', uitleg: 'Tablet bij de ingang: leden scannen de QR-code uit hun app', pad: '/checkin/kiosk' },
+    ] },
+  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken en de afsluitronde, op Vandaag', groep: 'werkvloer', module: 'taken', toets: 'k', sectie: 'taken',
+    schermen: [
+      { id: 'week', label: 'Takenweek', uitleg: 'Alle taken en poetslijsten van de hele week in een tabel', pad: '/taken/week' },
+      { id: 'overzicht', label: 'Takenoverzicht', uitleg: 'Gemiste dagtaken, weektaken die achterlopen en afsluitrondes', pad: '/taken/overzicht' },
+      { id: 'beheer', label: 'Takenlijsten beheren', uitleg: 'Lijsten en taken maken, hoe vaak en wanneer, kopieren naar een vestiging', pad: '/taken/beheer' },
+    ] },
+  { sleutel: 'opvolgen', pad: '/opvolgen', label: 'Opvolgen', uitleg: 'Leden en leads die je vandaag belt of aanspreekt, op Vandaag', groep: 'werkvloer', toets: 'o', sectie: 'opvolgen',
+    schermen: [
+      { id: 'lijst', label: 'Opvolgen: volledige lijst', uitleg: 'Alle open opvolging per regel en wat de laatste 7 dagen is afgehandeld', pad: '/opvolgen' },
+    ] },
   { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer', toets: 'n' },
   { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden', toets: 'l' },
   { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads', toets: 'e' },
@@ -95,20 +123,36 @@ export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = [], t
   return !onderdeel.module || !uit.includes(onderdeel.module)
 }
 
-/** Staat dit onderdeel in de menubalk (niet in het instellingencentrum en niet in de hulpbalk)? */
+/** Staat dit onderdeel in de menubalk (niet in het instellingencentrum, niet in de hulpbalk en geen sectie op Vandaag)? */
 export function inMenu(onderdeel: Onderdeel): boolean {
-  return onderdeel.inMenu !== false && !onderdeel.hulpbalk
+  return onderdeel.inMenu !== false && !onderdeel.hulpbalk && !onderdeel.sectie
 }
+
+/** Waar een onderdeel heen gaat: een sectie op Vandaag als anker (#checkin), anders zijn pad. */
+export function onderdeelPad(onderdeel: Pick<Onderdeel, 'pad' | 'sectie'>): string {
+  return onderdeel.sectie ? `#${onderdeel.sectie}` : onderdeel.pad
+}
+
+/** Vandaag, waar de secties op staan. */
+const VANDAAG = ONDERDELEN[0]
 
 /**
  * Het menu-onderdeel dat oplicht op dit pad, of null als je buiten het menu
  * bent: in de hulpbalk (Instellingen en elke instel-pagina, Koppelingen,
- * Ledenapp, Wat is nieuw, Hulp) of op een pagina zonder onderdeel.
+ * Ledenapp, Wat is nieuw, Hulp) of op een pagina zonder onderdeel. Op een
+ * volledig scherm van een sectie (de takenweek, de balie) licht Vandaag op.
  */
 export function menuOnderdeel(pad: string): Onderdeel | null {
   const o = actiefOnderdeel(pad)
   if (!isActief(o, pad)) return null
+  if (o.sectie) return VANDAAG
   return inMenu(o) ? o : null
+}
+
+/** De secties op Vandaag die deze persoon ziet, in vaste volgorde. */
+export function sectiesVoor(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+  if (!isZichtbaar(VANDAAG, uit, toegestaan)) return []
+  return ONDERDELEN.filter((o) => o.sectie && isZichtbaar(o, uit, toegestaan))
 }
 
 /** De onderdelen van een groep in het menu, in vaste volgorde. */
@@ -124,11 +168,12 @@ export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly str
 // ── Onderbalk (telefoon en tablet staand) ────────────────────────────────────
 // Besluit Kane (20-10-2026): de trainer op de vloer moet het makkelijk hebben.
 // Onder in beeld staan de vier onderdelen die deze persoon het meest nodig heeft,
-// plus Meer (het menupaneel met alles). Vaste volgorde op basis van de rechten,
+// plus Meer (het menupaneel met alles). Check-in, Taken en Opvolgen staan op
+// Vandaag (de eerste knop), dus niet apart in de balk. Vaste volgorde op basis van de rechten,
 // niet op gebruik: een knop die verspringt kost meer dan hij oplevert.
 
 /** Volgorde van belang op de werkvloer; de eerste vier die iemand mag, komen in de onderbalk. */
-export const ONDERBALK_VOLGORDE: readonly string[] = ['vandaag', 'checkin', 'leden', 'schemas', 'rooster', 'taken', 'personeel', 'afspraken', 'opvolgen', 'leads', 'agenda', 'voeding', 'notities']
+export const ONDERBALK_VOLGORDE: readonly string[] = ['vandaag', 'leden', 'schemas', 'rooster', 'personeel', 'afspraken', 'leads', 'agenda', 'voeding', 'notities']
 
 export const ONDERBALK_MAX = 4
 
@@ -142,15 +187,17 @@ export function onderbalkOnderdelen(uit: readonly Module[] = [], toegestaan: rea
 // ── Sneltoetsen (pc) ─────────────────────────────────────────────────────────
 
 /**
- * Het onderdeel achter G en dan deze letter, als deze persoon het in het menu
- * of in de hulpbalk heeft. Instellingen (G I) volgt `instellingen` (zie
+ * Het onderdeel achter G en dan deze letter, als deze persoon het in het menu,
+ * in de hulpbalk of als sectie op Vandaag heeft (G C gaat naar /club#checkin,
+ * zie onderdeelPad). Instellingen (G I) volgt `instellingen` (zie
  * heeftInstellingen in instel-paginas.ts); standaard alleen bij alle rechten.
  */
 export function onderdeelVoorToets(letter: string, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel | null {
   const l = letter.toLowerCase()
-  const o = ONDERDELEN.find((x) => x.toets === l && (inMenu(x) || x.hulpbalk))
+  const o = ONDERDELEN.find((x) => x.toets === l && (inMenu(x) || x.hulpbalk || x.sectie))
   if (!o) return null
   if (o.sleutel === 'beheer') return instellingen ? o : null
+  if (o.sectie) return sectiesVoor(uit, toegestaan).includes(o) ? o : null
   if (o.hulpbalk) return isZichtbaar(o, uit, toegestaan) ? o : null
   return onderdelenVan(o.groep, uit, toegestaan).includes(o) ? o : null
 }

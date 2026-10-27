@@ -18,7 +18,7 @@ export async function CheckinScherm() {
   const t = WERKVLOER[await getSiteTaal()]
   const kolommen = 'minmax(0, 1fr) 44px auto'
   return (
-    <Venster actief="Werkvloer" hier="Check-in">
+    <Venster actief="Werkvloer" hier="Vandaag">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.checkinBoven}</p>
@@ -64,7 +64,7 @@ export async function TakenScherm() {
   const t = WERKVLOER[await getSiteTaal()]
   const kolommen = 'minmax(0, 1fr) repeat(5, 26px)'
   return (
-    <Venster actief="Werkvloer" hier="Taken">
+    <Venster actief="Werkvloer" hier="Vandaag">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.takenBoven}</p>
@@ -107,7 +107,7 @@ const OPVOLGEN = [
 export async function OpvolgScherm() {
   const t = WERKVLOER[await getSiteTaal()]
   return (
-    <Venster actief="Werkvloer" hier="Opvolgen">
+    <Venster actief="Werkvloer" hier="Vandaag">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.opvolgBoven}</p>

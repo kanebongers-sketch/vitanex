@@ -11,14 +11,14 @@ import { VandaagHero } from '@/components/club/vandaag/VandaagHero'
 import { LesTijdlijn } from '@/components/club/vandaag/LesTijdlijn'
 import { LeadsOpvolgen } from '@/components/club/vandaag/Opvolgen'
 import { RisicoLeden } from '@/components/club/vandaag/RisicoLeden'
-import { TakenVandaag, WieWerkt } from '@/components/club/vandaag/Werkvloer'
+import { WieWerkt } from '@/components/club/vandaag/Werkvloer'
 import { JarigVandaag, NieuwDezeWeek } from '@/components/club/vandaag/NieuwEnJarig'
 import { AgendaVandaag, OverdrachtVandaag } from '@/components/club/vandaag/AgendaEnOverdracht'
 import { haalAgendaWeek } from '@/lib/club/agenda/data'
 import { perDag } from '@/lib/club/agenda/model'
 import { haalKladblok } from '@/lib/club/kladblok/data'
 import { overdrachtVoorVandaag } from '@/lib/club/kladblok/model'
-import { maandagVan } from '@/lib/club/rooster/tijd'
+import { maandagVan, nlDelen } from '@/lib/club/rooster/tijd'
 import { magBeheerdersBeheren, magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moetNaarWizard } from '@/lib/club/start/stappen'
 import { haalStartVoorPagina } from '@/lib/club/start/opslag'
@@ -26,12 +26,20 @@ import { StartKaart } from '@/components/club/start/StartKaart'
 import { beperkVandaag } from '@/lib/club/beheerders/vandaag-filter'
 import '@/components/club/vandaag/vandaag.css'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
-import { OpvolgenVandaag } from '@/components/club/automatisering/OpvolgenVandaag'
-import '@/components/club/automatisering/automatisering.css'
+import { CheckinSectie } from '@/components/club/vandaag/secties/CheckinSectie'
+import { TakenSectie } from '@/components/club/vandaag/secties/TakenSectie'
+import { OpvolgSectie } from '@/components/club/vandaag/secties/OpvolgSectie'
+import { AutoVerversen } from '@/components/club/taken/Hulpjes'
+import { isZichtbaar, ONDERDELEN } from '@/components/club/shell/onderdelen'
+import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 
-// Vandaag: het eerste scherm van de clubsoftware. Wat er nu speelt in de
-// gekozen vestiging, in een keer server-side opgehaald (zie haal-vandaag.ts).
-// Een clubmanager ziet alleen de blokken van onderdelen die de eigenaar hem gaf.
+// Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
+// vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
+// check-in (#checkin), de cijfers van nu, de lessen met wie er werkt, de taken
+// van vandaag (#taken), opvolgen met leads en jarigen (#opvolgen), en de leden
+// om op te letten. Check-in, taken en opvolgen laden los in een Suspense, zodat
+// de pagina snel in beeld staat. Een clubmanager ziet alleen de secties van
+// onderdelen die de eigenaar hem gaf en die aan staan.
 
 export const metadata: Metadata = { title: 'Vandaag' }
 
@@ -55,6 +63,11 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
     )
   }
   const mag = (onderdeel: string) => magOnderdeel(t.onderdelen, onderdeel)
+  /** Mag deze persoon het onderdeel en staat het aan bij de sportschool? */
+  const zie = (sleutel: string) => {
+    const o = ONDERDELEN.find((x) => x.sleutel === sleutel)
+    return o !== undefined && isZichtbaar(o, t.organisatie.uit, t.onderdelen)
+  }
   // Alles tegelijk: de doorverwijzing naar de wizard, de cijfers, de agenda en de overdracht.
   // Agenda en overdracht hangen alleen af van de dag, niet van de cijfers; een fout daarin
   // breekt het scherm niet (null = melding in het blok).
@@ -71,11 +84,14 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const agendaVandaag = week ? (perDag(week, maandag).find((d) => d.datum === data.vandaag)?.items ?? []) : null
   const overdracht = kladblok ? overdrachtVoorVandaag(kladblok, data.nu) : null
   const [weekdag, ...rest] = dagLang(data.vandaag).split(' ')
+  const vestigingNaam = naamVan(t.vestigingen, vestiging)
+  const { checkin } = t.organisatie.instellingen
+  const leadsOfJarig = zie('leads') || zie('leden')
   return (
     <>
       <header className="club-vandaag-kop">
         <div>
-          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · vandaag</p>
+          <p className="club-boventitel">{vestigingNaam} · vandaag</p>
           <h1 className="club-vandaag-dag">
             {weekdag} <span>{rest.join(' ')}</span>
           </h1>
@@ -99,6 +115,10 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </p>
       ))}
 
+      <AutoVerversen />
+
+      {zie('checkin') && <CheckinSectie admin={t.admin} userId={t.userId} vestiging={vestiging} methode={checkin.methode} qrAan={qrCheckinAan(checkin)} magLeden={zie('leden')} />}
+
       <VandaagHero data={data} />
 
       <div className="club-raster club-vandaag-raster">
@@ -109,26 +129,32 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           {mag('personeel') && <WieWerkt diensten={data.werkvloer.diensten} vestiging={vestiging} />}
           {mag('notities') && <OverdrachtVandaag notities={overdracht} vestiging={vestiging} />}
           {mag('agenda') && <AgendaVandaag items={agendaVandaag} vestiging={vestiging} />}
-          {mag('taken') && <TakenVandaag stand={data.werkvloer.taken} heeftTaken={data.werkvloer.heeftTaken} vestiging={vestiging} />}
         </div>
-        <div className="club-k7">
-          {mag('leden') && <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />}
-        </div>
-        <div className="club-k5 club-vandaag-stapel">
-          {mag('opvolgen') && (
-            <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
-              <OpvolgenVandaag admin={t.admin} userId={t.userId} vestiging={vestiging} />
-            </Suspense>
-          )}
-          {mag('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}
-          {mag('leden') && <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />}
-        </div>
-        {mag('leden') && (
-          <div className="club-vandaag-vol">
+      </div>
+
+      {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} />}
+
+      {(zie('opvolgen') || leadsOfJarig) && (
+        <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magRegels={mag('beheer')}>
+          {leadsOfJarig ? (
+            <>
+              {zie('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}
+              {zie('leden') && <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />}
+            </>
+          ) : null}
+        </OpvolgSectie>
+      )}
+
+      {mag('leden') && (
+        <div className="club-raster club-vandaag-raster">
+          <div className="club-k7">
+            <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />
+          </div>
+          <div className="club-k5 club-vandaag-stapel">
             <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   )
 }

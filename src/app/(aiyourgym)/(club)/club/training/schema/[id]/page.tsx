@@ -15,6 +15,7 @@ import { uitOpgeslagen } from '@/lib/club/training/editor'
 import { SchemaEditor } from '@/components/club/training/SchemaEditor'
 import { TrainingslogKaart } from '@/components/club/training/TrainingslogKaart'
 import { trainingPad, trainingPaden } from '@/components/club/training/TrainingTabs'
+import { kwamVanLid, lidKaartPad, metVanLid, terugNaar } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/training/training.css'
 
 export const metadata: Metadata = { title: 'Schema' }
@@ -39,17 +40,22 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
   if (!schema || !eigen) notFound()
   const { kop } = schema
   const isSjabloon = kop.lidId === null
-  const terug = isSjabloon ? trainingPad(vestiging, 'sjablonen', null) : trainingPad(vestiging, 'schemas', kop.lidId)
+  const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
+  // Begon het op de ledenkaart (?van=lid), dan gaat terug (ook na verwijderen) naar het tabblad Training van het lid.
+  const vanLid = kwamVanLid(zoek.van) && !isSjabloon
+  const anders = isSjabloon ? trainingPad(vestiging, 'sjablonen', null) : trainingPad(vestiging, 'schemas', kop.lidId)
+  const terug = terugNaar({ vanLid, magLeden, lidId: kop.lidId, vestiging, tab: 'training', anders })
+  const editorHref = vanLid && magLeden ? metVanLid(trainingPaden(vestiging).editor) : trainingPaden(vestiging).editor
   const beginStaat = uitOpgeslagen(schema.regels, kop.dagTitels)
   // Progressie: wat het lid per set logde, met de volgende stap volgens de vaste vakregel.
   const sets = kop.lidId ? await haalSetLogs(t.admin, t.userId, kop.lidId, schema.regels.map((r) => r.oefeningId)) : null
   const progressie = sets && oefeningen ? progressieOverzicht(schema.regels, new Map(oefeningen.map((o) => [o.id, o])), sets) : null
   // De weg terug: bij een lid via de ledenkaart (daar komt de trainer vandaan), anders via Training.
-  const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
-  const naarLid = kop.lidId ? stappenNaarLid(magLeden, { id: kop.lidId, naam: kop.lidNaam ?? 'Lid' }, vestiging) : []
+  const lidId = kop.lidId
+  const naarLid = lidId ? stappenNaarLid(magLeden, { id: lidId, naam: kop.lidNaam ?? 'Lid' }, vestiging).map((st, i) => (i === 1 ? { ...st, href: lidKaartPad(lidId, vestiging, 'training') } : st)) : []
   const kruimel: KruimelStap[] = naarLid.length
     ? naarLid
-    : [{ label: 'Training', href: trainingPad(vestiging, isSjabloon ? 'sjablonen' : 'schemas', null) }, { label: isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`, href: terug }]
+    : [{ label: 'Training', href: trainingPad(vestiging, isSjabloon ? 'sjablonen' : 'schemas', null) }, { label: isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`, href: anders }]
 
   return (
     <div className="club-training-printpagina">
@@ -75,7 +81,7 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
         beginStaat={beginStaat}
         oefeningen={oefeningen ?? []}
         trainers={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
-        editorHref={trainingPaden(vestiging).editor}
+        editorHref={editorHref}
         terugHref={terug}
         progressie={progressie}
         zijkant={isSjabloon ? null : <TrainingslogKaart log={log ?? []} dagTitels={beginStaat.dagTitels} nu={new Date()} />}

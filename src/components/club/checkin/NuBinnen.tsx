@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { LidNaamLink } from '@/components/club/shell/LidNaamLink'
 import { NU_BINNEN_MIN, type DagSamenvatting } from '@/lib/club/checkin/regels'
 import { tijdNl } from '@/lib/club/leden/tijd'
 
@@ -12,9 +12,13 @@ const BRON: Record<string, string> = { balie: 'Balie', qr: 'QR', bandje: 'Bandje
 interface NuBinnenProps {
   samenvatting: DagSamenvatting | null
   vestiging: Vestiging
+  /** Mag deze persoon Leden zien? Dan is elke naam een link naar de ledenkaart. */
+  magLeden: boolean
+  /** false op Vandaag: de tellers staan daar al groot in beeld (Nu binnen, check-ins vandaag). */
+  tellers?: boolean
 }
 
-export function NuBinnen({ samenvatting, vestiging }: NuBinnenProps) {
+export function NuBinnen({ samenvatting, vestiging, magLeden, tellers = true }: NuBinnenProps) {
   if (!samenvatting) {
     return (
       <aside className="club-checkin-paneel" aria-label="Vandaag">
@@ -24,18 +28,20 @@ export function NuBinnen({ samenvatting, vestiging }: NuBinnenProps) {
   }
   return (
     <aside className="club-checkin-paneel" aria-label="Vandaag">
-      <div className="club-checkin-tellers">
-        <div className="club-checkin-teller club-checkin-teller--nu">
-          <span className="club-tegel-label">Nu binnen</span>
-          <span className="club-checkin-teller-getal club-getal">{samenvatting.binnen.length}</span>
-          <span className="club-tegel-sub">Ingecheckt in de laatste {NU_BINNEN_MIN} min</span>
+      {tellers && (
+        <div className="club-checkin-tellers">
+          <div className="club-checkin-teller club-checkin-teller--nu">
+            <span className="club-tegel-label">Nu binnen</span>
+            <span className="club-checkin-teller-getal club-getal">{samenvatting.binnen.length}</span>
+            <span className="club-tegel-sub">Ingecheckt in de laatste {NU_BINNEN_MIN} min</span>
+          </div>
+          <div className="club-checkin-teller">
+            <span className="club-tegel-label">Vandaag</span>
+            <span className="club-checkin-teller-getal club-getal">{samenvatting.vandaag}</span>
+            <span className="club-tegel-sub">Check-ins sinds middernacht</span>
+          </div>
         </div>
-        <div className="club-checkin-teller">
-          <span className="club-tegel-label">Vandaag</span>
-          <span className="club-checkin-teller-getal club-getal">{samenvatting.vandaag}</span>
-          <span className="club-tegel-sub">Check-ins sinds middernacht</span>
-        </div>
-      </div>
+      )}
 
       <section className="club-kaart club-kaart--vlak" aria-labelledby="binnen-kop">
         <h2 id="binnen-kop">Nu binnen</h2>
@@ -43,7 +49,7 @@ export function NuBinnen({ samenvatting, vestiging }: NuBinnenProps) {
           <ul className="club-checkin-binnen">
             {samenvatting.binnen.map((c) => (
               <li key={c.id}>
-                <Link href={clubPad(`/leden/${c.lidId}`, vestiging)}>{c.naam ?? 'Onbekend lid'}</Link>
+                <LidNaamLink lidId={c.lidId} vestiging={vestiging} magLeden={magLeden} tab="planning">{c.naam ?? 'Onbekend lid'}</LidNaamLink>
                 <span className="club-getal club-zacht">{tijdNl(c.op)}</span>
               </li>
             ))}
@@ -58,7 +64,7 @@ export function NuBinnen({ samenvatting, vestiging }: NuBinnenProps) {
             {samenvatting.laatste.map((c) => (
               <li key={c.id} className="club-rij">
                 <span className="club-checkin-tijd club-getal">{tijdNl(c.op)}</span>
-                <span className="club-rij-hoofd"><span className="club-rij-titel">{c.naam ?? 'Onbekend lid'}</span></span>
+                <span className="club-rij-hoofd"><LidNaamLink lidId={c.lidId} vestiging={vestiging} magLeden={magLeden} tab="planning" className="club-rij-titel">{c.naam ?? 'Onbekend lid'}</LidNaamLink></span>
                 <span className="club-chip club-chip--geen">{BRON[c.bron] ?? c.bron}</span>
               </li>
             ))}

@@ -3,7 +3,8 @@ import { Cake } from 'lucide-react'
 import type { Jarige, VandaagLid } from '@/lib/club/cijfers/vandaag'
 import { aantal } from '@/lib/club/cijfers/opmaak'
 import { dagKort } from '@/lib/club/cijfers/tijd'
-import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import type { Vestiging } from '@/lib/club/kern/vestiging'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { initialen } from '@/lib/club/kern/lid'
 
 // Mensen om vandaag even aan te spreken: wie net begonnen is en wie jarig is.
@@ -24,7 +25,7 @@ export function NieuwDezeWeek({ leden, vestiging }: { leden: VandaagLid[]; vesti
         <ul className="club-vandaag-gezichten">
           {leden.map((l) => (
             <li key={l.id}>
-              <Link href={clubPad(`/leden/${l.id}`, vestiging)} className="club-vandaag-gezicht">
+              <Link href={lidKaartPad(l.id, vestiging)} className="club-vandaag-gezicht">
                 <span className="club-avatar" aria-hidden>
                   {initialen(l)}
                 </span>
@@ -57,7 +58,7 @@ export function JarigVandaag({ jarigen, vestiging }: { jarigen: Jarige[]; vestig
         <ul className="club-lijst club-vandaag-lijst">
           {jarigen.map(({ lid, leeftijd }) => (
             <li key={lid.id}>
-              <Link href={clubPad(`/leden/${lid.id}`, vestiging)} className="club-rij club-vandaag-rijlink">
+              <Link href={lidKaartPad(lid.id, vestiging)} className="club-rij club-vandaag-rijlink">
                 <span className="club-avatar" aria-hidden>
                   {initialen(lid)}
                 </span>

@@ -10,6 +10,8 @@ import { haalDagPaneel } from '@/lib/club/checkin/data'
 import { CheckinBalie } from '@/components/club/checkin/CheckinBalie'
 import { NuBinnen } from '@/components/club/checkin/NuBinnen'
 import { Verversen } from '@/components/club/checkin/Verversen'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/checkin/checkin.css'
 
 export const metadata: Metadata = { title: 'Check-in' }
@@ -20,6 +22,8 @@ export default async function CheckinPagina({ searchParams }: { searchParams: Zo
   if (!vestiging) return <GeenVestigingen />
   const samenvatting = await haalDagPaneel(t.admin, t.userId, vestiging, new Date())
   const { checkin } = t.organisatie.instellingen
+  // Vanuit het lid werken: namen linken naar de ledenkaart, alleen voor wie Leden mag zien.
+  const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
   return (
     <>
       <header className="club-paginakop">
@@ -34,8 +38,8 @@ export default async function CheckinPagina({ searchParams }: { searchParams: Zo
         )}
       </header>
       <div className="club-checkin-raster">
-        <CheckinBalie key={vestiging} vestiging={vestiging} methode={checkin.methode} />
-        <NuBinnen samenvatting={samenvatting} vestiging={vestiging} />
+        <CheckinBalie key={vestiging} vestiging={vestiging} methode={checkin.methode} magLeden={magLeden} />
+        <NuBinnen samenvatting={samenvatting} vestiging={vestiging} magLeden={magLeden} />
       </div>
       <Verversen />
     </>

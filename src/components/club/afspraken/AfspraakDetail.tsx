@@ -3,7 +3,7 @@
 import { useId, useState } from 'react'
 import Link from 'next/link'
 import { CalendarClock, Check, UserX, X } from 'lucide-react'
-import { clubPad } from '@/lib/club/kern/vestiging'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { GEBOEKT_DOOR_LABEL, STATUS_LABEL, type AfspraakStatus, type AfspraakWeergave } from '@/lib/club/afspraken/model'
 import { volgendeStatussen } from '@/lib/club/afspraken/regels'
 import { nlDatumTijd, tijdvak } from '@/lib/club/afspraken/weergave'
@@ -67,7 +67,7 @@ export function AfspraakDetail({ afspraak: a, vestiging, trainerNaam, trainers, 
         <div><dt>Status</dt><dd><span className={`club-chip club-afspraken-status--${a.status}`}>{STATUS_LABEL[a.status]}</span></dd></div>
         <div><dt>Geboekt via</dt><dd>{GEBOEKT_DOOR_LABEL[a.geboektDoor]}</dd></div>
       </dl>
-      <Link className="club-afspraken-link" href={clubPad(`/leden/${a.lidId}`, vestiging)}>Naar de ledenkaart</Link>
+      <Link className="club-afspraken-link" href={lidKaartPad(a.lidId, vestiging, 'planning')}>Naar de ledenkaart</Link>
       <PtTegoed afspraakId={a.id} typeNaam={a.typeNaam} />
 
       {opties.length > 0 ? (

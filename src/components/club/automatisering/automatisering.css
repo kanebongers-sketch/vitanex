@@ -25,7 +25,7 @@
   .club-opvolg-groep { grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); gap: 28px; align-items: start; }
   .club-opvolg-groepkop { position: sticky; top: 96px; }
 }
-.club-opvolg-groepkop h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; }
+.club-opvolg-groepkop :is(h2, h3) { margin: 0; display: flex; align-items: center; gap: 10px; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; }
 .club-opvolg-groepkop p { margin: 6px 0 0; color: var(--text-3); font-size: 13.5px; line-height: 1.5; }
 .club-opvolg-aantal { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt, #0A0B09); font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 

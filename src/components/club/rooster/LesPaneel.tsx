@@ -30,6 +30,8 @@ interface Props {
   kanAfvinken: boolean
   zalen: Optie[]
   instructeurs: Optie[]
+  /** Mag deze persoon Leden zien? Dan linken de namen naar de ledenkaart. */
+  magLeden: boolean
 }
 
 function Sectie({ titel, aantal, children }: { titel: string; aantal?: number; children: ReactNode }) {
@@ -44,11 +46,12 @@ function Sectie({ titel, aantal, children }: { titel: string; aantal?: number; c
   )
 }
 
-export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, kanAfvinken, zalen, instructeurs }: Props) {
+export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, kanAfvinken, zalen, instructeurs, magLeden }: Props) {
   const router = useRouter()
   const sluitKnop = useRef<HTMLAnchorElement>(null)
   const { les, deelnemers, wachtlijst, geannuleerd, proefleden } = detail
   const kanBoeken = !les.geannuleerd && !isBegonnen
+  const link = { vestiging, magLeden }
 
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -88,7 +91,7 @@ export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, k
 
         <Sectie titel="Deelnemers" aantal={deelnemers.length}>
           {kanAfvinken && <p className="club-hint">Vink af wie er is. Nog een keer klikken zet het terug.</p>}
-          <DeelnemerLijst deelnemers={deelnemers} kanAfvinken={kanAfvinken && !les.geannuleerd} kanAnnuleren={kanBoeken} />
+          <DeelnemerLijst deelnemers={deelnemers} kanAfvinken={kanAfvinken && !les.geannuleerd} kanAnnuleren={kanBoeken} link={link} />
         </Sectie>
 
         {proefleden.length > 0 && (
@@ -107,11 +110,11 @@ export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, k
         )}
 
         <Sectie titel="Wachtlijst" aantal={wachtlijst.length}>
-          <Wachtlijst wachtlijst={wachtlijst} kanAnnuleren={kanBoeken} />
+          <Wachtlijst wachtlijst={wachtlijst} kanAnnuleren={kanBoeken} link={link} />
         </Sectie>
 
         {kanBoeken && <LidToevoegen lesId={les.id} vestiging={vestiging} isVol={les.geboekt >= les.capaciteit} />}
-        <Afmeldingen geannuleerd={geannuleerd} />
+        <Afmeldingen geannuleerd={geannuleerd} link={link} />
         {kanBoeken && <LesBeheer les={les} zalen={zalen} instructeurs={instructeurs} />}
       </aside>
     </div>

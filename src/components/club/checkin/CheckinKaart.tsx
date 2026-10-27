@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { CircleCheck, CircleAlert, Clock3, MapPin, TriangleAlert } from 'lucide-react'
 import type { BalieLes, BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
 
@@ -119,6 +120,13 @@ interface UitkomstProps {
   onNiet: () => void
   /** Zo lang blijft de uitkomst staan; een dunne balk telt af. Leeg = geen balk. */
   duurMs?: number
+  /** De ledenkaart van dit lid; leeg = de naam is gewone tekst (geen recht op Leden). */
+  lidHref?: string | null
+}
+
+/** De naam groot in beeld, als link naar de ledenkaart als die er is. */
+function Naam({ naam, href }: { naam: string; href?: string | null }) {
+  return <h2>{href ? <Link href={href}>{naam}</Link> : naam}</h2>
 }
 
 /** De balk onderaan die laat zien dat de uitkomst zo verdwijnt (alleen transform). */
@@ -127,12 +135,12 @@ function Aftellen({ duurMs }: { duurMs?: number }) {
   return <span className="club-checkin-aftellen" style={{ animationDuration: `${duurMs}ms` }} aria-hidden />
 }
 
-export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: UitkomstProps) {
+export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs, lidHref }: UitkomstProps) {
   if (antwoord.soort === 'vorm_waarschuwing') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--let-op" role="alert">
         <p className="club-checkin-uitkomst-woord">Let op</p>
-        <h2>{lid.naam}</h2>
+        <Naam naam={lid.naam} href={lidHref} />
         <p>{antwoord.reden} Nog niet ingecheckt.</p>
         <div className="club-checkin-uitkomst-knoppen">
           <button type="button" className="club-knop club-knop--primair" onClick={onToch} disabled={bezig}>
@@ -149,7 +157,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: Uitko
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
         <p className="club-checkin-uitkomst-woord">Niet actief</p>
-        <h2>{lid.naam}</h2>
+        <Naam naam={lid.naam} href={lidHref} />
         <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt. Klopt de status niet, pas hem dan aan op de ledenkaart.</p>
         <Aftellen duurMs={duurMs} />
       </article>
@@ -159,7 +167,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: Uitko
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
         <p className="club-checkin-uitkomst-woord">Geen toegang</p>
-        <h2>{lid.naam}</h2>
+        <Naam naam={lid.naam} href={lidHref} />
         <p>Lid van {antwoord.vestigingLabel}: niet ingecheckt. Alleen leden van Eersel sporten bij alle clubs; andere leden overal behalve Eersel.</p>
         <Aftellen duurMs={duurMs} />
       </article>
@@ -169,7 +177,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: Uitko
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--dubbel" role="status">
         <p className="club-checkin-uitkomst-woord">Al binnen</p>
-        <h2>{lid.naam}</h2>
+        <Naam naam={lid.naam} href={lidHref} />
         <p>Ingecheckt om {tijd(antwoord.op)}. Deze keer telt niet opnieuw mee.</p>
         <Aftellen duurMs={duurMs} />
       </article>
@@ -178,7 +186,7 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs }: Uitko
   return (
     <article className="club-checkin-uitkomst club-checkin-uitkomst--welkom" role="status">
       <p className="club-checkin-uitkomst-woord">Welkom</p>
-      <h2>{lid.naam}</h2>
+      <Naam naam={lid.naam} href={lidHref} />
       <p>
         Ingecheckt om {tijd(antwoord.op)}.
         {lid.andereVestiging ? ` Lid van ${lid.vestigingLabel}.` : ''}

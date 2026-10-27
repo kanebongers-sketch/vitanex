@@ -16,6 +16,9 @@ vi.mock('@/lib/club/toegang', () => ({
 vi.mock('@/lib/club/kern/vestiging-toegang', () => ({ eisVestigingVanRecord: async () => null }))
 vi.mock('@/lib/club/kern/medewerker', () => ({ haalMedewerkers: async () => [] }))
 vi.mock('@/lib/club/leden/avg/opslag', () => ({ haalVerwijderverzoek: async () => stand.verzoek }))
+vi.mock('@/lib/club/lidmaatschappen/lezen', () => ({
+  haalVormen: async () => [{ id: 'v1', naam: 'All-in', omschrijving: '', vestigingen: null, groepslessen: true, maxLessenPerWeek: null, dalVan: null, dalTot: null, dalWeekendVrij: false, kleur: 'amber', actief: true, demo: false }],
+}))
 vi.mock('@/lib/club/kern/lid', async (orig) => ({
   ...(await orig<typeof import('@/lib/club/kern/lid')>()),
   haalLid: async () => ({ id: LID, vestiging: 'centrum', voornaam: 'Sanne', achternaam: 'Jansen', status: 'proef', tags: [], coachId: null }),
@@ -64,5 +67,25 @@ describe('status wijzigen op de ledenkaart', () => {
     stand.verzoek = undefined
     expect((await patch({ status: 'actief' })).status).toBe(500)
     expect(stand.updates).toEqual([])
+  })
+})
+
+describe('lidmaatschap wijzigen op de ledenkaart', () => {
+  it('zet een bestaande vorm en de datums', async () => {
+    const r = await patch({ abonnement: 'all-in', lidSinds: '2026-01-05' })
+    expect(r.status).toBe(200)
+    expect(stand.updates).toEqual([expect.objectContaining({ abonnement: 'All-in', lid_sinds: '2026-01-05' })])
+  })
+
+  it('weigert een vorm die de sportschool niet heeft', async () => {
+    expect((await patch({ abonnement: 'Verzonnen' })).status).toBe(400)
+    expect(stand.updates).toEqual([])
+  })
+
+  it('bewaart de pauzedatums apart van de status', async () => {
+    const r = await patch({ status: 'gepauzeerd', pauzeVan: '2026-11-01', pauzeTot: '2026-11-30' })
+    expect(r.status).toBe(200)
+    expect(stand.updates).toEqual([expect.objectContaining({ status: 'gepauzeerd' }), { pauze_van: '2026-11-01', pauze_tot: '2026-11-30' }])
+    expect(await r.json()).toEqual({ ok: true, pauzeNietOpgeslagen: false })
   })
 })

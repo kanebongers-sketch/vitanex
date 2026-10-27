@@ -3,11 +3,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Module } from '@/lib/club/kern/organisatie'
-import { onderdeelVoorToets } from './onderdelen'
+import { onderdeelPad, onderdeelVoorToets } from './onderdelen'
 import { inInvoer } from './ClubZoeken'
 
 // Sneltoetsen op de pc: G en dan een letter opent een onderdeel (G dan L is
-// Leden, G dan C is Check-in). Alleen buiten invoervelden, zonder Ctrl, Alt of
+// Leden, G dan C is de check-in bovenaan Vandaag). Alleen buiten invoervelden, zonder Ctrl, Alt of
 // Cmd, en alleen voor onderdelen die deze persoon in het menu heeft. De letters
 // staan in onderdelen.ts en zijn te zien in het zoekvenster (Ctrl K).
 
@@ -38,7 +38,7 @@ export function useSneltoetsen({ uit, toegestaan, instellingen, href }: Sneltoet
         const doel = onderdeelVoorToets(letter, uit, toegestaan, instellingen)
         if (doel) {
           e.preventDefault()
-          router.push(href(doel.pad))
+          router.push(href(onderdeelPad(doel)))
         }
         return
       }

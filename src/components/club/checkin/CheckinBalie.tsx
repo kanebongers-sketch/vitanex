@@ -9,6 +9,7 @@ import type { CheckinMethode } from '@/lib/club/kern/org-instellingen'
 import { lijktOpCheckinCode } from '@/lib/club/checkin/qr-formaat'
 import { isCheckinAntwoord, isQrCheckinAntwoord, isZoekAntwoord, type CheckinAntwoord, type ZoekAntwoord } from '@/lib/club/checkin/types'
 import { BalieLidKaart, Resultaten, Uitkomst, type UitkomstLid } from './CheckinKaart'
+import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { BalieCamera } from './BalieCamera'
 
 // Het baliescherm. Een QR-scanner of bandjeslezer typt als een toetsenbord en
@@ -42,6 +43,15 @@ interface Props {
   vestiging: Vestiging
   /** Check-in methode van de sportschool: bepaalt of de camera er is en direct aan staat. */
   methode: CheckinMethode
+  /** Mag deze persoon Leden zien? Dan linkt de naam in de uitkomst naar de ledenkaart. */
+  magLeden: boolean
+  /**
+   * Compact op Vandaag (besluit Kane 27-10-2026): geen autofocus (geen toetsenbord
+   * bij het openen op de telefoon), geen camera die vanzelf aangaat, geen
+   * wachtscherm en toetsen elders op de pagina blijven van de pagina (G en een
+   * letter). Het volledige scherm (/club/checkin) blijft de vaste balie.
+   */
+  compact?: boolean
 }
 
 type Doel = { lid: UitkomstLid } | { qr: string }
@@ -63,7 +73,7 @@ function foutUit(data: unknown): string | null {
   return typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
 }
 
-export function CheckinBalie({ vestiging, methode }: Props) {
+export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: Props) {
   const router = useRouter()
   const veld = useRef<HTMLInputElement>(null)
   const verzoekNr = useRef(0)
@@ -155,6 +165,7 @@ export function CheckinBalie({ vestiging, methode }: Props) {
   // Een scan terwijl de focus ergens anders staat: terug naar het zoekveld.
   // Escape werkt overal op het scherm.
   useEffect(() => {
+    if (compact) return
     function toets(e: globalThis.KeyboardEvent) {
       if (e.key === 'Escape' && !isTypveld(e.target)) return wisVanScherm()
       if (isTypveld(e.target) || e.metaKey || e.ctrlKey || e.altKey || e.key.length !== 1) return
@@ -162,7 +173,7 @@ export function CheckinBalie({ vestiging, methode }: Props) {
     }
     window.addEventListener('keydown', toets)
     return () => window.removeEventListener('keydown', toets)
-  }, [])
+  }, [compact])
 
   async function enter(waarde = query) {
     const q = waarde.trim()
@@ -209,13 +220,13 @@ export function CheckinBalie({ vestiging, methode }: Props) {
   const lijstOpen = leden.length > 1
 
   return (
-    <section className="club-checkin-balie" aria-label="Inchecken">
+    <section className="club-checkin-balie" data-compact={compact || undefined} aria-label="Inchecken">
       <label className="club-checkin-zoek">
         <ScanLine aria-hidden size={26} />
         <span className="club-sr">Scan een QR-code of bandje, of zoek op naam of lidnummer</span>
         <input
           ref={veld}
-          autoFocus
+          autoFocus={!compact}
           value={query}
           onChange={(e) => typ(e.target.value)}
           onKeyDown={toets}
@@ -235,14 +246,14 @@ export function CheckinBalie({ vestiging, methode }: Props) {
         QR-code en bandje checken direct in. Op naam: kies met <kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> checkt in, <kbd>Esc</kbd> wist.
         {methode === 'qr' ? ' Telefoon vergeten? Zoek het lid gewoon op naam.' : ''}
       </p>
-      {methode !== 'balie' && <BalieCamera startOpen={methode === 'qr'} pauze={bezig} onCode={cameraScan} />}
+      {methode !== 'balie' && <BalieCamera startOpen={methode === 'qr' && !compact} pauze={bezig} onCode={cameraScan} />}
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
       {afgerond ? (
-        <Uitkomst key={`${afgerond.lid.id}-${afgerond.antwoord.soort}`} lid={afgerond.lid} antwoord={afgerond.antwoord} bezig={bezig} duurMs={UITKOMST_MS} onToch={() => void inchecken({ lid: afgerond.lid }, afgerond.bron, true)} onNiet={wis} />
+        <Uitkomst key={`${afgerond.lid.id}-${afgerond.antwoord.soort}`} lid={afgerond.lid} antwoord={afgerond.antwoord} bezig={bezig} duurMs={UITKOMST_MS} lidHref={magLeden ? lidKaartPad(afgerond.lid.id, vestiging, 'planning') : null} onToch={() => void inchecken({ lid: afgerond.lid }, afgerond.bron, true)} onNiet={wis} />
       ) : null}
       {lijstOpen ? <Resultaten id="checkin-resultaten" leden={leden} gekozen={gekozen} onKies={(i) => { setGekozen(i); veld.current?.focus() }} /> : null}
       {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken({ lid }, resultaat?.exact ? resultaat.bron : 'balie', lid.vormWaarschuwing !== null)} /> : null}
-      {!query && !afgerond && !fout && methode !== 'qr' ? <Wachtstand /> : null}
+      {!query && !afgerond && !fout && methode !== 'qr' && !compact ? <Wachtstand /> : null}
       {resultaat && resultaat.query === query.trim() && !leden.length ? (
         <p className="club-leeg">Niemand gevonden voor &ldquo;{resultaat.query}&rdquo;. Controleer de spelling of zoek op lidnummer.</p>
       ) : null}

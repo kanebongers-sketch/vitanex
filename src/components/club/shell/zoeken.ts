@@ -1,10 +1,11 @@
 // ─── Club: het zoekveld in de balk (PUUR) ───────────────────────────────────
 // Vindt alles waar iemand heen mag: leden (wie Leden mag), de onderdelen uit het
-// menu, de hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
+// menu, de secties op Vandaag (Check-in, Taken, Opvolgen, met anker), de
+// hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
 // een instel-pagina niet in het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
 
 import { instelGroepLabel, instelHref, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
-import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar, toetsTekst } from './onderdelen'
+import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar, onderdeelPad, sectiesVoor, toetsTekst, type Onderdeel } from './onderdelen'
 import { hulpbalkVoor, hulpItems, hulpToets } from './hulpbalk-items'
 
 export interface ZoekItem {
@@ -32,13 +33,30 @@ export function normaliseerZoek(tekst: string): string {
 /** Waar de hulpbalk staat, voor in het zoekvenster. */
 export const HULPBALK_PLEK = 'Onderaan'
 
-/** Alles wat deze persoon kan vinden: eerst het menu, dan de hulpbalk, dan de instellingen. */
+/** Waar de secties van Vandaag staan (Check-in, Taken, Opvolgen). */
+export const VANDAAG_PLEK = 'Werkvloer · Vandaag'
+
+/** Een sectie op Vandaag (met anker) en de volledige schermen erachter. */
+function sectieItems(o: Onderdeel): ZoekItem[] {
+  const sectie: ZoekItem = {
+    id: `vandaag-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek: VANDAAG_PLEK, pad: onderdeelPad(o), perVestiging: true,
+    zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${VANDAAG_PLEK}`), toets: toetsTekst(o) ?? undefined,
+  }
+  const schermen = (o.schermen ?? []).map((s) => ({
+    id: `scherm-${o.sleutel}-${s.id}`, label: s.label, uitleg: s.uitleg, plek: `${VANDAAG_PLEK} · ${o.label}`, pad: s.pad, perVestiging: true,
+    zoektekst: normaliseerZoek(`${s.label} ${s.uitleg} ${o.label}`),
+  }))
+  return [sectie, ...schermen]
+}
+
+/** Alles wat deze persoon kan vinden: eerst het menu, dan de secties van Vandaag, dan de hulpbalk, dan de instellingen. */
 export function zoekItems(k: InstelKijker, instellingen: boolean): ZoekItem[] {
   const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).map((o) => {
     const plek = GROEPEN.find((g) => g.sleutel === o.groep)?.label ?? ''
     const toets = toetsTekst(o) ?? undefined
     return { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${plek}`), toets }
   })
+  const secties = sectiesVoor(k.uit, k.toegestaan).flatMap(sectieItems)
   const hulp = hulpItems(hulpbalkVoor(k, instellingen)).map((i) => ({
     id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: HULPBALK_PLEK, pad: i.pad, perVestiging: true,
     zoektekst: normaliseerZoek(`${i.label} ${i.uitleg} ${HULPBALK_PLEK} ${i.trefwoorden}`), toets: hulpToets(i) ?? undefined,
@@ -47,7 +65,7 @@ export function zoekItems(k: InstelKijker, instellingen: boolean): ZoekItem[] {
     const plek = `Instellingen · ${instelGroepLabel(p.groep)}`
     return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${p.titel} ${p.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
   })
-  return [...menu, ...hulp, ...instel]
+  return [...menu, ...secties, ...hulp, ...instel]
 }
 
 /** Alle woorden moeten passen; treffers op de naam eerst. Leeg zoeken geeft alles. */

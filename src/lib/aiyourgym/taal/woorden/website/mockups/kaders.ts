@@ -33,9 +33,6 @@ export const KADERS = woordenboek({
     groepen: { werkvloer: 'Gym floor', leden: 'Members', planning: 'Planning', coaching: 'Coaching', beheer: 'Admin' },
     onderdelen: {
       vandaag: 'Today',
-      checkin: 'Check-in',
-      taken: 'Tasks',
-      opvolgen: 'Follow-up',
       notities: 'Notes',
       leden: 'Members',
       leads: 'Leads',

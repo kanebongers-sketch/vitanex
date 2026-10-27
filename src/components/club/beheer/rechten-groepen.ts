@@ -13,7 +13,9 @@ const NIET_IN_LIJST: ReadonlySet<string> = new Set([...NOOIT_VOOR_CLUBMANAGER, '
 export function rechtenGroepen(uit: readonly Module[]): RechtenGroep[] {
   const kort = (o: (typeof ONDERDELEN)[number]) => ({ sleutel: o.sleutel, label: o.label, uitleg: o.uitleg })
   const telt = ONDERDELEN.filter((o) => !NIET_IN_LIJST.has(o.sleutel) && isZichtbaar(o, uit))
-  const menu = GROEPEN.map((g) => ({ label: g.label, onderdelen: telt.filter((o) => inMenu(o) && o.groep === g.sleutel).map(kort) }))
-  const instellingen = { label: 'Instellingen', onderdelen: telt.filter((o) => !inMenu(o)).map(kort) }
+  // Een sectie op Vandaag (Check-in, Taken, Opvolgen) hoort bij de groep van het menu, niet bij Instellingen.
+  const dagelijks = (o: (typeof ONDERDELEN)[number]) => inMenu(o) || Boolean(o.sectie)
+  const menu = GROEPEN.map((g) => ({ label: g.label, onderdelen: telt.filter((o) => dagelijks(o) && o.groep === g.sleutel).map(kort) }))
+  const instellingen = { label: 'Instellingen', onderdelen: telt.filter((o) => !dagelijks(o)).map(kort) }
   return [...menu, instellingen].filter((g) => g.onderdelen.length > 0)
 }

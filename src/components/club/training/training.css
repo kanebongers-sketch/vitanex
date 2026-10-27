@@ -189,17 +189,6 @@
   .club-training-schemarij > .club-chip { grid-row: 2; justify-self: end; }
   .club-training-schemarij-pijl { display: none; }
 }
-
-/* Training op de ledenkaart. */
-.club-training-lidkaart { display: grid; gap: 4px; }
-.club-training-lidkaart .club-sectiekop { margin-bottom: 4px; }
-.club-training-lidrij { display: flex; align-items: center; gap: 10px; padding: 10px 6px; margin: 0 -6px; border-radius: var(--club-radius-klein); color: var(--text-1); text-decoration: none; }
-.club-training-lidrij:hover { background: var(--club-vlak-hover); }
-.club-training-lidkaart .club-lijst > li { border-bottom: 1px solid var(--line); }
-.club-training-lidkaart .club-lijst > li:last-child { border-bottom: 0; }
-.club-training-lidleeg { display: grid; gap: 10px; justify-items: start; padding: 4px 0; color: var(--text-3); font-size: 14px; }
-.club-training-lidleeg p { margin: 0; line-height: 1.5; }
-.club-training-lidmeer { justify-self: start; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--brand-tekst, var(--brand)); text-decoration: underline; text-underline-offset: 3px; }
 .club-training-sjablonen { padding: 4px 18px; }
 .club-training-link { color: var(--text-1); text-decoration: none; }
 .club-training-link:hover { color: var(--brand-tekst, var(--brand)); }

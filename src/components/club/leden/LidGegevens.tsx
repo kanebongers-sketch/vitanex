@@ -4,12 +4,12 @@ import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Phone, X } from 'lucide-react'
 import { MAX_TAGS, normaliseerTag } from '@/lib/club/leden/invoer'
-import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
 import { stuur } from './stuur'
 
 // Gegevens van een lid. Contact en geboortedatum komen uit de ledenadministratie
-// (Ledenbestand inlezen) en zijn hier alleen te zien; status, coach en tags zijn
-// hier te wijzigen. Gezondheidsgegevens staan in de intake, niet hier.
+// (Ledenbestand inlezen) en zijn hier alleen te zien (blok Contact op het
+// tabblad Contact en notities); coach en tags zijn hier te wijzigen. De status
+// staat bij Lidmaatschap. Gezondheidsgegevens staan in de intake, niet hier.
 
 interface Keuze {
   id: string
@@ -18,19 +18,19 @@ interface Keuze {
 
 interface LidGegevensProps {
   lidId: string
+  coachId: string | null
+  trainers: Keuze[]
+  tags: string[]
+}
+
+interface ContactProps {
   email: string | null
   telefoon: string | null
   geboortedatum: string | null
   leeftijd: number | null
-  coachId: string | null
-  trainers: Keuze[]
-  tags: string[]
-  status: LidStatus
-  /** Er loopt een verzoek tot verwijderen (AVG): de status blijft vast. */
-  statusVast: boolean
 }
 
-function Contact({ email, telefoon, geboortedatum, leeftijd }: Pick<LidGegevensProps, 'email' | 'telefoon' | 'geboortedatum' | 'leeftijd'>) {
+export function Contact({ email, telefoon, geboortedatum, leeftijd }: ContactProps) {
   return (
     <dl className="club-leden-gegevens">
       <div>
@@ -56,7 +56,7 @@ export function LidGegevens(props: LidGegevensProps) {
   const [bezig, setBezig] = useState(false)
   const [, startTransition] = useTransition()
 
-  async function bewaar(wijziging: { coachId?: string | null; tags?: string[]; status?: LidStatus }): Promise<boolean> {
+  async function bewaar(wijziging: { coachId?: string | null; tags?: string[] }): Promise<boolean> {
     setBezig(true)
     setFout(null)
     const uit = await stuur(`/api/club/leden/${props.lidId}`, 'PATCH', wijziging)
@@ -81,16 +81,6 @@ export function LidGegevens(props: LidGegevensProps) {
   return (
     <section className="club-kaart" id="gegevens" aria-labelledby="gegevens-kop">
       <h2 id="gegevens-kop">Gegevens</h2>
-      <Contact email={props.email} telefoon={props.telefoon} geboortedatum={props.geboortedatum} leeftijd={props.leeftijd} />
-      <p className="club-hint">Contactgegevens komen uit je ledenadministratie. Wijzig ze daar en lees het ledenbestand opnieuw in.</p>
-
-      <label className="club-veld club-leden-blok">
-        <span>Status</span>
-        <select className="club-invoer" value={props.status} disabled={bezig || props.statusVast}
-          onChange={(e) => void bewaar({ status: e.target.value as LidStatus })}>
-          {LID_STATUSSEN.map((s) => <option key={s} value={s}>{LID_STATUS_LABEL[s]}</option>)}
-        </select>
-      </label>
 
       <label className="club-veld club-leden-blok">
         <span>Coach</span>
