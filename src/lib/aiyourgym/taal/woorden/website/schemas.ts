@@ -31,11 +31,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       kernpunten: 'Kernpunten',
       meerCoaching: 'Meer coaching',
       panelen: { fouten: 'Fouten en correctie', uitvoering: 'Opstelling en stappen', adem: 'Ademhaling en tempo' },
-      als3d: (naam: string) => `${naam} als 3D-beeld`,
-      pauze: 'Pauze',
-      afspelen: 'Afspelen',
-      begin: 'Begin',
-      eind: 'Eind',
       fout: 'Fout: ',
       beter: 'Beter: ',
       ademhaling: 'Ademhaling',
@@ -60,7 +55,7 @@ export const SCHEMA_SCHERMEN = woordenboek({
       kernpunten: (n: number) => `${n} kernpunten`,
     },
     coachtekst: {
-      eigenTekst: 'Eigen tekst van Voorbeeld Gym',
+      eigenTekst: 'Eigen tekst van Kernhal',
       kernpunten: 'Kernpunten',
       voorbeeldPunt: 'Kettlebell tegen je borstbeen',
       opslaan: 'Opslaan',
@@ -68,7 +63,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       standaard: 'Terug naar de standaard',
     },
     oefening: {
-      bewegend: (naam: string) => `${naam} als bewegend 3D-beeld`,
       notitie: 'Van je trainer: hielen op de grond',
     },
     voortgang: {
@@ -141,11 +135,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       kernpunten: 'Coaching cues',
       meerCoaching: 'More coaching',
       panelen: { fouten: 'Mistakes and corrections', uitvoering: 'Set-up and steps', adem: 'Breathing and tempo' },
-      als3d: (naam: string) => `${naam} in 3D`,
-      pauze: 'Pause',
-      afspelen: 'Play',
-      begin: 'Start',
-      eind: 'End',
       fout: 'Mistake: ',
       beter: 'Better: ',
       ademhaling: 'Breathing',
@@ -170,7 +159,7 @@ export const SCHEMA_SCHERMEN = woordenboek({
       kernpunten: (n: number) => `${n} coaching cues`,
     },
     coachtekst: {
-      eigenTekst: 'Own text by Example Gym',
+      eigenTekst: 'Own text by Kernhal',
       kernpunten: 'Coaching cues',
       voorbeeldPunt: 'Kettlebell against your breastbone',
       opslaan: 'Save',
@@ -178,7 +167,6 @@ export const SCHEMA_SCHERMEN = woordenboek({
       standaard: 'Back to the standard',
     },
     oefening: {
-      bewegend: (naam: string) => `${naam} as a moving 3D image`,
       notitie: 'From your trainer: heels on the floor',
     },
     voortgang: {

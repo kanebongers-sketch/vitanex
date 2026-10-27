@@ -1,17 +1,13 @@
 import { Plus } from 'lucide-react'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
-import { siteCoaching } from '@/lib/aiyourgym/taal/woorden/website/coaching'
 import { DASHBOARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { Venster } from './kaders'
-import { Oefenbeeld } from './Oefenbeeld'
+import { LES, VOORBEELD_VESTIGING } from './voorbeeld'
 
-// Het samengestelde productbeeld van de voorpagina: het scherm Vandaag van Club
-// met de lessen van de dag en een ledenkaart, plus een oefening met coaching
-// in 3D (ernaast) en de ledenapp met QR (in de Held). Allemaal onze echte schermen,
-// getekend met voorbeeldgegevens; de coaching komt uit de oefenbibliotheek van Club.
-// Teksten in de taal van de pagina (woordenboek DASHBOARD); de kernpunten uit de
-// coachingbibliotheek ook (siteCoaching).
+// Het scherm Vandaag van Club in de held van de voorpagina: tegels, de lessen van
+// de dag en een ledenkaart. Onze echte schermen, getekend met voorbeeldgegevens.
+// Teksten in de taal van de pagina (woordenboek DASHBOARD).
 
 /** De voorbeelddag van het scherm Vandaag (een dinsdag). */
 const VOORBEELD_DAG = '2026-10-20T12:00:00Z'
@@ -34,11 +30,11 @@ interface Les {
 }
 
 const LESSEN: readonly Les[] = [
-  { tijd: '07:00', naam: 'Spinning', bezet: 12, plekken: 16 },
-  { tijd: '09:00', naam: 'Pilates', bezet: 10, plekken: 12 },
-  { tijd: '12:00', naam: 'Lunchfit', bezet: 6, plekken: 14 },
-  { tijd: '18:30', naam: 'Spinning', bezet: 16, plekken: 16, wachtlijst: 3 },
-  { tijd: '20:00', naam: 'Yoga', bezet: 9, plekken: 14 },
+  { tijd: '07:00', naam: LES.strength, bezet: 9, plekken: 12 },
+  { tijd: '09:00', naam: LES.mobility, bezet: 10, plekken: 12 },
+  { tijd: '12:00', naam: LES.kettlebell, bezet: 6, plekken: 10 },
+  { tijd: '18:30', naam: LES.barbell, bezet: 12, plekken: 12, wachtlijst: 3 },
+  { tijd: '20:00', naam: LES.conditioning, bezet: 11, plekken: 14 },
 ]
 
 function LesRij({ les, t }: { les: Les; t: Teksten }) {
@@ -97,7 +93,7 @@ export async function HeldDashboard() {
     <Venster actief="Werkvloer">
       <div className="aygm-rooster-kop">
         <div>
-          <p className="aygm-boven">{t.vestiging(formatDatum(VOORBEELD_DAG, taal, 'dag'))}</p>
+          <p className="aygm-boven">{t.vestiging(VOORBEELD_VESTIGING, formatDatum(VOORBEELD_DAG, taal, 'dag'))}</p>
           <p className="aygm-kop">{t.vandaag}</p>
         </div>
         <span className="aygm-knopje">
@@ -122,33 +118,5 @@ export async function HeldDashboard() {
         <Ledenkaart t={t} />
       </div>
     </Venster>
-  )
-}
-
-const OEFENING = 'Front squat'
-
-/** Een oefening uit een schema, klein: onze eigen render (of het 3D-figuur) en de eerste kernpunten. */
-export async function OefeningKaartje() {
-  const taal = await getSiteTaal()
-  const t = DASHBOARD[taal]
-  const coaching = siteCoaching(OEFENING, taal)
-  if (!coaching) return null
-  return (
-    <div className="aygm-dash-oef">
-      <div className="aygm-beeld">
-        <Oefenbeeld naam={OEFENING} label={t.beeldLabel(OEFENING)} className="ayg-3d--vul" sizes="112px" voorrang />
-      </div>
-      <div className="aygm-dash-oef-tekst">
-        <p className="aygm-boven">{t.oefBoven}</p>
-        <p className="aygm-kop">{OEFENING}</p>
-        <ol className="aygm-kernpunten">
-          {coaching.kernpunten.slice(0, 3).map((k) => (
-            <li key={k.punt}>
-              <b>{k.punt}</b>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </div>
   )
 }

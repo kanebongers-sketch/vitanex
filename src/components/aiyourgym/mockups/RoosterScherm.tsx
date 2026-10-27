@@ -1,6 +1,7 @@
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
 import { Venster } from './kaders'
+import { LES, VOORBEELD_VESTIGING } from './voorbeeld'
 
 // Het groepslesrooster in Club: een week, bezetting per les, volle lessen met wachtlijst.
 // Teksten in de taal van de pagina (woordenboek ROOSTER); lesnamen blijven gelijk.
@@ -18,19 +19,19 @@ interface Les {
 }
 
 const LESSEN: readonly Les[] = [
-  { dag: 0, uur: 0, naam: 'Spinning', stand: { bezet: 12, plekken: 16 } },
-  { dag: 0, uur: 3, naam: 'Bootcamp', stand: { bezet: 14, plekken: 18 }, soort: 'druk' },
-  { dag: 0, uur: 5, naam: 'Yoga', stand: { bezet: 9, plekken: 14 } },
-  { dag: 1, uur: 1, naam: 'Pilates', stand: { bezet: 10, plekken: 12 }, soort: 'druk' },
-  { dag: 1, uur: 4, naam: 'Spinning', stand: { wachtlijst: 3 }, soort: 'vol' },
-  { dag: 2, uur: 0, naam: 'Kettlebell', stand: { bezet: 8, plekken: 12 } },
-  { dag: 2, uur: 2, naam: 'Lunchfit', stand: { bezet: 6, plekken: 14 } },
-  { dag: 2, uur: 4, naam: 'Body & core', stand: { bezet: 15, plekken: 18 }, soort: 'druk' },
-  { dag: 3, uur: 1, naam: '50+ Fit', stand: { bezet: 11, plekken: 14 } },
-  { dag: 3, uur: 3, naam: 'Spinning', stand: { wachtlijst: 1 }, soort: 'vol' },
-  { dag: 3, uur: 5, naam: 'Yoga', stand: { bezet: 7, plekken: 14 } },
-  { dag: 4, uur: 0, naam: 'Bootcamp', stand: { bezet: 13, plekken: 18 } },
-  { dag: 4, uur: 4, naam: 'HIIT', stand: { bezet: 16, plekken: 18 }, soort: 'druk' },
+  { dag: 0, uur: 0, naam: LES.strength, stand: { bezet: 9, plekken: 12 } },
+  { dag: 0, uur: 3, naam: LES.conditioning, stand: { bezet: 12, plekken: 14 }, soort: 'druk' },
+  { dag: 0, uur: 5, naam: LES.mobility, stand: { bezet: 8, plekken: 12 } },
+  { dag: 1, uur: 1, naam: LES.sterk50, stand: { bezet: 10, plekken: 12 }, soort: 'druk' },
+  { dag: 1, uur: 4, naam: LES.barbell, stand: { wachtlijst: 3 }, soort: 'vol' },
+  { dag: 2, uur: 0, naam: LES.kettlebell, stand: { bezet: 7, plekken: 10 } },
+  { dag: 2, uur: 2, naam: LES.engine, stand: { bezet: 6, plekken: 12 } },
+  { dag: 2, uur: 4, naam: LES.strength, stand: { bezet: 11, plekken: 12 }, soort: 'druk' },
+  { dag: 3, uur: 1, naam: LES.mobility, stand: { bezet: 9, plekken: 12 } },
+  { dag: 3, uur: 3, naam: LES.strength, stand: { wachtlijst: 1 }, soort: 'vol' },
+  { dag: 3, uur: 5, naam: LES.core, stand: { bezet: 7, plekken: 12 } },
+  { dag: 4, uur: 0, naam: LES.conditioning, stand: { bezet: 10, plekken: 14 } },
+  { dag: 4, uur: 4, naam: LES.engine, stand: { bezet: 13, plekken: 14 }, soort: 'druk' },
 ]
 
 export async function RoosterScherm() {
@@ -40,7 +41,7 @@ export async function RoosterScherm() {
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.boven}</p>
-          <p className="aygm-kop">{t.kop}</p>
+          <p className="aygm-kop">{t.kop(VOORBEELD_VESTIGING)}</p>
         </div>
         <span className="aygm-knopje">{t.nieuweLes}</span>
       </div>

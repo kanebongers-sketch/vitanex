@@ -3,7 +3,6 @@
 import { Check, ChevronRight } from 'lucide-react'
 import { Toestel } from '@/components/aiyourgym/mockups/kaders'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
-import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 
@@ -19,9 +18,11 @@ interface SchemaToestelProps {
   oefeningen: readonly VoorbeeldOefening[]
   gekozen: number
   onKies?: (i: number) => void
+  /** De uitleg onder de telefoon; uit als de tekst ernaast al staat. */
+  uitleg?: boolean
 }
 
-export function SchemaToestel({ oefeningen, gekozen, onKies }: SchemaToestelProps) {
+export function SchemaToestel({ oefeningen, gekozen, onKies, uitleg = true }: SchemaToestelProps) {
   const t = useTekst(SCHEMA_SCHERMEN)
   const a = t.app
   return (
@@ -62,7 +63,7 @@ export function SchemaToestel({ oefeningen, gekozen, onKies }: SchemaToestelProp
           </div>
         </Toestel>
       </div>
-      <p className="ayg-cd-toestel-uitleg">{a.uitleg}</p>
+      {uitleg && <p className="ayg-cd-toestel-uitleg">{a.uitleg}</p>}
     </div>
   )
 }
@@ -73,7 +74,6 @@ function Regel({ o, i, t }: { o: VoorbeeldOefening; i: number; t: Teksten }) {
       <span className="ayg-cd-app-nr" aria-hidden>
         {i + 1}
       </span>
-      <OefTegel naam={o.naam} maat={34} />
       <span className="ayg-cd-app-tekst">
         <b>{o.naam}</b>
         <span>{t.voorschrift(o.voorschrift).split(',')[0]}</span>

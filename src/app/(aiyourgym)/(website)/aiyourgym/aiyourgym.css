@@ -35,6 +35,12 @@
   /* Contactbalk boven de kop: een rustige salietint, geen zwarte balk */
   --ayg-balk: #e3e5da;
   --ayg-balk-lijn: #cfd4c6;
+  /* Diepte in de held (werkdag, dag.css): ochtendlicht in schuine banen, een
+     contactschaduw onder de telefoon en een diepe schaduw voor zwevende vlakken.
+     Licht valt van linksboven, schaduwen vallen rechtsonder. */
+  --ayg-baan: #e4e7da;
+  --ayg-contact: rgb(15 20 18 / 0.34);
+  --ayg-schaduw-diep: 0 2px 0 rgb(15 20 18 / 0.05), 0 28px 50px -24px rgb(15 20 18 / 0.34), 0 70px 120px -50px rgb(15 20 18 / 0.32);
 
   /* Donker podium (productbeelden): racegroen met creme */
   --ayg-inkt: #10302a;
@@ -176,6 +182,9 @@
     --ayg-gloed-band: 45%;
     --ayg-balk: #0f211c;
     --ayg-balk-lijn: #1c3830;
+    --ayg-baan: #13241e;
+    --ayg-contact: rgb(0 0 0 / 0.6);
+    --ayg-schaduw-diep: 0 2px 0 rgb(0 0 0 / 0.35), 0 28px 50px -24px rgb(0 0 0 / 0.7), 0 70px 120px -50px rgb(0 0 0 / 0.75);
     --ayg-inkt: #10302a; /* het podium ligt als racegroen vlak boven het bijna zwart */
     --ayg-inkt-2: #18403a;
     --ayg-inkt-lijn: #2a5449;
@@ -212,8 +221,10 @@
 .ayg-label::before { content: ''; width: 18px; height: 2px; background: currentColor; opacity: 0.7; }
 .ayg-label--accent::before { background: var(--ayg-accent-sterk); opacity: 1; height: 3px; }
 
-.ayg-display { font-size: clamp(2.7rem, 6.6vw, 7.4rem); line-height: 0.93; letter-spacing: -0.048em; font-variation-settings: 'wdth' 82; }
-.ayg-h2 { font-size: clamp(2rem, 4.2vw, 4.6rem); line-height: 0.98; letter-spacing: -0.042em; }
+/* Bricolage Grotesque smal en zwaar op grote maten (breedte-as), Geist voor tekst en
+   tabelcijfers: twee families, de kop draagt de stem. Dezelfde maten op elke pagina. */
+.ayg-display { font-size: clamp(2.7rem, 6.6vw, 7.4rem); line-height: 0.92; letter-spacing: -0.05em; font-weight: 760; font-variation-settings: 'wdth' 78; }
+.ayg-h2 { font-size: clamp(2rem, 4.2vw, 4.6rem); line-height: 0.97; letter-spacing: -0.044em; font-weight: 730; font-variation-settings: 'wdth' 84; }
 .ayg-h3 { font-size: clamp(1.25rem, 1.6vw, 1.8rem); line-height: 1.12; letter-spacing: -0.025em; font-variation-settings: 'wdth' 94; }
 .ayg-lead { font-size: clamp(1.08rem, 0.5vw + 0.95rem, 1.42rem); line-height: 1.5; color: var(--ayg-tekst-2); max-width: 36em; }
 .ayg-klein { font-size: 0.84em; color: var(--ayg-tekst-2); }
@@ -392,7 +403,7 @@
   .ayg-sectiekop--naast { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; column-gap: clamp(48px, 5vw, 96px); }
   .ayg-sectiekop--naast .ayg-label { grid-column: 1 / -1; }
 }
-.ayg-paginakop { padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 80px); }
+.ayg-paginakop { position: relative; isolation: isolate; overflow: clip; padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 80px); }
 .ayg-paginakop .ayg-display { margin-block: 22px 26px; max-width: 16ch; }
 .ayg-paginakop .ayg-lead { max-width: 40em; }
 

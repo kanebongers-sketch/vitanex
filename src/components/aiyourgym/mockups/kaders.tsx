@@ -7,7 +7,8 @@ import { GROEPEN as CLUB_GROEPEN, onderdelenVan } from '@/components/club/shell/
 import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk-items'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { KADERS } from '@/lib/aiyourgym/taal/woorden/website/mockups/kaders'
-import { VOORBEELD_ADRES, VOORBEELD_NAAM } from './voorbeeld'
+import { KernhalMerk } from './KernhalMerk'
+import { VOORBEELD_ADRES } from './voorbeeld'
 
 // Kaders voor de productbeelden: een browservenster en een telefoon. De inhoud
 // is een tekening van onze eigen schermen in HTML en CSS; voor schermlezers is
@@ -121,10 +122,7 @@ export function Venster({ actief, hier, children }: VensterProps) {
         </div>
       </div>
       <div className="aygm-app-kop">
-        <span className="aygm-app-merk">
-          <i />
-          {VOORBEELD_NAAM}
-        </span>
+        <KernhalMerk className="aygm-app-merk" />
         <span className="aygm-app-groepen">
           {CLUB_GROEPEN.map((g) => (
             <span key={g.sleutel} data-actief={g.label === actief ? '' : undefined}>
@@ -170,10 +168,7 @@ export function Toestel({ tab, children, stijl, className }: ToestelProps) {
           <span>5G</span>
         </div>
         <div className="aygm-scherm-inhoud">
-          <span className="aygm-scherm-merk">
-            <i />
-            {VOORBEELD_NAAM}
-          </span>
+          <KernhalMerk className="aygm-scherm-merk" />
           {children}
         </div>
         <div className="aygm-tabs">

@@ -1,11 +1,13 @@
 // ─── AI Your Gym: onze eigen Blender-renders van oefeningen (PUUR) ──────────
-// Besluit Kane (23-10-2026): de renders zijn de oefenbeelden op de website.
+// Besluit Kane (27-10-2026): oefenbeelden staan alleen achter het inloggen (Club en
+// de ledenapp, via components/club/training/repspeler/render-bron.ts), niet meer op
+// de openbare website.
 // Per oefening een bewegende lus in drie maten (HD, 720 en 480 px, alle op 24
 // beelden per seconde) en twee stilstaande beelden (begin en zwaarste punt, HD
 // en 480 px), klaargezet door scripts/oefenbeelden-web.mjs in
 // public/oefenbeelden/<slug>/. De gegevens (naam, spieren, maten, versie)
 // schrijft dat script in oefenrenders.data.ts; dit bestand maakt er een
-// getypeerde lijst van. Een oefening zonder render valt terug op Oefenbeeld3d.
+// getypeerde lijst van.
 // Daarnaast losse beelden plus fasen voor de rep-speler (frameUrl) en de
 // vloerlijn (vloerY) voor de schaduw.
 // Geen zware imports: dit bestand gaat mee naar de browser.

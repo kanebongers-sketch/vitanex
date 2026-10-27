@@ -5,7 +5,7 @@ import { DOELEN } from '@/lib/club/training/typen'
 import { toonBereik, type VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Venster } from '@/components/aiyourgym/mockups/kaders'
 import { VOORBEELD_INTAKE } from './voorbeeld-intake'
-import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
+import { OefNr } from '@/components/aiyourgym/mockups/OefNr'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
@@ -126,9 +126,9 @@ export async function VoorstelScherm({ oefeningen }: { oefeningen: readonly Voor
         ))}
       </span>
       <ol className="ayg-ss-regels">
-        {oefeningen.map((o) => (
+        {oefeningen.map((o, i) => (
           <li key={o.naam}>
-            <OefTegel naam={o.naam} maat={34} />
+            <OefNr nr={i + 1} maat={34} />
             <b>{o.naam}</b>
             <span>{s.voorschrift(o.voorschrift)}</span>
           </li>
@@ -188,7 +188,7 @@ export async function EditorScherm({ oefeningen }: { oefeningen: readonly Voorbe
           return (
             <span key={o.naam} className="ayg-ss-tabel-rij">
               <span className="ayg-ss-oef">
-                <OefTegel naam={o.naam} maat={28} />
+                <OefNr nr={i + 1} maat={28} />
                 <b>{o.naam}</b>
               </span>
               <i>{sets}</i>

@@ -1,51 +1,57 @@
-import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { DagTijd } from '@/components/aiyourgym/dag/DagTijd'
+import { momentTijd } from '@/components/aiyourgym/dag/momenten'
+import { SchemaBouw } from '@/components/aiyourgym/dag/SchemaBouw'
 import { voorbeeldOefeningen } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
-import { SCHEMAS } from '@/lib/aiyourgym/taal/woorden/website/home'
-import { SchemaBlikvanger, type BlikOefening } from './SchemaBlikvanger'
+import { DAG, DAG_SCHEMA } from '@/lib/aiyourgym/taal/woorden/website/dag'
 
-// Trainingsschema's zoals een trainer ze geeft, met ons eigen 3D-figuur als
-// blikvanger. De coaching is de echte tekst uit de bibliotheek van Club; de
-// hele route (intake, voorstel, editor, ledenapp) staat op /trainingsschemas.
-// Teksten in de taal van de pagina (woordenboek SCHEMAS). De kernpunten komen uit
-// de coachingbibliotheek van Club, in het Engels uit woorden/website/coaching.ts.
+// 10:30, de piek van de voorpagina: een trainingsschema bouwt zich op terwijl je
+// scrolt en landt in de ledenapp (dag/SchemaBouw.tsx). De oefeningen en coaching
+// komen uit de bibliotheek van Club (voorbeeldOefeningen, in de taal van de pagina).
+// Geen oefenbeelden op de website (besluit Kane 27-10-2026).
 
-const KERNPUNTEN = 3
+interface SchemasProps {
+  /** Op de voorpagina een moment van de dag (met kloktijd); op /trainingsschemas niet. */
+  metTijd?: boolean
+}
 
-export async function Schemas() {
+export async function Schemas({ metTijd = true }: SchemasProps) {
   const taal = await getSiteTaal()
-  const t = SCHEMAS[taal]
-  const bereik = (herhalingen: string) => herhalingen.replace(/(\d+)\s*-\s*(\d+)/g, (_, van: string, tot: string) => t.bereik(Number(van), Number(tot)))
-  const oefeningen: BlikOefening[] = voorbeeldOefeningen(taal).map((o) => ({
-    naam: o.naam,
-    kort: o.kort,
-    voorschrift: t.voorschrift(o.dosering.sets, bereik(o.dosering.herhalingen), o.dosering.rustSec),
-    kernpunten: o.coaching.kernpunten.slice(0, KERNPUNTEN).map((k) => ({ punt: k.punt, uitleg: k.uitleg })),
-  }))
+  const t = DAG_SCHEMA[taal]
+  const naam = DAG[taal].momenten.schema
+  const minuten = momentTijd('schema')
   return (
-    <section className="ayg-sectie ayg-podium ayg-podium--rond ayg-schemas" aria-labelledby="schemas-titel">
+    <section
+      className="dag-schema ayg-podium ayg-podium--rond"
+      aria-labelledby="schemas-titel"
+      id={metTijd ? 'schema' : undefined}
+      data-dag={metTijd ? minuten : undefined}
+      data-dag-naam={metTijd ? naam : undefined}
+    >
       <div className="ayg-wrap">
-        <SchemaBlikvanger
-          oefeningen={oefeningen}
+        <SchemaBouw
+          oefeningen={voorbeeldOefeningen(taal)}
           kop={
-            <>
-              <p className="ayg-label ayg-label--accent">{t.label}</p>
+            <div className="dag-schema-kop">
+              {metTijd ? <DagTijd minuten={minuten} naam={naam} licht /> : <p className="ayg-label ayg-label--accent">{t.label}</p>}
               <h2 className="ayg-h2" id="schemas-titel">
                 {t.titel.voor}
                 <mark className="ayg-markeer">{t.titel.accent}</mark>
-                {t.titel.na}
               </h2>
               <p className="ayg-lead">{t.lead}</p>
-            </>
+            </div>
           }
           onder={
             <>
               <p className="ayg-klein">{t.onder}</p>
-              <Link href={aygPad('/trainingsschemas')} className="ayg-pijllink">
-                {t.link} <ArrowRight size={16} aria-hidden />
-              </Link>
+              {metTijd && (
+                <Link href={aygPad('/trainingsschemas')} className="ayg-pijllink">
+                  {t.link} <ArrowRight size={16} aria-hidden />
+                </Link>
+              )}
             </>
           }
         />

@@ -20,6 +20,7 @@ const ALLE_CSS = [
   MOCKUP_CSS,
   'src/components/aiyourgym/home/home.css',
   'src/components/aiyourgym/home/hoofdpunten.css',
+  'src/components/aiyourgym/dag/dag.css',
   'src/components/aiyourgym/schemas/schemas.css',
   'src/components/aiyourgym/demo/demo.css',
   'src/components/aiyourgym/aanmelden/aanmelden.css',

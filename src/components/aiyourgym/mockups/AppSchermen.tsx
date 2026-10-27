@@ -2,7 +2,8 @@ import { Check, Trophy } from 'lucide-react'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { APP_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
-import { OefTegel } from './OefTegel'
+import { OefNr } from './OefNr'
+import { LES, VOORBEELD_NAAM, VOORBEELD_STRAAT, VOORBEELD_VESTIGING } from './voorbeeld'
 
 // De schermen van de ledenapp: Home, Lessen en Schema, zoals Club ze toont.
 // Alleen de inhoud; het telefoonkader komt uit kaders.tsx. Teksten in de taal
@@ -46,7 +47,7 @@ export async function AppHome() {
       <p className="aygm-hallo">{t.hallo('Sanne')}</p>
       <div className="aygm-volgende">
         <span className="aygm-boven">{t.volgendeLes}</span>
-        <b>Spinning</b>
+        <b>{LES.strength}</b>
         <span>{t.volgendeWanneer}</span>
       </div>
       <div className="aygm-duo">
@@ -87,11 +88,11 @@ type Knop = 'reserveer' | 'gereserveerd' | 'wachtlijst'
 
 /** Zaal als nummer, of 'studio'; plekken null = vol. */
 const LESSEN: readonly { naam: string; tijd: string; zaal: number | 'studio'; plekken: number | null; knop: Knop }[] = [
-  { naam: 'Spinning', tijd: '07:00', zaal: 2, plekken: 4, knop: 'reserveer' },
-  { naam: 'Pilates', tijd: '09:00', zaal: 'studio', plekken: 2, knop: 'gereserveerd' },
-  { naam: 'Lunchfit', tijd: '12:00', zaal: 1, plekken: 8, knop: 'reserveer' },
-  { naam: 'Spinning', tijd: '18:30', zaal: 2, plekken: null, knop: 'wachtlijst' },
-  { naam: 'Yoga', tijd: '20:00', zaal: 'studio', plekken: 5, knop: 'reserveer' },
+  { naam: LES.strength, tijd: '07:00', zaal: 1, plekken: 3, knop: 'reserveer' },
+  { naam: LES.mobility, tijd: '09:00', zaal: 'studio', plekken: 2, knop: 'gereserveerd' },
+  { naam: LES.kettlebell, tijd: '12:00', zaal: 2, plekken: 6, knop: 'reserveer' },
+  { naam: LES.barbell, tijd: '18:30', zaal: 1, plekken: null, knop: 'wachtlijst' },
+  { naam: LES.conditioning, tijd: '20:00', zaal: 2, plekken: 4, knop: 'reserveer' },
 ]
 
 const DAGNUMMERS = ['19', '20', '21', '22', '23'] as const
@@ -148,9 +149,9 @@ export async function AppSchema() {
         ))}
       </div>
       <div className="aygm-lijst">
-        {OEFENINGEN.map((o) => (
+        {OEFENINGEN.map((o, i) => (
           <div key={o.naam} className="aygm-oef">
-            <OefTegel naam={o.naam} maat={52} />
+            <OefNr nr={i + 1} maat={52} />
             <div className="aygm-rij-tekst">
               <b>{o.naam}</b>
               <span>{o.dosis}</span>
@@ -221,6 +222,8 @@ export async function AppInloggen() {
       <div className="aygm-pin-kop">
         <p className="aygm-hallo">{t.welkom}</p>
         <p className="aygm-boven">{t.logIn}</p>
+        <p className="aygm-boven">{`${VOORBEELD_NAAM} ${VOORBEELD_VESTIGING} · ${VOORBEELD_STRAAT}`}</p>
+        <p className="aygm-boven">{t.openingstijden}</p>
       </div>
       <div className="aygm-inlog-velden" aria-hidden>
         <span className="aygm-inlog-label">{t.email}</span>

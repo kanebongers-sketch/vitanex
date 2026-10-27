@@ -1,0 +1,258 @@
+/* ==========================================================================
+   AI Your Gym | de voorpagina als werkdag (docs/aiyourgym/scroll-craft/BRIEF.md)
+   Grammatica "Werkdag": elke sectie is een moment van dezelfde dag, met een
+   kloktijd. Held met losse vlakken (lichtval, venster, tekst, telefoon,
+   check-in), een stil dienstrooster, de schemabouw als enige vastgezette piek,
+   Kane klein en stil, en sluitingstijd op het racegroene vlak.
+   Alleen tokens, beweging alleen met transform, opacity en clip-path.
+   ========================================================================== */
+
+/* ── Kloktijd (het typografische motief) ────────────────────────────────── */
+.dag-tijd { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 0; }
+.dag-tijd time {
+  font: 600 clamp(1.9rem, 2.6vw, 2.8rem)/0.9 var(--ayg-font-tekst);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.045em; color: var(--ayg-accent-sterk);
+}
+.dag-tijd span { font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); }
+
+/* ── Lichtval: de verste laag ───────────────────────────────────────────── */
+.dag-licht { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.dag-licht i {
+  position: absolute; top: -30%; height: 170%; width: 13vw;
+  background: linear-gradient(to bottom, var(--ayg-baan), transparent 78%);
+  transform: rotate(24deg); transform-origin: top center;
+}
+.dag-licht i:nth-child(1) { left: 34%; width: 16vw; }
+.dag-licht i:nth-child(2) { left: 55%; width: 6vw; opacity: 0.8; }
+.dag-licht i:nth-child(3) { left: 71%; width: 20vw; opacity: 0.65; }
+.ayg-paginakop .dag-licht i:nth-child(1) { left: 52%; }
+.ayg-paginakop .dag-licht i:nth-child(2) { left: 70%; }
+.ayg-paginakop .dag-licht i:nth-child(3) { left: 84%; }
+
+/* ── Held: 06:00 ────────────────────────────────────────────────────────── */
+.dag-held { position: relative; isolation: isolate; overflow: clip; }
+.dag-held-binnen {
+  --px: 0; --py: 0; --hs: 0;
+  position: relative; padding-block: clamp(36px, 5vw, 80px) 20px;
+}
+/* Het papier loopt naar onderen iets dieper in, met een fijne haarlijn als afsluiting */
+.dag-held-binnen::after {
+  content: ''; position: absolute; inset: auto 0 0; height: 45%; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--ayg-held-vlak));
+  box-shadow: inset 0 -1px 0 var(--ayg-lijn);
+}
+.dag-held-raster { position: relative; z-index: 0; display: grid; gap: clamp(28px, 5vw, 56px); }
+.dag-held-tekst { position: relative; z-index: 2; display: grid; gap: 22px; align-content: center; }
+.dag-held-titel { font-size: clamp(2.6rem, 6vw, 6.9rem); max-width: 12ch; }
+.dag-held-titel .ayg-wissel { font-size: clamp(2.2rem, 4.6vw, 5.4rem); }
+.dag-held-scene { position: relative; min-height: clamp(380px, 92vw, 560px); }
+.dag-held-bijschrift { position: relative; margin-top: 18px; font-size: 13px; color: var(--ayg-tekst-2); text-align: right; }
+
+/* De vlakken: elk een eigen afstand. --mx/--my is de muis, --sy de scroll (px). */
+.dag-laag { --mx: 0; --my: 0; --sy: 0; position: absolute; pointer-events: none; }
+.dag-laag--licht { --mx: -8; --sy: 90; inset: 0; z-index: -1; transform: translate3d(calc(var(--px) * var(--mx) * 1px), calc(var(--hs) * var(--sy) * 1px), 0); }
+.dag-laag--venster { --mx: -10; --my: -8; --sy: -40; z-index: 1; top: 0; left: 0; width: 150%; transform-origin: left top; }
+.dag-laag--toestel { --mx: 16; --my: 12; --sy: -110; z-index: 3; right: -2%; bottom: -4%; width: 300px; scale: 0.56; transform-origin: right bottom; }
+.dag-laag--checkin { --mx: 28; --my: 20; --sy: -180; z-index: 4; left: 2%; bottom: 8%; }
+.dag-laag:is(.dag-laag--venster, .dag-laag--toestel, .dag-laag--checkin) {
+  transform: translate3d(calc(var(--px) * var(--mx) * 1px), calc(var(--py) * var(--my) * 1px + var(--hs) * var(--sy) * 1px), 0);
+}
+/* Telefoon: het venster bijgesneden met een zachte rand onderaan */
+.dag-laag--venster .aygm-venster {
+  -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 96%);
+  mask-image: linear-gradient(to bottom, black 62%, transparent 96%);
+}
+.dag-held-toestel { box-shadow: var(--ayg-schaduw-diep); }
+.dag-contactschaduw {
+  position: absolute; left: 8%; right: 8%; bottom: -14px; height: 40px; z-index: -1;
+  border-radius: 50%; background: radial-gradient(closest-side, var(--ayg-contact), transparent);
+}
+
+.dag-checkin {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  width: min(300px, 78vw); padding: 10px 14px 10px 10px; border-radius: 16px;
+  background: var(--ayg-vlak); color: var(--ayg-tekst);
+  box-shadow: inset 0 1px 0 var(--ayg-bg), inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw-diep);
+  rotate: -2deg;
+}
+.dag-checkin-icoon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
+.dag-checkin-tekst { display: grid; gap: 1px; min-width: 0; }
+.dag-checkin-tekst b { font-size: 14px; }
+.dag-checkin-tekst span { font-size: 12px; color: var(--ayg-tekst-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dag-checkin time { font: 600 15px/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; color: var(--ayg-accent-sterk); }
+
+@media (min-width: 640px) and (max-width: 1079px) {
+  .dag-held-scene { min-height: clamp(460px, 70vw, 620px); }
+  .dag-laag--venster { width: 112%; }
+  .dag-laag--toestel { scale: 0.64; }
+}
+
+/* Pc: tekst links, de scene rechts in drie dimensies. Het venster staat gekanteld
+   in de ruimte en wordt vlak als je scrolt; de telefoon valt over de onderrand. */
+@media (min-width: 1080px) {
+  .dag-held-binnen { padding-block: clamp(40px, 4.4vw, 72px) 24px; }
+  .dag-held-raster { grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); align-items: center; column-gap: clamp(32px, 3.4vw, 64px); }
+  .dag-held-scene { min-height: clamp(560px, 44vw, 760px); perspective: 2200px; }
+  .dag-laag--venster { --sy: -60; top: 2%; left: 0; width: 128%; transform-origin: left center; }
+  .dag-laag--venster .aygm-venster { -webkit-mask-image: none; mask-image: none; }
+  .dag-laag.dag-laag--venster {
+    transform:
+      translate3d(calc(var(--px) * var(--mx) * 1px), calc(var(--py) * var(--my) * 1px + var(--hs) * var(--sy) * 1px), 0)
+      rotateY(calc(-12deg + var(--hs) * 12deg + var(--px) * 2deg))
+      rotateX(calc(5deg - var(--hs) * 5deg - var(--py) * 1.5deg));
+  }
+  .dag-laag--toestel { --sy: -170; left: -4%; right: auto; bottom: -6%; scale: 0.74; transform-origin: left bottom; }
+  .dag-laag--checkin { --sy: -260; left: auto; right: 6%; bottom: 10%; }
+}
+
+/* ── Oogopslag als dienstrooster: 07:00 (stil) ──────────────────────────── */
+.dag-oog-raster { display: grid; gap: clamp(32px, 5vw, 64px); }
+.dag-oog-kop { display: grid; gap: 20px; align-content: start; }
+.dag-oog-kop .ayg-h2 { max-width: 12ch; }
+.dag-oog-verder { display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 4px; }
+.dag-rooster { border-top: 2px solid var(--ayg-tekst); }
+.dag-rooster li { border-bottom: 1px solid var(--ayg-lijn); }
+.dag-rooster-rij {
+  position: relative; display: grid; grid-template-columns: 4.6rem minmax(0, 1fr) 20px; align-items: baseline; gap: 6px 16px;
+  padding: 18px 10px; color: var(--ayg-tekst); text-decoration: none;
+  transition: background-color 180ms var(--ayg-ease);
+}
+.dag-rooster-tijd { font: 600 1.25rem/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; color: var(--ayg-tekst-2); transition: color 180ms var(--ayg-ease); }
+.dag-rooster-naam { display: inline-flex; align-items: center; gap: 10px; font: 700 clamp(1.25rem, 1.6vw, 1.7rem)/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 86; }
+.dag-rooster-naam svg { flex: none; color: var(--ayg-accent-sterk); }
+.dag-rooster-zin { grid-column: 2; color: var(--ayg-tekst-2); font-size: 0.95em; }
+.dag-rooster-pijl { grid-column: 3; grid-row: 1; align-self: center; color: var(--ayg-tekst-2); transition: transform 220ms var(--ayg-ease), color 180ms var(--ayg-ease); }
+.dag-rooster-rij:is(:hover, :focus-visible) { background: var(--ayg-vlak); }
+.dag-rooster-rij:is(:hover, :focus-visible) .dag-rooster-tijd,
+.dag-rooster-rij:is(:hover, :focus-visible) .dag-rooster-pijl { color: var(--ayg-accent-sterk); }
+.dag-rooster-rij:is(:hover, :focus-visible) .dag-rooster-pijl { transform: translate(2px, -2px); }
+.dag-rooster-rij:active { transform: translateY(1px); }
+@media (min-width: 760px) {
+  .dag-rooster-rij { grid-template-columns: 6.4rem minmax(0, 13rem) minmax(0, 1fr) 24px; gap: 8px 28px; padding: 24px 12px; }
+  .dag-rooster-tijd { font-size: 1.6rem; }
+  .dag-rooster-zin { grid-column: 3; }
+  .dag-rooster-pijl { grid-column: 4; }
+}
+@media (min-width: 1080px) {
+  .dag-oog-raster { grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); column-gap: clamp(48px, 5vw, 112px); align-items: start; }
+}
+
+/* ── Schemabouw: 10:30, de piek ─────────────────────────────────────────── */
+.dag-schema { margin-block: clamp(8px, 2vw, 24px); }
+.dag-schema-spoor { --app: 1; --sp: 1; position: relative; }
+.dag-schema-podium { display: grid; gap: clamp(36px, 5vw, 56px); padding-block: clamp(56px, 8vw, 104px); }
+.dag-schema-tekst { display: grid; gap: 28px; align-content: center; }
+.dag-schema-kop { display: grid; gap: 18px; }
+.dag-schema-kop .ayg-h2 { max-width: 13ch; }
+.dag-schema-onder { display: grid; gap: 12px; justify-items: start; padding-top: 20px; border-top: 1px solid var(--ayg-lijn); }
+
+.dag-fasen { position: relative; isolation: isolate; display: grid; gap: 4px; }
+.dag-fasen li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start; padding-block: 8px; }
+.dag-fasen li > span:last-child { display: grid; gap: 2px; }
+.dag-fasen b { font: 700 1.1rem/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.dag-fasen li > span:last-child > span { font-size: 15px; color: var(--ayg-tekst-2); }
+.dag-fase-nr {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  font: 600 14px/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums;
+  background: var(--ayg-inkt); color: var(--ayg-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn);
+  transition: background-color 220ms var(--ayg-ease), color 220ms var(--ayg-ease), box-shadow 220ms var(--ayg-ease);
+}
+.dag-fasen li[data-voorbij] .dag-fase-nr { box-shadow: inset 0 0 0 1.5px var(--ayg-accent); }
+.dag-fasen li[data-actief] .dag-fase-nr { background: var(--ayg-accent); color: var(--ayg-accent-tekst); box-shadow: none; }
+
+.dag-schema-toneel { position: relative; padding-bottom: 72px; }
+.dag-schema-editor { position: relative; z-index: 1; transform-origin: left center; }
+.dag-schema-telefoon {
+  position: absolute; z-index: 2; right: -2%; bottom: -8%; width: 300px;
+  scale: 0.6; transform-origin: right bottom; opacity: var(--app);
+  transform: translate3d(calc((1 - var(--app)) * 50%), calc((1 - var(--app)) * 24%), 0) rotate(calc((1 - var(--app)) * 7deg));
+}
+.dag-schema-telefoon .aygm-toestel { box-shadow: var(--ayg-schaduw-diep); }
+.dag-schema-telefoon .ayg-cd-toestel { display: block; }
+.dag-schema-verstuurd {
+  position: absolute; z-index: 3; left: 4%; bottom: 8px; display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: 99px; font-size: 13.5px; font-weight: 600;
+  background: var(--ayg-accent); color: var(--ayg-accent-tekst); box-shadow: var(--ayg-schaduw-diep);
+  opacity: clamp(0, calc(var(--app) * 3 - 2), 1);
+  transform: translateY(calc((1 - var(--app)) * 14px));
+}
+
+/* Wat in het venster opkomt: eerst onzichtbaar op zijn plek (geen verschuiving van de rest) */
+.dag-schema-toneel :is(.dag-ed-intake i, .dag-ed-rijen > li, .dag-ed-kern > span) {
+  transition: opacity 280ms var(--ayg-ease), transform 320ms var(--ayg-ease);
+}
+.dag-schema-toneel :is(.dag-ed-intake i, .dag-ed-rijen > li, .dag-ed-kern > span):not([data-zicht]) { opacity: 0; transform: translateY(6px); }
+.dag-ed { display: grid; gap: 8px; }
+.dag-ed-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.dag-ed-kop b { font-size: 15px; color: var(--text-1); }
+.dag-ed-kop i { font-style: normal; font-size: 11.5px; color: var(--text-3); }
+.dag-ed-intake { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.dag-ed-intake i { font-style: normal; font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 99px; background: var(--brand-soft); color: var(--brand-tekst); box-shadow: inset 0 0 0 1px var(--line); }
+.dag-ed-rijen { display: grid; gap: 6px; }
+.dag-ed-rijen > li { padding: 8px 10px; border-radius: 10px; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--line); }
+.dag-ed-rij { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 12.5px; }
+.dag-ed-rij b { color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dag-ed-rij > span:last-child { color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dag-ed-kern {
+  display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);
+  clip-path: inset(0 0 100% 0); transition: clip-path 420ms var(--ayg-ease);
+}
+.dag-ed-kern[data-open] { clip-path: inset(0); }
+.dag-ed-kern small { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.dag-ed-kern > span { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 11.5px; line-height: 1.4; color: var(--text-2); }
+.dag-ed-kern em { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-style: normal; font-size: 10px; font-weight: 700; background: var(--brand); color: var(--brand-inkt); }
+.dag-ed-kern b { color: var(--text-1); }
+
+@media (min-width: 640px) {
+  .dag-schema-telefoon { scale: 0.68; }
+}
+@media (min-width: 1024px) {
+  .dag-schema-podium { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: center; column-gap: clamp(40px, 5vw, 96px); }
+  .dag-schema-toneel { padding-bottom: 40px; margin-right: 6%; }
+  .dag-schema-telefoon { right: -10%; bottom: -10%; scale: 0.7; }
+  .dag-schema-editor { transform: translate3d(calc(var(--app) * -3%), 0, 0) scale(calc(1 - var(--app) * 0.05)); }
+}
+/* Het podium plakt onder de kop en de stand loopt mee met de scroll (SchemaBouw.tsx).
+   Het enige vastgezette stuk van de pagina; zonder beweging staat de eindstand. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .dag-schema-spoor { height: 270vh; }
+  .dag-schema-podium { position: sticky; top: 68px; height: calc(100svh - 68px); padding-block: 24px; align-content: center; }
+  .dag-fasen::before {
+    content: ''; position: absolute; left: 16px; top: 24px; bottom: 24px; width: 2px; z-index: -1;
+    background: var(--ayg-accent); transform: scaleY(var(--sp)); transform-origin: top;
+  }
+}
+@media (min-width: 1024px) and (max-height: 760px) and (prefers-reduced-motion: no-preference) {
+  .dag-schema-tekst { gap: 18px; }
+  .dag-fasen li > span:last-child > span { display: none; }
+}
+
+/* ── Kane: 21:30 en sluitingstijd: 22:00 ────────────────────────────────── */
+.dag-wie .ayg-praktijk-verhaal { gap: 20px; }
+.dag-dicht .ayg-h2 { max-width: 15ch; }
+
+/* ── De dagklok (pc): de scroll is de wijzer ────────────────────────────── */
+.dag-klok { display: none; }
+@media (min-width: 1024px) {
+  .dag-klok {
+    position: fixed; left: 20px; bottom: 20px; z-index: 40; display: flex; align-items: center; gap: 14px;
+    padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--ayg-vlak); color: var(--ayg-tekst);
+    box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw);
+    opacity: 0; visibility: hidden; transform: translateY(12px);
+    transition: opacity 260ms var(--ayg-ease), transform 260ms var(--ayg-ease), visibility 0s linear 260ms;
+  }
+  .dag-klok[data-zichtbaar] { opacity: 1; visibility: visible; transform: none; transition: opacity 260ms var(--ayg-ease), transform 260ms var(--ayg-ease), visibility 0s; }
+  .dag-klok-nu { display: grid; gap: 3px; min-width: 6.4rem; }
+  .dag-klok-tijd { font: 600 1.7rem/1 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; letter-spacing: -0.045em; color: var(--ayg-tekst); }
+  .dag-klok-naam { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ayg-tekst-2); white-space: nowrap; }
+  .dag-klok ol { display: flex; gap: 2px; padding-left: 12px; box-shadow: inset 1px 0 0 var(--ayg-lijn); }
+  .dag-klok a {
+    display: inline-flex; align-items: center; min-height: 36px; padding: 0 9px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ayg-tekst-2); text-decoration: none;
+    transition: background-color 160ms var(--ayg-ease), color 160ms var(--ayg-ease);
+  }
+  .dag-klok a[data-voorbij] { color: var(--ayg-tekst); }
+  .dag-klok a:is(:hover, :focus-visible) { color: var(--ayg-tekst); background: var(--ayg-vlak-2); }
+  .dag-klok a[aria-current] { color: var(--ayg-accent-tekst); background: var(--ayg-accent); }
+  .dag-klok a:active { transform: scale(0.97); }
+}

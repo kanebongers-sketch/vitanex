@@ -7,9 +7,9 @@ import type { DemoLes, DemoLidKaart, DemoVandaag, DemoWeek } from '@/lib/aiyourg
 import { dagKort, dagLang, hoofdletter, weekdag } from './datums'
 
 // De schermen van de werkvloer in de demo: Vandaag, het lesrooster en een
-// ledenkaart. Getekend uit de echte rijen van de Voorbeeld Gym (zie
+// ledenkaart. Getekend uit de echte rijen van de demo-sportschool (zie
 // src/lib/aiyourgym/demo), alleen om te bekijken. De labels in de taal van de
-// pagina (DEMO_SCHERM); de gegevens zelf blijven die van de Voorbeeld Gym.
+// pagina (DEMO_SCHERM); de gegevens zelf blijven die van de demo-sportschool (op de website Kernhal).
 
 function initialen(naam: string): string {
   return naam

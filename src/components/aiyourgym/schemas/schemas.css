@@ -84,9 +84,9 @@
 .ayg-ss-filters { align-items: center; margin-bottom: 12px; }
 .ayg-ss-zoek { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 160px; height: 28px; padding: 0 10px; border-radius: 8px; background: var(--bg-app); border: 1px solid var(--line-strong); color: var(--text-3); font-size: 11.5px; }
 .ayg-ss-bieb { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-.ayg-ss-bieb-kaart { display: grid; gap: 4px; padding: 6px 6px 9px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line); }
-.ayg-ss-bieb-kaart .aygm-oef-tegel { width: 100%; border-radius: 7px; font-size: 26px; }
+.ayg-ss-bieb-kaart { display: grid; gap: 4px; align-content: start; padding: 10px 10px 11px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line); }
 .ayg-ss-bieb-kaart b { font-size: 11.5px; line-height: 1.25; }
+.ayg-ss-bieb-punt { font-size: 10.5px; line-height: 1.35; color: var(--text-2); }
 .ayg-ss-bieb-kaart small { font-size: 10px; color: var(--brand-tekst); }
 
 .ayg-ss-invoer-lijst { display: grid; gap: 6px; margin: 6px 0 12px; }
@@ -99,7 +99,6 @@
 
 /* Een oefening in de ledenapp */
 .ayg-ss-blad { display: grid; gap: 7px; }
-.ayg-ss-blad-beeld { position: relative; display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
 .ayg-ss-blad-regel { font-size: 11px; font-weight: 600; color: var(--text-1); }
 .ayg-ss-blad-notitie { font-size: 10.5px; padding: 6px 8px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-tekst); }
 .ayg-ss-blad-kern { display: grid; gap: 5px; }

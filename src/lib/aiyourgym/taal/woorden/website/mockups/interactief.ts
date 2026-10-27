@@ -1,6 +1,6 @@
 // De interactieve delen van de productbeelden (clientcomponenten, daarom een eigen klein
-// bestand): de huisstijl-demo (mockups/HuisstijlDemo.tsx) en de pauzeknop van de
-// oefenlus (mockups/OefenLus.tsx). Kleurnamen in de volgorde van STALEN (mockups/stalen.ts).
+// bestand): de huisstijl-demo (mockups/HuisstijlDemo.tsx). Kleurnamen in de volgorde
+// van STALEN (mockups/stalen.ts).
 
 import { STALEN } from '@/components/aiyourgym/mockups/stalen'
 import { woordenboek } from '../../../woordenboek'
@@ -28,9 +28,4 @@ export const HUISSTIJL_DEMO = woordenboek({
     aangepast: (naam: string) => `${naam} has been adjusted slightly so buttons and text stay easy to read.`,
     goed: (naam: string, thema: string) => `${naam} on ${thema}: enough contrast, used as is.`,
   },
-})
-
-export const OEFENLUS = woordenboek({
-  nl: { pauzeren: 'Beweging pauzeren' },
-  en: { pauzeren: 'Pause the movement' },
 })

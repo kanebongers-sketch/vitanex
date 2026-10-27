@@ -5,7 +5,7 @@
 .ayg-cd { display: grid; gap: 18px; }
 .ayg-cd-keuze { display: flex; gap: 8px; overflow-x: auto; padding: 4px; margin: -4px; scrollbar-width: none; }
 .ayg-cd-keuze button {
-  flex: none; display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 4px 18px 4px 4px;
+  flex: none; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 18px 6px 6px;
   border: 0; border-radius: 14px; cursor: pointer; font: 600 15px/1.1 var(--ayg-font-tekst);
   background: var(--ayg-vlak); color: var(--ayg-tekst); box-shadow: inset 0 0 0 1px var(--ayg-lijn);
   transition: box-shadow 200ms, transform 220ms var(--ayg-ease);
@@ -17,26 +17,8 @@
 @media (min-width: 1180px) { .ayg-cd-raster { grid-template-columns: minmax(0, 1fr) auto; } }
 
 .ayg-cd-kaart { display: grid; overflow: hidden; border-radius: calc(var(--ayg-radius) + 8px); background: var(--ayg-vlak); box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw); }
-@media (min-width: 820px) { .ayg-cd-kaart { grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); align-items: start; } }
-
-.ayg-cd-speler { position: relative; margin: 0; align-self: start; padding: clamp(10px, 1.4vw, 16px); }
-@media (min-width: 820px) { .ayg-cd-speler { position: sticky; top: 84px; } }
-.ayg-cd-beeld { position: relative; aspect-ratio: 1; max-height: min(560px, 72vh); margin-inline: auto; overflow: hidden; border-radius: calc(var(--ayg-radius) + 2px); background: var(--ayg-inkt); }
-.ayg-cd-bediening {
-  position: absolute; left: calc(clamp(10px, 1.4vw, 16px) + 12px); right: calc(clamp(10px, 1.4vw, 16px) + 12px); bottom: calc(clamp(10px, 1.4vw, 16px) + 12px); display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 6px; border-radius: 14px; background: rgb(17 22 20 / 0.86);
-}
-.ayg-cd-bediening button {
-  display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; cursor: pointer;
-  font: 600 14px/1 var(--ayg-font-tekst); background: transparent; color: var(--ayg-inkt-tekst); transition: background-color 180ms var(--ayg-ease), color 180ms var(--ayg-ease);
-}
-.ayg-cd-standen button:is(:hover, :focus-visible):not([aria-pressed='true']) { background: rgb(241 236 225 / 0.14); }
-.ayg-cd-bediening .ayg-cd-speel:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--ayg-accent-licht) 88%, #ffffff); }
-.ayg-cd-bediening .ayg-cd-speel { background: var(--ayg-accent-licht); color: var(--ayg-inkt); }
-.ayg-cd-standen { display: inline-flex; gap: 4px; }
-.ayg-cd-standen button { box-shadow: inset 0 0 0 1px rgb(241 236 225 / 0.35); }
-.ayg-cd-standen button[aria-pressed='true'] { background: var(--ayg-inkt-tekst); color: var(--ayg-inkt); box-shadow: none; }
-.ayg .ayg-cd-bediening button:focus-visible { outline-color: var(--ayg-accent-licht); box-shadow: none; }
+/* Zonder oefenbeeld (alleen achter het inloggen, besluit Kane 27-10-2026): de coaching in een kolom */
+.ayg-cd-kaart--tekst .ayg-cd-naam { font-size: clamp(2.2rem, 4vw, 3.6rem); font-variation-settings: 'wdth' 80; }
 
 .ayg-cd-coaching { display: grid; gap: 20px; align-content: start; padding: clamp(22px, 3vw, 36px); }
 .ayg-cd-boven { font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ayg-tekst-2); }

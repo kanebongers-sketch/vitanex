@@ -3,6 +3,7 @@ import { formatGetal, formatProcent } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
 import { Venster } from './kaders'
+import { COACHES } from './voorbeeld'
 
 // Beheer en planning: cijfers per kalendermaand en het personeelsrooster met uren.
 // Teksten in de taal van de pagina (woordenboek BEHEER), getallen via formaat.ts.
@@ -50,10 +51,10 @@ export async function CijfersScherm() {
 
 /** Dag is de index in t.dagen. */
 const DIENSTEN = [
-  { ini: 'DK', naam: 'Daan', dag: 0, van: '07:00', tot: '13:00', status: 'verwerkt', soort: 'ok' },
-  { ini: 'IV', naam: 'Iris', dag: 0, van: '13:00', tot: '19:00', status: 'goedgekeurd', soort: 'ok' },
-  { ini: 'SB', naam: 'Sem', dag: 1, van: '07:00', tot: '13:00', status: 'gewerkt', soort: '' },
-  { ini: 'FA', naam: 'Fleur', dag: 1, van: '17:00', tot: '23:00', status: 'gepland', soort: '' },
+  { ...COACHES[0], dag: 0, van: '06:00', tot: '12:00', status: 'verwerkt', soort: 'ok' },
+  { ...COACHES[1], dag: 0, van: '16:00', tot: '22:00', status: 'goedgekeurd', soort: 'ok' },
+  { ...COACHES[2], dag: 1, van: '06:00', tot: '12:00', status: 'gewerkt', soort: '' },
+  { ...COACHES[3], dag: 1, van: '17:00', tot: '23:00', status: 'gepland', soort: '' },
 ] as const
 
 export async function PersoneelScherm() {

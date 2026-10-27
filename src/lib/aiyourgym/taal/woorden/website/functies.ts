@@ -32,7 +32,7 @@ export const FUNCTIES_PAGINA = woordenboek({
     band: 'Zie het werken in je eigen club.',
     beeld: {
       beheer: 'De check-in van AI Your Gym met de leden die net binnen zijn en hun status',
-      coaching: 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo',
+      coaching: 'Een oefening met genummerde kernpunten, ademhaling en tempo, zoals in Club',
       planning: 'Het groepslesrooster van een week met de bezetting per les en volle lessen met wachtlijst',
       groei: 'De cijfers van een kalendermaand met tegels en een staafgrafiek',
       betrokkenheid: 'De ledenapp op een telefoon met de volgende les, bezoeken, de QR-code om in te checken en een challenge',
@@ -50,7 +50,7 @@ export const FUNCTIES_PAGINA = woordenboek({
     band: 'See it working in your own club.',
     beeld: {
       beheer: 'AI Your Gym check-in showing the members who just arrived and their status',
-      coaching: 'An exercise with a moving 3D image, numbered coaching cues, breathing and tempo',
+      coaching: 'An exercise with numbered coaching cues, breathing and tempo, as shown in Club',
       planning: 'A week of the group class timetable with attendance per class and full classes with a waiting list',
       groei: 'The figures for a calendar month with tiles and a bar chart',
       betrokkenheid: 'The member app on a phone with the next class, visits, the QR code for check-in and a challenge',

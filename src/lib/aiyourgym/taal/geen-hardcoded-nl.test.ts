@@ -41,7 +41,7 @@ const ALTIJD_GOED: Record<string, string> = {
   'RepDB': 'bronvermelding oefendata (merknaam)',
   'repdb.co': 'bronvermelding oefendata',
   'Exercise data by RepDB (repdb.co)': 'verplichte bronvermelding, Engels in beide talen',
-  'Voorbeeld Gym': 'naam van de demo-sportschool (demodata)',
+  'Kernhal': 'naam van de verzonnen voorbeeldsportschool op de website (mockups/voorbeeld.ts)',
   'Club': 'productnaam',
   'Start': 'pakketnaam uit pakketten.ts',
   'Keten': 'pakketnaam uit pakketten.ts',
@@ -60,7 +60,6 @@ const ALTIJD_GOED: Record<string, string> = {
 /** Per bestand toegestane teksten (exact), met reden. */
 const PER_BESTAND: Record<string, Record<string, string>> = {
   'src/components/aiyourgym/home/Praktijk.tsx': { PT: 'monogram als er (nog) geen naam is; Personal Trainer, in beide talen gelijk' },
-  'src/components/aiyourgym/mockups/AppSchermen.tsx': { Spinning: 'lesnaam uit de demodata van de Voorbeeld Gym' },
   'src/components/aiyourgym/mockups/HeldDashboard.tsx': { SB: 'initialen in de demodata', 'Sanne Bakker': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WerkvloerSchermen.tsx': { 'Mo de Vries': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WizardScherm.tsx': { 'club/start': 'pad in de nagebootste adresbalk (/club/start)' },
@@ -97,7 +96,7 @@ const CLUB_TEKST = /^(COACHING_[A-Z_]+|coachingVoor|PARQ_VRAGEN|[A-Z_]+_LABELS?)
 const CLUB_TEKST_GOED: Record<string, string> = {
   'src/components/aiyourgym/schemas/SchermenTrainer.tsx PARQ_VRAGEN': 'alleen volgorde en sleutels; de vraag komt uit SCHEMA_SCHERMEN.intake.parq',
   'src/app/(aiyourgym)/(website)/aiyourgym/(site)/demo/page.tsx coachingVoor':
-    'live demo met de Voorbeeld Gym: haar gegevens en coaching zijn Nederlands en dat staat er in het Engels bij (DEMO.gegevensNederlands)',
+    'live demo met Kernhal (de demo-sportschool): haar gegevens en coaching zijn Nederlands en dat staat er in het Engels bij (DEMO.gegevensNederlands)',
 }
 
 /** Attributen die de bezoeker ziet of hoort. */

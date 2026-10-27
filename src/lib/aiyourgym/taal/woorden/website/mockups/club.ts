@@ -86,14 +86,14 @@ export const WERKVLOER = woordenboek({
 export const ROOSTER = woordenboek({
   nl: {
     boven: 'Groepslessen · week 43',
-    kop: 'Lesrooster Centrum',
+    kop: (vestiging: string) => `Lesrooster ${vestiging}`,
     nieuweLes: '+ Les',
     dagen: ['Ma', 'Di', 'Wo', 'Do', 'Vr'],
     vol: (wachtlijst: number) => `Vol · wachtlijst ${wachtlijst}`,
   },
   en: {
     boven: 'Group classes · week 43',
-    kop: 'Centre timetable',
+    kop: (vestiging: string) => `${vestiging} timetable`,
     nieuweLes: '+ Class',
     dagen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
     vol: (wachtlijst: number) => `Full · waiting list ${wachtlijst}`,

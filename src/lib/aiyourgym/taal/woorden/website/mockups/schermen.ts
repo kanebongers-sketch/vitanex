@@ -1,7 +1,7 @@
 // De schermen in de productbeelden: de ledenapp (mockups/AppSchermen.tsx), het scherm
 // Vandaag met het oefenkaartje (HeldDashboard.tsx), een oefening (Oefening.tsx) en de
 // startwizard (WizardScherm.tsx, ook de stappen op home/StartStappen.tsx). Namen van
-// leden, lessen en oefeningen zijn voorbeelden en blijven gelijk; oefeningnamen komen
+// leden, lessen en oefeningen zijn voorbeelden van Kernhal (verzonnen, mockups/voorbeeld.ts) en blijven gelijk; oefeningnamen komen
 // uit de bibliotheek. De coaching bij een oefening komt uit de oefenbibliotheek van Club
 // en is nog Nederlands (die vertaling volgt met Club).
 
@@ -44,6 +44,7 @@ export const APP_SCHERMEN = woordenboek({
     ],
     welkom: 'Welkom terug',
     logIn: 'Log in bij je sportschool',
+    openingstijden: 'Open ma tot vr 06:00 tot 23:00 · za en zo 08:00 tot 18:00',
     email: 'E-mailadres',
     voorbeeldEmail: 'sanne@voorbeeld.nl',
     wachtwoord: 'Wachtwoord',
@@ -84,6 +85,7 @@ export const APP_SCHERMEN = woordenboek({
     ],
     welkom: 'Welcome back',
     logIn: 'Log in to your gym',
+    openingstijden: 'Open Mon to Fri 06:00 to 23:00 · Sat and Sun 08:00 to 18:00',
     email: 'Email address',
     voorbeeldEmail: 'sanne@example.com',
     wachtwoord: 'Password',
@@ -94,7 +96,7 @@ export const APP_SCHERMEN = woordenboek({
 
 export const DASHBOARD = woordenboek({
   nl: {
-    vestiging: (dag: string) => `Centrum · ${dag}`,
+    vestiging: (vestiging: string, dag: string) => `${vestiging} · ${dag}`,
     vandaag: 'Vandaag',
     checkin: 'Check-in',
     tegels: ['Nu binnen', 'Lessen vandaag', 'Opvolgen', 'Taken'],
@@ -107,11 +109,9 @@ export const DASHBOARD = woordenboek({
     wekenOpRij: 'Weken op rij',
     schema: 'Trainingsschema',
     schemaNaam: 'Kracht 3x per week · dag A',
-    oefBoven: 'Schema · dag A · 1',
-    beeldLabel: (naam: string) => `${naam} als bewegend beeld`,
   },
   en: {
-    vestiging: (dag: string) => `Centre · ${dag}`,
+    vestiging: (vestiging: string, dag: string) => `${vestiging} · ${dag}`,
     vandaag: 'Today',
     checkin: 'Check-in',
     tegels: ['In now', 'Classes today', 'Follow-up', 'Tasks'],
@@ -124,8 +124,6 @@ export const DASHBOARD = woordenboek({
     wekenOpRij: 'Weeks in a row',
     schema: 'Training programme',
     schemaNaam: 'Strength 3x a week · day A',
-    oefBoven: 'Programme · day A · 1',
-    beeldLabel: (naam: string) => `${naam} as a moving image`,
   },
 })
 
@@ -134,13 +132,11 @@ export const OEFENING = woordenboek({
     boven: 'Benen · dag A · oefening 1',
     ademhaling: 'Ademhaling',
     tempo: 'Tempo',
-    beeldLabel: (naam: string) => `${naam} als bewegend beeld`,
   },
   en: {
     boven: 'Legs · day A · exercise 1',
     ademhaling: 'Breathing',
     tempo: 'Tempo',
-    beeldLabel: (naam: string) => `${naam} as a moving image`,
   },
 })
 

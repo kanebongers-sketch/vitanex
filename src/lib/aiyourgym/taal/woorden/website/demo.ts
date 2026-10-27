@@ -1,7 +1,8 @@
 // De live demo ((site)/demo/page.tsx en src/components/aiyourgym/demo). De uitleg per
 // stap is DEMO_STAPPEN uit demo/stappen.ts (alleen wat het scherm echt laat zien);
 // het Engels zegt hetzelfde. De gegevens zelf (namen, lessen, oefeningen en coaching)
-// komen uit de Voorbeeld Gym in Club en blijven Nederlands: dat zeggen we eerlijk.
+// komen uit de demo-sportschool in Club en blijven Nederlands: dat zeggen we eerlijk.
+// Op de website heet die voorbeeldsportschool Kernhal (verzonnen, mockups/voorbeeld.ts).
 
 import { DEMO_STAPPEN } from '@/components/aiyourgym/demo/stappen'
 import { woordenboek } from '../../woordenboek'
@@ -10,17 +11,17 @@ export const DEMO = woordenboek({
   nl: {
     metaTitel: 'Live demo',
     metaOmschrijving:
-      'Kijk rond in AI Your Gym met de Voorbeeld Gym: Vandaag, het lesrooster, een ledenkaart, een schema met coaching, de cijfers en de ledenapp. Zonder account, met voorbeeldgegevens.',
+      'Kijk rond in AI Your Gym met Kernhal, een verzonnen voorbeeldsportschool: Vandaag, het lesrooster, een ledenkaart, een schema met coaching, de cijfers en de ledenapp. Zonder account, met voorbeeldgegevens.',
     label: 'Live demo',
     nietKop: 'De demo is even niet beschikbaar.',
     nietTekst: (dagen: number) => `Probeer het later nog eens, of start meteen je eigen omgeving en probeer alles ${dagen} dagen gratis.`,
     startProef: 'Start je eigen proefperiode',
     titel: 'Kijk rond in een echte sportschool.',
-    tekst: { voor: 'Dit zijn de echte schermen van AI Your Gym, met de ', na: ': een sportschool met voorbeeldgegevens. Alleen kijken, zonder account. Stand van ' },
+    tekst: { voor: 'Dit zijn de echte schermen van AI Your Gym, met ', na: ': een verzonnen sportschool met voorbeeldgegevens. Alleen kijken, zonder account. Stand van ' },
     gegevensNederlands: '',
     begin: 'Begin de rondleiding',
     gids: 'Schermen in de demo',
-    bijschrift: 'Echt scherm van de Voorbeeld Gym, met voorbeeldgegevens',
+    bijschrift: 'Echt scherm met Kernhal, een voorbeeld met verzonnen gegevens',
     stappen: DEMO_STAPPEN,
     band: 'Nu met jouw sportschool erin.',
     // Beschrijvingen van de schermen voor schermlezers
@@ -38,17 +39,17 @@ export const DEMO = woordenboek({
   en: {
     metaTitel: 'Live demo',
     metaOmschrijving:
-      'Look around AI Your Gym with the Voorbeeld Gym: Today, the class timetable, a member card, a programme with coaching, the figures and the member app. No account needed, with example data.',
+      'Look around AI Your Gym with Kernhal, a made-up example gym: Today, the class timetable, a member card, a programme with coaching, the figures and the member app. No account needed, with example data.',
     label: 'Live demo',
     nietKop: 'The demo is not available right now.',
     nietTekst: (dagen: number) => `Please try again later, or start your own environment straight away and try everything free for ${dagen} days.`,
     startProef: 'Start your own trial',
     titel: 'Look around a real gym.',
-    tekst: { voor: 'These are the real screens of AI Your Gym, with the ', na: ': a gym with example data. View only, no account needed. As of ' },
-    gegevensNederlands: ' The Voorbeeld Gym is a Dutch example gym, so its names, classes and coaching are in Dutch.',
+    tekst: { voor: 'These are the real screens of AI Your Gym, with ', na: ': a made-up gym with example data. View only, no account needed. As of ' },
+    gegevensNederlands: ' Kernhal is a Dutch example gym, so its names, classes and coaching are in Dutch.',
     begin: 'Start the tour',
     gids: 'Screens in the demo',
-    bijschrift: 'Real screen from the Voorbeeld Gym, with example data',
+    bijschrift: 'Real screen with Kernhal, an example with made-up data',
     stappen: {
       vandaag: {
         sleutel: 'vandaag',
@@ -89,7 +90,7 @@ export const DEMO = woordenboek({
         sleutel: 'app',
         label: 'Member app',
         titel: 'What the same member sees in the app.',
-        uitleg: 'The member app in the colour of the Voorbeeld Gym: the next class, visits this month, the QR code to check in, the challenge and the programme.',
+        uitleg: 'The member app in the colour of Kernhal: the next class, visits this month, the QR code to check in, the challenge and the programme.',
         punten: ['A web app on the home screen', 'Sign in with email and password', 'In your name, logo and colours'],
       },
     },
@@ -142,7 +143,6 @@ export const DEMO_SCHERM = woordenboek({
     // Coaching, cijfers en app
     weken: (n: number) => ` · ${n} weken`,
     doel: (doel: string) => ` · doel ${doel}`,
-    alsBeeld: (naam: string) => `${naam} als bewegend 3D-beeld`,
     veelgemaakt: 'Veelgemaakte fout',
     ademhaling: 'Ademhaling',
     tempo: 'Tempo',
@@ -207,7 +207,6 @@ export const DEMO_SCHERM = woordenboek({
     tot: ' to ',
     weken: (n: number) => ` · ${n} weeks`,
     doel: (doel: string) => ` · goal ${doel}`,
-    alsBeeld: (naam: string) => `${naam} as a moving 3D image`,
     veelgemaakt: 'Common mistake',
     ademhaling: 'Breathing',
     tempo: 'Tempo',

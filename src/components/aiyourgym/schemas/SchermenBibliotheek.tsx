@@ -2,16 +2,14 @@ import { Award, Flame, RotateCcw, Search, X } from 'lucide-react'
 import { volgendeMijlpaal } from '@/lib/club/voortgang/frequentie'
 import type { VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
-import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
-import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMA_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/schemas'
 
 // Bibliotheek, eigen coachtekst, een oefening in de ledenapp en voortgang.
 // Getekend in HTML en CSS met voorbeeldgegevens; de coaching is de echte tekst
-// (uit de bibliotheek van Club, in het Engels uit woorden/website/coaching.ts) en de
-// geopende oefening is ons eigen 3D-figuur.
+// (uit de bibliotheek van Club, in het Engels uit woorden/website/coaching.ts).
+// Geen oefenbeelden: die staan alleen achter het inloggen (besluit Kane 27-10-2026).
 
 interface Props {
   oefeningen: readonly VoorbeeldOefening[]
@@ -40,8 +38,8 @@ export async function BibliotheekScherm({ oefeningen, aantal }: Props & { aantal
       <span className="ayg-ss-bieb">
         {oefeningen.map((o) => (
           <span key={o.naam} className="ayg-ss-bieb-kaart">
-            <OefTegel naam={o.naam} />
             <b>{o.naam}</b>
+            <span className="ayg-ss-bieb-punt">{o.coaching.kernpunten[0]?.punt}</span>
             <small>{t.kernpunten(o.coaching.kernpunten.length)}</small>
           </span>
         ))}
@@ -93,9 +91,6 @@ export async function OefeningToestel({ oefening }: { oefening: VoorbeeldOefenin
       <Toestel tab="Schema">
         <div className="ayg-ss-blad">
           <p className="ayg-cd-app-kop">{oefening.naam}</p>
-          <span className="ayg-ss-blad-beeld">
-            <Oefenbeeld naam={oefening.naam} label={t.bewegend(oefening.naam)} className="ayg-3d--vul" />
-          </span>
           <span className="ayg-ss-blad-regel">{s.voorschrift(oefening.voorschrift)}</span>
           <span className="ayg-ss-blad-notitie">{t.notitie}</span>
           <ol className="ayg-ss-blad-kern">

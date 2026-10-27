@@ -61,7 +61,6 @@
 .aygd-oef[data-uit] { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
 .aygd-coaching { box-shadow: none; }
 .aygd-coaching .aygm-oefening, .aygd-schema .aygm-oefening { grid-template-columns: 1fr; }
-.aygd-coaching .aygm-beeld { aspect-ratio: 16 / 10; }
 .aygd-coaching .aygm-coaching { padding: 18px; gap: 14px; }
 .aygd-coaching .aygm-coaching-titel { font-size: 22px; }
 .aygd-fout { display: grid; gap: 3px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--club-let-op) 12%, transparent); }

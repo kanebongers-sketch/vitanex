@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { DagTijd } from '@/components/aiyourgym/dag/DagTijd'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { siteTekst } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
@@ -10,19 +11,27 @@ import { SITE_PADEN } from './paden'
 interface Props {
   /** Eigen kop uit het woordenboek van de pagina; anders de standaardkop uit ACTIE. */
   titel?: string
+  /** Op de voorpagina het laatste moment van de dag (sluitingstijd), met kloktijd. */
+  moment?: { id: string; minuten: number; naam: string }
 }
 
 // De afsluitende oproep onderaan elke pagina, in de taal van de pagina (woordenboek ACTIE).
-export async function AanmeldBand({ titel }: Props) {
+export async function AanmeldBand({ titel, moment }: Props) {
   const t = await siteTekst(ACTIE)
   const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = SITE_PADEN
   return (
-    <section className="ayg-sectie--krap" aria-labelledby="band-titel">
+    <section
+      className={moment ? 'ayg-sectie--krap dag-dicht' : 'ayg-sectie--krap'}
+      aria-labelledby="band-titel"
+      id={moment?.id}
+      data-dag={moment?.minuten}
+      data-dag-naam={moment?.naam}
+    >
       <div className="ayg-podium ayg-podium--rond">
         <div className="ayg-band-gloed" aria-hidden />
         <div className="ayg-band ayg-wrap">
           <div className="ayg-stapel">
-            <p className="ayg-label ayg-label--accent">{t.bandLabel(PROEFDAGEN)}</p>
+            {moment ? <DagTijd minuten={moment.minuten} naam={moment.naam} licht /> : <p className="ayg-label ayg-label--accent">{t.bandLabel(PROEFDAGEN)}</p>}
             <h2 className="ayg-h2" id="band-titel">
               {titel ?? t.bandTitel}
             </h2>

@@ -1,10 +1,10 @@
 // De vertrouwensblokken van de voorpagina en de home-secties die ook op subpagina's staan
-// (src/components/aiyourgym/home): Praktijk, WelNietKort, WelNiet, HomeVragen, StartStappen,
+// (src/components/aiyourgym/home): Praktijk, WelNiet, StartStappen,
 // WatKomtMee en Huisstijl. Het Nederlands is de bron in inhoud/ (eerlijk.ts, praktijk.ts,
 // vertrouwen.ts; daar staat waarom elke zin klopt); het Engels zegt precies hetzelfde, niets meer.
 
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { HOME_VRAGEN, KOMT_MEE, KOMT_NIET_MEE, NIET, NIET_KORT, OVERSTAP_TIPS, WEL, WEL_KORT } from '@/components/aiyourgym/inhoud/eerlijk'
+import { KOMT_MEE, KOMT_NIET_MEE, NIET, OVERSTAP_TIPS, WEL } from '@/components/aiyourgym/inhoud/eerlijk'
 import { BELOFTES, PRAKTIJK } from '@/components/aiyourgym/inhoud/praktijk'
 import { woordenboek } from '../../woordenboek'
 
@@ -45,30 +45,6 @@ const EERLIJK_TITEL = {
   en: { voor: 'What we do. ', accent: 'And what we don’t.' },
 } as const
 
-/** Kort op de voorpagina: vier dingen die het doet en vier die het (nu) niet doet (home/WelNietKort.tsx). */
-export const WEL_NIET_KORT = woordenboek({
-  nl: {
-    label: 'Eerlijk',
-    titel: EERLIJK_TITEL.nl,
-    zin: 'Liever nu duidelijk dan straks een verrassing.',
-    welTitel: 'Doet het',
-    nietTitel: 'Doet het (nu) niet',
-    wel: WEL_KORT,
-    niet: NIET_KORT,
-    link: 'Alles wat wel en niet',
-  },
-  en: {
-    label: 'Honest',
-    titel: EERLIJK_TITEL.en,
-    zin: 'Better clear now than a surprise later.',
-    welTitel: 'What it does',
-    nietTitel: 'What it doesn’t do (for now)',
-    wel: ['Check-in with QR', 'Classes and booking', 'Programmes with coaching', 'Member app in your branding'],
-    niet: ['Member direct debits and invoices', 'Member subscriptions', 'A link with your membership admin', 'An app in the app stores'],
-    link: 'Everything it does and doesn’t do',
-  },
-})
-
 /** De volledige lijst wat het wel en niet doet (home/WelNiet.tsx, op /overstappen). */
 export const WEL_NIET = woordenboek({
   nl: {
@@ -102,51 +78,6 @@ export const WEL_NIET = woordenboek({
         tekst: 'There’s no automatic link yet. You import your members with a CSV or Excel file, and again when a lot has changed.',
       },
       { titel: 'Its own app in the app stores', tekst: 'The member app is a web app that members add to their home screen, no app store needed.' },
-    ],
-  },
-})
-
-/**
- * De vier vragen op de voorpagina (home/HomeVragen.tsx). Vragen in de volgorde van HOME_VRAGEN;
- * de paden van de links zijn zonder taal, de component zet de taal ervoor.
- */
-export const HOME_VRAGEN_SECTIE = woordenboek({
-  nl: {
-    label: 'Vragen',
-    titel: 'Wat eigenaren als eerste vragen.',
-    meerLabel: 'Meer vragen',
-    meerPrijs: 'Vragen over prijs en proberen',
-    meerOverstappen: 'Vragen over overstappen',
-    vragen: HOME_VRAGEN,
-  },
-  en: {
-    label: 'Questions',
-    titel: 'What owners ask first.',
-    meerLabel: 'More questions',
-    meerPrijs: 'Questions about pricing and trials',
-    meerOverstappen: 'Questions about switching',
-    vragen: [
-      {
-        vraag: 'Does AI Your Gym also handle my members’ direct debits and subscriptions?',
-        antwoord:
-          'No. Direct debits, subscriptions and member invoices stay in your own membership admin. AI Your Gym handles the rest of the club: check-in, classes and booking, training programmes, the member app, leads, staff and figures. You import your members with a CSV or Excel file.',
-        link: { label: 'Everything we do and don’t do', pad: '/overstappen#wel-niet' },
-      },
-      {
-        vraag: 'Am I tied in?',
-        antwoord: `You start with ${PROEFDAGEN} days free in your own environment. Stop during that time and you pay nothing. If you continue, your subscription runs for a year and you pay monthly, per location. We’re not charging a set-up fee for now. You always see the amount before you pay anything.`,
-      },
-      {
-        vraag: 'Where is my data stored?',
-        antwoord:
-          'In Frankfurt, inside the EU: the database and the server that uses it. Every gym has its own, strictly separated environment. Health data from an intake or measurement is only stored with the member’s explicit consent.',
-        link: { label: 'Privacy and security', pad: '/privacy-en-beveiliging' },
-      },
-      {
-        vraag: 'Does it work for multiple locations?',
-        antwoord:
-          'Yes. You set up rooms, opening hours and rules per location, and members can belong to a location. The owner decides per role what a club manager sees. The Keten plan has no limit on the number of locations.',
-      },
     ],
   },
 })

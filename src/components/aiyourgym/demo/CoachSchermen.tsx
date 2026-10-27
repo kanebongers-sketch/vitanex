@@ -1,8 +1,7 @@
 import { Trophy } from 'lucide-react'
 import { QrBeeld } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, Venster } from '@/components/aiyourgym/mockups/kaders'
-import { OefTegel } from '@/components/aiyourgym/mockups/OefTegel'
-import { Oefenbeeld } from '@/components/aiyourgym/mockups/Oefenbeeld'
+import { OefNr } from '@/components/aiyourgym/mockups/OefNr'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO_SCHERM } from '@/lib/aiyourgym/taal/woorden/website/demo'
@@ -11,10 +10,10 @@ import type { DemoApp, DemoCijfers, DemoOefening, DemoSchema } from '@/lib/aiyou
 import { dagKort, maandAlleen, maandJaar } from './datums'
 
 // De coaching-, cijfer- en app-schermen van de demo. Coaching komt uit de
-// oefenbibliotheek van Club zelf (coachingVoor op de server); de uitgelichte
-// oefening is ons eigen 3D-figuur, in lijsten staat een tegel met beginletters.
+// oefenbibliotheek van Club zelf (coachingVoor op de server). Geen oefenbeelden
+// (alleen achter het inloggen, besluit Kane 27-10-2026): in lijsten het volgnummer.
 // Labels in de taal van de pagina (DEMO_SCHERM); de gegevens en de coaching zijn
-// die van de Voorbeeld Gym (Nederlands). Groepen en tabbladen geven we met hun
+// die van de demo-sportschool (Nederlands). Groepen en tabbladen geven we met hun
 // Nederlandse naam aan de kaders, die vertalen ze zelf.
 
 /** "60 sec rust" uit het model in de taal van de pagina. */
@@ -49,9 +48,9 @@ export function SchemaScherm({ schema, uitgelicht, coaching, taal }: SchemaProps
             <div key={d.titel} className="aygm-kaart aygd-blok">
               <p className="aygm-boven">{d.titel}</p>
               <div className="aygd-lijst">
-                {d.oefeningen.map((o) => (
+                {d.oefeningen.map((o, i) => (
                   <div key={`${d.titel}-${o.naam}`} className="aygd-oef" data-uit={o.naam === uitgelicht?.naam ? '' : undefined}>
-                    <OefTegel naam={o.naam} maat={40} />
+                    <OefNr nr={i + 1} maat={40} />
                     <span className="aygm-rij-tekst">
                       <b>{o.naam}</b>
                       <span>
@@ -66,10 +65,7 @@ export function SchemaScherm({ schema, uitgelicht, coaching, taal }: SchemaProps
           ))}
         </div>
         {uitgelicht && coaching && (
-          <div className="aygm-oefening aygd-coaching">
-            <div className="aygm-beeld">
-              <Oefenbeeld naam={uitgelicht.naam} label={t.alsBeeld(uitgelicht.naam)} className="ayg-3d--vul" />
-            </div>
+          <div className="aygm-oefening aygm-oefening--tekst aygd-coaching">
             <div className="aygm-coaching">
               <p className="aygm-coaching-titel">{uitgelicht.naam}</p>
               <ol className="aygm-kernpunten">
@@ -242,9 +238,9 @@ export function AppSchemaDemo({ schema, taal }: { schema: DemoSchema; taal: Taal
         ))}
       </div>
       <div className="aygm-lijst">
-        {dag?.oefeningen.map((o) => (
+        {dag?.oefeningen.map((o, i) => (
           <div key={o.naam} className="aygm-oef">
-            <OefTegel naam={o.naam} maat={52} />
+            <OefNr nr={i + 1} maat={52} />
             <div className="aygm-rij-tekst">
               <b>{o.naam}</b>
               <span>{o.dosis}</span>

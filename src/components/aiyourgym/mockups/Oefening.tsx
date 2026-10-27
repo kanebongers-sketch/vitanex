@@ -1,11 +1,10 @@
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { siteCoaching } from '@/lib/aiyourgym/taal/woorden/website/coaching'
 import { OEFENING } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
-import { Oefenbeeld } from './Oefenbeeld'
 
-// Een oefening zoals een lid en trainer hem in Club zien: ons eigen figuur
-// dat de beweging voordoet en de coaching uit de echte oefenbibliotheek van
-// Club. Geen verzonnen tekst: dit komt uit de app zelf. De labels staan in de
+// Een oefening zoals een lid en trainer hem in Club zien: de coaching uit de
+// echte oefenbibliotheek van Club. Geen verzonnen tekst: dit komt uit de app zelf.
+// Zonder oefenbeeld: die staan alleen achter het inloggen (besluit Kane 27-10-2026). De labels staan in de
 // taal van de pagina (woordenboek OEFENING), de coaching ook (siteCoaching).
 
 const NAAM = 'Front squat'
@@ -16,10 +15,7 @@ export async function Oefening() {
   const coaching = siteCoaching(NAAM, taal)
   if (!coaching) return null
   return (
-    <div className="aygm-oefening">
-      <div className="aygm-beeld">
-        <Oefenbeeld naam={NAAM} label={t.beeldLabel(NAAM)} className="ayg-3d--vul" sizes="(max-width: 720px) 90vw, 420px" />
-      </div>
+    <div className="aygm-oefening aygm-oefening--tekst">
       <div className="aygm-coaching">
         <div>
           <p className="aygm-boven">{t.boven}</p>

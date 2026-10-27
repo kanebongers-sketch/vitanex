@@ -5,6 +5,7 @@ import '@/components/aiyourgym/schemas/schemas.css'
 import { SCHEMA_STAPPEN, type SchemaStapSleutel } from '@/components/aiyourgym/inhoud/trainingsschemas'
 import { aantalMetCoaching, voorbeeldOefeningen, type VoorbeeldOefening } from '@/components/aiyourgym/inhoud/voorbeeldschema'
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
+import { Schemas } from '@/components/aiyourgym/home/Schemas'
 import { CoachingDemo } from '@/components/aiyourgym/schemas/CoachingDemo'
 import { SchemaToestel } from '@/components/aiyourgym/schemas/SchemaToestel'
 import { StapScherm } from '@/components/aiyourgym/schemas/StapScherm'
@@ -18,6 +19,8 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { SCHEMAS_PAGINA } from '@/lib/aiyourgym/taal/woorden/website/trainingsschemas'
 
 // De teksten staan in SCHEMAS_PAGINA (Nederlands uit inhoud/trainingsschemas.ts).
+// Na de kop dezelfde schemabouw als op de voorpagina (zonder kloktijd); oefenbeelden
+// staan niet op de website (besluit Kane 27-10-2026), alleen de schermen zelf.
 // De coaching in de schermen komt uit de bibliotheek van Club, in de taal van de
 // pagina (voorbeeldOefeningen(taal), woorden/website/coaching.ts).
 
@@ -63,6 +66,8 @@ export default async function TrainingsschemasPagina() {
         <TweeRoutes />
         <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
+
+      <Schemas metTijd={false} />
 
       <nav className="ayg-wrap ayg-ss-route" aria-label={t.routeLabel}>
         <ol>

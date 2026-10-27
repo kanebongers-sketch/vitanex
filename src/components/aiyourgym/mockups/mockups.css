@@ -6,7 +6,7 @@
    ========================================================================== */
 
 .aygm {
-  /* Voorbeeld Gym in flessengroen: past bij het racegroen van de website */
+  /* Kernhal (voorbeeldsportschool) in flessengroen: past bij het racegroen van de website */
   --brand: #2f6153;
   --brand-inkt: #f1ece1;
   --brand-tekst: #9fc2b4;
@@ -60,7 +60,11 @@
 .aygm-adres { flex: 1; max-width: 300px; margin-inline: auto; height: 22px; border-radius: 6px; background: var(--bg-app); color: var(--text-3); font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .aygm-app-kop { display: flex; align-items: center; gap: 18px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
 .aygm-app-merk { display: flex; align-items: center; gap: 8px; font: 700 13px/1 var(--ayg-font-kop); letter-spacing: -0.01em; }
-.aygm-app-merk i { width: 20px; height: 20px; border-radius: 6px; background: var(--brand); }
+.aygm-app-merk .aygm-merk-teken { width: 20px; height: 20px; }
+.aygm-merk-teken { flex: none; display: block; }
+.aygm-merk-teken rect { fill: var(--brand); }
+.aygm-merk-teken path { fill: var(--brand-inkt); }
+.aygm-merk-woord { text-transform: uppercase; letter-spacing: 0.16em; font-weight: 800; }
 .aygm-app-groepen { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg-card); color: var(--text-3); font: 600 10.5px/1 var(--ayg-font-kop); letter-spacing: 0.07em; text-transform: uppercase; overflow: hidden; }
 .aygm-app-groepen span { padding: 6px 10px; border-radius: 99px; white-space: nowrap; }
 .aygm-app-groepen span[data-actief] { background: var(--brand); color: var(--brand-inkt); font-weight: 700; }
@@ -97,7 +101,7 @@
 .aygm-eiland { width: 84px; height: 24px; border-radius: 20px; background: #000; }
 .aygm-scherm-inhoud { flex: 1; overflow: hidden; padding: 6px 16px 16px; display: grid; align-content: start; gap: 12px; }
 .aygm-scherm-merk { display: flex; align-items: center; gap: 8px; font: 800 14px/1 var(--ayg-font-kop); letter-spacing: 0.02em; text-transform: uppercase; }
-.aygm-scherm-merk i { width: 22px; height: 22px; border-radius: 7px; background: var(--brand); }
+.aygm-scherm-merk .aygm-merk-teken { width: 22px; height: 22px; }
 .aygm-tabs { display: grid; grid-template-columns: repeat(7, 1fr); padding: 8px 6px 18px; border-top: 1px solid var(--line); background: var(--bg-card); flex-shrink: 0; }
 .aygm-tabs span { display: grid; justify-items: center; gap: 3px; font-size: 7.5px; letter-spacing: -0.01em; color: var(--text-3); }
 .aygm-tabs span[data-actief] { color: var(--brand-tekst); }
@@ -127,8 +131,8 @@
 
 /* ── Oefening met coaching ───────────────────────────────────────────────── */
 .aygm-oefening { display: grid; gap: 0; border-radius: 18px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--line); box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.7); }
-@media (min-width: 720px) { .aygm-oefening { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
-.aygm-beeld { position: relative; aspect-ratio: 1; background: var(--bg-raised); }
+/* Alleen coaching (geen oefenbeeld op de website): de kernpunten krijgen de ruimte */
+.aygm-oefening--tekst .aygm-coaching { padding: clamp(20px, 2.4vw, 30px); }
 .aygm-coaching { padding: 22px; display: grid; gap: 16px; align-content: start; }
 .aygm-coaching-titel { font: 700 26px/1 var(--ayg-font-kop); letter-spacing: -0.035em; font-variation-settings: 'wdth' 86; }
 .aygm-kernpunten { display: grid; gap: 10px; counter-reset: k; }
@@ -272,13 +276,6 @@ li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
 .aygm-dash-schema b { font-size: 12.5px; font-weight: 600; }
 
 /* Het oefenkaartje dat over het venster valt */
-.aygm-dash-oef { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 10px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.75); }
-.aygm-dash-oef .aygm-beeld { border-radius: 10px; overflow: hidden; }
-.aygm-dash-oef-tekst { display: grid; gap: 6px; align-content: start; min-width: 0; }
-.aygm-dash-oef .aygm-kernpunten { gap: 6px; }
-.aygm-dash-oef .aygm-kernpunten li { grid-template-columns: 20px 1fr; gap: 7px; align-items: center; }
-.aygm-dash-oef .aygm-kernpunten li::before { width: 18px; height: 18px; font-size: 10px; }
-.aygm-dash-oef .aygm-kernpunten b { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @container (max-width: 560px) {
   .aygm-dash-raster { grid-template-columns: minmax(0, 1fr); }
@@ -286,73 +283,12 @@ li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
   .aygm-dash-tegels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* ── Eigen 3D-oefenbeelden en tegels met beginletters ─────────────────────
-   Het figuur kleurt mee met --brand van het productbeeld eromheen, en buiten
-   een productbeeld met het accent van de website (nooit het brons van Club). */
-.ayg-3d { display: block; width: 100%; }
-.ayg-3d > .club-ill { --ill-accent: var(--brand, var(--ayg-accent)); }
-.ayg-3d--vul { position: absolute; inset: 0; }
-.ayg-3d--vul > .club-ill { height: 100%; aspect-ratio: auto; border-radius: 0; }
 
-/* ── Eigen Blender-renders (OefenLus) ──────────────────────────────────────
-   Een donker vlak met een zachte lichtbundel en een schaduw op de vloer; de
-   render zelf is transparant. Eerst het stille beeld, daarna vervaagt de lus
-   erin (pas na decode) en verdwijnt het stille beeld (anders zie je beide door
-   elkaar). Terug naar het stille beeld gaat zonder overgang: zo is er nooit een
-   moment met een leeg of half doorzichtig vlak.
-   .ayg-lus-vlak is precies het vlak van de render (zelfde verhouding, midden in
-   het vak), zodat de schaduw ook in een hoog vak onder de voeten staat:
-   --lus-vloer is de vloerlijn van de render (0 boven, 1 onder). */
-.ayg-lus {
-  --lus-vlak: var(--ayg-inkt-2, #1a201d);
-  --lus-gloed: rgb(255 255 255 / 0.075);
-  --lus-rand: rgb(255 255 255 / 0.07);
-  --lus-vloer-kleur: rgb(0 0 0 / 0.55);
-  position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; isolation: isolate;
-  border-radius: var(--club-radius, 12px);
-  background: radial-gradient(75% 60% at 50% 40%, var(--lus-gloed), transparent 70%), var(--lus-vlak);
-  box-shadow: inset 0 0 0 1px var(--lus-rand);
-}
-.ayg-lus-vlak { position: absolute; inset: 0; }
-@supports (width: 1cqw) {
-  .ayg-lus { container-type: size; }
-  .ayg-lus-vlak {
-    inset: auto; left: 50%; top: 50%; translate: -50% -50%;
-    width: min(100cqw, 100cqh * var(--lus-ratio, 1)); aspect-ratio: var(--lus-ratio, 1);
-  }
-}
-.ayg-lus-vlak::before {
-  content: ''; position: absolute; left: 22%; right: 22%; top: calc(var(--lus-vloer, 0.93) * 100%); height: 9%; translate: 0 -50%;
-  z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, var(--lus-vloer-kleur), transparent);
-}
-.ayg-lus img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.ayg-lus-beweging { opacity: 0; transition: opacity 200ms var(--ayg-ease); }
-.ayg-lus-still { opacity: 1; transition: none; }
-.ayg-lus[data-speelt] .ayg-lus-beweging { opacity: 1; }
-.ayg-lus[data-speelt] .ayg-lus-still { opacity: 0; transition: opacity 160ms var(--ayg-ease) 120ms; }
-@media (prefers-reduced-motion: reduce) {
-  .ayg-lus-beweging, .ayg-lus[data-speelt] .ayg-lus-still { transition: none; }
-}
-/* Vullend in een vak (telefoon, held, coaching): .ayg-lus hierboven zet position
-   relative en wint van .ayg-3d--vul (zelfde gewicht, later). Zonder absolute en
-   inset 0 heeft het vak met container-type: size en aspect-ratio auto geen hoogte,
-   dan is .ayg-lus-vlak 0 bij 0 en het beeld leeg (test: oefenlus-css.test.ts). */
-.ayg-lus.ayg-3d--vul { position: absolute; inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; }
-.ayg-lus-knop {
-  position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 38px; height: 38px;
-  border: 0; border-radius: 50%; cursor: pointer; color: var(--ayg-inkt-tekst, #f2f0e9); background: color-mix(in srgb, var(--ayg-inkt, #0f1412) 74%, transparent);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
-  transition: background-color 180ms var(--ayg-ease), color 180ms var(--ayg-ease), transform 180ms var(--ayg-ease);
-}
-.ayg-lus-knop:is(:hover, :focus-visible) { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
-.ayg-lus-knop:active { transform: scale(0.94); }
-.ayg-lus-knop:focus-visible { outline: 2px solid var(--ayg-accent); outline-offset: 3px; }
-.aygm-oef-tegel {
+/* Volgnummer van een oefening in de lijsten (OefNr.tsx). Oefenbeelden staan alleen
+   achter het inloggen (besluit Kane 27-10-2026), op de website het nummer. */
+.aygm-oef-nr {
   display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 22%;
   background: var(--brand-soft, var(--ayg-accent-zacht)); color: var(--brand-tekst, var(--ayg-accent-sterk));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand, var(--ayg-accent)) 28%, transparent);
-  font-family: var(--ayg-font-kop); font-weight: 700; letter-spacing: -0.02em; line-height: 1;
+  font-family: var(--ayg-font-tekst); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1;
 }
-/* Met een eigen render: het stille beginbeeld op het donkere vlak van de renders */
-.aygm-oef-tegel--beeld { overflow: hidden; background: var(--ayg-inkt-2, #1a201d); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06); }
-.aygm-oef-tegel--beeld img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); }

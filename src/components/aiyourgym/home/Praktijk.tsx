@@ -1,9 +1,12 @@
 import { CalendarPlus, Clock, Smartphone, UserRound } from 'lucide-react'
+import { DagTijd } from '@/components/aiyourgym/dag/DagTijd'
+import { momentTijd } from '@/components/aiyourgym/dag/momenten'
 import { OPRICHTER } from '@/components/aiyourgym/inhoud/praktijk'
-import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { DAG } from '@/lib/aiyourgym/taal/woorden/website/dag'
 import { PRAKTIJK_SECTIE } from '@/lib/aiyourgym/taal/woorden/website/home-vertrouwen'
 
-// Kane kort (besluit Kane 21-10-2026): wie het bouwt, in een paar zinnen, en
+// 21:30, Kane kort (besluit Kane 21-10-2026): wie het bouwt, in een paar zinnen, en
 // wat je mag verwachten. Sociaal bewijs zonder te liegen: geen aantallen
 // sportscholen, reviews, sterren of logo's (die hebben we nog niet). De naam
 // komt uit inhoud/praktijk.ts; is die null, dan alleen de rol. Op de telefoon
@@ -23,13 +26,15 @@ function initialen(naam: string): string {
 }
 
 export async function Praktijk() {
-  const t = await siteTekst(PRAKTIJK_SECTIE)
+  const taal = await getSiteTaal()
+  const t = PRAKTIJK_SECTIE[taal]
+  const moment = DAG[taal].momenten.wie
   const naam = OPRICHTER.naam
   return (
-    <section className="ayg-sectie ayg-praktijk" aria-labelledby="praktijk-titel">
+    <section className="ayg-sectie ayg-praktijk dag-wie" aria-labelledby="praktijk-titel" id="wie" data-dag={momentTijd('wie')} data-dag-naam={moment}>
       <div className="ayg-wrap ayg-praktijk-raster">
         <div className="ayg-praktijk-verhaal">
-          <p className="ayg-label ayg-label--accent">{t.label}</p>
+          <DagTijd minuten={momentTijd('wie')} naam={t.label} />
           <h2 className="ayg-h2" id="praktijk-titel">
             {t.kop}
           </h2>

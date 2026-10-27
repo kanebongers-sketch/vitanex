@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ArrowRight, FileWarning, Plus } from 'lucide-react'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { Lichtval } from '@/components/aiyourgym/dag/Lichtval'
 import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
 import { aygPad } from './paden'
 
@@ -53,14 +54,20 @@ interface PaginaKopProps {
   children?: ReactNode
 }
 
-/** De opening van een subpagina: label, een grote kop (de enige h1) en een inleiding. */
+/**
+ * De opening van een subpagina: label, een grote kop (de enige h1) en een inleiding,
+ * op dezelfde lichtval als de held van de voorpagina (een designtaal voor de hele site).
+ */
 export function PaginaKop({ label, titel, tekst, children }: PaginaKopProps) {
   return (
-    <header className="ayg-paginakop ayg-wrap ayg-intro">
-      <p className="ayg-label ayg-label--accent">{label}</p>
-      <h1 className="ayg-display">{titel}</h1>
-      <p className="ayg-lead">{tekst}</p>
-      {children && <div className="ayg-paginakop-extra">{children}</div>}
+    <header className="ayg-paginakop">
+      <Lichtval />
+      <div className="ayg-wrap ayg-intro">
+        <p className="ayg-label ayg-label--accent">{label}</p>
+        <h1 className="ayg-display">{titel}</h1>
+        <p className="ayg-lead">{tekst}</p>
+        {children && <div className="ayg-paginakop-extra">{children}</div>}
+      </div>
     </header>
   )
 }

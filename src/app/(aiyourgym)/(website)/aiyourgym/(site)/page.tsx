@@ -1,40 +1,35 @@
 import type { Metadata } from 'next'
+import { Dagklok } from '@/components/aiyourgym/dag/Dagklok'
+import { momentTijd } from '@/components/aiyourgym/dag/momenten'
 import { Held } from '@/components/aiyourgym/home/Held'
-import { HomeVragen } from '@/components/aiyourgym/home/HomeVragen'
 import { Oogopslag } from '@/components/aiyourgym/home/Oogopslag'
-import { OokGeregeld } from '@/components/aiyourgym/home/OokGeregeld'
 import { Praktijk } from '@/components/aiyourgym/home/Praktijk'
 import { Schemas } from '@/components/aiyourgym/home/Schemas'
-import { SoortKeuze } from '@/components/aiyourgym/home/SoortKeuze'
-import { WelNietKort } from '@/components/aiyourgym/home/WelNietKort'
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
-import { siteTekst } from '@/lib/aiyourgym/taal/server'
+import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
+import { DAG } from '@/lib/aiyourgym/taal/woorden/website/dag'
 import { SITE_META } from '@/lib/aiyourgym/taal/woorden/website/meta'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await siteTekst(SITE_META)
+  const t = SITE_META[await getSiteTaal()]
   return { title: { absolute: t.titel }, description: t.homeOmschrijving }
 }
 
-// Kort en gericht op aanmelden (besluit Kane 21-10-2026): de belofte met twee
-// routes en het product, een snelle keuze per soort sportschool, wat het is in
-// een oogopslag, trainingsschema's met 3D als blikvanger, ledenapp en
-// overstappen als twee korte vakken, Kane kort, eerlijk wat het wel en niet
-// doet, vier vragen en de afsluitende oproep. De details staan op de
-// subpagina's (functies, trainingsschema's, ledenapp, voor wie, overstappen).
-// .ayg-home geeft de voorpagina een strakker ritme dan de subpagina's.
-export default function AiYourGymHome() {
+// De voorpagina als werkdag in een sportschool (grammatica "Werkdag", zie
+// docs/aiyourgym/scroll-craft/BRIEF.md). Kort en gericht op aanmelden (besluit
+// Kane 21-10-2026): 06:00 de held, 07:00 alles in een oogopslag, 10:30 de
+// schemabouw (de piek), 21:30 Kane kort, 22:00 de afsluitende oproep. Details
+// staan op de subpagina's. De dagklok (pc) loopt met de scroll door de dag.
+export default async function AiYourGymHome() {
+  const d = DAG[await getSiteTaal()]
   return (
-    <div className="ayg-home">
+    <div className="ayg-home dag">
       <Held />
-      <SoortKeuze />
       <Oogopslag />
       <Schemas />
-      <OokGeregeld />
       <Praktijk />
-      <WelNietKort />
-      <HomeVragen />
-      <AanmeldBand />
+      <AanmeldBand titel={d.bandTitel} moment={{ id: 'dicht', minuten: momentTijd('dicht'), naam: d.momenten.dicht }} />
+      <Dagklok />
     </div>
   )
 }

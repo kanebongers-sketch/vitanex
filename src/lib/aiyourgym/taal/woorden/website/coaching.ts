@@ -1,7 +1,7 @@
 // De coaching van de oefeningen die de website laat zien (voorbeeldschema, blikvanger,
 // held en de oefenkaart). Het Nederlands komt rechtstreeks uit de oefenbibliotheek van
 // Club (src/lib/club/training/coaching): niets is voor de website herschreven. Het
-// Engels zegt precies hetzelfde. De live demo toont de Voorbeeld Gym en blijft
+// Engels zegt precies hetzelfde. De live demo toont Kernhal (de demo-sportschool) en blijft
 // Nederlands (dat staat er eerlijk bij, zie demo.ts).
 // Een nieuwe oefening op de website krijgt hier ook Engels; coaching.test.ts dwingt dat af.
 

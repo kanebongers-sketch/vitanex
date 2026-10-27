@@ -2,23 +2,24 @@ import { ArrowRight, Check, Clock3, LifeBuoy, Lock, Save, Sparkles } from 'lucid
 import { AANTAL_STAPPEN, STAPPEN } from '@/lib/club/start/stappen'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { WIZARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
-import { VOORBEELD_ADRES, VOORBEELD_NAAM } from './voorbeeld'
+import { KernhalMerk } from './KernhalMerk'
+import { LES, VOORBEELD_ADRES } from './voorbeeld'
 
 // De startwizard zoals een nieuwe sportschool hem ziet: de eigen balk (alleen
 // de wizard en Hulp, de rest van Club is nog dicht), de kop met de teller en de
 // tijd, een segment per stap, de regel "Alvast ingevuld" en de stap Lessen met
 // de invoer er direct in. Stappen en minuten komen uit Club zelf, de teksten in
 // de taal van de pagina (woordenboek WIZARD, stappen in de volgorde van STAPPEN).
-// Voorbeeldgegevens: de Voorbeeld Gym halverwege, bij stap 5.
+// Voorbeeldgegevens: Kernhal (verzonnen) halverwege, bij stap 5.
 
 const HIER = 5
-const LESTYPEN = ['Spinning', 'Bodypump', 'Yoga', 'HIIT'] as const
+const LESTYPEN = [LES.strength, LES.conditioning, LES.mobility, LES.barbell] as const
 /** De vaste week; dag is de index in t.dagen. */
 const WEEK = [
-  { dag: 0, les: 'Spinning', tijd: '19:00', zaal: 1 },
-  { dag: 1, les: 'Yoga', tijd: '09:30', zaal: 2 },
-  { dag: 2, les: 'Bodypump', tijd: '19:30', zaal: 1 },
-  { dag: 3, les: 'HIIT', tijd: '18:30', zaal: 1 },
+  { dag: 0, les: LES.strength, tijd: '07:00', zaal: 1 },
+  { dag: 1, les: LES.mobility, tijd: '09:30', zaal: 2 },
+  { dag: 2, les: LES.barbell, tijd: '19:30', zaal: 1 },
+  { dag: 3, les: LES.conditioning, tijd: '18:30', zaal: 1 },
 ] as const
 
 type Teksten = (typeof WIZARD)['nl']
@@ -48,10 +49,7 @@ export async function WizardScherm() {
         </div>
       </div>
       <div className="aygm-app-kop aygm-wiz-balk">
-        <span className="aygm-app-merk">
-          <i />
-          {VOORBEELD_NAAM}
-        </span>
+        <KernhalMerk className="aygm-app-merk" />
         <span className="aygm-wiz-links">
           <span>
             <Sparkles aria-hidden /> {t.startwizard}

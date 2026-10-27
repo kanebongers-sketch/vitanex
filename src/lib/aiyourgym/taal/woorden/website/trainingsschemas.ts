@@ -31,7 +31,7 @@ export const SCHEMAS_PAGINA = woordenboek({
     probeer: {
       label: 'Probeer het zelf',
       titel: 'Een oefening met de coaching erbij.',
-      tekst: 'Kies een oefening, speel de beweging af of zet hem stil op begin of eind. De tekst is de echte coaching uit de bibliotheek. De beelden op deze website zijn onze eigen 3D-renders; in Club staat bij elke oefening een bewegende illustratie van begin- en eindhouding.',
+      tekst: 'Kies een oefening en lees wat een trainer erbij zegt: kernpunten, fouten met correctie, uitvoering en ademhaling. De tekst is de echte coaching uit de bibliotheek. In Club en de ledenapp staat bij elke oefening ook een beeld van de beweging.',
       voorbeeld: 'Schermvoorbeeld met voorbeeldgegevens',
     },
     stappen: NL_STAPPEN,
@@ -41,7 +41,7 @@ export const SCHEMAS_PAGINA = woordenboek({
       editor: 'De schema-editor: dag A met per oefening sets, herhalingen, gewicht, rust en notitie, en knoppen voor opslaan, ongedaan maken, printen en sjabloon',
       bibliotheek: 'De oefenbibliotheek met zoeken, filters en oefeningen met het aantal kernpunten',
       eigen: 'De coaching van een oefening aanpassen: eigen kernpunten, opslaan of terug naar de standaard',
-      ledenapp: 'De ledenapp: het schema van dag A en een geopende oefening met een bewegend beeld en de kernpunten',
+      ledenapp: 'De ledenapp: het schema van dag A en een geopende oefening met het voorschrift en de kernpunten',
       voortgang: 'De voortgang in de ledenapp: weken op rij, trainingen per week, gewicht in een lijn en de volgende mijlpaal',
     },
     // Voor de knop op de telefoon ("Bekijk het intakescherm").
@@ -93,7 +93,7 @@ export const SCHEMAS_PAGINA = woordenboek({
     probeer: {
       label: 'Try it yourself',
       titel: 'An exercise with the coaching built in.',
-      tekst: 'Pick an exercise, play the movement or pause it at the start or end. The text is the real coaching from the library, shown in Dutch for now. The images on this website are our own 3D renders; in Club every exercise has a moving illustration of the start and end position.',
+      tekst: 'Pick an exercise and read what a trainer says about it: cues, mistakes with corrections, set-up and breathing. The text is the real coaching from the library. In Club and the member app every exercise also has an image of the movement.',
       voorbeeld: 'Example screen with sample data',
     },
     stappen: {
@@ -181,7 +181,7 @@ export const SCHEMAS_PAGINA = woordenboek({
       editor: 'The programme editor: day A with sets, reps, weight, rest and a note per exercise, and buttons to save, undo, print and save as template',
       bibliotheek: 'The exercise library with search, filters and exercises showing their number of coaching cues',
       eigen: 'Editing the coaching of an exercise: your own cues, save or back to the standard',
-      ledenapp: 'The member app: the programme for day A and an open exercise with a moving image and the coaching cues',
+      ledenapp: 'The member app: the programme for day A and an open exercise with the prescription and the coaching cues',
       voortgang: 'Progress in the member app: weeks in a row, workouts per week, weight as a line and the next milestone',
     },
     schermNaam: {

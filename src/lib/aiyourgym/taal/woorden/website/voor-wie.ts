@@ -35,7 +35,7 @@ export const VOOR_WIE = woordenboek({
     beeld: {
       zelfstandig: 'De check-in met de leden die net binnen zijn en hun status',
       boutique: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst',
-      'pt-studio': 'Een oefening met een bewegend 3D-beeld, genummerde kernpunten, ademhaling en tempo',
+      'pt-studio': 'Een oefening met genummerde kernpunten, ademhaling en tempo, zoals in Club',
       keten: 'Het personeelsrooster met diensten en de status van de uren',
       yoga: 'De ledenapp op een telefoon met de lessen van vandaag, vrije plekken en knoppen om te reserveren of op de wachtlijst te gaan',
       vechtsport: 'De opvolglijst van vandaag met leden en de reden om ze aan te spreken',
@@ -151,7 +151,7 @@ export const VOOR_WIE = woordenboek({
     beeld: {
       zelfstandig: 'Check-in showing the members who just arrived and their status',
       boutique: 'A week of the timetable with attendance per class and full classes with a waiting list',
-      'pt-studio': 'An exercise with a moving 3D image, numbered coaching cues, breathing and tempo',
+      'pt-studio': 'An exercise with numbered coaching cues, breathing and tempo, as shown in Club',
       keten: 'The staff rota with shifts and the status of the hours',
       yoga: 'The member app on a phone with today’s classes, free spots and buttons to book or join the waiting list',
       vechtsport: 'Today’s follow-up list with members and the reason to speak to them',
