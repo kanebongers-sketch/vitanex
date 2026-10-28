@@ -22,12 +22,12 @@
   --vp-papier-diep: #e6dfd0;
   --vp-papier-tekst: #111614;
   --vp-papier-zacht: #4a524e; /* 6.8:1 op papier, 6.0:1 op papier-diep */
+  --vp-veld-hint: #4f5853; /* voorbeeldtekst in het creme veld van de oproep, ook in donker */
   --vp-rand: clamp(16px, 1.7vw, 24px);
   --vp-voeg: 8px;
   --vp-kop-hoogte: 64px;
   --vp-t-held: clamp(3.1rem, 8.3vw, 8.5rem);
   --vp-t-hoofdstuk: clamp(2.5rem, 5.4vw, 6rem);
-  --vp-t-uitspraak: clamp(1.45rem, 1.7vw, 2rem);
   --vp-t-lead: clamp(1.15rem, 0.6vw + 0.95rem, 1.45rem);
   --vp-ease: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -89,8 +89,6 @@
 .vp-knop-vol:is(:hover, :focus-visible) { background: var(--vp-fles); }
 .vp-knop-zacht { background: var(--vp-papier-diep); color: var(--vp-papier-tekst); }
 .vp-knop-zacht:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--vp-papier-diep) 80%, var(--vp-papier-tekst)); }
-.vp-knop-salie { background: var(--vp-salie); color: var(--vp-inkt); }
-.vp-knop-salie:is(:hover, :focus-visible) { background: var(--vp-creme); }
 @media (prefers-color-scheme: dark) {
   .vp-knop-vol { background: var(--vp-salie); color: var(--vp-racegroen); }
   .vp-knop-vol:is(:hover, :focus-visible) { background: var(--vp-creme); }
@@ -98,7 +96,6 @@
 .vp-pijl { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .vp-pijl svg { transition: transform 220ms var(--vp-ease); }
 .vp-pijl:is(:hover, :focus-visible) svg { transform: translateX(4px); }
-.vp-ui-klein { font-size: 13.5px; line-height: 1.35; opacity: 0.86; }
 
 /* ── 1 Held (papier): kop in het midden, daaronder groot het product ─────── */
 .vp-held { background: var(--vp-papier); color: var(--vp-papier-tekst); overflow: clip; padding-top: clamp(72px, 9vw, 136px); }
@@ -119,179 +116,151 @@
   .vp-held-toestel { position: relative; margin-inline: auto; width: min(300px, 80vw); }
 }
 
-/* ── 2 Inchecken (racegroen, wisselt naar flessengroen) ───────────────────── */
-.vp-inchecken {
-  position: relative; isolation: isolate; overflow: hidden;
-  min-height: max(86svh, 600px);
-  padding: clamp(64px, 8vw, 112px) var(--vp-rand);
-  background: var(--vp-racegroen); color: var(--vp-creme);
+/* ── 2 Productblokken: tekst en scherm om en om, elk een vol merkvlak ────────
+   Op de pc 12 kolommen: tekst 4 kolommen, het scherm loopt aan de buitenkant
+   tot in de rand van het vlak. Telefoon: tekst boven, scherm eronder. */
+.vp-vlak-racegroen { --vlak: var(--vp-racegroen); --vlak-tekst: var(--vp-creme); --vlak-zacht: var(--vp-salie); --vlak-merk: var(--vp-salie); }
+.vp-vlak-fles { --vlak: var(--vp-fles); --vlak-tekst: var(--vp-creme); --vlak-zacht: var(--vp-salie); --vlak-merk: var(--vp-salie); }
+.vp-vlak-papier { --vlak: var(--vp-papier); --vlak-tekst: var(--vp-papier-tekst); --vlak-zacht: var(--vp-papier-zacht); --vlak-merk: var(--vp-papier-tekst); }
+.vp-vlak-papier-diep { --vlak: var(--vp-papier-diep); --vlak-tekst: var(--vp-papier-tekst); --vlak-zacht: var(--vp-papier-zacht); --vlak-merk: var(--vp-papier-tekst); }
+
+.vp-product {
+  display: grid; gap: clamp(40px, 5vw, 64px); align-items: center;
+  padding: clamp(80px, 9vw, 152px) var(--vp-rand);
+  background: var(--vlak); color: var(--vlak-tekst); overflow: clip;
 }
-.vp-inchecken::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--vp-fles); opacity: 0; transition: opacity 420ms var(--vp-ease); }
-.vp-inchecken:not([data-binnen])::before { opacity: 1; }
-.vp-inchecken-tekst { display: grid; gap: 24px; max-width: 34rem; }
-.vp-inchecken-tekst p { font-size: var(--vp-t-lead); line-height: 1.45; color: var(--vp-salie); max-width: 30ch; }
-.vp-inchecken .vp-h2 { font-size: clamp(2.3rem, 4.4vw, 4.6rem); }
-.vp-wissel { display: inline-block; }
-.vp-schakelaar {
-  /* Alle maten in --s (de hoogte): breedte 2.5s, duim 0.86s, reis van de duim 1.5s. */
-  --s: calc((100vw - 2 * var(--vp-rand)) / 2.5);
-  position: absolute; left: var(--vp-rand); bottom: clamp(40px, 6vw, 72px);
-  width: calc(var(--s) * 2.5); height: var(--s);
-  display: block; padding: 0; border: 0; cursor: pointer; text-align: left;
-  border-radius: 100vmax; background: var(--vp-racegroen-licht); color: var(--vp-creme);
-  font-family: inherit;
-}
-.vp-schakelaar-woord, .vp-schakelaar-tijd { position: absolute; left: calc(var(--s) * 0.34); transition: transform 460ms var(--vp-ease); }
-.vp-schakelaar-woord { top: calc(var(--s) * 0.16); font-size: calc(var(--s) * 0.38); font-weight: 500; letter-spacing: -0.05em; line-height: 1; }
-.vp-schakelaar-tijd { bottom: calc(var(--s) * 0.17); font-size: clamp(13px, calc(var(--s) * 0.065), 30px); color: var(--vp-salie); white-space: nowrap; }
-.vp-schakelaar-duim {
-  position: absolute; top: calc(var(--s) * 0.07); right: calc(var(--s) * 0.07);
-  width: calc(var(--s) * 0.86); aspect-ratio: 1; border-radius: 50%; background: var(--vp-salie);
-  transition: transform 460ms var(--vp-ease), scale 160ms var(--vp-ease);
-}
-.vp-schakelaar:active .vp-schakelaar-duim { scale: 0.95; }
-.vp-schakelaar[aria-checked='false'] .vp-schakelaar-duim { transform: translateX(calc(var(--s) * -1.5)); background: var(--vp-creme); }
-.vp-schakelaar[aria-checked='false'] :is(.vp-schakelaar-woord, .vp-schakelaar-tijd) { transform: translateX(calc(var(--s) * 0.82)); }
-.vp-schakelaar:focus-visible { outline: 4px solid var(--vp-salie); outline-offset: 6px; box-shadow: none; }
+.vp-product-tekst { display: grid; gap: 24px; align-content: start; max-width: 32rem; }
+.vp-product-kop { font-size: clamp(2.3rem, 3.9vw, 4.25rem); line-height: 0.96; letter-spacing: -0.05em; text-wrap: balance; }
+.vp-product-lead { font-size: var(--vp-t-lead); line-height: 1.45; max-width: 32ch; }
+.vp-product-punten { display: grid; margin-top: 4px; }
+.vp-product-punten li { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 14px; align-items: baseline; padding-block: 10px; font-size: 16.5px; line-height: 1.4; }
+.vp-product-punten li::before { content: ''; width: 10px; height: 10px; background: var(--vlak-merk); translate: 0 -1px; }
+.vp-product .vp-pijl { justify-self: start; margin-top: 6px; color: var(--vlak-tekst); }
+.vp-product :where(a, button):focus-visible { outline: 3px solid var(--vlak-tekst); outline-offset: 4px; box-shadow: none; }
+.vp-product-beeld { min-width: 0; }
+.vp-product-beeld .aygm-bijschrift { color: var(--vlak-zacht); font-size: 13.5px; }
+.vp-product[data-vorm='telefoon'] .vp-product-beeld { justify-items: center; }
+.vp-product[data-vorm='telefoon'] .aygm-bijschrift { justify-content: center; }
+
+/* Twee telefoons: de ledenapp vooraan, het lesrooster erachter (alleen op de pc) */
+.vp-telefoons { position: relative; display: grid; justify-items: center; width: 100%; }
+.vp-telefoon-voor { position: relative; z-index: 1; width: min(320px, 84vw); }
+.vp-telefoon-achter { display: none; }
+
 @media (min-width: 1024px) {
-  .vp-inchecken { min-height: max(92svh, 720px); }
-  .vp-schakelaar { --s: clamp(260px, 46svh, 440px); left: 40%; bottom: -8%; }
+  .vp-product { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; min-height: max(88svh, 720px); }
+  .vp-product-tekst { grid-column: 1 / span 4; grid-row: 1; }
+  .vp-product-beeld { grid-column: 6 / -1; grid-row: 1; margin-right: calc(var(--vp-rand) * -1); }
+  .vp-product-beeld .aygm-venster { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
+  .vp-product[data-spiegel] .vp-product-tekst { grid-column: 9 / -1; }
+  .vp-product[data-spiegel] .vp-product-beeld { grid-column: 1 / span 7; margin-right: 0; margin-left: calc(var(--vp-rand) * -1); }
+  .vp-product[data-spiegel] .vp-product-beeld .aygm-venster { border-radius: 0 16px 16px 0; border-left: 0; border-right: 1px solid rgba(255, 255, 255, 0.09); }
+  .vp-product[data-spiegel] .vp-product-beeld .aygm-bijschrift { padding-left: var(--vp-rand); }
+  .vp-product[data-vorm='telefoon'] .vp-product-beeld { margin: 0; grid-column: 1 / span 7; }
+  .vp-telefoons { grid-template-columns: 1fr 1fr; align-items: end; max-width: 680px; }
+  .vp-telefoon-voor { grid-column: 1; grid-row: 1; justify-self: end; width: 320px; margin-right: -40px; }
+  .vp-telefoon-achter { display: block; grid-column: 2; grid-row: 1; justify-self: start; width: 280px; margin-bottom: 64px; margin-left: -24px; }
+}
+@media (min-width: 1600px) {
+  .vp-product-beeld { grid-column: 5 / -1; }
+  .vp-product[data-spiegel] .vp-product-beeld { grid-column: 1 / span 8; }
 }
 
-/* ── 3 In een oogopslag (papier, mozaiek van ongelijke tegels) ────────────── */
-.vp-plekken { background: var(--vp-papier); color: var(--vp-papier-tekst); padding: clamp(96px, 11vw, 176px) var(--vp-rand); }
-.vp-raster { display: grid; gap: var(--vp-voeg); grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.vp-p { min-width: 0; padding: clamp(20px, 1.8vw, 28px); }
-.vp-p-kop { grid-column: 1 / -1; display: grid; gap: 22px; align-content: start; background: var(--vp-papier-diep); }
-.vp-p-kop .vp-h2 { font-size: clamp(2.4rem, 4.2vw, 4.4rem); }
-.vp-p-kop p { max-width: 34ch; font-size: 17.5px; line-height: 1.5; }
-.vp-p-schema { grid-column: 1 / -1; display: grid; gap: 10px; align-content: start; background: var(--vp-racegroen); color: var(--vp-creme); }
-.vp-p-schema .vp-ui-klein { color: var(--vp-salie); opacity: 1; }
-.vp-p-schemakop { font-size: var(--vp-t-uitspraak); font-weight: 500; letter-spacing: -0.03em; margin-bottom: 8px; }
-.vp-p-schema table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 16px; margin-bottom: 10px; }
-.vp-p-schema :is(th, td) { padding: 13px 14px; background: var(--vp-racegroen-licht); text-align: left; font-weight: 400; font-variant-numeric: tabular-nums; }
-.vp-p-schema tbody th { font-weight: 500; width: 60%; }
-.vp-p-schema tr[data-gekozen] :is(th, td) { background: var(--vp-salie); color: var(--vp-inkt); }
-.vp-p-punten { display: grid; gap: 4px; list-style: decimal inside; font-size: 16.5px; }
-.vp-p-getal { background: var(--vp-salie); color: var(--vp-inkt); }
-.vp-p-getal p { display: grid; gap: 10px; }
-.vp-p-getal strong { font-size: clamp(5rem, 9vw, 9.5rem); font-weight: 500; line-height: 0.82; letter-spacing: -0.06em; }
-.vp-p-getal span { font-size: 16px; line-height: 1.4; max-width: 22ch; }
-.vp-p-rollen { background: var(--vp-inkt); color: var(--vp-creme); }
-.vp-p-rollen ul { display: grid; gap: 2px; font-size: clamp(1.2rem, 1.6vw, 1.6rem); letter-spacing: -0.02em; }
-.vp-p-zin { grid-column: 1 / -1; font-size: var(--vp-t-uitspraak); line-height: 1.2; letter-spacing: -0.03em; font-weight: 500; text-wrap: balance; }
-.vp-p-app { background: var(--vp-fles); color: var(--vp-creme); padding-bottom: clamp(56px, 6vw, 120px); }
-.vp-p-rechten { background: var(--vp-papier-diep); }
-.vp-p-talen { background: var(--vp-racegroen-licht); color: var(--vp-creme); }
-@media (min-width: 768px) {
-  .vp-raster { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .vp-p-getal, .vp-p-rollen, .vp-p-rechten, .vp-p-talen { grid-column: span 3; }
+/* ── 3 Feiten (inkt): vier echte feiten, groot en strak, zonder vakken ─────── */
+.vp-feiten { background: var(--vp-inkt); color: var(--vp-creme); padding: clamp(72px, 8vw, 128px) var(--vp-rand); }
+.vp-feiten-rij { display: grid; gap: 48px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.vp-feit { display: grid; gap: 14px; align-content: start; min-width: 0; padding-top: 18px; border-top: 2px solid var(--vp-fles); }
+.vp-feit dt { font-size: clamp(4rem, 8.5vw, 8.5rem); font-weight: 500; line-height: 0.82; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
+.vp-feit dd { margin: 0; font-size: 16.5px; line-height: 1.45; color: var(--vp-salie); max-width: 24ch; }
+@media (min-width: 1024px) { .vp-feiten-rij { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ── 4 Wie het bouwt (papier): kop, citaat, wie en wat je mag verwachten ──── */
+.vp-kane {
+  display: grid; gap: clamp(32px, 4vw, 56px); align-items: start;
+  padding: clamp(88px, 10vw, 168px) var(--vp-rand);
+  background: var(--vp-papier); color: var(--vp-papier-tekst);
 }
+.vp-kane-titel { font-size: clamp(2.4rem, 4.6vw, 5rem); }
+.vp-kane-citaat { margin: 0; display: grid; gap: 28px; }
+.vp-kane-citaat blockquote { margin: 0; }
+.vp-kane-citaat p { font-size: clamp(1.75rem, 3.1vw, 3.25rem); line-height: 1.12; letter-spacing: -0.035em; font-weight: 500; text-wrap: balance; max-width: 22ch; }
+.vp-kane-citaat p::before { content: '\201C'; }
+.vp-kane-citaat p::after { content: '\201D'; }
+.vp-kane-citaat figcaption { display: grid; gap: 4px; padding-left: 18px; border-left: 4px solid var(--vp-racegroen); font-size: 16px; line-height: 1.45; }
+.vp-kane-citaat figcaption b { font-weight: 500; font-size: 18px; }
+.vp-kane-citaat figcaption span { color: var(--vp-papier-zacht); }
+.vp-kane-verder { display: grid; gap: 24px; align-content: start; max-width: 30rem; }
+.vp-kane-verder p { font-size: 17px; line-height: 1.55; }
+.vp-kane-verder .vp-knop { justify-self: start; }
+.vp-kane-foto img { display: block; width: 100%; height: auto; }
+@media (prefers-color-scheme: dark) { .vp-kane-citaat figcaption { border-left-color: var(--vp-salie); } }
 @media (min-width: 1024px) {
-  .vp-raster { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(96px, auto); }
-  .vp-p-kop { grid-column: 1 / 7; grid-row: 1 / 4; }
-  .vp-p-schema { grid-column: 7 / 13; grid-row: 1 / 6; padding: 32px; }
-  .vp-p-getal { grid-column: 1 / 4; grid-row: 4 / 7; }
-  .vp-p-rollen { grid-column: 4 / 7; grid-row: 4 / 7; }
-  .vp-p-app { grid-column: 7 / 13; grid-row: 6 / 9; }
-  .vp-p-rechten { grid-column: 1 / 4; grid-row: 7 / 9; }
-  .vp-p-talen { grid-column: 4 / 7; grid-row: 7 / 9; }
-  .vp-p-zin.vp-p-rechten, .vp-p-zin.vp-p-talen { font-size: clamp(1.15rem, 1.35vw, 1.5rem); }
+  .vp-kane { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 72px; }
+  .vp-kane-titel { grid-column: 1 / span 5; }
+  .vp-kane-citaat { grid-column: 6 / -1; grid-row: 1 / span 2; }
+  .vp-kane-verder { grid-column: 1 / span 4; grid-row: 2; align-self: end; }
+  .vp-kane[data-foto] .vp-kane-foto { grid-column: 1 / span 4; grid-row: 2; }
+  .vp-kane[data-foto] .vp-kane-verder { grid-column: 6 / span 5; grid-row: 3; }
 }
 
-/* ── 4 Wie het bouwt (flessengroen paneel, ingezet) ───────────────────────── */
-.vp-bouwer { background: var(--vp-papier); padding: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px); }
-.vp-paneel {
-  position: relative; overflow: hidden;
-  display: grid; gap: 40px; grid-template-columns: minmax(0, 1fr);
-  padding: clamp(28px, 4vw, 56px) clamp(20px, 4vw, 56px) 0;
-  background: var(--vp-fles); color: var(--vp-creme);
-}
-.vp-paneel-titel { font-size: clamp(2.2rem, 4.4vw, 4.4rem); }
-.vp-paneel-tekst { display: grid; gap: 40px; align-content: start; max-width: 26rem; }
-.vp-paneel-tekst h3 { font-size: 22px; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 10px; }
-.vp-paneel-tekst p { font-size: 16.5px; line-height: 1.55; color: var(--vp-creme); opacity: 0.9; }
-.vp-paneel-tekst .vp-knop { justify-self: start; }
-.vp-boog {
-  order: 3; justify-self: center;
-  width: min(86vw, 560px); aspect-ratio: 54 / 70; margin-bottom: -18%;
-  display: grid; place-items: center;
-  border-radius: 100vmax 100vmax 0 0; background: var(--vp-salie); color: var(--vp-fles);
-  font-size: clamp(5rem, 13vw, 12rem); font-weight: 500; letter-spacing: -0.06em;
-}
-@media (min-width: 1024px) {
-  .vp-paneel { grid-template-columns: 58fr 42fr; grid-template-rows: auto 1fr; min-height: max(100svh, 760px); padding-bottom: 0; }
-  .vp-paneel-titel { grid-column: 1; grid-row: 1; }
-  .vp-boog { order: 0; grid-column: 1; grid-row: 2; align-self: end; justify-self: start; width: min(38vw, 560px); margin-bottom: -7vw; }
-  .vp-paneel-tekst { grid-column: 2; grid-row: 1 / 3; padding-top: 6px; }
-}
-
-/* ── 5 Oproep (salie): een zin met een gat ───────────────────────────────── */
-.vp-oproep { background: var(--vp-salie); color: var(--vp-inkt); padding: clamp(96px, 12vw, 200px) var(--vp-rand); }
-.vp-oproep-zin { display: grid; gap: 28px; }
-.vp-oproep-regel { font-size: clamp(2.5rem, 6vw, 6.4rem); font-weight: 500; line-height: 1.12; letter-spacing: -0.05em; max-width: 13em; }
+/* ── 5 Oproep (salie): een zin met een gat, groot en rustig ─────────────── */
+.vp-oproep { display: grid; align-content: center; min-height: max(80svh, 600px); background: var(--vp-salie); color: var(--vp-inkt); padding: clamp(96px, 12vw, 200px) var(--vp-rand); }
+.vp-oproep-zin { display: grid; gap: clamp(32px, 4vw, 56px); }
+.vp-oproep-regel { font-size: clamp(2.6rem, 7.4vw, 8.4rem); font-weight: 500; line-height: 1.04; letter-spacing: -0.055em; max-width: 12em; }
 .vp-oproep-veld {
   display: inline-block; vertical-align: baseline;
-  width: 6.4em; max-width: 100%; height: 1.08em; padding: 0 0.16em;
+  width: 6.2em; max-width: 100%; height: 1em; padding: 0 0.14em;
   border: 0; border-radius: 0; background: var(--vp-creme); color: var(--vp-inkt);
   font: inherit; letter-spacing: inherit;
 }
-.vp-oproep-veld::placeholder { color: #5a625d; }
-.vp-oproep-veld:focus-visible { outline: 4px solid var(--vp-inkt); outline-offset: 2px; box-shadow: none; }
+.vp-oproep-veld::placeholder { color: var(--vp-veld-hint); opacity: 1; }
+.vp-oproep-veld:focus-visible { outline: 4px solid var(--vp-inkt); outline-offset: 4px; box-shadow: none; }
 .vp-oproep-knop {
-  display: inline-block; height: 1.08em; padding: 0 0.22em; vertical-align: baseline;
+  display: inline-block; height: 1em; padding: 0 0.2em; vertical-align: baseline;
   border: 0; border-radius: 0; background: var(--vp-racegroen); color: var(--vp-creme);
   font: inherit; letter-spacing: inherit; cursor: pointer;
   transition: background-color 200ms var(--vp-ease), transform 160ms var(--vp-ease);
 }
 .vp-oproep-knop:is(:hover, :focus-visible) { background: var(--vp-inkt); }
+.vp-oproep-knop:focus-visible { outline: 4px solid var(--vp-inkt); outline-offset: 4px; }
 .vp-oproep-knop:active { transform: scale(0.98); }
 .vp-oproep-na { white-space: nowrap; }
-.vp-oproep-onder { font-size: 16px; max-width: 46ch; }
+.vp-oproep-onder { font-size: clamp(17px, 1.3vw, 20px); line-height: 1.5; max-width: 44ch; }
 @media (max-width: 767px) {
-  .vp-oproep-regel { font-size: 10.5vw; }
-  .vp-oproep-veld { display: block; width: 100%; margin-block: 0.12em; }
+  .vp-oproep { min-height: 0; }
+  .vp-oproep-regel { font-size: 11.5vw; line-height: 1.12; }
+  .vp-oproep-veld { display: block; width: 100%; height: 1.1em; margin-block: 0.12em; }
+  .vp-oproep-knop { height: 1.1em; }
 }
 
-/* ── Voet: de laatste twee rijen van het bord ─────────────────────────────── */
+/* ── Voet (inkt): kort, in de letter van de site, nette kolommen ─────────── */
 .ayg .ayg-voet.vt {
-  display: grid; gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 6px; margin-top: auto;
-  background: var(--vp-papier); color: var(--vp-papier-tekst);
+  display: grid; gap: 40px 24px; grid-template-columns: minmax(0, 1fr);
+  padding: clamp(56px, 6vw, 88px) var(--vp-rand) 28px; margin-top: auto;
+  background: var(--vp-inkt); color: var(--vp-creme); font-family: var(--ayg-font-tekst);
 }
-.vt-tegel { min-width: 0; padding: 20px; background: var(--vp-papier-diep); color: var(--vp-papier-tekst); }
-.ayg .vt a { color: inherit; text-decoration-color: transparent; text-underline-offset: 5px; text-decoration-thickness: 2px; }
-.ayg .vt a:is(:hover, :focus-visible) { color: inherit; text-decoration: underline; }
-.vt-zin { grid-column: 1 / -1; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; order: 6; }
-.vt-zin > p:first-child { font-size: clamp(1.2rem, 1.5vw, 1.5rem); letter-spacing: -0.02em; max-width: 22ch; }
-.vt-klein { font-size: 13.5px; color: var(--vp-papier-zacht); }
-.vt-menu { order: 3; }
-.vt-menu ul { display: grid; gap: 6px; font-size: 16px; }
-.vt-eu { order: 4; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; font-size: 15px; }
-.vt-inloggen { font-weight: 500; }
-.vt-demo { grid-column: 1 / -1; order: 5; min-height: 120px; background: var(--vp-fles); color: var(--vp-creme); font-size: 18px; text-decoration: none; }
-.ayg .vt .vt-demo { color: var(--vp-creme); }
-.vt-woord { grid-column: 1 / -1; order: 1; display: grid; place-items: center; min-height: 160px; background: var(--vp-inkt); color: var(--vp-creme); }
-.vt-woordmerk { width: 86%; height: auto; display: block; }
-.vt-open {
-  grid-column: 1 / -1; order: 2; position: relative; min-height: 150px;
-  background: var(--vp-racegroen); font-size: clamp(1.4rem, 2vw, 1.85rem); letter-spacing: -0.03em; font-weight: 500; text-decoration: none;
+.ayg .vt a { color: var(--vp-creme); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; text-decoration-thickness: 1.5px; transition: text-decoration-color 180ms var(--vp-ease); }
+.ayg .vt a:is(:hover, :focus-visible) { color: var(--vp-creme); text-decoration-color: var(--vp-salie); }
+.ayg .vt a:focus-visible { outline: 3px solid var(--vp-salie); outline-offset: 4px; box-shadow: none; }
+.vt-merk { display: grid; gap: 16px; align-content: start; }
+.ayg .vt .vt-logo { display: inline-flex; align-items: center; gap: 12px; justify-self: start; font-size: 22px; font-weight: 500; letter-spacing: -0.03em; text-decoration: none; }
+.vt-logo .ayg-logo { height: 32px; width: auto; }
+.vt-merk p { font-size: 16px; line-height: 1.5; color: var(--vp-salie); max-width: 30ch; }
+.vt-menu ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ayg .vt-menu a { display: inline-block; padding-block: 6px; font-size: 16px; }
+.vt-account { display: grid; gap: 10px; align-content: start; font-size: 15px; line-height: 1.5; }
+.vt-account p { color: var(--vp-salie); max-width: 28ch; }
+.ayg .vt .vt-inloggen { justify-self: start; font-size: 16px; font-weight: 500; padding-block: 6px; }
+.vt-onder { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--vp-fles); font-size: 14px; color: var(--vp-salie); }
+.ayg .vt .vt-onder a { color: var(--vp-salie); }
+@media (min-width: 768px) {
+  .ayg .ayg-voet.vt { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .vt-merk { grid-column: 1 / span 5; }
+  .vt-menu { grid-column: 7 / span 3; }
+  .vt-account { grid-column: 10 / -1; }
+  .vt-onder { grid-column: 1 / -1; }
 }
-.ayg .vt .vt-open { color: var(--vp-creme); }
-.vt-pijl { position: absolute; right: 20px; bottom: 20px; width: clamp(48px, 5vw, 80px); color: var(--vp-salie); transition: transform 260ms var(--vp-ease); }
-.vt-open:is(:hover, :focus-visible) .vt-pijl { transform: translateX(8px); }
-.ayg .vt .vt-open:is(:hover, :focus-visible) { text-decoration: none; }
-@media (min-width: 1024px) {
-  .ayg .ayg-voet.vt { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; padding: 12px; }
-  .vt-tegel { order: 0; padding: 24px; }
-  .vt-zin { grid-column: 1 / 5; min-height: 220px; }
-  .vt-menu { grid-column: 5 / 8; }
-  .vt-demo { grid-column: 8 / 10; min-height: 0; }
-  .vt-eu { grid-column: 10 / 13; }
-  .vt-woord { grid-column: 1 / 9; min-height: 320px; }
-  .vt-open { grid-column: 9 / 13; min-height: 320px; }
-}
-@media (max-width: 1023px) { .ayg .ayg-voet.vt { padding-bottom: 96px; } }
+@media (max-width: 1023px) { .ayg .ayg-voet.vt { padding-bottom: 104px; } }
 
 /* ── Beweging (Emil Kowalski: sterke ease-out, kort, alleen transform en opacity) ── */
 @media (prefers-reduced-motion: no-preference) {

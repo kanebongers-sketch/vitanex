@@ -18,6 +18,7 @@ const MOCKUP_CSS = 'src/components/aiyourgym/mockups/mockups.css'
 const ALLE_CSS = [
   SITE_CSS,
   MOCKUP_CSS,
+  'src/components/aiyourgym/mockups/product/productschermen.css',
   'src/components/aiyourgym/home/home.css',
   'src/components/aiyourgym/home/hoofdpunten.css',
   'src/components/aiyourgym/dag/dag.css',

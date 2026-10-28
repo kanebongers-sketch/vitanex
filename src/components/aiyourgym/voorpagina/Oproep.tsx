@@ -1,12 +1,16 @@
+import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
 
-// Hoofdstuk 5 (salie): de afsluitende oproep als zin met een gat. Het gat is het
-// veld voor de naam van je club, het laatste woord is de knop. Een gewoon formulier
-// (GET naar aanmelden met ?naam=): werkt ook zonder JavaScript, de naam staat daar
-// al ingevuld en de controle gebeurt in het aanmeldformulier zelf.
+// De afsluitende oproep (salie) als zin met een gat: "Open [jouw club] in AI Your
+// Gym en start." Het gat is het veld voor de naam van je club, de laatste woorden
+// zijn de knop. Een gewoon formulier (GET naar aanmelden met ?naam=): werkt ook
+// zonder JavaScript, de naam staat daar al ingevuld en de controle gebeurt in het
+// aanmeldformulier zelf. Eronder alleen wat klopt: de proefperiode (PROEFDAGEN,
+// ook trial_period_days bij Stripe en de testbetaling), geen opstartkosten
+// (besluit Kane 18-10-2026) en het aantal stappen van de startwizard.
 
 export async function Oproep() {
   const t = VOORPAGINA[await getSiteTaal()].oproep
@@ -16,8 +20,8 @@ export async function Oproep() {
         <h2 id="vp-oproep-titel" className="ayg-sr">
           {t.titel}
         </h2>
-        <div className="vp-oproep-regel">
-          {t.voor}{' '}
+        <p className="vp-oproep-regel">
+          <span>{t.voor}</span>{' '}
           <label className="ayg-sr" htmlFor="vp-oproep-naam">
             {t.veldLabel}
           </label>
@@ -34,8 +38,8 @@ export async function Oproep() {
           <button type="submit" className="vp-oproep-knop">
             {t.knop}
           </button>
-        </div>
-        <p className="vp-oproep-onder">{t.onder(PROEFDAGEN)}</p>
+        </p>
+        <p className="vp-oproep-onder">{t.onder(PROEFDAGEN, AANTAL_STAPPEN)}</p>
       </form>
     </section>
   )

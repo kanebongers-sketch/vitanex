@@ -1,7 +1,8 @@
 // De voorpagina in kleurhoofdstukken (src/components/aiyourgym/voorpagina, richting
-// "Kleurhoofdstukken" 28-10-2026, ontwerp in Figma). Kort (besluit Kane 21-10-2026):
-// held, inchecken, in een oogopslag, wie het bouwt, oproep. Alle schermen tonen
-// Kernhal, een verzonnen sportschool in Utrecht, en zeggen dat ook.
+// "Kleurhoofdstukken" 28-10-2026). Kort (besluit Kane 21-10-2026): held, vier
+// productblokken, een band met feiten, wie het bouwt en de oproep. Alle schermen
+// tonen Kernhal, een verzonnen sportschool in Utrecht, en zeggen dat ook.
+// Elk feit in de band staat in de code (zie voorpagina/Feiten.tsx).
 
 import { woordenboek } from '../../woordenboek'
 
@@ -15,48 +16,55 @@ export const VOORPAGINA = woordenboek({
       beeldLabel:
         'Het scherm Vandaag van Club voor Kernhal, een verzonnen sportschool in Utrecht: tegels met de dag, de lessen met bezetting en een ledenkaart, en ervoor de ledenapp op een telefoon',
     },
-    inchecken: {
-      titelVoor: 'Binnen',
-      titelUit: 'Buiten',
-      titelNa: 'in een tik.',
-      tekst: 'Het lid laat de QR-code in de ledenapp zien en de balie ziet meteen wie er binnen is. Zet de schakelaar om.',
-      schakelaar: 'Sanne Bakker is binnen',
-      binnen: 'Binnen',
-      buiten: 'Buiten',
-      tijd: 'Sanne Bakker · 06:02',
-      tijdUit: 'Sanne Bakker · nog niet binnen',
+    producten: {
+      werkvloer: {
+        kop: 'De hele dag op een scherm.',
+        tekst: 'Vandaag laat zien wie er binnen is, hoe vol de lessen zitten en wat er nog moet gebeuren. Balie en vloer kijken naar hetzelfde scherm.',
+        punten: ['Inchecken met de QR-code uit de ledenapp', 'Taken en poetslijsten afvinken op de vloer', 'Opvolgen: wie je vandaag belt of aanspreekt'],
+        link: 'Alles voor de werkvloer',
+        beeldLabel:
+          'Het scherm Vandaag van Club voor Kernhal in Utrecht: wie er nu binnen is met het verloop per uur, de taken van vandaag, de bezetting van de lessen, de lessen van de dag en wie er net binnenkwam',
+      },
+      ledenkaart: {
+        kop: 'Alles van een lid op een kaart.',
+        tekst: 'Intake, schema, lidmaatschap, bezoek en berichten staan op het profiel van het lid. Je ziet het verloop en past het daar ook aan.',
+        punten: ['Bezoek per kalendermaand, met het verloop over 12 weken', 'Intake en schema starten vanaf de kaart', 'Gegevens downloaden of wissen volgens de AVG'],
+        link: 'Meer over de ledenkaart',
+        beeldLabel:
+          'De ledenkaart van Sanne Bakker bij Kernhal: zes tabbladen, het bezoek deze maand, het gemiddelde per week met verloop, no-shows, haar schema van deze week en haar lidmaatschap',
+      },
+      schemas: {
+        kop: 'Schema’s zoals een trainer ze maakt.',
+        tekst: 'Supersets, sets, kilo’s, RIR, rust en tempo per oefening. Bij elke oefening staan de kernpunten die je anders op de vloer zou zeggen.',
+        punten: ['Coaching per oefening: kernpunten, fouten en ademhaling', 'Het lid logt elke set in de ledenapp', 'Dubbele progressie: je ziet wanneer het zwaarder kan'],
+        link: 'Meer over trainingsschema’s',
+        beeldLabel:
+          'Een trainingsschema in Club: kracht dag A voor Sanne Bakker met supersets, sets, kilo’s, RIR, rust en tempo, en ernaast de kernpunten bij de back squat en het verloop van haar zwaarste set',
+      },
+      ledenapp: {
+        kop: 'Een app in jouw naam en kleuren.',
+        tekst: 'Leden zetten de app op hun beginscherm. Ze reserveren lessen, checken in met hun QR-code en zien hun eigen schema en voortgang.',
+        punten: ['Jouw logo, naam en kleuren in elk pakket', 'De week in een ring: trainingen gedaan tegen het doel', 'Lessen reserveren, met wachtlijst als het vol is'],
+        link: 'Meer over de ledenapp',
+        beeldLabel:
+          'De ledenapp van Kernhal op twee telefoons: Home met de weekring, de volgende les, bezoeken en de QR-code om in te checken, en daarachter het lesrooster om te reserveren',
+      },
     },
-    plekken: {
-      titel: ['Vijf plekken.', 'Een systeem.'],
-      tekst: 'Balie, vloer, trainers, eigenaar en leden werken in dezelfde gegevens. Niets dubbel, niets overtypen.',
-      schemaWaar: 'Nieuw schema · Kernhal (voorbeeld)',
-      schemaKop: 'Dag A · Kracht',
-      oefeningen: [
-        { naam: 'Back squat', sets: '4 × 8', rust: '90 s' },
-        { naam: 'Roeien met halter', sets: '3 × 10', rust: '75 s' },
-        { naam: 'Bankdrukken', sets: '4 × 8', rust: '90 s' },
-        { naam: 'Plank', sets: '3 × 40 s', rust: '45 s' },
-      ],
-      kolommen: { oefening: 'Oefening', sets: 'Sets', rust: 'Rust' },
-      kernpuntenKop: 'Kernpunten bij Back squat',
-      kernpunten: ['Borst omhoog, blik vooruit', 'Knieen in de lijn van de tenen', 'Hielen blijven aan de grond'],
-      getal: '8',
-      getalTekst: 'stappen in de startwizard. Daarna staat je club live.',
-      rollenLabel: 'De vijf plekken',
-      rollen: ['Balie', 'Vloer', 'Trainer', 'Eigenaar', 'Lid'],
-      ledenapp: 'De ledenapp draagt jouw naam, logo en kleuren. Leden reserveren, checken in en zien hun eigen schema.',
-      rechten: 'Rechten per rol. De clubmanager ziet wat jij aanzet.',
-      talen: 'Nederlands en Engels, voor team en leden.',
-      alleFuncties: 'Alle functies',
+    feiten: {
+      titel: 'Wat er in zit',
+      stappen: 'stappen in de startwizard. Daarna staat je club live.',
+      plekken: 'plekken, een systeem: balie, vloer, trainer, eigenaar en lid.',
+      talen: 'talen, Nederlands en Engels, voor je team en je leden.',
+      eu: 'Database en server in Frankfurt, binnen de EU.',
     },
-    bouwer: {
+    kane: {
       titel: ['Gebouwd vanaf', 'de vloer.'],
-      wieKop: 'Wie bouwt het',
-      wie: 'Kane Bongers. Personal trainer sinds 2019 en PT-manager van acht locaties. Ik bouw AI Your Gym omdat ik elke week zie waar het dagelijkse werk vastloopt.',
-      verwachtKop: 'Wat je mag verwachten',
+      citaat: 'Ik bouw AI Your Gym omdat ik elke week zie waar het dagelijkse werk vastloopt.',
+      naam: 'Kane Bongers',
+      rol: 'Personal trainer sinds 2019 en PT-manager van acht locaties.',
       verwacht: 'Eerlijk wat er wel en niet in zit. Elke maand nieuwe functies. Persoonlijke hulp bij het inrichten in de grotere pakketten.',
       knop: 'Plan een kennismaking',
-      stempel: 'Stempel met de initialen KB',
+      fotoAlt: 'Kane Bongers',
     },
     oproep: {
       titel: 'Open je club in AI Your Gym',
@@ -65,7 +73,7 @@ export const VOORPAGINA = woordenboek({
       voorbeeld: 'jouw club',
       na: 'in AI Your Gym',
       knop: 'en start.',
-      onder: (dagen: number) => `Daarna kies je een pakket en doorloop je de startwizard. ${dagen} dagen gratis, geen opstartkosten.`,
+      onder: (dagen: number, stappen: number) => `${dagen} dagen gratis, geen opstartkosten. Je kiest een pakket en zet je club live in ${stappen} stappen.`,
     },
   },
   en: {
@@ -77,48 +85,55 @@ export const VOORPAGINA = woordenboek({
       beeldLabel:
         'The Today screen in Club for Kernhal, a made-up gym in Utrecht: tiles for the day, the classes with attendance and a member card, with the member app on a phone in front',
     },
-    inchecken: {
-      titelVoor: 'In',
-      titelUit: 'Out',
-      titelNa: 'with one tap.',
-      tekst: 'The member shows the QR code in the member app and the front desk sees straight away who is in. Flip the switch.',
-      schakelaar: 'Sanne Bakker is in',
-      binnen: 'In',
-      buiten: 'Out',
-      tijd: 'Sanne Bakker · 06:02',
-      tijdUit: 'Sanne Bakker · not in yet',
+    producten: {
+      werkvloer: {
+        kop: 'The whole day on one screen.',
+        tekst: 'Today shows who is in, how full the classes are and what still needs doing. Front desk and gym floor look at the same screen.',
+        punten: ['Check in with the QR code from the member app', 'Tick off tasks and cleaning lists on the floor', 'Follow-up: who to call or talk to today'],
+        link: 'Everything for the gym floor',
+        beeldLabel:
+          'The Today screen in Club for Kernhal in Utrecht: who is in right now with the trend per hour, today’s tasks, class occupancy, the day’s classes and who just checked in',
+      },
+      ledenkaart: {
+        kop: 'Everything about a member on one card.',
+        tekst: 'Intake, programme, membership, visits and messages live on the member’s profile. You see the trend and change things right there.',
+        punten: ['Visits per calendar month, with the trend over 12 weeks', 'Start an intake or a programme from the card', 'Download or erase data under the GDPR'],
+        link: 'More about the member card',
+        beeldLabel:
+          'Sanne Bakker’s member card at Kernhal: six tabs, visits this month, the weekly average with its trend, no-shows, her programme this week and her membership',
+      },
+      schemas: {
+        kop: 'Programmes the way a trainer writes them.',
+        tekst: 'Supersets, sets, weights, RIR, rest and tempo per exercise. Every exercise carries the cues you would otherwise give on the floor.',
+        punten: ['Coaching per exercise: cues, common faults and breathing', 'Members log every set in the member app', 'Double progression: you see when to go heavier'],
+        link: 'More about training programmes',
+        beeldLabel:
+          'A training programme in Club: strength day A for Sanne Bakker with supersets, sets, weights, RIR, rest and tempo, with the cues for the back squat and the trend of her heaviest set alongside',
+      },
+      ledenapp: {
+        kop: 'An app in your name and colours.',
+        tekst: 'Members add the app to their home screen. They book classes, check in with their QR code and see their own programme and progress.',
+        punten: ['Your logo, name and colours in every plan', 'The week as a ring: sessions done against the goal', 'Book classes, with a waiting list when they are full'],
+        link: 'More about the member app',
+        beeldLabel:
+          'The Kernhal member app on two phones: Home with the week ring, the next class, visits and the QR code to check in, and behind it the class timetable for booking',
+      },
     },
-    plekken: {
-      titel: ['Five places.', 'One system.'],
-      tekst: 'Front desk, gym floor, trainers, owner and members all work from the same data. Nothing twice, nothing retyped.',
-      schemaWaar: 'New programme · Kernhal (example)',
-      schemaKop: 'Day A · Strength',
-      oefeningen: [
-        { naam: 'Back squat', sets: '4 × 8', rust: '90 s' },
-        { naam: 'Dumbbell row', sets: '3 × 10', rust: '75 s' },
-        { naam: 'Bench press', sets: '4 × 8', rust: '90 s' },
-        { naam: 'Plank', sets: '3 × 40 s', rust: '45 s' },
-      ],
-      kolommen: { oefening: 'Exercise', sets: 'Sets', rust: 'Rest' },
-      kernpuntenKop: 'Coaching cues for Back squat',
-      kernpunten: ['Chest up, eyes forward', 'Knees in line with the toes', 'Heels stay on the floor'],
-      getal: '8',
-      getalTekst: 'steps in the set-up wizard. Then your club is live.',
-      rollenLabel: 'The five places',
-      rollen: ['Front desk', 'Gym floor', 'Trainer', 'Owner', 'Member'],
-      ledenapp: 'The member app carries your name, logo and colours. Members book, check in and see their own programme.',
-      rechten: 'Permissions per role. The club manager sees what you switch on.',
-      talen: 'Dutch and English, for staff and members.',
-      alleFuncties: 'All features',
+    feiten: {
+      titel: 'What’s inside',
+      stappen: 'steps in the set-up wizard. Then your club is live.',
+      plekken: 'places, one system: front desk, gym floor, trainer, owner and member.',
+      talen: 'languages, Dutch and English, for your team and your members.',
+      eu: 'Database and server in Frankfurt, within the EU.',
     },
-    bouwer: {
+    kane: {
       titel: ['Built from', 'the gym floor.'],
-      wieKop: 'Who builds it',
-      wie: 'Kane Bongers. Personal trainer since 2019 and PT manager across eight locations. I’m building AI Your Gym because every week I see where the day-to-day gets stuck.',
-      verwachtKop: 'What you can expect',
+      citaat: 'I’m building AI Your Gym because every week I see where the day-to-day gets stuck.',
+      naam: 'Kane Bongers',
+      rol: 'Personal trainer since 2019 and PT manager across eight locations.',
       verwacht: 'Straight answers on what is and isn’t included. New features every month. Personal help with set-up in the larger plans.',
       knop: 'Book an introduction',
-      stempel: 'Stamp with the initials KB',
+      fotoAlt: 'Kane Bongers',
     },
     oproep: {
       titel: 'Open your club in AI Your Gym',
@@ -127,7 +142,7 @@ export const VOORPAGINA = woordenboek({
       voorbeeld: 'your club',
       na: 'in AI Your Gym',
       knop: 'and start.',
-      onder: (dagen: number) => `Then you choose a plan and run through the set-up wizard. ${dagen} days free, no set-up fee.`,
+      onder: (dagen: number, stappen: number) => `${dagen} days free, no set-up fee. You choose a plan and put your club live in ${stappen} steps.`,
     },
   },
 })

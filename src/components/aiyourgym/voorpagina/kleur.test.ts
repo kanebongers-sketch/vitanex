@@ -32,6 +32,7 @@ const PAREN: readonly [tekst: string, vlak: string][] = [
   ['vp-inkt', 'vp-salie'],
   ['vp-salie', 'vp-inkt'],
   ['vp-creme', 'vp-inkt'],
+  ['vp-veld-hint', 'vp-creme'],
 ]
 
 describe('kleurhoofdstukken: contrast', () => {

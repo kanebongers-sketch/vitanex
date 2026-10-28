@@ -1,0 +1,171 @@
+/* ==========================================================================
+   AI Your Gym | productschermen van de voorpagina (28-10-2026)
+   De look van het designsysteem van Club (src/components/club/ontwerp/ontwerp.css)
+   nagebouwd voor de website: oppervlakken als lagen met een lichtrand aan de
+   bovenkant, cijfertegels in een strook met haarlijnen, sparklijnen met alleen
+   het laatste punt in de accentkleur, meters, en de app-hoeken van Club. Alles
+   leunt op de variabelen van .aygm (mockups.css): --brand, --bg-*, --text-*.
+   Smal (telefoon) stapelt elk scherm via container queries, zodat het leesbaar
+   blijft in plaats van te krimpen.
+   Beweging: alleen transform en opacity; bij reduced motion staat alles stil.
+   ========================================================================== */
+
+.aygp {
+  --p-opp-1: var(--bg-card);
+  --p-opp-2: color-mix(in srgb, var(--bg-raised) 92%, var(--text-1));
+  --p-put: color-mix(in srgb, var(--bg-app) 70%, #000);
+  --p-rand: 1px solid var(--line);
+  --p-randlicht: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --p-randlicht-sterk: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --p-diepte-1: 0 1px 0 rgba(0, 0, 0, 0.35), 0 10px 24px -18px rgba(0, 0, 0, 0.7);
+  --p-diepte-2: 0 1px 0 rgba(0, 0, 0, 0.4), 0 18px 40px -22px rgba(0, 0, 0, 0.85);
+  --p-hoek: 12px;
+  --p-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  display: grid; gap: 14px; align-content: start; min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Paginakop en knoppen ─────────────────────────────────────────────────── */
+.aygp-paginakop { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.aygp-waar { font-size: 11.5px; color: var(--text-3); }
+.aygp-titel { margin-top: 2px; font: 600 22px/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; }
+.aygp-knop { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 13px; border-radius: 9px; background: var(--brand); color: var(--brand-inkt); font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: var(--p-randlicht-sterk), 0 8px 20px -12px var(--brand); }
+.aygp-knop--rand { background: var(--p-opp-1); color: var(--text-1); box-shadow: var(--p-randlicht), inset 0 0 0 1px var(--line-strong); }
+.aygp-chip { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 99px; background: var(--bg-raised); color: var(--text-2); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.aygp-chip--ok { color: var(--club-ok); background: color-mix(in srgb, var(--club-ok) 14%, var(--bg-app)); }
+.aygp-groot { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.aygp-klein { font-size: 12px; color: var(--text-3); }
+
+/* ── Cijfertegels in een strook ───────────────────────────────────────────── */
+.aygp-stats {
+  display: grid; grid-template-columns: repeat(var(--kol, 4), minmax(0, 1fr));
+  border: var(--p-rand); border-radius: var(--p-hoek); overflow: hidden;
+  background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1);
+}
+.aygp-stats > .aygp-stat + .aygp-stat { border-left: var(--p-rand); }
+.aygp-stats > .aygp-stat--hoofd { grid-column: span 2; }
+.aygp-stat { display: grid; align-content: start; gap: 4px; min-width: 0; padding: 14px 16px; }
+.aygp-stat-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygp-stat-rij { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; min-width: 0; }
+.aygp-stat-waarde { font: 600 30px/1 var(--ayg-font-kop); letter-spacing: -0.035em; white-space: nowrap; }
+.aygp-stat--hoofd .aygp-stat-waarde { font-size: 54px; line-height: 0.88; letter-spacing: -0.05em; }
+.aygp-stat-eenheid { margin-left: 0.22em; font-size: 0.42em; font-weight: 500; letter-spacing: 0; color: var(--text-3); }
+.aygp-stat-delta { font-size: 11.5px; font-weight: 600; color: var(--club-ok); }
+.aygp-stat-sub { font-size: 11.5px; line-height: 1.4; color: var(--text-3); }
+.aygp-kolom > .aygp-stat { border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); }
+
+/* Sparklijn: rustige grijze lijn, het laatste punt in de accentkleur */
+.aygp-spark { flex: none; display: block; max-width: 48%; height: auto; overflow: visible; }
+.aygp-spark-basis { stroke: color-mix(in srgb, var(--text-1) 10%, transparent); stroke-width: 1; }
+.aygp-spark-lijn { fill: none; stroke: var(--text-3); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+.aygp-stat--hoofd .aygp-spark-lijn, .aygp-kolom .aygp-spark-lijn, .aygp-app .aygp-spark-lijn { stroke: var(--brand-tekst); stroke-width: 2; }
+.aygp-spark-punt { fill: var(--brand-tekst); stroke: var(--p-opp-1); stroke-width: 2; }
+
+/* Meter: een verzonken spoor met een vulling in de accentkleur */
+.aygp-meter { position: relative; display: block; width: 100%; height: 6px; margin: 4px 0 2px; border-radius: 99px; background: var(--p-put); box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.35); overflow: hidden; }
+.aygp-meter > span { position: absolute; inset: 0; border-radius: inherit; background: var(--brand-tekst); transform-origin: left; transform: scaleX(var(--deel, 0)); box-shadow: var(--p-randlicht-sterk); }
+.aygp-meter > span[data-hoog] { background: var(--club-let-op); }
+
+/* ── Blokken ──────────────────────────────────────────────────────────────── */
+.aygp-blok { display: grid; gap: 12px; align-content: start; min-width: 0; padding: 16px; border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); }
+.aygp-blok--verhoogd { background: linear-gradient(180deg, var(--p-opp-2), var(--p-opp-1) 70%); border-color: var(--line-strong); box-shadow: var(--p-randlicht-sterk), var(--p-diepte-2); }
+.aygp-blok-kop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.aygp-blok-extra { letter-spacing: 0; text-transform: none; font-size: 11.5px; color: var(--text-3); }
+.aygp-twee { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
+.aygp-twee--gelijk { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.aygp-twee--schema { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+.aygp-kolom { display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+/* ── Vandaag: lessen en wie er net binnen is ──────────────────────────────── */
+.aygp-lessen { display: grid; gap: 2px; }
+.aygp-lessen li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.aygp-lessen li:first-child { border-top: 0; }
+.aygp-tijd { font-size: 11.5px; color: var(--text-3); }
+.aygp-les { display: grid; gap: 2px; min-width: 0; }
+.aygp-les b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygp-stand { font-size: 12px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
+.aygp-lessen li[data-vol] .aygp-stand { color: var(--club-let-op); }
+.aygp-mensen { display: grid; gap: 8px; }
+.aygp-mensen li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.aygp-mensen b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygp-avatar { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-raised); color: var(--text-2); font-size: 10px; font-weight: 700; box-shadow: var(--p-randlicht); }
+.aygp-avatar--groot { width: 52px; height: 52px; font-size: 16px; background: var(--brand); color: var(--brand-inkt); box-shadow: var(--p-randlicht-sterk), 0 10px 24px -14px var(--brand); }
+
+/* ── Ledenkaart ───────────────────────────────────────────────────────────── */
+.aygp-lid { display: flex; align-items: center; gap: 14px; }
+.aygp-lid-tekst { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.aygp-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.aygp-acties { display: flex; gap: 6px; }
+.aygp-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--p-put); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); overflow: hidden; }
+.aygp-tabs span { flex: 1 1 0; min-width: max-content; padding: 6px 10px; border-radius: 8px; text-align: center; font-size: 11.5px; font-weight: 500; color: var(--text-3); white-space: nowrap; }
+.aygp-tabs span[data-actief] { background: var(--p-opp-2); color: var(--text-1); font-weight: 600; box-shadow: var(--p-randlicht-sterk), 0 4px 10px -6px rgba(0, 0, 0, 0.8); }
+.aygp-ronde { display: flex; gap: 6px; }
+.aygp-ronde li { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 99px; border: 1px solid var(--line-strong); font-size: 11px; font-weight: 600; color: var(--text-3); }
+.aygp-ronde li[data-gedaan] { border-color: transparent; background: var(--brand-soft); color: var(--text-1); }
+.aygp-ronde svg { color: var(--brand-tekst); }
+
+/* ── Schema-editor ────────────────────────────────────────────────────────── */
+.aygp-tabel { display: grid; align-content: start; min-width: 0; border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); overflow: hidden; }
+.aygp-tabel-kop, .aygp-tabel-rij { display: grid; grid-template-columns: minmax(0, 2.6fr) repeat(5, minmax(0, 0.8fr)); align-items: center; gap: 8px; padding: 0 14px; }
+.aygp-tabel-kop { height: 32px; background: var(--p-put); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygp-tabel-rij { height: 44px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--text-2); }
+.aygp-tabel-rij[data-groep-begin] { border-top-color: var(--line-strong); }
+.aygp-tabel-rij[data-gekozen] { background: color-mix(in srgb, var(--brand) 16%, var(--p-opp-1)); box-shadow: inset 3px 0 0 var(--brand-tekst); }
+.aygp-oef { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.aygp-oef i { flex: none; display: grid; place-items: center; width: 26px; height: 22px; border-radius: 6px; background: var(--bg-raised); font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--brand-tekst); }
+.aygp-oef b { font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygp-tabel-voet { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--text-3); }
+.aygp-punten { display: grid; gap: 8px; counter-reset: punt; }
+.aygp-punten li { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 13px; font-weight: 500; counter-increment: punt; }
+.aygp-punten li::before { content: counter(punt); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); font-size: 11px; font-weight: 700; box-shadow: var(--p-randlicht-sterk); }
+
+/* ── Ledenapp: Home met de weekring ───────────────────────────────────────── */
+.aygp-app { gap: 10px; }
+.aygp-hallo { font: 600 20px/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; }
+.aygp-app-week { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px; border: var(--p-rand); border-radius: 16px; background: linear-gradient(180deg, var(--p-opp-2), var(--p-opp-1) 75%); box-shadow: var(--p-randlicht-sterk), var(--p-diepte-2); }
+.aygp-app-volgende { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--brand); color: var(--brand-inkt); font-size: 11.5px; box-shadow: var(--p-randlicht-sterk), 0 12px 24px -16px var(--brand); }
+.aygp-app-volgende b { font: 600 17px/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.aygp-app-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.aygp-app-cijfer { display: grid; gap: 3px; align-content: start; padding: 10px 12px; border: var(--p-rand); border-radius: 14px; background: var(--p-opp-1); box-shadow: var(--p-randlicht); }
+.aygp-app-cijfer .aygp-stat-waarde { font-size: 26px; }
+.aygp-app-qr { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 12px; border: var(--p-rand); border-radius: 14px; background: var(--p-opp-1); }
+.aygp-app-qr svg { width: 52px; height: 52px; padding: 4px; border-radius: 6px; background: #fff; }
+.aygp-app-qr div { display: grid; gap: 2px; font-size: 11px; color: var(--text-3); }
+.aygp-app-qr b { font-size: 13px; color: var(--text-1); }
+
+/* De weekring: een SVG-ring met diepte, de 3D-ring van Club erover als hij laadt */
+.aygp-ring { position: relative; flex: none; display: grid; place-items: center; }
+.aygp-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.aygp-ring-spoor { fill: none; stroke: var(--p-put); stroke-width: 10; }
+.aygp-ring-boog { fill: none; stroke: var(--brand-tekst); stroke-width: 10; stroke-linecap: round; }
+.aygp-ring-3d { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.aygp-ring[data-3d] svg { opacity: 0; transition: opacity 300ms ease 200ms; }
+.aygp-ring-midden { position: relative; z-index: 2; display: grid; justify-items: center; line-height: 1; }
+.aygp-ring-midden strong { font: 600 30px/1 var(--ayg-font-kop); letter-spacing: -0.04em; }
+.aygp-ring-midden strong span { font-size: 15px; color: var(--text-3); }
+.aygp-ring-midden small { margin-top: 3px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.aygp-ring canvas[data-mislukt] { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .aygp-ring-3d { animation: aygp-in 420ms var(--p-ease) 120ms both; }
+  .vp-onthul[data-in] .aygp-meter > span { animation: aygp-meter 700ms var(--p-ease) 300ms both; }
+}
+@keyframes aygp-in { from { opacity: 0; transform: scale(0.96); } }
+@keyframes aygp-meter { from { transform: scaleX(0); } }
+
+/* ── Smal: de schermen stapelen in plaats van te krimpen ─────────────────── */
+@container (max-width: 760px) {
+  .aygp-twee, .aygp-twee--gelijk, .aygp-twee--schema { grid-template-columns: minmax(0, 1fr); }
+  .aygp-acties { display: none; }
+  .aygp-tabel-kop, .aygp-tabel-rij { grid-template-columns: minmax(0, 2.4fr) repeat(3, minmax(0, 0.9fr)); }
+  .aygp-tabel-kop > :nth-child(n + 5), .aygp-tabel-rij > :nth-child(n + 5) { display: none; }
+}
+@container (max-width: 560px) {
+  .aygp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aygp-stats > .aygp-stat--hoofd { grid-column: 1 / -1; }
+  .aygp-stats > .aygp-stat + .aygp-stat { border-left: 0; border-top: var(--p-rand); }
+  .aygp-stats > .aygp-stat--hoofd ~ .aygp-stat:nth-child(odd) { border-left: var(--p-rand); }
+  .aygp-stat--hoofd .aygp-stat-waarde { font-size: 44px; }
+  .aygp-tabs span:nth-child(n + 4) { display: none; }
+  .aygp-titel { font-size: 19px; }
+}
