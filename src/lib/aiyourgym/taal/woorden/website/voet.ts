@@ -18,6 +18,9 @@ export const VOET = woordenboek({
     voorwaarden: 'Voorwaarden',
     dataInEu: 'Database en server in Frankfurt, binnen de EU',
     inloggen: 'Inloggen',
+    liveDemo: 'Live demo, zonder account',
+    openClub: 'Open je eigen Club',
+    menu: 'Website',
   },
   en: {
     merkZin: 'Club software for gyms. Everything in one place.',
@@ -33,5 +36,8 @@ export const VOET = woordenboek({
     voorwaarden: 'Terms',
     dataInEu: 'Database and servers in Frankfurt, within the EU',
     inloggen: 'Log in',
+    liveDemo: 'Live demo, no account needed',
+    openClub: 'Open your own Club',
+    menu: 'Website',
   },
 })

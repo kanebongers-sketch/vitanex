@@ -31,6 +31,8 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
   const t = AANMELDEN[taal]
   const startPakket = vindPakket(typeof zoek.pakket === 'string' ? zoek.pakket : null)?.sleutel ?? null
   const geannuleerd = zoek.geannuleerd === '1'
+  // Naam uit de oproep op de voorpagina; alleen als begin van het veld, de controle blijft in het formulier.
+  const startNaam = typeof zoek.naam === 'string' ? zoek.naam.trim().slice(0, 80) : ''
   const pakketten: PakketKeuze[] = PAKKETTEN.map((p) => ({
     sleutel: p.sleutel,
     naam: p.naam,
@@ -57,7 +59,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
             {t.geannuleerd}
           </p>
         )}
-        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} subdomeinen={subdomeinenActief()} />
+        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
       </section>
     </AanmeldSchil>
   )

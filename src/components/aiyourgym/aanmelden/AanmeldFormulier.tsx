@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react'
 import { leesAanmelding, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
+import { slugVoorstel } from '@/lib/club/kern/subdomein'
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
@@ -26,6 +27,8 @@ interface AanmeldFormulierProps {
   startPakket: PakketSleutel | null
   /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
   subdomeinen: boolean
+  /** Naam van de sportschool die de bezoeker al typte (oproep op de voorpagina, ?naam=). */
+  startNaam?: string
 }
 
 const LEEG: Omit<Invoer, 'pakket'> = {
@@ -34,8 +37,8 @@ const LEEG: Omit<Invoer, 'pakket'> = {
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomeinen }: AanmeldFormulierProps) {
-  const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, pakket: startPakket ?? '' })
+export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
+  const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, sportschoolNaam: startNaam, slug: startNaam ? slugVoorstel(startNaam) : '', pakket: startPakket ?? '' })
   const [stap, setStap] = useState(startPakket ? 1 : 0)
   const [verste, setVerste] = useState(startPakket ? 1 : 0)
   const [fouten, setFouten] = useState<Fouten>({})

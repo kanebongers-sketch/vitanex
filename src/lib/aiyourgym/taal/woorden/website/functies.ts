@@ -109,8 +109,8 @@ export const FUNCTIES_PAGINA = woordenboek({
             tekst: 'For every exercise, 3 to 5 numbered coaching cues, the set-up, the steps, common mistakes with the correction, breathing and tempo.',
           },
           {
-            titel: 'Moving exercise images',
-            tekst: 'Start and end position as an illustration that flows calmly from one to the other, in one style across the whole library.',
+            titel: 'Exercise images in 3D',
+            tekst: 'Our own 3D images of every exercise in Club and the member app. The image plays at the tempo from the programme and counts the reps, with the coaching cues alongside.',
           },
           {
             titel: 'Nutrition',

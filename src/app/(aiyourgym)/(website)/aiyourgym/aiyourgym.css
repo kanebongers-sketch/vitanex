@@ -62,8 +62,8 @@
   --ayg-h-betrokkenheid: #aeb9c0;
 
   /* Letters */
-  --ayg-font-kop: var(--ayg-f-kop), 'Arial Narrow', Arial, sans-serif;
-  --ayg-font-tekst: var(--ayg-f-tekst), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ayg-font-kop: var(--ayg-f-hanken), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ayg-font-tekst: var(--ayg-f-hanken), system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Vorm en diepte */
   --ayg-radius: 14px;

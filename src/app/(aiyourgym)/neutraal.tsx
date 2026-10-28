@@ -8,7 +8,7 @@ const VLAK: CSSProperties = {
   display: 'grid',
   placeItems: 'center',
   padding: '48px 20px',
-  fontFamily: 'var(--ayg-f-tekst), system-ui, -apple-system, "Segoe UI", sans-serif',
+  fontFamily: 'var(--ayg-f-hanken), system-ui, -apple-system, "Segoe UI", sans-serif',
   textAlign: 'center',
 }
 
@@ -21,7 +21,7 @@ const INHOUD: CSSProperties = {
 
 const KOP: CSSProperties = {
   margin: 0,
-  fontFamily: 'var(--ayg-f-kop), "Arial Narrow", Arial, sans-serif',
+  fontFamily: 'var(--ayg-f-hanken), system-ui, sans-serif',
   fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
   fontWeight: 700,
   letterSpacing: '-0.03em',

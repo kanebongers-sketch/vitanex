@@ -1,23 +1,16 @@
-import { Bricolage_Grotesque, Geist } from 'next/font/google'
+import { Hanken_Grotesk } from 'next/font/google'
 
-// Letters van AI Your Gym (max twee families). next/font host ze zelf mee met de
-// build: bezoekers maken geen verbinding met Google.
-// - Bricolage Grotesque (variabel, met breedte- en optische as): koppen met
-//   karakter, smal gezet op grote maten.
-// - Geist: rustige, technische tekstletter met goede cijfers.
+// Letter van AI Your Gym: een familie, Hanken Grotesk (SIL Open Font License 1.1),
+// in twee gewichten die het werk doen (400 tekst, 500 koppen). Richting
+// "Kleurhoofdstukken" (28-10-2026): de kleur is luid, dus de letter blijft rustig.
+// next/font host hem mee met de build: bezoekers maken geen verbinding met Google.
+// De variabele --ayg-f-hanken voedt in aiyourgym.css zowel de kop- als de tekstletter.
 // Gebruik AYG_FONT_KLASSEN op hetzelfde element als de klasse .ayg.
 
-const kop = Bricolage_Grotesque({
+const hanken = Hanken_Grotesk({
   subsets: ['latin'],
-  variable: '--ayg-f-kop',
-  display: 'swap',
-  axes: ['opsz', 'wdth'],
-})
-
-const tekst = Geist({
-  subsets: ['latin'],
-  variable: '--ayg-f-tekst',
+  variable: '--ayg-f-hanken',
   display: 'swap',
 })
 
-export const AYG_FONT_KLASSEN = `${kop.variable} ${tekst.variable}`
+export const AYG_FONT_KLASSEN = hanken.variable

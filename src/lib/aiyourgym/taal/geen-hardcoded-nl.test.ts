@@ -59,7 +59,7 @@ const ALTIJD_GOED: Record<string, string> = {
 
 /** Per bestand toegestane teksten (exact), met reden. */
 const PER_BESTAND: Record<string, Record<string, string>> = {
-  'src/components/aiyourgym/home/Praktijk.tsx': { PT: 'monogram als er (nog) geen naam is; Personal Trainer, in beide talen gelijk' },
+  'src/components/aiyourgym/voorpagina/Bouwer.tsx': { KB: 'initialen van Kane Bongers in de boog, in beide talen gelijk' },
   'src/components/aiyourgym/mockups/HeldDashboard.tsx': { SB: 'initialen in de demodata', 'Sanne Bakker': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WerkvloerSchermen.tsx': { 'Mo de Vries': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WizardScherm.tsx': { 'club/start': 'pad in de nagebootste adresbalk (/club/start)' },

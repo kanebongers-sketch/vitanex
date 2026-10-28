@@ -46,7 +46,7 @@ export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
       { titel: 'Intakes', tekst: 'Een intakeformulier dat je zelf samenstelt, met metingen en een gezondheidsvragenlijst. Uit de intake maakt AI Your Gym een startvoorstel voor een schema.' },
       { titel: 'Trainingsschema’s', tekst: 'Schema’s per trainingsdag, met supersets en circuits, en per oefening sets, herhalingen of tijd, gewicht, RPE of RIR, rust en tempo. De trainer past het voorstel aan in de editor, het lid vult in de app per set in wat hij deed.' },
       { titel: 'Coaching per oefening', tekst: 'Bij elke oefening 3 tot 5 genummerde kernpunten, de opstelling, de stappen, veelgemaakte fouten met correctie, ademhaling en tempo.' },
-      { titel: 'Bewegende oefenbeelden', tekst: 'Begin- en eindhouding als illustratie die rustig in elkaar overloopt, in een stijl voor de hele bibliotheek.' },
+      { titel: 'Oefenbeelden in 3D', tekst: 'Eigen 3D-beelden van elke oefening in Club en de ledenapp. Het beeld speelt op het tempo uit het schema en telt de herhalingen mee, met de kernpunten ernaast.' },
       { titel: 'Voeding', tekst: 'Een voedingsplan per lid met calorieen, eiwit, koolhydraten en vet, maaltijden en adviezen. Een rekenhulp geeft de trainer een startpunt, sjablonen besparen tijd.' },
       { titel: 'Voortgang', tekst: 'Metingen, trainingen en per oefening de gelogde sets op een tijdlijn, met een vaste regel voor wanneer het zwaarder kan. Het lid ziet zijn eigen lichaamsmaten en trainingen terug, nooit de notities van de trainer.' },
     ],

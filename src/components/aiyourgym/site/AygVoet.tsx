@@ -1,104 +1,64 @@
 import Link from 'next/link'
 import { AygLogo } from '@/components/aiyourgym/merk/AygLogo'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
-import type { Taal } from '@/lib/aiyourgym/taal/taal'
-import type { MenuSleutel } from '@/lib/aiyourgym/taal/woorden/website/kop'
 import { VOET } from '@/lib/aiyourgym/taal/woorden/website/voet'
 import { aygPad, navLinks, SITE_PADEN } from './paden'
 
-// Voet van de verkoopwebsite: kort en rustig (Kane 24-10-2026: "veel te veel").
-// Drie kolommen met hooguit vier links, niets dubbel met de kop: Probeer gratis,
-// demo plannen en de live demo staan daar al. De hoofdstukken van Functies zijn
-// ankers op die pagina zelf. Inloggen staat alleen hier (onderste regel).
-// In de taal van de pagina (woordenboek VOET, menulinks uit KOP).
+// Voet van de verkoopwebsite: de laatste twee rijen van het bord, gevulde tegels
+// zonder lijnen (richting "Kleurhoofdstukken" 28-10-2026). Kort (Kane 24-10-2026:
+// "veel te veel"): een uitspraak, vier links, de live demo, waar de data staat en
+// inloggen; daaronder het woordmerk groot en een tegel die als geheel naar aanmelden
+// gaat. In de taal van de pagina (woordenboek VOET, menulinks uit KOP).
 
-interface VoetLink {
-  label: string
-  pad: string
-}
-
-interface VoetKolom {
-  id: string
-  titel: string
-  links: readonly VoetLink[]
-}
-
-/** De kolommen van de voet in een taal. */
-export function voetKolommen(taal: Taal): readonly VoetKolom[] {
-  const t = VOET[taal]
-  const p = SITE_PADEN
-  const menu = navLinks(taal)
-  const uitMenu = (sleutel: MenuSleutel): VoetLink => {
-    const l = menu.find((n) => n.sleutel === sleutel)
-    if (!l) throw new Error(`Onbekende navigatielink: ${sleutel}`)
-    return { label: l.label, pad: l.pad }
-  }
-  return [
-    {
-      id: 'voet-product',
-      titel: t.product,
-      links: [uitMenu('functies'), uitMenu('schemas'), uitMenu('ledenapp'), uitMenu('voorWie')],
-    },
-    {
-      id: 'voet-overstappen',
-      titel: t.overstappen,
-      links: [
-        { label: t.zoStapJeOver, pad: p.OVERSTAPPEN },
-        { label: t.overstapchecklist, pad: p.OVERSTAPCHECKLIST },
-        { label: t.prijsOpMaat, pad: p.PRIJS_OP_MAAT },
-        { label: t.nieuw, pad: p.NIEUW },
-      ],
-    },
-    {
-      id: 'voet-afspraken',
-      titel: t.afspraken,
-      links: [
-        { label: t.privacyBeveiliging, pad: p.PRIVACY_BEVEILIGING },
-        { label: t.privacyverklaring, pad: aygPad('/privacy') },
-        { label: t.voorwaarden, pad: aygPad('/voorwaarden') },
-      ],
-    },
-  ]
-}
-
-/** Nederlands; nieuwe code gebruikt voetKolommen(taal). */
-export const VOET_KOLOMMEN: readonly VoetKolom[] = voetKolommen('nl')
+const VOET_MENU = ['functies', 'voorWie', 'overstappen', 'prijzen'] as const
 
 export async function AygVoet() {
   const taal = await getSiteTaal()
   const t = VOET[taal]
-  const { INLOGGEN, PRIVACY_BEVEILIGING } = SITE_PADEN
+  const { AANMELDEN, DEMO, INLOGGEN, NIEUW, PRIVACY_BEVEILIGING } = SITE_PADEN
+  const menu = navLinks(taal).filter((l) => (VOET_MENU as readonly string[]).includes(l.sleutel))
   const jaar = new Date().getFullYear()
   return (
-    <footer className="ayg-voet">
-      <div className="ayg-wrap">
-        <div className="ayg-voet-raster">
-          <div className="ayg-voet-merk">
-            <AygLogo opDonker />
-            <p>{t.merkZin}</p>
-          </div>
-          {voetKolommen(taal).map((k) => (
-            <nav key={k.id} aria-labelledby={k.id}>
-              <h2 id={k.id}>{k.titel}</h2>
-              <ul>
-                {k.links.map((l) => (
-                  <li key={l.pad}>
-                    <Link href={l.pad}>{l.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
-        <AygLogo vorm="woordmerk" sier className="ayg-voet-woord" />
-        <div className="ayg-voet-onder">
-          <span>© {jaar} AI Your Gym</span>
-          <Link href={PRIVACY_BEVEILIGING}>{t.dataInEu}</Link>
-          <Link href={INLOGGEN} className="ayg-voet-inloggen">
-            {t.inloggen}
-          </Link>
-        </div>
+    <footer className="ayg-voet vt">
+      <div className="vt-tegel vt-zin">
+        <p>{t.merkZin}</p>
+        <p className="vt-klein">
+          © {jaar} AI Your Gym · <Link href={aygPad('/privacy')}>{t.privacyverklaring}</Link> ·{' '}
+          <Link href={aygPad('/voorwaarden')}>{t.voorwaarden}</Link>
+        </p>
       </div>
+      <nav className="vt-tegel vt-menu" aria-label={t.menu}>
+        <ul>
+          {menu.map((l) => (
+            <li key={l.pad}>
+              <Link href={l.pad}>{l.label}</Link>
+            </li>
+          ))}
+          <li>
+            <Link href={NIEUW}>{t.nieuw}</Link>
+          </li>
+        </ul>
+      </nav>
+      <Link href={DEMO} className="vt-tegel vt-demo">
+        {t.liveDemo}
+      </Link>
+      <div className="vt-tegel vt-eu">
+        <Link href={INLOGGEN} className="vt-inloggen">
+          {t.inloggen}
+        </Link>
+        <Link href={PRIVACY_BEVEILIGING} className="vt-eu-tekst">
+          {t.dataInEu}
+        </Link>
+      </div>
+      <div className="vt-tegel vt-woord">
+        <AygLogo vorm="woordmerk" opDonker className="vt-woordmerk" />
+      </div>
+      <Link href={AANMELDEN} className="vt-tegel vt-open">
+        <span>{t.openClub}</span>
+        <svg viewBox="0 0 48 48" aria-hidden className="vt-pijl">
+          <path d="M6 24h34M26 10l14 14-14 14" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="square" />
+        </svg>
+      </Link>
     </footer>
   )
 }
