@@ -6,8 +6,10 @@ import { SCHERM } from '@/lib/aiyourgym/taal/woorden/website/scherm'
 // bewust onder de poort in ../layout.tsx: wie de site niet mag zien, krijgt meteen
 // een echte 404 en nooit eerst dit scherm.
 
+// Minstens een vol scherm: zo staat de voet onder de vouw en springt hij niet weg als
+// de pagina binnenkomt (bij 60vh gaf dat op de pc een CLS van 0,33).
 const VLAK: CSSProperties = {
-  minHeight: '60vh',
+  minHeight: '100svh',
   display: 'grid',
   placeItems: 'center',
   alignContent: 'center',

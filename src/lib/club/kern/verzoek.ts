@@ -29,9 +29,16 @@ export function isZelfdeOorsprong(headers: Headers): boolean {
   }
 }
 
-/** Het IP van de bezoeker (alleen voor remmen); achter een proxy de eerste uit X-Forwarded-For. */
-export function ipVan(req: NextRequest): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip')?.trim() || 'onbekend'
+/**
+ * Het IP van de bezoeker (alleen voor remmen). De randdienst (Cloudflare) zet
+ * CF-Connecting-IP en overschrijft wat een bezoeker zelf meestuurt; daarom
+ * eerst die. Het eerste adres uit X-Forwarded-For is door de bezoeker zelf te
+ * kiezen (elk verzoek een nieuw adres = de rem omzeild), dus pas als vangnet.
+ */
+export function ipVan(req: { headers: Headers }): string {
+  const h = req.headers
+  const rand = h.get('cf-connecting-ip')?.trim() || h.get('true-client-ip')?.trim()
+  return rand || h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip')?.trim() || 'onbekend'
 }
 
 /** De `pin` uit de body, als die 6 cijfers is. */

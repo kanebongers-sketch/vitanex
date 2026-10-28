@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { idUit, stuur } from '../api'
 import { LidKiezer, type GekozenLid } from '../LidKiezer'
 import { Zijpaneel } from '../Zijpaneel'
@@ -21,12 +21,19 @@ export function KopieNaarLid({ schemaId, naam, vestiging, editorHref, onSluit }:
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
+  // Een ref, geen state: een snelle tweede klik op een lid komt voor de volgende render
+  // binnen en zou anders een tweede kopie maken.
+  const loopt = useRef(false)
+
   async function kopieer(lid: GekozenLid) {
+    if (loopt.current) return
+    loopt.current = true
     setFout(null)
     setBezig(true)
     const u = await stuur(`/schemas/${schemaId}/kopie`, 'POST', { lidId: lid.id, metGewicht })
     const id = u.ok ? idUit(u.data) : null
     if (!id) {
+      loopt.current = false
       setBezig(false)
       return setFout(u.ok ? 'Er kwam geen schema terug.' : u.fout)
     }

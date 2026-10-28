@@ -18,6 +18,25 @@ import { isHuidig, navLinks, SITE_PADEN } from './paden'
 
 const BREED = '(min-width: 1024px)'
 
+/** Tab blijft binnen de menuknop en het open paneel: de pagina eronder staat stil en is niet te bereiken. */
+function houdFocusInPaneel(e: KeyboardEvent, knop: HTMLButtonElement | null, paneel: HTMLDivElement | null) {
+  if (!knop || !paneel) return
+  const binnen = [knop, ...paneel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')]
+  const eerste = binnen[0]
+  const laatste = binnen[binnen.length - 1]
+  const huidig = document.activeElement
+  if (!binnen.includes(huidig as HTMLElement)) {
+    e.preventDefault()
+    eerste.focus()
+  } else if (!e.shiftKey && huidig === laatste) {
+    e.preventDefault()
+    eerste.focus()
+  } else if (e.shiftKey && huidig === eerste) {
+    e.preventDefault()
+    laatste.focus()
+  }
+}
+
 function useMenuPaneel(open: boolean, sluit: () => void) {
   const knop = useRef<HTMLButtonElement>(null)
   const eersteLink = useRef<HTMLAnchorElement>(null)
@@ -31,18 +50,21 @@ function useMenuPaneel(open: boolean, sluit: () => void) {
     const vorige = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     eersteLink.current?.focus()
-    const opEscape = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      sluit()
-      knop.current?.focus()
+    const opToets = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        sluit()
+        knop.current?.focus()
+        return
+      }
+      if (e.key === 'Tab') houdFocusInPaneel(e, knop.current, paneel.current)
     }
     const breed = window.matchMedia(BREED)
     const opBreed = () => breed.matches && sluit()
-    window.addEventListener('keydown', opEscape)
+    window.addEventListener('keydown', opToets)
     breed.addEventListener('change', opBreed)
     return () => {
       document.body.style.overflow = vorige
-      window.removeEventListener('keydown', opEscape)
+      window.removeEventListener('keydown', opToets)
       breed.removeEventListener('change', opBreed)
     }
   }, [open, sluit])

@@ -18,7 +18,7 @@ export function Keuzes({ naam, legende, opties, gekozen, fout, onKies }: KeuzesP
       <div className="dem-chips">
         {opties.map((o, i) => (
           <label key={o.sleutel} className="dem-chip" data-gekozen={gekozen === o.sleutel ? '' : undefined}>
-            <input type="radio" name={naam} value={o.sleutel} checked={gekozen === o.sleutel} onChange={() => onKies(o.sleutel)} aria-invalid={fout && i === 0 ? true : undefined} />
+            <input type="radio" name={naam} value={o.sleutel} checked={gekozen === o.sleutel} onChange={() => onKies(o.sleutel)} aria-invalid={fout && i === 0 ? true : undefined} aria-describedby={fout && i === 0 ? foutId : undefined} />
             {o.label}
           </label>
         ))}

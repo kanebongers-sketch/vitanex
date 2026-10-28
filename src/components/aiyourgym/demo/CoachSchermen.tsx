@@ -68,7 +68,7 @@ export function SchemaScherm({ schema, uitgelicht, coaching, taal }: SchemaProps
           <div className="aygm-oefening aygm-oefening--tekst aygd-coaching">
             <div className="aygm-coaching">
               <p className="aygm-coaching-titel">{uitgelicht.naam}</p>
-              <ol className="aygm-kernpunten">
+              <ol className="aygm-kernpunten" lang="nl">
                 {coaching.kernpunten.slice(0, 4).map((k) => (
                   <li key={k.punt}>
                     <div>
@@ -81,18 +81,18 @@ export function SchemaScherm({ schema, uitgelicht, coaching, taal }: SchemaProps
               {coaching.fouten[0] && (
                 <div className="aygd-fout">
                   <p className="aygm-boven">{t.veelgemaakt}</p>
-                  <b>{coaching.fouten[0].fout}</b>
-                  <span>{coaching.fouten[0].beter}</span>
+                  <b lang="nl">{coaching.fouten[0].fout}</b>
+                  <span lang="nl">{coaching.fouten[0].beter}</span>
                 </div>
               )}
               <div className="aygm-feiten">
                 <div>
                   <p className="aygm-boven">{t.ademhaling}</p>
-                  <span>{coaching.ademhaling}</span>
+                  <span lang="nl">{coaching.ademhaling}</span>
                 </div>
                 <div>
                   <p className="aygm-boven">{t.tempo}</p>
-                  <span>{coaching.tempo}</span>
+                  <span lang="nl">{coaching.tempo}</span>
                 </div>
               </div>
             </div>

@@ -140,7 +140,8 @@
 /* ── Schemabouw: 10:30, de piek ─────────────────────────────────────────── */
 .dag-schema { margin-block: clamp(8px, 2vw, 24px); }
 .dag-schema-spoor { --app: 1; --sp: 1; position: relative; }
-.dag-schema-podium { display: grid; gap: clamp(36px, 5vw, 56px); padding-block: clamp(56px, 8vw, 104px); }
+/* minmax(0, 1fr): anders rekt de brede editor de enige kolom op en valt de tekst op de telefoon rechts weg */
+.dag-schema-podium { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(36px, 5vw, 56px); padding-block: clamp(56px, 8vw, 104px); }
 .dag-schema-tekst { display: grid; gap: 28px; align-content: center; }
 .dag-schema-kop { display: grid; gap: 18px; }
 .dag-schema-kop .ayg-h2 { max-width: 13ch; }

@@ -20,7 +20,7 @@ export async function AanmeldSchil({ children }: { children: ReactNode }) {
         {KOP[taal].overslaan}
       </a>
       <AygKop />
-      <main id="inhoud" className="ayg-main">
+      <main id="inhoud" className="ayg-main" tabIndex={-1}>
         {children}
       </main>
       <AygVoet />

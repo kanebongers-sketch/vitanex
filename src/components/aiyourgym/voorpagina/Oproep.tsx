@@ -1,5 +1,6 @@
 import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
 import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { MAX_NAAM } from '@/lib/aiyourgym/aanmelding'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
@@ -30,7 +31,7 @@ export async function Oproep() {
             name="naam"
             type="text"
             autoComplete="organization"
-            maxLength={80}
+            maxLength={MAX_NAAM}
             placeholder={t.voorbeeld}
             className="vp-oproep-veld"
           />{' '}

@@ -54,7 +54,7 @@ export default async function AiYourGymSiteLayout({ children }: { children: Reac
       </a>
       <ContactBalk />
       <AygKop />
-      <main id="inhoud" className="ayg-main">
+      <main id="inhoud" className="ayg-main" tabIndex={-1}>
         {children}
       </main>
       <AygVoet />

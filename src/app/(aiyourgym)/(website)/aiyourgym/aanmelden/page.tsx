@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { PAKKETTEN, PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
-import { maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
+import { MAX_NAAM, maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
 import { aanmeldbaar, testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
@@ -32,7 +32,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
   const startPakket = vindPakket(typeof zoek.pakket === 'string' ? zoek.pakket : null)?.sleutel ?? null
   const geannuleerd = zoek.geannuleerd === '1'
   // Naam uit de oproep op de voorpagina; alleen als begin van het veld, de controle blijft in het formulier.
-  const startNaam = typeof zoek.naam === 'string' ? zoek.naam.trim().slice(0, 80) : ''
+  const startNaam = typeof zoek.naam === 'string' ? zoek.naam.trim().slice(0, MAX_NAAM) : ''
   const pakketten: PakketKeuze[] = PAKKETTEN.map((p) => ({
     sleutel: p.sleutel,
     naam: p.naam,

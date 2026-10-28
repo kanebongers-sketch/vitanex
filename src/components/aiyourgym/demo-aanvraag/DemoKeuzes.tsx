@@ -60,7 +60,7 @@ export function DemoKeuzes({ invoer, fouten, wijzig, soorten }: DemoKeuzesProps)
           {DEMO_MOMENTEN.map((m, i) => (
             <label key={m.sleutel} className="dem-chip" data-gekozen={invoer.moment === m.sleutel ? '' : undefined}>
               <input type="radio" name="moment" value={m.sleutel} checked={invoer.moment === m.sleutel} onChange={() => wijzig('moment', m.sleutel)}
-                aria-invalid={fouten.moment && i === 0 ? true : undefined} />
+                aria-invalid={fouten.moment && i === 0 ? true : undefined} aria-describedby={fouten.moment && i === 0 ? 'dem-moment-fout' : undefined} />
               {t.momenten[m.sleutel]}
             </label>
           ))}

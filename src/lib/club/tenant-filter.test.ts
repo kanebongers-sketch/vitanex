@@ -168,8 +168,20 @@ export function scan(bestandsPad: string, tekst: string): Hit[] {
   return hits
 }
 
+// Alleen een aanroep .from( of .rpc( kan een hit geven. Bestanden zonder zo'n aanroep slaan
+// we over voordat de (dure) TypeScript-parser draait; dat scheelt ruim 80% van het werk.
+const KAN_QUERY = /\.\s*(from|rpc)\s*\(/
+
+let cache: Hit[] | null = null
+
+/** Scant een keer per testrun; de twee tests hieronder delen het resultaat. */
 function alleHits(): Hit[] {
-  return MAPPEN.flatMap(bestanden).flatMap((p) => scan(p, fs.readFileSync(p, 'utf8')))
+  if (cache) return cache
+  cache = MAPPEN.flatMap(bestanden).flatMap((p) => {
+    const tekst = fs.readFileSync(p, 'utf8')
+    return KAN_QUERY.test(tekst) ? scan(p, tekst) : []
+  })
+  return cache
 }
 
 const gedekt = (h: Hit) => TENANT_UITZONDERINGEN.some((u) => u.bestand === h.bestand && u.tabel === h.tabel)
