@@ -1,7 +1,7 @@
 /* ==========================================================================
    AI Your Gym | aanmelden en welkom
    Bouwt op de tokens van .ayg (src/app/(aiyourgym)/(website)/aiyourgym/aiyourgym.css). Formulier
-   links op papier, een donker podium rechts met je eigen adres groot in beeld.
+   links op de basis, een podium (een laag hoger) rechts met je eigen adres groot in beeld.
    Alles onder .ayg en met het voorvoegsel aan-, zodat niets anders geraakt wordt.
    ========================================================================== */
 
@@ -20,8 +20,8 @@
   display: grid;
   gap: 28px;
   padding: clamp(20px, 3.4vw, 40px);
-  background: var(--ayg-vlak, #fbfaf6);
-  border: 1px solid var(--ayg-lijn, #d6d2c5);
+  background: var(--ayg-vlak, #15171a);
+  border: 1px solid var(--ayg-lijn, #2a2e33);
   border-radius: calc(var(--ayg-radius, 14px) + 6px);
   box-shadow: var(--ayg-schaduw-zacht, none);
 }
@@ -64,7 +64,7 @@
 .ayg .aan-label { font-weight: 600; font-size: 15px; }
 .ayg .aan-invoer {
   display: flex; align-items: center; min-width: 0; min-height: 52px; background: var(--ayg-bg); border-radius: var(--ayg-radius-klein, 9px);
-  box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk, #82877f); transition: box-shadow 200ms var(--ayg-ease);
+  box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk, #6b7178); transition: box-shadow 200ms var(--ayg-ease);
 }
 .ayg .aan-invoer:hover { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst-2); }
 .ayg .aan-invoer:focus-within { box-shadow: inset 0 0 0 2px var(--ayg-tekst), 0 0 0 5px color-mix(in srgb, var(--ayg-focus) 75%, transparent); }

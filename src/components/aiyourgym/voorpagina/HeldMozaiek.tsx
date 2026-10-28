@@ -8,7 +8,7 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
 
-// Hoofdstuk 1 (papier): de held, op het kaliber van een productpagina van Apple
+// Hoofdstuk 1 (basis): de held, op het kaliber van een productpagina van Apple
 // (Kane 28-10-2026): een grote kop in het midden, een zin wat het is, twee knoppen,
 // en daaronder groot het product zelf: het scherm Vandaag van Club met de ledenapp
 // ervoor. Echte schermen met voorbeeldgegevens van Kernhal, en dat staat erbij.

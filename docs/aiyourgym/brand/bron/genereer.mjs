@@ -236,6 +236,11 @@ const bestanden = {
 const appIcoon = (rx = 0) =>
   `<rect width="100" height="100" rx="${rx}" fill="${K.racegroen}"/><g transform="translate(19 19) scale(.62)">${embleem(VARIANT.donker)}</g>`
 bestanden['ayg-app-icoon.svg'] = svg('0 0 100 100', appIcoon(), 512, 512)
+// Website (obsidiaan, besluit Kane 28-10-2026): dezelfde tegel, maar op de basiskleur
+// van de site in plaats van racegroen. Club houdt de racegroene tegel.
+const OBSIDIAAN = '#0E0F11'
+const appIcoonWebsite = () =>
+  `<rect width="100" height="100" fill="${OBSIDIAAN}"/><g transform="translate(19 19) scale(.62)">${embleem(VARIANT.donker)}</g>`
 
 // Oude bestanden van het vorige logo (figuur in een tegel) weg, zodat niemand ze nog pakt.
 for (const oud of ['ayg-beeldmerk.svg', 'ayg-beeldmerk-donker.svg', 'ayg-beeldmerk-512.png', 'ayg-figuur.svg', 'ayg-woordmerk.svg']) {
@@ -279,7 +284,7 @@ const logoMaat = (dichtheid) => px(LOGO.breedte, LOGO.hoogte, (LOGO_PX * dichthe
 for (const oud of ['ayg-embleem-512.png']) fs.rmSync(path.join(UIT_DOCS, oud), { force: true })
 
 // Apple-icoon: vol vlak zonder ronde hoeken (iOS rondt zelf af). 180 x 180 is de maat die iOS vraagt.
-await png(VIERKANT, appIcoon(), 180, 180, path.join(WEBSITE, 'apple-icon.png'))
+await png(VIERKANT, appIcoonWebsite(), 180, 180, path.join(WEBSITE, 'apple-icon.png'))
 await png(VIERKANT, appIcoon(), 180, 180, path.join(CLUB, 'apple-icon.png'))
 for (const maat of [512, 1024]) {
   await png(VIERKANT, appIcoon(), maat, maat, path.join(UIT_DOCS, `ayg-app-icoon-${maat}.png`))

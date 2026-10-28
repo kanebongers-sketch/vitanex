@@ -4,7 +4,7 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
 
-// De afsluitende oproep (salie) als zin met een gat: "Open [jouw club] in AI Your
+// De afsluitende oproep (de hoogste laag) als zin met een gat: "Open [jouw club] in AI Your
 // Gym en start." Het gat is het veld voor de naam van je club, de laatste woorden
 // zijn de knop. Een gewoon formulier (GET naar aanmelden met ?naam=): werkt ook
 // zonder JavaScript, de naam staat daar al ingevuld en de controle gebeurt in het

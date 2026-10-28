@@ -2,22 +2,16 @@
    AI Your Gym | basis van de eigen root layout
    De verkoopwebsite heeft een eigen <html> en <body> (src/app/(aiyourgym)/(website)/layout.tsx)
    en laadt niets van de rest van de app (geen globals.css). Hier alleen de reset
-   van Tailwind (preflight) en het papier onder de pagina; alle merkstijlen staan
+   van Tailwind (preflight) en de basiskleur onder de pagina; alle merkstijlen staan
    in aiyourgym/aiyourgym.css onder de klasse .ayg.
    ========================================================================== */
 @import "tailwindcss/preflight.css" layer(base);
 
 :root {
-  --ayg-pagina: #f1ece1;
-  --ayg-pagina-tekst: #111614;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ayg-pagina: #0b0f0d;
-    --ayg-pagina-tekst: #ece6d9;
-  }
+  /* Obsidiaan (besluit Kane 28-10-2026): altijd donker, ook bij een licht systeem */
+  --ayg-pagina: #0e0f11;
+  --ayg-pagina-tekst: #ecebe7;
+  color-scheme: dark;
 }
 
 html {

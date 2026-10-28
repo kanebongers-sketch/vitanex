@@ -5,10 +5,10 @@ import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 
 // Een productblok van de voorpagina: links (of rechts, met `spiegel`) een korte
 // kop, twee zinnen en drie punten met een link naar de subpagina; aan de andere
-// kant groot het productscherm. Elk blok is een eigen vol merkvlak (vlak), tegen
+// kant groot het productscherm. Elk blok is een eigen laag obsidiaan (vlak), tegen
 // het volgende aan. Het scherm staat in een Figuur met het eerlijke bijschrift.
 
-export type Vlak = 'racegroen' | 'papier' | 'fles' | 'papier-diep'
+export type Vlak = 'basis' | 'vlak' | 'hoog'
 
 interface Props {
   id: string

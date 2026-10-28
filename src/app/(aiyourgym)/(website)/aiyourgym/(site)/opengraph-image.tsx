@@ -7,9 +7,10 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { siteTekst } from '@/lib/aiyourgym/taal/server'
 import { SCHERM } from '@/lib/aiyourgym/taal/woorden/website/scherm'
 
-// De deelafbeelding van de website (Open Graph en X, 1200 x 630). Racegroen vlak,
-// het logo met het creme embleem, de kop, en rechts groot en afgesneden het
-// embleem in flessengroen (toon op toon). Met de schakelaar uit een 404: dan mag
+// De deelafbeelding van de website (Open Graph en X, 1200 x 630). Obsidiaan vlak
+// (besluit Kane 28-10-2026), het logo met het creme embleem, de kop in gebroken wit,
+// en rechts groot en afgesneden het embleem in een hogere laag obsidiaan (toon op
+// toon). Salie alleen als klein accent. Met de schakelaar uit een 404: dan mag
 // niets over AI Your Gym uitlekken.
 // Letters: Bricolage Grotesque en Geist (beide SIL OFL 1.1), zie merk/letters/.
 // Het logo is vector (de paden uit merk-paden.ts) en wordt pas bij het maken van de
@@ -24,6 +25,8 @@ export const contentType = 'image/png'
 
 const LETTERS = path.join(process.cwd(), 'src/components/aiyourgym/merk/letters')
 const K = MERK_KLEUR
+/** De lagen van de website (aiyourgym.css): basis, een hogere laag, lijn, tekst. */
+const OBSIDIAAN = { basis: '#0E0F11', hoog: '#1C1F23', lijn: '#2A2E33', wit: '#ECEBE7' } as const
 
 /**
  * Het embleem als losse delen, voor in een svg (viewBox 0 0 100 100). Een gewone
@@ -55,14 +58,14 @@ export default async function Afbeelding() {
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', backgroundColor: K.racegroen, color: K.creme, fontFamily: 'Geist' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', backgroundColor: OBSIDIAAN.basis, color: OBSIDIAAN.wit, fontFamily: 'Geist' }}>
         <div style={{ position: 'absolute', right: -150, top: 120, display: 'flex' }}>
-          <Embleem plaat={K.flessengroen} teken={K.racegroen} maat={620} />
+          <Embleem plaat={OBSIDIAAN.hoog} teken={OBSIDIAAN.basis} maat={620} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '72px 80px', width: '100%' }}>
           <svg width={(LOGO_BREEDTE / LOGO_HOOGTE) * logoHoogte} height={logoHoogte} viewBox={`0 0 ${LOGO_BREEDTE} ${LOGO_HOOGTE}`}>
             {embleemDelen(K.creme, K.racegroen)}
-            <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={K.creme} />
+            <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={OBSIDIAAN.wit} />
           </svg>
           <div style={{ display: 'flex', fontFamily: 'Bricolage', fontSize: 84, lineHeight: 1.02, letterSpacing: -2.8, maxWidth: 760 }}>
             {t.deelKop}
@@ -70,7 +73,7 @@ export default async function Afbeelding() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 24, color: K.salie }}>
             <div style={{ width: 40, height: 2, background: K.salie }} />
             aiyourgym.com
-            <div style={{ width: 1, height: 22, background: K.flessengroen }} />
+            <div style={{ width: 1, height: 22, background: OBSIDIAAN.lijn }} />
             {t.deelEu}
           </div>
         </div>

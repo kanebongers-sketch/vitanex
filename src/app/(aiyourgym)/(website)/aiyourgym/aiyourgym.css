@@ -1,59 +1,61 @@
 /* ==========================================================================
    AI Your Gym | verkoopwebsite
-   Richting "Racegroen" (besluit Kane 23-10-2026): premium en rustig, als een
-   besloten club. Creme papier #F1ECE1, inkt #111614 als tekst, racegroen #10302A
-   als hoofdkleur (knoppen, vinkjes, donkere podia), flessengroen #1E4A40 als
-   tweede groen (tekst en lijnen in accent, kaarten op het podium) en salie
-   #A7B5A8 als zacht accent (markering, accent op donker). Geen goud of brons.
+   Richting "Obsidiaan" (besluit Kane 28-10-2026, vervangt de vlakken in racegroen,
+   creme, flessengroen en salie): bijna zwart met een koele grijze ondertoon, in
+   lagen voor de diepte. Basis #0E0F11, vlakken #15171A en #1C1F23, rand #2A2E33,
+   gebroken wit #ECEBE7 als tekst. Het groen blijft het merkaccent, maar spaarzaam:
+   salie #A7B5A8 met racegroen #10302A erop voor de hoofdknop, vinkjes en kleine
+   accenten, en het embleem. Geen goud of brons. Er is een palet: de site meldt
+   alleen donker (color-scheme: dark), ook bij een licht ingesteld systeem.
    Alles hangt aan de root-klasse .ayg, zodat niets van Fit Factory, MentaForce
    of RELEASE V wordt geraakt.
    De tokennamen hieronder zijn vast: het aanmeldformulier bouwt erop.
    ========================================================================== */
 
 .ayg {
-  /* Kleur */
-  --ayg-bg: #f1ece1; /* creme papier */
-  --ayg-vlak: #f8f5ee;
-  --ayg-vlak-2: #e6e0d2;
-  --ayg-tekst: #111614; /* inkt: 15.5:1 op bg */
-  --ayg-tekst-2: #4f5651; /* 6.4:1 op bg, 5.7:1 op vlak-2 */
-  --ayg-tekst-spook: #73786f; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
-  --ayg-lijn: #d9d2c2;
-  --ayg-lijn-sterk: #767b72; /* 3.3:1 op vlak-2, voor invoervelden en randknoppen */
-  --ayg-accent: #10302a; /* racegroen: knoppen, vinkjes, badges, chips; creme erop */
-  --ayg-accent-tekst: #f1ece1; /* creme op racegroen: 12:1 */
-  --ayg-accent-sterk: #1e4a40; /* flessengroen als tekst, icoon of lijn op het papier: 8.5:1 op bg */
-  --ayg-accent-licht: #b9c6ba; /* lichte salie: accent als tekst of vlak op racegroen (8:1), racegroen erop */
-  --ayg-accent-zacht: #d3dbcd; /* zacht salievlak (markering onder inkt): 12.9:1 */
-  --ayg-focus: #a7b5a8; /* zachte saliehalo rond de inkten focusrand */
-  --ayg-fout: #b42318;
-  --ayg-ok: #1b6b38; /* 5:1 op vlak-2 */
-  /* De held: een rustige papierschaduw naar onderen (geen gloed), en de aanmeldband
-     een diepere flessengroene plek op het racegroene podium */
-  --ayg-held-vlak: #e9e3d5;
+  /* Kleur: de lagen van obsidiaan, van diep naar hoog */
+  --ayg-bg: #0e0f11; /* basis */
+  --ayg-vlak: #15171a;
+  --ayg-vlak-2: #1c1f23;
+  --ayg-tekst: #ecebe7; /* gebroken wit: 16:1 op bg, 13.9:1 op vlak-2 */
+  --ayg-tekst-2: #a4a9b0; /* 8.1:1 op bg, 7:1 op vlak-2 */
+  --ayg-tekst-spook: #70767d; /* grote sierletters en nummers: 3.6:1 op vlak-2 */
+  --ayg-lijn: #2a2e33;
+  --ayg-lijn-sterk: #6b7178; /* 3.35:1 op vlak-2, voor invoervelden en randknoppen */
+  --ayg-accent: #a7b5a8; /* salie: hoofdknop, vinkjes, badges, chips; racegroen erop */
+  --ayg-accent-tekst: #10302a; /* racegroen op salie: 6.6:1 */
+  --ayg-accent-sterk: #b4c2b5; /* lichte salie als tekst, icoon of lijn: 10:1 op bg */
+  --ayg-accent-licht: #b4c2b5; /* lichte salie: accent op het podium */
+  --ayg-accent-zacht: #1e4a40; /* flessengroen vlak (markering onder gebroken wit) */
+  --ayg-focus: #3a6b5e; /* groene halo rond de witte focusrand */
+  --ayg-fout: #ff8f80;
+  --ayg-ok: #86d1a2;
+  /* De held: een iets diepere laag onderin, en de aanmeldband een hogere plek op het podium */
+  --ayg-held-vlak: #121316;
   --ayg-gloed-band: 55%;
-  /* Contactbalk boven de kop: een rustige salietint, geen zwarte balk */
-  --ayg-balk: #e3e5da;
-  --ayg-balk-lijn: #cfd4c6;
-  /* Diepte in de held (werkdag, dag.css): ochtendlicht in schuine banen, een
-     contactschaduw onder de telefoon en een diepe schaduw voor zwevende vlakken.
-     Licht valt van linksboven, schaduwen vallen rechtsonder. */
-  --ayg-baan: #e4e7da;
-  --ayg-contact: rgb(15 20 18 / 0.34);
-  --ayg-schaduw-diep: 0 2px 0 rgb(15 20 18 / 0.05), 0 28px 50px -24px rgb(15 20 18 / 0.34), 0 70px 120px -50px rgb(15 20 18 / 0.32);
+  /* Contactbalk boven de kop: een laag boven de basis */
+  --ayg-balk: #16181b;
+  --ayg-balk-lijn: #2a2e33;
+  /* Diepte in de held (werkdag, dag.css): lichtbanen, contactschaduw en een diepe
+     schaduw voor zwevende vlakken. Licht valt van linksboven, schaduwen rechtsonder. */
+  --ayg-baan: #15171a;
+  --ayg-contact: rgb(0 0 0 / 0.6);
+  --ayg-schaduw-diep: 0 2px 0 rgb(0 0 0 / 0.35), 0 28px 50px -24px rgb(0 0 0 / 0.7), 0 70px 120px -50px rgb(0 0 0 / 0.75);
+  /* Lichtrand: een fijne lichte lijn aan de bovenkant van een hogere laag */
+  --ayg-lichtrand: inset 0 1px 0 rgb(255 255 255 / 0.06);
 
-  /* Donker podium (productbeelden): racegroen met creme */
-  --ayg-inkt: #10302a;
-  --ayg-inkt-2: #1e4a40;
-  --ayg-inkt-lijn: #2d5a4f;
-  --ayg-inkt-tekst: #f1ece1;
-  --ayg-inkt-tekst-2: #c5cec3; /* 8.8:1 op racegroen, 6.2:1 op flessengroen */
-  --ayg-inkt-spook: #829f94; /* grote sierletters op het podium: 3.4:1 en meer */
-  --ayg-voet-woord: #1d4840; /* het grote woordmerk in de voet: net iets lichter dan racegroen, puur sier (aria-hidden) */
+  /* Podium (productbeelden, aanmeldband): een laag hoger dan de basis, met lichtrand */
+  --ayg-inkt: #17191d;
+  --ayg-inkt-2: #22262b;
+  --ayg-inkt-lijn: #33383e;
+  --ayg-inkt-tekst: #ecebe7;
+  --ayg-inkt-tekst-2: #a9aeb5; /* 7.8:1 op inkt, 6.6:1 op inkt-2 */
+  --ayg-inkt-spook: #7b8188; /* grote sierletters op het podium: 3.5:1 en meer */
+  --ayg-voet-woord: #2b2f35; /* het grote woordmerk in de voet: net iets lichter dan het vlak, puur sier (aria-hidden) */
 
   /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een rustig palet rond
      salie (salie, lichte salie, zeegroen, linnen, mist). Altijd met inkt erop of
-     als tekst op het racegroene podium; zie contrast.test.ts */
+     als tekst op het podium; zie contrast.test.ts */
   --ayg-h-tekst: #111614;
   --ayg-h-beheer: #a7b5a8;
   --ayg-h-coaching: #b7c6ae;
@@ -68,8 +70,8 @@
   /* Vorm en diepte */
   --ayg-radius: 14px;
   --ayg-radius-klein: 9px;
-  --ayg-schaduw: 0 1px 0 rgb(15 20 18 / 0.04), 0 12px 32px -12px rgb(15 20 18 / 0.18), 0 40px 80px -40px rgb(15 20 18 / 0.28);
-  --ayg-schaduw-zacht: 0 1px 2px rgb(15 20 18 / 0.06), 0 8px 20px -10px rgb(15 20 18 / 0.14);
+  --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
+  --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
   --ayg-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ayg-breed: 100vw; /* volle breedte (besluit Kane 18-10-2026) voor vlakken en beelden */
   --ayg-inhoud: 1680px; /* inhoud stopt hier op heel brede schermen, de vlakken lopen door */
@@ -78,7 +80,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
-  color-scheme: light dark;
+  color-scheme: dark;
   display: flex;
   flex-direction: column;
   background: var(--ayg-bg);
@@ -96,7 +98,7 @@
 
 /* Geen korrellaag meer (20-10-2026): een vaste laag met mix-blend-mode, en ook
    een herhalende korreltegel over de hele pagina van ruim 20.000 px, liet de browser bij
-   elke hover en scroll alles opnieuw tekenen. Het papier is nu een effen vlak. */
+   elke hover en scroll alles opnieuw tekenen. De basis is nu een effen vlak. */
 
 .ayg ::selection { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
@@ -144,8 +146,8 @@
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
-  /* Racegroen valt hier weg in het podium: het accent wordt de lichte salie met
-     racegroen erop, en het accent als tekst ook (anders donker op donker) */
+  /* Op het podium wordt het accent de lichte salie met de podiumkleur erop,
+     en het accent als tekst ook */
   --ayg-accent: var(--ayg-accent-licht);
   --ayg-accent-tekst: var(--ayg-inkt);
   --ayg-accent-sterk: var(--ayg-accent-licht);
@@ -154,57 +156,13 @@
 }
 .ayg-podium--rond { border-radius: clamp(20px, 3vw, 36px); margin-inline: clamp(8px, 1.4vw, 20px); }
 
-/* ── Donker ──────────────────────────────────────────────────────────────────
-   Een eigen, ontworpen donkere versie: bijna zwart papier met een groene ondertoon,
-   creme tekst en salie als accent (knoppen worden salie met racegroen erop). Omdat de site licht EN donker meldt (color-scheme en de
-   viewport in layout.tsx), maakt Chrome hem niet meer zelf automatisch donker.
-   Het podium ligt hier iets hoger dan het papier in plaats van dieper.
+/* ── Een palet ───────────────────────────────────────────────────────────────
+   De site is altijd obsidiaan (besluit Kane 28-10-2026): geen lichte versie meer.
+   Een vlak onder lichte tekst leest niet, dus de markering is salie als tekst.
+   Het podium ligt een laag hoger dan de basis, met een lichtrand bovenaan.
    Alle paren worden getoetst in contrast.test.ts. */
-@media (prefers-color-scheme: dark) {
-  .ayg {
-    --ayg-bg: #0b0f0d;
-    --ayg-vlak: #121916;
-    --ayg-vlak-2: #18211d;
-    --ayg-tekst: #ece6d9; /* creme */
-    --ayg-tekst-2: #a9b2aa;
-    --ayg-tekst-spook: #78827b;
-    --ayg-lijn: #26302b;
-    --ayg-lijn-sterk: #6f7a73;
-    --ayg-accent: #b4c2b5; /* salie: 10.4:1 op bg, racegroen erop 7.7:1 */
-    --ayg-accent-tekst: #10302a;
-    --ayg-accent-sterk: #b4c2b5;
-    --ayg-accent-licht: #b4c2b5;
-    --ayg-accent-zacht: #1e4a40;
-    --ayg-focus: #2d5a4f;
-    --ayg-fout: #ff8f80;
-    --ayg-ok: #86d1a2;
-    --ayg-held-vlak: #0f1c18;
-    --ayg-gloed-band: 45%;
-    --ayg-balk: #0f211c;
-    --ayg-balk-lijn: #1c3830;
-    --ayg-baan: #13241e;
-    --ayg-contact: rgb(0 0 0 / 0.6);
-    --ayg-schaduw-diep: 0 2px 0 rgb(0 0 0 / 0.35), 0 28px 50px -24px rgb(0 0 0 / 0.7), 0 70px 120px -50px rgb(0 0 0 / 0.75);
-    --ayg-inkt: #10302a; /* het podium ligt als racegroen vlak boven het bijna zwart */
-    --ayg-inkt-2: #18403a;
-    --ayg-inkt-lijn: #2a5449;
-    --ayg-inkt-tekst: #f1ece1;
-    --ayg-inkt-tekst-2: #c3cdc2;
-    --ayg-inkt-spook: #829f94;
-    --ayg-voet-woord: #1c463d;
-    --ayg-h-tekst: #111614;
-    --ayg-h-beheer: #a7b5a8;
-    --ayg-h-coaching: #b7c6ae;
-    --ayg-h-planning: #9fbab2;
-    --ayg-h-groei: #cdc3b1;
-    --ayg-h-betrokkenheid: #aeb9c0;
-    --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
-    --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
-  }
-  /* Een vlak onder lichte tekst leest niet: de markering wordt salie als tekst */
-  .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
-  .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
-}
+.ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
+.ayg-podium { box-shadow: var(--ayg-lichtrand), inset 0 0 0 1px var(--ayg-inkt-lijn); }
 
 /* ── Typografie ──────────────────────────────────────────────────────────── */
 .ayg-label {
@@ -250,7 +208,7 @@
   letter-spacing: -0.005em;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgb(15 20 18 / 0.1), 0 1px 0 rgb(255 255 255 / 0.25) inset, var(--ayg-schaduw-zacht);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 0 rgb(255 255 255 / 0.18) inset, var(--ayg-schaduw-zacht);
   transition: transform 200ms var(--ayg-ease), background-color 200ms var(--ayg-ease), color 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease);
 }
 .ayg-knop svg { transition: transform 220ms var(--ayg-ease); }
@@ -276,7 +234,7 @@
 .ayg-pijllink:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 
 /* ── Contactbalk boven de kop ────────────────────────────────────────────── */
-/* Een dunne, rustige salietint met inkt erop. Alleen als er telefoon of e-mail is;
+/* Een dunne balk, een laag boven de basis, met gebroken wit erop. Alleen als er telefoon of e-mail is;
    zonder contactgegevens staat er alleen een smalle regel op schermen waar de
    demoknop niet in de kop past (1024 tot 1079 px), en verder niets. */
 .ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
@@ -294,11 +252,11 @@
 }
 
 /* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
-/* Licht met racegroen (besluit Kane 23-10-2026): creme met inkt en een racegroene hoofdknop.
-   Bovenaan valt de kop weg in het papier (data-bovenaan, gezet door JavaScript); bij
-   scrollen een licht creme vlak met een fijne lijn, nooit een donkere balk. */
+/* Obsidiaan (besluit Kane 28-10-2026): gebroken wit met een saliekleurige hoofdknop.
+   Bovenaan valt de kop weg in de basis (data-bovenaan, gezet door JavaScript); bij
+   scrollen een vlak een laag hoger met een fijne lijn. */
 .ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; }
-.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(15 20 18 / 0.22); transition: opacity 260ms var(--ayg-ease); }
+.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(0 0 0 / 0.6); transition: opacity 260ms var(--ayg-ease); }
 .ayg-kop[data-bovenaan]:not(:has(.ayg-menupaneel[data-open]))::before { opacity: 0; }
 .ayg-kop-rij { display: flex; align-items: center; gap: 28px; min-height: 68px; transition: transform 260ms var(--ayg-ease); }
 .ayg-kop-logo { display: inline-flex; flex-shrink: 0; color: var(--ayg-tekst); text-decoration: none; }
@@ -379,8 +337,8 @@
 }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
-/* Racegroen als anker onder het papier, met salie alleen als accent (lijnen, hover)
-   en een woordmerk dat net iets lichter is dan het vlak, in plaats van grijs. */
+/* Een laag obsidiaan als anker onderaan, met salie alleen als accent (lijnen, hover)
+   en een woordmerk dat net iets lichter is dan het vlak. */
 .ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 56px 28px; margin-top: auto; }
 .ayg-voet-raster { display: grid; gap: 32px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .ayg-voet-merk { grid-column: 1 / -1; }
@@ -441,7 +399,7 @@
 /* Concept (juridisch) */
 .ayg-concept { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--ayg-radius); background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-weight: 500; }
 .ayg-concept strong { font-weight: 700; }
-/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op racegroen altijd creme */
+/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op het accent altijd de accenttekst */
 .ayg .ayg-concept { color: var(--ayg-accent-tekst); }
 .ayg-tekst { max-width: 68ch; display: grid; gap: 18px; }
 /* Juridische teksten: de kolom lijnt links uit met de paginakop erboven */
@@ -511,22 +469,17 @@
 
 /* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────
    Vaste merkkleuren, los van de site-tokens: het stempelembleem is overal hetzelfde.
-   Op licht een racegroene plaat met creme tekens; op donker, in de voet en op een
-   podium draait dat om (een racegroene plaat valt daar weg). De namen
-   --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
+   Op obsidiaan altijd de versie voor donker: een creme plaat met racegroene tekens
+   (een racegroene plaat valt op bijna zwart weg). Het woordmerk volgt de tekstkleur.
+   De namen --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
 .ayg-logo {
   --ayg-logo-racegroen: #10302a;
   --ayg-logo-creme: #f1ece1;
-  --ayg-logo-plaat: var(--ayg-logo-racegroen);
-  --ayg-logo-teken: var(--ayg-logo-creme);
+  --ayg-logo-plaat: var(--ayg-logo-creme);
+  --ayg-logo-teken: var(--ayg-logo-racegroen);
   display: block;
   flex-shrink: 0;
   overflow: visible;
-}
-.ayg-voet .ayg-logo,
-.ayg-podium .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
-@media (prefers-color-scheme: dark) {
-  .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
 }
 .ayg-kop-logo .ayg-logo { height: 30px; width: auto; }
 /* Krappe pc-breedte: het logo iets kleiner, zodat menu en knoppen op een regel blijven */

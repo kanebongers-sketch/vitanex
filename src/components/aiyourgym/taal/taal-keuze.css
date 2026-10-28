@@ -54,8 +54,8 @@
   opacity: 1;
   /* Een vol vlak in de tekstkleur, met de achtergrondkleur als letter. Elders dan
      de website (Club) zet de omgeving --ayg-taal-actief-vlak en -tekst. */
-  background: var(--ayg-taal-actief-vlak, var(--ayg-tekst, #111614));
-  color: var(--ayg-taal-actief-tekst, var(--ayg-bg, #f1ece1));
+  background: var(--ayg-taal-actief-vlak, var(--ayg-tekst, #ecebe7));
+  color: var(--ayg-taal-actief-tekst, var(--ayg-bg, #0e0f11));
   cursor: default;
 }
 

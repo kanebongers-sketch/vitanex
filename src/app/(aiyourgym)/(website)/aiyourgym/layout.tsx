@@ -8,15 +8,12 @@ import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 // (anders een gewone 404). In zoekmachines alleen als de site actief is EN de
 // aparte schakelaar AIYOURGYM_INDEXEREN aan staat; zie src/lib/aiyourgym/schakelaar.ts.
 
-// Licht en donker: de site heeft een eigen, ontworpen donkere versie (zie
-// aiyourgym.css). Omdat de pagina beide meldt, maakt Chrome hem niet zelf
-// automatisch donker (dat gaf donkere koppen op een donkere achtergrond).
+// Altijd donker: de site is obsidiaan (besluit Kane 28-10-2026, zie aiyourgym.css).
+// Omdat de pagina zelf donker meldt, maakt Chrome hem niet nog eens automatisch
+// donker, en de browserbalk krijgt de basiskleur van de site.
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f1ece1' },
-    { media: '(prefers-color-scheme: dark)', color: '#0b0f0d' },
-  ],
+  colorScheme: 'dark',
+  themeColor: '#0e0f11',
 }
 
 export async function generateMetadata(): Promise<Metadata> {

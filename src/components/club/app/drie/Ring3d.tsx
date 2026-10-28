@@ -93,16 +93,11 @@ export function Ring3d({ deel, kleur, spoor, maat, opFout }: Ring3dProps) {
       vraag()
     }
     const opAanwijzer = (e: PointerEvent) => kantel((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1)
-    const opKanteling = (e: DeviceOrientationEvent) => {
-      if (e.gamma === null || e.beta === null) return
-      kantel(Math.max(-1, Math.min(1, e.gamma / 35)), Math.max(-1, Math.min(1, (e.beta - 45) / 35)))
-    }
+    // Alleen de aanwijzer: de bewegingssensor staat uit in de Permissions-Policy (accelerometer=()).
     window.addEventListener('pointermove', opAanwijzer, { passive: true })
-    window.addEventListener('deviceorientation', opKanteling, { passive: true })
     renderer.render(scene, camera)
     return () => {
       window.removeEventListener('pointermove', opAanwijzer)
-      window.removeEventListener('deviceorientation', opKanteling)
       if (frame) cancelAnimationFrame(frame)
       opruimen()
       renderer.dispose()

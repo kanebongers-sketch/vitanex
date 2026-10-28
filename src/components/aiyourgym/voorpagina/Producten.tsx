@@ -11,7 +11,7 @@ import { Productblok } from './Productblok'
 
 // De vier productblokken na de held: Werkvloer (Vandaag), de ledenkaart,
 // trainingsschema's en de ledenapp. Om en om tekst links en scherm rechts, elk
-// in een eigen vol merkvlak. De schermen zijn getekend in de stijl van Club met
+// in een eigen laag obsidiaan. De schermen zijn getekend in de stijl van Club met
 // vaste voorbeelddata van Kernhal; de links gaan naar de subpagina met de details.
 
 export async function Producten() {
@@ -22,7 +22,7 @@ export async function Producten() {
     <>
       <Productblok
         id="vp-werkvloer"
-        vlak="racegroen"
+        vlak="vlak"
         kop={t.werkvloer.kop}
         tekst={t.werkvloer.tekst}
         punten={t.werkvloer.punten}
@@ -33,7 +33,7 @@ export async function Producten() {
       </Productblok>
       <Productblok
         id="vp-ledenkaart"
-        vlak="papier"
+        vlak="basis"
         spiegel
         kop={t.ledenkaart.kop}
         tekst={t.ledenkaart.tekst}
@@ -45,7 +45,7 @@ export async function Producten() {
       </Productblok>
       <Productblok
         id="vp-schemas"
-        vlak="fles"
+        vlak="hoog"
         kop={t.schemas.kop}
         tekst={t.schemas.tekst}
         punten={t.schemas.punten}
@@ -56,7 +56,7 @@ export async function Producten() {
       </Productblok>
       <Productblok
         id="vp-ledenapp"
-        vlak="papier-diep"
+        vlak="vlak"
         spiegel
         vorm="telefoon"
         kop={t.ledenapp.kop}

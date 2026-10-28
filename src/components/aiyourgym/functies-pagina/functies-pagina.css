@@ -1,26 +1,28 @@
 /* ==========================================================================
    AI Your Gym | pagina Functies in kleurhoofdstukken (28-10-2026, Figma "Functies")
    Bouwt op voorpagina.css (tokens --vp-*, .vp-knop, .vp-h2, .vp-regel, .vp-onthul).
-   Elk hoofdstuk is een vol merkvlak; het schermfragment ligt een toonstap hoger of
-   lager op hetzelfde vlak. Vierkant, geen schaduw, geen verloop, geen lijnen.
+   Elk hoofdstuk is een eigen laag obsidiaan (besluit Kane 28-10-2026) met een
+   lichtrand bovenaan; het schermfragment ligt een toonstap hoger of lager op
+   hetzelfde vlak. Het accent (nadruk) is overal salie met racegroen erop.
+   Vierkant, geen verloop.
    ========================================================================== */
 
-/* Kleur per hoofdstuk: vlak, tekst, zachte tekst en het vlak van het scherm */
-.fp-vlak-beheer { --fp-vlak: var(--vp-racegroen); --fp-tekst: var(--vp-creme); --fp-zacht: var(--vp-salie); --fp-scherm: var(--vp-racegroen-licht); --fp-rij: var(--vp-racegroen); --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-inkt); }
-.fp-vlak-coaching { --fp-vlak: var(--vp-fles); --fp-tekst: var(--vp-creme); --fp-zacht: #c9d2c9; --fp-scherm: var(--vp-racegroen); --fp-rij: var(--vp-racegroen-licht); --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-inkt); }
-.fp-vlak-planning { --fp-vlak: var(--vp-papier-diep); --fp-tekst: var(--vp-papier-tekst); --fp-zacht: var(--vp-papier-zacht); --fp-scherm: var(--vp-papier); --fp-rij: var(--vp-papier-diep); --fp-nadruk: var(--vp-racegroen); --fp-nadruk-tekst: var(--vp-creme); }
-.fp-vlak-groei { --fp-vlak: var(--vp-salie); --fp-tekst: var(--vp-inkt); --fp-zacht: #2c3530; --fp-scherm: var(--vp-creme); --fp-rij: #e2e6dd; --fp-nadruk: var(--vp-racegroen); --fp-nadruk-tekst: var(--vp-creme); }
-.fp-vlak-betrokkenheid { --fp-vlak: var(--vp-inkt); --fp-tekst: var(--vp-creme); --fp-zacht: var(--vp-salie); --fp-scherm: #1c2622; --fp-rij: #26322d; --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-inkt); }
-@media (prefers-color-scheme: dark) {
-  /* In donker is papier-diep bijna zwart: Planning houdt dan de lichte rijen van het scherm donker */
-  .fp-vlak-planning { --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-inkt); }
+/* Laag per hoofdstuk: vlak, het vlak van het scherm en de rijen erin */
+.fp-vlak-beheer { --fp-vlak: var(--vp-vlak); --fp-scherm: var(--vp-vlak-hoog); --fp-rij: var(--vp-vlak-top); }
+.fp-vlak-coaching { --fp-vlak: var(--vp-vlak-hoog); --fp-scherm: var(--vp-basis); --fp-rij: var(--vp-vlak); }
+.fp-vlak-planning { --fp-vlak: var(--vp-basis); --fp-scherm: var(--vp-vlak); --fp-rij: var(--vp-vlak-hoog); }
+.fp-vlak-groei { --fp-vlak: var(--vp-vlak-top); --fp-scherm: var(--vp-basis); --fp-rij: var(--vp-vlak); }
+.fp-vlak-betrokkenheid { --fp-vlak: var(--vp-diep); --fp-scherm: var(--vp-vlak); --fp-rij: var(--vp-vlak-hoog); }
+:is(.fp-vlak-beheer, .fp-vlak-coaching, .fp-vlak-planning, .fp-vlak-groei, .fp-vlak-betrokkenheid) {
+  --fp-tekst: var(--vp-wit); --fp-zacht: var(--vp-wit-zacht);
+  --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-racegroen);
 }
 
 /* ── Held ─────────────────────────────────────────────────────────────────── */
 .fp-held {
   display: grid; gap: 32px;
   padding: clamp(56px, 8vw, 128px) var(--vp-rand) clamp(48px, 5vw, 72px);
-  background: var(--vp-papier); color: var(--vp-papier-tekst);
+  background: var(--vp-basis); color: var(--vp-wit);
   grid-template-areas: 'titel' 'tekst' 'index';
 }
 .fp-titel { grid-area: titel; font-size: clamp(2.6rem, 7.2vw, 7.4rem); }
@@ -33,6 +35,7 @@
   display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
   min-height: 88px; padding: 16px 18px;
   background: var(--fp-vlak); color: var(--fp-tekst);
+  box-shadow: inset 0 1px 0 var(--vp-lichtrand), inset 0 0 0 1px var(--vp-lijn);
   font-size: 17px; font-weight: 500; letter-spacing: -0.01em; text-decoration: none;
   transition: transform 180ms var(--vp-ease);
 }
@@ -54,6 +57,7 @@
   min-height: 90svh;
   padding: clamp(72px, 9vw, 144px) var(--vp-rand);
   background: var(--fp-vlak); color: var(--fp-tekst);
+  box-shadow: inset 0 1px 0 var(--vp-lichtrand);
   scroll-margin-top: var(--vp-kop-hoogte);
 }
 .fp-hoofdstuk-links { display: grid; gap: 24px; align-content: start; min-width: 0; }
@@ -70,7 +74,7 @@
 }
 
 /* ── Schermfragmenten (data-ui) ───────────────────────────────────────────── */
-.fp-scherm { margin: 16px 0 0; padding: clamp(18px, 2vw, 28px); background: var(--fp-scherm); color: var(--fp-tekst); display: grid; gap: 16px; max-width: 760px; }
+.fp-scherm { margin: 16px 0 0; padding: clamp(18px, 2vw, 28px); background: var(--fp-scherm); color: var(--fp-tekst); box-shadow: inset 0 1px 0 var(--vp-lichtrand), inset 0 0 0 1px var(--vp-lijn); display: grid; gap: 16px; max-width: 760px; }
 .fp-scherm-kop { display: grid; gap: 4px; }
 .fp-scherm-titel { font-size: clamp(1.2rem, 1.5vw, 1.5rem); font-weight: 500; letter-spacing: -0.03em; }
 .fp-klein { font-size: 13.5px; color: var(--fp-zacht); }
