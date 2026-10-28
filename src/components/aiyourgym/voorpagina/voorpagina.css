@@ -47,34 +47,29 @@
 .ayg .ayg-knop { border-radius: 0; box-shadow: none; font-weight: 500; min-height: 52px; padding: 0 24px; }
 .ayg .ayg-knop--klein { border-radius: 0; min-height: 44px; }
 .ayg .ayg-knop--rand { box-shadow: inset 0 0 0 2px var(--ayg-lijn-sterk); }
-.ayg .ayg-menuknop { border-radius: 0; box-shadow: none; background: var(--vp-salie); color: var(--vp-inkt); }
+.ayg .ayg-menuknop { border-radius: 0; box-shadow: none; background: transparent; color: var(--vp-papier-tekst); }
 .ayg .ayg-menuknop-icoon { border-radius: 0; background: var(--vp-inkt); color: var(--vp-creme); }
 .ayg .ayg-label::before { display: none; }
 .ayg .ayg-podium--rond { border-radius: 0; }
 
-/* ── Kop: woordmerk in een inktblok, de links op een salietab, acties rechts ── */
-.ayg .ayg-kop::before { background: var(--vp-papier); box-shadow: none; }
+/* ── Kop: een rustige balk, zoals een productsite (woordmerk, links, een actie) ── */
+.ayg { --vp-kop-hoogte: 60px; }
+.ayg .ayg-kop::before { background: color-mix(in srgb, var(--vp-papier) 94%, transparent); box-shadow: none; -webkit-backdrop-filter: saturate(1.4) blur(18px); backdrop-filter: saturate(1.4) blur(18px); }
 .ayg .ayg-kop[data-bovenaan]:not(:has(.ayg-menupaneel[data-open]))::before { opacity: 1; }
-.ayg .ayg-kop-rij { max-width: none; padding: 0; gap: 0; min-height: var(--vp-kop-hoogte); align-items: stretch; }
-.ayg .ayg-kop-logo {
-  --ayg-logo-plaat: var(--vp-creme);
-  --ayg-logo-teken: var(--vp-racegroen);
-  align-items: center;
-  padding-inline: var(--vp-rand);
-  min-width: max(180px, calc(100% / 6));
-  background: var(--vp-inkt);
-  color: var(--vp-creme);
-}
-.ayg .ayg-kop-logo svg { height: 28px; }
-.ayg .ayg-nav { flex: 0 1 auto; background: var(--vp-salie); padding-inline: 12px 20px; }
-.ayg .ayg-nav ul { height: 100%; align-items: center; }
-.ayg .ayg-nav a { color: var(--vp-inkt); border-radius: 0; font-size: 15.5px; }
-.ayg .ayg-nav a::after { background: var(--vp-inkt); height: 3px; border-radius: 0; bottom: 12px; }
-.ayg .ayg-kop-acties { padding-right: 0; gap: 4px; }
-.ayg .ayg-kop-acties > .ayg-knop--accent { align-self: stretch; min-height: var(--vp-kop-hoogte); padding-inline: 24px; }
-.ayg .ayg-kop-demo { border-radius: 0; }
+.ayg .ayg-kop-rij { max-width: none; padding-inline: var(--vp-rand); gap: 24px; min-height: var(--vp-kop-hoogte); }
+.ayg .ayg-kop-logo { color: var(--vp-papier-tekst); }
+.ayg .ayg-kop-logo svg { height: 26px; }
+.ayg .ayg-nav { flex: 1; display: none; justify-content: center; }
+.ayg .ayg-nav a { color: var(--vp-papier-tekst); border-radius: 0; font-size: 14.5px; opacity: 0.86; transition: opacity 160ms var(--vp-ease); }
+.ayg .ayg-nav a:is(:hover, :focus-visible), .ayg .ayg-nav a[aria-current='page'] { opacity: 1; }
+.ayg .ayg-nav a::after { background: var(--vp-papier-tekst); height: 2px; border-radius: 0; bottom: 8px; }
+@media (min-width: 1024px) { .ayg .ayg-nav { display: flex; } }
+.ayg .ayg-kop-acties { gap: 6px; margin-left: 0; }
+.ayg .ayg-kop-acties > .ayg-knop--accent { min-height: 40px; padding-inline: 16px; font-size: 14.5px; }
+.ayg .ayg-kop-demo { border-radius: 0; font-size: 14.5px; }
 @media (max-width: 1439px) { .ayg .ayg-kop-demo, .ayg .ayg-kop-acties > .ayg-knop--rand { display: none; } }
-.ayg .ayg-menuknop { align-self: stretch; min-height: var(--vp-kop-hoogte); padding: 0 var(--vp-rand) 0 12px; }
+.ayg .ayg-menuknop { min-height: 44px; }
+@media (prefers-color-scheme: dark) { .ayg .ayg-kop-acties > .ayg-knop--accent { --k-bg: var(--vp-salie); --k-tekst: var(--vp-racegroen); } }
 
 /* ── Gedeeld: koppen, knoppen en schermtekst van de hoofdstukken ───────────── */
 .vp { display: flex; flex-direction: column; }
@@ -316,3 +311,9 @@
 @keyframes vp-op { from { transform: translateY(105%); } }
 @keyframes vp-vervaag { from { opacity: 0; transform: translateY(16px); } }
 @keyframes vp-beeld { from { opacity: 0; transform: translateY(48px) scale(0.98); } }
+
+/* Smalle telefoon: knoppen even breed onder elkaar */
+@media (max-width: 479px) {
+  .vp-held-kop .vp-knoppen { flex-direction: column; align-self: stretch; }
+  .vp-held-kop .vp-knop { width: 100%; }
+}
