@@ -27,38 +27,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9599,
-    "versie": "157ebae0",
+    "versie": "8911383c",
     "bytes": {
-      "lus-hd": 2302376,
-      "lus": 1643022,
-      "lus-klein": 960198,
-      "begin": 54074,
-      "piek": 46976,
-      "begin-klein": 20198,
-      "piek-klein": 16978
+      "lus-hd": 2303470,
+      "lus": 1643418,
+      "lus-klein": 959710,
+      "begin": 54334,
+      "piek": 47002,
+      "begin-klein": 20236,
+      "piek-klein": 16980
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "4f70c563",
+      "versie": "46f860e2",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1344142
+          "bytes": 1344292
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2310636
+          "bytes": 2313982
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3650818
+          "bytes": 3656240
         }
       },
       "fasen": {
@@ -108,38 +108,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.96,
-    "versie": "909c5a55",
+    "versie": "eb300e10",
     "bytes": {
-      "lus-hd": 1660548,
-      "lus": 1178708,
-      "lus-klein": 678858,
-      "begin": 49494,
-      "piek": 50960,
-      "begin-klein": 18550,
-      "piek-klein": 18632
+      "lus-hd": 1661514,
+      "lus": 1179808,
+      "lus-klein": 679538,
+      "begin": 49910,
+      "piek": 50802,
+      "begin-klein": 18364,
+      "piek-klein": 18656
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "aa21d5ea",
+      "versie": "cd06dfae",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1310928
+          "bytes": 1310998
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2263480
+          "bytes": 2263314
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3588274
+          "bytes": 3591472
         }
       },
       "fasen": {
@@ -190,38 +190,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.96,
-    "versie": "48725a66",
+    "versie": "8cde5ec7",
     "bytes": {
-      "lus-hd": 1900162,
-      "lus": 1403108,
-      "lus-klein": 815384,
-      "begin": 56856,
-      "piek": 55440,
-      "begin-klein": 21508,
-      "piek-klein": 20536
+      "lus-hd": 1899484,
+      "lus": 1402000,
+      "lus-klein": 814486,
+      "begin": 56858,
+      "piek": 55448,
+      "begin-klein": 21494,
+      "piek-klein": 20808
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "4a84c264",
+      "versie": "3b1f51b6",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1514848
+          "bytes": 1516944
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2624262
+          "bytes": 2618508
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4113802
+          "bytes": 4110696
         }
       },
       "fasen": {
@@ -277,38 +277,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9601,
-    "versie": "f710c042",
+    "versie": "0a614ae8",
     "bytes": {
-      "lus-hd": 1767564,
-      "lus": 1283710,
-      "lus-klein": 736604,
-      "begin": 42142,
-      "piek": 46668,
-      "begin-klein": 14756,
-      "piek-klein": 16400
+      "lus-hd": 1768088,
+      "lus": 1283424,
+      "lus-klein": 736600,
+      "begin": 42076,
+      "piek": 46642,
+      "begin-klein": 14782,
+      "piek-klein": 16436
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "8c181efa",
+      "versie": "6d4d9e3e",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1116354
+          "bytes": 1116824
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1944202
+          "bytes": 1947818
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3093544
+          "bytes": 3092030
         }
       },
       "fasen": {
@@ -361,38 +361,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9598,
-    "versie": "bf7b3560",
+    "versie": "cb65b4fb",
     "bytes": {
-      "lus-hd": 3037460,
-      "lus": 2194396,
-      "lus-klein": 1271272,
-      "begin": 50212,
-      "piek": 45492,
-      "begin-klein": 18252,
-      "piek-klein": 15934
+      "lus-hd": 3034940,
+      "lus": 2190720,
+      "lus-klein": 1270466,
+      "begin": 50380,
+      "piek": 45574,
+      "begin-klein": 18246,
+      "piek-klein": 15964
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "40686f8b",
+      "versie": "20a84e98",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1684096
+          "bytes": 1683580
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2931876
+          "bytes": 2933984
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4616150
+          "bytes": 4610718
         }
       },
       "fasen": {
@@ -443,38 +443,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9603,
-    "versie": "fc702a44",
+    "versie": "edbce1a2",
     "bytes": {
-      "lus-hd": 2567916,
-      "lus": 1889594,
-      "lus-klein": 1099266,
-      "begin": 43334,
-      "piek": 44500,
-      "begin-klein": 15094,
-      "piek-klein": 16596
+      "lus-hd": 2566010,
+      "lus": 1889994,
+      "lus-klein": 1100754,
+      "begin": 43208,
+      "piek": 44276,
+      "begin-klein": 15116,
+      "piek-klein": 16620
     },
     "frames": {
       "aantal": 120,
       "fps": 24,
-      "versie": "4e77064e",
+      "versie": "960205dc",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1924564
+          "bytes": 1925096
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 3346652
+          "bytes": 3347304
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 5287342
+          "bytes": 5285358
         }
       },
       "fasen": {
@@ -528,38 +528,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9597,
-    "versie": "fad86850",
+    "versie": "e3006bb0",
     "bytes": {
-      "lus-hd": 2689596,
-      "lus": 1983112,
-      "lus-klein": 1145364,
-      "begin": 44376,
-      "piek": 41996,
-      "begin-klein": 16974,
-      "piek-klein": 14964
+      "lus-hd": 2686868,
+      "lus": 1979604,
+      "lus-klein": 1144320,
+      "begin": 44386,
+      "piek": 42074,
+      "begin-klein": 16894,
+      "piek-klein": 14968
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "7bec5d5f",
+      "versie": "23502310",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1503382
+          "bytes": 1503614
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2613612
+          "bytes": 2606398
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4110574
+          "bytes": 4111006
         }
       },
       "fasen": {
@@ -610,38 +610,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9603,
-    "versie": "5f3e9c08",
+    "versie": "98d51cd7",
     "bytes": {
-      "lus-hd": 1808554,
-      "lus": 1338804,
-      "lus-klein": 757908,
-      "begin": 39290,
-      "piek": 43336,
-      "begin-klein": 14240,
-      "piek-klein": 16800
+      "lus-hd": 1810212,
+      "lus": 1333946,
+      "lus-klein": 757326,
+      "begin": 39252,
+      "piek": 43352,
+      "begin-klein": 14194,
+      "piek-klein": 16828
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "66ad9573",
+      "versie": "ccfb23cd",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1116244
+          "bytes": 1115128
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1931798
+          "bytes": 1929352
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3054956
+          "bytes": 3052694
         }
       },
       "fasen": {
@@ -691,38 +691,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9601,
-    "versie": "1fcc540c",
+    "versie": "bd9f5296",
     "bytes": {
-      "lus-hd": 1372708,
-      "lus": 1062352,
-      "lus-klein": 620624,
-      "begin": 29384,
-      "piek": 29372,
-      "begin-klein": 11268,
-      "piek-klein": 11050
+      "lus-hd": 1373888,
+      "lus": 1066806,
+      "lus-klein": 626604,
+      "begin": 29300,
+      "piek": 29384,
+      "begin-klein": 11184,
+      "piek-klein": 11014
     },
     "frames": {
       "aantal": 72,
       "fps": 24,
-      "versie": "ec436658",
+      "versie": "16fe2f46",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 802120
+          "bytes": 801956
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1368080
+          "bytes": 1370922
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 2204500
+          "bytes": 2206352
         }
       },
       "fasen": {
@@ -776,38 +776,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9599,
-    "versie": "a584b73a",
+    "versie": "04db4b75",
     "bytes": {
-      "lus-hd": 1680378,
-      "lus": 1273054,
-      "lus-klein": 747214,
-      "begin": 35034,
-      "piek": 30056,
-      "begin-klein": 13130,
-      "piek-klein": 10630
+      "lus-hd": 1681082,
+      "lus": 1276954,
+      "lus-klein": 746860,
+      "begin": 35030,
+      "piek": 30008,
+      "begin-klein": 13192,
+      "piek-klein": 10622
     },
     "frames": {
       "aantal": 80,
       "fps": 24,
-      "versie": "743b6c15",
+      "versie": "c0492fc6",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 962712
+          "bytes": 963412
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1651000
+          "bytes": 1641790
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 2612022
+          "bytes": 2610916
         }
       },
       "fasen": {
