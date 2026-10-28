@@ -1,11 +1,15 @@
 // ─── Fit Factory Club, training: beelden bij oefeningen (PUUR) ──────────────
-// Een oefening kan een begin- en eindhouding hebben. Twee bronnen:
-// RepDB (hoofdbron, webp-illustraties, zie beelden-repdb.ts) en Everkinetic
+// Sinds 28-10-2026 (besluit Kane) heeft elke kiesbare standaardoefening een
+// eigen Blender-render met rep-speler (blender-bibliotheek.ts, render-bron.ts).
+// Dit bestand gaat over de oude illustraties, die alleen nog staan bij
+// gearchiveerde oefeningen in bestaande schema's en bij eigen oefeningen:
+// RepDB (webp-illustraties, zie beelden-repdb.ts) en Everkinetic
 // (lijntekeningen, CC BY-SA 4.0, zie public/club/oefeningen/LICENSE.txt).
 // Systeemgrens: alleen paden naar onze eigen mappen komen door. Het pad belandt
 // in een CSS-masker en een <img>, dus niets anders mag erin.
 
 import { isEnkeleHouding, isRepdbBeeldPad } from './beelden-repdb'
+import { isBlenderOefening } from './blender-bibliotheek'
 
 export type BeeldBronSoort = 'everkinetic' | 'repdb'
 
@@ -63,6 +67,11 @@ export interface BeeldTelling {
   totaal: number
 }
 
-export function telBeelden(oefeningen: readonly { beeld: OefeningBeelden | null }[]): BeeldTelling {
-  return { met: oefeningen.filter((o) => o.beeld !== null).length, totaal: oefeningen.length }
+/** Heeft deze oefening een beeld: een eigen Blender-render of een oude illustratie? */
+export function heeftOefenbeeld(o: { naam?: string; beeld: OefeningBeelden | null }): boolean {
+  return o.beeld !== null || isBlenderOefening(o.naam)
+}
+
+export function telBeelden(oefeningen: readonly { naam?: string; beeld: OefeningBeelden | null }[]): BeeldTelling {
+  return { met: oefeningen.filter(heeftOefenbeeld).length, totaal: oefeningen.length }
 }

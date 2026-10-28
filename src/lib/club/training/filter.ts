@@ -1,5 +1,6 @@
 // ─── Fit Factory Club, training: oefeningen filteren (PUUR) ─────────────────
 
+import { heeftOefenbeeld } from './beeld'
 import type { Oefening } from './rijen'
 import { hoofdspieren, isSpier, isSpierGroep, SPIER_INFO, type Spier, type SpierGroep } from './spieren'
 import { isMateriaal, isNiveau, type Materiaal, type Niveau } from './typen'
@@ -14,6 +15,7 @@ export interface OefeningFilter {
   ookMeewerkend: boolean
   materiaal: Materiaal | null
   niveau: Niveau | null
+  /** Ook de oefeningen die de sportschool zelf op inactief zette. Gearchiveerde nooit. */
   metInactief: boolean
   /** Alleen oefeningen zonder tekening (om aan te vullen). */
   zonderBeeld: boolean
@@ -42,11 +44,13 @@ export function raaktSpier(o: Pick<Oefening, 'spierenPrimair' | 'spierenSecundai
 export function filterOefeningen(oefeningen: readonly Oefening[], f: OefeningFilter): Oefening[] {
   const woorden = normaliseer(f.zoek).split(/\s+/).filter(Boolean)
   return oefeningen.filter((o) => {
+    // Gearchiveerd (migratie 465): alleen nog leesbaar in bestaande schema's, nergens te kiezen.
+    if (o.gearchiveerd) return false
     if (!f.metInactief && !o.actief) return false
     if (!raaktSpier(o, f.spier, f.ookMeewerkend)) return false
     if (f.materiaal && o.materiaal !== f.materiaal) return false
     if (f.niveau && o.niveau !== f.niveau) return false
-    if (f.zonderBeeld && o.beeld) return false
+    if (f.zonderBeeld && heeftOefenbeeld(o)) return false
     const naam = normaliseer(o.naam)
     return woorden.every((w) => naam.includes(w))
   })

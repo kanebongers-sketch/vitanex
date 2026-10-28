@@ -71,8 +71,10 @@ async function ruimLogoOp(t: ClubToegang, pad: string): Promise<void> {
  * Kolommen van een oefening die een nieuwe sportschool als startbibliotheek
  * krijgt. De eigen coaching (kolom coaching) gaat bewust niet mee: die is van
  * de sportschool die hem schreef; de nieuwe krijgt de standaardcoaching.
+ * Het archief (gearchiveerd, migratie 465) gaat mee: zo komt een oefening die
+ * later een Blender-render krijgt ook bij een nieuwe sportschool vanzelf terug.
  */
-const OEFENING_KOPIE = 'naam, spiergroep, materiaal, niveau, uitleg, aandachtspunten, patroon, belast, beeld_start, beeld_eind, beeld_bron, beeld_licentie, spieren_primair, spieren_secundair'
+const OEFENING_KOPIE = 'naam, spiergroep, materiaal, niveau, uitleg, aandachtspunten, patroon, belast, beeld_start, beeld_eind, beeld_bron, beeld_licentie, spieren_primair, spieren_secundair, gearchiveerd'
 const BLOK = 500
 
 export type NieuweOrganisatie = { ok: true; id: string } | { ok: false; fout: string; status: number }

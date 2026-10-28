@@ -3,6 +3,7 @@
 // niet klopt wordt null en valt weg, in plaats van de pagina te breken.
 
 import { BEELD_KOLOMMEN, beeldenUitRij, type OefeningBeelden } from './beeld'
+import { isBlenderOefening, isGearchiveerd } from './blender-bibliotheek'
 import type { GelogdeSet } from './progressie'
 import { schoonSpieren, type Spier } from './spieren'
 import {
@@ -24,12 +25,21 @@ export interface Oefening {
   belast: Zone[]
   uitleg: string | null
   aandachtspunten: string | null
+  /**
+   * Kiesbaar: actief in de bibliotheek en niet gearchiveerd. Een gearchiveerde
+   * oefening (migratie 465) staat hier altijd op false.
+   */
   actief: boolean
-  /** Begin- en eindhouding (Everkinetic), of null. */
+  /** Oude standaardoefening zonder Blender-render: alleen leesbaar in bestaande schema's (migratie 465). */
+  gearchiveerd: boolean
+  /**
+   * Oude illustratie (RepDB of Everkinetic), of null. Altijd null bij een
+   * oefening met een eigen Blender-render: die toont de render (render-bron.ts).
+   */
   beeld: OefeningBeelden | null
 }
 
-export const OEFENING_KOLOMMEN = `id, naam, spiergroep, spieren_primair, spieren_secundair, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief, ${BEELD_KOLOMMEN}`
+export const OEFENING_KOLOMMEN = `id, naam, spiergroep, spieren_primair, spieren_secundair, materiaal, niveau, patroon, belast, uitleg, aandachtspunten, actief, gearchiveerd, ${BEELD_KOLOMMEN}`
 
 export interface SchemaRegel {
   id: string
@@ -114,11 +124,17 @@ export function spierenUitRij(rij: Record<string, unknown>): { spierenPrimair: S
   return { spierenPrimair, spierenSecundair: schoonSpieren(rij.spieren_secundair).filter((s) => !spierenPrimair.includes(s)) }
 }
 
+/** Het oude beeld van een oefening; null als er een eigen Blender-render is. */
+export function oudBeeldUitRij(naam: string, rij: Record<string, unknown>): OefeningBeelden | null {
+  return isBlenderOefening(naam) ? null : beeldenUitRij(rij)
+}
+
 export function oefeningUitRij(rij: unknown): Oefening | null {
   if (!isRij(rij)) return null
   const id = tekstOfNull(rij.id)
   const naam = tekstOfNull(rij.naam)
   if (!id || !naam || !isSpiergroep(rij.spiergroep)) return null
+  const gearchiveerd = isGearchiveerd(naam, rij.gearchiveerd)
   return {
     id,
     naam,
@@ -130,8 +146,9 @@ export function oefeningUitRij(rij: unknown): Oefening | null {
     belast: Array.isArray(rij.belast) ? rij.belast.filter(isZone) : [],
     uitleg: tekstOfNull(rij.uitleg),
     aandachtspunten: tekstOfNull(rij.aandachtspunten),
-    actief: rij.actief !== false,
-    beeld: beeldenUitRij(rij),
+    actief: rij.actief !== false && !gearchiveerd,
+    gearchiveerd,
+    beeld: oudBeeldUitRij(naam, rij),
   }
 }
 

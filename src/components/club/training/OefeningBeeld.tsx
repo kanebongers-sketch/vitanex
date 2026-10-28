@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { ImageOff } from 'lucide-react'
 import { BEELD_BRON, isBeeldPad, type BeeldBronSoort, type OefeningBeelden } from '@/lib/club/training/beeld'
 import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
+import { repRenderVoor, type RepRender } from './repspeler/render-bron'
 import './oefening-beeld.css'
 
 // De "gif" van een oefening: begin- en eindhouding wisselen elkaar rustig af
@@ -12,6 +13,8 @@ import './oefening-beeld.css'
 // RepDB als gewone <img> (vaste webp's van 512 x 512 uit /public; de omhullende draagt de alt).
 // Bij prefers-reduced-motion staan beide houdingen naast elkaar met labels.
 // Vaste beeldverhouding: geen verschuiving als de tekening binnenkomt.
+// Heeft de oefening een eigen Blender-render (besluit Kane 28-10-2026), dan staat
+// overal het stilstaande beginbeeld van die render, nooit de oude illustratie.
 
 export type BeeldFormaat = 'klein' | 'middel' | 'groot'
 
@@ -49,7 +52,23 @@ function Houding({ beeld, houding, label }: { beeld: OefeningBeelden; houding: '
   )
 }
 
+const RENDER_PX: Record<BeeldFormaat, number> = { klein: 52, middel: 88, groot: 360 }
+
+function RenderPoster({ render, naam, formaat, decoratief }: { render: RepRender; naam: string; formaat: BeeldFormaat; decoratief: boolean }) {
+  const px = RENDER_PX[formaat]
+  const src = formaat === 'groot' ? render.poster : render.posterKlein
+  return (
+    <span className={`club-training-beeld club-training-beeld--${formaat} is-render is-enkel`} {...toegankelijk(decoratief, `Uitvoering van ${naam}`)}>
+      <span className="club-training-beeld-houding" aria-hidden>
+        <img className="club-training-beeld-foto" src={src} alt="" width={px} height={px} loading="lazy" decoding="async" />
+      </span>
+    </span>
+  )
+}
+
 export function OefeningBeeld({ naam, beeld, formaat = 'middel', accent = false, decoratief = false }: OefeningBeeldProps) {
+  const render = repRenderVoor(naam)
+  if (render) return <RenderPoster render={render} naam={naam} formaat={formaat} decoratief={decoratief} />
   const basis = `club-training-beeld club-training-beeld--${formaat}`
   if (!beeld) {
     return (

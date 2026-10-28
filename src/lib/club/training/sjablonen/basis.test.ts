@@ -1,31 +1,24 @@
 import { describe, expect, it } from 'vitest'
 import { coachingVoor } from '../coaching'
+import { BLENDER_OEFENINGEN } from '../blender-bibliotheek'
 import { leesSchema } from '../invoer'
 import { BASIS_SJABLONEN, basisRegels, basisSjabloon, naamSleutel, oefeningNamen } from './basis'
 
-// De standaardbibliotheek (club_oefeningen, gelijk voor elke sportschool bij de
-// start). Een basissjabloon mag alleen deze namen gebruiken.
-const BIBLIOTHEEK = [
-  'Goblet squat', 'Chest press machine', 'Lat pulldown', 'Roemeense deadlift met dumbbells', 'Shoulder press machine', 'Plank', 'Leg press',
-  'Dumbbell bankdrukken', 'Seated cable row', 'Glute bridge', 'Dumbbell curl', 'Triceps pushdown', 'Dead bug', 'Bankdrukken met barbell',
-  'Barbell row', 'Dumbbell shoulder press', 'Hammer curl', 'Back squat', 'Roemeense deadlift met barbell', 'Lunge met dumbbells',
-  'Leg curl liggend', 'Calf raise staand', 'Hanging knee raise', 'Schuin bankdrukken met dumbbells', 'Lat pulldown met onderhandse greep',
-  'Lateral raise', 'Face pull', 'Skull crusher', 'Hip thrust met barbell', 'Hack squat', 'Bulgarian split squat', 'Leg extension',
-  'Leg curl zittend', 'Calf raise zittend', 'Cable crunch', 'Overhead press', 'Deadlift', 'Pull-up', 'Barbell curl', 'Ab wheel rollout',
-  'Crosstrainer', 'Seated row machine', 'Pallof press', 'Squat met lichaamsgewicht', 'Achterwaartse lunge', 'Band pull-apart', 'Bird dog',
-  'Zijplank', 'Superman',
-]
+// Sinds 28-10-2026 (besluit Kane) zijn alleen de oefeningen met een eigen
+// Blender-render kiesbaar (blender-bibliotheek.ts). Een basissjabloon mag
+// alleen die namen gebruiken.
+const BIBLIOTHEEK = BLENDER_OEFENINGEN.map((o) => o.naam)
 
 const OPNAAM = new Map(BIBLIOTHEEK.map((n, i) => [naamSleutel(n), `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`]))
 
 describe('basisset startschema', () => {
-  it("heeft de vijf afgesproken schema's", () => {
-    expect(BASIS_SJABLONEN.map((s) => s.sleutel)).toEqual(['full-body-2x', 'boven-onder-4x', 'duwen-trekken-benen', 'machine-circuit', 'mobiliteit-core'])
+  it("heeft de vier afgesproken schema's", () => {
+    expect(BASIS_SJABLONEN.map((s) => s.sleutel)).toEqual(['full-body-2x', 'boven-onder-4x', 'duwen-trekken-benen', 'lichaamsgewicht-start'])
     expect(basisSjabloon('onbekend')).toBeNull()
   })
 
   for (const s of BASIS_SJABLONEN) {
-    it(`${s.naam}: alleen oefeningen uit de bibliotheek met coaching`, () => {
+    it(`${s.naam}: alleen oefeningen met een Blender-render en coaching`, () => {
       for (const naam of oefeningNamen(s)) {
         expect(OPNAAM.has(naamSleutel(naam)), naam).toBe(true)
         expect(coachingVoor(naam), `coaching voor ${naam}`).not.toBeNull()
@@ -49,7 +42,16 @@ describe('basisset startschema', () => {
   it('supersets krijgen per dag een eigen nummer', () => {
     const { regels } = basisRegels(basisSjabloon('boven-onder-4x')!, OPNAAM)
     const groepen = [...new Set(regels.map((r) => r.groep).filter((g) => g !== null))]
-    expect(groepen).toEqual([1, 2, 3, 4, 5])
+    expect(groepen).toEqual([1, 2, 3])
+  })
+
+  it('op een dag staat een oefening nooit twee keer', () => {
+    for (const s of BASIS_SJABLONEN) {
+      for (const d of s.dagen) {
+        const namen = d.regels.map((x) => x.oefening)
+        expect(new Set(namen).size, `${s.naam}, ${d.titel}`).toBe(namen.length)
+      }
+    }
   })
 
   it('maakt niets als een oefening ontbreekt', () => {

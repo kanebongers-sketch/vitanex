@@ -28,9 +28,11 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
   const [filter, setFilter] = useState(beginFilter)
   const [open, setOpen] = useState<Open>(null)
   const zoek = useRef<HTMLInputElement>(null)
-  const zichtbaar = useMemo(() => filterOefeningen(oefeningen, filter), [oefeningen, filter])
-  const telling = useMemo(() => telBeelden(oefeningen.filter((o) => o.actief)), [oefeningen])
-  const bronnen = useMemo(() => bronnenVan(oefeningen.map((o) => o.beeld)), [oefeningen])
+  // Gearchiveerde oefeningen (migratie 465) horen niet meer bij de bibliotheek: alleen nog leesbaar in bestaande schema's.
+  const bibliotheek = useMemo(() => oefeningen.filter((o) => !o.gearchiveerd), [oefeningen])
+  const zichtbaar = useMemo(() => filterOefeningen(bibliotheek, filter), [bibliotheek, filter])
+  const telling = useMemo(() => telBeelden(bibliotheek.filter((o) => o.actief)), [bibliotheek])
+  const bronnen = useMemo(() => bronnenVan(bibliotheek.map((o) => o.beeld)), [bibliotheek])
   const sluit = useCallback(() => setOpen(null), [])
 
   useEffect(() => {
@@ -62,14 +64,14 @@ export function OefeningenBeheer({ oefeningen, beginFilter }: OefeningenBeheerPr
         </button>
       </div>
       <div className="club-training-biebinfo">
-        <p className="club-hint" aria-live="polite">{zichtbaar.length} van {oefeningen.length} oefeningen</p>
+        <p className="club-hint" aria-live="polite">{zichtbaar.length} van {bibliotheek.length} oefeningen</p>
         <p className="club-training-beeldteller">
-          <strong>{telling.met}</strong> van {telling.totaal} actieve oefeningen hebben een tekening
+          <strong>{telling.met}</strong> van {telling.totaal} actieve oefeningen hebben een beeld
         </p>
         <BeeldBron bronnen={bronnen} />
       </div>
       {zichtbaar.length === 0 ? (
-        <p className="club-leeg">{oefeningen.length === 0 ? 'De bibliotheek is nog leeg. Voeg een oefening toe.' : 'Geen oefeningen met deze filters.'}</p>
+        <p className="club-leeg">{bibliotheek.length === 0 ? 'De bibliotheek is nog leeg. Voeg een oefening toe.' : 'Geen oefeningen met deze filters.'}</p>
       ) : (
         <ul className="club-training-oefraster">
           {zichtbaar.map((o) => (

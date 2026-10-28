@@ -61,6 +61,10 @@
 .club-training-beeld.is-repdb { background: transparent; border-color: var(--line-strong); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bg-app) 30%, transparent); }
 .club-training-beeld.is-repdb .club-training-beeld-houding { padding: 0; }
 .club-training-beeld-foto { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+/* Eigen Blender-render (beginbeeld, doorzichtige achtergrond): het hele figuur in beeld, op de kaartkleur. */
+.club-training-beeld.is-render { background: var(--bg-card); }
+.club-training-beeld.is-render .club-training-beeld-houding { padding: 0; }
+.club-training-beeld.is-render .club-training-beeld-foto { object-fit: contain; }
 .club-training-beeld.is-repdb .club-training-beeld-foto { border-radius: calc(var(--club-radius-klein, 8px) - 1px); }
 .club-training-beeld--groot.is-repdb .club-training-beeld-foto { border-radius: calc(var(--club-radius, 12px) - 1px); }
 

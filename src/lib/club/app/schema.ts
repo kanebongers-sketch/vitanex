@@ -3,8 +3,8 @@
 
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
 import { alsRij, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
-import { beeldenUitRij, type OefeningBeelden } from '@/lib/club/training/beeld'
-import { spierenUitRij } from '@/lib/club/training/rijen'
+import type { OefeningBeelden } from '@/lib/club/training/beeld'
+import { oudBeeldUitRij, spierenUitRij } from '@/lib/club/training/rijen'
 import type { Spier } from '@/lib/club/training/spieren'
 
 export interface AppOefening {
@@ -61,12 +61,13 @@ export function oefeningUitRij(v: unknown): AppOefening | null {
   const dag = r ? getal(r.dag) : null
   if (!r || !id || !oefeningId || dag === null) return null
   const oef = alsRij(Array.isArray(r.club_oefeningen) ? r.club_oefeningen[0] : r.club_oefeningen)
+  const naam = ingeslotenNaam(r.club_oefeningen) ?? 'Oefening'
   return {
     id,
     oefeningId,
     dag,
     volgorde: getal(r.volgorde) ?? 0,
-    naam: ingeslotenNaam(r.club_oefeningen) ?? 'Oefening',
+    naam,
     spiergroep: oef ? tekst(oef.spiergroep) : null,
     ...(oef ? spierenUitRij(oef) : { spierenPrimair: [], spierenSecundair: [] }),
     sets: getal(r.sets),
@@ -81,7 +82,8 @@ export function oefeningUitRij(v: unknown): AppOefening | null {
     tempo: tekst(r.tempo),
     aandachtspunten: oef ? tekst(oef.aandachtspunten) : null,
     uitleg: oef ? tekst(oef.uitleg) : null,
-    beeld: oef ? beeldenUitRij(oef) : null,
+    // Met een eigen Blender-render geen oude illustratie (en dus ook geen RepDB-vermelding).
+    beeld: oef ? oudBeeldUitRij(naam, oef) : null,
   }
 }
 
