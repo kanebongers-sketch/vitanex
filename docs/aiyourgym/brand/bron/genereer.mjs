@@ -32,6 +32,15 @@ const K = {
   inkt: '#111614',
 }
 
+/** Obsidian Luxury (besluit Kane 28-10-2026): het palet van de website. Het logo zelf
+ * is nog niet gekozen; de website kleurt het huidige embleem champagne op obsidiaan. */
+const O = {
+  obsidiaan: '#0A0A0B',
+  antraciet: '#1A1A1D',
+  ivoor: '#F3EEE5',
+  champagne: '#D4BF96',
+}
+
 const r2 = (v) => Math.round(v * 100) / 100
 const r4 = (v) => Math.round(v * 10000) / 10000
 const rect = (x, y, b, h) => `M${r2(x)} ${r2(y)}H${r2(x + b)}V${r2(y + h)}H${r2(x)}Z`
@@ -170,8 +179,13 @@ const ts = `// Gegenereerd door docs/aiyourgym/brand/bron/genereer.mjs; niet met
 // Embleem in een raster van 100 x 100. Woordmerk met kapitaalhoogte 100 (Big Shoulders
 // Bold, SIL OFL 1.1, als paden), bovenkant op y = 0.
 
-/** Vaste merkkleuren, Racegroen (besluit Kane 23-10-2026). Terugval als de css er niet is. */
+/** Vaste merkkleuren. Obsidian Luxury (28-10-2026) voor de website; racegroen tot creme
+ * blijven voor de bestanden in docs/aiyourgym/brand. Terugval als de css er niet is. */
 export const MERK_KLEUR = {
+  obsidiaan: '${O.obsidiaan}',
+  antraciet: '${O.antraciet}',
+  ivoor: '${O.ivoor}',
+  champagne: '${O.champagne}',
   racegroen: '${K.racegroen}',
   creme: '${K.creme}',
   flessengroen: '${K.flessengroen}',
@@ -247,6 +261,15 @@ for (const [naam, inhoud] of Object.entries(bestanden)) fs.writeFileSync(path.jo
 // Favicon: de kleine versie. In een donkere browser draait het om (creme plaat),
 // anders valt de racegroene plaat weg in een donkere tabbalk.
 const klein = embleemDelen(KLEIN)
+// Website (Obsidian Luxury, 28-10-2026): altijd een champagne plaat met obsidiaan tekens,
+// die leest in een lichte en een donkere tabbalk. Club houdt het racegroene icoon hieronder.
+const websiteIcoon = svg(
+  '0 0 100 100',
+  `<style>.p{fill:${O.champagne}}.t{fill:${O.obsidiaan}}.ps{stroke:${O.champagne}}.ts{stroke:${O.obsidiaan}}</style>` +
+    `<rect class="p" width="100" height="100" ${SCHERP}/><path class="t" ${SCHERP} d="${klein.cel}"/>` +
+    `<path class="t ts" stroke-width="3.6" stroke-linejoin="round" d="${klein.letters}"/>` +
+    `<path class="p ps" stroke-width="3.6" stroke-linejoin="round" d="${klein.y}"/>`,
+)
 const icoon = svg(
   '0 0 100 100',
   `<style>.p{fill:${K.racegroen}}.t{fill:${K.creme}}.ps{stroke:${K.racegroen}}.ts{stroke:${K.creme}}` +
@@ -255,7 +278,7 @@ const icoon = svg(
     `<path class="t ts" stroke-width="3.6" stroke-linejoin="round" d="${klein.letters}"/>` +
     `<path class="p ps" stroke-width="3.6" stroke-linejoin="round" d="${klein.y}"/>`,
 )
-fs.writeFileSync(path.join(WEBSITE, 'icon.svg'), icoon)
+fs.writeFileSync(path.join(WEBSITE, 'icon.svg'), websiteIcoon)
 fs.writeFileSync(path.join(CLUB, 'icon.svg'), icoon)
 
 // PNG: vanuit de vector direct op de doelmaat getekend, niet groot getekend en daarna
@@ -279,7 +302,10 @@ const logoMaat = (dichtheid) => px(LOGO.breedte, LOGO.hoogte, (LOGO_PX * dichthe
 for (const oud of ['ayg-embleem-512.png']) fs.rmSync(path.join(UIT_DOCS, oud), { force: true })
 
 // Apple-icoon: vol vlak zonder ronde hoeken (iOS rondt zelf af). 180 x 180 is de maat die iOS vraagt.
-await png(VIERKANT, appIcoon(), 180, 180, path.join(WEBSITE, 'apple-icon.png'))
+// Website (Obsidian Luxury): een obsidiaan tegel met het champagne embleem.
+const websiteAppIcoon = () =>
+  `<rect width="100" height="100" fill="${O.obsidiaan}"/><g transform="translate(19 19) scale(.62)">${embleem({ plaat: O.champagne, teken: O.obsidiaan })}</g>`
+await png(VIERKANT, websiteAppIcoon(), 180, 180, path.join(WEBSITE, 'apple-icon.png'))
 await png(VIERKANT, appIcoon(), 180, 180, path.join(CLUB, 'apple-icon.png'))
 for (const maat of [512, 1024]) {
   await png(VIERKANT, appIcoon(), maat, maat, path.join(UIT_DOCS, `ayg-app-icoon-${maat}.png`))
