@@ -471,6 +471,7 @@ svg.ayg-voet-woord { display: block; width: 100%; height: auto; margin: 8px auto
 
 /* ── Hulpklassen ─────────────────────────────────────────────────────────── */
 .ayg-stapel { display: grid; gap: 24px; align-content: start; }
+.ayg-stapel > .ayg-pijllink { justify-self: start; }
 :where(.ayg-band, .ayg-sectiekop, .ayg-voet-raster) > * { min-width: 0; }
 
 /* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────

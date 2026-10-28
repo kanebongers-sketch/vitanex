@@ -96,7 +96,7 @@
 .ayg-toestellen > * { flex: 0 0 auto; scroll-snap-align: center; display: grid; gap: 16px; justify-items: center; }
 .ayg-toestellen > *:nth-child(2) { margin-top: 48px; }
 .ayg-toestellen .aygm-figuur > * { container-type: normal; }
-.ayg-toestellen .aygm-toestel { width: clamp(240px, 26vw, 290px); }
+.ayg-toestellen .aygm-toestel { width: clamp(230px, 19.5vw, 290px); }
 .ayg-toestel-label { font-size: 14px; font-weight: 600; color: var(--ayg-tekst-2); }
 .ayg-tabs-lijst { display: grid; gap: 0; border-top: 1px solid var(--ayg-lijn); }
 .ayg-tabs-lijst li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-block: 20px; border-bottom: 1px solid var(--ayg-lijn); }
