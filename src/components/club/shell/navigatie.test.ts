@@ -13,7 +13,7 @@ const INSTRUCTEUR = ['vandaag', ...RECHTEN.instructeur]
 const labels = (lijst: readonly { label: string }[]) => lijst.map((o) => o.label)
 
 describe('onderbalk', () => {
-  it('trainer: Vandaag (met check-in, taken en opvolgen), Leden, Training en Groepslessen', () => {
+  it('trainer: Vandaag (met check-in en opvolgen), Leden, Training en Groepslessen', () => {
     expect(labels(onderbalkOnderdelen([], TRAINER))).toEqual(['Vandaag', 'Leden', 'Training', 'Groepslessen'])
   })
 
@@ -25,7 +25,7 @@ describe('onderbalk', () => {
     expect(labels(onderbalkOnderdelen(['training'], TRAINER))).toEqual(['Vandaag', 'Leden', 'Groepslessen', 'Personeel'])
   })
 
-  it('geen check-in, taken of opvolgen in de balk: die staan op Vandaag', () => {
+  it('geen check-in, taken of opvolgen in de onderbalk: die staan op Vandaag en in Meer', () => {
     const sleutels = onderbalkOnderdelen([], null).map((o) => o.sleutel)
     for (const s of ['checkin', 'taken', 'opvolgen']) expect(sleutels).not.toContain(s)
   })
@@ -52,13 +52,13 @@ describe('sneltoetsen (G en dan een letter)', () => {
     expect(onderdeelVoorToets('t', [], TRAINER)?.sleutel).toBe('schemas')
   })
 
-  it('G C, G K en G O gaan naar hun sectie op Vandaag', () => {
+  it('G C en G O gaan naar hun sectie op Vandaag, G K naar het takenscherm', () => {
     const doel = (l: string) => {
       const o = onderdeelVoorToets(l, [], TRAINER)
       return o ? clubHref(onderdeelPad(o), 'budel') : null
     }
     expect(doel('c')).toBe('/club?v=budel#checkin')
-    expect(doel('k')).toBe('/club?v=budel#taken')
+    expect(doel('k')).toBe('/club/taken?v=budel')
     expect(doel('o')).toBe('/club?v=budel#opvolgen')
     expect(onderdeelVoorToets('k', [], INSTRUCTEUR)).toBeNull()
     expect(onderdeelVoorToets('c', [], TRAINER.filter((s) => s !== 'vandaag'))).toBeNull()
@@ -114,19 +114,28 @@ describe('kruimelpad naar een lid', () => {
   })
 })
 
-describe('minder tabbladen: Werkvloer (besluit Kane 27-10-2026)', () => {
-  it('Werkvloer heeft alleen Vandaag en Notities', () => {
-    expect(labels(onderdelenVan('werkvloer'))).toEqual(['Vandaag', 'Notities'])
+describe('minder tabbladen: Werkvloer (besluit Kane 27-10-2026, Taken terug 28-10-2026)', () => {
+  it('Werkvloer heeft Vandaag, Taken en Notities', () => {
+    expect(labels(onderdelenVan('werkvloer'))).toEqual(['Vandaag', 'Taken', 'Notities'])
   })
 
-  it('check-in, taken en opvolgen zijn secties op Vandaag, binnen de rechten', () => {
-    expect(sectiesVoor([], null).map((o) => o.sectie)).toEqual(['checkin', 'taken', 'opvolgen'])
+  it('een rol zonder taken, of taken uit, ziet de tab niet', () => {
+    expect(labels(onderdelenVan('werkvloer', [], INSTRUCTEUR))).not.toContain('Taken')
+    expect(labels(onderdelenVan('werkvloer', ['taken'], null))).toEqual(['Vandaag', 'Notities'])
+    expect(labels(onderdelenVan('werkvloer', [], ['vandaag', 'taken']))).toEqual(['Vandaag', 'Taken'])
+  })
+
+  it('check-in en opvolgen zijn secties op Vandaag, binnen de rechten', () => {
+    expect(sectiesVoor([], null).map((o) => o.sectie)).toEqual(['checkin', 'opvolgen'])
     expect(sectiesVoor([], INSTRUCTEUR)).toEqual([])
-    expect(sectiesVoor(['taken'], TRAINER).map((o) => o.sleutel)).toEqual(['checkin', 'opvolgen'])
+    expect(sectiesVoor(['checkin'], TRAINER).map((o) => o.sleutel)).toEqual(['opvolgen'])
   })
 
-  it('op de volledige schermen licht Vandaag op', () => {
-    for (const pad of ['/club/checkin', '/club/checkin/kiosk', '/club/taken', '/club/taken/week', '/club/taken/beheer', '/club/opvolgen']) {
+  it('op alle takenschermen licht Taken op, op de schermen van een sectie Vandaag', () => {
+    for (const pad of ['/club/taken', '/club/taken/week', '/club/taken/overzicht', '/club/taken/beheer', '/club/taken/vandaag']) {
+      expect(menuOnderdeel(pad)?.sleutel, pad).toBe('taken')
+    }
+    for (const pad of ['/club/checkin', '/club/checkin/kiosk', '/club/opvolgen']) {
       expect(menuOnderdeel(pad)?.sleutel, pad).toBe('vandaag')
     }
     expect(menuOnderdeel('/club/notities')?.sleutel).toBe('notities')

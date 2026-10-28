@@ -1,0 +1,259 @@
+/* ─── Club en ledenapp: het designsysteem (28-10-2026) ─────────────────────────
+   Een laag bovenop club.css. Alles leunt op de huisstijl van de sportschool
+   (src/lib/club/kern/huisstijl.ts zet --brand, --brand-tekst, --bg-*, --text-*,
+   --line* inline, met contrastcorrectie); hier staat geen enkele merkkleur vast.
+
+   Richting: een instrument voor de vloer. Oppervlakken als lagen (app, kaart,
+   verhoogd, zwevend), elk een stap lichter met een dunne lichtrand aan de
+   bovenkant en een schaduw die met de laag meegroeit. Kleur alleen op data,
+   status en de ene primaire actie. Cijfers in de condensed kopletter, groot
+   waar ze de vraag van het scherm beantwoorden, rustig daarnaast.
+
+   Beweging: alleen transform, opacity en clip-path; korte, sterke ease-out.
+   Bij prefers-reduced-motion staat alles stil (regel onderaan club.css). */
+
+.club-app {
+  /* Ritme: een schaal van 4. */
+  --club-r1: 4px;
+  --club-r2: 8px;
+  --club-r3: 12px;
+  --club-r4: 16px;
+  --club-r5: 24px;
+  --club-r6: 32px;
+  --club-r7: 48px;
+
+  /* Typeschaal: label, klein, tekst, kop, cijfer, hoofdcijfer. Kleine tekst krijgt
+     wat spatiering, grote cijfers juist niet (optische spatiering per maat). */
+  --club-t-label: 12.5px;
+  --club-t-klein: 13.5px;
+  --club-t-tekst: 15px;
+  --club-t-kop: 19px;
+  --club-t-cijfer: clamp(30px, 2.6vw, 40px);
+  --club-t-hoofdcijfer: clamp(56px, 6vw, 92px);
+
+  /* Hoeken: klein voor chips en velden, middel voor kaarten, groot voor de ledenapp. */
+  --club-hoek-1: 6px;
+  --club-hoek-2: 10px;
+  --club-hoek-3: 14px;
+  --club-hoek-4: 22px;
+
+  /* Oppervlakken als lagen: 0 = app, 1 = kaart, 2 = verhoogd, 3 = zwevend. */
+  --club-opp-0: var(--bg-app);
+  --club-opp-1: var(--bg-card);
+  --club-opp-2: color-mix(in srgb, var(--bg-raised) 92%, var(--text-1));
+  --club-opp-3: color-mix(in srgb, var(--bg-raised) 84%, var(--text-1));
+  --club-opp-put: color-mix(in srgb, var(--bg-app) 70%, #000);
+
+  /* Randlicht: een haarlijn licht aan de bovenrand, alsof het licht van boven valt. */
+  --club-randlicht: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --club-randlicht-sterk: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --club-rand: 1px solid var(--line);
+
+  /* Diepte per laag (alleen box-shadow, nooit geanimeerd). */
+  --club-diepte-1: 0 1px 0 rgba(0, 0, 0, 0.35), 0 10px 24px -18px rgba(0, 0, 0, 0.7);
+  --club-diepte-2: 0 1px 0 rgba(0, 0, 0, 0.4), 0 18px 40px -22px rgba(0, 0, 0, 0.85);
+  --club-diepte-3: 0 2px 4px rgba(0, 0, 0, 0.3), 0 30px 70px -28px rgba(0, 0, 0, 0.9);
+
+  /* Data: een kleur voor de hoofdreeks (de accentkleur, gecorrigeerd op contrast), grijs voor de rest. */
+  --club-data: var(--brand-tekst, var(--brand));
+  --club-data-zacht: color-mix(in srgb, var(--brand) 22%, transparent);
+  --club-data-rest: var(--text-4);
+  --club-raster: color-mix(in srgb, var(--text-1) 9%, transparent);
+
+  /* Status: goed, waarschuwing, let op, info, uit. Waarschuwing is los van het merk,
+     zodat een sportschool met een gele of oranje huisstijl geen dubbele betekenis krijgt. */
+  --club-waarschuw: #e7b450;
+  --club-waarschuw-zacht: rgba(231, 180, 80, 0.14);
+  --club-uit: var(--text-4);
+
+  /* Beweging. */
+  --club-ease-uit: cubic-bezier(0.23, 1, 0.32, 1);
+  --club-duur-snel: 140ms;
+  --club-duur: 220ms;
+}
+
+/* Licht thema: schaduwen zachter en warmer, randlicht wit, oppervlakken een stap donkerder. */
+.club-app[data-thema='licht'] {
+  --club-opp-2: #ffffff;
+  --club-opp-3: #ffffff;
+  --club-opp-put: color-mix(in srgb, var(--bg-app) 88%, #000);
+  --club-randlicht: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --club-randlicht-sterk: inset 0 1px 0 #ffffff;
+  --club-diepte-1: 0 1px 0 rgba(17, 17, 15, 0.06), 0 8px 20px -16px rgba(17, 17, 15, 0.28);
+  --club-diepte-2: 0 1px 2px rgba(17, 17, 15, 0.06), 0 16px 36px -22px rgba(17, 17, 15, 0.32);
+  --club-diepte-3: 0 2px 6px rgba(17, 17, 15, 0.08), 0 28px 60px -28px rgba(17, 17, 15, 0.4);
+  --club-waarschuw: #8a5a00;
+  --club-waarschuw-zacht: rgba(138, 90, 0, 0.1);
+}
+
+/* ── Bestaande bouwstenen op de nieuwe lagen ──────────────────────────────── */
+.club-kaart { border-radius: var(--club-hoek-3); box-shadow: var(--club-randlicht), var(--club-diepte-1); }
+.club-kaart--vlak { box-shadow: none; }
+.club-tegel { border-radius: var(--club-hoek-3); box-shadow: var(--club-randlicht); }
+.club-tabel-wrap { border-radius: var(--club-hoek-3); box-shadow: var(--club-randlicht); }
+.club-knop { transition: background-color var(--club-duur-snel) var(--ease), border-color var(--club-duur-snel) var(--ease), transform 120ms var(--club-ease-uit), box-shadow var(--club-duur-snel) var(--ease); }
+.club-knop:active:not(:disabled) { transform: scale(0.97); }
+.club-knop--primair { box-shadow: var(--club-randlicht-sterk), 0 8px 20px -12px var(--brand-glow, transparent); }
+.club-knop--primair:active:not(:disabled) { box-shadow: var(--club-randlicht); }
+.club-paneel, .club-zoek, .club-menu { box-shadow: var(--club-randlicht), var(--club-diepte-3); }
+
+/* Lege staat: het frame blijft staan, met een rustig vlak en een duidelijke zin. */
+.club-leeg { border-style: dashed; border-radius: var(--club-hoek-3); background: color-mix(in srgb, var(--club-vlak) 60%, transparent); padding: var(--club-r6) var(--club-r5); }
+.club-leeg strong { color: var(--text-1); }
+
+/* Laden: vaste maten (geen verspringing) en een glans die alleen schuift. */
+.club-skelet { border-radius: var(--club-hoek-3); }
+
+/* ── De schil: kop, groepen, submenu, onderbalk en hulpbalk ───────────────────
+   De kop is een laag van glas boven het werkvlak: een zachte schaduw in plaats van
+   een harde lijn. De groepen liggen in een verzonken spoor; de actieve groep is
+   een verhoogde pil in de accentkleur. Het submenu is een rij knoppen op laag 1
+   met randlicht; het onderdeel waar je bent ligt een laag hoger. */
+.club-kop { border-bottom-color: color-mix(in srgb, var(--line) 70%, transparent); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 12px 28px -24px rgba(0, 0, 0, 0.9); }
+.club-app[data-thema='licht'] .club-kop { box-shadow: 0 1px 0 rgba(17, 17, 15, 0.05), 0 12px 28px -24px rgba(17, 17, 15, 0.4); }
+.club-groepen { background: var(--club-opp-put); border-color: transparent; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
+.club-app[data-thema='licht'] .club-groepen { box-shadow: inset 0 1px 2px rgba(17, 17, 15, 0.1); }
+.club-groepen a { transition: color var(--club-duur-snel) var(--ease), background-color var(--club-duur-snel) var(--ease), transform 120ms var(--club-ease-uit); }
+.club-groepen a:active { transform: scale(0.97); }
+.club-groepen a[aria-current='true'] { box-shadow: var(--club-randlicht-sterk), 0 4px 12px -6px var(--brand-glow, transparent); }
+
+.club-nav { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 5%, transparent), transparent); border-top-color: color-mix(in srgb, var(--brand) 22%, var(--line)); padding-block: 6px; }
+.club-nav a { border-color: var(--line); background: var(--club-opp-1); box-shadow: var(--club-randlicht); }
+.club-nav a:hover { background: var(--club-opp-2); border-color: var(--line-strong); }
+.club-nav a:active { transform: scale(0.98); }
+.club-nav a[aria-current='page'] { box-shadow: var(--club-randlicht-sterk), 0 8px 20px -12px var(--brand-glow, var(--brand)); }
+
+.club-onderbalk { box-shadow: 0 -12px 28px -24px rgba(0, 0, 0, 0.9); }
+.club-onderbalk > :is(a[aria-current='page'], button[data-actief='true']) svg { filter: drop-shadow(0 2px 6px var(--brand-glow, transparent)); }
+
+.club-hulpbalk { background: linear-gradient(180deg, var(--club-opp-1), color-mix(in srgb, var(--brand) 3%, var(--bg-card))); }
+.club-hulp-icoon { background: var(--club-opp-2); border-color: var(--line); box-shadow: var(--club-randlicht); }
+.club-hulp-lijst a[aria-current='page'] .club-hulp-icoon { box-shadow: var(--club-randlicht-sterk), 0 4px 12px -6px var(--brand-glow, transparent); }
+
+.club-menu-groep a { background: var(--club-opp-1); box-shadow: var(--club-randlicht); }
+.club-zoekknop { background: var(--club-opp-put); border-color: transparent; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.club-app[data-thema='licht'] .club-zoekknop { box-shadow: inset 0 1px 2px rgba(17, 17, 15, 0.08); }
+.club-zoekknop:hover { background: var(--club-opp-1); border-color: var(--line-strong); }
+
+/* Paginakop: de titel een maat rustiger dan de cijfers die eronder het antwoord geven. */
+.club-paginakop h1 { letter-spacing: -0.005em; }
+
+/* ── Blok ─────────────────────────────────────────────────────────────────── */
+.club-blok { display: grid; gap: var(--club-r4); align-content: start; min-width: 0; padding: var(--club-r5); border: var(--club-rand); border-radius: var(--club-hoek-3); }
+.club-blok--vlak { background: var(--club-vlak); }
+.club-blok--kaart { background: var(--club-opp-1); box-shadow: var(--club-randlicht), var(--club-diepte-1); }
+.club-blok--verhoogd { background: linear-gradient(180deg, var(--club-opp-2), var(--club-opp-1) 70%); border-color: var(--line-strong); box-shadow: var(--club-randlicht-sterk), var(--club-diepte-2); }
+.club-blok-kop { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--club-r1) var(--club-r3); }
+.club-blok-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: var(--club-t-kop); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.club-blok-extra { font-size: var(--club-t-klein); color: var(--text-3); }
+@media (max-width: 599px) { .club-blok { padding: var(--club-r4); } }
+
+/* ── Cijfertegels ─────────────────────────────────────────────────────────
+   Een strook is een vlak met haarlijnen tussen de cijfers, geen losse kaartjes.
+   Het hoofdcijfer staat links en is groter; de rest volgt rustig. */
+.club-stats {
+  --club-stats-kolommen: 4;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: var(--club-rand); border-radius: var(--club-hoek-3);
+  background: var(--club-opp-1); box-shadow: var(--club-randlicht), var(--club-diepte-1);
+  overflow: hidden;
+}
+@media (min-width: 800px) { .club-stats { grid-template-columns: repeat(var(--club-stats-kolommen), minmax(0, 1fr)); } }
+.club-stats > .club-stat { border-top: var(--club-rand); }
+.club-stats > .club-stat:nth-child(-n + 2) { border-top: 0; }
+.club-stats > .club-stat:nth-child(2n) { border-left: var(--club-rand); }
+@media (min-width: 800px) {
+  .club-stats > .club-stat { border-top: 0; border-left: var(--club-rand); }
+  .club-stats > .club-stat:first-child { border-left: 0; }
+}
+
+.club-stat { position: relative; display: grid; align-content: start; gap: var(--club-r1); min-width: 0; padding: var(--club-r4) var(--club-r5) var(--club-r4); color: inherit; text-decoration: none; }
+.club-stat-label { font-family: var(--ff-kop); font-size: var(--club-t-label); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-stat-rij { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--club-r3); min-width: 0; }
+.club-stat-waarde { font-family: var(--ff-kop); font-size: var(--club-t-cijfer); font-weight: 700; line-height: 1; letter-spacing: -0.005em; white-space: nowrap; }
+.club-stat-waarde--hoofd { font-size: var(--club-t-hoofdcijfer); line-height: 0.86; letter-spacing: -0.015em; }
+.club-stat-waarde[data-leeg] { color: var(--text-4); }
+.club-stat-eenheid { margin-left: 0.18em; font-size: 0.42em; font-weight: 600; letter-spacing: 0.04em; color: var(--text-3); }
+.club-stat-delta { font-size: var(--club-t-klein); font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-stat-delta--beter { color: var(--club-ok-inkt, var(--club-ok)); }
+.club-stat-delta--slechter { color: var(--club-let-op-inkt, var(--club-let-op)); }
+.club-stat-sub { font-size: var(--club-t-klein); line-height: 1.45; color: var(--text-3); }
+.club-stat--hoofd { padding-block: var(--club-r5); }
+@media (min-width: 800px) { .club-stats > .club-stat--hoofd { grid-column: span 2; } }
+@media (max-width: 799px) { .club-stats > .club-stat--hoofd { grid-column: 1 / -1; border-left: 0; } .club-stats > .club-stat--hoofd ~ .club-stat:nth-child(2n) { border-left: 0; } .club-stats > .club-stat--hoofd ~ .club-stat:nth-child(2n + 1) { border-left: var(--club-rand); } .club-stats > .club-stat--hoofd ~ .club-stat { border-top: var(--club-rand); } }
+.club-stats > .club-stat:only-child { grid-column: 1 / -1; }
+@media (max-width: 479px) { .club-stat { padding: var(--club-r3) var(--club-r4); } }
+
+/* Een tegel als link: het hele vlak reageert, het pijltje niet nodig. */
+.club-stat--link { transition: background-color var(--club-duur-snel) var(--ease); }
+.club-stat--link:hover { background: var(--club-vlak-hover); }
+.club-stat--link:active { background: var(--club-vlak); }
+.club-stat--link:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+
+/* ── Sparklijn ────────────────────────────────────────────────────────────── */
+.club-spark { flex: none; display: block; max-width: 45%; height: auto; overflow: visible; }
+.club-spark-basis { stroke: var(--club-raster); stroke-width: 1; }
+.club-spark-lijn { fill: none; stroke: var(--club-data-rest); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+.club-stat--hoofd .club-spark-lijn, .club-spark--data .club-spark-lijn { stroke: var(--club-data); stroke-width: 2; }
+.club-spark-punt { fill: var(--club-data); stroke: var(--club-opp-1); stroke-width: 2; }
+.club-spark-punt[data-lopend] { fill: var(--club-opp-1); stroke: var(--club-data); stroke-width: 1.75; }
+
+/* ── Meter (bezetting, voortgang) ─────────────────────────────────────────── */
+.club-meter { position: relative; display: block; width: 100%; height: 6px; margin: var(--club-r1) 0 2px; border-radius: 999px; background: var(--club-opp-put); box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.35); overflow: hidden; }
+.club-meter-vul { position: absolute; inset: 0; border-radius: inherit; background: var(--brand); transform-origin: left; transform: scaleX(var(--deel, 0)); box-shadow: var(--club-randlicht-sterk); animation: club-meter-in 520ms var(--club-ease-uit) both; }
+.club-meter-vul[data-hoog] { background: var(--club-waarschuw); }
+@keyframes club-meter-in { from { transform: scaleX(0); } }
+
+/* ── Voortgangsring met diepte ────────────────────────────────────────────── */
+.club-ring { position: relative; flex: none; display: grid; place-items: center; }
+.club-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.club-ring-spoor { fill: none; stroke: var(--club-opp-put); stroke-width: 9; }
+.club-ring-spoor-licht { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 1; transform: translateY(4px); transform-origin: center; }
+.club-ring-boog { fill: none; stroke: var(--brand); stroke-width: 9; stroke-linecap: round; filter: drop-shadow(0 3px 6px var(--brand-glow, transparent)); animation: club-ring-in 900ms var(--club-ease-uit) both; }
+.club-ring-glans { fill: none; stroke: rgba(255, 255, 255, 0.35); stroke-width: 2; stroke-linecap: round; transform: translate(-2px, 0); transform-origin: center; mix-blend-mode: soft-light; animation: club-ring-in 900ms var(--club-ease-uit) both; }
+@keyframes club-ring-in { from { clip-path: inset(0 0 100% 0); opacity: 0; } to { clip-path: inset(0); opacity: 1; } }
+.club-ring-midden { position: relative; display: flex; align-items: baseline; font-family: var(--ff-kop); font-weight: 700; line-height: 1; }
+.club-ring-midden strong { font-size: 44px; }
+.club-ring-midden span { font-size: 20px; color: var(--text-3); }
+
+/* De 3D-weekring (ledenapp): het canvas over de SVG-ring, het getal er bovenop. */
+.club-weekring { position: relative; flex: none; display: grid; place-items: center; }
+.club-weekring-3d { position: absolute; inset: 0; z-index: 1; pointer-events: none; animation: club-weekring-in 420ms var(--club-ease-uit) 120ms both; }
+.club-weekring .club-ring-midden { z-index: 2; }
+.club-weekring[data-3d] .club-ring svg { animation: club-weekring-uit 300ms var(--ease) 300ms both; }
+.club-weekring canvas[data-mislukt] { display: none; }
+@keyframes club-weekring-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes club-weekring-uit { to { opacity: 0; } }
+
+/* ── Kaart met licht: een zachte glans die de aanwijzer volgt (DiepteKaart) ── */
+.club-diepte { position: relative; isolation: isolate; }
+.club-diepte::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(260px circle at var(--licht-x, 30%) var(--licht-y, 0%), rgba(255, 255, 255, 0.09), transparent 60%);
+  opacity: var(--licht-aan, 0.6); transition: opacity var(--club-duur) var(--ease);
+}
+.club-app[data-thema='licht'] .club-diepte::after { background: radial-gradient(260px circle at var(--licht-x, 30%) var(--licht-y, 0%), rgba(255, 255, 255, 0.7), transparent 60%); }
+
+/* ── Vergelijkbalk: vandaag tegen vorige week, op een schaal ─────────────── */
+.club-vgl { display: grid; gap: 6px; margin: var(--club-r2) 0 0; padding: 0; list-style: none; }
+.club-vgl li { display: grid; grid-template-columns: minmax(5.5em, auto) minmax(0, 1fr) 3ch; align-items: center; gap: var(--club-r2); font-size: var(--club-t-label); color: var(--text-3); }
+.club-vgl-balk { position: relative; height: 8px; border-radius: 999px; background: var(--club-opp-put); overflow: hidden; }
+.club-vgl-balk > span { position: absolute; inset: 0; border-radius: inherit; background: var(--club-data-rest); transform-origin: left; transform: scaleX(var(--deel, 0)); animation: club-meter-in 520ms var(--club-ease-uit) both; }
+.club-vgl li:first-child .club-vgl-balk > span { background: var(--brand); }
+.club-vgl li:first-child { color: var(--text-1); font-weight: 600; }
+.club-vgl-getal { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── Ronde (schema deze week): dagen als blokjes ──────────────────────────── */
+.club-ronde { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.club-ronde li { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-strong); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.club-ronde li[data-gedaan] { border-color: transparent; background: var(--brand-soft); color: var(--club-merk-inkt); }
+.club-ronde li[data-gedaan]::before { content: ''; width: 7px; height: 7px; border-radius: 999px; background: var(--brand); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-meter-vul, .club-vgl-balk > span, .club-ring-boog, .club-ring-glans { animation: none; }
+  .club-diepte::after { transition: none; }
+}
+@media (prefers-contrast: more) {
+  .club-app { --club-randlicht: inset 0 0 0 transparent; --club-randlicht-sterk: inset 0 0 0 transparent; }
+  .club-stats, .club-blok, .club-kaart { border-color: var(--text-3); }
+}

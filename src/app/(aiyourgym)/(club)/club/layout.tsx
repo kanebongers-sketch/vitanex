@@ -19,6 +19,7 @@ import { wizardPoortDicht } from '@/lib/club/start/opslag'
 import { WizardPoort } from '@/components/club/start/WizardPoort'
 import { StartBalk, WizardWacht } from '@/components/club/start/StartBalk'
 import './club.css'
+import '@/components/club/ontwerp/ontwerp.css'
 
 // aiyourgym.com/club: de all-in clubsoftware van AI Your Gym (leden,
 // rooster en reserveren, check-in, leads, intakes en schema's, ledenapp).

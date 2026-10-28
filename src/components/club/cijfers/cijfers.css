@@ -160,3 +160,24 @@
 @media (prefers-reduced-motion: reduce) {
   .club-cijfers-staaf { transition: none; }
 }
+
+/* ── Designsysteem (28-10-2026): de kernstrook als verhoogd vlak, met trend ──
+   De strook ligt een laag hoger dan de hoofdstukken eronder (de vraag van het
+   scherm: hoe ging deze maand). Elk cijfer krijgt een sparklijn over de maanden
+   van het rapport; het ledenbestand in de datakleur, de rest in grijs. */
+.club-cijfers-kern-strook {
+  border: 1px solid var(--line); border-top: 2px solid var(--brand); border-radius: var(--club-hoek-3, 14px);
+  background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card)) 60%);
+  box-shadow: var(--club-randlicht, none), var(--club-diepte-2, none);
+  overflow: hidden;
+}
+.club-cijfers-kern-hoofd { padding: 22px 24px 22px; position: relative; }
+.club-cijfers-kern-hoofd::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(120% 80% at 0% 100%, var(--brand-soft), transparent 60%); }
+.club-cijfers-kern-hoofd > * { position: relative; }
+.club-cijfers-kern-voet { padding-inline: 24px; }
+.club-cijfers-trend { display: block; margin: 6px 0 2px; }
+.club-cijfers-trend .club-spark { max-width: 100%; }
+.club-cijfers-trend--groot { margin: 10px 0 6px; }
+@media (max-width: 999px) { .club-cijfers-kern-hoofd { padding: 18px 16px; } .club-cijfers-kern-voet { padding-inline: 16px; } }
+.club-cijfers-blok { box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
+.club-cijfers-hoofdstukkop span { display: inline-grid; place-items: center; min-width: 2.4em; padding: 0.35em 0.5em; border-radius: 999px; background: var(--brand-soft); color: var(--club-merk-inkt); font-size: 0.42em; letter-spacing: 0.12em; transform: translateY(-0.25em); }

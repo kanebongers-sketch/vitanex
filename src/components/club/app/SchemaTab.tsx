@@ -16,6 +16,9 @@ import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
 import { TrainingModus } from './training/TrainingModus'
+import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 import { useWachtrij, type Wachtrij } from './training/useWachtrij'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
@@ -45,6 +48,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const sluit = useCallback(() => setOpen(null), [])
   // Trainingen die zonder bereik werden afgerond: gaan vanzelf de deur uit zodra er verbinding is.
   const wachtrij = useWachtrij(useCallback(() => router.refresh(), [router]))
+  const w = useTekst(ONTWERP).ledenapp
   const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
     return (
@@ -62,6 +66,8 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const nuDatum = new Date(nu)
   const gedaan = gedaanVandaag(logs, schema.id, dag.dag, nuDatum)
   const recent = logs.filter((l) => l.schemaId === schema.id).slice(0, 4)
+  const ronde = rondeDezeWeek(schema.dagen, logs, schema.id, nuDatum)
+  const dezeWeek = new Set(ronde.dagen.filter((d) => d.gedaan).map((d) => d.dag))
   const schemaBronnen = bronnenVan(schema.dagen.flatMap((d) => d.oefeningen.map((o) => o.beeld)))
 
   function vink() {
@@ -103,8 +109,10 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
       {schema.notitie && <SchemaNotitie notitie={schema.notitie} />}
       <div className="club-lidapp-dagkeuze" role="group" aria-label="Trainingsdag">
         {schema.dagen.map((d) => (
-          <button key={d.dag} type="button" aria-pressed={d.dag === dag.dag} onClick={() => setGekozen(d.dag)}>
+          <button key={d.dag} type="button" aria-pressed={d.dag === dag.dag} onClick={() => setGekozen(d.dag)} data-week-gedaan={dezeWeek.has(d.dag) || undefined}>
+            {dezeWeek.has(d.dag) && <Check aria-hidden size={14} className="club-lidapp-dagvink" />}
             Dag {d.letter}
+            {dezeWeek.has(d.dag) && <span className="club-sr">, {w.week.toLowerCase()} {w.gedaan}</span>}
             {d.dag === voorstel && (
               <>
                 <span className="club-lidapp-stip" aria-hidden />

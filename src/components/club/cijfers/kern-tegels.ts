@@ -5,7 +5,7 @@
 import type { Dekking, Maandcijfers } from '@/lib/club/cijfers/maandcijfers'
 import { eenDecimaal, heel, metTeken, metTekenDecimaal, metTekenProcent, procent } from '@/lib/club/cijfers/opmaak'
 import { oordeel, vergelijk, type Beter, type Oordeel } from '@/lib/club/cijfers/vergelijking'
-import type { Kant } from '@/lib/club/cijfers/rapport'
+import type { Kant, Rapport } from '@/lib/club/cijfers/rapport'
 
 export type Soort = 'aantal' | 'teken' | 'procent' | 'decimaal'
 
@@ -73,4 +73,17 @@ export function vergelijkTekst(t: Tegel, huidig: Kant, basis: Kant): VergelijkTe
   if (t.soort === 'decimaal') return { tekst: metTekenDecimaal(v.verschil), oordeel: oordeel(v, t.beter, 0.05) }
   const rel = v.relatief === null || Math.abs(v.relatief) < 0.005 ? '' : ` (${metTekenProcent(v.relatief)})`
   return { tekst: `${metTeken(v.verschil)}${rel}`, oordeel: oordeel(v, t.beter, 0.5) }
+}
+
+/**
+ * Het verloop van een kerncijfer over de maanden van het rapport (oudste eerst),
+ * voor de sparklijn. Een maand van voor de eerste data is null (een gat), zoals
+ * in het overzicht van 12 maanden.
+ */
+export function reeksVan(t: Tegel, r: Pick<Rapport, 'trend' | 'vanaf'>): (number | null)[] {
+  return r.trend.map((k) => {
+    const begin = t.nodig.map((n) => r.vanaf[n])
+    if (begin.some((b) => b === null || b > k.venster.tot)) return null
+    return t.waarde(k.cijfers)
+  })
 }

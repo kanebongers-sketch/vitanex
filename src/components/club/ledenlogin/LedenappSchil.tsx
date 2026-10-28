@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import type { Organisatie } from '@/lib/club/kern/organisatie'
 import '@/app/(aiyourgym)/(club)/club/club.css'
+import '@/components/club/ontwerp/ontwerp.css'
 import '@/components/club/app/app.css'
 import './ledenapp.css'
 

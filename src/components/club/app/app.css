@@ -305,3 +305,37 @@
   .club-lidapp-knop, .club-lidapp-volgende, .club-lidapp-volgende-pijl, .club-lidapp-schemalink, .club-lidapp-schemalink-pijl,
   .club-lidapp-oefening, .club-lidapp-dagkeuze button, .club-lidapp-blad-sluit, .club-lidapp-regels summary::after { transition: none; }
 }
+
+/* ── Designsysteem (28-10-2026): diepte in de ledenapp ───────────────────────
+   Kaarten liggen een laag boven de achtergrond met een lichtrand; de volgende
+   les vangt licht dat de aanwijzer volgt (DiepteKaart); de week van het schema
+   is een ring met diepte (3D waar het kan, anders SVG). */
+.club-lidapp-licht { border-radius: var(--lidapp-radius); }
+.club-lidapp-volgende { box-shadow: var(--club-randlicht-sterk, none), var(--club-diepte-2, none); }
+.club-lidapp-duo > div, .club-lidapp-schemalink { background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card))); box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
+.club-lidapp-duo > [data-actief] strong { color: var(--brand-tekst, var(--brand)); }
+
+.club-lidapp-week {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px;
+  padding: 16px; border-radius: var(--lidapp-radius); border: 1px solid var(--line);
+  background: radial-gradient(120% 120% at 0% 50%, var(--brand-soft), transparent 60%), linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card)));
+  box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none);
+}
+.club-lidapp-week-tekst { display: grid; gap: 4px; min-width: 0; }
+.club-lidapp-week-tekst strong { font-family: var(--ff-kop); font-size: 24px; font-weight: 700; line-height: 1; text-transform: uppercase; }
+.club-lidapp-week-tekst > span:not(.club-lidapp-duo-label) { font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-week .club-ronde { margin-top: 6px; }
+.club-lidapp-week .club-ring-midden strong { font-size: 40px; }
+@media (max-width: 360px) { .club-lidapp-week { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+
+/* Schema: dagkeuze als verzonken spoor, dagen die deze week al gedaan zijn met
+   een vinkje, oefeningen als kaartjes met een lichtrand. De rep-speler en de
+   oefenbeelden zelf blijven zoals ze zijn. */
+.club-lidapp-dagkeuze { background: var(--club-opp-put, var(--club-vlak-hover)); border-color: transparent; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.club-lidapp-dagkeuze button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.club-lidapp-dagkeuze button[aria-pressed='true'] { box-shadow: var(--club-randlicht-sterk, none), 0 6px 16px -10px rgb(0 0 0 / 0.6); }
+.club-lidapp-dagvink { flex: none; color: var(--brand-tekst, var(--brand)); }
+.club-lidapp-dagkeuze button[aria-pressed='true'] .club-lidapp-dagvink { color: currentColor; }
+.club-lidapp-oefening { background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card))); box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
+.club-lidapp-oefening:active { transform: scale(0.985); }
+.club-lidapp-nr { font-variant-numeric: tabular-nums; }

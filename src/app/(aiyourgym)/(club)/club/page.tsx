@@ -32,10 +32,12 @@ import { OpvolgSectie } from '@/components/club/vandaag/secties/OpvolgSectie'
 import { AutoVerversen } from '@/components/club/taken/Hulpjes'
 import { isZichtbaar, ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
+import { VandaagStrook } from '@/components/club/vandaag/VandaagStrook'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
-// check-in (#checkin), de cijfers van nu, de lessen met wie er werkt, de taken
+// een strook met de taken van vandaag (link naar Taken, dat sinds 28-10-2026
+// weer een eigen tab heeft) en de bezetting, check-in (#checkin), de cijfers van nu, de lessen met wie er werkt, de taken
 // van vandaag (#taken), opvolgen met leads en jarigen (#opvolgen), en de leden
 // om op te letten. Check-in, taken en opvolgen laden los in een Suspense, zodat
 // de pagina snel in beeld staat. Een clubmanager ziet alleen de secties van
@@ -100,6 +102,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           Stand van <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
         </p>
       </header>
+
+      <VandaagStrook admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} lessen={data.lessen} taken={zie('taken')} rooster={mag('rooster')} />
 
       <Suspense fallback={null}>
         <StartKaart t={t} vestiging={vestiging} />

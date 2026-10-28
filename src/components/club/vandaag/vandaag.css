@@ -178,3 +178,17 @@
   .club-vandaag-label::after, .club-vandaag-hero, .club-vandaag-raster > div { animation: none; }
   .club-vandaag-balk span { transition: none; }
 }
+
+/* ── Designsysteem (28-10-2026): Vandaag met lagen ───────────────────────────
+   De hero is het verhoogde blok (de vraag van het scherm: wat gebeurt er nu),
+   het reuzencijfer staat in een vlak met licht van linksonder. Onder de
+   check-ins de vergelijkbalk (vandaag tegen vorige week op een schaal). De
+   strook bovenaan (taken, bezetting) komt uit ontwerp.css. */
+.club-vandaag-hero { border-color: var(--line-strong); box-shadow: var(--club-randlicht-sterk, none), var(--club-diepte-2, none); background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card)) 65%); }
+.club-vandaag-nu { background: radial-gradient(120% 90% at 0% 100%, var(--brand-soft) 0%, transparent 62%), transparent; }
+.club-vandaag-reus { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px var(--brand-glow, transparent); }
+.club-app[data-thema='licht'] .club-vandaag-reus { text-shadow: none; }
+.club-vandaag-feit .club-vgl { grid-column: 1 / -1; max-width: 420px; }
+.club-vandaag-kaart, .club-vandaag-raster .club-kaart { box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
+.club-vandaag-rijlink:active, .club-vandaag-gezicht:active { transform: scale(0.99); }
+.club-vandaag-sectie-kop h2 { letter-spacing: 0; }

@@ -25,6 +25,7 @@ import { AvgKaart } from '@/components/club/leden/AvgKaart'
 import { LedenappLink } from '@/components/club/ledenlogin/LedenappLink'
 import { LidTabs } from '@/components/club/leden/hub/LidTabs'
 import { LaatsteBezoeken } from '@/components/club/leden/hub/LaatsteBezoeken'
+import { BezoekCijfers } from '@/components/club/leden/hub/BezoekCijfers'
 import { TrainingTab } from '@/components/club/leden/hub/TrainingTab'
 import { LidmaatschapTab } from '@/components/club/leden/hub/LidmaatschapTab'
 import { PlanningTab } from '@/components/club/leden/hub/PlanningTab'
@@ -69,6 +70,7 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
   const { lid } = kaart
   return (
     <div className="club-lidhub-tab">
+      <BezoekCijfers kaart={kaart} nu={nu} />
       <div className="club-leden-tweekolom">
         <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
         <section className="club-kaart club-lidhub-kort" aria-labelledby="kort-kop">

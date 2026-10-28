@@ -9,9 +9,12 @@
 // inMenu: false bestaan voor de rechten en het zoekveld, niet in de balk.
 // Instellingen, de Ledenapp en Hulp staan onderaan in de hulpbalk (hulpbalk:
 // true, idee Kane 23-10-2026, zie hulpbalk.ts), niet in het menu: niets dubbel.
-// Minder tabbladen (besluit Kane 27-10-2026): Check-in, Taken en Opvolgen zijn
-// een sectie op Vandaag (sectie: het anker), geen eigen tab. Hun rechtensleutels
+// Minder tabbladen (besluit Kane 27-10-2026): Check-in en Opvolgen zijn een
+// sectie op Vandaag (sectie: het anker), geen eigen tab. Hun rechtensleutels
 // blijven, net als hun volledige schermen (schermen), voor diepe links en API.
+// Taken heeft weer een eigen tab in Werkvloer (besluit Kane 28-10-2026: de
+// poetsroosters en dagelijkse taken waren niet te vinden); de sectie met de
+// taken van vandaag blijft daarnaast op Vandaag staan (TakenSectie).
 
 import type { Module } from '@/lib/club/kern/organisatie'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
@@ -42,9 +45,11 @@ export interface Onderdeel {
   hulpbalk?: true
   /** Sneltoets op de pc: G en dan deze letter (bijvoorbeeld G dan L voor Leden). */
   toets?: string
+  /** Extra zoekwoorden voor het zoekveld (Ctrl K), bijvoorbeeld "poetsrooster" bij Taken. */
+  trefwoorden?: string
   /** Staat als sectie op Vandaag met dit anker (/club#anker), niet als tab in het menu. */
   sectie?: string
-  /** Volledige schermen achter deze sectie (te vinden via zoeken en de links in de sectie). */
+  /** Volledige schermen achter dit onderdeel of deze sectie (te vinden via zoeken). */
   schermen?: readonly Scherm[]
 }
 
@@ -64,7 +69,8 @@ export const ONDERDELEN: readonly Onderdeel[] = [
       { id: 'balie', label: 'Check-in op volledig scherm', uitleg: 'De balie voor een vaste tablet of pc, met scanner of bandjeslezer', pad: '/checkin' },
       { id: 'kiosk', label: 'Zelf-check-in scherm', uitleg: 'Tablet bij de ingang: leden scannen de QR-code uit hun app', pad: '/checkin/kiosk' },
     ] },
-  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken en de afsluitronde, op Vandaag', groep: 'werkvloer', module: 'taken', toets: 'k', sectie: 'taken',
+  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, poetslijsten en de afsluitronde', groep: 'werkvloer', module: 'taken', toets: 'k',
+    trefwoorden: 'poetsrooster poetslijst poetsen schoonmaak dagtaken dagelijkse taken afsluitronde excel',
     schermen: [
       { id: 'week', label: 'Takenweek', uitleg: 'Alle taken en poetslijsten van de hele week in een tabel', pad: '/taken/week' },
       { id: 'overzicht', label: 'Takenoverzicht', uitleg: 'Gemiste dagtaken, weektaken die achterlopen en afsluitrondes', pad: '/taken/overzicht' },
@@ -168,8 +174,8 @@ export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly str
 // ── Onderbalk (telefoon en tablet staand) ────────────────────────────────────
 // Besluit Kane (20-10-2026): de trainer op de vloer moet het makkelijk hebben.
 // Onder in beeld staan de vier onderdelen die deze persoon het meest nodig heeft,
-// plus Meer (het menupaneel met alles). Check-in, Taken en Opvolgen staan op
-// Vandaag (de eerste knop), dus niet apart in de balk. Vaste volgorde op basis van de rechten,
+// plus Meer (het menupaneel met alles). Check-in en Opvolgen staan op Vandaag
+// (de eerste knop), dus niet apart in de balk; Taken staat in Meer onder Werkvloer. Vaste volgorde op basis van de rechten,
 // niet op gebruik: een knop die verspringt kost meer dan hij oplevert.
 
 /** Volgorde van belang op de werkvloer; de eerste vier die iemand mag, komen in de onderbalk. */

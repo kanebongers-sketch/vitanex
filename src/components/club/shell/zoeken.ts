@@ -1,6 +1,7 @@
 // ─── Club: het zoekveld in de balk (PUUR) ───────────────────────────────────
 // Vindt alles waar iemand heen mag: leden (wie Leden mag), de onderdelen uit het
-// menu, de secties op Vandaag (Check-in, Taken, Opvolgen, met anker), de
+// menu (met hun volledige schermen, bv. de takenweek), de secties op Vandaag
+// (Check-in en Opvolgen, met anker), de
 // hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
 // een instel-pagina niet in het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
 
@@ -33,7 +34,7 @@ export function normaliseerZoek(tekst: string): string {
 /** Waar de hulpbalk staat, voor in het zoekvenster. */
 export const HULPBALK_PLEK = 'Onderaan'
 
-/** Waar de secties van Vandaag staan (Check-in, Taken, Opvolgen). */
+/** Waar de secties van Vandaag staan (Check-in, Opvolgen). */
 export const VANDAAG_PLEK = 'Werkvloer · Vandaag'
 
 /** Een sectie op Vandaag (met anker) en de volledige schermen erachter. */
@@ -51,10 +52,15 @@ function sectieItems(o: Onderdeel): ZoekItem[] {
 
 /** Alles wat deze persoon kan vinden: eerst het menu, dan de secties van Vandaag, dan de hulpbalk, dan de instellingen. */
 export function zoekItems(k: InstelKijker, instellingen: boolean): ZoekItem[] {
-  const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).map((o) => {
+  const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).flatMap((o) => {
     const plek = GROEPEN.find((g) => g.sleutel === o.groep)?.label ?? ''
     const toets = toetsTekst(o) ?? undefined
-    return { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${plek}`), toets }
+    const item: ZoekItem = { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${plek} ${o.trefwoorden ?? ''}`), toets }
+    const schermen = (o.schermen ?? []).map((s) => ({
+      id: `scherm-${o.sleutel}-${s.id}`, label: s.label, uitleg: s.uitleg, plek: `${plek} · ${o.label}`, pad: s.pad, perVestiging: true,
+      zoektekst: normaliseerZoek(`${s.label} ${s.uitleg} ${o.label}`),
+    }))
+    return [item, ...schermen]
   })
   const secties = sectiesVoor(k.uit, k.toegestaan).flatMap(sectieItems)
   const hulp = hulpItems(hulpbalkVoor(k, instellingen)).map((i) => ({

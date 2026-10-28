@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { WeekCijfers } from '@/lib/club/rooster/raster'
 import { roosterHref, type RoosterStaat } from '@/lib/club/rooster/url'
+import { CijferStrook, CijferTegel } from '@/components/club/ontwerp/CijferTegel'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 
 // Kop van het rooster: de week, bladeren, en de vier cijfers die ertoe doen.
 
@@ -45,30 +48,27 @@ export function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volge
   )
 }
 
-export function RoosterTegels({ cijfers }: { cijfers: WeekCijfers }) {
-  const bezetting = cijfers.gemiddeldeBezetting === null ? 'n.v.t.' : `${Math.round(cijfers.gemiddeldeBezetting * 100)}%`
+export async function RoosterTegels({ cijfers }: { cijfers: WeekCijfers }) {
+  const w = (await clubTekst(ONTWERP)).rooster
+  const bezetting = cijfers.gemiddeldeBezetting
   return (
-    <section className="club-tegels" aria-label="Deze week in cijfers">
-      <div className="club-tegel">
-        <span className="club-tegel-label">Lessen</span>
-        <span className="club-tegel-getal">{cijfers.lessen}</span>
-        <span className="club-tegel-sub">{cijfers.geannuleerd > 0 ? `${cijfers.geannuleerd} gaan niet door` : 'Alles gaat door'}</span>
-      </div>
-      <div className="club-tegel">
-        <span className="club-tegel-label">Gem. bezetting</span>
-        <span className="club-tegel-getal">{bezetting}</span>
-        <span className="club-tegel-sub">Geboekte plekken van de capaciteit</span>
-      </div>
-      <div className="club-tegel">
-        <span className="club-tegel-label">Wachtlijst</span>
-        <span className="club-tegel-getal">{cijfers.wachtlijst}</span>
-        <span className="club-tegel-sub">{cijfers.wachtlijst > 0 ? <span className="club-min">Vraag groter dan aanbod</span> : 'Niemand wacht'}</span>
-      </div>
-      <div className="club-tegel">
-        <span className="club-tegel-label">No-shows</span>
-        <span className="club-tegel-getal">{cijfers.noShows}</span>
-        <span className="club-tegel-sub">Afgevinkt als niet gekomen</span>
-      </div>
-    </section>
+    <CijferStrook label="Deze week in cijfers">
+      <CijferTegel label="Lessen" waarde={String(cijfers.lessen)} sub={cijfers.geannuleerd > 0 ? `${cijfers.geannuleerd} gaan niet door` : 'Alles gaat door'} />
+      <CijferTegel
+        label="Gem. bezetting"
+        waarde={bezetting === null ? '' : `${Math.round(bezetting * 100)}`}
+        eenheid="%"
+        leeg={bezetting === null}
+        meter={bezetting === null ? null : { deel: bezetting, label: w.bezettingLabel }}
+        sub="Geboekte plekken van de capaciteit"
+      />
+      <CijferTegel
+        label="Wachtlijst"
+        waarde={String(cijfers.wachtlijst)}
+        verschil={cijfers.wachtlijst > 0 ? { tekst: 'Vraag groter dan aanbod', oordeel: 'slechter' } : null}
+        sub={cijfers.wachtlijst > 0 ? undefined : 'Niemand wacht'}
+      />
+      <CijferTegel label="No-shows" waarde={String(cijfers.noShows)} sub="Afgevinkt als niet gekomen" />
+    </CijferStrook>
   )
 }

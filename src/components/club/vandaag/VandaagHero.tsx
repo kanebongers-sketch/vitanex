@@ -1,10 +1,15 @@
+import type { CSSProperties } from 'react'
 import type { Vandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { BINNEN_MINUTEN } from '@/lib/club/cijfers/vandaag'
 import { aantal, metTeken } from '@/lib/club/cijfers/opmaak'
 import { tijdNl, weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 
 // De bovenkant van Vandaag: een reuzencijfer voor wie er nu is, en daarnaast
-// drie feiten in een rustige kolom. Bewust geen rij gelijke tegels.
+// drie feiten in een rustige kolom. Bewust geen rij gelijke tegels. Onder de
+// check-ins een vergelijkbalk: vandaag tegen dezelfde tijd vorige week, op een
+// schaal (alleen als er vorige week iets te vergelijken is).
 
 interface Props {
   data: Vandaag
@@ -24,12 +29,40 @@ function VerschilTekst({ data }: Props) {
   )
 }
 
+interface VergelijkTeksten {
+  vandaag: string
+  vorige: string
+  label: string
+}
+
+function VergelijkBalk({ vandaag, vorige, w }: { vandaag: number; vorige: number; w: VergelijkTeksten }) {
+  const top = Math.max(vandaag, vorige, 1)
+  const rijen: [string, number][] = [
+    [w.vandaag, vandaag],
+    [w.vorige, vorige],
+  ]
+  return (
+    <ul className="club-vgl" aria-label={w.label}>
+      {rijen.map(([naam, n]) => (
+        <li key={naam}>
+          <span>{naam}</span>
+          <span className="club-vgl-balk" aria-hidden>
+            <span style={{ '--deel': n / top } as CSSProperties} />
+          </span>
+          <span className="club-vgl-getal">{n}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function proefTekst(data: Vandaag): string {
   if (data.proeflessen.length === 0) return 'Geen proeflessen gepland'
   return data.proeflessen.map((p) => `${p.naam.split(' ')[0]}${p.proeflesOp ? ` ${tijdNl(p.proeflesOp)}` : ''}`).join(', ')
 }
 
-export function VandaagHero({ data }: Props) {
+export async function VandaagHero({ data }: Props) {
+  const w = (await clubTekst(ONTWERP)).vandaag
   const lessen = data.lessen.filter((l) => !l.geannuleerd)
   const nogTeGaan = lessen.filter((l) => l.start.getTime() > data.nu.getTime()).length
   return (
@@ -47,6 +80,7 @@ export function VandaagHero({ data }: Props) {
           <dd>
             <strong>{data.checkinsVandaag}</strong>
             <VerschilTekst data={data} />
+            {data.verschil !== null && <VergelijkBalk vandaag={data.checkinsVandaag} vorige={data.checkinsVorigeWeek} w={{ vandaag: w.vandaag, vorige: w.vorige, label: w.vergelijkLabel }} />}
           </dd>
         </div>
         <div className="club-vandaag-feit">
