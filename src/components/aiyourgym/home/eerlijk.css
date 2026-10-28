@@ -79,7 +79,7 @@
 .ayg-pb-kern li { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 6px 18px; padding-block: 20px; border-top: 1px solid var(--ayg-inkt-lijn); }
 .ayg-pb-kern li:first-child { border-top: 0; }
 .ayg-pb-kern-nr { font-size: 13px; font-weight: 600; color: var(--ayg-accent); font-variant-numeric: tabular-nums; }
-.ayg-pb-kern-woord { font: 700 clamp(2.4rem, 5.4vw, 5.2rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.045em; font-variation-settings: 'wdth' 82; }
+.ayg-pb-kern-woord { font: italic 400 clamp(2.4rem, 5.4vw, 5.2rem)/0.95 var(--ayg-font-kop); letter-spacing: -0.02em; font-variation-settings: 'wdth' 82; }
 .ayg-pb-kern li > span:last-child { grid-column: 2; color: var(--ayg-inkt-tekst-2); max-width: 32ch; }
 @media (min-width: 960px) {
   .ayg-pb-kern { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 48px); }

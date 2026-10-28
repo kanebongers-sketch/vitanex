@@ -4,37 +4,44 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
 
-// Hoofdstuk 4 (flessengroen paneel): wie het bouwt, kort (besluit Kane 21-10-2026).
-// Een ingezet paneel met links de uitspraak en een boogvorm met de initialen (de plek
-// voor een portret zodra er een foto is), rechts twee tekstblokken en een knop.
-// Geen aantallen, reviews of logo's: die zijn er nog niet.
+// Het praktijkverhaal (antraciet podium): wie het bouwt, kort (besluit Kane 21-10-2026).
+// Links een staande boog met het monogram KB in champagne: de plek voor een portret
+// zodra er campagnefotografie is (docs/aiyourgym/FOTOGRAFIE.md), en nu al af als
+// typografisch beeld. Rechts het citaat groot in de serif, wie Kane is en wat je
+// mag verwachten. Geen aantallen, reviews of logo's: die zijn er nog niet.
 
 export async function Bouwer() {
   const t = VOORPAGINA[await getSiteTaal()].bouwer
   return (
-    <section className="vp-bouwer" aria-labelledby="vp-bouwer-titel">
-      <div className="vp-paneel vp-onthul">
-        <h2 id="vp-bouwer-titel" className="vp-h2 vp-paneel-titel">
-          {t.titel.map((r) => (
-            <span key={r} className="vp-blok">
-              {r}
-            </span>
-          ))}
-        </h2>
-        <div className="vp-boog" role="img" aria-label={t.stempel}>
+    <section className="vp-bouwer ayg-podium" aria-labelledby="vp-bouwer-titel">
+      <div className="ayg-wrap vp-bouwer-raster">
+        <div className="vp-boog vp-onthul" role="img" aria-label={t.stempel}>
           <span aria-hidden>KB</span>
         </div>
-        <div className="vp-paneel-tekst">
-          <div>
-            <h3>{t.wieKop}</h3>
-            <p>{t.wie}</p>
-          </div>
-          <div>
+        <div className="vp-bouwer-tekst vp-onthul">
+          <p className="ayg-label">{t.oog}</p>
+          <h2 id="vp-bouwer-titel" className="ayg-h2">
+            {t.titel.voor} <em>{t.titel.accent}</em>
+          </h2>
+          <figure className="vp-bouwer-citaat">
+            <blockquote>
+              <p>{t.citaat}</p>
+            </blockquote>
+            <figcaption>
+              <strong>{t.naam}</strong>
+              <span>{t.rol}</span>
+            </figcaption>
+          </figure>
+          <div className="vp-bouwer-verwacht">
             <h3>{t.verwachtKop}</h3>
-            <p>{t.verwacht}</p>
+            <ul>
+              {t.verwacht.map((v) => (
+                <li key={v}>{v}</li>
+              ))}
+            </ul>
           </div>
-          <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="vp-knop vp-knop-salie">
-            {t.knop} <ArrowRight size={18} aria-hidden />
+          <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="ayg-knop ayg-knop--rand vp-bouwer-knop">
+            {t.knop} <ArrowRight size={17} aria-hidden />
           </Link>
         </div>
       </div>

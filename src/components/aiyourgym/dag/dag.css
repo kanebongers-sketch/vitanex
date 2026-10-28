@@ -149,7 +149,7 @@
 .dag-fasen { position: relative; isolation: isolate; display: grid; gap: 4px; }
 .dag-fasen li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start; padding-block: 8px; }
 .dag-fasen li > span:last-child { display: grid; gap: 2px; }
-.dag-fasen b { font: 700 1.1rem/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.dag-fasen b { font: 600 1.1rem/1.15 var(--ayg-font-tekst); letter-spacing: -0.02em; }
 .dag-fasen li > span:last-child > span { font-size: 15px; color: var(--ayg-tekst-2); }
 .dag-fase-nr {
   display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;

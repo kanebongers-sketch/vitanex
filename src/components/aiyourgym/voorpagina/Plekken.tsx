@@ -1,83 +1,42 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
-import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
-import { navLinks } from '../site/paden'
+import { OOGOPSLAG } from '@/lib/aiyourgym/taal/woorden/website/home'
+import { aygPad } from '../site/paden'
 
-// Hoofdstuk 3 (creme): alles in een oogopslag als mozaiek van ongelijke tegels.
-// Regel: geen twee buren bevatten hetzelfde soort ding (kop, scherm, getal, lijst,
-// zin). Het getal 8 is echt: de startwizard heeft acht stappen.
+// De positionering (ivoor): vijf plekken in een sportschool, een systeem. Een
+// editoriale index zoals de inhoudsopgave van een magazine: groot nummer in
+// cursief, de plek, wat die plek met Club doet, en een link naar de details.
+// Alleen functies die Club echt heeft (inhoud/systeem.ts).
 
 export async function Plekken() {
-  const taal = await getSiteTaal()
-  const t = VOORPAGINA[taal].plekken
-  const functies = navLinks(taal).find((l) => l.sleutel === 'functies')
+  const t = OOGOPSLAG[await getSiteTaal()]
   return (
-    <section className="vp-plekken" aria-labelledby="vp-plekken-titel">
-      <div className="vp-raster vp-onthul">
-        <div className="vp-p vp-p-kop">
-          <h2 id="vp-plekken-titel" className="vp-h2">
-            {t.titel.map((r) => (
-              <span key={r} className="vp-blok">
-                {r}
-              </span>
-            ))}
+    <section className="vp-plekken ayg-ivoor" aria-labelledby="vp-plekken-titel">
+      <div className="ayg-wrap">
+        <div className="vp-plekken-kop vp-onthul">
+          <p className="ayg-label">{t.label}</p>
+          <h2 id="vp-plekken-titel" className="ayg-h2">
+            {t.titel.voor}
+            <em>{t.titel.accent}</em>
+            {t.titel.na}
           </h2>
-          <p>{t.tekst}</p>
-          {functies && (
-            <Link href={functies.pad} className="vp-pijl">
-              {t.alleFuncties} <ArrowRight size={18} aria-hidden />
-            </Link>
-          )}
+          <p className="ayg-lead">{t.lead}</p>
         </div>
-
-        <div className="vp-p vp-p-schema" data-ui>
-          <p className="vp-ui-klein">{t.schemaWaar}</p>
-          <p className="vp-p-schemakop">{t.schemaKop}</p>
-          <table>
-            <thead className="ayg-sr">
-              <tr>
-                <th scope="col">{t.kolommen.oefening}</th>
-                <th scope="col">{t.kolommen.sets}</th>
-                <th scope="col">{t.kolommen.rust}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {t.oefeningen.map((o, n) => (
-                <tr key={o.naam} data-gekozen={n === 0 ? '' : undefined}>
-                  <th scope="row">{o.naam}</th>
-                  <td>{o.sets}</td>
-                  <td>{o.rust}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="vp-ui-klein">{t.kernpuntenKop}</p>
-          <ol className="vp-p-punten">
-            {t.kernpunten.map((k) => (
-              <li key={k}>{k}</li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="vp-p vp-p-getal">
-          <p>
-            <strong>{t.getal}</strong>
-            <span>{t.getalTekst}</span>
-          </p>
-        </div>
-
-        <div className="vp-p vp-p-rollen">
-          <ul aria-label={t.rollenLabel}>
-            {t.rollen.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        </div>
-
-        <p className="vp-p vp-p-zin vp-p-app">{t.ledenapp}</p>
-        <p className="vp-p vp-p-zin vp-p-rechten">{t.rechten}</p>
-        <p className="vp-p vp-p-zin vp-p-talen">{t.talen}</p>
+        <ol className="vp-plekken-lijst vp-onthul">
+          {t.rollen.map((r, i) => (
+            <li key={r.naam}>
+              <Link href={aygPad(r.pad)}>
+                <span className="vp-plekken-nr" aria-hidden>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="vp-plekken-naam">{r.naam}</span>
+                <span className="vp-plekken-tekst">{r.kop}</span>
+                <ArrowUpRight className="vp-plekken-pijl" size={22} aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )

@@ -20,7 +20,7 @@
   .aygd-stap-tekst { position: sticky; top: 150px; }
 }
 .aygd-stap-tekst { display: grid; gap: 20px; align-content: start; }
-.aygd-stap-nr { font: 800 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-tekst-spook); }
+.aygd-stap-nr { font: italic 400 clamp(3.4rem, 7vw, 6rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.02em; font-variation-settings: 'wdth' 75; color: var(--ayg-tekst-spook); }
 .aygd-beeld > .aygm { min-width: 0; container-type: inline-size; }
 
 /* ── Bouwstenen in de schermen ───────────────────────────────────────────── */

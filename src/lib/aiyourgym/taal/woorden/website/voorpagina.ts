@@ -1,19 +1,30 @@
-// De voorpagina in kleurhoofdstukken (src/components/aiyourgym/voorpagina, richting
-// "Kleurhoofdstukken" 28-10-2026, ontwerp in Figma). Kort (besluit Kane 21-10-2026):
-// held, inchecken, in een oogopslag, wie het bouwt, oproep. Alle schermen tonen
-// Kernhal, een verzonnen sportschool in Utrecht, en zeggen dat ook.
+// De voorpagina in de richting "Obsidian Luxury" (besluit Kane 28-10-2026,
+// src/components/aiyourgym/voorpagina). Kort en gericht op aanmelden (besluit Kane
+// 21-10-2026): held, vijf plekken, het product, coaching bij elke oefening, wat het
+// anders maakt, overstappen, wie het bouwt en de oproep. Details op de subpagina's.
+// Alle schermen tonen Kernhal, een verzonnen sportschool in Utrecht, en zeggen dat ook.
+// Het Nederlands komt waar het kan uit de bronnen in inhoud/ (daar staat waarom elke
+// zin klopt); het Engels zegt hetzelfde, niets meer.
 
+import { NIET_KORT, WEL_KORT } from '@/components/aiyourgym/inhoud/eerlijk'
+import { OVERSTAP_STAPPEN, START_MINUTEN } from '@/components/aiyourgym/inhoud/vertrouwen'
 import { woordenboek } from '../../woordenboek'
 
 export const VOORPAGINA = woordenboek({
   nl: {
     held: {
-      titel: ['Je club,', 'een systeem.'],
-      lead: 'Clubsoftware voor sportscholen: check-in, lessen, rooster, trainingsschema’s met coaching en een ledenapp in jouw naam en kleuren.',
+      oog: 'Clubsoftware voor sportscholen',
+      titel: { voor: 'Je club,', accent: 'een systeem.' },
+      lead: 'Check-in, lessen, rooster, trainingsschema’s met coaching en een ledenapp in jouw naam en kleuren. Rustig voor de balie, snel op de vloer, helder voor de eigenaar.',
       probeer: (dagen: number) => `Probeer ${dagen} dagen gratis`,
       demo: 'Live demo bekijken',
       beeldLabel:
         'Het scherm Vandaag van Club voor Kernhal, een verzonnen sportschool in Utrecht: tegels met de dag, de lessen met bezetting en een ledenkaart, en ervoor de ledenapp op een telefoon',
+    },
+    product: {
+      oog: 'Het product',
+      titel: { voor: 'Zo ziet je dag', accent: 'eruit.' },
+      tekst: 'Echte schermen van Club en de ledenapp, gevuld met voorbeeldgegevens van Kernhal, een verzonnen sportschool.',
     },
     inchecken: {
       titelVoor: 'Binnen',
@@ -27,8 +38,6 @@ export const VOORPAGINA = woordenboek({
       tijdUit: 'Sanne Bakker · nog niet binnen',
     },
     plekken: {
-      titel: ['Vijf plekken.', 'Een systeem.'],
-      tekst: 'Balie, vloer, trainers, eigenaar en leden werken in dezelfde gegevens. Niets dubbel, niets overtypen.',
       schemaWaar: 'Nieuw schema · Kernhal (voorbeeld)',
       schemaKop: 'Dag A · Kracht',
       oefeningen: [
@@ -42,40 +51,79 @@ export const VOORPAGINA = woordenboek({
       kernpunten: ['Borst omhoog, blik vooruit', 'Knieen in de lijn van de tenen', 'Hielen blijven aan de grond'],
       getal: '8',
       getalTekst: 'stappen in de startwizard. Daarna staat je club live.',
-      rollenLabel: 'De vijf plekken',
-      rollen: ['Balie', 'Vloer', 'Trainer', 'Eigenaar', 'Lid'],
       ledenapp: 'De ledenapp draagt jouw naam, logo en kleuren. Leden reserveren, checken in en zien hun eigen schema.',
       rechten: 'Rechten per rol. De clubmanager ziet wat jij aanzet.',
       talen: 'Nederlands en Engels, voor team en leden.',
       alleFuncties: 'Alle functies',
     },
+    coaching: {
+      oog: 'Trainingsschema’s',
+      titel: { voor: 'Elke oefening met de coaching', accent: 'erbij.' },
+      tekst: 'Zoals een goede trainer het zegt: genummerde kernpunten, de fouten die je op de vloer echt ziet met de correctie, ademhaling en tempo. Het lid ziet het in de ledenapp, bij zijn eigen schema.',
+      kernpuntenVan: (naam: string) => `Kernpunten bij ${naam}`,
+      fout: 'Veelgemaakte fout',
+      beter: 'Zo beter',
+      bron: 'Uit de oefenbibliotheek van Club, zoals hij daar staat.',
+      aantal: (n: number) => `${n} oefeningen met uitgeschreven coaching`,
+      link: 'Zo werken de schema’s',
+    },
+    anders: {
+      oog: 'Wat het anders maakt',
+      titel: { voor: 'Wat we doen.', accent: 'En wat niet.' },
+      tekst: 'Liever nu duidelijk dan straks een verrassing. AI Your Gym werkt naast je ledenadministratie, niet in plaats van.',
+      welKop: 'Dit doet AI Your Gym',
+      nietKop: 'Dit doet het (nu) niet',
+      wel: WEL_KORT,
+      niet: NIET_KORT,
+      link: 'De volledige lijst',
+    },
+    overstap: {
+      oog: 'Overstappen',
+      titel: { voor: 'Overstappen zonder dat je club', accent: 'stilvalt.' },
+      tekst: `Je ledenadministratie blijft gewoon draaien. De startwizard duurt samen ongeveer ${START_MINUTEN} minuten, en je ziet steeds eerst wat er gebeurt.`,
+      stappen: OVERSTAP_STAPPEN,
+      link: 'Zo stap je over',
+      checklist: 'Gratis overstapchecklist',
+    },
     bouwer: {
-      titel: ['Gebouwd vanaf', 'de vloer.'],
-      wieKop: 'Wie bouwt het',
-      wie: 'Kane Bongers. Personal trainer sinds 2019 en PT-manager van acht locaties. Ik bouw AI Your Gym omdat ik elke week zie waar het dagelijkse werk vastloopt.',
+      oog: 'Wie het bouwt',
+      titel: { voor: 'Gebouwd vanaf', accent: 'de vloer.' },
+      citaat: 'Ik bouw AI Your Gym omdat ik elke week zie waar het dagelijkse werk vastloopt.',
+      naam: 'Kane Bongers',
+      rol: 'Personal trainer sinds 2019 en PT-manager van acht locaties',
       verwachtKop: 'Wat je mag verwachten',
-      verwacht: 'Eerlijk wat er wel en niet in zit. Elke maand nieuwe functies. Persoonlijke hulp bij het inrichten in de grotere pakketten.',
+      verwacht: [
+        'Eerlijk wat er wel en niet in zit',
+        'Elke maand nieuwe functies',
+        'Persoonlijke hulp bij het inrichten in de grotere pakketten',
+      ],
       knop: 'Plan een kennismaking',
-      stempel: 'Stempel met de initialen KB',
+      stempel: 'Monogram met de initialen KB, de plek voor een portret',
     },
     oproep: {
       titel: 'Open je club in AI Your Gym',
       voor: 'Open',
       veldLabel: 'Naam van je club',
       voorbeeld: 'jouw club',
-      na: 'in AI Your Gym',
-      knop: 'en start.',
+      na: 'in AI Your Gym.',
+      knop: 'Start je proefperiode',
       onder: (dagen: number) => `Daarna kies je een pakket en doorloop je de startwizard. ${dagen} dagen gratis, geen opstartkosten.`,
     },
   },
   en: {
     held: {
-      titel: ['Your club,', 'one system.'],
-      lead: 'Club software for gyms: check-in, classes, staff rota, training programmes with coaching and a member app in your name and colours.',
+      oog: 'Club software for gyms',
+      titel: { voor: 'Your club,', accent: 'one system.' },
+      lead: 'Check-in, classes, staff rota, training programmes with coaching and a member app in your name and colours. Calm for the front desk, quick on the gym floor, clear for the owner.',
       probeer: (dagen: number) => `Try it free for ${dagen} days`,
       demo: 'See the live demo',
       beeldLabel:
         'The Today screen in Club for Kernhal, a made-up gym in Utrecht: tiles for the day, the classes with attendance and a member card, with the member app on a phone in front',
+    },
+    product: {
+      oog: 'The product',
+      titel: { voor: 'This is what your day', accent: 'looks like.' },
+      tekst: 'Real screens from Club and the member app, filled with example data from Kernhal, a made-up gym.',
     },
     inchecken: {
       titelVoor: 'In',
@@ -89,8 +137,6 @@ export const VOORPAGINA = woordenboek({
       tijdUit: 'Sanne Bakker · not in yet',
     },
     plekken: {
-      titel: ['Five places.', 'One system.'],
-      tekst: 'Front desk, gym floor, trainers, owner and members all work from the same data. Nothing twice, nothing retyped.',
       schemaWaar: 'New programme · Kernhal (example)',
       schemaKop: 'Day A · Strength',
       oefeningen: [
@@ -104,29 +150,71 @@ export const VOORPAGINA = woordenboek({
       kernpunten: ['Chest up, eyes forward', 'Knees in line with the toes', 'Heels stay on the floor'],
       getal: '8',
       getalTekst: 'steps in the set-up wizard. Then your club is live.',
-      rollenLabel: 'The five places',
-      rollen: ['Front desk', 'Gym floor', 'Trainer', 'Owner', 'Member'],
       ledenapp: 'The member app carries your name, logo and colours. Members book, check in and see their own programme.',
       rechten: 'Permissions per role. The club manager sees what you switch on.',
       talen: 'Dutch and English, for staff and members.',
       alleFuncties: 'All features',
     },
+    coaching: {
+      oog: 'Training programmes',
+      titel: { voor: 'Every exercise comes with', accent: 'coaching.' },
+      tekst: 'The way a good trainer says it: numbered cues, the mistakes you actually see on the gym floor with the fix, breathing and tempo. Members see it in the member app, with their own programme.',
+      kernpuntenVan: (naam: string) => `Coaching cues for ${naam}`,
+      fout: 'Common mistake',
+      beter: 'Better',
+      bron: 'From the exercise library in Club, exactly as it appears there.',
+      aantal: (n: number) => `${n} exercises with written coaching`,
+      link: 'How programmes work',
+    },
+    anders: {
+      oog: 'What sets it apart',
+      titel: { voor: 'What we do.', accent: 'And what we don’t.' },
+      tekst: 'Better clear now than a surprise later. AI Your Gym works alongside your membership admin, not instead of it.',
+      welKop: 'What AI Your Gym does',
+      nietKop: 'What it doesn’t do (for now)',
+      wel: ['QR check-in', 'Classes and booking', 'Programmes with coaching', 'Member app in your branding'],
+      niet: ['Member direct debits and invoices', 'Member subscriptions', 'Integration with your membership admin', 'An app in the app stores'],
+      link: 'The full list',
+    },
+    overstap: {
+      oog: 'Switching',
+      titel: { voor: 'Switch without your club', accent: 'standing still.' },
+      tekst: `Your membership admin keeps running as usual. The set-up wizard takes about ${START_MINUTEN} minutes in total, and you always see what will happen first.`,
+      stappen: [
+        {
+          titel: 'Import your member list',
+          tekst: 'Export your members as a CSV from your current system, or use your Excel list (.xlsx). Common columns are recognised and you see what will change first.',
+        },
+        {
+          titel: 'Run the set-up wizard',
+          tekst: 'Eight steps, about a quarter of an hour in total. You choose your type of gym, the wizard prepares the rest and each step sets up its part straight away: branding, location, classes, team and members.',
+        },
+        {
+          titel: 'Members on the app',
+          tekst: 'Members get an email with a link to choose their password once, or scan the QR code on the poster at the front desk. After that they log in with email address and password.',
+        },
+      ],
+      link: 'How to switch',
+      checklist: 'Free switching checklist',
+    },
     bouwer: {
-      titel: ['Built from', 'the gym floor.'],
-      wieKop: 'Who builds it',
-      wie: 'Kane Bongers. Personal trainer since 2019 and PT manager across eight locations. I’m building AI Your Gym because every week I see where the day-to-day gets stuck.',
+      oog: 'Who builds it',
+      titel: { voor: 'Built from', accent: 'the gym floor.' },
+      citaat: 'I’m building AI Your Gym because every week I see where the day-to-day gets stuck.',
+      naam: 'Kane Bongers',
+      rol: 'Personal trainer since 2019 and PT manager across eight locations',
       verwachtKop: 'What you can expect',
-      verwacht: 'Straight answers on what is and isn’t included. New features every month. Personal help with set-up in the larger plans.',
+      verwacht: ['Straight answers on what is and isn’t included', 'New features every month', 'Personal help with set-up in the larger plans'],
       knop: 'Book an introduction',
-      stempel: 'Stamp with the initials KB',
+      stempel: 'Monogram with the initials KB, the place for a portrait',
     },
     oproep: {
       titel: 'Open your club in AI Your Gym',
       voor: 'Open',
       veldLabel: 'Name of your club',
       voorbeeld: 'your club',
-      na: 'in AI Your Gym',
-      knop: 'and start.',
+      na: 'in AI Your Gym.',
+      knop: 'Start your trial',
       onder: (dagen: number) => `Then you choose a plan and run through the set-up wizard. ${dagen} days free, no set-up fee.`,
     },
   },

@@ -24,10 +24,10 @@ function regels(titel: string): string[] {
   return titel.split(/(?<=\.)\s+/)
 }
 
-// Functies in kleurhoofdstukken (richting 28-10-2026, Figma-frame "Functies"): de held
-// op papier met een index van vijf gevulde tegels, daarna elk hoofdstuk als eigen vol
-// vlak (Beheer racegroen, Coaching flessengroen, Planning papier-diep, Groei salie,
-// Betrokkenheid inkt) en tot slot dezelfde oproep als de voorpagina.
+// Functies in de richting "Obsidian Luxury" (28-10-2026): de held op obsidiaan met een
+// index van vijf hoofdstukken, daarna elk hoofdstuk als eigen vlak in het ritme van de
+// site (Beheer obsidiaan, Coaching antraciet, Planning ivoor, Groei obsidiaan,
+// Betrokkenheid antraciet) en tot slot dezelfde oproep als de voorpagina.
 export default async function FunctiesPagina() {
   const taal = await getSiteTaal()
   const t = FUNCTIES_PAGINA[taal]
@@ -35,7 +35,8 @@ export default async function FunctiesPagina() {
   const actie = ACTIE[taal]
   return (
     <div className="vp fp">
-      <section className="fp-held" aria-labelledby="fp-titel">
+      <section className="fp-held ayg-wrap" aria-labelledby="fp-titel">
+        <p className="ayg-label fp-oog">{t.label}</p>
         <h1 id="fp-titel" className="vp-held-titel fp-titel">
           {regels(t.titel).map((r) => (
             <span key={r} className="vp-regel">
@@ -44,21 +45,24 @@ export default async function FunctiesPagina() {
           ))}
         </h1>
         <div className="fp-held-tekst">
-          <p className="vp-held-lead">{t.tekst}</p>
-          <div className="vp-knoppen">
-            <Link href={SITE_PADEN.AANMELDEN} className="vp-knop vp-knop-vol">
+          <p className="ayg-lead">{t.tekst}</p>
+          <div className="ayg-knoppen">
+            <Link href={SITE_PADEN.AANMELDEN} className="ayg-knop ayg-knop--accent">
               {actie.probeerDagen(PROEFDAGEN)} <ArrowRight size={18} aria-hidden />
             </Link>
-            <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="vp-knop vp-knop-zacht">
+            <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="ayg-knop ayg-knop--rand">
               {actie.planDemo}
             </Link>
           </div>
         </div>
         <nav className="fp-index" aria-label={s.index}>
           <ul>
-            {HOOFDSTUKKEN.map((h) => (
+            {HOOFDSTUKKEN.map((h, i) => (
               <li key={h.sleutel}>
-                <a href={`#${h.sleutel}`} className={`fp-vlak-${h.sleutel}`}>
+                <a href={`#${h.sleutel}`}>
+                  <span className="fp-index-nr" aria-hidden>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
                   {t.hoofdstukken[h.sleutel].naam}
                   <ArrowRight size={18} aria-hidden />
                 </a>
@@ -67,11 +71,12 @@ export default async function FunctiesPagina() {
           </ul>
         </nav>
       </section>
-      {HOOFDSTUKKEN.map((h) => {
+      {HOOFDSTUKKEN.map((h, i) => {
         const g = t.hoofdstukken[h.sleutel]
         return (
           <Hoofdstuk
             key={h.sleutel}
+            nr={i + 1}
             sleutel={h.sleutel}
             naam={g.naam}
             kop={g.kop}

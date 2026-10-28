@@ -26,7 +26,7 @@ export function Knop({ href, children, soort = 'inkt', pijl = false }: KnopProps
 }
 
 interface SectieKopProps {
-  /** Naam van de sectie; staat niet meer zichtbaar boven de kop (geen eyebrows, richting Kleurhoofdstukken). */
+  /** Naam van de sectie: klein en gespatieerd in champagne boven de kop (Obsidian Luxury). */
   label: string
   titel: ReactNode
   tekst?: ReactNode
@@ -35,9 +35,10 @@ interface SectieKopProps {
   id?: string
 }
 
-export function SectieKop({ titel, tekst, naast = false, id }: SectieKopProps) {
+export function SectieKop({ label, titel, tekst, naast = false, id }: SectieKopProps) {
   return (
     <div className={naast ? 'ayg-sectiekop ayg-sectiekop--naast' : 'ayg-sectiekop'}>
+      <p className="ayg-label">{label}</p>
       <h2 className="ayg-h2" id={id}>
         {titel}
       </h2>
@@ -54,14 +55,15 @@ interface PaginaKopProps {
 }
 
 /**
- * De opening van een subpagina als eerste kleurhoofdstuk: een vol racegroen vlak met
- * links de grote kop (de enige h1) en op de as van 42% de inleiding, zoals de
- * voorpagina. De paginanaam (label) staat in het menu en is niet ook nog een eyebrow.
+ * De opening van een subpagina (Obsidian Luxury): obsidiaan met een zacht champagne
+ * licht, de paginanaam klein in champagne, links de grote kop (de enige h1) en op de
+ * tweede kolom de inleiding, zoals de voorpagina.
  */
 export function PaginaKop({ label, titel, tekst, children }: PaginaKopProps) {
   return (
     <header className="ayg-paginakop" aria-label={label}>
-      <div className="ayg-paginakop-raster">
+      <div className="ayg-wrap ayg-paginakop-raster">
+        <p className="ayg-label ayg-paginakop-oog">{label}</p>
         <h1 className="ayg-display">{titel}</h1>
         <div className="ayg-paginakop-tekst">
           <p className="ayg-lead">{tekst}</p>

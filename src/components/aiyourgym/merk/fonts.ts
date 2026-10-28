@@ -1,11 +1,15 @@
-import { Hanken_Grotesk } from 'next/font/google'
+import { Hanken_Grotesk, Instrument_Serif } from 'next/font/google'
 
-// Letter van AI Your Gym: een familie, Hanken Grotesk (SIL Open Font License 1.1),
-// in twee gewichten die het werk doen (400 tekst, 500 koppen). Richting
-// "Kleurhoofdstukken" (28-10-2026): de kleur is luid, dus de letter blijft rustig.
-// next/font host hem mee met de build: bezoekers maken geen verbinding met Google.
-// De variabele --ayg-f-hanken voedt in aiyourgym.css zowel de kop- als de tekstletter.
-// Gebruik AYG_FONT_KLASSEN op hetzelfde element als de klasse .ayg.
+// Letters van AI Your Gym, richting "Obsidian Luxury" (besluit Kane 28-10-2026).
+// Twee families, beide SIL Open Font License 1.1:
+// - Instrument Serif (400 en cursief): de editoriale stem voor de grote koppen,
+//   cijfers en citaten. Smal en scherp, zoals een modetitel; cursief alleen voor
+//   het ene woord dat in champagne staat.
+// - Hanken Grotesk: zeer leesbare moderne sans voor tekst, knoppen en kleine koppen.
+// next/font host ze mee met de build: bezoekers maken geen verbinding met Google.
+// De variabelen --ayg-f-serif en --ayg-f-hanken voeden --ayg-font-kop en
+// --ayg-font-tekst in aiyourgym.css. Gebruik AYG_FONT_KLASSEN op hetzelfde
+// element als de klasse .ayg.
 
 const hanken = Hanken_Grotesk({
   subsets: ['latin'],
@@ -13,4 +17,12 @@ const hanken = Hanken_Grotesk({
   display: 'swap',
 })
 
-export const AYG_FONT_KLASSEN = hanken.variable
+const serif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--ayg-f-serif',
+  display: 'swap',
+})
+
+export const AYG_FONT_KLASSEN = `${hanken.variable} ${serif.variable}`

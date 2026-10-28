@@ -2,8 +2,13 @@
 // Embleem in een raster van 100 x 100. Woordmerk met kapitaalhoogte 100 (Big Shoulders
 // Bold, SIL OFL 1.1, als paden), bovenkant op y = 0.
 
-/** Vaste merkkleuren, Racegroen (besluit Kane 23-10-2026). Terugval als de css er niet is. */
+/** Vaste merkkleuren. Obsidian Luxury (28-10-2026) voor de website; racegroen tot creme
+ * blijven voor de bestanden in docs/aiyourgym/brand. Terugval als de css er niet is. */
 export const MERK_KLEUR = {
+  obsidiaan: '#0A0A0B',
+  antraciet: '#1A1A1D',
+  ivoor: '#F3EEE5',
+  champagne: '#D4BF96',
   racegroen: '#10302A',
   creme: '#F1ECE1',
   flessengroen: '#1E4A40',

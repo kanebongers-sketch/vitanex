@@ -7,11 +7,12 @@ import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { siteTekst } from '@/lib/aiyourgym/taal/server'
 import { SCHERM } from '@/lib/aiyourgym/taal/woorden/website/scherm'
 
-// De deelafbeelding van de website (Open Graph en X, 1200 x 630). Racegroen vlak,
-// het logo met het creme embleem, de kop, en rechts groot en afgesneden het
-// embleem in flessengroen (toon op toon). Met de schakelaar uit een 404: dan mag
-// niets over AI Your Gym uitlekken.
-// Letters: Bricolage Grotesque en Geist (beide SIL OFL 1.1), zie merk/letters/.
+// De deelafbeelding van de website (Open Graph en X, 1200 x 630), Obsidian Luxury
+// (28-10-2026): obsidiaan vlak met een zacht champagne licht, het logo met het
+// champagne embleem, de kop in de serif, en rechts groot en afgesneden het embleem
+// in antraciet (toon op toon). Met de schakelaar uit een 404: dan mag niets over AI
+// Your Gym uitlekken.
+// Letters: Instrument Serif en Geist (beide SIL OFL 1.1), zie merk/letters/.
 // Het logo is vector (de paden uit merk-paden.ts) en wordt pas bij het maken van de
 // PNG getekend; plaat, kruis en vak Y met crispEdges, dus zonder zachte naden.
 // De tekst volgt de taalcookie (SCHERM; zonder cookie, zoals bij de meeste
@@ -50,27 +51,27 @@ function Embleem({ plaat, teken, maat }: { plaat: string; teken: string; maat: n
 export default async function Afbeelding() {
   await connection()
   if (!siteActief()) return new Response(null, { status: 404 })
-  const [kop, tekst, t] = await Promise.all([readFile(path.join(LETTERS, 'bricolage-og.ttf')), readFile(path.join(LETTERS, 'geist-og.ttf')), siteTekst(SCHERM)])
+  const [kop, tekst, t] = await Promise.all([readFile(path.join(LETTERS, 'instrument-serif-og.ttf')), readFile(path.join(LETTERS, 'geist-og.ttf')), siteTekst(SCHERM)])
   const logoHoogte = 64
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', backgroundColor: K.racegroen, color: K.creme, fontFamily: 'Geist' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', backgroundColor: K.obsidiaan, backgroundImage: 'radial-gradient(circle at 85% 10%, rgba(212, 191, 150, 0.22), transparent 55%)', color: K.ivoor, fontFamily: 'Geist' }}>
         <div style={{ position: 'absolute', right: -150, top: 120, display: 'flex' }}>
-          <Embleem plaat={K.flessengroen} teken={K.racegroen} maat={620} />
+          <Embleem plaat={K.antraciet} teken={K.obsidiaan} maat={620} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '72px 80px', width: '100%' }}>
           <svg width={(LOGO_BREEDTE / LOGO_HOOGTE) * logoHoogte} height={logoHoogte} viewBox={`0 0 ${LOGO_BREEDTE} ${LOGO_HOOGTE}`}>
-            {embleemDelen(K.creme, K.racegroen)}
-            <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={K.creme} />
+            {embleemDelen(K.champagne, K.obsidiaan)}
+            <path d={WOORD_PAD} transform={WOORD_TRANSFORM} fill={K.ivoor} />
           </svg>
-          <div style={{ display: 'flex', fontFamily: 'Bricolage', fontSize: 84, lineHeight: 1.02, letterSpacing: -2.8, maxWidth: 760 }}>
+          <div style={{ display: 'flex', fontFamily: 'Instrument Serif', fontSize: 96, lineHeight: 1, letterSpacing: -1.5, maxWidth: 780 }}>
             {t.deelKop}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 24, color: K.salie }}>
-            <div style={{ width: 40, height: 2, background: K.salie }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 24, color: K.champagne }}>
+            <div style={{ width: 40, height: 1, background: K.champagne }} />
             aiyourgym.com
-            <div style={{ width: 1, height: 22, background: K.flessengroen }} />
+            <div style={{ width: 1, height: 22, background: K.antraciet }} />
             {t.deelEu}
           </div>
         </div>
@@ -79,7 +80,7 @@ export default async function Afbeelding() {
     {
       ...size,
       fonts: [
-        { name: 'Bricolage', data: kop, weight: 700, style: 'normal' },
+        { name: 'Instrument Serif', data: kop, weight: 400, style: 'normal' },
         { name: 'Geist', data: tekst, weight: 400, style: 'normal' },
       ],
       headers: { 'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800' },

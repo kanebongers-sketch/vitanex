@@ -7,9 +7,9 @@ import { EMBLEEM_KRUIS_LIJN, EMBLEEM_LETTER_PAD, EMBLEEM_RASTER_PAD, EMBLEEM_Y_P
 //
 // Het embleem is altijd tweekleurig: --ayg-logo-plaat (plaat en Y) en
 // --ayg-logo-teken (kruis, vak Y en de letters A, I, G). Zonder die css de vaste
-// merkkleuren: racegroen met creme op een licht kleurenschema, creme met racegroen
-// op een donker kleurenschema (light-dark volgt color-scheme van de site). Het
-// woord volgt currentColor.
+// merkkleuren van Obsidian Luxury: obsidiaan met ivoor op een licht kleurenschema,
+// champagne met obsidiaan op een donker kleurenschema (light-dark volgt
+// color-scheme van de site). Het woord volgt currentColor.
 //
 // Scherp op elk scherm (ook 1,5x en retina): plaat, kruis en vak Y zonder
 // anti-aliasing (crispEdges), zodat hun randen op hele pixels vallen en er geen
@@ -22,7 +22,7 @@ export type AygLogoVorm = 'logo' | 'beeldmerk' | 'woordmerk'
 interface Props {
   /** Liggend logo (standaard), alleen het beeldmerk, of alleen het woordmerk. */
   vorm?: AygLogoVorm
-  /** Altijd de versie voor een donkere ondergrond (creme plaat), los van het kleurenschema. */
+  /** Altijd de versie voor een donkere ondergrond (champagne plaat), los van het kleurenschema. */
   opDonker?: boolean
   /** Puur sier naast zichtbare tekst: verborgen voor schermlezers. */
   sier?: boolean
@@ -30,12 +30,12 @@ interface Props {
 }
 
 const DONKER = {
-  '--ayg-logo-plaat': MERK_KLEUR.creme,
-  '--ayg-logo-teken': MERK_KLEUR.racegroen,
+  '--ayg-logo-plaat': MERK_KLEUR.champagne,
+  '--ayg-logo-teken': MERK_KLEUR.obsidiaan,
 } as CSSProperties
 
-const PLAAT = `var(--ayg-logo-plaat, light-dark(${MERK_KLEUR.racegroen}, ${MERK_KLEUR.creme}))`
-const TEKEN = `var(--ayg-logo-teken, light-dark(${MERK_KLEUR.creme}, ${MERK_KLEUR.racegroen}))`
+const PLAAT = `var(--ayg-logo-plaat, light-dark(${MERK_KLEUR.obsidiaan}, ${MERK_KLEUR.champagne}))`
+const TEKEN = `var(--ayg-logo-teken, light-dark(${MERK_KLEUR.ivoor}, ${MERK_KLEUR.obsidiaan}))`
 
 function Embleem() {
   return (

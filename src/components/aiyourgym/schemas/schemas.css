@@ -30,7 +30,7 @@
 /* ── Getekende schermen (in .aygm: de kleuren van Club) ─────────────────── */
 .ayg-ss-kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; }
 .ayg-ss-kop > span:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.ayg-ss-kop b { font: 700 16px/1.15 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.ayg-ss-kop b { font: 600 16px/1.15 var(--ayg-font-tekst); letter-spacing: -0.02em; }
 .ayg-ss-kop i { font-style: normal; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--brand-soft); color: var(--brand-tekst); }
 .ayg-ss-twee { display: grid; gap: 14px; }
 @container (min-width: 560px) { .ayg-ss-twee { grid-template-columns: 1fr 1fr; } }

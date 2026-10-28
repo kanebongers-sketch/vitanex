@@ -1,115 +1,148 @@
 /* ==========================================================================
-   AI Your Gym | verkoopwebsite
-   Richting "Racegroen" (besluit Kane 23-10-2026): premium en rustig, als een
-   besloten club. Creme papier #F1ECE1, inkt #111614 als tekst, racegroen #10302A
-   als hoofdkleur (knoppen, vinkjes, donkere podia), flessengroen #1E4A40 als
-   tweede groen (tekst en lijnen in accent, kaarten op het podium) en salie
-   #A7B5A8 als zacht accent (markering, accent op donker). Geen goud of brons.
-   Alles hangt aan de root-klasse .ayg, zodat niets van Fit Factory, MentaForce
-   of RELEASE V wordt geraakt.
-   De tokennamen hieronder zijn vast: het aanmeldformulier bouwt erop.
+   AI Your Gym | verkoopwebsite, designsysteem "Obsidian Luxury"
+   Richting A (besluit Kane 28-10-2026): diep zwart, antraciet, warm wit en een
+   ingetogen champagne-accent. Gedurfde editoriale typografie (Instrument Serif)
+   met een zeer leesbare sans (Hanken Grotesk). Een identiteit, geen tweede palet.
+
+   Opbouw
+   - .ayg            de basis: obsidiaan papier, warm witte tekst, champagne accent
+   - .ayg-ivoor      een lichte sectie (warm wit papier, obsidiaan tekst en knoppen,
+                     champagne als diepe tint voor tekst); zet dezelfde tokens om
+   - .ayg-podium     een iets hoger antraciet vlak (productbeelden, panelen)
+   De tokennamen zijn vast: componenten en het aanmeldformulier bouwen erop.
+   Elk kleurpaar wordt getoetst in src/components/aiyourgym/contrast.test.ts.
+   Alles hangt aan de root-klasse .ayg, zodat niets van de rest van de app wordt geraakt.
    ========================================================================== */
 
 .ayg {
-  /* Kleur */
-  --ayg-bg: #f1ece1; /* creme papier */
-  --ayg-vlak: #f8f5ee;
-  --ayg-vlak-2: #e6e0d2;
-  --ayg-tekst: #111614; /* inkt: 15.5:1 op bg */
-  --ayg-tekst-2: #4f5651; /* 6.4:1 op bg, 5.7:1 op vlak-2 */
-  --ayg-tekst-spook: #73786f; /* grote sierletters en nummers: 3.4:1 op vlak-2, 3.8:1 op bg */
-  --ayg-lijn: #d9d2c2;
-  --ayg-lijn-sterk: #767b72; /* 3.3:1 op vlak-2, voor invoervelden en randknoppen */
-  --ayg-accent: #10302a; /* racegroen: knoppen, vinkjes, badges, chips; creme erop */
-  --ayg-accent-tekst: #f1ece1; /* creme op racegroen: 12:1 */
-  --ayg-accent-sterk: #1e4a40; /* flessengroen als tekst, icoon of lijn op het papier: 8.5:1 op bg */
-  --ayg-accent-licht: #b9c6ba; /* lichte salie: accent als tekst of vlak op racegroen (8:1), racegroen erop */
-  --ayg-accent-zacht: #d3dbcd; /* zacht salievlak (markering onder inkt): 12.9:1 */
-  --ayg-focus: #a7b5a8; /* zachte saliehalo rond de inkten focusrand */
-  --ayg-fout: #b42318;
-  --ayg-ok: #1b6b38; /* 5:1 op vlak-2 */
-  /* De held: een rustige papierschaduw naar onderen (geen gloed), en de aanmeldband
-     een diepere flessengroene plek op het racegroene podium */
-  --ayg-held-vlak: #e9e3d5;
-  --ayg-gloed-band: 55%;
-  /* Contactbalk boven de kop: een rustige salietint, geen zwarte balk */
-  --ayg-balk: #e3e5da;
-  --ayg-balk-lijn: #cfd4c6;
-  /* Diepte in de held (werkdag, dag.css): ochtendlicht in schuine banen, een
-     contactschaduw onder de telefoon en een diepe schaduw voor zwevende vlakken.
-     Licht valt van linksboven, schaduwen vallen rechtsonder. */
-  --ayg-baan: #e4e7da;
-  --ayg-contact: rgb(15 20 18 / 0.34);
-  --ayg-schaduw-diep: 0 2px 0 rgb(15 20 18 / 0.05), 0 28px 50px -24px rgb(15 20 18 / 0.34), 0 70px 120px -50px rgb(15 20 18 / 0.32);
+  /* ── Kleur: obsidiaan (basis) ─────────────────────────────────────────── */
+  --ayg-bg: #0a0a0b; /* obsidiaan */
+  --ayg-vlak: #121214; /* een laag hoger: kaarten, menu */
+  --ayg-vlak-2: #1a1a1d; /* antraciet */
+  --ayg-tekst: #f3eee5; /* warm wit: 17:1 op bg */
+  --ayg-tekst-2: #a9a398; /* 6.9:1 op vlak-2 */
+  --ayg-tekst-spook: #7a756d; /* grote sierletters en nummers: 3.8:1 op vlak-2 */
+  --ayg-lijn: #26262a; /* haarlijn (sier) */
+  --ayg-lijn-sterk: #716d65; /* invoervelden en randknoppen: 3.4:1 op vlak-2 */
+  --ayg-accent: #d4bf96; /* champagne: knoppen, vinkjes, badges */
+  --ayg-accent-tekst: #0a0a0b; /* obsidiaan op champagne: 11:1 */
+  --ayg-accent-sterk: #d4bf96; /* champagne als tekst, icoon of lijn: 9.6:1 op vlak-2 */
+  --ayg-accent-licht: #e2d3b3; /* lichte champagne op het podium */
+  --ayg-accent-zacht: #2a2620; /* warm donker vlak onder een markering */
+  --ayg-focus: #d4bf96;
+  --ayg-fout: #ff8a7a;
+  --ayg-ok: #8fd3a8;
+  --ayg-held-vlak: #0e0e10;
+  --ayg-gloed-band: 40%;
+  --ayg-gloed: rgb(212 191 150 / 0.13); /* champagne licht dat in het zwart valt */
+  --ayg-balk: #121214;
+  --ayg-balk-lijn: #222225;
+  --ayg-baan: #141416;
+  --ayg-contact: rgb(0 0 0 / 0.6);
+  --ayg-schaduw-diep: 0 2px 0 rgb(0 0 0 / 0.35), 0 28px 50px -24px rgb(0 0 0 / 0.7), 0 70px 120px -50px rgb(0 0 0 / 0.75);
 
-  /* Donker podium (productbeelden): racegroen met creme */
-  --ayg-inkt: #10302a;
-  --ayg-inkt-2: #1e4a40;
-  --ayg-inkt-lijn: #2d5a4f;
-  --ayg-inkt-tekst: #f1ece1;
-  --ayg-inkt-tekst-2: #c5cec3; /* 8.8:1 op racegroen, 6.2:1 op flessengroen */
-  --ayg-inkt-spook: #829f94; /* grote sierletters op het podium: 3.4:1 en meer */
-  --ayg-voet-woord: #1d4840; /* het grote woordmerk in de voet: net iets lichter dan racegroen, puur sier (aria-hidden) */
+  /* Podium: antraciet, een trede boven het obsidiaan */
+  --ayg-inkt: #141416;
+  --ayg-inkt-2: #1d1d21;
+  --ayg-inkt-lijn: #2c2c31;
+  --ayg-inkt-tekst: #f3eee5;
+  --ayg-inkt-tekst-2: #aba59a; /* 6.9:1 op inkt-2 */
+  --ayg-inkt-spook: #7e7970;
+  --ayg-voet-woord: #34322e; /* het grote woordmerk in de voet: puur sier (aria-hidden) */
 
-  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een rustig palet rond
-     salie (salie, lichte salie, zeegroen, linnen, mist). Altijd met inkt erop of
-     als tekst op het racegroene podium; zie contrast.test.ts */
-  --ayg-h-tekst: #111614;
-  --ayg-h-beheer: #a7b5a8;
-  --ayg-h-coaching: #b7c6ae;
-  --ayg-h-planning: #9fbab2;
-  --ayg-h-groei: #cdc3b1;
-  --ayg-h-betrokkenheid: #aeb9c0;
+  /* Hoofdstukken (functies): tinten binnen hetzelfde palet, van champagne tot steen.
+     Altijd obsidiaan erop, of als tekst op het podium (zie contrast.test.ts). */
+  --ayg-h-tekst: #0a0a0b;
+  --ayg-h-beheer: #d4bf96; /* champagne */
+  --ayg-h-coaching: #e2d3b3; /* lichte champagne */
+  --ayg-h-planning: #c9c1b2; /* steen */
+  --ayg-h-groei: #b8b0a2; /* taupe */
+  --ayg-h-betrokkenheid: #ebe5da; /* ivoor */
 
-  /* Letters */
-  --ayg-font-kop: var(--ayg-f-hanken), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* ── Letters ──────────────────────────────────────────────────────────── */
+  --ayg-font-kop: var(--ayg-f-serif), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --ayg-font-tekst: var(--ayg-f-hanken), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ayg-t-display: clamp(3.1rem, 8.2vw, 9.6rem);
+  --ayg-t-h2: clamp(2.45rem, 5vw, 5.4rem);
+  --ayg-t-h3: clamp(1.12rem, 0.5vw + 0.98rem, 1.36rem);
+  --ayg-t-lead: clamp(1.08rem, 0.45vw + 0.96rem, 1.34rem);
+  --ayg-t-oog: 12px;
 
-  /* Vorm en diepte */
-  --ayg-radius: 14px;
-  --ayg-radius-klein: 9px;
-  --ayg-schaduw: 0 1px 0 rgb(15 20 18 / 0.04), 0 12px 32px -12px rgb(15 20 18 / 0.18), 0 40px 80px -40px rgb(15 20 18 / 0.28);
-  --ayg-schaduw-zacht: 0 1px 2px rgb(15 20 18 / 0.06), 0 8px 20px -10px rgb(15 20 18 / 0.14);
+  /* ── Vorm, ritme en beweging ──────────────────────────────────────────── */
+  --ayg-radius: 4px;
+  --ayg-radius-klein: 3px;
+  --ayg-radius-pil: 999px;
+  --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
+  --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
   --ayg-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --ayg-breed: 100vw; /* volle breedte (besluit Kane 18-10-2026) voor vlakken en beelden */
-  --ayg-inhoud: 1680px; /* inhoud stopt hier op heel brede schermen, de vlakken lopen door */
-  --ayg-rand: clamp(16px, 4vw, 80px);
+  --ayg-breed: 100vw;
+  --ayg-inhoud: 1440px;
+  --ayg-rand: clamp(16px, 4.4vw, 88px);
+  --ayg-sectie-ruimte: clamp(88px, 11vw, 184px);
+  --ayg-kop-hoogte: 72px;
 
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
-  color-scheme: light dark;
+  color-scheme: dark;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   background: var(--ayg-bg);
   color: var(--ayg-tekst);
   font-family: var(--ayg-font-tekst);
-  font-size: clamp(17px, 0.42vw + 11.6px, 19px);
-  line-height: 1.55;
-  font-feature-settings: 'ss01', 'cv11';
+  font-size: clamp(16.5px, 0.3vw + 13.5px, 18px);
+  line-height: 1.6;
+  font-synthesis: none;
   -webkit-user-select: text;
   user-select: text;
   overflow-x: clip;
 }
 
+/* ── Lichte sectie: warm wit (ivoor) ─────────────────────────────────────── */
+.ayg-ivoor {
+  --ayg-bg: #f3eee5;
+  --ayg-vlak: #faf7f1;
+  --ayg-vlak-2: #e9e2d5;
+  --ayg-tekst: #0e0e0f;
+  --ayg-tekst-2: #57524a; /* 6.0:1 op vlak-2 */
+  --ayg-tekst-spook: #7f796f; /* 3.4:1 op vlak-2 */
+  --ayg-lijn: #ddd5c6;
+  --ayg-lijn-sterk: #7f796f;
+  --ayg-accent: #0e0e0f; /* obsidiaan knop met warm wit erop */
+  --ayg-accent-tekst: #f3eee5;
+  --ayg-accent-sterk: #76603a; /* diepe champagne als tekst en lijn: 4.7:1 op vlak-2 */
+  --ayg-accent-zacht: #e6dabf;
+  --ayg-focus: #76603a;
+  --ayg-fout: #b42318;
+  --ayg-ok: #1b6b38;
+  --ayg-held-vlak: #ebe5da;
+  --ayg-gloed: rgb(118 96 58 / 0.1);
+  color-scheme: light;
+  background: var(--ayg-bg);
+  color: var(--ayg-tekst);
+}
+
 .ayg, .ayg *, .ayg *::before, .ayg *::after { box-sizing: border-box; }
-
-/* Geen korrellaag meer (20-10-2026): een vaste laag met mix-blend-mode, en ook
-   een herhalende korreltegel over de hele pagina van ruim 20.000 px, liet de browser bij
-   elke hover en scroll alles opnieuw tekenen. Het papier is nu een effen vlak. */
-
 .ayg ::selection { background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
-.ayg :is(h1, h2, h3, h4) {
+.ayg :is(h1, h2) {
   margin: 0;
   font-family: var(--ayg-font-kop);
-  font-weight: 700;
-  text-transform: none;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
-  font-variation-settings: 'wdth' 88;
+  font-weight: 400;
+  letter-spacing: -0.018em;
+  line-height: 0.98;
   text-wrap: balance;
 }
+.ayg :is(h3, h4) {
+  margin: 0;
+  font-family: var(--ayg-font-tekst);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.ayg :is(h1, h2) em, .ayg .ayg-cursief { font-style: italic; color: var(--ayg-accent-sterk); }
 .ayg :where(p) { margin: 0; text-wrap: pretty; }
 .ayg :where(ul, ol) { margin: 0; padding: 0; list-style: none; }
 .ayg :where(a) { color: inherit; }
@@ -117,379 +150,318 @@
 .ayg ::placeholder { color: var(--ayg-tekst-2); opacity: 1; }
 
 .ayg :where(a, button, summary, input, select, textarea):focus-visible {
-  outline: 2px solid var(--ayg-tekst);
+  outline: 2px solid var(--ayg-focus);
   outline-offset: 3px;
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ayg-focus) 75%, transparent);
-  border-radius: 6px;
+  border-radius: 3px;
 }
-.ayg :is(.ayg-podium, .ayg-voet) :where(a, button, summary):focus-visible { outline-color: var(--ayg-accent-licht); box-shadow: none; }
 
 .ayg-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.ayg-overslaan { position: absolute; left: 16px; top: -60px; z-index: 100; padding: 10px 18px; border-radius: 10px; background: var(--ayg-tekst); color: var(--ayg-bg); text-decoration: none; font-weight: 600; }
+.ayg-overslaan { position: absolute; left: 16px; top: -60px; z-index: 100; padding: 10px 18px; border-radius: var(--ayg-radius-pil); background: var(--ayg-accent); color: var(--ayg-accent-tekst); text-decoration: none; font-weight: 600; }
 .ayg-overslaan:focus { top: 12px; }
 
 /* ── Ritme en raster ─────────────────────────────────────────────────────── */
 .ayg-wrap { width: 100%; max-width: calc(var(--ayg-inhoud) + 2 * var(--ayg-rand)); margin-inline: auto; padding-inline: var(--ayg-rand); }
 .ayg-main { flex: 1; }
-.ayg-sectie { padding-block: clamp(72px, 10vw, 148px); }
-.ayg-sectie--krap { padding-block: clamp(48px, 6vw, 88px); }
-.ayg-sectie + .ayg-sectie:not(.ayg-podium) { border-top: 1px solid var(--ayg-lijn); }
+.ayg-sectie { padding-block: var(--ayg-sectie-ruimte); }
+.ayg-sectie--krap { padding-block: clamp(56px, 6vw, 96px); }
+.ayg-sectie + .ayg-sectie:not(.ayg-podium, .ayg-ivoor) { border-top: 1px solid var(--ayg-lijn); }
 
 .ayg-podium {
   background: var(--ayg-inkt);
   color: var(--ayg-inkt-tekst);
-  /* Ook de hoofdtekstkleur om, zodat niets dat --ayg-tekst gebruikt (koppen, links,
-     lijnen) donker op donker komt. Een inktknop wordt hier licht (zie .ayg-knop hieronder). */
   --ayg-tekst: var(--ayg-inkt-tekst);
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
-  /* Racegroen valt hier weg in het podium: het accent wordt de lichte salie met
-     racegroen erop, en het accent als tekst ook (anders donker op donker) */
   --ayg-accent: var(--ayg-accent-licht);
-  --ayg-accent-tekst: var(--ayg-inkt);
+  --ayg-accent-tekst: var(--ayg-h-tekst);
   --ayg-accent-sterk: var(--ayg-accent-licht);
   position: relative;
   overflow: clip;
+  box-shadow: inset 0 1px 0 var(--ayg-inkt-lijn), inset 0 -1px 0 var(--ayg-inkt-lijn);
 }
-.ayg-podium--rond { border-radius: clamp(20px, 3vw, 36px); margin-inline: clamp(8px, 1.4vw, 20px); }
-
-/* ── Donker ──────────────────────────────────────────────────────────────────
-   Een eigen, ontworpen donkere versie: bijna zwart papier met een groene ondertoon,
-   creme tekst en salie als accent (knoppen worden salie met racegroen erop). Omdat de site licht EN donker meldt (color-scheme en de
-   viewport in layout.tsx), maakt Chrome hem niet meer zelf automatisch donker.
-   Het podium ligt hier iets hoger dan het papier in plaats van dieper.
-   Alle paren worden getoetst in contrast.test.ts. */
-@media (prefers-color-scheme: dark) {
-  .ayg {
-    --ayg-bg: #0b0f0d;
-    --ayg-vlak: #121916;
-    --ayg-vlak-2: #18211d;
-    --ayg-tekst: #ece6d9; /* creme */
-    --ayg-tekst-2: #a9b2aa;
-    --ayg-tekst-spook: #78827b;
-    --ayg-lijn: #26302b;
-    --ayg-lijn-sterk: #6f7a73;
-    --ayg-accent: #b4c2b5; /* salie: 10.4:1 op bg, racegroen erop 7.7:1 */
-    --ayg-accent-tekst: #10302a;
-    --ayg-accent-sterk: #b4c2b5;
-    --ayg-accent-licht: #b4c2b5;
-    --ayg-accent-zacht: #1e4a40;
-    --ayg-focus: #2d5a4f;
-    --ayg-fout: #ff8f80;
-    --ayg-ok: #86d1a2;
-    --ayg-held-vlak: #0f1c18;
-    --ayg-gloed-band: 45%;
-    --ayg-balk: #0f211c;
-    --ayg-balk-lijn: #1c3830;
-    --ayg-baan: #13241e;
-    --ayg-contact: rgb(0 0 0 / 0.6);
-    --ayg-schaduw-diep: 0 2px 0 rgb(0 0 0 / 0.35), 0 28px 50px -24px rgb(0 0 0 / 0.7), 0 70px 120px -50px rgb(0 0 0 / 0.75);
-    --ayg-inkt: #10302a; /* het podium ligt als racegroen vlak boven het bijna zwart */
-    --ayg-inkt-2: #18403a;
-    --ayg-inkt-lijn: #2a5449;
-    --ayg-inkt-tekst: #f1ece1;
-    --ayg-inkt-tekst-2: #c3cdc2;
-    --ayg-inkt-spook: #829f94;
-    --ayg-voet-woord: #1c463d;
-    --ayg-h-tekst: #111614;
-    --ayg-h-beheer: #a7b5a8;
-    --ayg-h-coaching: #b7c6ae;
-    --ayg-h-planning: #9fbab2;
-    --ayg-h-groei: #cdc3b1;
-    --ayg-h-betrokkenheid: #aeb9c0;
-    --ayg-schaduw: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 40px 80px -40px rgb(0 0 0 / 0.7);
-    --ayg-schaduw-zacht: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -10px rgb(0 0 0 / 0.5);
-  }
-  /* Een vlak onder lichte tekst leest niet: de markering wordt salie als tekst */
-  .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
-  .ayg-podium { box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
-}
+.ayg-podium--rond { border-radius: var(--ayg-radius); box-shadow: inset 0 0 0 1px var(--ayg-inkt-lijn); }
+/* Een podium in een lichte sectie blijft het donkere vlak met lichte tekst */
+.ayg-ivoor .ayg-podium { --ayg-focus: var(--ayg-accent-licht); color-scheme: dark; }
 
 /* ── Typografie ──────────────────────────────────────────────────────────── */
+/* Het oog boven een kop: klein, gespatieerd, champagne, met een dunne lijn ervoor */
 .ayg-label {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
+  gap: 14px;
+  font-family: var(--ayg-font-tekst);
+  font-size: var(--ayg-t-oog);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ayg-tekst-2);
+  color: var(--ayg-accent-sterk);
   font-variant-numeric: tabular-nums;
 }
-.ayg-label::before { content: ''; width: 18px; height: 2px; background: currentColor; opacity: 0.7; }
-.ayg-label--accent::before { background: var(--ayg-accent-sterk); opacity: 1; height: 3px; }
+.ayg-label::before { content: ''; width: 28px; height: 1px; background: currentColor; }
 
-/* Bricolage Grotesque smal en zwaar op grote maten (breedte-as), Geist voor tekst en
-   tabelcijfers: twee families, de kop draagt de stem. Dezelfde maten op elke pagina. */
-.ayg-display { font-size: clamp(2.7rem, 6.6vw, 7.4rem); line-height: 0.92; letter-spacing: -0.05em; font-weight: 760; font-variation-settings: 'wdth' 78; }
-.ayg-h2 { font-size: clamp(2rem, 4.2vw, 4.6rem); line-height: 0.97; letter-spacing: -0.044em; font-weight: 730; font-variation-settings: 'wdth' 84; }
-.ayg-h3 { font-size: clamp(1.25rem, 1.6vw, 1.8rem); line-height: 1.12; letter-spacing: -0.025em; font-variation-settings: 'wdth' 94; }
-.ayg-lead { font-size: clamp(1.08rem, 0.5vw + 0.95rem, 1.42rem); line-height: 1.5; color: var(--ayg-tekst-2); max-width: 36em; }
-.ayg-klein { font-size: 0.84em; color: var(--ayg-tekst-2); }
-.ayg-markeer { background: linear-gradient(transparent 58%, var(--ayg-accent-zacht) 58%, var(--ayg-accent-zacht) 92%, transparent 92%); color: inherit; padding-inline: 0.04em; }
-.ayg-podium .ayg-markeer { background: none; color: var(--ayg-accent); }
+.ayg-display { font-size: var(--ayg-t-display); line-height: 0.9; letter-spacing: -0.024em; }
+.ayg-h2 { font-size: var(--ayg-t-h2); line-height: 0.96; letter-spacing: -0.018em; }
+.ayg .ayg-h3 { font-family: var(--ayg-font-tekst); font-size: var(--ayg-t-h3); font-weight: 500; letter-spacing: -0.012em; line-height: 1.25; }
+.ayg-lead { font-size: var(--ayg-t-lead); line-height: 1.55; color: var(--ayg-tekst-2); max-width: 36em; }
+.ayg-klein { font-size: 0.86em; color: var(--ayg-tekst-2); }
+.ayg-markeer { background: none; color: var(--ayg-accent-sterk); font-style: italic; padding: 0; }
+.ayg :is(h1, h2) .ayg-markeer { font-family: var(--ayg-font-kop); }
 
 /* ── Knoppen ─────────────────────────────────────────────────────────────── */
+/* Slanke pillen. Standaard warm wit op obsidiaan; de accentknop is champagne. */
 .ayg-knop {
   --k-bg: var(--ayg-tekst);
   --k-tekst: var(--ayg-bg);
-  --k-hover: color-mix(in srgb, var(--k-bg) 86%, var(--ayg-bg));
+  --k-hover: color-mix(in srgb, var(--k-bg) 88%, var(--ayg-bg));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 22px;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 28px;
   border: 0;
-  border-radius: 11px;
+  border-radius: var(--ayg-radius-pil);
   background: var(--k-bg);
   color: var(--k-tekst);
-  font: 600 15.5px/1 var(--ayg-font-tekst);
-  letter-spacing: -0.005em;
+  font: 500 15.5px/1 var(--ayg-font-tekst);
+  letter-spacing: 0.01em;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgb(15 20 18 / 0.1), 0 1px 0 rgb(255 255 255 / 0.25) inset, var(--ayg-schaduw-zacht);
   transition: transform 200ms var(--ayg-ease), background-color 200ms var(--ayg-ease), color 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease);
 }
-.ayg-knop svg { transition: transform 220ms var(--ayg-ease); }
-.ayg-knop:is(:hover, :focus-visible) { transform: translateY(-1px); background: var(--k-hover); }
+.ayg-knop svg { flex-shrink: 0; transition: transform 240ms var(--ayg-ease); }
+.ayg-knop:is(:hover, :focus-visible) { background: var(--k-hover); }
 .ayg-knop:is(:hover, :focus-visible) svg { transform: translateX(3px); }
-.ayg-knop:active { transform: translateY(0) scale(0.985); }
-.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); --k-hover: color-mix(in srgb, var(--ayg-accent) 88%, #ffffff); }
-.ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); --k-hover: color-mix(in srgb, var(--ayg-tekst) 7%, transparent); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
-.ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
-.ayg-podium .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
-.ayg-podium .ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst); }
+.ayg-knop:active { transform: scale(0.98); }
+.ayg-knop:focus-visible { outline-offset: 4px; border-radius: var(--ayg-radius-pil); }
+.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); --k-hover: color-mix(in srgb, var(--ayg-accent) 84%, #ffffff); }
+.ayg-ivoor .ayg-knop--accent { --k-hover: #2a2620; }
+.ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); --k-hover: color-mix(in srgb, var(--ayg-tekst) 6%, transparent); box-shadow: inset 0 0 0 1px var(--ayg-lijn-sterk); }
+.ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1px var(--ayg-accent-sterk); }
 .ayg-podium .ayg-knop:not(.ayg-knop--rand, .ayg-knop--accent) { --k-tekst: var(--ayg-inkt); }
-.ayg-knop--klein { min-height: 40px; padding: 0 16px; font-size: 14.5px; border-radius: 10px; }
+.ayg-knop--klein { min-height: 42px; padding: 0 20px; font-size: 14.5px; }
 .ayg-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-/* Smalle telefoon: de knoppen even breed onder elkaar, niet een rafelige rij */
 @media (max-width: 479px) {
   .ayg-knoppen > :is(.ayg-knop, .ayg-knoppen) { flex: 1 1 100%; }
 }
 
-.ayg-pijllink { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; transition: color 180ms var(--ayg-ease), border-color 180ms var(--ayg-ease); }
+.ayg-pijllink { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--ayg-accent-sterk); padding-bottom: 4px; transition: color 180ms var(--ayg-ease); }
 .ayg-pijllink:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
-.ayg-pijllink svg { transition: transform 220ms var(--ayg-ease); }
-.ayg-pijllink:is(:hover, :focus-visible) svg { transform: translateX(3px); }
+.ayg-pijllink svg { transition: transform 240ms var(--ayg-ease); }
+.ayg-pijllink:is(:hover, :focus-visible) svg { transform: translateX(4px); }
 
 /* ── Contactbalk boven de kop ────────────────────────────────────────────── */
-/* Een dunne, rustige salietint met inkt erop. Alleen als er telefoon of e-mail is;
-   zonder contactgegevens staat er alleen een smalle regel op schermen waar de
-   demoknop niet in de kop past (1024 tot 1079 px), en verder niets. */
+/* Alleen als er telefoon of e-mail is (src/lib/aiyourgym/contact.ts); anders weg. */
 .ayg-contactbalk { background: var(--ayg-balk); color: var(--ayg-tekst); font-size: 13px; box-shadow: inset 0 -1px 0 var(--ayg-balk-lijn); }
-.ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 34px; flex-wrap: wrap; }
+.ayg-contactbalk-rij { display: flex; align-items: center; justify-content: flex-end; gap: 8px 24px; min-height: 36px; flex-wrap: wrap; }
 .ayg-contactbalk-lijst { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-right: auto; }
 .ayg-contactbalk a { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; color: var(--ayg-tekst); text-decoration: none; transition: color 180ms var(--ayg-ease); }
 .ayg-contactbalk a:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
-.ayg-contactbalk-lijst svg { color: var(--ayg-accent-sterk); }
-.ayg-contactbalk-demo { font-weight: 600; }
-.ayg-contactbalk-demo svg { color: var(--ayg-accent-sterk); transition: transform 220ms var(--ayg-ease); }
-.ayg-contactbalk-demo:is(:hover, :focus-visible) svg { transform: translateX(3px); }
+.ayg-contactbalk-lijst svg, .ayg-contactbalk-demo svg { color: var(--ayg-accent-sterk); }
+.ayg-contactbalk-demo { font-weight: 500; }
 .ayg-contactbalk--leeg { display: none; }
-@media (min-width: 1024px) and (max-width: 1079px) {
-  .ayg-contactbalk--leeg { display: block; background: transparent; box-shadow: inset 0 -1px 0 var(--ayg-lijn); }
-}
 
-/* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
-/* Licht met racegroen (besluit Kane 23-10-2026): creme met inkt en een racegroene hoofdknop.
-   Bovenaan valt de kop weg in het papier (data-bovenaan, gezet door JavaScript); bij
-   scrollen een licht creme vlak met een fijne lijn, nooit een donkere balk. */
-.ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; }
-.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn), 0 12px 28px -22px rgb(15 20 18 / 0.22); transition: opacity 260ms var(--ayg-ease); }
+/* ── Kop ─────────────────────────────────────────────────────────────────── */
+/* Obsidiaan. Bovenaan valt de kop weg in de pagina (data-bovenaan, gezet door
+   JavaScript); bij scrollen een bijna dicht obsidiaan vlak met een haarlijn. */
+.ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; color: var(--ayg-tekst); }
+.ayg-kop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: color-mix(in srgb, var(--ayg-vlak) 96%, transparent); box-shadow: 0 1px 0 var(--ayg-lijn); transition: opacity 260ms var(--ayg-ease); }
 .ayg-kop[data-bovenaan]:not(:has(.ayg-menupaneel[data-open]))::before { opacity: 0; }
-.ayg-kop-rij { display: flex; align-items: center; gap: 28px; min-height: 68px; transition: transform 260ms var(--ayg-ease); }
+.ayg-kop-rij { display: flex; align-items: center; gap: 28px; min-height: var(--ayg-kop-hoogte); }
 .ayg-kop-logo { display: inline-flex; flex-shrink: 0; color: var(--ayg-tekst); text-decoration: none; }
-.ayg-kop-logo svg { height: 30px; width: auto; }
-.ayg-nav { display: none; flex: 1; }
-.ayg-nav ul { display: flex; gap: 2px; }
-.ayg-nav a { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 9px; color: var(--ayg-tekst-2); font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none; transition: color 160ms, background-color 160ms; }
-.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--ayg-accent-sterk); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 240ms var(--ayg-ease), opacity 240ms var(--ayg-ease); }
-.ayg-nav a:is(:hover, :focus-visible) { color: var(--ayg-tekst); }
-.ayg-nav a:is(:hover, :focus-visible)::after { transform: scaleX(1); opacity: 0.55; }
-.ayg-nav a[aria-current='page'] { color: var(--ayg-tekst); }
-.ayg-nav a[aria-current='page']::after { transform: scaleX(1); opacity: 1; }
-.ayg-kop-acties { display: none; margin-left: auto; align-items: center; gap: 6px; }
-.ayg-kop-demo { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 10px; font-size: 14.5px; font-weight: 600; text-decoration: none; color: var(--ayg-tekst); transition: background-color 160ms; }
-.ayg-kop-demo:is(:hover, :focus-visible), .ayg-kop-demo[aria-current='page'] { background: color-mix(in srgb, var(--ayg-vlak-2) 80%, transparent); }
-.ayg-menuknop { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 6px; border: 0; border-radius: 99px; background: var(--ayg-vlak); color: var(--ayg-tekst); font: 600 15px/1 var(--ayg-font-tekst); cursor: pointer; box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw-zacht); transition: transform 200ms var(--ayg-ease); }
-.ayg-menuknop[aria-expanded='true'] { box-shadow: inset 0 0 0 1.5px var(--ayg-accent-sterk); }
-.ayg-menuknop:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst), var(--ayg-schaduw-zacht); }
+.ayg-nav { display: none; flex: 1; justify-content: center; min-width: 0; }
+.ayg-nav ul { display: flex; gap: 4px; }
+.ayg-nav a { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; color: var(--ayg-tekst-2); font-size: 14.5px; font-weight: 500; letter-spacing: 0.01em; white-space: nowrap; text-decoration: none; transition: color 180ms var(--ayg-ease); }
+.ayg-nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 1px; background: var(--ayg-accent-sterk); transform: scaleX(0); transform-origin: left; transition: transform 260ms var(--ayg-ease); }
+.ayg-nav a:is(:hover, :focus-visible), .ayg-nav a[aria-current='page'] { color: var(--ayg-tekst); }
+.ayg-nav a:is(:hover, :focus-visible)::after, .ayg-nav a[aria-current='page']::after { transform: scaleX(1); }
+.ayg-kop-acties { display: none; flex-shrink: 0; margin-left: auto; align-items: center; gap: 8px; }
+.ayg-kop-acties > a { white-space: nowrap; }
+.ayg-kop-demo { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; font-size: 14.5px; font-weight: 500; text-decoration: none; color: var(--ayg-tekst); transition: color 180ms var(--ayg-ease); }
+.ayg-kop-demo:is(:hover, :focus-visible), .ayg-kop-demo[aria-current='page'] { color: var(--ayg-accent-sterk); }
+.ayg-menuknop { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px 0 6px; border: 0; border-radius: var(--ayg-radius-pil); background: var(--ayg-vlak); color: var(--ayg-tekst); font: 500 15px/1 var(--ayg-font-tekst); letter-spacing: 0.01em; cursor: pointer; box-shadow: inset 0 0 0 1px var(--ayg-lijn); transition: transform 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease); }
+.ayg-menuknop[aria-expanded='true'], .ayg-menuknop:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1px var(--ayg-accent-sterk); }
 .ayg-menuknop:active { transform: scale(0.97); }
 .ayg-menuknop-icoon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
 
-/* Menupaneel (telefoon): over het hele scherm onder de kop */
-.ayg-menupaneel { position: fixed; inset: var(--ayg-paneel-top, 68px) 0 0 0; z-index: 49; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 8px var(--ayg-rand) max(24px, env(safe-area-inset-bottom)); background: var(--ayg-vlak); overflow-y: auto; overscroll-behavior: contain; }
+/* Menupaneel (telefoon en tablet): over het hele scherm onder de kop */
+.ayg-menupaneel { position: fixed; inset: var(--ayg-paneel-top, 72px) 0 0 0; z-index: 49; display: flex; flex-direction: column; justify-content: space-between; gap: 36px; padding: 12px var(--ayg-rand) max(24px, env(safe-area-inset-bottom)); background: var(--ayg-vlak); overflow-y: auto; overscroll-behavior: contain; }
 .ayg-menupaneel[hidden] { display: none; }
-.ayg-menupaneel-lijst { display: grid; border-top: 2px solid var(--ayg-accent-sterk); }
+.ayg-menupaneel-lijst { display: grid; border-top: 1px solid var(--ayg-lijn); }
 .ayg-menupaneel-lijst li { border-bottom: 1px solid var(--ayg-lijn); }
-.ayg-menupaneel-lijst a { display: grid; grid-template-columns: 34px 1fr 24px; align-items: baseline; gap: 2px 10px; padding-block: 16px; text-decoration: none; }
-.ayg-menupaneel-nr { font-size: 12.5px; font-weight: 600; color: var(--ayg-tekst-2); font-variant-numeric: tabular-nums; }
-.ayg-menupaneel-naam { font: 700 clamp(1.9rem, 9vw, 2.6rem)/1 var(--ayg-font-kop); letter-spacing: -0.04em; font-variation-settings: 'wdth' 82; }
+.ayg-menupaneel-lijst a { display: grid; grid-template-columns: 36px 1fr 24px; align-items: baseline; gap: 4px 10px; padding-block: 16px; text-decoration: none; }
+.ayg-menupaneel-nr { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; color: var(--ayg-accent-sterk); font-variant-numeric: tabular-nums; }
+.ayg-menupaneel-naam { font: 400 clamp(2rem, 9vw, 2.8rem)/1 var(--ayg-font-kop); letter-spacing: -0.015em; }
 .ayg-menupaneel-uitleg { grid-column: 2; font-size: 14px; color: var(--ayg-tekst-2); }
-.ayg-menupaneel-pijl { grid-column: 3; grid-row: 1; align-self: center; color: var(--ayg-tekst-2); transition: transform 260ms var(--ayg-ease); }
-.ayg-menupaneel-lijst a:is(:hover, :focus-visible) .ayg-menupaneel-pijl { color: var(--ayg-accent-sterk);  transform: translate(2px, -2px); }
-.ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { text-decoration: underline; text-decoration-color: var(--ayg-accent-sterk); text-decoration-thickness: 4px; text-underline-offset: 6px; }
+.ayg-menupaneel-pijl { grid-column: 3; grid-row: 1; align-self: center; color: var(--ayg-tekst-2); transition: transform 260ms var(--ayg-ease), color 200ms var(--ayg-ease); }
+.ayg-menupaneel-lijst a:is(:hover, :focus-visible) .ayg-menupaneel-pijl { color: var(--ayg-accent-sterk); transform: translate(2px, -2px); }
+.ayg-menupaneel a[aria-current='page'] .ayg-menupaneel-naam { font-style: italic; color: var(--ayg-accent-sterk); }
 .ayg-menupaneel-onder { display: grid; gap: 10px; }
 .ayg-menupaneel-onder .ayg-knop { width: 100%; min-height: 54px; }
-/* Tablet: de twee knoppen naast elkaar in plaats van twee balken over de hele breedte */
 @media (min-width: 640px) {
   .ayg-menupaneel-onder { grid-template-columns: 1fr 1fr; }
   .ayg-menupaneel-live { grid-column: 1 / -1; }
 }
-.ayg-menupaneel-live { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-weight: 600; text-decoration: none; }
+.ayg-menupaneel-live { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-weight: 500; text-decoration: none; }
 @media (prefers-reduced-motion: no-preference) {
   .ayg-menupaneel[data-open] { animation: ayg-paneel 320ms var(--ayg-ease) both; }
-  .ayg-menupaneel[data-open] .ayg-menupaneel-lijst li { animation: ayg-in 460ms var(--ayg-ease) both; animation-delay: calc(60ms + var(--i, 0) * 45ms); }
+  .ayg-menupaneel[data-open] .ayg-menupaneel-lijst li { animation: ayg-in 420ms var(--ayg-ease) both; animation-delay: calc(40ms + var(--i, 0) * 40ms); }
 }
 @keyframes ayg-paneel { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
-/* Omslagpunten van de kop (gemeten met de echte letters, 23-10-2026). Niets in de kop
-   mag ooit naar twee regels: knoppen en links breken nooit af (nowrap) en per trede
-   valt er iets weg tot alles op een regel past.
-   - tot 1023 px: menuknop met menupaneel (telefoon en tablet staand)
-   - 1024 tot 1079: menu en "Probeer gratis"; de demo staat in de dunne regel erboven
-   - 1080 tot 1179: plus "Plan demo" (kort)
-   - 1180 tot 1279: plus "Plan een gratis demo" (voluit)
-   - 1280 tot 1379: plus "Live demo", menu nog compact
-   - vanaf 1380: alles op ware grootte */
-.ayg-kop-acties { flex-shrink: 0; }
-.ayg-kop-acties > a, .ayg-nav a { white-space: nowrap; }
-.ayg-nav { min-width: 0; }
+
+/* Logo in de kop */
+.ayg-kop-logo .ayg-logo { height: 28px; width: auto; }
+@media (max-width: 1023px) { .ayg-kop-logo .ayg-logo { height: 26px; } }
+@media (max-width: 359px) { .ayg-kop-logo .ayg-logo { height: 22px; } }
+
+/* Omslagpunten van de kop. Niets in de kop mag naar twee regels: per trede valt
+   er iets weg tot alles op een regel past.
+   - tot 1023 px: menuknop met menupaneel
+   - 1024 tot 1279: menu, taal en "Probeer gratis"
+   - 1280 tot 1439: plus "Live demo"
+   - vanaf 1440: plus "Plan een gratis demo" */
 @media (min-width: 1024px) {
   .ayg-nav, .ayg-kop-acties { display: flex; }
   .ayg-menuknop, .ayg-menupaneel { display: none; }
 }
-@media (min-width: 1024px) and (max-width: 1379px) {
-  /* Krap: menulinks op een regel houden zonder dat de kop te breed wordt */
-  .ayg-kop-rij { gap: 16px; }
-  .ayg-nav a { padding-inline: 9px; font-size: 14.5px; }
-  .ayg-nav a::after { left: 9px; right: 9px; }
-}
 @media (min-width: 1024px) and (max-width: 1279px) {
+  .ayg-kop-rij { gap: 16px; }
+  .ayg-nav a { padding-inline: 9px; font-size: 14px; }
+  .ayg-nav a::after { left: 9px; right: 9px; }
   .ayg-kop-demo { display: none; }
 }
-/* Nog krapper: de demoknop staat dan alleen in de dunne regel erboven (ContactBalk) */
-@media (min-width: 1024px) and (max-width: 1079px) {
-  .ayg-kop-acties .ayg-knop--rand { display: none; }
-}
-@media (max-width: 1179px) {
-  .ayg-kop-lang { display: none; }
-}
+@media (max-width: 1439px) { .ayg-kop-acties > .ayg-knop--rand { display: none; } }
+@media (max-width: 1179px) { .ayg-kop-lang { display: none; } }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
-/* Racegroen als anker onder het papier, met salie alleen als accent (lijnen, hover)
-   en een woordmerk dat net iets lichter is dan het vlak, in plaats van grijs. */
-.ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 56px 28px; margin-top: auto; }
-.ayg-voet-raster { display: grid; gap: 32px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.ayg-voet-merk { grid-column: 1 / -1; }
-.ayg-voet-merk svg { height: 34px; width: auto; color: var(--ayg-inkt-tekst); }
-.ayg-voet-merk p { margin-top: 14px; max-width: 28ch; font-size: 15px; color: var(--ayg-tekst-2); }
-.ayg-voet h2 { font: 600 12.5px/1 var(--ayg-font-tekst); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ayg-tekst-2); margin-bottom: 14px; }
-.ayg-voet ul { display: grid; gap: 4px; }
-.ayg-voet li a { display: inline-block; padding-block: 4px; font-size: 15px; }
-.ayg-voet a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; text-decoration-thickness: 1.5px; color: var(--ayg-inkt-tekst); transition: color 180ms var(--ayg-ease), text-decoration-color 180ms var(--ayg-ease); }
-.ayg-voet a:is(:hover, :focus-visible) { color: var(--ayg-accent); text-decoration-color: var(--ayg-accent); }
-.ayg-voet-onder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--ayg-inkt-lijn); font-size: 14px; color: var(--ayg-tekst-2); }
-.ayg-voet-inloggen { margin-left: auto; font-weight: 600; }
-.ayg-voet-woord { margin-top: 40px; font: 800 clamp(3.4rem, 15vw, 13rem)/0.8 var(--ayg-font-kop); letter-spacing: -0.06em; font-variation-settings: 'wdth' 75; color: var(--ayg-voet-woord); user-select: none; white-space: nowrap; }
-@media (min-width: 760px) { .ayg-voet-raster { grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); } .ayg-voet-merk { grid-column: auto; } }
+/* Obsidiaan met een haarlijn: het logo met de merkzin, drie kolommen links en het
+   woordmerk groot en bijna onzichtbaar als afsluiting. */
+.ayg-voet { --ayg-accent-sterk: var(--ayg-accent); margin-top: auto; padding-block: clamp(24px, 3vw, 48px) 0; background: var(--ayg-bg); color: var(--ayg-tekst); box-shadow: inset 0 1px 0 var(--ayg-lijn); overflow: clip; }
+.ayg-voet-raster { display: grid; gap: 40px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); padding-block: clamp(48px, 6vw, 80px); }
+.ayg-voet-merk { grid-column: 1 / -1; display: grid; gap: 18px; align-content: start; }
+.ayg-voet-merk .ayg-logo { height: 30px; width: auto; }
+.ayg-voet-merk p { max-width: 22ch; font: 400 clamp(1.5rem, 2vw, 2rem)/1.15 var(--ayg-font-kop); color: var(--ayg-tekst); }
+.ayg-voet h2 { margin-bottom: 18px; font: 600 var(--ayg-t-oog)/1 var(--ayg-font-tekst); letter-spacing: 0.22em; text-transform: uppercase; color: var(--ayg-accent-sterk); }
+.ayg-voet ul { display: grid; gap: 2px; }
+.ayg-voet li a { display: inline-block; padding-block: 6px; font-size: 15px; }
+.ayg-voet a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 6px; text-decoration-thickness: 1px; color: var(--ayg-tekst); transition: color 180ms var(--ayg-ease), text-decoration-color 180ms var(--ayg-ease); }
+.ayg-voet a:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); text-decoration-color: currentColor; }
+.ayg-voet a.ayg-knop { text-decoration: none; color: var(--k-tekst); }
+.ayg-voet-onder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; padding-block: 24px; border-top: 1px solid var(--ayg-lijn); font-size: 13.5px; color: var(--ayg-tekst-2); }
+.ayg-voet-onder a { color: var(--ayg-tekst-2); }
+@media (min-width: 760px) { .ayg-voet-eu { margin-left: auto; } }
+svg.ayg-voet-woord { display: block; width: 100%; height: auto; margin: 8px auto 0; padding: 0 var(--ayg-rand) clamp(16px, 2.4vw, 40px); max-width: calc(var(--ayg-inhoud) + 2 * var(--ayg-rand)); overflow: visible; color: var(--ayg-voet-woord); }
+@media (min-width: 760px) {
+  .ayg-voet-raster { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); }
+  .ayg-voet-merk { grid-column: auto; }
+}
+@media (max-width: 1023px) { .ayg-voet { padding-bottom: 88px; } }
 
 /* ── Sectiekop en paginakop ──────────────────────────────────────────────── */
-.ayg-sectiekop { display: grid; gap: 20px; max-width: 62rem; margin-bottom: clamp(40px, 6vw, 72px); }
-.ayg-sectiekop--naast { max-width: 1360px; }
+.ayg-sectiekop { display: grid; gap: 24px; max-width: 64rem; margin-bottom: clamp(48px, 6vw, 88px); }
+.ayg-sectiekop--naast { max-width: none; }
 @media (min-width: 960px) {
-  .ayg-sectiekop--naast { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; column-gap: clamp(48px, 5vw, 96px); }
+  .ayg-sectiekop--naast { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: end; column-gap: clamp(48px, 6vw, 120px); }
   .ayg-sectiekop--naast .ayg-label { grid-column: 1 / -1; }
 }
-.ayg-paginakop { position: relative; isolation: isolate; overflow: clip; padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 80px); }
-.ayg-paginakop .ayg-display { margin-block: 22px 26px; max-width: 16ch; }
-.ayg-paginakop .ayg-lead { max-width: 40em; }
+
+/* De opening van elke subpagina: obsidiaan met een zacht champagne licht van
+   rechtsboven en een haarlijn als horizon; links de grote kop, rechts de inleiding. */
+.ayg-paginakop { position: relative; isolation: isolate; overflow: clip; padding: clamp(72px, 10vw, 168px) 0 clamp(56px, 7vw, 112px); border-bottom: 1px solid var(--ayg-lijn); }
+.ayg-paginakop::before { content: ''; position: absolute; z-index: -1; inset: -40% -20% auto auto; width: min(1100px, 90vw); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, var(--ayg-gloed), transparent 72%); pointer-events: none; }
+.ayg-paginakop-raster { display: grid; gap: 36px; align-items: end; }
+.ayg-paginakop .ayg-display { margin: 0; max-width: 15ch; }
+.ayg-paginakop .ayg-lead { margin: 0; max-width: 34em; }
+.ayg-paginakop-extra { margin-top: 32px; }
+@media (min-width: 1024px) {
+  .ayg-paginakop-raster { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(48px, 6vw, 120px); }
+  .ayg-paginakop :is(.ayg-display, .ayg-paginakop-oog) { grid-column: 1 / -1; }
+  .ayg-paginakop-tekst { grid-column: 2; }
+}
 
 /* ── Kaarten en lijsten ──────────────────────────────────────────────────── */
-.ayg-kaart { position: relative; background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); border-radius: var(--ayg-radius); padding: clamp(22px, 2.4vw, 32px); }
+.ayg-kaart { position: relative; background: var(--ayg-vlak); border: 1px solid var(--ayg-lijn); border-radius: var(--ayg-radius); padding: clamp(24px, 2.6vw, 36px); }
 .ayg-podium .ayg-kaart { background: var(--ayg-inkt-2); }
-.ayg-vinklijst { display: grid; gap: 12px; }
-.ayg-vinklijst li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; }
-.ayg-vinklijst svg { margin-top: 3px; color: var(--ayg-accent-tekst); background: var(--ayg-accent); border-radius: 6px; padding: 3px; }
+.ayg-vinklijst { display: grid; gap: 14px; }
+.ayg-vinklijst li { display: grid; grid-template-columns: 22px 1fr; gap: 14px; align-items: start; }
+.ayg-vinklijst svg { margin-top: 3px; color: var(--ayg-accent-sterk); border-radius: 50%; padding: 3px; box-shadow: inset 0 0 0 1px var(--ayg-accent-sterk); }
 .ayg-genummerd { counter-reset: n; display: grid; gap: 0; }
-.ayg-genummerd > li { counter-increment: n; display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding-block: 26px; border-top: 1px solid var(--ayg-lijn); }
-.ayg-genummerd > li::before { content: counter(n, decimal-leading-zero); font: 700 15px/1.6 var(--ayg-font-tekst); font-variant-numeric: tabular-nums; color: var(--ayg-tekst-2); }
+.ayg-genummerd > li { counter-increment: n; display: grid; grid-template-columns: 72px 1fr; gap: 16px; padding-block: 28px; border-top: 1px solid var(--ayg-lijn); }
+.ayg-genummerd > li::before { content: counter(n, decimal-leading-zero); font: italic 400 1.6rem/1 var(--ayg-font-kop); color: var(--ayg-accent-sterk); font-variant-numeric: tabular-nums; }
 .ayg-genummerd h3 { margin-bottom: 8px; }
 .ayg-genummerd p { color: var(--ayg-tekst-2); }
 
 /* Vragen */
 .ayg-vragen { display: grid; border-top: 1px solid var(--ayg-lijn); }
 .ayg-vragen details { border-bottom: 1px solid var(--ayg-lijn); }
-.ayg-vragen summary { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 22px; cursor: pointer; list-style: none; font: 600 clamp(1.05rem, 0.4vw + 0.95rem, 1.3rem)/1.3 var(--ayg-font-tekst); transition: color 180ms var(--ayg-ease); }
+.ayg-vragen summary { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 24px; cursor: pointer; list-style: none; font: 500 clamp(1.05rem, 0.4vw + 0.95rem, 1.25rem)/1.35 var(--ayg-font-tekst); transition: color 180ms var(--ayg-ease); }
 .ayg-vragen summary::-webkit-details-marker { display: none; }
-.ayg-vragen summary svg { flex-shrink: 0; box-sizing: content-box; padding: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); transition: transform 240ms var(--ayg-ease), background-color 200ms var(--ayg-ease), color 200ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease); }
+.ayg-vragen summary svg { flex-shrink: 0; box-sizing: content-box; padding: 8px; border-radius: 50%; color: var(--ayg-accent-sterk); box-shadow: inset 0 0 0 1px var(--ayg-lijn-sterk); transition: transform 260ms var(--ayg-ease), box-shadow 200ms var(--ayg-ease); }
 .ayg-vragen summary:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
-.ayg-vragen summary:is(:hover, :focus-visible) svg { background: var(--ayg-tekst); color: var(--ayg-bg); box-shadow: none; }
+.ayg-vragen summary:is(:hover, :focus-visible) svg { box-shadow: inset 0 0 0 1px var(--ayg-accent-sterk); }
 .ayg-vragen details[open] summary svg { transform: rotate(45deg); }
 .ayg-vragen details p { padding-bottom: 24px; padding-right: 56px; max-width: 68ch; color: var(--ayg-tekst-2); }
+.ayg-vragen-link { margin-bottom: 24px; }
 
-/* Aanmeldband */
+/* Aanmeldband (oudere aanroepen) */
 .ayg-band { display: grid; gap: 32px; padding: clamp(36px, 6vw, 80px); }
 .ayg-band .ayg-h2 { max-width: 14ch; }
 @media (min-width: 900px) { .ayg-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; column-gap: clamp(32px, 5vw, 96px); } }
-/* De derde keus is een rustige tekstlink: zo breed als de tekst, niet over de hele kolom */
 .ayg-band-live { justify-self: start; }
 .ayg-band-gloed { position: absolute; inset: auto -10% -60% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--ayg-inkt-2) var(--ayg-gloed-band), transparent), transparent); pointer-events: none; }
 
 /* Concept (juridisch) */
 .ayg-concept { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--ayg-radius); background: var(--ayg-accent); color: var(--ayg-accent-tekst); font-weight: 500; }
 .ayg-concept strong { font-weight: 700; }
-/* Ook binnen .ayg-tekst (waar p de bijschriftkleur krijgt): op racegroen altijd creme */
 .ayg .ayg-concept { color: var(--ayg-accent-tekst); }
+.ayg-concept-icoon { flex-shrink: 0; }
 .ayg-tekst { max-width: 68ch; display: grid; gap: 18px; }
-/* Juridische teksten: de kolom lijnt links uit met de paginakop erboven */
 .ayg-wrap.ayg-tekst { max-width: calc(var(--ayg-inhoud) + 2 * var(--ayg-rand)); }
 .ayg-wrap.ayg-tekst > * { max-width: 68ch; }
-.ayg-tekst h2 { font-size: clamp(1.4rem, 2.2vw, 1.8rem); margin-top: 28px; }
+.ayg-tekst h2 { font-size: clamp(1.7rem, 2.6vw, 2.3rem); margin-top: 32px; }
 .ayg-tekst ul { list-style: disc; padding-left: 1.2em; display: grid; gap: 8px; }
+.ayg-tekst li::marker { color: var(--ayg-accent-sterk); }
 .ayg-tekst p, .ayg-tekst li { color: var(--ayg-tekst-2); }
-.ayg-tekst a { text-underline-offset: 3px; }
+.ayg-tekst a { text-underline-offset: 4px; text-decoration-color: var(--ayg-accent-sterk); }
 
 /* ── Geruststelling en oproepen ──────────────────────────────────────────── */
-/* Vlak bij elke aanmeldknop: wat het risico wegneemt. */
-.ayg-gerust { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; font-weight: 500; color: var(--ayg-tekst-2); }
-.ayg-gerust li { display: inline-flex; align-items: center; gap: 7px; }
-.ayg-gerust svg { flex-shrink: 0; width: 18px; height: 18px; padding: 2px; border-radius: 5px; background: var(--ayg-accent); color: var(--ayg-accent-tekst); }
-.ayg-sectie-actie { display: grid; gap: 16px; justify-items: start; margin-top: clamp(36px, 5vw, 56px); padding-top: clamp(24px, 3vw, 32px); border-top: 1px solid var(--ayg-lijn); }
+.ayg-gerust { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 14px; color: var(--ayg-tekst-2); }
+.ayg-gerust li { display: inline-flex; align-items: center; gap: 8px; }
+.ayg-gerust svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--ayg-accent-sterk); }
+.ayg-sectie-actie { display: grid; gap: 18px; justify-items: start; margin-top: clamp(40px, 5vw, 64px); padding-top: clamp(28px, 3vw, 36px); border-top: 1px solid var(--ayg-lijn); }
 .ayg-gesplitst-tekst .ayg-sectie-actie, .ayg-start-kop .ayg-sectie-actie, .ayg-gesplitst--boven .ayg-sectie-actie { margin-top: 4px; }
-.ayg-sectie-actie-zin { font-weight: 600; }
+.ayg-sectie-actie-zin { font: 400 clamp(1.4rem, 1.8vw, 1.8rem)/1.2 var(--ayg-font-kop); }
 
 /* Vaste aanmeldknop onderin op de telefoon, na het eerste scherm */
 .ayg-plak {
   position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 48;
-  display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 6px; border-radius: 16px;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 6px; border-radius: var(--ayg-radius-pil);
   background: color-mix(in srgb, var(--ayg-vlak) 97%, transparent); color: var(--ayg-tekst);
   box-shadow: inset 0 0 0 1px var(--ayg-lijn), var(--ayg-schaduw);
   transform: translateY(calc(100% + 24px)); opacity: 0; visibility: hidden;
   transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s linear 360ms;
 }
 .ayg-plak[data-zichtbaar] { transform: none; opacity: 1; visibility: visible; transition: transform 360ms var(--ayg-ease), opacity 260ms var(--ayg-ease), visibility 0s; }
-.ayg-plak .ayg-knop { min-height: 50px; box-shadow: none; }
-.ayg-plak-demo { display: inline-flex; align-items: center; padding: 0 18px; border-radius: 11px; color: var(--ayg-tekst); font-weight: 600; font-size: 15px; text-decoration: none; box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
-@media (max-width: 1023px) { .ayg-voet { padding-bottom: 104px; } }
+.ayg-plak .ayg-knop { min-height: 48px; padding-inline: 18px; }
+.ayg-plak-demo { display: inline-flex; align-items: center; padding: 0 18px; border-radius: var(--ayg-radius-pil); color: var(--ayg-tekst); font-weight: 500; font-size: 15px; text-decoration: none; box-shadow: inset 0 0 0 1px var(--ayg-lijn-sterk); }
 @media (min-width: 1024px) { .ayg-plak { display: none; } }
 
 /* ── Beweging ────────────────────────────────────────────────────────────── */
 @keyframes ayg-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes ayg-op { from { opacity: 0; transform: translateY(40px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes ayg-op { from { opacity: 0; transform: translateY(32px) scale(0.985); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: no-preference) {
-  .ayg-intro > * { animation: ayg-in 700ms var(--ayg-ease) both; }
+  .ayg-intro > * { animation: ayg-in 600ms var(--ayg-ease) both; }
   .ayg-intro > *:nth-child(2) { animation-delay: 80ms; }
   .ayg-intro > *:nth-child(3) { animation-delay: 160ms; }
   .ayg-intro > *:nth-child(4) { animation-delay: 240ms; }
-  /* Productbeelden komen een keer rustig op zodra ze in beeld scrollen. BuitenBeeld.tsx
-     zet data-onthul op .ayg (dan pas verbergen we ze) en data-in op elk beeld dat in
-     beeld komt; daarna loopt er niets meer mee met het scrollen. */
-  .ayg[data-onthul] .ayg-onthul { transition: opacity 700ms var(--ayg-ease), transform 900ms var(--ayg-ease); }
-  .ayg[data-onthul] .ayg-onthul:not([data-in]) { opacity: 0; transform: translateY(32px) scale(0.985); }
+  .ayg-paginakop-raster > * { animation: ayg-in 640ms var(--ayg-ease) both; }
+  .ayg-paginakop-raster > :nth-child(2) { animation-delay: 120ms; }
+  /* Productbeelden komen een keer rustig op zodra ze in beeld scrollen (BuitenBeeld.tsx) */
+  .ayg[data-onthul] .ayg-onthul { transition: opacity 600ms var(--ayg-ease), transform 800ms var(--ayg-ease); }
+  .ayg[data-onthul] .ayg-onthul:not([data-in]) { opacity: 0; transform: translateY(28px) scale(0.99); }
 }
 /* Doorlopende animaties staan stil zolang ze buiten beeld zijn (BuitenBeeld.tsx zet data-buiten) */
 .ayg [data-buiten], .ayg [data-buiten] * { animation-play-state: paused !important; }
@@ -498,50 +470,24 @@
 }
 
 /* ── Hulpklassen ─────────────────────────────────────────────────────────── */
-.ayg-stapel { display: grid; gap: 22px; align-content: start; }
-.ayg-paginakop-extra { margin-top: 34px; }
-.ayg-concept-icoon { flex-shrink: 0; }
+.ayg-stapel { display: grid; gap: 24px; align-content: start; }
+.ayg-stapel > .ayg-pijllink { justify-self: start; }
 :where(.ayg-band, .ayg-sectiekop, .ayg-voet-raster) > * { min-width: 0; }
 
-/* De site staat in de body van de app, en die body is een flexkolom met de
-   schermhoogte die zelf scrolt. Zonder flex-shrink: 0 kromp .ayg tot een
-   schermhoogte: daaronder scheen de donkere achtergrond van de app door
-   terwijl de tekst donker bleef (donker op donker). */
-.ayg { flex-shrink: 0; }
-
 /* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────
-   Vaste merkkleuren, los van de site-tokens: het stempelembleem is overal hetzelfde.
-   Op licht een racegroene plaat met creme tekens; op donker, in de voet en op een
-   podium draait dat om (een racegroene plaat valt daar weg). De namen
-   --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
+   Het huidige embleem en woordmerk in het nieuwe palet: een champagne plaat met
+   obsidiaan tekens, het woord in warm wit. Op een lichte sectie draait dat om. */
 .ayg-logo {
-  --ayg-logo-racegroen: #10302a;
-  --ayg-logo-creme: #f1ece1;
-  --ayg-logo-plaat: var(--ayg-logo-racegroen);
-  --ayg-logo-teken: var(--ayg-logo-creme);
+  --ayg-logo-plaat: #d4bf96;
+  --ayg-logo-teken: #0a0a0b;
   display: block;
   flex-shrink: 0;
   overflow: visible;
 }
-.ayg-voet .ayg-logo,
-.ayg-podium .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
-@media (prefers-color-scheme: dark) {
-  .ayg-logo { --ayg-logo-plaat: var(--ayg-logo-creme); --ayg-logo-teken: var(--ayg-logo-racegroen); }
-}
-.ayg-kop-logo .ayg-logo { height: 30px; width: auto; }
-/* Krappe pc-breedte: het logo iets kleiner, zodat menu en knoppen op een regel blijven */
-@media (min-width: 1024px) and (max-width: 1379px) { .ayg-kop-logo .ayg-logo { height: 25px; } }
-/* Telefoon: naast de menuknop; op de smalste schermen (320) nog iets kleiner */
-@media (max-width: 1023px) { .ayg-kop-logo .ayg-logo { height: 26px; } }
-@media (max-width: 359px) { .ayg-kop-logo .ayg-logo { height: 21px; } }
-.ayg-voet-merk .ayg-logo { height: 36px; width: auto; }
-/* Het grote woordmerk onder in de voet: dezelfde paden, over de volle breedte */
-svg.ayg-voet-woord { display: block; width: 100%; height: auto; color: var(--ayg-voet-woord); }
+.ayg-ivoor .ayg-logo { --ayg-logo-plaat: #0e0e0f; --ayg-logo-teken: #f3eee5; }
 
 /* ── Inloggen ────────────────────────────────────────────────────────────── */
-/* Formulier en hulp naast elkaar op brede schermen, zodat er geen leeg vlak naast het
-   smalle formulier staat; op de telefoon onder elkaar. */
-.ayg-inlog-sectie { padding-top: 0; }
-.ayg-inlog-raster { display: grid; gap: clamp(40px, 6vw, 96px); align-items: start; }
+.ayg-inlog-sectie { padding-top: clamp(48px, 6vw, 88px); }
+.ayg-inlog-raster { display: grid; gap: clamp(40px, 6vw, 112px); align-items: start; }
 .ayg-inlog-raster > * { min-width: 0; }
-@media (min-width: 900px) { .ayg-inlog-raster { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); } }
+@media (min-width: 900px) { .ayg-inlog-raster { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); } }

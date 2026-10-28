@@ -8,16 +8,10 @@
 @import "tailwindcss/preflight.css" layer(base);
 
 :root {
-  --ayg-pagina: #f1ece1;
-  --ayg-pagina-tekst: #111614;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ayg-pagina: #0b0f0d;
-    --ayg-pagina-tekst: #ece6d9;
-  }
+  /* Obsidiaan met warm wit (richting Obsidian Luxury, 28-10-2026): een identiteit, geen lichte variant */
+  --ayg-pagina: #0a0a0b;
+  --ayg-pagina-tekst: #f3eee5;
+  color-scheme: dark;
 }
 
 html {

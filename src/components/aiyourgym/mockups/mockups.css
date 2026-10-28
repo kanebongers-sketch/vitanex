@@ -6,14 +6,15 @@
    ========================================================================== */
 
 .aygm {
-  /* Kernhal (voorbeeldsportschool) in flessengroen: past bij het racegroen van de website */
-  --brand: #2f6153;
-  --brand-inkt: #f1ece1;
-  --brand-tekst: #9fc2b4;
-  --brand-soft: rgba(47, 97, 83, 0.24);
-  --bg-app: #0a0b09;
-  --bg-card: #141513;
-  --bg-raised: #1e1f1c;
+  /* Kernhal (voorbeeldsportschool) in champagne op bijna zwart: past bij Obsidian Luxury.
+     Een sportschool kiest in Club zijn eigen kleur (zie de huisstijl-demo). */
+  --brand: #c9b38a;
+  --brand-inkt: #0a0a0b;
+  --brand-tekst: #d9c7a3;
+  --brand-soft: rgba(201, 179, 138, 0.2);
+  --bg-app: #0b0b0c;
+  --bg-card: #151517;
+  --bg-raised: #1f1f22;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
   --text-1: rgba(255, 255, 255, 0.96);
@@ -22,6 +23,8 @@
   --club-ok: #6fd69a;
   --club-let-op: #f47c66;
   --club-info: #7fc4cf;
+  /* Het product heeft zijn eigen sans, ook voor koppen en getallen (niet de serif van de website) */
+  --ayg-font-kop: var(--ayg-font-tekst);
   font-family: var(--ayg-font-tekst);
   color: var(--text-1);
   font-size: 13px;
@@ -95,7 +98,7 @@
 .aygm-les[data-vol] span { color: var(--club-let-op); }
 
 /* ── Telefoon ────────────────────────────────────────────────────────────── */
-.aygm-toestel { width: 300px; max-width: 100%; aspect-ratio: 300 / 620; padding: 9px; border-radius: 48px; background: linear-gradient(150deg, #2a2f2c, #0c0e0d 40%, #1f2421); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.08), 0 40px 80px -30px rgba(0, 0, 0, 0.7), 0 80px 140px -70px rgba(15, 20, 18, 0.6); }
+.aygm-toestel { width: 300px; max-width: 100%; aspect-ratio: 300 / 620; padding: 9px; border-radius: 48px; background: linear-gradient(150deg, #2c2b29, #0c0c0d 40%, #222120); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.08), 0 40px 80px -30px rgba(0, 0, 0, 0.7), 0 80px 140px -70px rgba(0, 0, 0, 0.6); }
 .aygm-scherm { position: relative; height: 100%; border-radius: 40px; background: var(--bg-app); overflow: hidden; display: flex; flex-direction: column; }
 .aygm-status { display: flex; justify-content: space-between; align-items: center; height: 40px; padding: 0 24px; font-size: 11.5px; font-weight: 600; flex-shrink: 0; }
 .aygm-eiland { width: 84px; height: 24px; border-radius: 20px; background: #000; }
