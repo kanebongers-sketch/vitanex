@@ -73,6 +73,7 @@
 .ayg .ayg-kop-acties { padding-right: 0; gap: 4px; }
 .ayg .ayg-kop-acties > .ayg-knop--accent { align-self: stretch; min-height: var(--vp-kop-hoogte); padding-inline: 24px; }
 .ayg .ayg-kop-demo { border-radius: 0; }
+@media (max-width: 1439px) { .ayg .ayg-kop-demo, .ayg .ayg-kop-acties > .ayg-knop--rand { display: none; } }
 .ayg .ayg-menuknop { align-self: stretch; min-height: var(--vp-kop-hoogte); padding: 0 var(--vp-rand) 0 12px; }
 
 /* ── Gedeeld: koppen, knoppen en schermtekst van de hoofdstukken ───────────── */
@@ -103,85 +104,24 @@
 .vp-pijl svg { transition: transform 220ms var(--vp-ease); }
 .vp-pijl:is(:hover, :focus-visible) svg { transform: translateX(4px); }
 .vp-ui-klein { font-size: 13.5px; line-height: 1.35; opacity: 0.86; }
-.vp-ui-kop { font-size: clamp(1.25rem, 1.6vw, 1.75rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1.1; }
-.vp-ui-sterk { font-weight: 500; font-size: 16px; }
 
-/* ── 1 Held (papier) ──────────────────────────────────────────────────────── */
-.vp-held { background: var(--vp-papier); color: var(--vp-papier-tekst); }
-.vp-mozaiek {
-  --vp-rij: clamp(150px, 25svh, 250px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, var(--vp-rij));
-  grid-template-areas: 'a check i' 'y qr g';
-}
-.vp-tegel { position: relative; overflow: hidden; min-width: 0; }
-.vp-vlak-racegroen { background: var(--vp-racegroen); color: var(--vp-creme); }
-.vp-vlak-salie { background: var(--vp-salie); color: var(--vp-inkt); }
-.vp-vlak-fles { background: var(--vp-fles); color: var(--vp-creme); }
-.vp-vlak-inkt { background: var(--vp-inkt); color: var(--vp-salie); }
-.vp-letter { container-type: size; }
-.vp-letter span {
-  position: absolute; left: 0.06em; bottom: -0.2em;
-  font-size: 118cqh; font-weight: 500; line-height: 1; letter-spacing: -0.06em;
-}
-.vp-letter-a { grid-area: a; }
-.vp-letter-i { grid-area: i; }
-.vp-letter-y { grid-area: y; }
-.vp-letter-g { grid-area: g; }
-.vp-ui { padding: clamp(14px, 1.6vw, 24px); display: flex; flex-direction: column; gap: 6px; }
-.vp-ui-vandaag { grid-area: vandaag; background: var(--vp-papier-diep); display: none; }
-.vp-ui-tegels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--vp-voeg); margin-top: auto; }
-.vp-ui-tegels li { display: grid; gap: 2px; padding: 10px 12px; background: var(--vp-papier); }
-.vp-ui-tegels span { font-size: 13px; color: var(--vp-papier-zacht); }
-.vp-ui-tegels strong { font-weight: 500; font-size: clamp(1.4rem, 2vw, 1.9rem); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.vp-ui-qr { grid-area: qr; background: var(--vp-racegroen-licht); color: var(--vp-creme); }
-.vp-qr { width: min(46%, 104px); aspect-ratio: 1; padding: 8px; background: var(--vp-creme); color: var(--vp-inkt); }
-.vp-qr svg { width: 100%; height: 100%; fill: currentColor; display: block; }
-.vp-ui-qr .vp-ui-klein { color: var(--vp-salie); opacity: 1; margin-top: auto; }
-.vp-ui-check { grid-area: check; background: var(--vp-papier-diep); justify-content: flex-end; }
-.vp-ui-check .vp-ui-klein { color: var(--vp-papier-zacht); opacity: 1; }
-.vp-ui-lessen { grid-area: lessen; background: var(--vp-papier); display: none; }
-.vp-ui-lessen ul { display: grid; gap: 6px; margin-top: auto; }
-.vp-ui-lessen li { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: baseline; padding: 10px 12px; background: var(--vp-papier-diep); font-size: 15px; }
-.vp-ui-lessen li[data-vol] { background: var(--vp-salie); color: var(--vp-inkt); }
-.vp-ui-lessen strong { font-weight: 500; font-variant-numeric: tabular-nums; }
-.vp-ui-lessen em { font-style: normal; font-size: 13.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.vp-ui-schema { grid-area: schema; background: var(--vp-racegroen); color: var(--vp-creme); display: none; }
-.vp-ui-schema .vp-ui-klein { color: var(--vp-salie); opacity: 1; }
-.vp-ui-schema ol { margin-top: auto; display: grid; gap: 2px; font-size: 13.5px; list-style: decimal inside; }
-
-.vp-held-onder {
-  display: grid; gap: 28px;
-  padding: clamp(40px, 6vw, 96px) var(--vp-rand) clamp(48px, 6vw, 88px);
-  grid-template-areas: 'titel' 'uitleg' 'voorbeeld';
-}
-.vp-held-titel { grid-area: titel; font-size: var(--vp-t-held); line-height: 0.9; letter-spacing: -0.06em; }
+/* ── 1 Held (papier): kop in het midden, daaronder groot het product ─────── */
+.vp-held { background: var(--vp-papier); color: var(--vp-papier-tekst); overflow: clip; padding-top: clamp(72px, 9vw, 136px); }
+.vp-held-kop { display: grid; justify-items: center; gap: clamp(22px, 2.4vw, 32px); padding-inline: var(--vp-rand); text-align: center; }
+.vp-held-titel { font-size: var(--vp-t-held); line-height: 0.9; letter-spacing: -0.06em; }
 .vp-regel { display: block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; }
 .vp-regel > span { display: block; }
-.vp-held-uitleg { grid-area: uitleg; display: grid; gap: 28px; align-content: start; }
-.vp-held-lead { font-size: var(--vp-t-lead); line-height: 1.45; max-width: 30ch; }
-.vp-held-voorbeeld { grid-area: voorbeeld; font-size: 14px; color: var(--vp-papier-zacht); }
-
-@media (min-width: 768px) {
-  .vp-mozaiek { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-areas: 'a vandaag vandaag i' 'g lessen lessen y'; }
-  .vp-ui-vandaag, .vp-ui-lessen { display: flex; }
-  .vp-ui-check, .vp-ui-qr { display: none; }
-}
-@media (min-width: 1024px) {
-  .vp-mozaiek {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-template-areas: 'a vandaag vandaag i qr g' 'check lessen lessen y schema g';
-  }
-  .vp-ui-check, .vp-ui-qr, .vp-ui-schema { display: flex; }
-  .vp-letter-g span { bottom: -0.16em; font-size: 70cqh; }
-  .vp-held-onder {
-    grid-template-columns: 42fr 58fr; column-gap: 0;
-    grid-template-areas: 'uitleg titel' 'uitleg voorbeeld';
-    padding-top: clamp(72px, 7.6vw, 120px);
-  }
-  .vp-held-uitleg { padding-right: 32px; }
-  .vp-held-voorbeeld { align-self: end; }
+.vp-held-lead { font-size: var(--vp-t-lead); line-height: 1.45; max-width: 36ch; text-wrap: balance; }
+.vp-held-kop .vp-knoppen { justify-content: center; }
+.vp-held-beeld { margin: clamp(56px, 7vw, 104px) auto 0; width: min(1240px, calc(100% - 2 * var(--vp-rand))); }
+.vp-held-beeld .aygm-bijschrift { margin-top: 18px; text-align: center; color: var(--vp-papier-zacht); font-size: 14px; }
+.vp-held-scene { position: relative; padding-right: clamp(0px, 9vw, 150px); padding-bottom: clamp(24px, 4vw, 64px); }
+.vp-held-venster { position: relative; }
+.vp-held-toestel { position: absolute; right: 0; bottom: 0; width: clamp(150px, 21vw, 290px); }
+@media (max-width: 767px) {
+  .vp-held-scene { padding-right: 0; padding-bottom: 0; }
+  .vp-held-venster { display: none; }
+  .vp-held-toestel { position: relative; margin-inline: auto; width: min(300px, 80vw); }
 }
 
 /* ── 2 Inchecken (racegroen, wisselt naar flessengroen) ───────────────────── */
@@ -311,6 +251,7 @@
 }
 .vp-oproep-knop:is(:hover, :focus-visible) { background: var(--vp-inkt); }
 .vp-oproep-knop:active { transform: scale(0.98); }
+.vp-oproep-na { white-space: nowrap; }
 .vp-oproep-onder { font-size: 16px; max-width: 46ch; }
 @media (max-width: 767px) {
   .vp-oproep-regel { font-size: 10.5vw; }
@@ -361,12 +302,8 @@
 @media (prefers-reduced-motion: no-preference) {
   .vp-held-titel .vp-regel > span { animation: vp-op 900ms var(--vp-ease) both; }
   .vp-held-titel .vp-regel:nth-child(2) > span { animation-delay: 110ms; }
-  .vp-held-uitleg, .vp-held-voorbeeld { animation: vp-vervaag 600ms var(--vp-ease) 420ms both; }
-  .vp-letter span { animation: vp-stempel 820ms var(--vp-ease) both; }
-  .vp-letter-i span { animation-delay: 70ms; }
-  .vp-letter-y span { animation-delay: 140ms; }
-  .vp-letter-g span { animation-delay: 210ms; }
-  .vp-ui { animation: vp-vervaag 700ms var(--vp-ease) 260ms both; }
+  .vp-held-lead, .vp-held-kop .vp-knoppen { animation: vp-vervaag 600ms var(--vp-ease) 380ms both; }
+  .vp-held-beeld { animation: vp-beeld 1100ms var(--vp-ease) 520ms both; }
 
   .vp[data-onthul] .vp-onthul > * { transition: opacity 700ms var(--vp-ease), transform 800ms var(--vp-ease); }
   .vp[data-onthul] .vp-onthul:not([data-in]) > * { opacity: 0; transform: translateY(28px); }
@@ -378,4 +315,4 @@
 }
 @keyframes vp-op { from { transform: translateY(105%); } }
 @keyframes vp-vervaag { from { opacity: 0; transform: translateY(16px); } }
-@keyframes vp-stempel { from { transform: translateY(40%); } }
+@keyframes vp-beeld { from { opacity: 0; transform: translateY(48px) scale(0.98); } }
