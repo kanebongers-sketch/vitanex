@@ -2,7 +2,6 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ArrowRight, FileWarning, Plus } from 'lucide-react'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
-import { Lichtval } from '@/components/aiyourgym/dag/Lichtval'
 import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
 import { aygPad } from './paden'
 
@@ -27,6 +26,7 @@ export function Knop({ href, children, soort = 'inkt', pijl = false }: KnopProps
 }
 
 interface SectieKopProps {
+  /** Naam van de sectie; staat niet meer zichtbaar boven de kop (geen eyebrows, richting Kleurhoofdstukken). */
   label: string
   titel: ReactNode
   tekst?: ReactNode
@@ -35,10 +35,9 @@ interface SectieKopProps {
   id?: string
 }
 
-export function SectieKop({ label, titel, tekst, naast = false, id }: SectieKopProps) {
+export function SectieKop({ titel, tekst, naast = false, id }: SectieKopProps) {
   return (
     <div className={naast ? 'ayg-sectiekop ayg-sectiekop--naast' : 'ayg-sectiekop'}>
-      <p className="ayg-label ayg-label--accent">{label}</p>
       <h2 className="ayg-h2" id={id}>
         {titel}
       </h2>
@@ -55,18 +54,19 @@ interface PaginaKopProps {
 }
 
 /**
- * De opening van een subpagina: label, een grote kop (de enige h1) en een inleiding,
- * op dezelfde lichtval als de held van de voorpagina (een designtaal voor de hele site).
+ * De opening van een subpagina als eerste kleurhoofdstuk: een vol racegroen vlak met
+ * links de grote kop (de enige h1) en op de as van 42% de inleiding, zoals de
+ * voorpagina. De paginanaam (label) staat in het menu en is niet ook nog een eyebrow.
  */
 export function PaginaKop({ label, titel, tekst, children }: PaginaKopProps) {
   return (
-    <header className="ayg-paginakop">
-      <Lichtval />
-      <div className="ayg-wrap ayg-intro">
-        <p className="ayg-label ayg-label--accent">{label}</p>
+    <header className="ayg-paginakop" aria-label={label}>
+      <div className="ayg-paginakop-raster">
         <h1 className="ayg-display">{titel}</h1>
-        <p className="ayg-lead">{tekst}</p>
-        {children && <div className="ayg-paginakop-extra">{children}</div>}
+        <div className="ayg-paginakop-tekst">
+          <p className="ayg-lead">{tekst}</p>
+          {children && <div className="ayg-paginakop-extra">{children}</div>}
+        </div>
       </div>
     </header>
   )

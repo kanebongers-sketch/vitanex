@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Subpagina's in de taal van de kleurhoofdstukken (28-10-2026).
+   De subpagina's gebruiken nog hun eigen secties; deze laag trekt ze in hetzelfde
+   systeem als de voorpagina: de paginakop is een racegroen hoofdstuk, geen
+   eyebrows, vierkante hoeken, geen schaduw in rust, tekst in de volle inkt, en
+   de racegroene podia als volle vlakken van rand tot rand. Alleen de telefoon in
+   de schermvoorbeelden houdt zijn ronde hoeken (dat is het toestel zelf).
+   ========================================================================== */
+
+/* Paginakop: het eerste hoofdstuk */
+.ayg .ayg-paginakop {
+  padding: clamp(72px, 9vw, 144px) var(--vp-rand) clamp(56px, 6vw, 96px);
+  background: var(--vp-racegroen); color: var(--vp-creme);
+}
+.ayg-paginakop-raster { display: grid; gap: 32px; align-items: end; }
+.ayg .ayg-paginakop .ayg-display { margin: 0; max-width: 14ch; color: var(--vp-creme); font-size: clamp(2.8rem, 6.4vw, 7rem); line-height: 0.92; letter-spacing: -0.055em; }
+.ayg .ayg-paginakop .ayg-lead { margin: 0; max-width: 34ch; color: var(--vp-salie); font-size: var(--vp-t-lead); }
+.ayg .ayg-paginakop .ayg-paginakop-extra { margin-top: 28px; }
+.ayg .ayg-paginakop .ayg-knop--accent { --k-bg: var(--vp-salie); --k-tekst: var(--vp-inkt); --k-hover: var(--vp-creme); }
+.ayg .ayg-paginakop .ayg-knop--rand { --k-tekst: var(--vp-creme); box-shadow: inset 0 0 0 2px var(--vp-salie); }
+.ayg .ayg-paginakop .ayg-pijllink { color: var(--vp-creme); }
+.ayg .ayg-paginakop :where(a, button):focus-visible { outline-color: var(--vp-salie); box-shadow: none; }
+@media (min-width: 1024px) {
+  .ayg-paginakop-raster { grid-template-columns: 42fr 58fr; }
+  .ayg .ayg-paginakop .ayg-display { grid-column: 1 / -1; max-width: 16ch; }
+  .ayg-paginakop-tekst { grid-column: 2; }
+}
+
+/* Geen eyebrows meer boven koppen */
+.ayg .ayg-sectiekop > .ayg-label, .ayg .ayg-stapel > .ayg-label:first-child { display: none; }
+.ayg .ayg-label { letter-spacing: 0; text-transform: none; font-size: 15px; font-weight: 500; }
+
+/* Vierkant en zonder schaduw in rust; het toestel houdt zijn vorm */
+.ayg .ayg-main > :not(.vp, .fp) :where(*):not(.aygm-toestel, .aygm-toestel *, .ayg-taalkeuze, .ayg-taalkeuze *) { border-radius: 0; }
+.ayg .ayg-main > :not(.vp, .fp) :where(*):not(.aygm-toestel) { box-shadow: none; }
+.ayg .ayg-podium { margin-inline: 0; }
+
+/* Tekst in de volle inkt; grijs alleen voor bijzaken */
+.ayg .ayg-main .ayg-lead { color: inherit; }
+.ayg .ayg-markeer { background: none; color: inherit; padding: 0; }
+
+/* Taalkeuze in de kop: vierkant, zoals de rest */
+.ayg .ayg-kop .ayg-taalkeuze, .ayg .ayg-kop .ayg-taalkeuze * { border-radius: 0; }

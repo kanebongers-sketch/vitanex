@@ -1,58 +1,13 @@
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { DagTijd } from '@/components/aiyourgym/dag/DagTijd'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { siteTekst } from '@/lib/aiyourgym/taal/server'
-import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
-import { Geruststelling } from './Actie'
-import { Knop } from './bouwstenen'
-import { SITE_PADEN } from './paden'
+import { Oproep } from '@/components/aiyourgym/voorpagina/Oproep'
 
 interface Props {
-  /** Eigen kop uit het woordenboek van de pagina; anders de standaardkop uit ACTIE. */
+  /** Bleef voor oudere aanroepen; de oproep heeft overal dezelfde zin (richting Kleurhoofdstukken). */
   titel?: string
-  /** Op de voorpagina het laatste moment van de dag (sluitingstijd), met kloktijd. */
-  moment?: { id: string; minuten: number; naam: string }
 }
 
-// De afsluitende oproep onderaan elke pagina, in de taal van de pagina (woordenboek ACTIE).
-export async function AanmeldBand({ titel, moment }: Props) {
-  const t = await siteTekst(ACTIE)
-  const { AANMELDEN, DEMO, DEMO_AANVRAGEN } = SITE_PADEN
-  return (
-    <section
-      className={moment ? 'ayg-sectie--krap dag-dicht' : 'ayg-sectie--krap'}
-      aria-labelledby="band-titel"
-      id={moment?.id}
-      data-dag={moment?.minuten}
-      data-dag-naam={moment?.naam}
-    >
-      <div className="ayg-podium ayg-podium--rond">
-        <div className="ayg-band-gloed" aria-hidden />
-        <div className="ayg-band ayg-wrap">
-          <div className="ayg-stapel">
-            {moment ? <DagTijd minuten={moment.minuten} naam={moment.naam} licht /> : <p className="ayg-label ayg-label--accent">{t.bandLabel(PROEFDAGEN)}</p>}
-            <h2 className="ayg-h2" id="band-titel">
-              {titel ?? t.bandTitel}
-            </h2>
-          </div>
-          <div className="ayg-stapel">
-            <p className="ayg-lead">{t.bandLead(PROEFDAGEN)}</p>
-            <div className="ayg-knoppen">
-              <Knop href={AANMELDEN} soort="accent" pijl>
-                {t.probeerDagen(PROEFDAGEN)}
-              </Knop>
-              <Knop href={DEMO_AANVRAGEN} soort="rand">
-                {t.planDemo}
-              </Knop>
-            </div>
-            <Link href={DEMO} className="ayg-pijllink ayg-band-live">
-              {t.ofLiveDemo} <ArrowRight size={16} aria-hidden />
-            </Link>
-            <Geruststelling />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
+// De afsluitende oproep onderaan elke pagina: hetzelfde salie hoofdstuk als op de
+// voorpagina (een zin met een gat voor de naam van je club), zodat elke pagina op
+// dezelfde manier eindigt.
+export async function AanmeldBand(_props: Props) {
+  return <Oproep />
 }
