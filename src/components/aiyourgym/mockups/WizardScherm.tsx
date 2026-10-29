@@ -2,7 +2,6 @@ import { ArrowRight, Check, Clock3, LifeBuoy, Lock, Save, Sparkles } from 'lucid
 import { AANTAL_STAPPEN, STAPPEN } from '@/lib/club/start/stappen'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { WIZARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
-import { Avatar } from './Avatar'
 import { KernhalMerk } from './KernhalMerk'
 import { COACHES, LES, VOORBEELD_ADRES } from './voorbeeld'
 
@@ -109,7 +108,6 @@ export async function WizardScherm() {
                 {w.les}
                 <i>{t.zaal(w.zaal)}</i>
                 <small>
-                  <Avatar naam={w.coach} maat={18} className="ayg-avatar--klein" />
                   {w.coach}
                 </small>
               </span>

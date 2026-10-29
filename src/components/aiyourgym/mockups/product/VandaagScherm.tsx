@@ -73,7 +73,6 @@ export async function VandaagScherm() {
                       <b>{l.naam}</b>
                       <PMeter deel={l.bezet / l.plekken} label={t.lessenLabel} />
                     </span>
-                    <Avatar naam={l.coach} maat={22} alt={l.coach} className="aygp-coach" />
                     <span className="aygp-stand">{vol && 'wachtlijst' in l ? t.vol(l.wachtlijst) : `${l.bezet}/${l.plekken}`}</span>
                   </li>
                 )
