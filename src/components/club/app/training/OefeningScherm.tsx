@@ -35,7 +35,7 @@ interface OefeningSchermProps {
 /**
  * Een oefening per scherm: bewegend beeld, kernpunten, en de set die aan de beurt is groot.
  * Met een Blender-render (besluit Kane 24-10-2026) de rep-speler over de volle breedte,
- * op het tempo van het schema, met de coaching er direct onder.
+ * altijd op 1 seconde heen en 1 terug (besluit Kane 29-10-2026), met de coaching er direct onder.
  */
 export function OefeningScherm(p: OefeningSchermProps) {
   const { oefening: o, plek, invoer } = p

@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Gauge, Pause, Play, RotateCcw, Timer, Volume2, VolumeX } from 'lucide-react'
-import { herstart, metSnelheid, nieuweKlok, pauzeer, start, tijdVan, type Klok } from '@/lib/club/training/repspeler/klok'
-import { planVoor } from '@/lib/club/training/repspeler/plan'
-import { opPiek, standOp, tempoUitleg } from '@/lib/club/training/repspeler/tijdlijn'
+import { Pause, Play, RotateCcw, Timer, Volume2, VolumeX } from 'lucide-react'
+import { herstart, nieuweKlok, pauzeer, start, tijdVan, type Klok } from '@/lib/club/training/repspeler/klok'
+import { planVoor, schemaTempoUitleg } from '@/lib/club/training/repspeler/plan'
+import { opPiek, standOp } from '@/lib/club/training/repspeler/tijdlijn'
 import type { Stand } from '@/lib/club/training/repspeler/typen'
 import { kiesMaat, type RepMaat, type RepRender } from './render-bron'
 import { RepBeeld } from './RepBeeld'
@@ -16,10 +16,10 @@ import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 import './repspeler.css'
 
-// De rep-speler (besluit Kane 24-10-2026): de Blender-render speelt op het tempo
-// uit het schema en telt elke herhaling mee. "15 herhalingen, 2 sec omlaag en
-// 2 omhoog" duurt dan precies een minuut, en het beeld zakt en komt omhoog in
-// dat ritme. Na de set: "Set klaar", de rust uit het schema en een knop om de
+// De rep-speler (besluit Kane 24-10-2026): de Blender-render speelt en telt
+// elke herhaling mee. Besluit Kane 29-10-2026: het beeld speelt altijd op 1
+// seconde heen en 1 seconde terug (anders rekken de beelden uit en hapert het),
+// dus 15 herhalingen duren 30 seconden. Het schematempo staat eronder als tekst. Na de set: "Set klaar", de rust uit het schema en een knop om de
 // set vast te leggen in de bestaande training. De rekensom zit puur en getest
 // in src/lib/club/training/repspeler; hier alleen tekenen en bedienen.
 // Het tekenen gebeurt per frame met requestAnimationFrame op een canvas, zonder
@@ -40,8 +40,6 @@ export interface RepSpelerProps {
 }
 
 type Status = 'wacht' | 'loopt' | 'pauze' | 'klaar'
-
-const SNELHEDEN = [1, 0.5] as const
 
 function weergaveVan(s: Stand): Weergave {
   return { rep: s.rep, gedaan: s.gedaan, label: s.label, segment: s.segment, segmentIndex: s.segmentIndex, overSec: Math.ceil(s.over), piek: opPiek(s) }
@@ -80,7 +78,6 @@ export function RepSpeler(p: RepSpelerProps) {
   const frames = useFrames(render, maat, !minder)
   const tik = useTik()
   const [status, setStatus] = useState<Status>('wacht')
-  const [snelheid, setSnelheid] = useState<number>(1)
   const [klaarOp, setKlaarOp] = useState<number | null>(null)
   const [weergave, setWeergave] = useState<Weergave>(() => ({ ...weergaveVan(standOp(plan, 0)), rep: 0 }))
   const klok = useRef<Klok>(nieuweKlok())
@@ -174,12 +171,6 @@ export function RepSpeler(p: RepSpelerProps) {
     setStatus('wacht')
   }
 
-  function wisselSnelheid() {
-    const volgende = snelheid === SNELHEDEN[0] ? SNELHEDEN[1] : SNELHEDEN[0]
-    klok.current = metSnelheid(klok.current, volgende, performance.now())
-    setSnelheid(volgende)
-  }
-
   function leggenVast() {
     if (klaarOp === null || !p.onSetKlaar) return
     p.onSetKlaar(klaarOp)
@@ -211,10 +202,6 @@ export function RepSpeler(p: RepSpelerProps) {
         <button type="button" className="club-rep-knop" onClick={opnieuw} disabled={status === 'wacht'} aria-label={t.opnieuw}>
           <RotateCcw aria-hidden size={18} />
         </button>
-        <button type="button" className="club-rep-knop" onClick={wisselSnelheid} aria-pressed={snelheid !== 1} aria-label={snelheid === 1 ? t.langzamer : t.echteSnelheid}>
-          <Gauge aria-hidden size={18} />
-          <span className="club-rep-knoptekst">{snelheid === 1 ? '1x' : t.half}</span>
-        </button>
         {tik.kan && (
           <button type="button" className="club-rep-knop" onClick={tik.wissel} aria-pressed={tik.aan} aria-label={tik.aan ? t.tikUit : t.tikAan}>
             {tik.aan ? <Volume2 aria-hidden size={18} /> : <VolumeX aria-hidden size={18} />}
@@ -226,7 +213,7 @@ export function RepSpeler(p: RepSpelerProps) {
         <Timer aria-hidden size={15} />
         <span>
           <span className="club-sr">{t.tempoSr}</span>
-          {tempoUitleg(plan, (w) => faseWoord(w, t.fase))}
+          {schemaTempoUitleg(render, { herhalingen: p.herhalingen, tijdSec: p.tijdSec, tempo: p.tempo }, (w) => faseWoord(w, t.fase))}
         </span>
       </figcaption>
     </figure>

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { EXPLOSIEF_SEC, STANDAARD_TEMPO, leesRepTempo, secTekst } from './tempo'
+import { AFSPEEL_SEC_PER_RICHTING, AFSPEEL_TEMPO, EXPLOSIEF_SEC, STANDAARD_TEMPO, leesRepTempo, leesSchemaTempo, secTekst } from './tempo'
 import { doelVan } from './doel'
 import { herstart, loopt, metSnelheid, nieuweKlok, pauzeer, start, tijdVan } from './klok'
-import { planVoor } from './plan'
+import { planVoor, schemaTempoUitleg } from './plan'
 import type { FrameFases } from './typen'
 
 describe('leesRepTempo', () => {
@@ -17,6 +17,12 @@ describe('leesRepTempo', () => {
     expect(leesRepTempo('31x0').concentrisch).toBe(EXPLOSIEF_SEC)
     expect(leesRepTempo('0000').excentrisch).toBe(EXPLOSIEF_SEC)
     expect(leesRepTempo('2X20').pauzeGerekt).toBe(0)
+  })
+
+  it('leesSchemaTempo: null bij leeg of onleesbaar', () => {
+    expect(leesSchemaTempo('3010')).toEqual({ excentrisch: 3, pauzeGerekt: 0, concentrisch: 1, pauzeSamen: 0 })
+    expect(leesSchemaTempo(null)).toBeNull()
+    expect(leesSchemaTempo('langzaam')).toBeNull()
   })
 
   it('leeg of onleesbaar: 2-0-2-0', () => {
@@ -116,13 +122,50 @@ describe('klok', () => {
   })
 })
 
-describe('planVoor', () => {
+describe('planVoor (besluit Kane 29-10-2026: altijd 1 seconde heen, 1 terug)', () => {
   const fases: FrameFases = { rust_begin: [0, 3], heen: [4, 30], houden_ver: [31, 36], terug: [37, 66], rust_eind: [67, 71] }
+  const squat = { frames: 72, fps: 24, fases, heenIs: 'excentrisch' as const, soort: 'herhaling' as const }
+  const curl = { ...squat, heenIs: 'concentrisch' as const }
 
-  it('15 herhalingen op 2-0-2-0: 60 seconden', () => {
-    const p = planVoor({ frames: 72, fps: 24, fases, heenIs: 'excentrisch', soort: 'herhaling' }, { herhalingen: '15', tijdSec: null, tempo: '2020' })
+  it('15 herhalingen duren 30 seconden, welk tempo het schema ook heeft', () => {
+    const p = planVoor(squat, { herhalingen: '15', tijdSec: null, tempo: '2020' })
     expect(p.soort === 'herhaling' && p.reps).toBe(15)
-    expect(p.totaal).toBe(60)
+    expect(p.totaal).toBe(30)
+  })
+
+  it.each(['1010', '2020', '3010', '4111', 'X', 'XXXX', '31X0', null, ''])('schematempo %s: 1 sec heen, 1 sec terug, geen vastmomenten', (tempo) => {
+    for (const render of [squat, curl]) {
+      const p = planVoor(render, { herhalingen: '10', tijdSec: null, tempo })
+      if (p.soort !== 'herhaling') throw new Error('verwacht herhaling')
+      expect(p.segmenten.map((s) => [s.soort, s.duur])).toEqual([
+        ['heen', AFSPEEL_SEC_PER_RICHTING],
+        ['terug', AFSPEEL_SEC_PER_RICHTING],
+      ])
+      expect(p.repDuur).toBe(2)
+      expect(p.totaal).toBe(20)
+    }
+  })
+
+  it('elk schematempo geeft precies hetzelfde plan als het afspeeltempo', () => {
+    const verwacht = planVoor(squat, { herhalingen: '12', tijdSec: null, tempo: null })
+    fc.assert(
+      fc.property(fc.string({ maxLength: 8 }), (tempo) => {
+        expect(planVoor(squat, { herhalingen: '12', tijdSec: null, tempo })).toEqual(verwacht)
+      }),
+    )
+    expect(AFSPEEL_TEMPO).toEqual({ excentrisch: 1, pauzeGerekt: 0, concentrisch: 1, pauzeSamen: 0 })
+  })
+
+  it('tijd in het schema telt herhalingen van 2 seconden', () => {
+    const p = planVoor(squat, { herhalingen: null, tijdSec: 40, tempo: '3010' })
+    expect(p.soort === 'herhaling' && p.reps).toBe(20)
+  })
+
+  it('de tekst toont het schematempo, zonder schematempo het afspeeltempo', () => {
+    expect(schemaTempoUitleg(squat, { herhalingen: '10', tijdSec: null, tempo: '3010' })).toBe('3 sec omlaag, 1 sec omhoog')
+    expect(schemaTempoUitleg(curl, { herhalingen: '10', tijdSec: null, tempo: '3012' })).toBe('1 sec omhoog, 2 sec vast, 3 sec omlaag')
+    expect(schemaTempoUitleg(squat, { herhalingen: '10', tijdSec: null, tempo: null })).toBe('1 sec omlaag, 1 sec omhoog')
+    expect(schemaTempoUitleg({ ...squat, soort: 'vasthouden' }, { herhalingen: null, tijdSec: 40, tempo: '3010' })).toBe('40 sec vasthouden')
   })
 
   it('plank: doeltijd uit het schema', () => {

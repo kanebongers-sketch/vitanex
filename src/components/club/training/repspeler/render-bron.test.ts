@@ -51,7 +51,16 @@ describe('renders uit de website', () => {
     if (!rep) return
     expect(rep.maten.length).toBeGreaterThan(0)
     expect(frameSrc(rep, rep.maten[0], 0)).toContain(`/oefenbeelden/${r.slug}/frames/`)
-    const plan = planVoor(rep, { herhalingen: '15', tijdSec: null, tempo: '2020' })
+    const plan = planVoor(rep, { herhalingen: '15', tijdSec: null, tempo: '3010' })
+    if (plan.soort === 'herhaling') {
+      // Besluit Kane 29-10-2026: 1 seconde heen en 1 terug, ook bij schematempo 3010.
+      expect(plan.repDuur).toBe(2)
+      expect(plan.totaal).toBe(30)
+      expect(plan.segmenten.map((s) => [s.soort, s.duur])).toEqual([
+        ['heen', 1],
+        ['terug', 1],
+      ])
+    }
     for (let t = 0; t <= plan.totaal; t += 0.1) {
       const s = standOp(plan, t)
       expect(s.frame).toBeGreaterThanOrEqual(0)

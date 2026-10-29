@@ -1,6 +1,6 @@
 // ─── Club, rep-speler: gedeelde typen (PUUR) ────────────────────────────────
-// De rep-speler speelt een Blender-render van een oefening op het tempo uit het
-// schema en telt elke herhaling mee. Een render is een reeks losse beelden met
+// De rep-speler speelt een Blender-render van een oefening altijd op 1 seconde
+// heen en 1 seconde terug (besluit Kane 29-10-2026) en telt elke herhaling mee. Een render is een reeks losse beelden met
 // vaste fases (frame-bereiken): rust aan het begin, de heenweg, vasthouden op
 // het verste punt, de terugweg en rust aan het eind.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { leesRepTempo } from './tempo'
+import { AFSPEEL_TEMPO, leesRepTempo } from './tempo'
 import { binnen, maakHerhalingPlan, maakVasthoudPlan, opPiek, standOp, tempoUitleg } from './tijdlijn'
 import type { FrameBereik, FrameFases, HeenIs, HerhalingPlan, Tempo } from './typen'
 
@@ -46,6 +46,25 @@ describe('maakHerhalingPlan', () => {
   it('eigen woorden per oefening', () => {
     const p = maakHerhalingPlan({ fases: FASES, frames: 72, heenIs: 'concentrisch', tempo: leesRepTempo('2010'), reps: 8, woorden: { heen: 'trekken', terug: 'zakken', vast: 'vast' } })
     expect(tempoUitleg(p)).toBe('1 sec trekken, 2 sec zakken')
+  })
+})
+
+describe('afspeeltempo (besluit Kane 29-10-2026)', () => {
+  const p = maakHerhalingPlan({ fases: FASES, frames: 72, heenIs: 'excentrisch', tempo: AFSPEEL_TEMPO, reps: 3 })
+
+  it('een herhaling per 2 seconden: heen in 1 seconde, terug in 1 seconde, vastframes overgeslagen', () => {
+    expect(p.segmenten.map((s) => [s.soort, s.duur, s.frames])).toEqual([
+      ['heen', 1, [6, 35]],
+      ['terug', 1, [42, 65]],
+    ])
+    expect(standOp(p, 0.5).frame).toBe(21)
+    expect(standOp(p, 1.5)).toMatchObject({ segment: 'terug', rep: 1 })
+    expect(standOp(p, 2.1)).toMatchObject({ rep: 2, gedaan: 1, segment: 'heen' })
+    expect(standOp(p, 6)).toMatchObject({ klaar: true, gedaan: 3 })
+  })
+
+  it('de teller loopt gelijk met het beeld: herhaling k begint bij het eerste heen-frame', () => {
+    for (let k = 0; k < 3; k += 1) expect(standOp(p, k * 2)).toMatchObject({ rep: k + 1, frame: 6, segment: 'heen' })
   })
 })
 

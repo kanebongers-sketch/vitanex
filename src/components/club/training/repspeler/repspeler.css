@@ -132,7 +132,6 @@
 .club-rep-knop:active { transform: scale(0.94); }
 .club-rep-knop:disabled { opacity: 0.4; cursor: default; }
 .club-rep-knop[aria-pressed='true'] { color: var(--text-1); border-color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); }
-.club-rep-knoptekst { font-variant-numeric: tabular-nums; }
 .club-rep-hoofdknop:focus-visible, .club-rep-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (hover: hover) {
   .club-rep-knop:not(:disabled):hover { color: var(--text-1); border-color: var(--text-3); }

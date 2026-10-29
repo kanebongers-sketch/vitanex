@@ -1,6 +1,7 @@
 // ─── Club, rep-speler: de tijdlijn van een set (PUUR) ───────────────────────
-// Van het tempo uit het schema en de fases van een render naar "welk beeld
-// staat er op seconde t". Een herhaling is een reeks segmenten (heen, vast,
+// Van een tempo en de fases van een render naar "welk beeld staat er op
+// seconde t". De speler geeft hier altijd AFSPEEL_TEMPO aan (1 seconde heen,
+// 1 terug, besluit Kane 29-10-2026); een schematempo alleen voor de tekst. Een herhaling is een reeks segmenten (heen, vast,
 // terug, rust); welke tempo-seconden bij de heenweg horen hangt af van de
 // render: bij een squat is de heenweg het zakken (excentrisch), bij een curl het
 // optillen (concentrisch). De frames binnen een segment lopen lineair mee: de
