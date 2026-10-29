@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { PlanVoorLid } from '@/lib/club/voeding/model'
 import { verdeling } from '@/lib/club/voeding/rekenhulp'
 import { Apple, TriangleAlert } from 'lucide-react'
@@ -20,6 +21,8 @@ export interface LedenappVoedingProps {
   plan: PlanVoorLid | null
   /** Het plan kon niet worden gelezen: een foutmelding in plaats van "nog geen plan". */
   fout?: boolean
+  /** Het voedingsdagboek van het lid (dagboek/Dagboek.tsx), boven het plan. */
+  dagboek?: ReactNode
 }
 
 const RIJEN = [
@@ -28,7 +31,7 @@ const RIJEN = [
   { sleutel: 'vet', veld: 'vetG', klasse: 'is-vet' },
 ] as const
 
-export async function LedenappVoeding({ plan, fout = false }: LedenappVoedingProps) {
+export async function LedenappVoeding({ plan, fout = false, dagboek = null }: LedenappVoedingProps) {
   const taal = await getTaal()
   const tv = VOEDING[taal]
   const t = tv.app
@@ -36,6 +39,7 @@ export async function LedenappVoeding({ plan, fout = false }: LedenappVoedingPro
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
         <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
+        {dagboek}
         <LegeStaat Icoon={TriangleAlert} titel={t.nietBeschikbaar} fout>
           {t.laadFout}
         </LegeStaat>
@@ -46,6 +50,7 @@ export async function LedenappVoeding({ plan, fout = false }: LedenappVoedingPro
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
         <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
+        {dagboek}
         <LegeStaat Icoon={Apple} titel={t.geenPlan}>
           {t.vraag}
         </LegeStaat>
@@ -56,6 +61,7 @@ export async function LedenappVoeding({ plan, fout = false }: LedenappVoedingPro
   return (
     <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
       <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
+        {dagboek}
       <div className="club-voeding-app-blok">
         <span className="club-lidapp-label">{t.dagdoel}</span>
         <p className="club-voeding-kcal">

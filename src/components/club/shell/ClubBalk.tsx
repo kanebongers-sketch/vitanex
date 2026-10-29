@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
 import { VESTIGING_PARAM } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { TaalKeuze } from '@/components/aiyourgym/taal/TaalKeuze'
@@ -68,7 +68,7 @@ interface ClubBalkProps {
   testomgeving: boolean
   merk: ClubMerkInfo
   /** Onderdelen die bij deze sportschool uit staan. */
-  uit: readonly Module[]
+  uit: readonly Verborgen[]
   /** Wat deze persoon mag zien; null = alles. */
   toegestaan: readonly string[] | null
   /** Staat Instellingen (het instellingencentrum) in het menu? Zie heeftInstellingen. */

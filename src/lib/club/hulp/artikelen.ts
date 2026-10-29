@@ -6,7 +6,7 @@
 // bestaande pagina van een onderdeel wijst. Wijzig je een pagina: werk de tekst bij.
 
 import { ONDERDELEN, actiefOnderdeel, isZichtbaar } from '@/components/club/shell/onderdelen'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 
 export interface ArtikelLink {
   label: string
@@ -312,7 +312,7 @@ export function kaalPad(pad: string): string {
  * De artikelen die deze persoon ziet: van onderdelen die aan staan en die hij
  * mag openen, en alleen met links naar pagina's die hij ook mag openen.
  */
-export function zichtbareArtikelen(uit: readonly Module[], toegestaan: readonly string[] | null): Artikel[] {
+export function zichtbareArtikelen(uit: readonly Verborgen[], toegestaan: readonly string[] | null): Artikel[] {
   const mag = (sleutel: string) => {
     const o = ONDERDELEN.find((x) => x.sleutel === sleutel)
     return o !== undefined && isZichtbaar(o, uit, toegestaan)

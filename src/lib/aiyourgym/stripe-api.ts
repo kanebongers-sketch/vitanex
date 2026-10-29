@@ -4,7 +4,7 @@
 // Session maken en ophalen, een abonnement ophalen en een sessie in het Customer
 // Portal maken. De sleutel gaat nooit naar de browser of in een log.
 
-import { PROEFDAGEN } from './pakketten'
+import { PROEFDAGEN, type PakketSleutel } from './pakketten'
 import type { Aanmelding } from './aanmelding'
 
 const STRIPE = 'https://api.stripe.com/v1'
@@ -13,7 +13,8 @@ const TIMEOUT_MS = 15_000
 export interface CheckoutInvoer {
   aanmeldingId: string
   aanmelding: Aanmelding
-  prijsId: string
+  /** Per gekozen pakket het Stripe-prijs-id, in de volgorde van aanmelding.pakketten. */
+  prijzen: readonly { pakket: PakketSleutel; prijsId: string }[]
   succesUrl: string
   terugUrl: string
 }
@@ -22,8 +23,11 @@ export interface CheckoutInvoer {
 export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   const f = new URLSearchParams()
   f.set('mode', 'subscription')
-  f.set('line_items[0][price]', c.prijsId)
-  f.set('line_items[0][quantity]', String(c.aanmelding.aantalVestigingen))
+  // Een regel per los pakket; de hoeveelheid is het aantal vestigingen (per vestiging per maand).
+  c.prijzen.forEach((p, i) => {
+    f.set(`line_items[${i}][price]`, p.prijsId)
+    f.set(`line_items[${i}][quantity]`, String(c.aanmelding.aantalVestigingen))
+  })
   f.set('success_url', c.succesUrl)
   f.set('cancel_url', c.terugUrl)
   f.set('client_reference_id', c.aanmeldingId)
@@ -32,11 +36,32 @@ export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   f.set('billing_address_collection', 'required')
   f.set('tax_id_collection[enabled]', 'true')
   f.set('metadata[aanmelding_id]', c.aanmeldingId)
-  f.set('metadata[pakket]', c.aanmelding.pakket)
+  f.set('metadata[pakketten]', c.aanmelding.pakketten.join(','))
   f.set('subscription_data[trial_period_days]', String(PROEFDAGEN))
   f.set('subscription_data[metadata][aanmelding_id]', c.aanmeldingId)
   f.set('subscription_data[metadata][slug]', c.aanmelding.slug)
+  f.set('subscription_data[metadata][pakketten]', c.aanmelding.pakketten.join(','))
   return f
+}
+
+/** Een pakket erbij op een lopend abonnement: een nieuwe regel met hetzelfde aantal vestigingen (PUUR). */
+export function regelErbijFormulier(abonnementId: string, prijsId: string, aantal: number): URLSearchParams {
+  const f = new URLSearchParams()
+  f.set('subscription', abonnementId)
+  f.set('price', prijsId)
+  f.set('quantity', String(aantal))
+  f.set('proration_behavior', 'create_prorations')
+  return f
+}
+
+/**
+ * Een pakket erbij op een lopend abonnement. Idempotent per abonnement en
+ * pakket: twee keer klikken maakt geen twee regels. Het id van de regel, of null.
+ */
+export async function voegRegelToe(sleutel: string, abonnementId: string, pakket: PakketSleutel, prijsId: string, aantal: number): Promise<string | null> {
+  const json = await stripeVraag(sleutel, '/subscription_items', { method: 'POST', body: regelErbijFormulier(abonnementId, prijsId, aantal), idempotentie: `ayg_erbij_${abonnementId}_${pakket}` })
+  const id = (json as { id?: unknown } | null)?.id
+  return typeof id === 'string' ? id : null
 }
 
 async function stripeVraag(sleutel: string, pad: string, init: { method: 'GET' | 'POST'; body?: URLSearchParams; idempotentie?: string }): Promise<unknown | null> {

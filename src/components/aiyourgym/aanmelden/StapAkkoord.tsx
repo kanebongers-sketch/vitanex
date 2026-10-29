@@ -3,7 +3,7 @@ import { adresVan } from '@/lib/club/kern/subdomein'
 import { aygPad } from '@/components/aiyourgym/site/paden'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
-import type { Invoer, PakketKeuze, Wijzig } from './types'
+import type { GekozenPakketten, Invoer, Wijzig } from './types'
 
 // Stap 4: alles nog een keer op een rij, en akkoord met de voorwaarden.
 
@@ -11,7 +11,7 @@ interface StapAkkoordProps {
   /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
   subdomeinen: boolean
   invoer: Invoer
-  pakket: PakketKeuze | null
+  pakket: GekozenPakketten | null
   proefdagen: number
   fouten: Partial<Record<AanmeldVeld, string>>
   wijzig: Wijzig

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, Lock, Users } from 'lucide-react'
 import { lidToegang } from '@/lib/club/ledenlogin/toegang'
+import { pakketZichtbaar } from '@/lib/club/kern/pakketten'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
 import { LOGO_FIT_FACTORY, isUuid } from '@/lib/club/kern/organisatie'
@@ -53,6 +54,8 @@ export default async function CommunityPagina({ searchParams }: { searchParams: 
     if (CLUB_LEDEN_LOGIN) redirect('/mijn/inloggen')
     notFound()
   }
+  // De community hoort bij het pakket Groei: niet afgenomen, dan bestaat hij niet.
+  if (!pakketZichtbaar(l.organisatie.uit, 'groei')) notFound()
   const { organisatie: org, lid } = l
   const basis = communityBasis(l.voorvertoning ? lid.id : null)
   const tabPad = (tab: string) => {

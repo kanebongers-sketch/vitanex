@@ -5,7 +5,7 @@ import { OEFENRENDERS } from '@/components/aiyourgym/inhoud/oefenrenders'
 import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
 import { REPDB_ALLE_KOPPELINGEN, isStandaardOefening } from './beelden-repdb'
 import { heeftOefenbeeld, telBeelden } from './beeld'
-import { BLENDER_OEFENINGEN, blenderSlugVoor, hoortInArchief, isBlenderOefening, isGearchiveerd } from './blender-bibliotheek'
+import { BLENDER_OEFENINGEN, blenderSlugVoor, hoortInArchief, isBlenderOefening, isGearchiveerd, telKiesbareOefeningen } from './blender-bibliotheek'
 import { coachingVoor } from './coaching'
 import { oefeningUitRij } from './rijen'
 import { stelSchemaVoor } from './voorstel'
@@ -175,5 +175,24 @@ describe('voorstel met alleen de Blender-oefeningen', () => {
     const gekozen = v.dagen.flatMap((d) => d.regels.map((r) => BIB.find((o) => o.id === r.oefeningId)))
     expect(v.dagen.every((d) => d.regels.length >= 3)).toBe(true)
     for (const o of gekozen) expect(o?.materiaal, o?.naam).toBe('geen')
+  })
+})
+
+describe('telKiesbareOefeningen (instellingencentrum, 29-10-2026)', () => {
+  it('telt de Blender-oefeningen plus de eigen oefeningen, nooit het archief of wat uit staat', () => {
+    const archief = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).find((n) => hoortInArchief(n))
+    expect(archief).toBeDefined()
+    const rijen = [
+      ...BLENDER_OEFENINGEN.map((o) => ({ naam: o.naam, actief: true, gearchiveerd: false })),
+      { naam: archief!, actief: true, gearchiveerd: true },
+      { naam: 'Eigen oefening van de sportschool', actief: true, gearchiveerd: false },
+      { naam: 'Eigen oefening die uit staat', actief: false, gearchiveerd: false },
+    ]
+    expect(telKiesbareOefeningen(rijen)).toBe(BLENDER_OEFENINGEN.length + 1)
+  })
+
+  it('een Blender-oefening die nog op gearchiveerd staat telt mee (hij is weer kiesbaar)', () => {
+    expect(telKiesbareOefeningen([{ naam: BLENDER_OEFENINGEN[0].naam, gearchiveerd: true }])).toBe(1)
+    expect(telKiesbareOefeningen([{ naam: null }])).toBe(0)
   })
 })

@@ -62,7 +62,7 @@ export default async function BedrijfPagina({ searchParams }: { searchParams: Zo
         <p className="club-melding club-melding--fout" role="alert">{tekst.laadFout}</p>
       ) : tab === 'gegevens' ? (
         <div className="club-bedrijf-indeling">
-          <GegevensFormulier begin={bedrijf.gegevens} />
+          <GegevensFormulier begin={bedrijf.gegevens} sportschool={t.organisatie.naam} />
           <VestigingenContact vestigingen={vestigingen} href={naarVestigingen} />
         </div>
       ) : (

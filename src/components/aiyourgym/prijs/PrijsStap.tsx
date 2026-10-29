@@ -1,3 +1,5 @@
+import { isPakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { pakketInTaal } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { DEMO_SOORTEN, MAX_DEMO_VESTIGINGEN } from '@/lib/aiyourgym/demo-aanvraag'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { PAKKET_TEKST } from '@/lib/aiyourgym/taal/woorden/website/pakketten'
@@ -36,8 +38,10 @@ function StapSportschool({ invoer, fouten, wijzig }: Omit<PrijsStapProps, 'stap'
   const taal = useTaal()
   const t = PRIJS_OP_MAAT[taal]
   const soorten = DEMO_SOORTEN.map((s) => ({ sleutel: s.sleutel, label: t.soorten[s.sleutel] }))
-  // Pakketnamen blijven gelijk (productnamen); alleen "Weet ik nog niet" verandert.
-  const pakketten = PRIJS_PAKKETTEN.map((p) => (p.sleutel === 'weet-niet' ? { ...p, label: PAKKET_TEKST[taal].weetNiet } : p))
+  // De losse pakketten in de gekozen taal, plus "Alle pakketten" en "Weet ik nog niet".
+  const pakketten = PRIJS_PAKKETTEN.map((p) =>
+    p.sleutel === 'weet-niet' ? { ...p, label: PAKKET_TEKST[taal].weetNiet } : p.sleutel === 'alles' ? { ...p, label: PAKKET_TEKST[taal].alles } : isPakketSleutel(p.sleutel) ? { ...p, label: pakketInTaal(p.sleutel, taal).naam } : p,
+  )
   return (
     <>
       <Keuzes naam="soort" legende={t.soortVraag} opties={soorten} gekozen={invoer.soort} fout={fouten.soort} onKies={(v) => wijzig('soort', v)} />

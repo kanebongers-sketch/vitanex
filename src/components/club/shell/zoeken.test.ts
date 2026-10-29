@@ -96,3 +96,23 @@ describe('zoekHref', () => {
     expect(zoekHref({ pad: '/beheer/rechten', perVestiging: false }, 'budel')).toBe('/club/beheer/rechten')
   })
 })
+
+describe('categorieen van het instellingencentrum (29-10-2026)', () => {
+  it('Ctrl K vindt een categorie en opent het centrum meteen op die categorie', () => {
+    const items = zoekItems(ALLES, true)
+    const team = filterZoek(items, 'team en rechten')[0]
+    expect(team).toMatchObject({ id: 'instel-categorie-team', pad: '/beheer?categorie=team', plek: 'Instellingen' })
+    expect(zoekHref(team, 'budel')).toBe('/club/beheer?categorie=team&v=budel')
+    expect(filterZoek(items, 'brand and address')[0].id).toBe('instel-categorie-merk')
+  })
+
+  it('in het Engels', () => {
+    const items = zoekItems(ALLES, true, 'en')
+    expect(items.find((i) => i.id === 'instel-categorie-coaching')).toMatchObject({ label: 'Coaching', plek: 'Settings' })
+  })
+
+  it('zonder instellingencentrum geen categorieen; een uitgezet onderdeel geeft geen lege categorie', () => {
+    expect(zoekItems({ ...ALLES, toegestaan: ['vandaag', 'leden'] }, false).some((i) => i.id.startsWith('instel-categorie-'))).toBe(false)
+    expect(zoekItems({ ...ALLES, uit: ['rooster'] }, true).map((i) => i.id)).not.toContain('instel-categorie-groepslessen')
+  })
+})

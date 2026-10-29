@@ -6,14 +6,12 @@
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { vindOpSessie, type AanmeldingRij } from './opslag'
-import { vindPakket } from './pakketten'
-import { isTestSessie, testSessie, testbetalen } from './testbetaling'
+import { isTestSessie, testSessie, testbetalenVoor } from './testbetaling'
 import { verwerkSessie, type VerwerkDeps } from './verwerk'
 
-/** Geldt voor het pakket van deze aanmelding (nog steeds) de testbetaling? */
+/** Geldt voor de pakketten van deze aanmelding (nog steeds) de testbetaling? */
 function testVoor(a: AanmeldingRij): boolean {
-  const pakket = vindPakket(a.pakket)
-  return pakket !== null && pakket !== undefined && testbetalen(pakket.sleutel)
+  return testbetalenVoor(a.pakketten)
 }
 
 export function nieuweTestSessie(): string {

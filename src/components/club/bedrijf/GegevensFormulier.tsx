@@ -7,6 +7,7 @@ import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { BEDRIJF } from '@/lib/aiyourgym/taal/woorden/club/bedrijf'
 import { leesGegevens } from '@/lib/club/bedrijf/invoer'
 import { stuur } from '@/components/club/leden/stuur'
+import { bedrijfsnaamVoorstel } from '@/lib/club/kern/sportschool-naam'
 
 /** Namen van de netwerken (merknamen, in elke taal gelijk). */
 const SOCIAL_NAAM = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', linkedin: 'LinkedIn' } as const
@@ -29,13 +30,13 @@ interface VeldInfo {
 
 type BedrijfTekst = (typeof BEDRIJF)['nl']
 
-function groepenVan(t: BedrijfTekst): { titel: string; uitleg: string; velden: VeldInfo[] }[] {
+function groepenVan(t: BedrijfTekst, sportschool: string): { titel: string; uitleg: string; velden: VeldInfo[] }[] {
   const v = t.velden
   return [
     {
       ...t.groepen.bedrijf,
       velden: [
-        { veld: 'bedrijfsnaam', label: v.bedrijfsnaam.label, placeholder: v.bedrijfsnaam.placeholder, breed: true, auto: 'organization' },
+        { veld: 'bedrijfsnaam', label: v.bedrijfsnaam.label, placeholder: sportschool || v.bedrijfsnaam.placeholder, hint: v.bedrijfsnaam.hint(sportschool), breed: true, auto: 'organization' },
         { veld: 'kvk', label: v.kvk.label, placeholder: v.kvk.placeholder, hint: v.kvk.hint },
         { veld: 'btw', label: v.btw.label, placeholder: 'NL123456789B01', hint: v.btw.hint },
       ],
@@ -72,7 +73,13 @@ function naarTekst(g: Gegevens): Record<Veld, string> {
   return Object.fromEntries(Object.entries(g).map(([k, v]) => [k, v ?? ''])) as Record<Veld, string>
 }
 
-export function GegevensFormulier({ begin }: { begin: Gegevens }) {
+interface GegevensFormulierProps {
+  begin: Gegevens
+  /** De naam van de sportschool (Huisstijl): voorstel voor een lege bedrijfsnaam. */
+  sportschool: string
+}
+
+export function GegevensFormulier({ begin, sportschool }: GegevensFormulierProps) {
   const router = useRouter()
   const [waarden, setWaarden] = useState<Record<Veld, string>>(() => naarTekst(begin))
   const [foutVeld, setFoutVeld] = useState<{ veld: string | null; tekst: string } | null>(null)
@@ -98,7 +105,7 @@ export function GegevensFormulier({ begin }: { begin: Gegevens }) {
 
   return (
     <form className="club-bedrijf-formulier" onSubmit={(e) => void bewaar(e)} noValidate>
-      {groepenVan(t).map((groep) => (
+      {groepenVan(t, sportschool).map((groep) => (
         <fieldset key={groep.titel} className="club-bedrijf-groep">
           <legend>{groep.titel}</legend>
           <p className="club-hint">{groep.uitleg}</p>
@@ -124,6 +131,11 @@ export function GegevensFormulier({ begin }: { begin: Gegevens }) {
                     <small id={`${id}-fout`} className="club-fout">{foutVeld?.tekst}</small>
                   ) : (
                     v.hint && <small id={`${id}-hint`} className="club-hint">{v.hint}</small>
+                  )}
+                  {v.veld === 'bedrijfsnaam' && !waarden.bedrijfsnaam.trim() && sportschool && (
+                    <button type="button" className="club-knop club-knop--stil club-bedrijf-overnemen" onClick={() => setWaarden({ ...waarden, bedrijfsnaam: bedrijfsnaamVoorstel(waarden.bedrijfsnaam, sportschool) })}>
+                      {t.velden.bedrijfsnaam.overnemen}
+                    </button>
                   )}
                 </label>
               )

@@ -17,6 +17,7 @@ import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 import { clubFout, clubToegang, haalEigenOrganisatie, sessiePastBijAdres } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, isUuid, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
+import { apiAfgenomen } from '@/lib/club/kern/pakketten'
 import { haalLid, magTrainen, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { hoortBij, vestigingenUitRijen, type VestigingInfo } from '@/lib/club/kern/vestigingen'
 import type { LedenappMerk, LedenappTabblad } from './contract'
@@ -130,6 +131,8 @@ export async function vereisLidToegang(req: NextRequest, tabblad?: LedenappTabbl
   }
   const l = await lidToegang(req.nextUrl.searchParams.get('voor'))
   if (!l || (tabblad && tabsUitVoor(l.organisatie).includes(tabblad))) return clubFout('Niet gevonden.', 404)
+  // Een deel van de ledenapp van een pakket dat de sportschool niet afnam, bestaat niet (kern/pakketten.ts).
+  if (!apiAfgenomen(l.organisatie.afgenomen, req.nextUrl.pathname)) return clubFout('Niet gevonden.', 404)
   return l
 }
 

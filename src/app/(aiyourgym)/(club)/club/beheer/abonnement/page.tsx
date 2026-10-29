@@ -5,6 +5,8 @@ import { abonnementWeergave, type AbonnementWeergave } from '@/lib/aiyourgym/abo
 import { stripeAbonnementVan, vindAbonnement } from '@/lib/aiyourgym/abonnement-opslag'
 import { stripeSleutel } from '@/lib/aiyourgym/config'
 import { PortaalKnop } from '@/components/club/abonnement/PortaalKnop'
+import { PakkettenBeheer } from '@/components/club/abonnement/PakkettenBeheer'
+import { openAanvragen } from '@/lib/aiyourgym/pakket-opslag'
 import '@/components/club/abonnement/abonnement.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
@@ -20,8 +22,9 @@ type AboTekst = (typeof BEHEER_PAGINAS)['nl']['abonnement']
 export const dynamic = 'force-dynamic'
 
 // Het abonnement van de sportschool bij AI Your Gym: pakket, vestigingen en
-// status, en de knop naar het Stripe Customer Portal (facturen, betaalgegevens,
-// opzeggen). Alleen Kane en de eigenaar; een clubmanager krijgt een 404.
+// status, de knop naar het Stripe Customer Portal (facturen, betaalgegevens,
+// opzeggen) en de losse pakketten erbij nemen of opzeggen (PakkettenBeheer).
+// Alleen Kane en de eigenaar; een clubmanager krijgt een 404.
 
 function GeenAbonnement({ t, a }: { t: ClubToegang; a: AboTekst }) {
   const eigen = t.userId === t.beheerderId
@@ -70,7 +73,7 @@ function Abonnement({ w, sinds, betalenIngesteld, a }: { w: AbonnementWeergave; 
 
 export default async function AbonnementPagina() {
   const t = await eisBeheerdersBeheer()
-  const gelezen = await vindAbonnement(t.admin, t.userId)
+  const [gelezen, aanvragen] = await Promise.all([vindAbonnement(t.admin, t.userId), openAanvragen(t.admin, t.userId)])
   const rij = gelezen.soort === 'gevonden' ? gelezen.rij : null
   const stripe = rij ? await stripeAbonnementVan(rij) : null
   const nu = new Date()
@@ -93,6 +96,7 @@ export default async function AbonnementPagina() {
         {gelezen.soort === 'fout' && <p className="club-melding club-melding--fout" role="status">{a.leesFout}</p>}
         {gelezen.soort === 'geen' && <GeenAbonnement t={t} a={a} />}
         {rij && <Abonnement w={abonnementWeergave(rij, stripe, nu, taal)} sinds={sinds} betalenIngesteld={stripeSleutel() !== null} a={a} />}
+        <PakkettenBeheer afgenomen={t.organisatie.afgenomen} aanvragen={aanvragen ?? []} />
       </div>
     </>
   )

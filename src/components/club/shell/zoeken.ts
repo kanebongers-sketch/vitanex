@@ -5,7 +5,7 @@
 // hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
 // een instel-pagina niet in het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
 
-import { instelGroepLabel, instelHref, instelPaginaInTaal, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
+import { instelCategoriePad, instelGroepLabel, instelGroepUitleg, instelHref, instelIndeling, instelPaginaInTaal, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { GROEPEN, ONDERDELEN, groepInTaal, inMenu, isZichtbaar, onderdeelInTaal, onderdeelPad, schermInTaal, sectiesVoor, toetsTekst, type Onderdeel } from './onderdelen'
@@ -88,7 +88,15 @@ export function zoekItems(k: InstelKijker, instellingen: boolean, taal: Taal = '
     const plek = `${t.plekInstellingen} · ${instelGroepLabel(p.groep, taal)}`
     return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${bron.titel} ${bron.uitleg} ${en.titel} ${en.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
   })
-  return [...menu, ...secties, ...hulp, ...instel]
+  // De categorieen van het centrum: openen meteen de juiste categorie (?categorie=).
+  const categorieen = instellingen
+    ? instelIndeling(k).map(({ sleutel }) => {
+        const label = instelGroepLabel(sleutel, taal)
+        const zoek = `${instelGroepLabel(sleutel)} ${instelGroepUitleg(sleutel)} ${instelGroepLabel(sleutel, 'en')} ${instelGroepUitleg(sleutel, 'en')} ${t.plekInstellingen}`
+        return { id: `instel-categorie-${sleutel}`, label, uitleg: instelGroepUitleg(sleutel, taal), plek: t.plekInstellingen, pad: instelCategoriePad(sleutel), perVestiging: true, zoektekst: normaliseerZoek(zoek) }
+      })
+    : []
+  return [...menu, ...secties, ...hulp, ...categorieen, ...instel]
 }
 
 /** Alle woorden moeten passen; treffers op de naam eerst. Leeg zoeken geeft alles. */

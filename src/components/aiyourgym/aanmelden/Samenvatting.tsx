@@ -2,7 +2,7 @@ import { CalendarCheck, KeyRound, LayoutDashboard, Lock } from 'lucide-react'
 import { adresVeld } from '@/lib/club/kern/subdomein'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
-import type { Invoer, PakketKeuze } from './types'
+import type { GekozenPakketten, Invoer } from './types'
 
 // Het donkere paneel naast het formulier: je adres groot in beeld, je keuze
 // en wat er na het aanmelden gebeurt. Alleen wat Club echt doet.
@@ -11,7 +11,7 @@ interface SamenvattingProps {
   /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
   subdomeinen: boolean
   invoer: Invoer
-  pakket: PakketKeuze | null
+  pakket: GekozenPakketten | null
   proefdagen: number
 }
 

@@ -1,52 +1,6 @@
-/* ─── Club: instellingencentrum ───────────────────────────────────────────────
-   Editoriaal: een grote kop met de sportschool, daaronder groepen als strakke
-   lijsten (geen kaartenraster). Elke regel: wat, de stand, en een pijl.
-   Op brede schermen twee kolommen groepen. Alleen .club-beheer-*. */
-
-.club-beheer-kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-.club-beheer-kopinhoud { display: grid; gap: 6px; min-width: 0; }
-.club-beheer-kop h1 { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0; font-family: var(--ff-kop); font-size: clamp(34px, 4.4vw, 56px); line-height: 0.95; font-weight: 700; text-transform: uppercase; }
-.club-beheer-stip { width: 18px; height: 18px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
-.club-beheer-adres { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: var(--text-2); }
-.club-beheer-adres svg { color: var(--brand-tekst, var(--brand)); }
-.club-beheer-modules { margin: 0; color: var(--text-3); font-size: 13px; line-height: 1.5; max-width: var(--club-lees); }
-.club-beheer-tedoen { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 8px 0 0; padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--club-let-op) 45%, transparent); background: var(--club-let-op-zacht); color: var(--club-let-op-inkt); font-size: 13.5px; font-weight: 600; }
-
-.club-beheer-groepen { display: grid; gap: 28px 40px; margin-top: 28px; }
-@media (min-width: 1100px) { .club-beheer-groepen { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
-/* Groot scherm: drie kolommen, zodat het centrum de breedte vult in plaats van lange regels. */
-@media (min-width: 1640px) { .club-beheer-groepen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.club-beheer-groep { display: grid; gap: 10px; min-width: 0; }
-.club-beheer-groepkop { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
-.club-beheer-groepkop::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.club-beheer-lijst { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
-.club-beheer-lijst li + li { border-top: 1px solid var(--line); }
-.club-beheer-regel {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; align-items: center; gap: 14px; padding: 16px 18px;
-  color: var(--text-1); text-decoration: none; transition: background-color 160ms var(--ease);
-}
-a.club-beheer-regel:hover { background: var(--club-vlak-hover); }
-a.club-beheer-regel:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
-.club-beheer-regel.is-uit { opacity: 0.55; }
-a.club-beheer-regel:hover .club-beheer-tekst strong { color: var(--brand-tekst, var(--brand)); }
-a.club-beheer-regel:active { background: var(--brand-soft); }
-.club-beheer-tekst strong { transition: color 160ms var(--ease); }
-.club-beheer-tekst { display: grid; gap: 3px; min-width: 0; }
-.club-beheer-tekst strong { font-family: var(--ff-kop); font-size: 18px; letter-spacing: 0.03em; text-transform: uppercase; }
-.club-beheer-tekst span { color: var(--text-3); font-size: 13.5px; line-height: 1.4; }
-/* De stand als rustig label rechts: grijs als het ingesteld is, koraal met stip als het nog moet. */
-.club-beheer-stand { justify-self: end; max-width: 240px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--club-vlak); text-align: right; color: var(--text-2); font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.club-beheer-stand.is-let { color: var(--club-let-op-inkt); background: var(--club-let-op-zacht); border-color: transparent; font-weight: 600; }
-.club-beheer-stand.is-let::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 999px; background: currentColor; vertical-align: middle; }
-.club-beheer-regel.is-uit .club-beheer-stand { border-style: dashed; background: none; color: var(--text-3); }
-.club-beheer-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
-a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
-@media (max-width: 560px) {
-  .club-beheer-regel { grid-template-columns: minmax(0, 1fr) 18px; gap: 6px 12px; padding: 14px 16px; }
-  .club-beheer-stand { font-size: 13px; color: var(--text-3); }
-  .club-beheer-stand { grid-column: 1; grid-row: 2; justify-self: start; text-align: left; max-width: none; }
-  .club-beheer-pijl { grid-column: 2; grid-row: 1 / span 2; }
-}
+/* ─── Club: de kleine instel-pagina's (check-in, ledenapp, rechten, privacy) ───
+   Het instellingencentrum zelf staat in src/components/club/instelcentrum/.
+   Alleen .club-beheer-* en .club-privacy-*. */
 
 /* ── Formulieren (ledenapp, rechten) ─────────────────────────────────────── */
 .club-beheer-formulier { display: grid; gap: 22px; max-width: var(--club-formulier); margin-top: 20px; }
@@ -78,7 +32,7 @@ a.club-beheer-regel:hover .club-beheer-pijl { transform: translateX(3px); }
 .club-beheer-matrix tbody tr:hover th { background: color-mix(in srgb, var(--bg-card) 94%, var(--text-1)); }
 
 @media (prefers-reduced-motion: reduce) {
-  .club-beheer-regel, .club-beheer-pijl, .club-beheer-keuze, .club-beheer-tekst strong { transition: none; }
+  .club-beheer-keuze { transition: none; }
 }
 .club-beheer-matrix tr.club-beheer-matrix-groep th { position: static; padding: 14px 12px 6px; text-align: left; font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); background: var(--club-vlak, transparent); }
 .club-beheer-matrix tbody tr.club-beheer-matrix-groep:hover { background: none; }

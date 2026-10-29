@@ -21,7 +21,7 @@ export const PRIJS_OP_MAAT = woordenboek({
     hoeTitel: 'Zo werkt de prijs',
     hoe: [
       { titel: 'Per vestiging, per maand', tekst: 'Een jaarcontract, maandelijks betaald. Het pakket bepaalt wat erin zit.' },
-      { titel: 'Nu geen opstartkosten', tekst: 'In Club en Keten helpen we je persoonlijk met inrichten.' },
+      { titel: 'Nu geen opstartkosten', tekst: 'Je betaalt alleen voor de pakketten die je kiest.' },
       { titel: 'Altijd vooraf duidelijk', tekst: 'Je ziet het bedrag voordat je iets betaalt.' },
     ],
     eerstZien: 'Eerst zelf zien of het past?',
@@ -65,7 +65,7 @@ export const PRIJS_OP_MAAT = woordenboek({
     hoeTitel: 'How the price works',
     hoe: [
       { titel: 'Per location, per month', tekst: 'An annual contract, paid monthly. The plan decides what is included.' },
-      { titel: 'No set-up fee for now', tekst: 'In Club and Keten we help you set up personally.' },
+      { titel: 'No set-up fee for now', tekst: 'You only pay for the packages you choose.' },
       { titel: 'Always clear in advance', tekst: 'You see the amount before you pay anything.' },
     ],
     eerstZien: 'Want to see for yourself whether it fits first?',

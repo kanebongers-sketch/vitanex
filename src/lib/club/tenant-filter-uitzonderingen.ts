@@ -37,7 +37,7 @@ export const TENANT_UITZONDERINGEN: readonly TenantUitzondering[] = [
   { bestand: 'src/lib/club/ledenapp-pwa/merk-server.ts', tabel: 'club_organisaties', reden: ROUTING },
   { bestand: 'src/lib/club/widget/opslag.ts', tabel: 'club_organisaties', reden: ROUTING },
   { bestand: 'src/lib/club/toegang.ts', tabel: 'club_organisaties', reden: 'De sportscholen van een beheerder (beheerder_id) of de eigen sportschool op id uit de sessie.' },
-  { bestand: 'src/lib/club/kern/organisatie-opslag.ts', tabel: 'club_organisaties', reden: 'Sportschool aanmaken of terugdraaien, alleen Kane; terugdraaien filtert op id en beheerder_id.' },
+  { bestand: 'src/lib/club/kern/organisatie-opslag.ts', tabel: 'club_organisaties', reden: 'Sportschool aanmaken of terugdraaien (alleen Kane; filtert op id en beheerder_id) en de namen van dezelfde beheerder lezen voor een unieke naam (beheerder_id).' },
   { bestand: 'src/lib/club/meldingen/afmelden.ts', tabel: 'club_meldingen_voorkeuren', reden: 'Afmelden via een onraadbaar token uit de mail; het token hoort bij een lid van een sportschool.' },
   { bestand: 'src/lib/club/app-uitnodigen/opslag.ts', tabel: 'club_app_aanvragen', reden: 'Rem op e-mail- en IP-hash over alle sportscholen heen, zonder persoonsgegevens.' },
 

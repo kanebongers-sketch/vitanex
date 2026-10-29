@@ -17,6 +17,7 @@
 // taken van vandaag blijft daarnaast op Vandaag staan (TakenSectie).
 
 import type { Module } from '@/lib/club/kern/organisatie'
+import { zichtbaar, type Verborgen } from '@/lib/club/kern/pakketten'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
@@ -128,13 +129,14 @@ export function actiefOnderdeel(pad: string): Onderdeel {
 }
 
 /**
- * Staat dit onderdeel aan bij deze sportschool, en mag deze persoon het zien?
+ * Staat dit onderdeel aan bij deze sportschool (en is het pakket afgenomen), en mag deze persoon het zien?
  * `toegestaan` null = alles (Kane en de eigenaar); anders de sleutels die de
  * eigenaar aan de rol gaf (zie src/lib/club/beheerders/rechten.ts).
  */
-export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): boolean {
+export function isZichtbaar(onderdeel: Onderdeel, uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null): boolean {
   if (!magOnderdeel(toegestaan, onderdeel.sleutel)) return false
-  return !onderdeel.module || !uit.includes(onderdeel.module)
+  // Uit gezet door de sportschool, of het pakket is niet afgenomen (kern/pakketten.ts).
+  return zichtbaar(uit, onderdeel)
 }
 
 /** Staat dit onderdeel in de menubalk (niet in het instellingencentrum, niet in de hulpbalk en geen sectie op Vandaag)? */
@@ -164,18 +166,18 @@ export function menuOnderdeel(pad: string): Onderdeel | null {
 }
 
 /** De secties op Vandaag die deze persoon ziet, in vaste volgorde. */
-export function sectiesVoor(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+export function sectiesVoor(uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
   if (!isZichtbaar(VANDAAG, uit, toegestaan)) return []
   return ONDERDELEN.filter((o) => o.sectie && isZichtbaar(o, uit, toegestaan))
 }
 
 /** De onderdelen van een groep in het menu, in vaste volgorde. */
-export function onderdelenVan(groep: GroepSleutel, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+export function onderdelenVan(groep: GroepSleutel, uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
   return ONDERDELEN.filter((o) => o.groep === groep && inMenu(o) && isZichtbaar(o, uit, toegestaan))
 }
 
 /** De groepen met minstens een onderdeel in het menu. */
-export function groepenMet(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): (typeof GROEPEN)[number][] {
+export function groepenMet(uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null): (typeof GROEPEN)[number][] {
   return GROEPEN.filter((g) => onderdelenVan(g.sleutel, uit, toegestaan).length > 0)
 }
 
@@ -192,7 +194,7 @@ export const ONDERBALK_VOLGORDE: readonly string[] = ['vandaag', 'leden', 'schem
 export const ONDERBALK_MAX = 4
 
 /** De onderdelen in de onderbalk voor deze persoon (zonder Meer). */
-export function onderbalkOnderdelen(uit: readonly Module[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
+export function onderbalkOnderdelen(uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null): Onderdeel[] {
   return ONDERBALK_VOLGORDE.map((s) => ONDERDELEN.find((o) => o.sleutel === s))
     .filter((o): o is Onderdeel => !!o && isZichtbaar(o, uit, toegestaan))
     .slice(0, ONDERBALK_MAX)
@@ -206,7 +208,7 @@ export function onderbalkOnderdelen(uit: readonly Module[] = [], toegestaan: rea
  * zie onderdeelPad). Instellingen (G I) volgt `instellingen` (zie
  * heeftInstellingen in instel-paginas.ts); standaard alleen bij alle rechten.
  */
-export function onderdeelVoorToets(letter: string, uit: readonly Module[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel | null {
+export function onderdeelVoorToets(letter: string, uit: readonly Verborgen[] = [], toegestaan: readonly string[] | null = null, instellingen: boolean = toegestaan === null): Onderdeel | null {
   const l = letter.toLowerCase()
   const o = ONDERDELEN.find((x) => x.toets === l && (inMenu(x) || x.hulpbalk || x.sectie))
   if (!o) return null

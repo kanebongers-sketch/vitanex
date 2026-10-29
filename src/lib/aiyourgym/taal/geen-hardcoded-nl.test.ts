@@ -118,6 +118,9 @@ export const CLUB_KLAAR = [
   'src/app/(aiyourgym)/(club)/error.tsx',
   'src/app/(aiyourgym)/(club)/not-found.tsx',
   'src/app/(aiyourgym)/(club)/layout.tsx',
+  // Het instellingencentrum (29-10-2026).
+  'src/components/club/instelcentrum',
+  'src/app/(aiyourgym)/(club)/club/beheer/page.tsx',
   // Stap 8c: ledenapp-onderdelen (voortgang, challenges, voeding, betalen, berichten, community, health).
   'src/components/club/health',
   'src/app/(aiyourgym)/(club)/mijn/koppelingen',

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, Save } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
-import { AANTAL_STAPPEN, startPad, type StapSleutel } from '@/lib/club/start/stappen'
+import { AANTAL_STAPPEN, buurStap, startPad, type StapSleutel } from '@/lib/club/start/stappen'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
@@ -29,15 +29,17 @@ export interface StartVoetProps {
   afgerond?: boolean
   /** Op de laatste stap: staan alle stappen ervoor? Anders kan afronden nog niet. */
   kanAfronden?: boolean
+  /** Stappen van pakketten die niet zijn afgenomen: verder en terug slaan ze over. */
+  sla?: readonly number[]
 }
 
 /** Opslaan voor verder of voor stoppen; bij stoppen slaat de stap op zonder verplichte velden te eisen. */
 export type VoorVerder = (doel: 'verder' | 'stoppen') => Promise<boolean>
 
-export type StartGangProps = Pick<StartVoetProps, 'stap' | 'sleutel' | 'vestiging'>
+export type StartGangProps = Pick<StartVoetProps, 'stap' | 'sleutel' | 'vestiging' | 'sla'>
 
 /** Naar een andere stap of terug naar Club, met de voortgang erbij. */
-export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
+export function useStartGang({ stap, sleutel, vestiging, sla = [] }: StartGangProps) {
   const router = useRouter()
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -77,10 +79,14 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
       if (!opgeslagen) return
     }
     if (laatste) return naar({ afronden: true }, null, true)
-    await naar({ stap: stap + 1, klaar: sleutel }, startPad(stap + 1, vestiging), true)
+    const volgende = buurStap(stap, 1, sla)
+    await naar({ stap: volgende, klaar: sleutel }, startPad(volgende, vestiging), true)
   }
 
-  const vorige = () => naar({ stap: stap - 1 }, startPad(stap - 1, vestiging), false)
+  const vorige = () => {
+    const terug = buurStap(stap, -1, sla)
+    return naar({ stap: terug }, startPad(terug, vestiging), false)
+  }
 
   /** Wat er op het scherm staat opslaan, de plek onthouden en stoppen; je gaat later verder op deze stap. */
   async function stoppen(voorVerder?: VoorVerder) {
@@ -96,8 +102,8 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
   return { bezig, fout, gelukt, gestopt, laatste, verder, vorige, stoppen, naarClub: () => router.push('/club') }
 }
 
-export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false, kanAfronden = true }: StartVoetProps) {
-  const gang = useStartGang({ stap, sleutel, vestiging })
+export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false, kanAfronden = true, sla }: StartVoetProps) {
+  const gang = useStartGang({ stap, sleutel, vestiging, sla })
   const { bezig, fout, laatste } = gang
   const t = useTekst(START).voet
 

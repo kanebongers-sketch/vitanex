@@ -1,3 +1,4 @@
+import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
 import type { Metadata } from 'next'
 import { eisModule, type ClubToegang } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
@@ -72,13 +73,8 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   if (!vestiging) return <GeenVestigingen />
   const tekst = await clubTekst(APP_PAGINA)
   const appInstellingen = t.organisatie.instellingen.ledenapp
-  // Tabbladen die uit staan: zelf uitgezet in de ledenapp-instellingen, of het onderdeel staat uit.
-  const tabsUit: string[] = [
-    ...appInstellingen.tabsUit,
-    ...(t.organisatie.uit.includes('afspraken') ? ['afspraken'] : []),
-    ...(t.organisatie.uit.includes('rooster') ? ['lessen'] : []),
-    ...(t.organisatie.uit.includes('training') ? ['schema', 'voeding'] : []),
-  ]
+  // Tabbladen die uit staan: zelf uitgezet, het onderdeel staat uit of het pakket is niet afgenomen (zelfde regel als de echte ledenapp).
+  const tabsUit: string[] = tabsUitVoor(t.organisatie)
   const gekozenTab = kiesTab(zoek.tab)
   // Een tabblad dat uit staat bestaat niet: dan Home.
   const tab = tabsUit.includes(gekozenTab) ? 'home' : gekozenTab
@@ -154,7 +150,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'home' && (
             <>
               <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) }} berichten={berichten ?? []} />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) && !t.organisatie.uit.includes('checkin') }} berichten={berichten ?? []} />
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}

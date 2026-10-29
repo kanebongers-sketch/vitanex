@@ -4,7 +4,7 @@ import { eersteStapMetPrijsFout, isPrijsAanvraag, leesPrijsAanvraag, prijsFouten
 const GOED = {
   doel: 'prijs',
   soort: 'boutique',
-  pakket: 'club',
+  pakket: 'lessen',
   vestigingen: '2',
   leden: '250-750',
   naam: 'Sam de Vries',
@@ -19,7 +19,9 @@ describe('leesPrijsAanvraag', () => {
     const uit = leesPrijsAanvraag(GOED)
     expect(uit.ok).toBe(true)
     if (!uit.ok) return
-    expect(uit.waarde).toMatchObject({ soort: 'boutique', vestigingen: 2, moment: 'maakt-niet-uit', opmerking: 'Prijs op maat. Pakket: Club. Leden: 250 tot 750.' })
+    expect(uit.waarde).toMatchObject({ soort: 'boutique', vestigingen: 2, moment: 'maakt-niet-uit', opmerking: 'Prijs op maat. Pakket: Groepslessen. Leden: 250 tot 750.' })
+    const alles = leesPrijsAanvraag({ ...GOED, pakket: 'alles' })
+    expect(alles.ok && alles.waarde.opmerking).toBe('Prijs op maat. Pakket: Alle pakketten. Leden: 250 tot 750.')
   })
   it('negeert een meegestuurde opmerking en een ander moment', () => {
     const uit = leesPrijsAanvraag({ ...GOED, opmerking: '<script>', moment: 'avond' })

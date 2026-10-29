@@ -5,7 +5,7 @@ import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 // Welke velden bij welke stap horen. De titel en de regel `hierna` (wat er na
 // deze stap komt) staan per taal in het woordenboek van de aanmeldpagina.
 export const STAPPEN = [
-  { sleutel: 'pakket', velden: ['pakket'] },
+  { sleutel: 'pakket', velden: ['pakketten'] },
   { sleutel: 'sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'] },
   { sleutel: 'eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon', 'wachtwoord', 'wachtwoordHerhaal'] },
   { sleutel: 'akkoord', velden: ['akkoord'] },

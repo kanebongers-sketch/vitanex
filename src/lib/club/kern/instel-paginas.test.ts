@@ -5,7 +5,7 @@ import { ONDERDELEN, actiefOnderdeel, groepenMet, inMenu, menuOnderdeel, onderde
 import { HULPBALK, hulpItemOp } from '@/components/club/shell/hulpbalk-items'
 import { ONDERDEEL_SLEUTELS } from './org-instellingen'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
-import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelHref, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
+import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelCategorieHref, instelGroepUitleg, instelHref, instelIndeling, instelPagina, isInstelGroep, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
 
 const APP = join(process.cwd(), 'src', 'app', '(aiyourgym)', '(club)', 'club')
 const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true, lidgeldAan: true }
@@ -64,7 +64,7 @@ describe('zichtbareInstelPaginas', () => {
   it('een clubmanager ziet alleen wat zijn rechten zeggen, nooit iets van de eigenaar', () => {
     const k: InstelKijker = { ...ALLES, toegestaan: ['vandaag', 'instellingen', 'afspraken'] }
     const ids = zichtbareInstelPaginas(k).map((p) => p.id)
-    expect(ids).toEqual(['vestigingen', 'regels', 'zalen', 'medewerkers', 'lestypen', 'weekrooster', 'afspraaktypen'])
+    expect(ids).toEqual(['vestigingen', 'regels', 'medewerkers', 'lestypen', 'weekrooster', 'zalen', 'afspraaktypen'])
     for (const p of zichtbareInstelPaginas(k)) {
       expect(p.alleenEigenaar).toBeFalsy()
       expect(NOOIT_VOOR_CLUBMANAGER.has(p.sleutel)).toBe(false)
@@ -80,6 +80,83 @@ describe('zichtbareInstelPaginas', () => {
   it('zonder enig instelrecht geen instellingencentrum', () => {
     expect(heeftInstellingen({ ...ALLES, toegestaan: ['vandaag', 'leden', 'rooster'] })).toBe(false)
     expect(heeftInstellingen({ ...ALLES, toegestaan: ['vandaag', 'instellingen'] })).toBe(true)
+  })
+})
+
+describe('instelIndeling (besluit Kane 29-10-2026: overzichtelijker)', () => {
+  /** Waar een pagina in het centrum staat: als regel of als kleine link, per categorie. */
+  const plekken = (k: InstelKijker) =>
+    instelIndeling(k).flatMap((c) => c.rijen.flatMap((r) => [{ id: r.pagina.id, cat: c.sleutel }, ...r.links.filter((l) => l.onder === r.pagina.id).map((l) => ({ id: l.id, cat: c.sleutel }))]))
+
+  it('zes tot acht categorieen, elk met een naam en een uitleg in beide talen', () => {
+    expect(INSTEL_GROEPEN.length).toBeGreaterThanOrEqual(6)
+    expect(INSTEL_GROEPEN.length).toBeLessThanOrEqual(8)
+    for (const g of INSTEL_GROEPEN) {
+      expect(instelGroepUitleg(g.sleutel, 'nl'), g.sleutel).not.toBe('')
+      expect(instelGroepUitleg(g.sleutel, 'en'), g.sleutel).not.toBe('')
+    }
+  })
+
+  it('elke instel-pagina staat in precies een categorie en is daar bereikbaar (behalve de startwizard: een losse link)', () => {
+    const p = plekken(ALLES)
+    for (const pagina of INSTEL_PAGINAS) {
+      const hier = p.filter((x) => x.id === pagina.id)
+      if (pagina.losseLink) {
+        expect(hier, pagina.id).toEqual([])
+        continue
+      }
+      expect(hier, pagina.id).toEqual([{ id: pagina.id, cat: pagina.groep }])
+    }
+    expect(INSTEL_PAGINAS.filter((x) => x.losseLink).map((x) => x.id)).toEqual(['start'])
+  })
+
+  it('onder en ookNaar wijzen naar een bestaande pagina; onder blijft in dezelfde categorie', () => {
+    for (const p of INSTEL_PAGINAS) {
+      if (p.onder) {
+        expect(instelPagina(p.onder)?.groep, p.id).toBe(p.groep)
+        expect(instelPagina(p.onder)?.onder, `${p.id}: niet dubbel genest`).toBeUndefined()
+      }
+      if (p.ookNaar) expect(instelPagina(p.ookNaar), p.id).toBeDefined()
+    }
+  })
+
+  it('minder losse regels: hoogstens vijf regels per categorie', () => {
+    for (const c of instelIndeling(ALLES)) expect(c.rijen.length, c.sleutel).toBeLessThanOrEqual(5)
+  })
+
+  it('mag iemand de hoofdpagina niet zien, dan wordt een kleine link een eigen regel', () => {
+    // Sluitingsdagen hoort onder Regels; met alleen het recht Sluiting is het een eigen regel.
+    const k: InstelKijker = { ...ALLES, toegestaan: ['vandaag', 'sluiting'] }
+    expect(plekken(k)).toEqual([{ id: 'sluiting', cat: 'vestigingen' }])
+    expect(instelIndeling(k)[0].rijen[0].links).toEqual([])
+  })
+
+  it('een clubmanager ziet alleen wat de eigenaar aanzet, nooit Abonnement of Rechten', () => {
+    const k: InstelKijker = { ...ALLES, toegestaan: ['vandaag', 'instellingen', 'huisstijl'] }
+    const ids = plekken(k).map((x) => x.id)
+    for (const id of ids) expect(zichtbareInstelPaginas(k).some((p) => p.id === id), id).toBe(true)
+    expect(ids).toContain('onderdelen')
+    expect(ids).not.toContain('abonnement')
+    expect(ids).not.toContain('rechten')
+    // Pakketten en onderdelen linkt alleen naar Abonnement als iemand dat mag zien.
+    const pakketten = instelIndeling(k).flatMap((c) => c.rijen).find((r) => r.pagina.id === 'onderdelen')
+    expect(pakketten?.links).toEqual([])
+    const eigenaar = instelIndeling(ALLES).flatMap((c) => c.rijen).find((r) => r.pagina.id === 'onderdelen')
+    expect(eigenaar?.links.map((l) => l.id)).toEqual(['abonnement'])
+  })
+
+  it('wat een sportschool niet afneemt of uit heeft gezet staat er niet; een lege categorie valt weg', () => {
+    const zonderRooster = instelIndeling({ ...ALLES, uit: ['rooster'] })
+    expect(zonderRooster.map((c) => c.sleutel)).not.toContain('groepslessen')
+    expect(plekken({ ...ALLES, uit: ['rooster'] }).map((x) => x.id)).not.toContain('widget')
+  })
+
+  it('?categorie= in de url: alleen bestaande categorieen, met de vestiging erbij', () => {
+    expect(isInstelGroep('coaching')).toBe(true)
+    expect(isInstelGroep('onzin')).toBe(false)
+    expect(isInstelGroep(undefined)).toBe(false)
+    expect(instelCategorieHref('coaching', 'budel')).toBe('/club/beheer?categorie=coaching&v=budel')
+    expect(instelCategorieHref('team', null)).toBe('/club/beheer?categorie=team')
   })
 })
 

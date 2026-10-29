@@ -1,3 +1,4 @@
+import { zichtbaar } from '@/lib/club/kern/pakketten'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
@@ -68,7 +69,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
       </>
     )
   }
-  const mag = (onderdeel: string) => magOnderdeel(t.onderdelen, onderdeel)
+  // Mag deze persoon het onderdeel, staat het aan en is het pakket afgenomen (kern/pakketten.ts)?
+  const mag = (onderdeel: string) => magOnderdeel(t.onderdelen, onderdeel) && zichtbaar(t.organisatie.uit, { sleutel: onderdeel, module: ONDERDELEN.find((x) => x.sleutel === onderdeel)?.module })
   /** Mag deze persoon het onderdeel en staat het aan bij de sportschool? */
   const zie = (sleutel: string) => {
     const o = ONDERDELEN.find((x) => x.sleutel === sleutel)

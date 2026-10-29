@@ -1,4 +1,4 @@
-// PATCH /api/club/privacy { leadsMaanden, oudLedenMaanden, bezoekenMaanden, logboekMaanden }
+// PATCH /api/club/privacy { leadsMaanden, oudLedenMaanden, bezoekenMaanden, logboekMaanden, voedingMaanden }
 // De bewaartermijnen van de sportschool instellen. Alleen Kane en de eigenaar
 // (vereisBeheerdersBeheer); hoort bij Beheer in src/lib/club/beheerders/rechten.ts.
 

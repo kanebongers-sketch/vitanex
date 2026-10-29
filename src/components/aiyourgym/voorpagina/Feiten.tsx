@@ -1,4 +1,5 @@
 import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
+import { PAKKET_SLEUTELS } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { TALEN } from '@/lib/aiyourgym/taal/taal'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
@@ -6,19 +7,17 @@ import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 // Een rustige band met alleen feiten uit het product, geen klantaantallen of
 // reviews. Waar elk feit staat:
 // - stappen: AANTAL_STAPPEN in src/lib/club/start/stappen.ts (de startwizard)
-// - plekken: balie, vloer, trainer, eigenaar en lid werken in dezelfde Club
-//   (werkvloer, ledenkaart, rechten per rol, ledenapp; .claude/CLAUDE.md)
+// - pakketten: PAKKET_SLEUTELS in src/lib/aiyourgym/pakketten.ts (losse
+//   pakketten, besluit Kane 29-10-2026)
 // - talen: TALEN in src/lib/aiyourgym/taal/taal.ts (website, Club, ledenapp en mails)
 // - EU: database en server in Frankfurt (Supabase eu-central-1, Render Frankfurt;
 //   zie ook PRIVACY_BEVEILIGING en inhoud/vertrouwen.ts)
-
-const PLEKKEN = 5
 
 export async function Feiten() {
   const t = VOORPAGINA[await getSiteTaal()].feiten
   const feiten = [
     { waarde: String(AANTAL_STAPPEN), tekst: t.stappen },
-    { waarde: String(PLEKKEN), tekst: t.plekken },
+    { waarde: String(PAKKET_SLEUTELS.length), tekst: t.pakketten },
     { waarde: String(TALEN.length), tekst: t.talen },
     { waarde: 'EU', tekst: t.eu },
   ]

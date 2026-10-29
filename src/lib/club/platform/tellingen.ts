@@ -5,7 +5,8 @@
 // Zonder Next, Supabase of env, zodat alles te testen is.
 
 import { isAanmeldStatus, type AanmeldStatus } from '@/lib/aiyourgym/status'
-import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { OUDE_PAKKETTEN, leesPakketKeuze } from '@/lib/aiyourgym/pakketten'
+import { pakkettenTekst } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { AANTAL_STAPPEN, leesStart } from '@/lib/club/start/stappen'
 
 const ZONE = 'Europe/Amsterdam'
@@ -59,7 +60,7 @@ export interface PlatformAanmelding {
 }
 
 /** De kolommen die we uit ayg_aanmeldingen lezen. */
-export const AANMELDING_KOLOMMEN = 'id, pakket, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, organisatie_id, stripe_subscription_id, aangemaakt_op'
+export const AANMELDING_KOLOMMEN = 'id, pakket, pakketten, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, organisatie_id, stripe_subscription_id, aangemaakt_op'
 
 function tekst(v: unknown): string {
   return typeof v === 'string' ? v : ''
@@ -72,7 +73,8 @@ export function aanmeldingUitRij(rij: unknown): PlatformAanmelding | null {
   if (typeof r.id !== 'string' || !isAanmeldStatus(r.status)) return null
   return {
     id: r.id,
-    pakket: tekst(r.pakket),
+    // Een modulaire aanmelding: de losse pakketten als "lessen,groei" (pakketNaam maakt er namen van).
+    pakket: r.pakket === 'los' ? (leesPakketKeuze(r.pakketten)?.join(',') ?? 'los') : tekst(r.pakket),
     sportschoolNaam: tekst(r.sportschool_naam),
     slug: tekst(r.slug),
     aantalVestigingen: typeof r.aantal_vestigingen === 'number' ? r.aantal_vestigingen : 1,
@@ -122,9 +124,11 @@ export const STATUS_WEERGAVE: Record<AanmeldStatus, { label: string; toon: Toon 
   test: { label: 'Test', toon: 'info' },
 }
 
-/** De naam van het pakket, of de sleutel als die onbekend is. */
+/** De naam van de losse pakketten ("Groepslessen en Groei") of van een oud pakket, of de sleutel als die onbekend is. */
 export function pakketNaam(sleutel: string): string {
-  return vindPakket(sleutel)?.naam ?? (sleutel || 'Onbekend')
+  const los = leesPakketKeuze(sleutel)
+  if (los) return pakkettenTekst(los, 'nl')
+  return OUDE_PAKKETTEN[sleutel] ?? (sleutel || 'Onbekend')
 }
 
 // ── Startwizard ───────────────────────────────────────────────────────────

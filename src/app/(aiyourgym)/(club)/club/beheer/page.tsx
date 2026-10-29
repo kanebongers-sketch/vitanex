@@ -3,11 +3,22 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import { eisInstellingencentrum } from '@/lib/club/instel-toegang'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
-import { MODULES, LOGO_FIT_FACTORY, moduleTekst } from '@/lib/club/kern/organisatie'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { checkinMethodeLabel } from '@/lib/club/kern/org-instellingen'
-import { INSTEL_GROEPEN, INSTEL_PAGINAS, instelGroepLabel, instelHref, instelPaginaInTaal, magInstelPagina, type InstelKijker } from '@/lib/club/kern/instel-paginas'
+import {
+  instelGroepLabel,
+  instelGroepUitleg,
+  instelHref,
+  instelIndeling,
+  instelPagina,
+  instelPaginaInTaal,
+  zichtbareInstelPaginas,
+  type InstelKijker,
+  type InstelPagina,
+} from '@/lib/club/kern/instel-paginas'
+import { TE_DOEN_IDS, teDoenOverzicht, type TeDoenId } from '@/lib/club/kern/instel-te-doen'
+import { telKiesbareOefeningen } from '@/lib/club/training/blender-bibliotheek'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
@@ -17,114 +28,113 @@ import { haalRegels } from '@/lib/club/automatisering/opslag'
 import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { haalStart } from '@/lib/club/start/opslag'
 import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
-import { InstellingenGroep, type InstellingRegel } from '@/components/club/beheer/InstellingenGroep'
-import { BeheerKop } from '@/components/club/beheer/BeheerKop'
+import { CentrumKop } from '@/components/club/instelcentrum/CentrumKop'
+import { NogTeDoen } from '@/components/club/instelcentrum/NogTeDoen'
+import { InstelCentrum } from '@/components/club/instelcentrum/InstelCentrum'
+import type { CentrumCategorie, CentrumRegel, CentrumStart } from '@/components/club/instelcentrum/typen'
 import '@/components/club/beheer/beheer.css'
+import '@/components/club/instelcentrum/instelcentrum.css'
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: BEHEER[await getTaal()].algemeen.instellingen }
 }
 
-// Het instellingencentrum: alles wat je instelt, op een plek, in acht groepen
-// zonder overlap (zie src/lib/club/kern/instel-paginas.ts). Per regel de huidige
-// stand en een klik naar de plek waar je het aanpast. Iedereen ziet alleen de
-// regels die hij mag; de stand wordt alleen gelezen voor die regels.
+// Het instellingencentrum (besluit Kane 29-10-2026: rustiger). Bovenaan de
+// sportschool en een zoekveld, alleen als er echt iets openstaat "Nog te doen",
+// daaronder acht categorieen (src/lib/club/kern/instel-paginas.ts). Per regel
+// een stand alleen als die iets zegt: een aantal, of "Nog doen". Iedereen ziet
+// alleen wat hij mag en wat aan staat; de stand wordt alleen gelezen voor die regels.
 
 /** Het aantal rijen van deze sportschool in een tabel; null bij een fout (gelogd). */
-async function tel(t: ClubToegang, tabel: string, alleenEigenCoaching = false): Promise<number | null> {
-  let q = t.admin.from(tabel).select('id', { count: 'exact', head: true }).eq('user_id', t.userId)
-  if (alleenEigenCoaching) q = q.not('coaching', 'is', null)
-  const { count, error } = await q
+async function tel(t: ClubToegang, tabel: string): Promise<number | null> {
+  const { count, error } = await t.admin.from(tabel).select('id', { count: 'exact', head: true }).eq('user_id', t.userId)
   if (error) console.error(`[club] tellen ${tabel} mislukt`, error.message)
   return error ? null : count
 }
 
-/** Een telling als tekst, of Onbekend bij een leesfout. */
-function aantal(n: number | null, tekst: (n: number) => string, onbekend: string): string {
-  return n === null ? onbekend : tekst(n)
+/** Kiesbare oefeningen: de Blender-oefeningen plus de eigen, zonder archief (zelfde regel als de bibliotheek). */
+async function telOefeningen(t: ClubToegang): Promise<number | null> {
+  const { data, error } = await t.admin.from('club_oefeningen').select('naam, actief, gearchiveerd').eq('user_id', t.userId)
+  if (error) console.error('[club] oefeningen tellen mislukt', error.message)
+  return error ? null : telKiesbareOefeningen(data ?? [])
 }
-
-interface Stand {
-  stand: string
-  /** Vraagt aandacht (nog niet ingesteld). */
-  let?: boolean
-}
-
 
 /** Alleen lezen wat deze persoon ziet. */
 function als<T>(mag: boolean, laad: () => Promise<T>): Promise<T | null> {
   return mag ? laad() : Promise.resolve(null)
 }
 
-/** De stand per instel-pagina, in een paar woorden. */
+interface Stand {
+  stand: string | null
+  let?: boolean
+  /** Kon niet gelezen worden: telt niet mee in Nog te doen. */
+  onbekend?: boolean
+}
+
+/** De stand per instel-pagina: alleen waar die iets zegt. */
 async function standen(t: ClubToegang, ziet: (id: string) => boolean, taal: Taal): Promise<Record<string, Stand>> {
   const org = t.organisatie
   const s = BEHEER[taal].stand
-  /** Bij een leesfout: neutraal, zonder aandachtsteken. */
-  const ONBEKEND: Stand = { stand: s.onbekend }
-  const tal = (n: number | null, tekst: (n: number) => string) => aantal(n, tekst, s.onbekend)
-  const [medewerkers, leden, oefeningen, eigenCoaching, lestypen, zalen, vormen, bedrijf, regels, beheerders, start] = await Promise.all([
+  const tal = (n: number | null, tekst: (n: number) => string): Stand => ({ stand: n === null ? s.onbekend : tekst(n) })
+  const nogDoen = (klaar: boolean): Stand => (klaar ? { stand: null } : { stand: s.nogDoen, let: true })
+  const [medewerkers, leden, oefeningen, lestypen, zalen, vormen, bedrijf, regels, beheerders] = await Promise.all([
     als(ziet('medewerkers'), () => tel(t, 'club_medewerkers')),
     als(ziet('importeren'), () => tel(t, 'club_leden')),
-    als(ziet('oefeningen'), () => tel(t, 'club_oefeningen')),
-    als(ziet('oefeningen'), () => tel(t, 'club_oefeningen', true)),
+    als(ziet('oefeningen'), () => telOefeningen(t)),
     als(ziet('lestypen'), () => tel(t, 'club_lestypen')),
     als(ziet('zalen'), () => tel(t, 'club_zalen')),
     als(ziet('lidmaatschappen'), () => tel(t, 'club_lidmaatschapsvormen')),
     als(ziet('bedrijf'), () => haalBedrijf(t.admin, t.userId)),
     als(ziet('opvolgregels'), () => haalRegels(t.admin, t.userId)),
     als(ziet('beheerders'), () => haalBeheerders(t.admin, t.userId)),
-    als(ziet('start'), () => haalStart(t)),
   ])
-  const app = org.instellingen.ledenapp
-  const aanTal = MODULES.length - org.uit.length
-  const voortgang = start?.ok ? start.voortgang : null
   return {
-    start: start?.ok === false ? ONBEKEND : { stand: voortgang?.afgerondOp ? s.afgerond : voortgang ? s.bijStap(voortgang.stap, AANTAL_STAPPEN) : s.nietBegonnen },
-    huisstijl: { stand: org.logo ? (org.logo === LOGO_FIT_FACTORY ? s.eigenLogo : s.logoGeupload) : s.geenLogo, let: !org.logo },
-    onderdelen: { stand: s.aanVan(aanTal, MODULES.length) },
-    adres: { stand: org.slug ? adresVan(org.slug, subdomeinenActief()) : s.nietGekozen, let: !org.slug },
-    bedrijf: bedrijf === null ? ONBEKEND : { stand: bedrijf.gegevens.kvk ? s.kvkIngevuld : s.nietIngevuld, let: !bedrijf.gegevens.kvk },
-    vestigingen: { stand: tal(t.vestigingen.length, s.vestigingen), let: t.vestigingen.length === 0 },
-    regels: { stand: s.perVestiging },
-    sluiting: { stand: s.sluiting },
-    zalen: { stand: tal(zalen, s.zalen) },
-    medewerkers: { stand: tal(medewerkers, s.medewerkers) },
-    rechten: { stand: s.rechten },
-    beheerders: { stand: beheerders ? tal(beheerders.length, s.beheerders) : s.beheerdersOnbekend },
-    lestypen: { stand: tal(lestypen, s.lestypen) },
-    weekrooster: { stand: s.perVestiging },
-    afspraaktypen: { stand: s.afspraaktypen },
-    intake: { stand: s.intake },
-    oefeningen: { stand: `${tal(oefeningen, s.oefeningen)}${eigenCoaching ? `, ${s.eigenCoaching(eigenCoaching)}` : ''}` },
-    lidmaatschappen: { stand: tal(vormen, s.vormen) },
-    importeren: { stand: tal(leden, s.leden) },
+    huisstijl: nogDoen(Boolean(org.logo)),
+    adres: nogDoen(Boolean(org.slug)),
+    bedrijf: bedrijf === null ? { stand: null, onbekend: true } : nogDoen(Boolean(bedrijf.gegevens.kvk)),
+    vestigingen: t.vestigingen.length === 0 ? { stand: s.nogDoen, let: true } : tal(t.vestigingen.length, s.vestigingen),
+    zalen: tal(zalen, s.zalen),
+    medewerkers: tal(medewerkers, s.medewerkers),
+    beheerders: beheerders ? tal(beheerders.length, s.beheerders) : { stand: null },
+    lestypen: tal(lestypen, s.lestypen),
+    oefeningen: tal(oefeningen, s.oefeningen),
+    lidmaatschappen: tal(vormen, s.vormen),
+    importeren: tal(leden, s.leden),
     checkin: { stand: checkinMethodeLabel(org.instellingen.checkin.methode, taal, true) },
-    ledenapp: { stand: s.ledenapp(Boolean(app.welkom), app.qr) },
-    meldingen: { stand: s.meldingen },
-    opvolgregels: { stand: regels ? s.aanVan(regels.filter((r) => r.aan).length, regels.length) : s.onbekend },
-    betalen: { stand: s.betalen },
-    kortingen: { stand: s.kortingen },
-    abonnement: { stand: s.abonnement },
+    opvolgregels: { stand: regels ? s.aanVan(regels.filter((r) => r.aan).length, regels.length) : null },
   }
 }
 
-/** De regels per groep die deze persoon mag zien. Onderdeel uit of geen vestiging: zichtbaar maar niet beschikbaar. */
-function groepen(kijker: InstelKijker, stand: Record<string, Stand>, vestiging: string | null, taal: Taal) {
-  return INSTEL_GROEPEN.map((g) => ({
-    titel: instelGroepLabel(g.sleutel, taal),
-    regels: INSTEL_PAGINAS.filter((p) => p.groep === g.sleutel && magInstelPagina(p, kijker)).map((bron): InstellingRegel => {
-      const p = instelPaginaInTaal(bron, taal)
-      return {
-        titel: p.titel,
-        uitleg: p.uitleg,
-        stand: stand[p.id]?.stand ?? '',
-        href: instelHref(p, vestiging),
-        let: stand[p.id]?.let,
-        uit: Boolean((p.module && kijker.uit.includes(p.module)) || (p.perVestiging && !vestiging)),
-      }
-    }),
-  })).filter((g) => g.regels.length > 0)
+/** De startwizard als losse link, met waar de eigenaar is. */
+async function startLink(t: ClubToegang, kijker: InstelKijker, taal: Taal): Promise<CentrumStart | null> {
+  const p = instelPagina('start')
+  if (!p || !zichtbareInstelPaginas(kijker).includes(p)) return null
+  const start = await haalStart(t)
+  const s = BEHEER[taal].stand
+  const v = start.ok ? start.voortgang : null
+  return { href: instelHref(p, null), stand: !start.ok ? null : v?.afgerondOp ? s.afgerond : v ? s.bijStap(v.stap, AANTAL_STAPPEN) : null }
+}
+
+/** De categorieen met hun regels, in de taal en met de vestiging in de links. */
+function categorieen(kijker: InstelKijker, stand: Record<string, Stand>, vestiging: string | null, taal: Taal): CentrumCategorie[] {
+  const nietBeschikbaar = BEHEER[taal].algemeen.nietBeschikbaar
+  const regel = (bron: InstelPagina, links: InstelPagina[]): CentrumRegel => {
+    const p = instelPaginaInTaal(bron, taal)
+    const beschikbaar = !(p.perVestiging && !vestiging)
+    return {
+      id: p.id,
+      titel: p.titel,
+      uitleg: p.uitleg,
+      stand: beschikbaar ? (stand[p.id]?.stand ?? null) : nietBeschikbaar,
+      let: beschikbaar && Boolean(stand[p.id]?.let),
+      href: beschikbaar ? instelHref(p, vestiging) : null,
+      links: links.filter((l) => !(l.perVestiging && !vestiging)).map((l) => ({ id: l.id, titel: instelPaginaInTaal(l, taal).titel, href: instelHref(l, vestiging) })),
+    }
+  }
+  return instelIndeling(kijker).map((c) => {
+    const rijen = c.rijen.map((r) => regel(r.pagina, r.links))
+    return { sleutel: c.sleutel, label: instelGroepLabel(c.sleutel, taal), uitleg: instelGroepUitleg(c.sleutel, taal), let: rijen.some((r) => r.let), rijen }
+  })
 }
 
 export default async function InstellingenCentrum({ searchParams }: { searchParams: ZoekParams }) {
@@ -132,27 +142,29 @@ export default async function InstellingenCentrum({ searchParams }: { searchPara
   const org = t.organisatie
   const taal = await getTaal()
   const v = kiesUit(t.vestigingen, (await searchParams).v)
-  const ziet = (id: string) => INSTEL_PAGINAS.some((p) => p.id === id && magInstelPagina(p, kijker))
-  const lijst = groepen(kijker, await standen(t, ziet, taal), v, taal)
-  const teDoen = lijst.flatMap((g) => g.regels).filter((r) => r.let && !r.uit).map((r) => r.titel)
+  const zichtbaar = zichtbareInstelPaginas(kijker)
+  const ziet = (id: string) => zichtbaar.some((p) => p.id === id)
+  const [stand, start] = await Promise.all([standen(t, ziet, taal), startLink(t, kijker, taal)])
+  const lijst = categorieen(kijker, stand, v, taal)
+
+  // Nog te doen: alleen de punten die deze persoon ziet en die al gelezen konden worden.
+  const teDoenPunten = TE_DOEN_IDS.filter((id) => ziet(id) && !stand[id]?.onbekend)
+  const overzicht = teDoenOverzicht(teDoenPunten.map((id) => ({ id, klaar: !stand[id]?.let })))
+  const hrefTeDoen = Object.fromEntries(TE_DOEN_IDS.map((id) => [id, instelHref(instelPagina(id) ?? { pad: '' }, v)])) as Record<TeDoenId, string>
   const huisstijl = magOnderdeel(t.onderdelen, 'huisstijl')
 
   return (
-    <>
-      <BeheerKop
+    <div className="club-ic-pagina">
+      <CentrumKop
         naam={org.naam}
         demo={org.demo}
-        adres={huisstijl ? (org.slug ? adresVan(org.slug, subdomeinenActief()) : null) : undefined}
+        adres={ziet('adres') ? (org.slug ? adresVan(org.slug, subdomeinenActief()) : null) : undefined}
         kleur={org.kleurAccent}
-        modules={MODULES.filter((m) => !org.uit.includes(m)).map((m) => moduleTekst(m, taal).label)}
-        teDoen={teDoen}
+        naamHref={huisstijl && ziet('huisstijl') ? '/club/huisstijl' : null}
         magNieuw={t.isPlatformEigenaar}
       />
-      <div className="club-beheer-groepen">
-        {lijst.map((g) => (
-          <InstellingenGroep key={g.titel} titel={g.titel} regels={g.regels} />
-        ))}
-      </div>
-    </>
+      {overzicht && <NogTeDoen overzicht={overzicht} href={hrefTeDoen} />}
+      <InstelCentrum categorieen={lijst} start={start} />
+    </div>
   )
 }

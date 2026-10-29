@@ -47,6 +47,10 @@ function leeg(): ExportRuw {
     healthToestemmingen: [],
     healthKoppelingen: [],
     healthMetingen: [],
+    voedingKeuzes: [],
+    voedingDagboek: [],
+    voedingProducten: [],
+    voedingFavorieten: [],
   }
 }
 

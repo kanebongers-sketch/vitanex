@@ -2,7 +2,7 @@
 // Per soort sportschool wat die aan Club heeft. Alleen functies die Club echt
 // heeft (zie functies.ts en src/lib/club/**); geen beloftes over resultaat.
 
-import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { VOORSTEL_PER_SOORT, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
 
 export type DoelgroepSleutel = 'zelfstandig' | 'boutique' | 'pt-studio' | 'keten' | 'yoga' | 'vechtsport' | 'bootcamp'
 
@@ -17,8 +17,8 @@ export interface Doelgroep {
   kop: string
   /** Wat ze eraan hebben, 3 tot 5 punten, alleen echte functies. */
   punten: readonly string[]
-  /** Het pakket dat er meestal bij past. */
-  pakket: PakketSleutel
+  /** De losse pakketten die er meestal bij passen (VOORSTEL_PER_SOORT). */
+  pakketten: readonly PakketSleutel[]
 }
 
 export const DOELGROEPEN: readonly Doelgroep[] = [
@@ -33,7 +33,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Dagtaken, afsluitronde en poetsrooster in een tabel',
       'Een opvolglijst voor nieuwe leden en wie lang wegblijft',
     ],
-    pakket: 'start',
+    pakketten: VOORSTEL_PER_SOORT.gym,
   },
   {
     sleutel: 'boutique',
@@ -46,7 +46,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Leden reserveren zelf en schuiven vanzelf door',
       'Bezetting per les en per kalendermaand',
     ],
-    pakket: 'club',
+    pakketten: VOORSTEL_PER_SOORT.boutique,
   },
   {
     sleutel: 'pt-studio',
@@ -59,7 +59,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Coaching bij elke oefening: kernpunten, fouten, ademhaling',
       'Voedingsplan, afspraken en voortgang per lid',
     ],
-    pakket: 'club',
+    pakketten: VOORSTEL_PER_SOORT.pt,
   },
   {
     sleutel: 'keten',
@@ -72,7 +72,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Rechten per rol: jij bepaalt wat een clubmanager ziet',
       'Uren goedkeuren en exporteren voor de administratie',
     ],
-    pakket: 'keten',
+    pakketten: VOORSTEL_PER_SOORT.keten,
   },
   {
     sleutel: 'yoga',
@@ -85,7 +85,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Leden reserveren en annuleren zelf, volgens jouw regels',
       'Een ledenapp met de naam en kleuren van je studio',
     ],
-    pakket: 'start',
+    pakketten: VOORSTEL_PER_SOORT.yoga,
   },
   {
     sleutel: 'vechtsport',
@@ -98,7 +98,7 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Een ledenkaart met bezoek en notities van de trainers',
       'Challenges en badges in de app',
     ],
-    pakket: 'club',
+    pakketten: VOORSTEL_PER_SOORT.vechtsport,
   },
   {
     sleutel: 'bootcamp',
@@ -111,6 +111,6 @@ export const DOELGROEPEN: readonly Doelgroep[] = [
       'Opvolgregels voor proefleden en wie afhaakt',
       'Bezetting en no-shows per kalendermaand',
     ],
-    pakket: 'club',
+    pakketten: VOORSTEL_PER_SOORT.bootcamp,
   },
 ]

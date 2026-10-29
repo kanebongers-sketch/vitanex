@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
@@ -23,7 +23,7 @@ interface MenuPaneelProps {
   vestiging: Vestiging | null
   pilot: boolean
   pad: string
-  uit: readonly Module[]
+  uit: readonly Verborgen[]
   /** Wat deze persoon mag zien; null = alles. */
   toegestaan: readonly string[] | null
   /** Wat deze persoon in de hulpbalk heeft. */

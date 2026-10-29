@@ -12,6 +12,7 @@ export const PRIJS_KENMERK = 'Prijs op maat'
 
 export const PRIJS_PAKKETTEN = [
   ...PAKKETTEN.map((p) => ({ sleutel: p.sleutel as string, label: p.naam })),
+  { sleutel: 'alles', label: 'Alle pakketten' },
   { sleutel: 'weet-niet', label: 'Weet ik nog niet' },
 ] as const satisfies readonly { sleutel: string; label: string }[]
 

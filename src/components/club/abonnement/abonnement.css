@@ -26,3 +26,22 @@
 .club-abo-uitleg { display: grid; gap: 8px; padding: 20px 22px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); color: var(--text-2); line-height: 1.55; }
 .club-abo-uitleg h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; color: var(--text-1); }
 .club-abo-uitleg p { margin: 0; max-width: var(--club-lees); }
+
+/* Losse pakketten (besluit Kane 29-10-2026): per pakket een regel met de stand en een knop. */
+.club-abo-pakketten { display: grid; gap: 14px; }
+.club-abo-pakketten-kop h2 { margin: 0; font-family: var(--ff-kop); font-size: 20px; text-transform: uppercase; }
+.club-abo-pakketten-kop p { margin: 4px 0 0; color: var(--text-2); max-width: var(--club-lees); line-height: 1.5; }
+.club-abo-pakketlijst { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
+.club-abo-pakket { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px 16px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.club-abo-pakket:last-child { border-bottom: 0; }
+.club-abo-pakket[data-afgenomen] { box-shadow: inset 3px 0 0 var(--brand); }
+.club-abo-pakket-tekst { display: grid; gap: 2px; min-width: 0; }
+.club-abo-pakket-tekst strong { font-size: 16px; }
+.club-abo-pakket-tekst span { color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.club-abo-pakket .club-chip { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+@media (max-width: 560px) {
+  .club-abo-pakket { grid-template-columns: minmax(0, 1fr) auto; }
+  .club-abo-pakket-tekst { grid-column: 1 / -1; }
+}
+.club-abo-kern { display: grid; gap: 4px; padding: 14px 18px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); }
+.club-abo-kern p { margin: 0; line-height: 1.5; }

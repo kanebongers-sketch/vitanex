@@ -3,7 +3,8 @@ import { eersteStapMetFout, foutenVanStap, isStripeCheckout, isTestbetaalAdres }
 
 describe('stappen', () => {
   it('fouten per stap', () => {
-    const fouten = { pakket: 'a', slug: 'b', akkoord: 'c' }
+    const fouten = { pakketten: 'a', slug: 'b', akkoord: 'c' }
+    expect(foutenVanStap(0, fouten)).toEqual({ pakketten: 'a' })
     expect(foutenVanStap(1, fouten)).toEqual({ slug: 'b' })
     expect(foutenVanStap(2, fouten)).toEqual({})
     expect(eersteStapMetFout(fouten)).toBe(0)

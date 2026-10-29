@@ -9,7 +9,7 @@ import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { nlDelen } from '@/lib/club/rooster/tijd'
-import { AANTAL_STAPPEN, NIEUWE_START, STAPPEN, aantalAf, isHervatten, moetNaarWizard, nogOpen, startPad, stapNummer, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten, type StartVoortgang } from '@/lib/club/start/stappen'
+import { NIEUWE_START, buurStap, overgeslagen, STAPPEN, aantalAf, isHervatten, moetNaarWizard, nogOpen, startPad, stapNummer, stapUitParam, stappenStand, streefStand, type StapSleutel, type StartFeiten, type StartVoortgang } from '@/lib/club/start/stappen'
 import { bewaarStart, haalStart, haalStartFeiten, wizardPoortDicht } from '@/lib/club/start/opslag'
 import { voorbeeldLes, voorstelLestypen, type BestaandeVestiging, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { ALLE_LESSEN, ALLE_LESTYPEN, VOORBEELD_LESTYPEN } from '@/lib/club/start/voorbeelden'
@@ -44,7 +44,7 @@ export const dynamic = 'force-dynamic'
 // instellingencentrum, dus wat je hier doet staat daar ook (en andersom).
 // Tot de wizard is afgerond is de rest van Club dicht (src/lib/club/start/poort.ts).
 
-type Voet = { stap: number; sleutel: StapSleutel; vestiging: string | null }
+type Voet = { stap: number; sleutel: StapSleutel; vestiging: string | null; sla?: readonly number[] }
 
 interface StapProps {
   t: ClubToegang
@@ -167,7 +167,7 @@ async function Lessen({ t, voet, soort, waarden, geenVasteLessen }: Pick<StapPro
 async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum, voortgang, taal }: StapProps) {
   const bevestigd = voortgang?.bevestigd ?? []
   const org = t.organisatie
-  const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
+  const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.eigenUit }
   const vestiging = voet.vestiging
   switch (voet.sleutel) {
     case 'soort': {
@@ -187,7 +187,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
     case 'vestigingen':
       return <StapVestigingen t={t} vestiging={vestiging} soort={soort} voet={voet} />
     case 'onderdelen':
-      return <StapOnderdelen key={org.id} organisatie={waarden} soort={soort} voet={voet} />
+      return <StapOnderdelen key={org.id} organisatie={waarden} soort={soort} afgenomen={org.afgenomen} voet={voet} />
     case 'lessen':
       return <Lessen t={t} voet={voet} soort={soort} waarden={waarden} geenVasteLessen={bevestigd.includes('geen_vaste_lessen')} />
     case 'team':
@@ -218,8 +218,8 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             afgerond={afgerond}
             open={open}
             voorbeeldLes={les}
-            af={aantalAf(stand)}
-            totaal={AANTAL_STAPPEN}
+            af={aantalAf(stand.filter((s) => s.nodig))}
+            totaal={stand.filter((s) => s.nodig).length}
             adressen={liveAdressen(org)}
             adresKiezenPad={startPad(stapNummer('huisstijl'), vestiging)}
             naam={org.naam}
@@ -246,9 +246,12 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   const feiten = await haalStartFeiten(t)
   const taal = await getTaal()
   const tekst = await clubTekst(START)
-  const stand = stappenStand(voortgang, feiten, taal)
+  const stand = stappenStand(voortgang, feiten, taal, t.organisatie.afgenomen)
+  const sla = overgeslagen(stand)
   const stapInUrl = stapUitParam(params.stap)
-  const huidig = stapInUrl ?? voortgang?.stap ?? 1
+  const gevraagd = stapInUrl ?? voortgang?.stap ?? 1
+  // Een stap van een pakket dat niet is afgenomen bestaat hier niet: door naar de volgende.
+  const huidig = sla.includes(gevraagd) ? buurStap(gevraagd, 1, sla) : gevraagd
   const sleutel = STAPPEN[huidig - 1].sleutel
   const vestiging = kiesUit(t.vestigingen, params.v)
   // Het kruimelpad wijst naar Instellingen: alleen als die open zijn (het master account ziet altijd alles).
@@ -259,7 +262,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}
         t={t}
-        voet={{ stap: huidig, sleutel, vestiging }}
+        voet={{ stap: huidig, sleutel, vestiging, sla }}
         soort={voortgang?.soort ?? null}
         afgerond={Boolean(voortgang?.afgerondOp)}
         feiten={feiten}

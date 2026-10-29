@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ListChecks } from 'lucide-react'
-import { eisOnderdeel } from '@/lib/club/toegang'
+import { eisOnderdeel, eisPakket } from '@/lib/club/toegang'
 import { clubPad } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { haalAlleMedewerkers, haalRegels } from '@/lib/club/automatisering/opslag'
@@ -20,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // De regels gelden voor alle vestigingen van de sportschool.
 
 export default async function AutomatiseringenPagina() {
+  await eisPakket('groei')
   const t = await eisOnderdeel('beheer')
   const w = OPVOLGREGELS[await getTaal()].pagina
   const [regels, medewerkers] = await Promise.all([haalRegels(t.admin, t.userId), haalAlleMedewerkers(t.admin, t.userId)])

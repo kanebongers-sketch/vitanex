@@ -3,8 +3,12 @@
 
 import { HEX, THEMAS, type Thema } from './huisstijl'
 import { MODULES, type Module } from './organisatie'
+import { MAX_NAAM, leesSportschoolNaam, type NaamFout } from './sportschool-naam'
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
+
+/** Als Uitslag, maar een fout in de naam heeft ook een code (vertaald in HUISSTIJL.fouten). */
+export type HuisstijlUitslag = { ok: true; waarde: HuisstijlInvoer } | { ok: false; fout: string; code?: NaamFout }
 
 export interface HuisstijlInvoer {
   naam: string
@@ -15,19 +19,27 @@ export interface HuisstijlInvoer {
   uit: Module[]
 }
 
-export const MAX_NAAM = 60
+export { MAX_NAAM }
 export const MAX_SLOGAN = 80
 
 function object(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
 
-export function leesHuisstijl(body: unknown): Uitslag<HuisstijlInvoer> {
+const NAAM_FOUT_NL: Record<NaamFout, string> = {
+  naamLeeg: 'Vul de naam van de sportschool in.',
+  naamTeKort: 'De naam moet minstens 2 tekens zijn.',
+  naamTeLang: `De naam mag maximaal ${MAX_NAAM} tekens zijn.`,
+  naamTekens: 'De naam mag geen < of > of onzichtbare tekens bevatten.',
+  naamBezet: 'Er is al een sportschool met deze naam.',
+}
+
+export function leesHuisstijl(body: unknown): HuisstijlUitslag {
   const o = object(body)
   if (!o) return { ok: false, fout: 'Ongeldige invoer.' }
-  const naam = typeof o.naam === 'string' ? o.naam.trim().replace(/\s+/g, ' ') : ''
-  if (!naam) return { ok: false, fout: 'Vul de naam van de sportschool in.' }
-  if (naam.length > MAX_NAAM) return { ok: false, fout: `De naam mag maximaal ${MAX_NAAM} tekens zijn.` }
+  const n = leesSportschoolNaam(o.naam)
+  if (!n.ok) return { ok: false, fout: NAAM_FOUT_NL[n.code], code: n.code }
+  const naam = n.naam
   const slogan = typeof o.slogan === 'string' ? o.slogan.trim().replace(/\s+/g, ' ') : ''
   if (slogan.length > MAX_SLOGAN) return { ok: false, fout: `De slogan mag maximaal ${MAX_SLOGAN} tekens zijn.` }
   if (typeof o.kleurAccent !== 'string' || !HEX.test(o.kleurAccent)) return { ok: false, fout: 'Kies een geldige kleur (bijvoorbeeld #B58E5C).' }

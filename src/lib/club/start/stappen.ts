@@ -13,6 +13,7 @@
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { isSportschoolSoort, type SportschoolSoort } from './soorten'
+import { ALLE_PAKKETTEN, wizardStapNodig, type PakketSleutel } from '@/lib/club/kern/pakketten'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
@@ -315,13 +316,37 @@ export function stapAf(sleutel: Exclude<StapSleutel, 'klaar'>, v: StartVoortgang
 export interface StapStand extends StapInfo {
   nummer: number
   af: boolean
+  /**
+   * Hoort de stap bij een afgenomen pakket (of bij de kern)? Een stap van een
+   * pakket dat niet is afgenomen (Lessen zonder Groepslessen) staat niet in de
+   * wizard en telt als af (besluit Kane 29-10-2026, kern/pakketten.ts).
+   */
+  nodig: boolean
 }
 
 /** Per stap: af of open, volgens de regels van stapAf (titels in de gekozen taal). */
-export function stappenStand(v: StartVoortgang | null, f: StartFeiten, taal: Taal = 'nl'): StapStand[] {
-  const voor = STAPPEN.filter((s) => s.sleutel !== 'klaar').map((s) => stapAf(s.sleutel as Exclude<StapSleutel, 'klaar'>, v, f))
+export function stappenStand(v: StartVoortgang | null, f: StartFeiten, taal: Taal = 'nl', afgenomen: readonly PakketSleutel[] = ALLE_PAKKETTEN): StapStand[] {
+  const nodig = (s: StapSleutel) => wizardStapNodig(afgenomen, s)
+  const voor = STAPPEN.filter((s) => s.sleutel !== 'klaar').map((s) => !nodig(s.sleutel) || stapAf(s.sleutel as Exclude<StapSleutel, 'klaar'>, v, f))
   const allesAf = voor.every(Boolean)
-  return STAPPEN.map((s, i) => ({ ...stapInTaal(s, taal), nummer: i + 1, af: s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) && allesAf : voor[i] }))
+  return STAPPEN.map((s, i) => ({ ...stapInTaal(s, taal), nummer: i + 1, nodig: nodig(s.sleutel), af: s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) && allesAf : voor[i] }))
+}
+
+/** De stappen die in de wizard staan (van de afgenomen pakketten en de kern). */
+export function nodigeStappen(stand: readonly StapStand[]): StapStand[] {
+  return stand.filter((s) => s.nodig)
+}
+
+/** De stapnummers die de wizard overslaat. */
+export function overgeslagen(stand: readonly StapStand[]): number[] {
+  return stand.filter((s) => !s.nodig).map((s) => s.nummer)
+}
+
+/** De volgende (of vorige) stap die in de wizard staat; de laatste of eerste als er geen is. */
+export function buurStap(stap: number, richting: 1 | -1, sla: readonly number[] = []): number {
+  let n = stap + richting
+  while (n >= 1 && n <= AANTAL_STAPPEN && sla.includes(n)) n += richting
+  return Math.min(AANTAL_STAPPEN, Math.max(1, n))
 }
 
 export function aantalAf(stand: readonly StapStand[]): number {

@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest) {
   if (!huidig.ok) return clubFout(START_LIB[taal].api.leesFout, 500)
   const nieuw = pasToe(huidig.voortgang ?? NIEUWE_START, invoer.waarde, new Date())
   if (invoer.waarde.afronden === true) {
-    const stand = stappenStand(nieuw, await haalStartFeiten(t), taal)
+    const stand = stappenStand(nieuw, await haalStartFeiten(t), taal, t.organisatie.afgenomen)
     if (!klaarVoorLive(stand)) return clubFout(nogOpenTekst(nogOpen(stand), taal), 409)
   }
   if (!(await bewaarStart(t, nieuw))) return clubFout(START_LIB[taal].api.opslaanFout, 500)

@@ -47,7 +47,7 @@ export const START_SECTIE = woordenboek({
     titel: (aantal: number) => ({ voor: `${aantal} stappen. `, accent: 'Een kwartier.' }),
     tekst: (minuten: number) => `Een startwizard zet je club in ongeveer ${minuten} minuten live. Stoppen en later verdergaan kan altijd.`,
     hulpLabel: 'Persoonlijke hulp',
-    hulpKop: 'Persoonlijke hulp, gratis in Club en Keten',
+    hulpKop: 'Persoonlijke hulp bij het inrichten',
     hulpTekst: 'We richten je sportschool samen met je in: ledenbestand, rooster en je eerste schema’s.',
     figuurLabel:
       'De startwizard bij stap 5, Lessen: de teller met 4 van 8 stappen af en de tijd die nog over is, een balk per stap, de regel dat alles alvast is ingevuld voor de soort sportschool, de lestypen en de vaste week, en de knoppen Opslaan en stoppen en Klaar, verder',
@@ -57,7 +57,7 @@ export const START_SECTIE = woordenboek({
     titel: (aantal: number) => ({ voor: `${aantal} steps. `, accent: 'Fifteen minutes.' }),
     tekst: (minuten: number) => `A set-up wizard puts your club live in about ${minuten} minutes. Stop any time and pick up where you left off.`,
     hulpLabel: 'Personal help',
-    hulpKop: 'Personal help, free in Club and Keten',
+    hulpKop: 'Personal help with setting up',
     hulpTekst: 'We set up your gym together with you: member list, timetable and your first programmes.',
     figuurLabel:
       'The set-up wizard at step 5, Classes: the counter with 4 of 8 steps done and the time remaining, a bar per step, the line saying everything is prefilled for the type of gym, the class types and the regular week, and the buttons Save and stop and Done, next',

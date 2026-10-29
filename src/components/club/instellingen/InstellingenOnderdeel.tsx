@@ -13,7 +13,7 @@ import { haalGewisteMedewerkers } from '@/lib/club/personeel/avg-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
-import { instelPagina, instelPaginaInTaal } from '@/lib/club/kern/instel-paginas'
+import { instelModuleAan, instelPagina, instelPaginaInTaal } from '@/lib/club/kern/instel-paginas'
 import type { Metadata } from 'next'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
@@ -127,6 +127,9 @@ interface InstellingenOnderdeelProps {
 
 export async function InstellingenOnderdeel({ onderdeel, zoek }: InstellingenOnderdeelProps) {
   const t = await eisOnderdeel('instellingen')
+  // Een instel-pagina van een onderdeel dat uit staat of niet is afgenomen (Lestypen zonder Groepslessen) bestaat niet.
+  const bron = instelPagina(onderdeel)
+  if (bron && !instelModuleAan(bron, t.organisatie.uit)) notFound()
   // Vestigingen beheren is sportschoolbreed: niet voor een medewerker (de API is voor hem ook dicht).
   const metVestigingen = t.rol !== 'medewerker'
   const vestiging = kiesUit(t.vestigingen, zoek.v)

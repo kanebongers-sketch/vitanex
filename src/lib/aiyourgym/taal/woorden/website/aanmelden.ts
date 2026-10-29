@@ -27,7 +27,7 @@ export const AANMELDEN = woordenboek({
 export const AANMELD_FORMULIER = woordenboek({
   nl: {
     stappen: {
-      pakket: { titel: 'Pakket', hierna: 'Hierna vul je de naam en het adres van je sportschool in.' },
+      pakket: { titel: 'Pakketten', hierna: 'Hierna vul je de naam en het adres van je sportschool in.' },
       sportschool: { titel: 'Sportschool', hierna: 'Hierna je naam, e-mail, telefoon en een wachtwoord.' },
       eigenaar: { titel: 'Eigenaar', hierna: 'Hierna zie je alles nog een keer. Er gebeurt niets tot je bevestigt.' },
       akkoord: { titel: 'Bevestigen', hierna: '' },
@@ -44,8 +44,8 @@ export const AANMELD_FORMULIER = woordenboek({
     mislukt: 'Aanmelden lukte niet. Probeer het later opnieuw.',
     geenVerbinding: 'Geen verbinding. Controleer je internet en probeer het opnieuw.',
     // Stap 1
-    kiesPakket: 'Kies je pakket',
-    pakketUitleg: 'Elk pakket heeft de ledenapp in je eigen huisstijl. In Club en Keten zit persoonlijke hulp bij het inrichten.',
+    kiesPakket: 'Kies je pakketten',
+    pakketUitleg: 'Bij elk pakket horen de ledenapp in je eigen huisstijl, je ledenlijst en je team.',
     proberen: (dagen: number) => `${dagen} dagen gratis proberen`,
     opAanvraag: 'Op aanvraag',
     // Stap 2
@@ -56,7 +56,7 @@ export const AANMELD_FORMULIER = woordenboek({
     meer: 'Een vestiging meer',
     hintEen: 'Dit pakket is voor een vestiging.',
     hintOnbeperkt: 'Met hoeveel vestigingen start je? Je betaalt per vestiging.',
-    hintTot: (max: number) => `In dit pakket tot ${max}. Je betaalt per vestiging.`,
+    hintTot: (max: number) => `Online tot ${max} vestigingen. Je betaalt per vestiging, per pakket.`,
     eigenAdres: 'Je eigen adres',
     adresHint: 'Hier vinden je leden en je team Club. Kleine letters, cijfers en koppeltekens.',
     adresVrij: 'Dit adres is vrij.',
@@ -75,7 +75,7 @@ export const AANMELD_FORMULIER = woordenboek({
     herhaal: 'Herhaal je wachtwoord',
     // Stap 4
     controleren: 'Controleren en bevestigen',
-    rij: { pakket: 'Pakket', sportschool: 'Sportschool', vestigingen: 'Vestigingen', adres: 'Adres', eigenaar: 'Eigenaar' },
+    rij: { pakket: 'Pakketten', sportschool: 'Sportschool', vestigingen: 'Vestigingen', adres: 'Adres', eigenaar: 'Eigenaar' },
     nogNietGekozen: 'Nog niet gekozen',
     wijzig: 'Wijzig',
     uitlegTest: (dagen: number) =>
@@ -104,7 +104,7 @@ export const AANMELD_FORMULIER = woordenboek({
   },
   en: {
     stappen: {
-      pakket: { titel: 'Plan', hierna: 'Next, you enter the name and address of your gym.' },
+      pakket: { titel: 'Packages', hierna: 'Next, you enter the name and address of your gym.' },
       sportschool: { titel: 'Gym', hierna: 'Next, your name, email, phone and a password.' },
       eigenaar: { titel: 'Owner', hierna: 'Next, you see everything once more. Nothing happens until you confirm.' },
       akkoord: { titel: 'Confirm', hierna: '' },
@@ -120,8 +120,8 @@ export const AANMELD_FORMULIER = woordenboek({
     ontvangen: 'We have received your request.',
     mislukt: 'Signing up did not work. Please try again later.',
     geenVerbinding: 'No connection. Check your internet and try again.',
-    kiesPakket: 'Choose your plan',
-    pakketUitleg: 'Every plan includes the member app in your own branding. Club and Keten include personal help with setting up.',
+    kiesPakket: 'Choose your packages',
+    pakketUitleg: 'Every package includes the member app in your own branding, your member list and your team.',
     proberen: (dagen: number) => `Try it free for ${dagen} days`,
     opAanvraag: 'On request',
     jeSportschool: 'Your gym',
@@ -131,7 +131,7 @@ export const AANMELD_FORMULIER = woordenboek({
     meer: 'One location more',
     hintEen: 'This plan is for one location.',
     hintOnbeperkt: 'How many locations are you starting with? You pay per location.',
-    hintTot: (max: number) => `Up to ${max} in this plan. You pay per location.`,
+    hintTot: (max: number) => `Up to ${max} locations online. You pay per location, per package.`,
     eigenAdres: 'Your own address',
     adresHint: 'This is where your members and your team find Club. Lower-case letters, numbers and hyphens.',
     adresVrij: 'This address is available.',
@@ -148,7 +148,7 @@ export const AANMELD_FORMULIER = woordenboek({
     wachtwoordHint: (min: number) => `You use this to sign in to AI Your Gym. At least ${min} characters; a sentence of 16 characters or more is strongest.`,
     herhaal: 'Repeat your password',
     controleren: 'Check and confirm',
-    rij: { pakket: 'Plan', sportschool: 'Gym', vestigingen: 'Locations', adres: 'Address', eigenaar: 'Owner' },
+    rij: { pakket: 'Packages', sportschool: 'Gym', vestigingen: 'Locations', adres: 'Address', eigenaar: 'Owner' },
     nogNietGekozen: 'Not chosen yet',
     wijzig: 'Change',
     uitlegTest: (dagen: number) =>

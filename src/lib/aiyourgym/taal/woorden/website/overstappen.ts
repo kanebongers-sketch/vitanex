@@ -47,7 +47,7 @@ export const OVERSTAPPEN = woordenboek({
       },
       {
         vraag: 'Krijg ik hulp bij de start?',
-        antwoord: 'De startwizard helpt bij elke stap. In Club en Keten zit ook persoonlijke hulp, zonder extra kosten.',
+        antwoord: 'De startwizard helpt bij elke stap. Wil je dat we meekijken, dan helpen we je ook persoonlijk.',
       },
     ],
     bandTitel: 'Klaar om over te stappen?',
@@ -92,7 +92,7 @@ export const OVERSTAPPEN = woordenboek({
       },
       {
         vraag: 'Do I get help getting started?',
-        antwoord: 'The set-up wizard helps at every step. Club and Keten also include personal help, at no extra cost.',
+        antwoord: 'The set-up wizard helps at every step. Would you like us to take a look with you, we also help you personally.',
       },
     ],
     bandTitel: 'Ready to switch?',

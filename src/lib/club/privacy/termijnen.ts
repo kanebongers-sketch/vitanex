@@ -1,11 +1,11 @@
 // ─── Club: bewaartermijnen van een sportschool (PUUR) ───────────────────────
 // De sportschool is verwerkingsverantwoordelijke en bepaalt hoe lang Club
 // gegevens bewaart; de nachtelijke functie club_privacy_opruimen() (migratie
-// 449) past ze toe. Geen rij in club_privacy_instellingen = de standaard.
+// 449, laatste versie 466) past ze toe. Geen rij in club_privacy_instellingen = de standaard.
 // De grenzen hier MOETEN gelijk zijn aan de checks in de migratie; een test
 // bewaakt dat.
 
-export const TERMIJN_VELDEN = ['leadsMaanden', 'oudLedenMaanden', 'bezoekenMaanden', 'logboekMaanden'] as const
+export const TERMIJN_VELDEN = ['leadsMaanden', 'oudLedenMaanden', 'bezoekenMaanden', 'logboekMaanden', 'voedingMaanden'] as const
 
 export type TermijnVeld = (typeof TERMIJN_VELDEN)[number]
 
@@ -16,6 +16,7 @@ export const STANDAARD_TERMIJNEN: Termijnen = {
   oudLedenMaanden: 24,
   bezoekenMaanden: 24,
   logboekMaanden: 24,
+  voedingMaanden: 12,
 }
 
 export interface Grens {
@@ -29,6 +30,7 @@ export const TERMIJN_GRENZEN: Readonly<Record<TermijnVeld, Grens>> = {
   oudLedenMaanden: { min: 6, max: 84 },
   bezoekenMaanden: { min: 3, max: 84 },
   logboekMaanden: { min: 6, max: 84 },
+  voedingMaanden: { min: 3, max: 36 },
 }
 
 /** De kolom in club_privacy_instellingen per veld. */
@@ -37,6 +39,7 @@ export const TERMIJN_KOLOM: Readonly<Record<TermijnVeld, string>> = {
   oudLedenMaanden: 'oud_leden_maanden',
   bezoekenMaanden: 'bezoeken_maanden',
   logboekMaanden: 'logboek_maanden',
+  voedingMaanden: 'voeding_dagboek_maanden',
 }
 
 export const TERMIJN_KOLOMMEN = TERMIJN_VELDEN.map((v) => TERMIJN_KOLOM[v]).join(', ')
@@ -58,7 +61,7 @@ export const VASTE_TERMIJNEN: readonly VasteTermijn[] = [
   { onderwerp: 'Diensten en uren van personeel', termijn: '7 jaar', uitleg: 'Fiscale bewaarplicht.' },
   { onderwerp: 'Verkopen in de ledenapp', termijn: 'Blijven bewaard', uitleg: 'Fiscale bewaarplicht. Na verwijderen van een lid blijven ze zonder naam.' },
   { onderwerp: 'Hulpvragen aan AI Your Gym', termijn: '24 maanden', uitleg: 'Na de laatste wijziging verwijderd.' },
-  { onderwerp: 'Trainingsschema\'s, gelogde trainingen, sets, metingen, intakes en voeding', termijn: 'Zolang iemand lid is', uitleg: 'Weg zodra het lid wordt verwijderd.' },
+  { onderwerp: 'Trainingsschema\'s, gelogde trainingen, sets, metingen, intakes en voedingsplannen', termijn: 'Zolang iemand lid is', uitleg: 'Weg zodra het lid wordt verwijderd.' },
 ]
 
 export type Gelezen = { ok: true; waarde: Termijnen } | { ok: false; fout: string }
@@ -68,6 +71,7 @@ const LABEL: Readonly<Record<TermijnVeld, string>> = {
   oudLedenMaanden: 'Oud-leden',
   bezoekenMaanden: 'Bezoeken en boekingen',
   logboekMaanden: 'Logboek',
+  voedingMaanden: 'Voedingsdagboek',
 }
 
 function isObject(x: unknown): x is Record<string, unknown> {

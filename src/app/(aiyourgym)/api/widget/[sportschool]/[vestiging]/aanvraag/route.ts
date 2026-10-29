@@ -16,6 +16,7 @@ import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { widgetActief } from '@/lib/club/widget/schakelaar'
 import { MAX_AANVRAAG_BYTES, leesWidgetAanvraag } from '@/lib/club/widget/invoer'
 import { haalWidgetContext } from '@/lib/club/widget/opslag'
+import { pakketZichtbaar } from '@/lib/club/kern/pakketten'
 import { haalGekozenLes, remToestaan, verwerkAanvraag } from '@/lib/club/widget/aanvraag'
 
 interface Context {
@@ -43,7 +44,8 @@ export async function POST(req: NextRequest, ctx: Context) {
   }
   const { sportschool, vestiging } = await ctx.params
   const c = await haalWidgetContext(admin, sportschool, vestiging)
-  if (!c || !c.instellingen.aan) return antwoord(NIET_GEVONDEN, 404)
+  // Een aanvraag wordt een lead: alleen met het pakket Groei (kern/pakketten.ts).
+  if (!c || !c.instellingen.aan || !pakketZichtbaar(c.organisatie.uit, 'groei')) return antwoord(NIET_GEVONDEN, 404)
 
   const invoer = leesWidgetAanvraag(body)
   // Een bot (honeypot ingevuld) krijgt hetzelfde antwoord als een echte aanvraag.

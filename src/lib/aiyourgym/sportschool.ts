@@ -1,6 +1,7 @@
 // ─── AI Your Gym: een betaalde aanmelding wordt een sportschool (SERVER-ONLY) ─
 // Dezelfde aanmaak als in het portaal van Kane (maakOrganisatie: eigen lege
-// omgeving plus de basisbibliotheek, met rollback), daarna het adres, een
+// omgeving plus de basisbibliotheek, met rollback), daarna de afgenomen
+// pakketten (precies de keuze bij het aanmelden), het adres, een
 // eerste vestiging en de eigenaar als beheerder met het wachtwoord dat hij bij
 // het aanmelden koos (inloggen met e-mail en wachtwoord op aiyourgym.com).
 // De sportschool valt onder Kane (beheerder_id), dus Kane ziet hem meteen in de
@@ -61,6 +62,13 @@ export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, o
   const id = uit.id
   // Meteen vastleggen: loopt dit proces hierna vast, dan ruimt de volgende poging het op.
   if (!(await onthoud(id))) {
+    await ruimSportschoolOp(admin, id, beheerderId)
+    return { ok: false }
+  }
+
+  // Precies de afgenomen pakketten (besluit Kane 29-10-2026): de kolom staat standaard op alles.
+  const { error: pakketFout } = await admin.from('club_organisaties').update({ pakketten: a.pakketten, demo: false }).eq('id', id).eq('beheerder_id', beheerderId)
+  if (pakketFout) {
     await ruimSportschoolOp(admin, id, beheerderId)
     return { ok: false }
   }

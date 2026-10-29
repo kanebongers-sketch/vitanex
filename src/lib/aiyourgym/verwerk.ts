@@ -6,7 +6,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { sessieKlaar, type AfgerondeSessie, type AygEvent } from './stripe-event'
-import { bewaarOrganisatie, claimEvent, claimInrichten, geefEventVrij, geefInrichtingVrij, rondInrichtingAf, vindAanmelding, werkStatusBij, type AanmeldingRij } from './opslag'
+import { pakkettenVanPrijzen } from './pakket-wijziging'
+import { bewaarOrganisatie, claimEvent, zetPakkettenVanAbonnement, claimInrichten, geefEventVrij, geefInrichtingVrij, rondInrichtingAf, vindAanmelding, werkStatusBij, type AanmeldingRij } from './opslag'
 import type { SportschoolUitslag } from './sportschool'
 
 export interface VerwerkDeps {
@@ -49,9 +50,13 @@ export async function verwerkEvent(admin: SupabaseClient, e: AygEvent, deps: Ver
     case 'sessie_afgerond':
       uitkomst = (await verwerkSessie(admin, e.sessie, deps)) === 'fout' ? 'fout' : 'ok'
       break
-    case 'abonnement':
+    case 'abonnement': {
       uitkomst = await werkStatusBij(admin, e.abonnementId, { soort: 'abonnement', stripeStatus: e.stripeStatus })
+      // Een pakket erbij of eraf bij Stripe: zet precies de afgenomen pakketten (idempotent).
+      const pakketten = pakkettenVanPrijzen(e.prijzen)
+      if (uitkomst === 'ok' && pakketten) uitkomst = await zetPakkettenVanAbonnement(admin, e.abonnementId, pakketten)
       break
+    }
     case 'abonnement_weg':
       uitkomst = await werkStatusBij(admin, e.abonnementId, { soort: 'abonnement_weg' })
       break

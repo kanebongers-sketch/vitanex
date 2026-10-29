@@ -14,11 +14,16 @@ import type { Taal } from '../../taal'
 /** Vaste meldingen, Nederlands naar Engels. */
 const VAST: Readonly<Record<string, string>> = {
   // Aanmelden (src/lib/aiyourgym/aanmelding.ts)
-  'Kies een pakket.': 'Choose a plan.',
+  'Kies minstens een pakket.': 'Choose at least one package.',
+  // Pakketten erbij of opzeggen in Club (src/app/(aiyourgym)/api/aiyourgym/pakketten)
+  'Kies een pakket.': 'Choose a package.',
+  'Dit pakket heb je al.': 'You already have this package.',
+  'Dit pakket heb je niet.': 'You do not have this package.',
+  'Je houdt minstens een pakket. Wil je helemaal stoppen, zeg dan je abonnement op.': 'You keep at least one package. To stop completely, cancel your subscription.',
+  'Het pakket kon niet worden aangepast. Probeer het later opnieuw.': 'The package could not be changed. Please try again later.',
   'Vul de naam van je sportschool in.': 'Enter the name of your gym.',
   'Vul je naam in.': 'Enter your name.',
   'Gebruik geen speciale tekens zoals < of >.': 'Do not use special characters such as < or >.',
-  'Dit pakket is voor een vestiging.': 'This plan is for one location.',
   'Vul een geldig e-mailadres in.': 'Enter a valid email address.',
   'Vul een geldig telefoonnummer in.': 'Enter a valid phone number.',
   'De twee wachtwoorden zijn niet gelijk.': 'The two passwords do not match.',

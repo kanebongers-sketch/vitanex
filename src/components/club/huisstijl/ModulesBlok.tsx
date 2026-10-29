@@ -1,19 +1,26 @@
 'use client'
 
 import { MODULES, moduleTekst, type Module } from '@/lib/club/kern/organisatie'
+import { ALLE_PAKKETTEN, moduleAfgenomen, type PakketSleutel } from '@/lib/club/kern/pakketten'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
 // Onderdelen aan of uit. Een sportschool zonder groepslessen zet Groepslessen
 // uit: het verdwijnt uit het menu en de pagina's bestaan voor hen niet.
+// Alleen onderdelen van afgenomen pakketten staan hier (kern/pakketten.ts):
+// wat niet is afgenomen, kan een sportschool ook niet aanzetten.
 
 interface ModulesBlokProps {
+  /** De eigen keuze (organisatie.eigenUit). */
   uit: Module[]
   onWijzig: (uit: Module[]) => void
+  /** De afgenomen pakketten; zonder: alles. */
+  afgenomen?: readonly PakketSleutel[]
 }
 
-export function ModulesBlok({ uit, onWijzig }: ModulesBlokProps) {
-  const aanTal = MODULES.length - uit.length
+export function ModulesBlok({ uit, onWijzig, afgenomen = ALLE_PAKKETTEN }: ModulesBlokProps) {
+  const lijst = MODULES.filter((m) => moduleAfgenomen(afgenomen, m))
+  const aanTal = lijst.filter((m) => !uit.includes(m)).length
   const taal = useTaal()
   const t = useTekst(HUISSTIJL).modules
   function wissel(m: Module) {
@@ -26,7 +33,7 @@ export function ModulesBlok({ uit, onWijzig }: ModulesBlokProps) {
       <h2 id="modules-kop" className="club-huisstijl-kop">{t.kop}</h2>
       <p className="club-hint">{t.uitleg}</p>
       <ul className="club-huisstijl-modules">
-        {MODULES.map((m) => {
+        {lijst.map((m) => {
           const aan = !uit.includes(m)
           const info = moduleTekst(m, taal)
           return (

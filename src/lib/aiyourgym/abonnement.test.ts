@@ -5,15 +5,22 @@ const NU = new Date('2026-10-17T10:00:00Z')
 const unix = (iso: string) => Math.floor(Date.parse(iso) / 1000)
 
 const rij = (extra: Partial<AbonnementRij> = {}): AbonnementRij => ({
-  pakket: 'club', aantalVestigingen: 2, status: 'actief', stripeKlantId: 'cus_abcdef12', stripeAbonnementId: 'sub_abcdef12', aangemaaktOp: '2026-10-01T10:00:00Z', ...extra,
+  pakket: 'club', pakketten: null, aantalVestigingen: 2, status: 'actief', stripeKlantId: 'cus_abcdef12', stripeAbonnementId: 'sub_abcdef12', aangemaaktOp: '2026-10-01T10:00:00Z', ...extra,
 })
 const stripe = (extra: Partial<StripeAbonnement> = {}): StripeAbonnement => ({ status: 'active', proefTot: null, periodeTot: null, stoptOp: null, stoptAanEindPeriode: false, aantal: null, ...extra })
 
 describe('abonnementUitRij', () => {
   it('leest een rij uit de database', () => {
     expect(abonnementUitRij({ pakket: 'start', aantal_vestigingen: 1, status: 'test', stripe_customer_id: null, stripe_subscription_id: '', aangemaakt_op: 'x' })).toEqual({
-      pakket: 'start', aantalVestigingen: 1, status: 'test', stripeKlantId: null, stripeAbonnementId: null, aangemaaktOp: 'x',
+      pakket: 'start', pakketten: null, aantalVestigingen: 1, status: 'test', stripeKlantId: null, stripeAbonnementId: null, aangemaaktOp: 'x',
     })
+    // Een modulaire aanmelding: de losse pakketten in vaste volgorde.
+    expect(abonnementUitRij({ pakket: 'los', pakketten: ['groei', 'lessen'], aantal_vestigingen: 2, status: 'actief', aangemaakt_op: 'x' })?.pakketten).toEqual(['lessen', 'groei'])
+  })
+  it('toont de losse pakketten, of de naam van een oud pakket', () => {
+    expect(abonnementWeergave(rij({ pakket: 'los', pakketten: ['lessen', 'groei'] }), null, NU).pakket).toBe('Groepslessen en Groei')
+    expect(abonnementWeergave(rij({ pakket: 'los', pakketten: ['lessen'] }), null, NU, 'en').pakket).toBe('Group classes')
+    expect(abonnementWeergave(rij(), null, NU).pakket).toBe('Club')
   })
   it('weigert onzin', () => {
     expect(abonnementUitRij(null)).toBeNull()

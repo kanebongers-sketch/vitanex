@@ -16,7 +16,7 @@ export type AbonnementLezen = { soort: 'gevonden'; rij: AbonnementRij } | { soor
 export async function vindAbonnement(admin: SupabaseClient, organisatieId: string): Promise<AbonnementLezen> {
   const { data, error } = await admin
     .from('ayg_aanmeldingen')
-    .select('pakket, aantal_vestigingen, status, stripe_customer_id, stripe_subscription_id, aangemaakt_op')
+    .select('pakket, pakketten, aantal_vestigingen, status, stripe_customer_id, stripe_subscription_id, aangemaakt_op')
     .eq('organisatie_id', organisatieId)
     .in('status', MET_ABONNEMENT)
     .order('aangemaakt_op', { ascending: false })

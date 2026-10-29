@@ -7,14 +7,33 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import { modulesNaarJson, type HuisstijlInvoer } from './organisatie-invoer'
 import { LOGO_FIT_FACTORY } from './organisatie'
 import { isStandaardOefening } from '@/lib/club/training/beelden-repdb'
+import { isNaamBezet, netteNaam } from './sportschool-naam'
 
 /** Een nieuwe sportschool start in de kleur van AI Your Gym (smaragd), niet in die van een andere klant; in de startwizard kiest ze haar eigen kleur. */
 const NIEUWE_SPORTSCHOOL_ACCENT = '#1FA77A'
 
 export const LOGO_BUCKET = 'club-logo'
 
-export async function bewaarHuisstijl(t: ClubToegang, invoer: HuisstijlInvoer): Promise<boolean> {
-  const { error } = await t.admin
+export type HuisstijlOpslag = { ok: true; naamGewijzigd: boolean } | { ok: false; code: 'naamBezet' | 'opslaan' }
+
+/**
+ * Bewaart naam, slogan, kleur, thema en onderdelen. Het adres (slug) staat hier
+ * bewust niet in: een nieuwe naam verandert aiyourgym.com/<slug> nooit mee.
+ * De naam moet uniek zijn per beheerder (zoals maakOrganisatie en de unieke
+ * index club_organisaties_naam_uniek). Raakt de update geen rij, dan is het
+ * niet opgeslagen: nooit stil "opgeslagen" melden.
+ */
+export async function bewaarHuisstijl(t: ClubToegang, invoer: HuisstijlInvoer): Promise<HuisstijlOpslag> {
+  const naamGewijzigd = netteNaam(invoer.naam) !== netteNaam(t.organisatie.naam)
+  if (naamGewijzigd) {
+    const { data, error } = await t.admin.from('club_organisaties').select('id, naam').eq('beheerder_id', t.beheerderId)
+    if (error) {
+      console.error('[club] namen lezen mislukt', error.message)
+      return { ok: false, code: 'opslaan' }
+    }
+    if (isNaamBezet((data ?? []) as { id: string; naam: string }[], invoer.naam, t.organisatie.id)) return { ok: false, code: 'naamBezet' }
+  }
+  const { data, error } = await t.admin
     .from('club_organisaties')
     .update({
       naam: invoer.naam,
@@ -26,8 +45,14 @@ export async function bewaarHuisstijl(t: ClubToegang, invoer: HuisstijlInvoer): 
     })
     .eq('id', t.organisatie.id)
     .eq('beheerder_id', t.beheerderId)
+    .select('id')
+  if (error?.code === '23505') return { ok: false, code: 'naamBezet' }
   if (error) console.error('[club] huisstijl opslaan mislukt', error.message)
-  return !error
+  if (error || !Array.isArray(data) || data.length === 0) {
+    if (!error) console.error('[club] huisstijl opslaan raakte geen sportschool')
+    return { ok: false, code: 'opslaan' }
+  }
+  return { ok: true, naamGewijzigd }
 }
 
 /** Zet een nieuw logo in de opslag en verwijst ernaar. Het oude bestand ruimen we op. */

@@ -9,12 +9,14 @@
 
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import type { Module } from '@/lib/club/kern/organisatie'
+import { LID_TABS, type LidTab } from './tabs'
+import { pakketZichtbaar, zichtbaar, type Verborgen } from '@/lib/club/kern/pakketten'
 
 export interface KaartRechtenInvoer {
   /** De onderdelen van deze persoon; null = alles (Kane en de eigenaar). */
   onderdelen: readonly string[] | null
-  /** De modules die de sportschool uit heeft staan. */
-  modulesUit: readonly Module[]
+  /** Wat er niet is: modules die uit staan en pakketten die niet zijn afgenomen (organisatie.uit). */
+  modulesUit: readonly Verborgen[]
   /** CLUB_HEALTH_ACTIEF. */
   healthAan: boolean
   /** Lidgeld staat aan en deze persoon mag Lidmaatschappen (lidgeldOpen). */
@@ -39,10 +41,17 @@ export interface KaartRechten {
   ledenapp: boolean
   /** Plan en contract (lidgeld), achter de schakelaars. */
   betalen: boolean
+  /** Het tabblad Lidmaatschap (vorm, pauze, opzeggen): pakket Ledenadministratie. */
+  lidmaatschap: boolean
 }
 
 function aan(invoer: KaartRechtenInvoer, onderdeel: string, module?: Module): boolean {
-  return (module === undefined || !invoer.modulesUit.includes(module)) && magOnderdeel(invoer.onderdelen, onderdeel)
+  return zichtbaar(invoer.modulesUit, { sleutel: onderdeel, module }) && magOnderdeel(invoer.onderdelen, onderdeel)
+}
+
+/** Het tabblad Lidmaatschap (vorm, pauze, opzeggen) hoort bij Ledenadministratie. */
+export function lidmaatschapZichtbaar(uit: readonly Verborgen[]): boolean {
+  return pakketZichtbaar(uit, 'administratie')
 }
 
 export function kaartRechten(invoer: KaartRechtenInvoer): KaartRechten {
@@ -50,13 +59,32 @@ export function kaartRechten(invoer: KaartRechtenInvoer): KaartRechten {
   return {
     training,
     voeding: aan(invoer, 'voeding'),
-    apps: invoer.healthAan && magOnderdeel(invoer.onderdelen, 'schemas'),
+    apps: invoer.healthAan && aan(invoer, 'schemas', 'training'),
     rooster: aan(invoer, 'rooster', 'rooster'),
     afspraken: aan(invoer, 'afspraken', 'afspraken'),
     checkin: aan(invoer, 'checkin', 'checkin'),
     challenges: aan(invoer, 'challenges'),
     berichten: aan(invoer, 'berichten'),
     ledenapp: !invoer.modulesUit.includes('app'),
-    betalen: invoer.lidgeldOpen && magOnderdeel(invoer.onderdelen, 'lidmaatschappen'),
+    betalen: invoer.lidgeldOpen && aan(invoer, 'lidmaatschappen'),
+    lidmaatschap: lidmaatschapZichtbaar(invoer.modulesUit),
   }
+}
+
+/**
+ * De tabbladen van de ledenkaart die er voor deze sportschool en deze persoon
+ * zijn: Training alleen met iets van Training en coaching, Lidmaatschap alleen
+ * met Ledenadministratie, Planning alleen met Groepslessen of Afspraken.
+ * Overzicht, Contact en Privacy horen bij de kern.
+ */
+export function zichtbareLidTabs(r: KaartRechten): LidTab[] {
+  const tab: Record<LidTab, boolean> = {
+    overzicht: true,
+    training: r.training || r.voeding || r.apps,
+    lidmaatschap: r.lidmaatschap || r.betalen,
+    planning: r.rooster || r.afspraken,
+    contact: true,
+    privacy: true,
+  }
+  return LID_TABS.filter((t) => tab[t])
 }

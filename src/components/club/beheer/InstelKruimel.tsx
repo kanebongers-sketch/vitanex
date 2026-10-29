@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
-import { instelGroepLabel, instelPagina, instelPaginaInTaal, type InstelId } from '@/lib/club/kern/instel-paginas'
+import { instelCategorieHref, instelGroepLabel, instelPagina, instelPaginaInTaal, type InstelId } from '@/lib/club/kern/instel-paginas'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 
 // Boven elke instel-pagina: terug naar Instellingen en waar je bent
-// (Instellingen › groep › pagina). Een plek per ding, altijd dezelfde weg terug.
+// (Instellingen › categorie › pagina). Een plek per ding, altijd dezelfde weg
+// terug; de categorie opent het centrum meteen op die categorie.
 
 interface InstelKruimelProps {
   /** Het id uit INSTEL_PAGINAS (src/lib/club/kern/instel-paginas.ts). */
@@ -32,7 +33,7 @@ export async function InstelKruimel({ id, vestiging = null }: InstelKruimelProps
           <>
             <li className="club-kruimel-groep">
               <ChevronRight size={14} aria-hidden />
-              <span>{instelGroepLabel(pagina.groep, taal)}</span>
+              <Link href={instelCategorieHref(pagina.groep, vestiging)}>{instelGroepLabel(pagina.groep, taal)}</Link>
             </li>
             <li aria-current="page">
               <ChevronRight size={14} aria-hidden />

@@ -26,7 +26,7 @@ export const FUNCTIES_PAGINA = woordenboek({
     metaOmschrijving:
       'AI Your Gym in vijf hoofdstukken: beheer, coaching, planning, groei en betrokkenheid. Van check-in en schema’s tot lesrooster, cijfers en een ledenapp in je eigen huisstijl.',
     titel: 'Alles voor je club. Niets wat je niet gebruikt.',
-    tekst: 'Van balie tot ledenapp. Wat je niet nodig hebt, zet je uit.',
+    tekst: 'Van balie tot ledenapp, in zes losse pakketten. Je kiest alleen wat je nodig hebt.',
     beeld: {
       beheer: 'De check-in van AI Your Gym met de leden die net binnen zijn en hun status',
       coaching: 'Een oefening met genummerde kernpunten, ademhaling en tempo, zoals in Club',
@@ -41,7 +41,7 @@ export const FUNCTIES_PAGINA = woordenboek({
     metaOmschrijving:
       'AI Your Gym in five chapters: management, coaching, planning, growth and engagement. From check-in and programmes to the class timetable, figures and a member app in your own branding.',
     titel: 'Everything for your club. Nothing you won’t use.',
-    tekst: 'From front desk to member app. Switch off what you don’t need.',
+    tekst: 'From front desk to member app, in six separate packages. You choose only what you need.',
     beeld: {
       beheer: 'AI Your Gym check-in showing the members who just arrived and their status',
       coaching: 'An exercise with numbered coaching cues, breathing and tempo, as shown in Club',

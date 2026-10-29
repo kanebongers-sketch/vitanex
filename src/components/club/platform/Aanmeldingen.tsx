@@ -1,6 +1,5 @@
 import { Mail, Phone } from 'lucide-react'
-import { STATUS_WEERGAVE, isAanvraag, type PlatformAanmelding } from '@/lib/club/platform/tellingen'
-import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { STATUS_WEERGAVE, isAanvraag, pakketNaam, type PlatformAanmelding } from '@/lib/club/platform/tellingen'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 import { nlDatum } from './datum'
@@ -77,7 +76,7 @@ export async function Aanmeldingen({ aanmeldingen, max }: AanmeldingenProps) {
                       {aanvraag && <span className="club-platform-zelf">{t.zelfContact}</span>}
                     </td>
                     <td>
-                      {vindPakket(a.pakket)?.naam ?? (a.pakket || p.onbekend)}
+                      {a.pakket ? pakketNaam(a.pakket) : p.onbekend}
                       <span className="club-platform-sub">{p.vestigingen(a.aantalVestigingen)}</span>
                     </td>
                     <td>

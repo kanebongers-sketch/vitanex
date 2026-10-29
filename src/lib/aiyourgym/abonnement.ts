@@ -5,7 +5,8 @@
 
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { oorsprongVan } from './links'
-import { PROEFDAGEN, vindPakket } from './pakketten'
+import { OUDE_PAKKETTEN, PROEFDAGEN, leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { pakkettenTekst } from './taal/woorden/algemeen/pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 import type { Taal } from './taal/taal'
 import { formatDatum } from './taal/formaat'
@@ -16,7 +17,10 @@ export const ABONNEMENT_PAD = '/club/beheer/abonnement'
 
 /** De aanmelding achter een sportschool, met wat de pagina nodig heeft. */
 export interface AbonnementRij {
+  /** 'los' (losse pakketten) of een oud pakket (start, club, keten). */
   pakket: string
+  /** De losse pakketten bij het aanmelden, of null bij een oude aanmelding. */
+  pakketten: PakketSleutel[] | null
   aantalVestigingen: number
   status: AanmeldStatus
   stripeKlantId: string | null
@@ -48,6 +52,7 @@ export function abonnementUitRij(rij: unknown): AbonnementRij | null {
   if (!isAanmeldStatus(r.status)) return null
   return {
     pakket: typeof r.pakket === 'string' ? r.pakket : '',
+    pakketten: leesPakketKeuze(r.pakketten),
     aantalVestigingen: typeof r.aantal_vestigingen === 'number' ? r.aantal_vestigingen : 1,
     status: r.status,
     stripeKlantId: tekstOfNull(r.stripe_customer_id),
@@ -127,7 +132,7 @@ function zonderStripe(a: AbonnementRij, nu: Date, taal: Taal): { status: string;
 /** Wat de pagina toont, uit onze aanmelding en (als die er is) het abonnement bij Stripe. */
 export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date, taal: Taal = 'nl'): AbonnementWeergave {
   const t = ABONNEMENT_STATUS[taal]
-  const pakket = vindPakket(a.pakket)?.naam ?? t.onbekendPakket
+  const pakket = a.pakketten ? pakkettenTekst(a.pakketten, taal) : (OUDE_PAKKETTEN[a.pakket] ?? t.onbekendPakket)
   const vestigingen = s?.aantal ?? a.aantalVestigingen
   const portaal = a.stripeKlantId !== null && a.status !== 'test'
   const basis = { pakket, vestigingen, portaal }

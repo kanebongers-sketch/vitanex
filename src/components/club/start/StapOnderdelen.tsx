@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Module } from '@/lib/club/kern/organisatie'
+import type { PakketSleutel } from '@/lib/club/kern/pakketten'
 import type { SportschoolSoort } from '@/lib/club/start/soorten'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { ModulesBlok } from '@/components/club/huisstijl/ModulesBlok'
@@ -18,10 +19,12 @@ import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 interface StapOnderdelenProps {
   organisatie: HuisstijlWaarden
   soort: SportschoolSoort | null
+  /** De afgenomen pakketten: alleen die onderdelen staan in deze stap. */
+  afgenomen: readonly PakketSleutel[]
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
 }
 
-export function StapOnderdelen({ organisatie, soort, voet }: StapOnderdelenProps) {
+export function StapOnderdelen({ organisatie, soort, afgenomen, voet }: StapOnderdelenProps) {
   const [uit, setUit] = useState<Module[]>(organisatie.uit)
   const [fout, setFout] = useState<string | null>(null)
   const t = useTekst(START)
@@ -40,6 +43,7 @@ export function StapOnderdelen({ organisatie, soort, voet }: StapOnderdelenProps
         <AlvastIngevuld soort={soort} />
         <ModulesBlok
           uit={uit}
+          afgenomen={afgenomen}
           onWijzig={(nieuw) => {
             setFout(null)
             setUit(nieuw)

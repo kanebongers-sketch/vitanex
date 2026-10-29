@@ -6,7 +6,7 @@
 
 export type AygEvent =
   | { soort: 'sessie_afgerond'; id: string; sessie: AfgerondeSessie }
-  | { soort: 'abonnement'; id: string; abonnementId: string; stripeStatus: string }
+  | { soort: 'abonnement'; id: string; abonnementId: string; stripeStatus: string; prijzen: string[] }
   | { soort: 'abonnement_weg'; id: string; abonnementId: string }
   | { soort: 'betaling_mislukt'; id: string; abonnementId: string }
   | { soort: 'overig'; id: string; type: string }
@@ -56,6 +56,13 @@ export function leesSessie(v: unknown): AfgerondeSessie | null {
   }
 }
 
+/** De prijs-id's van de regels van een abonnement (een regel per los pakket). */
+export function prijzenVanAbonnement(a: Obj): string[] {
+  const items = obj(a.items)?.data
+  if (!Array.isArray(items)) return []
+  return items.map((i) => idVan(obj(i)?.price)).filter((p): p is string => p !== null && p.startsWith('price_'))
+}
+
 function abonnementVanFactuur(f: Obj): string | null {
   return idVan(f.subscription) ?? idVan(obj(obj(f.parent)?.subscription_details)?.subscription)
 }
@@ -76,7 +83,7 @@ export function leesEvent(body: unknown): AygEvent | null {
     case 'customer.subscription.created': {
       const abonnementId = str(object.id)
       const stripeStatus = str(object.status)
-      return abonnementId && stripeStatus ? { soort: 'abonnement', id, abonnementId, stripeStatus } : { soort: 'overig', id, type }
+      return abonnementId && stripeStatus ? { soort: 'abonnement', id, abonnementId, stripeStatus, prijzen: prijzenVanAbonnement(object) } : { soort: 'overig', id, type }
     }
     case 'customer.subscription.deleted': {
       const abonnementId = str(object.id)

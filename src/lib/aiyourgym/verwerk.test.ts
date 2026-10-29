@@ -119,6 +119,45 @@ describe('verwerkEvent', () => {
   })
 })
 
+describe('pakketten via Stripe (losse pakketten, besluit Kane 29-10-2026)', () => {
+  const env = { AIYOURGYM_STRIPE_PRIJS_LESSEN: 'price_lessen01', AIYOURGYM_STRIPE_PRIJS_GROEI: 'price_groei001' }
+  function metEnv<T>(f: () => Promise<T>): Promise<T> {
+    for (const [k, v] of Object.entries(env)) vi.stubEnv(k, v)
+    return f().finally(() => vi.unstubAllEnvs())
+  }
+  const lopend = () => db(rij({ status: 'actief', stripe_subscription_id: 'sub_1', organisatie_id: ORG }))
+
+  it('een wijziging van het abonnement zet precies de afgenomen pakketten', async () => {
+    const { admin, vragen } = lopend()
+    const uit = await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_7', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_groei001', 'price_lessen01'] }, deps()))
+    expect(uit).toBe('ok')
+    const org = vragen.find((v) => v.tabel === 'club_organisaties' && v.actie === 'update')
+    expect(org?.waarde).toMatchObject({ pakketten: ['lessen', 'groei'] })
+    expect(org?.filters).toContainEqual(['eq', 'id', ORG])
+    expect(vragen.some((v) => v.tabel === 'ayg_aanmeldingen' && v.actie === 'update' && JSON.stringify((v.waarde as { pakketten?: unknown }).pakketten) === '["lessen","groei"]')).toBe(true)
+  })
+  it('twee keer hetzelfde event: dezelfde vaste lijst (idempotent, nooit optellen)', async () => {
+    const een = lopend()
+    const twee = lopend()
+    const e = { soort: 'abonnement' as const, id: 'evt_8', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_lessen01'] }
+    await metEnv(() => verwerkEvent(een.admin, e, deps()))
+    await metEnv(() => verwerkEvent(twee.admin, e, deps()))
+    const lijst = (v: Vraag[]) => v.filter((x) => x.tabel === 'club_organisaties').map((x) => (x.waarde as { pakketten?: unknown }).pakketten)
+    expect(lijst(een.vragen)).toEqual([['lessen']])
+    expect(lijst(twee.vragen)).toEqual([['lessen']])
+  })
+  it('een onbekende prijs verandert niets aan de pakketten', async () => {
+    const { admin, vragen } = lopend()
+    await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_9', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_lessen01', 'price_vreemd99'] }, deps()))
+    expect(vragen.some((v) => v.tabel === 'club_organisaties')).toBe(false)
+  })
+  it('zonder regels (oud event) blijven de pakketten zoals ze zijn', async () => {
+    const { admin, vragen } = lopend()
+    await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_10', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: [] }, deps()))
+    expect(vragen.some((v) => v.tabel === 'club_organisaties')).toBe(false)
+  })
+})
+
 describe('claimInrichten bij een bezet adres', () => {
   it('een unieke-index-fout zet de aanmelding op aanvraag en richt niets in', async () => {
     const { vragen, admin } = nepSupabase((v: Vraag) => {

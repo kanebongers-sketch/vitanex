@@ -3,7 +3,7 @@
 
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { HULP_ARTIKELEN, type ArtikelTekst } from '@/lib/aiyourgym/taal/woorden/club/hulp-artikelen'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 import { ARTIKELEN, zichtbareArtikelen, type Artikel } from './artikelen'
 
 /** Een handleiding met titel, samenvatting, stappen en linklabels in de gekozen taal. */
@@ -20,6 +20,6 @@ export function artikelInTaal(a: Artikel, taal: Taal): Artikel {
 }
 
 /** De handleidingen die deze persoon ziet (zie zichtbareArtikelen), in de gekozen taal. */
-export function zichtbareArtikelenIn(uit: readonly Module[], toegestaan: readonly string[] | null, taal: Taal): Artikel[] {
+export function zichtbareArtikelenIn(uit: readonly Verborgen[], toegestaan: readonly string[] | null, taal: Taal): Artikel[] {
   return zichtbareArtikelen(uit, toegestaan).map((a) => artikelInTaal(a, taal))
 }

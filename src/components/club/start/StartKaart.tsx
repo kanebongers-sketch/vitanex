@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type { ClubToegang } from '@/lib/club/toegang'
 import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
-import { AANTAL_STAPPEN, aantalAf, minutenOver, minutenTekst, startPad, stappenStand, streefStand, toonStartKaart, volgendeOpen } from '@/lib/club/start/stappen'
+import { aantalAf, minutenOver, minutenTekst, nodigeStappen, startPad, stappenStand, streefStand, toonStartKaart } from '@/lib/club/start/stappen'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { haalStartVoorPagina, haalStartFeiten } from '@/lib/club/start/opslag'
 import { Proefperiode } from './Proefperiode'
@@ -28,17 +28,19 @@ export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: 
   }
   const taal = await getTaal()
   const tk = (await clubTekst(START)).startKaart
-  const stand = stappenStand(gelezen.voortgang, await haalStartFeiten(t), taal)
+  // Alleen de stappen van de afgenomen pakketten (en de kern).
+  const stand = nodigeStappen(stappenStand(gelezen.voortgang, await haalStartFeiten(t), taal, t.organisatie.afgenomen))
+  const totaal = stand.length
   const af = aantalAf(stand)
-  const volgende = stand[volgendeOpen(stand) - 1]
+  const volgende = stand.find((s) => !s.af) ?? stand[stand.length - 1]
   const streefdatum = gelezen.voortgang?.streefdatum ?? null
-  const streef = streefdatum ? streefStand(streefdatum, nlDelen(new Date()).datum, AANTAL_STAPPEN - af, taal) : null
+  const streef = streefdatum ? streefStand(streefdatum, nlDelen(new Date()).datum, totaal - af, taal) : null
   return (
     <section className="club-startkaart" aria-labelledby="startkaart-kop">
       <div className="club-startkaart-tekst">
         <p className="club-boventitel">{tk.boven}</p>
         <h2 id="startkaart-kop">
-          {tk.kop} <span className="club-startkaart-stand">{tk.stand(af, AANTAL_STAPPEN)}</span>
+          {tk.kop} <span className="club-startkaart-stand">{tk.stand(af, totaal)}</span>
         </h2>
         <p>
           {tk.volgende} <strong>{volgende.titel}</strong>. {volgende.kort}.
@@ -52,7 +54,7 @@ export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: 
         <p className="club-startkaart-tijd">{tk.tijd(minutenTekst(minutenOver(stand), taal))}</p>
         <Proefperiode t={t} />
       </div>
-      <div className="club-startkaart-balk" role="progressbar" aria-label={tk.voortgang} aria-valuemin={0} aria-valuemax={AANTAL_STAPPEN} aria-valuenow={af}>
+      <div className="club-startkaart-balk" role="progressbar" aria-label={tk.voortgang} aria-valuemin={0} aria-valuemax={totaal} aria-valuenow={af}>
         {stand.map((s) => (
           <span key={s.sleutel} data-af={s.af || undefined} />
         ))}

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 import { onderdeelPad, onderdeelVoorToets } from './onderdelen'
 import { inInvoer } from './ClubZoeken'
 
@@ -15,7 +15,7 @@ import { inInvoer } from './ClubZoeken'
 const WACHTTIJD_MS = 1200
 
 interface SneltoetsenOpties {
-  uit: readonly Module[]
+  uit: readonly Verborgen[]
   toegestaan: readonly string[] | null
   instellingen: boolean
   /** Maakt de link naar een onderdeel, met de gekozen vestiging erbij. */

@@ -22,7 +22,12 @@ export const BEDRIJF = woordenboek({
       social: { titel: 'Social media', uitleg: 'Alleen https-links naar je eigen pagina op dat netwerk.' },
     },
     velden: {
-      bedrijfsnaam: { label: 'Officiele bedrijfsnaam', placeholder: 'Bijvoorbeeld: Sportschool Jansen B.V.' },
+      bedrijfsnaam: {
+        label: 'Officiele bedrijfsnaam',
+        placeholder: 'Bijvoorbeeld: Sportschool Jansen B.V.',
+        hint: (sportschool: string) => `Zoals bij de KvK. Mag anders zijn dan de naam van je sportschool (${sportschool}); die naam pas je aan bij Huisstijl.`,
+        overnemen: 'Naam van de sportschool overnemen',
+      },
       kvk: { label: 'KvK-nummer', placeholder: '8 cijfers', hint: 'Precies 8 cijfers.' },
       btw: { label: 'Btw-nummer (mag leeg)', hint: 'We controleren het controlegetal.' },
       adres: 'Straat en huisnummer',
@@ -93,7 +98,12 @@ export const BEDRIJF = woordenboek({
       social: { titel: 'Social media', uitleg: 'Only https links to your own page on that network.' },
     },
     velden: {
-      bedrijfsnaam: { label: 'Official business name', placeholder: 'For example: Jansen Gym Ltd' },
+      bedrijfsnaam: {
+        label: 'Official business name',
+        placeholder: 'For example: Jansen Gym Ltd',
+        hint: (sportschool: string) => `As registered with the company register. It can differ from your gym name (${sportschool}); you change that name under Branding.`,
+        overnemen: 'Use the gym name',
+      },
       kvk: { label: 'Company number (KvK)', placeholder: '8 digits', hint: 'Exactly 8 digits.' },
       btw: { label: 'VAT number (optional)', hint: 'We check the check digit.' },
       adres: 'Street and number',

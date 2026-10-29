@@ -22,6 +22,7 @@ import { MetingVerloop } from '@/components/club/training/MetingVerloop'
 import { SchemaLijst } from '@/components/club/training/SchemaLijst'
 import { Voortgangskaart } from '@/components/club/voortgang/Voortgangskaart'
 import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
+import { DagboekOpKaart } from '@/components/club/voeding/dagboek/DagboekOpKaart'
 import { MetingenUitApps } from '@/components/club/health/MetingenUitApps'
 import { SchemaMaken } from './SchemaMaken'
 import '@/components/club/training/training.css'
@@ -143,6 +144,11 @@ export async function TrainingTab(props: TrainingTabProps) {
           </Suspense>
         )}
         {rechten.voeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
+        {rechten.voeding && (
+          <Suspense fallback={null}>
+            <DagboekOpKaart admin={t.admin} userId={t.userId} lidId={lid.id} vandaag={dagSleutelNl(nu)} plan={voeding} />
+          </Suspense>
+        )}
       </section>
     </div>
   )

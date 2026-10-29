@@ -9,6 +9,7 @@ import { huisstijlVariabelen, type Thema } from '@/lib/club/kern/huisstijl'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { widgetActief } from '@/lib/club/widget/schakelaar'
+import { pakketZichtbaar } from '@/lib/club/kern/pakketten'
 import { haalWidgetContext, haalWidgetLessen, type WidgetContext } from '@/lib/club/widget/opslag'
 import { widgetWeergave } from '@/lib/club/widget/rooster'
 import { WidgetRooster } from '@/components/club/widget/WidgetRooster'
@@ -82,7 +83,7 @@ export default async function WidgetRoosterPagina({ params, searchParams }: Pagi
         lessen={lessen ?? []}
         fout={lessen === null}
         nu={nu.toISOString()}
-        apiPad={`/api/widget/${encodeURIComponent(sportschool)}/${encodeURIComponent(c.vestiging)}/aanvraag`}
+        apiPad={pakketZichtbaar(c.organisatie.uit, 'groei') ? `/api/widget/${encodeURIComponent(sportschool)}/${encodeURIComponent(c.vestiging)}/aanvraag` : null}
         ledenappUrl={ledenappUrl}
         privacyUrl={c.instellingen.privacyUrl}
         voorbeeld={weergave === 'voorbeeld'}

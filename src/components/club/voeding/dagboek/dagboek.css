@@ -1,0 +1,184 @@
+/* ─── Voedingsdagboek (ledenapp en ledenkaart) ────────────────────────────────
+   Leunt op de huisstijl van de sportschool (--brand, --bg-*, --text-*, --line*)
+   en het designsysteem (--club-opp-*, --club-randlicht, --club-diepte-*). Geen
+   vaste merkkleur. Mobiel eerst; grote tikvlakken (minstens 44px). Beweging
+   alleen transform en opacity; stil bij prefers-reduced-motion. */
+
+.club-vd,
+.club-vd-kaartblok {
+  --vd-eiwit: var(--brand-tekst, var(--brand));
+  --vd-kh: color-mix(in srgb, var(--brand) 50%, var(--text-2));
+  --vd-vet: color-mix(in srgb, var(--text-3) 80%, transparent);
+  --vd-over: var(--club-let-op);
+  --vd-oppervlak: var(--club-opp-1, var(--bg-card));
+  --vd-hoog: var(--club-opp-2, var(--bg-raised));
+  --vd-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.club-vd { display: grid; gap: 18px; }
+.club-vd-hint { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text-3); }
+.club-vd-fout { margin: 0; font-size: 13.5px; color: var(--club-let-op); }
+.club-vd-bron { margin: 4px 0 0; font-size: 12px; color: var(--text-4); }
+.club-vd-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Dag kiezen */
+.club-vd-dagkiezer { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
+.club-vd-dagkiezer h3 { margin: 0; text-align: center; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-vd-x { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--text-2); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 140ms var(--vd-ease), opacity 140ms; }
+.club-vd-x:active { transform: scale(0.92); }
+.club-vd-x:disabled { opacity: 0.3; cursor: default; }
+.club-vd-x:focus-visible, .club-vd-plus:focus-visible, .club-vd-chip:focus-visible, .club-vd-tab:focus-visible, .club-vd-hoofdknop:focus-visible, .club-vd-product-kies:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Held: kcal-ring en macro's op een verhoogd vlak */
+.club-vd-held {
+  display: grid; justify-items: center; gap: 18px; padding: 22px 16px 18px;
+  border-radius: var(--club-hoek-4, 22px); background: var(--vd-hoog);
+  box-shadow: var(--club-randlicht-sterk, inset 0 1px 0 rgba(255, 255, 255, 0.1)), var(--club-diepte-2, none);
+}
+.club-vd-ring { position: relative; display: grid; place-items: center; }
+.club-vd-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.club-vd-ring-spoor { fill: none; stroke: color-mix(in srgb, var(--text-1) 8%, transparent); }
+.club-vd-ring-boog { fill: none; stroke: var(--brand); stroke-linecap: round; }
+.club-vd-ring--groot { width: min(62vw, 220px); aspect-ratio: 1; }
+.club-vd-ring--groot .club-vd-ring-spoor, .club-vd-ring--groot .club-vd-ring-boog { stroke-width: 7; }
+.club-vd-ring--groot.is-over .club-vd-ring-boog { stroke: var(--vd-over); }
+.club-vd-ring-midden { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; }
+.club-vd-ring--groot strong { font-family: var(--ff-kop); font-size: clamp(44px, 13vw, 60px); line-height: 0.9; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-vd-ring--groot span { font-size: 13px; color: var(--text-3); }
+.club-vd-ring--groot em { font-style: normal; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-vd-ring--groot.is-over em { color: var(--vd-over); }
+
+.club-vd-macros { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.club-vd-macro { display: grid; justify-items: center; gap: 4px; }
+.club-vd-ring--klein { width: 64px; height: 64px; }
+.club-vd-ring--klein .club-vd-ring-spoor, .club-vd-ring--klein .club-vd-ring-boog { stroke-width: 9; }
+.club-vd-ring--klein strong { font-family: var(--ff-kop); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-vd-macro.is-eiwit .club-vd-ring-boog { stroke: var(--vd-eiwit); }
+.club-vd-macro.is-kh .club-vd-ring-boog { stroke: var(--vd-kh); }
+.club-vd-macro.is-vet .club-vd-ring-boog { stroke: var(--vd-vet); }
+.club-vd-macro.is-over .club-vd-ring-boog { stroke: var(--vd-over); }
+.club-vd-macro-naam { font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-2); }
+.club-vd-macro-doel { font-size: 12px; color: var(--text-4); }
+.club-vd-doelbron { margin: 0; font-size: 12.5px; color: var(--text-3); text-align: center; }
+
+/* Maaltijden */
+.club-vd-maaltijden { display: grid; gap: 10px; }
+.club-vd-maaltijd { padding: 12px 12px 10px 16px; border-radius: var(--club-hoek-3, 14px); background: var(--vd-oppervlak); box-shadow: var(--club-randlicht, none); border: 1px solid transparent; }
+.club-vd-maaltijd.is-nu { border-color: color-mix(in srgb, var(--brand) 40%, transparent); }
+.club-vd-maaltijd-kop { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; }
+.club-vd-maaltijd-kop h4 { margin: 0; font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.club-vd-maaltijd-kcal { font-size: 13.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.club-vd-plus { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 999px; background: var(--brand); color: var(--brand-inkt, #0b0b0b); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 140ms var(--vd-ease); flex: none; }
+.club-vd-plus:active { transform: scale(0.9); }
+.club-vd-regels { list-style: none; margin: 6px 0 0; padding: 0; display: grid; }
+.club-vd-regel { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.club-vd-regel-kcal { font-family: var(--ff-kop); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.club-vd-product-tekst { display: grid; min-width: 0; gap: 2px; text-align: left; }
+.club-vd-product-tekst strong { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-vd-product-tekst span { font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Week */
+.club-vd-kaart { display: grid; gap: 12px; padding: 16px; border-radius: var(--club-hoek-3, 14px); background: var(--vd-oppervlak); box-shadow: var(--club-randlicht, none); }
+.club-vd-kaart h3 { margin: 0; }
+.club-vd-week { display: grid; gap: 10px; }
+.club-vd-week-balken { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 132px; }
+.club-vd-week-lijn { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed color-mix(in srgb, var(--text-2) 55%, transparent); pointer-events: none; }
+.club-vd-week-kolom { display: grid; grid-template-rows: 1fr auto; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; min-width: 0; -webkit-tap-highlight-color: transparent; }
+div.club-vd-week-kolom { cursor: default; }
+.club-vd-week-spoor { position: relative; display: block; border-radius: 8px; background: color-mix(in srgb, var(--text-1) 6%, transparent); overflow: hidden; }
+.club-vd-week-balk { position: absolute; inset: 0; border-radius: 8px; background: color-mix(in srgb, var(--brand) 70%, transparent); transform-origin: bottom; transition: transform 500ms var(--vd-ease); }
+.club-vd-week-balk.is-over { background: var(--vd-over); }
+.club-vd-week-kolom.is-actief .club-vd-week-balk { background: var(--brand); }
+.club-vd-week-dag { font-size: 11.5px; text-align: center; color: var(--text-3); text-transform: capitalize; }
+.club-vd-week-kolom.is-actief .club-vd-week-dag { color: var(--text-1); font-weight: 700; }
+
+/* Start en instellingen */
+.club-vd-start { display: grid; gap: 12px; padding: 22px 18px; border-radius: var(--club-hoek-4, 22px); background: var(--vd-hoog); box-shadow: var(--club-randlicht-sterk, none), var(--club-diepte-2, none); }
+.club-vd-start h3 { margin: 0; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1; }
+.club-vd-start p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); }
+.club-vd-start-icoon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--brand-soft, color-mix(in srgb, var(--brand) 18%, transparent)); color: var(--brand-tekst, var(--brand)); }
+.club-vd-vink { display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.4; padding: 12px; border-radius: 12px; background: var(--vd-oppervlak); cursor: pointer; }
+.club-vd-vink input { width: 22px; height: 22px; margin: 0; accent-color: var(--brand); flex: none; }
+.club-vd-instellingen { border-radius: var(--club-hoek-3, 14px); background: var(--vd-oppervlak); padding: 0 16px; }
+.club-vd-instellingen summary { min-height: 48px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+.club-vd-instellingen-blok { display: grid; gap: 8px; padding: 12px 0 14px; border-top: 1px solid var(--line); }
+.club-vd-instellingen-blok p { margin: 0; font-size: 14px; }
+.club-vd-gevaar { border-color: color-mix(in srgb, var(--club-let-op) 50%, var(--line)); color: var(--club-let-op); }
+
+/* Het blad om toe te voegen */
+.club-vd-laag { position: fixed; inset: 0; z-index: 60; display: grid; align-items: end; background: rgba(0, 0, 0, 0.55); animation: club-vd-in 200ms ease-out both; }
+.club-vd-blad {
+  display: grid; align-content: start; gap: 12px; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain;
+  padding: 10px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0;
+  background: var(--bg-app); box-shadow: var(--club-randlicht-sterk, none), var(--club-diepte-3, none);
+  animation: club-vd-op 320ms var(--vd-ease) both; outline: none;
+}
+@media (min-width: 720px) { .club-vd-laag { align-items: center; justify-items: center; } .club-vd-blad { width: min(560px, 92vw); border-radius: 22px; max-height: 86vh; } }
+@keyframes club-vd-in { from { opacity: 0; } }
+@keyframes club-vd-op { from { transform: translateY(24px); opacity: 0; } }
+.club-vd-blad-kop { position: sticky; top: -10px; z-index: 1; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; background: var(--bg-app); padding-top: 4px; }
+.club-vd-blad-kop h3 { margin: 0; text-align: center; font-size: 16px; font-weight: 700; }
+.club-vd-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.club-vd-tab, .club-vd-chip { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 140ms var(--vd-ease); }
+.club-vd-tab:active, .club-vd-chip:active { transform: scale(0.96); }
+.club-vd-tab.is-aan, .club-vd-chip.is-aan { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt, #0b0b0b); }
+.club-vd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-vd-paneel { display: grid; gap: 12px; }
+.club-vd-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.club-vd-product { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; border-radius: 14px; background: var(--vd-oppervlak); padding-right: 6px; }
+.club-vd-product-kies { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 10px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; min-width: 0; border-radius: 14px; }
+.club-vd-product-letter { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--brand) 16%, transparent); color: var(--brand-tekst, var(--brand)); font-family: var(--ff-kop); font-weight: 700; font-size: 18px; }
+.club-vd-eigen { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px; }
+.club-vd-zoekbalk { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.club-vd-veld { display: grid; gap: 4px; font-size: 12.5px; color: var(--text-3); }
+.club-vd-veld input, .club-vd-gram { min-height: 46px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--club-invoer-bg, var(--bg-card)); color: var(--text-1); font: inherit; font-size: 16px; }
+.club-vd-veld input:focus-visible, .club-vd-gram:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.club-vd-veld--breed { grid-column: 1 / -1; }
+.club-vd-raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.club-vd-formulier { display: grid; gap: 12px; }
+.club-vd-knoppen { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.club-vd-hoofdknop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--brand); color: var(--brand-inkt, #0b0b0b); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 140ms var(--vd-ease), opacity 140ms; }
+.club-vd-hoofdknop:active { transform: scale(0.97); }
+.club-vd-hoofdknop:disabled { opacity: 0.45; cursor: default; }
+.club-vd-melding { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: var(--vd-oppervlak); }
+.club-vd-melding p { margin: 0; font-size: 14px; }
+
+/* Portie */
+.club-vd-portie { display: grid; gap: 12px; }
+.club-vd-portie-kop { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
+.club-vd-portie-kop strong { display: block; font-size: 18px; line-height: 1.25; }
+.club-vd-ster { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-3); cursor: pointer; }
+.club-vd-ster.is-aan { color: var(--brand-tekst, var(--brand)); border-color: var(--brand); }
+.club-vd-portie-macros { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--vd-oppervlak); font-size: 14px; color: var(--text-3); }
+.club-vd-portie-macros strong { font-family: var(--ff-kop); font-size: 34px; line-height: 1; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.club-vd-portie-velden { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.club-vd-stapper { display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; min-height: 46px; border-radius: 12px; border: 1px solid var(--line-strong); }
+.club-vd-stapper button { height: 44px; border: 0; background: none; color: var(--text-1); font-size: 20px; cursor: pointer; }
+.club-vd-stapper output { text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--text-1); }
+
+/* AI */
+.club-vd-ai-regel { display: grid; grid-template-columns: 1fr 74px auto; align-items: center; gap: 8px; padding: 8px 6px 8px 12px; border-radius: 12px; background: var(--vd-oppervlak); }
+.club-vd-gram { min-height: 42px; width: 100%; text-align: center; }
+.club-vd-ai-naam { width: 100%; min-height: 34px; padding: 4px 8px; margin-left: -8px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text-1); font: inherit; font-weight: 600; }
+.club-vd-ai-naam:hover { border-color: var(--line-strong); }
+.club-vd-ai-naam:focus-visible { outline: none; border-color: var(--brand); background: var(--vd-hoog); }
+.club-vd-ai-toestemming { gap: 14px; padding: 18px; border-radius: 16px; background: var(--vd-oppervlak); border: 1px solid var(--line-strong); }
+.club-vd-ai-kop { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; color: var(--text-1); }
+.club-vd-ai-kop svg { color: var(--brand-tekst, var(--brand)); }
+.club-vd-ai-uitleg { margin: 0; font-size: 15px; line-height: 1.5; font-weight: 600; color: var(--text-1); }
+.club-vd-ai-punten { display: grid; gap: 6px; margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.45; color: var(--text-2); }
+.club-vd-ai-intrekken { justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; color: var(--text-3); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.club-vd-ai-intrekken:hover { color: var(--text-1); }
+.club-vd-ai-intrekken:disabled { opacity: 0.5; cursor: default; }
+
+/* Ledenkaart in Club */
+.club-vd-kaartblok { display: grid; gap: 14px; }
+.club-vd-kaart-cijfers { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.club-vd-kaart-cijfer { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--vd-hoog); }
+.club-vd-kaart-cijfer span { font-size: 12.5px; color: var(--text-3); }
+.club-vd-kaart-cijfer strong { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-vd-laag, .club-vd-blad { animation: none; }
+  .club-vd-week-balk { transition: none; }
+}

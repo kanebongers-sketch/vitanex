@@ -69,6 +69,11 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   healthToestemmingen: { tabel: 'club_health_toestemmingen', select: 'delen, trainer_zien, trainer_bronnen, tekst_versie, gegeven_op, ingetrokken_op', volgorde: 'gegeven_op' },
   healthKoppelingen: { tabel: 'club_health_koppelingen', select: 'bron, status, laatste_sync_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   healthMetingen: { tabel: 'club_health_metingen', select: 'gemeten_op, soort, waarde, training, bron', volgorde: 'gemeten_op' },
+  // Voedingsdagboek (migratie 466).
+  voedingKeuzes: { tabel: 'club_voeding_instellingen', select: 'gestart_op, tekst_versie, trainer_zien, trainer_zien_op, kcal, eiwit_g, koolhydraten_g, vet_g' },
+  voedingDagboek: { tabel: 'club_voeding_logs', select: 'datum, maaltijd, naam, merk, gram, maat, aantal, kcal, eiwit_g, koolhydraten_g, vet_g, vezels_g, bron, aangemaakt_op', volgorde: 'datum' },
+  voedingProducten: { tabel: 'club_voeding_producten', select: 'naam, merk, barcode, kcal_100g, eiwit_100g, koolhydraten_100g, vet_100g, vezels_100g, portie_gram, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  voedingFavorieten: { tabel: 'club_voeding_favorieten', select: 'naam, merk, portie_gram, aangemaakt_op', volgorde: 'aangemaakt_op' },
 }
 
 const MAX_RIJEN = 10_000

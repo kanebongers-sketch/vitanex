@@ -10,7 +10,8 @@
 // - NIET "geen creditcard nodig": zodra Stripe aan staat vraagt Checkout om
 //   betaalgegevens (zie concurrenten-onderzoek, item 15).
 // - gegevens van jou en exporteren: voorwaarden, src/lib/club/rapporten (ledenlijst, leads, uren als CSV)
-// - persoonlijke hulp: de pakketten Club en Keten in pakketten.ts
+// - persoonlijke hulp bij het inrichten (koers Kane 18-10-2026; welke pakketten
+//   hem gratis krijgen beslist Kane bij de prijzen, daarom geen pakketnamen)
 // - database in Frankfurt: inhoud/vertrouwen.ts
 // - ledenapp in eigen huisstijl in elk pakket: 'Ledenapp in je eigen huisstijl' in Start, de rest bouwt daarop
 // - ledenimport met voorbeeld, nooit verwijderen: src/lib/club/leden/import
@@ -30,6 +31,6 @@ export const GERUSTSTELLING = [
   'Stoppen in de proefperiode kost niets',
   'Nu geen opstartkosten',
   'Je gegevens blijven van jou',
-  'Persoonlijke hulp in Club en Keten',
+  'Persoonlijke hulp bij het inrichten',
   'Data in de EU',
 ] as const

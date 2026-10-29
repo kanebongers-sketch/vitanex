@@ -49,7 +49,7 @@ export const BEVEILIGING = woordenboek({
         punten: [
           { titel: 'In the EU', tekst: 'Database and server in a data centre in Frankfurt.' },
           { titel: 'Separated per gym', tekst: 'Every request to the database stays within your own gym. Only the server reads it, never the browser.' },
-          { titel: 'No AI services with member data', tekst: 'Your members’ data does not go to third-party AI services.' },
+          { titel: 'No AI services with member data', tekst: 'Your members’ data does not go to third-party AI services. The only exception: a member can have a meal photo estimated, only with their own consent. The photo then goes to Anthropic and is not stored.' },
         ],
       },
       {

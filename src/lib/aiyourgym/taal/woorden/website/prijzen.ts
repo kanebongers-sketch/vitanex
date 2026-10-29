@@ -10,11 +10,12 @@ import { woordenboek } from '../../woordenboek'
 export const PRIJZEN = woordenboek({
   nl: {
     metaTitel: 'Prijzen',
-    metaOmschrijving: `De pakketten van AI Your Gym: Start, Club en Keten. Scherp geprijsd en op maat. Probeer ${PROEFDAGEN} dagen gratis.`,
+    metaOmschrijving: `De losse pakketten van AI Your Gym: kies alleen wat je nodig hebt. Scherp geprijsd, per vestiging. Probeer ${PROEFDAGEN} dagen gratis.`,
     label: 'Prijzen',
-    titel: 'Een prijs die past bij je sportschool.',
-    tekst: `Scherp geprijsd, op maat, voor een vestiging of een hele keten. Eerst ${PROEFDAGEN} dagen gratis.`,
+    titel: 'Kies alleen wat je nodig hebt.',
+    tekst: `Zes losse pakketten die elk op zichzelf werken. Alleen groepslessen, alleen ledenadministratie of alles: jij kiest. Eerst ${PROEFDAGEN} dagen gratis.`,
     pakketten: 'Pakketten',
+    kernTitel: 'Bij elk pakket',
     vraagPrijs: 'Vraag een prijs op maat',
     vragenLabel: 'Vragen',
     vragenTitel: 'Over pakketten en proberen.',
@@ -22,7 +23,11 @@ export const PRIJZEN = woordenboek({
     vragen: {
       kosten: {
         vraag: 'Wat kost AI Your Gym?',
-        antwoord: 'Dat hangt af van je pakket en het aantal vestigingen. Vraag in drie korte stappen een prijs op maat aan.',
+        antwoord: 'Dat hangt af van de pakketten die je kiest en het aantal vestigingen. Vraag in drie korte stappen een prijs op maat aan.',
+      },
+      later: {
+        vraag: 'Kan ik later een pakket erbij nemen of opzeggen?',
+        antwoord: 'Ja. In Club, onder Abonnement, neem je een pakket erbij of vraag je een opzegging aan. Een pakket opzeggen gaat volgens je contract.',
       },
       proef: {
         vraag: 'Hoe werkt de proefperiode?',
@@ -38,19 +43,24 @@ export const PRIJZEN = woordenboek({
   },
   en: {
     metaTitel: 'Pricing',
-    metaOmschrijving: `The AI Your Gym plans: Start, Club and Keten. Competitively priced and tailored to you. Try it free for ${PROEFDAGEN} days.`,
+    metaOmschrijving: `The separate AI Your Gym packages: choose only what you need. Competitively priced, per location. Try it free for ${PROEFDAGEN} days.`,
     label: 'Pricing',
-    titel: 'A price that fits your gym.',
-    tekst: `Competitively priced, tailored, for one location or a whole chain. ${PROEFDAGEN} days free first.`,
-    pakketten: 'Plans',
+    titel: 'Choose only what you need.',
+    tekst: `Six separate packages that each work on their own. Only group classes, only membership administration or everything: you choose. ${PROEFDAGEN} days free first.`,
+    pakketten: 'Packages',
+    kernTitel: 'With every package',
     vraagPrijs: 'Ask for a tailored price',
     vragenLabel: 'Questions',
-    vragenTitel: 'About plans and trying it out.',
+    vragenTitel: 'About packages and trying it out.',
     zonderStripe: ' Online payment is not connected yet: nothing is charged, and before the trial ends we agree together how you pay from then on.',
     vragen: {
       kosten: {
         vraag: 'What does AI Your Gym cost?',
-        antwoord: 'That depends on your plan and the number of locations. Ask for a tailored price in three short steps.',
+        antwoord: 'That depends on the packages you choose and the number of locations. Ask for a tailored price in three short steps.',
+      },
+      later: {
+        vraag: 'Can I add or cancel a package later?',
+        antwoord: 'Yes. In Club, under Subscription, you add a package or request a cancellation. Cancelling a package follows your contract.',
       },
       proef: {
         vraag: 'How does the trial work?',

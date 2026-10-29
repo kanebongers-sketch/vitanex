@@ -12,7 +12,7 @@ import { magLidVerwijderen, verzoekTekst } from '@/lib/club/leden/avg/verwijdere
 import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
 import { healthActief } from '@/lib/club/health/schakelaar'
 import { lidgeldOpen } from '@/lib/club/betalen/plannen/toegang'
-import { kaartRechten, type KaartRechten } from '@/lib/club/leden/hub/rechten'
+import { kaartRechten, zichtbareLidTabs, type KaartRechten } from '@/lib/club/leden/hub/rechten'
 import { kiesLidTab, lidKaartPad, type LidTab } from '@/lib/club/leden/hub/tabs'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
@@ -68,7 +68,7 @@ interface TabInhoud {
   nu: Date
 }
 
-async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
+async function Overzicht({ kaart, vestiging, nu, t, rechten }: TabInhoud) {
   const taal = await getTaal()
   const alle = tekst(LEDENKAART, taal)
   const w = alle.overzicht
@@ -86,11 +86,11 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
           <dl className="club-lidhub-feiten">
             <div>
               <dt>{w.vorm}</dt>
-              <dd><Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')}>{lid.abonnement ?? alle.kop.geenVorm}</Link></dd>
+              <dd>{rechten.lidmaatschap ? <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')}>{lid.abonnement ?? alle.kop.geenVorm}</Link> : (lid.abonnement ?? alle.kop.geenVorm)}</dd>
             </div>
             <div>
               <dt>{w.volgendeLes}</dt>
-              <dd>{volgende ? <Link href={lidKaartPad(lid.id, vestiging, 'planning')}>{volgende.lesNaam}, {datumKort(volgende.start, nu, taal)} {tijdNl(volgende.start)}</Link> : <span className="club-zacht">{w.geenLes}</span>}</dd>
+              <dd>{volgende && (rechten.rooster || rechten.afspraken) ? <Link href={lidKaartPad(lid.id, vestiging, 'planning')}>{volgende.lesNaam}, {datumKort(volgende.start, nu, taal)} {tijdNl(volgende.start)}</Link> : <span className="club-zacht">{w.geenLes}</span>}</dd>
             </div>
             <div>
               <dt>{w.laatsteNotitie}</dt>
@@ -158,14 +158,15 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
   const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
   const rechten = kaartRechten({ onderdelen: t.onderdelen, modulesUit: t.organisatie.uit, healthAan: healthActief(), lidgeldOpen: betalen })
-  const tab: LidTab = kiesLidTab(ruw.tab)
+  const tabs = zichtbareLidTabs(rechten)
+  const tab: LidTab = kiesLidTab(ruw.tab, tabs)
   const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
   const inhoud: TabInhoud = { t, kaart, vestiging, rechten, nu }
 
   return (
     <div className="club-lidhub">
       <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} rechten={rechten} />
-      <LidTabs lidId={lid.id} vestiging={vestiging} actief={tab} />
+      <LidTabs lidId={lid.id} vestiging={vestiging} actief={tab} zichtbaar={tabs} />
       {verzoek ? (
         <p className="club-melding club-melding--fout" role="status">
           {verzoekTekst(verzoek, nu, taal)} {kb.verzoekVast}{magLidVerwijderen(t) ? <> <Link href={`${lidKaartPad(lid.id, vestiging, 'privacy')}#privacy`}>{kb.terugdraaien}</Link></> : null}

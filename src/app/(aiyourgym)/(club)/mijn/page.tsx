@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { lidToegang } from '@/lib/club/ledenlogin/toegang'
+import { pakketZichtbaar } from '@/lib/club/kern/pakketten'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { naamVan } from '@/lib/club/kern/vestigingen'
@@ -23,6 +24,11 @@ import { LedenappAfspraken } from '@/components/club/afspraken/LedenappAfspraken
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 import { LedenappChallenges } from '@/components/club/challenges/LedenappChallenges'
 import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
+import { Dagboek } from '@/components/club/voeding/dagboek/Dagboek'
+import { haalDagboekApp } from '@/lib/club/voeding/dagboek/app'
+import { aiFuncties } from '@/lib/club/voeding/dagboek/ai/schakelaar'
+import { dagSleutelNl } from '@/lib/club/kern/datum'
+import { VOEDING_DAGBOEK } from '@/lib/aiyourgym/taal/woorden/club/voeding-dagboek'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
@@ -101,12 +107,15 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
     // Meldingen voor de bel (aantal ongelezen) en het meldingenscherm; null bij een leesfout.
     haalLedenappMeldingen(admin, userId, lid.id),
     tab === 'voortgang' ? haalVoortgang(admin, userId, lid.id, nu) : null,
-    tab === 'voortgang' ? haalLedenappChallenges(admin, userId, lid, nu) : null,
+    // Challenges en community horen bij het pakket Groei (kern/pakketten.ts).
+    tab === 'voortgang' && pakketZichtbaar(l.organisatie.uit, 'groei') ? haalLedenappChallenges(admin, userId, lid, nu) : null,
     tab === 'voeding' ? haalPlan(admin, userId, lid.id) : null,
     tab === 'profiel' && !apart ? haalVestigingContact(admin, userId, lid.vestiging, vestigingNaam) : null,
   ])
   const voortgang = ruweVoortgang ? voortgangVoorLid(ruweVoortgang) : null
   const voeding = tab === 'voeding' ? voedingVoorApp(ruwPlan) : null
+  // Het voedingsdagboek (migratie 466); doelen uit het plan van de coach als dat er is.
+  const dagboek = !apart && tab === 'voeding' ? await haalDagboekApp(admin, userId, lid.id, { vandaag: dagSleutelNl(nu), plan: voeding?.staat === 'plan' ? voeding.plan : null, ai: aiFuncties() }) : null
   const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
   // Betalen in de ledenapp (null = uit bij deze sportschool of CLUB_BETALEN_ACTIEF uit).
   const kopen = toonKopen || (!apart && (tab === 'home' || tab === 'lessen')) ? await haalKopenVoorLid(admin, userId, lid, nu) : null
@@ -115,7 +124,8 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   // Web push: alleen met CLUB_PUSH_ACTIEF=1 en kloppende sleutels, anders geen knop.
   const pushSleutel = publiekeSleutelVoorApp(process.env)
   const pushMerk = pushSessieMerk(l.sessieHash)
-  const t = LEDENAPP[await getTaal()]
+  const taal = await getTaal()
+  const t = LEDENAPP[taal]
 
   return (
     <LedenappSchil organisatie={org}>
@@ -177,14 +187,24 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 </div>
               )}
               {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
-              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) }} berichten={berichten ?? []} />
+              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} />
             </>
           )}
           {!apart && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} strippenkaart={kopen && kopen !== 'fout' && !l.voorvertoning ? { saldo: kopen.strippen, url: metVoor('/api/club/lid/betalen/strippenkaart') } : undefined} />}
           {!apart && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} historie={data.historie} nu={nu.toISOString()} />}
           {!apart && tab === 'voeding' && voeding && (
             <div className="club-lidapp-tab">
-              <LedenappVoeding plan={voeding.staat === 'plan' ? voeding.plan : null} fout={voeding.staat === 'fout'} />
+              <LedenappVoeding
+                plan={voeding.staat === 'plan' ? voeding.plan : null}
+                fout={voeding.staat === 'fout'}
+                dagboek={
+                  dagboek ? (
+                    <Dagboek start={dagboek} voor={l.voorvertoning ? lid.id : null} alleenLezen={l.voorvertoning} sportschool={org.naam} />
+                  ) : (
+                    <p className="club-melding club-melding--fout" role="alert">{VOEDING_DAGBOEK[taal].fout.laden}</p>
+                  )
+                }
+              />
             </div>
           )}
           {!apart && tab === 'afspraken' && (
@@ -209,7 +229,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 hulp={contact ? <HulpSportschool contact={contact} /> : null}
                 pilotNoot={false}
               />
-              <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />
+              {pakketZichtbaar(l.organisatie.uit, 'groei') && <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />}
               <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />
               {l.account && !l.account.wachtwoordHash && (
                 <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">

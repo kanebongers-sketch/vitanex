@@ -19,7 +19,8 @@ interface WidgetRoosterProps {
   lessen: WidgetLes[]
   /** Het moment van renderen (ISO), zodat server en browser dezelfde dagen tonen. */
   nu: string
-  apiPad: string
+  /** Waar een proefles-aanvraag heen gaat (een lead in Club); null zonder het pakket Groei: dan boekt een les via de ledenapp. */
+  apiPad: string | null
   ledenappUrl: string
   privacyUrl: string | null
   voorbeeld: boolean
@@ -84,7 +85,7 @@ export function WidgetRooster(p: WidgetRoosterProps) {
         </a>
       </header>
 
-      {aanvraag ? (
+      {aanvraag && p.apiPad ? (
         <WidgetAanvraag
           les={aanvraag.les}
           organisatie={p.organisatie}
@@ -135,18 +136,18 @@ export function WidgetRooster(p: WidgetRoosterProps) {
               <p className="ayg-w-leeg">{filter ? t.nietOpDag : t.geenLessen}</p>
             ) : (
               <ul className="ayg-w-lessen">
-                {zichtbaar.map((les) => <LesRegel key={les.id} les={les} onKies={(l) => setAanvraag({ les: l })} />)}
+                {zichtbaar.map((les) => <LesRegel key={les.id} les={les} onKies={(l) => (p.apiPad ? setAanvraag({ les: l }) : window.open(p.ledenappUrl, '_blank', 'noopener'))} />)}
               </ul>
             )}
           </div>
 
-          <aside className="ayg-w-kennis">
+          {p.apiPad && <aside className="ayg-w-kennis">
             <div>
               <strong>{t.kennisKop}</strong>
               <span>{t.kennisTekst}</span>
             </div>
             <button type="button" className="ayg-w-knop ayg-w-knop--rustig" onClick={() => setAanvraag({ les: null })}>{t.kennisKnop}</button>
-          </aside>
+          </aside>}
         </>
       )}
     </div>

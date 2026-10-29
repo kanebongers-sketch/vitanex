@@ -19,6 +19,14 @@ interface ClubZoekenProps {
   ledenZoeken: boolean
 }
 
+/** Het event waarmee een ander onderdeel het zoekvenster opent (openClubZoeken). */
+export const OPEN_ZOEKEN = 'club:zoeken'
+
+/** Open het zoekvenster van de balk (zelfde als Ctrl K). */
+export function openClubZoeken(): void {
+  window.dispatchEvent(new Event(OPEN_ZOEKEN))
+}
+
 /** Alleen / zonder Ctrl, Alt of Cmd opent het zoeken (Ctrl / en dergelijke blijven van de browser). */
 function isSlashSneltoets(e: KeyboardEvent): boolean {
   return e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey && !inInvoer(e.target)
@@ -64,8 +72,14 @@ export function ClubZoeken({ items, vestiging, ledenZoeken }: ClubZoekenProps) {
         setOpen(true)
       }
     }
+    // Een zoekveld elders op de pagina (zoals in het instellingencentrum) opent hetzelfde venster.
+    const opVraag = () => setOpen(true)
     window.addEventListener('keydown', opToets)
-    return () => window.removeEventListener('keydown', opToets)
+    window.addEventListener(OPEN_ZOEKEN, opVraag)
+    return () => {
+      window.removeEventListener('keydown', opToets)
+      window.removeEventListener(OPEN_ZOEKEN, opVraag)
+    }
   }, [])
   const t = useTekst(MENU).zoeken
   const tekst = ledenZoeken ? t.knopLeden : t.knop

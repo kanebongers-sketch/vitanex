@@ -57,3 +57,20 @@ export function isGearchiveerd(naam: string, kolom: unknown): boolean {
 export function hoortInArchief(naam: string): boolean {
   return isStandaardOefening(naam) && !isBlenderOefening(naam)
 }
+
+/** Een rij uit club_oefeningen, alleen wat nodig is om te tellen. */
+export interface OefeningTelRij {
+  naam: unknown
+  actief?: unknown
+  gearchiveerd?: unknown
+}
+
+/**
+ * Hoeveel oefeningen kan een sportschool kiezen? Actief en niet gearchiveerd:
+ * de Blender-oefeningen plus de eigen oefeningen. Dezelfde regel als
+ * oefeningUitRij (rijen.ts), zodat het instellingencentrum hetzelfde getal toont
+ * als de bibliotheek.
+ */
+export function telKiesbareOefeningen(rijen: readonly OefeningTelRij[]): number {
+  return rijen.filter((r) => typeof r.naam === 'string' && r.actief !== false && !isGearchiveerd(r.naam, r.gearchiveerd)).length
+}

@@ -2,6 +2,7 @@
 // altijd uit de sessie (nooit uit body of vraag), tenant-scheiding, en de
 // inlogroutes (404 zonder verraad, cookies, CSRF, zwakke pincode).
 
+import { ALLE_PAKKETTEN } from '@/lib/club/kern/pakketten'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -58,7 +59,7 @@ import { POST as kiesWachtwoord } from '@/app/(aiyourgym)/api/club/lid/wachtwoor
 import { POST as meldingenGelezen } from '@/app/(aiyourgym)/api/club/lid/meldingen/gelezen/route'
 
 const ORG = {
-  id: GYM, naam: 'Gym A', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: 'gyma',
+  id: GYM, naam: 'Gym A', slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: 'gyma',
   instellingen: { ledenapp: { welkom: null, tabsUit: [], qr: true }, rechten: { manager: [] } },
 }
 const lid = (id: string, extra: Record<string, unknown> = {}) => ({

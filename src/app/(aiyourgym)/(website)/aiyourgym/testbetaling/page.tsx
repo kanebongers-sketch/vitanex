@@ -5,7 +5,8 @@ import { CreditCard, ShieldCheck } from 'lucide-react'
 import { adminOfNull } from '@/lib/aiyourgym/api'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { welkomPad } from '@/lib/aiyourgym/links'
-import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
+import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { pakkettenTekst } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { vindOpSessie } from '@/lib/aiyourgym/opslag'
@@ -74,11 +75,10 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
     )
   }
 
-  const pakket = vindPakket(a.pakket)
   const regels = [
     { label: t.rij.sportschool, waarde: a.sportschoolNaam },
     { label: t.rij.adres, waarde: adresVan(a.slug, subdomeinenActief()) },
-    { label: t.rij.pakket, waarde: pakket?.naam ?? a.pakket },
+    { label: t.rij.pakket, waarde: pakkettenTekst(a.pakketten, taal) },
     { label: t.rij.vestigingen, waarde: String(a.aantalVestigingen) },
   ]
   return (

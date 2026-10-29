@@ -26,13 +26,13 @@ export const ACTIE = woordenboek({
     bandLabel: (dagen: number) => `${dagen}-day free trial`,
     bandTitel: 'Bring your gym on board today.',
     bandLead: (dagen: number) => `You get your own environment with your own logo and colours. Try everything with your team for ${dagen} days, or let us show you in person first.`,
-    // Plannamen (Start, Club, Keten) zijn productnamen uit pakketten.ts en blijven gelijk.
+    // De losse pakketten staan in pakketten.ts; hier geen pakketnamen.
     geruststelling: [
       `Try it free for ${PROEFDAGEN} days`,
       'Cancelling during the trial costs nothing',
       'No set-up fee for now',
       'Your data stays yours',
-      'Personal help in the Club and Keten plans',
+      'Personal help with setting up',
       'Data stored in the EU',
     ],
   },

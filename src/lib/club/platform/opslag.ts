@@ -155,7 +155,7 @@ async function proefVan(a: PlatformAanmelding, nu: Date): Promise<string | null 
   const wacht = new Promise<undefined>((klaar) => {
     klok = setTimeout(() => klaar(undefined), STRIPE_WACHT_MS)
   })
-  const vraag = stripeAbonnementVan({ pakket: a.pakket, aantalVestigingen: a.aantalVestigingen, status: a.status, stripeKlantId: null, stripeAbonnementId: a.stripeAbonnementId, aangemaaktOp: a.aangemaaktOp })
+  const vraag = stripeAbonnementVan({ pakket: a.pakket, pakketten: null, aantalVestigingen: a.aantalVestigingen, status: a.status, stripeKlantId: null, stripeAbonnementId: a.stripeAbonnementId, aangemaaktOp: a.aangemaaktOp })
     .then((s) => (s ? (isInProef(s.proefTot, nu) && s.proefTot ? s.proefTot.toISOString() : null) : undefined))
     .catch(() => undefined)
   try {

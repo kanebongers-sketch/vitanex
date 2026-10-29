@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
-import { PAKKETTEN, PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
-import { MAX_NAAM, maxVestigingenVoor } from '@/lib/aiyourgym/aanmelding'
-import { aanmeldbaar, testbetalen } from '@/lib/aiyourgym/testbetaling'
+import { PAKKETTEN, PROEFDAGEN, leesPakketKeuze } from '@/lib/aiyourgym/pakketten'
+import { MAX_NAAM } from '@/lib/aiyourgym/aanmelding'
+import { afsluitbaar } from '@/lib/aiyourgym/config'
+import { testbetalingAan } from '@/lib/aiyourgym/testbetaling'
 import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
 import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormulier'
@@ -11,9 +12,10 @@ import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { AANMELDEN } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 
 // /aiyourgym/aanmelden: een sportschool meldt zich aan. De poort (alleen Kane
-// zolang de website uit staat) zit in ../layout.tsx. Welke pakketten online af
-// te sluiten zijn, bepaalt de server (Stripe-prijs in env); bedragen tonen we
-// nergens (besluit Kane): die ziet de klant pas bij Stripe.
+// zolang de website uit staat) zit in ../layout.tsx. De sportschool kiest een of
+// meer losse pakketten (besluit Kane 29-10-2026). Welke online af te sluiten
+// zijn, bepaalt de server (Stripe-prijs in env); bedragen tonen we nergens
+// (besluit Kane): die ziet de klant pas bij Stripe.
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +31,8 @@ interface PaginaProps {
 export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
   const [zoek, taal] = await Promise.all([searchParams, getSiteTaal()])
   const t = AANMELDEN[taal]
-  const startPakket = vindPakket(typeof zoek.pakket === 'string' ? zoek.pakket : null)?.sleutel ?? null
+  // ?pakketten=lessen,groei (prijzenpagina); ?pakket= voor oude links.
+  const startPakketten = leesPakketKeuze(zoek.pakketten ?? zoek.pakket) ?? []
   const geannuleerd = zoek.geannuleerd === '1'
   // Naam uit de oproep op de voorpagina; alleen als begin van het veld, de controle blijft in het formulier.
   const startNaam = typeof zoek.naam === 'string' ? zoek.naam.trim().slice(0, MAX_NAAM) : ''
@@ -38,12 +41,10 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     naam: p.naam,
     voorWie: p.voorWie,
     inbegrepen: p.inbegrepen,
-    maxVestigingen: maxVestigingenVoor(p.sleutel),
-    onbeperkt: p.maxVestigingen === null,
-    aanbevolen: p.aanbevolen === true,
-    open: aanmeldbaar(p.sleutel),
-    test: testbetalen(p.sleutel),
+    stripe: afsluitbaar(p.sleutel),
   }))
+  // De testbetaling geldt voor een keuze waarvan niet elk pakket een Stripe-prijs heeft.
+  const testAan = testbetalingAan()
 
   return (
     <AanmeldSchil>
@@ -59,7 +60,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
             {t.geannuleerd}
           </p>
         )}
-        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakket={startPakket} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
+        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakketten={startPakketten} testAan={testAan} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
       </section>
     </AanmeldSchil>
   )

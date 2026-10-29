@@ -49,9 +49,13 @@ export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten
           <h1>{naam}</h1>
           <div className="club-leden-kop-chips">
             <span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{lidStatusLabel(lid.status, taal)}</span>
-            <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')} className="club-chip club-chip--geen club-lidhub-chiplink">
-              {lid.abonnement ?? w.geenVorm}
-            </Link>
+            {rechten.lidmaatschap ? (
+              <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')} className="club-chip club-chip--geen club-lidhub-chiplink">
+                {lid.abonnement ?? w.geenVorm}
+              </Link>
+            ) : lid.abonnement ? (
+              <span className="club-chip club-chip--geen">{lid.abonnement}</span>
+            ) : null}
             {coachNaam ? <span className="club-chip club-chip--geen">{w.coach(coachNaam)}</span> : null}
             {lid.einddatum ? <span className="club-chip club-chip--let-op">{w.tot(datum(lid.einddatum) ?? '')}</span> : null}
           </div>

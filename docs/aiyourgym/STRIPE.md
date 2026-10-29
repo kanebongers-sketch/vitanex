@@ -5,7 +5,7 @@ Wat Kane zelf moet doen voordat sportscholen online kunnen aanmelden en betalen.
 ## Zo werkt het
 
 - Een sportschool meldt zich aan op `/aiyourgym/aanmelden` (straks `aiyourgym.com/aanmelden`).
-- Is voor het gekozen pakket een Stripe-prijs ingesteld, dan gaat de klant naar Stripe Checkout: een abonnement per vestiging, met **14 dagen gratis** (`PROEFDAGEN` in `src/lib/aiyourgym/pakketten.ts`). Het bedrag ziet de klant pas bij Stripe; de website toont geen prijzen.
+- De sportschool kiest een of meer losse pakketten (besluit Kane 29-10-2026, zie `PAKKETTEN-MODULAIR.md`). Heeft elk gekozen pakket een Stripe-prijs, dan gaat de klant naar Stripe Checkout: een abonnement met een regel per pakket, per vestiging, met **14 dagen gratis** (`PROEFDAGEN` in `src/lib/aiyourgym/pakketten.ts`). Het bedrag ziet de klant pas bij Stripe; de website toont geen prijzen.
 - Na het afronden maakt de webhook precies een keer de sportschool aan: eigen omgeving, adres, eerste vestiging, basisbibliotheek en de eigenaar als beheerder met een persoonlijke inloglink. Je ziet hem meteen in de sportschool-wissel van Club.
 - Zonder prijs (of zonder sleutel) zegt het formulier eerlijk "Aanmelden is nog niet open" en bewaart het de aanmelding als `aanvraag` in de tabel `ayg_aanmeldingen`. Er gaat geen mail naar buiten; jij neemt zelf contact op.
 
@@ -15,15 +15,18 @@ Maak een eigen Stripe-account (of een apart account binnen je Stripe-organisatie
 
 ## 2. Producten en prijzen (testmodus)
 
-Maak per pakket een product met een terugkerende prijs per maand, **per vestiging** (de hoeveelheid is het aantal vestigingen):
+Maak per los pakket een product met een terugkerende prijs per maand, **per vestiging** (de hoeveelheid is het aantal vestigingen):
 
 | Pakket | Render-variabele met het prijs-id |
 |---|---|
-| Start | `AIYOURGYM_STRIPE_PRIJS_START` |
-| Club | `AIYOURGYM_STRIPE_PRIJS_CLUB` |
-| Keten | `AIYOURGYM_STRIPE_PRIJS_KETEN` |
+| Ledenadministratie | `AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE` |
+| Groepslessen | `AIYOURGYM_STRIPE_PRIJS_LESSEN` |
+| Training en coaching | `AIYOURGYM_STRIPE_PRIJS_TRAINING` |
+| Afspraken | `AIYOURGYM_STRIPE_PRIJS_AFSPRAKEN` |
+| Team en vloer | `AIYOURGYM_STRIPE_PRIJS_TEAM` |
+| Groei | `AIYOURGYM_STRIPE_PRIJS_GROEI` |
 
-Het prijs-id begint met `price_`. Een pakket zonder variabele blijft een aanvraag. Stel in Stripe bij Belastingen de btw in als je die wilt laten berekenen. Zet de proefperiode niet ook nog in Stripe zelf: de site vraagt hem al aan.
+Het prijs-id begint met `price_`. Een keuze waarin een pakket zonder variabele zit, gaat via de testbetaling (of wordt een aanvraag als die uit staat). De oude variabelen `_START`, `_CLUB` en `_KETEN` worden niet meer gebruikt. Met dezelfde prijs-id's herkent de webhook welke pakketten een abonnement heeft (`customer.subscription.updated`) en zet die precies op de sportschool. Stel in Stripe bij Belastingen de btw in als je die wilt laten berekenen. Zet de proefperiode niet ook nog in Stripe zelf: de site vraagt hem al aan.
 
 ## 3. Webhook
 
@@ -45,7 +48,7 @@ Kopieer daarna het ondertekeningsgeheim (begint met `whsec_`).
 |---|---|
 | `AIYOURGYM_STRIPE_SECRET_KEY` | geheime sleutel van het AI Your Gym-account (`sk_test_...`, later `sk_live_...`) |
 | `AIYOURGYM_STRIPE_WEBHOOK_SECRET` | het `whsec_...` van stap 3 |
-| `AIYOURGYM_STRIPE_PRIJS_START`, `_CLUB`, `_KETEN` | de prijs-id's van stap 2 |
+| `AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`, `_LESSEN`, `_TRAINING`, `_AFSPRAKEN`, `_TEAM`, `_GROEI` | de prijs-id's van stap 2 |
 | `AIYOURGYM_RESEND_FROM` (optioneel) | afzender voor de welkomstmail met de inloglink, bijv. `AI Your Gym <welkom@aiyourgym.com>`. Alleen als dat domein in Resend geverifieerd is. Zonder deze variabele wordt er niet gemaild en staat de link alleen op de welkomstpagina. |
 | `AIYOURGYM_PORTAAL_URL` (optioneel) | basis voor de inloglink zolang subdomeinen uit staan. Met `AIYOURGYM_SITE_ACTIEF=1` telt hij alleen als hij op aiyourgym.com of een subdomein ervan staat; een ander domein (zoals fitfactorypt.nl) wordt dan genegeerd en de link komt niet in mail of op de welkomstpagina. |
 
@@ -69,7 +72,7 @@ In Stripe: Instellingen, Billing, **Customer portal** (eerst in testmodus, later
 3. **Betaalmethoden**: aan (bijwerken van de betaalmethode).
 4. **Klantgegevens**: aan voor factuuradres, e-mail en btw-nummer.
 5. **Abonnement opzeggen**: aan, met "Aan het einde van de factuurperiode" (dan toont Club "Opgezegd, loopt nog tot ..."). Een reden vragen mag.
-6. **Abonnement wijzigen** (ander pakket of aantal): voorlopig uit. Het aantal vestigingen hoort bij wat in Club staat; dat regel je zelf.
+6. **Abonnement wijzigen** (ander pakket of aantal): voorlopig uit. Een pakket erbij nemen gaat in Club, Abonnement (een regel erbij op het abonnement); opzeggen wordt daar een aanvraag die jij volgens het contract verwerkt. Het aantal vestigingen hoort bij wat in Club staat; dat regel je zelf.
 7. **Bedrijfsgegevens**: naam AI Your Gym, en links naar de algemene voorwaarden en het privacybeleid zodra die er zijn.
 8. Standaard terugkeer-url mag leeg blijven: de app geeft bij elke sessie zelf de juiste url mee (alleen eigen domeinen en het subdomein van de sportschool).
 

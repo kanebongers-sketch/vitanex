@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { eisOnderdeel } from '@/lib/club/toegang'
+import { eisOnderdeel, eisPakket } from '@/lib/club/toegang'
 import { haalIntakeVragen } from '@/lib/club/intakevragen/lezen'
 import { dagSleutelNl } from '@/lib/club/kern/datum'
 import { IntakeVragenBeheer } from '@/components/club/intakevragen/IntakeVragenBeheer'
@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Zonder eigen vragen geldt de standaardset van Club.
 
 export default async function IntakeformulierPagina() {
+  await eisPakket('training')
   const t = await eisOnderdeel('beheer')
   const set = await haalIntakeVragen(t.admin, t.userId)
   const tp = (await clubTekst(INTAKE)).beheerPagina

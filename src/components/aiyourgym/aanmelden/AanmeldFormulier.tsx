@@ -17,6 +17,8 @@ import { StapEigenaar } from './StapEigenaar'
 import { StapAkkoord } from './StapAkkoord'
 import { Ontvangen } from './Ontvangen'
 import type { Invoer, PakketKeuze, Wijzig } from './types'
+import { gekozenVan, wisselPakket } from './keuze'
+import { MAX_VESTIGINGEN_ONLINE } from '@/lib/aiyourgym/aanmelding'
 
 // Het aanmeldformulier in vier stappen. Dezelfde controle als de server
 // (leesAanmelding) per stap, zodat fouten meteen bij het juiste veld staan.
@@ -24,41 +26,43 @@ import type { Invoer, PakketKeuze, Wijzig } from './types'
 interface AanmeldFormulierProps {
   pakketten: readonly PakketKeuze[]
   proefdagen: number
-  startPakket: PakketSleutel | null
+  /** Al gekozen pakketten (van de prijzenpagina, ?pakketten=lessen,groei). */
+  startPakketten: readonly PakketSleutel[]
+  /** Staat de testbetaling aan (zolang Stripe niet voor alles een prijs heeft)? */
+  testAan: boolean
   /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
   subdomeinen: boolean
   /** Naam van de sportschool die de bezoeker al typte (oproep op de voorpagina, ?naam=). */
   startNaam?: string
 }
 
-const LEEG: Omit<Invoer, 'pakket'> = {
+const LEEG: Omit<Invoer, 'pakketten'> = {
   sportschoolNaam: '', aantalVestigingen: 1, slug: '', slugZelf: false, eigenaarNaam: '', eigenaarEmail: '', eigenaarTelefoon: '', wachtwoord: '', wachtwoordHerhaal: '', akkoord: false, website: '',
 }
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
-  const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, sportschoolNaam: startNaam, slug: startNaam ? slugVoorstel(startNaam) : '', pakket: startPakket ?? '' })
-  const [stap, setStap] = useState(startPakket ? 1 : 0)
-  const [verste, setVerste] = useState(startPakket ? 1 : 0)
+export function AanmeldFormulier({ pakketten, proefdagen, startPakketten, testAan, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
+  // Ook met pakketten uit de URL begint het formulier bij de keuze: er kan er nog een bij.
+  const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, sportschoolNaam: startNaam, slug: startNaam ? slugVoorstel(startNaam) : '', pakketten: [...startPakketten] })
+  const [stap, setStap] = useState(0)
+  const [verste, setVerste] = useState(0)
   const [fouten, setFouten] = useState<Fouten>({})
   const [verzenden, setVerzenden] = useState<Verzenden>({ staat: 'rust' })
   const kopRef = useRef<HTMLHeadingElement>(null)
   const taal = useTaal()
   const t = AANMELD_FORMULIER[taal]
 
-  const pakket = pakketten.find((p) => p.sleutel === invoer.pakket) ?? null
-  const maxVestigingen = pakket?.maxVestigingen ?? 1
+  const pakket = gekozenVan(pakketten, invoer.pakketten, testAan, taal)
 
   const wijzig: Wijzig = (veld, waarde) => {
     setInvoer((oud) => ({ ...oud, [veld]: waarde }))
     setFouten((oud) => (oud[veld as keyof Fouten] ? { ...oud, [veld]: undefined } : oud))
   }
 
-  function kiesPakket(sleutel: PakketSleutel) {
-    const max = pakketten.find((p) => p.sleutel === sleutel)?.maxVestigingen ?? 1
-    setInvoer((oud) => ({ ...oud, pakket: sleutel, aantalVestigingen: Math.min(oud.aantalVestigingen, max) }))
-    setFouten((oud) => ({ ...oud, pakket: undefined, aantalVestigingen: undefined }))
+  function zetPakketten(maak: (oud: readonly PakketSleutel[]) => PakketSleutel[]) {
+    setInvoer((oud) => ({ ...oud, pakketten: maak(oud.pakketten) }))
+    setFouten((oud) => ({ ...oud, pakketten: undefined }))
   }
 
   function naarStap(nieuw: number) {
@@ -72,7 +76,7 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
     const veld = STAPPEN.flatMap((s) => s.velden as readonly AanmeldVeld[]).find((v) => f[v])
     if (!veld) return
     requestAnimationFrame(() => {
-      const el = veld === 'pakket' ? document.querySelector<HTMLElement>('input[name="pakket"]') : document.getElementById(veld)
+      const el = veld === 'pakketten' ? document.querySelector<HTMLElement>('input[name="pakketten"]') : document.getElementById(veld)
       el?.focus()
       el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     })
@@ -155,8 +159,8 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakket, subdomein
           {stapTekst.titel}
         </h2>
         <div className="aan-stap" key={stap}>
-          {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakket} proefdagen={proefdagen} fout={stapFouten.pakket} onKies={kiesPakket} />}
-          {stap === 1 && <StapSportschool subdomeinen={subdomeinen} invoer={invoer} maxVestigingen={maxVestigingen} onbeperkt={pakket?.onbeperkt ?? false} fouten={stapFouten} wijzig={wijzig} />}
+          {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakketten} fout={stapFouten.pakketten} onWissel={(s) => zetPakketten((oud) => wisselPakket(oud, s))} onVoorstel={(lijst) => zetPakketten(() => lijst)} />}
+          {stap === 1 && <StapSportschool subdomeinen={subdomeinen} invoer={invoer} maxVestigingen={MAX_VESTIGINGEN_ONLINE} onbeperkt={false} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 2 && <StapEigenaar invoer={invoer} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 3 && <StapAkkoord subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>

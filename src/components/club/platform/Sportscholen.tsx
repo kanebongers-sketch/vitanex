@@ -1,6 +1,5 @@
 import type { SportschoolRegel } from '@/lib/club/platform/opslag'
-import { STATUS_WEERGAVE, type StartStand } from '@/lib/club/platform/tellingen'
-import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { STATUS_WEERGAVE, pakketNaam, type StartStand } from '@/lib/club/platform/tellingen'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -60,7 +59,7 @@ function Abonnement({ s, taal }: { s: SportschoolRegel; taal: Taal }) {
   return (
     <>
       <span>
-        <span className={`club-chip club-chip--${w.toon}`}>{p.status[a.status]}</span> <span className="club-platform-pakket">{vindPakket(a.pakket)?.naam ?? (a.pakket || p.onbekend)}</span>
+        <span className={`club-chip club-chip--${w.toon}`}>{p.status[a.status]}</span> <span className="club-platform-pakket">{a.pakket ? pakketNaam(a.pakket) : p.onbekend}</span>
       </span>
       <span className="club-platform-sub">
         {typeof s.proefTot === 'string' ? t.proefTot(nlDatum(s.proefTot, taal)) : s.proefTot === undefined ? t.proefFout : t.sinds(nlDatum(a.aangemaaktOp, taal))}

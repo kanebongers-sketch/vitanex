@@ -57,6 +57,11 @@ export interface ExportRuw {
   healthToestemmingen: Rij[]
   healthKoppelingen: Rij[]
   healthMetingen: Rij[]
+  // Voedingsdagboek (migratie 466).
+  voedingKeuzes: Rij[]
+  voedingDagboek: Rij[]
+  voedingProducten: Rij[]
+  voedingFavorieten: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -258,6 +263,23 @@ export const SECTIES: readonly Sectie[] = [
   },
   { sleutel: 'healthKoppelingen', titel: 'Gekoppelde apps en apparaten', velden: { bron: 'App of apparaat', status: 'Status', laatste_sync_op: 'Laatst bijgewerkt op', aangemaakt_op: 'Gekoppeld op' } },
   { sleutel: 'healthMetingen', titel: 'Metingen uit apps', velden: { gemeten_op: 'Moment', soort: 'Soort', waarde: 'Waarde', training: 'Training', bron: 'Uit' } },
+  // Voedingsdagboek in de ledenapp (migratie 466).
+  {
+    sleutel: 'voedingKeuzes',
+    titel: 'Keuzes voor het voedingsdagboek',
+    velden: { gestart_op: 'Gestart op', tekst_versie: 'Versie van de uitleg', trainer_zien: 'Trainers mogen meekijken', trainer_zien_op: 'Delen gewijzigd op', kcal: 'Eigen dagdoel (kcal)', eiwit_g: 'Eigen doel eiwit (g)', koolhydraten_g: 'Eigen doel koolhydraten (g)', vet_g: 'Eigen doel vet (g)' },
+  },
+  {
+    sleutel: 'voedingDagboek',
+    titel: 'Voedingsdagboek',
+    velden: { datum: 'Dag', maaltijd: 'Maaltijd', naam: 'Wat', merk: 'Merk', gram: 'Gram', maat: 'Huishoudmaat', aantal: 'Aantal', kcal: 'Kilocalorieën', eiwit_g: 'Eiwit (g)', koolhydraten_g: 'Koolhydraten (g)', vet_g: 'Vet (g)', vezels_g: 'Vezels (g)', bron: 'Ingevoerd via', aangemaakt_op: 'Gelogd op' },
+  },
+  {
+    sleutel: 'voedingProducten',
+    titel: 'Eigen producten',
+    velden: { naam: 'Naam', merk: 'Merk', barcode: 'Barcode', kcal_100g: 'Kcal per 100 g', eiwit_100g: 'Eiwit per 100 g', koolhydraten_100g: 'Koolhydraten per 100 g', vet_100g: 'Vet per 100 g', vezels_100g: 'Vezels per 100 g', portie_gram: 'Portie (g)', aangemaakt_op: 'Gemaakt op' },
+  },
+  { sleutel: 'voedingFavorieten', titel: 'Favoriete producten', velden: { naam: 'Naam', merk: 'Merk', portie_gram: 'Portie (g)', aangemaakt_op: 'Bewaard op' } },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */
@@ -350,6 +372,7 @@ const PERIODE_KOLOM: Partial<Record<SectieSleutel, string>> = {
   betalingen: 'aangemaakt_op',
   kasboek: 'boekdatum',
   healthMetingen: 'gemeten_op',
+  voedingDagboek: 'datum',
 }
 
 /** Een korte samenvatting in gewone tekst, om mee te sturen met het bestand. */

@@ -5,17 +5,18 @@
 
 import { wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
 import { leesSlug } from '@/lib/club/kern/subdomein'
-import { vindPakket, type PakketSleutel } from './pakketten'
+import { leesPakketKeuze, type PakketSleutel } from './pakketten'
 
 /** Een body groter dan dit lezen we niet eens. */
 export const MAX_BODY_BYTES = 4_096
 export const MAX_NAAM = 60
 export const MAX_EMAIL = 120
-/** Ook in een pakket zonder maximum: meer vestigingen regelen we persoonlijk. */
+/** Online tot zoveel vestigingen; meer regelen we persoonlijk. */
 export const MAX_VESTIGINGEN_ONLINE = 40
 
 export interface Aanmelding {
-  pakket: PakketSleutel
+  /** De gekozen losse pakketten (minstens een, vaste volgorde, zonder dubbelen). */
+  pakketten: PakketSleutel[]
   sportschoolNaam: string
   aantalVestigingen: number
   slug: string
@@ -60,12 +61,6 @@ export function leesEmail(ruw: unknown): string | null {
   return e.length <= MAX_EMAIL && EMAIL.test(e) && !heeftRareTekens(e) ? e : null
 }
 
-/** Hoeveel vestigingen dit pakket online mag hebben. */
-export function maxVestigingenVoor(sleutel: PakketSleutel): number {
-  const pakket = vindPakket(sleutel)
-  return Math.min(pakket?.maxVestigingen ?? MAX_VESTIGINGEN_ONLINE, MAX_VESTIGINGEN_ONLINE)
-}
-
 function leesAantal(ruw: unknown, max: number): number | null {
   const n = typeof ruw === 'number' ? ruw : typeof ruw === 'string' && /^\d{1,3}$/.test(ruw.trim()) ? Number(ruw) : NaN
   return Number.isInteger(n) && n >= 1 && n <= max ? n : null
@@ -75,16 +70,16 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
   const b = typeof body === 'object' && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>) : {}
   const fouten: Partial<Record<AanmeldVeld, string>> = {}
 
-  const pakket = vindPakket(b.pakket)
-  if (!pakket) fouten.pakket = 'Kies een pakket.'
+  // Een of meer losse pakketten (besluit Kane 29-10-2026); "pakket" alleen voor oude links.
+  const pakketten = leesPakketKeuze(b.pakketten ?? b.pakket)
+  if (!pakketten) fouten.pakketten = 'Kies minstens een pakket.'
 
   const sportschoolNaam = tekst(b.sportschoolNaam)
   const naamProbleem = naamFout(sportschoolNaam, 'de naam van je sportschool')
   if (naamProbleem) fouten.sportschoolNaam = naamProbleem
 
-  const max = pakket ? maxVestigingenVoor(pakket.sleutel) : MAX_VESTIGINGEN_ONLINE
-  const aantalVestigingen = leesAantal(b.aantalVestigingen, max)
-  if (aantalVestigingen === null) fouten.aantalVestigingen = max === 1 ? 'Dit pakket is voor een vestiging.' : `Kies 1 tot ${max} vestigingen.`
+  const aantalVestigingen = leesAantal(b.aantalVestigingen, MAX_VESTIGINGEN_ONLINE)
+  if (aantalVestigingen === null) fouten.aantalVestigingen = `Kies 1 tot ${MAX_VESTIGINGEN_ONLINE} vestigingen.`
 
   const slug = leesSlug(b.slug)
   if (!slug.ok) fouten.slug = slug.fout
@@ -107,10 +102,10 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
 
   if (b.akkoord !== true) fouten.akkoord = 'Ga akkoord met de voorwaarden en de privacyverklaring.'
 
-  if (Object.keys(fouten).length > 0 || !pakket || aantalVestigingen === null || !slug.ok || !eigenaarEmail || !eigenaarTelefoon) {
+  if (Object.keys(fouten).length > 0 || !pakketten || aantalVestigingen === null || !slug.ok || !eigenaarEmail || !eigenaarTelefoon) {
     return { ok: false, fouten }
   }
-  return { ok: true, waarde: { pakket: pakket.sleutel, sportschoolNaam, aantalVestigingen, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon, wachtwoord } }
+  return { ok: true, waarde: { pakketten, sportschoolNaam, aantalVestigingen, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon, wachtwoord } }
 }
 
 /** Een onzichtbaar veld dat mensen leeg laten; robots vullen het vaak wel. */

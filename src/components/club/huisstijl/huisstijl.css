@@ -128,3 +128,7 @@ html:has(.club-huisstijl-opslaan) { scroll-padding-bottom: 110px; }
 @media (max-width: 760px) {
   .club-beheerders-nieuw { grid-template-columns: 1fr; }
 }
+
+/* Uitleg onder de naam: wat er meeverandert en wat niet (adres, bedrijfsnaam). Kleur en links via .club-hint. */
+.club-huisstijl-naamuitleg { display: grid; gap: 4px; margin-top: -4px; }
+.club-huisstijl-naamuitleg p { margin: 0; }

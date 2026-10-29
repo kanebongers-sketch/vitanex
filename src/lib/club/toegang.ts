@@ -27,6 +27,7 @@ import { adresVanVerzoek } from '@/lib/club/kern/adres-verzoek'
 import { kiesOrganisatie, type AdresRegel } from '@/lib/club/kern/pad-adres'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from '@/lib/club/kern/org-instellingen'
 import { LOGO_FIT_FACTORY, ORGANISATIE_COOKIE, ORGANISATIE_KOLOMMEN, isUuid, moduleAan, organisatieUitRij, type Module, type Organisatie } from '@/lib/club/kern/organisatie'
+import { ALLE_PAKKETTEN, apiAfgenomen, heeftPakket, onderdeelAfgenomen, verborgenVoor, type PakketSleutel } from '@/lib/club/kern/pakketten'
 import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { beheerderCookie, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
 import { beheerderVanSessie } from '@/lib/club/beheerders/beheerder-opslag'
@@ -76,7 +77,7 @@ export interface ClubToegang {
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
 function standaardOrganisatie(id: string): Organisatie {
-  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: [], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }
+  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: verborgenVoor([], ALLE_PAKKETTEN), eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }
 }
 
 /**
@@ -229,6 +230,8 @@ export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang |
   if (!t) return clubFout('Niet gevonden.', 404)
   // Een clubmanager: alleen de API's van onderdelen die de eigenaar hem geeft.
   if (!magApi(t.onderdelen, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+  // Een API van een pakket dat deze sportschool niet afnam, bestaat niet (kern/pakketten.ts).
+  if (!apiAfgenomen(t.organisatie.afgenomen, req.nextUrl.pathname)) return clubFout('Niet gevonden.', 404)
   // Een medewerker: daarnaast nooit de sportschoolbrede acties (vestigingen, inloglinks).
   if (t.rol === 'medewerker' && !magApiAlsMedewerker(req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
   const leest = req.method === 'GET' || req.method === 'HEAD'
@@ -282,15 +285,27 @@ export async function vereisBeheerdersBeheer(req: NextRequest): Promise<ClubToeg
   return magBeheerdersBeheren(t) ? t : clubFout('Niet gevonden.', 404)
 }
 
-/** Voor de layout van een onderdeel: een clubmanager zonder recht op dit onderdeel krijgt een 404. */
+/**
+ * Voor de layout van een onderdeel: een clubmanager zonder recht op dit
+ * onderdeel krijgt een 404, en iedereen als het pakket van het onderdeel niet
+ * is afgenomen (kern/pakketten.ts).
+ */
 export async function eisOnderdeel(sleutel: string): Promise<ClubToegang> {
   const t = await eisClubToegang()
-  if (!magOnderdeel(t.onderdelen, sleutel)) notFound()
+  if (!magOnderdeel(t.onderdelen, sleutel) || !onderdeelAfgenomen(t.organisatie.afgenomen, sleutel)) notFound()
   return t
 }
 
+/** Een onderdeel dat de sportschool uit kan zetten: uit, of niet afgenomen, is een 404. */
 export async function eisModule(module: Module): Promise<ClubToegang> {
   const t = await eisClubToegang()
   if (!moduleAan(t.organisatie, module)) notFound()
+  return t
+}
+
+/** Een pagina die bij een pakket hoort (zonder eigen onderdeel): niet afgenomen is een 404. */
+export async function eisPakket(pakket: PakketSleutel): Promise<ClubToegang> {
+  const t = await eisClubToegang()
+  if (!heeftPakket(t.organisatie.afgenomen, pakket)) notFound()
   return t
 }

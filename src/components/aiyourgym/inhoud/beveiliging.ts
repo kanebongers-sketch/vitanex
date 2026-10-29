@@ -37,7 +37,7 @@ export const GROEPEN: readonly WaarborgGroep[] = [
     punten: [
       { titel: 'In de EU', tekst: 'Database en server in een datacenter in Frankfurt.' },
       { titel: 'Per sportschool gescheiden', tekst: 'Elke vraag aan de database blijft binnen je eigen sportschool. Alleen de server leest mee, nooit de browser.' },
-      { titel: 'Geen AI-diensten met ledengegevens', tekst: 'Gegevens van je leden gaan niet naar AI-diensten van derden.' },
+      { titel: 'Geen AI-diensten met ledengegevens', tekst: 'Gegevens van je leden gaan niet naar AI-diensten van derden. Enige uitzondering: een lid kan zelf een maaltijdfoto laten schatten, alleen met eigen toestemming. De foto gaat dan naar Anthropic en wordt niet bewaard.' },
     ],
   },
   {

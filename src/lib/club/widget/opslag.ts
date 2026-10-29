@@ -3,7 +3,7 @@
 // null of een lege lijst teruggegeven; de widget toont dan een nette melding.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ORGANISATIE_KOLOMMEN, organisatieUitRij, type Organisatie } from '@/lib/club/kern/organisatie'
+import { ORGANISATIE_KOLOMMEN, moduleAan, organisatieUitRij, type Organisatie } from '@/lib/club/kern/organisatie'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { telPerLes } from '@/lib/club/leads/lessen'
@@ -27,7 +27,8 @@ export async function haalWidgetContext(admin: SupabaseClient, slug: string, ves
   const org = await admin.from('club_organisaties').select(ORGANISATIE_KOLOMMEN).eq('slug', slug).maybeSingle()
   if (org.error) log('sportschool lezen', org.error.message)
   const organisatie = org.error ? null : organisatieUitRij(org.data)
-  if (!organisatie) return null
+  // De widget hoort bij Groepslessen: uit of niet afgenomen, dan bestaat hij niet.
+  if (!organisatie || !moduleAan(organisatie, 'rooster')) return null
   const [v, w] = await Promise.all([
     admin.from('club_vestigingen').select('vestiging, naam').eq('user_id', organisatie.id).eq('vestiging', vestiging).maybeSingle(),
     haalWidgetInstellingen(admin, organisatie.id, vestiging),

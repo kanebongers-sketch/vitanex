@@ -89,3 +89,4 @@
 @media (prefers-reduced-motion: reduce) {
   .club-bedrijf-lidapp-blok summary svg { transition: none; }
 }
+.club-bedrijf-overnemen { justify-self: start; margin-top: 4px; }

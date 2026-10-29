@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -14,12 +14,14 @@ import {
   uitRij,
 } from './termijnen'
 
-const MIGRATIE = join(process.cwd(), 'supabase', 'lifeos-migrations', '449_club_avg_compleet.sql')
+// De kolommen staan in 449 (de eerste vier) en 466 (voedingsdagboek): lees alle migraties.
+const MAP = join(process.cwd(), 'supabase', 'lifeos-migrations')
+const ALLE_SQL = readdirSync(MAP).filter((b) => b.endsWith('.sql')).sort().map((b) => readFileSync(join(MAP, b), 'utf8')).join(String.fromCharCode(10))
 
 describe('bewaartermijnen', () => {
   it('de grenzen zijn gelijk aan de checks in de migratie', () => {
     // Arrange
-    const sql = readFileSync(MIGRATIE, 'utf8')
+    const sql = ALLE_SQL
     for (const veld of TERMIJN_VELDEN) {
       const kolom = TERMIJN_KOLOM[veld]
       // Act
@@ -35,11 +37,11 @@ describe('bewaartermijnen', () => {
 
   it('leest geldige invoer', () => {
     // Arrange
-    const body = { leadsMaanden: 6, oudLedenMaanden: 12, bezoekenMaanden: 36, logboekMaanden: 84, extra: 'weg' }
+    const body = { leadsMaanden: 6, oudLedenMaanden: 12, bezoekenMaanden: 36, logboekMaanden: 84, voedingMaanden: 6, extra: 'weg' }
     // Act
     const uit = leesTermijnen(body)
     // Assert
-    expect(uit).toEqual({ ok: true, waarde: { leadsMaanden: 6, oudLedenMaanden: 12, bezoekenMaanden: 36, logboekMaanden: 84 } })
+    expect(uit).toEqual({ ok: true, waarde: { leadsMaanden: 6, oudLedenMaanden: 12, bezoekenMaanden: 36, logboekMaanden: 84, voedingMaanden: 6 } })
   })
 
   it('weigert waarden buiten de grenzen, geen hele getallen of ontbrekende velden', () => {
@@ -55,6 +57,8 @@ describe('bewaartermijnen', () => {
       { ...goed, bezoekenMaanden: 85 },
       { ...goed, logboekMaanden: 12.5 },
       { ...goed, logboekMaanden: '24' },
+      { ...goed, voedingMaanden: 2 },
+      { ...goed, voedingMaanden: 37 },
       { leadsMaanden: 12 },
     ]
     // Act en Assert
@@ -77,15 +81,16 @@ describe('bewaartermijnen', () => {
       oudLedenMaanden: 24,
       bezoekenMaanden: 24,
       logboekMaanden: 36,
+      voedingMaanden: 12,
     })
   })
 
   it('naarRij en uitRij zijn elkaars omgekeerde', () => {
     // Arrange
-    const t = { leadsMaanden: 18, oudLedenMaanden: 48, bezoekenMaanden: 3, logboekMaanden: 6 }
+    const t = { leadsMaanden: 18, oudLedenMaanden: 48, bezoekenMaanden: 3, logboekMaanden: 6, voedingMaanden: 24 }
     // Act en Assert
     expect(uitRij(naarRij(t))).toEqual(t)
-    expect(naarRij(t)).toEqual({ leads_maanden: 18, oud_leden_maanden: 48, bezoeken_maanden: 3, logboek_maanden: 6 })
+    expect(naarRij(t)).toEqual({ leads_maanden: 18, oud_leden_maanden: 48, bezoeken_maanden: 3, logboek_maanden: 6, voeding_dagboek_maanden: 24 })
   })
 
   it('keuzes blijven binnen de grenzen en bevatten altijd de huidige waarde', () => {

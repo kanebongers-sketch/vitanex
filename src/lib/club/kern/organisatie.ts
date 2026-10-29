@@ -8,6 +8,7 @@ import { leesSlug } from './subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij, type OrgInstellingen } from './org-instellingen'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { KERN_LABELS } from '@/lib/aiyourgym/taal/woorden/club/kern'
+import { leesAfgenomen, verborgenVoor, type PakketSleutel, type Verborgen } from './pakketten'
 
 export const MODULES = ['leden', 'checkin', 'rooster', 'afspraken', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] as const
 export type Module = (typeof MODULES)[number]
@@ -36,8 +37,16 @@ export interface Organisatie {
   logo: string | null
   kleurAccent: string
   thema: Thema
-  /** Alleen de onderdelen die uit staan; ontbreekt er een, dan staat het aan. */
-  uit: Module[]
+  /**
+   * Wat er voor deze sportschool niet te zien is: de eigen keuze (eigenUit)
+   * plus alles van de pakketten die niet zijn afgenomen (zie kern/pakketten.ts).
+   * Voor zichtbaarheid altijd deze; om de eigen keuze op te slaan eigenUit.
+   */
+  uit: Verborgen[]
+  /** Alleen de onderdelen die de sportschool zelf uit zette (club_organisaties.modules). */
+  eigenUit: Module[]
+  /** De afgenomen pakketten (licentie via het abonnement, club_organisaties.pakketten). */
+  afgenomen: PakketSleutel[]
   demo: boolean
   /** De slug van het eigen adres (aiyourgym.com/<slug>, later <slug>.aiyourgym.com), of null als hij nog niet gekozen is. */
   slug: string | null
@@ -64,6 +73,7 @@ export function modulesUit(ruw: unknown): Module[] {
     .map(([sleutel]) => sleutel as Module)
 }
 
+/** Staat dit onderdeel aan EN is het afgenomen? (`uit` bevat beide.) */
 export function moduleAan(org: Pick<Organisatie, 'uit'>, module: Module): boolean {
   return !org.uit.includes(module)
 }
@@ -73,6 +83,8 @@ export function organisatieUitRij(rij: unknown): Organisatie | null {
   if (typeof rij !== 'object' || rij === null) return null
   const r = rij as Record<string, unknown>
   if (!isUuid(r.id) || typeof r.naam !== 'string' || !r.naam.trim()) return null
+  const eigenUit = modulesUit(r.modules)
+  const afgenomen = leesAfgenomen(r.pakketten)
   const logo = r.logo === LOGO_FIT_FACTORY || (typeof r.logo === 'string' && LOGO_PAD.test(r.logo)) ? r.logo : null
   return {
     id: r.id,
@@ -81,14 +93,16 @@ export function organisatieUitRij(rij: unknown): Organisatie | null {
     logo,
     kleurAccent: typeof r.kleur_accent === 'string' && HEX.test(r.kleur_accent) ? r.kleur_accent.toUpperCase() : '#B58E5C',
     thema: (THEMAS as readonly unknown[]).includes(r.thema) ? (r.thema as Thema) : 'donker',
-    uit: modulesUit(r.modules),
+    uit: verborgenVoor(eigenUit, afgenomen),
+    eigenUit,
+    afgenomen,
     demo: r.demo === true,
     slug: typeof r.slug === 'string' && leesSlug(r.slug).ok ? r.slug : null,
     instellingen: orgInstellingenUitRij(r.instellingen, ONDERDEEL_SLEUTELS),
   }
 }
 
-export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, modules, demo, slug, instellingen'
+export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, modules, pakketten, demo, slug, instellingen'
 
 /** De cookie waarin staat welke sportschool Kane nu bekijkt. */
 export const ORGANISATIE_COOKIE = 'club-org'

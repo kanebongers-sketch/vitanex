@@ -315,7 +315,7 @@ export const START = woordenboek({
       label: (titel: string, actie: string) => `${titel}: ${actie}`,
       naAfronden: 'Na afronden',
       hulpKop: 'Hulp nodig?',
-      hulpTekst: 'Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.',
+      hulpTekst: 'Kom je er niet uit, of wil je dat we meekijken? Vraag persoonlijke hulp bij het inrichten.',
       hulpKnop: 'Naar hulp en support',
     },
     live: {
@@ -701,7 +701,7 @@ export const START = woordenboek({
       label: (titel: string, actie: string) => `${titel}: ${actie}`,
       naAfronden: 'After finishing',
       hulpKop: 'Need help?',
-      hulpTekst: 'Stuck, or would you like us to take a look with you? The Club and Keten plans include personal help with setting up.',
+      hulpTekst: 'Stuck, or would you like us to take a look with you? Ask for personal help with setting up.',
       hulpKnop: 'Go to help and support',
     },
     live: {

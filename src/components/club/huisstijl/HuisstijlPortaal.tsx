@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Thema } from '@/lib/club/kern/huisstijl'
 import type { Module } from '@/lib/club/kern/organisatie'
+import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import { MAX_NAAM, MAX_SLOGAN } from '@/lib/club/kern/organisatie-invoer'
+import { MIN_NAAM } from '@/lib/club/kern/sportschool-naam'
 import { stuur } from '@/components/club/leden/stuur'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
@@ -28,9 +31,13 @@ interface HuisstijlPortaalProps {
   organisatie: HuisstijlWaarden
   logoUrl: string | null
   ingebouwdLogo: boolean
+  /** Het adres van de sportschool (aiyourgym.com/<slug>), of null als er nog geen is. Verandert niet mee met de naam. */
+  adres: string | null
+  /** De afgenomen pakketten: alleen hun onderdelen staan bij de schakelaars. */
+  afgenomen?: readonly PakketSleutel[]
 }
 
-export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: HuisstijlPortaalProps) {
+export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo, adres, afgenomen }: HuisstijlPortaalProps) {
   const router = useRouter()
   const [waarden, setWaarden] = useState<HuisstijlWaarden>(organisatie)
   const [bezig, setBezig] = useState(false)
@@ -58,10 +65,26 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
       <div className="club-huisstijl-velden">
         <section className="club-huisstijl-blok" aria-labelledby="merk-kop">
           <h2 id="merk-kop" className="club-huisstijl-kop">{t.naamEnLogo}</h2>
-          <label className="club-veld">
+          <label className="club-veld" htmlFor="sportschool-naam">
             <span>{t.naam}</span>
-            <input className="club-invoer" value={waarden.naam} maxLength={MAX_NAAM} onChange={(e) => zet('naam', e.target.value)} />
+            <input
+              id="sportschool-naam"
+              className="club-invoer"
+              value={waarden.naam}
+              required
+              minLength={MIN_NAAM}
+              maxLength={MAX_NAAM}
+              autoComplete="organization"
+              aria-describedby="sportschool-naam-uitleg"
+              onChange={(e) => zet('naam', e.target.value)}
+            />
           </label>
+          <div id="sportschool-naam-uitleg" className="club-hint club-huisstijl-naamuitleg">
+            <p>{t.naamUitleg}{adres ? ` ${t.naamAdres(adres)}` : ''}</p>
+            <p>
+              {t.naamBedrijf} <Link href="/club/beheer/bedrijf">{t.naamBedrijfLink}</Link>.
+            </p>
+          </div>
           <label className="club-veld">
             <span>{t.slogan}</span>
             <input className="club-invoer" value={waarden.slogan ?? ''} maxLength={MAX_SLOGAN} onChange={(e) => zet('slogan', e.target.value || null)} />
@@ -71,7 +94,7 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
 
         <KleurBlok kleur={waarden.kleurAccent} thema={waarden.thema} onKleur={(k) => zet('kleurAccent', k)} onThema={(t) => zet('thema', t)} />
 
-        <ModulesBlok uit={waarden.uit} onWijzig={(uit) => zet('uit', uit)} />
+        <ModulesBlok uit={waarden.uit} onWijzig={(uit) => zet('uit', uit)} afgenomen={afgenomen} />
 
         <div className="club-huisstijl-opslaan">
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={!gewijzigd || bezig} onClick={() => void bewaar()}>

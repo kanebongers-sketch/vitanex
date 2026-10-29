@@ -29,6 +29,8 @@ export interface ProefmailVerslag {
 
 interface Kandidaat {
   id: string
+  /** club_organisaties.id: daar staan de actuele naam en het actuele adres. */
+  organisatieId: string | null
   sportschool: string
   slug: string
   voornaam: string
@@ -44,6 +46,7 @@ function kandidaatUit(r: Record<string, unknown>): Kandidaat | null {
   const naam = typeof r.eigenaar_naam === 'string' ? r.eigenaar_naam.trim() : ''
   return {
     id: r.id,
+    organisatieId: typeof r.organisatie_id === 'string' ? r.organisatie_id : null,
     sportschool: typeof r.sportschool_naam === 'string' ? r.sportschool_naam : 'Je sportschool',
     slug: r.slug,
     voornaam: naam.split(' ')[0] || 'daar',
@@ -69,7 +72,37 @@ async function haalKandidaten(admin: SupabaseClient, nu: Date): Promise<Kandidaa
     console.error('[aiyourgym] proefmails: aanmeldingen lezen mislukt', error.code ?? '')
     return null
   }
-  return (data ?? []).map((r) => kandidaatUit(r as Record<string, unknown>)).filter((k): k is Kandidaat => k !== null)
+  const kandidaten = (data ?? []).map((r) => kandidaatUit(r as Record<string, unknown>)).filter((k): k is Kandidaat => k !== null)
+  return metActueleNaam(admin, kandidaten)
+}
+
+/**
+ * De naam en het adres bij het aanmelden kunnen sindsdien veranderd zijn (Huisstijl, Adres).
+ * De mail noemt altijd de actuele naam en linkt naar het actuele adres; lukt het lezen niet, dan die van het aanmelden.
+ */
+async function metActueleNaam(admin: SupabaseClient, kandidaten: Kandidaat[]): Promise<Kandidaat[]> {
+  const ids = [...new Set(kandidaten.map((k) => k.organisatieId).filter((id): id is string => id !== null))]
+  if (ids.length === 0) return kandidaten
+  const { data, error } = await admin.from('club_organisaties').select('id, naam, slug').in('id', ids)
+  if (error) {
+    console.error('[aiyourgym] proefmails: actuele namen lezen mislukt', error.code ?? '')
+    return kandidaten
+  }
+  return actueleSportschool(kandidaten, (data ?? []) as { id: unknown; naam: unknown; slug: unknown }[])
+}
+
+/** PUUR: vervang naam en adres door die uit club_organisaties, als die er zijn. */
+export function actueleSportschool<K extends { organisatieId: string | null; sportschool: string; slug: string }>(kandidaten: K[], rijen: readonly { id: unknown; naam: unknown; slug: unknown }[]): K[] {
+  const opId = new Map(rijen.filter((r) => typeof r.id === 'string').map((r) => [r.id as string, r]))
+  return kandidaten.map((k) => {
+    const r = k.organisatieId ? opId.get(k.organisatieId) : undefined
+    if (!r) return k
+    return {
+      ...k,
+      sportschool: typeof r.naam === 'string' && r.naam.trim() ? r.naam : k.sportschool,
+      slug: typeof r.slug === 'string' && r.slug ? r.slug : k.slug,
+    }
+  })
 }
 
 async function haalVerstuurd(admin: SupabaseClient, ids: string[]): Promise<Map<string, Set<ProefmailSoort>> | null> {

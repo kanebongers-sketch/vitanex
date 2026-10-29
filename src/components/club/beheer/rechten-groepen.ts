@@ -2,7 +2,7 @@ import { GROEPEN, ONDERDELEN, groepInTaal, inMenu, isZichtbaar, onderdeelInTaal 
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
-import type { Module } from '@/lib/club/kern/organisatie'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 import type { RechtenGroep } from './RechtenMatrix'
 
 // De groepen voor de rechten per rol, zoals het menu, plus de groep
@@ -12,7 +12,7 @@ import type { RechtenGroep } from './RechtenMatrix'
 
 const NIET_IN_LIJST: ReadonlySet<string> = new Set([...NOOIT_VOOR_CLUBMANAGER, 'hulp'])
 
-export function rechtenGroepen(uit: readonly Module[], taal: Taal = 'nl'): RechtenGroep[] {
+export function rechtenGroepen(uit: readonly Verborgen[], taal: Taal = 'nl'): RechtenGroep[] {
   const kort = (bron: (typeof ONDERDELEN)[number]) => {
     const o = onderdeelInTaal(bron, taal)
     return { sleutel: o.sleutel, label: o.label, uitleg: o.uitleg }

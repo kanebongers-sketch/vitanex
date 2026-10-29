@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { eisOnderdeel } from '@/lib/club/toegang'
 import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
-import { sportschoolUrl } from '@/lib/club/kern/subdomein'
+import { adresVan, sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { LOGO_FIT_FACTORY } from '@/lib/club/kern/organisatie'
 import { HuisstijlPortaal } from '@/components/club/huisstijl/HuisstijlPortaal'
@@ -51,9 +51,11 @@ export default async function HuisstijlPagina() {
       {beheren && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} subdomeinen={subdomeinen} />}
       <HuisstijlPortaal
         key={org.id}
-        organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }}
+        organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.eigenUit }}
         logoUrl={logoUrl}
         ingebouwdLogo={org.logo === LOGO_FIT_FACTORY}
+        adres={org.slug ? adresVan(org.slug, subdomeinen) : null}
+        afgenomen={org.afgenomen}
       />
       {beheren && (
         <BeheerdersBlok

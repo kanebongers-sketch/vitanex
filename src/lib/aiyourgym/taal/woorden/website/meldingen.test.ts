@@ -68,6 +68,6 @@ describe('foutmeldingen in het Engels', () => {
     // Zonder `en` (bijvoorbeeld een API van Club) vertaalt de browser zelf.
     expect(kiesMeldingen({ fout: 'Het verzoek is te groot.' }, 'en').fout).toBe('The request is too large.')
     expect(kiesMeldingen(null, 'en')).toEqual({})
-    expect(foutenIn({ akkoord: 'Kies een pakket.' }, 'en')).toEqual({ akkoord: 'Choose a plan.' })
+    expect(foutenIn({ akkoord: 'Kies minstens een pakket.' }, 'en')).toEqual({ akkoord: 'Choose at least one package.' })
   })
 })

@@ -13,7 +13,8 @@ import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { SectieActie, Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
-import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
+import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
+import { pakkettenTekst } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -47,7 +48,7 @@ function Groep({ doel, nr, taal }: { doel: Doelgroep; nr: number; taal: Taal }) 
   const t = VOOR_WIE[taal]
   const tekst = t.doelgroepen[doel.sleutel]
   const beeld = BEELD[doel.sleutel]
-  const pakket = vindPakket(doel.pakket)
+  const pakket = doel.pakketten.length > 0 ? { naam: pakkettenTekst(doel.pakketten, taal), keuze: doel.pakketten.join(',') } : null
   const donker = doel.sleutel === 'pt-studio'
   return (
     <section id={doel.sleutel} className={donker ? 'ayg-sectie ayg-podium ayg-groep' : 'ayg-sectie ayg-groep'} aria-labelledby={`${doel.sleutel}-titel`}>
@@ -75,7 +76,7 @@ function Groep({ doel, nr, taal }: { doel: Doelgroep; nr: number; taal: Taal }) 
             <p className="ayg-past">
               {t.pastBij} <strong>{pakket.naam}</strong>
               <span aria-hidden> · </span>
-              <Link href={`${SITE_PADEN.AANMELDEN}?pakket=${pakket.sleutel}`}>{t.probeerPakket(pakket.naam)}</Link>
+              <Link href={`${SITE_PADEN.AANMELDEN}?pakketten=${pakket.keuze}`}>{t.probeerPakket(pakket.naam)}</Link>
             </p>
           )}
           <Figuur
