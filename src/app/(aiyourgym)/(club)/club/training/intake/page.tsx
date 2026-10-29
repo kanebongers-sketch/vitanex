@@ -1,3 +1,5 @@
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 import type { Metadata } from 'next'
 import { eisModule } from '@/lib/club/toegang'
 import { haalLid, volledigeNaam } from '@/lib/club/kern/lid'
@@ -17,7 +19,9 @@ import { kwamVanLid, lidKaartPad, metVanLid } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/training/training.css'
 import '@/components/club/intakevragen/intakevragen.css'
 
-export const metadata: Metadata = { title: 'Intake' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(INTAKE)).pagina.titel }
+}
 
 // Een nieuwe intake. ?lid=<id> zet het lid alvast klaar. Met ?van=lid begon het
 // op de ledenkaart: het schemavoorstel en "Later" gaan daarna terug naar het
@@ -25,6 +29,8 @@ export const metadata: Metadata = { title: 'Intake' }
 
 export default async function IntakePagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('training')
+  const taal = await getTaal()
+  const tp = (await clubTekst(INTAKE)).pagina
   const zoek = await searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
@@ -39,8 +45,8 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
   const paden = trainingPaden(vestiging)
   // Vanaf de ledenkaart terug naar het lid; anders naar de intakes bij Training.
   const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
-  const naarLid = lid ? stappenNaarLid(magLeden, { id: lid.id, naam: volledigeNaam(lid) }, vestiging).map((s, i) => (i === 1 ? { ...s, href: lidKaartPad(lid.id, vestiging, 'training') } : s)) : []
-  const kruimel = naarLid.length ? naarLid : [{ label: 'Training', href: trainingPad(vestiging, 'intakes', lid?.id ?? null) }]
+  const naarLid = lid ? stappenNaarLid(magLeden, { id: lid.id, naam: volledigeNaam(lid) }, vestiging, taal).map((s, i) => (i === 1 ? { ...s, href: lidKaartPad(lid.id, vestiging, 'training') } : s)) : []
+  const kruimel = naarLid.length ? naarLid : [{ label: tp.training, href: trainingPad(vestiging, 'intakes', lid?.id ?? null) }]
   const vanLid = kwamVanLid(zoek.van) && magLeden && lid !== null
   const editorHref = vanLid ? metVanLid(paden.editor) : paden.editor
   // __lid__ vult het formulier in, ook als de trainer nog een ander lid kiest.
@@ -48,16 +54,16 @@ export default async function IntakePagina({ searchParams }: { searchParams: Zoe
 
   return (
     <>
-      <ClubKruimel stappen={kruimel} huidig="Intake" />
+      <ClubKruimel stappen={kruimel} huidig={tp.titel} />
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · Training</p>
-          <h1>Intake</h1>
-          <p>Alle stappen op een scherm, met de vragen van je sportschool. Gezondheidsgegevens alleen met toestemming van het lid.</p>
+          <p className="club-boventitel">{tp.boventitel(naamVan(t.vestigingen, vestiging))}</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
       </section>
-      {medewerkers === null && <p className="club-melding">De trainers konden niet worden geladen; je kunt de intake wel opslaan.</p>}
-      {vragen === null && <p className="club-melding club-melding--fout" role="status">De intakevragen van je sportschool konden niet worden gelezen. Je ziet nu de standaardvragen; opslaan lukt pas weer als ze te lezen zijn.</p>}
+      {medewerkers === null && <p className="club-melding">{tp.trainersFout}</p>}
+      {vragen === null && <p className="club-melding club-melding--fout" role="status">{tp.vragenFout}</p>}
       <IntakeFormulier
         vestiging={vestiging}
         beginLid={lid ? { id: lid.id, naam: volledigeNaam(lid), lidnummer: lid.lidnummer } : null}

@@ -1,45 +1,37 @@
 import Link from 'next/link'
 import { ArrowRight, Check, Circle, Eye, LifeBuoy } from 'lucide-react'
 import { LedenImport } from '@/components/club/leden/import/LedenImport'
-import type { StapSleutel } from '@/lib/club/start/stappen'
 import { demoInlezen, type DemoUitkomst } from '@/lib/club/start/demo-leden'
 import { eersteDagStand, type EersteDagPunt } from '@/lib/club/start/eerste-dag'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Leden inlezen (het echte inlezen staat in de stap zelf, met een voorbeeld
-// dat niets opslaat) en "Klaar voor je eerste dag". Plus de introductie per
-// stap. Niets hier belooft meer dan Club doet.
+// dat niets opslaat) en "Klaar voor je eerste dag". De introductie per stap
+// staat in het woordenboek (START.intro). Niets hier belooft meer dan Club doet.
 
-export const STAP_INTRO: Record<StapSleutel, string> = {
-  soort: 'In ongeveer een kwartier staat je sportschool live. Kies wat voor sportschool je hebt, dan vullen wij de volgende stappen alvast in. Je voortgang wordt steeds bewaard.',
-  huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
-  vestigingen: 'Waar je sportschool zit (nodig om live te gaan), wanneer hij open is en hoe leden een les boeken.',
-  onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
-  lessen: 'De lessen die je geeft en je vaste week, met zaal en instructeur. Na opslaan staan ze in het rooster.',
-  team: 'Naam, e-mail, functie en vestiging van je medewerkers, en wat elke functie ziet. Nodig iedereen meteen uit: Club mailt een eenmalige link om in te loggen. Werk je alleen? Vink dat aan.',
-  leden: 'Lees je leden in uit je huidige systeem. Je ziet eerst wat er gebeurt; pas daarna lees je in. Begin je zonder leden? Vink dat onderaan aan.',
-  klaar: 'Hier zie je wat er live staat en wat nog open is, je eigen adressen en een kort lijstje voor je eerste dag. Rond af als alles staat.',
+const UITKOMST_CHIP: Record<DemoUitkomst, string> = {
+  nieuw: 'club-chip--ok',
+  bijwerken: 'club-chip--info',
+  gelijk: 'club-chip--uit',
+  dubbel: 'club-chip--info',
+  fout: 'club-chip--let-op',
 }
 
-const UITKOMST: Record<DemoUitkomst, { label: string; chip: string }> = {
-  nieuw: { label: 'Nieuw lid', chip: 'club-chip--ok' },
-  bijwerken: { label: 'Wordt bijgewerkt', chip: 'club-chip--info' },
-  gelijk: { label: 'Al gelijk', chip: 'club-chip--uit' },
-  dubbel: { label: 'Dubbel', chip: 'club-chip--info' },
-  fout: { label: 'Kan niet mee', chip: 'club-chip--let-op' },
-}
-
-function DemoLeden({ vandaag }: { vandaag: string }) {
-  const demo = demoInlezen(vandaag)
+async function DemoLeden({ vandaag }: { vandaag: string }) {
+  const taal = await getTaal()
+  const d = (await clubTekst(START)).demo
+  const demo = demoInlezen(vandaag, undefined, taal)
   return (
     <section className="club-start-blok club-start-demo" aria-labelledby="start-demo-kop">
       <h2 id="start-demo-kop">
-        <Eye aria-hidden size={18} /> Zo werkt het
+        <Eye aria-hidden size={18} /> {d.kop}
       </h2>
       <p className="club-hint">
-        Een verzonnen bestand met {demo.rijen.length} rijen, door precies dezelfde controle als jouw bestand. <strong>Er wordt niets opgeslagen.</strong>
+        {d.bestand(demo.rijen.length)} <strong>{d.nietsOpgeslagen}</strong>
       </p>
       <p className="club-start-demo-herkend">
-        <span className="club-zacht">Zelf herkend:</span> {demo.herkend.join(', ')}
+        <span className="club-zacht">{d.herkend}</span> {demo.herkend.join(', ')}
       </p>
       <ul className="club-start-demo-rijen" role="list">
         {demo.rijen.map((r) => (
@@ -49,12 +41,12 @@ function DemoLeden({ vandaag }: { vandaag: string }) {
               <strong>{r.naam}</strong>
               {r.melding && <span className="club-zacht">{r.melding}</span>}
             </span>
-            <span className={`club-chip ${UITKOMST[r.uitkomst].chip}`}>{UITKOMST[r.uitkomst].label}</span>
+            <span className={`club-chip ${UITKOMST_CHIP[r.uitkomst]}`}>{d.uitkomst[r.uitkomst]}</span>
           </li>
         ))}
       </ul>
       <p className="club-start-demo-som">
-        Uitkomst: <strong>{demo.telling.nieuw} nieuwe leden</strong>, {demo.telling.dubbel} dubbel overgeslagen, {demo.telling.fout} rij die je eerst aanvult. Er wordt nooit iemand verwijderd.
+        {d.somVoor} <strong>{d.somNieuw(demo.telling.nieuw)}</strong>{d.somRest(demo.telling.dubbel, demo.telling.fout)}
       </p>
     </section>
   )
@@ -68,18 +60,19 @@ interface StapLedenProps {
   vandaag: string
 }
 
-export function StapLedenInlezen({ vestiging, vestigingLabel, verderPad, vandaag }: StapLedenProps) {
+export async function StapLedenInlezen({ vestiging, vestigingLabel, verderPad, vandaag }: StapLedenProps) {
+  const t = (await clubTekst(START)).inlezen
   return (
     <div className="club-start-twee">
       <div className="club-start-stapel club-start-inlezen">
         <section className="club-start-blok" aria-labelledby="start-inlezen-kop">
-          <h2 id="start-inlezen-kop">Je ledenbestand</h2>
+          <h2 id="start-inlezen-kop">{t.kop}</h2>
           <ol className="club-start-genummerd">
-            <li>Exporteer je leden uit je huidige systeem als CSV, of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad.</li>
-            <li>Een naam is genoeg: voornaam en achternaam, of de hele naam in een kolom. Andere kolommen herkent Club zelf.</li>
-            <li>Je ziet eerst wat er gebeurt. Pas daarna lees je in.</li>
+            <li>{t.stap1}</li>
+            <li>{t.stap2}</li>
+            <li>{t.stap3}</li>
           </ol>
-          <p className="club-hint">Begin je zonder leden, of komen ze straks via de app? Vink dat dan onderaan aan.</p>
+          <p className="club-hint">{t.zonder}</p>
         </section>
         <LedenImport vestiging={vestiging} vestigingLabel={vestigingLabel} terugNaarStart={verderPad} />
       </div>
@@ -98,15 +91,16 @@ function PuntStatus({ af }: { af: boolean | null }) {
 }
 
 /** De checklist voor dag 1; wat in de wizard nog open staat, staat al bovenaan bij Live. */
-export function StapKlaar({ punten }: StapKlaarProps) {
+export async function StapKlaar({ punten }: StapKlaarProps) {
   const { af, meetbaar } = eersteDagStand(punten)
+  const t = (await clubTekst(START)).eersteDag
   return (
     <div className="club-start-twee">
       <section className="club-start-blok" aria-labelledby="start-eerste-kop">
         <div className="club-start-blokkop">
-          <h2 id="start-eerste-kop">Klaar voor je eerste dag</h2>
+          <h2 id="start-eerste-kop">{t.kop}</h2>
           <span className="club-chip club-chip--merk">
-            {af} van {meetbaar} staat er
+            {t.stand(af, meetbaar)}
           </span>
         </div>
         <ul className="club-start-eerste" role="list">
@@ -120,11 +114,11 @@ export function StapKlaar({ punten }: StapKlaarProps) {
                 <span className="club-zacht">{p.uitleg}</span>
               </span>
               {p.pad ? (
-                <Link href={p.pad} className="club-knop club-knop--klein" aria-label={`${p.titel}: ${p.af === true ? 'aanpassen' : 'nu doen'}`}>
-                  {p.af === true ? 'Aanpassen' : 'Nu doen'} <ArrowRight aria-hidden size={14} />
+                <Link href={p.pad} className="club-knop club-knop--klein" aria-label={t.label(p.titel, (p.af === true ? t.aanpassen : t.nuDoen).toLowerCase())}>
+                  {p.af === true ? t.aanpassen : t.nuDoen} <ArrowRight aria-hidden size={14} />
                 </Link>
               ) : (
-                <span className="club-chip club-chip--uit">Na afronden</span>
+                <span className="club-chip club-chip--uit">{t.naAfronden}</span>
               )}
             </li>
           ))}
@@ -133,10 +127,10 @@ export function StapKlaar({ punten }: StapKlaarProps) {
       <div className="club-start-stapel">
         <section className="club-start-blok club-start-hulp" aria-labelledby="start-hulp-kop">
           <LifeBuoy aria-hidden size={28} />
-          <h2 id="start-hulp-kop">Hulp nodig?</h2>
-          <p>Kom je er niet uit, of wil je dat we meekijken? In de pakketten Club en Keten zit persoonlijke hulp bij het inrichten.</p>
+          <h2 id="start-hulp-kop">{t.hulpKop}</h2>
+          <p>{t.hulpTekst}</p>
           <Link href="/club/hulp" className="club-knop">
-            Naar hulp en support
+            {t.hulpKnop}
           </Link>
         </section>
       </div>

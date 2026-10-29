@@ -8,8 +8,12 @@ import { haalAlleMedewerkers, haalRegels } from '@/lib/club/automatisering/opsla
 import { RegelsBeheer } from '@/components/club/automatisering/RegelsBeheer'
 import '@/components/club/automatisering/automatisering.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { OPVOLGREGELS } from '@/lib/aiyourgym/taal/woorden/club/opvolgregels'
 
-export const metadata: Metadata = { title: 'Opvolgregels' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: OPVOLGREGELS[await getTaal()].pagina.titel }
+}
 
 // Opvolgregels (in de database: automatiseringen) voor ledenbehoud: welke regels de opvolglijst vullen, met
 // welke drempel, wie het oppakt en welke voorbeeldtekst het team krijgt.
@@ -17,6 +21,7 @@ export const metadata: Metadata = { title: 'Opvolgregels' }
 
 export default async function AutomatiseringenPagina() {
   const t = await eisOnderdeel('beheer')
+  const w = OPVOLGREGELS[await getTaal()].pagina
   const [regels, medewerkers] = await Promise.all([haalRegels(t.admin, t.userId), haalAlleMedewerkers(t.admin, t.userId)])
   const v = kiesUit(t.vestigingen, null)
   const vestigingNaam = v ? naamVan(t.vestigingen, v) : t.organisatie.naam
@@ -27,28 +32,31 @@ export default async function AutomatiseringenPagina() {
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Opvolgregels</h1>
-          <p>Regels die elke dag klaarzetten wie het team even aanspreekt: nieuwe leden, proefleden, wie wegblijft, verjaardagen, opzeggingen en mijlpalen. Ze vullen de opvolglijst met een voorbeeldtekst. Club verstuurt zelf nog niets; automatisch versturen per mail of app komt later.</p>
+          <h1>{w.titel}</h1>
+          <p>{w.intro}</p>
         </div>
         {v && (
           <div className="club-acties">
             <Link href={clubPad('/opvolgen', v)} className="club-knop">
-              <ListChecks size={16} aria-hidden /> Naar de opvolglijst
+              <ListChecks size={16} aria-hidden /> {w.naarLijst}
             </Link>
           </div>
         )}
       </header>
 
-      <aside className="club-auto-uitleg" aria-label="Zo werkt het">
+      <aside className="club-auto-uitleg" aria-label={w.zoWerktHet}>
         <ol>
-          <li><strong>Elke dag</strong> kijkt Club bij het openen van de opvolglijst welke leden aan een regel voldoen.</li>
-          <li><strong>Nooit dubbel:</strong> per lid en aanleiding komt er een taak. Een verjaardag een keer per jaar, risico hooguit een keer per maand.</li>
-          <li><strong>Vanzelf opgelost:</strong> komt iemand weer trainen voordat je belde, dan verdwijnt de taak van de lijst.</li>
+          {[w.stap1, w.stap2, w.stap3].map((s) => (
+            <li key={s.kop}>
+              <strong>{s.kop}</strong>
+              {s.tekst}
+            </li>
+          ))}
         </ol>
       </aside>
 
-      {!regels && <p className="club-melding club-melding--fout" role="status">De regels konden niet worden gelezen. Probeer het later opnieuw.</p>}
-      {medewerkers === null && <p className="club-melding" role="status">De medewerkers konden niet worden gelezen; je kunt nu alleen een functie kiezen.</p>}
+      {!regels && <p className="club-melding club-melding--fout" role="status">{w.regelsFout}</p>}
+      {medewerkers === null && <p className="club-melding" role="status">{w.medewerkersFout}</p>}
       {regels && <RegelsBeheer regels={regels} medewerkers={medewerkers ?? []} vestigingNaam={vestigingNaam} />}
     </>
   )

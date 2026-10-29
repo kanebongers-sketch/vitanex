@@ -1,4 +1,7 @@
-import { asSchaal, perWeekdag, weekBalken, WEEKDAG_KORT } from '@/lib/club/leden/patroon'
+import { asSchaal, PATROON_WEKEN, perWeekdag, weekBalken } from '@/lib/club/leden/patroon'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 // Het bezoekpatroon van een lid: 12 staven (per 7 dagen, de laatste eindigt
 // vandaag) met een y-as, en een strook per weekdag. Gewone HTML in plaats van
@@ -9,15 +12,20 @@ interface BezoekpatroonProps {
   nu: Date
 }
 
+interface MetTaal extends BezoekpatroonProps {
+  taal: Taal
+}
+
 function procent(waarde: number, top: number): string {
   return `${(waarde / top) * 100}%`
 }
 
-function Balken({ bezoeken, nu }: BezoekpatroonProps) {
-  const balken = weekBalken(bezoeken, nu)
+function Balken({ bezoeken, nu, taal }: MetTaal) {
+  const t = LEDEN[taal].patroon
+  const balken = weekBalken(bezoeken, nu, PATROON_WEKEN, taal)
   const { top, ticks } = asSchaal(Math.max(...balken.map((b) => b.aantal)))
   const totaal = balken.reduce((s, b) => s + b.aantal, 0)
-  const omschrijving = `Bezoeken per week, laatste 12 weken, samen ${totaal}. ${balken.map((b) => `${b.huidig ? 'Deze week' : `Week vanaf ${b.label}`}: ${b.aantal}`).join(', ')}.`
+  const omschrijving = t.omschrijving(totaal, balken.map((b) => `${b.huidig ? t.dezeWeek : t.weekVanaf(b.label)}: ${b.aantal}`).join(', '))
   return (
     <figure className="club-leden-patroon">
       <div className="club-leden-grafiek" role="img" aria-label={omschrijving}>
@@ -39,30 +47,31 @@ function Balken({ bezoeken, nu }: BezoekpatroonProps) {
         <ol className="club-leden-xas" aria-hidden>
           {balken.map((b, i) => (
             <li key={b.label} data-om={(balken.length - 1 - i) % 2 === 1 || undefined} className={b.huidig ? 'club-leden-xas--nu' : undefined}>
-              {b.huidig ? 'Nu' : b.label}
+              {b.huidig ? t.nu : b.label}
             </li>
           ))}
         </ol>
       </div>
       <figcaption className="club-hint">
-        Bezoeken per week: een dag met een check-in telt als een bezoek, in alle vestigingen. De laatste staaf zijn de laatste 7 dagen.
+        {t.bijschrift}
       </figcaption>
     </figure>
   )
 }
 
-function Weekdagen({ bezoeken, nu }: BezoekpatroonProps) {
+function Weekdagen({ bezoeken, nu, taal }: MetTaal) {
+  const t = LEDEN[taal]
   const telling = perWeekdag(bezoeken, nu)
   const max = Math.max(1, ...telling)
   return (
     <div className="club-leden-weekdagen-wrap">
-      <h3 className="club-leden-subkop" id="weekdag-kop">Per weekdag</h3>
+      <h3 className="club-leden-subkop" id="weekdag-kop">{t.patroon.perWeekdag}</h3>
       <ol className="club-leden-weekdagen" aria-labelledby="weekdag-kop">
         {telling.map((n, i) => (
-          <li key={WEEKDAG_KORT[i]}>
+          <li key={i}>
             <span className="club-leden-weekdag-vak" aria-hidden style={{ opacity: n ? 0.18 + 0.82 * (n / max) : 1 }} data-leeg={n === 0 || undefined} />
-            <span className="club-leden-weekdag-naam">{WEEKDAG_KORT[i]}</span>
-            <span className="club-getal">{n}<span className="club-sr"> bezoeken</span></span>
+            <span className="club-leden-weekdag-naam">{t.tijd.weekdagKort[i]}</span>
+            <span className="club-getal">{n}<span className="club-sr"> {t.patroon.bezoeken}</span></span>
           </li>
         ))}
       </ol>
@@ -70,11 +79,12 @@ function Weekdagen({ bezoeken, nu }: BezoekpatroonProps) {
   )
 }
 
-export function Bezoekpatroon({ bezoeken, nu }: BezoekpatroonProps) {
+export async function Bezoekpatroon({ bezoeken, nu }: BezoekpatroonProps) {
+  const taal = await getTaal()
   return (
     <div className="club-leden-patroon-wrap">
-      <Balken bezoeken={bezoeken} nu={nu} />
-      <Weekdagen bezoeken={bezoeken} nu={nu} />
+      <Balken bezoeken={bezoeken} nu={nu} taal={taal} />
+      <Weekdagen bezoeken={bezoeken} nu={nu} taal={taal} />
     </div>
   )
 }

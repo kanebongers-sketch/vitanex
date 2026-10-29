@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Check, Plus } from 'lucide-react'
 import { filterOefeningen, LEEG_FILTER, type OefeningFilter } from '@/lib/club/training/filter'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { MATERIAAL_LABEL, NIVEAU_LABEL } from '@/lib/club/training/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { OefeningBeeld } from './OefeningBeeld'
 import { OefeningFilters } from './OefeningFilters'
 import { SpierChips } from './SpierChips'
@@ -24,6 +26,8 @@ interface OefeningKiezerProps {
  * pijltjes en Enter voegen toe; het paneel blijft open voor meer.
  */
 export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }: OefeningKiezerProps) {
+  const t = useTekst(SCHEMA_EDITOR).kiezer
+  const l = useTekst(TRAINING_LABELS)
   const [filter, setFilter] = useState<OefeningFilter>(LEEG_FILTER)
   const [actief, setActief] = useState(0)
   const [laatst, setLaatst] = useState<string | null>(null)
@@ -56,7 +60,7 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
   }
 
   return (
-    <Zijpaneel titel={`Toevoegen aan ${dagLabel}`} boventitel="Oefening kiezen" onSluit={onSluit} breed>
+    <Zijpaneel titel={t.titel(dagLabel)} boventitel={t.boventitel} onSluit={onSluit} breed>
       <div className="club-training-kiezer" onKeyDown={toets}>
         <OefeningFilters
           ref={zoek}
@@ -67,12 +71,12 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
           }}
         />
         <p className="club-hint club-training-kieshint" aria-live="polite">
-          {laatst ? `${laatst} toegevoegd. Zoek de volgende of druk op Escape.` : `${lijst.length} gevonden. Pijltjes en Enter voegen toe.`}
+          {laatst ? t.toegevoegd(laatst) : t.gevonden(lijst.length)}
         </p>
         {lijst.length === 0 ? (
-          <p className="club-leeg">Geen oefeningen gevonden. Voeg nieuwe toe onder het tabblad Oefeningen.</p>
+          <p className="club-leeg">{t.leeg}</p>
         ) : (
-          <ul ref={lijstRef} className="club-lijst club-training-kieslijst" role="listbox" aria-label="Oefeningen">
+          <ul ref={lijstRef} className="club-lijst club-training-kieslijst" role="listbox" aria-label={t.lijst}>
             {lijst.map((o, i) => {
               const al = opDag.has(o.id)
               return (
@@ -82,9 +86,9 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
                     <span className="club-rij-hoofd">
                       <span className="club-rij-titel">{o.naam}</span>
                       <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} />
-                      <span className="club-rij-sub">{MATERIAAL_LABEL[o.materiaal]} · {NIVEAU_LABEL[o.niveau]}</span>
+                      <span className="club-rij-sub">{l.materiaal[o.materiaal]} · {l.niveau[o.niveau]}</span>
                     </span>
-                    {al ? <Check aria-label="Staat al op deze dag" size={18} className="club-training-al" /> : <Plus aria-hidden size={18} />}
+                    {al ? <Check aria-label={t.alOpDag} size={18} className="club-training-al" /> : <Plus aria-hidden size={18} />}
                   </button>
                 </li>
               )
@@ -92,7 +96,7 @@ export function OefeningKiezer({ oefeningen, dagLabel, opDag, onKies, onSluit }:
           </ul>
         )}
       </div>
-      <button type="button" className="club-knop" onClick={onSluit}>Klaar</button>
+      <button type="button" className="club-knop" onClick={onSluit}>{t.klaar}</button>
     </Zijpaneel>
   )
 }

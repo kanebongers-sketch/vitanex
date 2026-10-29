@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Download } from 'lucide-react'
 import { naarCsv, type CsvWaarde } from '@/lib/club/cijfers/csv'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CIJFERS } from '@/lib/aiyourgym/taal/woorden/club/cijfers'
 
 // Download de tabel achter een blok als CSV (Excel-vriendelijk). De rijen zijn
 // al op de server geteld; hier wordt alleen het bestand gemaakt.
@@ -15,6 +17,7 @@ export interface CsvTabel {
 
 export function CsvKnop({ tabel, label }: { tabel: CsvTabel; label: string }) {
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(CIJFERS).csv
 
   function download() {
     try {
@@ -29,13 +32,13 @@ export function CsvKnop({ tabel, label }: { tabel: CsvTabel; label: string }) {
       URL.revokeObjectURL(url)
       setFout(null)
     } catch {
-      setFout('Downloaden lukte niet. Probeer het opnieuw.')
+      setFout(t.fout)
     }
   }
 
   return (
     <span className="club-cijfers-csv">
-      <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={download} aria-label={`${label} downloaden als CSV`}>
+      <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={download} aria-label={t.downloaden(label)}>
         <Download aria-hidden size={14} />
         CSV
       </button>

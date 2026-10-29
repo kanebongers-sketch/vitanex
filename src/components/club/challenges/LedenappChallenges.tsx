@@ -7,6 +7,8 @@ import type { AppChallenge, LedenappChallengesData } from '@/lib/club/challenges
 import { AppChallengeKaart } from './AppChallengeKaart'
 import { BadgeRaster } from './BadgeRaster'
 import { useLedenappApi } from '@/components/club/app/LedenappApi'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 import './challenges.css'
 
 // Challenges en badges in de ledenapp. Data komt uit haalLedenappChallenges()
@@ -23,6 +25,7 @@ export function LedenappChallenges({ data }: LedenappChallengesProps) {
   const api = useLedenappApi()
   const [bezig, setBezig] = useState<string | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
+  const t = useTekst(CHALLENGES).app
 
   async function wissel(c: AppChallenge) {
     setBezig(c.id)
@@ -31,7 +34,7 @@ export function LedenappChallenges({ data }: LedenappChallengesProps) {
     const uit = await stuur(verzoek.url, c.doetMee ? 'DELETE' : 'POST', verzoek.body)
     setBezig(null)
     if (!uit.ok) return setMelding(uit.fout)
-    setMelding(c.doetMee ? `Je bent uitgeschreven voor ${c.titel}.` : `Je doet mee met ${c.titel}.`)
+    setMelding(c.doetMee ? t.uitgeschreven(c.titel) : t.meegedaan(c.titel))
     router.refresh()
   }
 
@@ -43,9 +46,9 @@ export function LedenappChallenges({ data }: LedenappChallengesProps) {
         className={c.doetMee ? 'club-challenges-app-uit' : 'club-challenges-app-mee'}
         onClick={() => void wissel(c)}
         disabled={bezig === c.id}
-        aria-label={c.doetMee ? `Uitschrijven voor ${c.titel}` : `Meedoen met ${c.titel}`}
+        aria-label={c.doetMee ? t.uitschrijvenLabel(c.titel) : t.meedoenLabel(c.titel)}
       >
-        {bezig === c.id ? 'Even geduld...' : c.doetMee ? 'Uitschrijven' : 'Doe mee'}
+        {bezig === c.id ? t.bezig : c.doetMee ? t.uitschrijven : t.doeMee}
       </button>
     )
   }
@@ -53,12 +56,12 @@ export function LedenappChallenges({ data }: LedenappChallengesProps) {
   return (
     <section className="club-challenges-app" aria-labelledby="lidapp-challenges-kop">
       <h3 id="lidapp-challenges-kop" className="club-challenges-app-kop">
-        Challenges
+        {t.titel}
       </h3>
       <div role="status" aria-live="polite" className="club-challenges-app-melding">
         {melding && <p>{melding}</p>}
       </div>
-      {data.fouten.length > 0 && <p className="club-challenges-app-leeg">Niet alles kon worden geladen. Probeer het straks opnieuw.</p>}
+      {data.fouten.length > 0 && <p className="club-challenges-app-leeg">{t.laadFout}</p>}
       {data.challenges.length > 0 ? (
         <ul className="club-challenges-app-lijst">
           {data.challenges.map((c) => (
@@ -66,7 +69,7 @@ export function LedenappChallenges({ data }: LedenappChallengesProps) {
           ))}
         </ul>
       ) : (
-        <p className="club-challenges-app-leeg">Er loopt nu geen challenge. Je badges groeien gewoon door met elk bezoek.</p>
+        <p className="club-challenges-app-leeg">{t.leeg}</p>
       )}
       <BadgeRaster badges={data.badges} />
     </section>

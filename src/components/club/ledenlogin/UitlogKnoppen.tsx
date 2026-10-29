@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { stuur } from '@/components/club/app/verzoek'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // Uitloggen in Profiel: dit toestel, of alle toestellen tegelijk (bijvoorbeeld
 // na een kwijtgeraakte telefoon).
@@ -25,10 +27,11 @@ function wisToestelGegevens(): void {
 
 export function UitlogKnoppen() {
   const [bezig, setBezig] = useState(false)
+  const t = LID_INLOGGEN[useTaal()].uitloggen
   const [fout, setFout] = useState<string | null>(null)
 
   async function uit(overal: boolean) {
-    if (overal && !window.confirm('Op alle toestellen uitloggen? Daarna log je overal opnieuw in met je e-mailadres en wachtwoord.')) return
+    if (overal && !window.confirm(t.overalVraag)) return
     setBezig(true)
     setFout(null)
     const r = await stuur('/api/club/lid/uitloggen', 'POST', { overal })
@@ -42,14 +45,14 @@ export function UitlogKnoppen() {
 
   return (
     <section className="club-mijn-uitlog" aria-labelledby="mijn-uitloggen">
-      <h3 id="mijn-uitloggen">Uitloggen</h3>
-      <p>Je blijft 90 dagen ingelogd op dit toestel. Uitloggen kan altijd.</p>
+      <h3 id="mijn-uitloggen">{t.kop}</h3>
+      <p>{t.uitleg}</p>
       {fout ? <p className="club-mijn-inlog-fout" role="alert">{fout}</p> : null}
       <button type="button" className="club-lidapp-knop club-lidapp-knop--breed" onClick={() => void uit(false)} disabled={bezig}>
-        <LogOut size={18} aria-hidden /> Uitloggen op dit toestel
+        <LogOut size={18} aria-hidden /> {t.ditToestel}
       </button>
       <button type="button" className="club-lidapp-tekstknop" onClick={() => void uit(true)} disabled={bezig}>
-        Overal uitloggen
+        {t.overal}
       </button>
     </section>
   )

@@ -5,6 +5,7 @@
 // wie er al geboekt heeft. Daarnaast wie de widget mag zien.
 
 import { isoWeekdag, nlDelen, plusDagen } from '@/lib/club/rooster/tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 export const WIDGET_DAGEN = 7
 /** Onder dit aantal vrije plekken tonen we het getal ("Nog 3 plekken"). */
@@ -115,10 +116,14 @@ const WEEKDAG = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
 const MAAND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
 
 /** "di 21 okt" voor een kalenderdag; zelf opgebouwd, zodat server en browser hetzelfde tonen. */
-export function dagLabel(dag: string): string {
+export function dagLabel(dag: string, taal: Taal = 'nl'): string {
   const [, m, d] = dag.split('-').map(Number)
+  if (taal === 'en') return `${WEEKDAG_EN[isoWeekdag(dag) - 1]} ${d} ${MAAND_EN[m - 1]}`
   return `${WEEKDAG[isoWeekdag(dag) - 1]} ${d} ${MAAND[m - 1]}`
 }
+
+const WEEKDAG_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const MAAND_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** Wat er in de lead komt te staan als interesse (maximaal 200 tekens). */
 export function interesseTekst(les: Pick<WidgetLes, 'naam' | 'dag' | 'tijd'> | null): string {

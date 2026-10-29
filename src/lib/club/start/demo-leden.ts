@@ -8,6 +8,8 @@ import { leesCsv } from '@/lib/club/leden/import/csv'
 import { IMPORT_VELD_LABEL, ontbrekendeVelden, pasKoppelingToe, raadKoppeling, type ImportVeld } from '@/lib/club/leden/import/kolommen'
 import { controleerRij } from '@/lib/club/leden/import/rij'
 import { maakPlan, type ImportActie, type ImportRegel } from '@/lib/club/leden/import/plan'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
 /** Verzonnen namen en adressen op example.com (een domein dat nooit echt bestaat). */
 export const DEMO_LEDEN_CSV = [
@@ -43,7 +45,8 @@ function namen(veld: ImportVeld[]): string[] {
 }
 
 /** Het voorbeeldbestand door de echte controle; `vandaag` als JJJJ-MM-DD. */
-export function demoInlezen(vandaag: string, csv: string = DEMO_LEDEN_CSV): DemoInlezen {
+export function demoInlezen(vandaag: string, csv: string = DEMO_LEDEN_CSV, taal: Taal = 'nl'): DemoInlezen {
+  const t = START_LIB[taal].demo
   const tabel = leesCsv(csv)
   const koppeling = raadKoppeling(tabel.koppen)
   const herkend = namen((Object.keys(koppeling) as ImportVeld[]).filter((v) => koppeling[v] !== null))
@@ -55,7 +58,7 @@ export function demoInlezen(vandaag: string, csv: string = DEMO_LEDEN_CSV): Demo
     const regel = tabel.regels[i]
     const uitslag = ontbreekt.length > 0 ? null : controleerRij(pasKoppelingToe(rij, koppeling), vandaag)
     if (!uitslag || !uitslag.ok) {
-      fouten.push({ regel, naam: rij.slice(0, 3).filter(Boolean).join(' ') || `Regel ${regel}`, uitkomst: 'fout', melding: uitslag ? uitslag.fout : 'Voornaam of achternaam ontbreekt.' })
+      fouten.push({ regel, naam: rij.slice(0, 3).filter(Boolean).join(' ') || t.regel(regel), uitkomst: 'fout', melding: uitslag ? uitslag.fout : t.naamOntbreekt })
       return
     }
     goed.push({ regel, lid: uitslag.lid })
@@ -63,7 +66,7 @@ export function demoInlezen(vandaag: string, csv: string = DEMO_LEDEN_CSV): Demo
   })
   const plan = maakPlan(goed, [], 'voorbeeld')
   const rijen: DemoRij[] = [
-    ...plan.rijen.map((r) => ({ regel: r.regel, naam: r.naam, uitkomst: r.actie as DemoUitkomst, melding: r.actie === 'dubbel' ? 'Staat al eerder in het bestand en wordt een keer ingelezen.' : (meldingen.get(r.regel) ?? null) })),
+    ...plan.rijen.map((r) => ({ regel: r.regel, naam: r.naam, uitkomst: r.actie as DemoUitkomst, melding: r.actie === 'dubbel' ? t.dubbel : (meldingen.get(r.regel) ?? null) })),
     ...fouten,
   ].sort((a, b) => a.regel - b.regel)
   const telling: Record<DemoUitkomst, number> = { nieuw: 0, bijwerken: 0, gelijk: 0, dubbel: 0, fout: 0 }

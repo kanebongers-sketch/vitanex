@@ -1,5 +1,13 @@
 // ─── Club, afspraken: GET naar de eigen API (CLIENT) ────────────────────────
-// Altijd een nette Nederlandse foutmelding, nooit een stack trace.
+// Altijd een nette foutmelding in de taal van de pagina, nooit een stack trace.
+
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
+
+/** De vaste foutzinnen in de taal van de pagina (<html lang>, gezet door de root layout). */
+function verbindingTekst() {
+  const taal = typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'nl'
+  return AFSPRAKEN[taal].verbinding
+}
 
 export type Gehaald = { ok: true; data: Record<string, unknown> } | { ok: false; fout: string }
 
@@ -9,10 +17,10 @@ export async function haal(url: string, signaal?: AbortSignal): Promise<Gehaald>
     const data: unknown = await res.json().catch(() => null)
     const rij = typeof data === 'object' && data !== null && !Array.isArray(data) ? (data as Record<string, unknown>) : {}
     if (res.ok) return { ok: true, data: rij }
-    return { ok: false, fout: typeof rij.fout === 'string' ? rij.fout : 'Er ging iets mis. Probeer het opnieuw.' }
+    return { ok: false, fout: typeof rij.fout === 'string' ? rij.fout : verbindingTekst().mis }
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') return { ok: false, fout: '' }
-    return { ok: false, fout: 'Geen verbinding. Controleer het internet en probeer het opnieuw.' }
+    return { ok: false, fout: verbindingTekst().geen }
   }
 }
 

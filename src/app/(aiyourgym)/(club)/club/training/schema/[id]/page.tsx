@@ -1,3 +1,5 @@
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { eisModule } from '@/lib/club/toegang'
@@ -18,13 +20,18 @@ import { trainingPad, trainingPaden } from '@/components/club/training/TrainingT
 import { kwamVanLid, lidKaartPad, metVanLid, terugNaar } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/training/training.css'
 
-export const metadata: Metadata = { title: 'Schema' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(CLUB_TRAINING)).schemaPagina.titel }
+}
 
 // De schema-editor. Werkt voor schema's van leden en voor sjablonen (lid_id null).
 // Rechts: de progressie per oefening en wat het lid in de app heeft afgevinkt.
 
 export default async function SchemaPagina({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: ZoekParams }) {
   const t = await eisModule('training')
+  const taal = await getTaal()
+  const tt = await clubTekst(CLUB_TRAINING)
+  const ts = tt.schemaPagina
   const [{ id }, zoek] = await Promise.all([params, searchParams])
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
@@ -49,25 +56,25 @@ export default async function SchemaPagina({ params, searchParams }: { params: P
   const beginStaat = uitOpgeslagen(schema.regels, kop.dagTitels)
   // Progressie: wat het lid per set logde, met de volgende stap volgens de vaste vakregel.
   const sets = kop.lidId ? await haalSetLogs(t.admin, t.userId, kop.lidId, schema.regels.map((r) => r.oefeningId)) : null
-  const progressie = sets && oefeningen ? progressieOverzicht(schema.regels, new Map(oefeningen.map((o) => [o.id, o])), sets) : null
+  const progressie = sets && oefeningen ? progressieOverzicht(schema.regels, new Map(oefeningen.map((o) => [o.id, o])), sets, taal) : null
   // De weg terug: bij een lid via de ledenkaart (daar komt de trainer vandaan), anders via Training.
   const lidId = kop.lidId
-  const naarLid = lidId ? stappenNaarLid(magLeden, { id: lidId, naam: kop.lidNaam ?? 'Lid' }, vestiging).map((st, i) => (i === 1 ? { ...st, href: lidKaartPad(lidId, vestiging, 'training') } : st)) : []
+  const naarLid = lidId ? stappenNaarLid(magLeden, { id: lidId, naam: kop.lidNaam ?? ts.lid }, vestiging, taal).map((st, i) => (i === 1 ? { ...st, href: lidKaartPad(lidId, vestiging, 'training') } : st)) : []
   const kruimel: KruimelStap[] = naarLid.length
     ? naarLid
-    : [{ label: 'Training', href: trainingPad(vestiging, isSjabloon ? 'sjablonen' : 'schemas', null) }, { label: isSjabloon ? 'Sjablonen' : `Schema's van ${kop.lidNaam?.split(' ')[0] ?? 'dit lid'}`, href: anders }]
+    : [{ label: tt.pagina.titel, href: trainingPad(vestiging, isSjabloon ? 'sjablonen' : 'schemas', null) }, { label: isSjabloon ? ts.sjablonen : ts.schemasVan(kop.lidNaam?.split(' ')[0] ?? ts.ditLid), href: anders }]
 
   return (
     <div className="club-training-printpagina">
       <ClubKruimel stappen={kruimel} huidig={kop.naam} />
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{isSjabloon ? 'Sjabloon' : `${kop.lidNaam ?? 'Lid'} · ${naamVan(t.vestigingen, vestiging)}`}</p>
+          <p className="club-boventitel">{isSjabloon ? ts.sjabloon : `${kop.lidNaam ?? ts.lid} · ${naamVan(t.vestigingen, vestiging)}`}</p>
           <h1>{kop.naam}</h1>
-          {!isSjabloon && kop.status === 'concept' && <p>Concept: pas aan waar nodig en kies Activeren zodra het klaar is. Dan ziet het lid het in de app; een eerder actief schema van dit lid gaat naar afgerond.</p>}
+          {!isSjabloon && kop.status === 'concept' && <p>{ts.concept}</p>}
         </div>
       </section>
-      {!oefeningen && <p className="club-melding club-melding--fout">De oefeningen konden niet worden geladen.</p>}
+      {!oefeningen && <p className="club-melding club-melding--fout">{ts.oefeningenFout}</p>}
       <SchemaEditor
         key={kop.bijgewerktOp}
         schemaId={kop.id}

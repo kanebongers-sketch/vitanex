@@ -6,6 +6,8 @@ import { stuur } from '@/components/club/leden/stuur'
 import { LidZoeker, type GekozenLid } from './LidZoeker'
 import { VrijeTijden, slotSleutel, useVrijeTijden } from './VrijeTijden'
 import type { SlotOptie } from './haal'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
 // Een nieuwe afspraak: soort, trainer (of de eerste die vrij is), dag, lid en
 // een vrij tijdstip. Alleen tijden die echt vrij zijn staan erbij; de server
@@ -49,6 +51,7 @@ export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, le
   const [slot, setSlot] = useState<SlotOptie | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
+  const t = useTekst(AFSPRAKEN).formulier
 
   const magGeven = trainers.filter((t) => (typeTrainers[typeId] ?? []).includes(t.id))
   const trainerGeldig = medewerkerId === '' || magGeven.some((t) => t.id === medewerkerId)
@@ -61,8 +64,8 @@ export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, le
   async function opslaan(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    if (!lid) return setFout('Kies eerst een lid.')
-    if (!slot || !slotGeldig) return setFout('Kies een vrij tijdstip.')
+    if (!lid) return setFout(t.kiesLid)
+    if (!slot || !slotGeldig) return setFout(t.kiesTijd)
     setBezig(true)
     setFout(null)
     const uit = await stuur('/api/club/afspraken', 'POST', {
@@ -70,34 +73,34 @@ export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, le
     })
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
-    onKlaar(`Afspraak gemaakt met ${lid.naam} om ${slot.tijd}.`)
+    onKlaar(t.gemaakt(lid.naam, slot.tijd))
   }
 
   if (actief.length === 0) {
-    return <p className="club-leeg">Er zijn nog geen actieve soorten afspraken. Maak er een aan bij Afspraaktypen.</p>
+    return <p className="club-leeg">{t.geenTypen}</p>
   }
 
   return (
     <form className="club-afspraken-form" onSubmit={opslaan} aria-labelledby={`${id}-kop`}>
-      <h2 id={`${id}-kop`} className="club-afspraken-paneelkop">Nieuwe afspraak</h2>
+      <h2 id={`${id}-kop`} className="club-afspraken-paneelkop">{t.titel}</h2>
       <div className="club-formrij">
-        <label className="club-veld"><span>Soort *</span>
+        <label className="club-veld"><span>{t.soort}</span>
           <select className="club-invoer" value={typeId} onChange={(e) => { setTypeId(e.target.value); setSlot(null) }} required>
-            {actief.map((t) => <option key={t.id} value={t.id}>{t.naam} ({t.duurMin} min)</option>)}
+            {actief.map((ty) => <option key={ty.id} value={ty.id}>{ty.naam} ({t.minuten(ty.duurMin)})</option>)}
           </select>
         </label>
-        <label className="club-veld"><span>Trainer</span>
+        <label className="club-veld"><span>{t.trainer}</span>
           <select className="club-invoer" value={trainerGeldig ? medewerkerId : ''} onChange={(e) => { setMedewerkerId(e.target.value); setSlot(null) }}>
-            <option value="">Eerste die vrij is</option>
-            {magGeven.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
+            <option value="">{t.eersteVrij}</option>
+            {magGeven.map((m) => <option key={m.id} value={m.id}>{m.naam}</option>)}
           </select>
         </label>
-        <label className="club-veld"><span>Dag *</span>
+        <label className="club-veld"><span>{t.dag}</span>
           <input type="date" className="club-invoer" value={datum} min={vandaag} onChange={(e) => { setDatum(e.target.value); setSlot(null) }} required />
         </label>
       </div>
       <fieldset className="club-afspraken-tijdkeuze">
-        <legend>Vrije tijden</legend>
+        <legend>{t.vrijeTijden}</legend>
         <VrijeTijden
           sloten={tijden.sloten}
           laden={tijden.laden}
@@ -105,33 +108,33 @@ export function AfspraakFormulier({ vestiging, typen, typeTrainers, trainers, le
           gekozen={slot ? slotSleutel(slot) : null}
           onKies={setSlot}
           metTrainer={medewerkerId === ''}
-          leegTekst={magGeven.length === 0 ? 'Niemand in deze vestiging geeft dit soort afspraak.' : 'Geen vrije tijden op deze dag. Kies een andere dag of trainer.'}
+          leegTekst={magGeven.length === 0 ? t.niemandGeeft : t.geenTijden}
         />
       </fieldset>
       <LidZoeker vestiging={vestiging} gekozen={lid} onKies={setLid} />
       <div className="club-formrij">
         {leads.length > 0 ? (
-          <label className="club-veld"><span>Koppelen aan lead</span>
+          <label className="club-veld"><span>{t.lead}</span>
             <select className="club-invoer" value={leadId} onChange={(e) => setLeadId(e.target.value)}>
-              <option value="">Geen lead</option>
+              <option value="">{t.geenLead}</option>
               {leads.map((l) => <option key={l.id} value={l.id}>{l.naam}</option>)}
             </select>
           </label>
         ) : null}
-        <label className="club-veld"><span>Geboekt door</span>
+        <label className="club-veld"><span>{t.geboektDoor}</span>
           <select className="club-invoer" value={geboektDoor} onChange={(e) => setGeboektDoor(e.target.value === 'trainer' ? 'trainer' : 'balie')}>
-            <option value="balie">Balie</option>
-            <option value="trainer">Trainer</option>
+            <option value="balie">{t.balie}</option>
+            <option value="trainer">{t.trainerOptie}</option>
           </select>
         </label>
       </div>
-      <label className="club-veld"><span>Notitie</span>
-        <textarea className="club-invoer" rows={3} maxLength={1000} value={notitie} onChange={(e) => setNotitie(e.target.value)} placeholder="Bijvoorbeeld: doel, blessure of wat het lid wil bespreken" />
+      <label className="club-veld"><span>{t.notitie}</span>
+        <textarea className="club-invoer" rows={3} maxLength={1000} value={notitie} onChange={(e) => setNotitie(e.target.value)} placeholder={t.notitiePlaats} />
       </label>
       <div aria-live="assertive">{fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}</div>
       <div className="club-acties">
-        <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>{bezig ? 'Opslaan…' : 'Afspraak maken'}</button>
-        <button type="button" className="club-knop" onClick={onSluit} disabled={bezig}>Annuleren</button>
+        <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>{bezig ? t.opslaanBezig : t.maken}</button>
+        <button type="button" className="club-knop" onClick={onSluit} disabled={bezig}>{t.annuleren}</button>
       </div>
     </form>
   )

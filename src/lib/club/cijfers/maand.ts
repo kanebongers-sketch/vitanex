@@ -3,13 +3,20 @@
 // laatste dag 23:59, in Nederlandse tijd. Een maand is een sleutel "YYYY-MM";
 // een venster is een reeks hele dagen "YYYY-MM-DD" met begin en eind inbegrepen.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { dagenTussen, dagStart, plusDagen } from './tijd'
 
 export type Maand = string
 
 const MAAND_PATROON = /^(\d{4})-(0[1-9]|1[0-2])$/
-const MAAND_NAAM = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
-const MAAND_KORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+const MAAND_NAAM: Record<Taal, readonly string[]> = {
+  nl: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+}
+const MAAND_KORT: Record<Taal, readonly string[]> = {
+  nl: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+}
 
 /** De vroegste maand die je in de URL kunt kiezen. */
 export const VROEGSTE_MAAND: Maand = '2015-01'
@@ -55,14 +62,14 @@ export function plusMaanden(m: Maand, n: number): Maand {
 }
 
 /** "oktober 2026" */
-export function maandNaam(m: Maand): string {
+export function maandNaam(m: Maand, taal: Taal = 'nl'): string {
   const [j, mm] = delen(m)
-  return `${MAAND_NAAM[mm - 1]} ${j}`
+  return `${MAAND_NAAM[taal][mm - 1]} ${j}`
 }
 
 /** "okt" */
-export function maandKort(m: Maand): string {
-  return MAAND_KORT[delen(m)[1] - 1]
+export function maandKort(m: Maand, taal: Taal = 'nl'): string {
+  return MAAND_KORT[taal][delen(m)[1] - 1]
 }
 
 /** Het begin van de maand en het begin van de volgende maand (exclusief), in Nederlandse tijd. */
@@ -136,8 +143,10 @@ export function vergelijkVenster(basis: Maand, huidig: MaandVenster): MaandVenst
 }
 
 /** "september 2026" of "1 tot en met 14 september 2026". */
-export function vensterNaam(v: MaandVenster): string {
-  if (v.heel && !v.lopend) return maandNaam(v.maand)
+export function vensterNaam(v: MaandVenster, taal: Taal = 'nl'): string {
+  if (v.heel && !v.lopend) return maandNaam(v.maand, taal)
   const eind = Number(v.tot.slice(8, 10))
-  return eind === 1 ? `1 ${maandNaam(v.maand)}` : `1 tot en met ${eind} ${maandNaam(v.maand)}`
+  const naam = maandNaam(v.maand, taal)
+  if (eind === 1) return `1 ${naam}`
+  return taal === 'en' ? `1 to ${eind} ${naam}` : `1 tot en met ${eind} ${naam}`
 }

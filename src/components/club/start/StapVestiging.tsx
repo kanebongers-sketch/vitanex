@@ -6,11 +6,16 @@ import { MapPin, Plus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
 import { controleerOpeningstijden, type Openingstijden } from '@/lib/club/rooster/openingstijden'
 import { REGEL_DEFINITIES, REGEL_SLEUTELS, type RegelSleutel, type RoosterRegels } from '@/lib/club/rooster/regels'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { tekst as inTaal } from '@/lib/aiyourgym/taal/woordenboek'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 import { MAX_ADRES, MAX_VESTIGING_NAAM } from '@/lib/club/instellingen/vestigingen-invoer'
 import { standaardWeek, weekTekst, type SportschoolSoort } from '@/lib/club/start/soorten'
 import { AlvastIngevuld } from './AlvastIngevuld'
 import { TijdenKiezer } from './TijdenKiezer'
 import { StartVoet, type StartVoetProps } from './StartVoet'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Stap 3: adres, openingstijden en (met groepslessen) de regels voor
 // reserveren van de vestiging, alles meteen in beeld. Stonden de tijden al
@@ -38,30 +43,44 @@ function naarWaarden(r: RoosterRegels): RegelWaarden {
 }
 
 /** De regels uit de invoer, of een foutmelding als een getal buiten de grenzen valt. */
-function leesRegels(w: RegelWaarden): { ok: true; regels: RoosterRegels } | { ok: false; fout: string } {
+function leesRegels(w: RegelWaarden, taal: Taal): { ok: true; regels: RoosterRegels } | { ok: false; fout: string } {
+  const v = inTaal(START, taal).vestiging
   let uit: RoosterRegels = { annuleerUren: 0, noShowDrempel: 0, noShowBlokkadeDagen: 0, reserveerDagenVooruit: 0, maxOpenReserveringen: 0, checkinVensterMin: 0 }
   for (const s of REGEL_SLEUTELS) {
     const def = REGEL_DEFINITIES[s]
     const n = Number(w[s])
-    if (!Number.isInteger(n) || n < def.min || n > def.max) return { ok: false, fout: `${def.label}: kies een getal van ${def.min} tot en met ${def.max}.` }
+    if (!Number.isInteger(n) || n < def.min || n > def.max) return { ok: false, fout: v.regelFout(v.regels[s].label, def.min, def.max) }
     uit = { ...uit, [s]: n }
   }
   return { ok: true, regels: uit }
 }
 
+/** Een dag zonder open- of sluittijd, of met sluiten voor openen; dezelfde controle als controleerOpeningstijden, in de taal van de pagina. */
+function tijdenFout(tijden: Openingstijden, taal: Taal): string | null {
+  const v = inTaal(START, taal).vestiging
+  const dagen = START_LIB[taal].week.dagLang
+  for (const [i, d] of tijden.entries()) {
+    if (!d) continue
+    if (!d.van || !d.tot) return v.openFout(dagen[i])
+    if (d.tot <= d.van) return v.sluitFout(dagen[i])
+  }
+  return null
+}
+
 function RegelsBlok({ waarden, onWijzig }: { waarden: RegelWaarden; onWijzig: (s: RegelSleutel, w: string) => void }) {
+  const v = useTekst(START).vestiging
   return (
     <section className="club-start-blok" aria-labelledby="start-regels-kop">
-      <h2 id="start-regels-kop">Reserveren</h2>
-      <p className="club-hint">Zo boeken je leden een les. Deze regels zien ze ook in de app.</p>
+      <h2 id="start-regels-kop">{v.reserverenKop}</h2>
+      <p className="club-hint">{v.reserverenUitleg}</p>
       <div className="club-start-regels">
         {REGEL_SLEUTELS.map((s) => {
           const def = REGEL_DEFINITIES[s]
           return (
             <label key={s} className="club-veld">
-              <span>{def.label}</span>
+              <span>{v.regels[s].label}</span>
               <input className="club-invoer" type="number" inputMode="numeric" min={def.min} max={def.max} value={waarden[s]} onChange={(e) => onWijzig(s, e.target.value)} />
-              <small className="club-hint">{def.uitleg}</small>
+              <small className="club-hint">{v.regels[s].uitleg}</small>
             </label>
           )
         })}
@@ -73,6 +92,9 @@ function RegelsBlok({ waarden, onWijzig }: { waarden: RegelWaarden; onWijzig: (s
 export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roosterAan, voet }: StapVestigingProps) {
   const router = useRouter()
   const heeftTijden = week.some((d) => d !== null)
+  const taal = useTaal()
+  const v = useTekst(START).vestiging
+  const voetTekst = useTekst(START).voet
   const [nieuwAdres, setAdres] = useState(adres ?? '')
   const [tijden, setTijden] = useState<Openingstijden>(heeftTijden ? week : standaardWeek())
   const [perDag, setPerDag] = useState(heeftTijden && weekTekst(week) !== weekTekst(standaardWeek()))
@@ -92,13 +114,15 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
     setFout(null)
     setAdresFout(null)
     if (doel === 'verder' && !nieuwAdres.trim()) {
-      setAdresFout(`Vul het adres van ${naam} in. Je leden zien het in de app, dus het is nodig om live te gaan.`)
+      setAdresFout(v.adresVerplicht(naam))
       document.getElementById('start-adres')?.focus()
       return false
     }
+    const dagFout = tijdenFout(tijden, taal)
+    if (dagFout) return setFoutTerug(dagFout)
     const controle = controleerOpeningstijden(tijden)
     if (!controle.ok) return setFoutTerug(controle.fout)
-    const nieuweRegels = leesRegels(regelWaarden)
+    const nieuweRegels = leesRegels(regelWaarden, taal)
     if (!nieuweRegels.ok) return setFoutTerug(nieuweRegels.fout)
     if (adresGewijzigd && nieuwAdres.trim()) {
       const uit = await stuur(`/api/club/vestigingen/${encodeURIComponent(sleutel)}`, 'PATCH', { adres: nieuwAdres.trim() })
@@ -119,9 +143,9 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
         <div className="club-start-twee">
           <div className="club-start-stapel">
             <section className="club-start-blok" aria-labelledby="start-adres-kop">
-              <h2 id="start-adres-kop">Adres van {naam}</h2>
+              <h2 id="start-adres-kop">{v.adresKop(naam)}</h2>
               <label className="club-veld" htmlFor="start-adres">
-                <span>Straat, huisnummer en plaats (verplicht)</span>
+                <span>{v.adresVeld}</span>
                 <span className="club-start-adresveld">
                   <MapPin aria-hidden size={16} />
                   <input
@@ -133,7 +157,7 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
                     value={nieuwAdres}
                     maxLength={MAX_ADRES}
                     autoComplete="street-address"
-                    placeholder="Bijvoorbeeld Dorpsstraat 1, 1234 AB Plaatsnaam"
+                    placeholder={v.adresPlaats}
                     onChange={(e) => {
                       setAdresFout(null)
                       setAdres(e.target.value)
@@ -142,11 +166,11 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
                 </span>
               </label>
               <p id="start-adres-uitleg" className={adresFout ? 'club-melding club-melding--fout' : 'club-hint'} role={adresFout ? 'alert' : undefined}>
-                {adresFout ?? 'Je leden zien dit adres in de app.'}
+                {adresFout ?? v.adresUitleg}
               </p>
             </section>
             <section className="club-start-blok" aria-labelledby="start-tijden-kop">
-              <h2 id="start-tijden-kop">Openingstijden</h2>
+              <h2 id="start-tijden-kop">{v.tijdenKop}</h2>
               <TijdenKiezer week={tijden} perDag={perDag} onWeek={setTijden} onPerDag={setPerDag} />
             </section>
           </div>
@@ -165,7 +189,7 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
         </div>
         {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
       </div>
-      <StartVoet {...voet} voorVerder={voorVerder} primair={adresGewijzigd || tijdenGewijzigd ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...voet} voorVerder={voorVerder} primair={adresGewijzigd || tijdenGewijzigd ? voetTekst.opslaanVerder : undefined} />
     </>
   )
 }
@@ -177,6 +201,7 @@ function NieuweVestiging() {
   const [adres, setAdres] = useState('')
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
+  const v = useTekst(START).vestiging
 
   async function voegToe(e: FormEvent) {
     e.preventDefault()
@@ -184,7 +209,7 @@ function NieuweVestiging() {
     const uit = await stuur('/api/club/vestigingen', 'POST', { naam, adres })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: `${naam.trim()} is toegevoegd. Kies hem bovenaan en stel zijn adres en tijden in.` })
+    setMelding({ ok: true, tekst: v.toegevoegd(naam.trim()) })
     setNaam('')
     setAdres('')
     router.refresh()
@@ -192,18 +217,18 @@ function NieuweVestiging() {
 
   return (
     <section className="club-start-blok" aria-labelledby="start-nieuwe-vestiging-kop">
-      <h2 id="start-nieuwe-vestiging-kop">Nog een vestiging?</h2>
+      <h2 id="start-nieuwe-vestiging-kop">{v.nieuwKop}</h2>
       <form className="club-start-rij-form" onSubmit={(e) => void voegToe(e)}>
         <label className="club-veld">
-          <span>Naam</span>
-          <input className="club-invoer" required value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} placeholder="Bijvoorbeeld Centrum of de plaatsnaam" />
+          <span>{v.naam}</span>
+          <input className="club-invoer" required value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} placeholder={v.naamPlaats} />
         </label>
         <label className="club-veld">
-          <span>Adres</span>
+          <span>{v.adres}</span>
           <input className="club-invoer" value={adres} maxLength={MAX_ADRES} onChange={(e) => setAdres(e.target.value)} />
         </label>
         <button type="submit" className="club-knop" disabled={bezig || !naam.trim()}>
-          <Plus aria-hidden size={16} /> {bezig ? 'Bezig...' : 'Toevoegen'}
+          <Plus aria-hidden size={16} /> {bezig ? v.bezig : v.toevoegen}
         </button>
       </form>
       {melding && (

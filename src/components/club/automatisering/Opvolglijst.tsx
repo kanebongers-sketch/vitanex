@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { OpvolgGroep } from '@/lib/club/automatisering/weergave'
 import { OpvolgTaak } from './OpvolgTaak'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
 
 // De opvolglijst: per regel een groep met de leden die vandaag aandacht nodig
 // hebben. Een afgehandelde taak verdwijnt meteen; daarna ververst de pagina.
@@ -18,6 +20,7 @@ interface Props {
 
 export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2' }: Props) {
   const router = useRouter()
+  const t = useTekst(OPVOLGEN).lijst
   const [weg, setWeg] = useState<ReadonlySet<string>>(new Set())
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
 
@@ -35,7 +38,7 @@ export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2' }: Props) {
         {melding && <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`}>{melding.tekst}</p>}
       </div>
       {zichtbaar.length === 0 ? (
-        <p className="club-leeg">Alles is opgevolgd. Er staat niemand meer open in deze vestiging.</p>
+        <p className="club-leeg">{t.leeg}</p>
       ) : (
         <div className="club-opvolg-groepen">
           {zichtbaar.map((g) => (

@@ -1,6 +1,9 @@
 import type { Dienst, PersoneelLid, RoosterNotitie } from '@/lib/club/personeel/typen'
-import { UURSOORT_LABEL } from '@/lib/club/personeel/typen'
 import { dagMaand, weekdagKort } from './weergave'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
+
+type Tekst = (typeof PERSONEEL)['nl']
 
 // De week voor op het prikbord: alleen zichtbaar bij printen. Per medewerker
 // een rij, per dag een kolom, met tijd en soort dienst. Open diensten en
@@ -15,36 +18,36 @@ interface Props {
   titel: string
 }
 
-function Cel({ diensten, soortNamen }: { diensten: readonly Dienst[]; soortNamen: ReadonlyMap<string, string> }) {
+function Cel({ diensten, soortNamen, tk }: { diensten: readonly Dienst[]; soortNamen: ReadonlyMap<string, string>; tk: Tekst }) {
   return (
     <td>
       {diensten.map((d) => (
         <span key={d.id} className="club-personeel-printdienst">
-          <strong>
-            {d.begin} tot {d.eind}
-          </strong>{' '}
-          {d.uursoort !== 'werk' ? UURSOORT_LABEL[d.uursoort] : d.soortId ? soortNamen.get(d.soortId) : ''}
+          <strong>{tk.algemeen.vanTot(d.begin, d.eind)}</strong>{' '}
+          {d.uursoort !== 'werk' ? tk.labels.uursoort[d.uursoort] : d.soortId ? soortNamen.get(d.soortId) : ''}
         </span>
       ))}
     </td>
   )
 }
 
-export function PrintWeek({ dagen, week, notities, team, soortNamen, titel }: Props) {
+export async function PrintWeek({ dagen, week, notities, team, soortNamen, titel }: Props) {
+  const taal = await getTaal()
+  const tk = await clubTekst(PERSONEEL)
   const mensen = team.filter((l) => week.some((d) => d.medewerkerId === l.id))
   const open = week.filter((d) => d.medewerkerId === null)
   return (
     <section className="club-personeel-print" aria-hidden>
       <h2>
-        Personeelsrooster · {titel} · {dagMaand(dagen[0])} tot {dagMaand(dagen[6])}
+        {tk.print.titel(titel, dagMaand(dagen[0], taal), dagMaand(dagen[6], taal))}
       </h2>
       <table>
         <thead>
           <tr>
-            <th>Medewerker</th>
+            <th>{tk.print.medewerker}</th>
             {dagen.map((d) => (
               <th key={d}>
-                {weekdagKort(d)} {dagMaand(d)}
+                {weekdagKort(d, taal)} {dagMaand(d, taal)}
               </th>
             ))}
           </tr>
@@ -54,21 +57,21 @@ export function PrintWeek({ dagen, week, notities, team, soortNamen, titel }: Pr
             <tr key={l.id}>
               <th>{l.naam}</th>
               {dagen.map((d) => (
-                <Cel key={d} diensten={week.filter((x) => x.datum === d && x.medewerkerId === l.id)} soortNamen={soortNamen} />
+                <Cel key={d} diensten={week.filter((x) => x.datum === d && x.medewerkerId === l.id)} soortNamen={soortNamen} tk={tk} />
               ))}
             </tr>
           ))}
           {open.length > 0 && (
             <tr>
-              <th>Open</th>
+              <th>{tk.print.open}</th>
               {dagen.map((d) => (
-                <Cel key={d} diensten={open.filter((x) => x.datum === d)} soortNamen={soortNamen} />
+                <Cel key={d} diensten={open.filter((x) => x.datum === d)} soortNamen={soortNamen} tk={tk} />
               ))}
             </tr>
           )}
           {notities.length > 0 && (
             <tr>
-              <th>Mededelingen</th>
+              <th>{tk.print.mededelingen}</th>
               {dagen.map((d) => (
                 <td key={d}>
                   {notities

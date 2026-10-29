@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { LEAD_STATUSSEN, LEAD_STATUS_LABEL, type Lead, type LeadStatus } from '@/lib/club/leads/model'
+import { LEAD_STATUSSEN, type Lead, type LeadStatus } from '@/lib/club/leads/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { LeadKaart } from './LeadKaart'
 
 interface PijplijnProps {
@@ -18,6 +20,7 @@ interface PijplijnProps {
 // de kolommen horizontaal; op de pc staan ze naast elkaar over de volle breedte.
 export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVerplaats }: PijplijnProps) {
   const [doel, setDoel] = useState<LeadStatus | null>(null)
+  const tekst = useTekst(LEADS)
 
   function zetNeer(status: LeadStatus, id: string) {
     setDoel(null)
@@ -26,7 +29,7 @@ export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVer
   }
 
   return (
-    <section className="club-leads-pijplijn" aria-label="Pijplijn">
+    <section className="club-leads-pijplijn" aria-label={tekst.pijplijn.label}>
       {LEAD_STATUSSEN.map((status) => {
         const inKolom = leads.filter((l) => l.status === status)
         const kopId = `kolom-${status}`
@@ -50,13 +53,13 @@ export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVer
             }}
           >
             <h3 id={kopId} className="club-leads-kolomkop">
-              <span>{LEAD_STATUS_LABEL[status]}</span>
-              <span className="club-leads-aantal" aria-label={`${inKolom.length} leads`}>
+              <span>{tekst.status[status]}</span>
+              <span className="club-leads-aantal" aria-label={tekst.werkvlak.aantal(inKolom.length)}>
                 {inKolom.length}
               </span>
             </h3>
             {inKolom.length === 0 ? (
-              <p className="club-leads-kolomleeg">Leeg</p>
+              <p className="club-leads-kolomleeg">{tekst.pijplijn.leeg}</p>
             ) : (
               <div className="club-leads-kaarten">
                 {inKolom.map((lead) => (

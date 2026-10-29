@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Ban, Copy, KeyRound, Mail, QrCode } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { LoginOverzicht, LoginStaat } from '@/lib/club/medewerker-login/medewerker-login'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
+import { formatDatum, formatTijd } from '@/lib/aiyourgym/taal/formaat'
 
 // De login van een medewerker, voor de eigenaar of clubmanager (besluit Kane
 // 23-10-2026: e-mailadres plus wachtwoord, geen pincode of controlecode meer).
@@ -24,15 +27,13 @@ interface MedewerkerLoginProps {
   loginAan: boolean
 }
 
-const STATUS: Record<LoginStaat, { label: string; chip: string }> = {
-  geen: { label: 'Geen login', chip: 'club-chip--uit' },
-  uitgenodigd: { label: 'Uitgenodigd', chip: 'club-chip--merk' },
-  verlopen: { label: 'Uitnodiging verlopen', chip: 'club-chip--let-op' },
-  actief: { label: 'Kan inloggen', chip: 'club-chip--ok' },
-  oud: { label: 'Nog met pincode', chip: 'club-chip--merk' },
+const CHIP: Record<LoginStaat, string> = {
+  geen: 'club-chip--uit',
+  uitgenodigd: 'club-chip--merk',
+  verlopen: 'club-chip--let-op',
+  actief: 'club-chip--ok',
+  oud: 'club-chip--merk',
 }
-
-const DATUM = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
 
 function leesPad(data: unknown): string | null {
   const p = typeof data === 'object' && data !== null ? (data as { pad?: unknown }).pad : null
@@ -49,11 +50,13 @@ export function MedewerkerLogin({ medewerkerId, naam, emailVoorstel, login, inDi
   const [gekopieerd, setGekopieerd] = useState(false)
   const [qr, setQr] = useState<string | null>(null)
   const voornaam = naam.split(' ')[0]
+  const taal = useTaal()
+  const t = useTekst(INSTELLINGEN).login
 
   async function nodigUit(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    if (staat === 'actief' && !window.confirm(`Een nieuwe uitnodiging maken? ${voornaam} kiest daarmee een nieuw wachtwoord; het huidige werkt tot dan.`)) return
+    if (staat === 'actief' && !window.confirm(t.opnieuw(voornaam))) return
     setBezig(true)
     setFout(null)
     const uit = await stuur(`/api/club/medewerker-toegang/${medewerkerId}`, 'PATCH', { actie: 'uitnodigen', email })
@@ -67,7 +70,7 @@ export function MedewerkerLogin({ medewerkerId, naam, emailVoorstel, login, inDi
   }
 
   async function trekIn() {
-    if (bezig || !window.confirm(`Login van ${voornaam} intrekken? Inloggen kan dan niet meer en alle toestellen worden uitgelogd.`)) return
+    if (bezig || !window.confirm(t.intrekkenVraag(voornaam))) return
     setBezig(true)
     setFout(null)
     const uit = await stuur(`/api/club/medewerker-toegang/${medewerkerId}`, 'PATCH', { actie: 'intrekken' })
@@ -84,7 +87,7 @@ export function MedewerkerLogin({ medewerkerId, naam, emailVoorstel, login, inDi
       await navigator.clipboard.writeText(link)
       setGekopieerd(true)
     } catch {
-      setFout('Kopieren lukte niet. Selecteer de link en kopieer hem zelf, of toon de QR-code.')
+      setFout(t.kopieerFout)
     }
   }
 
@@ -95,60 +98,58 @@ export function MedewerkerLogin({ medewerkerId, naam, emailVoorstel, login, inDi
       const QRCode = (await import('qrcode')).default
       setQr(await QRCode.toDataURL(link, { errorCorrectionLevel: 'M', margin: 1, width: 220 }))
     } catch {
-      setFout('De QR-code kon niet worden gemaakt. Kopieer de link.')
+      setFout(t.qrFout)
     }
   }
 
   if (!inDienst) return null
-  const status = STATUS[staat]
+  const status = { label: t.status[staat], chip: CHIP[staat] }
   const heeftLogin = staat !== 'geen'
 
   return (
-    <section className="club-mwlogin" aria-label={`Inloggen voor ${naam}`}>
+    <section className="club-mwlogin" aria-label={t.label(naam)}>
       <div className="club-mwlogin-kop">
         <KeyRound aria-hidden size={15} />
-        <span className="club-label">Eigen login</span>
-        <span className={`club-chip ${login?.gesloten ? 'club-chip--let-op' : status.chip}`}>{login?.gesloten ? 'Dicht na foute pogingen' : status.label}</span>
+        <span className="club-label">{t.kop}</span>
+        <span className={`club-chip ${login?.gesloten ? 'club-chip--let-op' : status.chip}`}>{login?.gesloten ? t.dicht : status.label}</span>
       </div>
 
-      {!loginAan && <p className="club-hint">De eigen login staat nog uit: uitnodigingen werken pas als de schakelaar aan gaat.</p>}
+      {!loginAan && <p className="club-hint">{t.staatUit}</p>}
       {staat === 'uitgenodigd' && login?.uitnodigingTot && (
-        <p className="club-hint">Uitnodiging naar {login.email} geldig tot {DATUM.format(new Date(login.uitnodigingTot))}.</p>
+        <p className="club-hint">{t.uitgenodigdTot(login.email ?? '', `${formatDatum(login.uitnodigingTot, taal, 'dag')} ${formatTijd(login.uitnodigingTot, taal)}`)}</p>
       )}
-      {staat === 'actief' && login?.email && <p className="club-hint">Logt in met {login.email}.</p>}
-      {staat === 'oud' && <p className="club-hint">{voornaam} logt nog in met de oude link en pincode. Nodig {voornaam} uit om over te stappen op e-mailadres en wachtwoord.</p>}
-      {login?.gesloten && <p className="club-hint">Na te veel foute pogingen is deze login dicht. Een nieuwe uitnodiging zet hem weer open.</p>}
+      {staat === 'actief' && login?.email && <p className="club-hint">{t.logtIn(login.email)}</p>}
+      {staat === 'oud' && <p className="club-hint">{t.oud(voornaam)}</p>}
+      {login?.gesloten && <p className="club-hint">{t.dichtUitleg}</p>}
 
       <form className="club-mwlogin-acties club-mwlogin-acties--email" onSubmit={(e) => void nodigUit(e)} noValidate>
         <label className="club-mwlogin-email">
-          <span>E-mailadres van {voornaam}</span>
+          <span>{t.emailVan(voornaam)}</span>
           <input className="club-invoer" type="email" autoComplete="off" maxLength={120} required value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <button type="submit" className="club-knop club-knop--klein club-knop--primair" disabled={bezig || !email.trim()}>
-          <Mail aria-hidden size={14} /> {heeftLogin ? 'Nieuwe uitnodiging' : 'Uitnodigen'}
+          <Mail aria-hidden size={14} /> {heeftLogin ? t.nieuweUitnodiging : t.uitnodigen}
         </button>
         {heeftLogin && (
           <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig} onClick={() => void trekIn()}>
-            <Ban aria-hidden size={14} /> Intrekken
+            <Ban aria-hidden size={14} /> {t.intrekken}
           </button>
         )}
       </form>
 
       {link && (
         <div className="club-mwlogin-qr" role="status">
-          <p className="club-hint">
-            Stuur deze link naar {voornaam}. Hij werkt een keer en 7 dagen lang; je ziet hem alleen nu.
-          </p>
-          <input className="club-invoer club-mwlogin-link" readOnly value={link} aria-label={`Uitnodigingslink voor ${naam}`} onFocus={(e) => e.currentTarget.select()} />
+          <p className="club-hint">{t.stuurLink(voornaam)}</p>
+          <input className="club-invoer club-mwlogin-link" readOnly value={link} aria-label={t.linkLabel(naam)} onFocus={(e) => e.currentTarget.select()} />
           <div className="club-mwlogin-acties">
             <button type="button" className="club-knop club-knop--klein" onClick={() => void kopieer()}>
-              <Copy aria-hidden size={14} /> {gekopieerd ? 'Gekopieerd' : 'Link kopieren'}
+              <Copy aria-hidden size={14} /> {gekopieerd ? t.gekopieerd : t.kopieer}
             </button>
             <button type="button" className="club-knop club-knop--klein" onClick={() => void toonQr()} aria-expanded={qr !== null}>
-              <QrCode aria-hidden size={14} /> {qr ? 'QR verbergen' : 'QR-code'}
+              <QrCode aria-hidden size={14} /> {qr ? t.qrVerbergen : t.qr}
             </button>
           </div>
-          {qr && <img src={qr} width={220} height={220} alt={`QR-code met de uitnodigingslink van ${naam}`} />}
+          {qr && <img src={qr} width={220} height={220} alt={t.qrAlt(naam)} />}
         </div>
       )}
 

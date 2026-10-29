@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Copy, Printer, Repeat } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { API, getalUit, stuur, useActie } from './vraag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 // Snel plannen: vorige week kopieren (aanvullen of vervangen), een vast
 // patroon kiezen en de week printen voor op het prikbord.
@@ -19,6 +21,8 @@ export function SnelPlannen({ vestiging, maandag, patroonHref }: Props) {
   const { bezig, fout, voerUit } = useActie()
   const [kiezen, setKiezen] = useState(false)
   const [klaar, setKlaar] = useState<string | null>(null)
+  const alles = useTekst(PERSONEEL)
+  const tk = alles.snel
 
   async function kopieer(vervang: boolean) {
     setKlaar(null)
@@ -26,7 +30,7 @@ export function SnelPlannen({ vestiging, maandag, patroonHref }: Props) {
       () => stuur(`${API}/kopieer`, 'POST', { vestiging, maandag, vervang }),
       (data) => {
         const n = getalUit(data, 'toegevoegd') ?? 0
-        setKlaar(n === 0 ? 'Alles van vorige week stond er al.' : `${n} diensten van vorige week gezet.`)
+        setKlaar(n === 0 ? tk.alStond : tk.gezet(n))
         setKiezen(false)
       },
     )
@@ -36,30 +40,30 @@ export function SnelPlannen({ vestiging, maandag, patroonHref }: Props) {
     <div className="club-personeel-snel">
       <div className="club-acties">
         {kiezen ? (
-          <span className="club-personeel-keuze" role="group" aria-label="Vorige week kopieren">
+          <span className="club-personeel-keuze" role="group" aria-label={tk.kopieerVorige}>
             <button type="button" className="club-knop club-knop--klein club-knop--primair" disabled={bezig} onClick={() => kopieer(false)}>
-              Aanvullen
+              {tk.aanvullen}
             </button>
             <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => kopieer(true)}>
-              Vervangen
+              {tk.vervangen}
             </button>
             <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setKiezen(false)}>
-              Annuleer
+              {tk.annuleer}
             </button>
           </span>
         ) : (
           <button type="button" className="club-knop club-knop--klein" onClick={() => setKiezen(true)}>
-            <Copy aria-hidden size={14} /> Kopieer vorige week
+            <Copy aria-hidden size={14} /> {tk.kopieer}
           </button>
         )}
         <Link className="club-knop club-knop--klein" href={patroonHref} scroll={false}>
-          <Repeat aria-hidden size={14} /> Vast patroon
+          <Repeat aria-hidden size={14} /> {tk.vastPatroon}
         </Link>
         <button type="button" className="club-knop club-knop--klein" onClick={() => window.print()}>
-          <Printer aria-hidden size={14} /> Printen
+          <Printer aria-hidden size={14} /> {alles.algemeen.printen}
         </button>
       </div>
-      {kiezen && <p className="club-hint">Aanvullen zet alleen wat er nog niet staat. Vervangen haalt eerst de geplande diensten van deze week weg (diensten met uren blijven staan).</p>}
+      {kiezen && <p className="club-hint">{tk.uitleg}</p>}
       {klaar && <p className="club-hint" role="status">{klaar}</p>}
       {fout && <p className="club-fout" role="alert">{fout}</p>}
     </div>

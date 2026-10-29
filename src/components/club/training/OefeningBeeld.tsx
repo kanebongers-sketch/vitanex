@@ -3,6 +3,8 @@ import { ImageOff } from 'lucide-react'
 import { BEELD_BRON, isBeeldPad, type BeeldBronSoort, type OefeningBeelden } from '@/lib/club/training/beeld'
 import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
 import { repRenderVoor, type RepRender } from './repspeler/render-bron'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import './oefening-beeld.css'
 
 // De "gif" van een oefening: begin- en eindhouding wisselen elkaar rustig af
@@ -56,9 +58,10 @@ const RENDER_PX: Record<BeeldFormaat, number> = { klein: 52, middel: 88, groot: 
 
 function RenderPoster({ render, naam, formaat, decoratief }: { render: RepRender; naam: string; formaat: BeeldFormaat; decoratief: boolean }) {
   const px = RENDER_PX[formaat]
+  const t = useTekst(CLUB_TRAINING).beeld
   const src = formaat === 'groot' ? render.poster : render.posterKlein
   return (
-    <span className={`club-training-beeld club-training-beeld--${formaat} is-render is-enkel`} {...toegankelijk(decoratief, `Uitvoering van ${naam}`)}>
+    <span className={`club-training-beeld club-training-beeld--${formaat} is-render is-enkel`} {...toegankelijk(decoratief, t.uitvoeringVan(naam))}>
       <span className="club-training-beeld-houding" aria-hidden>
         <img className="club-training-beeld-foto" src={src} alt="" width={px} height={px} loading="lazy" decoding="async" />
       </span>
@@ -67,14 +70,15 @@ function RenderPoster({ render, naam, formaat, decoratief }: { render: RepRender
 }
 
 export function OefeningBeeld({ naam, beeld, formaat = 'middel', accent = false, decoratief = false }: OefeningBeeldProps) {
+  const t = useTekst(CLUB_TRAINING).beeld
   const render = repRenderVoor(naam)
   if (render) return <RenderPoster render={render} naam={naam} formaat={formaat} decoratief={decoratief} />
   const basis = `club-training-beeld club-training-beeld--${formaat}`
   if (!beeld) {
     return (
-      <span className={`${basis} is-leeg`} {...toegankelijk(decoratief, `Nog geen tekening van ${naam}`)}>
+      <span className={`${basis} is-leeg`} {...toegankelijk(decoratief, t.geenTekeningVan(naam))}>
         <ImageOff aria-hidden size={formaat === 'klein' ? 16 : 22} />
-        {formaat !== 'klein' && <span className="club-training-beeld-leegtekst">Nog geen tekening</span>}
+        {formaat !== 'klein' && <span className="club-training-beeld-leegtekst">{t.geenTekening}</span>}
       </span>
     )
   }
@@ -85,56 +89,61 @@ export function OefeningBeeld({ naam, beeld, formaat = 'middel', accent = false,
     beeld.enkel ? 'is-enkel' : '',
     accent && beeld.bron === 'everkinetic' ? 'club-training-beeld--accent' : '',
   ].filter(Boolean).join(' ')
-  const label = beeld.enkel ? `Uitvoering van ${naam}` : `Beginhouding en eindhouding van ${naam}`
+  const label = beeld.enkel ? t.uitvoeringVan(naam) : t.beginEnEind(naam)
   return (
     <span className={klassen} {...toegankelijk(decoratief, label)}>
-      <Houding beeld={beeld} houding="start" label="Begin" />
-      {!beeld.enkel && <Houding beeld={beeld} houding="eind" label="Eind" />}
+      <Houding beeld={beeld} houding="start" label={t.begin} />
+      {!beeld.enkel && <Houding beeld={beeld} houding="eind" label={t.eind} />}
     </span>
   )
 }
 
 /** Voor papier: begin en eind naast elkaar als gewone afbeelding (bij een enkele houding een beeld). */
 export function OefeningBeeldPrint({ naam, beeld }: { naam: string; beeld: OefeningBeelden | null }) {
+  const t = useTekst(CLUB_TRAINING).beeld
   if (!beeld || !isBeeldPad(beeld.start) || !isBeeldPad(beeld.eind)) return null
   return (
     <span className={`club-training-beeldprint is-${beeld.bron}`}>
       {beeld.enkel ? (
-        <img src={beeld.start} alt={`Uitvoering van ${naam}`} width={64} height={64} />
+        <img src={beeld.start} alt={t.uitvoeringVan(naam)} width={64} height={64} />
       ) : (
         <>
-          <img src={beeld.start} alt={`Beginhouding van ${naam}`} width={64} height={64} />
-          <img src={beeld.eind} alt={`Eindhouding van ${naam}`} width={64} height={64} />
+          <img src={beeld.start} alt={t.beginVan(naam)} width={64} height={64} />
+          <img src={beeld.eind} alt={t.eindVan(naam)} width={64} height={64} />
         </>
       )}
     </span>
   )
 }
 
-const BRON_LINKS: Record<BeeldBronSoort, ReactNode> = {
+function bronLinks(illustraties: string): Record<BeeldBronSoort, ReactNode> {
+  return {
   repdb: (
     <>
-      Illustraties: <a href={REPDB_BRON.bron} target="_blank" rel="noopener noreferrer">RepDB (repdb.co)</a>
+      {illustraties} <a href={REPDB_BRON.bron} target="_blank" rel="noopener noreferrer">RepDB (repdb.co)</a>
     </>
   ),
   everkinetic: (
     <>
-      Illustraties:{' '}
+      {illustraties}{' '}
       <a href={BEELD_BRON.bron} target="_blank" rel="noopener noreferrer">Everkinetic</a>,{' '}
       <a href={BEELD_BRON.licentie} target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>
     </>
   ),
+  }
 }
 
 /** De naamsvermelding per bron die de licenties vragen. Zonder bronnen: Everkinetic (zoals voorheen). */
 export function BeeldBron({ className = '', bronnen = ['everkinetic'] }: { className?: string; bronnen?: readonly BeeldBronSoort[] }) {
+  const t = useTekst(CLUB_TRAINING).beeld
   if (bronnen.length === 0) return null
+  const links = bronLinks(t.illustraties)
   return (
     <p className={`club-training-beeldbron ${className}`}>
       {bronnen.map((b, i) => (
         <span key={b}>
           {i > 0 ? ' · ' : null}
-          {BRON_LINKS[b]}
+          {links[b]}
         </span>
       ))}
     </p>

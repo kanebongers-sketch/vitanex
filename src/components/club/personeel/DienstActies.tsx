@@ -6,6 +6,8 @@ import { ArrowLeftRight, Thermometer, Trash2 } from 'lucide-react'
 import type { Dienst, PersoneelLid } from '@/lib/club/personeel/typen'
 import { API, stuur, useActie } from './vraag'
 import { dagMaand, weekdagKort } from './weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 // Ziek melden (dienst wordt open), ruilen met een andere dienst en verwijderen.
 // Verwijderen vraagt een tweede klik; alles werkt alleen zolang er nog geen
@@ -23,10 +25,13 @@ export function DienstActies({ dienst, alle, team, sluitHref }: Props) {
   const { bezig, fout, voerUit } = useActie()
   const [ruilMet, setRuilMet] = useState('')
   const [zeker, setZeker] = useState(false)
-  const naam = (id: string | null) => team.find((l) => l.id === id)?.naam ?? 'Open'
+  const taal = useTaal()
+  const alles = useTekst(PERSONEEL)
+  const tk = alles.acties
+  const naam = (id: string | null) => team.find((l) => l.id === id)?.naam ?? alles.algemeen.open
 
   if (dienst.uurStatus !== 'gepland') {
-    return <p className="club-hint">Er staan al uren op deze dienst. Zet de uren terug om te ruilen of te verwijderen.</p>
+    return <p className="club-hint">{tk.urenStaan}</p>
   }
 
   const kanZiek = dienst.medewerkerId !== null && dienst.uursoort === 'werk'
@@ -35,43 +40,43 @@ export function DienstActies({ dienst, alle, team, sluitHref }: Props) {
 
   return (
     <section className="club-personeel-sectie" aria-labelledby="club-personeel-acties-titel">
-      <h3 id="club-personeel-acties-titel">Acties</h3>
+      <h3 id="club-personeel-acties-titel">{tk.titel}</h3>
       {kanZiek && (
         <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => voerUit(() => stuur(`${API}/diensten/${dienst.id}/ziek`, 'POST'), klaar)}>
-          <Thermometer aria-hidden size={16} /> {naam(dienst.medewerkerId)} ziek melden
+          <Thermometer aria-hidden size={16} /> {tk.ziekMelden(naam(dienst.medewerkerId))}
         </button>
       )}
-      {kanZiek && <p className="club-hint">De uren tellen als ziek en er komt een open dienst met dezelfde tijden bij.</p>}
+      {kanZiek && <p className="club-hint">{tk.ziekUitleg}</p>}
 
       <div className="club-personeel-ruil">
         <label className="club-veld">
-          <span>Ruilen met</span>
+          <span>{tk.ruilenMet}</span>
           <select className="club-invoer" value={ruilMet} onChange={(e) => setRuilMet(e.target.value)}>
-            <option value="">Kies een dienst</option>
+            <option value="">{tk.kiesDienst}</option>
             {opties.map((d) => (
               <option key={d.id} value={d.id}>
-                {weekdagKort(d.datum)} {dagMaand(d.datum)} {d.begin} tot {d.eind}, {naam(d.medewerkerId)}
+                {weekdagKort(d.datum, taal)} {dagMaand(d.datum, taal)} {alles.algemeen.vanTot(d.begin, d.eind)}, {naam(d.medewerkerId)}
               </option>
             ))}
           </select>
         </label>
         <button type="button" className="club-knop" disabled={bezig || ruilMet === ''} onClick={() => voerUit(() => stuur(`${API}/ruilen`, 'POST', { a: dienst.id, b: ruilMet }), klaar)}>
-          <ArrowLeftRight aria-hidden size={16} /> Ruilen
+          <ArrowLeftRight aria-hidden size={16} /> {tk.ruilen}
         </button>
       </div>
 
       {zeker ? (
         <div className="club-acties">
           <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => voerUit(() => stuur(`${API}/diensten/${dienst.id}`, 'DELETE'), klaar)}>
-            Ja, verwijderen
+            {tk.jaVerwijderen}
           </button>
           <button type="button" className="club-knop club-knop--stil" onClick={() => setZeker(false)}>
-            Toch niet
+            {alles.algemeen.tochNiet}
           </button>
         </div>
       ) : (
         <button type="button" className="club-knop club-knop--stil" onClick={() => setZeker(true)}>
-          <Trash2 aria-hidden size={16} /> Dienst verwijderen
+          <Trash2 aria-hidden size={16} /> {tk.verwijderen}
         </button>
       )}
       {fout && <p className="club-fout" role="alert">{fout}</p>}

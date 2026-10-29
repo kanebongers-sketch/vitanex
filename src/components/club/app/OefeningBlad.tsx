@@ -9,6 +9,8 @@ import { OefeningVoorbeeld } from '@/components/club/training/repspeler/Oefening
 import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
 import { OefeningCoaching } from '@/components/club/training/coaching/OefeningCoaching'
 import { SpierBlok } from '@/components/club/training/SpierChips'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 
 // Een oefening groot in de app: de bewegende illustratie, het voorschrift, de
 // coaching (kernpunten, stappen, fouten) en welke spieren je traint. Schuift als een blad over het schema; Escape of
@@ -21,6 +23,8 @@ interface OefeningBladProps {
 
 export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
   const blad = useRef<HTMLDivElement>(null)
+  const taal = useTaal()
+  const t = LEDENAPP[taal].oefening
 
   useEffect(() => {
     const vorige = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -35,23 +39,23 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
     }
   }, [onSluit])
 
-  const regel = voorschrift(o)
+  const regel = voorschrift(o, taal)
   return (
     <div className="club-lidapp-blad-scherm" onMouseDown={(e) => e.target === e.currentTarget && onSluit()}>
       <div ref={blad} className="club-lidapp-blad" role="dialog" aria-modal="true" aria-label={o.naam} tabIndex={-1}>
         <div className="club-lidapp-blad-kop">
           <h3>{o.naam}</h3>
-          <button type="button" className="club-lidapp-blad-sluit" onClick={onSluit} aria-label="Sluiten">
+          <button type="button" className="club-lidapp-blad-sluit" onClick={onSluit} aria-label={t.sluiten}>
             <X aria-hidden size={20} />
           </button>
         </div>
         <OefeningVoorbeeld key={o.id} naam={o.naam} beeld={o.beeld} herhalingen={o.herhalingen} tijdSec={o.tijdSec} tempo={o.tempo} rustSec={o.rustSec} />
         {regel && <p className="club-lidapp-blad-regel">{regel}</p>}
-        {o.notitie && <p className="club-lidapp-blad-notitie">Van je trainer: {o.notitie}</p>}
-        <OefeningCoaching naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} kop="h4" leeg="Je trainer legt deze oefening aan je uit." />
+        {o.notitie && <p className="club-lidapp-blad-notitie">{t.vanTrainer(o.notitie)}</p>}
+        <OefeningCoaching naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} kop="h4" leeg={t.leeg} />
         {o.spierenPrimair.length > 0 && (
           <section>
-            <h4>Deze spieren train je</h4>
+            <h4>{t.spieren}</h4>
             <SpierBlok naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} />
           </section>
         )}

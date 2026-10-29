@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 
 // Kruimelpad boven een dieper scherm (een ledenkaart, een schema, een
 // voedingsplan): waar je bent en de weg terug, altijd op dezelfde plek en in
@@ -19,10 +22,11 @@ interface ClubKruimelProps {
   huidig: string
 }
 
-export function ClubKruimel({ stappen, huidig }: ClubKruimelProps) {
+export async function ClubKruimel({ stappen, huidig }: ClubKruimelProps) {
+  const t = await clubTekst(MENU)
   const laatste = stappen.length - 1
   return (
-    <nav className="club-kruimel" aria-label="Kruimelpad">
+    <nav className="club-kruimel" aria-label={t.kruimel.label}>
       <ol>
         {stappen.map((s, n) => (
           <li key={s.href} className={n === laatste ? 'club-kruimel-ouder' : 'club-kruimel-groep'}>
@@ -46,11 +50,11 @@ export function ClubKruimel({ stappen, huidig }: ClubKruimelProps) {
  * De weg naar een lid: Leden › naam. Alleen als deze persoon Leden mag zien;
  * anders leeg (de pagina kiest dan zelf een andere weg terug).
  */
-export function stappenNaarLid(magLeden: boolean, lid: { id: string; naam: string }, vestiging: string): KruimelStap[] {
+export function stappenNaarLid(magLeden: boolean, lid: { id: string; naam: string }, vestiging: string, taal: Taal = 'nl'): KruimelStap[] {
   if (!magLeden) return []
   const v = `v=${encodeURIComponent(vestiging)}`
   return [
-    { label: 'Leden', href: `/club/leden?${v}` },
+    { label: MENU[taal].kruimel.leden, href: `/club/leden?${v}` },
     { label: lid.naam, href: `/club/leden/${encodeURIComponent(lid.id)}?${v}` },
   ]
 }

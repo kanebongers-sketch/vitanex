@@ -1,4 +1,7 @@
-import { spierStaat, spierUitleg, type Spier } from '@/lib/club/training/spieren'
+import { spierStaat, type Spier } from '@/lib/club/training/spieren'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
+import { spierUitlegIn } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { ACHTERKANT, FIGUUR_BREEDTE, FIGUUR_HOOGTE, HOOFD, SILHOUET_HELFT, VOORKANT, type SpierVorm } from './spierkaart-vormen'
 import './spierkaart.css'
 
@@ -53,8 +56,10 @@ function Figuur({ vormen, x, primair, secundair }: { vormen: readonly SpierVorm[
 }
 
 export function Spierkaart({ naam, primair, secundair, formaat = 'klein', decoratief = false }: SpierkaartProps) {
-  const uitleg = spierUitleg(primair, secundair) || 'Nog geen spieren ingevuld.'
-  const titel = `Spierkaart van ${naam}`
+  const taal = useTaal()
+  const t = useTekst(CLUB_TRAINING).spieren
+  const uitleg = spierUitlegIn(primair, secundair, taal) || t.geenSpierenKort
+  const titel = t.kaartVan(naam)
   const marge = formaat === 'groot' ? 14 : 0
   const svg = (
     <svg
@@ -67,8 +72,8 @@ export function Spierkaart({ naam, primair, secundair, formaat = 'klein', decora
       <Figuur vormen={ACHTERKANT} x={FIGUUR_BREEDTE} primair={primair} secundair={secundair} />
       {formaat === 'groot' && (
         <g className="club-training-spierkaart-onderschrift" aria-hidden>
-          <text x={FIGUUR_BREEDTE / 2} y={FIGUUR_HOOGTE + 11}>Voorkant</text>
-          <text x={FIGUUR_BREEDTE * 1.5} y={FIGUUR_HOOGTE + 11}>Achterkant</text>
+          <text x={FIGUUR_BREEDTE / 2} y={FIGUUR_HOOGTE + 11}>{t.voorkant}</text>
+          <text x={FIGUUR_BREEDTE * 1.5} y={FIGUUR_HOOGTE + 11}>{t.achterkant}</text>
         </g>
       )}
     </svg>
@@ -78,8 +83,8 @@ export function Spierkaart({ naam, primair, secundair, formaat = 'klein', decora
     <figure className="club-training-spierfiguur">
       {svg}
       <figcaption className="club-training-spierlegenda" aria-hidden>
-        <span><i className="club-training-spierlegenda-stip club-training-spierlegenda-stip--primair" /> Werkt vooral</span>
-        <span><i className="club-training-spierlegenda-stip club-training-spierlegenda-stip--secundair" /> Werkt mee</span>
+        <span><i className="club-training-spierlegenda-stip club-training-spierlegenda-stip--primair" /> {t.werktVooral}</span>
+        <span><i className="club-training-spierlegenda-stip club-training-spierlegenda-stip--secundair" /> {t.werktMee}</span>
       </figcaption>
     </figure>
   )

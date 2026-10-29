@@ -10,6 +10,8 @@ import { btwUitInclusief } from '../geld/btw'
 import type { BtwProcent } from '../geld/btw-tarieven'
 import { delen, plusDagen, vanDelen, dagenInMaand, type Datum } from '../contract/datum'
 import { periodeStart, proRata, type Interval } from '../contract/periodes'
+import { LOCALE, type Taal } from '@/lib/aiyourgym/taal/taal'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 import { eindeEersteLooptijd, laatsteContractdag, vroegsteEinde } from '../contract/regels'
 import { MAAND_INTERVALLEN, type PlanVerlenging } from './model'
 
@@ -86,21 +88,21 @@ export function planVoorbeeld(plan: VoorbeeldPlan, start: Datum): Voorbeeld {
   }
 }
 
-const DAG = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-
-/** "3 november 2026". */
-export function datumTekst(d: Datum): string {
-  return DAG.format(new Date(`${d}T12:00:00Z`))
+/** "3 november 2026" | "3 November 2026". */
+export function datumTekst(d: Datum, taal: Taal = 'nl'): string {
+  return new Intl.DateTimeFormat(LOCALE[taal], { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`))
 }
 
 /** "30 dagen", "1 dag" of "geen opzegtermijn". */
-export function opzegTekst(dagen: number): string {
-  if (dagen === 0) return 'zonder opzegtermijn'
-  return `${dagen} ${dagen === 1 ? 'dag' : 'dagen'} opzegtermijn`
+export function opzegTekst(dagen: number, taal: Taal = 'nl'): string {
+  const t = BETALEN[taal].tekst
+  if (dagen === 0) return t.zonderOpzeg
+  return t.opzeg(dagen)
 }
 
 /** "12 maanden", "1 maand" of "flex". */
-export function looptijdTekst(maanden: number | null): string {
-  if (maanden === null) return 'Flex, maandelijks opzegbaar'
-  return `${maanden} ${maanden === 1 ? 'maand' : 'maanden'}`
+export function looptijdTekst(maanden: number | null, taal: Taal = 'nl'): string {
+  const t = BETALEN[taal].tekst
+  if (maanden === null) return t.flex
+  return t.maanden(maanden)
 }

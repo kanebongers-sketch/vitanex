@@ -3,7 +3,10 @@
 // cent.ts (nooit parseFloat of een deling buiten cent.ts).
 
 import { cent, formatEuro, leesEuroTekst } from '../geld/cent'
-import { INTERVAL_KORT, type Interval, type Korting } from './model'
+import { type Interval, type Korting } from './model'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatEuroCenten } from '@/lib/aiyourgym/taal/formaat'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 
 /** 3995 wordt "39,95" (voor een invoerveld). */
 export function centNaarInvoer(n: number): string {
@@ -18,16 +21,17 @@ export function invoerNaarCent(tekst: string, leegIs: number | null = null): num
 }
 
 /** "€ 39,95". */
-export function euroTekst(n: number): string {
-  return formatEuro(cent(n))
+export function euroTekst(n: number, taal: Taal = 'nl'): string {
+  return taal === 'nl' ? formatEuro(cent(n)) : formatEuroCenten(n, taal)
 }
 
 /** "€ 39,95 per maand". */
-export function prijsTekst(n: number, interval: Interval): string {
-  return `${euroTekst(n)} ${INTERVAL_KORT[interval]}`
+export function prijsTekst(n: number, interval: Interval, taal: Taal = 'nl'): string {
+  return `${euroTekst(n, taal)} ${BETALEN[taal].intervalKort[interval]}`
 }
 
 /** "25% korting" of "€ 5,00 korting per termijn". */
-export function kortingWaardeTekst(k: Pick<Korting, 'soort' | 'waarde'>): string {
-  return k.soort === 'procent' ? `${k.waarde}% korting` : `${euroTekst(k.waarde)} korting per termijn`
+export function kortingWaardeTekst(k: Pick<Korting, 'soort' | 'waarde'>, taal: Taal = 'nl'): string {
+  const t = BETALEN[taal].tekst
+  return k.soort === 'procent' ? t.procentKorting(k.waarde) : t.bedragKorting(euroTekst(k.waarde, taal))
 }

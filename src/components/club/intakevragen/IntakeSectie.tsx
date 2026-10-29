@@ -9,6 +9,8 @@ import { IntakeToestemming } from '@/components/club/training/IntakeGezondheid'
 import type { IntakeStaat } from '@/components/club/training/intake-staat'
 import { EigenVeld } from './EigenVeld'
 import { KernVeld } from './KernVeld'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { INTAKE, sectieInTaal, vraagInTaal } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
 export function Stap({ nr, titel, children }: { nr: number; titel: string; children: ReactNode }) {
   return (
@@ -30,14 +32,17 @@ interface IntakeSectieProps {
   metToestemming: boolean
 }
 
-function Vraag({ vraag, s, zet }: { vraag: IntakeVraag; s: IntakeStaat; zet: IntakeSectieProps['zet'] }) {
+function Vraag({ vraag: bron, s, zet }: { vraag: IntakeVraag; s: IntakeStaat; zet: IntakeSectieProps['zet'] }) {
+  const taal = useTaal()
+  const t = useTekst(INTAKE).sectie
+  const vraag = vraagInTaal(bron, taal)
   const zetEigen = (w: EigenWaarde) => zet({ eigen: { ...s.eigen, [vraag.id]: w } })
   return (
     <div className="club-intakevragen-vraag" data-verplicht={vraag.verplicht || undefined}>
       {isEigen(vraag) ? <EigenVeld vraag={vraag} waarde={s.eigen[vraag.id]} onWaarde={zetEigen} /> : <KernVeld vraag={vraag} s={s} zet={zet} />}
       {(vraag.uitleg || vraag.verplicht) && (
         <p className="club-hint club-intakevragen-uitleg">
-          {vraag.verplicht && <span className="club-intakevragen-verplicht">Verplicht</span>}
+          {vraag.verplicht && <span className="club-intakevragen-verplicht">{t.verplicht}</span>}
           {vraag.uitleg}
         </p>
       )}
@@ -50,21 +55,23 @@ function Vraag({ vraag, s, zet }: { vraag: IntakeVraag; s: IntakeStaat; zet: Int
  * na het vinkje voor toestemming; zonder vinkje staat er alleen een slotje.
  */
 export function IntakeSectie({ nr, naam, vragen, s, zet, metToestemming }: IntakeSectieProps) {
+  const taal = useTaal()
+  const t = useTekst(INTAKE).sectie
   const verborgen = vragen.filter((v) => v.gezondheid).length
   const zichtbaar = vragen.filter((v) => !v.gezondheid || s.toestemming)
   const parqJa = s.parqJa.length > 0 && zichtbaar.some((v) => v.sleutel?.startsWith(PARQ_PREFIX))
   return (
-    <Stap nr={nr} titel={naam}>
+    <Stap nr={nr} titel={sectieInTaal(naam, taal)}>
       {metToestemming && <IntakeToestemming aan={s.toestemming} onZet={(aan) => zet({ toestemming: aan })} />}
       {zichtbaar.map((v) => <Vraag key={v.id} vraag={v} s={s} zet={zet} />)}
       {!s.toestemming && verborgen > 0 && (
         <p className="club-hint club-intakevragen-slot">
-          <Lock aria-hidden size={14} /> {verborgen} {verborgen === 1 ? 'gezondheidsvraag' : 'gezondheidsvragen'} alleen met toestemming van het lid.
+          <Lock aria-hidden size={14} /> {t.slot(verborgen)}
         </p>
       )}
       {parqJa && (
         <p className="club-melding club-melding--fout" role="status">
-          Een of meer keer ja: laat het lid eerst met de huisarts overleggen voordat de intensiteit omhoog gaat.
+          {t.parqJa}
         </p>
       )}
     </Stap>

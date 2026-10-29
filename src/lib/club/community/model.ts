@@ -155,6 +155,8 @@ export interface Activiteit {
   soort: ReactieSoort
   /** "Sanne V. gaf een high five" */
   tekst: string
+  /** Alleen de privacynaam ("Sanne V."), zodat het scherm de zin in de taal kan bouwen. */
+  wie?: string
   /** Begin van het bericht waarop gereageerd werd. */
   bericht: string
   groepId: string

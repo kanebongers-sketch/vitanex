@@ -4,6 +4,8 @@ import { useId, useState, type FormEvent } from 'react'
 import { useVestigingen } from '@/components/club/shell/VestigingenContext'
 import { stuur } from '@/components/club/leden/stuur'
 import { MAX_REDEN, type Sluiting, type SluitingSoort } from '@/lib/club/sluiting/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SLUITING } from '@/lib/aiyourgym/taal/woorden/club/sluiting'
 
 // Een sluitingsdag toevoegen of wijzigen: datum, voor welke vestiging(en),
 // dicht of open met andere tijden, en de reden.
@@ -39,6 +41,7 @@ function beginStaat(begin: Sluiting | undefined, datum: string): Staat {
 
 export function SluitingFormulier({ begin, standaardDatum, onKlaar, onAnnuleer }: SluitingFormulierProps) {
   const vestigingen = useVestigingen()
+  const t = useTekst(SLUITING).formulier
   const id = useId()
   const [s, setS] = useState<Staat>(() => beginStaat(begin, standaardDatum))
   const [bezig, setBezig] = useState(false)
@@ -54,20 +57,20 @@ export function SluitingFormulier({ begin, standaardDatum, onKlaar, onAnnuleer }
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
     if (!begin) setS(beginStaat(undefined, s.datum))
-    onKlaar(begin ? 'Aangepast.' : 'Toegevoegd. Lessen op die dag maakt het rooster niet meer aan.')
+    onKlaar(begin ? t.aangepast : t.toegevoegd)
   }
 
   return (
     <form className="club-sluiting-form" onSubmit={(e) => void bewaar(e)} aria-describedby={fout ? `${id}-fout` : undefined}>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Datum</span>
+          <span>{t.datum}</span>
           <input className="club-invoer" type="date" required value={s.datum} onChange={(e) => zet('datum', e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Vestiging</span>
+          <span>{t.vestiging}</span>
           <select className="club-invoer" value={s.vestiging} onChange={(e) => zet('vestiging', e.target.value)}>
-            <option value="">Alle vestigingen</option>
+            <option value="">{t.alleVestigingen}</option>
             {vestigingen.map((v) => (
               <option key={v.sleutel} value={v.sleutel}>
                 {v.naam}
@@ -78,13 +81,13 @@ export function SluitingFormulier({ begin, standaardDatum, onKlaar, onAnnuleer }
       </div>
 
       <fieldset className="club-sluiting-soort">
-        <legend className="club-label">Die dag</legend>
-        <div className="club-segment" role="group" aria-label="Gesloten of andere tijden">
+        <legend className="club-label">{t.dieDag}</legend>
+        <div className="club-segment" role="group" aria-label={t.soort}>
           <button type="button" aria-pressed={s.soort === 'gesloten'} onClick={() => zet('soort', 'gesloten')}>
-            Gesloten
+            {t.gesloten}
           </button>
           <button type="button" aria-pressed={s.soort === 'afwijkend'} onClick={() => zet('soort', 'afwijkend')}>
-            Andere tijden
+            {t.andereTijden}
           </button>
         </div>
       </fieldset>
@@ -92,28 +95,28 @@ export function SluitingFormulier({ begin, standaardDatum, onKlaar, onAnnuleer }
       {s.soort === 'afwijkend' && (
         <div className="club-formrij">
           <label className="club-veld">
-            <span>Open van</span>
+            <span>{t.openVan}</span>
             <input className="club-invoer" type="time" required value={s.van} onChange={(e) => zet('van', e.target.value)} />
           </label>
           <label className="club-veld">
-            <span>Tot</span>
+            <span>{t.tot}</span>
             <input className="club-invoer" type="time" required value={s.tot} onChange={(e) => zet('tot', e.target.value)} />
           </label>
         </div>
       )}
 
       <label className="club-veld">
-        <span>Reden</span>
-        <input className="club-invoer" required maxLength={MAX_REDEN} value={s.reden} placeholder="Bijvoorbeeld: Tweede Kerstdag" onChange={(e) => zet('reden', e.target.value)} />
+        <span>{t.reden}</span>
+        <input className="club-invoer" required maxLength={MAX_REDEN} value={s.reden} placeholder={t.redenVoorbeeld} onChange={(e) => zet('reden', e.target.value)} />
       </label>
 
       <div className="club-sluiting-formacties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Opslaan...' : begin ? 'Opslaan' : 'Toevoegen'}
+          {bezig ? t.opslaanBezig : begin ? t.opslaan : t.toevoegen}
         </button>
         {onAnnuleer && (
           <button type="button" className="club-knop club-knop--stil" onClick={onAnnuleer}>
-            Annuleren
+            {t.annuleren}
           </button>
         )}
       </div>

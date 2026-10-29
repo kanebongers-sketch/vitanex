@@ -8,6 +8,8 @@ import { ModulesBlok } from '@/components/club/huisstijl/ModulesBlok'
 import { bewaarOrganisatie } from './StapHuisstijl'
 import { AlvastIngevuld } from './AlvastIngevuld'
 import { StartVoet, type StartVoetProps } from './StartVoet'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Stap 4: onderdelen aan of uit, met meteen de schakelaars (dezelfde als in
 // het huisstijl-portaal). Stonden ze al klaar uit de soort, dan zegt een
@@ -22,6 +24,7 @@ interface StapOnderdelenProps {
 export function StapOnderdelen({ organisatie, soort, voet }: StapOnderdelenProps) {
   const [uit, setUit] = useState<Module[]>(organisatie.uit)
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(START)
   const gewijzigd = [...uit].sort().join() !== [...organisatie.uit].sort().join()
 
   async function voorVerder(): Promise<boolean> {
@@ -42,10 +45,10 @@ export function StapOnderdelen({ organisatie, soort, voet }: StapOnderdelenProps
             setUit(nieuw)
           }}
         />
-        <p className="club-hint">Twijfel je over een onderdeel? Laat het aan. Wat uit staat, verdwijnt uit het menu voor jou en je team.</p>
+        <p className="club-hint">{t.onderdelen.twijfel}</p>
         {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
       </div>
-      <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? t.voet.opslaanVerder : undefined} />
     </>
   )
 }

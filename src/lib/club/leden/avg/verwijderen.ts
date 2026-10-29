@@ -11,6 +11,9 @@
 // Een medewerker nooit. Inzage (downloaden) mag iedereen die Leden mag.
 
 import type { WieMag } from '@/lib/club/beheerders/rechten'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 
 /** Hoeveel dagen een aanvraag terug te draaien is. Ook in migratie 429 (standaard p_dagen). */
 export const VERWIJDER_DAGEN = 30
@@ -61,13 +64,13 @@ export function dagenTot(definitiefOp: string, nu: Date): number {
   return Number.isNaN(ms) ? 0 : Math.max(0, Math.ceil(ms / 86_400_000))
 }
 
-const DATUM = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' })
 
 /** "Wordt over 12 dagen verwijderd (op 30 oktober 2026)." */
-export function verzoekTekst(v: Verwijderverzoek, nu: Date): string {
+export function verzoekTekst(v: Verwijderverzoek, nu: Date, taal: Taal = 'nl'): string {
+  const t = LIDKAART_BLOKKEN[taal].avg
   const dagen = dagenTot(v.definitiefOp, nu)
-  const wanneer = dagen === 0 ? 'vannacht' : dagen === 1 ? 'morgen' : `over ${dagen} dagen`
-  return `Wordt ${wanneer} definitief verwijderd (op ${DATUM.format(new Date(v.definitiefOp))}).`
+  const wanneer = dagen === 0 ? t.vannacht : dagen === 1 ? t.morgen : t.overDagen(dagen)
+  return t.verzoek(wanneer, formatDatum(v.definitiefOp, taal, 'lang'))
 }
 
 /** De fout van de database-functie als nette melding voor de API. */

@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import '@/components/club/training/training.css'
 
 // Een fout in Training (lijst, intake of editor): een rustige melding in de stijl
@@ -20,12 +22,13 @@ export default function TrainingFout({ error, unstable_retry, retry, reset }: Fo
     console.error('[club/training]', error.digest ?? error.message)
   }, [error])
   const opnieuw = unstable_retry ?? retry ?? reset
+  const t = useTekst(CLUB_TRAINING).fout
   return (
     <section className="club-leeg club-training-leeg" role="alert">
-      <p><strong>Training kon niet worden geladen.</strong> Probeer het opnieuw. Blijft het misgaan, ververs dan de pagina.</p>
+      <p><strong>{t.titel}</strong> {t.uitleg}</p>
       <div className="club-acties">
-        {opnieuw && <button type="button" className="club-knop club-knop--primair" onClick={() => opnieuw()}>Opnieuw proberen</button>}
-        <Link className="club-knop" href="/club">Naar het overzicht</Link>
+        {opnieuw && <button type="button" className="club-knop club-knop--primair" onClick={() => opnieuw()}>{t.opnieuw}</button>}
+        <Link className="club-knop" href="/club">{t.overzicht}</Link>
       </div>
     </section>
   )

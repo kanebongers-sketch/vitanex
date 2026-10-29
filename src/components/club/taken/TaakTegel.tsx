@@ -6,6 +6,8 @@ import type { VandaagTaak } from '@/lib/club/taken/voortgang'
 import { useAfvinken } from './AfvinkContext'
 import { Teller } from './TakenRaster'
 import { klok } from './vraag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 // Een taak van vandaag als groot tikvlak voor de tablet aan de balie.
 // Afgevinkt: groen met wie en hoe laat. Nogmaals tikken haalt het weg.
@@ -19,7 +21,8 @@ interface TegelProps {
 export function TaakTegel({ item, bron }: TegelProps) {
   const { wissel, isBezig, vandaag } = useAfvinken()
   const { taak, afgevinkt, teller } = item
-  const status = afgevinkt ? `gedaan door ${afgevinkt.wie} om ${klok(afgevinkt.afgevinktOp)}` : 'nog open'
+  const t = useTekst(TAKEN).tegel
+  const status = afgevinkt ? t.gedaan(afgevinkt.wie, klok(afgevinkt.afgevinktOp)) : t.open
   return (
     <li>
       <button

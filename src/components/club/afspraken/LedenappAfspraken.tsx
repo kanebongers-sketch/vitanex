@@ -10,12 +10,13 @@ import { AppBoeken } from './AppBoeken'
 import { useLedenappApi } from '@/components/club/app/LedenappApi'
 import { LegeStaat } from '@/components/club/app/LegeStaat'
 import './afspraken.css'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 
 // Afspraken in de ledenapp: je komende afspraken (annuleren binnen de regels)
 // en zelf een afspraak maken met een trainer. Werkt als eigen tabblad of als
 // blok op Home. In de voorvertoning komt het lid uit de URL (lidId).
-
-const DAG = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 
 interface Props {
   lidId: string
@@ -23,18 +24,20 @@ interface Props {
 
 function Komend({ a, bezig, onAnnuleer }: { a: AppAfspraak; bezig: boolean; onAnnuleer: (a: AppAfspraak) => void }) {
   const start = new Date(a.start)
+  const taal = useTaal()
+  const t = useTekst(AFSPRAKEN).app
   return (
     <li className="club-afspraken-app-afspraak" data-kleur={a.kleur}>
       <span className="club-afspraken-app-wanneer">
         <strong>{nlDelen(start).tijd}</strong>
-        <span>{DAG.format(start)}</span>
+        <span>{formatDatum(start, taal, 'dag')}</span>
       </span>
       <span className="club-afspraken-app-wat">
         <strong>{a.typeNaam}</strong>
-        <span>met {a.trainer}</span>
+        <span>{t.met(a.trainer)}</span>
       </span>
       {a.magAnnuleren ? (
-        <button type="button" className="club-afspraken-app-annuleer" disabled={bezig} onClick={() => onAnnuleer(a)}>Annuleren</button>
+        <button type="button" className="club-afspraken-app-annuleer" disabled={bezig} onClick={() => onAnnuleer(a)}>{t.annuleren}</button>
       ) : (
         <span className="club-afspraken-app-uitleg">{a.annulerenUitleg}</span>
       )}
@@ -49,6 +52,9 @@ export function LedenappAfspraken({ lidId }: Props) {
   const [boeken, setBoeken] = useState(false)
   const [bezig, setBezig] = useState(false)
   const api = useLedenappApi()
+  const taal = useTaal()
+  const t = useTekst(AFSPRAKEN).app
+  const laadFout = t.laadFout
   const overzichtUrl = api.afspraken(lidId)
 
   const laad = useCallback(async () => {
@@ -57,29 +63,29 @@ export function LedenappAfspraken({ lidId }: Props) {
       setData(appDataUit(uit.data))
       setFout(null)
     } else {
-      setFout(uit.fout || 'Je afspraken konden niet worden geladen.')
+      setFout(uit.fout || laadFout)
     }
-  }, [overzichtUrl])
+  }, [overzichtUrl, laadFout])
 
   useEffect(() => {
     let weg = false
     void haal(overzichtUrl).then((uit) => {
       if (weg) return
       if (uit.ok) setData(appDataUit(uit.data))
-      else setFout(uit.fout || 'Je afspraken konden niet worden geladen.')
+      else setFout(uit.fout || laadFout)
     })
     return () => {
       weg = true
     }
-  }, [overzichtUrl])
+  }, [overzichtUrl, laadFout])
 
   async function annuleer(a: AppAfspraak) {
-    if (!window.confirm(`${a.typeNaam} op ${DAG.format(new Date(a.start))} annuleren?`)) return
+    if (!window.confirm(t.annulerenVraag(a.typeNaam, formatDatum(a.start, taal, 'dag')))) return
     setBezig(true)
     const verzoek = api.afspraakAnnuleren(a.id, lidId)
     const uit = await stuur(verzoek.url, 'POST', verzoek.body)
     setBezig(false)
-    setMelding(uit.ok ? 'Je afspraak is geannuleerd.' : uit.fout)
+    setMelding(uit.ok ? t.geannuleerd : uit.fout)
     if (uit.ok) await laad()
   }
 
@@ -92,14 +98,14 @@ export function LedenappAfspraken({ lidId }: Props) {
   if (fout && !data) {
     return (
       <div className="club-afspraken-app">
-        <LegeStaat Icoon={TriangleAlert} titel="Even niet beschikbaar" fout>{fout}</LegeStaat>
+        <LegeStaat Icoon={TriangleAlert} titel={t.nietBeschikbaar} fout>{fout}</LegeStaat>
       </div>
     )
   }
   if (!data) {
     return (
       <div className="club-afspraken-app" role="status" aria-busy="true">
-        <span className="club-sr">Afspraken laden</span>
+        <span className="club-sr">{t.laden}</span>
         <span className="club-lidapp-skelet club-lidapp-skelet--kop" aria-hidden />
         <span className="club-lidapp-skelet club-lidapp-skelet--kaart" aria-hidden />
         <span className="club-lidapp-skelet club-lidapp-skelet--kaart" aria-hidden />
@@ -114,22 +120,22 @@ export function LedenappAfspraken({ lidId }: Props) {
         <AppBoeken lidId={lidId} typen={data.typen} horizonDagen={data.horizonDagen} onGeboekt={(t) => void geboekt(t)} onTerug={() => setBoeken(false)} />
       ) : (
         <>
-          <h3 className="club-afspraken-app-kop">Mijn afspraken</h3>
+          <h3 className="club-afspraken-app-kop">{t.mijn}</h3>
           {data.komend.length > 0 ? (
             <ul className="club-afspraken-app-lijst">
               {data.komend.map((a) => <Komend key={a.id} a={a} bezig={bezig} onAnnuleer={(x) => void annuleer(x)} />)}
             </ul>
           ) : (
-            <LegeStaat Icoon={CalendarOff} titel="Geen afspraken gepland">
-              {data.typen.length > 0 ? 'Plan hieronder een afspraak met een trainer.' : 'Een afspraak maken kan nu alleen via de balie.'}
+            <LegeStaat Icoon={CalendarOff} titel={t.geenGepland}>
+              {data.typen.length > 0 ? t.planHieronder : t.alleenBalie}
             </LegeStaat>
           )}
           {data.typen.length > 0 ? (
             <button type="button" className="club-afspraken-app-knop" onClick={() => { setMelding(null); setBoeken(true) }}>
-              <CalendarPlus size={18} aria-hidden /> Afspraak maken
+              <CalendarPlus size={18} aria-hidden /> {t.maken}
             </button>
           ) : data.komend.length > 0 ? (
-            <p className="club-afspraken-app-leeg">Afspraken maken kan nu alleen via de balie.</p>
+            <p className="club-afspraken-app-leeg">{t.makenAlleenBalie}</p>
           ) : null}
         </>
       )}

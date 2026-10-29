@@ -9,6 +9,8 @@
 
 import { nlDelen, tijdNaarMinuten } from '@/lib/club/rooster/tijd'
 import { vormSleutel, type Lidmaatschapsvorm } from './model'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 
 export type ToegangRegel = Pick<Lidmaatschapsvorm, 'naam' | 'vestigingen' | 'groepslessen' | 'maxLessenPerWeek' | 'dalVan' | 'dalTot' | 'dalWeekendVrij'>
 
@@ -91,12 +93,13 @@ export function magLesBoeken(vorm: ToegangRegel | null, les: LesAanvraag): Toega
 }
 
 /** Korte samenvatting van de regels, voor de lijst en de ledenkaart. */
-export function regelsTekst(vorm: ToegangRegel, vestigingNaam: (slug: string) => string): string[] {
+export function regelsTekst(vorm: ToegangRegel, vestigingNaam: (slug: string) => string, taal: Taal = 'nl'): string[] {
+  const t = LIDMAATSCHAPPEN[taal].regels
   const uit: string[] = []
-  uit.push(vorm.vestigingen === null ? 'Alle vestigingen' : vorm.vestigingen.map(vestigingNaam).join(', '))
-  if (!vorm.groepslessen) uit.push('Geen groepslessen')
-  else if (vorm.maxLessenPerWeek !== null) uit.push(`Max ${vorm.maxLessenPerWeek} ${vorm.maxLessenPerWeek === 1 ? 'les' : 'lessen'} per week`)
-  else uit.push('Groepslessen onbeperkt')
-  if (vorm.dalVan && vorm.dalTot) uit.push(`Daluren ${vorm.dalVan} tot ${vorm.dalTot}${vorm.dalWeekendVrij ? ', weekend vrij' : ''}`)
+  uit.push(vorm.vestigingen === null ? t.alleVestigingen : vorm.vestigingen.map(vestigingNaam).join(', '))
+  if (!vorm.groepslessen) uit.push(t.geenGroepslessen)
+  else if (vorm.maxLessenPerWeek !== null) uit.push(t.maxPerWeek(vorm.maxLessenPerWeek))
+  else uit.push(t.onbeperkt)
+  if (vorm.dalVan && vorm.dalTot) uit.push(t.daluren(vorm.dalVan, vorm.dalTot, vorm.dalWeekendVrij))
   return uit
 }

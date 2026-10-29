@@ -2,12 +2,19 @@
 // Week en vestiging staan in de URL (?v=budel&week=2026-W42), zodat elke
 // weergave deelbaar is en terug/vooruit werkt.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 
 // Besluit Kane (14-10-2026): simpel houden, een tab Dag (standaard) en een tab Week,
 // plus Overzicht en Beheer.
 export const TAKEN_WEERGAVEN = ['', 'week', 'overzicht', 'beheer'] as const
 export type TakenWeergave = (typeof TAKEN_WEERGAVEN)[number]
+
+/** Het label van een weergave in de gekozen taal. */
+export function weergaveLabel(w: TakenWeergave, taal: Taal = 'nl'): string {
+  return TAKEN[taal].weergave[w === '' ? 'dag' : w]
+}
 
 export const WEERGAVE_LABEL: Record<TakenWeergave, string> = {
   '': 'Dag',

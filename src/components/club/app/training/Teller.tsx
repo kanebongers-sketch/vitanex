@@ -2,6 +2,8 @@
 
 import { Minus, Plus } from 'lucide-react'
 import { stapGrootte, stapWaarde } from '@/lib/club/app/training-modus'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 
 interface TellerProps {
   soort: 'kg' | 'herh' | 'tijd'
@@ -16,20 +18,21 @@ interface TellerProps {
 }
 
 const MAX = { kg: 1000, herh: 300, tijd: 3600 } as const
-const EENHEID = { kg: 'kilo', herh: 'herhalingen', tijd: 'seconden' } as const
 
 /** Een getal met grote min- en plusknoppen voor natte handen; typen kan ook. */
 export function Teller({ soort, label, context, waarde, voorstel, onWaarde }: TellerProps) {
   const stap = stapGrootte(soort, waarde || voorstel)
+  const taal = useTaal()
+  const t = TRAINING[taal].teller
   const id = `teller-${soort}-${context.replace(/\W+/g, '-')}`
-  const toonStap = String(stap).replace('.', ',')
+  const toonStap = taal === 'nl' ? String(stap).replace('.', ',') : String(stap)
   return (
     <div className="club-tm-teller">
       <label htmlFor={id}>{label}</label>
       <div className="club-tm-teller-rij">
         <button
           type="button" className="club-tm-teller-knop" onClick={() => onWaarde(stapWaarde(waarde, voorstel, -stap, MAX[soort]))}
-          aria-label={`${toonStap} ${EENHEID[soort]} minder, ${context}`}
+          aria-label={t.minder(toonStap, t.eenheid[soort], context)}
         >
           <Minus aria-hidden size={22} strokeWidth={2.6} />
         </button>
@@ -40,7 +43,7 @@ export function Teller({ soort, label, context, waarde, voorstel, onWaarde }: Te
         />
         <button
           type="button" className="club-tm-teller-knop" onClick={() => onWaarde(stapWaarde(waarde, voorstel, stap, MAX[soort]))}
-          aria-label={`${toonStap} ${EENHEID[soort]} meer, ${context}`}
+          aria-label={t.meer(toonStap, t.eenheid[soort], context)}
         >
           <Plus aria-hidden size={22} strokeWidth={2.6} />
         </button>

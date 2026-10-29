@@ -3,11 +3,15 @@
 // 'rooster' (kop, tegels, groot raster), 'lijst' (kop, filterbalk, lijst) en
 // 'kaarten' (kop en twee kolommen).
 
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
+
 type Vorm = 'rooster' | 'lijst' | 'kaarten'
 
-export function LaadSkelet({ label, vorm }: { label: string; vorm: Vorm }) {
+export async function LaadSkelet({ vorm }: { vorm: Vorm }) {
+  const t = await clubTekst(MENU)
   return (
-    <div aria-busy="true" aria-label={label} role="status" style={{ display: 'grid', gap: 16 }}>
+    <div aria-busy="true" aria-label={t.laden} role="status" style={{ display: 'grid', gap: 16 }}>
       <div className="club-skelet" style={{ minHeight: 96, maxWidth: 520 }} />
       {vorm === 'rooster' && (
         <>

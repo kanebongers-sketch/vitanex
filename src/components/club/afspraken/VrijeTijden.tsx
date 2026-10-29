@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { haal, slotenUit, type SlotOptie } from './haal'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
 // Vrije tijden ophalen (balie of ledenapp) en als knoppen tonen. De URL bepaalt
 // welke regels gelden; null = nog niet genoeg gekozen.
@@ -43,11 +45,12 @@ interface Props {
 }
 
 export function VrijeTijden({ sloten, laden, fout, gekozen, onKies, metTrainer, leegTekst, klasse = 'club-afspraken' }: Props) {
-  if (laden) return <p className={`${klasse}-tijden-stand`} aria-live="polite">Vrije tijden zoeken…</p>
+  const t = useTekst(AFSPRAKEN).vrijeTijden
+  if (laden) return <p className={`${klasse}-tijden-stand`} aria-live="polite">{t.zoeken}</p>
   if (fout) return <p className="club-melding club-melding--fout" role="alert">{fout}</p>
   if (sloten.length === 0) return <p className={`${klasse}-tijden-stand`} aria-live="polite">{leegTekst}</p>
   return (
-    <div className={`${klasse}-tijden`} role="radiogroup" aria-label="Vrije tijden">
+    <div className={`${klasse}-tijden`} role="radiogroup" aria-label={t.label}>
       {sloten.map((s) => {
         const aan = gekozen === `${s.tijd}|${s.medewerkerId}`
         return (

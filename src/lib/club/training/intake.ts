@@ -230,9 +230,10 @@ export function berekenBmi(gewichtKg: number | undefined | null, lengteCm: numbe
   return Math.round((gewichtKg / (m * m)) * 10) / 10
 }
 
-export function bmiDuiding(bmi: number): string {
-  if (bmi < 18.5) return 'ondergewicht'
-  if (bmi < 25) return 'gezond gewicht'
-  if (bmi < 30) return 'overgewicht'
-  return 'obesitas'
+export function bmiDuiding(bmi: number, taal: 'nl' | 'en' = 'nl'): string {
+  const en = taal === 'en'
+  if (bmi < 18.5) return en ? 'underweight' : 'ondergewicht'
+  if (bmi < 25) return en ? 'healthy weight' : 'gezond gewicht'
+  if (bmi < 30) return en ? 'overweight' : 'overgewicht'
+  return en ? 'obese' : 'obesitas'
 }

@@ -16,6 +16,8 @@ import { isBronId } from '@/lib/club/health/typen'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { KoppelingenScherm } from '@/components/club/health/KoppelingenScherm'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 
 // /mijn/koppelingen: weegschalen, horloges en sportapps koppelen, de
 // toestemming per soort en de laatste metingen. Het lid komt uit de eigen
@@ -23,7 +25,9 @@ import { KoppelingenScherm } from '@/components/club/health/KoppelingenScherm'
 // CLUB_HEALTH_ACTIEF uit bestaat de pagina niet (404).
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Koppelingen', robots: { index: false, follow: false } }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: HEALTH[await getTaal()].scherm.titel, robots: { index: false, follow: false } }
+}
 
 type Zoek = Promise<Record<string, string | string[] | undefined>>
 
@@ -40,6 +44,8 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
     notFound()
   }
   const { organisatie: org, lid } = l
+  const taal = await getTaal()
+  const s = HEALTH[taal].scherm
   const voor = l.voorvertoning ? lid.id : null
   const tabPad = (tab: string) => {
     const vraag = new URLSearchParams(voor ? { lid: voor } : {})
@@ -68,7 +74,7 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
       >
         <div className="club-lidapp-tab">
           <Link href={tabPad('profiel')} className="club-lidapp-knop club-lidapp-knop--stil" prefetch={false}>
-            <ArrowLeft size={18} aria-hidden /> Profiel
+            <ArrowLeft size={18} aria-hidden /> {s.profiel}
           </Link>
         </div>
         {koppelingen && toestemming && metingen ? (
@@ -77,11 +83,12 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
             sportschool={org.naam}
             voor={voor}
             alleenLezen={l.voorvertoning}
+            taal={taal}
             melding={{ gekoppeld: isBronId(gekoppeld) ? gekoppeld : null, fout: typeof fout === 'string' && fout.length <= 30 ? fout : null }}
           />
         ) : (
           <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="alert">
-            Je koppelingen konden niet worden geladen. Probeer het straks opnieuw.
+            {s.laadFout}
           </p>
         )}
       </LedenappScherm>

@@ -2,6 +2,11 @@
 // met incasso uit wordt er niets geincasseerd. Kane ziet ook wanneer lidgeld bij
 // deze sportschool nog uit staat (alleen voor het master account zichtbaar).
 
+'use client'
+
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
+
 export interface LidgeldInfo {
   schaduw: boolean
   incassoAan: boolean
@@ -10,21 +15,20 @@ export interface LidgeldInfo {
 }
 
 export function LidgeldMelding({ schaduw, incassoAan, alleenKane }: LidgeldInfo) {
-  const tekst = schaduw
-    ? 'er wordt nog niets geincasseerd. Je kunt alles rustig instellen en controleren.'
-    : 'incasso staat uit, er wordt nog niets geincasseerd.'
+  const t = useTekst(BETALEN).lidgeld
+  const tekst = schaduw ? t.schaduw : t.incassoUit
   return (
     <div className="club-lidgeld-meldingen">
       {(schaduw || !incassoAan) && (
         <p className="club-lidgeld-melding" role="note">
-          <strong>{schaduw ? 'Schaduwmodus:' : 'Lidgeld:'}</strong>
+          <strong>{schaduw ? t.schaduwKop : t.lidgeldKop}</strong>
           <span>{tekst}</span>
         </p>
       )}
       {alleenKane && (
         <p className="club-lidgeld-melding" role="note">
-          <strong>Alleen voor jou:</strong>
-          <span>lidgeld staat bij deze sportschool nog uit. De eigenaar ziet prijs en contract pas als lidgeld aan staat.</span>
+          <strong>{t.alleenJijKop}</strong>
+          <span>{t.alleenJij}</span>
         </p>
       )}
     </div>

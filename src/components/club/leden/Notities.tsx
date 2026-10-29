@@ -6,6 +6,9 @@ import { Pin, PinOff, Trash2 } from 'lucide-react'
 import { MAX_NOTITIE } from '@/lib/club/leden/invoer'
 import type { Notitie } from '@/lib/club/leden/rijen'
 import { stuur } from './stuur'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LOCALE } from '@/lib/aiyourgym/taal/taal'
+import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 
 // Notities bij een lid: toevoegen, vastpinnen en verwijderen. Vastgepinde
 // notities staan bovenaan (bv. "Knieblessure, geen sprongen").
@@ -15,21 +18,23 @@ interface NotitiesProps {
   notities: Notitie[]
 }
 
-const DATUM = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
+const DATUM_OPTIES: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' }
 
 function NotitieRegel({ notitie, bezig, onPin, onWeg }: { notitie: Notitie; bezig: boolean; onPin: () => void; onWeg: () => void }) {
+  const t = useTekst(LIDKAART_BLOKKEN).notities
+  const datum = new Intl.DateTimeFormat(LOCALE[useTaal()], DATUM_OPTIES).format(new Date(notitie.op))
   return (
     <li className={`club-leden-notitie${notitie.vastgepind ? ' club-leden-notitie--vast' : ''}`}>
       <p>{notitie.tekst}</p>
       <div className="club-leden-notitie-voet">
-        <span>{notitie.vastgepind ? 'Vastgepind · ' : ''}{notitie.auteur ?? 'Onbekend'}, {DATUM.format(new Date(notitie.op))}</span>
+        <span>{notitie.vastgepind ? `${t.vastgepind} · ` : ''}{notitie.auteur ?? t.onbekend}, {datum}</span>
         <span className="club-leden-notitie-acties">
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={onPin} disabled={bezig}
-            aria-label={notitie.vastgepind ? 'Losmaken' : 'Vastpinnen'} title={notitie.vastgepind ? 'Losmaken' : 'Vastpinnen'}>
+            aria-label={notitie.vastgepind ? t.losmaken : t.vastpinnen} title={notitie.vastgepind ? t.losmaken : t.vastpinnen}>
             {notitie.vastgepind ? <PinOff aria-hidden size={15} /> : <Pin aria-hidden size={15} />}
           </button>
           <button type="button" className="club-knop club-knop--stil club-knop--klein club-leden-weg" onClick={onWeg} disabled={bezig}
-            aria-label="Notitie verwijderen" title="Verwijderen">
+            aria-label={t.notitieVerwijderen} title={t.verwijderen}>
             <Trash2 aria-hidden size={15} />
           </button>
         </span>
@@ -40,6 +45,7 @@ function NotitieRegel({ notitie, bezig, onPin, onWeg }: { notitie: Notitie; bezi
 
 export function Notities({ lidId, notities }: NotitiesProps) {
   const router = useRouter()
+  const t = useTekst(LIDKAART_BLOKKEN).notities
   const [tekst, setTekst] = useState('')
   const [vast, setVast] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -62,7 +68,7 @@ export function Notities({ lidId, notities }: NotitiesProps) {
 
   async function voegToe(e: FormEvent) {
     e.preventDefault()
-    if (!tekst.trim()) return setFout('Schrijf eerst een notitie.')
+    if (!tekst.trim()) return setFout(t.eerstSchrijven)
     if (await voerUit(() => stuur(basis, 'POST', { tekst, vastgepind: vast }))) {
       setTekst('')
       setVast(false)
@@ -70,24 +76,24 @@ export function Notities({ lidId, notities }: NotitiesProps) {
   }
 
   function verwijder(n: Notitie) {
-    if (!window.confirm('Deze notitie verwijderen? Dit kan niet ongedaan worden.')) return
+    if (!window.confirm(t.vraagVerwijderen)) return
     void voerUit(() => stuur(`${basis}/${n.id}`, 'DELETE'))
   }
 
   return (
     <section className="club-kaart" id="notities" aria-labelledby="notities-kop">
-      <h2 id="notities-kop">Notities</h2>
+      <h2 id="notities-kop">{t.kop}</h2>
       <form className="club-leden-notitieform" onSubmit={voegToe}>
         <label className="club-veld">
-          <span className="club-sr">Nieuwe notitie</span>
+          <span className="club-sr">{t.nieuw}</span>
           <textarea className="club-invoer" value={tekst} maxLength={MAX_NOTITIE} onChange={(e) => setTekst(e.target.value)}
-            placeholder="Bijvoorbeeld: wil na de zomer PT proberen" rows={3} />
+            placeholder={t.voorbeeld} rows={3} />
         </label>
         <div className="club-leden-notitieform-voet">
           <label className="club-leden-vink">
-            <input type="checkbox" checked={vast} onChange={(e) => setVast(e.target.checked)} /> Vastpinnen
+            <input type="checkbox" checked={vast} onChange={(e) => setVast(e.target.checked)} /> {t.vastpinnen}
           </label>
-          <button type="submit" className="club-knop club-knop--klein" disabled={bezig || !tekst.trim()}>Opslaan</button>
+          <button type="submit" className="club-knop club-knop--klein" disabled={bezig || !tekst.trim()}>{t.opslaan}</button>
         </div>
         {fout ? <p className="club-fout" role="alert">{fout}</p> : null}
       </form>
@@ -99,7 +105,7 @@ export function Notities({ lidId, notities }: NotitiesProps) {
               onWeg={() => verwijder(n)} />
           ))}
         </ul>
-      ) : <p className="club-hint">Nog geen notities.</p>}
+      ) : <p className="club-hint">{t.geen}</p>}
     </section>
   )
 }

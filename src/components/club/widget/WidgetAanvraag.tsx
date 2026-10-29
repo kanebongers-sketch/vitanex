@@ -3,6 +3,8 @@
 import { useId, useState, type FormEvent } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
 import { dagLabel, type WidgetLes } from '@/lib/club/widget/rooster'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { WIDGET } from '@/lib/aiyourgym/taal/woorden/club/widget'
 
 // Stap 2 van de widget: een proefles (de gekozen les) of een kennismaking
 // aanvragen. Wordt een lead in Club; de sportschool neemt contact op en plant
@@ -19,15 +21,17 @@ interface WidgetAanvraagProps {
 
 type Stand = { soort: 'invullen' } | { soort: 'bezig' } | { soort: 'fout'; tekst: string } | { soort: 'klaar' }
 
-async function verstuur(apiPad: string, body: Record<string, unknown>): Promise<string | null> {
+type AanvraagTekst = (typeof WIDGET)['nl']['aanvraag']
+
+async function verstuur(apiPad: string, body: Record<string, unknown>, t: AanvraagTekst): Promise<string | null> {
   try {
     const res = await fetch(apiPad, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     if (res.ok) return null
     const data: unknown = await res.json().catch(() => null)
     const fout = typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
-    return fout ?? 'Er ging iets mis. Probeer het opnieuw.'
+    return fout ?? t.foutAlgemeen
   } catch {
-    return 'Geen verbinding. Controleer je internet en probeer het opnieuw.'
+    return t.geenVerbinding
   }
 }
 
@@ -39,10 +43,12 @@ function tekstVan(form: FormData, naam: string): string {
 export function WidgetAanvraag({ les, organisatie, apiPad, privacyUrl, voorbeeld, onTerug }: WidgetAanvraagProps) {
   const id = useId()
   const [stand, setStand] = useState<Stand>({ soort: 'invullen' })
+  const taal = useTaal()
+  const t = useTekst(WIDGET).aanvraag
 
   async function verzend(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (voorbeeld) return setStand({ soort: 'fout', tekst: 'Dit is een voorvertoning: er wordt niets verstuurd.' })
+    if (voorbeeld) return setStand({ soort: 'fout', tekst: t.voorbeeld })
     const form = new FormData(e.currentTarget)
     setStand({ soort: 'bezig' })
     const fout = await verstuur(apiPad, {
@@ -53,7 +59,7 @@ export function WidgetAanvraag({ les, organisatie, apiPad, privacyUrl, voorbeeld
       telefoon: tekstVan(form, 'telefoon'),
       akkoord: form.get('akkoord') === 'ja',
       website: tekstVan(form, 'website'),
-    })
+    }, t)
     setStand(fout ? { soort: 'fout', tekst: fout } : { soort: 'klaar' })
   }
 
@@ -61,9 +67,9 @@ export function WidgetAanvraag({ les, organisatie, apiPad, privacyUrl, voorbeeld
     return (
       <section className="ayg-w-klaar" aria-live="polite">
         <span className="ayg-w-klaar-vink" aria-hidden><Check size={22} strokeWidth={2.5} /></span>
-        <h2>Aanvraag ontvangen</h2>
-        <p>Bedankt! {organisatie} neemt zo snel mogelijk contact met je op om {les ? 'je proefles' : 'een kennismaking'} in te plannen.</p>
-        <button type="button" className="ayg-w-knop ayg-w-knop--rustig" onClick={onTerug}>Terug naar het rooster</button>
+        <h2>{t.ontvangen}</h2>
+        <p>{les ? t.bedanktProefles(organisatie) : t.bedanktKennis(organisatie)}</p>
+        <button type="button" className="ayg-w-knop ayg-w-knop--rustig" onClick={onTerug}>{t.terugRooster}</button>
       </section>
     )
   }
@@ -72,26 +78,26 @@ export function WidgetAanvraag({ les, organisatie, apiPad, privacyUrl, voorbeeld
   return (
     <section className="ayg-w-aanvraag" aria-labelledby={`${id}-kop`}>
       <button type="button" className="ayg-w-terug" onClick={onTerug}>
-        <ArrowLeft size={16} aria-hidden /> Rooster
+        <ArrowLeft size={16} aria-hidden /> {t.rooster}
       </button>
       <div className="ayg-w-keuze">
-        <p className="ayg-w-boven">{les ? 'Proefles aanvragen' : 'Kennismaken'}</p>
-        <h2 id={`${id}-kop`}>{les ? les.naam : 'Kom langs voor een kennismaking'}</h2>
-        <p>{les ? `${dagLabel(les.dag)} om ${les.tijd}, ${les.duurMin} minuten` : 'Een rondleiding en een gesprek over wat je wilt bereiken.'}</p>
+        <p className="ayg-w-boven">{les ? t.proeflesAanvragen : t.kennismaken}</p>
+        <h2 id={`${id}-kop`}>{les ? les.naam : t.kennisKop}</h2>
+        <p>{les ? t.lesMoment(dagLabel(les.dag, taal), les.tijd, les.duurMin) : t.kennisTekst}</p>
       </div>
 
       <form className="ayg-w-form" onSubmit={(e) => void verzend(e)}>
         <label className="ayg-w-veld">
-          <span>Naam</span>
+          <span>{t.naam}</span>
           <input name="naam" autoComplete="name" required minLength={2} maxLength={120} disabled={bezig} />
         </label>
         <div className="ayg-w-rij">
           <label className="ayg-w-veld">
-            <span>E-mail</span>
+            <span>{t.email}</span>
             <input name="email" type="email" autoComplete="email" inputMode="email" required maxLength={160} disabled={bezig} />
           </label>
           <label className="ayg-w-veld">
-            <span>Telefoon</span>
+            <span>{t.telefoon}</span>
             <input name="telefoon" type="tel" autoComplete="tel" inputMode="tel" required maxLength={40} disabled={bezig} />
           </label>
         </div>
@@ -104,17 +110,17 @@ export function WidgetAanvraag({ les, organisatie, apiPad, privacyUrl, voorbeeld
         <label className="ayg-w-akkoord">
           <input name="akkoord" type="checkbox" value="ja" required disabled={bezig} />
           <span>
-            Ik geef {organisatie} toestemming om contact met mij op te nemen over deze aanvraag en mijn gegevens daarvoor te bewaren.
+            {t.toestemming(organisatie)}
             {privacyUrl && (
               <>
-                {' '}Lees de <a href={privacyUrl} target="_blank" rel="noopener noreferrer">privacyverklaring</a>.
+                {' '}{t.leesDe} <a href={privacyUrl} target="_blank" rel="noopener noreferrer">{t.privacy}</a>.
               </>
             )}
           </span>
         </label>
         <div className="ayg-w-verstuur">
           <button type="submit" className="ayg-w-knop" disabled={bezig}>
-            {bezig ? 'Versturen...' : 'Aanvraag versturen'}
+            {bezig ? t.bezig : t.versturen}
           </button>
           <div role="status" aria-live="polite">
             {stand.soort === 'fout' && <p className="ayg-w-fout">{stand.tekst}</p>}

@@ -384,3 +384,9 @@
   .club-kruimel li.club-kruimel-ouder .club-kruimel-terug { margin-left: -6px; padding-left: 6px; }
 }
 @media print { .club-onderbalk, .club-menu-scherm { display: none !important; } }
+
+/* Taalkeuze NL | EN (besluit Kane 24-10-2026): in de balk op tablet en pc, op de telefoon onderaan in het menupaneel. */
+.club-taalkeuze { --ayg-taal-actief-vlak: var(--brand); --ayg-taal-actief-tekst: var(--club-merk-inkt); color: var(--text-2); }
+.club-balk .club-taalkeuze { display: none; }
+@media (min-width: 700px) { .club-balk .club-taalkeuze { display: inline-flex; } }
+.club-menu-taal { display: flex; justify-content: flex-start; padding-top: 12px; border-top: 1px solid var(--line); }

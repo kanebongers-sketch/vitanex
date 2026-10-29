@@ -6,6 +6,8 @@ import type { ProviderKaart } from '@/lib/club/health/providers'
 import type { KoppelingPubliek } from '@/lib/club/health/opslag'
 import type { DataSoort } from '@/lib/club/health/typen'
 import { stuur } from '@/components/club/app/verzoek'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import { NativeKoppeling } from './NativeKoppeling'
 import { datumKort, healthUrl } from './paden'
 
@@ -23,17 +25,22 @@ interface BronKaartProps {
   altijdWissen: boolean
 }
 
-function statusVan(p: ProviderKaart, k: KoppelingPubliek | null): { tekst: string; toon?: 'aan' | 'let' } {
-  if (k?.status === 'actief') return { tekst: 'Gekoppeld', toon: 'aan' }
-  if (k?.status === 'fout') return { tekst: 'Even niet bijgewerkt', toon: 'let' }
-  if (k?.status === 'opnieuw_koppelen' || k?.status === 'ingetrokken') return { tekst: 'Opnieuw koppelen', toon: 'let' }
-  if (p.status === 'beschikbaar') return { tekst: 'Te koppelen' }
-  if (p.status === 'alleen_app') return { tekst: 'Via de app' }
-  return { tekst: 'Binnenkort' }
+type StatusTekst = (typeof HEALTH)['nl']['status']
+
+function statusVan(p: ProviderKaart, k: KoppelingPubliek | null, s: StatusTekst): { tekst: string; toon?: 'aan' | 'let' } {
+  if (k?.status === 'actief') return { tekst: s.gekoppeld, toon: 'aan' }
+  if (k?.status === 'fout') return { tekst: s.fout, toon: 'let' }
+  if (k?.status === 'opnieuw_koppelen' || k?.status === 'ingetrokken') return { tekst: s.opnieuw, toon: 'let' }
+  if (p.status === 'beschikbaar') return { tekst: s.beschikbaar }
+  if (p.status === 'alleen_app') return { tekst: s.alleenApp }
+  return { tekst: s.binnenkort }
 }
 
 function Ontkoppelen({ p, voor, altijdWissen, klaar }: { p: ProviderKaart; voor: string | null; altijdWissen: boolean; klaar: () => void }) {
   const [wissen, setWissen] = useState(altijdWissen)
+  const h = useTekst(HEALTH)
+  const k = h.kaart
+  const naam = h.bronnen[p.id].naam
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const ontkoppel = async () => {
@@ -45,14 +52,14 @@ function Ontkoppelen({ p, voor, altijdWissen, klaar }: { p: ProviderKaart; voor:
   }
   return (
     <div className="club-hl-ontkoppel">
-      <p>We halen dan niets meer op bij {p.naam}{p.native ? '' : ' en trekken de toegang daar in'}.</p>
+      <p>{k.ontkoppelUitleg(naam, p.native)}</p>
       <label className="club-hl-akkoord">
         <input type="checkbox" className="club-hl-vink" checked={wissen} disabled={altijdWissen} onChange={(e) => setWissen(e.target.checked)} />
-        <span>{altijdWissen ? `${p.naam} vraagt dat we je gegevens dan wissen. Dat doen we.` : `Wis ook mijn gegevens uit ${p.naam} bij de sportschool`}</span>
+        <span>{altijdWissen ? k.altijdWissen(naam) : k.ookWissen(naam)}</span>
       </label>
       <div className="club-hl-acties">
         <button type="button" className="club-lidapp-knop" disabled={bezig} onClick={ontkoppel}>
-          Ontkoppelen
+          {k.ontkoppelen}
         </button>
       </div>
       {fout && (
@@ -67,36 +74,39 @@ function Ontkoppelen({ p, voor, altijdWissen, klaar }: { p: ProviderKaart; voor:
 export function BronKaart({ p, koppeling, toegestaan, voor, alleenLezen, altijdWissen }: BronKaartProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const status = statusVan(p, koppeling)
+  const taal = useTaal()
+  const h = useTekst(HEALTH)
+  const bron = h.bronnen[p.id]
+  const status = statusVan(p, koppeling, h.status)
   const gekoppeld = koppeling !== null && koppeling.status !== 'ingetrokken'
   const kanKoppelen = p.status === 'beschikbaar' && !alleenLezen && toegestaan.length > 0
   return (
     <li className="club-hl-bron" data-status={p.status} data-gekoppeld={gekoppeld ? 'ja' : 'nee'}>
       <span className="club-hl-logo" aria-hidden>
-        {p.logo ? <img src={p.logo} alt="" width={44} height={44} /> : p.naam.charAt(0)}
+        {p.logo ? <img src={p.logo} alt="" width={44} height={44} /> : bron.naam.charAt(0)}
       </span>
       <div className="club-hl-bron-tekst">
         <span className="club-hl-bron-naam">
-          {p.naam}
+          {bron.naam}
           <span className="club-hl-status" data-toon={status.toon}>
             {status.tekst}
           </span>
         </span>
-        <p>{p.omschrijving}</p>
-        {p.kanttekening && <p className="club-hl-noot">{p.kanttekening}</p>}
-        {koppeling?.laatsteSyncOp && <p className="club-hl-noot">Laatst bijgewerkt op {datumKort(koppeling.laatsteSyncOp)}.</p>}
+        <p>{bron.omschrijving}</p>
+        {bron.kanttekening && <p className="club-hl-noot">{bron.kanttekening}</p>}
+        {koppeling?.laatsteSyncOp && <p className="club-hl-noot">{h.kaart.laatst(datumKort(koppeling.laatsteSyncOp, taal))}</p>}
       </div>
       <div className="club-hl-acties">
         {p.native && p.status === 'alleen_app' && <NativeKoppeling bron={p.id === 'apple_health' ? 'apple_health' : 'health_connect'} soorten={toegestaan} voor={voor} alleenLezen={alleenLezen} />}
         {!p.native && !gekoppeld && kanKoppelen && (
           <a className="club-lidapp-knop club-lidapp-knop--primair" href={healthUrl(`/koppelen/${p.id}`, voor)}>
-            {koppeling ? 'Opnieuw koppelen' : 'Koppelen'}
+            {koppeling ? h.kaart.opnieuwKoppelen : h.kaart.koppelen}
           </a>
         )}
-        {!gekoppeld && p.status === 'beschikbaar' && toegestaan.length === 0 && <span className="club-hl-noot">Vink eerst hieronder aan wat je wilt delen.</span>}
+        {!gekoppeld && p.status === 'beschikbaar' && toegestaan.length === 0 && <span className="club-hl-noot">{h.kaart.eerstAanvinken}</span>}
         {gekoppeld && !alleenLezen && !open && (
           <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => setOpen(true)}>
-            Ontkoppelen
+            {h.kaart.ontkoppelen}
           </button>
         )}
       </div>

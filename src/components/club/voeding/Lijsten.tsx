@@ -4,6 +4,8 @@ import type { PlanRegel } from '@/lib/club/voeding/lezen'
 import type { VoedingSjabloon } from '@/lib/club/voeding/model'
 import { verdeling } from '@/lib/club/voeding/rekenhulp'
 import { datumLang, doelLabel } from './weergave'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 
 // De lijsten van het overzicht: plannen per lid en sjablonen van de sportschool.
 
@@ -23,8 +25,10 @@ interface PlannenLijstProps {
   vestiging: string
 }
 
-export function PlannenLijst({ regels, vestiging }: PlannenLijstProps) {
-  if (regels.length === 0) return <p className="club-leeg">Nog geen voedingsplannen in deze vestiging. Zoek rechts een lid om te beginnen.</p>
+export async function PlannenLijst({ regels, vestiging }: PlannenLijstProps) {
+  const taal = await getTaal()
+  const t = VOEDING[taal].lijsten
+  if (regels.length === 0) return <p className="club-leeg">{t.geenPlannen}</p>
   return (
     <ul className="club-voeding-lijst">
       {regels.map(({ plan, lid }) => (
@@ -35,7 +39,7 @@ export function PlannenLijst({ regels, vestiging }: PlannenLijstProps) {
                 {lid.voornaam} {lid.achternaam}
               </span>
               <span className="club-voeding-regel-sub">
-                {doelLabel(plan.doel)} · {plan.eiwitG} g eiwit{plan.bijgewerktOp && ` · ${datumLang(plan.bijgewerktOp)}`}
+                {doelLabel(plan.doel, taal)} · {t.eiwit(plan.eiwitG)}{plan.bijgewerktOp && ` · ${datumLang(plan.bijgewerktOp, taal)}`}
               </span>
             </span>
             <span className="club-voeding-regel-kcal">
@@ -56,8 +60,10 @@ interface SjablonenLijstProps {
   vestiging: string
 }
 
-export function SjablonenLijst({ sjablonen, gekozen, vestiging }: SjablonenLijstProps) {
-  if (sjablonen.length === 0) return <p className="club-leeg">Nog geen sjablonen. Maak er een, bijvoorbeeld Rustig afvallen met vier vaste momenten.</p>
+export async function SjablonenLijst({ sjablonen, gekozen, vestiging }: SjablonenLijstProps) {
+  const taal = await getTaal()
+  const t = VOEDING[taal].lijsten
+  if (sjablonen.length === 0) return <p className="club-leeg">{t.geenSjablonen}</p>
   return (
     <ul className="club-voeding-lijst">
       {sjablonen.map((s) => (
@@ -66,11 +72,11 @@ export function SjablonenLijst({ sjablonen, gekozen, vestiging }: SjablonenLijst
             <span>
               <span className="club-voeding-regel-titel">{s.naam}</span>
               <span className="club-voeding-regel-sub">
-                {doelLabel(s.doel)} · {s.adviezen.length} {s.adviezen.length === 1 ? 'advies' : 'adviezen'} · {s.maaltijden.length} {s.maaltijden.length === 1 ? 'maaltijd' : 'maaltijden'}
+                {doelLabel(s.doel, taal)} · {t.adviezen(s.adviezen.length)} · {t.maaltijden(s.maaltijden.length)}
               </span>
             </span>
             <span className={`club-voeding-regel-kcal${s.kcal === null ? ' is-tekst' : ''}`}>
-              {s.kcal ?? 'Per lid'}
+              {s.kcal ?? t.perLid}
               {s.kcal !== null && <small>KCAL</small>}
             </span>
           </Link>

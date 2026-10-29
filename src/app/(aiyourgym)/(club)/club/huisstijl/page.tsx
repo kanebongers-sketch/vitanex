@@ -11,9 +11,13 @@ import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 import '@/components/club/huisstijl/huisstijl.css'
 
-export const metadata: Metadata = { title: 'Huisstijl' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(HUISSTIJL)).pagina.titel }
+}
 
 // Het portaal van een sportschool: logo en naam, kleuren, onderdelen aan of uit.
 // Wat hier wordt opgeslagen geldt meteen voor heel Club en de ledenapp van die
@@ -26,15 +30,16 @@ export default async function HuisstijlPagina() {
   const subdomeinen = subdomeinenActief()
   const org = t.organisatie
   const beheerders = beheren ? await haalBeheerders(t.admin, t.userId) : null
+  const tekst = (await clubTekst(HUISSTIJL)).pagina
   const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
   return (
     <>
       <InstelKruimel id="huisstijl" />
       <header className="club-paginakop">
         <div>
-          <p className="club-boventitel">{org.naam}{org.demo ? ' · demo' : ''}</p>
-          <h1>Huisstijl</h1>
-          <p>Logo, naam en kleuren van je sportschool, en welke onderdelen je gebruikt. Het geldt meteen voor iedereen in Club en in de ledenapp.</p>
+          <p className="club-boventitel">{org.naam}{org.demo ? ` · ${tekst.demo}` : ''}</p>
+          <h1>{tekst.titel}</h1>
+          <p>{tekst.intro}</p>
         </div>
       </header>
       {t.isPlatformEigenaar && (

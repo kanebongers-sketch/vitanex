@@ -5,6 +5,7 @@ import { roosterHref, type RoosterStaat } from '@/lib/club/rooster/url'
 import { CijferStrook, CijferTegel } from '@/components/club/ontwerp/CijferTegel'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
 // Kop van het rooster: de week, bladeren, en de vier cijfers die ertoe doen.
 
@@ -18,18 +19,19 @@ interface KopProps {
   staat: RoosterStaat
 }
 
-export function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volgende, isDezeWeek, staat }: KopProps) {
+export async function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volgende, isDezeWeek, staat }: KopProps) {
+  const t = await clubTekst(ROOSTER)
   return (
     <header className="club-paginakop">
       <div>
-        <p className="club-boventitel">{vestigingNaam} · Groepslessen</p>
+        <p className="club-boventitel">{t.boventitel(vestigingNaam)}</p>
         <h1>
-          Rooster <span className="club-rooster-weeknr">Week {weekNummer}</span>
+          {t.titel} <span className="club-rooster-weeknr">{t.week(weekNummer)}</span>
         </h1>
         <p>{weekLabel}</p>
       </div>
-      <nav className="club-rooster-bladeren" aria-label="Week kiezen">
-        <Link href={roosterHref(staat, { week: vorige, les: null })} className="club-knop club-knop--klein" aria-label="Vorige week" scroll={false}>
+      <nav className="club-rooster-bladeren" aria-label={t.weekKiezen}>
+        <Link href={roosterHref(staat, { week: vorige, les: null })} className="club-knop club-knop--klein" aria-label={t.vorigeWeek} scroll={false}>
           <ChevronLeft aria-hidden size={16} />
         </Link>
         <Link
@@ -38,9 +40,9 @@ export function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volge
           aria-current={isDezeWeek ? 'page' : undefined}
           scroll={false}
         >
-          Deze week
+          {t.dezeWeek}
         </Link>
-        <Link href={roosterHref(staat, { week: volgende, les: null })} className="club-knop club-knop--klein" aria-label="Volgende week" scroll={false}>
+        <Link href={roosterHref(staat, { week: volgende, les: null })} className="club-knop club-knop--klein" aria-label={t.volgendeWeek} scroll={false}>
           <ChevronRight aria-hidden size={16} />
         </Link>
       </nav>
@@ -50,25 +52,26 @@ export function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volge
 
 export async function RoosterTegels({ cijfers }: { cijfers: WeekCijfers }) {
   const w = (await clubTekst(ONTWERP)).rooster
+  const t = (await clubTekst(ROOSTER)).tegels
   const bezetting = cijfers.gemiddeldeBezetting
   return (
-    <CijferStrook label="Deze week in cijfers">
-      <CijferTegel label="Lessen" waarde={String(cijfers.lessen)} sub={cijfers.geannuleerd > 0 ? `${cijfers.geannuleerd} gaan niet door` : 'Alles gaat door'} />
+    <CijferStrook label={t.label}>
+      <CijferTegel label={t.lessen} waarde={String(cijfers.lessen)} sub={cijfers.geannuleerd > 0 ? t.nietDoor(cijfers.geannuleerd) : t.allesDoor} />
       <CijferTegel
-        label="Gem. bezetting"
+        label={t.bezetting}
         waarde={bezetting === null ? '' : `${Math.round(bezetting * 100)}`}
         eenheid="%"
         leeg={bezetting === null}
         meter={bezetting === null ? null : { deel: bezetting, label: w.bezettingLabel }}
-        sub="Geboekte plekken van de capaciteit"
+        sub={t.bezettingSub}
       />
       <CijferTegel
-        label="Wachtlijst"
+        label={t.wachtlijst}
         waarde={String(cijfers.wachtlijst)}
-        verschil={cijfers.wachtlijst > 0 ? { tekst: 'Vraag groter dan aanbod', oordeel: 'slechter' } : null}
-        sub={cijfers.wachtlijst > 0 ? undefined : 'Niemand wacht'}
+        verschil={cijfers.wachtlijst > 0 ? { tekst: t.vraagGroter, oordeel: 'slechter' } : null}
+        sub={cijfers.wachtlijst > 0 ? undefined : t.niemandWacht}
       />
-      <CijferTegel label="No-shows" waarde={String(cijfers.noShows)} sub="Afgevinkt als niet gekomen" />
+      <CijferTegel label={t.noShows} waarde={String(cijfers.noShows)} sub={t.noShowsSub} />
     </CijferStrook>
   )
 }

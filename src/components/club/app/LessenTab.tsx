@@ -4,8 +4,11 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarX2, Check, Info, TriangleAlert } from 'lucide-react'
 import type { AppLes } from '@/lib/club/app/data'
-import { annulerenZonderGevolg, dagNaamKort, lesKeuze, regelTeksten, vrijePlekken, type AppRegels } from '@/lib/club/app/regels'
-import { dagKort, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
+import { annulerenZonderGevolg, dagKortIn, dagNaamKort, lesKeuze, regelTeksten, vrijePlekken, type AppRegels } from '@/lib/club/app/regels'
+import { dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { stuur } from './verzoek'
 import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
@@ -29,23 +32,27 @@ interface Props {
 }
 
 /** "Spinning, morgen om 09:00": welke les het bericht over gaat. */
-function lesNaam(les: AppLes, vandaag: string): string {
+function lesNaam(les: AppLes, vandaag: string, taal: Taal): string {
   const start = new Date(les.start)
-  return `${les.naam}, ${dagNaamKort(dagSleutel(start), vandaag).toLowerCase()} om ${tijdNl(start)}`
+  return LEDENAPP[taal].lessen.lesNaam(les.naam, dagNaamKort(dagSleutel(start), vandaag, taal).toLowerCase(), tijdNl(start))
 }
 
-function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer', wat: string): string {
+function melding(data: Record<string, unknown>, actie: 'boek' | 'annuleer', wat: string, taal: Taal): string {
+  const t = LEDENAPP[taal].lessen
   if (actie === 'boek') {
-    if (data.status === 'wachtlijst') return typeof data.wachtpositie === 'number' ? `Je staat op de wachtlijst voor ${wat} (plek ${data.wachtpositie}). Komt er een plek vrij, dan ben je automatisch geboekt.` : `Je staat op de wachtlijst voor ${wat}.`
-    return `Geboekt: ${wat}. Tot dan!`
+    if (data.status === 'wachtlijst') return typeof data.wachtpositie === 'number' ? t.wachtlijstPlek(wat, data.wachtpositie) : t.wachtlijstVoor(wat)
+    return t.geboektVoor(wat)
   }
-  const extra = data.doorgeschoven ? ' Je plek gaat naar iemand van de wachtlijst.' : ''
-  return data.teLaat === true ? `Afgemeld voor ${wat}. Dit was binnen de annuleertermijn en telt als te laat afgemeld.${extra}` : `Afgemeld voor ${wat}.${extra}`
+  const extra = data.doorgeschoven ? t.doorgeschoven : ''
+  return `${data.teLaat === true ? t.afgemeldLaat(wat) : t.afgemeld(wat)}${extra}`
 }
 
 export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
   const router = useRouter()
   const api = useLedenappApi()
+  const taal = useTaal()
+  const t = LEDENAPP[taal].lessen
+  const a = LEDENAPP[taal].algemeen
   const [bezig, startBezig] = useTransition()
   const [actief, setActief] = useState<string | null>(null)
   const [bevestig, setBevestig] = useState<string | null>(null)
@@ -61,7 +68,7 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
     setActief(les.id)
     startBezig(async () => {
       const r = await stuur(strippenkaart.url, 'POST', { lesId: les.id })
-      setBericht(r.ok ? { tekst: `Geboekt met je strippenkaart: ${lesNaam(les, vandaag)}. Tot dan!`, fout: false } : { tekst: r.fout, fout: true })
+      setBericht(r.ok ? { tekst: t.geboektStrip(lesNaam(les, vandaag, taal)), fout: false } : { tekst: r.fout, fout: true })
       setStripLes(null)
       if (r.ok) router.refresh()
       setActief(null)
@@ -76,7 +83,7 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
       const boek = api.lesBoeken(les.id, lidId)
       const r = soort === 'boek' ? await stuur(boek.url, 'POST', boek.body) : await stuur(api.lesAnnuleren(les.mijn?.reserveringId ?? ''), 'POST')
       if (r.ok) {
-        setBericht({ tekst: melding(r.data, soort, lesNaam(les, vandaag)), fout: false })
+        setBericht({ tekst: melding(r.data, soort, lesNaam(les, vandaag, taal), taal), fout: false })
         router.refresh()
       } else {
         setBericht({ tekst: r.fout, fout: true })
@@ -90,43 +97,43 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
     const keuze = lesKeuze({ ...les, start: new Date(les.start) }, les.mijn?.status ?? null, nuDatum)
     const laden = bezig && actief === les.id
     if (keuze === 'voorbij' || keuze === 'geannuleerd' || keuze === 'aanwezig') {
-      return <span className="club-lidapp-label">{keuze === 'voorbij' ? 'Begonnen' : keuze === 'aanwezig' ? 'Aanwezig' : 'Gaat niet door'}</span>
+      return <span className="club-lidapp-label">{keuze === 'voorbij' ? t.begonnen : keuze === 'aanwezig' ? t.aanwezig : t.gaatNietDoor}</span>
     }
-    const naam = `${les.naam} om ${tijdNl(new Date(les.start))}`
+    const naam = t.lesOm(les.naam, tijdNl(new Date(les.start)))
     if (keuze === 'geboekt' || keuze === 'wachtlijst') {
       const gratis = annulerenZonderGevolg(keuze, new Date(les.start), nuDatum, regels)
       if (!gratis && bevestig !== les.id) {
         return (
-          <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => setBevestig(les.id)} disabled={bezig} aria-label={`Annuleren: ${naam}`}>
-            Annuleren
+          <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => setBevestig(les.id)} disabled={bezig} aria-label={t.actieAria(t.annuleren, naam)}>
+            {t.annuleren}
           </button>
         )
       }
       return (
-        <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => actie(les, 'annuleer')} disabled={bezig} aria-label={`${gratis ? 'Annuleren' : 'Toch annuleren'}: ${naam}`}>
-          {laden ? 'Bezig...' : gratis ? 'Annuleren' : 'Toch annuleren'}
+        <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => actie(les, 'annuleer')} disabled={bezig} aria-label={t.actieAria(gratis ? t.annuleren : t.tochAnnuleren, naam)}>
+          {laden ? a.bezig : gratis ? t.annuleren : t.tochAnnuleren}
         </button>
       )
     }
     return (
       <button
         type="button" className={`club-lidapp-knop ${keuze === 'vrij' ? 'club-lidapp-knop--primair' : ''}`} onClick={() => actie(les, 'boek')} disabled={bezig}
-        aria-label={`${keuze === 'vrij' ? 'Reserveren' : 'Op de wachtlijst'}: ${naam}`}
+        aria-label={t.actieAria(keuze === 'vrij' ? t.reserveren : t.opWachtlijst, naam)}
       >
-        {laden ? 'Bezig...' : keuze === 'vrij' ? 'Reserveren' : 'Wachtlijst'}
+        {laden ? a.bezig : keuze === 'vrij' ? t.reserveren : t.wachtlijst}
       </button>
     )
   }
 
   return (
     <div className="club-lidapp-tab">
-      <h2 className="club-lidapp-kop">Lessen</h2>
+      <h2 className="club-lidapp-kop">{t.kop}</h2>
       <details className="club-lidapp-regels">
         <summary>
-          <Info aria-hidden size={16} /> Regels voor reserveren
+          <Info aria-hidden size={16} /> {t.regels}
         </summary>
         <ul>
-          {regelTeksten(regels).map((r) => (
+          {regelTeksten(regels, taal).map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>
@@ -139,18 +146,18 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
       )}
       {stripLes && strippenkaart && (
         <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-strip" onClick={() => boekMetStrip(stripLes)} disabled={bezig}>
-          {bezig && actief === stripLes.id ? 'Bezig...' : `Boek met strippenkaart (${strippenkaart.saldo} over)`}
+          {bezig && actief === stripLes.id ? a.bezig : t.boekStrip(strippenkaart.saldo)}
         </button>
       )}
       {dagen.length === 0 && (
-        <LegeStaat Icoon={CalendarX2} titel="Nog geen lessen">
-          De komende 7 dagen staan er geen lessen op het rooster. Kijk later nog eens.
+        <LegeStaat Icoon={CalendarX2} titel={t.geenLessen}>
+          {t.geenLessenUitleg}
         </LegeStaat>
       )}
       {dagen.map((dag) => (
-        <section key={dag} className="club-lidapp-dag" aria-label={`${dagNaamKort(dag, vandaag)} ${dagKort(dag)}`}>
+        <section key={dag} className="club-lidapp-dag" aria-label={`${dagNaamKort(dag, vandaag, taal)} ${dagKortIn(dag, taal)}`}>
           <h3>
-            {dagNaamKort(dag, vandaag)} <span>{dagKort(dag)}</span>
+            {dagNaamKort(dag, vandaag, taal)} <span>{dagKortIn(dag, taal)}</span>
           </h3>
           <ul>
             {lessen
@@ -165,10 +172,10 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
                       <strong>{les.naam}</strong>
                       <span>{[les.instructeur, les.zaal].filter(Boolean).join(' · ')}</span>
                       <span className="club-lidapp-les-plekken">
-                        {les.mijn?.status === 'geboekt' && <span className="club-lidapp-chip club-lidapp-chip--merk">Geboekt</span>}
-                        {les.mijn?.status === 'wachtlijst' && <span className="club-lidapp-chip club-lidapp-chip--info">{les.mijn.wachtpositie ? `Wachtlijst, plek ${les.mijn.wachtpositie}` : 'Op de wachtlijst'}</span>}
+                        {les.mijn?.status === 'geboekt' && <span className="club-lidapp-chip club-lidapp-chip--merk">{t.geboekt}</span>}
+                        {les.mijn?.status === 'wachtlijst' && <span className="club-lidapp-chip club-lidapp-chip--info">{les.mijn.wachtpositie ? t.wachtlijstPositie(les.mijn.wachtpositie) : t.opWachtlijst}</span>}
                         <span className={vrij === 0 ? 'club-lidapp-vol' : 'club-lidapp-vrij'}>
-                          {vrij > 0 ? `${vrij} ${vrij === 1 ? 'plek' : 'plekken'} vrij` : `Vol${les.wachtlijst > 0 ? `, ${les.wachtlijst} wachtend` : ''}`}
+                          {vrij > 0 ? t.plekkenVrij(vrij) : les.wachtlijst > 0 ? t.volWachtend(les.wachtlijst) : t.vol}
                         </span>
                       </span>
                       <span className="club-lidapp-les-meter" aria-hidden data-vol={vrij === 0 || undefined}>
@@ -176,9 +183,9 @@ export function LessenTab({ lidId, lessen, regels, nu, strippenkaart }: Props) {
                       </span>
                       {bevestig === les.id && (
                         <span className="club-lidapp-waarschuwing" role="status">
-                          Minder dan {regels.annuleerUren === 1 ? '1 uur' : `${regels.annuleerUren} uur`} voor de les: afmelden telt nu als te laat.
+                          {t.teLaat(regels.annuleerUren)}
                           <button type="button" className="club-lidapp-tekstknop club-lidapp-houden" onClick={() => setBevestig(null)}>
-                            Nee, ik kom wel
+                            {t.ikKomWel}
                           </button>
                         </span>
                       )}

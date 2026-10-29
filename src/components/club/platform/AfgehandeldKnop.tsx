@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Check, RotateCcw } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { DemoStatus } from '@/lib/club/platform/demo-aanvragen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 
 interface AfgehandeldKnopProps {
   id: string
@@ -16,6 +18,7 @@ interface AfgehandeldKnopProps {
 // overzicht, zodat de tegel en de volgorde meteen kloppen.
 export function AfgehandeldKnop({ id, naam, status }: AfgehandeldKnopProps) {
   const router = useRouter()
+  const t = useTekst(PLATFORM).demo
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const open = status === 'open'
@@ -36,10 +39,10 @@ export function AfgehandeldKnop({ id, naam, status }: AfgehandeldKnopProps) {
         className={open ? 'club-knop club-knop--klein club-knop--primair' : 'club-knop club-knop--klein'}
         onClick={() => void wissel()}
         disabled={bezig}
-        aria-label={open ? `Demo-aanvraag van ${naam} afgehandeld` : `Demo-aanvraag van ${naam} weer openzetten`}
+        aria-label={open ? t.knopAf(naam) : t.knopOpen(naam)}
       >
         {open ? <Check size={14} aria-hidden /> : <RotateCcw size={14} aria-hidden />}
-        {bezig ? 'Bezig…' : open ? 'Afgehandeld' : 'Weer open'}
+        {bezig ? t.bezig : open ? t.afgehandeld : t.weerOpen}
       </button>
       {fout && (
         <span className="club-fout" role="alert">

@@ -5,7 +5,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
-import { ROL_LABEL } from '@/lib/club/kern/medewerker'
+import { rolLabel } from '@/lib/club/kern/medewerker'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 import { vindUitnodiging } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { MedewerkerWachtwoordKiezen } from '@/components/club/inloggen/MedewerkerWachtwoordKiezen'
@@ -20,10 +23,12 @@ import '@/components/club/inloggen/inloggen.css'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Inloggen · Club',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: (await clubTekst(CLUB_INLOGGEN)).titelClub,
+    robots: { index: false, follow: false },
+    referrer: 'no-referrer',
+  }
 }
 
 interface PaginaProps {
@@ -51,7 +56,8 @@ export default async function MedewerkerInloggenPagina({ params }: PaginaProps) 
   if (!organisatie || !(await hostPastBij(organisatie))) notFound()
 
   const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
-  const rol = medewerker.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Medewerker'
+  const taal = await getTaal()
+  const rol = medewerker.rollen.map((r) => rolLabel(r, taal)).join(', ') || (await clubTekst(CLUB_INLOGGEN)).medewerker
   return (
     <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema}>
       <main className="club-inlog-vlak">

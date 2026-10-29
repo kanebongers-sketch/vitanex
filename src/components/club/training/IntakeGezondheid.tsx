@@ -1,6 +1,8 @@
 'use client'
 
 import { ShieldCheck } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
 interface IntakeToestemmingProps {
   aan: boolean
@@ -14,15 +16,13 @@ interface IntakeToestemmingProps {
  * weigert het ook).
  */
 export function IntakeToestemming({ aan, onZet }: IntakeToestemmingProps) {
+  const t = useTekst(INTAKE).toestemming
   return (
     <label className={`club-training-toestemming ${aan ? 'is-aan' : ''}`}>
       <input type="checkbox" checked={aan} onChange={(e) => onZet(e.target.checked)} />
       <span>
-        <strong><ShieldCheck aria-hidden size={16} /> Het lid geeft toestemming om gezondheidsgegevens vast te leggen</strong>
-        <span className="club-hint">
-          Blessures, klachten, medicatie, de gezondheidsvragen, rusthartslag en bloeddruk zijn bijzondere persoonsgegevens.
-          Vraag het lid hardop of dat mag. Zonder vinkje wordt hier niets van opgeslagen.
-        </span>
+        <strong><ShieldCheck aria-hidden size={16} /> {t.titel}</strong>
+        <span className="club-hint">{t.uitleg}</span>
       </span>
     </label>
   )

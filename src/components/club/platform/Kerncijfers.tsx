@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Kerncijfers as Cijfers } from '@/lib/club/platform/tellingen'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 
 interface KerncijfersProps {
   cijfers: Cijfers
@@ -19,30 +21,31 @@ function getal(n: number | null): string {
 }
 
 // Zes compacte tegels met alleen echte tellingen (geen omzet: de prijzen staan in Stripe).
-export function Kerncijfers({ cijfers: c }: KerncijfersProps) {
+export async function Kerncijfers({ cijfers: c }: KerncijfersProps) {
+  const k = (await clubTekst(PLATFORM)).kerncijfers
   const tegels: Tegel[] = [
-    { label: 'Actieve sportscholen', waarde: c.actief, sub: 'Met een lopend abonnement.' },
-    { label: 'In proefperiode', waarde: c.inProef, sub: c.inProef === null ? 'Stripe niet te lezen.' : 'Proef loopt nog, volgens Stripe.' },
-    { label: 'Open aanvragen', waarde: c.aanvragen, sub: 'Wachten op jouw contact.', aandacht: c.aanvragen ? 'merk' : undefined, href: '#platform-aanmeldingen-kop' },
+    { label: k.actief, waarde: c.actief, sub: k.actiefSub },
+    { label: k.proef, waarde: c.inProef, sub: c.inProef === null ? k.proefFout : k.proefSub },
+    { label: k.aanvragen, waarde: c.aanvragen, sub: k.aanvragenSub, aandacht: c.aanvragen ? 'merk' : undefined, href: '#platform-aanmeldingen-kop' },
     {
-      label: 'Demo-aanvragen',
+      label: k.demo,
       waarde: c.demoOpen ?? null,
-      sub: c.demoOpen === null || c.demoOpen === undefined ? 'Niet te lezen.' : 'Open, binnen een werkdag bellen.',
+      sub: c.demoOpen === null || c.demoOpen === undefined ? k.demoFout : k.demoSub,
       aandacht: c.demoOpen ? 'merk' : undefined,
       href: '#platform-demo-kop',
     },
     {
-      label: 'Supportmeldingen',
+      label: k.support,
       waarde: c.supportOpen,
-      sub: c.supportNietOpgepakt === null ? 'Open of in behandeling.' : `${c.supportNietOpgepakt} nog niet opgepakt.`,
+      sub: c.supportNietOpgepakt === null ? k.supportSub : k.supportNiet(c.supportNietOpgepakt),
       aandacht: c.supportNietOpgepakt ? 'merk' : undefined,
       href: '/club/hulp/meldingen?status=open',
     },
-    { label: 'Fouten 24 uur', waarde: c.fouten24, sub: 'Verschillende serverfouten.', aandacht: c.fouten24 ? 'let-op' : undefined, href: '/club/systeem' },
+    { label: k.fouten, waarde: c.fouten24, sub: k.foutenSub, aandacht: c.fouten24 ? 'let-op' : undefined, href: '/club/systeem' },
   ]
   return (
     <section aria-labelledby="platform-cijfers-kop">
-      <h2 id="platform-cijfers-kop" className="club-sr">Kerncijfers</h2>
+      <h2 id="platform-cijfers-kop" className="club-sr">{k.kop}</h2>
       <ul className="club-platform-tegels">
         {tegels.map((t) => {
           const inhoud = (

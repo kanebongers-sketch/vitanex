@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { LogOut, UserPlus } from 'lucide-react'
 import { useActie } from './useActie'
 import { Terugkoppeling } from './Terugkoppeling'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 // Lid worden van een open groep, of de groep verlaten (met een bevestiging).
 
@@ -20,10 +22,11 @@ interface Props {
 export function GroepLidKnop({ groepId, groepNaam, isLid, terug, besloten }: Props) {
   const router = useRouter()
   const { bezig, melding, doe } = useActie()
+  const t = useTekst(COMMUNITY).lidKnop
   const url = `/api/club/lid/community/groepen/${encodeURIComponent(groepId)}`
 
   async function verlaat() {
-    const vraag = besloten ? `${groepNaam} verlaten? Alleen de sportschool kan je weer toevoegen.` : `${groepNaam} verlaten?`
+    const vraag = besloten ? t.verlatenBesloten(groepNaam) : t.verlaten(groepNaam)
     if (!window.confirm(vraag)) return
     if (await doe('uit', url, 'DELETE', undefined)) router.push(terug, { scroll: false })
   }
@@ -32,11 +35,11 @@ export function GroepLidKnop({ groepId, groepNaam, isLid, terug, besloten }: Pro
     <div className="club-cm-lidknop">
       {isLid ? (
         <button type="button" className="club-cm-tekstknop" disabled={bezig === 'uit'} onClick={() => void verlaat()}>
-          <LogOut size={14} aria-hidden /> Groep verlaten
+          <LogOut size={14} aria-hidden /> {t.verlaat}
         </button>
       ) : (
-        <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig === 'mee'} onClick={() => void doe('mee', url, 'POST', undefined, `Welkom in ${groepNaam}.`)}>
-          <UserPlus size={18} aria-hidden /> {bezig === 'mee' ? 'Even geduld...' : 'Word lid van de groep'}
+        <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig === 'mee'} onClick={() => void doe('mee', url, 'POST', undefined, t.welkom(groepNaam))}>
+          <UserPlus size={18} aria-hidden /> {bezig === 'mee' ? t.bezig : t.wordLid}
         </button>
       )}
       <Terugkoppeling melding={melding} />

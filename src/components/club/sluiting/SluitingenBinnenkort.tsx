@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalKomendeAfwijkingen } from '@/lib/club/sluiting/lezen'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { SluitingMelding } from './SluitingMelding'
 
 // Server Component: haalt de sluitingen van vandaag en de komende 7 dagen op
@@ -17,6 +18,6 @@ interface Props {
 }
 
 export async function SluitingenBinnenkort({ admin, userId, vestiging, variant = 'club' }: Props) {
-  const { vandaag, lijst } = await haalKomendeAfwijkingen(admin, userId, vestiging)
-  return <SluitingMelding lijst={lijst} vandaag={vandaag} variant={variant} />
+  const [{ vandaag, lijst }, taal] = await Promise.all([haalKomendeAfwijkingen(admin, userId, vestiging), getTaal()])
+  return <SluitingMelding lijst={lijst} vandaag={vandaag} variant={variant} taal={taal} />
 }

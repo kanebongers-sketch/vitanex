@@ -1,7 +1,11 @@
 import type { EditorStaat } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
 import { schemaOverzicht } from '@/lib/club/training/spier-overzicht'
-import { opsomming, SPIER_GROEP_LABEL, SPIER_GROEPEN, spierNaamKlein, type SpierGroep } from '@/lib/club/training/spieren'
+import { SPIER_GROEPEN } from '@/lib/club/training/spieren'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
+import { opsommingIn } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { dagLetter } from '@/lib/club/training/typen'
 import './spierkaart.css'
 
@@ -10,29 +14,22 @@ interface SpierOverzichtProps {
   oefeningen: ReadonlyMap<string, Oefening>
 }
 
-const KORT: Record<SpierGroep, string> = {
-  borst: 'Borst',
-  rug: 'Rug',
-  schouders: 'Schoud.',
-  armen: 'Armen',
-  romp: 'Romp',
-  benen: 'Benen',
-  conditie: 'Cardio',
-}
-
 /** Welke spieren het schema raakt: sets per spiergroep per dag, en de kernspieren die nergens terugkomen. */
 export function SpierOverzicht({ staat, oefeningen }: SpierOverzichtProps) {
   const o = schemaOverzicht(staat.regels, oefeningen, staat.dagTitels.length)
   const leeg = staat.regels.length === 0
+  const taal = useTaal()
+  const t = useTekst(SCHEMA_EDITOR).spieren
+  const l = useTekst(TRAINING_LABELS)
   return (
     <section className="club-kaart club-training-spieroverzicht" aria-labelledby="spieroverzicht-kop">
-      <h2 id="spieroverzicht-kop" className="club-training-tussenkop">Spieren in dit schema</h2>
-      <p className="club-hint">Sets per spiergroep, geteld op de spieren waar een oefening vooral op werkt.</p>
+      <h2 id="spieroverzicht-kop" className="club-training-tussenkop">{t.kop}</h2>
+      <p className="club-hint">{t.uitleg}</p>
       <table>
         <thead>
           <tr>
-            <th scope="col">Dag</th>
-            {SPIER_GROEPEN.map((g) => <th key={g} scope="col" title={SPIER_GROEP_LABEL[g]}>{KORT[g]}</th>)}
+            <th scope="col">{t.dag}</th>
+            {SPIER_GROEPEN.map((g) => <th key={g} scope="col" title={l.spierGroep[g]}>{t.kort[g]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -47,9 +44,9 @@ export function SpierOverzicht({ staat, oefeningen }: SpierOverzichtProps) {
         </tbody>
       </table>
       {leeg ? null : o.ontbreekt.length > 0 ? (
-        <p className="club-training-spieroverzicht-gat">Nergens als hoofdspier: {opsomming(o.ontbreekt.map(spierNaamKlein))}.</p>
+        <p className="club-training-spieroverzicht-gat">{t.gat(opsommingIn(o.ontbreekt.map((s) => l.spier[s].toLowerCase()), taal))}</p>
       ) : (
-        <p className="club-training-spieroverzicht-ok">Alle hoofdspieren komen aan bod.</p>
+        <p className="club-training-spieroverzicht-ok">{t.ok}</p>
       )}
     </section>
   )

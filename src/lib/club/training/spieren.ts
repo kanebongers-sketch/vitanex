@@ -98,17 +98,19 @@ export function schoonSpieren(v: unknown): Spier[] {
 export type SpierUitslag = { ok: true; primair: Spier[]; secundair: Spier[] } | { ok: false; fout: string }
 
 /** Validatie voor het formulier en de API: minstens een primaire spier, geen spier in beide lijsten. */
-export function leesSpierKeuze(primairRuw: unknown, secundairRuw: unknown): SpierUitslag {
+export function leesSpierKeuze(primairRuw: unknown, secundairRuw: unknown, taal: 'nl' | 'en' = 'nl'): SpierUitslag {
+  const en = taal === 'en'
   const onbekend = [primairRuw, secundairRuw].some((l) => Array.isArray(l) && l.some((s) => !isSpier(s)))
-  if (onbekend) return { ok: false, fout: 'Onbekende spier gekozen.' }
+  if (onbekend) return { ok: false, fout: en ? 'Unknown muscle selected.' : 'Onbekende spier gekozen.' }
   const primair = schoonSpieren(primairRuw)
   const secundair = schoonSpieren(secundairRuw)
-  if (primair.length === 0) return { ok: false, fout: 'Kies minstens een spier waar de oefening vooral op werkt.' }
+  if (primair.length === 0) return { ok: false, fout: en ? 'Choose at least one muscle the exercise mainly works.' : 'Kies minstens een spier waar de oefening vooral op werkt.' }
   const dubbel = primair.filter((s) => secundair.includes(s))
   if (dubbel.length > 0) {
-    return { ok: false, fout: `${SPIER_INFO[dubbel[0]].naam} staat bij vooral en bij meewerkend. Kies een van de twee.` }
+    // In het Engels zonder spiernaam: de Engelse namen staan in het woordenboek (training-labels.ts), dat deze module zelf gebruikt.
+    return { ok: false, fout: en ? 'A muscle is set as both main and secondary. Choose one of the two.' : `${SPIER_INFO[dubbel[0]].naam} staat bij vooral en bij meewerkend. Kies een van de twee.` }
   }
-  if (primair.length > 6 || secundair.length > 8) return { ok: false, fout: 'Te veel spieren gekozen. Houd het bij de belangrijkste.' }
+  if (primair.length > 6 || secundair.length > 8) return { ok: false, fout: en ? 'Too many muscles selected. Keep to the most important ones.' : 'Te veel spieren gekozen. Houd het bij de belangrijkste.' }
   return { ok: true, primair, secundair }
 }
 

@@ -13,27 +13,34 @@ import { ProductenBeheer } from '@/components/club/betalen/ProductenBeheer'
 import { VerkopenLijst } from '@/components/club/betalen/VerkopenLijst'
 import '@/components/club/betalen/betalen.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { BEHEER_PAGINAS } from '@/lib/aiyourgym/taal/woorden/club/beheer-paginas'
 
-export const metadata: Metadata = { title: 'Betalen in de ledenapp' }
+export async function generateMetadata(): Promise<Metadata> {
+  return instelMetadata('betalen')
+}
 export const dynamic = 'force-dynamic'
 
 // Betalen in de ledenapp: losse lessen, strippenkaarten, PT-pakketten en
 // producten. Alleen Kane en de eigenaar, en alleen met CLUB_BETALEN_ACTIEF aan.
 // Het lidmaatschap zelf blijft bij Sportivity of het eigen systeem.
 
-const MAAND = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' })
-
 type Zoek = Promise<Record<string, string | string[] | undefined>>
 
-async function ledenNamen(admin: SupabaseClient, userId: string, ids: string[]): Promise<Map<string, string>> {
+async function ledenNamen(admin: SupabaseClient, userId: string, ids: string[], lid: string): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map()
   const { data, error } = await admin.from('club_leden').select('id, voornaam, achternaam').eq('user_id', userId).in('id', ids)
   if (error) console.error('[club/betalen] namen lezen mislukt', error.message)
-  return new Map((data ?? []).map((r) => [String(r.id), `${r.voornaam ?? ''} ${r.achternaam ?? ''}`.trim() || 'Lid']))
+  return new Map((data ?? []).map((r) => [String(r.id), `${r.voornaam ?? ''} ${r.achternaam ?? ''}`.trim() || lid]))
 }
 
 export default async function BetalenPagina({ searchParams }: { searchParams: Zoek }) {
   const t = await eisBetalenBeheer()
+  const taal = await getTaal()
+  const tekst = BEHEER_PAGINAS[taal].betalen
+  const titel = (await instelKop('betalen')).titel
   const zoek = await searchParams
   const nu = new Date()
   const [account, producten, verkopen, vanMaand, lidgeld] = await Promise.all([
@@ -43,11 +50,12 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
     haalVerkopenInMaand(t.admin, t.userId, nu),
     lidgeldActief() ? haalLidgeldStand(t.admin, t.userId) : Promise.resolve(null),
   ])
-  const namen = await ledenNamen(t.admin, t.userId, [...new Set((verkopen ?? []).flatMap((v) => (v.lidId ? [v.lidId] : [])))])
+  const namen = await ledenNamen(t.admin, t.userId, [...new Set((verkopen ?? []).flatMap((v) => (v.lidId ? [v.lidId] : [])))], tekst.lid)
   // Maandcijfers uit een eigen query op betaald_op binnen de kalendermaand, niet uit de laatste 200 verkopen.
   const cijfers = vanMaand ? maandCijfers(vanMaand, nu) : null
   // Pas als lidgeld aan staat en niet in schaduwmodus is het niet meer waar dat lidmaatschappen en incasso in de ledenadministratie blijven.
   const lidgeldBuitenAdministratie = lidgeld !== null && lidgeld.lidgeldAan && !lidgeld.schaduw
+  const maand = formatDatum(nu, taal, 'maandJaar')
 
   return (
     <div className="club-betalen">
@@ -55,48 +63,47 @@ export default async function BetalenPagina({ searchParams }: { searchParams: Zo
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Betalen in de ledenapp</h1>
+          <h1>{titel}</h1>
           <p>
-            Leden kopen in de app een losse les, een strippenkaart, een PT-pakket of een product. Ze betalen met iDEAL of kaart bij Stripe en het geld
-            komt rechtstreeks bij jouw sportschool. {lidgeldBuitenAdministratie ? 'Lidgeld en prijzen van lidmaatschappen stel je in bij Lidmaatschappen.' : 'Lidmaatschappen en incasso blijven in je ledenadministratie.'}
+            {tekst.intro} {lidgeldBuitenAdministratie ? tekst.lidgeldHier : tekst.lidgeldElders}
           </p>
         </div>
       </header>
 
       {cijfers ? (
-        <dl className="club-betalen-cijfers" aria-label={`Cijfers ${MAAND.format(nu)}`}>
-          <div><dt>Omzet {MAAND.format(nu)}</dt><dd>{euro(cijfers.omzetCent)}</dd></div>
-          <div><dt>Waarvan btw</dt><dd>{euro(cijfers.btwCent)}</dd></div>
-          <div><dt>Verkopen</dt><dd>{cijfers.verkopen}</dd></div>
-          <div><dt>Terugbetaald</dt><dd>{euro(cijfers.terugCent)}</dd></div>
+        <dl className="club-betalen-cijfers" aria-label={tekst.cijfersVan(maand)}>
+          <div><dt>{tekst.omzet(maand)}</dt><dd>{euro(cijfers.omzetCent)}</dd></div>
+          <div><dt>{tekst.btw}</dt><dd>{euro(cijfers.btwCent)}</dd></div>
+          <div><dt>{tekst.verkopen}</dt><dd>{cijfers.verkopen}</dd></div>
+          <div><dt>{tekst.terug}</dt><dd>{euro(cijfers.terugCent)}</dd></div>
         </dl>
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De cijfers van deze maand konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.cijfersFout}</p>
       )}
 
       {account ? (
         <StripeKaart account={account} sleutelGezet={clubStripeSleutel() !== null} verversen={zoek.onboarding === 'klaar'} />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De koppeling met Stripe kon niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.stripeFout}</p>
       )}
 
       {lidgeldActief() &&
         (lidgeld ? (
           <LidgeldKaart stand={lidgeld} />
         ) : (
-          <p className="club-melding club-melding--fout" role="status">De stand van lidgeld kon niet worden gelezen. Probeer het later opnieuw.</p>
+          <p className="club-melding club-melding--fout" role="status">{tekst.lidgeldFout}</p>
         ))}
 
       {producten ? (
         <ProductenBeheer producten={producten} vestigingen={t.vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De producten konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.productenFout}</p>
       )}
 
       {verkopen ? (
-        <VerkopenLijst verkopen={verkopen.map((v) => ({ ...v, lidNaam: v.lidId ? (namen.get(v.lidId) ?? 'Lid') : 'Verwijderd lid' }))} />
+        <VerkopenLijst verkopen={verkopen.map((v) => ({ ...v, lidNaam: v.lidId ? (namen.get(v.lidId) ?? tekst.lid) : tekst.verwijderdLid }))} />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De verkopen konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.verkopenFout}</p>
       )}
     </div>
   )

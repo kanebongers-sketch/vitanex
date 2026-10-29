@@ -12,10 +12,17 @@
 // Bezoeken tellen per kalenderdag: twee keer inchecken op een dag is een bezoek.
 
 import { dagNummer, dagSleutel } from './tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { BEHOUD_TEKST } from '@/lib/aiyourgym/taal/woorden/club/behoud'
 
 export type BehoudLabel = 'goed' | 'let_op' | 'risico'
 
-export const BEHOUD_LABEL: Record<BehoudLabel, string> = { goed: 'Goed', let_op: 'Let op', risico: 'Risico' }
+export const BEHOUD_LABEL: Record<BehoudLabel, string> = BEHOUD_TEKST.nl.label
+
+/** Het label van een score in de gekozen taal. */
+export function behoudLabel(label: BehoudLabel, taal: Taal = 'nl'): string {
+  return BEHOUD_TEKST[taal].label[label]
+}
 
 export const RECENT_DAGEN = 28
 export const EERDER_DAGEN = 56
@@ -107,59 +114,63 @@ function punten(m: Meting): BehoudOnderdelen {
  * "niet", "minder dan 1x per week", "ongeveer 1,5x per week", "bijna elke dag".
  * Een bezoek is een dag, dus meer dan 7x per week bestaat niet.
  */
-export function perWeekTekst(n: number): string {
-  if (!Number.isFinite(n) || n <= 0) return 'niet'
-  if (n < 0.75) return 'minder dan 1x per week'
-  if (n >= 6.5) return 'elke dag'
-  if (n >= 5.5) return 'bijna elke dag'
+export function perWeekTekst(n: number, taal: Taal = 'nl'): string {
+  const t = BEHOUD_TEKST[taal].perWeek
+  if (!Number.isFinite(n) || n <= 0) return t.niet
+  if (n < 0.75) return t.minderDanEen
+  if (n >= 6.5) return t.elkeDag
+  if (n >= 5.5) return t.bijnaElkeDag
   const half = Math.round(n * 2) / 2
-  return `ongeveer ${String(half).replace('.', ',')}x per week`
+  return t.ongeveer(taal === 'nl' ? String(half).replace('.', ',') : String(half))
 }
 
 /** "1 dag", "3 dagen", en vanaf 2 weken "2 weken". */
-function duurTekst(dagen: number): string {
-  if (dagen >= 14) return `${Math.floor(dagen / 7)} weken`
-  return dagen === 1 ? '1 dag' : `${dagen} dagen`
+function duurTekst(dagen: number, taal: Taal): string {
+  const t = BEHOUD_TEKST[taal]
+  return dagen >= 14 ? t.weken(Math.floor(dagen / 7)) : t.dagen(dagen)
 }
 
-function daling(m: Meting, b: number): string | null {
+function daling(m: Meting, b: number, taal: Taal): string | null {
+  const t = BEHOUD_TEKST[taal]
   if (b < 0.5 || m.dagenSinds === null) return null
-  if (m.dagenSinds >= 14) return `Kwam ${perWeekTekst(b)}, nu al ${duurTekst(m.dagenSinds)} niet`
-  const nu = perWeekTekst(m.recentPerWeek)
-  const was = perWeekTekst(b)
-  return m.recentPerWeek < b * 0.6 && nu !== was ? `Kwam ${was}, nu ${nu}` : null
+  if (m.dagenSinds >= 14) return t.kwamNuNiet(perWeekTekst(b, taal), duurTekst(m.dagenSinds, taal))
+  const nu = perWeekTekst(m.recentPerWeek, taal)
+  const was = perWeekTekst(b, taal)
+  return m.recentPerWeek < b * 0.6 && nu !== was ? t.kwamNu(was, nu) : null
 }
 
-function stijging(m: Meting, b: number): string | null {
+function stijging(m: Meting, b: number, taal: Taal): string | null {
   const r = m.recentPerWeek
   if (b < 0.25 || r < 0.75 || r <= b * 1.3) return null
-  const nu = perWeekTekst(r)
-  const was = perWeekTekst(b)
-  return nu === was ? null : `Komt vaker: ${nu} (was ${was})`
+  const nu = perWeekTekst(r, taal)
+  const was = perWeekTekst(b, taal)
+  return nu === was ? null : BEHOUD_TEKST[taal].komtVaker(nu, was)
 }
 
-function hoofdzin(m: Meting): string {
+function hoofdzin(m: Meting, taal: Taal): string {
+  const t = BEHOUD_TEKST[taal]
   const r = m.recentPerWeek
   const b = m.eerderPerWeek
   const nieuw = m.lidDagen !== null && m.lidDagen < VENSTER_DAGEN
-  if (m.dagenSinds === null) return nieuw ? 'Nog niet geweest sinds de inschrijving' : 'Geen bezoek in de laatste 12 weken'
-  const verschil = b === null ? null : daling(m, b) ?? stijging(m, b)
+  if (m.dagenSinds === null) return nieuw ? t.nogNietSindsInschrijving : t.geenBezoek12Weken
+  const verschil = b === null ? null : daling(m, b, taal) ?? stijging(m, b, taal)
   if (verschil) return verschil
-  if (m.dagenSinds >= 14) return `Al ${duurTekst(m.dagenSinds)} niet geweest`
-  if (nieuw && b === null) return `Nieuw lid, komt ${perWeekTekst(r)}`
-  if (r < 0.75) return `Komt weinig: ${perWeekTekst(r)}`
-  return b === null ? `Komt ${perWeekTekst(r)}` : `Komt ${perWeekTekst(r)}, stabiel`
+  if (m.dagenSinds >= 14) return t.alNietGeweest(duurTekst(m.dagenSinds, taal))
+  const freq = perWeekTekst(r, taal)
+  if (nieuw && b === null) return t.nieuwLid(freq)
+  if (r < 0.75) return t.komtWeinig(freq)
+  return b === null ? t.komt(freq) : t.komtStabiel(freq)
 }
 
 /** "Een keer" of "3 keer" niet gekomen bij een geboekte les. */
-export function noShowTekst(n: number): string {
-  if (n <= 0) return 'Altijd gekomen bij een geboekte les'
-  return `${n === 1 ? 'Een keer' : `${n} keer`} niet gekomen bij een geboekte les`
+export function noShowTekst(n: number, taal: Taal = 'nl'): string {
+  const t = BEHOUD_TEKST[taal]
+  return n <= 0 ? t.altijdGekomen : t.nietGekomen(n)
 }
 
-function uitleg(m: Meting): string {
-  const zin = hoofdzin(m)
-  return m.noShows === 0 ? zin : `${zin}. ${noShowTekst(m.noShows)}`
+function uitleg(m: Meting, taal: Taal): string {
+  const zin = hoofdzin(m, taal)
+  return m.noShows === 0 ? zin : `${zin}. ${noShowTekst(m.noShows, taal)}`
 }
 
 export function labelVoorScore(score: number): BehoudLabel {
@@ -169,11 +180,11 @@ export function labelVoorScore(score: number): BehoudLabel {
 }
 
 /** De behoudsscore van een lid. */
-export function berekenBehoud(invoer: BehoudInvoer): Behoud {
+export function berekenBehoud(invoer: BehoudInvoer, taal: Taal = 'nl'): Behoud {
   const m = meet(invoer)
   const onderdelen = punten(m)
   const score = Math.max(0, Math.min(100, Object.values(onderdelen).reduce((s, p) => s + p, 0)))
-  return { ...m, score, label: labelVoorScore(score), uitleg: uitleg(m), onderdelen }
+  return { ...m, score, label: labelVoorScore(score), uitleg: uitleg(m, taal), onderdelen }
 }
 
 /** Alleen leden die horen te komen (actief, proef) krijgen een score. */
@@ -191,6 +202,12 @@ export function behoudVoorLid(
   bezoeken: readonly Date[],
   noShows: number,
   nu: Date,
+  taal: Taal = 'nl',
 ): Behoud | null {
-  return verwachtBezoek(lid.status) ? berekenBehoud({ bezoeken, noShows, lidSinds: lid.lidSinds, nu }) : null
+  return verwachtBezoek(lid.status) ? berekenBehoud({ bezoeken, noShows, lidSinds: lid.lidSinds, nu }, taal) : null
+}
+
+/** De uitleg van een berekende score opnieuw, in een andere taal (de score zelf verandert niet). */
+export function behoudUitleg(b: Pick<Behoud, 'recentPerWeek' | 'eerderPerWeek' | 'dagenSinds' | 'lidDagen' | 'noShows'>, taal: Taal): string {
+  return uitleg(b, taal)
 }

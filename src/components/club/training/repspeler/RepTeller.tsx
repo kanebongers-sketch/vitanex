@@ -3,6 +3,8 @@
 import type { RefObject } from 'react'
 import { toonKlok } from '@/lib/club/app/sets'
 import type { RepPlan, SegmentSoort } from '@/lib/club/training/repspeler/typen'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 
 // De teller naast het beeld: groot "7 / 15" (of de tijd die over is bij een
 // plank), het fasewoord en een ring die per herhaling vol loopt. De ring tekent
@@ -28,32 +30,35 @@ interface RepTellerProps {
   sets: number | null
 }
 
-function woord(status: RepTellerProps['status'], label: string): string {
-  if (status === 'wacht') return 'Klaar?'
-  if (status === 'klaar') return 'Klaar'
-  if (status === 'pauze') return 'Pauze'
-  return label
+type Teksten = (typeof REPSPELER)['nl']
+
+function woord(status: RepTellerProps['status'], label: string, t: Teksten): string {
+  if (status === 'wacht') return t.teller.klaarVraag
+  if (status === 'klaar') return t.teller.klaar
+  if (status === 'pauze') return t.teller.pauze
+  return faseWoord(label, t.fase)
 }
 
-function meldingVan(plan: RepPlan, w: Weergave, status: RepTellerProps['status']): string {
+function meldingVan(plan: RepPlan, w: Weergave, status: RepTellerProps['status'], t: Teksten): string {
   if (status === 'wacht') return ''
   if (plan.soort === 'vasthouden') {
-    if (status === 'klaar') return 'Tijd is om, set klaar'
-    return w.overSec % 10 === 0 ? `Nog ${w.overSec} seconden` : ''
+    if (status === 'klaar') return t.teller.tijdOm
+    return w.overSec % 10 === 0 ? t.teller.nogSeconden(w.overSec) : ''
   }
-  if (status === 'klaar') return `${plan.reps} van ${plan.reps}, set klaar`
-  return `Herhaling ${w.rep} van ${plan.reps}`
+  if (status === 'klaar') return t.teller.setKlaar(plan.reps)
+  return t.teller.herhaling(w.rep, plan.reps)
 }
 
 export function RepTeller({ plan, weergave: w, status, ring, setNr, sets }: RepTellerProps) {
   const vast = plan.soort === 'vasthouden'
+  const t = REPSPELER[useTaal()]
   const nu = status === 'wacht' ? 0 : status === 'klaar' && !vast ? plan.reps : w.rep
   return (
     <div className="club-rep-teller" data-segment={status === 'loopt' ? w.segment : undefined}>
       {setNr !== null && (
         <p className="club-rep-set">
-          Set {setNr}
-          {sets ? <span> van {sets}</span> : null}
+          {t.teller.set(setNr)}
+          {sets ? <span>{t.teller.van(sets)}</span> : null}
         </p>
       )}
       <div className="club-rep-ring">
@@ -75,8 +80,8 @@ export function RepTeller({ plan, weergave: w, status, ring, setNr, sets }: RepT
           )}
         </p>
       </div>
-      <p className="club-rep-fase" aria-hidden>{woord(status, w.label)}</p>
-      <p className="club-sr" aria-live="polite" aria-atomic="true">{meldingVan(plan, w, status)}</p>
+      <p className="club-rep-fase" aria-hidden>{woord(status, w.label, t)}</p>
+      <p className="club-sr" aria-live="polite" aria-atomic="true">{meldingVan(plan, w, status, t)}</p>
     </div>
   )
 }

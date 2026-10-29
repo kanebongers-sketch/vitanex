@@ -9,6 +9,8 @@
 
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { instelHref, instelPagina, magInstelPagina, type InstelKijker } from './instel-paginas'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { KOPPEL_TEKST } from '@/lib/aiyourgym/taal/woorden/club/koppelingen'
 
 export type KoppelingId = 'betalen' | 'widget' | 'ledenapp' | 'meldingen' | 'importeren' | 'exports'
 
@@ -32,6 +34,12 @@ export const KOPPELINGEN: readonly Koppeling[] = [
   { id: 'importeren', titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem of een spreadsheet als CSV inlezen. Je ziet eerst wat er verandert.', instel: 'importeren', knop: 'Bestand inlezen' },
   { id: 'exports', titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', onderdeel: { sleutel: 'rapporten', pad: '/rapporten' }, knop: 'Naar Rapporten' },
 ]
+
+/** Een koppeling met titel, uitleg en knop in de gekozen taal. */
+export function koppelingInTaal(k: Koppeling, taal: Taal): Koppeling {
+  const t = KOPPEL_TEKST[taal].koppelingen[k.id]
+  return { ...k, titel: t.titel, uitleg: t.uitleg, knop: t.knop }
+}
 
 /**
  * Mag deze persoon de koppeling zien? Betalen telt ook als het nog niet
@@ -77,7 +85,17 @@ export const STAND_LABEL: Record<KoppelStand, string> = {
   onbekend: 'Onbekend',
 }
 
-const ONBEKEND: KoppelStatus = { stand: 'onbekend', tekst: 'De stand kon niet worden gelezen. Probeer het later opnieuw.' }
+/** Het label van een stand in de gekozen taal. */
+export function standLabel(stand: KoppelStand, taal: Taal = 'nl'): string {
+  return KOPPEL_TEKST[taal].standLabel[stand]
+}
+
+const S = (taal: Taal) => KOPPEL_TEKST[taal].stand
+
+/** Kon de stand niet worden gelezen. */
+export function onbekendeStand(taal: Taal = 'nl'): KoppelStatus {
+  return { stand: 'onbekend', tekst: S(taal).onbekend }
+}
 
 export interface BetaalStandInvoer {
   /** Betalen in de ledenapp bestaat (CLUB_BETALEN_ACTIEF). */
@@ -88,13 +106,14 @@ export interface BetaalStandInvoer {
   account: { stripeAccountId: string | null; chargesAan: boolean; gegevensCompleet: boolean; betalenAan: boolean } | null
 }
 
-export function betaalStand({ actief, sleutelGezet, account }: BetaalStandInvoer): KoppelStatus {
-  if (!actief || !sleutelGezet) return { stand: 'dicht', tekst: 'Betalen in de ledenapp staat nog niet open voor je sportschool.' }
-  if (!account) return ONBEKEND
-  if (!account.stripeAccountId) return { stand: 'uit', tekst: 'Nog niet gekoppeld. Koppel je eigen Stripe-account om te beginnen.' }
-  if (!account.gegevensCompleet || !account.chargesAan) return { stand: 'bezig', tekst: 'Gekoppeld, Stripe controleert nog je gegevens.' }
-  if (!account.betalenAan) return { stand: 'uit', tekst: 'Gekoppeld en goedgekeurd. Kopen in de app staat nog uit.' }
-  return { stand: 'aan', tekst: 'Gekoppeld. Leden kunnen betalen in de app.' }
+export function betaalStand({ actief, sleutelGezet, account }: BetaalStandInvoer, taal: Taal = 'nl'): KoppelStatus {
+  const t = S(taal)
+  if (!actief || !sleutelGezet) return { stand: 'dicht', tekst: t.betaalDicht }
+  if (!account) return onbekendeStand(taal)
+  if (!account.stripeAccountId) return { stand: 'uit', tekst: t.betaalNietGekoppeld }
+  if (!account.gegevensCompleet || !account.chargesAan) return { stand: 'bezig', tekst: t.betaalControle }
+  if (!account.betalenAan) return { stand: 'uit', tekst: t.betaalUit }
+  return { stand: 'aan', tekst: t.betaalAan }
 }
 
 export interface WidgetStandInvoer {
@@ -107,28 +126,36 @@ export interface WidgetStandInvoer {
   vestigingen: number
 }
 
-export function widgetStand({ actief, adres, aanOp, vestigingen }: WidgetStandInvoer): KoppelStatus {
-  if (aanOp === null) return ONBEKEND
-  if (!adres) return { stand: 'uit', tekst: 'Kies eerst een adres voor je sportschool; de widget gebruikt dat in de link.' }
-  if (aanOp === 0) return { stand: 'uit', tekst: 'Staat op geen enkele vestiging aan.' }
-  const waar = vestigingen > 1 ? `Aan op ${aanOp} van ${vestigingen} vestigingen` : 'Aan'
-  if (!actief) return { stand: 'bezig', tekst: `${waar}, maar nog niet zichtbaar voor bezoekers van je website.` }
-  return { stand: 'aan', tekst: `${waar}. Bezoekers zien je rooster op je website.` }
+export function widgetStand({ actief, adres, aanOp, vestigingen }: WidgetStandInvoer, taal: Taal = 'nl'): KoppelStatus {
+  const t = S(taal)
+  if (aanOp === null) return onbekendeStand(taal)
+  if (!adres) return { stand: 'uit', tekst: t.widgetAdres }
+  if (aanOp === 0) return { stand: 'uit', tekst: t.widgetNergens }
+  const waar = vestigingen > 1 ? t.widgetAanOp(aanOp, vestigingen) : t.widgetAan
+  if (!actief) return { stand: 'bezig', tekst: t.widgetNietZichtbaar(waar) }
+  return { stand: 'aan', tekst: t.widgetZichtbaar(waar) }
 }
 
-export function ledenappStand({ open, qr }: { open: boolean; qr: boolean }): KoppelStatus {
-  if (!open) return { stand: 'dicht', tekst: 'De ledenapp is nog niet open voor leden.' }
-  return { stand: 'aan', tekst: qr ? 'Open voor leden, inchecken met de QR-code in de app staat aan.' : 'Open voor leden. Inchecken met de QR-code in de app staat uit.' }
+export function ledenappStand({ open, qr }: { open: boolean; qr: boolean }, taal: Taal = 'nl'): KoppelStatus {
+  const t = S(taal)
+  if (!open) return { stand: 'dicht', tekst: t.ledenappDicht }
+  return { stand: 'aan', tekst: qr ? t.ledenappQrAan : t.ledenappQrUit }
 }
 
-export function meldingenStand({ mail, push }: { mail: boolean; push: boolean }): KoppelStatus {
-  if (mail && push) return { stand: 'aan', tekst: 'Per mail en als melding op de telefoon.' }
-  if (mail) return { stand: 'aan', tekst: 'Per mail. Meldingen op de telefoon staan nog uit.' }
-  if (push) return { stand: 'bezig', tekst: 'Als melding op de telefoon. Mail staat nog uit.' }
-  return { stand: 'dicht', tekst: 'Mail en meldingen op de telefoon staan nog niet aan.' }
+export function meldingenStand({ mail, push }: { mail: boolean; push: boolean }, taal: Taal = 'nl'): KoppelStatus {
+  const t = S(taal)
+  if (mail && push) return { stand: 'aan', tekst: t.meldingenBeide }
+  if (mail) return { stand: 'aan', tekst: t.meldingenMail }
+  if (push) return { stand: 'bezig', tekst: t.meldingenPush }
+  return { stand: 'dicht', tekst: t.meldingenGeen }
 }
 
 export const ALTIJD: Record<'importeren' | 'exports', KoppelStatus> = {
   importeren: { stand: 'aan', tekst: 'Altijd beschikbaar. CSV met een rij per lid.' },
   exports: { stand: 'aan', tekst: 'Altijd beschikbaar, per kalendermaand.' },
+}
+
+/** Altijd beschikbaar (inlezen en exports), in de gekozen taal. */
+export function altijdStand(id: 'importeren' | 'exports', taal: Taal = 'nl'): KoppelStatus {
+  return { stand: 'aan', tekst: S(taal)[id] }
 }

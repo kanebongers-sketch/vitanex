@@ -3,6 +3,8 @@ import { clubFout, clubJson, logActie, vereisBeheerdersBeheer } from '@/lib/club
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { NIEUWE_START, klaarVoorLive, leesStartInvoer, nogOpen, nogOpenTekst, pasToe, stappenStand } from '@/lib/club/start/stappen'
 import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag'
+import { TAAL_COOKIE, kiesTaal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
 // PATCH /api/club/start  { stap?, klaar?, open?, afronden?, soort?, streefdatum?, bevestig? }
 // De voortgang van de startwizard van de sportschool die open staat. Alleen
@@ -18,14 +20,15 @@ export async function PATCH(req: NextRequest) {
   if (gelezen instanceof NextResponse) return gelezen
   const invoer = leesStartInvoer(gelezen.body)
   if (!invoer.ok) return clubFout(invoer.fout, 400)
+  const taal = kiesTaal(req.cookies.get(TAAL_COOKIE)?.value)
   const huidig = await haalStart(t)
-  if (!huidig.ok) return clubFout('De voortgang kon niet worden gelezen. Probeer het opnieuw.', 500)
+  if (!huidig.ok) return clubFout(START_LIB[taal].api.leesFout, 500)
   const nieuw = pasToe(huidig.voortgang ?? NIEUWE_START, invoer.waarde, new Date())
   if (invoer.waarde.afronden === true) {
-    const stand = stappenStand(nieuw, await haalStartFeiten(t))
-    if (!klaarVoorLive(stand)) return clubFout(nogOpenTekst(nogOpen(stand)), 409)
+    const stand = stappenStand(nieuw, await haalStartFeiten(t), taal)
+    if (!klaarVoorLive(stand)) return clubFout(nogOpenTekst(nogOpen(stand), taal), 409)
   }
-  if (!(await bewaarStart(t, nieuw))) return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
+  if (!(await bewaarStart(t, nieuw))) return clubFout(START_LIB[taal].api.opslaanFout, 500)
   if (invoer.waarde.afronden === true && !huidig.voortgang?.afgerondOp) await logActie(t, 'Startwizard afgerond', t.organisatie.naam, null)
   return clubJson({ ok: true, voortgang: nieuw })
 }

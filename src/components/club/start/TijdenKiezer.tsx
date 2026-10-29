@@ -1,7 +1,10 @@
 'use client'
 
 import { Clock3 } from 'lucide-react'
-import { WEEKDAG_LABEL, type Openingstijd, type Openingstijden } from '@/lib/club/rooster/openingstijden'
+import type { Openingstijd, Openingstijden } from '@/lib/club/rooster/openingstijden'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import { STANDAARD_TIJD, standaardWeek, weekTekst } from '@/lib/club/start/soorten'
 
 // Openingstijden met een klik: "standaard 06:00 tot 23:00" voor de hele week,
@@ -20,10 +23,13 @@ function metDag(week: Openingstijden, i: number, dag: Openingstijd | null): Open
 }
 
 export function TijdenKiezer({ week, perDag, onWeek, onPerDag }: TijdenKiezerProps) {
+  const taal = useTaal()
+  const t = useTekst(START).tijden
+  const dagen = START_LIB[taal].week.dagLang
   const isStandaard = weekTekst(week) === weekTekst(standaardWeek())
   return (
     <div className="club-start-tijden">
-      <div className="club-start-tijden-keuze" role="group" aria-label="Openingstijden">
+      <div className="club-start-tijden-keuze" role="group" aria-label={t.groep}>
         <button
           type="button"
           className="club-start-tijdknop"
@@ -35,38 +41,38 @@ export function TijdenKiezer({ week, perDag, onWeek, onPerDag }: TijdenKiezerPro
         >
           <Clock3 aria-hidden size={18} />
           <span>
-            <strong>Standaard</strong>
-            <span>Elke dag {STANDAARD_TIJD.van} tot {STANDAARD_TIJD.tot}</span>
+            <strong>{t.standaard}</strong>
+            <span>{t.standaardUitleg(STANDAARD_TIJD.van, STANDAARD_TIJD.tot)}</span>
           </span>
         </button>
         <button type="button" className="club-start-tijdknop" aria-pressed={perDag || !isStandaard} onClick={() => onPerDag(true)}>
           <span className="club-start-tijdknop-dagen" aria-hidden>
-            Ma
+            {t.dagenIcoon}
           </span>
           <span>
-            <strong>Per dag</strong>
-            <span>Eigen tijden of dagen dicht</span>
+            <strong>{t.perDag}</strong>
+            <span>{t.perDagUitleg}</span>
           </span>
         </button>
       </div>
       <p className="club-start-tijden-nu" aria-live="polite">
-        {weekTekst(week)}
+        {weekTekst(week, taal)}
       </p>
       <ul className="club-start-dagen" role="list">
         {week.map((dag, i) => (
-          <li key={WEEKDAG_LABEL[i]} data-dicht={!dag || undefined}>
+          <li key={i} data-dicht={!dag || undefined}>
             <label className="club-start-dag-open">
               <input type="checkbox" checked={dag !== null} onChange={(e) => onWeek(metDag(week, i, e.target.checked ? (week.find((d) => d !== null) ?? STANDAARD_TIJD) : null))} />
-              <span>{WEEKDAG_LABEL[i]}</span>
+              <span>{dagen[i]}</span>
             </label>
             {dag ? (
               <span className="club-start-dag-tijden">
-                <input type="time" className="club-invoer" aria-label={`${WEEKDAG_LABEL[i]} open vanaf`} value={dag.van} onChange={(e) => onWeek(metDag(week, i, { ...dag, van: e.target.value }))} />
-                <span className="club-zacht">tot</span>
-                <input type="time" className="club-invoer" aria-label={`${WEEKDAG_LABEL[i]} open tot`} value={dag.tot} onChange={(e) => onWeek(metDag(week, i, { ...dag, tot: e.target.value }))} />
+                <input type="time" className="club-invoer" aria-label={t.openVanaf(dagen[i])} value={dag.van} onChange={(e) => onWeek(metDag(week, i, { ...dag, van: e.target.value }))} />
+                <span className="club-zacht">{t.tot}</span>
+                <input type="time" className="club-invoer" aria-label={t.openTot(dagen[i])} value={dag.tot} onChange={(e) => onWeek(metDag(week, i, { ...dag, tot: e.target.value }))} />
               </span>
             ) : (
-              <span className="club-zacht">Dicht</span>
+              <span className="club-zacht">{t.dicht}</span>
             )}
           </li>
         ))}

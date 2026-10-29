@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { CircleCheck, CircleAlert, Clock3, MapPin, TriangleAlert } from 'lucide-react'
 import type { BalieLes, BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
 
 // De grote kaarten van het baliescherm: het gevonden lid (met Inchecken) en
 // de uitkomst na het inchecken. Gemaakt om vanaf een meter afstand te lezen.
@@ -12,14 +16,15 @@ export function tijd(iso: string): string {
 }
 
 function LesRegel({ lid }: { lid: BalieLid }) {
-  if (!lid.les) return <p className="club-checkin-les club-zacht">Vandaag geen les geboekt.</p>
-  const wacht = lid.les.status === 'wachtlijst' ? ' (wachtlijst)' : lid.les.status === 'aanwezig' ? ' (al aanwezig)' : ''
+  const t = useTekst(CHECKIN).kaart
+  if (!lid.les) return <p className="club-checkin-les club-zacht">{t.geenLes}</p>
+  const wacht = lid.les.status === 'wachtlijst' ? t.wachtlijst : lid.les.status === 'aanwezig' ? t.alAanwezig : ''
   return (
     <p className="club-checkin-les">
       <Clock3 aria-hidden size={18} />
       <span>
-        Vandaag <strong>{lid.les.naam}</strong> om {tijd(lid.les.start)}{wacht}
-        {lid.les.inVenster ? <em> · telt nu als aanwezig</em> : null}
+        {t.vandaag} <strong>{lid.les.naam}</strong>{t.om(tijd(lid.les.start))}{wacht}
+        {lid.les.inVenster ? <em>{t.teltAanwezig}</em> : null}
       </span>
     </p>
   )
@@ -27,27 +32,29 @@ function LesRegel({ lid }: { lid: BalieLid }) {
 
 /** "Lid van Bergeijk" als het lid uit een andere vestiging komt. */
 function VestigingChip({ lid }: { lid: BalieLid }) {
+  const t = useTekst(CHECKIN).kaart
   if (!lid.andereVestiging) return null
   return (
     <span className={`club-chip ${lid.geenToegang ? 'club-chip--let-op' : 'club-chip--info'} club-checkin-elders`}>
-      <MapPin aria-hidden size={13} /> Lid van {lid.vestigingLabel}
+      <MapPin aria-hidden size={13} /> {t.lidVan(lid.vestigingLabel)}
     </span>
   )
 }
 
 function Oordeel({ lid }: { lid: BalieLid }) {
+  const t = useTekst(CHECKIN).kaart
   if (lid.geenToegang) {
     return (
       <p className="club-checkin-oordeel club-checkin-oordeel--niet">
         <CircleAlert aria-hidden size={22} />
-        <span>Geen toegang in Eersel. <span className="club-checkin-oordeel-regel">Alleen leden van Eersel sporten bij alle clubs; leden van {lid.vestigingLabel} overal behalve Eersel.</span></span>
+        <span>{t.geenToegangEersel} <span className="club-checkin-oordeel-regel">{t.eerselRegel(lid.vestigingLabel)}</span></span>
       </p>
     )
   }
   if (!lid.magTrainen) {
     return (
       <p className="club-checkin-oordeel club-checkin-oordeel--niet">
-        <CircleAlert aria-hidden size={22} /> <span>Niet actief: {lid.statusLabel.toLowerCase()}. Klopt dat niet? Pas de status aan op de ledenkaart.</span>
+        <CircleAlert aria-hidden size={22} /> <span>{t.nietActief(lid.statusLabel.toLowerCase())}</span>
       </p>
     )
   }
@@ -55,8 +62,8 @@ function Oordeel({ lid }: { lid: BalieLid }) {
     <p className="club-checkin-oordeel club-checkin-oordeel--mag">
       <CircleCheck aria-hidden size={22} />
       <span>
-        {`${lid.statusLabel}: mag ${lid.andereVestiging ? 'hier ' : ''}trainen`}
-        {lid.andereVestiging ? <span className="club-checkin-oordeel-regel">Lid van {lid.vestigingLabel}, sporten hier zit in het lidmaatschap.</span> : null}
+        {t.magTrainen(lid.statusLabel, lid.andereVestiging)}
+        {lid.andereVestiging ? <span className="club-checkin-oordeel-regel">{t.eldersRegel(lid.vestigingLabel)}</span> : null}
       </span>
     </p>
   )
@@ -64,11 +71,12 @@ function Oordeel({ lid }: { lid: BalieLid }) {
 
 /** Lidmaatschap laat dit niet toe (vestiging of daluren): waarschuwen, niet blokkeren. */
 function VormWaarschuwing({ reden }: { reden: string }) {
+  const t = useTekst(CHECKIN).kaart
   return (
     <p className="club-checkin-vorm" role="note">
       <TriangleAlert aria-hidden size={20} />
       <span>
-        Let op het lidmaatschap. <span className="club-checkin-oordeel-regel">{reden} Check in als de balie dat goedvindt.</span>
+        {t.letOpVorm} <span className="club-checkin-oordeel-regel">{t.vormRegel(reden)}</span>
       </span>
     </p>
   )
@@ -81,6 +89,7 @@ interface LidKaartProps {
 }
 
 export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
+  const t = useTekst(CHECKIN).kaart
   return (
     <article className={`club-checkin-kaart ${!lid.magTrainen ? 'club-checkin-kaart--niet' : lid.vormWaarschuwing ? 'club-checkin-kaart--let' : 'club-checkin-kaart--mag'}`} aria-live="polite">
       <div className="club-checkin-kaart-kop">
@@ -94,9 +103,9 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
       <Oordeel lid={lid} />
       {lid.magTrainen && lid.vormWaarschuwing ? <VormWaarschuwing reden={lid.vormWaarschuwing} /> : null}
       <LesRegel lid={lid} />
-      {lid.dubbelSinds ? <p className="club-checkin-dubbel">Al ingecheckt om {tijd(lid.dubbelSinds)}. Nog een keer telt niet mee.</p> : null}
+      {lid.dubbelSinds ? <p className="club-checkin-dubbel">{t.dubbel(tijd(lid.dubbelSinds))}</p> : null}
       <button type="button" className="club-knop club-knop--primair club-knop--groot club-checkin-knop" onClick={onInchecken} disabled={bezig || !lid.magTrainen}>
-        {lid.vormWaarschuwing ? 'Toch inchecken' : <>Inchecken <kbd aria-hidden>Enter</kbd></>}
+        {lid.vormWaarschuwing ? t.toch : <>{t.inchecken} <kbd aria-hidden>Enter</kbd></>}
       </button>
     </article>
   )
@@ -136,18 +145,19 @@ function Aftellen({ duurMs }: { duurMs?: number }) {
 }
 
 export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs, lidHref }: UitkomstProps) {
+  const t = useTekst(CHECKIN).uitkomst
   if (antwoord.soort === 'vorm_waarschuwing') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--let-op" role="alert">
-        <p className="club-checkin-uitkomst-woord">Let op</p>
+        <p className="club-checkin-uitkomst-woord">{t.letOp}</p>
         <Naam naam={lid.naam} href={lidHref} />
-        <p>{antwoord.reden} Nog niet ingecheckt.</p>
+        <p>{t.nogNiet(antwoord.reden)}</p>
         <div className="club-checkin-uitkomst-knoppen">
           <button type="button" className="club-knop club-knop--primair" onClick={onToch} disabled={bezig}>
-            Toch inchecken
+            {t.toch}
           </button>
           <button type="button" className="club-knop club-knop--stil" onClick={onNiet} disabled={bezig}>
-            Niet inchecken
+            {t.niet}
           </button>
         </div>
       </article>
@@ -156,9 +166,9 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs, lidHref
   if (antwoord.soort === 'niet_actief') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
-        <p className="club-checkin-uitkomst-woord">Niet actief</p>
+        <p className="club-checkin-uitkomst-woord">{t.nietActief}</p>
         <Naam naam={lid.naam} href={lidHref} />
-        <p>Status {antwoord.statusLabel.toLowerCase()}. Niet ingecheckt. Klopt de status niet, pas hem dan aan op de ledenkaart.</p>
+        <p>{t.nietActiefTekst(antwoord.statusLabel.toLowerCase())}</p>
         <Aftellen duurMs={duurMs} />
       </article>
     )
@@ -166,9 +176,9 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs, lidHref
   if (antwoord.soort === 'geen_toegang') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--niet" role="status">
-        <p className="club-checkin-uitkomst-woord">Geen toegang</p>
+        <p className="club-checkin-uitkomst-woord">{t.geenToegang}</p>
         <Naam naam={lid.naam} href={lidHref} />
-        <p>Lid van {antwoord.vestigingLabel}: niet ingecheckt. Alleen leden van Eersel sporten bij alle clubs; andere leden overal behalve Eersel.</p>
+        <p>{t.geenToegangTekst(antwoord.vestigingLabel)}</p>
         <Aftellen duurMs={duurMs} />
       </article>
     )
@@ -176,21 +186,21 @@ export function Uitkomst({ lid, antwoord, bezig, onToch, onNiet, duurMs, lidHref
   if (antwoord.soort === 'dubbel') {
     return (
       <article className="club-checkin-uitkomst club-checkin-uitkomst--dubbel" role="status">
-        <p className="club-checkin-uitkomst-woord">Al binnen</p>
+        <p className="club-checkin-uitkomst-woord">{t.alBinnen}</p>
         <Naam naam={lid.naam} href={lidHref} />
-        <p>Ingecheckt om {tijd(antwoord.op)}. Deze keer telt niet opnieuw mee.</p>
+        <p>{t.alBinnenTekst(tijd(antwoord.op))}</p>
         <Aftellen duurMs={duurMs} />
       </article>
     )
   }
   return (
     <article className="club-checkin-uitkomst club-checkin-uitkomst--welkom" role="status">
-      <p className="club-checkin-uitkomst-woord">Welkom</p>
+      <p className="club-checkin-uitkomst-woord">{t.welkom}</p>
       <Naam naam={lid.naam} href={lidHref} />
       <p>
-        Ingecheckt om {tijd(antwoord.op)}.
-        {lid.andereVestiging ? ` Lid van ${lid.vestigingLabel}.` : ''}
-        {antwoord.les ? ` Aanwezig gezet bij ${antwoord.les.naam} van ${tijd(antwoord.les.start)}.` : lid.les ? ` Vandaag ${lid.les.naam} om ${tijd(lid.les.start)}.` : ''}
+        {t.ingecheckt(tijd(antwoord.op))}
+        {lid.andereVestiging ? t.lidVan(lid.vestigingLabel) : ''}
+        {antwoord.les ? t.aanwezigBij(antwoord.les.naam, tijd(antwoord.les.start)) : lid.les ? t.vandaagLes(lid.les.naam, tijd(lid.les.start)) : ''}
       </p>
       <Aftellen duurMs={duurMs} />
     </article>
@@ -206,8 +216,9 @@ interface ResultatenProps {
 
 /** De treffers als keuzelijst bij het zoekveld (combobox): pijltjes of klikken. */
 export function Resultaten({ id, leden, gekozen, onKies }: ResultatenProps) {
+  const t = useTekst(CHECKIN).kaart
   return (
-    <ul id={id} className="club-checkin-resultaten" role="listbox" aria-label="Gevonden leden">
+    <ul id={id} className="club-checkin-resultaten" role="listbox" aria-label={t.gevonden}>
       {leden.map((l, i) => (
         <li
           key={l.id}
@@ -222,10 +233,10 @@ export function Resultaten({ id, leden, gekozen, onKies }: ResultatenProps) {
           <span className="club-rij-hoofd">
             <span className="club-rij-titel">{l.naam}</span>
             <span className="club-rij-sub">
-              {[l.lidnummer, l.andereVestiging ? `Lid van ${l.vestigingLabel}` : null, l.les ? `${l.les.naam} ${tijd(l.les.start)}` : null].filter(Boolean).join(' · ')}
+              {[l.lidnummer, l.andereVestiging ? t.lidVan(l.vestigingLabel) : null, l.les ? `${l.les.naam} ${tijd(l.les.start)}` : null].filter(Boolean).join(' · ')}
             </span>
           </span>
-          <span className={`club-chip ${l.magTrainen ? 'club-chip--ok' : 'club-chip--let-op'}`}>{l.geenToegang ? 'Geen toegang' : l.statusLabel}</span>
+          <span className={`club-chip ${l.magTrainen ? 'club-chip--ok' : 'club-chip--let-op'}`}>{l.geenToegang ? t.geenToegang : l.statusLabel}</span>
         </li>
       ))}
     </ul>

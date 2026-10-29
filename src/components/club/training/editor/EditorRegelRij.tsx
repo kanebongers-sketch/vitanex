@@ -4,7 +4,9 @@ import { useState, type DragEvent, type KeyboardEvent } from 'react'
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Link2, Trash2, Unlink2 } from 'lucide-react'
 import type { EditorRegel, Inspanning, Maat, TekstVeld } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { MATERIAAL_LABEL } from '@/lib/club/training/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeld } from '../OefeningBeeld'
 import { RenderDuim } from '../repspeler/OefeningVoorbeeld'
@@ -37,16 +39,18 @@ interface EditorRegelRijProps {
   acties: RegelActies
 }
 
-const MAAT_LABEL: Record<Maat, string> = { herhalingen: 'Herh.', tijd: 'Tijd' }
-const INSPANNING: { waarde: Inspanning; label: string }[] = [
-  { waarde: 'geen', label: 'Geen' },
+const INSPANNING: { waarde: Inspanning; label: string | null }[] = [
+  { waarde: 'geen', label: null },
   { waarde: 'rpe', label: 'RPE' },
   { waarde: 'rir', label: 'RIR' },
 ]
 
 /** Een oefening in de editor: de vaste velden altijd, RPE/RIR, tempo en notitie onder "Meer". */
 export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaatste, inBlok, isSleepDoel, acties: a }: EditorRegelRijProps) {
-  const naam = o?.naam ?? 'Onbekende oefening'
+  const taal = useTaal()
+  const t = useTekst(SCHEMA_EDITOR).regel
+  const l = useTekst(TRAINING_LABELS)
+  const naam = o?.naam ?? t.onbekend
   const heeftExtra = r.inspanning !== 'geen' || r.tempo !== '' || r.notitie !== ''
   const [meer, setMeer] = useState(heeftExtra)
   const wijzig = (veld: TekstVeld) => (e: { target: { value: string } }) => a.onWijzig(r.sleutel, veld, e.target.value)
@@ -80,7 +84,7 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
       }}
     >
       <div className="club-training-r-kop">
-        <button type="button" className="club-training-r-greep" draggable onDragStart={sleepStart} onDragEnd={a.onSleepEinde} aria-label={`${naam} slepen. Met het toetsenbord: Alt en pijltje omhoog of omlaag`} title="Slepen, of Alt + pijltje">
+        <button type="button" className="club-training-r-greep" draggable onDragStart={sleepStart} onDragEnd={a.onSleepEinde} aria-label={t.slepen(naam)} title={t.slepenTitel}>
           <GripVertical aria-hidden size={16} />
         </button>
         <span className="club-training-r-nr" aria-hidden>{label}</span>
@@ -91,7 +95,7 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
             {o && (
               <span className="club-training-regelspieren">
                 <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} max={2} />
-                <span className="club-zacht">{MATERIAAL_LABEL[o.materiaal]}</span>
+                <span className="club-zacht">{l.materiaal[o.materiaal]}</span>
               </span>
             )}
           </div>
@@ -99,21 +103,21 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
         <div className="club-training-r-acties">
           <VervangOefening regel={r} oefening={o} onVervang={(id) => a.onVervang(r.sleutel, id)} />
           {inBlok ? (
-            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onOntkoppel(r.sleutel)} aria-label={`${naam} uit de superset halen`} title="Uit superset halen">
+            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onOntkoppel(r.sleutel)} aria-label={t.uitSuperset(naam)} title={t.uitSupersetTitel}>
               <Unlink2 aria-hidden size={15} />
             </button>
           ) : (
-            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onKoppel(r.sleutel)} disabled={isEerste} aria-label={`${naam} koppelen aan de oefening erboven (superset)`} title="Superset met de oefening erboven">
+            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onKoppel(r.sleutel)} disabled={isEerste} aria-label={t.koppel(naam)} title={t.koppelTitel}>
               <Link2 aria-hidden size={15} />
             </button>
           )}
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onVerplaats(r.sleutel, -1)} disabled={isEerste} aria-label={`${naam} omhoog`}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onVerplaats(r.sleutel, -1)} disabled={isEerste} aria-label={t.omhoog(naam)}>
             <ArrowUp aria-hidden size={15} />
           </button>
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onVerplaats(r.sleutel, 1)} disabled={isLaatste} aria-label={`${naam} omlaag`}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onVerplaats(r.sleutel, 1)} disabled={isLaatste} aria-label={t.omlaag(naam)}>
             <ArrowDown aria-hidden size={15} />
           </button>
-          <button type="button" className="club-knop club-knop--stil club-knop--klein club-training-weg" onClick={() => a.onVerwijder(r.sleutel)} aria-label={`${naam} verwijderen`}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein club-training-weg" onClick={() => a.onVerwijder(r.sleutel)} aria-label={t.verwijder(naam)}>
             <Trash2 aria-hidden size={15} />
           </button>
         </div>
@@ -121,64 +125,64 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
 
       <div className="club-training-r-velden">
         <label className="club-training-r-veld club-training-r-veld--kort">
-          <span>Sets</span>
-          <input className="club-invoer" inputMode="numeric" value={r.sets} onChange={wijzig('sets')} aria-label={`Sets ${naam}`} />
+          <span>{t.sets}</span>
+          <input className="club-invoer" inputMode="numeric" value={r.sets} onChange={wijzig('sets')} aria-label={t.setsVan(naam)} />
         </label>
         <div className="club-training-r-veld club-training-r-veld--maat">
-          <span className="club-training-r-wissel" role="group" aria-label={`Herhalingen of tijd voor ${naam}`}>
+          <span className="club-training-r-wissel" role="group" aria-label={t.herhOfTijd(naam)}>
             {(['herhalingen', 'tijd'] as const).map((m) => (
-              <button key={m} type="button" aria-pressed={r.maat === m} onClick={() => a.onMaat(r.sleutel, m)}>{MAAT_LABEL[m]}</button>
+              <button key={m} type="button" aria-pressed={r.maat === m} onClick={() => a.onMaat(r.sleutel, m)}>{t.maat[m]}</button>
             ))}
           </span>
           {r.maat === 'herhalingen' ? (
             <input
-              className="club-invoer" value={r.herhalingen} onChange={wijzig('herhalingen')} placeholder="8 tot 10" aria-label={`Herhalingen ${naam}`}
+              className="club-invoer" value={toonHerhalingen(r.herhalingen, taal)} onChange={wijzig('herhalingen')} placeholder={t.herhPlaats} aria-label={t.herhVan(naam)}
               onBlur={(e) => a.onWijzig(r.sleutel, 'herhalingen', toonHerhalingen(e.target.value))}
             />
           ) : (
             <span className="club-training-r-eenheid">
-              <input className="club-invoer" inputMode="numeric" value={r.tijdSec} onChange={wijzig('tijdSec')} placeholder="30" aria-label={`Seconden per set ${naam}`} />
-              <small>sec</small>
+              <input className="club-invoer" inputMode="numeric" value={r.tijdSec} onChange={wijzig('tijdSec')} placeholder="30" aria-label={t.secondenVan(naam)} />
+              <small>{t.sec}</small>
             </span>
           )}
         </div>
         <label className="club-training-r-veld">
-          <span>Kg</span>
-          <input className="club-invoer" inputMode="decimal" value={r.gewichtKg} onChange={wijzig('gewichtKg')} aria-label={`Gewicht in kg ${naam}`} />
+          <span>{t.kg}</span>
+          <input className="club-invoer" inputMode="decimal" value={r.gewichtKg} onChange={wijzig('gewichtKg')} aria-label={t.gewichtVan(naam)} />
         </label>
         <label className="club-training-r-veld">
-          <span>Rust</span>
+          <span>{t.rust}</span>
           <span className="club-training-r-eenheid">
-            <input className="club-invoer" inputMode="numeric" value={r.rustSec} onChange={wijzig('rustSec')} aria-label={`Rust in seconden ${naam}`} title={toonRust(Number(r.rustSec) || null)} />
-            <small>sec</small>
+            <input className="club-invoer" inputMode="numeric" value={r.rustSec} onChange={wijzig('rustSec')} aria-label={t.rustVan(naam)} title={toonRust(Number(r.rustSec) || null, taal)} />
+            <small>{t.sec}</small>
           </span>
         </label>
         <button type="button" className="club-training-r-meer" aria-expanded={meer} onClick={() => setMeer((m) => !m)} data-gevuld={heeftExtra || undefined}>
-          Meer <ChevronDown aria-hidden size={14} />
+          {t.meer} <ChevronDown aria-hidden size={14} />
         </button>
       </div>
 
       {meer && (
         <div className="club-training-r-extra">
           <div className="club-training-r-veld club-training-r-veld--inspanning">
-            <span className="club-training-r-wissel" role="group" aria-label={`Inspanning voor ${naam}`}>
+            <span className="club-training-r-wissel" role="group" aria-label={t.inspanningVan(naam)}>
               {INSPANNING.map((i) => (
-                <button key={i.waarde} type="button" aria-pressed={r.inspanning === i.waarde} onClick={() => a.onInspanning(r.sleutel, i.waarde)}>{i.label}</button>
+                <button key={i.waarde} type="button" aria-pressed={r.inspanning === i.waarde} onClick={() => a.onInspanning(r.sleutel, i.waarde)}>{i.label ?? t.geen}</button>
               ))}
             </span>
             <input
               className="club-invoer" inputMode="decimal" value={r.inspanningWaarde} onChange={wijzig('inspanningWaarde')} disabled={r.inspanning === 'geen'}
-              placeholder={r.inspanning === 'rir' ? '2' : r.inspanning === 'rpe' ? '8' : ''} aria-label={`Waarde voor ${r.inspanning.toUpperCase()} ${naam}`}
-              title="RPE: hoe zwaar (1 tot 10). RIR: hoeveel herhalingen je nog had gekund."
+              placeholder={r.inspanning === 'rir' ? '2' : r.inspanning === 'rpe' ? '8' : ''} aria-label={t.waardeVan(r.inspanning.toUpperCase(), naam)}
+              title={t.inspanningUitleg}
             />
           </div>
           <label className="club-training-r-veld club-training-r-veld--kort">
-            <span>Tempo</span>
-            <input className="club-invoer" value={r.tempo} maxLength={7} onChange={wijzig('tempo')} placeholder="3110" aria-label={`Tempo ${naam}, vier cijfers: omlaag, onder, omhoog, boven`} title="Vier cijfers: tellen omlaag, pauze onder, omhoog, pauze boven" />
+            <span>{t.tempo}</span>
+            <input className="club-invoer" value={r.tempo} maxLength={7} onChange={wijzig('tempo')} placeholder="3110" aria-label={t.tempoVan(naam)} title={t.tempoUitleg} />
           </label>
           <label className="club-training-r-veld club-training-r-veld--notitie">
-            <span>Notitie</span>
-            <input className="club-invoer" value={r.notitie} maxLength={300} onChange={wijzig('notitie')} aria-label={`Notitie ${naam}`} />
+            <span>{t.notitie}</span>
+            <input className="club-invoer" value={r.notitie} maxLength={300} onChange={wijzig('notitie')} aria-label={t.notitieVan(naam)} />
           </label>
         </div>
       )}

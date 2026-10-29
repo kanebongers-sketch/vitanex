@@ -13,6 +13,8 @@ import { haalWidgetContext, haalWidgetLessen, type WidgetContext } from '@/lib/c
 import { widgetWeergave } from '@/lib/club/widget/rooster'
 import { WidgetRooster } from '@/components/club/widget/WidgetRooster'
 import '@/components/club/widget/widget.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { WIDGET } from '@/lib/aiyourgym/taal/woorden/club/widget'
 
 // /widget/<sportschool>/<vestiging>/rooster: de boekingswidget die een
 // sportschool met public/widget/aiyourgym-widget.js op haar eigen website zet.
@@ -25,9 +27,11 @@ interface PaginaProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export const metadata: Metadata = {
-  title: 'Lesrooster',
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: (await clubTekst(WIDGET)).titel,
+    robots: { index: false, follow: false },
+  }
 }
 
 function admin(): SupabaseClient | null {

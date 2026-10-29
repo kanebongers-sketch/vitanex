@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Check, CheckCheck, Lock } from 'lucide-react'
-import { UURSOORT_LABEL, type Dienst, type PersoneelLid } from '@/lib/club/personeel/typen'
+import type { Dienst, PersoneelLid } from '@/lib/club/personeel/typen'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 import { plekStijl, type Bereik } from './weergave'
 
 // Een dienst als blok in de tijdbalk: tijd, soort, en kleine tekens voor de
@@ -23,10 +25,12 @@ function UurTeken({ dienst }: { dienst: Dienst }) {
   return null
 }
 
-export function DienstBlok({ dienst, bereik, soortNaam, lid, href, isGeopend }: Props) {
-  const wie = lid?.naam ?? 'Open dienst'
-  const extra = dienst.uursoort !== 'werk' ? ` (${UURSOORT_LABEL[dienst.uursoort]})` : ''
-  const label = `${wie}${extra}: ${dienst.begin} tot ${dienst.eind}${soortNaam ? `, ${soortNaam}` : ''}${dienst.uurStatus !== 'gepland' ? `, uren ${dienst.uurStatus}` : ''}`
+export async function DienstBlok({ dienst, bereik, soortNaam, lid, href, isGeopend }: Props) {
+  const tk = await clubTekst(PERSONEEL)
+  const wie = lid?.naam ?? tk.algemeen.openDienst
+  const extra = dienst.uursoort !== 'werk' ? ` (${tk.labels.uursoort[dienst.uursoort]})` : ''
+  const status = tk.labels.uurStatus[dienst.uurStatus].toLowerCase()
+  const label = `${wie}${extra}: ${tk.algemeen.vanTot(dienst.begin, dienst.eind)}${soortNaam ? `, ${soortNaam}` : ''}${dienst.uurStatus !== 'gepland' ? `, ${tk.blok.uren(status)}` : ''}`
   return (
     <Link
       href={href}
@@ -41,11 +45,11 @@ export function DienstBlok({ dienst, bereik, soortNaam, lid, href, isGeopend }: 
       title={dienst.notitie ?? undefined}
     >
       <span className="club-personeel-bloktijd club-getal">
-        {dienst.begin} tot {dienst.eind}
+        {tk.algemeen.vanTot(dienst.begin, dienst.eind)}
       </span>
       <span className="club-personeel-bloksoort">
-        {dienst.uursoort !== 'werk' ? UURSOORT_LABEL[dienst.uursoort] : (soortNaam ?? (dienst.medewerkerId === null ? 'Open' : ''))}
-        {dienst.status === 'geruild' && ' · geruild'}
+        {dienst.uursoort !== 'werk' ? tk.labels.uursoort[dienst.uursoort] : (soortNaam ?? (dienst.medewerkerId === null ? tk.algemeen.open : ''))}
+        {dienst.status === 'geruild' && ` · ${tk.blok.geruild}`}
       </span>
       <span className="club-personeel-blokteken">
         <UurTeken dienst={dienst} />

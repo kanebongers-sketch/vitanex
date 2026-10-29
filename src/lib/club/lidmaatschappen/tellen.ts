@@ -5,6 +5,8 @@
 
 import { normaliseerTag } from '@/lib/club/leden/invoer'
 import { vormSleutel, type Label, type Lidmaatschapsvorm } from './model'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 
 /** Het stukje van een lid dat hier telt. */
 export interface LidKenmerken {
@@ -100,6 +102,6 @@ export function verwijderTag(tags: readonly string[], naam: string): string[] {
   return tags.filter((t) => t !== naam)
 }
 
-export function ledenTekst(n: number): string {
-  return `${n} ${n === 1 ? 'lid' : 'leden'}`
+export function ledenTekst(n: number, taal: Taal = 'nl'): string {
+  return LIDMAATSCHAPPEN[taal].algemeen.leden(n)
 }

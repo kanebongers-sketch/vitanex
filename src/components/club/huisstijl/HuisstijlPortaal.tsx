@@ -6,6 +6,8 @@ import type { Thema } from '@/lib/club/kern/huisstijl'
 import type { Module } from '@/lib/club/kern/organisatie'
 import { MAX_NAAM, MAX_SLOGAN } from '@/lib/club/kern/organisatie-invoer'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 import { LogoBlok } from './LogoBlok'
 import { KleurBlok } from './KleurBlok'
 import { ModulesBlok } from './ModulesBlok'
@@ -34,6 +36,8 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
   const gewijzigd = JSON.stringify(waarden) !== JSON.stringify(organisatie)
+  const tekst = useTekst(HUISSTIJL)
+  const t = tekst.portaal
 
   function zet<K extends keyof HuisstijlWaarden>(veld: K, waarde: HuisstijlWaarden[K]) {
     setMelding(null)
@@ -45,7 +49,7 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
     const uit = await stuur('/api/club/organisatie', 'PATCH', { ...waarden, slogan: waarden.slogan ?? '' })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: 'Opgeslagen. De huisstijl geldt nu voor heel Club.' })
+    setMelding({ ok: true, tekst: t.opgeslagen })
     router.refresh()
   }
 
@@ -53,13 +57,13 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
     <div className="club-huisstijl">
       <div className="club-huisstijl-velden">
         <section className="club-huisstijl-blok" aria-labelledby="merk-kop">
-          <h2 id="merk-kop" className="club-huisstijl-kop">Naam en logo</h2>
+          <h2 id="merk-kop" className="club-huisstijl-kop">{t.naamEnLogo}</h2>
           <label className="club-veld">
-            <span>Naam van de sportschool</span>
+            <span>{t.naam}</span>
             <input className="club-invoer" value={waarden.naam} maxLength={MAX_NAAM} onChange={(e) => zet('naam', e.target.value)} />
           </label>
           <label className="club-veld">
-            <span>Slogan (mag leeg)</span>
+            <span>{t.slogan}</span>
             <input className="club-invoer" value={waarden.slogan ?? ''} maxLength={MAX_SLOGAN} onChange={(e) => zet('slogan', e.target.value || null)} />
           </label>
           <LogoBlok logoUrl={logoUrl} ingebouwd={ingebouwdLogo} naam={waarden.naam} />
@@ -71,11 +75,11 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo }: Huisst
 
         <div className="club-huisstijl-opslaan">
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={!gewijzigd || bezig} onClick={() => void bewaar()}>
-            {bezig ? 'Opslaan...' : 'Opslaan'}
+            {bezig ? tekst.algemeen.bezig : tekst.algemeen.opslaan}
           </button>
           {gewijzigd && !bezig && (
             <button type="button" className="club-knop club-knop--stil" onClick={() => setWaarden(organisatie)}>
-              Terugzetten
+              {t.terugzetten}
             </button>
           )}
           <div className="club-huisstijl-status" role="status" aria-live="polite">

@@ -9,6 +9,10 @@ import { urenKlok } from '@/lib/club/personeel/uren'
 import type { Dienst, PersoneelLid, RoosterNotitie } from '@/lib/club/personeel/typen'
 import { DienstBlok } from './DienstBlok'
 import { dagMaand, plekStijl, weekdagKort, type Bereik } from './weergave'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
+
+type DagTekst = (typeof PERSONEEL)['nl']['dag']
 
 // Een dag als tijdbalk: bovenin de bezetting (gat = koraal, klik = plannen),
 // dan mededelingen, dan een baan per medewerker en een baan voor open diensten.
@@ -27,20 +31,20 @@ interface Props {
   nuMin: number | null
 }
 
-function Bezetting({ datum, bemand, bereik, diensten, staat }: Pick<Props, 'datum' | 'bemand' | 'bereik' | 'diensten' | 'staat'>) {
-  if (!bemand) return <div className="club-personeel-spoor club-personeel-onbemand"><span className="club-personeel-spoortekst">Onbemand</span></div>
+function Bezetting({ datum, bemand, bereik, diensten, staat, tk, tot }: Pick<Props, 'datum' | 'bemand' | 'bereik' | 'diensten' | 'staat'> & { tk: DagTekst; tot: (van: string, tot: string) => string }) {
+  if (!bemand) return <div className="club-personeel-spoor club-personeel-onbemand"><span className="club-personeel-spoortekst">{tk.onbemand}</span></div>
   const stukken = dekking(diensten, tijdNaarMinuten(bemand.van), tijdNaarMinuten(bemand.tot))
   const basis = zonderPaneel(staat)
   return (
     <div className="club-personeel-spoor">
       <span className="club-personeel-bemand" style={plekStijl(bemand.van, bemand.tot, bereik)} aria-hidden />
       {stukken.map((s) => {
-        const tijd = `${minutenNaarTijd(s.van)} tot ${minutenNaarTijd(s.tot)}`
+        const tijd = tot(minutenNaarTijd(s.van), minutenNaarTijd(s.tot))
         if (s.aantal > 0)
-          return <span key={s.van} className="club-personeel-dekking" data-aantal={Math.min(s.aantal, 3)} style={plekStijl(s.van, s.tot, bereik)} title={`${tijd}: ${s.aantal} aan het werk`} />
+          return <span key={s.van} className="club-personeel-dekking" data-aantal={Math.min(s.aantal, 3)} style={plekStijl(s.van, s.tot, bereik)} title={tk.aanHetWerk(tijd, s.aantal)} />
         return (
-          <Link key={s.van} className="club-personeel-gat" style={plekStijl(s.van, s.tot, bereik)} href={personeelHref(basis, { nieuw: datum, van: minutenNaarTijd(s.van), tot: minutenNaarTijd(s.tot) })} scroll={false} aria-label={`Gat van ${tijd}, dienst plannen`}>
-            <span>Gat</span>
+          <Link key={s.van} className="club-personeel-gat" style={plekStijl(s.van, s.tot, bereik)} href={personeelHref(basis, { nieuw: datum, van: minutenNaarTijd(s.van), tot: minutenNaarTijd(s.tot) })} scroll={false} aria-label={tk.gatPlannen(tijd)}>
+            <span>{tk.gat}</span>
           </Link>
         )
       })}
@@ -81,7 +85,10 @@ function Baan({ label, kleur, children }: { label: string; kleur?: string; child
   )
 }
 
-export function DagRij({ datum, isVandaag, bemand, bereik, diensten, notities, team, soortNamen, staat, nuMin }: Props) {
+export async function DagRij({ datum, isVandaag, bemand, bereik, diensten, notities, team, soortNamen, staat, nuMin }: Props) {
+  const taal = await getTaal()
+  const alles = await clubTekst(PERSONEEL)
+  const tk = alles.dag
   const basis = zonderPaneel(staat)
   const mensen = team.filter((l) => diensten.some((d) => d.medewerkerId === l.id))
   const open = diensten.filter((d) => d.medewerkerId === null)
@@ -96,18 +103,18 @@ export function DagRij({ datum, isVandaag, bemand, bereik, diensten, notities, t
     <section className="club-personeel-dag" data-vandaag={isVandaag || undefined} aria-labelledby={titelId}>
       <header className="club-personeel-dagkop">
         <h2 id={titelId}>
-          <span className="club-personeel-dagnaam">{weekdagKort(datum)}</span> <span className="club-personeel-dagnr">{dagMaand(datum)}</span>
+          <span className="club-personeel-dagnaam">{weekdagKort(datum, taal)}</span> <span className="club-personeel-dagnr">{dagMaand(datum, taal)}</span>
         </h2>
-        <span className="club-zacht">{bemand ? `Bemand ${bemand.van} tot ${bemand.tot}` : 'Onbemand'}</span>
-        {gatMin > 0 && <span className="club-chip club-chip--let-op">Gat {urenKlok(gatMin)} uur</span>}
-        {bemand && gatMin === 0 && diensten.length > 0 && <span className="club-chip club-chip--ok">Gedekt</span>}
-        {open.length > 0 && <span className="club-chip club-chip--let-op">{open.length} open</span>}
+        <span className="club-zacht">{bemand ? tk.bemand(bemand.van, bemand.tot) : tk.onbemand}</span>
+        {gatMin > 0 && <span className="club-chip club-chip--let-op">{tk.gatUur(urenKlok(gatMin))}</span>}
+        {bemand && gatMin === 0 && diensten.length > 0 && <span className="club-chip club-chip--ok">{tk.gedekt}</span>}
+        {open.length > 0 && <span className="club-chip club-chip--let-op">{tk.aantalOpen(open.length)}</span>}
         <span className="club-personeel-dagacties">
           <Link className="club-knop club-knop--klein club-knop--stil" href={personeelHref(basis, { paneel: 'notitie', nieuw: datum })} scroll={false}>
-            <MessageSquare aria-hidden size={14} /> Mededeling
+            <MessageSquare aria-hidden size={14} /> {tk.mededeling}
           </Link>
           <Link className="club-knop club-knop--klein" href={personeelHref(basis, { nieuw: datum, van: bemand?.van ?? null, tot: null })} scroll={false}>
-            <Plus aria-hidden size={14} /> Dienst
+            <Plus aria-hidden size={14} /> {tk.dienst}
           </Link>
         </span>
       </header>
@@ -118,11 +125,11 @@ export function DagRij({ datum, isVandaag, bemand, bereik, diensten, notities, t
           </span>
         )}
         <div className="club-personeel-baan club-personeel-baan--bezetting">
-          <span className="club-personeel-baanlabel">Bezetting</span>
-          <Bezetting datum={datum} bemand={bemand} bereik={bereik} diensten={diensten} staat={staat} />
+          <span className="club-personeel-baanlabel">{tk.bezetting}</span>
+          <Bezetting datum={datum} bemand={bemand} bereik={bereik} diensten={diensten} staat={staat} tk={tk} tot={alles.algemeen.vanTot} />
         </div>
         {mededelingen.length > 0 && (
-          <Baan label="Mededeling">
+          <Baan label={tk.mededeling}>
             {mededelingen.map((n) => (
               <Link key={n.id} className="club-personeel-notitie" data-soort={n.soort} style={n.van ? plekStijl(n.van, n.tot ?? minutenNaarTijd(tijdNaarMinuten(n.van) + 30), bereik) : plekStijl(bereik.van, bereik.tot, bereik)} href={personeelHref(basis, { paneel: 'notitie', nieuw: datum })} scroll={false}>
                 {n.van && <span className="club-getal">{n.van}</span>} {n.tekst}
@@ -143,11 +150,11 @@ export function DagRij({ datum, isVandaag, bemand, bereik, diensten, notities, t
               ))}
           </Baan>
         ))}
-        {open.length > 0 && <Baan label="Open dienst">{open.map(blok)}</Baan>}
-        <Baan label="Inplannen">
+        {open.length > 0 && <Baan label={alles.algemeen.openDienst}>{open.map(blok)}</Baan>}
+        <Baan label={tk.inplannen}>
           <Uurvakken datum={datum} bereik={bereik} mw={null} staat={staat} />
           <span className="club-personeel-spoortekst club-personeel-hint" aria-hidden>
-            Klik op een uur om een dienst te plannen
+            {tk.klikUur}
           </span>
         </Baan>
       </div>

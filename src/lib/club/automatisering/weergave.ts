@@ -3,9 +3,11 @@
 // oppakt en de ingevulde voorbeeldtekst. Zo hoeft de browser niets te rekenen.
 
 import { initialen } from '@/lib/club/kern/lid'
-import { REGEL_DEFINITIES, wieTekst, type Regel, type RegelSleutel } from './regels'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
+import { REGEL_DEFINITIES, type Regel, type RegelSleutel, type Wie } from './regels'
 import { vulSjabloon } from './sjabloon'
-import { TAAK_STATUS_LABEL, sjabloonWaarden, type RegelGroep, type Taak, type TaakStatus } from './taken'
+import { sjabloonWaarden, type RegelGroep, type Taak, type TaakStatus } from './taken'
 
 export interface OpvolgItem {
   id: string
@@ -40,35 +42,44 @@ export interface Context {
   medewerkers: ReadonlyMap<string, string>
 }
 
-export function naarItem(taak: Taak, ctx: Context): OpvolgItem {
+/** Wie een taak oppakt, in de gekozen taal: iedereen, een rol of een medewerker. */
+function wieInTaal(wie: Wie, medewerkers: ReadonlyMap<string, string>, taal: Taal): string {
+  const t = OPVOLGEN[taal].wie
+  if (wie.soort === 'iedereen') return t.iedereen
+  if (wie.soort === 'rol') return t.rol[wie.rol]
+  return medewerkers.get(wie.id) ?? t.onbekend
+}
+
+export function naarItem(taak: Taak, ctx: Context, taal: Taal = 'nl'): OpvolgItem {
+  const t = OPVOLGEN[taal]
   const regel = ctx.regels.find((r) => r.sleutel === taak.regel)
   const sjabloon = regel?.sjabloon ?? REGEL_DEFINITIES[taak.regel].sjabloon
-  const lid = taak.lid ?? { voornaam: 'Onbekend', achternaam: 'lid', telefoon: null, email: null }
+  const lid = taak.lid ?? { voornaam: t.wie.onbekendLid, achternaam: '', telefoon: null, email: null }
   return {
     id: taak.id,
     lidId: taak.lidId,
-    regelTitel: REGEL_DEFINITIES[taak.regel].titel,
+    regelTitel: t.regel[taak.regel].titel,
     naam: `${lid.voornaam} ${lid.achternaam}`.trim(),
     initialen: initialen({ voornaam: lid.voornaam, achternaam: lid.achternaam || lid.voornaam }),
     reden: taak.reden,
-    wie: wieTekst(taak.wie, ctx.medewerkers),
+    wie: wieInTaal(taak.wie, ctx.medewerkers, taal),
     tekst: vulSjabloon(sjabloon, sjabloonWaarden(taak, ctx.vestigingNaam)),
     telefoon: lid.telefoon,
     email: lid.email,
     notitie: taak.notitie,
     sinds: taak.aangemaaktOp.slice(0, 10),
     status: taak.status,
-    statusLabel: TAAK_STATUS_LABEL[taak.status],
+    statusLabel: t.status[taak.status],
     afgehandeldDoor: taak.afgehandeldDoor,
     afgehandeldOp: taak.afgehandeldOp,
   }
 }
 
-export function naarGroepen(groepen: readonly RegelGroep[], ctx: Context): OpvolgGroep[] {
+export function naarGroepen(groepen: readonly RegelGroep[], ctx: Context, taal: Taal = 'nl'): OpvolgGroep[] {
   return groepen.map((g) => ({
     regel: g.regel,
-    titel: REGEL_DEFINITIES[g.regel].titel,
-    uitleg: REGEL_DEFINITIES[g.regel].waarom,
-    items: g.taken.map((t) => naarItem(t, ctx)),
+    titel: OPVOLGEN[taal].regel[g.regel].titel,
+    uitleg: OPVOLGEN[taal].regel[g.regel].waarom,
+    items: g.taken.map((t) => naarItem(t, ctx, taal)),
   }))
 }

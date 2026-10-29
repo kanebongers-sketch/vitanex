@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Mail, Printer, Send, X } from 'lucide-react'
 import { haal } from '@/components/club/afspraken/haal'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 import './app-uitnodigen.css'
 
 // "Leden uitnodigen voor de app" boven de ledenlijst. Een venster met de
@@ -44,24 +46,24 @@ function leesTelling(d: Record<string, unknown>): Telling {
   }
 }
 
-function leden(n: number): string {
-  return n === 1 ? '1 lid' : `${n} leden`
-}
+type UitnodigTekst = (typeof LEDEN)['nl']['uitnodigen']
 
-function TellingLijst({ t, zonderApp }: { t: Telling; zonderApp: boolean }) {
+function TellingLijst({ t, zonderApp, w }: { t: Telling; zonderApp: boolean; w: UitnodigTekst }) {
   return (
     <dl className="club-appuit-telling">
-      <div className="club-appuit-hoofd"><dt>Krijgen een uitnodiging</dt><dd>{t.teSturen}</dd></div>
-      <div><dt>Zonder (geldig) e-mailadres</dt><dd>{t.zonderEmail}</dd></div>
-      {zonderApp ? <div><dt>Hebben de app al</dt><dd>{t.heeftApp}</dd></div> : null}
-      {t.afgemeld ? <div><dt>Afgemeld voor mail</dt><dd>{t.afgemeld}</dd></div> : null}
-      {t.demo ? <div><dt>Demo-leden (nooit mail)</dt><dd>{t.demo}</dd></div> : null}
+      <div className="club-appuit-hoofd"><dt>{w.krijgen}</dt><dd>{t.teSturen}</dd></div>
+      <div><dt>{w.zonderEmail}</dt><dd>{t.zonderEmail}</dd></div>
+      {zonderApp ? <div><dt>{w.hebbenApp}</dt><dd>{t.heeftApp}</dd></div> : null}
+      {t.afgemeld ? <div><dt>{w.afgemeld}</dt><dd>{t.afgemeld}</dd></div> : null}
+      {t.demo ? <div><dt>{w.demo}</dt><dd>{t.demo}</dd></div> : null}
     </dl>
   )
 }
 
 export function UitnodigApp({ vestigingen, huidig, posterHref }: Props) {
   const venster = useRef<HTMLDialogElement>(null)
+  const w = useTekst(LEDEN).uitnodigen
+  const leden = w.leden
   const [gekozen, setGekozen] = useState<string[]>([huidig])
   const [zonderApp, setZonderApp] = useState(true)
   const [telling, setTelling] = useState<Telling | null>(null)
@@ -129,8 +131,8 @@ export function UitnodigApp({ vestigingen, huidig, posterHref }: Props) {
     const gepland = getal(d.gepland)
     const al = getal(d.alVandaag)
     const duur = typeof d.duur === 'string' ? d.duur : ''
-    const extra = al ? ` ${leden(al)} kreeg vandaag al een uitnodiging en krijgt er niet nog een.` : ''
-    setMelding({ tekst: `${leden(gepland)} uitgenodigd.${extra} ${duur}`.trim(), fout: false })
+    const extra = al ? ` ${w.alVandaag(leden(al))}` : ''
+    setMelding({ tekst: `${w.uitgenodigd(leden(gepland))}${extra} ${duur}`.trim(), fout: false })
     setTelling(leesTelling({ ...d, teSturen: 0 }))
   }
 
@@ -139,22 +141,22 @@ export function UitnodigApp({ vestigingen, huidig, posterHref }: Props) {
   return (
     <>
       <button type="button" className="club-knop" onClick={openen}>
-        <Mail size={16} aria-hidden /> Leden uitnodigen voor de app
+        <Mail size={16} aria-hidden /> {w.knop}
       </button>
       <dialog ref={venster} className="club-appuit" aria-labelledby="club-appuit-kop" onClose={() => lopend.current?.abort()}>
         <header className="club-appuit-kop">
           <div>
-            <p className="club-boventitel">Ledenapp</p>
-            <h2 id="club-appuit-kop">Leden uitnodigen</h2>
+            <p className="club-boventitel">{w.boven}</p>
+            <h2 id="club-appuit-kop">{w.kop}</h2>
           </div>
-          <button type="button" className="club-appuit-sluit" onClick={sluiten} aria-label="Sluiten"><X size={18} aria-hidden /></button>
+          <button type="button" className="club-appuit-sluit" onClick={sluiten} aria-label={w.sluiten}><X size={18} aria-hidden /></button>
         </header>
         <p className="club-appuit-uitleg">
-          Elk lid krijgt een mail met een persoonlijke link. Daarmee bevestigt het lid zijn e-mailadres, kiest het een wachtwoord en zet het de app op het beginscherm. Per lid hooguit een uitnodiging per dag.
+          {w.uitleg}
         </p>
 
         <fieldset className="club-appuit-groep">
-          <legend>Vestigingen</legend>
+          <legend>{w.vestigingen}</legend>
           <div className="club-appuit-keuzes">
             {vestigingen.map((v) => (
               <label key={v.sleutel} className="club-appuit-keuze" data-aan={gekozen.includes(v.sleutel) || undefined}>
@@ -166,21 +168,21 @@ export function UitnodigApp({ vestigingen, huidig, posterHref }: Props) {
         </fieldset>
         <label className="club-appuit-schakel">
           <input type="checkbox" checked={zonderApp} onChange={(e) => wisselZonderApp(e.target.checked)} />
-          <span>Alleen leden die de app nog niet gebruiken</span>
+          <span>{w.zonderApp}</span>
         </label>
 
         <section className="club-appuit-uitkomst" aria-live="polite" data-laden={laden || undefined}>
-          {gekozen.length === 0 ? <p className="club-hint">Kies minstens een vestiging.</p> : telling ? <TellingLijst t={telling} zonderApp={zonderApp} /> : <p className="club-hint">Even tellen...</p>}
+          {gekozen.length === 0 ? <p className="club-hint">{w.kiesVestiging}</p> : telling ? <TellingLijst t={telling} zonderApp={zonderApp} w={w} /> : <p className="club-hint">{w.tellen}</p>}
           {telling?.blokkade ? <p className="club-melding club-melding--fout" role="alert">{telling.blokkade}</p> : null}
           {melding ? <p className={`club-melding ${melding.fout ? 'club-melding--fout' : 'club-melding--ok'}`} role={melding.fout ? 'alert' : 'status'}>{melding.tekst}</p> : null}
         </section>
 
         <footer className="club-appuit-voet">
           <Link href={posterHref} className="club-knop club-knop--stil" target="_blank" rel="noopener">
-            <Printer size={16} aria-hidden /> Poster voor de club
+            <Printer size={16} aria-hidden /> {w.poster}
           </Link>
           <button type="button" className="club-knop club-knop--primair" onClick={verstuur} disabled={!kan}>
-            <Send size={16} aria-hidden /> {bezig ? 'Bezig...' : telling && telling.teSturen > 0 ? `${leden(telling.teSturen)} uitnodigen` : 'Uitnodigen'}
+            <Send size={16} aria-hidden /> {bezig ? w.bezig : telling && telling.teSturen > 0 ? w.uitnodigenAantal(leden(telling.teSturen)) : w.uitnodigen}
           </button>
         </footer>
       </dialog>

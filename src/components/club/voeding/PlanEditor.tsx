@@ -4,8 +4,8 @@ import { useId, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { stuur } from '@/components/club/leden/stuur'
-import { DISCLAIMER, MAX_NOTITIE, type Maaltijd, type VoedingPlan, type VoedingSjabloon } from '@/lib/club/voeding/model'
-import { controleerInvoer, DOEL_INFO, DOELEN, type RekenInvoer, type RekenUitkomst, type VoedingDoel } from '@/lib/club/voeding/rekenhulp'
+import { MAX_NOTITIE, type Maaltijd, type VoedingPlan, type VoedingSjabloon } from '@/lib/club/voeding/model'
+import { controleerInvoer, DOELEN, type RekenInvoer, type RekenUitkomst, type VoedingDoel } from '@/lib/club/voeding/rekenhulp'
 import { pasSjabloonToe } from '@/lib/club/voeding/sjabloon'
 import { startConcept, veldenNaarInvoer, type RekenVelden } from '@/lib/club/voeding/startwaarden'
 import { AdviezenVeld } from './AdviezenVeld'
@@ -15,6 +15,8 @@ import { MaaltijdenVeld } from './MaaltijdenVeld'
 import { RekenhulpPaneel } from './RekenhulpPaneel'
 import { SjabloonToepassen } from './SjabloonToepassen'
 import { VerwijderPlan } from './VerwijderPlan'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 
 // Het voedingsplan van een lid maken of bewerken. Links het plan, rechts de
 // rekenhulp en de sjablonen. Opslaan gaat in een keer via POST (nieuw of bestaand plan).
@@ -54,6 +56,9 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
+  const taal = useTaal()
+  const tv = useTekst(VOEDING)
+  const t = tv.editor
 
   const getallen = naarGetal(doelen)
   const voorbeeld = Object.values(getallen).every(Number.isFinite) ? getallen : null
@@ -62,12 +67,12 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
     setDoelen(naarTekst(u))
     setDoel(invoer.doel)
     setBerekening(invoer)
-    setMelding(`Dagdoel overgenomen: ${u.kcal} kcal.`)
+    setMelding(t.overgenomen(u.kcal))
   }
 
   function pasToe(s: VoedingSjabloon) {
     const invoer = veldenNaarInvoer(velden)
-    const geldig = controleerInvoer(invoer).length === 0 ? (invoer as RekenInvoer) : null
+    const geldig = controleerInvoer(invoer, taal).length === 0 ? (invoer as RekenInvoer) : null
     const of = (n: number, terug: number) => (Number.isFinite(n) ? n : terug)
     const huidig = {
       kcal: of(getallen.kcal, begin.kcal),
@@ -88,8 +93,8 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
     setBerekening(nieuw.berekening)
     setSjabloonId(nieuw.sjabloonId)
     if (nieuw.berekening) setVelden({ ...velden, doel: nieuw.berekening.doel, eiwitPerKg: String(nieuw.berekening.eiwitPerKg) })
-    const uitleg = bron === 'berekend' ? 'dagdoelen opnieuw berekend' : bron === 'sjabloon' ? 'dagdoelen uit het sjabloon' : 'dagdoelen ongewijzigd'
-    setMelding(`Sjabloon ${s.naam} toegepast (${uitleg}). Nog niet opgeslagen.`)
+    const uitleg = bron === 'berekend' ? t.bronBerekend : bron === 'sjabloon' ? t.bronSjabloon : t.bronOngewijzigd
+    setMelding(t.toegepast(s.naam, uitleg))
   }
 
   async function bewaar(e: FormEvent) {
@@ -101,7 +106,7 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
     const uit = await stuur(`/api/club/voeding/leden/${lidId}`, 'POST', body)
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
-    setMelding('Het plan is opgeslagen.')
+    setMelding(t.opgeslagen)
     router.refresh()
   }
 
@@ -109,45 +114,45 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
     <div className="club-voeding club-voeding-editor">
       <form className="club-voeding-editor-plan" onSubmit={(e) => void bewaar(e)} aria-labelledby={`${id}-kop`}>
         <section className="club-kaart club-voeding-blok">
-          <h2 id={`${id}-kop`}>Dagdoel voor {lidNaam}</h2>
-          {voorbeeld && <MacroBord doelen={voorbeeld} />}
+          <h2 id={`${id}-kop`}>{t.dagdoelVoor(lidNaam)}</h2>
+          {voorbeeld && <MacroBord doelen={voorbeeld} taal={taal} />}
           <DoelenVelden waarde={doelen} onWijzig={setDoelen} />
           <fieldset className="club-voeding-keuzes">
-            <legend className="club-label">Doel</legend>
+            <legend className="club-label">{t.doel}</legend>
             {DOELEN.map((d) => (
               <label key={d}>
                 <input type="radio" name={`${id}-doel`} checked={doel === d} onChange={() => setDoel(d)} />
-                <span>{DOEL_INFO[d].label}</span>
+                <span>{tv.doel[d].label}</span>
               </label>
             ))}
           </fieldset>
         </section>
 
         <section className="club-kaart club-voeding-blok" aria-labelledby={`${id}-adviezen`}>
-          <h2 id={`${id}-adviezen`}>Adviezen</h2>
+          <h2 id={`${id}-adviezen`}>{t.adviezen}</h2>
           <AdviezenVeld adviezen={adviezen} onWijzig={setAdviezen} />
         </section>
 
         <section className="club-kaart club-voeding-blok" aria-labelledby={`${id}-dag`}>
-          <h2 id={`${id}-dag`}>Dagindeling</h2>
-          <p className="club-voeding-hint">Een voorbeelddag met momenten en producten. Geen weegschaal: het lid ziet het als richting.</p>
+          <h2 id={`${id}-dag`}>{t.dagindeling}</h2>
+          <p className="club-voeding-hint">{t.dagHint}</p>
           <MaaltijdenVeld maaltijden={maaltijden} onWijzig={setMaaltijden} />
         </section>
 
         <section className="club-kaart club-voeding-blok" aria-labelledby={`${id}-notitie`}>
-          <h2 id={`${id}-notitie`}>Notitie voor trainers</h2>
+          <h2 id={`${id}-notitie`}>{t.notitie}</h2>
           <textarea className="club-invoer" rows={3} maxLength={MAX_NOTITIE} value={notitie} onChange={(e) => setNotitie(e.target.value)} aria-describedby={`${id}-notitie-uitleg`} />
-          <p id={`${id}-notitie-uitleg`} className="club-voeding-hint">Alleen voor het team, het lid ziet dit niet.</p>
+          <p id={`${id}-notitie-uitleg`} className="club-voeding-hint">{t.notitieHint}</p>
         </section>
 
-        <p className="club-voeding-disclaimer">{DISCLAIMER}</p>
+        <p className="club-voeding-disclaimer">{tv.disclaimer}</p>
 
         <div className="club-voeding-acties">
           <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !voorbeeld}>
-            {bezig ? 'Opslaan...' : plan ? 'Plan opslaan' : 'Plan maken'}
+            {bezig ? t.bezig : plan ? t.opslaan : t.maken}
           </button>
           <Link href={terugHref} className="club-knop club-knop--stil">
-            Naar de ledenkaart
+            {t.naarKaart}
           </Link>
           {plan && <VerwijderPlan lidId={lidId} terugHref={terugHref} />}
         </div>
@@ -157,9 +162,9 @@ export function PlanEditor({ lidId, lidNaam, plan, sjablonen, beginVelden, terug
         </div>
       </form>
 
-      <aside className="club-voeding-zij" aria-label="Rekenhulp en sjablonen">
+      <aside className="club-voeding-zij" aria-label={t.zij}>
         <RekenhulpPaneel velden={velden} onWijzig={setVelden} onOvernemen={neemOver} />
-        <section className="club-kaart club-voeding-blok" aria-label="Sjabloon toepassen">
+        <section className="club-kaart club-voeding-blok" aria-label={t.sjabloonToepassen}>
           <SjabloonToepassen sjablonen={sjablonen} onToepassen={pasToe} beheerHref={sjablonenHref} />
         </section>
       </aside>

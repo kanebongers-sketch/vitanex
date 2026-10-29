@@ -14,6 +14,8 @@ import { rechtenGroepen } from '@/components/club/beheer/rechten-groepen'
 import { StapVestiging } from './StapVestiging'
 import { StapTeamInvoer } from './StapTeamInvoer'
 import type { StartVoetProps } from './StartVoet'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Stap 3 (vestiging: adres, openingstijden en reserveren) en stap 6 (het team
 // en wat elke rol ziet): de data van de server, de invoer in kleine
@@ -28,23 +30,26 @@ interface StapMetVestigingProps {
   voet: Voet
 }
 
-export function GeenVestiging() {
+export async function GeenVestiging() {
+  const t = (await clubTekst(START)).instellingen
   return (
     <p className="club-melding">
-      Voeg eerst een vestiging toe in de stap <Link href={startPad(3, null)}>Vestiging</Link>.
+      {t.geenVestigingVoor} <Link href={startPad(3, null)}>{t.geenVestigingLink}</Link>.
     </p>
   )
 }
 
-export function LaadFout() {
-  return <p className="club-melding club-melding--fout" role="alert">Dit kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
+export async function LaadFout() {
+  const t = (await clubTekst(START)).instellingen
+  return <p className="club-melding club-melding--fout" role="alert">{t.laadFout}</p>
 }
 
 /** Wissel van vestiging binnen de stap (alleen als er meer dan een is). */
-export function VestigingKeuze({ t, vestiging, stap }: { t: ClubToegang; vestiging: string; stap: number }) {
+export async function VestigingKeuze({ t, vestiging, stap }: { t: ClubToegang; vestiging: string; stap: number }) {
   if (t.vestigingen.length < 2) return null
+  const tekst = (await clubTekst(START)).instellingen
   return (
-    <nav className="club-segment club-start-vestkeuze" aria-label="Kies een vestiging">
+    <nav className="club-segment club-start-vestkeuze" aria-label={tekst.kiesVestiging}>
       {t.vestigingen.map((v) => (
         <Link key={v.sleutel} href={startPad(stap, v.sleutel)} aria-current={v.sleutel === vestiging ? 'page' : undefined} scroll={false}>
           {v.naam}
@@ -93,7 +98,7 @@ export async function StapTeam({ t, vestiging, soort, voet, alleen }: StapMetVes
       loginAan={CLUB_EIGEN_LOGIN}
       linkBasis={linkBasis}
       rechten={t.organisatie.instellingen.rechten}
-      groepen={rechtenGroepen(t.organisatie.uit)}
+      groepen={rechtenGroepen(t.organisatie.uit, await getTaal())}
       alleen={alleen}
       soort={soort}
       loginsFout={logins === null}

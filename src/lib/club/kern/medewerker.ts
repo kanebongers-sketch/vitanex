@@ -7,6 +7,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from './vestiging'
 import { isVestigingSlug } from './vestigingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { KERN_LABELS } from '@/lib/aiyourgym/taal/woorden/club/kern'
 
 export const MEDEWERKER_ROLLEN = ['trainer', 'instructeur', 'manager', 'administratie'] as const
 export type MedewerkerRol = (typeof MEDEWERKER_ROLLEN)[number]
@@ -83,4 +85,9 @@ export async function medewerkerBestaat(admin: SupabaseClient, userId: string, i
   if (!id) return true
   const { data, error } = await admin.from('club_medewerkers').select('id').eq('user_id', userId).eq('id', id).maybeSingle()
   return !error && data !== null
+}
+
+/** De naam van een rol in de gekozen taal. */
+export function rolLabel(rol: MedewerkerRol, taal: Taal = 'nl'): string {
+  return KERN_LABELS[taal].rollen[rol]
 }

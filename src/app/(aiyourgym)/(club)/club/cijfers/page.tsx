@@ -15,6 +15,8 @@ import { LessenHoofdstuk } from '@/components/club/cijfers/LessenHoofdstuk'
 import { LeadsHoofdstuk, Vergelijking } from '@/components/club/cijfers/LeadsEnVergelijking'
 import { Maandoverzicht } from '@/components/club/cijfers/Maandoverzicht'
 import type { CijferContext } from '@/components/club/cijfers/context'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { CIJFERS } from '@/lib/aiyourgym/taal/woorden/club/cijfers'
 import '@/components/club/cijfers/cijfers.css'
 
 // Cijfers: een maandrapport per vestiging of voor alle vestigingen samen. Altijd per
@@ -22,10 +24,13 @@ import '@/components/club/cijfers/cijfers.css'
 // met de vorige maand en dezelfde maand vorig jaar. Maand en bereik staan in
 // de URL (?maand=2026-10&bereik=alle). Bij elk cijfer staat hoe het geteld is.
 
-export const metadata: Metadata = { title: 'Cijfers' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: CIJFERS[await getTaal()].titel }
+}
 
 export default async function ClubCijfers({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('cijfers')
+  const taal = await getTaal()
   const zoek = await searchParams
   const nu = new Date()
   const vestiging = kiesUit(t.vestigingen, zoek.v)
@@ -34,11 +39,13 @@ export default async function ClubCijfers({ searchParams }: { searchParams: Zoek
   const bereik = kiesBereik(zoek.bereik)
   const { rapport, vandaag, meldingen } = await haalRapport(t.admin, t.userId, t.vestigingen, vestiging, maand, bereik, nu)
   const vestigingNaam = naamVan(t.vestigingen, vestiging)
-  const c: CijferContext = { rapport, maand, vestiging, vestigingNaam, bereik, vandaag }
+  const c: CijferContext = { rapport, maand, vestiging, vestigingNaam, bereik, vandaag, taal }
+  // De meldingen van de bronnen zijn Nederlands; in het Engels een algemene melding.
+  const zichtbaar = taal === 'nl' ? meldingen : meldingen.length > 0 ? [CIJFERS.en.meldingAlgemeen] : []
   return (
     <>
-      <CijferKop vestiging={vestiging} vestigingNaam={vestigingNaam} aantalVestigingen={t.vestigingen.length} maand={maand} bereik={bereik} venster={rapport.huidig.venster} vandaag={vandaag} />
-      {meldingen.map((m) => (
+      <CijferKop vestiging={vestiging} vestigingNaam={vestigingNaam} aantalVestigingen={t.vestigingen.length} maand={maand} bereik={bereik} venster={rapport.huidig.venster} vandaag={vandaag} taal={taal} />
+      {zichtbaar.map((m) => (
         <p key={m} className="club-melding club-melding--fout" role="status">
           {m}
         </p>

@@ -5,6 +5,8 @@ import { ArrowUpCircle, BellOff, Smartphone, BellRing, CalendarCheck, CalendarCl
 import { geledenLabel, type LedenappMelding } from '@/lib/club/meldingen/model'
 import type { Soort } from '@/lib/club/meldingen/soorten'
 import { LegeStaat } from '@/components/club/app/LegeStaat'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { MELDINGEN } from '@/lib/aiyourgym/taal/woorden/club/meldingen'
 import './meldingen.css'
 
 // De meldingen van een lid in de ledenapp: bevestigingen, herinneringen en
@@ -42,6 +44,8 @@ export function LedenappMeldingen({ meldingen, gelezenUrl, nu }: LedenappMelding
   // Wat nieuw was bij het openen blijft gemarkeerd zolang het scherm open is.
   const [nieuw] = useState(() => new Set(meldingen.filter((m) => !m.gelezen).map((m) => m.id)))
   const moment = nu ? new Date(nu) : new Date()
+  const taal = useTaal()
+  const t = useTekst(MELDINGEN).lijst
 
   useEffect(() => {
     if (!gelezenUrl || nieuw.size === 0) return
@@ -50,15 +54,15 @@ export function LedenappMeldingen({ meldingen, gelezenUrl, nu }: LedenappMelding
 
   if (meldingen.length === 0) {
     return (
-      <LegeStaat Icoon={BellOff} titel="Nog geen meldingen">
-        Boek je een les of afspraak, dan zie je hier de bevestiging en een herinnering.
+      <LegeStaat Icoon={BellOff} titel={t.geen}>
+        {t.geenUitleg}
       </LegeStaat>
     )
   }
 
   return (
-    <section className="club-meldingen-lijst" aria-label="Meldingen">
-      {nieuw.size > 0 && <p className="club-meldingen-teller">{nieuw.size === 1 ? '1 nieuwe melding' : `${nieuw.size} nieuwe meldingen`}</p>}
+    <section className="club-meldingen-lijst" aria-label={t.label}>
+      {nieuw.size > 0 && <p className="club-meldingen-teller">{t.nieuw(nieuw.size)}</p>}
       <ol>
         {meldingen.map((m) => {
           const { Icoon, toon } = ICOON[m.soort]
@@ -72,8 +76,8 @@ export function LedenappMeldingen({ meldingen, gelezenUrl, nu }: LedenappMelding
                 <strong>{m.onderwerp}</strong>
                 <p>{m.inhoud}</p>
                 <time dateTime={m.op}>
-                  {isNieuw && <span className="club-meldingen-stip">Nieuw</span>}
-                  {geledenLabel(m.op, moment)}
+                  {isNieuw && <span className="club-meldingen-stip">{t.stip}</span>}
+                  {geledenLabel(m.op, moment, taal)}
                 </time>
               </div>
             </li>

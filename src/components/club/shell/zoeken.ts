@@ -5,8 +5,10 @@
 // hulpbalk onderaan en elke instel-pagina uit het instellingencentrum. Zo hoeft
 // een instel-pagina niet in het menu te staan om toch snel te vinden te zijn (Ctrl K of /).
 
-import { instelGroepLabel, instelHref, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
-import { GROEPEN, ONDERDELEN, inMenu, isZichtbaar, onderdeelPad, sectiesVoor, toetsTekst, type Onderdeel } from './onderdelen'
+import { instelGroepLabel, instelHref, instelPaginaInTaal, zichtbareInstelPaginas, type InstelKijker } from '@/lib/club/kern/instel-paginas'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
+import { GROEPEN, ONDERDELEN, groepInTaal, inMenu, isZichtbaar, onderdeelInTaal, onderdeelPad, schermInTaal, sectiesVoor, toetsTekst, type Onderdeel } from './onderdelen'
 import { hulpbalkVoor, hulpItems, hulpToets } from './hulpbalk-items'
 
 export interface ZoekItem {
@@ -32,44 +34,59 @@ export function normaliseerZoek(tekst: string): string {
 }
 
 /** Waar de hulpbalk staat, voor in het zoekvenster. */
-export const HULPBALK_PLEK = 'Onderaan'
+export const HULPBALK_PLEK = MENU.nl.zoeken.plekOnderaan
 
 /** Waar de secties van Vandaag staan (Check-in, Opvolgen). */
-export const VANDAAG_PLEK = 'Werkvloer · Vandaag'
+export const VANDAAG_PLEK = MENU.nl.zoeken.plekVandaag
+
+/** Zoekwoorden in beide talen, zodat een Nederlands of Engels woord altijd iets vindt. */
+function beideTalen(nl: { label: string; uitleg: string }, en: { label: string; uitleg: string }): string {
+  return `${nl.label} ${nl.uitleg} ${en.label} ${en.uitleg}`
+}
 
 /** Een sectie op Vandaag (met anker) en de volledige schermen erachter. */
-function sectieItems(o: Onderdeel): ZoekItem[] {
+function sectieItems(bron: Onderdeel, taal: Taal): ZoekItem[] {
+  const o = onderdeelInTaal(bron, taal)
+  const vandaag = MENU[taal].zoeken.plekVandaag
   const sectie: ZoekItem = {
-    id: `vandaag-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek: VANDAAG_PLEK, pad: onderdeelPad(o), perVestiging: true,
-    zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${VANDAAG_PLEK}`), toets: toetsTekst(o) ?? undefined,
+    id: `vandaag-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek: vandaag, pad: onderdeelPad(o), perVestiging: true,
+    zoektekst: normaliseerZoek(`${beideTalen(bron, onderdeelInTaal(bron, 'en'))} ${vandaag}`), toets: toetsTekst(o) ?? undefined,
   }
-  const schermen = (o.schermen ?? []).map((s) => ({
-    id: `scherm-${o.sleutel}-${s.id}`, label: s.label, uitleg: s.uitleg, plek: `${VANDAAG_PLEK} · ${o.label}`, pad: s.pad, perVestiging: true,
-    zoektekst: normaliseerZoek(`${s.label} ${s.uitleg} ${o.label}`),
-  }))
-  return [sectie, ...schermen]
+  return [sectie, ...schermItems(bron, `${vandaag} · ${o.label}`, taal)]
+}
+
+/** De volledige schermen achter een onderdeel (bv. de takenweek). */
+function schermItems(bron: Onderdeel, plek: string, taal: Taal): ZoekItem[] {
+  return (bron.schermen ?? []).map((s) => {
+    const t = schermInTaal(s, taal)
+    return {
+      id: `scherm-${bron.sleutel}-${s.id}`, label: t.label, uitleg: t.uitleg, plek, pad: s.pad, perVestiging: true,
+      zoektekst: normaliseerZoek(`${beideTalen(s, schermInTaal(s, 'en'))} ${bron.label} ${onderdeelInTaal(bron, 'en').label}`),
+    }
+  })
 }
 
 /** Alles wat deze persoon kan vinden: eerst het menu, dan de secties van Vandaag, dan de hulpbalk, dan de instellingen. */
-export function zoekItems(k: InstelKijker, instellingen: boolean): ZoekItem[] {
-  const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).flatMap((o) => {
-    const plek = GROEPEN.find((g) => g.sleutel === o.groep)?.label ?? ''
+export function zoekItems(k: InstelKijker, instellingen: boolean, taal: Taal = 'nl'): ZoekItem[] {
+  const t = MENU[taal].zoeken
+  const menu = ONDERDELEN.filter((o) => inMenu(o) && isZichtbaar(o, k.uit, k.toegestaan)).flatMap((bron) => {
+    const o = onderdeelInTaal(bron, taal)
+    const groep = GROEPEN.find((g) => g.sleutel === o.groep)
+    const plek = groep ? groepInTaal(groep, taal).label : ''
     const toets = toetsTekst(o) ?? undefined
-    const item: ZoekItem = { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${o.label} ${o.uitleg} ${plek} ${o.trefwoorden ?? ''}`), toets }
-    const schermen = (o.schermen ?? []).map((s) => ({
-      id: `scherm-${o.sleutel}-${s.id}`, label: s.label, uitleg: s.uitleg, plek: `${plek} · ${o.label}`, pad: s.pad, perVestiging: true,
-      zoektekst: normaliseerZoek(`${s.label} ${s.uitleg} ${o.label}`),
-    }))
-    return [item, ...schermen]
+    const item: ZoekItem = { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${beideTalen(bron, onderdeelInTaal(bron, 'en'))} ${plek} ${o.trefwoorden ?? ''}`), toets }
+    return [item, ...schermItems(bron, `${plek} · ${o.label}`, taal)]
   })
-  const secties = sectiesVoor(k.uit, k.toegestaan).flatMap(sectieItems)
-  const hulp = hulpItems(hulpbalkVoor(k, instellingen)).map((i) => ({
-    id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: HULPBALK_PLEK, pad: i.pad, perVestiging: true,
-    zoektekst: normaliseerZoek(`${i.label} ${i.uitleg} ${HULPBALK_PLEK} ${i.trefwoorden}`), toets: hulpToets(i) ?? undefined,
+  const secties = sectiesVoor(k.uit, k.toegestaan).flatMap((o) => sectieItems(o, taal))
+  const hulp = hulpItems(hulpbalkVoor(k, instellingen), taal).map((i) => ({
+    id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: t.plekOnderaan, pad: i.pad, perVestiging: true,
+    zoektekst: normaliseerZoek(`${beideTalen(hulpItems([i.sleutel])[0], hulpItems([i.sleutel], 'en')[0])} ${t.plekOnderaan} ${i.trefwoorden}`), toets: hulpToets(i) ?? undefined,
   }))
-  const instel = zichtbareInstelPaginas(k).map((p) => {
-    const plek = `Instellingen · ${instelGroepLabel(p.groep)}`
-    return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${p.titel} ${p.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
+  const instel = zichtbareInstelPaginas(k).map((bron) => {
+    const p = instelPaginaInTaal(bron, taal)
+    const en = instelPaginaInTaal(bron, 'en')
+    const plek = `${t.plekInstellingen} · ${instelGroepLabel(p.groep, taal)}`
+    return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${bron.titel} ${bron.uitleg} ${en.titel} ${en.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
   })
   return [...menu, ...secties, ...hulp, ...instel]
 }
@@ -121,22 +138,23 @@ export function ledenUitAntwoord(data: unknown): LidTreffer[] {
 }
 
 /** De leden als zoekresultaten, plus de regel naar de volledige ledenlijst met deze zoekterm. */
-export function ledenItems(leden: readonly LidTreffer[], vraag: string): ZoekItem[] {
+export function ledenItems(leden: readonly LidTreffer[], vraag: string, taal: Taal = 'nl'): ZoekItem[] {
   const term = vraag.trim()
+  const t = MENU[taal].zoeken
   const items: ZoekItem[] = leden.map((l) => ({
     id: `lid-${l.id}`,
     label: l.naam,
-    uitleg: [l.lidnummer ? `Lidnummer ${l.lidnummer}` : null, l.status].filter(Boolean).join(' · '),
-    plek: 'Lid',
+    uitleg: [l.lidnummer ? t.lidnummer(l.lidnummer) : null, l.status].filter(Boolean).join(' · '),
+    plek: t.plekLid,
     pad: `/leden/${encodeURIComponent(l.id)}`,
     perVestiging: true,
     zoektekst: normaliseerZoek(l.naam),
   }))
   const alle: ZoekItem = {
     id: 'leden-lijst',
-    label: `Alle leden met "${term}"`,
-    uitleg: 'De ledenlijst met deze zoekterm en alle filters',
-    plek: 'Leden',
+    label: t.alleLeden(term),
+    uitleg: t.alleLedenUitleg,
+    plek: t.plekLeden,
     pad: `/leden?q=${encodeURIComponent(term)}`,
     perVestiging: true,
     zoektekst: '',

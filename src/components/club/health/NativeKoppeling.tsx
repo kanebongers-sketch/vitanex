@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { DataSoort } from '@/lib/club/health/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import { healthUrl } from './paden'
 
 // Apple Gezondheid of Health Connect: werkt alleen in de app op de telefoon.
@@ -25,6 +27,7 @@ export function NativeKoppeling({ bron, soorten, voor, alleenLezen }: NativeKopp
   const router = useRouter()
   const [staat, setStaat] = useState<Staat>('laden')
   const [melding, setMelding] = useState<string | null>(null)
+  const n = useTekst(HEALTH).native
 
   useEffect(() => {
     let weg = false
@@ -44,26 +47,26 @@ export function NativeKoppeling({ bron, soorten, voor, alleenLezen }: NativeKopp
     const native = await import('@/lib/club/health/native')
     if (!(await native.nativeBeschikbaar())) {
       setStaat('klaar')
-      return setMelding(bron === 'health_connect' ? 'Health Connect staat niet op deze telefoon. Installeer het via de Play Store.' : 'Apple Gezondheid is op dit toestel niet beschikbaar.')
+      return setMelding(bron === 'health_connect' ? n.geenHealthConnect : n.geenApple)
     }
     if (!(await native.vraagNativeRechten(soorten))) {
       setStaat('klaar')
-      return setMelding('Je hebt geen toegang gegeven. Je kunt dit aanpassen in de instellingen van je telefoon.')
+      return setMelding(n.geenToegang)
     }
     const metingen = await native.leesNative(soorten, DAGEN_TERUG)
     const r = await native.stuurNaarClub(healthUrl('/native', voor), bron, metingen)
     setStaat('klaar')
-    setMelding(r.ok ? (r.verwerkt > 0 ? `Bijgewerkt: ${r.verwerkt} metingen.` : 'Bijgewerkt. Er was niets nieuws.') : r.fout)
+    setMelding(r.ok ? (r.verwerkt > 0 ? n.bijgewerkt(r.verwerkt) : n.nietsNieuws) : r.fout)
     if (r.ok) router.refresh()
   }
 
   if (staat === 'laden') return null
-  if (staat === 'web') return <span className="club-hl-status">Beschikbaar in de app</span>
-  if (staat === 'ander_toestel') return <span className="club-hl-status">Op een ander soort telefoon</span>
+  if (staat === 'web') return <span className="club-hl-status">{n.inDeApp}</span>
+  if (staat === 'ander_toestel') return <span className="club-hl-status">{n.anderToestel}</span>
   return (
     <>
       <button type="button" className="club-lidapp-knop club-lidapp-knop--primair" disabled={alleenLezen || staat === 'bezig' || soorten.length === 0} onClick={bijwerken}>
-        {staat === 'bezig' ? 'Bezig met ophalen' : 'Nu bijwerken'}
+        {staat === 'bezig' ? n.bezig : n.nu}
       </button>
       {melding && (
         <p className="club-hl-melding" role="status">

@@ -1,6 +1,7 @@
-import { PROVIDERS } from '@/lib/club/health/providers'
 import { waardeTekst } from '@/lib/club/health/metingen'
-import { SOORT_INFO, type Meting } from '@/lib/club/health/typen'
+import type { Meting } from '@/lib/club/health/typen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import { datumKort } from './paden'
 
 // De laatste meting per soort als tegels. Puur: dezelfde weergave in de
@@ -9,18 +10,20 @@ import { datumKort } from './paden'
 interface LaatsteMetingenProps {
   metingen: readonly Meting[]
   leeg: string
+  taal: Taal
 }
 
-export function LaatsteMetingen({ metingen, leeg }: LaatsteMetingenProps) {
+export function LaatsteMetingen({ metingen, leeg, taal }: LaatsteMetingenProps) {
+  const h = HEALTH[taal]
   if (metingen.length === 0) return <p className="club-hl-via">{leeg}</p>
   return (
-    <ul className="club-hl-tegels" aria-label="Laatste metingen">
+    <ul className="club-hl-tegels" aria-label={h.scherm.laatste}>
       {metingen.map((m) => (
         <li key={`${m.soort}-${m.bron}-${m.externId}`} className="club-hl-tegel">
-          <span>{SOORT_INFO[m.soort].label}</span>
-          <strong>{waardeTekst(m)}</strong>
+          <span>{h.soorten[m.soort].label}</span>
+          <strong>{waardeTekst(m, taal)}</strong>
           <small>
-            {datumKort(m.gemetenOp)} · {PROVIDERS[m.bron].naam}
+            {datumKort(m.gemetenOp, taal)} · {h.bronnen[m.bron].naam}
           </small>
         </li>
       ))}

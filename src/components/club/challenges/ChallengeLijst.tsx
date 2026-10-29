@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import { clubPad } from '@/lib/club/kern/vestiging'
 import { naamVan, type VestigingInfo } from '@/lib/club/kern/vestigingen'
-import { SOORT_INFO, type Challenge } from '@/lib/club/challenges/model'
-import { dagenTeGaan, laatsteDag, STATUS_LABEL, tijdVerstreken, type ChallengeStatus, type Gegroepeerd } from '@/lib/club/challenges/periode'
+import type { Challenge } from '@/lib/club/challenges/model'
+import { dagenTeGaan, laatsteDag, tijdVerstreken, type ChallengeStatus, type Gegroepeerd } from '@/lib/club/challenges/periode'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import type { ChallengesTekst } from '@/lib/aiyourgym/taal/woorden/club/challenges'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 import { periodeTekst, statusTekst } from './weergave'
 
 // De challenges in drie groepen: lopend, gepland en afgelopen. Per challenge
@@ -18,12 +22,12 @@ interface Props {
 
 const VOLGORDE: readonly ChallengeStatus[] = ['lopend', 'gepland', 'afgelopen']
 
-function voorWie(c: Challenge, vestigingen: readonly VestigingInfo[]): string {
-  if (c.vestigingen.length === 0) return 'Alle vestigingen'
+function voorWie(c: Challenge, vestigingen: readonly VestigingInfo[], t: ChallengesTekst): string {
+  if (c.vestigingen.length === 0) return t.lijst.alleVestigingen
   return c.vestigingen.map((v) => naamVan(vestigingen, v)).join(', ')
 }
 
-function Regel({ c, status, vandaag, gekozen, vestiging, vestigingen }: { c: Challenge; status: ChallengeStatus } & Omit<Props, 'groepen'>) {
+function Regel({ c, status, vandaag, gekozen, vestiging, vestigingen, tc, taal }: { c: Challenge; status: ChallengeStatus; tc: ChallengesTekst; taal: Taal } & Omit<Props, 'groepen'>) {
   const eind = laatsteDag(c)
   const tijd = status === 'lopend' ? tijdVerstreken(c, vandaag) : status === 'afgelopen' ? 1 : 0
   return (
@@ -35,24 +39,26 @@ function Regel({ c, status, vandaag, gekozen, vestiging, vestigingen }: { c: Cha
         <span className="club-challenges-regel-inhoud">
           <span className="club-challenges-regel-titel">{c.titel}</span>
           <span className="club-challenges-regel-sub">
-            {SOORT_INFO[c.soort].label} · {periodeTekst(c.start, eind)} · {voorWie(c, vestigingen)}
+            {tc.soort[c.soort].label} · {periodeTekst(c.start, eind, taal)} · {voorWie(c, vestigingen, tc)}
           </span>
           <span className="club-challenges-tijd" aria-hidden>
             <span style={{ transform: `scaleX(${tijd})` }} />
           </span>
         </span>
         <span className={`club-chip ${status === 'lopend' ? 'club-chip--merk' : status === 'gepland' ? 'club-chip--info' : 'club-chip--uit'}`}>
-          {c.gestoptOp && status === 'afgelopen' ? 'Gestopt' : statusTekst(status, c.start, eind, dagenTeGaan(c, vandaag))}
+          {c.gestoptOp && status === 'afgelopen' ? tc.lijst.gestopt : statusTekst(status, c.start, eind, dagenTeGaan(c, vandaag), taal)}
         </span>
         <span className="club-sr">
-          Doel {c.doel}. {c.deelname === 'inschrijven' ? 'Met inschrijven.' : ''}
+          {tc.lijst.doel(c.doel)} {c.deelname === 'inschrijven' ? tc.lijst.metInschrijven : ''}
         </span>
       </Link>
     </li>
   )
 }
 
-export function ChallengeLijst({ groepen, ...rest }: Props) {
+export async function ChallengeLijst({ groepen, ...rest }: Props) {
+  const taal = await getTaal()
+  const tc = CHALLENGES[taal]
   return (
     <div className="club-challenges-lijsten">
       {VOLGORDE.map((status) => {
@@ -60,16 +66,16 @@ export function ChallengeLijst({ groepen, ...rest }: Props) {
         return (
           <section key={status} className="club-challenges-groep" aria-labelledby={`challenges-${status}`}>
             <h2 id={`challenges-${status}`} className="club-challenges-groepkop">
-              {STATUS_LABEL[status]} <span>{lijst.length}</span>
+              {tc.status[status]} <span>{lijst.length}</span>
             </h2>
             {lijst.length === 0 ? (
               <p className="club-challenges-leeg">
-                {status === 'lopend' ? 'Er loopt nu geen challenge.' : status === 'gepland' ? 'Niets gepland.' : 'Nog geen afgelopen challenges.'}
+                {status === 'lopend' ? tc.lijst.leegLopend : status === 'gepland' ? tc.lijst.leegGepland : tc.lijst.leegAfgelopen}
               </p>
             ) : (
               <ul className="club-challenges-lijst">
                 {lijst.map((c) => (
-                  <Regel key={c.id} c={c} status={status} {...rest} />
+                  <Regel key={c.id} c={c} status={status} tc={tc} taal={taal} {...rest} />
                 ))}
               </ul>
             )}

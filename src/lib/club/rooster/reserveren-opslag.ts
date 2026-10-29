@@ -21,6 +21,8 @@ import {
 } from './regels'
 import { nlDelen } from './tijd'
 import { laatHerinneringenVervallen, planLesMeldingen } from '@/lib/club/meldingen/opslag'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { ROOSTER_REGELS } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 import { RESERVERING_KOLOMMEN, reserveringUitRij, type LesRij, type ReserveringRij } from './typen'
 
 const DAG_MS = 86_400_000
@@ -124,17 +126,19 @@ export type ReserveerAntwoord =
  * het lid betaalt deze les met een strip (src/lib/club/betalen); dan telt de
  * lidmaatschapsvorm niet, alle andere regels van het rooster wel.
  */
-export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = new Date(), opties: { metStrippenkaart?: boolean } = {}): Promise<Resultaat<ReserveerAntwoord>> {
+export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = new Date(), opties: { metStrippenkaart?: boolean; taal?: Taal } = {}): Promise<Resultaat<ReserveerAntwoord>> {
+  const taal = opties.taal ?? 'nl'
+  const tr = ROOSTER_REGELS[taal]
   const [les, lid] = await Promise.all([haalLesRij(t.admin, t.userId, invoer.lesId), haalLid(t.admin, t.userId, invoer.lidId)])
-  if (!les) return mislukt('Deze les bestaat niet.', 404)
-  if (!lid) return mislukt('Dit lid bestaat niet.', 404)
+  if (!les) return mislukt(tr.lesBestaatNiet, 404)
+  if (!lid) return mislukt(tr.lidBestaatNiet, 404)
   const { regels } = await haalRegels(t.admin, t.userId, les.vestiging)
   const [rijen, openElders, noShows] = await Promise.all([
     haalReserveringenVanLes(t.admin, t.userId, les.id),
     telOpenElders(t.admin, t.userId, lid.id, les.id, nu),
     haalNoShows(t.admin, t.userId, lid.id, nu, regels.noShowBlokkadeDagen),
   ])
-  if (!rijen || openElders === null || !noShows) return mislukt('De gegevens konden niet worden gelezen. Probeer het opnieuw.', 500)
+  if (!rijen || openElders === null || !noShows) return mislukt(tr.leesFout, 500)
   const bestaand = rijen.find((r) => r.lidId === lid.id) ?? null
   const uitkomst = beoordeelReservering({
     nu,
@@ -146,7 +150,7 @@ export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = 
     bezet: rijen.filter((r) => BEZETTE_STATUSSEN.includes(r.status)).length,
     laatsteWachtpositie: rijen.reduce((m, r) => Math.max(m, r.status === 'wachtlijst' ? (r.wachtpositie ?? 0) : 0), 0),
     noShows,
-  })
+  }, taal)
   if (!uitkomst.ok) return mislukt(uitkomst.fout, 409)
   const vorm: Awaited<ReturnType<typeof toetsBoeking>> = opties.metStrippenkaart
     ? { soort: 'door', ondanks: null }
@@ -155,7 +159,7 @@ export async function reserveer(t: ClubSchrijver, invoer: ReserveerInvoer, nu = 
   if (vorm.soort === 'waarschuw') return gelukt({ status: 'waarschuwing', waarschuwing: vorm.reden })
   const velden = { status: uitkomst.status, wachtpositie: uitkomst.wachtpositie, bron: invoer.bron, geboekt_op: nu.toISOString() }
   const id = await schrijfBoeking(t.admin, t.userId, les, lid.id, bestaand, velden)
-  if (!id) return mislukt('Boeken is niet gelukt. Probeer het opnieuw.', 500)
+  if (!id) return mislukt(tr.boekenMislukt, 500)
   let status = uitkomst.status
   let wachtpositie = uitkomst.wachtpositie
   if (status === 'geboekt') {
@@ -212,13 +216,14 @@ export interface AnnuleerAntwoord {
 }
 
 /** Annuleer een reservering; een vrijgekomen plek gaat naar de eerste op de wachtlijst. */
-export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new Date()): Promise<Resultaat<AnnuleerAntwoord>> {
+export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new Date(), taal: Taal = 'nl'): Promise<Resultaat<AnnuleerAntwoord>> {
+  const tr = ROOSTER_REGELS[taal]
   const res = await haalReservering(t.admin, t.userId, id)
-  if (!res) return mislukt('Deze reservering bestaat niet.', 404)
+  if (!res) return mislukt(tr.reserveringBestaatNiet, 404)
   const les = await haalLesRij(t.admin, t.userId, res.lesId)
-  if (!les) return mislukt('De les van deze reservering bestaat niet meer.', 404)
+  if (!les) return mislukt(tr.lesWeg, 404)
   const { regels } = await haalRegels(t.admin, t.userId, les.vestiging)
-  const oordeel = beoordeelAnnulering(res.status, new Date(les.startOp), nu, regels)
+  const oordeel = beoordeelAnnulering(res.status, new Date(les.startOp), nu, regels, taal)
   if (!oordeel.ok) return mislukt(oordeel.fout, 409)
   const ok = await werkReserveringBij(t.admin, t.userId, res.id, {
     status: 'geannuleerd',
@@ -226,7 +231,7 @@ export async function annuleerReservering(t: ClubSchrijver, id: string, nu = new
     te_laat: oordeel.teLaat,
     geannuleerd_op: nu.toISOString(),
   })
-  if (!ok) return mislukt('Annuleren is niet gelukt. Probeer het opnieuw.', 500)
+  if (!ok) return mislukt(tr.annulerenMislukt, 500)
   // Meldingen (best effort): de herinnering vervalt, het lid krijgt een bevestiging.
   await laatHerinneringenVervallen(t.admin, t.userId, [res.id])
   if (res.lidId) await planLesMeldingen(t.admin, t.userId, les, [{ lidId: res.lidId, reserveringId: res.id, geboektOp: res.geboektOp, soort: 'les_afgemeld' }], nu)
@@ -263,17 +268,18 @@ export async function trekBoekingIn(t: ClubSchrijver, id: string, nu = new Date(
 }
 
 /** Vink een deelnemer af: aanwezig, no-show, of terug naar geboekt. */
-export async function zetAfvinkStatus(t: ClubToegang, id: string, status: AfvinkStatus, nu = new Date()): Promise<Resultaat<{ id: string; status: AfvinkStatus }>> {
+export async function zetAfvinkStatus(t: ClubToegang, id: string, status: AfvinkStatus, nu = new Date(), taal: Taal = 'nl'): Promise<Resultaat<{ id: string; status: AfvinkStatus }>> {
+  const tr = ROOSTER_REGELS[taal]
   const res = await haalReservering(t.admin, t.userId, id)
-  if (!res) return mislukt('Deze reservering bestaat niet.', 404)
+  if (!res) return mislukt(tr.reserveringBestaatNiet, 404)
   const les = await haalLesRij(t.admin, t.userId, res.lesId)
-  if (!les) return mislukt('De les van deze reservering bestaat niet meer.', 404)
-  if (les.geannuleerd) return mislukt('Deze les gaat niet door.', 409)
+  if (!les) return mislukt(tr.lesWeg, 404)
+  if (les.geannuleerd) return mislukt(tr.lesGeannuleerd, 409)
   const { regels } = await haalRegels(t.admin, t.userId, les.vestiging)
-  const reden = beoordeelAfvinken(res.status, status, new Date(les.startOp), nu, regels)
+  const reden = beoordeelAfvinken(res.status, status, new Date(les.startOp), nu, regels, taal)
   if (reden) return mislukt(reden, 409)
   if (res.status !== status && !(await werkReserveringBij(t.admin, t.userId, res.id, { status }))) {
-    return mislukt('Opslaan is niet gelukt. Probeer het opnieuw.', 500)
+    return mislukt(tr.opslaanMislukt, 500)
   }
   return gelukt({ id: res.id, status })
 }

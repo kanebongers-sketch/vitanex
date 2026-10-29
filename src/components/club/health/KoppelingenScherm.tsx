@@ -1,7 +1,8 @@
 import { PROVIDERS, type ProviderKaart } from '@/lib/club/health/providers'
 import type { KoppelingPubliek } from '@/lib/club/health/opslag'
 import { magDelen, type Toestemming } from '@/lib/club/health/toestemming'
-import { FOUT_TEKST } from '@/lib/club/health/meldingen-pagina'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import type { BronId, Meting } from '@/lib/club/health/typen'
 import { BronKaart } from './BronKaart'
 import { LaatsteMetingen } from './LaatsteMetingen'
@@ -27,9 +28,13 @@ interface KoppelingenSchermProps {
   voor: string | null
   alleenLezen: boolean
   melding: { gekoppeld: BronId | null; fout: string | null }
+  taal: Taal
 }
 
-export function KoppelingenScherm({ data, sportschool, voor, alleenLezen, melding }: KoppelingenSchermProps) {
+export function KoppelingenScherm({ data, sportschool, voor, alleenLezen, melding, taal }: KoppelingenSchermProps) {
+  const h = HEALTH[taal]
+  const s = h.scherm
+  const fouten: Readonly<Record<string, string>> = h.fout
   const perBron = new Map(data.koppelingen.map((k) => [k.bron, k]))
   const werkt = data.providers.filter((p) => p.status !== 'binnenkort')
   const later = data.providers.filter((p) => p.status === 'binnenkort')
@@ -48,33 +53,31 @@ export function KoppelingenScherm({ data, sportschool, voor, alleenLezen, meldin
   return (
     <div className="club-lidapp-tab club-hl">
       <header className="club-hl-kop">
-        <h2 className="club-lidapp-kop">Koppelingen</h2>
-        <p>Koppel je weegschaal, horloge of sportapp. Jij kiest wat {sportschool} mag zien, en je kunt het altijd weer uitzetten.</p>
+        <h2 className="club-lidapp-kop">{s.titel}</h2>
+        <p>{s.intro(sportschool)}</p>
       </header>
       {melding.gekoppeld && (
         <p className="club-hl-melding" data-soort="goed" role="status">
-          {PROVIDERS[melding.gekoppeld].naam} is gekoppeld. Nieuwe metingen komen vanzelf binnen.
+          {s.gekoppeld(h.bronnen[melding.gekoppeld].naam)}
         </p>
       )}
       {melding.fout && (
         <p className="club-hl-melding" data-soort="fout" role="alert">
-          {FOUT_TEKST[melding.fout] ?? FOUT_TEKST.ongeldig}
+          {fouten[melding.fout] ?? h.fout.ongeldig}
         </p>
       )}
       <section className="club-hl-sectie" aria-labelledby="hl-laatste">
-        <h3 id="hl-laatste">Laatste metingen</h3>
-        <LaatsteMetingen metingen={data.laatste} leeg="Nog geen metingen. Koppel een app of apparaat om te beginnen." />
+        <h3 id="hl-laatste">{s.laatste}</h3>
+        <LaatsteMetingen metingen={data.laatste} leeg={s.geenMetingen} taal={taal} />
       </section>
       <section className="club-hl-sectie" aria-labelledby="hl-bronnen">
-        <h3 id="hl-bronnen">Apps en apparaten</h3>
-        {werkt.length > 0 ? <ul className="club-hl-bronnen">{werkt.map(kaart)}</ul> : <p className="club-hl-via">Koppelingen zijn er nog niet bij jouw sportschool. Ze komen eraan.</p>}
-        <p className="club-hl-via">
-          Heb je een weegschaal of app zonder eigen koppeling, zoals {data.viaTelefoon.join(', ')}? Laat die naar Apple Gezondheid of Health Connect schrijven en koppel die in onze app op je telefoon.
-        </p>
+        <h3 id="hl-bronnen">{s.bronnen}</h3>
+        {werkt.length > 0 ? <ul className="club-hl-bronnen">{werkt.map(kaart)}</ul> : <p className="club-hl-via">{s.nogNiet}</p>}
+        <p className="club-hl-via">{s.viaTelefoon(data.viaTelefoon.join(', '))}</p>
       </section>
       {later.length > 0 && (
         <section className="club-hl-sectie" aria-labelledby="hl-later">
-          <h3 id="hl-later">Binnenkort</h3>
+          <h3 id="hl-later">{s.binnenkort}</h3>
           <ul className="club-hl-bronnen">{later.map(kaart)}</ul>
         </section>
       )}

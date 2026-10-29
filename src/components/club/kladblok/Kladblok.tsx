@@ -3,16 +3,17 @@
 import { useMemo, useState } from 'react'
 import { Archive, Plus, Search } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
-import { MAPPEN, MAP_LABEL, leesKladAntwoord, pastKlad, sorteerKlad, voorproef, type KladMap, type KladNotitie } from '@/lib/club/kladblok/model'
+import { MAPPEN, leesKladAntwoord, pastKlad, sorteerKlad, voorproef, type KladMap, type KladNotitie } from '@/lib/club/kladblok/model'
 import { stuur } from '@/components/club/leden/stuur'
 import { vinkStand } from '@/lib/club/kladblok/opmaak'
 import { NotitieEditor } from './NotitieEditor'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { NOTITIES } from '@/lib/aiyourgym/taal/woorden/club/notities'
 
 // Notities à la Evernote: links de lijst (zoeken, mappen, archief), rechts de
 // notitie zelf. Op de telefoon eerst de lijst, na een tik de notitie. De open
 // notitie staat in de URL (?n=<id>), zodat terug/vooruit en delen werken.
-
-const BIJGEWERKT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
 
 interface Props {
   vestiging: Vestiging
@@ -21,9 +22,9 @@ interface Props {
 }
 
 /** " · 2/5 afgevinkt" als de notitie afvinkpunten heeft, anders leeg. */
-function vinkTekst(inhoud: string): string {
+function vinkTekst(inhoud: string, afgevinkt: (klaar: number, totaal: number) => string): string {
   const v = vinkStand(inhoud)
-  return v.totaal > 0 ? ` · ${v.klaar}/${v.totaal} afgevinkt` : ''
+  return v.totaal > 0 ? ` · ${afgevinkt(v.klaar, v.totaal)}` : ''
 }
 
 function zetUrl(id: string | null) {
@@ -41,6 +42,9 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
   const [archief, setArchief] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
+  const taal = useTaal()
+  const tekst = useTekst(NOTITIES)
+  const t = tekst.lijst
 
   const zichtbaar = useMemo(
     () => notities.filter((n) => pastKlad(n, { vestiging, map, zoek, archief })).sort(sorteerKlad),
@@ -64,7 +68,7 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
     const uit = await stuur('/api/club/kladblok', 'POST', { map: map ?? 'algemeen', vestiging })
     setBezig(false)
     const n = uit.ok ? leesKladAntwoord(uit.data) : null
-    if (!n) return setFout(uit.ok ? 'Onverwacht antwoord van de server.' : uit.fout)
+    if (!n) return setFout(uit.ok ? t.onverwacht : uit.fout)
     setNotities((nu) => [n, ...nu])
     setArchief(false)
     setZoek('')
@@ -78,40 +82,40 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
 
   return (
     <div className={`kb${open ? ' kb--open' : ''}`}>
-      <aside className="kb-lijst" aria-label="Notities">
+      <aside className="kb-lijst" aria-label={t.label}>
         <div className="kb-lijst-kop">
           <button type="button" className="club-knop club-knop--primair" onClick={() => void nieuw()} disabled={bezig}>
-            <Plus size={16} aria-hidden /> Nieuwe notitie
+            <Plus size={16} aria-hidden /> {t.nieuw}
           </button>
           <label className="kb-zoek">
             <Search size={16} aria-hidden />
-            <span className="club-sr">Zoek in notities</span>
-            <input className="club-invoer" type="search" value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoek in titel en tekst" />
+            <span className="club-sr">{t.zoekLabel}</span>
+            <input className="club-invoer" type="search" value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder={t.zoekPlaats} />
           </label>
-          <div className="kb-mappen" role="group" aria-label="Map">
-            <button type="button" className="kb-map" aria-pressed={map === null} onClick={() => setMap(null)}>Alles</button>
+          <div className="kb-mappen" role="group" aria-label={t.mapLabel}>
+            <button type="button" className="kb-map" aria-pressed={map === null} onClick={() => setMap(null)}>{t.alles}</button>
             {MAPPEN.map((m) => (
-              <button key={m} type="button" className="kb-map" aria-pressed={map === m} onClick={() => setMap(m)}>{MAP_LABEL[m]}</button>
+              <button key={m} type="button" className="kb-map" aria-pressed={map === m} onClick={() => setMap(m)}>{tekst.map[m]}</button>
             ))}
             <button type="button" className="kb-map" aria-pressed={archief} onClick={() => setArchief((x) => !x)}>
-              <Archive size={13} aria-hidden /> Archief
+              <Archive size={13} aria-hidden /> {t.archief}
             </button>
           </div>
         </div>
         {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
         {zichtbaar.length === 0 ? (
           <p className="club-leeg">
-            {zoek ? 'Niets gevonden.' : archief ? 'Het archief is leeg.' : 'Nog geen notities hier. Begin met "Nieuwe notitie".'}
+            {zoek ? t.nietsGevonden : archief ? t.archiefLeeg : t.leeg}
           </p>
         ) : (
           <ul className="kb-items">
             {zichtbaar.map((n) => (
               <li key={n.id}>
                 <button type="button" className="kb-item" aria-current={n.id === openId ? 'true' : undefined} onClick={() => kies(n.id)}>
-                  <span className="kb-item-titel">{n.vastgepind ? <span className="kb-pin" aria-label="Vastgepind">●</span> : null}{n.titel}</span>
-                  <span className="kb-item-tekst">{voorproef(n.inhoud) || 'Lege notitie'}</span>
+                  <span className="kb-item-titel">{n.vastgepind ? <span className="kb-pin" aria-label={t.vastgepind}>●</span> : null}{n.titel}</span>
+                  <span className="kb-item-tekst">{voorproef(n.inhoud) || t.legeNotitie}</span>
                   <span className="kb-item-meta">
-                    {MAP_LABEL[n.map]} · {n.vestiging ? '' : 'alle vestigingen · '}{BIJGEWERKT.format(new Date(n.bijgewerktOp))}{vinkTekst(n.inhoud)}
+                    {tekst.map[n.map]} · {n.vestiging ? '' : `${t.alleVestigingen} · `}{formatDatum(n.bijgewerktOp, taal, 'dagMaand')}{vinkTekst(n.inhoud, t.afgevinkt)}
                   </span>
                 </button>
               </li>
@@ -119,11 +123,11 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
           </ul>
         )}
       </aside>
-      <section className="kb-editor" aria-label="Notitie">
+      <section className="kb-editor" aria-label={t.notitie}>
         {open ? (
           <NotitieEditor key={open.id} notitie={open} vestiging={vestiging} onWijziging={vervang} onWeg={weg} onSluit={() => kies(null)} />
         ) : (
-          <p className="club-leeg kb-niets">Kies links een notitie, of maak een nieuwe.</p>
+          <p className="club-leeg kb-niets">{t.kies}</p>
         )}
       </section>
     </div>

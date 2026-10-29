@@ -1,0 +1,98 @@
+import { woordenboek } from '../../woordenboek'
+
+// Koppelingen in de hulpbalk van Club: wat Club verbindt en hoe het er nu voor
+// staat. De regels staan in src/lib/club/kern/koppelingen.ts (puur, getest);
+// die leest de teksten hieruit in de gekozen taal.
+
+export const KOPPEL_TEKST = woordenboek({
+  nl: {
+    pagina: {
+      titel: 'Koppelingen',
+      intro: (werkt: number, totaal: number) => `Wat Club verbindt met je leden, je website en je administratie, en hoe het er nu voor staat. ${werkt} van ${totaal} werkt nu.`,
+      nietInTeStellen: 'Nog niet in te stellen',
+    },
+    koppelingen: {
+      betalen: { titel: 'Betalen met Stripe', uitleg: 'Leden kopen in de app losse lessen, strippenkaarten, PT-pakketten en producten. Het geld komt rechtstreeks bij je sportschool.', knop: 'Betalen instellen' },
+      widget: { titel: 'Boekingswidget', uitleg: 'Je lesrooster op je eigen website. Bezoekers vragen een proefles aan en komen binnen bij Leads.', knop: 'Widget instellen' },
+      ledenapp: { titel: 'Ledenapp', uitleg: 'Leden boeken lessen, plannen afspraken, volgen hun schema en checken in met hun telefoon.', knop: 'Ledenapp instellen' },
+      meldingen: { titel: 'Mail en meldingen', uitleg: 'Bevestigingen en herinneringen van lessen en afspraken, per mail en als melding op de telefoon.', knop: 'Meldingen instellen' },
+      importeren: { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem of een spreadsheet als CSV inlezen. Je ziet eerst wat er verandert.', knop: 'Bestand inlezen' },
+      exports: { titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', knop: 'Naar Rapporten' },
+    },
+    standLabel: {
+      aan: 'Werkt',
+      bezig: 'Bijna klaar',
+      uit: 'Staat uit',
+      dicht: 'Nog niet beschikbaar',
+      onbekend: 'Onbekend',
+    },
+    stand: {
+      onbekend: 'De stand kon niet worden gelezen. Probeer het later opnieuw.',
+      betaalDicht: 'Betalen in de ledenapp staat nog niet open voor je sportschool.',
+      betaalNietGekoppeld: 'Nog niet gekoppeld. Koppel je eigen Stripe-account om te beginnen.',
+      betaalControle: 'Gekoppeld, Stripe controleert nog je gegevens.',
+      betaalUit: 'Gekoppeld en goedgekeurd. Kopen in de app staat nog uit.',
+      betaalAan: 'Gekoppeld. Leden kunnen betalen in de app.',
+      widgetAdres: 'Kies eerst een adres voor je sportschool; de widget gebruikt dat in de link.',
+      widgetNergens: 'Staat op geen enkele vestiging aan.',
+      widgetAanOp: (aan: number, van: number) => `Aan op ${aan} van ${van} vestigingen`,
+      widgetAan: 'Aan',
+      widgetNietZichtbaar: (waar: string) => `${waar}, maar nog niet zichtbaar voor bezoekers van je website.`,
+      widgetZichtbaar: (waar: string) => `${waar}. Bezoekers zien je rooster op je website.`,
+      ledenappDicht: 'De ledenapp is nog niet open voor leden.',
+      ledenappQrAan: 'Open voor leden, inchecken met de QR-code in de app staat aan.',
+      ledenappQrUit: 'Open voor leden. Inchecken met de QR-code in de app staat uit.',
+      meldingenBeide: 'Per mail en als melding op de telefoon.',
+      meldingenMail: 'Per mail. Meldingen op de telefoon staan nog uit.',
+      meldingenPush: 'Als melding op de telefoon. Mail staat nog uit.',
+      meldingenGeen: 'Mail en meldingen op de telefoon staan nog niet aan.',
+      importeren: 'Altijd beschikbaar. CSV met een rij per lid.',
+      exports: 'Altijd beschikbaar, per kalendermaand.',
+    },
+  },
+  en: {
+    pagina: {
+      titel: 'Integrations',
+      intro: (werkt: number, totaal: number) => `What Club connects to your members, your website and your administration, and where each one stands. ${werkt} of ${totaal} working now.`,
+      nietInTeStellen: 'Not available to set up yet',
+    },
+    koppelingen: {
+      betalen: { titel: 'Payments with Stripe', uitleg: 'Members buy drop-in classes, class passes, PT packages and products in the app. The money goes straight to your gym.', knop: 'Set up payments' },
+      widget: { titel: 'Booking widget', uitleg: 'Your class timetable on your own website. Visitors request a trial class and arrive in Leads.', knop: 'Set up widget' },
+      ledenapp: { titel: 'Member app', uitleg: 'Members book classes, plan appointments, follow their programme and check in with their phone.', knop: 'Set up member app' },
+      meldingen: { titel: 'Email and notifications', uitleg: 'Confirmations and reminders for classes and appointments, by email and as a notification on the phone.', knop: 'Set up notifications' },
+      importeren: { titel: 'Import members', uitleg: 'Import an export from your current system or a spreadsheet as CSV. You see what changes first.', knop: 'Import file' },
+      exports: { titel: 'Exports', uitleg: 'Members, visits, classes, leads, appointments and hours per calendar month as CSV for your administration.', knop: 'Go to Reports' },
+    },
+    standLabel: {
+      aan: 'Working',
+      bezig: 'Almost ready',
+      uit: 'Off',
+      dicht: 'Not available yet',
+      onbekend: 'Unknown',
+    },
+    stand: {
+      onbekend: 'The status could not be read. Please try again later.',
+      betaalDicht: 'Payments in the member app are not open for your gym yet.',
+      betaalNietGekoppeld: 'Not connected yet. Connect your own Stripe account to get started.',
+      betaalControle: 'Connected; Stripe is still checking your details.',
+      betaalUit: 'Connected and approved. Buying in the app is still off.',
+      betaalAan: 'Connected. Members can pay in the app.',
+      widgetAdres: 'First choose an address for your gym; the widget uses it in the link.',
+      widgetNergens: 'Not switched on at any location.',
+      widgetAanOp: (aan: number, van: number) => `On at ${aan} of ${van} locations`,
+      widgetAan: 'On',
+      widgetNietZichtbaar: (waar: string) => `${waar}, but not yet visible to visitors of your website.`,
+      widgetZichtbaar: (waar: string) => `${waar}. Visitors see your timetable on your website.`,
+      ledenappDicht: 'The member app is not open to members yet.',
+      ledenappQrAan: 'Open to members; checking in with the QR code in the app is on.',
+      ledenappQrUit: 'Open to members. Checking in with the QR code in the app is off.',
+      meldingenBeide: 'By email and as a notification on the phone.',
+      meldingenMail: 'By email. Notifications on the phone are still off.',
+      meldingenPush: 'As a notification on the phone. Email is still off.',
+      meldingenGeen: 'Email and phone notifications are not on yet.',
+      importeren: 'Always available. CSV with one row per member.',
+      exports: 'Always available, per calendar month.',
+    },
+  },
+})

@@ -9,6 +9,8 @@ import { stuurVraag, type Antwoord } from './api'
 import { IntakeVoorbeeld } from './IntakeVoorbeeld'
 import { VraagFormulier } from './VraagFormulier'
 import { VragenLijst } from './VragenLijst'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
 interface IntakeVragenBeheerProps {
   vragen: IntakeVraag[]
@@ -16,8 +18,8 @@ interface IntakeVragenBeheerProps {
   vandaag: string
 }
 
-function nieuweVraag(vragen: readonly IntakeVraag[]): IntakeVraag {
-  const sectie = secties(vragen)[0]?.naam ?? 'Doelen'
+function nieuweVraag(vragen: readonly IntakeVraag[], standaardSectie: string): IntakeVraag {
+  const sectie = secties(vragen)[0]?.naam ?? standaardSectie
   return { id: 'nieuw', sleutel: null, vraag: '', uitleg: null, soort: 'kort', opties: [], verplicht: false, gezondheid: false, sectie, volgorde: volgordeVoorNieuw(vragen, sectie), actief: true }
 }
 
@@ -37,6 +39,7 @@ const naarBody = (v: IntakeVraag) => ({
 /** Het werkvlak: links de vragen per sectie en het formulier, rechts het live voorbeeld. */
 export function IntakeVragenBeheer({ vragen, standaard, vandaag }: IntakeVragenBeheerProps) {
   const router = useRouter()
+  const t = useTekst(INTAKE).beheer
   const [bewerk, setBewerk] = useState<IntakeVraag | null>(null)
   const [concept, setConcept] = useState<IntakeVraag | null>(null)
   const [bezig, setBezig] = useState(false)
@@ -56,17 +59,17 @@ export function IntakeVragenBeheer({ vragen, standaard, vandaag }: IntakeVragenB
 
   async function opslaan(v: IntakeVraag) {
     const nieuw = v.id === 'nieuw'
-    const ok = await doe(nieuw ? stuurVraag('', 'POST', naarBody(v)) : stuurVraag(`/${encodeURIComponent(v.id)}`, 'PATCH', naarBody(v)), nieuw ? 'Vraag toegevoegd.' : 'Vraag opgeslagen.')
+    const ok = await doe(nieuw ? stuurVraag('', 'POST', naarBody(v)) : stuurVraag(`/${encodeURIComponent(v.id)}`, 'PATCH', naarBody(v)), nieuw ? t.toegevoegd : t.opgeslagen)
     if (ok) setBewerk(null)
   }
 
-  const verplaatsVraag = (v: IntakeVraag, richting: Richting) => doe(stuurVraag('/verplaats', 'POST', { wat: 'vraag', id: v.id, richting }), 'Volgorde opgeslagen.')
-  const verplaatsSectie = (sectie: string, richting: Richting) => doe(stuurVraag('/verplaats', 'POST', { wat: 'sectie', sectie, richting }), 'Volgorde van de secties opgeslagen.')
+  const verplaatsVraag = (v: IntakeVraag, richting: Richting) => doe(stuurVraag('/verplaats', 'POST', { wat: 'vraag', id: v.id, richting }), t.volgorde)
+  const verplaatsSectie = (sectie: string, richting: Richting) => doe(stuurVraag('/verplaats', 'POST', { wat: 'sectie', sectie, richting }), t.volgordeSecties)
   const aanUit = (v: IntakeVraag) =>
-    doe(stuurVraag(`/${encodeURIComponent(v.id)}`, 'PATCH', { ...naarBody(v), actief: !v.actief }), v.actief ? `"${v.vraag}" staat uit.` : `"${v.vraag}" staat aan.`)
+    doe(stuurVraag(`/${encodeURIComponent(v.id)}`, 'PATCH', { ...naarBody(v), actief: !v.actief }), v.actief ? t.staatUit(v.vraag) : t.staatAan(v.vraag))
   const verwijder = (v: IntakeVraag) => {
-    if (!window.confirm(`"${v.vraag}" verwijderen? Intakes die al zijn afgenomen houden hun antwoord.`)) return
-    void doe(stuurVraag(`/${encodeURIComponent(v.id)}`, 'DELETE'), 'Vraag verwijderd.')
+    if (!window.confirm(t.verwijderVraag(v.vraag))) return
+    void doe(stuurVraag(`/${encodeURIComponent(v.id)}`, 'DELETE'), t.verwijderd)
   }
 
   return (
@@ -77,13 +80,13 @@ export function IntakeVragenBeheer({ vragen, standaard, vandaag }: IntakeVragenB
       <div className="club-intakevragen-werkvlak">
         <div className="club-intakevragen-hoofd">
           {standaard && (
-            <p className="club-melding">Je gebruikt nu de standaardvragen van Club. Zodra je iets aanpast, wordt het je eigen vragenlijst.</p>
+            <p className="club-melding">{t.standaard}</p>
           )}
           <div className="club-intakevragen-balk">
-            <button type="button" className="club-knop club-knop--primair" disabled={bezig || bewerk !== null} onClick={() => setBewerk(nieuweVraag(vragen))}>
-              <Plus size={16} aria-hidden /> Vraag toevoegen
+            <button type="button" className="club-knop club-knop--primair" disabled={bezig || bewerk !== null} onClick={() => setBewerk(nieuweVraag(vragen, t.nieuweSectie))}>
+              <Plus size={16} aria-hidden /> {t.toevoegen}
             </button>
-            <span className="club-hint">{vragen.filter((v) => v.actief).length} van {vragen.length} vragen aan, in {delen.length} secties</span>
+            <span className="club-hint">{t.telling(vragen.filter((v) => v.actief).length, vragen.length, delen.length)}</span>
           </div>
           {bewerk && (
             <VraagFormulier

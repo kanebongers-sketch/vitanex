@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import type { Lead } from '@/lib/club/leads/model'
 import type { ProeflesLes } from '@/lib/club/leads/lessen'
@@ -35,6 +37,7 @@ interface LeadsWerkvlakProps {
 export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
   const { vestiging, leads, vandaag, medewerkers, lessen, weergave, zoek, vandaagDag, nuIso, paneel, magWissen } = props
   const acties = useLeadsActies(vestiging, zoek)
+  const t = useTekst(LEADS).werkvlak
   const namen = useMemo(() => new Map(medewerkers.map((m) => [m.id, m.naam])), [medewerkers])
   const nu = useMemo(() => new Date(nuIso), [nuIso])
 
@@ -44,15 +47,15 @@ export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
         <div className="club-melding club-melding--fout club-leads-fout" role="alert">
           <span>{acties.fout}</span>
           <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={acties.wisFout}>
-            Sluiten
+            {t.sluiten}
           </button>
         </div>
       )}
       <VandaagLijst items={vandaag} vandaag={vandaagDag} bezig={acties.bezig} onOpen={acties.open} onGedaan={acties.gedaan} onUitkomst={acties.uitkomst} />
       <section aria-labelledby="leads-alle-kop" className="club-leads-alle">
         <div className="club-sectiekop">
-          <h2 id="leads-alle-kop">{weergave === 'lijst' ? 'Alle leads' : 'Pijplijn'}</h2>
-          <span>{leads.length} leads</span>
+          <h2 id="leads-alle-kop">{weergave === 'lijst' ? t.alleLeads : t.pijplijn}</h2>
+          <span>{t.aantal(leads.length)}</span>
         </div>
         {weergave === 'lijst' ? (
           <LeadsLijst leads={leads} medewerkers={namen} vandaag={vandaagDag} onOpen={acties.open} />

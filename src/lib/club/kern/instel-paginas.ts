@@ -9,16 +9,23 @@
 // staat niet hier maar onderaan in de hulpbalk (src/components/club/shell/hulpbalk.ts).
 
 import type { Module } from './organisatie'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { INSTEL_TEKST } from '@/lib/aiyourgym/taal/woorden/club/instel-paginas'
+
+// De Nederlandse namen komen uit het woordenboek (bron); in beeld via
+// instelPaginaInTaal() en instelGroepLabel(groep, taal).
+const IG = INSTEL_TEKST.nl.groepen
+const P = INSTEL_TEKST.nl.paginas
 
 export const INSTEL_GROEPEN = [
-  { sleutel: 'sportschool', label: 'Sportschool' },
-  { sleutel: 'locaties', label: 'Locaties' },
-  { sleutel: 'team', label: 'Team en rechten' },
-  { sleutel: 'planning', label: 'Planning' },
-  { sleutel: 'coaching', label: 'Coaching' },
-  { sleutel: 'leden', label: 'Leden en app' },
-  { sleutel: 'communicatie', label: 'Communicatie' },
-  { sleutel: 'betalen', label: 'Betalen en abonnement' },
+  { sleutel: 'sportschool', label: IG.sportschool },
+  { sleutel: 'locaties', label: IG.locaties },
+  { sleutel: 'team', label: IG.team },
+  { sleutel: 'planning', label: IG.planning },
+  { sleutel: 'coaching', label: IG.coaching },
+  { sleutel: 'leden', label: IG.leden },
+  { sleutel: 'communicatie', label: IG.communicatie },
+  { sleutel: 'betalen', label: IG.betalen },
 ] as const
 
 export type InstelGroep = (typeof INSTEL_GROEPEN)[number]['sleutel']
@@ -56,41 +63,41 @@ export interface InstelPagina {
 
 export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   // Sportschool
-  { id: 'start', titel: 'Startwizard', uitleg: 'Je sportschool stap voor stap inrichten, te hervatten wanneer je wilt.', groep: 'sportschool', pad: '/start', sleutel: 'start', alleenEigenaar: true, trefwoorden: 'inrichten beginnen nieuw' },
-  { id: 'huisstijl', titel: 'Huisstijl', uitleg: 'Naam, slogan, logo, accentkleur en donker of licht.', groep: 'sportschool', pad: '/huisstijl', sleutel: 'huisstijl', trefwoorden: 'logo kleur thema naam slogan' },
-  { id: 'onderdelen', titel: 'Onderdelen aan of uit', uitleg: 'Zet uit wat je sportschool niet gebruikt; het verdwijnt dan overal.', groep: 'sportschool', pad: '/huisstijl#modules-kop', sleutel: 'huisstijl', trefwoorden: 'modules uitzetten' },
-  { id: 'adres', titel: 'Adres', uitleg: 'Je eigen webadres voor medewerkers en leden.', groep: 'sportschool', pad: '/huisstijl#adres-kop', sleutel: 'huisstijl', alleenEigenaar: true, trefwoorden: 'subdomein domein url' },
-  { id: 'bedrijf', titel: 'Bedrijf en huisregels', uitleg: 'KvK, btw, hoofdkantoor, social links, huisregels, voorwaarden en privacy.', groep: 'sportschool', pad: '/beheer/bedrijf', sleutel: 'bedrijf', trefwoorden: 'kvk btw voorwaarden privacy' },
-  { id: 'privacy', titel: 'Privacy en bewaren', uitleg: 'Hoe lang Club leads, oud-leden, bezoeken en het logboek bewaart.', groep: 'sportschool', pad: '/beheer/privacy', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'avg gdpr bewaartermijn verwijderen anonimiseren' },
+  { id: 'start', titel: P.start.titel, uitleg: P.start.uitleg, groep: 'sportschool', pad: '/start', sleutel: 'start', alleenEigenaar: true, trefwoorden: 'inrichten beginnen nieuw' },
+  { id: 'huisstijl', titel: P.huisstijl.titel, uitleg: P.huisstijl.uitleg, groep: 'sportschool', pad: '/huisstijl', sleutel: 'huisstijl', trefwoorden: 'logo kleur thema naam slogan' },
+  { id: 'onderdelen', titel: P.onderdelen.titel, uitleg: P.onderdelen.uitleg, groep: 'sportschool', pad: '/huisstijl#modules-kop', sleutel: 'huisstijl', trefwoorden: 'modules uitzetten' },
+  { id: 'adres', titel: P.adres.titel, uitleg: P.adres.uitleg, groep: 'sportschool', pad: '/huisstijl#adres-kop', sleutel: 'huisstijl', alleenEigenaar: true, trefwoorden: 'subdomein domein url' },
+  { id: 'bedrijf', titel: P.bedrijf.titel, uitleg: P.bedrijf.uitleg, groep: 'sportschool', pad: '/beheer/bedrijf', sleutel: 'bedrijf', trefwoorden: 'kvk btw voorwaarden privacy' },
+  { id: 'privacy', titel: P.privacy.titel, uitleg: P.privacy.uitleg, groep: 'sportschool', pad: '/beheer/privacy', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'avg gdpr bewaartermijn verwijderen anonimiseren' },
   // Locaties
-  { id: 'vestigingen', titel: 'Vestigingen', uitleg: 'Toevoegen, naam, contact, volgorde en welke standaard open gaat.', groep: 'locaties', pad: '/instellingen/vestigingen', sleutel: 'instellingen', nietVoorMedewerker: true, trefwoorden: 'locatie club adres telefoon' },
-  { id: 'regels', titel: 'Regels en openingstijden', uitleg: 'Boeken, annuleren, no-shows en openingstijden per vestiging.', groep: 'locaties', pad: '/instellingen/regels', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'annuleren no-show open dicht' },
-  { id: 'sluiting', titel: 'Sluitingsdagen', uitleg: 'Feestdagen, sluitingen en andere openingstijden; het rooster houdt er rekening mee.', groep: 'locaties', pad: '/beheer/sluiting', sleutel: 'sluiting', trefwoorden: 'feestdag kerst dicht' },
-  { id: 'zalen', titel: 'Zalen', uitleg: 'De ruimtes voor groepslessen en hoeveel mensen erin passen.', groep: 'locaties', pad: '/instellingen/zalen', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'ruimte capaciteit studio' },
+  { id: 'vestigingen', titel: P.vestigingen.titel, uitleg: P.vestigingen.uitleg, groep: 'locaties', pad: '/instellingen/vestigingen', sleutel: 'instellingen', nietVoorMedewerker: true, trefwoorden: 'locatie club adres telefoon' },
+  { id: 'regels', titel: P.regels.titel, uitleg: P.regels.uitleg, groep: 'locaties', pad: '/instellingen/regels', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'annuleren no-show open dicht' },
+  { id: 'sluiting', titel: P.sluiting.titel, uitleg: P.sluiting.uitleg, groep: 'locaties', pad: '/beheer/sluiting', sleutel: 'sluiting', trefwoorden: 'feestdag kerst dicht' },
+  { id: 'zalen', titel: P.zalen.titel, uitleg: P.zalen.uitleg, groep: 'locaties', pad: '/instellingen/zalen', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'ruimte capaciteit studio' },
   // Team en rechten
-  { id: 'medewerkers', titel: 'Medewerkers', uitleg: 'Wie er werkt, in welke rol, op welke vestiging, en uitnodigen om in te loggen.', groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
-  { id: 'rechten', titel: 'Rechten per rol', uitleg: 'Welke onderdelen trainers, instructeurs, clubmanagers en de administratie zien.', groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'toegang rollen autorisatie' },
-  { id: 'beheerders', titel: 'Beheerders', uitleg: 'Eigenaren en clubmanagers met een eigen inlog voor deze sportschool.', groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
+  { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
+  { id: 'rechten', titel: P.rechten.titel, uitleg: P.rechten.uitleg, groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'toegang rollen autorisatie' },
+  { id: 'beheerders', titel: P.beheerders.titel, uitleg: P.beheerders.uitleg, groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
   // Planning
-  { id: 'lestypen', titel: 'Lestypen', uitleg: 'De groepslessen die je geeft, voor alle vestigingen.', groep: 'planning', pad: '/instellingen/lestypen', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'groepsles les soorten' },
-  { id: 'weekrooster', titel: 'Weekrooster', uitleg: 'De vaste lessen per week; daaruit maak je de echte lessen aan.', groep: 'planning', pad: '/instellingen/weekrooster', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'lesrooster vaste lessen' },
-  { id: 'afspraaktypen', titel: 'Afspraaktypen', uitleg: 'Soorten afspraken, duur, buffer en boekregels voor de app.', groep: 'planning', pad: '/afspraken?tab=typen', sleutel: 'afspraken', module: 'afspraken', snelkoppeling: true, trefwoorden: 'intake personal training meting' },
+  { id: 'lestypen', titel: P.lestypen.titel, uitleg: P.lestypen.uitleg, groep: 'planning', pad: '/instellingen/lestypen', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'groepsles les soorten' },
+  { id: 'weekrooster', titel: P.weekrooster.titel, uitleg: P.weekrooster.uitleg, groep: 'planning', pad: '/instellingen/weekrooster', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'lesrooster vaste lessen' },
+  { id: 'afspraaktypen', titel: P.afspraaktypen.titel, uitleg: P.afspraaktypen.uitleg, groep: 'planning', pad: '/afspraken?tab=typen', sleutel: 'afspraken', module: 'afspraken', snelkoppeling: true, trefwoorden: 'intake personal training meting' },
   // Coaching
-  { id: 'intake', titel: 'Intakeformulier', uitleg: 'De vragen bij een intake: eigen vragen, secties, volgorde en wat aan staat.', groep: 'coaching', pad: '/beheer/intake', sleutel: 'beheer', module: 'training', trefwoorden: 'vragenlijst intakevragen' },
-  { id: 'oefeningen', titel: 'Oefeningen en coaching', uitleg: 'Je bibliotheek met beelden, eigen oefeningen en je eigen coachteksten.', groep: 'coaching', pad: '/training?tab=oefeningen', sleutel: 'schemas', perVestiging: true, module: 'training', snelkoppeling: true, trefwoorden: 'oefenbibliotheek coachpunten' },
+  { id: 'intake', titel: P.intake.titel, uitleg: P.intake.uitleg, groep: 'coaching', pad: '/beheer/intake', sleutel: 'beheer', module: 'training', trefwoorden: 'vragenlijst intakevragen' },
+  { id: 'oefeningen', titel: P.oefeningen.titel, uitleg: P.oefeningen.uitleg, groep: 'coaching', pad: '/training?tab=oefeningen', sleutel: 'schemas', perVestiging: true, module: 'training', snelkoppeling: true, trefwoorden: 'oefenbibliotheek coachpunten' },
   // Leden en app
-  { id: 'lidmaatschappen', titel: 'Lidmaatschappen en labels', uitleg: 'Je lidmaatschapsvormen met vestigingen, groepslessen en daluren, en de labels voor leden.', groep: 'leden', pad: '/beheer/lidmaatschappen', sleutel: 'lidmaatschappen', trefwoorden: 'abonnementsvorm label dal' },
-  { id: 'importeren', titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem (zoals Virtuagym of Sportivity) of Excel inlezen.', groep: 'leden', pad: '/leden/importeren', sleutel: 'leden', perVestiging: true, module: 'leden', snelkoppeling: true, trefwoorden: 'import csv excel sportivity virtuagym overstappen' },
-  { id: 'checkin', titel: 'Check-in', uitleg: 'Hoe leden inchecken: QR-code in de app, zoeken aan de balie, of allebei.', groep: 'leden', pad: '/beheer/checkin', sleutel: 'beheer', module: 'checkin', trefwoorden: 'qr balie inchecken' },
-  { id: 'ledenapp', titel: 'Ledenapp instellen', uitleg: 'Welkomsttekst, welke tabbladen aan staan en de check-in code in de app.', groep: 'leden', pad: '/beheer/ledenapp', sleutel: 'beheer', module: 'app', trefwoorden: 'app tabbladen welkom' },
-  { id: 'widget', titel: 'Boekingswidget', uitleg: 'Je lesrooster en proeflesaanvragen op je eigen website.', groep: 'leden', pad: '/beheer/widget', sleutel: 'beheer', perVestiging: true, module: 'rooster', alleenEigenaar: true, trefwoorden: 'website rooster proefles inbedden iframe embed kennismaking' },
+  { id: 'lidmaatschappen', titel: P.lidmaatschappen.titel, uitleg: P.lidmaatschappen.uitleg, groep: 'leden', pad: '/beheer/lidmaatschappen', sleutel: 'lidmaatschappen', trefwoorden: 'abonnementsvorm label dal' },
+  { id: 'importeren', titel: P.importeren.titel, uitleg: P.importeren.uitleg, groep: 'leden', pad: '/leden/importeren', sleutel: 'leden', perVestiging: true, module: 'leden', snelkoppeling: true, trefwoorden: 'import csv excel sportivity virtuagym overstappen' },
+  { id: 'checkin', titel: P.checkin.titel, uitleg: P.checkin.uitleg, groep: 'leden', pad: '/beheer/checkin', sleutel: 'beheer', module: 'checkin', trefwoorden: 'qr balie inchecken' },
+  { id: 'ledenapp', titel: P.ledenapp.titel, uitleg: P.ledenapp.uitleg, groep: 'leden', pad: '/beheer/ledenapp', sleutel: 'beheer', module: 'app', trefwoorden: 'app tabbladen welkom' },
+  { id: 'widget', titel: P.widget.titel, uitleg: P.widget.uitleg, groep: 'leden', pad: '/beheer/widget', sleutel: 'beheer', perVestiging: true, module: 'rooster', alleenEigenaar: true, trefwoorden: 'website rooster proefles inbedden iframe embed kennismaking' },
   // Communicatie
-  { id: 'meldingen', titel: 'Meldingen aan leden', uitleg: 'Bevestigingen, herinneringen en annuleringen van lessen en afspraken, per mail en in de app.', groep: 'communicatie', pad: '/beheer/meldingen', sleutel: 'beheer', trefwoorden: 'herinnering mail push bevestiging' },
-  { id: 'opvolgregels', titel: 'Opvolgregels', uitleg: 'Wie Club op de opvolglijst zet: nieuwe leden, proefleden, wegblijvers, verjaardagen, opzeggingen en mijlpalen.', groep: 'communicatie', pad: '/beheer/automatiseringen', sleutel: 'beheer', trefwoorden: 'automatiseringen opvolgen regels' },
+  { id: 'meldingen', titel: P.meldingen.titel, uitleg: P.meldingen.uitleg, groep: 'communicatie', pad: '/beheer/meldingen', sleutel: 'beheer', trefwoorden: 'herinnering mail push bevestiging' },
+  { id: 'opvolgregels', titel: P.opvolgregels.titel, uitleg: P.opvolgregels.uitleg, groep: 'communicatie', pad: '/beheer/automatiseringen', sleutel: 'beheer', trefwoorden: 'automatiseringen opvolgen regels' },
   // Betalen en abonnement
-  { id: 'betalen', titel: 'Betalen in de ledenapp', uitleg: 'Losse lessen, strippenkaarten, PT-pakketten en producten verkopen via Stripe.', groep: 'betalen', pad: '/beheer/betalen', sleutel: 'beheer', alleenEigenaar: true, betalen: true, trefwoorden: 'stripe strippenkaart producten kopen' },
-  { id: 'kortingen', titel: 'Kortingen en acties', uitleg: 'Kortingscodes, acties met een begin- en einddatum en de gezinskorting voor lidgeld.', groep: 'betalen', pad: '/beheer/lidmaatschappen/kortingen', sleutel: 'lidmaatschappen', lidgeld: true, trefwoorden: 'korting actie code gezin gezinskorting procent' },
-  { id: 'abonnement', titel: 'Abonnement en facturen', uitleg: 'Je pakket, betalingen en facturen van AI Your Gym.', groep: 'betalen', pad: '/beheer/abonnement', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'pakket factuur' },
+  { id: 'betalen', titel: P.betalen.titel, uitleg: P.betalen.uitleg, groep: 'betalen', pad: '/beheer/betalen', sleutel: 'beheer', alleenEigenaar: true, betalen: true, trefwoorden: 'stripe strippenkaart producten kopen' },
+  { id: 'kortingen', titel: P.kortingen.titel, uitleg: P.kortingen.uitleg, groep: 'betalen', pad: '/beheer/lidmaatschappen/kortingen', sleutel: 'lidmaatschappen', lidgeld: true, trefwoorden: 'korting actie code gezin gezinskorting procent' },
+  { id: 'abonnement', titel: P.abonnement.titel, uitleg: P.abonnement.uitleg, groep: 'betalen', pad: '/beheer/abonnement', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'pakket factuur' },
 ]
 
 export type InstelId = string
@@ -129,8 +136,14 @@ export function instelPagina(id: InstelId): InstelPagina | undefined {
   return INSTEL_PAGINAS.find((p) => p.id === id)
 }
 
-export function instelGroepLabel(groep: InstelGroep): string {
-  return INSTEL_GROEPEN.find((g) => g.sleutel === groep)?.label ?? ''
+export function instelGroepLabel(groep: InstelGroep, taal: Taal = 'nl'): string {
+  return INSTEL_TEKST[taal].groepen[groep] ?? ''
+}
+
+/** Een instel-pagina met titel en uitleg in de gekozen taal. */
+export function instelPaginaInTaal<T extends Pick<InstelPagina, 'id' | 'titel' | 'uitleg'>>(p: T, taal: Taal): T {
+  const t = INSTEL_TEKST[taal].paginas[p.id as keyof typeof P]
+  return t ? { ...p, titel: t.titel, uitleg: t.uitleg } : p
 }
 
 /** Het pad zonder ?zoek en #anker. */
@@ -145,4 +158,10 @@ export function instelHref(p: Pick<InstelPagina, 'pad' | 'perVestiging'>, vestig
   if (!p.perVestiging || !vestiging) return anker ? `${basis}#${anker}` : basis
   const sep = basis.includes('?') ? '&' : '?'
   return `${basis}${sep}v=${encodeURIComponent(vestiging)}${anker ? `#${anker}` : ''}`
+}
+
+/** De titel van een instel-pagina in de gekozen taal (voor metadata en koppen). */
+export function instelTitel(id: InstelId, taal: Taal = 'nl'): string {
+  const p = instelPagina(id)
+  return p ? instelPaginaInTaal(p, taal).titel : ''
 }

@@ -5,6 +5,9 @@ import type { Lead } from '@/lib/club/leads/model'
 import type { ProeflesLes } from '@/lib/club/leads/lessen'
 import { dagVan, toonDag } from '@/lib/club/leads/regels'
 import type { Doe } from './usePaneel'
+import { formatTijd } from '@/lib/aiyourgym/taal/formaat'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 
 interface ProeflesKiezerProps {
   lead: Lead
@@ -14,8 +17,6 @@ interface ProeflesKiezerProps {
   doe: Doe
   onKlaar: () => void
 }
-
-const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
 
 /** De lessen gegroepeerd per dag, in volgorde. */
 function perDag(lessen: ProeflesLes[]): [string, ProeflesLes[]][] {
@@ -30,9 +31,11 @@ function perDag(lessen: ProeflesLes[]): [string, ProeflesLes[]][] {
 // Proefles inplannen: een plek in een groepsles van de komende 7 dagen (alleen
 // lessen met plek), of een vrij tijdstip voor een rondleiding of losse proeftraining.
 export function ProeflesKiezer({ lead, lessen, vandaag, bezig, doe, onKlaar }: ProeflesKiezerProps) {
+  const taal = useTaal()
+  const t = useTekst(LEADS).proefles
   const [soort, setSoort] = useState<'les' | 'tijdstip'>(lessen.length > 0 ? 'les' : 'tijdstip')
   const [tijdstip, setTijdstip] = useState('')
-  const [omschrijving, setOmschrijving] = useState('Rondleiding')
+  const [omschrijving, setOmschrijving] = useState(t.standaardWat)
   const groepen = useMemo(() => perDag(lessen), [lessen])
   const url = `/api/club/leads/${lead.id}/proefles`
 
@@ -43,22 +46,22 @@ export function ProeflesKiezer({ lead, lessen, vandaag, bezig, doe, onKlaar }: P
 
   return (
     <div className="club-leads-stapblok">
-      <div className="club-segment" role="group" aria-label="Soort proefles">
+      <div className="club-segment" role="group" aria-label={t.soort}>
         <button type="button" aria-pressed={soort === 'les'} onClick={() => setSoort('les')}>
-          Groepsles
+          {t.groepsles}
         </button>
         <button type="button" aria-pressed={soort === 'tijdstip'} onClick={() => setSoort('tijdstip')}>
-          Vrij tijdstip
+          {t.vrijTijdstip}
         </button>
       </div>
       {soort === 'les' ? (
         groepen.length === 0 ? (
-          <p className="club-leeg">Geen lessen met plek in de komende 7 dagen. Kies een vrij tijdstip.</p>
+          <p className="club-leeg">{t.geenLessen}</p>
         ) : (
           <div className="club-leads-lesdagen">
             {groepen.map(([dag, lijst]) => (
-              <section key={dag} aria-label={toonDag(dag, vandaag)}>
-                <h4 className="club-leads-lesdag">{toonDag(dag, vandaag)}</h4>
+              <section key={dag} aria-label={toonDag(dag, vandaag, taal)}>
+                <h4 className="club-leads-lesdag">{toonDag(dag, vandaag, taal)}</h4>
                 <ul className="club-leads-lessen">
                   {lijst.map((les) => (
                     <li key={les.id}>
@@ -69,10 +72,10 @@ export function ProeflesKiezer({ lead, lessen, vandaag, bezig, doe, onKlaar }: P
                         disabled={bezig}
                         onClick={() => plan({ actie: 'les', lesId: les.id })}
                       >
-                        <span className="club-leads-lestijd">{TIJD.format(new Date(les.startOp))}</span>
+                        <span className="club-leads-lestijd">{formatTijd(les.startOp, taal)}</span>
                         <span className="club-leads-lesnaam">{les.naam}</span>
                         <span className={`club-chip ${les.vrij <= 2 ? 'club-chip--let-op' : 'club-chip--ok'}`}>
-                          {les.vrij} {les.vrij === 1 ? 'plek' : 'plekken'}
+                          {t.plekken(les.vrij)}
                         </span>
                       </button>
                     </li>
@@ -93,16 +96,16 @@ export function ProeflesKiezer({ lead, lessen, vandaag, bezig, doe, onKlaar }: P
         >
           <div className="club-formrij">
             <label className="club-veld">
-              <span>Datum en tijd</span>
+              <span>{t.datumTijd}</span>
               <input type="datetime-local" className="club-invoer" required min={`${vandaag}T00:00`} value={tijdstip} onChange={(e) => setTijdstip(e.target.value)} />
             </label>
             <label className="club-veld">
-              <span>Wat</span>
+              <span>{t.wat}</span>
               <input className="club-invoer" maxLength={200} value={omschrijving} onChange={(e) => setOmschrijving(e.target.value)} />
             </label>
           </div>
           <button type="submit" className="club-knop club-knop--primair" disabled={bezig || tijdstip === ''}>
-            Proefles inplannen
+            {t.inplannen}
           </button>
         </form>
       )}

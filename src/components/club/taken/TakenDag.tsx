@@ -11,6 +11,8 @@ import { DagAfsluiten } from './DagAfsluiten'
 import { DagNotities } from './DagNotities'
 import { PersoonKiezer } from './PersoonKiezer'
 import { TakenRaster } from './TakenRaster'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 // De taken van een dag in de Excel-weergave (besluit Kane: dezelfde tabel als
 // de week, met een kolom): wie vinkt af, de lijsten, het notitieveld en op de
@@ -38,20 +40,21 @@ export async function TakenDag({ admin, userId, vestiging, dag, vandaag }: Props
     haalMedewerkers(admin, userId, vestiging),
   ])
   const actief = data ? alleenActief(data) : null
+  const tekst = (await clubTekst(TAKEN)).dag
 
   if (!actief || !afvinkingen || !notities || !rondes) {
     return (
       <p className="club-melding club-melding--fout" role="alert">
-        De taken konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.
+        {tekst.fout}
       </p>
     )
   }
   if (actief.lijsten.length === 0) {
     return (
       <div className="club-leeg">
-        <p>Deze vestiging heeft nog geen takenlijsten.</p>
+        <p>{tekst.geenLijsten}</p>
         <Link className="club-knop club-knop--primair" href={takenHref('beheer', vestiging)}>
-          Lijsten maken of kopieren
+          {tekst.lijstenMaken}
         </Link>
       </div>
     )

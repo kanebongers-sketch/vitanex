@@ -9,6 +9,8 @@ import { RechtenMatrix, type RechtenGroep } from '@/components/club/beheer/Recht
 import { AlvastIngevuld } from './AlvastIngevuld'
 import { TeamFormulier, type TeamLid } from './TeamFormulier'
 import { StartVoet, type StartVoetProps } from './StartVoet'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Stap 6 als geheel: links het team (toevoegen, bewerken, uitnodigen), rechts
 // wat elke functie ziet. Geen losse opslaanknop voor de rechten: de knop
@@ -36,6 +38,7 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
   const [rechten, setRechten] = useState<Rechten>(p.rechten)
   const [alleen, setAlleen] = useState(p.alleen)
   const [fout, setFout] = useState<string | null>(null)
+  const tk = useTekst(START)
   const rechtenGewijzigd = JSON.stringify(rechten) !== JSON.stringify(p.rechten)
   const alleenGewijzigd = alleen !== p.alleen
   const leeg = p.team.length === 0
@@ -43,7 +46,7 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
   async function voorVerder(doel: 'verder' | 'stoppen'): Promise<boolean> {
     setFout(null)
     if (doel === 'verder' && leeg && !alleen) {
-      setFout('Voeg minstens een medewerker toe, of vink aan dat je alleen werkt.')
+      setFout(tk.team.verplicht)
       return false
     }
     if (rechtenGewijzigd) {
@@ -75,8 +78,8 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
         }}
       />
       <span>
-        <strong>Ik werk alleen</strong>
-        <span className="club-zacht">Nog geen medewerkers. Komt er iemand bij, dan voeg je die hierboven toe.</span>
+        <strong>{tk.team.alleen}</strong>
+        <span className="club-zacht">{tk.team.alleenUitleg}</span>
       </span>
     </label>
   )
@@ -86,17 +89,17 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
       <div className="club-start-twee club-start-team-kolommen">
         <div className="club-start-stapel">
           <TeamFormulier vestigingen={p.vestigingen} vestiging={p.vestiging} team={p.team} loginAan={p.loginAan} linkBasis={p.linkBasis} leeg={keuzeAlleen} />
-          {p.loginsFout && <p className="club-melding club-melding--fout" role="alert">Of je team al kan inloggen, kon niet worden gelezen. Uitnodigen werkt gewoon.</p>}
+          {p.loginsFout && <p className="club-melding club-melding--fout" role="alert">{tk.team.loginsFout}</p>}
         </div>
         <section className="club-start-blok" aria-labelledby="start-rechten-kop">
-          <h2 id="start-rechten-kop">Wat elke functie ziet</h2>
+          <h2 id="start-rechten-kop">{tk.team.rechtenKop}</h2>
           <AlvastIngevuld soort={p.soort} />
-          <p className="club-hint">Vink per onderdeel aan welke functie het ziet. Jij als eigenaar ziet altijd alles. De knop onderaan bewaart je keuze.</p>
+          <p className="club-hint">{tk.team.rechtenUitleg}</p>
           <RechtenMatrix begin={p.rechten} groepen={p.groepen} onWijzig={setRechten} />
         </section>
       </div>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
-      <StartVoet {...p.voet} voorVerder={voorVerder} primair={rechtenGewijzigd || alleenGewijzigd ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...p.voet} voorVerder={voorVerder} primair={rechtenGewijzigd || alleenGewijzigd ? tk.voet.opslaanVerder : undefined} />
     </>
   )
 }

@@ -4,12 +4,17 @@
 // komen, openingstijden, regels voor reserveren en wat elke rol ziet. Het zijn
 // gangbare standaarden, geen beloftes: in de stappen daarna pas je alles aan.
 
-import { MODULES, MODULE_LABEL, type Module } from '@/lib/club/kern/organisatie'
+import { MODULES, type Module } from '@/lib/club/kern/organisatie'
 import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { standaardRechten, type Rechten } from '@/lib/club/kern/org-instellingen'
 import { STANDAARD_REGELS, type RoosterRegels } from '@/lib/club/rooster/regels'
 import type { Openingstijd, Openingstijden } from '@/lib/club/rooster/openingstijden'
 import { ALLE_LESSEN, VOORBEELD_LESTYPEN, lestypeOpNaam, zelfdeNaam, type VoorbeeldLes, type VoorbeeldLestype } from './voorbeelden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
+
+// De Nederlandse teksten komen uit het woordenboek (bron); in beeld met de taal erbij (soortInfo, weekTekst, klaargezet).
+const SO = START_LIB.nl.soorten
 
 export const SPORTSCHOOL_SOORTEN = ['gym', 'boutique', 'pt', 'keten', 'yoga', 'vechtsport', 'bootcamp'] as const
 export type SportschoolSoort = (typeof SPORTSCHOOL_SOORTEN)[number]
@@ -21,13 +26,18 @@ export interface SoortInfo {
 }
 
 export const SOORT_INFO: Record<SportschoolSoort, SoortInfo> = {
-  gym: { titel: 'Fitnessclub', kort: 'Vrij trainen met begeleiding, plus groepslessen' },
-  boutique: { titel: 'Boutique studio', kort: 'Kleine groepen, altijd op reservering' },
-  pt: { titel: 'PT-studio', kort: 'Personal training en kleine groepjes op afspraak' },
-  keten: { titel: 'Keten', kort: 'Meerdere vestigingen onder een naam' },
-  yoga: { titel: 'Yoga en pilates', kort: 'Lessen op de mat, rustig tempo' },
-  vechtsport: { titel: 'Vechtsport', kort: 'Trainingen per niveau en leeftijd' },
-  bootcamp: { titel: 'Bootcamp', kort: 'Binnen of buiten trainen in groepen' },
+  gym: { titel: SO.gym.titel, kort: SO.gym.kort },
+  boutique: { titel: SO.boutique.titel, kort: SO.boutique.kort },
+  pt: { titel: SO.pt.titel, kort: SO.pt.kort },
+  keten: { titel: SO.keten.titel, kort: SO.keten.kort },
+  yoga: { titel: SO.yoga.titel, kort: SO.yoga.kort },
+  vechtsport: { titel: SO.vechtsport.titel, kort: SO.vechtsport.kort },
+  bootcamp: { titel: SO.bootcamp.titel, kort: SO.bootcamp.kort },
+}
+
+/** Titel, korte uitleg en de naam met lidwoord ("een pt-studio") van een soort, in de gekozen taal. */
+export function soortInfo(soort: SportschoolSoort, taal: Taal = 'nl'): SoortInfo & { lidwoord: string } {
+  return START_LIB[taal].soorten[soort]
 }
 
 export function isSportschoolSoort(v: unknown): v is SportschoolSoort {
@@ -64,24 +74,24 @@ export function heeftOpenDag(week: Openingstijden): boolean {
   return week.some((d) => d !== null)
 }
 
-const KORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
-
-function dagenTekst(van: number, tot: number): string {
-  if (van === tot) return KORT[van]
-  if (tot === van + 1) return `${KORT[van]} en ${KORT[tot]}`
-  return `${KORT[van]} tot ${KORT[tot]}`
+function dagenTekst(van: number, tot: number, taal: Taal): string {
+  const w = START_LIB[taal].week
+  if (van === tot) return w.dagKort[van]
+  if (tot === van + 1) return w.tweeDagen(w.dagKort[van], w.dagKort[tot])
+  return w.reeks(w.dagKort[van], w.dagKort[tot])
 }
 
 /** "Elke dag 06:00 tot 23:00" of "Ma tot vr 07:00 tot 21:00, za 08:00 tot 14:00, zo dicht". */
-export function weekTekst(week: Openingstijden): string {
-  if (!heeftOpenDag(week)) return 'Elke dag dicht'
-  if (week.every((d) => zelfdeDag(d, week[0]))) return `Elke dag ${week[0]?.van} tot ${week[0]?.tot}`
+export function weekTekst(week: Openingstijden, taal: Taal = 'nl'): string {
+  const w = START_LIB[taal].week
+  if (!heeftOpenDag(week)) return w.elkeDagDicht
+  if (week.every((d) => zelfdeDag(d, week[0]))) return w.elkeDag(week[0]?.van ?? '', week[0]?.tot ?? '')
   const delen: string[] = []
   let begin = 0
   for (let i = 1; i <= 7; i++) {
     if (i < 7 && zelfdeDag(week[i], week[begin])) continue
     const d = week[begin]
-    delen.push(`${dagenTekst(begin, i - 1)} ${d ? `${d.van} tot ${d.tot}` : 'dicht'}`)
+    delen.push(`${dagenTekst(begin, i - 1, taal)} ${d ? w.tijden(d.van, d.tot) : w.dicht}`)
     begin = i
   }
   const tekst = delen.join(', ')
@@ -222,50 +232,47 @@ export interface KlaargezetRegel {
   tekst: string
 }
 
-function lijstTekst(namen: readonly string[]): string {
+function lijstTekst(namen: readonly string[], taal: Taal): string {
   if (namen.length <= 1) return namen.join('')
-  return `${namen.slice(0, -1).join(', ')} en ${namen[namen.length - 1]}`
+  return `${namen.slice(0, -1).join(', ')} ${START_LIB[taal].en} ${namen[namen.length - 1]}`
 }
 
-export function onderdelenTekst(uit: readonly Module[]): string {
+export function onderdelenTekst(uit: readonly Module[], taal: Taal = 'nl'): string {
+  const t = START_LIB[taal]
   const aan = MODULES.length - uit.length
-  if (uit.length === 0) return `Alle ${MODULES.length} onderdelen staan aan.`
-  return `${aan} van de ${MODULES.length} onderdelen aan. Uit: ${lijstTekst(uit.map((m) => MODULE_LABEL[m].label.toLowerCase()))}.`
+  if (uit.length === 0) return t.klaargezet.alleOnderdelen(MODULES.length)
+  return t.klaargezet.deelOnderdelen(aan, MODULES.length, lijstTekst(uit.map((m) => t.modules[m].toLowerCase()), taal))
 }
 
-export function reserverenTekst(r: RoosterRegels): string {
-  return `Boeken tot ${r.reserveerDagenVooruit} dagen vooruit, kosteloos annuleren tot ${r.annuleerUren} uur voor de les, na ${r.noShowDrempel} keer niet komen ${r.noShowBlokkadeDagen} dagen niet boeken.`
-}
-
-const ROL_MEERVOUD: Record<MedewerkerRol, string> = {
-  trainer: 'trainers',
-  instructeur: 'groepslesinstructeurs',
-  manager: 'clubmanagers',
-  administratie: 'de administratie',
+export function reserverenTekst(r: RoosterRegels, taal: Taal = 'nl'): string {
+  return START_LIB[taal].klaargezet.reserverenTekst(r.reserveerDagenVooruit, r.annuleerUren, r.noShowDrempel, r.noShowBlokkadeDagen)
 }
 
 /** "Trainers zien 11 onderdelen, groepslesinstructeurs 3, ..." */
-export function rechtenTekst(rechten: Rechten): string {
+export function rechtenTekst(rechten: Rechten, taal: Taal = 'nl'): string {
+  const k = START_LIB[taal].klaargezet
+  const meervoud: Record<MedewerkerRol, string> = k.rolMeervoud
   const [eerste, ...rest] = MEDEWERKER_ROLLEN
-  const delen = rest.map((rol) => `${ROL_MEERVOUD[rol]} ${rechten[rol].length}`)
-  const naam = ROL_MEERVOUD[eerste]
-  const kop = `${naam.charAt(0).toUpperCase()}${naam.slice(1)} zien ${rechten[eerste].length} onderdelen`
-  return `${lijstTekst([kop, ...delen])}. Jij als eigenaar ziet alles.`
+  const delen = rest.map((rol) => k.rolDeel(meervoud[rol], rechten[rol].length))
+  const naam = meervoud[eerste]
+  const kop = k.rolKop(`${naam.charAt(0).toUpperCase()}${naam.slice(1)}`, rechten[eerste].length)
+  return k.eigenaarZiet(lijstTekst([kop, ...delen], taal))
 }
 
-/** De regels voor de kaart "We hebben dit alvast voor je klaargezet". */
-export function klaargezet(p: SoortPakket): KlaargezetRegel[] {
+/** De regels voor de kaart "We hebben dit alvast voor je klaargezet", in de gekozen taal. */
+export function klaargezet(p: SoortPakket, taal: Taal = 'nl'): KlaargezetRegel[] {
+  const k = START_LIB[taal].klaargezet
   const lessen = !p.uit.includes('rooster')
   return [
-    { sleutel: 'onderdelen', titel: 'Onderdelen', tekst: onderdelenTekst(p.uit) },
+    { sleutel: 'onderdelen', titel: k.onderdelen, tekst: onderdelenTekst(p.uit, taal) },
     {
       sleutel: 'lestypen',
-      titel: 'Lestypen',
-      tekst: lessen && p.lestypen.length > 0 ? lijstTekst(p.lestypen.map((l) => l.naam)) : 'Geen groepslessen. Geef je ze toch, zet dan Groepslessen aan bij Onderdelen.',
+      titel: k.lestypen,
+      tekst: lessen && p.lestypen.length > 0 ? lijstTekst(p.lestypen.map((l) => l.naam), taal) : k.geenLessen,
     },
-    { sleutel: 'openingstijden', titel: 'Openingstijden', tekst: weekTekst(p.openingstijden) },
-    ...(lessen ? [{ sleutel: 'reserveren' as const, titel: 'Reserveren', tekst: reserverenTekst(p.regels) }] : []),
-    { sleutel: 'rechten', titel: 'Wat je team ziet', tekst: rechtenTekst(p.rechten) },
+    { sleutel: 'openingstijden', titel: k.openingstijden, tekst: weekTekst(p.openingstijden, taal) },
+    ...(lessen ? [{ sleutel: 'reserveren' as const, titel: k.reserveren, tekst: reserverenTekst(p.regels, taal) }] : []),
+    { sleutel: 'rechten', titel: k.rechten, tekst: rechtenTekst(p.rechten, taal) },
   ]
 }
 

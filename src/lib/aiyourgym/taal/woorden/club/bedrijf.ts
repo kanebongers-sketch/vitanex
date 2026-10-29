@@ -1,0 +1,151 @@
+import { woordenboek } from '../../woordenboek'
+
+// Bedrijf en huisregels (/club/beheer/bedrijf): de officiele gegevens van de
+// sportschool en de teksten voor leden (huisregels, voorwaarden, privacy), plus
+// het blok met die teksten in de ledenapp. De teksten zelf schrijft de
+// sportschool en blijven zoals ze zijn.
+
+export const BEDRIJF = woordenboek({
+  nl: {
+    pagina: {
+      titel: 'Bedrijf en huisregels',
+      intro: 'De officiele gegevens van je sportschool en de teksten die je leden in de app lezen.',
+      tabs: 'Onderdelen',
+      gegevens: 'Gegevens',
+      teksten: 'Teksten',
+      laadFout: 'De gegevens konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.',
+    },
+    groepen: {
+      bedrijf: { titel: 'Bedrijf', uitleg: 'Zoals in het Handelsregister. Je leden zien dit onder je voorwaarden.' },
+      hoofdkantoor: { titel: 'Hoofdkantoor', uitleg: 'Het postadres van het bedrijf. De adressen van je vestigingen staan hieronder apart.' },
+      contact: { titel: 'Contact', uitleg: 'Algemeen contact, los van de balie per vestiging.' },
+      social: { titel: 'Social media', uitleg: 'Alleen https-links naar je eigen pagina op dat netwerk.' },
+    },
+    velden: {
+      bedrijfsnaam: { label: 'Officiele bedrijfsnaam', placeholder: 'Bijvoorbeeld: Sportschool Jansen B.V.' },
+      kvk: { label: 'KvK-nummer', placeholder: '8 cijfers', hint: 'Precies 8 cijfers.' },
+      btw: { label: 'Btw-nummer (mag leeg)', hint: 'We controleren het controlegetal.' },
+      adres: 'Straat en huisnummer',
+      postcode: 'Postcode',
+      plaats: 'Plaats',
+      telefoon: 'Telefoon',
+      email: 'E-mail',
+      website: 'Website',
+      websiteVoorbeeld: 'https://www.jouwsportschool.nl',
+      socialVoorbeeld: (netwerk: string) => `https://www.${netwerk}.com/jouwsportschool`,
+    },
+    gegevens: {
+      opslaan: 'Gegevens opslaan',
+      bezig: 'Opslaan...',
+      opgeslagen: 'Opgeslagen.',
+    },
+    teksten: {
+      labels: { huisregels: 'Huisregels', voorwaarden: 'Algemene voorwaarden', privacy: 'Privacyverklaring' },
+      uitleg: {
+        huisregels: 'Hoe je leden zich gedragen in de sportschool: toegang, de zaal, groepslessen.',
+        voorwaarden: 'De voorwaarden van het lidmaatschap. Laat deze tekst bij twijfel juridisch nakijken.',
+        privacy: 'Welke gegevens je bewaart, waarom, en welke rechten je leden hebben (AVG).',
+      },
+      teLang: (soort: string) => `${soort} is te lang. Haal wat tekst weg.`,
+      opgeslagen: 'Opgeslagen. Je leden zien de nieuwe tekst in de app.',
+      welke: 'Welke tekst',
+      nietOpgeslagen: '(niet opgeslagen)',
+      voorbeeldInvoer: '# Tussenkop\nEen alinea met gewone tekst.\n\n- Een opsommingspunt\n- Nog een punt',
+      opmaak: {
+        voor: 'Opmaak: een lege regel begint een nieuwe alinea,',
+        midden: 'vooraan maakt een opsommingspunt en',
+        na: 'vooraan een tussenkop.',
+      },
+      teller: (aantal: string, max: string) => `${aantal} van ${max} tekens`,
+      zoZietLid: 'Zo ziet je lid het',
+      leeg: 'Nog leeg. Lege teksten zie je niet in de ledenapp.',
+      opslaan: 'Teksten opslaan',
+      bezig: 'Opslaan...',
+      wijzigingen: 'Je hebt wijzigingen die nog niet zijn opgeslagen.',
+    },
+    contact: {
+      kop: 'Contact per vestiging',
+      uitleg: 'Deze gegevens horen bij de vestigingen zelf en staan hier ter controle. Je past ze aan onder Instellingen, Vestigingen, bij Contact.',
+      naar: 'Naar vestigingen',
+      laadFout: 'De vestigingen konden niet worden geladen.',
+      leeg: 'Nog geen vestigingen. Voeg de eerste toe bij Vestigingen.',
+      geenAdres: 'Geen adres',
+      geenTelefoon: 'Geen telefoon',
+      geenEmail: 'Geen e-mail',
+    },
+    ledenapp: {
+      regelsVan: (sportschool: string) => `Regels van ${sportschool}`,
+    },
+  },
+  en: {
+    pagina: {
+      titel: 'Business and house rules',
+      intro: 'The official details of your gym and the texts your members read in the app.',
+      tabs: 'Sections',
+      gegevens: 'Details',
+      teksten: 'Texts',
+      laadFout: 'The details could not be loaded. Refresh the page to try again.',
+    },
+    groepen: {
+      bedrijf: { titel: 'Business', uitleg: 'As registered with the Chamber of Commerce. Your members see this below your terms.' },
+      hoofdkantoor: { titel: 'Head office', uitleg: 'The postal address of the business. The addresses of your locations are listed separately below.' },
+      contact: { titel: 'Contact', uitleg: 'General contact details, separate from the front desk at each location.' },
+      social: { titel: 'Social media', uitleg: 'Only https links to your own page on that network.' },
+    },
+    velden: {
+      bedrijfsnaam: { label: 'Official business name', placeholder: 'For example: Jansen Gym Ltd' },
+      kvk: { label: 'Company number (KvK)', placeholder: '8 digits', hint: 'Exactly 8 digits.' },
+      btw: { label: 'VAT number (optional)', hint: 'We check the check digit.' },
+      adres: 'Street and number',
+      postcode: 'Postcode',
+      plaats: 'Town or city',
+      telefoon: 'Phone',
+      email: 'Email',
+      website: 'Website',
+      websiteVoorbeeld: 'https://www.yourgym.com',
+      socialVoorbeeld: (netwerk: string) => `https://www.${netwerk}.com/yourgym`,
+    },
+    gegevens: {
+      opslaan: 'Save details',
+      bezig: 'Saving...',
+      opgeslagen: 'Saved.',
+    },
+    teksten: {
+      labels: { huisregels: 'House rules', voorwaarden: 'Terms and conditions', privacy: 'Privacy notice' },
+      uitleg: {
+        huisregels: 'How your members behave in the gym: access, the gym floor, group classes.',
+        voorwaarden: 'The terms of the membership. If in doubt, have this text checked by a lawyer.',
+        privacy: 'Which data you keep, why, and which rights your members have (GDPR).',
+      },
+      teLang: (soort: string) => `${soort} is too long. Remove some text.`,
+      opgeslagen: 'Saved. Your members see the new text in the app.',
+      welke: 'Which text',
+      nietOpgeslagen: '(not saved)',
+      voorbeeldInvoer: '# Subheading\nA paragraph of normal text.\n\n- A bullet point\n- Another point',
+      opmaak: {
+        voor: 'Formatting: an empty line starts a new paragraph,',
+        midden: 'at the start makes a bullet point and',
+        na: 'at the start makes a subheading.',
+      },
+      teller: (aantal: string, max: string) => `${aantal} of ${max} characters`,
+      zoZietLid: 'How your member sees it',
+      leeg: 'Still empty. Empty texts do not appear in the member app.',
+      opslaan: 'Save texts',
+      bezig: 'Saving...',
+      wijzigingen: 'You have changes that have not been saved yet.',
+    },
+    contact: {
+      kop: 'Contact details per location',
+      uitleg: 'These details belong to the locations themselves and are shown here for checking. You change them under Settings, Locations, at Contact.',
+      naar: 'Go to locations',
+      laadFout: 'The locations could not be loaded.',
+      leeg: 'No locations yet. Add the first one under Locations.',
+      geenAdres: 'No address',
+      geenTelefoon: 'No phone',
+      geenEmail: 'No email',
+    },
+    ledenapp: {
+      regelsVan: (sportschool: string) => `Rules of ${sportschool}`,
+    },
+  },
+})

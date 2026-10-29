@@ -10,6 +10,8 @@ import { AfspraakDetail } from './AfspraakDetail'
 import { DagRaster } from './DagRaster'
 import { Paneel } from './Paneel'
 import { WeekOverzicht } from './WeekOverzicht'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
 // Het werkvlak van de afspraken: week of dag, plus het zijpaneel om een
 // afspraak te maken of te openen. Na elke wijziging ververst de pagina.
@@ -40,8 +42,9 @@ export function AfsprakenWerkvlak(p: Props) {
   const [open, setOpen] = useState<Open>(null)
   const [melding, setMelding] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  const t = useTekst(AFSPRAKEN).werkvlak
   const naamVan = new Map(p.namen.map((m) => [m.id, m.naam]))
-  const trainerNaam = (id: string) => naamVan.get(id) ?? 'Onbekend'
+  const trainerNaam = (id: string) => naamVan.get(id) ?? t.onbekend
   const gekozen = open?.soort === 'afspraak' ? p.afspraken.find((a) => a.id === open.id) ?? null : null
 
   function klaar(tekst: string) {
@@ -67,7 +70,7 @@ export function AfsprakenWerkvlak(p: Props) {
     <>
       <div className="club-acties club-afspraken-actiebalk">
         <button type="button" className="club-knop club-knop--primair" onClick={() => nieuw({ datum: p.weergave === 'dag' ? p.dag : p.vandaag, medewerkerId: p.filterTrainer })}>
-          <Plus size={16} aria-hidden /> Nieuwe afspraak
+          <Plus size={16} aria-hidden /> {t.nieuw}
         </button>
         <p className="club-afspraken-melding" role="status" aria-live="polite">{melding}</p>
       </div>
@@ -94,12 +97,12 @@ export function AfsprakenWerkvlak(p: Props) {
       )}
 
       {open?.soort === 'nieuw' ? (
-        <Paneel label="Nieuwe afspraak" onSluit={() => setOpen(null)}>
+        <Paneel label={t.nieuw} onSluit={() => setOpen(null)}>
           <AfspraakFormulier vestiging={p.vestiging} typen={p.typen} typeTrainers={p.typeTrainers} trainers={p.namen} leads={p.leads} start={open.start} vandaag={p.vandaag} onKlaar={klaar} onSluit={() => setOpen(null)} />
         </Paneel>
       ) : null}
       {gekozen ? (
-        <Paneel label={`Afspraak met ${gekozen.lidNaam}`} onSluit={() => setOpen(null)}>
+        <Paneel label={t.afspraakMet(gekozen.lidNaam)} onSluit={() => setOpen(null)}>
           <AfspraakDetail key={gekozen.id} afspraak={gekozen} vestiging={p.vestiging} trainerNaam={trainerNaam(gekozen.medewerkerId)} trainers={verplaatsTrainers(gekozen)} vandaag={p.vandaag} onKlaar={klaar} />
         </Paneel>
       ) : null}

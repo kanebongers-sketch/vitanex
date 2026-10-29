@@ -6,6 +6,8 @@ import { MAX_TAG, normaliseerTag } from '@/lib/club/leden/invoer'
 import { MAX_OMSCHRIJVING_LABEL, type Kleur, type Label } from '@/lib/club/lidmaatschappen/model'
 import { ledenTekst } from '@/lib/club/lidmaatschappen/tellen'
 import { KleurKiezer } from './KleurKiezer'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 
 // Een label toevoegen of wijzigen. De naam wordt net als een tag geschreven
 // ("PT interesse" wordt "pt-interesse"); bij hernoemen gaat de nieuwe naam ook
@@ -26,6 +28,9 @@ export function LabelFormulier({ begin, onKlaar, onAnnuleer }: Props) {
   const [fout, setFout] = useState<string | null>(null)
   const net = normaliseerTag(naam)
   const hernoemt = Boolean(begin && net && net !== begin.naam && begin.leden > 0)
+  const taal = useTaal()
+  const tekst = useTekst(LIDMAATSCHAPPEN)
+  const t = tekst.label
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -40,26 +45,24 @@ export function LabelFormulier({ begin, onKlaar, onAnnuleer }: Props) {
       setNaam('')
       setOmschrijving('')
     }
-    onKlaar(begin ? `Label ${net} is aangepast${geraakt > 0 ? ` en bij ${ledenTekst(geraakt)} hernoemd` : ''}.` : `Label ${net} is toegevoegd.`)
+    onKlaar(begin ? (geraakt > 0 ? t.aangepastHernoemd(net ?? '', ledenTekst(geraakt, taal)) : t.aangepast(net ?? '')) : t.toegevoegd(net ?? ''))
   }
 
   return (
     <form className="club-lidm-form" onSubmit={(e) => void bewaar(e)} aria-describedby={`${id}-uitleg${fout ? ` ${id}-fout` : ''}`}>
       <label className="club-veld">
-        <span>Naam</span>
-        <input className="club-invoer" required maxLength={MAX_TAG + 10} value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="pt-interesse" />
+        <span>{tekst.algemeen.naam}</span>
+        <input className="club-invoer" required maxLength={MAX_TAG + 10} value={naam} onChange={(e) => setNaam(e.target.value)} placeholder={t.voorbeeld} />
       </label>
       <p id={`${id}-uitleg`} className="club-hint club-lidm-voorbeeld">
-        {naam.trim() === '' ? 'Kleine letters, cijfers en koppeltekens.' : net ? <>Wordt opgeslagen als <span className="club-lidm-tag">{net}</span></> : 'Deze naam kan niet: gebruik letters of cijfers, maximaal 30 tekens.'}
+        {naam.trim() === '' ? t.regels : net ? <>{t.wordt} <span className="club-lidm-tag">{net}</span></> : t.kanNiet}
       </p>
       {hernoemt && begin && (
-        <p className="club-melding club-lidm-let">
-          Bij {ledenTekst(begin.leden)} wordt de tag {begin.naam} dan {net}.
-        </p>
+        <p className="club-melding club-lidm-let">{t.hernoemt(ledenTekst(begin.leden, taal), begin.naam, net ?? '')}</p>
       )}
       <label className="club-veld">
-        <span>Omschrijving</span>
-        <input className="club-invoer" maxLength={MAX_OMSCHRIJVING_LABEL} value={omschrijving} onChange={(e) => setOmschrijving(e.target.value)} placeholder="Waar is dit label voor?" />
+        <span>{tekst.algemeen.omschrijving}</span>
+        <input className="club-invoer" maxLength={MAX_OMSCHRIJVING_LABEL} value={omschrijving} onChange={(e) => setOmschrijving(e.target.value)} placeholder={t.omschrijvingVoorbeeld} />
       </label>
       <KleurKiezer naam={`${id}-kleur`} waarde={kleur} onKies={setKleur} />
       <div id={`${id}-fout`} role="alert">
@@ -67,11 +70,11 @@ export function LabelFormulier({ begin, onKlaar, onAnnuleer }: Props) {
       </div>
       <div className="club-lidm-formacties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Bezig...' : begin ? 'Opslaan' : 'Label toevoegen'}
+          {bezig ? tekst.algemeen.bezig : begin ? tekst.algemeen.opslaan : t.toevoegen}
         </button>
         {onAnnuleer && (
           <button type="button" className="club-knop club-knop--stil" onClick={onAnnuleer}>
-            Annuleren
+            {tekst.algemeen.annuleren}
           </button>
         )}
       </div>

@@ -4,6 +4,10 @@ import type { LiveActie } from '@/lib/club/start/eerste-dag'
 import type { Thema } from '@/lib/club/kern/huisstijl'
 import { KopieerKnop } from './KopieerKnop'
 import { LedenappVoorbeeld } from './LedenappVoorbeeld'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
+
+type LiveTekst = (typeof START)['nl']['live']
 
 // Bovenaan de laatste stap: wat er nu echt live staat. Het eigen adres van de
 // sportschool (ledenapp en inloggen voor het team) met een kopieerknop, en de
@@ -50,13 +54,13 @@ interface StapLiveProps {
 
 const ACTIE_ICOON = { poster: Printer, uitnodigen: Send, checkin: ScanLine } as const
 
-function DagEen({ acties }: { acties: readonly LiveActie[] }) {
+function DagEen({ acties, t }: { acties: readonly LiveActie[]; t: LiveTekst }) {
   if (acties.length === 0) return null
   return (
     <section className="club-start-dageen" aria-labelledby="start-dageen-kop">
       <div className="club-start-dageen-kop">
-        <p className="club-boventitel">Je eerste dag</p>
-        <h2 id="start-dageen-kop">Zet je leden op de app</h2>
+        <p className="club-boventitel">{t.dagEenBoven}</p>
+        <h2 id="start-dageen-kop">{t.dagEenKop}</h2>
       </div>
       <ol className="club-start-dageen-lijst" role="list">
         {acties.map((a, i) => {
@@ -83,14 +87,14 @@ function zonderProtocol(url: string): string {
   return url.replace(/^https:\/\//, '')
 }
 
-function Adres({ titel, uitleg, url }: { titel: string; uitleg: string; url: string }) {
+function Adres({ titel, uitleg, url, t }: { titel: string; uitleg: string; url: string; t: LiveTekst }) {
   return (
     <div className="club-start-live-adres">
       <dt>{titel}</dt>
       <dd>
         <span className="club-start-live-url">
           <code>{zonderProtocol(url)}</code>
-          <KopieerKnop tekst={url} label={`adres: ${titel.toLowerCase()}`} />
+          <KopieerKnop tekst={url} label={t.adresLabel(titel.toLowerCase())} />
         </span>
         <span className="club-zacht">{uitleg}</span>
       </dd>
@@ -98,7 +102,7 @@ function Adres({ titel, uitleg, url }: { titel: string; uitleg: string; url: str
   )
 }
 
-function NogOpen({ open }: { open: readonly OpenStap[] }) {
+function NogOpen({ open, t }: { open: readonly OpenStap[]; t: LiveTekst }) {
   return (
     <ul className="club-start-nogopen" role="list">
       {open.map((s) => (
@@ -108,8 +112,8 @@ function NogOpen({ open }: { open: readonly OpenStap[] }) {
             <strong>{s.titel}</strong>
             <span className="club-zacht">{s.kort}</span>
           </span>
-          <Link href={s.pad} className="club-knop club-knop--klein" aria-label={`Naar stap ${s.nummer}: ${s.titel}`}>
-            Naar stap {s.nummer} <ArrowRight aria-hidden size={14} />
+          <Link href={s.pad} className="club-knop club-knop--klein" aria-label={t.naarStapLabel(s.nummer, s.titel)}>
+            {t.naarStap(s.nummer)} <ArrowRight aria-hidden size={14} />
           </Link>
         </li>
       ))}
@@ -118,17 +122,18 @@ function NogOpen({ open }: { open: readonly OpenStap[] }) {
 }
 
 /** Boventitel, kop en uitleg: alleen "staat live" als het echt zo is. */
-function kopTekst(afgerond: boolean, klaar: boolean, af: number, totaal: number, naam: string): { boven: string; kop: string; intro: string } {
-  const wie = naam || 'Je sportschool'
-  if (afgerond && klaar) return { boven: 'Afgerond', kop: `${wie} staat live`, intro: 'Je omgeving is ingericht. Hieronder je eigen adressen, wat je op je eerste dag doet en wat je nog even naloopt.' }
-  if (klaar) return { boven: `${af} van ${totaal} stappen af`, kop: 'Klaar om live te gaan', intro: 'Alles staat. Rond af als het klopt; je kunt daarna alles nog aanpassen.' }
-  return { boven: `${af} van ${totaal} stappen af`, kop: `${wie} is nog niet live`, intro: 'Deze stappen moeten eerst af. Daarna rond je hier af.' }
+function kopTekst(afgerond: boolean, klaar: boolean, af: number, totaal: number, naam: string, t: LiveTekst): { boven: string; kop: string; intro: string } {
+  const wie = naam || t.jeSportschool
+  if (afgerond && klaar) return { boven: t.afgerond, kop: t.staatLive(wie), intro: t.staatLiveIntro }
+  if (klaar) return { boven: t.stappenAf(af, totaal), kop: t.klaarKop, intro: t.klaarIntro }
+  return { boven: t.stappenAf(af, totaal), kop: t.nietLive(wie), intro: t.nietLiveIntro }
 }
 
-export function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, logo, voorbeeldLes, acties }: StapLiveProps) {
+export async function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, logo, voorbeeldLes, acties }: StapLiveProps) {
+  const t = (await clubTekst(START)).live
   const klaar = open.length === 0
   const live = afgerond && klaar
-  const tekst = kopTekst(afgerond, klaar, af, totaal, naam)
+  const tekst = kopTekst(afgerond, klaar, af, totaal, naam, t)
   return (
     <>
       <section className="club-start-live" data-afgerond={live || undefined} aria-labelledby="start-live-kop">
@@ -140,20 +145,20 @@ export function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad,
           <h2 id="start-live-kop">{tekst.kop}</h2>
           {adressen && <p className="club-start-live-basis club-getal">{adressen.basis}</p>}
           <p className="club-start-live-intro">{tekst.intro}</p>
-          {!klaar && <NogOpen open={open} />}
+          {!klaar && <NogOpen open={open} t={t} />}
           {adressen ? (
             <dl className="club-start-live-adressen">
-              <Adres titel="Ledenapp" uitleg="Leden activeren hun account met de link of QR-code van je sportschool en loggen daarna in met hun e-mailadres en wachtwoord." url={adressen.ledenapp} />
-              <Adres titel="Inloggen voor je team" uitleg="Je medewerkers krijgen een uitnodiging per e-mail met een eenmalige link (staat mailen nog niet aan, dan stuur je die link zelf door) en loggen daarna hier in met hun e-mailadres en wachtwoord." url={adressen.inloggen} />
+              <Adres titel={t.ledenapp} uitleg={t.ledenappUitleg} url={adressen.ledenapp} t={t} />
+              <Adres titel={t.inloggen} uitleg={t.inloggenUitleg} url={adressen.inloggen} t={t} />
             </dl>
           ) : (
             <p className="club-melding">
-              Je hebt nog geen eigen adres. <Link href={adresKiezenPad}>Kies het in de stap Huisstijl</Link>, dan vinden je leden en team je.
+              {t.geenAdres} <Link href={adresKiezenPad}>{t.geenAdresLink}</Link>{t.geenAdresNa}
             </p>
           )}
           {live && (
             <Link href="/club" className="club-knop club-knop--groot club-start-live-door">
-              Naar Club <ArrowRight aria-hidden size={18} />
+              {t.naarClub} <ArrowRight aria-hidden size={18} />
             </Link>
           )}
         </div>
@@ -161,7 +166,7 @@ export function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad,
           <LedenappVoorbeeld naam={naam} kleur={kleur} thema={thema} logo={logo} les={voorbeeldLes} />
         </div>
       </section>
-      {live && <DagEen acties={acties} />}
+      {live && <DagEen acties={acties} t={t} />}
     </>
   )
 }

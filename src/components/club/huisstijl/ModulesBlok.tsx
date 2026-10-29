@@ -1,6 +1,8 @@
 'use client'
 
-import { MODULES, MODULE_LABEL, type Module } from '@/lib/club/kern/organisatie'
+import { MODULES, moduleTekst, type Module } from '@/lib/club/kern/organisatie'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
 // Onderdelen aan of uit. Een sportschool zonder groepslessen zet Groepslessen
 // uit: het verdwijnt uit het menu en de pagina's bestaan voor hen niet.
@@ -12,6 +14,8 @@ interface ModulesBlokProps {
 
 export function ModulesBlok({ uit, onWijzig }: ModulesBlokProps) {
   const aanTal = MODULES.length - uit.length
+  const taal = useTaal()
+  const t = useTekst(HUISSTIJL).modules
   function wissel(m: Module) {
     if (uit.includes(m)) return onWijzig(uit.filter((x) => x !== m))
     if (aanTal <= 1) return
@@ -19,17 +23,18 @@ export function ModulesBlok({ uit, onWijzig }: ModulesBlokProps) {
   }
   return (
     <section className="club-huisstijl-blok" aria-labelledby="modules-kop">
-      <h2 id="modules-kop" className="club-huisstijl-kop">Onderdelen</h2>
-      <p className="club-hint">Zet uit wat je sportschool niet gebruikt. Vandaag, notities, agenda en instellingen staan altijd aan.</p>
+      <h2 id="modules-kop" className="club-huisstijl-kop">{t.kop}</h2>
+      <p className="club-hint">{t.uitleg}</p>
       <ul className="club-huisstijl-modules">
         {MODULES.map((m) => {
           const aan = !uit.includes(m)
+          const info = moduleTekst(m, taal)
           return (
             <li key={m}>
               <label className="club-huisstijl-module">
                 <span className="club-huisstijl-moduletekst">
-                  <strong>{MODULE_LABEL[m].label}</strong>
-                  <span>{MODULE_LABEL[m].uitleg}</span>
+                  <strong>{info.label}</strong>
+                  <span>{info.uitleg}</span>
                 </span>
                 <input
                   type="checkbox"

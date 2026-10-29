@@ -1,6 +1,11 @@
 import type { AchterstandRegel, TaakHistorie } from '@/lib/club/taken/overzicht'
 import { frequentieTekst, type Takenlijst } from '@/lib/club/taken/typen'
 import { dagKort } from '@/lib/club/taken/weergave'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
+
+type OverzichtTekst = (typeof TAKEN)['nl']['overzicht']
 
 // Overzicht voor de manager: wat er in de week niet gedaan is, en per taak hoe
 // vaak gedaan tegenover het minimum over de laatste vier weken.
@@ -9,20 +14,22 @@ function perLijst<T extends { taak: { lijstId: string } }>(lijsten: Takenlijst[]
   return lijsten.map((lijst) => ({ lijst, regels: regels.filter((r) => r.taak.lijstId === lijst.id) })).filter((g) => g.regels.length > 0)
 }
 
-function AchterstandTekst({ regel }: { regel: AchterstandRegel }) {
+function AchterstandTekst({ regel, t, taal }: { regel: AchterstandRegel; t: OverzichtTekst; taal: Taal }) {
   if (regel.taak.frequentie === 'dagelijks') {
     return (
       <span className="club-chip club-chip--let-op">
-        {regel.gemisteDagen.length}x niet gedaan: {regel.gemisteDagen.map(dagKort).join(', ')}
+        {t.nietGedaan(regel.gemisteDagen.length, regel.gemisteDagen.map((d) => dagKort(d, taal)).join(', '))}
       </span>
     )
   }
-  return <span className="club-chip club-chip--let-op">{regel.definitief ? `${regel.tekort}x te weinig gedaan` : `nog ${regel.tekort}x nodig, loopt achter`}</span>
+  return <span className="club-chip club-chip--let-op">{regel.definitief ? t.teWeinig(regel.tekort) : t.nogNodig(regel.tekort)}</span>
 }
 
-export function Achterstand({ lijsten, regels }: { lijsten: Takenlijst[]; regels: AchterstandRegel[] }) {
+export async function Achterstand({ lijsten, regels }: { lijsten: Takenlijst[]; regels: AchterstandRegel[] }) {
+  const taal = await getTaal()
+  const t = TAKEN[taal].overzicht
   if (regels.length === 0) {
-    return <p className="club-melding club-melding--ok">Niets blijven liggen in deze week. Alles wat moest, is gedaan of ligt nog op schema.</p>
+    return <p className="club-melding club-melding--ok">{t.nietsLiggen}</p>
   }
   return (
     <div className="club-taken-overzicht-lijsten">
@@ -34,9 +41,9 @@ export function Achterstand({ lijsten, regels }: { lijsten: Takenlijst[]; regels
               <li key={r.taak.id} className="club-rij club-taken-overzicht-rij">
                 <span className="club-rij-hoofd">
                   <span className="club-rij-titel">{r.taak.naam}</span>
-                  <span className="club-rij-sub">{frequentieTekst(r.taak)}</span>
+                  <span className="club-rij-sub">{frequentieTekst(r.taak, taal)}</span>
                 </span>
-                <AchterstandTekst regel={r} />
+                <AchterstandTekst regel={r} t={t} taal={taal} />
               </li>
             ))}
           </ul>
@@ -46,8 +53,8 @@ export function Achterstand({ lijsten, regels }: { lijsten: Takenlijst[]; regels
   )
 }
 
-function Score({ h }: { h: TaakHistorie }) {
-  if (h.score === null) return <span className="club-zacht">Geen minimum</span>
+function Score({ h, t }: { h: TaakHistorie; t: OverzichtTekst }) {
+  if (h.score === null) return <span className="club-zacht">{t.geenMinimum}</span>
   const pct = Math.round(h.score * 100)
   const soort = pct >= 100 ? 'ok' : pct < 75 ? 'let-op' : 'midden'
   return (
@@ -66,22 +73,23 @@ interface HistorieProps {
   weekNummers: number[]
 }
 
-export function Historie({ lijsten, rijen, weekNummers }: HistorieProps) {
+export async function Historie({ lijsten, rijen, weekNummers }: HistorieProps) {
+  const t = TAKEN[await getTaal()].overzicht
   return (
     <div className="club-tabel-wrap">
       <table className="club-tabel club-taken-historie">
-        <caption className="club-sr">Per taak hoe vaak gedaan per week, tegenover het minimum</caption>
+        <caption className="club-sr">{t.tabelUitleg}</caption>
         <thead>
           <tr>
-            <th scope="col">Taak</th>
+            <th scope="col">{t.taak}</th>
             {weekNummers.map((n) => (
               <th key={n} scope="col" className="club-getal">
-                Wk {n}
+                {t.wk(n)}
               </th>
             ))}
-            <th scope="col">Minimum</th>
-            <th scope="col">Weken gehaald</th>
-            <th scope="col">Gedaan van nodig</th>
+            <th scope="col">{t.minimum}</th>
+            <th scope="col">{t.wekenGehaald}</th>
+            <th scope="col">{t.gedaanVanNodig}</th>
           </tr>
         </thead>
         {perLijst(lijsten, rijen).map(({ lijst, regels }) => (
@@ -101,10 +109,10 @@ export function Historie({ lijsten, rijen, weekNummers }: HistorieProps) {
                     {n}
                   </td>
                 ))}
-                <td className="club-getal">{h.norm === null ? 'n.v.t.' : `${h.norm}x`}</td>
-                <td className="club-getal">{h.norm === null ? '' : `${h.wekenGehaald} van ${h.perWeek.length}`}</td>
+                <td className="club-getal">{h.norm === null ? t.nvt : t.keer(h.norm)}</td>
+                <td className="club-getal">{h.norm === null ? '' : t.vanWeken(h.wekenGehaald, h.perWeek.length)}</td>
                 <td>
-                  <Score h={h} />
+                  <Score h={h} t={t} />
                 </td>
               </tr>
             ))}
@@ -123,31 +131,32 @@ interface TegelsProps {
   notities: number
 }
 
-export function OverzichtTegels({ gemist, weekAchter, afgemeld, verstreken, notities }: TegelsProps) {
+export async function OverzichtTegels({ gemist, weekAchter, afgemeld, verstreken, notities }: TegelsProps) {
+  const t = TAKEN[await getTaal()].overzicht
   return (
-    <section className="club-tegels" aria-label="Deze week in cijfers">
+    <section className="club-tegels" aria-label={t.tegels}>
       <div className="club-tegel">
-        <span className="club-tegel-label">Dagtaken gemist</span>
+        <span className="club-tegel-label">{t.gemist}</span>
         <span className="club-tegel-getal">{gemist}</span>
-        <span className="club-tegel-sub">{gemist === 0 ? 'Elke dag alles gedaan' : <span className="club-min">Vakjes leeg gebleven</span>}</span>
+        <span className="club-tegel-sub">{gemist === 0 ? t.gemistNul : <span className="club-min">{t.gemistSub}</span>}</span>
       </div>
       <div className="club-tegel">
-        <span className="club-tegel-label">Weektaken achter</span>
+        <span className="club-tegel-label">{t.weekAchter}</span>
         <span className="club-tegel-getal">{weekAchter}</span>
-        <span className="club-tegel-sub">{weekAchter === 0 ? 'Poetsrooster op schema' : <span className="club-min">Minimum in gevaar of gemist</span>}</span>
+        <span className="club-tegel-sub">{weekAchter === 0 ? t.weekAchterNul : <span className="club-min">{t.weekAchterSub}</span>}</span>
       </div>
       <div className="club-tegel">
-        <span className="club-tegel-label">Afsluitronde afgemeld</span>
+        <span className="club-tegel-label">{t.afgemeld}</span>
         <span className="club-tegel-getal">
           {afgemeld}
-          <span className="club-taken-van"> van {verstreken}</span>
+          <span className="club-taken-van">{t.van(verstreken)}</span>
         </span>
-        <span className="club-tegel-sub">Afgelopen dagen van deze week</span>
+        <span className="club-tegel-sub">{t.afgelopenDagen}</span>
       </div>
       <div className="club-tegel">
-        <span className="club-tegel-label">Iets anders gedaan</span>
+        <span className="club-tegel-label">{t.ietsAnders}</span>
         <span className="club-tegel-getal">{notities}</span>
-        <span className="club-tegel-sub">Notities deze week</span>
+        <span className="club-tegel-sub">{t.notitiesWeek}</span>
       </div>
     </section>
   )

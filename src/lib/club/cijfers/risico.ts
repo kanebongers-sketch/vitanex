@@ -7,6 +7,8 @@
 import type { Lid } from '@/lib/club/kern/lid'
 import type { Behoud } from '@/lib/club/leden/behoud'
 import type { LedenRij } from '@/lib/club/leden/lijst'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { dagenTussen, dagKort, dagSleutel } from './tijd'
 
 export interface RisicoLid {
@@ -43,13 +45,14 @@ export interface WegTekst {
 }
 
 /** "3 mei", met het jaartal erbij als het een ander jaar is dan vandaag. */
-export function datumTekst(dag: string, vandaag: string): string {
-  return dag.slice(0, 4) === vandaag.slice(0, 4) ? dagKort(dag) : `${dagKort(dag)} ${dag.slice(0, 4)}`
+export function datumTekst(dag: string, vandaag: string, taal: Taal = 'nl'): string {
+  return dag.slice(0, 4) === vandaag.slice(0, 4) ? dagKort(dag, taal) : `${dagKort(dag, taal)} ${dag.slice(0, 4)}`
 }
 
-function dagenWeg(dagen: number): WegTekst {
-  if (dagen <= 0) return { getal: null, tekst: 'Vandaag geweest' }
-  return { getal: dagen, tekst: dagen === 1 ? 'dag weg' : 'dagen weg' }
+function dagenWeg(dagen: number, taal: Taal): WegTekst {
+  const t = VANDAAG[taal].risico
+  if (dagen <= 0) return { getal: null, tekst: t.vandaagGeweest }
+  return { getal: dagen, tekst: t.dagWeg(dagen) }
 }
 
 /**
@@ -57,10 +60,11 @@ function dagenWeg(dagen: number): WegTekst {
  * `laatsteOoit` is het laatste bezoek ooit, voor wie langer weg is: null =
  * nooit geweest, undefined = niet opgezocht of niet te lezen.
  */
-export function wegTekst(dagenSinds: number | null, laatsteOoit: Date | null | undefined, lidSinds: string | null, vandaag: string): WegTekst {
-  if (dagenSinds !== null) return dagenWeg(dagenSinds)
-  if (laatsteOoit === undefined) return { getal: null, tekst: 'Langer dan 12 weken niet geweest' }
-  if (laatsteOoit) return dagenWeg(dagenTussen(dagSleutel(laatsteOoit), vandaag))
-  if (lidSinds) return { getal: null, tekst: `Nog nooit geweest sinds inschrijving ${datumTekst(lidSinds, vandaag)}` }
-  return { getal: null, tekst: 'Nog nooit geweest' }
+export function wegTekst(dagenSinds: number | null, laatsteOoit: Date | null | undefined, lidSinds: string | null, vandaag: string, taal: Taal = 'nl'): WegTekst {
+  const t = VANDAAG[taal].risico
+  if (dagenSinds !== null) return dagenWeg(dagenSinds, taal)
+  if (laatsteOoit === undefined) return { getal: null, tekst: t.langerDan12 }
+  if (laatsteOoit) return dagenWeg(dagenTussen(dagSleutel(laatsteOoit), vandaag), taal)
+  if (lidSinds) return { getal: null, tekst: t.nooitSinds(datumTekst(lidSinds, vandaag, taal)) }
+  return { getal: null, tekst: t.nooit }
 }

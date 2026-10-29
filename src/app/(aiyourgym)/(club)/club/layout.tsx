@@ -18,6 +18,8 @@ import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
 import { wizardPoortDicht } from '@/lib/club/start/opslag'
 import { WizardPoort } from '@/components/club/start/WizardPoort'
 import { StartBalk, WizardWacht } from '@/components/club/start/StartBalk'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import './club.css'
 import '@/components/club/ontwerp/ontwerp.css'
 
@@ -64,6 +66,8 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   const hulpbalk = hulpbalkVoor(kijker, instellingen)
   // Wie er kijkt, voor wat hij al zag bij Wat is nieuw (alleen in zijn eigen browser bewaard).
   const persoon = kijkerSleutel(t)
+  const taal = await getTaal()
+  const tv = MENU[taal].voet
   return (
     <div className="club-app" style={stijl} data-thema={org.thema}>
       <MerkProvider merk={merk}>
@@ -72,7 +76,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
           ) : (
             <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk} persoon={persoon} />
+              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen, taal)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk} persoon={persoon} />
             </Suspense>
           )}
           <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>
@@ -84,19 +88,19 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
         </VestigingenProvider>
       </MerkProvider>
       <footer className="club-voet">
-        <span>{org.naam} Club{org.demo ? ' · demo' : ''}{t.isPlatformEigenaar ? ' · testomgeving, alleen zichtbaar voor de platform-eigenaar' : ''}</span>
+        <span>{org.naam} Club{org.demo ? ` · ${tv.demo}` : ''}{t.isPlatformEigenaar ? ` · ${tv.testomgeving}` : ''}</span>
         {t.isPlatformEigenaar && t.organisaties.length > 1 && (
           <Link href="/club/huisstijl#sportscholen-kop" className="club-voet-wissel">
-            Andere sportschool
+            {tv.andereSportschool}
           </Link>
         )}
         {t.isPlatformEigenaar && (
           <span className="club-voet-links">
-            <Link href="/club/platform" className="club-voet-wissel">Platform</Link>
+            <Link href="/club/platform" className="club-voet-wissel">{tv.platform}</Link>
             {/* Eigen root layout: Next laadt de website dan als volledige pagina. */}
-            <Link href="/" className="club-voet-wissel">Website AI Your Gym</Link>
-            <Link href="/club/hulp/meldingen" className="club-voet-wissel">Supportmeldingen</Link>
-            <Link href="/club/systeem" className="club-voet-wissel">Systeem</Link>
+            <Link href="/" className="club-voet-wissel">{tv.website}</Link>
+            <Link href="/club/hulp/meldingen" className="club-voet-wissel">{tv.supportmeldingen}</Link>
+            <Link href="/club/systeem" className="club-voet-wissel">{tv.systeem}</Link>
           </span>
         )}
       </footer>

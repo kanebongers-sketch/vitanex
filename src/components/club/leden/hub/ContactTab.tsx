@@ -6,11 +6,11 @@ import type { Lid } from '@/lib/club/kern/lid'
 import type { LidKaart } from '@/lib/club/leden/kaart'
 import { datumUitSleutel, leeftijd } from '@/lib/club/leden/tijd'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
-import { SOORT_CHIP, SOORT_LABEL } from '@/lib/club/berichten/model'
+import { SOORT_CHIP } from '@/lib/club/berichten/model'
 import type { KaartRechten } from '@/lib/club/leden/hub/rechten'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
-import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
+import { LEDENKAART, LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { Contact } from '../LidGegevens'
 import { Notities } from '../Notities'
 
@@ -26,7 +26,9 @@ interface ContactTabProps {
 }
 
 async function Berichten({ t, lid, vestiging, nu }: { t: ClubToegang; lid: Lid; vestiging: Vestiging; nu: Date }) {
-  const w = tekst(LEDENKAART, await getTaal()).contact
+  const taal = await getTaal()
+  const w = tekst(LEDENKAART, taal).contact
+  const soort = tekst(LIDKAART_BLOKKEN, taal).kaart.berichtSoort
   const berichten = await haalBerichtenVoorLid(t.admin, t.userId, lid, nu)
   return (
     <section className="club-kaart" aria-labelledby="berichten-kop">
@@ -46,7 +48,7 @@ async function Berichten({ t, lid, vestiging, nu }: { t: ClubToegang; lid: Lid; 
                     <span className="club-rij-sub club-lidhub-tweeregels">{b.tekst}</span>
                   </span>
                   {b.vastgepind ? <span className="club-chip club-chip--geen">{w.vastgepind}</span> : null}
-                  <span className={`club-chip club-chip--${SOORT_CHIP[b.soort]}`}>{SOORT_LABEL[b.soort]}</span>
+                  <span className={`club-chip club-chip--${SOORT_CHIP[b.soort]}`}>{soort[b.soort]}</span>
                 </li>
               ))}
             </ul>
@@ -56,14 +58,15 @@ async function Berichten({ t, lid, vestiging, nu }: { t: ClubToegang; lid: Lid; 
 }
 
 export async function ContactTab({ t, kaart, vestiging, rechten, nu }: ContactTabProps) {
-  const w = tekst(LEDENKAART, await getTaal()).contact
+  const taal = await getTaal()
+  const w = tekst(LEDENKAART, taal).contact
   const { lid } = kaart
   return (
     <div className="club-lidhub-tab club-lidhub-twee">
       <div className="club-leden-kolom">
         <section className="club-kaart" aria-labelledby="contact-kop">
           <h2 id="contact-kop">{w.gegevens}</h2>
-          <Contact email={lid.email} telefoon={lid.telefoon} geboortedatum={datumUitSleutel(lid.geboortedatum)} leeftijd={leeftijd(lid.geboortedatum, nu)} />
+          <Contact email={lid.email} telefoon={lid.telefoon} geboortedatum={datumUitSleutel(lid.geboortedatum, taal)} leeftijd={leeftijd(lid.geboortedatum, nu)} />
           <p className="club-hint">{w.contactHint}</p>
         </section>
         {rechten.berichten && (

@@ -4,6 +4,8 @@ import { useState, type FormEvent } from 'react'
 import { LockKeyhole } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { BeheerderPinStatus } from '@/lib/club/beheerders/beheerder'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 
 // De poort van een eigenaar, clubmanager of medewerker: eerste keer een pincode kiezen (met
 // een controlecode die de beheerder doorgeeft), dan wachten op goedkeuring, daarna
@@ -37,14 +39,16 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [controle, setControle] = useState<string | null>(null)
+  const tekst = useTekst(CLUB_INLOGGEN)
+  const t = tekst.pin
   const kiezen = staat === 'geen'
   const basis = apiBasis ?? `/api/club/inloggen/${encodeURIComponent(code)}`
 
   async function verstuur(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    if (!PIN.test(pin)) return setFout('Een pincode is precies 6 cijfers.')
-    if (kiezen && pin !== herhaal) return setFout('De twee pincodes zijn niet gelijk.')
+    if (!PIN.test(pin)) return setFout(t.precies6)
+    if (kiezen && pin !== herhaal) return setFout(t.nietGelijk)
     setBezig(true)
     setFout(null)
     const uit = await stuur(kiezen ? `${basis}/pin` : basis, 'POST', { pin })
@@ -62,7 +66,7 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
     window.location.assign('/club')
   }
 
-  const kop = staat === 'wacht' ? 'Even geduld' : kiezen ? `Welkom, ${voornaam}` : 'Inloggen'
+  const kop = staat === 'wacht' ? t.geduld : kiezen ? tekst.welkom(voornaam) : t.inloggen
 
   return (
     <section className="club-inlog-kaart" aria-labelledby="club-inlog-kop">
@@ -77,20 +81,19 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
         <div role="status" className="club-inlog-wacht">
           {controle && (
             <p>
-              Je controlecode is <strong className="club-inlog-controle">{controle}</strong>. Geef deze code door aan wie je de link stuurde:
-              zonder deze code wordt je pincode niet goedgekeurd. Je ziet hem maar een keer, dus schrijf hem op.
+              {t.controleVoor} <strong className="club-inlog-controle">{controle}</strong>. {t.controleNa}
             </p>
           )}
-          <p>Je pincode wacht op goedkeuring. Daarna log je hier in. Vernieuw de pagina als je bericht hebt gekregen.</p>
-          <p className="club-hint">Heb je zelf geen pincode gekozen? Laat het meteen weten aan wie je de link stuurde.</p>
+          <p>{t.wacht}</p>
+          <p className="club-hint">{t.nietZelf}</p>
         </div>
       ) : (
         <form className="club-inlog-form" onSubmit={(e) => void verstuur(e)} noValidate>
           <p className="club-inlog-uitleg">
-            {kiezen ? 'Kies een pincode van 6 cijfers. Daarmee log je voortaan in op dit toestel.' : 'Vul je pincode van 6 cijfers in.'}
+            {kiezen ? t.kiesUitleg : t.vulIn}
           </p>
           <label className="club-veld">
-            <span>{kiezen ? 'Nieuwe pincode' : 'Pincode'}</span>
+            <span>{kiezen ? t.nieuw : t.pincode}</span>
             <input
               className="club-invoer club-inlog-pin"
               type="password"
@@ -106,7 +109,7 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
           </label>
           {kiezen && (
             <label className="club-veld">
-              <span>Herhaal pincode</span>
+              <span>{t.herhaal}</span>
               <input
                 className="club-invoer club-inlog-pin"
                 type="password"
@@ -120,7 +123,7 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
           )}
           <button type="submit" className="club-knop club-knop--primair club-knop--groot" disabled={bezig}>
             <LockKeyhole aria-hidden size={18} />
-            {bezig ? 'Even wachten...' : kiezen ? 'Pincode kiezen' : 'Inloggen'}
+            {bezig ? t.bezig : kiezen ? t.kiezen : t.inloggen}
           </button>
           {fout && (
             <p id="club-inlog-fout" className="club-melding club-melding--fout" role="alert">

@@ -1,17 +1,22 @@
 // ─── Fit Factory Club, training: weergave-hulpjes (PUUR) ─────────────────────
 
 import type { LogRegel } from './rijen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 
-/** "8-10" wordt "8 tot 10", "30-45 sec" wordt "30 tot 45 sec". Geen streepjes op het scherm. */
-export function toonHerhalingen(h: string | null | undefined): string {
+/** "8-10" wordt "8 tot 10" (Engels "8 to 10"), "30-45 sec" wordt "30 tot 45 sec". Geen streepjes op het scherm. */
+export function toonHerhalingen(h: string | null | undefined, taal: Taal = 'nl'): string {
   if (!h) return ''
-  return h.replace(/(\d)\s*[-–—]\s*(\d)/g, '$1 tot $2').trim()
+  const tot = taal === 'en' ? 'to' : 'tot'
+  const schoon = h.replace(/(\d)\s*[-–—]\s*(\d)/g, `$1 ${tot} $2`).trim()
+  // Een opgeslagen "8 tot 10" in het Engels als "8 to 10" (en andersom).
+  return taal === 'en' ? schoon.replace(/(\d) tot (\d)/g, '$1 to $2') : schoon.replace(/(\d) to (\d)/g, '$1 tot $2')
 }
 
 /** Rust in seconden naar "45 sec" of "1:30 min". */
-export function toonRust(sec: number | null | undefined): string {
+export function toonRust(sec: number | null | undefined, taal: Taal = 'nl'): string {
   if (sec === null || sec === undefined) return ''
-  if (sec <= 0) return 'geen'
+  if (sec <= 0) return taal === 'en' ? 'none' : 'geen'
   if (sec < 60) return `${sec} sec`
   const m = Math.floor(sec / 60)
   const r = sec % 60
@@ -21,14 +26,17 @@ export function toonRust(sec: number | null | undefined): string {
 const DATUM = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short' })
 const DATUM_LANG = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long', year: 'numeric' })
 
-export function toonDatum(iso: string): string {
+const DATUM_EN = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short' })
+
+export function toonDatum(iso: string, taal: Taal = 'nl'): string {
   const d = new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso)
-  return Number.isNaN(d.getTime()) ? iso : DATUM.format(d)
+  return Number.isNaN(d.getTime()) ? iso : (taal === 'en' ? DATUM_EN : DATUM).format(d)
 }
 
-export function toonDatumLang(iso: string): string {
+export function toonDatumLang(iso: string, taal: Taal = 'nl'): string {
   const d = new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso)
-  return Number.isNaN(d.getTime()) ? iso : DATUM_LANG.format(d)
+  if (Number.isNaN(d.getTime())) return iso
+  return taal === 'en' ? formatDatum(d, 'en', 'lang') : DATUM_LANG.format(d)
 }
 
 /** Maandag (yyyy-mm-dd, Amsterdam) van de week waarin `iso` valt. */
@@ -85,9 +93,9 @@ export function lijnPunten(reeks: readonly { label: string; waarde: number }[], 
 }
 
 /** Verschil tussen eerste en laatste waarde, met teken: "+1,5" of "-2". */
-export function toonVerschil(eerste: number, laatste: number): string {
+export function toonVerschil(eerste: number, laatste: number, taal: Taal = 'nl'): string {
   const v = Math.round((laatste - eerste) * 10) / 10
-  const tekst = Math.abs(v).toLocaleString('nl-NL', { maximumFractionDigits: 1 })
+  const tekst = Math.abs(v).toLocaleString(taal === 'en' ? 'en-GB' : 'nl-NL', { maximumFractionDigits: 1 })
   if (v === 0) return '0'
   return v > 0 ? `+${tekst}` : `-${tekst}`
 }

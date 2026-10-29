@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 
 // Het plan van een lid weghalen, met een bevestiging.
 
@@ -16,6 +18,7 @@ export function VerwijderPlan({ lidId, terugHref }: VerwijderPlanProps) {
   const [vraag, setVraag] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(VOEDING).weghalen
 
   async function weg() {
     setBezig(true)
@@ -29,18 +32,18 @@ export function VerwijderPlan({ lidId, terugHref }: VerwijderPlanProps) {
   if (!vraag) {
     return (
       <button type="button" className="club-knop club-knop--stil" onClick={() => setVraag(true)}>
-        Plan weghalen
+        {t.knop}
       </button>
     )
   }
   return (
-    <span className="club-voeding-acties" role="group" aria-label="Plan weghalen bevestigen">
-      <span className="club-voeding-hint">Het lid ziet dan geen plan meer.</span>
+    <span className="club-voeding-acties" role="group" aria-label={t.bevestig}>
+      <span className="club-voeding-hint">{t.gevolg}</span>
       <button type="button" className="club-knop club-knop--gevaar club-knop--klein" disabled={bezig} onClick={() => void weg()}>
-        {bezig ? 'Even geduld...' : 'Ja, weghalen'}
+        {bezig ? t.bezig : t.ja}
       </button>
       <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setVraag(false)}>
-        Toch niet
+        {t.nee}
       </button>
       {fout && <span className="club-melding club-melding--fout">{fout}</span>}
     </span>

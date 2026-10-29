@@ -1,5 +1,5 @@
 import { LaadSkelet } from '@/components/club/shell/LaadSkelet'
 
 export default function Laden() {
-  return <LaadSkelet label="Hulp laden" vorm="kaarten" />
+  return <LaadSkelet vorm="kaarten" />
 }

@@ -2,7 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useTransition, type FormEvent } from 'react'
-import { GROEP_LABEL, RAPPORT_GROEPEN, rapportenIn } from '@/lib/club/rapporten/definities'
+import { RAPPORT_GROEPEN, rapportenIn } from '@/lib/club/rapporten/definities'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { RAPPORTEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rapporten'
 import { ALLE, VESTIGINGEN_PARAM, type MaandKeuze, type RapportKeuze } from '@/lib/club/rapporten/keuze'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { VESTIGING_PARAM } from '@/lib/club/kern/vestiging'
@@ -38,6 +40,7 @@ function adresVan(form: HTMLFormElement): string {
 export function RapportKeuzes({ keuze, vestigingen, balk, maanden }: Props) {
   const router = useRouter()
   const [bezig, start] = useTransition()
+  const t = useTekst(RAPPORTEN_TEKST)
   const opties = maanden.some((m) => m.maand === keuze.maand) ? maanden : [{ maand: keuze.maand, label: keuze.maand }, ...maanden]
 
   function ververs(form: HTMLFormElement) {
@@ -56,16 +59,16 @@ export function RapportKeuzes({ keuze, vestigingen, balk, maanden }: Props) {
 
       <fieldset className="club-rapporten-blok">
         <legend className="club-rapporten-legend">
-          <span>01</span> Rapport
+          <span>01</span> {t.keuzes.rapport}
         </legend>
         {RAPPORT_GROEPEN.map((groep) => (
-          <div key={groep} className="club-rapporten-groep" role="group" aria-label={GROEP_LABEL[groep]}>
-            <p className="club-rapporten-groepnaam">{GROEP_LABEL[groep]}</p>
+          <div key={groep} className="club-rapporten-groep" role="group" aria-label={t.groepen[groep]}>
+            <p className="club-rapporten-groepnaam">{t.groepen[groep]}</p>
             {rapportenIn(groep).map((r) => (
               <label key={r.sleutel} className="club-rapporten-optie">
                 <input type="radio" name="rapport" value={r.sleutel} defaultChecked={r.sleutel === keuze.rapport} />
-                <span className="club-rapporten-optie-titel">{r.titel}</span>
-                <span className="club-rapporten-optie-uitleg">{r.uitleg}</span>
+                <span className="club-rapporten-optie-titel">{t.rapporten[r.sleutel].titel}</span>
+                <span className="club-rapporten-optie-uitleg">{t.rapporten[r.sleutel].uitleg}</span>
               </label>
             ))}
           </div>
@@ -74,10 +77,10 @@ export function RapportKeuzes({ keuze, vestigingen, balk, maanden }: Props) {
 
       <fieldset className="club-rapporten-blok">
         <legend className="club-rapporten-legend">
-          <span>02</span> Kalendermaand
+          <span>02</span> {t.keuzes.maand}
         </legend>
         <label className="club-veld">
-          <span className="club-sr">Kies een maand</span>
+          <span className="club-sr">{t.keuzes.kiesMaand}</span>
           <select className="club-invoer club-rapporten-maand" name="maand" defaultValue={keuze.maand}>
             {opties.map((m) => (
               <option key={m.maand} value={m.maand}>
@@ -90,7 +93,7 @@ export function RapportKeuzes({ keuze, vestigingen, balk, maanden }: Props) {
 
       <fieldset className="club-rapporten-blok">
         <legend className="club-rapporten-legend">
-          <span>03</span> Vestigingen
+          <span>03</span> {t.keuzes.vestigingen}
         </legend>
         <div className="club-rapporten-vestigingen">
           {vestigingen.map((v) => (
@@ -100,11 +103,11 @@ export function RapportKeuzes({ keuze, vestigingen, balk, maanden }: Props) {
             </label>
           ))}
         </div>
-        <p className="club-hint">Niets aangevinkt? Dan geldt de vestiging van de balk bovenin.</p>
+        <p className="club-hint">{t.keuzes.geenVinkje}</p>
       </fieldset>
 
       <button type="submit" className="club-knop club-rapporten-toon">
-        {bezig ? 'Bezig met laden' : 'Toon voorbeeld'}
+        {bezig ? t.keuzes.bezig : t.keuzes.toon}
       </button>
     </form>
   )

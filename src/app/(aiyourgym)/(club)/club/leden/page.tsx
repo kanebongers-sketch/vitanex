@@ -13,9 +13,14 @@ import { LedenFilters } from '@/components/club/leden/LedenFilters'
 import { LedenTabel } from '@/components/club/leden/LedenTabel'
 import { UitnodigApp } from '@/components/club/leden/app-uitnodigen/UitnodigApp'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 import '@/components/club/leden/leden.css'
 
-export const metadata: Metadata = { title: 'Leden' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(LEDEN)).pagina.titel }
+}
 
 export default async function LedenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('leden')
@@ -24,16 +29,17 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   if (!vestiging) return <GeenVestigingen />
   const params = leesLijstParams(ruw)
   const nu = new Date()
+  const taal = await getTaal()
   const [rijen, medewerkers] = await Promise.all([
-    haalLedenRijen(t.admin, t.userId, vestiging, nu),
+    haalLedenRijen(t.admin, t.userId, vestiging, nu, taal),
     haalMedewerkers(t.admin, t.userId, vestiging),
   ])
 
   if (!rijen) {
     return (
       <>
-        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} vestigingen={t.vestigingen} />
-        <p className="club-melding club-melding--fout" role="alert">De leden konden niet worden geladen. Ververs de pagina of probeer het zo nog eens.</p>
+        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} vestigingen={t.vestigingen} taal={taal} />
+        <p className="club-melding club-melding--fout" role="alert">{LEDEN[taal].pagina.ladenFout}</p>
       </>
     )
   }
@@ -42,7 +48,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   const keuzes = filterKeuzes(rijen)
   return (
     <>
-      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} vestigingen={t.vestigingen} />
+      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} vestigingen={t.vestigingen} taal={taal} />
       <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
@@ -61,22 +67,24 @@ interface LedenKopProps {
   naam: string
   totaal: number | null
   vestigingen: readonly VestigingInfo[]
+  taal: Taal
 }
 
-function LedenKop({ vestiging, naam, totaal, vestigingen }: LedenKopProps) {
+function LedenKop({ vestiging, naam, totaal, vestigingen, taal }: LedenKopProps) {
+  const p = LEDEN[taal].pagina
   return (
     <header className="club-paginakop">
       <div>
         <p className="club-boventitel">{naam}</p>
-        <h1>Leden</h1>
+        <h1>{p.titel}</h1>
         <p>
-          {totaal === null ? 'Ledenlijst' : `${totaal} leden in deze vestiging`}. Bezoek en behoud tellen check-ins in alle vestigingen. Geld en contracten staan in je ledenadministratie.
+          {totaal === null ? p.ledenlijst : p.inVestiging(totaal)}. {p.uitleg}
         </p>
       </div>
       <div className="club-leden-kopknoppen">
         <UitnodigApp vestigingen={vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} huidig={vestiging} posterHref={clubPad('/leden/app-poster', vestiging)} />
         <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
-          <Upload size={16} aria-hidden /> Ledenbestand inlezen
+          <Upload size={16} aria-hidden /> {p.inlezen}
         </Link>
       </div>
     </header>

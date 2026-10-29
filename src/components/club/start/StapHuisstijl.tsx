@@ -13,6 +13,8 @@ import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import { kleurUitAfbeelding } from './logo-kleur-browser'
 import { LedenappVoorbeeld } from './LedenappVoorbeeld'
 import { StartVoet, type StartVoetProps } from './StartVoet'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 /** Het eigen adres opslaan; null = gelukt. */
 async function bewaarAdres(slug: string): Promise<string | null> {
@@ -32,16 +34,16 @@ export async function bewaarOrganisatie(w: HuisstijlWaarden): Promise<string | n
   return uit.ok ? null : uit.fout
 }
 
-async function upload(bestand: File): Promise<string | null> {
+async function upload(bestand: File, fouten: { mislukt: string; geenVerbinding: string }): Promise<string | null> {
   const form = new FormData()
   form.append('logo', bestand)
   try {
     const res = await fetch('/api/club/organisatie/logo', { method: 'POST', body: form })
     if (res.ok) return null
     const data: unknown = await res.json().catch(() => null)
-    return typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : 'Uploaden lukte niet.'
+    return typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : fouten.mislukt
   } catch {
-    return 'Geen verbinding. Probeer het opnieuw.'
+    return fouten.geenVerbinding
   }
 }
 
@@ -70,6 +72,8 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
   const adresGewijzigd = adres.trim().toLowerCase() !== (slug ?? '')
   const gewijzigd = JSON.stringify(waarden) !== JSON.stringify(organisatie) || adresGewijzigd
   const logo = voorbeeld ?? logoUrl
+  const t = useTekst(START)
+  const h = t.huisstijl
 
   useEffect(() => () => {
     if (voorbeeld) URL.revokeObjectURL(voorbeeld)
@@ -91,11 +95,11 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
   async function kies(bestand: File | undefined) {
     if (!bestand) return
     setFout(null)
-    if (!LOGO_TYPES[bestand.type]) return setFout('Kies een PNG, WebP, JPG of SVG.')
-    if (bestand.size > MAX_LOGO_BYTES) return setFout('Het logo mag maximaal 1 MB zijn.')
+    if (!LOGO_TYPES[bestand.type]) return setFout(h.soortBestand)
+    if (bestand.size > MAX_LOGO_BYTES) return setFout(h.teGroot)
     setBezig(true)
     setVoorbeeld(URL.createObjectURL(bestand))
-    const [melding] = await Promise.all([upload(bestand), haalKleur(bestand)])
+    const [melding] = await Promise.all([upload(bestand, { mislukt: h.uploadMislukt, geenVerbinding: h.geenVerbinding }), haalKleur(bestand)])
     setBezig(false)
     if (melding) {
       setVoorbeeld(null)
@@ -115,7 +119,7 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
     setFout(null)
     const controle = leesSlug(adres)
     if (adresGewijzigd && !controle.ok) {
-      setFout(`Adres: ${controle.fout}`)
+      setFout(h.adresFout(controle.fout))
       return false
     }
     const melding = JSON.stringify(waarden) !== JSON.stringify(organisatie) ? await bewaarOrganisatie(waarden) : null
@@ -134,7 +138,7 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
       <div className="club-start-huisstijl">
         <section className="club-start-blok club-start-huisstijl-logo" aria-labelledby="start-logo-kop">
           <div className="club-start-huisstijl-deel">
-          <h2 id="start-logo-kop">Je logo</h2>
+          <h2 id="start-logo-kop">{h.logoKop}</h2>
           <div
             className="club-start-dropzone"
             data-sleept={sleept || undefined}
@@ -146,13 +150,13 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
             onDrop={laat}
           >
             <div className="club-start-dropzone-logo">
-              {logo ? <img src={logo} alt={`Logo van ${waarden.naam}`} /> : ingebouwdLogo ? <span className="club-zacht">Het ingebouwde logo staat er al</span> : <ImageUp aria-hidden size={30} strokeWidth={1.5} />}
+              {logo ? <img src={logo} alt={h.logoAlt(waarden.naam)} /> : ingebouwdLogo ? <span className="club-zacht">{h.ingebouwd}</span> : <ImageUp aria-hidden size={30} strokeWidth={1.5} />}
             </div>
             <div className="club-start-dropzone-tekst">
               <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => invoer.current?.click()}>
-                <ImageUp aria-hidden size={16} /> {bezig ? 'Bezig...' : logo ? 'Ander logo' : 'Logo uploaden'}
+                <ImageUp aria-hidden size={16} /> {bezig ? h.bezig : logo ? h.anderLogo : h.uploaden}
               </button>
-              <span className="club-hint">Of sleep het hierheen. PNG of SVG met doorzichtige achtergrond werkt het mooist, maximaal 1 MB.</span>
+              <span className="club-hint">{h.sleep}</span>
             </div>
             <input
               ref={invoer}
@@ -170,20 +174,20 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
               <p className="club-start-logokleur">
                 <span className="club-start-logokleur-staal" style={{ background: voorstel.knop }} aria-hidden />
                 <span>
-                  <strong>Kleur uit je logo: {voorstel.kleur}</strong>
-                  {voorstel.aangepast ? ` Voor genoeg contrast gebruiken we op knoppen ${voorstel.knop}.` : ' Staat overal goed leesbaar.'}
+                  <strong>{h.kleurUitLogo(voorstel.kleur)}</strong>
+                  {voorstel.aangepast ? h.contrast(voorstel.knop) : h.leesbaar}
                 </span>
               </p>
             )}
-            {uitLogo === 'geen' && <p className="club-melding">Je logo heeft geen duidelijke kleur (zwart, wit of grijs). Kies hieronder zelf een accentkleur.</p>}
+            {uitLogo === 'geen' && <p className="club-melding">{h.geenKleur}</p>}
           </div>
           {logoUrl && !voorbeeld && !uitLogo && (
             <button type="button" className="club-knop club-knop--klein club-start-pipet" onClick={() => void haalKleur(logoUrl)}>
-              <Pipette aria-hidden size={14} /> Kleur uit mijn logo halen
+              <Pipette aria-hidden size={14} /> {h.pipet}
             </button>
           )}
           <label className="club-veld">
-            <span>Naam van de sportschool</span>
+            <span>{h.naam}</span>
             <input className="club-invoer" value={waarden.naam} maxLength={MAX_NAAM} onChange={(e) => zet('naam', e.target.value)} />
           </label>
           <AdresBlok slug={slug} naam={waarden.naam} subdomeinen={subdomeinen} begin={adres} onWijzig={(w) => { setFout(null); setAdres(w) }} />
@@ -195,7 +199,7 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
         </section>
         <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} logo={logo} les={voorbeeldLes} />
       </div>
-      <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? t.voet.opslaanVerder : undefined} />
     </>
   )
 }

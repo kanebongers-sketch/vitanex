@@ -12,8 +12,12 @@ import { ChallengeLijst } from '@/components/club/challenges/ChallengeLijst'
 import { ChallengeDetail } from '@/components/club/challenges/ChallengeDetail'
 import { ChallengeFormulier } from '@/components/club/challenges/ChallengeFormulier'
 import '@/components/club/challenges/challenges.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 
-export const metadata: Metadata = { title: 'Challenges' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(CHALLENGES)).pagina.titel }
+}
 
 // Challenges voor leden: links lopend, gepland en afgelopen; rechts de gekozen
 // challenge met de stand (?c=<id>), of het formulier (?nieuw=1 of ?wijzig=1).
@@ -46,23 +50,24 @@ export default async function ChallengesPagina({ searchParams }: { searchParams:
   const wijzig = gekozen && status !== 'afgelopen' && eerste(zoek.wijzig) === '1'
   const stand = gekozen && status !== 'gepland' && !wijzig ? await haalStand(t.admin, t.userId, gekozen) : null
   const maand = maandVan(vandaag)
+  const tp = (await clubTekst(CHALLENGES)).pagina
 
   return (
     <>
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Challenges</h1>
-          <p>Doelen voor je leden, zoals 12 keer trainen in een maand. Voortgang en badges rekent Club uit bezoeken, trainingen en groepslessen. Puur erkenning: er hoort geen prijs bij.</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
         <div className="club-acties">
           <Link href={clubPad('/challenges', vestiging, { nieuw: '1' })} scroll={false} className="club-knop club-knop--primair">
-            <Plus size={16} aria-hidden /> Nieuwe challenge
+            <Plus size={16} aria-hidden /> {tp.nieuw}
           </Link>
         </div>
       </section>
 
-      {lijst === null && <p className="club-melding club-melding--fout" role="status">De challenges konden niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>}
+      {lijst === null && <p className="club-melding club-melding--fout" role="status">{tp.laadFout}</p>}
 
       <div className="club-challenges-werkvlak">
         <ChallengeLijst groepen={groepen} vandaag={vandaag} gekozen={nieuw ? null : (gekozen?.id ?? null)} vestiging={vestiging} vestigingen={t.vestigingen} />
@@ -74,7 +79,7 @@ export default async function ChallengesPagina({ searchParams }: { searchParams:
           ) : gekozen && status ? (
             <ChallengeDetail c={gekozen} status={status} stand={stand} vandaag={vandaag} vestiging={vestiging} vestigingen={t.vestigingen} />
           ) : (
-            <p className="club-challenges-leeg">Nog geen challenges. Maak er een, bijvoorbeeld 12 keer trainen deze maand.</p>
+            <p className="club-challenges-leeg">{tp.leeg}</p>
           )}
         </div>
       </div>

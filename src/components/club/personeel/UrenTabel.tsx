@@ -1,28 +1,32 @@
 import type { UrenRegel } from '@/lib/club/personeel/uren'
 import { urenKlok } from '@/lib/club/personeel/uren'
 import type { PersoneelLid } from '@/lib/club/personeel/typen'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 // De urentabel voor de administratie. Verschil = gewerkt min contract over de
 // periode (naar rato van de dagen): minder is koraal, meer is blauw.
 
-export function UrenTabel({ regels, team }: { regels: readonly UrenRegel[]; team: readonly PersoneelLid[] }) {
+export async function UrenTabel({ regels, team }: { regels: readonly UrenRegel[]; team: readonly PersoneelLid[] }) {
+  const alles = await clubTekst(PERSONEEL)
+  const tk = alles.urenTabel
   const lid = (id: string) => team.find((l) => l.id === id)
   return (
     <div className="club-tabel-wrap club-personeel-urentabel">
       <table className="club-tabel">
-        <caption className="club-sr">Uren per medewerker in deze periode</caption>
+        <caption className="club-sr">{tk.bijschrift}</caption>
         <thead>
           <tr>
-            <th scope="col">Medewerker</th>
-            <th scope="col">Gepland</th>
-            <th scope="col">Gewerkt</th>
-            <th scope="col">Contract</th>
-            <th scope="col">Verschil</th>
-            <th scope="col">Ziek</th>
-            <th scope="col">Verlof</th>
-            <th scope="col">Avond</th>
-            <th scope="col">Weekend</th>
-            <th scope="col">Open</th>
+            <th scope="col">{tk.medewerker}</th>
+            <th scope="col">{tk.gepland}</th>
+            <th scope="col">{tk.gewerkt}</th>
+            <th scope="col">{tk.contract}</th>
+            <th scope="col">{tk.verschil}</th>
+            <th scope="col">{tk.ziek}</th>
+            <th scope="col">{tk.verlof}</th>
+            <th scope="col">{tk.avond}</th>
+            <th scope="col">{tk.weekend}</th>
+            <th scope="col">{tk.open}</th>
           </tr>
         </thead>
         <tbody>
@@ -34,12 +38,12 @@ export function UrenTabel({ regels, team }: { regels: readonly UrenRegel[]; team
                 <th scope="row">
                   <span className="club-personeel-urennaam">
                     <span className="club-personeel-stip" aria-hidden />
-                    {l?.naam ?? 'Onbekend'}
+                    {l?.naam ?? alles.algemeen.onbekend}
                   </span>
                 </th>
                 <td className="club-getal">{urenKlok(r.geplandMin)}</td>
                 <td className="club-getal"><strong>{urenKlok(r.gewerktMin)}</strong></td>
-                <td className="club-getal club-zacht">{r.contractMin === null ? 'geen' : urenKlok(r.contractMin)}</td>
+                <td className="club-getal club-zacht">{r.contractMin === null ? tk.geen : urenKlok(r.contractMin)}</td>
                 <td className="club-getal" data-verschil={verschil === null ? undefined : verschil < -60 ? 'min' : verschil > 60 ? 'plus' : 'gelijk'}>
                   {verschil === null ? '' : `${verschil > 0 ? '+' : ''}${urenKlok(verschil)}`}
                 </td>
@@ -53,7 +57,7 @@ export function UrenTabel({ regels, team }: { regels: readonly UrenRegel[]; team
           })}
         </tbody>
       </table>
-      <p className="club-hint club-personeel-tabelnoot">Gewerkt is na aftrek van pauze. Avond is na 18:00, weekend is zaterdag en zondag. Open is het aantal geplande diensten zonder bevestiging.</p>
+      <p className="club-hint club-personeel-tabelnoot">{tk.noot}</p>
     </div>
   )
 }

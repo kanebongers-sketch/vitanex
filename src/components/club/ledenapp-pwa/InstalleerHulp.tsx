@@ -3,6 +3,8 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Download, Share, Smartphone, SquarePlus, X } from 'lucide-react'
 import { WEG_SLEUTEL, installeerOmgeving, type InstalleerOmgeving } from '@/lib/club/ledenapp-pwa/installeren'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 import './installeer-hulp.css'
 
 // "Zet de app op je beginscherm". Android en Chrome: een knop die de eigen
@@ -80,6 +82,7 @@ export function InstalleerHulp({ naam }: InstalleerHulpProps) {
   const omgeving = useSyncExternalStore(abonneer, leesOmgeving, () => null)
   const [vraag, vergeetVraag] = useInstallatieVraag()
   const [weg, zetWeg] = useState(false)
+  const t = LID_INLOGGEN[useTaal()].pwa
 
   if (weg || omgeving === null || omgeving === 'standalone' || omgeving === 'weg') return null
   if (omgeving !== 'ios' && !vraag) return null
@@ -103,7 +106,7 @@ export function InstalleerHulp({ naam }: InstalleerHulpProps) {
     }
   }
 
-  const app = naam?.trim() || 'de app'
+  const app = naam?.trim() || t.deApp
 
   return (
     <aside className="club-installeer" aria-labelledby="club-installeer-kop">
@@ -112,34 +115,34 @@ export function InstalleerHulp({ naam }: InstalleerHulpProps) {
       </span>
       <div className="club-installeer-tekst">
         <p id="club-installeer-kop" className="club-installeer-kop">
-          Zet de app op je beginscherm
+          {t.beginscherm}
         </p>
         {omgeving === 'ios' ? (
           <ol className="club-installeer-stappen">
             <li>
               <span className="club-installeer-nr">1</span>
               <span>
-                Tik op <Share size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>Deel</strong>
+                {t.tik} <Share size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>{t.deel}</strong>
               </span>
             </li>
             <li>
               <span className="club-installeer-nr">2</span>
               <span>
-                Kies <SquarePlus size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>Zet op beginscherm</strong>
+                {t.kies} <SquarePlus size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>{t.zetOp}</strong>
               </span>
             </li>
           </ol>
         ) : (
           <>
-            <p className="club-installeer-uitleg">Open {app} met een tik, net als een gewone app.</p>
+            <p className="club-installeer-uitleg">{t.openApp(app)}</p>
             <button type="button" className="club-installeer-knop" onClick={installeer}>
               <Download size={17} strokeWidth={2} aria-hidden />
-              Zet op je beginscherm
+              {t.knop}
             </button>
           </>
         )}
       </div>
-      <button type="button" className="club-installeer-sluit" onClick={sluit} aria-label="Niet meer tonen">
+      <button type="button" className="club-installeer-sluit" onClick={sluit} aria-label={t.nietMeer}>
         <X size={18} strokeWidth={2} aria-hidden />
       </button>
     </aside>

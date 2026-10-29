@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Plus } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
 // Wisselen tussen sportscholen. Na het wisselen laadt heel Club opnieuw met de
 // data en huisstijl van de gekozen sportschool (de data is strikt gescheiden).
@@ -23,6 +25,8 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
   const [bezig, setBezig] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [nieuw, setNieuw] = useState<string | null>(null)
+  const tekst = useTekst(HUISSTIJL)
+  const t = tekst.scholen
   const nieuwKnop = useRef<HTMLButtonElement>(null)
   const wasOpen = useRef(false)
   // Na annuleren of aanmaken gaat de focus terug naar de knop "Nieuwe sportschool".
@@ -62,7 +66,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
 
   return (
     <section className="club-huisstijl-scholen" aria-labelledby="sportscholen-kop">
-      <h2 id="sportscholen-kop" className="club-huisstijl-kop">Sportscholen</h2>
+      <h2 id="sportscholen-kop" className="club-huisstijl-kop">{t.kop}</h2>
       <ul>
         {sportscholen.map((s) => {
           const isActief = s.id === actief
@@ -77,11 +81,11 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
               >
                 <span className="club-huisstijl-stip" style={{ background: s.kleurAccent }} aria-hidden />
                 <span className="club-huisstijl-schoolnaam">{s.naam}</span>
-                {s.demo && <span className="club-chip club-chip--info">Demo</span>}
+                {s.demo && <span className="club-chip club-chip--info">{t.demo}</span>}
                 {isActief ? (
-                  <span className="club-huisstijl-open"><Check aria-hidden size={15} /> Open</span>
+                  <span className="club-huisstijl-open"><Check aria-hidden size={15} /> {t.open}</span>
                 ) : (
-                  <span className="club-huisstijl-open">{bezig === s.id ? 'Openen...' : 'Openen'}</span>
+                  <span className="club-huisstijl-open">{bezig === s.id ? t.openenBezig : t.openen}</span>
                 )}
               </button>
             </li>
@@ -90,7 +94,7 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
         <li>
           {nieuw === null ? (
             <button ref={nieuwKnop} type="button" className="club-huisstijl-school club-huisstijl-school--nieuw" disabled={bezig !== null} onClick={() => setNieuw('')}>
-              <Plus aria-hidden size={16} /> Nieuwe sportschool
+              <Plus aria-hidden size={16} /> {t.nieuw}
             </button>
           ) : (
             <form
@@ -100,18 +104,18 @@ export function SportscholenKeuze({ actief, sportscholen }: SportscholenKeuzePro
                 void maak()
               }}
             >
-              <input className="club-invoer" autoFocus aria-label="Naam van de nieuwe sportschool" placeholder="Naam van de sportschool" maxLength={60} value={nieuw} onChange={(e) => setNieuw(e.target.value)} />
+              <input className="club-invoer" autoFocus aria-label={t.naamNieuw} placeholder={t.naam} maxLength={60} value={nieuw} onChange={(e) => setNieuw(e.target.value)} />
               <button type="submit" className="club-knop club-knop--primair" disabled={bezig !== null || !nieuw.trim()}>
-                {bezig === 'nieuw' ? 'Aanmaken...' : 'Aanmaken'}
+                {bezig === 'nieuw' ? t.aanmakenBezig : t.aanmaken}
               </button>
               <button type="button" className="club-knop club-knop--stil" onClick={() => setNieuw(null)}>
-                Annuleren
+                {tekst.algemeen.annuleren}
               </button>
             </form>
           )}
         </li>
       </ul>
-      <p className="club-hint">Een nieuwe sportschool krijgt een eigen, lege omgeving met de complete oefenbibliotheek. Daarna voeg je de vestigingen toe en kies je de huisstijl.</p>
+      <p className="club-hint">{t.uitleg}</p>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
     </section>
   )

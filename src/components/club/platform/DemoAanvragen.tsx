@@ -1,5 +1,8 @@
 import { Mail, Phone } from 'lucide-react'
-import { momentLabel, soortLabel } from '@/lib/aiyourgym/demo-aanvraag'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
+import { DEMO_AANVRAAG } from '@/lib/aiyourgym/taal/woorden/website/demo-aanvraag'
 import type { PlatformDemoAanvraag } from '@/lib/club/platform/demo-aanvragen'
 import { AfgehandeldKnop } from './AfgehandeldKnop'
 import { nlDatum, nlMoment } from './datum'
@@ -10,26 +13,31 @@ interface DemoAanvragenProps {
   max: number
 }
 
-function Aanvraag({ a }: { a: PlatformDemoAanvraag }) {
+function Aanvraag({ a, taal }: { a: PlatformDemoAanvraag; taal: Taal }) {
   const open = a.status === 'open'
+  const p = PLATFORM[taal]
+  const t = p.demo
+  const d = DEMO_AANVRAAG[taal]
+  const soort = (d.soorten as Record<string, string>)[a.soort] ?? a.soort
+  const moment = (d.momenten as Record<string, string>)[a.moment] ?? a.moment
   return (
     <li className="club-platform-demo" data-open={open || undefined}>
       <div className="club-platform-info">
         <h3>{a.sportschool}</h3>
         <span className="club-platform-sub">
-          Aangevraagd <time dateTime={a.aangemaaktOp}>{nlMoment(a.aangemaaktOp)}</time>
+          {t.aangevraagd} <time dateTime={a.aangemaaktOp}>{nlMoment(a.aangemaaktOp, taal)}</time>
           {!open && a.afgehandeldOp && (
             <>
               {' '}
-              · afgehandeld <time dateTime={a.afgehandeldOp}>{nlDatum(a.afgehandeldOp)}</time>
+              · {t.afgehandeldOp} <time dateTime={a.afgehandeldOp}>{nlDatum(a.afgehandeldOp, taal)}</time>
             </>
           )}
         </span>
         <p className="club-platform-demo-feiten">
-          <span className={open ? 'club-chip club-chip--merk' : 'club-chip club-chip--ok'}>{open ? 'Open' : 'Afgehandeld'}</span>
-          <span className="club-chip">{soortLabel(a.soort)}</span>
-          <span className="club-chip">{a.vestigingen === 1 ? '1 vestiging' : `${a.vestigingen} vestigingen`}</span>
-          <span className="club-chip">Liefst: {momentLabel(a.moment).toLowerCase()}</span>
+          <span className={open ? 'club-chip club-chip--merk' : 'club-chip club-chip--ok'}>{open ? t.open : t.afgehandeld}</span>
+          <span className="club-chip">{soort}</span>
+          <span className="club-chip">{p.vestigingen(a.vestigingen)}</span>
+          <span className="club-chip">{t.liefst(moment.toLowerCase())}</span>
         </p>
       </div>
       <span className="club-platform-contact">
@@ -49,27 +57,29 @@ function Aanvraag({ a }: { a: PlatformDemoAanvraag }) {
 
 // De demo-aanvragen van de website: open eerst (oudste bovenaan), met contact
 // om zelf te bellen. Er gaat niets automatisch naar buiten.
-export function DemoAanvragen({ aanvragen, max }: DemoAanvragenProps) {
+export async function DemoAanvragen({ aanvragen, max }: DemoAanvragenProps) {
+  const taal = await getTaal()
+  const t = PLATFORM[taal].demo
   const open = aanvragen?.filter((a) => a.status === 'open').length ?? 0
   return (
     <section aria-labelledby="platform-demo-kop">
       <div className="club-sectiekop">
-        <h2 id="platform-demo-kop">Demo-aanvragen</h2>
-        <span>{aanvragen ? `${open} open, ${aanvragen.length} getoond${aanvragen.length >= max ? ` (maximaal ${max})` : ''}` : ''}</span>
+        <h2 id="platform-demo-kop">{t.kop}</h2>
+        <span>{aanvragen ? t.telling(open, aanvragen.length, max, aanvragen.length >= max) : ''}</span>
       </div>
       {open > 0 && (
         <p className="club-melding club-platform-aanvraag-melding">
-          <strong>{open === 1 ? '1 sportschool wacht' : `${open} sportscholen wachten`} op een belletje.</strong> De website belooft een reactie binnen een werkdag.
+          <strong>{t.wachten(open)}</strong> {t.belofte}
         </p>
       )}
       {aanvragen === null ? (
-        <p className="club-leeg">De demo-aanvragen zijn nu niet te lezen.</p>
+        <p className="club-leeg">{t.fout}</p>
       ) : aanvragen.length === 0 ? (
-        <p className="club-leeg">Nog geen demo-aanvragen via de website.</p>
+        <p className="club-leeg">{t.leeg}</p>
       ) : (
         <ul className="club-platform-demo-lijst">
           {aanvragen.map((a) => (
-            <Aanvraag key={a.id} a={a} />
+            <Aanvraag key={a.id} a={a} taal={taal} />
           ))}
         </ul>
       )}

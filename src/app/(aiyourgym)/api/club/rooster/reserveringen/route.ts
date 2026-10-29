@@ -4,6 +4,7 @@ import { alsAntwoord, leesJson } from '@/lib/club/rooster/api'
 import { leesReserveerInvoer } from '@/lib/club/rooster/invoer'
 import { reserveer } from '@/lib/club/rooster/opslag'
 import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
+import { TAAL_COOKIE, kiesTaal } from '@/lib/aiyourgym/taal/taal'
 
 // POST /api/club/rooster/reserveringen  { lesId, lidId, bron: 'app'|'balie'|'instructeur' }
 // Antwoord: { id, status: 'geboekt'|'wachtlijst', wachtpositie } of { fout }.
@@ -16,5 +17,5 @@ export async function POST(req: NextRequest) {
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   const buiten = await eisVestigingVanRecord(t, 'club_lessen', invoer.waarde.lesId)
   if (buiten) return buiten
-  return alsAntwoord(await reserveer(t, invoer.waarde))
+  return alsAntwoord(await reserveer(t, invoer.waarde, new Date(), { taal: kiesTaal(req.cookies.get(TAAL_COOKIE)?.value) }))
 }

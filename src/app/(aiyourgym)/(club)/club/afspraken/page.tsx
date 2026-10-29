@@ -13,8 +13,12 @@ import { AfsprakenNav } from '@/components/club/afspraken/AfsprakenNav'
 import { AfsprakenWerkvlak } from '@/components/club/afspraken/AfsprakenWerkvlak'
 import { TypenBeheer } from '@/components/club/afspraken/TypenBeheer'
 import '@/components/club/afspraken/afspraken.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
-export const metadata: Metadata = { title: 'Afspraken' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(AFSPRAKEN)).titel }
+}
 
 const eerste = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
@@ -23,6 +27,7 @@ const eerste = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : 
 // weergave en trainer staan in de URL.
 export default async function AfsprakenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('afspraken')
+  const tekst = AFSPRAKEN[await getTaal()]
   const zoek = await searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
@@ -51,12 +56,12 @@ export default async function AfsprakenPagina({ searchParams }: { searchParams: 
     <section className="club-paginakop">
       <div>
         <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}{sub}</p>
-        <h1>Afspraken</h1>
-        <p>Intakes, personal training en metingen per trainer. Alleen vrije tijden zijn te boeken, dubbel boeken kan niet.</p>
+        <h1>{tekst.titel}</h1>
+        <p>{tekst.intro}</p>
       </div>
-      <nav className="club-segment" aria-label="Onderdeel">
-        <Link href={clubPad('/afspraken', vestiging)} aria-current={tab === 'agenda' ? 'page' : undefined}>Agenda</Link>
-        <Link href={clubPad('/afspraken', vestiging, { tab: 'typen' })} aria-current={tab === 'typen' ? 'page' : undefined}>Afspraaktypen</Link>
+      <nav className="club-segment" aria-label={tekst.tabs.label}>
+        <Link href={clubPad('/afspraken', vestiging)} aria-current={tab === 'agenda' ? 'page' : undefined}>{tekst.tabs.agenda}</Link>
+        <Link href={clubPad('/afspraken', vestiging, { tab: 'typen' })} aria-current={tab === 'typen' ? 'page' : undefined}>{tekst.tabs.typen}</Link>
       </nav>
     </section>
   )
@@ -64,9 +69,9 @@ export default async function AfsprakenPagina({ searchParams }: { searchParams: 
   if (tab === 'typen') {
     return (
       <div className="club-afspraken">
-        {kop(' · afspraaktypen')}
+        {kop(tekst.subTypen)}
         {typen === null || alleMedewerkers === null ? (
-          <p className="club-melding club-melding--fout" role="alert">De afspraaktypen konden niet worden geladen. Ververs de pagina.</p>
+          <p className="club-melding club-melding--fout" role="alert">{tekst.typenLaadFout}</p>
         ) : (
           <TypenBeheer typen={typen} medewerkers={alleMedewerkers.map((m) => ({ id: m.id, naam: m.naam }))} />
         )}
@@ -95,12 +100,12 @@ export default async function AfsprakenPagina({ searchParams }: { searchParams: 
 
   return (
     <div className="club-afspraken">
-      {kop(isWeek ? ` · week ${isoWeek(maandag).week}` : '')}
+      {kop(isWeek ? tekst.subWeek(isoWeek(maandag).week) : '')}
       {lijst === null || medewerkers === null ? (
-        <p className="club-melding club-melding--fout" role="alert">De afspraken konden niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="alert">{tekst.laadFout}</p>
       ) : null}
       {typen !== null && actieveTypen.length === 0 ? (
-        <p className="club-melding">Er zijn nog geen soorten afspraken. <Link href={clubPad('/afspraken', vestiging, { tab: 'typen' })}>Maak er eerst een aan</Link>.</p>
+        <p className="club-melding">{tekst.geenTypen.voor}<Link href={clubPad('/afspraken', vestiging, { tab: 'typen' })}>{tekst.geenTypen.link}</Link>{tekst.geenTypen.na}</p>
       ) : null}
       <AfsprakenNav
         weergave={weergave}

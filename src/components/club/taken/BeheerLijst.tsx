@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from 'react'
 import { ArrowDown, ArrowUp, Pencil, Plus } from 'lucide-react'
-import { MOMENT_LABEL, frequentieTekst, type Taak, type Takenlijst } from '@/lib/club/taken/typen'
+import { frequentieTekst, momentLabel, type Taak, type Takenlijst } from '@/lib/club/taken/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 import { TaakFormulier, alsBody, type TaakWaarden } from './TaakFormulier'
 import { useBeheer } from './useBeheer'
 
@@ -20,6 +22,8 @@ interface RijProps {
 function TaakRij({ taak, groepen, eerste, laatste }: RijProps) {
   const { bezig, fout, stuur } = useBeheer()
   const [wijzig, setWijzig] = useState(false)
+  const taal = useTaal()
+  const t = useTekst(TAKEN).beheer
   const url = `/api/club/taken/taak/${taak.id}`
 
   async function opslaan(w: TaakWaarden) {
@@ -31,28 +35,28 @@ function TaakRij({ taak, groepen, eerste, laatste }: RijProps) {
   return (
     <li className="club-taken-beheerrij" data-uit={taak.actief ? undefined : ''}>
       {wijzig ? (
-        <TaakFormulier id={`taak-${taak.id}`} start={taak} groepen={groepen} knop="Opslaan" bezig={bezig} onOpslaan={opslaan} onAnnuleer={() => setWijzig(false)} />
+        <TaakFormulier id={`taak-${taak.id}`} start={taak} groepen={groepen} knop={t.opslaan} bezig={bezig} onOpslaan={opslaan} onAnnuleer={() => setWijzig(false)} />
       ) : (
         <div className="club-taken-beheerrij-lijn">
           <span className="club-rij-hoofd">
             <span className="club-rij-titel">{taak.naam}</span>
             <span className="club-rij-sub">
-              {[taak.groep, frequentieTekst(taak), MOMENT_LABEL[taak.moment]].filter(Boolean).join(' · ')}
-              {!taak.actief && ' · uitgezet'}
+              {[taak.groep, frequentieTekst(taak, taal), momentLabel(taak.moment, taal)].filter(Boolean).join(' · ')}
+              {!taak.actief && t.uitgezet}
             </span>
           </span>
           <span className="club-taken-beheerknoppen">
-            <button type="button" className="club-knop club-knop--klein" aria-label={`${taak.naam} omhoog`} disabled={bezig || eerste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omhoog' })}>
+            <button type="button" className="club-knop club-knop--klein" aria-label={t.omhoog(taak.naam)} disabled={bezig || eerste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omhoog' })}>
               <ArrowUp size={15} aria-hidden />
             </button>
-            <button type="button" className="club-knop club-knop--klein" aria-label={`${taak.naam} omlaag`} disabled={bezig || laatste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omlaag' })}>
+            <button type="button" className="club-knop club-knop--klein" aria-label={t.omlaag(taak.naam)} disabled={bezig || laatste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omlaag' })}>
               <ArrowDown size={15} aria-hidden />
             </button>
-            <button type="button" className="club-knop club-knop--klein" aria-label={`${taak.naam} wijzigen`} onClick={() => setWijzig(true)}>
+            <button type="button" className="club-knop club-knop--klein" aria-label={t.wijzigen(taak.naam)} onClick={() => setWijzig(true)}>
               <Pencil size={15} aria-hidden />
             </button>
             <button type="button" className="club-knop club-knop--klein" aria-pressed={taak.actief} disabled={bezig} onClick={() => void stuur(url, 'PATCH', { actief: !taak.actief })}>
-              {taak.actief ? 'Zet uit' : 'Zet aan'}
+              {taak.actief ? t.zetUit : t.zetAan}
             </button>
           </span>
         </div>
@@ -69,6 +73,7 @@ function TaakRij({ taak, groepen, eerste, laatste }: RijProps) {
 function LijstKop({ lijst, eerste, laatste }: { lijst: Takenlijst; eerste: boolean; laatste: boolean }) {
   const { bezig, fout, stuur } = useBeheer()
   const [naam, setNaam] = useState(lijst.naam)
+  const t = useTekst(TAKEN).beheer
   const url = `/api/club/taken/lijst/${lijst.id}`
 
   function hernoem(e: FormEvent) {
@@ -80,25 +85,25 @@ function LijstKop({ lijst, eerste, laatste }: { lijst: Takenlijst; eerste: boole
     <header className="club-taken-beheerkop">
       <form onSubmit={hernoem} className="club-taken-beheernaam">
         <label className="club-sr" htmlFor={`lijst-${lijst.id}`}>
-          Naam van de lijst
+          {t.naamLijst}
         </label>
         <input id={`lijst-${lijst.id}`} className="club-invoer" value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={60} />
         {naam.trim() !== lijst.naam && (
           <button type="submit" className="club-knop club-knop--klein club-knop--primair" disabled={bezig}>
-            Hernoem
+            {t.hernoem}
           </button>
         )}
       </form>
       <span className="club-taken-beheerknoppen">
-        {!lijst.actief && <span className="club-chip club-chip--uit">Uitgezet</span>}
-        <button type="button" className="club-knop club-knop--klein" aria-label={`Lijst ${lijst.naam} omhoog`} disabled={bezig || eerste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omhoog' })}>
+        {!lijst.actief && <span className="club-chip club-chip--uit">{t.lijstUitgezet}</span>}
+        <button type="button" className="club-knop club-knop--klein" aria-label={t.lijstOmhoog(lijst.naam)} disabled={bezig || eerste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omhoog' })}>
           <ArrowUp size={15} aria-hidden />
         </button>
-        <button type="button" className="club-knop club-knop--klein" aria-label={`Lijst ${lijst.naam} omlaag`} disabled={bezig || laatste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omlaag' })}>
+        <button type="button" className="club-knop club-knop--klein" aria-label={t.lijstOmlaag(lijst.naam)} disabled={bezig || laatste} onClick={() => void stuur(url, 'PATCH', { verplaats: 'omlaag' })}>
           <ArrowDown size={15} aria-hidden />
         </button>
         <button type="button" className="club-knop club-knop--klein" aria-pressed={lijst.actief} disabled={bezig} onClick={() => void stuur(url, 'PATCH', { actief: !lijst.actief })}>
-          {lijst.actief ? 'Zet lijst uit' : 'Zet lijst aan'}
+          {lijst.actief ? t.zetLijstUit : t.zetLijstAan}
         </button>
       </span>
       {fout && (
@@ -120,6 +125,7 @@ interface LijstProps {
 export function BeheerLijst({ lijst, taken, eerste, laatste }: LijstProps) {
   const { bezig, fout, stuur } = useBeheer()
   const [nieuw, setNieuw] = useState(false)
+  const t = useTekst(TAKEN).beheer
   const groepen = [...new Set(taken.map((t) => t.groep).filter((g): g is string => g !== null))]
 
   async function voegToe(w: TaakWaarden) {
@@ -128,10 +134,10 @@ export function BeheerLijst({ lijst, taken, eerste, laatste }: LijstProps) {
   }
 
   return (
-    <section className="club-kaart club-taken-beheer" aria-label={`Lijst ${lijst.naam}`} data-uit={lijst.actief ? undefined : ''}>
+    <section className="club-kaart club-taken-beheer" aria-label={t.lijst(lijst.naam)} data-uit={lijst.actief ? undefined : ''}>
       <LijstKop key={lijst.naam} lijst={lijst} eerste={eerste} laatste={laatste} />
       {taken.length === 0 ? (
-        <p className="club-hint">Nog geen taken in deze lijst.</p>
+        <p className="club-hint">{t.geenTaken}</p>
       ) : (
         <ol className="club-taken-beheerlijst">
           {taken.map((t, i) => (
@@ -141,7 +147,7 @@ export function BeheerLijst({ lijst, taken, eerste, laatste }: LijstProps) {
       )}
       {nieuw ? (
         <div className="club-taken-nieuw">
-          <TaakFormulier id={`nieuw-${lijst.id}`} groepen={groepen} knop="Toevoegen" bezig={bezig} onOpslaan={voegToe} onAnnuleer={() => setNieuw(false)} />
+          <TaakFormulier id={`nieuw-${lijst.id}`} groepen={groepen} knop={t.toevoegen} bezig={bezig} onOpslaan={voegToe} onAnnuleer={() => setNieuw(false)} />
           {fout && (
             <p className="club-fout" role="alert">
               {fout}
@@ -151,7 +157,7 @@ export function BeheerLijst({ lijst, taken, eerste, laatste }: LijstProps) {
       ) : (
         <button type="button" className="club-knop club-knop--stil club-taken-nieuwknop" onClick={() => setNieuw(true)}>
           <Plus size={16} aria-hidden />
-          Taak toevoegen
+          {t.taakToevoegen}
         </button>
       )}
     </section>

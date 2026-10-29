@@ -33,7 +33,7 @@ function laad(src: string): Promise<HTMLImageElement> {
     }
     img.onerror = () => {
       GELADEN.delete(src)
-      mis(new Error(`frame niet geladen: ${src}`))
+      mis(new Error(`frame load failed: ${src}`))
     }
     img.src = src
   })

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 
 // Opent het Stripe Customer Portal (facturen, betaalgegevens, opzeggen). De
 // server maakt de sessie; wij sturen de browser alleen naar de url van Stripe.
@@ -11,13 +13,14 @@ function urlUit(json: unknown): string | null {
   return typeof url === 'string' && url.startsWith('https://') ? url : null
 }
 
-function foutUit(json: unknown): string {
+function foutUit(json: unknown, standaard: string): string {
   const fout = (json as { fout?: unknown } | null)?.fout
-  return typeof fout === 'string' ? fout : 'Openen lukte niet. Probeer het later opnieuw.'
+  return typeof fout === 'string' ? fout : standaard
 }
 
 export function PortaalKnop() {
   const [bezig, setBezig] = useState(false)
+  const t = useTekst(PLATFORM).portaal
   const [fout, setFout] = useState<string | null>(null)
 
   async function open() {
@@ -31,9 +34,9 @@ export function PortaalKnop() {
         window.location.assign(url)
         return
       }
-      setFout(foutUit(json))
+      setFout(foutUit(json, t.fout))
     } catch {
-      setFout('Geen verbinding. Probeer het opnieuw.')
+      setFout(t.geenVerbinding)
     }
     setBezig(false)
   }
@@ -41,10 +44,10 @@ export function PortaalKnop() {
   return (
     <div className="club-abo-actie">
       <button type="button" className="club-knop club-knop--primair club-knop--groot" onClick={open} disabled={bezig} aria-busy={bezig}>
-        {bezig ? 'Openen...' : 'Facturen en betaalgegevens'}
+        {bezig ? t.bezig : t.knop}
         {!bezig && <ExternalLink size={18} aria-hidden />}
       </button>
-      <p className="club-hint">Je gaat naar de beveiligde omgeving van Stripe. Daar download je facturen, wijzig je je betaalgegevens of zeg je op. Daarna kom je hier terug.</p>
+      <p className="club-hint">{t.uitleg}</p>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
     </div>
   )

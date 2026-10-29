@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 
 // Een groep in het instellingencentrum: per onderdeel wat het is, de huidige
 // stand en een klik naar de plek waar je het aanpast. Puur (server component).
@@ -17,7 +19,8 @@ export interface InstellingRegel {
   uit?: boolean
 }
 
-export function InstellingenGroep({ titel, regels }: { titel: string; regels: InstellingRegel[] }) {
+export async function InstellingenGroep({ titel, regels }: { titel: string; regels: InstellingRegel[] }) {
+  const tekst = await clubTekst(BEHEER)
   return (
     <section className="club-beheer-groep" aria-label={titel}>
       <h2 className="club-beheer-groepkop">{titel}</h2>
@@ -30,7 +33,7 @@ export function InstellingenGroep({ titel, regels }: { titel: string; regels: In
                 <strong>{r.titel}</strong>
                 <span>{r.uitleg}</span>
               </span>
-              <span className={`club-beheer-stand${r.let ? ' is-let' : ''}`}>{r.uit ? 'Niet beschikbaar' : r.stand}</span>
+              <span className={`club-beheer-stand${r.let ? ' is-let' : ''}`}>{r.uit ? tekst.algemeen.nietBeschikbaar : r.stand}</span>
               {beschikbaar && <ChevronRight aria-hidden size={18} className="club-beheer-pijl" />}
             </>
           )

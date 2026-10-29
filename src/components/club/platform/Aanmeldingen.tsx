@@ -1,5 +1,8 @@
 import { Mail, Phone } from 'lucide-react'
-import { STATUS_WEERGAVE, isAanvraag, pakketNaam, type PlatformAanmelding } from '@/lib/club/platform/tellingen'
+import { STATUS_WEERGAVE, isAanvraag, type PlatformAanmelding } from '@/lib/club/platform/tellingen'
+import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 import { nlDatum } from './datum'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
@@ -26,34 +29,37 @@ function Contact({ a }: { a: PlatformAanmelding }) {
 
 // Alle aanmeldingen van de website, nieuwste eerst. Een aanvraag (zonder
 // Stripe) springt eruit: daar neemt Kane zelf contact op met de eigenaar.
-export function Aanmeldingen({ aanmeldingen, max }: AanmeldingenProps) {
+export async function Aanmeldingen({ aanmeldingen, max }: AanmeldingenProps) {
+  const taal = await getTaal()
+  const p = PLATFORM[taal]
+  const t = p.aanmeldingen
   const aanvragen = aanmeldingen?.filter(isAanvraag).length ?? 0
   return (
     <section aria-labelledby="platform-aanmeldingen-kop">
       <div className="club-sectiekop">
-        <h2 id="platform-aanmeldingen-kop">Aanmeldingen</h2>
-        <span>{aanmeldingen ? `${aanmeldingen.length} getoond, nieuwste eerst${aanmeldingen.length >= max ? ` (maximaal ${max})` : ''}` : ''}</span>
+        <h2 id="platform-aanmeldingen-kop">{t.kop}</h2>
+        <span>{aanmeldingen ? p.getoond(aanmeldingen.length, max, aanmeldingen.length >= max) : ''}</span>
       </div>
       {aanvragen > 0 && (
         <p className="club-melding club-platform-aanvraag-melding">
-          <strong>{aanvragen === 1 ? '1 aanvraag' : `${aanvragen} aanvragen`} zonder online betaling.</strong> Neem zelf contact op met de eigenaar; er gaat niets automatisch naar buiten.
+          <strong>{t.aanvragen(aanvragen)}</strong> {t.zelfContactUitleg}
         </p>
       )}
       {aanmeldingen === null ? (
-        <p className="club-leeg">De aanmeldingen zijn nu niet te lezen.</p>
+        <p className="club-leeg">{t.fout}</p>
       ) : aanmeldingen.length === 0 ? (
-        <p className="club-leeg">Nog geen aanmeldingen via de website.</p>
+        <p className="club-leeg">{t.leeg}</p>
       ) : (
         <div className="club-tabel-wrap">
           <table className="club-tabel club-platform-tabel">
-            <caption className="club-sr">Aanmeldingen voor AI Your Gym, nieuwste eerst</caption>
+            <caption className="club-sr">{t.bijschrift}</caption>
             <thead>
               <tr>
-                <th scope="col">Sportschool</th>
-                <th scope="col">Status</th>
-                <th scope="col">Pakket</th>
-                <th scope="col">Eigenaar</th>
-                <th scope="col">Datum</th>
+                <th scope="col">{t.sportschool}</th>
+                <th scope="col">{t.status}</th>
+                <th scope="col">{t.pakket}</th>
+                <th scope="col">{t.eigenaar}</th>
+                <th scope="col">{t.datum}</th>
               </tr>
             </thead>
             <tbody>
@@ -67,18 +73,18 @@ export function Aanmeldingen({ aanmeldingen, max }: AanmeldingenProps) {
                       <span className="club-platform-sub">{adresVan(a.slug, subdomeinenActief())}</span>
                     </td>
                     <td>
-                      <span className={`club-chip club-chip--${w.toon}`}>{w.label}</span>
-                      {aanvraag && <span className="club-platform-zelf">Zelf contact opnemen</span>}
+                      <span className={`club-chip club-chip--${w.toon}`}>{p.status[a.status]}</span>
+                      {aanvraag && <span className="club-platform-zelf">{t.zelfContact}</span>}
                     </td>
                     <td>
-                      {pakketNaam(a.pakket)}
-                      <span className="club-platform-sub">{a.aantalVestigingen === 1 ? '1 vestiging' : `${a.aantalVestigingen} vestigingen`}</span>
+                      {vindPakket(a.pakket)?.naam ?? (a.pakket || p.onbekend)}
+                      <span className="club-platform-sub">{p.vestigingen(a.aantalVestigingen)}</span>
                     </td>
                     <td>
                       <Contact a={a} />
                     </td>
                     <td className="club-platform-datum">
-                      <time dateTime={a.aangemaaktOp}>{nlDatum(a.aangemaaktOp)}</time>
+                      <time dateTime={a.aangemaaktOp}>{nlDatum(a.aangemaaktOp, taal)}</time>
                     </td>
                   </tr>
                 )

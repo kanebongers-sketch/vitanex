@@ -2,10 +2,19 @@
 // Bezoeken en lessen tellen per kalenderdag in Europe/Amsterdam, ook als de
 // server in UTC draait. Een dag heet hier een "sleutel": 2026-10-14.
 
+import { LOCALE, type Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+
 const DAG = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/Amsterdam' })
 const UUR = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })
-const DATUM_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
-const DATUM_JAAR = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Amsterdam' })
+const DATUM_KORT: Record<Taal, Intl.DateTimeFormat> = {
+  nl: new Intl.DateTimeFormat(LOCALE.nl, { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' }),
+  en: new Intl.DateTimeFormat(LOCALE.en, { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' }),
+}
+const DATUM_JAAR: Record<Taal, Intl.DateTimeFormat> = {
+  nl: new Intl.DateTimeFormat(LOCALE.nl, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Amsterdam' }),
+  en: new Intl.DateTimeFormat(LOCALE.en, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Amsterdam' }),
+}
 const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
 
 const MS_DAG = 86_400_000
@@ -54,19 +63,20 @@ export function weekdagNl(moment: Date): number {
 }
 
 /** "Vandaag", "Gisteren", "3 dagen geleden", "12 okt" of "Nooit". */
-export function laatsteBezoekTekst(op: Date | null, nu: Date): string {
-  if (!op) return 'Nooit'
+export function laatsteBezoekTekst(op: Date | null, nu: Date, taal: Taal = 'nl'): string {
+  const t = LEDEN[taal].tijd
+  if (!op) return t.nooit
   const dagen = dagenGeleden(op, nu)
-  if (dagen <= 0) return 'Vandaag'
-  if (dagen === 1) return 'Gisteren'
-  if (dagen < 7) return `${dagen} dagen geleden`
-  return datumKort(op, nu)
+  if (dagen <= 0) return t.vandaag
+  if (dagen === 1) return t.gisteren
+  if (dagen < 7) return t.dagenGeleden(dagen)
+  return datumKort(op, nu, taal)
 }
 
 /** "12 okt" binnen hetzelfde jaar, anders "12 okt 2025". */
-export function datumKort(op: Date, nu: Date): string {
+export function datumKort(op: Date, nu: Date, taal: Taal = 'nl'): string {
   const zelfdeJaar = dagSleutel(op).slice(0, 4) === dagSleutel(nu).slice(0, 4)
-  return (zelfdeJaar ? DATUM_KORT : DATUM_JAAR).format(op).replace('.', '')
+  return (zelfdeJaar ? DATUM_KORT : DATUM_JAAR)[taal].format(op).replace('.', '')
 }
 
 /** "18:30" in Nederlandse tijd. */
@@ -84,7 +94,7 @@ export function leeftijd(geboortedatum: string | null, nu: Date): number | null 
 }
 
 /** Een datumtekst uit de database (YYYY-MM-DD) als Nederlandse datum, bv. "3 mrt 2022". */
-export function datumUitSleutel(sleutel: string | null): string | null {
+export function datumUitSleutel(sleutel: string | null, taal: Taal = 'nl'): string | null {
   if (!sleutel || !/^\d{4}-\d{2}-\d{2}/.test(sleutel)) return null
-  return DATUM_JAAR.format(new Date(`${sleutel.slice(0, 10)}T12:00:00Z`)).replace('.', '')
+  return DATUM_JAAR[taal].format(new Date(`${sleutel.slice(0, 10)}T12:00:00Z`)).replace('.', '')
 }

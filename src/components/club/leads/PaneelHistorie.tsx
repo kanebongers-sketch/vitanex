@@ -1,5 +1,9 @@
+'use client'
+
 import { CalendarCheck, Mail, NotebookPen, Phone, Shuffle } from 'lucide-react'
-import { HISTORIE_LABEL, type HistorieRegel, type HistorieSoort } from '@/lib/club/leads/model'
+import type { HistorieRegel, HistorieSoort } from '@/lib/club/leads/model'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { toonMoment } from '@/lib/club/leads/regels'
 
 const ICOON: Record<HistorieSoort, typeof Phone> = {
@@ -12,11 +16,13 @@ const ICOON: Record<HistorieSoort, typeof Phone> = {
 
 // De tijdlijn van een lead, nieuwste bovenaan.
 export function PaneelHistorie({ historie }: { historie: HistorieRegel[] }) {
+  const taal = useTaal()
+  const tekst = useTekst(LEADS)
   return (
     <section className="club-leads-blok" aria-labelledby="paneel-historie">
-      <h3 id="paneel-historie">Historie</h3>
+      <h3 id="paneel-historie">{tekst.historiePaneel.titel}</h3>
       {historie.length === 0 ? (
-        <p className="club-hint">Nog niets vastgelegd.</p>
+        <p className="club-hint">{tekst.historiePaneel.leeg}</p>
       ) : (
         <ol className="club-leads-tijdlijn">
           {historie.map((h) => {
@@ -28,8 +34,8 @@ export function PaneelHistorie({ historie }: { historie: HistorieRegel[] }) {
                 </span>
                 <div>
                   <p className="club-leads-tijdlijnkop">
-                    <strong>{HISTORIE_LABEL[h.soort]}</strong>
-                    <time dateTime={h.op}>{toonMoment(h.op)}</time>
+                    <strong>{tekst.historie[h.soort]}</strong>
+                    <time dateTime={h.op}>{toonMoment(h.op, taal)}</time>
                     {h.auteur && <span className="club-zacht">{h.auteur}</span>}
                   </p>
                   {h.tekst && <p className="club-leads-tijdlijntekst">{h.tekst}</p>}

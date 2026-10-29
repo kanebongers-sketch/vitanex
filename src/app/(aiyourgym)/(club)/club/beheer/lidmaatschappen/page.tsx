@@ -16,8 +16,13 @@ import { haalLidgeldStand, lidgeldOpen } from '@/lib/club/betalen/plannen/toegan
 import { haalPlannen, haalPrijzen, telContractenPerPlan } from '@/lib/club/betalen/plannen/opslag'
 import { planWeergaven, type PlanWeergave } from '@/lib/club/betalen/plannen/weergave'
 import '@/components/club/betalen/plannen/plannen.css'
+import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BEHEER_PAGINAS } from '@/lib/aiyourgym/taal/woorden/club/beheer-paginas'
 
-export const metadata: Metadata = { title: 'Lidmaatschappen en labels' }
+export async function generateMetadata(): Promise<Metadata> {
+  return instelMetadata('lidmaatschappen')
+}
 
 // Lidmaatschapsvormen (zoals ze in Sportivity heten, met toegangsregels) en de
 // labels boven de tags van leden. Met lidgeld aan (CLUB_LIDGELD_ACTIEF en de
@@ -55,6 +60,8 @@ export default async function LidmaatschappenPagina({ searchParams }: { searchPa
   const vestiging = kiesUit(t.vestigingen, null)
   const [vormen, labels, leden, lidgeld] = await Promise.all([haalVormen(t.admin, t.userId), haalLabels(t.admin, t.userId), haalLidKenmerken(t.admin, t.userId), laadLidgeld(t)])
   const telling = telLeden(leden ?? [])
+  const kop = await instelKop('lidmaatschappen')
+  const tekst = (await clubTekst(BEHEER_PAGINAS)).lidmaatschappen
 
   return (
     <div className="club-lidm">
@@ -62,33 +69,30 @@ export default async function LidmaatschappenPagina({ searchParams }: { searchPa
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Lidmaatschappen en labels</h1>
+          <h1>{kop.titel}</h1>
           {lidgeld === null ? (
-            <p>
-              De vormen zoals ze in je ledenadministratie heten, met waar en wanneer een lid mag sporten, en de labels die je aan leden hangt. Prijzen,
-              contracten en incasso blijven in je ledenadministratie.
-            </p>
+            <p>{tekst.introZonder}</p>
           ) : (
             <p>
-              De vormen met waar en wanneer een lid mag sporten, en per vorm de plannen met prijs en contract. Kortingen en acties stel je in bij{' '}
-              <Link href="/club/beheer/lidmaatschappen/kortingen">Kortingen en acties</Link>.
+              {tekst.introMet.voor}{' '}
+              <Link href="/club/beheer/lidmaatschappen/kortingen">{tekst.introMet.link}</Link>.
             </p>
           )}
         </div>
-        <nav aria-label="Onderdeel">
+        <nav aria-label={tekst.onderdeel}>
           <div className="club-segment">
             <Link href="/club/beheer/lidmaatschappen" aria-current={tab === 'vormen' ? 'page' : undefined} scroll={false}>
-              Lidmaatschapsvormen
+              {tekst.vormen}
             </Link>
             <Link href="/club/beheer/lidmaatschappen?tab=labels" aria-current={tab === 'labels' ? 'page' : undefined} scroll={false}>
-              Labels
+              {tekst.labels}
             </Link>
           </div>
         </nav>
       </header>
 
-      {lidgeld === 'fout' && <p className="club-melding club-melding--fout" role="status">Prijs en contract konden niet worden gelezen. Probeer het later opnieuw.</p>}
-      {!leden && <p className="club-melding club-melding--fout" role="status">De leden konden niet worden geteld, dus de aantallen ontbreken nu.</p>}
+      {lidgeld === 'fout' && <p className="club-melding club-melding--fout" role="status">{tekst.lidgeldFout}</p>}
+      {!leden && <p className="club-melding club-melding--fout" role="status">{tekst.ledenFout}</p>}
 
       {tab === 'vormen' ? (
         vormen ? (
@@ -100,12 +104,12 @@ export default async function LidmaatschappenPagina({ searchParams }: { searchPa
             lidgeld={lidgeld === 'fout' ? null : lidgeld}
           />
         ) : (
-          <p className="club-melding club-melding--fout" role="status">De lidmaatschapsvormen konden niet worden gelezen. Probeer het later opnieuw.</p>
+          <p className="club-melding club-melding--fout" role="status">{tekst.vormenFout}</p>
         )
       ) : labels ? (
         <LabelsBeheer labels={labels.map((l) => ({ ...l, leden: ledenMetLabel(telling, l) }))} los={leden ? losseTags(telling, labels) : []} vestiging={vestiging} />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De labels konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.labelsFout}</p>
       )}
     </div>
   )

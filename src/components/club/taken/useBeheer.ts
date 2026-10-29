@@ -5,10 +5,12 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { vraag, type Antwoord } from './vraag'
 
 export function useBeheer() {
   const router = useRouter()
+  const taal = useTaal()
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -17,13 +19,13 @@ export function useBeheer() {
     async (url: string, method: 'POST' | 'PATCH', body: unknown): Promise<Antwoord> => {
       setBezig(true)
       setFout(null)
-      const uit = await vraag(url, method, body)
+      const uit = await vraag(url, method, body, taal)
       setBezig(false)
       if (uit.ok) startTransition(() => router.refresh())
       else setFout(uit.fout)
       return uit
     },
-    [router],
+    [router, taal],
   )
 
   return { bezig, fout, setFout, stuur }

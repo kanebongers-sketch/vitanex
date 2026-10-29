@@ -11,6 +11,8 @@ import { isCheckinAntwoord, isQrCheckinAntwoord, isZoekAntwoord, type CheckinAnt
 import { BalieLidKaart, Resultaten, Uitkomst, type UitkomstLid } from './CheckinKaart'
 import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { BalieCamera } from './BalieCamera'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
 
 // Het baliescherm. Een QR-scanner of bandjeslezer typt als een toetsenbord en
 // sluit af met Enter: een exacte code checkt meteen in. Op naam zoeken toont
@@ -58,13 +60,14 @@ type Doel = { lid: UitkomstLid } | { qr: string }
 
 /** Leeg baliescherm: rustig, groot en duidelijk wat je kunt doen. */
 function Wachtstand() {
+  const t = useTekst(CHECKIN).balie
   return (
     <div className="club-checkin-wacht">
       <span className="club-checkin-wacht-icoon" aria-hidden>
         <ScanLine size={30} />
       </span>
-      <p className="club-checkin-wacht-titel">Klaar voor het volgende lid</p>
-      <p className="club-checkin-wacht-tekst">Scan de QR-code uit de app of een bandje, of typ een naam of lidnummer.</p>
+      <p className="club-checkin-wacht-titel">{t.wachtTitel}</p>
+      <p className="club-checkin-wacht-tekst">{t.wachtTekst}</p>
     </div>
   )
 }
@@ -85,6 +88,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
   const [, startTransition] = useTransition()
+  const t = useTekst(CHECKIN).balie
 
   async function zoek(q: string): Promise<Resultaat | null> {
     const nr = ++verzoekNr.current
@@ -93,7 +97,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
       const data: unknown = await res.json().catch(() => null)
       if (nr !== verzoekNr.current) return null
       if (!res.ok || !isZoekAntwoord(data)) {
-        setFout('Zoeken lukte niet. Probeer het opnieuw.')
+        setFout(t.zoekFout)
         return null
       }
       const r: Resultaat = { ...data, query: q }
@@ -102,7 +106,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
       setFout(null)
       return r
     } catch {
-      if (nr === verzoekNr.current) setFout('Geen verbinding. Controleer het internet.')
+      if (nr === verzoekNr.current) setFout(t.geenVerbinding)
       return null
     }
   }
@@ -117,7 +121,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
       const data: unknown = await res.json().catch(() => null)
       const lid = 'qr' in doel ? (isQrCheckinAntwoord(data) ? data.lid : null) : doel.lid
       if (!res.ok || !isCheckinAntwoord(data) || !lid) {
-        setFout(foutUit(data) ?? 'Inchecken lukte niet. Probeer het opnieuw.')
+        setFout(foutUit(data) ?? t.incheckFout)
         return
       }
       setAfgerond({ lid, antwoord: data, bron })
@@ -126,7 +130,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
       verzoekNr.current += 1
       startTransition(() => router.refresh())
     } catch {
-      setFout('Geen verbinding. Inchecken is niet gelukt.')
+      setFout(t.incheckVerbinding)
     } finally {
       setBezig(false)
       veld.current?.focus()
@@ -220,17 +224,17 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
   const lijstOpen = leden.length > 1
 
   return (
-    <section className="club-checkin-balie" data-compact={compact || undefined} aria-label="Inchecken">
+    <section className="club-checkin-balie" data-compact={compact || undefined} aria-label={t.label}>
       <label className="club-checkin-zoek">
         <ScanLine aria-hidden size={26} />
-        <span className="club-sr">Scan een QR-code of bandje, of zoek op naam of lidnummer</span>
+        <span className="club-sr">{t.zoekLabel}</span>
         <input
           ref={veld}
           autoFocus={!compact}
           value={query}
           onChange={(e) => typ(e.target.value)}
           onKeyDown={toets}
-          placeholder="Scan of typ een naam of lidnummer"
+          placeholder={t.plaats}
           autoComplete="off"
           spellCheck={false}
           enterKeyHint="go"
@@ -243,8 +247,8 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
         />
       </label>
       <p id="checkin-hulp" className="club-hint club-checkin-hulp">
-        QR-code en bandje checken direct in. Op naam: kies met <kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> checkt in, <kbd>Esc</kbd> wist.
-        {methode === 'qr' ? ' Telefoon vergeten? Zoek het lid gewoon op naam.' : ''}
+        {t.hulpVoor} <kbd>↑</kbd> <kbd>↓</kbd>, <kbd>Enter</kbd> {t.hulpEnter} <kbd>Esc</kbd> {t.hulpEsc}
+        {methode === 'qr' ? t.telefoonVergeten : ''}
       </p>
       {methode !== 'balie' && <BalieCamera startOpen={methode === 'qr' && !compact} pauze={bezig} onCode={cameraScan} />}
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
@@ -255,7 +259,7 @@ export function CheckinBalie({ vestiging, methode, magLeden, compact = false }: 
       {lid ? <BalieLidKaart lid={lid} bezig={bezig} onInchecken={() => void inchecken({ lid }, resultaat?.exact ? resultaat.bron : 'balie', lid.vormWaarschuwing !== null)} /> : null}
       {!query && !afgerond && !fout && methode !== 'qr' && !compact ? <Wachtstand /> : null}
       {resultaat && resultaat.query === query.trim() && !leden.length ? (
-        <p className="club-leeg">Niemand gevonden voor &ldquo;{resultaat.query}&rdquo;. Controleer de spelling of zoek op lidnummer.</p>
+        <p className="club-leeg">{t.niemand(resultaat.query)}</p>
       ) : null}
     </section>
   )

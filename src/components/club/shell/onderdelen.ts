@@ -18,13 +18,21 @@
 
 import type { Module } from '@/lib/club/kern/organisatie'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
+
+// De Nederlandse namen komen uit het woordenboek (bron); in beeld altijd via
+// onderdeelInTaal(), groepInTaal() en schermInTaal().
+const G = MENU.nl.groepen
+const O = MENU.nl.onderdelen
+const S = MENU.nl.schermen
 
 export const GROEPEN = [
-  { sleutel: 'werkvloer', label: 'Werkvloer', uitleg: 'Wat er vandaag in de club gebeurt' },
-  { sleutel: 'leden', label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
-  { sleutel: 'planning', label: 'Planning', uitleg: 'Groepslessen, personeel en taken' },
-  { sleutel: 'coaching', label: 'Coaching', uitleg: "Intakes, schema's en oefeningen" },
-  { sleutel: 'beheer', label: 'Beheer', uitleg: 'Cijfers en rapporten' },
+  { sleutel: 'werkvloer', label: G.werkvloer.label, uitleg: G.werkvloer.uitleg },
+  { sleutel: 'leden', label: G.leden.label, uitleg: G.leden.uitleg },
+  { sleutel: 'planning', label: G.planning.label, uitleg: G.planning.uitleg },
+  { sleutel: 'coaching', label: G.coaching.label, uitleg: G.coaching.uitleg },
+  { sleutel: 'beheer', label: G.beheer.label, uitleg: G.beheer.uitleg },
 ] as const
 
 export type GroepSleutel = (typeof GROEPEN)[number]['sleutel']
@@ -63,47 +71,47 @@ export interface Scherm {
 }
 
 export const ONDERDELEN: readonly Onderdeel[] = [
-  { sleutel: 'vandaag', pad: '', label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging', groep: 'werkvloer', toets: 'v' },
-  { sleutel: 'checkin', pad: '/checkin', label: 'Check-in', uitleg: 'Leden inchecken en wie er nu binnen is, bovenaan Vandaag', groep: 'werkvloer', module: 'checkin', toets: 'c', sectie: 'checkin',
+  { sleutel: 'vandaag', pad: '', label: O.vandaag.label, uitleg: O.vandaag.uitleg, groep: 'werkvloer', toets: 'v' },
+  { sleutel: 'checkin', pad: '/checkin', label: O.checkin.label, uitleg: O.checkin.uitleg, groep: 'werkvloer', module: 'checkin', toets: 'c', sectie: 'checkin',
     schermen: [
-      { id: 'balie', label: 'Check-in op volledig scherm', uitleg: 'De balie voor een vaste tablet of pc, met scanner of bandjeslezer', pad: '/checkin' },
-      { id: 'kiosk', label: 'Zelf-check-in scherm', uitleg: 'Tablet bij de ingang: leden scannen de QR-code uit hun app', pad: '/checkin/kiosk' },
+      { id: 'balie', label: S.balie.label, uitleg: S.balie.uitleg, pad: '/checkin' },
+      { id: 'kiosk', label: S.kiosk.label, uitleg: S.kiosk.uitleg, pad: '/checkin/kiosk' },
     ] },
-  { sleutel: 'taken', pad: '/taken', label: 'Taken', uitleg: 'Dagelijkse taken, poetslijsten en de afsluitronde', groep: 'werkvloer', module: 'taken', toets: 'k',
+  { sleutel: 'taken', pad: '/taken', label: O.taken.label, uitleg: O.taken.uitleg, groep: 'werkvloer', module: 'taken', toets: 'k',
     trefwoorden: 'poetsrooster poetslijst poetsen schoonmaak dagtaken dagelijkse taken afsluitronde excel',
     schermen: [
-      { id: 'week', label: 'Takenweek', uitleg: 'Alle taken en poetslijsten van de hele week in een tabel', pad: '/taken/week' },
-      { id: 'overzicht', label: 'Takenoverzicht', uitleg: 'Gemiste dagtaken, weektaken die achterlopen en afsluitrondes', pad: '/taken/overzicht' },
-      { id: 'beheer', label: 'Takenlijsten beheren', uitleg: 'Lijsten en taken maken, hoe vaak en wanneer, kopieren naar een vestiging', pad: '/taken/beheer' },
+      { id: 'week', label: S.week.label, uitleg: S.week.uitleg, pad: '/taken/week' },
+      { id: 'overzicht', label: S.overzicht.label, uitleg: S.overzicht.uitleg, pad: '/taken/overzicht' },
+      { id: 'beheer', label: S.beheer.label, uitleg: S.beheer.uitleg, pad: '/taken/beheer' },
     ] },
-  { sleutel: 'opvolgen', pad: '/opvolgen', label: 'Opvolgen', uitleg: 'Leden en leads die je vandaag belt of aanspreekt, op Vandaag', groep: 'werkvloer', toets: 'o', sectie: 'opvolgen',
+  { sleutel: 'opvolgen', pad: '/opvolgen', label: O.opvolgen.label, uitleg: O.opvolgen.uitleg, groep: 'werkvloer', toets: 'o', sectie: 'opvolgen',
     schermen: [
-      { id: 'lijst', label: 'Opvolgen: volledige lijst', uitleg: 'Alle open opvolging per regel en wat de laatste 7 dagen is afgehandeld', pad: '/opvolgen' },
+      { id: 'lijst', label: S.lijst.label, uitleg: S.lijst.uitleg, pad: '/opvolgen' },
     ] },
-  { sleutel: 'notities', pad: '/notities', label: 'Notities', uitleg: 'Overdracht, afspraken, kennis en ideeën', groep: 'werkvloer', toets: 'n' },
-  { sleutel: 'leden', pad: '/leden', label: 'Leden', uitleg: 'Ledenkaart, bezoek, notities en status', groep: 'leden', module: 'leden', toets: 'l' },
-  { sleutel: 'leads', pad: '/leads', label: 'Leads', uitleg: 'Proeflessen en nieuwe leden opvolgen', groep: 'leden', module: 'leads', toets: 'e' },
-  { sleutel: 'berichten', pad: '/berichten', label: 'Berichten', uitleg: 'Nieuws en acties op Home in de ledenapp', groep: 'leden', toets: 'b' },
-  { sleutel: 'community', pad: '/community', label: 'Community', uitleg: 'Groepen, berichten en meldingen van leden', groep: 'leden', module: 'app' },
-  { sleutel: 'challenges', pad: '/challenges', label: 'Challenges', uitleg: 'Doelen, voortgang en badges voor leden', groep: 'leden' },
-  { sleutel: 'rooster', pad: '/rooster', label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst', groep: 'planning', module: 'rooster', toets: 'r' },
-  { sleutel: 'afspraken', pad: '/afspraken', label: 'Afspraken', uitleg: 'Intakes, personal training en metingen per trainer', groep: 'planning', module: 'afspraken', toets: 'a' },
-  { sleutel: 'personeel', pad: '/personeel', label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel', groep: 'planning', module: 'personeel', toets: 'p' },
-  { sleutel: 'agenda', pad: '/agenda', label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week', groep: 'planning' },
-  { sleutel: 'schemas', pad: '/training', label: 'Training', uitleg: "Intakes, schema's en oefeningen", groep: 'coaching', module: 'training', toets: 't' },
-  { sleutel: 'voeding', pad: '/voeding', label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid', groep: 'coaching' },
-  { sleutel: 'cijfers', pad: '/cijfers', label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand', groep: 'beheer', module: 'cijfers' },
-  { sleutel: 'rapporten', pad: '/rapporten', label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren', groep: 'beheer' },
-  { sleutel: 'beheer', pad: '/beheer', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', groep: 'beheer', toets: 'i', hulpbalk: true },
-  { sleutel: 'hulp', pad: '/hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', groep: 'beheer', toets: 'h', hulpbalk: true },
+  { sleutel: 'notities', pad: '/notities', label: O.notities.label, uitleg: O.notities.uitleg, groep: 'werkvloer', toets: 'n' },
+  { sleutel: 'leden', pad: '/leden', label: O.leden.label, uitleg: O.leden.uitleg, groep: 'leden', module: 'leden', toets: 'l' },
+  { sleutel: 'leads', pad: '/leads', label: O.leads.label, uitleg: O.leads.uitleg, groep: 'leden', module: 'leads', toets: 'e' },
+  { sleutel: 'berichten', pad: '/berichten', label: O.berichten.label, uitleg: O.berichten.uitleg, groep: 'leden', toets: 'b' },
+  { sleutel: 'community', pad: '/community', label: O.community.label, uitleg: O.community.uitleg, groep: 'leden', module: 'app' },
+  { sleutel: 'challenges', pad: '/challenges', label: O.challenges.label, uitleg: O.challenges.uitleg, groep: 'leden' },
+  { sleutel: 'rooster', pad: '/rooster', label: O.rooster.label, uitleg: O.rooster.uitleg, groep: 'planning', module: 'rooster', toets: 'r' },
+  { sleutel: 'afspraken', pad: '/afspraken', label: O.afspraken.label, uitleg: O.afspraken.uitleg, groep: 'planning', module: 'afspraken', toets: 'a' },
+  { sleutel: 'personeel', pad: '/personeel', label: O.personeel.label, uitleg: O.personeel.uitleg, groep: 'planning', module: 'personeel', toets: 'p' },
+  { sleutel: 'agenda', pad: '/agenda', label: O.agenda.label, uitleg: O.agenda.uitleg, groep: 'planning' },
+  { sleutel: 'schemas', pad: '/training', label: O.schemas.label, uitleg: O.schemas.uitleg, groep: 'coaching', module: 'training', toets: 't' },
+  { sleutel: 'voeding', pad: '/voeding', label: O.voeding.label, uitleg: O.voeding.uitleg, groep: 'coaching' },
+  { sleutel: 'cijfers', pad: '/cijfers', label: O.cijfers.label, uitleg: O.cijfers.uitleg, groep: 'beheer', module: 'cijfers' },
+  { sleutel: 'rapporten', pad: '/rapporten', label: O.rapporten.label, uitleg: O.rapporten.uitleg, groep: 'beheer' },
+  { sleutel: 'beheer', pad: '/beheer', label: O.beheer.label, uitleg: O.beheer.uitleg, groep: 'beheer', toets: 'i', hulpbalk: true },
+  { sleutel: 'hulp', pad: '/hulp', label: O.hulp.label, uitleg: O.hulp.uitleg, groep: 'beheer', toets: 'h', hulpbalk: true },
   // Alleen via het instellingencentrum (en het zoekveld); wel hier voor de rechten per rol.
-  { sleutel: 'instellingen', pad: '/instellingen', label: 'Vestigingen, rooster en team', uitleg: 'Regels, openingstijden, zalen, lestypen, weekrooster en medewerkers', groep: 'beheer', inMenu: false },
-  { sleutel: 'app', pad: '/app', label: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon', groep: 'beheer', module: 'app', hulpbalk: true },
-  { sleutel: 'start', pad: '/start', label: 'Startwizard', uitleg: 'Je sportschool stap voor stap inrichten', groep: 'beheer', inMenu: false },
-  { sleutel: 'huisstijl', pad: '/huisstijl', label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool', groep: 'beheer', inMenu: false },
-  { sleutel: 'bedrijf', pad: '/beheer/bedrijf', label: 'Bedrijf en huisregels', uitleg: 'KvK, btw, contact en de teksten voor je leden', groep: 'beheer', inMenu: false },
-  { sleutel: 'lidmaatschappen', pad: '/beheer/lidmaatschappen', label: 'Lidmaatschappen en labels', uitleg: 'Lidmaatschapsvormen met hun toegang, en labels voor leden', groep: 'beheer', inMenu: false },
-  { sleutel: 'sluiting', pad: '/beheer/sluiting', label: 'Sluitingsdagen', uitleg: 'Feestdagen, sluitingen en andere openingstijden', groep: 'beheer', inMenu: false },
+  { sleutel: 'instellingen', pad: '/instellingen', label: O.instellingen.label, uitleg: O.instellingen.uitleg, groep: 'beheer', inMenu: false },
+  { sleutel: 'app', pad: '/app', label: O.app.label, uitleg: O.app.uitleg, groep: 'beheer', module: 'app', hulpbalk: true },
+  { sleutel: 'start', pad: '/start', label: O.start.label, uitleg: O.start.uitleg, groep: 'beheer', inMenu: false },
+  { sleutel: 'huisstijl', pad: '/huisstijl', label: O.huisstijl.label, uitleg: O.huisstijl.uitleg, groep: 'beheer', inMenu: false },
+  { sleutel: 'bedrijf', pad: '/beheer/bedrijf', label: O.bedrijf.label, uitleg: O.bedrijf.uitleg, groep: 'beheer', inMenu: false },
+  { sleutel: 'lidmaatschappen', pad: '/beheer/lidmaatschappen', label: O.lidmaatschappen.label, uitleg: O.lidmaatschappen.uitleg, groep: 'beheer', inMenu: false },
+  { sleutel: 'sluiting', pad: '/beheer/sluiting', label: O.sluiting.label, uitleg: O.sluiting.uitleg, groep: 'beheer', inMenu: false },
 ]
 
 /** Is dit onderdeel actief op dit pad? */
@@ -211,4 +219,24 @@ export function onderdeelVoorToets(letter: string, uit: readonly Module[] = [], 
 /** De toets als tekst voor in beeld, bijvoorbeeld "G L". */
 export function toetsTekst(o: Pick<Onderdeel, 'toets'>): string | null {
   return o.toets ? `G ${o.toets.toUpperCase()}` : null
+}
+
+// ── Taal ─────────────────────────────────────────────────────────────────────
+
+/** Een onderdeel met naam en uitleg in de gekozen taal. */
+export function onderdeelInTaal<T extends Pick<Onderdeel, 'sleutel' | 'label' | 'uitleg'>>(o: T, taal: Taal): T {
+  const t = MENU[taal].onderdelen[o.sleutel as keyof typeof O]
+  return t ? { ...o, label: t.label, uitleg: t.uitleg } : o
+}
+
+/** Een groep met naam en uitleg in de gekozen taal. */
+export function groepInTaal<T extends { sleutel: GroepSleutel; label: string; uitleg: string }>(g: T, taal: Taal): T {
+  const t = MENU[taal].groepen[g.sleutel]
+  return { ...g, label: t.label, uitleg: t.uitleg }
+}
+
+/** Een volledig scherm met naam en uitleg in de gekozen taal. */
+export function schermInTaal(s: Scherm, taal: Taal): Scherm {
+  const t = MENU[taal].schermen[s.id as keyof typeof S]
+  return t ? { ...s, label: t.label, uitleg: t.uitleg } : s
 }

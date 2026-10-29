@@ -13,8 +13,12 @@ import { Verversen } from '@/components/club/checkin/Verversen'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/checkin/checkin.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
 
-export const metadata: Metadata = { title: 'Check-in' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(CHECKIN)).pagina.titel }
+}
 
 export default async function CheckinPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('checkin')
@@ -22,18 +26,19 @@ export default async function CheckinPagina({ searchParams }: { searchParams: Zo
   if (!vestiging) return <GeenVestigingen />
   const samenvatting = await haalDagPaneel(t.admin, t.userId, vestiging, new Date())
   const { checkin } = t.organisatie.instellingen
+  const tp = (await clubTekst(CHECKIN)).pagina
   // Vanuit het lid werken: namen linken naar de ledenkaart, alleen voor wie Leden mag zien.
   const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
   return (
     <>
       <header className="club-paginakop">
         <div>
-          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · balie</p>
-          <h1>Check-in</h1>
+          <p className="club-boventitel">{tp.boventitel(naamVan(t.vestigingen, vestiging))}</p>
+          <h1>{tp.titel}</h1>
         </div>
         {qrCheckinAan(checkin) && (
           <Link href={`/club/checkin/kiosk?v=${encodeURIComponent(vestiging)}`} className="club-knop club-knop--stil">
-            <MonitorSmartphone aria-hidden size={17} /> Zelf-check-in scherm
+            <MonitorSmartphone aria-hidden size={17} /> {tp.kiosk}
           </Link>
         )}
       </header>

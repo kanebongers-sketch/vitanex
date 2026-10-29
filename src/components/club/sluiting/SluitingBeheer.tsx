@@ -6,6 +6,8 @@ import type { Sluiting } from '@/lib/club/sluiting/model'
 import { FeestdagenFormulier } from './FeestdagenFormulier'
 import { JaarOverzicht } from './JaarOverzicht'
 import { SluitingFormulier } from './SluitingFormulier'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SLUITING } from '@/lib/aiyourgym/taal/woorden/club/sluiting'
 
 // Het werkvlak van de pagina: links het jaar per maand, rechts een losse dag
 // toevoegen en de feestdagen in een keer. Na elke actie ververst de pagina.
@@ -19,6 +21,7 @@ interface Props {
 
 export function SluitingBeheer({ jaar, vandaag, sluitingen, geraakt }: Props) {
   const router = useRouter()
+  const t = useTekst(SLUITING).beheer
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
   const klaar = (tekst: string, ok = true) => {
     setMelding({ ok, tekst })
@@ -35,14 +38,14 @@ export function SluitingBeheer({ jaar, vandaag, sluitingen, geraakt }: Props) {
         <div className="club-sluiting-hoofd">
           <JaarOverzicht jaar={jaar} sluitingen={sluitingen} geraakt={geraakt} vandaag={vandaag} onKlaar={klaar} />
         </div>
-        <aside className="club-sluiting-zij" aria-label="Toevoegen">
+        <aside className="club-sluiting-zij" aria-label={t.toevoegen}>
           <section className="club-kaart" aria-labelledby="sluiting-los">
-            <h2 id="sluiting-los">Losse dag</h2>
+            <h2 id="sluiting-los">{t.losseDag}</h2>
             <SluitingFormulier key={jaar} standaardDatum={standaardDatum} onKlaar={klaar} />
           </section>
           <section className="club-kaart" aria-labelledby="sluiting-feest">
-            <h2 id="sluiting-feest">Nederlandse feestdagen {jaar}</h2>
-            <p className="club-hint">Pasen, Hemelvaart en Pinksteren rekent Club zelf uit. Kies per dag of je dicht bent of andere tijden hebt.</p>
+            <h2 id="sluiting-feest">{t.feestdagen(jaar)}</h2>
+            <p className="club-hint">{t.feestdagenUitleg}</p>
             <FeestdagenFormulier key={jaar} jaar={jaar} bestaande={sluitingen} onKlaar={klaar} />
           </section>
         </aside>

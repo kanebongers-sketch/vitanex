@@ -10,6 +10,8 @@ import { ongelezenPunten, tellerTekst } from '@/lib/aiyourgym/nieuw'
 import { clubHref, hulpItemOp, hulpItems, hulpToets, type HulpSleutel } from './hulpbalk-items'
 import { useGezien } from './nieuw-gezien'
 import { useVestigingen } from './VestigingenContext'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import './hulpbalk.css'
 
 // De hulpbalk onderaan Club (idee Kane 23-10-2026, op onze eigen manier).
@@ -29,6 +31,7 @@ const ICOON: Record<HulpSleutel, LucideIcon> = {
 /** Het aantal updates dat deze persoon nog niet zag, als badge. Niets zolang het niet bekend is. */
 export function NieuwTeller({ persoon }: { persoon: string }) {
   const ruw = useGezien(persoon)
+  const t = useTekst(MENU)
   if (ruw === undefined) return null
   const aantal = ongelezenPunten(ruw).length
   const tekst = tellerTekst(aantal)
@@ -36,7 +39,7 @@ export function NieuwTeller({ persoon }: { persoon: string }) {
   return (
     <span className="club-hulp-teller">
       <span aria-hidden>{tekst}</span>
-      <span className="club-sr">, {aantal} {aantal === 1 ? 'update' : 'updates'} die je nog niet zag</span>
+      <span className="club-sr">, {t.hulp.ongelezen(aantal)}</span>
     </span>
   )
 }
@@ -55,9 +58,10 @@ interface HulpLinksProps {
 /** De items als lijst met links; gedeeld door de balk en het menupaneel. */
 export function HulpLinks({ sleutels, persoon, pad, href, uitleg = false, onKies }: HulpLinksProps) {
   const hier = hulpItemOp(pad)
+  const taal = useTaal()
   return (
     <ul className="club-hulp-lijst">
-      {hulpItems(sleutels).map((i) => {
+      {hulpItems(sleutels, taal).map((i) => {
         const Icoon = ICOON[i.sleutel]
         const toets = hulpToets(i)
         return (
@@ -88,9 +92,10 @@ interface HulpbalkProps {
 export function Hulpbalk({ sleutels, persoon }: HulpbalkProps) {
   const pad = usePathname()
   const vestiging = kiesUit(useVestigingen(), useSearchParams().get(VESTIGING_PARAM))
+  const t = useTekst(MENU)
   if (sleutels.length === 0) return null
   return (
-    <nav className="club-hulpbalk" aria-label="Instellingen en hulp">
+    <nav className="club-hulpbalk" aria-label={t.hulp.label}>
       <HulpLinks sleutels={sleutels} persoon={persoon} pad={pad} href={(p) => clubHref(p, vestiging)} uitleg />
     </nav>
   )

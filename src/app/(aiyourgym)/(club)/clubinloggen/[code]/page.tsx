@@ -5,7 +5,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
-import { ROL_LABEL } from '@/lib/club/beheerders/beheerder'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 import { vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { WachtwoordKiezen } from '@/components/club/inloggen/WachtwoordKiezen'
@@ -20,10 +21,12 @@ import '@/components/club/inloggen/inloggen.css'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Inloggen · Club',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: (await clubTekst(CLUB_INLOGGEN)).titelClub,
+    robots: { index: false, follow: false },
+    referrer: 'no-referrer',
+  }
 }
 
 interface PaginaProps {
@@ -51,13 +54,14 @@ export default async function ClubInloggenPagina({ params }: PaginaProps) {
   if (b.wachtwoordHash) redirect('/inloggen')
 
   const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
+  const t = await clubTekst(CLUB_INLOGGEN)
   return (
     <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema}>
       <main className="club-inlog-vlak">
         <WachtwoordKiezen
           api={`/api/club/inloggen/${encodeURIComponent(b.code)}/wachtwoord`}
-          rol={`${ROL_LABEL[b.rol]} · ${organisatie.naam}`}
-          merk={<span className="club-inlog-club">Welkom, {b.naam.split(' ')[0]}</span>}
+          rol={`${t.beheerderRol[b.rol]} · ${organisatie.naam}`}
+          merk={<span className="club-inlog-club">{t.welkom(b.naam.split(' ')[0])}</span>}
           email={b.email}
           naam={b.naam}
         />

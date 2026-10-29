@@ -17,8 +17,12 @@ import { PersoonKiezer } from '@/components/club/taken/PersoonKiezer'
 import { TakenKop, WeekBladeren } from '@/components/club/taken/TakenKop'
 import { TakenRaster } from '@/components/club/taken/TakenRaster'
 import '@/components/club/taken/taken.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
-export const metadata: Metadata = { title: 'Taken per week' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(TAKEN)).pagina.metaWeek }
+}
 
 // De week zoals het Excel-tabblad, maar dan beter: per lijst een raster van
 // taken en dagen, afvinken met een tik, tellers voor de weektaken.
@@ -36,6 +40,8 @@ export default async function TakenWeekPagina({ searchParams }: { searchParams: 
     haalMedewerkers(t.admin, t.userId, vestiging),
   ])
   const actief = data ? alleenActief(data) : null
+  const taal = await getTaal()
+  const tt = TAKEN[taal]
 
   return (
     <div className="club-taken-pagina">
@@ -45,23 +51,23 @@ export default async function TakenWeekPagina({ searchParams }: { searchParams: 
         weergave="week"
         titel={
           <>
-            Week <span className="club-taken-weeknr">{w.weekNummer}</span>
+            {tt.raster.week} <span className="club-taken-weeknr">{w.weekNummer}</span>
           </>
         }
-        sub={weekLabel(w.maandag)}
+        sub={weekLabel(w.maandag, taal)}
       >
         <WeekBladeren weergave="week" vestiging={vestiging} vorige={w.vorige} volgende={w.volgende} isDezeWeek={w.isDezeWeek} />
         <PrintKnop />
       </TakenKop>
       {!actief || !afvinkingen || !notities ? (
         <p className="club-melding club-melding--fout" role="alert">
-          De taken konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.
+          {tt.dag.fout}
         </p>
       ) : actief.lijsten.length === 0 ? (
         <div className="club-leeg">
-          <p>Deze vestiging heeft nog geen takenlijsten.</p>
+          <p>{tt.dag.geenLijsten}</p>
           <Link className="club-knop club-knop--primair" href={takenHref('beheer', vestiging)}>
-            Lijsten maken of kopieren
+            {tt.dag.lijstenMaken}
           </Link>
         </div>
       ) : (

@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { ArrowLeftRight, ChevronUp } from 'lucide-react'
 import type { AppOefening } from '@/lib/club/app/schema'
 import type { AppAlternatief } from '@/lib/club/training/alternatieven'
-import { MATERIAAL_LABEL } from '@/lib/club/training/typen'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
+import { paginaTaal } from './verzoek'
 import { OefeningBeeld } from '@/components/club/training/OefeningBeeld'
 import { useLedenappApi } from './LedenappApi'
 import './andere-oefening.css'
@@ -36,15 +38,17 @@ async function haal(url: string): Promise<Staat> {
     const res = await fetch(url, { cache: 'no-store' })
     const data: unknown = await res.json().catch(() => null)
     const rij = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {}
-    if (!res.ok) return { soort: 'fout', tekst: typeof rij.fout === 'string' ? rij.fout : 'Er ging iets mis. Probeer het opnieuw.' }
+    if (!res.ok) return { soort: 'fout', tekst: typeof rij.fout === 'string' ? rij.fout : LEDENAPP[paginaTaal()].algemeen.misgegaan }
     return { soort: 'lijst', lijst: Array.isArray(rij.alternatieven) ? rij.alternatieven.filter(isAlternatief) : [] }
   } catch {
-    return { soort: 'fout', tekst: 'Geen verbinding. Probeer het opnieuw.' }
+    return { soort: 'fout', tekst: LEDENAPP[paginaTaal()].algemeen.geenVerbinding }
   }
 }
 
 export function AndereOefening({ lidId, oefening, onKies }: AndereOefeningProps) {
   const api = useLedenappApi()
+  const taal = useTaal()
+  const t = LEDENAPP[taal].andere
   const [staat, setStaat] = useState<Staat>({ soort: 'dicht' })
   const open = staat.soort !== 'dicht'
   const lijstId = `andere-${oefening.id}`
@@ -66,26 +70,26 @@ export function AndereOefening({ lidId, oefening, onKies }: AndereOefeningProps)
     <div className="club-lidapp-andere">
       <button type="button" className="club-lidapp-andere-knop" onClick={wissel} aria-expanded={open} aria-controls={lijstId}>
         {open ? <ChevronUp aria-hidden size={16} /> : <ArrowLeftRight aria-hidden size={16} />}
-        {open ? 'Sluiten' : 'Toestel bezet? Andere oefening'}
+        {open ? LEDENAPP[taal].algemeen.sluiten : t.knop}
       </button>
       {open && (
         <div id={lijstId} className="club-lidapp-andere-paneel">
-          {staat.soort === 'laden' && <p className="club-lidapp-andere-tekst" role="status">Even zoeken...</p>}
+          {staat.soort === 'laden' && <p className="club-lidapp-andere-tekst" role="status">{t.zoeken}</p>}
           {staat.soort === 'fout' && <p className="club-lidapp-andere-tekst" role="alert">{staat.tekst}</p>}
           {staat.soort === 'lijst' && staat.lijst.length === 0 && (
-            <p className="club-lidapp-andere-tekst">Geen vergelijkbare oefening zonder extra belasting. Wacht even of vraag je trainer.</p>
+            <p className="club-lidapp-andere-tekst">{t.geen}</p>
           )}
           {staat.soort === 'lijst' && staat.lijst.length > 0 && (
             <>
-              <p className="club-lidapp-andere-tekst">Alleen voor vandaag, in plaats van {oefening.naam}. Begin wat lichter: het is een andere oefening.</p>
-              <ul className="club-lidapp-andere-lijst" aria-label={`Andere oefeningen voor ${oefening.naam}`}>
+              <p className="club-lidapp-andere-tekst">{t.alleenVandaag(oefening.naam)}</p>
+              <ul className="club-lidapp-andere-lijst" aria-label={t.lijst(oefening.naam)}>
                 {staat.lijst.map((alt) => (
                   <li key={alt.oefeningId}>
                     <button type="button" className="club-lidapp-andere-rij" onClick={() => kies(alt)}>
                       <OefeningBeeld naam={alt.naam} beeld={alt.beeld} formaat="klein" decoratief />
                       <span className="club-lidapp-andere-naam">
                         <strong>{alt.naam}</strong>
-                        <span>{MATERIAAL_LABEL[alt.materiaal]} · {alt.overeenkomst === 2 ? 'zelfde spier' : 'vergelijkbaar'}</span>
+                        <span>{t.materiaal[alt.materiaal]} · {alt.overeenkomst === 2 ? t.zelfdeSpier : t.vergelijkbaar}</span>
                       </span>
                     </button>
                   </li>

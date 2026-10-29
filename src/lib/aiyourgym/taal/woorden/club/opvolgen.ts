@@ -1,0 +1,161 @@
+import { woordenboek } from '../../woordenboek'
+
+// Opvolgen in Club: de opvolglijst (op Vandaag en op /club/opvolgen), recent
+// afgehandeld, de namen van de opvolgregels en wie iets oppakt. De reden bij
+// een taak en de voorbeeldtekst (sjabloon van de sportschool) blijven zoals ze
+// zijn opgeslagen.
+
+export const OPVOLGEN = woordenboek({
+  nl: {
+    pagina: {
+      titel: 'Opvolgen',
+      uitleg: 'Wie je vandaag even aanspreekt, belt of een berichtje stuurt. Club zet ze klaar met een voorbeeldtekst; bellen of het bericht sturen doe je zelf. Automatisch versturen per mail of app komt later.',
+      regels: 'Opvolgregels',
+      rondeFout: 'De taken van vandaag konden niet allemaal worden klaargezet. Je ziet wat er al stond; ververs de pagina later opnieuw.',
+      fout: 'De opvolglijst kon niet worden geladen. Ververs de pagina of probeer het later opnieuw.',
+      allesUit: 'Alle regels staan uit, dus Club zet niemand klaar.',
+      zetAan: ' Zet ze aan bij Opvolgregels.',
+      perRegel: 'Opvolgen per regel',
+      open: (n: number) => (n === 1 ? 'lid open' : 'leden open'),
+      recent: 'Recent afgehandeld',
+      zevenDagen: 'Laatste 7 dagen',
+      recentFout: 'De afgehandelde taken konden niet worden geladen.',
+    },
+    lijst: {
+      leeg: 'Alles is opgevolgd. Er staat niemand meer open in deze vestiging.',
+    },
+    taak: {
+      notitieOpgeslagen: (naam: string) => `Notitie bij ${naam} opgeslagen.`,
+      gedaan: (naam: string) => `${naam} staat op gedaan.`,
+      overgeslagen: (naam: string) => `${naam} is overgeslagen.`,
+      wieOppakt: 'Wie dit oppakt',
+      voorbeeldtekst: 'Voorbeeldtekst',
+      notitie: 'Notitie',
+      notitieVoorbeeld: 'Bijvoorbeeld: gebeld, komt dinsdag weer.',
+      notitieOpslaan: 'Notitie opslaan',
+      annuleren: 'Annuleren',
+      bellen: 'Bellen',
+      mailen: 'Mailen',
+      overslaan: 'Overslaan',
+      klaar: 'Gedaan',
+      kopieer: 'Kopieer tekst',
+      gekopieerd: 'Gekopieerd',
+      gekopieerdMelding: 'Tekst gekopieerd.',
+      kopierenMislukt: 'Kopieren lukte niet. Selecteer de tekst en kopieer hem zelf.',
+    },
+    afgehandeld: {
+      leeg: 'De laatste 7 dagen is er nog niets afgehandeld.',
+      terugzetten: 'Terugzetten',
+      terugzettenLabel: (naam: string) => `Taak van ${naam} weer open zetten`,
+    },
+    fout: {
+      algemeen: 'Er ging iets mis. Probeer het opnieuw.',
+      verbinding: 'Geen verbinding. Controleer het internet en probeer het opnieuw.',
+    },
+    regel: {
+      welkom: { titel: 'Welkomstgesprek', waarom: 'De eerste weken bepalen of iemand blijft. Een persoonlijk woord maakt het verschil.' },
+      proefles_opvolgen: { titel: 'Proeflid opvolgen', waarom: 'Wie tijdens de proefperiode gesproken wordt, wordt vaker lid.' },
+      niet_gezien: { titel: 'Lang niet gezien', waarom: 'Hoe eerder je iemand mist, hoe makkelijker hij of zij weer begint.' },
+      risico: { titel: 'Risico op afhaken', waarom: 'De behoudsscore ziet een dalende lijn vaak al voordat iemand wegblijft.' },
+      verjaardag: { titel: 'Verjaardag', waarom: 'Een klein gebaar dat laat zien dat je leden kent.' },
+      opzegging: { titel: 'Exitgesprek', waarom: 'Je leert waarom leden gaan, en soms blijft iemand toch.' },
+      mijlpaal: { titel: 'Mijlpaal', waarom: 'Vieren wat goed gaat, houdt mensen gemotiveerd.' },
+    },
+    status: { open: 'Open', gedaan: 'Gedaan', overgeslagen: 'Overgeslagen', vervallen: 'Vanzelf opgelost' },
+    wie: {
+      iedereen: 'Iedereen',
+      onbekend: 'Onbekende medewerker',
+      onbekendLid: 'Onbekend lid',
+      rol: { trainer: 'Trainer', instructeur: 'Groepslesinstructeur', manager: 'Clubmanager', administratie: 'Administratie' },
+    },
+  },
+  en: {
+    pagina: {
+      titel: 'Follow-up',
+      uitleg: 'Who to talk to, call or message today. Club lists them with an example text; you make the call or send the message yourself. Automatic sending by email or app comes later.',
+      regels: 'Follow-up rules',
+      rondeFout: "Not all of today's tasks could be set up. You see what was already there; refresh the page later.",
+      fout: 'The follow-up list could not be loaded. Refresh the page or try again later.',
+      allesUit: 'All rules are off, so Club lists nobody.',
+      zetAan: ' Turn them on under Follow-up rules.',
+      perRegel: 'Follow-up per rule',
+      open: (n: number) => (n === 1 ? 'member open' : 'members open'),
+      recent: 'Recently handled',
+      zevenDagen: 'Last 7 days',
+      recentFout: 'The handled tasks could not be loaded.',
+    },
+    lijst: {
+      leeg: 'Everyone has been followed up. Nobody is open at this location.',
+    },
+    taak: {
+      notitieOpgeslagen: (naam: string) => `Note for ${naam} saved.`,
+      gedaan: (naam: string) => `${naam} is marked as done.`,
+      overgeslagen: (naam: string) => `${naam} was skipped.`,
+      wieOppakt: 'Who picks this up',
+      voorbeeldtekst: 'Example text',
+      notitie: 'Note',
+      notitieVoorbeeld: 'For example: called, back on Tuesday.',
+      notitieOpslaan: 'Save note',
+      annuleren: 'Cancel',
+      bellen: 'Call',
+      mailen: 'Email',
+      overslaan: 'Skip',
+      klaar: 'Done',
+      kopieer: 'Copy text',
+      gekopieerd: 'Copied',
+      gekopieerdMelding: 'Text copied.',
+      kopierenMislukt: 'Copying did not work. Select the text and copy it yourself.',
+    },
+    afgehandeld: {
+      leeg: 'Nothing has been handled in the last 7 days.',
+      terugzetten: 'Reopen',
+      terugzettenLabel: (naam: string) => `Reopen the task for ${naam}`,
+    },
+    fout: {
+      algemeen: 'Something went wrong. Please try again.',
+      verbinding: 'No connection. Check the internet and try again.',
+    },
+    regel: {
+      welkom: { titel: 'Welcome chat', waarom: 'The first weeks decide whether someone stays. A personal word makes the difference.' },
+      proefles_opvolgen: { titel: 'Follow up trial member', waarom: 'People who are spoken to during their trial join more often.' },
+      niet_gezien: { titel: 'Not seen for a while', waarom: 'The sooner you notice someone is missing, the easier it is for them to start again.' },
+      risico: { titel: 'Risk of dropping out', waarom: 'The retention score often spots a downward trend before someone stays away.' },
+      verjaardag: { titel: 'Birthday', waarom: 'A small gesture that shows you know your members.' },
+      opzegging: { titel: 'Exit chat', waarom: 'You learn why members leave, and sometimes someone stays after all.' },
+      mijlpaal: { titel: 'Milestone', waarom: 'Celebrating what goes well keeps people motivated.' },
+    },
+    status: { open: 'Open', gedaan: 'Done', overgeslagen: 'Skipped', vervallen: 'Resolved itself' },
+    wie: {
+      iedereen: 'Everyone',
+      onbekend: 'Unknown staff member',
+      onbekendLid: 'Unknown member',
+      rol: { trainer: 'Trainer', instructeur: 'Group class instructor', manager: 'Club manager', administratie: 'Admin team' },
+    },
+  },
+})
+
+// Sluitingsdagen als melding op Vandaag en in de ledenapp.
+export const SLUITING_MELDING = woordenboek({
+  nl: {
+    label: 'Sluitingsdagen en andere openingstijden',
+    binnenkortApp: 'Let op: andere openingstijden',
+    binnenkortClub: 'Binnenkort dicht of andere tijden',
+    vandaagGesloten: 'Vandaag gesloten',
+    vandaagOpen: (van: string, tot: string) => `Vandaag open ${van} tot ${tot}`,
+    gesloten: 'Gesloten',
+    open: (van: string, tot: string) => `Open ${van} tot ${tot}`,
+    vandaag: 'Vandaag',
+    morgen: 'Morgen',
+  },
+  en: {
+    label: 'Closing days and other opening hours',
+    binnenkortApp: 'Note: different opening hours',
+    binnenkortClub: 'Closed soon or different hours',
+    vandaagGesloten: 'Closed today',
+    vandaagOpen: (van: string, tot: string) => `Today open ${van} to ${tot}`,
+    gesloten: 'Closed',
+    open: (van: string, tot: string) => `Open ${van} to ${tot}`,
+    vandaag: 'Today',
+    morgen: 'Tomorrow',
+  },
+})

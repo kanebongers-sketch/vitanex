@@ -6,6 +6,9 @@ import { haal } from '@/components/club/afspraken/haal'
 import { stuur } from '@/components/club/leden/stuur'
 import { startPad } from '@/lib/club/ledenlogin/paden'
 import type { LidLinkOverzicht } from '@/lib/club/ledenlogin/regels'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
+import { formatDatum, formatTijd } from '@/lib/aiyourgym/taal/formaat'
 import './ledenapp-link.css'
 
 // "Ledenapp" op de ledenkaart: de uitnodiging van het lid voor de ledenapp,
@@ -19,23 +22,22 @@ interface Props {
   voornaam: string
 }
 
-const STAAT_TEKST: Record<LidLinkOverzicht['staat'], { label: string; chip: string }> = {
-  geen: { label: 'Nog niet uitgenodigd', chip: 'club-chip--geen' },
-  kiezen: { label: 'Wacht op wachtwoord', chip: 'club-chip--info' },
-  actief: { label: 'In gebruik', chip: 'club-chip--ok' },
-  pincode: { label: 'Nog geen wachtwoord', chip: 'club-chip--info' },
-  verlopen: { label: 'Link verlopen', chip: 'club-chip--let-op' },
-  dicht: { label: 'Dicht na foute wachtwoorden', chip: 'club-chip--let-op' },
-  ingetrokken: { label: 'Ingetrokken', chip: 'club-chip--uit' },
+/** De chip per stand; de tekst staat in het woordenboek (LID_INLOGGEN.link.staat). */
+const STAAT_CHIP: Record<LidLinkOverzicht['staat'], string> = {
+  geen: 'club-chip--geen',
+  kiezen: 'club-chip--info',
+  actief: 'club-chip--ok',
+  pincode: 'club-chip--info',
+  verlopen: 'club-chip--let-op',
+  dicht: 'club-chip--let-op',
+  ingetrokken: 'club-chip--uit',
 }
-
-const DATUM = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
 
 function leesOverzicht(data: unknown): { link: LidLinkOverzicht; basis: string | null } | null {
   if (typeof data !== 'object' || data === null) return null
   const r = data as Record<string, unknown>
   const link = r.link as LidLinkOverzicht | undefined
-  if (!link || typeof link.staat !== 'string' || !(link.staat in STAAT_TEKST)) return null
+  if (!link || typeof link.staat !== 'string' || !(link.staat in STAAT_CHIP)) return null
   return { link, basis: typeof r.basis === 'string' ? r.basis : null }
 }
 
@@ -50,6 +52,8 @@ async function maakQr(url: string): Promise<string | null> {
 
 export function LedenappLink({ lidId, voornaam }: Props) {
   const api = `/api/club/leden/${encodeURIComponent(lidId)}/ledenapp-link`
+  const taal = useTaal()
+  const t = LID_INLOGGEN[taal].link
   const [stand, setStand] = useState<{ link: LidLinkOverzicht; basis: string | null } | null>(null)
   const [qr, setQr] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
@@ -61,20 +65,20 @@ export function LedenappLink({ lidId, voornaam }: Props) {
   const toon = useCallback((data: unknown) => {
     const o = leesOverzicht(data)
     if (o) setStand(o)
-    else setMelding({ tekst: 'De ledenapp-link kon niet worden geladen.', fout: true })
-  }, [])
+    else setMelding({ tekst: t.ladenFout, fout: true })
+  }, [t])
 
   useEffect(() => {
     let weg = false
     void haal(api).then((uit) => {
       if (weg) return
       if (uit.ok) toon(uit.data)
-      else setMelding({ tekst: uit.fout || 'De ledenapp-link kon niet worden geladen.', fout: true })
+      else setMelding({ tekst: uit.fout || t.ladenFout, fout: true })
     })
     return () => {
       weg = true
     }
-  }, [api, toon])
+  }, [api, toon, t])
 
   useEffect(() => {
     let weg = false
@@ -104,13 +108,13 @@ export function LedenappLink({ lidId, voornaam }: Props) {
     if (!url) return
     try {
       await navigator.clipboard.writeText(url)
-      setMelding({ tekst: 'Link gekopieerd.', fout: false })
+      setMelding({ tekst: t.gekopieerd, fout: false })
     } catch {
-      setMelding({ tekst: 'Kopieren lukte niet. Selecteer de link en kopieer hem zelf.', fout: true })
+      setMelding({ tekst: t.kopierenFout, fout: true })
     }
   }
 
-  const staat = stand ? STAAT_TEKST[stand.link.staat] : null
+  const staat = stand ? { label: t.staat[stand.link.staat], chip: STAAT_CHIP[stand.link.staat] } : null
   const s = stand?.link.staat
   /** Er werkt nu een uitnodiging (QR te tonen). */
   const heeftLink = Boolean(stand?.link.code)
@@ -120,34 +124,34 @@ export function LedenappLink({ lidId, voornaam }: Props) {
   return (
     <section className="club-kaart club-lidlink" aria-labelledby="lidlink-kop">
       <div className="club-sectiekop">
-        <h2 id="lidlink-kop">Ledenapp</h2>
+        <h2 id="lidlink-kop">{t.kop}</h2>
         {staat ? <span className={`club-chip ${staat.chip}`}>{staat.label}</span> : null}
       </div>
       <p className="club-hint">
-        {voornaam} scant de QR-code, bevestigt het e-mailadres en kiest een wachtwoord. Daarna logt {voornaam} in met e-mail en wachtwoord. Een link werkt een keer en is 7 dagen geldig.
+        {t.uitleg(voornaam)}
       </p>
       {stand && (s === 'actief' || s === 'pincode') ? (
         <p className="club-lidlink-feit">
-          {stand.link.toestellen === 1 ? 'Ingelogd op 1 toestel' : `Ingelogd op ${stand.link.toestellen} toestellen`}
-          {stand.link.laatstIngelogdOp ? ` · laatst ingelogd ${DATUM.format(new Date(stand.link.laatstIngelogdOp))}` : ''}
+          {t.toestellen(stand.link.toestellen)}
+          {stand.link.laatstIngelogdOp ? t.laatst(`${formatDatum(stand.link.laatstIngelogdOp, taal, 'dag')} ${formatTijd(stand.link.laatstIngelogdOp, taal)}`) : ''}
         </p>
       ) : null}
 
       {open && url ? (
         <div className="club-lidlink-qr">
-          {qr ? <img src={qr} alt={`QR-code met de ledenapp-link van ${voornaam}`} width={200} height={200} /> : <span className="club-lidlink-qr-leeg" aria-hidden />}
-          <input className="club-lidlink-url" readOnly value={url} aria-label="Ledenapp-link" onFocus={(e) => e.currentTarget.select()} />
+          {qr ? <img src={qr} alt={t.qrAlt(voornaam)} width={200} height={200} /> : <span className="club-lidlink-qr-leeg" aria-hidden />}
+          <input className="club-lidlink-url" readOnly value={url} aria-label={t.url} onFocus={(e) => e.currentTarget.select()} />
           <button type="button" className="club-knop club-knop--klein" onClick={() => void kopieer()}>
-            <Copy size={15} aria-hidden /> Kopieer link
+            <Copy size={15} aria-hidden /> {t.kopieer}
           </button>
-          <p className="club-hint">Deel deze link alleen met {voornaam}: wie hem heeft, kan het wachtwoord kiezen.</p>
+          <p className="club-hint">{t.alleenDelen(voornaam)}</p>
         </div>
       ) : null}
 
       <div className="club-lidlink-knoppen">
         {heeftLink ? (
           <button type="button" className="club-knop club-knop--primair" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-            <QrCode size={16} aria-hidden /> {open ? 'Verberg QR-code' : 'Toon QR-code'}
+            <QrCode size={16} aria-hidden /> {open ? t.verberg : t.toon}
           </button>
         ) : null}
         <button
@@ -157,21 +161,21 @@ export function LedenappLink({ lidId, voornaam }: Props) {
           onClick={() =>
             void doe(
               'maak',
-              heeftAccount ? `Een nieuwe link maken? De oude link en het wachtwoord van ${voornaam} werken dan niet meer en alle toestellen worden uitgelogd. ${voornaam} kiest met de nieuwe link een nieuw wachtwoord.` : null,
-              'Nieuwe link gemaakt. Laat de QR-code scannen.',
+              heeftAccount ? t.nieuwVraag(voornaam) : null,
+              t.nieuwKlaar,
             )
           }
         >
-          {heeftAccount ? <RefreshCw size={16} aria-hidden /> : <Smartphone size={16} aria-hidden />} {heeftAccount ? 'Nieuwe link' : 'Uitnodiging maken'}
+          {heeftAccount ? <RefreshCw size={16} aria-hidden /> : <Smartphone size={16} aria-hidden />} {heeftAccount ? t.nieuw : t.maken}
         </button>
         {ingelogd ? (
-          <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => void doe('uitloggen', `${voornaam} op alle toestellen uitloggen?`, 'Overal uitgelogd.')}>
-            Overal uitloggen
+          <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => void doe('uitloggen', t.uitloggenVraag(voornaam), t.uitgelogd)}>
+            {t.overal}
           </button>
         ) : null}
         {heeftAccount ? (
-          <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => void doe('intrekken', `De ledenapp van ${voornaam} intrekken? Inloggen werkt dan niet meer tot je een nieuwe link maakt.`, 'Ingetrokken.')}>
-            Intrekken
+          <button type="button" className="club-knop club-knop--gevaar" disabled={bezig} onClick={() => void doe('intrekken', t.intrekkenVraag(voornaam), t.ingetrokken)}>
+            {t.intrekken}
           </button>
         ) : null}
       </div>

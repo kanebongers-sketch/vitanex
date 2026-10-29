@@ -25,6 +25,8 @@ import { ZalenEnInstructeurs } from './ZalenEnInstructeurs'
 import { slaLessenOp } from './lessen-opslaan'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Stap 5: alles voor de groepslessen in een scherm. De lestypen die bij de
 // soort sportschool passen staan al aan, de voorgestelde week ook. Naam, duur
@@ -68,6 +70,8 @@ export function StapLessen(p: StapLessenProps) {
   const [stand, setStand] = useState<string | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [geen, setGeen] = useState(p.geenVasteLessen)
+  const taal = useTaal()
+  const t = useTekst(START)
   const zichtbaar = useMemo(() => zichtbareLessen(lessen, typen), [lessen, typen])
   const wijzigingen = aantalWijzigingen(lessenPlan(typen, lessen, basis.typen, basis.lessen))
 
@@ -100,8 +104,8 @@ export function StapLessen(p: StapLessenProps) {
 
   /** Alleen bij verder: minstens een lestype, en vaste lessen of bewust geen. */
   function inhoudFout(): string | null {
-    if (!typen.some((t) => t.aan)) return 'Kies minstens een lestype dat je geeft.'
-    if (!zichtbaar.some((l) => l.aan) && !geen) return 'Zet minstens een vaste les in je week, of vink aan dat je geen vaste lessen hebt.'
+    if (!typen.some((x) => x.aan)) return t.lessen.minstensType
+    if (!zichtbaar.some((l) => l.aan) && !geen) return t.lessen.minstensLes
     return null
   }
 
@@ -115,20 +119,20 @@ export function StapLessen(p: StapLessenProps) {
 
   async function voorVerder(doel: 'verder' | 'stoppen'): Promise<boolean> {
     setFout(null)
-    const controle = controleerLessen(typen, lessen) ?? (doel === 'verder' ? inhoudFout() : null)
+    const controle = controleerLessen(typen, lessen, taal) ?? (doel === 'verder' ? inhoudFout() : null)
     if (controle) {
       setFout(controle)
       return false
     }
     if (!(await bewaarGeen())) return false
     if (wijzigingen === 0) return true
-    const uit = await slaLessenOp({ vestiging: p.vestiging, vandaag: p.vandaag, typen, lessen, basisTypen: basis.typen, basisLessen: basis.lessen, bij: setStand })
+    const uit = await slaLessenOp({ vestiging: p.vestiging, vandaag: p.vandaag, typen, lessen, basisTypen: basis.typen, basisLessen: basis.lessen, bij: setStand, tekst: t.lessen.voortgang })
     setStand(null)
     setTypen(uit.typen)
     setLessen(uit.lessen)
     if (uit.fout) {
       setBasis((b) => ({ typen: uit.typen.map((t) => b.typen.find((x) => x.sleutel === t.sleutel && x.id === t.id) ?? t), lessen: uit.lessen.map((l) => b.lessen.find((x) => x.sleutel === l.sleutel && x.id === l.id) ?? l) }))
-      setFout(`${uit.fout} Wat al gelukt is blijft staan; probeer het nog een keer.`)
+      setFout(t.lessen.blijftStaan(uit.fout))
       return false
     }
     setBasis({ typen: uit.typen, lessen: uit.lessen })
@@ -165,11 +169,11 @@ export function StapLessen(p: StapLessenProps) {
           />
         </div>
         <div aria-live="polite">
-          {stand && <p className="club-melding" role="status">Bezig met opslaan: {stand}...</p>}
+          {stand && <p className="club-melding" role="status">{t.lessen.opslaan(stand)}</p>}
           {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
         </div>
       </div>
-      <StartVoet {...p.voet} voorVerder={voorVerder} primair={wijzigingen > 0 || geen !== p.geenVasteLessen ? 'Opslaan en verder' : undefined} />
+      <StartVoet {...p.voet} voorVerder={voorVerder} primair={wijzigingen > 0 || geen !== p.geenVasteLessen ? t.voet.opslaanVerder : undefined} />
     </>
   )
 }

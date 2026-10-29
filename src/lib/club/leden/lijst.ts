@@ -5,6 +5,8 @@
 import { LID_STATUSSEN, volledigeNaam, type Lid, type LidStatus } from '@/lib/club/kern/lid'
 import { behoudVoorLid, type Behoud } from './behoud'
 import { dagenGeleden, dagSleutel } from './tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 export const PER_PAGINA = 50
 
@@ -109,12 +111,13 @@ export function bouwRijen(
   nu: Date,
   eerder: ReadonlyMap<string, Date> = new Map(),
   metApp: ReadonlySet<string> = new Set(),
+  taal: Taal = 'nl',
 ): LedenRij[] {
   return leden.map((lid) => {
     const eigen = bezoeken.get(lid.id) ?? []
     const recent = eigen.reduce<Date | null>((max, b) => (!max || b > max ? b : max), null)
     const dagen30 = new Set(eigen.filter((b) => { const d = dagenGeleden(b, nu); return d >= 0 && d < 30 }).map(dagSleutel))
-    const behoud = behoudVoorLid(lid, eigen, noShows.get(lid.id) ?? 0, nu)
+    const behoud = behoudVoorLid(lid, eigen, noShows.get(lid.id) ?? 0, nu, taal)
     return { lid, laatsteBezoek: recent ?? eerder.get(lid.id) ?? null, bezoeken30: dagen30.size, behoud, heeftApp: metApp.has(lid.id) }
   })
 }
@@ -191,18 +194,23 @@ export function pagineer<T>(rijen: readonly T[], pagina: number, per = PER_PAGIN
 }
 
 /** Sorteerkeuzes voor smalle schermen, waar de tabelkoppen verborgen zijn. */
-export const SORTEER_KEUZES: readonly { sort: SorteerSleutel; oplopend: boolean; label: string }[] = [
-  { sort: 'naam', oplopend: true, label: 'Naam (A tot Z)' },
-  { sort: 'naam', oplopend: false, label: 'Naam (Z tot A)' },
-  { sort: 'behoud', oplopend: true, label: 'Behoud (laagste eerst)' },
-  { sort: 'behoud', oplopend: false, label: 'Behoud (hoogste eerst)' },
-  { sort: 'bezoek', oplopend: false, label: 'Laatste bezoek (recent eerst)' },
-  { sort: 'bezoek', oplopend: true, label: 'Laatste bezoek (langst geleden eerst)' },
-  { sort: 'bezoeken', oplopend: false, label: 'Bezoeken 30 dagen (meeste eerst)' },
-  { sort: 'bezoeken', oplopend: true, label: 'Bezoeken 30 dagen (minste eerst)' },
-  { sort: 'lidnummer', oplopend: true, label: 'Lidnummer' },
-  { sort: 'status', oplopend: true, label: 'Status' },
-  { sort: 'abonnement', oplopend: true, label: 'Abonnement' },
+export type SorteerKeuzeId = keyof (typeof LEDEN)['nl']['sorteerKeuzes']
+
+const K = LEDEN.nl.sorteerKeuzes
+
+/** De sorteerkeuzes. `label` is de Nederlandse naam (bron: het woordenboek); in beeld via LEDEN[taal].sorteerKeuzes[id]. */
+export const SORTEER_KEUZES: readonly { id: SorteerKeuzeId; sort: SorteerSleutel; oplopend: boolean; label: string }[] = [
+  { id: 'naamOp', sort: 'naam', oplopend: true, label: K.naamOp },
+  { id: 'naamAf', sort: 'naam', oplopend: false, label: K.naamAf },
+  { id: 'behoudOp', sort: 'behoud', oplopend: true, label: K.behoudOp },
+  { id: 'behoudAf', sort: 'behoud', oplopend: false, label: K.behoudAf },
+  { id: 'bezoekAf', sort: 'bezoek', oplopend: false, label: K.bezoekAf },
+  { id: 'bezoekOp', sort: 'bezoek', oplopend: true, label: K.bezoekOp },
+  { id: 'bezoekenAf', sort: 'bezoeken', oplopend: false, label: K.bezoekenAf },
+  { id: 'bezoekenOp', sort: 'bezoeken', oplopend: true, label: K.bezoekenOp },
+  { id: 'lidnummer', sort: 'lidnummer', oplopend: true, label: K.lidnummer },
+  { id: 'status', sort: 'status', oplopend: true, label: K.status },
+  { id: 'abonnement', sort: 'abonnement', oplopend: true, label: K.abonnement },
 ]
 
 export function heeftFilter(p: LijstParams): boolean {

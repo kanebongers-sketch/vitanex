@@ -5,6 +5,8 @@ import { useVestigingen } from '@/components/club/shell/VestigingenContext'
 import { stuur } from '@/components/club/leden/stuur'
 import { MAX_LESSEN_PER_WEEK, MAX_NAAM, MAX_OMSCHRIJVING_VORM, type Kleur, type Lidmaatschapsvorm } from '@/lib/club/lidmaatschappen/model'
 import { KleurKiezer } from './KleurKiezer'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 
 // Een lidmaatschapsvorm toevoegen of wijzigen: naam zoals in Sportivity,
 // omschrijving, vestigingen, groepslessen (met maximum per week), daluren en
@@ -69,6 +71,8 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
   const [s, setS] = useState<Staat>(() => beginStaat(begin))
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const tekst = useTekst(LIDMAATSCHAPPEN)
+  const t = tekst.vorm
   const zet = <K extends keyof Staat>(k: K, v: Staat[K]) => setS((oud) => ({ ...oud, [k]: v }))
   const wissel = (slug: string) => zet('vestigingen', s.vestigingen.includes(slug) ? s.vestigingen.filter((x) => x !== slug) : [...s.vestigingen, slug])
 
@@ -81,24 +85,24 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
     if (!begin) setS(beginStaat())
-    onKlaar(begin ? `${s.naam} is aangepast.` : `${s.naam} is toegevoegd.`)
+    onKlaar(begin ? t.aangepast(s.naam) : t.toegevoegd(s.naam))
   }
 
   return (
     <form className="club-lidm-form" onSubmit={(e) => void bewaar(e)} aria-describedby={fout ? `${id}-fout` : undefined}>
       <label className="club-veld">
-        <span>Naam zoals in je ledenbestand</span>
-        <input className="club-invoer" required maxLength={MAX_NAAM} value={s.naam} onChange={(e) => zet('naam', e.target.value)} placeholder="All-in 12 maanden" />
+        <span>{t.naam}</span>
+        <input className="club-invoer" required maxLength={MAX_NAAM} value={s.naam} onChange={(e) => zet('naam', e.target.value)} placeholder={t.voorbeeld} />
       </label>
       <label className="club-veld">
-        <span>Omschrijving</span>
+        <span>{tekst.algemeen.omschrijving}</span>
         <textarea className="club-invoer" rows={2} maxLength={MAX_OMSCHRIJVING_VORM} value={s.omschrijving} onChange={(e) => zet('omschrijving', e.target.value)} />
       </label>
 
       <fieldset className="club-lidm-groep">
-        <legend className="club-label">Vestigingen</legend>
+        <legend className="club-label">{t.vestigingen}</legend>
         <label className="club-lidm-vink">
-          <input type="checkbox" checked={s.alle} onChange={(e) => zet('alle', e.target.checked)} /> Alle vestigingen, ook nieuwe
+          <input type="checkbox" checked={s.alle} onChange={(e) => zet('alle', e.target.checked)} /> {t.alleVestigingen}
         </label>
         {!s.alle && (
           <div className="club-lidm-vinkrij">
@@ -112,37 +116,37 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
       </fieldset>
 
       <fieldset className="club-lidm-groep">
-        <legend className="club-label">Groepslessen</legend>
+        <legend className="club-label">{t.groepslessen}</legend>
         <label className="club-lidm-vink">
-          <input type="checkbox" checked={s.groepslessen} onChange={(e) => zet('groepslessen', e.target.checked)} /> Mag groepslessen boeken
+          <input type="checkbox" checked={s.groepslessen} onChange={(e) => zet('groepslessen', e.target.checked)} /> {t.magBoeken}
         </label>
         {s.groepslessen && (
           <label className="club-veld club-lidm-smal">
-            <span>Maximaal per week</span>
-            <input className="club-invoer" type="number" inputMode="numeric" min={1} max={MAX_LESSEN_PER_WEEK} value={s.max} onChange={(e) => zet('max', e.target.value)} placeholder="Onbeperkt" />
+            <span>{t.maxPerWeek}</span>
+            <input className="club-invoer" type="number" inputMode="numeric" min={1} max={MAX_LESSEN_PER_WEEK} value={s.max} onChange={(e) => zet('max', e.target.value)} placeholder={t.onbeperkt} />
           </label>
         )}
       </fieldset>
 
       <fieldset className="club-lidm-groep">
-        <legend className="club-label">Daluren</legend>
+        <legend className="club-label">{t.daluren}</legend>
         <label className="club-lidm-vink">
-          <input type="checkbox" checked={s.daluren} onChange={(e) => zet('daluren', e.target.checked)} /> Alleen binnen vaste tijden
+          <input type="checkbox" checked={s.daluren} onChange={(e) => zet('daluren', e.target.checked)} /> {t.alleenTijden}
         </label>
         {s.daluren && (
           <>
             <div className="club-formrij club-lidm-tijden">
               <label className="club-veld">
-                <span>Van</span>
+                <span>{t.van}</span>
                 <input className="club-invoer" type="time" required value={s.dalVan} onChange={(e) => zet('dalVan', e.target.value)} />
               </label>
               <label className="club-veld">
-                <span>Tot</span>
+                <span>{t.tot}</span>
                 <input className="club-invoer" type="time" required value={s.dalTot} onChange={(e) => zet('dalTot', e.target.value)} />
               </label>
             </div>
             <label className="club-lidm-vink">
-              <input type="checkbox" checked={s.dalWeekendVrij} onChange={(e) => zet('dalWeekendVrij', e.target.checked)} /> In het weekend de hele dag
+              <input type="checkbox" checked={s.dalWeekendVrij} onChange={(e) => zet('dalWeekendVrij', e.target.checked)} /> {t.weekend}
             </label>
           </>
         )}
@@ -150,7 +154,7 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
 
       <KleurKiezer naam={`${id}-kleur`} waarde={s.kleur} onKies={(k) => zet('kleur', k)} />
       <label className="club-lidm-vink">
-        <input type="checkbox" checked={s.actief} onChange={(e) => zet('actief', e.target.checked)} /> Nog te koop (uit: bestaande leden houden hun toegang)
+        <input type="checkbox" checked={s.actief} onChange={(e) => zet('actief', e.target.checked)} /> {t.teKoop}
       </label>
 
       <div id={`${id}-fout`} role="alert">
@@ -158,11 +162,11 @@ export function VormFormulier({ begin, onKlaar, onAnnuleer }: Props) {
       </div>
       <div className="club-lidm-formacties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Bezig...' : begin ? 'Opslaan' : 'Vorm toevoegen'}
+          {bezig ? tekst.algemeen.bezig : begin ? tekst.algemeen.opslaan : t.toevoegen}
         </button>
         {onAnnuleer && (
           <button type="button" className="club-knop club-knop--stil" onClick={onAnnuleer}>
-            Annuleren
+            {tekst.algemeen.annuleren}
           </button>
         )}
       </div>

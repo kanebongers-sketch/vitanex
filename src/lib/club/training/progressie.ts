@@ -11,6 +11,7 @@
 // zwaardere variant. Op tijd: 5 seconden erbij zodra alle sets gehaald zijn.
 
 import type { Materiaal } from './typen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 export interface GelogdeSet {
   trainingId: string
@@ -130,14 +131,14 @@ export function toonSessie(s: Sessie): string {
   return w !== null ? `${kg(w)} kg: ${herh}` : herh
 }
 
-function opTijd(v: Voorschrift, laatste: Sessie): Suggestie {
+function opTijd(v: Voorschrift, laatste: Sessie, taal: Taal): Suggestie {
   const gedaan = laatste.sets.map((s) => s.tijdSec ?? 0)
   const doel = v.tijdSec ?? Math.max(...gedaan)
   const nodig = v.sets ?? gedaan.length
   if (gedaan.length >= nodig && gedaan.every((t) => t >= doel)) {
-    return { soort: 'tijd_omhoog', gewichtKg: null, doel: `${doel + 5} sec`, tekst: `Alle sets ${doel} seconden volgehouden. Volgende keer ${doel + 5} seconden per set.` }
+    return { soort: 'tijd_omhoog', gewichtKg: null, doel: `${doel + 5} sec`, tekst: taal === 'en' ? `Held every set for ${doel} seconds. Next time ${doel + 5} seconds per set.` : `Alle sets ${doel} seconden volgehouden. Volgende keer ${doel + 5} seconden per set.` }
   }
-  return { soort: 'vasthouden', gewichtKg: null, doel: `${doel} sec`, tekst: `Nog niet alle sets ${doel} seconden. Zelfde tijd aanhouden tot elke set lukt.` }
+  return { soort: 'vasthouden', gewichtKg: null, doel: `${doel} sec`, tekst: taal === 'en' ? `Not every set reached ${doel} seconds yet. Keep the same time until every set works.` : `Nog niet alle sets ${doel} seconden. Zelfde tijd aanhouden tot elke set lukt.` }
 }
 
 /** Sets op het werkgewicht (of alle sets zonder gewicht). */
@@ -148,46 +149,47 @@ function werksets(s: Sessie): { gewicht: number | null; herh: number[] } {
 }
 
 /** De suggestie voor de volgende training van deze oefening. */
-export function suggestie(v: Voorschrift, materiaal: Materiaal, sessies: readonly Sessie[]): Suggestie {
+export function suggestie(v: Voorschrift, materiaal: Materiaal, sessies: readonly Sessie[], taal: Taal = 'nl'): Suggestie {
+  const en = taal === 'en'
   const laatste = sessies[sessies.length - 1]
   if (!laatste || laatste.sets.length === 0) {
-    return { soort: 'start', gewichtKg: null, doel: null, tekst: 'Nog niets gelogd. Begin rustig; zodra het lid de sets invult in de app, volgt hier de volgende stap.' }
+    return { soort: 'start', gewichtKg: null, doel: null, tekst: en ? 'Nothing logged yet. Start easy; as soon as the member logs their sets in the app, the next step appears here.' : 'Nog niets gelogd. Begin rustig; zodra het lid de sets invult in de app, volgt hier de volgende stap.' }
   }
   const metTijd = laatste.sets.every((s) => s.herhalingen === null && s.tijdSec !== null)
-  if (metTijd || (v.tijdSec !== null && !v.herhalingen)) return opTijd(v, laatste)
+  if (metTijd || (v.tijdSec !== null && !v.herhalingen)) return opTijd(v, laatste, taal)
 
   const b = bereik(v.herhalingen)
   const { gewicht, herh } = werksets(laatste)
-  if (!b) return { soort: 'vasthouden', gewichtKg: gewicht, doel: null, tekst: 'Geen vast bereik in het schema. Vergelijk met de vorige keer en verhoog als het makkelijk ging.' }
+  if (!b) return { soort: 'vasthouden', gewichtKg: gewicht, doel: null, tekst: en ? 'No fixed rep range in the programme. Compare with last time and go up if it felt easy.' : 'Geen vast bereik in het schema. Vergelijk met de vorige keer en verhoog als het makkelijk ging.' }
 
   const nodig = v.sets ?? herh.length
   const stap = KLEINSTE_STAP[materiaal]
   const volledig = herh.length >= nodig
-  const w = gewicht !== null ? `${kg(gewicht)} kg` : 'eigen gewicht'
+  const w = gewicht !== null ? `${kg(gewicht)} kg` : en ? 'bodyweight' : 'eigen gewicht'
 
   if (volledig && herh.every((h) => h >= b.hoog)) {
     if (gewicht !== null && stap > 0) {
       const nieuw = rond(gewicht + stap)
       return {
         soort: 'gewicht_omhoog', gewichtKg: nieuw, doel: Array(nodig).fill(b.laag).join(', '),
-        tekst: `Alle ${nodig} sets op ${b.hoog} herhalingen met ${w}. Volgende keer ${kg(nieuw)} kg en terug naar ${b.laag} herhalingen.`,
+        tekst: en ? `All ${nodig} sets at ${b.hoog} reps with ${w}. Next time ${kg(nieuw)} kg and back to ${b.laag} reps.` : `Alle ${nodig} sets op ${b.hoog} herhalingen met ${w}. Volgende keer ${kg(nieuw)} kg en terug naar ${b.laag} herhalingen.`,
       }
     }
-    return { soort: 'zwaardere_variant', gewichtKg: gewicht, doel: null, tekst: `Alle sets op ${b.hoog} herhalingen zonder extra gewicht. Tijd voor een zwaardere variant, een langzamer tempo of extra gewicht.` }
+    return { soort: 'zwaardere_variant', gewichtKg: gewicht, doel: null, tekst: en ? `Every set at ${b.hoog} reps without extra weight. Time for a harder variation, a slower tempo or added weight.` : `Alle sets op ${b.hoog} herhalingen zonder extra gewicht. Tijd voor een zwaardere variant, een langzamer tempo of extra gewicht.` }
   }
 
   if (volledig && herh.every((h) => h >= b.laag)) {
     const doel = herh.slice(0, nodig).map((h) => Math.min(b.hoog, h + 1)).join(', ')
-    return { soort: 'herhalingen_omhoog', gewichtKg: gewicht, doel, tekst: `Zelfde gewicht (${w}), per set een herhaling meer: ${doel}. Pas bij ${b.hoog} op elke set gaat het gewicht omhoog.` }
+    return { soort: 'herhalingen_omhoog', gewichtKg: gewicht, doel, tekst: en ? `Same weight (${w}), one more rep per set: ${doel}. The weight only goes up at ${b.hoog} on every set.` : `Zelfde gewicht (${w}), per set een herhaling meer: ${doel}. Pas bij ${b.hoog} op elke set gaat het gewicht omhoog.` }
   }
 
   const vorige = sessies[sessies.length - 2]
   const vorigeOnder = vorige ? werksets(vorige) : null
   if (vorigeOnder && gewicht !== null && stap > 0 && vorigeOnder.gewicht === gewicht && vorigeOnder.herh.some((h) => h < b.laag)) {
     const nieuw = rond(Math.max(0, gewicht - stap))
-    return { soort: 'gewicht_omlaag', gewichtKg: nieuw, doel: Array(nodig).fill(b.laag).join(', '), tekst: `Twee keer op rij onder ${b.laag} herhalingen met ${w}. Een stap terug naar ${kg(nieuw)} kg en opnieuw opbouwen.` }
+    return { soort: 'gewicht_omlaag', gewichtKg: nieuw, doel: Array(nodig).fill(b.laag).join(', '), tekst: en ? `Twice in a row below ${b.laag} reps with ${w}. Step back to ${kg(nieuw)} kg and build up again.` : `Twee keer op rij onder ${b.laag} herhalingen met ${w}. Een stap terug naar ${kg(nieuw)} kg en opnieuw opbouwen.` }
   }
-  return { soort: 'vasthouden', gewichtKg: gewicht, doel: Array(nodig).fill(b.laag).join(', '), tekst: `Niet alle sets gehaald. Zelfde gewicht (${w}) tot elke set minstens ${b.laag} herhalingen is.` }
+  return { soort: 'vasthouden', gewichtKg: gewicht, doel: Array(nodig).fill(b.laag).join(', '), tekst: en ? `Not every set completed. Keep the same weight (${w}) until every set reaches at least ${b.laag} reps.` : `Niet alle sets gehaald. Zelfde gewicht (${w}) tot elke set minstens ${b.laag} herhalingen is.` }
 }
 
 export interface ProgressieRegel {
@@ -211,6 +213,7 @@ export function progressieOverzicht(
   regels: readonly RegelVoorschrift[],
   oefeningen: ReadonlyMap<string, { naam: string; materiaal: Materiaal }>,
   logs: ReadonlyMap<string, readonly GelogdeSet[]>,
+  taal: Taal = 'nl',
 ): ProgressieRegel[] {
   const gezien = new Set<string>()
   const uit: ProgressieRegel[] = []
@@ -229,7 +232,7 @@ export function progressieOverzicht(
       laatsteOp: laatste?.op ?? null,
       reeks: punten.map(({ label, waarde }) => ({ label, waarde })),
       eenheid: punten[0]?.eenheid ?? null,
-      suggestie: suggestie(r, o.materiaal, sessies),
+      suggestie: suggestie(r, o.materiaal, sessies, taal),
     })
   }
   return uit

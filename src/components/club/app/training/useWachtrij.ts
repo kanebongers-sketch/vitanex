@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { WACHTRIJ_SLEUTEL, leesWachtrij, naPoging, uitkomstVan, voegToe, wachttijd, zonder, type WachtendVerzoek } from '@/lib/club/app/wachtrij'
 import { stuur } from '../verzoek'
 import { useOnline } from './toestel'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 
 // Afgeronde trainingen die nog niet bij de server zijn. Staan op het toestel
 // (localStorage) en gaan vanzelf de deur uit zodra er verbinding is, ook na
@@ -58,6 +60,7 @@ export function useWachtrij(onVerstuurd: () => void): Wachtrij {
   const online = useOnline()
   const [fout, setFout] = useState<string | null>(null)
   const bezig = useRef(false)
+  const t = TRAINING[useTaal()]
   const [poging, setPoging] = useState(0)
 
   useEffect(() => {
@@ -73,11 +76,11 @@ export function useWachtrij(onVerstuurd: () => void): Wachtrij {
       if (uitkomst === 'opnieuw') schrijf(naPoging(huidig, eerste.id))
       else schrijf(zonder(huidig, eerste.id))
       if (uitkomst === 'verstuurd') onVerstuurd()
-      if (!r.ok && uitkomst === 'geweigerd') setFout(`${eerste.omschrijving} kon niet worden opgeslagen: ${r.fout}`)
+      if (!r.ok && uitkomst === 'geweigerd') setFout(t.nietOpgeslagen(eerste.omschrijving, r.fout))
       setPoging((p) => p + 1)
     }, wacht)
     return () => window.clearTimeout(klok)
-  }, [rij, online, poging, onVerstuurd])
+  }, [rij, online, poging, onVerstuurd, t])
 
   const zetErin = useCallback((v: Omit<WachtendVerzoek, 'id' | 'pogingen' | 'gemaakt'>) => {
     const gemaakt = Date.now()

@@ -2,6 +2,8 @@
 
 import { Flag, Smartphone, Vibrate, Volume2 } from 'lucide-react'
 import type { SchermStatus, Signaal } from './toestel'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 
 interface TrainingMenuProps {
   signaal: Signaal
@@ -10,38 +12,36 @@ interface TrainingMenuProps {
   onAfronden: () => void
 }
 
-const SCHERM_TEKST: Record<SchermStatus, string> = {
-  aan: 'Je scherm blijft aan zolang de training open is.',
-  'niet-ondersteund': 'Je scherm kan vanzelf uitgaan. Geen probleem: de rust telt gewoon door en je invoer blijft bewaard.',
-  geweigerd: 'Je telefoon laat het scherm nu vanzelf uitgaan (bijvoorbeeld door batterijbesparing). De rust telt gewoon door.',
-}
+/** De sleutel in het woordenboek per stand van het scherm. */
+const SCHERM_SLEUTEL = { aan: 'aan', 'niet-ondersteund': 'nietOndersteund', geweigerd: 'geweigerd' } as const satisfies Record<SchermStatus, string>
 
 /** Instellingen tijdens de training: signaal aan het einde van de rust, en eerder afronden. */
 export function TrainingMenu({ signaal, scherm, bezig, onAfronden }: TrainingMenuProps) {
   const { keuze, kanTrillen, kanGeluid, zet } = signaal
+  const t = TRAINING[useTaal()].menu
   return (
-    <section className="club-tm-menu" aria-label="Instellingen training">
-      <p className="club-tm-menu-kop">Einde van de rust</p>
+    <section className="club-tm-menu" aria-label={t.label}>
+      <p className="club-tm-menu-kop">{t.eindeRust}</p>
       {kanTrillen && (
         <label className="club-tm-schakel">
           <Vibrate aria-hidden size={18} />
-          <span>Trillen</span>
+          <span>{t.trillen}</span>
           <input type="checkbox" role="switch" checked={keuze.trillen} onChange={(e) => zet({ trillen: e.target.checked })} />
         </label>
       )}
       {kanGeluid && (
         <label className="club-tm-schakel">
           <Volume2 aria-hidden size={18} />
-          <span>Geluid</span>
+          <span>{t.geluid}</span>
           <input type="checkbox" role="switch" checked={keuze.geluid} onChange={(e) => zet({ geluid: e.target.checked })} />
         </label>
       )}
-      {!kanTrillen && !kanGeluid && <p className="club-tm-menu-tekst">Deze telefoon kan geen signaal geven; de timer in beeld laat zien wanneer je weer kunt.</p>}
+      {!kanTrillen && !kanGeluid && <p className="club-tm-menu-tekst">{t.geenSignaal}</p>}
       <p className="club-tm-menu-tekst">
-        <Smartphone aria-hidden size={15} /> {SCHERM_TEKST[scherm]}
+        <Smartphone aria-hidden size={15} /> {t.scherm[SCHERM_SLEUTEL[scherm]]}
       </p>
       <button type="button" className="club-lidapp-knop club-lidapp-knop--breed" onClick={onAfronden} disabled={bezig}>
-        <Flag aria-hidden size={17} /> Training nu afronden
+        <Flag aria-hidden size={17} /> {t.nuAfronden}
       </button>
     </section>
   )

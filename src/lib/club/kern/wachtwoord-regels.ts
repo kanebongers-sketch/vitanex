@@ -2,6 +2,9 @@
 // Ook in de browser (aanmeldformulier, inlogpagina). De opslag staat in
 // wachtwoord.ts (server).
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
+
 export const MIN_LENGTE = 12
 export const MAX_LENGTE = 128
 
@@ -11,6 +14,8 @@ const ZWAK = ['wachtwoord', 'password', 'welkom', 'welcome', 'qwerty', 'azerty',
 export interface WachtwoordContext {
   email?: string | null
   naam?: string | null
+  /** De taal van de melding (standaard Nederlands). */
+  taal?: Taal
 }
 
 function soorten(w: string): number {
@@ -19,16 +24,17 @@ function soorten(w: string): number {
 
 /** Waarom dit wachtwoord niet sterk genoeg is, of null als het goed is. */
 export function wachtwoordFout(w: unknown, ctx: WachtwoordContext = {}): string | null {
-  if (typeof w !== 'string' || w.length === 0) return 'Kies een wachtwoord.'
-  if (w.length < MIN_LENGTE) return `Gebruik minstens ${MIN_LENGTE} tekens.`
-  if (w.length > MAX_LENGTE) return `Gebruik hooguit ${MAX_LENGTE} tekens.`
+  const t = LID_INLOGGEN[ctx.taal ?? 'nl'].wachtwoord.regels
+  if (typeof w !== 'string' || w.length === 0) return t.leeg
+  if (w.length < MIN_LENGTE) return t.kort(MIN_LENGTE)
+  if (w.length > MAX_LENGTE) return t.lang(MAX_LENGTE)
   const klein = w.toLowerCase()
-  if (new Set(klein).size < 5) return 'Gebruik meer verschillende tekens.'
-  if (ZWAK.some((z) => klein.includes(z))) return 'Dit wachtwoord bevat een woord dat te makkelijk te raden is.'
+  if (new Set(klein).size < 5) return t.verschillend
+  if (ZWAK.some((z) => klein.includes(z))) return t.zwak
   const eigen = [ctx.email?.split('@')[0], ...(ctx.naam ?? '').split(/\s+/)].map((d) => d?.trim().toLowerCase() ?? '').filter((d) => d.length >= 3)
-  if (eigen.some((d) => klein.includes(d))) return 'Gebruik niet je naam of e-mailadres in je wachtwoord.'
+  if (eigen.some((d) => klein.includes(d))) return t.eigen
   // Lang genoeg is sterk genoeg (een zin); korter moet gevarieerd zijn.
-  if (w.length < 16 && soorten(w) < 3) return 'Gebruik 16 tekens of meer, of mix kleine letters, hoofdletters, cijfers en tekens.'
+  if (w.length < 16 && soorten(w) < 3) return t.mix
   return null
 }
 

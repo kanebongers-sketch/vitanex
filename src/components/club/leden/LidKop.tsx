@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarClock, CalendarPlus, ClipboardPlus, Dumbbell, StickyNote } from 'lucide-react'
 import { ClubKruimel } from '@/components/club/shell/ClubKruimel'
-import { initialen, LID_STATUS_LABEL, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
+import { initialen, lidStatusLabel, volledigeNaam, type Lid } from '@/lib/club/kern/lid'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 import { lidKaartPad, metVanLid } from '@/lib/club/leden/hub/tabs'
@@ -48,7 +48,7 @@ export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten
           <p className="club-boventitel">{vestigingNaam}{lid.demo ? ` · ${w.voorbeeldlid}` : ''}</p>
           <h1>{naam}</h1>
           <div className="club-leden-kop-chips">
-            <span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{LID_STATUS_LABEL[lid.status]}</span>
+            <span className={`club-chip ${STATUS_CHIP[lid.status]}`}>{lidStatusLabel(lid.status, taal)}</span>
             <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap')} className="club-chip club-chip--geen club-lidhub-chiplink">
               {lid.abonnement ?? w.geenVorm}
             </Link>

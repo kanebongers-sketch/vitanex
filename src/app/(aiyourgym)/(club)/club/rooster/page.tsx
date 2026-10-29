@@ -18,22 +18,25 @@ import { LesPaneel } from '@/components/club/rooster/LesPaneel'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moduleAan } from '@/lib/club/kern/organisatie'
 import '@/components/club/rooster/rooster.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum, formatTijd } from '@/lib/aiyourgym/taal/formaat'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
-export const metadata: Metadata = { title: 'Rooster' }
-
-const DAG_MAAND = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'UTC' })
-const WANNEER = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
-const KLOK = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
-
-function weekLabel(maandag: string): string {
-  const zondag = plusDagen(maandag, 6)
-  return `${DAG_MAAND.format(new Date(`${maandag}T12:00:00Z`))} tot ${DAG_MAAND.format(new Date(`${zondag}T12:00:00Z`))} ${zondag.slice(0, 4)}`
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(ROOSTER)).titel }
 }
 
-function wanneer(detail: LesDetail): string {
+function weekLabel(maandag: string, taal: Taal): string {
+  const zondag = plusDagen(maandag, 6)
+  const dag = (d: string) => formatDatum(`${d}T12:00:00Z`, taal, 'dagMaandLang')
+  return ROOSTER[taal].weekBereik(dag(maandag), dag(zondag), zondag.slice(0, 4))
+}
+
+function wanneer(detail: LesDetail, taal: Taal): string {
   const start = new Date(detail.les.startOp)
-  const dag = WANNEER.format(start)
-  return `${dag.charAt(0).toUpperCase()}${dag.slice(1)} · ${KLOK.format(start)} tot ${KLOK.format(new Date(detail.les.eindOp))}`
+  const dag = formatDatum(start, taal, 'dag')
+  return ROOSTER[taal].paneel.wanneer(`${dag.charAt(0).toUpperCase()}${dag.slice(1)}`, formatTijd(start, taal), formatTijd(detail.les.eindOp, taal))
 }
 
 function magAfvinken(detail: LesDetail, regels: RoosterRegels, nuMs: number): boolean {
@@ -42,6 +45,8 @@ function magAfvinken(detail: LesDetail, regels: RoosterRegels, nuMs: number): bo
 
 export default async function RoosterPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('rooster')
+  const taal = await getTaal()
+  const tekst = ROOSTER[taal]
   const params = await searchParams
   const vestiging = kiesUit(t.vestigingen, params.v)
   if (!vestiging) return <GeenVestigingen />
@@ -71,14 +76,14 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
       <RoosterKop
         vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weekNummer={isoWeek(maandag).week}
-        weekLabel={weekLabel(maandag)}
+        weekLabel={weekLabel(maandag, taal)}
         vorige={weekParam(plusDagen(maandag, -7))}
         volgende={weekParam(plusDagen(maandag, 7))}
         isDezeWeek={dagen.includes(nuNl.datum)}
         staat={staat}
       />
       {lessen === null ? (
-        <p className="club-melding club-melding--fout" role="alert">Het rooster kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
+        <p className="club-melding club-melding--fout" role="alert">{tekst.laadFout}</p>
       ) : (
         <>
           <RoosterTegels cijfers={weekCijfers(gefilterd)} />
@@ -87,11 +92,11 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
             <div className="club-leeg club-rooster-leeg">
               <CalendarPlus aria-hidden size={28} />
               <p>
-                <strong>Nog geen lessen in deze week</strong>
-                Zet je vaste lessen in het weekrooster en maak ze daar aan voor de komende weken.
+                <strong>{tekst.leegTitel}</strong>
+                {tekst.leegUitleg}
               </p>
               <Link className="club-knop club-knop--primair" href={clubPad('/instellingen/weekrooster', vestiging)}>
-                Naar het weekrooster
+                {tekst.naarWeekrooster}
               </Link>
             </div>
           ) : (
@@ -104,8 +109,9 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
                 nuMinuten={nuNl.minuten}
                 nuMs={nu.getTime()}
                 staat={staat}
+                taal={taal}
               />
-              <DagLijst dagen={dagen} lessen={gefilterd} vandaag={nuNl.datum} nuMs={nu.getTime()} staat={staat} />
+              <DagLijst dagen={dagen} lessen={gefilterd} vandaag={nuNl.datum} nuMs={nu.getTime()} staat={staat} taal={taal} />
             </>
           )}
         </>
@@ -116,7 +122,7 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
           detail={detail}
           sluitHref={roosterHref(staat, { les: null })}
           vestiging={vestiging}
-          wanneer={wanneer(detail)}
+          wanneer={wanneer(detail, taal)}
           isBegonnen={Date.parse(detail.les.startOp) <= nu.getTime()}
           kanAfvinken={magAfvinken(detail, instellingen.regels, nu.getTime())}
           zalen={zalen}

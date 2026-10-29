@@ -5,7 +5,10 @@ import { TriangleAlert } from 'lucide-react'
 import type { Lead } from '@/lib/club/leads/model'
 import { splitsNaam } from '@/lib/club/leads/naam'
 import { treffersUitJson, type DubbelTreffer } from '@/lib/club/leads/dubbel'
-import { LID_STATUS_LABEL, LID_STATUSSEN } from '@/lib/club/kern/lid'
+import { LID_STATUSSEN, lidStatusLabel } from '@/lib/club/kern/lid'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { stuur } from './stuur'
 import type { Doe } from './usePaneel'
 
@@ -16,13 +19,14 @@ interface OmzettenBlokProps {
   onGelukt: (melding: string) => void
 }
 
-function statusLabel(status: string): string {
+function statusLabel(status: string, taal: Taal): string {
   const s = LID_STATUSSEN.find((x) => x === status)
-  return s ? LID_STATUS_LABEL[s] : status
+  return s ? lidStatusLabel(s, taal) : status
 }
 
-function opTekst(op: DubbelTreffer['op']): string {
-  return op.map((o) => (o === 'email' ? 'zelfde e-mail' : 'zelfde telefoon')).join(' en ')
+function opTekst(op: DubbelTreffer['op'], taal: Taal): string {
+  const t = LEADS[taal].omzetten
+  return op.map((o) => (o === 'email' ? t.zelfdeEmail : t.zelfdeTelefoon)).join(t.en)
 }
 
 // Lid maken: eerst kijken of deze persoon al lid is in deze vestiging (zelfde
@@ -32,6 +36,8 @@ export function OmzettenBlok({ lead, bezig, doe, onGelukt }: OmzettenBlokProps) 
   const [controleFout, setControleFout] = useState<string | null>(null)
   const { voornaam, achternaam } = splitsNaam(lead.naam)
   const url = `/api/club/leads/${lead.id}/omzetten`
+  const taal = useTaal()
+  const t = useTekst(LEADS).omzetten
 
   useEffect(() => {
     let actief = true
@@ -52,14 +58,14 @@ export function OmzettenBlok({ lead, bezig, doe, onGelukt }: OmzettenBlokProps) 
   }
 
   if (controleFout) return <p className="club-melding club-melding--fout">{controleFout}</p>
-  if (dubbelen === null) return <div className="club-skelet" aria-label="Controleren op dubbele leden" />
+  if (dubbelen === null) return <div className="club-skelet" aria-label={t.controleren} />
 
   return (
     <div className="club-leads-stapblok">
       {dubbelen.length > 0 && (
         <div className="club-melding club-melding--fout club-leads-dubbel" role="alert">
           <p>
-            <TriangleAlert size={16} aria-hidden /> Er is al een lid met dezelfde gegevens in deze vestiging.
+            <TriangleAlert size={16} aria-hidden /> {t.dubbel}
           </p>
           <ul className="club-lijst">
             {dubbelen.map(({ lid, op }) => (
@@ -69,11 +75,11 @@ export function OmzettenBlok({ lead, bezig, doe, onGelukt }: OmzettenBlokProps) 
                     {lid.voornaam} {lid.achternaam}
                   </span>
                   <span className="club-rij-sub">
-                    {statusLabel(lid.status)} · {opTekst(op)}
+                    {statusLabel(lid.status, taal)} · {opTekst(op, taal)}
                   </span>
                 </div>
                 <button type="button" className="club-knop club-knop--klein club-knop--primair" disabled={bezig} onClick={() => zetOm({ bestaandLidId: lid.id })}>
-                  Koppel aan dit lid
+                  {t.koppel}
                 </button>
               </li>
             ))}
@@ -82,26 +88,26 @@ export function OmzettenBlok({ lead, bezig, doe, onGelukt }: OmzettenBlokProps) 
       )}
       <dl className="club-leads-voorbeeld">
         <div>
-          <dt>Voornaam</dt>
-          <dd>{voornaam || 'ontbreekt'}</dd>
+          <dt>{t.voornaam}</dt>
+          <dd>{voornaam || t.ontbreekt}</dd>
         </div>
         <div>
-          <dt>Achternaam</dt>
-          <dd className={achternaam ? undefined : 'club-leads-telaat'}>{achternaam || 'ontbreekt, vul de volledige naam in bij Gegevens'}</dd>
+          <dt>{t.achternaam}</dt>
+          <dd className={achternaam ? undefined : 'club-leads-telaat'}>{achternaam || t.achternaamOntbreekt}</dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>Proeflid, lid sinds vandaag</dd>
+          <dt>{t.status}</dt>
+          <dd>{t.proeflid}</dd>
         </div>
       </dl>
-      <p className="club-hint">Inschrijving en abonnement rond je daarna af in je ledenadministratie. Wordt het proeflid echt lid, zet dan op de ledenkaart de status op Actief. Hier komen geen bedragen of contracten.</p>
+      <p className="club-hint">{t.hint}</p>
       <button
         type="button"
         className={`club-knop ${dubbelen.length > 0 ? '' : 'club-knop--primair'}`}
         disabled={bezig || !achternaam}
         onClick={() => zetOm({ negeerDubbel: dubbelen.length > 0 })}
       >
-        {dubbelen.length > 0 ? 'Toch een nieuw lid maken' : 'Maak lid'}
+        {dubbelen.length > 0 ? t.toch : t.maak}
       </button>
     </div>
   )

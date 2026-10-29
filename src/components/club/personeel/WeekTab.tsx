@@ -17,6 +17,8 @@ import { NotitiePaneel } from './NotitiePaneel'
 import { bereikVan, laadWeek } from './week-data'
 import { magUrenActie, magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
 import { plekStijl, uurTekst, type Bereik } from './weergave'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 interface Props {
   t: ClubToegang
@@ -44,8 +46,10 @@ function TijdAs({ bereik }: { bereik: Bereik }) {
 }
 
 export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props) {
+  const taal = await getTaal()
+  const tk = (await clubTekst(PERSONEEL)).week
   const data = await laadWeek(t, vestiging, maandag, team, staat.paneel === 'patroon')
-  if (!data) return <p className="club-melding club-melding--fout" role="alert">Het rooster kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
+  if (!data) return <p className="club-melding club-melding--fout" role="alert">{tk.laadFout}</p>
   const dagen = dagenVanWeek(maandag)
   const bereik = bereikVan(data.bemand, data.week, dagen)
   const meldingen = controleerWeek({
@@ -56,7 +60,7 @@ export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props)
     bemand: data.bemand,
     leden: team,
     minRustUren: MIN_RUST_UREN,
-  })
+  }, taal)
   const gepland = geplandPerPersoon(data.week)
   const totaal = [...gepland.values()].reduce((a, b) => a + b, 0)
   const soortNamen = new Map(data.soorten.map((s) => [s.id, s.naam]))
@@ -68,18 +72,18 @@ export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props)
 
   return (
     <>
-      <section className="club-personeel-balk" aria-label="Deze week">
+      <section className="club-personeel-balk" aria-label={tk.dezeWeek}>
         <dl className="club-personeel-cijfers">
-          <div><dt>Diensten</dt><dd className="club-getal">{data.week.filter(isWerk).length}</dd></div>
-          <div><dt>Uren gepland</dt><dd className="club-getal">{uurTekst(totaal)}</dd></div>
-          <div data-let-op={open > 0 || undefined}><dt>Open</dt><dd className="club-getal">{open}</dd></div>
-          <div data-let-op={gaten > 0 || undefined}><dt>Gaten</dt><dd className="club-getal">{gaten}</dd></div>
+          <div><dt>{tk.diensten}</dt><dd className="club-getal">{data.week.filter(isWerk).length}</dd></div>
+          <div><dt>{tk.urenGepland}</dt><dd className="club-getal">{uurTekst(totaal, taal)}</dd></div>
+          <div data-let-op={open > 0 || undefined}><dt>{tk.open}</dt><dd className="club-getal">{open}</dd></div>
+          <div data-let-op={gaten > 0 || undefined}><dt>{tk.gaten}</dt><dd className="club-getal">{gaten}</dd></div>
         </dl>
         <SnelPlannen vestiging={vestiging} maandag={maandag} patroonHref={personeelHref(zonderPaneel(staat), { paneel: 'patroon' })} />
       </section>
 
       <div className="club-personeel-werkvlak">
-        <section className="club-personeel-week" style={{ '--uren': (bereik.tot - bereik.van) / 60 } as CSSProperties} aria-label={`Diensten week ${isoWeek(maandag).week}`}>
+        <section className="club-personeel-week" style={{ '--uren': (bereik.tot - bereik.van) / 60 } as CSSProperties} aria-label={tk.dienstenWeek(isoWeek(maandag).week)}>
           <TijdAs bereik={bereik} />
           {dagen.map((d) => (
             <DagRij
@@ -104,7 +108,7 @@ export async function WeekTab({ t, staat, vestiging, team, maandag, nu }: Props)
         </aside>
       </div>
 
-      <PrintWeek dagen={dagen} week={data.week} notities={data.notities} team={team} soortNamen={soortNamen} titel={`Week ${isoWeek(maandag).week}`} />
+      <PrintWeek dagen={dagen} week={data.week} notities={data.notities} team={team} soortNamen={soortNamen} titel={tk.printTitel(isoWeek(maandag).week)} />
 
       {(geopend || (staat.nieuw && !staat.paneel)) && paneelDatum && (
         <DienstPaneel

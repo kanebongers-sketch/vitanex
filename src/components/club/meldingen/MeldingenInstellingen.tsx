@@ -8,12 +8,21 @@ import {
   LES_HERINNER_KEUZES,
   SOORTEN_AFSPRAAK,
   SOORTEN_LES,
-  SOORT_LABEL,
-  duurLabel,
   type MeldingInstellingen,
   type Soort,
 } from '@/lib/club/meldingen/soorten'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { MELDINGEN } from '@/lib/aiyourgym/taal/woorden/club/meldingen'
 import './meldingen.css'
+
+type Tekst = (typeof MELDINGEN)['nl']
+
+/** "1 dag", "2 uur" of "30 minuten" in de gekozen taal. */
+function duurIn(minuten: number, d: Tekst['instellingen']['duur']): string {
+  if (minuten % 1440 === 0) return minuten === 1440 ? d.dag : d.dagen(minuten / 1440)
+  if (minuten % 60 === 0) return d.uur(minuten / 60)
+  return d.minuten(minuten)
+}
 
 // Meldingen aan leden instellen: welke soorten aan staan en hoe lang van
 // tevoren de herinneringen gaan. Geldt voor de mail en de lijst in de app.
@@ -32,6 +41,7 @@ interface GroepProps {
 
 function Groep({ titel, soorten, uit, onWissel, herinnering }: GroepProps) {
   const id = `meldingen-${herinnering.soort}`
+  const t = useTekst(MELDINGEN)
   return (
     <fieldset className="club-beheer-keuzes club-meldingen-groep">
       <legend className="club-label">{titel}</legend>
@@ -39,17 +49,17 @@ function Groep({ titel, soorten, uit, onWissel, herinnering }: GroepProps) {
         <label key={s} className="club-beheer-keuze club-meldingen-keuze">
           <input type="checkbox" checked={!uit.includes(s)} onChange={(e) => onWissel(s, e.target.checked)} />
           <span>
-            <strong>{SOORT_LABEL[s].label}</strong>
-            <small>{SOORT_LABEL[s].uitleg}</small>
+            <strong>{t.soort[s].label}</strong>
+            <small>{t.soort[s].uitleg}</small>
           </span>
         </label>
       ))}
       <label className="club-veld club-meldingen-tijd" htmlFor={id}>
-        <span>Herinnering gaat</span>
+        <span>{t.instellingen.herinnering}</span>
         <select id={id} className="club-invoer" value={herinnering.waarde} disabled={uit.includes(herinnering.soort)} onChange={(e) => herinnering.onKies(Number(e.target.value))}>
           {herinnering.keuzes.map((k) => (
             <option key={k} value={k}>
-              {duurLabel(k)} voor de start
+              {t.instellingen.voorStart(duurIn(k, t.instellingen.duur))}
             </option>
           ))}
         </select>
@@ -60,6 +70,7 @@ function Groep({ titel, soorten, uit, onWissel, herinnering }: GroepProps) {
 
 export function MeldingenInstellingen({ begin }: MeldingenInstellingenProps) {
   const router = useRouter()
+  const t = useTekst(MELDINGEN).instellingen
   const [uit, setUit] = useState<Soort[]>(begin.uit)
   const [lesMin, setLesMin] = useState(begin.lesHerinneringMin)
   const [afspraakMin, setAfspraakMin] = useState(begin.afspraakHerinneringMin)
@@ -74,21 +85,21 @@ export function MeldingenInstellingen({ begin }: MeldingenInstellingenProps) {
     const antwoord = await stuur('/api/club/meldingen', 'PATCH', { uit, lesHerinneringMin: lesMin, afspraakHerinneringMin: afspraakMin })
     setBezig(false)
     if (!antwoord.ok) return setMelding({ ok: false, tekst: antwoord.fout })
-    setMelding({ ok: true, tekst: 'Opgeslagen. Nieuwe boekingen volgen deze instellingen meteen.' })
+    setMelding({ ok: true, tekst: t.opgeslagen })
     router.refresh()
   }
 
   return (
     <div className="club-beheer-formulier">
       <Groep
-        titel="Groepslessen"
+        titel={t.lessen}
         soorten={SOORTEN_LES}
         uit={uit}
         onWissel={wissel}
         herinnering={{ soort: 'les_herinnering', waarde: lesMin, keuzes: LES_HERINNER_KEUZES, onKies: setLesMin }}
       />
       <Groep
-        titel="Afspraken met een trainer"
+        titel={t.afspraken}
         soorten={SOORTEN_AFSPRAAK}
         uit={uit}
         onWissel={wissel}
@@ -96,7 +107,7 @@ export function MeldingenInstellingen({ begin }: MeldingenInstellingenProps) {
       />
       <div className="club-beheer-acties">
         <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar()}>
-          {bezig ? 'Opslaan...' : 'Opslaan'}
+          {bezig ? t.opslaanBezig : t.opslaan}
         </button>
         <div role="status" aria-live="polite">
           {melding && <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`}>{melding.tekst}</p>}

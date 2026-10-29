@@ -1,6 +1,8 @@
 import { Pencil } from 'lucide-react'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { MATERIAAL_LABEL, NIVEAU_LABEL, PATROON_LABEL, SPIERGROEP_LABEL, ZONE_LABEL } from '@/lib/club/training/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { BeeldBron } from './OefeningBeeld'
 import { OefeningVoorbeeld } from './repspeler/OefeningVoorbeeld'
 import { repRenderVoor } from './repspeler/render-bron'
@@ -14,17 +16,19 @@ interface OefeningDetailProps {
 
 /** Een oefening bekijken: de bewegende illustratie, de coaching (kernpunten, stappen, fouten) en de spieren. Bewerken is een klik verder. */
 export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
+  const t = useTekst(CLUB_TRAINING).detail
+  const l = useTekst(TRAINING_LABELS)
   const kenmerken = [
-    ['Spiergroep (grof)', SPIERGROEP_LABEL[o.spiergroep]],
-    ['Materiaal', MATERIAAL_LABEL[o.materiaal]],
-    ['Niveau', NIVEAU_LABEL[o.niveau]],
-    ['Patroon', o.patroon ? PATROON_LABEL[o.patroon] : 'Geen'],
+    [t.spiergroep, l.spiergroep[o.spiergroep]],
+    [t.materiaal, l.materiaal[o.materiaal]],
+    [t.niveau, l.niveau[o.niveau]],
+    [t.patroon, o.patroon ? l.patroon[o.patroon] : t.geen],
   ] as const
   return (
     <div className="club-training-oefdetail">
       <OefeningVoorbeeld key={o.id} naam={o.naam} beeld={o.beeld} />
       {o.beeld && !repRenderVoor(o.naam) && <BeeldBron bronnen={[o.beeld.bron]} />}
-      <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg="Nog geen uitleg. Voeg die toe via Bewerken." oefeningId={o.id} />
+      <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg={t.leeg} oefeningId={o.id} />
       <dl className="club-training-defs club-training-defs--twee">
         {kenmerken.map(([label, waarde]) => (
           <div key={label} className="club-training-def">
@@ -34,14 +38,14 @@ export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
         ))}
       </dl>
       <section>
-        <h3 className="club-training-tussenkop">Spieren</h3>
+        <h3 className="club-training-tussenkop">{t.spieren}</h3>
         <SpierBlok naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} />
       </section>
-      {o.belast.length > 0 && <p className="club-training-belast">Belast: {o.belast.map((z) => ZONE_LABEL[z].toLowerCase()).join(', ')}</p>}
-      {!o.actief && <p className="club-chip club-chip--uit">Inactief</p>}
+      {o.belast.length > 0 && <p className="club-training-belast">{t.belast(o.belast.map((z) => l.zone[z].toLowerCase()).join(', '))}</p>}
+      {!o.actief && <p className="club-chip club-chip--uit">{t.inactief}</p>}
       <div className="club-acties">
         <button type="button" className="club-knop" onClick={onBewerk}>
-          <Pencil aria-hidden size={15} /> Bewerken
+          <Pencil aria-hidden size={15} /> {t.bewerken}
         </button>
       </div>
     </div>

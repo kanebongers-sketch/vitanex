@@ -7,6 +7,8 @@ import { nederlandseFeestdagen, type FeestdagSleutel } from '@/lib/club/sluiting
 import type { Sluiting, SluitingSoort } from '@/lib/club/sluiting/model'
 import { bestaatAl } from '@/lib/club/sluiting/regels'
 import { datumKort } from '@/lib/club/sluiting/weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { SLUITING } from '@/lib/aiyourgym/taal/woorden/club/sluiting'
 
 // "Nederlandse feestdagen toevoegen": per feestdag kies je dicht of andere
 // tijden. Wat er voor die vestiging(en) al staat, wordt niet dubbel toegevoegd.
@@ -33,6 +35,9 @@ interface Props {
 
 export function FeestdagenFormulier({ jaar, bestaande, onKlaar }: Props) {
   const vestigingen = useVestigingen()
+  const taal = useTaal()
+  const t = useTekst(SLUITING).feest
+  const alle = useTekst(SLUITING).formulier
   const dagen = useMemo(() => nederlandseFeestdagen(jaar), [jaar])
   const [vestiging, setVestiging] = useState('')
   const [keuzes, setKeuzes] = useState<Record<string, Keuze>>(() => Object.fromEntries(dagen.map((d) => [d.sleutel, beginKeuze(d.sleutel)])))
@@ -49,15 +54,15 @@ export function FeestdagenFormulier({ jaar, bestaande, onKlaar }: Props) {
     setBezig(false)
     if (!uit.ok) return onKlaar(uit.fout, false)
     const n = (uit.data as { toegevoegd?: number } | null)?.toegevoegd ?? 0
-    onKlaar(n === 1 ? '1 feestdag toegevoegd.' : `${n} feestdagen toegevoegd.`)
+    onKlaar(t.toegevoegd(n))
   }
 
   return (
     <div className="club-sluiting-form">
       <label className="club-veld">
-        <span>Voor</span>
+        <span>{t.voor}</span>
         <select className="club-invoer" value={vestiging} onChange={(e) => setVestiging(e.target.value)}>
-          <option value="">Alle vestigingen</option>
+          <option value="">{alle.alleVestigingen}</option>
           {vestigingen.map((v) => (
             <option key={v.sleutel} value={v.sleutel}>
               {v.naam}
@@ -70,26 +75,27 @@ export function FeestdagenFormulier({ jaar, bestaande, onKlaar }: Props) {
         {dagen.map((d) => {
           const k = keuzes[d.sleutel] ?? beginKeuze(d.sleutel)
           const staat = bestaatAl(d.datum, doel, bestaande)
+          const naam = t.naam[d.sleutel]
           return (
             <li key={d.sleutel} className={`club-sluiting-feestdag${staat ? ' is-er-al' : ''}`}>
               <label className="club-sluiting-feestnaam">
                 <input type="checkbox" checked={k.aan && !staat} disabled={staat} onChange={(e) => zet(d.sleutel, { aan: e.target.checked })} />
                 <span>
-                  <strong>{d.naam}</strong>
-                  <small>{staat ? `${datumKort(d.datum)} · staat er al` : datumKort(d.datum)}</small>
+                  <strong>{naam}</strong>
+                  <small>{staat ? t.staatErAl(datumKort(d.datum, taal)) : datumKort(d.datum, taal)}</small>
                 </span>
               </label>
               {!staat && k.aan && (
                 <div className="club-sluiting-feestkeuze">
-                  <select className="club-invoer" aria-label={`${d.naam}: gesloten of andere tijden`} value={k.soort} onChange={(e) => zet(d.sleutel, { soort: e.target.value === 'afwijkend' ? 'afwijkend' : 'gesloten' })}>
-                    <option value="gesloten">Gesloten</option>
-                    <option value="afwijkend">Andere tijden</option>
+                  <select className="club-invoer" aria-label={t.soort(naam)} value={k.soort} onChange={(e) => zet(d.sleutel, { soort: e.target.value === 'afwijkend' ? 'afwijkend' : 'gesloten' })}>
+                    <option value="gesloten">{alle.gesloten}</option>
+                    <option value="afwijkend">{alle.andereTijden}</option>
                   </select>
                   {k.soort === 'afwijkend' && (
                     <span className="club-sluiting-tijden">
-                      <input className="club-invoer" type="time" aria-label={`${d.naam}: open van`} value={k.van} onChange={(e) => zet(d.sleutel, { van: e.target.value })} />
-                      <span aria-hidden>tot</span>
-                      <input className="club-invoer" type="time" aria-label={`${d.naam}: open tot`} value={k.tot} onChange={(e) => zet(d.sleutel, { tot: e.target.value })} />
+                      <input className="club-invoer" type="time" aria-label={t.openVan(naam)} value={k.van} onChange={(e) => zet(d.sleutel, { van: e.target.value })} />
+                      <span aria-hidden>{t.tot}</span>
+                      <input className="club-invoer" type="time" aria-label={t.openTot(naam)} value={k.tot} onChange={(e) => zet(d.sleutel, { tot: e.target.value })} />
                     </span>
                   )}
                 </div>
@@ -100,7 +106,7 @@ export function FeestdagenFormulier({ jaar, bestaande, onKlaar }: Props) {
       </ul>
 
       <button type="button" className="club-knop club-knop--primair" disabled={bezig || nieuw.length === 0} onClick={() => void voegToe()}>
-        {bezig ? 'Toevoegen...' : nieuw.length === 0 ? 'Alles staat er al' : `${nieuw.length} feestdagen toevoegen`}
+        {bezig ? t.bezig : nieuw.length === 0 ? t.allesErAl : t.toevoegen(nieuw.length)}
       </button>
     </div>
   )

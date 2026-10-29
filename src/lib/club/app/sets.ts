@@ -3,6 +3,7 @@
 // nakijken op de grens en de korte samenvatting na "training klaar".
 
 import { isUuid } from './invoer'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 export const MAX_SETS_PER_TRAINING = 200
 
@@ -119,11 +120,11 @@ export function samenvatting(sets: readonly SetInvoer[], besten: ReadonlyMap<str
   }
 }
 
-/** "48 min" of "1 u 05 min". */
-export function toonDuur(sec: number): string {
+/** "48 min" of "1 u 05 min" (Engels: "1 h 05 min"). */
+export function toonDuur(sec: number, taal: Taal = 'nl'): string {
   const min = Math.max(0, Math.round(sec / 60))
   if (min < 60) return `${min} min`
-  return `${Math.floor(min / 60)} u ${String(min % 60).padStart(2, '0')} min`
+  return `${Math.floor(min / 60)} ${taal === 'nl' ? 'u' : 'h'} ${String(min % 60).padStart(2, '0')} min`
 }
 
 /** Rusttimer als "1:30". */

@@ -13,6 +13,11 @@
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
 import { isSportschoolSoort, type SportschoolSoort } from './soorten'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
+
+// De Nederlandse namen komen uit het woordenboek (bron); in beeld via stapInTaal().
+const ST = START_LIB.nl.stappen
 
 export const STAP_SLEUTELS = ['soort', 'huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'klaar'] as const
 export type StapSleutel = (typeof STAP_SLEUTELS)[number]
@@ -29,15 +34,21 @@ export interface StapInfo {
 }
 
 export const STAPPEN: readonly StapInfo[] = [
-  { sleutel: 'soort', titel: 'Je sportschool', kort: 'Kies de soort, wij zetten de rest klaar', minuten: 1 },
-  { sleutel: 'huisstijl', titel: 'Huisstijl', kort: 'Logo, kleur en je eigen adres', minuten: 2 },
-  { sleutel: 'vestigingen', titel: 'Vestiging', kort: 'Adres, openingstijden en reserveren', minuten: 2 },
-  { sleutel: 'onderdelen', titel: 'Onderdelen', kort: 'Wat je sportschool gebruikt', minuten: 1 },
-  { sleutel: 'lessen', titel: 'Lessen', kort: 'Lestypen en je vaste week, met zaal en instructeur', minuten: 3 },
-  { sleutel: 'team', titel: 'Team', kort: 'Je medewerkers en wat elke functie ziet', minuten: 2 },
-  { sleutel: 'leden', titel: 'Leden', kort: 'Je ledenbestand inlezen', minuten: 2 },
-  { sleutel: 'klaar', titel: 'Klaar', kort: 'Klaar voor je eerste dag', minuten: 1 },
+  { sleutel: 'soort', ...ST.soort, minuten: 1 },
+  { sleutel: 'huisstijl', ...ST.huisstijl, minuten: 2 },
+  { sleutel: 'vestigingen', ...ST.vestigingen, minuten: 2 },
+  { sleutel: 'onderdelen', ...ST.onderdelen, minuten: 1 },
+  { sleutel: 'lessen', ...ST.lessen, minuten: 3 },
+  { sleutel: 'team', ...ST.team, minuten: 2 },
+  { sleutel: 'leden', ...ST.leden, minuten: 2 },
+  { sleutel: 'klaar', ...ST.klaar, minuten: 1 },
 ]
+
+/** Een stap met titel en korte uitleg in de gekozen taal. */
+export function stapInTaal<T extends Pick<StapInfo, 'sleutel' | 'titel' | 'kort'>>(s: T, taal: Taal): T {
+  const t = START_LIB[taal].stappen[s.sleutel]
+  return { ...s, titel: t.titel, kort: t.kort }
+}
 
 export interface StartVoortgang {
   /** De stap waar de eigenaar is gebleven (1 tot en met het aantal stappen). */
@@ -306,11 +317,11 @@ export interface StapStand extends StapInfo {
   af: boolean
 }
 
-/** Per stap: af of open, volgens de regels van stapAf. */
-export function stappenStand(v: StartVoortgang | null, f: StartFeiten): StapStand[] {
+/** Per stap: af of open, volgens de regels van stapAf (titels in de gekozen taal). */
+export function stappenStand(v: StartVoortgang | null, f: StartFeiten, taal: Taal = 'nl'): StapStand[] {
   const voor = STAPPEN.filter((s) => s.sleutel !== 'klaar').map((s) => stapAf(s.sleutel as Exclude<StapSleutel, 'klaar'>, v, f))
   const allesAf = voor.every(Boolean)
-  return STAPPEN.map((s, i) => ({ ...s, nummer: i + 1, af: s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) && allesAf : voor[i] }))
+  return STAPPEN.map((s, i) => ({ ...stapInTaal(s, taal), nummer: i + 1, af: s.sleutel === 'klaar' ? Boolean(v?.afgerondOp) && allesAf : voor[i] }))
 }
 
 export function aantalAf(stand: readonly StapStand[]): number {
@@ -328,10 +339,11 @@ export function klaarVoorLive(stand: readonly StapStand[]): boolean {
 }
 
 /** "Nog niet alles staat: Lessen en Team." voor de fout bij afronden. */
-export function nogOpenTekst(open: readonly Pick<StapStand, 'titel'>[]): string {
+export function nogOpenTekst(open: readonly Pick<StapStand, 'titel'>[], taal: Taal = 'nl'): string {
+  const t = START_LIB[taal]
   const namen = open.map((s) => s.titel)
-  const lijst = namen.length <= 1 ? namen.join('') : `${namen.slice(0, -1).join(', ')} en ${namen[namen.length - 1]}`
-  return `Nog niet alles staat: ${lijst}. Maak die stappen eerst af.`
+  const lijst = namen.length <= 1 ? namen.join('') : `${namen.slice(0, -1).join(', ')} ${t.en} ${namen[namen.length - 1]}`
+  return t.nogOpen(lijst)
 }
 
 /** Hoeveel minuten de open stappen samen nog ongeveer kosten. */
@@ -340,10 +352,11 @@ export function minutenOver(stand: readonly Pick<StapStand, 'af' | 'minuten'>[])
 }
 
 /** "Nog ongeveer 9 minuten", in gewone taal. */
-export function minutenTekst(minuten: number): string {
-  if (minuten <= 0) return 'Alles staat'
-  if (minuten === 1) return 'Nog ongeveer een minuut'
-  return `Nog ongeveer ${minuten} minuten`
+export function minutenTekst(minuten: number, taal: Taal = 'nl'): string {
+  const t = START_LIB[taal].minuten
+  if (minuten <= 0) return t.allesStaat
+  if (minuten === 1) return t.een
+  return t.meer(minuten)
 }
 
 /** Komt de eigenaar terug zonder stap in de URL, ergens halverwege? Dan heten we hem welkom terug. */
@@ -352,8 +365,6 @@ export function isHervatten(v: StartVoortgang | null, stapInUrl: number | null):
 }
 
 // ── Streefdatum voor livegang ─────────────────────────────────────────────
-
-const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'] as const
 
 function dagNummer(datum: string): number {
   const [j, m, d] = datum.split('-').map(Number)
@@ -366,23 +377,26 @@ export function dagenTot(streefdatum: string, vandaag: string): number {
 }
 
 /** "1 november", met het jaar erbij als het niet dit jaar is. */
-export function datumTekst(datum: string, vandaag: string): string {
+export function datumTekst(datum: string, vandaag: string, taal: Taal = 'nl'): string {
+  const t = START_LIB[taal]
   const [j, m, d] = datum.split('-').map(Number)
   const jaar = j === Number(vandaag.slice(0, 4)) ? '' : ` ${j}`
-  return `${d} ${MAANDEN[m - 1]}${jaar}`
+  return `${t.datum(d, t.maanden[m - 1])}${jaar}`
 }
 
-function stappenTekst(open: number): string {
-  if (open <= 0) return 'alle stappen staan'
-  return open === 1 ? 'nog 1 stap' : `nog ${open} stappen`
+function stappenTekst(open: number, taal: Taal): string {
+  const t = START_LIB[taal].stappenOver
+  if (open <= 0) return t.geen
+  return open === 1 ? t.een : t.meer(open)
 }
 
 /** Zonder druk: hoeveel dagen nog, of dat de datum voorbij is (zonder punt aan het eind). */
-export function dagenTekst(dagen: number): string {
-  if (dagen < 0) return 'De datum is voorbij, kies gerust een nieuwe'
-  if (dagen === 0) return 'Vandaag'
-  if (dagen === 1) return 'Morgen'
-  return `Nog ${dagen} dagen`
+export function dagenTekst(dagen: number, taal: Taal = 'nl'): string {
+  const t = START_LIB[taal].dagen
+  if (dagen < 0) return t.voorbij
+  if (dagen === 0) return t.vandaag
+  if (dagen === 1) return t.morgen
+  return t.meer(dagen)
 }
 
 export interface StreefStand {
@@ -394,9 +408,9 @@ export interface StreefStand {
 }
 
 /** De streefdatum met de open stappen, voor de kaart op Vandaag en de wizard. */
-export function streefStand(streefdatum: string, vandaag: string, open: number): StreefStand {
+export function streefStand(streefdatum: string, vandaag: string, open: number, taal: Taal = 'nl'): StreefStand {
   const dagen = dagenTot(streefdatum, vandaag)
-  return { kop: `Live op ${datumTekst(streefdatum, vandaag)}, ${stappenTekst(open)}`, dagen: dagenTekst(dagen), voorbij: dagen < 0 }
+  return { kop: START_LIB[taal].streefKop(datumTekst(streefdatum, vandaag, taal), stappenTekst(open, taal)), dagen: dagenTekst(dagen, taal), voorbij: dagen < 0 }
 }
 
 // ── Wie de wizard krijgt ──────────────────────────────────────────────────

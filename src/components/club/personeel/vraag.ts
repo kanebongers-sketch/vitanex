@@ -1,16 +1,24 @@
 'use client'
 
 // Mutaties van het personeelsrooster: fetch naar /api/club/personeel en daarna
-// router.refresh(). Fouten komen als nette Nederlandse zin terug.
+// router.refresh(). Fouten komen als nette zin terug in de taal van de pagina.
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 export type Antwoord = { ok: true; data: unknown } | { ok: false; fout: string }
 
 export const API = '/api/club/personeel'
 
+/** De taal van de pagina in de browser (<html lang>, gezet uit de cookie ayg-taal); buiten de browser Nederlands. */
+function paginaTaal(): Taal {
+  return typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'nl'
+}
+
 export async function stuur(url: string, method: 'POST' | 'PATCH' | 'PUT' | 'DELETE', body?: unknown): Promise<Antwoord> {
+  const t = PERSONEEL[paginaTaal()].algemeen
   try {
     const res = await fetch(url, {
       method,
@@ -20,9 +28,9 @@ export async function stuur(url: string, method: 'POST' | 'PATCH' | 'PUT' | 'DEL
     const data: unknown = await res.json().catch(() => null)
     if (res.ok) return { ok: true, data }
     const fout = typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
-    return { ok: false, fout: fout ?? 'Er ging iets mis. Probeer het opnieuw.' }
+    return { ok: false, fout: fout ?? t.fout }
   } catch {
-    return { ok: false, fout: 'Geen verbinding. Controleer het internet en probeer het opnieuw.' }
+    return { ok: false, fout: t.verbinding }
   }
 }
 

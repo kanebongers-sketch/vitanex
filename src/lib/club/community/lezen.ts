@@ -106,7 +106,7 @@ async function haalActiviteit(c: LidContext, gezienOp: string | null): Promise<A
     const b = (Array.isArray(r.club_community_berichten) ? r.club_community_berichten[0] : r.club_community_berichten) as R | null
     if (!lid || !b || typeof r.id !== 'string' || !isReactieSoort(r.soort) || typeof r.aangemaakt_op !== 'string') return []
     if (typeof lid.voornaam !== 'string' || typeof lid.achternaam !== 'string' || typeof b.tekst !== 'string' || typeof b.groep_id !== 'string') return []
-    return [{ id: r.id, soort: r.soort, tekst: `${privacyNaam(lid.voornaam, lid.achternaam)} ${REACTIE_LABEL[r.soort].werkwoord}`, bericht: fragment(b.tekst), groepId: b.groep_id, op: r.aangemaakt_op, nieuw: Date.parse(r.aangemaakt_op) > grens }]
+    return [{ id: r.id, soort: r.soort, tekst: `${privacyNaam(lid.voornaam, lid.achternaam)} ${REACTIE_LABEL[r.soort].werkwoord}`, wie: privacyNaam(lid.voornaam, lid.achternaam), bericht: fragment(b.tekst), groepId: b.groep_id, op: r.aangemaakt_op, nieuw: Date.parse(r.aangemaakt_op) > grens }]
   })
 }
 
@@ -148,7 +148,8 @@ export interface GroepScherm {
   isLid: boolean
   leden: number
   tijdlijn: TijdlijnBericht[] | null
-  ranglijst: (GroepRanglijst & { bron: RanglijstBron; titel: string }) | null
+  /** maand (yyyy-mm) bij bezoekdagen, zodat het scherm de titel in de taal kan tonen. */
+  ranglijst: (GroepRanglijst & { bron: RanglijstBron; titel: string; maand?: string }) | null
   opRanglijst: boolean
 }
 
@@ -218,7 +219,7 @@ export async function haalOpLijst(admin: SupabaseClient, userId: string, ids: re
   return new Set(uitkomsten.flatMap((u) => ((u.data ?? []) as R[]).map((r) => r.lid_id as string)))
 }
 
-async function bezoekScores(admin: SupabaseClient, userId: string, ids: readonly string[], nu: Date): Promise<{ scores: Map<string, number>; titel: string } | null> {
+async function bezoekScores(admin: SupabaseClient, userId: string, ids: readonly string[], nu: Date): Promise<{ scores: Map<string, number>; titel: string; maand?: string } | null> {
   const maand = nlDelen(nu).datum.slice(0, 7)
   const venster = maandVenster(maand)
   const uitkomsten = await Promise.all(
@@ -229,7 +230,7 @@ async function bezoekScores(admin: SupabaseClient, userId: string, ids: readonly
   if (uitkomsten.some((u) => !u)) return null
   const momenten = uitkomsten.flatMap((rijen) => ((rijen ?? []) as R[]).flatMap((r) => (typeof r.lid_id === 'string' && typeof r.op === 'string' ? [{ lidId: r.lid_id, op: r.op }] : [])))
   const naam = new Intl.DateTimeFormat('nl-NL', { month: 'long', timeZone: 'UTC' }).format(new Date(`${maand}-15T12:00:00Z`))
-  return { scores: bezoekdagenInMaand(momenten, maand), titel: `Bezoekdagen in ${naam}` }
+  return { scores: bezoekdagenInMaand(momenten, maand), titel: `Bezoekdagen in ${naam}`, maand }
 }
 
 /** De stand van een gekoppelde challenge, een minuut gedeeld (zoals in Voortgang). */
@@ -250,7 +251,7 @@ async function haalRanglijst(c: LidContext, g: Groep, nu: Date): Promise<GroepSc
   const [opLijst, uitChallenge] = await Promise.all([haalOpLijst(c.admin, c.userId, ids), bron === 'challenge' && g.challengeId ? challengeScores(c.admin, c.userId, g.challengeId) : Promise.resolve(null)])
   const scores = uitChallenge ?? (await bezoekScores(c.admin, c.userId, ids, nu))
   if (!opLijst || !scores) return null
-  return { ...groepRanglijst(deelnemers, scores.scores, opLijst, c.lid.id), bron: uitChallenge ? 'challenge' : 'bezoeken', titel: scores.titel }
+  return { ...groepRanglijst(deelnemers, scores.scores, opLijst, c.lid.id), bron: uitChallenge ? 'challenge' : 'bezoeken', titel: scores.titel, maand: 'maand' in scores && typeof scores.maand === 'string' ? scores.maand : undefined }
 }
 
 /**

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { idUit, stuur } from './api'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 interface VoorstelKnopProps {
   intakeId: string
@@ -17,8 +19,9 @@ interface VoorstelKnopProps {
 }
 
 /** Maakt uit de intake een conceptschema en opent de editor. Een vaste opbouw, zonder kosten. */
-export function VoorstelKnop({ intakeId, editorHref, primair = true, klein = false, groot = false, label = 'Maak schemavoorstel' }: VoorstelKnopProps) {
+export function VoorstelKnop({ intakeId, editorHref, primair = true, klein = false, groot = false, label }: VoorstelKnopProps) {
   const router = useRouter()
+  const t = useTekst(CLUB_TRAINING).voorstel
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
@@ -29,7 +32,7 @@ export function VoorstelKnop({ intakeId, editorHref, primair = true, klein = fal
     const id = u.ok ? idUit(u.data) : null
     if (!id) {
       setBezig(false)
-      return setFout(u.ok ? 'Er kwam geen schema terug.' : u.fout)
+      return setFout(u.ok ? t.geenSchema : u.fout)
     }
     router.push(editorHref.replace('__id__', id))
   }
@@ -42,7 +45,7 @@ export function VoorstelKnop({ intakeId, editorHref, primair = true, klein = fal
     <div className="club-training-voorstelknop">
       <button type="button" className={klassen} onClick={maak} disabled={bezig} aria-busy={bezig || undefined}>
         <Sparkles aria-hidden size={klein ? 14 : 16} />
-        {bezig ? 'Voorstel maken...' : label}
+        {bezig ? t.bezig : (label ?? t.knop)}
       </button>
       {fout && <p className="club-fout" role="alert">{fout}</p>}
     </div>

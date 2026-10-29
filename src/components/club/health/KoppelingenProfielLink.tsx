@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Activity, ChevronRight } from 'lucide-react'
 import { healthActief } from '@/lib/club/health/schakelaar'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import '@/components/club/community/community.css'
 
 // In Profiel: de weg naar Koppelingen (weegschaal, horloge, sportapp). Alleen
@@ -11,8 +13,9 @@ interface KoppelingenProfielLinkProps {
   voorvertoningLid: string | null
 }
 
-export function KoppelingenProfielLink({ voorvertoningLid }: KoppelingenProfielLinkProps) {
+export async function KoppelingenProfielLink({ voorvertoningLid }: KoppelingenProfielLinkProps) {
   if (!healthActief()) return null
+  const t = (await clubTekst(HEALTH)).profiel
   const href = voorvertoningLid ? `/mijn/koppelingen?lid=${encodeURIComponent(voorvertoningLid)}` : '/mijn/koppelingen'
   return (
     <div className="club-mijn-blok club-cm-profiel">
@@ -21,8 +24,8 @@ export function KoppelingenProfielLink({ voorvertoningLid }: KoppelingenProfielL
           <Activity size={20} />
         </span>
         <span className="club-cm-groep-tekst">
-          <strong>Koppelingen</strong>
-          <span className="club-cm-groep-meta">Weegschaal, horloge en sportapps</span>
+          <strong>{t.titel}</strong>
+          <span className="club-cm-groep-meta">{t.meta}</span>
         </span>
         <ChevronRight size={20} aria-hidden className="club-cm-groep-pijl" />
       </Link>

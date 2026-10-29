@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { clubToegang } from '@/lib/club/toegang'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { instelKijker } from '@/lib/club/instel-toegang'
 import { INSTEL_PAGINAS, magInstelPagina } from '@/lib/club/kern/instel-paginas'
 
@@ -12,22 +14,23 @@ const VESTIGINGEN = INSTEL_PAGINAS.find((p) => p.id === 'vestigingen')
  */
 export async function GeenVestigingen() {
   const t = await clubToegang()
+  const tekst = (await clubTekst(MENU)).geenVestigingen
   const magToevoegen = Boolean(t && VESTIGINGEN && magInstelPagina(VESTIGINGEN, instelKijker(t)))
   return (
     <section className="club-paginakop">
       <div>
-        <h1>Nog geen vestigingen</h1>
+        <h1>{tekst.titel}</h1>
         {magToevoegen ? (
           <>
-            <p>Deze sportschool heeft nog geen vestigingen. Voeg er eerst een toe, dan werkt de rest van Club.</p>
+            <p>{tekst.toevoegenUitleg}</p>
             <p>
               <Link href="/club/instellingen/vestigingen" className="club-knop club-knop--primair">
-                Vestiging toevoegen
+                {tekst.toevoegen}
               </Link>
             </p>
           </>
         ) : (
-          <p>Deze sportschool heeft nog geen vestigingen. Vraag de eigenaar om een vestiging toe te voegen.</p>
+          <p>{tekst.vraagEigenaar}</p>
         )}
       </div>
     </section>

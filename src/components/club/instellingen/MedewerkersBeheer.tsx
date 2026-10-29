@@ -2,10 +2,12 @@
 
 import { useState, type FormEvent } from 'react'
 import { Plus, Save } from 'lucide-react'
-import { MEDEWERKER_ROLLEN, RECHTEN, ROL_LABEL, type Medewerker, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { MEDEWERKER_ROLLEN, RECHTEN, rolLabel, type Medewerker, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { useVestigingen, useVestigingNaam } from '@/components/club/shell/VestigingenContext'
-import { ONDERDELEN } from '@/components/club/shell/onderdelen'
+import { ONDERDELEN, onderdeelInTaal } from '@/components/club/shell/onderdelen'
 import { useClubActie } from '@/components/club/rooster/vraag'
 import type { LoginOverzicht } from '@/lib/club/medewerker-login/medewerker-login'
 import { bewaarItem } from './opslaan'
@@ -15,21 +17,22 @@ import { MedewerkerPrivacy } from './MedewerkerPrivacy'
 // Medewerkers met hun rollen en vestigingen. De rollen bepalen wat iemand ziet
 // als hij zelf inlogt; de eigenaar of clubmanager deelt hier de inloglink uit.
 
-const ONDERDEEL_LABEL = new Map(ONDERDELEN.map((o) => [o.sleutel, o.label]))
-
 export function RollenUitleg() {
+  const taal = useTaal()
+  const t = useTekst(INSTELLINGEN).medewerkers
+  const onderdeelLabel = new Map(ONDERDELEN.map((o) => [o.sleutel, onderdeelInTaal(o, taal).label]))
   return (
-    <section className="club-kaart club-kaart--vlak club-instellingen-rollen" aria-label="Wat elke rol straks ziet">
-      <h3 className="club-instellingen-kop">Wat elke rol straks ziet</h3>
+    <section className="club-kaart club-kaart--vlak club-instellingen-rollen" aria-label={t.rollenKop}>
+      <h3 className="club-instellingen-kop">{t.rollenKop}</h3>
       <dl>
         {MEDEWERKER_ROLLEN.map((rol) => (
           <div key={rol}>
-            <dt>{ROL_LABEL[rol]}</dt>
-            <dd>{RECHTEN[rol].map((s) => ONDERDEEL_LABEL.get(s) ?? s).join(', ')}</dd>
+            <dt>{rolLabel(rol, taal)}</dt>
+            <dd>{RECHTEN[rol].map((s) => onderdeelLabel.get(s) ?? s).join(', ')}</dd>
           </div>
         ))}
       </dl>
-      <p className="club-hint">Een medewerker die zelf inlogt, ziet de onderdelen van al zijn rollen samen, en alleen zijn eigen vestigingen. Je past de rechten per rol aan bij Beheer, Rechten per rol.</p>
+      <p className="club-hint">{t.rollenUitleg}</p>
     </section>
   )
 }
@@ -50,6 +53,9 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
   const [v, setV] = useState<Velden>(mens ? { naam: mens.naam, email: mens.email ?? '', rollen: mens.rollen, vestigingen: mens.vestigingen } : leeg)
   const { bezig, fout, voerUit } = useClubActie()
   const vestigingen = useVestigingen()
+  const taal = useTaal()
+  const tekst = useTekst(INSTELLINGEN)
+  const t = tekst.medewerkers
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -61,25 +67,25 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
     <form className="club-instellingen-mens" onSubmit={bewaar}>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Naam</span>
+          <span>{tekst.algemeen.naam}</span>
           <input className="club-invoer" required maxLength={80} value={v.naam} onChange={(e) => setV({ ...v, naam: e.target.value })} />
         </label>
         <label className="club-veld">
-          <span>E-mail</span>
+          <span>{tekst.algemeen.email}</span>
           <input className="club-invoer" type="email" maxLength={160} value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} />
         </label>
       </div>
       <fieldset className="club-instellingen-keuzes">
-        <legend className="club-label">Rollen</legend>
+        <legend className="club-label">{t.rollen}</legend>
         {MEDEWERKER_ROLLEN.map((r) => (
           <label key={r} className="club-instellingen-keuze">
             <input type="checkbox" checked={v.rollen.includes(r)} onChange={() => setV({ ...v, rollen: wissel(v.rollen, r) })} />
-            <span>{ROL_LABEL[r]}</span>
+            <span>{rolLabel(r, taal)}</span>
           </label>
         ))}
       </fieldset>
       <fieldset className="club-instellingen-keuzes">
-        <legend className="club-label">Vestigingen</legend>
+        <legend className="club-label">{t.vestigingen}</legend>
         {vestigingen.map((x) => (
           <label key={x.sleutel} className="club-instellingen-keuze">
             <input type="checkbox" checked={v.vestigingen.includes(x.sleutel)} onChange={() => setV({ ...v, vestigingen: wissel(v.vestigingen, x.sleutel) })} />
@@ -92,12 +98,12 @@ function MedewerkerFormulier({ mens, vestiging }: { mens: Medewerker | null; ves
         {mens && (
           <label className="club-instellingen-check">
             <input type="checkbox" checked={mens.actief} disabled={bezig} onChange={(e) => voerUit(() => bewaarItem('medewerkers', vestiging, mens.id, { actief: e.target.checked }))} />
-            <span>{mens.actief ? 'Actief' : 'Uit dienst'}</span>
+            <span>{mens.actief ? t.actief : t.uitDienst}</span>
           </label>
         )}
         <button type="submit" className={`club-knop club-knop--klein${mens ? '' : ' club-knop--primair'}`} disabled={bezig}>
           {mens ? <Save aria-hidden size={14} /> : <Plus aria-hidden size={14} />}
-          {mens ? 'Opslaan' : 'Medewerker toevoegen'}
+          {mens ? tekst.algemeen.opslaan : t.toevoegen}
         </button>
       </div>
     </form>
@@ -127,17 +133,19 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
   const hier = medewerkers.filter((m) => m.vestigingen.includes(vestiging))
   const elders = medewerkers.filter((m) => !m.vestigingen.includes(vestiging))
   const naam = useVestigingNaam(vestiging)
+  const taal = useTaal()
+  const t = useTekst(INSTELLINGEN).medewerkers
   const rij = (m: Medewerker) => (
     <details key={m.id} className="club-instellingen-item" data-uit={!m.actief || undefined}>
       <summary>
         <span className="club-instellingen-item-naam">{m.naam}</span>
-        <span className="club-zacht">{m.rollen.map((r) => ROL_LABEL[r]).join(', ') || 'Geen rol'}</span>
-        {!m.actief && <span className="club-chip club-chip--uit">{gewist.has(m.id) ? 'Gewist' : 'Uit dienst'}</span>}
+        <span className="club-zacht">{m.rollen.map((r) => rolLabel(r, taal)).join(', ') || t.geenRol}</span>
+        {!m.actief && <span className="club-chip club-chip--uit">{gewist.has(m.id) ? t.gewist : t.uitDienst}</span>}
       </summary>
       {m.id === ikZelf ? (
-        <p className="club-hint">Dit ben jij. Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.</p>
+        <p className="club-hint">{t.ikZelf}</p>
       ) : gewist.has(m.id) ? (
-        <p className="club-hint">De gegevens van deze oud-medewerker zijn gewist (AVG). Diensten en uren blijven zonder naam bewaard.</p>
+        <p className="club-hint">{t.gewistUitleg}</p>
       ) : (
         <MedewerkerFormulier key={`${m.naam}-${m.email}-${m.rollen.join()}-${m.vestigingen.join()}`} mens={m} vestiging={vestiging} />
       )}
@@ -161,23 +169,23 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
         <h3 className="club-instellingen-kop">
           {naam} <span className="club-getal club-zacht">{hier.length}</span>
         </h3>
-        {hier.length === 0 ? <p className="club-leeg">Nog geen medewerkers in deze vestiging.</p> : hier.map(rij)}
+        {hier.length === 0 ? <p className="club-leeg">{t.leeg}</p> : hier.map(rij)}
         {elders.length > 0 && (
           <>
             <h3 className="club-instellingen-kop">
-              Andere vestigingen <span className="club-getal club-zacht">{elders.length}</span>
+              {t.anderen} <span className="club-getal club-zacht">{elders.length}</span>
             </h3>
             {elders.map(rij)}
           </>
         )}
         <div className="club-kaart club-kaart--vlak">
-          <h3 className="club-instellingen-kop">Nieuwe medewerker</h3>
+          <h3 className="club-instellingen-kop">{t.nieuw}</h3>
           <MedewerkerFormulier mens={null} vestiging={vestiging} />
         </div>
       </div>
       <RollenUitleg />
       {login?.logins === null && (
-        <p className="club-melding club-melding--fout" role="alert">De logins van medewerkers konden niet worden gelezen. Probeer het over een paar minuten opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="alert">{t.loginsFout}</p>
       )}
     </section>
   )

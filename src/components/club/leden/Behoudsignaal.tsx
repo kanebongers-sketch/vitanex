@@ -1,4 +1,6 @@
-import { BEHOUD_LABEL, type Behoud } from '@/lib/club/leden/behoud'
+import { behoudLabel, type Behoud } from '@/lib/club/leden/behoud'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 import { BEHOUD_CHIP } from '@/lib/club/leden/weergave'
 
 // Het behoudssignaal in een rij: een dunne meter, de score en de uitleg in
@@ -9,15 +11,17 @@ interface BehoudsignaalProps {
   behoud: Behoud | null
   /** Leg uit waarom er geen score is. */
   geenTekst?: string
+  taal: Taal
 }
 
-export function Behoudsignaal({ behoud, geenTekst = 'Geen bezoek verwacht' }: BehoudsignaalProps) {
-  if (!behoud) return <span className="club-leden-behoud-geen">{geenTekst}</span>
+export function Behoudsignaal({ behoud, geenTekst, taal }: BehoudsignaalProps) {
+  const t = LEDEN[taal].behoud
+  if (!behoud) return <span className="club-leden-behoud-geen">{geenTekst ?? t.geenBezoekVerwacht}</span>
   return (
     <div className={`club-leden-behoud club-leden-behoud--${behoud.label}`}>
       <div className="club-leden-behoud-boven">
-        <span className={`club-chip ${BEHOUD_CHIP[behoud.label]}`}>{BEHOUD_LABEL[behoud.label]}</span>
-        <span className="club-leden-behoud-score club-getal" aria-label={`Behoudsscore ${behoud.score} van 100`}>
+        <span className={`club-chip ${BEHOUD_CHIP[behoud.label]}`}>{behoudLabel(behoud.label, taal)}</span>
+        <span className="club-leden-behoud-score club-getal" aria-label={t.score(behoud.score)}>
           {behoud.score}
         </span>
         <span className="club-leden-meter" aria-hidden>

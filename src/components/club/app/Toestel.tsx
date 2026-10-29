@@ -3,18 +3,22 @@ import type { ReactNode } from 'react'
 import { Apple, CalendarClock, CalendarDays, Dumbbell, House, TrendingUp, UserRound } from 'lucide-react'
 import { tijdNl } from '@/lib/club/cijfers/tijd'
 import { FitFactoryLogo } from '@/components/club/shell/FitFactoryLogo'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 
-// Het telefoonframe van de voorvertoning. Op een telefoon zelf valt het frame
+// Het telefoonframe van de voorvertoning. De labels van de tabbladen komen uit
+// het woordenboek (LEDENAPP.tabs).
+// Op een telefoon zelf valt het frame
 // weg en vult de app het hele scherm.
 
 export const APP_TABS = [
-  { sleutel: 'home', label: 'Home', Icoon: House },
-  { sleutel: 'lessen', label: 'Lessen', Icoon: CalendarDays },
-  { sleutel: 'afspraken', label: 'Afspraken', Icoon: CalendarClock },
-  { sleutel: 'schema', label: 'Schema', Icoon: Dumbbell },
-  { sleutel: 'voeding', label: 'Voeding', Icoon: Apple },
-  { sleutel: 'voortgang', label: 'Voortgang', Icoon: TrendingUp },
-  { sleutel: 'profiel', label: 'Profiel', Icoon: UserRound },
+  { sleutel: 'home', Icoon: House },
+  { sleutel: 'lessen', Icoon: CalendarDays },
+  { sleutel: 'afspraken', Icoon: CalendarClock },
+  { sleutel: 'schema', Icoon: Dumbbell },
+  { sleutel: 'voeding', Icoon: Apple },
+  { sleutel: 'voortgang', Icoon: TrendingUp },
+  { sleutel: 'profiel', Icoon: UserRound },
 ] as const
 
 export type AppTab = (typeof APP_TABS)[number]['sleutel']
@@ -38,7 +42,8 @@ interface Props {
   children: ReactNode
 }
 
-export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory = false, tabsUit = [], children }: Props) {
+export async function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory = false, tabsUit = [], children }: Props) {
+  const t = LEDENAPP[await getTaal()].tabs
   return (
     <div className="club-lidapp-toestel">
       <div className="club-lidapp-scherm">
@@ -53,11 +58,11 @@ export function Toestel({ tab, nu, tabPad, merkNaam, merkLogo = null, fitFactory
           </div>
           {children}
         </div>
-        <nav className="club-lidapp-tabs" aria-label="Ledenapp">
-          {APP_TABS.filter((t) => !tabsUit.includes(t.sleutel)).map(({ sleutel, label, Icoon }) => (
+        <nav className="club-lidapp-tabs" aria-label={t.label}>
+          {APP_TABS.filter((x) => !tabsUit.includes(x.sleutel)).map(({ sleutel, Icoon }) => (
             <Link key={sleutel} href={tabPad(sleutel)} aria-current={sleutel === tab ? 'page' : undefined} scroll={false}>
               <Icoon aria-hidden size={20} />
-              <span>{label}</span>
+              <span>{t[sleutel]}</span>
             </Link>
           ))}
         </nav>

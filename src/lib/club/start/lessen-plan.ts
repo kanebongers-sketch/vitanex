@@ -8,6 +8,8 @@
 
 import type { LesSoort } from '@/lib/club/rooster/typen'
 import { zelfdeNaam, type VoorbeeldLes, type VoorbeeldLestype } from './voorbeelden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
 export type Intensiteit = 1 | 2 | 3
 
@@ -138,22 +140,23 @@ function binnen(n: number, min: number, max: number): boolean {
 }
 
 /** Klopt alles wat aan staat? Dezelfde grenzen als de API, in gewone taal. Null = goed. */
-export function controleerLessen(typen: readonly TypeRij[], lessen: readonly LesRij[]): string | null {
+export function controleerLessen(typen: readonly TypeRij[], lessen: readonly LesRij[], taal: Taal = 'nl'): string | null {
+  const c = START_LIB[taal].controle
   const gekozen = typen.filter((t) => t.aan)
   for (const t of gekozen) {
-    if (!t.naam.trim()) return 'Geef elk lestype een naam.'
-    if (t.naam.trim().length > 60) return `De naam ${t.naam.trim().slice(0, 20)}... is te lang (hooguit 60 tekens).`
-    if (!binnen(t.duurMin, 10, 240)) return `De duur van ${t.naam.trim()} moet tussen 10 en 240 minuten liggen.`
-    if (t.omschrijving.length > 600) return `De uitleg van ${t.naam.trim()} is te lang (hooguit 600 tekens).`
+    if (!t.naam.trim()) return c.typeNaam
+    if (t.naam.trim().length > 60) return c.typeNaamLang(t.naam.trim().slice(0, 20))
+    if (!binnen(t.duurMin, 10, 240)) return c.typeDuur(t.naam.trim())
+    if (t.omschrijving.length > 600) return c.typeUitleg(t.naam.trim())
   }
   const namen = gekozen.map((t) => t.naam.trim().toLowerCase().replace(/\s+/g, ' '))
   const dubbel = namen.find((n, i) => namen.indexOf(n) !== i)
-  if (dubbel) return `Je hebt twee lestypen met de naam ${dubbel}. Geef ze elk een eigen naam.`
+  if (dubbel) return c.dubbel(dubbel)
   for (const l of zichtbareLessen(lessen, typen).filter((x) => x.aan)) {
-    if (!binnen(l.weekdag, 1, 7)) return 'Kies voor elke les een dag.'
-    if (!TIJD.test(l.starttijd)) return 'Vul bij elke les een begintijd in, zoals 19:00.'
-    if (!binnen(l.duurMin, 10, 240)) return 'De duur van een les ligt tussen 10 en 240 minuten.'
-    if (!binnen(l.capaciteit, 1, 500)) return 'Het aantal plekken ligt tussen 1 en 500.'
+    if (!binnen(l.weekdag, 1, 7)) return c.lesDag
+    if (!TIJD.test(l.starttijd)) return c.lesTijd
+    if (!binnen(l.duurMin, 10, 240)) return c.lesDuur
+    if (!binnen(l.capaciteit, 1, 500)) return c.lesPlekken
   }
   return null
 }

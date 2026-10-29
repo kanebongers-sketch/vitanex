@@ -3,6 +3,8 @@
 import { useEffect, useId, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { haal } from './haal'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
 // Een lid zoeken op naam, lidnummer, e-mail of telefoon (vanaf 2 tekens).
 
@@ -36,6 +38,7 @@ export function LidZoeker({ vestiging, gekozen, onKies }: Props) {
   const [treffers, setTreffers] = useState<Treffer[]>([])
   const [fout, setFout] = useState<string | null>(null)
   const zoekt = term.trim().length >= 2
+  const t = useTekst(AFSPRAKEN).lidZoeker
 
   useEffect(() => {
     if (!zoekt) return
@@ -56,10 +59,10 @@ export function LidZoeker({ vestiging, gekozen, onKies }: Props) {
   if (gekozen) {
     return (
       <div className="club-veld">
-        <span>Lid *</span>
+        <span>{t.lid}</span>
         <div className="club-afspraken-lid-gekozen">
           <strong>{gekozen.naam}</strong>
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => onKies(null)} aria-label={`${gekozen.naam} weghalen`}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => onKies(null)} aria-label={t.weghalen(gekozen.naam)}>
             <X size={15} aria-hidden />
           </button>
         </div>
@@ -69,7 +72,7 @@ export function LidZoeker({ vestiging, gekozen, onKies }: Props) {
 
   return (
     <div className="club-veld club-afspraken-zoeker">
-      <label htmlFor={id}>Lid *</label>
+      <label htmlFor={id}>{t.lid}</label>
       <div className="club-afspraken-zoekveld">
         <Search size={15} aria-hidden />
         <input
@@ -77,28 +80,28 @@ export function LidZoeker({ vestiging, gekozen, onKies }: Props) {
           className="club-invoer"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Naam, lidnummer, e-mail of telefoon"
+          placeholder={t.plaats}
           autoComplete="off"
           aria-describedby={`${id}-uitleg`}
         />
       </div>
       <p id={`${id}-uitleg`} className="club-sr" aria-live="polite">
-        {zoekt ? `${treffers.length} leden gevonden` : 'Typ minstens 2 tekens'}
+        {zoekt ? t.gevonden(treffers.length) : t.minTekens}
       </p>
       {fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}
       {zoekt && treffers.length > 0 ? (
         <ul className="club-afspraken-treffers">
-          {treffers.map((t) => (
-            <li key={t.id}>
-              <button type="button" onClick={() => onKies({ id: t.id, naam: t.naam })}>
-                <strong>{t.naam}</strong>
-                {t.lidnummer ? <span>{t.lidnummer}</span> : null}
+          {treffers.map((lid) => (
+            <li key={lid.id}>
+              <button type="button" onClick={() => onKies({ id: lid.id, naam: lid.naam })}>
+                <strong>{lid.naam}</strong>
+                {lid.lidnummer ? <span>{lid.lidnummer}</span> : null}
               </button>
             </li>
           ))}
         </ul>
       ) : null}
-      {zoekt && treffers.length === 0 && !fout ? <p className="club-afspraken-tijden-stand">Geen leden gevonden.</p> : null}
+      {zoekt && treffers.length === 0 && !fout ? <p className="club-afspraken-tijden-stand">{t.geenLeden}</p> : null}
     </div>
   )
 }

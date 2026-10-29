@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { MoreHorizontal } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
 
 export interface MeerItem {
   sleutel: string
@@ -22,6 +24,7 @@ interface EditorMeerProps {
 /** Het menu "Meer" van de werkbalk: minder gebruikte acties uit het zicht. Escape of klik ernaast sluit. */
 export function EditorMeer({ items, voet }: EditorMeerProps) {
   const id = useId()
+  const t = useTekst(SCHEMA_EDITOR).meer
   const [open, setOpen] = useState(false)
   const kader = useRef<HTMLDivElement>(null)
   const knop = useRef<HTMLButtonElement>(null)
@@ -56,11 +59,11 @@ export function EditorMeer({ items, voet }: EditorMeerProps) {
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
       >
-        <MoreHorizontal aria-hidden size={18} /> <span className="club-training-meer-tekst">Meer</span>
+        <MoreHorizontal aria-hidden size={18} /> <span className="club-training-meer-tekst">{t.knop}</span>
       </button>
       {open && (
         <div className="club-training-meer-paneel" id={id}>
-          <ul role="menu" aria-label="Meer acties">
+          <ul role="menu" aria-label={t.label}>
             {items.map((i) => (
               <li key={i.sleutel} role="none">
                 <button

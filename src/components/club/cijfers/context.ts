@@ -4,6 +4,8 @@ import type { Rapport } from '@/lib/club/cijfers/rapport'
 import type { Bereik } from '@/lib/club/cijfers/periode'
 import { maandKort, maandNaam, type Maand } from '@/lib/club/cijfers/maand'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { CIJFERS, type CijfersTekst } from '@/lib/aiyourgym/taal/woorden/club/cijfers'
 
 export interface CijferContext {
   rapport: Rapport
@@ -13,11 +15,18 @@ export interface CijferContext {
   vestigingNaam: string
   bereik: Bereik
   vandaag: string
+  /** De taal van de pagina (cookie ayg-taal). */
+  taal: Taal
+}
+
+/** De teksten van de cijferpagina in de taal van de context. */
+export function tekstVan(c: Pick<CijferContext, 'taal'>): CijfersTekst {
+  return CIJFERS[c.taal]
 }
 
 /** "Budel" of "Alle vestigingen". */
-export function bereikNaam(c: Pick<CijferContext, 'bereik' | 'vestigingNaam'>): string {
-  return c.bereik === 'alle' ? 'Alle vestigingen' : c.vestigingNaam
+export function bereikNaam(c: Pick<CijferContext, 'bereik' | 'vestigingNaam' | 'taal'>): string {
+  return c.bereik === 'alle' ? CIJFERS[c.taal].kop.alleVestigingen : c.vestigingNaam
 }
 
 /** Deel van een bestandsnaam: "budel-2026-10". */
@@ -26,9 +35,9 @@ export function bestandsdeel(c: Pick<CijferContext, 'bereik' | 'vestiging' | 'ma
 }
 
 /** Labels voor een reeks maanden: kort onder de as, voluit in tabel en tooltip. */
-export function maandLabels(maanden: readonly Maand[]): { labels: string[]; namen: string[] } {
+export function maandLabels(maanden: readonly Maand[], taal: Taal = 'nl'): { labels: string[]; namen: string[] } {
   return {
-    labels: maanden.map((m) => (m.endsWith('-01') ? `${maandKort(m)} ${m.slice(2, 4)}` : maandKort(m))),
-    namen: maanden.map(maandNaam),
+    labels: maanden.map((m) => (m.endsWith('-01') ? `${maandKort(m, taal)} ${m.slice(2, 4)}` : maandKort(m, taal))),
+    namen: maanden.map((m) => maandNaam(m, taal)),
   }
 }

@@ -6,7 +6,8 @@ import { Check, ChevronDown, ChevronRight, ClipboardList, CloudUpload, MessageSq
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
-import { dagKort, dagSleutel } from '@/lib/club/cijfers/tijd'
+import { dagSleutel } from '@/lib/club/cijfers/tijd'
+import { dagKortIn } from '@/lib/club/app/regels'
 import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
 import { bronnenVan } from '@/lib/club/training/beeld'
 import { WAAROM_KOP } from '@/lib/club/training/voorstel-uitleg'
@@ -17,8 +18,8 @@ import { useLedenappApi } from './LedenappApi'
 import { LegeStaat } from './LegeStaat'
 import { TrainingModus } from './training/TrainingModus'
 import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
-import { useTekst } from '@/lib/aiyourgym/taal/client'
-import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { useWachtrij, type Wachtrij } from './training/useWachtrij'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
@@ -48,14 +49,16 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const sluit = useCallback(() => setOpen(null), [])
   // Trainingen die zonder bereik werden afgerond: gaan vanzelf de deur uit zodra er verbinding is.
   const wachtrij = useWachtrij(useCallback(() => router.refresh(), [router]))
-  const w = useTekst(ONTWERP).ledenapp
+  const taal = useTaal()
+  const t = LEDENAPP[taal].schema
+  const a = LEDENAPP[taal].algemeen
   const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
     return (
       <div className="club-lidapp-tab">
-        <h2 className="club-lidapp-kop">Schema</h2>
-        <LegeStaat Icoon={ClipboardList} titel="Nog geen schema">
-          Je hebt nog geen actief schema. Vraag je trainer om er een voor je te maken.
+        <h2 className="club-lidapp-kop">{t.kop}</h2>
+        <LegeStaat Icoon={ClipboardList} titel={t.geenSchema}>
+          {t.geenSchemaUitleg}
         </LegeStaat>
       </div>
     )
@@ -98,25 +101,23 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
 
   return (
     <div className="club-lidapp-tab">
-      <h2 className="club-lidapp-kop">Schema</h2>
+      <h2 className="club-lidapp-kop">{t.kop}</h2>
       <p className="club-lidapp-schemanaam">
         <strong>{schema.naam}</strong>
-        {schema.weken ? <span>{schema.weken} weken</span> : null}
-        <span>
-          {dag.oefeningen.length} {dag.oefeningen.length === 1 ? 'oefening' : 'oefeningen'}
-        </span>
+        {schema.weken ? <span>{t.weken(schema.weken)}</span> : null}
+        <span>{t.oefeningen(dag.oefeningen.length)}</span>
       </p>
-      {schema.notitie && <SchemaNotitie notitie={schema.notitie} />}
-      <div className="club-lidapp-dagkeuze" role="group" aria-label="Trainingsdag">
+      {schema.notitie && <SchemaNotitie notitie={schema.notitie} vanTrainer={t.vanTrainer} waarom={t.waarom} />}
+      <div className="club-lidapp-dagkeuze" role="group" aria-label={t.trainingsdag}>
         {schema.dagen.map((d) => (
           <button key={d.dag} type="button" aria-pressed={d.dag === dag.dag} onClick={() => setGekozen(d.dag)} data-week-gedaan={dezeWeek.has(d.dag) || undefined}>
             {dezeWeek.has(d.dag) && <Check aria-hidden size={14} className="club-lidapp-dagvink" />}
-            Dag {d.letter}
-            {dezeWeek.has(d.dag) && <span className="club-sr">, {w.week.toLowerCase()} {w.gedaan}</span>}
+            {t.dag(d.letter)}
+            {dezeWeek.has(d.dag) && <span className="club-sr">{t.dezeWeekGedaan}</span>}
             {d.dag === voorstel && (
               <>
                 <span className="club-lidapp-stip" aria-hidden />
-                <span className="club-sr"> (volgende)</span>
+                <span className="club-sr">{t.volgende}</span>
               </>
             )}
           </button>
@@ -132,7 +133,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
               <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="klein" decoratief />
               <span className="club-lidapp-oefening-tekst">
                 <strong>{o.naam}</strong>
-                <span>{voorschrift(o) || 'Volgens je trainer'}</span>
+                <span>{voorschrift(o, taal) || t.volgensTrainer}</span>
                 <OefeningHint notitie={o.notitie} punten={kernpunten[o.naam]} aandachtspunten={o.aandachtspunten} />
               </span>
               <ChevronRight aria-hidden size={18} className="club-lidapp-oefening-pijl" />
@@ -143,21 +144,21 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
       <BeeldBron className="club-lidapp-beeldbron" bronnen={bronnenVan(dag.oefeningen.map((o) => o.beeld))} />
       {gedaan ? (
         <button type="button" className="club-lidapp-knop club-lidapp-knop--breed club-lidapp-knop--klaar" disabled>
-          <Check aria-hidden size={18} /> Dag {dag.letter} gedaan vandaag
+          <Check aria-hidden size={18} /> {t.dagGedaan(dag.letter)}
         </button>
       ) : (
         <div className="club-lidapp-startrij">
           <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" onClick={() => setTraint(true)} disabled={bezig}>
-            <Play aria-hidden size={18} /> Start training dag {dag.letter}
+            <Play aria-hidden size={18} /> {t.start(dag.letter)}
           </button>
           <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
-            {bezig ? 'Bezig...' : 'Alleen afvinken, zonder sets'}
+            {bezig ? a.bezig : t.alleenAfvinken}
           </button>
         </div>
       )}
       {gedaan && (
         <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
-          <Undo2 aria-hidden size={14} /> {bezig ? 'Bezig...' : 'Ongedaan maken'}
+          <Undo2 aria-hidden size={14} /> {bezig ? a.bezig : t.ongedaan}
         </button>
       )}
       {fout && (
@@ -165,15 +166,15 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
           {fout}
         </p>
       )}
-      <WachtrijStatus wachtrij={wachtrij} />
+      <WachtrijStatus wachtrij={wachtrij} t={t} sluiten={a.sluiten} />
       {recent.length > 0 && (
-        <section className="club-lidapp-recent" aria-label="Laatst gedaan">
-          <h3>Laatst gedaan</h3>
+        <section className="club-lidapp-recent" aria-label={t.laatstGedaan}>
+          <h3>{t.laatstGedaan}</h3>
           <ul>
             {recent.map((l) => (
               <li key={l.id}>
-                <span>{l.dag ? `Dag ${dagLetter(l.dag)}` : 'Training'}</span>
-                <span>{dagKort(dagSleutel(new Date(l.op)))}</span>
+                <span>{l.dag ? t.dag(dagLetter(l.dag)) : t.training}</span>
+                <span>{dagKortIn(dagSleutel(new Date(l.op)), taal)}</span>
               </li>
             ))}
           </ul>
@@ -186,7 +187,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
 }
 
 /** De notitie van de trainer bij het hele schema, of de uitleg "Waarom dit schema". Ingeklapt, een tik opent hem. */
-function SchemaNotitie({ notitie }: { notitie: string }) {
+function SchemaNotitie({ notitie, vanTrainer, waarom }: { notitie: string; vanTrainer: string; waarom: string }) {
   const regels = notitie.split('\n')
   const isWaarom = regels[0] === WAAROM_KOP
   const tekst = (isWaarom ? regels.slice(1) : regels).join('\n').trim()
@@ -194,7 +195,7 @@ function SchemaNotitie({ notitie }: { notitie: string }) {
     <details className="club-lidapp-schemanotitie">
       <summary>
         <MessageSquareText aria-hidden size={17} />
-        {isWaarom ? WAAROM_KOP : 'Van je trainer'}
+        {isWaarom ? waarom : vanTrainer}
         <ChevronDown aria-hidden size={16} className="club-lidapp-schemanotitie-pijl" />
       </summary>
       <p>{tekst}</p>
@@ -220,12 +221,12 @@ function OefeningHint({ notitie, punten, aandachtspunten }: { notitie: string | 
 }
 
 /** Rustig onder de startknop: een training die nog op bereik wacht, of die de server weigerde. */
-function WachtrijStatus({ wachtrij }: { wachtrij: Wachtrij }) {
+function WachtrijStatus({ wachtrij, t, sluiten }: { wachtrij: Wachtrij; t: (typeof LEDENAPP)['nl']['schema']; sluiten: string }) {
   if (wachtrij.fout) {
     return (
       <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="alert">
         {wachtrij.fout}{' '}
-        <button type="button" className="club-lidapp-tekstknop" onClick={wachtrij.sluitFout}>Sluiten</button>
+        <button type="button" className="club-lidapp-tekstknop" onClick={wachtrij.sluitFout}>{sluiten}</button>
       </p>
     )
   }
@@ -233,9 +234,7 @@ function WachtrijStatus({ wachtrij }: { wachtrij: Wachtrij }) {
   return (
     <p className="club-tm-wacht" role="status">
       <CloudUpload aria-hidden size={16} />
-      {wachtrij.aantal === 1
-        ? `Een training ${wachtrij.online ? 'wordt nu verstuurd.' : 'staat op je telefoon en gaat vanzelf weg zodra je bereik hebt.'}`
-        : `${wachtrij.aantal} trainingen ${wachtrij.online ? 'worden nu verstuurd.' : 'staan op je telefoon en gaan vanzelf weg zodra je bereik hebt.'}`}
+      {wachtrij.aantal === 1 ? t.wachtEen(wachtrij.online) : t.wachtMeer(wachtrij.aantal, wachtrij.online)}
     </p>
   )
 }

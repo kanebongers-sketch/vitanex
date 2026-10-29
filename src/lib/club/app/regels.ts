@@ -5,6 +5,8 @@
 // we ze alleen om ze te tonen. Ontbreekt een regel, dan geldt de standaard.
 
 import { dagenTussen, dagSleutel, maandagVan, nlMoment, plusDagen, weekdagVan } from '@/lib/club/cijfers/tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 
 export interface AppRegels {
   annuleerUren: number
@@ -40,20 +42,15 @@ export function appRegelsUitJson(ruw: unknown): AppRegels {
   }
 }
 
-function uren(n: number): string {
-  return n === 1 ? '1 uur' : `${n} uur`
-}
-
-/** De regels zoals het lid ze leest. */
-export function regelTeksten(r: AppRegels): string[] {
+/** De regels zoals het lid ze leest, in de gekozen taal. */
+export function regelTeksten(r: AppRegels, taal: Taal = 'nl'): string[] {
+  const t = LEDENAPP[taal].regels
   const teksten = [
-    r.annuleerUren === 0 ? 'Gratis annuleren kan tot de les begint.' : `Gratis annuleren tot ${uren(r.annuleerUren)} voor de les. Later annuleren telt als te laat.`,
-    `Je kunt tot ${r.reserveerDagenVooruit} dagen vooruit boeken, met maximaal ${r.maxOpenReserveringen} open boekingen tegelijk.`,
-    'Is een les vol, dan kun je op de wachtlijst. Komt er een plek vrij, dan schuif je automatisch door.',
+    r.annuleerUren === 0 ? t.annulerenTotBegin : t.annulerenTot(r.annuleerUren),
+    t.vooruit(r.reserveerDagenVooruit, r.maxOpenReserveringen),
+    t.wachtlijst,
   ]
-  if (r.noShowBlokkadeDagen > 0) {
-    teksten.push(`Ben je ${r.noShowDrempel} keer niet gekomen binnen 30 dagen, dan kun je ${r.noShowBlokkadeDagen} dagen niet boeken.`)
-  }
+  if (r.noShowBlokkadeDagen > 0) teksten.push(t.noShow(r.noShowDrempel, r.noShowBlokkadeDagen))
   return teksten
 }
 
@@ -115,18 +112,26 @@ export function wekenOpRij(bezoeken: readonly Date[], nu: Date): number {
   return n
 }
 
-/** "Goedemorgen", "Goedemiddag" of "Goedenavond" op Nederlandse tijd. */
-export function groet(nu: Date): string {
+/** "Goedemorgen", "Goedemiddag" of "Goedenavond" op Nederlandse tijd, in de gekozen taal. */
+export function groet(nu: Date, taal: Taal = 'nl'): string {
   const uur = nlMoment(nu).uur
-  if (uur >= 6 && uur < 12) return 'Goedemorgen'
-  if (uur >= 12 && uur < 18) return 'Goedemiddag'
-  return 'Goedenavond'
+  const t = LEDENAPP[taal].groet
+  if (uur >= 6 && uur < 12) return t.ochtend
+  if (uur >= 12 && uur < 18) return t.middag
+  return t.avond
 }
 
 /** "Vandaag", "Morgen" of de weekdag, voor een lesdag. */
-export function dagNaamKort(dag: string, vandaag: string): string {
+export function dagNaamKort(dag: string, vandaag: string, taal: Taal = 'nl'): string {
+  const t = LEDENAPP[taal].dagen
   const verschil = dagenTussen(vandaag, dag)
-  if (verschil === 0) return 'Vandaag'
-  if (verschil === 1) return 'Morgen'
-  return ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'][weekdagVan(dag) - 1]
+  if (verschil === 0) return t.vandaag
+  if (verschil === 1) return t.morgen
+  return t.weekdag[weekdagVan(dag) - 1]
+}
+
+/** "14 okt" of "14 Oct" voor een dagsleutel (YYYY-MM-DD). */
+export function dagKortIn(dag: string, taal: Taal = 'nl'): string {
+  const [, m, d] = dag.split('-').map(Number)
+  return `${d} ${LEDENAPP[taal].dagen.maandKort[m - 1]}`
 }

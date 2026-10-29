@@ -7,6 +7,8 @@ import { heeftVreemdeVestiging, isAlles, rapportKeuze, VESTIGINGEN_PARAM } from 
 import { rapportBestand, rapportCsv } from '@/lib/club/rapporten/csv'
 import { haalRapportTabel } from '@/lib/club/rapporten/haal'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { kiesTaal, TAAL_COOKIE } from '@/lib/aiyourgym/taal/taal'
+import { kolomIn } from '@/lib/aiyourgym/taal/woorden/club/rapporten'
 
 // GET /api/club/rapporten/csv?rapport=<sleutel>&maand=YYYY-MM&vs=<vestiging>&vs=...|alle
 //   Het rapport als CSV voor Excel NL (puntkomma, UTF-8 met BOM, dd-mm-jjjj).
@@ -29,13 +31,15 @@ export async function GET(req: NextRequest) {
   const alle = isAlles(keuze, t.vestigingen)
   const bestand = rapportBestand(keuze.rapport, keuze.maand, keuze.vestigingen, alle)
   const { tabel } = uitkomst
+  // De kolomkoppen in de taal van de gebruiker (cookie van het verzoek zelf); de waarden blijven zoals ze zijn.
+  const taal = kiesTaal(req.cookies.get(TAAL_COOKIE)?.value)
   await logActie(
     t,
     'rapport geexporteerd',
     `${RAPPORTEN[keuze.rapport].titel}, ${maandNaam(keuze.maand)}, ${tabel.rijen.length} rijen${alle ? ', alle vestigingen' : ''}`,
     keuze.vestigingen.length === 1 ? keuze.vestigingen[0] : null,
   )
-  return new NextResponse(rapportCsv(tabel), {
+  return new NextResponse(rapportCsv({ ...tabel, kolommen: tabel.kolommen.map((k) => kolomIn(k, taal)) }), {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="${bestand}"`,

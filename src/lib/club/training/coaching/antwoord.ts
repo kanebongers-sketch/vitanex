@@ -11,6 +11,8 @@ import { clubFout, clubJson } from '@/lib/club/toegang'
 import { coachingSleutel, coachingVoor } from './index'
 import { coachingUitRij } from './invoer'
 import type { Coaching } from './typen'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { standaardCoachingIn } from '@/lib/aiyourgym/taal/woorden/club/coaching'
 
 const MAX_NAAM = 80
 const MAX_KERN = 60
@@ -32,14 +34,16 @@ async function eigenCoaching(s: Bron, namen: readonly string[]): Promise<Map<str
   return uit
 }
 
+// De standaardcoaching in de taal van de gebruiker (cookie ayg-taal); eigen coaching van de sportschool blijft zoals hij is geschreven.
 export async function coachingAntwoord(s: Bron, zoek: URLSearchParams): Promise<NextResponse> {
+  const taal = await getTaal()
   const kern = zoek.getAll('kern').map((n) => n.trim()).filter(Boolean)
   if (kern.length > 0) {
     if (kern.length > MAX_KERN || kern.some((n) => n.length > MAX_NAAM)) return clubFout('Te veel oefeningen.', 400)
     const eigen = await eigenCoaching(s, kern)
     const kernpunten = Object.fromEntries(
       kern.flatMap((naam) => {
-        const c = eigen.get(coachingSleutel(naam)) ?? coachingVoor(naam)
+        const c = eigen.get(coachingSleutel(naam)) ?? standaardCoachingIn(naam, coachingVoor(naam), taal)
         return c ? [[naam, c.kernpunten.map((k) => k.punt)]] : []
       }),
     )
@@ -48,5 +52,5 @@ export async function coachingAntwoord(s: Bron, zoek: URLSearchParams): Promise<
   const naam = zoek.get('naam')?.trim() ?? ''
   if (!naam || naam.length > MAX_NAAM) return clubFout('Onbekende oefening.', 400)
   const eigen = (await eigenCoaching(s, [naam])).get(coachingSleutel(naam))
-  return clubJson({ coaching: eigen ?? coachingVoor(naam), eigen: eigen !== undefined })
+  return clubJson({ coaching: eigen ?? standaardCoachingIn(naam, coachingVoor(naam), taal), eigen: eigen !== undefined })
 }

@@ -1,6 +1,8 @@
 'use client'
 
-import { LID_STATUSSEN, LID_STATUS_LABEL } from '@/lib/club/kern/lid'
+import { LID_STATUSSEN, lidStatusLabel } from '@/lib/club/kern/lid'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 import { TAG_MAX } from '@/lib/club/berichten/model'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { wissel, type Concept } from './concept'
@@ -16,14 +18,16 @@ interface Props {
 
 export function DoelgroepVelden({ concept, vestigingen, tags, zet }: Props) {
   const alle = concept.vestigingen.length === 0
+  const taal = useTaal()
+  const t = useTekst(BERICHTEN).doelgroepVelden
   return (
     <>
       <fieldset className="club-bericht-groep">
-        <legend className="club-label">Vestigingen</legend>
+        <legend className="club-label">{t.vestigingen}</legend>
         <div className="club-bericht-vinken">
           <label className="club-bericht-vink">
             <input type="checkbox" checked={alle} onChange={() => zet({ vestigingen: alle && vestigingen[0] ? [vestigingen[0].sleutel] : [] })} />
-            Alle vestigingen
+            {t.alleVestigingen}
           </label>
           {vestigingen.map((v) => (
             <label key={v.sleutel} className="club-bericht-vink">
@@ -43,26 +47,26 @@ export function DoelgroepVelden({ concept, vestigingen, tags, zet }: Props) {
       </fieldset>
 
       <fieldset className="club-bericht-groep">
-        <legend className="club-label">Alleen voor</legend>
+        <legend className="club-label">{t.alleenVoor}</legend>
         <div className="club-bericht-vinken">
           {LID_STATUSSEN.map((s) => (
             <label key={s} className="club-bericht-vink">
               <input type="checkbox" checked={concept.statussen.includes(s)} onChange={() => zet({ statussen: wissel(concept.statussen, s) })} />
-              {LID_STATUS_LABEL[s]}
+              {lidStatusLabel(s, taal)}
             </label>
           ))}
         </div>
-        <p className="club-hint">Niets aangevinkt: alle leden zien het.</p>
+        <p className="club-hint">{t.nietsAangevinkt}</p>
       </fieldset>
 
       <label className="club-veld">
-        <span>Tag (optioneel)</span>
+        <span>{t.tag}</span>
         <input
           className="club-invoer"
           list="club-bericht-tags"
           maxLength={TAG_MAX}
           value={concept.tag}
-          placeholder="Bijvoorbeeld Ochtendploeg"
+          placeholder={t.tagVoorbeeld}
           onChange={(e) => zet({ tag: e.target.value })}
         />
         <datalist id="club-bericht-tags">

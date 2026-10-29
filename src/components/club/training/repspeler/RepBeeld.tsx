@@ -2,6 +2,8 @@
 
 import type { RefObject } from 'react'
 import type { RepRender } from './render-bron'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { REPSPELER } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 
 // Het beeld van de rep-speler: de poster (beginhouding) tot de frames klaar zijn
 // en de speler loopt, daarna het canvas waarop de speler elk frame tekent.
@@ -23,8 +25,9 @@ interface RepBeeldProps {
 }
 
 export function RepBeeld({ meet, canvas, render, naam, minder, zichtbaar, piek, laadDeel }: RepBeeldProps) {
+  const t = REPSPELER[useTaal()]
   return (
-    <div ref={meet} className="club-rep-beeld" data-canvas={zichtbaar || undefined} role="img" aria-label={`Uitvoering van ${naam}`}>
+    <div ref={meet} className="club-rep-beeld" data-canvas={zichtbaar || undefined} role="img" aria-label={t.beeld(naam)}>
       <span className="club-rep-vloer" aria-hidden />
       <img
         className="club-rep-still" src={render.poster} alt="" aria-hidden width={1080} height={1080}

@@ -5,16 +5,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from './vestiging'
 import { isVestigingSlug } from './vestigingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 export const LID_STATUSSEN = ['actief', 'gepauzeerd', 'opgezegd', 'gestopt', 'proef'] as const
 export type LidStatus = (typeof LID_STATUSSEN)[number]
 
-export const LID_STATUS_LABEL: Record<LidStatus, string> = {
-  actief: 'Actief',
-  gepauzeerd: 'Gepauzeerd',
-  opgezegd: 'Opgezegd',
-  gestopt: 'Gestopt',
-  proef: 'Proeflid',
+/** De Nederlandse namen (bron: het woordenboek LEDEN). In beeld via lidStatusLabel(status, taal). */
+export const LID_STATUS_LABEL: Record<LidStatus, string> = LEDEN.nl.status
+
+/** De naam van een status in de gekozen taal. */
+export function lidStatusLabel(status: LidStatus, taal: Taal = 'nl'): string {
+  return LEDEN[taal].status[status]
 }
 
 /** Mag dit lid trainen en lessen boeken? Opgezegd mag tot de einddatum. */

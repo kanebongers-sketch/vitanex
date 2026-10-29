@@ -9,27 +9,29 @@ import { TekstenEditor } from '@/components/club/bedrijf/TekstenEditor'
 import { VestigingenContact } from '@/components/club/bedrijf/VestigingenContact'
 import '@/components/club/bedrijf/bedrijf.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BEDRIJF } from '@/lib/aiyourgym/taal/woorden/club/bedrijf'
 
-export const metadata: Metadata = { title: 'Bedrijf en huisregels' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(BEDRIJF)).pagina.titel }
+}
 
 // Bedrijfsgegevens (KvK, btw, hoofdkantoor, contact, social) en de teksten voor
 // leden (huisregels, voorwaarden, privacy). Het tabblad staat in de URL.
 
-const TABS = [
-  { sleutel: 'gegevens', label: 'Gegevens' },
-  { sleutel: 'teksten', label: 'Teksten' },
-] as const
+const TABS = ['gegevens', 'teksten'] as const
 
-type Tab = (typeof TABS)[number]['sleutel']
+type Tab = (typeof TABS)[number]
 
 function kiesTab(ruw: string | string[] | undefined): Tab {
   const w = Array.isArray(ruw) ? ruw[0] : ruw
-  return TABS.find((t) => t.sleutel === w)?.sleutel ?? 'gegevens'
+  return TABS.find((t) => t === w) ?? 'gegevens'
 }
 
 export default async function BedrijfPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisOnderdeel('bedrijf')
   const tab = kiesTab((await searchParams).tab)
+  const tekst = (await clubTekst(BEDRIJF)).pagina
   const v = kiesUit(t.vestigingen, null)
   const naarVestigingen = v ? clubPad('/instellingen/vestigingen', v) : '/club/instellingen/vestigingen'
   const [bedrijf, vestigingen] = await Promise.all([
@@ -43,21 +45,21 @@ export default async function BedrijfPagina({ searchParams }: { searchParams: Zo
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Bedrijf en huisregels</h1>
-          <p>De officiele gegevens van je sportschool en de teksten die je leden in de app lezen.</p>
+          <h1>{tekst.titel}</h1>
+          <p>{tekst.intro}</p>
         </div>
       </header>
 
-      <nav className="club-segment club-bedrijf-tabs" aria-label="Onderdelen">
+      <nav className="club-segment club-bedrijf-tabs" aria-label={tekst.tabs}>
         {TABS.map((x) => (
-          <Link key={x.sleutel} href={`/club/beheer/bedrijf?tab=${x.sleutel}`} aria-current={x.sleutel === tab ? 'page' : undefined} scroll={false}>
-            {x.label}
+          <Link key={x} href={`/club/beheer/bedrijf?tab=${x}`} aria-current={x === tab ? 'page' : undefined} scroll={false}>
+            {tekst[x]}
           </Link>
         ))}
       </nav>
 
       {!bedrijf ? (
-        <p className="club-melding club-melding--fout" role="alert">De gegevens konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
+        <p className="club-melding club-melding--fout" role="alert">{tekst.laadFout}</p>
       ) : tab === 'gegevens' ? (
         <div className="club-bedrijf-indeling">
           <GegevensFormulier begin={bedrijf.gegevens} />

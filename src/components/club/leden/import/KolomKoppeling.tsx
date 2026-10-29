@@ -1,6 +1,8 @@
 'use client'
 
-import { IMPORT_VELDEN, IMPORT_VELD_LABEL, isVerplicht, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
+import { IMPORT_VELDEN, importVeldLabel, isVerplicht, type ImportVeld, type Koppeling } from '@/lib/club/leden/import/kolommen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 // Stap 2: welke kolom uit het bestand hoort bij welk veld. Vooraf ingevuld met
 // wat we herkennen; met een voorbeeldwaarde uit de eerste rij ernaast. Met een
@@ -14,6 +16,8 @@ interface KolomKoppelingProps {
 }
 
 export function KolomKoppeling({ koppen, eersteRij, koppeling, onWijzig }: KolomKoppelingProps) {
+  const taal = useTaal()
+  const t = useTekst(LEDEN).import
   return (
     <div className="club-import-koppeling">
       {IMPORT_VELDEN.map((veld) => {
@@ -23,9 +27,9 @@ export function KolomKoppeling({ koppen, eersteRij, koppeling, onWijzig }: Kolom
         return (
           <label key={veld} className="club-import-veld" data-leeg={kolom === null || undefined}>
             <span className="club-import-veldnaam">
-              {IMPORT_VELD_LABEL[veld]}
-              {verplicht && <span className="club-import-verplicht"> verplicht</span>}
-              {veld === 'volledigeNaam' && <span className="club-zacht"> als er geen aparte voor- en achternaam is</span>}
+              {importVeldLabel(veld, taal)}
+              {verplicht && <span className="club-import-verplicht"> {t.verplicht}</span>}
+              {veld === 'volledigeNaam' && <span className="club-zacht"> {t.alsGeenNaam}</span>}
             </span>
             <select
               aria-required={verplicht}
@@ -34,14 +38,14 @@ export function KolomKoppeling({ koppen, eersteRij, koppeling, onWijzig }: Kolom
               value={kolom ?? ''}
               onChange={(e) => onWijzig(veld, e.target.value === '' ? null : Number(e.target.value))}
             >
-              <option value="">Niet inlezen</option>
+              <option value="">{t.nietInlezen}</option>
               {koppen.map((kop, i) => (
                 <option key={i} value={i}>
-                  {kop || `Kolom ${i + 1}`}
+                  {kop || t.kolom(i + 1)}
                 </option>
               ))}
             </select>
-            <span className="club-import-voorbeeld">{voorbeeld ? `bv. ${voorbeeld.slice(0, 40)}` : ' '}</span>
+            <span className="club-import-voorbeeld">{voorbeeld ? t.voorbeeld(voorbeeld.slice(0, 40)) : ' '}</span>
           </label>
         )
       })}

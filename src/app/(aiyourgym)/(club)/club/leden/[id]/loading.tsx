@@ -1,8 +1,12 @@
 // Rustige skeleton terwijl de ledenkaart geladen wordt.
 
-export default function LidLaden() {
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+
+export default async function LidLaden() {
+  const t = await clubTekst(LEDEN)
   return (
-    <div aria-busy="true" aria-label="Ledenkaart laden" role="status" style={{ display: 'grid', gap: 16 }}>
+    <div aria-busy="true" aria-label={t.pagina.kaartLaden} role="status" style={{ display: 'grid', gap: 16 }}>
       <div className="club-skelet" style={{ minHeight: 150 }} />
       <div className="club-raster">
         <div className="club-k8" style={{ display: 'grid', gap: 16 }}>

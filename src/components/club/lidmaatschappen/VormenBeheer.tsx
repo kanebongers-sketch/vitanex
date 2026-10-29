@@ -8,6 +8,8 @@ import { VormFormulier } from './VormFormulier'
 import { VormRegel, type VormMetAantal } from './VormRegel'
 import { LosseLijst } from './LosseLijst'
 import { useMelding } from './useMelding'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 import type { PlanWeergave } from '@/lib/club/betalen/plannen/weergave'
 import { LidgeldMelding, type LidgeldInfo } from '@/components/club/betalen/plannen/LidgeldMelding'
 
@@ -30,6 +32,9 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging, lidgeld = nu
   const [bezig, setBezig] = useState(false)
   const metVorm = vormen.reduce((n, v) => n + v.leden, 0)
   const zonderVorm = los.reduce((n, l) => n + l.leden, 0)
+  const taal = useTaal()
+  const tekst = useTekst(LIDMAATSCHAPPEN)
+  const t = tekst.vormen
 
   async function overnemen() {
     setBezig(true)
@@ -37,7 +42,7 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging, lidgeld = nu
     setBezig(false)
     if (!uit.ok) return klaar(uit.fout, false)
     const n = (uit.data as { toegevoegd?: number } | null)?.toegevoegd ?? 0
-    klaar(n === 0 ? 'Er was niets nieuws om over te nemen.' : `${n} ${n === 1 ? 'vorm' : 'vormen'} overgenomen. Vul per vorm de regels aan.`)
+    klaar(n === 0 ? tekst.algemeen.niets : t.overgenomen(n))
   }
 
   return (
@@ -46,29 +51,29 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging, lidgeld = nu
       {lidgeld && <LidgeldMelding schaduw={lidgeld.schaduw} incassoAan={lidgeld.incassoAan} alleenKane={lidgeld.alleenKane} />}
       <dl className="club-lidm-cijfers">
         <div>
-          <dt>Vormen</dt>
+          <dt>{t.cijfers.vormen}</dt>
           <dd>{vormen.length}</dd>
         </div>
         <div>
-          <dt>Leden met een vorm</dt>
+          <dt>{t.cijfers.metVorm}</dt>
           <dd>{metVorm}</dd>
         </div>
         <div className={zonderVorm > 0 ? 'is-let' : undefined}>
-          <dt>Abonnement zonder vorm</dt>
+          <dt>{t.cijfers.zonderVorm}</dt>
           <dd>{zonderVorm}</dd>
         </div>
         {totaalLeden !== null && (
           <div>
-            <dt>Leden totaal</dt>
+            <dt>{t.cijfers.totaal}</dt>
             <dd>{totaalLeden}</dd>
           </div>
         )}
       </dl>
       <div className="club-lidm-werkvlak">
         <section className="club-lidm-hoofd" aria-labelledby="lidm-vormen">
-          <h2 id="lidm-vormen" className="club-lidm-kop">Lidmaatschapsvormen</h2>
+          <h2 id="lidm-vormen" className="club-lidm-kop">{t.kop}</h2>
           {vormen.length === 0 ? (
-            <p className="club-lidm-leeg">Nog geen vormen. Neem ze over uit de ledenlijst of voeg er zelf een toe.</p>
+            <p className="club-lidm-leeg">{t.leeg}</p>
           ) : (
             <ul className="club-lidm-lijst">
               {vormen.map((v) => (
@@ -77,22 +82,20 @@ export function VormenBeheer({ vormen, los, totaalLeden, vestiging, lidgeld = nu
             </ul>
           )}
         </section>
-        <aside className="club-lidm-zij" aria-label="Toevoegen">
+        <aside className="club-lidm-zij" aria-label={tekst.algemeen.toevoegen}>
           {los.length > 0 && (
             <section className="club-kaart club-kaart--accent" aria-labelledby="lidm-los">
-              <h2 id="lidm-los">Uit de ledenlijst</h2>
-              <p className="club-hint">
-                Deze abonnementen staan bij {ledenTekst(zonderVorm)}, maar zijn nog geen vorm. Overnemen maakt er vormen van zonder beperkingen.
-              </p>
+              <h2 id="lidm-los">{t.uitLijst}</h2>
+              <p className="club-hint">{t.uitLijstUitleg(ledenTekst(zonderVorm, taal))}</p>
               <LosseLijst items={los} />
               <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void overnemen()}>
-                {bezig ? 'Bezig...' : 'Vormen overnemen uit de ledenlijst'}
+                {bezig ? tekst.algemeen.bezig : t.overnemen}
               </button>
             </section>
           )}
           <section className="club-kaart" aria-labelledby="lidm-nieuw">
-            <h2 id="lidm-nieuw">Nieuwe vorm</h2>
-            <p className="club-hint">Gebruik precies de naam uit je ledenbestand (de kolom Abonnement): zo koppelt Club de leden aan de vorm.</p>
+            <h2 id="lidm-nieuw">{t.nieuw}</h2>
+            <p className="club-hint">{t.nieuwUitleg}</p>
             <VormFormulier onKlaar={klaar} />
           </section>
         </aside>

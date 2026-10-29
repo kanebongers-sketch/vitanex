@@ -13,7 +13,10 @@ import { haalGewisteMedewerkers } from '@/lib/club/personeel/avg-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
-import { instelPagina } from '@/lib/club/kern/instel-paginas'
+import { instelPagina, instelPaginaInTaal } from '@/lib/club/kern/instel-paginas'
+import type { Metadata } from 'next'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { RegelsFormulier } from './RegelsFormulier'
@@ -95,13 +98,22 @@ async function Inhoud({ onderdeel, data, vestiging, t }: InhoudProps) {
   }
 }
 
-function Kop({ onderdeel, boven }: { onderdeel: InstellingenOnderdeelSleutel; boven: string }) {
-  const pagina = instelPagina(onderdeel)
+/** De titel van een instel-pagina in de gekozen taal, voor generateMetadata. */
+export async function instellingenMetadata(onderdeel: InstellingenOnderdeelSleutel): Promise<Metadata> {
+  const bron = instelPagina(onderdeel)
+  const taal = await getTaal()
+  return { title: bron ? instelPaginaInTaal(bron, taal).titel : INSTELLINGEN[taal].algemeen.instellingen }
+}
+
+async function Kop({ onderdeel, boven }: { onderdeel: InstellingenOnderdeelSleutel; boven: string }) {
+  const bron = instelPagina(onderdeel)
+  const taal = await getTaal()
+  const pagina = bron ? instelPaginaInTaal(bron, taal) : undefined
   return (
     <header className="club-paginakop">
       <div>
         <p className="club-boventitel">{boven}</p>
-        <h1>{pagina?.titel ?? 'Instellingen'}</h1>
+        <h1>{pagina?.titel ?? INSTELLINGEN[taal].algemeen.instellingen}</h1>
         <p>{pagina?.uitleg}</p>
       </div>
     </header>
@@ -135,6 +147,7 @@ export async function InstellingenOnderdeel({ onderdeel, zoek }: InstellingenOnd
     return <GeenVestigingen />
   }
   const data = await haalInstellingen(t.admin, t.userId, vestiging)
+  const tekst = await clubTekst(INSTELLINGEN)
   return (
     <>
       <InstelKruimel id={onderdeel} vestiging={vestiging} />
@@ -142,7 +155,7 @@ export async function InstellingenOnderdeel({ onderdeel, zoek }: InstellingenOnd
       {data ? (
         <Inhoud onderdeel={onderdeel} data={data} vestiging={vestiging} t={t} />
       ) : (
-        <p className="club-melding club-melding--fout" role="alert">De instellingen konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.</p>
+        <p className="club-melding club-melding--fout" role="alert">{tekst.algemeen.laadFout}</p>
       )}
     </>
   )

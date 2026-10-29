@@ -2,17 +2,19 @@
 
 import { useId, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { GRENZEN, SOORTEN, SOORT_LABEL, type MeldingSoort } from '@/lib/club/hulp/melding'
+import { GRENZEN, SOORTEN, type MeldingSoort } from '@/lib/club/hulp/melding'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HULP } from '@/lib/aiyourgym/taal/woorden/club/hulp'
 
 // "Vraag of probleem melden": opgeslagen in Club (club_support). Er gaat geen
 // mail naar buiten; het antwoord verschijnt bij Mijn meldingen.
 
 type Fouten = Record<string, string>
 
-function foutenUit(json: unknown): { fout: string; fouten: Fouten } {
+function foutenUit(json: unknown, standaard: string): { fout: string; fouten: Fouten } {
   const j = (json ?? {}) as { fout?: unknown; fouten?: unknown }
   const fouten = typeof j.fouten === 'object' && j.fouten !== null ? (j.fouten as Fouten) : {}
-  return { fout: typeof j.fout === 'string' ? j.fout : 'Melden lukte niet. Probeer het later opnieuw.', fouten }
+  return { fout: typeof j.fout === 'string' ? j.fout : standaard, fouten }
 }
 
 function Fout({ id, tekst }: { id: string; tekst: string | undefined }) {
@@ -26,6 +28,8 @@ function Fout({ id, tekst }: { id: string; tekst: string | undefined }) {
 export function MeldFormulier() {
   const router = useRouter()
   const id = useId()
+  const tekst = useTekst(HULP)
+  const t = tekst.formulier
   const [soort, setSoort] = useState<MeldingSoort>('vraag')
   const [onderwerp, setOnderwerp] = useState('')
   const [beschrijving, setBeschrijving] = useState('')
@@ -51,12 +55,12 @@ export function MeldFormulier() {
         setPagina('')
         router.refresh()
       } else {
-        const f = foutenUit(json)
+        const f = foutenUit(json, t.mislukt)
         setFout(f.fout)
         setFouten(f.fouten)
       }
     } catch {
-      setFout('Geen verbinding. Probeer het opnieuw.')
+      setFout(t.geenVerbinding)
     }
     setBezig(false)
   }
@@ -67,44 +71,44 @@ export function MeldFormulier() {
   return (
     <form className="club-hulp-formulier" onSubmit={verstuur} noValidate>
       <fieldset className="club-hulp-soorten">
-        <legend className="club-label">Soort</legend>
+        <legend className="club-label">{t.soort}</legend>
         <div className="club-segment">
           {SOORTEN.map((s) => (
             <button key={s} type="button" aria-pressed={soort === s} onClick={() => setSoort(s)}>
-              {SOORT_LABEL[s]}
+              {tekst.soort[s]}
             </button>
           ))}
         </div>
         <Fout id={foutId('soort')} tekst={fouten.soort} />
       </fieldset>
       <label className="club-veld">
-        <span>Onderwerp</span>
-        <input className="club-invoer" value={onderwerp} onChange={(e) => setOnderwerp(e.target.value)} maxLength={GRENZEN.onderwerp.max} required aria-invalid={Boolean(fouten.onderwerp)} aria-describedby={beschrijf('onderwerp')} placeholder="Bijvoorbeeld: reservering verdwijnt uit het rooster" />
+        <span>{t.onderwerp}</span>
+        <input className="club-invoer" value={onderwerp} onChange={(e) => setOnderwerp(e.target.value)} maxLength={GRENZEN.onderwerp.max} required aria-invalid={Boolean(fouten.onderwerp)} aria-describedby={beschrijf('onderwerp')} placeholder={t.onderwerpPlaats} />
         <Fout id={foutId('onderwerp')} tekst={fouten.onderwerp} />
       </label>
       <label className="club-veld">
-        <span>Beschrijving</span>
-        <textarea className="club-invoer" rows={6} value={beschrijving} onChange={(e) => setBeschrijving(e.target.value)} maxLength={GRENZEN.beschrijving.max} required aria-invalid={Boolean(fouten.beschrijving)} aria-describedby={beschrijf('beschrijving', `${id}-tip`)} placeholder="Wat deed je, wat verwachtte je en wat gebeurde er?" />
+        <span>{t.beschrijving}</span>
+        <textarea className="club-invoer" rows={6} value={beschrijving} onChange={(e) => setBeschrijving(e.target.value)} maxLength={GRENZEN.beschrijving.max} required aria-invalid={Boolean(fouten.beschrijving)} aria-describedby={beschrijf('beschrijving', `${id}-tip`)} placeholder={t.beschrijvingPlaats} />
         <span id={`${id}-tip`} className="club-hint">
-          Zet er geen wachtwoorden, pincodes of gegevens van leden in die niet nodig zijn.
+          {t.beschrijvingTip}
         </span>
         <Fout id={foutId('beschrijving')} tekst={fouten.beschrijving} />
       </label>
       <label className="club-veld">
-        <span>Pagina waar het gebeurde (optioneel)</span>
+        <span>{t.pagina}</span>
         <input className="club-invoer" value={pagina} onChange={(e) => setPagina(e.target.value)} maxLength={GRENZEN.pagina} aria-invalid={Boolean(fouten.pagina)} aria-describedby={beschrijf('pagina', `${id}-pagina-tip`)} placeholder="/club/rooster" />
         <span id={`${id}-pagina-tip`} className="club-hint">
-          Plak het adres uit de adresbalk, of typ het pad, bijvoorbeeld /club/rooster.
+          {t.paginaTip}
         </span>
         <Fout id={foutId('pagina')} tekst={fouten.pagina} />
       </label>
       <div className="club-hulp-verstuur">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig} aria-busy={bezig}>
-          {bezig ? 'Versturen...' : 'Melding versturen'}
+          {bezig ? t.bezig : t.versturen}
         </button>
         {klaar && (
           <p className="club-melding club-melding--ok" role="status">
-            Je melding is ontvangen. Het antwoord zie je hieronder bij Mijn meldingen.
+            {t.ontvangen}
           </p>
         )}
         {fout && (

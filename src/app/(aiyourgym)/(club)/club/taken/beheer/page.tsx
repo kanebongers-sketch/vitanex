@@ -8,8 +8,12 @@ import { BeheerLijst } from '@/components/club/taken/BeheerLijst'
 import { KopieerLijsten, NieuweLijst } from '@/components/club/taken/LijstActies'
 import { TakenKop } from '@/components/club/taken/TakenKop'
 import '@/components/club/taken/taken.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
-export const metadata: Metadata = { title: 'Taken beheren' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(TAKEN)).pagina.metaBeheer }
+}
 
 // Lijsten en taken per vestiging: toevoegen, hernoemen, verplaatsen, frequentie
 // wijzigen, uitzetten, en kopieren naar een andere vestiging.
@@ -20,6 +24,7 @@ export default async function TakenBeheerPagina({ searchParams }: { searchParams
   const vestiging = kiesUit(t.vestigingen, params.v)
   if (!vestiging) return <GeenVestigingen />
   const data = await haalTaken(t.admin, t.userId, vestiging)
+  const tp = TAKEN[await getTaal()]
 
   return (
     <div className="club-taken-pagina">
@@ -27,17 +32,17 @@ export default async function TakenBeheerPagina({ searchParams }: { searchParams
         vestiging={vestiging}
         vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weergave="beheer"
-        titel="Lijsten beheren"
-        sub="Uitgezette taken verdwijnen van de lijsten maar blijven in de geschiedenis staan."
+        titel={tp.pagina.beheer}
+        sub={tp.pagina.beheerSub}
       />
       {!data ? (
         <p className="club-melding club-melding--fout" role="alert">
-          De lijsten konden niet worden geladen. Ververs de pagina om het opnieuw te proberen.
+          {tp.pagina.beheerFout}
         </p>
       ) : (
         <div className="club-raster">
           <div className="club-k8 club-taken-beheerkolom">
-            {data.lijsten.length === 0 && <p className="club-leeg">Nog geen lijsten. Maak er een of kopieer ze van een andere vestiging.</p>}
+            {data.lijsten.length === 0 && <p className="club-leeg">{tp.beheer.geenLijsten}</p>}
             {data.lijsten.map((l, i) => (
               <BeheerLijst key={l.id} lijst={l} taken={data.taken.filter((x) => x.lijstId === l.id)} eerste={i === 0} laatste={i === data.lijsten.length - 1} />
             ))}

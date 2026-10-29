@@ -116,7 +116,11 @@ export function keuzesVoor(veld: TermijnVeld, huidig: number): number[] {
 }
 
 /** "12 maanden" of "2 jaar" als het precies uitkomt. */
-export function maandenTekst(m: number): string {
+export function maandenTekst(m: number, taal: 'nl' | 'en' = 'nl'): string {
+  if (taal === 'en') {
+    if (m >= 24 && m % 12 === 0) return `${m / 12} years`
+    return m === 1 ? '1 month' : `${m} months`
+  }
   if (m >= 24 && m % 12 === 0) return `${m / 12} jaar`
   return m === 1 ? '1 maand' : `${m} maanden`
 }

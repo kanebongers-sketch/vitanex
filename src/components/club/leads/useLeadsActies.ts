@@ -4,6 +4,8 @@ import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { Lead, LeadStatus, PaneelStap } from '@/lib/club/leads/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { stuur } from './stuur'
 
 export interface LeadsActies {
@@ -21,6 +23,7 @@ export interface LeadsActies {
 // werkt) en snelle mutaties vanuit de lijst, daarna de servergegevens verversen.
 export function useLeadsActies(vestiging: Vestiging, zoek: Record<string, string>): LeadsActies {
   const router = useRouter()
+  const t = useTekst(LEADS).werkvlak
   const [, startOverdracht] = useTransition()
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState<string | null>(null)
@@ -64,7 +67,7 @@ export function useLeadsActies(vestiging: Vestiging, zoek: Record<string, string
     sluit: () => ga({}),
     verplaats,
     gedaan: (lead) =>
-      void voerUit(lead.id, `/api/club/leads/${lead.id}/historie`, 'POST', { soort: 'notitie', tekst: 'Opvolging afgerond.', opvolgenOp: null }),
+      void voerUit(lead.id, `/api/club/leads/${lead.id}/historie`, 'POST', { soort: 'notitie', tekst: t.opvolgingAfgerond, opvolgenOp: null }),
     uitkomst: (lead, actie) => void voerUit(lead.id, `/api/club/leads/${lead.id}/proefles`, 'POST', { actie }),
   }
 }

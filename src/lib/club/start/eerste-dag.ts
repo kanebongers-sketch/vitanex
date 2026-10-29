@@ -10,6 +10,12 @@
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { Module } from '@/lib/club/kern/organisatie'
 import { stapAf, startPad, stapNummer, type StapSleutel, type StartFeiten, type StartVoortgang } from './stappen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
+
+// De Nederlandse teksten komen uit het woordenboek (bron); eersteDag() en liveActies() geven ze in de gekozen taal.
+const ED = START_LIB.nl.eersteDag
+const LV = START_LIB.nl.live
 
 export interface EersteDagPunt {
   id: string
@@ -21,7 +27,8 @@ export interface EersteDagPunt {
   af: boolean | null
 }
 
-interface Punt extends Omit<EersteDagPunt, 'pad' | 'af'> {
+interface Punt extends Omit<EersteDagPunt, 'pad' | 'af' | 'id'> {
+  id: keyof typeof ED
   /** De wizardstap waar je het instelt (af = die stap is af). */
   stap?: Exclude<StapSleutel, 'klaar'>
   /** Of: de pagina die na afronden open gaat (niet af te lezen). */
@@ -30,14 +37,14 @@ interface Punt extends Omit<EersteDagPunt, 'pad' | 'af'> {
 }
 
 const PUNTEN: readonly Punt[] = [
-  { id: 'huisstijl', titel: 'Logo, kleur en adres', uitleg: 'Je leden zien je eigen merk in de app en in hun mails.', stap: 'huisstijl' },
-  { id: 'tijden', titel: 'Adres en openingstijden', uitleg: 'Leden zien waar je zit en wanneer je open bent; de check-in weet het ook.', stap: 'vestigingen' },
-  { id: 'rooster', titel: 'Lessen', uitleg: 'Je lestypen en vaste lessen staan in het rooster, of je koos bewust voor geen vaste lessen.', stap: 'lessen', module: 'rooster' },
-  { id: 'team', titel: 'Je team', uitleg: 'Je team staat erin en is uitgenodigd, of je werkt alleen. Ieder kiest zelf een wachtwoord en logt in met het eigen e-mailadres.', stap: 'team' },
-  { id: 'leden', titel: 'Ledenbestand', uitleg: 'Je leden staan erin, of je begint bewust zonder en ze komen via de app.', stap: 'leden', module: 'leden' },
-  { id: 'checkin', titel: 'Check-in aan de balie', uitleg: 'Open de check-in op de tablet of pc bij de ingang en scan een QR-code.', pagina: '/checkin', module: 'checkin' },
-  { id: 'app', titel: 'Ledenapp bekijken', uitleg: 'Zie de app zoals een lid hem op de telefoon ziet.', pagina: '/app', module: 'app' },
-  { id: 'sluiting', titel: 'Feestdagen en sluiting', uitleg: 'Zet de dagen dat je dicht bent erin; het rooster houdt er rekening mee.', pagina: '/beheer/sluiting' },
+  { id: 'huisstijl', ...ED.huisstijl, stap: 'huisstijl' },
+  { id: 'tijden', ...ED.tijden, stap: 'vestigingen' },
+  { id: 'rooster', ...ED.rooster, stap: 'lessen', module: 'rooster' },
+  { id: 'team', ...ED.team, stap: 'team' },
+  { id: 'leden', ...ED.leden, stap: 'leden', module: 'leden' },
+  { id: 'checkin', ...ED.checkin, pagina: '/checkin', module: 'checkin' },
+  { id: 'app', ...ED.app, pagina: '/app', module: 'app' },
+  { id: 'sluiting', ...ED.sluiting, pagina: '/beheer/sluiting' },
 ]
 
 function padVan(p: Punt, vestiging: Vestiging | null, afgerond: boolean): string | null {
@@ -47,11 +54,11 @@ function padVan(p: Punt, vestiging: Vestiging | null, afgerond: boolean): string
 }
 
 /** De checklist voor de eerste dag, zonder onderdelen die uit staan. */
-export function eersteDag(f: StartFeiten, vestiging: Vestiging | null, afgerond = false, v: StartVoortgang | null = null): EersteDagPunt[] {
+export function eersteDag(f: StartFeiten, vestiging: Vestiging | null, afgerond = false, v: StartVoortgang | null = null, taal: Taal = 'nl'): EersteDagPunt[] {
   return PUNTEN.filter((p) => !p.module || !f.uit.includes(p.module)).map((p) => ({
     id: p.id,
-    titel: p.titel,
-    uitleg: p.uitleg,
+    titel: START_LIB[taal].eersteDag[p.id].titel,
+    uitleg: START_LIB[taal].eersteDag[p.id].uitleg,
     pad: padVan(p, vestiging, afgerond),
     af: p.stap ? stapAf(p.stap, v, f) : null,
   }))
@@ -85,37 +92,29 @@ interface LiveBron extends Omit<LiveActie, 'pad'> {
 const LIVE: readonly LiveBron[] = [
   {
     id: 'poster',
-    titel: 'Poster met QR-code',
-    uitleg: 'Een A4 voor de balie of de muur, in je eigen kleur en met je logo. Leden scannen de code, vullen hun e-mailadres in en kiezen een wachtwoord.',
-    knop: 'Poster printen',
+    ...LV.poster,
     pad: '/leden/app-poster',
     nodig: ['leden', 'app'],
   },
   {
     id: 'uitnodigen',
-    titel: 'Leden uitnodigen voor de app',
-    uitleg: 'Bij Leden kies je Leden uitnodigen voor de app. Je ziet eerst hoeveel mails er gaan; pas na bevestigen worden ze verstuurd.',
-    knop: 'Naar Leden',
+    ...LV.uitnodigen,
     pad: '/leden',
     nodig: ['leden', 'app'],
   },
   {
     id: 'checkin',
-    titel: 'Check-in openen',
-    uitleg: 'Open de check-in op de tablet of pc bij de ingang. Leden checken in met de QR-code uit hun app.',
-    knop: 'Check-in openen',
+    ...LV.checkin,
     pad: '/checkin',
     nodig: ['checkin'],
   },
 ]
 
 /** De acties voor dag 1, zonder wat niet kan omdat een onderdeel uit staat. */
-export function liveActies(uit: readonly string[], vestiging: Vestiging | null): LiveActie[] {
+export function liveActies(uit: readonly string[], vestiging: Vestiging | null, taal: Taal = 'nl'): LiveActie[] {
   return LIVE.filter((a) => a.nodig.every((m) => !uit.includes(m))).map((a) => ({
     id: a.id,
-    titel: a.titel,
-    uitleg: a.uitleg,
-    knop: a.knop,
+    ...START_LIB[taal].live[a.id],
     pad: vestiging ? clubPad(a.pad, vestiging) : `/club${a.pad}`,
   }))
 }

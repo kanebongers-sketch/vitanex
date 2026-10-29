@@ -3,6 +3,8 @@
 // risico komen uit de behoudsscore (haal-risico.ts), dezelfde als de ledenlijst.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalRisico } from './haal-risico'
 import { haalWerkvloer, type Werkvloer } from './haal-werkvloer'
@@ -173,7 +175,7 @@ function haalLedenVandaag(admin: SupabaseClient, userId: string, vestiging: Vest
   )
 }
 
-export async function haalVandaag(admin: SupabaseClient, userId: string, vestiging: Vestiging, nu = new Date()): Promise<Vandaag> {
+export async function haalVandaag(admin: SupabaseClient, userId: string, vestiging: Vestiging, nu = new Date(), taal: Taal = 'nl'): Promise<Vandaag> {
   const vandaag = dagSleutel(nu)
   const start = dagStart(vandaag)
   const morgen = dagStart(plusDagen(vandaag, 1))
@@ -194,8 +196,8 @@ export async function haalVandaag(admin: SupabaseClient, userId: string, vestigi
   const fouten = [checkins.fout, vorigeTotNu.error?.message, vorigeDag.error?.message, lessen.fout, leads.fout, leden.fout]
   for (const f of fouten) if (f) console.error('[club/vandaag] laden mislukt', f)
   const meldingen = [
-    ...(fouten.some(Boolean) ? ['Niet alles kon worden geladen; sommige cijfers kunnen ontbreken.'] : []),
-    ...(risico.fout ? [risico.fout] : []),
+    ...(fouten.some(Boolean) ? [VANDAAG[taal].meldingen.nietAlles] : []),
+    ...(risico.fout ? [VANDAAG[taal].meldingen.risico] : []),
   ]
   const toenTotNu = vorigeTotNu.count ?? 0
   return {

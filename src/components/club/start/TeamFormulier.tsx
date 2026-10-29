@@ -4,7 +4,9 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/rooster/vraag'
-import { MEDEWERKER_ROLLEN, ROL_LABEL, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import { TeamRij, wisselIn, type TeamLid } from './TeamRij'
 
 // Stap 6: het hele team in de wizard. Toevoegen met naam, e-mail, functie en
@@ -37,6 +39,7 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
   const [waar, setWaar] = useState<string[]>([vestiging])
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
+  const t = useTekst(START).team
 
   async function voegToe(e: FormEvent) {
     e.preventDefault()
@@ -45,7 +48,7 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
     const uit = await stuur('/api/club/instellingen/medewerkers', 'POST', { vestiging: waar[0] ?? vestiging, naam: naam.trim(), email: email.trim(), rollen, vestigingen: waar })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: `${naam.trim()} staat erin. Nodig hieronder meteen uit om in te loggen.` })
+    setMelding({ ok: true, tekst: t.toegevoegd(naam.trim()) })
     setNaam('')
     setEmail('')
     router.refresh()
@@ -53,29 +56,29 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
 
   return (
     <section className="club-start-blok" aria-labelledby="start-team-kop">
-      <h2 id="start-team-kop">Wie werkt er?</h2>
+      <h2 id="start-team-kop">{t.wieKop}</h2>
       <form className="club-start-teamnieuw" onSubmit={(e) => void voegToe(e)}>
         <div className="club-start-teamrij-velden">
           <label className="club-veld">
-            <span>Naam</span>
-            <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Voor- en achternaam" />
+            <span>{t.naam}</span>
+            <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder={t.naamPlaats} />
           </label>
           <label className="club-veld">
-            <span>E-mail</span>
-            <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@jouwsportschool.nl" />
+            <span>{t.email}</span>
+            <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaats} />
           </label>
         </div>
         <fieldset className="club-start-keuzes">
-          <legend>Functie</legend>
+          <legend>{t.functie}</legend>
           {MEDEWERKER_ROLLEN.map((r) => (
             <label key={r} className="club-start-keuze" data-aan={rollen.includes(r) || undefined}>
               <input type="checkbox" checked={rollen.includes(r)} onChange={() => setRollen((oud) => wisselIn(oud, r))} />
-              {rollen.includes(r) && <Check aria-hidden size={14} strokeWidth={3} />} {ROL_LABEL[r]}
+              {rollen.includes(r) && <Check aria-hidden size={14} strokeWidth={3} />} {t.rollen[r]}
             </label>
           ))}
         </fieldset>
         <fieldset className="club-start-keuzes">
-          <legend>Vestiging</legend>
+          <legend>{t.vestiging}</legend>
           {vestigingen.map((v) => (
             <label key={v.sleutel} className="club-start-keuze" data-aan={waar.includes(v.sleutel) || undefined}>
               <input type="checkbox" checked={waar.includes(v.sleutel)} onChange={() => setWaar((oud) => wisselIn(oud, v.sleutel))} />
@@ -84,7 +87,7 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
           ))}
         </fieldset>
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !naam.trim()}>
-          <UserPlus aria-hidden size={16} /> {bezig ? 'Bezig...' : 'Toevoegen'}
+          <UserPlus aria-hidden size={16} /> {bezig ? t.bezig : t.toevoegen}
         </button>
       </form>
       <div aria-live="polite">
@@ -101,9 +104,9 @@ export function TeamFormulier({ vestigingen, vestiging, team, loginAan, linkBasi
           ))}
         </ul>
       ) : (
-        (leeg ?? <p className="club-leeg">Nog niemand.</p>)
+        (leeg ?? <p className="club-leeg">{t.niemand}</p>)
       )}
-      <p className="club-hint">Je team logt in met het eigen e-mailadres en een wachtwoord dat ieder zelf kiest. Uitnodigen mailt een eenmalige link naar die medewerker; staat mailen nog niet aan, dan zie je de link om zelf door te sturen.</p>
+      <p className="club-hint">{t.inlogUitleg}</p>
     </section>
   )
 }

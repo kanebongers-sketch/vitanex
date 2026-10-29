@@ -12,8 +12,12 @@ import { GroepFormulier, type Keuze } from '@/components/club/community/beheer/G
 import { Beoordelen } from '@/components/club/community/beheer/Beoordelen'
 import { GroepDetail } from '@/components/club/community/beheer/GroepDetail'
 import '@/components/club/community/community.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
-export const metadata: Metadata = { title: 'Community' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(COMMUNITY)).beheer.titel }
+}
 
 // Community van de ledenapp: links "Te beoordelen" en de groepen, rechts de
 // lijst met gemelde en vastgehouden berichten (standaard), een groep (?g=<id>)
@@ -50,12 +54,14 @@ export default async function CommunityBeheerPagina({ searchParams }: { searchPa
   const actief = (beheer?.groepen ?? []).filter((g) => !g.gearchiveerdOp)
   const archief = (beheer?.groepen ?? []).filter((g) => g.gearchiveerdOp)
   const aantalBeoordelen = beheer?.beoordelen.length ?? 0
+  const tc = await clubTekst(COMMUNITY)
+  const tb = tc.beheer
 
   function koppeling(): string | null {
     if (!detail) return null
     const delen = [
-      detail.groep.challengeId ? `Challenge: ${challengeKeuzes.find((c) => c.id === detail.groep.challengeId)?.naam ?? (challenges ?? []).find((c) => c.id === detail.groep.challengeId)?.titel ?? 'onbekend'}` : null,
-      detail.groep.lestypeId ? `Les: ${lestypen.find((l) => l.id === detail.groep.lestypeId)?.naam ?? 'onbekend'}` : null,
+      detail.groep.challengeId ? tb.challenge(challengeKeuzes.find((c) => c.id === detail.groep.challengeId)?.naam ?? (challenges ?? []).find((c) => c.id === detail.groep.challengeId)?.titel ?? tb.onbekend) : null,
+      detail.groep.lestypeId ? tb.les(lestypen.find((l) => l.id === detail.groep.lestypeId)?.naam ?? tb.onbekend) : null,
     ].filter(Boolean)
     return delen.length ? delen.join(' · ') : null
   }
@@ -65,35 +71,35 @@ export default async function CommunityBeheerPagina({ searchParams }: { searchPa
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Community</h1>
-          <p>Groepen in de ledenapp, zoals een ochtendploeg of een team voor een challenge. Leden plaatsen korte berichten en geven elkaar een duim of high five. Jij houdt toezicht: gemelde berichten en berichten met een grof woord komen eerst hier.</p>
+          <h1>{tb.titel}</h1>
+          <p>{tb.intro}</p>
         </div>
         <div className="club-acties">
           <Link href={clubPad('/community', vestiging, { nieuw: '1' })} scroll={false} className="club-knop club-knop--primair">
-            <Plus size={16} aria-hidden /> Nieuwe groep
+            <Plus size={16} aria-hidden /> {tb.nieuweGroep}
           </Link>
         </div>
       </section>
 
       {beheer === null && (
         <p className="club-melding club-melding--fout" role="status">
-          De community kon niet worden geladen. Ververs de pagina of probeer het later opnieuw.
+          {tb.laadFout}
         </p>
       )}
 
       <div className="club-cmb-werkvlak">
-        <nav aria-label="Community" className="club-cmb-kolom">
+        <nav aria-label={tb.titel} className="club-cmb-kolom">
           <ul className="club-cmb-lijst">
             <li>
               <Link href={terug} scroll={false} aria-current={!gekozen && !nieuw ? 'page' : undefined}>
                 <strong>
-                  <ShieldAlert size={15} aria-hidden /> Te beoordelen
+                  <ShieldAlert size={15} aria-hidden /> {tb.teBeoordelen}
                 </strong>
                 <span className={aantalBeoordelen > 0 ? 'club-cmb-status club-cmb-status--vastgehouden' : 'club-cmb-status'}>{aantalBeoordelen}</span>
               </Link>
             </li>
           </ul>
-          <h2 className="club-label">Groepen</h2>
+          <h2 className="club-label">{tb.groepen}</h2>
           {actief.length > 0 ? (
             <ul className="club-cmb-lijst">
               {actief.map((g) => (
@@ -102,19 +108,19 @@ export default async function CommunityBeheerPagina({ searchParams }: { searchPa
                     <strong>{g.naam}</strong>
                     <span>{g.leden}</span>
                     <small>
-                      {g.toegang === 'open' ? 'Open' : 'Besloten'} · {g.vestiging ? naamVan(t.vestigingen, g.vestiging) : 'Alle vestigingen'}
-                      {g.demo ? ' · demo' : ''}
+                      {tc.toegang[g.toegang].label} · {g.vestiging ? naamVan(t.vestigingen, g.vestiging) : tb.alleVestigingen}
+                      {g.demo ? ` · ${tb.demo}` : ''}
                     </small>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="club-cmb-item-meta">Nog geen groepen.</p>
+            <p className="club-cmb-item-meta">{tb.geenGroepen}</p>
           )}
           {archief.length > 0 && (
             <details>
-              <summary>Archief ({archief.length})</summary>
+              <summary>{tb.archief(archief.length)}</summary>
               <ul className="club-cmb-lijst">
                 {archief.map((g) => (
                   <li key={g.id} className="is-archief">
@@ -144,7 +150,7 @@ export default async function CommunityBeheerPagina({ searchParams }: { searchPa
             />
           ) : gekozen ? (
             <p className="club-melding club-melding--fout" role="status">
-              {detail === undefined ? 'Deze groep kon niet worden geladen. Probeer het opnieuw.' : 'Deze groep bestaat niet.'}
+              {detail === undefined ? tb.groepLaadFout : tb.groepBestaatNiet}
             </p>
           ) : (
             beheer && <Beoordelen items={beheer.beoordelen} />

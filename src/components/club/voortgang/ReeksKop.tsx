@@ -1,5 +1,7 @@
-import { toonVerschilGetal, type ReeksInfo, type ReeksSleutel, type Verschillen } from '@/lib/club/voortgang/tijdlijn'
-import { datumKort, getal } from './weergave'
+import type { ReeksInfo, ReeksSleutel, Verschillen } from '@/lib/club/voortgang/tijdlijn'
+import { datumKort, getal, reeksTekst, verschilTekst } from './weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOORTGANG } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 
 interface ReeksKopProps {
   info: ReeksInfo
@@ -13,35 +15,39 @@ interface ReeksKopProps {
  * Het grote getal van de gekozen meetwaarde met de verschillen, en de wissel.
  * Verschillen zijn neutraal gekleurd: of omhoog goed is, hangt af van het doel.
  */
-export function ReeksKop({ info, verschil, reeksen, gekozen, onKies }: ReeksKopProps) {
+export function ReeksKop({ info: bron, verschil, reeksen, gekozen, onKies }: ReeksKopProps) {
+  const taal = useTaal()
+  const tv = useTekst(VOORTGANG)
+  const t = tv.reeks
+  const info = reeksTekst(bron, tv)
   const eenheid = info.eenheid ? ` ${info.eenheid}` : ''
   return (
     <div className="club-voortgang-reekskop">
       <div className="club-voortgang-cijfer">
         <span className="club-tegel-label">{info.label}</span>
         <span className="club-voortgang-getal">
-          {getal(verschil.laatste.waarde)}
+          {getal(verschil.laatste.waarde, taal)}
           {info.eenheid && <small>{info.eenheid}</small>}
         </span>
-        <span className="club-voortgang-meetdatum">Gemeten {datumKort(verschil.laatste.datum)}</span>
+        <span className="club-voortgang-meetdatum">{t.gemeten(datumKort(verschil.laatste.datum, taal))}</span>
       </div>
       <dl className="club-voortgang-verschillen">
         <div>
-          <dt>Sinds start</dt>
-          <dd>{verschil.sindsStart === null ? 'Eerste meting' : `${toonVerschilGetal(verschil.sindsStart)}${eenheid}`}</dd>
-          <dd className="club-voortgang-klein">{datumKort(verschil.start.datum)}</dd>
+          <dt>{t.sindsStart}</dt>
+          <dd>{verschil.sindsStart === null ? t.eersteMeting : `${verschilTekst(verschil.sindsStart, taal)}${eenheid}`}</dd>
+          <dd className="club-voortgang-klein">{datumKort(verschil.start.datum, taal)}</dd>
         </div>
         <div>
-          <dt>Sinds vorige</dt>
-          <dd>{verschil.sindsVorige === null ? 'Nog geen' : `${toonVerschilGetal(verschil.sindsVorige)}${eenheid}`}</dd>
-          <dd className="club-voortgang-klein">{verschil.vorige ? datumKort(verschil.vorige.datum) : 'Volgende meting'}</dd>
+          <dt>{t.sindsVorige}</dt>
+          <dd>{verschil.sindsVorige === null ? t.nogGeen : `${verschilTekst(verschil.sindsVorige, taal)}${eenheid}`}</dd>
+          <dd className="club-voortgang-klein">{verschil.vorige ? datumKort(verschil.vorige.datum, taal) : t.volgendeMeting}</dd>
         </div>
       </dl>
       {reeksen.length > 1 && (
-        <div className="club-segment club-voortgang-wissel" role="group" aria-label="Kies meetwaarde">
+        <div className="club-segment club-voortgang-wissel" role="group" aria-label={t.kies}>
           {reeksen.map((r) => (
             <button key={r.sleutel} type="button" aria-pressed={r.sleutel === gekozen} onClick={() => onKies(r.sleutel)}>
-              {r.kort}
+              {reeksTekst(r, tv).kort}
             </button>
           ))}
         </div>

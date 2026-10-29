@@ -1,5 +1,7 @@
 'use client'
 
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import { useState } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { Oefening3dLazy } from './Oefening3dLazy'
@@ -14,13 +16,14 @@ interface Vergelijk3dRijProps {
 }
 
 export function Vergelijk3dRij({ naam, toont }: Vergelijk3dRijProps) {
+  const t = useTekst(CLUB_TRAINING).beeld
   const [stand, setStand] = useState<Stand3d>('speelt')
   const speelt = stand === 'speelt'
   const kopId = `ill-3d-${naam.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
   return (
     <section className="club-beelden-kaart3d" aria-labelledby={kopId}>
       <div className="club-beelden-kaart3d-beeld">
-        <Oefening3dLazy naam={naam} stand={stand} label={`${naam} in 3D`} />
+        <Oefening3dLazy naam={naam} stand={stand} label={t.in3d(naam)} />
       </div>
       <div className="club-beelden-kaart3d-info">
         <h2 id={kopId}>{naam}</h2>
@@ -29,13 +32,13 @@ export function Vergelijk3dRij({ naam, toont }: Vergelijk3dRijProps) {
             {toont.map((t) => <li key={t}>{t}</li>)}
           </ol>
         )}
-        <div className="club-beelden-knoppen" role="group" aria-label={`Bediening ${naam}`}>
+        <div className="club-beelden-knoppen" role="group" aria-label={t.bediening(naam)}>
           <button type="button" className="club-knop club-knop--klein club-knop--primair" aria-pressed={speelt} onClick={() => setStand(speelt ? 'begin' : 'speelt')}>
             {speelt ? <Pause size={14} aria-hidden /> : <Play size={14} aria-hidden />}
-            {speelt ? 'Pauze' : 'Afspelen'}
+            {speelt ? t.pauze : t.afspelen}
           </button>
-          <button type="button" className="club-knop club-knop--klein" aria-pressed={stand === 'begin'} onClick={() => setStand('begin')}>Begin</button>
-          <button type="button" className="club-knop club-knop--klein" aria-pressed={stand === 'eind'} onClick={() => setStand('eind')}>Eind</button>
+          <button type="button" className="club-knop club-knop--klein" aria-pressed={stand === 'begin'} onClick={() => setStand('begin')}>{t.begin}</button>
+          <button type="button" className="club-knop club-knop--klein" aria-pressed={stand === 'eind'} onClick={() => setStand('eind')}>{t.eind}</button>
         </div>
       </div>
     </section>

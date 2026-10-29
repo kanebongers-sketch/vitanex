@@ -1,5 +1,10 @@
 import type { SportschoolRegel } from '@/lib/club/platform/opslag'
-import { STATUS_WEERGAVE, pakketNaam, type StartStand } from '@/lib/club/platform/tellingen'
+import { STATUS_WEERGAVE, type StartStand } from '@/lib/club/platform/tellingen'
+import { vindPakket } from '@/lib/aiyourgym/pakketten'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 import { OpenKnop } from './OpenKnop'
 import { nlDatum, nlMoment } from './datum'
 import { adresVan } from '@/lib/club/kern/subdomein'
@@ -11,100 +16,105 @@ interface SportscholenProps {
   afgekapt: boolean
 }
 
-function getal(n: number | null): string {
-  return n === null ? '?' : n.toLocaleString('nl-NL')
+function getal(n: number | null, taal: Taal): string {
+  return n === null ? '?' : formatGetal(n, taal)
 }
 
-function startTekst(s: StartStand | null): string {
-  if (!s) return 'Niet te lezen'
-  if (s.soort === 'af') return `Afgerond op ${nlDatum(s.afgerondOp)}`
-  if (s.soort === 'niet') return 'Nog niet gestart'
-  return `${s.klaar} van ${s.totaal} stappen klaar`
+function startTekst(s: StartStand | null, taal: Taal): string {
+  const t = PLATFORM[taal].scholen
+  if (!s) return t.nietTeLezen
+  if (s.soort === 'af') return t.afgerond(nlDatum(s.afgerondOp, taal))
+  if (s.soort === 'niet') return t.nietGestart
+  return t.stappen(s.klaar, s.totaal)
 }
 
-function Startwizard({ start }: { start: StartStand | null }) {
+function Startwizard({ start, taal }: { start: StartStand | null; taal: Taal }) {
+  const t = PLATFORM[taal].scholen
   const deel = start ? (start.soort === 'af' ? 1 : start.klaar / start.totaal) : 0
   return (
     <div className="club-platform-start">
-      <span className="club-platform-klein">Startwizard</span>
+      <span className="club-platform-klein">{t.startwizard}</span>
       <span
         className="club-platform-meter"
         role="meter"
-        aria-label="Voortgang van de startwizard"
+        aria-label={t.voortgang}
         aria-valuemin={0}
         aria-valuemax={start?.totaal ?? 9}
         aria-valuenow={start ? (start.soort === 'af' ? start.totaal : start.klaar) : 0}
-        aria-valuetext={startTekst(start)}
+        aria-valuetext={startTekst(start, taal)}
         data-af={start?.soort === 'af' || undefined}
       >
         <span style={{ transform: `scaleX(${deel})` }} />
       </span>
-      <span className="club-platform-sub">{startTekst(start)}</span>
+      <span className="club-platform-sub">{startTekst(start, taal)}</span>
     </div>
   )
 }
 
-function Abonnement({ s }: { s: SportschoolRegel }) {
+function Abonnement({ s, taal }: { s: SportschoolRegel; taal: Taal }) {
+  const p = PLATFORM[taal]
+  const t = p.scholen
   const a = s.aanmelding
-  if (!a) return <span className="club-platform-sub">{s.eigen ? 'Eigen sportschool, geen abonnement' : 'Geen aanmelding'}</span>
+  if (!a) return <span className="club-platform-sub">{s.eigen ? t.eigenGeenAbo : t.geenAanmelding}</span>
   const w = STATUS_WEERGAVE[a.status]
   return (
     <>
       <span>
-        <span className={`club-chip club-chip--${w.toon}`}>{w.label}</span> <span className="club-platform-pakket">{pakketNaam(a.pakket)}</span>
+        <span className={`club-chip club-chip--${w.toon}`}>{p.status[a.status]}</span> <span className="club-platform-pakket">{vindPakket(a.pakket)?.naam ?? (a.pakket || p.onbekend)}</span>
       </span>
       <span className="club-platform-sub">
-        {typeof s.proefTot === 'string' ? `Proef tot ${nlDatum(s.proefTot)}` : s.proefTot === undefined ? 'Proefperiode niet te lezen' : `Sinds ${nlDatum(a.aangemaaktOp)}`}
+        {typeof s.proefTot === 'string' ? t.proefTot(nlDatum(s.proefTot, taal)) : s.proefTot === undefined ? t.proefFout : t.sinds(nlDatum(a.aangemaaktOp, taal))}
       </span>
     </>
   )
 }
 
-function Regel({ s, maand }: { s: SportschoolRegel; maand: string }) {
+function Regel({ s, maand, taal }: { s: SportschoolRegel; maand: string; taal: Taal }) {
+  const t = PLATFORM[taal].scholen
   const cijfers: [string, number | null][] = [
-    ['Vestigingen', s.vestigingen],
-    ['Leden', s.leden],
-    ['Medewerkers', s.medewerkers],
-    [`Check-ins ${maand}`, s.checkins],
+    [t.vestigingen, s.vestigingen],
+    [t.leden, s.leden],
+    [t.medewerkers, s.medewerkers],
+    [t.checkins(maand), s.checkins],
   ]
   return (
     <li className="club-platform-school" aria-current={s.actief ? 'true' : undefined}>
       <div className="club-platform-naam">
         <h3>{s.naam}</h3>
         <p className="club-platform-sub">
-          {s.slug ? <span className="club-platform-adres">{adresVan(s.slug, subdomeinenActief())}</span> : 'Nog geen eigen adres'}
+          {s.slug ? <span className="club-platform-adres">{adresVan(s.slug, subdomeinenActief())}</span> : t.geenAdres}
         </p>
         <p className="club-platform-chips">
-          {s.eigen && <span className="club-chip club-chip--merk">Eigen</span>}
-          {s.demo && <span className="club-chip club-chip--info">Demo</span>}
-          {s.aanmelding?.status === 'test' && <span className="club-chip club-chip--info">Test</span>}
-          {s.actief && <span className="club-chip club-chip--ok">Staat open</span>}
+          {s.eigen && <span className="club-chip club-chip--merk">{t.eigen}</span>}
+          {s.demo && <span className="club-chip club-chip--info">{t.demo}</span>}
+          {s.aanmelding?.status === 'test' && <span className="club-chip club-chip--info">{t.test}</span>}
+          {s.actief && <span className="club-chip club-chip--ok">{t.staatOpen}</span>}
         </p>
       </div>
       <dl className="club-platform-cijfers">
         {cijfers.map(([label, n]) => (
           <div key={label}>
             <dt>{label}</dt>
-            <dd>{getal(n)}</dd>
+            <dd>{getal(n, taal)}</dd>
           </div>
         ))}
       </dl>
-      <Startwizard start={s.start} />
+      <Startwizard start={s.start} taal={taal} />
       <div className="club-platform-info">
-        <span className="club-platform-klein">Abonnement</span>
-        <Abonnement s={s} />
+        <span className="club-platform-klein">{t.abonnement}</span>
+        <Abonnement s={s} taal={taal} />
       </div>
       <div className="club-platform-info">
-        <span className="club-platform-klein">Laatste activiteit</span>
+        <span className="club-platform-klein">{t.laatste}</span>
         {s.laatste === undefined ? (
-          <span className="club-platform-sub">Niet te lezen</span>
+          <span className="club-platform-sub">{t.nietTeLezen}</span>
         ) : s.laatste === null ? (
-          <span className="club-platform-sub">Nog niets in het logboek</span>
+          <span className="club-platform-sub">{t.geenLogboek}</span>
         ) : (
           <>
             <span className="club-platform-actie">{s.laatste.actie}</span>
             <span className="club-platform-sub">
-              <time dateTime={s.laatste.op}>{nlMoment(s.laatste.op)}</time>
+              <time dateTime={s.laatste.op}>{nlMoment(s.laatste.op, taal)}</time>
               {s.laatste.wie ? ` · ${s.laatste.wie}` : ''}
             </span>
           </>
@@ -117,19 +127,21 @@ function Regel({ s, maand }: { s: SportschoolRegel; maand: string }) {
 
 // Alle sportscholen van Kane, elk als een regel met tellingen, voortgang,
 // abonnement en laatste activiteit. Op de pc een strakke rij, op de telefoon een kaart.
-export function Sportscholen({ sportscholen, maand, afgekapt }: SportscholenProps) {
+export async function Sportscholen({ sportscholen, maand, afgekapt }: SportscholenProps) {
+  const taal = await getTaal()
+  const t = PLATFORM[taal].scholen
   return (
     <section aria-labelledby="platform-scholen-kop">
       <div className="club-sectiekop">
-        <h2 id="platform-scholen-kop">Sportscholen</h2>
-        <span>{sportscholen.length} in totaal{afgekapt ? ', de eerste getoond' : ''}</span>
+        <h2 id="platform-scholen-kop">{t.kop}</h2>
+        <span>{t.telling(sportscholen.length, afgekapt)}</span>
       </div>
       {sportscholen.length === 0 ? (
-        <p className="club-leeg">Nog geen sportscholen.</p>
+        <p className="club-leeg">{t.leeg}</p>
       ) : (
         <ul className="club-platform-scholen">
           {sportscholen.map((s) => (
-            <Regel key={s.id} s={s} maand={maand} />
+            <Regel key={s.id} s={s} maand={maand} taal={taal} />
           ))}
         </ul>
       )}

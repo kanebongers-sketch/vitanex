@@ -339,3 +339,8 @@
 .club-lidapp-oefening { background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card))); box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
 .club-lidapp-oefening:active { transform: scale(0.985); }
 .club-lidapp-nr { font-variant-numeric: tabular-nums; }
+
+/* Taalkeuze NL | EN in Profiel (besluit Kane 24-10-2026): een rustige regel met de pil in de huisstijl van de sportschool. */
+.club-lidapp-taal { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--club-radius, 14px); background: var(--bg-card); }
+.club-lidapp-taal > span { font-size: 14px; color: var(--text-2); }
+.club-lidapp-taalkeuze { --ayg-taal-actief-vlak: var(--brand); --ayg-taal-actief-tekst: var(--brand-inkt, var(--bg-app)); color: var(--text-1); }

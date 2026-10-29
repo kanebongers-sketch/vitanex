@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { stuur } from '@/components/club/leden/stuur'
 import { MAX_OMSCHRIJVING, MAX_SJABLOON_NAAM, type Maaltijd, type VoedingSjabloon } from '@/lib/club/voeding/model'
-import { DOEL_INFO, DOELEN, GRENZEN, type VoedingDoel } from '@/lib/club/voeding/rekenhulp'
+import { DOELEN, GRENZEN, type VoedingDoel } from '@/lib/club/voeding/rekenhulp'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 import { AdviezenVeld } from './AdviezenVeld'
 import { DoelenVelden, type DoelTekst } from './DoelenVelden'
 import { MaaltijdenVeld } from './MaaltijdenVeld'
@@ -33,6 +35,8 @@ export function SjabloonFormulier({ begin, terugHref }: SjabloonFormulierProps) 
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [vraagWeg, setVraagWeg] = useState(false)
+  const tv = useTekst(VOEDING)
+  const t = tv.sjabloonFormulier
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -59,58 +63,58 @@ export function SjabloonFormulier({ begin, terugHref }: SjabloonFormulierProps) 
 
   return (
     <form className="club-kaart club-voeding club-voeding-blok" onSubmit={(e) => void bewaar(e)} aria-labelledby={`${id}-kop`}>
-      <h2 id={`${id}-kop`} className="club-voeding-groepkop">{begin ? 'Sjabloon wijzigen' : 'Nieuw sjabloon'}</h2>
+      <h2 id={`${id}-kop`} className="club-voeding-groepkop">{begin ? t.wijzigen : t.nieuw}</h2>
       <label className="club-veld">
-        <span>Naam</span>
-        <input className="club-invoer" required maxLength={MAX_SJABLOON_NAAM} value={naam} placeholder="Bijvoorbeeld Rustig afvallen" onChange={(e) => setNaam(e.target.value)} />
+        <span>{t.naam}</span>
+        <input className="club-invoer" required maxLength={MAX_SJABLOON_NAAM} value={naam} placeholder={t.naamVoorbeeld} onChange={(e) => setNaam(e.target.value)} />
       </label>
       <label className="club-veld">
-        <span>Omschrijving voor trainers (mag leeg)</span>
+        <span>{t.omschrijving}</span>
         <textarea className="club-invoer" rows={2} maxLength={MAX_OMSCHRIJVING} value={omschrijving} onChange={(e) => setOmschrijving(e.target.value)} />
       </label>
       <fieldset className="club-voeding-keuzes">
-        <legend className="club-label">Doel</legend>
+        <legend className="club-label">{t.doel}</legend>
         {DOELEN.map((d) => (
           <label key={d}>
             <input type="radio" name={`${id}-doel`} checked={doel === d} onChange={() => setDoel(d)} />
-            <span>{DOEL_INFO[d].label}</span>
+            <span>{tv.doel[d].label}</span>
           </label>
         ))}
       </fieldset>
       <label className="club-veld">
-        <span>Eiwit per kilo (mag leeg)</span>
+        <span>{t.eiwit}</span>
         <span className="club-voeding-eenheid">
           <input className="club-invoer" type="number" inputMode="decimal" min={GRENZEN.eiwitPerKg.min} max={GRENZEN.eiwitPerKg.max} step="0.1" value={eiwitPerKg} onChange={(e) => setEiwitPerKg(e.target.value)} />
           <em aria-hidden>g/kg</em>
         </span>
       </label>
-      <h3 className="club-voeding-subkop">Vaste dagdoelen</h3>
+      <h3 className="club-voeding-subkop">{t.vast}</h3>
       <DoelenVelden waarde={doelen} onWijzig={setDoelen} optioneel />
-      <h3 className="club-voeding-subkop">Adviezen</h3>
+      <h3 className="club-voeding-subkop">{t.adviezen}</h3>
       <AdviezenVeld adviezen={adviezen} onWijzig={setAdviezen} />
-      <h3 className="club-voeding-subkop">Dagindeling</h3>
+      <h3 className="club-voeding-subkop">{t.dagindeling}</h3>
       <MaaltijdenVeld maaltijden={maaltijden} onWijzig={setMaaltijden} />
 
       <div className="club-voeding-acties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Opslaan...' : begin ? 'Opslaan' : 'Sjabloon maken'}
+          {bezig ? t.bezig : begin ? t.opslaan : t.maken}
         </button>
         <Link href={terugHref} scroll={false} className="club-knop club-knop--stil">
-          Annuleren
+          {t.annuleren}
         </Link>
         {begin && !vraagWeg && (
           <button type="button" className="club-knop club-knop--stil" onClick={() => setVraagWeg(true)}>
-            Verwijderen
+            {t.verwijderen}
           </button>
         )}
         {begin && vraagWeg && (
           <>
-            <span className="club-voeding-hint">Plannen die het gebruikten, houden hun eigen inhoud.</span>
+            <span className="club-voeding-hint">{t.gevolg}</span>
             <button type="button" className="club-knop club-knop--gevaar club-knop--klein" disabled={bezig} onClick={() => void verwijder()}>
-              Ja, verwijderen
+              {t.ja}
             </button>
             <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setVraagWeg(false)}>
-              Toch niet
+              {t.nee}
             </button>
           </>
         )}

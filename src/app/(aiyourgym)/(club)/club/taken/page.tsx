@@ -11,8 +11,12 @@ import { AutoVerversen, PrintKnop } from '@/components/club/taken/Hulpjes'
 import { TakenKop } from '@/components/club/taken/TakenKop'
 import { TakenDag } from '@/components/club/taken/TakenDag'
 import '@/components/club/taken/taken.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
-export const metadata: Metadata = { title: 'Taken' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(TAKEN)).pagina.titel }
+}
 
 // De dag, in dezelfde tabel als de week (zoals de Excel van Budel, besluit Kane):
 // per lijst de taken met een kolom voor deze dag, afvinken met een tik, de
@@ -32,7 +36,9 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
   if (!vestiging) return <GeenVestigingen />
   const vandaag = nlDelen(new Date()).datum
   const dag = kiesDag(params.dag, vandaag)
-  const naam = dagLang(dag)
+  const taal = await getTaal()
+  const tp = TAKEN[taal].pagina
+  const naam = dagLang(dag, taal)
   const dagHref = (d: string) => clubPad('/taken', vestiging, d === vandaag ? undefined : { dag: d })
 
   return (
@@ -43,16 +49,16 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
         vestigingNaam={naamVan(t.vestigingen, vestiging)}
         weergave=""
         titel={`${naam.charAt(0).toUpperCase()}${naam.slice(1)}`}
-        sub={dag === vandaag ? 'Vandaag. Tik op een vakje om af te vinken.' : dag < vandaag ? 'Een eerdere dag.' : 'Een dag die nog moet komen.'}
+        sub={dag === vandaag ? tp.subVandaag : dag < vandaag ? tp.subEerder : tp.subLater}
       >
-        <nav className="club-taken-bladeren" aria-label="Dag kiezen">
-          <Link href={dagHref(plusDagen(dag, -1))} className="club-knop club-knop--klein" aria-label="Vorige dag" scroll={false}>
+        <nav className="club-taken-bladeren" aria-label={tp.dagKiezen}>
+          <Link href={dagHref(plusDagen(dag, -1))} className="club-knop club-knop--klein" aria-label={tp.vorigeDag} scroll={false}>
             <ChevronLeft aria-hidden size={16} />
           </Link>
           <Link href={dagHref(vandaag)} className="club-knop club-knop--klein" aria-current={dag === vandaag ? 'page' : undefined} scroll={false}>
-            Vandaag
+            {tp.vandaag}
           </Link>
-          <Link href={dagHref(plusDagen(dag, 1))} className="club-knop club-knop--klein" aria-label="Volgende dag" scroll={false}>
+          <Link href={dagHref(plusDagen(dag, 1))} className="club-knop club-knop--klein" aria-label={tp.volgendeDag} scroll={false}>
             <ChevronRight aria-hidden size={16} />
           </Link>
         </nav>

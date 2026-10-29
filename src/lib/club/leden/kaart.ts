@@ -6,6 +6,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalLid, type Lid } from '@/lib/club/kern/lid'
 import { haalMedewerkers, type Medewerker } from '@/lib/club/kern/medewerker'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { behoudVoorLid, NO_SHOW_DAGEN, VENSTER_DAGEN, type Behoud } from './behoud'
 import { checkinUitRij, notitieUitRij, RESERVERING_SELECT, reserveringUitRij, sorteerNotities, type CheckinRij, type LidReservering, type Notitie } from './rijen'
 
@@ -76,7 +77,7 @@ function telNoShows(reserveringen: readonly LidReservering[], nu: Date): number 
 }
 
 /** De ledenkaart, of null als het lid niet bestaat. */
-export async function haalLidKaart(admin: SupabaseClient, userId: string, id: string, nu: Date): Promise<LidKaart | null> {
+export async function haalLidKaart(admin: SupabaseClient, userId: string, id: string, nu: Date, taal: Taal = 'nl'): Promise<LidKaart | null> {
   const lid = await haalLid(admin, userId, id)
   if (!lid) return null
   const [bezoeken, laatsteBezoek, reserveringen, notities, medewerkers] = await Promise.all([
@@ -94,7 +95,7 @@ export async function haalLidKaart(admin: SupabaseClient, userId: string, id: st
   ].filter((f): f is string => f !== null)
   const res = reserveringen ?? []
   const noShows = telNoShows(res, nu)
-  const behoud = bezoeken ? behoudVoorLid(lid, bezoeken.map((b) => b.op), noShows, nu) : null
+  const behoud = bezoeken ? behoudVoorLid(lid, bezoeken.map((b) => b.op), noShows, nu, taal) : null
   return {
     lid,
     bezoeken: bezoeken ?? [],

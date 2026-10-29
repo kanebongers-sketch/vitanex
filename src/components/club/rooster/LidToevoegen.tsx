@@ -3,6 +3,8 @@
 import { useEffect, useId, useState } from 'react'
 import { Search, UserPlus } from 'lucide-react'
 import { stuur, useClubActie } from './vraag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
 // De balie boekt een lid in deze les: zoeken op naam, lidnummer, e-mail of
 // telefoon, dan "Boek". Is de les vol, dan komt het lid op de wachtlijst.
@@ -16,9 +18,9 @@ interface Treffer {
   status: string
 }
 
-function leesWaarschuwing(data: unknown): string | null {
+function leesWaarschuwing(data: unknown, standaard: string): string | null {
   if (typeof data !== 'object' || data === null || !('status' in data) || data.status !== 'waarschuwing') return null
-  return 'waarschuwing' in data && typeof data.waarschuwing === 'string' ? data.waarschuwing : 'Deze les past niet bij het lidmaatschap.'
+  return 'waarschuwing' in data && typeof data.waarschuwing === 'string' ? data.waarschuwing : standaard
 }
 
 function leesTreffers(data: unknown): Treffer[] {
@@ -39,6 +41,8 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
   const [waarschuwing, setWaarschuwing] = useState<{ lid: Treffer; tekst: string } | null>(null)
   const { bezig, fout, voerUit } = useClubActie()
   const veldId = useId()
+  const t = useTekst(ROOSTER).toevoegen
+  const zoekFoutTekst = t.zoekFout
 
   useEffect(() => {
     const q = term.trim()
@@ -51,27 +55,27 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
         setResultaat({ term: q, leden: leesTreffers(await res.json()) })
         setZoekFout(null)
       } catch (e: unknown) {
-        if (!ctrl.signal.aborted) setZoekFout(e instanceof Error && e.name !== 'AbortError' ? 'Zoeken is niet gelukt.' : null)
+        if (!ctrl.signal.aborted) setZoekFout(e instanceof Error && e.name !== 'AbortError' ? zoekFoutTekst : null)
       }
     }, 220)
     return () => {
       clearTimeout(wacht)
       ctrl.abort()
     }
-  }, [term, vestiging])
+  }, [term, vestiging, zoekFoutTekst])
 
-  async function boek(t: Treffer, toch = false) {
+  async function boek(lid: Treffer, toch = false) {
     setMelding(null)
     setWaarschuwing(null)
-    const uit = await voerUit(() => stuur('/api/club/rooster/reserveringen', 'POST', { lesId, lidId: t.id, bron: 'balie', toch }))
+    const uit = await voerUit(() => stuur('/api/club/rooster/reserveringen', 'POST', { lesId, lidId: lid.id, bron: 'balie', toch }))
     if (!uit.ok) return
-    const tekst = leesWaarschuwing(uit.data)
+    const tekst = leesWaarschuwing(uit.data, t.pastNiet)
     if (tekst) {
-      setWaarschuwing({ lid: t, tekst })
+      setWaarschuwing({ lid, tekst })
       return
     }
     const opWachtlijst = typeof uit.data === 'object' && uit.data !== null && 'status' in uit.data && uit.data.status === 'wachtlijst'
-    setMelding(opWachtlijst ? `${t.naam} staat op de wachtlijst.` : `${t.naam} is ingeschreven.`)
+    setMelding(opWachtlijst ? t.opWachtlijst(lid.naam) : t.ingeschreven(lid.naam))
     setTerm('')
     setResultaat({ term: '', leden: [] })
   }
@@ -81,7 +85,7 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
   return (
     <div className="club-rooster-toevoegen">
       <label className="club-veld" htmlFor={veldId}>
-        <span>Lid toevoegen{isVol ? ' (komt op de wachtlijst)' : ''}</span>
+        <span>{t.label}{isVol ? t.vol : ''}</span>
       </label>
       <div className="club-rooster-zoekveld">
         <Search aria-hidden size={16} />
@@ -90,7 +94,7 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
           className="club-invoer"
           type="search"
           autoComplete="off"
-          placeholder="Naam, lidnummer of telefoon"
+          placeholder={t.plaats}
           value={term}
           onChange={(e) => setTerm(e.target.value)}
         />
@@ -105,31 +109,31 @@ export function LidToevoegen({ lesId, vestiging, isVol }: { lesId: string; vesti
           </p>
           <div className="club-rooster-vorm-knoppen">
             <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => boek(waarschuwing.lid, true)}>
-              Toch boeken
+              {t.toch}
             </button>
             <button type="button" className="club-knop club-knop--klein club-knop--stil" disabled={bezig} onClick={() => setWaarschuwing(null)}>
-              Niet boeken
+              {t.niet}
             </button>
           </div>
         </div>
       )}
       {zichtbaar.length > 0 && (
         <ul className="club-lijst club-rooster-treffers">
-          {zichtbaar.map((t) => (
-            <li key={t.id} className="club-rij">
+          {zichtbaar.map((lid) => (
+            <li key={lid.id} className="club-rij">
               <span className="club-rij-hoofd">
-                <span className="club-rij-titel">{t.naam}</span>
-                <span className="club-rij-sub">{[t.lidnummer, t.status].filter(Boolean).join(' · ')}</span>
+                <span className="club-rij-titel">{lid.naam}</span>
+                <span className="club-rij-sub">{[lid.lidnummer, lid.status].filter(Boolean).join(' · ')}</span>
               </span>
-              <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => boek(t)}>
+              <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => boek(lid)}>
                 <UserPlus aria-hidden size={14} />
-                Boek
+                {t.boek}
               </button>
             </li>
           ))}
         </ul>
       )}
-      {q.length >= 2 && resultaat.term === q && zichtbaar.length === 0 && !zoekFout && <p className="club-hint">Geen leden gevonden.</p>}
+      {q.length >= 2 && resultaat.term === q && zichtbaar.length === 0 && !zoekFout && <p className="club-hint">{t.geenLeden}</p>}
     </div>
   )
 }

@@ -3,6 +3,8 @@
 // bij de nieuwe dag, ook als de server in UTC draait. Dagen zijn sleutels
 // "YYYY-MM-DD"; weken beginnen op maandag (ISO).
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+
 const ZONE = 'Europe/Amsterdam'
 const DAG_MS = 86_400_000
 
@@ -94,25 +96,36 @@ export function jarigOp(geboortedatum: string | null, dag: string): boolean {
   return md === '02-29' && !schrikkel && vandaag === '02-28'
 }
 
-const WEEKDAG_LANG = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
 export const WEEKDAG_KORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'] as const
-const MAAND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
-const MAAND_KORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
 
-export function weekdagNaam(weekdag: number): string {
-  return WEEKDAG_LANG[(weekdag - 1 + 7) % 7]
+// Namen van dagen en maanden per taal (Engels: Brits, met hoofdletter).
+const NAMEN: Record<Taal, { weekdag: readonly string[]; maand: readonly string[]; maandKort: readonly string[] }> = {
+  nl: {
+    weekdag: ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
+    maand: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
+    maandKort: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+  },
+  en: {
+    weekdag: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    maand: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    maandKort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  },
 }
 
-/** "dinsdag 14 oktober" */
-export function dagLang(dag: string): string {
-  const [, m, d] = dag.split('-').map(Number)
-  return `${weekdagNaam(weekdagVan(dag))} ${d} ${MAAND[m - 1]}`
+export function weekdagNaam(weekdag: number, taal: Taal = 'nl'): string {
+  return NAMEN[taal].weekdag[(weekdag - 1 + 7) % 7]
 }
 
-/** "14 okt" */
-export function dagKort(dag: string): string {
+/** "dinsdag 14 oktober" | "Tuesday 14 October" */
+export function dagLang(dag: string, taal: Taal = 'nl'): string {
   const [, m, d] = dag.split('-').map(Number)
-  return `${d} ${MAAND_KORT[m - 1]}`
+  return `${weekdagNaam(weekdagVan(dag), taal)} ${d} ${NAMEN[taal].maand[m - 1]}`
+}
+
+/** "14 okt" | "14 Oct" */
+export function dagKort(dag: string, taal: Taal = 'nl'): string {
+  const [, m, d] = dag.split('-').map(Number)
+  return `${d} ${NAMEN[taal].maandKort[m - 1]}`
 }
 
 /** "19:30" in Nederlandse tijd. */

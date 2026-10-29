@@ -4,6 +4,8 @@ import { useState, type FormEvent } from 'react'
 import { DoorOpen, Plus, UserRound } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { Keuze } from './WeekLessen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Zalen en instructeurs voor de vaste lessen, meteen toe te voegen in de
 // wizard (dezelfde API's als Zalen en Medewerkers). Een nieuwe instructeur
@@ -39,11 +41,12 @@ export function ZalenEnInstructeurs({ vestiging, zalen, instructeurs, onZaal, on
   const [plekken, setPlekken] = useState('20')
   const [naam, setNaam] = useState('')
   const [email, setEmail] = useState('')
+  const t = useTekst(START)
 
   const nieuweZaal = useToevoegen(async () => {
     const uit = await stuur('/api/club/instellingen/zalen', 'POST', { vestiging, naam: zaal.trim(), capaciteit: Number(plekken) })
     const id = uit.ok ? idUit(uit.data) : null
-    if (!uit.ok || !id) return uit.ok ? 'De zaal is opgeslagen; ververs de pagina om hem te kiezen.' : uit.fout
+    if (!uit.ok || !id) return uit.ok ? t.zalen.zaalNietTerug : uit.fout
     onZaal({ id, naam: zaal.trim() })
     setZaal('')
     return null
@@ -51,7 +54,7 @@ export function ZalenEnInstructeurs({ vestiging, zalen, instructeurs, onZaal, on
   const nieuweInstructeur = useToevoegen(async () => {
     const uit = await stuur('/api/club/instellingen/medewerkers', 'POST', { vestiging, naam: naam.trim(), email: email.trim(), rollen: ['instructeur'], vestigingen: [vestiging] })
     const id = uit.ok ? idUit(uit.data) : null
-    if (!uit.ok || !id) return uit.ok ? 'De instructeur is opgeslagen; ververs de pagina om hem te kiezen.' : uit.fout
+    if (!uit.ok || !id) return uit.ok ? t.zalen.instructeurNietTerug : uit.fout
     onInstructeur({ id, naam: naam.trim() })
     setNaam('')
     setEmail('')
@@ -60,42 +63,42 @@ export function ZalenEnInstructeurs({ vestiging, zalen, instructeurs, onZaal, on
 
   return (
     <section className="club-start-blok" aria-labelledby="start-zalen-kop">
-      <h2 id="start-zalen-kop">Zalen en instructeurs</h2>
+      <h2 id="start-zalen-kop">{t.zalen.kop}</h2>
       <div className="club-start-twee club-start-zalen">
         <div className="club-start-stapel">
           <p className="club-start-lijstje">
-            <DoorOpen aria-hidden size={16} /> {zalen.length > 0 ? zalen.map((z) => z.naam).join(', ') : 'Nog geen zaal'}
+            <DoorOpen aria-hidden size={16} /> {zalen.length > 0 ? zalen.map((z) => z.naam).join(', ') : t.zalen.geenZaal}
           </p>
           <form className="club-start-minirij" onSubmit={(e) => void nieuweZaal.verstuur(e)}>
             <label className="club-veld">
-              <span>Nieuwe zaal</span>
-              <input className="club-invoer" required maxLength={60} value={zaal} onChange={(e) => setZaal(e.target.value)} placeholder="Bijvoorbeeld Groepszaal" />
+              <span>{t.zalen.nieuweZaal}</span>
+              <input className="club-invoer" required maxLength={60} value={zaal} onChange={(e) => setZaal(e.target.value)} placeholder={t.zalen.zaalPlaats} />
             </label>
             <label className="club-veld club-start-minirij-getal">
-              <span>Plekken</span>
+              <span>{t.zalen.plekken}</span>
               <input className="club-invoer" type="number" inputMode="numeric" min={1} max={500} required value={plekken} onChange={(e) => setPlekken(e.target.value)} />
             </label>
             <button type="submit" className="club-knop" disabled={nieuweZaal.bezig || !zaal.trim()}>
-              <Plus aria-hidden size={16} /> {nieuweZaal.bezig ? 'Bezig...' : 'Zaal toevoegen'}
+              <Plus aria-hidden size={16} /> {nieuweZaal.bezig ? t.zalen.bezig : t.zalen.zaalToevoegen}
             </button>
           </form>
           {nieuweZaal.fout && <p className="club-fout" role="alert">{nieuweZaal.fout}</p>}
         </div>
         <div className="club-start-stapel">
           <p className="club-start-lijstje">
-            <UserRound aria-hidden size={16} /> {instructeurs.length > 0 ? instructeurs.map((m) => m.naam).join(', ') : 'Nog geen instructeur'}
+            <UserRound aria-hidden size={16} /> {instructeurs.length > 0 ? instructeurs.map((m) => m.naam).join(', ') : t.zalen.geenInstructeur}
           </p>
           <form className="club-start-minirij" onSubmit={(e) => void nieuweInstructeur.verstuur(e)}>
             <label className="club-veld">
-              <span>Nieuwe instructeur</span>
-              <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Voor- en achternaam" />
+              <span>{t.zalen.nieuweInstructeur}</span>
+              <input className="club-invoer" required maxLength={80} autoComplete="off" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder={t.team.naamPlaats} />
             </label>
             <label className="club-veld">
-              <span>E-mail</span>
-              <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@jouwsportschool.nl" />
+              <span>{t.team.email}</span>
+              <input className="club-invoer" type="email" maxLength={160} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.team.emailPlaats} />
             </label>
             <button type="submit" className="club-knop" disabled={nieuweInstructeur.bezig || !naam.trim()}>
-              <Plus aria-hidden size={16} /> {nieuweInstructeur.bezig ? 'Bezig...' : 'Instructeur toevoegen'}
+              <Plus aria-hidden size={16} /> {nieuweInstructeur.bezig ? t.zalen.bezig : t.zalen.instructeurToevoegen}
             </button>
           </form>
           {nieuweInstructeur.fout && <p className="club-fout" role="alert">{nieuweInstructeur.fout}</p>}

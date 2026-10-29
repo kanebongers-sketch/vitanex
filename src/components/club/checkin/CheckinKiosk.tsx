@@ -8,6 +8,10 @@ import { lijktOpCheckinCode } from '@/lib/club/checkin/qr-formaat'
 import { isQrCheckinAntwoord, type QrCheckinAntwoord } from '@/lib/club/checkin/types'
 import { CameraBeeld } from './CameraBeeld'
 import { useQrCamera } from './useQrCamera'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
+
+type KioskTekst = (typeof CHECKIN)['nl']['kiosk']
 
 // Zelf-check-in (kiosk): een tablet bij de ingang met de voorcamera. Het lid
 // houdt de QR-code uit de app voor de camera en ziet groot "Welkom Sanne", of
@@ -30,36 +34,37 @@ interface Props {
   terug: string
 }
 
-function uitkomstVan(a: QrCheckinAntwoord): Uitkomst {
+function uitkomstVan(a: QrCheckinAntwoord, t: KioskTekst): Uitkomst {
   const naam = a.lid.voornaam
-  if (a.soort === 'ingecheckt') return { soort: 'welkom', titel: `Welkom ${naam}`, regel: a.les ? `Je staat op aanwezig bij ${a.les.naam}. Goede training!` : 'Je bent ingecheckt. Goede training!' }
-  if (a.soort === 'dubbel') return { soort: 'binnen', titel: `Je bent al binnen, ${naam}`, regel: 'Je was al ingecheckt. Goede training!' }
-  return { soort: 'balie', titel: `Hoi ${naam}`, regel: 'Loop even langs de balie, dan helpen we je verder.' }
+  if (a.soort === 'ingecheckt') return { soort: 'welkom', titel: t.welkom(naam), regel: a.les ? t.aanwezig(a.les.naam) : t.ingecheckt }
+  if (a.soort === 'dubbel') return { soort: 'binnen', titel: t.alBinnen(naam), regel: t.alBinnenRegel }
+  return { soort: 'balie', titel: t.hoi(naam), regel: t.naarBalie }
 }
 
-async function stuurScan(qr: string, vestiging: Vestiging): Promise<Uitkomst> {
+async function stuurScan(qr: string, vestiging: Vestiging, t: KioskTekst): Promise<Uitkomst> {
   try {
     const res = await fetch('/api/club/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ qr, vestiging }) })
     const data: unknown = await res.json().catch(() => null)
-    if (res.ok && isQrCheckinAntwoord(data)) return uitkomstVan(data)
-    return { soort: 'balie', titel: 'Deze code werkt niet', regel: 'Open de app opnieuw en probeer het nog een keer, of loop even langs de balie.' }
+    if (res.ok && isQrCheckinAntwoord(data)) return uitkomstVan(data, t)
+    return { soort: 'balie', titel: t.codeWerktNiet, regel: t.codeWerktNietRegel }
   } catch {
-    return { soort: 'balie', titel: 'Geen verbinding', regel: 'Inchecken lukt nu niet. Loop even langs de balie.' }
+    return { soort: 'balie', titel: t.geenVerbinding, regel: t.geenVerbindingRegel }
   }
 }
 
 export function CheckinKiosk({ vestiging, vestigingNaam, sportschool, terug }: Props) {
   const [uitkomst, setUitkomst] = useState<Uitkomst | null>(null)
   const [bezig, setBezig] = useState(false)
+  const t = useTekst(CHECKIN).kiosk
 
   async function scan(code: string) {
     if (bezig || uitkomst) return
     if (!lijktOpCheckinCode(code)) {
-      setUitkomst({ soort: 'balie', titel: 'Dit is geen check-in code', regel: 'Open de app en laat de QR-code op het beginscherm zien.' })
+      setUitkomst({ soort: 'balie', titel: t.geenCode, regel: t.geenCodeRegel })
       return
     }
     setBezig(true)
-    setUitkomst(await stuurScan(code, vestiging))
+    setUitkomst(await stuurScan(code, vestiging, t))
     setBezig(false)
   }
 
@@ -72,21 +77,21 @@ export function CheckinKiosk({ vestiging, vestigingNaam, sportschool, terug }: P
   }, [uitkomst])
 
   return (
-    <div className="club-kiosk" role="region" aria-label="Zelf inchecken">
+    <div className="club-kiosk" role="region" aria-label={t.label}>
       <header className="club-kiosk-kop">
         <div>
           <p className="club-boventitel">{sportschool} · {vestigingNaam}</p>
-          <h1>Scan je code</h1>
+          <h1>{t.titel}</h1>
           <p className="club-kiosk-uitleg">
-            <QrCode aria-hidden size={20} /> Open de app en houd de QR-code van je beginscherm voor de camera.
+            <QrCode aria-hidden size={20} /> {t.uitleg}
           </p>
         </div>
-        <Link href={terug} className="club-kiosk-sluit" aria-label="Zelf-check-in sluiten, terug naar de balie">
+        <Link href={terug} className="club-kiosk-sluit" aria-label={t.sluit}>
           <X aria-hidden size={20} />
         </Link>
       </header>
       <div className="club-kiosk-beeld">
-        <CameraBeeld video={video} stand={stand} gespiegeld label="Camerabeeld: houd je QR-code hiervoor" className="club-checkin-camera--groot" />
+        <CameraBeeld video={video} stand={stand} gespiegeld label={t.camera} className="club-checkin-camera--groot" />
         {uitkomst && (
           <div className={`club-kiosk-uitkomst club-kiosk-uitkomst--${uitkomst.soort}`} role="status" aria-live="assertive">
             {uitkomst.soort === 'balie' ? <Hand aria-hidden size={64} /> : <CircleCheck aria-hidden size={64} />}
@@ -94,7 +99,7 @@ export function CheckinKiosk({ vestiging, vestigingNaam, sportschool, terug }: P
             <p>{uitkomst.regel}</p>
           </div>
         )}
-        {bezig && !uitkomst && <p className="club-kiosk-bezig" role="status">Even kijken...</p>}
+        {bezig && !uitkomst && <p className="club-kiosk-bezig" role="status">{t.bezig}</p>}
       </div>
     </div>
   )

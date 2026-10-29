@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import type { PlanWeergave } from '@/lib/club/betalen/plannen/weergave'
 import { PlanFormulier } from './PlanFormulier'
 import { PlanKaart } from './PlanKaart'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 
 // Het blok "Prijs en contract" onder een lidmaatschapsvorm: de plannen
 // (bijvoorbeeld "12 maanden" en "Flex") met prijs, contract en voorbeeld, en
@@ -21,18 +23,19 @@ interface Props {
 export function PrijsEnContract({ vormId, vormNaam, plannen, vandaag, onKlaar }: Props) {
   const [nieuw, setNieuw] = useState(false)
   const kopId = `plannen-${vormId}`
+  const t = useTekst(BETALEN).prijsContract
   return (
     <section className="club-plannen" aria-labelledby={kopId}>
       <div className="club-plannen-kop">
-        <h4 id={kopId}>Prijs en contract</h4>
+        <h4 id={kopId}>{t.titel}</h4>
         {!nieuw && (
           <button type="button" className="club-knop club-knop--klein" onClick={() => setNieuw(true)}>
-            <Plus size={15} aria-hidden /> Plan toevoegen<span className="club-sr"> bij {vormNaam}</span>
+            <Plus size={15} aria-hidden /> {t.toevoegen}<span className="club-sr">{t.bij(vormNaam)}</span>
           </button>
         )}
       </div>
       {plannen.length === 0 && !nieuw && (
-        <p className="club-plannen-leeg">Nog geen plan. Voeg er een toe, bijvoorbeeld 12 maanden en Flex, met elk een eigen prijs.</p>
+        <p className="club-plannen-leeg">{t.leeg}</p>
       )}
       {plannen.length > 0 && (
         <ul className="club-plannen-lijst">

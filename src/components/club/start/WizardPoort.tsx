@@ -3,6 +3,8 @@
 import { useEffect, type ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { openTijdensWizard } from '@/lib/club/start/poort'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Zolang de startwizard niet is afgerond: alleen de wizard, hulp en het
 // abonnement zijn open. Elke andere Club-pagina gaat meteen naar de wizard en
@@ -16,6 +18,7 @@ export function WizardPoort({ children }: WizardPoortProps) {
   const pad = usePathname()
   const router = useRouter()
   const open = openTijdensWizard(pad)
+  const t = useTekst(START)
 
   useEffect(() => {
     if (!open) router.replace('/club/start')
@@ -24,7 +27,7 @@ export function WizardPoort({ children }: WizardPoortProps) {
   if (open) return children
   return (
     <p className="club-start-poort" role="status">
-      Eerst je startwizard. Even geduld, je gaat verder waar je was.
+      {t.poort}
     </p>
   )
 }

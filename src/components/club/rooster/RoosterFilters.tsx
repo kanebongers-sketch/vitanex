@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { roosterHref, type RoosterStaat } from '@/lib/club/rooster/url'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
 // Filters op zaal, lestype en instructeur. Ze staan in de URL, zodat een
 // gefilterde week te delen is ("alle spinning van Kim").
@@ -20,13 +22,14 @@ interface Props {
 }
 
 const VELDEN = [
-  { sleutel: 'zaal', label: 'Zaal', leeg: 'Alle zalen' },
-  { sleutel: 'lestype', label: 'Les', leeg: 'Alle lessen' },
-  { sleutel: 'instructeur', label: 'Instructeur', leeg: 'Alle instructeurs' },
+  { sleutel: 'zaal', label: 'zaal', leeg: 'alleZalen' },
+  { sleutel: 'lestype', label: 'les', leeg: 'alleLessen' },
+  { sleutel: 'instructeur', label: 'instructeur', leeg: 'alleInstructeurs' },
 ] as const
 
 export function RoosterFilters({ staat, zalen, lestypen, instructeurs }: Props) {
   const router = useRouter()
+  const t = useTekst(ROOSTER).filters
   const opties = { zaal: zalen, lestype: lestypen, instructeur: instructeurs }
   const actief = Boolean(staat.zaal || staat.lestype || staat.instructeur)
 
@@ -35,12 +38,12 @@ export function RoosterFilters({ staat, zalen, lestypen, instructeurs }: Props) 
   }
 
   return (
-    <form className="club-rooster-filters" role="search" aria-label="Filter het rooster" onSubmit={(e) => e.preventDefault()}>
+    <form className="club-rooster-filters" role="search" aria-label={t.label} onSubmit={(e) => e.preventDefault()}>
       {VELDEN.map((v) => (
         <label key={v.sleutel} className="club-rooster-filter" data-actief={staat[v.sleutel] ? true : undefined}>
-          <span className="club-sr">{v.label}</span>
+          <span className="club-sr">{t[v.label]}</span>
           <select value={staat[v.sleutel] ?? ''} onChange={(e) => kies(v.sleutel, e.target.value)}>
-            <option value="">{v.leeg}</option>
+            <option value="">{t[v.leeg]}</option>
             {opties[v.sleutel].map((o) => (
               <option key={o.id} value={o.id}>
                 {o.naam}
@@ -56,7 +59,7 @@ export function RoosterFilters({ staat, zalen, lestypen, instructeurs }: Props) 
           onClick={() => router.push(roosterHref(staat, { zaal: null, lestype: null, instructeur: null, les: null }), { scroll: false })}
         >
           <X aria-hidden size={14} />
-          Wis filters
+          {t.wis}
         </button>
       )}
     </form>

@@ -2,6 +2,9 @@
 
 import { berekenBmi, bmiDuiding } from '@/lib/club/training/intake'
 import { leesGetal, type IntakeStaat } from './intake-staat'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
 interface IntakeMetingenProps {
   s: IntakeStaat
@@ -10,19 +13,21 @@ interface IntakeMetingenProps {
 
 type Veld = 'gewicht' | 'lengte' | 'vet' | 'buik' | 'hartslag'
 
-const VELDEN: { veld: Veld; label: string; eenheid: string; stap: string }[] = [
-  { veld: 'gewicht', label: 'Gewicht', eenheid: 'kg', stap: '0.1' },
-  { veld: 'lengte', label: 'Lengte', eenheid: 'cm', stap: '1' },
-  { veld: 'vet', label: 'Vetpercentage', eenheid: '%', stap: '0.1' },
-  { veld: 'buik', label: 'Buikomtrek', eenheid: 'cm', stap: '0.5' },
-  { veld: 'hartslag', label: 'Rusthartslag', eenheid: 'per min', stap: '1' },
+const VELDEN: { veld: Veld; eenheid: string | null; stap: string }[] = [
+  { veld: 'gewicht', eenheid: 'kg', stap: '0.1' },
+  { veld: 'lengte', eenheid: 'cm', stap: '1' },
+  { veld: 'vet', eenheid: '%', stap: '0.1' },
+  { veld: 'buik', eenheid: 'cm', stap: '0.5' },
+  { veld: 'hartslag', eenheid: null, stap: '1' },
 ]
 
 /** Metingen met een live BMI. Alle metingen zijn gezondheidsgegevens: alleen met toestemming. */
 export function IntakeMetingen({ s, zet }: IntakeMetingenProps) {
   const bmi = berekenBmi(leesGetal(s.gewicht), leesGetal(s.lengte))
+  const taal = useTaal()
+  const t = useTekst(INTAKE).metingen
   if (!s.toestemming) {
-    return <p className="club-hint">Metingen zijn gezondheidsgegevens. Vink eerst de toestemming van het lid aan; zonder toestemming slaat Club geen metingen op.</p>
+    return <p className="club-hint">{t.zonder}</p>
   }
   function zetVeld(veld: Veld, waarde: string) {
     const deel: Partial<IntakeStaat> = {}
@@ -33,7 +38,7 @@ export function IntakeMetingen({ s, zet }: IntakeMetingenProps) {
     <div className="club-training-metingen">
       {VELDEN.map((v) => (
         <label key={v.veld} className="club-veld club-training-meetveld">
-          <span>{v.label}</span>
+          <span>{t[v.veld]}</span>
           <span className="club-training-eenheid">
             <input
               className="club-invoer"
@@ -42,18 +47,18 @@ export function IntakeMetingen({ s, zet }: IntakeMetingenProps) {
               onChange={(e) => zetVeld(v.veld, e.target.value)}
               aria-describedby={`eenheid-${v.veld}`}
             />
-            <small id={`eenheid-${v.veld}`}>{v.eenheid}</small>
+            <small id={`eenheid-${v.veld}`}>{v.eenheid ?? t.perMinuut}</small>
           </span>
         </label>
       ))}
       <label className="club-veld club-training-meetveld">
-        <span>Bloeddruk</span>
+        <span>{t.bloeddruk}</span>
         <input className="club-invoer" value={s.bloeddruk} onChange={(e) => zet({ bloeddruk: e.target.value })} placeholder="120/80" inputMode="numeric" />
       </label>
       <div className="club-training-bmi" aria-live="polite">
         <span className="club-tegel-label">BMI</span>
-        <span className="club-tegel-getal">{bmi ? bmi.toLocaleString('nl-NL') : '...'}</span>
-        <span className="club-tegel-sub">{bmi ? bmiDuiding(bmi) : 'vul gewicht en lengte in'}</span>
+        <span className="club-tegel-getal">{bmi ? formatGetal(bmi, taal) : '...'}</span>
+        <span className="club-tegel-sub">{bmi ? bmiDuiding(bmi, taal) : t.bmiLeeg}</span>
       </div>
     </div>
   )

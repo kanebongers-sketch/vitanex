@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, UserPlus } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
-import { BEHEERDER_ROLLEN, ROL_LABEL, type BeheerderActie, type BeheerderOverzicht, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
+import { BEHEERDER_ROLLEN, type BeheerderActie, type BeheerderOverzicht, type BeheerderRol } from '@/lib/club/beheerders/beheerder'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
 // Voor Kane en de eigenaar: eigenaren en clubmanagers van de sportschool die open
 // staat. Uitnodigen met naam, e-mailadres en rol; de uitnodigingslink kopieer je
@@ -24,9 +26,11 @@ interface BeheerdersBlokProps {
   linkBasis: string | null
 }
 
-function status(b: BeheerderOverzicht): { label: string; chip: string } {
-  if (b.gesloten) return { label: 'Dicht na foute pogingen', chip: 'club-chip--let-op' }
-  return b.heeftWachtwoord ? { label: 'Actief', chip: 'club-chip--ok' } : { label: 'Uitgenodigd', chip: 'club-chip--merk' }
+type StatusTekst = { dicht: string; actief: string; uitgenodigd: string }
+
+function status(b: BeheerderOverzicht, s: StatusTekst): { label: string; chip: string } {
+  if (b.gesloten) return { label: s.dicht, chip: 'club-chip--let-op' }
+  return b.heeftWachtwoord ? { label: s.actief, chip: 'club-chip--ok' } : { label: s.uitgenodigd, chip: 'club-chip--merk' }
 }
 
 export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportschool, ikZelf, linkBasis }: BeheerdersBlokProps) {
@@ -38,6 +42,8 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
   const [email, setEmail] = useState('')
   // Veilig standaard: een clubmanager ziet alleen wat de eigenaar aanvinkt; een tweede eigenaar kies je bewust.
   const [rol, setRol] = useState<BeheerderRol>('clubmanager')
+  const tekst = useTekst(HUISSTIJL)
+  const t = tekst.beheerders
 
   async function voegToe() {
     if (bezig || !naam.trim() || !email.trim()) return
@@ -54,7 +60,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
 
   async function doe(id: string, actie: BeheerderActie) {
     if (bezig) return
-    if (!window.confirm(actie === 'stoppen' ? 'Deze beheerder stoppen? Inloggen kan dan niet meer.' : 'Nieuwe uitnodiging maken? Het wachtwoord vervalt, de oude link werkt niet meer en alle toestellen worden uitgelogd.')) return
+    if (!window.confirm(actie === 'stoppen' ? t.stoppenVraag : t.resetVraag)) return
     setBezig(id)
     setFout(null)
     const uit = await stuur(`/api/club/beheerders/${id}`, 'PATCH', { actie })
@@ -68,7 +74,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
       await navigator.clipboard.writeText(`${linkBasis ?? window.location.origin}/clubinloggen/${b.code}`)
       setGekopieerd(b.id)
     } catch {
-      setFout('Kopieren lukte niet. Selecteer de link en kopieer hem zelf.')
+      setFout(t.kopieerFout)
     }
   }
 
@@ -76,38 +82,38 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
 
   return (
     <section className="club-kaart club-beheerders" aria-labelledby="beheerders-kop">
-      <h2 id="beheerders-kop">Beheerders van {sportschool}</h2>
+      <h2 id="beheerders-kop">{t.kop(sportschool)}</h2>
       <p className="club-hint">
-        Nodig eigenaren en clubmanagers uit met hun e-mailadres. Kopieer daarna hun uitnodigingslink en stuur die door (bijvoorbeeld per mail of app): daarmee kiezen ze een keer een wachtwoord en loggen ze voortaan in met e-mailadres en wachtwoord. Ze zien alleen deze sportschool. Een eigenaar mag alles; een clubmanager ziet wat je bij de rol Clubmanager aanvinkt bij Instellingen, Rechten per rol.
-        {!loginAan && ' De eigen login staat nog uit: uitnodigingen werken pas als de schakelaar aan gaat.'}
+        {t.uitleg}
+        {!loginAan && ` ${t.loginUit}`}
       </p>
 
       {beheerders === null ? (
-        <p className="club-melding club-melding--fout" role="alert">De beheerders konden niet worden gelezen. Ververs de pagina of probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="alert">{t.laadFout}</p>
       ) : actieven.length === 0 ? (
-        <p className="club-hint">Nog geen beheerders.</p>
+        <p className="club-hint">{t.leeg}</p>
       ) : (
         <ul className="club-beheerders-lijst">
           {actieven.map((b) => (
             <li key={b.id} className="club-beheerders-rij">
               <div className="club-beheerders-wie">
                 <strong>{b.naam}</strong>
-                <span>{ROL_LABEL[b.rol]}{b.email ? ` · ${b.email}` : ''}</span>
+                <span>{t.rollen[b.rol]}{b.email ? ` · ${b.email}` : ''}</span>
               </div>
-              <span className={`club-chip ${status(b).chip}`}>{status(b).label}</span>
+              <span className={`club-chip ${status(b, t.status).chip}`}>{status(b, t.status).label}</span>
               {b.id === ikZelf ? (
-                <span className="club-hint">Dit ben jij</span>
+                <span className="club-hint">{t.ikZelf}</span>
               ) : (
               <div className="club-beheerders-acties">
                 {!b.heeftWachtwoord && (
                   <button type="button" className="club-knop club-knop--klein" onClick={() => void kopieer(b)}>
-                    <Copy aria-hidden size={14} /> {gekopieerd === b.id ? 'Gekopieerd' : 'Uitnodigingslink'}
+                    <Copy aria-hidden size={14} /> {gekopieerd === b.id ? t.gekopieerd : t.link}
                   </button>
                 )}
                 {(b.heeftWachtwoord || b.gesloten) && (
-                  <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null} onClick={() => void doe(b.id, 'reset')}>Nieuwe uitnodiging</button>
+                  <button type="button" className="club-knop club-knop--klein" disabled={bezig !== null} onClick={() => void doe(b.id, 'reset')}>{t.nieuweUitnodiging}</button>
                 )}
-                <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig !== null} onClick={() => void doe(b.id, 'stoppen')}>Stoppen</button>
+                <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig !== null} onClick={() => void doe(b.id, 'stoppen')}>{t.stoppen}</button>
               </div>
               )}
             </li>
@@ -116,7 +122,7 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
       )}
 
       {eigenSportschool ? (
-        <p className="club-hint">Voor {sportschool} zelf maak je nog geen beheerders aan: Club blijft geheim tot de presentatie.</p>
+        <p className="club-hint">{t.eigen(sportschool)}</p>
       ) : (
       <form
         className="club-beheerders-nieuw"
@@ -126,23 +132,23 @@ export function BeheerdersBlok({ sportschool, beheerders, loginAan, eigenSportsc
         }}
       >
         <label className="club-veld">
-          <span>Naam</span>
+          <span>{tekst.algemeen.naam}</span>
           <input className="club-invoer" maxLength={60} value={naam} onChange={(e) => setNaam(e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>E-mail</span>
+          <span>{tekst.algemeen.email}</span>
           <input className="club-invoer" type="email" maxLength={120} value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label className="club-veld">
-          <span>Rol</span>
+          <span>{t.rol}</span>
           <select className="club-invoer" value={rol} onChange={(e) => setRol(e.target.value as BeheerderRol)}>
             {BEHEERDER_ROLLEN.map((r) => (
-              <option key={r} value={r}>{ROL_LABEL[r]}</option>
+              <option key={r} value={r}>{t.rollen[r]}</option>
             ))}
           </select>
         </label>
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig !== null || !naam.trim() || !email.trim()}>
-          <UserPlus aria-hidden size={16} /> {bezig === 'nieuw' ? 'Uitnodigen...' : 'Uitnodigen'}
+          <UserPlus aria-hidden size={16} /> {bezig === 'nieuw' ? t.uitnodigenBezig : t.uitnodigen}
         </button>
       </form>
       )}

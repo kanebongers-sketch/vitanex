@@ -4,7 +4,9 @@ import { useId, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { stuur } from '@/components/club/leden/stuur'
-import { MAX_NAAM, MAX_UITLEG, TOEGANG_LABEL, TOEGANG_SOORTEN, type Groep, type Toegang } from '@/lib/club/community/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
+import { MAX_NAAM, MAX_UITLEG, TOEGANG_SOORTEN, type Groep, type Toegang } from '@/lib/club/community/model'
 
 // Een communitygroep maken of wijzigen. Na opslaan opent de groep.
 
@@ -34,6 +36,8 @@ export function GroepFormulier({ begin, vestigingen, challenges, lestypen, terug
   const [ranglijst, setRanglijst] = useState(begin?.ranglijst ?? true)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const tc = useTekst(COMMUNITY)
+  const tf = tc.formulier
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -50,31 +54,31 @@ export function GroepFormulier({ begin, vestigingen, challenges, lestypen, terug
 
   return (
     <form className="club-cmb-kaart club-cmb-formulier" onSubmit={(e) => void bewaar(e)} aria-labelledby={`${id}-kop`} aria-describedby={fout ? `${id}-fout` : undefined}>
-      <h2 id={`${id}-kop`}>{begin ? 'Groep wijzigen' : 'Nieuwe groep'}</h2>
+      <h2 id={`${id}-kop`}>{begin ? tf.wijzigen : tf.nieuw}</h2>
       <label className="club-veld">
-        <span>Naam</span>
-        <input className="club-invoer" required minLength={2} maxLength={MAX_NAAM} value={naam} placeholder="Bijvoorbeeld: Ochtendploeg" onChange={(e) => setNaam(e.target.value)} />
+        <span>{tf.naam}</span>
+        <input className="club-invoer" required minLength={2} maxLength={MAX_NAAM} value={naam} placeholder={tf.naamVoorbeeld} onChange={(e) => setNaam(e.target.value)} />
       </label>
       <label className="club-veld">
-        <span>Uitleg voor leden (mag leeg)</span>
+        <span>{tf.uitleg}</span>
         <textarea className="club-invoer" rows={3} maxLength={MAX_UITLEG} value={uitleg} onChange={(e) => setUitleg(e.target.value)} />
       </label>
       <fieldset className="club-veld">
-        <legend>Wie mag erin</legend>
+        <legend>{tf.wie}</legend>
         {TOEGANG_SOORTEN.map((t) => (
           <label key={t} className="club-cm-keus">
             <input type="radio" name={`${id}-toegang`} checked={toegang === t} onChange={() => setToegang(t)} />
             <span>
-              <strong>{TOEGANG_LABEL[t].label}</strong>: {TOEGANG_LABEL[t].uitleg}
+              <strong>{tc.toegang[t].label}</strong>: {tc.toegang[t].uitleg}
             </span>
           </label>
         ))}
       </fieldset>
       <div className="club-cmb-rij">
         <label className="club-veld">
-          <span>Vestiging</span>
+          <span>{tf.vestiging}</span>
           <select className="club-invoer" value={vestiging} onChange={(e) => setVestiging(e.target.value)}>
-            <option value="">Alle vestigingen</option>
+            <option value="">{tf.alleVestigingen}</option>
             {vestigingen.map((v) => (
               <option key={v.sleutel} value={v.sleutel}>
                 {v.naam}
@@ -83,9 +87,9 @@ export function GroepFormulier({ begin, vestigingen, challenges, lestypen, terug
           </select>
         </label>
         <label className="club-veld">
-          <span>Hoort bij een les (mag leeg)</span>
+          <span>{tf.les}</span>
           <select className="club-invoer" value={lestypeId} onChange={(e) => setLestypeId(e.target.value)}>
-            <option value="">Geen les</option>
+            <option value="">{tf.geenLes}</option>
             {lestypen.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.naam}
@@ -95,9 +99,9 @@ export function GroepFormulier({ begin, vestigingen, challenges, lestypen, terug
         </label>
       </div>
       <label className="club-veld">
-        <span>Hoort bij een challenge (de ranglijst volgt dan de challenge)</span>
+        <span>{tf.challenge}</span>
         <select className="club-invoer" value={challengeId} onChange={(e) => setChallengeId(e.target.value)}>
-          <option value="">Geen challenge: ranglijst op bezoekdagen deze maand</option>
+          <option value="">{tf.geenChallenge}</option>
           {challenges.map((c) => (
             <option key={c.id} value={c.id}>
               {c.naam}
@@ -107,14 +111,14 @@ export function GroepFormulier({ begin, vestigingen, challenges, lestypen, terug
       </label>
       <label className="club-cm-keus">
         <input type="checkbox" checked={ranglijst} onChange={(e) => setRanglijst(e.target.checked)} />
-        <span>Ranglijst tonen. Alleen leden die er zelf voor kiezen staan erop, met voornaam en initiaal.</span>
+        <span>{tf.ranglijst}</span>
       </label>
       <div className="club-cmb-knoppen">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Opslaan...' : begin ? 'Wijzigingen opslaan' : 'Groep maken'}
+          {bezig ? tf.bezig : begin ? tf.opslaan : tf.maken}
         </button>
         <Link href={begin ? `${terugHref}&g=${encodeURIComponent(begin.id)}` : terugHref} scroll={false} className="club-knop club-knop--stil">
-          Annuleren
+          {tf.annuleren}
         </Link>
       </div>
       {fout && (

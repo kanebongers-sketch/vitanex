@@ -5,7 +5,8 @@ import { ArrowRight, BookOpen, Check } from 'lucide-react'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
 import { voorschrift } from '@/lib/club/app/schema'
 import { aantalSets, huidigeSet, setSleutel, type Invoer, type OefeningPlek, type SetVeld } from '@/lib/club/app/training-modus'
-import { BLOK_LABEL } from '@/lib/club/training/blokken'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 import { OefeningSpeler } from '@/components/club/training/coaching/OefeningSpeler'
 import { RepCoaching } from '@/components/club/training/repspeler/RepCoaching'
 import { RepSpeler } from '@/components/club/training/repspeler/RepSpeler'
@@ -38,9 +39,11 @@ interface OefeningSchermProps {
 export function OefeningScherm(p: OefeningSchermProps) {
   const { oefening: o, plek, invoer } = p
   const [gekozen, setGekozen] = useState<number | null>(null)
+  const taal = useTaal()
+  const t = TRAINING[taal].oefening
   const open = huidigeSet(o, invoer)
   const actief = gekozen ?? open
-  const regel = voorschrift(o)
+  const regel = voorschrift(o, taal)
   const titelId = `oefening-${o.id}`
   const render = repRenderVoor(o.naam)
 
@@ -75,29 +78,29 @@ export function OefeningScherm(p: OefeningSchermProps) {
           {render ? (
             <RepCoaching naam={o.naam} kernpunten={p.kernpunten} aandachtspunten={o.aandachtspunten} />
           ) : (
-            <Kernpunten punten={p.kernpunten} aandachtspunten={o.aandachtspunten} />
+            <Kernpunten punten={p.kernpunten} aandachtspunten={o.aandachtspunten} label={t.kernpunten} />
           )}
           <button type="button" className="club-tm-meer" onClick={p.onInfo} aria-haspopup="dialog">
-            <BookOpen aria-hidden size={16} /> Meer uitleg
+            <BookOpen aria-hidden size={16} /> {t.meerUitleg}
           </button>
         </div>
       </div>
       {p.andereOefening && <div className="club-tm-slot">{p.andereOefening}</div>}
       {plek.soort !== 'los' && (
         <p className="club-tm-blok">
-          <strong>{BLOK_LABEL[plek.soort]}</strong> met {plek.samenMet.join(' en ')}. Een set van elk, dan pas rust.
+          <strong>{t.blok[plek.soort]}</strong> {t.blokMet(plek.samenMet.join(` ${t.en} `))}
         </p>
       )}
-      {o.notitie && <p className="club-tm-notitie">{o.notitie.startsWith('Vandaag in plaats van') ? o.notitie : `Van je trainer: ${o.notitie}`}</p>}
+      {o.notitie && <p className="club-tm-notitie">{notitieTekst(o.notitie, t)}</p>}
       {actief !== null ? (
         <SetPaneel oefening={o} historie={p.historie} invoer={invoer} setNr={actief} onVeld={p.onVeld} onKlaar={klaar} onOpen={(k) => { setGekozen(null); p.onOpen(k) }} />
       ) : (
         <section className="club-tm-alles" aria-live="polite">
           <span className="club-tm-alles-vink" aria-hidden><Check size={22} strokeWidth={3} /></span>
-          <p><strong>Alle sets gedaan</strong> Tik een set aan om hem aan te passen.</p>
+          <p><strong>{t.allesGedaan}</strong> {t.aanpassen}</p>
           {!p.isLaatste && (
             <button type="button" className="club-lidapp-knop club-lidapp-knop--primair" onClick={p.onVolgende}>
-              Volgende <ArrowRight aria-hidden size={17} />
+              {TRAINING[taal].volgende} <ArrowRight aria-hidden size={17} />
             </button>
           )}
         </section>
@@ -107,11 +110,19 @@ export function OefeningScherm(p: OefeningSchermProps) {
   )
 }
 
+/** Zo zet wisselOefening (alternatieven.ts) de andere oefening in de notitie; in de taal van de app tonen. */
+const WISSEL_NOTITIE = /^Vandaag in plaats van (.+)\.$/
+
+function notitieTekst(notitie: string, t: (typeof TRAINING)['nl']['oefening']): string {
+  const wissel = WISSEL_NOTITIE.exec(notitie)
+  return wissel ? t.inPlaatsVan(wissel[1]) : t.vanTrainer(notitie)
+}
+
 /** De kernpunten genummerd, direct zichtbaar. Zonder coaching: de aandachtspunten uit de bibliotheek. */
-function Kernpunten({ punten, aandachtspunten }: { punten: readonly string[] | undefined; aandachtspunten: string | null }) {
+function Kernpunten({ punten, aandachtspunten, label }: { punten: readonly string[] | undefined; aandachtspunten: string | null; label: string }) {
   if (punten && punten.length > 0) {
     return (
-      <ol className="club-tm-kern" aria-label="Kernpunten">
+      <ol className="club-tm-kern" aria-label={label}>
         {punten.slice(0, 5).map((punt, i) => (
           <li key={i}>
             <b aria-hidden>{i + 1}</b>

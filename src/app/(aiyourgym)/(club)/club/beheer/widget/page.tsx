@@ -12,8 +12,13 @@ import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { WidgetInstellingenFormulier } from '@/components/club/widget/WidgetInstellingenFormulier'
 import '@/components/club/beheer/beheer.css'
 import '@/components/club/widget/widget-beheer.css'
+import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BEHEER_PAGINAS } from '@/lib/aiyourgym/taal/woorden/club/beheer-paginas'
 
-export const metadata: Metadata = { title: 'Boekingswidget' }
+export async function generateMetadata(): Promise<Metadata> {
+  return instelMetadata('widget')
+}
 
 // De boekingswidget instellen: per vestiging aan of uit, op welke websites hij
 // mag staan, welke lessen erin komen, licht of donker, en de code om te
@@ -32,6 +37,8 @@ export default async function WidgetInstellenPagina({ searchParams }: { searchPa
     : [STANDAARD_WIDGET, []]
   const slug = t.organisatie.slug
   const actief = widgetActief()
+  const titel = (await instelKop('widget')).titel
+  const tekst = (await clubTekst(BEHEER_PAGINAS)).widget
 
   return (
     <>
@@ -39,25 +46,25 @@ export default async function WidgetInstellenPagina({ searchParams }: { searchPa
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}{vestiging ? ` · ${naamVan(t.vestigingen, vestiging)}` : ''}</p>
-          <h1>Boekingswidget</h1>
-          <p>Zet het lesrooster van een vestiging op je eigen website. Bezoekers vragen een proefles of kennismaking aan; dat komt als lead binnen bij Leads. Leden boeken in de ledenapp.</p>
+          <h1>{titel}</h1>
+          <p>{tekst.intro}</p>
         </div>
       </header>
 
       {!actief && (
         <p className="club-wb-melding">
-          De widget staat nog uit voor bezoekers. Je kunt alles al instellen en de voorvertoning bekijken.
-          {t.isPlatformEigenaar && <> Aanzetten: <code>CLUB_WIDGET_ACTIEF=1</code> in Render.</>}
+          {tekst.uit}
+          {t.isPlatformEigenaar && <> {tekst.aanzetten} <code>CLUB_WIDGET_ACTIEF=1</code> {tekst.inRender}</>}
         </p>
       )}
       {!slug && (
         <p className="club-wb-melding is-let">
-          Kies eerst een adres voor je sportschool; de widget gebruikt dat in de link. <Link href="/club/huisstijl#adres-kop">Adres kiezen</Link>
+          {tekst.geenAdres} <Link href="/club/huisstijl#adres-kop">{tekst.adresKiezen}</Link>
         </p>
       )}
 
       {t.vestigingen.length > 1 && (
-        <nav className="club-wb-vestigingen" aria-label="Vestiging">
+        <nav className="club-wb-vestigingen" aria-label={tekst.vestiging}>
           {t.vestigingen.map((v) => (
             <Link key={v.sleutel} href={clubPad('/beheer/widget', v.sleutel)} aria-current={v.sleutel === vestiging ? 'page' : undefined}>
               {v.naam}
@@ -67,9 +74,9 @@ export default async function WidgetInstellenPagina({ searchParams }: { searchPa
       )}
 
       {!vestiging ? (
-        <p className="club-wb-melding is-let">Voeg eerst een vestiging toe.</p>
+        <p className="club-wb-melding is-let">{tekst.geenVestiging}</p>
       ) : !instellingen ? (
-        <p className="club-wb-melding is-let">De instellingen konden niet worden geladen. Probeer het opnieuw.</p>
+        <p className="club-wb-melding is-let">{tekst.laadFout}</p>
       ) : (
         <WidgetInstellingenFormulier
           key={vestiging}

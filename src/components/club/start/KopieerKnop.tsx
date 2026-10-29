@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // Een adres kopieren met een klik. Lukt het niet (oude browser, geen
 // toestemming), dan zeggen we dat eerlijk: het adres staat ernaast om over te nemen.
@@ -16,6 +18,7 @@ type Stand = 'rust' | 'ok' | 'mislukt'
 
 export function KopieerKnop({ tekst, label }: KopieerKnopProps) {
   const [stand, setStand] = useState<Stand>('rust')
+  const t = useTekst(START).kopieer
 
   useEffect(() => {
     if (stand === 'rust') return
@@ -34,14 +37,14 @@ export function KopieerKnop({ tekst, label }: KopieerKnopProps) {
 
   return (
     <span className="club-start-kopieer">
-      <button type="button" className="club-knop club-knop--klein" aria-label={`Kopieer ${label}`} onClick={() => void kopieer()}>
+      <button type="button" className="club-knop club-knop--klein" aria-label={t.label(label)} onClick={() => void kopieer()}>
         {stand === 'ok' ? <Check aria-hidden size={14} strokeWidth={3} /> : <Copy aria-hidden size={14} />}
-        {stand === 'ok' ? 'Gekopieerd' : 'Kopieer'}
+        {stand === 'ok' ? t.gekopieerd : t.knop}
       </button>
       <span className="sr-only" aria-live="polite">
-        {stand === 'ok' ? 'Gekopieerd' : stand === 'mislukt' ? 'Kopieren lukte niet. Neem het adres over.' : ''}
+        {stand === 'ok' ? t.gekopieerd : stand === 'mislukt' ? t.misluktSr : ''}
       </span>
-      {stand === 'mislukt' && <span className="club-zacht club-start-kopieer-fout">Lukte niet, neem het over</span>}
+      {stand === 'mislukt' && <span className="club-zacht club-start-kopieer-fout">{t.mislukt}</span>}
     </span>
   )
 }

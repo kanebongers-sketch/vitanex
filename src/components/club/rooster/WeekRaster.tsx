@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react'
-import { WEEKDAG_KORT, WEEKDAG_LABEL } from '@/lib/club/rooster/openingstijden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 import { groepeerPerDag, rasterPlek, verdeelBanen, type LesOverzicht } from '@/lib/club/rooster/raster'
 import { minutenNaarTijd } from '@/lib/club/rooster/tijd'
 import { roosterHref, type RoosterStaat } from '@/lib/club/rooster/url'
@@ -17,15 +19,21 @@ interface Props {
   nuMinuten: number
   nuMs: number
   staat: RoosterStaat
+  taal: Taal
 }
 
-const MAAND = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+const opDag = (datum: string) => `${datum}T12:00:00Z`
+const hoofdletter = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+/** Ma | Mon */
+const weekdagKort = (datum: string, taal: Taal) => hoofdletter(formatDatum(opDag(datum), taal, 'weekdag').replace('.', ''))
+/** Maandag 20 oktober | Monday 20 October */
+const dagLang = (datum: string, taal: Taal) => hoofdletter(formatDatum(opDag(datum), taal, 'dag'))
 
 function dagNummer(datum: string): string {
   return String(Number(datum.slice(8, 10)))
 }
 
-function DagKolom({ datum, lessen, bereik, isVandaag, nuMinuten, nuMs, staat }: { datum: string; lessen: readonly LesOverzicht[]; isVandaag: boolean } & Omit<Props, 'dagen' | 'lessen' | 'vandaag'>) {
+function DagKolom({ datum, lessen, bereik, isVandaag, nuMinuten, nuMs, staat, taal }: { datum: string; lessen: readonly LesOverzicht[]; isVandaag: boolean } & Omit<Props, 'dagen' | 'lessen' | 'vandaag'>) {
   const plekken = lessen.map((l) => ({ les: l, ...rasterPlek(l) }))
   const banen = verdeelBanen(plekken.map((p) => ({ id: p.les.id, van: p.van, tot: p.tot })))
   const nuStijl = { '--van': nuMinuten - bereik.van } as CSSProperties
@@ -41,6 +49,7 @@ function DagKolom({ datum, lessen, bereik, isVandaag, nuMinuten, nuMs, staat }: 
             tijd={minutenNaarTijd(van)}
             isVoorbij={Date.parse(les.eindOp) < nuMs}
             isGeopend={staat.les === les.id}
+            taal={taal}
             plek={{ van: van - bereik.van, duur: tot - van, baan: b.baan, banen: b.banen }}
           />
         )
@@ -50,19 +59,20 @@ function DagKolom({ datum, lessen, bereik, isVandaag, nuMinuten, nuMs, staat }: 
   )
 }
 
-export function WeekRaster({ dagen, lessen, bereik, vandaag, nuMinuten, nuMs, staat }: Props) {
+export function WeekRaster({ dagen, lessen, bereik, vandaag, nuMinuten, nuMs, staat, taal }: Props) {
+  const t = ROOSTER[taal].raster
   const perDag = groepeerPerDag(lessen, dagen)
   const uren = Array.from({ length: (bereik.tot - bereik.van) / 60 }, (_, i) => bereik.van + i * 60)
   const stijl = { '--uren': uren.length } as CSSProperties
   return (
-    <section className="club-rooster-raster" style={stijl} aria-label="Weekrooster">
+    <section className="club-rooster-raster" style={stijl} aria-label={t.label}>
       <div className="club-rooster-kolomkoppen" aria-hidden>
         <span />
-        {dagen.map((d, i) => (
+        {dagen.map((d) => (
           <span key={d} className="club-rooster-kolomkop" data-vandaag={d === vandaag || undefined}>
-            <span className="club-rooster-kolomkop-dag">{WEEKDAG_KORT[i]}</span>
+            <span className="club-rooster-kolomkop-dag">{weekdagKort(d, taal)}</span>
             <span className="club-rooster-kolomkop-nr club-getal">{dagNummer(d)}</span>
-            <span className="club-rooster-kolomkop-telling">{perDag[d].filter((l) => !l.geannuleerd).length} lessen</span>
+            <span className="club-rooster-kolomkop-telling">{t.lessenTel(perDag[d].filter((l) => !l.geannuleerd).length)}</span>
           </span>
         ))}
       </div>
@@ -73,16 +83,17 @@ export function WeekRaster({ dagen, lessen, bereik, vandaag, nuMinuten, nuMs, st
           ))}
         </div>
         <div className="club-rooster-dagen" role="list">
-          {dagen.map((d, i) => (
+          {dagen.map((d) => (
             <DagKolom
               key={d}
-              datum={`${WEEKDAG_LABEL[i]} ${MAAND.format(new Date(`${d}T12:00:00Z`))}`}
+              datum={dagLang(d, taal)}
               lessen={perDag[d]}
               bereik={bereik}
               isVandaag={d === vandaag}
               nuMinuten={nuMinuten}
               nuMs={nuMs}
               staat={staat}
+              taal={taal}
             />
           ))}
         </div>
@@ -96,30 +107,31 @@ function dagAnker(datum: string): string {
   return `club-rooster-dag-${datum}`
 }
 
-export function DagLijst({ dagen, lessen, vandaag, nuMs, staat }: Omit<Props, 'bereik' | 'nuMinuten'>) {
+export function DagLijst({ dagen, lessen, vandaag, nuMs, staat, taal }: Omit<Props, 'bereik' | 'nuMinuten'>) {
+  const t = ROOSTER[taal].raster
   const perDag = groepeerPerDag(lessen, dagen)
   return (
-    <section className="club-rooster-daglijst" aria-label="Lessen per dag">
-      <nav className="club-rooster-dagkiezer" aria-label="Naar een dag">
-        {dagen.map((d, i) => {
+    <section className="club-rooster-daglijst" aria-label={t.perDag}>
+      <nav className="club-rooster-dagkiezer" aria-label={t.naarDag}>
+        {dagen.map((d) => {
           const aantal = perDag[d].filter((l) => !l.geannuleerd).length
           return (
             <a key={d} href={`#${dagAnker(d)}`} data-vandaag={d === vandaag || undefined} data-leeg={aantal === 0 || undefined}>
-              <span>{WEEKDAG_KORT[i]}</span>
+              <span>{weekdagKort(d, taal)}</span>
               <strong className="club-getal">{dagNummer(d)}</strong>
-              <small>{aantal === 0 ? 'geen' : aantal === 1 ? '1 les' : `${aantal} lessen`}</small>
+              <small>{aantal === 0 ? t.geen : t.lessenTel(aantal)}</small>
             </a>
           )
         })}
       </nav>
-      {dagen.map((d, i) => (
+      {dagen.map((d) => (
         <section key={d} id={dagAnker(d)} className="club-rooster-daglijst-dag" data-vandaag={d === vandaag || undefined}>
           <h2>
-            {WEEKDAG_LABEL[i]} <span className="club-zacht">{MAAND.format(new Date(`${d}T12:00:00Z`))}</span>
-            {d === vandaag && <span className="club-chip club-chip--merk">Vandaag</span>}
+            {hoofdletter(formatDatum(opDag(d), taal, 'weekdagLang'))} <span className="club-zacht">{formatDatum(opDag(d), taal, 'dagMaand')}</span>
+            {d === vandaag && <span className="club-chip club-chip--merk">{t.vandaag}</span>}
           </h2>
           {perDag[d].length === 0 ? (
-            <p className="club-rooster-daglijst-leeg">Geen lessen</p>
+            <p className="club-rooster-daglijst-leeg">{t.geenLessen}</p>
           ) : (
             <div className="club-rooster-daglijst-rijen">
               {perDag[d].map((les) => (
@@ -130,6 +142,7 @@ export function DagLijst({ dagen, lessen, vandaag, nuMs, staat }: Omit<Props, 'b
                   tijd={minutenNaarTijd(rasterPlek(les).van)}
                   isVoorbij={Date.parse(les.eindOp) < nuMs}
                   isGeopend={staat.les === les.id}
+                  taal={taal}
                 />
               ))}
             </div>

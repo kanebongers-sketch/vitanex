@@ -44,6 +44,8 @@ import { KopenBlok, LedenappKopen } from '@/components/club/betalen/LedenappKope
 import { PushMeldingen } from '@/components/club/ledenapp-pwa/PushMeldingen'
 import { publiekeSleutelVoorApp } from '@/lib/club/push/sleutels'
 import { pushSessieMerk } from '@/lib/club/push/sessie-merk'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -113,6 +115,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   // Web push: alleen met CLUB_PUSH_ACTIEF=1 en kloppende sleutels, anders geen knop.
   const pushSleutel = publiekeSleutelVoorApp(process.env)
   const pushMerk = pushSessieMerk(l.sessieHash)
+  const t = LEDENAPP[await getTaal()]
 
   return (
     <LedenappSchil organisatie={org}>
@@ -132,13 +135,13 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               {m}{' '}
               {/* Een gewone link: laadt dit scherm opnieuw, ook in de web-app zonder vernieuwknop. */}
               <a href={tabPad(toonMeldingen ? 'meldingen' : toonKopen ? 'kopen' : tab)} className="club-mijn-opnieuw">
-                Opnieuw laden
+                {t.algemeen.opnieuwLaden}
               </a>
             </p>
           ))}
           {toonMeldingen && (
             <div className="club-lidapp-tab">
-              <h2 className="club-lidapp-kop">Meldingen</h2>
+              <h2 className="club-lidapp-kop">{t.mijn.meldingen}</h2>
               {/* Alles over meldingen op een plek: de lijst en meldingen op je telefoon aan of uit. */}
               {pushSleutel && (
                 <div className="club-mijn-blok">
@@ -149,18 +152,18 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 <LedenappMeldingen meldingen={meldingen} gelezenUrl={l.voorvertoning ? undefined : '/api/club/lid/meldingen/gelezen'} nu={nu.toISOString()} />
               ) : (
                 <p className="club-melding club-melding--fout" role="alert">
-                  De meldingen konden niet worden geladen. Probeer het straks opnieuw.
+                  {t.mijn.meldingenFout}
                 </p>
               )}
             </div>
           )}
           {toonKopen &&
             (kopen === 'fout' ? (
-              <p className="club-melding club-melding--fout club-mijn-blok" role="alert">Kopen kon niet worden geladen. Probeer het straks opnieuw.</p>
+              <p className="club-melding club-melding--fout club-mijn-blok" role="alert">{t.mijn.kopenFout}</p>
             ) : kopen ? (
               <LedenappKopen producten={kopen.producten} strippen={kopen.strippen} ptSessies={kopen.ptSessies} open={kopen.open} kopenUrl={metVoor('/api/club/lid/betalen/kopen')} voorvertoning={l.voorvertoning} terug={kopenTerug} sportschool={org.naam} />
             ) : (
-              <p className="club-melding club-mijn-blok" role="status">Kopen in de app staat bij {org.naam} niet aan.</p>
+              <p className="club-melding club-mijn-blok" role="status">{t.mijn.kopenUit(org.naam)}</p>
             ))}
           {!apart && tab === 'home' && (
             <>
@@ -186,7 +189,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {!apart && tab === 'afspraken' && (
             <div className="club-lidapp-tab">
-              <h2 className="club-lidapp-kop">Afspraken</h2>
+              <h2 className="club-lidapp-kop">{t.tabs.afspraken}</h2>
               <LedenappAfspraken lidId={lid.id} />
             </div>
           )}
@@ -210,9 +213,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />
               {l.account && !l.account.wachtwoordHash && (
                 <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">
-                  <h3 id="mijn-wachtwoord">Kies een wachtwoord</h3>
-                  <p className="club-mijn-veld-hint">Inloggen gaat voortaan met je e-mailadres en een wachtwoord, niet meer met een pincode. Kies het nu, dan kun je straks gewoon weer inloggen.</p>
-                  <WachtwoordFormulier code={null} standaardEmail={l.account.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop="Wachtwoord opslaan" />
+                  <h3 id="mijn-wachtwoord">{t.profiel.wachtwoordKop}</h3>
+                  <p className="club-mijn-veld-hint">{t.profiel.wachtwoordUitleg}</p>
+                  <WachtwoordFormulier code={null} standaardEmail={l.account.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop={t.profiel.wachtwoordKnop} />
                 </section>
               )}
               {!l.voorvertoning && (

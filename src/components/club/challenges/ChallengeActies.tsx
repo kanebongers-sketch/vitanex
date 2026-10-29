@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Pencil, Square } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 
 // Wijzigen (opent het formulier via de URL) en stoppen (met bevestiging).
 // Stoppen telt vanaf vandaag niets meer mee; de stand blijft terug te zien.
@@ -20,6 +22,7 @@ export function ChallengeActies({ id, titel, wijzigHref }: Props) {
   const [bevestig, setBevestig] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(CHALLENGES).acties
 
   async function stop() {
     setBezig(true)
@@ -34,22 +37,22 @@ export function ChallengeActies({ id, titel, wijzigHref }: Props) {
   return (
     <div className="club-challenges-acties">
       {bevestig ? (
-        <div className="club-challenges-bevestig" role="group" aria-label={`${titel} stoppen`}>
-          <span>Stoppen? Vanaf vandaag telt er niets meer mee.</span>
+        <div className="club-challenges-bevestig" role="group" aria-label={t.stoppenLabel(titel)}>
+          <span>{t.stoppenVraag}</span>
           <button type="button" className="club-knop club-knop--gevaar club-knop--klein" onClick={() => void stop()} disabled={bezig}>
-            {bezig ? 'Stoppen...' : 'Ja, stoppen'}
+            {bezig ? t.bezig : t.jaStoppen}
           </button>
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setBevestig(false)} disabled={bezig}>
-            Nee
+            {t.nee}
           </button>
         </div>
       ) : (
         <>
           <Link href={wijzigHref} scroll={false} className="club-knop club-knop--klein">
-            <Pencil size={14} aria-hidden /> Wijzigen
+            <Pencil size={14} aria-hidden /> {t.wijzigen}
           </Link>
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setBevestig(true)}>
-            <Square size={14} aria-hidden /> Stoppen
+            <Square size={14} aria-hidden /> {t.stoppen}
           </button>
         </>
       )}

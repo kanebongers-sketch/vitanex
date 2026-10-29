@@ -10,8 +10,12 @@ import { geraaktPerSluiting } from '@/lib/club/sluiting/regels'
 import { SluitingBeheer } from '@/components/club/sluiting/SluitingBeheer'
 import '@/components/club/sluiting/sluiting.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { SLUITING } from '@/lib/aiyourgym/taal/woorden/club/sluiting'
 
-export const metadata: Metadata = { title: 'Sluitingsdagen' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: SLUITING[await getTaal()].pagina.titel }
+}
 
 // Sluitingsdagen, feestdagen en afwijkende openingstijden, per jaar (?jaar=2027).
 // Het rooster maakt op een gesloten dag geen lessen en op een afwijkende dag
@@ -19,6 +23,7 @@ export const metadata: Metadata = { title: 'Sluitingsdagen' }
 
 export default async function SluitingsdagenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisOnderdeel('sluiting')
+  const w = SLUITING[await getTaal()].pagina
   const nu = new Date()
   const vandaag = nlDelen(nu).datum
   const huidig = Number(vandaag.slice(0, 4))
@@ -35,10 +40,10 @@ export default async function SluitingsdagenPagina({ searchParams }: { searchPar
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Sluitingsdagen</h1>
-          <p>Feestdagen, sluitingen en dagen met andere openingstijden. Op een gesloten dag maakt het rooster geen lessen; bij andere tijden alleen lessen die erbinnen vallen.</p>
+          <h1>{w.titel}</h1>
+          <p>{w.intro}</p>
         </div>
-        <nav className="club-sluiting-jaren" aria-label="Kies een jaar">
+        <nav className="club-sluiting-jaren" aria-label={w.kiesJaar}>
           <div className="club-segment">
             {jaren.map((j) => (
               <Link key={j} href={`/club/beheer/sluiting?jaar=${j}`} aria-current={j === jaar ? 'page' : undefined} scroll={false}>
@@ -48,8 +53,8 @@ export default async function SluitingsdagenPagina({ searchParams }: { searchPar
           </div>
         </nav>
       </header>
-      {!sluitingen && <p className="club-melding club-melding--fout" role="status">De sluitingsdagen konden niet worden gelezen. Probeer het later opnieuw.</p>}
-      {sluitingen && !lessen && <p className="club-melding club-melding--fout" role="status">De geplande lessen konden niet worden gelezen, dus waarschuwingen over lessen ontbreken nu.</p>}
+      {!sluitingen && <p className="club-melding club-melding--fout" role="status">{w.leesFout}</p>}
+      {sluitingen && !lessen && <p className="club-melding club-melding--fout" role="status">{w.lessenFout}</p>}
       <SluitingBeheer jaar={jaar} vandaag={vandaag} sluitingen={sluitingen ?? []} geraakt={geraakt} />
     </>
   )

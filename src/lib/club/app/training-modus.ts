@@ -7,6 +7,7 @@ import { blokken, uitvoerVolgorde, type BlokSoort } from '@/lib/club/training/bl
 import { bereik } from '@/lib/club/training/progressie'
 import type { AppOefening, AppSchemaDag, OefeningHistorie, VorigeSet } from './schema'
 import type { SetInvoer } from './sets'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 export interface SetVeld {
   kg: string
@@ -22,7 +23,8 @@ export const setSleutel = (regelId: string, setNr: number): string => `${regelId
 export const aantalSets = (o: AppOefening): number => Math.max(1, Math.min(20, o.sets ?? 3))
 
 /** 42.5 wordt "42,5". */
-export const komma = (v: number): string => String(v).replace('.', ',')
+/** Een getal met de decimaal van de taal: 42,5 of 42.5. */
+export const komma = (v: number, taal: Taal = 'nl'): string => (taal === 'nl' ? String(v).replace('.', ',') : String(v))
 
 export function opTijd(o: AppOefening): boolean {
   return o.tijdSec !== null && !o.herhalingen
@@ -69,12 +71,12 @@ export function voorstelSet(o: AppOefening, h: OefeningHistorie | undefined, set
 }
 
 /** "Vorige keer: 40 kg x 10" voor een set, of null. */
-export function vorigeTekst(h: OefeningHistorie | undefined, setNr: number): string | null {
+export function vorigeTekst(h: OefeningHistorie | undefined, setNr: number, taal: Taal = 'nl'): string | null {
   const sets = h?.vorige?.sets ?? []
   const v = sets.find((s) => s.setNr === setNr)
   if (!v) return null
   const maat = v.herhalingen !== null ? `${v.herhalingen}` : v.tijdSec !== null ? `${v.tijdSec} sec` : '?'
-  return v.gewichtKg !== null && v.gewichtKg > 0 ? `${komma(v.gewichtKg)} kg x ${maat}` : maat
+  return v.gewichtKg !== null && v.gewichtKg > 0 ? `${komma(v.gewichtKg, taal)} kg x ${maat}` : maat
 }
 
 function getal(t: string): number | null {
@@ -191,10 +193,10 @@ export function huidigeSet(o: AppOefening, invoer: Invoer): number | null {
 }
 
 /** Een afgevinkte set als korte tekst: "42,5 kg x 9", "30 sec" of "12". Lege velden nemen het voorstel over. */
-export function setTekst(o: AppOefening, v: SetVeld | undefined, voorstel: { herh: string; tijd: string }): string {
+export function setTekst(o: AppOefening, v: SetVeld | undefined, voorstel: { herh: string; tijd: string }, taal: Taal = 'nl'): string {
   const kg = v ? getal(v.kg) : null
   const maat = opTijd(o) ? `${v?.tijd || voorstel.tijd || '0'} sec` : v?.herh || voorstel.herh || '0'
-  return kg !== null && kg > 0 ? `${komma(kg)} kg x ${maat}` : maat
+  return kg !== null && kg > 0 ? `${komma(kg, taal)} kg x ${maat}` : maat
 }
 
 /** Hoort er een kiloveld bij: niet bij een oefening op tijd zonder gewicht. */

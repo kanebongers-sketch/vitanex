@@ -5,6 +5,9 @@
 // Heeft een bestand alleen een kolom met de hele naam, dan splitsen we die
 // (zie splitsNaam in rij.ts).
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+
 export const IMPORT_VELDEN = [
   'voornaam',
   'tussenvoegsel',
@@ -24,21 +27,12 @@ export const IMPORT_VELDEN = [
 ] as const
 export type ImportVeld = (typeof IMPORT_VELDEN)[number]
 
-export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
-  voornaam: 'Voornaam',
-  tussenvoegsel: 'Tussenvoegsel',
-  achternaam: 'Achternaam',
-  email: 'E-mail',
-  telefoon: 'Telefoon',
-  geboortedatum: 'Geboortedatum',
-  geslacht: 'Geslacht',
-  abonnement: 'Abonnement',
-  status: 'Status',
-  lidSinds: 'Lid sinds',
-  einddatum: 'Einddatum',
-  lidnummer: 'Lidnummer',
-  sportivityId: 'Extern klantnummer',
-  volledigeNaam: 'Volledige naam',
+/** De Nederlandse namen (bron: het woordenboek LEDEN). In beeld via importVeldLabel(veld, taal). */
+export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = LEDEN.nl.import.velden
+
+/** De naam van een veld in de gekozen taal. */
+export function importVeldLabel(veld: ImportVeld, taal: Taal = 'nl'): string {
+  return LEDEN[taal].import.velden[veld]
 }
 
 /** Zonder voornaam en achternaam kan een rij geen lid worden (of een kolom met de volledige naam). */

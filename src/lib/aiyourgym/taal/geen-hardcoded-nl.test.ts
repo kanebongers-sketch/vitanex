@@ -23,12 +23,126 @@ const WORTEL = path.resolve(__dirname, '../../../..')
 
 const MAPPEN = ['src/components/aiyourgym', 'src/app/(aiyourgym)/(website)']
 
+/**
+ * Club en de ledenapp worden per onderdeel omgezet (besluit Kane 24-10-2026:
+ * heel AI Your Gym in twee talen). Een map of bestand komt op deze lijst zodra
+ * het helemaal af is; daarna bewaakt deze test hem net als de website.
+ */
+export const CLUB_KLAAR = [
+  // Stap 1: de schil (kop, menu, submenu, hulpbalk, zoeken en Ctrl K).
+  'src/components/club/shell',
+  'src/app/(aiyourgym)/(club)/club/layout.tsx',
+  'src/app/(aiyourgym)/(club)/club/nieuw',
+  // Stap 2: Vandaag en Taken.
+  'src/components/club/vandaag',
+  'src/components/club/taken',
+  'src/components/club/checkin',
+  'src/components/club/automatisering/Opvolglijst.tsx',
+  'src/components/club/automatisering/OpvolgTaak.tsx',
+  'src/components/club/automatisering/Afgehandeld.tsx',
+  'src/components/club/automatisering/KopieerKnop.tsx',
+  'src/components/club/automatisering/stuur.ts',
+  'src/components/club/sluiting/SluitingMelding.tsx',
+  'src/components/club/sluiting/SluitingenBinnenkort.tsx',
+  'src/app/(aiyourgym)/(club)/club/page.tsx',
+  'src/app/(aiyourgym)/(club)/club/loading.tsx',
+  'src/app/(aiyourgym)/(club)/club/taken',
+  'src/app/(aiyourgym)/(club)/club/checkin',
+  'src/app/(aiyourgym)/(club)/club/opvolgen',
+  // Stap 3: ledenkaart en ledenlijst.
+  'src/components/club/leden',
+  'src/app/(aiyourgym)/(club)/club/leden',
+  // Stap 4: ledenapp.
+  'src/components/club/app',
+  'src/components/club/ledenlogin',
+  'src/components/club/ledenapp-pwa',
+  'src/components/club/training/repspeler',
+  'src/app/(aiyourgym)/(club)/mijn/page.tsx',
+  'src/app/(aiyourgym)/(club)/mijn/layout.tsx',
+  'src/app/(aiyourgym)/(club)/mijn/inloggen',
+  'src/app/(aiyourgym)/(club)/mijn/aanvragen',
+  'src/app/(aiyourgym)/(club)/mijn/start',
+  // Stap 5: rooster en reserveren.
+  'src/components/club/rooster',
+  'src/components/club/afspraken',
+  'src/components/club/agenda',
+  'src/app/(aiyourgym)/(club)/club/rooster',
+  'src/app/(aiyourgym)/(club)/club/afspraken',
+  'src/app/(aiyourgym)/(club)/club/agenda',
+  // Stap 6: startwizard.
+  'src/components/club/start',
+  'src/app/(aiyourgym)/(club)/club/start',
+  // Stap 7: Training en schema-editor.
+  'src/components/club/training',
+  'src/components/club/intakevragen',
+  'src/app/(aiyourgym)/(club)/club/training',
+  'src/app/(aiyourgym)/(club)/club/beheer/intake',
+  // Stap 8b: cijfers en instellingen.
+  'src/components/club/cijfers',
+  'src/components/club/rapporten',
+  'src/components/club/instellingen',
+  'src/components/club/beheer',
+  'src/components/club/huisstijl',
+  'src/components/club/bedrijf',
+  'src/components/club/lidmaatschappen',
+  'src/components/club/sluiting',
+  'src/components/club/automatisering',
+  'src/components/club/meldingen',
+  'src/app/(aiyourgym)/(club)/club/cijfers',
+  'src/app/(aiyourgym)/(club)/club/rapporten',
+  'src/app/(aiyourgym)/(club)/club/instellingen',
+  'src/app/(aiyourgym)/(club)/club/beheer',
+  'src/app/(aiyourgym)/(club)/club/huisstijl',
+  // Stap 8a: leads en personeel.
+  'src/components/club/leads',
+  'src/components/club/personeel',
+  'src/app/(aiyourgym)/(club)/club/leads',
+  'src/app/(aiyourgym)/(club)/club/personeel',
+  // Stap 8d: overige schermen.
+  'src/components/club/hulp',
+  'src/components/club/kladblok',
+  'src/components/club/platform',
+  'src/components/club/systeem',
+  'src/components/club/widget',
+  'src/components/club/inloggen',
+  'src/components/club/abonnement',
+  'src/components/club/ontwerp',
+  'src/app/(aiyourgym)/(club)/club/hulp',
+  'src/app/(aiyourgym)/(club)/club/notities',
+  'src/app/(aiyourgym)/(club)/club/platform',
+  'src/app/(aiyourgym)/(club)/club/systeem',
+  'src/app/(aiyourgym)/(club)/club/koppelingen',
+  'src/app/(aiyourgym)/(club)/club/app',
+  'src/app/(aiyourgym)/(club)/clubinloggen',
+  'src/app/(aiyourgym)/(club)/widget',
+  'src/app/(aiyourgym)/(club)/error.tsx',
+  'src/app/(aiyourgym)/(club)/not-found.tsx',
+  'src/app/(aiyourgym)/(club)/layout.tsx',
+  // Stap 8c: ledenapp-onderdelen (voortgang, challenges, voeding, betalen, berichten, community, health).
+  'src/components/club/health',
+  'src/app/(aiyourgym)/(club)/mijn/koppelingen',
+  'src/components/club/voortgang',
+  'src/components/club/challenges',
+  'src/components/club/voeding',
+  'src/components/club/betalen',
+  'src/components/club/berichten',
+  'src/components/club/community',
+  'src/app/(aiyourgym)/(club)/mijn/community',
+  'src/app/(aiyourgym)/(club)/club/challenges',
+  'src/app/(aiyourgym)/(club)/club/voeding',
+  'src/app/(aiyourgym)/(club)/club/berichten',
+  'src/app/(aiyourgym)/(club)/club/community',
+]
+
 /** Bestanden en mappen die buiten de controle vallen, met reden. */
 const OVERSLAAN: Record<string, string> = {
   'src/components/aiyourgym/inhoud/': 'Nederlandse bron van de woordenboeken; regel 6 bewaakt dat componenten hem niet rechtstreeks tonen',
   'src/components/aiyourgym/merk/': 'logo, letters en paden, geen zichtbare tekst behalve de merknaam',
   'src/components/aiyourgym/demo/stappen.ts': 'Nederlandse bron van DEMO in woorden/website/demo.ts; regel 6 bewaakt dat alleen het woordenboek hem leest',
   'src/components/aiyourgym/contrast.test.ts': 'test',
+  'src/components/club/shell/fonts.ts': 'letters, geen tekst',
+  'src/components/club/training/drie/stof-glsl.ts': 'shadercode (GLSL), geen tekst',
+  'src/components/club/training/illustratie/VergelijkRij.tsx': 'oud prototype (eigen tekening tegen RepDB), nergens meer in gebruik',
 }
 
 /** Teksten die in beide talen gelijk zijn. */
@@ -55,19 +169,45 @@ const ALTIJD_GOED: Record<string, string> = {
   'Website': 'label van het onzichtbare lokveld tegen robots (aria-hidden), in beide talen gelijk',
   'CSV': 'bestandsformaat',
   'cm': 'eenheid',
+  'kcal': 'eenheid (kilocalorie), in beide talen gelijk',
+  'KCAL': 'eenheid (kilocalorie) in kapitalen, in beide talen gelijk',
+  'g/kg': 'eenheid (gram per kilo lichaamsgewicht)',
+  'CLUB': 'woordmerk naast het logo van de sportschool, in beide talen gelijk',
+  'Ctrl K': 'sneltoets',
+  'Enter': 'naam van een toets op het toetsenbord, in beide talen gelijk',
+  'Esc': 'naam van een toets op het toetsenbord, in beide talen gelijk',
 }
 
 /** Per bestand toegestane teksten (exact), met reden. */
 const PER_BESTAND: Record<string, Record<string, string>> = {
+  'src/app/(aiyourgym)/(club)/club/beheer/widget/page.tsx': {
+    'CLUB_WIDGET_ACTIEF=1': 'naam van een instelling in Render (alleen voor de platform-eigenaar)',
+  },
+  'src/app/(aiyourgym)/(club)/club/beheer/meldingen/page.tsx': {
+    'CLUB_MAILS_ACTIEF=1': 'naam van een instelling in Render (alleen voor de platform-eigenaar)',
+    CLUB_RESEND_API_KEY: 'naam van een instelling in Render (alleen voor de platform-eigenaar)',
+    CLUB_RESEND_FROM: 'naam van een instelling in Render (alleen voor de platform-eigenaar)',
+  },
+  'src/components/club/app/training/toestel.ts': { 'input, textarea, [data-geen-veeg': 'css-selector, geen tekst' },
   'src/components/aiyourgym/mockups/HeldDashboard.tsx': { SB: 'initialen in de demodata', 'Sanne Bakker': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WerkvloerSchermen.tsx': { 'Mo de Vries': 'naam uit de demodata' },
   'src/components/aiyourgym/mockups/WizardScherm.tsx': { 'club/start': 'pad in de nagebootste adresbalk (/club/start)' },
+  'src/components/club/shell/FitFactoryLogo.tsx': { 'Fit Factory': 'naam van de sportschool in het logo (eigennaam)' },
+  'src/components/club/hulp/MeldFormulier.tsx': { 'club/rooster': 'voorbeeld van een pad in Club (/club/rooster), in beide talen gelijk' },
+  'src/components/club/training/EditorDag.tsx': { 'Alt + N': 'sneltoets' },
+  'src/components/club/training/EditorWerkbalk.tsx': { Ctrl: 'naam van een toets', Alt: 'naam van een toets', 'Ctrl+S': 'sneltoets' },
+  'src/components/club/training/IntakeDetail.tsx': { BMI: 'afkorting, in beide talen gelijk' },
+  'src/components/club/training/IntakeMetingen.tsx': { BMI: 'afkorting, in beide talen gelijk' },
+  'src/components/club/training/OefeningBeeld.tsx': { 'RepDB (repdb.co': 'bronvermelding (merknaam), zonder het slothaakje dat de test weglaat', Everkinetic: 'bronvermelding (merknaam)', 'CC BY-SA 4.0': 'naam van de licentie' },
+  'src/components/club/health/MetingenUitApps.tsx': { 'Metingen uit apps bekeken': 'regel in het actielogboek (niet in beeld), net als de andere logregels in het Nederlands' },
+  'src/components/club/training/SchemaPrint.tsx': { 'github.com/everkinetic/data, creativecommons.org/licenses/by-sa/4.0': 'bronvermelding met adressen (de test laat de haakjes weg)', sec: 'eenheid (seconden), in beide talen gelijk' },
 }
 
 /** Waarden uit inhoud/* die geen zichtbare tekst zijn of alleen oefennamen/demodata geven. */
 const INHOUD_WAARDEN: Record<string, string> = {
   renderVoor: 'kiest een render (beeld) bij een oefening',
   srcSetVan: 'bouwt een srcset (beeld)',
+  frameUrl: 'bouwt de URL van een frame van een render (beeld)',
   toonBereik: 'toont een getallenbereik (8 tot 12) via de taal van de aanroeper',
   voorbeeldOefeningen: 'oefennamen (blijven gelijk) met de coaching in de taal die de aanroeper meegeeft (siteCoaching)',
   aantalMetCoaching: 'getal',
@@ -93,6 +233,9 @@ const CLUB_TEKST = /^(COACHING_[A-Z_]+|coachingVoor|PARQ_VRAGEN|[A-Z_]+_LABELS?)
 
 /** Toegestaan per bestand ("bestand naam"), met reden. */
 const CLUB_TEKST_GOED: Record<string, string> = {
+  'src/components/club/lidmaatschappen/LabelFormulier.tsx MAX_OMSCHRIJVING_LABEL': 'een getal (maximale lengte), geen tekst',
+  'src/components/club/intakevragen/KernVeld.tsx PARQ_VRAGEN': 'alleen de sleutels; de vraag komt via vraagInTaal (woorden/club/intake.ts)',
+  'src/app/(aiyourgym)/(club)/club/training/beelden/page.tsx coachingVoor': 'loopt via standaardCoachingIn (Engelse coaching van de Blender-oefeningen)',
   'src/components/aiyourgym/schemas/SchermenTrainer.tsx PARQ_VRAGEN': 'alleen volgorde en sleutels; de vraag komt uit SCHEMA_SCHERMEN.intake.parq',
   'src/app/(aiyourgym)/(website)/aiyourgym/(site)/demo/page.tsx coachingVoor':
     'live demo met Kernhal (de demo-sportschool): haar gegevens en coaching zijn Nederlands en dat staat er in het Engels bij (DEMO.gegevensNederlands)',
@@ -131,6 +274,7 @@ const NL_WOORDEN = new Set(
 
 function bestanden(map: string): string[] {
   const absoluut = path.join(WORTEL, map)
+  if (statSync(absoluut).isFile()) return [map]
   return readdirSync(absoluut).flatMap((naam) => {
     const rel = `${map}/${naam}`
     if (statSync(path.join(WORTEL, rel)).isDirectory()) return bestanden(rel)
@@ -164,7 +308,10 @@ function lijktNederlands(tekst: string): boolean {
   const stukken = tekst.trim().split(/\s+/)
   // Een los woord, pad of sleutel (zoals /voor-wie) of een rij css-klassen is geen zin.
   if (stukken.length < 2) return false
-  if (stukken.every((s) => /^[a-z0-9]+(-{1,2}[a-z0-9]+)+$/.test(s))) return false
+  // Een pad of zoekstring (/club/leden/, ?v= &q=) is geen zin.
+  if (stukken.filter((s) => !/[/?&=]/.test(s)).length < 2) return false
+  // Een rij css-klassen, ook met een open modifier (club-leden-behoud--${label}) is geen zin.
+  if (stukken.every((s) => /^[a-z0-9]+(-{1,2}[a-z0-9]*)+$/.test(s))) return false
   const woorden = tekst.toLowerCase().match(/\p{L}+/gu) ?? []
   if (woorden.length < 2) return false
   return woorden.some((w) => NL_WOORDEN.has(w))
@@ -270,7 +417,7 @@ function controleer(rel: string): Treffer[] {
   return treffers
 }
 
-const ALLE = MAPPEN.flatMap(bestanden).filter((b) => !overgeslagen(b))
+const ALLE = [...MAPPEN, ...CLUB_KLAAR].flatMap(bestanden).filter((b) => !overgeslagen(b))
 
 describe('website AI Your Gym: geen vaste Nederlandse tekst', () => {
   it('vindt de bestanden van de website', () => {
@@ -284,7 +431,7 @@ describe('website AI Your Gym: geen vaste Nederlandse tekst', () => {
     // Een eigen fout, zodat de hele lijst in beeld komt (expect kort lange lijsten in).
     if (lijst.length > 0) throw new Error(`${lijst.length} vaste teksten:\n${lijst.join('\n')}`)
     expect(lijst).toEqual([])
-  })
+  }, 30_000) // leest honderden bestanden met de TypeScript-compiler; in een volle testrun duurt dat langer dan 5 seconden
 
   it('de uitzonderingen per bestand bestaan nog', () => {
     const weg = Object.keys(PER_BESTAND).filter((b) => !ALLE.includes(b))

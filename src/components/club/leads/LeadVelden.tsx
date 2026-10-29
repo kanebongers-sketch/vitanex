@@ -1,4 +1,8 @@
-import { LEAD_BRONNEN, LEAD_BRON_LABEL, type Lead } from '@/lib/club/leads/model'
+'use client'
+
+import { LEAD_BRONNEN, type Lead } from '@/lib/club/leads/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 
 interface LeadVeldenProps {
   /** Bestaande lead om te bewerken, of null voor een nieuwe. */
@@ -27,37 +31,39 @@ export function veldenUitFormulier(form: HTMLFormElement): Record<string, unknow
 
 // De gegevens van een lead: zelfde velden bij nieuw en bewerken.
 export function LeadVelden({ lead, medewerkers, standaardBron = 'balie' }: LeadVeldenProps) {
+  const tekst = useTekst(LEADS)
+  const t = tekst.velden
   return (
     <>
       <label className="club-veld">
-        <span>Naam</span>
-        <input name="naam" className="club-invoer" required maxLength={120} autoComplete="off" defaultValue={lead?.naam ?? ''} placeholder="Voornaam en achternaam" />
+        <span>{t.naam}</span>
+        <input name="naam" className="club-invoer" required maxLength={120} autoComplete="off" defaultValue={lead?.naam ?? ''} placeholder={t.naamPlaats} />
       </label>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Telefoon</span>
+          <span>{t.telefoon}</span>
           <input name="telefoon" type="tel" className="club-invoer" maxLength={40} autoComplete="off" defaultValue={lead?.telefoon ?? ''} />
         </label>
         <label className="club-veld">
-          <span>E-mail</span>
+          <span>{t.email}</span>
           <input name="email" type="email" className="club-invoer" maxLength={160} autoComplete="off" defaultValue={lead?.email ?? ''} />
         </label>
       </div>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Bron</span>
+          <span>{t.bron}</span>
           <select name="bron" className="club-invoer" defaultValue={lead?.bron ?? standaardBron}>
             {LEAD_BRONNEN.map((b) => (
               <option key={b} value={b}>
-                {LEAD_BRON_LABEL[b]}
+                {tekst.bron[b]}
               </option>
             ))}
           </select>
         </label>
         <label className="club-veld">
-          <span>Medewerker</span>
+          <span>{t.medewerker}</span>
           <select name="medewerkerId" className="club-invoer" defaultValue={lead?.medewerkerId ?? ''}>
-            <option value="">Niemand</option>
+            <option value="">{t.niemand}</option>
             {medewerkers.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.naam}
@@ -67,14 +73,14 @@ export function LeadVelden({ lead, medewerkers, standaardBron = 'balie' }: LeadV
         </label>
       </div>
       <label className="club-veld">
-        <span>Interesse</span>
-        <input name="interesse" className="club-invoer" maxLength={200} defaultValue={lead?.interesse ?? ''} placeholder="Bijvoorbeeld afvallen, groepslessen, personal training" />
+        <span>{t.interesse}</span>
+        <input name="interesse" className="club-invoer" maxLength={200} defaultValue={lead?.interesse ?? ''} placeholder={t.interessePlaats} />
       </label>
       <label className="club-leads-toestemming">
         <input type="checkbox" name="toestemming" value="ja" required={lead === null} defaultChecked={lead?.toestemmingContact ?? false} />
         <span>
-          Deze persoon geeft toestemming om contact op te nemen over lidmaatschap en een proefles.
-          {lead === null && <strong> Verplicht.</strong>}
+          {t.toestemming}
+          {lead === null && <strong> {t.verplicht}</strong>}
         </span>
       </label>
     </>

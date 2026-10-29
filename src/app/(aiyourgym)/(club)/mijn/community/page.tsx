@@ -9,7 +9,6 @@ import { LOGO_FIT_FACTORY, isUuid } from '@/lib/club/kern/organisatie'
 import { volledigeNaam } from '@/lib/club/kern/lid'
 import { haalCommunityOverzicht, haalGroepScherm } from '@/lib/club/community/lezen'
 import { communityBasis } from '@/lib/club/community/paden'
-import { TOEGANG_LABEL } from '@/lib/club/community/model'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { GroepenLijst } from '@/components/club/community/GroepenLijst'
@@ -19,6 +18,8 @@ import { Tijdlijn } from '@/components/club/community/Tijdlijn'
 import { GroepRanglijst } from '@/components/club/community/GroepRanglijst'
 import { GroepLidKnop } from '@/components/club/community/GroepLidKnop'
 import '@/components/club/community/community.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 // /mijn/community: groepen van de sportschool, met per groep een tijdlijn,
 // reacties en een ranglijst. Het lid komt uit de eigen sessie; alleen Kane
@@ -26,7 +27,9 @@ import '@/components/club/community/community.css'
 // Wie de app niet mag gebruiken: zoals /mijn (inloggen of 404).
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Community' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(COMMUNITY)).app.titel }
+}
 
 type Zoek = Promise<Record<string, string | string[] | undefined>>
 
@@ -34,10 +37,11 @@ function eerste(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
 }
 
-function Fout() {
+async function Fout() {
+  const t = (await clubTekst(COMMUNITY)).app
   return (
     <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="alert">
-      De community kon niet worden geladen. Probeer het straks opnieuw.
+      {t.laadFout}
     </p>
   )
 }
@@ -62,6 +66,8 @@ export default async function CommunityPagina({ searchParams }: { searchParams: 
   const gevraagd = isUuid(groepId)
   const groep = gevraagd ? await haalGroepScherm(l, groepId, nu) : null
   const overzicht = groep && groep !== 'weg' ? null : await haalCommunityOverzicht(l)
+  const tc = await clubTekst(COMMUNITY)
+  const t = tc.app
 
   return (
     <LedenappSchil organisatie={org}>
@@ -78,11 +84,11 @@ export default async function CommunityPagina({ searchParams }: { searchParams: 
           {groep && groep !== 'weg' ? (
             <>
               <Link href={basis} className="club-cm-terug" prefetch={false}>
-                <ArrowLeft size={18} aria-hidden /> Alle groepen
+                <ArrowLeft size={18} aria-hidden /> {t.alleGroepen}
               </Link>
               <header className="club-cm-groepkop">
                 <p className="club-cm-soort">
-                  {groep.groep.toegang === 'besloten' ? <Lock size={13} aria-hidden /> : <Users size={13} aria-hidden />} {TOEGANG_LABEL[groep.groep.toegang].label} · {groep.leden === 1 ? '1 lid' : `${groep.leden} leden`}
+                  {groep.groep.toegang === 'besloten' ? <Lock size={13} aria-hidden /> : <Users size={13} aria-hidden />} {tc.toegang[groep.groep.toegang].label} · {tc.leden(groep.leden)}
                 </p>
                 <h2 className="club-lidapp-kop">{groep.groep.naam}</h2>
                 {groep.groep.uitleg && <p className="club-cm-uitleg">{groep.groep.uitleg}</p>}
@@ -90,18 +96,18 @@ export default async function CommunityPagina({ searchParams }: { searchParams: 
               {!l.voorvertoning && <GroepLidKnop groepId={groep.groep.id} groepNaam={groep.groep.naam} isLid={groep.isLid} terug={basis} besloten={groep.groep.toegang === 'besloten'} />}
               {groep.isLid && groep.ranglijst && <GroepRanglijst ranglijst={groep.ranglijst} />}
               {groep.isLid && (groep.tijdlijn ? <Tijdlijn groepId={groep.groep.id} groepNaam={groep.groep.naam} berichten={groep.tijdlijn} nu={nu.toISOString()} alleenLezen={l.voorvertoning} /> : <Fout />)}
-              {!groep.isLid && <p className="club-cm-noot">Word lid om de berichten te lezen en mee te praten.</p>}
+              {!groep.isLid && <p className="club-cm-noot">{t.wordLidOmTeLezen}</p>}
             </>
           ) : (
             <>
               <header className="club-cm-kop">
-                <h2 className="club-lidapp-kop">Community</h2>
-                <p className="club-cm-uitleg">Train samen, ook buiten de les. Groepen van {org.naam}, alleen voor leden.</p>
+                <h2 className="club-lidapp-kop">{t.titel}</h2>
+                <p className="club-cm-uitleg">{t.uitleg(org.naam)}</p>
               </header>
               {gevraagd && groep === null && <Fout />}
               {groep === 'weg' && (
                 <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="status">
-                  Deze groep bestaat niet meer of je zit er niet meer in.
+                  {t.groepWeg}
                 </p>
               )}
               {overzicht ? (
@@ -110,10 +116,10 @@ export default async function CommunityPagina({ searchParams }: { searchParams: 
                   {overzicht.groepen.length > 0 ? (
                     <GroepenLijst groepen={overzicht.groepen} basis={basis} alleenLezen={l.voorvertoning} />
                   ) : (
-                    <p className="club-cm-leeg">Je sportschool heeft nog geen groepen. Zodra er een is, zie je hem hier.</p>
+                    <p className="club-cm-leeg">{t.geenGroepen}</p>
                   )}
                   <RanglijstKeuze aan={overzicht.opRanglijst} alleenLezen={l.voorvertoning} />
-                  <p className="club-cm-noot">Houd het sportief en vriendelijk. Een bericht dat niet door de beugel kan, kun je melden; de sportschool kijkt ernaar.</p>
+                  <p className="club-cm-noot">{t.sportief}</p>
                 </>
               ) : (
                 <Fout />

@@ -1,6 +1,8 @@
 'use client'
 
 import { regels, type Regel } from '@/lib/club/kladblok/opmaak'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { NOTITIES } from '@/lib/aiyourgym/taal/woorden/club/notities'
 
 // De notitie als nette tekst: tussenkoppen, opsommingen en afvinkvakjes (zie
 // opmaak.ts). Vakjes zijn echt aan te klikken; de rest is gewone tekst (geen
@@ -17,7 +19,8 @@ function groepeer(lijst: Regel[]): Regel[][] {
 }
 
 export function Leesweergave({ inhoud, onVink }: { inhoud: string; onVink: (index: number) => void }) {
-  if (!inhoud.trim()) return <p className="club-hint">Deze notitie is nog leeg. Kies Bewerken om te schrijven.</p>
+  const t = useTekst(NOTITIES).lees
+  if (!inhoud.trim()) return <p className="club-hint">{t.leeg}</p>
   return (
     <div className="kb-lees">
       {groepeer(regels(inhoud)).map((g) => {
@@ -30,7 +33,7 @@ export function Leesweergave({ inhoud, onVink }: { inhoud: string; onVink: (inde
                   <li key={r.index}>
                     <label className={r.klaar ? 'kb-vink kb-vink--klaar' : 'kb-vink'}>
                       <input type="checkbox" checked={r.klaar} onChange={() => onVink(r.index)} />
-                      <span>{r.tekst || 'Leeg punt'}</span>
+                      <span>{r.tekst || t.leegPunt}</span>
                     </label>
                   </li>
                 ) : null,

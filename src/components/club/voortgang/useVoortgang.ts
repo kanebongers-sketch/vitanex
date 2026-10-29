@@ -5,12 +5,14 @@
 
 import { useState } from 'react'
 import { isVoortgangData, type VoortgangData } from '@/lib/club/voortgang/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOORTGANG, type VoortgangTekst } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 
 export type Melding = { soort: 'ok' | 'fout'; tekst: string } | null
 
 type Antwoord = { ok: true; voortgang: VoortgangData } | { ok: false; fout: string }
 
-async function stuur(pad: string, methode: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<Antwoord> {
+async function stuur(m: VoortgangTekst['meldingen'], pad: string, methode: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<Antwoord> {
   try {
     const res = await fetch(`/api/club/voortgang${pad}`, {
       method: methode,
@@ -20,10 +22,10 @@ async function stuur(pad: string, methode: 'POST' | 'PATCH' | 'DELETE', body?: u
     })
     const json: unknown = await res.json().catch(() => null)
     const data = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {}
-    if (!res.ok) return { ok: false, fout: typeof data.fout === 'string' ? data.fout : 'Er ging iets mis. Probeer het opnieuw.' }
-    return isVoortgangData(data.voortgang) ? { ok: true, voortgang: data.voortgang } : { ok: false, fout: 'Opgeslagen, maar het overzicht kon niet worden ververst. Ververs de pagina.' }
+    if (!res.ok) return { ok: false, fout: typeof data.fout === 'string' ? data.fout : m.fout }
+    return isVoortgangData(data.voortgang) ? { ok: true, voortgang: data.voortgang } : { ok: false, fout: m.nietVerversd }
   } catch {
-    return { ok: false, fout: 'Geen verbinding. Controleer het internet en probeer opnieuw.' }
+    return { ok: false, fout: m.geenVerbinding }
   }
 }
 
@@ -31,11 +33,12 @@ export function useVoortgang(begin: VoortgangData) {
   const [voortgang, setVoortgang] = useState(begin)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<Melding>(null)
+  const m = useTekst(VOORTGANG).meldingen
 
   async function voer(pad: string, methode: 'POST' | 'PATCH' | 'DELETE', body: unknown, okTekst: string): Promise<boolean> {
     setBezig(true)
     setMelding(null)
-    const uit = await stuur(pad, methode, body)
+    const uit = await stuur(m, pad, methode, body)
     setBezig(false)
     if (!uit.ok) {
       setMelding({ soort: 'fout', tekst: uit.fout })
@@ -50,8 +53,8 @@ export function useVoortgang(begin: VoortgangData) {
     voortgang,
     bezig,
     melding,
-    voegToe: (velden: Record<string, unknown>) => voer('', 'POST', { ...velden, lidId: voortgang.lidId }, 'Meting opgeslagen.'),
-    wijzig: (id: string, velden: Record<string, unknown>) => voer(`/${encodeURIComponent(id)}`, 'PATCH', velden, 'Meting gewijzigd.'),
-    verwijder: (id: string) => voer(`/${encodeURIComponent(id)}`, 'DELETE', undefined, 'Meting verwijderd.'),
+    voegToe: (velden: Record<string, unknown>) => voer('', 'POST', { ...velden, lidId: voortgang.lidId }, m.opgeslagen),
+    wijzig: (id: string, velden: Record<string, unknown>) => voer(`/${encodeURIComponent(id)}`, 'PATCH', velden, m.gewijzigd),
+    verwijder: (id: string) => voer(`/${encodeURIComponent(id)}`, 'DELETE', undefined, m.verwijderd),
   }
 }

@@ -33,6 +33,8 @@ import { AutoVerversen } from '@/components/club/taken/Hulpjes'
 import { isZichtbaar, ONDERDELEN } from '@/components/club/shell/onderdelen'
 import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { VandaagStrook } from '@/components/club/vandaag/VandaagStrook'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
@@ -43,7 +45,9 @@ import { VandaagStrook } from '@/components/club/vandaag/VandaagStrook'
 // de pagina snel in beeld staat. Een clubmanager ziet alleen de secties van
 // onderdelen die de eigenaar hem gaf en die aan staan.
 
-export const metadata: Metadata = { title: 'Vandaag' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(VANDAAG)).titel }
+}
 
 /** Een nieuwe sportschool (geen voortgang in de startwizard) gaat eerst naar de wizard; Fit Factory en een demo nooit. */
 async function naarStartwizard(t: ClubToegang): Promise<boolean> {
@@ -74,10 +78,12 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   // Agenda en overdracht hangen alleen af van de dag, niet van de cijfers; een fout daarin
   // breekt het scherm niet (null = melding in het blok).
   const nu = new Date()
+  const taal = await getTaal()
+  const tv = VANDAAG[taal]
   const maandag = maandagVan(dagSleutel(nu))
   const [wizard, ruweData, week, kladblok] = await Promise.all([
     naarStartwizard(t),
-    haalVandaag(t.admin, t.userId, vestiging, nu),
+    haalVandaag(t.admin, t.userId, vestiging, nu, taal),
     mag('agenda') ? haalAgendaWeek(t.admin, t.userId, vestiging, maandag) : null,
     mag('notities') ? haalKladblok(t.admin, t.userId, vestiging) : null,
   ])
@@ -85,7 +91,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const data = beperkVandaag(ruweData, mag)
   const agendaVandaag = week ? (perDag(week, maandag).find((d) => d.datum === data.vandaag)?.items ?? []) : null
   const overdracht = kladblok ? overdrachtVoorVandaag(kladblok, data.nu) : null
-  const [weekdag, ...rest] = dagLang(data.vandaag).split(' ')
+  const [weekdag, ...rest] = dagLang(data.vandaag, taal).split(' ')
   const vestigingNaam = naamVan(t.vestigingen, vestiging)
   const { checkin } = t.organisatie.instellingen
   const leadsOfJarig = zie('leads') || zie('leden')
@@ -93,13 +99,13 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
     <>
       <header className="club-vandaag-kop">
         <div>
-          <p className="club-boventitel">{vestigingNaam} · vandaag</p>
+          <p className="club-boventitel">{tv.boventitel(vestigingNaam)}</p>
           <h1 className="club-vandaag-dag">
             {weekdag} <span>{rest.join(' ')}</span>
           </h1>
         </div>
         <p className="club-vandaag-stand">
-          Stand van <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
+          {tv.standVan} <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
         </p>
       </header>
 

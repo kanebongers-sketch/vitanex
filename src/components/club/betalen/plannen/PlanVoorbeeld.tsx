@@ -1,8 +1,11 @@
 import { datum } from '@/lib/club/betalen/contract/datum'
 import { WET } from '@/lib/club/betalen/contract/regels'
-import { INTERVAL_KORT } from '@/lib/club/betalen/plannen/model'
 import { euroTekst } from '@/lib/club/betalen/plannen/tekst'
 import { datumTekst, opzegTekst, planVoorbeeld, type VoorbeeldPlan } from '@/lib/club/betalen/plannen/voorbeeld'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import type { BetalenTekst } from '@/lib/aiyourgym/taal/woorden/club/betalen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 
 // Het live voorbeeld bij een plan: voor een lid dat vandaag begint, wanneer de
 // eerste incasso valt en hoeveel, en wanneer opzeggen kan. Rekent met dezelfde
@@ -16,57 +19,58 @@ interface Props {
   metWet?: boolean
 }
 
-function opzeggen(plan: VoorbeeldPlan, v: ReturnType<typeof planVoorbeeld>): string {
-  const termijn = opzegTekst(plan.opzegtermijnDagen)
-  if (v.stoptVanzelf && v.vastTot) return `Het contract stopt vanzelf na ${datumTekst(v.vastTot)}. Eerder opzeggen kan niet.`
-  if (v.vastTot) return `Vast tot en met ${datumTekst(v.vastTot)}. Daarna loopt het door en is het elke dag op te zeggen, met ${termijn}. Wie meteen opzegt, is op zijn vroegst klaar na ${datumTekst(v.vroegsteLaatsteDag)}.`
-  return `Flex: opzeggen kan elke dag, met ${termijn}. Wie meteen opzegt, is klaar na ${datumTekst(v.vroegsteLaatsteDag)}.`
+function opzeggen(plan: VoorbeeldPlan, v: ReturnType<typeof planVoorbeeld>, t: BetalenTekst['voorbeeld'], taal: Taal): string {
+  const termijn = opzegTekst(plan.opzegtermijnDagen, taal)
+  if (v.stoptVanzelf && v.vastTot) return t.stoptVanzelf(datumTekst(v.vastTot, taal))
+  if (v.vastTot) return t.vastTot(datumTekst(v.vastTot, taal), termijn, datumTekst(v.vroegsteLaatsteDag, taal))
+  return t.flex(termijn, datumTekst(v.vroegsteLaatsteDag, taal))
 }
 
 export function PlanVoorbeeld({ plan, vandaag, metWet = false }: Props) {
+  const taal = useTaal()
+  const tb = useTekst(BETALEN)
+  const t = tb.voorbeeld
   const v = planVoorbeeld(plan, datum(vandaag))
   const e = v.eersteIncasso
   const delen = [
-    e.proRata ? `${euroTekst(e.termijn)} voor de dagen tot de factuurdag` : `${euroTekst(e.termijn)} voor de eerste termijn`,
-    e.inschrijfkosten > 0 ? `${euroTekst(e.inschrijfkosten)} inschrijfkosten` : null,
+    e.proRata ? t.totFactuurdag(euroTekst(e.termijn, taal)) : t.eersteTermijn(euroTekst(e.termijn, taal)),
+    e.inschrijfkosten > 0 ? t.inschrijfkosten(euroTekst(e.inschrijfkosten, taal)) : null,
   ].filter((d): d is string => d !== null)
 
   return (
     <div className="club-plan-voorbeeld" aria-live="polite">
-      <p className="club-plan-voorbeeld-kop">Voorbeeld voor een lid dat vandaag begint</p>
+      <p className="club-plan-voorbeeld-kop">{t.kop}</p>
       <dl>
         {plan.proefDagen > 0 && (
           <div>
-            <dt>Proefperiode</dt>
-            <dd>{plan.proefDagen} {plan.proefDagen === 1 ? 'dag' : 'dagen'} gratis, betalen vanaf {datumTekst(v.betaaltVanaf)}</dd>
+            <dt>{t.proef}</dt>
+            <dd>{t.proefTekst(plan.proefDagen, datumTekst(v.betaaltVanaf, taal))}</dd>
           </div>
         )}
         <div>
-          <dt>Eerste incasso</dt>
+          <dt>{t.eerste}</dt>
           <dd>
-            <strong>{euroTekst(e.bedrag)}</strong> op {datumTekst(e.op)}
+            <strong>{euroTekst(e.bedrag, taal)}</strong>{t.op(datumTekst(e.op, taal))}
             <span className="club-plan-voorbeeld-klein">
-              {delen.join(' plus ')}, waarvan {euroTekst(e.btw)} btw
+              {t.waarvanBtw(delen.join(t.plus), euroTekst(e.btw, taal))}
             </span>
-            {v.gratisTot && <span className="club-plan-voorbeeld-klein">De dagen tot en met {datumTekst(v.gratisTot)} kosten niets.</span>}
+            {v.gratisTot && <span className="club-plan-voorbeeld-klein">{t.gratisTot(datumTekst(v.gratisTot, taal))}</span>}
           </dd>
         </div>
         <div>
-          <dt>Daarna</dt>
+          <dt>{t.daarna}</dt>
           <dd>
-            {euroTekst(v.volgendeIncasso.bedrag)} {INTERVAL_KORT[plan.interval]}, eerst op {datumTekst(v.volgendeIncasso.op)}
+            {t.daarnaTekst(euroTekst(v.volgendeIncasso.bedrag, taal), tb.intervalKort[plan.interval], datumTekst(v.volgendeIncasso.op, taal))}
           </dd>
         </div>
         <div>
-          <dt>Opzeggen</dt>
-          <dd>{opzeggen(plan, v)}</dd>
+          <dt>{t.opzeggen}</dt>
+          <dd>{opzeggen(plan, v, t, taal)}</dd>
         </div>
       </dl>
       {metWet && (
         <p className="club-plan-wet">
-          De wet (Wet van Dam) zegt: een eerste looptijd van hooguit {WET.maxEersteLooptijdMaanden.waarde} maanden. Daarna loopt een abonnement alleen door
-          voor onbepaalde tijd en kan het lid elke maand opzeggen. De opzegtermijn is nooit langer dan een maand. Wie online afsluit, kan ook online
-          opzeggen; dat kan in de ledenapp. Club houdt deze grenzen vast. Dit is geen juridisch advies.
+          {t.wet(WET.maxEersteLooptijdMaanden.waarde)}
         </p>
       )}
     </div>

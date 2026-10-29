@@ -13,8 +13,12 @@ import { naarGroepen, naarItem, type Context } from '@/lib/club/automatisering/w
 import { Opvolglijst } from '@/components/club/automatisering/Opvolglijst'
 import { Afgehandeld } from '@/components/club/automatisering/Afgehandeld'
 import '@/components/club/automatisering/automatisering.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
 
-export const metadata: Metadata = { title: 'Opvolgen' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(OPVOLGEN)).pagina.titel }
+}
 
 // De opvolglijst: wie het team vandaag even aanspreekt, belt of een berichtje
 // stuurt. Bij het openen zet Club de taken van vandaag klaar (geen cron nodig);
@@ -33,9 +37,11 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
     haalAlleMedewerkers(t.admin, t.userId),
   ])
   const vestigingNaam = naamVan(t.vestigingen, vestiging)
+  const taal = await getTaal()
+  const tp = OPVOLGEN[taal].pagina
   const ctx: Context = { vestigingNaam, regels: regels ?? [], medewerkers: new Map((medewerkers ?? []).map((m) => [m.id, m.naam])) }
-  const groepen = naarGroepen(groepeerPerRegel(open ?? []), ctx)
-  const afgehandeld = (recent ?? []).map((taak) => naarItem(taak, ctx))
+  const groepen = naarGroepen(groepeerPerRegel(open ?? []), ctx, taal)
+  const afgehandeld = (recent ?? []).map((taak) => naarItem(taak, ctx, taal))
   const ledenkaarten = Object.fromEntries([...(open ?? []), ...(recent ?? [])].map((taak) => [taak.lidId, lidKaartPad(taak.lidId, vestiging, 'contact')]))
   const totaal = groepen.reduce((s, g) => s + g.items.length, 0)
   const allesUit = regels !== null && regels.every((r) => !r.aan)
@@ -46,27 +52,27 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{vestigingNaam}</p>
-          <h1>Opvolgen</h1>
-          <p>Wie je vandaag even aanspreekt, belt of een berichtje stuurt. Club zet ze klaar met een voorbeeldtekst; bellen of het bericht sturen doe je zelf. Automatisch versturen per mail of app komt later.</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.uitleg}</p>
         </div>
         {magInstellen && (
           <div className="club-acties">
             <Link href="/club/beheer/automatiseringen" className="club-knop">
-              <Settings2 size={16} aria-hidden /> Opvolgregels
+              <Settings2 size={16} aria-hidden /> {tp.regels}
             </Link>
           </div>
         )}
       </header>
 
-      {ronde === null && <p className="club-melding club-melding--fout" role="status">De taken van vandaag konden niet allemaal worden klaargezet. Je ziet wat er al stond; ververs de pagina later opnieuw.</p>}
-      {open === null && <p className="club-melding club-melding--fout" role="status">De opvolglijst kon niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>}
-      {allesUit && <p className="club-melding" role="status">Alle regels staan uit, dus Club zet niemand klaar.{magInstellen ? ' Zet ze aan bij Opvolgregels.' : ''}</p>}
+      {ronde === null && <p className="club-melding club-melding--fout" role="status">{tp.rondeFout}</p>}
+      {open === null && <p className="club-melding club-melding--fout" role="status">{tp.fout}</p>}
+      {allesUit && <p className="club-melding" role="status">{tp.allesUit}{magInstellen ? tp.zetAan : ''}</p>}
 
       {open !== null && (
-        <nav className="club-opvolg-index" aria-label="Opvolgen per regel">
+        <nav className="club-opvolg-index" aria-label={tp.perRegel}>
           <p className="club-opvolg-totaal">
             <strong>{totaal}</strong>
-            <span>{totaal === 1 ? 'lid open' : 'leden open'}</span>
+            <span>{tp.open(totaal)}</span>
           </p>
           {groepen.length > 0 && (
             <ul>
@@ -87,10 +93,10 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
 
       <section className="club-opvolg-recent" aria-labelledby="opvolg-recent">
         <header className="club-sectiekop">
-          <h2 id="opvolg-recent">Recent afgehandeld</h2>
-          <span>Laatste 7 dagen</span>
+          <h2 id="opvolg-recent">{tp.recent}</h2>
+          <span>{tp.zevenDagen}</span>
         </header>
-        {recent === null ? <p className="club-melding club-melding--fout">De afgehandelde taken konden niet worden geladen.</p> : <Afgehandeld items={afgehandeld} ledenkaarten={ledenkaarten} />}
+        {recent === null ? <p className="club-melding club-melding--fout">{tp.recentFout}</p> : <Afgehandeld items={afgehandeld} ledenkaarten={ledenkaarten} />}
       </section>
     </>
   )

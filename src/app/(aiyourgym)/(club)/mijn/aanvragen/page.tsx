@@ -7,11 +7,13 @@ import { clubToegang } from '@/lib/club/toegang'
 import { LOGO_FIT_FACTORY, type Organisatie } from '@/lib/club/kern/organisatie'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { lidToegang } from '@/lib/club/ledenlogin/toegang'
-import { AANVRAAG_GEEN_MAIL, leesSportschoolSleutel, mailKlaar } from '@/lib/club/app-uitnodigen/regels'
+import { leesSportschoolSleutel, mailKlaar } from '@/lib/club/app-uitnodigen/regels'
 import { sportschoolVoorAanvraag } from '@/lib/club/app-uitnodigen/sportschool'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { InlogKaart } from '@/components/club/ledenlogin/InlogKaart'
 import { AanvraagFormulier } from '@/components/club/ledenlogin/AanvraagFormulier'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // /mijn/aanvragen: een lid vraagt zelf een persoonlijke link aan met zijn
 // e-mailadres (via de poster in de club of de knop op /mijn/inloggen). De
@@ -22,10 +24,8 @@ import { AanvraagFormulier } from '@/components/club/ledenlogin/AanvraagFormulie
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Link aanvragen',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: LID_INLOGGEN[await getTaal()].aanvragen.titel, robots: { index: false, follow: false }, referrer: 'no-referrer' }
 }
 
 const NEUTRAAL = { kleurAccent: '#B58E5C', thema: 'donker' as const }
@@ -40,31 +40,26 @@ function adminOfNull(): SupabaseClient | null {
   }
 }
 
-function Zonder() {
+type Tekst = (typeof LID_INLOGGEN)['nl']
+
+function Zonder({ tekst }: { tekst: Tekst }) {
   return (
     <LedenappSchil organisatie={NEUTRAAL}>
-      <InlogKaart
-        merkNaam="Ledenapp"
-        fitFactory={false}
-        boven="Ledenapp"
-        kop="Link aanvragen"
-        uitleg="Scan de QR-code in je sportschool of open de link die je van de sportschool kreeg. Lukt dat niet? Vraag je link aan de balie."
-      />
+      <InlogKaart merkNaam={tekst.ledenapp} fitFactory={false} boven={tekst.ledenapp} kop={tekst.aanvragen.titel} uitleg={tekst.aanvragen.zonder} />
     </LedenappSchil>
   )
 }
 
-function Kaart({ org, voorvertoning }: { org: Organisatie; voorvertoning: boolean }) {
+function Kaart({ org, voorvertoning, tekst }: { org: Organisatie; voorvertoning: boolean; tekst: Tekst }) {
   const kanMailen = mailKlaar(process.env)
-  const uitleg = !kanMailen
-    ? AANVRAAG_GEEN_MAIL
-    : 'Vul het e-mailadres in dat bij je lidmaatschap hoort. Je krijgt een mail met een persoonlijke link waarmee je een wachtwoord kiest (ook als je het vergeten bent).'
+  const t = tekst.aanvragen
+  const uitleg = !kanMailen ? t.geenMail : t.uitleg
   return (
     <LedenappSchil organisatie={org}>
-      <InlogKaart merkNaam={org.naam} fitFactory={org.logo === LOGO_FIT_FACTORY} boven={org.naam} kop="Je link voor de app" uitleg={uitleg}>
-        {voorvertoning ? <p className="club-mijn-inlog-fout">Voorvertoning: de ledenapp is nog niet open voor leden, versturen kan nog niet.</p> : null}
+      <InlogKaart merkNaam={org.naam} fitFactory={org.logo === LOGO_FIT_FACTORY} boven={org.naam} kop={t.kop} uitleg={uitleg}>
+        {voorvertoning ? <p className="club-mijn-inlog-fout">{t.voorvertoning}</p> : null}
         {kanMailen && !voorvertoning ? <AanvraagFormulier sportschool={org.slug ?? org.id} /> : null}
-        <Link href={org.slug ? `/mijn/inloggen?s=${encodeURIComponent(org.slug)}` : '/mijn/inloggen'} className="club-mijn-inlog-link">Heb je al een wachtwoord? Inloggen</Link>
+        <Link href={org.slug ? `/mijn/inloggen?s=${encodeURIComponent(org.slug)}` : '/mijn/inloggen'} className="club-mijn-inlog-link">{t.alWachtwoord}</Link>
       </InlogKaart>
     </LedenappSchil>
   )
@@ -77,6 +72,7 @@ export default async function MijnAanvragen({ searchParams }: { searchParams: Zo
   const admin = adminOfNull()
   const sleutel = leesSportschoolSleutel((await searchParams).s)
   const org = admin ? await sportschoolVoorAanvraag(admin, sleutel) : null
-  if (!org) return <Zonder />
-  return <Kaart org={org} voorvertoning={voorvertoning} />
+  const tekst = LID_INLOGGEN[await getTaal()]
+  if (!org) return <Zonder tekst={tekst} />
+  return <Kaart org={org} voorvertoning={voorvertoning} tekst={tekst} />
 }

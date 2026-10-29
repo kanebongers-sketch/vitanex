@@ -4,15 +4,18 @@ import { Check, UserX, X } from 'lucide-react'
 import { initialen } from '@/lib/club/kern/lid'
 import type { Deelnemer } from '@/lib/club/rooster/lesbeheer-opslag'
 import type { AfvinkStatus } from '@/lib/club/rooster/regels'
-import { reserveringNaam } from '@/lib/club/rooster/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 import { LidNaamLink } from '@/components/club/shell/LidNaamLink'
 import { stuur, useClubActie } from './vraag'
 
 // Deelnemers afvinken (instructeur), reserveringen annuleren (balie) en de
 // wachtlijst. Elke actie gaat via de rooster-API en ververst daarna het paneel.
 
-function naamVan(d: Deelnemer): string {
-  return reserveringNaam(d.lid, d.reservering.lidId)
+/** De naam van het lid; een verwijderd of onbekend lid krijgt een omschrijving. */
+function useNaamVan(): (d: Deelnemer) => string {
+  const t = useTekst(ROOSTER).deelnemers
+  return (d) => (d.lid ? `${d.lid.voornaam} ${d.lid.achternaam}`.trim() : d.reservering.lidId === null ? t.verwijderdLid : t.onbekendLid)
 }
 
 /** Vanuit het lid werken: de naam linkt naar de ledenkaart (tabblad Planning) voor wie Leden mag zien. */
@@ -43,7 +46,8 @@ interface RijProps {
 function DeelnemerRij({ d, kanAfvinken, kanAnnuleren, link }: RijProps) {
   const { bezig, fout, voerUit } = useClubActie()
   const status = d.reservering.status
-  const naam = naamVan(d)
+  const t = useTekst(ROOSTER).deelnemers
+  const naam = useNaamVan()(d)
 
   const zet = (nieuw: AfvinkStatus) =>
     voerUit(() => stuur(`/api/club/rooster/reserveringen/${d.reservering.id}`, 'PATCH', { status: status === nieuw ? 'geboekt' : nieuw }))
@@ -55,25 +59,25 @@ function DeelnemerRij({ d, kanAfvinken, kanAnnuleren, link }: RijProps) {
       <span className="club-rij-hoofd">
         <Naam d={d} naam={naam} link={link} />
         <span className="club-rij-sub">
-          {d.lid?.status === 'proef' ? 'Proeflid · ' : ''}
-          {d.reservering.bron === 'app' ? 'Via de app' : d.reservering.bron === 'balie' ? 'Via de balie' : 'Door instructeur'}
+          {d.lid?.status === 'proef' ? t.proeflid : ''}
+          {d.reservering.bron === 'app' ? t.viaApp : d.reservering.bron === 'balie' ? t.viaBalie : t.doorInstructeur}
         </span>
         {fout && <span className="club-fout" role="alert">{fout}</span>}
       </span>
       {kanAfvinken && (
-        <span className="club-rooster-afvink" role="group" aria-label={`Aanwezigheid van ${naam}`}>
+        <span className="club-rooster-afvink" role="group" aria-label={t.aanwezigheid(naam)}>
           <button type="button" className="club-rooster-afvinkknop" data-soort="aanwezig" aria-pressed={status === 'aanwezig'} disabled={bezig} onClick={() => zet('aanwezig')}>
             <Check aria-hidden size={15} />
-            <span>Aanwezig</span>
+            <span>{t.aanwezig}</span>
           </button>
           <button type="button" className="club-rooster-afvinkknop" data-soort="no_show" aria-pressed={status === 'no_show'} disabled={bezig} onClick={() => zet('no_show')}>
             <UserX aria-hidden size={15} />
-            <span>No-show</span>
+            <span>{t.noShow}</span>
           </button>
         </span>
       )}
       {kanAnnuleren && status === 'geboekt' && (
-        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`Reservering van ${naam} annuleren`} disabled={bezig} onClick={annuleer}>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={t.annuleren(naam)} disabled={bezig} onClick={annuleer}>
           <X aria-hidden size={15} />
         </button>
       )}
@@ -89,7 +93,8 @@ interface Props {
 }
 
 export function DeelnemerLijst({ deelnemers, kanAfvinken, kanAnnuleren, link }: Props) {
-  if (deelnemers.length === 0) return <p className="club-leeg">Nog niemand ingeschreven.</p>
+  const t = useTekst(ROOSTER).deelnemers
+  if (deelnemers.length === 0) return <p className="club-leeg">{t.niemand}</p>
   return (
     <ul className="club-lijst">
       {deelnemers.map((d) => (
@@ -101,10 +106,11 @@ export function DeelnemerLijst({ deelnemers, kanAfvinken, kanAnnuleren, link }: 
 
 function WachtRij({ d, kanAnnuleren, link }: { d: Deelnemer; kanAnnuleren: boolean; link: LinkInfo }) {
   const { bezig, fout, voerUit } = useClubActie()
-  const naam = naamVan(d)
+  const t = useTekst(ROOSTER).deelnemers
+  const naam = useNaamVan()(d)
   return (
     <li className="club-rij">
-      <span className="club-rooster-positie club-getal" aria-label={`Positie ${d.reservering.wachtpositie ?? ''}`}>
+      <span className="club-rooster-positie club-getal" aria-label={t.positie(String(d.reservering.wachtpositie ?? ''))}>
         {d.reservering.wachtpositie ?? '·'}
       </span>
       <span className="club-rij-hoofd">
@@ -115,7 +121,7 @@ function WachtRij({ d, kanAnnuleren, link }: { d: Deelnemer; kanAnnuleren: boole
         <button
           type="button"
           className="club-knop club-knop--stil club-knop--klein"
-          aria-label={`${naam} van de wachtlijst halen`}
+          aria-label={t.vanWachtlijst(naam)}
           disabled={bezig}
           onClick={() => voerUit(() => stuur(`/api/club/rooster/reserveringen/${d.reservering.id}/annuleren`, 'POST'))}
         >
@@ -127,7 +133,8 @@ function WachtRij({ d, kanAnnuleren, link }: { d: Deelnemer; kanAnnuleren: boole
 }
 
 export function Wachtlijst({ wachtlijst, kanAnnuleren, link }: { wachtlijst: Deelnemer[]; kanAnnuleren: boolean; link: LinkInfo }) {
-  if (wachtlijst.length === 0) return <p className="club-hint">Niemand op de wachtlijst. Is de les vol, dan komen nieuwe boekingen hier en schuiven ze vanzelf door als er een plek vrijkomt.</p>
+  const t = useTekst(ROOSTER).deelnemers
+  if (wachtlijst.length === 0) return <p className="club-hint">{t.wachtLeeg}</p>
   return (
     <ol className="club-lijst">
       {wachtlijst.map((d) => (
@@ -138,10 +145,12 @@ export function Wachtlijst({ wachtlijst, kanAnnuleren, link }: { wachtlijst: Dee
 }
 
 export function Afmeldingen({ geannuleerd, link }: { geannuleerd: Deelnemer[]; link: LinkInfo }) {
+  const t = useTekst(ROOSTER).deelnemers
+  const naamVan = useNaamVan()
   if (geannuleerd.length === 0) return null
   return (
     <details className="club-rooster-uitklap">
-      <summary>Afgemeld ({geannuleerd.length})</summary>
+      <summary>{t.afgemeld(geannuleerd.length)}</summary>
       <ul className="club-lijst">
         {geannuleerd.map((d) => (
           <li key={d.reservering.id} className="club-rij">
@@ -149,7 +158,7 @@ export function Afmeldingen({ geannuleerd, link }: { geannuleerd: Deelnemer[]; l
             <span className="club-rij-hoofd">
               <Naam d={d} naam={naamVan(d)} link={link} />
             </span>
-            {d.reservering.teLaat && <span className="club-chip club-chip--let-op">Te laat</span>}
+            {d.reservering.teLaat && <span className="club-chip club-chip--let-op">{t.teLaat}</span>}
           </li>
         ))}
       </ul>

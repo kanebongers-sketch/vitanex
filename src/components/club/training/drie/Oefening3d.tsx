@@ -1,5 +1,7 @@
 'use client'
 
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import { useEffect, useRef, useState } from 'react'
 import { oefening3dOpNaam, standTijdVan } from '@/lib/club/training/3d'
 import { maakScene3d, type Scene3d, type Thema } from './scene'
@@ -117,11 +119,12 @@ export function Oefening3d({ naam, stand, thema = 'donker', accent, label, passe
     }
   }, [oefening, stand, thema, accent, dichtbij, passend])
 
+  const t = useTekst(CLUB_TRAINING).beeld
   const klasse = `club-ill club-ill-3d${thema === 'licht' ? ' club-ill--licht' : ''}${oefening ? '' : ' club-ill-3d--leeg'}`
   return (
     <div ref={vak} className={klasse} role="img" aria-label={label}>
       {dichtbij && <canvas ref={canvas} aria-hidden />}
-      <p className="club-ill-3d-melding">3D-beeld is op dit apparaat niet beschikbaar.</p>
+      <p className="club-ill-3d-melding">{t.geen3d}</p>
     </div>
   )
 }

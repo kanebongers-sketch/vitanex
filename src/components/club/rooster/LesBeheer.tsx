@@ -4,6 +4,8 @@ import { useState, type FormEvent } from 'react'
 import { Ban, Save } from 'lucide-react'
 import type { LesOverzicht } from '@/lib/club/rooster/raster'
 import { stuur, useClubActie } from './vraag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
 // Alleen deze ene les aanpassen (capaciteit, instructeur, zaal) of laten
 // vervallen met een reden. Het weekrooster zelf verandert hier niet.
@@ -31,6 +33,7 @@ function Wijzigen({ les, zalen: alleZalen, instructeurs: alleInstructeurs }: Pro
   const [zaalId, setZaalId] = useState(les.zaal?.id ?? '')
   const [instructeurId, setInstructeurId] = useState(les.instructeur?.id ?? '')
   const [klaar, setKlaar] = useState<string | null>(null)
+  const t = useTekst(ROOSTER).beheer
   const { bezig, fout, voerUit } = useClubActie()
 
   async function bewaar(e: FormEvent) {
@@ -41,20 +44,20 @@ function Wijzigen({ les, zalen: alleZalen, instructeurs: alleInstructeurs }: Pro
     )
     if (!uit.ok) return
     const door = typeof uit.data === 'object' && uit.data !== null && 'doorgeschoven' in uit.data && typeof uit.data.doorgeschoven === 'number' ? uit.data.doorgeschoven : 0
-    setKlaar(door > 0 ? `Opgeslagen. ${door} van de wachtlijst doorgeschoven.` : 'Opgeslagen.')
+    setKlaar(door > 0 ? t.doorgeschoven(door) : t.opgeslagen)
   }
 
   return (
     <form className="club-rooster-beheer" onSubmit={bewaar}>
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Capaciteit</span>
+          <span>{t.capaciteit}</span>
           <input className="club-invoer" type="number" min={1} max={500} required value={capaciteit} onChange={(e) => setCapaciteit(e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Zaal</span>
+          <span>{t.zaal}</span>
           <select className="club-invoer" value={zaalId} onChange={(e) => setZaalId(e.target.value)}>
-            <option value="">Geen zaal</option>
+            <option value="">{t.geenZaal}</option>
             {zalen.map((z) => (
               <option key={z.id} value={z.id}>
                 {z.naam}
@@ -63,9 +66,9 @@ function Wijzigen({ les, zalen: alleZalen, instructeurs: alleInstructeurs }: Pro
           </select>
         </label>
         <label className="club-veld">
-          <span>Instructeur</span>
+          <span>{t.instructeur}</span>
           <select className="club-invoer" value={instructeurId} onChange={(e) => setInstructeurId(e.target.value)}>
-            <option value="">Nog niet bekend</option>
+            <option value="">{t.nietBekend}</option>
             {instructeurs.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.naam}
@@ -78,7 +81,7 @@ function Wijzigen({ les, zalen: alleZalen, instructeurs: alleInstructeurs }: Pro
       {klaar && <p className="club-melding club-melding--ok" role="status">{klaar}</p>}
       <button type="submit" className="club-knop club-knop--klein" disabled={bezig}>
         <Save aria-hidden size={14} />
-        Opslaan voor deze les
+        {t.opslaan}
       </button>
     </form>
   )
@@ -88,6 +91,7 @@ function Annuleren({ les }: { les: LesOverzicht }) {
   const [reden, setReden] = useState('')
   const { bezig, fout, voerUit } = useClubActie()
   const bezet = les.geboekt + les.wachtlijst
+  const t = useTekst(ROOSTER).beheer
 
   return (
     <form
@@ -98,25 +102,26 @@ function Annuleren({ les }: { les: LesOverzicht }) {
       }}
     >
       <label className="club-veld">
-        <span>Les annuleren</span>
-        <input className="club-invoer" maxLength={200} required minLength={2} placeholder="Reden, bijvoorbeeld: instructeur ziek" value={reden} onChange={(e) => setReden(e.target.value)} />
+        <span>{t.annuleren}</span>
+        <input className="club-invoer" maxLength={200} required minLength={2} placeholder={t.reden} value={reden} onChange={(e) => setReden(e.target.value)} />
       </label>
       <p className="club-hint">
-        {bezet > 0 ? `${bezet} reserveringen vervallen. De reden blijft bij de les staan.` : 'Er zijn nog geen reserveringen.'}
+        {bezet > 0 ? t.vervallen(bezet) : t.geenReserveringen}
       </p>
       {fout && <p className="club-fout" role="alert">{fout}</p>}
       <button type="submit" className="club-knop club-knop--gevaar club-knop--klein" disabled={bezig || reden.trim().length < 2}>
         <Ban aria-hidden size={14} />
-        Les annuleren
+        {t.annuleren}
       </button>
     </form>
   )
 }
 
 export function LesBeheer(props: Props) {
+  const t = useTekst(ROOSTER).beheer
   return (
     <details className="club-rooster-uitklap">
-      <summary>Deze les aanpassen</summary>
+      <summary>{t.aanpassen}</summary>
       <Wijzigen {...props} />
       <Annuleren les={props.les} />
     </details>

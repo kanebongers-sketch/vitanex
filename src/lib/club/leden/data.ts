@@ -8,6 +8,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LID_KOLOMMEN, lidUitRij, type Lid } from '@/lib/club/kern/lid'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { NO_SHOW_DAGEN, VENSTER_DAGEN } from './behoud'
 import { bouwRijen, type LedenRij } from './lijst'
 import { checkinUitRij, reserveringUitRij } from './rijen'
@@ -120,7 +121,7 @@ async function haalEerdereBezoeken(admin: SupabaseClient, userId: string, ids: s
 }
 
 /** Alle ledenrijen van een vestiging, of null als iets niet te lezen was. */
-export async function haalLedenRijen(admin: SupabaseClient, userId: string, v: Vestiging, nu: Date): Promise<LedenRij[] | null> {
+export async function haalLedenRijen(admin: SupabaseClient, userId: string, v: Vestiging, nu: Date, taal: Taal = 'nl'): Promise<LedenRij[] | null> {
   const vensterStart = new Date(nu.getTime() - (VENSTER_DAGEN + 1) * MS_DAG)
   const [leden, bezoeken, noShows, metApp] = await Promise.all([
     haalLedenVanVestiging(admin, userId, v),
@@ -133,5 +134,5 @@ export async function haalLedenRijen(admin: SupabaseClient, userId: string, v: V
   const eerder = await haalEerdereBezoeken(admin, userId, zonderRecent, vensterStart)
   if (!eerder) return null
   // Wie de app heeft is extra informatie: lukt dat lezen niet (gelogd), dan toont de lijst niemand met app.
-  return bouwRijen(leden, bezoeken, noShows, nu, eerder, metApp ?? new Set())
+  return bouwRijen(leden, bezoeken, noShows, nu, eerder, metApp ?? new Set(), taal)
 }

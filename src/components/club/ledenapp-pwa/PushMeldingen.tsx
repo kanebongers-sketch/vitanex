@@ -4,6 +4,8 @@ import { useState, useSyncExternalStore } from 'react'
 import { Bell, BellOff, Share, SquarePlus, X } from 'lucide-react'
 import { VRAAG_WEG_SLEUTEL } from '@/lib/club/push/toestel'
 import { usePush } from './usePush'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 import './installeer-hulp.css'
 import './push-meldingen.css'
 
@@ -46,6 +48,7 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
   const push = usePush(sleutel, voorvertoning ? null : merk)
   const eerderWeg = useSyncExternalStore(geenAbonnement, leesWeg, () => true)
   const [weg, zetWeg] = useState(false)
+  const t = LID_INLOGGEN[useTaal()].pwa
   if (!sleutel || push.stand === null) return null
 
   if (variant === 'home') {
@@ -62,12 +65,12 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
         </span>
         <div className="club-installeer-tekst">
           <p id="club-push-vraag-kop" className="club-installeer-kop">
-            Een seintje voor je les?
+            {t.seintje}
           </p>
-          <p className="club-installeer-uitleg">Krijg een melding op je telefoon bij een bevestiging, een wijziging of als je les bijna begint.</p>
+          <p className="club-installeer-uitleg">{t.seintjeUitleg}</p>
           <button type="button" className="club-installeer-knop" onClick={push.aanzetten} disabled={push.bezig || voorvertoning}>
             <Bell size={17} strokeWidth={2} aria-hidden />
-            Meldingen aanzetten
+            {t.aanzetten}
           </button>
           {push.fout && (
             <p className="club-push-fout" role="alert">
@@ -75,7 +78,7 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
             </p>
           )}
         </div>
-        <button type="button" className="club-installeer-sluit" onClick={sluit} aria-label="Niet meer vragen">
+        <button type="button" className="club-installeer-sluit" onClick={sluit} aria-label={t.nietMeerVragen}>
           <X size={18} strokeWidth={2} aria-hidden />
         </button>
       </aside>
@@ -89,13 +92,13 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
           {push.aan ? <Bell size={18} strokeWidth={1.75} /> : <BellOff size={18} strokeWidth={1.75} />}
         </span>
         <div className="club-push-tekst">
-          <h3 id="club-push-kop">Meldingen op je telefoon</h3>
+          <h3 id="club-push-kop">{t.kop}</h3>
           <p className="club-push-status" role="status">
-            {push.aan ? 'Staan aan op dit toestel.' : 'Staan uit op dit toestel.'}
+            {push.aan ? t.aan : t.uit}
           </p>
         </div>
       </div>
-      <PushUitleg stand={push.stand} />
+      <PushUitleg stand={push.stand} t={t} />
       {push.stand === 'kan' && (
         <button
           type="button"
@@ -104,15 +107,15 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
           disabled={push.bezig || voorvertoning}
           aria-busy={push.bezig}
         >
-          {push.aan ? 'Meldingen uitzetten' : 'Meldingen aanzetten'}
+          {push.aan ? t.uitzetten : t.aanzetten}
         </button>
       )}
       {push.stand === 'geweigerd' && push.aan && (
         <button type="button" className="club-push-knop club-push-knop--uit" onClick={push.uitzetten} disabled={push.bezig || voorvertoning}>
-          Meldingen uitzetten
+          {t.uitzetten}
         </button>
       )}
-      {voorvertoning && <p className="club-push-noot">In de voorvertoning zet je geen meldingen aan; dat doet het lid zelf.</p>}
+      {voorvertoning && <p className="club-push-noot">{t.voorvertoning}</p>}
       {push.fout && (
         <p className="club-push-fout" role="alert">
           {push.fout}
@@ -122,29 +125,29 @@ export function PushMeldingen({ sleutel, merk = null, variant, voorvertoning = f
   )
 }
 
-function PushUitleg({ stand }: { stand: NonNullable<ReturnType<typeof usePush>['stand']> }) {
-  if (stand === 'kan') return <p className="club-push-uitleg">Een seintje bij een bevestiging, een wijziging of als je les of afspraak bijna begint. Uitzetten kan altijd.</p>
-  if (stand === 'geweigerd') return <p className="club-push-uitleg">Je browser blokkeert meldingen van deze app. Sta ze toe in de instellingen van je browser of telefoon en kom dan terug.</p>
-  if (stand === 'geen-ondersteuning') return <p className="club-push-uitleg">Deze browser kan geen meldingen tonen. Je ziet ze wel onder de bel in de app.</p>
+function PushUitleg({ stand, t }: { stand: NonNullable<ReturnType<typeof usePush>['stand']>; t: (typeof LID_INLOGGEN)['nl']['pwa'] }) {
+  if (stand === 'kan') return <p className="club-push-uitleg">{t.uitlegKan}</p>
+  if (stand === 'geweigerd') return <p className="club-push-uitleg">{t.uitlegGeweigerd}</p>
+  if (stand === 'geen-ondersteuning') return <p className="club-push-uitleg">{t.uitlegGeen}</p>
   return (
     <div className="club-push-uitleg">
-      <p>Op een iPhone of iPad werkt dit alleen als de app op je beginscherm staat (iOS 16.4 of nieuwer):</p>
+      <p>{t.uitlegIos}</p>
       <ol className="club-installeer-stappen">
         <li>
           <span className="club-installeer-nr">1</span>
           <span>
-            Tik in Safari op <Share size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>Deel</strong>
+            {t.tikSafari} <Share size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>{t.deel}</strong>
           </span>
         </li>
         <li>
           <span className="club-installeer-nr">2</span>
           <span>
-            Kies <SquarePlus size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>Zet op beginscherm</strong>
+            {t.kies} <SquarePlus size={16} strokeWidth={2} aria-hidden className="club-installeer-icoon" /> <strong>{t.zetOp}</strong>
           </span>
         </li>
         <li>
           <span className="club-installeer-nr">3</span>
-          <span>Open de app vanaf je beginscherm en zet hier de meldingen aan.</span>
+          <span>{t.openBeginscherm}</span>
         </li>
       </ol>
     </div>

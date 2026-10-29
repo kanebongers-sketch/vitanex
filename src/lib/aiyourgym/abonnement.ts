@@ -7,6 +7,9 @@ import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { oorsprongVan } from './links'
 import { PROEFDAGEN, vindPakket } from './pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
+import type { Taal } from './taal/taal'
+import { formatDatum } from './taal/formaat'
+import { ABONNEMENT_STATUS } from './taal/woorden/club/abonnement-status'
 
 /** Het pad van de abonnementspagina (op een subdomein gaat /club gewoon door). */
 export const ABONNEMENT_PAD = '/club/beheer/abonnement'
@@ -92,15 +95,17 @@ export function nlDatum(d: Date): string {
   return new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' }).format(d)
 }
 
-function lopendeStatus(s: StripeAbonnement | null, nu: Date): { status: string; toon: Toon; toelichting: string | null } {
+function lopendeStatus(s: StripeAbonnement | null, nu: Date, taal: Taal): { status: string; toon: Toon; toelichting: string | null } {
+  const t = ABONNEMENT_STATUS[taal]
+  const datum = (d: Date) => formatDatum(d, taal)
   if (s?.stoptAanEindPeriode || (s?.stoptOp && s.stoptOp > nu)) {
     const eind = s.stoptOp ?? s.periodeTot
-    return { status: 'Opgezegd', toon: 'let', toelichting: eind ? `Loopt nog tot ${nlDatum(eind)}.` : 'Loopt tot het einde van de periode.' }
+    return { status: t.opgezegd, toon: 'let', toelichting: eind ? t.loptTot(datum(eind)) : t.loptTotEinde }
   }
   if (s?.status === 'trialing' && s.proefTot && s.proefTot > nu) {
-    return { status: `Proefperiode tot ${nlDatum(s.proefTot)}`, toon: 'goed', toelichting: 'Daarna start de eerste betaling vanzelf.' }
+    return { status: t.proefTot(datum(s.proefTot)), toon: 'goed', toelichting: t.daarnaBetaling }
   }
-  return { status: 'Actief', toon: 'goed', toelichting: s?.periodeTot ? `Volgende factuur rond ${nlDatum(s.periodeTot)}.` : null }
+  return { status: t.actief, toon: 'goed', toelichting: s?.periodeTot ? t.volgendeFactuur(datum(s.periodeTot)) : null }
 }
 
 const DAG_MS = 24 * 60 * 60 * 1000
@@ -111,33 +116,34 @@ const DAG_MS = 24 * 60 * 60 * 1000
  * testbetaalpagina: eerst de proefperiode, daarna spreken we samen af hoe de
  * sportschool betaalt.
  */
-function zonderStripe(a: AbonnementRij, nu: Date): { status: string; toon: Toon; toelichting: string } {
+function zonderStripe(a: AbonnementRij, nu: Date, taal: Taal): { status: string; toon: Toon; toelichting: string } {
+  const t = ABONNEMENT_STATUS[taal]
   const start = Date.parse(a.aangemaaktOp)
   const proefTot = Number.isNaN(start) ? null : new Date(start + PROEFDAGEN * DAG_MS)
-  const uitleg = 'Online betalen is nog niet gekoppeld, dus er wordt niets afgeschreven. We spreken samen af hoe je verder betaalt.'
-  if (proefTot && proefTot > nu) return { status: `Proefperiode tot ${nlDatum(proefTot)}`, toon: 'goed', toelichting: uitleg }
-  return { status: 'Actief', toon: 'goed', toelichting: uitleg }
+  if (proefTot && proefTot > nu) return { status: t.proefTot(formatDatum(proefTot, taal)), toon: 'goed', toelichting: t.zonderStripe }
+  return { status: t.actief, toon: 'goed', toelichting: t.zonderStripe }
 }
 
 /** Wat de pagina toont, uit onze aanmelding en (als die er is) het abonnement bij Stripe. */
-export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date): AbonnementWeergave {
-  const pakket = vindPakket(a.pakket)?.naam ?? 'Onbekend pakket'
+export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date, taal: Taal = 'nl'): AbonnementWeergave {
+  const t = ABONNEMENT_STATUS[taal]
+  const pakket = vindPakket(a.pakket)?.naam ?? t.onbekendPakket
   const vestigingen = s?.aantal ?? a.aantalVestigingen
   const portaal = a.stripeKlantId !== null && a.status !== 'test'
   const basis = { pakket, vestigingen, portaal }
   switch (a.status) {
     case 'actief':
-      return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(a, nu) : lopendeStatus(s, nu)) }
+      return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(a, nu, taal) : lopendeStatus(s, nu, taal)) }
     case 'betaling_mislukt':
-      return { ...basis, status: 'Betaling mislukt', toon: 'fout', toelichting: 'Een factuur is niet betaald. Stripe probeert het opnieuw; controleer je betaalgegevens.' }
+      return { ...basis, status: t.mislukt, toon: 'fout', toelichting: t.mislukUitleg }
     case 'gepauzeerd':
-      return { ...basis, status: 'Gepauzeerd', toon: 'let', toelichting: 'Het abonnement staat stil. Er worden geen facturen gemaakt.' }
+      return { ...basis, status: t.gepauzeerd, toon: 'let', toelichting: t.gepauzeerdUitleg }
     case 'opgezegd':
-      return { ...basis, status: 'Opgezegd', toon: 'neutraal', toelichting: 'Het abonnement is beeindigd. Je oude facturen blijven op te vragen.' }
+      return { ...basis, status: t.opgezegd, toon: 'neutraal', toelichting: t.opgezegdUitleg }
     case 'test':
-      return { ...basis, portaal: false, status: 'Testaccount', toon: 'neutraal', toelichting: 'Dit is een testaccount: er is geen abonnement en er komen geen facturen.' }
+      return { ...basis, portaal: false, status: t.test, toon: 'neutraal', toelichting: t.testUitleg }
     default:
-      return { ...basis, status: 'Wordt ingericht', toon: 'neutraal', toelichting: 'Je aanmelding is nog niet afgerond.' }
+      return { ...basis, status: t.inrichten, toon: 'neutraal', toelichting: t.inrichtenUitleg }
   }
 }
 

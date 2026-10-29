@@ -6,6 +6,8 @@ import type { GroepKaart } from '@/lib/club/community/lezen'
 import { groepHref } from '@/lib/club/community/paden'
 import { useActie } from './useActie'
 import { Terugkoppeling } from './Terugkoppeling'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 // De groepen die een lid ziet: eerst de eigen groepen, dan open groepen om
 // lid van te worden. Berichten zie je pas als je lid bent.
@@ -17,12 +19,10 @@ interface Props {
   alleenLezen: boolean
 }
 
-function ledenTekst(n: number): string {
-  return n === 1 ? '1 lid' : `${n} leden`
-}
-
 export function GroepenLijst({ groepen, basis, alleenLezen }: Props) {
   const { bezig, melding, doe } = useActie()
+  const tc = useTekst(COMMUNITY)
+  const t = tc.groepen
   const eigen = groepen.filter((g) => g.isLid)
   const open = groepen.filter((g) => !g.isLid)
 
@@ -36,11 +36,11 @@ export function GroepenLijst({ groepen, basis, alleenLezen }: Props) {
           <span className="club-cm-groep-tekst">
             <strong>{groep.naam}</strong>
             <span className="club-cm-groep-meta">
-              {ledenTekst(leden)}
+              {tc.leden(leden)}
               {groep.challengeId && (
                 <>
                   <span aria-hidden> · </span>
-                  <Trophy size={13} aria-hidden /> challenge
+                  <Trophy size={13} aria-hidden /> {t.challenge}
                 </>
               )}
             </span>
@@ -48,8 +48,8 @@ export function GroepenLijst({ groepen, basis, alleenLezen }: Props) {
           <ChevronRight size={20} aria-hidden className="club-cm-groep-pijl" />
         </Link>
         {!isLid && !alleenLezen && (
-          <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-cm-groep-mee" disabled={bezig === groep.id} onClick={() => void doe(groep.id, `/api/club/lid/community/groepen/${encodeURIComponent(groep.id)}`, 'POST', undefined, `Je bent lid van ${groep.naam}.`)}>
-            {bezig === groep.id ? 'Even geduld...' : 'Word lid'}
+          <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-cm-groep-mee" disabled={bezig === groep.id} onClick={() => void doe(groep.id, `/api/club/lid/community/groepen/${encodeURIComponent(groep.id)}`, 'POST', undefined, t.welkom(groep.naam))}>
+            {bezig === groep.id ? t.bezig : t.wordLid}
           </button>
         )}
       </li>
@@ -61,14 +61,14 @@ export function GroepenLijst({ groepen, basis, alleenLezen }: Props) {
       <Terugkoppeling melding={melding} />
       <section aria-labelledby="cm-eigen-kop" className="club-cm-sectie">
         <h3 id="cm-eigen-kop" className="club-lidapp-label">
-          Jouw groepen
+          {t.eigen}
         </h3>
-        {eigen.length > 0 ? <ul className="club-cm-groeplijst">{eigen.map(kaart)}</ul> : <p className="club-cm-leeg">Je zit nog in geen enkele groep. Kies hieronder een groep die bij je past.</p>}
+        {eigen.length > 0 ? <ul className="club-cm-groeplijst">{eigen.map(kaart)}</ul> : <p className="club-cm-leeg">{t.geenEigen}</p>}
       </section>
       {open.length > 0 && (
         <section aria-labelledby="cm-open-kop" className="club-cm-sectie">
           <h3 id="cm-open-kop" className="club-lidapp-label">
-            Groepen om bij te gaan
+            {t.open}
           </h3>
           <ul className="club-cm-groeplijst">{open.map(kaart)}</ul>
         </section>

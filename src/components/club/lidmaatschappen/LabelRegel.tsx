@@ -7,6 +7,8 @@ import { clubPad } from '@/lib/club/kern/vestiging'
 import type { Label } from '@/lib/club/lidmaatschappen/model'
 import { ledenTekst } from '@/lib/club/lidmaatschappen/tellen'
 import { LabelFormulier } from './LabelFormulier'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LIDMAATSCHAPPEN } from '@/lib/aiyourgym/taal/woorden/club/lidmaatschappen'
 
 // Een label: de tag in zijn kleur, omschrijving, het aantal leden. Verwijderen
 // vraagt eerst of de tag ook bij de leden weg moet.
@@ -23,6 +25,9 @@ export function LabelRegel({ label: l, vestiging, onKlaar }: Props) {
   const [bewerken, setBewerken] = useState(false)
   const [bevestig, setBevestig] = useState(false)
   const [bezig, setBezig] = useState(false)
+  const taal = useTaal()
+  const tekst = useTekst(LIDMAATSCHAPPEN)
+  const t = tekst.label
 
   async function verwijder(tagsOok: boolean) {
     setBezig(true)
@@ -31,7 +36,7 @@ export function LabelRegel({ label: l, vestiging, onKlaar }: Props) {
     setBevestig(false)
     if (!uit.ok) return onKlaar(uit.fout, false)
     const n = (uit.data as { geraakt?: number } | null)?.geraakt ?? 0
-    onKlaar(tagsOok ? `Label ${l.naam} is verwijderd, ook bij ${ledenTekst(n)}.` : `Label ${l.naam} is verwijderd. De tag blijft bij de leden staan.`)
+    onKlaar(tagsOok ? t.verwijderdOok(l.naam, ledenTekst(n, taal)) : t.verwijderd(l.naam))
   }
 
   if (bewerken) {
@@ -54,44 +59,44 @@ export function LabelRegel({ label: l, vestiging, onKlaar }: Props) {
       <div className="club-lidm-inhoud">
         <h3 className="club-lidm-naam">
           <span className="club-lidm-tag">{l.naam}</span>
-          {l.demo && <span className="club-chip club-chip--geen">demo</span>}
+          {l.demo && <span className="club-chip club-chip--geen">{tekst.algemeen.demo}</span>}
         </h3>
         {l.omschrijving && <p className="club-lidm-omschrijving">{l.omschrijving}</p>}
       </div>
       <div className="club-lidm-rechts">
         <p className="club-lidm-aantal">
           <strong>{l.leden}</strong>
-          <span>{l.leden === 1 ? 'lid' : 'leden'}</span>
+          <span>{tekst.algemeen.lid(l.leden)}</span>
         </p>
         {vestiging && l.leden > 0 && (
           <Link className="club-lidm-link" href={clubPad('/leden', vestiging, { tag: l.naam })}>
-            Naar de ledenlijst<span className="club-sr"> met label {l.naam}</span>
+            {tekst.algemeen.naarLijst}<span className="club-sr"> {t.lijstMet(l.naam)}</span>
           </Link>
         )}
         {bevestig ? (
-          <div className="club-lidm-bevestig" role="group" aria-label={`Label ${l.naam} verwijderen`}>
-            <p>{l.leden > 0 ? `${ledenTekst(l.leden)} ${l.leden === 1 ? 'heeft' : 'hebben'} deze tag. Moet hij daar ook af?` : 'Weet je het zeker?'}</p>
+          <div className="club-lidm-bevestig" role="group" aria-label={t.verwijderenLabel(l.naam)}>
+            <p>{l.leden > 0 ? t.hebbenTag(ledenTekst(l.leden, taal), l.leden === 1) : t.zeker}</p>
             <div className="club-lidm-knoppen">
               {l.leden > 0 && (
                 <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig} onClick={() => void verwijder(true)}>
-                  Ook bij de leden weg
+                  {t.ookLeden}
                 </button>
               )}
               <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={bezig} onClick={() => void verwijder(false)}>
-                {l.leden > 0 ? 'Alleen het label' : 'Ja, verwijderen'}
+                {l.leden > 0 ? t.alleenLabel : tekst.algemeen.jaVerwijderen}
               </button>
               <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setBevestig(false)}>
-                Annuleren
+                {tekst.algemeen.annuleren}
               </button>
             </div>
           </div>
         ) : (
           <div className="club-lidm-knoppen">
-            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setBewerken(true)} aria-label={`Label ${l.naam} wijzigen`}>
-              Wijzigen
+            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setBewerken(true)} aria-label={t.wijzigenLabel(l.naam)}>
+              {tekst.algemeen.wijzigen}
             </button>
-            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setBevestig(true)} aria-label={`Label ${l.naam} verwijderen`}>
-              Verwijderen
+            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => setBevestig(true)} aria-label={t.verwijderenLabel(l.naam)}>
+              {tekst.algemeen.verwijderen}
             </button>
           </div>
         )}

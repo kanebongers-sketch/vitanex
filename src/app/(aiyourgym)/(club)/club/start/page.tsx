@@ -22,13 +22,18 @@ import { StapOnderdelen } from '@/components/club/start/StapOnderdelen'
 import { StapLessen } from '@/components/club/start/StapLessen'
 import { OnderdeelAan } from '@/components/club/start/OnderdeelAan'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
-import { STAP_INTRO, StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
+import { StapKlaar, StapLedenInlezen } from '@/components/club/start/StapTeksten'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import { StapLive, type LiveAdressen } from '@/components/club/start/StapLive'
 import { LedenAfronden } from '@/components/club/start/LedenAfronden'
 import { StreefdatumKiezer } from '@/components/club/start/StreefdatumKiezer'
 import { GeenVestiging, LaadFout, StapTeam, StapVestigingen, VestigingKeuze } from '@/components/club/start/StapInstellingen'
 
-export const metadata: Metadata = { title: 'Startwizard' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(START)).meta }
+}
 export const dynamic = 'force-dynamic'
 
 // /club/start?stap=N: de startwizard van een nieuwe sportschool. Acht
@@ -52,14 +57,15 @@ interface StapProps {
   voortgang: StartVoortgang | null
   /** De gekozen streefdatum voor livegang (YYYY-MM-DD), of null. */
   streefdatum: string | null
+  taal: Taal
 }
 
 /** De keuze van de streefdatum, met de stand erbij als er al een datum is. */
-function Streef({ streefdatum, stand }: Pick<StapProps, 'streefdatum' | 'stand'>) {
+async function Streef({ streefdatum, stand, taal }: Pick<StapProps, 'streefdatum' | 'stand' | 'taal'>) {
   const vandaag = nlDelen(new Date()).datum
   const open = stand.filter((s) => !s.af).length
-  const streef = streefdatum ? streefStand(streefdatum, vandaag, open) : null
-  const tekst = streef ? `${streef.kop}. ${streef.dagen}.` : null
+  const streef = streefdatum ? streefStand(streefdatum, vandaag, open, taal) : null
+  const tekst = streef ? (await clubTekst(START)).streef.stand(streef.kop, streef.dagen) : null
   return <StreefdatumKiezer huidig={streefdatum} vandaag={vandaag} stand={tekst} />
 }
 
@@ -127,7 +133,7 @@ async function Lessen({ t, voet, soort, waarden, geenVasteLessen }: Pick<StapPro
   if (!moduleAan(t.organisatie, 'rooster')) {
     return (
       <MetVoet voet={voet}>
-        <OnderdeelAan organisatie={waarden} module="rooster" tekst="Groepslessen staan uit, dus er zijn geen lessen om in te stellen." knop="Groepslessen aanzetten" />
+        <OnderdeelAan organisatie={waarden} module="rooster" />
       </MetVoet>
     )
   }
@@ -158,7 +164,7 @@ async function Lessen({ t, voet, soort, waarden, geenVasteLessen }: Pick<StapPro
 }
 
 /** Stappen met eigen invoer brengen hun eigen voet mee; de rest krijgt de standaardvoet. */
-async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum, voortgang }: StapProps) {
+async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum, voortgang, taal }: StapProps) {
   const bevestigd = voortgang?.bevestigd ?? []
   const org = t.organisatie
   const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.uit }
@@ -168,7 +174,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
       const bestaand = await haalBestaand(t)
       return (
         <>
-          <Streef streefdatum={streefdatum} stand={stand} />
+          <Streef streefdatum={streefdatum} stand={stand} taal={taal} />
           <StapSoort key={org.id} gekozen={soort} organisatie={waarden} vestigingen={bestaand.vestigingen} lestypen={bestaand.lestypen} lesVestiging={vestiging ?? t.vestigingen[0]?.sleutel ?? null} voet={voet} />
         </>
       )
@@ -190,7 +196,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
       if (!moduleAan(org, 'leden')) {
         return (
           <MetVoet voet={voet}>
-            <OnderdeelAan organisatie={waarden} module="leden" tekst="Leden staat uit, dus er is geen ledenbestand om in te lezen." knop="Leden aanzetten" />
+            <OnderdeelAan organisatie={waarden} module="leden" />
           </MetVoet>
         )
       }
@@ -220,10 +226,10 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             kleur={org.kleurAccent}
             thema={org.thema}
             logo={logoAdres(org)}
-            acties={liveActies(feiten.uit, vestiging)}
+            acties={liveActies(feiten.uit, vestiging, taal)}
           />
-          {!afgerond && <Streef streefdatum={streefdatum} stand={stand} />}
-          <StapKlaar punten={eersteDag(feiten, vestiging, afgerond, voortgang)} />
+          {!afgerond && <Streef streefdatum={streefdatum} stand={stand} taal={taal} />}
+          <StapKlaar punten={eersteDag(feiten, vestiging, afgerond, voortgang, taal)} />
         </MetVoet>
       )
     }
@@ -238,7 +244,9 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   // Een nieuwe sportschool: de voortgang meteen vastleggen, zodat Vandaag daarna de kaart toont in plaats van hierheen te sturen.
   if (gelezen.ok && moetNaarWizard(t.organisatie, t.beheerderId, voortgang) && (await bewaarStart(t, NIEUWE_START))) voortgang = NIEUWE_START
   const feiten = await haalStartFeiten(t)
-  const stand = stappenStand(voortgang, feiten)
+  const taal = await getTaal()
+  const tekst = await clubTekst(START)
+  const stand = stappenStand(voortgang, feiten, taal)
   const stapInUrl = stapUitParam(params.stap)
   const huidig = stapInUrl ?? voortgang?.stap ?? 1
   const sleutel = STAPPEN[huidig - 1].sleutel
@@ -246,8 +254,8 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
   // Het kruimelpad wijst naar Instellingen: alleen als die open zijn (het master account ziet altijd alles).
   const kruimel = !(await wizardPoortDicht(t))
   return (
-    <StartKader t={t} kruimel={kruimel} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={STAP_INTRO[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
-      {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">Je voortgang kon niet worden gelezen. Je kunt gewoon verder; probeer het later opnieuw als iets niet wordt bewaard.</p>}
+    <StartKader t={t} kruimel={kruimel} sportschool={t.organisatie.naam} stand={stand} huidig={huidig} vestiging={vestiging} intro={tekst.intro[sleutel]} welkomTerug={isHervatten(voortgang, stapInUrl)}>
+      {!gelezen.ok && <p className="club-melding club-melding--fout" role="alert">{tekst.paginaFout}</p>}
       <StapInhoud
         key={`${sleutel}-${vestiging ?? ''}`}
         t={t}
@@ -258,6 +266,7 @@ export default async function StartPagina({ searchParams }: { searchParams: Zoek
         stand={stand}
         streefdatum={voortgang?.streefdatum ?? null}
         voortgang={voortgang}
+        taal={taal}
       />
     </StartKader>
   )

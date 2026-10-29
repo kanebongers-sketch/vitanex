@@ -7,6 +7,9 @@
 import type { AanmeldStatus } from '../status'
 import { nlDatum, type StripeAbonnement } from '../abonnement'
 import { PROEFDAGEN } from '../pakketten'
+import type { Taal } from '../taal/taal'
+import { formatDatum } from '../taal/formaat'
+import { START_LIB } from '../taal/woorden/club/start-lib'
 
 export const DAG_MS = 24 * 60 * 60 * 1000
 
@@ -31,8 +34,9 @@ export interface ProefTeller {
 }
 
 /** "Proefperiode tot 6 november" met "nog 9 dagen", of null als hij voorbij is. Rustig: alleen de datum. */
-export function proefTeller(tot: Date | null, nu: Date): ProefTeller | null {
+export function proefTeller(tot: Date | null, nu: Date, taal: Taal = 'nl'): ProefTeller | null {
   if (!tot || tot.getTime() <= nu.getTime()) return null
   const over = Math.ceil((tot.getTime() - nu.getTime()) / DAG_MS)
-  return { kop: `Proefperiode tot ${nlDatum(tot)}`, dagen: over <= 1 ? 'nog een dag' : `nog ${over} dagen` }
+  const t = START_LIB[taal].proef
+  return { kop: t.kop(taal === 'nl' ? nlDatum(tot) : formatDatum(tot, taal, 'lang')), dagen: over <= 1 ? t.een : t.meer(over) }
 }

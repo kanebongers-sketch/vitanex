@@ -10,6 +10,8 @@
 import { isoWeekdag, maandagVan, plusDagen, tijdNaarMinuten } from '@/lib/club/rooster/tijd'
 import { duurMin, vindOverlap } from './regels'
 import type { Dienst, PersoneelLid } from './typen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { PERSONEEL_REGELS } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 export const PERIODE_SOORTEN = ['week', '4weken', 'maand'] as const
 export type PeriodeSoort = (typeof PERIODE_SOORTEN)[number]
@@ -138,23 +140,24 @@ export function isVoorbij(d: Pick<Dienst, 'datum' | 'eind'>, vandaag: string, nu
 }
 
 /** Afwijkingen in een periode: andere tijden dan gepland, niet bevestigd na afloop, overlap. */
-export function afwijkingen(diensten: readonly Dienst[], vandaag: string, nuMin: number): Afwijking[] {
+export function afwijkingen(diensten: readonly Dienst[], vandaag: string, nuMin: number, taal: Taal = 'nl'): Afwijking[] {
+  const t = PERSONEEL_REGELS[taal]
   const uit: Afwijking[] = []
   for (const d of diensten) {
     if (d.medewerkerId === null || d.uursoort !== 'werk') continue
     const basis = { dienstId: d.id, medewerkerId: d.medewerkerId, datum: d.datum }
     const w = werkelijk(d)
     if (isGewerktStatus(d) && (w.begin !== d.begin || w.eind !== d.eind)) {
-      uit.push({ ...basis, soort: 'afwijkend', tekst: `Gewerkt ${w.begin} tot ${w.eind}, gepland ${d.begin} tot ${d.eind}` })
+      uit.push({ ...basis, soort: 'afwijkend', tekst: t.afwijkend(w.begin, w.eind, d.begin, d.eind) })
     }
     if (!isGewerktStatus(d) && isVoorbij(d, vandaag, nuMin)) {
-      uit.push({ ...basis, soort: 'onbevestigd', tekst: `Dienst ${d.begin} tot ${d.eind} is nog niet bevestigd` })
+      uit.push({ ...basis, soort: 'onbevestigd', tekst: t.onbevestigd(d.begin, d.eind) })
     }
   }
   const byId = new Map(diensten.map((d) => [d.id, d]))
   for (const o of vindOverlap(diensten)) {
     const d = byId.get(o.a)
-    if (d) uit.push({ dienstId: d.id, medewerkerId: o.medewerkerId, datum: d.datum, soort: 'overlap', tekst: 'Twee diensten tegelijk' })
+    if (d) uit.push({ dienstId: d.id, medewerkerId: o.medewerkerId, datum: d.datum, soort: 'overlap', tekst: t.tegelijk })
   }
   return uit.sort((a, b) => a.datum.localeCompare(b.datum))
 }

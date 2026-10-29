@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import type { LogRegel, SchemaKop } from '@/lib/club/training/rijen'
-import { DOEL_LABEL, NIVEAU_LABEL, SCHEMA_STATUS_LABEL, type SchemaStatus } from '@/lib/club/training/typen'
+import type { SchemaStatus } from '@/lib/club/training/typen'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { toonDatum } from '@/lib/club/training/weergave'
 import { SjabloonToepassen } from './SchemaActies'
 
@@ -29,17 +32,15 @@ function samenvatting(log: LogRegel[]): Map<string, { laatste: string; aantal: n
   return uit
 }
 
-function dagen(n: number): string {
-  const aantal = n || 1
-  return `${aantal} ${aantal === 1 ? 'dag' : 'dagen'}`
-}
-
 /**
  * Schema's van leden als rijen: de hele rij opent de editor (ook op de telefoon).
  * Per rij: naam, lid, opbouw, status, trainer en wanneer er voor het laatst mee getraind is.
  */
-export function SchemaLijst({ schemas, log, trainers, editorHref, toonLid }: SchemaLijstProps) {
+export async function SchemaLijst({ schemas, log, trainers, editorHref, toonLid }: SchemaLijstProps) {
   const perSchema = samenvatting(log)
+  const taal = await getTaal()
+  const t = (await clubTekst(CLUB_TRAINING)).lijst
+  const lb = await clubTekst(TRAINING_LABELS)
   return (
     <ul className="club-lijst club-kaart club-training-schemas">
       {schemas.map((s) => {
@@ -50,18 +51,18 @@ export function SchemaLijst({ schemas, log, trainers, editorHref, toonLid }: Sch
             <Link href={editorHref.replace('__id__', s.id)} className="club-training-schemarij">
               <span className="club-training-schemarij-hoofd">
                 <span className="club-training-schemarij-titel">
-                  {toonLid && <span className="club-training-schemarij-lid">{s.lidNaam ?? 'Lid onbekend'}</span>}
+                  {toonLid && <span className="club-training-schemarij-lid">{s.lidNaam ?? t.lidOnbekend}</span>}
                   <strong>{s.naam}</strong>
                 </span>
                 <span className="club-rij-sub">
-                  {[s.doel ? DOEL_LABEL[s.doel] : null, NIVEAU_LABEL[s.niveau], dagen(s.dagTitels.length), trainer ? `Trainer ${trainer}` : null].filter(Boolean).join(' · ')}
+                  {[s.doel ? lb.doel[s.doel] : null, lb.niveau[s.niveau], t.dagen(s.dagTitels.length || 1), trainer ? t.trainer(trainer) : null].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="club-training-schemarij-getraind">
-                {l ? <span><b className="club-getal">{l.aantal}x</b> getraind, laatst {toonDatum(l.laatste)}</span> : <span className="club-zacht">Nog niet getraind</span>}
-                {s.bijgewerktOp && <small>Bijgewerkt {toonDatum(s.bijgewerktOp)}</small>}
+                {l ? <span><b className="club-getal">{l.aantal}x</b> {t.getraind(toonDatum(l.laatste, taal))}</span> : <span className="club-zacht">{t.nogNiet}</span>}
+                {s.bijgewerktOp && <small>{t.bijgewerkt(toonDatum(s.bijgewerktOp, taal))}</small>}
               </span>
-              <span className={`club-chip ${STATUS_CHIP[s.status]}`}>{SCHEMA_STATUS_LABEL[s.status]}</span>
+              <span className={`club-chip ${STATUS_CHIP[s.status]}`}>{lb.schemaStatus[s.status]}</span>
               <ChevronRight aria-hidden size={18} className="club-training-schemarij-pijl" />
             </Link>
           </li>
@@ -79,7 +80,8 @@ interface SjabloonLijstProps {
 }
 
 /** Sjablonen: herbruikbare schema's zonder lid, met een knop om toe te passen. */
-export function SjabloonLijst({ sjablonen, vestiging, lid, editorHref }: SjabloonLijstProps) {
+export async function SjabloonLijst({ sjablonen, vestiging, lid, editorHref }: SjabloonLijstProps) {
+  const lb = await clubTekst(TRAINING_LABELS)
   return (
     <ul className="club-lijst club-kaart club-training-sjablonen">
       {sjablonen.map((s) => (
@@ -87,7 +89,7 @@ export function SjabloonLijst({ sjablonen, vestiging, lid, editorHref }: Sjabloo
           <div className="club-rij-hoofd">
             <Link href={editorHref.replace('__id__', s.id)} className="club-rij-titel club-training-link">{s.naam}</Link>
             <span className="club-rij-sub">
-              {[s.doel ? DOEL_LABEL[s.doel] : null, NIVEAU_LABEL[s.niveau], s.dagTitels.filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
+              {[s.doel ? lb.doel[s.doel] : null, lb.niveau[s.niveau], s.dagTitels.filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
             </span>
           </div>
           <SjabloonToepassen sjabloonId={s.id} sjabloonNaam={s.naam} vestiging={vestiging} lid={lid} editorHref={editorHref} />

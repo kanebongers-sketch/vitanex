@@ -12,6 +12,8 @@ import { IntakeToestemming } from './IntakeGezondheid'
 import { IntakeMetingen } from './IntakeMetingen'
 import { LidKiezer, type GekozenLid } from './LidKiezer'
 import { VoorstelKnop } from './VoorstelKnop'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { INTAKE, sectieInTaal, vraagInTaal } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
 interface IntakeFormulierProps {
   vestiging: string
@@ -28,6 +30,8 @@ interface IntakeFormulierProps {
 /** De intake: lid, de secties van de sportschool en de metingen op een scherm, met de voortgang ernaast. */
 export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHref, editorHref, vragen }: IntakeFormulierProps) {
   const [lid, setLid] = useState<GekozenLid | null>(beginLid)
+  const taal = useTaal()
+  const t = useTekst(INTAKE).formulier
   const [s, setS] = useState<IntakeStaat>(() => beginStaat(vandaag, trainers[0]?.id ?? ''))
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
@@ -38,33 +42,33 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
   const toestemmingIn = delen.find((d) => d.vragen.some((v) => v.gezondheid))?.naam ?? null
   const open = eersteOpen(actief, s)
   const voortgang = [
-    { sleutel: 'lid', label: 'Lid gekozen', klaar: lid !== null },
-    ...delen.map((d) => ({ sleutel: `sectie-${d.naam}`, label: d.naam, klaar: sectieKlaar(d.vragen, s) })),
-    { sleutel: 'metingen', label: 'Metingen', klaar: metingenKlaar(s) },
+    { sleutel: 'lid', label: t.lidGekozen, klaar: lid !== null },
+    ...delen.map((d) => ({ sleutel: `sectie-${d.naam}`, label: sectieInTaal(d.naam, taal), klaar: sectieKlaar(d.vragen, s) })),
+    { sleutel: 'metingen', label: t.metingen, klaar: metingenKlaar(s) },
   ]
 
   async function bewaar(e: React.FormEvent) {
     e.preventDefault()
-    if (!lid) return setFout('Kies eerst een lid.')
-    if (open) return setFout(`Vul "${open.vraag}" in.`)
+    if (!lid) return setFout(t.kiesLid)
+    if (open) return setFout(t.vulIn(vraagInTaal(open, taal).vraag))
     setBezig(true)
     setFout(null)
     const u = await stuur('/intakes', 'POST', naarVerzoek(s, lid.id, actief))
     setBezig(false)
     const id = u.ok ? idUit(u.data) : null
-    if (!id) return setFout(u.ok ? 'Opslaan lukte niet.' : u.fout)
+    if (!id) return setFout(u.ok ? t.mislukt : u.fout)
     setOpgeslagen(id)
   }
 
   if (opgeslagen && lid) {
     return (
       <section className="club-kaart club-kaart--accent club-training-klaar" aria-live="polite">
-        <p className="club-boventitel">Intake opgeslagen</p>
+        <p className="club-boventitel">{t.opgeslagen}</p>
         <h2>{lid.naam}</h2>
-        <p className="club-hint">Volgende stap: een schemavoorstel op basis van deze intake. Je past het aan in de editor en activeert het daar.</p>
+        <p className="club-hint">{t.volgende}</p>
         <div className="club-acties">
           <VoorstelKnop intakeId={opgeslagen} editorHref={editorHref} groot />
-          <Link className="club-knop club-knop--stil" href={lidHref.replace('__lid__', lid.id)}>Later, naar de intakes van {lid.naam.split(' ')[0]}</Link>
+          <Link className="club-knop club-knop--stil" href={lidHref.replace('__lid__', lid.id)}>{t.later(lid.naam.split(' ')[0])}</Link>
         </div>
       </section>
     )
@@ -73,25 +77,25 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
   return (
     <form className="club-training-intake" onSubmit={bewaar} noValidate>
       <div className="club-training-stappen">
-        <Stap nr={1} titel="Lid en afname">
+        <Stap nr={1} titel={t.stapLid}>
           {lid ? (
             <div className="club-training-lidfilter">
               <span className="club-training-lidfilter-naam">{lid.naam}</span>
               {lid.lidnummer && <span className="club-zacht">{lid.lidnummer}</span>}
-              <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setLid(null)}>Ander lid</button>
+              <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => setLid(null)}>{t.anderLid}</button>
             </div>
           ) : (
             <LidKiezer vestiging={vestiging} onKies={setLid} autoFocus />
           )}
           <div className="club-formrij">
             <label className="club-veld">
-              <span>Datum</span>
+              <span>{t.datum}</span>
               <input type="date" className="club-invoer" value={s.datum} max={vandaag} onChange={(e) => zet({ datum: e.target.value })} />
             </label>
             <label className="club-veld">
-              <span>Trainer</span>
+              <span>{t.trainer}</span>
               <select className="club-invoer" value={s.medewerkerId} onChange={(e) => zet({ medewerkerId: e.target.value })}>
-                <option value="">Geen</option>
+                <option value="">{t.geen}</option>
                 {trainers.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
               </select>
             </label>
@@ -102,30 +106,30 @@ export function IntakeFormulier({ vestiging, beginLid, trainers, vandaag, lidHre
           <IntakeSectie key={d.naam} nr={i + 2} naam={d.naam} vragen={d.vragen} s={s} zet={zet} metToestemming={d.naam === toestemmingIn} />
         ))}
 
-        <Stap nr={delen.length + 2} titel="Metingen">
+        <Stap nr={delen.length + 2} titel={t.metingen}>
           {toestemmingIn === null && <IntakeToestemming aan={s.toestemming} onZet={(aan) => zet({ toestemming: aan })} />}
           <IntakeMetingen s={s} zet={zet} />
           <label className="club-veld">
-            <span>Notitie van de trainer</span>
+            <span>{t.notitie}</span>
             <textarea className="club-invoer" value={s.notitie} maxLength={2000} onChange={(e) => zet({ notitie: e.target.value })} rows={3} />
           </label>
         </Stap>
       </div>
 
-      <aside className="club-training-voortgang" aria-label="Voortgang">
+      <aside className="club-training-voortgang" aria-label={t.voortgang}>
         <ol>
           {voortgang.map((v) => (
             <li key={v.sleutel} data-klaar={v.klaar}>
               <span className="club-training-vinkje" aria-hidden>{v.klaar ? <Check size={14} /> : null}</span>
               {v.label}
-              <span className="club-sr">{v.klaar ? ' (klaar)' : ' (nog open)'}</span>
+              <span className="club-sr">{v.klaar ? t.klaar : t.open}</span>
             </li>
           ))}
         </ol>
-        <p className="club-hint">{s.toestemming ? 'Gezondheidsgegevens worden opgeslagen met toestemming.' : 'Zonder toestemming: geen gezondheidsgegevens.'}</p>
+        <p className="club-hint">{s.toestemming ? t.metToestemming : t.zonderToestemming}</p>
         {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
         <button type="submit" className="club-knop club-knop--primair club-knop--groot" disabled={bezig || !lid}>
-          {bezig ? 'Opslaan...' : 'Intake opslaan'}
+          {bezig ? t.opslaanBezig : t.opslaan}
         </button>
       </aside>
     </form>

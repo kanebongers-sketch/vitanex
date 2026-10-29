@@ -2,21 +2,23 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { HEX, MIN_CONTRAST_ACCENT, MIN_CONTRAST_VLAK, bruikbaarAccent, type Thema } from '@/lib/club/kern/huisstijl'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
 // Accentkleur en thema. Een paar sterke startkleuren, of een eigen kleur. Is
 // het contrast te laag, dan zeggen we dat eerlijk en laten we zien welke
 // kleur we in de app gebruiken om het leesbaar te houden.
 
 const STARTKLEUREN = [
-  { kleur: '#B58E5C', naam: 'Brons' },
-  { kleur: '#E8A33F', naam: 'Amber' },
-  { kleur: '#E5484D', naam: 'Rood' },
-  { kleur: '#FF6B3D', naam: 'Oranje' },
-  { kleur: '#30A46C', naam: 'Groen' },
-  { kleur: '#3E63DD', naam: 'Blauw' },
-  { kleur: '#8E4EC6', naam: 'Paars' },
-  { kleur: '#12A594', naam: 'Petrol' },
-]
+  { kleur: '#B58E5C', naam: 'brons' },
+  { kleur: '#E8A33F', naam: 'amber' },
+  { kleur: '#E5484D', naam: 'rood' },
+  { kleur: '#FF6B3D', naam: 'oranje' },
+  { kleur: '#30A46C', naam: 'groen' },
+  { kleur: '#3E63DD', naam: 'blauw' },
+  { kleur: '#8E4EC6', naam: 'paars' },
+  { kleur: '#12A594', naam: 'petrol' },
+] as const
 
 interface KleurBlokProps {
   kleur: string
@@ -29,30 +31,31 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
   const geldig = HEX.test(kleur)
   const vlak = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_VLAK) : null
   const tekst = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_ACCENT) : null
-  const richting = thema === 'donker' ? 'lichter' : 'donkerder'
+  const lichter = thema === 'donker'
+  const t = useTekst(HUISSTIJL).kleur
   return (
     <section className="club-huisstijl-blok" aria-labelledby="kleur-kop">
-      <h2 id="kleur-kop" className="club-huisstijl-kop">Kleuren</h2>
+      <h2 id="kleur-kop" className="club-huisstijl-kop">{t.kop}</h2>
 
-      <div className="club-segment club-huisstijl-thema" role="group" aria-label="Thema">
+      <div className="club-segment club-huisstijl-thema" role="group" aria-label={t.thema}>
         <button type="button" aria-pressed={thema === 'donker'} onClick={() => onThema('donker')}>
-          <Moon aria-hidden size={15} /> Donker
+          <Moon aria-hidden size={15} /> {t.donker}
         </button>
         <button type="button" aria-pressed={thema === 'licht'} onClick={() => onThema('licht')}>
-          <Sun aria-hidden size={15} /> Licht
+          <Sun aria-hidden size={15} /> {t.licht}
         </button>
       </div>
 
-      <div className="club-huisstijl-stalen" role="group" aria-label="Startkleuren">
+      <div className="club-huisstijl-stalen" role="group" aria-label={t.startkleuren}>
         {STARTKLEUREN.map((s) => (
           <button
             key={s.kleur}
             type="button"
             className="club-huisstijl-staal"
             style={{ background: s.kleur }}
-            aria-label={s.naam}
+            aria-label={t.namen[s.naam]}
             aria-pressed={kleur.toUpperCase() === s.kleur}
-            title={s.naam}
+            title={t.namen[s.naam]}
             onClick={() => onKleur(s.kleur)}
           />
         ))}
@@ -60,12 +63,12 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
 
       <div className="club-formrij club-huisstijl-eigen">
         <label className="club-veld">
-          <span>Eigen kleur</span>
+          <span>{t.eigen}</span>
           <span className="club-huisstijl-kleurveld">
-            <input type="color" value={geldig ? kleur : '#B58E5C'} onChange={(e) => onKleur(e.target.value.toUpperCase())} aria-label="Kleur kiezen" />
+            <input type="color" value={geldig ? kleur : '#B58E5C'} onChange={(e) => onKleur(e.target.value.toUpperCase())} aria-label={t.kiezen} />
             <input
               className="club-invoer"
-              aria-label="Kleurcode"
+              aria-label={t.code}
               aria-describedby="kleur-melding"
               value={kleur}
               maxLength={7}
@@ -78,16 +81,18 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
       </div>
 
       <div id="kleur-melding" aria-live="polite">
-        {!geldig && <p className="club-melding club-melding--fout">Schrijf de kleur als # en zes tekens, bijvoorbeeld #B58E5C.</p>}
+        {!geldig && <p className="club-melding club-melding--fout">{t.ongeldig}</p>}
         {vlak?.aangepast && (
           <p className="club-melding">
-            Deze kleur valt weg tegen de {thema === 'donker' ? 'donkere' : 'lichte'} achtergrond (minimaal {MIN_CONTRAST_VLAK}:1). Knoppen en vlakken worden daarom{' '}
-            <Code kleur={vlak.kleur} />: dezelfde tint, iets {richting}.
+            {t.valtWeg.voor(lichter, MIN_CONTRAST_VLAK)}{' '}
+            <Code kleur={vlak.kleur} />
+            {t.valtWeg.na(lichter)}
           </p>
         )}
         {!vlak?.aangepast && tekst?.aangepast && (
           <p className="club-melding">
-            Knoppen en vlakken houden precies je kleur. Voor kleine tekst in de accentkleur gebruiken we <Code kleur={tekst.kleur} />, iets {richting}, zodat die altijd leesbaar is (minimaal {MIN_CONTRAST_ACCENT}:1).
+            {t.tekstAangepast.voor} <Code kleur={tekst.kleur} />
+            {t.tekstAangepast.na(lichter, MIN_CONTRAST_ACCENT)}
           </p>
         )}
       </div>

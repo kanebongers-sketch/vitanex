@@ -1,11 +1,12 @@
 import { Plus } from 'lucide-react'
-import { STATUS_LABEL, type AfspraakWeergave } from '@/lib/club/afspraken/model'
+import type { AfspraakWeergave } from '@/lib/club/afspraken/model'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { nlDatumTijd } from '@/lib/club/afspraken/weergave'
 
 // De week: zeven dagen naast elkaar (op de telefoon onder elkaar). Elke
 // afspraak met tijd, lid, soort (kleur) en trainer. Tik om te openen.
-
-const DAG = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 
 interface Props {
   dagen: { datum: string; afspraken: AfspraakWeergave[] }[]
@@ -16,10 +17,12 @@ interface Props {
 }
 
 export function WeekOverzicht({ dagen, vandaag, trainerNaam, onKies, onNieuw }: Props) {
+  const taal = useTaal()
+  const w = useTekst(AFSPRAKEN)
   return (
     <div className="club-afspraken-week">
       {dagen.map((d) => {
-        const label = DAG.format(new Date(`${d.datum}T12:00:00Z`))
+        const label = formatDatum(`${d.datum}T12:00:00Z`, taal, 'weekdagKort')
         const actief = d.afspraken.filter((a) => a.status !== 'geannuleerd').length
         return (
           <section key={d.datum} className="club-afspraken-dag" data-vandaag={d.datum === vandaag || undefined} data-voorbij={d.datum < vandaag || undefined} aria-label={label}>
@@ -36,7 +39,7 @@ export function WeekOverzicht({ dagen, vandaag, trainerNaam, onKies, onNieuw }: 
                       <span className="club-afspraken-naam">{a.lidNaam}</span>
                       <span className="club-afspraken-meta">
                         {a.typeNaam} · {trainerNaam(a.medewerkerId).split(' ')[0]}
-                        {a.status !== 'gepland' ? <> · {STATUS_LABEL[a.status]}</> : null}
+                        {a.status !== 'gepland' ? <> · {w.status[a.status]}</> : null}
                       </span>
                     </button>
                   </li>
@@ -45,7 +48,7 @@ export function WeekOverzicht({ dagen, vandaag, trainerNaam, onKies, onNieuw }: 
             ) : null}
             {d.datum >= vandaag ? (
               <button type="button" className="club-afspraken-plus" onClick={() => onNieuw(d.datum)}>
-                <Plus size={14} aria-hidden /><span className="club-sr">Afspraak maken op {label}</span>
+                <Plus size={14} aria-hidden /><span className="club-sr">{w.week.maken(label)}</span>
               </button>
             ) : null}
           </section>

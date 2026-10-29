@@ -22,6 +22,20 @@ const STIJLEN = {
   dag: { weekday: 'long', day: 'numeric', month: 'long' },
   /** 24-10-2026 | 24/10/2026 */
   cijfers: { day: '2-digit', month: '2-digit', year: 'numeric' },
+  /** 24 okt. | 24 Oct */
+  dagMaand: { day: 'numeric', month: 'short' },
+  /** 24 oktober | 24 October */
+  dagMaandLang: { day: 'numeric', month: 'long' },
+  /** za 24 okt. | Sat 24 Oct */
+  weekdagKort: { weekday: 'short', day: 'numeric', month: 'short' },
+  /** za | Sat */
+  weekdag: { weekday: 'short' },
+  /** zaterdag | Saturday */
+  weekdagLang: { weekday: 'long' },
+  /** oktober | October */
+  maandNaam: { month: 'long' },
+  /** oktober 2026 | October 2026 */
+  maandJaar: { month: 'long', year: 'numeric' },
 } as const satisfies Record<string, Intl.DateTimeFormatOptions>
 
 export type DatumStijl = keyof typeof STIJLEN

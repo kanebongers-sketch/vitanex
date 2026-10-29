@@ -8,6 +8,8 @@ import type { Persoon } from '@/lib/club/taken/invoer'
 import type { Afvinking } from '@/lib/club/taken/typen'
 import { usePersoon } from './usePersoon'
 import { useVinkjes } from './useVinkjes'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 export interface MedewerkerKeuze {
   id: string
@@ -46,6 +48,7 @@ export function AfvinkProvider({ vestiging, vandaag, medewerkers, begin, childre
   const [persoon, kiesPersoon] = usePersoon(vestiging)
   const vinkjes = useVinkjes(begin)
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(TAKEN)
   const { wissel: wisselVak } = vinkjes
 
   const wissel = useCallback(
@@ -53,12 +56,12 @@ export function AfvinkProvider({ vestiging, vandaag, medewerkers, begin, childre
       setFout(null)
       void wisselVak(taakId, datum, persoon).then((uit) => {
         if (uit === 'geen-persoon') {
-          setFout('Kies eerst wie er afvinkt: je naam of je initialen.')
+          setFout(t.fout.kiesPersoon)
           document.getElementById(PERSOON_VELD_ID)?.focus()
         } else if (uit) setFout(`${label}: ${uit}`)
       })
     },
-    [wisselVak, persoon],
+    [wisselVak, persoon, t],
   )
 
   const waarde = useMemo<AfvinkStaat>(

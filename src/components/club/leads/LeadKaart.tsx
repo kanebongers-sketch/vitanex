@@ -1,7 +1,9 @@
 'use client'
 
 import { ArrowRight, UserRound } from 'lucide-react'
-import { LEAD_BRON_LABEL, LEAD_STATUSSEN, LEAD_STATUS_LABEL, VOLGENDE_STAP, leadInitialen, type Lead, type LeadStatus } from '@/lib/club/leads/model'
+import { LEAD_STATUSSEN, leadInitialen, type Lead, type LeadStatus } from '@/lib/club/leads/model'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { opvolgStatus, proeflesStand, toonDag, toonMoment } from '@/lib/club/leads/regels'
 
 interface LeadKaartProps {
@@ -15,22 +17,25 @@ interface LeadKaartProps {
 }
 
 function Opvolging({ lead, vandaag, nu }: { lead: Lead; vandaag: string; nu: Date }) {
+  const taal = useTaal()
+  const t = useTekst(LEADS).kaart
   const stand = proeflesStand(lead, nu)
   if (stand !== 'geen' && lead.proeflesOp) {
     const klasse = stand === 'uitkomst_nodig' ? 'club-chip--let-op' : 'club-chip--merk'
-    return <span className={`club-chip ${klasse}`}>{stand === 'uitkomst_nodig' ? 'Uitkomst invullen' : toonMoment(lead.proeflesOp)}</span>
+    return <span className={`club-chip ${klasse}`}>{stand === 'uitkomst_nodig' ? t.uitkomstInvullen : toonMoment(lead.proeflesOp, taal)}</span>
   }
   const opvolg = opvolgStatus(lead, vandaag)
   if (opvolg === 'geen' || !lead.opvolgenOp) return null
-  const dag = toonDag(lead.opvolgenOp.slice(0, 10), vandaag)
-  if (opvolg === 'te_laat') return <span className="club-chip club-chip--let-op">Te laat, {dag}</span>
-  return <span className={`club-chip ${opvolg === 'vandaag' ? 'club-chip--info' : 'club-chip--uit'}`}>Bellen {dag}</span>
+  const dag = toonDag(lead.opvolgenOp.slice(0, 10), vandaag, taal)
+  if (opvolg === 'te_laat') return <span className="club-chip club-chip--let-op">{t.teLaat(dag)}</span>
+  return <span className={`club-chip ${opvolg === 'vandaag' ? 'club-chip--info' : 'club-chip--uit'}`}>{t.bellen(dag)}</span>
 }
 
 // Een kaart in de pijplijn: wie, waar vandaan, wat is de volgende stap. Slepen
 // mag, maar de keuzelijst onderaan doet hetzelfde met toetsenbord of muis.
 export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVerplaats }: LeadKaartProps) {
   const keuzeId = `verplaats-${lead.id}`
+  const tekst = useTekst(LEADS)
   return (
     <article
       className="club-leads-kaart"
@@ -50,7 +55,7 @@ export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVe
             {lead.naam}
           </button>
           <span className="club-rij-sub">
-            {LEAD_BRON_LABEL[lead.bron]}
+            {tekst.bron[lead.bron]}
             {lead.interesse ? ` · ${lead.interesse}` : ''}
           </span>
         </div>
@@ -67,12 +72,12 @@ export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVe
         <p className="club-leads-stap club-zacht">{lead.verlorenReden}</p>
       ) : (
         <p className="club-leads-stap">
-          <ArrowRight size={13} aria-hidden /> {VOLGENDE_STAP[lead.status]}
+          <ArrowRight size={13} aria-hidden /> {tekst.volgendeStap[lead.status]}
         </p>
       )}
       <div className="club-leads-verplaats">
         <label htmlFor={keuzeId} className="club-sr">
-          Verplaats {lead.naam} naar
+          {tekst.kaart.verplaats(lead.naam)}
         </label>
         <select
           id={keuzeId}
@@ -86,7 +91,7 @@ export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVe
         >
           {LEAD_STATUSSEN.map((s) => (
             <option key={s} value={s}>
-              {s === lead.status ? `Staat in: ${LEAD_STATUS_LABEL[s]}` : `Naar ${LEAD_STATUS_LABEL[s]}`}
+              {s === lead.status ? tekst.kaart.staatIn(tekst.status[s]) : tekst.kaart.naar(tekst.status[s])}
             </option>
           ))}
         </select>

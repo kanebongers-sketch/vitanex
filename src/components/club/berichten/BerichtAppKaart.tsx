@@ -1,5 +1,7 @@
 import { Pin } from 'lucide-react'
-import { SOORT_CHIP, SOORT_LABEL, type Bericht } from '@/lib/club/berichten/model'
+import { SOORT_CHIP, type Bericht } from '@/lib/club/berichten/model'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 import { voorproef } from '@/lib/club/berichten/opmaak'
 import { geledenTekst } from '@/lib/club/berichten/tijd'
 import { BerichtInhoud } from './BerichtInhoud'
@@ -17,20 +19,23 @@ interface Props {
 }
 
 function Kop({ bericht, nu }: { bericht: AppBericht; nu: Date }) {
+  const taal = useTaal()
+  const t = useTekst(BERICHTEN)
   return (
     <span className="club-bericht-app-boven">
-      <span className={`club-bericht-app-soort club-bericht-app-soort--${SOORT_CHIP[bericht.soort]}`}>{SOORT_LABEL[bericht.soort]}</span>
+      <span className={`club-bericht-app-soort club-bericht-app-soort--${SOORT_CHIP[bericht.soort]}`}>{t.soort[bericht.soort]}</span>
       {bericht.vastgepind && (
         <span className="club-bericht-app-pin">
-          <Pin aria-hidden size={12} /> Vastgepind
+          <Pin aria-hidden size={12} /> {t.app.vastgepind}
         </span>
       )}
-      <span className="club-bericht-app-wanneer">{geledenTekst(bericht.zichtbaarVan, nu)}</span>
+      <span className="club-bericht-app-wanneer">{geledenTekst(bericht.zichtbaarVan, nu, taal)}</span>
     </span>
   )
 }
 
 export function BerichtAppKaart({ bericht, groot, nu }: Props) {
+  const t = useTekst(BERICHTEN).app
   const kleur = `club-bericht-app--${SOORT_CHIP[bericht.soort]}`
   if (groot) {
     return (
@@ -52,8 +57,8 @@ export function BerichtAppKaart({ bericht, groot, nu }: Props) {
           <summary>
             <span className="club-bericht-app-kort">{kort}</span>
             <span className="club-bericht-app-lees">
-              <span className="club-bericht-app-dicht">Lees meer</span>
-              <span className="club-bericht-app-open">Minder</span>
+              <span className="club-bericht-app-dicht">{t.leesMeer}</span>
+              <span className="club-bericht-app-open">{t.minder}</span>
             </span>
           </summary>
           <BerichtInhoud tekst={bericht.tekst} />

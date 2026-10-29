@@ -3,6 +3,8 @@
 // component LedenappMeldingen.
 
 import { isSoort, type Soort } from './soorten'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 export interface LedenappMelding {
   id: string
@@ -26,13 +28,14 @@ export function ledenappMeldingUitRij(rij: unknown): LedenappMelding | null {
 }
 
 /** "zojuist", "12 minuten geleden", "3 uur geleden", "gisteren", "4 dagen geleden". */
-export function geledenLabel(op: string, nu: Date): string {
+export function geledenLabel(op: string, nu: Date, taal: Taal = 'nl'): string {
+  const t = COMMUNITY[taal].geleden
   const min = Math.max(0, Math.floor((nu.getTime() - Date.parse(op)) / 60_000))
-  if (min < 2) return 'zojuist'
-  if (min < 60) return `${min} minuten geleden`
+  if (min < 2) return t.zojuist
+  if (min < 60) return t.minuten(min)
   const uur = Math.floor(min / 60)
-  if (uur < 24) return uur === 1 ? '1 uur geleden' : `${uur} uur geleden`
+  if (uur < 24) return t.uur(uur)
   const dagen = Math.floor(uur / 24)
-  if (dagen === 1) return 'gisteren'
-  return `${dagen} dagen geleden`
+  if (dagen === 1) return t.gisteren
+  return t.dagen(dagen)
 }

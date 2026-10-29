@@ -3,6 +3,8 @@
 // woorden als in de uitleg van de lijst (perWeekTekst), zodat alles klopt.
 
 import { noShowTekst, perWeekTekst, type Behoud } from './behoud'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 export interface Onderdeel {
   label: string
@@ -15,37 +17,41 @@ function hoofdletter(tekst: string): string {
   return tekst.charAt(0).toUpperCase() + tekst.slice(1)
 }
 
-function frequentie(b: Behoud): string {
-  return b.recentPerWeek > 0 ? `${hoofdletter(perWeekTekst(b.recentPerWeek))}, laatste 4 weken` : 'Niet geweest in de laatste 4 weken'
+type BehoudTekst = (typeof LEDEN)['nl']['behoud']
+
+function frequentie(b: Behoud, t: BehoudTekst, taal: Taal): string {
+  return b.recentPerWeek > 0 ? t.laatste4Weken(hoofdletter(perWeekTekst(b.recentPerWeek, taal))) : t.nietLaatste4Weken
 }
 
-function trend(b: Behoud): string {
-  if (b.eerderPerWeek === null) return 'Nog te kort lid om te vergelijken'
-  if (b.eerderPerWeek === 0) return 'Kwam niet in de 8 weken daarvoor'
-  return `Was ${perWeekTekst(b.eerderPerWeek)} in de 8 weken daarvoor`
+function trend(b: Behoud, t: BehoudTekst, taal: Taal): string {
+  if (b.eerderPerWeek === null) return t.teKortLid
+  if (b.eerderPerWeek === 0) return t.kwamNietEerder
+  return t.wasEerder(perWeekTekst(b.eerderPerWeek, taal))
 }
 
-function recent(b: Behoud): string {
-  if (b.dagenSinds === null) return 'Geen bezoek in 12 weken'
-  if (b.dagenSinds === 0) return 'Vandaag geweest'
-  if (b.dagenSinds === 1) return 'Gisteren geweest'
-  return `Laatste bezoek ${b.dagenSinds} dagen geleden`
+function recent(b: Behoud, t: BehoudTekst): string {
+  if (b.dagenSinds === null) return t.geenBezoek12
+  if (b.dagenSinds === 0) return t.vandaagGeweest
+  if (b.dagenSinds === 1) return t.gisterenGeweest
+  return t.laatsteBezoekDagen(b.dagenSinds)
 }
 
-function lidDuur(dagen: number | null): string {
-  if (dagen === null) return 'Lid sinds onbekend'
-  if (dagen < 90) return 'Nieuw lid: de eerste maanden zijn kwetsbaar'
+function lidDuur(dagen: number | null, t: BehoudTekst): string {
+  if (dagen === null) return t.lidSindsOnbekend
+  if (dagen < 90) return t.nieuwLid
   const maanden = Math.floor(dagen / 30.44)
-  if (maanden < 24) return `${maanden} maanden lid`
-  return `${Math.floor(dagen / 365.25)} jaar lid`
+  if (maanden < 24) return t.maandenLid(maanden)
+  return t.jaarLid(Math.floor(dagen / 365.25))
 }
 
-export function behoudOnderdelen(b: Behoud): Onderdeel[] {
+export function behoudOnderdelen(b: Behoud, taal: Taal = 'nl'): Onderdeel[] {
+  const t = LEDEN[taal].behoud
+  const l = t.onderdelen
   return [
-    { label: 'Frequentie', punten: b.onderdelen.frequentie, max: 30, uitleg: frequentie(b) },
-    { label: 'Trend', punten: b.onderdelen.trend, max: 30, uitleg: trend(b) },
-    { label: 'Recent', punten: b.onderdelen.recent, max: 25, uitleg: recent(b) },
-    { label: 'No-shows', punten: b.onderdelen.noShows, max: 10, uitleg: `${noShowTekst(b.noShows)}, laatste 8 weken` },
-    { label: 'Lid-duur', punten: b.onderdelen.lidDuur, max: 5, uitleg: lidDuur(b.lidDagen) },
+    { label: l.frequentie, punten: b.onderdelen.frequentie, max: 30, uitleg: frequentie(b, t, taal) },
+    { label: l.trend, punten: b.onderdelen.trend, max: 30, uitleg: trend(b, t, taal) },
+    { label: l.recent, punten: b.onderdelen.recent, max: 25, uitleg: recent(b, t) },
+    { label: l.noShows, punten: b.onderdelen.noShows, max: 10, uitleg: t.noShows8Weken(noShowTekst(b.noShows, taal)) },
+    { label: l.lidDuur, punten: b.onderdelen.lidDuur, max: 5, uitleg: lidDuur(b.lidDagen, t) },
   ]
 }

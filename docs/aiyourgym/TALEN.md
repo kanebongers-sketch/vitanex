@@ -85,10 +85,14 @@ Bestaande Nederlandse bronnen met eigen tests (zoals `GERUSTSTELLING` in `inhoud
 - Plek in Club en de ledenapp: het accountmenu van Club en het profiel in de ledenapp (nog te plaatsen door wie die schermen omzet). Daar `--ayg-taal-actief-vlak` en `--ayg-taal-actief-tekst` zetten voor de kleuren van de actieve stand.
 - Een nog niet omgezette tekst blijft Nederlands op een Engelse pagina; zet teksten altijd per onderdeel helemaal om.
 
-## Stand (24-10-2026)
+## Stand (29-10-2026)
 
 Omgezet: de hele website (alle pagina's en bouwstenen, aanmeldband, demo-aanvraag, foutscherm, laadscherm, deelafbeelding, 404). De juridische teksten (privacy, voorwaarden) blijven Nederlands onder een Engelse kop en conceptmelding (besluit Kane), in een element met `lang="nl"`.
 
 Bewaker: `src/lib/aiyourgym/taal/geen-hardcoded-nl.test.ts` leest elk bestand van de website met de TypeScript-compiler en faalt op vaste tekst in JSX, in zichtbare attributen (aria-label, alt, title, placeholder en de tekst-props van de bouwstenen), in metadata, op Nederlands ogende zinnen in code en op tekst die rechtstreeks uit `inhoud/*` komt. Uitzonderingen (merknamen, demodata, eenheden) staan in de test, elk met een reden.
 
-Nog niet: Club, ledenapp, mails.
+Club en de ledenapp (29-10-2026): alle schermen omgezet (schil, Vandaag, Taken, check-in, opvolgen, leden en ledenkaart, ledenapp met rep-speler en schema, rooster, afspraken, agenda, startwizard, training en schema-editor, intake, leads, personeel, cijfers, rapporten, instellingen, huisstijl, lidmaatschappen, hulp met handleidingen, notities, widget, inloggen, voortgang, challenges, voeding, betalen, berichten, community, health). Woordenboeken in `woorden/club/` en `woorden/ledenapp/`. De taalkeuze staat in de balk van Club (pc en tablet), onderaan het menupaneel (telefoon) en in het profiel van de ledenapp. Engelse coaching voor de Blender-oefeningen in `woorden/club/coaching.ts` (test `coaching.test.ts`). Pure lib-functies die tekst geven hebben een parameter `taal` (standaard `nl`).
+
+De bewaker controleert ook Club: de lijst `CLUB_KLAAR` in de test. Een nieuw Club-bestand in een map op die lijst moet meteen via een woordenboek.
+
+Nog Nederlands: foutmeldingen die API's en invoercontroles terugsturen (`fout` in JSON), CSV-waarden (alleen kolomkoppen vertaald; de urenexport voor de salarisadministratie blijft Nederlands), opgeslagen data (namen, notities, standaardteksten die al in de database staan), en de mails.

@@ -4,6 +4,8 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { LockKeyhole } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { MAX_LENGTE, MIN_LENGTE, wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 
 // Een keer een sterk wachtwoord kiezen met een uitnodigings- of startlink (twee
 // keer intikken). Na opslaan is de persoon meteen ingelogd en gaat hij naar Club;
@@ -25,13 +27,15 @@ export function WachtwoordKiezen({ api, merk, rol, email, naam }: WachtwoordKiez
   const [herhaal, setHerhaal] = useState('')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const taal = useTaal()
+  const t = useTekst(CLUB_INLOGGEN).wachtwoord
 
   async function verstuur(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    const probleem = wachtwoordFout(wachtwoord, { email, naam })
+    const probleem = wachtwoordFout(wachtwoord, { email, naam, taal })
     if (probleem) return setFout(probleem)
-    if (wachtwoord !== herhaal) return setFout('De twee wachtwoorden zijn niet gelijk.')
+    if (wachtwoord !== herhaal) return setFout(t.nietGelijk)
     setBezig(true)
     setFout(null)
     const uit = await stuur(api, 'POST', { wachtwoord })
@@ -45,15 +49,14 @@ export function WachtwoordKiezen({ api, merk, rol, email, naam }: WachtwoordKiez
   return (
     <section className="club-inlog-kaart" aria-labelledby="club-inlog-kop">
       <p className="club-inlog-merk">{merk}</p>
-      <h1 id="club-inlog-kop">Kies je wachtwoord</h1>
+      <h1 id="club-inlog-kop">{t.kop}</h1>
       <p className="club-inlog-rol">{rol}</p>
       <form className="club-inlog-form" onSubmit={(e) => void verstuur(e)} noValidate>
         <p className="club-inlog-uitleg">
-          Minstens {MIN_LENGTE} tekens; een zin van 16 tekens of meer is het sterkst.
-          {email ? ` Daarna log je in met ${email} en dit wachtwoord.` : ' Daarna log je in met je e-mailadres en dit wachtwoord.'} Deze link werkt maar een keer.
+          {t.sterkst(MIN_LENGTE)} {email ? t.daarnaMet(email) : t.daarna} {t.eenKeer}
         </p>
         <label className="club-veld">
-          <span>Nieuw wachtwoord</span>
+          <span>{t.nieuw}</span>
           <input
             className="club-invoer"
             type="password"
@@ -68,12 +71,12 @@ export function WachtwoordKiezen({ api, merk, rol, email, naam }: WachtwoordKiez
           />
         </label>
         <label className="club-veld">
-          <span>Herhaal wachtwoord</span>
+          <span>{t.herhaal}</span>
           <input className="club-invoer" type="password" autoComplete="new-password" maxLength={MAX_LENGTE} value={herhaal} onChange={(e) => setHerhaal(e.target.value)} />
         </label>
         <button type="submit" className="club-knop club-knop--primair club-knop--groot" disabled={bezig}>
           <LockKeyhole aria-hidden size={18} />
-          {bezig ? 'Even wachten...' : 'Wachtwoord opslaan en starten'}
+          {bezig ? t.bezig : t.opslaanStart}
         </button>
         {fout && (
           <p id="club-inlog-fout" className="club-melding club-melding--fout" role="alert">

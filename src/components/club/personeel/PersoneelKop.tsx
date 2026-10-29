@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { isoWeek, plusDagen, weekParam } from '@/lib/club/rooster/tijd'
-import { personeelHref, TAB_LABEL, TABBLADEN, zonderPaneel, type PersoneelStaat } from '@/lib/club/personeel/url'
+import { personeelHref, TABBLADEN, zonderPaneel, type PersoneelStaat } from '@/lib/club/personeel/url'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 import { dagMaandLang } from './weergave'
 
 // Kop van het personeelsrooster: titel, tabbladen en (bij het weekrooster en
@@ -16,12 +19,14 @@ interface Props {
   metUren: boolean
 }
 
-function weekLabel(maandag: string): string {
+function weekLabel(maandag: string, taal: Taal): string {
   const zondag = plusDagen(maandag, 6)
-  return `${dagMaandLang(maandag)} tot ${dagMaandLang(zondag)} ${zondag.slice(0, 4)}`
+  return PERSONEEL[taal].kop.weekBereik(dagMaandLang(maandag, taal), dagMaandLang(zondag, taal), zondag.slice(0, 4))
 }
 
-export function PersoneelKop({ staat, vestigingNaam, maandag, vandaag, metUren }: Props) {
+export async function PersoneelKop({ staat, vestigingNaam, maandag, vandaag, metUren }: Props) {
+  const taal = await getTaal()
+  const tk = await clubTekst(PERSONEEL)
   const basis = zonderPaneel(staat)
   const toontWeek = staat.tab === 'week'
   const isDezeWeek = vandaag >= maandag && vandaag <= plusDagen(maandag, 6)
@@ -29,30 +34,30 @@ export function PersoneelKop({ staat, vestigingNaam, maandag, vandaag, metUren }
     <header className="club-personeel-kop">
       <div className="club-paginakop">
         <div>
-          <p className="club-boventitel">{vestigingNaam} · Fitnesspersoneel</p>
+          <p className="club-boventitel">{tk.kop.boventitel(vestigingNaam)}</p>
           <h1>
-            Personeel {toontWeek && <span className="club-personeel-weeknr">Week {isoWeek(maandag).week}</span>}
+            {tk.kop.titel} {toontWeek && <span className="club-personeel-weeknr">{tk.kop.week(isoWeek(maandag).week)}</span>}
           </h1>
-          {toontWeek && <p>{weekLabel(maandag)}</p>}
+          {toontWeek && <p>{weekLabel(maandag, taal)}</p>}
         </div>
         {toontWeek && (
-          <nav className="club-personeel-bladeren" aria-label="Week kiezen">
-            <Link href={personeelHref(basis, { week: weekParam(plusDagen(maandag, -7)) })} className="club-knop club-knop--klein" aria-label="Vorige week" scroll={false}>
+          <nav className="club-personeel-bladeren" aria-label={tk.kop.weekKiezen}>
+            <Link href={personeelHref(basis, { week: weekParam(plusDagen(maandag, -7)) })} className="club-knop club-knop--klein" aria-label={tk.kop.vorigeWeek} scroll={false}>
               <ChevronLeft aria-hidden size={16} />
             </Link>
             <Link href={personeelHref(basis, { week: null })} className="club-knop club-knop--klein" aria-current={isDezeWeek ? 'page' : undefined} scroll={false}>
-              Deze week
+              {tk.kop.dezeWeek}
             </Link>
-            <Link href={personeelHref(basis, { week: weekParam(plusDagen(maandag, 7)) })} className="club-knop club-knop--klein" aria-label="Volgende week" scroll={false}>
+            <Link href={personeelHref(basis, { week: weekParam(plusDagen(maandag, 7)) })} className="club-knop club-knop--klein" aria-label={tk.kop.volgendeWeek} scroll={false}>
               <ChevronRight aria-hidden size={16} />
             </Link>
           </nav>
         )}
       </div>
-      <nav className="club-segment club-personeel-tabs" aria-label="Onderdeel van personeel">
+      <nav className="club-segment club-personeel-tabs" aria-label={tk.kop.tabs}>
         {TABBLADEN.filter((tab) => metUren || tab !== 'uren').map((tab) => (
           <Link key={tab} href={personeelHref(basis, { tab, mw: null })} aria-current={staat.tab === tab ? 'page' : undefined} scroll={false}>
-            {TAB_LABEL[tab]}
+            {tk.labels.tab[tab]}
           </Link>
         ))}
       </nav>

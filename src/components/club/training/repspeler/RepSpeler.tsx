@@ -12,6 +12,8 @@ import { RepNaSet } from './RepNaSet'
 import { RepTeller, type Weergave } from './RepTeller'
 import { useFrames, useMinderBeweging } from './useFrames'
 import { useTik } from './useTik'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 import './repspeler.css'
 
 // De rep-speler (besluit Kane 24-10-2026): de Blender-render speelt op het tempo
@@ -88,6 +90,7 @@ export function RepSpeler(p: RepSpelerProps) {
   const vorige = useRef<Weergave>(weergave)
   const tikRef = useRef(tik.tik)
   const kanStarten = minder || frames.klaar
+  const t = REPSPELER[useTaal()]
 
   useEffect(() => {
     tikRef.current = tik.tik
@@ -184,9 +187,9 @@ export function RepSpeler(p: RepSpelerProps) {
   }
 
   const speelt = status === 'loopt'
-  const hoofdLabel = speelt ? 'Pauze' : status === 'pauze' ? 'Verder' : status === 'klaar' ? 'Nog een keer' : kanStarten ? 'Start' : 'Even laden'
+  const hoofdLabel = speelt ? t.pauze : status === 'pauze' ? t.verder : status === 'klaar' ? t.nogEenKeer : kanStarten ? t.start : t.laden
   return (
-    <figure className="club-rep" data-status={status} aria-label={`${p.naam}, meetrainen op tempo`}>
+    <figure className="club-rep" data-status={status} aria-label={t.figuur(p.naam)}>
       <div className="club-rep-podium">
         <RepBeeld
           meet={meet} canvas={canvas} render={render} naam={p.naam} minder={minder}
@@ -200,20 +203,20 @@ export function RepSpeler(p: RepSpelerProps) {
         <RepNaSet klaarOp={klaarOp} rustSec={p.rustSec ?? null} setNr={p.setNr ?? null} onVastleggen={p.onSetKlaar ? leggenVast : undefined} />
       ) : null}
 
-      <div className="club-rep-bediening" role="group" aria-label="Bediening">
+      <div className="club-rep-bediening" role="group" aria-label={t.bediening}>
         <button type="button" className="club-rep-hoofdknop" onClick={speelt ? pauze : speel} disabled={!kanStarten && !speelt} aria-busy={!kanStarten || undefined}>
           {speelt ? <Pause aria-hidden size={20} /> : <Play aria-hidden size={20} />}
           {hoofdLabel}
         </button>
-        <button type="button" className="club-rep-knop" onClick={opnieuw} disabled={status === 'wacht'} aria-label="Opnieuw beginnen">
+        <button type="button" className="club-rep-knop" onClick={opnieuw} disabled={status === 'wacht'} aria-label={t.opnieuw}>
           <RotateCcw aria-hidden size={18} />
         </button>
-        <button type="button" className="club-rep-knop" onClick={wisselSnelheid} aria-pressed={snelheid !== 1} aria-label={snelheid === 1 ? 'Langzamer meekijken, halve snelheid' : 'Weer op echte snelheid'}>
+        <button type="button" className="club-rep-knop" onClick={wisselSnelheid} aria-pressed={snelheid !== 1} aria-label={snelheid === 1 ? t.langzamer : t.echteSnelheid}>
           <Gauge aria-hidden size={18} />
-          <span className="club-rep-knoptekst">{snelheid === 1 ? '1x' : '0,5x'}</span>
+          <span className="club-rep-knoptekst">{snelheid === 1 ? '1x' : t.half}</span>
         </button>
         {tik.kan && (
-          <button type="button" className="club-rep-knop" onClick={tik.wissel} aria-pressed={tik.aan} aria-label={tik.aan ? 'Tikje per fase uitzetten' : 'Tikje per fase aanzetten'}>
+          <button type="button" className="club-rep-knop" onClick={tik.wissel} aria-pressed={tik.aan} aria-label={tik.aan ? t.tikUit : t.tikAan}>
             {tik.aan ? <Volume2 aria-hidden size={18} /> : <VolumeX aria-hidden size={18} />}
           </button>
         )}
@@ -222,8 +225,8 @@ export function RepSpeler(p: RepSpelerProps) {
       <figcaption className="club-rep-tempo">
         <Timer aria-hidden size={15} />
         <span>
-          <span className="club-sr">Tempo: </span>
-          {tempoUitleg(plan)}
+          <span className="club-sr">{t.tempoSr}</span>
+          {tempoUitleg(plan, (w) => faseWoord(w, t.fase))}
         </span>
       </figcaption>
     </figure>

@@ -1,6 +1,8 @@
 'use client'
 
 import { Plus, X } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 // Een lijst losse zinnen (opstelling, stappen) met toevoegen en weghalen.
 
@@ -14,6 +16,7 @@ interface LijstVeldProps {
 }
 
 export function LijstVeld({ titel, waarden, max, maxTekens, genummerd, onWijzig }: LijstVeldProps) {
+  const t = useTekst(CLUB_TRAINING).coaching.editor
   return (
     <fieldset className="club-coach-editor-groep">
       <legend className="club-coach-kop">{titel}</legend>
@@ -28,14 +31,14 @@ export function LijstVeld({ titel, waarden, max, maxTekens, genummerd, onWijzig 
             maxLength={maxTekens}
             onChange={(e) => onWijzig(waarden.map((x, j) => (j === i ? e.target.value : x)))}
           />
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${titel} ${i + 1} weghalen`} onClick={() => onWijzig(waarden.filter((_, j) => j !== i))}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={t.weghalen(titel, i + 1)} onClick={() => onWijzig(waarden.filter((_, j) => j !== i))}>
             <X aria-hidden size={15} />
           </button>
         </div>
       ))}
       {waarden.length < max && (
         <button type="button" className="club-knop club-knop--klein" onClick={() => onWijzig([...waarden, ''])}>
-          <Plus aria-hidden size={15} /> Regel toevoegen
+          <Plus aria-hidden size={15} /> {t.regelToevoegen}
         </button>
       )}
     </fieldset>

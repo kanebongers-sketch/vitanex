@@ -12,8 +12,13 @@ import { KortingenBeheer } from '@/components/club/betalen/plannen/KortingenBehe
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import '@/components/club/lidmaatschappen/lidmaatschappen.css'
 import '@/components/club/betalen/plannen/plannen.css'
+import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BEHEER_PAGINAS } from '@/lib/aiyourgym/taal/woorden/club/beheer-paginas'
 
-export const metadata: Metadata = { title: 'Kortingen en acties' }
+export async function generateMetadata(): Promise<Metadata> {
+  return instelMetadata('kortingen')
+}
 export const dynamic = 'force-dynamic'
 
 // Kortingen en acties voor lidgeld, plus de gezinskorting. Bestaat alleen met
@@ -25,12 +30,14 @@ export default async function KortingenPagina() {
   if (!lidgeldActief()) notFound()
   const t = await eisOnderdeel(LIDGELD_ONDERDEEL)
   const open = await lidgeldOpen(t)
+  const titel = (await instelKop('kortingen')).titel
+  const tekst = (await clubTekst(BEHEER_PAGINAS)).kortingen
   const kop = (
     <header className="club-paginakop">
       <div>
         <p className="club-boventitel">{t.organisatie.naam}</p>
-        <h1>Kortingen en acties</h1>
-        <p>Kortingscodes, acties met een begin- en einddatum en de gezinskorting. Ze gelden voor de plannen met prijs en contract bij je lidmaatschappen.</p>
+        <h1>{titel}</h1>
+        <p>{tekst.intro}</p>
       </div>
     </header>
   )
@@ -41,10 +48,10 @@ export default async function KortingenPagina() {
         <InstelKruimel id="kortingen" />
         {kop}
         <p className="club-lidgeld-melding" role="status">
-          <strong>Lidgeld staat uit</strong>
+          <strong>{tekst.uitKop}</strong>
           <span>
-            Zet eerst lidgeld aan voor je sportschool.{' '}
-            {betalenActief() && magBeheerdersBeheren(t) ? <Link href="/club/beheer/betalen">Naar Betalen in de ledenapp</Link> : 'Vraag de eigenaar om het aan te zetten.'}
+            {tekst.uitTekst}{' '}
+            {betalenActief() && magBeheerdersBeheren(t) ? <Link href="/club/beheer/betalen">{tekst.naarBetalen}</Link> : tekst.vraagEigenaar}
           </span>
         </p>
       </div>
@@ -59,7 +66,7 @@ export default async function KortingenPagina() {
     haalLidgeldStand(t.admin, t.userId),
   ])
   const vormNaam = new Map((vormen ?? []).map((v) => [v.id, v.naam]))
-  const keuzes = (plannen ?? []).map((p) => ({ id: p.id, label: `${vormNaam.get(p.vormId) ?? 'Vorm'} · ${p.naam}` }))
+  const keuzes = (plannen ?? []).map((p) => ({ id: p.id, label: `${vormNaam.get(p.vormId) ?? tekst.vorm} · ${p.naam}` }))
 
   return (
     <div className="club-lidm">
@@ -73,7 +80,7 @@ export default async function KortingenPagina() {
           stand={{ schaduw: stand.schaduw, incassoAan: stand.incassoAan, alleenKane: !stand.lidgeldAan }}
         />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De kortingen konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tekst.laadFout}</p>
       )}
     </div>
   )

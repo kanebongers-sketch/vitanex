@@ -7,6 +7,10 @@
 import { stuur } from '@/components/club/rooster/vraag'
 import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import type { SoortPakket, ToepasPlan } from '@/lib/club/start/soorten'
+import type { START } from '@/lib/aiyourgym/taal/woorden/club/start'
+
+/** De namen van de taken, in de taal van de pagina. */
+export type TaakTekst = (typeof START)['nl']['soort']['taak']
 
 export interface Taak {
   label: string
@@ -19,12 +23,12 @@ async function alsTaak(p: ReturnType<typeof stuur>): Promise<{ ok: true } | { ok
 }
 
 /** Alle stappen om het pakket neer te zetten, in een vaste volgorde. */
-export function taken(pakket: SoortPakket, plan: ToepasPlan, org: HuisstijlWaarden, lesVestiging: string | null): Taak[] {
+export function taken(pakket: SoortPakket, plan: ToepasPlan, org: HuisstijlWaarden, lesVestiging: string | null, tekst: TaakTekst): Taak[] {
   const lijst: Taak[] = [
-    { label: 'Onderdelen', doe: () => alsTaak(stuur('/api/club/organisatie', 'PATCH', { ...org, slogan: org.slogan ?? '', uit: plan.uit })) },
-    { label: 'Rechten per rol', doe: () => alsTaak(stuur('/api/club/organisatie/instellingen', 'PATCH', { rechten: plan.rechten })) },
+    { label: tekst.onderdelen, doe: () => alsTaak(stuur('/api/club/organisatie', 'PATCH', { ...org, slogan: org.slogan ?? '', uit: plan.uit })) },
+    { label: tekst.rechten, doe: () => alsTaak(stuur('/api/club/organisatie/instellingen', 'PATCH', { rechten: plan.rechten })) },
     ...plan.vestigingen.map((vestiging) => ({
-      label: 'Openingstijden en regels',
+      label: tekst.tijden,
       doe: () => alsTaak(stuur('/api/club/instellingen/regels', 'PUT', { vestiging, regels: pakket.regels, openingstijden: pakket.openingstijden })),
     })),
   ]
@@ -32,7 +36,7 @@ export function taken(pakket: SoortPakket, plan: ToepasPlan, org: HuisstijlWaard
   return [
     ...lijst,
     ...plan.lestypen.map((l) => ({
-      label: `Lestype ${l.naam}`,
+      label: tekst.lestype(l.naam),
       doe: () => alsTaak(stuur('/api/club/instellingen/lestypen', 'POST', { vestiging: lesVestiging, naam: l.naam, omschrijving: l.omschrijving, soort: l.soort, duurMin: l.duurMin, intensiteit: l.intensiteit })),
     })),
   ]

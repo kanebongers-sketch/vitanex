@@ -1,3 +1,5 @@
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { eisClubToegang } from '@/lib/club/toegang'
@@ -15,7 +17,9 @@ import { moduleAan } from '@/lib/club/kern/organisatie'
 import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import '@/components/club/voeding/voeding.css'
 
-export const metadata: Metadata = { title: 'Voedingsplan' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(VOEDING)).pagina.plan }
+}
 
 // Het voedingsplan van een lid maken of bewerken. Alleen voor een lid van deze
 // sportschool in een van haar eigen vestigingen; anders een gewone 404.
@@ -29,21 +33,23 @@ export default async function VoedingLidPagina({ params }: { params: Promise<{ i
   const [plan, sjablonen, voortgang] = await Promise.all([haalPlan(t.admin, t.userId, lid.id), haalSjablonen(t.admin, t.userId), haalVoortgang(t.admin, t.userId, lid.id, nu)])
   const naam = volledigeNaam(lid)
   const magLeden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
-  const naarLid = stappenNaarLid(magLeden, { id: lid.id, naam }, lid.vestiging)
-  const kruimel = naarLid.length ? naarLid : [{ label: 'Voeding', href: clubPad('/voeding', lid.vestiging) }]
+  const naarLid = stappenNaarLid(magLeden, { id: lid.id, naam }, lid.vestiging, await getTaal())
+  const tv = await clubTekst(VOEDING)
+  const tp = tv.pagina
+  const kruimel = naarLid.length ? naarLid : [{ label: tp.titel, href: clubPad('/voeding', lid.vestiging) }]
 
   return (
     <>
-      <ClubKruimel stappen={kruimel} huidig={plan ? 'Voedingsplan' : 'Nieuw voedingsplan'} />
+      <ClubKruimel stappen={kruimel} huidig={plan ? tp.plan : tp.nieuwPlan} />
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{naamVan(t.vestigingen, lid.vestiging)} · voeding</p>
-          <h1>{plan ? 'Voedingsplan' : 'Nieuw voedingsplan'}</h1>
-          <p>Zet een dagdoel neer met de rekenhulp of een sjabloon, voeg adviezen en een voorbeelddag toe. Het lid ziet het plan in de ledenapp, zonder je notitie.</p>
+          <p className="club-boventitel">{tp.planBoventitel(naamVan(t.vestigingen, lid.vestiging))}</p>
+          <h1>{plan ? tp.plan : tp.nieuwPlan}</h1>
+          <p>{tp.planIntro}</p>
         </div>
       </section>
-      {plan === null && <p className="club-melding club-melding--fout" role="alert">Het bestaande plan kon niet worden geladen. Opslaan zou het overschrijven: ververs eerst de pagina.</p>}
-      {sjablonen === null && <p className="club-melding club-melding--fout" role="status">De sjablonen konden niet worden geladen.</p>}
+      {plan === null && <p className="club-melding club-melding--fout" role="alert">{tp.planFout}</p>}
+      {sjablonen === null && <p className="club-melding club-melding--fout" role="status">{tp.sjablonenNietGeladen}</p>}
       {plan !== null && (
         <PlanEditor
           lidId={lid.id}

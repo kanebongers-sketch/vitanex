@@ -14,6 +14,8 @@ import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, MAX_DAGEN } from '@/lib/club/training/typen'
 import { toonHerhalingen } from '@/lib/club/training/weergave'
 import { dosering } from '@/lib/club/training/voorstel-regels'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
 import { stuur } from './api'
 import { EditorDag } from './EditorDag'
 import { EditorKop, type KopStaat } from './EditorKop'
@@ -56,6 +58,8 @@ function dagVanFocus(): number {
 /** De schema-editor: dagen, blokken, oefeningen en alles per set. Toetsenbord: zie de werkbalk. */
 export function SchemaEditor(p: SchemaEditorProps) {
   const router = useRouter()
+  const taal = useTaal()
+  const t = useTekst(SCHEMA_EDITOR)
   const [kop, setKop] = useState(p.beginKop)
   const ed = useEditorStaat(p.beginStaat)
   const { staat, wijzig } = ed
@@ -80,7 +84,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
     const nieuw = { ...kop, ...extra }
     // Alleen bij de stap naar actief: dan krijgt het lid het schema in de app.
     const wordtActief = !p.isSjabloon && nieuw.status === 'actief' && opgeslagenStatus.current !== 'actief'
-    const mist = wordtActief ? nietKlaarVoorLid(staat) : null
+    const mist = wordtActief ? nietKlaarVoorLid(staat, taal) : null
     if (mist) {
       setFout(mist)
       return false
@@ -96,7 +100,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
     })
     setBezig(false)
     if (!u.ok) {
-      setFout(foutMetNaam(u.fout, staat, (id) => perId.get(id)?.naam))
+      setFout(foutMetNaam(u.fout, staat, (id) => perId.get(id)?.naam, taal))
       return false
     }
     setKop(nieuw)
@@ -104,7 +108,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
     opgeslagenStatus.current = nieuw.status
     if (verversen) router.refresh()
     return true
-  }, [kop, staat, p.schemaId, p.isSjabloon, perId, router])
+  }, [kop, staat, p.schemaId, p.isSjabloon, perId, router, taal])
 
   useEffect(() => {
     function toets(e: KeyboardEvent) {
@@ -213,13 +217,13 @@ export function SchemaEditor(p: SchemaEditorProps) {
                 onTitel={(t) => wijzig((s) => hernoemDag(s, dag, t), `titel:${dag}`)}
                 onToevoegen={() => setKiesVoor(dag)}
                 onKopieer={() => wijzig((s) => kopieerDag(s, dag, sleutel))}
-                onVerwijderDag={() => window.confirm(`Dag ${dagLetter(dag)} met alle oefeningen verwijderen?`) && wijzig((s) => verwijderDag(s, dag))}
+                onVerwijderDag={() => window.confirm(t.dagVerwijderenVraag(dagLetter(dag))) && wijzig((s) => verwijderDag(s, dag))}
               />
             )
           })}
           {staat.dagTitels.length < MAX_DAGEN && (
             <button type="button" className="club-knop club-training-nieuwedag" onClick={() => wijzig(nieuweDag)}>
-              <Plus aria-hidden size={16} /> Dag {dagLetter(staat.dagTitels.length + 1)} toevoegen
+              <Plus aria-hidden size={16} /> {t.dagToevoegen(dagLetter(staat.dagTitels.length + 1))}
             </button>
           )}
           <BeeldBron bronnen={bronnenVan(staat.regels.map((r) => perId.get(r.oefeningId)?.beeld))} />
@@ -235,7 +239,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
       {kiesVoor !== null && (
         <OefeningKiezer
           oefeningen={kiesbaar}
-          dagLabel={`dag ${dagLetter(kiesVoor)}`}
+          dagLabel={t.dagKlein(dagLetter(kiesVoor))}
           opDag={new Set(staat.regels.filter((r) => r.dag === kiesVoor).map((r) => r.oefeningId))}
           onKies={kies}
           onSluit={sluitKiezer}

@@ -1,7 +1,9 @@
 import { useId } from 'react'
 import { paden, schaal } from '@/lib/club/voortgang/grafiek'
 import type { ReeksInfo, ReeksPunt } from '@/lib/club/voortgang/tijdlijn'
-import { datumKort, getal } from './weergave'
+import { datumKort, getal, reeksTekst } from './weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOORTGANG } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 
 interface VoortgangGrafiekProps {
   reeks: readonly ReeksPunt[]
@@ -14,7 +16,10 @@ interface VoortgangGrafiekProps {
  * Eigen SVG-lijn: de x-as volgt de tijd, ronde hulplijnen, een zacht vlak onder
  * de lijn. Een intake is een ruit, een losse meting een rondje.
  */
-export function VoortgangGrafiek({ reeks, info, compact = false }: VoortgangGrafiekProps) {
+export function VoortgangGrafiek({ reeks, info: bron, compact = false }: VoortgangGrafiekProps) {
+  const taal = useTaal()
+  const tv = useTekst(VOORTGANG)
+  const info = reeksTekst(bron, tv)
   const vulId = useId()
   const vlak = compact ? { breedte: 340, hoogte: 150, links: 34, marge: 12 } : { breedte: 640, hoogte: 220, links: 44, marge: 16 }
   const { punten, raster } = schaal(reeks, vlak)
@@ -22,7 +27,7 @@ export function VoortgangGrafiek({ reeks, info, compact = false }: VoortgangGraf
   const onder = vlak.hoogte - vlak.marge
   const { lijn, vlak: vulling } = paden(punten, onder)
   const eenheid = info.eenheid ? ` ${info.eenheid}` : ''
-  const samenvatting = `${info.label}: ${reeks.map((p) => `${datumKort(p.datum)} ${getal(p.waarde)}${eenheid}`).join(', ')}`
+  const samenvatting = `${info.label}: ${reeks.map((p) => `${datumKort(p.datum, taal)} ${getal(p.waarde, taal)}${eenheid}`).join(', ')}`
 
   return (
     <figure className={`club-voortgang-grafiek${compact ? ' club-voortgang-grafiek--compact' : ''}`}>
@@ -37,7 +42,7 @@ export function VoortgangGrafiek({ reeks, info, compact = false }: VoortgangGraf
           <g key={r.waarde} aria-hidden>
             <line x1={vlak.links} x2={vlak.breedte - vlak.marge} y1={r.y} y2={r.y} className="club-voortgang-raster" />
             <text x={vlak.links - 8} y={r.y} className="club-voortgang-as-tekst" textAnchor="end" dominantBaseline="middle">
-              {getal(r.waarde)}
+              {getal(r.waarde, taal)}
             </text>
           </g>
         ))}
@@ -54,16 +59,16 @@ export function VoortgangGrafiek({ reeks, info, compact = false }: VoortgangGraf
               ) : (
                 <circle cx={p.x} cy={p.y} r={r} />
               )}
-              <title>{`${datumKort(p.datum)}: ${getal(p.waarde)}${eenheid}${intake ? ' (intake)' : ''}`}</title>
+              <title>{`${datumKort(p.datum, taal)}: ${getal(p.waarde, taal)}${eenheid}${intake ? ` ${tv.grafiek.intake}` : ''}`}</title>
             </g>
           )
         })}
         <text x={punten[0].x} y={vlak.hoogte + 16} className="club-voortgang-as-tekst" textAnchor={punten.length > 1 ? 'start' : 'middle'} aria-hidden>
-          {datumKort(punten[0].datum)}
+          {datumKort(punten[0].datum, taal)}
         </text>
         {punten.length > 1 && (
           <text x={punten[punten.length - 1].x} y={vlak.hoogte + 16} className="club-voortgang-as-tekst" textAnchor="end" aria-hidden>
-            {datumKort(punten[punten.length - 1].datum)}
+            {datumKort(punten[punten.length - 1].datum, taal)}
           </text>
         )}
       </svg>

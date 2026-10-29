@@ -12,6 +12,8 @@ import { LidInlogFormulier } from '@/components/club/ledenlogin/LidInlogFormulie
 import { AANVRAAG_PAD } from '@/lib/club/app-uitnodigen/velden'
 import { leesSportschoolSleutel } from '@/lib/club/app-uitnodigen/regels'
 import { sportschoolVoorAanvraag } from '@/lib/club/app-uitnodigen/sportschool'
+import { getTaal } from '@/lib/aiyourgym/taal/server'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // /mijn/inloggen: inloggen op de ledenapp met e-mailadres en wachtwoord
 // (besluit Kane 23-10-2026). De sportschool komt uit het subdomein of uit
@@ -21,15 +23,11 @@ import { sportschoolVoorAanvraag } from '@/lib/club/app-uitnodigen/sportschool'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Inloggen',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: LID_INLOGGEN[await getTaal()].inloggen.titel, robots: { index: false, follow: false }, referrer: 'no-referrer' }
 }
 
 const NEUTRAAL = { kleurAccent: '#B58E5C', thema: 'donker' as const }
-const UITLEG = 'Log in met je e-mailadres en wachtwoord.'
-const HULP = 'Eerste keer of wachtwoord vergeten? Vraag een link aan, dan kies je een (nieuw) wachtwoord.'
 
 function adminOfNull(): SupabaseClient | null {
   try {
@@ -47,20 +45,22 @@ export default async function MijnInloggen({ searchParams }: { searchParams: Zoe
   const admin = adminOfNull()
   const sleutel = leesSportschoolSleutel((await searchParams).s)
   const org: Organisatie | null = admin ? await sportschoolVoorAanvraag(admin, sleutel) : null
+  const tekst = LID_INLOGGEN[await getTaal()]
+  const t = tekst.inloggen
   const aanvraagHref = org ? `${AANVRAAG_PAD}?s=${encodeURIComponent(org.slug ?? org.id)}` : sleutel ? `${AANVRAAG_PAD}?s=${encodeURIComponent(sleutel.waarde)}` : AANVRAAG_PAD
 
   return (
     <LedenappSchil organisatie={org ?? NEUTRAAL}>
       <InlogKaart
-        merkNaam={org?.naam ?? 'Ledenapp'}
+        merkNaam={org?.naam ?? tekst.ledenapp}
         fitFactory={org?.logo === LOGO_FIT_FACTORY}
-        boven={org?.naam ?? 'Ledenapp'}
-        kop="Inloggen"
-        uitleg={UITLEG}
+        boven={org?.naam ?? tekst.ledenapp}
+        kop={t.titel}
+        uitleg={t.uitleg}
       >
         <LidInlogFormulier sportschool={org?.id ?? null} />
-        <p className="club-mijn-veld-hint">{HULP}</p>
-        <Link href={aanvraagHref} className="club-mijn-inlog-link">Link aanvragen</Link>
+        <p className="club-mijn-veld-hint">{t.hulp}</p>
+        <Link href={aanvraagHref} className="club-mijn-inlog-link">{t.linkAanvragen}</Link>
       </InlogKaart>
     </LedenappSchil>
   )

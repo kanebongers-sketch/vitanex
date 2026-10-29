@@ -2,6 +2,10 @@
 // Losse producten die een sportschool in de ledenapp verkoopt. Het lidmaatschap
 // zelf hoort hier niet bij: dat blijft bij Sportivity of het eigen systeem.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatEuroCenten } from '@/lib/aiyourgym/taal/formaat'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
+
 export const PRODUCT_TYPEN = ['losse_les', 'strippenkaart', 'pt_pakket', 'product'] as const
 export type ProductType = (typeof PRODUCT_TYPEN)[number]
 
@@ -169,17 +173,19 @@ export function btwDeel(inclusiefCent: number, procent: BtwTarief): number {
 
 const EURO = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
 
-export function euro(cent: number): string {
-  return EURO.format(cent / 100)
+/** Een bedrag in centen als euro's; Engels via formaat.ts, Nederlands ongewijzigd. */
+export function euro(cent: number, taal: Taal = 'nl'): string {
+  return taal === 'nl' ? EURO.format(cent / 100) : formatEuroCenten(cent, taal)
 }
 
 /** Een korte regel onder het product: wat je krijgt en hoe lang het geldig is. */
-export function productInhoud(p: Pick<Product, 'type' | 'tegoeden' | 'geldigDagen'>): string {
+export function productInhoud(p: Pick<Product, 'type' | 'tegoeden' | 'geldigDagen'>, taal: Taal = 'nl'): string {
+  const t = BETALEN[taal].inhoud
   const delen: string[] = []
-  if (p.type === 'strippenkaart' && p.tegoeden) delen.push(`${p.tegoeden} groepslessen`)
-  if (p.type === 'losse_les') delen.push('1 groepsles')
-  if (p.type === 'pt_pakket' && p.tegoeden) delen.push(`${p.tegoeden} ${p.tegoeden === 1 ? 'sessie' : 'sessies'} personal training`)
-  if (p.type === 'product') delen.push('Ophalen bij de balie')
-  if (p.geldigDagen && p.type !== 'product') delen.push(`${p.geldigDagen} dagen geldig`)
+  if (p.type === 'strippenkaart' && p.tegoeden) delen.push(t.groepslessen(p.tegoeden))
+  if (p.type === 'losse_les') delen.push(t.eenGroepsles)
+  if (p.type === 'pt_pakket' && p.tegoeden) delen.push(t.ptSessies(p.tegoeden))
+  if (p.type === 'product') delen.push(t.ophalen)
+  if (p.geldigDagen && p.type !== 'product') delen.push(t.geldig(p.geldigDagen))
   return delen.join(' · ')
 }

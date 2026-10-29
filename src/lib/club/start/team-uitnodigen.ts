@@ -6,6 +6,8 @@
 // eerlijk wat er gebeurde: gemaild, of (nog) niet en waarom.
 
 import type { LoginStaat } from '@/lib/club/medewerker-login/medewerker-login'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
 export interface UitnodigStand {
   /** De tekst op de knop, of null als er niets uit te nodigen valt. */
@@ -16,13 +18,14 @@ export interface UitnodigStand {
 }
 
 /** Wat de rij van een medewerker toont, uit het e-mailadres en de stand van de login. */
-export function uitnodigStand(email: string | null, staat: LoginStaat, loginAan: boolean): UitnodigStand {
-  if (!loginAan) return { knop: null, chip: null, hint: 'Inloggen voor medewerkers staat nog uit.' }
-  if (staat === 'actief') return { knop: null, chip: { label: 'Kan inloggen', klasse: 'club-chip--ok' }, hint: null }
-  if (!email) return { knop: null, chip: null, hint: 'Vul hierboven een e-mailadres in en sla op, dan kun je uitnodigen.' }
-  if (staat === 'uitgenodigd') return { knop: 'Opnieuw uitnodigen', chip: { label: 'Uitgenodigd', klasse: 'club-chip--merk' }, hint: null }
-  if (staat === 'verlopen') return { knop: 'Opnieuw uitnodigen', chip: { label: 'Link verlopen', klasse: 'club-chip--let-op' }, hint: null }
-  return { knop: 'Uitnodigen', chip: null, hint: null }
+export function uitnodigStand(email: string | null, staat: LoginStaat, loginAan: boolean, taal: Taal = 'nl'): UitnodigStand {
+  const t = START_LIB[taal].uitnodigen
+  if (!loginAan) return { knop: null, chip: null, hint: t.loginUit }
+  if (staat === 'actief') return { knop: null, chip: { label: t.kanInloggen, klasse: 'club-chip--ok' }, hint: null }
+  if (!email) return { knop: null, chip: null, hint: t.geenEmail }
+  if (staat === 'uitgenodigd') return { knop: t.opnieuw, chip: { label: t.uitgenodigd, klasse: 'club-chip--merk' }, hint: null }
+  if (staat === 'verlopen') return { knop: t.opnieuw, chip: { label: t.verlopen, klasse: 'club-chip--let-op' }, hint: null }
+  return { knop: t.uitnodigen, chip: null, hint: null }
 }
 
 /** De volledige link uit het pad dat de API teruggeeft, op het adres van de sportschool als dat er is. */
@@ -38,8 +41,9 @@ export function isGemaild(v: unknown): v is Gemaild {
 }
 
 /** Wat de eigenaar ziet na uitnodigen: of de mail is verstuurd, en anders dat hij de link zelf doorstuurt. */
-export function uitnodigMelding(gemaild: Gemaild | null, voornaam: string, email: string): { ok: boolean; tekst: string } {
-  if (gemaild === 'verstuurd') return { ok: true, tekst: `Uitnodiging gemaild naar ${email}. Komt hij niet aan? Stuur ${voornaam} dan deze link zelf. Hij werkt een keer en 7 dagen lang; je ziet hem alleen nu.` }
-  if (gemaild === 'mislukt') return { ok: false, tekst: `Mailen lukte nu niet, dus ${voornaam} heeft nog niets gekregen. Stuur deze link zelf, bijvoorbeeld via WhatsApp of je eigen mail. Hij werkt een keer en 7 dagen lang; je ziet hem alleen nu.` }
-  return { ok: false, tekst: `Mailen staat nog niet aan voor je sportschool, dus Club heeft niets gemaild. Stuur deze link zelf naar ${voornaam}, bijvoorbeeld via WhatsApp of je eigen mail. Hij werkt een keer en 7 dagen lang; je ziet hem alleen nu.` }
+export function uitnodigMelding(gemaild: Gemaild | null, voornaam: string, email: string, taal: Taal = 'nl'): { ok: boolean; tekst: string } {
+  const t = START_LIB[taal].uitnodigen
+  if (gemaild === 'verstuurd') return { ok: true, tekst: t.verstuurd(email, voornaam) }
+  if (gemaild === 'mislukt') return { ok: false, tekst: t.mislukt(voornaam) }
+  return { ok: false, tekst: t.nietIngesteld(voornaam) }
 }

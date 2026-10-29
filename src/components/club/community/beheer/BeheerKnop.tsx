@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 // Een knop in het beheer die een API-actie doet en de pagina ververst. Met
 // `bevestig` eerst een vraag. Fouten verschijnen naast de knop.
@@ -18,7 +20,8 @@ interface Props {
   klein?: boolean
 }
 
-export function BeheerKnop({ url, method, body, label, bezigLabel = 'Even geduld...', bevestig, soort = 'stil', klein = true }: Props) {
+export function BeheerKnop({ url, method, body, label, bezigLabel, bevestig, soort = 'stil', klein = true }: Props) {
+  const standaardBezig = useTekst(COMMUNITY).beheer.bezig
   const router = useRouter()
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -36,7 +39,7 @@ export function BeheerKnop({ url, method, body, label, bezigLabel = 'Even geduld
   return (
     <span className="club-cmb-knopvak">
       <button type="button" className={`club-knop club-knop--${soort}${klein ? ' club-knop--klein' : ''}`} disabled={bezig} onClick={() => void klik()}>
-        {bezig ? bezigLabel : label}
+        {bezig ? (bezigLabel ?? standaardBezig) : label}
       </button>
       {fout && (
         <span className="club-melding club-melding--fout" role="alert">

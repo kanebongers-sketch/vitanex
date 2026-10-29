@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { isIos } from '@/lib/club/ledenapp-pwa/installeren'
 import { GEMELD_SLEUTEL, gemeldWaarde, moetStilMelden, pushStand, sleutelNaarBytes, type PushStand } from '@/lib/club/push/toestel'
 import { SW_PAD, SW_SCOPE } from './RegistreerSw'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // De stand van push op dit toestel, plus aan- en uitzetten. Toestemming vragen
 // gebeurt ALLEEN in `aanzetten`, dus alleen na een tik van het lid.
@@ -83,6 +85,7 @@ function bewaarGemeld(waarde: string | null): void {
 }
 
 export function usePush(sleutel: string | null, merk: string | null = null): PushStaat {
+  const t = LID_INLOGGEN[useTaal()].pwa
   const [stand, zetStand] = useState<PushStand | null>(null)
   const [toestemming, zetToestemming] = useState<NotificationPermission | null>(null)
   const [aan, zetAan] = useState(false)
@@ -137,15 +140,15 @@ export function usePush(sleutel: string | null, merk: string | null = null): Pus
         if (merk) bewaarGemeld(gemeldWaarde(merk, abonnement.endpoint))
       } else {
         await abonnement.unsubscribe().catch(() => false)
-        zetFout('Meldingen aanzetten lukte niet. Probeer het straks opnieuw.')
+        zetFout(t.foutAan)
       }
     } catch (err) {
       console.error('[club-app] meldingen aanzetten mislukt', err instanceof Error ? err.name : err)
-      zetFout('Meldingen aanzetten lukte niet op dit toestel.')
+      zetFout(t.foutToestel)
     } finally {
       zetBezig(false)
     }
-  }, [sleutel, merk, bezig])
+  }, [sleutel, merk, bezig, t])
 
   const uitzetten = useCallback(async () => {
     if (bezig) return
@@ -159,14 +162,14 @@ export function usePush(sleutel: string | null, merk: string | null = null): Pus
       if (abonnement) await abonnement.unsubscribe().catch(() => false)
       bewaarGemeld(null)
       zetAan(false)
-      if (!gelukt) zetFout('Uitgezet op dit toestel. De sportschool kon het nog niet bijwerken; dat gebeurt vanzelf.')
+      if (!gelukt) zetFout(t.foutBijwerken)
     } catch (err) {
       console.error('[club-app] meldingen uitzetten mislukt', err instanceof Error ? err.name : err)
-      zetFout('Meldingen uitzetten lukte niet. Probeer het opnieuw.')
+      zetFout(t.foutUit)
     } finally {
       zetBezig(false)
     }
-  }, [bezig])
+  }, [bezig, t])
 
   return { stand, aan, bezig, fout, toestemming, aanzetten, uitzetten }
 }

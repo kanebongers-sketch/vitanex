@@ -2,6 +2,8 @@
 
 import { Check, Timer, Wind, X } from 'lucide-react'
 import { useCoaching } from '@/components/club/training/coaching/useCoaching'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { REPSPELER } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 
 // De coaching direct onder de rep-speler, zoals een trainer naast je staat: de
 // genummerde kernpunten, de fouten die je echt ziet met de correctie, en
@@ -16,9 +18,9 @@ interface RepCoachingProps {
   aandachtspunten: string | null
 }
 
-function Punten({ punten }: { punten: readonly { punt: string; uitleg?: string }[] }) {
+function Punten({ punten, label }: { punten: readonly { punt: string; uitleg?: string }[]; label: string }) {
   return (
-    <ol className="club-repc-kern" aria-label="Kernpunten">
+    <ol className="club-repc-kern" aria-label={label}>
       {punten.slice(0, 5).map((k, i) => (
         <li key={i}>
           <b aria-hidden>{i + 1}</b>
@@ -34,22 +36,23 @@ function Punten({ punten }: { punten: readonly { punt: string; uitleg?: string }
 
 export function RepCoaching({ naam, kernpunten, aandachtspunten }: RepCoachingProps) {
   const staat = useCoaching(naam)
+  const t = REPSPELER[useTaal()].coaching
   const c = staat.status === 'klaar' ? staat.coaching : null
   if (!c) {
-    if (kernpunten && kernpunten.length > 0) return <div className="club-repc"><Punten punten={kernpunten.map((punt) => ({ punt }))} /></div>
+    if (kernpunten && kernpunten.length > 0) return <div className="club-repc"><Punten punten={kernpunten.map((punt) => ({ punt }))} label={t.kernpunten} /></div>
     return aandachtspunten ? <p className="club-repc-tekst">{aandachtspunten}</p> : null
   }
   return (
     <div className="club-repc">
-      <Punten punten={c.kernpunten} />
+      <Punten punten={c.kernpunten} label={t.kernpunten} />
       {c.fouten.length > 0 && (
         <section>
-          <h3 className="club-repc-kop">Let op</h3>
+          <h3 className="club-repc-kop">{t.letOp}</h3>
           <ul className="club-repc-fouten">
             {c.fouten.slice(0, 3).map((f, i) => (
               <li key={i}>
-                <span className="club-repc-fout"><X aria-hidden size={15} /><span><span className="club-sr">Fout: </span>{f.fout}</span></span>
-                <span className="club-repc-beter"><Check aria-hidden size={15} /><span><span className="club-sr">Beter: </span>{f.beter}</span></span>
+                <span className="club-repc-fout"><X aria-hidden size={15} /><span><span className="club-sr">{t.fout}</span>{f.fout}</span></span>
+                <span className="club-repc-beter"><Check aria-hidden size={15} /><span><span className="club-sr">{t.beter}</span>{f.beter}</span></span>
               </li>
             ))}
           </ul>
@@ -57,11 +60,11 @@ export function RepCoaching({ naam, kernpunten, aandachtspunten }: RepCoachingPr
       )}
       <dl className="club-repc-tegels">
         <div>
-          <dt><Wind aria-hidden size={14} /> Ademhaling</dt>
+          <dt><Wind aria-hidden size={14} /> {t.ademhaling}</dt>
           <dd>{c.ademhaling}</dd>
         </div>
         <div>
-          <dt><Timer aria-hidden size={14} /> Tempo</dt>
+          <dt><Timer aria-hidden size={14} /> {t.tempo}</dt>
           <dd>{c.tempo}</dd>
         </div>
       </dl>

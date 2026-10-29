@@ -12,13 +12,17 @@ import { TeamTab } from '@/components/club/personeel/TeamTab'
 import { MijnTab } from '@/components/club/personeel/MijnTab'
 import { UrenTab } from '@/components/club/personeel/UrenTab'
 import { magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 import '@/components/club/personeel/personeel.css'
 
 // /club/personeel: het rooster van het fitnesspersoneel (balie, vloer,
 // opening en afsluiten), beschikbaarheid, "mijn diensten" en de uren voor de
 // administratie. Alles staat in de URL (?tab, ?week, ?dienst, ...).
 
-export const metadata: Metadata = { title: 'Personeel' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(PERSONEEL)).pagina.titel }
+}
 
 export default async function PersoneelPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('personeel')
@@ -34,13 +38,14 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)
   const team = await haalTeam(t.admin, t.userId, vestiging)
+  const tk = (await clubTekst(PERSONEEL)).pagina
 
   return (
     <div className="club-personeel-pagina">
       <PersoneelKop staat={staat} vestigingNaam={naamVan(t.vestigingen, vestiging)} maandag={maandag} vandaag={nu.datum} metUren={urenBeheer} />
       {team === null ? (
         <p className="club-melding club-melding--fout" role="alert">
-          Het personeel kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.
+          {tk.laadFout}
         </p>
       ) : staat.tab === 'team' ? (
         <TeamTab t={t} staat={staat} vestiging={vestiging} team={team} vandaag={nu.datum} />

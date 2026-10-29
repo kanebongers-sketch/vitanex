@@ -3,6 +3,8 @@
 // van maandag tot en met zondag, in Nederlandse tijd.
 
 import { weekStart } from '@/lib/club/training/weergave'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { VOORTGANG } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 
 export interface WeekTelling {
   /** Maandag van de week, yyyy-mm-dd. */
@@ -76,25 +78,26 @@ export function wekenOpRij(ops: readonly string[], nu: Date): number {
   return reeks
 }
 
-function trainingTitel(n: number): string {
-  return n === 1 ? 'Eerste training' : `${n} trainingen`
+function trainingTitel(n: number, taal: Taal): string {
+  const t = VOORTGANG[taal].mijlpaal
+  return n === 1 ? t.eersteTraining : t.trainingen(n)
 }
 
 /** Alle mijlpalen met behaald ja of nee: trainingen in totaal en weken op rij. */
-export function mijlpalen(totaal: number, opRij: number): Mijlpaal[] {
+export function mijlpalen(totaal: number, opRij: number, taal: Taal = 'nl'): Mijlpaal[] {
   return [
-    ...TRAINING_MIJLPALEN.map((n) => ({ sleutel: `t${n}`, titel: trainingTitel(n), behaald: totaal >= n })),
-    ...REEKS_MIJLPALEN.map((n) => ({ sleutel: `r${n}`, titel: `${n} weken op rij`, behaald: opRij >= n })),
+    ...TRAINING_MIJLPALEN.map((n) => ({ sleutel: `t${n}`, titel: trainingTitel(n, taal), behaald: totaal >= n })),
+    ...REEKS_MIJLPALEN.map((n) => ({ sleutel: `r${n}`, titel: VOORTGANG[taal].mijlpaal.wekenOpRij(n), behaald: opRij >= n })),
   ]
 }
 
 /** De eerstvolgende trainingsmijlpaal, of null als alles behaald is. */
-export function volgendeMijlpaal(totaal: number): VolgendeMijlpaal | null {
+export function volgendeMijlpaal(totaal: number, taal: Taal = 'nl'): VolgendeMijlpaal | null {
   const doel = TRAINING_MIJLPALEN.find((n) => totaal < n)
   if (doel === undefined) return null
   const vorige = [...TRAINING_MIJLPALEN].reverse().find((n) => n <= totaal) ?? 0
   return {
-    titel: trainingTitel(doel),
+    titel: trainingTitel(doel, taal),
     voortgang: Math.max(0, Math.min(1, (totaal - vorige) / (doel - vorige))),
     nogTeGaan: doel - totaal,
   }

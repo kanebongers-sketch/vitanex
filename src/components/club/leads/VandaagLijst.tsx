@@ -3,7 +3,10 @@
 import { Check } from 'lucide-react'
 import { leadInitialen, type Lead } from '@/lib/club/leads/model'
 import { toonDag, toonMoment, type VandaagItem, type VandaagReden } from '@/lib/club/leads/regels'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { ContactKnoppen } from './ContactKnoppen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 
 interface VandaagLijstProps {
   items: VandaagItem[]
@@ -14,35 +17,37 @@ interface VandaagLijstProps {
   onUitkomst: (lead: Lead, actie: 'geweest' | 'niet_gekomen') => void
 }
 
-const REDEN_CHIP: Record<VandaagReden, { tekst: string; klasse: string }> = {
-  uitkomst: { tekst: 'Proefles: hoe ging het?', klasse: 'club-chip--let-op' },
-  proefles: { tekst: 'Proefles vandaag', klasse: 'club-chip--merk' },
-  te_laat: { tekst: 'Te laat', klasse: 'club-chip--let-op' },
-  opvolgen: { tekst: 'Vandaag bellen', klasse: 'club-chip--info' },
+const REDEN_KLASSE: Record<VandaagReden, string> = {
+  uitkomst: 'club-chip--let-op',
+  proefles: 'club-chip--merk',
+  te_laat: 'club-chip--let-op',
+  opvolgen: 'club-chip--info',
 }
 
-function wanneer(item: VandaagItem, vandaag: string): string {
+function wanneer(item: VandaagItem, vandaag: string, taal: Taal): string {
   const { lead, reden } = item
-  if ((reden === 'uitkomst' || reden === 'proefles') && lead.proeflesOp) return toonMoment(lead.proeflesOp)
-  return lead.opvolgenOp ? `opvolgen ${toonDag(lead.opvolgenOp.slice(0, 10), vandaag)}` : ''
+  if ((reden === 'uitkomst' || reden === 'proefles') && lead.proeflesOp) return toonMoment(lead.proeflesOp, taal)
+  return lead.opvolgenOp ? LEADS[taal].vandaag.opvolgen(toonDag(lead.opvolgenOp.slice(0, 10), vandaag, taal)) : ''
 }
 
 // De actie van vandaag, bovenaan: wie bel je, wie komt er proefsporten en van
 // wie moet je nog invullen hoe de proefles ging. Een regel per persoon.
 export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkomst }: VandaagLijstProps) {
+  const taal = useTaal()
+  const t = useTekst(LEADS).vandaag
   return (
     <section className="club-leads-vandaag" aria-labelledby="leads-vandaag-kop">
       <div className="club-sectiekop">
-        <h2 id="leads-vandaag-kop">Vandaag opvolgen</h2>
-        <span>{items.length === 0 ? 'Alles bij' : `${items.length} ${items.length === 1 ? 'actie' : 'acties'}`}</span>
+        <h2 id="leads-vandaag-kop">{t.titel}</h2>
+        <span>{items.length === 0 ? t.allesBij : t.acties(items.length)}</span>
       </div>
       {items.length === 0 ? (
-        <p className="club-leeg">Niemand om te bellen en geen proeflessen vandaag. Mooi werk.</p>
+        <p className="club-leeg">{t.leeg}</p>
       ) : (
         <ol className="club-lijst club-leads-actielijst">
           {items.map((item) => {
             const { lead, reden } = item
-            const chip = REDEN_CHIP[reden]
+            const chip = { tekst: t.reden[reden], klasse: REDEN_KLASSE[reden] }
             const isBezig = bezig === lead.id
             return (
               <li key={lead.id} className="club-rij club-leads-actie" data-reden={reden}>
@@ -54,7 +59,7 @@ export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkom
                     {lead.naam}
                   </button>
                   <span className="club-rij-sub">
-                    {wanneer(item, vandaag)}
+                    {wanneer(item, vandaag, taal)}
                     {lead.interesse ? ` · ${lead.interesse}` : ''}
                   </span>
                 </div>
@@ -63,19 +68,19 @@ export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkom
                   {reden === 'uitkomst' ? (
                     <>
                       <button type="button" className="club-knop club-knop--klein club-knop--primair" disabled={isBezig} onClick={() => onUitkomst(lead, 'geweest')}>
-                        Is geweest
+                        {t.geweest}
                       </button>
                       <button type="button" className="club-knop club-knop--klein" disabled={isBezig} onClick={() => onUitkomst(lead, 'niet_gekomen')}>
-                        Niet gekomen
+                        {t.nietGekomen}
                       </button>
                     </>
                   ) : (
                     <>
                       <ContactKnoppen naam={lead.naam} telefoon={lead.telefoon} email={lead.email} />
                       {reden !== 'proefles' && (
-                        <button type="button" className="club-knop club-knop--klein" disabled={isBezig} onClick={() => onGedaan(lead)} aria-label={`Opvolging van ${lead.naam} gedaan`}>
+                        <button type="button" className="club-knop club-knop--klein" disabled={isBezig} onClick={() => onGedaan(lead)} aria-label={t.gedaanLabel(lead.naam)}>
                           <Check size={15} aria-hidden />
-                          <span>Gedaan</span>
+                          <span>{t.gedaan}</span>
                         </button>
                       )}
                     </>

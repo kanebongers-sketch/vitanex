@@ -4,6 +4,8 @@ import { clubDatabase } from '@/lib/club/kern/database'
 import { linkStand } from '@/lib/club/platform-login/platform'
 import { vindPlatformAccount } from '@/lib/club/platform-login/opslag'
 import { PlatformInlog } from '@/components/club/inloggen/PlatformInlog'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 import '@/app/(aiyourgym)/(club)/club/club.css'
 import '@/components/club/inloggen/inloggen.css'
 
@@ -16,10 +18,12 @@ import '@/components/club/inloggen/inloggen.css'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Inloggen',
-  robots: { index: false, follow: false },
-  referrer: 'no-referrer',
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: (await clubTekst(CLUB_INLOGGEN)).titel,
+    robots: { index: false, follow: false },
+    referrer: 'no-referrer',
+  }
 }
 
 interface PaginaProps {

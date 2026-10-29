@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { ExternalLink, LifeBuoy, Activity } from 'lucide-react'
 import { eisPlatformEigenaar } from '@/lib/club/toegang'
 import { MAX_AANMELDINGEN, haalPlatform } from '@/lib/club/platform/opslag'
-import { maandNaam } from '@/lib/club/platform/tellingen'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
 import { Kerncijfers } from '@/components/club/platform/Kerncijfers'
 import { Sportscholen } from '@/components/club/platform/Sportscholen'
 import { Aanmeldingen } from '@/components/club/platform/Aanmeldingen'
@@ -13,7 +15,9 @@ import { WachtwoordInstellen } from '@/components/club/platform/WachtwoordInstel
 import { huidigPlatformAccount } from '@/lib/club/platform-login/huidig'
 import '@/components/club/platform/platform.css'
 
-export const metadata: Metadata = { title: 'Platform' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(PLATFORM)).pagina.titel }
+}
 export const dynamic = 'force-dynamic'
 
 // Het overzicht van AI Your Gym voor Kane als eigenaar van het platform: alle
@@ -24,30 +28,32 @@ export default async function PlatformPagina() {
   const t = await eisPlatformEigenaar()
   const nu = new Date()
   const [stand, account] = await Promise.all([haalPlatform(t, nu), huidigPlatformAccount()])
+  const taal = await getTaal()
+  const p = PLATFORM[taal].pagina
   return (
     <>
       {account && !account.wachtwoordHash && <WachtwoordInstellen email={account.email} />}
       <header className="club-paginakop">
         <div>
-          <p className="club-boventitel">AI Your Gym · alleen Kane</p>
-          <h1>Platform</h1>
-          <p>Alle sportscholen, de demo-aanvragen en aanmeldingen van de website en wat er aandacht vraagt. Check-ins tellen per kalendermaand.</p>
+          <p className="club-boventitel">{p.boventitel}</p>
+          <h1>{p.titel}</h1>
+          <p>{p.intro}</p>
         </div>
-        <nav aria-label="Platform" className="club-acties">
+        <nav aria-label={p.nav} className="club-acties">
           <Link href="/club/hulp/meldingen" className="club-knop club-knop--klein">
-            <LifeBuoy size={14} aria-hidden /> Supportmeldingen
+            <LifeBuoy size={14} aria-hidden /> {p.support}
           </Link>
           <Link href="/club/systeem" className="club-knop club-knop--klein">
-            <Activity size={14} aria-hidden /> Systeem
+            <Activity size={14} aria-hidden /> {p.systeem}
           </Link>
           <Link href="/aiyourgym?bekijk=1" className="club-knop club-knop--klein">
-            <ExternalLink size={14} aria-hidden /> Website
+            <ExternalLink size={14} aria-hidden /> {p.website}
           </Link>
         </nav>
       </header>
       {stand.problemen.length > 0 && (
         <div className="club-melding club-melding--fout" role="alert">
-          <p className="club-platform-probleemkop">Niet alles is te lezen. De rest van het overzicht klopt wel.</p>
+          <p className="club-platform-probleemkop">{p.problemen}</p>
           <ul className="club-platform-problemen">
             {stand.problemen.map((p) => (
               <li key={p}>{p}</li>
@@ -57,7 +63,7 @@ export default async function PlatformPagina() {
       )}
       <Kerncijfers cijfers={stand.cijfers} />
       <DemoAanvragen aanvragen={stand.demoAanvragen} max={MAX_DEMO_AANVRAGEN} />
-      <Sportscholen sportscholen={stand.sportscholen} maand={maandNaam(nu)} afgekapt={stand.afgekapt} />
+      <Sportscholen sportscholen={stand.sportscholen} maand={formatDatum(nu, taal, 'maandNaam')} afgekapt={stand.afgekapt} />
       <Aanmeldingen aanmeldingen={stand.aanmeldingen} max={MAX_AANMELDINGEN} />
     </>
   )

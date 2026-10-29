@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { ExternalLink, RefreshCw } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import type { BetaalAccount } from '@/lib/club/betalen/opslag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 
 // De stappen naar betalen in de ledenapp: Stripe koppelen (onboarding van
 // Stripe, op naam van de sportschool), gegevens compleet, betalingen open,
@@ -24,12 +26,13 @@ export function StripeKaart({ account, sleutelGezet, verversen }: Props) {
   const router = useRouter()
   const [bezig, start] = useTransition()
   const [fout, setFout] = useState<string | null>(null)
+  const t = useTekst(BETALEN).stripe
 
   function ververs() {
     start(async () => {
       setFout(null)
       const res = await fetch(API, { cache: 'no-store' }).catch(() => null)
-      if (!res?.ok) setFout('De stand bij Stripe kon niet worden opgehaald. Probeer het zo opnieuw.')
+      if (!res?.ok) setFout(t.ophalenFout)
       router.refresh()
     })
   }
@@ -45,7 +48,7 @@ export function StripeKaart({ account, sleutelGezet, verversen }: Props) {
       setFout(null)
       const uit = await stuur(API, 'POST', { actie })
       const url = uit.ok ? (uit.data as { url?: unknown } | null)?.url : null
-      if (typeof url !== 'string') return setFout(uit.ok ? 'Stripe gaf geen link terug.' : uit.fout)
+      if (typeof url !== 'string') return setFout(uit.ok ? t.geenLink : uit.fout)
       if (actie === 'dashboard') window.open(url, '_blank', 'noopener,noreferrer')
       else window.location.assign(url)
     })
@@ -67,41 +70,41 @@ export function StripeKaart({ account, sleutelGezet, verversen }: Props) {
       <div className="club-betalen-stripe">
         <ol className="club-betalen-stappen">
           <li className="club-betalen-stap" data-klaar={gekoppeld}>
-            <div><strong>Stripe koppelen</strong><span>Je sportschool krijgt een eigen Stripe-account. Het geld van leden komt rechtstreeks op jouw rekening.</span></div>
+            <div><strong>{t.koppelen}</strong><span>{t.koppelenUitleg}</span></div>
           </li>
           <li className="club-betalen-stap" data-klaar={account.gegevensCompleet}>
-            <div><strong>Gegevens invullen bij Stripe</strong><span>Bedrijf, KvK, rekeningnummer en identiteit. Dat doe je op de pagina van Stripe, niet bij ons.</span></div>
+            <div><strong>{t.gegevens}</strong><span>{t.gegevensUitleg}</span></div>
           </li>
           <li className="club-betalen-stap" data-klaar={account.chargesAan}>
-            <div><strong>Betalingen open</strong><span>Stripe zet betalingen open zodra je gegevens zijn gecontroleerd.{account.chargesAan && !account.uitbetalenAan ? ' Uitbetalen staat nog dicht.' : ''}</span></div>
+            <div><strong>{t.open}</strong><span>{t.openUitleg}{account.chargesAan && !account.uitbetalenAan ? t.uitbetalenDicht : ''}</span></div>
           </li>
           <li className="club-betalen-stap" data-klaar={account.betalenAan}>
-            <div><strong>Kopen in de ledenapp aan</strong><span>Leden zien je producten onder Kopen en betalen met iDEAL of kaart.</span></div>
+            <div><strong>{t.kopenAan}</strong><span>{t.kopenAanUitleg}</span></div>
           </li>
         </ol>
         <div className="club-betalen-knoppen">
           {!sleutelGezet ? (
-            <p className="club-hint">Betalen is nog niet ingesteld door AI Your Gym.</p>
+            <p className="club-hint">{t.nietIngesteld}</p>
           ) : (
             <>
               {!account.chargesAan && (
                 <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => naarStripe('onboarding')}>
-                  {gekoppeld ? 'Verder bij Stripe' : 'Stripe koppelen'} <ExternalLink size={15} aria-hidden />
+                  {gekoppeld ? t.verder : t.koppelen} <ExternalLink size={15} aria-hidden />
                 </button>
               )}
               {gekoppeld && (
                 <button type="button" className="club-knop" disabled={bezig} onClick={ververs}>
-                  <RefreshCw size={15} aria-hidden /> Stand verversen
+                  <RefreshCw size={15} aria-hidden /> {t.verversen}
                 </button>
               )}
               {account.gegevensCompleet && (
                 <button type="button" className="club-knop" disabled={bezig} onClick={() => naarStripe('dashboard')}>
-                  Uitbetalingen bij Stripe <ExternalLink size={15} aria-hidden />
+                  {t.uitbetalingen} <ExternalLink size={15} aria-hidden />
                 </button>
               )}
               {account.chargesAan && (
                 <button type="button" className={`club-knop ${account.betalenAan ? '' : 'club-knop--primair'}`} disabled={bezig} onClick={() => schakel(!account.betalenAan)} aria-pressed={account.betalenAan}>
-                  {account.betalenAan ? 'Kopen in de app uitzetten' : 'Kopen in de app aanzetten'}
+                  {account.betalenAan ? t.uitzetten : t.aanzetten}
                 </button>
               )}
             </>

@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LEAD_BRON_LABEL, LEAD_STATUS_LABEL, leadInitialen } from '@/lib/club/leads/model'
+import { leadInitialen } from '@/lib/club/leads/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import type { ProeflesLes } from '@/lib/club/leads/lessen'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
@@ -34,13 +36,14 @@ interface LeadPaneelProps {
 // Een gewiste lead toont alleen nog wat er anoniem over is, zonder acties.
 export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vandaag, nuIso, magWissen, onSluit }: LeadPaneelProps) {
   const p = usePaneel(leadId)
+  const tekst = useTekst(LEADS)
   const [melding, setMelding] = useState<string | null>(null)
   const { lead } = p
 
   return (
     <ZijPaneel titelId="lead-paneel-titel" onSluit={onSluit}>
       {p.laadfout && <p className="club-melding club-melding--fout">{p.laadfout}</p>}
-      {!lead && !p.laadfout && <div className="club-skelet" aria-label="Lead laden" />}
+      {!lead && !p.laadfout && <div className="club-skelet" aria-label={tekst.paneel.laden} />}
       {lead && (
         <>
           <header className="club-leads-paneelkop">
@@ -48,10 +51,10 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
               {leadInitialen(lead.naam)}
             </span>
             <div className="club-leads-paneeltitel">
-              <p className="club-boventitel">{LEAD_STATUS_LABEL[lead.status]}</p>
+              <p className="club-boventitel">{tekst.status[lead.status]}</p>
               <h2 id="lead-paneel-titel">{lead.naam}</h2>
               <p className="club-zacht">
-                Via {LEAD_BRON_LABEL[lead.bron].toLowerCase()}
+                {tekst.paneel.via(tekst.bron[lead.bron].toLowerCase())}
                 {lead.interesse ? ` · ${lead.interesse}` : ''}
               </p>
             </div>
@@ -66,7 +69,7 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
               <strong>{melding}</strong>
               {lead.lidId && (
                 <p>
-                  <Link href={lidKaartPad(lead.lidId, vestiging)}>Open de ledenkaart</Link>
+                  <Link href={lidKaartPad(lead.lidId, vestiging)}>{tekst.paneel.openKaart}</Link>
                 </p>
               )}
             </div>

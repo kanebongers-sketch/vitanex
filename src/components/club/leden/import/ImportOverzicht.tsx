@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { GeplandeRij, ImportActie } from '@/lib/club/leden/import/plan'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
 // Stap 3: wat het inlezen gaat doen, voordat er iets verandert.
 
@@ -13,28 +15,24 @@ export interface Controle {
   rijen: GeplandeRij[]
 }
 
-const ACTIE: Record<ImportActie, { label: string; sub: string; chip: string }> = {
-  nieuw: { label: 'Nieuw', sub: 'Worden toegevoegd', chip: 'club-chip--ok' },
-  bijwerken: { label: 'Bijwerken', sub: 'Gegevens veranderen', chip: 'club-chip--info' },
-  gelijk: { label: 'Al gelijk', sub: 'Er verandert niets', chip: 'club-chip--uit' },
-  dubbel: { label: 'Dubbel', sub: 'Staat vaker in het bestand', chip: 'club-chip--let-op' },
-}
-
-const KOLOM_LABEL: Record<string, string> = {
-  vestiging: 'verhuist naar deze vestiging', voornaam: 'voornaam', achternaam: 'achternaam', email: 'e-mail', telefoon: 'telefoon',
-  geboortedatum: 'geboortedatum', geslacht: 'geslacht', abonnement: 'abonnement', status: 'status',
-  lid_sinds: 'lid sinds', einddatum: 'einddatum', lidnummer: 'lidnummer', sportivity_id: 'extern klantnummer',
+const ACTIE_CHIP: Record<ImportActie, string> = {
+  nieuw: 'club-chip--ok',
+  bijwerken: 'club-chip--info',
+  gelijk: 'club-chip--uit',
+  dubbel: 'club-chip--let-op',
 }
 
 const TOON = 150
 
 export function ImportOverzicht({ controle }: { controle: Controle }) {
   const [filter, setFilter] = useState<ImportActie | null>(null)
+  const t = useTekst(LEDEN).import
+  const kolomLabel: Record<string, string> = t.kolomLabels
   const zichtbaar = controle.rijen.filter((r) => !filter || r.actie === filter)
   return (
     <div className="club-import-overzicht">
-      <div className="club-import-tegels" role="group" aria-label="Filter op wat er gebeurt">
-        {(Object.keys(ACTIE) as ImportActie[]).map((actie) => (
+      <div className="club-import-tegels" role="group" aria-label={t.filterLabel}>
+        {(Object.keys(ACTIE_CHIP) as ImportActie[]).map((actie) => (
           <button
             key={actie}
             type="button"
@@ -43,31 +41,29 @@ export function ImportOverzicht({ controle }: { controle: Controle }) {
             aria-pressed={filter === actie}
             onClick={() => setFilter(filter === actie ? null : actie)}
           >
-            <span className="club-tegel-label">{ACTIE[actie].label}</span>
+            <span className="club-tegel-label">{t.acties[actie].label}</span>
             <span className="club-import-tegel-getal club-getal">{controle.telling[actie]}</span>
-            <span className="club-tegel-sub">{ACTIE[actie].sub}</span>
+            <span className="club-tegel-sub">{t.acties[actie].sub}</span>
           </button>
         ))}
       </div>
 
       <ul className="club-import-notities">
         {controle.nietInBestand > 0 && (
-          <li>
-            {controle.nietInBestand} leden van deze vestiging staan niet in het bestand. Die blijven gewoon staan; er wordt nooit een lid verwijderd.
-          </li>
+          <li>{t.nietInBestand(controle.nietInBestand)}</li>
         )}
-        {controle.waarschuwingen > 0 && <li>{controle.waarschuwingen} velden hadden een onbekende waarde (bijvoorbeeld een datum) en worden leeg gelaten.</li>}
-        <li>Coach, tags en QR-code van bestaande leden blijven altijd staan. Lege cellen wissen niets.</li>
+        {controle.waarschuwingen > 0 && <li>{t.waarschuwingen(controle.waarschuwingen)}</li>}
+        <li>{t.blijftStaan}</li>
       </ul>
 
       {controle.fouten.length > 0 && (
         <div className="club-melding club-melding--fout" role="alert">
-          <strong>{controle.fouten.length} regels worden overgeslagen:</strong>
+          <strong>{t.overgeslagen(controle.fouten.length)}</strong>
           <ul className="club-import-fouten">
             {controle.fouten.slice(0, 12).map((f) => (
-              <li key={f.regel}>Regel {f.regel}: {f.fout}</li>
+              <li key={f.regel}>{t.regelFout(f.regel, f.fout)}</li>
             ))}
-            {controle.fouten.length > 12 && <li>En nog {controle.fouten.length - 12} andere.</li>}
+            {controle.fouten.length > 12 && <li>{t.nogAndere(controle.fouten.length - 12)}</li>}
           </ul>
         </div>
       )}
@@ -76,10 +72,10 @@ export function ImportOverzicht({ controle }: { controle: Controle }) {
         <table className="club-tabel">
           <thead>
             <tr>
-              <th scope="col">Regel</th>
-              <th scope="col">Naam</th>
-              <th scope="col">Wat er gebeurt</th>
-              <th scope="col">Verandert</th>
+              <th scope="col">{t.kopRegel}</th>
+              <th scope="col">{t.kopNaam}</th>
+              <th scope="col">{t.kopWat}</th>
+              <th scope="col">{t.kopVerandert}</th>
             </tr>
           </thead>
           <tbody>
@@ -88,15 +84,15 @@ export function ImportOverzicht({ controle }: { controle: Controle }) {
                 <td className="club-getal">{r.regel}</td>
                 <td>{r.naam}</td>
                 <td>
-                  <span className={`club-chip ${ACTIE[r.actie].chip}`}>{ACTIE[r.actie].label}</span>
+                  <span className={`club-chip ${ACTIE_CHIP[r.actie]}`}>{t.acties[r.actie].label}</span>
                 </td>
-                <td className="club-import-wijziging">{Object.keys(r.wijziging).map((k) => KOLOM_LABEL[k] ?? k).join(', ') || ' '}</td>
+                <td className="club-import-wijziging">{Object.keys(r.wijziging).map((k) => kolomLabel[k] ?? k).join(', ') || ' '}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {zichtbaar.length > TOON && <p className="club-hint">De eerste {TOON} van {zichtbaar.length} regels worden getoond.</p>}
+      {zichtbaar.length > TOON && <p className="club-hint">{t.eersteRegels(TOON, zichtbaar.length)}</p>}
     </div>
   )
 }

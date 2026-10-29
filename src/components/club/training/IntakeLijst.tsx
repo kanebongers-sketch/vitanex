@@ -5,7 +5,10 @@ import { useCallback, useState } from 'react'
 import { ChevronRight, ShieldCheck } from 'lucide-react'
 import { berekenBmi } from '@/lib/club/training/intake'
 import type { Intake } from '@/lib/club/training/intake-rij'
-import { DOEL_LABEL } from '@/lib/club/training/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { toonDatum } from '@/lib/club/training/weergave'
 import { IntakeDetail } from './IntakeDetail'
 import { VoorstelKnop } from './VoorstelKnop'
@@ -24,6 +27,9 @@ interface IntakeLijstProps {
 /** De intakes als rijen: een klik opent de hele intake in een zijpaneel, het voorstel kan direct vanuit de rij. */
 export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }: IntakeLijstProps) {
   const [open, setOpen] = useState<Intake | null>(null)
+  const taal = useTaal()
+  const t = useTekst(INTAKE).lijst
+  const l = useTekst(TRAINING_LABELS)
   const sluit = useCallback(() => setOpen(null), [])
 
   return (
@@ -33,28 +39,28 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
           const bmi = berekenBmi(i.metingen.gewicht_kg, i.metingen.lengte_cm)
           return (
             <li key={i.id} className="club-rij">
-              <span className="club-training-datumblok" aria-hidden>{toonDatum(i.datum)}</span>
+              <span className="club-training-datumblok" aria-hidden>{toonDatum(i.datum, taal)}</span>
               <button type="button" className="club-rij-hoofd club-training-rijknop" onClick={() => setOpen(i)}>
                 <span className="club-rij-titel">
-                  {toonLid && i.lidNaam ? i.lidNaam : (i.antwoorden?.doelen.map((d) => DOEL_LABEL[d]).join(', ') ?? 'Intake')}
+                  {toonLid && i.lidNaam ? i.lidNaam : (i.antwoorden?.doelen.map((d) => l.doel[d]).join(', ') ?? t.intake)}
                 </span>
                 <span className="club-rij-sub">
                   {[
-                    toonLid ? i.antwoorden?.doelen.map((d) => DOEL_LABEL[d]).join(', ') : null,
-                    i.metingen.gewicht_kg ? `${i.metingen.gewicht_kg.toLocaleString('nl-NL')} kg` : null,
-                    bmi ? `BMI ${bmi.toLocaleString('nl-NL')}` : null,
+                    toonLid ? i.antwoorden?.doelen.map((d) => l.doel[d]).join(', ') : null,
+                    i.metingen.gewicht_kg ? `${formatGetal(i.metingen.gewicht_kg, taal)} kg` : null,
+                    bmi ? `BMI ${formatGetal(bmi, taal)}` : null,
                     i.medewerkerId && trainers[i.medewerkerId] ? trainers[i.medewerkerId] : null,
                   ].filter(Boolean).join(' · ')}
                 </span>
               </button>
               {i.toestemmingGezondheid && (
-                <span className="club-chip club-chip--ok club-chip--geen club-training-avgchip" title="Toestemming voor gezondheidsgegevens">
-                  <ShieldCheck aria-hidden size={13} /> AVG
+                <span className="club-chip club-chip--ok club-chip--geen club-training-avgchip" title={t.avgTitel}>
+                  <ShieldCheck aria-hidden size={13} /> {t.avg}
                 </span>
               )}
-              <VoorstelKnop intakeId={i.id} editorHref={editorHref} primair={false} klein label="Schemavoorstel" />
+              <VoorstelKnop intakeId={i.id} editorHref={editorHref} primair={false} klein label={t.voorstel} />
               {toonLid && (
-                <Link href={lidHref.replace('__lid__', i.lidId)} className="club-knop club-knop--stil club-knop--klein" aria-label={`Alles van ${i.lidNaam ?? 'dit lid'}`}>
+                <Link href={lidHref.replace('__lid__', i.lidId)} className="club-knop club-knop--stil club-knop--klein" aria-label={t.allesVan(i.lidNaam ?? t.ditLid)}>
                   <ChevronRight aria-hidden size={16} />
                 </Link>
               )}
@@ -63,7 +69,7 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
         })}
       </ul>
       {open && (
-        <Zijpaneel titel={open.lidNaam ?? 'Intake'} boventitel="Intake" onSluit={sluit}>
+        <Zijpaneel titel={open.lidNaam ?? t.intake} boventitel={t.intake} onSluit={sluit}>
           <VoorstelKnop intakeId={open.id} editorHref={editorHref} />
           <IntakeDetail intake={open} trainer={open.medewerkerId ? trainers[open.medewerkerId] ?? null : null} />
         </Zijpaneel>

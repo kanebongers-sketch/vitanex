@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { VoortgangData } from '@/lib/club/voortgang/model'
-import { BMI_KANTTEKENING, beschikbareReeksen, laatsteBloeddruk, reeksVoor, verschillen, type ReeksSleutel } from '@/lib/club/voortgang/tijdlijn'
+import { beschikbareReeksen, laatsteBloeddruk, reeksVoor, verschillen, type ReeksSleutel } from '@/lib/club/voortgang/tijdlijn'
 import { MetingFormulier, type MedewerkerKeuze } from './MetingFormulier'
 import { MetingLijst } from './MetingLijst'
 import { ReeksKop } from './ReeksKop'
@@ -11,6 +11,8 @@ import { TrainingStrook } from './TrainingStrook'
 import { VoortgangGrafiek } from './VoortgangGrafiek'
 import { useVoortgang } from './useVoortgang'
 import { datumLang } from './weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOORTGANG } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 import './voortgang.css'
 
 interface VoortgangskaartProps {
@@ -31,6 +33,9 @@ export function Voortgangskaart({ begin, medewerkers, vandaag, nu }: Voortgangsk
   const { voortgang, bezig, melding, voegToe, wijzig, verwijder } = useVoortgang(begin)
   const [modus, setModus] = useState<Modus>({ soort: 'kijk' })
   const [keuze, setKeuze] = useState<ReeksSleutel>('gewicht_kg')
+  const taal = useTaal()
+  const tv = useTekst(VOORTGANG)
+  const t = tv.kaart
 
   const reeksen = beschikbareReeksen(voortgang.punten)
   const info = reeksen.find((r) => r.sleutel === keuze) ?? reeksen[0]
@@ -44,12 +49,12 @@ export function Voortgangskaart({ begin, medewerkers, vandaag, nu }: Voortgangsk
     <section className="club-kaart club-voortgang" aria-labelledby="voortgang-kop">
       <div className="club-voortgang-kop">
         <div>
-          <h2 id="voortgang-kop">Voortgang</h2>
-          <p className="club-voortgang-ondertitel">Metingen uit intakes en tussendoor, plus de trainingen uit de app.</p>
+          <h2 id="voortgang-kop">{t.titel}</h2>
+          <p className="club-voortgang-ondertitel">{t.ondertitel}</p>
         </div>
         {modus.soort === 'kijk' && (
           <button type="button" className="club-knop club-knop--primair club-knop--klein" onClick={() => setModus({ soort: 'nieuw' })}>
-            <Plus aria-hidden size={16} /> Meting toevoegen
+            <Plus aria-hidden size={16} /> {t.toevoegen}
           </button>
         )}
       </div>
@@ -59,7 +64,7 @@ export function Voortgangskaart({ begin, medewerkers, vandaag, nu }: Voortgangsk
       </div>
       {voortgang.fouten.length > 0 && (
         <p className="club-melding club-melding--fout" role="alert">
-          Niet alles kon worden geladen ({voortgang.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.
+          {t.laadFout(voortgang.fouten.map((f) => tv.bron[f as keyof typeof tv.bron] ?? f).join(', '))}
         </p>
       )}
 
@@ -80,13 +85,13 @@ export function Voortgangskaart({ begin, medewerkers, vandaag, nu }: Voortgangsk
           <ReeksKop info={info} verschil={verschil} reeksen={reeksen} gekozen={info.sleutel} onKies={setKeuze} />
           <VoortgangGrafiek reeks={reeks} info={info} />
           <p className="club-voortgang-legenda">
-            <span className="club-voortgang-legenda-ruit" aria-hidden /> Intake <span className="club-voortgang-legenda-rond" aria-hidden /> Losse meting
-            {bloeddruk && <span className="club-voortgang-legenda-extra">Laatste bloeddruk {bloeddruk.waarde} ({datumLang(bloeddruk.datum)})</span>}
+            <span className="club-voortgang-legenda-ruit" aria-hidden /> {t.intake} <span className="club-voortgang-legenda-rond" aria-hidden /> {t.losseMeting}
+            {bloeddruk && <span className="club-voortgang-legenda-extra">{t.laatsteBloeddruk(bloeddruk.waarde, datumLang(bloeddruk.datum, taal))}</span>}
           </p>
-          {info.sleutel === 'bmi' && <p className="club-voortgang-kanttekening">{BMI_KANTTEKENING}</p>}
+          {info.sleutel === 'bmi' && <p className="club-voortgang-kanttekening">{tv.bmiKanttekening}</p>}
         </div>
       ) : (
-        <p className="club-leeg">Nog geen metingen. Voeg de eerste toe, met toestemming van het lid.</p>
+        <p className="club-leeg">{t.leeg}</p>
       )}
 
       <TrainingStrook trainingen={voortgang.trainingen} totaal={voortgang.totaalTrainingen} nu={nu} />

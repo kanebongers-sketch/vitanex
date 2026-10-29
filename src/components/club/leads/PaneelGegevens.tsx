@@ -3,6 +3,8 @@
 import type { Lead } from '@/lib/club/leads/model'
 import { LeadVelden, veldenUitFormulier } from './LeadVelden'
 import type { Doe } from './usePaneel'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 
 interface PaneelGegevensProps {
   lead: Lead
@@ -14,11 +16,12 @@ interface PaneelGegevensProps {
 // Gegevens bewerken, ingeklapt zodat het paneel rustig blijft. De key op de
 // lead zorgt dat het formulier na een wijziging de nieuwe waarden toont.
 export function PaneelGegevens({ lead, medewerkers, bezig, doe }: PaneelGegevensProps) {
+  const t = useTekst(LEADS).gegevens
   return (
     <details className="club-leads-blok club-leads-gegevens">
       <summary>
-        <h3>Gegevens</h3>
-        <span className="club-zacht">{lead.toestemmingContact ? 'Toestemming voor contact' : 'Geen toestemming voor contact'}</span>
+        <h3>{t.titel}</h3>
+        <span className="club-zacht">{lead.toestemmingContact ? t.toestemming : t.geenToestemming}</span>
       </summary>
       <form
         key={lead.bijgewerktOp}
@@ -30,7 +33,7 @@ export function PaneelGegevens({ lead, medewerkers, bezig, doe }: PaneelGegevens
       >
         <LeadVelden lead={lead} medewerkers={medewerkers} />
         <button type="submit" className="club-knop" disabled={bezig}>
-          Gegevens opslaan
+          {t.opslaan}
         </button>
       </form>
     </details>

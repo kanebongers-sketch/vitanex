@@ -6,6 +6,7 @@
 
 import { eersteDag, kiesMaand, laatsteDag, maandenReeks, maandGrenzen, maandNaam, maandVan, VROEGSTE_MAAND, type Maand } from '@/lib/club/cijfers/maand'
 import type { VestigingInfo, VestigingSleutel } from '@/lib/club/kern/vestigingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { kiesRapport, type RapportSleutel } from './definities'
 
 export const VESTIGINGEN_PARAM = 'vs'
@@ -90,12 +91,12 @@ export interface MaandKeuze {
 }
 
 /** De kiesbare maanden, nieuwste eerst: de lopende maand en de 35 ervoor. */
-export function maandKeuzes(vandaag: string): MaandKeuze[] {
+export function maandKeuzes(vandaag: string, taal: Taal = 'nl'): MaandKeuze[] {
   return maandenReeks(maandVan(vandaag), KEUZE_MAANDEN)
     .filter((m) => m >= VROEGSTE_MAAND)
     .reverse()
     .map((m) => {
-      const naam = maandNaam(m)
+      const naam = maandNaam(m, taal)
       return { maand: m, label: naam.charAt(0).toUpperCase() + naam.slice(1) }
     })
 }

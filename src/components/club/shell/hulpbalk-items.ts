@@ -8,7 +8,12 @@
 import type { InstelKijker } from '@/lib/club/kern/instel-paginas'
 import { VESTIGING_PARAM } from '@/lib/club/kern/vestiging'
 import { zichtbareKoppelingen } from '@/lib/club/kern/koppelingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { ONDERDELEN, actiefOnderdeel, isActief, isZichtbaar, toetsTekst } from './onderdelen'
+
+// De Nederlandse namen komen uit het woordenboek (bron); in beeld via hulpItems(sleutels, taal).
+const H = MENU.nl.hulpbalk
 
 export type HulpSleutel = 'instellingen' | 'koppelingen' | 'ledenapp' | 'nieuw' | 'hulp'
 
@@ -25,11 +30,11 @@ export interface HulpItem {
 }
 
 export const HULPBALK: readonly HulpItem[] = [
-  { sleutel: 'instellingen', label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek', pad: '/beheer', trefwoorden: 'instellingencentrum beheer', onderdeel: 'beheer' },
-  { sleutel: 'koppelingen', label: 'Koppelingen', uitleg: 'Betalen, boekingswidget, ledenapp, mail en exports met hun stand', pad: '/koppelingen', trefwoorden: 'integraties stripe widget export csv mail' },
-  { sleutel: 'ledenapp', label: 'Ledenapp', uitleg: 'Zo ziet een lid de app, met de poster en de uitnodiging', pad: '/app', trefwoorden: 'bekijken voorvertoning voorbeeld telefoon poster qr uitnodigen', onderdeel: 'app' },
-  { sleutel: 'nieuw', label: 'Wat is nieuw', uitleg: 'Wat er per datum bij is gekomen in Club', pad: '/nieuw', trefwoorden: 'updates nieuws veranderingen' },
-  { sleutel: 'hulp', label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden', pad: '/hulp', trefwoorden: 'support handleiding vraag probleem melden', onderdeel: 'hulp' },
+  { sleutel: 'instellingen', label: H.instellingen.label, uitleg: H.instellingen.uitleg, pad: '/beheer', trefwoorden: 'instellingencentrum beheer', onderdeel: 'beheer' },
+  { sleutel: 'koppelingen', label: H.koppelingen.label, uitleg: H.koppelingen.uitleg, pad: '/koppelingen', trefwoorden: 'integraties stripe widget export csv mail' },
+  { sleutel: 'ledenapp', label: H.ledenapp.label, uitleg: H.ledenapp.uitleg, pad: '/app', trefwoorden: 'bekijken voorvertoning voorbeeld telefoon poster qr uitnodigen', onderdeel: 'app' },
+  { sleutel: 'nieuw', label: H.nieuw.label, uitleg: H.nieuw.uitleg, pad: '/nieuw', trefwoorden: 'updates nieuws veranderingen' },
+  { sleutel: 'hulp', label: H.hulp.label, uitleg: H.hulp.uitleg, pad: '/hulp', trefwoorden: 'support handleiding vraag probleem melden', onderdeel: 'hulp' },
 ]
 
 const LEDENAPP = ONDERDELEN.find((o) => o.sleutel === 'app')
@@ -51,9 +56,15 @@ export function hulpbalkVoor(k: InstelKijker, instellingen: boolean): HulpSleute
   return HULPBALK.filter((i) => mag[i.sleutel]).map((i) => i.sleutel)
 }
 
-/** De items in vaste volgorde, alleen de sleutels die iemand heeft. */
-export function hulpItems(sleutels: readonly HulpSleutel[]): HulpItem[] {
-  return HULPBALK.filter((i) => sleutels.includes(i.sleutel))
+/** Een item met naam en uitleg in de gekozen taal. */
+export function hulpItemInTaal(i: HulpItem, taal: Taal): HulpItem {
+  const t = MENU[taal].hulpbalk[i.sleutel]
+  return { ...i, label: t.label, uitleg: t.uitleg }
+}
+
+/** De items in vaste volgorde, alleen de sleutels die iemand heeft, in de gekozen taal. */
+export function hulpItems(sleutels: readonly HulpSleutel[], taal: Taal = 'nl'): HulpItem[] {
+  return HULPBALK.filter((i) => sleutels.includes(i.sleutel)).map((i) => hulpItemInTaal(i, taal))
 }
 
 function onder(pad: string, basis: string): boolean {

@@ -1,14 +1,16 @@
 // ─── Club, voeding: kleine weergavehulp (PUUR) ──────────────────────────────
 
-import { DOEL_INFO, type VoedingDoel } from '@/lib/club/voeding/rekenhulp'
+import type { VoedingDoel } from '@/lib/club/voeding/rekenhulp'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
 
-export function doelLabel(doel: VoedingDoel | null): string {
-  return doel ? DOEL_INFO[doel].label : 'Geen doel gekozen'
+export function doelLabel(doel: VoedingDoel | null, taal: Taal = 'nl'): string {
+  const t = VOEDING[taal]
+  return doel ? t.doel[doel].label : t.geenDoel
 }
 
-/** "17 oktober 2026" in Nederlandse tijd, of een lege tekst. */
-export function datumLang(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' })
+/** "17 oktober 2026" | "17 October 2026" in Nederlandse tijd, of een lege tekst. */
+export function datumLang(iso: string, taal: Taal = 'nl'): string {
+  return formatDatum(iso, taal, 'lang')
 }

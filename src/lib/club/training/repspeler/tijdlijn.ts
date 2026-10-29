@@ -129,10 +129,10 @@ export function standOp(plan: RepPlan, t: number): Stand {
   return plan.soort === 'herhaling' ? herhalingStand(plan, tijd) : vasthoudStand(plan, tijd)
 }
 
-/** "2 sec omlaag, 1 sec vast, 2 sec omhoog" of "30 sec vasthouden". */
-export function tempoUitleg(plan: RepPlan): string {
-  if (plan.soort === 'vasthouden') return `${Math.round(plan.doelSec)} sec ${plan.label}`
-  return plan.segmenten.map((s) => `${secTekst(s.duur)} ${s.label}`).join(', ')
+/** "2 sec omlaag, 1 sec vast, 2 sec omhoog" of "30 sec vasthouden". `woord` vertaalt een fasewoord (standaard: zoals het is). */
+export function tempoUitleg(plan: RepPlan, woord: (w: string) => string = (w) => w): string {
+  if (plan.soort === 'vasthouden') return `${Math.round(plan.doelSec)} sec ${woord(plan.label)}`
+  return plan.segmenten.map((s) => `${secTekst(s.duur)} ${woord(s.label)}`).join(', ')
 }
 
 /** Ligt het verste punt (piek) in beeld? Voor de stilstaande beelden bij minder beweging. */

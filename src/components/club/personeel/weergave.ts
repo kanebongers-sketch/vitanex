@@ -4,7 +4,10 @@
 
 import type { CSSProperties } from 'react'
 import { isoWeekdag, tijdNaarMinuten } from '@/lib/club/rooster/tijd'
-import { WEEKDAG_KORT, WEEKDAG_LABEL } from '@/lib/club/rooster/openingstijden'
+import { WEEKDAG_KORT } from '@/lib/club/rooster/openingstijden'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 const DAG_MAAND = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'UTC' })
 const LANG = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'UTC' })
@@ -13,30 +16,30 @@ function alsDatum(datum: string): Date {
   return new Date(`${datum}T12:00:00Z`)
 }
 
-/** "12 okt" */
-export function dagMaand(datum: string): string {
-  return DAG_MAAND.format(alsDatum(datum))
+/** "12 okt" | "12 Oct" */
+export function dagMaand(datum: string, taal: Taal = 'nl'): string {
+  return taal === 'nl' ? DAG_MAAND.format(alsDatum(datum)) : formatDatum(alsDatum(datum), taal, 'dagMaand')
 }
 
-/** "12 oktober" */
-export function dagMaandLang(datum: string): string {
-  return LANG.format(alsDatum(datum))
+/** "12 oktober" | "12 October" */
+export function dagMaandLang(datum: string, taal: Taal = 'nl'): string {
+  return taal === 'nl' ? LANG.format(alsDatum(datum)) : formatDatum(alsDatum(datum), taal, 'dagMaandLang')
 }
 
-/** "Ma" */
-export function weekdagKort(datum: string): string {
-  return WEEKDAG_KORT[isoWeekdag(datum) - 1]
+/** "Ma" | "Mon" */
+export function weekdagKort(datum: string, taal: Taal = 'nl'): string {
+  return taal === 'nl' ? WEEKDAG_KORT[isoWeekdag(datum) - 1] : formatDatum(alsDatum(datum), taal, 'weekdag')
 }
 
-/** "Maandag 12 oktober" */
-export function dagVolledig(datum: string): string {
-  return `${WEEKDAG_LABEL[isoWeekdag(datum) - 1]} ${dagMaandLang(datum)}`
+/** "Maandag 12 oktober" | "Monday 12 October" */
+export function dagVolledig(datum: string, taal: Taal = 'nl'): string {
+  return `${PERSONEEL[taal].labels.weekdagen[isoWeekdag(datum) - 1]} ${dagMaandLang(datum, taal)}`
 }
 
-/** Minuten als uren met komma: 450 wordt "7,5". */
-export function uurTekst(min: number): string {
+/** Minuten als uren met komma: 450 wordt "7,5" (Engels "7.5"). */
+export function uurTekst(min: number, taal: Taal = 'nl'): string {
   const u = Math.round((min / 60) * 10) / 10
-  return String(u).replace('.', ',')
+  return taal === 'nl' ? String(u).replace('.', ',') : String(u)
 }
 
 export interface Bereik {

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { LifeBuoy, Sparkles } from 'lucide-react'
 import { UitlogKnop } from '@/components/club/shell/UitlogKnop'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import './start-balk.css'
 
 // De balk zolang de startwizard loopt: geen menu met onderdelen die nog niet
@@ -13,21 +15,22 @@ interface StartBalkProps {
   wizard: boolean
 }
 
-export function StartBalk({ naam, logoUrl, wizard }: StartBalkProps) {
+export async function StartBalk({ naam, logoUrl, wizard }: StartBalkProps) {
+  const t = (await clubTekst(START)).balk
   return (
     <header className="club-startbalk">
       <span className="club-startbalk-merk">
         {logoUrl ? <img src={logoUrl} alt="" width={32} height={32} /> : null}
         <strong>{naam}</strong>
       </span>
-      <nav className="club-startbalk-nav" aria-label="Startwizard">
+      <nav className="club-startbalk-nav" aria-label={t.nav}>
         {wizard && (
           <Link href="/club/start" className="club-startbalk-link">
-            <Sparkles aria-hidden size={15} /> Startwizard
+            <Sparkles aria-hidden size={15} /> {t.wizard}
           </Link>
         )}
         <Link href="/club/hulp" className="club-startbalk-link">
-          <LifeBuoy aria-hidden size={15} /> Hulp
+          <LifeBuoy aria-hidden size={15} /> {t.hulp}
         </Link>
         <UitlogKnop />
       </nav>
@@ -36,11 +39,12 @@ export function StartBalk({ naam, logoUrl, wizard }: StartBalkProps) {
 }
 
 /** Voor het team zolang de eigenaar de wizard nog doorloopt. */
-export function WizardWacht({ naam }: { naam: string }) {
+export async function WizardWacht({ naam }: { naam: string }) {
+  const t = (await clubTekst(START)).balk
   return (
     <section className="club-startbalk-wacht" aria-labelledby="wacht-kop">
-      <h1 id="wacht-kop">{naam} wordt ingericht</h1>
-      <p>De eigenaar zet Club nu klaar. Zodra dat af is, opent alles hier vanzelf. Ververs de pagina om te kijken of het al zover is.</p>
+      <h1 id="wacht-kop">{t.wachtKop(naam)}</h1>
+      <p>{t.wachtTekst}</p>
     </section>
   )
 }

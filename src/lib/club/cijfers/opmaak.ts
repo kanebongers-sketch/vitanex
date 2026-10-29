@@ -1,25 +1,38 @@
-// ─── Fit Factory Club: getallen netjes in het Nederlands (PUUR) ─────────────
+// ─── Fit Factory Club: getallen netjes in de taal van de gebruiker (PUUR) ───
+// Standaard Nederlands (1.234 en 0,4); met taal 'en' Brits (1,234 en 0.4).
 
-const HEEL = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 })
-const EEN = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LOCALE } from '@/lib/aiyourgym/taal/taal'
 
-export function heel(n: number): string {
-  return HEEL.format(Math.round(n))
+const HEEL: Record<Taal, Intl.NumberFormat> = {
+  nl: new Intl.NumberFormat(LOCALE.nl, { maximumFractionDigits: 0 }),
+  en: new Intl.NumberFormat(LOCALE.en, { maximumFractionDigits: 0 }),
+}
+const EEN: Record<Taal, Intl.NumberFormat> = {
+  nl: new Intl.NumberFormat(LOCALE.nl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+  en: new Intl.NumberFormat(LOCALE.en, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
 }
 
-export function eenDecimaal(n: number): string {
-  return EEN.format(n)
+/** "Geen data" in beide talen, voor een cijfer zonder bron. */
+export const GEEN_DATA: Readonly<Record<Taal, string>> = { nl: 'geen data', en: 'no data' }
+
+export function heel(n: number, taal: Taal = 'nl'): string {
+  return HEEL[taal].format(Math.round(n))
+}
+
+export function eenDecimaal(n: number, taal: Taal = 'nl'): string {
+  return EEN[taal].format(n)
 }
 
 /** 0.734 wordt "73%"; null wordt een streepje-vrije "geen data". */
-export function procent(deel: number | null): string {
-  return deel === null ? 'geen data' : `${HEEL.format(Math.round(deel * 100))}%`
+export function procent(deel: number | null, taal: Taal = 'nl'): string {
+  return deel === null ? GEEN_DATA[taal] : `${HEEL[taal].format(Math.round(deel * 100))}%`
 }
 
 /** +3, 0 of -2 (met een echt minteken voor schermlezers en typografie). */
-export function metTeken(n: number): string {
-  if (n > 0) return `+${heel(n)}`
-  if (n < 0) return `−${heel(Math.abs(n))}`
+export function metTeken(n: number, taal: Taal = 'nl'): string {
+  if (n > 0) return `+${heel(n, taal)}`
+  if (n < 0) return `−${heel(Math.abs(n), taal)}`
   return '0'
 }
 
@@ -32,8 +45,8 @@ export function mooiMaximum(max: number): number {
 }
 
 /** "1 lid", "3 leden", "0 leden": enkelvoud alleen bij precies 1. */
-export function aantal(n: number, enkel: string, meer: string): string {
-  return `${heel(n)} ${Math.round(n) === 1 ? enkel : meer}`
+export function aantal(n: number, enkel: string, meer: string, taal: Taal = 'nl'): string {
+  return `${heel(n, taal)} ${Math.round(n) === 1 ? enkel : meer}`
 }
 
 export interface As {
@@ -62,14 +75,14 @@ export function mooieAs(laag: number, hoog: number, stappen = 4): As {
 }
 
 /** +0,4 of −1,2 (een decimaal, echt minteken); 0,0 zonder teken. */
-export function metTekenDecimaal(n: number): string {
+export function metTekenDecimaal(n: number, taal: Taal = 'nl'): string {
   const afgerond = Math.round(n * 10) / 10
-  if (afgerond > 0) return `+${eenDecimaal(afgerond)}`
-  if (afgerond < 0) return `−${eenDecimaal(Math.abs(afgerond))}`
-  return eenDecimaal(0)
+  if (afgerond > 0) return `+${eenDecimaal(afgerond, taal)}`
+  if (afgerond < 0) return `−${eenDecimaal(Math.abs(afgerond), taal)}`
+  return eenDecimaal(0, taal)
 }
 
 /** Een relatief verschil: 0.12 wordt "+12%". */
-export function metTekenProcent(deel: number): string {
-  return `${metTeken(deel * 100)}%`
+export function metTekenProcent(deel: number, taal: Taal = 'nl'): string {
+  return `${metTeken(deel * 100, taal)}%`
 }

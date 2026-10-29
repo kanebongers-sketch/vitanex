@@ -6,16 +6,18 @@ import { urenOordeel } from '@/lib/club/personeel/regels'
 import type { Melding, MeldingSoort } from '@/lib/club/personeel/controle'
 import type { PersoneelLid } from '@/lib/club/personeel/typen'
 import { dagMaand, uurTekst, weekdagKort } from './weergave'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 // Naast het rooster: uren per medewerker tegenover het contract, en de
 // controle (overlap, rust, beschikbaarheid, gaten en open diensten).
 
-const OORDEEL_TEKST = { goed: 'Klopt', te_veel: 'Te veel', te_weinig: 'Te weinig', geen_contract: 'Geen contract' } as const
-
-export function UrenBalk({ team, gepland, staat }: { team: readonly PersoneelLid[]; gepland: ReadonlyMap<string, number>; staat: PersoneelStaat }) {
+export async function UrenBalk({ team, gepland, staat }: { team: readonly PersoneelLid[]; gepland: ReadonlyMap<string, number>; staat: PersoneelStaat }) {
+  const taal = await getTaal()
+  const tk = (await clubTekst(PERSONEEL)).zij
   return (
     <section className="club-kaart club-personeel-zijkaart" aria-labelledby="club-personeel-uren-titel">
-      <h2 id="club-personeel-uren-titel">Uren deze week</h2>
+      <h2 id="club-personeel-uren-titel">{tk.urenTitel}</h2>
       <ul className="club-personeel-urenlijst">
         {team.map((l) => {
           const min = gepland.get(l.id) ?? 0
@@ -29,13 +31,13 @@ export function UrenBalk({ team, gepland, staat }: { team: readonly PersoneelLid
                 {l.naam}
               </Link>
               <span className="club-personeel-urengetal club-getal">
-                {uurTekst(min)}
-                <span className="club-zacht">{l.contracturen !== null ? ` / ${uurTekst(l.contracturen * 60)}` : ''}</span>
+                {uurTekst(min, taal)}
+                <span className="club-zacht">{l.contracturen !== null ? ` / ${uurTekst(l.contracturen * 60, taal)}` : ''}</span>
               </span>
               <span className="club-personeel-urenmeter" style={stijl} aria-hidden>
                 <span />
               </span>
-              <span className="club-personeel-urenoordeel">{OORDEEL_TEKST[oordeel]}</span>
+              <span className="club-personeel-urenoordeel">{tk.oordeel[oordeel]}</span>
             </li>
           )
         })}
@@ -46,15 +48,17 @@ export function UrenBalk({ team, gepland, staat }: { team: readonly PersoneelLid
 
 const ICOON: Record<MeldingSoort, typeof AlertTriangle> = { overlap: AlertTriangle, rust: Clock, beschikbaar: CalendarX, gat: AlertTriangle, open: UserX }
 
-export function ControleLijst({ meldingen, staat }: { meldingen: readonly Melding[]; staat: PersoneelStaat }) {
+export async function ControleLijst({ meldingen, staat }: { meldingen: readonly Melding[]; staat: PersoneelStaat }) {
+  const taal = await getTaal()
+  const tk = (await clubTekst(PERSONEEL)).zij
   const basis = zonderPaneel(staat)
   return (
     <section className="club-kaart club-personeel-zijkaart" aria-labelledby="club-personeel-controle-titel">
       <h2 id="club-personeel-controle-titel">
-        Controle <span className="club-getal club-zacht">{meldingen.length}</span>
+        {tk.controle} <span className="club-getal club-zacht">{meldingen.length}</span>
       </h2>
       {meldingen.length === 0 ? (
-        <p className="club-hint">Alles gedekt, geen dubbele diensten en genoeg rust. Mooi rooster.</p>
+        <p className="club-hint">{tk.allesGoed}</p>
       ) : (
         <ul className="club-personeel-meldingen">
           {meldingen.map((m, i) => {
@@ -65,7 +69,7 @@ export function ControleLijst({ meldingen, staat }: { meldingen: readonly Meldin
                 <Link href={href} scroll={false}>
                   <Icoon aria-hidden size={15} />
                   <span className="club-personeel-meldingdag">
-                    {weekdagKort(m.datum)} {dagMaand(m.datum)}
+                    {weekdagKort(m.datum, taal)} {dagMaand(m.datum, taal)}
                   </span>
                   <span>{m.tekst}</span>
                 </Link>

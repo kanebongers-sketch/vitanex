@@ -7,6 +7,8 @@ import { stuur } from '@/components/club/leden/stuur'
 import type { LoginStaat } from '@/lib/club/medewerker-login/medewerker-login'
 import { isGemaild, uitnodigLink, uitnodigMelding, uitnodigStand, type Gemaild } from '@/lib/club/start/team-uitnodigen'
 import { KopieerKnop } from './KopieerKnop'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // De uitnodiging van een medewerker, in de rij van stap Team. Dezelfde API als
 // bij Medewerkers, met mailen: Club mailt de eenmalige link (7 dagen geldig)
@@ -30,9 +32,11 @@ export function TeamUitnodiging({ medewerkerId, naam, email, staat, loginAan, li
   const [fout, setFout] = useState<string | null>(null)
   const [link, setLink] = useState<string | null>(null)
   const [gemaild, setGemaild] = useState<Gemaild | null>(null)
-  const stand = uitnodigStand(email, staat, loginAan)
+  const taal = useTaal()
+  const t = useTekst(START).uitnodiging
+  const stand = uitnodigStand(email, staat, loginAan, taal)
   const voornaam = naam.trim().split(' ')[0]
-  const melding = link && email ? uitnodigMelding(gemaild, voornaam, email) : null
+  const melding = link && email ? uitnodigMelding(gemaild, voornaam, email, taal) : null
 
   async function nodigUit() {
     if (bezig || !email) return
@@ -46,7 +50,7 @@ export function TeamUitnodiging({ medewerkerId, naam, email, staat, loginAan, li
     const mail = data?.gemaild
     setGemaild(isGemaild(mail) ? mail : null)
     const volledig = uitnodigLink(pad, linkBasis, window.location.origin)
-    if (!volledig) return setFout('De uitnodiging is gemaakt, maar de link kwam niet mee. Probeer het nog een keer.')
+    if (!volledig) return setFout(t.geenLink)
     setLink(volledig)
     router.refresh()
   }
@@ -56,8 +60,8 @@ export function TeamUitnodiging({ medewerkerId, naam, email, staat, loginAan, li
       <div className="club-start-uitnodig-rij">
         {stand.chip && <span className={`club-chip ${stand.chip.klasse}`}>{stand.chip.label}</span>}
         {stand.knop && !link && (
-          <button type="button" className="club-knop club-knop--klein" disabled={bezig} aria-busy={bezig} onClick={() => void nodigUit()} aria-label={`${stand.knop}: ${naam}`}>
-            <Mail aria-hidden size={14} /> {bezig ? 'Bezig...' : stand.knop}
+          <button type="button" className="club-knop club-knop--klein" disabled={bezig} aria-busy={bezig} onClick={() => void nodigUit()} aria-label={t.knopLabel(stand.knop, naam)}>
+            <Mail aria-hidden size={14} /> {bezig ? t.bezig : stand.knop}
           </button>
         )}
       </div>
@@ -66,8 +70,8 @@ export function TeamUitnodiging({ medewerkerId, naam, email, staat, loginAan, li
         <div className="club-start-uitnodig-link" role="status">
           <span className={`club-hint${melding?.ok ? ' club-start-uitnodig-ok' : ''}`}>{melding?.tekst}</span>
           <span className="club-start-uitnodig-adres">
-            <input className="club-invoer" readOnly value={link} aria-label={`Uitnodigingslink voor ${naam}`} onFocus={(e) => e.currentTarget.select()} />
-            <KopieerKnop tekst={link} label={`uitnodigingslink voor ${naam}`} />
+            <input className="club-invoer" readOnly value={link} aria-label={t.linkLabel(naam)} onFocus={(e) => e.currentTarget.select()} />
+            <KopieerKnop tekst={link} label={t.kopieerLabel(naam)} />
           </span>
         </div>
       )}

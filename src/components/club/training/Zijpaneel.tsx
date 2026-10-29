@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 interface ZijpaneelProps {
   titel: string
@@ -14,6 +16,7 @@ interface ZijpaneelProps {
 /** Een zijpaneel rechts (club-paneel). Escape of klik ernaast sluit; focus gaat naar het paneel. */
 export function Zijpaneel({ titel, boventitel, onSluit, children, breed }: ZijpaneelProps) {
   const paneel = useRef<HTMLElement>(null)
+  const t = useTekst(CLUB_TRAINING).zijpaneel
 
   useEffect(() => {
     const vorige = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -43,7 +46,7 @@ export function Zijpaneel({ titel, boventitel, onSluit, children, breed }: Zijpa
             {boventitel && <p className="club-boventitel">{boventitel}</p>}
             <h2>{titel}</h2>
           </div>
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={onSluit} aria-label="Sluiten">
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={onSluit} aria-label={t.sluiten}>
             <X aria-hidden size={18} />
           </button>
         </header>

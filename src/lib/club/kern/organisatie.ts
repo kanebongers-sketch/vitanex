@@ -6,6 +6,8 @@
 import { HEX, THEMAS, type Thema } from './huisstijl'
 import { leesSlug } from './subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij, type OrgInstellingen } from './org-instellingen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { KERN_LABELS } from '@/lib/aiyourgym/taal/woorden/club/kern'
 
 export const MODULES = ['leden', 'checkin', 'rooster', 'afspraken', 'personeel', 'taken', 'leads', 'training', 'cijfers', 'app'] as const
 export type Module = (typeof MODULES)[number]
@@ -90,3 +92,8 @@ export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema
 
 /** De cookie waarin staat welke sportschool Kane nu bekijkt. */
 export const ORGANISATIE_COOKIE = 'club-org'
+
+/** Naam en uitleg van een onderdeel (module) in de gekozen taal. */
+export function moduleTekst(m: Module, taal: Taal = 'nl'): { label: string; uitleg: string } {
+  return KERN_LABELS[taal].modules[m]
+}

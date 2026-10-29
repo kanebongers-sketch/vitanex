@@ -3,6 +3,8 @@
 // erin en wat het personeel per dag afvinkt. Rijen uit de database worden hier
 // genarrowd: een onbruikbare rij valt weg in plaats van de pagina te breken.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 
@@ -177,8 +179,18 @@ export function kortWie(wie: string): string {
   return `${woorden[0].charAt(0)}${woorden[woorden.length - 1].charAt(0)}`.toUpperCase()
 }
 
-/** "Minimaal 3x per week", "Elke dag", ... voor bij een taak. */
-export function frequentieTekst(taak: Pick<Taak, 'frequentie' | 'perWeekMin'>): string {
-  if (taak.frequentie === 'per_week') return `Minimaal ${taak.perWeekMin ?? 1}x per week`
-  return FREQUENTIE_LABEL[taak.frequentie]
+/** "Minimaal 3x per week", "Elke dag", ... voor bij een taak, in de gekozen taal. */
+export function frequentieTekst(taak: Pick<Taak, 'frequentie' | 'perWeekMin'>, taal: Taal = 'nl'): string {
+  if (taak.frequentie === 'per_week') return TAKEN[taal].perWeek(taak.perWeekMin ?? 1)
+  return TAKEN[taal].frequentie[taak.frequentie]
+}
+
+/** Het label van een frequentie in de gekozen taal. */
+export function frequentieLabel(f: Frequentie, taal: Taal = 'nl'): string {
+  return TAKEN[taal].frequentie[f]
+}
+
+/** Het label van een moment in de gekozen taal. */
+export function momentLabel(m: Moment, taal: Taal = 'nl'): string {
+  return TAKEN[taal].moment[m]
 }

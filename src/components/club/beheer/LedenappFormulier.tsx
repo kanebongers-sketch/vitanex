@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LEDENAPP_TABS, LEDENAPP_TAB_LABEL, MAX_WELKOM, type LedenappInstellingen, type LedenappTab } from '@/lib/club/kern/org-instellingen'
+import { LEDENAPP_TABS, MAX_WELKOM, type LedenappInstellingen, type LedenappTab } from '@/lib/club/kern/org-instellingen'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 
 // De app voor leden instellen: een eigen welkomsttekst, welke tabbladen er
 // zijn en of de check-in code zichtbaar is (bijvoorbeeld als je met een pasje werkt).
@@ -15,6 +17,7 @@ export function LedenappFormulier({ begin }: { begin: LedenappInstellingen }) {
   const [qr, setQr] = useState(begin.qr)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
+  const tekst = useTekst(BEHEER)
 
   async function bewaar() {
     setBezig(true)
@@ -22,40 +25,40 @@ export function LedenappFormulier({ begin }: { begin: LedenappInstellingen }) {
     const uit = await stuur('/api/club/organisatie/instellingen', 'PATCH', { ledenapp: { welkom, tabsUit, qr } })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: 'Opgeslagen. De ledenapp toont dit meteen.' })
+    setMelding({ ok: true, tekst: tekst.ledenapp.opgeslagen })
     router.refresh()
   }
 
   return (
     <div className="club-beheer-formulier">
       <label className="club-veld">
-        <span>Welkomsttekst op het beginscherm (mag leeg)</span>
-        <textarea className="club-invoer" rows={2} maxLength={MAX_WELKOM} value={welkom} placeholder="Bijvoorbeeld: Fijn dat je er bent. Vandaag wordt een goede dag." onChange={(e) => setWelkom(e.target.value)} />
-        <small className="club-hint">{welkom.length} van {MAX_WELKOM} tekens</small>
+        <span>{tekst.ledenapp.welkom}</span>
+        <textarea className="club-invoer" rows={2} maxLength={MAX_WELKOM} value={welkom} placeholder={tekst.ledenapp.welkomVoorbeeld} onChange={(e) => setWelkom(e.target.value)} />
+        <small className="club-hint">{tekst.ledenapp.tekens(welkom.length, MAX_WELKOM)}</small>
       </label>
 
       <fieldset className="club-beheer-keuzes">
-        <legend className="club-label">Tabbladen in de app</legend>
-        <p className="club-hint">Home en Profiel staan altijd aan.</p>
+        <legend className="club-label">{tekst.ledenapp.tabs}</legend>
+        <p className="club-hint">{tekst.ledenapp.altijdAan}</p>
         {LEDENAPP_TABS.map((tab) => (
           <label key={tab} className="club-beheer-keuze">
             <input type="checkbox" checked={!tabsUit.includes(tab)} onChange={(e) => setTabsUit(e.target.checked ? tabsUit.filter((x) => x !== tab) : [...tabsUit, tab])} />
-            <span>{LEDENAPP_TAB_LABEL[tab]}</span>
+            <span>{tekst.ledenapp.tab[tab]}</span>
           </label>
         ))}
       </fieldset>
 
       <fieldset className="club-beheer-keuzes">
-        <legend className="club-label">Inchecken</legend>
+        <legend className="club-label">{tekst.ledenapp.inchecken}</legend>
         <label className="club-beheer-keuze">
           <input type="checkbox" checked={qr} onChange={(e) => setQr(e.target.checked)} />
-          <span>Toon de check-in code (QR) in de app</span>
+          <span>{tekst.ledenapp.qr}</span>
         </label>
       </fieldset>
 
       <div className="club-beheer-acties">
         <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar()}>
-          {bezig ? 'Opslaan...' : 'Opslaan'}
+          {bezig ? tekst.algemeen.bezig : tekst.algemeen.opslaan}
         </button>
         <div role="status" aria-live="polite">
           {melding && <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`}>{melding.tekst}</p>}

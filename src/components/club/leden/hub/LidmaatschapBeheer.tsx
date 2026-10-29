@@ -2,7 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
+import { lidStatusLabel, type LidStatus } from '@/lib/club/kern/lid'
 import { ACTIE_DATUMS, actiesVoor, pauzeStand, wijzigingVoorActie, type LidmaatschapActie, type VormKeuze } from '@/lib/club/leden/hub/lidmaatschap'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
@@ -97,7 +97,7 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
       <dl className="club-lidhub-feiten">
         <div>
           <dt>{w.status}</dt>
-          <dd><span className={`club-chip ${STATUS_CHIP[stand.status]}`}>{LID_STATUS_LABEL[stand.status]}</span></dd>
+          <dd><span className={`club-chip ${STATUS_CHIP[stand.status]}`}>{lidStatusLabel(stand.status, taal)}</span></dd>
         </div>
         <div>
           <dt>{w.einddatum}</dt>

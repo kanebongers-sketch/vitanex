@@ -108,7 +108,13 @@ export const LEAD_AL_GEWIST = 'Deze lead is al gewist.'
 
 /** Mag deze lead gewist worden? null = ja, anders de melding. */
 export function wisBlokkade(lead: { lidId: string | null; geanonimiseerdOp: string | null }): string | null {
-  if (lead.geanonimiseerdOp) return LEAD_AL_GEWIST
-  if (lead.lidId) return LEAD_IS_LID
+  const soort = wisBlokkadeSoort(lead)
+  return soort === 'gewist' ? LEAD_AL_GEWIST : soort === 'isLid' ? LEAD_IS_LID : null
+}
+
+/** Waarom wissen niet kan, als sleutel (voor de tekst in de taal van de pagina). */
+export function wisBlokkadeSoort(lead: { lidId: string | null; geanonimiseerdOp: string | null }): 'gewist' | 'isLid' | null {
+  if (lead.geanonimiseerdOp) return 'gewist'
+  if (lead.lidId) return 'isLid'
   return null
 }

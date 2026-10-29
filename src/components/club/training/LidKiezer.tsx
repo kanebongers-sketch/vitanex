@@ -3,6 +3,8 @@
 import { useId, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { stuur } from './api'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 export interface GekozenLid {
   id: string
@@ -28,8 +30,9 @@ function leesLeden(data: Record<string, unknown>): GekozenLid[] {
 }
 
 /** Zoek een lid op naam, lidnummer, e-mail of telefoon. Pijltjes en Enter werken. */
-export function LidKiezer({ vestiging, onKies, label = 'Lid zoeken', autoFocus }: LidKiezerProps) {
+export function LidKiezer({ vestiging, onKies, label, autoFocus }: LidKiezerProps) {
   const id = useId()
+  const t = useTekst(CLUB_TRAINING).lidKiezer
   const [term, setTerm] = useState('')
   const [leden, setLeden] = useState<GekozenLid[]>([])
   const [actief, setActief] = useState(0)
@@ -74,7 +77,7 @@ export function LidKiezer({ vestiging, onKies, label = 'Lid zoeken', autoFocus }
   return (
     <div className="club-training-lidkiezer">
       <label className="club-veld" htmlFor={id}>
-        <span>{label}</span>
+        <span>{label ?? t.label}</span>
         <span className="club-training-zoekveld">
           <Search aria-hidden size={16} />
           <input
@@ -83,7 +86,7 @@ export function LidKiezer({ vestiging, onKies, label = 'Lid zoeken', autoFocus }
             value={term}
             onChange={(e) => zoek(e.target.value)}
             onKeyDown={toets}
-            placeholder="Naam, lidnummer of e-mail"
+            placeholder={t.plaats}
             autoComplete="off"
             autoFocus={autoFocus}
             role="combobox"
@@ -106,7 +109,7 @@ export function LidKiezer({ vestiging, onKies, label = 'Lid zoeken', autoFocus }
           ))}
         </ul>
       )}
-      {term.trim().length >= 2 && leden.length === 0 && !fout && !bezig && <p className="club-hint">Geen leden gevonden.</p>}
+      {term.trim().length >= 2 && leden.length === 0 && !fout && !bezig && <p className="club-hint">{t.geen}</p>}
     </div>
   )
 }

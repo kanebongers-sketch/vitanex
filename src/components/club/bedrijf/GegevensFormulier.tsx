@@ -2,9 +2,14 @@
 
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { SOCIAL_LABEL, type Gegevens } from '@/lib/club/bedrijf/model'
+import type { Gegevens } from '@/lib/club/bedrijf/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BEDRIJF } from '@/lib/aiyourgym/taal/woorden/club/bedrijf'
 import { leesGegevens } from '@/lib/club/bedrijf/invoer'
 import { stuur } from '@/components/club/leden/stuur'
+
+/** Namen van de netwerken (merknamen, in elke taal gelijk). */
+const SOCIAL_NAAM = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', linkedin: 'LinkedIn' } as const
 
 // Tabblad Gegevens: de officiele gegevens van de sportschool. Eerst in de
 // browser gecontroleerd (zelfde regels als de server), zodat de fout bij het
@@ -22,45 +27,46 @@ interface VeldInfo {
   auto?: string
 }
 
-const GROEPEN: { titel: string; uitleg: string; velden: VeldInfo[] }[] = [
-  {
-    titel: 'Bedrijf',
-    uitleg: 'Zoals in het Handelsregister. Je leden zien dit onder je voorwaarden.',
-    velden: [
-      { veld: 'bedrijfsnaam', label: 'Officiele bedrijfsnaam', placeholder: 'Bijvoorbeeld: Sportschool Jansen B.V.', breed: true, auto: 'organization' },
-      { veld: 'kvk', label: 'KvK-nummer', placeholder: '8 cijfers', hint: 'Precies 8 cijfers.' },
-      { veld: 'btw', label: 'Btw-nummer (mag leeg)', placeholder: 'NL123456789B01', hint: 'We controleren het controlegetal.' },
-    ],
-  },
-  {
-    titel: 'Hoofdkantoor',
-    uitleg: 'Het postadres van het bedrijf. De adressen van je vestigingen staan hieronder apart.',
-    velden: [
-      { veld: 'adres', label: 'Straat en huisnummer', breed: true, auto: 'address-line1' },
-      { veld: 'postcode', label: 'Postcode', placeholder: '1234 AB', auto: 'postal-code' },
-      { veld: 'plaats', label: 'Plaats', auto: 'address-level2' },
-    ],
-  },
-  {
-    titel: 'Contact',
-    uitleg: 'Algemeen contact, los van de balie per vestiging.',
-    velden: [
-      { veld: 'telefoon', label: 'Telefoon', type: 'tel', auto: 'tel' },
-      { veld: 'email', label: 'E-mail', type: 'email', auto: 'email' },
-      { veld: 'website', label: 'Website', type: 'url', placeholder: 'https://www.jouwsportschool.nl', breed: true, auto: 'url' },
-    ],
-  },
-  {
-    titel: 'Social media',
-    uitleg: 'Alleen https-links naar je eigen pagina op dat netwerk.',
-    velden: (['instagram', 'facebook', 'tiktok', 'linkedin'] as const).map((s) => ({
-      veld: s,
-      label: SOCIAL_LABEL[s],
-      type: 'url' as const,
-      placeholder: `https://www.${s}.com/jouwsportschool`,
-    })),
-  },
-]
+type BedrijfTekst = (typeof BEDRIJF)['nl']
+
+function groepenVan(t: BedrijfTekst): { titel: string; uitleg: string; velden: VeldInfo[] }[] {
+  const v = t.velden
+  return [
+    {
+      ...t.groepen.bedrijf,
+      velden: [
+        { veld: 'bedrijfsnaam', label: v.bedrijfsnaam.label, placeholder: v.bedrijfsnaam.placeholder, breed: true, auto: 'organization' },
+        { veld: 'kvk', label: v.kvk.label, placeholder: v.kvk.placeholder, hint: v.kvk.hint },
+        { veld: 'btw', label: v.btw.label, placeholder: 'NL123456789B01', hint: v.btw.hint },
+      ],
+    },
+    {
+      ...t.groepen.hoofdkantoor,
+      velden: [
+        { veld: 'adres', label: v.adres, breed: true, auto: 'address-line1' },
+        { veld: 'postcode', label: v.postcode, placeholder: '1234 AB', auto: 'postal-code' },
+        { veld: 'plaats', label: v.plaats, auto: 'address-level2' },
+      ],
+    },
+    {
+      ...t.groepen.contact,
+      velden: [
+        { veld: 'telefoon', label: v.telefoon, type: 'tel', auto: 'tel' },
+        { veld: 'email', label: v.email, type: 'email', auto: 'email' },
+        { veld: 'website', label: v.website, type: 'url', placeholder: v.websiteVoorbeeld, breed: true, auto: 'url' },
+      ],
+    },
+    {
+      ...t.groepen.social,
+      velden: (['instagram', 'facebook', 'tiktok', 'linkedin'] as const).map((s) => ({
+        veld: s,
+        label: SOCIAL_NAAM[s],
+        type: 'url' as const,
+        placeholder: v.socialVoorbeeld(s),
+      })),
+    },
+  ]
+}
 
 function naarTekst(g: Gegevens): Record<Veld, string> {
   return Object.fromEntries(Object.entries(g).map(([k, v]) => [k, v ?? ''])) as Record<Veld, string>
@@ -72,6 +78,7 @@ export function GegevensFormulier({ begin }: { begin: Gegevens }) {
   const [foutVeld, setFoutVeld] = useState<{ veld: string | null; tekst: string } | null>(null)
   const [bezig, setBezig] = useState(false)
   const [opgeslagen, setOpgeslagen] = useState(false)
+  const t = useTekst(BEDRIJF)
 
   async function bewaar(e: FormEvent) {
     e.preventDefault()
@@ -91,7 +98,7 @@ export function GegevensFormulier({ begin }: { begin: Gegevens }) {
 
   return (
     <form className="club-bedrijf-formulier" onSubmit={(e) => void bewaar(e)} noValidate>
-      {GROEPEN.map((groep) => (
+      {groepenVan(t).map((groep) => (
         <fieldset key={groep.titel} className="club-bedrijf-groep">
           <legend>{groep.titel}</legend>
           <p className="club-hint">{groep.uitleg}</p>
@@ -127,11 +134,11 @@ export function GegevensFormulier({ begin }: { begin: Gegevens }) {
 
       <div className="club-bedrijf-acties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Opslaan...' : 'Gegevens opslaan'}
+          {bezig ? t.gegevens.bezig : t.gegevens.opslaan}
         </button>
         <div role="status" aria-live="polite">
           {foutVeld && <p className="club-melding club-melding--fout">{foutVeld.tekst}</p>}
-          {opgeslagen && !foutVeld && <p className="club-melding club-melding--ok">Opgeslagen.</p>}
+          {opgeslagen && !foutVeld && <p className="club-melding club-melding--ok">{t.gegevens.opgeslagen}</p>}
         </div>
       </div>
     </form>

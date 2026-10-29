@@ -2,10 +2,17 @@
 
 // Mutaties van het rooster en de instellingen: fetch naar de eigen club-API,
 // daarna router.refresh() zodat de servercomponenten de nieuwe stand tonen.
-// Fouten komen als nette Nederlandse zin terug (de API geeft { fout }).
+// Fouten komen als nette zin in de taal van de pagina terug (de API geeft { fout }).
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
+
+/** De vaste foutzinnen in de taal van de pagina (<html lang>, gezet door de root layout). */
+function verbindingTekst() {
+  const taal = typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'nl'
+  return ROOSTER[taal].verbinding
+}
 
 export type Antwoord = { ok: true; data: unknown } | { ok: false; fout: string }
 
@@ -19,9 +26,9 @@ export async function stuur(url: string, method: 'POST' | 'PATCH' | 'PUT', body?
     const data: unknown = await res.json().catch(() => null)
     if (res.ok) return { ok: true, data }
     const fout = typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
-    return { ok: false, fout: fout ?? 'Er ging iets mis. Probeer het opnieuw.' }
+    return { ok: false, fout: fout ?? verbindingTekst().mis }
   } catch {
-    return { ok: false, fout: 'Geen verbinding. Controleer het internet en probeer het opnieuw.' }
+    return { ok: false, fout: verbindingTekst().geen }
   }
 }
 

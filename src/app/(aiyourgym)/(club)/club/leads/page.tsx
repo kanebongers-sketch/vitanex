@@ -15,9 +15,13 @@ import { magLeadWissen } from '@/lib/club/leads/avg'
 import { LeadsCijfers } from '@/components/club/leads/LeadsCijfers'
 import { LeadsFilters } from '@/components/club/leads/LeadsFilters'
 import { LeadsWerkvlak } from '@/components/club/leads/LeadsWerkvlak'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import '@/components/club/leads/leads.css'
 
-export const metadata: Metadata = { title: 'Leads' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(LEADS)).pagina.titel }
+}
 
 function eerste(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
@@ -32,6 +36,7 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
   if (!vestiging) return <GeenVestigingen />
   const filters = leesFilters(zoek)
   const nu = new Date()
+  const tp = (await clubTekst(LEADS)).pagina
 
   const [leads, medewerkers, lessen] = await Promise.all([
     haalLeads(t.admin, t.userId, vestiging, nu),
@@ -54,18 +59,18 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
-          <h1>Leads</h1>
-          <p>Wie je vandaag belt, wie er komt proefsporten en waar elke lead staat. Van eerste contact tot lid.</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
         <div className="club-acties">
           <Link href={clubPad('/leads', vestiging, filterParams(filters, { nieuw: '1' }))} scroll={false} className="club-knop club-knop--primair">
-            <Plus size={16} aria-hidden /> Nieuwe lead
+            <Plus size={16} aria-hidden /> {tp.nieuweLead}
           </Link>
         </div>
       </section>
 
-      {leads === null && <p className="club-melding club-melding--fout">De leads konden niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>}
-      {lessen === null && <p className="club-melding">Het rooster kon niet worden geladen; een proefles kan nu alleen op een vrij tijdstip.</p>}
+      {leads === null && <p className="club-melding club-melding--fout">{tp.laadFout}</p>}
+      {lessen === null && <p className="club-melding">{tp.roosterFout}</p>}
 
       <LeadsCijfers cijfers={berekenCijfers(alle, nu)} />
       <LeadsFilters vestiging={vestiging} filters={filters} medewerkers={mw} />

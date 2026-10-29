@@ -2,10 +2,12 @@
 
 import { useState, type FormEvent } from 'react'
 import { Flag, Hand, ThumbsUp, Trash2 } from 'lucide-react'
-import { MELD_REDENEN, MELD_REDEN_LABEL, MAX_TOELICHTING, REACTIE_LABEL, type MeldReden, type ReactieSoort, type TijdlijnBericht } from '@/lib/club/community/model'
+import { MELD_REDENEN, MAX_TOELICHTING, type MeldReden, type ReactieSoort, type TijdlijnBericht } from '@/lib/club/community/model'
 import { geledenLabel } from '@/lib/club/meldingen/model'
 import { useActie } from './useActie'
 import { Terugkoppeling } from './Terugkoppeling'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { COMMUNITY } from '@/lib/aiyourgym/taal/woorden/club/community'
 
 // Een bericht in de tijdlijn: schrijver (privacynaam), tijd, tekst, reacties
 // en voor een bericht van een ander "Melden"; voor een eigen bericht
@@ -19,13 +21,12 @@ interface Props {
 
 const ICOON: Record<ReactieSoort, typeof ThumbsUp> = { duim: ThumbsUp, highfive: Hand }
 
-const STATUS_LABEL: Partial<Record<TijdlijnBericht['status'], string>> = {
-  vastgehouden: 'Wacht op de sportschool',
-  verborgen: 'Verborgen door de sportschool',
-}
-
 export function BerichtKaart({ bericht: b, nu, alleenLezen }: Props) {
   const { bezig, melding, doe } = useActie()
+  const taal = useTaal()
+  const tc = useTekst(COMMUNITY)
+  const t = tc.bericht
+  const statusLabel: Partial<Record<TijdlijnBericht['status'], string>> = { vastgehouden: t.wacht, verborgen: t.verborgenStatus }
   const [meldOpen, setMeldOpen] = useState(false)
   const [reden, setReden] = useState<MeldReden | null>(null)
   const [toelichting, setToelichting] = useState('')
@@ -35,7 +36,7 @@ export function BerichtKaart({ bericht: b, nu, alleenLezen }: Props) {
   async function meld(e: FormEvent) {
     e.preventDefault()
     if (!reden) return
-    const ok = await doe('meld', `${url}/melden`, 'POST', { reden, toelichting }, 'Bedankt. De sportschool bekijkt dit bericht.')
+    const ok = await doe('meld', `${url}/melden`, 'POST', { reden, toelichting }, t.bedankt)
     if (ok) setMeldOpen(false)
   }
 
@@ -46,9 +47,9 @@ export function BerichtKaart({ bericht: b, nu, alleenLezen }: Props) {
           {b.auteur.charAt(0)}
         </span>
         <strong>{b.auteur}</strong>
-        <time dateTime={b.op}>{geledenLabel(b.op, new Date(nu))}</time>
+        <time dateTime={b.op}>{geledenLabel(b.op, new Date(nu), taal)}</time>
       </div>
-      {STATUS_LABEL[b.status] && <p className="club-cm-bericht-status">{STATUS_LABEL[b.status]}</p>}
+      {statusLabel[b.status] && <p className="club-cm-bericht-status">{statusLabel[b.status]}</p>}
       <p className="club-cm-bericht-tekst">{b.tekst}</p>
       <div className="club-cm-bericht-voet">
         <div className="club-cm-reacties">
@@ -63,7 +64,7 @@ export function BerichtKaart({ bericht: b, nu, alleenLezen }: Props) {
                 type="button"
                 className="club-cm-reactie"
                 aria-pressed={gegeven}
-                aria-label={`${REACTIE_LABEL[soort].label}${aantal ? `, ${aantal}` : ''}`}
+                aria-label={`${tc.reactie[soort].label}${aantal ? `, ${aantal}` : ''}`}
                 disabled={!kanReageren || bezig === soort}
                 onClick={() => void doe(soort, `${url}/reactie`, gegeven ? 'DELETE' : 'POST', { soort })}
               >
@@ -74,39 +75,39 @@ export function BerichtKaart({ bericht: b, nu, alleenLezen }: Props) {
           })}
         </div>
         {!alleenLezen && b.eigen && (
-          <button type="button" className="club-cm-tekstknop" disabled={bezig === 'weg'} onClick={() => void doe('weg', url, 'DELETE', undefined, 'Je bericht is verwijderd.')}>
-            <Trash2 size={14} aria-hidden /> Verwijderen
+          <button type="button" className="club-cm-tekstknop" disabled={bezig === 'weg'} onClick={() => void doe('weg', url, 'DELETE', undefined, t.verwijderd)}>
+            <Trash2 size={14} aria-hidden /> {t.verwijderen}
           </button>
         )}
         {kanReageren && !b.gemeld && !meldOpen && (
           <button type="button" className="club-cm-tekstknop" onClick={() => setMeldOpen(true)}>
-            <Flag size={14} aria-hidden /> Melden
+            <Flag size={14} aria-hidden /> {t.melden}
           </button>
         )}
-        {b.gemeld && <span className="club-cm-gemeld">Gemeld</span>}
+        {b.gemeld && <span className="club-cm-gemeld">{t.gemeld}</span>}
       </div>
       {meldOpen && (
         <form className="club-cm-meld" onSubmit={(e) => void meld(e)}>
           <fieldset>
-            <legend>Waarom meld je dit bericht?</legend>
+            <legend>{t.waarom}</legend>
             {MELD_REDENEN.map((r) => (
               <label key={r} className="club-cm-keus">
                 <input type="radio" name={`reden-${b.id}`} value={r} checked={reden === r} onChange={() => setReden(r)} />
-                <span>{MELD_REDEN_LABEL[r]}</span>
+                <span>{tc.meldReden[r]}</span>
               </label>
             ))}
           </fieldset>
           <label className="club-cm-veld">
-            <span>Toelichting (mag leeg)</span>
+            <span>{t.toelichting}</span>
             <textarea rows={2} maxLength={MAX_TOELICHTING} value={toelichting} onChange={(e) => setToelichting(e.target.value)} />
           </label>
-          <p className="club-cm-noot">De schrijver ziet niet wie het bericht meldde.</p>
+          <p className="club-cm-noot">{t.anoniem}</p>
           <div className="club-cm-meld-knoppen">
             <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" onClick={() => setMeldOpen(false)}>
-              Annuleren
+              {t.annuleren}
             </button>
             <button type="submit" className="club-lidapp-knop club-lidapp-knop--primair" disabled={!reden || bezig === 'meld'}>
-              {bezig === 'meld' ? 'Versturen...' : 'Meld bericht'}
+              {bezig === 'meld' ? t.versturen : t.meld}
             </button>
           </div>
         </form>

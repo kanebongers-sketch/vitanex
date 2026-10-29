@@ -1,16 +1,25 @@
 // ─── Fit Factory Club: databaserijen voor leden en check-in (PUUR) ──────────
 // Systeemgrens: rijen uit Supabase naar nette types, zonder casts op de data.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+
 export type ReserveringStatus = 'geboekt' | 'wachtlijst' | 'geannuleerd' | 'aanwezig' | 'no_show'
 
 const RESERVERING_STATUSSEN: readonly ReserveringStatus[] = ['geboekt', 'wachtlijst', 'geannuleerd', 'aanwezig', 'no_show']
 
+/** De naam van een reserveringsstatus in de gekozen taal. */
+export function reserveringLabel(status: ReserveringStatus, taal: Taal = 'nl'): string {
+  return LEDEN[taal].reservering[status]
+}
+
+/** De Nederlandse namen (bron: het woordenboek LEDEN). In beeld via reserveringLabel(status, taal). */
 export const RESERVERING_LABEL: Record<ReserveringStatus, string> = {
-  geboekt: 'Geboekt',
-  wachtlijst: 'Wachtlijst',
-  geannuleerd: 'Geannuleerd',
-  aanwezig: 'Aanwezig',
-  no_show: 'Niet gekomen',
+  geboekt: reserveringLabel('geboekt'),
+  wachtlijst: reserveringLabel('wachtlijst'),
+  geannuleerd: reserveringLabel('geannuleerd'),
+  aanwezig: reserveringLabel('aanwezig'),
+  no_show: reserveringLabel('no_show'),
 }
 
 /** De select voor een reservering met les en lesnaam (te filteren op club_lessen.*). */

@@ -1,5 +1,7 @@
 import { ChevronDown, FileText } from 'lucide-react'
-import { ingevuldeTeksten, TEKST_LABEL, type Teksten } from '@/lib/club/bedrijf/model'
+import { ingevuldeTeksten, type Teksten } from '@/lib/club/bedrijf/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BEDRIJF } from '@/lib/aiyourgym/taal/woorden/club/bedrijf'
 import { JuridischeTekst } from './JuridischeTekst'
 import './bedrijf.css'
 
@@ -14,16 +16,17 @@ interface LedenappJuridischProps {
 
 export function LedenappJuridisch({ teksten, sportschool }: LedenappJuridischProps) {
   const lijst = ingevuldeTeksten(teksten)
+  const t = useTekst(BEDRIJF)
   if (lijst.length === 0) return null
   return (
     <section className="club-bedrijf-lidapp" aria-labelledby="lidapp-juridisch">
       <h3 id="lidapp-juridisch">
-        <FileText aria-hidden size={16} /> Regels van {sportschool}
+        <FileText aria-hidden size={16} /> {t.ledenapp.regelsVan(sportschool)}
       </h3>
       {lijst.map(({ soort, tekst }) => (
         <details key={soort} className="club-bedrijf-lidapp-blok">
           <summary>
-            <span>{TEKST_LABEL[soort]}</span>
+            <span>{t.teksten.labels[soort]}</span>
             <ChevronDown aria-hidden size={18} />
           </summary>
           <JuridischeTekst tekst={tekst} kopNiveau={4} />

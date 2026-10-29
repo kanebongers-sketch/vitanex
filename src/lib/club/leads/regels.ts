@@ -3,6 +3,9 @@
 // "Vandaag" wordt altijd van buiten meegegeven, zodat alles testbaar is.
 
 import { AFGESLOTEN, type Lead } from './model'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum, formatTijd } from '@/lib/aiyourgym/taal/formaat'
+import { LEADS_DAGEN } from '@/lib/aiyourgym/taal/woorden/club/leads-dagen'
 
 const DAG_NL = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/Amsterdam' })
 const TIJD_NL = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
@@ -83,27 +86,31 @@ export interface Snelkeuze {
 }
 
 /** De snelkeuzes voor de volgende opvolgdatum: morgen, over 3 dagen, volgende week. */
-export function opvolgSnelkeuzes(vandaag: string): Snelkeuze[] {
+export function opvolgSnelkeuzes(vandaag: string, taal: Taal = 'nl'): Snelkeuze[] {
+  const s = LEADS_DAGEN[taal].snelkeuze
   return [
-    { label: 'Morgen', dag: dagPlus(vandaag, 1) },
-    { label: 'Over 3 dagen', dag: dagPlus(vandaag, 3) },
-    { label: 'Volgende week', dag: dagPlus(vandaag, 7) },
+    { label: s.morgen, dag: dagPlus(vandaag, 1) },
+    { label: s.drieDagen, dag: dagPlus(vandaag, 3) },
+    { label: s.week, dag: dagPlus(vandaag, 7) },
   ]
 }
 
-/** "di 14 okt, 18:00" in Nederlandse tijd. */
-export function toonMoment(iso: string): string {
+/** "di 14 okt, 18:00" (Engels "Tue 14 Oct, 18:00") in Nederlandse tijd. */
+export function toonMoment(iso: string, taal: Taal = 'nl'): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
+  if (taal === 'en') return `${formatDatum(d, 'en', 'weekdagKort')}, ${formatTijd(d, 'en')}`
   return `${DATUM_NL.format(d)}, ${TIJD_NL.format(d)}`
 }
 
 /** Een dagsleutel als "di 14 okt", of "vandaag"/"morgen"/"gisteren" ten opzichte van `vandaag`. */
-export function toonDag(dag: string, vandaag: string): string {
-  if (dag === vandaag) return 'vandaag'
-  if (dag === dagPlus(vandaag, 1)) return 'morgen'
-  if (dag === dagPlus(vandaag, -1)) return 'gisteren'
-  return DATUM_NL.format(new Date(`${dag}T12:00:00Z`))
+export function toonDag(dag: string, vandaag: string, taal: Taal = 'nl'): string {
+  const w = LEADS_DAGEN[taal].dag
+  if (dag === vandaag) return w.vandaag
+  if (dag === dagPlus(vandaag, 1)) return w.morgen
+  if (dag === dagPlus(vandaag, -1)) return w.gisteren
+  const middag = new Date(`${dag}T12:00:00Z`)
+  return taal === 'en' ? formatDatum(middag, 'en', 'weekdagKort') : DATUM_NL.format(middag)
 }
 
 /** Een tel:-link zonder spaties en streepjes (internationaal + blijft staan). */

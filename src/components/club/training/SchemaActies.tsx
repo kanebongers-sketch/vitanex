@@ -6,6 +6,8 @@ import { Plus, UserPlus } from 'lucide-react'
 import { idUit, stuur } from './api'
 import { LidKiezer, type GekozenLid } from './LidKiezer'
 import { Zijpaneel } from './Zijpaneel'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
 
 interface NieuwSchemaKnopProps {
   lidId: string | null
@@ -18,6 +20,7 @@ interface NieuwSchemaKnopProps {
 /** Een nieuw leeg schema (met lid) of sjabloon (zonder lid), daarna de editor. */
 export function NieuwSchemaKnop({ lidId, editorHref, label, primair = true }: NieuwSchemaKnopProps) {
   const router = useRouter()
+  const t = useTekst(SCHEMA_EDITOR).acties
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
@@ -28,7 +31,7 @@ export function NieuwSchemaKnop({ lidId, editorHref, label, primair = true }: Ni
     const id = u.ok ? idUit(u.data) : null
     if (!id) {
       setBezig(false)
-      return setFout(u.ok ? 'Er kwam geen schema terug.' : u.fout)
+      return setFout(u.ok ? t.geenSchema : u.fout)
     }
     router.push(editorHref.replace('__id__', id))
   }
@@ -36,7 +39,7 @@ export function NieuwSchemaKnop({ lidId, editorHref, label, primair = true }: Ni
   return (
     <span className="club-training-actie">
       <button type="button" className={`club-knop${primair ? ' club-knop--primair' : ''}`} onClick={maak} disabled={bezig} aria-busy={bezig || undefined}>
-        <Plus aria-hidden size={16} /> {bezig ? 'Even geduld...' : label}
+        <Plus aria-hidden size={16} /> {bezig ? t.evenGeduld : label}
       </button>
       {fout && <span className="club-fout" role="alert">{fout}</span>}
     </span>
@@ -57,6 +60,7 @@ interface ToepassenProps {
 /** Zet een sjabloon als concept op een lid en open het in de editor. */
 export function SjabloonToepassen({ sjabloonId, sjabloonNaam, vestiging, lid, editorHref, klein = true }: ToepassenProps) {
   const router = useRouter()
+  const t = useTekst(SCHEMA_EDITOR).acties
   const [open, setOpen] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -69,7 +73,7 @@ export function SjabloonToepassen({ sjabloonId, sjabloonNaam, vestiging, lid, ed
     const id = u.ok ? idUit(u.data) : null
     if (!id) {
       setBezig(false)
-      return setFout(u.ok ? 'Er kwam geen schema terug.' : u.fout)
+      return setFout(u.ok ? t.geenSchema : u.fout)
     }
     router.push(editorHref.replace('__id__', id))
   }
@@ -82,16 +86,16 @@ export function SjabloonToepassen({ sjabloonId, sjabloonNaam, vestiging, lid, ed
         onClick={() => (lid ? pasToe(lid) : setOpen(true))}
         disabled={bezig}
         aria-busy={bezig || undefined}
-        aria-label={lid ? `${sjabloonNaam} toepassen op ${lid.naam}` : `${sjabloonNaam} toepassen op een lid`}
+        aria-label={lid ? t.toepassenOp(sjabloonNaam, lid.naam) : t.toepassenOpEenLid(sjabloonNaam)}
       >
-        <UserPlus aria-hidden size={15} /> {bezig ? 'Even geduld...' : lid ? `Op ${lid.naam.split(' ')[0]}` : 'Op een lid'}
+        <UserPlus aria-hidden size={15} /> {bezig ? t.evenGeduld : lid ? t.op(lid.naam.split(' ')[0]) : t.opEenLid}
       </button>
       {fout && !open && <span className="club-fout" role="alert">{fout}</span>}
       {open && (
-        <Zijpaneel titel={sjabloonNaam} boventitel="Sjabloon toepassen" onSluit={sluit}>
-          <p className="club-hint">Kies het lid. Het krijgt een kopie als concept, die je daarna aanpast en activeert in de editor.</p>
+        <Zijpaneel titel={sjabloonNaam} boventitel={t.boventitel} onSluit={sluit}>
+          <p className="club-hint">{t.uitleg}</p>
           <LidKiezer vestiging={vestiging} onKies={pasToe} autoFocus />
-          {bezig && <p className="club-hint" role="status">Schema maken...</p>}
+          {bezig && <p className="club-hint" role="status">{t.bezig}</p>}
           {fout && <p className="club-fout" role="alert">{fout}</p>}
         </Zijpaneel>
       )}

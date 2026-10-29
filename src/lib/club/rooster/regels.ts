@@ -6,6 +6,9 @@
 // ontbreekt een regel, dan geldt de standaard.
 
 import { magTrainen, type LidStatus } from '@/lib/club/kern/lid'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { ROOSTER_REGELS } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
 export interface RoosterRegels {
   /** Annuleren binnen zoveel uur voor de start telt als "te laat". */
@@ -118,8 +121,6 @@ export type ReserveerUitkomst =
   | { ok: true; status: 'geboekt' | 'wachtlijst'; wachtpositie: number | null }
   | { ok: false; code: ReserveerFoutCode; fout: string }
 
-const DATUM_NL = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long' })
-
 /**
  * Tot wanneer is dit lid geblokkeerd door no-shows? Null = niet geblokkeerd.
  * Zodra er `drempel` no-shows binnen 30 dagen vallen, geldt vanaf de laatste
@@ -143,24 +144,25 @@ function fout(code: ReserveerFoutCode, tekst: string): ReserveerUitkomst {
 }
 
 /** Mag dit lid deze les boeken, en zo ja: geboekt of op de wachtlijst? */
-export function beoordeelReservering(f: ReserveerFeiten): ReserveerUitkomst {
+export function beoordeelReservering(f: ReserveerFeiten, taal: Taal = 'nl'): ReserveerUitkomst {
+  const t = ROOSTER_REGELS[taal]
   const nu = f.nu.getTime()
   const start = f.les.start.getTime()
-  if (f.les.geannuleerd) return fout('les_geannuleerd', 'Deze les gaat niet door.')
-  if (start <= nu) return fout('les_voorbij', 'Deze les is al begonnen of voorbij.')
+  if (f.les.geannuleerd) return fout('les_geannuleerd', t.lesGeannuleerd)
+  if (start <= nu) return fout('les_voorbij', t.lesVoorbij)
   if (start - nu > f.regels.reserveerDagenVooruit * DAG_MS) {
-    return fout('te_ver_vooruit', `Boeken kan tot ${f.regels.reserveerDagenVooruit} dagen vooruit.`)
+    return fout('te_ver_vooruit', t.teVerVooruit(f.regels.reserveerDagenVooruit))
   }
-  if (!magTrainen(f.lidStatus)) return fout('lid_mag_niet', 'Dit lidmaatschap is niet actief, dus boeken kan niet.')
+  if (!magTrainen(f.lidStatus)) return fout('lid_mag_niet', t.lidMagNiet)
   if (f.bestaand !== null && f.bestaand !== 'geannuleerd') {
-    return fout('al_ingeschreven', f.bestaand === 'wachtlijst' ? 'Dit lid staat al op de wachtlijst.' : 'Dit lid is al ingeschreven voor deze les.')
+    return fout('al_ingeschreven', f.bestaand === 'wachtlijst' ? t.alOpWachtlijst : t.alIngeschreven)
   }
   if (f.openElders >= f.regels.maxOpenReserveringen) {
-    return fout('te_veel_open', `Dit lid heeft al ${f.regels.maxOpenReserveringen} open boekingen. Dat is het maximum.`)
+    return fout('te_veel_open', t.teVeelOpen(f.regels.maxOpenReserveringen))
   }
   const blokkade = noShowBlokkadeTot(f.noShows, f.regels)
   if (blokkade && blokkade.getTime() > nu) {
-    return fout('geblokkeerd', `Te vaak niet gekomen. Boeken kan weer vanaf ${DATUM_NL.format(blokkade)}.`)
+    return fout('geblokkeerd', t.geblokkeerd(formatDatum(blokkade, taal, 'dagMaandLang')))
   }
   if (f.bezet < f.les.capaciteit) return { ok: true, status: 'geboekt', wachtpositie: null }
   return { ok: true, status: 'wachtlijst', wachtpositie: Math.max(0, f.laatsteWachtpositie) + 1 }
@@ -175,10 +177,11 @@ export type AnnuleerUitkomst = { ok: true; teLaat: boolean } | { ok: false; fout
  * Te laat = binnen `annuleerUren` voor de start, en alleen voor een echte plek
  * (wie van de wachtlijst afgaat, laat niemand zitten).
  */
-export function beoordeelAnnulering(status: ReserveringStatus, start: Date, nu: Date, regels: RoosterRegels): AnnuleerUitkomst {
-  if (status === 'geannuleerd') return { ok: false, fout: 'Deze reservering is al geannuleerd.' }
-  if (status === 'aanwezig' || status === 'no_show') return { ok: false, fout: 'Deze les is al afgevinkt. Zet eerst de aanwezigheid terug.' }
-  if (start.getTime() <= nu.getTime()) return { ok: false, fout: 'De les is al begonnen. Meld het lid dan als no-show.' }
+export function beoordeelAnnulering(status: ReserveringStatus, start: Date, nu: Date, regels: RoosterRegels, taal: Taal = 'nl'): AnnuleerUitkomst {
+  const t = ROOSTER_REGELS[taal]
+  if (status === 'geannuleerd') return { ok: false, fout: t.alGeannuleerd }
+  if (status === 'aanwezig' || status === 'no_show') return { ok: false, fout: t.alAfgevinkt }
+  if (start.getTime() <= nu.getTime()) return { ok: false, fout: t.alBegonnen }
   const teLaat = status === 'geboekt' && start.getTime() - nu.getTime() < regels.annuleerUren * UUR_MS
   return { ok: true, teLaat }
 }
@@ -189,11 +192,12 @@ export const AFVINK_STATUSSEN = ['aanwezig', 'no_show', 'geboekt'] as const
 export type AfvinkStatus = (typeof AFVINK_STATUSSEN)[number]
 
 /** Mag de instructeur deze reservering op `nieuw` zetten? Null = mag, anders de reden. */
-export function beoordeelAfvinken(huidig: ReserveringStatus, nieuw: AfvinkStatus, start: Date, nu: Date, regels: RoosterRegels): string | null {
-  if (huidig === 'geannuleerd' || huidig === 'wachtlijst') return 'Alleen ingeschreven deelnemers kun je afvinken.'
+export function beoordeelAfvinken(huidig: ReserveringStatus, nieuw: AfvinkStatus, start: Date, nu: Date, regels: RoosterRegels, taal: Taal = 'nl'): string | null {
+  const t = ROOSTER_REGELS[taal]
+  if (huidig === 'geannuleerd' || huidig === 'wachtlijst') return t.alleenIngeschreven
   if (huidig === nieuw) return null
   if (nieuw !== 'geboekt' && nu.getTime() < start.getTime() - regels.checkinVensterMin * 60_000) {
-    return `Afvinken kan vanaf ${regels.checkinVensterMin} minuten voor de start.`
+    return t.afvinkenVanaf(regels.checkinVensterMin)
   }
   return null
 }

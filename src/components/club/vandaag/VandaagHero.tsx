@@ -1,9 +1,11 @@
 import type { CSSProperties } from 'react'
 import type { Vandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { BINNEN_MINUTEN } from '@/lib/club/cijfers/vandaag'
-import { aantal, metTeken } from '@/lib/club/cijfers/opmaak'
+import { metTeken } from '@/lib/club/cijfers/opmaak'
 import { tijdNl, weekdagNaam, weekdagVan } from '@/lib/club/cijfers/tijd'
-import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 
 // De bovenkant van Vandaag: een reuzencijfer voor wie er nu is, en daarnaast
@@ -15,16 +17,17 @@ interface Props {
   data: Vandaag
 }
 
-function VerschilTekst({ data }: Props) {
-  const dag = weekdagNaam(weekdagVan(data.vandaag))
+function VerschilTekst({ data, taal }: Props & { taal: Taal }) {
+  const t = VANDAAG[taal].hero
+  const dag = weekdagNaam(weekdagVan(data.vandaag), taal)
   if (data.verschil === null) {
-    return <span className="club-vandaag-feit-sub">Geen vergelijking: vorige {dag} zijn geen check-ins geregistreerd</span>
+    return <span className="club-vandaag-feit-sub">{t.geenVergelijking(dag)}</span>
   }
   const { verschil, richting } = data.verschil
-  if (richting === 'gelijk') return <span className="club-vandaag-feit-sub">Even veel als vorige {dag} om deze tijd ({data.checkinsVorigeWeek})</span>
+  if (richting === 'gelijk') return <span className="club-vandaag-feit-sub">{t.evenVeel(dag, data.checkinsVorigeWeek)}</span>
   return (
     <span className="club-vandaag-feit-sub">
-      <span className={richting === 'meer' ? 'club-plus' : 'club-min'}>{metTeken(verschil)}</span> ten opzichte van vorige {dag} om deze tijd ({data.checkinsVorigeWeek})
+      <span className={richting === 'meer' ? 'club-plus' : 'club-min'}>{metTeken(verschil)}</span>{t.tenOpzichte(dag, data.checkinsVorigeWeek)}
     </span>
   )
 }
@@ -56,45 +59,47 @@ function VergelijkBalk({ vandaag, vorige, w }: { vandaag: number; vorige: number
   )
 }
 
-function proefTekst(data: Vandaag): string {
-  if (data.proeflessen.length === 0) return 'Geen proeflessen gepland'
+function proefTekst(data: Vandaag, taal: Taal): string {
+  if (data.proeflessen.length === 0) return VANDAAG[taal].hero.geenProef
   return data.proeflessen.map((p) => `${p.naam.split(' ')[0]}${p.proeflesOp ? ` ${tijdNl(p.proeflesOp)}` : ''}`).join(', ')
 }
 
 export async function VandaagHero({ data }: Props) {
   const w = (await clubTekst(ONTWERP)).vandaag
+  const taal = await getTaal()
+  const t = VANDAAG[taal].hero
   const lessen = data.lessen.filter((l) => !l.geannuleerd)
   const nogTeGaan = lessen.filter((l) => l.start.getTime() > data.nu.getTime()).length
   return (
-    <section className="club-vandaag-hero" aria-label="Nu in de club">
+    <section className="club-vandaag-hero" aria-label={t.label}>
       <div className="club-vandaag-nu">
-        <span className="club-vandaag-label">Nu binnen</span>
+        <span className="club-vandaag-label">{t.nuBinnen}</span>
         <strong className="club-vandaag-reus">{data.nuBinnen}</strong>
         <span className="club-vandaag-nu-sub">
-          {data.nuBinnen === 1 ? 'lid' : 'leden'} ingecheckt in de laatste {BINNEN_MINUTEN} minuten
+          {t.nuSub(data.nuBinnen, BINNEN_MINUTEN)}
         </span>
       </div>
       <dl className="club-vandaag-feiten">
         <div className="club-vandaag-feit">
-          <dt>Check-ins vandaag</dt>
+          <dt>{t.checkins}</dt>
           <dd>
             <strong>{data.checkinsVandaag}</strong>
-            <VerschilTekst data={data} />
+            <VerschilTekst data={data} taal={taal} />
             {data.verschil !== null && <VergelijkBalk vandaag={data.checkinsVandaag} vorige={data.checkinsVorigeWeek} w={{ vandaag: w.vandaag, vorige: w.vorige, label: w.vergelijkLabel }} />}
           </dd>
         </div>
         <div className="club-vandaag-feit">
-          <dt>Lessen vandaag</dt>
+          <dt>{t.lessen}</dt>
           <dd>
             <strong>{lessen.length}</strong>
-            <span className="club-vandaag-feit-sub">{lessen.length === 0 ? 'Geen lessen gepland' : nogTeGaan === 0 ? 'Alle lessen zijn begonnen of geweest' : `${aantal(nogTeGaan, 'les', 'lessen')} nog te gaan`}</span>
+            <span className="club-vandaag-feit-sub">{lessen.length === 0 ? t.geenLessen : nogTeGaan === 0 ? t.allesBegonnen : t.nogTeGaan(nogTeGaan)}</span>
           </dd>
         </div>
         <div className="club-vandaag-feit">
-          <dt>Proeflessen vandaag</dt>
+          <dt>{t.proeflessen}</dt>
           <dd>
             <strong>{data.proeflessen.length}</strong>
-            <span className="club-vandaag-feit-sub">{proefTekst(data)}</span>
+            <span className="club-vandaag-feit-sub">{proefTekst(data, taal)}</span>
           </dd>
         </div>
       </dl>

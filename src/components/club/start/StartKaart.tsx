@@ -6,6 +6,8 @@ import { AANTAL_STAPPEN, aantalAf, minutenOver, minutenTekst, startPad, stappenS
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { haalStartVoorPagina, haalStartFeiten } from '@/lib/club/start/opslag'
 import { Proefperiode } from './Proefperiode'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import './start.css'
 
 // Op Vandaag, zolang de startwizard loopt: een opvallende kaart met de stand
@@ -24,20 +26,22 @@ export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: 
       </div>
     )
   }
-  const stand = stappenStand(gelezen.voortgang, await haalStartFeiten(t))
+  const taal = await getTaal()
+  const tk = (await clubTekst(START)).startKaart
+  const stand = stappenStand(gelezen.voortgang, await haalStartFeiten(t), taal)
   const af = aantalAf(stand)
   const volgende = stand[volgendeOpen(stand) - 1]
   const streefdatum = gelezen.voortgang?.streefdatum ?? null
-  const streef = streefdatum ? streefStand(streefdatum, nlDelen(new Date()).datum, AANTAL_STAPPEN - af) : null
+  const streef = streefdatum ? streefStand(streefdatum, nlDelen(new Date()).datum, AANTAL_STAPPEN - af, taal) : null
   return (
     <section className="club-startkaart" aria-labelledby="startkaart-kop">
       <div className="club-startkaart-tekst">
-        <p className="club-boventitel">Startwizard</p>
+        <p className="club-boventitel">{tk.boven}</p>
         <h2 id="startkaart-kop">
-          Maak je sportschool af <span className="club-startkaart-stand">({af} van {AANTAL_STAPPEN})</span>
+          {tk.kop} <span className="club-startkaart-stand">{tk.stand(af, AANTAL_STAPPEN)}</span>
         </h2>
         <p>
-          Volgende stap: <strong>{volgende.titel}</strong>. {volgende.kort}.
+          {tk.volgende} <strong>{volgende.titel}</strong>. {volgende.kort}.
         </p>
         {streef && (
           <p className="club-startkaart-streef">
@@ -45,16 +49,16 @@ export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: 
             <span>{streef.dagen}</span>
           </p>
         )}
-        <p className="club-startkaart-tijd">{minutenTekst(minutenOver(stand))}. Wat je al deed, staat er nog.</p>
+        <p className="club-startkaart-tijd">{tk.tijd(minutenTekst(minutenOver(stand), taal))}</p>
         <Proefperiode t={t} />
       </div>
-      <div className="club-startkaart-balk" role="progressbar" aria-label="Voortgang startwizard" aria-valuemin={0} aria-valuemax={AANTAL_STAPPEN} aria-valuenow={af}>
+      <div className="club-startkaart-balk" role="progressbar" aria-label={tk.voortgang} aria-valuemin={0} aria-valuemax={AANTAL_STAPPEN} aria-valuenow={af}>
         {stand.map((s) => (
           <span key={s.sleutel} data-af={s.af || undefined} />
         ))}
       </div>
       <Link href={startPad(volgende.nummer, vestiging)} className="club-knop club-knop--primair club-knop--groot">
-        Verder met stap {volgende.nummer} <ArrowRight aria-hidden size={18} />
+        {tk.verder(volgende.nummer)} <ArrowRight aria-hidden size={18} />
       </Link>
     </section>
   )

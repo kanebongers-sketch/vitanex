@@ -11,6 +11,8 @@ import { SchemaLijst, SjabloonLijst } from './SchemaLijst'
 import { trainingPad, trainingPaden } from './TrainingTabs'
 import { VoorstelKnop } from './VoorstelKnop'
 import { toonDatum } from '@/lib/club/training/weergave'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 // De inhoud van de vier tabbladen. Server Components: ze halen alleen de data
 // van het tabblad dat open staat.
@@ -22,20 +24,21 @@ interface TabProps {
   trainers: Record<string, string>
 }
 
-function Fout({ wat }: { wat: string }) {
-  return <p className="club-melding club-melding--fout" role="alert">{wat} konden niet worden geladen. Ververs de pagina of probeer het later opnieuw.</p>
+async function Fout({ wat }: { wat: 'deIntakes' | 'deSchemas' | 'deSjablonen' | 'deOefeningen' }) {
+  const t = (await clubTekst(CLUB_TRAINING)).tab
+  return <p className="club-melding club-melding--fout" role="alert">{t.laadfout(t[wat])}</p>
 }
 
 export async function TabIntakes({ t, vestiging, lid, trainers }: TabProps) {
   const intakes = await haalIntakes(t.admin, t.userId, { vestiging, lidId: lid?.id ?? null })
-  if (!intakes) return <Fout wat="De intakes" />
+  if (!intakes) return <Fout wat="deIntakes" />
   const paden = trainingPaden(vestiging)
   if (intakes.length === 0) {
+    const tt = (await clubTekst(CLUB_TRAINING)).tab
     return (
       <div className="club-leeg club-training-leeg">
         <p>
-          <strong>{lid ? `Nog geen intake voor ${lid.naam}.` : 'Nog geen intakes in deze vestiging.'}</strong>{' '}
-          Neem er een af met de knop bovenaan. Daarna maak je in een klik een schemavoorstel.
+          <strong>{lid ? tt.geenIntakeLid(lid.naam) : tt.geenIntakes}</strong> {tt.intakeUitleg}
         </p>
       </div>
     )
@@ -55,19 +58,17 @@ async function GeenSchema({ t, vestiging, lid }: Omit<TabProps, 'trainers'>) {
   // De knop "Intake afnemen" staat al bovenaan; hier alleen wat daar niet staat.
   const intakes = lid ? await haalIntakes(t.admin, t.userId, { vestiging, lidId: lid.id }, 1) : null
   const laatste = intakes?.[0] ?? null
-  const tekst = !lid
-    ? 'Maak er een vanuit een intake (tabblad Intakes) of kies een startschema.'
-    : laatste
-      ? `Maak er een vanuit de intake van ${toonDatum(laatste.datum)} of kies een startschema.`
-      : 'Neem eerst een intake af, of kies direct een startschema.'
+  const taal = await getTaal()
+  const tt = (await clubTekst(CLUB_TRAINING)).tab
+  const tekst = !lid ? tt.vanuitIntakeTab : laatste ? tt.vanuitIntake(toonDatum(laatste.datum, taal)) : tt.eerstIntake
   return (
     <div className="club-leeg club-training-leeg">
       <p>
-        <strong>{lid ? `Nog geen schema voor ${lid.naam}.` : "Nog geen schema's in deze vestiging."}</strong> {tekst}
+        <strong>{lid ? tt.geenSchemaLid(lid.naam) : tt.geenSchemas}</strong> {tekst}
       </p>
       <div className="club-acties">
-        {laatste && <VoorstelKnop intakeId={laatste.id} editorHref={paden.editor} label="Schemavoorstel uit intake" />}
-        <Link className={`club-knop${laatste ? '' : ' club-knop--primair'}`} href={sjablonen}>Startschema kiezen</Link>
+        {laatste && <VoorstelKnop intakeId={laatste.id} editorHref={paden.editor} label={tt.voorstelUitIntake} />}
+        <Link className={`club-knop${laatste ? '' : ' club-knop--primair'}`} href={sjablonen}>{tt.startschemaKiezen}</Link>
       </div>
     </div>
   )
@@ -75,7 +76,7 @@ async function GeenSchema({ t, vestiging, lid }: Omit<TabProps, 'trainers'>) {
 
 export async function TabSchemas({ t, vestiging, lid, trainers }: TabProps) {
   const schemas = await haalSchemas(t.admin, t.userId, { vestiging, lidId: lid?.id ?? null, sjablonen: false })
-  if (!schemas) return <Fout wat="De schema's" />
+  if (!schemas) return <Fout wat="deSchemas" />
   if (schemas.length === 0) return <GeenSchema t={t} vestiging={vestiging} lid={lid} />
   const log = (await haalTrainingslog(t.admin, t.userId, schemas.map((s) => s.id))) ?? []
   return <SchemaLijst schemas={schemas} log={log} trainers={trainers} editorHref={trainingPaden(vestiging).editor} toonLid={!lid} />
@@ -83,15 +84,16 @@ export async function TabSchemas({ t, vestiging, lid, trainers }: TabProps) {
 
 export async function TabSjablonen({ t, vestiging, lid }: TabProps) {
   const sjablonen = await haalSchemas(t.admin, t.userId, { vestiging, lidId: null, sjablonen: true })
-  if (!sjablonen) return <Fout wat="De sjablonen" />
+  if (!sjablonen) return <Fout wat="deSjablonen" />
+  const tt = (await clubTekst(CLUB_TRAINING)).tab
   const editorHref = trainingPaden(vestiging).editor
   const alOpgeslagen = sjablonen.map((s) => s.basisSleutel).filter((k): k is string => k !== null)
   return (
     <div className="club-training-stapel">
       <section className="club-training-stapel" aria-labelledby="eigen-kop">
-        <h2 id="eigen-kop" className="club-training-tussenkop">Eigen sjablonen</h2>
+        <h2 id="eigen-kop" className="club-training-tussenkop">{tt.eigenSjablonen}</h2>
         {sjablonen.length === 0 ? (
-          <p className="club-leeg">Nog geen eigen sjablonen. Bewaar een startschema hieronder, of sla een goed schema op als sjabloon.</p>
+          <p className="club-leeg">{tt.geenEigen}</p>
         ) : (
           <SjabloonLijst sjablonen={sjablonen} vestiging={vestiging} lid={lid} editorHref={editorHref} />
         )}
@@ -103,6 +105,6 @@ export async function TabSjablonen({ t, vestiging, lid }: TabProps) {
 
 export async function TabOefeningen({ t, filter }: { t: ClubToegang; filter: OefeningFilter }) {
   const oefeningen = await haalOefeningen(t.admin, t.userId)
-  if (!oefeningen) return <Fout wat="De oefeningen" />
+  if (!oefeningen) return <Fout wat="deOefeningen" />
   return <OefeningenBeheer oefeningen={oefeningen} beginFilter={filter} />
 }

@@ -6,11 +6,14 @@ import { useRouter } from 'next/navigation'
 import { RotateCcw } from 'lucide-react'
 import type { OpvolgItem } from '@/lib/club/automatisering/weergave'
 import { stuur, taakUrl } from './stuur'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
+import { LOCALE } from '@/lib/aiyourgym/taal/taal'
 
 // Wat het team de laatste week afhandelde, met wie, wanneer en de notitie.
 // Per ongeluk op gedaan gezet? Terugzetten zet de taak weer open.
 
-const WANNEER = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
+const WANNEER_OPTIES: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' }
 
 interface Props {
   items: readonly OpvolgItem[]
@@ -21,17 +24,20 @@ export function Afgehandeld({ items, ledenkaarten }: Props) {
   const router = useRouter()
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState<string | null>(null)
+  const taal = useTaal()
+  const t = useTekst(OPVOLGEN).afgehandeld
+  const wanneer = new Intl.DateTimeFormat(LOCALE[taal], WANNEER_OPTIES)
 
   async function heropen(id: string) {
     setBezig(id)
-    const uit = await stuur(taakUrl(id), 'PATCH', { actie: 'heropen' })
+    const uit = await stuur(taakUrl(id), 'PATCH', { actie: 'heropen' }, taal)
     setBezig(null)
     if (!uit.ok) return setFout(uit.fout)
     setFout(null)
     router.refresh()
   }
 
-  if (items.length === 0) return <p className="club-hint">De laatste 7 dagen is er nog niets afgehandeld.</p>
+  if (items.length === 0) return <p className="club-hint">{t.leeg}</p>
 
   return (
     <>
@@ -46,12 +52,12 @@ export function Afgehandeld({ items, ledenkaarten }: Props) {
                 <span className="club-zacht"> · {i.regelTitel}</span>
               </p>
               <p className="club-zacht">
-                {[i.afgehandeldDoor, i.afgehandeldOp ? WANNEER.format(new Date(i.afgehandeldOp)) : null].filter(Boolean).join(', ')}
+                {[i.afgehandeldDoor, i.afgehandeldOp ? wanneer.format(new Date(i.afgehandeldOp)) : null].filter(Boolean).join(', ')}
                 {i.notitie ? `. ${i.notitie}` : ''}
               </p>
             </div>
-            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => heropen(i.id)} disabled={bezig !== null} aria-label={`Taak van ${i.naam} weer open zetten`}>
-              <RotateCcw size={14} aria-hidden /> Terugzetten
+            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => heropen(i.id)} disabled={bezig !== null} aria-label={t.terugzettenLabel(i.naam)}>
+              <RotateCcw size={14} aria-hidden /> {t.terugzetten}
             </button>
           </li>
         ))}

@@ -13,7 +13,7 @@ export interface MaandOptie {
   href: string
 }
 
-export function MaandKiezer({ opties, gekozen }: { opties: MaandOptie[]; gekozen: string }) {
+export function MaandKiezer({ opties, gekozen, label }: { opties: MaandOptie[]; gekozen: string; label: string }) {
   const router = useRouter()
   const [bezig, start] = useTransition()
 
@@ -24,7 +24,7 @@ export function MaandKiezer({ opties, gekozen }: { opties: MaandOptie[]; gekozen
 
   return (
     <label className="club-cijfers-maandkeuze">
-      <span className="club-sr">Kies een maand</span>
+      <span className="club-sr">{label}</span>
       <select className="club-invoer" value={gekozen} onChange={(e) => kies(e.target.value)} aria-busy={bezig || undefined}>
         {opties.map((o) => (
           <option key={o.maand} value={o.maand}>

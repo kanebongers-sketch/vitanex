@@ -8,8 +8,12 @@ import type { BeheerFilters, BerichtStatus } from '@/lib/club/berichten/regels'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { BerichtenWerkvlak } from '@/components/club/berichten/BerichtenWerkvlak'
 import '@/components/club/berichten/berichten.css'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 
-export const metadata: Metadata = { title: 'Berichten' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(BERICHTEN)).pagina.titel }
+}
 
 function eerste(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
@@ -35,20 +39,21 @@ export default async function BerichtenPagina({ searchParams }: { searchParams: 
     vestiging: hoortBij(t.vestigingen, voor) ? voor : null,
   }
   const [berichten, tags] = await Promise.all([haalBerichten(t.admin, t.userId), haalLidTags(t.admin, t.userId)])
+  const tp = (await clubTekst(BERICHTEN)).pagina
 
   return (
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{t.organisatie.naam} · ledenapp</p>
-          <h1>Berichten</h1>
-          <p>Nieuws, acties en belangrijke mededelingen voor je leden. Ze staan in de ledenapp op Home, voor iedereen of alleen voor een vestiging, status of tag.</p>
+          <p className="club-boventitel">{tp.boventitel(t.organisatie.naam)}</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
       </section>
 
       {berichten === null ? (
         <p className="club-melding club-melding--fout" role="alert">
-          De berichten konden niet worden geladen. Ververs de pagina of probeer het later opnieuw.
+          {tp.laadFout}
         </p>
       ) : (
         <BerichtenWerkvlak begin={berichten} vestigingen={t.vestigingen} tags={tags} startFilters={filters} nuIso={new Date().toISOString()} />

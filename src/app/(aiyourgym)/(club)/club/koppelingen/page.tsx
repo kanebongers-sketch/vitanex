@@ -10,7 +10,7 @@ import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import {
-  ALTIJD, STAND_LABEL, betaalStand, koppelingHref, ledenappStand, meldingenStand, widgetStand, zichtbareKoppelingen,
+  altijdStand, betaalStand, koppelingHref, koppelingInTaal, ledenappStand, meldingenStand, onbekendeStand, standLabel, widgetStand, zichtbareKoppelingen,
   type KoppelStand, type KoppelStatus, type KoppelingId,
 } from '@/lib/club/kern/koppelingen'
 import { betalenActief, clubStripeSleutel } from '@/lib/club/betalen/config'
@@ -21,8 +21,13 @@ import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { mailKlaar } from '@/lib/club/app-uitnodigen/regels'
 import { leesVapidSleutels, pushActief } from '@/lib/club/push/sleutels'
 import '@/components/club/shell/koppelingen.css'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { KOPPEL_TEKST } from '@/lib/aiyourgym/taal/woorden/club/koppelingen'
 
-export const metadata: Metadata = { title: 'Koppelingen' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(KOPPEL_TEKST)).pagina.titel }
+}
 export const dynamic = 'force-dynamic'
 
 // Koppelingen (hulpbalk onderaan, idee Kane 23-10-2026): alleen wat echt in
@@ -47,33 +52,33 @@ const CHIP: Record<KoppelStand, string> = {
   onbekend: 'club-chip club-chip--let-op',
 }
 
-async function betaalStatus(t: ClubToegang): Promise<KoppelStatus> {
+async function betaalStatus(t: ClubToegang, taal: Taal): Promise<KoppelStatus> {
   const actief = betalenActief()
   const sleutelGezet = clubStripeSleutel() !== null
   const account = actief && sleutelGezet ? await haalBetaalAccount(t.admin, t.userId) : null
-  return betaalStand({ actief, sleutelGezet, account })
+  return betaalStand({ actief, sleutelGezet, account }, taal)
 }
 
-async function widgetStatus(t: ClubToegang): Promise<KoppelStatus> {
+async function widgetStatus(t: ClubToegang, taal: Taal): Promise<KoppelStatus> {
   const instellingen = await Promise.all(t.vestigingen.map((v) => haalWidgetInstellingen(t.admin, t.userId, v.sleutel)))
   const aanOp = instellingen.some((i) => i === null) ? null : instellingen.filter((i) => i?.aan).length
-  return widgetStand({ actief: widgetActief(), adres: Boolean(t.organisatie.slug), aanOp, vestigingen: t.vestigingen.length })
+  return widgetStand({ actief: widgetActief(), adres: Boolean(t.organisatie.slug), aanOp, vestigingen: t.vestigingen.length }, taal)
 }
 
-function vasteStatus(t: ClubToegang, id: KoppelingId): KoppelStatus | null {
+function vasteStatus(t: ClubToegang, id: KoppelingId, taal: Taal): KoppelStatus | null {
   const org = t.organisatie
-  if (id === 'ledenapp') return ledenappStand({ open: CLUB_LEDEN_LOGIN && moduleAan(org, 'app'), qr: org.instellingen.ledenapp.qr && qrCheckinAan(org.instellingen.checkin) })
-  if (id === 'meldingen') return meldingenStand({ mail: mailKlaar(process.env), push: pushActief(process.env) && leesVapidSleutels(process.env) !== null })
-  if (id === 'importeren' || id === 'exports') return ALTIJD[id]
+  if (id === 'ledenapp') return ledenappStand({ open: CLUB_LEDEN_LOGIN && moduleAan(org, 'app'), qr: org.instellingen.ledenapp.qr && qrCheckinAan(org.instellingen.checkin) }, taal)
+  if (id === 'meldingen') return meldingenStand({ mail: mailKlaar(process.env), push: pushActief(process.env) && leesVapidSleutels(process.env) !== null }, taal)
+  if (id === 'importeren' || id === 'exports') return altijdStand(id, taal)
   return null
 }
 
 /** De stand van elke koppeling die deze persoon ziet; alleen wat nodig is wordt gelezen. */
-async function standen(t: ClubToegang, ids: readonly KoppelingId[]): Promise<Map<KoppelingId, KoppelStatus>> {
+async function standen(t: ClubToegang, ids: readonly KoppelingId[], taal: Taal): Promise<Map<KoppelingId, KoppelStatus>> {
   const lees = async (id: KoppelingId): Promise<[KoppelingId, KoppelStatus]> => {
-    if (id === 'betalen') return [id, await betaalStatus(t)]
-    if (id === 'widget') return [id, await widgetStatus(t)]
-    return [id, vasteStatus(t, id) ?? { stand: 'onbekend', tekst: 'Onbekend.' }]
+    if (id === 'betalen') return [id, await betaalStatus(t, taal)]
+    if (id === 'widget') return [id, await widgetStatus(t, taal)]
+    return [id, vasteStatus(t, id, taal) ?? onbekendeStand(taal)]
   }
   return new Map(await Promise.all(ids.map(lees)))
 }
@@ -81,10 +86,12 @@ async function standen(t: ClubToegang, ids: readonly KoppelingId[]): Promise<Map
 export default async function KoppelingenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
   const kijker = instelKijker(t)
-  const lijst = zichtbareKoppelingen(kijker)
+  const taal = await getTaal()
+  const tekst = KOPPEL_TEKST[taal].pagina
+  const lijst = zichtbareKoppelingen(kijker).map((k) => koppelingInTaal(k, taal))
   if (lijst.length === 0) notFound()
   const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
-  const stand = await standen(t, lijst.map((k) => k.id))
+  const stand = await standen(t, lijst.map((k) => k.id), taal)
   const werkt = lijst.filter((k) => stand.get(k.id)?.stand === 'aan').length
 
   return (
@@ -92,8 +99,8 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Koppelingen</h1>
-          <p>Wat Club verbindt met je leden, je website en je administratie, en hoe het er nu voor staat. {werkt} van {lijst.length} werkt nu.</p>
+          <h1>{tekst.titel}</h1>
+          <p>{tekst.intro(werkt, lijst.length)}</p>
         </div>
       </header>
 
@@ -107,7 +114,7 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
               <div className="club-koppeling-kop">
                 <span className="club-koppeling-icoon" aria-hidden><Icoon size={20} strokeWidth={1.75} /></span>
                 <h2>{k.titel}</h2>
-                {s && <span className={CHIP[s.stand]}>{STAND_LABEL[s.stand]}</span>}
+                {s && <span className={CHIP[s.stand]}>{standLabel(s.stand, taal)}</span>}
               </div>
               <p className="club-koppeling-uitleg">{k.uitleg}</p>
               {s && <p className="club-koppeling-stand">{s.tekst}</p>}
@@ -116,7 +123,7 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
                   {k.knop} <ArrowRight size={15} aria-hidden />
                 </Link>
               ) : (
-                <span className="club-koppeling-knop club-hint">Nog niet in te stellen</span>
+                <span className="club-koppeling-knop club-hint">{tekst.nietInTeStellen}</span>
               )}
             </li>
           )

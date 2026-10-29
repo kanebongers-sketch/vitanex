@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Download, ShieldCheck, Trash2 } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { medewerkerNaamKlopt, medewerkerWisBlokkade } from '@/lib/club/personeel/avg'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
 import '@/components/club/leden/avg.css'
 
 // "Privacy (AVG)" bij een medewerker. Inzage: alles wat Club over hem of haar
@@ -29,6 +31,8 @@ export function MedewerkerPrivacy({ medewerkerId, naam, actief, gewist, magWisse
   const [fout, setFout] = useState<string | null>(null)
   const klopt = medewerkerNaamKlopt(invoer, naam)
   const blokkade = medewerkerWisBlokkade({ actief, gewist })
+  const tekst = useTekst(INSTELLINGEN)
+  const t = tekst.privacy
 
   async function wis() {
     if (!klopt || bezig) return
@@ -43,45 +47,44 @@ export function MedewerkerPrivacy({ medewerkerId, naam, actief, gewist, magWisse
   }
 
   return (
-    <section className="club-mwlogin club-avg" aria-label={`Privacy van ${naam}`}>
+    <section className="club-mwlogin club-avg" aria-label={t.label(naam)}>
       <div className="club-mwlogin-kop">
         <ShieldCheck aria-hidden size={15} />
-        <span className="club-label">Privacy (AVG)</span>
-        {gewist ? <span className="club-chip club-chip--uit">Gewist</span> : null}
+        <span className="club-label">{t.kop}</span>
+        {gewist ? <span className="club-chip club-chip--uit">{t.gewist}</span> : null}
       </div>
 
       {gewist ? (
-        <p className="club-hint">Naam, e-mail, inlog, beschikbaarheid en notities zijn gewist. Diensten en uren blijven zonder naam bewaard (fiscale bewaarplicht).</p>
+        <p className="club-hint">{t.gewistUitleg}</p>
       ) : null}
       <div className="club-avg-knoppen">
         <a className="club-knop club-knop--klein" href={`${basis}/gegevens`} download>
-          <Download size={14} aria-hidden /> Gegevens downloaden
+          <Download size={14} aria-hidden /> {t.downloaden}
         </a>
         {magWissen && !blokkade && !open ? (
           <button type="button" className="club-knop club-knop--klein club-knop--gevaar" onClick={() => setOpen(true)}>
-            <Trash2 size={14} aria-hidden /> Gegevens wissen
+            <Trash2 size={14} aria-hidden /> {t.wissen}
           </button>
         ) : null}
       </div>
-      {magWissen && !gewist && actief ? <p className="club-hint">Wissen kan als de medewerker uit dienst is.</p> : null}
+      {magWissen && !gewist && actief ? <p className="club-hint">{t.pasNaDienst}</p> : null}
 
       {magWissen && !blokkade && open ? (
         <div className="club-avg-bevestig">
           <p>
-            <strong>De gegevens van {naam} worden nu gewist.</strong> De naam wordt &quot;Oud-medewerker&quot;, e-mail, inlog, beschikbaarheid en notities gaan direct
-            weg. Diensten en uren blijven zonder naam bewaard voor de administratie. Dit is niet terug te draaien.
+            <strong>{t.bevestigKop(naam)}</strong> {t.bevestigUitleg}
           </p>
-          <p className="club-hint">Tip: download eerst de gegevens als de medewerker daarom vraagt.</p>
+          <p className="club-hint">{t.tip}</p>
           <label className="club-veld">
-            <span>Typ de naam ter bevestiging</span>
+            <span>{t.typNaam}</span>
             <input className="club-invoer" value={invoer} onChange={(e) => setInvoer(e.target.value)} placeholder={naam} autoComplete="off" spellCheck={false} />
           </label>
           <div className="club-avg-knoppen">
             <button type="button" className="club-knop club-knop--klein club-knop--gevaar" disabled={!klopt || bezig} onClick={() => void wis()}>
-              <Trash2 size={14} aria-hidden /> Nu definitief wissen
+              <Trash2 size={14} aria-hidden /> {t.definitief}
             </button>
             <button type="button" className="club-knop club-knop--klein club-knop--stil" disabled={bezig} onClick={() => { setOpen(false); setInvoer('') }}>
-              Annuleren
+              {tekst.algemeen.annuleren}
             </button>
           </div>
         </div>

@@ -8,6 +8,8 @@
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
 import { isDatum, isTijd, nlDelen, nlNaarUtc, plusDagen } from '@/lib/club/rooster/tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { AGENDA } from '@/lib/aiyourgym/taal/woorden/club/agenda'
 
 export const SOORTEN = ['afspraak', 'overleg', 'intake', 'pt', 'onderhoud', 'overig'] as const
 export type AgendaSoort = (typeof SOORTEN)[number]
@@ -154,9 +156,9 @@ export function perDag(items: readonly AgendaItem[], maandag: string): { datum: 
   })
 }
 
-/** "09:00 tot 10:30" of "Hele dag". */
-export function tijdLabel(a: Pick<AgendaItem, 'beginOp' | 'eindOp' | 'heleDag'>): string {
-  if (a.heleDag) return 'Hele dag'
+/** "09:00 tot 10:30" of "Hele dag", in de gekozen taal. */
+export function tijdLabel(a: Pick<AgendaItem, 'beginOp' | 'eindOp' | 'heleDag'>, taal: Taal = 'nl'): string {
+  if (a.heleDag) return AGENDA[taal].heleDag
   const { begin, eind } = formWaarden(a)
-  return `${begin} tot ${eind}`
+  return AGENDA[taal].tijd(begin, eind)
 }

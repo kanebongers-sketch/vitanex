@@ -2,7 +2,8 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import { Save, X } from 'lucide-react'
-import { WEEKDAG_LABEL } from '@/lib/club/rooster/openingstijden'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
 import type { LesSerie, Lestype, Zaal } from '@/lib/club/rooster/typen'
 import { useClubActie } from '@/components/club/rooster/vraag'
 import { bewaarItem } from './opslaan'
@@ -60,6 +61,8 @@ export function SerieFormulier(props: Props) {
   const [v, setV] = useState<Velden>(() => beginWaarden(props))
   const { bezig, fout, voerUit } = useClubActie()
   const zet = (k: keyof Velden) => (e: { target: { value: string } }) => setV((oud) => ({ ...oud, [k]: e.target.value }))
+  const tekst = useTekst(INSTELLINGEN)
+  const t = tekst.serie
 
   useEffect(() => {
     const opToets = (e: KeyboardEvent) => e.key === 'Escape' && onSluit()
@@ -99,17 +102,17 @@ export function SerieFormulier(props: Props) {
     <div className="club-paneel-scherm" onClick={(e) => e.target === e.currentTarget && onSluit()}>
       <aside className="club-paneel" role="dialog" aria-modal="true" aria-labelledby="club-instellingen-serie-titel">
         <header className="club-instellingen-paneelkop">
-          <h2 id="club-instellingen-serie-titel">{serie ? 'Vaste les aanpassen' : 'Vaste les toevoegen'}</h2>
-          <button type="button" className="club-knop club-knop--stil" aria-label="Sluiten" onClick={onSluit}>
+          <h2 id="club-instellingen-serie-titel">{serie ? t.aanpassen : t.toevoegen}</h2>
+          <button type="button" className="club-knop club-knop--stil" aria-label={tekst.algemeen.sluiten} onClick={onSluit}>
             <X aria-hidden size={18} />
           </button>
         </header>
         <form className="club-instellingen-serie" onSubmit={bewaar}>
           <label className="club-veld">
-            <span>Les</span>
+            <span>{t.les}</span>
             <select className="club-invoer" required value={v.lestypeId} onChange={(e) => kiesType(e.target.value)}>
               <option value="" disabled>
-                Kies een les
+                {t.kiesLes}
               </option>
               {lestypen.filter((t) => t.actief || t.id === v.lestypeId).map((t) => (
                 <option key={t.id} value={t.id}>
@@ -120,9 +123,9 @@ export function SerieFormulier(props: Props) {
           </label>
           <div className="club-formrij">
             <label className="club-veld">
-              <span>Dag</span>
+              <span>{t.dag}</span>
               <select className="club-invoer" value={v.weekdag} onChange={zet('weekdag')}>
-                {WEEKDAG_LABEL.map((d, i) => (
+                {tekst.weekdagen.map((d, i) => (
                   <option key={d} value={i + 1}>
                     {d}
                   </option>
@@ -130,19 +133,19 @@ export function SerieFormulier(props: Props) {
               </select>
             </label>
             <label className="club-veld">
-              <span>Starttijd</span>
+              <span>{t.starttijd}</span>
               <input className="club-invoer" type="time" required value={v.starttijd} onChange={zet('starttijd')} />
             </label>
             <label className="club-veld">
-              <span>Duur (min)</span>
+              <span>{t.duur}</span>
               <input className="club-invoer" type="number" min={10} max={240} required value={v.duurMin} onChange={zet('duurMin')} />
             </label>
           </div>
           <div className="club-formrij">
             <label className="club-veld">
-              <span>Zaal</span>
+              <span>{t.zaal}</span>
               <select className="club-invoer" value={v.zaalId} onChange={zet('zaalId')}>
-                <option value="">Geen zaal</option>
+                <option value="">{t.geenZaal}</option>
                 {zalen.filter((z) => z.actief || z.id === v.zaalId).map((z) => (
                   <option key={z.id} value={z.id}>
                     {z.naam} ({z.capaciteit})
@@ -151,14 +154,14 @@ export function SerieFormulier(props: Props) {
               </select>
             </label>
             <label className="club-veld">
-              <span>Capaciteit</span>
+              <span>{t.capaciteit}</span>
               <input className="club-invoer" type="number" min={1} max={500} required value={v.capaciteit} onChange={zet('capaciteit')} />
             </label>
           </div>
           <label className="club-veld">
-            <span>Instructeur</span>
+            <span>{t.instructeur}</span>
             <select className="club-invoer" value={v.instructeurId} onChange={zet('instructeurId')}>
-              <option value="">Nog niet bekend</option>
+              <option value="">{t.nogNietBekend}</option>
               {instructeurs.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.naam}
@@ -168,25 +171,25 @@ export function SerieFormulier(props: Props) {
           </label>
           <div className="club-formrij">
             <label className="club-veld">
-              <span>Vanaf</span>
+              <span>{t.vanaf}</span>
               <input className="club-invoer" type="date" required value={v.vanaf} onChange={zet('vanaf')} />
             </label>
             <label className="club-veld">
-              <span>Tot en met (leeg = doorlopend)</span>
+              <span>{t.tot}</span>
               <input className="club-invoer" type="date" value={v.tot} onChange={zet('tot')} />
             </label>
           </div>
-          <p className="club-hint">Geldt voor lessen die hierna worden aangemaakt. Lessen die al in het rooster staan, pas je daar per les aan.</p>
+          <p className="club-hint">{t.uitleg}</p>
           {fout && <p className="club-fout" role="alert">{fout}</p>}
           <div className="club-instellingen-formvoet">
             {serie && (
               <button type="button" className={`club-knop club-knop--klein${serie.actief ? ' club-knop--gevaar' : ''}`} disabled={bezig} onClick={() => zetActief(!serie.actief)}>
-                {serie.actief ? 'Uit het weekrooster halen' : 'Weer aanzetten'}
+                {serie.actief ? t.uitzetten : t.aanzetten}
               </button>
             )}
             <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
               <Save aria-hidden size={16} />
-              Opslaan
+              {tekst.algemeen.opslaan}
             </button>
           </div>
         </form>

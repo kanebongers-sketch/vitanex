@@ -3,15 +3,18 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Printer } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 // Kleine client-eilandjes voor de takenpagina's.
 
 /** De week afdrukken als papieren reserve (de printstijl staat in taken.css). */
 export function PrintKnop() {
+  const t = useTekst(TAKEN).pagina
   return (
     <button type="button" className="club-knop club-knop--klein" onClick={() => window.print()}>
       <Printer size={16} aria-hidden />
-      Afdrukken
+      {t.afdrukken}
     </button>
   )
 }

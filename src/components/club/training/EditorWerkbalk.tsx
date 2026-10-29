@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { BookmarkPlus, CheckCircle2, Printer, Redo2, Save, Trash2, Undo2, UserPlus } from 'lucide-react'
-import { SCHEMA_STATUS_LABEL, type SchemaStatus } from '@/lib/club/training/typen'
+import type { SchemaStatus } from '@/lib/club/training/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { idUit, stuur } from './api'
 import { SjabloonToepassen } from './SchemaActies'
 import { EditorMeer, type MeerItem } from './editor/EditorMeer'
@@ -40,6 +43,8 @@ const STATUS_CHIP: Record<SchemaStatus, string> = { concept: 'club-chip--info', 
  */
 export function EditorWerkbalk(p: EditorWerkbalkProps) {
   const router = useRouter()
+  const t = useTekst(SCHEMA_EDITOR).werkbalk
+  const l = useTekst(TRAINING_LABELS)
   const [melding, setMelding] = useState<{ tekst: string; href?: string; fout?: boolean } | null>(null)
   const [kopieOpen, setKopieOpen] = useState(false)
   const sluitKopie = useCallback(() => setKopieOpen(false), [])
@@ -55,11 +60,11 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
   async function alsSjabloon() {
     const u = await stuur(`/schemas/${p.schemaId}/kopie`, 'POST', { lidId: null })
     const id = u.ok ? idUit(u.data) : null
-    setMelding(id ? { tekst: 'Opgeslagen als sjabloon.', href: p.editorHref.replace('__id__', id) } : { tekst: u.ok ? 'Mislukt.' : u.fout, fout: true })
+    setMelding(id ? { tekst: t.opgeslagenAlsSjabloon, href: p.editorHref.replace('__id__', id) } : { tekst: u.ok ? t.mislukt : u.fout, fout: true })
   }
 
   async function verwijder() {
-    if (!window.confirm(`"${p.naam}" verwijderen? Dit kan niet ongedaan worden.`)) return
+    if (!window.confirm(t.verwijderVraag(p.naam))) return
     const u = await stuur(`/schemas/${p.schemaId}`, 'DELETE')
     if (!u.ok) return setMelding({ tekst: u.fout, fout: true })
     router.push(p.terugHref)
@@ -70,56 +75,56 @@ export function EditorWerkbalk(p: EditorWerkbalkProps) {
     ...(p.isSjabloon
       ? []
       : [
-          { sleutel: 'sjabloon', label: 'Opslaan als sjabloon', icoon: <BookmarkPlus aria-hidden size={16} />, onKies: () => void naOpslaan(alsSjabloon), uit: p.bezig ? 'Even geduld...' : undefined },
-          { sleutel: 'kopie', label: 'Kopie naar ander lid', icoon: <UserPlus aria-hidden size={16} />, onKies: () => void naOpslaan(() => setKopieOpen(true)), uit: p.bezig ? 'Even geduld...' : undefined },
+          { sleutel: 'sjabloon', label: t.opslaanAlsSjabloon, icoon: <BookmarkPlus aria-hidden size={16} />, onKies: () => void naOpslaan(alsSjabloon), uit: p.bezig ? t.evenGeduld : undefined },
+          { sleutel: 'kopie', label: t.kopieNaarLid, icoon: <UserPlus aria-hidden size={16} />, onKies: () => void naOpslaan(() => setKopieOpen(true)), uit: p.bezig ? t.evenGeduld : undefined },
         ]),
-    { sleutel: 'weg', label: p.isSjabloon ? 'Sjabloon verwijderen' : 'Schema verwijderen', icoon: <Trash2 aria-hidden size={16} />, onKies: verwijder, gevaar: true },
+    { sleutel: 'weg', label: p.isSjabloon ? t.sjabloonVerwijderen : t.schemaVerwijderen, icoon: <Trash2 aria-hidden size={16} />, onKies: verwijder, gevaar: true },
   ]
 
-  const opslagTekst = p.bezig ? 'Opslaan...' : p.gewijzigd ? 'Niet opgeslagen' : 'Alles opgeslagen'
+  const opslagTekst = p.bezig ? t.opslaanBezig : p.gewijzigd ? t.nietOpgeslagen : t.allesOpgeslagen
   return (
     <div className="club-training-werkbalk">
       <div className="club-training-werkbalk-status">
-        <span className={`club-chip ${p.isSjabloon ? 'club-chip--merk' : STATUS_CHIP[p.status]}`}>{p.isSjabloon ? 'Sjabloon' : SCHEMA_STATUS_LABEL[p.status]}</span>
+        <span className={`club-chip ${p.isSjabloon ? 'club-chip--merk' : STATUS_CHIP[p.status]}`}>{p.isSjabloon ? t.sjabloon : l.schemaStatus[p.status]}</span>
         <span className="club-training-opslag" data-gewijzigd={p.gewijzigd || undefined} role="status">{opslagTekst}</span>
       </div>
       <div className="club-training-werkbalk-acties">
-        <span className="club-training-undo" role="group" aria-label="Ongedaan maken">
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOngedaan} disabled={!p.kanOngedaan} aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)">
+        <span className="club-training-undo" role="group" aria-label={t.ongedaan}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOngedaan} disabled={!p.kanOngedaan} aria-label={t.ongedaan} title={t.ongedaanTitel}>
             <Undo2 aria-hidden size={16} />
           </button>
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOpnieuw} disabled={!p.kanOpnieuw} aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)">
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={p.onOpnieuw} disabled={!p.kanOpnieuw} aria-label={t.opnieuw} title={t.opnieuwTitel}>
             <Redo2 aria-hidden size={16} />
           </button>
         </span>
-        <button type="button" className="club-knop club-knop--stil" onClick={() => window.print()} aria-label="Printen">
-          <Printer aria-hidden size={16} /> <span className="club-training-werkbalk-tekst">Printen</span>
+        <button type="button" className="club-knop club-knop--stil" onClick={() => window.print()} aria-label={t.printen}>
+          <Printer aria-hidden size={16} /> <span className="club-training-werkbalk-tekst">{t.printen}</span>
         </button>
         <EditorMeer
           items={meer}
-          voet={<><kbd>Ctrl</kbd> <kbd>S</kbd> opslaan · <kbd>Ctrl</kbd> <kbd>Z</kbd> terug · <kbd>Alt</kbd> <kbd>N</kbd> oefening · <kbd>Alt</kbd> <kbd>↑↓</kbd> verplaatsen</>}
+          voet={<><kbd>Ctrl</kbd> <kbd>S</kbd> {t.sneltoetsOpslaan} · <kbd>Ctrl</kbd> <kbd>Z</kbd> {t.sneltoetsTerug} · <kbd>Alt</kbd> <kbd>N</kbd> {t.sneltoetsOefening} · <kbd>Alt</kbd> <kbd>↑↓</kbd> {t.sneltoetsVerplaatsen}</>}
         />
         {p.isSjabloon && <SjabloonToepassen sjabloonId={p.schemaId} sjabloonNaam={p.naam} vestiging={p.vestiging} lid={null} editorHref={p.editorHref} klein={false} />}
         {isConcept ? (
           <>
             {p.gewijzigd && (
-              <button type="button" className="club-knop" onClick={p.onOpslaan} disabled={p.bezig} title="Opslaan als concept (Ctrl+S)">
-                <Save aria-hidden size={16} /> <span className="club-training-werkbalk-tekst">Concept</span> opslaan
+              <button type="button" className="club-knop" onClick={p.onOpslaan} disabled={p.bezig} title={t.conceptTitel}>
+                <Save aria-hidden size={16} /> <span className="club-training-werkbalk-tekst">{t.concept}</span> {t.opslaan}
               </button>
             )}
-            <button type="button" className="club-knop club-knop--primair" onClick={p.onActiveren} disabled={p.bezig} title="Opslaan en naar de app van het lid. Een eerder actief schema van dit lid gaat naar afgerond.">
-              <CheckCircle2 aria-hidden size={16} /> Activeren
+            <button type="button" className="club-knop club-knop--primair" onClick={p.onActiveren} disabled={p.bezig} title={t.activerenTitel}>
+              <CheckCircle2 aria-hidden size={16} /> {t.activeren}
             </button>
           </>
         ) : (
           <button type="button" className="club-knop club-knop--primair" onClick={p.onOpslaan} disabled={p.bezig || !p.gewijzigd} title="Ctrl+S">
-            <Save aria-hidden size={16} /> {p.bezig ? 'Opslaan...' : p.gewijzigd ? 'Opslaan' : 'Opgeslagen'}
+            <Save aria-hidden size={16} /> {p.bezig ? t.opslaanBezig : p.gewijzigd ? t.opslaanKnop : t.opgeslagen}
           </button>
         )}
       </div>
       {melding && (
         <p className={`club-training-werkmelding ${melding.fout ? 'club-fout' : 'club-hint'}`} role="status">
-          {melding.tekst} {melding.href && <Link href={melding.href}>Bekijk het sjabloon</Link>}
+          {melding.tekst} {melding.href && <Link href={melding.href}>{t.bekijkSjabloon}</Link>}
         </p>
       )}
       {kopieOpen && <KopieNaarLid schemaId={p.schemaId} naam={p.naam} vestiging={p.vestiging} editorHref={p.editorHref} onSluit={sluitKopie} />}

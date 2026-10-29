@@ -5,6 +5,8 @@ import { stuur } from '@/components/club/app/verzoek'
 import { LEDENAPP_PAD } from '@/lib/club/ledenlogin/contract'
 import { MAX_LENGTE, MIN_LENGTE, normaalEmail, wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
 import { LidFout, LidVeld } from './LidVeld'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // E-mailadres bevestigen en een sterk wachtwoord kiezen (twee keer intikken).
 // Twee plekken:
@@ -26,6 +28,8 @@ interface Props {
 
 export function WachtwoordFormulier({ code, standaardEmail, naam, knop }: Props) {
   const [email, setEmail] = useState(standaardEmail ?? '')
+  const taal = useTaal()
+  const t = LID_INLOGGEN[taal].wachtwoord
   const [wachtwoord, setWachtwoord] = useState('')
   const [herhaal, setHerhaal] = useState('')
   const [fout, setFout] = useState<string | null>(null)
@@ -36,13 +40,13 @@ export function WachtwoordFormulier({ code, standaardEmail, naam, knop }: Props)
     e.preventDefault()
     if (bezig) return
     const adres = normaalEmail(email)
-    if (!adres) return setFout('Vul een geldig e-mailadres in.')
+    if (!adres) return setFout(LID_INLOGGEN[taal].aanvragen.ongeldig)
     // Meteen hier, zonder wachten op de server: zo blijft het eerste wachtwoord staan.
-    const zwak = wachtwoordFout(wachtwoord, { email: adres, naam })
+    const zwak = wachtwoordFout(wachtwoord, { email: adres, naam, taal })
     if (zwak) return setFout(zwak)
     if (wachtwoord !== herhaal) {
       setHerhaal('')
-      return setFout('De twee wachtwoorden zijn niet gelijk. Vul het nog een keer in.')
+      return setFout(t.ongelijk)
     }
     setBezig(true)
     setFout(null)
@@ -64,7 +68,7 @@ export function WachtwoordFormulier({ code, standaardEmail, naam, knop }: Props)
   if (klaar) {
     return (
       <p className="club-mijn-veld-klaar" role="status">
-        Je wachtwoord is opgeslagen. Voortaan log je in met {normaalEmail(email)} en dit wachtwoord.
+        {t.opgeslagen(normaalEmail(email) ?? email)}
       </p>
     )
   }
@@ -72,21 +76,21 @@ export function WachtwoordFormulier({ code, standaardEmail, naam, knop }: Props)
   return (
     <form className="club-mijn-blok" onSubmit={(e) => void verstuur(e)} noValidate>
       <LidVeld
-        id="wachtwoord-email" label="Je e-mailadres" hint="Hiermee log je voortaan in." type="email" inputMode="email" autoComplete="username"
+        id="wachtwoord-email" label={t.email} hint={t.emailHint} type="email" inputMode="email" autoComplete="username"
         autoCapitalize="none" spellCheck={false} maxLength={120} required waarde={email} onWaarde={setEmail} fout={fout !== null}
       />
       <LidVeld
-        id="wachtwoord-nieuw" label="Kies een wachtwoord" hint={`Minstens ${MIN_LENGTE} tekens. Een zin van 16 tekens of meer is makkelijk te onthouden en sterk.`}
+        id="wachtwoord-nieuw" label={t.kies} hint={t.kiesHint(MIN_LENGTE)}
         type="password" autoComplete="new-password" maxLength={MAX_LENGTE} required autoFocus={Boolean(standaardEmail)}
         waarde={wachtwoord} onWaarde={setWachtwoord} fout={fout !== null}
       />
       <LidVeld
-        id="wachtwoord-herhaal" label="Herhaal je wachtwoord" type="password" autoComplete="new-password" maxLength={MAX_LENGTE} required
+        id="wachtwoord-herhaal" label={t.herhaal} type="password" autoComplete="new-password" maxLength={MAX_LENGTE} required
         waarde={herhaal} onWaarde={setHerhaal} fout={fout !== null}
       />
       <LidFout fout={fout} />
       <button type="submit" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig} aria-busy={bezig}>
-        {bezig ? 'Even geduld...' : knop}
+        {bezig ? t.bezig : knop}
       </button>
     </form>
   )

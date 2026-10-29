@@ -7,7 +7,9 @@ import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import Link from 'next/link'
 import { Printer, Send, Settings2 } from 'lucide-react'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
-import { instelHref, instelPagina, magInstelPagina } from '@/lib/club/kern/instel-paginas'
+import { instelHref, instelPagina, instelPaginaInTaal, magInstelPagina } from '@/lib/club/kern/instel-paginas'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { APP_PAGINA } from '@/lib/aiyourgym/taal/woorden/club/app-pagina'
 import { instelKijker } from '@/lib/club/instel-toegang'
 import { magTrainen, volledigeNaam, zoekLeden } from '@/lib/club/kern/lid'
 import { haalLidApp } from '@/lib/club/app/data'
@@ -39,31 +41,36 @@ import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 // activatielink per lid) en de instellingen van de app, voor wie dat mag.
 
 /** De knoppen naar de poster, het uitnodigen en de instellingen; alleen wat deze persoon mag. */
-function LedenappActies({ t, vestiging }: { t: ClubToegang; vestiging: string }) {
+async function LedenappActies({ t, vestiging }: { t: ClubToegang; vestiging: string }) {
+  const tekst = await clubTekst(APP_PAGINA)
+  const taal = await getTaal()
   const leden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
   const instel = instelPagina('ledenapp')
   const magInstellen = instel ? magInstelPagina(instel, instelKijker(t)) : false
   if (!leden && !magInstellen) return null
   return (
-    <div className="club-acties" aria-label="Ledenapp">
+    <div className="club-acties" aria-label={tekst.acties}>
       {leden && (
         <>
-          <Link href={clubPad('/leden/app-poster', vestiging)} className="club-knop club-knop--klein"><Printer size={15} aria-hidden /> Poster met QR-code</Link>
-          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--klein" title="Bij Leden nodig je leden uit; op de ledenkaart staat de activatielink per lid"><Send size={15} aria-hidden /> Leden uitnodigen</Link>
+          <Link href={clubPad('/leden/app-poster', vestiging)} className="club-knop club-knop--klein"><Printer size={15} aria-hidden /> {tekst.poster}</Link>
+          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--klein" title={tekst.uitnodigenUitleg}><Send size={15} aria-hidden /> {tekst.uitnodigen}</Link>
         </>
       )}
-      {instel && magInstellen && <Link href={instelHref(instel, vestiging)} className="club-knop club-knop--klein"><Settings2 size={15} aria-hidden /> {instel.titel}</Link>}
+      {instel && magInstellen && <Link href={instelHref(instel, vestiging)} className="club-knop club-knop--klein"><Settings2 size={15} aria-hidden /> {instelPaginaInTaal(instel, taal).titel}</Link>}
     </div>
   )
 }
 
-export const metadata: Metadata = { title: 'Ledenapp' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(APP_PAGINA)).titel }
+}
 
 export default async function ClubLedenapp({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('app')
   const zoek = await searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
+  const tekst = await clubTekst(APP_PAGINA)
   const appInstellingen = t.organisatie.instellingen.ledenapp
   // Tabbladen die uit staan: zelf uitgezet in de ledenapp-instellingen, of het onderdeel staat uit.
   const tabsUit: string[] = [
@@ -89,9 +96,9 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
     <>
     <header className="club-paginakop">
       <div>
-        <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · voorvertoning</p>
-        <h1>Ledenapp</h1>
-        <p>Zo ziet een lid de app op zijn telefoon. Kies een lid om mee te kijken.</p>
+        <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · {tekst.voorvertoning}</p>
+        <h1>{tekst.titel}</h1>
+        <p>{tekst.intro}</p>
       </div>
       <LedenappActies t={t} vestiging={vestiging} />
       {lid && (
@@ -108,7 +115,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
     return (
       <>
         {kop}
-        <p className="club-leeg">{leden === null ? 'De leden konden niet worden geladen.' : 'Deze vestiging heeft nog geen leden die kunnen trainen.'}</p>
+        <p className="club-leeg">{leden === null ? tekst.ledenFout : tekst.geenLeden}</p>
       </>
     )
   }
@@ -159,7 +166,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           )}
           {tab === 'afspraken' && (
             <div className="club-lidapp-tab">
-              <h2 className="club-lidapp-kop">Afspraken</h2>
+              <h2 className="club-lidapp-kop">{tekst.afspraken}</h2>
               <LedenappAfspraken lidId={lid.id} />
             </div>
           )}

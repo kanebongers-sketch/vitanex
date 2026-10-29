@@ -6,8 +6,12 @@ import { IntakeVragenBeheer } from '@/components/club/intakevragen/IntakeVragenB
 import '@/components/club/training/training.css'
 import '@/components/club/intakevragen/intakevragen.css'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 
-export const metadata: Metadata = { title: 'Intakeformulier' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(INTAKE)).beheerPagina.titel }
+}
 
 // Het intakeformulier van de sportschool samenstellen: vragen toevoegen,
 // aanpassen, volgorde en secties, aan en uit, met een live voorbeeld.
@@ -16,6 +20,7 @@ export const metadata: Metadata = { title: 'Intakeformulier' }
 export default async function IntakeformulierPagina() {
   const t = await eisOnderdeel('beheer')
   const set = await haalIntakeVragen(t.admin, t.userId)
+  const tp = (await clubTekst(INTAKE)).beheerPagina
 
   return (
     <>
@@ -23,17 +28,14 @@ export default async function IntakeformulierPagina() {
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Intakeformulier</h1>
-          <p>
-            De vragen die je trainers bij een intake stellen, in jouw volgorde en secties. Doelen, ervaring, dagen en minuten blijven altijd staan:
-            daar maakt Club het schemavoorstel mee. Gezondheidsvragen ziet de trainer alleen als het lid toestemming geeft.
-          </p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
       </header>
       {set ? (
         <IntakeVragenBeheer vragen={set.vragen} standaard={set.standaard} vandaag={dagSleutelNl(new Date())} />
       ) : (
-        <p className="club-melding club-melding--fout" role="status">De intakevragen konden niet worden gelezen. Probeer het later opnieuw.</p>
+        <p className="club-melding club-melding--fout" role="status">{tp.fout}</p>
       )}
     </>
   )

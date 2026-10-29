@@ -5,6 +5,8 @@ import { ArrowDown, ArrowUp, Check, Plus, Star } from 'lucide-react'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { MAX_VESTIGING_NAAM } from '@/lib/club/instellingen/vestigingen-invoer'
 import { stuur, useClubActie } from '@/components/club/rooster/vraag'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
 
 // De vestigingen van de sportschool: toevoegen, hernoemen, volgorde en welke
 // standaard open gaat. Verwijderen kan niet (leden en lessen verwijzen ernaar).
@@ -20,6 +22,8 @@ interface VestigingenBeheerProps {
 export function VestigingenBeheer({ vestigingen, contact }: VestigingenBeheerProps) {
   const { bezig, fout, voerUit } = useClubActie()
   const [nieuw, setNieuw] = useState('')
+  const tekst = useTekst(INSTELLINGEN)
+  const t = tekst.vestigingen
 
   const wijzig = (sleutel: string, body: Record<string, unknown>) => voerUit(() => stuur(`/api/club/vestigingen/${encodeURIComponent(sleutel)}`, 'PATCH', body))
 
@@ -31,8 +35,8 @@ export function VestigingenBeheer({ vestigingen, contact }: VestigingenBeheerPro
   }
 
   return (
-    <section className="club-kaart club-instellingen-vestigingen" aria-label="Vestigingen">
-      {vestigingen.length === 0 && <p className="club-melding">Deze sportschool heeft nog geen vestigingen. Voeg hieronder de eerste toe.</p>}
+    <section className="club-kaart club-instellingen-vestigingen" aria-label={t.label}>
+      {vestigingen.length === 0 && <p className="club-melding">{t.leeg}</p>}
       <ol className="club-instellingen-vestlijst">
         {vestigingen.map((v, i) => (
           <VestigingRij
@@ -54,11 +58,11 @@ export function VestigingenBeheer({ vestigingen, contact }: VestigingenBeheerPro
         }}
       >
         <label className="club-veld">
-          <span>Nieuwe vestiging</span>
-          <input className="club-invoer" value={nieuw} maxLength={MAX_VESTIGING_NAAM} placeholder="Bijvoorbeeld Centrum" onChange={(e) => setNieuw(e.target.value)} />
+          <span>{t.nieuw}</span>
+          <input className="club-invoer" value={nieuw} maxLength={MAX_VESTIGING_NAAM} placeholder={t.voorbeeld} onChange={(e) => setNieuw(e.target.value)} />
         </label>
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !nieuw.trim()}>
-          <Plus aria-hidden size={16} /> Toevoegen
+          <Plus aria-hidden size={16} /> {tekst.algemeen.toevoegen}
         </button>
       </form>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
@@ -80,35 +84,37 @@ function VestigingRij({ vestiging: v, contact, eerste, laatste, bezig, onWijzig 
   const [gegevens, setGegevens] = useState({ adres: contact.adres ?? '', telefoon: contact.telefoon ?? '', email: contact.email ?? '' })
   const contactGewijzigd = gegevens.adres !== (contact.adres ?? '') || gegevens.telefoon !== (contact.telefoon ?? '') || gegevens.email !== (contact.email ?? '')
   const gewijzigd = naam.trim() !== v.naam && naam.trim() !== ''
+  const tekst = useTekst(INSTELLINGEN)
+  const t = tekst.vestigingen
   return (
     <li className="club-instellingen-vestrij">
       <span className="club-instellingen-vestvolg">
-        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omhoog`} aria-disabled={bezig || eerste} onClick={() => !bezig && !eerste && onWijzig({ verplaats: -1 })}>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={t.omhoog(v.naam)} aria-disabled={bezig || eerste} onClick={() => !bezig && !eerste && onWijzig({ verplaats: -1 })}>
           <ArrowUp aria-hidden size={15} />
         </button>
-        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${v.naam} omlaag`} aria-disabled={bezig || laatste} onClick={() => !bezig && !laatste && onWijzig({ verplaats: 1 })}>
+        <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={t.omlaag(v.naam)} aria-disabled={bezig || laatste} onClick={() => !bezig && !laatste && onWijzig({ verplaats: 1 })}>
           <ArrowDown aria-hidden size={15} />
         </button>
       </span>
-      <input className="club-invoer" aria-label={`Naam van ${v.naam}`} value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} />
+      <input className="club-invoer" aria-label={t.naamVan(v.naam)} value={naam} maxLength={MAX_VESTIGING_NAAM} onChange={(e) => setNaam(e.target.value)} />
       {gewijzigd && (
         <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => onWijzig({ naam })}>
-          <Check aria-hidden size={15} /> Bewaar
+          <Check aria-hidden size={15} /> {t.bewaar}
         </button>
       )}
       {v.standaard ? (
-        <span className="club-chip club-chip--merk"><Star aria-hidden size={13} /> Standaard</span>
+        <span className="club-chip club-chip--merk"><Star aria-hidden size={13} /> {t.standaard}</span>
       ) : (
         <button type="button" className="club-knop club-knop--stil club-knop--klein" disabled={bezig} onClick={() => onWijzig({ standaard: true })}>
-          Maak standaard
+          {t.maakStandaard}
         </button>
       )}
       <details className="club-instellingen-vestcontact">
-        <summary>Contact{contact.adres ? `: ${contact.adres}` : ''}</summary>
+        <summary>{contact.adres ? t.contactMet(contact.adres) : t.contact}</summary>
         <div className="club-instellingen-vestvelden">
           {(['adres', 'telefoon', 'email'] as const).map((veld) => (
             <label key={veld} className="club-veld">
-              <span>{veld === 'email' ? 'E-mail' : veld === 'adres' ? 'Adres' : 'Telefoon'}</span>
+              <span>{veld === 'email' ? tekst.algemeen.email : veld === 'adres' ? t.adres : t.telefoon}</span>
               <input
                 className="club-invoer"
                 type={veld === 'email' ? 'email' : veld === 'telefoon' ? 'tel' : 'text'}
@@ -119,7 +125,7 @@ function VestigingRij({ vestiging: v, contact, eerste, laatste, bezig, onWijzig 
             </label>
           ))}
           <button type="button" className="club-knop club-knop--klein" disabled={bezig || !contactGewijzigd} onClick={() => onWijzig(gegevens)}>
-            <Check aria-hidden size={15} /> Contact bewaren
+            <Check aria-hidden size={15} /> {t.contactBewaren}
           </button>
         </div>
       </details>

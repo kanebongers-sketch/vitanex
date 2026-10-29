@@ -1,12 +1,11 @@
 import Link from 'next/link'
-import { DEFINITIES } from '@/lib/club/cijfers/definities'
 import { csvBestandsnaam } from '@/lib/club/cijfers/csv'
 import { maandNaam } from '@/lib/club/cijfers/maand'
 import type { Kant } from '@/lib/club/cijfers/rapport'
 import { clubPad } from '@/lib/club/kern/vestiging'
 import { CijferBlok, Hoofdstuk } from './CijferBlok'
-import { csvWaarde, tegel, toon, type Tegel } from './kern-tegels'
-import { bestandsdeel, type CijferContext } from './context'
+import { csvWaarde, tegel, tegelLabel, toon, type Tegel } from './kern-tegels'
+import { bestandsdeel, tekstVan, type CijferContext } from './context'
 
 // De 12 maanden onder elkaar, nieuwste boven, met dezelfde kerncijfers als de
 // strook bovenaan. Een maand van voor de eerste data staat als "geen data".
@@ -27,30 +26,32 @@ function cel(t: Tegel, k: Kant, c: CijferContext): Cel {
 }
 
 export function Maandoverzicht({ c }: { c: CijferContext }) {
+  const tk = tekstVan(c)
+  const t = tk.maanden
   const maanden = [...c.rapport.trend].reverse()
   const pad = (m: string) => clubPad('/cijfers', c.vestiging, { maand: m, ...(c.bereik === 'alle' ? { bereik: 'alle' } : {}) })
   return (
-    <Hoofdstuk nummer="06" titel="12 maanden">
+    <Hoofdstuk nummer="06" titel={t.hoofdstuk}>
       <CijferBlok
         id="blok-maanden"
         className="club-cijfers-volle"
-        titel="Maand voor maand"
-        definitie={DEFINITIES.maand}
+        titel={t.titel}
+        definitie={tk.definities.maand}
         csv={{
           bestand: csvBestandsnaam('maandoverzicht', bestandsdeel(c)),
-          kop: ['Maand', ...KOLOMMEN.map((t) => (t.soort === 'procent' ? `${t.label} %` : t.label))],
-          rijen: maanden.map((k) => [k.venster.maand, ...KOLOMMEN.map((t) => csvWaarde(cel(t, k, c).w, t.soort))]),
+          kop: [tk.algemeen.maand, ...KOLOMMEN.map((k) => (k.soort === 'procent' ? `${tegelLabel(k, c.taal)} %` : tegelLabel(k, c.taal)))],
+          rijen: maanden.map((k) => [k.venster.maand, ...KOLOMMEN.map((kol) => csvWaarde(cel(kol, k, c).w, kol.soort))]),
         }}
       >
         <div className="club-tabel-wrap club-cijfers-vergelijk">
           <table className="club-tabel">
-            <caption className="club-sr">Kerncijfers per maand, de laatste 12 maanden</caption>
+            <caption className="club-sr">{t.bijschrift}</caption>
             <thead>
               <tr>
-                <th scope="col">Maand</th>
-                {KOLOMMEN.map((t) => (
-                  <th key={t.sleutel} scope="col" className="club-cijfers-rechts">
-                    {t.label}
+                <th scope="col">{tk.algemeen.maand}</th>
+                {KOLOMMEN.map((k) => (
+                  <th key={k.sleutel} scope="col" className="club-cijfers-rechts">
+                    {tegelLabel(k, c.taal)}
                   </th>
                 ))}
               </tr>
@@ -60,16 +61,16 @@ export function Maandoverzicht({ c }: { c: CijferContext }) {
                 <tr key={k.venster.maand} aria-current={k.venster.maand === c.maand ? 'true' : undefined}>
                   <th scope="row">
                     <Link href={pad(k.venster.maand)} scroll={false}>
-                      {maandNaam(k.venster.maand)}
+                      {maandNaam(k.venster.maand, c.taal)}
                     </Link>
-                    {k.venster.lopend && <span className="club-cijfers-loopt"> loopt nog</span>}
+                    {k.venster.lopend && <span className="club-cijfers-loopt">{t.loopt}</span>}
                   </th>
-                  {KOLOMMEN.map((t) => {
-                    const { w, deels } = cel(t, k, c)
+                  {KOLOMMEN.map((kol) => {
+                    const { w, deels } = cel(kol, k, c)
                     return (
-                      <td key={t.sleutel} className="club-cijfers-rechts club-getal" data-geen={w === null || undefined} data-deels={deels || undefined}>
-                        {toon(w, t.soort)}
-                        {deels && <span aria-label=", onvolledig: de data begon halverwege de maand">*</span>}
+                      <td key={kol.sleutel} className="club-cijfers-rechts club-getal" data-geen={w === null || undefined} data-deels={deels || undefined}>
+                        {toon(w, kol.soort, c.taal)}
+                        {deels && <span aria-label={t.onvolledig}>*</span>}
                       </td>
                     )
                   })}
@@ -78,7 +79,7 @@ export function Maandoverzicht({ c }: { c: CijferContext }) {
             </tbody>
           </table>
         </div>
-        <p className="club-cijfers-voetnoot">* Onvolledig: de data begon halverwege die maand, dus dit cijfer telt maar een deel van de maand.</p>
+        <p className="club-cijfers-voetnoot">{t.voetnoot}</p>
       </CijferBlok>
     </Hoofdstuk>
   )

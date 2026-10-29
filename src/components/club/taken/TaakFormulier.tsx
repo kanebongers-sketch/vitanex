@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { FREQUENTIES, FREQUENTIE_LABEL, MOMENTEN, MOMENT_LABEL, isFrequentie, isMoment, type Frequentie, type Moment, type Taak } from '@/lib/club/taken/typen'
+import { FREQUENTIES, MOMENTEN, frequentieLabel, isFrequentie, isMoment, momentLabel, type Frequentie, type Moment, type Taak } from '@/lib/club/taken/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 // De velden van een taak: naam, kopje, hoe vaak en wanneer. Voor nieuw en wijzigen.
 
@@ -36,6 +38,8 @@ function beginWaarden(t?: Taak): TaakWaarden {
 
 export function TaakFormulier({ id, start, groepen, knop, bezig, onOpslaan, onAnnuleer }: FormProps) {
   const [w, setW] = useState(() => beginWaarden(start))
+  const taal = useTaal()
+  const t = useTekst(TAKEN).formulier
   const zet = (deel: Partial<TaakWaarden>) => setW((oud) => ({ ...oud, ...deel }))
 
   async function verstuur(e: FormEvent) {
@@ -48,12 +52,12 @@ export function TaakFormulier({ id, start, groepen, knop, bezig, onOpslaan, onAn
   return (
     <form className="club-taken-taakform" onSubmit={verstuur}>
       <label className="club-veld club-taken-taakform-naam">
-        <span>Taak</span>
+        <span>{t.taak}</span>
         <input className="club-invoer" value={w.naam} onChange={(e) => zet({ naam: e.target.value })} maxLength={120} required />
       </label>
       <label className="club-veld">
-        <span>Kopje</span>
-        <input className="club-invoer" value={w.groep} onChange={(e) => zet({ groep: e.target.value })} maxLength={60} list={`${id}-groepen`} placeholder="Geen" />
+        <span>{t.kopje}</span>
+        <input className="club-invoer" value={w.groep} onChange={(e) => zet({ groep: e.target.value })} maxLength={60} list={`${id}-groepen`} placeholder={t.geen} />
         <datalist id={`${id}-groepen`}>
           {groepen.map((g) => (
             <option key={g} value={g} />
@@ -61,38 +65,38 @@ export function TaakFormulier({ id, start, groepen, knop, bezig, onOpslaan, onAn
         </datalist>
       </label>
       <label className="club-veld">
-        <span>Hoe vaak</span>
+        <span>{t.hoeVaak}</span>
         <select className="club-invoer" value={w.frequentie} onChange={(e) => isFrequentie(e.target.value) && zet({ frequentie: e.target.value })}>
           {FREQUENTIES.map((f) => (
             <option key={f} value={f}>
-              {FREQUENTIE_LABEL[f]}
+              {frequentieLabel(f, taal)}
             </option>
           ))}
         </select>
       </label>
       {w.frequentie === 'per_week' && (
         <label className="club-veld club-taken-taakform-min">
-          <span>Keer per week</span>
+          <span>{t.keerPerWeek}</span>
           <input className="club-invoer" type="number" min={1} max={7} value={w.perWeekMin} onChange={(e) => zet({ perWeekMin: Number(e.target.value) })} required />
         </label>
       )}
       <label className="club-veld">
-        <span>Moment</span>
+        <span>{t.moment}</span>
         <select className="club-invoer" value={w.moment} onChange={(e) => isMoment(e.target.value) && zet({ moment: e.target.value })}>
           {MOMENTEN.map((m) => (
             <option key={m} value={m}>
-              {MOMENT_LABEL[m]}
+              {momentLabel(m, taal)}
             </option>
           ))}
         </select>
       </label>
       <div className="club-acties club-taken-taakform-acties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig || !w.naam.trim()}>
-          {bezig ? 'Bezig' : knop}
+          {bezig ? t.bezig : knop}
         </button>
         {onAnnuleer && (
           <button type="button" className="club-knop club-knop--stil" onClick={onAnnuleer}>
-            Annuleer
+            {t.annuleer}
           </button>
         )}
       </div>

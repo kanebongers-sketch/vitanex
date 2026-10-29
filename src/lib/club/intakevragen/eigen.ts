@@ -122,9 +122,10 @@ export function eigenUitOpslag(ruw: unknown, toestemming: boolean): EigenAntwoor
 }
 
 /** Een antwoord als leesbare tekst. */
-export function toonWaarde(soort: VraagSoort, w: EigenWaarde): string {
-  if (typeof w === 'boolean') return w ? 'Ja' : 'Nee'
+export function toonWaarde(soort: VraagSoort, w: EigenWaarde, taal: 'nl' | 'en' = 'nl'): string {
+  const en = taal === 'en'
+  if (typeof w === 'boolean') return w ? (en ? 'Yes' : 'Ja') : en ? 'No' : 'Nee'
   if (Array.isArray(w)) return w.join(', ')
-  if (typeof w === 'number') return soort === 'schaal_1_10' ? `${w} van 10` : w.toLocaleString('nl-NL')
+  if (typeof w === 'number') return soort === 'schaal_1_10' ? `${w} ${en ? 'out of' : 'van'} 10` : w.toLocaleString(en ? 'en-GB' : 'nl-NL')
   return w
 }

@@ -12,9 +12,13 @@ import { LidFilter } from '@/components/club/training/LidFilter'
 import { NieuwSchemaKnop } from '@/components/club/training/SchemaActies'
 import { TabIntakes, TabOefeningen, TabSchemas, TabSjablonen } from '@/components/club/training/TabInhoud'
 import { kiesTab, TrainingTabs, trainingPad, trainingPaden } from '@/components/club/training/TrainingTabs'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import '@/components/club/training/training.css'
 
-export const metadata: Metadata = { title: 'Training' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(CLUB_TRAINING)).pagina.titel }
+}
 
 // Training: intakes, schema's, sjablonen en de oefeningenbibliotheek.
 // Tabblad en lid staan in de URL (?tab=schemas&lid=...), zodat het Leden-onderdeel
@@ -43,23 +47,24 @@ export default async function TrainingPagina({ searchParams }: { searchParams: Z
   // Bij Schema's is de lijst of de lege staat de hoofdzaak; daar is de intake een gewone knop.
   // De bibliotheek heeft een eigen knop voor een nieuwe oefening.
   const metIntake = tab === 'intakes' || tab === 'schemas'
+  const tp = (await clubTekst(CLUB_TRAINING)).pagina
   return (
     <>
       <section className="club-paginakop">
         <div>
           <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
-          <h1>Training</h1>
-          <p>Van intake naar een schema op maat: intake afnemen, voorstel maken, aanpassen en activeren.</p>
+          <h1>{tp.titel}</h1>
+          <p>{tp.intro}</p>
         </div>
         {(metIntake || tab === 'sjablonen') && (
           <div className="club-acties">
-            {metIntake && lid && <NieuwSchemaKnop lidId={lid.id} editorHref={paden.editor} label="Leeg schema" primair={false} />}
+            {metIntake && lid && <NieuwSchemaKnop lidId={lid.id} editorHref={paden.editor} label={tp.leegSchema} primair={false} />}
             {metIntake && (
               <Link className={`club-knop${tab === 'intakes' ? ' club-knop--primair' : ''}`} href={paden.nieuweIntake(lid?.id ?? null)}>
-                <ClipboardPlus aria-hidden size={16} /> Intake afnemen
+                <ClipboardPlus aria-hidden size={16} /> {tp.intakeAfnemen}
               </Link>
             )}
-            {tab === 'sjablonen' && <NieuwSchemaKnop lidId={null} editorHref={paden.editor} label="Nieuw sjabloon" primair={!lid} />}
+            {tab === 'sjablonen' && <NieuwSchemaKnop lidId={null} editorHref={paden.editor} label={tp.nieuwSjabloon} primair={!lid} />}
           </div>
         )}
       </section>
@@ -75,7 +80,7 @@ export default async function TrainingPagina({ searchParams }: { searchParams: Z
           />
         )}
       </div>
-      {lidParam && !lid && <p className="club-melding">Dit lid is niet gevonden. Je ziet alles van de vestiging.</p>}
+      {lidParam && !lid && <p className="club-melding">{tp.lidNietGevonden}</p>}
 
       {tab === 'intakes' && <TabIntakes {...props} />}
       {tab === 'schemas' && <TabSchemas {...props} />}

@@ -21,6 +21,8 @@ import { TrainingMenu } from './TrainingMenu'
 import { bewaarConcept, laadConcept } from './concept-opslag'
 import { useSchermAan, useSignaal, useVeeg } from './toestel'
 import type { Wachtrij } from './useWachtrij'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 import './training-modus.css'
 
 interface TrainingModusProps {
@@ -65,6 +67,8 @@ function useNu(): number {
 export function TrainingModus(p: TrainingModusProps) {
   const { schema, historie } = p
   const api = useLedenappApi()
+  const taal = useTaal()
+  const t = TRAINING[taal]
   const sleutel = conceptSleutel(schema.id, p.dag.dag)
   const [concept, setConcept] = useState(() => laadConcept(sleutel, p.dag, historie))
   // De dag zoals het lid hem vandaag doet: met de andere oefening als een toestel bezet was.
@@ -133,7 +137,7 @@ export function TrainingModus(p: TrainingModusProps) {
     const ander = volgende ? dag.oefeningen.findIndex((x) => x.id === volgende.regelId) : -1
     const nu = Date.now()
     const start = rustVanaf !== undefined && rustVanaf <= nu ? rustVanaf : nu
-    const rust = sec > 0 && volgende ? { start, sec, volgende: `set ${volgende.set} ${volgende.naam}` } : null
+    const rust = sec > 0 && volgende ? { start, sec, volgende: t.volgendeSet(volgende.set, volgende.naam) } : null
     if (ander >= 0 && ander !== index) {
       setRichting(ander > index ? 'vooruit' : 'terug')
       wortel.current?.scrollIntoView({ block: 'start' })
@@ -143,7 +147,7 @@ export function TrainingModus(p: TrainingModusProps) {
 
   async function rondAf() {
     const sets = naarSets(dag, concept.invoer, historie)
-    if (sets.length === 0 && !window.confirm('Je hebt nog geen sets afgevinkt. Toch afronden als gedaan?')) return
+    if (sets.length === 0 && !window.confirm(t.geenSets)) return
     setMenu(false)
     setBezig(true)
     setFout(null)
@@ -159,9 +163,9 @@ export function TrainingModus(p: TrainingModusProps) {
         setBezig(false)
         return setFout(r.fout)
       }
-      if (!p.wachtrij.zetErin({ url: afvink.url, body, omschrijving: `Training dag ${dag.letter}` })) {
+      if (!p.wachtrij.zetErin({ url: afvink.url, body, omschrijving: t.omschrijving(dag.letter) })) {
         setBezig(false)
-        return setFout('Geen verbinding, en bewaren op je telefoon lukte niet. Probeer het zo opnieuw.')
+        return setFout(t.nietBewaard)
       }
       status = 'wacht'
     }
@@ -179,7 +183,7 @@ export function TrainingModus(p: TrainingModusProps) {
   }
 
   function stop() {
-    if (gedaan > 0 && !window.confirm('Stoppen zonder af te ronden? Je ingevulde sets blijven op deze telefoon bewaard.')) return
+    if (gedaan > 0 && !window.confirm(t.stoppenVraag)) return
     p.onStop()
   }
 
@@ -190,26 +194,26 @@ export function TrainingModus(p: TrainingModusProps) {
   return (
     <div className="club-tm" ref={wortel}>
       <header className="club-tm-kop">
-        <button type="button" className="club-tm-rondknop" onClick={stop} aria-label="Training stoppen">
+        <button type="button" className="club-tm-rondknop" onClick={stop} aria-label={t.kop.stoppen}>
           <X aria-hidden size={20} />
         </button>
         <p className="club-tm-kop-midden">
-          <strong>Dag {dag.letter}</strong>
-          <span aria-label="Trainingstijd">{toonKlok(verstreken(concept.start, nu))}</span>
+          <strong>{t.kop.dag(dag.letter)}</strong>
+          <span aria-label={t.kop.tijd}>{toonKlok(verstreken(concept.start, nu))}</span>
         </p>
-        <button type="button" className="club-tm-rondknop" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-label="Instellingen training">
+        <button type="button" className="club-tm-rondknop" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-label={t.kop.instellingen}>
           <Settings2 aria-hidden size={20} />
         </button>
       </header>
 
-      <nav className="club-tm-stappen" aria-label={`Oefeningen, ${gedaan} van ${totaal} sets gedaan`}>
+      <nav className="club-tm-stappen" aria-label={t.kop.oefeningen(gedaan, totaal)}>
         {dag.oefeningen.map((x, i) => {
           const v = voortgang({ ...dag, oefeningen: [x] }, concept.invoer)
           const label = plekken.get(x.id)?.label ?? String(i + 1)
           return (
             <button
               key={x.id} type="button" className="club-tm-stap" aria-current={i === index ? 'step' : undefined} onClick={() => naar(i)}
-              data-klaar={v.klaar === v.totaal || undefined} aria-label={`${label} ${x.naam}, ${v.klaar} van ${v.totaal} sets`}
+              data-klaar={v.klaar === v.totaal || undefined} aria-label={t.kop.stap(label, x.naam, v.klaar, v.totaal)}
             >
               <span style={{ transform: `scaleX(${v.totaal ? v.klaar / v.totaal : 0})` }} aria-hidden />
             </button>
@@ -219,7 +223,7 @@ export function TrainingModus(p: TrainingModusProps) {
 
       {!p.wachtrij.online && (
         <p className="club-tm-offline" role="status">
-          <WifiOff aria-hidden size={15} /> Geen bereik. Alles blijft op je telefoon bewaard.
+          <WifiOff aria-hidden size={15} /> {t.offline}
         </p>
       )}
       {menu && <TrainingMenu signaal={signaal} scherm={scherm} bezig={bezig} onAfronden={rondAf} />}
@@ -238,17 +242,17 @@ export function TrainingModus(p: TrainingModusProps) {
           <RustTimer rust={concept.rust} nu={nu} onVerleng={(s) => setConcept((c) => (c.rust ? { ...c, rust: verlengRust(c.rust, s, Date.now()) } : c))} onStop={stopRust} />
         ) : (
           <div className="club-tm-nav">
-            <button type="button" className="club-tm-navknop" onClick={() => naar(index - 1)} disabled={index === 0} aria-label="Vorige oefening">
+            <button type="button" className="club-tm-navknop" onClick={() => naar(index - 1)} disabled={index === 0} aria-label={t.vorigeOefening}>
               <ChevronLeft aria-hidden size={24} />
             </button>
             {isLaatste || allesGedaan ? (
               <button type="button" className="club-tm-navknop club-tm-navknop--hoofd" data-af={allesGedaan || undefined} onClick={rondAf} disabled={bezig}>
-                <Flag aria-hidden size={18} /> {bezig ? 'Opslaan...' : 'Training afronden'}
+                <Flag aria-hidden size={18} /> {bezig ? t.opslaan : t.afronden}
               </button>
             ) : (
               <button type="button" className="club-tm-navknop club-tm-navknop--hoofd" onClick={() => naar(index + 1)}>
                 <span className="club-tm-navknop-tekst">
-                  <small>Volgende</small>
+                  <small>{t.volgende}</small>
                   {dag.oefeningen[index + 1]?.naam}
                 </span>
                 <ChevronRight aria-hidden size={22} />

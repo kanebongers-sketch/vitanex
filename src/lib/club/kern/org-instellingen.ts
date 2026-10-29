@@ -4,6 +4,8 @@
 // (onbekend of kapot = standaard), opslaan is streng (leesOrgInstellingenInvoer).
 
 import { MEDEWERKER_ROLLEN, RECHTEN, type MedewerkerRol } from './medewerker'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { KERN_LABELS } from '@/lib/aiyourgym/taal/woorden/club/kern'
 
 /**
  * De onderdelen van Club waarvoor je rechten per rol instelt. Zelfde sleutels
@@ -165,4 +167,9 @@ export function leesOrgInstellingenInvoer(body: unknown, huidig: OrgInstellingen
     checkin = { methode: c.methode }
   }
   return { ok: true, waarde: { ledenapp, rechten, checkin } }
+}
+
+/** Hoe leden inchecken, in de gekozen taal (kort: alleen de naam van de methode). */
+export function checkinMethodeLabel(m: CheckinMethode, taal: Taal = 'nl', kort = false): string {
+  return (kort ? KERN_LABELS[taal].checkinMethodeKort : KERN_LABELS[taal].checkinMethode)[m]
 }

@@ -1,5 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
-import { WAAROM_KOP, waaromUitNotitie } from '@/lib/club/training/voorstel-uitleg'
+import { waaromUitNotitie } from '@/lib/club/training/voorstel-uitleg'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
 import './vervang.css'
 
 /**
@@ -8,10 +10,11 @@ import './vervang.css'
  */
 export function WaaromSchema({ notitie }: { notitie: string }) {
   const uitleg = waaromUitNotitie(notitie)
+  const t = useTekst(SCHEMA_EDITOR).waarom
   if (!uitleg) return null
   return (
-    <section className="club-kaart club-training-waarom" aria-label={WAAROM_KOP}>
-      <h2>{WAAROM_KOP}</h2>
+    <section className="club-kaart club-training-waarom" aria-label={t.kop}>
+      <h2>{t.kop}</h2>
       <ol>
         {uitleg.zinnen.map((z) => (
           <li key={z}>{z}</li>
@@ -23,7 +26,7 @@ export function WaaromSchema({ notitie }: { notitie: string }) {
           <span>{w}</span>
         </p>
       ))}
-      <p className="club-hint">Vaste regels voor een startschema. Pas aan wat bij het lid past.</p>
+      <p className="club-hint">{t.voet}</p>
     </section>
   )
 }

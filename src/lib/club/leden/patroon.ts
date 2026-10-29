@@ -3,6 +3,7 @@
 // eindigend op vandaag) en per weekdag. Een bezoek = een dag met een check-in.
 
 import { dagNummer, dagSleutel, datumKort, weekdagNl } from './tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 export interface WeekBalk {
   /** Eerste dag van het blok, bv. "6 okt". */
@@ -25,13 +26,13 @@ function bezoekDagen(bezoeken: readonly Date[], nu: Date, dagen: number): Map<nu
   return uniek
 }
 
-export function weekBalken(bezoeken: readonly Date[], nu: Date, weken = PATROON_WEKEN): WeekBalk[] {
+export function weekBalken(bezoeken: readonly Date[], nu: Date, weken = PATROON_WEKEN, taal: Taal = 'nl'): WeekBalk[] {
   const dagen = bezoekDagen(bezoeken, nu, weken * 7)
   const tellingen = Array.from({ length: weken }, () => 0)
   for (const geleden of dagen.keys()) tellingen[weken - 1 - Math.floor(geleden / 7)] += 1
   return tellingen.map((aantal, i) => {
     const eersteDag = new Date(nu.getTime() - ((weken - 1 - i) * 7 + 6) * 86_400_000)
-    return { label: datumKort(eersteDag, nu), aantal, huidig: i === weken - 1 }
+    return { label: datumKort(eersteDag, nu, taal), aantal, huidig: i === weken - 1 }
   })
 }
 

@@ -4,7 +4,7 @@ import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { haalAlleMedewerkers, haalOpenTaken, haalRegels, zorgVoorRondeVanVandaag } from '@/lib/club/automatisering/opslag'
 import { groepeerPerRegel } from '@/lib/club/automatisering/taken'
 import { naarGroepen, type Context } from '@/lib/club/automatisering/weergave'
-import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG_SECTIES } from '@/lib/aiyourgym/taal/woorden/club/vandaag'
 import { Opvolglijst } from '@/components/club/automatisering/Opvolglijst'
 import { SectieKop, type SectieLink } from './SectieKop'
@@ -35,7 +35,7 @@ async function LedenOpvolgen({ admin, userId, vestiging, vestigingNaam }: Pick<P
   const [open, regels, medewerkers] = await Promise.all([haalOpenTaken(admin, userId, vestiging), haalRegels(admin, userId), haalAlleMedewerkers(admin, userId)])
   if (open === null) return <p className="club-melding club-melding--fout" role="status">{w.fout}</p>
   const ctx: Context = { vestigingNaam, regels: regels ?? [], medewerkers: new Map((medewerkers ?? []).map((m) => [m.id, m.naam])) }
-  const groepen = naarGroepen(groepeerPerRegel(open), ctx)
+  const groepen = naarGroepen(groepeerPerRegel(open), ctx, await getTaal())
   const ledenkaarten = Object.fromEntries(open.map((taak) => [taak.lidId, clubPad(`/leden/${taak.lidId}`, vestiging)]))
   const allesUit = regels !== null && regels.every((r) => !r.aan)
   return (

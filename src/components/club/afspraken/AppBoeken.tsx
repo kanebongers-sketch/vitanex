@@ -8,15 +8,15 @@ import { VrijeTijden, slotSleutel, useVrijeTijden } from './VrijeTijden'
 import type { SlotOptie } from './haal'
 import type { AppType } from './app-data'
 import { useLedenappApi } from '@/components/club/app/LedenappApi'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 
 // "Afspraak maken" in de ledenapp, in vier stappen: soort, trainer (of maakt
 // niet uit), dag en tijd, en dan bevestigen. Alleen echt vrije tijden binnen
 // de regels van de sportschool staan erbij.
 
-const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', timeZone: 'UTC' })
-const DAG_NR = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'UTC' })
-const DAG_LANG = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
-const opDag = (d: string) => new Date(`${d}T12:00:00Z`)
+const opDag = (d: string) => `${d}T12:00:00Z`
 const ZICHTBARE_DAGEN = 14
 
 interface Props {
@@ -37,6 +37,9 @@ export function AppBoeken({ lidId, typen, horizonDagen, onGeboekt, onTerug }: Pr
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
   const api = useLedenappApi()
+  const taal = useTaal()
+  const t = useTekst(AFSPRAKEN).app
+  const dagLang = (d: string) => formatDatum(opDag(d), taal, 'dag')
 
   const url = type ? api.sloten(lidId, { type: type.id, datum, medewerker: trainer }) : null
   const tijden = useVrijeTijden(url)
@@ -52,20 +55,20 @@ export function AppBoeken({ lidId, typen, horizonDagen, onGeboekt, onTerug }: Pr
       setSlot(null)
       return setFout(uit.fout)
     }
-    onGeboekt(`${type.naam} geboekt op ${DAG_LANG.format(opDag(datum))} om ${slot.tijd}.`)
+    onGeboekt(t.geboekt(type.naam, dagLang(datum), slot.tijd))
   }
 
   if (!type) {
     return (
       <section className="club-afspraken-app-stap" aria-labelledby="afs-app-soort">
-        <button type="button" className="club-afspraken-app-terug" onClick={onTerug}><ChevronLeft size={16} aria-hidden /> Terug</button>
-        <h3 id="afs-app-soort" className="club-afspraken-app-kop">Wat wil je plannen?</h3>
+        <button type="button" className="club-afspraken-app-terug" onClick={onTerug}><ChevronLeft size={16} aria-hidden /> {t.terug}</button>
+        <h3 id="afs-app-soort" className="club-afspraken-app-kop">{t.watPlannen}</h3>
         <ul className="club-afspraken-app-typen">
-          {typen.map((t) => (
-            <li key={t.id}>
-              <button type="button" data-kleur={t.kleur} onClick={() => setType(t)}>
-                <strong>{t.naam}</strong>
-                <span>{t.duurMin} minuten</span>
+          {typen.map((ty) => (
+            <li key={ty.id}>
+              <button type="button" data-kleur={ty.kleur} onClick={() => setType(ty)}>
+                <strong>{ty.naam}</strong>
+                <span>{t.minuten(ty.duurMin)}</span>
               </button>
             </li>
           ))}
@@ -77,23 +80,23 @@ export function AppBoeken({ lidId, typen, horizonDagen, onGeboekt, onTerug }: Pr
   return (
     <section className="club-afspraken-app-stap" aria-labelledby="afs-app-plan">
       <button type="button" className="club-afspraken-app-terug" onClick={() => (typen.length > 1 ? (setType(null), setSlot(null)) : onTerug())}>
-        <ChevronLeft size={16} aria-hidden /> {typen.length > 1 ? 'Andere soort' : 'Terug'}
+        <ChevronLeft size={16} aria-hidden /> {typen.length > 1 ? t.andereSoort : t.terug}
       </button>
       <h3 id="afs-app-plan" className="club-afspraken-app-kop">{type.naam}</h3>
-      <p className="club-afspraken-app-regel">{type.duurMin} minuten · boeken tot {type.boekenUrenVooraf} uur van tevoren</p>
+      <p className="club-afspraken-app-regel">{t.regel(type.duurMin, type.boekenUrenVooraf)}</p>
 
-      <div className="club-afspraken-app-chips" role="radiogroup" aria-label="Trainer">
-        <button type="button" role="radio" aria-checked={trainer === ''} onClick={() => { setTrainer(''); setSlot(null) }}>Maakt niet uit</button>
+      <div className="club-afspraken-app-chips" role="radiogroup" aria-label={t.trainer}>
+        <button type="button" role="radio" aria-checked={trainer === ''} onClick={() => { setTrainer(''); setSlot(null) }}>{t.maaktNietUit}</button>
         {type.trainers.map((m) => (
           <button key={m.id} type="button" role="radio" aria-checked={trainer === m.id} onClick={() => { setTrainer(m.id); setSlot(null) }}>{m.naam.split(' ')[0]}</button>
         ))}
       </div>
 
-      <div className="club-afspraken-app-dagen" role="radiogroup" aria-label="Dag">
+      <div className="club-afspraken-app-dagen" role="radiogroup" aria-label={t.dag}>
         {dagen.map((d) => (
-          <button key={d} type="button" role="radio" aria-checked={datum === d} aria-label={DAG_LANG.format(opDag(d))} onClick={() => { setDatum(d); setSlot(null) }}>
-            <span>{d === vandaag ? 'Vandaag' : DAG_KORT.format(opDag(d))}</span>
-            <strong>{DAG_NR.format(opDag(d))}</strong>
+          <button key={d} type="button" role="radio" aria-checked={datum === d} aria-label={dagLang(d)} onClick={() => { setDatum(d); setSlot(null) }}>
+            <span>{d === vandaag ? t.vandaag : formatDatum(opDag(d), taal, 'weekdag')}</span>
+            <strong>{formatDatum(opDag(d), taal, 'dagMaand')}</strong>
           </button>
         ))}
       </div>
@@ -106,17 +109,17 @@ export function AppBoeken({ lidId, typen, horizonDagen, onGeboekt, onTerug }: Pr
         gekozen={slot ? slotSleutel(slot) : null}
         onKies={(s) => { setSlot(s); setFout(null) }}
         metTrainer={trainer === ''}
-        leegTekst="Geen vrije tijden op deze dag. Probeer een andere dag."
+        leegTekst={t.geenTijden}
       />
 
       <div aria-live="assertive">{fout ? <p className="club-melding club-melding--fout" role="alert">{fout}</p> : null}</div>
       {slot ? (
         <div className="club-afspraken-app-bevestig">
           <p>
-            <strong>{DAG_LANG.format(opDag(datum))} om {slot.tijd}</strong>
-            <span>met {slot.medewerkerNaam || 'een trainer'}</span>
+            <strong>{t.om(dagLang(datum), slot.tijd)}</strong>
+            <span>{t.met(slot.medewerkerNaam || t.eenTrainer)}</span>
           </p>
-          <button type="button" className="club-afspraken-app-knop" onClick={() => void bevestig()} disabled={bezig}>{bezig ? 'Boeken…' : 'Bevestigen'}</button>
+          <button type="button" className="club-afspraken-app-knop" onClick={() => void bevestig()} disabled={bezig}>{bezig ? t.boekenBezig : t.bevestigen}</button>
         </div>
       ) : null}
     </section>

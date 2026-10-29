@@ -1,5 +1,7 @@
 import type { Bericht } from '@/lib/club/berichten/model'
 import { BerichtAppKaart } from './BerichtAppKaart'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 import './berichten.css'
 
 // Berichten op Home in de ledenapp. Verwacht de lijst van
@@ -16,6 +18,7 @@ interface Props {
 }
 
 export function LedenappBerichten({ berichten, nu = new Date() }: Props) {
+  const t = useTekst(BERICHTEN).app
   if (berichten.length === 0) return null
   const [eerste, ...rest] = berichten
   const groot = eerste.vastgepind ? eerste : null
@@ -23,7 +26,7 @@ export function LedenappBerichten({ berichten, nu = new Date() }: Props) {
   return (
     <section className="club-bericht-app-lijst" aria-labelledby="lidapp-berichten">
       <h2 id="lidapp-berichten" className="club-bericht-app-titel">
-        Nieuws
+        {t.nieuws}
       </h2>
       {groot && <BerichtAppKaart bericht={groot} groot nu={nu} />}
       {compact.map((b) => (

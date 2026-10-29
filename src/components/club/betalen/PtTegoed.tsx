@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from 'react'
 import { Ticket, Undo2 } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { isPtAfspraakType } from '@/lib/club/betalen/regels'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BETALEN } from '@/lib/aiyourgym/taal/woorden/club/betalen'
 
 // Bij een afspraak voor personal training: een sessie afboeken van het
 // PT-pakket van het lid (of dat ongedaan maken). Staat betalen uit, of is het
@@ -28,6 +30,7 @@ export function PtTegoed({ afspraakId, typeNaam }: { afspraakId: string; typeNaa
   const [stand, setStand] = useState<Stand | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, start] = useTransition()
+  const t = useTekst(BETALEN).pt
 
   useEffect(() => {
     if (!isPt) return
@@ -52,15 +55,15 @@ export function PtTegoed({ afspraakId, typeNaam }: { afspraakId: string; typeNaa
   }
 
   return (
-    <div className="club-acties" role="group" aria-label="PT-tegoed">
+    <div className="club-acties" role="group" aria-label={t.label}>
       {stand.afgeboekt ? (
         <>
-          <span className="club-chip">Sessie afgeboekt, nog {stand.saldo} over</span>
-          <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => wijzig('DELETE')}><Undo2 size={15} aria-hidden /> Terugzetten</button>
+          <span className="club-chip">{t.afgeboekt(stand.saldo)}</span>
+          <button type="button" className="club-knop club-knop--klein" disabled={bezig} onClick={() => wijzig('DELETE')}><Undo2 size={15} aria-hidden /> {t.terugzetten}</button>
         </>
       ) : (
         <button type="button" className="club-knop club-knop--klein" disabled={bezig || stand.saldo === 0} onClick={() => wijzig('POST')}>
-          <Ticket size={15} aria-hidden /> {stand.saldo > 0 ? `Sessie afboeken (${stand.saldo} over)` : 'Geen PT-tegoed'}
+          <Ticket size={15} aria-hidden /> {stand.saldo > 0 ? t.afboeken(stand.saldo) : t.geen}
         </button>
       )}
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}

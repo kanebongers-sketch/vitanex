@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DATA_SOORTEN, SOORT_INFO, type BronId, type DataSoort } from '@/lib/club/health/typen'
+import { DATA_SOORTEN, type BronId, type DataSoort } from '@/lib/club/health/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import type { Toestemming } from '@/lib/club/health/toestemming'
 import { stuur } from '@/components/club/app/verzoek'
 import { datumKort, healthUrl } from './paden'
@@ -31,6 +33,9 @@ export function ToestemmingFormulier({ toestemming, tekst, apartBronnen, sportsc
   const [akkoord, setAkkoord] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<Melding>(null)
+  const taal = useTaal()
+  const h = useTekst(HEALTH)
+  const z = h.toestemming
 
   const wissel = (soort: DataSoort, aan: boolean) => {
     setDelen((d) => (aan ? [...d, soort] : d.filter((s) => s !== soort)))
@@ -46,12 +51,12 @@ export function ToestemmingFormulier({ toestemming, tekst, apartBronnen, sportsc
     setBezig(false)
     if (!r.ok) return setMelding({ soort: 'fout', tekst: r.fout })
     setAkkoord(false)
-    setMelding({ soort: 'goed', tekst: 'Je keuze is opgeslagen.' })
+    setMelding({ soort: 'goed', tekst: z.opgeslagen })
     router.refresh()
   }
 
   const intrekken = async () => {
-    if (!window.confirm('Alles intrekken? We halen dan niets meer op en wissen alle gegevens uit je apps bij de sportschool.')) return
+    if (!window.confirm(z.intrekkenVraag)) return
     setBezig(true)
     const r = await stuur(healthUrl('/toestemming', voor), 'DELETE')
     setBezig(false)
@@ -59,48 +64,51 @@ export function ToestemmingFormulier({ toestemming, tekst, apartBronnen, sportsc
     setDelen([])
     setTrainer([])
     setBronnen([])
-    setMelding({ soort: 'goed', tekst: 'Je toestemming is ingetrokken en je gegevens zijn gewist.' })
+    setMelding({ soort: 'goed', tekst: z.ingetrokken })
     router.refresh()
   }
 
   return (
     <section className="club-hl-sectie" aria-labelledby="hl-toestemming">
-      <h3 id="hl-toestemming">Wat deel je</h3>
+      <h3 id="hl-toestemming">{z.titel}</h3>
       <div className="club-hl-uitleg">
-        {tekst.regels.map((r) => (
-          <p key={r}>{r}</p>
-        ))}
-        {toestemming.gegevenOp && <p>Laatst gekozen op {datumKort(toestemming.gegevenOp)}.</p>}
+        {taal !== 'nl' && <p>{z.nlTekst}</p>}
+        <div lang="nl">
+          {tekst.regels.map((r) => (
+            <p key={r}>{r}</p>
+          ))}
+        </div>
+        {toestemming.gegevenOp && <p>{z.laatst(datumKort(toestemming.gegevenOp, taal))}</p>}
       </div>
-      <div className="club-hl-tabel" role="group" aria-label="Toestemming per soort">
+      <div className="club-hl-tabel" role="group" aria-label={z.perSoort}>
         <div className="club-hl-rij club-hl-rij--kop" aria-hidden>
-          <span>Soort</span>
-          <span className="club-hl-kolom">Delen</span>
-          <span className="club-hl-kolom">Trainer</span>
+          <span>{z.soort}</span>
+          <span className="club-hl-kolom">{z.delen}</span>
+          <span className="club-hl-kolom">{z.trainer}</span>
         </div>
         {DATA_SOORTEN.map((s) => (
           <div key={s} className="club-hl-rij">
             <div>
-              <strong>{SOORT_INFO[s].label}</strong>
-              <span>{SOORT_INFO[s].uitleg}</span>
+              <strong>{h.soorten[s].label}</strong>
+              <span>{h.soorten[s].uitleg}</span>
             </div>
             <span className="club-hl-kolom">
-              <input type="checkbox" className="club-hl-vink" checked={delen.includes(s)} disabled={alleenLezen} onChange={(e) => wissel(s, e.target.checked)} aria-label={`${SOORT_INFO[s].label} delen met ${sportschool}`} />
+              <input type="checkbox" className="club-hl-vink" checked={delen.includes(s)} disabled={alleenLezen} onChange={(e) => wissel(s, e.target.checked)} aria-label={z.delenMet(h.soorten[s].label, sportschool)} />
             </span>
             <span className="club-hl-kolom">
-              <input type="checkbox" className="club-hl-vink" checked={trainer.includes(s)} disabled={alleenLezen || !delen.includes(s)} onChange={(e) => wisselTrainer(s, e.target.checked)} aria-label={`Trainers mogen ${SOORT_INFO[s].label.toLowerCase()} zien`} />
+              <input type="checkbox" className="club-hl-vink" checked={trainer.includes(s)} disabled={alleenLezen || !delen.includes(s)} onChange={(e) => wisselTrainer(s, e.target.checked)} aria-label={z.trainerZien(h.soorten[s].label)} />
             </span>
           </div>
         ))}
         {apartBronnen.map((b) => (
           <div key={b.id} className="club-hl-rij">
             <div>
-              <strong>Trainers mogen mijn {b.naam}-trainingen zien</strong>
-              <span>{b.naam} vraagt hier een aparte toestemming voor. Zonder dit vinkje zie alleen jij ze.</span>
+              <strong>{z.bronTitel(h.bronnen[b.id].naam)}</strong>
+              <span>{z.bronUitleg(h.bronnen[b.id].naam)}</span>
             </div>
             <span className="club-hl-kolom" aria-hidden />
             <span className="club-hl-kolom">
-              <input type="checkbox" className="club-hl-vink" checked={bronnen.includes(b.id)} disabled={alleenLezen || !trainer.includes('training')} onChange={(e) => wisselBron(b.id, e.target.checked)} aria-label={`Trainers mogen mijn ${b.naam}-trainingen zien`} />
+              <input type="checkbox" className="club-hl-vink" checked={bronnen.includes(b.id)} disabled={alleenLezen || !trainer.includes('training')} onChange={(e) => wisselBron(b.id, e.target.checked)} aria-label={z.bronTitel(h.bronnen[b.id].naam)} />
             </span>
           </div>
         ))}
@@ -109,15 +117,15 @@ export function ToestemmingFormulier({ toestemming, tekst, apartBronnen, sportsc
         <>
           <label className="club-hl-akkoord">
             <input type="checkbox" className="club-hl-vink" checked={akkoord} onChange={(e) => setAkkoord(e.target.checked)} />
-            <span>Ik heb de uitleg gelezen en geef {sportschool} uitdrukkelijk toestemming voor wat ik hierboven aanvink.</span>
+            <span>{z.akkoord(sportschool)}</span>
           </label>
           <div className="club-hl-acties">
             <button type="button" className="club-lidapp-knop club-lidapp-knop--primair" disabled={!akkoord || bezig} onClick={opslaan}>
-              Keuze opslaan
+              {z.opslaan}
             </button>
             {toestemming.delen.length > 0 && (
               <button type="button" className="club-lidapp-knop club-lidapp-knop--stil" disabled={bezig} onClick={intrekken}>
-                Alles intrekken
+                {z.intrekken}
               </button>
             )}
           </div>

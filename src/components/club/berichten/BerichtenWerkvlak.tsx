@@ -3,11 +3,13 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
-import { SOORTEN, SOORT_LABEL, leesBerichtAntwoord, type Bericht } from '@/lib/club/berichten/model'
-import { STATUS_LABEL, pastInFilters, sorteerVoorBeheer, telPerStatus, type BeheerFilters, type BerichtStatus } from '@/lib/club/berichten/regels'
+import { SOORTEN, leesBerichtAntwoord, type Bericht } from '@/lib/club/berichten/model'
+import { pastInFilters, sorteerVoorBeheer, telPerStatus, type BeheerFilters, type BerichtStatus } from '@/lib/club/berichten/regels'
 import { stuur } from '@/components/club/leden/stuur'
 import { BerichtFormulier } from './BerichtFormulier'
 import { BerichtRij, type RijActie } from './BerichtRij'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 
 // Beheer van de berichten: tellers per status, filters (in de URL), de lijst
 // en het paneel voor nieuw of bewerken.
@@ -41,6 +43,8 @@ export function BerichtenWerkvlak({ begin, vestigingen, tags, startFilters, nuIs
   const [bezigId, setBezigId] = useState<string | null>(null)
   // Vast tijdens het renderen (geen hydration-verschil), ververst na elke wijziging.
   const [nu, setNu] = useState(() => new Date(nuIso))
+  const tb = useTekst(BERICHTEN)
+  const t = tb.werkvlak
 
   const tel = useMemo(() => telPerStatus(berichten, nu), [berichten, nu])
   const zichtbaar = useMemo(() => sorteerVoorBeheer(berichten.filter((b) => pastInFilters(b, filters, nu)), nu), [berichten, filters, nu])
@@ -57,7 +61,7 @@ export function BerichtenWerkvlak({ begin, vestigingen, tags, startFilters, nuIs
     setBerichten((lijst) => (nieuw ? [b, ...lijst] : lijst.map((x) => (x.id === b.id ? b : x))))
     setNu(new Date())
     setOpen(null)
-    setMelding({ ok: true, tekst: nieuw ? `"${b.titel}" staat klaar in de app.` : `"${b.titel}" is bijgewerkt.` })
+    setMelding({ ok: true, tekst: nieuw ? t.klaar(b.titel) : t.bijgewerkt(b.titel) })
   }
 
   async function actie(b: Bericht, a: RijActie) {
@@ -73,49 +77,49 @@ export function BerichtenWerkvlak({ begin, vestigingen, tags, startFilters, nuIs
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
     if (a === 'verwijderen') {
       setBerichten((lijst) => lijst.filter((x) => x.id !== b.id))
-      return setMelding({ ok: true, tekst: `"${b.titel}" is verwijderd.` })
+      return setMelding({ ok: true, tekst: t.verwijderd(b.titel) })
     }
     const nieuw = leesBerichtAntwoord(uit.data)
-    if (!nieuw) return setMelding({ ok: false, tekst: 'Onverwacht antwoord van de server. Ververs de pagina.' })
+    if (!nieuw) return setMelding({ ok: false, tekst: t.onverwacht })
     setBerichten((lijst) => lijst.map((x) => (x.id === nieuw.id ? nieuw : x)))
-    const tekst = { vastpinnen: 'vastgepind', losmaken: 'losgemaakt', stoppen: 'gestopt en niet meer zichtbaar' }[a]
-    setMelding({ ok: true, tekst: `"${nieuw.titel}" is ${tekst}.` })
+    const tekst = { vastpinnen: t.vastgepind, losmaken: t.losgemaakt, stoppen: t.gestopt }[a]
+    setMelding({ ok: true, tekst: tekst(nieuw.titel) })
   }
 
   return (
     <>
       <div className="club-bericht-balk">
-        <div className="club-bericht-tellers" role="group" aria-label="Filter op status">
+        <div className="club-bericht-tellers" role="group" aria-label={t.filterStatus}>
           <button type="button" aria-pressed={filters.status === 'alle'} onClick={() => filter({ status: 'alle' })}>
-            <strong>{berichten.length}</strong> Alle
+            <strong>{berichten.length}</strong> {t.alle}
           </button>
           {STATUSSEN.map((s) => (
             <button key={s} type="button" aria-pressed={filters.status === s} className={`club-bericht-teller--${s}`} onClick={() => filter({ status: s })}>
-              <strong>{tel[s]}</strong> {STATUS_LABEL[s]}
+              <strong>{tel[s]}</strong> {tb.status[s]}
             </button>
           ))}
         </div>
         <button type="button" className="club-knop club-knop--primair" onClick={() => setOpen({ soort: 'nieuw' })}>
-          <Plus size={16} aria-hidden /> Nieuw bericht
+          <Plus size={16} aria-hidden /> {t.nieuw}
         </button>
       </div>
 
       <div className="club-bericht-filters">
-        <div className="club-segment" role="group" aria-label="Filter op soort">
+        <div className="club-segment" role="group" aria-label={t.filterSoort}>
           {(['alle', ...SOORTEN] as const).map((s) => (
             <button key={s} type="button" aria-pressed={filters.soort === s} onClick={() => filter({ soort: s })}>
-              {s === 'alle' ? 'Alle soorten' : SOORT_LABEL[s]}
+              {s === 'alle' ? t.alleSoorten : tb.soort[s]}
             </button>
           ))}
         </div>
         {vestigingen.length > 1 && (
           <label className="club-veld club-bericht-voorveld">
-            <span className="club-sr">Voor vestiging</span>
+            <span className="club-sr">{t.voorVestiging}</span>
             <select className="club-invoer" value={filters.vestiging ?? ''} onChange={(e) => filter({ vestiging: e.target.value || null })}>
-              <option value="">Alle vestigingen</option>
+              <option value="">{t.alleVestigingen}</option>
               {vestigingen.map((v) => (
                 <option key={v.sleutel} value={v.sleutel}>
-                  Zichtbaar in {v.naam}
+                  {t.zichtbaarIn(v.naam)}
                 </option>
               ))}
             </select>
@@ -128,7 +132,7 @@ export function BerichtenWerkvlak({ begin, vestigingen, tags, startFilters, nuIs
       </div>
 
       {zichtbaar.length === 0 ? (
-        <p className="club-leeg">{berichten.length === 0 ? 'Nog geen berichten. Plaats je eerste bericht voor de ledenapp.' : 'Geen berichten met deze filters.'}</p>
+        <p className="club-leeg">{berichten.length === 0 ? t.geenBerichten : t.geenMetFilters}</p>
       ) : (
         <ul className="club-bericht-lijst">
           {zichtbaar.map((b) => (

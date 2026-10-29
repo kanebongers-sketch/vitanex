@@ -5,6 +5,8 @@ import { stuur } from '@/components/club/app/verzoek'
 import { LEDENAPP_PAD } from '@/lib/club/ledenlogin/contract'
 import { MAX_LENGTE } from '@/lib/club/kern/wachtwoord-regels'
 import { LidFout, LidVeld } from './LidVeld'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LID_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/ledenapp/inloggen'
 
 // Inloggen op de ledenapp met e-mailadres en wachtwoord (besluit Kane
 // 23-10-2026: geen link of pincode meer). Is het adres lid bij meer
@@ -27,6 +29,7 @@ function leesKeuzes(data: Record<string, unknown>): Keuze[] {
 
 export function LidInlogFormulier({ sportschool }: Props) {
   const [email, setEmail] = useState('')
+  const t = LID_INLOGGEN[useTaal()].inloggen
   const [wachtwoord, setWachtwoord] = useState('')
   const [keuzes, setKeuzes] = useState<Keuze[] | null>(null)
   const [fout, setFout] = useState<string | null>(null)
@@ -54,14 +57,14 @@ export function LidInlogFormulier({ sportschool }: Props) {
   function verstuur(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
-    if (!email.trim() || !wachtwoord) return setFout('Vul je e-mailadres en wachtwoord in.')
+    if (!email.trim() || !wachtwoord) return setFout(t.leeg)
     void logIn(null)
   }
 
   if (keuzes && keuzes.length > 0) {
     return (
       <div className="club-mijn-blok" role="group" aria-labelledby="lid-kies-kop">
-        <p id="lid-kies-kop">Je bent lid bij meer sportscholen. Waar wil je inloggen?</p>
+        <p id="lid-kies-kop">{t.kies}</p>
         {keuzes.map((k) => (
           <button key={k.id} type="button" className="club-lidapp-knop club-lidapp-knop--breed" disabled={bezig} onClick={() => void logIn(k.id)}>
             {k.naam}
@@ -75,16 +78,16 @@ export function LidInlogFormulier({ sportschool }: Props) {
   return (
     <form className="club-mijn-blok" onSubmit={verstuur} noValidate>
       <LidVeld
-        id="lid-email" label="E-mailadres" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
+        id="lid-email" label={t.email} type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
         maxLength={120} required autoFocus waarde={email} onWaarde={setEmail} fout={fout !== null}
       />
       <LidVeld
-        id="lid-wachtwoord" label="Wachtwoord" type="password" autoComplete="current-password" maxLength={MAX_LENGTE} required
+        id="lid-wachtwoord" label={t.wachtwoord} type="password" autoComplete="current-password" maxLength={MAX_LENGTE} required
         waarde={wachtwoord} onWaarde={setWachtwoord} fout={fout !== null}
       />
       <LidFout fout={fout} />
       <button type="submit" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" disabled={bezig} aria-busy={bezig}>
-        {bezig ? 'Even geduld...' : 'Inloggen'}
+        {bezig ? t.bezig : t.knop}
       </button>
     </form>
   )

@@ -132,10 +132,3 @@ export function useQrCamera({ actief, kant, pauze = false, onCode }: Opties): { 
 
   return { video, stand: actief ? stand : 'uit' }
 }
-
-export const CAMERA_MELDING: Partial<Record<CameraStand, string>> = {
-  starten: 'Camera starten...',
-  niet_ondersteund: 'Deze browser kan geen QR-codes lezen met de camera. Gebruik Chrome of Edge (Android, Windows of Chromebook), of zoek het lid op naam.',
-  geweigerd: 'De camera mag niet worden gebruikt. Geef toestemming in de browser (slotje naast het adres) en probeer het opnieuw.',
-  geen_camera: 'Geen camera gevonden. Sluit een camera aan of zoek het lid op naam.',
-}

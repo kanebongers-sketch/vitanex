@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import type { LesDetail } from '@/lib/club/rooster/lesbeheer-opslag'
-import { SOORT_LABEL } from '@/lib/club/rooster/typen'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 import { Bezetting } from './LesBlok'
 import { Afmeldingen, DeelnemerLijst, Wachtlijst } from './Deelnemers'
 import { LesBeheer } from './LesBeheer'
@@ -48,6 +49,8 @@ function Sectie({ titel, aantal, children }: { titel: string; aantal?: number; c
 
 export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, kanAfvinken, zalen, instructeurs, magLeden }: Props) {
   const router = useRouter()
+  const taal = useTaal()
+  const t = useTekst(ROOSTER)
   const sluitKnop = useRef<HTMLAnchorElement>(null)
   const { les, deelnemers, wachtlijst, geannuleerd, proefleden } = detail
   const kanBoeken = !les.geannuleerd && !isBegonnen
@@ -67,49 +70,49 @@ export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, k
       <aside className="club-paneel club-rooster-paneel" role="dialog" aria-modal="true" aria-labelledby="club-rooster-paneel-titel" data-soort={les.lestype?.soort ?? 'overig'}>
         <header className="club-rooster-paneelkop">
           <div>
-            <p className="club-boventitel">{les.lestype ? SOORT_LABEL[les.lestype.soort] : 'Les'}</p>
-            <h2 id="club-rooster-paneel-titel">{les.lestype?.naam ?? 'Les'}</h2>
+            <p className="club-boventitel">{les.lestype ? t.soort[les.lestype.soort] : t.les.les}</p>
+            <h2 id="club-rooster-paneel-titel">{les.lestype?.naam ?? t.les.les}</h2>
             <p className="club-rooster-paneel-wanneer">{wanneer}</p>
-            <p className="club-zacht">{[les.instructeur?.naam ?? 'Instructeur nog niet bekend', les.zaal?.naam].filter(Boolean).join(' · ')}</p>
+            <p className="club-zacht">{[les.instructeur?.naam ?? t.paneel.instructeurOnbekend, les.zaal?.naam].filter(Boolean).join(' · ')}</p>
           </div>
-          <Link ref={sluitKnop} href={sluitHref} scroll={false} className="club-knop club-knop--stil" aria-label="Paneel sluiten">
+          <Link ref={sluitKnop} href={sluitHref} scroll={false} className="club-knop club-knop--stil" aria-label={t.paneel.sluiten}>
             <X aria-hidden size={18} />
           </Link>
         </header>
 
         {les.geannuleerd ? (
-          <p className="club-melding club-melding--fout">Deze les gaat niet door{les.annuleerReden ? `: ${les.annuleerReden}` : '.'}</p>
+          <p className="club-melding club-melding--fout">{les.annuleerReden ? t.paneel.nietDoorReden(les.annuleerReden) : t.paneel.nietDoor}</p>
         ) : (
           <div className="club-rooster-paneel-bezetting">
             <span className="club-rooster-groot club-getal">
               {les.geboekt}
               <span>/{les.capaciteit}</span>
             </span>
-            <Bezetting les={les} />
+            <Bezetting les={les} taal={taal} />
           </div>
         )}
 
-        <Sectie titel="Deelnemers" aantal={deelnemers.length}>
-          {kanAfvinken && <p className="club-hint">Vink af wie er is. Nog een keer klikken zet het terug.</p>}
+        <Sectie titel={t.paneel.deelnemers} aantal={deelnemers.length}>
+          {kanAfvinken && <p className="club-hint">{t.paneel.afvinkHint}</p>}
           <DeelnemerLijst deelnemers={deelnemers} kanAfvinken={kanAfvinken && !les.geannuleerd} kanAnnuleren={kanBoeken} link={link} />
         </Sectie>
 
         {proefleden.length > 0 && (
-          <Sectie titel="Proefleden" aantal={proefleden.length}>
+          <Sectie titel={t.paneel.proefleden} aantal={proefleden.length}>
             <ul className="club-lijst">
               {proefleden.map((p) => (
                 <li key={p.id} className="club-rij">
                   <span className="club-rij-hoofd">
                     <span className="club-rij-titel">{p.naam}</span>
                   </span>
-                  <span className="club-chip club-chip--info">Proefles</span>
+                  <span className="club-chip club-chip--info">{t.paneel.proefles}</span>
                 </li>
               ))}
             </ul>
           </Sectie>
         )}
 
-        <Sectie titel="Wachtlijst" aantal={wachtlijst.length}>
+        <Sectie titel={t.paneel.wachtlijst} aantal={wachtlijst.length}>
           <Wachtlijst wachtlijst={wachtlijst} kanAnnuleren={kanBoeken} link={link} />
         </Sectie>
 

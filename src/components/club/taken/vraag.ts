@@ -4,10 +4,12 @@
 // terug (de API geeft { fout }); geen verbinding wordt ook een zin.
 
 import type { Afsluitronde, Afvinking, DagNotitie } from '@/lib/club/taken/typen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 export type Antwoord = { ok: true; data: unknown } | { ok: false; fout: string }
 
-export async function vraag(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<Antwoord> {
+export async function vraag(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown, taal: Taal = 'nl'): Promise<Antwoord> {
   try {
     const res = await fetch(url, {
       method,
@@ -17,9 +19,9 @@ export async function vraag(url: string, method: 'POST' | 'PATCH' | 'DELETE', bo
     const data: unknown = await res.json().catch(() => null)
     if (res.ok) return { ok: true, data }
     const fout = typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
-    return { ok: false, fout: fout ?? 'Er ging iets mis. Probeer het opnieuw.' }
+    return { ok: false, fout: fout ?? TAKEN[taal].fout.algemeen }
   } catch {
-    return { ok: false, fout: 'Geen verbinding. Controleer het internet en probeer het opnieuw.' }
+    return { ok: false, fout: TAKEN[taal].fout.verbinding }
   }
 }
 

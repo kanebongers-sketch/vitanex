@@ -4,6 +4,8 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 // Het zijpaneel van het personeelsrooster. Open via de URL; Escape, de
 // sluitknop of klikken naast het paneel gaat terug naar het rooster.
@@ -19,6 +21,7 @@ interface Props {
 export function Paneel({ titel, boventitel, sub, sluitHref, children }: Props) {
   const router = useRouter()
   const sluitKnop = useRef<HTMLAnchorElement>(null)
+  const tk = useTekst(PERSONEEL).algemeen
 
   useEffect(() => {
     sluitKnop.current?.focus()
@@ -38,7 +41,7 @@ export function Paneel({ titel, boventitel, sub, sluitHref, children }: Props) {
             <h2 id="club-personeel-paneel-titel">{titel}</h2>
             {sub && <div className="club-zacht">{sub}</div>}
           </div>
-          <Link ref={sluitKnop} href={sluitHref} scroll={false} className="club-knop club-knop--stil" aria-label="Paneel sluiten">
+          <Link ref={sluitKnop} href={sluitHref} scroll={false} className="club-knop club-knop--stil" aria-label={tk.paneelSluiten}>
             <X aria-hidden size={18} />
           </Link>
         </header>

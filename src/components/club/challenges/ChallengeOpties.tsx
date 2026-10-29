@@ -1,7 +1,9 @@
 'use client'
 
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
-import { DEELNAME_LABEL, DEELNAME_SOORTEN } from '@/lib/club/challenges/model'
+import { DEELNAME_SOORTEN } from '@/lib/club/challenges/model'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 import type { FormStaat } from './ChallengeFormulier'
 
 // Het tweede deel van het formulier: voor wie, hoe leden meedoen, en wat de
@@ -15,6 +17,8 @@ interface Props {
 
 export function ChallengeOpties({ staat: s, vestigingen, zet }: Props) {
   const alle = s.vestigingen.length === 0
+  const tc = useTekst(CHALLENGES)
+  const t = tc.formulier
   const wissel = (sleutel: string, aan: boolean) => {
     const basis = alle ? vestigingen.map((v) => v.sleutel) : s.vestigingen
     const nieuw = aan ? [...new Set([...basis, sleutel])] : basis.filter((v) => v !== sleutel)
@@ -26,11 +30,11 @@ export function ChallengeOpties({ staat: s, vestigingen, zet }: Props) {
     <>
       {vestigingen.length > 1 && (
         <fieldset className="club-challenges-veldset">
-          <legend className="club-label">Voor leden van</legend>
+          <legend className="club-label">{t.voorLeden}</legend>
           <div className="club-challenges-vinkjes">
             <label className="club-challenges-vinkje">
               <input type="checkbox" checked={alle} onChange={(e) => zet('vestigingen', e.target.checked ? [] : [vestigingen[0].sleutel])} />
-              <span>Alle vestigingen</span>
+              <span>{t.alleVestigingen}</span>
             </label>
             {vestigingen.map((v) => (
               <label key={v.sleutel} className="club-challenges-vinkje">
@@ -39,31 +43,31 @@ export function ChallengeOpties({ staat: s, vestigingen, zet }: Props) {
               </label>
             ))}
           </div>
-          <p className="club-hint">Bezoeken tellen in elke vestiging; dit bepaalt alleen wie meedoet.</p>
+          <p className="club-hint">{t.vestigingHint}</p>
         </fieldset>
       )}
 
       <fieldset className="club-challenges-veldset">
-        <legend className="club-label">Meedoen</legend>
-        <div className="club-segment" role="group" aria-label="Hoe leden meedoen">
+        <legend className="club-label">{t.meedoen}</legend>
+        <div className="club-segment" role="group" aria-label={t.hoe}>
           {DEELNAME_SOORTEN.map((d) => (
             <button key={d} type="button" aria-pressed={s.deelname === d} onClick={() => zet('deelname', d)}>
-              {DEELNAME_LABEL[d]}
+              {tc.deelname[d]}
             </button>
           ))}
         </div>
-        <p className="club-hint">{s.deelname === 'automatisch' ? 'Elk lid dat mag trainen telt mee, zonder iets te doen.' : 'Leden schrijven zich in de ledenapp in; alleen zij tellen mee.'}</p>
+        <p className="club-hint">{s.deelname === 'automatisch' ? t.automatischHint : t.inschrijvenHint}</p>
       </fieldset>
 
       <fieldset className="club-challenges-veldset">
-        <legend className="club-label">Ledenapp</legend>
+        <legend className="club-label">{t.ledenapp}</legend>
         <label className="club-challenges-vinkje">
           <input type="checkbox" checked={s.zichtbaarApp} onChange={(e) => zet('zichtbaarApp', e.target.checked)} />
-          <span>Tonen in de ledenapp</span>
+          <span>{t.tonen}</span>
         </label>
         <label className="club-challenges-vinkje">
           <input type="checkbox" checked={s.ranglijst} onChange={(e) => zet('ranglijst', e.target.checked)} />
-          <span>Ranglijst tonen (alleen voornaam en eerste letter van de achternaam)</span>
+          <span>{t.ranglijst}</span>
         </label>
       </fieldset>
     </>

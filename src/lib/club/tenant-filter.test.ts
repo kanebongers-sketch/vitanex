@@ -203,7 +203,7 @@ describe('tenant-filter', () => {
     const zonder = alleHits().filter((h) => !gedekt(h))
     const melding = zonder.map((h) => `${h.bestand}:${h.regel} ${h.soort} op ${h.tabel}`)
     expect(melding, 'Query zonder user_id/organisatie_id. Voeg het filter toe, of zet de query met reden in tenant-filter-uitzonderingen.ts').toEqual([])
-  })
+  }, 30_000) // scant alle bronbestanden; in een volle testrun duurt dat soms langer dan 5 seconden
 
   it('de uitzonderingenlijst bevat geen verouderde regels', () => {
     const hits = alleHits()

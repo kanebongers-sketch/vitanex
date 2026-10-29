@@ -2,7 +2,9 @@
 
 import type { RefObject } from 'react'
 import { CameraOff } from 'lucide-react'
-import { CAMERA_MELDING, type CameraStand } from './useQrCamera'
+import type { CameraStand } from './useQrCamera'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
 
 // Het camerabeeld met een richtkader, of een melding als de camera niet kan.
 // Gedeeld door de balie en het kioskscherm (dat het beeld groot en gespiegeld toont).
@@ -17,7 +19,9 @@ interface Props {
 }
 
 export function CameraBeeld({ video, stand, gespiegeld = false, className = '', label }: Props) {
-  const melding = CAMERA_MELDING[stand]
+  const t = useTekst(CHECKIN).camera
+  const meldingen: Partial<Record<CameraStand, string>> = { starten: t.starten, niet_ondersteund: t.nietOndersteund, geweigerd: t.geweigerd, geen_camera: t.geenCamera }
+  const melding = meldingen[stand]
   const probleem = stand === 'niet_ondersteund' || stand === 'geweigerd' || stand === 'geen_camera'
   return (
     <div className={`club-checkin-camera ${probleem ? 'club-checkin-camera--probleem' : ''} ${className}`.trim()}>

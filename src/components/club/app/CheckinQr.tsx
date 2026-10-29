@@ -4,6 +4,8 @@ import { useEffect, useEffectEvent, useState } from 'react'
 import { QrCode, RotateCcw, ScanLine, Sun, WifiOff } from 'lucide-react'
 import { isCheckinCodeAntwoord, type CheckinCodeAntwoord } from '@/lib/club/checkin/types'
 import { useLedenappApi } from './LedenappApi'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 
 // De check-in QR-code op Home. Wisselt elke 30 seconden: de app haalt zelf een
 // nieuwe code als de oude afloopt, en meteen als de app weer in beeld komt.
@@ -20,6 +22,7 @@ type Stand =
 
 export function CheckinQr({ lidId }: { lidId: string }) {
   const api = useLedenappApi()
+  const t = LEDENAPP[useTaal()].qr
   const [stand, setStand] = useState<Stand>({ soort: 'laden' })
   // Ophogen = meteen opnieuw proberen (knop bij een fout); het lid staat vaak al bij de ingang.
   const [poging, setPoging] = useState(0)
@@ -31,7 +34,7 @@ export function CheckinQr({ lidId }: { lidId: string }) {
       const data: unknown = await res.json().catch(() => null)
       // Voorvertoning in Club door iemand anders dan Kane: geen echte code.
       if (res.status === 404) {
-        setStand({ soort: 'uit', melding: 'De check-in code verschijnt in de app van het lid zelf.' })
+        setStand({ soort: 'uit', melding: t.inAppLid })
         return null
       }
       if (!res.ok || !isCheckinCodeAntwoord(data)) {
@@ -80,25 +83,25 @@ export function CheckinQr({ lidId }: { lidId: string }) {
     <section className="club-lidapp-qr" aria-labelledby="lidapp-qr" data-stand={stand.soort}>
       <div className="club-lidapp-qr-kop">
         <h3 id="lidapp-qr">
-          <QrCode aria-hidden size={16} /> Inchecken
+          <QrCode aria-hidden size={16} /> {t.kop}
         </h3>
         {stand.soort === 'code' && (
           <span className="club-lidapp-qr-live">
-            <span aria-hidden /> Live
+            <span aria-hidden /> {t.live}
           </span>
         )}
       </div>
-      <QrInhoud stand={stand} onOpnieuw={opnieuw} />
+      <QrInhoud stand={stand} onOpnieuw={opnieuw} t={t} />
     </section>
   )
 }
 
-function QrInhoud({ stand, onOpnieuw }: { stand: Stand; onOpnieuw: () => void }) {
+function QrInhoud({ stand, onOpnieuw, t }: { stand: Stand; onOpnieuw: () => void; t: (typeof LEDENAPP)['nl']['qr'] }) {
   if (stand.soort === 'laden') {
     return (
       <div className="club-lidapp-qr-vlak club-lidapp-qr-vlak--laden" role="status" aria-busy="true">
         <ScanLine aria-hidden size={40} strokeWidth={1.5} />
-        <span className="club-sr">Code laden</span>
+        <span className="club-sr">{t.laden}</span>
       </div>
     )
   }
@@ -107,10 +110,10 @@ function QrInhoud({ stand, onOpnieuw }: { stand: Stand; onOpnieuw: () => void })
     return (
       <>
         <p className="club-lidapp-qr-melding club-lidapp-qr-melding--fout" role="status">
-          <WifiOff aria-hidden size={18} /> De code kon niet worden geladen. Controleer je internet; we proberen het over 10 seconden vanzelf opnieuw.
+          <WifiOff aria-hidden size={18} /> {t.fout}
         </p>
         <button type="button" className="club-lidapp-knop" onClick={onOpnieuw}>
-          <RotateCcw aria-hidden size={16} /> Nu opnieuw proberen
+          <RotateCcw aria-hidden size={16} /> {t.opnieuw}
         </button>
       </>
     )
@@ -119,7 +122,7 @@ function QrInhoud({ stand, onOpnieuw }: { stand: Stand; onOpnieuw: () => void })
   return (
     <>
       <div className="club-lidapp-qr-vlak">
-        <img src={stand.beeld} alt={`Check-in code van ${stand.naam}`} width={280} height={280} />
+        <img src={stand.beeld} alt={t.alt(stand.naam)} width={280} height={280} />
       </div>
       <p className="club-lidapp-qr-naam">{stand.naam}</p>
       <div className="club-lidapp-qr-tijd" aria-hidden>
@@ -128,9 +131,9 @@ function QrInhoud({ stand, onOpnieuw }: { stand: Stand; onOpnieuw: () => void })
           style={{ animationDuration: `${stand.vernieuwOverMs}ms`, transform: `scaleX(${Math.min(1, stand.vernieuwOverMs / totaalMs)})` }}
         />
       </div>
-      <p className="club-lidapp-qr-uitleg">Houd je telefoon voor de scanner bij de ingang. De code wisselt elke {stand.vakSec} seconden.</p>
+      <p className="club-lidapp-qr-uitleg">{t.uitleg(stand.vakSec)}</p>
       <p className="club-lidapp-qr-tip">
-        <Sun aria-hidden size={14} /> Zet je scherm op de hoogste helderheid, dan scant hij het snelst.
+        <Sun aria-hidden size={14} /> {t.tip}
       </p>
     </>
   )

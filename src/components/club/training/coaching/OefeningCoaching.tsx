@@ -6,6 +6,8 @@ import type { Coaching } from '@/lib/club/training/coaching/typen'
 import { CoachingBlok } from './CoachingBlok'
 import { CoachingEditor } from './CoachingEditor'
 import { useCoaching, vergeetCoaching } from './useCoaching'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 // Laadt de coaching van een oefening en toont die. Is er (nog) geen coaching,
 // of lukt het laden niet, dan blijft de korte uitleg en de aandachtspunten uit
@@ -33,9 +35,10 @@ const LEEG: Coaching = {
 }
 
 function Laden() {
+  const t = useTekst(CLUB_TRAINING).coaching
   return (
     <div className="club-coach-laden" role="status" aria-busy="true">
-      <span className="club-sr">Uitleg laden</span>
+      <span className="club-sr">{t.laden}</span>
       <span aria-hidden />
       <span aria-hidden />
       <span aria-hidden />
@@ -45,6 +48,7 @@ function Laden() {
 
 export function OefeningCoaching({ naam, uitleg, aandachtspunten, kop: Kop = 'h3', leeg, oefeningId }: OefeningCoachingProps) {
   const [versie, setVersie] = useState(0)
+  const t = useTekst(CLUB_TRAINING).coaching
   const [bewerken, setBewerken] = useState(false)
   const staat = useCoaching(naam, versie)
   if (staat.status === 'laden') return <Laden />
@@ -63,9 +67,9 @@ export function OefeningCoaching({ naam, uitleg, aandachtspunten, kop: Kop = 'h3
 
   const knop = oefeningId && staat.status === 'klaar' && (
     <div className="club-coach-bewerk">
-      {eigen && <span className="club-chip club-chip--info">Eigen coaching</span>}
+      {eigen && <span className="club-chip club-chip--info">{t.eigen}</span>}
       <button type="button" className="club-knop club-knop--klein" onClick={() => setBewerken(true)}>
-        <PenLine aria-hidden size={15} /> {coaching ? 'Coaching aanpassen' : 'Coaching schrijven'}
+        <PenLine aria-hidden size={15} /> {coaching ? t.aanpassen : t.schrijven}
       </button>
     </div>
   )
@@ -82,12 +86,12 @@ export function OefeningCoaching({ naam, uitleg, aandachtspunten, kop: Kop = 'h3
     <div className="club-coach">
       {knop}
       <section>
-        <Kop className="club-coach-kop">Uitvoering</Kop>
+        <Kop className="club-coach-kop">{t.uitvoering}</Kop>
         <p className="club-coach-tekst">{uitleg ?? leeg}</p>
       </section>
       {aandachtspunten && (
         <section>
-          <Kop className="club-coach-kop">Aandachtspunten</Kop>
+          <Kop className="club-coach-kop">{t.aandachtspunten}</Kop>
           <p className="club-coach-tekst">{aandachtspunten}</p>
         </section>
       )}

@@ -6,6 +6,8 @@ import type { Coaching } from '@/lib/club/training/coaching/typen'
 import { GRENZEN, leesCoaching } from '@/lib/club/training/coaching/invoer'
 import { stuur } from '@/components/club/leden/stuur'
 import { LijstVeld } from './LijstVeld'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
 // Coaching van een oefening zelf schrijven of aanpassen. Begint met wat er nu
 // staat (de eigen tekst of de standaard). Dezelfde regels als de standaard:
@@ -66,62 +68,64 @@ export function CoachingEditor({ oefeningId, begin, eigen, onKlaar, onAnnuleer }
     onKlaar()
   }
 
+  const tc = useTekst(CLUB_TRAINING).coaching
+  const t = tc.editor
   return (
     <div className="club-coach-editor">
       <PaarLijst
-        titel="Kernpunten"
-        hint="3 tot 5 commando's, het belangrijkste eerst. Kort en actief, met een zin uitleg."
+        titel={tc.kernpunten}
+        hint={t.kernHint}
         paren={kern}
         max={GRENZEN.kernpunten[1]}
-        labelA="Kernpunt"
-        labelB="Uitleg"
+        labelA={t.kernpunt}
+        labelB={t.uitleg}
         maxA={GRENZEN.punt}
         maxB={GRENZEN.uitleg}
         genummerd
         onWijzig={setKern}
       />
-      <LijstVeld titel="Opstelling" waarden={opstelling} max={GRENZEN.opstelling[1]} maxTekens={GRENZEN.zin} onWijzig={setOpstelling} />
-      <LijstVeld titel="Uitvoering in stappen" waarden={stappen} max={GRENZEN.stappen[1]} maxTekens={GRENZEN.zin} genummerd onWijzig={setStappen} />
+      <LijstVeld titel={tc.opstelling} waarden={opstelling} max={GRENZEN.opstelling[1]} maxTekens={GRENZEN.zin} onWijzig={setOpstelling} />
+      <LijstVeld titel={t.stappen} waarden={stappen} max={GRENZEN.stappen[1]} maxTekens={GRENZEN.zin} genummerd onWijzig={setStappen} />
       <PaarLijst
-        titel="Veelgemaakte fouten"
-        hint="Wat je ziet gebeuren, en de correctie die je geeft."
+        titel={tc.fouten}
+        hint={t.foutenHint}
         paren={fouten}
         max={GRENZEN.fouten[1]}
-        labelA="Fout"
-        labelB="Correctie"
+        labelA={t.fout}
+        labelB={t.correctie}
         maxA={GRENZEN.fout}
         maxB={GRENZEN.beter}
         onWijzig={setFouten}
       />
       <div className="club-coach-editor-raster">
         <label className="club-veld">
-          <span>Ademhaling</span>
+          <span>{tc.ademhaling}</span>
           <input className="club-invoer" value={ademhaling} maxLength={GRENZEN.ademhaling} onChange={(e) => setAdemhaling(e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Tempo</span>
+          <span>{tc.tempo}</span>
           <input className="club-invoer" value={tempo} maxLength={GRENZEN.tempo} onChange={(e) => setTempo(e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Makkelijker (mag leeg)</span>
+          <span>{t.makkelijker}</span>
           <input className="club-invoer" value={makkelijker} maxLength={GRENZEN.variant} onChange={(e) => setMakkelijker(e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Zwaarder (mag leeg)</span>
+          <span>{t.zwaarder}</span>
           <input className="club-invoer" value={zwaarder} maxLength={GRENZEN.variant} onChange={(e) => setZwaarder(e.target.value)} />
         </label>
       </div>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}
       <div className="club-acties">
         <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar()}>
-          {bezig ? 'Opslaan...' : 'Opslaan'}
+          {bezig ? t.opslaanBezig : t.opslaan}
         </button>
         <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={onAnnuleer}>
-          Annuleren
+          {t.annuleren}
         </button>
         {eigen && (
           <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => void standaard()}>
-            <RotateCcw aria-hidden size={15} /> Terug naar de standaard
+            <RotateCcw aria-hidden size={15} /> {t.standaard}
           </button>
         )}
       </div>
@@ -143,6 +147,7 @@ interface PaarLijstProps {
 }
 
 function PaarLijst({ titel, hint, paren, max, labelA, labelB, maxA, maxB, genummerd, onWijzig }: PaarLijstProps) {
+  const t = useTekst(CLUB_TRAINING).coaching.editor
   const zet = (i: number, veld: keyof Paar, waarde: string) => onWijzig(paren.map((p, j) => (j === i ? { ...p, [veld]: waarde } : p)))
   return (
     <fieldset className="club-coach-editor-groep">
@@ -159,14 +164,14 @@ function PaarLijst({ titel, hint, paren, max, labelA, labelB, maxA, maxB, genumm
           {genummerd && <span className="club-coach-editor-nummer" aria-hidden>{i + 1}</span>}
           <input className="club-invoer" aria-label={`${labelA} ${i + 1}`} placeholder={labelA} value={p.a} maxLength={maxA} onChange={(e) => zet(i, 'a', e.target.value)} />
           <textarea className="club-invoer" rows={2} aria-label={`${labelB} ${i + 1}`} placeholder={labelB} value={p.b} maxLength={maxB} onChange={(e) => zet(i, 'b', e.target.value)} />
-          <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={`${labelA} ${i + 1} weghalen`} onClick={() => onWijzig(paren.filter((_, j) => j !== i))}>
+          <button type="button" className="club-knop club-knop--stil club-knop--klein" aria-label={t.weghalen(labelA, i + 1)} onClick={() => onWijzig(paren.filter((_, j) => j !== i))}>
             <X aria-hidden size={15} />
           </button>
         </div>
       ))}
       {paren.length < max && (
         <button type="button" className="club-knop club-knop--klein" onClick={() => onWijzig([...paren, leegPaar])}>
-          <Plus aria-hidden size={15} /> {labelA} toevoegen
+          <Plus aria-hidden size={15} /> {t.toevoegen(labelA)}
         </button>
       )}
     </fieldset>

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ToetsEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { CornerDownLeft, Search, X } from 'lucide-react'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { filterZoek, ledenItems, ledenUitAntwoord, normaliseerZoek, zoekHref, zoektLeden, type LidTreffer, type ZoekItem } from './zoeken'
 
 // Zoeken in de balk: een knop (en Ctrl K of /) opent een venster dat alles
@@ -65,13 +67,14 @@ export function ClubZoeken({ items, vestiging, ledenZoeken }: ClubZoekenProps) {
     window.addEventListener('keydown', opToets)
     return () => window.removeEventListener('keydown', opToets)
   }, [])
-  const tekst = ledenZoeken ? 'Zoek een lid of onderdeel' : 'Zoeken'
+  const t = useTekst(MENU).zoeken
+  const tekst = ledenZoeken ? t.knopLeden : t.knop
   return (
     <>
-      <button ref={knop} type="button" className="club-zoekknop" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-keyshortcuts="Control+K /" title={`${tekst} (Ctrl K)`}>
+      <button ref={knop} type="button" className="club-zoekknop" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-keyshortcuts="Control+K /" title={`${tekst} (${t.sneltoets})`}>
         <Search aria-hidden size={18} />
         <span className="club-zoekknop-tekst">{tekst}</span>
-        <kbd className="club-zoekknop-toets" aria-hidden>Ctrl K</kbd>
+        <kbd className="club-zoekknop-toets" aria-hidden>{t.sneltoets}</kbd>
       </button>
       {open && <ZoekVenster items={items} vestiging={vestiging} ledenZoeken={ledenZoeken} onSluit={sluit} />}
     </>
@@ -122,14 +125,16 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
   const [vraag, setVraag] = useState('')
   const [gekozen, setGekozen] = useState(0)
   const leden = useLedenZoeken(vraag, vestiging, ledenZoeken)
+  const taal = useTaal()
+  const t = useTekst(MENU).zoeken
   const treffers = useMemo(() => {
     const menu = filterZoek(items, vraag)
     if (!leden.actief) return menu
-    const lid = ledenItems(leden.antwoord?.leden ?? [], vraag)
+    const lid = ledenItems(leden.antwoord?.leden ?? [], vraag, taal)
     // Typ je de naam van een onderdeel ("check"), dan staat dat bovenaan; anders eerst de leden.
     const menuEerst = !!menu[0] && normaliseerZoek(menu[0].label).startsWith(normaliseerZoek(vraag))
     return menuEerst ? [...menu, ...lid] : [...lid, ...menu]
-  }, [items, vraag, leden.actief, leden.antwoord])
+  }, [items, vraag, leden.actief, leden.antwoord, taal])
   const actief = Math.min(gekozen, Math.max(treffers.length - 1, 0))
 
   // Zolang het venster open is, is de pagina eronder niet tabbaar.
@@ -159,10 +164,10 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
     }
   }
 
-  const plaatshouder = ledenZoeken ? 'Zoek een lid, onderdeel of instelling' : 'Zoek een onderdeel of instelling'
+  const plaatshouder = ledenZoeken ? t.plaatsLeden : t.plaats
   return (
     <div ref={scherm} className="club-zoek-scherm" onClick={(e) => e.target === e.currentTarget && onSluit()}>
-      <div className="club-zoek" role="dialog" aria-modal="true" aria-label="Zoeken in Club">
+      <div className="club-zoek" role="dialog" aria-modal="true" aria-label={t.venster}>
         <div className="club-zoek-veld">
           <Search aria-hidden size={18} />
           <input
@@ -184,17 +189,17 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
             spellCheck={false}
             enterKeyHint="go"
           />
-          <button type="button" className="club-knop club-knop--stil club-zoek-sluit" aria-label="Zoeken sluiten" onClick={onSluit}>
+          <button type="button" className="club-knop club-knop--stil club-zoek-sluit" aria-label={t.sluiten} onClick={onSluit}>
             <X aria-hidden size={20} />
           </button>
         </div>
         <p className="club-zoek-status" role="status">
-          {leden.laden ? 'Leden zoeken…' : leden.antwoord?.fout ? 'Leden zoeken lukte niet. Kies "Alle leden" om het in de lijst te proberen.' : leden.actief && leden.antwoord?.leden.length === 0 ? 'Geen lid met deze naam of dit nummer in deze vestiging.' : ''}
+          {leden.laden ? t.ledenLaden : leden.antwoord?.fout ? t.ledenFout : leden.actief && leden.antwoord?.leden.length === 0 ? t.geenLid : ''}
         </p>
         {treffers.length === 0 ? (
-          <p className="club-zoek-leeg">Niets gevonden voor &ldquo;{vraag}&rdquo;. Probeer een ander woord, of kijk bij Hulp.</p>
+          <p className="club-zoek-leeg">{t.nietsGevonden(vraag)}</p>
         ) : (
-          <ul id={lijstId} className="club-zoek-lijst" role="listbox" aria-label="Resultaten">
+          <ul id={lijstId} className="club-zoek-lijst" role="listbox" aria-label={t.resultaten}>
             {treffers.map((item, n) => (
               <li
                 key={item.id}

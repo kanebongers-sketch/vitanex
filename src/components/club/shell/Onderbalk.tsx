@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import { Apple, Calendar, CalendarCheck, CalendarClock, CalendarDays, Dumbbell, House, LayoutGrid, ListChecks, PhoneCall, ScanLine, StickyNote, UserPlus, Users, X } from 'lucide-react'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import type { Onderdeel } from './onderdelen'
 
 // De onderbalk op de telefoon en de tablet staand (besluit Kane 20-10-2026):
@@ -38,9 +40,10 @@ interface OnderbalkProps {
 }
 
 export function Onderbalk({ onderdelen, huidig, href, menuOpen, onMeer, onKies }: OnderbalkProps) {
+  const t = useTekst(MENU)
   const inBalk = huidig !== null && onderdelen.some((o) => o.sleutel === huidig?.sleutel)
   return (
-    <nav className="club-onderbalk" aria-label="Snel naar">
+    <nav className="club-onderbalk" aria-label={t.onderbalk.label}>
       {onderdelen.map((o) => {
         const Icoon = ICOON[o.sleutel] ?? LayoutGrid
         const hier = !menuOpen && o.sleutel === huidig?.sleutel
@@ -53,7 +56,7 @@ export function Onderbalk({ onderdelen, huidig, href, menuOpen, onMeer, onKies }
       })}
       <button type="button" onClick={onMeer} aria-haspopup="dialog" aria-expanded={menuOpen} data-actief={menuOpen || !inBalk ? 'true' : undefined}>
         {menuOpen ? <X aria-hidden size={22} /> : <LayoutGrid aria-hidden size={22} strokeWidth={!inBalk ? 2.25 : 1.75} />}
-        <span>{menuOpen ? 'Sluiten' : 'Meer'}</span>
+        <span>{menuOpen ? t.onderbalk.sluiten : t.onderbalk.meer}</span>
       </button>
     </nav>
   )

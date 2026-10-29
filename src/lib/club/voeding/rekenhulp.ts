@@ -4,6 +4,9 @@
 // Eiwit in gram per kilo lichaamsgewicht (instelbaar), vet als deel van de
 // kcal, koolhydraten vullen de rest. De trainer past de uitkomst daarna vrij aan.
 
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
+
 export const ACTIVITEITEN = ['zittend', 'licht', 'matig', 'actief', 'zeer_actief'] as const
 export type Activiteit = (typeof ACTIVITEITEN)[number]
 
@@ -86,17 +89,18 @@ function rondKcal(n: number): number {
 }
 
 /** Is de invoer bruikbaar? Een lijst met wat er mist of buiten de grenzen valt. */
-export function controleerInvoer(i: Partial<RekenInvoer>): string[] {
+export function controleerInvoer(i: Partial<RekenInvoer>, taal: Taal = 'nl'): string[] {
+  const t = VOEDING[taal].controle
   const fouten: string[] = []
   const binnen = (v: number | undefined, g: { min: number; max: number }) => typeof v === 'number' && Number.isFinite(v) && v >= g.min && v <= g.max
-  if (!binnen(i.gewichtKg, GRENZEN.gewicht)) fouten.push(`Gewicht tussen ${GRENZEN.gewicht.min} en ${GRENZEN.gewicht.max} kg`)
-  if (!binnen(i.lengteCm, GRENZEN.lengte)) fouten.push(`Lengte tussen ${GRENZEN.lengte.min} en ${GRENZEN.lengte.max} cm`)
-  if (!binnen(i.leeftijd, GRENZEN.leeftijd)) fouten.push(`Leeftijd tussen ${GRENZEN.leeftijd.min} en ${GRENZEN.leeftijd.max} jaar`)
-  if (!binnen(i.eiwitPerKg, GRENZEN.eiwitPerKg)) fouten.push(`Eiwit tussen ${GRENZEN.eiwitPerKg.min} en ${GRENZEN.eiwitPerKg.max} g per kg`)
-  if (!binnen(i.vetPercentage, GRENZEN.vetPercentage)) fouten.push(`Vet tussen ${GRENZEN.vetPercentage.min} en ${GRENZEN.vetPercentage.max}%`)
-  if (!i.geslacht || !(GESLACHTEN as readonly string[]).includes(i.geslacht)) fouten.push('Kies een geslacht')
-  if (!i.activiteit || !(ACTIVITEITEN as readonly string[]).includes(i.activiteit)) fouten.push('Kies een activiteit')
-  if (!i.doel || !(DOELEN as readonly string[]).includes(i.doel)) fouten.push('Kies een doel')
+  if (!binnen(i.gewichtKg, GRENZEN.gewicht)) fouten.push(t.gewicht(GRENZEN.gewicht.min, GRENZEN.gewicht.max))
+  if (!binnen(i.lengteCm, GRENZEN.lengte)) fouten.push(t.lengte(GRENZEN.lengte.min, GRENZEN.lengte.max))
+  if (!binnen(i.leeftijd, GRENZEN.leeftijd)) fouten.push(t.leeftijd(GRENZEN.leeftijd.min, GRENZEN.leeftijd.max))
+  if (!binnen(i.eiwitPerKg, GRENZEN.eiwitPerKg)) fouten.push(t.eiwit(GRENZEN.eiwitPerKg.min, GRENZEN.eiwitPerKg.max))
+  if (!binnen(i.vetPercentage, GRENZEN.vetPercentage)) fouten.push(t.vet(GRENZEN.vetPercentage.min, GRENZEN.vetPercentage.max))
+  if (!i.geslacht || !(GESLACHTEN as readonly string[]).includes(i.geslacht)) fouten.push(t.geslacht)
+  if (!i.activiteit || !(ACTIVITEITEN as readonly string[]).includes(i.activiteit)) fouten.push(t.activiteit)
+  if (!i.doel || !(DOELEN as readonly string[]).includes(i.doel)) fouten.push(t.doel)
   return fouten
 }
 
@@ -138,12 +142,12 @@ export function verdeling(m: Omit<Macros, 'kcal'>): Verdeling {
  * Wijken de macro's flink af van het kcal-doel (meer dan 10%)? Dan een korte
  * zin voor de trainer, anders null. Puur een hint: opslaan mag gewoon.
  */
-export function afwijkingTekst(m: Macros): string | null {
+export function afwijkingTekst(m: Macros, taal: Taal = 'nl'): string | null {
   if (m.kcal <= 0) return null
   const uitMacros = kcalUitMacros(m)
   const verschil = uitMacros - m.kcal
   if (Math.abs(verschil) <= m.kcal * 0.1) return null
-  return `De macro's tellen op tot ${uitMacros} kcal, ${Math.abs(verschil)} kcal ${verschil > 0 ? 'boven' : 'onder'} het dagdoel.`
+  return VOEDING[taal].afwijking(uitMacros, Math.abs(verschil), verschil > 0)
 }
 
 /** Leeftijd in hele jaren op een datum (yyyy-mm-dd), of null. */

@@ -6,6 +6,8 @@ import { telGedaan, weekTeller, type WeekTeller } from '@/lib/club/taken/voortga
 import { dagKort, dagLang, dagNummer, perGroep } from '@/lib/club/taken/weergave'
 import { useAfvinken } from './AfvinkContext'
 import { klok } from './vraag'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
 
 // Een lijst als raster: taken onder elkaar, de zeven dagen naast elkaar, zoals
 // het tabblad in de Excel. Een tik op een vakje vinkt af (wie en hoe laat);
@@ -17,22 +19,16 @@ interface RasterProps {
   dagen: string[]
 }
 
-const TELLER_TEKST: Record<WeekTeller['status'], string> = {
-  gehaald: 'gehaald',
-  bezig: 'nog te doen',
-  achter: 'loopt achter',
-  vrij: '',
-}
-
 export function Teller({ teller }: { teller: WeekTeller }) {
+  const t = useTekst(TAKEN).raster
   if (teller.minimum === null) return null
   const soort = teller.status === 'gehaald' ? 'ok' : teller.status === 'achter' ? 'let-op' : 'uit'
   return (
-    <span className={`club-chip club-chip--${soort} club-taken-teller`} title={`${teller.gedaan} van ${teller.minimum} deze week, ${TELLER_TEKST[teller.status]}`}>
+    <span className={`club-chip club-chip--${soort} club-taken-teller`} title={t.tellerTitel(teller.gedaan, teller.minimum, t.status[teller.status])}>
       <span className="club-getal">
-        {teller.gedaan} van {teller.minimum}
+        {t.teller(teller.gedaan, teller.minimum)}
       </span>
-      <span className="club-sr">, {TELLER_TEKST[teller.status]}</span>
+      <span className="club-sr">, {t.status[teller.status]}</span>
     </span>
   )
 }
@@ -40,17 +36,19 @@ export function Teller({ teller }: { teller: WeekTeller }) {
 function Vakje({ taak, datum }: { taak: Taak; datum: string }) {
   const { vak, wissel, isBezig, vandaag } = useAfvinken()
   const vinkje = vak(taak.id, datum)
+  const taal = useTaal()
+  const t = useTekst(TAKEN).raster
   const toekomst = datum > vandaag
   const bezig = isBezig(taak.id, datum)
-  const status = vinkje ? `afgevinkt door ${vinkje.wie} om ${klok(vinkje.afgevinktOp)}` : toekomst ? 'nog niet aan de beurt' : 'open'
+  const status = vinkje ? t.afgevinkt(vinkje.wie, klok(vinkje.afgevinktOp)) : toekomst ? t.nietAanDeBeurt : t.open
   return (
     <td className="club-taken-cel" data-vandaag={datum === vandaag ? '' : undefined}>
       <button
         type="button"
         className="club-taken-vak"
         aria-pressed={vinkje !== null}
-        aria-label={`${taak.naam}, ${dagLang(datum)}: ${status}`}
-        title={vinkje ? `${vinkje.wie} om ${klok(vinkje.afgevinktOp)}` : undefined}
+        aria-label={t.vakLabel(taak.naam, dagLang(datum, taal), status)}
+        title={vinkje ? t.wieOm(vinkje.wie, klok(vinkje.afgevinktOp)) : undefined}
         disabled={toekomst}
         aria-busy={bezig || undefined}
         onClick={() => wissel(taak.id, datum, taak.naam)}
@@ -72,22 +70,26 @@ function Rij({ taak, dagen }: { taak: Taak; dagen: string[] }) {
   const { afvinkingen, vandaag } = useAfvinken()
   const teller = weekTeller(taak, afvinkingen, dagen, vandaag)
   const gedaan = telGedaan(taak.id, afvinkingen, dagen)
+  const taal = useTaal()
+  const t = useTekst(TAKEN).raster
   return (
     <tr className="club-taken-rij" data-status={teller.status}>
       <th scope="row" className="club-taken-naam">
         <span>{taak.naam}</span>
-        {taak.frequentie !== 'dagelijks' && <span className="club-taken-freq">{frequentieTekst(taak)}</span>}
+        {taak.frequentie !== 'dagelijks' && <span className="club-taken-freq">{frequentieTekst(taak, taal)}</span>}
       </th>
       {dagen.map((d) => (
         <Vakje key={d} taak={taak} datum={d} />
       ))}
-      <td className="club-taken-week">{teller.minimum !== null ? <Teller teller={teller} /> : <span className="club-zacht club-getal">{gedaan}x</span>}</td>
+      <td className="club-taken-week">{teller.minimum !== null ? <Teller teller={teller} /> : <span className="club-zacht club-getal">{t.keer(gedaan)}</span>}</td>
     </tr>
   )
 }
 
 export function TakenRaster({ lijst, taken, dagen }: RasterProps) {
   const { vandaag } = useAfvinken()
+  const taal = useTaal()
+  const t = useTekst(TAKEN).raster
   const kopId = `club-taken-lijst-${lijst.id}`
   return (
     <section className="club-taken-lijst" aria-labelledby={kopId}>
@@ -99,15 +101,15 @@ export function TakenRaster({ lijst, taken, dagen }: RasterProps) {
           <thead>
             <tr>
               <th scope="col" className="club-taken-naam">
-                Taak
+                {t.taak}
               </th>
               {dagen.map((d) => (
                 <th key={d} scope="col" className="club-taken-dagkop" data-vandaag={d === vandaag ? '' : undefined} aria-current={d === vandaag ? 'date' : undefined}>
-                  <span>{dagKort(d)}</span> <b>{dagNummer(d)}</b>
+                  <span>{dagKort(d, taal)}</span> <b>{dagNummer(d)}</b>
                 </th>
               ))}
               <th scope="col" className="club-taken-week">
-                Week
+                {t.week}
               </th>
             </tr>
           </thead>

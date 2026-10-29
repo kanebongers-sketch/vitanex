@@ -14,7 +14,9 @@ import { DiepteKaart } from '@/components/club/ontwerp/DiepteKaart'
 import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppLog } from '@/lib/club/app/schema'
-import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 
 // Home in de ledenapp. Een duidelijke volgorde: begroeting, dan de grote focus
@@ -35,15 +37,16 @@ interface Props {
   berichten: readonly Bericht[]
 }
 
-function VolgendeLes({ les, vandaag, href }: { les: AppLes | undefined; vandaag: string; href: string }) {
+function VolgendeLes({ les, vandaag, href, taal }: { les: AppLes | undefined; vandaag: string; href: string; taal: Taal }) {
+  const t = LEDENAPP[taal].home
   if (!les) {
     return (
       <Link href={href} className="club-lidapp-volgende club-lidapp-volgende--leeg">
         <span className="club-lidapp-boven">
-          <CalendarCheck aria-hidden size={15} /> Volgende les
+          <CalendarCheck aria-hidden size={15} /> {t.volgendeLes}
         </span>
-        <strong>Nog niets geboekt</strong>
-        <span className="club-lidapp-volgende-wanneer">Bekijk de lessen van deze week</span>
+        <strong>{t.nogNiets}</strong>
+        <span className="club-lidapp-volgende-wanneer">{t.bekijkLessen}</span>
         <span className="club-lidapp-volgende-pijl" aria-hidden>
           <ArrowUpRight size={20} />
         </span>
@@ -54,12 +57,12 @@ function VolgendeLes({ les, vandaag, href }: { les: AppLes | undefined; vandaag:
   return (
     <Link href={href} className="club-lidapp-volgende">
       <span className="club-lidapp-boven">
-        <CalendarCheck aria-hidden size={15} /> Volgende les
+        <CalendarCheck aria-hidden size={15} /> {t.volgendeLes}
       </span>
       <strong>{les.naam}</strong>
       <span className="club-lidapp-volgende-wanneer">
         <span className="club-lidapp-volgende-tijd">
-          {dagNaamKort(dagSleutel(start), vandaag)} om {tijdNl(start)}
+          {t.om(dagNaamKort(dagSleutel(start), vandaag, taal), tijdNl(start))}
         </span>
         {les.zaal ? (
           <span className="club-lidapp-volgende-zaal">
@@ -107,17 +110,19 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }
   const volgende = data.lessen.find((l) => l.mijn?.status === 'geboekt' && new Date(l.start).getTime() > nu.getTime())
   const schemaDag = data.schema ? volgendeDag(data.schema.dagen, data.logs, data.schema.id) : null
   const w = (await clubTekst(ONTWERP)).ledenapp
+  const taal = await getTaal()
+  const t = LEDENAPP[taal].home
   return (
     <div className="club-lidapp-tab club-lidapp-home">
       <header className="club-lidapp-welkomkop">
-        <p className="club-lidapp-groet">{groet(nu)},</p>
+        <p className="club-lidapp-groet">{groet(nu, taal)},</p>
         <h2 className="club-lidapp-naam">{lid.voornaam}</h2>
         {instellingen.welkom && <p className="club-lidapp-welkom">{instellingen.welkom}</p>}
       </header>
 
       {lessenAan && (
         <DiepteKaart className="club-lidapp-licht">
-          <VolgendeLes les={volgende} vandaag={vandaag} href={tabPad('lessen')} />
+          <VolgendeLes les={volgende} vandaag={vandaag} href={tabPad('lessen')} taal={taal} />
         </DiepteKaart>
       )}
 
@@ -146,10 +151,8 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }
             <Dumbbell size={20} />
           </span>
           <span className="club-lidapp-schemalink-tekst">
-            <span>Vandaag op het programma</span>
-            <strong>
-              {data.schema.naam}, dag {dagLetter(schemaDag)}
-            </strong>
+            <span>{t.vandaagProgramma}</span>
+            <strong>{t.schemaDag(data.schema.naam, dagLetter(schemaDag))}</strong>
           </span>
           <ChevronRight aria-hidden size={20} className="club-lidapp-schemalink-pijl" />
         </Link>

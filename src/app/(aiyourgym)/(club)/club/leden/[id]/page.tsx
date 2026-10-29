@@ -16,7 +16,10 @@ import { kaartRechten, type KaartRechten } from '@/lib/club/leden/hub/rechten'
 import { kiesLidTab, lidKaartPad, type LidTab } from '@/lib/club/leden/hub/tabs'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
-import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
+import { LEDENKAART, LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LidKop } from '@/components/club/leden/LidKop'
 import { BehoudKaart } from '@/components/club/leden/BehoudKaart'
 import { Bezoekpatroon } from '@/components/club/leden/Bezoekpatroon'
@@ -33,17 +36,20 @@ import { ContactTab } from '@/components/club/leden/hub/ContactTab'
 import '@/components/club/leden/leden.css'
 import '@/components/club/leden/hub/hub.css'
 
-export const metadata: Metadata = { title: 'Ledenkaart' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(LEDEN)).pagina.kaartTitel }
+}
 
 // De ledenkaart is de plek voor alles van een lid (besluit Kane 27-10-2026):
 // een kop met de belangrijkste acties en zes tabbladen (?tab=). Elk tabblad
 // haalt alleen zijn eigen gegevens op; elk blok alleen met het recht erop.
 
-function geenBehoudTekst(kaart: LidKaart): string {
-  if (kaart.lid.status === 'gepauzeerd') return 'Gepauzeerd: we verwachten nu geen bezoek, dus geen score.'
-  if (kaart.lid.status === 'opgezegd') return 'Opgezegd: geen score meer. Wel een kans voor een gesprek voor de einddatum.'
-  if (kaart.lid.status === 'gestopt') return 'Gestopt: geen score.'
-  return 'De bezoeken konden niet worden geladen, dus er is nu geen score.'
+function geenBehoudTekst(kaart: LidKaart, taal: Taal): string {
+  const t = LEDEN[taal].behoud
+  if (kaart.lid.status === 'gepauzeerd') return t.geenGepauzeerd
+  if (kaart.lid.status === 'opgezegd') return t.geenOpgezegd
+  if (kaart.lid.status === 'gestopt') return t.geenGestopt
+  return t.geenLaadfout
 }
 
 /** Trainers om uit te kiezen, plus de huidige coach als die geen trainer is. */
@@ -63,8 +69,10 @@ interface TabInhoud {
 }
 
 async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
-  const alle = tekst(LEDENKAART, await getTaal())
+  const taal = await getTaal()
+  const alle = tekst(LEDENKAART, taal)
   const w = alle.overzicht
+  const pt = LEDEN[taal].patroon
   const volgende = kaart.aankomend.find((r) => !r.lesGeannuleerd && r.status !== 'geannuleerd') ?? null
   const notitie = kaart.notities[0] ?? null
   const { lid } = kaart
@@ -72,7 +80,7 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
     <div className="club-lidhub-tab">
       <BezoekCijfers kaart={kaart} nu={nu} />
       <div className="club-leden-tweekolom">
-        <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart)} />
+        <BehoudKaart behoud={kaart.behoud} geenTekst={geenBehoudTekst(kaart, taal)} />
         <section className="club-kaart club-lidhub-kort" aria-labelledby="kort-kop">
           <h2 id="kort-kop">{w.kort}</h2>
           <dl className="club-lidhub-feiten">
@@ -82,7 +90,7 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
             </div>
             <div>
               <dt>{w.volgendeLes}</dt>
-              <dd>{volgende ? <Link href={lidKaartPad(lid.id, vestiging, 'planning')}>{volgende.lesNaam}, {datumKort(volgende.start, nu)} {tijdNl(volgende.start)}</Link> : <span className="club-zacht">{w.geenLes}</span>}</dd>
+              <dd>{volgende ? <Link href={lidKaartPad(lid.id, vestiging, 'planning')}>{volgende.lesNaam}, {datumKort(volgende.start, nu, taal)} {tijdNl(volgende.start)}</Link> : <span className="club-zacht">{w.geenLes}</span>}</dd>
             </div>
             <div>
               <dt>{w.laatsteNotitie}</dt>
@@ -93,8 +101,8 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
       </div>
       <section className="club-kaart" aria-labelledby="patroon-kop">
         <div className="club-sectiekop">
-          <h2 id="patroon-kop">Bezoekpatroon</h2>
-          <span>Laatste 12 weken · {kaart.laatsteBezoek ? `laatste bezoek ${laatsteBezoekTekst(kaart.laatsteBezoek, nu).toLowerCase()}` : 'nog nooit geweest'}</span>
+          <h2 id="patroon-kop">{pt.kop}</h2>
+          <span>{pt.laatste12} · {kaart.laatsteBezoek ? pt.laatsteBezoek(laatsteBezoekTekst(kaart.laatsteBezoek, nu, taal).toLowerCase()) : pt.nooitGeweest}</span>
         </div>
         <Bezoekpatroon bezoeken={kaart.bezoeken.map((b) => b.op)} nu={nu} />
       </section>
@@ -104,7 +112,8 @@ async function Overzicht({ kaart, vestiging, nu, t }: TabInhoud) {
 }
 
 async function Privacy({ t, kaart, rechten, verzoek, nu }: TabInhoud & { verzoek: Awaited<ReturnType<typeof haalVerwijderverzoek>> }) {
-  const w = tekst(LEDENKAART, await getTaal()).privacy
+  const taal = await getTaal()
+  const w = tekst(LEDENKAART, taal).privacy
   const { lid } = kaart
   return (
     <div className="club-lidhub-tab club-lidhub-twee">
@@ -121,7 +130,7 @@ async function Privacy({ t, kaart, rechten, verzoek, nu }: TabInhoud & { verzoek
             voornaam={lid.voornaam}
             achternaam={lid.achternaam}
             magVerwijderen={magLidVerwijderen(t)}
-            verzoekTekst={verzoek ? verzoekTekst(verzoek, nu) : null}
+            verzoekTekst={verzoek ? verzoekTekst(verzoek, nu, taal) : null}
           />
         </div>
       </div>
@@ -135,8 +144,10 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   // Geen geldig id: meteen 404, zonder queries met onzin.
   if (!isUuid(id)) notFound()
   const nu = new Date()
+  const taal = await getTaal()
+  const kb = LIDKAART_BLOKKEN[taal].kaart
   const [gelezen, verzoek, betalen] = await Promise.all([
-    haalLidKaart(t.admin, t.userId, id, nu),
+    haalLidKaart(t.admin, t.userId, id, nu, taal),
     haalVerwijderverzoek(t.admin, t.userId, id),
     lidgeldOpen(t),
   ])
@@ -157,11 +168,11 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
       <LidTabs lidId={lid.id} vestiging={vestiging} actief={tab} />
       {verzoek ? (
         <p className="club-melding club-melding--fout" role="status">
-          {verzoekTekst(verzoek, nu)} Dit lid kan niet meer inloggen, inchecken of boeken.{magLidVerwijderen(t) ? <> <Link href={`${lidKaartPad(lid.id, vestiging, 'privacy')}#privacy`}>Terugdraaien</Link></> : null}
+          {verzoekTekst(verzoek, nu, taal)} {kb.verzoekVast}{magLidVerwijderen(t) ? <> <Link href={`${lidKaartPad(lid.id, vestiging, 'privacy')}#privacy`}>{kb.terugdraaien}</Link></> : null}
         </p>
       ) : null}
       {kaart.fouten.length ? (
-        <p className="club-melding club-melding--fout" role="alert">Niet alles kon worden geladen ({kaart.fouten.join(', ')}). Ververs de pagina om het opnieuw te proberen.</p>
+        <p className="club-melding club-melding--fout" role="alert">{kb.nietAlles(kaart.fouten.map((f) => (kb.onderdelen as Record<string, string>)[f] ?? f).join(', '))}</p>
       ) : null}
       {tab === 'overzicht' && <Overzicht {...inhoud} />}
       {tab === 'training' && <TrainingTab t={t} lid={lid} vestiging={vestiging} medewerkers={kaart.medewerkers} rechten={rechten} maakOpen={ruw.maak === 'schema'} nu={nu} />}

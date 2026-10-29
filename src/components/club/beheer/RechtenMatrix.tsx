@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MEDEWERKER_ROLLEN, ROL_LABEL, type MedewerkerRol } from '@/lib/club/kern/medewerker'
+import { MEDEWERKER_ROLLEN, rolLabel, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { standaardRechten, type Rechten } from '@/lib/club/kern/org-instellingen'
 import { stuur } from '@/components/club/leden/stuur'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 
 // Rechten per rol: per onderdeel aanvinken welke rol het ziet. De eigenaar en
 // clubmanagers met beheerrechten zien altijd alles; dit gaat over medewerkers.
@@ -34,6 +36,8 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
   const [rechten, setRechten] = useState<Rechten>(begin)
   const [bezig, setBezig] = useState(false)
   const [melding, setMelding] = useState<{ ok: boolean; tekst: string } | null>(null)
+  const taal = useTaal()
+  const tekst = useTekst(BEHEER)
 
   function zet(nieuw: Rechten) {
     setRechten(nieuw)
@@ -51,7 +55,7 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
     const uit = await stuur('/api/club/organisatie/instellingen', 'PATCH', { rechten: nieuw })
     setBezig(false)
     if (!uit.ok) return setMelding({ ok: false, tekst: uit.fout })
-    setMelding({ ok: true, tekst: 'Rechten opgeslagen.' })
+    setMelding({ ok: true, tekst: tekst.rechten.opgeslagen })
     router.refresh()
   }
 
@@ -59,12 +63,12 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
     <div className="club-beheer-formulier" style={{ maxWidth: 'none' }}>
       <div className="club-beheer-matrix-wrap">
         <table className="club-beheer-matrix">
-          <caption className="club-sr">Welke rol welk onderdeel ziet</caption>
+          <caption className="club-sr">{tekst.rechten.caption}</caption>
           <thead>
             <tr>
-              <th scope="col" style={{ textAlign: 'left' }}>Onderdeel</th>
+              <th scope="col" style={{ textAlign: 'left' }}>{tekst.rechten.onderdeel}</th>
               {MEDEWERKER_ROLLEN.map((rol) => (
-                <th key={rol} scope="col">{ROL_LABEL[rol]}</th>
+                <th key={rol} scope="col">{rolLabel(rol, taal)}</th>
               ))}
             </tr>
           </thead>
@@ -83,7 +87,7 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
                   <td key={rol}>
                     <input
                       type="checkbox"
-                      aria-label={`${ROL_LABEL[rol]} ziet ${o.label}`}
+                      aria-label={tekst.rechten.ziet(rolLabel(rol, taal), o.label)}
                       checked={rechten[rol].includes(o.sleutel)}
                       onChange={() => wissel(rol, o.sleutel)}
                     />
@@ -98,7 +102,7 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
       <div className="club-beheer-acties">
         {!onWijzig && (
           <button type="button" className="club-knop club-knop--primair" disabled={bezig} onClick={() => void bewaar(rechten)}>
-            {bezig ? 'Opslaan...' : 'Opslaan'}
+            {bezig ? tekst.algemeen.bezig : tekst.algemeen.opslaan}
           </button>
         )}
         <button
@@ -111,7 +115,7 @@ export function RechtenMatrix({ begin, groepen, onWijzig }: RechtenMatrixProps) 
             if (!onWijzig) void bewaar(standaard)
           }}
         >
-          Terug naar de standaard
+          {tekst.rechten.standaard}
         </button>
         <div role="status" aria-live="polite">
           {melding && <p className={`club-melding ${melding.ok ? 'club-melding--ok' : 'club-melding--fout'}`}>{melding.tekst}</p>}

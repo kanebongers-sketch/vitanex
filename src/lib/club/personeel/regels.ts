@@ -4,6 +4,8 @@
 
 import { isoWeekdag, tijdNaarMinuten } from '@/lib/club/rooster/tijd'
 import type { Beschikbaarheid, Dienst, Reden } from './typen'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { PERSONEEL_REGELS } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 
 /** Het minimale van een dienst dat de regels nodig hebben. */
 export type Blok = Pick<Dienst, 'id' | 'datum' | 'begin' | 'eind' | 'medewerkerId' | 'uursoort'>
@@ -96,8 +98,9 @@ function binnen(b: Beschikbaarheid, begin: string, eind: string): boolean {
   return (b.van === null || begin >= b.van) && (b.tot === null || eind <= b.tot)
 }
 
-function tijdTekst(b: Beschikbaarheid): string {
-  return b.van && b.tot ? `${b.van} tot ${b.tot}` : b.van ? `vanaf ${b.van}` : b.tot ? `tot ${b.tot}` : 'de hele dag'
+function tijdTekst(b: Beschikbaarheid, taal: Taal): string {
+  const t = PERSONEEL_REGELS[taal]
+  return b.van && b.tot ? t.vanTot(b.van, b.tot) : b.van ? t.vanaf(b.van) : b.tot ? t.tot(b.tot) : t.heleDag
 }
 
 /**
@@ -110,18 +113,20 @@ export function beschikbaarheidVoor(
   begin: string,
   eind: string,
   alle: readonly Beschikbaarheid[],
+  taal: Taal = 'nl',
 ): BeschikbaarUitkomst {
+  const t = PERSONEEL_REGELS[taal]
   const eigen = alle.filter((b) => b.medewerkerId === medewerkerId)
   const losse = eigen.filter((b) => valtOpDatum(b, datum))
   const regels = losse.length > 0 ? losse : eigen.filter((b) => b.weekdag === isoWeekdag(datum))
   if (regels.length === 0) return { status: 'onbekend' }
   const nee = regels.find((b) => !b.beschikbaar)
   if (nee) {
-    const wat = nee.reden ? nee.reden : nee.datum ? 'niet beschikbaar' : 'vast niet beschikbaar'
-    return { status: 'nee', tekst: nee.notitie ? `${wat}: ${nee.notitie}` : wat, reden: nee.reden }
+    const wat = nee.reden ? t.reden[nee.reden] : nee.datum ? t.nietBeschikbaar : t.vastNietBeschikbaar
+    return { status: 'nee', tekst: nee.notitie ? t.metNotitie(wat, nee.notitie) : wat, reden: nee.reden }
   }
   if (regels.some((b) => binnen(b, begin, eind))) return { status: 'ja' }
-  return { status: 'deels', tekst: `beschikbaar ${regels.map(tijdTekst).join(' of ')}` }
+  return { status: 'deels', tekst: t.beschikbaarTijden(regels.map((b) => tijdTekst(b, taal)).join(t.of)) }
 }
 
 export interface Segment {

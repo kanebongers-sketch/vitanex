@@ -1,5 +1,7 @@
 import type { WeekTelling } from '@/lib/club/voortgang/frequentie'
 import { datumKort } from './weergave'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { VOORTGANG } from '@/lib/aiyourgym/taal/woorden/club/voortgang'
 
 interface WeekBalkenProps {
   weken: readonly WeekTelling[]
@@ -9,14 +11,16 @@ interface WeekBalkenProps {
 
 /** Trainingen per week als staafjes; de lopende week is gestreept (nog niet af). */
 export function WeekBalken({ weken, compact = false }: WeekBalkenProps) {
+  const taal = useTaal()
+  const t = useTekst(VOORTGANG).weken
   const hoogste = Math.max(3, ...weken.map((w) => w.aantal))
-  const samenvatting = weken.map((w) => `week van ${datumKort(w.week)}: ${w.aantal}`).join(', ')
+  const samenvatting = weken.map((w) => t.weekVanKort(datumKort(w.week, taal), w.aantal)).join(', ')
   return (
-    <div className={`club-voortgang-weken${compact ? ' club-voortgang-weken--compact' : ''}`} role="img" aria-label={`Trainingen per week, ${samenvatting}`}>
+    <div className={`club-voortgang-weken${compact ? ' club-voortgang-weken--compact' : ''}`} role="img" aria-label={t.label(samenvatting)}>
       {weken.map((w, i) => {
         const nu = i === weken.length - 1
         return (
-          <div key={w.week} className="club-voortgang-week" aria-hidden title={`Week van ${datumKort(w.week)}: ${w.aantal}`}>
+          <div key={w.week} className="club-voortgang-week" aria-hidden title={t.weekVan(datumKort(w.week, taal), w.aantal)}>
             <span className="club-voortgang-week-getal">{w.aantal || ''}</span>
             <span className="club-voortgang-week-baan">
               <span

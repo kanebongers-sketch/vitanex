@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import type { Lead } from '@/lib/club/leads/model'
 import type { Doe } from './usePaneel'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 
 interface VerlorenBlokProps {
   lead: Lead
@@ -11,11 +13,10 @@ interface VerlorenBlokProps {
   onKlaar: () => void
 }
 
-const REDENEN = ['Te duur', 'Andere sportschool', 'Geen tijd', 'Niet bereikbaar', 'Geen interesse meer', 'Verhuisd']
-
 // Verloren kan alleen met een reden: daar leren we van (welke bron, welk bezwaar).
 export function VerlorenBlok({ lead, bezig, doe, onKlaar }: VerlorenBlokProps) {
   const [reden, setReden] = useState('')
+  const t = useTekst(LEADS).verloren
   return (
     <form
       className="club-leads-stapblok"
@@ -25,19 +26,19 @@ export function VerlorenBlok({ lead, bezig, doe, onKlaar }: VerlorenBlokProps) {
         if (uit.ok) onKlaar()
       }}
     >
-      <div className="club-acties" role="group" aria-label="Veelvoorkomende redenen">
-        {REDENEN.map((r) => (
+      <div className="club-acties" role="group" aria-label={t.veelvoorkomend}>
+        {t.redenen.map((r) => (
           <button key={r} type="button" className="club-knop club-knop--klein" aria-pressed={reden === r} onClick={() => setReden(r)}>
             {r}
           </button>
         ))}
       </div>
       <label className="club-veld">
-        <span>Reden (verplicht)</span>
+        <span>{t.reden}</span>
         <input className="club-invoer" required maxLength={200} value={reden} onChange={(e) => setReden(e.target.value)} />
       </label>
       <button type="submit" className="club-knop club-knop--gevaar" disabled={bezig || reden.trim() === ''}>
-        Zet op verloren
+        {t.zet}
       </button>
     </form>
   )

@@ -2,11 +2,13 @@
 
 import type { EditorRegel, EditorStaat } from '@/lib/club/training/editor'
 import type { Oefening } from '@/lib/club/training/rijen'
-import { dagLetter, DOEL_LABEL, type Doel } from '@/lib/club/training/typen'
+import { dagLetter, type Doel } from '@/lib/club/training/typen'
 import { BEELD_BRON, bronnenVan } from '@/lib/club/training/beeld'
 import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
-import { SPIER_INFO } from '@/lib/club/training/spieren'
-import { BLOK_LABEL, blokken, regelLabels } from '@/lib/club/training/blokken'
+import { blokken, regelLabels } from '@/lib/club/training/blokken'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeldPrint } from './OefeningBeeld'
 import { useMerk } from '@/components/club/shell/MerkContext'
@@ -28,26 +30,28 @@ export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staa
   const bronnen = bronnenVan(staat.regels.map((r) => oefeningen.get(r.oefeningId)?.beeld))
   const metBeeld = bronnen.length > 0
   const merk = useMerk()
+  const t = useTekst(SCHEMA_EDITOR)
+  const l = useTekst(TRAINING_LABELS)
   const kernpunten = useKernpunten(staat.regels.flatMap((r) => oefeningen.get(r.oefeningId)?.naam ?? []))
   return (
     <article className="club-training-print" aria-hidden>
       <header>
         {merk.logoUrl ? <img src={merk.logoUrl} alt={merk.naam} className="club-training-print-logo" /> : <p>{merk.naam}</p>}
         <h1>{naam}</h1>
-        <p>{[lidNaam, doel ? DOEL_LABEL[doel] : null, weken ? `${weken} weken` : null, trainer ? `Trainer: ${trainer}` : null].filter(Boolean).join(' · ')}</p>
+        <p>{[lidNaam, doel ? l.doel[doel] : null, weken ? t.print.weken(weken) : null, trainer ? t.print.trainer(trainer) : null].filter(Boolean).join(' · ')}</p>
         {notitie && <p className="club-training-print-notitie">{notitie}</p>}
       </header>
       {staat.dagTitels.map((titel, i) => {
         const dag = i + 1
         const regels = staat.regels.filter((r) => r.dag === dag)
         const labels = regelLabels(regels)
-        const blokVan = new Map(blokken(regels).flatMap((b) => b.items.map((r, j) => [r.sleutel, j === 0 && b.items.length > 1 ? BLOK_LABEL[b.soort] : null] as const)))
+        const blokVan = new Map(blokken(regels).flatMap((b) => b.items.map((r, j) => [r.sleutel, j === 0 && b.items.length > 1 ? l.blok[b.soort] : null] as const)))
         return (
           <section key={dag}>
-            <h2>Dag {dagLetter(dag)} · {titel}</h2>
+            <h2>{t.dag(dagLetter(dag))} · {titel}</h2>
             <table>
               <thead>
-                <tr>{metBeeld && <th>Uitvoering</th>}<th>Oefening</th><th>Sets</th><th>Herhalingen</th><th>Kg</th><th>Rust</th><th>Notitie</th></tr>
+                <tr>{metBeeld && <th>{t.print.uitvoering}</th>}<th>{t.print.oefening}</th><th>{t.print.sets}</th><th>{t.print.herhalingen}</th><th>{t.print.kg}</th><th>{t.print.rust}</th><th>{t.print.notitie}</th></tr>
               </thead>
               <tbody>
                 {regels.map((r) => (
@@ -79,7 +83,10 @@ interface PrintRegelProps {
 }
 
 function PrintRegel({ regel: r, label, blok, oefening, metBeeld, kernpunten }: PrintRegelProps) {
-  const naam = oefening?.naam ?? 'Onbekend'
+  const taal = useTaal()
+  const t = useTekst(SCHEMA_EDITOR).print
+  const l = useTekst(TRAINING_LABELS)
+  const naam = oefening?.naam ?? t.onbekend
   const punten = kernpunten[naam] ?? []
   return (
     <tr>
@@ -89,20 +96,20 @@ function PrintRegel({ regel: r, label, blok, oefening, metBeeld, kernpunten }: P
         </td>
       )}
       <td>
-        {blok && <span className="club-training-print-spieren">{blok}: om en om</span>}
+        {blok && <span className="club-training-print-spieren">{t.omEnOm(blok)}</span>}
         <span className="club-training-print-oefnaam">{label}. {naam}</span>
         {oefening && oefening.spierenPrimair.length > 0 && (
-          <span className="club-training-print-spieren">{oefening.spierenPrimair.map((s) => SPIER_INFO[s].naam).join(', ')}</span>
+          <span className="club-training-print-spieren">{oefening.spierenPrimair.map((s) => l.spier[s]).join(', ')}</span>
         )}
         {punten.length > 0 && (
           <span className="club-training-print-kern">{punten.map((p, i) => `${i + 1}. ${p}`).join('   ')}</span>
         )}
       </td>
       <td>{r.sets}</td>
-      <td>{r.maat === 'tijd' ? (r.tijdSec ? `${r.tijdSec} sec` : '') : toonHerhalingen(r.herhalingen)}</td>
+      <td>{r.maat === 'tijd' ? (r.tijdSec ? `${r.tijdSec} sec` : '') : toonHerhalingen(r.herhalingen, taal)}</td>
       <td>{[r.gewichtKg, r.inspanning !== 'geen' && r.inspanningWaarde ? `${r.inspanning.toUpperCase()} ${r.inspanningWaarde}` : ''].filter(Boolean).join(' · ')}</td>
-      <td>{r.rustSec ? toonRust(Number(r.rustSec)) : ''}</td>
-      <td>{[r.tempo ? `Tempo ${r.tempo}` : '', r.notitie].filter(Boolean).join('. ')}</td>
+      <td>{r.rustSec ? toonRust(Number(r.rustSec), taal) : ''}</td>
+      <td>{[r.tempo ? t.tempo(r.tempo) : '', r.notitie].filter(Boolean).join('. ')}</td>
     </tr>
   )
 }

@@ -7,6 +7,10 @@
 
 import { stuur } from '@/components/club/leden/stuur'
 import { lesVelden, lessenPlan, typeVelden, type LesRij, type TypeRij } from '@/lib/club/start/lessen-plan'
+import type { START } from '@/lib/aiyourgym/taal/woorden/club/start'
+
+/** De teksten voor de voortgang en de fouten, in de taal van de pagina. */
+export type OpslaanTekst = (typeof START)['nl']['lessen']['voortgang']
 
 const TYPEN = '/api/club/instellingen/lestypen'
 const WEEK = '/api/club/instellingen/weekrooster'
@@ -36,10 +40,11 @@ interface Invoer {
   basisLessen: readonly LesRij[]
   /** Voortgang voor op de knop, bijvoorbeeld "Lestype Intake". */
   bij: (tekst: string) => void
+  tekst: OpslaanTekst
 }
 
 /** Alles opslaan; de rijen komen terug zoals ze nu in de database staan. */
-export async function slaLessenOp({ vestiging, vandaag, typen: begin, lessen: beginLessen, basisTypen, basisLessen, bij }: Invoer): Promise<OpslaanStand> {
+export async function slaLessenOp({ vestiging, vandaag, typen: begin, lessen: beginLessen, basisTypen, basisLessen, bij, tekst: t }: Invoer): Promise<OpslaanStand> {
   const plan = lessenPlan(begin, beginLessen, basisTypen, basisLessen)
   let typen = begin
   let lessen = beginLessen
@@ -48,44 +53,44 @@ export async function slaLessenOp({ vestiging, vandaag, typen: begin, lessen: be
   const zetLes = (sleutel: string, w: Partial<LesRij>) => (lessen = lessen.map((l) => (l.sleutel === sleutel ? { ...l, ...w } : l)))
 
   for (const id of plan.lessenUit) {
-    bij('Vaste les uitzetten')
+    bij(t.lesUit)
     const uit = await stuur(`${WEEK}/${id}`, 'PATCH', { vestiging, actief: false })
     if (!uit.ok) return stop(uit.fout)
   }
   for (const id of plan.typenUit) {
-    bij('Lestype uitzetten')
+    bij(t.typeUit)
     const uit = await stuur(`${TYPEN}/${id}`, 'PATCH', { vestiging, actief: false })
     if (!uit.ok) return stop(uit.fout)
   }
   for (const w of plan.typenWijzig) {
-    bij('Lestype aanpassen')
+    bij(t.typeAanpassen)
     const uit = await stuur(`${TYPEN}/${w.id}`, 'PATCH', { vestiging, ...w.velden })
     if (!uit.ok) return stop(uit.fout)
   }
-  for (const t of plan.typenNieuw) {
-    bij(`Lestype ${t.naam.trim()}`)
-    const uit = await stuur(TYPEN, 'POST', { vestiging, ...typeVelden(t) })
+  for (const nieuw of plan.typenNieuw) {
+    bij(t.type(nieuw.naam.trim()))
+    const uit = await stuur(TYPEN, 'POST', { vestiging, ...typeVelden(nieuw) })
     const id = uit.ok ? idUit(uit.data) : null
-    if (!uit.ok || !id) return stop(uit.ok ? 'Het lestype is opgeslagen, maar kwam niet goed terug. Ververs de pagina.' : uit.fout)
-    zetType(t.sleutel, { id })
+    if (!uit.ok || !id) return stop(uit.ok ? t.typeNietTerug : uit.fout)
+    zetType(nieuw.sleutel, { id })
   }
   for (const w of plan.lessenWijzig) {
-    bij('Vaste les aanpassen')
+    bij(t.lesAanpassen)
     const uit = await stuur(`${WEEK}/${w.id}`, 'PATCH', { vestiging, ...w.velden })
     if (!uit.ok) return stop(uit.fout)
   }
   for (const l of plan.lessenNieuw) {
-    const lestypeId = typen.find((t) => t.sleutel === l.typeSleutel)?.id
-    if (!lestypeId) return stop('Een les hoort bij een lestype dat niet is opgeslagen.')
-    bij('Vaste les toevoegen')
+    const lestypeId = typen.find((x) => x.sleutel === l.typeSleutel)?.id
+    if (!lestypeId) return stop(t.zonderType)
+    bij(t.lesToevoegen)
     const uit = await stuur(WEEK, 'POST', { vestiging, lestypeId, vanaf: vandaag, ...lesVelden(l) })
     const id = uit.ok ? idUit(uit.data) : null
-    if (!uit.ok || !id) return stop(uit.ok ? 'De les is opgeslagen, maar kwam niet goed terug. Ververs de pagina.' : uit.fout)
+    if (!uit.ok || !id) return stop(uit.ok ? t.lesNietTerug : uit.fout)
     zetLes(l.sleutel, { id })
   }
   if (!lessen.some((l) => l.id && l.aan)) return { typen, lessen, fout: null, inRooster: null }
-  bij('In het rooster zetten')
+  bij(t.rooster)
   const rooster = await stuur('/api/club/rooster/genereren', 'POST', { vestiging, weken: 6 })
-  if (!rooster.ok) return stop(`Je lessen zijn opgeslagen, maar het rooster lukte niet: ${rooster.fout}`)
+  if (!rooster.ok) return stop(t.roosterMislukt(rooster.fout))
   return { typen, lessen, fout: null, inRooster: aantalUit(rooster.data) }
 }

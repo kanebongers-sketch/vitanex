@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
-import { LID_STATUSSEN, LID_STATUS_LABEL, type LidStatus } from '@/lib/club/kern/lid'
+import { LID_STATUSSEN, lidStatusLabel, type LidStatus } from '@/lib/club/kern/lid'
+import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { APP_FILTERS, heeftFilter as metFilter, lijstZoek, SORTEER_KEUZES, STANDAARD_PARAMS, type LijstParams } from '@/lib/club/leden/lijst'
 
@@ -33,6 +35,9 @@ function isStatus(v: string): v is LidStatus {
 
 export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }: LedenFiltersProps) {
   const router = useRouter()
+  const taal = useTaal()
+  const t = useTekst(LEDEN)
+  const f = t.filters
   const [q, setQ] = useState(params.q)
   const [bezig, startTransition] = useTransition()
   const veld = useRef<HTMLInputElement>(null)
@@ -64,15 +69,15 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
   const sorteerWaarde = SORTEER_KEUZES.findIndex((k) => k.sort === params.sort && k.oplopend === params.oplopend)
 
   return (
-    <section className="club-leden-filters" aria-label="Zoeken en filteren" data-bezig={bezig || undefined}>
+    <section className="club-leden-filters" aria-label={f.label} data-bezig={bezig || undefined}>
       <label className="club-leden-zoek">
         <Search aria-hidden size={18} />
-        <span className="club-sr">Zoek een lid</span>
+        <span className="club-sr">{f.zoekLid}</span>
         <input
           ref={veld}
           type="search"
           className="club-invoer club-invoer--zoek"
-          placeholder="Zoek op naam, lidnummer of e-mail"
+          placeholder={f.zoekPlaats}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Escape' && q) { e.preventDefault(); setQ('') } }}
@@ -84,51 +89,51 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
 
       <div className="club-leden-filterrij">
         <label className="club-leden-filter">
-          <span className="club-sr">Status</span>
+          <span className="club-sr">{f.status}</span>
           <select className="club-invoer" value={params.status ?? ''} onChange={(e) => ga({ status: isStatus(e.target.value) ? e.target.value : null })}>
-            <option value="">Alle statussen</option>
-            {LID_STATUSSEN.map((s) => <option key={s} value={s}>{LID_STATUS_LABEL[s]}</option>)}
+            <option value="">{f.alleStatussen}</option>
+            {LID_STATUSSEN.map((s) => <option key={s} value={s}>{lidStatusLabel(s, taal)}</option>)}
           </select>
         </label>
         <label className="club-leden-filter">
-          <span className="club-sr">Abonnement</span>
+          <span className="club-sr">{f.abonnement}</span>
           <select className="club-invoer" value={params.abonnement ?? ''} onChange={(e) => ga({ abonnement: e.target.value || null })}>
-            <option value="">Alle abonnementen</option>
+            <option value="">{f.alleAbonnementen}</option>
             {abonnementen.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </label>
         <label className="club-leden-filter">
-          <span className="club-sr">Tag</span>
+          <span className="club-sr">{f.tag}</span>
           <select className="club-invoer" value={params.tag ?? ''} onChange={(e) => ga({ tag: e.target.value || null })}>
-            <option value="">Alle tags</option>
+            <option value="">{f.alleTags}</option>
             {tags.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
         <label className="club-leden-filter">
-          <span className="club-sr">Coach</span>
+          <span className="club-sr">{f.coach}</span>
           <select className="club-invoer" value={params.coach ?? ''} onChange={(e) => ga({ coach: e.target.value || null })}>
-            <option value="">Alle coaches</option>
-            <option value="geen">Zonder coach</option>
+            <option value="">{f.alleCoaches}</option>
+            <option value="geen">{f.zonderCoach}</option>
             {coaches.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
           </select>
         </label>
         <label className="club-leden-filter">
-          <span className="club-sr">Ledenapp</span>
+          <span className="club-sr">{f.ledenapp}</span>
           <select className="club-invoer" value={params.app ?? ''} onChange={(e) => ga({ app: APP_FILTERS.find((f) => f === e.target.value) ?? null })}>
-            <option value="">App: iedereen</option>
-            <option value="ja">Heeft de app</option>
-            <option value="nee">Nog geen app</option>
+            <option value="">{f.appIedereen}</option>
+            <option value="ja">{f.appJa}</option>
+            <option value="nee">{f.appNee}</option>
           </select>
         </label>
         <label className="club-leden-filter club-leden-sorteerkeuze">
-          <span className="club-sr">Sorteren</span>
+          <span className="club-sr">{f.sorteren}</span>
           <select className="club-invoer" value={sorteerWaarde < 0 ? 0 : sorteerWaarde}
             onChange={(e) => { const k = SORTEER_KEUZES[Number(e.target.value)]; if (k) ga({ sort: k.sort, oplopend: k.oplopend }) }}>
-            {SORTEER_KEUZES.map((k, i) => <option key={k.label} value={i}>Sorteer: {k.label}</option>)}
+            {SORTEER_KEUZES.map((k, i) => <option key={k.id} value={i}>{f.sorteer(t.sorteerKeuzes[k.id])}</option>)}
           </select>
         </label>
         <button type="button" className="club-knop club-leden-risico" aria-pressed={params.risico} onClick={() => ga({ risico: !params.risico })}>
-          Alleen risico
+          {f.alleenRisico}
         </button>
         {heeftFilter ? (
           <button
@@ -136,7 +141,7 @@ export function LedenFilters({ params, vestiging, abonnementen, tags, coaches }:
             className="club-knop club-knop--stil"
             onClick={() => { setQ(''); ga({ ...STANDAARD_PARAMS, sort: params.sort, oplopend: params.oplopend }) }}
           >
-            <X aria-hidden size={15} /> Wis filters
+            <X aria-hidden size={15} /> {f.wis}
           </button>
         ) : null}
       </div>

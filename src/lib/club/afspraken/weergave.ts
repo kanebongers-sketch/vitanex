@@ -4,6 +4,8 @@
 import type { Openingstijden } from '@/lib/club/rooster/openingstijden'
 import { dagenVanWeek, nlDelen, tijdNaarMinuten } from '@/lib/club/rooster/tijd'
 import type { AfspraakStatus, AfspraakWeergave } from './model'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { AFSPRAKEN } from '@/lib/aiyourgym/taal/woorden/club/afspraken'
 
 export const WEERGAVEN = ['week', 'dag'] as const
 export type Weergave = (typeof WEERGAVEN)[number]
@@ -18,9 +20,9 @@ export function nlDatumTijd(iso: string): { datum: string; tijd: string; minuten
   return { datum: d.datum, tijd: d.tijd, minuten: d.minuten }
 }
 
-/** "09:00 tot 09:45" */
-export function tijdvak(a: Pick<AfspraakWeergave, 'start' | 'eind'>): string {
-  return `${nlDatumTijd(a.start).tijd} tot ${nlDatumTijd(a.eind).tijd}`
+/** "09:00 tot 09:45" | "09:00 to 09:45" */
+export function tijdvak(a: Pick<AfspraakWeergave, 'start' | 'eind'>, taal: Taal = 'nl'): string {
+  return AFSPRAKEN[taal].tijdvak(nlDatumTijd(a.start).tijd, nlDatumTijd(a.eind).tijd)
 }
 
 /** De zeven dagen van de week, elk met zijn afspraken op begintijd. */

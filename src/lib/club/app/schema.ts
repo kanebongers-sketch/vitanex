@@ -2,6 +2,8 @@
 // Het actieve schema per trainingsdag (A, B, C...) en wat het lid al afvinkte.
 
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
+import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { alsRij, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/rijen'
 import type { OefeningBeelden } from '@/lib/club/training/beeld'
 import { oudBeeldUitRij, spierenUitRij } from '@/lib/club/training/rijen'
@@ -113,14 +115,16 @@ export function volgendeDag(dagen: readonly AppSchemaDag[], logs: readonly AppLo
 }
 
 /** "3 x 8 tot 10 · 40 kg · RIR 2 · tempo 3110 · 90 s rust" */
-export function voorschrift(o: AppOefening): string {
-  const herh = o.herhalingen ? o.herhalingen.replace(/(\d)\s*-\s*(\d)/g, '$1 tot $2') : o.tijdSec ? `${o.tijdSec} sec` : null
+export function voorschrift(o: AppOefening, taal: Taal = 'nl'): string {
+  const t = LEDENAPP[taal].voorschrift
+  const dec = taal === 'nl' ? ',' : '.'
+  const herh = o.herhalingen ? o.herhalingen.replace(/(\d)\s*-\s*(\d)/g, `$1 ${t.tot} $2`) : o.tijdSec ? `${o.tijdSec} ${t.sec}` : null
   const delen = [
-    o.sets && herh ? `${o.sets} x ${herh}` : o.sets ? `${o.sets} sets` : herh,
-    o.gewichtKg !== null && o.gewichtKg > 0 ? `${String(o.gewichtKg).replace('.', ',')} kg` : null,
-    o.rpe !== null ? `RPE ${String(o.rpe).replace('.', ',')}` : o.rir !== null ? `RIR ${o.rir}` : null,
-    o.tempo ? `tempo ${o.tempo}` : null,
-    o.rustSec ? `${o.rustSec} s rust` : null,
+    o.sets && herh ? `${o.sets} x ${herh}` : o.sets ? `${o.sets} ${t.sets}` : herh,
+    o.gewichtKg !== null && o.gewichtKg > 0 ? `${String(o.gewichtKg).replace('.', dec)} kg` : null,
+    o.rpe !== null ? `RPE ${String(o.rpe).replace('.', dec)}` : o.rir !== null ? `RIR ${o.rir}` : null,
+    o.tempo ? `${t.tempo} ${o.tempo}` : null,
+    o.rustSec ? `${o.rustSec} ${t.rust}` : null,
   ]
   return delen.filter(Boolean).join(' · ')
 }

@@ -2,13 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Inbox } from 'lucide-react'
 import { eisClubToegang } from '@/lib/club/toegang'
-import { zichtbareArtikelen } from '@/lib/club/hulp/artikelen'
+import { zichtbareArtikelenIn } from '@/lib/club/hulp/artikelen-taal'
 import { eigenMeldingen } from '@/lib/club/hulp/opslag'
 import { HulpArtikelen } from '@/components/club/hulp/HulpArtikelen'
 import { MeldFormulier } from '@/components/club/hulp/MeldFormulier'
 import { MeldingKaart } from '@/components/club/hulp/MeldingKaart'
+import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
+import { HULP } from '@/lib/aiyourgym/taal/woorden/club/hulp'
 
-export const metadata: Metadata = { title: 'Hulp en support' }
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await clubTekst(HULP)).pagina.titel }
+}
 export const dynamic = 'force-dynamic'
 
 // Het helpcentrum: korte handleidingen per onderdeel (alleen van wat aan staat
@@ -17,7 +21,9 @@ export const dynamic = 'force-dynamic'
 
 export default async function HulpPagina() {
   const t = await eisClubToegang()
-  const artikelen = zichtbareArtikelen(t.organisatie.uit, t.onderdelen)
+  const taal = await getTaal()
+  const tekst = (await clubTekst(HULP)).pagina
+  const artikelen = zichtbareArtikelenIn(t.organisatie.uit, t.onderdelen, taal)
   const meldingen = await eigenMeldingen(t)
 
   return (
@@ -25,12 +31,12 @@ export default async function HulpPagina() {
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>
-          <h1>Hulp en support</h1>
-          <p>Korte handleidingen per onderdeel. Kom je er niet uit, of mis je iets? Meld het onderaan deze pagina.</p>
+          <h1>{tekst.titel}</h1>
+          <p>{tekst.intro}</p>
         </div>
         {t.isPlatformEigenaar && (
           <Link href="/club/hulp/meldingen" className="club-knop">
-            <Inbox size={16} aria-hidden /> Alle meldingen
+            <Inbox size={16} aria-hidden /> {tekst.alleMeldingen}
           </Link>
         )}
       </header>
@@ -40,21 +46,21 @@ export default async function HulpPagina() {
 
         <section className="club-hulp-melden" id="melden" aria-labelledby="hulp-melden">
           <div className="club-hulp-meldenkop">
-            <h2 id="hulp-melden" className="club-hulp-kop">Vraag of probleem melden</h2>
-            <p>Je melding komt binnen bij de support van Club. Het antwoord verschijnt hieronder bij Mijn meldingen.</p>
+            <h2 id="hulp-melden" className="club-hulp-kop">{tekst.melden}</h2>
+            <p>{tekst.meldenUitleg}</p>
           </div>
           <MeldFormulier />
         </section>
 
         <section className="club-hulp-mijn" aria-labelledby="hulp-mijn">
-          <h2 id="hulp-mijn" className="club-hulp-kop">Mijn meldingen</h2>
-          {!meldingen && <p className="club-melding club-melding--fout" role="status">Je meldingen konden niet worden gelezen. Probeer het later opnieuw.</p>}
-          {meldingen && meldingen.length === 0 && <p className="club-hulp-leeg">Je hebt nog niets gemeld.</p>}
+          <h2 id="hulp-mijn" className="club-hulp-kop">{tekst.mijn}</h2>
+          {!meldingen && <p className="club-melding club-melding--fout" role="status">{tekst.mijnFout}</p>}
+          {meldingen && meldingen.length === 0 && <p className="club-hulp-leeg">{tekst.mijnLeeg}</p>}
           {meldingen && meldingen.length > 0 && (
             <ul className="club-hulp-meldingen" role="list">
               {meldingen.map((m) => (
                 <li key={m.id}>
-                  <MeldingKaart m={m} />
+                  <MeldingKaart m={m} taal={taal} />
                 </li>
               ))}
             </ul>

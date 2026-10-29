@@ -3,6 +3,8 @@
 // door: onzinwaarden, toekomstige data en te lange teksten vallen af. Zo komt er
 // nooit een gewicht van 0 of 900 kg in Club.
 
+import { LOCALE, type Taal } from '@/lib/aiyourgym/taal/taal'
+import { HEALTH } from '@/lib/aiyourgym/taal/woorden/ledenapp/health'
 import { DATA_SOORTEN, isBronId, isDataSoort, type BronId, type DataSoort, type Meting, type TrainingDetails } from './typen'
 
 /** Redelijke grenzen per soort (inclusief). */
@@ -122,8 +124,9 @@ export function laatstePerSoort(lijst: readonly Meting[]): Meting[] {
 }
 
 /** De waarde als korte tekst met eenheid, bijvoorbeeld "82,4 kg". */
-export function waardeTekst(m: Pick<Meting, 'soort' | 'waarde' | 'training'>): string {
-  const nl = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 })
+export function waardeTekst(m: Pick<Meting, 'soort' | 'waarde' | 'training'>, taal: Taal = 'nl'): string {
+  const nl = new Intl.NumberFormat(LOCALE[taal], { maximumFractionDigits: 1 })
+  const e = HEALTH[taal].eenheid
   switch (m.soort) {
     case 'gewicht_kg':
     case 'spiermassa_kg':
@@ -131,9 +134,9 @@ export function waardeTekst(m: Pick<Meting, 'soort' | 'waarde' | 'training'>): s
     case 'vetpercentage':
       return `${nl.format(m.waarde)}%`
     case 'stappen':
-      return `${nl.format(m.waarde)} stappen`
+      return `${nl.format(m.waarde)} ${e.stappen}`
     case 'slaap_minuten':
-      return `${Math.floor(m.waarde / 60)} u ${m.waarde % 60} min`
+      return `${Math.floor(m.waarde / 60)} ${e.uur} ${m.waarde % 60} min`
     case 'rusthartslag':
       return `${nl.format(m.waarde)} bpm`
     case 'hrv_ms':

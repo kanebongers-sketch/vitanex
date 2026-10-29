@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, Save } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { AANTAL_STAPPEN, startPad, type StapSleutel } from '@/lib/club/start/stappen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // De voet van elke stap: terug, opslaan en stoppen, of klaar en door. Een stap
 // overslaan kan niet: elke stap stelt zijn deel echt in (besluit Kane
@@ -97,18 +99,19 @@ export function useStartGang({ stap, sleutel, vestiging }: StartGangProps) {
 export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afgerond = false, kanAfronden = true }: StartVoetProps) {
   const gang = useStartGang({ stap, sleutel, vestiging })
   const { bezig, fout, laatste } = gang
+  const t = useTekst(START).voet
 
   return (
     <div className="club-start-voet">
       <div className="club-start-voet-links">
         {stap > 1 && (
           <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => void gang.vorige()}>
-            <ArrowLeft aria-hidden size={16} /> Vorige
+            <ArrowLeft aria-hidden size={16} /> {t.vorige}
           </button>
         )}
         {!(laatste && afgerond) && (
           <button type="button" className="club-knop club-knop--stil club-start-later" disabled={bezig} onClick={() => void gang.stoppen(voorVerder)}>
-            <Save aria-hidden size={15} /> Opslaan en stoppen
+            <Save aria-hidden size={15} /> {t.opslaanStoppen}
           </button>
         )}
       </div>
@@ -116,19 +119,19 @@ export function StartVoet({ stap, sleutel, vestiging, primair, voorVerder, afger
         {fout && <p className="club-fout" role="alert">{fout}</p>}
         {gang.gestopt && (
           <p className="club-start-gestopt" role="status">
-            Alles is bewaard. Sluit gerust dit venster: je gaat verder bij deze stap.
+            {t.gestopt}
           </p>
         )}
-        {gang.gelukt && <span className="sr-only">Afgerond. Je sportschool staat live.</span>}
-        {laatste && !afgerond && !kanAfronden && <p className="club-hint">Maak eerst de stappen af die hierboven nog open staan.</p>}
+        {gang.gelukt && <span className="sr-only">{t.afgerondSr}</span>}
+        {laatste && !afgerond && !kanAfronden && <p className="club-hint">{t.eerstOpen}</p>}
         {laatste && afgerond ? (
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig} onClick={gang.naarClub}>
-            Naar Club <ArrowRight aria-hidden size={18} />
+            {t.naarClub} <ArrowRight aria-hidden size={18} />
           </button>
         ) : (
           <button type="button" className="club-knop club-knop--primair club-knop--groot" disabled={bezig || (laatste && !kanAfronden)} onClick={() => void gang.verder(voorVerder)}>
             {laatste ? <Check aria-hidden size={18} /> : null}
-            {bezig ? 'Even geduld...' : (primair ?? (laatste ? 'Afronden' : 'Klaar, verder'))}
+            {bezig ? t.bezig : (primair ?? (laatste ? t.afronden : t.klaarVerder))}
             {!laatste && <ArrowRight aria-hidden size={18} />}
           </button>
         )}

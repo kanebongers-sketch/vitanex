@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useVestigingen } from '@/components/club/shell/VestigingenContext'
 import { stuur } from '@/components/club/leden/stuur'
-import { CHALLENGE_SOORTEN, MAX_DOEL, MAX_TITEL, MAX_UITLEG, SOORT_INFO, type Challenge, type ChallengeSoort, type Deelname } from '@/lib/club/challenges/model'
+import { CHALLENGE_SOORTEN, MAX_DOEL, MAX_TITEL, MAX_UITLEG, type Challenge, type ChallengeSoort, type Deelname } from '@/lib/club/challenges/model'
 import { ChallengeOpties } from './ChallengeOpties'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { CHALLENGES } from '@/lib/aiyourgym/taal/woorden/club/challenges'
 
 // Een challenge maken of wijzigen. Na opslaan opent de challenge zelf.
 
@@ -55,6 +57,8 @@ export function ChallengeFormulier({ begin, standaardStart, standaardEind, terug
   const [s, setS] = useState<FormStaat>(() => beginStaat(begin, standaardStart, standaardEind))
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const tc = useTekst(CHALLENGES)
+  const t = tc.formulier
   const zet = <K extends keyof FormStaat>(k: K, v: FormStaat[K]) => setS((oud) => ({ ...oud, [k]: v }))
 
   async function bewaar(e: FormEvent) {
@@ -72,27 +76,27 @@ export function ChallengeFormulier({ begin, standaardStart, standaardEind, terug
 
   return (
     <form className="club-challenges-form" onSubmit={(e) => void bewaar(e)} aria-labelledby={`${id}-kop`} aria-describedby={fout ? `${id}-fout` : undefined}>
-      <h2 id={`${id}-kop`}>{begin ? 'Challenge wijzigen' : 'Nieuwe challenge'}</h2>
+      <h2 id={`${id}-kop`}>{begin ? t.wijzigen : t.nieuw}</h2>
 
       <label className="club-veld">
-        <span>Titel</span>
-        <input className="club-invoer" required maxLength={MAX_TITEL} value={s.titel} placeholder="Bijvoorbeeld: 12 keer trainen in november" onChange={(e) => zet('titel', e.target.value)} />
+        <span>{t.titel}</span>
+        <input className="club-invoer" required maxLength={MAX_TITEL} value={s.titel} placeholder={t.titelVoorbeeld} onChange={(e) => zet('titel', e.target.value)} />
       </label>
 
       <label className="club-veld">
-        <span>Uitleg voor leden (mag leeg)</span>
+        <span>{t.uitleg}</span>
         <textarea className="club-invoer" rows={3} maxLength={MAX_UITLEG} value={s.uitleg} onChange={(e) => zet('uitleg', e.target.value)} />
       </label>
 
       <fieldset className="club-challenges-veldset">
-        <legend className="club-label">Wat telt</legend>
+        <legend className="club-label">{t.watTelt}</legend>
         <div className="club-challenges-soorten">
           {CHALLENGE_SOORTEN.map((soort) => (
             <label key={soort} className="club-challenges-soort">
               <input type="radio" name={`${id}-soort`} value={soort} checked={s.soort === soort} onChange={() => zet('soort', soort)} />
               <span>
-                <strong>{SOORT_INFO[soort].label}</strong>
-                <small>{SOORT_INFO[soort].uitleg}</small>
+                <strong>{tc.soort[soort].label}</strong>
+                <small>{tc.soort[soort].uitleg}</small>
               </span>
             </label>
           ))}
@@ -101,15 +105,15 @@ export function ChallengeFormulier({ begin, standaardStart, standaardEind, terug
 
       <div className="club-formrij">
         <label className="club-veld">
-          <span>Doel ({SOORT_INFO[s.soort].meer})</span>
+          <span>{t.doel(tc.soort[s.soort].meer)}</span>
           <input className="club-invoer" type="number" inputMode="numeric" required min={1} max={MAX_DOEL} step={1} value={s.doel} onChange={(e) => zet('doel', e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Start</span>
+          <span>{t.start}</span>
           <input className="club-invoer" type="date" required value={s.start} onChange={(e) => zet('start', e.target.value)} />
         </label>
         <label className="club-veld">
-          <span>Eind (telt mee)</span>
+          <span>{t.eind}</span>
           <input className="club-invoer" type="date" required min={s.start} value={s.eind} onChange={(e) => zet('eind', e.target.value)} />
         </label>
       </div>
@@ -118,10 +122,10 @@ export function ChallengeFormulier({ begin, standaardStart, standaardEind, terug
 
       <div className="club-challenges-formacties">
         <button type="submit" className="club-knop club-knop--primair" disabled={bezig}>
-          {bezig ? 'Opslaan...' : begin ? 'Opslaan' : 'Challenge maken'}
+          {bezig ? t.bezig : begin ? t.opslaan : t.maken}
         </button>
         <Link href={terugHref} scroll={false} className="club-knop club-knop--stil">
-          Annuleren
+          {t.annuleren}
         </Link>
       </div>
       <div role="alert" aria-live="assertive">

@@ -1,7 +1,9 @@
 'use client'
 
 import { PARQ_VRAGEN, type ParqSleutel } from '@/lib/club/training/intake'
-import { DOEL_LABEL, DOELEN, NIVEAU_LABEL, NIVEAUS, VOORKEUR_LABEL, VOORKEUREN, ZONE_LABEL, ZONES } from '@/lib/club/training/typen'
+import { DOELEN, NIVEAUS, VOORKEUREN, ZONES } from '@/lib/club/training/typen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { PARQ_PREFIX } from '@/lib/club/intakevragen/kern'
 import type { IntakeVraag } from '@/lib/club/intakevragen/soorten'
 import { KeuzeChips, wissel } from '@/components/club/training/KeuzeChips'
@@ -42,6 +44,7 @@ function Schuif({ label, waarde, min, max, stap, onZet }: { label: string; waard
 
 /** Een vaste vraag van Club: het veld dat bij de sleutel hoort, met de tekst van de sportschool. */
 export function KernVeld({ vraag, s, zet }: KernVeldProps) {
+  const l = useTekst(TRAINING_LABELS)
   const sleutel = vraag.sleutel ?? ''
   const tekst = TEKST[sleutel]
   if (tekst) {
@@ -65,13 +68,13 @@ export function KernVeld({ vraag, s, zet }: KernVeldProps) {
   }
   switch (sleutel) {
     case 'doelen':
-      return <KeuzeChips legend={vraag.vraag} opties={DOELEN} labels={DOEL_LABEL} gekozen={s.doelen} onWissel={(d) => zet({ doelen: wissel(s.doelen, d) })} />
+      return <KeuzeChips legend={vraag.vraag} opties={DOELEN} labels={l.doel} gekozen={s.doelen} onWissel={(d) => zet({ doelen: wissel(s.doelen, d) })} />
     case 'niveau':
-      return <KeuzeChips legend={vraag.vraag} opties={NIVEAUS} labels={NIVEAU_LABEL} gekozen={s.niveau ? [s.niveau] : []} onWissel={(n) => zet({ niveau: n })} enkel />
+      return <KeuzeChips legend={vraag.vraag} opties={NIVEAUS} labels={l.niveau} gekozen={s.niveau ? [s.niveau] : []} onWissel={(n) => zet({ niveau: n })} enkel />
     case 'voorkeuren':
-      return <KeuzeChips legend={vraag.vraag} opties={VOORKEUREN} labels={VOORKEUR_LABEL} gekozen={s.voorkeuren} onWissel={(v) => zet({ voorkeuren: wissel(s.voorkeuren, v) })} />
+      return <KeuzeChips legend={vraag.vraag} opties={VOORKEUREN} labels={l.voorkeur} gekozen={s.voorkeuren} onWissel={(v) => zet({ voorkeuren: wissel(s.voorkeuren, v) })} />
     case 'blessures':
-      return <KeuzeChips legend={vraag.vraag} opties={ZONES} labels={ZONE_LABEL} gekozen={s.blessures} onWissel={(z) => zet({ blessures: wissel(s.blessures, z) })} />
+      return <KeuzeChips legend={vraag.vraag} opties={ZONES} labels={l.zone} gekozen={s.blessures} onWissel={(z) => zet({ blessures: wissel(s.blessures, z) })} />
     case 'dagen_per_week':
       return <Schuif label={vraag.vraag} waarde={s.dagenPerWeek} min={1} max={7} stap={1} onZet={(n) => zet({ dagenPerWeek: n })} />
     case 'minuten_per_sessie':

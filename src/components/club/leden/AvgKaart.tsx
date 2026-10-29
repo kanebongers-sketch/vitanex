@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Download, FileText, RotateCcw, Trash2 } from 'lucide-react'
 import { stuur } from '@/components/club/leden/stuur'
 import { naamKlopt, VERWIJDER_DAGEN } from '@/lib/club/leden/avg/verwijderen'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
+import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import './avg.css'
 
 // "Privacy (AVG)" op de ledenkaart. Inzage: alles wat Club over het lid bewaart
@@ -23,6 +25,7 @@ interface Props {
 
 export function AvgKaart({ lidId, voornaam, achternaam, magVerwijderen, verzoekTekst }: Props) {
   const router = useRouter()
+  const t = useTekst(LIDKAART_BLOKKEN).avg
   const basis = `/api/club/leden/${encodeURIComponent(lidId)}`
   const naam = `${voornaam} ${achternaam}`
   const [open, setOpen] = useState(false)
@@ -40,48 +43,48 @@ export function AvgKaart({ lidId, voornaam, achternaam, magVerwijderen, verzoekT
     if (!uit.ok) return setMelding({ tekst: uit.fout, fout: true })
     setOpen(false)
     setInvoer('')
-    setMelding({ tekst: `${voornaam} wordt over ${VERWIJDER_DAGEN} dagen definitief verwijderd.`, fout: false })
+    setMelding({ tekst: t.aangevraagd(voornaam, VERWIJDER_DAGEN), fout: false })
     router.refresh()
   }
 
   async function terugdraaien() {
-    if (!window.confirm(`Het verwijderen van ${naam} terugdraaien? ${voornaam} krijgt de oude status terug. Geannuleerde lessen en afspraken komen niet terug.`)) return
+    if (!window.confirm(t.vraagTerug(naam, voornaam))) return
     setBezig(true)
     setMelding(null)
     const uit = await stuur(`${basis}/verwijderen`, 'DELETE')
     setBezig(false)
     if (!uit.ok) return setMelding({ tekst: uit.fout, fout: true })
-    setMelding({ tekst: 'Teruggedraaid. Het lid is er weer.', fout: false })
+    setMelding({ tekst: t.teruggedraaid, fout: false })
     router.refresh()
   }
 
   return (
     <section className="club-kaart club-avg" aria-labelledby="avg-kop" id="privacy">
       <div className="club-sectiekop">
-        <h2 id="avg-kop">Privacy (AVG)</h2>
-        {verzoekTekst ? <span className="club-chip club-chip--let-op">Wordt verwijderd</span> : null}
+        <h2 id="avg-kop">{t.kop}</h2>
+        {verzoekTekst ? <span className="club-chip club-chip--let-op">{t.wordtVerwijderd}</span> : null}
       </div>
 
       {verzoekTekst ? (
         <div className="club-avg-verzoek" role="status">
           <p>
-            <strong>{verzoekTekst}</strong> Tot dan kan {voornaam} niet inloggen, inchecken of boeken.
+            <strong>{verzoekTekst}</strong> {t.totDan(voornaam)}
           </p>
           {magVerwijderen ? (
             <button type="button" className="club-knop" disabled={bezig} onClick={() => void terugdraaien()}>
-              <RotateCcw size={16} aria-hidden /> Verwijderen terugdraaien
+              <RotateCcw size={16} aria-hidden /> {t.terugdraaien}
             </button>
           ) : null}
         </div>
       ) : null}
 
-      <p className="club-hint">Een lid mag altijd vragen welke gegevens de sportschool bewaart. Het bestand bevat alles uit Club, ook metingen en intake.</p>
+      <p className="club-hint">{t.inzageUitleg}</p>
       <div className="club-avg-knoppen">
         <a className="club-knop" href={`${basis}/gegevens`} download>
-          <Download size={16} aria-hidden /> Gegevens van dit lid downloaden
+          <Download size={16} aria-hidden /> {t.downloaden}
         </a>
         <a className="club-knop club-knop--stil" href={`${basis}/gegevens?vorm=tekst`} download>
-          <FileText size={16} aria-hidden /> Samenvatting
+          <FileText size={16} aria-hidden /> {t.samenvatting}
         </a>
       </div>
 
@@ -89,27 +92,25 @@ export function AvgKaart({ lidId, voornaam, achternaam, magVerwijderen, verzoekT
         open ? (
           <div className="club-avg-bevestig">
             <p>
-              <strong>{naam} wordt over {VERWIJDER_DAGEN} dagen definitief verwijderd.</strong> Vanaf nu kan {voornaam} niet meer inloggen, inchecken of boeken, en
-              geplande lessen en afspraken vervallen. Binnen {VERWIJDER_DAGEN} dagen kun je dit terugdraaien. Daarna zijn alle gegevens weg; bezoeken en lesbezetting
-              blijven alleen anoniem meetellen in de cijfers.
+              <strong>{t.bevestigKop(naam, VERWIJDER_DAGEN)}</strong> {t.bevestigTekst(voornaam, VERWIJDER_DAGEN)}
             </p>
-            <p className="club-hint">Tip: download eerst de gegevens als het lid daarom vraagt.</p>
+            <p className="club-hint">{t.tip}</p>
             <label className="club-veld">
-              <span>Typ de naam ter bevestiging</span>
+              <span>{t.typNaam}</span>
               <input className="club-invoer" value={invoer} onChange={(e) => setInvoer(e.target.value)} placeholder={naam} autoComplete="off" spellCheck={false} />
             </label>
             <div className="club-avg-knoppen">
               <button type="button" className="club-knop club-knop--gevaar" disabled={!klopt || bezig} onClick={() => void aanvragen()}>
-                <Trash2 size={16} aria-hidden /> Definitief verwijderen over {VERWIJDER_DAGEN} dagen
+                <Trash2 size={16} aria-hidden /> {t.definitief(VERWIJDER_DAGEN)}
               </button>
               <button type="button" className="club-knop club-knop--stil" disabled={bezig} onClick={() => { setOpen(false); setInvoer('') }}>
-                Annuleren
+                {t.annuleren}
               </button>
             </div>
           </div>
         ) : (
           <button type="button" className="club-knop club-knop--gevaar club-avg-start" onClick={() => setOpen(true)}>
-            <Trash2 size={16} aria-hidden /> Lid verwijderen (AVG)
+            <Trash2 size={16} aria-hidden /> {t.start}
           </button>
         )
       ) : null}
