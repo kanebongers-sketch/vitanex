@@ -104,7 +104,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { fout: 'Snel wisselen zonder pauze', beter: 'Houd elke kant kort vast. De oefening werkt door het stilhouden, niet door de snelheid.' },
     ],
     ademhaling: 'Adem uit terwijl je arm en been strekt, adem rustig door tijdens het vasthouden.',
-    tempo: '2 tellen strekken, 2 tot 3 tellen vasthouden, 2 tellen terug.',
+    tempo: 'Per kant: 2 tellen strekken, 2 tot 3 tellen vast, 2 tellen terug.',
     makkelijker: 'Strek eerst alleen een arm of alleen een been, en voeg ze samen als dat stil blijft.',
     zwaarder: 'Breng elleboog en knie onder je buik naar elkaar toe tussen de herhalingen, of houd langer vast.',
   },
@@ -122,7 +122,8 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
     stappen: [
       'Zak door je knieën en zet je handen plat op de grond voor je voeten.',
       'Spring met beide voeten naar achteren in een plank, buik aangespannen.',
-      'Spring je voeten terug naar je handen en kom omhoog met een sprongetje, armen boven je hoofd.',
+      'Zak als een geheel met je borst naar de grond en duw jezelf terug omhoog in de plank.',
+      'Spring je voeten terug naar je handen en spring explosief omhoog, armen boven je hoofd.',
     ],
     fouten: [
       { fout: 'Heupen zakken door in de plank', beter: 'Span je buik en billen aan voordat je voeten landen. Rustiger tempo helpt om de plank strak te houden.' },
@@ -130,9 +131,9 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { fout: 'Hard en stijf landen na de sprong', beter: 'Land op je voorvoeten en veer door je knieën. Hoe stiller je landt, hoe beter.' },
     ],
     ademhaling: 'Adem uit als je je voeten naar achteren springt en bij de sprong omhoog, adem in daartussen.',
-    tempo: 'Vlot maar gecontroleerd, elke plank en landing netjes.',
-    makkelijker: 'Stap je voeten een voor een naar achteren en terug, en sla de sprong aan het eind over.',
-    zwaarder: 'Voeg een push-up toe in de plank of spring bovenin met je knieën naar je borst.',
+    tempo: 'Explosief omhoog in de sprong, vlot maar gecontroleerd terug naar de grond.',
+    makkelijker: 'Stap je voeten een voor een naar achteren en terug, en sla de push-up en de sprong over.',
+    zwaarder: 'Spring bovenin met je knieën naar je borst of doe ze in blokken op tijd.',
   },
 
   'Calf raise met lichaamsgewicht': {
@@ -317,7 +318,7 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
       { fout: 'Kramp in de hamstring', beter: 'Zet je standvoet dichter bij je billen en duw meer via je hiel.' },
     ],
     ademhaling: 'Adem uit als je omhoog komt, adem in als je zakt.',
-    tempo: '1 tel omhoog, 2 tellen vasthouden, 2 tellen omlaag.',
+    tempo: 'Per been: 1 tel omhoog, 2 tellen vasthouden, 2 tellen omlaag.',
     makkelijker: 'Houd je vrije been gebogen met de voet in de lucht, of doe de gewone glute bridge.',
     zwaarder: 'Zet je schouders op een bank, of leg een gewicht op de heup van je standbeen.',
   },

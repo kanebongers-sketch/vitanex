@@ -32,36 +32,15 @@ export interface OverstapStap {
   tekst: string
 }
 
-/**
- * Overstappen in drie stappen, kort voor de voorpagina. Waar het staat:
- * - CSV inlezen met herkende kolommen en eerst een overzicht: src/lib/club/leden/import (kolommen.ts, plan.ts)
- * - startwizard: src/lib/club/start/stappen.ts (samen START_MINUTEN, binnen een kwartier)
- * - leden op de app: uitnodiging per mail en de poster met QR (src/lib/club/app-uitnodigen, /club/leden/app-poster)
- */
-export const OVERSTAP_STAPPEN: readonly OverstapStap[] = [
-  {
-    titel: 'Ledenlijst inlezen',
-    tekst: 'Exporteer je leden als CSV uit je huidige systeem, of gebruik je Excel-lijst (.xlsx). Gangbare kolommen worden herkend en je ziet eerst wat er verandert.',
-  },
-  {
-    titel: 'Startwizard doorlopen',
-    tekst: 'Acht stappen, samen ongeveer een kwartier. Je kiest je soort sportschool, de wizard zet de rest klaar en elke stap stelt zijn deel meteen in: huisstijl, vestiging, lessen, team en leden.',
-  },
-  {
-    titel: 'Leden op de app',
-    tekst: 'Leden krijgen een mail met een link om eenmalig hun wachtwoord te kiezen, of scannen de QR-code op de poster bij de balie. Daarna loggen ze in met e-mailadres en wachtwoord.',
-  },
-]
-
 /** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
 export const VRAAG_CONTRACT: VeelgesteldeVraag = {
   vraag: 'Zit ik ergens aan vast?',
-  antwoord: `Je begint met ${PROEFDAGEN} dagen gratis in je eigen omgeving. Stop je in die tijd, dan betaal je niets. Ga je door, dan loopt je abonnement een jaar en betaal je per maand, per vestiging. Opstartkosten rekenen we nu niet. Het bedrag zie je altijd voordat je iets betaalt.`,
+  antwoord: `Je start met ${PROEFDAGEN} dagen gratis. Stop je, dan betaal je niets. Ga je door: een jaarabonnement, per maand betaald per vestiging. Nu geen opstartkosten, en je ziet het bedrag altijd vooraf.`,
 }
 
 /** Ook gebruikt op de prijzenpagina: van wie de gegevens zijn. */
 export const VRAAG_GEGEVENS: VeelgesteldeVraag = {
   vraag: 'Van wie zijn mijn gegevens, en krijg ik ze mee?',
   antwoord:
-    'Van jou. AI Your Gym gebruikt ze alleen om de software voor jou te laten werken. De ledenlijst, leads, bezoek, bezetting en gewerkte uren exporteer je als CSV via de rapporten, en per lid download je alle gegevens van de ledenkaart.',
+    'Van jou. We gebruiken ze alleen om de software te laten werken. Ledenlijst, leads, bezoek en uren exporteer je als CSV, en per lid download je alle gegevens.',
 }

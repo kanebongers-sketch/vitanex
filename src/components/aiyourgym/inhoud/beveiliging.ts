@@ -25,8 +25,8 @@ export interface WaarborgGroep {
 
 export const KERN: readonly Waarborg[] = [
   { titel: 'Frankfurt', tekst: 'Database en server staan in Frankfurt, binnen de EU.' },
-  { titel: 'Gescheiden', tekst: 'Elke sportschool heeft een eigen omgeving. Je ziet nooit gegevens van een ander.' },
-  { titel: 'Van jou', tekst: 'Je gegevens zijn van jou. Je exporteert ze wanneer je wilt.' },
+  { titel: 'Gescheiden', tekst: 'Elke sportschool een eigen omgeving. Je ziet nooit gegevens van een ander.' },
+  { titel: 'Van jou', tekst: 'Je gegevens zijn van jou. Exporteren kan altijd.' },
 ]
 
 export const GROEPEN: readonly WaarborgGroep[] = [
@@ -35,8 +35,8 @@ export const GROEPEN: readonly WaarborgGroep[] = [
     label: 'Opslag',
     titel: 'Waar de gegevens staan.',
     punten: [
-      { titel: 'In de EU', tekst: 'De database staat in een datacenter in Frankfurt, net als de server die hem gebruikt.' },
-      { titel: 'Per sportschool gescheiden', tekst: 'Elke vraag aan de database is beperkt tot je eigen sportschool. Alleen de server leest de database, nooit de browser.' },
+      { titel: 'In de EU', tekst: 'Database en server in een datacenter in Frankfurt.' },
+      { titel: 'Per sportschool gescheiden', tekst: 'Elke vraag aan de database blijft binnen je eigen sportschool. Alleen de server leest mee, nooit de browser.' },
       { titel: 'Geen AI-diensten met ledengegevens', tekst: 'Gegevens van je leden gaan niet naar AI-diensten van derden.' },
     ],
   },
@@ -45,9 +45,9 @@ export const GROEPEN: readonly WaarborgGroep[] = [
     label: 'Toegang',
     titel: 'Wie erbij kan.',
     punten: [
-      { titel: 'Sterke wachtwoorden', tekst: 'Iedereen logt in met e-mailadres en wachtwoord. Wachtwoorden staan nooit leesbaar opgeslagen (scrypt), en te korte of makkelijk te raden wachtwoorden worden geweigerd.' },
-      { titel: 'Rechten per rol', tekst: 'Per rol stel je in welke onderdelen iemand ziet. De eigenaar bepaalt wat een clubmanager mag.' },
-      { titel: 'Wat een lid ziet', tekst: 'In de ledenapp ziet een lid alleen de eigen gegevens. Notities van trainers, bloeddruk en hartslag blijven bij het team.' },
+      { titel: 'Sterke wachtwoorden', tekst: 'Nooit leesbaar opgeslagen (scrypt). Te korte of makkelijk te raden wachtwoorden worden geweigerd.' },
+      { titel: 'Rechten per rol', tekst: 'De eigenaar bepaalt welke onderdelen elke rol ziet.' },
+      { titel: 'Wat een lid ziet', tekst: 'Alleen de eigen gegevens. Notities, bloeddruk en hartslag blijven bij het team.' },
     ],
   },
   {
@@ -55,9 +55,9 @@ export const GROEPEN: readonly WaarborgGroep[] = [
     label: 'Leden',
     titel: 'De rechten van je leden, in de software.',
     punten: [
-      { titel: 'Inzage', tekst: 'Op de ledenkaart download je alle gegevens van een lid in een bestand. Ook voor leads en medewerkers.' },
-      { titel: 'Verwijderen in twee stappen', tekst: 'Een verwijderd lid staat eerst 30 dagen klaar om terug te zetten. Daarna wordt het definitief gewist. Alleen de eigenaar mag dit.' },
-      { titel: 'Gezondheid alleen met toestemming', tekst: 'Metingen en gezondheidsantwoorden uit een intake worden alleen opgeslagen met uitdrukkelijke toestemming van het lid. Ze staan niet in rapporten, mails of meldingen.' },
+      { titel: 'Inzage', tekst: 'Alle gegevens van een lid, lead of medewerker in een bestand.' },
+      { titel: 'Verwijderen in twee stappen', tekst: 'Eerst 30 dagen terug te zetten, daarna definitief gewist. Alleen de eigenaar mag dit.' },
+      { titel: 'Gezondheid alleen met toestemming', tekst: 'Alleen opgeslagen met uitdrukkelijke toestemming, en nooit in rapporten, mails of meldingen.' },
     ],
   },
   {
@@ -65,9 +65,9 @@ export const GROEPEN: readonly WaarborgGroep[] = [
     label: 'Bewaren',
     titel: 'Niet langer dan nodig.',
     punten: [
-      { titel: 'Termijnen per sportschool', tekst: 'Je stelt zelf in hoe lang leads, oud-leden, bezoek en het logboek bewaard blijven. Elke nacht ruimt het systeem op wat over de termijn is.' },
-      { titel: 'Geen IP-adressen', tekst: 'Tegen misbruik bewaren we alleen een onomkeerbare code van een IP-adres, nooit het adres zelf.' },
-      { titel: 'Geen tracking', tekst: 'Alleen cookies die nodig zijn om in te loggen. Geen advertentie- of analysecookies en geen scripts van derden die meekijken.' },
+      { titel: 'Termijnen per sportschool', tekst: 'Jij bepaalt hoe lang leads, oud-leden, bezoek en het logboek blijven. Elke nacht wordt opgeruimd.' },
+      { titel: 'Geen IP-adressen', tekst: 'Tegen misbruik alleen een onomkeerbare code, nooit het adres zelf.' },
+      { titel: 'Geen tracking', tekst: 'Alleen cookies om in te loggen. Geen advertentie- of analysecookies, geen scripts van derden.' },
     ],
   },
 ]
@@ -75,8 +75,8 @@ export const GROEPEN: readonly WaarborgGroep[] = [
 /** De diensten die we gebruiken (Bijlage 3 van de verwerkersovereenkomst). */
 export const SUBVERWERKERS: readonly Waarborg[] = [
   { titel: 'Supabase', tekst: 'Database en opslag van logo’s, in Frankfurt.' },
-  { titel: 'Render', tekst: 'De server waarop de software draait, in Frankfurt.' },
-  { titel: 'Resend', tekst: 'Het versturen van e-mails, zoals uitnodigingen en meldingen.' },
-  { titel: 'Stripe', tekst: 'Het betalen van je abonnement bij AI Your Gym.' },
-  { titel: 'Push van de browser', tekst: 'Alleen in gebruik als meldingen op de telefoon voor je sportschool aan staan. Het bericht is versleuteld.' },
+  { titel: 'Render', tekst: 'De server van de software, in Frankfurt.' },
+  { titel: 'Resend', tekst: 'E-mails, zoals uitnodigingen en meldingen.' },
+  { titel: 'Stripe', tekst: 'Betalen van je abonnement bij AI Your Gym.' },
+  { titel: 'Push van de browser', tekst: 'Alleen als meldingen op de telefoon aan staan. Het bericht is versleuteld.' },
 ]

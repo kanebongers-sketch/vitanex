@@ -2,6 +2,7 @@ import { Check } from 'lucide-react'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { PRODUCTSCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/productschermen'
+import { Avatar } from '../Avatar'
 import { Venster } from '../kaders'
 import { PBlok, PCijfer, PMeter, PStrook } from './bouwstenen'
 
@@ -11,7 +12,7 @@ import { PBlok, PCijfer, PMeter, PStrook } from './bouwstenen'
 // en daaronder het schema van deze week en het lidmaatschap. Vaste voorbeelddata.
 
 /** Het voorbeeldlid (verzonnen). */
-const LID = { ini: 'SB', naam: 'Sanne Bakker' } as const
+const LID = { naam: 'Sanne Bakker' } as const
 const PER_WEEK = [2, 3, 2, 3, 2, 2, 3, 1, 2, 3, 3, 2] as const
 const GEMIDDELD = PER_WEEK.reduce((s, w) => s + w, 0) / PER_WEEK.length
 /** Ma en Wo gedaan, Vr nog open: dezelfde week als de weekring in de ledenapp. */
@@ -25,7 +26,7 @@ export async function LedenkaartScherm() {
     <Venster actief="Leden" hier="Leden">
       <div className="aygp">
         <div className="aygp-lid">
-          <span className="aygp-avatar aygp-avatar--groot">{LID.ini}</span>
+          <Avatar naam={LID.naam} maat={52} className="aygp-avatar aygp-avatar--groot" />
           <div className="aygp-lid-tekst">
             <p className="aygp-titel">{LID.naam}</p>
             <p className="aygp-chips">

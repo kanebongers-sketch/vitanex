@@ -112,6 +112,7 @@
 .aygm-tabs svg { width: 16px; height: 16px; }
 
 /* App-schermen */
+.aygm-app-groet { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
 .aygm-hallo { font: 700 22px/1.05 var(--ayg-font-kop); letter-spacing: -0.03em; font-variation-settings: 'wdth' 88; }
 .aygm-volgende { background: var(--brand); color: var(--brand-inkt); border-radius: 14px; padding: 14px; display: grid; gap: 4px; }
 .aygm-volgende .aygm-boven { color: inherit; }
@@ -155,6 +156,12 @@
 .aygm-tabel span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .aygm-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-raised); display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--text-2); flex-shrink: 0; }
 .aygm-wie { display: flex; align-items: center; gap: 9px; min-width: 0; }
+/* Profielfoto's van voorbeeldleden en coaches (Avatar.tsx): rond, vaste maat, een iron-randje */
+.ayg-avatar { flex-shrink: 0; border-radius: 50%; }
+img.ayg-avatar { display: block; object-fit: cover; background: var(--bg-raised); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--brand) 55%, transparent); }
+img.ayg-avatar.aygp-avatar--groot { box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 70%, transparent), 0 10px 24px -14px var(--brand); }
+img.ayg-avatar.aygd-lid-avatar { border-radius: 50%; }
+.ayg-avatar--klein { width: 18px; height: 18px; font-size: 8px; }
 .aygm-vakje { width: 18px; height: 18px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px var(--line-strong); justify-self: center; display: grid; place-items: center; }
 .aygm-vakje[data-aan] { background: var(--brand); color: var(--brand-inkt); box-shadow: none; }
 .aygm-zoek { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--line-strong); color: var(--text-3); margin-bottom: 12px; }
@@ -213,6 +220,7 @@ li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
 .aygm-wiz-week span { display: grid; gap: 3px; padding: 8px 9px; border-radius: 9px; background: var(--bg-raised); font-size: 11.5px; font-weight: 600; min-width: 0; }
 .aygm-wiz-week b { font: 700 10px/1 var(--ayg-font-kop); letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-tekst); }
 .aygm-wiz-week i { font-style: normal; font-weight: 400; font-size: 10.5px; color: var(--text-3); }
+.aygm-wiz-week small { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10.5px; font-weight: 500; color: var(--text-2); min-width: 0; }
 .aygm-wiz-voet { display: flex; justify-content: space-between; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
 .aygm-wiz-voet-links { display: flex; gap: 6px; }
 @container (max-width: 540px) {

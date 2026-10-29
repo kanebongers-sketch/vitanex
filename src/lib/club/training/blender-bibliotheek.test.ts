@@ -38,8 +38,30 @@ describe('koppeling render en oefening', () => {
       expect(repRenderVoor(o.naam)?.slug).toBe(o.slug)
       expect(blenderSlugVoor(o.naam)).toBe(o.slug)
       expect(isBlenderOefening(o.naam.toUpperCase())).toBe(true)
+      // Gearchiveerd in de database (migratie 465) maar met render: weer kiesbaar.
+      expect(isGearchiveerd(o.naam, true)).toBe(false)
+      expect(hoortInArchief(o.naam)).toBe(false)
     })
   }
+
+  it('golf 1 en 1A (29-10-2026): alle 30 nieuwe renders zijn kiesbaar', () => {
+    const golf1 = [
+      'Push-up op knieën', 'Push-up met smalle handen', 'Glute bridge op een been', 'Zijplank', 'Superman',
+      'Roemeense deadlift met barbell', 'Sumo deadlift', 'Good morning', 'Barbell row met onderhandse greep',
+      'Schouders ophalen met barbell', 'Thruster met barbell', 'Squat met lichaamsgewicht', 'Achterwaartse lunge',
+      'Split squat', 'Walking lunge met lichaamsgewicht', 'Zijwaartse lunge', 'Calf raise met lichaamsgewicht',
+      'Pike push-up', 'Mountain climber', 'Bird dog', 'Squat jump', 'Burpee',
+      'Crunch', 'Reverse crunch', 'Leg raise liggend', 'Hollow hold', 'Dead bug', 'Crunch met draai',
+      'Fietsende crunch', 'Russian twist',
+    ]
+    expect(golf1).toHaveLength(30)
+    expect(golf1.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf1) {
+      const o = oefeningUitRij({ id: 'g', naam, spiergroep: 'benen', actief: true, gearchiveerd: true, beeld_start: null, beeld_eind: null })
+      expect(o?.actief, naam).toBe(true)
+      expect(o?.gearchiveerd, naam).toBe(false)
+    }
+  })
 
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
@@ -98,6 +120,38 @@ describe('voorstel met alleen de Blender-oefeningen', () => {
     oef('Barbell row', 'trekken_horizontaal', 'rug', 'barbell', 2, ['rug'], ['latissimus', 'rhomboideus']),
     oef('Barbell curl', 'isolatie', 'biceps', 'barbell', 2, ['elleboog', 'pols'], ['biceps']),
     oef('Plank', 'core', 'buik', 'geen', 1, [], ['rechte_buikspier', 'diepe_buikspier']),
+    // Golf 1 (29-10-2026), kenmerken gelezen uit club_oefeningen.
+    oef('Push-up op knieën', 'duwen_horizontaal', 'borst', 'geen', 1, ['schouder', 'pols'], ['borstspieren']),
+    oef('Push-up met smalle handen', 'duwen_horizontaal', 'triceps', 'geen', 2, ['schouder', 'pols'], ['triceps']),
+    oef('Glute bridge op een been', 'heupscharnier', 'billen', 'geen', 2, [], ['bilspieren']),
+    oef('Zijplank', 'core', 'buik', 'geen', 1, ['schouder'], ['schuine_buikspieren']),
+    oef('Superman', 'isolatie', 'onderrug', 'geen', 1, ['rug'], ['onderrug']),
+    oef('Roemeense deadlift met barbell', 'heupscharnier', 'benen', 'barbell', 2, ['rug'], ['hamstrings', 'bilspieren']),
+    oef('Sumo deadlift', 'heupscharnier', 'benen', 'barbell', 3, ['rug', 'heup'], ['bilspieren', 'quadriceps', 'adductoren']),
+    oef('Good morning', 'heupscharnier', 'onderrug', 'barbell', 3, ['rug'], ['onderrug', 'hamstrings']),
+    oef('Barbell row met onderhandse greep', 'trekken_horizontaal', 'rug', 'barbell', 2, ['rug', 'elleboog'], ['latissimus', 'rhomboideus']),
+    oef('Schouders ophalen met barbell', 'isolatie', 'schouders', 'barbell', 1, ['nek'], ['trapezius']),
+    oef('Thruster met barbell', 'squat', 'hele_lichaam', 'barbell', 3, ['knie', 'schouder', 'pols'], ['quadriceps', 'bilspieren', 'voorste_schouder']),
+    oef('Squat met lichaamsgewicht', 'squat', 'benen', 'geen', 1, ['knie'], ['quadriceps', 'bilspieren']),
+    oef('Achterwaartse lunge', 'lunge', 'benen', 'geen', 1, ['knie'], ['bilspieren', 'quadriceps']),
+    oef('Split squat', 'lunge', 'benen', 'geen', 1, ['knie'], ['quadriceps', 'bilspieren']),
+    oef('Walking lunge met lichaamsgewicht', 'lunge', 'benen', 'geen', 1, ['knie'], ['quadriceps', 'bilspieren']),
+    oef('Zijwaartse lunge', 'lunge', 'benen', 'geen', 2, ['knie', 'heup'], ['quadriceps', 'bilspieren', 'adductoren']),
+    oef('Calf raise met lichaamsgewicht', 'isolatie', 'kuiten', 'geen', 1, ['enkel'], ['kuiten']),
+    oef('Pike push-up', 'duwen_verticaal', 'schouders', 'geen', 2, ['schouder', 'pols'], ['voorste_schouder']),
+    oef('Mountain climber', 'explosief', 'buik', 'geen', 2, ['pols', 'schouder'], ['rechte_buikspier', 'heupbuigers']),
+    oef('Bird dog', 'core', 'onderrug', 'geen', 1, [], ['onderrug', 'diepe_buikspier']),
+    oef('Squat jump', 'explosief', 'benen', 'geen', 2, ['knie', 'enkel'], ['quadriceps', 'bilspieren']),
+    oef('Burpee', 'explosief', 'hele_lichaam', 'geen', 2, ['knie', 'pols', 'schouder'], ['hart_longen', 'quadriceps', 'bilspieren']),
+    // Golf 1A, buik (29-10-2026).
+    oef('Crunch', 'core', 'buik', 'geen', 1, ['nek'], ['rechte_buikspier']),
+    oef('Reverse crunch', 'core', 'buik', 'geen', 1, [], ['rechte_buikspier']),
+    oef('Leg raise liggend', 'core', 'buik', 'geen', 2, ['rug'], ['rechte_buikspier', 'heupbuigers']),
+    oef('Hollow hold', 'core', 'buik', 'geen', 2, ['rug'], ['rechte_buikspier', 'diepe_buikspier']),
+    oef('Dead bug', 'core', 'buik', 'geen', 1, [], ['diepe_buikspier', 'rechte_buikspier']),
+    oef('Crunch met draai', 'core', 'buik', 'geen', 1, ['nek'], ['schuine_buikspieren']),
+    oef('Fietsende crunch', 'core', 'buik', 'geen', 2, ['nek'], ['schuine_buikspieren', 'rechte_buikspier']),
+    oef('Russian twist', 'core', 'buik', 'geen', 2, ['rug'], ['schuine_buikspieren']),
   ]
 
   it('de testbibliotheek is precies de renderlijst', () => {
@@ -111,8 +165,15 @@ describe('voorstel met alleen de Blender-oefeningen', () => {
 
   it('een beginner krijgt alleen niveau 1 en toch een schema', () => {
     const v = stelSchemaVoor({ doelen: ['gezondheid'], niveau: 1, dagenPerWeek: 2, minutenPerSessie: 45, voorkeuren: ['sportschool'], gezondheid: null }, BIB)
-    const namen = new Set(v.dagen.flatMap((d) => d.regels.map((r) => BIB.find((o) => o.id === r.oefeningId)?.naam)))
-    expect(namen.size).toBeGreaterThan(0)
-    for (const n of namen) expect(['Glute bridge', 'Push-up', 'Plank']).toContain(n)
+    const gekozen = v.dagen.flatMap((d) => d.regels.map((r) => BIB.find((o) => o.id === r.oefeningId)))
+    expect(gekozen.length).toBeGreaterThan(0)
+    for (const o of gekozen) expect(o?.niveau, o?.naam).toBe(1)
+  })
+
+  it('een beginner thuis krijgt een schema zonder materiaal uit de renders', () => {
+    const v = stelSchemaVoor({ doelen: ['gezondheid'], niveau: 1, dagenPerWeek: 2, minutenPerSessie: 45, voorkeuren: ['thuis'], gezondheid: null }, BIB)
+    const gekozen = v.dagen.flatMap((d) => d.regels.map((r) => BIB.find((o) => o.id === r.oefeningId)))
+    expect(v.dagen.every((d) => d.regels.length >= 3)).toBe(true)
+    for (const o of gekozen) expect(o?.materiaal, o?.naam).toBe('geen')
   })
 })

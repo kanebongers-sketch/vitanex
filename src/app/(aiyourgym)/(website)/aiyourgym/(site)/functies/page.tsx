@@ -25,9 +25,10 @@ function regels(titel: string): string[] {
 }
 
 // Functies in kleurhoofdstukken (richting 28-10-2026, Figma-frame "Functies"): de held
-// op papier met een index van vijf gevulde tegels, daarna elk hoofdstuk als eigen vol
-// vlak in een eigen laag obsidiaan met een eigen tint iron (obsidian iron, besluit
-// Kane 29-10-2026) en tot slot dezelfde oproep als de voorpagina.
+// met een index van vijf tegels, daarna elk hoofdstuk als eigen vol vlak in een eigen
+// laag obsidiaan (obsidian iron, besluit Kane 29-10-2026) met een kop, een zin, drie
+// korte punten en groot het scherm (sterk en beknopt, Kane 29-10-2026), en tot slot
+// dezelfde oproep als de voorpagina.
 export default async function FunctiesPagina() {
   const taal = await getSiteTaal()
   const t = FUNCTIES_PAGINA[taal]
@@ -67,7 +68,7 @@ export default async function FunctiesPagina() {
           </ul>
         </nav>
       </section>
-      {HOOFDSTUKKEN.map((h) => {
+      {HOOFDSTUKKEN.map((h, i) => {
         const g = t.hoofdstukken[h.sleutel]
         return (
           <Hoofdstuk
@@ -78,6 +79,7 @@ export default async function FunctiesPagina() {
             intro={g.intro}
             functies={g.functies}
             beeldLabel={t.beeld[h.sleutel]}
+            spiegel={i % 2 === 1}
             taal={taal}
           />
         )

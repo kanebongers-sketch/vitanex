@@ -31,7 +31,8 @@ const PUBLIC = join(process.cwd(), 'public')
  *   posters (480 px) 10 tot 21 KB, grens 40 KB.
  * Lossless is gemeten en te zwaar (ruim 7 MB voor 940 px). Een langere lus
  * (meer beelden) mag niet zomaar boven deze grenzen: dan eerst de kwaliteit
- * in scripts/oefenbeelden-web.mjs afwegen.
+ * in scripts/oefenbeelden-web.mjs afwegen. Het script zakt zelf in kwaliteit
+ * (stappen van 2, niet onder 76) tot een lus binnen deze grenzen past.
  */
 const MAX_KB = {
   lusHd: 3072,

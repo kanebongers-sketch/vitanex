@@ -1,6 +1,7 @@
 import { Check, Phone, Search } from 'lucide-react'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { WERKVLOER } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
+import { Avatar } from './Avatar'
 import { Venster } from './kaders'
 
 // Werkvloer: check-in aan de balie, taken en poetslijsten, en wie je vandaag
@@ -8,10 +9,10 @@ import { Venster } from './kaders'
 // alle teksten staan in de taal van de pagina (woordenboek WERKVLOER).
 
 const BINNEN = [
-  { ini: 'SB', naam: 'Sanne Bakker', tijd: '09:12', status: 'actief', soort: 'ok' },
-  { ini: 'MV', naam: 'Mo de Vries', tijd: '09:08', status: 'proeflid', soort: '' },
-  { ini: 'LJ', naam: 'Lotte Jansen', tijd: '09:03', status: 'geenToegang', soort: 'letop' },
-  { ini: 'TK', naam: 'Tim Kuijpers', tijd: '08:57', status: 'actief', soort: 'ok' },
+  { naam: 'Sanne Bakker', tijd: '09:12', status: 'actief', soort: 'ok' },
+  { naam: 'Mo de Vries', tijd: '09:08', status: 'proeflid', soort: '' },
+  { naam: 'Lotte Jansen', tijd: '09:03', status: 'geenToegang', soort: 'letop' },
+  { naam: 'Tim Kuijpers', tijd: '08:57', status: 'actief', soort: 'ok' },
 ] as const
 
 export async function CheckinScherm() {
@@ -38,7 +39,7 @@ export async function CheckinScherm() {
         {BINNEN.map((r) => (
           <div key={r.naam} style={{ gridTemplateColumns: kolommen }}>
             <span className="aygm-wie">
-              <span className="aygm-avatar">{r.ini}</span>
+              <Avatar naam={r.naam} maat={26} className="aygm-avatar" />
               <span>{r.naam}</span>
             </span>
             <span>{r.tijd}</span>
@@ -98,10 +99,10 @@ export async function TakenScherm() {
 
 /** Wie je opvolgt; regel en wat staan in de taal van de pagina, in deze volgorde. */
 const OPVOLGEN = [
-  { ini: 'EH', naam: 'Eva Hendriks' },
-  { ini: 'RS', naam: 'Ruud Smits' },
-  { ini: 'NB', naam: 'Noor Bos' },
-  { ini: 'JM', naam: 'Jesse Mulder' },
+  { naam: 'Eva Hendriks' },
+  { naam: 'Ruud Smits' },
+  { naam: 'Noor Bos' },
+  { naam: 'Jesse Mulder' },
 ] as const
 
 export async function OpvolgScherm() {
@@ -119,7 +120,7 @@ export async function OpvolgScherm() {
         {OPVOLGEN.map((o, i) => (
           <div key={o.naam} className="aygm-rij">
             <span className="aygm-wie">
-              <span className="aygm-avatar">{o.ini}</span>
+              <Avatar naam={o.naam} maat={26} className="aygm-avatar" />
               <span className="aygm-rij-tekst">
                 <b>{o.naam}</b>
                 <span>

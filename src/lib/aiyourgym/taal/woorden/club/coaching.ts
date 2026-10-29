@@ -10,6 +10,9 @@
 import type { Coaching } from '@/lib/club/training/coaching/typen'
 import type { Taal } from '../../taal'
 import { SITE_COACHING } from '../website/coaching'
+import { COACHING_EN_BOVEN } from './coaching-en-boven'
+import { COACHING_EN_ONDER } from './coaching-en-onder'
+import { COACHING_EN_BUIK } from './coaching-en-buik'
 
 const SITE = SITE_COACHING.en
 
@@ -152,6 +155,10 @@ export const COACHING_EN: Readonly<Record<string, Coaching>> = {
     makkelijker: 'Rest on your knees instead of your toes, with your body straight from knee to shoulder.',
     zwaarder: 'Lift one foot at a time a few centimetres, or place your elbows slightly further forward.',
   },
+  // Golf 1 en 1A (29-10-2026): in eigen bestanden, zodat dit bestand klein blijft.
+  ...COACHING_EN_BOVEN,
+  ...COACHING_EN_ONDER,
+  ...COACHING_EN_BUIK,
 }
 
 /** De namen met Engelse coaching. */

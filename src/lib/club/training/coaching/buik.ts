@@ -356,8 +356,8 @@ export const COACHING_BUIK: CoachingBoek = {
       { punt: 'Rustig tempo', uitleg: 'Kort stoppen aan elke kant. Snel wisselen voelt zwaar, maar je zwiept vooral.' },
     ],
     opstelling: [
-      'Zit op een matje met je knieen gebogen en je hielen op de grond.',
-      'Leun iets achterover tot je buik aanspant en vouw je handen voor je borst.',
+      'Zit op een matje met je knieen gebogen en vouw je handen voor je borst.',
+      'Leun iets achterover tot je buik aanspant en til je voeten een stukje van de grond. Wiebel je nog, laat dan je hielen licht op de grond.',
     ],
     stappen: [
       'Zet je romp vast met een lange rug.',
@@ -367,23 +367,24 @@ export const COACHING_BUIK: CoachingBoek = {
     fouten: [
       { fout: 'Ronde onderrug', beter: 'Kom iets meer rechtop en trek je borst omhoog. Minder achterover leunen is prima.' },
       { fout: 'Alleen de armen bewegen', beter: 'Houd je handen voor je borstbeen en laat je schouders mee draaien.' },
-      { fout: 'Te ver achterover met voeten los', beter: 'Houd je hielen op de grond tot je de basisvorm met rechte rug beheerst.' },
+      { fout: 'Te ver achterover leunen', beter: 'Leun alleen zo ver dat je rug lang blijft. Zet je hielen neer als je gaat wiebelen.' },
     ],
     ademhaling: 'Adem uit bij elke draai opzij en adem in als je door het midden gaat.',
-    tempo: '1 tel draaien, kort stil, 1 tel naar het midden.',
-    makkelijker: 'Zit rechter op met je hielen op de grond en draai minder ver.',
-    zwaarder: 'Houd een halterschijf of kettlebell vast of til je voeten een stukje van de grond.',
+    tempo: '1 tel draaien, kort stil, 1 tel terug. Elke kant telt als een herhaling.',
+    makkelijker: 'Zet je hielen op de grond, zit rechter op en draai minder ver.',
+    zwaarder: 'Houd een halterschijf of kettlebell voor je borst vast.',
   },
   Zijplank: {
     kernpunten: [
-      { punt: 'Elleboog onder je schouder', uitleg: 'Je steunarm staat recht onder je schouder. Zo is de belasting op je schouder het rustigst.' },
+      { punt: 'Hand onder je schouder', uitleg: 'Je steunhand staat recht onder je schouder met je arm gestrekt. Zo is de belasting op je schouder het rustigst.' },
       { punt: 'Heupen hoog en naar voren', uitleg: 'Duw je heupen omhoog en iets naar voren, zodat je lichaam recht is en niet knikt.' },
-      { punt: 'Duw weg uit je schouder', uitleg: 'Druk je onderarm in de grond en hang niet in je schouder. Je schouder blijft ver van je oor.' },
+      { punt: 'Duw weg uit je schouder', uitleg: 'Druk je hand in de grond en hang niet in je schouder. Je schouder blijft ver van je oor.' },
       { punt: 'Lijn hoofd tot voeten', uitleg: 'Hoofd, borst, heupen en voeten staan op een lijn. Kijk recht vooruit.' },
     ],
     opstelling: [
-      'Lig op je zij met je elleboog recht onder je schouder en je onderarm naar voren.',
+      'Lig op je zij met je steunhand plat op de grond, recht onder je schouder, vingers van je af.',
       'Leg je voeten op elkaar of zet je bovenste voet net voor de onderste voor meer balans.',
+      'Strek je bovenste arm recht omhoog of leg je hand op je heup.',
     ],
     stappen: [
       'Span je buik en billen aan.',
@@ -392,12 +393,12 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Heupen zakken naar de grond', beter: 'Duw je onderste heup actief omhoog. Lukt dat niet meer, stop de set of ga naar je knieen.' },
-      { fout: 'Hangen in de schouder', beter: 'Druk je onderarm in de grond en duw je lichaam weg, zodat er ruimte is tussen schouder en oor.' },
+      { fout: 'Hangen in de schouder', beter: 'Druk je hand in de grond en duw je lichaam weg, zodat er ruimte is tussen schouder en oor.' },
       { fout: 'Heupen knikken naar achteren', beter: 'Breng je heupen naar voren tot ze in lijn zijn met je schouders en voeten.' },
     ],
     ademhaling: 'Adem rustig en gelijkmatig door tijdens het vasthouden.',
     tempo: 'Houd per kant 15 tot 30 seconden vast met goede houding.',
-    makkelijker: 'Steun op je onderste knie met je knieen gebogen en je lichaam recht van knie tot schouder.',
+    makkelijker: 'Steun op je onderarm met je elleboog onder je schouder, of zet ook je onderste knie neer.',
     zwaarder: 'Til je bovenste been op of beweeg je heupen langzaam op en neer.',
   },
   'Zijwaarts buigen met dumbbell': {

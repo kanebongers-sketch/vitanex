@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { DASHBOARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
+import { Avatar } from './Avatar'
 import { Venster } from './kaders'
 import { LES, VOORBEELD_VESTIGING } from './voorbeeld'
 
@@ -58,7 +59,7 @@ function Ledenkaart({ t }: { t: Teksten }) {
     <div className="aygm-kaart aygm-dash-lid">
       <p className="aygm-boven">{t.ledenkaart}</p>
       <div className="aygm-wie">
-        <span className="aygm-avatar">SB</span>
+        <Avatar naam="Sanne Bakker" maat={26} className="aygm-avatar" lui={false} />
         <span className="aygm-dash-lid-naam">
           <b>Sanne Bakker</b>
           <span className="aygm-dash-chips">

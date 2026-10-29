@@ -67,7 +67,7 @@ export default async function TrainingsschemasPagina() {
         <Geruststelling aantal={GERUST_BIJ_KNOP} onder />
       </PaginaKop>
 
-      <Schemas metTijd={false} />
+      <Schemas />
 
       <nav className="ayg-wrap ayg-ss-route" aria-label={t.routeLabel}>
         <ol>

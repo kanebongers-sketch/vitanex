@@ -2,8 +2,9 @@ import { ArrowRight, Check, Clock3, LifeBuoy, Lock, Save, Sparkles } from 'lucid
 import { AANTAL_STAPPEN, STAPPEN } from '@/lib/club/start/stappen'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { WIZARD } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
+import { Avatar } from './Avatar'
 import { KernhalMerk } from './KernhalMerk'
-import { LES, VOORBEELD_ADRES } from './voorbeeld'
+import { COACHES, LES, VOORBEELD_ADRES } from './voorbeeld'
 
 // De startwizard zoals een nieuwe sportschool hem ziet: de eigen balk (alleen
 // de wizard en Hulp, de rest van Club is nog dicht), de kop met de teller en de
@@ -14,12 +15,12 @@ import { LES, VOORBEELD_ADRES } from './voorbeeld'
 
 const HIER = 5
 const LESTYPEN = [LES.strength, LES.conditioning, LES.mobility, LES.barbell] as const
-/** De vaste week; dag is de index in t.dagen. */
+/** De vaste week met zaal en instructeur; dag is de index in t.dagen. */
 const WEEK = [
-  { dag: 0, les: LES.strength, tijd: '07:00', zaal: 1 },
-  { dag: 1, les: LES.mobility, tijd: '09:30', zaal: 2 },
-  { dag: 2, les: LES.barbell, tijd: '19:30', zaal: 1 },
-  { dag: 3, les: LES.conditioning, tijd: '18:30', zaal: 1 },
+  { dag: 0, les: LES.strength, tijd: '07:00', zaal: 1, coach: COACHES[0].naam },
+  { dag: 1, les: LES.mobility, tijd: '09:30', zaal: 2, coach: COACHES[1].naam },
+  { dag: 2, les: LES.barbell, tijd: '19:30', zaal: 1, coach: COACHES[2].naam },
+  { dag: 3, les: LES.conditioning, tijd: '18:30', zaal: 1, coach: COACHES[3].naam },
 ] as const
 
 type Teksten = (typeof WIZARD)['nl']
@@ -107,6 +108,10 @@ export async function WizardScherm() {
                 <i>{w.tijd}</i>
                 {w.les}
                 <i>{t.zaal(w.zaal)}</i>
+                <small>
+                  <Avatar naam={w.coach} maat={18} className="ayg-avatar--klein" />
+                  {w.coach}
+                </small>
               </span>
             ))}
           </div>

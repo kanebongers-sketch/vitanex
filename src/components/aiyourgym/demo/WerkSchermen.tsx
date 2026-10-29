@@ -1,4 +1,5 @@
 import { Users } from 'lucide-react'
+import { Avatar } from '@/components/aiyourgym/mockups/Avatar'
 import { Venster } from '@/components/aiyourgym/mockups/kaders'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -10,16 +11,6 @@ import { dagKort, dagLang, hoofdletter, weekdag } from './datums'
 // ledenkaart. Getekend uit de echte rijen van de demo-sportschool (zie
 // src/lib/aiyourgym/demo), alleen om te bekijken. De labels in de taal van de
 // pagina (DEMO_SCHERM); de gegevens zelf blijven die van de demo-sportschool (op de website Kernhal).
-
-function initialen(naam: string): string {
-  return naam
-    .split(/\s+/)
-    .map((d) => d[0] ?? '')
-    .join('')
-    .replace(/\W/g, '')
-    .slice(0, 2)
-    .toUpperCase()
-}
 
 /** De paar teksten die het model zelf in het Nederlands maakt (model.ts), in de taal van de pagina. */
 function dienstNaam(naam: string, taal: Taal): string {
@@ -106,7 +97,7 @@ export function VandaagScherm({ data, vestiging, taal }: VandaagProps) {
             {data.diensten.length === 0 && <p className="aygd-leeg">{t.geenDiensten}</p>}
             {data.diensten.map((d) => (
               <div key={`${d.naam}-${d.tijd}`} className="aygm-wie aygd-regel">
-                <span className="aygm-avatar">{initialen(dienstNaam(d.naam, taal))}</span>
+                <Avatar naam={dienstNaam(d.naam, taal)} maat={26} className="aygm-avatar" />
                 <span className="aygm-rij-tekst">
                   <b>{dienstNaam(d.naam, taal)}</b>
                   <span>{dienstTijd(d.tijd, taal)}</span>
@@ -182,7 +173,7 @@ export function LidScherm({ kaart, taal }: { kaart: DemoLidKaart; taal: Taal }) 
   return (
     <Venster actief="Leden">
       <div className="aygd-lid-kop">
-        <span className="aygd-lid-avatar">{initialen(kaart.naam)}</span>
+        <Avatar naam={kaart.naam} maat={52} className="aygd-lid-avatar" />
         <div className="aygd-stapel">
           <p className="aygd-dag">{kaart.naam}</p>
           <p className="aygd-chips">

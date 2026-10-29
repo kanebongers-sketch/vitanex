@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ComponentType } from 'react'
-import { Bell, CalendarClock, CalendarDays, Dumbbell, QrCode, Salad, TrendingUp, Trophy, type LucideIcon } from 'lucide-react'
+import { Dumbbell, QrCode, TrendingUp, type LucideIcon } from 'lucide-react'
 import { Huisstijl } from '@/components/aiyourgym/home/Huisstijl'
 import { AppHome, AppInloggen, AppSchema, AppVoeding } from '@/components/aiyourgym/mockups/AppSchermen'
 import { Toestel, type AppTab } from '@/components/aiyourgym/mockups/kaders'
@@ -31,13 +31,8 @@ const SCHERMEN: readonly { sleutel: keyof Teksten['schermen']; tab: AppTab; Sche
 
 const FUNCTIES: readonly { sleutel: keyof Teksten['functies']; Icoon: LucideIcon }[] = [
   { sleutel: 'inchecken', Icoon: QrCode },
-  { sleutel: 'lessen', Icoon: CalendarDays },
-  { sleutel: 'afspraken', Icoon: CalendarClock },
   { sleutel: 'schema', Icoon: Dumbbell },
-  { sleutel: 'voeding', Icoon: Salad },
   { sleutel: 'voortgang', Icoon: TrendingUp },
-  { sleutel: 'challenges', Icoon: Trophy },
-  { sleutel: 'meldingen', Icoon: Bell },
 ]
 
 export default async function LedenappPagina() {
@@ -95,7 +90,7 @@ export default async function LedenappPagina() {
       <section className="ayg-sectie" aria-labelledby="tabs-titel">
         <div className="ayg-wrap ayg-gesplitst ayg-gesplitst--boven">
           <SectieKop id="tabs-titel" label={t.functiesLabel} titel={t.functiesTitel} tekst={t.functiesTekst} />
-          <ul className="ayg-tabs-lijst ayg-tabs-lijst--twee">
+          <ul className="ayg-tabs-lijst">
             {FUNCTIES.map(({ sleutel, Icoon }) => (
               <li key={sleutel}>
                 <Icoon aria-hidden />
@@ -108,7 +103,7 @@ export default async function LedenappPagina() {
           </ul>
         </div>
       </section>
-      <Huisstijl metLink={false} />
+      <Huisstijl />
       <section className="ayg-sectie" aria-labelledby="app-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst ayg-gesplitst--boven">
           <SectieKop id="app-vragen-titel" label={t.vragenLabel} titel={t.vragenTitel} />

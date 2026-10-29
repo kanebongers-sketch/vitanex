@@ -2,8 +2,9 @@ import { Plus } from 'lucide-react'
 import { formatDatum, formatProcent } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { PRODUCTSCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/productschermen'
+import { Avatar } from '../Avatar'
 import { Venster } from '../kaders'
-import { LES, VOORBEELD_VESTIGING } from '../voorbeeld'
+import { COACHES, LES, VOORBEELD_VESTIGING } from '../voorbeeld'
 import { PBlok, PCijfer, PMeter, PStrook } from './bouwstenen'
 
 // Het scherm Vandaag van Club in de nieuwe stijl: een strook met het hoofdcijfer
@@ -17,18 +18,18 @@ const TAKEN = { gedaan: 7, totaal: 12 } as const
 const OPVOLGEN = 5
 
 const LESSEN = [
-  { tijd: '07:00', naam: LES.strength, bezet: 9, plekken: 12 },
-  { tijd: '09:00', naam: LES.mobility, bezet: 10, plekken: 12 },
-  { tijd: '12:00', naam: LES.kettlebell, bezet: 6, plekken: 10 },
-  { tijd: '18:30', naam: LES.barbell, bezet: 12, plekken: 12, wachtlijst: 3 },
-  { tijd: '20:00', naam: LES.conditioning, bezet: 11, plekken: 14 },
+  { tijd: '07:00', naam: LES.strength, coach: COACHES[0].naam, bezet: 9, plekken: 12 },
+  { tijd: '09:00', naam: LES.mobility, coach: COACHES[1].naam, bezet: 10, plekken: 12 },
+  { tijd: '12:00', naam: LES.kettlebell, coach: COACHES[3].naam, bezet: 6, plekken: 10 },
+  { tijd: '18:30', naam: LES.barbell, coach: COACHES[2].naam, bezet: 12, plekken: 12, wachtlijst: 3 },
+  { tijd: '20:00', naam: LES.conditioning, coach: COACHES[0].naam, bezet: 11, plekken: 14 },
 ] as const
 
 const NET_BINNEN = [
-  { ini: 'SB', naam: 'Sanne Bakker', tijd: '17:58' },
-  { ini: 'RJ', naam: 'Ravi Janssen', tijd: '17:54' },
-  { ini: 'LS', naam: 'Lotte Smit', tijd: '17:51' },
-  { ini: 'NP', naam: 'Noah Peters', tijd: '17:46' },
+  { naam: 'Sanne Bakker', tijd: '17:58' },
+  { naam: 'Ravi Janssen', tijd: '17:54' },
+  { naam: 'Lotte Smit', tijd: '17:51' },
+  { naam: 'Noah Peters', tijd: '17:46' },
 ] as const
 
 const BEZET = LESSEN.reduce((s, l) => s + l.bezet, 0)
@@ -72,6 +73,7 @@ export async function VandaagScherm() {
                       <b>{l.naam}</b>
                       <PMeter deel={l.bezet / l.plekken} label={t.lessenLabel} />
                     </span>
+                    <Avatar naam={l.coach} maat={22} alt={l.coach} className="aygp-coach" />
                     <span className="aygp-stand">{vol && 'wachtlijst' in l ? t.vol(l.wachtlijst) : `${l.bezet}/${l.plekken}`}</span>
                   </li>
                 )
@@ -82,8 +84,8 @@ export async function VandaagScherm() {
             <PBlok titel={t.netBinnen} className="aygp-blok--verhoogd">
               <ul className="aygp-mensen">
                 {NET_BINNEN.map((m) => (
-                  <li key={m.ini}>
-                    <span className="aygp-avatar">{m.ini}</span>
+                  <li key={m.naam}>
+                    <Avatar naam={m.naam} maat={26} className="aygp-avatar" />
                     <b>{m.naam}</b>
                     <span className="aygp-tijd">{m.tijd}</span>
                   </li>

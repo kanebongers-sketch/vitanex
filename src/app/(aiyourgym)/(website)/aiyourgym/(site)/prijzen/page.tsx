@@ -68,10 +68,7 @@ function vragen(taal: Taal, zonderStripe: boolean) {
     { vraag: v.proef.vraag, antwoord: `${v.proef.antwoord}${zonderStripe ? zonder : ''}` },
     v.contract,
     v.gegevens,
-    v.hulp,
-    v.eerstZien,
     v.incasso,
-    v.nieuw,
   ]
 }
 

@@ -72,7 +72,7 @@ export default async function OverstappenPagina() {
       </section>
       <WelNiet />
       <WatKomtMee />
-      <StartStappen metLink={false} />
+      <StartStappen />
       <section className="ayg-sectie" id="vragen" aria-labelledby="overstap-vragen-titel">
         <div className="ayg-wrap ayg-gesplitst">
           <SectieKop id="overstap-vragen-titel" label={t.vragenLabel} titel={t.vragenTitel} />

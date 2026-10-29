@@ -12,8 +12,15 @@ const BIBLIOTHEEK = BLENDER_OEFENINGEN.map((o) => o.naam)
 const OPNAAM = new Map(BIBLIOTHEEK.map((n, i) => [naamSleutel(n), `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`]))
 
 describe('basisset startschema', () => {
-  it("heeft de vier afgesproken schema's", () => {
-    expect(BASIS_SJABLONEN.map((s) => s.sleutel)).toEqual(['full-body-2x', 'boven-onder-4x', 'duwen-trekken-benen', 'lichaamsgewicht-start'])
+  it("heeft de zes afgesproken schema's", () => {
+    expect(BASIS_SJABLONEN.map((s) => s.sleutel)).toEqual([
+      'full-body-2x',
+      'boven-onder-4x',
+      'duwen-trekken-benen',
+      'lichaamsgewicht-start',
+      'circuit-lichaamsgewicht',
+      'mobiliteit-core',
+    ])
     expect(basisSjabloon('onbekend')).toBeNull()
   })
 
@@ -42,7 +49,21 @@ describe('basisset startschema', () => {
   it('supersets krijgen per dag een eigen nummer', () => {
     const { regels } = basisRegels(basisSjabloon('boven-onder-4x')!, OPNAAM)
     const groepen = [...new Set(regels.map((r) => r.groep).filter((g) => g !== null))]
-    expect(groepen).toEqual([1, 2, 3])
+    expect(groepen).toEqual([1, 2, 3, 4])
+  })
+
+  it('het circuit is een ronde: alles in een groep, rust pas na de laatste oefening', () => {
+    const s = basisSjabloon('circuit-lichaamsgewicht')!
+    const regels = s.dagen[0].regels
+    expect(new Set(regels.map((x) => x.groep))).toEqual(new Set([1]))
+    expect(regels.slice(0, -1).every((x) => x.rustSec === 0)).toBe(true)
+    expect(regels.at(-1)!.rustSec).toBeGreaterThan(0)
+  })
+
+  it('het startschema met lichaamsgewicht gebruikt geen materiaal en heeft twee dagen', () => {
+    const s = basisSjabloon('lichaamsgewicht-start')!
+    expect(s.dagen).toHaveLength(2)
+    for (const naam of oefeningNamen(s)) expect(naam, naam).not.toMatch(/barbell|dumbbell|kettlebell|machine/i)
   })
 
   it('op een dag staat een oefening nooit twee keer', () => {

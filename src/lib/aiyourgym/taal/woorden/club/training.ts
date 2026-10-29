@@ -6,7 +6,7 @@ import { woordenboek } from '../../woordenboek'
 // beeld, spieren, coaching), de lidkiezer en de trainingslog. De editor zelf
 // staat in schema-editor.ts, de vaste labels in training-labels.ts.
 
-type BasisSleutel = 'full-body-2x' | 'boven-onder-4x' | 'duwen-trekken-benen' | 'lichaamsgewicht-start'
+type BasisSleutel = 'full-body-2x' | 'boven-onder-4x' | 'duwen-trekken-benen' | 'lichaamsgewicht-start' | 'circuit-lichaamsgewicht' | 'mobiliteit-core'
 
 interface BasisTekst {
   naam: string
@@ -352,9 +352,21 @@ export const CLUB_TRAINING = woordenboek({
         },
         'lichaamsgewicht-start': {
           naam: 'Bodyweight starter',
-          perWeek: 'Two to three times a week, at home too',
-          uitleg: 'Three exercises without equipment for a strong core, glutes and chest. An easy start before the bar comes in.',
-          dagen: ['Bodyweight'],
+          perWeek: 'Two to three times a week, alternating A and B, at home too',
+          uitleg: 'Two sessions without equipment for legs, glutes, chest and a strong core. An easy start before the bar comes in.',
+          dagen: ['Bodyweight A', 'Bodyweight B'],
+        },
+        'circuit-lichaamsgewicht': {
+          naam: 'Bodyweight circuit',
+          perWeek: 'Two to three times a week',
+          uitleg: 'Six exercises back to back, rest only after the round. Four rounds without equipment, done in about 30 minutes.',
+          dagen: ['Circuit'],
+        },
+        'mobiliteit-core': {
+          naam: 'Mobility and core',
+          perWeek: 'One to three times a week, also as an add-on to a strength programme',
+          uitleg: 'Calm bodyweight exercises through the full range of motion, for control, a strong core and supple hips.',
+          dagen: ['Mobility and core'],
         },
       },
     },

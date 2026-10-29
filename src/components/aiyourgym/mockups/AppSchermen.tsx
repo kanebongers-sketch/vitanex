@@ -3,6 +3,7 @@ import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { APP_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
 import { IRON_KLEUR } from '../merk/merk-paden'
+import { Avatar } from './Avatar'
 import { OefNr } from './OefNr'
 import { LES, VOORBEELD_NAAM, VOORBEELD_STRAAT, VOORBEELD_VESTIGING } from './voorbeeld'
 
@@ -41,11 +42,30 @@ export function QrBeeld() {
   )
 }
 
+/** Het voorbeeldlid in de ledenapp (verzonnen), dezelfde als op de ledenkaart. */
+export const APP_LID = 'Sanne Bakker'
+
+/** De kop van een app-scherm: titel of begroeting met rechts de profielfoto van het lid. */
+interface AppGroetProps {
+  titel: string
+  /** Uit voor de held (boven de vouw). */
+  lui?: boolean
+}
+
+export function AppGroet({ titel, lui = true }: AppGroetProps) {
+  return (
+    <div className="aygm-app-groet">
+      <p className="aygm-hallo">{titel}</p>
+      <Avatar naam={APP_LID} maat={32} lui={lui} />
+    </div>
+  )
+}
+
 export async function AppHome() {
   const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">{t.hallo('Sanne')}</p>
+      <AppGroet titel={t.hallo('Sanne')} lui={false} />
       <div className="aygm-volgende">
         <span className="aygm-boven">{t.volgendeLes}</span>
         <b>{LES.strength}</b>
@@ -102,7 +122,7 @@ export async function AppLessen() {
   const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">{t.lessen}</p>
+      <AppGroet titel={t.lessen} />
       <div className="aygm-dagen">
         {t.dagen.map((d, i) => (
           <span key={d} data-actief={i === 1 ? '' : undefined}>
@@ -141,7 +161,7 @@ export async function AppSchema() {
   const t = APP_SCHERMEN[await getSiteTaal()]
   return (
     <>
-      <p className="aygm-hallo">{t.schema}</p>
+      <AppGroet titel={t.schema} />
       <div className="aygm-dagen">
         {t.schemaDagen.map((d, i) => (
           <span key={d} data-actief={i === 0 ? '' : undefined}>
@@ -180,7 +200,7 @@ export async function AppVoeding() {
   const t = APP_SCHERMEN[taal]
   return (
     <>
-      <p className="aygm-hallo">{t.voeding}</p>
+      <AppGroet titel={t.voeding} />
       <div className="aygm-kaart aygm-voeding">
         <div>
           <p className="aygm-boven">{t.doel}</p>

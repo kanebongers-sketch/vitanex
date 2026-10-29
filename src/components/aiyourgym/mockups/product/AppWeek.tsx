@@ -1,6 +1,7 @@
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { PRODUCTSCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/productschermen'
-import { QrBeeld } from '../AppSchermen'
+import { APP_LID, QrBeeld } from '../AppSchermen'
+import { Avatar } from '../Avatar'
 import { LES } from '../voorbeeld'
 import { PSpark } from './bouwstenen'
 import { WeekRing } from './WeekRing'
@@ -16,7 +17,10 @@ export async function AppWeek() {
   const t = PRODUCTSCHERMEN[await getSiteTaal()].app
   return (
     <div className="aygp aygp-app">
-      <p className="aygp-hallo">{t.hallo('Sanne')}</p>
+      <div className="aygm-app-groet">
+        <p className="aygp-hallo">{t.hallo('Sanne')}</p>
+        <Avatar naam={APP_LID} maat={30} />
+      </div>
       <div className="aygp-app-week">
         <WeekRing gedaan={WEEK.gedaan} totaal={WEEK.totaal} maat={112} onder={t.week} />
         <div>

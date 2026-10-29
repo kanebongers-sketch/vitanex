@@ -131,7 +131,7 @@ describe('weergave', () => {
 
 describe('filterOefeningen', () => {
   const lijst: Oefening[] = [
-    { id: '1', naam: 'Push-up op knieën', spiergroep: 'borst', spierenPrimair: ['borstspieren'], spierenSecundair: ['triceps', 'voorste_schouder'], materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, gearchiveerd: false, beeld: null },
+    { id: '1', naam: 'Eigen push-up op knieën tegen de bank', spiergroep: 'borst', spierenPrimair: ['borstspieren'], spierenSecundair: ['triceps', 'voorste_schouder'], materiaal: 'geen', niveau: 1, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, gearchiveerd: false, beeld: null },
     { id: '2', naam: 'Bankdrukken', spiergroep: 'borst', spierenPrimair: ['borstspieren'], spierenSecundair: ['triceps'], materiaal: 'barbell', niveau: 2, patroon: 'duwen_horizontaal', belast: [], uitleg: null, aandachtspunten: null, actief: true, gearchiveerd: false, beeld: { start: '/club/oefeningen/0042-start.svg', eind: '/club/oefeningen/0042-eind.svg', bron: 'everkinetic', enkel: false } },
     { id: '3', naam: 'Oude oefening', spiergroep: 'rug', spierenPrimair: [], spierenSecundair: [], materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false, gearchiveerd: false, beeld: null },
     { id: '4', naam: 'Gearchiveerde oefening', spiergroep: 'rug', spierenPrimair: ['latissimus'], spierenSecundair: [], materiaal: 'geen', niveau: 1, patroon: null, belast: [], uitleg: null, aandachtspunten: null, actief: false, gearchiveerd: true, beeld: null },
@@ -142,7 +142,7 @@ describe('filterOefeningen', () => {
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, materiaal: 'barbell' }).map((o) => o.id)).toEqual(['2', '5'])
     expect(filterOefeningen(lijst, LEEG_FILTER).map((o) => o.id)).toEqual(['1', '2', '5'])
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, metInactief: true }).map((o) => o.id)).toEqual(['1', '2', '3', '5'])
-    // Back squat heeft een Blender-render en telt dus als met beeld.
+    // Back squat heeft een Blender-render en telt dus als met beeld; oefening 1 is een eigen oefening zonder render.
     expect(filterOefeningen(lijst, { ...LEEG_FILTER, zonderBeeld: true }).map((o) => o.id)).toEqual(['1'])
   })
   it('toont een gearchiveerde oefening nooit, ook niet met inactief erbij', () => {

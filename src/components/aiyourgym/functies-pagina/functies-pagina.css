@@ -51,30 +51,31 @@
   .fp-held { grid-template-columns: 42fr 58fr; grid-template-areas: 'titel titel' '. tekst' 'index index'; row-gap: 40px; }
 }
 
-/* ── Hoofdstuk ────────────────────────────────────────────────────────────── */
+/* ── Hoofdstuk ──────────────────────────────────────────────────────────────
+   Tekst smal, scherm breed (het scherm doet het werk); om en om gespiegeld. */
 .fp-hoofdstuk {
-  display: grid; gap: 48px;
-  min-height: 90svh;
+  display: grid; gap: clamp(40px, 5vw, 64px);
   padding: clamp(72px, 9vw, 144px) var(--vp-rand);
   background: var(--fp-vlak); color: var(--fp-tekst);
   box-shadow: inset 0 1px 0 var(--vp-lichtrand);
   scroll-margin-top: var(--vp-kop-hoogte);
 }
-.fp-hoofdstuk-links { display: grid; gap: 24px; align-content: start; min-width: 0; }
+.fp-hoofdstuk-tekst { display: grid; gap: 20px; align-content: start; min-width: 0; }
+.fp-hoofdstuk-beeld { min-width: 0; }
 .fp-naam { font-size: 17px; font-weight: 500; color: var(--fp-zacht); }
-.fp-kop { font-size: clamp(2.4rem, 5.6vw, 6rem); max-width: 12em; }
-.fp-intro { font-size: var(--vp-t-lead); line-height: 1.45; max-width: 36ch; }
-.fp-functies { display: grid; gap: 28px; align-content: start; min-width: 0; }
-.fp-functies h3 { font-size: clamp(1.35rem, 1.7vw, 1.85rem); letter-spacing: -0.03em; line-height: 1.12; margin-bottom: 8px; }
-.fp-functies p { font-size: 16.5px; line-height: 1.55; max-width: 46ch; }
+.fp-kop { font-size: clamp(2.3rem, 4.4vw, 4.6rem); max-width: 11em; }
+.fp-intro { font-size: var(--vp-t-lead); line-height: 1.45; max-width: 34ch; color: var(--fp-zacht); }
+.fp-functies { display: grid; gap: 20px; margin-top: clamp(12px, 2vw, 28px); padding-top: clamp(20px, 2vw, 28px); box-shadow: inset 0 1px 0 var(--vp-lijn); }
+.fp-functies h3 { font-size: clamp(1.15rem, 1.4vw, 1.4rem); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 4px; }
+.fp-functies p { font-size: 16px; line-height: 1.5; max-width: 40ch; color: var(--fp-zacht); }
 @media (min-width: 1024px) {
-  .fp-hoofdstuk { grid-template-columns: 62fr 38fr; column-gap: clamp(40px, 5vw, 96px); align-items: start; }
-  .fp-hoofdstuk-links { gap: 28px; }
-  .fp-functies { padding-top: 6px; gap: 32px; }
+  .fp-hoofdstuk { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: clamp(48px, 6vw, 112px); align-items: center; }
+  .fp-hoofdstuk[data-spiegel] .fp-hoofdstuk-tekst { order: 2; }
+  .fp-hoofdstuk-tekst { gap: 24px; }
 }
 
 /* ── Schermfragmenten (data-ui) ───────────────────────────────────────────── */
-.fp-scherm { margin: 16px 0 0; padding: clamp(18px, 2vw, 28px); background: var(--fp-scherm); color: var(--fp-tekst); box-shadow: inset 0 1px 0 var(--vp-lichtrand), inset 0 0 0 1px var(--vp-lijn); display: grid; gap: 16px; max-width: 760px; }
+.fp-scherm { margin: 0; padding: clamp(18px, 2vw, 28px); background: var(--fp-scherm); color: var(--fp-tekst); box-shadow: inset 0 1px 0 var(--vp-lichtrand), inset 0 0 0 1px var(--vp-lijn); display: grid; gap: 16px; max-width: 760px; }
 .fp-scherm-kop { display: grid; gap: 4px; }
 .fp-scherm-titel { font-size: clamp(1.2rem, 1.5vw, 1.5rem); font-weight: 500; letter-spacing: -0.03em; }
 .fp-klein { font-size: 13.5px; color: var(--fp-zacht); }

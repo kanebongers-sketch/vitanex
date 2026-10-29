@@ -19,7 +19,7 @@ export const VOORPAGINA = woordenboek({
     producten: {
       werkvloer: {
         kop: 'De hele dag op een scherm.',
-        tekst: 'Vandaag laat zien wie er binnen is, hoe vol de lessen zitten en wat er nog moet gebeuren. Balie en vloer kijken naar hetzelfde scherm.',
+        tekst: 'Wie er binnen is, hoe vol de lessen zitten en wat er nog moet gebeuren.',
         punten: ['Inchecken met de QR-code uit de ledenapp', 'Taken en poetslijsten afvinken op de vloer', 'Opvolgen: wie je vandaag belt of aanspreekt'],
         link: 'Alles voor de werkvloer',
         beeldLabel:
@@ -27,7 +27,7 @@ export const VOORPAGINA = woordenboek({
       },
       ledenkaart: {
         kop: 'Alles van een lid op een kaart.',
-        tekst: 'Intake, schema, lidmaatschap, bezoek en berichten staan op het profiel van het lid. Je ziet het verloop en past het daar ook aan.',
+        tekst: 'Intake, schema, lidmaatschap en bezoek op het profiel, daar ook aan te passen.',
         punten: ['Bezoek per kalendermaand, met het verloop over 12 weken', 'Intake en schema starten vanaf de kaart', 'Gegevens downloaden of wissen volgens de AVG'],
         link: 'Meer over de ledenkaart',
         beeldLabel:
@@ -35,7 +35,7 @@ export const VOORPAGINA = woordenboek({
       },
       schemas: {
         kop: 'Schema’s zoals een trainer ze maakt.',
-        tekst: 'Supersets, sets, kilo’s, RIR, rust en tempo per oefening. Bij elke oefening staan de kernpunten die je anders op de vloer zou zeggen.',
+        tekst: 'Met bij elke oefening de kernpunten die je anders op de vloer zegt.',
         punten: ['Coaching per oefening: kernpunten, fouten en ademhaling', 'Het lid logt elke set in de ledenapp', 'Dubbele progressie: je ziet wanneer het zwaarder kan'],
         link: 'Meer over trainingsschema’s',
         beeldLabel:
@@ -43,7 +43,7 @@ export const VOORPAGINA = woordenboek({
       },
       ledenapp: {
         kop: 'Een app in jouw naam en kleuren.',
-        tekst: 'Leden zetten de app op hun beginscherm. Ze reserveren lessen, checken in met hun QR-code en zien hun eigen schema en voortgang.',
+        tekst: 'Reserveren, inchecken en het eigen schema, op het beginscherm van je leden.',
         punten: ['Jouw logo, naam en kleuren in elk pakket', 'De week in een ring: trainingen gedaan tegen het doel', 'Lessen reserveren, met wachtlijst als het vol is'],
         link: 'Meer over de ledenapp',
         beeldLabel:
@@ -88,7 +88,7 @@ export const VOORPAGINA = woordenboek({
     producten: {
       werkvloer: {
         kop: 'The whole day on one screen.',
-        tekst: 'Today shows who is in, how full the classes are and what still needs doing. Front desk and gym floor look at the same screen.',
+        tekst: 'Who is in, how full the classes are and what still needs doing.',
         punten: ['Check in with the QR code from the member app', 'Tick off tasks and cleaning lists on the floor', 'Follow-up: who to call or talk to today'],
         link: 'Everything for the gym floor',
         beeldLabel:
@@ -96,7 +96,7 @@ export const VOORPAGINA = woordenboek({
       },
       ledenkaart: {
         kop: 'Everything about a member on one card.',
-        tekst: 'Intake, programme, membership, visits and messages live on the member’s profile. You see the trend and change things right there.',
+        tekst: 'Intake, programme, membership and visits on the profile, and editable right there.',
         punten: ['Visits per calendar month, with the trend over 12 weeks', 'Start an intake or a programme from the card', 'Download or erase data under the GDPR'],
         link: 'More about the member card',
         beeldLabel:
@@ -104,7 +104,7 @@ export const VOORPAGINA = woordenboek({
       },
       schemas: {
         kop: 'Programmes the way a trainer writes them.',
-        tekst: 'Supersets, sets, weights, RIR, rest and tempo per exercise. Every exercise carries the cues you would otherwise give on the floor.',
+        tekst: 'Every exercise carries the cues you would otherwise give on the floor.',
         punten: ['Coaching per exercise: cues, common faults and breathing', 'Members log every set in the member app', 'Double progression: you see when to go heavier'],
         link: 'More about training programmes',
         beeldLabel:
@@ -112,7 +112,7 @@ export const VOORPAGINA = woordenboek({
       },
       ledenapp: {
         kop: 'An app in your name and colours.',
-        tekst: 'Members add the app to their home screen. They book classes, check in with their QR code and see their own programme and progress.',
+        tekst: 'Booking, check-in and their own programme, on your members’ home screen.',
         punten: ['Your logo, name and colours in every plan', 'The week as a ring: sessions done against the goal', 'Book classes, with a waiting list when they are full'],
         link: 'More about the member app',
         beeldLabel:

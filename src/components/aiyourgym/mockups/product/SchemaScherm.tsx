@@ -6,6 +6,7 @@ import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { standaardCoachingIn } from '@/lib/aiyourgym/taal/woorden/club/coaching'
 import { PRODUCTSCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/productschermen'
+import { Avatar } from '../Avatar'
 import { Venster } from '../kaders'
 import { PBlok, PCijfer } from './bouwstenen'
 import {
@@ -34,6 +35,8 @@ type Teksten = (typeof PRODUCTSCHERMEN)['nl']['schema']
 
 const WEEK = { nu: 3, totaal: 8 } as const
 const DAG_C_TONEN = 4
+/** Het voorbeeldlid van dit schema (verzonnen), zoals op de ledenkaart. */
+const LID = 'Sanne Bakker'
 
 export async function SchemaScherm() {
   const taal = await getSiteTaal()
@@ -45,9 +48,12 @@ export async function SchemaScherm() {
     <Venster actief="Coaching" hier="Training">
       <div className="aygp aygs">
         <div className="aygp-paginakop">
-          <div>
-            <p className="aygp-waar">{t.wie}</p>
-            <p className="aygp-titel">{t.kop}</p>
+          <div className="aygp-kop-lid">
+            <Avatar naam={LID} maat={38} className="aygp-avatar aygp-avatar--middel" />
+            <div>
+              <p className="aygp-waar">{t.wie}</p>
+              <p className="aygp-titel">{t.kop}</p>
+            </div>
           </div>
           <span className="aygp-knop">{t.opslaan}</span>
         </div>

@@ -92,6 +92,43 @@ const BEWEGING = {
   'overhead-press': { heen_is: 'concentrisch', soort: 'herhaling' },
   'glute-bridge': { heen_is: 'concentrisch', soort: 'herhaling' },
   plank: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Golf 1 (29-10-2026)
+  'push-up-op-knieen': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'push-up-met-smalle-handen': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'glute-bridge-op-een-been': { heen_is: 'concentrisch', soort: 'herhaling' },
+  zijplank: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  superman: { heen_is: 'concentrisch', soort: 'herhaling' },
+  // De RDL en de good morning beginnen rechtop: eerst zakken met de heupen naar achteren.
+  'roemeense-deadlift-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'sumo-deadlift': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'good-morning': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'barbell-row-met-onderhandse-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'schouders-ophalen-met-barbell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Thruster: eerst de front squat omlaag, dan in een beweging omhoog en drukken.
+  'thruster-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'squat-met-lichaamsgewicht': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'achterwaartse-lunge': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'split-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'walking-lunge-met-lichaamsgewicht': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'zijwaartse-lunge': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'calf-raise-met-lichaamsgewicht': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'pike-push-up': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'mountain-climber': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'bird-dog': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Squat jump en burpee: eerst inzakken, dan explosief omhoog.
+  'squat-jump': { heen_is: 'excentrisch', soort: 'herhaling' },
+  burpee: { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Golf 1A, buik (29-10-2026). Wisselende oefeningen (dead bug, crunch met
+  // draai, fietsende crunch, russian twist): een lus is beide kanten.
+  crunch: { heen_is: 'concentrisch', soort: 'herhaling' },
+  'reverse-crunch': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'leg-raise-liggend': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hollow-hold': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Dead bug: eerst arm en been gecontroleerd van je af laten zakken.
+  'dead-bug': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'crunch-met-draai': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'fietsende-crunch': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'russian-twist': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -193,12 +230,26 @@ function wachttijden(aantal) {
   return Array.from({ length: aantal }, (_, i) => Math.round(((i + 1) * 1000) / FPS) - Math.round((i * 1000) / FPS))
 }
 
-async function maakLus(frames, snij, maat, opties, doel) {
+/**
+ * Bovengrens per lus in bytes, gelijk aan MAX_KB in oefenrenders.test.ts. Een
+ * lange lus (96 tot 120 beelden, zoals de walking lunge) kan erboven komen; dan
+ * zakt de kwaliteit in stappen van 2 tot hij past, nooit onder LUS_MIN_KWALITEIT.
+ */
+const LUS_MAX_BYTES = { hd: 3072 * 1024, middel: 2304 * 1024, klein: 1330 * 1024 }
+const LUS_MIN_KWALITEIT = 76
+
+async function maakLus(frames, snij, maat, opties, doel, maxBytes = Infinity) {
   const bufs = []
   for (const f of frames) bufs.push(await beeld(f, snij, maat))
-  await sharp(bufs, { join: { animated: true } })
-    .webp({ ...opties, loop: 0, delay: wachttijden(bufs.length) })
-    .toFile(doel)
+  for (let quality = opties.quality; ; quality -= 2) {
+    await sharp(bufs, { join: { animated: true } })
+      .webp({ ...opties, quality, loop: 0, delay: wachttijden(bufs.length) })
+      .toFile(doel)
+    const bytes = statSync(doel).size
+    if (bytes <= maxBytes) return
+    if (quality - 2 < LUS_MIN_KWALITEIT) throw new Error(`${doel} blijft boven ${Math.round(maxBytes / 1024)} KB, ook op kwaliteit ${quality}`)
+    console.log(`  ${doel.split(/[\\/]/).pop()}: ${Math.round(bytes / 1024)} KB te zwaar op kwaliteit ${quality}, opnieuw op ${quality - 2}`)
+  }
 }
 
 async function maakStill(frame, snij, maat, opties, doel) {
@@ -264,7 +315,9 @@ function tempoVan(pose) {
 function fasenUitTempo(tempo, aantal) {
   const sleutels = [...tempo].sort((a, b) => a[0] - b[0])
   const start = sleutels[0][1]
-  const ver = Math.max(...sleutels.map(([, v]) => v))
+  // De verste stand is de waarde die het verst van de beginstand ligt: meestal 1
+  // (vanaf 0), maar bij een hinge die rechtop begint (RDL, h = 1) de laagste waarde.
+  const ver = sleutels.reduce((best, [, v]) => (Math.abs(v - start) > Math.abs(best - start) ? v : best), start)
   const gelijk = (a, b) => Math.abs(a - b) < 1e-6
   const iVertrek = sleutels.findIndex(([, v]) => !gelijk(v, start))
   if (iVertrek < 1) throw new Error('tempo vertrekt niet van een beginstand')
@@ -299,9 +352,9 @@ async function maakBestanden(bron, slug, uit) {
     'begin-klein': Math.min(KLEIN, hd),
     'piek-klein': Math.min(KLEIN, hd),
   }
-  await maakLus(frames, snij, maten['lus-hd'], WEBP.hd, join(uit, 'lus-hd.webp'))
-  await maakLus(frames, snij, maten.lus, WEBP.middel, join(uit, 'lus.webp'))
-  await maakLus(frames, snij, maten['lus-klein'], WEBP.klein, join(uit, 'lus-klein.webp'))
+  await maakLus(frames, snij, maten['lus-hd'], WEBP.hd, join(uit, 'lus-hd.webp'), LUS_MAX_BYTES.hd)
+  await maakLus(frames, snij, maten.lus, WEBP.middel, join(uit, 'lus.webp'), LUS_MAX_BYTES.middel)
+  await maakLus(frames, snij, maten['lus-klein'], WEBP.klein, join(uit, 'lus-klein.webp'), LUS_MAX_BYTES.klein)
   const stil = stilFrames(bron, slug, frames.length)
   for (const stand of ['begin', 'piek']) {
     const frame = frames[stil[stand]]
@@ -318,7 +371,11 @@ async function maakBestanden(bron, slug, uit) {
 /** Naam en spieren uit het 3D-bestand: de naam is exact die van de oefenbibliotheek. */
 function uitBibliotheek(slug, bron) {
   const bestand = join(BIBLIOTHEEK, `${slug}.ts`)
-  if (!existsSync(bestand)) throw new Error(`geen 3D-oefening ${slug}.ts in de bibliotheek: de mapnaam moet het 3D-bestand volgen`)
+  // Een render die direct in Blender is gemaakt (golf 1) heeft geen 3D-bestand in
+  // de app: dan komen naam en spieren uit poses/<slug>.json. De naam daar is
+  // exact die van de oefenbibliotheek (de tests in blender-bibliotheek.test.ts
+  // controleren dat).
+  if (!existsSync(bestand)) return uitPoseBestand(slug, bron)
   const tekst = readFileSync(bestand, 'utf8')
   // naam: 'X' in het object, of als eerste argument van een bouwsteen: plank('Plank')
   const naam = (tekst.match(/naam:\s*'([^']+)'/) ?? tekst.match(/=\s*\w+\(\s*'([^']+)'/))?.[1]
@@ -336,6 +393,15 @@ const ZONE_DEEL = {
   quadriceps: 'dij', hamstrings: 'hamstring', bilspieren: 'bil', kuiten: 'kuit', borst: 'borst',
   voorste_schouder: 'schouder', zijschouder: 'schouder', triceps: 'bovenarm', biceps: 'bovenarm',
   onderarm: 'onderarm', bovenrug: 'rug', onderrug: 'onderrug', buikspieren: 'romp', schuine_buikspieren: 'romp',
+  achterste_schouder: 'schouder', adductoren: 'dij', abductoren: 'bil', heupbuigers: 'dij',
+}
+
+function uitPoseBestand(slug, bron) {
+  const pose = join(bron, '..', 'poses', `${slug}.json`)
+  if (!existsSync(pose)) throw new Error(`geen 3D-oefening ${slug}.ts en geen pose ${pose}: naam onbekend`)
+  const naam = JSON.parse(readFileSync(pose, 'utf8')).naam
+  if (typeof naam !== 'string' || !naam.trim()) throw new Error(`geen naam in ${pose}`)
+  return { naam: naam.trim(), spieren: uitPose(slug, bron), spierenSecundair: [] }
 }
 
 function uitPose(slug, bron) {

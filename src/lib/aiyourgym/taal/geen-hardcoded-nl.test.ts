@@ -216,13 +216,11 @@ const INHOUD_WAARDEN: Record<string, string> = {
   START_MINUTEN: 'getal',
   aantalNieuw: 'getal',
   // Lijsten die de pagina alleen gebruikt voor volgorde en sleutels; de tekst komt uit het woordenboek.
-  ROLLEN: 'volgorde, sleutels en paden; tekst uit OOGOPSLAG',
   DOELGROEPEN: 'volgorde en sleutels; tekst uit het woordenboek van de pagina',
   START_STAPPEN: 'aantal en volgorde; tekst uit START_SECTIE',
   SCHEMA_STAPPEN: 'volgorde en sleutels; tekst uit TRAININGSSCHEMAS',
   HOOFDSTUKKEN: 'volgorde en sleutels; tekst uit FUNCTIES',
   GERUSTSTELLING: 'alleen het aantal punten; tekst uit ACTIE',
-  OPRICHTER: 'alleen de naam (een eigennaam)',
   NIEUW: 'datums en sleutels; elke tekst gaat via puntTekst en maandSamenvatting met de taal',
   korteDatum: 'datum in de taal van de aanroeper (formaat.ts)',
   maandNaam: 'maandnaam in de taal van de aanroeper',

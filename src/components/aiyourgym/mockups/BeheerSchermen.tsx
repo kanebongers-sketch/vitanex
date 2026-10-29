@@ -2,6 +2,7 @@ import { Download } from 'lucide-react'
 import { formatGetal, formatProcent } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/website/mockups/club'
+import { Avatar } from './Avatar'
 import { Venster } from './kaders'
 import { COACHES } from './voorbeeld'
 
@@ -78,7 +79,7 @@ export async function PersoneelScherm() {
         {DIENSTEN.map((d) => (
           <div key={`${d.ini}-${d.van}`} style={{ gridTemplateColumns: kolommen }}>
             <span className="aygm-wie">
-              <span className="aygm-avatar">{d.ini}</span>
+              <Avatar naam={d.naam} maat={26} className="aygm-avatar" />
               <span>{d.naam}</span>
             </span>
             <span>{t.dienst(t.dagen[d.dag] ?? '', d.van, d.tot)}</span>
