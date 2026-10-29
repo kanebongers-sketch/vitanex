@@ -146,3 +146,107 @@
   .club-training-r, .club-training-basis-kaart, .club-training-r-meer svg { transition: none; }
   .club-training-basis-kaart:hover { transform: none; }
 }
+
+/* ── Schemaweergave, high-end (29-10-2026) ─────────────────────────────────────
+   Elke oefening is een kaart een laag boven de dag: lichtrand, zachte diepte, de
+   poster van de Blender-render als podium links. De gekozen oefening krijgt een
+   rand in de accentkleur en staat groot in het zijpaneel. Supersets en circuits
+   hangen aan een rail met een knoop per oefening en een letter bovenaan. */
+.club-training-dag { background: linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 92%, var(--text-1)), var(--bg-card) 120px); box-shadow: var(--club-randlicht), var(--club-diepte-1); border-radius: var(--club-hoek-3, var(--club-radius)); }
+.club-training-dagletter { box-shadow: var(--club-randlicht-sterk), 0 10px 22px -12px var(--brand-glow, transparent); }
+
+.club-training-r { position: relative; background: linear-gradient(180deg, var(--club-opp-2, var(--club-vlak)), var(--club-opp-1, var(--club-vlak))); box-shadow: var(--club-randlicht), var(--club-diepte-1); border-radius: var(--club-hoek-2, var(--club-radius-klein)); transition: border-color var(--club-duur-snel, 140ms) var(--ease), box-shadow var(--club-duur-snel, 140ms) var(--ease); }
+.club-training-r[data-gekozen] { border-color: color-mix(in srgb, var(--brand) 60%, var(--line)); box-shadow: var(--club-randlicht-sterk), 0 0 0 1px color-mix(in srgb, var(--brand) 30%, transparent), 0 14px 32px -20px var(--brand-glow, rgba(0, 0, 0, 0.6)); }
+.club-training-r[data-sleepdoel] { box-shadow: 0 -3px 0 0 var(--brand), var(--club-randlicht); }
+
+/* De poster: een klein podium met licht van boven, de lus speelt onder de muis. */
+.club-training-r-poster { position: relative; flex: none; display: grid; place-items: center; width: 84px; height: 84px; padding: 0; border: 1px solid var(--line); border-radius: var(--club-hoek-2, 10px); background: radial-gradient(90% 75% at 50% 30%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%), var(--club-opp-put, var(--bg-app)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -10px 18px -12px rgba(0, 0, 0, 0.6); overflow: hidden; cursor: zoom-in; transition: transform 160ms var(--club-ease-uit, var(--ease)), border-color 140ms var(--ease); }
+.club-training-r-poster .club-rep-duim { width: 100%; height: 100%; border: 0; border-radius: 0; background: transparent; }
+.club-training-r-poster .club-training-beeld { --club-training-beeld-maat: 80px; }
+.club-training-r-poster:active { transform: scale(0.96); }
+.club-training-r-poster:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-training-r[data-gekozen] .club-training-r-poster { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+@media (hover: hover) { .club-training-r-poster:hover { border-color: var(--line-strong); } }
+
+.club-training-r-nr { min-width: 40px; height: 32px; display: inline-grid; place-items: center; border-radius: 8px; background: var(--club-opp-put, var(--club-vlak)); color: var(--text-1); font-size: 17px; letter-spacing: 0.02em; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.club-training-blok .club-training-r-nr { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); box-shadow: none; }
+
+.club-training-r-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 2px; }
+.club-training-r-inspanning { display: inline-flex; align-items: baseline; gap: 5px; padding: 2px 9px; border-radius: 999px; background: var(--club-opp-put, var(--club-vlak)); font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-3); }
+.club-training-r-inspanning b { font-size: 15px; letter-spacing: 0; color: var(--text-1); font-variant-numeric: tabular-nums; }
+
+/* De cijfers van een regel: groot in de kopletter, in een verzonken veld, goed te scannen. */
+.club-training-r-velden, .club-training-r-extra { padding-left: 82px; }
+.club-training-r-velden .club-invoer, .club-training-r-extra .club-training-r-veld--kort .club-invoer { font-family: var(--ff-kop); font-size: 19px; font-weight: 700; letter-spacing: 0.01em; background: var(--club-opp-put, var(--bg-app)); border-color: transparent; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.club-app[data-thema='licht'] .club-training-r-velden .club-invoer { box-shadow: inset 0 1px 2px rgba(17, 17, 15, 0.08); }
+.club-training-r-velden .club-invoer:hover { border-color: var(--line-strong); }
+.club-training-r-velden .club-invoer:focus { border-color: color-mix(in srgb, var(--brand) 60%, transparent); }
+
+/* Superset en circuit: een rail met een knoop per oefening, de letter bovenaan. */
+.club-training-blok { gap: 8px; padding: 10px 10px 10px 28px; border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line)); border-radius: var(--club-hoek-3, var(--club-radius-klein)); background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 9%, transparent), color-mix(in srgb, var(--brand) 3%, transparent)); }
+.club-training-blok::before { left: 13px; top: 40px; bottom: 40px; width: 2px; }
+.club-training-blok > .club-training-blokken > .club-training-r::before { content: ''; position: absolute; left: -19px; top: 44px; width: 10px; height: 10px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 3px var(--bg-card), 0 0 12px var(--brand-glow, transparent); }
+.club-training-blokkop { align-items: center; }
+.club-training-blokletter { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-left: -28px; border-radius: 8px; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); font-family: var(--ff-kop); font-size: 17px; font-weight: 700; box-shadow: 0 0 0 3px var(--bg-card); }
+
+@media (max-width: 640px) {
+  .club-training-r-poster { width: 64px; height: 64px; }
+  .club-training-r-poster .club-training-beeld { --club-training-beeld-maat: 60px; }
+  .club-training-r-velden, .club-training-r-extra { padding-left: 0; }
+  .club-training-r-velden .club-invoer { font-size: 18px; }
+  .club-training-blok { padding-left: 22px; }
+  .club-training-blok::before { left: 9px; }
+  .club-training-blok > .club-training-blokken > .club-training-r::before { left: -17px; top: 34px; }
+  .club-training-blokletter { margin-left: -24px; width: 24px; height: 24px; font-size: 15px; }
+}
+
+/* ── Zijpaneel: de gekozen oefening ───────────────────────────────────────── */
+.club-gekozen { display: grid; gap: 18px; background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card)) 55%); border-color: var(--line-strong); box-shadow: var(--club-randlicht-sterk), var(--club-diepte-2); }
+.club-gekozen--leeg { gap: 8px; }
+.club-gekozen-boven { margin: 0; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.club-gekozen-kop { display: grid; gap: 4px; }
+.club-gekozen-kop h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--ff-kop); font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: 0.01em; text-transform: uppercase; overflow-wrap: anywhere; }
+.club-gekozen-label { flex: none; display: inline-grid; place-items: center; min-width: 38px; height: 32px; padding: 0 8px; border-radius: 8px; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); font-size: 18px; }
+.club-gekozen-beeld { margin: 0 -4px; border-radius: var(--club-hoek-3, 14px); overflow: hidden; background: radial-gradient(90% 70% at 50% 30%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%), var(--club-opp-put, var(--bg-app)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+.club-gekozen-voorschrift, .club-gekozen-kern, .club-gekozen-verloop, .club-gekozen-advies { display: grid; gap: 8px; }
+.club-gekozen-cijfers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--line); border-radius: var(--club-hoek-2, 10px); background: var(--club-opp-put, var(--club-vlak)); overflow: hidden; }
+.club-gekozen-cijfers > div { display: grid; gap: 2px; padding: 10px 10px 9px; min-width: 0; }
+.club-gekozen-cijfers > div + div { border-left: 1px solid var(--line); }
+.club-gekozen-cijfers dt { font-family: var(--ff-kop); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.club-gekozen-cijfers dd { margin: 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.club-gekozen-cijfers dd small { margin-left: 2px; font-size: 12px; color: var(--text-3); }
+.club-gekozen-cijfers [data-leeg] dd { color: var(--text-4); }
+.club-gekozen-kern ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.club-gekozen-kern li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14.5px; font-weight: 500; line-height: 1.35; }
+.club-gekozen-kern b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand-tekst, var(--brand)); font-family: var(--ff-kop); font-size: 13px; }
+.club-gekozen-kern .club-hint, .club-gekozen-verloop .club-hint { margin: 0; }
+.club-gekozen-verloop { padding-top: 16px; border-top: 1px solid var(--line); }
+.club-gekozen-piek { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.club-gekozen-piek strong { font-family: var(--ff-kop); font-size: clamp(40px, 3.4vw, 54px); font-weight: 700; line-height: 0.88; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.club-gekozen-piek strong small { margin-left: 4px; font-size: 0.36em; font-weight: 600; letter-spacing: 0.04em; color: var(--text-3); }
+.club-gekozen-keer { margin: 0; font-size: 13px; color: var(--text-3); }
+.club-gekozen-advies { padding: 12px 14px; border-radius: var(--club-hoek-2, 10px); background: var(--club-vlak); border: 1px solid var(--line); }
+.club-gekozen-advies[data-richting='op'] { background: color-mix(in srgb, var(--club-ok) 8%, transparent); border-color: color-mix(in srgb, var(--club-ok) 28%, var(--line)); }
+.club-gekozen-advies-tekst { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: 14px; line-height: 1.45; color: var(--text-1); }
+.club-gekozen-advies-tekst svg { flex: none; margin-top: 2px; color: var(--text-3); }
+.club-gekozen-advies[data-richting='op'] svg { color: var(--club-ok-inkt, var(--club-ok)); }
+.club-gekozen-advies[data-richting='neer'] svg { color: var(--club-let-op-inkt, var(--club-let-op)); }
+.club-gekozen-regelnaam { margin: 0; font-size: 12px; color: var(--text-3); }
+
+/* Op de pc blijft de zijkolom in beeld onder de werkbalk, met een eigen scroll:
+   wie onderaan het schema een oefening aanwijst, ziet hem meteen groot. */
+@media (min-width: 1000px) and (min-height: 640px) {
+  .club-training-editor .club-training-zij { position: sticky; top: 172px; align-self: start; max-height: calc(100dvh - 188px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 2px 4px 12px 2px; margin: -2px -4px 0 -2px; }
+}
+
+/* ── De week in de log ────────────────────────────────────────────────────── */
+.club-training-week-nu { display: flex; align-items: center; gap: 16px; padding: 4px 0 14px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+.club-training-week-nu .club-ring-midden strong { font-size: 28px; }
+.club-training-week-nu .club-ring-midden span { font-size: 14px; }
+.club-training-week-tekst { display: grid; gap: 8px; min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-training-r-poster { transition: none; }
+}
+@media print { .club-gekozen, .club-training-week-nu { display: none !important; } }
+.club-gekozen h2 { scroll-margin-top: 180px; }

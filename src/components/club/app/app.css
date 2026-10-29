@@ -344,3 +344,44 @@
 .club-lidapp-taal { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--club-radius, 14px); background: var(--bg-card); }
 .club-lidapp-taal > span { font-size: 14px; color: var(--text-2); }
 .club-lidapp-taalkeuze { --ayg-taal-actief-vlak: var(--brand); --ayg-taal-actief-tekst: var(--brand-inkt, var(--bg-app)); color: var(--text-1); }
+
+/* ── Schema: de training van vandaag (29-10-2026) ─────────────────────────────
+   Een hoofdkaart met de dag groot, de week als ring en de ene actie die telt.
+   Daaronder de oefeningen als stappen: het beeld groot links met het label
+   (A, B1) erop, de naam, het voorschrift en het tempo als curve. Een superset of
+   circuit hangt aan een rail met de letter bovenaan. Lagen en lichtrand uit
+   ontwerp.css, kleuren uit de huisstijl van de sportschool. */
+.club-lidapp-vandaag { display: grid; gap: 16px; padding: 18px; border: 1px solid var(--line-strong); border-radius: var(--lidapp-radius); background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 60%), linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card))); box-shadow: var(--club-randlicht-sterk), var(--club-diepte-2); }
+.club-lidapp-vandaag-kop { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.club-lidapp-vandaag h3 { margin: 2px 0 0; font-family: var(--ff-kop); font-size: 52px; font-weight: 700; line-height: 0.88; letter-spacing: -0.01em; text-transform: uppercase; }
+.club-lidapp-vandaag-meta { display: flex; flex-wrap: wrap; margin: 8px 0 0; font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.club-lidapp-vandaag-meta span::before { content: '\00B7'; margin: 0 8px; color: var(--text-3); }
+.club-lidapp-vandaag .club-ring-midden strong { font-size: 28px; }
+.club-lidapp-vandaag .club-ring-midden span { font-size: 14px; }
+.club-lidapp-vandaag .club-lidapp-startrij { gap: 6px; }
+
+.club-lidapp-stappen { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-lidapp-stap .club-lidapp-oefening { grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; padding: 10px 12px 10px 10px; background: linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card))); box-shadow: var(--club-randlicht), var(--club-diepte-1); }
+.club-lidapp-stap-beeld { position: relative; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 14px; background: radial-gradient(90% 75% at 50% 30%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%), var(--club-opp-put, var(--bg-app)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); overflow: hidden; }
+.club-lidapp-stap-beeld .club-rep-duim { width: 100%; height: 100%; border: 0; border-radius: 0; background: transparent; }
+.club-lidapp-stap-beeld .club-training-beeld { --club-training-beeld-maat: 88px; }
+.club-lidapp-stap-beeld .club-lidapp-nr { position: absolute; left: 6px; top: 6px; width: auto; min-width: 28px; height: 26px; padding: 0 7px; border-radius: 8px; background: color-mix(in srgb, var(--bg-app) 78%, transparent); backdrop-filter: blur(6px); font-size: 14px; box-shadow: var(--club-randlicht); }
+.club-lidapp-stap .club-lidapp-oefening-tekst { gap: 4px; }
+.club-lidapp-stap .club-lidapp-oefening-tekst strong { font-family: var(--ff-kop); font-size: 19px; font-weight: 700; line-height: 1.05; letter-spacing: 0.01em; text-transform: uppercase; }
+.club-lidapp-stap .club-tempo { justify-self: start; }
+
+.club-lidapp-blokstap { position: relative; display: grid; gap: 8px; padding: 10px 8px 10px 26px; border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--line)); border-radius: calc(var(--lidapp-radius) + 4px); background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 10%, transparent), color-mix(in srgb, var(--brand) 3%, transparent)); }
+.club-lidapp-blokstap::before { content: ''; position: absolute; left: 12px; top: 42px; bottom: 54px; width: 2px; border-radius: 2px; background: var(--brand); }
+.club-lidapp-blokstap[data-soort='circuit']::before { background: repeating-linear-gradient(to bottom, var(--brand) 0 8px, transparent 8px 12px); }
+.club-lidapp-blokstap .club-lidapp-stap { position: relative; }
+.club-lidapp-blokstap .club-lidapp-stap::before { content: ''; position: absolute; left: -18px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 3px var(--bg-app); }
+.club-lidapp-blokstap .club-lidapp-nr { background: var(--brand); color: var(--brand-inkt, var(--bg-app)); backdrop-filter: none; }
+.club-lidapp-blokstap-kop { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13.5px; color: var(--text-3); }
+.club-lidapp-blokstap-kop strong { font-family: var(--ff-kop); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-lidapp-blokstap-letter { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-left: -26px; border-radius: 8px; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); font-family: var(--ff-kop); font-size: 15px; font-weight: 700; box-shadow: 0 0 0 3px var(--bg-app); }
+
+@media (max-width: 380px) {
+  .club-lidapp-stap-beeld { width: 76px; height: 76px; }
+  .club-lidapp-stap-beeld .club-training-beeld { --club-training-beeld-maat: 72px; }
+  .club-lidapp-vandaag h3 { font-size: 44px; }
+}

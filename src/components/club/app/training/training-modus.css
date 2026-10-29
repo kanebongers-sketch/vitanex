@@ -162,3 +162,17 @@
   .club-tm-scherm, .club-tm-rust, .club-tm-menu { animation: none; }
   .club-tm-stap span, .club-tm-rust-balk, .club-tm-schakel input, .club-tm-schakel input::after, .club-tm-teller-knop svg { transition: none; }
 }
+
+/* ── Stap voor stap, met diepte (29-10-2026) ──────────────────────────────────
+   Het beeld staat op een podium met licht van boven; de titel groter met het
+   tempo als curve eronder; de set die aan de beurt is een laag hoger dan de
+   rest, met lichtrand. Lagen uit ontwerp.css, kleur uit de huisstijl. */
+.club-tm-titel h2 { font-size: clamp(28px, 8vw, 38px); line-height: 0.92; }
+.club-tm-label { box-shadow: var(--club-randlicht); }
+.club-tm-label:not([data-soort='los']) { box-shadow: var(--club-randlicht-sterk), 0 8px 18px -10px var(--brand-glow, transparent); }
+.club-tm-tempo { margin-top: 8px; }
+.club-tm-rep, .club-tm-beeld { border-radius: var(--tm-radius); background: radial-gradient(90% 70% at 50% 28%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 72%), var(--club-opp-put, var(--bg-card)); border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--club-diepte-1); overflow: hidden; }
+.club-tm-set { background: linear-gradient(180deg, var(--club-opp-3, var(--bg-raised)), var(--club-opp-2, var(--bg-card))); box-shadow: var(--club-randlicht-sterk), var(--club-diepte-2); }
+.club-tm-stap span { box-shadow: var(--club-randlicht-sterk); }
+.club-tm-stap::before { box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3); }
+.club-tm-stap[aria-current='step']::before { box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3), 0 0 0 2px var(--bg-app), 0 0 0 3px var(--text-3); }

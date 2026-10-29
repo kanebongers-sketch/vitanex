@@ -3,6 +3,9 @@ import { dagLetter } from '@/lib/club/training/typen'
 import { toonDatum, trainingenPerWeek } from '@/lib/club/training/weergave'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
+import { SCHEMA_WEERGAVE } from '@/lib/aiyourgym/taal/woorden/club/schema-weergave'
+import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
+import { DiepteRing } from '../ontwerp/DiepteRing'
 
 interface TrainingslogKaartProps {
   log: LogRegel[]
@@ -17,9 +20,26 @@ export async function TrainingslogKaart({ log, dagTitels, nu }: TrainingslogKaar
   const weken = trainingenPerWeek(log, nu, 8)
   const max = Math.max(1, ...weken.map((w) => w.aantal))
   const recent = log.slice(0, 8)
+  const wk = (await clubTekst(SCHEMA_WEERGAVE)).week
+  // Alle regels horen bij dit schema (de pagina haalt de log van een schema op).
+  const ronde = rondeDezeWeek(dagTitels.map((_, i) => ({ dag: i + 1 })), log, log[0]?.schemaId ?? '', nu)
   return (
     <section className="club-kaart club-training-log" aria-label={t.label}>
       <h2>{t.titel}</h2>
+      <div className="club-training-week-nu">
+        <DiepteRing gedaan={ronde.gedaan} totaal={ronde.totaal} label={wk.ring(ronde.gedaan, ronde.totaal)} maat={88} />
+        <div className="club-training-week-tekst">
+          <p className="club-gekozen-boven">{wk.kop}</p>
+          <ul className="club-ronde">
+            {ronde.dagen.map((d) => (
+              <li key={d.dag} data-gedaan={d.gedaan || undefined}>
+                {wk.dag(dagLetter(d.dag))}
+                <span className="club-sr">, {d.gedaan ? wk.gedaan : wk.open}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <div className="club-training-logcijfer">
         <span className="club-tegel-getal">{log.length}</span>
         <span className="club-tegel-sub">{t.afgevinkt(log.length)}</span>

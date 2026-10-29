@@ -14,6 +14,7 @@ import type { Oefening } from '@/lib/club/training/rijen'
 import { dagLetter, MAX_DAGEN } from '@/lib/club/training/typen'
 import { toonHerhalingen } from '@/lib/club/training/weergave'
 import { dosering } from '@/lib/club/training/voorstel-regels'
+import { regelLabels } from '@/lib/club/training/blokken'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { SCHEMA_EDITOR } from '@/lib/aiyourgym/taal/woorden/club/schema-editor'
 import { stuur } from './api'
@@ -24,6 +25,8 @@ import { WaaromSchema } from './editor/WaaromSchema'
 import { EditorWerkbalk } from './EditorWerkbalk'
 import type { RegelActies } from './editor/EditorRegelRij'
 import { ProgressieKaart } from './editor/ProgressieKaart'
+import { GekozenOefening } from './editor/GekozenOefening'
+import { useKernpunten } from './coaching/useKernpunten'
 import { useEditorStaat } from './editor/useEditorStaat'
 import { BeeldBron } from './OefeningBeeld'
 import { OefeningKiezer } from './OefeningKiezer'
@@ -68,6 +71,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [sleepDoel, setSleepDoel] = useState<string | null>(null)
+  const [gekozen, setGekozen] = useState<string | null>(null)
   const sleep = useRef<string | null>(null)
   const teller = useRef(0)
   const opgeslagenStatus = useRef(p.beginKop.status)
@@ -151,6 +155,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
       onOntkoppel: (k) => wijzig((s) => ontkoppel(s, k)),
       onVerwijder: (k) => wijzig((s) => verwijderRegel(s, k)),
       onVervang: (k, id) => wijzig((s) => vervangOefening(s, k, id)),
+      onKies: (k) => setGekozen(k),
       onSleepStart: (k) => {
         sleep.current = k
       },
@@ -185,6 +190,12 @@ export function SchemaEditor(p: SchemaEditorProps) {
 
   const trainer = p.trainers.find((t) => t.id === kop.medewerkerId)?.naam ?? null
   const vervangBron = useMemo(() => ({ oefeningen: kiesbaar, regels: staat.regels }), [kiesbaar, staat.regels])
+  // Het zijpaneel: de aangewezen regel, anders de eerste van het schema.
+  const gekozenRegel = staat.regels.find((r) => r.sleutel === gekozen) ?? staat.regels[0] ?? null
+  const gekozenOefening = gekozenRegel ? perId.get(gekozenRegel.oefeningId) : undefined
+  const gekozenLabel = gekozenRegel ? (regelLabels(staat.regels.filter((r) => r.dag === gekozenRegel.dag)).get(gekozenRegel.sleutel) ?? '') : ''
+  const namen = useMemo(() => staat.regels.map((r) => perId.get(r.oefeningId)?.naam ?? ''), [staat.regels, perId])
+  const kernpunten = useKernpunten(namen)
   const huidigGewicht = useMemo(() => new Map(staat.regels.map((r) => [r.oefeningId, r.gewichtKg])), [staat.regels])
 
   return (
@@ -212,6 +223,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
                 magVerwijderen={staat.dagTitels.length > 1}
                 sleepDoel={sleepDoel}
                 acties={acties}
+                gekozen={gekozenRegel?.sleutel ?? null}
                 onSleepEind={() => setSleepDoel(`eind:${dag}`)}
                 onLaatVallenEind={() => laatVallenAchteraan(dag)}
                 onTitel={(t) => wijzig((s) => hernoemDag(s, dag, t), `titel:${dag}`)}
@@ -229,6 +241,14 @@ export function SchemaEditor(p: SchemaEditorProps) {
           <BeeldBron bronnen={bronnenVan(staat.regels.map((r) => perId.get(r.oefeningId)?.beeld))} />
         </div>
         <div className="club-k4 club-training-zij">
+          <GekozenOefening
+            regel={gekozenRegel}
+            label={gekozenLabel}
+            oefening={gekozenOefening}
+            kernpunten={gekozenOefening ? kernpunten[gekozenOefening.naam] : undefined}
+            progressie={gekozenRegel ? p.progressie?.find((x) => x.oefeningId === gekozenRegel.oefeningId) : null}
+            metProgressie={p.progressie !== null}
+          />
           <EditorKop kop={kop} zet={zetKop} trainers={p.trainers} isSjabloon={p.isSjabloon} />
           <WaaromSchema notitie={kop.notitie} />
           {p.progressie && <ProgressieKaart regels={p.progressie} huidig={huidigGewicht} onOvernemen={(id, kg) => wijzig((s) => zetGewicht(s, id, kg))} />}
@@ -245,7 +265,7 @@ export function SchemaEditor(p: SchemaEditorProps) {
           onSluit={sluitKiezer}
         />
       )}
-      <SchemaPrint naam={kop.naam} lidNaam={p.lidNaam} doel={kop.doel} weken={kop.weken} trainer={trainer} notitie={kop.notitie} staat={staat} oefeningen={perId} />
+      <SchemaPrint naam={kop.naam} lidNaam={p.lidNaam} doel={kop.doel} weken={kop.weken} trainer={trainer} notitie={kop.notitie} staat={staat} oefeningen={perId} kernpunten={kernpunten} />
     </div>
     </VervangContext.Provider>
   )

@@ -21,6 +21,8 @@ interface EditorDagProps {
   /** Waar een gesleepte oefening landt: een sleutel, of eind:<dag> voor achteraan een dag. */
   sleepDoel: string | null
   acties: RegelActies
+  /** De regel die in het zijpaneel staat. */
+  gekozen?: string | null
   onSleepEind: () => void
   onLaatVallenEind: () => void
   onTitel: (titel: string) => void
@@ -54,6 +56,7 @@ export function EditorDag(p: EditorDagProps) {
       inBlok={inBlok}
       isSleepDoel={p.sleepDoel === r.sleutel}
       acties={p.acties}
+      isGekozen={p.gekozen === r.sleutel}
     />
   )
 
@@ -98,6 +101,7 @@ export function EditorDag(p: EditorDagProps) {
             ) : (
               <li key={`blok-${b.items[0].sleutel}`} className="club-training-blok" data-soort={b.soort}>
                 <p className="club-training-blokkop">
+                  <span className="club-training-blokletter" aria-hidden>{(labels.get(b.items[0].sleutel) ?? '').replace(/\d+$/, '')}</span>
                   <strong>{l.blok[b.soort]}</strong>
                   <span>{t.blokAantal(b.items.length)}, {blokUitleg(b.items, labels, t, taal)}</span>
                 </p>

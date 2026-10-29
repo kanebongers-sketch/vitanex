@@ -11,6 +11,7 @@ import { OefeningSpeler } from '@/components/club/training/coaching/OefeningSpel
 import { RepCoaching } from '@/components/club/training/repspeler/RepCoaching'
 import { RepSpeler } from '@/components/club/training/repspeler/RepSpeler'
 import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
+import { TempoCurve } from '@/components/club/training/TempoCurve'
 import { SetLijst, SetPaneel } from './SetPaneel'
 
 interface OefeningSchermProps {
@@ -59,6 +60,7 @@ export function OefeningScherm(p: OefeningSchermProps) {
         <div>
           <h2 id={titelId}>{o.naam}</h2>
           {regel && <p>{regel}</p>}
+          <TempoCurve tempo={o.tempo} className="club-tm-tempo" />
         </div>
       </header>
       <div className="club-tm-top" data-rep={render ? true : undefined}>

@@ -23,16 +23,19 @@ interface SchemaPrintProps {
   notitie: string
   staat: EditorStaat
   oefeningen: Map<string, Oefening>
+  /** De kernpunten als de editor ze al heeft opgehaald (dan geen tweede verzoek). */
+  kernpunten?: KernpuntenPerNaam
 }
 
 /** Het schema op papier. Alleen zichtbaar bij afdrukken (zie training.css). */
-export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staat, oefeningen }: SchemaPrintProps) {
+export function SchemaPrint({ naam, lidNaam, doel, weken, trainer, notitie, staat, oefeningen, kernpunten: gegeven }: SchemaPrintProps) {
   const bronnen = bronnenVan(staat.regels.map((r) => oefeningen.get(r.oefeningId)?.beeld))
   const metBeeld = bronnen.length > 0
   const merk = useMerk()
   const t = useTekst(SCHEMA_EDITOR)
   const l = useTekst(TRAINING_LABELS)
-  const kernpunten = useKernpunten(staat.regels.flatMap((r) => oefeningen.get(r.oefeningId)?.naam ?? []))
+  const opgehaald = useKernpunten(gegeven ? [] : staat.regels.flatMap((r) => oefeningen.get(r.oefeningId)?.naam ?? []))
+  const kernpunten = gegeven ?? opgehaald
   return (
     <article className="club-training-print" aria-hidden>
       <header>

@@ -2,13 +2,13 @@
 
 import { useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronDown, ChevronRight, ClipboardList, CloudUpload, MessageSquareText, Play, Undo2 } from 'lucide-react'
+import { Check, ChevronDown, ClipboardList, CloudUpload, MessageSquareText, Play, Undo2 } from 'lucide-react'
 import type { AppSchema } from '@/lib/club/app/data'
 import type { AppOefening, OefeningHistorie } from '@/lib/club/app/schema'
-import { gedaanVandaag, volgendeDag, voorschrift, dagLetter, type AppLog } from '@/lib/club/app/schema'
+import { gedaanVandaag, volgendeDag, dagLetter, type AppLog } from '@/lib/club/app/schema'
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
 import { dagKortIn } from '@/lib/club/app/regels'
-import { BeeldBron, OefeningBeeld, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
+import { BeeldBron, RepdbVermelding } from '@/components/club/training/OefeningBeeld'
 import { bronnenVan } from '@/lib/club/training/beeld'
 import { WAAROM_KOP } from '@/lib/club/training/voorstel-uitleg'
 import { useKernpunten } from '@/components/club/training/coaching/useKernpunten'
@@ -20,6 +20,9 @@ import { TrainingModus } from './training/TrainingModus'
 import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
+import { SCHEMA_WEERGAVE } from '@/lib/aiyourgym/taal/woorden/club/schema-weergave'
+import { DiepteRing } from '@/components/club/ontwerp/DiepteRing'
+import { SchemaStappen } from './SchemaStappen'
 import { useWachtrij, type Wachtrij } from './training/useWachtrij'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
@@ -52,6 +55,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const taal = useTaal()
   const t = LEDENAPP[taal].schema
   const a = LEDENAPP[taal].algemeen
+  const w = SCHEMA_WEERGAVE[taal].app
   const kernpunten = useKernpunten(schema?.dagen.flatMap((d) => d.oefeningen.map((o) => o.naam)) ?? [])
   if (!schema || schema.dagen.length === 0) {
     return (
@@ -72,6 +76,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
   const ronde = rondeDezeWeek(schema.dagen, logs, schema.id, nuDatum)
   const dezeWeek = new Set(ronde.dagen.filter((d) => d.gedaan).map((d) => d.dag))
   const schemaBronnen = bronnenVan(schema.dagen.flatMap((d) => d.oefeningen.map((o) => o.beeld)))
+  const setsTotaal = dag.oefeningen.reduce((som, o) => som + (o.sets ?? 0), 0)
 
   function vink() {
     setFout(null)
@@ -123,44 +128,40 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
           </button>
         ))}
       </div>
-      <ol className="club-lidapp-oefeningen">
-        {dag.oefeningen.map((o, i) => (
-          <li key={o.id}>
-            <button type="button" className="club-lidapp-oefening" onClick={() => setOpen(o)} aria-haspopup="dialog">
-              <span className="club-lidapp-nr" aria-hidden>
-                {i + 1}
-              </span>
-              <OefeningBeeld naam={o.naam} beeld={o.beeld} formaat="klein" decoratief />
-              <span className="club-lidapp-oefening-tekst">
-                <strong>{o.naam}</strong>
-                <span>{voorschrift(o, taal) || t.volgensTrainer}</span>
-                <OefeningHint notitie={o.notitie} punten={kernpunten[o.naam]} aandachtspunten={o.aandachtspunten} />
-              </span>
-              <ChevronRight aria-hidden size={18} className="club-lidapp-oefening-pijl" />
-            </button>
-          </li>
-        ))}
-      </ol>
-      <BeeldBron className="club-lidapp-beeldbron" bronnen={bronnenVan(dag.oefeningen.map((o) => o.beeld))} />
-      {gedaan ? (
-        <button type="button" className="club-lidapp-knop club-lidapp-knop--breed club-lidapp-knop--klaar" disabled>
-          <Check aria-hidden size={18} /> {t.dagGedaan(dag.letter)}
-        </button>
-      ) : (
-        <div className="club-lidapp-startrij">
-          <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" onClick={() => setTraint(true)} disabled={bezig}>
-            <Play aria-hidden size={18} /> {t.start(dag.letter)}
-          </button>
-          <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
-            {bezig ? a.bezig : t.alleenAfvinken}
-          </button>
+      <section className="club-lidapp-vandaag" aria-labelledby="vandaag-kop">
+        <div className="club-lidapp-vandaag-kop">
+          <div>
+            <p className="club-lidapp-label">{dag.dag === voorstel ? w.volgende : t.trainingsdag}</p>
+            <h3 id="vandaag-kop">{t.dag(dag.letter)}</h3>
+            <p className="club-lidapp-vandaag-meta">
+              {w.stappen(dag.oefeningen.length)}
+              {setsTotaal > 0 && <span>{w.sets(setsTotaal)}</span>}
+            </p>
+          </div>
+          <DiepteRing gedaan={ronde.gedaan} totaal={ronde.totaal} label={w.week(ronde.gedaan, ronde.totaal)} maat={84} />
         </div>
-      )}
-      {gedaan && (
-        <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
-          <Undo2 aria-hidden size={14} /> {bezig ? a.bezig : t.ongedaan}
-        </button>
-      )}
+        {gedaan ? (
+          <div className="club-lidapp-startrij">
+            <button type="button" className="club-lidapp-knop club-lidapp-knop--breed club-lidapp-knop--klaar" disabled>
+              <Check aria-hidden size={18} /> {t.dagGedaan(dag.letter)}
+            </button>
+            <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
+              <Undo2 aria-hidden size={14} /> {bezig ? a.bezig : t.ongedaan}
+            </button>
+          </div>
+        ) : (
+          <div className="club-lidapp-startrij">
+            <button type="button" className="club-lidapp-knop club-lidapp-knop--primair club-lidapp-knop--breed" onClick={() => setTraint(true)} disabled={bezig}>
+              <Play aria-hidden size={18} /> {t.start(dag.letter)}
+            </button>
+            <button type="button" className="club-lidapp-tekstknop" onClick={vink} disabled={bezig}>
+              {bezig ? a.bezig : t.alleenAfvinken}
+            </button>
+          </div>
+        )}
+      </section>
+      <SchemaStappen dag={dag} kernpunten={kernpunten} onOpen={setOpen} />
+      <BeeldBron className="club-lidapp-beeldbron" bronnen={bronnenVan(dag.oefeningen.map((o) => o.beeld))} />
       {fout && (
         <p className="club-lidapp-bericht club-lidapp-bericht--fout" role="alert">
           {fout}
@@ -201,23 +202,6 @@ function SchemaNotitie({ notitie, vanTrainer, waarom }: { notitie: string; vanTr
       <p>{tekst}</p>
     </details>
   )
-}
-
-/** Onder een oefening: de notitie van de trainer, anders de eerste twee kernpunten, anders de aandachtspunten. */
-function OefeningHint({ notitie, punten, aandachtspunten }: { notitie: string | null; punten: readonly string[] | undefined; aandachtspunten: string | null }) {
-  if (notitie) return <em>{notitie}</em>
-  if (punten && punten.length > 0) {
-    return (
-      <span className="club-lidapp-kernpunten">
-        {punten.slice(0, 2).map((p, i) => (
-          <span key={i}>
-            <b aria-hidden>{i + 1}</b> {p}
-          </span>
-        ))}
-      </span>
-    )
-  }
-  return aandachtspunten ? <em>{aandachtspunten}</em> : null
 }
 
 /** Rustig onder de startknop: een training die nog op bereik wacht, of die de server weigerde. */

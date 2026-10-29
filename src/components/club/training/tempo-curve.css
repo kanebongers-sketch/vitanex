@@ -1,0 +1,21 @@
+/* ─── Club en ledenapp: het tempo als curve (TempoCurve.tsx) ──────────────────
+   Een lijn in de datakleur van de sportschool met een zacht vlak eronder; de
+   vier tekens eronder. Een pauze van 0 seconden staat er grijs bij. */
+
+.club-tempo { display: inline-grid; gap: 3px; margin: 0; min-width: 0; vertical-align: middle; }
+.club-tempo svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.club-tempo-vlak { fill: var(--club-data-zacht, color-mix(in srgb, var(--brand) 18%, transparent)); }
+.club-tempo-lijn { fill: none; stroke: var(--club-data, var(--brand)); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.club-tempo-tekens { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); font-family: var(--ff-kop); font-variant-numeric: tabular-nums; }
+.club-tempo-tekens span { display: grid; justify-items: center; gap: 1px; }
+.club-tempo-tekens b { font-weight: 700; color: var(--text-1); }
+.club-tempo-tekens [data-nul] b { color: var(--text-4); }
+.club-tempo-tekens small { font-family: var(--ff-tekst, inherit); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+
+.club-tempo--klein { grid-template-columns: 54px auto; align-items: center; gap: 8px; }
+.club-tempo--klein svg { height: 18px; }
+.club-tempo--klein .club-tempo-tekens { gap: 3px; font-size: 13px; }
+
+.club-tempo--groot { width: 100%; }
+.club-tempo--groot svg { height: 46px; }
+.club-tempo--groot .club-tempo-tekens { font-size: 20px; padding-top: 4px; border-top: 1px solid var(--line); }

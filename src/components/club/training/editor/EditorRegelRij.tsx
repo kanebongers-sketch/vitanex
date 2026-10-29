@@ -11,6 +11,8 @@ import { toonHerhalingen, toonRust } from '@/lib/club/training/weergave'
 import { OefeningBeeld } from '../OefeningBeeld'
 import { RenderDuim } from '../repspeler/OefeningVoorbeeld'
 import { SpierChips } from '../SpierChips'
+import { TempoCurve } from '../TempoCurve'
+import { SCHEMA_WEERGAVE } from '@/lib/aiyourgym/taal/woorden/club/schema-weergave'
 import { VervangOefening } from './VervangOefening'
 
 export interface RegelActies {
@@ -26,6 +28,8 @@ export interface RegelActies {
   onSleepOver: (sleutel: string) => void
   onLaatVallen: (voorSleutel: string) => void
   onVervang: (sleutel: string, oefeningId: string) => void
+  /** Toon deze oefening in het zijpaneel (beeld, kernpunten, verloop). */
+  onKies?: (sleutel: string) => void
 }
 
 interface EditorRegelRijProps {
@@ -37,6 +41,8 @@ interface EditorRegelRijProps {
   inBlok: boolean
   isSleepDoel: boolean
   acties: RegelActies
+  /** Deze oefening staat in het zijpaneel. */
+  isGekozen?: boolean
 }
 
 const INSPANNING: { waarde: Inspanning; label: string | null }[] = [
@@ -46,14 +52,23 @@ const INSPANNING: { waarde: Inspanning; label: string | null }[] = [
 ]
 
 /** Een oefening in de editor: de vaste velden altijd, RPE/RIR, tempo en notitie onder "Meer". */
-export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaatste, inBlok, isSleepDoel, acties: a }: EditorRegelRijProps) {
+export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaatste, inBlok, isSleepDoel, acties: a, isGekozen = false }: EditorRegelRijProps) {
   const taal = useTaal()
   const t = useTekst(SCHEMA_EDITOR).regel
   const l = useTekst(TRAINING_LABELS)
+  const w = useTekst(SCHEMA_WEERGAVE).regel
   const naam = o?.naam ?? t.onbekend
   const heeftExtra = r.inspanning !== 'geen' || r.tempo !== '' || r.notitie !== ''
   const [meer, setMeer] = useState(heeftExtra)
   const wijzig = (veld: TekstVeld) => (e: { target: { value: string } }) => a.onWijzig(r.sleutel, veld, e.target.value)
+
+  /** Poster aangetikt: in het zijpaneel zetten; op telefoon en tablet staat dat paneel onder het schema, dan erheen. */
+  function toonGroot(sleutel: string) {
+    a.onKies?.(sleutel)
+    if (!window.matchMedia('(max-width: 999px)').matches) return
+    const glad = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.requestAnimationFrame(() => document.getElementById('gekozen-kop')?.scrollIntoView({ behavior: glad ? 'smooth' : 'auto', block: 'start' }))
+  }
 
   function toets(e: KeyboardEvent<HTMLLIElement>) {
     if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
@@ -73,7 +88,11 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
     <li
       className="club-training-r"
       data-sleepdoel={isSleepDoel || undefined}
+      data-gekozen={isGekozen || undefined}
       onKeyDown={toets}
+      onFocus={() => {
+        if (!isGekozen) a.onKies?.(r.sleutel)
+      }}
       onDragOver={(e) => {
         e.preventDefault()
         a.onSleepOver(r.sleutel)
@@ -89,13 +108,25 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
         </button>
         <span className="club-training-r-nr" aria-hidden>{label}</span>
         <div className="club-training-r-naam">
-          <RenderDuim naam={naam} anders={<OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />} />
+          <button type="button" className="club-training-r-poster" onClick={() => toonGroot(r.sleutel)} aria-label={w.kies(naam)} aria-pressed={a.onKies ? isGekozen : undefined}>
+            <RenderDuim naam={naam} anders={<OefeningBeeld naam={naam} beeld={o?.beeld ?? null} formaat="klein" decoratief />} />
+          </button>
           <div className="club-training-regeltekst">
             <strong>{naam}</strong>
             {o && (
               <span className="club-training-regelspieren">
                 <SpierChips primair={o.spierenPrimair} spiergroep={o.spiergroep} max={2} />
                 <span className="club-zacht">{l.materiaal[o.materiaal]}</span>
+              </span>
+            )}
+            {(r.tempo !== '' || (r.inspanning !== 'geen' && r.inspanningWaarde !== '')) && (
+              <span className="club-training-r-meta">
+                {r.inspanning !== 'geen' && r.inspanningWaarde !== '' && (
+                  <span className="club-training-r-inspanning">
+                    {r.inspanning.toUpperCase()} <b>{r.inspanningWaarde}</b>
+                  </span>
+                )}
+                <TempoCurve tempo={r.tempo} />
               </span>
             )}
           </div>
