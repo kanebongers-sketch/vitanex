@@ -11,6 +11,19 @@ export const MERK_KLEUR = {
   inkt: '#111614',
 } as const
 
+/**
+ * Obsidian iron (besluit Kane 29-10-2026): het embleem op de website. Iron plaat met
+ * een metalen glans van licht naar diep, tekens in obsidiaan. Racegroen blijft alleen
+ * voor de app-iconen van Club en drukwerk.
+ */
+export const IRON_KLEUR = {
+  licht: '#C9CDD2',
+  iron: '#A9AFB6',
+  diep: '#8A9097',
+  obsidiaan: '#0E0F11',
+  wit: '#ECEBE7',
+} as const
+
 // Scherp tekenen (zie AygLogo): de plaat en EMBLEEM_RASTER_PAD met shape-rendering
 // crispEdges, daarover EMBLEEM_KRUIS_LIJN als lijn van 1 schermpixel
 // (vector-effect non-scaling-stroke), dan de letters en de Y met gladde randen.

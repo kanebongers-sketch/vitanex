@@ -140,6 +140,7 @@ const OVERSLAAN: Record<string, string> = {
   'src/components/aiyourgym/merk/': 'logo, letters en paden, geen zichtbare tekst behalve de merknaam',
   'src/components/aiyourgym/demo/stappen.ts': 'Nederlandse bron van DEMO in woorden/website/demo.ts; regel 6 bewaakt dat alleen het woordenboek hem leest',
   'src/components/aiyourgym/contrast.test.ts': 'test',
+  'src/components/aiyourgym/tokens.testhulp.ts': 'hulp voor de contrasttests, alleen foutmeldingen voor ontwikkelaars',
   'src/components/club/shell/fonts.ts': 'letters, geen tekst',
   'src/components/club/training/drie/stof-glsl.ts': 'shadercode (GLSL), geen tekst',
   'src/components/club/training/illustratie/VergelijkRij.tsx': 'oud prototype (eigen tekening tegen RepDB), nergens meer in gebruik',
@@ -207,6 +208,7 @@ const PER_BESTAND: Record<string, Record<string, string>> = {
 const INHOUD_WAARDEN: Record<string, string> = {
   renderVoor: 'kiest een render (beeld) bij een oefening',
   srcSetVan: 'bouwt een srcset (beeld)',
+  OEFENRENDERS: 'de Blender-renders (beelden en slugs) voor het schemascherm; namen gaan via PRODUCTSCHERMEN.schema.naam, spierlabels worden niet getoond',
   frameUrl: 'bouwt de URL van een frame van een render (beeld)',
   toonBereik: 'toont een getallenbereik (8 tot 12) via de taal van de aanroeper',
   voorbeeldOefeningen: 'oefennamen (blijven gelijk) met de coaching in de taal die de aanroeper meegeeft (siteCoaching)',
@@ -236,6 +238,7 @@ const CLUB_TEKST_GOED: Record<string, string> = {
   'src/components/club/lidmaatschappen/LabelFormulier.tsx MAX_OMSCHRIJVING_LABEL': 'een getal (maximale lengte), geen tekst',
   'src/components/club/intakevragen/KernVeld.tsx PARQ_VRAGEN': 'alleen de sleutels; de vraag komt via vraagInTaal (woorden/club/intake.ts)',
   'src/app/(aiyourgym)/(club)/club/training/beelden/page.tsx coachingVoor': 'loopt via standaardCoachingIn (Engelse coaching van de Blender-oefeningen)',
+  'src/components/aiyourgym/mockups/product/SchemaScherm.tsx coachingVoor': 'loopt via standaardCoachingIn (Engelse coaching van de Blender-oefeningen)',
   'src/components/aiyourgym/schemas/SchermenTrainer.tsx PARQ_VRAGEN': 'alleen volgorde en sleutels; de vraag komt uit SCHEMA_SCHERMEN.intake.parq',
   'src/app/(aiyourgym)/(website)/aiyourgym/(site)/demo/page.tsx coachingVoor':
     'live demo met Kernhal (de demo-sportschool): haar gegevens en coaching zijn Nederlands en dat staat er in het Engels bij (DEMO.gegevensNederlands)',

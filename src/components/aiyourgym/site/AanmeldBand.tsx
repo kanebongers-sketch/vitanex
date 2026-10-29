@@ -5,7 +5,7 @@ interface Props {
   titel?: string
 }
 
-// De afsluitende oproep onderaan elke pagina: hetzelfde salie hoofdstuk als op de
+// De afsluitende oproep onderaan elke pagina: hetzelfde hoofdstuk als op de
 // voorpagina (een zin met een gat voor de naam van je club), zodat elke pagina op
 // dezelfde manier eindigt.
 export async function AanmeldBand(_props: Props) {

@@ -6,12 +6,13 @@
    ========================================================================== */
 
 .aygm {
-  /* Kernhal (voorbeeldsportschool) in flessengroen: het groen is het accent op de obsidiaan
-     website. De vlakken zijn koel grijs en net lichter dan de site, zodat het scherm loskomt. */
-  --brand: #2f6153;
-  --brand-inkt: #f1ece1;
-  --brand-tekst: #9fc2b4;
-  --brand-soft: rgba(47, 97, 83, 0.24);
+  /* Kernhal (voorbeeldsportschool) in iron (besluit Kane 29-10-2026, geen groen meer):
+     de sportschoolkleur volgt het accent van de website (--iron-accent in aiyourgym.css).
+     De vlakken zijn koel grijs en net lichter dan de site, zodat het scherm loskomt. */
+  --brand: var(--iron-accent);
+  --brand-inkt: var(--iron-accent-tekst);
+  --brand-tekst: var(--iron-licht); /* meters, sparklijnen, iconen en tekst in de accentkleur */
+  --brand-soft: color-mix(in srgb, var(--iron-accent) 18%, transparent);
   --bg-app: #131518;
   --bg-card: #1b1e22;
   --bg-raised: #212429;
@@ -20,9 +21,10 @@
   --text-1: rgba(255, 255, 255, 0.96);
   --text-2: rgba(255, 255, 255, 0.78);
   --text-3: rgba(255, 255, 255, 0.62);
-  --club-ok: #6fd69a;
+  /* Status: ok in lichte iron (het teken en de tekst dragen de betekenis), let op blijft koraal */
+  --club-ok: var(--iron-licht);
   --club-let-op: #f47c66;
-  --club-info: #7fc4cf;
+  --club-info: var(--iron-accent);
   font-family: var(--ayg-font-tekst);
   color: var(--text-1);
   font-size: 13px;

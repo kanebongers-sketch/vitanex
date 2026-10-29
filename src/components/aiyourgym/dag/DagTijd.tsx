@@ -7,7 +7,7 @@ import { formatKlok } from './klok'
 interface DagTijdProps {
   minuten: number
   naam: string
-  /** Op het racegroene podium. */
+  /** Op het podium (obsidiaan). */
   licht?: boolean
 }
 

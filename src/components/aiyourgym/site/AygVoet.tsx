@@ -5,7 +5,7 @@ import { VOET } from '@/lib/aiyourgym/taal/woorden/website/voet'
 import { aygPad, SITE_PADEN } from './paden'
 
 // Voet van de verkoopwebsite: kort en rustig, in de ene letter van de site
-// (Hanken Grotesk), op inkt na de salie oproep. Links het merk met een zin, in het
+// (Hanken Grotesk), op inkt na de oproep. Links het merk met een zin, in het
 // midden de paar links die niet in de kop staan, rechts inloggen en waar de data
 // staat; onderaan de juridische regel. Geen groot woordmerk meer (dat botste met
 // de letter van de site). In de taal van de pagina (woordenboek VOET).
@@ -24,7 +24,7 @@ export async function AygVoet() {
     <footer className="ayg-voet vt">
       <div className="vt-merk">
         <Link href={aygPad()} className="vt-logo">
-          <AygLogo vorm="beeldmerk" opDonker sier />
+          <AygLogo vorm="beeldmerk" iron sier />
           <span>AI Your Gym</span>
         </Link>
         <p>{t.merkZin}</p>

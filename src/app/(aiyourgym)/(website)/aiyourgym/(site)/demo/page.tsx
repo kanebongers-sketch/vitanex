@@ -10,6 +10,7 @@ import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { VOORBEELD_NAAM } from '@/components/aiyourgym/mockups/voorbeeld'
+import { IRON_KLEUR } from '@/components/aiyourgym/merk/merk-paden'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
@@ -42,10 +43,11 @@ async function laadDemo(): Promise<DemoRuw | null> {
   }
 }
 
-// De schermen in de demo volgen het flessengroen van de website (dezelfde tint als de
-// productbeelden in mockups.css), los van de accentkleur die de demo-sportschool in
-// Club heeft: een eigen kleur van een sportschool vloekt hier met de website.
-const DEMO_ACCENT = '#2F6153'
+// De schermen in de demo volgen het iron van de website (obsidian iron, besluit Kane
+// 29-10-2026; dezelfde tint als de productbeelden in mockups.css), los van de
+// accentkleur die de demo-sportschool in Club heeft: een eigen kleur van een
+// sportschool vloekt hier met de website.
+const DEMO_ACCENT = IRON_KLEUR.iron
 
 function NietBeschikbaar({ taal }: { taal: Taal }) {
   const t = DEMO[taal]

@@ -3,12 +3,15 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { contrast, huisstijlVariabelen, THEMAS } from '@/lib/club/kern/huisstijl'
 import { STALEN } from './mockups/stalen'
+import { isGroenig, kleurigheid, losAllesOp } from './tokens.testhulp'
 
 // Bewaakt het contrast van de verkoopwebsite (WCAG 2.2 AA): normale tekst minstens
 // 4.5:1, grote tekst (sierletters, grote nummers) en UI-randen minstens 3:1.
 // De kleuren komen rechtstreeks uit de css-bestanden, dus een nieuwe tokenwaarde
 // die te licht of te donker is laat deze test falen. Een doorzichtige kleur of een
-// color-mix rekenen we eerst uit tegen de achtergrond eronder.
+// color-mix rekenen we eerst uit tegen de achtergrond eronder. Tokens die naar
+// --iron-accent verwijzen (obsidian iron, besluit Kane 29-10-2026) rekenen we eerst
+// uit tot hun echte kleur (tokens.testhulp.ts).
 
 const WORTEL = path.resolve(__dirname, '../../..')
 const lees = (bestand: string) => readFileSync(path.join(WORTEL, bestand), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
@@ -68,8 +71,9 @@ function meng(a: string, b: string, deel: number): string {
 const NORMAAL = 4.5
 const GROOT = 3
 
-/** Er is een palet: de site is altijd obsidiaan (besluit Kane 28-10-2026). */
-const OBSIDIAAN = tokens(SITE_CSS, '.ayg')
+/** Er is een palet: de site is altijd obsidiaan (besluit Kane 28-10-2026), met iron als accent (29-10-2026). */
+const SITE_RUW = tokens(SITE_CSS, '.ayg')
+const OBSIDIAAN = losAllesOp(SITE_RUW)
 const PALETTEN = [{ naam: 'obsidiaan', S: OBSIDIAAN }] as const
 
 interface Paar {
@@ -90,7 +94,7 @@ const PLAK_DEKKING = 0.97
 
 /**
  * De kop, de contactbalk, het menupaneel en de vaste knop onderin (obsidiaan met een
- * saliekleurige hoofdknop, besluit Kane 28-10-2026). De kop en de vaste knop zijn half
+ * hoofdknop in iron, besluit Kane 29-10-2026). De kop en de vaste knop zijn half
  * doorzichtig: we rekenen met het slechtste geval eronder, het podium en de lichte tekst.
  */
 function kopParen(t: (token: string) => string): Paar[] {
@@ -101,16 +105,16 @@ function kopParen(t: (token: string) => string): Paar[] {
       return [
         { waar: `${plek} over ${o}: tekst`, tekst: t('ayg-tekst'), op: vlak, min: NORMAAL },
         { waar: `${plek} over ${o}: menulinks (tekst-2)`, tekst: t('ayg-tekst-2'), op: vlak, min: NORMAAL },
-        { waar: `${plek} over ${o}: flessengroene streep onder de huidige pagina`, tekst: t('ayg-accent-sterk'), op: vlak, min: GROOT },
+        { waar: `${plek} over ${o}: iron streep onder de huidige pagina`, tekst: t('ayg-accent-sterk'), op: vlak, min: GROOT },
         { waar: `${plek} over ${o}: rand van de randknop`, tekst: t('ayg-lijn-sterk'), op: vlak, min: GROOT },
       ]
     })
   return [
-    { waar: 'contactbalk: tekst op de salietint', tekst: t('ayg-tekst'), op: t('ayg-balk'), min: NORMAAL },
-    { waar: 'contactbalk: flessengroene iconen en streep op de salietint', tekst: t('ayg-accent-sterk'), op: t('ayg-balk'), min: NORMAAL },
+    { waar: 'contactbalk: tekst op de balk', tekst: t('ayg-tekst'), op: t('ayg-balk'), min: NORMAAL },
+    { waar: 'contactbalk: iron iconen en streep op de balk', tekst: t('ayg-accent-sterk'), op: t('ayg-balk'), min: NORMAAL },
     { waar: 'contactbalk: de tint is te onderscheiden van het papier eronder', tekst: t('ayg-balk'), op: t('ayg-bg'), min: 1.05 },
-    { waar: 'menuknop: inkt op het creme vlak', tekst: t('ayg-tekst'), op: t('ayg-vlak'), min: NORMAAL },
-    { waar: 'menupaneel: flessengroene lijn bovenaan', tekst: t('ayg-accent-sterk'), op: t('ayg-vlak'), min: GROOT },
+    { waar: 'menuknop: tekst op het vlak', tekst: t('ayg-tekst'), op: t('ayg-vlak'), min: NORMAAL },
+    { waar: 'menupaneel: iron lijn bovenaan', tekst: t('ayg-accent-sterk'), op: t('ayg-vlak'), min: GROOT },
     ...doorzichtig(KOP_DEKKING, 'kop gescrold'),
     ...doorzichtig(PLAK_DEKKING, 'vaste knop onderin'),
   ]
@@ -137,37 +141,37 @@ function paletParen(naam: string, S: Record<string, string>): PaletParen {
       { waar: `randen van invoervelden en randknoppen op ${v}`, tekst: t('ayg-lijn-sterk'), op: t(v), min: GROOT },
       { waar: `foutmelding op ${v}`, tekst: t('ayg-fout'), op: t(v), min: NORMAAL },
       { waar: `beschikbaar-melding op ${v}`, tekst: t('ayg-ok'), op: t(v), min: NORMAAL },
-      { waar: `flessengroen als tekst en icoon op het papier (accent-sterk) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: NORMAAL },
-      { waar: `flessengroen als lijn (menu, labelstreep) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: GROOT },
+      { waar: `iron als tekst en icoon (accent-sterk) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: NORMAAL },
+      { waar: `iron als lijn (menu, labelstreep) op ${v}`, tekst: t('ayg-accent-sterk'), op: t(v), min: GROOT },
       { waar: `accentknop, vinkje en badge afgetekend tegen ${v}`, tekst: t('ayg-accent'), op: t(v), min: GROOT },
     ]),
     ...PODIUM_LAGEN.flatMap((v) => [
       { waar: `tekst op ${v}`, tekst: t('ayg-inkt-tekst'), op: t(v), min: NORMAAL },
       { waar: `bijschriften op ${v}`, tekst: t('ayg-inkt-tekst-2'), op: t(v), min: NORMAAL },
       { waar: `grote sierletters op ${v}`, tekst: t('ayg-inkt-spook'), op: t(v), min: GROOT },
-      { waar: `licht accent (salie) als tekst en icoon op ${v}`, tekst: t('ayg-accent-licht'), op: t(v), min: NORMAAL },
+      { waar: `licht accent (iron) als tekst en icoon op ${v}`, tekst: t('ayg-accent-licht'), op: t(v), min: NORMAAL },
       { waar: `lichte accentknop met inkt erop op ${v}`, tekst: t('ayg-inkt'), op: t('ayg-accent-licht'), min: NORMAAL },
     ]),
     { waar: 'tekst op de accentknop, badges, chips en vinkjes', tekst: t('ayg-accent-tekst'), op: t('ayg-accent'), min: NORMAAL },
-    { waar: 'tekst op het zachte salievlak (markering)', tekst: t('ayg-tekst'), op: t('ayg-accent-zacht'), min: NORMAAL },
-    { waar: 'saliekleurige speelknop en focusrand op de bedieningsbalk (86% inkt over het oefenbeeld)', tekst: t('ayg-accent-licht'), op: meng('#111614', '#e9f3f7', 0.86), min: GROOT },
-    { waar: 'inkt op de saliekleurige speelknop', tekst: t('ayg-inkt'), op: t('ayg-accent-licht'), min: NORMAAL },
+    { waar: 'tekst op het donkere iron vlak (markering)', tekst: t('ayg-tekst'), op: t('ayg-accent-zacht'), min: NORMAAL },
+    { waar: 'iron speelknop en focusrand op de bedieningsbalk (86% inkt over het oefenbeeld)', tekst: t('ayg-accent-licht'), op: meng('#111614', '#e9f3f7', 0.86), min: GROOT },
+    { waar: 'inkt op de iron speelknop', tekst: t('ayg-inkt'), op: t('ayg-accent-licht'), min: NORMAAL },
     { waar: 'tekst op de inktknop', tekst: t('ayg-bg'), op: t('ayg-tekst'), min: NORMAAL },
     { waar: 'gekozen thema in de huisstijl-demo', tekst: t('ayg-inkt'), op: t('ayg-inkt-tekst'), min: NORMAAL },
     { waar: 'foutmelding in het meldingvlak (10% fout)', tekst: t('ayg-fout'), op: meng(t('ayg-fout'), t('ayg-vlak'), 0.1), min: NORMAAL },
     { waar: 'bijschrift op het diepere papier onder in de held', tekst: t('ayg-tekst-2'), op: t('ayg-held-vlak'), min: NORMAAL },
     { waar: 'tekst op het diepere papier onder in de held', tekst: t('ayg-tekst'), op: t('ayg-held-vlak'), min: NORMAAL },
-    { waar: 'bijschrift op de flessengroene plek van de aanmeldband', tekst: t('ayg-inkt-tekst-2'), op: meng(t('ayg-inkt-2'), t('ayg-inkt'), procent(t('ayg-gloed-band'))), min: NORMAAL },
+    { waar: 'bijschrift op de hogere plek van de aanmeldband', tekst: t('ayg-inkt-tekst-2'), op: meng(t('ayg-inkt-2'), t('ayg-inkt'), procent(t('ayg-gloed-band'))), min: NORMAAL },
     { waar: 'uitgeschakelde accentknop (85%)', tekst: meng(t('ayg-accent-tekst'), t('ayg-vlak'), 0.85), op: meng(t('ayg-accent'), t('ayg-vlak'), 0.85), min: NORMAAL },
     { waar: 'uitgeschakelde inktknop (85%)', tekst: meng(t('ayg-bg'), t('ayg-vlak'), 0.85), op: meng(t('ayg-tekst'), t('ayg-vlak'), 0.85), min: NORMAAL },
     { waar: 'accent als tekst op de basis (de markering)', tekst: t('ayg-accent'), op: t('ayg-bg'), min: NORMAAL },
     { waar: 'focusrand (inkt) tegen het papier', tekst: t('ayg-tekst'), op: t('ayg-bg'), min: GROOT },
     { waar: 'focusrand op een accentknop: inkten rand tegen de halo', tekst: t('ayg-tekst'), op: meng(t('ayg-focus'), t('ayg-bg'), 0.75), min: GROOT },
-    { waar: 'lichte knop op het podium met racegroen erop', tekst: t('ayg-inkt'), op: t('ayg-inkt-tekst'), min: NORMAAL },
+    { waar: 'lichte knop op het podium met inkt erop', tekst: t('ayg-inkt'), op: t('ayg-inkt-tekst'), min: NORMAAL },
     ...kopParen(t),
   ]
   // Elk hoofdstuk van de functies heeft een eigen accent: altijd inkt erop (het
-  // label) en leesbaar als tekst of lijn op het racegroene podium.
+  // label) en leesbaar als tekst of lijn op het podium.
   const hoofdstuk: Paar[] = Object.keys(S)
     .filter((k) => k.startsWith('ayg-h-') && k !== 'ayg-h-tekst')
     .flatMap((k) => [
@@ -182,7 +186,7 @@ function paletParen(naam: string, S: Record<string, string>): PaletParen {
     { waar: 'podium: koppen en tekst (--ayg-tekst) op inkt-2', tekst: podiumToken('ayg-tekst'), op: t('ayg-inkt-2'), min: NORMAAL },
     { waar: 'podium: bijschriften (--ayg-tekst-2) op inkt', tekst: podiumToken('ayg-tekst-2'), op: t('ayg-inkt'), min: NORMAAL },
     { waar: 'podium: lichte knop (inkt op --ayg-tekst)', tekst: t('ayg-inkt'), op: podiumToken('ayg-tekst'), min: NORMAAL },
-    { waar: 'podium: accentknop (racegroen op salie)', tekst: podiumToken('ayg-accent-tekst'), op: podiumToken('ayg-accent'), min: NORMAAL },
+    { waar: 'podium: accentknop (inkt op lichte iron)', tekst: podiumToken('ayg-accent-tekst'), op: podiumToken('ayg-accent'), min: NORMAAL },
     { waar: 'podium: accentknop afgetekend tegen het podium', tekst: podiumToken('ayg-accent'), op: t('ayg-inkt'), min: GROOT },
     { waar: 'podium: invoerveld (tekst op inkt-2)', tekst: podiumToken('ayg-tekst'), op: t('ayg-inkt-2'), min: NORMAAL },
     { waar: 'podium: rand van een invoerveld', tekst: t('ayg-inkt-tekst-2'), op: t('ayg-inkt-2'), min: GROOT },
@@ -199,16 +203,61 @@ const HOOFDSTUK_PAREN = PAREN.flatMap((p) => p.hoofdstuk)
 const PODIUM_PAREN = PAREN.flatMap((p) => p.podium)
 const HOOFDSTUK_TOKENS = Object.keys(OBSIDIAAN).filter((k) => k.startsWith('ayg-h-') && k !== 'ayg-h-tekst')
 
+/** Oude groene merkkleuren (racegroen, flessengroen, salie en hun tinten): niet meer op de website. */
+const OUD_GROEN = /10302a|1e4a40|a7b5a8|b4c2b5|c3cfc4|2f6153|3a6b5e|9fc2b4|6fd69a|86d1a2|b7c6ae|9fbab2|111614|47,\s*97,\s*83/i
+const ACCENT_TOKENS = ['ayg-accent', 'ayg-accent-tekst', 'ayg-accent-sterk', 'ayg-accent-licht', 'ayg-accent-zacht', 'ayg-focus', 'ayg-ok']
+
 describe('de accentkleur', () => {
-  it('obsidiaan met salie en racegroen als spaarzaam accent (besluit Kane 28-10-2026)', () => {
+  it('obsidiaan met iron als spaarzaam accent (besluit Kane 29-10-2026)', () => {
     expect(OBSIDIAAN['ayg-bg'].toLowerCase()).toBe('#0e0f11')
     expect(OBSIDIAAN['ayg-vlak'].toLowerCase()).toBe('#15171a')
     expect(OBSIDIAAN['ayg-vlak-2'].toLowerCase()).toBe('#1c1f23')
     expect(OBSIDIAAN['ayg-lijn'].toLowerCase()).toBe('#2a2e33')
     expect(OBSIDIAAN['ayg-tekst'].toLowerCase()).toBe('#ecebe7')
-    expect(OBSIDIAAN['ayg-accent'].toLowerCase()).toBe('#a7b5a8')
-    expect(OBSIDIAAN['ayg-accent-tekst'].toLowerCase()).toBe('#10302a')
-    expect(OBSIDIAAN['ayg-h-beheer'].toLowerCase()).toBe('#a7b5a8')
+    expect(OBSIDIAAN['ayg-accent']).toBe(OBSIDIAAN['iron-accent'])
+    expect(OBSIDIAAN['ayg-accent-tekst']).toBe(OBSIDIAAN['iron-accent-tekst'])
+    expect(OBSIDIAAN['ayg-h-beheer']).toBe(OBSIDIAAN['iron-accent'])
+  })
+  it('het accent loopt via twee tokens: --iron-accent en --iron-accent-tekst', () => {
+    expect(SITE_RUW['iron-accent']).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(SITE_RUW['iron-accent-tekst']).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(SITE_RUW['ayg-accent']).toBe('var(--iron-accent)')
+    expect(SITE_RUW['ayg-accent-tekst']).toBe('var(--iron-accent-tekst)')
+    for (const k of ['ayg-accent-sterk', 'ayg-accent-licht', 'ayg-accent-zacht', 'ayg-focus', 'iron-licht', 'iron-lijn']) {
+      expect(SITE_RUW[k], k).toMatch(/var\(--iron-/)
+    }
+    const M_RUW = tokens(MOCKUP_CSS, '.aygm')
+    expect(M_RUW['brand']).toBe('var(--iron-accent)')
+    expect(M_RUW['brand-inkt']).toBe('var(--iron-accent-tekst)')
+  })
+  it('iron is koel metaalgrijs: geen groen in het accent, de hoofdstukken of de productschermen', () => {
+    const accent = [...ACCENT_TOKENS, 'iron-accent', 'iron-licht', 'iron-lijn', ...Object.keys(OBSIDIAAN).filter((k) => k.startsWith('ayg-h-'))]
+    for (const k of accent) {
+      expect(kleurigheid(OBSIDIAAN[k]), k).toBeLessThanOrEqual(16)
+      expect(isGroenig(OBSIDIAAN[k]), k).toBe(false)
+    }
+    for (const k of ['brand', 'brand-inkt', 'brand-tekst', 'club-ok', 'club-info']) {
+      expect(kleurigheid(M[k]), k).toBeLessThanOrEqual(16)
+      expect(isGroenig(M[k]), k).toBe(false)
+    }
+  })
+  it('nergens nog racegroen, flessengroen of salie in de css en de beelden van de website', () => {
+    const bestanden = [
+      ...ALLE_CSS,
+      'src/components/aiyourgym/voorpagina/voorpagina.css',
+      'src/components/aiyourgym/voorpagina/subpaginas.css',
+      'src/components/aiyourgym/functies-pagina/functies-pagina.css',
+      'src/components/aiyourgym/mockups/stalen.ts',
+      'src/components/aiyourgym/mockups/AppSchermen.tsx',
+      'src/app/(aiyourgym)/(website)/aiyourgym/(site)/demo/page.tsx',
+      'src/app/(aiyourgym)/(website)/aiyourgym/(site)/opengraph-image.tsx',
+      'src/app/(aiyourgym)/(website)/aiyourgym/icon.svg',
+    ]
+    for (const bestand of bestanden) expect(readFileSync(path.join(WORTEL, bestand), 'utf8'), bestand).not.toMatch(OUD_GROEN)
+    expect(lees('src/components/aiyourgym/voorpagina/voorpagina.css')).not.toMatch(/--vp-(salie|racegroen|groen)/)
+    const og = readFileSync(path.join(WORTEL, 'src/app/(aiyourgym)/(website)/aiyourgym/(site)/opengraph-image.tsx'), 'utf8')
+    expect(og).not.toMatch(/MERK_KLEUR/)
+    expect(og).toMatch(/IRON_KLEUR/)
   })
   it('geen creme, racegroen of flessengroen meer als vlak of tekst in de site-tokens', () => {
     const vlakken = ['ayg-bg', 'ayg-vlak', 'ayg-vlak-2', 'ayg-inkt', 'ayg-inkt-2', 'ayg-tekst', 'ayg-inkt-tekst', 'ayg-balk', 'ayg-held-vlak']
@@ -237,10 +286,17 @@ describe('een palet', () => {
     expect(lees('src/app/(aiyourgym)/(website)/basis.css')).toMatch(/color-scheme:\s*dark;/)
     expect(lees('src/app/(aiyourgym)/(website)/aiyourgym/layout.tsx')).toMatch(/colorScheme:\s*'dark'/)
   })
-  it('het embleem is overal de versie voor donker: creme plaat met racegroene tekens', () => {
+  it('het embleem is overal iron: iron plaat met obsidiaan tekens (besluit Kane 29-10-2026)', () => {
     const logo = regels('.ayg-logo')
-    expect(logo).toMatch(/--ayg-logo-plaat:\s*var\(--ayg-logo-creme\)/)
-    expect(logo).toMatch(/--ayg-logo-teken:\s*var\(--ayg-logo-racegroen\)/)
+    expect(logo).toMatch(/--ayg-logo-plaat:\s*var\(--iron-accent\)/)
+    expect(logo).toMatch(/--ayg-logo-teken:\s*var\(--iron-accent-tekst\)/)
+    expect(contrast(OBSIDIAAN['iron-accent-tekst'], OBSIDIAAN['iron-accent'])).toBeGreaterThanOrEqual(GROOT)
+    expect(contrast(OBSIDIAAN['iron-accent'], OBSIDIAAN['ayg-bg'])).toBeGreaterThanOrEqual(GROOT)
+    for (const bestand of ['AygKop.tsx', 'AygVoet.tsx']) {
+      const code = readFileSync(path.join(WORTEL, 'src/components/aiyourgym/site', bestand), 'utf8')
+      expect(code, bestand).toMatch(/<AygLogo[^>]*\biron\b/)
+      expect(code, bestand).not.toMatch(/opDonker/)
+    }
   })
 })
 
@@ -251,7 +307,7 @@ describe('contrast van de hoofdstukken en het podium', () => {
   it('het podium zet --ayg-tekst om naar de lichte inkttekst', () => {
     expect(P['ayg-tekst']).toBe('var(--ayg-inkt-tekst)')
   })
-  it('het podium en de voet zetten het racegroene accent om naar de lichte salie', () => {
+  it('het podium en de voet zetten het accent om naar de lichte iron', () => {
     expect(P['ayg-accent']).toBe('var(--ayg-accent-licht)')
     expect(P['ayg-accent-tekst']).toBe('var(--ayg-inkt)')
     expect(P['ayg-accent-sterk']).toBe('var(--ayg-accent-licht)')
@@ -295,7 +351,7 @@ describe('kop, contactbalk en menu: obsidiaan (besluit Kane 28-10-2026)', () => 
     expect(regels('.ayg-menupaneel')).toMatch(/background:\s*var\(--ayg-vlak\)/)
     expect(regels('.ayg-plak')).toMatch(new RegExp(`color-mix\\(in srgb, var\\(--ayg-vlak\\) ${PLAK_DEKKING * 100}%, transparent\\)`))
   })
-  it('de hoofdknop in de kop is de accentknop (salie)', () => {
+  it('de hoofdknop in de kop is de accentknop (iron)', () => {
     const nav = readFileSync(path.join(WORTEL, 'src/components/aiyourgym/site/AygNav.tsx'), 'utf8')
     expect(nav).toMatch(/href=\{AANMELDEN\} className="ayg-knop ayg-knop--accent/)
   })
@@ -341,7 +397,7 @@ describe('contrast van de website-tokens', () => {
 
 // De productbeelden: standaard de donkere schermen van .aygm, in de demo en de
 // huisstijl-demo de kleuren van een sportschool via huisstijlVariabelen.
-const M = tokens(MOCKUP_CSS, '.aygm')
+const M = losAllesOp(tokens(MOCKUP_CSS, '.aygm'), SITE_RUW)
 
 function schermParen(v: Record<string, string>, naam: string): Paar[] {
   const vlakken = ['bg-app', 'bg-card', 'bg-raised'].map((k) => v[`--${k}`])

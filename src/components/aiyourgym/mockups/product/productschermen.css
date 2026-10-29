@@ -73,7 +73,6 @@
 .aygp-blok-extra { letter-spacing: 0; text-transform: none; font-size: 11.5px; color: var(--text-3); }
 .aygp-twee { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
 .aygp-twee--gelijk { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.aygp-twee--schema { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
 .aygp-kolom { display: grid; gap: 14px; align-content: start; min-width: 0; }
 
 /* ── Vandaag: lessen en wie er net binnen is ──────────────────────────────── */
@@ -104,20 +103,7 @@
 .aygp-ronde li[data-gedaan] { border-color: transparent; background: var(--brand-soft); color: var(--text-1); }
 .aygp-ronde svg { color: var(--brand-tekst); }
 
-/* ── Schema-editor ────────────────────────────────────────────────────────── */
-.aygp-tabel { display: grid; align-content: start; min-width: 0; border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); overflow: hidden; }
-.aygp-tabel-kop, .aygp-tabel-rij { display: grid; grid-template-columns: minmax(0, 2.6fr) repeat(5, minmax(0, 0.8fr)); align-items: center; gap: 8px; padding: 0 14px; }
-.aygp-tabel-kop { height: 32px; background: var(--p-put); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
-.aygp-tabel-rij { height: 44px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--text-2); }
-.aygp-tabel-rij[data-groep-begin] { border-top-color: var(--line-strong); }
-.aygp-tabel-rij[data-gekozen] { background: color-mix(in srgb, var(--brand) 16%, var(--p-opp-1)); box-shadow: inset 3px 0 0 var(--brand-tekst); }
-.aygp-oef { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.aygp-oef i { flex: none; display: grid; place-items: center; width: 26px; height: 22px; border-radius: 6px; background: var(--bg-raised); font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--brand-tekst); }
-.aygp-oef b { font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aygp-tabel-voet { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--text-3); }
-.aygp-punten { display: grid; gap: 8px; counter-reset: punt; }
-.aygp-punten li { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 13px; font-weight: 500; counter-increment: punt; }
-.aygp-punten li::before { content: counter(punt); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); font-size: 11px; font-weight: 700; box-shadow: var(--p-randlicht-sterk); }
+/* ── Schema-editor: zie het blok Schemascherm onderaan ─────────────────── */
 
 /* ── Ledenapp: Home met de weekring ───────────────────────────────────────── */
 .aygp-app { gap: 10px; }
@@ -155,10 +141,8 @@
 
 /* ── Smal: de schermen stapelen in plaats van te krimpen ─────────────────── */
 @container (max-width: 760px) {
-  .aygp-twee, .aygp-twee--gelijk, .aygp-twee--schema { grid-template-columns: minmax(0, 1fr); }
+  .aygp-twee, .aygp-twee--gelijk { grid-template-columns: minmax(0, 1fr); }
   .aygp-acties { display: none; }
-  .aygp-tabel-kop, .aygp-tabel-rij { grid-template-columns: minmax(0, 2.4fr) repeat(3, minmax(0, 0.9fr)); }
-  .aygp-tabel-kop > :nth-child(n + 5), .aygp-tabel-rij > :nth-child(n + 5) { display: none; }
 }
 @container (max-width: 560px) {
   .aygp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -168,4 +152,167 @@
   .aygp-stat--hoofd .aygp-stat-waarde { font-size: 44px; }
   .aygp-tabs span:nth-child(n + 4) { display: none; }
   .aygp-titel { font-size: 19px; }
+}
+
+/* ── Schemascherm (29-10-2026): een dag van een schema, statisch en rustig ──
+   De week bovenaan, links de dag in blokken (supersets met een lijn tussen de
+   codes), elke oefening met een stilstaand beeld van de eigen render, rechts
+   een vast paneel. Breed: tabel met kolommen. Midden: het paneel onder de
+   lijst. Smal (telefoon): elke oefening een eigen kaart, niets klapt uit.
+   Tempo als balkjes: omlaag in het accent, vast als verzonken spoor, omhoog
+   lichter. De breedte van een balkje is het aantal seconden (7 = vol). */
+
+.aygs {
+  --s-kol: 26px 48px minmax(0, 1.55fr) minmax(0, 0.8fr) minmax(0, 0.55fr) minmax(0, 0.4fr) minmax(0, 0.6fr) minmax(0, 1fr);
+  --s-omlaag: var(--brand-tekst);
+  --s-omhoog: color-mix(in srgb, var(--brand-tekst) 48%, var(--p-opp-1));
+  --s-vast: color-mix(in srgb, var(--text-1) 14%, var(--p-put));
+}
+
+/* Week: de voortgang van het schema en de drie dagen */
+.aygs-week {
+  display: grid; grid-template-columns: minmax(150px, 0.8fr) minmax(0, 3fr); align-items: stretch;
+  border: var(--p-rand); border-radius: var(--p-hoek); overflow: hidden;
+  background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1);
+}
+.aygs-week-stand { display: grid; align-content: center; gap: 10px; padding: 12px 16px; border-right: var(--p-rand); }
+.aygs-week-balk { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+.aygs-week-balk i { height: 6px; border-radius: 2px; background: var(--p-put); box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.35); }
+.aygs-week-balk i[data-gedaan] { background: var(--s-omhoog); box-shadow: none; }
+.aygs-week-balk i[data-nu] { background: var(--brand-tekst); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-tekst) 22%, transparent); }
+.aygs-dagen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aygs-dagen li { display: grid; align-content: center; gap: 6px; min-width: 0; padding: 10px 14px; }
+.aygs-dagen li + li { border-left: var(--p-rand); }
+.aygs-dagen li[data-stand='nu'] { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 30%, var(--p-opp-1)), var(--p-opp-1)); box-shadow: inset 0 2px 0 var(--brand-tekst); }
+.aygs-dag-kop { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.aygs-dag-kop small { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygs-dag-kop b { font: 600 15px/1 var(--ayg-font-kop); letter-spacing: -0.02em; white-space: nowrap; }
+.aygs-dag-stand { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--text-3); white-space: nowrap; }
+.aygs-dagen li[data-stand='gedaan'] .aygs-dag-stand { color: var(--club-ok); }
+.aygs-dagen li[data-stand='nu'] .aygs-dag-stand { color: var(--brand-tekst); }
+.aygs-dag-sub { font-size: 11.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aygs-dag-duimen { display: flex; align-items: center; gap: 4px; }
+.aygs-dag-duimen img { width: 24px; height: 24px; border-radius: 6px; object-fit: contain; background: var(--p-put); box-shadow: var(--p-randlicht); }
+.aygs-dag-meer { font-size: 11px; font-weight: 600; color: var(--text-3); }
+
+/* De dag en het paneel */
+.aygs-raam { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); gap: 14px; align-items: start; }
+.aygs-lijst { display: grid; gap: 8px; min-width: 0; }
+.aygs-kolommen, .aygs-rij { display: grid; grid-template-columns: var(--s-kol); align-items: center; gap: 10px; }
+.aygs-kolommen { padding: 0 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygs-kolommen > :first-child { grid-column: 1 / span 3; }
+.aygs-cellen { display: contents; }
+
+.aygs-blok { position: relative; border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); }
+.aygs-blok[data-superset] { background: linear-gradient(180deg, var(--p-opp-2), var(--p-opp-1) 80%); border-color: var(--line-strong); box-shadow: var(--p-randlicht-sterk), var(--p-diepte-2); }
+.aygs-blok-label {
+  position: absolute; top: -8px; right: 12px; z-index: 2;
+  padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line-strong);
+  background: var(--bg-app); color: var(--brand-tekst);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.aygs-rij { --s-rand: 14px; position: relative; min-height: 58px; padding: 7px var(--s-rand); }
+.aygs-rij + .aygs-rij { border-top: 1px solid var(--line); }
+
+/* De code, met in een superset een lijn naar de volgende oefening */
+.aygs-code {
+  position: relative; z-index: 1; display: grid; place-items: center; width: 26px; height: 22px; border-radius: 6px;
+  background: var(--bg-raised); color: var(--brand-tekst); font-size: 10.5px; font-weight: 700; box-shadow: var(--p-randlicht);
+}
+.aygs-blok[data-superset] .aygs-rij:not(:last-child)::before {
+  content: ''; position: absolute; z-index: 0; left: calc(var(--s-rand) + 12px); top: calc(50% + 11px); height: calc(100% - 22px + 1px); width: 2px;
+  border-radius: 1px; background: linear-gradient(var(--brand-tekst), color-mix(in srgb, var(--brand-tekst) 35%, transparent));
+}
+
+.aygs-duim { position: relative; display: block; width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: radial-gradient(80% 70% at 50% 40%, var(--brand-soft), transparent 75%), var(--p-put); box-shadow: var(--p-randlicht), inset 0 0 0 1px var(--line); }
+.aygs-duim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.aygs-naam { display: grid; min-width: 0; }
+.aygs-naam b { font-size: 13.5px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.aygs-cel { display: grid; min-width: 0; font-size: 12.5px; color: var(--text-2); white-space: nowrap; }
+.aygs-cel > small, .aygs-tempo > small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.aygs-cel[data-sterk] > span { font-weight: 600; color: var(--text-1); }
+.aygs-cel[data-zacht] > span { color: var(--text-3); font-size: 11.5px; }
+.aygs-cel em { display: block; font-style: normal; font-size: 10.5px; font-weight: 500; color: var(--text-3); }
+
+.aygs-tempo { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.aygs-tempo-balk { display: flex; gap: 2px; flex: 1; min-width: 0; max-width: 84px; }
+.aygs-tempo-balk i { height: 8px; width: calc(var(--sec) * 100% / 7); border-radius: 2px; background: var(--s-vast); }
+.aygs-tempo-balk i[data-soort='omlaag'] { background: var(--s-omlaag); }
+.aygs-tempo-balk i[data-soort='omhoog'] { background: var(--s-omhoog); }
+.aygs-tempo b { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--text-3); }
+.aygs-tempo-houd { font-size: 11.5px; color: var(--text-3); }
+
+.aygs-legenda { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 14px; padding: 2px 14px 0; font-size: 11px; color: var(--text-3); }
+.aygs-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.aygs-legenda span::before { content: ''; width: 14px; height: 6px; border-radius: 2px; background: var(--s-vast); }
+.aygs-legenda span[data-soort='omlaag']::before { background: var(--s-omlaag); }
+.aygs-legenda span[data-soort='omhoog']::before { background: var(--s-omhoog); }
+
+/* Het vaste paneel: de oefening op het zwaarste punt, kernpunten en de zwaarste set */
+.aygs-paneel { display: grid; gap: 12px; min-width: 0; }
+.aygs-paneel-tekst { display: grid; gap: 12px; min-width: 0; }
+.aygs-paneel .aygp-stat { border: var(--p-rand); border-radius: var(--p-hoek); background: var(--p-opp-1); box-shadow: var(--p-randlicht), var(--p-diepte-1); }
+.aygs-paneel .aygp-spark-lijn { stroke: var(--brand-tekst); stroke-width: 2; }
+.aygs-uit {
+  position: relative; margin: 0; aspect-ratio: 1 / 0.82; overflow: hidden;
+  border: 1px solid var(--line-strong); border-radius: var(--p-hoek);
+  background: radial-gradient(70% 62% at 50% 44%, color-mix(in srgb, var(--brand) 42%, transparent), transparent 74%), var(--p-put);
+  box-shadow: var(--p-randlicht-sterk), var(--p-diepte-2);
+}
+.aygs-uit img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 62%; }
+.aygs-uit figcaption {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px 6px 6px; border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-app) 82%, transparent); box-shadow: var(--p-randlicht), inset 0 0 0 1px var(--line);
+}
+.aygs-uit figcaption b { font: 600 14px/1.1 var(--ayg-font-kop); letter-spacing: -0.02em; }
+.aygs-punten { display: grid; gap: 9px; counter-reset: punt; }
+.aygs-punten li { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 10px; counter-increment: punt; }
+.aygs-punten li::before { content: counter(punt); grid-row: span 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--brand); color: var(--brand-inkt); font-size: 10.5px; font-weight: 700; box-shadow: var(--p-randlicht-sterk); }
+.aygs-punten b { font-size: 12.5px; font-weight: 600; line-height: 20px; }
+.aygs-punten small { font-size: 11.5px; line-height: 1.4; color: var(--text-3); }
+.aygs-fout { display: grid; gap: 3px; padding: 10px 12px; border-radius: 10px; background: var(--p-put); box-shadow: inset 2px 0 0 var(--club-let-op); font-size: 11.5px; line-height: 1.4; color: var(--text-2); }
+.aygs-fout small { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.aygs-fout b { font-size: 12.5px; font-weight: 600; color: var(--text-1); }
+
+/* Midden: het paneel onder de lijst, beeld naast de tekst */
+@container (max-width: 880px) {
+  .aygs-raam { grid-template-columns: minmax(0, 1fr); }
+  .aygs-paneel { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: start; }
+  .aygs-uit { aspect-ratio: 1; }
+}
+@container (max-width: 700px) {
+  .aygs { --s-kol: 26px 44px minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.55fr) minmax(0, 0.4fr) minmax(0, 0.55fr) minmax(0, 0.8fr); }
+  .aygs-rij { --s-rand: 10px; gap: 8px; }
+  .aygs-kolommen { padding: 0 10px; gap: 8px; }
+  .aygs-tempo b { display: none; }
+}
+
+/* Smal (telefoon): elke oefening een kaart met de cijfers als vier tegels */
+@container (max-width: 560px) {
+  .aygs-week { grid-template-columns: minmax(0, 1fr); }
+  .aygs-week-stand { border-right: 0; border-bottom: var(--p-rand); }
+  .aygs-dagen li { padding: 10px; }
+  .aygs-dag-kop { flex-wrap: wrap; row-gap: 2px; }
+  .aygs-dag-stand { margin-left: 0; width: 100%; }
+  .aygs-dag-sub { white-space: normal; }
+  .aygs-dag-duimen img:nth-child(n + 3) { display: none; }
+  .aygs-kolommen { display: none; }
+  .aygs-rij { grid-template-columns: 26px 56px minmax(0, 1fr); grid-template-areas: 'code duim naam' 'code duim tempo' 'cel cel cel'; gap: 6px 10px; --s-rand: 12px; padding: 12px; }
+  .aygs-rij + .aygs-rij { border-top-color: var(--line-strong); }
+  .aygs-code { grid-area: code; align-self: start; }
+  .aygs-duim { grid-area: duim; width: 56px; height: 56px; }
+  .aygs-naam { grid-area: naam; align-self: end; }
+  .aygs-naam b { font-size: 15px; white-space: normal; }
+  .aygs-tempo { grid-area: tempo; align-self: start; }
+  .aygs-tempo b { display: inline; }
+  .aygs-cellen { grid-area: cel; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; border-radius: 10px; overflow: hidden; background: var(--line); }
+  .aygs-cel { align-content: start; gap: 2px; padding: 7px 9px; background: var(--p-put); white-space: normal; }
+  .aygs-cel > small { position: static; width: auto; height: auto; overflow: visible; clip-path: none; font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+  .aygs-blok[data-superset] .aygs-rij:not(:last-child)::before { top: 34px; height: auto; bottom: -13px; }
+  .aygs-cel[data-leeg] > span::before { content: '·'; color: var(--text-3); }
+  .aygs-legenda { justify-content: flex-start; }
+  .aygs-paneel { grid-template-columns: minmax(0, 1fr); }
+  .aygs-uit { aspect-ratio: 1 / 0.8; }
 }

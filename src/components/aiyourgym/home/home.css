@@ -6,7 +6,7 @@
 
 .ayg-held-kop { display: grid; justify-items: start; }
 /* Het wisselende woord staat op een eigen regel: een ander woord verschuift niets eromheen.
-   Flessengroen (de tekstkleur voor accent op papier) met volle dekking en een strakke
+   Iron (de tekstkleur voor accent op obsidiaan) met volle dekking en een strakke
    streep er direct onder die bij elk nieuw woord van links intekent. */
 .ayg-wissel { display: block; font-size: clamp(2.3rem, 4.8vw, 5.6rem); line-height: 1.02; white-space: nowrap; padding-block: 0.02em 0.14em; }
 /* Telefoon: het langste woord ("vechtsportschool") moet op 320 px op een regel passen */

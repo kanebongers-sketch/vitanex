@@ -2,6 +2,7 @@ import { Check, Trophy } from 'lucide-react'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { APP_SCHERMEN } from '@/lib/aiyourgym/taal/woorden/website/mockups/schermen'
+import { IRON_KLEUR } from '../merk/merk-paden'
 import { OefNr } from './OefNr'
 import { LES, VOORBEELD_NAAM, VOORBEELD_STRAAT, VOORBEELD_VESTIGING } from './voorbeeld'
 
@@ -34,7 +35,7 @@ export function QrBeeld() {
   return (
     <svg viewBox={`0 0 ${n} ${n}`} shapeRendering="crispEdges" aria-hidden>
       {vakjes.map(({ x, y }) => (
-        <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#111614" />
+        <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={IRON_KLEUR.obsidiaan} />
       ))}
     </svg>
   )

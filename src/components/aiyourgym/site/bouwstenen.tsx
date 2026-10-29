@@ -54,7 +54,7 @@ interface PaginaKopProps {
 }
 
 /**
- * De opening van een subpagina als eerste kleurhoofdstuk: een vol racegroen vlak met
+ * De opening van een subpagina als eerste kleurhoofdstuk: een vol obsidiaan vlak met
  * links de grote kop (de enige h1) en op de as van 42% de inleiding, zoals de
  * voorpagina. De paginanaam (label) staat in het menu en is niet ook nog een eyebrow.
  */

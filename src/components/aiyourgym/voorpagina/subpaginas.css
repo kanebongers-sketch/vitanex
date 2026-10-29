@@ -17,10 +17,10 @@
 .ayg .ayg-paginakop .ayg-display { margin: 0; max-width: 14ch; color: var(--vp-wit); font-size: clamp(2.8rem, 6.4vw, 7rem); line-height: 0.92; letter-spacing: -0.055em; }
 .ayg .ayg-paginakop .ayg-lead { margin: 0; max-width: 34ch; color: var(--vp-wit-zacht); font-size: var(--vp-t-lead); }
 .ayg .ayg-paginakop .ayg-paginakop-extra { margin-top: 28px; }
-.ayg .ayg-paginakop .ayg-knop--accent { --k-bg: var(--vp-salie); --k-tekst: var(--vp-racegroen); --k-hover: var(--vp-salie-licht); }
+.ayg .ayg-paginakop .ayg-knop--accent { --k-bg: var(--vp-iron); --k-tekst: var(--vp-iron-tekst); --k-hover: var(--vp-iron-licht); }
 .ayg .ayg-paginakop .ayg-knop--rand { --k-tekst: var(--vp-wit); box-shadow: inset 0 0 0 2px var(--vp-wit-zacht); }
 .ayg .ayg-paginakop .ayg-pijllink { color: var(--vp-wit); }
-.ayg .ayg-paginakop :where(a, button):focus-visible { outline-color: var(--vp-salie); box-shadow: none; }
+.ayg .ayg-paginakop :where(a, button):focus-visible { outline-color: var(--vp-iron); box-shadow: none; }
 @media (min-width: 1024px) {
   .ayg-paginakop-raster { grid-template-columns: 42fr 58fr; }
   .ayg .ayg-paginakop .ayg-display { grid-column: 1 / -1; max-width: 16ch; }

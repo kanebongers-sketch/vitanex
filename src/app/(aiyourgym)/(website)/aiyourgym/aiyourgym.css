@@ -3,16 +3,28 @@
    Richting "Obsidiaan" (besluit Kane 28-10-2026, vervangt de vlakken in racegroen,
    creme, flessengroen en salie): bijna zwart met een koele grijze ondertoon, in
    lagen voor de diepte. Basis #0E0F11, vlakken #15171A en #1C1F23, rand #2A2E33,
-   gebroken wit #ECEBE7 als tekst. Het groen blijft het merkaccent, maar spaarzaam:
-   salie #A7B5A8 met racegroen #10302A erop voor de hoofdknop, vinkjes en kleine
-   accenten, en het embleem. Geen goud of brons. Er is een palet: de site meldt
-   alleen donker (color-scheme: dark), ook bij een licht ingesteld systeem.
+   gebroken wit #ECEBE7 als tekst.
+   Obsidian iron (besluit Kane 29-10-2026): geen groen meer op de website. Het accent
+   is iron, een koel metaalgrijs, en loopt via twee tokens: --iron-accent en
+   --iron-accent-tekst. De rest (licht, lijn, glans, het accent van podium, voet en
+   productschermen) is daarvan afgeleid, dus de tint is in een regel aan te passen.
+   Geen goud of brons. Er is een palet: de site meldt alleen donker
+   (color-scheme: dark), ook bij een licht ingesteld systeem.
    Alles hangt aan de root-klasse .ayg, zodat niets van Fit Factory, MentaForce
    of RELEASE V wordt geraakt.
    De tokennamen hieronder zijn vast: het aanmeldformulier bouwt erop.
    ========================================================================== */
 
 .ayg {
+  /* Obsidian iron: het accent. Pas de tint hier aan, de rest volgt. */
+  --iron-accent: #a9afb6; /* iron: hoofdknop, vinkjes, badges, lijnen; 8.7:1 op de basis */
+  --iron-accent-tekst: #0e0f11; /* obsidiaan op iron: 8.7:1 */
+  --iron-licht: color-mix(in srgb, var(--iron-accent) 62%, #ffffff); /* hover, bovenkant van de glans, accent op het podium */
+  --iron-lijn: color-mix(in srgb, var(--iron-accent) 78%, #0e0f11); /* middelgrijze iron: lijnen en details */
+  --iron-glans: linear-gradient(160deg, var(--iron-licht), var(--iron-accent) 55%, var(--iron-lijn)); /* rustige metalen glans */
+  /* Glans over een vlak in iron (hoofdknop): wit en zwart met lage dekking, dus de knop houdt zijn eigen kleur en hover */
+  --iron-glans-knop: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 52%, rgb(0 0 0 / 0.08));
+
   /* Kleur: de lagen van obsidiaan, van diep naar hoog */
   --ayg-bg: #0e0f11; /* basis */
   --ayg-vlak: #15171a;
@@ -22,14 +34,14 @@
   --ayg-tekst-spook: #70767d; /* grote sierletters en nummers: 3.6:1 op vlak-2 */
   --ayg-lijn: #2a2e33;
   --ayg-lijn-sterk: #6b7178; /* 3.35:1 op vlak-2, voor invoervelden en randknoppen */
-  --ayg-accent: #a7b5a8; /* salie: hoofdknop, vinkjes, badges, chips; racegroen erop */
-  --ayg-accent-tekst: #10302a; /* racegroen op salie: 6.6:1 */
-  --ayg-accent-sterk: #b4c2b5; /* lichte salie als tekst, icoon of lijn: 10:1 op bg */
-  --ayg-accent-licht: #b4c2b5; /* lichte salie: accent op het podium */
-  --ayg-accent-zacht: #1e4a40; /* flessengroen vlak (markering onder gebroken wit) */
-  --ayg-focus: #3a6b5e; /* groene halo rond de witte focusrand */
+  --ayg-accent: var(--iron-accent); /* hoofdknop, vinkjes, badges, chips; obsidiaan erop */
+  --ayg-accent-tekst: var(--iron-accent-tekst);
+  --ayg-accent-sterk: var(--iron-accent); /* iron als tekst, icoon of lijn */
+  --ayg-accent-licht: var(--iron-licht); /* lichte iron: accent op het podium en in de voet */
+  --ayg-accent-zacht: color-mix(in srgb, var(--iron-accent) 22%, #0e0f11); /* donker iron vlak (markering onder gebroken wit) */
+  --ayg-focus: color-mix(in srgb, var(--iron-accent) 45%, #0e0f11); /* iron halo rond de witte focusrand */
   --ayg-fout: #ff8f80;
-  --ayg-ok: #86d1a2;
+  --ayg-ok: var(--iron-licht); /* beschikbaar: lichte iron, de tekst draagt de betekenis */
   /* De held: een iets diepere laag onderin, en de aanmeldband een hogere plek op het podium */
   --ayg-held-vlak: #121316;
   --ayg-gloed-band: 55%;
@@ -53,15 +65,15 @@
   --ayg-inkt-spook: #7b8188; /* grote sierletters op het podium: 3.5:1 en meer */
   --ayg-voet-woord: #2b2f35; /* het grote woordmerk in de voet: net iets lichter dan het vlak, puur sier (aria-hidden) */
 
-  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, een rustig palet rond
-     salie (salie, lichte salie, zeegroen, linnen, mist). Altijd met inkt erop of
-     als tekst op het podium; zie contrast.test.ts */
-  --ayg-h-tekst: #111614;
-  --ayg-h-beheer: #a7b5a8;
-  --ayg-h-coaching: #b7c6ae;
-  --ayg-h-planning: #9fbab2;
-  --ayg-h-groei: #cdc3b1;
-  --ayg-h-betrokkenheid: #aeb9c0;
+  /* Hoofdstukken (functies): een eigen accent per hoofdstuk, monochroom in iron
+     (iron, staal, gietijzer, zilver, tin). Altijd met obsidiaan erop of als tekst
+     op het podium; zie contrast.test.ts */
+  --ayg-h-tekst: #0e0f11;
+  --ayg-h-beheer: var(--iron-accent);
+  --ayg-h-coaching: #bcc1c7;
+  --ayg-h-planning: #9ba2aa;
+  --ayg-h-groei: #c9ccd0;
+  --ayg-h-betrokkenheid: #b2b6bb;
 
   /* Letters */
   --ayg-font-kop: var(--ayg-f-hanken), system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -148,7 +160,7 @@
   --ayg-tekst-2: var(--ayg-inkt-tekst-2);
   --ayg-tekst-spook: var(--ayg-inkt-spook);
   --ayg-lijn: var(--ayg-inkt-lijn);
-  /* Op het podium wordt het accent de lichte salie met de podiumkleur erop,
+  /* Op het podium wordt het accent de lichte iron met de podiumkleur erop,
      en het accent als tekst ook */
   --ayg-accent: var(--ayg-accent-licht);
   --ayg-accent-tekst: var(--ayg-inkt);
@@ -160,7 +172,7 @@
 
 /* ── Een palet ───────────────────────────────────────────────────────────────
    De site is altijd obsidiaan (besluit Kane 28-10-2026): geen lichte versie meer.
-   Een vlak onder lichte tekst leest niet, dus de markering is salie als tekst.
+   Een vlak onder lichte tekst leest niet, dus de markering is iron als tekst.
    Het podium ligt een laag hoger dan de basis, met een lichtrand bovenaan.
    Alle paren worden getoetst in contrast.test.ts. */
 .ayg .ayg-markeer { background: none; color: var(--ayg-accent); }
@@ -217,7 +229,7 @@
 .ayg-knop:is(:hover, :focus-visible) { transform: translateY(-1px); background: var(--k-hover); }
 .ayg-knop:is(:hover, :focus-visible) svg { transform: translateX(3px); }
 .ayg-knop:active { transform: translateY(0) scale(0.985); }
-.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); --k-hover: color-mix(in srgb, var(--ayg-accent) 88%, #ffffff); }
+.ayg-knop--accent { --k-bg: var(--ayg-accent); --k-tekst: var(--ayg-accent-tekst); --k-hover: var(--iron-licht); }
 .ayg-knop--rand { --k-bg: transparent; --k-tekst: var(--ayg-tekst); --k-hover: color-mix(in srgb, var(--ayg-tekst) 7%, transparent); box-shadow: inset 0 0 0 1.5px var(--ayg-lijn-sterk); }
 .ayg-knop--rand:is(:hover, :focus-visible) { box-shadow: inset 0 0 0 1.5px var(--ayg-tekst); }
 .ayg-podium .ayg-knop--rand { --k-tekst: var(--ayg-inkt-tekst); box-shadow: inset 0 0 0 1.5px var(--ayg-inkt-tekst-2); }
@@ -254,7 +266,7 @@
 }
 
 /* ── Kop (navigatie) ─────────────────────────────────────────────────────── */
-/* Obsidiaan (besluit Kane 28-10-2026): gebroken wit met een saliekleurige hoofdknop.
+/* Obsidiaan (besluit Kane 28-10-2026): gebroken wit met een hoofdknop in iron.
    Bovenaan valt de kop weg in de basis (data-bovenaan, gezet door JavaScript); bij
    scrollen een vlak een laag hoger met een fijne lijn. */
 .ayg-kop { position: sticky; top: 0; z-index: 50; isolation: isolate; }
@@ -339,7 +351,7 @@
 }
 
 /* ── Voet ────────────────────────────────────────────────────────────────── */
-/* Een laag obsidiaan als anker onderaan, met salie alleen als accent (lijnen, hover)
+/* Een laag obsidiaan als anker onderaan, met iron alleen als accent (lijnen, hover)
    en een woordmerk dat net iets lichter is dan het vlak. */
 .ayg-voet { background: var(--ayg-inkt); color: var(--ayg-inkt-tekst); --ayg-tekst-2: var(--ayg-inkt-tekst-2); --ayg-accent: var(--ayg-accent-licht); --ayg-accent-tekst: var(--ayg-inkt); --ayg-accent-sterk: var(--ayg-accent-licht); padding-block: 56px 28px; margin-top: auto; }
 .ayg-voet-raster { display: grid; gap: 32px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -470,15 +482,13 @@
 .ayg { flex-shrink: 0; }
 
 /* ── Logo (merkgids: docs/aiyourgym/brand/) ─────────────────────────────────
-   Vaste merkkleuren, los van de site-tokens: het stempelembleem is overal hetzelfde.
-   Op obsidiaan altijd de versie voor donker: een creme plaat met racegroene tekens
-   (een racegroene plaat valt op bijna zwart weg). Het woordmerk volgt de tekstkleur.
-   De namen --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
+   Obsidian iron (besluit Kane 29-10-2026): op de website een iron plaat met
+   obsidiaan tekens. Kop en voet tekenen het embleem met de prop iron (met metalen
+   glans); zonder die prop geeft deze css hetzelfde iron, vlak. Het woordmerk volgt
+   de tekstkleur. De namen --ayg-logo-plaat en --ayg-logo-teken leest AygLogo.tsx. */
 .ayg-logo {
-  --ayg-logo-racegroen: #10302a;
-  --ayg-logo-creme: #f1ece1;
-  --ayg-logo-plaat: var(--ayg-logo-creme);
-  --ayg-logo-teken: var(--ayg-logo-racegroen);
+  --ayg-logo-plaat: var(--iron-accent);
+  --ayg-logo-teken: var(--iron-accent-tekst);
   display: block;
   flex-shrink: 0;
   overflow: visible;

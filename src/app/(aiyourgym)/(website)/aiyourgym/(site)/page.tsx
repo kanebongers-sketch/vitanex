@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // De voorpagina in kleurhoofdstukken: elk hoofdstuk een eigen vol merkvlak, tegen
 // elkaar aan, zonder lijnen ertussen. Kort en gericht op aanmelden (besluit Kane
 // 21-10-2026): de held (papier), vier productblokken met echte schermen van Club
-// (racegroen, papier, flessengroen, papier-diep), een band met feiten uit het
-// product (inkt), wie het bouwt (papier) en de oproep (salie). Details op de
+// (lagen obsidiaan), een band met feiten uit het product (diep), wie het bouwt en
+// de oproep (de hoogste laag). Details op de
 // subpagina's.
 export default function AiYourGymHome() {
   return (

@@ -24,7 +24,7 @@ export const HUISSTIJL_DEMO = woordenboek({
     licht: 'Light',
     donkerKlein: 'dark',
     lichtKlein: 'light',
-    stalen: ['Bottle green', 'Coral', 'Ocean', 'Raspberry', 'Purple', 'Gold'],
+    stalen: ['Iron', 'Coral', 'Ocean', 'Raspberry', 'Purple', 'Gold'],
     aangepast: (naam: string) => `${naam} has been adjusted slightly so buttons and text stay easy to read.`,
     goed: (naam: string, thema: string) => `${naam} on ${thema}: enough contrast, used as is.`,
   },

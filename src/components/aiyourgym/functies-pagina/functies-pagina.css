@@ -3,7 +3,7 @@
    Bouwt op voorpagina.css (tokens --vp-*, .vp-knop, .vp-h2, .vp-regel, .vp-onthul).
    Elk hoofdstuk is een eigen laag obsidiaan (besluit Kane 28-10-2026) met een
    lichtrand bovenaan; het schermfragment ligt een toonstap hoger of lager op
-   hetzelfde vlak. Het accent (nadruk) is overal salie met racegroen erop.
+   hetzelfde vlak. Het accent (nadruk) is overal iron met obsidiaan erop.
    Vierkant, geen verloop.
    ========================================================================== */
 
@@ -15,7 +15,7 @@
 .fp-vlak-betrokkenheid { --fp-vlak: var(--vp-diep); --fp-scherm: var(--vp-vlak); --fp-rij: var(--vp-vlak-hoog); }
 :is(.fp-vlak-beheer, .fp-vlak-coaching, .fp-vlak-planning, .fp-vlak-groei, .fp-vlak-betrokkenheid) {
   --fp-tekst: var(--vp-wit); --fp-zacht: var(--vp-wit-zacht);
-  --fp-nadruk: var(--vp-salie); --fp-nadruk-tekst: var(--vp-racegroen);
+  --fp-nadruk: var(--vp-iron); --fp-nadruk-tekst: var(--vp-iron-tekst);
 }
 
 /* ── Held ─────────────────────────────────────────────────────────────────── */

@@ -2,7 +2,7 @@
 // Los van de component, zodat de contrasttest ze allemaal kan nalopen.
 
 export const STALEN = [
-  { naam: 'Flessengroen', hex: '#1E4A40' },
+  { naam: 'Iron', hex: '#A9AFB6' },
   { naam: 'Koraal', hex: '#FF5A36' },
   { naam: 'Oceaan', hex: '#3E63DD' },
   { naam: 'Framboos', hex: '#E0336E' },

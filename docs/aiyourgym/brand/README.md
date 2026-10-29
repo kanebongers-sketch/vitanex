@@ -25,7 +25,34 @@ minimummaat, kleuren met contrast, letters en toon van schrijven.
 | `ayg-app-icoon.svg`, `ayg-app-icoon-512.png`, `-1024` | App-icoon: creme embleem op racegroen |
 | `ayg-deelafbeelding.png` | Voorbeeld van de deelafbeelding (1200 x 630) |
 
-## Kleuren
+| `ayg-logo-iron.svg` / `.png`, `-40`, `-40@2x`, `-40@3x` | Obsidian iron: liggend logo voor obsidiaan (iron embleem met glans, woord in gebroken wit) |
+| `ayg-embleem-iron.svg`, `-512.png`, `-1024.png` | Obsidian iron: alleen het embleem |
+| `ayg-woordmerk-iron.svg` | Obsidian iron: alleen het woordmerk, in iron |
+| `ayg-app-icoon-iron.svg`, `-512.png`, `-1024.png` | Obsidian iron: iron embleem op obsidiaan (ook het apple-icoon van de website) |
+
+## Obsidian iron (website, besluit Kane 29-10-2026)
+
+De openbare website is helemaal obsidiaan met iron als accent, geen groen meer. Het
+embleem is daar een iron plaat met een rustige metalen glans (licht linksboven, donkerder
+rechtsonder) en obsidiaan tekens; het woordmerk staat in gebroken wit. Racegroen blijft
+alleen voor de app-iconen van Club, het inloggen van Club en drukwerk, totdat Kane anders beslist.
+
+| Naam | Waarde | Gebruik |
+| --- | --- | --- |
+| Iron licht | `#C9CDD2` | Bovenkant van de glans |
+| Iron | `#A9AFB6` | De plaat en het accent (`--iron-accent` op de website) |
+| Iron diep | `#8A9097` | Onderkant van de glans, lijnen en details |
+| Obsidiaan | `#0E0F11` | Tekens op de plaat, basis van de website |
+| Gebroken wit | `#ECEBE7` | Woordmerk op obsidiaan |
+
+Contrast: obsidiaan op iron licht 12,01:1 · obsidiaan op iron 8,67:1 · obsidiaan op iron
+diep 5,95:1 · iron op obsidiaan 8,67:1 · gebroken wit op obsidiaan 16,08:1.
+
+In de app: `AygLogo` met de prop `iron` (kop en voet van de website), kleuren in
+`IRON_KLEUR` (`merk-paden.ts`). Favicon van de website: de kleine versie, vlak iron met
+obsidiaan (een glans is op 16 px een waas).
+
+## Kleuren (racegroen: Club en drukwerk)
 
 | Naam | Waarde | Gebruik |
 | --- | --- | --- |

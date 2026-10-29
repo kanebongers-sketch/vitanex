@@ -10,6 +10,8 @@
 // commercieel gebruik), omgezet naar paden. Bron: BigShoulders-Bold-merk.ttf
 // (alleen de letters van het merk), licentie ernaast. De Y is een eigen tekening
 // (besluit Kane 23-10-2026, variant "A · Strak"), zie EIGEN_Y hieronder.
+// Obsidian iron (besluit Kane 29-10-2026): de website gebruikt de iron-variant (iron
+// plaat met metalen glans, obsidiaan tekens); zie IRON. Club houdt racegroen.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -30,6 +32,20 @@ const K = {
   flessengroen: '#1E4A40',
   salie: '#A7B5A8',
   inkt: '#111614',
+}
+
+/**
+ * Obsidian iron (besluit Kane 29-10-2026): de website is helemaal obsidiaan met een
+ * koel metaalgrijs accent, geen groen meer. Het embleem op de website is een iron
+ * plaat met een rustige metalen glans (licht linksboven, donkerder rechtsonder) en
+ * obsidiaan tekens. Racegroen blijft voor de app-iconen van Club en drukwerk.
+ */
+const IRON = {
+  licht: '#C9CDD2', // bovenkant van de glans
+  iron: '#A9AFB6', // het accent zelf (zelfde waarde als --iron-accent op de website)
+  diep: '#8A9097', // onderkant van de glans, lijnen en details
+  obsidiaan: '#0E0F11', // tekens op de plaat, basis van de website
+  wit: '#ECEBE7', // gebroken wit: het woordmerk op obsidiaan
 }
 
 const r2 = (v) => Math.round(v * 100) / 100
@@ -126,6 +142,11 @@ const VARIANT = {
   donker: { plaat: K.creme, teken: K.racegroen }, // op racegroen, inkt en donkere foto's
 }
 
+/** De metalen glans van de iron plaat: een fijn verloop over het hele embleem (userSpaceOnUse). */
+const glans = (id) =>
+  `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">` +
+  `<stop offset="0" stop-color="${IRON.licht}"/><stop offset=".55" stop-color="${IRON.iron}"/><stop offset="1" stop-color="${IRON.diep}"/></linearGradient></defs>`
+
 // Scherp op elk scherm: de rechte vlakken (plaat, kruis, vak Y) zonder anti-aliasing,
 // zodat hun randen op hele pixels vallen en er geen grijze haarlijnen of naden ontstaan.
 // De letters houden hun gladde randen.
@@ -136,6 +157,9 @@ const kruisLijn = (kleur) =>
 const embleem = ({ plaat, teken }) =>
   `<rect width="100" height="100" fill="${plaat}" ${SCHERP}/><path d="${RASTER_PAD}" fill="${teken}" ${SCHERP}/>${kruisLijn(teken)}` +
   `<path d="${LETTER_PAD}" fill="${teken}"/><path d="${Y_PAD}" fill="${plaat}"/>`
+
+/** Iron (website): plaat en Y met de metalen glans, kruis en letters in obsidiaan. */
+const embleemIron = (id = 'iron') => glans(id) + embleem({ plaat: `url(#${id})`, teken: IRON.obsidiaan })
 
 /** Eenkleurig: plaat en Y in de kleur, de rest uitgespaard (werkt op elke ondergrond). */
 const embleemEenkleurig = (kleur, id) =>
@@ -177,6 +201,19 @@ export const MERK_KLEUR = {
   flessengroen: '${K.flessengroen}',
   salie: '${K.salie}',
   inkt: '${K.inkt}',
+} as const
+
+/**
+ * Obsidian iron (besluit Kane 29-10-2026): het embleem op de website. Iron plaat met
+ * een metalen glans van licht naar diep, tekens in obsidiaan. Racegroen blijft alleen
+ * voor de app-iconen van Club en drukwerk.
+ */
+export const IRON_KLEUR = {
+  licht: '${IRON.licht}',
+  iron: '${IRON.iron}',
+  diep: '${IRON.diep}',
+  obsidiaan: '${IRON.obsidiaan}',
+  wit: '${IRON.wit}',
 } as const
 
 // Scherp tekenen (zie AygLogo): de plaat en EMBLEEM_RASTER_PAD met shape-rendering
@@ -230,17 +267,21 @@ const bestanden = {
   'ayg-woordmerk-donker.svg': svg(woordVb, woordG(K.creme), WW, WH),
   'ayg-woordmerk-zwart.svg': svg(woordVb, woordG('#000'), WW, WH),
   'ayg-woordmerk-wit.svg': svg(woordVb, woordG('#fff'), WW, WH),
+  // Obsidian iron (website, besluit Kane 29-10-2026): voor obsidiaan en andere donkere ondergronden
+  'ayg-logo-iron.svg': svg(logoVb, embleemIron() + woordG(IRON.wit, LOGO.transform), LW, LH),
+  'ayg-embleem-iron.svg': svg('0 0 100 100', embleemIron(), 512, 512),
+  'ayg-woordmerk-iron.svg': svg(woordVb, woordG(IRON.iron), WW, WH),
 }
 
 // App-icoon: tegel in racegroen met het creme embleem erop, zoals een stempel.
 const appIcoon = (rx = 0) =>
   `<rect width="100" height="100" rx="${rx}" fill="${K.racegroen}"/><g transform="translate(19 19) scale(.62)">${embleem(VARIANT.donker)}</g>`
 bestanden['ayg-app-icoon.svg'] = svg('0 0 100 100', appIcoon(), 512, 512)
-// Website (obsidiaan, besluit Kane 28-10-2026): dezelfde tegel, maar op de basiskleur
-// van de site in plaats van racegroen. Club houdt de racegroene tegel.
-const OBSIDIAAN = '#0E0F11'
+// Website (obsidian iron, besluit Kane 29-10-2026): een obsidiaan tegel met het iron
+// embleem erop. Club houdt de racegroene tegel.
 const appIcoonWebsite = () =>
-  `<rect width="100" height="100" fill="${OBSIDIAAN}"/><g transform="translate(19 19) scale(.62)">${embleem(VARIANT.donker)}</g>`
+  `<rect width="100" height="100" fill="${IRON.obsidiaan}"/><g transform="translate(19 19) scale(.62)">${embleemIron('iron-icoon')}</g>`
+bestanden['ayg-app-icoon-iron.svg'] = svg('0 0 100 100', appIcoonWebsite(), 512, 512)
 
 // Oude bestanden van het vorige logo (figuur in een tegel) weg, zodat niemand ze nog pakt.
 for (const oud of ['ayg-beeldmerk.svg', 'ayg-beeldmerk-donker.svg', 'ayg-beeldmerk-512.png', 'ayg-figuur.svg', 'ayg-woordmerk.svg']) {
@@ -260,8 +301,16 @@ const icoon = svg(
     `<path class="t ts" stroke-width="3.6" stroke-linejoin="round" d="${klein.letters}"/>` +
     `<path class="p ps" stroke-width="3.6" stroke-linejoin="round" d="${klein.y}"/>`,
 )
-fs.writeFileSync(path.join(WEBSITE, 'icon.svg'), icoon)
 fs.writeFileSync(path.join(CLUB, 'icon.svg'), icoon)
+// Favicon van de website: de kleine versie in iron, vlak (een glans is op 16 pixels een waas).
+// Iron met obsidiaan leest op een lichte en een donkere tabbalk, dus zonder omdraaien.
+const icoonIron = svg(
+  '0 0 100 100',
+  `<rect fill="${IRON.iron}" width="100" height="100" ${SCHERP}/><path fill="${IRON.obsidiaan}" ${SCHERP} d="${klein.cel}"/>` +
+    `<path fill="${IRON.obsidiaan}" stroke="${IRON.obsidiaan}" stroke-width="3.6" stroke-linejoin="round" d="${klein.letters}"/>` +
+    `<path fill="${IRON.iron}" stroke="${IRON.iron}" stroke-width="3.6" stroke-linejoin="round" d="${klein.y}"/>`,
+)
+fs.writeFileSync(path.join(WEBSITE, 'icon.svg'), icoonIron)
 
 // PNG: vanuit de vector direct op de doelmaat getekend, niet groot getekend en daarna
 // verkleind (dat maakt de rechte randen zacht). Zo vallen plaat, kruis en vak Y op hele
@@ -276,6 +325,7 @@ async function png(vb, inhoud, b, h, uit, achtergrond) {
 const VIERKANT = '0 0 100 100'
 const logoLicht = embleem(VARIANT.licht) + woordG(K.racegroen, LOGO.transform)
 const logoDonker = embleem(VARIANT.donker) + woordG(K.creme, LOGO.transform)
+const logoIron = embleemIron() + woordG(IRON.wit, LOGO.transform)
 // Liggend logo per pixeldichtheid: 40 px hoog (1x), plus 2x en 3x voor retina.
 const LOGO_PX = 40
 const logoMaat = (dichtheid) => px(LOGO.breedte, LOGO.hoogte, (LOGO_PX * dichtheid) / LOGO.hoogte)
@@ -290,15 +340,19 @@ for (const maat of [512, 1024]) {
   await png(VIERKANT, appIcoon(), maat, maat, path.join(UIT_DOCS, `ayg-app-icoon-${maat}.png`))
   await png(VIERKANT, embleem(VARIANT.licht), maat, maat, path.join(UIT_DOCS, `ayg-embleem-licht-${maat}.png`))
   await png(VIERKANT, embleem(VARIANT.donker), maat, maat, path.join(UIT_DOCS, `ayg-embleem-donker-${maat}.png`))
+  await png(VIERKANT, embleemIron(), maat, maat, path.join(UIT_DOCS, `ayg-embleem-iron-${maat}.png`))
+  await png(VIERKANT, appIcoonWebsite(), maat, maat, path.join(UIT_DOCS, `ayg-app-icoon-iron-${maat}.png`))
 }
 // Groot (drukwerk, presentaties): 640 px hoog.
 await png(logoVb, logoLicht, LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-licht.png'))
 await png(logoVb, logoDonker, LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-donker.png'))
+await png(logoVb, logoIron, LW * 2, LH * 2, path.join(UIT_DOCS, 'ayg-logo-iron.png'))
 for (const d of [1, 2, 3]) {
   const [b, h] = logoMaat(d)
   const achter = d === 1 ? '' : `@${d}x`
   await png(logoVb, logoLicht, b, h, path.join(UIT_DOCS, `ayg-logo-licht-40${achter}.png`))
   await png(logoVb, logoDonker, b, h, path.join(UIT_DOCS, `ayg-logo-donker-40${achter}.png`))
+  await png(logoVb, logoIron, b, h, path.join(UIT_DOCS, `ayg-logo-iron-40${achter}.png`))
 }
 // Voor e-mail: 2x van 180 x 40, op een vaste witte ondergrond (een mailprogramma met
 // donkere modus maakt een doorzichtige achtergrond soms zwart, dan valt het woord weg).
@@ -324,3 +378,5 @@ const paren = [
 ]
 console.log('klaar', { LOGO, woord: r2(WOORD.breedte) })
 for (const [voor, achter] of paren) console.log(`${voor} op ${achter}: ${contrast(K[voor], K[achter])}:1`)
+const ironParen = [['obsidiaan', 'licht'], ['obsidiaan', 'iron'], ['obsidiaan', 'diep'], ['iron', 'obsidiaan'], ['wit', 'obsidiaan']]
+for (const [voor, achter] of ironParen) console.log(`iron: ${voor} op ${achter}: ${contrast(IRON[voor], IRON[achter])}:1`)
