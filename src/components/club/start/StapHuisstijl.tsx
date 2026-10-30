@@ -7,7 +7,7 @@ import { LOGO_TYPES, MAX_LOGO_BYTES, MAX_NAAM } from '@/lib/club/kern/organisati
 import { kleurVoorstel, type KleurVoorstel } from '@/lib/club/start/logo-kleur'
 import { leesSlug, slugVoorstel } from '@/lib/club/kern/subdomein'
 import { stuur } from '@/components/club/leden/stuur'
-import type { HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
+import { kleurProps, type HuisstijlWaarden } from '@/components/club/huisstijl/HuisstijlPortaal'
 import { KleurBlok } from '@/components/club/huisstijl/KleurBlok'
 import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import { kleurUitAfbeelding } from './logo-kleur-browser'
@@ -193,11 +193,11 @@ export function StapHuisstijl({ organisatie, logoUrl, ingebouwdLogo, slug, subdo
           <AdresBlok slug={slug} naam={waarden.naam} subdomeinen={subdomeinen} begin={adres} onWijzig={(w) => { setFout(null); setAdres(w) }} />
           </div>
           <div className="club-start-huisstijl-deel">
-            <KleurBlok kleur={waarden.kleurAccent} thema={waarden.thema} onKleur={(k) => zet('kleurAccent', k)} onThema={(t) => zet('thema', t)} />
+            <KleurBlok {...kleurProps(waarden, zet)} />
           </div>
           {fout && <p className="club-melding club-melding--fout club-start-huisstijl-fout" role="alert">{fout}</p>}
         </section>
-        <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} logo={logo} les={voorbeeldLes} />
+        <LedenappVoorbeeld naam={waarden.naam} kleur={waarden.kleurAccent} thema={waarden.thema} extra={{ tweede: waarden.kleurTweede, tint: waarden.kleurTint, variant: waarden.variant }} logo={logo} les={voorbeeldLes} />
       </div>
       <StartVoet {...voet} voorVerder={voorVerder} primair={gewijzigd ? t.voet.opslaanVerder : undefined} />
     </>

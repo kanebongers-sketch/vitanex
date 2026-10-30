@@ -55,8 +55,10 @@
   --club-diepte-3: 0 2px 4px rgba(0, 0, 0, 0.3), 0 30px 70px -28px rgba(0, 0, 0, 0.9);
 
   /* Data: een kleur voor de hoofdreeks (de accentkleur, gecorrigeerd op contrast), grijs voor de rest. */
-  --club-data: var(--brand-tekst, var(--brand));
-  --club-data-zacht: color-mix(in srgb, var(--brand) 22%, transparent);
+  /* Data (grafieken, voortgang, tellers) in de tweede kleur van de huisstijl; zonder tweede kleur de hoofdkleur. */
+  --club-data: var(--brand-2-tekst, var(--brand-tekst, var(--brand)));
+  --club-data-vlak: var(--brand-2, var(--brand));
+  --club-data-zacht: color-mix(in srgb, var(--club-data-vlak) 22%, transparent);
   --club-data-rest: var(--text-4);
   --club-raster: color-mix(in srgb, var(--text-1) 9%, transparent);
 
@@ -209,7 +211,7 @@
 .club-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .club-ring-spoor { fill: none; stroke: var(--club-opp-put); stroke-width: 9; }
 .club-ring-spoor-licht { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 1; transform: translateY(4px); transform-origin: center; }
-.club-ring-boog { fill: none; stroke: var(--brand); stroke-width: 9; stroke-linecap: round; filter: drop-shadow(0 3px 6px var(--brand-glow, transparent)); animation: club-ring-in 900ms var(--club-ease-uit) both; }
+.club-ring-boog { fill: none; stroke: var(--club-data-vlak, var(--brand)); stroke-width: 9; stroke-linecap: round; filter: drop-shadow(0 3px 6px var(--brand-glow, transparent)); animation: club-ring-in 900ms var(--club-ease-uit) both; }
 .club-ring-glans { fill: none; stroke: rgba(255, 255, 255, 0.35); stroke-width: 2; stroke-linecap: round; transform: translate(-2px, 0); transform-origin: center; mix-blend-mode: soft-light; animation: club-ring-in 900ms var(--club-ease-uit) both; }
 @keyframes club-ring-in { from { clip-path: inset(0 0 100% 0); opacity: 0; } to { clip-path: inset(0); opacity: 1; } }
 .club-ring-midden { position: relative; display: flex; align-items: baseline; font-family: var(--ff-kop); font-weight: 700; line-height: 1; }
@@ -239,7 +241,7 @@
 .club-vgl li { display: grid; grid-template-columns: minmax(5.5em, auto) minmax(0, 1fr) 3ch; align-items: center; gap: var(--club-r2); font-size: var(--club-t-label); color: var(--text-3); }
 .club-vgl-balk { position: relative; height: 8px; border-radius: 999px; background: var(--club-opp-put); overflow: hidden; }
 .club-vgl-balk > span { position: absolute; inset: 0; border-radius: inherit; background: var(--club-data-rest); transform-origin: left; transform: scaleX(var(--deel, 0)); animation: club-meter-in 520ms var(--club-ease-uit) both; }
-.club-vgl li:first-child .club-vgl-balk > span { background: var(--brand); }
+.club-vgl li:first-child .club-vgl-balk > span { background: var(--club-data-vlak, var(--brand)); }
 .club-vgl li:first-child { color: var(--text-1); font-weight: 600; }
 .club-vgl-getal { text-align: right; font-variant-numeric: tabular-nums; }
 

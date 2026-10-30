@@ -23,10 +23,15 @@ function Merk({ waarden, logoUrl, ingebouwdLogo, jeSportschool }: VoorbeeldProps
   return <span className="club-merk-naam">{waarden.naam || jeSportschool}</span>
 }
 
+function geldigOfNull(kleur: string | null): string | null {
+  return kleur && HEX.test(kleur) ? kleur : null
+}
+
 export function Voorbeeld(props: VoorbeeldProps) {
   const { waarden } = props
   const t = useTekst(HUISSTIJL).voorbeeld
-  const stijl = huisstijlVariabelen(HEX.test(waarden.kleurAccent) ? waarden.kleurAccent : '#B58E5C', waarden.thema) as CSSProperties
+  const extra = { tweede: geldigOfNull(waarden.kleurTweede), tint: geldigOfNull(waarden.kleurTint), variant: waarden.variant }
+  const stijl = huisstijlVariabelen(HEX.test(waarden.kleurAccent) ? waarden.kleurAccent : '#B58E5C', waarden.thema, extra) as CSSProperties
   return (
     <aside className="club-huisstijl-voorbeeld" style={stijl} aria-label={t.label}>
       <p className="club-huisstijl-voorbeeldlabel">{t.kop}</p>
@@ -44,8 +49,15 @@ export function Voorbeeld(props: VoorbeeldProps) {
           <span><strong className="club-getal">128</strong> {t.checkins}</span>
           <span><strong className="club-getal">14</strong> {t.lessen}</span>
         </div>
+        <div className="club-huisstijl-vb-data" aria-hidden>
+          <span className="club-huisstijl-vb-datakop">
+            {t.doel} <strong>72%</strong>
+          </span>
+          <span className="club-huisstijl-vb-databalk"><span /></span>
+        </div>
         <div className="club-acties">
           <span className="club-knop club-knop--primair">{t.inchecken}</span>
+          <span className="club-huisstijl-vb-teller">{t.teBellen} <span className="club-teller">3</span></span>
           <span className="club-chip club-chip--ok">{t.actief}</span>
         </div>
       </div>

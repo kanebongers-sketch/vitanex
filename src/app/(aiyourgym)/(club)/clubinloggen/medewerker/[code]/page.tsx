@@ -5,6 +5,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
+import { huisstijlExtra } from '@/lib/club/kern/organisatie'
+import { HuisstijlAuto, autoAttribuut } from '@/components/club/shell/HuisstijlAuto'
 import { rolLabel } from '@/lib/club/kern/medewerker'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
@@ -55,11 +57,12 @@ export default async function MedewerkerInloggenPagina({ params }: PaginaProps) 
   const { organisatie } = await haalEigenOrganisatie(admin, toegang.userId)
   if (!organisatie || !(await hostPastBij(organisatie))) notFound()
 
-  const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
+  const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema, huisstijlExtra(organisatie)) as CSSProperties
   const taal = await getTaal()
   const rol = medewerker.rollen.map((r) => rolLabel(r, taal)).join(', ') || (await clubTekst(CLUB_INLOGGEN)).medewerker
   return (
-    <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema}>
+    <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema} {...autoAttribuut(organisatie)}>
+      <HuisstijlAuto org={organisatie} />
       <main className="club-inlog-vlak">
         <MedewerkerWachtwoordKiezen
           token={code}

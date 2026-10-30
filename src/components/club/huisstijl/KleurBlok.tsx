@@ -1,13 +1,14 @@
 'use client'
 
-import { Moon, Sun } from 'lucide-react'
-import { HEX, MIN_CONTRAST_ACCENT, MIN_CONTRAST_VLAK, bruikbaarAccent, type Thema } from '@/lib/club/kern/huisstijl'
+import { HEX, MIN_CONTRAST_ACCENT, MIN_CONTRAST_VLAK, VARIANTEN, VARIANT_BASIS, basisVoor, bruikbaarAccent, themaVan, type Variant } from '@/lib/club/kern/huisstijl'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
+import { KleurKiezer } from './KleurKiezer'
 
-// Accentkleur en thema. Een paar sterke startkleuren, of een eigen kleur. Is
-// het contrast te laag, dan zeggen we dat eerlijk en laten we zien welke
-// kleur we in de app gebruiken om het leesbaar te houden.
+// De huisstijl in drie kleuren plus een thema (besluit Kane 30-10-2026):
+// hoofdkleur (knoppen, actief, focus), tweede kleur (grafieken, tellers,
+// voortgang) en een achtergrondtint. Is het contrast van de hoofdkleur te laag,
+// dan zeggen we dat eerlijk en laten we zien welke kleur de app gebruikt.
 
 const STARTKLEUREN = [
   { kleur: '#B58E5C', naam: 'brons' },
@@ -20,72 +21,73 @@ const STARTKLEUREN = [
   { kleur: '#12A594', naam: 'petrol' },
 ] as const
 
+const TINTEN = [
+  { kleur: '#C8A27A', naam: 'warm' },
+  { kleur: '#8FA3B8', naam: 'koel' },
+  { kleur: '#6E9C7E', naam: 'groen' },
+  { kleur: '#5B7BD5', naam: 'blauw' },
+  { kleur: '#9277C4', naam: 'paars' },
+  { kleur: '#C46B6B', naam: 'rood' },
+] as const
+
 interface KleurBlokProps {
   kleur: string
-  thema: Thema
+  tweede: string | null
+  tint: string | null
+  variant: Variant
   onKleur: (kleur: string) => void
-  onThema: (thema: Thema) => void
+  onTweede: (kleur: string | null) => void
+  onTint: (kleur: string | null) => void
+  onVariant: (variant: Variant) => void
 }
 
-export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
-  const geldig = HEX.test(kleur)
-  const vlak = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_VLAK) : null
-  const tekst = geldig ? bruikbaarAccent(kleur, thema, MIN_CONTRAST_ACCENT) : null
-  const lichter = thema === 'donker'
+export function KleurBlok({ kleur, tweede, tint, variant, onKleur, onTweede, onTint, onVariant }: KleurBlokProps) {
   const t = useTekst(HUISSTIJL).kleur
+  const geldigeTint = tint && HEX.test(tint) ? tint : null
+  const basis = basisVoor(variant, geldigeTint)
+  const geldig = HEX.test(kleur)
+  const vlak = geldig ? bruikbaarAccent(kleur, basis, MIN_CONTRAST_VLAK) : null
+  const tekst = geldig ? bruikbaarAccent(kleur, basis, MIN_CONTRAST_ACCENT) : null
+  const lichter = themaVan(variant) === 'donker'
+  const startkleuren = STARTKLEUREN.map((s) => ({ kleur: s.kleur, naam: t.namen[s.naam] }))
+  const ongeldigeTweede = tweede !== null && !HEX.test(tweede)
+  const ongeldigeTint = tint !== null && !HEX.test(tint)
   return (
     <section className="club-huisstijl-blok" aria-labelledby="kleur-kop">
       <h2 id="kleur-kop" className="club-huisstijl-kop">{t.kop}</h2>
 
-      <div className="club-segment club-huisstijl-thema" role="group" aria-label={t.thema}>
-        <button type="button" aria-pressed={thema === 'donker'} onClick={() => onThema('donker')}>
-          <Moon aria-hidden size={15} /> {t.donker}
-        </button>
-        <button type="button" aria-pressed={thema === 'licht'} onClick={() => onThema('licht')}>
-          <Sun aria-hidden size={15} /> {t.licht}
-        </button>
-      </div>
+      <fieldset className="club-huisstijl-kiezer">
+        <legend className="club-huisstijl-subkop">{t.thema}</legend>
+        <div className="club-huisstijl-themas" role="group" aria-label={t.thema}>
+          {VARIANTEN.map((v) => (
+            <button key={v} type="button" className="club-huisstijl-themaknop" aria-pressed={variant === v} onClick={() => onVariant(v)}>
+              <ThemaStaal variant={v} />
+              <span>{t.themas[v]}</span>
+            </button>
+          ))}
+        </div>
+        {variant === 'auto' && <p className="club-hint">{t.autoUitleg}</p>}
+      </fieldset>
 
-      <div className="club-huisstijl-stalen" role="group" aria-label={t.startkleuren}>
-        {STARTKLEUREN.map((s) => (
-          <button
-            key={s.kleur}
-            type="button"
-            className="club-huisstijl-staal"
-            style={{ background: s.kleur }}
-            aria-label={t.namen[s.naam]}
-            aria-pressed={kleur.toUpperCase() === s.kleur}
-            title={t.namen[s.naam]}
-            onClick={() => onKleur(s.kleur)}
-          />
-        ))}
-      </div>
-
-      <div className="club-formrij club-huisstijl-eigen">
-        <label className="club-veld">
-          <span>{t.eigen}</span>
-          <span className="club-huisstijl-kleurveld">
-            <input type="color" value={geldig ? kleur : '#B58E5C'} onChange={(e) => onKleur(e.target.value.toUpperCase())} aria-label={t.kiezen} />
-            <input
-              className="club-invoer"
-              aria-label={t.code}
-              aria-describedby="kleur-melding"
-              value={kleur}
-              maxLength={7}
-              spellCheck={false}
-              onChange={(e) => onKleur(e.target.value.trim().toUpperCase())}
-              aria-invalid={!geldig}
-            />
-          </span>
-        </label>
-      </div>
+      <KleurKiezer id="kleur-hoofd" label={t.hoofd} uitleg={t.hoofdUitleg} kleur={kleur} stalen={startkleuren} onKleur={(k) => onKleur(k ?? '')} terugval="#B58E5C" meldingId="kleur-melding" />
+      <KleurKiezer id="kleur-tweede" label={t.tweede} uitleg={t.tweedeUitleg} kleur={tweede} stalen={startkleuren} onKleur={onTweede} leeg={t.tweedeGelijk} terugval={geldig ? kleur : '#B58E5C'} meldingId="kleur-melding" />
+      <KleurKiezer
+        id="kleur-tint"
+        label={t.tint}
+        uitleg={t.tintUitleg}
+        kleur={tint}
+        stalen={TINTEN.map((s) => ({ kleur: s.kleur, naam: t.tinten[s.naam] }))}
+        onKleur={onTint}
+        leeg={t.tintGeen}
+        terugval="#8FA3B8"
+        meldingId="kleur-melding"
+      />
 
       <div id="kleur-melding" aria-live="polite">
-        {!geldig && <p className="club-melding club-melding--fout">{t.ongeldig}</p>}
+        {(!geldig || ongeldigeTweede || ongeldigeTint) && <p className="club-melding club-melding--fout">{t.ongeldig}</p>}
         {vlak?.aangepast && (
           <p className="club-melding">
-            {t.valtWeg.voor(lichter, MIN_CONTRAST_VLAK)}{' '}
-            <Code kleur={vlak.kleur} />
+            {t.valtWeg.voor(lichter, MIN_CONTRAST_VLAK)} <Code kleur={vlak.kleur} />
             {t.valtWeg.na(lichter)}
           </p>
         )}
@@ -97,6 +99,19 @@ export function KleurBlok({ kleur, thema, onKleur, onThema }: KleurBlokProps) {
         )}
       </div>
     </section>
+  )
+}
+
+/** Een klein vlak met de achtergrond en kaart van het thema (Automatisch: half donker, half licht). */
+function ThemaStaal({ variant }: { variant: Variant }) {
+  if (variant === 'auto') {
+    return <span className="club-huisstijl-themastaal" aria-hidden style={{ background: `linear-gradient(135deg, ${VARIANT_BASIS.donker.bgApp} 50%, ${VARIANT_BASIS.licht.bgApp} 50%)` }} />
+  }
+  const b = VARIANT_BASIS[variant]
+  return (
+    <span className="club-huisstijl-themastaal" aria-hidden style={{ background: b.bgApp }}>
+      <span style={{ background: b.bgCard }} />
+    </span>
   )
 }
 

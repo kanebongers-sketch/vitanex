@@ -4,7 +4,8 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { clubToegang, eisClubToegang } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
-import { LOGO_FIT_FACTORY, moduleAan } from '@/lib/club/kern/organisatie'
+import { LOGO_FIT_FACTORY, huisstijlExtra, moduleAan } from '@/lib/club/kern/organisatie'
+import { HuisstijlAuto, autoAttribuut } from '@/components/club/shell/HuisstijlAuto'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { ClubBalk } from '@/components/club/shell/ClubBalk'
 import { zoekItems } from '@/components/club/shell/zoeken'
@@ -52,7 +53,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   const t = await eisClubToegang()
   const org = t.organisatie
   // De huisstijl van de sportschool die open staat, als CSS-variabelen op de hele app.
-  const stijl = huisstijlVariabelen(org.kleurAccent, org.thema) as CSSProperties
+  const stijl = huisstijlVariabelen(org.kleurAccent, org.thema, huisstijlExtra(org)) as CSSProperties
   const merk = {
     naam: org.naam,
     fitFactory: org.logo === LOGO_FIT_FACTORY,
@@ -82,7 +83,8 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   // Testen als rol: alleen het master account (ook als hij al test), nooit in de eigen omgeving.
   const testRol = (t.isPlatformEigenaar || Boolean(t.testAls)) && magTestRol(org, t.beheerderId)
   return (
-    <div className="club-app" style={stijl} data-thema={org.thema}>
+    <div className="club-app" style={stijl} data-thema={org.thema} {...autoAttribuut(org)}>
+      <HuisstijlAuto org={org} />
       {testRol && <TestRolBalk actief={t.testAls ?? []} />}
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>

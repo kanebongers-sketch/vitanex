@@ -55,7 +55,7 @@ export default async function HuisstijlPagina() {
       {beheren && <AdresBlok key={`adres-${org.id}`} slug={org.slug} naam={org.naam} subdomeinen={subdomeinen} />}
       <HuisstijlPortaal
         key={org.id}
-        organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.eigenUit }}
+        organisatie={{ naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, kleurTweede: org.kleurTweede, kleurTint: org.kleurTint, variant: org.variant, uit: org.eigenUit }}
         logoUrl={logoUrl}
         ingebouwdLogo={org.logo === LOGO_FIT_FACTORY}
         adres={org.slug ? adresVan(org.slug, subdomeinen) : null}

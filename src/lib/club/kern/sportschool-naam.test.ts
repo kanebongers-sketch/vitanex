@@ -25,7 +25,7 @@ function toegang(admin: ClubToegang['admin'], naam = 'Gym Noord'): ClubToegang {
   } as unknown as ClubToegang
 }
 
-const INVOER = { naam: 'Gym Zuid', slogan: null, kleurAccent: '#B58E5C', thema: 'donker' as const, uit: [] }
+const INVOER = { naam: 'Gym Zuid', slogan: null, kleurTweede: null, kleurTint: null, variant: 'donker' as const, kleurAccent: '#B58E5C', thema: 'donker' as const, uit: [] }
 
 describe('leesSportschoolNaam', () => {
   it('maakt de naam netjes en accepteert 2 tot 60 tekens', () => {
@@ -129,7 +129,7 @@ describe('vinden en doorwerken', () => {
     }
   })
   it('het app-icoon en manifest krijgen een nieuwe versie bij een nieuwe naam', () => {
-    const merk = { organisatieId: ORG, naam: 'Gym Noord', slug: 'gymnoord', kleurAccent: '#B58E5C', thema: 'donker' as const, logoUrl: null }
+    const merk = { organisatieId: ORG, naam: 'Gym Noord', slug: 'gymnoord', kleurTweede: null, kleurTint: null, variant: 'donker' as const, kleurAccent: '#B58E5C', thema: 'donker' as const, logoUrl: null }
     expect(merkVersie(merk)).not.toBe(merkVersie({ ...merk, naam: 'Gym Zuid' }))
   })
 })

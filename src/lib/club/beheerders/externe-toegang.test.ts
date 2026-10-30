@@ -12,7 +12,7 @@ const KANE = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const GYM_A = 'de000000-0000-4000-8000-0000000000c1'
 const GYM_B = 'be000000-0000-4000-8000-0000000000b2'
 
-const org = (id: string, naam: string): Organisatie => ({ id, naam, slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', uit: [], eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) })
+const org = (id: string, naam: string): Organisatie => ({ id, naam, slogan: null, logo: null, kleurAccent: '#B58E5C', thema: 'donker', kleurTweede: null, kleurTint: null, variant: 'donker', uit: [], eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) })
 
 const SANNE: Beheerder = {
   id: '11111111-1111-4111-8111-111111111111', organisatieId: GYM_A, naam: 'Sanne de Vries', email: null, rol: 'clubmanager',

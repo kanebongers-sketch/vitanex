@@ -95,7 +95,7 @@ export interface ClubToegang {
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
 function standaardOrganisatie(id: string): Organisatie {
-  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', uit: verborgenVoor([], ALLE_PAKKETTEN), eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }
+  return { id, naam: 'Fit Factory', slogan: 'Meet. Train. Repeat.', logo: LOGO_FIT_FACTORY, kleurAccent: '#B58E5C', thema: 'donker', kleurTweede: null, kleurTint: null, variant: 'donker', uit: verborgenVoor([], ALLE_PAKKETTEN), eigenUit: [], afgenomen: [...ALLE_PAKKETTEN], demo: false, slug: null, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }
 }
 
 /**

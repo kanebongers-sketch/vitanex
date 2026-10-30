@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bruikbaarAccent, contrast, huisstijlVariabelen, inktOp, meng, MIN_CONTRAST_ACCENT, THEMA_BASIS } from './huisstijl'
+import { basisVoor, bruikbaarAccent, contrast, huisstijlAutoCss, huisstijlVariabelen, inktOp, meng, mengMet, MIN_CONTRAST_ACCENT, MIN_CONTRAST_VLAK, THEMA_BASIS, themaVan } from './huisstijl'
 import { controleerLogo, isVeiligeSvg, leesHuisstijl, modulesNaarJson } from './organisatie-invoer'
 import { modulesUit, organisatieUitRij } from './organisatie'
 
@@ -56,7 +56,7 @@ describe('huisstijl-invoer', () => {
   const goed = { naam: '  Gym  Noord ', slogan: '', kleurAccent: '#e5484d', thema: 'licht', uit: ['rooster', 'rooster'] }
 
   it('leest en schoont geldige invoer', () => {
-    expect(leesHuisstijl(goed)).toEqual({ ok: true, waarde: { naam: 'Gym Noord', slogan: null, kleurAccent: '#E5484D', thema: 'licht', uit: ['rooster'] } })
+    expect(leesHuisstijl(goed)).toEqual({ ok: true, waarde: { naam: 'Gym Noord', slogan: null, kleurAccent: '#E5484D', thema: 'licht', kleurTweede: null, kleurTint: null, variant: 'licht', uit: ['rooster'] } })
   })
 
   it('weigert lege naam, foute kleur, onbekend thema of onderdeel, en alles uit', () => {
@@ -153,5 +153,79 @@ describe('tekst op een accentknop', () => {
         expect(contrast(v['--brand'], v['--brand-inkt'])).toBeGreaterThanOrEqual(4.5)
       }
     }
+  })
+})
+
+describe('drie kleuren en meer thema\'s (besluit Kane 30-10-2026)', () => {
+  const alle = ['donker', 'diepzwart', 'grafiet', 'licht', 'zacht', 'auto'] as const
+  const kleuren = ['#B58E5C', '#FFE14D', '#1E2A78', '#30A46C', '#000000', '#FFFFFF']
+  const tinten = [null, '#C8A27A', '#5B7BD5', '#C46B6B', '#FF00FF']
+
+  it('elk thema met elke tint: hoofd- en tweede kleur halten het contrast', () => {
+    for (const variant of alle) {
+      for (const tint of tinten) {
+        const basis = basisVoor(variant, tint)
+        for (const k of kleuren) {
+          const v = huisstijlVariabelen('#B58E5C', themaVan(variant), { tweede: k, tint, variant })
+          expect(Math.min(contrast(v['--brand-2'], basis.bgApp), contrast(v['--brand-2'], basis.bgCard))).toBeGreaterThanOrEqual(MIN_CONTRAST_VLAK)
+          expect(Math.min(contrast(v['--brand-2-tekst'], basis.bgApp), contrast(v['--brand-2-tekst'], basis.bgCard))).toBeGreaterThanOrEqual(MIN_CONTRAST_ACCENT)
+          expect(v['--bg-app']).toBe(basis.bgApp)
+        }
+      }
+    }
+  })
+
+  it('tekst blijft leesbaar op een getinte achtergrond (4.5:1 voor tekst 1 en 2)', () => {
+    for (const variant of alle) {
+      for (const tint of tinten) {
+        const basis = basisVoor(variant, tint)
+        const inkt = basis.inkt === '255, 255, 255' ? '#FFFFFF' : '#11110F'
+        // tekst-2 is inkt op 74 tot 78 procent: benaderd met een menging naar de achtergrond.
+        const tekst2 = mengMet(inkt, basis.bgCard, 0.26)
+        expect(contrast(tekst2, basis.bgApp)).toBeGreaterThanOrEqual(4.5)
+        expect(contrast(tekst2, basis.bgCard)).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+
+  it('zonder tweede kleur is de tweede kleur de hoofdkleur; zonder tint de gewone vlakken', () => {
+    const v = huisstijlVariabelen('#3E63DD', 'donker')
+    expect(v['--brand-2']).toBe(v['--brand'])
+    expect(v['--bg-app']).toBe(THEMA_BASIS.donker.bgApp)
+  })
+
+  it('themaVan en de vlakken per thema', () => {
+    expect(themaVan('zacht')).toBe('licht')
+    expect(themaVan('diepzwart')).toBe('donker')
+    expect(themaVan('auto')).toBe('donker')
+    expect(huisstijlVariabelen('#B58E5C', 'donker', { variant: 'diepzwart' })['--bg-app']).toBe('#000000')
+    expect(huisstijlVariabelen('#B58E5C', 'licht', { variant: 'zacht' }).colorScheme).toBe('light')
+  })
+
+  it('Automatisch: alleen onze eigen waarden in de CSS, licht in een media query', () => {
+    const css = huisstijlAutoCss('#B58E5C', { tweede: '#30A46C', tint: '#C8A27A', variant: 'auto' })
+    expect(css.startsWith('@media (prefers-color-scheme: light){[data-huisstijl-auto]{')).toBe(true)
+    expect(css).toContain('color-scheme:light !important')
+    expect(css).not.toMatch(/[<>{]\s*script|url\(|expression/i)
+  })
+})
+
+describe('leesHuisstijl met drie kleuren', () => {
+  const basis = { naam: 'Tester5', slogan: '', kleurAccent: '#B58E5C', uit: [] }
+  it('neemt thema, tweede kleur en tint over; thema volgt de variant', () => {
+    const u = leesHuisstijl({ ...basis, variant: 'zacht', kleurTweede: '#30a46c', kleurTint: '' })
+    expect(u).toMatchObject({ ok: true, waarde: { variant: 'zacht', thema: 'licht', kleurTweede: '#30A46C', kleurTint: null } })
+  })
+  it('oude invoer met alleen thema werkt nog', () => {
+    expect(leesHuisstijl({ ...basis, thema: 'licht' })).toMatchObject({ ok: true, waarde: { variant: 'licht', thema: 'licht', kleurTweede: null } })
+  })
+  it('weigert een onbekend thema of een kapotte kleur', () => {
+    expect(leesHuisstijl({ ...basis, variant: 'neon' })).toMatchObject({ ok: false })
+    expect(leesHuisstijl({ ...basis, variant: 'donker', kleurTint: 'rood' })).toMatchObject({ ok: false })
+  })
+  it('leest de nieuwe kolommen uit de rij', () => {
+    const o = organisatieUitRij({ id: 'de000000-0000-4000-8000-0000000000c1', naam: 'X', kleur_accent: '#B58E5C', thema: 'donker', kleur_tweede: '#30a46c', kleur_tint: 'fout', thema_variant: 'grafiet' })
+    expect(o).toMatchObject({ kleurTweede: '#30A46C', kleurTint: null, variant: 'grafiet' })
+    expect(organisatieUitRij({ id: 'de000000-0000-4000-8000-0000000000c1', naam: 'X', thema: 'licht' })?.variant).toBe('licht')
   })
 })

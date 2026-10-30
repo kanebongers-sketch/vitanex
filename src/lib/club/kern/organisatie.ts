@@ -3,7 +3,7 @@
 // de user_id waarop alle club_*-tabellen filteren: zo is data per sportschool
 // strikt gescheiden (zie migratie 401). Fit Factory heeft het bestaande id.
 
-import { HEX, THEMAS, type Thema } from './huisstijl'
+import { HEX, THEMAS, isVariant, type HuisstijlExtra, type Thema, type Variant } from './huisstijl'
 import { leesSlug } from './subdomein'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij, type OrgInstellingen } from './org-instellingen'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -36,7 +36,14 @@ export interface Organisatie {
   /** Pad in de bucket club-logo, LOGO_FIT_FACTORY, of null (dan tonen we de naam). */
   logo: string | null
   kleurAccent: string
+  /** Licht of donker (afgeleid van het thema); voor data-thema en alles wat alleen licht of donker kent. */
   thema: Thema
+  /** Tweede kleur (grafieken, tellers, voortgang); null = de hoofdkleur. */
+  kleurTweede: string | null
+  /** Achtergrondtint van de vlakken; null = neutraal. */
+  kleurTint: string | null
+  /** Het gekozen thema (donker, diepzwart, grafiet, licht, zacht, auto). */
+  variant: Variant
   /**
    * Wat er voor deze sportschool niet te zien is: de eigen keuze (eigenUit)
    * plus alles van de pakketten die niet zijn afgenomen (zie kern/pakketten.ts).
@@ -93,6 +100,9 @@ export function organisatieUitRij(rij: unknown): Organisatie | null {
     logo,
     kleurAccent: typeof r.kleur_accent === 'string' && HEX.test(r.kleur_accent) ? r.kleur_accent.toUpperCase() : '#B58E5C',
     thema: (THEMAS as readonly unknown[]).includes(r.thema) ? (r.thema as Thema) : 'donker',
+    kleurTweede: typeof r.kleur_tweede === 'string' && HEX.test(r.kleur_tweede) ? r.kleur_tweede.toUpperCase() : null,
+    kleurTint: typeof r.kleur_tint === 'string' && HEX.test(r.kleur_tint) ? r.kleur_tint.toUpperCase() : null,
+    variant: isVariant(r.thema_variant) ? r.thema_variant : (THEMAS as readonly unknown[]).includes(r.thema) ? (r.thema as Thema) : 'donker',
     uit: verborgenVoor(eigenUit, afgenomen),
     eigenUit,
     afgenomen,
@@ -102,7 +112,12 @@ export function organisatieUitRij(rij: unknown): Organisatie | null {
   }
 }
 
-export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, modules, pakketten, demo, slug, instellingen'
+export const ORGANISATIE_KOLOMMEN = 'id, naam, slogan, logo, kleur_accent, thema, kleur_tweede, kleur_tint, thema_variant, modules, pakketten, demo, slug, instellingen'
+
+/** De extra keuzes van de huisstijl voor huisstijlVariabelen en huisstijlAutoCss. */
+export function huisstijlExtra(org: Pick<Organisatie, 'kleurTweede' | 'kleurTint' | 'variant'>): HuisstijlExtra {
+  return { tweede: org.kleurTweede, tint: org.kleurTint, variant: org.variant }
+}
 
 /** De cookie waarin staat welke sportschool Kane nu bekijkt. */
 export const ORGANISATIE_COOKIE = 'club-org'
