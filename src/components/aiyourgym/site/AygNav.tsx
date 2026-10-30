@@ -103,17 +103,6 @@ export function AygNav() {
         <Link href={DEMO} className="ayg-kop-demo" aria-current={isHuidig(DEMO, pad) ? 'page' : undefined}>
           {t.liveDemo}
         </Link>
-        <Link
-          href={DEMO_AANVRAGEN}
-          className="ayg-knop ayg-knop--rand ayg-knop--klein"
-          aria-current={isHuidig(DEMO_AANVRAGEN, pad) ? 'page' : undefined}
-        >
-          <span>
-            {t.planDemo.voor}
-            <span className="ayg-kop-lang">{t.planDemo.lang}</span>
-            {t.planDemo.na}
-          </span>
-        </Link>
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent ayg-knop--klein">
           {t.aanmelden} <ArrowRight size={16} aria-hidden />
         </Link>
