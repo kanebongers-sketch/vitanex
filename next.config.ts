@@ -267,6 +267,7 @@ const nextConfig: NextConfig = {
       'gyroscope=()',
       'fullscreen=(self)',
     ].join(', ')
+    const aygPermissionsPolicy = permissionsPolicy.replace('camera=()', 'camera=(self)')
 
     const mentaforceHeaders = [
       { key: 'Content-Security-Policy',           value: csp },
@@ -314,6 +315,12 @@ const nextConfig: NextConfig = {
       // De CSP met frame-ancestors per sportschool zet src/proxy.ts (widgetProxy).
       { source: '/((?!widget/).*)', missing: [RELEASEV_HOST], headers: mentaforceHeaders },
       { source: '/widget/:pad*', missing: [RELEASEV_HOST], headers: widgetHeaders },
+      // AI Your Gym: de camera mag op de eigen pagina's (profielfoto met de webcam,
+      // QR-check-in). Alleen voor dit domein zelf (self), nooit voor een iframe of
+      // andere site; de widget (/widget/...) houdt de camera dicht. Staat na de
+      // regels hierboven: bij dezelfde header wint de laatste.
+      { source: '/((?!widget/).*)', has: [AYG_HOST], headers: [{ key: 'Permissions-Policy', value: aygPermissionsPolicy }] },
+      { source: '/((?!widget/).*)', has: [CLUB_HOST], headers: [{ key: 'Permissions-Policy', value: aygPermissionsPolicy }] },
       // MentaForce onder releasev.nl/mentaforce (src/lib/mentaforce/basis.ts) houdt
       // zijn eigen headers (o.a. de CSP voor Supabase). Deze regels staan ná die van
       // de webshop: bij dezelfde header wint de laatste. De rest van releasev.nl

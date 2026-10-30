@@ -297,6 +297,13 @@
   overflow: hidden; background: var(--club-opp-put); touch-action: none; cursor: grab;
 }
 .club-fotokiezer-venster:active { cursor: grabbing; }
+.club-fotokiezer-venster--webcam, .club-fotokiezer-venster--webcam:active { cursor: default; }
+.club-fotokiezer-venster video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.club-fotokiezer-venster--webcam[data-kant='user'] video { transform: scaleX(-1); }
+.club-fotokiezer-webcam-start {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--text-3); font-size: var(--club-t-klein);
+}
 .club-fotokiezer-venster canvas { display: block; width: 100%; height: 100%; }
 /* Het ronde masker: zo ziet het lid precies wat in het rondje komt. */
 .club-fotokiezer-venster::after {
