@@ -84,6 +84,10 @@ a.club-ads-link:hover { background: var(--club-vlak-hover); }
 a.club-ads-link:focus-visible, .club-ads-weg:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .club-ads-label { font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .club-ads-stand { font-size: 12.5px; font-weight: 600; color: var(--club-merk-inkt, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-ads-volgende {
+  font-size: 12.5px; color: var(--text-2); max-width: 22ch; overflow: hidden; text-overflow: ellipsis;
+  padding-left: 8px; border-left: 1px solid var(--line);
+}
 .club-ads-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
 a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
 .club-ads-ring { flex: none; }
@@ -97,7 +101,11 @@ a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
 @media (pointer: coarse) { .club-ads-weg { width: 40px; height: 40px; } .club-ads-link { min-height: 40px; } }
 /* Telefoon: alleen de ring en de stand, de naam staat in de title en voor de screenreader. */
 @media (max-width: 699px) {
-  .club-ads-label, .club-ads-pijl { display: none; }
+  .club-ads-label, .club-ads-pijl, .club-ads-volgende { display: none; }
+}
+/* Smalle pc of tablet: de naam van de stap gaat voor het woord Aan de slag. */
+@media (min-width: 700px) and (max-width: 1099px) {
+  .club-ads-label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .club-teller, .club-ads, .club-kop .club-nav a[aria-current='page']::after { animation: none; }
