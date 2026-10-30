@@ -1,5 +1,9 @@
 // ─── AI Your Gym: paden van de verkoopwebsite (PUUR) ────────────────────────
-// Een plek voor alle links, zodat de basis (/aiyourgym) maar op een plek staat.
+// Een plek voor alle links van de website. Besluit Kane (30-10-2026): schone
+// adressen zonder /aiyourgym (aiyourgym.com/prijzen, niet aiyourgym.com/aiyourgym/prijzen).
+// De pagina's staan in de app onder /aiyourgym; de proxy herschrijft het schone
+// adres daarheen en stuurt een oud adres met /aiyourgym met een 308 naar het
+// schone (src/lib/aiyourgym/host.ts).
 // Besluit Kane (24-10-2026): geen /en in adressen. Een pagina heeft in beide
 // talen hetzelfde adres; de taal komt uit de cookie ayg-taal. Daarom zitten
 // er nergens taal of /en in de paden hieronder.
@@ -7,12 +11,18 @@
 import { KOP, MENU_SLEUTELS, type MenuSleutel } from '@/lib/aiyourgym/taal/woorden/website/kop'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
-export const AYG_BASIS = '/aiyourgym'
+/** De map van de website in de app; komt nooit in een link. */
+const INTERNE_BASIS = '/aiyourgym'
 
-/** Een pad van de website onder /aiyourgym, in elke taal hetzelfde. */
+/**
+ * Een schoon pad van de website ('/prijzen', '/' voor de voorpagina), in elke
+ * taal hetzelfde. Een pad dat al schoon is blijft hetzelfde; staat er per
+ * ongeluk /aiyourgym voor, dan gaat dat eraf.
+ */
 export function aygPad(sub = ''): string {
-  if (!sub) return AYG_BASIS
-  return `${AYG_BASIS}${sub.startsWith('/') || sub.startsWith('#') ? sub : `/${sub}`}`
+  if (!sub || sub === '/') return '/'
+  const pad = sub.startsWith('/') ? sub : `/${sub}`
+  return zonderBasis(pad, false)
 }
 
 export const AANMELDEN = aygPad('/aanmelden')
@@ -72,16 +82,21 @@ export function navLinks(taal: Taal): readonly NavLink[] {
 }
 
 
-function zonderBasis(pad: string): string {
-  const kaal = pad
-    .replace(/^\/aiyourgym(?=\/|$)/, '')
-    .replace(/\/$/, '')
+/** Het pad zonder /aiyourgym ervoor (de slotstreep aan het eind gaat eraf, behalve met `slotstreepWeg` false). */
+function zonderBasis(pad: string, slotstreepWeg = true): string {
+  let kaal = pad
+  while (kaal === INTERNE_BASIS || kaal.startsWith(`${INTERNE_BASIS}/`) || kaal.startsWith(`${INTERNE_BASIS}#`) || kaal.startsWith(`${INTERNE_BASIS}?`)) {
+    kaal = kaal.slice(INTERNE_BASIS.length)
+  }
+  if (kaal.startsWith('#') || kaal.startsWith('?')) kaal = `/${kaal}`
+  if (slotstreepWeg) kaal = kaal.replace(/\/$/, '')
   return kaal === '' ? '/' : kaal
 }
 
 /**
- * Is deze link de huidige pagina? Werkt met en zonder basis in de adresbalk
- * (op aiyourgym.com staat de basis niet in de adresbalk).
+ * Is deze link de huidige pagina? Werkt met het schone adres in de adresbalk
+ * (usePathname geeft na een herschrijving het adres van de browser) en, voor de
+ * zekerheid, ook met het interne pad onder /aiyourgym.
  */
 export function isHuidig(linkPad: string, adres: string | null): boolean {
   if (!adres) return false

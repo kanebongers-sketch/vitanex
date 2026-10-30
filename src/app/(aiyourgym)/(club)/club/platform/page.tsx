@@ -46,7 +46,7 @@ export default async function PlatformPagina() {
           <Link href="/club/systeem" className="club-knop club-knop--klein">
             <Activity size={14} aria-hidden /> {p.systeem}
           </Link>
-          <Link href="/aiyourgym?bekijk=1" className="club-knop club-knop--klein">
+          <Link href="/" className="club-knop club-knop--klein">
             <ExternalLink size={14} aria-hidden /> {p.website}
           </Link>
         </nav>

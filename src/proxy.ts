@@ -8,7 +8,7 @@ import { MF_BASIS, MF_BASIS_HEADER, beslisMentaforce } from '@/lib/mentaforce/ba
 import { beslisClub } from '@/lib/club/kern/subdomein'
 import { ADRES_COOKIE, SLUG_KOP, beslisClubPad, splitsSlugPad, subdomeinUrl } from '@/lib/club/kern/pad-adres'
 import { slugBestaat } from '@/lib/club/kern/slug-bestaat'
-import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, engelsOmleidUrl, isAygHost } from '@/lib/aiyourgym/host'
+import { aygDomeinDicht, beslisAyg, beslisAygElders, beslisAygTaalElders, isAygHost, omleidUrl } from '@/lib/aiyourgym/host'
 import { SITE_PAD_KOP, TAAL_COOKIE, TAAL_COOKIE_OPTIES } from '@/lib/aiyourgym/taal/taal'
 import { aygIndexeren, siteActief } from '@/lib/aiyourgym/schakelaar'
 import { AYG_NOINDEX, moetNoindex } from '@/lib/aiyourgym/indexeren'
@@ -108,8 +108,20 @@ function metSitePad(headers: Headers, publiek: string | undefined): Headers {
  * Kane 24-10-2026: geen /en meer in adressen, docs/aiyourgym/TALEN.md).
  */
 function engelsOmleiden(request: NextRequest, pad: string): NextResponse {
-  const response = NextResponse.redirect(engelsOmleidUrl(request.headers.get('host'), pad, request.nextUrl.search), 308)
+  const response = NextResponse.redirect(omleidUrl(request.headers.get('host'), pad, request.nextUrl.search), 308)
   response.cookies.set(TAAL_COOKIE, 'en', TAAL_COOKIE_OPTIES)
+  if (!aygIndexeren()) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
+  return response
+}
+
+/**
+ * Een oud adres met /aiyourgym ervoor op aiyourgym.com: 308 naar het schone
+ * adres, met de zoekstring (besluit Kane 30-10-2026: schone adressen). Het schone
+ * adres wordt daarna intern herschreven naar /aiyourgym/...; een herschrijving gaat
+ * niet opnieuw door de proxy, dus er is geen lus.
+ */
+function schoonOmleiden(request: NextRequest, pad: string): NextResponse {
+  const response = NextResponse.redirect(omleidUrl(request.headers.get('host'), pad, request.nextUrl.search), 308)
   if (!aygIndexeren()) response.headers.set('X-Robots-Tag', AYG_NOINDEX)
   return response
 }
@@ -156,6 +168,7 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
   const besluit = beslisAyg(host, request.nextUrl.pathname, siteActief())
   if (besluit.soort === 'niet-van-mij') return null
   if (besluit.soort === 'engels-omleiden') return engelsOmleiden(request, besluit.pad)
+  if (besluit.soort === 'omleiden') return schoonOmleiden(request, besluit.pad)
   const headers = metSitePad(zonderSlugKop(request), besluit.publiek)
   let response: NextResponse
   if (besluit.soort === 'door') {
@@ -175,11 +188,17 @@ function aiyourgymSite(request: NextRequest): NextResponse | null {
 }
 
 /**
- * Een oud Engels adres onder /aiyourgym/en op een ander domein (fitfactorypt.nl,
- * zolang de schakelaar uit staat alleen voor Kane): dezelfde 308 met cookie.
+ * De website op een ander domein (fitfactorypt.nl): met de site aan bestaat
+ * /aiyourgym/... daar niet (een neutrale 404, geen link naar aiyourgym.com).
+ * Met de site uit is het de voorvertoning voor Kane; een oud Engels adres
+ * onder /aiyourgym/en krijgt dan dezelfde 308 met cookie.
  */
-function aiyourgymEngelsElders(request: NextRequest): NextResponse | null {
-  const besluit = beslisAygTaalElders(request.nextUrl.pathname)
+function aiyourgymElders(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl
+  if (beslisAygElders(request.headers.get('host'), pathname, siteActief()) === 'verbergen') {
+    return new NextResponse('Niet gevonden', { status: 404, headers: { 'X-Robots-Tag': AYG_NOINDEX, 'content-type': 'text/plain; charset=utf-8' } })
+  }
+  const besluit = beslisAygTaalElders(pathname)
   return besluit ? engelsOmleiden(request, besluit.pad) : null
 }
 
@@ -204,8 +223,8 @@ export async function proxy(request: NextRequest) {
   const ayg = aiyourgymSite(request)
   if (ayg) return ayg
 
-  const aygEngels = aiyourgymEngelsElders(request)
-  if (aygEngels) return aygEngels
+  const aygElders = aiyourgymElders(request)
+  if (aygElders) return aygElders
 
   const mentaforce = mentaforceOpReleaseV(request)
   if (mentaforce) return mentaforce

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { aygDomeinDicht, beslisAyg, beslisAygTaalElders, engelsOmleidUrl, isAygHost, zichtbaarPad } from './host'
+import { aygDomeinDicht, beslisAyg, beslisAygElders, beslisAygTaalElders, engelsOmleidUrl, isAygHost, omleidUrl, zichtbaarPad, zonderPrefix } from './host'
 import { GERESERVEERD } from '@/lib/club/kern/subdomein'
-import { beslisClub, slugUitHost } from '@/lib/club/kern/subdomein'
+import { beslisClub, clubDoelPad, slugUitHost } from '@/lib/club/kern/subdomein'
 import { isReleaseVHost } from '@/releasev/lib/host-routing'
 
 describe('isAygHost', () => {
@@ -30,9 +30,8 @@ describe('beslisAyg', () => {
       publiek: '/aanmelden',
     })
   })
-  it('laat de eigen API, het voorvoegsel en vaste bestanden door', () => {
+  it('laat de eigen API en vaste bestanden door', () => {
     expect(beslisAyg('aiyourgym.com', '/api/aiyourgym/checkout', true)).toEqual({ soort: 'door' })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/voorwaarden', true)).toEqual({ soort: 'door', publiek: '/voorwaarden' })
     expect(beslisAyg('aiyourgym.com', '/robots.txt', true)).toEqual({ soort: 'door' })
   })
   it('andere API-paden gaan niet naar de app van Fit Factory', () => {
@@ -104,8 +103,8 @@ describe('oude Engelse links op aiyourgym.com (/en)', () => {
     expect(beslisAyg('www.aiyourgym.com', '/en/voor-wie', true)).toEqual({ soort: 'engels-omleiden', pad: '/voor-wie' })
   })
   it('ook de oude interne links (/aiyourgym/en/...)', () => {
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en', true)).toEqual({ soort: 'engels-omleiden', pad: '/aiyourgym' })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en/prijzen', true)).toEqual({ soort: 'engels-omleiden', pad: '/aiyourgym/prijzen' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en', true)).toEqual({ soort: 'engels-omleiden', pad: '/' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/en/prijzen', true)).toEqual({ soort: 'engels-omleiden', pad: '/prijzen' })
   })
   it('geen enkele pagina wordt naar een Engels pad herschreven', () => {
     for (const pad of ['/', '/functies', '/prijzen', '/aiyourgym/functies']) {
@@ -114,7 +113,7 @@ describe('oude Engelse links op aiyourgym.com (/en)', () => {
   })
   it('lijkende paden zijn geen Engels', () => {
     expect(beslisAyg('aiyourgym.com', '/english', true)).toEqual({ soort: 'herschrijven', pad: '/aiyourgym/english', publiek: '/english' })
-    expect(beslisAyg('aiyourgym.com', '/aiyourgym/enquete', true)).toEqual({ soort: 'door', publiek: '/enquete' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/enquete', true)).toEqual({ soort: 'omleiden', pad: '/enquete' })
     expect(beslisAyg('aiyourgym.com', '/EN/functies', true)).toMatchObject({ soort: 'herschrijven', pad: '/aiyourgym/EN/functies' })
   })
   it('Club, API en vaste bestanden blijven door', () => {
@@ -149,5 +148,64 @@ describe('beslisAygTaalElders (fitfactorypt.nl/aiyourgym/en)', () => {
     expect(beslisAygTaalElders('/en/functies')).toBeNull()
     expect(beslisAygTaalElders('/lifeoskane')).toBeNull()
     expect(beslisAygTaalElders('/aiyourgymen')).toBeNull()
+  })
+})
+
+describe('schone adressen op aiyourgym.com (besluit Kane 30-10-2026)', () => {
+  it('een oud adres met /aiyourgym wordt een 308 naar het schone adres', () => {
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym', true)).toEqual({ soort: 'omleiden', pad: '/' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/', true)).toEqual({ soort: 'omleiden', pad: '/' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/overstappen', true)).toEqual({ soort: 'omleiden', pad: '/overstappen' })
+    expect(beslisAyg('www.aiyourgym.com', '/aiyourgym/prijzen', true)).toEqual({ soort: 'omleiden', pad: '/prijzen' })
+    expect(beslisAyg('aiyourgym.com', '/aiyourgym/aiyourgym/aanmelden', true)).toEqual({ soort: 'omleiden', pad: '/aanmelden' })
+    expect(beslisAyg('aiyourgym.localhost:3000', '/aiyourgym/inloggen', true)).toEqual({ soort: 'omleiden', pad: '/inloggen' })
+  })
+  it('geen lus: het schone adres wordt herschreven, nooit omgeleid', () => {
+    for (const pad of ['/', '/overstappen', '/prijzen', '/aanmelden', '/inloggen', '/voor-wie']) {
+      const besluit = beslisAyg('aiyourgym.com', pad, true)
+      expect(besluit.soort).toBe('herschrijven')
+      const doel = besluit.soort === 'herschrijven' ? besluit.pad : ''
+      expect(zonderPrefix(doel)).toBe(pad)
+    }
+    for (const pad of ['/aiyourgym/overstappen', '/aiyourgym']) {
+      const besluit = beslisAyg('aiyourgym.com', pad, true)
+      const doel = besluit.soort === 'omleiden' ? besluit.pad : ''
+      expect(beslisAyg('aiyourgym.com', doel, true).soort).toBe('herschrijven')
+    }
+  })
+  it('lijkende paden zijn geen oud adres', () => {
+    expect(beslisAyg('aiyourgym.com', '/aiyourgymx', true)).toMatchObject({ soort: 'herschrijven', pad: '/aiyourgym/aiyourgymx' })
+  })
+  it('bestanden en beelden van Next (og:image, icoon) gaan door zonder omleiding', () => {
+    for (const pad of ['/aiyourgym/icon.svg', '/aiyourgym/apple-icon.png', '/aiyourgym/avatars/daan.webp', '/aiyourgym/opengraph-image', '/aiyourgym/opengraph-image-1a2b3c', '/aiyourgym/twitter-image', '/aiyourgym/icon']) {
+      expect(beslisAyg('aiyourgym.com', pad, true)).toEqual({ soort: 'door' })
+    }
+  })
+  it('Club houdt zijn eigen paden en het intern herschreven inloggen', () => {
+    expect(beslisAyg('aiyourgym.com', '/club/leden', true)).toEqual({ soort: 'door' })
+    expect(clubDoelPad('/inloggen')).toBe('/aiyourgym/inloggen')
+    expect(GERESERVEERD.has('aiyourgym')).toBe(true)
+  })
+  it('de 308 houdt host en zoekstring', () => {
+    expect(omleidUrl('aiyourgym.com', '/overstappen', '?naam=Kernhal')).toBe('https://aiyourgym.com/overstappen?naam=Kernhal')
+    expect(omleidUrl('aiyourgym.localhost:3000', '/', '')).toBe('http://aiyourgym.localhost:3000/')
+  })
+})
+
+describe('beslisAygElders (de website op andere domeinen)', () => {
+  it('met de site aan is /aiyourgym elders een 404', () => {
+    expect(beslisAygElders('fitfactorypt.nl', '/aiyourgym', true)).toBe('verbergen')
+    expect(beslisAygElders('fitfactorypt.nl', '/aiyourgym/prijzen', true)).toBe('verbergen')
+    expect(beslisAygElders('localhost:3000', '/aiyourgym/aanmelden', true)).toBe('verbergen')
+  })
+  it('met de site uit blijft het de voorvertoning voor Kane', () => {
+    expect(beslisAygElders('fitfactorypt.nl', '/aiyourgym/prijzen', false)).toBeNull()
+  })
+  it('raakt de website zelf, andere paden, bestanden en de API niet', () => {
+    expect(beslisAygElders('aiyourgym.com', '/aiyourgym/prijzen', true)).toBeNull()
+    expect(beslisAygElders('fitfactorypt.nl', '/prijzen', true)).toBeNull()
+    expect(beslisAygElders('fitfactorypt.nl', '/api/aiyourgym/checkout', true)).toBeNull()
+    expect(beslisAygElders('fitfactorypt.nl', '/aiyourgymx', true)).toBeNull()
+    expect(beslisAygElders('fitfactorypt.nl', '/aiyourgym/avatars/daan.webp', true)).toBeNull()
   })
 })
