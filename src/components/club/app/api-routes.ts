@@ -39,6 +39,11 @@ export interface LedenappRoutes {
   checkinCode(lidId: string): string
   /** Andere oefeningen voor een schemaregel (toestel bezet). */
   alternatieven(lidId: string, regelId: string): string
+  /**
+   * Eigen schema's van het lid (/api/club/lid/training/<pad>). Alleen in de
+   * echte ledenapp; in de voorvertoning in Club bestaat het niet.
+   */
+  lidTraining?(pad: string): string
 }
 
 const deel = encodeURIComponent
@@ -82,5 +87,6 @@ export function ledenRoutes(voor: string | null = null): LedenappRoutes {
     coaching: (zoek) => u(`/coaching?${zoek}`),
     checkinCode: () => u('/checkin-code'),
     alternatieven: (_lidId, regelId) => u(`/training/alternatieven?${new URLSearchParams({ regel: regelId })}`),
+    lidTraining: (pad) => u(`/training/${pad}`),
   }
 }

@@ -19,6 +19,9 @@ import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
 import { stuurUitnodigMail, type MailUitkomst } from '@/lib/club/medewerker-login/uitnodig-mail'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
+import { isEigenaar } from '@/lib/club/rollen/wie'
+import { clubTekst } from '@/lib/aiyourgym/taal/server'
+import { ROLLEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rollen'
 
 const LOG: Record<LoginActie, string> = {
   uitnodigen: 'Medewerker uitgenodigd',
@@ -41,7 +44,7 @@ async function naamBinnenBereik(t: ClubToegang, id: string): Promise<string | nu
   if (!rij || typeof rij.naam !== 'string') return null
   const eigen = Array.isArray(rij.vestigingen) ? rij.vestigingen : []
   // Een medewerker zonder vestiging kan alleen Kane of de eigenaar beheren.
-  const zichtbaar = eigen.length === 0 ? t.isPlatformEigenaar || t.rol === 'eigenaar' : t.vestigingen.some((v) => eigen.includes(v.sleutel))
+  const zichtbaar = eigen.length === 0 ? isEigenaar(t) : t.vestigingen.some((v) => eigen.includes(v.sleutel))
   return zichtbaar ? rij.naam : null
 }
 
@@ -64,7 +67,8 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   }
 
   const uit = await beheerMedewerkerLogin(t.admin, t.userId, id, invoer.waarde, new Date())
-  if (uit.staat === 'email_bezet') return clubFout('Dit e-mailadres kan niet worden gebruikt voor deze medewerker. Kies een ander adres.', 409)
+  // Fase 2 van de rollen (een account voor meerdere sportscholen) komt nog: zeg dat eerlijk (docs/club/ROLLEN-PLAN.md).
+  if (uit.staat === 'email_bezet') return clubFout((await clubTekst(ROLLEN_TEKST)).fouten.emailElders, 409)
   if (uit.staat === 'niet_gevonden') return clubFout('Deze medewerker heeft geen login om in te trekken, of is niet meer in dienst.', 404)
   if (uit.staat === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
   await logActie(t, LOG[invoer.waarde.actie], naam, null)

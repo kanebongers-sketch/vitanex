@@ -257,3 +257,85 @@
   .club-app { --club-randlicht: inset 0 0 0 transparent; --club-randlicht-sterk: inset 0 0 0 transparent; }
   .club-stats, .club-blok, .club-kaart { border-color: var(--text-3); }
 }
+
+/* ── Profielfoto (Avatar.tsx) ─────────────────────────────────────────────────
+   Het rondje behoudt de maat en kleur van zijn klasse (club-avatar,
+   club-lidapp-avatar); de foto ligt erover en vervaagt in zodra hij geladen is.
+   Tot dan (of zonder foto) staan de initialen er. Een haarlijn licht aan de
+   binnenrand houdt een donkere foto los van een donkere kaart. */
+.club-foto { position: relative; overflow: hidden; isolation: isolate; }
+.club-foto > img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: inherit;
+  opacity: 0; transform: scale(1.04);
+  transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.club-foto[data-foto='geladen'] > img { opacity: 1; transform: none; }
+.club-foto[data-foto='geladen'] > .club-foto-letters { opacity: 0; }
+.club-foto::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.club-foto-letters { line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .club-foto > img { transition: none; transform: none; }
+}
+
+/* ── Profielfoto kiezen (FotoKiezer.tsx) ──────────────────────────────────── */
+.club-fotokiezer { display: grid; gap: var(--club-r4); }
+.club-fotokiezer-kop { display: flex; align-items: center; gap: var(--club-r4); flex-wrap: wrap; }
+.club-fotokiezer-knoppen { display: flex; gap: var(--club-r2); flex-wrap: wrap; }
+.club-fotokiezer-uitleg { margin: 0; color: var(--text-3); font-size: var(--club-t-klein); line-height: 1.5; max-width: 52ch; }
+.club-fotokiezer-snij {
+  display: grid; gap: var(--club-r3); padding: var(--club-r4);
+  border-radius: var(--club-hoek-3); background: var(--club-opp-2);
+  box-shadow: var(--club-randlicht), var(--club-diepte-2);
+  max-width: 360px;
+}
+.club-fotokiezer-venster {
+  position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--club-hoek-2);
+  overflow: hidden; background: var(--club-opp-put); touch-action: none; cursor: grab;
+}
+.club-fotokiezer-venster:active { cursor: grabbing; }
+.club-fotokiezer-venster canvas { display: block; width: 100%; height: 100%; }
+/* Het ronde masker: zo ziet het lid precies wat in het rondje komt. */
+.club-fotokiezer-venster::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at center, transparent 49.5%, rgba(0, 0, 0, 0.55) 50%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.club-fotokiezer-zoom { display: flex; align-items: center; gap: var(--club-r2); color: var(--text-3); font-size: var(--club-t-klein); }
+.club-fotokiezer-zoom input { flex: 1; accent-color: var(--brand); }
+.club-fotokiezer-toestemming {
+  display: flex; gap: var(--club-r2); align-items: flex-start; padding: var(--club-r3);
+  border-radius: var(--club-hoek-2); border: var(--club-rand); background: var(--club-opp-1);
+  font-size: var(--club-t-klein); line-height: 1.5; color: var(--text-2);
+}
+.club-fotokiezer-toestemming input { margin-top: 3px; accent-color: var(--brand); }
+.club-fotokiezer-melding { margin: 0; font-size: var(--club-t-klein); color: var(--text-2); }
+.club-fotokiezer-melding[data-soort='fout'] { color: var(--club-let-op-inkt, var(--club-let-op)); }
+
+/* Team: de foto staat voor de naam; de naam neemt de ruimte, de rollen blijven rechts. */
+.club-team-persoon > .club-foto + .club-team-wie { margin-right: auto; }
+
+/* Ledenapp: begroeting met de eigen foto en de coach eronder. */
+.club-lidapp-welkomrij { display: flex; align-items: flex-end; gap: var(--club-r3); min-width: 0; }
+.club-lidapp-welkomrij > div { min-width: 0; display: grid; gap: 4px; }
+.club-lidapp-welkomfoto {
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px var(--bg-app), 0 0 0 4px color-mix(in srgb, var(--brand) 50%, transparent), 0 12px 26px -14px rgba(0, 0, 0, 0.8);
+  margin-bottom: 4px;
+}
+.club-lidapp-coach {
+  display: inline-flex; align-items: center; gap: var(--club-r2); justify-self: start;
+  margin: var(--club-r2) 0 0; padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--club-opp-2); box-shadow: var(--club-randlicht);
+  font-size: var(--club-t-klein); color: var(--text-2);
+}
+.club-lidapp-coach-label { color: var(--text-3); }
+.club-lidapp-foto { display: grid; gap: var(--club-r3); }
+.club-lidapp-foto h3 { margin: 0; }
+
+/* Nu binnen: foto voor de naam, de tijd blijft rechts. */
+.club-checkin-binnen li { align-items: center; }
+.club-checkin-binnen li > .club-foto + * { margin-right: auto; }

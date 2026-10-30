@@ -10,6 +10,7 @@ import { datumUitSleutel, laatsteBezoekTekst } from '@/lib/club/leden/tijd'
 import { STATUS_CHIP } from '@/lib/club/leden/weergave'
 import { Behoudsignaal } from './Behoudsignaal'
 import { RijKlik } from './RijKlik'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // De ledenlijst: een compacte tabel, sorteren via de kopjes, een rij opent de
 // ledenkaart. Op een telefoon wordt elke rij een kaart (CSS, data-label).
@@ -79,7 +80,7 @@ function Rij({ rij, vestiging, nu, t, taal }: { rij: LedenRij; vestiging: Vestig
     <tr data-href={href} className="club-leden-rij">
       <td className="club-leden-cel-naam">
         <div className="club-leden-naamcel">
-          <span className="club-avatar" aria-hidden>{initialen(lid)}</span>
+          <Avatar naam={volledigeNaam(lid)} initialen={initialen(lid)} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} />
           <span className="club-rij-hoofd">
             <span className="club-leden-naamregel">
               <Link href={href} className="club-rij-titel">{volledigeNaam(lid)}</Link>

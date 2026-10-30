@@ -11,6 +11,7 @@ import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { InCheckKnop } from './hub/InCheckKnop'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // De kop van de ledenkaart: wie is dit, wat voor lid, en de acties die je het
 // vaakst vanuit het lid start (besluit Kane 27-10-2026: alles vanuit het lid).
@@ -43,7 +44,7 @@ export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten
     <header className="club-leden-kop">
       <ClubKruimel stappen={[{ label: w.leden, href: clubPad('/leden', vestiging) }]} huidig={naam} />
       <div className="club-leden-kop-hoofd">
-        <span className="club-avatar club-avatar--groot club-leden-kop-avatar" aria-hidden>{initialen(lid)}</span>
+        <Avatar naam={naam} initialen={initialen(lid)} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} maat={76} vasteMaat={false} className="club-avatar club-avatar--groot club-leden-kop-avatar" />
         <div className="club-leden-kop-naam">
           <p className="club-boventitel">{vestigingNaam}{lid.demo ? ` · ${w.voorbeeldlid}` : ''}</p>
           <h1>{naam}</h1>

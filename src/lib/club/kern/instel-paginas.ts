@@ -82,6 +82,10 @@ export interface InstelPagina {
   ookNaar?: InstelId
   /** Geen regel in een categorie maar een losse link bovenaan (de startwizard). */
   losseLink?: boolean
+  /** Rollenmodel v2 (CLUB_ROLLEN_V2): 'alleen' = alleen met v2 aan, 'niet' = alleen zonder v2. */
+  rollenV2?: 'alleen' | 'niet'
+  /** Met v2: de sleutel (src/lib/club/rollen/typen.ts) die iemand nodig heeft, als die fijner is dan `sleutel`. */
+  v2Sleutel?: string
 }
 
 export const INSTEL_PAGINAS: readonly InstelPagina[] = [
@@ -95,9 +99,10 @@ export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   { id: 'regels', titel: P.regels.titel, uitleg: P.regels.uitleg, groep: 'vestigingen', pad: '/instellingen/regels', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'annuleren no-show open dicht' },
   { id: 'sluiting', titel: P.sluiting.titel, uitleg: P.sluiting.uitleg, groep: 'vestigingen', pad: '/beheer/sluiting', sleutel: 'sluiting', onder: 'regels', trefwoorden: 'feestdag kerst dicht' },
   // Team en rechten
+  { id: 'team', titel: P.team.titel, uitleg: P.team.uitleg, groep: 'team', pad: '/beheer/team', sleutel: 'beheer', v2Sleutel: 'team', rollenV2: 'alleen', trefwoorden: 'rollen eigenaar clubmanager trainer instructeur roosteraar administratie personeel uitnodigen' },
   { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
-  { id: 'beheerders', titel: P.beheerders.titel, uitleg: P.beheerders.uitleg, groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
-  { id: 'rechten', titel: P.rechten.titel, uitleg: P.rechten.uitleg, groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, trefwoorden: 'toegang rollen autorisatie' },
+  { id: 'beheerders', titel: P.beheerders.titel, uitleg: P.beheerders.uitleg, groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, rollenV2: 'niet', trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
+  { id: 'rechten', titel: P.rechten.titel, uitleg: P.rechten.uitleg, groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, v2Sleutel: 'rollen', trefwoorden: 'toegang rollen autorisatie niveaus startpagina' },
   // Groepslessen (zalen horen bij het rooster: staat dat uit, dan zijn ze er ook niet)
   { id: 'lestypen', titel: P.lestypen.titel, uitleg: P.lestypen.uitleg, groep: 'groepslessen', pad: '/instellingen/lestypen', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'groepsles les soorten' },
   { id: 'weekrooster', titel: P.weekrooster.titel, uitleg: P.weekrooster.uitleg, groep: 'groepslessen', pad: '/instellingen/weekrooster', sleutel: 'instellingen', perVestiging: true, module: 'rooster', trefwoorden: 'lesrooster vaste lessen' },
@@ -133,16 +138,22 @@ export interface InstelKijker {
   betalenAan: boolean
   /** Staat lidgeld aan (CLUB_LIDGELD_ACTIEF)? Ontbreekt = uit. */
   lidgeldAan?: boolean
+  /** Rollenmodel v2 aan voor deze sportschool? */
+  rollenV2?: boolean
+  /** Met v2: heeft deze persoon de rol eigenaar (pagina's met alleenEigenaar)? */
+  eigenaar?: boolean
 }
 
 /** Mag deze persoon de pagina zien (los van het onderdeel dat uit staat)? */
 export function magInstelPagina(p: InstelPagina, k: Omit<InstelKijker, 'uit'>): boolean {
   if (p.betalen && !k.betalenAan) return false
   if (p.lidgeld && !k.lidgeldAan) return false
-  if (p.nietVoorMedewerker && k.medewerker) return false
+  if (p.rollenV2 === 'alleen' && !k.rollenV2) return false
+  if (p.rollenV2 === 'niet' && k.rollenV2) return false
+  if (p.nietVoorMedewerker && k.medewerker && !k.rollenV2) return false
   if (k.toegestaan === null) return true
-  if (p.alleenEigenaar) return false
-  return k.toegestaan.includes(p.sleutel)
+  if (p.alleenEigenaar) return k.rollenV2 === true && k.eigenaar === true
+  return k.toegestaan.includes(k.rollenV2 && p.v2Sleutel ? p.v2Sleutel : p.sleutel)
 }
 
 /**

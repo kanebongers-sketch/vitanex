@@ -5,6 +5,7 @@ import type { SchemaStatus } from '@/lib/club/training/typen'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
+import { LID_SCHEMAS } from '@/lib/aiyourgym/taal/woorden/club/lid-schemas'
 import { toonDatum } from '@/lib/club/training/weergave'
 import { SjabloonToepassen } from './SchemaActies'
 
@@ -41,6 +42,7 @@ export async function SchemaLijst({ schemas, log, trainers, editorHref, toonLid 
   const taal = await getTaal()
   const t = (await clubTekst(CLUB_TRAINING)).lijst
   const lb = await clubTekst(TRAINING_LABELS)
+  const ls = await clubTekst(LID_SCHEMAS)
   return (
     <ul className="club-lijst club-kaart club-training-schemas">
       {schemas.map((s) => {
@@ -53,6 +55,7 @@ export async function SchemaLijst({ schemas, log, trainers, editorHref, toonLid 
                 <span className="club-training-schemarij-titel">
                   {toonLid && <span className="club-training-schemarij-lid">{s.lidNaam ?? t.lidOnbekend}</span>}
                   <strong>{s.naam}</strong>
+                  {s.maker === 'lid' && <span className="club-chip club-chip--info" title={ls.chip}>{ls.chipKort}</span>}
                 </span>
                 <span className="club-rij-sub">
                   {[s.doel ? lb.doel[s.doel] : null, lb.niveau[s.niveau], t.dagen(s.dagTitels.length || 1), trainer ? t.trainer(trainer) : null].filter(Boolean).join(' · ')}

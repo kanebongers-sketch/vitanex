@@ -9,6 +9,7 @@ import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
 import type { Rechten } from '@/lib/club/kern/org-instellingen'
 import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import { NOOIT_VOOR_CLUBMANAGER, magOnderdeel, type WieMag } from '@/lib/club/beheerders/rechten'
+import { isClubmanagerSessie, isEigenaar, v2Minstens } from '@/lib/club/rollen/wie'
 
 /** Minstens zo streng als voor een clubmanager; daarnaast zijn sommige API's dicht (zie hieronder). */
 export const NOOIT_VOOR_MEDEWERKER: ReadonlySet<string> = new Set([...NOOIT_VOOR_CLUBMANAGER])
@@ -42,6 +43,9 @@ export function magApiAlsMedewerker(pad: string, methode: string): boolean {
  * Clubmanager: dan kan niemand zichzelf of een collega binnenlaten.
  */
 export function magMedewerkerLoginsBeheren(t: WieMag & { onderdelen?: readonly string[] | null }): boolean {
-  if (t.isPlatformEigenaar || t.rol === 'eigenaar') return true
-  return t.rol === 'clubmanager' && t.onderdelen !== undefined && magOnderdeel(t.onderdelen, 'instellingen')
+  // Rollen v2: wie het team beheert (clubmanager standaard), en Kane en de eigenaar.
+  const v2 = v2Minstens(t, 'team', 'beheren')
+  if (v2 !== null) return v2 || isEigenaar(t)
+  if (isEigenaar(t)) return true
+  return isClubmanagerSessie(t) && t.onderdelen !== undefined && magOnderdeel(t.onderdelen, 'instellingen')
 }

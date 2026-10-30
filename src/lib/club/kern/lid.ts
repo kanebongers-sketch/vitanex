@@ -42,10 +42,12 @@ export interface Lid {
   tags: string[]
   coachId: string | null
   demo: boolean
+  /** Versie van de profielfoto (club_leden.profielfoto, migratie 473), of null zonder foto. */
+  foto?: string | null
 }
 
 export const LID_KOLOMMEN =
-  'id, vestiging, lidnummer, sportivity_id, voornaam, achternaam, email, telefoon, geboortedatum, geslacht, abonnement, status, lid_sinds, einddatum, tags, coach_id, demo'
+  'id, vestiging, lidnummer, sportivity_id, voornaam, achternaam, email, telefoon, geboortedatum, geslacht, abonnement, status, lid_sinds, einddatum, tags, coach_id, demo, profielfoto'
 
 function tekst(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v : null
@@ -82,6 +84,7 @@ export function lidUitRij(rij: unknown): Lid | null {
     tags: Array.isArray(r.tags) ? r.tags.filter((t): t is string => typeof t === 'string') : [],
     coachId: tekst(r.coach_id),
     demo: r.demo === true,
+    foto: typeof r.profielfoto === 'string' && /^[a-z0-9]{4,20}$/.test(r.profielfoto) ? r.profielfoto : null,
   }
 }
 

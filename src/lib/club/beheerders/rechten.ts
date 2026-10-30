@@ -8,6 +8,7 @@
 
 import type { Rechten } from '@/lib/club/kern/org-instellingen'
 import type { BeheerderRol } from './beheerder'
+import { isEigenaar, isMedewerkerSessie, type ProfielToegang } from '@/lib/club/rollen/wie'
 
 /** Onderdelen die alleen Kane en de eigenaar hebben, wat de rechten ook zeggen. */
 export const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start'])
@@ -15,18 +16,20 @@ export const NOOIT_VOOR_CLUBMANAGER: ReadonlySet<string> = new Set(['beheer', 'h
 export interface WieMag {
   isPlatformEigenaar: boolean
   rol: 'beheerder' | BeheerderRol | 'medewerker'
+  /** Rollenmodel v2: dan tellen de rollen van het profiel (src/lib/club/rollen/wie.ts). */
+  profiel?: ProfielToegang | null
 }
 
 /** Beheerders (eigenaren en clubmanagers) en het adres van de sportschool: Kane en de eigenaar. */
 export function magBeheerdersBeheren(t: WieMag): boolean {
-  return t.isPlatformEigenaar || t.rol === 'eigenaar'
+  return isEigenaar(t)
 }
 
-/** De onderdelen die deze persoon ziet; null = alles. */
+/** De onderdelen die deze persoon ziet; null = alles. Alleen het oude model (zonder v2). */
 export function toegestaneOnderdelen(t: WieMag, rechten: Rechten): readonly string[] | null {
-  if (t.isPlatformEigenaar || t.rol === 'eigenaar') return null
+  if (isEigenaar(t)) return null
   // Een medewerker heeft zijn eigen rechten (medewerker-login/rechten.ts); hier nooit iets.
-  if (t.rol === 'medewerker') return ['vandaag']
+  if (isMedewerkerSessie(t)) return ['vandaag']
   // Een clubmanager: de rechten van de rol Clubmanager, altijd met Vandaag (de startpagina).
   return [...new Set(['vandaag', ...rechten.manager])].filter((s) => !NOOIT_VOOR_CLUBMANAGER.has(s))
 }
@@ -79,6 +82,8 @@ const API_ONDERDEEL: Record<string, string> = {
   start: 'beheer',
   community: 'community',
   betalen: 'beheer',
+  // Team en rollen (rollen v2): in het oude model bij Instellingen; v2 kijkt naar de sleutel team (rollen/api.ts).
+  team: 'instellingen',
   // Boekingswidget op de eigen website (alleen Kane en de eigenaar, zie /api/club/widget).
   widget: 'beheer',
   // Bewaartermijnen (alleen Kane en de eigenaar, zie /api/club/privacy).

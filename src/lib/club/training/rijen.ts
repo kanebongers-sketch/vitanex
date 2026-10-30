@@ -78,10 +78,15 @@ export interface SchemaKop {
   bijgewerktOp: string
   /** Gemaakt uit de basisset (sleutel van het startschema), anders null. */
   basisSleutel: string | null
+  /** Van een trainer, of zelf gemaakt door het lid in de ledenapp (migratie 472). */
+  maker: 'trainer' | 'lid'
+  aangemaaktOp: string
+  /** Moment dat dit het schema in de ledenapp werd, of null (dan telt aangemaaktOp). */
+  actiefGekozenOp: string | null
 }
 
 export const SCHEMA_KOLOMMEN =
-  'id, lid_id, naam, doel, niveau, weken, medewerker_id, status, notitie, dag_titels, bijgewerkt_op, basis_sleutel, club_leden(voornaam, achternaam)'
+  'id, lid_id, naam, doel, niveau, weken, medewerker_id, status, notitie, dag_titels, bijgewerkt_op, basis_sleutel, maker, aangemaakt_op, actief_gekozen_op, club_leden(voornaam, achternaam)'
 
 export interface LogRegel {
   id: string
@@ -195,6 +200,9 @@ export function schemaUitRij(rij: unknown): SchemaKop | null {
     dagTitels: Array.isArray(rij.dag_titels) ? rij.dag_titels.map((t) => (typeof t === 'string' ? t : '')) : [],
     bijgewerktOp: tekstOfNull(rij.bijgewerkt_op) ?? '',
     basisSleutel: tekstOfNull(rij.basis_sleutel),
+    maker: rij.maker === 'lid' ? 'lid' : 'trainer',
+    aangemaaktOp: tekstOfNull(rij.aangemaakt_op) ?? '',
+    actiefGekozenOp: tekstOfNull(rij.actief_gekozen_op),
   }
 }
 

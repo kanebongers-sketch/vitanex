@@ -6,6 +6,7 @@ import { verdeling } from '@/lib/club/voeding/rekenhulp'
 import { datumLang, doelLabel } from './weergave'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
+import { VOEDING_EIGEN } from '@/lib/aiyourgym/taal/woorden/club/voeding-eigen'
 
 // De lijsten van het overzicht: plannen per lid en sjablonen van de sportschool.
 
@@ -28,6 +29,7 @@ interface PlannenLijstProps {
 export async function PlannenLijst({ regels, vestiging }: PlannenLijstProps) {
   const taal = await getTaal()
   const t = VOEDING[taal].lijsten
+  const te = VOEDING_EIGEN[taal].lijst
   if (regels.length === 0) return <p className="club-leeg">{t.geenPlannen}</p>
   return (
     <ul className="club-voeding-lijst">
@@ -37,6 +39,8 @@ export async function PlannenLijst({ regels, vestiging }: PlannenLijstProps) {
             <span>
               <span className="club-voeding-regel-titel">
                 {lid.voornaam} {lid.achternaam}
+                {plan.bron === 'lid' && <span className="club-voeding-regel-badge">{te.eigen}</span>}
+                {plan.voorstel && <span className="club-voeding-regel-badge">{te.voorstel}</span>}
               </span>
               <span className="club-voeding-regel-sub">
                 {doelLabel(plan.doel, taal)} · {t.eiwit(plan.eiwitG)}{plan.bijgewerktOp && ` · ${datumLang(plan.bijgewerktOp, taal)}`}

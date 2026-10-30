@@ -9,6 +9,9 @@ import { SportscholenKeuze } from '@/components/club/huisstijl/SportscholenKeuze
 import { BeheerdersBlok } from '@/components/club/huisstijl/BeheerdersBlok'
 import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { rollenV2Aan } from '@/lib/club/rollen/schakelaar'
+import { ROLLEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rollen'
+import Link from 'next/link'
 import { AdresBlok } from '@/components/club/huisstijl/AdresBlok'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
@@ -29,8 +32,9 @@ export default async function HuisstijlPagina() {
   const beheren = magBeheerdersBeheren(t)
   const subdomeinen = subdomeinenActief()
   const org = t.organisatie
-  const beheerders = beheren ? await haalBeheerders(t.admin, t.userId) : null
+  const beheerders = beheren && !rollenV2Aan(org.id) ? await haalBeheerders(t.admin, t.userId) : null
   const tekst = (await clubTekst(HUISSTIJL)).pagina
+  const rollenTekst = await clubTekst(ROLLEN_TEKST)
   const logoUrl = org.logo && org.logo !== LOGO_FIT_FACTORY ? `/api/club/organisatie/logo?pad=${encodeURIComponent(org.logo)}` : null
   return (
     <>
@@ -57,7 +61,14 @@ export default async function HuisstijlPagina() {
         adres={org.slug ? adresVan(org.slug, subdomeinen) : null}
         afgenomen={org.afgenomen}
       />
-      {beheren && (
+      {beheren && rollenV2Aan(org.id) && (
+        <section className="club-kaart club-beheerders" aria-labelledby="beheerders-kop">
+          <h2 id="beheerders-kop">{rollenTekst.team.verhuisdKop}</h2>
+          <p className="club-hint">{rollenTekst.team.verhuisd}</p>
+          <p><Link className="club-knop club-knop--stil" href="/club/beheer/team">{rollenTekst.team.naarTeam}</Link></p>
+        </section>
+      )}
+      {beheren && !rollenV2Aan(org.id) && (
         <BeheerdersBlok
           sportschool={org.naam}
           beheerders={beheerders}

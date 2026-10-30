@@ -13,6 +13,7 @@ import { clubDatabase } from '@/lib/club/kern/database'
 import { geheimGelijk } from '@/lib/club/kern/pin'
 import { verwerkWachtrij } from '@/lib/club/meldingen/versturen'
 import { pushActief } from '@/lib/club/push/sleutels'
+import { ruimProfielfotosOp } from '@/lib/club/profielfoto/opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,10 @@ function antwoord(body: Record<string, unknown>, status = 200): NextResponse {
 async function verwerk(req: NextRequest): Promise<NextResponse> {
   if (!geheimGelijk(process.env.CRON_SECRET ?? '', req.headers.get('x-cron-secret'))) return antwoord({ fout: 'Unauthorized' }, 401)
   try {
-    const verslag = await verwerkWachtrij(clubDatabase())
+    const admin = clubDatabase()
+    const verslag = await verwerkWachtrij(admin)
+    // Vervallen profielfoto's (weggehaald, lid verwijderd, uit dienst, bewaartermijn): bestanden weg.
+    await ruimProfielfotosOp(admin)
     if (!verslag) return antwoord({ fout: 'De wachtrij kon niet gelezen worden.' }, 502)
     return antwoord({ ...verslag, mailsActief: process.env.CLUB_MAILS_ACTIEF === '1', pushActief: pushActief(process.env) })
   } catch (err) {

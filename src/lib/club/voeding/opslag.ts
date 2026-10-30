@@ -45,6 +45,8 @@ export async function bewaarPlan(t: ClubToegang, lid: Lid, p: PlanInvoer): Promi
     sjabloon_id: sjabloonId,
     bijgewerkt_door: t.naam.slice(0, 80),
     bijgewerkt_op: new Date().toISOString(),
+    // Wie het plan in de editor opslaat, maakt het tot een plan van de trainer (migratie 471).
+    bron: 'trainer',
   }
   const { error } = await t.admin.from('club_voedingsplannen').upsert(rij, { onConflict: 'user_id,lid_id' })
   if (error) {

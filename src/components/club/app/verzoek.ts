@@ -12,7 +12,7 @@ export function paginaTaal(): Taal {
 
 export type Antwoord = { ok: true; data: Record<string, unknown> } | { ok: false; fout: string; status: number }
 
-export async function stuur(url: string, methode: 'POST' | 'DELETE', body?: unknown): Promise<Antwoord> {
+export async function stuur(url: string, methode: 'POST' | 'PUT' | 'DELETE', body?: unknown): Promise<Antwoord> {
   const t = LEDENAPP[paginaTaal()].algemeen
   let res: Response
   try {

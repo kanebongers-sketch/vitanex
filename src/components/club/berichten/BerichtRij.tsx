@@ -10,6 +10,7 @@ import { vensterTekst } from '@/lib/club/berichten/tijd'
 import { doelgroepTekst } from '@/lib/club/berichten/weergave'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Een bericht in de beheerlijst: soort en status, titel, voorproef, voor wie
 // en wanneer, met de acties. Verwijderen vraagt eerst om bevestiging.
@@ -51,7 +52,12 @@ export function BerichtRij({ bericht: b, vestigingen, nu, bezig, onBewerk, onAct
         <p className="club-bericht-rij-meta">
           <span>{doelgroepTekst(b, vestigingen, taal)}</span>
           <span>{vensterTekst(b.zichtbaarVan, b.zichtbaarTot, nu, taal)}</span>
-          {b.aangemaaktDoor && <span>{t.door(b.aangemaaktDoor)}</span>}
+          {b.aangemaaktDoor && (
+            <span className="club-bericht-rij-auteur">
+              <Avatar naam={b.aangemaaktDoor} foto={b.auteurFoto ? { soort: 'mw', id: b.auteurFoto.id, versie: b.auteurFoto.versie } : null} maat={22} />
+              {t.door(b.aangemaaktDoor)}
+            </span>
+          )}
         </p>
       </div>
 

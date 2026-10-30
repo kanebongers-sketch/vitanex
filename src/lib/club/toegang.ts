@@ -38,6 +38,12 @@ import { medewerkerCookie } from '@/lib/club/medewerker-login/medewerker-login'
 import { medewerkerVanSessie } from '@/lib/club/medewerker-login/opslag'
 import { magApiAlsMedewerker } from '@/lib/club/medewerker-login/rechten'
 import { medewerkerToegangVelden } from '@/lib/club/medewerker-login/toegang-velden'
+import { rollenV2Aan } from '@/lib/club/rollen/schakelaar'
+import { bouwProfiel, rolVanBeheerder } from '@/lib/club/rollen/profiel'
+import { haalProfiel, profielIdVanBeheerder } from '@/lib/club/rollen/opslag'
+import { magApiV2 } from '@/lib/club/rollen/api'
+import { isMedewerkerSessie, v2Minstens, type ProfielToegang } from '@/lib/club/rollen/wie'
+import type { Niveau } from '@/lib/club/rollen/typen'
 
 /** Wie er binnen is: de platform-eigenaar (rol beheerder), een eigenaar of clubmanager van een sportschool, of een medewerker. */
 export type ClubRol = 'beheerder' | BeheerderRol | 'medewerker'
@@ -73,6 +79,12 @@ export interface ClubToegang {
   medewerkerRollen?: readonly MedewerkerRol[]
   /** Wie er werkt, voor het logboek ("Kane", of de naam van de medewerker). */
   naam: string
+  /**
+   * Rollenmodel v2 (schakelaar CLUB_ROLLEN_V2, src/lib/club/rollen/): de rollen
+   * van het profiel, het niveau per onderdeel en de startpagina. Ontbreekt (of
+   * null) = het oude model; voor Kane altijd leeg.
+   */
+  profiel?: ProfielToegang | null
 }
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
@@ -150,6 +162,16 @@ async function toegangVoorBeheerder(admin: SupabaseClient): Promise<ClubToegang 
   if (!velden) return null
   // Op het subdomein van een andere sportschool bestaat Club voor deze beheerder niet.
   if ((await organisatieUitHost(velden.organisaties)) === null) return null
+  if (rollenV2Aan(velden.organisatie.id)) {
+    // Rollen v2: de rollen van het profiel. Alleen zonder profiel de rol van de login;
+    // een profiel zonder rollen heeft geen rechten (anders kwam een weggehaalde rol terug).
+    const profielId = await profielIdVanBeheerder(admin, velden.organisatie.id, b.id)
+    const rij = profielId ? await haalProfiel(admin, velden.organisatie.id, profielId) : null
+    if (profielId && !rij) return null
+    const rollen = rij ? rij.rollen : [rolVanBeheerder(b.rol)]
+    const { profiel, onderdelen } = bouwProfiel({ id: rij?.id ?? null, rollen, alleVestigingen: true }, velden.organisatie)
+    return { admin, ...velden, onderdelen, vestigingen, medewerkerRollen: [], profiel }
+  }
   return { admin, ...velden, onderdelen: toegestaneOnderdelen(velden, velden.organisatie.instellingen.rechten), vestigingen, medewerkerRollen: [] }
 }
 
@@ -166,10 +188,29 @@ async function toegangVoorMedewerker(admin: SupabaseClient): Promise<ClubToegang
   ])
   // Op het subdomein van een andere sportschool bestaat Club voor deze medewerker niet.
   if (!organisatie || (await organisatieUitHost([organisatie])) === null) return null
+  if (rollenV2Aan(organisatie.id)) return toegangVoorMedewerkerV2(admin, gevonden, organisatie, eigenaarId, vestigingen)
   const velden = medewerkerToegangVelden({ ...gevonden, organisatie, eigenaarId, vestigingen })
   if (!velden) return null
   const { rollen, ...rest } = velden
   return { admin, ...rest, medewerkerRollen: rollen }
+}
+
+/** Rollen v2: de rollen en "alle vestigingen" van het profiel tellen. */
+async function toegangVoorMedewerkerV2(
+  admin: SupabaseClient,
+  gevonden: NonNullable<Awaited<ReturnType<typeof medewerkerVanSessie>>>,
+  organisatie: Organisatie,
+  eigenaarId: string | null,
+  vestigingen: VestigingInfo[],
+): Promise<ClubToegang | null> {
+  const rij = await haalProfiel(admin, organisatie.id, gevonden.medewerker.id)
+  if (!rij) return null
+  const medewerker = rij.alleVestigingen ? { ...gevonden.medewerker, vestigingen: vestigingen.map((v) => v.sleutel) } : gevonden.medewerker
+  const velden = medewerkerToegangVelden({ ...gevonden, medewerker, organisatie, eigenaarId, vestigingen })
+  if (!velden) return null
+  const { rollen, ...rest } = velden
+  const { profiel, onderdelen } = bouwProfiel({ id: rij.id, rollen: rij.rollen, alleVestigingen: rij.alleVestigingen }, organisatie)
+  return { admin, ...rest, onderdelen, medewerkerRollen: rollen, profiel }
 }
 
 /**
@@ -228,12 +269,17 @@ export function clubJson(data: unknown, status = 200): NextResponse {
 export async function vereisClubToegang(req: NextRequest): Promise<ClubToegang | NextResponse> {
   const t = await clubToegang()
   if (!t) return clubFout('Niet gevonden.', 404)
-  // Een clubmanager: alleen de API's van onderdelen die de eigenaar hem geeft.
-  if (!magApi(t.onderdelen, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
   // Een API van een pakket dat deze sportschool niet afnam, bestaat niet (kern/pakketten.ts).
   if (!apiAfgenomen(t.organisatie.afgenomen, req.nextUrl.pathname)) return clubFout('Niet gevonden.', 404)
-  // Een medewerker: daarnaast nooit de sportschoolbrede acties (vestigingen, inloglinks).
-  if (t.rol === 'medewerker' && !magApiAlsMedewerker(req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+  if (t.profiel) {
+    // Rollen v2: lezen vraagt zien, wijzigen bewerken (src/lib/club/rollen/api.ts).
+    if (!magApiV2(t.profiel.niveaus, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+  } else {
+    // Een clubmanager: alleen de API's van onderdelen die de eigenaar hem geeft.
+    if (!magApi(t.onderdelen, req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+    // Een medewerker: daarnaast nooit de sportschoolbrede acties (vestigingen, inloglinks).
+    if (isMedewerkerSessie(t) && !magApiAlsMedewerker(req.nextUrl.pathname, req.method)) return clubFout('Niet gevonden.', 404)
+  }
   const leest = req.method === 'GET' || req.method === 'HEAD'
   if (!leest && !isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
   return t
@@ -307,5 +353,15 @@ export async function eisModule(module: Module): Promise<ClubToegang> {
 export async function eisPakket(pakket: PakketSleutel): Promise<ClubToegang> {
   const t = await eisClubToegang()
   if (!heeftPakket(t.organisatie.afgenomen, pakket)) notFound()
+  return t
+}
+
+/**
+ * Rollen v2: een pagina die een niveau vraagt (bijvoorbeeld Team: team minstens
+ * zien). Zonder v2 bij deze sportschool, of zonder dat niveau: een gewone 404.
+ */
+export async function eisNiveau(sleutel: string, drempel: Niveau): Promise<ClubToegang> {
+  const t = await eisClubToegang()
+  if (!rollenV2Aan(t.organisatie.id) || v2Minstens(t, sleutel, drempel) !== true) notFound()
   return t
 }

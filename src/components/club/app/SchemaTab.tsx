@@ -24,6 +24,7 @@ import { SCHEMA_WEERGAVE } from '@/lib/aiyourgym/taal/woorden/club/schema-weerga
 import { DiepteRing } from '@/components/club/ontwerp/DiepteRing'
 import { SchemaStappen } from './SchemaStappen'
 import { useWachtrij, type Wachtrij } from './training/useWachtrij'
+import { EigenSchema } from './eigen-schema/EigenSchema'
 
 // Het schema in de ledenapp: kies dag A, B, C..., zie de oefeningen en start
 // de training: per set gewicht en herhalingen invullen met de vorige keer
@@ -61,9 +62,14 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
     return (
       <div className="club-lidapp-tab">
         <h2 className="club-lidapp-kop">{t.kop}</h2>
-        <LegeStaat Icoon={ClipboardList} titel={t.geenSchema}>
-          {t.geenSchemaUitleg}
-        </LegeStaat>
+        {/* In de echte ledenapp maakt het lid zelf een schema; in de voorvertoning in Club niet. */}
+        {api.lidTraining ? (
+          <EigenSchema maker={null} />
+        ) : (
+          <LegeStaat Icoon={ClipboardList} titel={t.geenSchema}>
+            {t.geenSchemaUitleg}
+          </LegeStaat>
+        )}
       </div>
     )
   }
@@ -112,6 +118,7 @@ export function SchemaTab({ lidId, schema, logs, historie, nu }: Props) {
         {schema.weken ? <span>{t.weken(schema.weken)}</span> : null}
         <span>{t.oefeningen(dag.oefeningen.length)}</span>
       </p>
+      <EigenSchema maker={schema.maker} />
       {schema.notitie && <SchemaNotitie notitie={schema.notitie} vanTrainer={t.vanTrainer} waarom={t.waarom} />}
       <div className="club-lidapp-dagkeuze" role="group" aria-label={t.trainingsdag}>
         {schema.dagen.map((d) => (

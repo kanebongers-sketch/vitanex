@@ -95,6 +95,7 @@ function naarBalieLid(lid: Lid, laatste: Date | undefined, res: LidReservering[]
     id: lid.id,
     naam: volledigeNaam(lid),
     initialen: initialen(lid),
+    foto: lid.foto ?? null,
     lidnummer: lid.lidnummer,
     status: lid.status,
     statusLabel: LID_STATUS_LABEL[lid.status],
@@ -215,7 +216,7 @@ export async function checkIn(admin: SupabaseClient, userId: string, verzoek: Ch
 /** Check-ins van vandaag in deze vestiging, samengevat voor het paneel. Null bij een fout. */
 export async function haalDagPaneel(admin: SupabaseClient, userId: string, v: Vestiging, nu: Date): Promise<DagSamenvatting | null> {
   const { van } = dagGrenzen(nu)
-  const { data, error } = await admin.from('club_checkins').select('id, lid_id, op, bron, vestiging, club_leden(voornaam, achternaam)')
+  const { data, error } = await admin.from('club_checkins').select('id, lid_id, op, bron, vestiging, club_leden(voornaam, achternaam, profielfoto)')
     .eq('user_id', userId).eq('vestiging', v).gte('op', van.toISOString()).order('op', { ascending: false }).limit(1000)
   if (error) {
     console.error('[club] check-ins vandaag lezen mislukt', error.message)

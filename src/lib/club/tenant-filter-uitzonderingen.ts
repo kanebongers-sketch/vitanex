@@ -70,4 +70,7 @@ export const TENANT_UITZONDERINGEN: readonly TenantUitzondering[] = [
 
   // Koppelingen met health-apps (cron en webhooks van leveranciers)
   { bestand: 'src/lib/club/health/opslag-cron.ts', tabel: 'club_health_koppelingen', reden: 'Cron en webhook: koppelingen die aan de beurt zijn of horen bij een gebruiker-id van de leverancier; elke rij draagt zijn eigen user_id.' },
+
+  // Profielfoto's: de wachtrij met vervallen bestanden heeft alleen een pad (migratie 473).
+  { bestand: 'src/lib/club/profielfoto/opslag.ts', tabel: 'club_profielfoto_opruimen', reden: 'Wachtrij van vervallen bestanden over alle sportscholen; een rij is alleen een pad dat met de sportschool begint, de server wist het bestand via de Storage API.' },
 ]

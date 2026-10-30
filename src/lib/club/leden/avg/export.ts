@@ -62,6 +62,8 @@ export interface ExportRuw {
   voedingDagboek: Rij[]
   voedingProducten: Rij[]
   voedingFavorieten: Rij[]
+  // Profielfoto (migratie 473): wie hem zette en de toestemming; het beeld zelf staat in de ledenapp.
+  profielfoto: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -280,6 +282,12 @@ export const SECTIES: readonly Sectie[] = [
     velden: { naam: 'Naam', merk: 'Merk', barcode: 'Barcode', kcal_100g: 'Kcal per 100 g', eiwit_100g: 'Eiwit per 100 g', koolhydraten_100g: 'Koolhydraten per 100 g', vet_100g: 'Vet per 100 g', vezels_100g: 'Vezels per 100 g', portie_gram: 'Portie (g)', aangemaakt_op: 'Gemaakt op' },
   },
   { sleutel: 'voedingFavorieten', titel: 'Favoriete producten', velden: { naam: 'Naam', merk: 'Merk', portie_gram: 'Portie (g)', aangemaakt_op: 'Bewaard op' } },
+  // Profielfoto (migratie 473). Het beeld zelf ziet en bewaart het lid in de ledenapp (Profiel).
+  {
+    sleutel: 'profielfoto',
+    titel: 'Profielfoto',
+    velden: { bron: 'Gezet door', toegevoegd_door: 'Toegevoegd door (medewerker)', toestemming_op: 'Toestemming gegeven op', toestemming_tekst_versie: 'Versie van de toestemmingstekst', aangemaakt_op: 'Gezet op' },
+  },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */

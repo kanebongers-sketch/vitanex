@@ -17,6 +17,10 @@ const plan: VoedingPlan = {
   bijgewerktDoor: 'Kane',
   bijgewerktOp: '2026-10-01T10:00:00Z',
   demo: false,
+  bron: 'trainer',
+  voorstel: null,
+  voorstelOp: null,
+  lidToestemmingOp: null,
 }
 
 describe('voedingVoorApp', () => {

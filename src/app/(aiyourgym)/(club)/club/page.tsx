@@ -36,6 +36,7 @@ import { qrCheckinAan } from '@/lib/club/kern/org-instellingen'
 import { VandaagStrook } from '@/components/club/vandaag/VandaagStrook'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
+import { startDoorverwijzing } from '@/lib/club/rollen/model'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
@@ -59,7 +60,11 @@ async function naarStartwizard(t: ClubToegang): Promise<boolean> {
 
 export default async function ClubVandaag({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisClubToegang()
-  const vestiging = kiesUit(t.vestigingen, (await searchParams).v)
+  const zp = await searchParams
+  // Rollen v2: na het inloggen, of zonder Vandaag, naar de startpagina van de rol.
+  const naar = startDoorverwijzing(t.profiel, zp.start)
+  if (naar) redirect(naar)
+  const vestiging = kiesUit(t.vestigingen, zp.v)
   if (!vestiging) {
     if (await naarStartwizard(t)) redirect('/club/start')
     return (

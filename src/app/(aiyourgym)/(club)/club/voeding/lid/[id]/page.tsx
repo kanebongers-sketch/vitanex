@@ -11,6 +11,7 @@ import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { haalEigenLid, haalPlan, haalSjablonen } from '@/lib/club/voeding/lezen'
 import { startVelden } from '@/lib/club/voeding/startwaarden'
 import { PlanEditor } from '@/components/club/voeding/PlanEditor'
+import { PlanBron } from '@/components/club/voeding/PlanBron'
 import { ClubKruimel, stappenNaarLid } from '@/components/club/shell/ClubKruimel'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moduleAan } from '@/lib/club/kern/organisatie'
@@ -50,6 +51,11 @@ export default async function VoedingLidPagina({ params }: { params: Promise<{ i
       </section>
       {plan === null && <p className="club-melding club-melding--fout" role="alert">{tp.planFout}</p>}
       {sjablonen === null && <p className="club-melding club-melding--fout" role="status">{tp.sjablonenNietGeladen}</p>}
+      {plan && (plan.bron === 'lid' || plan.voorstel) && (
+        <div className="club-kaart">
+          <PlanBron lidId={lid.id} bron={plan.bron} huidig={plan} voorstel={plan.voorstel} voorstelOp={plan.voorstelOp} metGegevens={plan.bron === 'lid' && plan.lidToestemmingOp !== null && plan.berekening !== null} />
+        </div>
+      )}
       {plan !== null && (
         <PlanEditor
           lidId={lid.id}

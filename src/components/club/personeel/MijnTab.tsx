@@ -13,6 +13,11 @@ import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 type Tekst = (typeof PERSONEEL)['nl']
 import { PrintKnop } from './PrintKnop'
 import { dagMaand, uurTekst, weekdagKort } from './weergave'
+import { isMedewerkerSessie } from '@/lib/club/rollen/wie'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
+import { FotoKiezer } from '@/components/club/profielfoto/FotoKiezer'
+import { eigenProfielId } from '@/lib/club/profielfoto/toegang'
+import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
 
 // "Mijn diensten": de komende vier weken van een medewerker, per week met de
 // uren tegenover het contract, en de afgelopen twee weken met de urenstatus.
@@ -60,8 +65,9 @@ function DienstRegel({ d, staat, toonStatus, vestigingen, tk, taal }: DienstRege
 export async function MijnTab({ t, staat, team, vandaag }: Props) {
   const taal = await getTaal()
   const tk = await clubTekst(PERSONEEL)
-  // Een ingelogde medewerker ziet zonder keuze meteen zijn eigen diensten.
-  const wie = staat.mw ?? (t.rol === 'medewerker' ? t.persoonId : null)
+  const [eigenId, fotoTekst] = await Promise.all([eigenProfielId(t), clubTekst(PROFIELFOTO)])
+  // Een ingelogde medewerker (of een beheerder met een eigen profiel in het team) ziet zonder keuze meteen zijn eigen diensten.
+  const wie = staat.mw ?? (isMedewerkerSessie(t) ? t.persoonId : team.some((l) => l.id === eigenId) ? eigenId : null)
   const gekozen = team.find((l) => l.id === wie) ?? null
   const kiezer = (
     <form className="club-personeel-kiezer club-personeel-geen-print" method="get" action="/club/personeel">
@@ -91,9 +97,22 @@ export async function MijnTab({ t, staat, team, vandaag }: Props) {
   return (
     <div className="club-personeel-mijn">
       {kiezer}
-      <h2 className="club-personeel-mijnnaam" data-kleur={gekozen.kleur}>
-        <span className="club-personeel-stip" aria-hidden /> {gekozen.naam}
-      </h2>
+      {eigenId === gekozen.id ? (
+        <section className="club-kaart club-personeel-geen-print" aria-labelledby="club-personeel-eigenfoto">
+          <h2 id="club-personeel-eigenfoto" className="club-personeel-mijnnaam" data-kleur={gekozen.kleur}>{gekozen.naam}</h2>
+          <FotoKiezer
+            naam={gekozen.naam}
+            foto={{ soort: 'mw', id: gekozen.id, versie: gekozen.foto ?? null }}
+            adres="/api/club/profielfoto/ik"
+            waar="club"
+            uitleg={fotoTekst.uitlegMedewerker}
+          />
+        </section>
+      ) : (
+        <h2 className="club-personeel-mijnnaam" data-kleur={gekozen.kleur}>
+          <Avatar naam={gekozen.naam} foto={{ soort: 'mw', id: gekozen.id, versie: gekozen.foto }} maat={32} className="club-avatar club-personeel-teamfoto" /> {gekozen.naam}
+        </h2>
+      )}
       <div className="club-raster">
         {weken.map((wk) => {
           const eigen = diensten.filter((d) => d.datum >= wk && d.datum < plusDagen(wk, 7) && d.datum >= vandaag)

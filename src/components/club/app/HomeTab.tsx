@@ -18,6 +18,9 @@ import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
+import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
+import type { Kaartje } from '@/lib/club/profielfoto/opslag'
 
 // Home in de ledenapp. Een duidelijke volgorde: begroeting, dan de grote focus
 // (de volgende geboekte les), dan inchecken met de QR-code (wisselt elke 30
@@ -27,7 +30,7 @@ import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 
 interface Props {
   /** Alleen wat de app toont (in de voorvertoning mag ook een volledig Lid). */
-  lid: Pick<LidVoorApp, 'id' | 'voornaam'>
+  lid: Pick<LidVoorApp, 'id' | 'voornaam' | 'achternaam' | 'foto'>
   data: LidAppData
   nu: Date
   tabPad: (tab: string) => string
@@ -35,6 +38,10 @@ interface Props {
   instellingen: LedenappInstellingen
   /** Nieuws en acties van de sportschool voor dit lid. */
   berichten: readonly Bericht[]
+  /** De coach van het lid (naam en foto), of null. */
+  coach?: Kaartje | null
+  /** Waar de foto's vandaan komen: club = voorvertoning in Club, lid = de ledenapp (voor = ?voor= van Kane). */
+  fotoBron?: { waar: 'club' | 'lid'; voor: string | null }
 }
 
 function VolgendeLes({ les, vandaag, href, taal }: { les: AppLes | undefined; vandaag: string; href: string; taal: Taal }) {
@@ -103,7 +110,7 @@ function WeekBlok({ schema, logs, nu, w }: { schema: AppSchema; logs: readonly A
   )
 }
 
-export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }: Props) {
+export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, coach = null, fotoBron = { waar: 'club', voor: null } }: Props) {
   const lessenAan = !instellingen.tabsUit.includes('lessen')
   const schemaAan = !instellingen.tabsUit.includes('schema')
   const vandaag = dagSleutel(nu)
@@ -115,9 +122,22 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten }
   return (
     <div className="club-lidapp-tab club-lidapp-home">
       <header className="club-lidapp-welkomkop">
-        <p className="club-lidapp-groet">{groet(nu, taal)},</p>
-        <h2 className="club-lidapp-naam">{lid.voornaam}</h2>
+        <div className="club-lidapp-welkomrij">
+          <Avatar naam={`${lid.voornaam} ${lid.achternaam}`} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} maat={52} waar={fotoBron.waar} voor={fotoBron.voor} className="club-avatar club-lidapp-welkomfoto" />
+          <div>
+            <p className="club-lidapp-groet">{groet(nu, taal)},</p>
+            <h2 className="club-lidapp-naam">{lid.voornaam}</h2>
+          </div>
+        </div>
         {instellingen.welkom && <p className="club-lidapp-welkom">{instellingen.welkom}</p>}
+        {coach && (
+          <p className="club-lidapp-coach">
+            <Avatar naam={coach.naam} foto={{ soort: 'mw', id: coach.id, versie: coach.foto }} maat={28} waar={fotoBron.waar} voor={fotoBron.voor} />
+            <span>
+              <span className="club-lidapp-coach-label">{PROFIELFOTO[taal].jeCoach}</span> {coach.naam}
+            </span>
+          </p>
+        )}
       </header>
 
       {lessenAan && (

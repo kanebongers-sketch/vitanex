@@ -84,6 +84,8 @@ export interface CheckinRij {
   vestiging: string
   /** Alleen als de select club_leden(voornaam, achternaam) meenam. */
   naam: string | null
+  /** Versie van de profielfoto, alleen als de select club_leden(profielfoto) meenam. */
+  foto?: string | null
 }
 
 export function checkinUitRij(rij: unknown): CheckinRij | null {
@@ -100,6 +102,7 @@ export function checkinUitRij(rij: unknown): CheckinRij | null {
     bron: typeof r.bron === 'string' ? r.bron : 'balie',
     vestiging: typeof r.vestiging === 'string' ? r.vestiging : '',
     naam,
+    foto: lid && typeof lid.profielfoto === 'string' ? lid.profielfoto : null,
   }
 }
 

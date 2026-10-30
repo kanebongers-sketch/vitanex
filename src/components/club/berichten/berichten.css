@@ -132,3 +132,7 @@
   .club-bericht-app-meer .club-bericht-inhoud { animation: none; }
   .club-bericht-rij, .club-bericht-soort, .club-bericht-vink, .club-bericht-tellers button { transition: none; }
 }
+
+/* Wie het bericht schreef, met profielfoto (of initialen). */
+.club-bericht-rij-auteur { display: inline-flex; align-items: center; gap: 6px; }
+.club-bericht-rij-auteur .club-avatar { letter-spacing: 0; }

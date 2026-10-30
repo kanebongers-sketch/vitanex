@@ -51,6 +51,7 @@ function leeg(): ExportRuw {
     voedingDagboek: [],
     voedingProducten: [],
     voedingFavorieten: [],
+    profielfoto: [],
   }
 }
 

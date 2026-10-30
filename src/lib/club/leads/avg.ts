@@ -13,6 +13,7 @@ import type { WieMag } from '@/lib/club/beheerders/rechten'
 import { naamKlopt } from '@/lib/club/leden/avg/verwijderen'
 import { avgBestandsnaam, naamOfZelf, naamUit, vertaalRij, type Rij } from '@/lib/club/kern/avg-velden'
 import { LEAD_BRON_LABEL, LEAD_STATUS_LABEL } from './model'
+import { isLeiding } from '@/lib/club/rollen/wie'
 
 /** De ruwe rijen zoals avg-opslag.ts ze leest. */
 export interface LeadExportRuw {
@@ -95,7 +96,7 @@ export function leadExportBestandsnaam(naam: string, op: Date): string {
 
 /** Kane, de eigenaar en de clubmanager; een medewerker nooit. */
 export function magLeadWissen(t: WieMag): boolean {
-  return t.isPlatformEigenaar || t.rol === 'eigenaar' || t.rol === 'clubmanager'
+  return isLeiding(t)
 }
 
 /** Dezelfde naamcontrole als bij leden: hoofdletters, accenten en dubbele spaties tellen niet. */

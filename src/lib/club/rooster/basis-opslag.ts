@@ -48,7 +48,7 @@ export async function haalStamdata(admin: SupabaseClient, userId: string, vestig
   const [z, t, m] = await Promise.all([
     admin.from('club_zalen').select('id, vestiging, naam, capaciteit, actief').eq('user_id', userId).eq('vestiging', vestiging).order('naam'),
     admin.from('club_lestypen').select('id, naam, omschrijving, soort, duur_min, intensiteit, actief').eq('user_id', userId).order('naam'),
-    admin.from('club_medewerkers').select('id, naam, email, rollen, vestigingen, actief').eq('user_id', userId).order('naam'),
+    admin.from('club_medewerkers').select('id, naam, email, rollen, vestigingen, actief, profielfoto').eq('user_id', userId).order('naam'),
   ])
   const fout = z.error ?? t.error ?? m.error
   if (fout) {
@@ -147,7 +147,7 @@ export function maakOverzicht(lessen: readonly LesRij[], stam: Stamdata, telling
       annuleerReden: l.annuleerReden,
       lestype: type ? { id: type.id, naam: type.naam, soort: type.soort } : null,
       zaal: zaal ? { id: zaal.id, naam: zaal.naam } : null,
-      instructeur: mens ? { id: mens.id, naam: mens.naam } : null,
+      instructeur: mens ? { id: mens.id, naam: mens.naam, foto: mens.foto ?? null } : null,
       ...(tellingen.get(l.id) ?? legeTelling()),
     }
   })

@@ -5,7 +5,7 @@ const ONDERDELEN = ['vandaag', 'checkin', 'leden', 'berichten', 'schemas', 'voed
 
 describe('instellingen van een sportschool', () => {
   it('geeft de standaard bij een lege of kapotte rij', () => {
-    expect(orgInstellingenUitRij({}, ONDERDELEN)).toEqual({ ledenapp: STANDAARD_LEDENAPP, rechten: standaardRechten(), checkin: STANDAARD_CHECKIN })
+    expect(orgInstellingenUitRij({}, ONDERDELEN)).toEqual({ ledenapp: STANDAARD_LEDENAPP, rechten: standaardRechten(), checkin: STANDAARD_CHECKIN, rollenBron: { rolrechten: undefined, rechten: undefined } })
     expect(STANDAARD_CHECKIN.methode).toBe('beide')
     expect(orgInstellingenUitRij('x', ONDERDELEN).ledenapp.qr).toBe(true)
   })
@@ -19,7 +19,10 @@ describe('instellingen van een sportschool', () => {
 
   it('schrijft terug in dezelfde vorm', () => {
     const i = orgInstellingenUitRij({ ledenapp: { welkom: 'Hoi', tabs_uit: ['schema'], qr: true } }, ONDERDELEN)
-    expect(orgInstellingenUitRij(orgInstellingenNaarJson(i), ONDERDELEN)).toEqual(i)
+    // rollenBron is de ruwe bron voor rollen v2 en gaat niet via orgInstellingenNaarJson.
+    const { rollenBron: _a, ...terug } = orgInstellingenUitRij(orgInstellingenNaarJson(i), ONDERDELEN)
+    const { rollenBron: _b, ...zelf } = i
+    expect(terug).toEqual(zelf)
   })
 
   it('accepteert een geldige wijziging en weigert onzin', () => {
@@ -40,7 +43,10 @@ describe('check-in methode', () => {
     expect(orgInstellingenUitRij({ checkin: { methode: 'qr' } }, ONDERDELEN).checkin).toEqual({ methode: 'qr' })
     expect(orgInstellingenUitRij({ checkin: { methode: 'kaart' } }, ONDERDELEN).checkin).toEqual(STANDAARD_CHECKIN)
     const i = orgInstellingenUitRij({ checkin: { methode: 'balie' } }, ONDERDELEN)
-    expect(orgInstellingenUitRij(orgInstellingenNaarJson(i), ONDERDELEN)).toEqual(i)
+    // rollenBron is de ruwe bron voor rollen v2 en gaat niet via orgInstellingenNaarJson.
+    const { rollenBron: _a, ...terug } = orgInstellingenUitRij(orgInstellingenNaarJson(i), ONDERDELEN)
+    const { rollenBron: _b, ...zelf } = i
+    expect(terug).toEqual(zelf)
     const huidig = orgInstellingenUitRij({}, ONDERDELEN)
     const goed = leesOrgInstellingenInvoer({ checkin: { methode: 'qr' } }, huidig, ONDERDELEN)
     expect(goed.ok && goed.waarde.checkin).toEqual({ methode: 'qr' })

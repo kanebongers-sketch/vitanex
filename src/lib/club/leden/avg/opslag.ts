@@ -74,6 +74,8 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   voedingDagboek: { tabel: 'club_voeding_logs', select: 'datum, maaltijd, naam, merk, gram, maat, aantal, kcal, eiwit_g, koolhydraten_g, vet_g, vezels_g, bron, aangemaakt_op', volgorde: 'datum' },
   voedingProducten: { tabel: 'club_voeding_producten', select: 'naam, merk, barcode, kcal_100g, eiwit_100g, koolhydraten_100g, vet_100g, vezels_100g, portie_gram, aangemaakt_op', volgorde: 'aangemaakt_op' },
   voedingFavorieten: { tabel: 'club_voeding_favorieten', select: 'naam, merk, portie_gram, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  // Profielfoto (migratie 473): nooit het pad in de opslag.
+  profielfoto: { tabel: 'club_profielfotos', select: 'bron, toegevoegd_door, toestemming_op, toestemming_tekst_versie, aangemaakt_op', volgorde: 'aangemaakt_op' },
 }
 
 const MAX_RIJEN = 10_000

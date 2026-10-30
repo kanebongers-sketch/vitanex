@@ -27,6 +27,7 @@ import { MedewerkersBeheer, type LoginBeheer } from './MedewerkersBeheer'
 import { VestigingenBeheer, type VestigingContact } from './VestigingenBeheer'
 import '@/components/club/rooster/rooster.css'
 import './instellingen.css'
+import { isMedewerkerSessie } from '@/lib/club/rollen/wie'
 
 // De instel-pagina's onder /club/instellingen/<onderdeel>. Vroeger tabbladen
 // op een pagina Instellingen, nu elk een eigen plek in het instellingencentrum
@@ -91,7 +92,7 @@ async function Inhoud({ onderdeel, data, vestiging, t }: InhoudProps) {
           medewerkers={zichtbareMedewerkers(t, data.medewerkers)}
           vestiging={vestiging}
           login={await haalLoginBeheer(t)}
-          ikZelf={t.rol === 'medewerker' ? t.persoonId : null}
+          ikZelf={isMedewerkerSessie(t) ? t.persoonId : null}
           privacy={{ magWissen: magMedewerkerWissen(t), gewist: await haalGewisteMedewerkers(t.admin, t.userId) }}
         />
       )
@@ -131,7 +132,7 @@ export async function InstellingenOnderdeel({ onderdeel, zoek }: InstellingenOnd
   const bron = instelPagina(onderdeel)
   if (bron && !instelModuleAan(bron, t.organisatie.uit)) notFound()
   // Vestigingen beheren is sportschoolbreed: niet voor een medewerker (de API is voor hem ook dicht).
-  const metVestigingen = t.rol !== 'medewerker'
+  const metVestigingen = !isMedewerkerSessie(t)
   const vestiging = kiesUit(t.vestigingen, zoek.v)
 
   if (onderdeel === 'vestigingen') {

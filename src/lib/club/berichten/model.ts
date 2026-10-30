@@ -42,6 +42,8 @@ export interface Bericht {
   aangemaaktDoor: string | null
   aangemaaktOp: string
   demo: boolean
+  /** De medewerker die het schreef, als die een profielfoto heeft (op naam gevonden; alleen in Club). */
+  auteurFoto?: { id: string; versie: string } | null
 }
 
 export const BERICHT_KOLOMMEN =

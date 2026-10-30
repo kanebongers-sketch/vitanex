@@ -24,6 +24,8 @@ function ruw(): MedewerkerExportRuw {
     // Ook als de database ze per ongeluk meestuurt: geheimen komen niet in het bestand.
     inloggen: [{ actief: true, pin_status: 'actief', code: 'GEHEIME-CODE-123456789012', pin_hash: 'GEHEIME-HASH', aangemaakt_op: '2026-09-01T10:00:00Z' }],
     sessies: [{ token_hash: 'GEHEIM-TOKEN', aangemaakt_op: '2026-10-01T10:00:00Z' }],
+    profielRollen: [{ id: 'GEHEIM-ROL-ID', medewerker_id: 'mw-1', rol: 'trainer', toegekend_door: 'Kane', toegekend_op: '2026-10-29T10:00:00Z' }],
+    profielfoto: [{ pad: 'GEHEIM-PAD', bron: 'zelf', aangemaakt_op: '2026-10-30T10:00:00Z' }],
     logboek: [{ op: '2026-10-01T10:00:00Z', actie: 'lead aangemaakt', onderwerp: 'Sanne', vestiging: 'budel' }],
     hulpvragen: [{ onderwerp: 'Rooster', status: 'open', beschrijving: 'lang verhaal', aangemaakt_op: '2026-10-01T10:00:00Z' }],
   }
@@ -45,6 +47,7 @@ describe('bouwMedewerkerExport', () => {
     expect(dienst['Soort dienst']).toBe('Opening')
     expect(dienst.Vestiging).toBe('Budel')
     expect((uit['Afgevinkte taken'] as Record<string, unknown>[])[0].Taak).toBe('Kleedkamers')
+    expect((uit.Rollen as Record<string, unknown>[])[0]).toEqual({ Rol: 'trainer', 'Gegeven door': 'Kane', 'Gegeven op': '2026-10-29T10:00:00Z' })
     for (const sectie of MEDEWERKER_SECTIES) expect(Array.isArray(uit[sectie.titel])).toBe(true)
   })
 

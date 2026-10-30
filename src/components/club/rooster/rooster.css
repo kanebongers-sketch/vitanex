@@ -187,3 +187,6 @@
 .club-rooster-kolomkop[data-vandaag] { background: linear-gradient(180deg, var(--brand-soft), transparent); }
 .club-rooster-dagkiezer a { box-shadow: var(--club-randlicht, none); }
 .club-rooster-dagkiezer a[aria-current='true'], .club-rooster-dagkiezer a[aria-current='page'] { border-color: var(--brand); box-shadow: var(--club-randlicht-sterk, none), 0 6px 16px -10px var(--brand-glow, transparent); }
+
+/* Instructeur met profielfoto in het lespaneel. */
+.club-rooster-paneel-instructeur { display: flex; align-items: center; gap: 8px; }

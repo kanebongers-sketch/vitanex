@@ -264,7 +264,7 @@ describe('de kern alleen en alles afgenomen', () => {
     expect(verborgenVoor([], ALLE_PAKKETTEN)).toEqual([])
     const uit: Verborgen[] = []
     for (const o of ONDERDELEN) expect(zichtbaar(uit, o), o.sleutel).toBe(true)
-    for (const p of INSTEL_PAGINAS) expect(zichtbareInstelPaginas(kijker(uit)).some((x) => x.id === p.id) || Boolean(p.betalen || p.lidgeld), p.id).toBe(true)
+    for (const p of INSTEL_PAGINAS) expect(zichtbareInstelPaginas(kijker(uit)).some((x) => x.id === p.id) || Boolean(p.betalen || p.lidgeld || p.rollenV2 === 'alleen'), p.id).toBe(true)
   })
   it('de eigen keuze (uit) en het afnemen werken samen: zichtbaar = afgenomen EN aan', () => {
     // Afgenomen maar zelf uitgezet: weg.

@@ -4,6 +4,7 @@ import { clubPad } from '@/lib/club/kern/vestiging'
 import type { VoedingPlan } from '@/lib/club/voeding/model'
 import { MacroBord } from './MacroBord'
 import { PlanInhoud } from './PlanInhoud'
+import { PlanBron } from './PlanBron'
 import { datumLang, doelLabel } from './weergave'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
@@ -40,6 +41,7 @@ export async function VoedingOpKaart({ lidId, vestiging, plan }: VoedingOpKaartP
       {plan === undefined && <p className="club-hint">{t.leeg}</p>}
       {plan && (
         <>
+          <PlanBron lidId={lidId} bron={plan.bron} huidig={plan} voorstel={plan.voorstel} voorstelOp={plan.voorstelOp} metGegevens={plan.bron === 'lid' && plan.lidToestemmingOp !== null && plan.berekening !== null} />
           <div className="club-voeding-kaart-raster">
             <MacroBord doelen={plan} compact taal={taal} />
             <div className="club-voeding-blok">

@@ -12,6 +12,10 @@ import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
 import { LEDENKAART, LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { Contact } from '../LidGegevens'
+import { FotoKiezer } from '@/components/club/profielfoto/FotoKiezer'
+import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
+import { minstens } from '@/lib/club/rollen/typen'
+import { initialen, volledigeNaam } from '@/lib/club/kern/lid'
 import { Notities } from '../Notities'
 
 // Tabblad Contact en notities: hoe je het lid bereikt, de notities van het team
@@ -57,6 +61,32 @@ async function Berichten({ t, lid, vestiging, nu }: { t: ClubToegang; lid: Lid; 
   )
 }
 
+/**
+ * Profielfoto van het lid. De sportschool zet hem alleen met toestemming van
+ * het lid (vinkje, vastgelegd in club_profielfotos); weghalen kan altijd.
+ * Alleen voor wie Leden mag bewerken (rollen v2) of de kaart mag openen (oud model).
+ */
+async function Profielfoto({ t, lid }: { t: ClubToegang; lid: Lid }) {
+  const taal = await getTaal()
+  const w = tekst(PROFIELFOTO, taal)
+  const magBewerken = !t.profiel || minstens(t.profiel.niveaus.leden ?? 'geen', 'bewerken')
+  return (
+    <section className="club-kaart" aria-labelledby="profielfoto-kop">
+      <h2 id="profielfoto-kop">{w.titel}</h2>
+      <FotoKiezer
+        naam={volledigeNaam(lid)}
+        initialen={initialen(lid)}
+        foto={{ soort: 'lid', id: lid.id, versie: lid.foto ?? null }}
+        adres={`/api/club/leden/${lid.id}/profielfoto`}
+        waar="club"
+        balie
+        uitleg={w.uitlegBalie}
+        alleenLezen={!magBewerken}
+      />
+    </section>
+  )
+}
+
 export async function ContactTab({ t, kaart, vestiging, rechten, nu }: ContactTabProps) {
   const taal = await getTaal()
   const w = tekst(LEDENKAART, taal).contact
@@ -69,6 +99,7 @@ export async function ContactTab({ t, kaart, vestiging, rechten, nu }: ContactTa
           <Contact email={lid.email} telefoon={lid.telefoon} geboortedatum={datumUitSleutel(lid.geboortedatum, taal)} leeftijd={leeftijd(lid.geboortedatum, nu)} />
           <p className="club-hint">{w.contactHint}</p>
         </section>
+        <Profielfoto t={t} lid={lid} />
         {rechten.berichten && (
           <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
             <Berichten t={t} lid={lid} vestiging={vestiging} nu={nu} />

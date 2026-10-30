@@ -75,7 +75,7 @@ function vandaagLidUitRij(v: unknown): VandaagLid | null {
   const voornaam = r ? tekst(r.voornaam) : null
   const achternaam = r ? tekst(r.achternaam) : null
   if (!r || !id || !voornaam || !achternaam || !isLidStatus(r.status)) return null
-  return { id, voornaam, achternaam, status: r.status, lidSinds: dag(r.lid_sinds), einddatum: dag(r.einddatum), geboortedatum: dag(r.geboortedatum), abonnement: tekst(r.abonnement) }
+  return { id, voornaam, achternaam, status: r.status, lidSinds: dag(r.lid_sinds), einddatum: dag(r.einddatum), geboortedatum: dag(r.geboortedatum), abonnement: tekst(r.abonnement), foto: tekst(r.profielfoto) }
 }
 
 function leadUitRij(v: unknown): VandaagLead | null {
@@ -167,7 +167,7 @@ function haalLedenVandaag(admin: SupabaseClient, userId: string, vestiging: Vest
   return haalAlles((a, b) =>
     admin
       .from('club_leden')
-      .select('id, voornaam, achternaam, status, lid_sinds, einddatum, geboortedatum, abonnement')
+      .select('id, voornaam, achternaam, status, lid_sinds, einddatum, geboortedatum, abonnement, profielfoto')
       .eq('user_id', userId)
       .eq('vestiging', vestiging)
       .order('id')

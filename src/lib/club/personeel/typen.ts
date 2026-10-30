@@ -57,6 +57,8 @@ export interface PersoneelLid {
   rollen: PersoneelRol[]
   contracturen: number | null
   kleur: Kleur
+  /** Versie van de profielfoto (migratie 473), of null. */
+  foto?: string | null
 }
 
 export interface DienstSoort {
@@ -163,7 +165,7 @@ export function standaardKleur(index: number): Kleur {
   return KLEUREN[((index % KLEUREN.length) + KLEUREN.length) % KLEUREN.length]
 }
 
-export const MEDEWERKER_KOLOMMEN = 'id, naam, rollen, vestigingen, actief, contracturen_per_week, kleur'
+export const MEDEWERKER_KOLOMMEN = 'id, naam, rollen, vestigingen, actief, contracturen_per_week, kleur, profielfoto'
 
 export function lidUitRij(ruw: unknown, index: number): PersoneelLid | null {
   const r = alsRij(ruw)
@@ -175,6 +177,7 @@ export function lidUitRij(ruw: unknown, index: number): PersoneelLid | null {
     rollen: Array.isArray(r.rollen) ? r.rollen.flatMap((x) => uitOfNull(PERSONEEL_ROLLEN, x) ?? []) : [],
     contracturen: uren !== null && Number.isFinite(uren) ? uren : null,
     kleur: isKleur(r.kleur) ? r.kleur : standaardKleur(index),
+    foto: typeof r.profielfoto === 'string' ? r.profielfoto : null,
   }
 }
 

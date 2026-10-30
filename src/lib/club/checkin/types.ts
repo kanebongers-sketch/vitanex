@@ -16,6 +16,8 @@ export interface BalieLid {
   id: string
   naam: string
   initialen: string
+  /** Versie van de profielfoto, of null. */
+  foto?: string | null
   lidnummer: string | null
   status: LidStatus
   statusLabel: string

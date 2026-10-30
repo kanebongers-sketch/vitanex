@@ -65,6 +65,12 @@ export interface OrgInstellingen {
   ledenapp: LedenappInstellingen
   rechten: Rechten
   checkin: CheckinInstellingen
+  /**
+   * De ruwe rechten voor het rollenmodel v2 (rolrechten en de oude rechten,
+   * ongelezen). Gelezen door src/lib/club/rollen/model.ts (leesRolrechten);
+   * opgeslagen via /api/club/team/rechten, niet via orgInstellingenNaarJson.
+   */
+  rollenBron?: { rolrechten: unknown; rechten: unknown }
 }
 
 export const STANDAARD_LEDENAPP: LedenappInstellingen = { welkom: null, tabsUit: [], qr: true }
@@ -111,7 +117,12 @@ function leesRechten(v: unknown, onderdelen: readonly string[]): Rechten {
 /** Uit de database, vergevingsgezind: alles wat niet klopt wordt de standaard. */
 export function orgInstellingenUitRij(v: unknown, onderdelen: readonly string[]): OrgInstellingen {
   const o = object(v)
-  return { ledenapp: leesLedenapp(o?.ledenapp), rechten: leesRechten(o?.rechten, onderdelen), checkin: leesCheckin(o?.checkin) }
+  return {
+    ledenapp: leesLedenapp(o?.ledenapp),
+    rechten: leesRechten(o?.rechten, onderdelen),
+    checkin: leesCheckin(o?.checkin),
+    rollenBron: { rolrechten: o?.rolrechten, rechten: o?.rechten },
+  }
 }
 
 function isMethode(v: unknown): v is CheckinMethode {
@@ -166,7 +177,7 @@ export function leesOrgInstellingenInvoer(body: unknown, huidig: OrgInstellingen
     if (!c || !isMethode(c.methode)) return { ok: false, fout: 'Kies hoe leden inchecken.' }
     checkin = { methode: c.methode }
   }
-  return { ok: true, waarde: { ledenapp, rechten, checkin } }
+  return { ok: true, waarde: { ledenapp, rechten, checkin, rollenBron: huidig.rollenBron } }
 }
 
 /** Hoe leden inchecken, in de gekozen taal (kort: alleen de naam van de methode). */

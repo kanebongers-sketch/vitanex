@@ -35,6 +35,10 @@ const BRONNEN: Record<Exclude<MedewerkerSectieSleutel, 'logboek' | 'hulpvragen'>
   inloggen: { tabel: 'club_medewerker_toegang', select: 'actief, email, pin_status, laatst_ingelogd_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   // Nooit token_hash: alleen de tijden.
   sessies: { tabel: 'club_medewerker_sessies', select: 'aangemaakt_op, laatst_gebruikt_op, verloopt_op', volgorde: 'aangemaakt_op' },
+  // Rollen v2 (migratie 469): welke rollen, wie ze gaf en wanneer.
+  profielRollen: { tabel: 'club_profiel_rollen', select: 'rol, toegekend_door, toegekend_op', volgorde: 'toegekend_op' },
+  // Profielfoto (migratie 473): nooit het pad in de opslag.
+  profielfoto: { tabel: 'club_profielfotos', select: 'bron, aangemaakt_op', volgorde: 'aangemaakt_op' },
 }
 
 function log(wat: string, bericht: string): void {

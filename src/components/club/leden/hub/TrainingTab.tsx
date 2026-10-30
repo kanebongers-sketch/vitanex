@@ -25,6 +25,9 @@ import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
 import { DagboekOpKaart } from '@/components/club/voeding/dagboek/DagboekOpKaart'
 import { MetingenUitApps } from '@/components/club/health/MetingenUitApps'
 import { SchemaMaken } from './SchemaMaken'
+import { LidSchemaOvernemen } from '@/components/club/training/LidSchemaOvernemen'
+import { kiesActief } from '@/lib/club/training/lid-schemas/regels'
+import { LID_SCHEMAS } from '@/lib/aiyourgym/taal/woorden/club/lid-schemas'
 import '@/components/club/training/training.css'
 
 // Tabblad Training: intake starten of bekijken, schema maken of aanpassen, alle
@@ -42,13 +45,15 @@ interface TrainingTabProps {
   nu: Date
 }
 
+/** Het schema dat het lid nu in de app ziet (zelfde regel als de ledenapp), anders het nieuwste concept. */
 function huidigSchema(schemas: readonly SchemaKop[]): SchemaKop | null {
-  return schemas.find((s) => s.status === 'actief') ?? schemas.find((s) => s.status === 'concept') ?? null
+  return kiesActief(schemas.filter((s) => s.status === 'actief')) ?? schemas.find((s) => s.status === 'concept') ?? null
 }
 
 async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Omit<TrainingTabProps, 'rechten' | 'nu'>) {
   const taal = await getTaal()
   const w = tekst(LEDENKAART, taal).training
+  const ls = tekst(LID_SCHEMAS, taal)
   const [schemas, intakes, sjablonen] = await Promise.all([
     haalSchemas(t.admin, t.userId, { vestiging, lidId: lid.id, sjablonen: false }),
     haalIntakes(t.admin, t.userId, { vestiging, lidId: lid.id }),
@@ -75,6 +80,12 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Om
           <p className="club-lidhub-huidig-naam">
             <strong>{huidig.naam}</strong>
             <span className="club-rij-sub">{w.dagen(huidig.dagTitels.length || 1)} · {w.bijgewerkt(datum(huidig.bijgewerktOp))}</span>
+            {huidig.maker === 'lid' && (
+              <span className="club-lidschema-herkomst">
+                <span className="club-chip club-chip--info">{ls.chip}</span>
+                <span className="club-rij-sub">{ls.vanLid(lid.voornaam)}</span>
+              </span>
+            )}
           </p>
         ) : (
           <p className="club-hint">{w.geenSchema(lid.voornaam)}</p>
@@ -85,6 +96,7 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Om
               <PencilLine aria-hidden size={16} /> {w.schemaAanpassen}
             </Link>
           )}
+          {huidig?.maker === 'lid' && <LidSchemaOvernemen schemaId={huidig.id} />}
           <SchemaMaken
             lid={{ id: lid.id, naam: volledigeNaam(lid) }}
             vestiging={vestiging}

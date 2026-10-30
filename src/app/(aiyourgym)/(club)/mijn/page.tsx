@@ -13,6 +13,7 @@ import { haalVoortgang } from '@/lib/club/voortgang/data'
 import { voortgangVoorLid } from '@/lib/club/voortgang/lid'
 import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
 import { haalPlan } from '@/lib/club/voeding/lezen'
+import { haalVoedingRegels } from '@/lib/club/voeding/eigen-opslag'
 import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { kiesTab, type AppTab } from '@/components/club/app/Toestel'
 import { HomeTab } from '@/components/club/app/HomeTab'
@@ -52,6 +53,7 @@ import { publiekeSleutelVoorApp } from '@/lib/club/push/sleutels'
 import { pushSessieMerk } from '@/lib/club/push/sessie-merk'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
+import { haalFotoInfo, haalMedewerkerKaartje } from '@/lib/club/profielfoto/opslag'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -114,6 +116,8 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   ])
   const voortgang = ruweVoortgang ? voortgangVoorLid(ruweVoortgang) : null
   const voeding = tab === 'voeding' ? voedingVoorApp(ruwPlan) : null
+  // Mag het lid het plan van de trainer zelf overschrijven? Bij een leesfout: nee (de server beslist toch).
+  const voedingRegels = tab === 'voeding' && !apart ? await haalVoedingRegels(admin, userId) : null
   // Het voedingsdagboek (migratie 466); doelen uit het plan van de coach als dat er is.
   const dagboek = !apart && tab === 'voeding' ? await haalDagboekApp(admin, userId, lid.id, { vandaag: dagSleutelNl(nu), plan: voeding?.staat === 'plan' ? voeding.plan : null, ai: aiFuncties() }) : null
   const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
@@ -126,6 +130,10 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const pushMerk = pushSessieMerk(l.sessieHash)
   const taal = await getTaal()
   const t = LEDENAPP[taal]
+  // Profielfoto: zette de sportschool hem (met toestemming), dan zegt het profiel dat.
+  const fotoInfo = tab === 'profiel' && lid.foto ? await haalFotoInfo(admin, { userId, soort: 'lid', id: lid.id }) : null
+  const coach = !apart && tab === 'home' ? await haalMedewerkerKaartje(admin, userId, lid.coachId) : null
+  const fotoBron = { waar: 'lid' as const, voor: l.voorvertoning ? lid.id : null }
 
   return (
     <LedenappSchil organisatie={org}>
@@ -187,7 +195,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 </div>
               )}
               {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
-              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} />
+              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} fotoBron={fotoBron} />
             </>
           )}
           {!apart && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} strippenkaart={kopen && kopen !== 'fout' && !l.voorvertoning ? { saldo: kopen.strippen, url: metVoor('/api/club/lid/betalen/strippenkaart') } : undefined} />}
@@ -197,6 +205,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               <LedenappVoeding
                 plan={voeding.staat === 'plan' ? voeding.plan : null}
                 fout={voeding.staat === 'fout'}
+                eigen={{ regels: voedingRegels ?? { ledenOverschrijven: false }, voor: l.voorvertoning ? lid.id : null, alleenLezen: l.voorvertoning }}
                 dagboek={
                   dagboek ? (
                     <Dagboek start={dagboek} voor={l.voorvertoning ? lid.id : null} alleenLezen={l.voorvertoning} sportschool={org.naam} />
@@ -228,6 +237,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 sportschool={org.naam}
                 hulp={contact ? <HulpSportschool contact={contact} /> : null}
                 pilotNoot={false}
+                foto={{ waar: 'lid', voor: l.voorvertoning ? lid.id : null, bewerkbaar: !l.voorvertoning, door: fotoInfo?.bron === 'sportschool' ? fotoInfo.toegevoegdDoor : null }}
               />
               {pakketZichtbaar(l.organisatie.uit, 'groei') && <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />}
               <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />

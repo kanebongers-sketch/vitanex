@@ -31,6 +31,7 @@ export function nepSupabase(antwoord: (v: Vraag) => Antwoord): { admin: Supabase
       keten.update = (w: unknown) => Object.assign(v, { actie: 'update', waarde: w }) && keten
       keten.insert = (w: unknown) => Object.assign(v, { actie: 'insert', waarde: w }) && keten
       keten.delete = () => Object.assign(v, { actie: 'delete' }) && keten
+      keten.upsert = (w: unknown) => Object.assign(v, { actie: 'insert', waarde: w }) && keten
       keten.maybeSingle = () => Promise.resolve(antwoord(v))
       keten.single = () => Promise.resolve(antwoord(v))
       keten.then = (ok: (a: Antwoord) => unknown, fout?: (e: unknown) => unknown) => Promise.resolve(antwoord(v)).then(ok, fout)

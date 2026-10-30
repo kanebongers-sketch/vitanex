@@ -17,7 +17,7 @@ export interface LesOverzicht {
   annuleerReden: string | null
   lestype: { id: string; naam: string; soort: LesSoort } | null
   zaal: { id: string; naam: string } | null
-  instructeur: { id: string; naam: string } | null
+  instructeur: { id: string; naam: string; foto?: string | null } | null
   /** Bezette plekken: geboekt, aanwezig of no-show. */
   geboekt: number
   wachtlijst: number

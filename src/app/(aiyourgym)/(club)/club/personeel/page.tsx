@@ -15,6 +15,7 @@ import { magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 import '@/components/club/personeel/personeel.css'
+import { isMedewerkerSessie } from '@/lib/club/rollen/wie'
 
 // /club/personeel: het rooster van het fitnesspersoneel (balie, vloer,
 // opening en afsluiten), beschikbaarheid, "mijn diensten" en de uren voor de
@@ -33,7 +34,7 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   // Een ingelogde medewerker komt standaard bij zijn eigen diensten uit (besluit Kane 20-10-2026: de trainer op de vloer eerst).
   // Het tabblad Uren (goedkeuren en exporteren) is voor wie uren beheert; een trainer ziet daar Mijn diensten.
   const urenBeheer = magUrenBeheren(t)
-  const naarMijn = t.rol === 'medewerker' && (!params.tab || (gelezen.tab === 'uren' && !urenBeheer))
+  const naarMijn = isMedewerkerSessie(t) && (!params.tab || (gelezen.tab === 'uren' && !urenBeheer))
   const staat = naarMijn ? { ...gelezen, tab: 'mijn' as const } : gelezen
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)

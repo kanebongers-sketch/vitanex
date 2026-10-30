@@ -1,0 +1,4 @@
+/* Club: een schema dat het lid zelf maakte, op de ledenkaart (migratie 472). */
+.club-lidschema-herkomst { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.club-lidschema-vraag { display: grid; gap: 8px; max-width: 520px; }
+.club-lidschema-vraag p { margin: 0; }

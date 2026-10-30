@@ -11,6 +11,10 @@ import { TeamFormulier, type TeamLid } from './TeamFormulier'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
+import { ROLLEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rollen'
+import { RechtenV2 } from '@/components/club/rollen/RechtenV2'
+import type { Rol, Rolrechten } from '@/lib/club/rollen/typen'
+import type { Verborgen } from '@/lib/club/kern/pakketten'
 
 // Stap 6 als geheel: links het team (toevoegen, bewerken, uitnodigen), rechts
 // wat elke functie ziet. Geen losse opslaanknop voor de rechten: de knop
@@ -31,6 +35,15 @@ interface StapTeamInvoerProps {
   /** Kon de stand van de logins niet worden gelezen? */
   loginsFout: boolean
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
+  /** Rollen v2 (CLUB_ROLLEN_V2): de vraag "Werk je zelf op de vloer?" en de matrix met niveaus. */
+  v2?: RollenV2Stap | null
+}
+
+export interface RollenV2Stap {
+  rolrechten: Rolrechten
+  uit: readonly Verborgen[]
+  /** Het profiel van de eigenaar die de wizard doet (null voor Kane). */
+  profiel: { id: string; rollen: Rol[] } | null
 }
 
 export function StapTeamInvoer(p: StapTeamInvoerProps) {
@@ -39,7 +52,11 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
   const [alleen, setAlleen] = useState(p.alleen)
   const [fout, setFout] = useState<string | null>(null)
   const tk = useTekst(START)
-  const rechtenGewijzigd = JSON.stringify(rechten) !== JSON.stringify(p.rechten)
+  const tr = useTekst(ROLLEN_TEKST)
+  const [rolrechten, setRolrechten] = useState<Rolrechten | null>(p.v2?.rolrechten ?? null)
+  const traintNu = p.v2?.profiel?.rollen.includes('trainer') ?? false
+  const [traint, setTraint] = useState(traintNu)
+  const rechtenGewijzigd = p.v2 ? JSON.stringify(rolrechten) !== JSON.stringify(p.v2.rolrechten) || traint !== traintNu : JSON.stringify(rechten) !== JSON.stringify(p.rechten)
   const alleenGewijzigd = alleen !== p.alleen
   const leeg = p.team.length === 0
 
@@ -50,9 +67,9 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
       return false
     }
     if (rechtenGewijzigd) {
-      const uit = await stuur('/api/club/organisatie/instellingen', 'PATCH', { rechten })
-      if (!uit.ok) {
-        setFout(uit.fout)
+      const fout = p.v2 ? await bewaarV2() : await bewaarRechten()
+      if (fout) {
+        setFout(fout)
         return false
       }
     }
@@ -65,6 +82,26 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
     }
     if (rechtenGewijzigd || alleenGewijzigd) router.refresh()
     return true
+  }
+
+  async function bewaarRechten(): Promise<string | null> {
+    const uit = await stuur('/api/club/organisatie/instellingen', 'PATCH', { rechten })
+    return uit.ok ? null : uit.fout
+  }
+
+  /** Rollen v2: de rechten per rol en "werk je zelf op de vloer" (de rol trainer bij de eigenaar). */
+  async function bewaarV2(): Promise<string | null> {
+    if (rolrechten && JSON.stringify(rolrechten) !== JSON.stringify(p.v2?.rolrechten)) {
+      const uit = await stuur('/api/club/team/rechten', 'PATCH', { rollen: rolrechten.rollen, start: rolrechten.start })
+      if (!uit.ok) return uit.fout
+    }
+    const profiel = p.v2?.profiel
+    if (profiel && traint !== traintNu) {
+      const rollen = traint ? [...profiel.rollen, 'trainer'] : profiel.rollen.filter((r) => r !== 'trainer')
+      const uit = await stuur(`/api/club/team/${profiel.id}`, 'PATCH', { rollen })
+      if (!uit.ok) return uit.fout
+    }
+    return null
   }
 
   const keuzeAlleen = (
@@ -95,7 +132,29 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
           <h2 id="start-rechten-kop">{tk.team.rechtenKop}</h2>
           <AlvastIngevuld soort={p.soort} />
           <p className="club-hint">{tk.team.rechtenUitleg}</p>
-          <RechtenMatrix begin={p.rechten} groepen={p.groepen} onWijzig={setRechten} />
+          {p.v2 ? (
+            <>
+              {p.v2.profiel && (
+                <fieldset className="club-start-zelf">
+                  <legend>{tr.wizard.zelfVraag}</legend>
+                  <p className="club-hint">{tr.wizard.zelfUitleg}</p>
+                  <div className="club-start-zelf-keuzes">
+                    <label className="club-start-bevestig">
+                      <input type="radio" name="zelf-op-de-vloer" checked={traint} onChange={() => setTraint(true)} />
+                      <span><strong>{tr.wizard.ja}</strong></span>
+                    </label>
+                    <label className="club-start-bevestig">
+                      <input type="radio" name="zelf-op-de-vloer" checked={!traint} onChange={() => setTraint(false)} />
+                      <span><strong>{tr.wizard.nee}</strong></span>
+                    </label>
+                  </div>
+                </fieldset>
+              )}
+              <RechtenV2 begin={p.v2.rolrechten} uit={p.v2.uit} onWijzig={setRolrechten} compact />
+            </>
+          ) : (
+            <RechtenMatrix begin={p.rechten} groepen={p.groepen} onWijzig={setRechten} />
+          )}
         </section>
       </div>
       {fout && <p className="club-melding club-melding--fout" role="alert">{fout}</p>}

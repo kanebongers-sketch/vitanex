@@ -6,6 +6,7 @@ import { leesVestiging } from '@/lib/club/instellingen/validatie'
 import { hoortBij } from '@/lib/club/kern/vestigingen'
 import { isInstellingSoort, wijzigItem } from '@/lib/club/instellingen/opslag'
 import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
+import { isMedewerkerSessie } from '@/lib/club/rollen/wie'
 
 // PATCH /api/club/instellingen/[soort]/[id]  { vestiging, ...alleen de velden die veranderen }
 // Uitzetten gaat met { actief: false }; verwijderen bestaat niet (historie blijft kloppen).
@@ -16,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ so
   const { soort, id } = await params
   if (!isInstellingSoort(soort) || !isUuid(id)) return clubFout('Niet gevonden.', 404)
   // Een ingelogde medewerker past zijn eigen rollen en vestigingen niet aan (anders geeft hij zichzelf meer rechten).
-  if (soort === 'medewerkers' && t.rol === 'medewerker' && id === t.persoonId) return clubFout('Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.', 403)
+  if (soort === 'medewerkers' && isMedewerkerSessie(t) && id === t.persoonId) return clubFout('Je eigen rollen en vestigingen past de eigenaar of clubmanager aan.', 403)
   // Een medewerker past alleen collega's aan met wie hij een vestiging deelt; de rest bestaat voor hem niet.
   if (soort === 'medewerkers') {
     const buiten = await eisVestigingVanRecord(t, 'club_medewerkers', id)

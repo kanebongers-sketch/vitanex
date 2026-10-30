@@ -9,6 +9,7 @@ import { initialen } from '@/lib/club/kern/lid'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Leden met risico: dezelfde lijst en hetzelfde aantal als de ledenlijst met
 // het filter "risico" (behoudsscore onder 45, bezoek op alle vestigingen).
@@ -34,9 +35,7 @@ function Rij({ r, laatsteOoit, vandaag, vestiging, taal }: { r: RisicoLid; laats
   return (
     <li>
       <Link href={lidKaartPad(lid.id, vestiging)} className="club-rij club-vandaag-rijlink club-vandaag-risicorij">
-        <span className="club-avatar" aria-hidden>
-          {initialen(lid)}
-        </span>
+        <Avatar naam={`${lid.voornaam} ${lid.achternaam}`} initialen={initialen(lid)} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} />
         <span className="club-rij-hoofd">
           <span className="club-rij-titel">
             {lid.voornaam} {lid.achternaam}

@@ -51,7 +51,7 @@ export function InlogFormulier() {
     try {
       const res = await fetch('/api/club/inloggen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, wachtwoord }) })
       if (res.ok) {
-        window.location.assign('/club')
+        window.location.assign('/club?start=1')
         return
       }
       // De API van Club geeft Nederlands; kiesMeldingen vertaalt het voor de Engelse pagina.

@@ -45,7 +45,7 @@ export function MedewerkerWachtwoordKiezen({ token, sportschool, voornaam, naam,
       setHerhaal('')
       return setFout(uit.fout)
     }
-    router.replace('/club')
+    router.replace('/club?start=1')
   }
 
   return (

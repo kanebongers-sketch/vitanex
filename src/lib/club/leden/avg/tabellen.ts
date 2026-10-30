@@ -84,4 +84,8 @@ export const LID_TABELLEN: Readonly<Record<string, LidTabel>> = {
   club_voeding_logs: { export: 'voedingDagboek', afhandeling: 'verwijderd' },
   club_voeding_producten: { export: 'voedingProducten', afhandeling: 'verwijderd' },
   club_voeding_favorieten: { export: 'voedingFavorieten', afhandeling: 'verwijderd' },
+  // Profielfoto (migratie 473): gaat mee via on delete cascade; het bestand haalt de
+  // server weg via de wachtrij club_profielfoto_opruimen. Bij een verzoek tot
+  // verwijderen is de foto al meteen weg (trigger op club_lid_verwijderingen).
+  club_profielfotos: { export: 'profielfoto', afhandeling: 'verwijderd', viaCascade: true },
 }

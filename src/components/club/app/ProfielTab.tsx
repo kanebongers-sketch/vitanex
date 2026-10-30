@@ -8,6 +8,9 @@ import { dagKortIn } from '@/lib/club/app/regels'
 import { TaalKeuze } from '@/components/aiyourgym/taal/TaalKeuze'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
+import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
+import { FotoKiezer } from '@/components/club/profielfoto/FotoKiezer'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Profiel in de ledenapp: eigen gegevens. Geld en contract regelt de
 // sportschool buiten de app (bij Fit Factory in Sportivity); hier alleen de naam
@@ -23,11 +26,14 @@ interface ProfielTabProps {
   hulp?: ReactNode
   /** De voetnoot over inloggen bij de pilot (alleen in de voorvertoning; in /mijn is het lid al ingelogd). */
   pilotNoot?: boolean
+  /** Profielfoto: club = voorvertoning in Club (alleen kijken), lid = de ledenapp. */
+  foto?: { waar: 'club' | 'lid'; voor: string | null; bewerkbaar: boolean; door: string | null }
 }
 
-export async function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp, pilotNoot = true }: ProfielTabProps) {
+export async function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hulp, pilotNoot = true, foto = { waar: 'club', voor: null, bewerkbaar: false, door: null } }: ProfielTabProps) {
   const taal = await getTaal()
   const t = LEDENAPP[taal].profiel
+  const f = PROFIELFOTO[taal]
   const regels: [string, string | null][] = [
     [t.lidnummer, lid.lidnummer],
     [t.email, lid.email],
@@ -38,9 +44,7 @@ export async function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hul
   return (
     <div className="club-lidapp-tab">
       <div className="club-lidapp-profielkop">
-        <span className="club-lidapp-avatar" aria-hidden>
-          {initialen(lid)}
-        </span>
+        <Avatar naam={volledigeNaam(lid)} initialen={initialen(lid)} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} waar={foto.waar} voor={foto.voor} maat={64} vasteMaat={false} className="club-lidapp-avatar" />
         <div>
           <h2 className="club-lidapp-kop">{volledigeNaam(lid)}</h2>
           <span className="club-lidapp-status" data-status={lid.status}>
@@ -48,6 +52,21 @@ export async function ProfielTab({ lid, vestigingNaam, teksten, sportschool, hul
           </span>
         </div>
       </div>
+      {foto.bewerkbaar && (
+        <section className="club-mijn-blok club-lidapp-foto" aria-labelledby="lidapp-foto">
+          <h3 id="lidapp-foto">{f.titel}</h3>
+          <FotoKiezer
+            naam={volledigeNaam(lid)}
+            initialen={initialen(lid)}
+            foto={{ soort: 'lid', id: lid.id, versie: lid.foto ?? null }}
+            adres="/api/club/lid/profielfoto"
+            waar={foto.waar}
+            voor={foto.voor}
+            uitleg={foto.door ? `${f.doorSportschool(foto.door)} ${f.uitlegLid}` : f.uitlegLid}
+            zonderAvatar
+          />
+        </section>
+      )}
       <dl className="club-lidapp-gegevens">
         {regels.map(([label, waarde]) => (
           <div key={label}>

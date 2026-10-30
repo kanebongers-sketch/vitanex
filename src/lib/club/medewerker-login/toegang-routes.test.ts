@@ -16,6 +16,9 @@ vi.mock('next/headers', () => ({
   cookies: async () => ({ get: (naam: string) => (stand.cookies.has(naam) ? { value: stand.cookies.get(naam) } : undefined) }),
   headers: async () => new Headers({ host: stand.host }),
 }))
+// Het oude model (rollen v2 uit). De demo-id hieronder staat in CLUB_ROLLEN_V2_ORGS;
+// rollen v2 heeft eigen routetests (src/lib/club/rollen/routes-per-rol.test.ts).
+vi.mock('@/lib/club/rollen/schakelaar', () => ({ rollenV2Aan: () => false, CLUB_ROLLEN_V2_OVERAL: false, CLUB_ROLLEN_V2_ORGS: [] }))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
 vi.mock('@/lib/utils/rate-limit', () => ({ isRateLimited: () => stand.geremd }))
 vi.mock('@/lib/club/kern/database', () => ({ clubDatabase: () => db.admin }))

@@ -15,6 +15,8 @@ export interface VandaagLid {
   einddatum: string | null
   geboortedatum: string | null
   abonnement: string | null
+  /** Versie van de profielfoto, of null. */
+  foto?: string | null
 }
 
 export interface Verschil {

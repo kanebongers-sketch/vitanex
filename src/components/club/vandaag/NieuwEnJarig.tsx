@@ -7,6 +7,7 @@ import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { initialen } from '@/lib/club/kern/lid'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Mensen om vandaag even aan te spreken: wie net begonnen is en wie jarig is.
 
@@ -29,9 +30,7 @@ export async function NieuwDezeWeek({ leden, vestiging }: { leden: VandaagLid[];
           {leden.map((l) => (
             <li key={l.id}>
               <Link href={lidKaartPad(l.id, vestiging)} className="club-vandaag-gezicht">
-                <span className="club-avatar" aria-hidden>
-                  {initialen(l)}
-                </span>
+                <Avatar naam={`${l.voornaam} ${l.achternaam}`} initialen={initialen(l)} foto={{ soort: 'lid', id: l.id, versie: l.foto }} />
                 <span className="club-rij-hoofd club-vandaag-gezicht-tekst">
                   <span className="club-rij-titel">
                     {l.voornaam} {l.achternaam}
@@ -63,9 +62,7 @@ export async function JarigVandaag({ jarigen, vestiging }: { jarigen: Jarige[]; 
           {jarigen.map(({ lid, leeftijd }) => (
             <li key={lid.id}>
               <Link href={lidKaartPad(lid.id, vestiging)} className="club-rij club-vandaag-rijlink">
-                <span className="club-avatar" aria-hidden>
-                  {initialen(lid)}
-                </span>
+                <Avatar naam={`${lid.voornaam} ${lid.achternaam}`} initialen={initialen(lid)} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} />
                 <span className="club-rij-hoofd">
                   <span className="club-rij-titel">
                     {lid.voornaam} {lid.achternaam}

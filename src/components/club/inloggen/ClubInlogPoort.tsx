@@ -63,7 +63,7 @@ export function ClubInlogPoort({ code, pinStatus, sportschool, voornaam, rol, ap
       setControle(leesControle(uit.data))
       return setStaat('wacht')
     }
-    window.location.assign('/club')
+    window.location.assign('/club?start=1')
   }
 
   const kop = staat === 'wacht' ? t.geduld : kiezen ? tekst.welkom(voornaam) : t.inloggen

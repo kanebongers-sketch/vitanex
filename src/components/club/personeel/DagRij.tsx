@@ -11,6 +11,7 @@ import { DienstBlok } from './DienstBlok'
 import { dagMaand, plekStijl, weekdagKort, type Bereik } from './weergave'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
+import { Avatar, type AvatarFoto } from '@/components/club/ontwerp/Avatar'
 
 type DagTekst = (typeof PERSONEEL)['nl']['dag']
 
@@ -73,11 +74,11 @@ function Uurvakken({ datum, bereik, mw, staat }: { datum: string; bereik: Bereik
   )
 }
 
-function Baan({ label, kleur, children }: { label: string; kleur?: string; children: React.ReactNode }) {
+function Baan({ label, kleur, foto, children }: { label: string; kleur?: string; foto?: AvatarFoto; children: React.ReactNode }) {
   return (
     <div className="club-personeel-baan" data-kleur={kleur}>
       <span className="club-personeel-baanlabel">
-        {kleur && <span className="club-personeel-stip" aria-hidden />}
+        {foto ? <Avatar naam={label} foto={foto} maat={22} className="club-avatar club-personeel-baanfoto" /> : kleur && <span className="club-personeel-stip" aria-hidden />}
         <span>{label}</span>
       </span>
       <div className="club-personeel-spoor">{children}</div>
@@ -138,7 +139,7 @@ export async function DagRij({ datum, isVandaag, bemand, bereik, diensten, notit
           </Baan>
         )}
         {mensen.map((l) => (
-          <Baan key={l.id} label={l.naam} kleur={l.kleur}>
+          <Baan key={l.id} label={l.naam} kleur={l.kleur} foto={{ soort: 'mw', id: l.id, versie: l.foto }}>
             <Uurvakken datum={datum} bereik={bereik} mw={l.id} staat={staat} />
             {diensten.filter((d) => d.medewerkerId === l.id).map(blok)}
             {notities

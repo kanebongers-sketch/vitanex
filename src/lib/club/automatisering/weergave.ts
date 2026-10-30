@@ -15,6 +15,8 @@ export interface OpvolgItem {
   regelTitel: string
   naam: string
   initialen: string
+  /** Versie van de profielfoto van het lid, of null. */
+  foto?: string | null
   reden: string
   wie: string
   tekst: string
@@ -61,6 +63,7 @@ export function naarItem(taak: Taak, ctx: Context, taal: Taal = 'nl'): OpvolgIte
     regelTitel: t.regel[taak.regel].titel,
     naam: `${lid.voornaam} ${lid.achternaam}`.trim(),
     initialen: initialen({ voornaam: lid.voornaam, achternaam: lid.achternaam || lid.voornaam }),
+    foto: taak.lid?.foto ?? null,
     reden: taak.reden,
     wie: wieInTaal(taak.wie, ctx.medewerkers, taal),
     tekst: vulSjabloon(sjabloon, sjabloonWaarden(taak, ctx.vestigingNaam)),

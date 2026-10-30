@@ -16,6 +16,8 @@ import { StapTeamInvoer } from './StapTeamInvoer'
 import type { StartVoetProps } from './StartVoet'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
+import { rollenV2Aan } from '@/lib/club/rollen/schakelaar'
+import { rolrechtenVan } from '@/lib/club/rollen/profiel'
 
 // Stap 3 (vestiging: adres, openingstijden en reserveren) en stap 6 (het team
 // en wat elke rol ziet): de data van de server, de invoer in kleine
@@ -103,6 +105,7 @@ export async function StapTeam({ t, vestiging, soort, voet, alleen }: StapMetVes
       soort={soort}
       loginsFout={logins === null}
       voet={voet}
+      v2={rollenV2Aan(t.organisatie.id) ? { rolrechten: rolrechtenVan(t.organisatie), uit: t.organisatie.uit, profiel: t.profiel?.id ? { id: t.profiel.id, rollen: t.profiel.rollen } : null } : null}
     />
   )
 }

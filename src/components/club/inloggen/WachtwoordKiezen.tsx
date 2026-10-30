@@ -43,7 +43,7 @@ export function WachtwoordKiezen({ api, merk, rol, email, naam }: WachtwoordKiez
       setBezig(false)
       return setFout(uit.fout)
     }
-    window.location.assign('/club')
+    window.location.assign('/club?start=1')
   }
 
   return (

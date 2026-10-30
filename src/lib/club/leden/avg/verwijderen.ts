@@ -14,12 +14,13 @@ import type { WieMag } from '@/lib/club/beheerders/rechten'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
+import { isEigenaar } from '@/lib/club/rollen/wie'
 
 /** Hoeveel dagen een aanvraag terug te draaien is. Ook in migratie 429 (standaard p_dagen). */
 export const VERWIJDER_DAGEN = 30
 
 export function magLidVerwijderen(t: WieMag): boolean {
-  return t.isPlatformEigenaar || t.rol === 'eigenaar'
+  return isEigenaar(t)
 }
 
 /** Voor de vergelijking: kleine letters, zonder accenten en dubbele spaties. */

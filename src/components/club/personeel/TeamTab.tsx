@@ -10,6 +10,7 @@ import { MedewerkerInstellingen } from './MedewerkerInstellingen'
 import { VasteWeek } from './VasteWeek'
 import { LosseDatums } from './LosseDatums'
 import { dagMaand, weekdagKort } from './weergave'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Beschikbaarheid en verlof per medewerker: vaste week, losse datums,
 // contracturen en roosterkleur. Bovenaan wie de komende tijd afwezig is.
@@ -41,7 +42,7 @@ export async function TeamTab({ t, staat, team, vandaag }: Props) {
           {team.map((l) => (
             <li key={l.id}>
               <Link className="club-personeel-teamnaam" data-kleur={l.kleur} href={personeelHref(basis, { mw: l.id })} aria-current={l.id === gekozen.id ? 'page' : undefined} scroll={false}>
-                <span className="club-personeel-stip" aria-hidden />
+                <Avatar naam={l.naam} foto={{ soort: 'mw', id: l.id, versie: l.foto }} maat={28} className="club-avatar club-personeel-teamfoto" />
                 <span>{l.naam}</span>
                 <span className="club-zacht club-getal">{l.contracturen !== null ? tk.urenKort(taal === 'nl' ? String(l.contracturen).replace('.', ',') : String(l.contracturen)) : ''}</span>
               </Link>

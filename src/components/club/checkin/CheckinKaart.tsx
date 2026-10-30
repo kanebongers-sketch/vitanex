@@ -5,6 +5,7 @@ import { CircleCheck, CircleAlert, Clock3, MapPin, TriangleAlert } from 'lucide-
 import type { BalieLes, BalieLid, CheckinAntwoord } from '@/lib/club/checkin/types'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // De grote kaarten van het baliescherm: het gevonden lid (met Inchecken) en
 // de uitkomst na het inchecken. Gemaakt om vanaf een meter afstand te lezen.
@@ -93,7 +94,7 @@ export function BalieLidKaart({ lid, bezig, onInchecken }: LidKaartProps) {
   return (
     <article className={`club-checkin-kaart ${!lid.magTrainen ? 'club-checkin-kaart--niet' : lid.vormWaarschuwing ? 'club-checkin-kaart--let' : 'club-checkin-kaart--mag'}`} aria-live="polite">
       <div className="club-checkin-kaart-kop">
-        <span className="club-avatar club-avatar--groot" aria-hidden>{lid.initialen}</span>
+        <Avatar naam={lid.naam} initialen={lid.initialen} foto={{ soort: 'lid', id: lid.id, versie: lid.foto }} maat={64} className="club-avatar club-avatar--groot" />
         <div className="club-checkin-kaart-naam">
           <h2>{lid.naam}</h2>
           <p className="club-zacht club-getal">{[lid.lidnummer, lid.abonnement].filter(Boolean).join(' · ')}</p>
@@ -229,7 +230,7 @@ export function Resultaten({ id, leden, gekozen, onKies }: ResultatenProps) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onKies(i)}
         >
-          <span className="club-avatar" aria-hidden>{l.initialen}</span>
+          <Avatar naam={l.naam} initialen={l.initialen} foto={{ soort: 'lid', id: l.id, versie: l.foto }} />
           <span className="club-rij-hoofd">
             <span className="club-rij-titel">{l.naam}</span>
             <span className="club-rij-sub">

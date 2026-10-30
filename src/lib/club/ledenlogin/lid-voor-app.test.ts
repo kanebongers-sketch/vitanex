@@ -10,7 +10,7 @@ const LID: Lid = {
 describe('lidVoorApp', () => {
   it('geeft alleen wat de app toont', () => {
     const app = lidVoorApp(LID)
-    expect(Object.keys(app).sort()).toEqual(['abonnement', 'achternaam', 'email', 'id', 'lidSinds', 'lidnummer', 'status', 'telefoon', 'vestiging', 'voornaam'])
+    expect(Object.keys(app).sort()).toEqual(['abonnement', 'achternaam', 'email', 'foto', 'id', 'lidSinds', 'lidnummer', 'status', 'telefoon', 'vestiging', 'voornaam'])
     expect(app).not.toHaveProperty('geboortedatum')
     expect(app).not.toHaveProperty('tags')
     expect(app).not.toHaveProperty('coachId')

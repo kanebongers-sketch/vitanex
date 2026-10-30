@@ -6,7 +6,7 @@
 import type { Lid } from '@/lib/club/kern/lid'
 
 /** Het lid zoals de ledenapp het toont: naam, status, contact en lidmaatschap. */
-export type LidVoorApp = Pick<Lid, 'id' | 'vestiging' | 'voornaam' | 'achternaam' | 'lidnummer' | 'email' | 'telefoon' | 'status' | 'abonnement' | 'lidSinds'>
+export type LidVoorApp = Pick<Lid, 'id' | 'vestiging' | 'voornaam' | 'achternaam' | 'lidnummer' | 'email' | 'telefoon' | 'status' | 'abonnement' | 'lidSinds' | 'foto'>
 
 /** Alleen de velden die de app toont; nooit meer. */
 export function lidVoorApp(lid: Lid): LidVoorApp {
@@ -21,6 +21,7 @@ export function lidVoorApp(lid: Lid): LidVoorApp {
     status: lid.status,
     abonnement: lid.abonnement,
     lidSinds: lid.lidSinds,
+    foto: lid.foto ?? null,
   }
 }
 

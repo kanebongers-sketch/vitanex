@@ -224,6 +224,7 @@ export const BEHEER = woordenboek({
         { onderwerp: 'Staff shifts and hours', termijn: '7 years', uitleg: 'Statutory tax retention.' },
         { onderwerp: 'Sales in the member app', termijn: 'Kept', uitleg: 'Statutory tax retention. When a member is deleted, they remain without a name.' },
         { onderwerp: 'Support requests to AI Your Gym', termijn: '24 months', uitleg: 'Deleted after the last change.' },
+        { onderwerp: 'Profile photos of members and staff', termijn: 'Up to 30 days after the end date', uitleg: 'For a former member gone 30 days after the end date; removed immediately on a deletion request, when staff leave or when removed.' },
         { onderwerp: 'Training programmes, logged workouts, sets, measurements, intakes and nutrition plans', termijn: 'As long as someone is a member', uitleg: 'Gone as soon as the member is deleted.' },
       ],
       velden: {

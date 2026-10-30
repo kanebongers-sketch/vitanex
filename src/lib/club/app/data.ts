@@ -8,6 +8,7 @@ import { alsRij, datum, getal, ingeslotenNaam, tekst } from '@/lib/club/cijfers/
 import { dagSleutel, dagStart, plusDagen } from '@/lib/club/cijfers/tijd'
 import { appRegelsUitJson, bezoekenDezeMaand, wekenOpRij, type AppRegels, type MijnStatus } from './regels'
 import { notitieVoorLid } from '@/lib/club/training/voorstel-uitleg'
+import { isMaker, kiesActief, type Maker } from '@/lib/club/training/lid-schemas/regels'
 import { historiePerOefening, oefeningUitRij, perDag, type AppLog, type AppSchemaDag, type OefeningHistorie, type SetLogRij } from './schema'
 
 export interface AppLes {
@@ -35,6 +36,8 @@ export interface AppSchema {
   /** De notitie voor het lid (zonder de regels die alleen voor de trainer zijn, zie notitieVoorLid). */
   notitie: string | null
   dagen: AppSchemaDag[]
+  /** Van de trainer of zelf gemaakt door het lid (migratie 472). */
+  maker: Maker
 }
 
 export interface LidAppData {
@@ -96,18 +99,25 @@ async function haalLessen(admin: SupabaseClient, userId: string, lid: Lid, nu: D
 }
 
 async function haalSchema(admin: SupabaseClient, userId: string, lidId: string): Promise<{ schema: AppSchema | null; fout: string | null }> {
+  // Alle actieve schema's (van de trainer en eigen schema's van het lid); de app
+  // toont het laatst gekozen schema (lid-schemas/regels.ts, migratie 472).
   const { data, error } = await admin
     .from('club_schemas')
-    .select('id, naam, doel, weken, notitie')
+    .select('id, naam, doel, weken, notitie, maker, aangemaakt_op, actief_gekozen_op')
     .eq('user_id', userId)
     .eq('lid_id', lidId)
     .eq('status', 'actief')
-    .order('bijgewerkt_op', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  const r = alsRij(data)
-  const id = r ? tekst(r.id) : null
-  if (error || !r || !id) return { schema: null, fout: error?.message ?? null }
+    .order('aangemaakt_op', { ascending: false })
+    .limit(50)
+  const kandidaten = (data ?? []).flatMap((v) => {
+    const k = alsRij(v)
+    const kId = k ? tekst(k.id) : null
+    return k && kId && isMaker(k.maker) ? [{ rij: k, id: kId, maker: k.maker, aangemaaktOp: tekst(k.aangemaakt_op) ?? '', actiefGekozenOp: tekst(k.actief_gekozen_op) }] : []
+  })
+  const gekozen = kiesActief(kandidaten)
+  const r = gekozen?.rij ?? null
+  const id = gekozen?.id ?? null
+  if (error || !r || !id || !gekozen) return { schema: null, fout: error?.message ?? null }
   const oef = await admin
     .from('club_schema_oefeningen')
     .select('id, oefening_id, dag, volgorde, sets, herhalingen, gewicht_kg, rust_sec, notitie, groep, tijd_sec, rpe, rir, tempo, club_oefeningen(naam, spiergroep, spieren_primair, spieren_secundair, uitleg, aandachtspunten, beeld_start, beeld_eind, beeld_bron)')
@@ -117,7 +127,7 @@ async function haalSchema(admin: SupabaseClient, userId: string, lidId: string):
     .order('volgorde')
   const oefeningen = (oef.data ?? []).map(oefeningUitRij).filter((o) => o !== null)
   return {
-    schema: { id, naam: tekst(r.naam) ?? 'Schema', doel: tekst(r.doel), weken: getal(r.weken), notitie: notitieVoorLid(tekst(r.notitie)), dagen: perDag(oefeningen) },
+    schema: { id, naam: tekst(r.naam) ?? 'Schema', doel: tekst(r.doel), weken: getal(r.weken), notitie: notitieVoorLid(tekst(r.notitie)), dagen: perDag(oefeningen), maker: gekozen.maker },
     fout: oef.error?.message ?? null,
   }
 }

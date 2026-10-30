@@ -8,6 +8,9 @@ import { datumLang, doelLabel } from './weergave'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VOEDING } from '@/lib/aiyourgym/taal/woorden/club/voeding'
+import { VOEDING_EIGEN } from '@/lib/aiyourgym/taal/woorden/club/voeding-eigen'
+import { lidPlanModus, type VoedingRegels } from '@/lib/club/voeding/eigen'
+import { EigenPlanBlok } from './eigen/EigenPlanBlok'
 import './voeding.css'
 
 // Voeding in de ledenapp: het dagdoel als rustige cijfers en balken, de
@@ -23,6 +26,11 @@ export interface LedenappVoedingProps {
   fout?: boolean
   /** Het voedingsdagboek van het lid (dagboek/Dagboek.tsx), boven het plan. */
   dagboek?: ReactNode
+  /**
+   * Het lid maakt zelf een plan (besluit Kane 30-10-2026). Zonder dit blok
+   * (bijvoorbeeld de voorvertoning in Club) alleen lezen zoals voorheen.
+   */
+  eigen?: { regels: VoedingRegels; voor: string | null; alleenLezen: boolean }
 }
 
 const RIJEN = [
@@ -31,10 +39,12 @@ const RIJEN = [
   { sleutel: 'vet', veld: 'vetG', klasse: 'is-vet' },
 ] as const
 
-export async function LedenappVoeding({ plan, fout = false, dagboek = null }: LedenappVoedingProps) {
+export async function LedenappVoeding({ plan, fout = false, dagboek = null, eigen }: LedenappVoedingProps) {
   const taal = await getTaal()
   const tv = VOEDING[taal]
   const t = tv.app
+  const te = VOEDING_EIGEN[taal].app
+  const modus = lidPlanModus(plan, eigen?.regels ?? { ledenOverschrijven: false })
   if (fout) {
     return (
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
@@ -51,17 +61,20 @@ export async function LedenappVoeding({ plan, fout = false, dagboek = null }: Le
       <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
         <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
         {dagboek}
-        <LegeStaat Icoon={Apple} titel={t.geenPlan}>
-          {t.vraag}
-        </LegeStaat>
+        {eigen && <h3 className="club-ve-kop">{te.mijnPlan}</h3>}
+        {eigen ? (
+          <EigenPlanBlok plan={null} modus={modus} voor={eigen.voor} alleenLezen={eigen.alleenLezen} />
+        ) : (
+          <LegeStaat Icoon={Apple} titel={t.geenPlan}>
+            {t.vraag}
+          </LegeStaat>
+        )}
       </section>
     )
   }
   const v = verdeling(plan)
-  return (
-    <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
-      <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
-        {dagboek}
+  const inhoud = (
+    <>
       <div className="club-voeding-app-blok">
         <span className="club-lidapp-label">{t.dagdoel}</span>
         <p className="club-voeding-kcal">
@@ -87,7 +100,21 @@ export async function LedenappVoeding({ plan, fout = false, dagboek = null }: Le
           <PlanInhoud adviezen={plan.adviezen} maaltijden={plan.maaltijden} idPrefix="lidapp-voeding" taal={taal} />
         </div>
       )}
-      <p className="club-voeding-disclaimer">{tv.disclaimer}</p>
+    </>
+  )
+  return (
+    <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
+      <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
+      {dagboek}
+      {eigen && <h3 className="club-ve-kop">{te.mijnPlan}</h3>}
+      {eigen ? (
+        <EigenPlanBlok plan={plan} modus={modus} voor={eigen.voor} alleenLezen={eigen.alleenLezen}>
+          {inhoud}
+        </EigenPlanBlok>
+      ) : (
+        inhoud
+      )}
+      <p className="club-voeding-disclaimer">{plan.bron === 'lid' ? te.disclaimer : tv.disclaimer}</p>
     </section>
   )
 }

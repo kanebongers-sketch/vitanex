@@ -61,6 +61,7 @@ export const VASTE_TERMIJNEN: readonly VasteTermijn[] = [
   { onderwerp: 'Diensten en uren van personeel', termijn: '7 jaar', uitleg: 'Fiscale bewaarplicht.' },
   { onderwerp: 'Verkopen in de ledenapp', termijn: 'Blijven bewaard', uitleg: 'Fiscale bewaarplicht. Na verwijderen van een lid blijven ze zonder naam.' },
   { onderwerp: 'Hulpvragen aan AI Your Gym', termijn: '24 maanden', uitleg: 'Na de laatste wijziging verwijderd.' },
+  { onderwerp: "Profielfoto's van leden en medewerkers", termijn: 'Tot 30 dagen na de einddatum', uitleg: 'Bij een oud-lid 30 dagen na de einddatum weg; bij een verzoek tot verwijderen, uit dienst of weghalen meteen.' },
   { onderwerp: 'Trainingsschema\'s, gelogde trainingen, sets, metingen, intakes en voedingsplannen', termijn: 'Zolang iemand lid is', uitleg: 'Weg zodra het lid wordt verwijderd.' },
 ]
 

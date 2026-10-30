@@ -9,18 +9,24 @@ import type { ClubRol } from '@/lib/club/toegang'
 import type { MedewerkerRol } from '@/lib/club/kern/medewerker'
 import type { UurStatus } from './typen'
 import type { UrenActie } from './invoer'
+import { isMedewerkerSessie, v2Minstens, type ProfielToegang } from '@/lib/club/rollen/wie'
 
 export interface UrenKijker {
   rol: ClubRol
   persoonId: string | null
   medewerkerRollen?: readonly MedewerkerRol[]
+  isPlatformEigenaar?: boolean
+  /** Rollenmodel v2: dan telt het niveau van de sleutel uren (beheren). */
+  profiel?: ProfielToegang | null
 }
 
 const UREN_ROLLEN: readonly MedewerkerRol[] = ['manager', 'administratie']
 
 /** Goedkeuren, verwerken, het tabblad Uren en de export: alles behalve een medewerker zonder rol Clubmanager of Administratie. */
 export function magUrenBeheren(t: UrenKijker): boolean {
-  if (t.rol !== 'medewerker') return true
+  const v2 = v2Minstens({ isPlatformEigenaar: t.isPlatformEigenaar === true, profiel: t.profiel }, 'uren', 'beheren')
+  if (v2 !== null) return v2
+  if (!isMedewerkerSessie(t)) return true
   return (t.medewerkerRollen ?? []).some((r) => UREN_ROLLEN.includes(r))
 }
 

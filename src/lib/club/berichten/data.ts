@@ -23,7 +23,27 @@ export async function haalBerichten(admin: SupabaseClient, userId: string): Prom
     log('berichten lezen', error.message)
     return null
   }
-  return (data ?? []).flatMap((r) => berichtUitRij(r) ?? [])
+  return metAuteurFotos(admin, userId, (data ?? []).flatMap((r) => berichtUitRij(r) ?? []))
+}
+
+/**
+ * De profielfoto van wie het bericht schreef. aangemaakt_door is een naam (zo
+ * staat hij ook in het logboek), dus we zoeken de medewerker met precies die
+ * naam en een foto. Geen treffer of een leesfout: dan de initialen.
+ */
+async function metAuteurFotos(admin: SupabaseClient, userId: string, berichten: Bericht[]): Promise<Bericht[]> {
+  const namen = [...new Set(berichten.flatMap((b) => (b.aangemaaktDoor ? [b.aangemaaktDoor] : [])))]
+  if (namen.length === 0) return berichten
+  const { data, error } = await admin.from('club_medewerkers').select('id, naam, profielfoto').eq('user_id', userId).in('naam', namen.slice(0, 100)).not('profielfoto', 'is', null)
+  if (error) {
+    log('auteurs lezen', error.message)
+    return berichten
+  }
+  const perNaam = new Map<string, { id: string; versie: string }>()
+  for (const r of (data ?? []) as { id: unknown; naam: unknown; profielfoto: unknown }[]) {
+    if (typeof r.id === 'string' && typeof r.naam === 'string' && typeof r.profielfoto === 'string') perNaam.set(r.naam, { id: r.id, versie: r.profielfoto })
+  }
+  return berichten.map((b) => ({ ...b, auteurFoto: b.aangemaaktDoor ? (perNaam.get(b.aangemaaktDoor) ?? null) : null }))
 }
 
 /**

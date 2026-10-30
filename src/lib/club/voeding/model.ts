@@ -39,6 +39,16 @@ export interface Doelen {
   vetG: number
 }
 
+/** Wie het plan het laatst inhoudelijk bepaalde (migratie 471). */
+export type PlanBron = 'trainer' | 'lid'
+
+/** Een voorstel van het lid bij een plan van de trainer. Nooit lichaamsgegevens. */
+export interface PlanVoorstel extends Doelen {
+  doel: VoedingDoel | null
+  adviezen: string[]
+  maaltijden: Maaltijd[]
+}
+
 export interface VoedingPlan extends Doelen {
   id: string
   lidId: string
@@ -53,6 +63,11 @@ export interface VoedingPlan extends Doelen {
   bijgewerktDoor: string | null
   bijgewerktOp: string
   demo: boolean
+  bron: PlanBron
+  voorstel: PlanVoorstel | null
+  voorstelOp: string | null
+  /** Het lid gaf toestemming om de berekening (lichaamsgegevens) bij het eigen plan te bewaren. */
+  lidToestemmingOp: string | null
 }
 
 export interface VoedingSjabloon {
@@ -73,7 +88,7 @@ export interface VoedingSjabloon {
 }
 
 export const PLAN_KOLOMMEN =
-  'id, lid_id, doel, kcal, eiwit_g, koolhydraten_g, vet_g, adviezen, maaltijden, notitie, berekening, sjabloon_id, bijgewerkt_door, bijgewerkt_op, demo'
+  'id, lid_id, doel, kcal, eiwit_g, koolhydraten_g, vet_g, adviezen, maaltijden, notitie, berekening, sjabloon_id, bijgewerkt_door, bijgewerkt_op, demo, bron, voorstel, voorstel_op, lid_toestemming_op'
 
 export const SJABLOON_KOLOMMEN = 'id, naam, omschrijving, doel, eiwit_per_kg, kcal, eiwit_g, koolhydraten_g, vet_g, adviezen, maaltijden, demo'
 
@@ -134,6 +149,19 @@ export function berekeningUit(v: unknown): RekenInvoer | null {
   return { gewichtKg: g, lengteCm: l, leeftijd: a, geslacht, activiteit, doel: r.doel, eiwitPerKg: e, vetPercentage: f }
 }
 
+/** Een opgeslagen voorstel van het lid, alleen als het helemaal klopt. */
+export function voorstelUit(v: unknown): PlanVoorstel | null {
+  const r = obj(v)
+  if (!r) return null
+  const kcal = heel(r.kcal)
+  const eiwitG = heel(r.eiwitG)
+  const koolhydratenG = heel(r.koolhydratenG)
+  const vetG = heel(r.vetG)
+  if (kcal === null || eiwitG === null || koolhydratenG === null || vetG === null) return null
+  if (kcal < GRENS_KCAL.min || kcal > GRENS_KCAL.max) return null
+  return { kcal, eiwitG, koolhydratenG, vetG, doel: isDoel(r.doel) ? r.doel : null, adviezen: teksten(r.adviezen).slice(0, MAX_ADVIEZEN), maaltijden: maaltijdenUit(r.maaltijden).slice(0, MAX_MAALTIJDEN) }
+}
+
 /** Systeemgrens: een databaserij naar een VoedingPlan, of null. */
 export function planUitRij(rij: unknown): VoedingPlan | null {
   const r = obj(rij)
@@ -159,6 +187,10 @@ export function planUitRij(rij: unknown): VoedingPlan | null {
     bijgewerktDoor: typeof r.bijgewerkt_door === 'string' ? r.bijgewerkt_door : null,
     bijgewerktOp: typeof r.bijgewerkt_op === 'string' ? r.bijgewerkt_op : '',
     demo: r.demo === true,
+    bron: r.bron === 'lid' ? 'lid' : 'trainer',
+    voorstel: voorstelUit(r.voorstel),
+    voorstelOp: typeof r.voorstel_op === 'string' ? r.voorstel_op : null,
+    lidToestemmingOp: typeof r.lid_toestemming_op === 'string' ? r.lid_toestemming_op : null,
   }
 }
 
@@ -188,10 +220,39 @@ export interface PlanVoorLid extends Doelen {
   adviezen: string[]
   maaltijden: Maaltijd[]
   bijgewerktOp: string
+  bron: PlanBron
+  /** De voornaam van de trainer bij een plan van de trainer, anders null. */
+  trainerNaam: string | null
+  /** Het lid stuurde een voorstel dat nog bij de trainer ligt. */
+  voorstelOp: string | null
+  /**
+   * Alleen bij een eigen plan met toestemming: de eigen gegevens van het lid, om
+   * verder te rekenen. De berekening van een trainer gaat nooit naar de ledenapp.
+   */
+  eigenBerekening: RekenInvoer | null
+}
+
+/** De voornaam uit "bijgewerkt door" (bijvoorbeeld "Daan" uit "Daan de Vries"), of null. */
+export function voornaamVan(naam: string | null): string | null {
+  const eerste = naam?.trim().split(/\s+/)[0] ?? ''
+  return eerste && eerste.toLowerCase() !== 'demo' ? eerste.slice(0, 40) : null
 }
 
 export function planVoorLid(p: VoedingPlan): PlanVoorLid {
-  return { kcal: p.kcal, eiwitG: p.eiwitG, koolhydratenG: p.koolhydratenG, vetG: p.vetG, doel: p.doel, adviezen: p.adviezen, maaltijden: p.maaltijden, bijgewerktOp: p.bijgewerktOp }
+  return {
+    kcal: p.kcal,
+    eiwitG: p.eiwitG,
+    koolhydratenG: p.koolhydratenG,
+    vetG: p.vetG,
+    doel: p.doel,
+    adviezen: p.adviezen,
+    maaltijden: p.maaltijden,
+    bijgewerktOp: p.bijgewerktOp,
+    bron: p.bron,
+    trainerNaam: p.bron === 'trainer' ? voornaamVan(p.bijgewerktDoor) : null,
+    voorstelOp: p.voorstel ? p.voorstelOp : null,
+    eigenBerekening: p.bron === 'lid' && p.lidToestemmingOp ? p.berekening : null,
+  }
 }
 
 /** Wat de ledenapp bij voeding toont: het plan, nog geen plan, of een leesfout. */

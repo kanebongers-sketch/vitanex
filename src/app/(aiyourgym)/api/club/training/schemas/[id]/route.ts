@@ -10,7 +10,8 @@ import { eisVestigingVanRecord } from '@/lib/club/kern/vestiging-toegang'
 // PUT    /api/club/training/schemas/[id]: het hele schema opslaan (kop en oefeningen).
 // DELETE /api/club/training/schemas/[id]: schema of sjabloon verwijderen.
 // Actief zetten wordt gelogd; een lid heeft maximaal een actief schema, het vorige
-// actieve schema gaat dan naar afgerond.
+// actieve schema van de trainer gaat dan naar afgerond. Eigen schema's van het lid
+// blijven staan; het net actief gezette schema is wel het schema dat het lid ziet.
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -27,8 +28,16 @@ async function rondAndereAf(t: ClubToegang, lidId: string, behalve: string): Pro
     .eq('user_id', t.userId)
     .eq('lid_id', lidId)
     .eq('status', 'actief')
+    // Eigen schema's van het lid blijven naast dat van de trainer bestaan (migratie 472).
+    .eq('maker', 'trainer')
     .neq('id', behalve)
   if (error) console.error('[club/training] vorige schema afronden mislukt', error.message)
+}
+
+/** Net actief gezet: dit schema ziet het lid nu in de app (ook naast een eigen schema). */
+async function zetGekozen(t: ClubToegang, id: string): Promise<void> {
+  const { error } = await t.admin.from('club_schemas').update({ actief_gekozen_op: new Date().toISOString() }).eq('user_id', t.userId).eq('id', id)
+  if (error) console.error('[club/training] actief kiezen mislukt', error.message)
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {
@@ -65,6 +74,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   if (s.status === 'actief' && huidig.status !== 'actief' && huidig.lidId) {
     await rondAndereAf(t, huidig.lidId, id)
+    await zetGekozen(t, id)
     await logActie(t, 'Schema actief gezet', s.naam, await lidVestiging(t.admin, t.userId, huidig.lidId))
   }
   return clubJson({ id })

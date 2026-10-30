@@ -103,6 +103,10 @@ export const API_PAKKET: Readonly<Record<string, PakketSleutel | null>> = {
   privacy: null,
   sluiting: null,
   start: null,
+  // Team en rollen (rollen v2): kern.
+  team: null,
+  // Profielfoto's van leden en medewerkers (migratie 473): kern.
+  profielfoto: null,
   uitloggen: null,
   vestigingen: null,
   abonnement: null,

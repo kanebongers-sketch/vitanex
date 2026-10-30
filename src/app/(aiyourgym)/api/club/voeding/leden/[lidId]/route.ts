@@ -6,9 +6,12 @@ import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { leesPlan } from '@/lib/club/voeding/invoer'
 import { haalEigenLid, haalPlan } from '@/lib/club/voeding/lezen'
 import { bewaarPlan, verwijderPlan } from '@/lib/club/voeding/opslag'
+import { isTrainerActie, trainerActie } from '@/lib/club/voeding/eigen-opslag'
 
 // GET    /api/club/voeding/leden/[lidId]  het plan van een lid (of { plan: null })
 // POST   /api/club/voeding/leden/[lidId]  (opslaan, nieuw of bestaand) { kcal, eiwitG, koolhydratenG, vetG, doel, adviezen, maaltijden, notitie, berekening, sjabloonId }
+// PATCH  /api/club/voeding/leden/[lidId]  { actie: 'overnemen' | 'voorstelOvernemen' | 'voorstelAfwijzen' }
+//        een eigen plan van het lid overnemen, of een voorstel van het lid overnemen of afwijzen
 // DELETE /api/club/voeding/leden/[lidId]  het plan weghalen
 // Het lid moet bij deze sportschool horen, in een van haar eigen vestigingen.
 
@@ -41,6 +44,15 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   const invoer = leesPlan(body)
   if (!invoer.ok) return clubFout(invoer.fout, 400)
   return alsAntwoord(await bewaarPlan(r.t, r.lid, invoer.waarde))
+}
+
+export async function PATCH(req: NextRequest, ctx: Ctx) {
+  const r = await lidUit(req, ctx)
+  if ('fout' in r) return r.fout
+  const body = await leesJsonBegrensd(req, 1024)
+  const actie = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).actie : undefined
+  if (!isTrainerActie(actie)) return clubFout('Ongeldig verzoek.', 400)
+  return alsAntwoord(await trainerActie(r.t, r.lid, actie))
 }
 
 export async function DELETE(req: NextRequest, ctx: Ctx) {

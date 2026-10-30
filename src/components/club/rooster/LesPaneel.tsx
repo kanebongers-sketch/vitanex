@@ -11,6 +11,7 @@ import { Bezetting } from './LesBlok'
 import { Afmeldingen, DeelnemerLijst, Wachtlijst } from './Deelnemers'
 import { LesBeheer } from './LesBeheer'
 import { LidToevoegen } from './LidToevoegen'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Het zijpaneel van een les: wie komt er, wie wacht, proefleden, iemand
 // toevoegen, afvinken en de les zelf aanpassen. Open via ?les=<id> in de URL;
@@ -73,7 +74,10 @@ export function LesPaneel({ detail, sluitHref, vestiging, wanneer, isBegonnen, k
             <p className="club-boventitel">{les.lestype ? t.soort[les.lestype.soort] : t.les.les}</p>
             <h2 id="club-rooster-paneel-titel">{les.lestype?.naam ?? t.les.les}</h2>
             <p className="club-rooster-paneel-wanneer">{wanneer}</p>
-            <p className="club-zacht">{[les.instructeur?.naam ?? t.paneel.instructeurOnbekend, les.zaal?.naam].filter(Boolean).join(' · ')}</p>
+            <p className="club-zacht club-rooster-paneel-instructeur">
+              {les.instructeur ? <Avatar naam={les.instructeur.naam} foto={{ soort: 'mw', id: les.instructeur.id, versie: les.instructeur.foto }} maat={28} /> : null}
+              <span>{[les.instructeur?.naam ?? t.paneel.instructeurOnbekend, les.zaal?.naam].filter(Boolean).join(' · ')}</span>
+            </p>
           </div>
           <Link ref={sluitKnop} href={sluitHref} scroll={false} className="club-knop club-knop--stil" aria-label={t.paneel.sluiten}>
             <X aria-hidden size={18} />

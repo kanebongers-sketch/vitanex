@@ -153,3 +153,22 @@
 }
 @keyframes club-voeding-groei { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .club-voeding-app-leeg { margin: 0; color: var(--text-2); line-height: 1.5; }
+
+/* ── Van wie is het plan, en een voorstel van het lid (migratie 471) ──────── */
+.club-voeding-bron { display: grid; gap: 10px; }
+.club-voeding-bron-rij { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.club-voeding-bron-label { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--club-vlak); font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.club-voeding-bron-label.is-lid { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); background: color-mix(in srgb, var(--brand) 12%, transparent); color: var(--text-1); }
+.club-voeding-voorstel { display: grid; gap: 8px; padding: 14px; border-radius: var(--club-radius-klein); border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line)); background: color-mix(in srgb, var(--brand) 6%, var(--club-vlak)); }
+.club-voeding-voorstel table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+.club-voeding-voorstel th, .club-voeding-voorstel td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+.club-voeding-voorstel th[scope='row'], .club-voeding-voorstel thead th:first-child { text-align: left; font-weight: 600; color: var(--text-2); }
+.club-voeding-voorstel thead th { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-voeding-voorstel tr.is-anders td:last-child { color: var(--brand-tekst, var(--brand)); font-weight: 700; }
+.club-voeding-voorstel-knoppen { display: flex; gap: 8px; flex-wrap: wrap; }
+.club-voeding-regel-badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--text-1); vertical-align: 1px; }
+.club-voeding-regels { display: grid; gap: 8px; padding: 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--club-vlak); }
+.club-voeding-regels h2 { margin: 0; font-size: 15px; }
+.club-voeding-regels p { margin: 0; }
+.club-voeding-regels label { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.club-voeding-regels input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--brand); }

@@ -9,6 +9,9 @@ import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalPlannenVanVestiging, haalSjablonen } from '@/lib/club/voeding/lezen'
 import { PlannenLijst, SjablonenLijst } from '@/components/club/voeding/Lijsten'
 import { LidZoek } from '@/components/club/voeding/LidZoek'
+import { isLeiding } from '@/lib/club/rollen/wie'
+import { RegelsSchakelaar } from '@/components/club/voeding/RegelsSchakelaar'
+import { haalVoedingRegels } from '@/lib/club/voeding/eigen-opslag'
 import { SjabloonDetail } from '@/components/club/voeding/SjabloonDetail'
 import { SjabloonFormulier } from '@/components/club/voeding/SjabloonFormulier'
 import '@/components/club/voeding/voeding.css'
@@ -29,9 +32,11 @@ function eerste(v: string | string[] | undefined): string | undefined {
 }
 
 async function PlannenTab({ t, vestiging, term }: { t: ClubToegang; vestiging: string; term: string }) {
-  const [regels, leden] = await Promise.all([
+  const magRegels = isLeiding(t)
+  const [regels, leden, voedingRegels] = await Promise.all([
     haalPlannenVanVestiging(t.admin, t.userId, vestiging),
     term.trim().length >= 2 ? zoekLeden(t.admin, t.userId, vestiging, term, 12) : Promise.resolve([]),
+    magRegels ? haalVoedingRegels(t.admin, t.userId) : Promise.resolve(null),
   ])
   const metPlan = new Set((regels ?? []).map((r) => r.lid.id))
   const tv = await clubTekst(VOEDING)
@@ -49,6 +54,7 @@ async function PlannenTab({ t, vestiging, term }: { t: ClubToegang; vestiging: s
       </section>
       <div className="club-voeding-zij">
         <LidZoek vestiging={vestiging} term={term} leden={leden} metPlan={metPlan} />
+        {voedingRegels && <RegelsSchakelaar ledenOverschrijven={voedingRegels.ledenOverschrijven} />}
         <p className="club-voeding-disclaimer">{tv.disclaimer}</p>
       </div>
     </div>

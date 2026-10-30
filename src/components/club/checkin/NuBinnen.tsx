@@ -4,6 +4,7 @@ import { NU_BINNEN_MIN, type DagSamenvatting } from '@/lib/club/checkin/regels'
 import { tijdNl } from '@/lib/club/leden/tijd'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { CHECKIN } from '@/lib/aiyourgym/taal/woorden/club/checkin'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Rechts op het baliescherm: wie er nu (waarschijnlijk) binnen is, de teller
 // van vandaag en de laatste tien check-ins. "Nu binnen" is een schatting: we
@@ -51,6 +52,7 @@ export async function NuBinnen({ samenvatting, vestiging, magLeden, tellers = tr
           <ul className="club-checkin-binnen">
             {samenvatting.binnen.map((c) => (
               <li key={c.id}>
+                <Avatar naam={c.naam ?? t.onbekend} foto={{ soort: 'lid', id: c.lidId, versie: c.foto }} maat={28} />
                 <LidNaamLink lidId={c.lidId} vestiging={vestiging} magLeden={magLeden} tab="planning">{c.naam ?? t.onbekend}</LidNaamLink>
                 <span className="club-getal club-zacht">{tijdNl(c.op)}</span>
               </li>

@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Eye } from 'lucide-react'
-import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { magBeheerdersBeheren, magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { haalLidSchemaInstelling } from '@/lib/club/training/lid-schemas/opslag'
+import { pakketZichtbaar } from '@/lib/club/kern/pakketten'
+import { LidSchemaInstelling } from '@/components/club/beheer/LidSchemaInstelling'
 import { eisModule, eisOnderdeel } from '@/lib/club/toegang'
 import { LedenappFormulier } from '@/components/club/beheer/LedenappFormulier'
 import '@/components/club/beheer/beheer.css'
@@ -19,6 +22,8 @@ export default async function LedenappInstellenPagina() {
   const t = await eisModule('app')
   const kop = await instelKop('ledenapp')
   const tekst = (await clubTekst(BEHEER)).ledenapp
+  // Eigen schema's van leden horen bij het pakket Training en coaching.
+  const lidSchemas = pakketZichtbaar(t.organisatie.uit, 'training') ? await haalLidSchemaInstelling(t.admin, t.organisatie.id) : null
   return (
     <>
       <InstelKruimel id="ledenapp" />
@@ -37,6 +42,7 @@ export default async function LedenappInstellenPagina() {
         )}
       </header>
       <LedenappFormulier begin={t.organisatie.instellingen.ledenapp} />
+      {lidSchemas && <LidSchemaInstelling begin={lidSchemas.trainerAanpassen} magAanpassen={magBeheerdersBeheren(t)} />}
     </>
   )
 }

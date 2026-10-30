@@ -53,7 +53,9 @@ describe('INSTEL_PAGINAS', () => {
 
 describe('zichtbareInstelPaginas', () => {
   it('Kane en de eigenaar zien alles wat aan staat', () => {
-    expect(zichtbareInstelPaginas(ALLES)).toHaveLength(INSTEL_PAGINAS.length)
+    // Zonder rollen v2 alles behalve Team; met v2 alles behalve Beheerders (dat wordt Team).
+    expect(zichtbareInstelPaginas(ALLES)).toHaveLength(INSTEL_PAGINAS.filter((p) => p.rollenV2 !== 'alleen').length)
+    expect(zichtbareInstelPaginas({ ...ALLES, rollenV2: true })).toHaveLength(INSTEL_PAGINAS.filter((p) => p.rollenV2 !== 'niet').length)
     expect(zichtbareInstelPaginas({ ...ALLES, betalenAan: false }).some((p) => p.id === 'betalen')).toBe(false)
     // Kortingen en acties alleen met lidgeld aan (CLUB_LIDGELD_ACTIEF).
     expect(zichtbareInstelPaginas({ ...ALLES, lidgeldAan: false }).some((p) => p.id === 'kortingen')).toBe(false)
@@ -98,9 +100,9 @@ describe('instelIndeling (besluit Kane 29-10-2026: overzichtelijker)', () => {
   })
 
   it('elke instel-pagina staat in precies een categorie en is daar bereikbaar (behalve de startwizard: een losse link)', () => {
-    const p = plekken(ALLES)
     for (const pagina of INSTEL_PAGINAS) {
-      const hier = p.filter((x) => x.id === pagina.id)
+      // Pagina's van het rollenmodel v2 staan er alleen met v2 aan.
+      const hier = plekken(pagina.rollenV2 === 'alleen' ? { ...ALLES, rollenV2: true } : ALLES).filter((x) => x.id === pagina.id)
       if (pagina.losseLink) {
         expect(hier, pagina.id).toEqual([])
         continue

@@ -253,7 +253,7 @@ export async function haalAfsprakenVanLid(admin: SupabaseClient, userId: string,
 
 /** Alle actieve medewerkers van de sportschool (voor "wie geeft dit"). */
 export async function haalAlleMedewerkers(admin: SupabaseClient, userId: string): Promise<Medewerker[] | null> {
-  const { data, error } = await admin.from('club_medewerkers').select('id, naam, email, rollen, vestigingen, actief').eq('user_id', userId).eq('actief', true).order('naam').limit(500)
+  const { data, error } = await admin.from('club_medewerkers').select('id, naam, email, rollen, vestigingen, actief, profielfoto').eq('user_id', userId).eq('actief', true).order('naam').limit(500)
   if (error) return meld('medewerkers lezen', error)
   return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }

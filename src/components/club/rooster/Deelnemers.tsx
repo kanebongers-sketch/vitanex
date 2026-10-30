@@ -8,6 +8,7 @@ import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 import { LidNaamLink } from '@/components/club/shell/LidNaamLink'
 import { stuur, useClubActie } from './vraag'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Deelnemers afvinken (instructeur), reserveringen annuleren (balie) en de
 // wachtlijst. Elke actie gaat via de rooster-API en ververst daarna het paneel.
@@ -32,8 +33,9 @@ function Naam({ d, naam, link }: { d: Deelnemer; naam: string; link: LinkInfo })
   )
 }
 
-function Avatar({ d }: { d: Deelnemer }) {
-  return <span className="club-avatar" aria-hidden>{d.lid ? initialen(d.lid) : '?'}</span>
+function DeelnemerFoto({ d }: { d: Deelnemer }) {
+  if (!d.lid) return <span className="club-avatar" aria-hidden>?</span>
+  return <Avatar naam={`${d.lid.voornaam} ${d.lid.achternaam}`} initialen={initialen(d.lid)} foto={{ soort: 'lid', id: d.lid.id, versie: d.lid.foto }} />
 }
 
 interface RijProps {
@@ -55,7 +57,7 @@ function DeelnemerRij({ d, kanAfvinken, kanAnnuleren, link }: RijProps) {
 
   return (
     <li className="club-rij club-rooster-deelnemer" data-status={status}>
-      <Avatar d={d} />
+      <DeelnemerFoto d={d} />
       <span className="club-rij-hoofd">
         <Naam d={d} naam={naam} link={link} />
         <span className="club-rij-sub">
@@ -154,7 +156,7 @@ export function Afmeldingen({ geannuleerd, link }: { geannuleerd: Deelnemer[]; l
       <ul className="club-lijst">
         {geannuleerd.map((d) => (
           <li key={d.reservering.id} className="club-rij">
-            <Avatar d={d} />
+            <DeelnemerFoto d={d} />
             <span className="club-rij-hoofd">
               <Naam d={d} naam={naamVan(d)} link={link} />
             </span>

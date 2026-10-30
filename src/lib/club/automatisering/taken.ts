@@ -24,6 +24,8 @@ export interface TaakLid {
   achternaam: string
   telefoon: string | null
   email: string | null
+  /** Versie van de profielfoto, of null. */
+  foto?: string | null
 }
 
 export interface Taak {
@@ -44,7 +46,7 @@ export interface Taak {
 }
 
 export const TAAK_KOLOMMEN =
-  'id, lid_id, vestiging, regel, periode, waarde, reden, status, rol, medewerker_id, notitie, afgehandeld_door, afgehandeld_op, aangemaakt_op, club_leden(voornaam, achternaam, telefoon, email)'
+  'id, lid_id, vestiging, regel, periode, waarde, reden, status, rol, medewerker_id, notitie, afgehandeld_door, afgehandeld_op, aangemaakt_op, club_leden(voornaam, achternaam, telefoon, email, profielfoto)'
 
 function tekst(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v : null
@@ -64,7 +66,7 @@ function lidUit(v: unknown): TaakLid | null {
   const o = r as Record<string, unknown>
   const voornaam = tekst(o.voornaam)
   if (!voornaam) return null
-  return { voornaam, achternaam: tekst(o.achternaam) ?? '', telefoon: tekst(o.telefoon), email: tekst(o.email) }
+  return { voornaam, achternaam: tekst(o.achternaam) ?? '', telefoon: tekst(o.telefoon), email: tekst(o.email), foto: tekst(o.profielfoto) }
 }
 
 function wieUit(r: Record<string, unknown>): Wie {

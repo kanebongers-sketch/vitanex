@@ -9,6 +9,7 @@ import { KopieerKnop } from './KopieerKnop'
 import { stuur, taakUrl } from './stuur'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Een lid op de opvolglijst: wie, waarom, de voorbeeldtekst en de knoppen.
 // Bellen en mailen openen de eigen telefoon of mail van de medewerker.
@@ -50,7 +51,7 @@ export function OpvolgTaak({ item, ledenkaart, onKlaar }: Props) {
   return (
     <li className="club-opvolg-taak">
       <div className="club-opvolg-taak-kop">
-        <span className="club-avatar" aria-hidden>{item.initialen}</span>
+        <Avatar naam={item.naam} initialen={item.initialen} foto={item.lidId ? { soort: 'lid', id: item.lidId, versie: item.foto } : null} />
         <div className="club-opvolg-wie">
           <Link href={ledenkaart} className="club-opvolg-naam">{item.naam}</Link>
           <p className="club-opvolg-reden">{item.reden}</p>

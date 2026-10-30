@@ -38,6 +38,8 @@ export interface Medewerker {
   rollen: MedewerkerRol[]
   vestigingen: Vestiging[]
   actief: boolean
+  /** Versie van de profielfoto (club_medewerkers.profielfoto, migratie 473), of null zonder foto. */
+  foto?: string | null
 }
 
 function isRol(v: unknown): v is MedewerkerRol {
@@ -55,6 +57,7 @@ export function medewerkerUitRij(rij: unknown): Medewerker | null {
     rollen: Array.isArray(r.rollen) ? r.rollen.filter(isRol) : [],
     vestigingen: Array.isArray(r.vestigingen) ? r.vestigingen.filter(isVestigingSlug) : [],
     actief: r.actief !== false,
+    foto: typeof r.profielfoto === 'string' && /^[a-z0-9]{4,20}$/.test(r.profielfoto) ? r.profielfoto : null,
   }
 }
 
@@ -67,7 +70,7 @@ export async function haalMedewerkers(
 ): Promise<Medewerker[] | null> {
   let q = admin
     .from('club_medewerkers')
-    .select('id, naam, email, rollen, vestigingen, actief')
+    .select('id, naam, email, rollen, vestigingen, actief, profielfoto')
     .eq('user_id', userId)
     .eq('actief', true)
     .contains('vestigingen', [vestiging])
