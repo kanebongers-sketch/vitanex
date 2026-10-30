@@ -32,7 +32,7 @@ describe('streefdatum voor livegang', () => {
   it('bewaart, laat staan en haalt weg', () => {
     const gekozen = pasToe(NIEUWE_START, { streefdatum: '2026-11-01' }, NU)
     expect(gekozen.streefdatum).toBe('2026-11-01')
-    expect(pasToe(gekozen, { stap: 3, klaar: 'soort' }, NU).streefdatum).toBe('2026-11-01')
+    expect(pasToe(gekozen, { stap: 3, klaar: 'huisstijl' }, NU).streefdatum).toBe('2026-11-01')
     expect(pasToe(gekozen, { streefdatum: null }, NU).streefdatum).toBeNull()
     expect(NIEUWE_START.streefdatum).toBeNull()
   })

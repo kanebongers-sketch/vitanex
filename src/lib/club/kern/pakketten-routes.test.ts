@@ -243,7 +243,7 @@ describe('elk pakket alleen (kern plus een pakket) heeft geen dode links', () =>
         if (zichtbareTabs.includes('schema')) expect(apiAfgenomen([p], '/api/club/lid/training')).toBe(true)
       })
       it('de startwizard heeft alleen de stappen van de kern en dit pakket, en kan af', () => {
-        const stand = stappenStand({ ...NIEUWE_START, soort: 'gym', klaar: ['huisstijl', 'onderdelen'], bevestigd: ['geen_vaste_lessen'], afgerondOp: '2026-10-29T10:00:00Z' }, { ...FEITEN, uit }, 'nl', [p])
+        const stand = stappenStand({ ...NIEUWE_START, klaar: ['huisstijl', 'onderdelen'], bevestigd: ['geen_vaste_lessen'], afgerondOp: '2026-10-29T10:00:00Z' }, { ...FEITEN, uit }, 'nl', [p])
         const lessen = stand.find((s) => s.sleutel === 'lessen')
         expect(lessen?.nodig).toBe(p === 'lessen')
         // Zonder Groepslessen telt de stap Lessen niet mee; afronden kan dan zonder lestypen.

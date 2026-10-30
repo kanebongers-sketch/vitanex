@@ -2,8 +2,8 @@
 //
 //   aanvraag            pakket nog niet online af te sluiten; Kane neemt contact op
 //   wacht_op_betaling   Stripe Checkout gestart, nog niet afgerond
-//   inrichten           betaling (of proefperiode) is binnen, de sportschool wordt aangemaakt
-//   actief              sportschool staat klaar, abonnement loopt (ook in de proefperiode)
+//   inrichten           betaling is binnen, de sportschool wordt aangemaakt
+//   actief              sportschool staat klaar, abonnement loopt
 //   betaling_mislukt    een factuur is niet betaald (Stripe probeert opnieuw)
 //   gepauzeerd          abonnement gepauzeerd in Stripe
 //   opgezegd            abonnement beeindigd; eindstatus
@@ -27,6 +27,8 @@ export type Gebeurtenis =
 /** Een Stripe-abonnementsstatus als onze status. Onbekend: null (niets doen). */
 export function statusUitAbonnement(stripeStatus: string): AanmeldStatus | null {
   switch (stripeStatus) {
+    // We maken geen proefperiodes meer (besluit Kane 30-10-2026), maar Stripe kan
+    // 'trialing' nog sturen voor een oud abonnement: dat telt gewoon als actief.
     case 'trialing':
     case 'active':
       return 'actief'

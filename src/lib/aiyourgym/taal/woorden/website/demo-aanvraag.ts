@@ -25,7 +25,7 @@ export const DEMO_AANVRAAG = woordenboek({
       { titel: 'We laten het zien', tekst: 'Met ruimte voor al je vragen. Daarna beslis je zelf.' },
     ],
     direct: 'Liever direct contact?',
-    zelfProberen: 'Liever meteen zelf proberen?',
+    zelfProberen: 'Liever meteen zelf starten?',
     // Het formulier
     uitleg: 'Vrijblijvend. Binnen een werkdag plannen we samen een moment.',
     naam: 'Je naam',
@@ -70,7 +70,7 @@ export const DEMO_AANVRAAG = woordenboek({
       { titel: 'We show you around', tekst: 'With room for all your questions. Then you decide.' },
     ],
     direct: 'Prefer direct contact?',
-    zelfProberen: 'Rather try it yourself straight away?',
+    zelfProberen: 'Rather get started yourself straight away?',
     uitleg: 'No obligation. Within one working day we find a time together.',
     naam: 'Your name',
     sportschoolNaam: 'Name of your gym',

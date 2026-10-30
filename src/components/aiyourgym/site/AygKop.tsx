@@ -9,7 +9,7 @@ import { AygNav } from './AygNav'
 import { aygPad } from './paden'
 import { scrollPositie, volgScroll } from './scrollpositie'
 
-// Kop van de verkoopwebsite: logo, de hoofdpagina's, de demo en "Probeer gratis".
+// Kop van de verkoopwebsite: logo, de hoofdpagina's, de demo en "Aanmelden".
 // Bovenaan de pagina valt de kop weg in het papier (data-bovenaan); zodra je
 // scrolt krijgt hij een licht kalkwit vlak met een fijne lijn en zachte blur.
 // Let op: de body scrolt, niet het venster (zie scrollpositie.ts). Zonder JavaScript

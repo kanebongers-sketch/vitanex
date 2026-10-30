@@ -12,17 +12,16 @@ interface SamenvattingProps {
   subdomeinen: boolean
   invoer: Invoer
   pakket: GekozenPakketten | null
-  proefdagen: number
 }
 
-export function Samenvatting({ invoer, pakket, proefdagen, subdomeinen }: SamenvattingProps) {
+export function Samenvatting({ invoer, pakket, subdomeinen }: SamenvattingProps) {
   const t = useTekst(AANMELD_FORMULIER)
   const veld = adresVeld(subdomeinen)
   const naam = invoer.slug || t.jouwgym
   const aanvraag = pakket !== null && !pakket.open
   const stappen = [
-    { Icoon: CalendarCheck, tekst: aanvraag ? t.naAanvraag1 : t.naProef1(proefdagen) },
-    { Icoon: LayoutDashboard, tekst: aanvraag ? t.naAanvraag2 : t.naProef2 },
+    { Icoon: CalendarCheck, tekst: aanvraag ? t.naAanvraag1 : t.naStart1 },
+    { Icoon: LayoutDashboard, tekst: aanvraag ? t.naAanvraag2 : t.naStart2 },
     { Icoon: KeyRound, tekst: t.na3 },
   ]
   return (

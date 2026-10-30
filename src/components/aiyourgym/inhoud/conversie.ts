@@ -2,24 +2,21 @@
 // Teksten die een bezoeker over de streep helpen. Alleen wat Club echt doet;
 // waar het staat:
 // - geen opstartkosten (actie) en jaarcontract: besluit Kane 18-10-2026, zie .claude/CLAUDE.md
-// - proefperiode: PROEFDAGEN in src/lib/aiyourgym/pakketten.ts, trial_period_days in stripe-api.ts
-// - stoppen in de proefperiode kost niets: met Stripe start de eerste betaling pas
-//   na trial_period_days (stripe-api.ts, abonnement.ts "Daarna start de eerste
-//   betaling vanzelf"); met de testbetaling wordt niets afgeschreven
-//   (testbetaling.ts). Zelfde belofte als VRAAG_CONTRACT in vertrouwen.ts.
-// - NIET "geen creditcard nodig": zodra Stripe aan staat vraagt Checkout om
-//   betaalgegevens (zie concurrenten-onderzoek, item 15).
+// - geen proefperiode (besluit Kane 30-10-2026: "je gebruikt het of je doet het
+//   niet"): na het aanmelden betaal je meteen via Stripe. Dus geen zinnen over
+//   gratis proberen of kosteloos stoppen. De live demo en een demo aanvragen
+//   blijven, dat is geen proefperiode.
+// - NIET "geen creditcard nodig": Checkout vraagt om betaalgegevens.
 // - gegevens van jou en exporteren: voorwaarden, src/lib/club/rapporten (ledenlijst, leads, uren als CSV)
 // - persoonlijke hulp bij het inrichten (koers Kane 18-10-2026; welke pakketten
 //   hem gratis krijgen beslist Kane bij de prijzen, daarom geen pakketnamen)
 // - database in Frankfurt: inhoud/vertrouwen.ts
+// - live in ongeveer een kwartier: START_MINUTEN in vertrouwen.ts (som van de wizardstappen, test: hoogstens 15)
 // - ledenapp in eigen huisstijl in elk pakket: 'Ledenapp in je eigen huisstijl' in Start, de rest bouwt daarop
 // - ledenimport met voorbeeld, nooit verwijderen: src/lib/club/leden/import
 // - opvolgen met eigen drempels: src/lib/club/automatisering/regels.ts
 // - uren goedkeuren en exporteren: src/lib/club/personeel/uren.ts, src/app/(aiyourgym)/api/club/personeel/uren/csv
 // Geen prijzen, geen concurrenten bij naam, geen aantallen klanten of reviews.
-
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 
 /**
  * Korte zinnen die het risico wegnemen, vlak bij elke aanmeldknop. De eerste
@@ -27,10 +24,9 @@ import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
  * aanmeldband en op de prijzen- en demopagina.
  */
 export const GERUSTSTELLING = [
-  `${PROEFDAGEN} dagen gratis proberen`,
-  'Stoppen in de proefperiode kost niets',
   'Nu geen opstartkosten',
   'Je gegevens blijven van jou',
-  'Persoonlijke hulp bij het inrichten',
   'Data in de EU',
+  'Persoonlijke hulp bij het inrichten',
+  'Live in ongeveer een kwartier',
 ] as const

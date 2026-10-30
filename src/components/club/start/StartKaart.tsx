@@ -5,7 +5,6 @@ import { magBeheerdersBeheren } from '@/lib/club/beheerders/rechten'
 import { aantalAf, minutenOver, minutenTekst, nodigeStappen, startPad, stappenStand, streefStand, toonStartKaart } from '@/lib/club/start/stappen'
 import { nlDelen } from '@/lib/club/rooster/tijd'
 import { haalStartVoorPagina, haalStartFeiten } from '@/lib/club/start/opslag'
-import { Proefperiode } from './Proefperiode'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import './start.css'
@@ -13,19 +12,13 @@ import './start.css'
 // Op Vandaag, zolang de startwizard loopt: een opvallende kaart met de stand
 // en de volgende open stap, plus de streefdatum als de eigenaar die koos
 // ("Live op 1 november, nog 3 stappen"). Alleen voor Kane en de eigenaar.
-// Na de wizard staat hier alleen nog de proefregel, als het einde bekend is.
+// Na de wizard verdwijnt de kaart.
 
 export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: string | null }) {
   if (!magBeheerdersBeheren(t)) return null
   const gelezen = await haalStartVoorPagina(t)
-  // Wizard klaar (of niet te lezen): de kaart verdwijnt, de rustige proefregel blijft.
-  if (!gelezen.ok || !toonStartKaart(gelezen.voortgang)) {
-    return (
-      <div className="club-proef-los">
-        <Proefperiode t={t} />
-      </div>
-    )
-  }
+  // Wizard klaar (of niet te lezen): de kaart verdwijnt.
+  if (!gelezen.ok || !toonStartKaart(gelezen.voortgang)) return null
   const taal = await getTaal()
   const tk = (await clubTekst(START)).startKaart
   // Alleen de stappen van de afgenomen pakketten (en de kern).
@@ -52,7 +45,6 @@ export async function StartKaart({ t, vestiging }: { t: ClubToegang; vestiging: 
           </p>
         )}
         <p className="club-startkaart-tijd">{tk.tijd(minutenTekst(minutenOver(stand), taal))}</p>
-        <Proefperiode t={t} />
       </div>
       <div className="club-startkaart-balk" role="progressbar" aria-label={tk.voortgang} aria-valuemin={0} aria-valuemax={totaal} aria-valuenow={af}>
         {stand.map((s) => (

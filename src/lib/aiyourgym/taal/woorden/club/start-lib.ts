@@ -1,7 +1,7 @@
 import { woordenboek } from '../../woordenboek'
 
 // De teksten die de pure regels van de startwizard maken (src/lib/club/start/*):
-// namen van de stappen, de soorten sportschool, wat er klaar wordt gezet, de
+// namen van de stappen, de soorten sportschool (alleen namen, voor de website), de
 // checklist voor de eerste dag, het uitnodigen van het team en de controles.
 // De lijsten in src/lib/club/start lezen hun Nederlandse tekst hieruit (bron);
 // in beeld altijd met de taal erbij. Besluit Kane (23-10-2026): niets uitstellen,
@@ -10,7 +10,6 @@ import { woordenboek } from '../../woordenboek'
 export const START_LIB = woordenboek({
   nl: {
     stappen: {
-      soort: { titel: 'Je sportschool', kort: 'Kies de soort, wij zetten de rest klaar' },
       huisstijl: { titel: 'Huisstijl', kort: 'Logo, kleur en je eigen adres' },
       vestigingen: { titel: 'Vestiging', kort: 'Adres, openingstijden en reserveren' },
       onderdelen: { titel: 'Onderdelen', kort: 'Wat je sportschool gebruikt' },
@@ -58,39 +57,6 @@ export const START_LIB = woordenboek({
       reeks: (a: string, b: string) => `${a} tot ${b}`,
       tijden: (van: string, tot: string) => `${van} tot ${tot}`,
       dicht: 'dicht',
-    },
-    modules: {
-      leden: 'Leden',
-      checkin: 'Check-in',
-      rooster: 'Groepslessen',
-      afspraken: 'Afspraken',
-      personeel: 'Personeelsrooster',
-      taken: 'Taken en poetslijsten',
-      leads: 'Leads',
-      training: 'Training',
-      cijfers: 'Cijfers',
-      app: 'Ledenapp',
-    },
-    klaargezet: {
-      onderdelen: 'Onderdelen',
-      lestypen: 'Lestypen',
-      openingstijden: 'Openingstijden',
-      reserveren: 'Reserveren',
-      rechten: 'Wat je team ziet',
-      alleOnderdelen: (aantal: number) => `Alle ${aantal} onderdelen staan aan.`,
-      deelOnderdelen: (aan: number, totaal: number, uit: string) => `${aan} van de ${totaal} onderdelen aan. Uit: ${uit}.`,
-      geenLessen: 'Geen groepslessen. Geef je ze toch, zet dan Groepslessen aan bij Onderdelen.',
-      reserverenTekst: (dagen: number, uren: number, keer: number, blokkade: number) =>
-        `Boeken tot ${dagen} dagen vooruit, kosteloos annuleren tot ${uren} uur voor de les, na ${keer} keer niet komen ${blokkade} dagen niet boeken.`,
-      rolMeervoud: {
-        trainer: 'trainers',
-        instructeur: 'groepslesinstructeurs',
-        manager: 'clubmanagers',
-        administratie: 'de administratie',
-      },
-      rolKop: (naam: string, aantal: number) => `${naam} zien ${aantal} onderdelen`,
-      rolDeel: (naam: string, aantal: number) => `${naam} ${aantal}`,
-      eigenaarZiet: (lijst: string) => `${lijst}. Jij als eigenaar ziet alles.`,
     },
     hulpOnderwerp: (nummer: number, titel: string) => `Startwizard, stap ${nummer} (${titel}): ik kom er niet uit`,
     eersteDag: {
@@ -147,11 +113,6 @@ export const START_LIB = woordenboek({
       leesFout: 'De voortgang kon niet worden gelezen. Probeer het opnieuw.',
       opslaanFout: 'Opslaan lukte niet. Probeer het opnieuw.',
     },
-    proef: {
-      kop: (datum: string) => `Proefperiode tot ${datum}`,
-      een: 'nog een dag',
-      meer: (dagen: number) => `nog ${dagen} dagen`,
-    },
     demo: {
       regel: (regel: number) => `Regel ${regel}`,
       naamOntbreekt: 'Voornaam of achternaam ontbreekt.',
@@ -160,7 +121,6 @@ export const START_LIB = woordenboek({
   },
   en: {
     stappen: {
-      soort: { titel: 'Your gym', kort: 'Choose the type, we set up the rest' },
       huisstijl: { titel: 'Branding', kort: 'Logo, colour and your own address' },
       vestigingen: { titel: 'Location', kort: 'Address, opening hours and booking' },
       onderdelen: { titel: 'Features', kort: 'What your gym uses' },
@@ -208,39 +168,6 @@ export const START_LIB = woordenboek({
       reeks: (a: string, b: string) => `${a} to ${b}`,
       tijden: (van: string, tot: string) => `${van} to ${tot}`,
       dicht: 'closed',
-    },
-    modules: {
-      leden: 'Members',
-      checkin: 'Check-in',
-      rooster: 'Group classes',
-      afspraken: 'Appointments',
-      personeel: 'Staff rota',
-      taken: 'Tasks and cleaning lists',
-      leads: 'Leads',
-      training: 'Training',
-      cijfers: 'Metrics',
-      app: 'Member app',
-    },
-    klaargezet: {
-      onderdelen: 'Features',
-      lestypen: 'Class types',
-      openingstijden: 'Opening hours',
-      reserveren: 'Booking',
-      rechten: 'What your team sees',
-      alleOnderdelen: (aantal: number) => `All ${aantal} features are on.`,
-      deelOnderdelen: (aan: number, totaal: number, uit: string) => `${aan} of the ${totaal} features on. Off: ${uit}.`,
-      geenLessen: 'No group classes. If you do run them, turn on Group classes under Features.',
-      reserverenTekst: (dagen: number, uren: number, keer: number, blokkade: number) =>
-        `Book up to ${dagen} days ahead, cancel free of charge up to ${uren} hours before the class, and after ${keer} no-shows no booking for ${blokkade} days.`,
-      rolMeervoud: {
-        trainer: 'trainers',
-        instructeur: 'group class instructors',
-        manager: 'club managers',
-        administratie: 'the admin team',
-      },
-      rolKop: (naam: string, aantal: number) => `${naam} see ${aantal} sections`,
-      rolDeel: (naam: string, aantal: number) => `${naam} ${aantal}`,
-      eigenaarZiet: (lijst: string) => `${lijst}. As the owner, you see everything.`,
     },
     hulpOnderwerp: (nummer: number, titel: string) => `Setup wizard, step ${nummer} (${titel}): I am stuck`,
     eersteDag: {
@@ -296,11 +223,6 @@ export const START_LIB = woordenboek({
     api: {
       leesFout: 'Your progress could not be read. Please try again.',
       opslaanFout: 'Saving did not work. Please try again.',
-    },
-    proef: {
-      kop: (datum: string) => `Trial until ${datum}`,
-      een: '1 day left',
-      meer: (dagen: number) => `${dagen} days left`,
     },
     demo: {
       regel: (regel: number) => `Row ${regel}`,

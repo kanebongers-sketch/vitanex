@@ -16,7 +16,6 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
 import { haalDemo } from '@/lib/aiyourgym/demo/bron'
 import { bouwApp, bouwCijfers, bouwLidKaart, bouwSchema, bouwVandaag, bouwWeek, type DemoRuw } from '@/lib/aiyourgym/demo/model'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { oefening3dOpNaam } from '@/lib/club/training/3d'
 import { coachingVoor } from '@/lib/club/training/coaching'
@@ -52,9 +51,9 @@ const DEMO_ACCENT = IRON_KLEUR.iron
 function NietBeschikbaar({ taal }: { taal: Taal }) {
   const t = DEMO[taal]
   return (
-    <PaginaKop label={t.label} titel={t.nietKop} tekst={t.nietTekst(PROEFDAGEN)}>
+    <PaginaKop label={t.label} titel={t.nietKop} tekst={t.nietTekst}>
       <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
-        {t.startProef}
+        {t.start}
       </Knop>
     </PaginaKop>
   )
@@ -89,7 +88,7 @@ export default async function DemoPagina() {
       >
         <div className="ayg-knoppen">
           <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
-            {t.startProef}
+            {t.start}
           </Knop>
           <Knop href={`#${S.vandaag.sleutel}`} soort="rand">
             {t.begin}

@@ -17,8 +17,8 @@ export const KOP = woordenboek({
     liveDemo: 'Live demo',
     planDemo: { voor: 'Plan ', lang: 'een gratis ', na: 'demo' },
     planDemoVol: 'Plan een gratis demo',
-    probeer: 'Probeer gratis',
-    probeerDagen: (dagen: number) => `Probeer ${dagen} dagen gratis`,
+    aanmelden: 'Aanmelden',
+    start: 'Start je club',
     ofLiveDemo: 'Of bekijk de live demo',
     links: {
       functies: { label: 'Functies', uitleg: 'Beheer, coaching, planning, groei en betrokkenheid' },
@@ -39,8 +39,8 @@ export const KOP = woordenboek({
     liveDemo: 'Live demo',
     planDemo: { voor: 'Book ', lang: 'a free ', na: 'demo' },
     planDemoVol: 'Book a free demo',
-    probeer: 'Try it free',
-    probeerDagen: (dagen: number) => `Try it free for ${dagen} days`,
+    aanmelden: 'Sign up',
+    start: 'Start your club',
     ofLiveDemo: 'Or explore the live demo',
     links: {
       functies: { label: 'Features', uitleg: 'Management, coaching, planning, growth and engagement' },

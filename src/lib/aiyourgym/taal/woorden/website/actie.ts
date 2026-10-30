@@ -1,39 +1,31 @@
 // De oproep om te beginnen en de geruststelling eronder (src/components/aiyourgym/site/Actie.tsx).
 // Het Nederlands is GERUSTSTELLING uit inhoud/conversie.ts (daar staat ook waarom elke zin klopt);
-// het Engels zegt precies hetzelfde, niets meer.
+// het Engels zegt precies hetzelfde, niets meer. Geen proefperiode (besluit Kane 30-10-2026):
+// na het aanmelden betaal je meteen, dus geen "gratis proberen".
 
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
-import { GERUSTSTELLING } from '@/components/aiyourgym/inhoud/conversie'
 import { woordenboek } from '../../woordenboek'
+import { GERUSTSTELLING } from '@/components/aiyourgym/inhoud/conversie'
 
 export const ACTIE = woordenboek({
   nl: {
-    zonderRisico: 'Zonder risico',
-    probeerDagen: (dagen: number) => `Probeer ${dagen} dagen gratis`,
+    zonderRisico: 'Waar je op kunt rekenen',
+    start: 'Start je club',
     planDemo: 'Plan een gratis demo',
     ofLiveDemo: 'Of bekijk de live demo',
-    // De aanmeldband onderaan elke pagina (site/AanmeldBand.tsx)
-    bandLabel: (dagen: number) => `${dagen} dagen gratis proberen`,
-    bandTitel: 'Zet je sportschool er vandaag in.',
-    bandLead: (dagen: number) => `Je krijgt een eigen omgeving met je eigen logo en kleuren. Probeer alles ${dagen} dagen met je team, of laat het je eerst persoonlijk zien.`,
     geruststelling: GERUSTSTELLING,
   },
   en: {
-    zonderRisico: 'No risk',
-    probeerDagen: (dagen: number) => `Try it free for ${dagen} days`,
+    zonderRisico: 'What you can count on',
+    start: 'Start your club',
     planDemo: 'Book a free demo',
     ofLiveDemo: 'Or explore the live demo',
-    bandLabel: (dagen: number) => `${dagen}-day free trial`,
-    bandTitel: 'Bring your gym on board today.',
-    bandLead: (dagen: number) => `You get your own environment with your own logo and colours. Try everything with your team for ${dagen} days, or let us show you in person first.`,
     // De losse pakketten staan in pakketten.ts; hier geen pakketnamen.
     geruststelling: [
-      `Try it free for ${PROEFDAGEN} days`,
-      'Cancelling during the trial costs nothing',
       'No set-up fee for now',
       'Your data stays yours',
-      'Personal help with setting up',
       'Data stored in the EU',
+      'Personal help with setting up',
+      'Live in about a quarter of an hour',
     ],
   },
 })

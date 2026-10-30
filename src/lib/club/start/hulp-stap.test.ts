@@ -5,7 +5,7 @@ import { STAPPEN } from './stappen'
 
 describe('hulpVoorStap', () => {
   it('zet de stap en de titel in het onderwerp', () => {
-    expect(hulpVoorStap(6)).toEqual({ soort: 'vraag', onderwerp: 'Startwizard, stap 6 (Team): ik kom er niet uit', pagina: HULP_PAGINA })
+    expect(hulpVoorStap(5)).toEqual({ soort: 'vraag', onderwerp: 'Startwizard, stap 5 (Team): ik kom er niet uit', pagina: HULP_PAGINA })
   })
 
   it('valt terug op stap 1 bij een onzinnig nummer', () => {

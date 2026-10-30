@@ -1,4 +1,7 @@
-// ─── GET/POST /api/aiyourgym/cron/proefmails: mails in de proefperiode ──────
+// ─── GET/POST /api/aiyourgym/cron/proefmails: startmails na het aanmelden ───
+// Drie tips in de eerste dagen (dag 1, 3 en 7). Er is geen proefperiode meer
+// (besluit Kane 30-10-2026); het pad heet nog proefmails zodat een bestaande
+// cron-taak blijft werken.
 // Bijvoorbeeld elk uur via cron-job.org. Slot: het gedeelde CRON_SECRET in de
 // header x-cron-secret (fail-closed: leeg = niemand komt binnen; nooit in de URL).
 // Er gaat alleen iets weg met AIYOURGYM_PROEFMAILS=1 plus AIYOURGYM_RESEND_FROM

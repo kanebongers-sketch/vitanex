@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { GERUSTSTELLING } from '@/components/aiyourgym/inhoud/conversie'
 import { siteTekst, getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
@@ -18,7 +17,7 @@ interface GeruststellingProps {
   onder?: boolean
 }
 
-/** Onder elke aanmeldknop: minstens de eerste drie (proef, stoppen kost niets, geen opstartkosten). */
+/** Onder elke aanmeldknop: minstens de eerste drie (geen opstartkosten, je gegevens, data in de EU). */
 export const GERUST_BIJ_KNOP = 3
 
 export async function Geruststelling({ aantal = GERUSTSTELLING.length, onder = false }: GeruststellingProps) {
@@ -40,7 +39,7 @@ interface SectieActieProps {
   zin?: string
 }
 
-/** De twee routes naast elkaar: zelf proberen, of een persoonlijke demo plannen. */
+/** De twee routes naast elkaar: meteen aanmelden, of een persoonlijke demo plannen. */
 export async function TweeRoutes() {
   const taal = await getSiteTaal()
   const t = ACTIE[taal]
@@ -48,7 +47,7 @@ export async function TweeRoutes() {
   return (
     <div className="ayg-knoppen">
       <Knop href={AANMELDEN} soort="accent" pijl>
-        {t.probeerDagen(PROEFDAGEN)}
+        {t.start}
       </Knop>
       <Knop href={DEMO_AANVRAGEN} soort="rand">
         {t.planDemo}
@@ -57,7 +56,7 @@ export async function TweeRoutes() {
   )
 }
 
-/** Na een grote sectie: gratis proberen, een demo plannen, de live demo als rustige derde keus en geruststelling. */
+/** Na een grote sectie: aanmelden, een demo plannen, de live demo als rustige derde keus en geruststelling. */
 export async function SectieActie({ zin }: SectieActieProps) {
   const taal = await getSiteTaal()
   const { DEMO } = SITE_PADEN

@@ -151,8 +151,6 @@ export function startStand(instellingen: unknown): StartStand {
 /** Een telling die niet te lezen was is null: de pagina toont dan een vraagteken. */
 export interface KerncijfersInvoer {
   aanmeldingen: readonly PlatformAanmelding[] | null
-  /** Sportscholen met een proefperiode die nog loopt (Stripe); null = niet te lezen. */
-  inProef: number | null
   /** Statussen van supportmeldingen die nog niet klaar zijn; null = niet te lezen. */
   supportStatussen: readonly string[] | null
   /** Verschillende fouten die de laatste 24 uur voorkwamen; null = niet te lezen. */
@@ -163,7 +161,6 @@ export interface Kerncijfers {
   actief: number | null
   /** Open demo-aanvragen van de website (los geteld, zie demo-aanvragen.ts); null = niet te lezen. */
   demoOpen?: number | null
-  inProef: number | null
   aanvragen: number | null
   supportOpen: number | null
   supportNietOpgepakt: number | null
@@ -179,15 +176,9 @@ export function kerncijfers(i: KerncijfersInvoer): Kerncijfers {
   const support = i.supportStatussen
   return {
     actief: i.aanmeldingen ? telActief(i.aanmeldingen) : null,
-    inProef: i.inProef,
     aanvragen: i.aanmeldingen ? i.aanmeldingen.filter(isAanvraag).length : null,
     supportOpen: support ? support.filter((s) => s === 'open' || s === 'bezig').length : null,
     supportNietOpgepakt: support ? support.filter((s) => s === 'open').length : null,
     fouten24: i.fouten24,
   }
-}
-
-/** Loopt de proefperiode nog? */
-export function isInProef(proefTot: Date | null, nu: Date): boolean {
-  return proefTot !== null && proefTot.getTime() > nu.getTime()
 }

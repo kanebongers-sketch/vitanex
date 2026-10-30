@@ -3,7 +3,6 @@ import {
   aanmeldingPerOrganisatie,
   aanmeldingUitRij,
   isAanvraag,
-  isInProef,
   kerncijfers,
   maandBegin,
   maandNaam,
@@ -118,16 +117,16 @@ describe('ordenen', () => {
 
 describe('startStand', () => {
   it('geen voortgang is niet gestart', () => {
-    expect(startStand({})).toEqual({ soort: 'niet', klaar: 0, totaal: 8 })
-    expect(startStand(null)).toEqual({ soort: 'niet', klaar: 0, totaal: 8 })
+    expect(startStand({})).toEqual({ soort: 'niet', klaar: 0, totaal: 7 })
+    expect(startStand(null)).toEqual({ soort: 'niet', klaar: 0, totaal: 7 })
   })
 
   it('telt de stappen die klaar zijn', () => {
-    expect(startStand({ start: { stap: 4, klaar: ['soort', 'huisstijl', 'onzin'], afgerond_op: null } })).toEqual({ soort: 'bezig', klaar: 2, totaal: 8 })
+    expect(startStand({ start: { stap: 4, klaar: ['team', 'huisstijl', 'onzin'], afgerond_op: null } })).toEqual({ soort: 'bezig', klaar: 2, totaal: 7 })
   })
 
   it('ziet een afgeronde wizard', () => {
-    expect(startStand({ start: { stap: 8, klaar: ['soort'], afgerond_op: '2026-10-12T09:00:00Z' } })).toMatchObject({ soort: 'af', afgerondOp: '2026-10-12T09:00:00Z' })
+    expect(startStand({ start: { stap: 7, klaar: ['huisstijl'], afgerond_op: '2026-10-12T09:00:00Z' } })).toMatchObject({ soort: 'af', afgerondOp: '2026-10-12T09:00:00Z' })
   })
 })
 
@@ -139,9 +138,8 @@ describe('kerncijfers', () => {
 
   it('telt aanvragen, support en fouten', () => {
     const lijst = [aanmelding({ id: '1', status: 'aanvraag', organisatieId: null }), aanmelding({ id: '2', status: 'aanvraag', organisatieId: null }), aanmelding({ id: '3' })]
-    expect(kerncijfers({ aanmeldingen: lijst, inProef: 1, supportStatussen: ['open', 'bezig', 'open', 'klaar'], fouten24: 4 })).toEqual({
+    expect(kerncijfers({ aanmeldingen: lijst, supportStatussen: ['open', 'bezig', 'open', 'klaar'], fouten24: 4 })).toEqual({
       actief: 1,
-      inProef: 1,
       aanvragen: 2,
       supportOpen: 3,
       supportNietOpgepakt: 2,
@@ -150,9 +148,8 @@ describe('kerncijfers', () => {
   })
 
   it('laat een telling die niet te lezen was leeg', () => {
-    expect(kerncijfers({ aanmeldingen: null, inProef: null, supportStatussen: null, fouten24: null })).toEqual({
+    expect(kerncijfers({ aanmeldingen: null, supportStatussen: null, fouten24: null })).toEqual({
       actief: null,
-      inProef: null,
       aanvragen: null,
       supportOpen: null,
       supportNietOpgepakt: null,
@@ -160,13 +157,9 @@ describe('kerncijfers', () => {
     })
   })
 
-  it('isAanvraag en isInProef', () => {
+  it('isAanvraag', () => {
     expect(isAanvraag({ status: 'aanvraag' })).toBe(true)
     expect(isAanvraag({ status: 'wacht_op_betaling' })).toBe(false)
-    const nu = new Date('2026-10-18T12:00:00Z')
-    expect(isInProef(new Date('2026-10-20T00:00:00Z'), nu)).toBe(true)
-    expect(isInProef(new Date('2026-10-01T00:00:00Z'), nu)).toBe(false)
-    expect(isInProef(null, nu)).toBe(false)
   })
 
   it('pakketNaam valt terug op de sleutel', () => {

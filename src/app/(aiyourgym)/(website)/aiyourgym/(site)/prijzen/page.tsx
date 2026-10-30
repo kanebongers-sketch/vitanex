@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
-import { PAKKETTEN, PROEFDAGEN, type Pakket } from '@/lib/aiyourgym/pakketten'
+import { PAKKETTEN, type Pakket } from '@/lib/aiyourgym/pakketten'
 import { testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { PAKKET_NAMEN } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
@@ -50,7 +50,7 @@ function PakketKaart({ pakket, taal }: { pakket: Pakket; taal: Taal }) {
       </ul>
       <div className="ayg-knoppen">
         <Knop href={`${AANMELDEN}?pakketten=${pakket.sleutel}`} soort="inkt" pijl>
-          {ACTIE[taal].probeerDagen(PROEFDAGEN)}
+          {PAKKET_TEKST[taal].kies}
         </Knop>
         <Knop href={`${PRIJS_OP_MAAT}?pakket=${pakket.sleutel}`} soort="rand">
           {PRIJZEN[taal].vraagPrijs}
@@ -80,14 +80,15 @@ function Kern({ taal }: { taal: Taal }) {
   )
 }
 
-// Zolang Stripe niet gekoppeld is, start de proefperiode met een testbetaling
-// (besluit Kane 23-10-2026): dat zeggen we bij de vraag over de proefperiode eerlijk.
+// Zolang Stripe niet gekoppeld is, start een aanmelding met een testbetaling
+// (besluit Kane 23-10-2026): dat zeggen we bij de vraag over starten eerlijk.
+// Geen proefperiode (besluit Kane 30-10-2026).
 function vragen(taal: Taal, zonderStripe: boolean) {
   const { vragen: v, zonderStripe: zonder } = PRIJZEN[taal]
   return [
     v.kosten,
     v.later,
-    { vraag: v.proef.vraag, antwoord: `${v.proef.antwoord}${zonderStripe ? zonder : ''}` },
+    { vraag: v.start.vraag, antwoord: `${v.start.antwoord}${zonderStripe ? zonder : ''}` },
     v.contract,
     v.gegevens,
     v.incasso,
@@ -103,7 +104,7 @@ export default async function PrijzenPagina() {
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
-            {ACTIE[taal].probeerDagen(PROEFDAGEN)}
+            {ACTIE[taal].start}
           </Knop>
           <Knop href={DEMO_AANVRAGEN} soort="rand">
             {ACTIE[taal].planDemo}

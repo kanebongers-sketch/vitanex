@@ -70,7 +70,7 @@ export const SCHEMAS_PAGINA = woordenboek({
         antwoord: 'Het eigen schema, de eigen maten en trainingen. Gezondheidsgegevens en notities van de trainer blijven bij het team.',
       },
     ],
-    vragenActie: 'Laat je trainers het zelf proberen.',
+    vragenActie: 'Geef je trainers het gereedschap dat ze verdienen.',
     band: 'Geef je leden een trainer in hun broekzak.',
   },
   en: {
@@ -165,7 +165,7 @@ export const SCHEMAS_PAGINA = woordenboek({
         antwoord: 'Their own programme, measurements and workouts. Health data and the trainer’s notes stay with the team.',
       },
     ],
-    vragenActie: 'Let your trainers try it for themselves.',
+    vragenActie: 'Give your trainers the tools they deserve.',
     band: 'Give your members a trainer in their pocket.',
   },
 })

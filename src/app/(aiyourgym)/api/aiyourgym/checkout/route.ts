@@ -20,8 +20,9 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 // POST /api/aiyourgym/checkout
 // Een sportschool meldt zich aan met een of meer losse pakketten (besluit Kane
 // 29-10-2026). Zijn ze allemaal online af te sluiten (Stripe-sleutel en per
-// pakket een prijs in env), dan volgt Stripe Checkout met een regel per pakket
-// en een proefperiode. Alle zes met een bundelprijs (AIYOURGYM_STRIPE_PRIJS_ALLES,
+// pakket een prijs in env), dan volgt Stripe Checkout met een regel per pakket.
+// Geen proefperiode (besluit Kane 30-10-2026): de eerste maand wordt meteen
+// betaald. Alle zes met een bundelprijs (AIYOURGYM_STRIPE_PRIJS_ALLES,
 // besluit Kane 30-10-2026): een regel met de bundel (stripeRegels).
 // Zonder Stripe volgt een nagespeelde betaling op onze eigen site
 // (src/lib/aiyourgym/testbetaling.ts, besluit Kane 23-10-2026). Staat ook die

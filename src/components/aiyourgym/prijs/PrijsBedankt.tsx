@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { PRIJS_OP_MAAT } from '@/lib/aiyourgym/taal/woorden/website/prijs-op-maat'
@@ -26,7 +25,7 @@ export function PrijsBedankt({ naam }: { naam: string }) {
       <p className="ayg-lead">{t.bedanktTekst}</p>
       <div className="ayg-knoppen">
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-          {t.alvast(PROEFDAGEN)}
+          {t.alvast}
         </Link>
         <Link href={DEMO} className="ayg-knop ayg-knop--rand">
           {t.bekijkDemo}

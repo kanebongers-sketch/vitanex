@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import '@/components/aiyourgym/aanmelden/aanmelden.css'
 import '@/components/aiyourgym/demo-aanvraag/demo-aanvraag.css'
-import { PROEFDAGEN, vindPakket } from '@/lib/aiyourgym/pakketten'
+import { vindPakket } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { PRIJS_OP_MAAT } from '@/lib/aiyourgym/taal/woorden/website/prijs-op-maat'
@@ -58,7 +58,7 @@ export default async function PrijsOpMaatPagina({ searchParams }: PaginaProps) {
           <div className="dem-anders">
             <p>{t.eerstZien}</p>
             <Link href={SITE_PADEN.AANMELDEN} className="ayg-knop ayg-knop--accent">
-              {ACTIE[taal].probeerDagen(PROEFDAGEN)} <ArrowRight size={17} aria-hidden />
+              {ACTIE[taal].start} <ArrowRight size={17} aria-hidden />
             </Link>
           </div>
           <Geruststelling aantal={3} />

@@ -7,7 +7,7 @@ import { stuur } from '@/components/club/leden/stuur'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
-// Optioneel: wanneer wil je live? De eigenaar kiest een datum in stap 1 of op
+// Optioneel: wanneer wil je live? De eigenaar kiest een datum in de eerste stap (Huisstijl) of op
 // de laatste stap; de kaart op Vandaag toont daarna "Live op 1 november, nog
 // 3 stappen". Richting zonder druk: leeg laten mag, weghalen ook (veld leeg
 // maken). Geen eigen opslaanknop: de datum wordt vanzelf bewaard zodra hij

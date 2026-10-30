@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { PLAK_ACTIE } from '@/lib/aiyourgym/taal/woorden/website/contact'
@@ -35,7 +34,7 @@ export function PlakActie() {
   return (
     <div className="ayg-plak" data-zichtbaar={zichtbaar ? '' : undefined} aria-hidden={!zichtbaar} inert={!zichtbaar}>
       <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-        {ACTIE[taal].probeerDagen(PROEFDAGEN)}
+        {ACTIE[taal].start}
       </Link>
       <Link href={DEMO_AANVRAGEN} className="ayg-plak-demo">
         {PLAK_ACTIE[taal].planDemo}

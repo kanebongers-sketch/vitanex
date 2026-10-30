@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PAKKETTEN, PROEFDAGEN, leesPakketKeuze } from '@/lib/aiyourgym/pakketten'
+import { PAKKETTEN, leesPakketKeuze } from '@/lib/aiyourgym/pakketten'
 import { MAX_NAAM } from '@/lib/aiyourgym/aanmelding'
 import { afsluitbaar, bundelAfsluitbaar } from '@/lib/aiyourgym/config'
 import { testbetalingAan } from '@/lib/aiyourgym/testbetaling'
@@ -50,7 +50,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
     <AanmeldSchil>
       <section className="aan-pagina ayg-wrap">
         <header className="aan-intro">
-          <p className="ayg-label ayg-label--accent">{t.label(PROEFDAGEN)}</p>
+          <p className="ayg-label ayg-label--accent">{t.label}</p>
           <h1 className="aan-titel">{t.titel}</h1>
           <p className="ayg-lead">{t.lead}</p>
           <Geruststelling aantal={3} />
@@ -60,7 +60,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
             {t.geannuleerd}
           </p>
         )}
-        <AanmeldFormulier pakketten={pakketten} proefdagen={PROEFDAGEN} startPakketten={startPakketten} testAan={testAan} bundel={bundelAfsluitbaar()} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
+        <AanmeldFormulier pakketten={pakketten} startPakketten={startPakketten} testAan={testAan} bundel={bundelAfsluitbaar()} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
       </section>
     </AanmeldSchil>
   )

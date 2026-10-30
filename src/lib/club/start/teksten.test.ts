@@ -76,7 +76,7 @@ describe('teksten voor een nieuwe sportschool', () => {
   })
 
   it('stellen ook in het Engels niets uit', () => {
-    expect(startLib.START_LIB.en.stappen.soort.titel).toBe('Your gym')
+    expect(startLib.START_LIB.en.stappen.huisstijl.titel).toBe('Branding')
     const fout = WOORDENBOEKEN.flatMap((pad) =>
       zonderCommentaar(engelsDeel(pad))
         .filter((regel) => UITSTEL_EN.test(regel))

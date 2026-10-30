@@ -50,7 +50,7 @@ export const START_SECTIE = woordenboek({
     hulpKop: 'Persoonlijke hulp bij het inrichten',
     hulpTekst: 'We richten je sportschool samen met je in: ledenbestand, rooster en je eerste schema’s.',
     figuurLabel:
-      'De startwizard bij stap 5, Lessen: de teller met 4 van 8 stappen af en de tijd die nog over is, een balk per stap, de regel dat alles alvast is ingevuld voor de soort sportschool, de lestypen en de vaste week, en de knoppen Opslaan en stoppen en Klaar, verder',
+      'De startwizard bij de stap Lessen: de teller met de stappen die af zijn en de tijd die nog over is, een balk per stap, de lestypen en de vaste week, en de knoppen Opslaan en stoppen en Klaar, verder',
   },
   en: {
     label: 'Getting started is simple',
@@ -60,7 +60,7 @@ export const START_SECTIE = woordenboek({
     hulpKop: 'Personal help with setting up',
     hulpTekst: 'We set up your gym together with you: member list, timetable and your first programmes.',
     figuurLabel:
-      'The set-up wizard at step 5, Classes: the counter with 4 of 8 steps done and the time remaining, a bar per step, the line saying everything is prefilled for the type of gym, the class types and the regular week, and the buttons Save and stop and Done, next',
+      'The set-up wizard at the Classes step: the counter with the steps done and the time remaining, a bar per step, the class types and the regular week, and the buttons Save and stop and Done, next',
   },
 })
 

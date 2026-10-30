@@ -12,7 +12,7 @@ export const NIEUW_PAGINA = woordenboek({
     titel: 'Wat er nieuw is.',
     tekst: (aantal: number) => `Alleen wat live staat, met de datum. ${aantal} onderdelen tot nu toe, geen beloftes voor later.`,
     keerNieuw: (aantal: number) => `${aantal} keer nieuw`,
-    bandTitel: 'Probeer alles wat er nu in zit.',
+    bandTitel: 'Gebruik alles wat er nu in zit.',
   },
   en: {
     metaTitel: 'What’s new',
@@ -21,6 +21,6 @@ export const NIEUW_PAGINA = woordenboek({
     titel: 'What’s new.',
     tekst: (aantal: number) => `Only what is live, with the date. ${aantal} additions so far, no promises for later.`,
     keerNieuw: (aantal: number) => `${aantal} new`,
-    bandTitel: 'Try everything that is in it today.',
+    bandTitel: 'Use everything that is in it today.',
   },
 })

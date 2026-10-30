@@ -5,7 +5,6 @@
 // Portal maken. De sleutel gaat nooit naar de browser of in een log.
 
 import { createHash } from 'node:crypto'
-import { PROEFDAGEN } from './pakketten'
 import type { Aanmelding } from './aanmelding'
 import type { StripeRegel } from './config'
 import type { RegelWissel } from './pakket-wijziging'
@@ -22,7 +21,10 @@ export interface CheckoutInvoer {
   terugUrl: string
 }
 
-/** De velden van de Checkout Session (PUUR, getest). */
+/**
+ * De velden van de Checkout Session (PUUR, getest). Geen proefperiode (besluit
+ * Kane 30-10-2026): de eerste maand wordt bij het afsluiten meteen betaald.
+ */
 export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   const f = new URLSearchParams()
   f.set('mode', 'subscription')
@@ -41,7 +43,6 @@ export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   f.set('tax_id_collection[enabled]', 'true')
   f.set('metadata[aanmelding_id]', c.aanmeldingId)
   f.set('metadata[pakketten]', c.aanmelding.pakketten.join(','))
-  f.set('subscription_data[trial_period_days]', String(PROEFDAGEN))
   f.set('subscription_data[metadata][aanmelding_id]', c.aanmeldingId)
   f.set('subscription_data[metadata][slug]', c.aanmelding.slug)
   f.set('subscription_data[metadata][pakketten]', c.aanmelding.pakketten.join(','))

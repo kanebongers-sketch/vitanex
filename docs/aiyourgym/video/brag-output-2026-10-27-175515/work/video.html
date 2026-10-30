@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><title>AI Your Gym productfilm</title>
+<style>
+@font-face{font-family:Kop;src:url(fonts/b.woff2) format('woff2');font-weight:200 800;font-stretch:75% 100%}
+@font-face{font-family:Tekst;src:url(fonts/a.woff2) format('woff2');font-weight:100 900}
+:root{--groen:#10302A;--creme:#F1ECE1;--licht:#F8F5EE;--fles:#1E4A40;--salie:#A7B5A8;--inkt:#111614;--W:1920px;--H:1080px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:var(--W);height:var(--H);overflow:hidden;background:var(--creme)}
+body{font-family:Tekst,sans-serif;color:var(--inkt);-webkit-font-smoothing:antialiased}
+.v{--W:1080px;--H:1920px}
+img{display:block}
+.laag{position:absolute;inset:0;overflow:hidden;opacity:0}
+.creme{background:radial-gradient(70% 70% at 50% 42%,var(--licht) 0%,var(--creme) 70%,#ECE6D9 100%)}
+.diep{background:radial-gradient(65% 75% at 34% 45%,#1d4a3f 0%,#143a32 45%,var(--groen) 100%);color:var(--creme)}
+.kop{font-family:Kop;font-weight:800;letter-spacing:-0.05em;font-variation-settings:'wdth' 80;line-height:.94}
+.kop .g{color:var(--groen)}
+.diep .kop .g{color:var(--salie)}
+.inhoud{position:absolute;inset:0;transform-origin:50% 50%}
+.zacht{will-change:transform,opacity}
+
+/* S1 */
+#s1 .kop{position:absolute;left:0;right:0;top:50%;text-align:center;font-size:210px;transform:translateY(-50%)}
+#s1 .w{display:inline-block;margin:0 .09em}
+.v #s1 .kop{font-size:184px;line-height:1.0}
+
+/* gedeeld: apparaten */
+.toestel{position:absolute;transform-style:preserve-3d}
+.scherm{position:relative;border-radius:30px;background:#151716;padding:16px;box-shadow:0 0 0 2px #2a2d2b inset,0 70px 120px -40px rgba(17,22,20,.42),0 30px 50px -30px rgba(17,22,20,.35)}
+.scherm .beeld{position:relative;border-radius:16px;overflow:hidden}
+.scherm img{width:100%}
+.voet{position:relative;height:26px;margin:0 -7%;border-radius:2px 2px 22px 22px;background:linear-gradient(#e4e0d8,#bdb9b1 55%,#8f8c85);box-shadow:0 30px 40px -18px rgba(17,22,20,.45)}
+.voet::before{content:'';position:absolute;left:50%;top:0;width:16%;height:9px;margin-left:-8%;border-radius:0 0 10px 10px;background:#a8a49c}
+.vloer{position:absolute;left:8%;right:8%;height:60px;border-radius:50%;background:radial-gradient(closest-side,rgba(17,22,20,.22),rgba(17,22,20,0))}
+.dek{position:absolute;background:#0A0B09}
+.donker{position:absolute;inset:0;background:#0A0B09}
+.glans{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,0) 35%,rgba(255,255,255,.07) 47%,rgba(255,255,255,0) 60%);background-size:300% 100%}
+.tel{position:absolute;border-radius:15% / 7.2%;overflow:hidden;filter:drop-shadow(0 50px 50px rgba(17,22,20,.32)) drop-shadow(0 14px 18px rgba(17,22,20,.2))}
+.tel img{width:100%;border-radius:15% / 7.2%}
+.tel .donker{border-radius:12% / 6%;inset:1.6% 3% 1.6% 3%}
+
+/* S2 */
+#s2 .kop{position:absolute;left:0;right:0;top:104px;text-align:center;font-size:150px}
+#s2 .podium{position:absolute;left:430px;top:330px;width:1060px;perspective:2600px}
+#s2 .vloer{bottom:-34px}
+.v #s2 .kop{top:330px;font-size:180px}
+.v #s2 .podium{left:60px;top:780px;width:960px}
+
+/* S3 */
+#s3 .kop{position:absolute;left:150px;top:393px;font-size:156px}
+#s3 .podium{position:absolute;left:880px;top:150px;width:1340px;perspective:2400px}
+#s3 .scherm{border-radius:26px}
+.v #s3 .kop{left:90px;top:300px;transform:none;font-size:170px}
+.v #s3 .podium{left:90px;top:860px;width:1400px}
+
+/* S4 */
+#s4 canvas{position:absolute;left:70px;top:20px;width:1040px;height:1040px}
+#s4 .vloer{left:290px;width:600px;top:905px;height:90px;background:radial-gradient(closest-side,rgba(5,18,15,.5),rgba(5,18,15,0))}
+#s4 .rechts{position:absolute;left:1100px;top:170px;width:760px}
+#s4 .kop{font-size:118px;color:var(--creme)}
+.punt{display:flex;align-items:center;gap:26px;margin-top:36px}
+.punten{margin-top:74px}
+.punt .nr{flex:none;width:58px;height:58px;border-radius:50%;background:var(--creme);color:var(--groen);font-family:Kop;font-weight:800;font-size:28px;display:grid;place-items:center}
+.punt h3{font-family:Kop;font-weight:700;font-size:50px;letter-spacing:-.03em;font-variation-settings:'wdth' 90;line-height:1.05;color:var(--creme)}
+.v #s4 .rechts{left:90px;top:200px;width:900px}
+.v #s4 .kop{font-size:118px}
+.v #s4 canvas{left:40px;top:560px;width:1000px;height:1000px}
+.v #s4 .vloer{left:240px;top:1430px}
+.v #s4 .punten{position:absolute;top:1300px;left:0;margin:0}
+.v .punt{margin-top:30px}
+
+/* S5 */
+#s5 .kop{position:absolute;left:150px;top:393px;font-size:156px}
+#s5 .podium{position:absolute;left:1000px;top:90px;width:900px;height:900px;perspective:2200px}
+#s5 .t1{left:40px;top:0;width:430px}
+#s5 .t2{left:470px;top:70px;width:380px}
+.v #s5 .kop{left:90px;top:250px;transform:none;font-size:170px}
+.v #s5 .podium{left:60px;top:760px;width:960px;height:1100px}
+.v #s5 .t1{left:40px;top:0;width:500px}
+.v #s5 .t2{left:520px;top:90px;width:440px}
+
+/* S6 */
+#s6 .blok{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;text-align:center}
+#s6 .embleem{width:190px;height:190px;border-radius:6px;box-shadow:0 30px 60px -24px rgba(16,48,42,.45)}
+#s6 .naam{font-family:Kop;font-weight:800;font-size:112px;letter-spacing:-.045em;font-variation-settings:'wdth' 82;margin-top:54px;color:var(--groen)}
+#s6 .zin{font-size:36px;line-height:1.35;color:#36433d;margin-top:26px}
+#s6 .url{font-size:32px;font-weight:600;letter-spacing:.02em;color:var(--groen);margin-top:40px}
+.br3{display:none}.v .br3{display:inline}.v #s6 .embleem{width:240px;height:240px}.v #s6 .naam{font-size:150px}
+.v #s6 .zin{font-size:44px}.v #s6 .url{font-size:38px}
+.korrel{position:absolute;inset:0;pointer-events:none;opacity:.035;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")}
+</style></head>
+<body>
+
+<section class="laag creme" id="s1"><div class="inhoud">
+  <h1 class="kop"><span class="w">Balie.</span><span class="w">Vloer.</span><br class="br0" style="display:none"><span class="w">Trainer.</span><br class="br1"><br class="br2" style="display:none"><span class="w">Eigenaar.</span><span class="w g">Lid.</span></h1>
+</div></section>
+
+<section class="laag creme" id="s2"><div class="inhoud">
+  <h2 class="kop zacht">Een <span class="g">systeem.</span></h2>
+  <div class="podium"><div class="toestel zacht">
+    <div class="scherm"><div class="beeld"><img src="ui/dash.png" alt="">
+      <div class="dek" style="left:2.05%;top:33.3%;width:23.4%;height:11.8%"></div>
+      <div class="dek" style="left:26.3%;top:33.3%;width:23.3%;height:11.8%"></div>
+      <div class="dek" style="left:50.5%;top:33.3%;width:23.3%;height:11.8%"></div>
+      <div class="dek" style="left:74.7%;top:33.3%;width:23.3%;height:11.8%"></div>
+      <div class="dek" style="left:2.05%;top:47.1%;width:54.5%;height:44.4%"></div>
+      <div class="dek" style="left:57.6%;top:47.1%;width:40.5%;height:37.2%"></div>
+      <div class="donker"></div><div class="glans"></div></div></div>
+    <div class="voet"></div>
+  </div><div class="vloer"></div></div>
+</div></section>
+
+<section class="laag creme" id="s3"><div class="inhoud">
+  <h2 class="kop zacht">Lessen met<br><span class="g">wachtlijst.</span></h2>
+  <div class="podium"><div class="toestel zacht">
+    <div class="scherm"><div class="beeld"><img src="ui/func-2.png" alt="">
+      <div class="dek" style="left:6.4%;top:41.6%;width:18.1%;height:50%"></div>
+      <div class="dek" style="left:24.8%;top:41.6%;width:18.1%;height:50%"></div>
+      <div class="dek" style="left:43.2%;top:41.6%;width:18.1%;height:50%"></div>
+      <div class="dek" style="left:61.6%;top:41.6%;width:18.1%;height:50%"></div>
+      <div class="dek" style="left:80%;top:41.6%;width:18.1%;height:50%"></div>
+      <div class="donker"></div><div class="glans"></div></div></div>
+  </div></div>
+</div></section>
+
+<section class="laag diep" id="s4"><div class="inhoud">
+  <div class="vloer"></div>
+  <canvas class="fig" width="1080" height="1080"></canvas>
+  <div class="rechts">
+    <h2 class="kop zacht">Schema’s zoals een <span class="g">trainer</span> ze geeft.</h2>
+    <div class="punten">
+      <div class="punt"><div class="nr">1</div><h3>Stang op je bovenrug</h3></div>
+      <div class="punt"><div class="nr">2</div><h3>Buik aanspannen</h3></div>
+      <div class="punt"><div class="nr">3</div><h3>Gewicht op je middenvoet</h3></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="laag creme" id="s5"><div class="inhoud">
+  <h2 class="kop zacht">Een app<br>in jouw <span class="g">naam.</span></h2>
+  <div class="podium">
+    <div class="tel t2 zacht"><img src="ui/schema-6.png" alt=""><div class="donker"></div></div>
+    <div class="tel t1 zacht"><img src="ui/app-1.png" alt="">
+      <div class="dek" style="left:8.6%;top:20.8%;width:82.8%;height:15%;border-radius:22px"></div>
+      <div class="dek" style="left:8.6%;top:37.8%;width:82.8%;height:14.1%;border-radius:22px"></div>
+      <div class="dek" style="left:8.6%;top:53.9%;width:82.8%;height:15.6%;border-radius:22px"></div>
+      <div class="dek" style="left:8.6%;top:71.5%;width:82.8%;height:15.5%;border-radius:22px"></div>
+      <div class="donker"></div></div>
+  </div>
+</div></section>
+
+<section class="laag creme" id="s6"><div class="inhoud">
+  <div class="blok">
+    <img class="embleem" src="assets/ayg-embleem-licht.svg" alt="">
+    <div class="naam">AI Your Gym</div>
+    <div class="zin">Clubsoftware voor sportscholen.<br class="br3"> Alles op een plek.</div>
+    <div class="url">aiyourgym.com</div>
+  </div>
+</div></section>
+
+<div class="korrel"></div>
+
+<script>
+const V = new URLSearchParams(location.search).get('v') === '1'
+if (V) { document.body.classList.add('v'); document.querySelector('.br1').remove(); document.querySelector('.br0').style.display = 'inline'; document.querySelector('.br2').style.display = 'inline' }
+const B = 60 / 90
+const cl = (x) => Math.max(0, Math.min(1, x))
+// cubic-bezier(0.16, 1, 0.3, 1)
+function bezier(x1, y1, x2, y2) {
+  const bx = (t) => 3 * x1 * t * (1 - t) ** 2 + 3 * x2 * t * t * (1 - t) + t ** 3
+  const by = (t) => 3 * y1 * t * (1 - t) ** 2 + 3 * y2 * t * t * (1 - t) + t ** 3
+  return (x) => {
+    if (x <= 0) return 0
+    if (x >= 1) return 1
+    let lo = 0, hi = 1, t = x
+    for (let i = 0; i < 30; i++) { t = (lo + hi) / 2; if (bx(t) < x) lo = t; else hi = t }
+    return by(t)
+  }
+}
+const E = bezier(0.16, 1, 0.3, 1)
+const sin = (x) => 0.5 - 0.5 * Math.cos(Math.PI * cl(x))
+const ap = (t, s, d) => E(cl((t - s) / d))
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+
+// scenes: [id, begin, eind] in tellen
+const SC = [['s1', 0, 5], ['s2', 5, 9], ['s3', 9, 13], ['s4', 13, 20], ['s5', 20, 25], ['s6', 25, 30.5]].map(([id, a, b]) => ({ id, s: a * B, e: b * B }))
+
+// inhoud verdwijnt vlak voor de wissel, achtergrond loopt door
+const weg = (t, e) => 1 - sin((t - (e - 0.42)) / 0.34)
+const inn = (el, t, s, d = 1.1, dy = 26, extra = 1) => {
+  const p = ap(t, s, d)
+  el.style.opacity = p * extra
+  el.style.transform = `translateY(${(1 - p) * dy}px)`
+}
+
+const frames = []
+window.klaar = (async () => {
+  await document.fonts.ready
+  for (let i = 0; i < 72; i++) { const im = new Image(); im.src = `assets/squat/f${String(i).padStart(3, '0')}.webp`; frames.push(im) }
+  await Promise.all([...frames, ...document.images].map((im) => im.decode().catch(() => {})))
+  return true
+})()
+
+function lagen(t) {
+  SC.forEach((sc, i) => {
+    const el = document.getElementById(sc.id)
+    const aan = i === 0 ? 1 : sin((t - (sc.s - 0.2)) / 0.32)
+    const volgende = SC[i + 1]
+    const uit = volgende ? sin((t - (volgende.s + 0.12)) / 0.1) : 0
+    el.style.opacity = aan * (1 - uit)
+    el.style.visibility = el.style.opacity > 0.001 ? 'visible' : 'hidden'
+    el.style.zIndex = i
+  })
+}
+
+function s1(t) {
+  const { s, e } = SC[0]
+  const w = weg(t, e)
+  $$('#s1 .w').forEach((el, k) => inn(el, t, k * B / 2, 1.2, 30, w))
+  $('#s1 .inhoud').style.transform = `scale(${1 + 0.035 * cl(t / e)})`
+}
+
+function lichtOp(root, t, s) {
+  $('.donker', root).style.opacity = 1 - sin((t - s) / 0.55)
+  $('.glans', root) && ($('.glans', root).style.backgroundPosition = `${100 - 100 * cl((t - s - 0.2) / 1.6)}% 0`)
+}
+
+function s2(t) {
+  const { s, e } = SC[1]
+  if (t < s - 0.3 || t > e + 0.3) return
+  const w = weg(t, e)
+  inn($('#s2 .kop'), t, s + 0.1, 1.1, 28, w)
+  const tl = $('#s2 .toestel')
+  const p = ap(t, s + 0.15, 1.5), drift = cl((t - s) / (e - s))
+  tl.style.opacity = cl((t - s - 0.1) / 0.35) * w
+  tl.style.transform = `translateY(${(1 - p) * 140}px) rotateX(${20 * (1 - p) + 4 - 3 * drift}deg) scale(${0.93 + 0.06 * p + 0.015 * drift})`
+  $('#s2 .vloer').style.opacity = tl.style.opacity
+  lichtOp($('#s2'), t, s + 0.45)
+  $$('#s2 .dek').forEach((d, k) => { d.style.opacity = 1 - ap(t, s + 0.85 + k * 0.13, 0.5) })
+}
+
+function s3(t) {
+  const { s, e } = SC[2]
+  if (t < s - 0.3 || t > e + 0.3) return
+  const w = weg(t, e)
+  inn($('#s3 .kop'), t, s + 0.1, 1.1, 28, w)
+  const tl = $('#s3 .toestel')
+  const p = ap(t, s + 0.1, 1.6), drift = cl((t - s) / (e - s))
+  tl.style.opacity = cl((t - s - 0.05) / 0.35) * w
+  tl.style.transform = `translateX(${(1 - p) * 160 - 40 * drift}px) rotateY(${-26 * (1 - p) - 12 + 4 * drift}deg) rotateX(3deg)`
+  lichtOp($('#s3'), t, s + 0.3)
+  $$('#s3 .dek').forEach((d, k) => { d.style.opacity = 1 - ap(t, s + 0.65 + k * 0.14, 0.5) })
+}
+
+function s4(t) {
+  const { s, e } = SC[3]
+  if (t < s - 0.3 || t > e + 0.3) return
+  const w = weg(t, e)
+  const c = $('#s4 canvas'), ctx = c.getContext('2d')
+  const p = ap(t, s + 0.05, 1.6), drift = cl((t - s) / (e - s))
+  c.style.opacity = cl((t - s) / 0.5) * w
+  c.style.transform = `translateY(${(1 - p) * 40}px) scale(${0.95 + 0.04 * p + 0.03 * drift})`
+  $('#s4 .vloer').style.opacity = c.style.opacity
+  ctx.clearRect(0, 0, 1080, 1080)
+  const i = Math.floor(Math.max(0, t - s) * 24) % 72
+  ctx.drawImage(frames[i], 0, 0, 1080, 1080)
+  inn($('#s4 .kop'), t, s + 0.3, 1.2, 28, w)
+  $$('#s4 .punt').forEach((el, k) => inn(el, t, (15 + k) * B, 1.0, 22, w))
+}
+
+function s5(t) {
+  const { s, e } = SC[4]
+  if (t < s - 0.3 || t > e + 0.3) return
+  const w = weg(t, e)
+  inn($('#s5 .kop'), t, s + 0.1, 1.1, 28, w)
+  const drift = cl((t - s) / (e - s))
+  const t1 = $('#s5 .t1'), t2 = $('#s5 .t2')
+  const p1 = ap(t, s + 0.05, 1.7), p2 = ap(t, s + 0.3, 1.7)
+  t1.style.opacity = cl((t - s) / 0.4) * w
+  t1.style.transform = `translateY(${(1 - p1) * 120 - 14 * drift}px) rotateY(${-42 * (1 - p1) - 10 + 3 * drift}deg) rotateZ(${-2 * (1 - p1)}deg)`
+  t2.style.opacity = cl((t - s - 0.25) / 0.4) * w
+  t2.style.transform = `translateY(${(1 - p2) * 160 - 26 * drift}px) rotateY(${-42 * (1 - p2) - 14 + 3 * drift}deg)`
+  $('.donker', t1).style.opacity = 1 - sin((t - s - 0.5) / 0.5)
+  $('.donker', t2).style.opacity = 1 - sin((t - s - 0.75) / 0.5)
+  $$('#s5 .t1 .dek').forEach((d, k) => { d.style.opacity = 1 - ap(t, s + 0.85 + k * 0.14, 0.5) })
+}
+
+function s6(t) {
+  const { s } = SC[5]
+  if (t < s - 0.3) return
+  const els = ['.embleem', '.naam', '.zin', '.url'].map((q) => $('#s6 ' + q))
+  els.forEach((el, k) => inn(el, t, s + 0.12 + k * 0.22, 1.3, k === 0 ? 0 : 20))
+  const pe = ap(t, s + 0.12, 1.6)
+  els[0].style.transform = `scale(${0.9 + 0.1 * pe})`
+  $('#s6 .inhoud').style.transform = `scale(${1 + 0.015 * cl((t - s) / 3.3)})`
+}
+
+window.render = (t) => { lagen(t); s1(t); s2(t); s3(t); s4(t); s5(t); s6(t) }
+</script>
+</body></html>

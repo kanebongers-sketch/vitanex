@@ -9,7 +9,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { platformEigenaarId } from '@/lib/club/kern/database'
 import { mailAfzender } from './config'
-import { PROEFDAGEN } from './pakketten'
 import { AYG_WEBSITE } from './links'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import type { AanmeldingRij } from './opslag'
@@ -25,7 +24,7 @@ export function welkomTekst(voornaam: string, sportschool: string, inlogAdres: s
   const regels = [
     `Hoi ${voornaam},`,
     '',
-    `${sportschool} staat klaar in AI Your Gym. Je proefperiode van ${PROEFDAGEN} dagen is gestart.`,
+    `${sportschool} staat klaar in AI Your Gym. Je abonnement is gestart.`,
     '',
     loginOpen
       ? `Log in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos. De startwizard helpt je daarna in ongeveer een kwartier op weg.`

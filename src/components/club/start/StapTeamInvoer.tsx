@@ -3,10 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Rechten } from '@/lib/club/kern/org-instellingen'
-import type { SportschoolSoort } from '@/lib/club/start/soorten'
 import { stuur } from '@/components/club/leden/stuur'
 import { RechtenMatrix, type RechtenGroep } from '@/components/club/beheer/RechtenMatrix'
-import { AlvastIngevuld } from './AlvastIngevuld'
 import { TeamFormulier, type TeamLid } from './TeamFormulier'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
@@ -17,7 +15,9 @@ import type { Rol, Rolrechten } from '@/lib/club/rollen/typen'
 import type { Verborgen } from '@/lib/club/kern/pakketten'
 
 // Stap 6 als geheel: links het team (toevoegen, bewerken, uitnodigen), rechts
-// wat elke functie ziet. Geen losse opslaanknop voor de rechten: de knop
+// wat elke functie ziet. De rechten zijn de gewone standaarden van het
+// rollenmodel (geen klaarzetting per soort); de eigenaar bekijkt en kiest ze
+// hier zelf. Geen losse opslaanknop voor de rechten: de knop
 // onderaan bewaart ze. Zonder team ga je pas verder als je bevestigt dat je
 // alleen werkt; dan telt de stap als af (regel in stappen.ts).
 
@@ -31,7 +31,6 @@ interface StapTeamInvoerProps {
   groepen: RechtenGroep[]
   /** Bevestigde de eigenaar al dat hij alleen werkt? */
   alleen: boolean
-  soort: SportschoolSoort | null
   /** Kon de stand van de logins niet worden gelezen? */
   loginsFout: boolean
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
@@ -130,7 +129,6 @@ export function StapTeamInvoer(p: StapTeamInvoerProps) {
         </div>
         <section className="club-start-blok" aria-labelledby="start-rechten-kop">
           <h2 id="start-rechten-kop">{tk.team.rechtenKop}</h2>
-          <AlvastIngevuld soort={p.soort} />
           <p className="club-hint">{tk.team.rechtenUitleg}</p>
           {p.v2 ? (
             <>

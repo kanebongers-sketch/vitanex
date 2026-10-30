@@ -6,7 +6,7 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { DEMO } from '@/lib/aiyourgym/taal/woorden/website/demo'
 
 // Een stap van de rondleiding: uitleg links, het echte scherm rechts (of om
-// en om), met de oproep om een eigen proefperiode te starten.
+// en om), met de oproep om je eigen club te starten.
 
 export interface DemoStapInfo {
   sleutel: string
@@ -52,7 +52,7 @@ export function DemoStap({ stap, nr, beeldLabel, huisstijl, donker = false, taal
           </ul>
           <p>
             <Link href={SITE_PADEN.AANMELDEN} className="ayg-pijllink">
-              {t.startProef} <ArrowRight size={16} aria-hidden />
+              {t.start} <ArrowRight size={16} aria-hidden />
             </Link>
           </p>
         </div>

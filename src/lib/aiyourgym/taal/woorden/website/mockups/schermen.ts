@@ -6,7 +6,6 @@
 // en is nog Nederlands (die vertaling volgt met Club).
 
 import { STAPPEN } from '@/lib/club/start/stappen'
-import { SOORT_INFO } from '@/lib/club/start/soorten'
 import { woordenboek } from '../../../woordenboek'
 
 export const APP_SCHERMEN = woordenboek({
@@ -150,8 +149,6 @@ export const WIZARD = woordenboek({
     alles: 'Alles staat',
     nogMinuut: 'Nog ongeveer een minuut',
     nogMinuten: (minuten: number) => `Nog ongeveer ${minuten} minuten`,
-    alvast: (soort: string) => `Alvast ingevuld voor een ${soort}, pas aan wat niet klopt.`,
-    soortGym: SOORT_INFO.gym.titel.toLowerCase(),
     lestypen: 'Lestypen',
     vasteWeek: 'Je vaste week',
     dagen: ['Ma', 'Di', 'Wo', 'Do'],
@@ -169,8 +166,6 @@ export const WIZARD = woordenboek({
     alles: 'All set',
     nogMinuut: 'About a minute left',
     nogMinuten: (minuten: number) => `About ${minuten} minutes left`,
-    alvast: (soort: string) => `Prefilled for a ${soort}, change anything that doesn’t fit.`,
-    soortGym: 'fitness club',
     lestypen: 'Class types',
     vasteWeek: 'Your regular week',
     dagen: ['Mon', 'Tue', 'Wed', 'Thu'],
@@ -179,7 +174,6 @@ export const WIZARD = woordenboek({
     opslaan: 'Save and stop',
     verder: 'Done, next',
     stappen: [
-      { titel: 'Your gym', kort: 'Choose the type, we prepare the rest' },
       { titel: 'Branding', kort: 'Logo, colour and your own address' },
       { titel: 'Location', kort: 'Address, opening hours and booking' },
       { titel: 'Features', kort: 'What your gym uses' },

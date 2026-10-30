@@ -24,7 +24,8 @@ export interface Pakket {
   inbegrepen: readonly string[]
 }
 
-export const PROEFDAGEN = 14
+// Geen proefperiode (besluit Kane 30-10-2026): bij het aanmelden wordt de
+// eerste maand meteen betaald. Er is dus ook geen PROEFDAGEN meer.
 
 export const PAKKETTEN: readonly Pakket[] = [
   {

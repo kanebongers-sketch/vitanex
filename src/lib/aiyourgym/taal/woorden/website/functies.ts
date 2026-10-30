@@ -55,7 +55,7 @@ export const FUNCTIES_PAGINA = woordenboek({
         kop: 'Your club runs, even without you.',
         intro: 'Your team knows what needs doing. You set the rules.',
         functies: [
-          { titel: 'Live in fifteen minutes', tekst: 'Eight steps in the set-up wizard, including your team and your member list.' },
+          { titel: 'Live in fifteen minutes', tekst: 'A short set-up wizard, including your team and your member list.' },
           { titel: 'Front desk and shifts', tekst: 'Check-in by QR or by name, tasks, cleaning lists and handover in one place.' },
           { titel: 'Locations, roles, branding', tekst: 'Rules per location, permissions per role, your logo and colours.' },
         ],

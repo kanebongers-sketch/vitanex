@@ -6,7 +6,6 @@ import { HOOFDSTUKKEN } from '@/components/aiyourgym/inhoud/functies'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { Onthul } from '@/components/aiyourgym/voorpagina/Onthul'
 import { Oproep } from '@/components/aiyourgym/voorpagina/Oproep'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
@@ -48,7 +47,7 @@ export default async function FunctiesPagina() {
           <p className="vp-held-lead">{t.tekst}</p>
           <div className="vp-knoppen">
             <Link href={SITE_PADEN.AANMELDEN} className="vp-knop vp-knop-vol">
-              {actie.probeerDagen(PROEFDAGEN)} <ArrowRight size={18} aria-hidden />
+              {actie.start} <ArrowRight size={18} aria-hidden />
             </Link>
             <Link href={SITE_PADEN.DEMO_AANVRAGEN} className="vp-knop vp-knop-zacht">
               {actie.planDemo}

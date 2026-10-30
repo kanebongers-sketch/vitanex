@@ -6,8 +6,8 @@ import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import type { LesRij, TypeRij } from '@/lib/club/start/lessen-plan'
 
-// De vaste week in stap Lessen. Het voorstel staat al aan; met de schakelaar
-// haal je een les eruit. Per les meteen dag, tijd, duur, plekken, zaal en
+// De vaste week in stap Lessen. Voorbeeldlessen staan uit; met de schakelaar
+// zet de eigenaar aan wat hij geeft (besluit Kane 30-10-2026). Per les meteen dag, tijd, duur, plekken, zaal en
 // instructeur. Op een breed scherm staat elke les op een regel, op de
 // telefoon is het een kaartje met de velden in twee kolommen. Geef je geen
 // vaste lessen (alleen afspraken of vrij trainen), dan vink je dat hier aan.

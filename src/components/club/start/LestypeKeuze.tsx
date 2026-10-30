@@ -3,15 +3,12 @@
 import { Check, Plus } from 'lucide-react'
 import { LES_SOORTEN, type LesSoort } from '@/lib/club/rooster/typen'
 import type { Intensiteit, TypeRij } from '@/lib/club/start/lessen-plan'
-import { soortInfo, type SportschoolSoort } from '@/lib/club/start/soorten'
-import type { Taal } from '@/lib/aiyourgym/taal/taal'
-import { tekst as inTaal } from '@/lib/aiyourgym/taal/woordenboek'
-import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
+import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
 // De lestypen in stap Lessen: bovenaan een snelle keuze (een klik zet een
-// lestype aan of uit, de passende staan al aan), in twee zichtbare groepen:
-// eerst wat bij de soort sportschool past (plus wat je al had), dan de rest.
+// lestype aan of uit). Eerst wat je al had, dan de voorbeelden; geen enkel
+// voorbeeld staat vooraf aan (besluit Kane 30-10-2026: de eigenaar kiest zelf).
 // Daaronder per gekozen lestype meteen naam, soort, duur, zwaarte en uitleg.
 
 const INTENSITEIT: Record<Intensiteit, 'rustig' | 'gemiddeld' | 'zwaar'> = { 1: 'rustig', 2: 'gemiddeld', 3: 'zwaar' }
@@ -21,19 +18,12 @@ interface LestypeKeuzeProps {
   onWissel: (sleutel: string) => void
   onWijzig: (sleutel: string, w: Partial<TypeRij>) => void
   onNieuw: () => void
-  soort: SportschoolSoort | null
-}
-
-/** De kop van de eerste groep: "Past bij een pt-studio", of zonder soort "Voorgesteld". */
-export function passendKop(soort: SportschoolSoort | null, taal: Taal = 'nl'): string {
-  const t = inTaal(START, taal).lestypen
-  return soort ? t.passend(soortInfo(soort, taal).lidwoord) : t.voorgesteld
 }
 
 function Chip({ t, onWissel }: { t: TypeRij; onWissel: LestypeKeuzeProps['onWissel'] }) {
   const tekst = useTekst(START).lestypen
   return (
-    <label className="club-start-chip" data-aan={t.aan || undefined} data-past={t.past || undefined}>
+    <label className="club-start-chip" data-aan={t.aan || undefined}>
       <input type="checkbox" checked={t.aan} onChange={() => onWissel(t.sleutel)} />
       <span className="club-start-chip-vink" aria-hidden>{t.aan ? <Check size={13} strokeWidth={3} /> : <Plus size={13} strokeWidth={2.5} />}</span>
       {t.naam.trim() || tekst.naamloos}
@@ -83,12 +73,9 @@ function TypeKaart({ t, onWijzig, onWissel }: { t: TypeRij; onWijzig: LestypeKeu
   )
 }
 
-export function LestypeKeuze({ typen, onWissel, onWijzig, onNieuw, soort }: LestypeKeuzeProps) {
+export function LestypeKeuze({ typen, onWissel, onWijzig, onNieuw }: LestypeKeuzeProps) {
   const gekozen = typen.filter((t) => t.aan)
   const opties = typen.filter((t) => !t.sleutel.startsWith('nieuw:'))
-  const passend = opties.filter((t) => t.past || t.id !== null)
-  const anders = opties.filter((t) => !t.past && t.id === null)
-  const taal = useTaal()
   const tekst = useTekst(START).lestypen
   return (
     <section className="club-start-blok" aria-labelledby="start-lestypen-kop">
@@ -98,22 +85,14 @@ export function LestypeKeuze({ typen, onWissel, onWijzig, onNieuw, soort }: Lest
       </div>
       <div className="club-start-chipgroepen">
         <fieldset className="club-start-chips">
-          <legend className="club-start-chipkop">{passendKop(soort, taal)}</legend>
-          {passend.map((t) => (
+          <legend className="club-start-chipkop">{tekst.voorbeelden}</legend>
+          {opties.map((t) => (
             <Chip key={t.sleutel} t={t} onWissel={onWissel} />
           ))}
           <button type="button" className="club-start-chip club-start-chip--eigen" onClick={onNieuw}>
             <Plus aria-hidden size={13} strokeWidth={2.5} /> {tekst.eigen}
           </button>
         </fieldset>
-        {anders.length > 0 && (
-          <fieldset className="club-start-chips club-start-chips--anders">
-            <legend className="club-start-chipkop">{tekst.anders}</legend>
-            {anders.map((t) => (
-              <Chip key={t.sleutel} t={t} onWissel={onWissel} />
-            ))}
-          </fieldset>
-        )}
       </div>
       {gekozen.length > 0 ? (
         <ul className="club-start-typekaarten" role="list">

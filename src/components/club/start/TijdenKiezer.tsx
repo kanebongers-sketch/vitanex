@@ -5,11 +5,12 @@ import type { Openingstijd, Openingstijden } from '@/lib/club/rooster/openingsti
 import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
-import { STANDAARD_TIJD, standaardWeek, weekTekst } from '@/lib/club/start/soorten'
+import { STANDAARD_TIJD, heeftOpenDag, standaardWeek, weekTekst } from '@/lib/club/start/soorten'
 
 // Openingstijden met een klik: "standaard 06:00 tot 23:00" voor de hele week,
 // of per dag (open of dicht, van en tot). De dagen staan altijd in beeld:
-// niets verschijnt pas na een klik.
+// niets verschijnt pas na een klik. Een lege week (alles dicht) heeft nog
+// geen keuze: geen van beide knoppen staat dan ingedrukt.
 
 interface TijdenKiezerProps {
   week: Openingstijden
@@ -45,7 +46,7 @@ export function TijdenKiezer({ week, perDag, onWeek, onPerDag }: TijdenKiezerPro
             <span>{t.standaardUitleg(STANDAARD_TIJD.van, STANDAARD_TIJD.tot)}</span>
           </span>
         </button>
-        <button type="button" className="club-start-tijdknop" aria-pressed={perDag || !isStandaard} onClick={() => onPerDag(true)}>
+        <button type="button" className="club-start-tijdknop" aria-pressed={perDag || (!isStandaard && heeftOpenDag(week))} onClick={() => onPerDag(true)}>
           <span className="club-start-tijdknop-dagen" aria-hidden>
             {t.dagenIcoon}
           </span>

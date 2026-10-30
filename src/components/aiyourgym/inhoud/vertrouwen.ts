@@ -8,7 +8,6 @@
 // - export en verwijderen per lid: src/lib/club/leden/avg (ledenkaart, 30 dagen, dan definitief)
 
 import { STAPPEN } from '@/lib/club/start/stappen'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 
 export interface StartStap {
   nr: number
@@ -35,7 +34,7 @@ export interface OverstapStap {
 /** Ook gebruikt op de prijzenpagina: het antwoord over vastzitten en betalen. */
 export const VRAAG_CONTRACT: VeelgesteldeVraag = {
   vraag: 'Zit ik ergens aan vast?',
-  antwoord: `Je start met ${PROEFDAGEN} dagen gratis. Stop je, dan betaal je niets. Ga je door: een jaarabonnement, per maand betaald per vestiging. Nu geen opstartkosten, en je ziet het bedrag altijd vooraf.`,
+  antwoord: 'Een jaarabonnement, per maand betaald per vestiging. Nu geen opstartkosten, en je ziet het bedrag altijd voor je betaalt.',
 }
 
 /** Ook gebruikt op de prijzenpagina: van wie de gegevens zijn. */

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { SportschoolSoort } from '@/lib/club/start/soorten'
 import type { VoorbeeldLes, VoorbeeldLestype } from '@/lib/club/start/voorbeelden'
 import {
   aantalWijzigingen,
@@ -18,7 +17,6 @@ import {
   type LesRij,
   type TypeRij,
 } from '@/lib/club/start/lessen-plan'
-import { AlvastIngevuld } from './AlvastIngevuld'
 import { LestypeKeuze } from './LestypeKeuze'
 import { WeekLessen, type Keuze } from './WeekLessen'
 import { ZalenEnInstructeurs } from './ZalenEnInstructeurs'
@@ -28,8 +26,9 @@ import { stuur } from '@/components/club/leden/stuur'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
-// Stap 5: alles voor de groepslessen in een scherm. De lestypen die bij de
-// soort sportschool passen staan al aan, de voorgestelde week ook. Naam, duur
+// Stap Lessen: alles voor de groepslessen in een scherm. Voorbeelden van
+// lestypen en lessen staan er als keuze, maar niets staat aan tot de eigenaar
+// het kiest (besluit Kane 30-10-2026). Naam, duur
 // en uitleg, en per les dag, tijd, plekken, zaal en instructeur pas je hier
 // meteen aan. Bij verder slaat de stap alles op (dezelfde API's als
 // Instellingen) en zet de vaste lessen in het rooster voor de komende 6 weken.
@@ -39,15 +38,12 @@ import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 interface StapLessenProps {
   vestiging: string
   vestigingNaam: string
-  soort: SportschoolSoort | null
   lestypen: BestaandType[]
   series: BestaandeSerie[]
   zalen: Keuze[]
   instructeurs: Keuze[]
   /** Vandaag als jjjj-mm-dd: vaste lessen lopen vanaf vandaag. */
   vandaag: string
-  /** De lestypen die bij de soort passen (staan aan bij een nieuwe sportschool). */
-  passend: readonly VoorbeeldLestype[]
   /** Alle voorbeeldlestypen om uit te kiezen. */
   bibliotheek: readonly VoorbeeldLestype[]
   voorbeeldLessen: readonly VoorbeeldLes[]
@@ -59,7 +55,7 @@ interface StapLessenProps {
 export function StapLessen(p: StapLessenProps) {
   const router = useRouter()
   const [basis, setBasis] = useState(() => {
-    const typen = beginTypen(p.lestypen, p.passend, p.bibliotheek)
+    const typen = beginTypen(p.lestypen, p.bibliotheek)
     return { typen, lessen: beginLessen(typen, p.series, p.voorbeeldLessen, p.zalen.length === 1 ? p.zalen[0].id : null) }
   })
   const [typen, setTypen] = useState<TypeRij[]>(basis.typen)
@@ -143,8 +139,7 @@ export function StapLessen(p: StapLessenProps) {
   return (
     <>
       <div className="club-start-lessen">
-        <AlvastIngevuld soort={p.soort} />
-        <LestypeKeuze typen={typen} onWissel={wisselType} onWijzig={wijzigType} onNieuw={nieuwType} soort={p.soort} />
+        <LestypeKeuze typen={typen} onWissel={wisselType} onWijzig={wijzigType} onNieuw={nieuwType} />
         <div className="club-start-lessen-onder">
           <WeekLessen
             vestigingNaam={p.vestigingNaam}

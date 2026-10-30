@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { TaalKeuze } from '@/components/aiyourgym/taal/TaalKeuze'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { KOP } from '@/lib/aiyourgym/taal/woorden/website/kop'
@@ -116,7 +115,7 @@ export function AygNav() {
           </span>
         </Link>
         <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent ayg-knop--klein">
-          {t.probeer} <ArrowRight size={16} aria-hidden />
+          {t.aanmelden} <ArrowRight size={16} aria-hidden />
         </Link>
         <TaalKeuze />
       </div>
@@ -152,7 +151,7 @@ export function AygNav() {
         </nav>
         <div className="ayg-menupaneel-onder">
           <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-            {t.probeerDagen(PROEFDAGEN)} <ArrowRight size={16} aria-hidden />
+            {t.start} <ArrowRight size={16} aria-hidden />
           </Link>
           <Link href={DEMO_AANVRAGEN} className="ayg-knop ayg-knop--rand">
             {t.planDemoVol}

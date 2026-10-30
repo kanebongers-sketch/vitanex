@@ -3,7 +3,6 @@ import { ArrowRight } from 'lucide-react'
 import { AppHome } from '@/components/aiyourgym/mockups/AppSchermen'
 import { HeldDashboard } from '@/components/aiyourgym/mockups/HeldDashboard'
 import { Figuur, Toestel } from '@/components/aiyourgym/mockups/kaders'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { VOORPAGINA } from '@/lib/aiyourgym/taal/woorden/website/voorpagina'
 import { SITE_PADEN } from '../site/paden'
@@ -29,7 +28,7 @@ export async function HeldMozaiek() {
         <p className="vp-held-lead">{t.lead}</p>
         <div className="vp-knoppen">
           <Link href={SITE_PADEN.AANMELDEN} className="vp-knop vp-knop-vol">
-            {t.probeer(PROEFDAGEN)} <ArrowRight size={18} aria-hidden />
+            {t.start} <ArrowRight size={18} aria-hidden />
           </Link>
           <Link href={SITE_PADEN.DEMO} className="vp-knop vp-knop-zacht">
             {t.demo}

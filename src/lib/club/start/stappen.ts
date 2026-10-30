@@ -1,9 +1,10 @@
 // ─── Club: de startwizard van een nieuwe sportschool (PUUR) ─────────────────
-// Na aanmelden en betalen loopt de eigenaar acht korte stappen door, te
-// hervatten waar hij was. De eerste stap is de soort sportschool: die vult de
-// stappen daarna alvast in; elke stap stelt zijn deel echt en volledig in.
+// Na aanmelden en betalen loopt de eigenaar zeven korte stappen door, te
+// hervatten waar hij was. Besluit Kane (30-10-2026): niets wordt automatisch
+// klaargezet (er is geen stap "soort sportschool" meer); de eigenaar kiest
+// alles zelf en elke stap stelt zijn deel echt en volledig in.
 // De voortgang staat per sportschool in club_organisaties.instellingen onder
-// `start`: { stap, klaar[], afgerond_op, soort, streefdatum, bevestigd[] }.
+// `start`: { versie, stap, klaar[], afgerond_op, streefdatum, bevestigd[] }.
 // Of een stap af is, volgt uit de echte data (zie stapAf): een stap telt pas
 // als zijn inhoud er staat, of als de eigenaar bewust koos voor "geen" (ik
 // werk alleen, ik begin zonder leden). Wie het via een andere weg al deed,
@@ -12,7 +13,6 @@
 
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
-import { isSportschoolSoort, type SportschoolSoort } from './soorten'
 import { ALLE_PAKKETTEN, wizardStapNodig, type PakketSleutel } from '@/lib/club/kern/pakketten'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
@@ -20,7 +20,7 @@ import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 // De Nederlandse namen komen uit het woordenboek (bron); in beeld via stapInTaal().
 const ST = START_LIB.nl.stappen
 
-export const STAP_SLEUTELS = ['soort', 'huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'klaar'] as const
+export const STAP_SLEUTELS = ['huisstijl', 'vestigingen', 'onderdelen', 'lessen', 'team', 'leden', 'klaar'] as const
 export type StapSleutel = (typeof STAP_SLEUTELS)[number]
 
 export const AANTAL_STAPPEN = STAP_SLEUTELS.length
@@ -35,7 +35,6 @@ export interface StapInfo {
 }
 
 export const STAPPEN: readonly StapInfo[] = [
-  { sleutel: 'soort', ...ST.soort, minuten: 1 },
   { sleutel: 'huisstijl', ...ST.huisstijl, minuten: 2 },
   { sleutel: 'vestigingen', ...ST.vestigingen, minuten: 2 },
   { sleutel: 'onderdelen', ...ST.onderdelen, minuten: 1 },
@@ -58,8 +57,6 @@ export interface StartVoortgang {
   klaar: StapSleutel[]
   /** Wanneer de wizard is afgerond (ISO), of null. */
   afgerondOp: string | null
-  /** De gekozen soort sportschool (bepaalt de standaarden), of null. */
-  soort: SportschoolSoort | null
   /** Wanneer de eigenaar live wil (YYYY-MM-DD, zelf gekozen en optioneel), of null. */
   streefdatum: string | null
   /** Keuzes die de eigenaar zelf bevestigde, zoals "Ik werk alleen" (zie BEVESTIGINGEN). */
@@ -78,7 +75,21 @@ export function isBevestiging(v: unknown): v is Bevestiging {
   return typeof v === 'string' && (BEVESTIGINGEN as readonly string[]).includes(v)
 }
 
-export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null, soort: null, streefdatum: null, bevestigd: [] }
+export const NIEUWE_START: StartVoortgang = { stap: 1, klaar: [], afgerondOp: null, streefdatum: null, bevestigd: [] }
+
+/**
+ * Versie van de opgeslagen voortgang. Tot 30-10-2026 (zonder versie) was stap 1
+ * de soort sportschool; die stap is weg, dus een oud stapnummer schuift een op.
+ */
+export const START_VERSIE = 2
+
+/** Het stapnummer uit de database, ook uit een voortgang van voor START_VERSIE. */
+function leesStapNummer(s: Record<string, unknown>): number {
+  const ruw = s.stap
+  if (typeof ruw !== 'number' || !Number.isInteger(ruw)) return 1
+  const n = s.versie === START_VERSIE ? ruw : ruw - 1
+  return isStapNummer(n) ? n : n > AANTAL_STAPPEN ? AANTAL_STAPPEN : 1
+}
 
 function object(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
@@ -138,10 +149,9 @@ export function leesStart(instellingen: unknown): StartVoortgang | null {
   const klaar = Array.isArray(s.klaar) ? [...new Set(s.klaar.filter(isStapSleutel))] : []
   const bevestigd = Array.isArray(s.bevestigd) ? s.bevestigd.filter(isBevestiging) : []
   return {
-    stap: isStapNummer(s.stap) ? s.stap : 1,
+    stap: leesStapNummer(s),
     klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)),
     afgerondOp: isIsoDatum(s.afgerond_op) ? s.afgerond_op : null,
-    soort: isSportschoolSoort(s.soort) ? s.soort : null,
     streefdatum: isStreefdatum(s.streefdatum) ? s.streefdatum : null,
     bevestigd: BEVESTIGINGEN.filter((b) => bevestigd.includes(b)),
   }
@@ -149,7 +159,7 @@ export function leesStart(instellingen: unknown): StartVoortgang | null {
 
 /** Naar de database (snake_case zoals de rest van de kolom). */
 export function startNaarJson(v: StartVoortgang): Record<string, unknown> {
-  return { stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp, soort: v.soort, streefdatum: v.streefdatum, bevestigd: v.bevestigd }
+  return { versie: START_VERSIE, stap: v.stap, klaar: v.klaar, afgerond_op: v.afgerondOp, streefdatum: v.streefdatum, bevestigd: v.bevestigd }
 }
 
 /** De hele kolom met de nieuwe voortgang erin; andere sleutels (ledenapp, rechten) blijven staan. */
@@ -168,8 +178,6 @@ export interface StartInvoer {
   open?: StapSleutel
   /** true = afronden, false = weer openen. */
   afronden?: boolean
-  /** De gekozen soort sportschool. */
-  soort?: SportschoolSoort
   /** De streefdatum voor livegang (YYYY-MM-DD); null = weghalen. */
   streefdatum?: string | null
   /** Bevestigingen aan (true) of weer uit (false), zoals { alleen: true }. */
@@ -178,7 +186,7 @@ export interface StartInvoer {
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
-const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden', 'soort', 'streefdatum', 'bevestig'])
+const VELDEN = new Set(['stap', 'klaar', 'open', 'afronden', 'streefdatum', 'bevestig'])
 
 /** { alleen: true } en dergelijke: alleen bekende sleutels met true of false, en minstens een. */
 function leesBevestig(v: unknown): Partial<Record<Bevestiging, boolean>> | null {
@@ -198,7 +206,6 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
   if ('klaar' in o && !isStapSleutel(o.klaar)) return { ok: false, fout: 'Onbekende stap.' }
   if ('open' in o && !isStapSleutel(o.open)) return { ok: false, fout: 'Onbekende stap.' }
   if ('afronden' in o && typeof o.afronden !== 'boolean') return { ok: false, fout: 'Kies afronden of openen.' }
-  if ('soort' in o && !isSportschoolSoort(o.soort)) return { ok: false, fout: 'Onbekende soort sportschool.' }
   if ('streefdatum' in o && o.streefdatum !== null && !isStreefdatum(o.streefdatum)) return { ok: false, fout: 'Kies een geldige datum.' }
   const bevestig = 'bevestig' in o ? leesBevestig(o.bevestig) : null
   if ('bevestig' in o && !bevestig) return { ok: false, fout: 'Onbekende keuze.' }
@@ -210,7 +217,6 @@ export function leesStartInvoer(body: unknown): Uitslag<StartInvoer> {
       ...(isStapSleutel(o.klaar) ? { klaar: o.klaar } : {}),
       ...(isStapSleutel(o.open) ? { open: o.open } : {}),
       ...(typeof o.afronden === 'boolean' ? { afronden: o.afronden } : {}),
-      ...(isSportschoolSoort(o.soort) ? { soort: o.soort } : {}),
       ...('streefdatum' in o ? { streefdatum: isStreefdatum(o.streefdatum) ? o.streefdatum : null } : {}),
       ...(bevestig ? { bevestig } : {}),
     },
@@ -239,7 +245,6 @@ export function pasToe(huidig: StartVoortgang, invoer: StartInvoer, nu: Date): S
     stap: invoer.stap ?? huidig.stap,
     klaar: STAP_SLEUTELS.filter((k) => klaar.includes(k)),
     afgerondOp,
-    soort: invoer.soort ?? huidig.soort,
     streefdatum: invoer.streefdatum === undefined ? huidig.streefdatum : invoer.streefdatum,
     bevestigd: metBevestig(huidig.bevestigd, invoer.bevestig),
   }
@@ -282,7 +287,6 @@ export function vestigingIngericht(rij: { adres?: unknown; openingstijden?: unkn
  * geen leden) is alleen af als de eigenaar dat zelf bevestigt. Een stap van
  * een onderdeel dat uit staat is niet nodig, dus af.
  *
- * - soort: er is een soort gekozen.
  * - huisstijl: eigen adres gekozen, plus een logo of zelf op klaar gezet.
  * - vestigingen: elke vestiging heeft een adres.
  * - onderdelen: zelf op klaar gezet.
@@ -296,8 +300,6 @@ export function stapAf(sleutel: Exclude<StapSleutel, 'klaar'>, v: StartVoortgang
   const bevestigd = (b: Bevestiging) => Boolean(v?.bevestigd.includes(b))
   const uit = (m: string) => f.uit.includes(m)
   switch (sleutel) {
-    case 'soort':
-      return Boolean(v?.soort)
     case 'huisstijl':
       return f.heeftAdres && (f.heeftLogo || zelf.includes('huisstijl'))
     case 'vestigingen':

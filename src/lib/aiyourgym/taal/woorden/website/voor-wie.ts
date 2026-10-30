@@ -31,7 +31,6 @@ export const VOOR_WIE = woordenboek({
     soortenLabel: 'Soorten sportscholen op deze pagina',
     doelgroepen: NL_DOELGROEPEN,
     pastBij: 'Past meestal bij',
-    probeerPakket: (pakket: string) => `Probeer ${pakket} gratis`,
     beeld: {
       zelfstandig: 'De check-in met de leden die net binnen zijn en hun status',
       boutique: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst',
@@ -43,13 +42,13 @@ export const VOOR_WIE = woordenboek({
     },
     aanpassenLabel: 'Alles aan te passen',
     aanpassenTitel: 'Onze basis als start. Jouw club als eindresultaat.',
-    aanpassenTekst: 'De startwizard zet alles klaar voor jouw soort sportschool. Daarna maak je het helemaal van jezelf.',
+    aanpassenTekst: 'In de startwizard kies je alles zelf. Daarna maak je het helemaal van jezelf.',
     aanpassen: [
       { titel: 'Onderdelen aan of uit', tekst: 'Wat je niet gebruikt, ziet niemand.' },
       { titel: 'Eigen oefeningen en coaching', tekst: 'Onze bibliotheek als basis, jouw teksten erbij.' },
       { titel: 'Lessen, regels en huisstijl', tekst: 'Jouw zalen, tijden, regels, logo en kleuren.' },
     ],
-    band: 'Welke sportschool je ook hebt: probeer het zelf.',
+    band: 'Welke sportschool je ook hebt: zet hem er vandaag in.',
   },
   en: {
     metaTitel: 'Who it’s for',
@@ -132,7 +131,6 @@ export const VOOR_WIE = woordenboek({
       },
     },
     pastBij: 'Usually a good fit for',
-    probeerPakket: (pakket: string) => `Try ${pakket} for free`,
     beeld: {
       zelfstandig: 'Check-in showing the members who just arrived and their status',
       boutique: 'A week of the timetable with attendance per class and full classes with a waiting list',
@@ -144,12 +142,12 @@ export const VOOR_WIE = woordenboek({
     },
     aanpassenLabel: 'Fully adjustable',
     aanpassenTitel: 'Our base as the start. Your club as the result.',
-    aanpassenTekst: 'The set-up wizard prepares everything for your type of gym. Then you make it entirely your own.',
+    aanpassenTekst: 'In the set-up wizard you choose everything yourself. Then you make it entirely your own.',
     aanpassen: [
       { titel: 'Modules on or off', tekst: 'What you don’t use, nobody sees.' },
       { titel: 'Your own exercises and coaching', tekst: 'Our library as the base, your texts on top.' },
       { titel: 'Classes, rules and branding', tekst: 'Your rooms, hours, rules, logo and colours.' },
     ],
-    band: 'Whatever kind of gym you run: try it for yourself.',
+    band: 'Whatever kind of gym you run: bring it on board today.',
   },
 })

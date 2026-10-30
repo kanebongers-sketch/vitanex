@@ -26,7 +26,7 @@ export const BEVEILIGING = woordenboek({
     dienstenKop: 'Diensten die we gebruiken',
     diensten: SUBVERWERKERS,
     meer: { voor: 'Meer over de gegevens op deze website zelf staat in de ', link: 'privacyverklaring', na: '.' },
-    bandTitel: 'Probeer het in je eigen, afgeschermde omgeving.',
+    bandTitel: 'Start in je eigen, afgeschermde omgeving.',
   },
   en: {
     metaTitel: 'Privacy and security',
@@ -98,6 +98,6 @@ export const BEVEILIGING = woordenboek({
       { titel: 'Browser push', tekst: 'Only if phone notifications are switched on. The message is encrypted.' },
     ],
     meer: { voor: 'More about the data on this website itself is in the ', link: 'privacy statement', na: ' (in Dutch).' },
-    bandTitel: 'Try it in your own, protected environment.',
+    bandTitel: 'Start in your own, protected environment.',
   },
 })

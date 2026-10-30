@@ -62,7 +62,7 @@ function Abonnement({ s, taal }: { s: SportschoolRegel; taal: Taal }) {
         <span className={`club-chip club-chip--${w.toon}`}>{p.status[a.status]}</span> <span className="club-platform-pakket">{a.pakket ? pakketNaam(a.pakket) : p.onbekend}</span>
       </span>
       <span className="club-platform-sub">
-        {typeof s.proefTot === 'string' ? t.proefTot(nlDatum(s.proefTot, taal)) : s.proefTot === undefined ? t.proefFout : t.sinds(nlDatum(a.aangemaaktOp, taal))}
+        {t.sinds(nlDatum(a.aangemaaktOp, taal))}
       </span>
     </>
   )

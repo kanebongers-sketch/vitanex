@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, ListChecks } from 'lucide-react'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { OVERSTAPPEN } from '@/lib/aiyourgym/taal/woorden/website/overstappen'
@@ -32,7 +31,7 @@ export default async function OverstappenPagina() {
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
-            {t.begin(PROEFDAGEN)}
+            {t.begin}
           </Knop>
           <Knop href={DEMO_AANVRAGEN} soort="rand">
             {ACTIE[taal].planDemo}

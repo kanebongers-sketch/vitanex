@@ -3,7 +3,6 @@
 // startwizard (src/lib/club/start), uitnodigen per mail. Ledenadministratie,
 // incasso en abonnementen blijven waar ze nu zijn.
 
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { woordenboek } from '../../woordenboek'
 
 export const OVERSTAPPEN = woordenboek({
@@ -14,14 +13,14 @@ export const OVERSTAPPEN = woordenboek({
     label: 'Overstappen',
     titel: 'Overstappen zonder dat je club stilvalt.',
     tekst: 'Je ledenadministratie blijft draaien. Je ziet steeds eerst wat er gebeurt.',
-    begin: (dagen: number) => `Begin met ${dagen} dagen gratis`,
+    begin: 'Start je club',
     stappenLabel: 'In drie stappen',
     stappenTitel: 'Van export naar een draaiende club.',
     importLabel: 'Een ledenbestand inlezen: kolommen uit het bestand gekoppeld aan velden, met het aantal nieuwe, bijgewerkte, ongewijzigde en dubbele leden',
     stappen: [
       {
         titel: 'Maak je omgeving aan',
-        tekst: `Kies een pakket en je adres, zoals aiyourgym.com/jouwgym. ${PROEFDAGEN} dagen gratis.`,
+        tekst: `Kies een pakket en je adres, zoals aiyourgym.com/jouwgym. Geen opstartkosten.`,
       },
       {
         titel: 'Lees je ledenbestand in',
@@ -59,14 +58,14 @@ export const OVERSTAPPEN = woordenboek({
     label: 'Switching',
     titel: 'Switch without your club standing still.',
     tekst: 'Your membership administration keeps running. You always see what will happen first.',
-    begin: (dagen: number) => `Start with ${dagen} days free`,
+    begin: 'Start your club',
     stappenLabel: 'In three steps',
     stappenTitel: 'From export to a club that runs.',
     importLabel: 'Importing a member file: columns from the file matched to fields, with the number of new, updated, unchanged and duplicate members',
     stappen: [
       {
         titel: 'Create your environment',
-        tekst: `Choose a plan and your address, such as aiyourgym.com/yourgym. ${PROEFDAGEN} days free.`,
+        tekst: `Choose a plan and your address, such as aiyourgym.com/yourgym. No set-up fee.`,
       },
       {
         titel: 'Import your member file',

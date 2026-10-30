@@ -1,0 +1,41 @@
+/* Kernhal (verzonnen voorbeeldsportschool) in de schermen van AI Your Gym.
+   Donkere productlook, accent = huisstijl van de sportschool (kobalt). */
+@font-face{font-family:Tekst;src:url(../fonts/Geist.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:Merk;src:url(../fonts/Unbounded-Bold.ttf) format('truetype');font-weight:700}
+:root{--bg:#0B0C0B;--kaart:#151716;--kaart2:#1B1D1C;--lijn:#272A28;--tekst:#F2F2EE;--zacht:#9BA29E;--accent:#3E63DD;--accent2:#8EA6F2;--accentvlak:#1C2A57;--let:#F07A5F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--tekst);font-family:Tekst,sans-serif;-webkit-font-smoothing:antialiased}
+.merk{display:flex;align-items:center;gap:14px}
+.mk{width:44px;height:44px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.mk i{width:22px;height:22px;border-radius:50%;border:4px solid #F4F1EA;display:grid;place-items:center}
+.mk i::after{content:'';width:6px;height:6px;border-radius:50%;background:#F4F1EA}
+.wm{font-family:Merk;font-weight:700;letter-spacing:.06em;font-size:24px}
+.kl{font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--zacht)}
+.pil{display:inline-flex;align-items:center;height:34px;padding:0 16px;border-radius:99px;background:var(--kaart2);font-size:17px;font-weight:600}
+.pil.a{background:var(--accentvlak);color:var(--accent2)}
+.kaart{background:var(--kaart);border:1px solid var(--lijn);border-radius:22px}
+
+/* laptop */
+.lap{width:1920px;height:1200px;display:flex;flex-direction:column}
+.balk{height:64px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--lijn);position:relative}
+.balk .dots{position:absolute;left:28px;display:flex;gap:10px}.balk .dots b{width:14px;height:14px;border-radius:50%;background:#2a2d2b}
+.balk .url{height:40px;width:600px;border-radius:12px;background:#151716;display:flex;align-items:center;justify-content:center;font-size:19px;color:#c9ccc9}
+.kop1{height:104px;display:flex;align-items:center;gap:40px;padding:0 40px;border-bottom:1px solid var(--lijn)}
+.groepen{display:flex;gap:4px;padding:5px;border:1px solid var(--lijn);border-radius:99px}
+.groepen span{padding:12px 22px;border-radius:99px;font-size:17px;font-weight:700;letter-spacing:.12em;color:var(--zacht)}
+.groepen span.a{background:var(--accent);color:#fff}
+.sub{height:88px;display:flex;align-items:center;gap:14px;padding:0 40px;border-bottom:1px solid var(--lijn)}
+.sub span{flex:1;height:56px;border-radius:14px;border:1px solid var(--lijn);display:grid;place-items:center;font-size:21px;font-weight:500}
+.sub span.a{background:var(--accent);border-color:var(--accent);font-weight:700;color:#fff}
+.sub .lb{flex:none;border:0;font-size:17px;font-weight:700;letter-spacing:.16em;color:var(--accent2);padding-right:10px}
+.hulp{height:64px;margin-top:auto;border-top:1px solid var(--lijn);display:flex}
+.hulp span{flex:1;display:grid;place-items:center;font-size:16px;font-weight:600;letter-spacing:.14em;color:var(--zacht);border-right:1px solid var(--lijn)}
+.knop{height:56px;padding:0 26px;border-radius:99px;background:var(--accent);color:#fff;font-size:21px;font-weight:700;display:inline-flex;align-items:center}
+
+/* telefoon */
+.tel{width:600px;height:1260px;display:flex;flex-direction:column;padding:0 34px}
+.status{height:96px;display:flex;align-items:center;justify-content:space-between;font-size:22px;font-weight:700;padding:14px 18px 0}
+.tab{height:110px;margin:auto -34px 0;border-top:1px solid var(--lijn);display:flex;justify-content:space-around;align-items:center;padding-bottom:16px}
+.tab span{font-size:15px;color:var(--zacht);display:flex;flex-direction:column;align-items:center;gap:8px}
+.tab span::before{content:'';width:26px;height:26px;border-radius:8px;border:2.5px solid currentColor}
+.tab span.a{color:var(--accent2)}

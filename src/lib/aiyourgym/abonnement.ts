@@ -5,7 +5,7 @@
 
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { oorsprongVan } from './links'
-import { OUDE_PAKKETTEN, PROEFDAGEN, leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { OUDE_PAKKETTEN, leesPakketKeuze, type PakketSleutel } from './pakketten'
 import { pakkettenTekst } from './taal/woorden/algemeen/pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 import type { Taal } from './taal/taal'
@@ -31,6 +31,7 @@ export interface AbonnementRij {
 /** Wat we van een Stripe-abonnement gebruiken (alles optioneel: Stripe kan velden weglaten). */
 export interface StripeAbonnement {
   status: string | null
+  /** trial_end van een oud abonnement; we maken zelf geen proefperiodes meer (besluit Kane 30-10-2026). */
   proefTot: Date | null
   periodeTot: Date | null
   stoptOp: Date | null
@@ -158,25 +159,21 @@ function lopendeStatus(s: StripeAbonnement | null, nu: Date, taal: Taal): { stat
     const eind = s.stoptOp ?? s.periodeTot
     return { status: t.opgezegd, toon: 'let', toelichting: eind ? t.loptTot(datum(eind)) : t.loptTotEinde }
   }
+  // Een oud abonnement dat Stripe nog als 'trialing' stuurt: gewoon actief, met
+  // de datum van de eerste betaling. Nieuwe abonnementen hebben geen proefperiode.
   if (s?.status === 'trialing' && s.proefTot && s.proefTot > nu) {
-    return { status: t.proefTot(datum(s.proefTot)), toon: 'goed', toelichting: t.daarnaBetaling }
+    return { status: t.actief, toon: 'goed', toelichting: t.eersteBetaling(datum(s.proefTot)) }
   }
   return { status: t.actief, toon: 'goed', toelichting: s?.periodeTot ? t.volgendeFactuur(datum(s.periodeTot)) : null }
 }
 
-const DAG_MS = 24 * 60 * 60 * 1000
-
 /**
  * Afgerond met een testbetaling (geen Stripe-klant en geen abonnement, zie
  * testbetaling.ts): er wordt niets afgeschreven. Dezelfde belofte als op de
- * testbetaalpagina: eerst de proefperiode, daarna spreken we samen af hoe de
- * sportschool betaalt.
+ * testbetaalpagina: we spreken samen af hoe de sportschool betaalt.
  */
-function zonderStripe(a: AbonnementRij, nu: Date, taal: Taal): { status: string; toon: Toon; toelichting: string } {
+function zonderStripe(taal: Taal): { status: string; toon: Toon; toelichting: string } {
   const t = ABONNEMENT_STATUS[taal]
-  const start = Date.parse(a.aangemaaktOp)
-  const proefTot = Number.isNaN(start) ? null : new Date(start + PROEFDAGEN * DAG_MS)
-  if (proefTot && proefTot > nu) return { status: t.proefTot(formatDatum(proefTot, taal)), toon: 'goed', toelichting: t.zonderStripe }
   return { status: t.actief, toon: 'goed', toelichting: t.zonderStripe }
 }
 
@@ -201,7 +198,7 @@ export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null,
   const basis = { pakket, vestigingen, portaal, prijs, bundel }
   switch (a.status) {
     case 'actief':
-      return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(a, nu, taal) : lopendeStatus(s, nu, taal)) }
+      return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(taal) : lopendeStatus(s, nu, taal)) }
     case 'betaling_mislukt':
       return { ...basis, status: t.mislukt, toon: 'fout', toelichting: t.mislukUitleg }
     case 'gepauzeerd':

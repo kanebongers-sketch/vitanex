@@ -211,8 +211,6 @@ li[data-af] > .aygm-wiz-bol { background: var(--brand); color: var(--brand-inkt)
 li[data-hier] > .aygm-wiz-bol { background: var(--text-1); color: var(--bg-app); }
 .aygm-wiz-naam { font-size: 10.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 li[data-hier] > .aygm-wiz-naam { color: var(--text-1); font-weight: 600; }
-.aygm-wiz-alvast { display: flex; align-items: center; gap: 7px; padding: 8px 11px; border-radius: 10px; background: var(--brand-soft); color: var(--text-1); font-size: 11.5px; }
-.aygm-wiz-alvast svg { flex: none; width: 13px; height: 13px; color: var(--brand-tekst); }
 .aygm-wiz-invoer { display: grid; gap: 9px; }
 .aygm-wiz-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .aygm-wiz-chips svg { width: 11px; height: 11px; }

@@ -3,7 +3,7 @@ import { handtekeningKlopt, tekenStripe, TOLERANTIE_S } from './stripe-handteken
 import { leesEvent, leesSessie, sessieKlaar, SESSIE_ID } from './stripe-event'
 import { afsluitbaar, allesAfsluitbaar, bundelAfsluitbaar, eigenPrijzen, mailAfzender, pakketVanPrijs, prijsEnvNaam, stripePrijs, stripePrijsAlles, stripeRegels, stripeSleutel, webhookGeheim } from './config'
 import { checkoutFormulier, wisselFormulier, wisselSleutel } from './stripe-api'
-import { PAKKET_SLEUTELS, PROEFDAGEN } from './pakketten'
+import { PAKKET_SLEUTELS } from './pakketten'
 
 const GEHEIM = 'whsec_test_geheim'
 const NU = 1_760_000_000
@@ -107,7 +107,7 @@ describe('config', () => {
 })
 
 describe('checkoutFormulier', () => {
-  it('abonnement met proefperiode, per vestiging, met het aanmelding-id', () => {
+  it('abonnement zonder proefperiode, per vestiging, met het aanmelding-id', () => {
     const f = checkoutFormulier({
       aanmeldingId: ID,
       regels: [{ regel: 'lessen', prijsId: 'price_1' }, { regel: 'groei', prijsId: 'price_2' }],
@@ -126,7 +126,8 @@ describe('checkoutFormulier', () => {
     expect(f.has('line_items[2][price]')).toBe(false)
     expect(f.get('metadata[pakketten]')).toBe('lessen,groei')
     expect(f.get('subscription_data[metadata][pakketten]')).toBe('lessen,groei')
-    expect(f.get('subscription_data[trial_period_days]')).toBe(String(PROEFDAGEN))
+    // Geen proefperiode (besluit Kane 30-10-2026): de eerste maand wordt meteen betaald.
+    expect([...f.keys()].some((k) => k.includes('trial'))).toBe(false)
     expect(f.get('metadata[aanmelding_id]')).toBe(ID)
     expect(f.get('subscription_data[metadata][aanmelding_id]')).toBe(ID)
     expect(f.get('success_url')).toContain('{CHECKOUT_SESSION_ID}')

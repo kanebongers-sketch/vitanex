@@ -46,11 +46,11 @@ describe('klaar voor je eerste dag', () => {
   it('wijst naar de stap in de wizard, en pas na afronden naar de rest van Club', () => {
     const punten = eersteDag(LEEG, 'budel')
     expect(punten.map((p) => p.id)).toEqual(['huisstijl', 'tijden', 'rooster', 'team', 'leden', 'checkin', 'app', 'sluiting'])
-    expect(punten.find((p) => p.id === 'leden')?.pad).toBe('/club/start?v=budel&stap=7')
-    expect(punten.find((p) => p.id === 'team')?.pad).toBe('/club/start?v=budel&stap=6')
+    expect(punten.find((p) => p.id === 'leden')?.pad).toBe('/club/start?v=budel&stap=6')
+    expect(punten.find((p) => p.id === 'team')?.pad).toBe('/club/start?v=budel&stap=5')
     expect(punten.find((p) => p.id === 'checkin')?.pad).toBeNull()
     expect(eersteDag(LEEG, null, true).find((p) => p.id === 'checkin')?.pad).toBe('/club/checkin')
-    expect(eersteDag(LEEG, null, true).find((p) => p.id === 'huisstijl')?.pad).toBe('/club/start?stap=2')
+    expect(eersteDag(LEEG, null, true).find((p) => p.id === 'huisstijl')?.pad).toBe('/club/start?stap=1')
   })
 
   it('leest af wat al staat', () => {

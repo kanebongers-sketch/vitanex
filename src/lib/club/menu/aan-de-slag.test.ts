@@ -20,20 +20,20 @@ describe('Aan de slag', () => {
 
   it('een nieuwe sportschool: de stappen van de wizard plus wat de wizard niet dekt', () => {
     const stappen = aanDeSlagStappen({ wizard: wizard(NIEUWE_START, LEEG), wizardHref: (n) => startPad(n, null), teDoen: teDoen({ vestigingen: false, huisstijl: false, adres: false, bedrijf: false }) })
-    // 8 stappen in de wizard plus Bedrijf; huisstijl, adres en vestigingen zitten al in de wizard.
+    // 7 stappen in de wizard plus Bedrijf; huisstijl, adres en vestigingen zitten al in de wizard.
     expect(stappen.map((s) => s.id)).toEqual([
-      'wizard-soort', 'wizard-huisstijl', 'wizard-vestigingen', 'wizard-onderdelen', 'wizard-lessen', 'wizard-team', 'wizard-leden', 'wizard-klaar', 'instel-bedrijf',
+      'wizard-huisstijl', 'wizard-vestigingen', 'wizard-onderdelen', 'wizard-lessen', 'wizard-team', 'wizard-leden', 'wizard-klaar', 'instel-bedrijf',
     ])
     const stand = aanDeSlagStand(stappen)
-    expect(stand).toMatchObject({ af: 0, totaal: 9, volgende: { id: 'wizard-soort', href: '/club/start?stap=1' } })
+    expect(stand).toMatchObject({ af: 0, totaal: 8, volgende: { id: 'wizard-huisstijl', href: '/club/start?stap=1' } })
   })
 
   it('telt af volgens de regels van de wizard en wijst de eerste open stap aan', () => {
-    const v: StartVoortgang = { ...NIEUWE_START, soort: 'gym', klaar: ['onderdelen'] }
+    const v: StartVoortgang = { ...NIEUWE_START, klaar: ['onderdelen'] }
     const f: StartFeiten = { ...LEEG, heeftLogo: true, heeftAdres: true, vestigingen: 1, vestigingenMetAdres: 1, vestigingenIngericht: 1 }
     const stand = aanDeSlagStand(aanDeSlagStappen({ wizard: wizard(v, f), wizardHref: (n) => startPad(n, null), teDoen: teDoen({ bedrijf: true }) }))
-    expect(stand?.af).toBe(5)
-    expect(stand?.totaal).toBe(9)
+    expect(stand?.af).toBe(4)
+    expect(stand?.totaal).toBe(8)
     expect(stand?.volgende.id).toBe('wizard-lessen')
   })
 
@@ -44,12 +44,12 @@ describe('Aan de slag', () => {
   })
 
   it('alles af: niets in de kop', () => {
-    const v: StartVoortgang = { ...NIEUWE_START, soort: 'gym', klaar: ['onderdelen'], afgerondOp: '2026-10-29T10:00:00Z', bevestigd: ['alleen', 'zonder_leden'] }
+    const v: StartVoortgang = { ...NIEUWE_START, klaar: ['onderdelen'], afgerondOp: '2026-10-29T10:00:00Z', bevestigd: ['alleen', 'zonder_leden'] }
     const f: StartFeiten = { ...LEEG, heeftLogo: true, heeftAdres: true, vestigingen: 1, vestigingenMetAdres: 1, vestigingenIngericht: 1, lestypen: 2, vasteLessen: 4 }
     expect(aanDeSlagStand(aanDeSlagStappen({ wizard: wizard(v, f), wizardHref: null, teDoen: teDoen({ bedrijf: true }) }))).toBeNull()
     // Wizard af maar de KvK ontbreekt nog: dan is Bedrijf de volgende stap.
     const stand = aanDeSlagStand(aanDeSlagStappen({ wizard: wizard(v, f), wizardHref: null, teDoen: teDoen({ bedrijf: false }) }))
-    expect(stand).toMatchObject({ af: 8, totaal: 9, volgende: { id: 'instel-bedrijf', href: '/club/beheer/bedrijf' } })
+    expect(stand).toMatchObject({ af: 7, totaal: 8, volgende: { id: 'instel-bedrijf', href: '/club/beheer/bedrijf' } })
   })
 
   it('wie de wizard niet mag openen (clubmanager) krijgt geen link naar de wizard', () => {

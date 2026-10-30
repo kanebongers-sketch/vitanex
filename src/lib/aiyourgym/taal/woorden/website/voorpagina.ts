@@ -11,7 +11,7 @@ export const VOORPAGINA = woordenboek({
     held: {
       titel: ['Je club,', 'een systeem.'],
       lead: 'Clubsoftware voor sportscholen: check-in, lessen, rooster, trainingsschema’s met coaching en een ledenapp in jouw naam en kleuren.',
-      probeer: (dagen: number) => `Probeer ${dagen} dagen gratis`,
+      start: 'Start je club',
       demo: 'Live demo bekijken',
       beeldLabel:
         'Het scherm Vandaag van Club voor Kernhal, een verzonnen sportschool in Utrecht: tegels met de dag, de lessen met bezetting en een ledenkaart, en ervoor de ledenapp op een telefoon',
@@ -73,14 +73,14 @@ export const VOORPAGINA = woordenboek({
       voorbeeld: 'jouw club',
       na: 'in AI Your Gym',
       knop: 'en start.',
-      onder: (dagen: number, stappen: number) => `${dagen} dagen gratis, geen opstartkosten. Je kiest een pakket en zet je club live in ${stappen} stappen.`,
+      onder: (stappen: number) => `Geen opstartkosten. Je kiest je pakketten en zet je club live in ${stappen} stappen.`,
     },
   },
   en: {
     held: {
       titel: ['Your club,', 'one system.'],
       lead: 'Club software for gyms: check-in, classes, staff rota, training programmes with coaching and a member app in your name and colours.',
-      probeer: (dagen: number) => `Try it free for ${dagen} days`,
+      start: 'Start your club',
       demo: 'See the live demo',
       beeldLabel:
         'The Today screen in Club for Kernhal, a made-up gym in Utrecht: tiles for the day, the classes with attendance and a member card, with the member app on a phone in front',
@@ -142,7 +142,7 @@ export const VOORPAGINA = woordenboek({
       voorbeeld: 'your club',
       na: 'in AI Your Gym',
       knop: 'and start.',
-      onder: (dagen: number, stappen: number) => `${dagen} days free, no set-up fee. You choose a plan and put your club live in ${stappen} steps.`,
+      onder: (stappen: number) => `No set-up fee. You choose your packages and put your club live in ${stappen} steps.`,
     },
   },
 })

@@ -5,7 +5,6 @@ import '@/components/aiyourgym/aanmelden/aanmelden.css'
 import '@/components/aiyourgym/demo-aanvraag/demo-aanvraag.css'
 import { DEMO_SOORTEN, type DemoSoort } from '@/lib/aiyourgym/demo-aanvraag'
 import { AYG_CONTACT, telLink } from '@/lib/aiyourgym/contact'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
 import { DEMO_AANVRAAG } from '@/lib/aiyourgym/taal/woorden/website/demo-aanvraag'
@@ -14,7 +13,7 @@ import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // /aiyourgym/demo-aanvragen: een persoonlijke, vrijblijvende demo aanvragen.
-// De tweede route naast zelf gratis proberen. De aanvraag komt bij Kane op
+// De tweede route naast meteen aanmelden. De aanvraag komt bij Kane op
 // /club/platform; er gaat geen mail naar buiten. De poort (alleen Kane
 // zolang de website uit staat) zit in ../../layout.tsx. Teksten in de taal van
 // de pagina (DEMO_AANVRAAG).
@@ -83,7 +82,7 @@ export default async function DemoAanvragenPagina({ searchParams }: PaginaProps)
           <div className="dem-anders">
             <p>{t.zelfProberen}</p>
             <Link href={AANMELDEN} className="ayg-knop ayg-knop--accent">
-              {actie.probeerDagen(PROEFDAGEN)} <ArrowRight size={17} aria-hidden />
+              {actie.start} <ArrowRight size={17} aria-hidden />
             </Link>
             <Link href={DEMO} className="ayg-pijllink">
               {actie.ofLiveDemo} <ArrowRight size={16} aria-hidden />

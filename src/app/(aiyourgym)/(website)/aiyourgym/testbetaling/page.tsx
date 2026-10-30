@@ -5,7 +5,6 @@ import { CreditCard, ShieldCheck } from 'lucide-react'
 import { adminOfNull } from '@/lib/aiyourgym/api'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { welkomPad } from '@/lib/aiyourgym/links'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { pakkettenTekst } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { adresVan } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
@@ -21,7 +20,7 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 
 // /aiyourgym/testbetaling?sessie=test_...: de plek van Stripe Checkout zolang
 // Stripe er niet is (besluit Kane 23-10-2026). Zegt eerlijk dat er niets wordt
-// afgeschreven; afronden richt de sportschool in en gaat naar de welkomstpagina.
+// afgeschreven; geen proefperiode (besluit Kane 30-10-2026); afronden richt de sportschool in en gaat naar de welkomstpagina.
 
 export const dynamic = 'force-dynamic'
 
@@ -90,7 +89,7 @@ export default async function TestbetalingPagina({ searchParams }: PaginaProps) 
           <ShieldCheck size={20} aria-hidden="true" />
           <p>
             <strong>{t.nietsAf}</strong>
-            {t.nietsAfUitleg(PROEFDAGEN)}
+            {t.nietsAfUitleg()}
           </p>
         </div>
         <dl className="aan-test-overzicht ayg-podium">

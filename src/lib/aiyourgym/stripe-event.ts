@@ -15,7 +15,7 @@ export interface AfgerondeSessie {
   sessieId: string
   aanmeldingId: string | null
   status: string | null
-  /** paid of no_payment_required (proefperiode); unpaid = nog niet binnen. */
+  /** paid, of no_payment_required (bijvoorbeeld een korting van 100%); unpaid = nog niet binnen. */
   betaalStatus: string | null
   mode: string | null
   klantId: string | null
@@ -98,7 +98,7 @@ export function leesEvent(body: unknown): AygEvent | null {
   }
 }
 
-/** Is deze sessie echt afgerond (betaald, of proefperiode zonder betaling nu)? */
+/** Is deze sessie echt afgerond (betaald, of niets te betalen nu)? */
 export function sessieKlaar(s: AfgerondeSessie): boolean {
   return s.status === 'complete' && s.mode === 'subscription' && (s.betaalStatus === 'paid' || s.betaalStatus === 'no_payment_required')
 }

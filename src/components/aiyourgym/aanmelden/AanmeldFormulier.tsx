@@ -25,7 +25,6 @@ import { MAX_VESTIGINGEN_ONLINE } from '@/lib/aiyourgym/aanmelding'
 
 interface AanmeldFormulierProps {
   pakketten: readonly PakketKeuze[]
-  proefdagen: number
   /** Al gekozen pakketten (van de prijzenpagina, ?pakketten=lessen,groei). */
   startPakketten: readonly PakketSleutel[]
   /** Staat de testbetaling aan (zolang Stripe niet voor alles een prijs heeft)? */
@@ -44,7 +43,7 @@ const LEEG: Omit<Invoer, 'pakketten'> = {
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, proefdagen, startPakketten, testAan, bundel = false, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
+export function AanmeldFormulier({ pakketten, startPakketten, testAan, bundel = false, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
   // Ook met pakketten uit de URL begint het formulier bij de keuze: er kan er nog een bij.
   const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, sportschoolNaam: startNaam, slug: startNaam ? slugVoorstel(startNaam) : '', pakketten: [...startPakketten] })
   const [stap, setStap] = useState(0)
@@ -161,10 +160,10 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakketten, testAa
           {stapTekst.titel}
         </h2>
         <div className="aan-stap" key={stap}>
-          {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakketten} fout={stapFouten.pakketten} onWissel={(s) => zetPakketten((oud) => wisselPakket(oud, s))} onVoorstel={(lijst) => zetPakketten(() => lijst)} />}
+          {stap === 0 && <StapPakket pakketten={pakketten} gekozen={invoer.pakketten} fout={stapFouten.pakketten} onWissel={(s) => zetPakketten((oud) => wisselPakket(oud, s))} />}
           {stap === 1 && <StapSportschool subdomeinen={subdomeinen} invoer={invoer} maxVestigingen={MAX_VESTIGINGEN_ONLINE} onbeperkt={false} fouten={stapFouten} wijzig={wijzig} />}
           {stap === 2 && <StapEigenaar invoer={invoer} fouten={stapFouten} wijzig={wijzig} />}
-          {stap === 3 && <StapAkkoord subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
+          {stap === 3 && <StapAkkoord subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} fouten={stapFouten} wijzig={wijzig} naarStap={naarStap} />}
         </div>
         {verzenden.staat === 'fout' && <p className="aan-melding" role="alert">{verzenden.melding}</p>}
         {stapTekst.hierna && <p className="aan-hierna">{stapTekst.hierna}</p>}
@@ -177,12 +176,12 @@ export function AanmeldFormulier({ pakketten, proefdagen, startPakketten, testAa
           )}
           <button type="submit" className="ayg-knop ayg-knop--accent aan-verder" disabled={verzenden.staat === 'bezig'}>
             {verzenden.staat === 'bezig' ? <LoaderCircle size={18} className="aan-draai" aria-hidden="true" /> : null}
-            {!laatste ? t.volgende : pakket?.open && pakket.test ? t.naarProef : pakket?.open ? t.naarBetalen(proefdagen) : t.aanvraagVersturen}
+            {!laatste ? t.volgende : pakket?.open && pakket.test ? t.naarStarten : pakket?.open ? t.naarBetalen : t.aanvraagVersturen}
             {verzenden.staat !== 'bezig' && <ArrowRight size={18} aria-hidden="true" />}
           </button>
         </div>
       </form>
-      <Samenvatting subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} proefdagen={proefdagen} />
+      <Samenvatting subdomeinen={subdomeinen} invoer={invoer} pakket={pakket} />
     </div>
   )
 }

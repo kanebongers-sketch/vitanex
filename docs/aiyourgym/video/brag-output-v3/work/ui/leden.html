@@ -1,0 +1,67 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><link rel="stylesheet" href="ui.css"><style>
+.romp{flex:1;display:grid;grid-template-columns:560px 1fr;gap:26px;padding:30px 40px 30px}
+.lijst{padding:22px 0}
+.lijst .zoek{margin:0 22px 14px;height:52px;border-radius:14px;background:var(--kaart2);display:flex;align-items:center;padding:0 18px;color:var(--zacht);font-size:19px}
+.rij{display:flex;align-items:center;gap:16px;padding:15px 22px;border-left:4px solid transparent}
+.rij.a{background:#18203a;border-left-color:var(--accent)}
+.av{width:52px;height:52px;border-radius:50%;background:var(--kaart2);display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.rij.a .av{background:var(--accent);color:#fff}
+.rij b{font-size:21px;font-weight:600;display:block}.rij small{font-size:16px;color:var(--zacht)}
+.rij .st{margin-left:auto}
+.prof{padding:34px 38px;display:flex;flex-direction:column;gap:26px}
+.ph{display:flex;align-items:center;gap:24px}
+.ph .av{width:96px;height:96px;font-size:32px;background:var(--accent);color:#fff}
+.ph h1{font-size:44px;font-weight:700;letter-spacing:-.02em}
+.ph .pils{display:flex;gap:10px;margin-top:10px}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--lijn);padding-bottom:0}
+.tabs span{padding:14px 20px;font-size:19px;font-weight:600;color:var(--zacht);border-bottom:3px solid transparent}
+.tabs span.a{color:var(--tekst);border-bottom-color:var(--accent)}
+.blokken{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.blok{padding:22px 24px}.blok .w{font-size:40px;font-weight:700;margin-top:10px;letter-spacing:-.02em}.blok .w small{font-size:19px;color:var(--zacht);font-weight:500;margin-left:6px}
+.twee{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.vak{padding:24px 26px}
+.vak h3{font-size:24px;font-weight:700;margin-top:12px}
+.vak p{font-size:18px;color:var(--zacht);margin-top:6px}
+.oef{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.oef div{display:flex;justify-content:space-between;font-size:19px;padding:14px 16px;background:var(--kaart2);border-radius:14px}
+.oef div span{color:var(--zacht)}
+.acties{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.acties span{height:46px;padding:0 20px;border-radius:99px;border:1px solid var(--lijn);display:inline-flex;align-items:center;font-size:18px;font-weight:600}
+.acties span.a{background:var(--accent);border-color:var(--accent);color:#fff}
+.bez{display:flex;gap:7px;margin-top:16px;align-items:flex-end;height:70px}
+.bez i{flex:1;border-radius:6px;background:var(--accentvlak)}
+.bez i.v{background:var(--accent)}
+</style></head><body><div class="lap">
+<div class="balk"><div class="dots"><b></b><b></b><b></b></div><div class="url">aiyourgym.com/kernhal</div></div>
+<div class="kop1"><div class="merk"><div class="mk"><i></i></div><div class="wm">KERNHAL</div></div>
+<div class="groepen"><span>WERKVLOER</span><span class="a">LEDEN</span><span>PLANNING</span><span>COACHING</span><span>BEHEER</span></div></div>
+<div class="sub"><span class="lb">● LEDEN</span><span class="a">Leden</span><span>Intakes</span><span>Leads</span><span>Berichten</span></div>
+<div class="romp">
+ <div class="kaart lijst">
+  <div class="zoek">Zoek een lid</div>
+  <div class="rij a"><div class="av">NV</div><div><b>Noor Visser</b><small>Kracht onbeperkt</small></div><div class="st pil a">Actief</div></div>
+  <div class="rij"><div class="av">DS</div><div><b>Daan Smit</b><small>Small group</small></div><div class="st pil">Actief</div></div>
+  <div class="rij"><div class="av">LB</div><div><b>Lotte Bos</b><small>Kracht onbeperkt</small></div><div class="st pil">Actief</div></div>
+  <div class="rij"><div class="av">YM</div><div><b>Yusuf Mansour</b><small>Personal training</small></div><div class="st pil">Intake</div></div>
+  <div class="rij"><div class="av">EK</div><div><b>Eva Kok</b><small>Kracht onbeperkt</small></div><div class="st pil">Pauze</div></div>
+  <div class="rij"><div class="av">SJ</div><div><b>Sem Jansen</b><small>Small group</small></div><div class="st pil">Actief</div></div>
+  <div class="rij"><div class="av">MH</div><div><b>Mila Hendriks</b><small>Kracht onbeperkt</small></div><div class="st pil">Actief</div></div>
+ </div>
+ <div class="kaart prof">
+  <div class="ph"><div class="av">NV</div><div><h1>Noor Visser</h1><div class="pils"><span class="pil a">Actief</span><span class="pil">Kracht onbeperkt</span><span class="pil">Kernhal Utrecht</span></div></div></div>
+  <div class="tabs"><span class="a">Overzicht</span><span>Training</span><span>Lidmaatschap</span><span>Planning</span><span>Contact</span><span>Privacy</span></div>
+  <div class="blokken">
+   <div class="kaart blok"><div class="kl">Bezoeken deze maand</div><div class="w">11</div></div>
+   <div class="kaart blok"><div class="kl">Volgende les</div><div class="w">Do<small>18:30 Kracht</small></div></div>
+   <div class="kaart blok"><div class="kl">Schema</div><div class="w">Dag B<small>week 3</small></div></div>
+  </div>
+  <div class="twee">
+   <div class="kaart vak"><div class="kl">Trainingsschema</div><h3>Kracht basis · 3 dagen</h3><p>Gemaakt door coach Iris</p>
+    <div class="oef"><div>Back squat<span>4 x 6 tot 8</span></div><div>Deadlift<span>3 x 5</span></div><div>Overhead press<span>3 x 8 tot 10</span></div></div></div>
+   <div class="kaart vak"><div class="kl">Bezoek</div><div class="bez"><i style="height:40%"></i><i style="height:70%"></i><i class="v" style="height:55%"></i><i style="height:85%"></i><i class="v" style="height:65%"></i><i style="height:90%"></i><i class="v" style="height:100%"></i><i style="height:60%"></i></div>
+    <div class="acties"><span class="a">Intake starten</span><span>Schema maken</span><span>Les boeken</span></div></div>
+  </div>
+ </div>
+</div>
+<div class="hulp"><span>INSTELLINGEN</span><span>KOPPELINGEN</span><span>LEDENAPP</span><span>WAT IS NIEUW</span><span style="border:0">HULP</span></div>
+</div></body></html>

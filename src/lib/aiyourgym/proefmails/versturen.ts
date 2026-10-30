@@ -1,4 +1,7 @@
-// ─── AI Your Gym: de proefmails versturen (SERVER-ONLY) ─────────────────────
+// ─── AI Your Gym: de startmails versturen (SERVER-ONLY) ─────────────────────
+// Drie tips in de eerste dagen na het aanmelden (zie planner.ts). Geen
+// proefperiode meer (besluit Kane 30-10-2026), dus geen herinnering aan een
+// einddatum en geen vraag aan Stripe.
 // De cron (/api/aiyourgym/cron/proefmails) roept dit aan. Alleen met de
 // schakelaar AIYOURGYM_PROEFMAILS=1 en een afzender (AIYOURGYM_RESEND_FROM plus
 // RESEND_API_KEY), dezelfde Resend als de welkomstmail. Elke mail gaat precies
@@ -9,13 +12,9 @@
 import { Resend } from 'resend'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
-import { abonnementUitRij, ABONNEMENT_PAD } from '../abonnement'
-import { stripeAbonnementVan } from '../abonnement-opslag'
 import { mailAfzender } from '../config'
-import { PROEFDAGEN } from '../pakketten'
 import { subdomeinenActief } from '../schakelaar'
-import { PROEFMAIL_SOORTEN, isProefmailSoort, planProefmail, proefmailsAan, type ProefmailSoort } from './planner'
-import { DAG_MS, proefTotVan } from './proefperiode'
+import { DAG_MS, LAATSTE_DAG, PROEFMAIL_SOORTEN, isProefmailSoort, planProefmail, proefmailsAan, type ProefmailSoort } from './planner'
 import { proefmailTekst } from './teksten'
 
 const MAX_PER_RUN = 100
@@ -36,9 +35,6 @@ interface Kandidaat {
   voornaam: string
   email: string
   aangemaaktOp: string
-  /** De ruwe rij, voor het abonnement bij Stripe. */
-  rij: unknown
-  metStripe: boolean
 }
 
 function kandidaatUit(r: Record<string, unknown>): Kandidaat | null {
@@ -52,17 +48,15 @@ function kandidaatUit(r: Record<string, unknown>): Kandidaat | null {
     voornaam: naam.split(' ')[0] || 'daar',
     email: r.eigenaar_email,
     aangemaaktOp: r.aangemaakt_op,
-    rij: r,
-    metStripe: Boolean(r.stripe_customer_id || r.stripe_subscription_id),
   }
 }
 
-/** Actieve sportscholen waarvan de proefperiode nog kan lopen. */
+/** Actieve sportscholen die zich in de laatste dagen aanmeldden (met een dag speling). */
 async function haalKandidaten(admin: SupabaseClient, nu: Date): Promise<Kandidaat[] | null> {
-  const sinds = new Date(nu.getTime() - (PROEFDAGEN + 2) * DAG_MS).toISOString()
+  const sinds = new Date(nu.getTime() - (LAATSTE_DAG + 1) * DAG_MS).toISOString()
   const { data, error } = await admin
     .from('ayg_aanmeldingen')
-    .select('id, pakket, aantal_vestigingen, sportschool_naam, slug, eigenaar_naam, eigenaar_email, status, stripe_customer_id, stripe_subscription_id, organisatie_id, aangemaakt_op')
+    .select('id, sportschool_naam, slug, eigenaar_naam, eigenaar_email, organisatie_id, aangemaakt_op')
     .eq('status', 'actief')
     .not('organisatie_id', 'is', null)
     .gte('aangemaakt_op', sinds)
@@ -121,29 +115,18 @@ async function haalVerstuurd(admin: SupabaseClient, ids: string[]): Promise<Map<
   return uit
 }
 
-/** Het einde van de proefperiode (bij Stripe het einde dat Stripe noemt). */
-async function eindeVan(k: Kandidaat): Promise<Date | null> {
-  const rij = abonnementUitRij(k.rij)
-  if (!rij) return null
-  const stripe = k.metStripe ? await stripeAbonnementVan(rij) : null
-  return proefTotVan({ status: rij.status, aangemaaktOp: k.aangemaaktOp, metStripe: k.metStripe }, stripe)
-}
-
 async function claim(admin: SupabaseClient, id: string, soort: ProefmailSoort, nu: Date): Promise<boolean> {
   const { error } = await admin.from('ayg_proefmails').insert({ aanmelding_id: id, soort, verstuurd_op: nu.toISOString() })
   if (error && error.code !== '23505') console.error('[aiyourgym] proefmails: claim mislukt', error.code ?? '')
   return !error
 }
 
-async function stuur(resend: Resend, van: string, k: Kandidaat, soort: ProefmailSoort, einde: Date): Promise<boolean> {
+async function stuur(resend: Resend, van: string, k: Kandidaat, soort: ProefmailSoort): Promise<boolean> {
   const sub = subdomeinenActief()
   const { onderwerp, tekst } = proefmailTekst(soort, {
     voornaam: k.voornaam,
     sportschool: k.sportschool,
     inlogUrl: sportschoolUrl(k.slug, sub, '/inloggen'),
-    abonnementUrl: sportschoolUrl(k.slug, sub, ABONNEMENT_PAD),
-    einde,
-    metBetaling: k.metStripe,
   })
   try {
     const { error } = await resend.emails.send({ from: van, to: k.email, subject: onderwerp, text: tekst })
@@ -168,11 +151,9 @@ export async function verstuurProefmails(admin: SupabaseClient, nu: Date, env: R
   for (const k of kandidaten) {
     const al = verstuurd.get(k.id) ?? new Set<ProefmailSoort>()
     if (al.size >= PROEFMAIL_SOORTEN.length) continue
-    // Het echte einde: bij Stripe opgevraagd (alleen voor de paar sportscholen in hun eerste weken), anders begin plus PROEFDAGEN.
-    const einde = await eindeVan(k)
-    const soort = planProefmail({ start: new Date(k.aangemaaktOp), einde, verstuurd: al, nu })
-    if (!soort || !einde || !(await claim(admin, k.id, soort, nu))) continue
-    if (await stuur(resend, van, k, soort, einde)) teller = { ...teller, verstuurd: teller.verstuurd + 1 }
+    const soort = planProefmail({ start: new Date(k.aangemaaktOp), verstuurd: al, nu })
+    if (!soort || !(await claim(admin, k.id, soort, nu))) continue
+    if (await stuur(resend, van, k, soort)) teller = { ...teller, verstuurd: teller.verstuurd + 1 }
     else {
       await admin.from('ayg_proefmails').delete().eq('aanmelding_id', k.id).eq('soort', soort)
       teller = { ...teller, mislukt: teller.mislukt + 1 }

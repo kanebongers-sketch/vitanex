@@ -1,7 +1,8 @@
 // ─── Club startwizard: lestypen en de vaste week in een keer (PUUR) ─────────
-// De stap Lessen toont alles meteen: de lestypen als keuze (passend bij de
-// soort sportschool al aangevinkt), per gekozen lestype naam, duur en uitleg,
-// en de voorgestelde week die al aan staat. Per les kies je dag, tijd, duur,
+// De stap Lessen toont alles meteen: de lestypen als keuze (voorbeelden staan
+// er, maar niets is aangevinkt tot de eigenaar het kiest, besluit Kane
+// 30-10-2026), per gekozen lestype naam, duur en uitleg, en voorbeeldlessen
+// voor de week die de eigenaar zelf aanzet. Per les kies je dag, tijd, duur,
 // plekken, zaal en instructeur. Bij verder maken we er een plan van: wat er
 // nieuw komt, wat er verandert en wat er uit gaat. Niets gaat ooit weg uit de
 // database: uitzetten is actief = false (de historie blijft kloppen).
@@ -45,8 +46,6 @@ export interface TypeRij {
   duurMin: number
   intensiteit: Intensiteit
   aan: boolean
-  /** Past bij de gekozen soort sportschool (komt vooraan in de keuze). */
-  past: boolean
 }
 
 export interface LesRij {
@@ -67,16 +66,16 @@ function intensiteit(n: number): Intensiteit {
   return n <= 1 ? 1 : n >= 3 ? 3 : 2
 }
 
-function typeUitVoorbeeld(v: VoorbeeldLestype, aan: boolean, past: boolean): TypeRij {
-  return { sleutel: `vb:${v.naam}`, id: null, naam: v.naam, omschrijving: v.omschrijving, soort: v.soort, duurMin: v.duurMin, intensiteit: v.intensiteit, aan, past }
+function typeUitVoorbeeld(v: VoorbeeldLestype): TypeRij {
+  return { sleutel: `vb:${v.naam}`, id: null, naam: v.naam, omschrijving: v.omschrijving, soort: v.soort, duurMin: v.duurMin, intensiteit: v.intensiteit, aan: false }
 }
 
 /**
- * De lestypen om uit te kiezen: eerst wat er al is (aan), dan de voorbeelden
- * die bij de soort passen, dan de rest. Zonder eigen lestypen staan de
- * passende voorbeelden meteen aan; met eigen lestypen blijft eigen werk leidend.
+ * De lestypen om uit te kiezen: eerst wat er al is (aan zoals in de database),
+ * dan de voorbeelden die er nog niet zijn. Een voorbeeld staat nooit vooraf
+ * aan: de eigenaar kiest zelf.
  */
-export function beginTypen(bestaand: readonly BestaandType[], passend: readonly VoorbeeldLestype[], bibliotheek: readonly VoorbeeldLestype[]): TypeRij[] {
+export function beginTypen(bestaand: readonly BestaandType[], bibliotheek: readonly VoorbeeldLestype[]): TypeRij[] {
   const eigen: TypeRij[] = bestaand.map((t) => ({
     sleutel: `id:${t.id}`,
     id: t.id,
@@ -86,13 +85,9 @@ export function beginTypen(bestaand: readonly BestaandType[], passend: readonly 
     duurMin: t.duurMin,
     intensiteit: intensiteit(t.intensiteit),
     aan: t.actief !== false,
-    past: passend.some((p) => zelfdeNaam(p.naam, t.naam)),
   }))
-  const nieuw = (v: VoorbeeldLestype) => !bestaand.some((t) => zelfdeNaam(t.naam, v.naam))
-  const geenEigen = !bestaand.some((t) => t.actief !== false)
-  const voorstel = passend.filter(nieuw).map((v) => typeUitVoorbeeld(v, geenEigen, true))
-  const rest = bibliotheek.filter((v) => nieuw(v) && !passend.some((p) => zelfdeNaam(p.naam, v.naam))).map((v) => typeUitVoorbeeld(v, false, false))
-  return [...eigen, ...voorstel, ...rest]
+  const voorbeelden = bibliotheek.filter((v) => !bestaand.some((t) => zelfdeNaam(t.naam, v.naam))).map(typeUitVoorbeeld)
+  return [...eigen, ...voorbeelden]
 }
 
 function lesSleutel(typeSleutel: string, l: VoorbeeldLes): string {
@@ -100,9 +95,9 @@ function lesSleutel(typeSleutel: string, l: VoorbeeldLes): string {
 }
 
 /**
- * De week: de vaste lessen die er al zijn, plus het voorstel voor elk lestype
- * dat nog geen vaste les heeft. Het voorstel staat aan; je ziet het zodra het
- * lestype is gekozen.
+ * De week: de vaste lessen die er al zijn, plus voorbeeldlessen voor elk
+ * lestype dat nog geen vaste les heeft. Een voorbeeldles staat uit tot de
+ * eigenaar hem aanzet; je ziet hem zodra het lestype is gekozen.
  */
 export function beginLessen(typen: readonly TypeRij[], series: readonly BestaandeSerie[], voorbeelden: readonly VoorbeeldLes[], zaalId: string | null): LesRij[] {
   const bestaand: LesRij[] = series.map((s) => ({
@@ -122,7 +117,7 @@ export function beginLessen(typen: readonly TypeRij[], series: readonly Bestaand
     .flatMap((t) =>
       voorbeelden
         .filter((l) => zelfdeNaam(l.lestype, t.naam))
-        .map((l): LesRij => ({ sleutel: lesSleutel(t.sleutel, l), id: null, typeSleutel: t.sleutel, weekdag: l.weekdag, starttijd: l.starttijd, duurMin: t.duurMin, capaciteit: l.capaciteit, zaalId, instructeurId: null, aan: true })),
+        .map((l): LesRij => ({ sleutel: lesSleutel(t.sleutel, l), id: null, typeSleutel: t.sleutel, weekdag: l.weekdag, starttijd: l.starttijd, duurMin: t.duurMin, capaciteit: l.capaciteit, zaalId, instructeurId: null, aan: false })),
     )
   return [...bestaand, ...voorstel]
 }
@@ -251,5 +246,5 @@ export function legeLes(typen: readonly TypeRij[], n: number, zaalId: string | n
 
 /** Een nieuw, eigen lestype (staat meteen aan). */
 export function leegType(n: number): TypeRij {
-  return { sleutel: `nieuw:${n}`, id: null, naam: '', omschrijving: '', soort: 'overig', duurMin: 45, intensiteit: 2, aan: true, past: false }
+  return { sleutel: `nieuw:${n}`, id: null, naam: '', omschrijving: '', soort: 'overig', duurMin: 45, intensiteit: 2, aan: true }
 }

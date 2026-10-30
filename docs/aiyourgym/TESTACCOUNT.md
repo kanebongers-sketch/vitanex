@@ -7,6 +7,7 @@ Migratie `supabase/lifeos-migrations/423_ayg_testaccount.sql` (uitgevoerd op 17-
 - De basisbibliotheek met oefeningen (kopie van Fit Factory, zonder eigen coaching).
 - Eigenaar-beheerder **Test Eigenaar** met e-mail `test@aiyourgym.com`. Dat adres bestaat niet en is alleen een label; er wordt nooit iets naartoe gestuurd.
 - Een rij in `ayg_aanmeldingen` met status `test`. Stripe verandert nooit iets aan die status.
+- Geen abonnement, geen facturen en (net als voor elke sportschool sinds 30-10-2026) geen proefperiode. De abonnementspagina toont "Testaccount".
 
 ## Erbij komen als Kane
 

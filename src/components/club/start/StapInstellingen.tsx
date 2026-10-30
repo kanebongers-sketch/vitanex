@@ -3,13 +3,14 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import { naamVan } from '@/lib/club/kern/vestigingen'
 import { medewerkerUitRij, type Medewerker } from '@/lib/club/kern/medewerker'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
+import { heeftEigenOpeningstijden } from '@/lib/club/instellingen/vestigingen-invoer'
+import { openingstijdenNaarJson } from '@/lib/club/rooster/openingstijden'
 import { haalMedewerkerLogins } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
 import { moduleAan } from '@/lib/club/kern/organisatie'
-import type { SportschoolSoort } from '@/lib/club/start/soorten'
-import { startPad } from '@/lib/club/start/stappen'
+import { startPad, stapNummer } from '@/lib/club/start/stappen'
 import { rechtenGroepen } from '@/components/club/beheer/rechten-groepen'
 import { StapVestiging } from './StapVestiging'
 import { StapTeamInvoer } from './StapTeamInvoer'
@@ -19,7 +20,7 @@ import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 import { rollenV2Aan } from '@/lib/club/rollen/schakelaar'
 import { rolrechtenVan } from '@/lib/club/rollen/profiel'
 
-// Stap 3 (vestiging: adres, openingstijden en reserveren) en stap 6 (het team
+// De stappen Vestiging (adres, openingstijden en reserveren) en Team (het team
 // en wat elke rol ziet): de data van de server, de invoer in kleine
 // client-onderdelen. Alles wordt hier ingesteld, niets elders.
 
@@ -28,7 +29,6 @@ type Voet = Omit<StartVoetProps, 'voorVerder' | 'primair'>
 interface StapMetVestigingProps {
   t: ClubToegang
   vestiging: string | null
-  soort: SportschoolSoort | null
   voet: Voet
 }
 
@@ -36,7 +36,7 @@ export async function GeenVestiging() {
   const t = (await clubTekst(START)).instellingen
   return (
     <p className="club-melding">
-      {t.geenVestigingVoor} <Link href={startPad(3, null)}>{t.geenVestigingLink}</Link>.
+      {t.geenVestigingVoor} <Link href={startPad(stapNummer('vestigingen'), null)}>{t.geenVestigingLink}</Link>.
     </p>
   )
 }
@@ -68,14 +68,14 @@ async function haalAdres(t: ClubToegang, vestiging: string): Promise<string | nu
   return typeof adres === 'string' && adres.trim() ? adres : null
 }
 
-export async function StapVestigingen({ t, vestiging, soort, voet }: StapMetVestigingProps) {
+export async function StapVestigingen({ t, vestiging, voet }: StapMetVestigingProps) {
   if (!vestiging) return <GeenVestiging />
   const [adres, data] = await Promise.all([haalAdres(t, vestiging), haalInstellingen(t.admin, t.userId, vestiging)])
   if (!data) return <LaadFout />
   return (
     <>
       <VestigingKeuze t={t} vestiging={vestiging} stap={voet.stap} />
-      <StapVestiging key={vestiging} sleutel={vestiging} naam={naamVan(t.vestigingen, vestiging)} adres={adres} week={data.openingstijden} regels={data.regels} soort={soort} roosterAan={moduleAan(t.organisatie, 'rooster')} voet={voet} />
+      <StapVestiging key={vestiging} sleutel={vestiging} naam={naamVan(t.vestigingen, vestiging)} adres={adres} week={data.openingstijden} regels={data.regels} eigenTijden={heeftEigenOpeningstijden(openingstijdenNaarJson(data.openingstijden))} roosterAan={moduleAan(t.organisatie, 'rooster')} voet={voet} />
     </>
   )
 }
@@ -87,7 +87,7 @@ async function haalTeam(t: ClubToegang): Promise<Medewerker[]> {
   return (data ?? []).map(medewerkerUitRij).filter((m): m is Medewerker => m !== null)
 }
 
-export async function StapTeam({ t, vestiging, soort, voet, alleen }: StapMetVestigingProps & { alleen: boolean }) {
+export async function StapTeam({ t, vestiging, voet, alleen }: StapMetVestigingProps & { alleen: boolean }) {
   if (!vestiging) return <GeenVestiging />
   const [team, logins] = await Promise.all([haalTeam(t), haalMedewerkerLogins(t.admin, t.userId)])
   const loginVan = new Map((logins ?? []).map((l) => [l.medewerkerId, l.staat]))
@@ -102,7 +102,6 @@ export async function StapTeam({ t, vestiging, soort, voet, alleen }: StapMetVes
       rechten={t.organisatie.instellingen.rechten}
       groepen={rechtenGroepen(t.organisatie.uit, await getTaal())}
       alleen={alleen}
-      soort={soort}
       loginsFout={logins === null}
       voet={voet}
       v2={rollenV2Aan(t.organisatie.id) ? { rolrechten: rolrechtenVan(t.organisatie), uit: t.organisatie.uit, profiel: t.profiel?.id ? { id: t.profiel.id, rollen: t.profiel.rollen } : null } : null}

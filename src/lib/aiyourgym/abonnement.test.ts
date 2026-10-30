@@ -48,9 +48,11 @@ describe('leesStripeAbonnement', () => {
 })
 
 describe('abonnementWeergave', () => {
-  it('proefperiode met einddatum', () => {
+  it('oud abonnement dat Stripe nog als trialing stuurt: actief, met de eerste betaling, nooit "proef"', () => {
     const w = abonnementWeergave(rij(), stripe({ status: 'trialing', proefTot: new Date('2026-10-31T12:00:00Z') }), NU)
-    expect(w.status).toBe('Proefperiode tot 31 oktober 2026')
+    expect(w.status).toBe('Actief')
+    expect(w.toelichting).toBe('Eerste betaling rond 31 oktober 2026.')
+    expect(`${w.status} ${w.toelichting}`.toLowerCase()).not.toContain('proef')
     expect(w.toon).toBe('goed')
     expect(w.pakket).toBe('Club')
     expect(w.portaal).toBe(true)
@@ -77,14 +79,12 @@ describe('abonnementWeergave', () => {
     expect(abonnementWeergave(rij({ status: 'gepauzeerd' }), null, NU).toon).toBe('let')
     expect(abonnementWeergave(rij({ status: 'opgezegd' }), null, NU)).toMatchObject({ status: 'Opgezegd', portaal: true })
   })
-  it('na een testbetaling (zonder Stripe): eerlijk de proefperiode en dat er niets wordt afgeschreven', () => {
+  it('na een testbetaling (zonder Stripe): actief, eerlijk dat er niets wordt afgeschreven, geen proefperiode', () => {
     const test = rij({ stripeKlantId: null, stripeAbonnementId: null, aangemaaktOp: '2026-10-10T10:00:00Z' })
     const w = abonnementWeergave(test, null, NU)
-    expect(w).toMatchObject({ status: 'Proefperiode tot 24 oktober 2026', toon: 'goed', portaal: false })
+    expect(w).toMatchObject({ status: 'Actief', toon: 'goed', portaal: false })
     expect(w.toelichting).toContain('niets afgeschreven')
-    const later = abonnementWeergave(test, null, new Date('2026-11-01T10:00:00Z'))
-    expect(later.status).toBe('Actief')
-    expect(later.toelichting).toContain('niets afgeschreven')
+    expect(w.toelichting?.toLowerCase()).not.toContain('proef')
   })
   it('testaccount en zonder klant-id: geen portaal', () => {
     expect(abonnementWeergave(rij({ status: 'test' }), null, NU)).toMatchObject({ status: 'Testaccount', portaal: false })

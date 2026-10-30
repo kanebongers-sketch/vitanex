@@ -408,15 +408,6 @@
 .club-start-uitnodig-adres .club-invoer { flex: 1; min-width: 0; font-size: 13px; }
 .club-start-team li .club-start-uitnodig:has(.club-start-uitnodig-link) { flex-basis: 100%; justify-items: stretch; }
 
-/* ── Proefperiode tot ... (rustig, alleen de datum) ──────────────────────── */
-.club-proef { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; font-size: 13px; color: var(--text-3); }
-.club-proef strong { font-weight: 600; color: var(--text-2); }
-.club-proef a { color: var(--text-3); text-decoration: underline; text-underline-offset: 3px; }
-.club-proef a:hover { color: var(--text-1); }
-.club-proef a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
-.club-startkaart-tekst p.club-proef { margin-top: 6px; color: var(--text-3); }
-.club-proef-los:has(.club-proef) { margin: 0 0 16px; }
-
 /* De voet plakt onderaan: genoeg ruimte eronder zodat hij nooit de laatste rij bedekt,
    en een veld dat focus krijgt schuift er altijd boven. */
 .club-start-vlak { padding-bottom: 12px; }

@@ -12,7 +12,7 @@
 /* Kerncijfers: zes tegels, op de telefoon twee per rij */
 .club-platform-tegels { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 760px) { .club-platform-tegels { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1240px) { .club-platform-tegels { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (min-width: 1240px) { .club-platform-tegels { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .club-platform-tegel { position: relative; overflow: hidden; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
 .club-platform-tegel[data-aandacht='merk'] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
 .club-platform-tegel[data-aandacht='merk'] .club-tegel-getal { color: var(--brand-tekst, var(--brand)); }

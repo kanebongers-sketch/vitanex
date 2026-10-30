@@ -1,16 +1,15 @@
 import { woordenboek } from '../../woordenboek'
 
 // De schermen van de startwizard in Club (src/components/club/start/** en
-// /club/start). Teksten van de pure regels (namen van stappen, soorten,
-// klaargezet, eerste dag) staan in start-lib.ts. Besluit Kane (23-10-2026):
-// alles meteen instellen, nooit "doe je later" of overslaan, ook niet in het Engels.
+// /club/start). Teksten van de pure regels (namen van stappen, eerste dag)
+// staan in start-lib.ts. Besluit Kane (23-10-2026): alles meteen instellen,
+// nooit "doe je later" of overslaan, ook niet in het Engels. Besluit Kane
+// (30-10-2026): niets automatisch klaarzetten, de eigenaar kiest alles zelf.
 
 export const START = woordenboek({
   nl: {
     meta: 'Startwizard',
-    alvast: (soort: string) => `Alvast ingevuld voor ${soort}, pas aan wat niet klopt.`,
     poort: 'Eerst je startwizard. Even geduld, je gaat verder waar je was.',
-    proef: { abonnement: 'Abonnement' },
     balk: {
       nav: 'Startwizard',
       wizard: 'Startwizard',
@@ -132,7 +131,7 @@ export const START = woordenboek({
       alleenUitleg: 'Nog geen medewerkers. Komt er iemand bij, dan voeg je die hierboven toe.',
       loginsFout: 'Of je team al kan inloggen, kon niet worden gelezen. Uitnodigen werkt gewoon.',
       rechtenKop: 'Wat elke functie ziet',
-      rechtenUitleg: 'Vink per onderdeel aan welke functie het ziet. Jij als eigenaar ziet altijd alles. De knop onderaan bewaart je keuze.',
+      rechtenUitleg: 'Dit zijn de gewone standaarden van Club, niet afgestemd op jouw sportschool. Bekijk per functie wat die ziet en pas aan wat je anders wilt. Jij als eigenaar ziet altijd alles. De knop onderaan bewaart je keuze.',
       wieKop: 'Wie werkt er?',
       naam: 'Naam',
       naamPlaats: 'Voor- en achternaam',
@@ -177,10 +176,8 @@ export const START = woordenboek({
     lestypen: {
       kop: 'Welke lessen geef je?',
       gekozen: (n: number) => `${n} gekozen`,
-      passend: (soort: string) => `Past bij ${soort}`,
-      voorgesteld: 'Voorgesteld',
+      voorbeelden: 'Kies uit voorbeelden, of maak een eigen lestype. Er staat niets aan tot jij het kiest.',
       eigen: 'Eigen lestype',
-      anders: 'Andere lestypen',
       kies: 'Kies hierboven de lessen die je geeft.',
       naamloos: 'Naamloos',
       nieuwLestype: 'nieuw lestype',
@@ -206,7 +203,7 @@ export const START = woordenboek({
     week: {
       kop: (vestiging: string) => `Je week in ${vestiging}`,
       perWeek: (n: number) => (n === 1 ? '1 les per week' : `${n} lessen per week`),
-      uitleg: 'Elke les komt elke week terug en staat na opslaan meteen in het rooster, zodat leden kunnen reserveren. Zet een les uit die je niet geeft.',
+      uitleg: 'Elke les komt elke week terug en staat na opslaan meteen in het rooster, zodat leden kunnen reserveren. Voorbeeldlessen staan uit: zet aan wat je geeft, of voeg een eigen les toe.',
       geenLessen: 'Nog geen vaste lessen. Voeg hieronder je eerste les toe.',
       eerstTypen: 'Kies eerst welke lessen je geeft.',
       lesToevoegen: 'Les toevoegen',
@@ -253,30 +250,9 @@ export const START = woordenboek({
       afronden: 'Afronden',
       klaarVerder: 'Klaar, verder',
       opslaanVerder: 'Opslaan en verder',
-      kloptZetKlaar: 'Klopt, zet klaar',
-    },
-    soort: {
-      kies: 'Kies eerst wat voor sportschool je hebt. Dan vullen we de volgende stappen alvast voor je in.',
-      blijftStaan: (fout: string) => `${fout} Wat al gelukt is blijft staan; probeer het nog een keer.`,
-      vraag: 'Wat voor sportschool heb je?',
-      voor: (soort: string) => `Voor ${soort}`,
-      kop: 'Dit zetten we alvast voor je klaar',
-      staatAl: 'Dit staat er al. Kies een andere soort om het opnieuw klaar te zetten.',
-      klopt: 'Klopt het? Druk onderaan op Klopt, zet klaar. Wat je zelf al hebt ingesteld blijft staan, en in de volgende stappen pas je alles meteen aan.',
-      bezig: (klaar: number, totaal: number) => `Klaarzetten ${klaar} van ${totaal}...`,
-      laadbalk: 'Klaarzetten',
-      leegKop: 'Kies je soort sportschool',
-      leegUitleg: 'Dan zie je hier wat we alvast klaarzetten: onderdelen, lestypen, openingstijden, regels voor reserveren en wat je team ziet.',
-      taak: {
-        onderdelen: 'Onderdelen',
-        rechten: 'Rechten per rol',
-        tijden: 'Openingstijden en regels',
-        lestype: (naam: string) => `Lestype ${naam}`,
-      },
     },
     intro: {
-      soort: 'In ongeveer een kwartier staat je sportschool live. Kies wat voor sportschool je hebt, dan vullen wij de volgende stappen alvast in. Je voortgang wordt steeds bewaard.',
-      huisstijl: 'Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
+      huisstijl: 'In ongeveer een kwartier staat je sportschool live, en je kiest alles zelf. Je voortgang wordt steeds bewaard. Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
       vestigingen: 'Waar je sportschool zit (nodig om live te gaan), wanneer hij open is en hoe leden een les boeken.',
       onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
       lessen: 'De lessen die je geeft en je vaste week, met zaal en instructeur. Na opslaan staan ze in het rooster.',
@@ -352,6 +328,7 @@ export const START = woordenboek({
       adresPlaats: 'Bijvoorbeeld Dorpsstraat 1, 1234 AB Plaatsnaam',
       adresUitleg: 'Je leden zien dit adres in de app.',
       tijdenKop: 'Openingstijden',
+      tijdenVerplicht: 'Kies je openingstijden: zet minstens een dag open.',
       nieuwKop: 'Nog een vestiging?',
       naam: 'Naam',
       naamPlaats: 'Bijvoorbeeld Centrum of de plaatsnaam',
@@ -394,9 +371,7 @@ export const START = woordenboek({
   },
   en: {
     meta: 'Setup wizard',
-    alvast: (soort: string) => `Pre-filled for ${soort}, change whatever does not fit.`,
     poort: 'Your setup wizard comes first. One moment, you will continue where you left off.',
-    proef: { abonnement: 'Subscription' },
     balk: {
       nav: 'Setup wizard',
       wizard: 'Setup wizard',
@@ -518,7 +493,7 @@ export const START = woordenboek({
       alleenUitleg: 'No staff yet. When someone joins, add them above.',
       loginsFout: 'We could not check whether your team can log in yet. Inviting works as normal.',
       rechtenKop: 'What each role sees',
-      rechtenUitleg: 'Tick which role sees each section. As the owner, you always see everything. The button at the bottom saves your choice.',
+      rechtenUitleg: 'These are the general Club defaults, not tailored to your gym. Check what each role sees and change whatever you want different. As the owner, you always see everything. The button at the bottom saves your choice.',
       wieKop: 'Who works here?',
       naam: 'Name',
       naamPlaats: 'First and last name',
@@ -563,10 +538,8 @@ export const START = woordenboek({
     lestypen: {
       kop: 'Which classes do you run?',
       gekozen: (n: number) => `${n} selected`,
-      passend: (soort: string) => `Suits ${soort}`,
-      voorgesteld: 'Suggested',
+      voorbeelden: 'Pick from examples, or create your own class type. Nothing is selected until you choose it.',
       eigen: 'Your own class type',
-      anders: 'Other class types',
       kies: 'Choose the classes you run above.',
       naamloos: 'Untitled',
       nieuwLestype: 'new class type',
@@ -592,7 +565,7 @@ export const START = woordenboek({
     week: {
       kop: (vestiging: string) => `Your week at ${vestiging}`,
       perWeek: (n: number) => (n === 1 ? '1 class per week' : `${n} classes per week`),
-      uitleg: 'Every class repeats each week and goes straight onto the timetable once saved, so members can book. Switch off any class you do not run.',
+      uitleg: 'Every class repeats each week and goes straight onto the timetable once saved, so members can book. Example classes are off: switch on the ones you run, or add your own class.',
       geenLessen: 'No regular classes yet. Add your first class below.',
       eerstTypen: 'First choose which classes you run.',
       lesToevoegen: 'Add class',
@@ -639,30 +612,9 @@ export const START = woordenboek({
       afronden: 'Finish',
       klaarVerder: 'Done, continue',
       opslaanVerder: 'Save and continue',
-      kloptZetKlaar: 'Looks right, set it up',
-    },
-    soort: {
-      kies: 'First choose what kind of gym you have. We will then pre-fill the next steps for you.',
-      blijftStaan: (fout: string) => `${fout} Whatever already worked has been kept; please try again.`,
-      vraag: 'What kind of gym do you have?',
-      voor: (soort: string) => `For ${soort}`,
-      kop: 'This is what we set up for you',
-      staatAl: 'This is already in place. Choose a different type to set it up again.',
-      klopt: 'Does it look right? Press Looks right, set it up at the bottom. Anything you set up yourself is kept, and in the next steps you adjust everything straight away.',
-      bezig: (klaar: number, totaal: number) => `Setting up ${klaar} of ${totaal}...`,
-      laadbalk: 'Setting up',
-      leegKop: 'Choose your type of gym',
-      leegUitleg: 'You will then see here what we set up for you: features, class types, opening hours, booking rules and what your team sees.',
-      taak: {
-        onderdelen: 'Features',
-        rechten: 'Permissions per role',
-        tijden: 'Opening hours and rules',
-        lestype: (naam: string) => `Class type ${naam}`,
-      },
     },
     intro: {
-      soort: 'In about fifteen minutes your gym is live. Choose what kind of gym you have and we will pre-fill the next steps. Your progress is saved as you go.',
-      huisstijl: 'Upload your logo and we pick the colour from it. Choose your own address too. The preview shows straight away how the member app looks to your members.',
+      huisstijl: 'In about fifteen minutes your gym is live, and you choose everything yourself. Your progress is saved as you go. Upload your logo and we pick the colour from it. Choose your own address too. The preview shows straight away how the member app looks to your members.',
       vestigingen: 'Where your gym is (needed to go live), when it is open and how members book a class.',
       onderdelen: 'Switch off whatever you do not use. It then disappears from the menu, for you and your team.',
       lessen: 'The classes you run and your regular week, with studio and instructor. Once saved, they are on the timetable.',
@@ -738,6 +690,7 @@ export const START = woordenboek({
       adresPlaats: 'For example 1 High Street, Town, Postcode',
       adresUitleg: 'Your members see this address in the app.',
       tijdenKop: 'Opening hours',
+      tijdenVerplicht: 'Choose your opening hours: open at least one day.',
       nieuwKop: 'Another location?',
       naam: 'Name',
       naamPlaats: 'For example City centre or the town name',

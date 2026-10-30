@@ -15,16 +15,6 @@ export const PAKKET_TEKST = woordenboek({
     gekozen: 'Gekozen',
     weetNiet: 'Weet ik nog niet',
     alles: 'Alle pakketten',
-    voorstel: 'Voorstel voor',
-    soorten: {
-      gym: 'Sportschool',
-      boutique: 'Boutique studio',
-      pt: 'PT-studio',
-      keten: 'Keten',
-      yoga: 'Yoga of pilates',
-      vechtsport: 'Vechtsport',
-      bootcamp: 'Bootcamp',
-    },
   },
   en: {
     prijsOpMaat: 'Price on request',
@@ -34,16 +24,6 @@ export const PAKKET_TEKST = woordenboek({
     gekozen: 'Chosen',
     weetNiet: 'Not sure yet',
     alles: 'All packages',
-    voorstel: 'Suggestion for',
-    soorten: {
-      gym: 'Gym',
-      boutique: 'Boutique studio',
-      pt: 'PT studio',
-      keten: 'Chain',
-      yoga: 'Yoga or pilates',
-      vechtsport: 'Martial arts',
-      bootcamp: 'Bootcamp',
-    },
   },
 })
 

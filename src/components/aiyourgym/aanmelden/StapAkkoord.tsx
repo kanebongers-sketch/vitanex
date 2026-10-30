@@ -12,13 +12,12 @@ interface StapAkkoordProps {
   subdomeinen: boolean
   invoer: Invoer
   pakket: GekozenPakketten | null
-  proefdagen: number
   fouten: Partial<Record<AanmeldVeld, string>>
   wijzig: Wijzig
   naarStap: (stap: number) => void
 }
 
-export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarStap, subdomeinen }: StapAkkoordProps) {
+export function StapAkkoord({ invoer, pakket, fouten, wijzig, naarStap, subdomeinen }: StapAkkoordProps) {
   const taal = useTaal()
   const t = AANMELD_FORMULIER[taal]
   const rijen: { label: string; waarde: string; stap: number }[] = [
@@ -44,9 +43,9 @@ export function StapAkkoord({ invoer, pakket, proefdagen, fouten, wijzig, naarSt
       </dl>
 
       {pakket?.open && pakket.test ? (
-        <p className="aan-uitleg">{t.uitlegTest(proefdagen)}</p>
+        <p className="aan-uitleg">{t.uitlegTest}</p>
       ) : pakket?.open ? (
-        <p className="aan-uitleg">{t.uitlegStripe(proefdagen)}</p>
+        <p className="aan-uitleg">{t.uitlegStripe}</p>
       ) : (
         <p className="aan-uitleg">{t.uitlegAanvraag}</p>
       )}

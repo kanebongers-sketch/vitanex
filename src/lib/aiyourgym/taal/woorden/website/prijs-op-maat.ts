@@ -53,7 +53,7 @@ export const PRIJS_OP_MAAT = woordenboek({
     // Bedankt
     bedankt: (naam: string) => `Bedankt${naam ? `, ${naam}` : ''}. Je hoort binnen een werkdag van ons.`,
     bedanktTekst: 'Je krijgt een prijs die past bij je sportschool. Je zit nergens aan vast.',
-    alvast: (dagen: number) => `Probeer alvast ${dagen} dagen gratis`,
+    alvast: 'Of start meteen je club',
     bekijkDemo: 'Bekijk de live demo',
   },
   en: {
@@ -104,7 +104,7 @@ export const PRIJS_OP_MAAT = woordenboek({
     leden: { 'tot-250': 'Up to 250', '250-750': '250 to 750', '750-1500': '750 to 1,500', 'meer-1500': 'More than 1,500', 'weet-niet': 'Not sure' },
     bedankt: (naam: string) => `Thank you${naam ? `, ${naam}` : ''}. You will hear from us within one working day.`,
     bedanktTekst: 'You will get a price that fits your gym. You are not committed to anything.',
-    alvast: (dagen: number) => `Try it free for ${dagen} days in the meantime`,
+    alvast: 'Or start your club right away',
     bekijkDemo: 'Explore the live demo',
   },
 })

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { INLOGGEN } from '@/lib/aiyourgym/taal/woorden/website/inloggen'
@@ -64,10 +63,10 @@ export default async function InloggenPagina() {
             <h2>{t.lidKop}</h2>
             <p>{t.lidTekst}</p>
             <h2>{t.geenAccountKop}</h2>
-            <p>{t.geenAccountTekst(PROEFDAGEN)}</p>
+            <p>{t.geenAccountTekst}</p>
             <div className="ayg-knoppen">
               <Knop href={SITE_PADEN.AANMELDEN} soort="accent" pijl>
-                {t.probeer}
+                {t.aanmelden}
               </Knop>
             </div>
             <Geruststelling aantal={GERUST_BIJ_KNOP} onder />

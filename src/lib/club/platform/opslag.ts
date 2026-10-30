@@ -8,14 +8,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ClubToegang } from '@/lib/club/toegang'
 import type { Organisatie } from '@/lib/club/kern/organisatie'
-import { stripeAbonnementVan } from '@/lib/aiyourgym/abonnement-opslag'
-import { stripeSleutel } from '@/lib/aiyourgym/config'
-import type { AanmeldStatus } from '@/lib/aiyourgym/status'
 import {
   AANMELDING_KOLOMMEN,
   aanmeldingPerOrganisatie,
   aanmeldingUitRij,
-  isInProef,
   kerncijfers,
   maandBegin,
   nieuwsteEerst,
@@ -31,9 +27,6 @@ import { haalDemoAanvragen, telOpen, type PlatformDemoAanvraag } from './demo-aa
 export const MAX_SPORTSCHOLEN = 60
 export const MAX_AANMELDINGEN = 200
 const MAX_SUPPORT = 1000
-const STRIPE_WACHT_MS = 5000
-/** Statussen waarbij Stripe een lopend abonnement bijhoudt (en dus een proefperiode kan hebben). */
-const LOPEND: ReadonlySet<AanmeldStatus> = new Set(['actief', 'betaling_mislukt', 'gepauzeerd'])
 
 export interface LaatsteActiviteit {
   op: string
@@ -58,8 +51,6 @@ export interface SportschoolRegel {
   /** undefined = niet te lezen; null = nog niets in het logboek. */
   laatste: LaatsteActiviteit | null | undefined
   aanmelding: PlatformAanmelding | null
-  /** Het einde van de proefperiode (ISO) als die nog loopt; undefined = Stripe niet te lezen. */
-  proefTot: string | null | undefined
 }
 
 export interface PlatformStand {
@@ -148,30 +139,9 @@ async function telFouten24(admin: SupabaseClient, nu: Date, problemen: Set<strin
   return telUit(r, 'Fouten', problemen)
 }
 
-/** Het abonnement bij Stripe, met een eigen korte wachttijd; null bij geen antwoord. */
-async function proefVan(a: PlatformAanmelding, nu: Date): Promise<string | null | undefined> {
-  if (!LOPEND.has(a.status) || !a.stripeAbonnementId) return null
-  let klok: ReturnType<typeof setTimeout> | undefined
-  const wacht = new Promise<undefined>((klaar) => {
-    klok = setTimeout(() => klaar(undefined), STRIPE_WACHT_MS)
-  })
-  const vraag = stripeAbonnementVan({ pakket: a.pakket, pakketten: null, aantalVestigingen: a.aantalVestigingen, status: a.status, stripeKlantId: null, stripeAbonnementId: a.stripeAbonnementId, aangemaaktOp: a.aangemaaktOp })
-    .then((s) => (s ? (isInProef(s.proefTot, nu) && s.proefTot ? s.proefTot.toISOString() : null) : undefined))
-    .catch(() => undefined)
-  try {
-    return await Promise.race([vraag, wacht])
-  } finally {
-    clearTimeout(klok)
-  }
-}
-
-async function regelVoor(admin: SupabaseClient, o: Organisatie, t: ClubToegang, ctx: { vanaf: string; nu: Date; instellingen: Map<string, unknown> | null; perOrg: Map<string, PlatformAanmelding>; problemen: Set<string> }): Promise<SportschoolRegel> {
+async function regelVoor(admin: SupabaseClient, o: Organisatie, t: ClubToegang, ctx: { vanaf: string; instellingen: Map<string, unknown> | null; perOrg: Map<string, PlatformAanmelding>; problemen: Set<string> }): Promise<SportschoolRegel> {
   const aanmelding = ctx.perOrg.get(o.id) ?? null
-  const [tellingen, laatste, proefTot] = await Promise.all([
-    telPerSportschool(admin, o.id, ctx.vanaf, ctx.problemen),
-    laatsteActiviteit(admin, o.id, ctx.problemen),
-    aanmelding ? proefVan(aanmelding, ctx.nu) : Promise.resolve(null),
-  ])
+  const [tellingen, laatste] = await Promise.all([telPerSportschool(admin, o.id, ctx.vanaf, ctx.problemen), laatsteActiviteit(admin, o.id, ctx.problemen)])
   return {
     id: o.id,
     naam: o.naam,
@@ -183,7 +153,6 @@ async function regelVoor(admin: SupabaseClient, o: Organisatie, t: ClubToegang, 
     start: ctx.instellingen ? startStand(ctx.instellingen.get(o.id)) : null,
     laatste,
     aanmelding,
-    proefTot,
   }
 }
 
@@ -200,19 +169,14 @@ export async function haalPlatform(t: ClubToegang, nu: Date): Promise<PlatformSt
     haalSupportStatussen(admin, ids, problemen),
     telFouten24(admin, nu, problemen),
   ])
-  const ctx = { vanaf: maandBegin(nu), nu, instellingen, perOrg: aanmeldingPerOrganisatie(aanmeldingen ?? []), problemen }
+  const ctx = { vanaf: maandBegin(nu), instellingen, perOrg: aanmeldingPerOrganisatie(aanmeldingen ?? []), problemen }
   const sportscholen = await Promise.all(lijst.map((o) => regelVoor(admin, o, t, ctx)))
-
-  const teLezen = sportscholen.filter((s) => s.aanmelding && LOPEND.has(s.aanmelding.status) && s.aanmelding.stripeAbonnementId)
-  const stripeMist = teLezen.some((s) => s.proefTot === undefined)
-  if (stripeMist) problemen.add(stripeSleutel() ? 'Stripe gaf niet op tijd antwoord: de proefperiodes zijn onvolledig.' : 'Geen Stripe-sleutel ingesteld: de proefperiodes zijn niet te lezen.')
-  const inProef = stripeMist ? null : sportscholen.filter((s) => typeof s.proefTot === 'string').length
 
   return {
     sportscholen,
     aanmeldingen,
     demoAanvragen,
-    cijfers: { ...kerncijfers({ aanmeldingen, inProef, supportStatussen, fouten24 }), demoOpen: telOpen(demoAanvragen) },
+    cijfers: { ...kerncijfers({ aanmeldingen, supportStatussen, fouten24 }), demoOpen: telOpen(demoAanvragen) },
     problemen: [...problemen],
     afgekapt: t.organisaties.length > lijst.length,
   }

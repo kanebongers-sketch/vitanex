@@ -10,16 +10,17 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { tekst as inTaal } from '@/lib/aiyourgym/taal/woordenboek'
 import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 import { MAX_ADRES, MAX_VESTIGING_NAAM } from '@/lib/club/instellingen/vestigingen-invoer'
-import { standaardWeek, weekTekst, type SportschoolSoort } from '@/lib/club/start/soorten'
-import { AlvastIngevuld } from './AlvastIngevuld'
+import { heeftOpenDag, legeWeek, standaardWeek, weekTekst } from '@/lib/club/start/soorten'
 import { TijdenKiezer } from './TijdenKiezer'
 import { StartVoet, type StartVoetProps } from './StartVoet'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 
-// Stap 3: adres, openingstijden en (met groepslessen) de regels voor
-// reserveren van de vestiging, alles meteen in beeld. Stonden de tijden al
-// klaar uit de soort, dan zegt een regel bovenaan dat. Opslaan gaat via
+// Stap Vestiging: adres, openingstijden en (met groepslessen) de regels voor
+// reserveren van de vestiging, alles meteen in beeld. Zonder eigen tijden
+// begint de week leeg (elke dag dicht): de eigenaar kiest zelf, bijvoorbeeld
+// met een klik elke dag 06:00 tot 23:00 (besluit Kane 30-10-2026: niets
+// automatisch klaarzetten). Opslaan gaat via
 // dezelfde API's als Instellingen. Een tweede vestiging voeg je hier ook toe.
 // Het adres is nodig om live te gaan (leden zien het in de app): zonder adres
 // ga je niet verder, met een vriendelijke melding bij het veld. Stoppen mag wel.
@@ -30,7 +31,8 @@ interface StapVestigingProps {
   adres: string | null
   week: Openingstijden
   regels: RoosterRegels
-  soort: SportschoolSoort | null
+  /** Heeft de vestiging zelf gekozen openingstijden (niet de plaatshouder van een nieuwe vestiging)? */
+  eigenTijden: boolean
   /** Staan de groepslessen aan? Dan horen de regels voor reserveren erbij. */
   roosterAan: boolean
   voet: Omit<StartVoetProps, 'voorVerder' | 'primair'>
@@ -89,21 +91,21 @@ function RegelsBlok({ waarden, onWijzig }: { waarden: RegelWaarden; onWijzig: (s
   )
 }
 
-export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roosterAan, voet }: StapVestigingProps) {
+export function StapVestiging({ sleutel, naam, adres, week, regels, eigenTijden, roosterAan, voet }: StapVestigingProps) {
   const router = useRouter()
-  const heeftTijden = week.some((d) => d !== null)
+  const heeftTijden = eigenTijden && heeftOpenDag(week)
   const taal = useTaal()
   const v = useTekst(START).vestiging
   const voetTekst = useTekst(START).voet
   const [nieuwAdres, setAdres] = useState(adres ?? '')
-  const [tijden, setTijden] = useState<Openingstijden>(heeftTijden ? week : standaardWeek())
+  const [tijden, setTijden] = useState<Openingstijden>(heeftTijden ? week : legeWeek())
   const [perDag, setPerDag] = useState(heeftTijden && weekTekst(week) !== weekTekst(standaardWeek()))
   const [regelWaarden, setRegelWaarden] = useState<RegelWaarden>(() => naarWaarden(regels))
   const [fout, setFout] = useState<string | null>(null)
   const [adresFout, setAdresFout] = useState<string | null>(null)
   const adresGewijzigd = nieuwAdres.trim() !== (adres ?? '')
   const regelsGewijzigd = REGEL_SLEUTELS.some((s) => regelWaarden[s] !== String(regels[s]))
-  const tijdenGewijzigd = !heeftTijden || weekTekst(tijden) !== weekTekst(week) || regelsGewijzigd
+  const tijdenGewijzigd = (heeftOpenDag(tijden) && (!heeftTijden || weekTekst(tijden) !== weekTekst(week))) || regelsGewijzigd
 
   function setFoutTerug(melding: string): false {
     setFout(melding)
@@ -118,6 +120,7 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
       document.getElementById('start-adres')?.focus()
       return false
     }
+    if (doel === 'verder' && !heeftOpenDag(tijden)) return setFoutTerug(v.tijdenVerplicht)
     const dagFout = tijdenFout(tijden, taal)
     if (dagFout) return setFoutTerug(dagFout)
     const controle = controleerOpeningstijden(tijden)
@@ -139,7 +142,6 @@ export function StapVestiging({ sleutel, naam, adres, week, regels, soort, roost
   return (
     <>
       <div className="club-start-stapel">
-        {heeftTijden && <AlvastIngevuld soort={soort} />}
         <div className="club-start-twee">
           <div className="club-start-stapel">
             <section className="club-start-blok" aria-labelledby="start-adres-kop">

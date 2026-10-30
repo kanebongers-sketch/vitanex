@@ -5,8 +5,6 @@ import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { aantalAf, minutenOver, minutenTekst, nodigeStappen, startPad, type StapStand } from '@/lib/club/start/stappen'
 import { StapTitel } from './StapTitel'
 import { HulpBijStap } from './HulpBijStap'
-import { Proefperiode } from './Proefperiode'
-import type { ClubToegang } from '@/lib/club/toegang'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { tekst as inTaal } from '@/lib/aiyourgym/taal/woordenboek'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
@@ -16,7 +14,6 @@ import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
 // segment per stap dat je ook kunt aanklikken (elke stap is los te openen).
 
 interface StartKaderProps {
-  t: ClubToegang
   sportschool: string
   stand: readonly StapStand[]
   huidig: number
@@ -35,7 +32,7 @@ function segmentLabel(s: StapStand, nr: number, huidig: number, taal: Taal): str
   return `${k.segment(nr, s.titel)}, ${status}${s.nummer === huidig ? `, ${k.hier}` : ''}`
 }
 
-export async function StartKader({ t, sportschool, stand, huidig, vestiging, intro, kruimel = false, welkomTerug = false, children }: StartKaderProps) {
+export async function StartKader({ sportschool, stand, huidig, vestiging, intro, kruimel = false, welkomTerug = false, children }: StartKaderProps) {
   const taal = await getTaal()
   const k = (await clubTekst(START)).kader
   const stap = stand[huidig - 1]
@@ -68,7 +65,6 @@ export async function StartKader({ t, sportschool, stand, huidig, vestiging, int
               {!stap.af && over > stap.minuten && <span className="club-start-tijd-stap">{k.dezeStap(stap.minuten)}</span>}
             </span>
           </p>
-          <Proefperiode t={t} />
         </div>
       </header>
 

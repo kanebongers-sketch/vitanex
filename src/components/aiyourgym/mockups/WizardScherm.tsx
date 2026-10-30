@@ -7,12 +7,12 @@ import { COACHES, LES, VOORBEELD_ADRES } from './voorbeeld'
 
 // De startwizard zoals een nieuwe sportschool hem ziet: de eigen balk (alleen
 // de wizard en Hulp, de rest van Club is nog dicht), de kop met de teller en de
-// tijd, een segment per stap, de regel "Alvast ingevuld" en de stap Lessen met
-// de invoer er direct in. Stappen en minuten komen uit Club zelf, de teksten in
+// tijd, een segment per stap en de stap Lessen met de invoer er direct in. Geen
+// regel "Alvast ingevuld": de wizard zet niets klaar (besluit Kane 30-10-2026). Stappen en minuten komen uit Club zelf, de teksten in
 // de taal van de pagina (woordenboek WIZARD, stappen in de volgorde van STAPPEN).
-// Voorbeeldgegevens: Kernhal (verzonnen) halverwege, bij stap 5.
+// Voorbeeldgegevens: Kernhal (verzonnen) halverwege, bij de stap Lessen.
 
-const HIER = 5
+const HIER = Math.max(1, STAPPEN.findIndex((s) => s.sleutel === 'lessen') + 1)
 const LESTYPEN = [LES.strength, LES.conditioning, LES.mobility, LES.barbell] as const
 /** De vaste week met zaal en instructeur; dag is de index in t.dagen. */
 const WEEK = [
@@ -87,9 +87,6 @@ export async function WizardScherm() {
             )
           })}
         </ol>
-        <p className="aygm-wiz-alvast">
-          <Sparkles aria-hidden /> {t.alvast(t.soortGym)}
-        </p>
         <div className="aygm-kaart aygm-wiz-invoer">
           <p className="aygm-boven">{t.lestypen}</p>
           <span className="aygm-wiz-chips">

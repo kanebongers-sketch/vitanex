@@ -117,11 +117,11 @@ export const NIEUW: readonly NieuwMaand[] = [
       {
         datum: '2026-10-23',
         titel: 'Aanmelden en meteen beginnen',
-        tekst: 'Na het aanmelden staat je omgeving direct klaar en ben je meteen ingelogd. Zolang online betalen nog niet gekoppeld is, wordt er niets afgeschreven. Tot wanneer je proefperiode loopt, zie je in Club.',
+        tekst: 'Na het aanmelden staat je omgeving direct klaar en ben je meteen ingelogd. Zolang online betalen nog niet gekoppeld is, wordt er niets afgeschreven. Je abonnement zie je in Club.',
         hoofdstuk: 'beheer',
         en: {
           titel: 'Sign up and start straight away',
-          tekst: 'After signing up, your environment is ready immediately and you are signed in. As long as online payment is not connected, nothing is charged. Club shows you when your trial ends.',
+          tekst: 'After signing up, your environment is ready immediately and you are signed in. As long as online payment is not connected, nothing is charged. Club shows your subscription.',
         },
       },
       {

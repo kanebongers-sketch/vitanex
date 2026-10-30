@@ -8,7 +8,6 @@ import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Act
 import { AanmeldBand } from '@/components/aiyourgym/site/AanmeldBand'
 import { Knop, PaginaKop, SectieKop, Vragen } from '@/components/aiyourgym/site/bouwstenen'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import { ACTIE } from '@/lib/aiyourgym/taal/woorden/website/actie'
@@ -44,7 +43,7 @@ export default async function LedenappPagina() {
       <PaginaKop label={t.label} titel={t.titel} tekst={t.tekst}>
         <div className="ayg-knoppen">
           <Knop href={AANMELDEN} soort="accent" pijl>
-            {ACTIE[taal].probeerDagen(PROEFDAGEN)}
+            {ACTIE[taal].start}
           </Knop>
           <Knop href={DEMO} soort="rand">
             {t.demoKnop}

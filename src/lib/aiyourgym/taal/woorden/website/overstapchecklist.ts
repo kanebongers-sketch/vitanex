@@ -16,7 +16,7 @@ export const CHECKLIST = woordenboek({
     printkop: 'Overstapchecklist | AI Your Gym',
     verderLabel: 'En dan',
     verderTitel: 'Klaar om over te stappen?',
-    verderTekst: 'Probeer het in je eigen omgeving, of laat het je eerst zien.',
+    verderTekst: 'Start in je eigen omgeving, of laat het je eerst zien.',
     zoWerkt: 'Zo werkt overstappen in AI Your Gym',
     // Het afvinkblok
     van: (klaar: number, totaal: number) => `${klaar} van ${totaal}`,
@@ -39,7 +39,7 @@ export const CHECKLIST = woordenboek({
     printkop: 'Switching checklist | AI Your Gym',
     verderLabel: 'What next',
     verderTitel: 'Ready to switch?',
-    verderTekst: 'Try it in your own environment, or let us show you first.',
+    verderTekst: 'Start in your own environment, or let us show you first.',
     zoWerkt: 'How switching to AI Your Gym works',
     van: (klaar: number, totaal: number) => `${klaar} of ${totaal}`,
     gedaan: (totaal: number) => ` of ${totaal} done`,

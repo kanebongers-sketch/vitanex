@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { PROEFDAGEN } from '@/lib/aiyourgym/pakketten'
 import { Concept, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import { JURIDISCH } from '@/lib/aiyourgym/taal/woorden/website/juridisch'
@@ -31,8 +30,11 @@ export default async function VoorwaardenPagina() {
             Een eigen omgeving voor je sportschool met de onderdelen uit je pakket, een ledenapp in je eigen huisstijl en nieuwe
             functies zodra ze klaar zijn.
           </p>
-          <h2>Proefperiode</h2>
-          <p>Je kunt AI Your Gym {PROEFDAGEN} dagen gratis proberen.</p>
+          <h2>Start en contract</h2>
+          <p>
+            Er is geen proefperiode. Na het aanmelden betaal je meteen. Het contract loopt een jaar en je betaalt per maand, per
+            vestiging.
+          </p>
           <h2>Prijs</h2>
           <p>De prijs is op maat en hangt af van het pakket en het aantal vestigingen. Je krijgt de prijs vooraf, schriftelijk.</p>
           <h2>Jouw gegevens</h2>

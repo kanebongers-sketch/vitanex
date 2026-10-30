@@ -6,7 +6,7 @@ import { bewaarStart, haalStart, haalStartFeiten } from '@/lib/club/start/opslag
 import { TAAL_COOKIE, kiesTaal } from '@/lib/aiyourgym/taal/taal'
 import { START_LIB } from '@/lib/aiyourgym/taal/woorden/club/start-lib'
 
-// PATCH /api/club/start  { stap?, klaar?, open?, afronden?, soort?, streefdatum?, bevestig? }
+// PATCH /api/club/start  { stap?, klaar?, open?, afronden?, streefdatum?, bevestig? }
 // De voortgang van de startwizard van de sportschool die open staat. Alleen
 // Kane en de eigenaar; anderen krijgen een 404 (bestaat niet). Afronden kan
 // alleen als alle stappen ervoor echt af zijn (regels in stappen.ts).

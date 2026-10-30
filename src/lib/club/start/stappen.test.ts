@@ -35,11 +35,12 @@ const VOL: StartFeiten = { heeftLogo: true, heeftAdres: true, vestigingen: 1, ve
 const NU = new Date('2026-10-18T10:00:00.000Z')
 
 describe('stappen', () => {
-  it('heeft acht stappen in vaste volgorde, met de soort eerst en klaar laatst', () => {
-    expect(AANTAL_STAPPEN).toBe(8)
+  it('heeft zeven stappen in vaste volgorde, met huisstijl eerst en klaar laatst (geen stap soort meer)', () => {
+    expect(AANTAL_STAPPEN).toBe(7)
     expect(STAPPEN.map((s) => s.sleutel)).toEqual([...STAP_SLEUTELS])
-    expect(stapNummer('soort')).toBe(1)
-    expect(stapNummer('klaar')).toBe(8)
+    expect(STAP_SLEUTELS as readonly string[]).not.toContain('soort')
+    expect(stapNummer('huisstijl')).toBe(1)
+    expect(stapNummer('klaar')).toBe(7)
   })
 
   it('past binnen een kwartier', () => {
@@ -54,15 +55,15 @@ describe('stappen', () => {
   })
 
   it('vindt de eerste open stap', () => {
-    expect(volgendeOpen(stappenStand({ ...NIEUWE_START, soort: 'gym' }, { ...LEEG, heeftLogo: true, heeftAdres: true }))).toBe(3)
-    expect(volgendeOpen([{ af: true, nummer: 1 }])).toBe(8)
+    expect(volgendeOpen(stappenStand(NIEUWE_START, { ...LEEG, heeftLogo: true, heeftAdres: true }))).toBe(2)
+    expect(volgendeOpen([{ af: true, nummer: 1 }])).toBe(7)
   })
 
   it('leest een stapnummer uit de URL', () => {
     expect(stapUitParam('3')).toBe(3)
     expect(stapUitParam(['5', '6'])).toBe(5)
     expect(stapUitParam('0')).toBeNull()
-    expect(stapUitParam('9')).toBeNull()
+    expect(stapUitParam('8')).toBeNull()
     expect(stapUitParam('2a')).toBeNull()
     expect(stapUitParam(undefined)).toBeNull()
   })
@@ -77,26 +78,32 @@ describe('leesStart', () => {
   })
 
   it('leest een geldige voortgang', () => {
-    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'soort'], afgerond_op: null, soort: 'yoga' } })).toEqual({ stap: 4, klaar: ['soort', 'huisstijl'], afgerondOp: null, soort: 'yoga', streefdatum: null, bevestigd: [] })
+    expect(leesStart({ start: { versie: 2, stap: 4, klaar: ['team', 'huisstijl'], afgerond_op: null } })).toEqual({ stap: 4, klaar: ['huisstijl', 'team'], afgerondOp: null, streefdatum: null, bevestigd: [] })
+  })
+
+  it('schuift een stapnummer van voor 30-10-2026 (met de stap soort) een op en laat soort weg', () => {
+    expect(leesStart({ start: { stap: 4, klaar: ['huisstijl', 'soort'], afgerond_op: null, soort: 'yoga' } })).toEqual({ stap: 3, klaar: ['huisstijl'], afgerondOp: null, streefdatum: null, bevestigd: [] })
+    expect(leesStart({ start: { stap: 1, klaar: [], afgerond_op: null } })?.stap).toBe(1)
+    expect(leesStart({ start: { stap: 8, klaar: [], afgerond_op: null } })?.stap).toBe(7)
   })
 
   it('maakt kapotte velden de standaard en laat onbekende stappen weg', () => {
-    expect(leesStart({ start: { stap: 42, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum', soort: 'zwembad' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null, streefdatum: null, bevestigd: [] })
+    expect(leesStart({ start: { versie: 2, stap: 2.5, klaar: ['onzin', 'team', 'team', 7], afgerond_op: 'geen datum', soort: 'zwembad' } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, streefdatum: null, bevestigd: [] })
   })
 
   it('leest oude voortgang zonder soort en met stappen die niet meer bestaan', () => {
-    expect(leesStart({ start: { stap: 9, klaar: ['welkom', 'ledenapp', 'team'], afgerond_op: null } })).toEqual({ stap: 1, klaar: ['team'], afgerondOp: null, soort: null, streefdatum: null, bevestigd: [] })
+    expect(leesStart({ start: { stap: 9, klaar: ['welkom', 'ledenapp', 'team'], afgerond_op: null } })).toEqual({ stap: 7, klaar: ['team'], afgerondOp: null, streefdatum: null, bevestigd: [] })
   })
 
   it('heen en terug geeft hetzelfde', () => {
-    const v = { stap: 8, klaar: ['soort' as const, 'klaar' as const], afgerondOp: NU.toISOString(), soort: 'boutique' as const, streefdatum: '2026-11-01', bevestigd: ['alleen' as const] }
+    const v = { stap: 7, klaar: ['huisstijl' as const, 'klaar' as const], afgerondOp: NU.toISOString(), streefdatum: '2026-11-01', bevestigd: ['alleen' as const] }
     expect(leesStart({ start: startNaarJson(v) })).toEqual(v)
   })
 
   it('laat andere instellingen staan bij opslaan', () => {
     const uit = instellingenMetStart({ ledenapp: { qr: false }, rechten: { trainer: [] } }, NIEUWE_START)
-    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { stap: 1, klaar: [], afgerond_op: null, soort: null, streefdatum: null, bevestigd: [] } })
-    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { stap: 1, klaar: [], afgerond_op: null, soort: null, streefdatum: null, bevestigd: [] } })
+    expect(uit).toEqual({ ledenapp: { qr: false }, rechten: { trainer: [] }, start: { versie: 2, stap: 1, klaar: [], afgerond_op: null, streefdatum: null, bevestigd: [] } })
+    expect(instellingenMetStart(null, NIEUWE_START)).toEqual({ start: { versie: 2, stap: 1, klaar: [], afgerond_op: null, streefdatum: null, bevestigd: [] } })
   })
 })
 
@@ -105,7 +112,6 @@ describe('leesStartInvoer', () => {
     expect(leesStartInvoer({ stap: 3, klaar: 'huisstijl' })).toEqual({ ok: true, waarde: { stap: 3, klaar: 'huisstijl' } })
     expect(leesStartInvoer({ afronden: true })).toEqual({ ok: true, waarde: { afronden: true } })
     expect(leesStartInvoer({ open: 'team' })).toEqual({ ok: true, waarde: { open: 'team' } })
-    expect(leesStartInvoer({ soort: 'pt', klaar: 'soort' })).toEqual({ ok: true, waarde: { klaar: 'soort', soort: 'pt' } })
   })
 
   it('weigert onbekende of foute invoer', () => {
@@ -113,11 +119,12 @@ describe('leesStartInvoer', () => {
     expect(leesStartInvoer([]).ok).toBe(false)
     expect(leesStartInvoer({}).ok).toBe(false)
     expect(leesStartInvoer({ stap: 0 }).ok).toBe(false)
-    expect(leesStartInvoer({ stap: 9 }).ok).toBe(false)
+    expect(leesStartInvoer({ stap: 8 }).ok).toBe(false)
     expect(leesStartInvoer({ stap: 2.5 }).ok).toBe(false)
     expect(leesStartInvoer({ klaar: 'alles' }).ok).toBe(false)
     expect(leesStartInvoer({ klaar: 'welkom' }).ok).toBe(false)
-    expect(leesStartInvoer({ soort: 'zwembad' }).ok).toBe(false)
+    expect(leesStartInvoer({ soort: 'pt' }).ok).toBe(false)
+    expect(leesStartInvoer({ klaar: 'soort' }).ok).toBe(false)
     expect(leesStartInvoer({ afronden: 'ja' }).ok).toBe(false)
     expect(leesStartInvoer({ stap: 2, extra: 1 }).ok).toBe(false)
   })
@@ -125,28 +132,22 @@ describe('leesStartInvoer', () => {
 
 describe('pasToe', () => {
   it('gaat naar een stap en zet een stap op klaar, zonder dubbelen', () => {
-    const een = pasToe(NIEUWE_START, { stap: 2, klaar: 'soort' }, NU)
-    expect(een).toEqual({ stap: 2, klaar: ['soort'], afgerondOp: null, soort: null, streefdatum: null, bevestigd: [] })
-    expect(pasToe(een, { klaar: 'soort' }, NU)).toEqual(een)
+    const een = pasToe(NIEUWE_START, { stap: 2, klaar: 'huisstijl' }, NU)
+    expect(een).toEqual({ stap: 2, klaar: ['huisstijl'], afgerondOp: null, streefdatum: null, bevestigd: [] })
+    expect(pasToe(een, { klaar: 'huisstijl' }, NU)).toEqual(een)
     expect(NIEUWE_START.klaar).toEqual([])
   })
 
-  it('bewaart de gekozen soort en houdt hem bij volgende stappen', () => {
-    const gekozen = pasToe(NIEUWE_START, { soort: 'vechtsport', klaar: 'soort', stap: 2 }, NU)
-    expect(gekozen.soort).toBe('vechtsport')
-    expect(pasToe(gekozen, { stap: 3 }, NU).soort).toBe('vechtsport')
-  })
-
   it('zet een stap weer open', () => {
-    expect(pasToe({ ...NIEUWE_START, stap: 5, klaar: ['soort', 'team'] }, { open: 'team' }, NU).klaar).toEqual(['soort'])
+    expect(pasToe({ ...NIEUWE_START, stap: 5, klaar: ['onderdelen', 'team'] }, { open: 'team' }, NU).klaar).toEqual(['onderdelen'])
   })
 
   it('rondt af en opent weer', () => {
-    const af = pasToe({ ...NIEUWE_START, stap: 8, klaar: ['soort'] }, { afronden: true }, NU)
-    expect(af).toEqual({ stap: 8, klaar: ['soort', 'klaar'], afgerondOp: NU.toISOString(), soort: null, streefdatum: null, bevestigd: [] })
+    const af = pasToe({ ...NIEUWE_START, stap: 7, klaar: ['onderdelen'] }, { afronden: true }, NU)
+    expect(af).toEqual({ stap: 7, klaar: ['onderdelen', 'klaar'], afgerondOp: NU.toISOString(), streefdatum: null, bevestigd: [] })
     // Nog een keer afronden houdt de eerste datum.
     expect(pasToe(af, { afronden: true }, new Date('2027-01-01')).afgerondOp).toBe(NU.toISOString())
-    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 8, klaar: ['soort'], afgerondOp: null, soort: null, streefdatum: null, bevestigd: [] })
+    expect(pasToe(af, { afronden: false }, NU)).toEqual({ stap: 7, klaar: ['onderdelen'], afgerondOp: null, streefdatum: null, bevestigd: [] })
   })
 })
 
@@ -167,12 +168,6 @@ describe('vestigingIngericht', () => {
 
 describe('stapAf: een stap is pas af als de inhoud er staat', () => {
   const zelf = (klaar: (typeof STAP_SLEUTELS)[number][]) => ({ ...NIEUWE_START, klaar })
-
-  it('soort: alleen met een gekozen soort', () => {
-    expect(stapAf('soort', null, VOL)).toBe(false)
-    expect(stapAf('soort', zelf(['soort']), VOL)).toBe(false)
-    expect(stapAf('soort', { ...NIEUWE_START, soort: 'pt' }, LEEG)).toBe(true)
-  })
 
   it('huisstijl: eigen adres, plus een logo of zelf op klaar', () => {
     expect(stapAf('huisstijl', null, { ...LEEG, heeftLogo: true })).toBe(false)
@@ -218,24 +213,24 @@ describe('stapAf: een stap is pas af als de inhoud er staat', () => {
 })
 
 describe('stappenStand', () => {
-  const alles = { ...NIEUWE_START, soort: 'pt' as const, klaar: ['onderdelen' as const] }
+  const alles = { ...NIEUWE_START, klaar: ['onderdelen' as const] }
 
   it('nummert de stappen en telt wat af is', () => {
-    const stand = stappenStand({ ...NIEUWE_START, soort: 'gym' }, { ...LEEG, heeftLogo: true, heeftAdres: true })
-    expect(stand.filter((s) => s.af).map((s) => s.sleutel)).toEqual(['soort', 'huisstijl'])
-    expect(stand.map((s) => s.nummer)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
-    expect(aantalAf(stand)).toBe(2)
+    const stand = stappenStand(NIEUWE_START, { ...LEEG, heeftLogo: true, heeftAdres: true })
+    expect(stand.filter((s) => s.af).map((s) => s.sleutel)).toEqual(['huisstijl'])
+    expect(stand.map((s) => s.nummer)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(aantalAf(stand)).toBe(1)
   })
 
   it('telt klaar alleen als de wizard is afgerond en alles ervoor staat', () => {
-    expect(stappenStand({ ...NIEUWE_START, stap: 8, klaar: ['klaar'] }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(false)
-    // Afgerond maar nog niet alles: geen "8 van 8".
+    expect(stappenStand({ ...NIEUWE_START, stap: 7, klaar: ['klaar'] }, LEEG).find((s) => s.sleutel === 'klaar')?.af).toBe(false)
+    // Afgerond maar nog niet alles: geen "7 van 7".
     const half = stappenStand({ ...alles, afgerondOp: NU.toISOString() }, { ...VOL, vasteLessen: 0, medewerkers: 0, leden: 0 })
     expect(half.find((s) => s.sleutel === 'klaar')?.af).toBe(false)
     expect(nogOpen(half).map((s) => s.sleutel)).toEqual(['lessen', 'team', 'leden'])
     expect(klaarVoorLive(half)).toBe(false)
     const heel = stappenStand({ ...alles, afgerondOp: NU.toISOString() }, VOL)
-    expect(aantalAf(heel)).toBe(8)
+    expect(aantalAf(heel)).toBe(7)
     expect(klaarVoorLive(heel)).toBe(true)
   })
 
@@ -275,9 +270,9 @@ describe('tijd en hervatten', () => {
   it('telt de minuten van de open stappen', () => {
     const totaal = STAPPEN.reduce((som, s) => som + s.minuten, 0)
     expect(minutenOver(stappenStand(null, LEEG))).toBe(totaal)
-    const stand = stappenStand({ ...NIEUWE_START, soort: 'gym' }, { ...LEEG, heeftLogo: true, heeftAdres: true })
-    expect(minutenOver(stand)).toBe(totaal - STAPPEN[0].minuten - STAPPEN[1].minuten)
-    expect(minutenOver(stappenStand({ ...NIEUWE_START, soort: 'gym', afgerondOp: NU.toISOString(), klaar: [...STAP_SLEUTELS] }, VOL))).toBe(0)
+    const stand = stappenStand(NIEUWE_START, { ...LEEG, heeftLogo: true, heeftAdres: true })
+    expect(minutenOver(stand)).toBe(totaal - STAPPEN[0].minuten)
+    expect(minutenOver(stappenStand({ ...NIEUWE_START, afgerondOp: NU.toISOString(), klaar: [...STAP_SLEUTELS] }, VOL))).toBe(0)
   })
 
   it('zegt de tijd in gewone taal', () => {
