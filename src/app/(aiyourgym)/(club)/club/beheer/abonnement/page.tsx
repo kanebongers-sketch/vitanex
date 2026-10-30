@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
 import { abonnementWeergave, type AbonnementWeergave } from '@/lib/aiyourgym/abonnement'
 import { stripeAbonnementVan, vindAbonnement } from '@/lib/aiyourgym/abonnement-opslag'
-import { stripeSleutel } from '@/lib/aiyourgym/config'
+import { stripePrijsAlles, stripeSleutel } from '@/lib/aiyourgym/config'
 import { PortaalKnop } from '@/components/club/abonnement/PortaalKnop'
 import { PakkettenBeheer } from '@/components/club/abonnement/PakkettenBeheer'
 import { openAanvragen } from '@/lib/aiyourgym/pakket-opslag'
@@ -60,6 +60,15 @@ function Abonnement({ w, sinds, betalenIngesteld, a }: { w: AbonnementWeergave; 
           <dt>{a.vestigingen}</dt>
           <dd>{w.vestigingen}</dd>
         </div>
+        {w.prijs && (
+          <div className="club-abo-feit">
+            <dt>{a.prijs}</dt>
+            <dd>
+              {w.prijs}
+              <span className="club-hint">{a.prijsUitStripe}</span>
+            </dd>
+          </div>
+        )}
         <div className="club-abo-feit">
           <dt>{a.klantSinds}</dt>
           <dd>{sinds}</dd>
@@ -95,7 +104,7 @@ export default async function AbonnementPagina() {
       <div className="club-abo">
         {gelezen.soort === 'fout' && <p className="club-melding club-melding--fout" role="status">{a.leesFout}</p>}
         {gelezen.soort === 'geen' && <GeenAbonnement t={t} a={a} />}
-        {rij && <Abonnement w={abonnementWeergave(rij, stripe, nu, taal)} sinds={sinds} betalenIngesteld={stripeSleutel() !== null} a={a} />}
+        {rij && <Abonnement w={abonnementWeergave(rij, stripe, nu, taal, stripePrijsAlles())} sinds={sinds} betalenIngesteld={stripeSleutel() !== null} a={a} />}
         <PakkettenBeheer afgenomen={t.organisatie.afgenomen} aanvragen={aanvragen ?? []} />
       </div>
     </>

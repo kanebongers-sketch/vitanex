@@ -16,6 +16,14 @@ describe('keuze van losse pakketten bij het aanmelden', () => {
     expect(gekozenVan(LIJST, ['lessen', 'groei'], true, 'nl')).toMatchObject({ open: true, test: true })
     expect(gekozenVan(LIJST, ['lessen', 'groei'], false, 'nl')).toMatchObject({ open: false, test: false })
   })
+  it('alle zes met een bundelprijs: via Stripe, ook als niet elk los pakket een prijs heeft', () => {
+    const ZES = [p('administratie', false), p('lessen', true), p('training', true), p('afspraken', false), p('team', false), p('groei', false)]
+    const alle = ZES.map((x) => x.sleutel)
+    expect(gekozenVan(ZES, alle, true, 'nl', true)).toMatchObject({ open: true, test: false })
+    expect(gekozenVan(ZES, alle, true, 'nl', false)).toMatchObject({ open: true, test: true })
+    // Minder dan zes: de bundel telt niet.
+    expect(gekozenVan(ZES, ['lessen', 'groei'], false, 'nl', true)).toMatchObject({ open: false, test: false })
+  })
   it('aan- en uitvinken houdt de vaste volgorde en wijzigt nooit in place', () => {
     const begin = ['groei'] as const
     expect(wisselPakket(begin, 'lessen')).toEqual(['lessen', 'groei'])

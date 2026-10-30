@@ -4,8 +4,11 @@
 // Session maken en ophalen, een abonnement ophalen en een sessie in het Customer
 // Portal maken. De sleutel gaat nooit naar de browser of in een log.
 
-import { PROEFDAGEN, type PakketSleutel } from './pakketten'
+import { createHash } from 'node:crypto'
+import { PROEFDAGEN } from './pakketten'
 import type { Aanmelding } from './aanmelding'
+import type { StripeRegel } from './config'
+import type { RegelWissel } from './pakket-wijziging'
 
 const STRIPE = 'https://api.stripe.com/v1'
 const TIMEOUT_MS = 15_000
@@ -13,8 +16,8 @@ const TIMEOUT_MS = 15_000
 export interface CheckoutInvoer {
   aanmeldingId: string
   aanmelding: Aanmelding
-  /** Per gekozen pakket het Stripe-prijs-id, in de volgorde van aanmelding.pakketten. */
-  prijzen: readonly { pakket: PakketSleutel; prijsId: string }[]
+  /** De regels uit stripeRegels(): een per gekozen pakket, of een bundelregel bij alle zes. */
+  regels: readonly StripeRegel[]
   succesUrl: string
   terugUrl: string
 }
@@ -23,8 +26,9 @@ export interface CheckoutInvoer {
 export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   const f = new URLSearchParams()
   f.set('mode', 'subscription')
-  // Een regel per los pakket; de hoeveelheid is het aantal vestigingen (per vestiging per maand).
-  c.prijzen.forEach((p, i) => {
+  // Een regel per los pakket, of een bundelregel bij alle zes; de hoeveelheid is
+  // het aantal vestigingen (per vestiging per maand).
+  c.regels.forEach((p, i) => {
     f.set(`line_items[${i}][price]`, p.prijsId)
     f.set(`line_items[${i}][quantity]`, String(c.aanmelding.aantalVestigingen))
   })
@@ -44,24 +48,42 @@ export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   return f
 }
 
-/** Een pakket erbij op een lopend abonnement: een nieuwe regel met hetzelfde aantal vestigingen (PUUR). */
-export function regelErbijFormulier(abonnementId: string, prijsId: string, aantal: number): URLSearchParams {
+/**
+ * De regels van een lopend abonnement in een keer omzetten (PUUR): regels weg en
+ * regels erbij met hetzelfde aantal vestigingen, in een verzoek, zodat Stripe
+ * nooit een tussenstand ziet (en de webhook ook niet). Stripe rekent naar rato.
+ */
+export function wisselFormulier(w: RegelWissel, aantal: number): URLSearchParams {
   const f = new URLSearchParams()
-  f.set('subscription', abonnementId)
-  f.set('price', prijsId)
-  f.set('quantity', String(aantal))
+  let i = 0
+  for (const id of w.weg) {
+    f.set(`items[${i}][id]`, id)
+    f.set(`items[${i}][deleted]`, 'true')
+    i += 1
+  }
+  for (const prijsId of w.erbij) {
+    f.set(`items[${i}][price]`, prijsId)
+    f.set(`items[${i}][quantity]`, String(aantal))
+    i += 1
+  }
   f.set('proration_behavior', 'create_prorations')
   return f
 }
 
 /**
- * Een pakket erbij op een lopend abonnement. Idempotent per abonnement en
- * pakket: twee keer klikken maakt geen twee regels. Het id van de regel, of null.
+ * De sleutel tegen dubbel uitvoeren: hetzelfde abonnement, dezelfde regels nu
+ * en hetzelfde doel geven dezelfde sleutel (twee keer klikken = een wijziging);
+ * na een echte wijziging zijn de regels anders en dus ook de sleutel (PUUR).
  */
-export async function voegRegelToe(sleutel: string, abonnementId: string, pakket: PakketSleutel, prijsId: string, aantal: number): Promise<string | null> {
-  const json = await stripeVraag(sleutel, '/subscription_items', { method: 'POST', body: regelErbijFormulier(abonnementId, prijsId, aantal), idempotentie: `ayg_erbij_${abonnementId}_${pakket}` })
-  const id = (json as { id?: unknown } | null)?.id
-  return typeof id === 'string' ? id : null
+export function wisselSleutel(abonnementId: string, huidigeRegels: readonly string[], w: RegelWissel): string {
+  const basis = JSON.stringify({ nu: [...huidigeRegels].sort(), weg: [...w.weg].sort(), erbij: [...w.erbij].sort() })
+  return `ayg_wissel_${abonnementId}_${createHash('sha256').update(basis).digest('hex').slice(0, 32)}`
+}
+
+/** De regels van een lopend abonnement omzetten (zie wisselFormulier). true als Stripe het deed. */
+export async function wisselRegels(sleutel: string, abonnementId: string, huidigeRegels: readonly string[], w: RegelWissel, aantal: number): Promise<boolean> {
+  const json = await stripeVraag(sleutel, `/subscriptions/${encodeURIComponent(abonnementId)}`, { method: 'POST', body: wisselFormulier(w, aantal), idempotentie: wisselSleutel(abonnementId, huidigeRegels, w) })
+  return typeof (json as { id?: unknown } | null)?.id === 'string'
 }
 
 async function stripeVraag(sleutel: string, pad: string, init: { method: 'GET' | 'POST'; body?: URLSearchParams; idempotentie?: string }): Promise<unknown | null> {

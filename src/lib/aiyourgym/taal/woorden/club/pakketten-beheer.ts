@@ -20,6 +20,7 @@ export const PAKKETTEN_BEHEER = woordenboek({
     zekerOpzeggen: (naam: string) => `${naam} opzeggen? Alles van dit pakket verdwijnt dan uit Club en de ledenapp. Je gegevens blijven bewaard.`,
     uitkomst: {
       stripe: 'Toegevoegd aan je abonnement. Stripe verrekent het naar rato op je volgende factuur.',
+      stripeBundel: 'Je hebt nu alle zes pakketten, dus geldt de bundelprijs. Stripe verrekent het naar rato op je volgende factuur.',
       test: 'Aangepast. Er wordt niets afgeschreven: online betalen is nog niet gekoppeld.',
       direct: 'Aangepast.',
       aanvraagErbij: 'Aanvraag ontvangen. We zetten het pakket aan en spreken de prijs met je af.',
@@ -27,6 +28,7 @@ export const PAKKETTEN_BEHEER = woordenboek({
     },
     fout: 'Het pakket kon niet worden aangepast. Probeer het later opnieuw.',
     betalenNietErin: 'Ledenabonnementen en incasso zitten er nog niet in.',
+    bundel: 'Neem je alle zes, dan geldt een bundelprijs. Een opzegging verwerken we volgens je jaarcontract; daarna gelden weer de losse prijzen.',
   },
   en: {
     kop: 'Your packages',
@@ -43,6 +45,7 @@ export const PAKKETTEN_BEHEER = woordenboek({
     zekerOpzeggen: (naam: string) => `Cancel ${naam}? Everything in this package disappears from Club and the member app. Your data is kept.`,
     uitkomst: {
       stripe: 'Added to your subscription. Stripe prorates it on your next invoice.',
+      stripeBundel: 'You now have all six packages, so the bundle price applies. Stripe prorates it on your next invoice.',
       test: 'Changed. Nothing is charged: online payment is not connected yet.',
       direct: 'Changed.',
       aanvraagErbij: 'Request received. We switch the package on and agree the price with you.',
@@ -50,5 +53,6 @@ export const PAKKETTEN_BEHEER = woordenboek({
     },
     fout: 'The package could not be changed. Please try again later.',
     betalenNietErin: 'Member subscriptions and direct debits are not included yet.',
+    bundel: 'Take all six and a bundle price applies. We process a cancellation according to your annual contract; after that the separate prices apply again.',
   },
 })

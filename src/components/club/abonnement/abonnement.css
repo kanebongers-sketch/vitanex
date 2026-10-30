@@ -16,6 +16,7 @@
 .club-abo-feit:last-child { border-right: 0; }
 .club-abo-feit dt { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
 .club-abo-feit dd { margin: 0; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.club-abo-feit dd .club-hint { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 400; }
 @media (max-width: 560px) {
   .club-abo-feit { border-right: 0; border-bottom: 1px solid var(--line); }
   .club-abo-feit:last-child { border-bottom: 0; }

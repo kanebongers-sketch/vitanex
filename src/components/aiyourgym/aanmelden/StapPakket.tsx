@@ -9,7 +9,8 @@ import type { PakketKeuze } from './types'
 // Stap 1: een of meer losse pakketten kiezen (besluit Kane 29-10-2026: elk
 // pakket werkt los van de andere). Selectievakjes, vormgegeven als kaarten;
 // erboven een voorstel per soort sportschool dat de keuze in een klik invult.
-// Geen bedragen: die toont Stripe voor het betalen.
+// Geen bedragen: die toont Stripe voor het betalen. Wel een regel dat alle zes
+// samen een bundelprijs hebben (besluit Kane 30-10-2026), zonder bedrag.
 
 interface StapPakketProps {
   pakketten: readonly PakketKeuze[]
@@ -68,6 +69,7 @@ export function StapPakket({ pakketten, gekozen, fout, onWissel, onVoorstel }: S
           )
         })}
       </div>
+      <p className="aan-uitleg">{w.bundel}</p>
       {fout && (
         <p id="pakket-fout" className="aan-fout" role="alert">
           {fout}

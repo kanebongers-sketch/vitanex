@@ -10,6 +10,7 @@ export const PAKKET_TEKST = woordenboek({
   nl: {
     prijsOpMaat: 'Prijs op aanvraag',
     perVestiging: 'Per vestiging per maand, jaarcontract',
+    bundel: 'Neem je alle zes, dan geldt een bundelprijs.',
     kies: 'Kies dit pakket',
     gekozen: 'Gekozen',
     weetNiet: 'Weet ik nog niet',
@@ -28,6 +29,7 @@ export const PAKKET_TEKST = woordenboek({
   en: {
     prijsOpMaat: 'Price on request',
     perVestiging: 'Per location per month, annual contract',
+    bundel: 'Take all six and a bundle price applies.',
     kies: 'Choose this package',
     gekozen: 'Chosen',
     weetNiet: 'Not sure yet',

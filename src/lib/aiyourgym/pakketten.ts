@@ -82,6 +82,11 @@ export function vindPakket(sleutel: unknown): Pakket | null {
   return PAKKETTEN.find((p) => p.sleutel === sleutel) ?? null
 }
 
+/** Zijn dit alle zes pakketten (de bundel, besluit Kane 30-10-2026)? */
+export function isAllePakketten(lijst: readonly PakketSleutel[]): boolean {
+  return PAKKET_SLEUTELS.every((s) => lijst.includes(s))
+}
+
 /** In vaste volgorde en zonder dubbelen. */
 export function sorteerPakketten(lijst: readonly PakketSleutel[]): PakketSleutel[] {
   return PAKKET_SLEUTELS.filter((s) => lijst.includes(s))

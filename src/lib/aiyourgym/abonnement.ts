@@ -9,7 +9,7 @@ import { OUDE_PAKKETTEN, PROEFDAGEN, leesPakketKeuze, type PakketSleutel } from 
 import { pakkettenTekst } from './taal/woorden/algemeen/pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 import type { Taal } from './taal/taal'
-import { formatDatum } from './taal/formaat'
+import { formatDatum, formatEuroCenten } from './taal/formaat'
 import { ABONNEMENT_STATUS } from './taal/woorden/club/abonnement-status'
 
 /** Het pad van de abonnementspagina (op een subdomein gaat /club gewoon door). */
@@ -36,6 +36,18 @@ export interface StripeAbonnement {
   stoptOp: Date | null
   stoptAanEindPeriode: boolean
   aantal: number | null
+  /** De prijs-id's van de regels (een per los pakket, of de bundel). */
+  prijzen: string[]
+  /** Het bedrag per maand van alle regels samen, uit Stripe; null als we het niet zeker weten. */
+  bedrag: Bedrag | null
+}
+
+/** Een bedrag per maand uit Stripe (nooit uit de code: prijzen staan alleen in Stripe). */
+export interface Bedrag {
+  centen: number
+  /** Alleen euro tonen we; een andere munt = geen bedrag. */
+  valuta: 'eur'
+  inclBtw: boolean
 }
 
 function tekstOfNull(v: unknown): string | null {
@@ -61,6 +73,33 @@ export function abonnementUitRij(rij: unknown): AbonnementRij | null {
   }
 }
 
+function obj(v: unknown): Record<string, unknown> | null {
+  return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
+}
+
+/**
+ * Het bedrag per maand van alle regels samen: prijs per stuk maal aantal. Alleen
+ * als elke regel een maandprijs in euro heeft; anders null (liever niets dan fout).
+ * Kortingen en btw rekent Stripe op de factuur; hier alleen het tarief.
+ */
+export function bedragVanRegels(items: readonly unknown[]): Bedrag | null {
+  if (items.length === 0) return null
+  let centen = 0
+  let inclusief = 0
+  for (const ruw of items) {
+    const item = obj(ruw)
+    const prijs = obj(item?.price)
+    const terug = obj(prijs?.recurring)
+    const stuk = prijs?.unit_amount
+    const aantal = item?.quantity
+    if (typeof stuk !== 'number' || !Number.isInteger(stuk) || stuk < 0 || typeof aantal !== 'number' || !Number.isInteger(aantal) || aantal < 1) return null
+    if (prijs?.currency !== 'eur' || terug?.interval !== 'month' || (terug.interval_count ?? 1) !== 1) return null
+    centen += stuk * aantal
+    if (prijs.tax_behavior === 'inclusive') inclusief += 1
+  }
+  return { centen, valuta: 'eur', inclBtw: inclusief === items.length }
+}
+
 /**
  * Een Stripe-abonnement (ruwe JSON). Sinds API-versie 2025-03-31 staat het
  * einde van de periode op het abonnementsitem; oudere versies op het abonnement.
@@ -72,6 +111,12 @@ export function leesStripeAbonnement(json: unknown): StripeAbonnement | null {
   const items = (s.items as { data?: unknown } | undefined)?.data
   const eerste = Array.isArray(items) && typeof items[0] === 'object' && items[0] !== null ? (items[0] as Record<string, unknown>) : null
   const aantal = eerste && typeof eerste.quantity === 'number' ? eerste.quantity : null
+  const regels = Array.isArray(items) ? items : []
+  const prijzen = regels.flatMap((i) => {
+    const p = obj(i)?.price
+    const id = typeof p === 'string' ? p : obj(p)?.id
+    return typeof id === 'string' && id.startsWith('price_') ? [id] : []
+  })
   return {
     status: tekstOfNull(s.status),
     proefTot: datumUitUnix(s.trial_end),
@@ -79,6 +124,8 @@ export function leesStripeAbonnement(json: unknown): StripeAbonnement | null {
     stoptOp: datumUitUnix(s.cancel_at),
     stoptAanEindPeriode: s.cancel_at_period_end === true,
     aantal,
+    prijzen,
+    bedrag: bedragVanRegels(regels),
   }
 }
 
@@ -93,6 +140,10 @@ export interface AbonnementWeergave {
   toelichting: string | null
   /** Kan de eigenaar facturen en betaalgegevens openen (Stripe Customer Portal)? */
   portaal: boolean
+  /** Het bedrag per maand uit Stripe, opgemaakt in de taal, of null. */
+  prijs: string | null
+  /** Staat de bundelprijs (alle zes pakketten) op het abonnement? */
+  bundel: boolean
 }
 
 /** Een datum als "3 november 2026" (Nederlandse tijd). */
@@ -129,13 +180,25 @@ function zonderStripe(a: AbonnementRij, nu: Date, taal: Taal): { status: string;
   return { status: t.actief, toon: 'goed', toelichting: t.zonderStripe }
 }
 
-/** Wat de pagina toont, uit onze aanmelding en (als die er is) het abonnement bij Stripe. */
-export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date, taal: Taal = 'nl'): AbonnementWeergave {
+/** Het bedrag als "€ 238,00 per maand, excl. btw". */
+export function prijsTekst(b: Bedrag, taal: Taal): string {
   const t = ABONNEMENT_STATUS[taal]
-  const pakket = a.pakketten ? pakkettenTekst(a.pakketten, taal) : (OUDE_PAKKETTEN[a.pakket] ?? t.onbekendPakket)
+  return t.perMaand(formatEuroCenten(b.centen, taal), b.inclBtw)
+}
+
+/**
+ * Wat de pagina toont, uit onze aanmelding en (als die er is) het abonnement bij
+ * Stripe. bundelPrijs = AIYOURGYM_STRIPE_PRIJS_ALLES (de pagina leest env, dit blijft puur).
+ */
+export function abonnementWeergave(a: AbonnementRij, s: StripeAbonnement | null, nu: Date, taal: Taal = 'nl', bundelPrijs: string | null = null): AbonnementWeergave {
+  const t = ABONNEMENT_STATUS[taal]
+  const bundel = bundelPrijs !== null && (s?.prijzen.includes(bundelPrijs) ?? false)
+  const namen = a.pakketten ? pakkettenTekst(a.pakketten, taal) : (OUDE_PAKKETTEN[a.pakket] ?? t.onbekendPakket)
+  const pakket = bundel ? t.bundel : namen
   const vestigingen = s?.aantal ?? a.aantalVestigingen
   const portaal = a.stripeKlantId !== null && a.status !== 'test'
-  const basis = { pakket, vestigingen, portaal }
+  const prijs = s?.bedrag && a.status !== 'test' ? prijsTekst(s.bedrag, taal) : null
+  const basis = { pakket, vestigingen, portaal, prijs, bundel }
   switch (a.status) {
     case 'actief':
       return { ...basis, ...(a.stripeKlantId === null && a.stripeAbonnementId === null ? zonderStripe(a, nu, taal) : lopendeStatus(s, nu, taal)) }

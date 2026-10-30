@@ -23,9 +23,11 @@ interface PakkettenBeheerProps {
 
 type Melding = { soort: 'ok' | 'fout'; tekst: string } | null
 
-function uitkomstTekst(weg: unknown, actie: 'erbij' | 'opzeggen', t: (typeof PAKKETTEN_BEHEER)['nl']): string {
-  const w = weg as PakketWeg
-  if (w === 'stripe' || w === 'test' || w === 'direct') return t.uitkomst[w]
+function uitkomstTekst(json: unknown, actie: 'erbij' | 'opzeggen', t: (typeof PAKKETTEN_BEHEER)['nl']): string {
+  const antwoord = (json ?? {}) as { weg?: unknown; bundel?: unknown }
+  const w = antwoord.weg as PakketWeg
+  if (w === 'stripe') return antwoord.bundel === true ? t.uitkomst.stripeBundel : t.uitkomst.stripe
+  if (w === 'test' || w === 'direct') return t.uitkomst[w]
   return actie === 'erbij' ? t.uitkomst.aanvraagErbij : t.uitkomst.aanvraagOpzeggen
 }
 
@@ -44,7 +46,7 @@ export function PakkettenBeheer({ afgenomen, aanvragen }: PakkettenBeheerProps) 
       const res = await fetch('/api/aiyourgym/pakketten', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pakket, actie }) })
       const json: unknown = await res.json().catch(() => null)
       if (res.ok) {
-        setMelding({ soort: 'ok', tekst: uitkomstTekst((json as { weg?: unknown } | null)?.weg, actie, t) })
+        setMelding({ soort: 'ok', tekst: uitkomstTekst(json, actie, t) })
         router.refresh()
       } else {
         setMelding({ soort: 'fout', tekst: kiesMeldingen(json, taal).fout ?? t.fout })
@@ -60,6 +62,7 @@ export function PakkettenBeheer({ afgenomen, aanvragen }: PakkettenBeheerProps) 
       <div className="club-abo-pakketten-kop">
         <h2 id="abo-pakketten">{t.kop}</h2>
         <p>{t.uitleg}</p>
+        <p className="club-hint">{t.bundel}</p>
       </div>
       <ul className="club-abo-pakketlijst">
         {PAKKET_SLEUTELS.map((p) => {

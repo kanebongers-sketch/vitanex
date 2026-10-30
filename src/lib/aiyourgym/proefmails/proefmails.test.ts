@@ -56,7 +56,7 @@ describe('planProefmail', () => {
 })
 
 describe('proefTotVan en proefTeller', () => {
-  const stripe = (status: string, proefTot: Date | null): StripeAbonnement => ({ status, proefTot, periodeTot: null, stoptOp: null, stoptAanEindPeriode: false, aantal: 1 })
+  const stripe = (status: string, proefTot: Date | null): StripeAbonnement => ({ status, proefTot, periodeTot: null, stoptOp: null, stoptAanEindPeriode: false, aantal: 1, prijzen: [], bedrag: null })
 
   it('zonder Stripe: aanmelding plus de proefdagen', () => {
     expect(proefTotVan({ status: 'actief', aangemaaktOp: START.toISOString(), metStripe: false }, null)?.toISOString()).toBe(EINDE.toISOString())

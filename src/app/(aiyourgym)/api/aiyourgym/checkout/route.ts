@@ -4,7 +4,7 @@ import { isRateLimited } from '@/lib/utils/rate-limit'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { MAX_BODY_BYTES, isRobot, leesAanmelding } from '@/lib/aiyourgym/aanmelding'
-import { NIET_OPEN, allesAfsluitbaar, stripePrijs, stripeSleutel } from '@/lib/aiyourgym/config'
+import { NIET_OPEN, stripeRegels, stripeSleutel } from '@/lib/aiyourgym/config'
 import { checkoutAdressen, oorsprongVan, testbetaalAdres } from '@/lib/aiyourgym/links'
 import { nieuweTestSessie } from '@/lib/aiyourgym/testbetaling-opslag'
 import { testbetalenVoor } from '@/lib/aiyourgym/testbetaling'
@@ -21,7 +21,8 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 // Een sportschool meldt zich aan met een of meer losse pakketten (besluit Kane
 // 29-10-2026). Zijn ze allemaal online af te sluiten (Stripe-sleutel en per
 // pakket een prijs in env), dan volgt Stripe Checkout met een regel per pakket
-// en een proefperiode.
+// en een proefperiode. Alle zes met een bundelprijs (AIYOURGYM_STRIPE_PRIJS_ALLES,
+// besluit Kane 30-10-2026): een regel met de bundel (stripeRegels).
 // Zonder Stripe volgt een nagespeelde betaling op onze eigen site
 // (src/lib/aiyourgym/testbetaling.ts, besluit Kane 23-10-2026). Staat ook die
 // uit, dan bewaren we de aanmelding als 'aanvraag' voor Kane en zeggen we
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
   }
 
   const sleutel = stripeSleutel()
-  const prijzen = a.pakketten.map((pakket) => ({ pakket, prijsId: stripePrijs(pakket) }))
+  const regels = stripeRegels(a.pakketten)
   const host = publiekeHost(req)
   const oorsprong = oorsprongVan(host)
   if (testbetalenVoor(a.pakketten)) {
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     if (!id || !(await koppelSessie(admin, id, sessieId))) return mislukt('testbetaling starten', MISLUKT, 500)
     return aygJson({ staat: 'testbetaling', url: testbetaalAdres(oorsprong, host, siteActief(), sessieId) })
   }
-  if (!allesAfsluitbaar(a.pakketten) || !sleutel || prijzen.some((p) => !p.prijsId)) {
+  if (!sleutel || !regels) {
     const id = await maakAanmelding(admin, a, 'aanvraag', nu)
     return id ? aygJson(metEngels({ staat: 'aanvraag', melding: AANVRAAG })) : mislukt('aanvraag bewaren', MISLUKT, 500)
   }
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
   const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, hashWachtwoord(a.wachtwoord))
   if (!id) return mislukt('aanmelding bewaren', MISLUKT, 500)
   const adressen = checkoutAdressen(oorsprong, host, siteActief())
-  const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, prijzen: prijzen.map((p) => ({ pakket: p.pakket, prijsId: p.prijsId as string })), succesUrl: adressen.succes, terugUrl: adressen.terug })
+  const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, regels, succesUrl: adressen.succes, terugUrl: adressen.terug })
   if (!sessie || !(await koppelSessie(admin, id, sessie.id))) return mislukt(sessie ? 'sessie koppelen' : 'Stripe-sessie maken', 'Betalen kon niet worden gestart. Probeer het later opnieuw.', 502)
   return aygJson({ staat: 'betalen', url: sessie.url })
 }

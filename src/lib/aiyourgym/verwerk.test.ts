@@ -151,6 +151,35 @@ describe('pakketten via Stripe (losse pakketten, besluit Kane 29-10-2026)', () =
     await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_9', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_lessen01', 'price_vreemd99'] }, deps()))
     expect(vragen.some((v) => v.tabel === 'club_organisaties')).toBe(false)
   })
+  it('de bundelprijs zet alle zes pakketten, ook twee keer hetzelfde event (idempotent)', async () => {
+    const bundel = { AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles001' }
+    const metBundel = <T>(f: () => Promise<T>) => {
+      for (const [k, v] of Object.entries(bundel)) vi.stubEnv(k, v)
+      return metEnv(f)
+    }
+    const e = { soort: 'abonnement' as const, id: 'evt_11', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_alles001'] }
+    const een = lopend()
+    const twee = lopend()
+    expect(await metBundel(() => verwerkEvent(een.admin, e, deps()))).toBe('ok')
+    expect(await metBundel(() => verwerkEvent(twee.admin, e, deps()))).toBe('ok')
+    const zes = ['administratie', 'lessen', 'training', 'afspraken', 'team', 'groei']
+    const lijst = (v: Vraag[]) => v.filter((x) => x.tabel === 'club_organisaties').map((x) => (x.waarde as { pakketten?: unknown }).pakketten)
+    expect(lijst(een.vragen)).toEqual([zes])
+    expect(lijst(twee.vragen)).toEqual([zes])
+  })
+  it('de bundelprijs zonder AIYOURGYM_STRIPE_PRIJS_ALLES is onbekend: niets veranderen', async () => {
+    const { admin, vragen } = lopend()
+    await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_12', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_alles001'] }, deps()))
+    expect(vragen.some((v) => v.tabel === 'club_organisaties')).toBe(false)
+  })
+  it('van de bundel terug naar vijf losse regels: precies die vijf', async () => {
+    const vijf = { AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles001', AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_admin001', AIYOURGYM_STRIPE_PRIJS_TRAINING: 'price_train001', AIYOURGYM_STRIPE_PRIJS_AFSPRAKEN: 'price_afspr001', AIYOURGYM_STRIPE_PRIJS_TEAM: 'price_team0001' }
+    for (const [k, v] of Object.entries(vijf)) vi.stubEnv(k, v)
+    const { admin, vragen } = lopend()
+    await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_13', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_admin001', 'price_lessen01', 'price_train001', 'price_afspr001', 'price_team0001'] }, deps()))
+    const org = vragen.find((v) => v.tabel === 'club_organisaties' && v.actie === 'update')
+    expect(org?.waarde).toMatchObject({ pakketten: ['administratie', 'lessen', 'training', 'afspraken', 'team'] })
+  })
   it('zonder regels (oud event) blijven de pakketten zoals ze zijn', async () => {
     const { admin, vragen } = lopend()
     await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_10', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: [] }, deps()))

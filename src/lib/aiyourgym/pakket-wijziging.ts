@@ -9,11 +9,16 @@
 //   - Anders, en opzeggen bij een echt (Stripe-)contract: een aanvraag. Het
 //     contract is een jaarcontract; Kane verwerkt het volgens dat contract.
 //   - Het master account (Kane) zet pakketten direct, voor elke sportschool.
+//   - Bundel (besluit Kane 30-10-2026): heeft een sportschool na erbij nemen alle
+//     zes, dan worden de losse regels in een keer de bundelregel
+//     (AIYOURGYM_STRIPE_PRIJS_ALLES), via Stripe met proration; zie regelWissel.
+//     Opzeggen is altijd een aanvraag volgens het jaarcontract, ook vanuit de
+//     bundel: Kane verwerkt die.
 // Minstens een pakket blijft altijd over: alles opzeggen is het abonnement
 // opzeggen (Stripe Customer Portal).
 
-import { isPakketSleutel, sorteerPakketten, type PakketSleutel } from './pakketten'
-import { pakketVanPrijs } from './config'
+import { PAKKET_SLEUTELS, isPakketSleutel, sorteerPakketten, type PakketSleutel } from './pakketten'
+import { pakketVanPrijs, stripePrijsAlles } from './config'
 
 export const PAKKET_ACTIES = ['erbij', 'opzeggen'] as const
 export type PakketActie = (typeof PAKKET_ACTIES)[number]
@@ -46,7 +51,7 @@ export interface WegInvoer {
   platformEigenaar: boolean
   /** Heeft de sportschool een lopend Stripe-abonnement? */
   stripeAbonnement: boolean
-  /** Heeft dit pakket een Stripe-prijs en is er een sleutel (afsluitbaar)? */
+  /** Kan de nieuwe set pakketten via Stripe (sleutel en een prijs per regel, of de bundel)? */
   afsluitbaar: boolean
   /** Staat de testbetaling aan voor dit pakket (testbetalen)? */
   testbetalen: boolean
@@ -54,6 +59,7 @@ export interface WegInvoer {
 
 export function pakketWeg(i: WegInvoer): PakketWeg {
   if (i.platformEigenaar) return 'direct'
+  // Opzeggen bij een echt contract is altijd een aanvraag (jaarcontract), ook vanuit de bundel.
   if (i.stripeAbonnement) return i.actie === 'erbij' && i.afsluitbaar ? 'stripe' : 'aanvraag'
   return i.testbetalen ? 'test' : 'aanvraag'
 }
@@ -66,10 +72,64 @@ export function naWijziging(afgenomen: readonly PakketSleutel[], v: PakketVerzoe
 /**
  * De pakketten achter de prijzen van een Stripe-abonnement, of null als er een
  * prijs bij zit die we niet kennen (dan veranderen we niets: liever niets dan fout).
+ * De bundelprijs betekent alle zes pakketten (besluit Kane 30-10-2026).
  */
 export function pakkettenVanPrijzen(prijzen: readonly string[], env: Record<string, string | undefined> = process.env): PakketSleutel[] | null {
   if (prijzen.length === 0) return null
-  const pakketten = prijzen.map((p) => pakketVanPrijs(p, env))
+  const alles = stripePrijsAlles(env)
+  const losse = prijzen.filter((p) => p !== alles)
+  const pakketten = losse.map((p) => pakketVanPrijs(p, env))
   if (pakketten.some((p) => p === null)) return null
+  if (alles && losse.length < prijzen.length) return [...PAKKET_SLEUTELS]
   return sorteerPakketten(pakketten as PakketSleutel[])
+}
+
+/** Een regel van een lopend Stripe-abonnement (subscription item). */
+export interface AbonnementRegel {
+  /** si_... */
+  id: string
+  prijsId: string
+  aantal: number | null
+}
+
+/** De regels van een Stripe-abonnement (ruwe JSON van GET /v1/subscriptions/:id), of null. */
+export function leesAbonnementRegels(json: unknown): AbonnementRegel[] | null {
+  const s = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : null
+  const data = (s?.items as { data?: unknown } | undefined)?.data
+  if (typeof s?.id !== 'string' || !Array.isArray(data)) return null
+  return data.flatMap((ruw) => {
+    const r = typeof ruw === 'object' && ruw !== null ? (ruw as Record<string, unknown>) : {}
+    const prijs = r.price
+    const prijsId = typeof prijs === 'string' ? prijs : typeof prijs === 'object' && prijs !== null ? (prijs as { id?: unknown }).id : null
+    if (typeof r.id !== 'string' || !r.id.startsWith('si_') || typeof prijsId !== 'string' || !prijsId.startsWith('price_')) return []
+    return [{ id: r.id, prijsId, aantal: typeof r.quantity === 'number' && Number.isInteger(r.quantity) && r.quantity > 0 ? r.quantity : null }]
+  })
+}
+
+/** Wat er op het abonnement verandert: regels (si_...) weg en prijzen erbij. */
+export interface RegelWissel {
+  weg: string[]
+  erbij: string[]
+}
+
+/**
+ * Van de regels nu naar de doelprijzen (PUUR). Alleen regels met een prijs van
+ * ons (eigenPrijzen) gaan weg; iets anders op het abonnement blijft staan. Een
+ * prijs die er al staat komt er niet nog eens bij. Leeg = er hoeft niets
+ * (idempotent: nog een keer klikken doet niets).
+ */
+export function regelWissel(huidig: readonly AbonnementRegel[], doel: readonly string[], eigen: readonly string[]): RegelWissel {
+  return {
+    weg: huidig.filter((r) => eigen.includes(r.prijsId) && !doel.includes(r.prijsId)).map((r) => r.id),
+    erbij: doel.filter((p) => !huidig.some((r) => r.prijsId === p)),
+  }
+}
+
+export function wisselLeeg(w: RegelWissel): boolean {
+  return w.weg.length === 0 && w.erbij.length === 0
+}
+
+/** Het aantal vestigingen op het abonnement: van een eigen regel, anders wat we zelf weten. */
+export function aantalVanRegels(huidig: readonly AbonnementRegel[], eigen: readonly string[], terugval: number): number {
+  return huidig.find((r) => eigen.includes(r.prijsId) && r.aantal !== null)?.aantal ?? terugval
 }
