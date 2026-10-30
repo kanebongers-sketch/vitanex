@@ -72,25 +72,38 @@ async function reserveringenVandaag(admin: SupabaseClient, userId: string, ids: 
   return (data ?? []).map(reserveringUitRij).filter((r): r is LidReservering => r !== null)
 }
 
+interface BalieRegels {
+  venster: number
+  /** Alleen leden van deze vestiging mogen hier sporten (migratie 477). */
+  alleenEigen: boolean
+}
+
+async function haalBalieRegels(admin: SupabaseClient, userId: string, v: Vestiging): Promise<BalieRegels> {
+  const { data, error } = await admin.from('club_vestigingen').select('regels, alleen_eigen_leden').eq('user_id', userId).eq('vestiging', v).maybeSingle()
+  if (error) console.error('[club] regels van de vestiging lezen mislukt', error.message)
+  const rij = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : null
+  return { venster: leesVenster(rij?.regels ?? null), alleenEigen: rij?.alleen_eigen_leden === true }
+}
+
 async function haalVenster(admin: SupabaseClient, userId: string, v: Vestiging): Promise<number> {
-  const { data } = await admin.from('club_vestigingen').select('regels').eq('user_id', userId).eq('vestiging', v).maybeSingle()
-  return leesVenster(typeof data === 'object' && data !== null ? (data as Record<string, unknown>).regels : null)
+  return (await haalBalieRegels(admin, userId, v)).venster
 }
 
 interface BalieContext {
   v: Vestiging
   nu: Date
   venster: number
+  alleenEigen: boolean
   vestigingen: readonly VestigingInfo[]
   /** Lidmaatschapsvormen van de sportschool; leeg bij een leesfout (dan geen waarschuwing). */
   vormen: readonly Lidmaatschapsvorm[]
 }
 
 function naarBalieLid(lid: Lid, laatste: Date | undefined, res: LidReservering[], c: BalieContext): BalieLid {
-  const { v, nu, venster, vestigingen } = c
+  const { v, nu, venster, alleenEigen, vestigingen } = c
   const les = lesVandaag(res, nu)
   const inVenster = lesInVenster(res, nu, venster)
-  const geenToegang = !magInVestiging(lid.vestiging, v)
+  const geenToegang = !magInVestiging(lid.vestiging, v, alleenEigen)
   return {
     id: lid.id,
     naam: volledigeNaam(lid),
@@ -145,13 +158,13 @@ export async function zoekVoorBalie(admin: SupabaseClient, userId: string, v: Ve
   const leden = exact ? code.leden : await zoekOpNaam(admin, userId, v, term)
   if (!leden) return null
   const ids = leden.map((l) => l.id)
-  const [laatste, reserveringen, venster, vormen] = await Promise.all([
+  const [laatste, reserveringen, balie, vormen] = await Promise.all([
     laatsteCheckins(admin, userId, ids, new Date(nu.getTime() - DUBBEL_MIN * MIN)),
     reserveringenVandaag(admin, userId, ids, nu),
-    haalVenster(admin, userId, v),
+    haalBalieRegels(admin, userId, v),
     haalVormen(admin, userId),
   ])
-  const context: BalieContext = { v, nu, venster, vestigingen, vormen: vormen ?? [] }
+  const context: BalieContext = { v, nu, venster: balie.venster, alleenEigen: balie.alleenEigen, vestigingen, vormen: vormen ?? [] }
   return {
     exact,
     bron: exact ? bronVoorMatch(code.veld) : 'balie',
@@ -190,7 +203,8 @@ export async function checkIn(admin: SupabaseClient, userId: string, verzoek: Ch
   const lid = await haalLid(admin, userId, verzoek.lidId)
   if (!lid) return { ok: false, fout: 'Dit lid bestaat niet (meer).', status: 404 }
   const laatste = (await laatsteCheckins(admin, userId, [lid.id], new Date(nu.getTime() - DUBBEL_MIN * MIN))).get(lid.id) ?? null
-  const besluit = beoordeelCheckin(lid.status, laatste, nu, magInVestiging(lid.vestiging, verzoek.vestiging))
+  const { alleenEigen } = await haalBalieRegels(admin, userId, verzoek.vestiging)
+  const besluit = beoordeelCheckin(lid.status, laatste, nu, magInVestiging(lid.vestiging, verzoek.vestiging, alleenEigen))
   if (besluit.soort === 'niet_actief') return { ok: true, lid, antwoord: { soort: 'niet_actief', statusLabel: LID_STATUS_LABEL[besluit.status] } }
   if (besluit.soort === 'geen_toegang') return { ok: true, lid, antwoord: { soort: 'geen_toegang', vestigingLabel: naamVan(vestigingen, lid.vestiging) } }
   if (besluit.soort === 'dubbel') return { ok: true, lid, antwoord: { soort: 'dubbel', op: besluit.op.toISOString() } }

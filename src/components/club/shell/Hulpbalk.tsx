@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import type { LucideIcon } from 'lucide-react'
-import { LifeBuoy, Plug, Settings2, Smartphone, Sparkles } from 'lucide-react'
 import { VESTIGING_PARAM } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { ongelezenPunten, tellerTekst } from '@/lib/aiyourgym/nieuw'
 import { clubHref, hulpItemOp, hulpItems, hulpToets, type HulpSleutel } from './hulpbalk-items'
 import { useGezien } from './nieuw-gezien'
 import { useVestigingen } from './VestigingenContext'
+import { HULP_ICOON } from './iconen'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import './hulpbalk.css'
@@ -19,14 +18,6 @@ import './hulpbalk.css'
 // over de inhoud heen. Telefoon en tablet staand: dezelfde vijf onderaan in het
 // menupaneel (HulpLinks in MenuPaneel). Wat is nieuw toont hoeveel updates je
 // nog niet zag.
-
-const ICOON: Record<HulpSleutel, LucideIcon> = {
-  instellingen: Settings2,
-  koppelingen: Plug,
-  ledenapp: Smartphone,
-  nieuw: Sparkles,
-  hulp: LifeBuoy,
-}
 
 /** Het aantal updates dat deze persoon nog niet zag, als badge. Niets zolang het niet bekend is. */
 export function NieuwTeller({ persoon }: { persoon: string }) {
@@ -62,7 +53,7 @@ export function HulpLinks({ sleutels, persoon, pad, href, uitleg = false, onKies
   return (
     <ul className="club-hulp-lijst">
       {hulpItems(sleutels, taal).map((i) => {
-        const Icoon = ICOON[i.sleutel]
+        const Icoon = HULP_ICOON[i.sleutel]
         const toets = hulpToets(i)
         return (
           <li key={i.sleutel}>

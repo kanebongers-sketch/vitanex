@@ -23,6 +23,8 @@ interface LidGegevensProps {
   coachId: string | null
   trainers: Keuze[]
   tags: string[]
+  /** Rollen v2, alleen zien: coach en labels tonen zonder ze te kunnen wijzigen. */
+  alleenLezen?: boolean
 }
 
 interface ContactProps {
@@ -88,7 +90,7 @@ export function LidGegevens(props: LidGegevensProps) {
 
       <label className="club-veld club-leden-blok">
         <span>{t.coach}</span>
-        <select className="club-invoer" value={props.coachId ?? ''} disabled={bezig}
+        <select className="club-invoer" value={props.coachId ?? ''} disabled={bezig || props.alleenLezen}
           onChange={(e) => void bewaar({ coachId: e.target.value || null })}>
           <option value="">{t.geenCoach}</option>
           {props.trainers.map((m) => <option key={m.id} value={m.id}>{m.naam}</option>)}
@@ -102,20 +104,22 @@ export function LidGegevens(props: LidGegevensProps) {
             {props.tags.map((tag) => (
               <li key={tag} className="club-chip club-chip--geen">
                 {tag}
-                <button type="button" aria-label={t.tagWeg(tag)} disabled={bezig}
-                  onClick={() => void bewaar({ tags: props.tags.filter((x) => x !== tag) })}>
-                  <X aria-hidden size={12} />
-                </button>
+                {!props.alleenLezen && (
+                  <button type="button" aria-label={t.tagWeg(tag)} disabled={bezig}
+                    onClick={() => void bewaar({ tags: props.tags.filter((x) => x !== tag) })}>
+                    <X aria-hidden size={12} />
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         ) : <p className="club-hint">{t.geenTags}</p>}
-        <form className="club-leden-tagform" onSubmit={voegTagToe}>
+        {!props.alleenLezen && <form className="club-leden-tagform" onSubmit={voegTagToe}>
           <label className="club-sr" htmlFor="nieuwe-tag">{t.nieuweTag}</label>
           <input id="nieuwe-tag" className="club-invoer" value={nieuweTag} onChange={(e) => setNieuweTag(e.target.value)}
             placeholder={t.tagVoorbeeld} maxLength={40} autoComplete="off" />
           <button type="submit" className="club-knop club-knop--klein" disabled={bezig || !nieuweTag.trim()}>{t.toevoegen}</button>
-        </form>
+        </form>}
       </div>
       {fout ? <p className="club-fout" role="alert">{fout}</p> : null}
     </section>

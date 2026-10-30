@@ -59,3 +59,14 @@ export function v2Minstens(t: Pick<Wie, 'isPlatformEigenaar' | 'profiel'>, sleut
   const n = v2Niveau(t, sleutel)
   return n === null ? null : minstens(n, drempel)
 }
+
+/**
+ * Mag deze persoon op deze pagina iets wijzigen (sleutel uit RECHT_SLEUTELS)?
+ * Met v2 vanaf het niveau bewerken: wie alleen zien heeft, krijgt de pagina
+ * zonder bewerkknoppen, in plaats van een fout bij opslaan (de API weigert
+ * hetzelfde, api.ts). Zonder v2 geldt het oude model: wie de pagina mag
+ * openen, mag er ook in werken.
+ */
+export function kanBewerken(t: Pick<Wie, 'isPlatformEigenaar' | 'profiel'>, sleutel: string): boolean {
+  return v2Minstens(t, sleutel, 'bewerken') ?? true
+}

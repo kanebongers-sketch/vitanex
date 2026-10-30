@@ -125,9 +125,11 @@ interface MedewerkersBeheerProps {
   ikZelf: string | null
   /** Privacy (AVG): wie mag wissen (Kane, eigenaar) en welke medewerkers al gewist zijn. */
   privacy: { magWissen: boolean; gewist: readonly string[] }
+  /** Rollen v2: de link naar Team, waar alle rollen (ook eigenaar en roosteraar) worden gegeven. */
+  teamHref?: string | null
 }
 
-export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, privacy }: MedewerkersBeheerProps) {
+export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, privacy, teamHref = null }: MedewerkersBeheerProps) {
   const gewist = new Set(privacy.gewist)
   const perMedewerker = new Map((login?.logins ?? []).map((l) => [l.medewerkerId, l]))
   const hier = medewerkers.filter((m) => m.vestigingen.includes(vestiging))
@@ -166,6 +168,11 @@ export function MedewerkersBeheer({ medewerkers, vestiging, login, ikZelf, priva
   return (
     <section className="club-instellingen-sectie club-instellingen-medewerkers">
       <div className="club-instellingen-lijst">
+        {teamHref && (
+          <p className="club-melding" role="note">
+            {t.naarTeam} <a href={teamHref}>{t.naarTeamLink}</a>
+          </p>
+        )}
         <h3 className="club-instellingen-kop">
           {naam} <span className="club-getal club-zacht">{hier.length}</span>
         </h3>

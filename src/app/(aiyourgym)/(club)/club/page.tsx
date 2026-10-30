@@ -37,6 +37,9 @@ import { VandaagStrook } from '@/components/club/vandaag/VandaagStrook'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { startDoorverwijzing } from '@/lib/club/rollen/model'
+import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
+import { ikAlsAfvinker } from '@/lib/club/taken/ik'
+import { isLeiding } from '@/lib/club/rollen/wie'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
@@ -102,6 +105,18 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const vestigingNaam = naamVan(t.vestigingen, vestiging)
   const { checkin } = t.organisatie.instellingen
   const leadsOfJarig = zie('leads') || zie('leden')
+  // Trainer en andere vloerrollen: kort scherm, Nu in de club en Leden met risico onder Meer.
+  const leiding = isLeiding(t)
+  const risicoBlok = mag('leden') ? (
+    <div className="club-raster club-vandaag-raster">
+      <div className="club-k7">
+        <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />
+      </div>
+      <div className="club-k5 club-vandaag-stapel">
+        <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
+      </div>
+    </div>
+  ) : null
   return (
     <>
       <header className="club-vandaag-kop">
@@ -115,6 +130,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           {tv.standVan} <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
         </p>
       </header>
+
+      <WelkomVoorRol t={t} vestiging={vestiging} pagina="vandaag" />
 
       <VandaagStrook admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} lessen={data.lessen} taken={zie('taken')} rooster={mag('rooster')} />
 
@@ -136,7 +153,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
 
       {zie('checkin') && <CheckinSectie admin={t.admin} userId={t.userId} vestiging={vestiging} methode={checkin.methode} qrAan={qrCheckinAan(checkin)} magLeden={zie('leden')} />}
 
-      <VandaagHero data={data} />
+      {/* Leiding ziet de drukte meteen; de vloer houdt het scherm kort en klapt hem open onder Meer. */}
+      {leiding && <VandaagHero data={data} />}
 
       <div className="club-raster club-vandaag-raster">
         <div className="club-k7">
@@ -149,7 +167,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </div>
       </div>
 
-      {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} />}
+      {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} />}
 
       {(zie('opvolgen') || leadsOfJarig) && (
         <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magRegels={mag('beheer')}>
@@ -162,15 +180,14 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </OpvolgSectie>
       )}
 
-      {mag('leden') && (
-        <div className="club-raster club-vandaag-raster">
-          <div className="club-k7">
-            <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />
-          </div>
-          <div className="club-k5 club-vandaag-stapel">
-            <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
-          </div>
-        </div>
+      {leiding ? (
+        risicoBlok
+      ) : (
+        <details className="club-vandaag-meer">
+          <summary className="club-knop club-knop--stil">{tv.meer}</summary>
+          <VandaagHero data={data} />
+          {risicoBlok}
+        </details>
       )}
     </>
   )

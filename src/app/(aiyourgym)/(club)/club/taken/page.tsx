@@ -1,3 +1,4 @@
+import { ikAlsAfvinker } from '@/lib/club/taken/ik'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -64,7 +65,7 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
         </nav>
         <PrintKnop />
       </TakenKop>
-      <TakenDag admin={t.admin} userId={t.userId} vestiging={vestiging} dag={dag} vandaag={vandaag} />
+      <TakenDag admin={t.admin} userId={t.userId} vestiging={vestiging} dag={dag} vandaag={vandaag} ik={ikAlsAfvinker(t)} />
     </div>
   )
 }

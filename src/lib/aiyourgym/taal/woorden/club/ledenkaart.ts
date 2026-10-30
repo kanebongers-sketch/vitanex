@@ -17,6 +17,7 @@ export const LEDENKAART = woordenboek({
     },
     kop: {
       leden: 'Leden',
+      leesmodus: 'Je kunt dit alleen inzien.',
       acties: 'Snel naar',
       voorbeeldlid: 'voorbeeldlid',
       geenVorm: 'Geen lidmaatschapsvorm',
@@ -64,7 +65,7 @@ export const LEDENKAART = woordenboek({
       geschiedenis: "Alle schema's",
       geenGeschiedenis: "Nog geen schema's.",
       intakes: 'Intakes',
-      geenIntake: (voornaam: string) => `Nog geen intake voor ${voornaam}. Start er een: daarna maak je in een klik een schemavoorstel.`,
+      geenIntake: (voornaam: string) => `Nog geen intake voor ${voornaam}. Start er een voor een schemavoorstel.`,
       laatsteIntake: (datum: string) => `Laatste intake ${datum}`,
       metingen: 'Voortgang en metingen',
       fout: 'De training kon niet worden geladen. Ververs de pagina.',
@@ -76,7 +77,7 @@ export const LEDENKAART = woordenboek({
     schemaMaken: {
       titel: 'Schema maken',
       boventitel: (naam: string) => `Voor ${naam}`,
-      uitleg: 'Kies hoe je begint. Het schema opent als concept in de editor; daarna kom je terug op dit profiel.',
+      uitleg: 'Kies hoe je begint. Het schema opent als concept.',
       uitIntake: 'Uit de intake',
       uitIntakeUitleg: (datum: string) => `Een voorstel op basis van de intake van ${datum}.`,
       geenIntake: 'Nog geen intake. Start eerst een intake voor een voorstel op maat.',
@@ -227,6 +228,7 @@ export const LEDENKAART = woordenboek({
     },
     kop: {
       leden: 'Members',
+      leesmodus: 'You can only view this.',
       acties: 'Quick actions',
       voorbeeldlid: 'sample member',
       geenVorm: 'No membership type',
@@ -274,7 +276,7 @@ export const LEDENKAART = woordenboek({
       geschiedenis: 'All programmes',
       geenGeschiedenis: 'No programmes yet.',
       intakes: 'Intakes',
-      geenIntake: (voornaam: string) => `No intake for ${voornaam} yet. Start one: then you can create a suggested programme in one click.`,
+      geenIntake: (voornaam: string) => `No intake for ${voornaam} yet. Start one for a suggested programme.`,
       laatsteIntake: (datum: string) => `Latest intake ${datum}`,
       metingen: 'Progress and measurements',
       fout: 'Training could not be loaded. Refresh the page.',
@@ -286,7 +288,7 @@ export const LEDENKAART = woordenboek({
     schemaMaken: {
       titel: 'Create programme',
       boventitel: (naam: string) => `For ${naam}`,
-      uitleg: 'Choose how to start. The programme opens as a draft in the editor; afterwards you come back to this profile.',
+      uitleg: 'Choose how to start. The programme opens as a draft.',
       uitIntake: 'From the intake',
       uitIntakeUitleg: (datum: string) => `A suggestion based on the intake of ${datum}.`,
       geenIntake: 'No intake yet. Start an intake first for a tailored suggestion.',

@@ -136,3 +136,6 @@
 /* Wie het bericht schreef, met profielfoto (of initialen). */
 .club-bericht-rij-auteur { display: inline-flex; align-items: center; gap: 6px; }
 .club-bericht-rij-auteur .club-avatar { letter-spacing: 0; }
+
+/* Afzender met foto onder een bericht in de ledenapp. */
+.club-bericht-app-afzender { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-size: 12.5px; color: var(--text-3); }

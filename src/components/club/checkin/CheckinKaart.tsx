@@ -48,7 +48,7 @@ function Oordeel({ lid }: { lid: BalieLid }) {
     return (
       <p className="club-checkin-oordeel club-checkin-oordeel--niet">
         <CircleAlert aria-hidden size={22} />
-        <span>{t.geenToegangEersel} <span className="club-checkin-oordeel-regel">{t.eerselRegel(lid.vestigingLabel)}</span></span>
+        <span>{t.geenToegangHier} <span className="club-checkin-oordeel-regel">{t.alleenEigenRegel(lid.vestigingLabel)}</span></span>
       </p>
     )
   }

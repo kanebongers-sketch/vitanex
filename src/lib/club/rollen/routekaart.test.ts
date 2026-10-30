@@ -24,6 +24,7 @@ const BUITEN_DE_POORT: Readonly<Record<string, string>> = {
   lid: 'de leden-API met een eigen sessie (ledenlogin/toegang.ts)',
   ledenapp: 'manifest en iconen van de ledenapp, openbaar per sportschool',
   profielfoto: "eigen foto en foto's van collega's en leden tonen: iedereen die binnen is, eigen controle in de route (profielfoto/toegang.ts)",
+  uitleg: 'eerste-keer-uitleg wegklikken: iedereen die binnen is, alleen voor het eigen profiel (migratie 476)',
 }
 
 /** Alleen voor het master account (vereisPlatformEigenaar): voor een profiel altijd dicht (sleutel null). */

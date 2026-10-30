@@ -26,7 +26,7 @@ export interface BalieLid {
   vestigingLabel: string
   /** Lid van een andere vestiging dan waar de balie staat. */
   andereVestiging: boolean
-  /** Mag hier niet sporten (lid van een andere club die in Eersel incheckt). */
+  /** Mag hier niet sporten: de vestiging laat alleen eigen leden binnen (alleen_eigen_leden, migratie 477). */
   geenToegang: boolean
   les: BalieLes | null
   /** Past niet bij de lidmaatschapsvorm (vestiging of daluren): de reden. Niet blokkeren, de balie beslist. */

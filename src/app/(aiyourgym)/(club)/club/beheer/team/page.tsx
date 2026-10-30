@@ -7,6 +7,9 @@ import { magRolWijzigen } from '@/lib/club/rollen/escalatie'
 import { ROLLEN } from '@/lib/club/rollen/typen'
 import { v2Minstens } from '@/lib/club/rollen/wie'
 import { TeamBeheer } from '@/components/club/rollen/TeamBeheer'
+import { FotoKiezer } from '@/components/club/profielfoto/FotoKiezer'
+import { eigenProfielId } from '@/lib/club/profielfoto/toegang'
+import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
 import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { instelKop, instelMetadata } from '@/components/club/beheer/instel-metadata'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
@@ -23,7 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function TeamPagina() {
   const t = await eisNiveau('team', 'zien')
-  const [kop, tekst, team] = await Promise.all([instelKop('team'), clubTekst(ROLLEN_TEKST), haalTeamMetRollen(t.admin, t.userId)])
+  const [kop, tekst, team, eigenId, fotoTekst] = await Promise.all([
+    instelKop('team'), clubTekst(ROLLEN_TEKST), haalTeamMetRollen(t.admin, t.userId), eigenProfielId(t), clubTekst(PROFIELFOTO),
+  ])
+  // De eigen foto: ook voor een eigenaar of clubmanager zonder werkrol (die staat niet in het personeelsrooster).
+  const ik = eigenId ? (team ?? []).find((p) => p.id === eigenId) ?? null : null
   const gever = { platform: t.isPlatformEigenaar, rollen: t.profiel?.rollen ?? [], teamBeheer: v2Minstens(t, 'team', 'beheren') === true }
   const kijker = instelKijker(t)
   const medewerkers = instelPagina('medewerkers')
@@ -39,6 +46,12 @@ export default async function TeamPagina() {
           <p>{tekst.team.intro}</p>
         </div>
       </header>
+      {ik && (
+        <section className="club-kaart club-team-eigen" aria-labelledby="club-team-eigen-kop">
+          <h2 id="club-team-eigen-kop">{fotoTekst.eigenKop}</h2>
+          <FotoKiezer naam={ik.naam} foto={{ soort: 'mw', id: ik.id, versie: ik.foto ?? null }} adres="/api/club/profielfoto/ik" waar="club" uitleg={fotoTekst.eigenUitleg} />
+        </section>
+      )}
       {team === null ? (
         <p className="club-melding club-melding--fout" role="alert">{tekst.fouten.lezen}</p>
       ) : (

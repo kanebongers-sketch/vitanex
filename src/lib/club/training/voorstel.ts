@@ -10,7 +10,7 @@ import { hoofdspieren, type Spier } from './spieren'
 import { DOEL_LABEL, PATROON_LABEL, ZONE_LABEL, type Doel, type Materiaal, type Niveau, type Patroon, type Zone } from './typen'
 import { notitieMetWaarom, waaromDitSchema, waarschuwingenVoor } from './voorstel-uitleg'
 import {
-  alleenThuis, beschikbaarMateriaal, cardioDosering, dosering, hoofddoel, kiesSplit, MATERIAAL_VOORKEUR, MAX_OEFENINGEN, metExplosief,
+  AANVUL_PATRONEN, alleenThuis, beschikbaarMateriaal, cardioDosering, dosering, hoofddoel, kiesSplit, MATERIAAL_VOORKEUR, MAX_OEFENINGEN, metExplosief,
   MIN_OEFENINGEN, minutenVoor, reserve, volgordeRang, WARMING_UP_MIN, type DagSjabloon, type Dosering, type Slot,
 } from './voorstel-regels'
 
@@ -56,6 +56,8 @@ interface Context {
   blessures: readonly Zone[]
   klacht: boolean
   compact: boolean
+  /** Alleen oefeningen zonder materiaal: niet zwaar te laden (dosering met lichaamsgewicht). */
+  lichaamsgewicht: boolean
   /** Wat mag: actief, materiaal, niveau, coaching en geen geblesseerde zone. */
   kandidaten: readonly Oefening[]
   /** Zonder de blessures: om te zien wat een trainer zonder klacht gekozen had. */
@@ -118,7 +120,7 @@ function kiesVoorSlot(slot: Slot, lijst: readonly Oefening[], gebruikt: Readonly
 }
 
 function doseringVoor(o: Oefening, ctx: Context): Dosering {
-  return dosering(ctx.doel, o.patroon, ctx.niveau, { klacht: ctx.klacht, compact: ctx.compact })
+  return dosering(ctx.doel, o.patroon, ctx.niveau, { klacht: ctx.klacht, compact: ctx.compact, lichaamsgewicht: ctx.lichaamsgewicht })
 }
 
 function klachtNotitie(gekozen: Oefening, ideaal: Oefening | null, blessures: readonly Zone[]): string | null {
@@ -130,6 +132,45 @@ function klachtNotitie(gekozen: Oefening, ideaal: Oefening | null, blessures: re
 function regelVoor(o: Oefening, ctx: Context, notitie: string | null): VoorstelRegel {
   const d = doseringVoor(o, ctx)
   return { oefeningId: o.id, sets: d.sets, herhalingen: d.herhalingen, rustSec: d.rustSec, rir: reserve(ctx.doel, o.patroon, ctx.niveau, ctx.klacht), notitie }
+}
+
+interface Gekozen {
+  o: Oefening
+  regel: VoorstelRegel
+  i: number
+}
+
+interface Bouw {
+  dag: DagStaat
+  gekozen: Gekozen[]
+  gebruikt: Set<string>
+  budget: number
+}
+
+/** Zet de oefening op de dag als de tijd het toelaat (de eerste drie altijd). */
+function voegToe(o: Oefening, ideaal: Oefening | null, ctx: Context, b: Bouw): boolean {
+  const tijd = minutenVoor(doseringVoor(o, ctx), o.patroon)
+  if (b.gekozen.length >= MIN_OEFENINGEN && b.dag.minuten + tijd > b.budget) return false
+  b.dag.ids.add(o.id)
+  b.dag.minuten += tijd
+  for (const sp of hoofdspieren(o)) b.dag.spieren.add(sp)
+  b.gebruikt.add(o.id)
+  b.gekozen.push({ o, regel: regelVoor(o, ctx, klachtNotitie(o, ideaal, ctx.blessures)), i: b.gekozen.length })
+  return true
+}
+
+/**
+ * Regel 9 (voorstel-regels.ts): slots waar helemaal geen oefening voor is,
+ * vullen we aan met wat er wel is, zolang de tijd het toelaat. Een slot dat
+ * wegviel om een klacht wordt niet aangevuld: dat staat in de waarschuwing.
+ */
+function vulAan(leeg: number, ctx: Context, b: Bouw): void {
+  let nog = leeg
+  for (const patroon of AANVUL_PATRONEN) {
+    if (nog <= 0 || b.gekozen.length >= MAX_OEFENINGEN) return
+    const o = kiesVoorSlot({ patroon }, ctx.kandidaten, b.gebruikt, b.dag, ctx.niveau)
+    if (o && voegToe(o, null, ctx, b)) nog -= 1
+  }
 }
 
 interface DagUitslag {
@@ -146,24 +187,21 @@ interface DagUitslag {
  */
 function bouwDag(sjabloon: DagSjabloon, ctx: Context, gebruikt: Set<string>, budget: number): DagUitslag {
   const dag: DagStaat = { ids: new Set(), spieren: new Set(), minuten: 0 }
-  const gekozen: { o: Oefening; regel: VoorstelRegel; i: number }[] = []
+  const gekozen: Gekozen[] = []
   const weggelaten: Patroon[] = []
+  let leeg = 0
   for (const slot of sjabloon.slots) {
     if (gekozen.length >= MAX_OEFENINGEN) break
     const o = kiesVoorSlot(slot, ctx.kandidaten, gebruikt, dag, ctx.niveau)
     const ideaal = ctx.blessures.length > 0 ? kiesVoorSlot(slot, ctx.ruim, gebruikt, dag, ctx.niveau) : null
     if (!o) {
       if (ideaal) weggelaten.push(slot.patroon)
+      else leeg += 1
       continue
     }
-    const tijd = minutenVoor(doseringVoor(o, ctx), o.patroon)
-    if (gekozen.length >= MIN_OEFENINGEN && dag.minuten + tijd > budget) continue
-    dag.ids.add(o.id)
-    dag.minuten += tijd
-    for (const sp of hoofdspieren(o)) dag.spieren.add(sp)
-    gebruikt.add(o.id)
-    gekozen.push({ o, regel: regelVoor(o, ctx, klachtNotitie(o, ideaal, ctx.blessures)), i: gekozen.length })
+    voegToe(o, ideaal, ctx, { dag, gekozen, gebruikt, budget })
   }
+  vulAan(leeg, ctx, { dag, gekozen, gebruikt, budget })
   gekozen.sort((a, b) => volgordeRang(a.o.patroon) - volgordeRang(b.o.patroon) || a.i - b.i)
   return { regels: gekozen.map((g) => g.regel), minuten: dag.minuten, weggelaten }
 }
@@ -204,6 +242,7 @@ function maakContext(intake: VoorstelIntake, oefeningen: readonly Oefening[], op
     blessures,
     klacht: blessures.length > 0,
     compact: moetCompact(doel, niveau, budget),
+    lichaamsgewicht: ruim.length > 0 && ruim.every((o) => o.materiaal === 'geen'),
     kandidaten: ruim.filter((o) => !belastKlacht(o, blessures)),
     ruim,
   }
@@ -219,11 +258,15 @@ function weggelatenWaarschuwingen(dagen: readonly DagUitslag[], blessures: reado
 
 /** Het voorstel. Pure functie: zelfde invoer, zelfde schema. */
 export function stelSchemaVoor(intake: VoorstelIntake, oefeningen: readonly Oefening[], opties: VoorstelOpties = {}): Voorstel {
-  const metCardio = intake.doelen.includes('afvallen') || intake.doelen.includes('conditie')
+  const wilCardio = intake.doelen.includes('afvallen') || intake.doelen.includes('conditie')
   const voorlopig = hoofddoel(intake.doelen)
   const cardioDos = cardioDosering(voorlopig, intake.minutenPerSessie)
+  // Regel: de tijd voor cardio gaat er alleen af als er ook een cardio-oefening is
+  // (thuis zonder materiaal niet). Anders krijgt de training minder oefeningen voor niets.
+  const zonderCardio = maakContext(intake, oefeningen, opties, intake.minutenPerSessie - WARMING_UP_MIN)
+  const metCardio = wilCardio && zonderCardio.kandidaten.some((o) => o.patroon === 'cardio')
   const budget = intake.minutenPerSessie - WARMING_UP_MIN - (metCardio ? minutenVoor(cardioDos, 'cardio') : 0)
-  const ctx = maakContext(intake, oefeningen, opties, budget)
+  const ctx = metCardio ? maakContext(intake, oefeningen, opties, budget) : zonderCardio
   const split = metExplosief(kiesSplit(intake.dagenPerWeek, ctx.niveau), ctx.doel, ctx.niveau)
   const cardio: Cardio = { dosering: cardioDos, kandidaten: metCardio ? ctx.kandidaten.filter((o) => o.patroon === 'cardio') : [] }
 

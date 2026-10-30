@@ -35,6 +35,8 @@ export const PROFIELFOTO = woordenboek({
     },
     geenProfiel: 'Met het platformaccount heb je hier geen eigen profiel, dus ook geen eigen foto.',
     jeCoach: 'Je coach',
+    eigenKop: 'Jouw profielfoto',
+    eigenUitleg: "Je collega's zien je foto in Club, bijvoorbeeld in Team en bij berichten. Weghalen kan altijd.",
   },
   en: {
     titel: 'Profile photo',
@@ -65,5 +67,7 @@ export const PROFIELFOTO = woordenboek({
     },
     geenProfiel: 'The platform account has no profile of its own here, so no photo either.',
     jeCoach: 'Your coach',
+    eigenKop: 'Your profile photo',
+    eigenUitleg: 'Your colleagues see your photo in Club, for example in Team and with messages. You can remove it at any time.',
   },
 })

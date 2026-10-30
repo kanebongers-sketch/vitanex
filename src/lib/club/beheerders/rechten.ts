@@ -79,6 +79,8 @@ const API_ONDERDEEL: Record<string, string> = {
   voeding: 'voeding',
   meldingen: 'beheer',
   hulp: 'hulp',
+  // De tellers in het menu: iedereen die binnen is (zoals Hulp); de route telt alleen wat deze persoon ziet.
+  menu: 'hulp',
   start: 'beheer',
   community: 'community',
   betalen: 'beheer',

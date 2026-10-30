@@ -166,6 +166,8 @@ export interface DoseringOpties {
   klacht?: boolean
   /** Weinig tijd: een set minder (nooit minder dan 2). */
   compact?: boolean
+  /** Alleen lichaamsgewicht: niet zwaar te laden, dus nooit onder 8 herhalingen en hooguit 90 seconden rust. */
+  lichaamsgewicht?: boolean
 }
 
 function lichter(herhalingen: string): string {
@@ -180,6 +182,7 @@ export function dosering(doel: Doel, patroon: Patroon | null, niveau: Niveau, op
   // Een beginner start met een set minder en nooit met zware herhalingen: eerst de techniek.
   if (niveau === 1) d = { ...d, sets: Math.max(2, d.sets - 1), herhalingen: d.herhalingen === '4-6' ? '6-8' : d.herhalingen }
   if (opties.klacht) d = { ...d, herhalingen: lichter(d.herhalingen) }
+  if (opties.lichaamsgewicht) d = { ...d, herhalingen: lichter(d.herhalingen), rustSec: Math.min(d.rustSec, 90) }
   if (opties.compact) d = { ...d, sets: Math.max(2, d.sets - 1) }
   return d
 }
@@ -254,6 +257,13 @@ export function cardioDosering(doel: Doel, minuten: number): Dosering {
   if (minuten < 60) return { sets: 1, herhalingen: '15-20 min', rustSec: 0 }
   return dosering(doel, 'cardio', 2)
 }
+
+/**
+ * Regel 9, aanvullen: is er voor een slot helemaal geen oefening (thuis zonder
+ * rekstok geen trekoefening), dan vult een trainer de training aan met wat er
+ * wel is, in deze volgorde. Zolang de tijd het toelaat.
+ */
+export const AANVUL_PATRONEN: readonly Patroon[] = ['lunge', 'core', 'heupscharnier', 'isolatie', 'duwen_horizontaal', 'squat', 'duwen_verticaal']
 
 export const MIN_OEFENINGEN = 3
 export const MAX_OEFENINGEN = 8

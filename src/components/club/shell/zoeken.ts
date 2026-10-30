@@ -26,6 +26,10 @@ export interface ZoekItem {
   zoektekst: string
   /** Sneltoets op de pc, bijvoorbeeld "G L". */
   toets?: string
+  /** Het icoon (shell/iconen.ts): "onderdeel:<sleutel>", "hulp:<sleutel>", "lid" of "instelling". */
+  icoon: string
+  /** Het onderdeel waarvan de teller hier staat (menu en secties op Vandaag), zie lib/club/menu/tellers.ts. */
+  teller?: string
 }
 
 /** Kleine letters, zonder accenten en dubbele spaties. */
@@ -49,7 +53,7 @@ function sectieItems(bron: Onderdeel, taal: Taal): ZoekItem[] {
   const o = onderdeelInTaal(bron, taal)
   const vandaag = MENU[taal].zoeken.plekVandaag
   const sectie: ZoekItem = {
-    id: `vandaag-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek: vandaag, pad: onderdeelPad(o), perVestiging: true,
+    id: `vandaag-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek: vandaag, pad: onderdeelPad(o), perVestiging: true, icoon: `onderdeel:${o.sleutel}`, teller: o.sleutel,
     zoektekst: normaliseerZoek(`${beideTalen(bron, onderdeelInTaal(bron, 'en'))} ${vandaag}`), toets: toetsTekst(o) ?? undefined,
   }
   return [sectie, ...schermItems(bron, `${vandaag} · ${o.label}`, taal)]
@@ -60,7 +64,7 @@ function schermItems(bron: Onderdeel, plek: string, taal: Taal): ZoekItem[] {
   return (bron.schermen ?? []).map((s) => {
     const t = schermInTaal(s, taal)
     return {
-      id: `scherm-${bron.sleutel}-${s.id}`, label: t.label, uitleg: t.uitleg, plek, pad: s.pad, perVestiging: true,
+      id: `scherm-${bron.sleutel}-${s.id}`, label: t.label, uitleg: t.uitleg, plek, pad: s.pad, perVestiging: true, icoon: `onderdeel:${bron.sleutel}`,
       zoektekst: normaliseerZoek(`${beideTalen(s, schermInTaal(s, 'en'))} ${bron.label} ${onderdeelInTaal(bron, 'en').label}`),
     }
   })
@@ -74,26 +78,26 @@ export function zoekItems(k: InstelKijker, instellingen: boolean, taal: Taal = '
     const groep = GROEPEN.find((g) => g.sleutel === o.groep)
     const plek = groep ? groepInTaal(groep, taal).label : ''
     const toets = toetsTekst(o) ?? undefined
-    const item: ZoekItem = { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, zoektekst: normaliseerZoek(`${beideTalen(bron, onderdeelInTaal(bron, 'en'))} ${plek} ${o.trefwoorden ?? ''}`), toets }
+    const item: ZoekItem = { id: `menu-${o.sleutel}`, label: o.label, uitleg: o.uitleg, plek, pad: o.pad, perVestiging: true, icoon: `onderdeel:${o.sleutel}`, teller: o.sleutel, zoektekst: normaliseerZoek(`${beideTalen(bron, onderdeelInTaal(bron, 'en'))} ${plek} ${o.trefwoorden ?? ''}`), toets }
     return [item, ...schermItems(bron, `${plek} · ${o.label}`, taal)]
   })
   const secties = sectiesVoor(k.uit, k.toegestaan).flatMap((o) => sectieItems(o, taal))
   const hulp = hulpItems(hulpbalkVoor(k, instellingen), taal).map((i) => ({
-    id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: t.plekOnderaan, pad: i.pad, perVestiging: true,
+    id: `hulp-${i.sleutel}`, label: i.label, uitleg: i.uitleg, plek: t.plekOnderaan, pad: i.pad, perVestiging: true, icoon: `hulp:${i.sleutel}`,
     zoektekst: normaliseerZoek(`${beideTalen(hulpItems([i.sleutel])[0], hulpItems([i.sleutel], 'en')[0])} ${t.plekOnderaan} ${i.trefwoorden}`), toets: hulpToets(i) ?? undefined,
   }))
   const instel = zichtbareInstelPaginas(k).map((bron) => {
     const p = instelPaginaInTaal(bron, taal)
     const en = instelPaginaInTaal(bron, 'en')
     const plek = `${t.plekInstellingen} · ${instelGroepLabel(p.groep, taal)}`
-    return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), zoektekst: normaliseerZoek(`${bron.titel} ${bron.uitleg} ${en.titel} ${en.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
+    return { id: `instel-${p.id}`, label: p.titel, uitleg: p.uitleg, plek, pad: p.pad, perVestiging: Boolean(p.perVestiging), icoon: 'instelling', zoektekst: normaliseerZoek(`${bron.titel} ${bron.uitleg} ${en.titel} ${en.uitleg} ${plek} ${p.trefwoorden ?? ''}`) }
   })
   // De categorieen van het centrum: openen meteen de juiste categorie (?categorie=).
   const categorieen = instellingen
     ? instelIndeling(k).map(({ sleutel }) => {
         const label = instelGroepLabel(sleutel, taal)
         const zoek = `${instelGroepLabel(sleutel)} ${instelGroepUitleg(sleutel)} ${instelGroepLabel(sleutel, 'en')} ${instelGroepUitleg(sleutel, 'en')} ${t.plekInstellingen}`
-        return { id: `instel-categorie-${sleutel}`, label, uitleg: instelGroepUitleg(sleutel, taal), plek: t.plekInstellingen, pad: instelCategoriePad(sleutel), perVestiging: true, zoektekst: normaliseerZoek(zoek) }
+        return { id: `instel-categorie-${sleutel}`, label, uitleg: instelGroepUitleg(sleutel, taal), plek: t.plekInstellingen, pad: instelCategoriePad(sleutel), perVestiging: true, icoon: 'instelling', zoektekst: normaliseerZoek(zoek) }
       })
     : []
   return [...menu, ...secties, ...hulp, ...categorieen, ...instel]
@@ -156,6 +160,7 @@ export function ledenItems(leden: readonly LidTreffer[], vraag: string, taal: Ta
     plek: t.plekLid,
     pad: `/leden/${encodeURIComponent(l.id)}`,
     perVestiging: true,
+    icoon: 'lid',
     zoektekst: normaliseerZoek(l.naam),
   }))
   const alle: ZoekItem = {
@@ -165,6 +170,7 @@ export function ledenItems(leden: readonly LidTreffer[], vraag: string, taal: Ta
     plek: t.plekLeden,
     pad: `/leden?q=${encodeURIComponent(term)}`,
     perVestiging: true,
+    icoon: 'onderdeel:leden',
     zoektekst: '',
   }
   return [...items, alle]

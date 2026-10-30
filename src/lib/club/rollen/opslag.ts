@@ -53,7 +53,7 @@ export interface TeamLid {
 }
 
 /** De profielen achter een actieve beheerderslogin. */
-async function beheerderProfielen(admin: SupabaseClient, userId: string): Promise<Set<string> | null> {
+export async function beheerderProfielen(admin: SupabaseClient, userId: string): Promise<Set<string> | null> {
   const { data, error } = await admin.from('club_beheerders').select('profiel_id').eq('organisatie_id', userId).eq('actief', true)
   if (error) {
     console.error('[club] beheerders lezen mislukt', error.message)

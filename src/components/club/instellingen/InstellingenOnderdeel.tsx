@@ -13,7 +13,10 @@ import { haalGewisteMedewerkers } from '@/lib/club/personeel/avg-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/club/kern/adres-verzoek'
-import { instelModuleAan, instelPagina, instelPaginaInTaal } from '@/lib/club/kern/instel-paginas'
+import { instelHref, instelModuleAan, instelPagina, instelPaginaInTaal, magInstelPagina } from '@/lib/club/kern/instel-paginas'
+import { instelKijker } from '@/lib/club/instel-toegang'
+import { beheerderProfielen } from '@/lib/club/rollen/opslag'
+import { zonderLosseBeheerders } from '@/lib/club/rollen/model'
 import type { Metadata } from 'next'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { INSTELLINGEN } from '@/lib/aiyourgym/taal/woorden/club/instellingen'
@@ -86,16 +89,21 @@ async function Inhoud({ onderdeel, data, vestiging, t }: InhoudProps) {
           vandaag={nlDelen(new Date()).datum}
         />
       )
-    case 'medewerkers':
+    case 'medewerkers': {
+      // Een eigenaar of clubmanager zonder werkrol is geen medewerker "uit dienst": niet in deze lijst (staat in Team).
+      const beheerders = await beheerderProfielen(t.admin, t.userId)
+      const team = instelPagina('team')
       return (
         <MedewerkersBeheer
-          medewerkers={zichtbareMedewerkers(t, data.medewerkers)}
+          medewerkers={zichtbareMedewerkers(t, zonderLosseBeheerders(data.medewerkers, beheerders ?? new Set<string>()))}
+          teamHref={team && magInstelPagina(team, instelKijker(t)) ? instelHref(team, null) : null}
           vestiging={vestiging}
           login={await haalLoginBeheer(t)}
           ikZelf={isMedewerkerSessie(t) ? t.persoonId : null}
           privacy={{ magWissen: magMedewerkerWissen(t), gewist: await haalGewisteMedewerkers(t.admin, t.userId) }}
         />
       )
+    }
   }
 }
 

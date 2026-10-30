@@ -20,6 +20,9 @@ import { WizardPoort } from '@/components/club/start/WizardPoort'
 import { StartBalk, WizardWacht } from '@/components/club/start/StartBalk'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
+import { ONDERDELEN, isZichtbaar } from '@/components/club/shell/onderdelen'
+import { AanDeSlagKop } from '@/components/club/shell/AanDeSlagKop'
+import { tellerRechten, welkeTellers } from '@/lib/club/menu/tellers'
 import './club.css'
 import '@/components/club/ontwerp/ontwerp.css'
 
@@ -68,6 +71,12 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   const persoon = kijkerSleutel(t)
   const taal = await getTaal()
   const tv = MENU[taal].voet
+  // Tellers in het menu (open taken, te bellen, nieuwe leads): alleen als deze persoon er minstens een ziet.
+  const zie = (sleutel: string) => {
+    const o = ONDERDELEN.find((x) => x.sleutel === sleutel)
+    return o !== undefined && isZichtbaar(o, org.uit, t.onderdelen)
+  }
+  const tellers = welkeTellers(tellerRechten(zie)).length > 0
   return (
     <div className="club-app" style={stijl} data-thema={org.thema}>
       <MerkProvider merk={merk}>
@@ -76,7 +85,15 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
           ) : (
             <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen, taal)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk} persoon={persoon} />
+              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen, taal)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk}
+                persoon={persoon}
+                tellers={tellers}
+                aanDeSlag={
+                  <Suspense fallback={null}>
+                    <AanDeSlagKop t={t} kijker={kijker} taal={taal} persoon={persoon} />
+                  </Suspense>
+                }
+              />
             </Suspense>
           )}
           <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>

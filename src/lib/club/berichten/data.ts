@@ -72,7 +72,8 @@ export async function haalBerichtenVoorLid(
     return null
   }
   const berichten = (data ?? []).flatMap((r) => berichtUitRij(r) ?? [])
-  return berichtenVoorLid(berichten, lid, nu)
+  // De afzender met foto (een medewerker van de eigen sportschool; zie de foto-route voor leden).
+  return metAuteurFotos(admin, userId, berichtenVoorLid(berichten, lid, nu))
 }
 
 /** Alle tags die bij leden van deze sportschool voorkomen (voor de keuzelijst). */

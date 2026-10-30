@@ -1,5 +1,5 @@
 import type { Bericht } from '@/lib/club/berichten/model'
-import { BerichtAppKaart } from './BerichtAppKaart'
+import { BerichtAppKaart, type FotoBron } from './BerichtAppKaart'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 import './berichten.css'
@@ -15,9 +15,11 @@ interface Props {
   berichten: readonly Bericht[]
   /** Voor "Vandaag", "Gisteren"; standaard nu. */
   nu?: Date
+  /** Voor de foto van de afzender: de route voor leden. */
+  fotoBron?: FotoBron
 }
 
-export function LedenappBerichten({ berichten, nu = new Date() }: Props) {
+export function LedenappBerichten({ berichten, nu = new Date(), fotoBron = { waar: 'lid', voor: null } }: Props) {
   const t = useTekst(BERICHTEN).app
   if (berichten.length === 0) return null
   const [eerste, ...rest] = berichten
@@ -28,9 +30,9 @@ export function LedenappBerichten({ berichten, nu = new Date() }: Props) {
       <h2 id="lidapp-berichten" className="club-bericht-app-titel">
         {t.nieuws}
       </h2>
-      {groot && <BerichtAppKaart bericht={groot} groot nu={nu} />}
+      {groot && <BerichtAppKaart bericht={groot} groot nu={nu} fotoBron={fotoBron} />}
       {compact.map((b) => (
-        <BerichtAppKaart key={b.id} bericht={b} groot={false} nu={nu} />
+        <BerichtAppKaart key={b.id} bericht={b} groot={false} nu={nu} fotoBron={fotoBron} />
       ))}
     </section>
   )

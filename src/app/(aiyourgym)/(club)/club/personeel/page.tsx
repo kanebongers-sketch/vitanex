@@ -11,11 +11,12 @@ import { WeekTab } from '@/components/club/personeel/WeekTab'
 import { TeamTab } from '@/components/club/personeel/TeamTab'
 import { MijnTab } from '@/components/club/personeel/MijnTab'
 import { UrenTab } from '@/components/club/personeel/UrenTab'
-import { magUrenBeheren } from '@/lib/club/personeel/uren-rechten'
+import { magUrenBeheren, opentBijEigenDiensten } from '@/lib/club/personeel/uren-rechten'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { PERSONEEL } from '@/lib/aiyourgym/taal/woorden/club/personeel'
 import '@/components/club/personeel/personeel.css'
 import { isMedewerkerSessie } from '@/lib/club/rollen/wie'
+import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
 
 // /club/personeel: het rooster van het fitnesspersoneel (balie, vloer,
 // opening en afsluiten), beschikbaarheid, "mijn diensten" en de uren voor de
@@ -34,7 +35,8 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   // Een ingelogde medewerker komt standaard bij zijn eigen diensten uit (besluit Kane 20-10-2026: de trainer op de vloer eerst).
   // Het tabblad Uren (goedkeuren en exporteren) is voor wie uren beheert; een trainer ziet daar Mijn diensten.
   const urenBeheer = magUrenBeheren(t)
-  const naarMijn = isMedewerkerSessie(t) && (!params.tab || (gelezen.tab === 'uren' && !urenBeheer))
+  // Wie het rooster plant (de roosteraar) begint op het weekrooster.
+  const naarMijn = isMedewerkerSessie(t) && ((!params.tab && opentBijEigenDiensten(t)) || (gelezen.tab === 'uren' && !urenBeheer))
   const staat = naarMijn ? { ...gelezen, tab: 'mijn' as const } : gelezen
   const nu = nlDelen(new Date())
   const maandag = maandagUitWeekParam(staat.week, nu.datum)
@@ -44,6 +46,7 @@ export default async function PersoneelPagina({ searchParams }: { searchParams: 
   return (
     <div className="club-personeel-pagina">
       <PersoneelKop staat={staat} vestigingNaam={naamVan(t.vestigingen, vestiging)} maandag={maandag} vandaag={nu.datum} metUren={urenBeheer} />
+      <WelkomVoorRol t={t} vestiging={vestiging} pagina={staat.tab === 'uren' ? 'uren' : 'personeel'} />
       {team === null ? (
         <p className="club-melding club-melding--fout" role="alert">
           {tk.laadFout}

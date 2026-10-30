@@ -76,12 +76,14 @@ export function isCode(invoer: string): boolean {
 }
 
 /**
- * Mag een lid van `lidVestiging` sporten in `balieVestiging`? Regel van
- * fitfactory.nl: leden van Eersel sporten bij alle clubs, leden van een andere
- * club bij alle clubs behalve Eersel.
+ * Mag een lid van `lidVestiging` sporten in `balieVestiging`? Een vestiging met
+ * de regel "alleen eigen leden" (club_vestigingen.alleen_eigen_leden, migratie
+ * 477) laat alleen eigen leden binnen; elke andere vestiging iedereen. Bij Fit
+ * Factory staat de regel op Eersel: leden van Eersel sporten overal, anderen
+ * overal behalve Eersel.
  */
-export function magInVestiging(lidVestiging: string, balieVestiging: string): boolean {
-  return balieVestiging !== 'eersel' || lidVestiging === 'eersel'
+export function magInVestiging(lidVestiging: string, balieVestiging: string, alleenEigenLeden: boolean): boolean {
+  return !alleenEigenLeden || lidVestiging === balieVestiging
 }
 
 export type CheckinBesluit =

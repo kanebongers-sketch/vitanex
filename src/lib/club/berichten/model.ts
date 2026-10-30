@@ -42,7 +42,7 @@ export interface Bericht {
   aangemaaktDoor: string | null
   aangemaaktOp: string
   demo: boolean
-  /** De medewerker die het schreef, als die een profielfoto heeft (op naam gevonden; alleen in Club). */
+  /** De medewerker die het schreef, als die een profielfoto heeft (op naam gevonden; in Club en de ledenapp). */
   auteurFoto?: { id: string; versie: string } | null
 }
 

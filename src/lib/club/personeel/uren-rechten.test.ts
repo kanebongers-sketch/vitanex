@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { magUrenActie, magUrenBeheren, type UrenKijker } from './uren-rechten'
+import { magUrenActie, magUrenBeheren, opentBijEigenDiensten, type UrenKijker } from './uren-rechten'
 
 const LISA = '11111111-1111-4111-8111-111111111111'
 const COLLEGA = '22222222-2222-4222-8222-222222222222'
@@ -44,5 +44,23 @@ describe('uren van een dienst', () => {
   it('wie uren beheert, mag elke stap', () => {
     expect(magUrenActie(eigenaar, { medewerkerId: COLLEGA, uurStatus: 'gewerkt' }, 'goedkeuren')).toBe(true)
     expect(magUrenActie(administratie, { medewerkerId: COLLEGA, uurStatus: 'goedgekeurd' }, 'terug')).toBe(true)
+  })
+})
+
+describe('Personeel openen zonder tabblad', () => {
+  const profiel = (niveau: 'zien' | 'bewerken' | 'beheren') => ({ id: LISA, rollen: [], niveaus: { personeel: niveau }, start: '/club/personeel', alleVestigingen: false })
+
+  it('een trainer op de vloer begint bij zijn eigen diensten', () => {
+    expect(opentBijEigenDiensten(trainer)).toBe(true)
+    expect(opentBijEigenDiensten({ ...trainer, profiel: profiel('zien') })).toBe(true)
+  })
+
+  it('wie het rooster plant (roosteraar) begint op het weekrooster', () => {
+    expect(opentBijEigenDiensten({ ...trainer, profiel: profiel('beheren') })).toBe(false)
+    expect(opentBijEigenDiensten({ ...trainer, profiel: profiel('bewerken') })).toBe(false)
+  })
+
+  it('een beheerderslogin begint altijd op het weekrooster', () => {
+    expect(opentBijEigenDiensten(eigenaar)).toBe(false)
   })
 })

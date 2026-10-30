@@ -99,13 +99,17 @@ export async function LidmaatschapTab({ t, lid, vestiging, rechten, statusVast, 
           {magVormen && <Link href={clubPad('/beheer/lidmaatschappen', vestiging)}>{w.lidmaatschap.vormenBeheren}</Link>}
         </div>
         {vormen !== null && vormen.length === 0 ? <p className="club-hint">{w.lidmaatschap.geenVormen}</p> : null}
-        <LidmaatschapBeheer
-          lidId={lid.id}
-          stand={{ status: lid.status, abonnement: lid.abonnement, lidSinds: lid.lidSinds, einddatum: lid.einddatum, pauze: pauze ?? { van: null, tot: null, bewaarbaar: true } }}
-          vormen={vormKeuzes(vormen ?? [], lid.abonnement)}
-          vandaag={dagSleutelNl(nu)}
-          statusVast={statusVast}
-        />
+        {rechten.bewerk.leden ? (
+          <LidmaatschapBeheer
+            lidId={lid.id}
+            stand={{ status: lid.status, abonnement: lid.abonnement, lidSinds: lid.lidSinds, einddatum: lid.einddatum, pauze: pauze ?? { van: null, tot: null, bewaarbaar: true } }}
+            vormen={vormKeuzes(vormen ?? [], lid.abonnement)}
+            vandaag={dagSleutelNl(nu)}
+            statusVast={statusVast}
+          />
+        ) : (
+          <p className="club-hint">{w.kop.leesmodus}</p>
+        )}
       </section>
       <div className="club-leden-kolom">
         <section className="club-kaart" aria-labelledby="regels-kop">

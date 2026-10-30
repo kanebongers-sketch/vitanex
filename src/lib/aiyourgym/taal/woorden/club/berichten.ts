@@ -16,6 +16,7 @@ export const BERICHTEN = woordenboek({
       vandaag: 'Vandaag',
       gisteren: 'Gisteren',
       dagenGeleden: (n: number) => `${n} dagen geleden`,
+      van: (naam: string) => `Van ${naam}`,
     },
     venster: {
       sinds: 'Sinds',
@@ -121,6 +122,7 @@ export const BERICHTEN = woordenboek({
       vandaag: 'Today',
       gisteren: 'Yesterday',
       dagenGeleden: (n: number) => `${n} days ago`,
+      van: (naam: string) => `From ${naam}`,
     },
     venster: {
       sinds: 'Since',

@@ -52,7 +52,7 @@ export const ARTIKELEN: readonly Artikel[] = [
     samenvatting: 'Een export uit je huidige systeem of Excel inlezen, en leden zoeken en filteren.',
     onderdeel: 'leden',
     stappen: [
-      'Exporteer je leden uit je huidige systeem (zoals Virtuagym of Sportivity) als CSV (puntkomma, komma of tab; Club herkent het zelf), of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad. Hooguit 10 MB en 5000 rijen per bestand.',
+      'Exporteer je leden uit je huidige systeem als CSV (puntkomma, komma of tab; Club herkent het zelf), of kies gewoon je Excel-lijst (.xlsx). Club leest het eerste werkblad. Hooguit 10 MB en 5000 rijen per bestand.',
       'Ga naar Leden, Ledenbestand inlezen, en sleep het bestand erin. Koppel de kolommen: voornaam en achternaam zijn verplicht (of een kolom met de volledige naam), de rest kies je of zet je op Niet inlezen.',
       'Druk op Controleren. Elke rij krijgt Nieuw, Bijwerken, Al gelijk of Dubbel. Daarna lees je de leden in voor de gekozen vestiging.',
       'Inlezen verwijdert nooit iemand, en een lege cel wist niets. Coach, tags en QR-code blijven zoals ze zijn.',

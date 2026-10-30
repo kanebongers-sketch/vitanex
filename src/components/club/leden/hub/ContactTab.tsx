@@ -100,14 +100,14 @@ export async function ContactTab({ t, kaart, vestiging, rechten, nu }: ContactTa
           <p className="club-hint">{w.contactHint}</p>
         </section>
         <Profielfoto t={t} lid={lid} />
-        {rechten.berichten && (
+        {rechten.bewerk.berichten && (
           <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
             <Berichten t={t} lid={lid} vestiging={vestiging} nu={nu} />
           </Suspense>
         )}
       </div>
       <div className="club-leden-kolom">
-        <Notities lidId={lid.id} notities={kaart.notities} />
+        <Notities lidId={lid.id} notities={kaart.notities} alleenLezen={!rechten.bewerk.leden} />
       </div>
     </div>
   )

@@ -6,6 +6,9 @@ import { CornerDownLeft, Search, X } from 'lucide-react'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { filterZoek, ledenItems, ledenUitAntwoord, normaliseerZoek, zoekHref, zoektLeden, type LidTreffer, type ZoekItem } from './zoeken'
+import { zoekIcoon } from './iconen'
+import { TellerBadge } from './TellerBadge'
+import { onderdeelTeller, type Tellers } from '@/lib/club/menu/tellers'
 
 // Zoeken in de balk: een knop (en Ctrl K of /) opent een venster dat alles
 // vindt waar je heen mag: leden (wie Leden mag), de onderdelen en de
@@ -17,6 +20,8 @@ interface ClubZoekenProps {
   vestiging: string | null
   /** Mag deze persoon leden zien (recht Leden, onderdeel aan)? Dan zoekt het venster ook leden. */
   ledenZoeken: boolean
+  /** De tellers van het menu, naast het onderdeel in de resultaten. */
+  tellers?: Tellers
 }
 
 /** Het event waarmee een ander onderdeel het zoekvenster opent (openClubZoeken). */
@@ -56,7 +61,7 @@ export function inInvoer(doel: EventTarget | null): boolean {
   return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
 }
 
-export function ClubZoeken({ items, vestiging, ledenZoeken }: ClubZoekenProps) {
+export function ClubZoeken({ items, vestiging, ledenZoeken, tellers = {} }: ClubZoekenProps) {
   const [open, setOpen] = useState(false)
   const knop = useRef<HTMLButtonElement>(null)
   // Bij sluiten gaat de focus terug naar de knop (na het opheffen van inert).
@@ -90,7 +95,7 @@ export function ClubZoeken({ items, vestiging, ledenZoeken }: ClubZoekenProps) {
         <span className="club-zoekknop-tekst">{tekst}</span>
         <kbd className="club-zoekknop-toets" aria-hidden>{t.sneltoets}</kbd>
       </button>
-      {open && <ZoekVenster items={items} vestiging={vestiging} ledenZoeken={ledenZoeken} onSluit={sluit} />}
+      {open && <ZoekVenster items={items} vestiging={vestiging} ledenZoeken={ledenZoeken} tellers={tellers} onSluit={sluit} />}
     </>
   )
 }
@@ -131,7 +136,7 @@ function useLedenZoeken(vraag: string, vestiging: string | null, aan: boolean): 
   return { antwoord: huidig, laden: actief && !huidig, actief }
 }
 
-function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProps) {
+function ZoekVenster({ items, vestiging, ledenZoeken, tellers = {}, onSluit }: ZoekVensterProps) {
   const router = useRouter()
   const scherm = useRef<HTMLDivElement>(null)
   const veld = useRef<HTMLInputElement>(null)
@@ -214,7 +219,10 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
           <p className="club-zoek-leeg">{t.nietsGevonden(vraag)}</p>
         ) : (
           <ul id={lijstId} className="club-zoek-lijst" role="listbox" aria-label={t.resultaten}>
-            {treffers.map((item, n) => (
+            {treffers.map((item, n) => {
+              const Icoon = zoekIcoon(item.icoon)
+              const teller = onderdeelTeller(item.teller, tellers)
+              return (
               <li
                 key={item.id}
                 id={`${lijstId}-${item.id}`}
@@ -224,8 +232,14 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
                 onMouseEnter={() => setGekozen(n)}
                 onClick={() => ga(item)}
               >
+                <span className="club-zoek-icoon" aria-hidden>
+                  <Icoon size={17} strokeWidth={1.75} />
+                </span>
                 <span className="club-zoek-tekst">
-                  <strong>{item.label}</strong>
+                  <strong>
+                    {item.label}
+                    {teller && <TellerBadge tellers={[teller]} klein />}
+                  </strong>
                   {item.uitleg ? <small>{item.uitleg}</small> : null}
                 </span>
                 <span className="club-zoek-plek">
@@ -234,7 +248,8 @@ function ZoekVenster({ items, vestiging, ledenZoeken, onSluit }: ZoekVensterProp
                 </span>
                 {n === actief && <CornerDownLeft aria-hidden size={15} className="club-zoek-enter" />}
               </li>
-            ))}
+              )
+            })}
           </ul>
         )}
       </div>

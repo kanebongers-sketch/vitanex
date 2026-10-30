@@ -192,3 +192,11 @@
 .club-vandaag-kaart, .club-vandaag-raster .club-kaart { box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none); }
 .club-vandaag-rijlink:active, .club-vandaag-gezicht:active { transform: scale(0.99); }
 .club-vandaag-sectie-kop h2 { letter-spacing: 0; }
+
+/* Meer op Vandaag (vloerrollen): drukte en leden met risico, ingeklapt. */
+.club-vandaag-meer { display: grid; gap: 20px; margin-top: 8px; }
+.club-vandaag-meer > summary { justify-self: start; list-style: none; cursor: pointer; }
+.club-vandaag-meer > summary::-webkit-details-marker { display: none; }
+.club-vandaag-meer > summary::after { content: ''; width: 7px; height: 7px; margin-left: 10px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 200ms var(--ease); }
+.club-vandaag-meer[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.club-vandaag-meer > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }

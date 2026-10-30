@@ -28,13 +28,15 @@ interface LeadPaneelProps {
   nuIso: string
   /** Kane, eigenaar of clubmanager: mag een lead wissen (AVG). */
   magWissen: boolean
+  /** Rollen v2, alleen zien: geen knoppen die iets wijzigen (kanBewerken). */
+  alleenLezen?: boolean
   onSluit: () => void
 }
 
 // Het zijpaneel van een lead: wie het is, de volgende stap, contact vastleggen,
 // gegevens, de historie en privacy (AVG). Alles inline, geen aparte pagina's.
 // Een gewiste lead toont alleen nog wat er anoniem over is, zonder acties.
-export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vandaag, nuIso, magWissen, onSluit }: LeadPaneelProps) {
+export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vandaag, nuIso, magWissen, alleenLezen = false, onSluit }: LeadPaneelProps) {
   const p = usePaneel(leadId)
   const tekst = useTekst(LEADS)
   const [melding, setMelding] = useState<string | null>(null)
@@ -81,9 +83,13 @@ export function LeadPaneel({ leadId, vestiging, stap, medewerkers, lessen, vanda
           )}
           {!lead.geanonimiseerdOp && (
             <>
-              <PaneelStap lead={lead} stap={stap} lessen={lessen} vandaag={vandaag} nu={new Date(nuIso)} bezig={p.bezig} doe={p.doe} onLid={setMelding} />
-              <PaneelContact lead={lead} vandaag={vandaag} bezig={p.bezig} doe={p.doe} />
-              <PaneelGegevens lead={lead} medewerkers={medewerkers} bezig={p.bezig} doe={p.doe} />
+              {!alleenLezen && (
+                <>
+                  <PaneelStap lead={lead} stap={stap} lessen={lessen} vandaag={vandaag} nu={new Date(nuIso)} bezig={p.bezig} doe={p.doe} onLid={setMelding} />
+                  <PaneelContact lead={lead} vandaag={vandaag} bezig={p.bezig} doe={p.doe} />
+                  <PaneelGegevens lead={lead} medewerkers={medewerkers} bezig={p.bezig} doe={p.doe} />
+                </>
+              )}
               <PaneelHistorie historie={p.historie} />
             </>
           )}

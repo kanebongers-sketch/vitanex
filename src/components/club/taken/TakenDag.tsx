@@ -6,6 +6,7 @@ import { weekParam } from '@/lib/club/rooster/tijd'
 import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
 import { takenHref } from '@/lib/club/taken/url'
 import { weekContext } from '@/lib/club/taken/week'
+import type { Persoon } from '@/lib/club/taken/invoer'
 import { AfvinkProvider } from './AfvinkContext'
 import { DagAfsluiten } from './DagAfsluiten'
 import { DagNotities } from './DagNotities'
@@ -28,9 +29,11 @@ interface Props {
   dag: string
   /** Vandaag (jjjj-mm-dd): alleen dan staat de afsluitronde erbij. */
   vandaag: string
+  /** De ingelogde medewerker: vinkt meteen af onder de eigen naam (ikAlsAfvinker). */
+  ik?: Persoon | null
 }
 
-export async function TakenDag({ admin, userId, vestiging, dag, vandaag }: Props) {
+export async function TakenDag({ admin, userId, vestiging, dag, vandaag, ik = null }: Props) {
   const w = weekContext(weekParam(dag), vandaag)
   const [data, afvinkingen, notities, rondes, medewerkers] = await Promise.all([
     haalTaken(admin, userId, vestiging),
@@ -66,6 +69,7 @@ export async function TakenDag({ admin, userId, vestiging, dag, vandaag }: Props
       vandaag={vandaag}
       medewerkers={(medewerkers ?? []).map((m) => ({ id: m.id, naam: m.naam }))}
       begin={afvinkingen}
+      standaard={ik}
     >
       <PersoonKiezer />
       {actief.lijsten.map((l) => (

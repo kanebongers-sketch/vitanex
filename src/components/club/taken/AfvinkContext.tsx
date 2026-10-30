@@ -41,11 +41,14 @@ interface ProviderProps {
   vandaag: string
   medewerkers: MedewerkerKeuze[]
   begin: Afvinking[]
+  /** Wie afvinkt als op dit apparaat nog niemand gekozen is: de ingelogde medewerker. */
+  standaard?: Persoon | null
   children: ReactNode
 }
 
-export function AfvinkProvider({ vestiging, vandaag, medewerkers, begin, children }: ProviderProps) {
-  const [persoon, kiesPersoon] = usePersoon(vestiging)
+export function AfvinkProvider({ vestiging, vandaag, medewerkers, begin, standaard = null, children }: ProviderProps) {
+  const [gekozen, kiesPersoon] = usePersoon(vestiging)
+  const persoon = gekozen ?? standaard
   const vinkjes = useVinkjes(begin)
   const [fout, setFout] = useState<string | null>(null)
   const t = useTekst(TAKEN)

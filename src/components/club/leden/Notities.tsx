@@ -16,11 +16,13 @@ import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 interface NotitiesProps {
   lidId: string
   notities: Notitie[]
+  /** Rollen v2, alleen zien: lezen zonder schrijven, vastpinnen of verwijderen. */
+  alleenLezen?: boolean
 }
 
 const DATUM_OPTIES: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' }
 
-function NotitieRegel({ notitie, bezig, onPin, onWeg }: { notitie: Notitie; bezig: boolean; onPin: () => void; onWeg: () => void }) {
+function NotitieRegel({ notitie, bezig, onPin, onWeg, alleenLezen }: { notitie: Notitie; bezig: boolean; onPin: () => void; onWeg: () => void; alleenLezen: boolean }) {
   const t = useTekst(LIDKAART_BLOKKEN).notities
   const datum = new Intl.DateTimeFormat(LOCALE[useTaal()], DATUM_OPTIES).format(new Date(notitie.op))
   return (
@@ -28,7 +30,7 @@ function NotitieRegel({ notitie, bezig, onPin, onWeg }: { notitie: Notitie; bezi
       <p>{notitie.tekst}</p>
       <div className="club-leden-notitie-voet">
         <span>{notitie.vastgepind ? `${t.vastgepind} · ` : ''}{notitie.auteur ?? t.onbekend}, {datum}</span>
-        <span className="club-leden-notitie-acties">
+        {!alleenLezen && <span className="club-leden-notitie-acties">
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={onPin} disabled={bezig}
             aria-label={notitie.vastgepind ? t.losmaken : t.vastpinnen} title={notitie.vastgepind ? t.losmaken : t.vastpinnen}>
             {notitie.vastgepind ? <PinOff aria-hidden size={15} /> : <Pin aria-hidden size={15} />}
@@ -37,13 +39,13 @@ function NotitieRegel({ notitie, bezig, onPin, onWeg }: { notitie: Notitie; bezi
             aria-label={t.notitieVerwijderen} title={t.verwijderen}>
             <Trash2 aria-hidden size={15} />
           </button>
-        </span>
+        </span>}
       </div>
     </li>
   )
 }
 
-export function Notities({ lidId, notities }: NotitiesProps) {
+export function Notities({ lidId, notities, alleenLezen = false }: NotitiesProps) {
   const router = useRouter()
   const t = useTekst(LIDKAART_BLOKKEN).notities
   const [tekst, setTekst] = useState('')
@@ -83,7 +85,7 @@ export function Notities({ lidId, notities }: NotitiesProps) {
   return (
     <section className="club-kaart" id="notities" aria-labelledby="notities-kop">
       <h2 id="notities-kop">{t.kop}</h2>
-      <form className="club-leden-notitieform" onSubmit={voegToe}>
+      {!alleenLezen && <form className="club-leden-notitieform" onSubmit={voegToe}>
         <label className="club-veld">
           <span className="club-sr">{t.nieuw}</span>
           <textarea className="club-invoer" value={tekst} maxLength={MAX_NOTITIE} onChange={(e) => setTekst(e.target.value)}
@@ -96,11 +98,11 @@ export function Notities({ lidId, notities }: NotitiesProps) {
           <button type="submit" className="club-knop club-knop--klein" disabled={bezig || !tekst.trim()}>{t.opslaan}</button>
         </div>
         {fout ? <p className="club-fout" role="alert">{fout}</p> : null}
-      </form>
+      </form>}
       {notities.length ? (
         <ul className="club-leden-notities">
           {notities.map((n) => (
-            <NotitieRegel key={n.id} notitie={n} bezig={bezig}
+            <NotitieRegel key={n.id} notitie={n} bezig={bezig} alleenLezen={alleenLezen}
               onPin={() => void voerUit(() => stuur(`${basis}/${n.id}`, 'PATCH', { vastgepind: !n.vastgepind }))}
               onWeg={() => verwijder(n)} />
           ))}

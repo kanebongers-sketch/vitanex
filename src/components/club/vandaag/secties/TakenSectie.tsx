@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { takenHref } from '@/lib/club/taken/url'
+import type { Persoon } from '@/lib/club/taken/invoer'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG_SECTIES } from '@/lib/aiyourgym/taal/woorden/club/vandaag'
 import { TakenDag } from '@/components/club/taken/TakenDag'
@@ -18,9 +19,11 @@ interface Props {
   vestiging: Vestiging
   /** Vandaag (jjjj-mm-dd). */
   vandaag: string
+  /** De ingelogde medewerker: vinkt meteen af onder de eigen naam. */
+  ik?: Persoon | null
 }
 
-export async function TakenSectie({ admin, userId, vestiging, vandaag }: Props) {
+export async function TakenSectie({ admin, userId, vestiging, vandaag, ik = null }: Props) {
   const w = (await clubTekst(VANDAAG_SECTIES)).taken
   const links = [
     { href: takenHref('week', vestiging), label: w.week },
@@ -31,7 +34,7 @@ export async function TakenSectie({ admin, userId, vestiging, vandaag }: Props) 
     <section id="taken" className="club-vandaag-sectie club-vandaag-taken" aria-labelledby="vandaag-taken">
       <SectieKop id="vandaag-taken" titel={w.titel} sub={w.sub} links={links} />
       <Suspense fallback={<div className="club-skelet" style={{ minHeight: 220 }} aria-hidden />}>
-        <TakenDag admin={admin} userId={userId} vestiging={vestiging} dag={vandaag} vandaag={vandaag} />
+        <TakenDag admin={admin} userId={userId} vestiging={vestiging} dag={vandaag} vandaag={vandaag} ik={ik} />
       </Suspense>
     </section>
   )

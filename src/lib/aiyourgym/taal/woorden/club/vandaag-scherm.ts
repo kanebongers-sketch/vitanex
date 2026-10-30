@@ -9,6 +9,7 @@ export const VANDAAG = woordenboek({
     titel: 'Vandaag',
     boventitel: (vestiging: string) => `${vestiging} · vandaag`,
     standVan: 'Stand van',
+    meer: 'Meer: drukte en leden met risico',
     laden: 'Laden',
     meldingen: {
       nietAlles: 'Niet alles kon worden geladen; sommige cijfers kunnen ontbreken.',
@@ -68,7 +69,7 @@ export const VANDAAG = woordenboek({
       titel: 'Overdracht',
       link: 'Notities',
       fout: 'De notities konden niet worden geladen.',
-      leeg: 'Geen overdracht van de afgelopen dagen. Zet iets in Notities, map Overdracht.',
+      leeg: 'Geen overdracht. Schrijf er een bij Notities.',
       vast: 'Vast: ',
       legeNotitie: 'Lege notitie',
     },
@@ -100,7 +101,7 @@ export const VANDAAG = woordenboek({
     risico: {
       titel: 'Leden met risico',
       inLijst: 'In de ledenlijst',
-      uitleg: (grens: number) => `Behoudsscore onder ${grens}: bezoek, trend en no-shows op alle vestigingen. Laagste score bovenaan.`,
+      uitleg: (grens: number) => `Score onder ${grens} op bezoek en no-shows. Laagste eerst.`,
       leeg: (grens: number) => `Niemand heeft een behoudsscore onder ${grens}.`,
       score: 'score',
       scoreUitleg: 'Behoudsscore van 0 tot 100',
@@ -117,6 +118,7 @@ export const VANDAAG = woordenboek({
     titel: 'Today',
     boventitel: (vestiging: string) => `${vestiging} · today`,
     standVan: 'As of',
+    meer: 'More: how busy it is and members at risk',
     laden: 'Loading',
     meldingen: {
       nietAlles: 'Not everything could be loaded; some figures may be missing.',
@@ -176,7 +178,7 @@ export const VANDAAG = woordenboek({
       titel: 'Handover',
       link: 'Notes',
       fout: 'The notes could not be loaded.',
-      leeg: 'No handover from the last few days. Add something in Notes, folder Handover.',
+      leeg: 'No handover. Write one in Notes.',
       vast: 'Pinned: ',
       legeNotitie: 'Empty note',
     },
@@ -208,7 +210,7 @@ export const VANDAAG = woordenboek({
     risico: {
       titel: 'Members at risk',
       inLijst: 'In the member list',
-      uitleg: (grens: number) => `Retention score below ${grens}: visits, trend and no-shows across all locations. Lowest score first.`,
+      uitleg: (grens: number) => `Score below ${grens} on visits and no-shows. Lowest first.`,
       leeg: (grens: number) => `Nobody has a retention score below ${grens}.`,
       score: 'score',
       scoreUitleg: 'Retention score from 0 to 100',

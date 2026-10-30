@@ -39,3 +39,15 @@ export function magUrenActie(t: UrenKijker, dienst: { medewerkerId: string | nul
 }
 
 export const UREN_NIET_TOEGESTAAN = 'Goedkeuren doet de clubmanager of de administratie. Je eigen uren bevestig je zolang ze nog niet zijn goedgekeurd.'
+
+/**
+ * Opent Personeel zonder gekozen tabblad bij Mijn diensten? Ja voor een
+ * medewerker op de vloer (besluit Kane 20-10-2026: de trainer eerst zijn eigen
+ * diensten). Nee voor wie het rooster plant (met v2: personeel minstens
+ * bewerken, zoals de roosteraar); die begint op het weekrooster.
+ */
+export function opentBijEigenDiensten(t: UrenKijker): boolean {
+  if (!isMedewerkerSessie(t)) return false
+  const plant = v2Minstens({ isPlatformEigenaar: t.isPlatformEigenaar === true, profiel: t.profiel }, 'personeel', 'bewerken')
+  return plant !== true
+}

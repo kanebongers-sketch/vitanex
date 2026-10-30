@@ -35,6 +35,7 @@ import { LedenappChallenges } from '@/components/club/challenges/LedenappChallen
 import { haalPlan } from '@/lib/club/voeding/lezen'
 import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
+import { haalMedewerkerKaartje } from '@/lib/club/profielfoto/opslag'
 
 // Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
 // Kies een (demo)lid; tabblad en lid staan in de URL. Dit is Ledenapp in de
@@ -118,13 +119,15 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
 
   const nu = new Date()
   // Alleen wat het lid zelf mag zien gaat naar de app (geen bloeddruk, hartslag of notities).
-  const [data, bedrijf, berichten, ruweVoortgang, challenges, ruwPlan] = await Promise.all([
+  const [data, bedrijf, berichten, ruweVoortgang, challenges, ruwPlan, coach] = await Promise.all([
     haalLidApp(t.admin, t.userId, lid, nu),
     haalBedrijf(t.admin, t.userId),
     haalBerichtenVoorLid(t.admin, t.userId, lid, nu),
     tab === 'voortgang' ? haalVoortgang(t.admin, t.userId, lid.id, nu) : null,
     tab === 'voortgang' ? haalLedenappChallenges(t.admin, t.userId, lid, nu) : null,
     tab === 'voeding' ? haalPlan(t.admin, t.userId, lid.id) : null,
+    // De coach met foto, zoals het lid hem op Home ziet.
+    tab === 'home' ? haalMedewerkerKaartje(t.admin, t.userId, lid.coachId) : null,
   ])
   const voortgang = ruweVoortgang ? voortgangVoorLid(ruweVoortgang) : null
   const voeding = tab === 'voeding' ? voedingVoorApp(ruwPlan) : null
@@ -150,7 +153,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           {tab === 'home' && (
             <>
               <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) && !t.organisatie.uit.includes('checkin') }} berichten={berichten ?? []} />
+              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) && !t.organisatie.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} />
             </>
           )}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}

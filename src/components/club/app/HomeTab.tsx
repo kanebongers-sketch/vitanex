@@ -178,7 +178,7 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, 
         </Link>
       )}
 
-      {berichten.length > 0 && <LedenappBerichten berichten={berichten} nu={nu} />}
+      {berichten.length > 0 && <LedenappBerichten berichten={berichten} nu={nu} fotoBron={fotoBron} />}
     </div>
   )
 }

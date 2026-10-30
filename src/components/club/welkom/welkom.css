@@ -1,0 +1,59 @@
+/* ─── Club en ledenapp: de eerste-keer-uitleg ────────────────────────────────
+   Een rustige kaart bovenaan het startscherm, in de kleur van de sportschool
+   (--brand). Een kaart tegelijk; de punten tonen waar je bent. Alleen club-
+   tokens, dus goed in donker en licht thema. */
+
+.club-welkom {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 16px 18px 14px 20px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--club-radius, 12px);
+  background: linear-gradient(90deg, var(--brand-soft), transparent 70%), var(--bg-card);
+  max-width: 760px;
+  animation: club-welkom-in 320ms var(--ease) both;
+}
+.club-welkom-boven { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.club-welkom-label {
+  margin: 0;
+  font-family: var(--ff-kop);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-tekst, var(--brand));
+}
+.club-welkom-label span { margin-left: 8px; color: var(--text-3); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.club-welkom-sluit {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: -8px -8px -8px 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease);
+}
+.club-welkom-sluit:hover { background: var(--line); color: var(--text-1); }
+.club-welkom-sluit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-welkom-kaart { display: grid; gap: 4px; animation: club-welkom-kaart 260ms var(--ease) both; }
+.club-welkom-kop { margin: 0; font-family: var(--ff-kop); font-size: clamp(20px, 2.2vw, 26px); font-weight: 700; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.02em; }
+.club-welkom-tekst { margin: 0; line-height: 1.5; color: var(--text-2); max-width: 60ch; }
+.club-welkom-voet { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.club-welkom-punten { list-style: none; display: flex; gap: 6px; margin: 0; padding: 0; }
+.club-welkom-punten li { width: 18px; height: 4px; border-radius: 999px; background: var(--line-strong); transition: background-color 200ms var(--ease); }
+.club-welkom-punten li[data-gezien] { background: var(--text-4); }
+.club-welkom-punten li[data-hier] { background: var(--brand); }
+.club-welkom-acties { display: flex; flex-wrap: wrap; gap: 8px; }
+
+@keyframes club-welkom-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes club-welkom-kaart { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .club-welkom, .club-welkom-kaart { animation: none; }
+}

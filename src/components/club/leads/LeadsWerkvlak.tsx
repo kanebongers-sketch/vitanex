@@ -30,12 +30,14 @@ interface LeadsWerkvlakProps {
   paneel: { leadId: string | null; stap: PaneelStap | null; nieuw: boolean }
   /** Kane, eigenaar of clubmanager: mag een lead wissen (AVG). */
   magWissen: boolean
+  /** Rollen v2, alleen zien: geen knoppen die iets wijzigen (kanBewerken). */
+  alleenLezen?: boolean
 }
 
 // Het interactieve deel van de leadspagina: vandaag, de pijplijn of de lijst,
 // en het zijpaneel. Data komt van de server; dit eiland stuurt alleen acties.
 export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
-  const { vestiging, leads, vandaag, medewerkers, lessen, weergave, zoek, vandaagDag, nuIso, paneel, magWissen } = props
+  const { vestiging, leads, vandaag, medewerkers, lessen, weergave, zoek, vandaagDag, nuIso, paneel, magWissen, alleenLezen = false } = props
   const acties = useLeadsActies(vestiging, zoek)
   const t = useTekst(LEADS).werkvlak
   const namen = useMemo(() => new Map(medewerkers.map((m) => [m.id, m.naam])), [medewerkers])
@@ -51,7 +53,7 @@ export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
           </button>
         </div>
       )}
-      <VandaagLijst items={vandaag} vandaag={vandaagDag} bezig={acties.bezig} onOpen={acties.open} onGedaan={acties.gedaan} onUitkomst={acties.uitkomst} />
+      <VandaagLijst items={vandaag} vandaag={vandaagDag} bezig={acties.bezig} onOpen={acties.open} onGedaan={acties.gedaan} onUitkomst={acties.uitkomst} alleenLezen={alleenLezen} />
       <section aria-labelledby="leads-alle-kop" className="club-leads-alle">
         <div className="club-sectiekop">
           <h2 id="leads-alle-kop">{weergave === 'lijst' ? t.alleLeads : t.pijplijn}</h2>
@@ -60,10 +62,10 @@ export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
         {weergave === 'lijst' ? (
           <LeadsLijst leads={leads} medewerkers={namen} vandaag={vandaagDag} onOpen={acties.open} />
         ) : (
-          <Pijplijn leads={leads} medewerkers={namen} vandaag={vandaagDag} nu={nu} bezig={acties.bezig} onOpen={acties.open} onVerplaats={acties.verplaats} />
+          <Pijplijn leads={leads} medewerkers={namen} vandaag={vandaagDag} nu={nu} bezig={acties.bezig} onOpen={acties.open} onVerplaats={acties.verplaats} alleenLezen={alleenLezen} />
         )}
       </section>
-      {paneel.nieuw && (
+      {paneel.nieuw && !alleenLezen && (
         <NieuweLead vestiging={vestiging} medewerkers={medewerkers} vandaag={vandaagDag} onSluit={acties.sluit} onAangemaakt={(id) => acties.open(id)} />
       )}
       {!paneel.nieuw && paneel.leadId && (
@@ -77,6 +79,7 @@ export function LeadsWerkvlak(props: LeadsWerkvlakProps) {
           vandaag={vandaagDag}
           nuIso={nuIso}
           magWissen={magWissen}
+          alleenLezen={alleenLezen}
           onSluit={acties.sluit}
         />
       )}

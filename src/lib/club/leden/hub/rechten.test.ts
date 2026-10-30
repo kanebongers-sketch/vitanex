@@ -47,3 +47,22 @@ describe('kaartRechten', () => {
     expect(kaartRechten({ ...ALLES, lidgeldOpen: false }).betalen).toBe(false)
   })
 })
+
+describe('kaartRechten in leesmodus (rollen v2)', () => {
+  it('zonder bewerkregel is alles wat zichtbaar is ook te bewerken', () => {
+    expect(kaartRechten(ALLES).bewerk).toEqual({ leden: true, training: true, voeding: true, rooster: true, afspraken: true, berichten: true })
+  })
+
+  it('wie Leden alleen mag zien, ziet de blokken maar wijzigt niets', () => {
+    const r = kaartRechten({ ...ALLES, bewerkbaar: () => false })
+    expect(r.training).toBe(true)
+    expect(r.bewerk).toEqual({ leden: false, training: false, voeding: false, rooster: false, afspraken: false, berichten: false })
+  })
+
+  it('bewerken per onderdeel, en nooit iets dat niet zichtbaar is', () => {
+    const r = kaartRechten({ ...ALLES, onderdelen: ['leden', 'schemas'], bewerkbaar: (s) => s === 'schemas' || s === 'rooster' })
+    expect(r.bewerk.training).toBe(true)
+    expect(r.bewerk.leden).toBe(false)
+    expect(r.bewerk.rooster).toBe(false)
+  })
+})

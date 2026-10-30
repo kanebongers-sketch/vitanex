@@ -17,6 +17,7 @@ import { Maandoverzicht } from '@/components/club/cijfers/Maandoverzicht'
 import type { CijferContext } from '@/components/club/cijfers/context'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { CIJFERS } from '@/lib/aiyourgym/taal/woorden/club/cijfers'
+import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
 import '@/components/club/cijfers/cijfers.css'
 
 // Cijfers: een maandrapport per vestiging of voor alle vestigingen samen. Altijd per
@@ -45,6 +46,7 @@ export default async function ClubCijfers({ searchParams }: { searchParams: Zoek
   return (
     <>
       <CijferKop vestiging={vestiging} vestigingNaam={vestigingNaam} aantalVestigingen={t.vestigingen.length} maand={maand} bereik={bereik} venster={rapport.huidig.venster} vandaag={vandaag} taal={taal} />
+      <WelkomVoorRol t={t} vestiging={vestiging} pagina="cijfers" />
       {zichtbaar.map((m) => (
         <p key={m} className="club-melding club-melding--fout" role="status">
           {m}

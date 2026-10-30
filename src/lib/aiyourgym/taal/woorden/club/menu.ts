@@ -130,6 +130,19 @@ export const MENU = woordenboek({
         betrokkenheid: 'Leden',
       },
     },
+    tellers: {
+      taken: (n: number) => (n === 1 ? '1 open taak vandaag' : `${n} open taken vandaag`),
+      opvolgen: (n: number) => (n === 1 ? '1 lid of lead om te bellen' : `${n} leden of leads om te bellen`),
+      leads: (n: number) => (n === 1 ? '1 nieuwe lead' : `${n} nieuwe leads`),
+    },
+    aanDeSlag: {
+      label: 'Aan de slag',
+      stand: (af: number, totaal: number) => `${af} van ${totaal}`,
+      voortgang: (af: number, totaal: number) => `Aan de slag: ${af} van ${totaal} stappen klaar`,
+      volgende: (titel: string) => `Volgende stap: ${titel}`,
+      eigenaar: (titel: string) => `Volgende stap: ${titel}. De eigenaar rondt die af.`,
+      verbergen: 'Aan de slag verbergen',
+    },
     voet: {
       demo: 'demo',
       testomgeving: 'testomgeving, alleen zichtbaar voor de platform-eigenaar',
@@ -262,6 +275,19 @@ export const MENU = woordenboek({
         groei: 'Growth',
         betrokkenheid: 'Members',
       },
+    },
+    tellers: {
+      taken: (n: number) => (n === 1 ? '1 open task today' : `${n} open tasks today`),
+      opvolgen: (n: number) => (n === 1 ? '1 member or lead to call' : `${n} members or leads to call`),
+      leads: (n: number) => (n === 1 ? '1 new lead' : `${n} new leads`),
+    },
+    aanDeSlag: {
+      label: 'Get started',
+      stand: (af: number, totaal: number) => `${af} of ${totaal}`,
+      voortgang: (af: number, totaal: number) => `Get started: ${af} of ${totaal} steps done`,
+      volgende: (titel: string) => `Next step: ${titel}`,
+      eigenaar: (titel: string) => `Next step: ${titel}. The owner completes it.`,
+      verbergen: 'Hide Get started',
     },
     voet: {
       demo: 'demo',

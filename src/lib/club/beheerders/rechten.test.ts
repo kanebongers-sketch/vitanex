@@ -90,6 +90,7 @@ describe('elke API-map onder /api/club hoort bij een onderdeel', () => {
     platform: 'alleen Kane (vereisPlatformEigenaar)',
     organisatie: 'eigen tabel ORGANISATIE_ONDERDEEL',
     profielfoto: "eigen foto en foto's tonen voor iedereen die binnen is; eigen controle in de route",
+    uitleg: 'eerste-keer-uitleg wegklikken voor het eigen profiel, voor iedereen die binnen is (migratie 476)',
   }
   const mappen = readdirSync(join(process.cwd(), 'src/app/(aiyourgym)/api/club'), { withFileTypes: true })
     .filter((d) => d.isDirectory())

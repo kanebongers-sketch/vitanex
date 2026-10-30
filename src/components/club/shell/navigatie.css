@@ -1,0 +1,123 @@
+/* ─── Club: iconen, tellers, "Aan de slag" en de actieve stand ────────────────
+   Aanvulling op de kop in club.css (besluit Kane 30-10-2026, ideeen geleend van
+   HubFit, onze eigen opbouw). Rustig: iconen in de tekstkleur, tellers als kleine
+   pil in de merkkleur van de sportschool, alleen transform en opacity bewegen. */
+
+/* ── Teller ─────────────────────────────────────────────────────────────── */
+.club-teller {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--brand-soft, color-mix(in srgb, var(--brand) 16%, transparent));
+  color: var(--club-merk-inkt, var(--brand));
+  font-family: var(--ff-inter), system-ui, sans-serif; font-size: 11.5px; font-weight: 700; letter-spacing: 0; line-height: 1;
+  font-variant-numeric: tabular-nums; text-transform: none;
+  animation: club-teller-in 200ms var(--ease) both;
+}
+.club-teller--klein { min-width: 17px; height: 17px; padding: 0 5px; font-size: 10.5px; }
+@keyframes club-teller-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+/* Op een gevuld vlak (actieve groep, actief onderdeel): omgekeerd, zodat hij leesbaar blijft. */
+.club-groepen a[aria-current='true'] .club-teller,
+.club-kop .club-nav a[aria-current='page'] .club-teller {
+  background: var(--brand-inkt, #0A0B09); color: var(--brand-tekst, var(--brand));
+}
+
+/* ── Rij 1: groepen met teller ──────────────────────────────────────────── */
+.club-groepen a { gap: 7px; }
+
+/* ── Rij 2: onderdelen met icoon, teller en een duidelijke actieve stand ─── */
+.club-kop .club-nav a { gap: 8px; }
+.club-nav-icoon { flex: none; opacity: 0.72; transition: opacity 160ms var(--ease); }
+.club-kop .club-nav a:hover .club-nav-icoon { opacity: 1; }
+.club-kop .club-nav a[aria-current='page'] .club-nav-icoon { opacity: 1; }
+/* Waar je bent: naast de vulling een korte streep in de inkt onderin de knop (binnen de knop, de scrollrij knipt niets af). */
+.club-kop .club-nav a { position: relative; }
+.club-kop .club-nav a[aria-current='page']::after {
+  content: ''; position: absolute; left: calc(50% - 10px); width: 20px; bottom: 5px; height: 2px; border-radius: 2px;
+  background: var(--brand-inkt, #0A0B09); opacity: 0.55; transform-origin: center; animation: club-streep-in 220ms var(--ease) both;
+}
+@keyframes club-streep-in { from { transform: scaleX(0.3); opacity: 0; } to { transform: scaleX(1); opacity: 0.55; } }
+@media (forced-colors: active) {
+  .club-kop .club-nav a[aria-current='page'] { outline: 2px solid CanvasText; outline-offset: -2px; }
+  .club-groepen a[aria-current='true'] { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
+
+/* ── Onderbalk: teller rechtsboven op het icoon ─────────────────────────── */
+.club-onderbalk .club-onderbalk-icoon { position: relative; display: inline-flex; overflow: visible; max-width: none; }
+.club-onderbalk .club-onderbalk-icoon .club-teller { position: absolute; top: -6px; left: calc(100% - 9px); overflow: visible; box-shadow: 0 0 0 2px var(--bg-app); }
+.club-onderbalk .club-teller, .club-onderbalk .club-teller span { overflow: visible; max-width: none; }
+
+/* ── Menupaneel: icoon, naam en teller ──────────────────────────────────── */
+.club-menu-groep h2 { display: flex; align-items: center; gap: 8px; }
+.club-menu-groep a { gap: 10px; }
+.club-menu-icoon { flex: none; color: var(--text-3); }
+.club-menu-groep a[aria-current='page'] .club-menu-icoon { color: var(--brand-tekst, var(--brand)); }
+.club-menu-naam { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Zoekvenster: icoon voor elk resultaat ──────────────────────────────── */
+.club-zoek .club-zoek-item { grid-template-columns: 32px minmax(0, 1fr) auto 16px; }
+.club-zoek-icoon {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--club-radius-klein);
+  border: 1px solid var(--line); background: var(--club-vlak); color: var(--text-3);
+}
+.club-zoek-item[aria-selected='true'] .club-zoek-icoon { color: var(--brand-tekst, var(--brand)); border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-zoek-tekst strong { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+@media (max-width: 699px) {
+  .club-zoek .club-zoek-item { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .club-zoek-icoon { width: 28px; height: 28px; }
+}
+
+/* ── Aan de slag (kop, rij 1) ───────────────────────────────────────────── */
+.club-ads {
+  display: inline-flex; align-items: center; flex: none; min-height: 36px; padding: 2px;
+  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 7%, transparent);
+  animation: club-ads-in 260ms var(--ease) both;
+}
+@keyframes club-ads-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.club-ads-link {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 6px 0 8px; border-radius: 999px;
+  color: var(--text-1); text-decoration: none; white-space: nowrap;
+  transition: background-color 160ms var(--ease);
+}
+a.club-ads-link:hover { background: var(--club-vlak-hover); }
+a.club-ads-link:focus-visible, .club-ads-weg:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.club-ads-label { font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.club-ads-stand { font-size: 12.5px; font-weight: 600; color: var(--club-merk-inkt, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-ads-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
+a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
+.club-ads-ring { flex: none; }
+.club-ads-ring-spoor { fill: none; stroke: var(--line-strong); stroke-width: 2.5; }
+.club-ads-ring-deel { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linecap: round; }
+.club-ads-weg {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--text-3); cursor: pointer; transition: color 160ms var(--ease), background-color 160ms var(--ease);
+}
+.club-ads-weg:hover { color: var(--text-1); background: var(--club-vlak-hover); }
+@media (pointer: coarse) { .club-ads-weg { width: 40px; height: 40px; } .club-ads-link { min-height: 40px; } }
+/* Telefoon: alleen de ring en de stand, de naam staat in de title en voor de screenreader. */
+@media (max-width: 699px) {
+  .club-ads-label, .club-ads-pijl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-teller, .club-ads, .club-kop .club-nav a[aria-current='page']::after { animation: none; }
+  .club-ads-pijl, .club-nav-icoon { transition: none; }
+}
+
+/* ── Zoeken op telefoon en tablet ───────────────────────────────────────────
+   Het vergrootglas in de kop krimpt nooit weg, en bovenaan Meer staat een groot
+   zoekveld dat hetzelfde venster opent als Ctrl K. */
+.club-balk-rechts .club-zoekknop { flex: none; }
+@media (max-width: 999px) {
+  .club-balk-rechts .club-zoekknop { color: var(--text-1); border-color: color-mix(in srgb, var(--brand) 35%, var(--line-strong)); }
+}
+.club-menu-zoek {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--club-vlak);
+  color: var(--text-2); font: inherit; font-size: 15px; text-align: left; cursor: pointer;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease), border-color 160ms var(--ease);
+}
+.club-menu-zoek:hover { color: var(--text-1); background: var(--club-vlak-hover); border-color: var(--text-4); }
+.club-menu-zoek:active { transform: scale(0.99); }
+.club-menu-zoek:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (min-width: 1000px) { .club-menu-zoek { display: none; } }

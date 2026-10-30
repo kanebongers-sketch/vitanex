@@ -13,7 +13,7 @@ describe('regels uit de vestiging', () => {
 
   it('schrijft de regels in gewone taal', () => {
     const t = regelTeksten(STANDAARD_APP_REGELS)
-    expect(t[0]).toBe('Gratis annuleren tot 2 uur voor de les. Later annuleren telt als te laat.')
+    expect(t[0]).toBe('Gratis annuleren tot 2 uur voor de les. Daarna telt het als te laat.')
     expect(t).toHaveLength(4)
     expect(regelTeksten({ ...STANDAARD_APP_REGELS, noShowBlokkadeDagen: 0, annuleerUren: 0 })[0]).toBe('Gratis annuleren kan tot de les begint.')
     expect(regelTeksten({ ...STANDAARD_APP_REGELS, noShowBlokkadeDagen: 0 })).toHaveLength(3)

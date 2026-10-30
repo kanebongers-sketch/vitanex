@@ -17,6 +17,7 @@ import { LeadsFilters } from '@/components/club/leads/LeadsFilters'
 import { LeadsWerkvlak } from '@/components/club/leads/LeadsWerkvlak'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import '@/components/club/leads/leads.css'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,6 +38,8 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
   const filters = leesFilters(zoek)
   const nu = new Date()
   const tp = (await clubTekst(LEADS)).pagina
+  // Alleen zien (rollen v2): geen knop voor een nieuwe lead, in plaats van een fout bij opslaan.
+  const bewerken = kanBewerken(t, 'leads')
 
   const [leads, medewerkers, lessen] = await Promise.all([
     haalLeads(t.admin, t.userId, vestiging, nu),
@@ -62,11 +65,13 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
           <h1>{tp.titel}</h1>
           <p>{tp.intro}</p>
         </div>
-        <div className="club-acties">
-          <Link href={clubPad('/leads', vestiging, filterParams(filters, { nieuw: '1' }))} scroll={false} className="club-knop club-knop--primair">
-            <Plus size={16} aria-hidden /> {tp.nieuweLead}
-          </Link>
-        </div>
+        {bewerken && (
+          <div className="club-acties">
+            <Link href={clubPad('/leads', vestiging, filterParams(filters, { nieuw: '1' }))} scroll={false} className="club-knop club-knop--primair">
+              <Plus size={16} aria-hidden /> {tp.nieuweLead}
+            </Link>
+          </div>
+        )}
       </section>
 
       {leads === null && <p className="club-melding club-melding--fout">{tp.laadFout}</p>}
@@ -84,8 +89,9 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
         zoek={filterParams(filters)}
         vandaagDag={dagVan(nu)}
         nuIso={nu.toISOString()}
-        paneel={{ leadId: isUuid(leadId) ? leadId : null, stap: isPaneelStap(stap) ? stap : null, nieuw: eerste(zoek.nieuw) === '1' }}
+        paneel={{ leadId: isUuid(leadId) ? leadId : null, stap: isPaneelStap(stap) ? stap : null, nieuw: bewerken && eerste(zoek.nieuw) === '1' }}
         magWissen={magLeadWissen(t)}
+        alleenLezen={!bewerken}
       />
     </>
   )

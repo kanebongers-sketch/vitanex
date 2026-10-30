@@ -17,6 +17,7 @@ export const ROOSTER = woordenboek({
     laadFout: 'Het rooster kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.',
     leegTitel: 'Nog geen lessen in deze week',
     leegUitleg: 'Zet je vaste lessen in het weekrooster en maak ze daar aan voor de komende weken.',
+    leegZonderInstellen: 'De roosteraar of clubmanager zet ze erin.',
     naarWeekrooster: 'Naar het weekrooster',
     tegels: {
       label: 'Deze week in cijfers',
@@ -39,6 +40,7 @@ export const ROOSTER = woordenboek({
       alleLessen: 'Alle lessen',
       instructeur: 'Instructeur',
       alleInstructeurs: 'Alle instructeurs',
+      mijnLessen: 'Mijn lessen',
       wis: 'Wis filters',
     },
     raster: {
@@ -91,7 +93,7 @@ export const ROOSTER = woordenboek({
       niemand: 'Nog niemand ingeschreven.',
       positie: (n: string) => `Positie ${n}`,
       vanWachtlijst: (naam: string) => `${naam} van de wachtlijst halen`,
-      wachtLeeg: 'Niemand op de wachtlijst. Is de les vol, dan komen nieuwe boekingen hier en schuiven ze vanzelf door als er een plek vrijkomt.',
+      wachtLeeg: 'Niemand op de wachtlijst.',
       afgemeld: (n: number) => `Afgemeld (${n})`,
       teLaat: 'Te laat',
       verwijderdLid: 'Verwijderd lid',
@@ -142,6 +144,7 @@ export const ROOSTER = woordenboek({
     laadFout: 'The timetable could not be loaded. Refresh the page to try again.',
     leegTitel: 'No classes this week yet',
     leegUitleg: 'Add your regular classes to the weekly timetable and create them there for the coming weeks.',
+    leegZonderInstellen: 'The scheduler or club manager adds them.',
     naarWeekrooster: 'Go to the weekly timetable',
     tegels: {
       label: 'This week in numbers',
@@ -164,6 +167,7 @@ export const ROOSTER = woordenboek({
       alleLessen: 'All classes',
       instructeur: 'Instructor',
       alleInstructeurs: 'All instructors',
+      mijnLessen: 'My classes',
       wis: 'Clear filters',
     },
     raster: {
@@ -216,7 +220,7 @@ export const ROOSTER = woordenboek({
       niemand: 'Nobody booked yet.',
       positie: (n: string) => `Position ${n}`,
       vanWachtlijst: (naam: string) => `Remove ${naam} from the waiting list`,
-      wachtLeeg: 'Nobody on the waiting list. When the class is full, new bookings land here and move up automatically when a place opens.',
+      wachtLeeg: 'Nobody on the waiting list.',
       afgemeld: (n: number) => `Cancelled (${n})`,
       teLaat: 'Late',
       verwijderdLid: 'Deleted member',

@@ -27,6 +27,8 @@
 /* ── Filters ──────────────────────────────────────────────────────────────── */
 .club-rooster-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .club-rooster-filter { position: relative; display: inline-flex; }
+.club-rooster-mijn { min-height: 36px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-2); }
+.club-rooster-mijn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt, #0A0B09); }
 .club-rooster-filter select { appearance: none; min-height: 36px; padding: 0 30px 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--club-vlak); color: var(--text-2); font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
 .club-rooster-filter::after { content: ''; position: absolute; right: 13px; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; color: var(--text-3); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 .club-rooster-filter select:hover { color: var(--text-1); border-color: var(--text-4); }

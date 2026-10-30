@@ -50,7 +50,7 @@ function huidigSchema(schemas: readonly SchemaKop[]): SchemaKop | null {
   return kiesActief(schemas.filter((s) => s.status === 'actief')) ?? schemas.find((s) => s.status === 'concept') ?? null
 }
 
-async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Omit<TrainingTabProps, 'rechten' | 'nu'>) {
+async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen, bewerken }: Omit<TrainingTabProps, 'rechten' | 'nu'> & { bewerken: boolean }) {
   const taal = await getTaal()
   const w = tekst(LEDENKAART, taal).training
   const ls = tekst(LID_SCHEMAS, taal)
@@ -90,7 +90,7 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Om
         ) : (
           <p className="club-hint">{w.geenSchema(lid.voornaam)}</p>
         )}
-        <div className="club-acties">
+        {bewerken && <div className="club-acties">
           {huidig && (
             <Link className="club-knop club-knop--primair" href={editorHref.replace('__id__', huidig.id)}>
               <PencilLine aria-hidden size={16} /> {w.schemaAanpassen}
@@ -109,7 +109,7 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen }: Om
           <Link className="club-knop" href={intakeHref}>
             <ClipboardPlus aria-hidden size={16} /> {laatste ? w.nieuweIntake : w.intakeStarten}
           </Link>
-        </div>
+        </div>}
       </section>
 
       <section className="club-lidhub-blok" aria-labelledby="schemas-kop">
@@ -145,7 +145,7 @@ export async function TrainingTab(props: TrainingTabProps) {
     <div className="club-lidhub-tab">
       {rechten.training && (
         <Suspense fallback={<div className="club-skelet" style={{ minHeight: 180 }} aria-hidden />}>
-          <SchemasEnIntakes t={t} lid={lid} vestiging={vestiging} medewerkers={medewerkers} maakOpen={props.maakOpen} />
+          <SchemasEnIntakes t={t} lid={lid} vestiging={vestiging} medewerkers={medewerkers} maakOpen={props.maakOpen} bewerken={rechten.bewerk.training} />
         </Suspense>
       )}
       <section className="club-lidhub-blok" id="voortgang" aria-label={w.metingen}>

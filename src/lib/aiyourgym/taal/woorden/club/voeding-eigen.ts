@@ -7,6 +7,7 @@ export const VOEDING_EIGEN = woordenboek({
   nl: {
     app: {
       mijnPlan: 'Mijn voedingsplan',
+      bekijkPlan: 'Bekijk plan',
       eigen: 'Je eigen plan',
       vanTrainer: (naam: string) => `Van je trainer, ${naam}`,
       vanTrainerZonderNaam: 'Van je trainer',
@@ -20,7 +21,7 @@ export const VOEDING_EIGEN = woordenboek({
       intrekken: 'Voorstel intrekken',
       voorstelLigt: (datum: string) => `Je voorstel van ${datum} ligt bij je trainer.`,
       leegTitel: 'Nog geen voedingsplan',
-      leegTekst: 'Maak in een minuut je eigen dagdoel, met maaltijden en adviezen. Je trainer kan meekijken en helpen.',
+      leegTekst: 'Je eigen dagdoel met maaltijden en adviezen.',
       eenMinuut: 'Klaar in ongeveer een minuut',
       disclaimer:
         'Je eigen plan is een richtlijn, geen medisch of dieetadvies. Heb je een aandoening, gebruik je medicijnen, ben je zwanger of heb je andere medische vragen over voeding? Een dietist of je huisarts helpt je verder.',
@@ -126,6 +127,7 @@ export const VOEDING_EIGEN = woordenboek({
   en: {
     app: {
       mijnPlan: 'My nutrition plan',
+      bekijkPlan: 'View plan',
       eigen: 'Your own plan',
       vanTrainer: (naam: string) => `From your trainer, ${naam}`,
       vanTrainerZonderNaam: 'From your trainer',
@@ -139,7 +141,7 @@ export const VOEDING_EIGEN = woordenboek({
       intrekken: 'Withdraw suggestion',
       voorstelLigt: (datum: string) => `Your suggestion from ${datum} is with your trainer.`,
       leegTitel: 'No nutrition plan yet',
-      leegTekst: 'Set your own daily target in a minute, with meals and tips. Your trainer can look along and help.',
+      leegTekst: 'Your own daily target with meals and tips.',
       eenMinuut: 'Done in about a minute',
       disclaimer:
         'Your own plan is a guideline, not medical or dietary advice. Do you have a condition, take medication, are you pregnant or do you have other medical questions about food? A dietitian or your GP can help.',

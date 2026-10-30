@@ -8,7 +8,7 @@ export const NOTITIES = woordenboek({
   nl: {
     pagina: {
       titel: 'Notities',
-      intro: 'Overdracht tussen diensten, afspraken, kennis en ideeen. Alles op een plek, voor deze vestiging of voor alle vestigingen.',
+      intro: 'Overdracht, afspraken, kennis en ideeen op een plek.',
       fout: 'De notities konden niet geladen worden. Vernieuw de pagina.',
     },
     map: {
@@ -70,7 +70,7 @@ export const NOTITIES = woordenboek({
   en: {
     pagina: {
       titel: 'Notes',
-      intro: 'Handovers between shifts, agreements, know-how and ideas. All in one place, for this location or for all locations.',
+      intro: 'Handovers, agreements, know-how and ideas in one place.',
       fout: 'The notes could not be loaded. Refresh the page.',
     },
     map: {

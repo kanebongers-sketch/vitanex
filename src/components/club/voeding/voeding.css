@@ -172,3 +172,13 @@
 .club-voeding-regels p { margin: 0; }
 .club-voeding-regels label { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; cursor: pointer; }
 .club-voeding-regels input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--brand); }
+
+/* Ledenapp: het plan als compacte kaart onder het dagboek; open met Bekijk plan. */
+.club-voeding-plankaart { display: grid; gap: 14px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--lidapp-radius, 14px); background: var(--club-vlak, var(--bg-card)); }
+.club-voeding-plankaart > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; min-height: 44px; }
+.club-voeding-plankaart > summary::-webkit-details-marker { display: none; }
+.club-voeding-plankaart > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 8px; }
+.club-voeding-plankaart-tekst { display: grid; gap: 2px; min-width: 0; }
+.club-voeding-plankaart-tekst strong { font-family: var(--ff-kop); font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.club-voeding-plankaart-knop { flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 600; color: var(--brand-tekst, var(--brand)); }
+.club-voeding-plankaart[open] .club-voeding-plankaart-knop { background: var(--brand-soft); }

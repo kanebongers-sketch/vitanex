@@ -102,19 +102,21 @@ export async function PlanningTab({ t, kaart, vestiging, rechten, nu }: Planning
   return (
     <div className="club-lidhub-tab club-lidhub-twee">
       <div className="club-leden-kolom">
-        {rechten.rooster && (
+        {rechten.bewerk.rooster && (
           <Suspense fallback={<div className="club-skelet" style={{ minHeight: 200 }} aria-hidden />}>
             <Lessen t={t} kaart={kaart} nu={nu} />
           </Suspense>
         )}
-        <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} metAankomend={!rechten.rooster} />
+        <Reserveringen aankomend={kaart.aankomend} recent={kaart.recent} checkins={kaart.bezoeken} nu={nu} metAankomend={!rechten.bewerk.rooster} />
       </div>
       <div className="club-leden-kolom">
         {rechten.afspraken && (
           <section className="club-lidhub-blok" id="afspraken" aria-label={w.afspraken}>
-            <Suspense fallback={null}>
-              <Afspraak t={t} lid={lid} nu={nu} />
-            </Suspense>
+            {rechten.bewerk.afspraken && (
+              <Suspense fallback={null}>
+                <Afspraak t={t} lid={lid} nu={nu} />
+              </Suspense>
+            )}
             <Suspense fallback={<div className="club-skelet" style={{ minHeight: 120 }} aria-hidden />}>
               <AfsprakenVanLid lidId={lid.id} vestiging={lid.vestiging} />
             </Suspense>

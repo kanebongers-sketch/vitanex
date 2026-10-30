@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import type { Verborgen } from '@/lib/club/kern/pakketten'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
@@ -12,6 +12,10 @@ import { groepInTaal, groepenMet, menuOnderdeel, onderdeelInTaal, onderdelenVan 
 import { hulpItemOp, type HulpSleutel } from './hulpbalk-items'
 import { HulpLinks } from './Hulpbalk'
 import { VestigingKeuze } from './VestigingKeuze'
+import { openClubZoeken } from './ClubZoeken'
+import { onderdeelIcoon } from './iconen'
+import { TellerBadge } from './TellerBadge'
+import { groepTellers, onderdeelTeller, type Tellers } from '@/lib/club/menu/tellers'
 
 // Het menupaneel (Meer in de onderbalk): alle groepen met hun onderdelen in een
 // oogopslag, twee kolommen grote tikvlakken, en de vestiging bovenaan. Onderaan
@@ -30,12 +34,16 @@ interface MenuPaneelProps {
   hulpbalk: readonly HulpSleutel[]
   /** Wie er kijkt, voor de teller bij Wat is nieuw. */
   persoon: string
+  /** De tellers van het menu (open taken, te bellen, nieuwe leads). */
+  tellers: Tellers
+  /** Zoekt het zoekvenster ook leden? Dan zegt de zoekknop dat. */
+  ledenZoeken: boolean
   href: (pad: string) => string
   onSluit: () => void
   onWissel: (v: string) => void
 }
 
-export function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, hulpbalk, persoon, href, onSluit, onWissel }: MenuPaneelProps) {
+export function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, hulpbalk, persoon, tellers, ledenZoeken, href, onSluit, onWissel }: MenuPaneelProps) {
   const huidig = menuOnderdeel(pad)
   const taal = useTaal()
   const t = useTekst(MENU)
@@ -55,20 +63,45 @@ export function MenuPaneel({ vestiging, pilot, pad, uit, toegestaan, hulpbalk, p
             <X aria-hidden size={20} />
           </button>
         </div>
-        {groepenMet(uit, toegestaan).map((bron) => groepInTaal(bron, taal)).map((g) => (
-          <section key={g.sleutel} className="club-menu-groep" aria-label={g.label} data-hier={huidig?.groep === g.sleutel ? 'true' : undefined}>
-            <h2>{g.label}</h2>
-            <ul>
-              {onderdelenVan(g.sleutel, uit, toegestaan).map((bron) => onderdeelInTaal(bron, taal)).map((o) => (
-                <li key={o.sleutel}>
-                  <Link href={href(o.pad)} aria-current={huidig?.sleutel === o.sleutel ? 'page' : undefined} onClick={onSluit}>
-                    {o.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        {/* Zoeken op de telefoon en tablet: hetzelfde venster als Ctrl K, groot en bovenaan. */}
+        <button
+          type="button"
+          className="club-menu-zoek"
+          onClick={() => {
+            onSluit()
+            openClubZoeken()
+          }}
+        >
+          <Search aria-hidden size={18} />
+          <span>{ledenZoeken ? t.zoeken.knopLeden : t.zoeken.knop}</span>
+        </button>
+        {groepenMet(uit, toegestaan).map((bron) => groepInTaal(bron, taal)).map((g) => {
+          const van = onderdelenVan(g.sleutel, uit, toegestaan)
+          return (
+            <section key={g.sleutel} className="club-menu-groep" aria-label={g.label} data-hier={huidig?.groep === g.sleutel ? 'true' : undefined}>
+              <h2>
+                {g.label}
+                <TellerBadge tellers={groepTellers(van.map((o) => o.sleutel), tellers)} klein />
+              </h2>
+              <ul>
+                {van.map((bron) => onderdeelInTaal(bron, taal)).map((o) => {
+                  const Icoon = onderdeelIcoon(o.sleutel)
+                  const hier = huidig?.sleutel === o.sleutel
+                  const teller = onderdeelTeller(o.sleutel, tellers)
+                  return (
+                    <li key={o.sleutel}>
+                      <Link href={href(o.pad)} aria-current={hier ? 'page' : undefined} onClick={onSluit}>
+                        <Icoon aria-hidden size={18} strokeWidth={hier ? 2.25 : 1.75} className="club-menu-icoon" />
+                        <span className="club-menu-naam">{o.label}</span>
+                        {teller && <TellerBadge tellers={[teller]} />}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })}
         {hulpbalk.length > 0 && (
           <section className="club-menu-hulp" aria-label={t.menuPaneel.hulp} data-hier={hulpItemOp(pad) ? 'true' : undefined}>
             <h2>{t.menuPaneel.hulp}</h2>

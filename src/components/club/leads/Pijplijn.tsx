@@ -14,16 +14,19 @@ interface PijplijnProps {
   bezig: string | null
   onOpen: (id: string) => void
   onVerplaats: (lead: Lead, status: LeadStatus) => void
+  /** Rollen v2, alleen zien: geen knoppen die iets wijzigen (kanBewerken). */
+  alleenLezen?: boolean
 }
 
 // Zes kolommen, van eerste contact tot lid of verloren. Op de telefoon schuiven
 // de kolommen horizontaal; op de pc staan ze naast elkaar over de volle breedte.
-export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVerplaats }: PijplijnProps) {
+export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVerplaats, alleenLezen = false }: PijplijnProps) {
   const [doel, setDoel] = useState<LeadStatus | null>(null)
   const tekst = useTekst(LEADS)
 
   function zetNeer(status: LeadStatus, id: string) {
     setDoel(null)
+    if (alleenLezen) return
     const lead = leads.find((l) => l.id === id)
     if (lead) onVerplaats(lead, status)
   }
@@ -72,6 +75,7 @@ export function Pijplijn({ leads, medewerkers, vandaag, nu, bezig, onOpen, onVer
                     isBezig={bezig === lead.id}
                     onOpen={onOpen}
                     onVerplaats={onVerplaats}
+                    alleenLezen={alleenLezen}
                   />
                 ))}
               </div>

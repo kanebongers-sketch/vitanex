@@ -17,6 +17,8 @@ import { DagLijst, WeekRaster } from '@/components/club/rooster/WeekRaster'
 import { LesPaneel } from '@/components/club/rooster/LesPaneel'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { moduleAan } from '@/lib/club/kern/organisatie'
+import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import '@/components/club/rooster/rooster.css'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -70,6 +72,11 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
   const lestypen = (stam?.lestypen ?? []).filter((l) => l.actief).map(optie)
   const instructeurs = (stam?.medewerkers ?? []).filter((m) => m.actief && m.rollen.includes('instructeur') && m.vestigingen.includes(vestiging)).map(optie)
   const gefilterd = filterLessen(lessen ?? [], staat)
+  // Geeft deze persoon zelf les? Dan staat er een snelknop Mijn lessen bij de filters.
+  const ikId = t.profiel?.id ?? t.persoonId
+  const mijnId = ikId && instructeurs.some((i) => i.id === ikId) ? ikId : null
+  // Het weekrooster staat in Instellingen; een instructeur komt daar niet, dus dan geen knop ernaartoe.
+  const magInstellen = magOnderdeel(t.onderdelen, 'instellingen') && kanBewerken(t, 'instellingen')
 
   return (
     <>
@@ -82,22 +89,25 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
         isDezeWeek={dagen.includes(nuNl.datum)}
         staat={staat}
       />
+      <WelkomVoorRol t={t} vestiging={vestiging} pagina="rooster" />
       {lessen === null ? (
         <p className="club-melding club-melding--fout" role="alert">{tekst.laadFout}</p>
       ) : (
         <>
           <RoosterTegels cijfers={weekCijfers(gefilterd)} />
-          <RoosterFilters staat={staat} zalen={zalen} lestypen={lestypen} instructeurs={instructeurs} />
+          <RoosterFilters staat={staat} zalen={zalen} lestypen={lestypen} instructeurs={instructeurs} mijnId={mijnId} />
           {lessen.length === 0 ? (
             <div className="club-leeg club-rooster-leeg">
               <CalendarPlus aria-hidden size={28} />
               <p>
                 <strong>{tekst.leegTitel}</strong>
-                {tekst.leegUitleg}
+                {magInstellen ? tekst.leegUitleg : tekst.leegZonderInstellen}
               </p>
-              <Link className="club-knop club-knop--primair" href={clubPad('/instellingen/weekrooster', vestiging)}>
-                {tekst.naarWeekrooster}
-              </Link>
+              {magInstellen && (
+                <Link className="club-knop club-knop--primair" href={clubPad('/instellingen/weekrooster', vestiging)}>
+                  {tekst.naarWeekrooster}
+                </Link>
+              )}
             </div>
           ) : (
             <>

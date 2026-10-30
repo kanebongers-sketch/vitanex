@@ -14,6 +14,8 @@ interface LeadKaartProps {
   isBezig: boolean
   onOpen: (id: string) => void
   onVerplaats: (lead: Lead, status: LeadStatus) => void
+  /** Rollen v2, alleen zien: geen knoppen die iets wijzigen (kanBewerken). */
+  alleenLezen?: boolean
 }
 
 function Opvolging({ lead, vandaag, nu }: { lead: Lead; vandaag: string; nu: Date }) {
@@ -33,13 +35,13 @@ function Opvolging({ lead, vandaag, nu }: { lead: Lead; vandaag: string; nu: Dat
 
 // Een kaart in de pijplijn: wie, waar vandaan, wat is de volgende stap. Slepen
 // mag, maar de keuzelijst onderaan doet hetzelfde met toetsenbord of muis.
-export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVerplaats }: LeadKaartProps) {
+export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVerplaats, alleenLezen = false }: LeadKaartProps) {
   const keuzeId = `verplaats-${lead.id}`
   const tekst = useTekst(LEADS)
   return (
     <article
       className="club-leads-kaart"
-      draggable
+      draggable={!alleenLezen}
       aria-busy={isBezig}
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', lead.id)
@@ -75,6 +77,7 @@ export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVe
           <ArrowRight size={13} aria-hidden /> {tekst.volgendeStap[lead.status]}
         </p>
       )}
+      {!alleenLezen && (
       <div className="club-leads-verplaats">
         <label htmlFor={keuzeId} className="club-sr">
           {tekst.kaart.verplaats(lead.naam)}
@@ -96,6 +99,7 @@ export function LeadKaart({ lead, medewerker, vandaag, nu, isBezig, onOpen, onVe
           ))}
         </select>
       </div>
+      )}
     </article>
   )
 }

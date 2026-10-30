@@ -21,6 +21,22 @@ export interface KaartRechtenInvoer {
   healthAan: boolean
   /** Lidgeld staat aan en deze persoon mag Lidmaatschappen (lidgeldOpen). */
   lidgeldOpen: boolean
+  /**
+   * Rollen v2: mag deze persoon dit onderdeel bewerken (kanBewerken)? Zonder:
+   * alles wat zichtbaar is, is ook te bewerken (het oude model).
+   */
+  bewerkbaar?: (sleutel: string) => boolean
+}
+
+/** Wat deze persoon op de kaart mag wijzigen; wie alleen mag zien, krijgt de kaart in leesmodus. */
+export interface KaartBewerken {
+  /** Kern van het lid: notities, status, lidmaatschap, coach en labels. */
+  leden: boolean
+  training: boolean
+  voeding: boolean
+  rooster: boolean
+  afspraken: boolean
+  berichten: boolean
 }
 
 export interface KaartRechten {
@@ -43,6 +59,7 @@ export interface KaartRechten {
   betalen: boolean
   /** Het tabblad Lidmaatschap (vorm, pauze, opzeggen): pakket Ledenadministratie. */
   lidmaatschap: boolean
+  bewerk: KaartBewerken
 }
 
 function aan(invoer: KaartRechtenInvoer, onderdeel: string, module?: Module): boolean {
@@ -56,15 +73,30 @@ export function lidmaatschapZichtbaar(uit: readonly Verborgen[]): boolean {
 
 export function kaartRechten(invoer: KaartRechtenInvoer): KaartRechten {
   const training = aan(invoer, 'schemas', 'training')
+  const mag = invoer.bewerkbaar ?? (() => true)
+  const leden = mag('leden')
+  const voeding = aan(invoer, 'voeding')
+  const rooster = aan(invoer, 'rooster', 'rooster')
+  const afspraken = aan(invoer, 'afspraken', 'afspraken')
+  const berichten = aan(invoer, 'berichten')
+  const bewerk: KaartBewerken = {
+    leden,
+    training: training && mag('schemas'),
+    voeding: voeding && mag('voeding'),
+    rooster: rooster && mag('rooster'),
+    afspraken: afspraken && mag('afspraken'),
+    berichten: berichten && mag('berichten'),
+  }
   return {
+    bewerk,
     training,
-    voeding: aan(invoer, 'voeding'),
+    voeding,
     apps: invoer.healthAan && aan(invoer, 'schemas', 'training'),
-    rooster: aan(invoer, 'rooster', 'rooster'),
-    afspraken: aan(invoer, 'afspraken', 'afspraken'),
+    rooster,
+    afspraken,
     checkin: aan(invoer, 'checkin', 'checkin'),
     challenges: aan(invoer, 'challenges'),
-    berichten: aan(invoer, 'berichten'),
+    berichten,
     ledenapp: !invoer.modulesUit.includes('app'),
     betalen: invoer.lidgeldOpen && aan(invoer, 'lidmaatschappen'),
     lidmaatschap: lidmaatschapZichtbaar(invoer.modulesUit),

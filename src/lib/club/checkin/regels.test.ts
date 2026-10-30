@@ -133,12 +133,16 @@ describe('antwoorden van de API', () => {
   })
 })
 
-describe('magInVestiging (regel van fitfactory.nl)', () => {
+describe('magInVestiging (alleen eigen leden, per vestiging; bij Fit Factory Eersel)', () => {
   it('leden van Eersel sporten overal, anderen overal behalve in Eersel', () => {
-    expect(magInVestiging('eersel', 'budel')).toBe(true)
-    expect(magInVestiging('eersel', 'eersel')).toBe(true)
-    expect(magInVestiging('budel', 'someren')).toBe(true)
-    expect(magInVestiging('budel', 'eersel')).toBe(false)
+    // Eersel heeft de regel aan, de rest niet: hetzelfde gedrag als de oude vaste regel.
+    expect(magInVestiging('eersel', 'budel', false)).toBe(true)
+    expect(magInVestiging('eersel', 'eersel', true)).toBe(true)
+    expect(magInVestiging('budel', 'someren', false)).toBe(true)
+    expect(magInVestiging('budel', 'eersel', true)).toBe(false)
+    // Elke sportschool kan het voor elke vestiging aanzetten, ongeacht de naam.
+    expect(magInVestiging('centrum', 'noord', true)).toBe(false)
+    expect(magInVestiging('centrum', 'eersel', false)).toBe(true)
   })
 
   it('beoordeelCheckin weigert zonder toegang, maar niet-actief gaat voor', () => {

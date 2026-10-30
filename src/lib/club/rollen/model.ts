@@ -195,3 +195,14 @@ export function startDoorverwijzing(profiel: { niveaus: Readonly<Record<string, 
   if (profiel.start === '/club') return zietVandaag ? null : '/club/hulp'
   return profiel.start
 }
+
+/**
+ * De lijst Medewerkers zonder de profielen van een beheerderslogin die geen
+ * werkrol hebben (eigenaar of clubmanager die niet op de vloer staat). Zo'n
+ * profiel staat sinds migratie 470 op actief = false; het is geen medewerker
+ * die uit dienst is, dus hij hoort niet als "uit dienst" in de lijst. Met een
+ * werkrol is het profiel actief en staat het er gewoon.
+ */
+export function zonderLosseBeheerders<M extends { id: string; actief: boolean }>(lijst: readonly M[], beheerders: ReadonlySet<string>): M[] {
+  return lijst.filter((m) => m.actief || !beheerders.has(m.id))
+}

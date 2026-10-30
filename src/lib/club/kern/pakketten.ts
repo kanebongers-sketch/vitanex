@@ -92,6 +92,8 @@ export const API_PAKKET: Readonly<Record<string, PakketSleutel | null>> = {
   betalen: null,
   hulp: null,
   inloggen: null,
+  // De tellers in het menu: kern (de route telt alleen de onderdelen van afgenomen pakketten).
+  menu: null,
   instellingen: null,
   kladblok: null,
   leden: null,
@@ -107,6 +109,8 @@ export const API_PAKKET: Readonly<Record<string, PakketSleutel | null>> = {
   team: null,
   // Profielfoto's van leden en medewerkers (migratie 473): kern.
   profielfoto: null,
+  // Eerste-keer-uitleg wegklikken (migratie 476): kern.
+  uitleg: null,
   uitloggen: null,
   vestigingen: null,
   abonnement: null,

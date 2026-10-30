@@ -37,6 +37,7 @@ export const CLUB_KLAAR = [
   'src/components/club/vandaag',
   'src/components/club/taken',
   'src/components/club/checkin',
+  'src/components/club/welkom',
   'src/components/club/automatisering/Opvolglijst.tsx',
   'src/components/club/automatisering/OpvolgTaak.tsx',
   'src/components/club/automatisering/Afgehandeld.tsx',

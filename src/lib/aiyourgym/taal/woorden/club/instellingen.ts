@@ -83,6 +83,8 @@ export const INSTELLINGEN = woordenboek({
       aanzetten: 'Weer aanzetten',
     },
     medewerkers: {
+      naarTeam: 'Alle rollen, ook eigenaar en roosteraar, geef je bij Team. Hier beheer je naam, e-mail, vestigingen en inloggen.',
+      naarTeamLink: 'Naar Team',
       rollenKop: 'Wat elke rol straks ziet',
       rollenUitleg: 'Een medewerker die zelf inlogt, ziet de onderdelen van al zijn rollen samen, en alleen zijn eigen vestigingen. Je past de rechten per rol aan bij Beheer, Rechten per rol.',
       rollen: 'Rollen',
@@ -241,6 +243,8 @@ export const INSTELLINGEN = woordenboek({
       aanzetten: 'Turn back on',
     },
     medewerkers: {
+      naarTeam: 'All roles, including owner and scheduler, are given under Team. Here you manage name, email, locations and login.',
+      naarTeamLink: 'Go to Team',
       rollenKop: 'What each role will see',
       rollenUitleg: 'A staff member who logs in sees the sections of all their roles combined, and only their own locations. You change the permissions per role under Management, Permissions per role.',
       rollen: 'Roles',

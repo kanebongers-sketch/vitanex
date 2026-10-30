@@ -5,17 +5,39 @@ import { BERICHTEN } from '@/lib/aiyourgym/taal/woorden/club/berichten'
 import { voorproef } from '@/lib/club/berichten/opmaak'
 import { geledenTekst } from '@/lib/club/berichten/tijd'
 import { BerichtInhoud } from './BerichtInhoud'
+import { Avatar } from '@/components/club/ontwerp/Avatar'
 
 // Een bericht zoals het lid het in de app ziet. Groot: de hele tekst open
 // (het vastgepinde bericht bovenaan). Compact: titel en een voorproef, met
 // "Lees meer" (een <details>, werkt met toetsenbord en zonder JavaScript).
 
-export type AppBericht = Pick<Bericht, 'titel' | 'tekst' | 'soort' | 'vastgepind' | 'zichtbaarVan'>
+export type AppBericht = Pick<Bericht, 'titel' | 'tekst' | 'soort' | 'vastgepind' | 'zichtbaarVan'> & Partial<Pick<Bericht, 'aangemaaktDoor' | 'auteurFoto'>>
+
+/** Waar de foto vandaan komt: in de ledenapp de route voor leden (met ?voor= in de voorvertoning). */
+export interface FotoBron {
+  waar: 'club' | 'lid'
+  voor: string | null
+}
 
 interface Props {
   bericht: AppBericht
   groot: boolean
   nu: Date
+  fotoBron?: FotoBron
+}
+
+/** De afzender met foto (initialen als er geen foto is). */
+function Afzender({ bericht, fotoBron }: { bericht: AppBericht; fotoBron: FotoBron }) {
+  const t = useTekst(BERICHTEN).app
+  const naam = bericht.aangemaaktDoor
+  if (!naam) return null
+  const foto = bericht.auteurFoto ? { soort: 'mw' as const, id: bericht.auteurFoto.id, versie: bericht.auteurFoto.versie } : null
+  return (
+    <p className="club-bericht-app-afzender">
+      <Avatar naam={naam} foto={foto} maat={24} waar={fotoBron.waar} voor={fotoBron.voor} />
+      <span>{t.van(naam)}</span>
+    </p>
+  )
 }
 
 function Kop({ bericht, nu }: { bericht: AppBericht; nu: Date }) {
@@ -34,7 +56,7 @@ function Kop({ bericht, nu }: { bericht: AppBericht; nu: Date }) {
   )
 }
 
-export function BerichtAppKaart({ bericht, groot, nu }: Props) {
+export function BerichtAppKaart({ bericht, groot, nu, fotoBron = { waar: 'club', voor: null } }: Props) {
   const t = useTekst(BERICHTEN).app
   const kleur = `club-bericht-app--${SOORT_CHIP[bericht.soort]}`
   if (groot) {
@@ -43,6 +65,7 @@ export function BerichtAppKaart({ bericht, groot, nu }: Props) {
         <Kop bericht={bericht} nu={nu} />
         <h3>{bericht.titel}</h3>
         <BerichtInhoud tekst={bericht.tekst} />
+        <Afzender bericht={bericht} fotoBron={fotoBron} />
       </article>
     )
   }
@@ -66,6 +89,7 @@ export function BerichtAppKaart({ bericht, groot, nu }: Props) {
       ) : (
         kort && <p className="club-bericht-app-kort">{kort}</p>
       )}
+      <Afzender bericht={bericht} fotoBron={fotoBron} />
     </article>
   )
 }

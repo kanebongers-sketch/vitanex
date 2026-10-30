@@ -106,15 +106,26 @@ export async function LedenappVoeding({ plan, fout = false, dagboek = null, eige
     <section className="club-voeding club-voeding-app" aria-labelledby="lidapp-voeding-kop">
       <h2 id="lidapp-voeding-kop" className="club-lidapp-kop">{t.titel}</h2>
       {dagboek}
-      {eigen && <h3 className="club-ve-kop">{te.mijnPlan}</h3>}
-      {eigen ? (
-        <EigenPlanBlok plan={plan} modus={modus} voor={eigen.voor} alleenLezen={eigen.alleenLezen}>
-          {inhoud}
-        </EigenPlanBlok>
-      ) : (
-        inhoud
-      )}
-      <p className="club-voeding-disclaimer">{plan.bron === 'lid' ? te.disclaimer : tv.disclaimer}</p>
+      {/* Een rustig scherm (opdracht Kane 30-10-2026): bovenaan het dagboek, het plan als compacte kaart.
+          Het hele plan, en zelf maken of aanpassen, staan achter Bekijk plan. */}
+      <details className="club-voeding-plankaart">
+        <summary>
+          <span className="club-voeding-plankaart-tekst">
+            <span className="club-lidapp-label">{eigen ? te.mijnPlan : t.dagdoel}</span>
+            <strong>{formatGetal(plan.kcal, taal)} kcal</strong>
+            <span className="club-voeding-app-doel">{doelLabel(plan.doel, taal)}</span>
+          </span>
+          <span className="club-voeding-plankaart-knop">{te.bekijkPlan}</span>
+        </summary>
+        {eigen ? (
+          <EigenPlanBlok plan={plan} modus={modus} voor={eigen.voor} alleenLezen={eigen.alleenLezen}>
+            {inhoud}
+          </EigenPlanBlok>
+        ) : (
+          inhoud
+        )}
+        <p className="club-voeding-disclaimer">{plan.bron === 'lid' ? te.disclaimer : tv.disclaimer}</p>
+      </details>
     </section>
   )
 }

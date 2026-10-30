@@ -16,6 +16,7 @@ import type { VestigingInfo } from '@/lib/club/kern/vestigingen'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import '@/components/club/leden/leden.css'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,7 +39,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   if (!rijen) {
     return (
       <>
-        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} vestigingen={t.vestigingen} taal={taal} />
+        <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={null} vestigingen={t.vestigingen} taal={taal} bewerken={kanBewerken(t, 'leden')} />
         <p className="club-melding club-melding--fout" role="alert">{LEDEN[taal].pagina.ladenFout}</p>
       </>
     )
@@ -48,7 +49,7 @@ export default async function LedenPagina({ searchParams }: { searchParams: Zoek
   const keuzes = filterKeuzes(rijen)
   return (
     <>
-      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} vestigingen={t.vestigingen} taal={taal} />
+      <LedenKop vestiging={vestiging} naam={naamVan(t.vestigingen, vestiging)} totaal={rijen.length} vestigingen={t.vestigingen} taal={taal} bewerken={kanBewerken(t, 'leden')} />
       <LedenTegels tellingen={telTegels(rijen, params.q)} params={params} vestiging={vestiging} />
       <LedenFilters
         params={params}
@@ -68,9 +69,11 @@ interface LedenKopProps {
   totaal: number | null
   vestigingen: readonly VestigingInfo[]
   taal: Taal
+  /** Alleen zien (rollen v2): geen knoppen om uit te nodigen of in te lezen. */
+  bewerken: boolean
 }
 
-function LedenKop({ vestiging, naam, totaal, vestigingen, taal }: LedenKopProps) {
+function LedenKop({ vestiging, naam, totaal, vestigingen, taal, bewerken }: LedenKopProps) {
   const p = LEDEN[taal].pagina
   return (
     <header className="club-paginakop">
@@ -81,12 +84,14 @@ function LedenKop({ vestiging, naam, totaal, vestigingen, taal }: LedenKopProps)
           {totaal === null ? p.ledenlijst : p.inVestiging(totaal)}. {p.uitleg}
         </p>
       </div>
-      <div className="club-leden-kopknoppen">
-        <UitnodigApp vestigingen={vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} huidig={vestiging} posterHref={clubPad('/leden/app-poster', vestiging)} />
-        <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
-          <Upload size={16} aria-hidden /> {p.inlezen}
-        </Link>
-      </div>
+      {bewerken && (
+        <div className="club-leden-kopknoppen">
+          <UitnodigApp vestigingen={vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} huidig={vestiging} posterHref={clubPad('/leden/app-poster', vestiging)} />
+          <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
+            <Upload size={16} aria-hidden /> {p.inlezen}
+          </Link>
+        </div>
+      )}
     </header>
   )
 }

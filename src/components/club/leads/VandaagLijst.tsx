@@ -15,6 +15,8 @@ interface VandaagLijstProps {
   onOpen: (id: string) => void
   onGedaan: (lead: Lead) => void
   onUitkomst: (lead: Lead, actie: 'geweest' | 'niet_gekomen') => void
+  /** Rollen v2, alleen zien: geen knoppen die iets wijzigen (kanBewerken). */
+  alleenLezen?: boolean
 }
 
 const REDEN_KLASSE: Record<VandaagReden, string> = {
@@ -32,7 +34,7 @@ function wanneer(item: VandaagItem, vandaag: string, taal: Taal): string {
 
 // De actie van vandaag, bovenaan: wie bel je, wie komt er proefsporten en van
 // wie moet je nog invullen hoe de proefles ging. Een regel per persoon.
-export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkomst }: VandaagLijstProps) {
+export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkomst, alleenLezen = false }: VandaagLijstProps) {
   const taal = useTaal()
   const t = useTekst(LEADS).vandaag
   return (
@@ -65,7 +67,9 @@ export function VandaagLijst({ items, vandaag, bezig, onOpen, onGedaan, onUitkom
                 </div>
                 <span className={`club-chip ${chip.klasse}`}>{chip.tekst}</span>
                 <div className="club-leads-rijacties">
-                  {reden === 'uitkomst' ? (
+                  {alleenLezen ? (
+                    <ContactKnoppen naam={lead.naam} telefoon={lead.telefoon} email={lead.email} />
+                  ) : reden === 'uitkomst' ? (
                     <>
                       <button type="button" className="club-knop club-knop--klein club-knop--primair" disabled={isBezig} onClick={() => onUitkomst(lead, 'geweest')}>
                         {t.geweest}

@@ -52,7 +52,7 @@ const artikelenEn: Record<ArtikelSleutel, ArtikelTekst> = {
     titel: 'Importing members and the member list',
     samenvatting: 'Import an export from your current system or Excel, and search and filter members.',
     stappen: [
-      'Export your members from your current system (such as Virtuagym or Sportivity) as CSV (semicolon, comma or tab; Club detects it itself), or simply choose your Excel list (.xlsx). Club reads the first worksheet. At most 10 MB and 5000 rows per file.',
+      'Export your members from your current system as CSV (semicolon, comma or tab; Club detects it itself), or simply choose your Excel list (.xlsx). Club reads the first worksheet. At most 10 MB and 5000 rows per file.',
       'Go to Members, Import members, and drag the file in. Match the columns: first name and last name are required (or a column with the full name); choose the rest or set it to Do not import.',
       'Press Check. Every row gets New, Update, Already the same or Duplicate. Then import the members for the chosen location.',
       'Importing never removes anyone, and an empty cell clears nothing. Coach, tags and QR code stay as they are.',

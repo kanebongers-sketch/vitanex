@@ -1,3 +1,4 @@
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -117,7 +118,7 @@ async function Privacy({ t, kaart, rechten, verzoek, nu }: TabInhoud & { verzoek
   const { lid } = kaart
   return (
     <div className="club-lidhub-tab club-lidhub-twee">
-      <LidGegevens lidId={lid.id} coachId={lid.coachId} trainers={coachKeuzes(kaart.medewerkers, lid.coachId)} tags={lid.tags} />
+      <LidGegevens lidId={lid.id} coachId={lid.coachId} trainers={coachKeuzes(kaart.medewerkers, lid.coachId)} tags={lid.tags} alleenLezen={!rechten.bewerk.leden} />
       <div className="club-leden-kolom">
         {rechten.ledenapp && (
           <section className="club-lidhub-blok" aria-label={w.ledenapp}>
@@ -157,7 +158,8 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const { lid } = kaart
   // De vestiging uit de URL als die bij deze sportschool hoort, anders die van het lid.
   const vestiging = typeof ruw.v === 'string' && hoortBij(t.vestigingen, ruw.v) ? ruw.v : lid.vestiging
-  const rechten = kaartRechten({ onderdelen: t.onderdelen, modulesUit: t.organisatie.uit, healthAan: healthActief(), lidgeldOpen: betalen })
+  // Rollen v2: wie een onderdeel alleen mag zien, krijgt dat deel van de kaart in leesmodus.
+  const rechten = kaartRechten({ onderdelen: t.onderdelen, modulesUit: t.organisatie.uit, healthAan: healthActief(), lidgeldOpen: betalen, bewerkbaar: (s) => kanBewerken(t, s) })
   const tabs = zichtbareLidTabs(rechten)
   const tab: LidTab = kiesLidTab(ruw.tab, tabs)
   const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)

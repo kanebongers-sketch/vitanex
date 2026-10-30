@@ -54,6 +54,10 @@ import { pushSessieMerk } from '@/lib/club/push/sessie-merk'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { LEDENAPP } from '@/lib/aiyourgym/taal/woorden/ledenapp/app'
 import { haalFotoInfo, haalMedewerkerKaartje } from '@/lib/club/profielfoto/opslag'
+import { WelkomKaarten } from '@/components/club/welkom/WelkomKaarten'
+import { WELKOM } from '@/lib/aiyourgym/taal/woorden/club/welkom'
+import { ledenWelkomSleutel, uitlegCode } from '@/lib/club/rollen/welkom'
+import { haalGezien } from '@/lib/club/uitleg/opslag'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -129,6 +133,8 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const pushSleutel = publiekeSleutelVoorApp(process.env)
   const pushMerk = pushSessieMerk(l.sessieHash)
   const taal = await getTaal()
+  // Eerste-keer-uitleg per account weggeklikt (migratie 476)? Alleen op Home nodig.
+  const uitlegGezien = tab === 'home' && !l.voorvertoning ? (await haalGezien(admin, userId, { soort: 'lid', id: lid.id })).includes(uitlegCode('leden')) : false
   const t = LEDENAPP[taal]
   // Profielfoto: zette de sportschool hem (met toestemming), dan zegt het profiel dat.
   const fotoInfo = tab === 'profiel' && lid.foto ? await haalFotoInfo(admin, { userId, soort: 'lid', id: lid.id }) : null
@@ -185,6 +191,12 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
             ))}
           {!apart && tab === 'home' && (
             <>
+              {/* Eerste keer: drie korte kaarten (Lessen, Schema, Profiel); een tabblad dat uit staat valt weg. */}
+              {!uitlegGezien && <WelkomKaarten
+                sleutel={ledenWelkomSleutel(lid.id)}
+                opslaan={l.voorvertoning ? null : { url: '/api/club/lid/uitleg', code: uitlegCode('leden') }}
+                kaarten={(['lessen', 'schema', 'profiel'] as const).flatMap((doel, i) => ((tabsUit as readonly string[]).includes(doel) ? [] : [{ ...WELKOM[taal].leden[i], href: tabPad(doel) }]))}
+              />}
               <div className="club-mijn-blok">
                 <SluitingenBinnenkort admin={admin} userId={userId} vestiging={lid.vestiging} variant="app" />
               </div>

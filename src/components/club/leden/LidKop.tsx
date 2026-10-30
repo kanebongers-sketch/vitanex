@@ -62,29 +62,32 @@ export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten
           </div>
         </div>
         <nav className="club-leden-kop-acties club-lidhub-acties" aria-label={w.acties}>
-          {rechten.training && (
+          {rechten.bewerk.training && (
             <Link href={metVanLid(clubPad('/training/intake', vestiging, { lid: lid.id }))} className="club-knop club-knop--primair">
               <ClipboardPlus aria-hidden size={16} /> {w.intakeStarten}
             </Link>
           )}
-          {rechten.training && (
+          {rechten.bewerk.training && (
             <Link href={`${lidKaartPad(lid.id, vestiging, 'training')}&maak=schema`} className="club-knop">
               <Dumbbell aria-hidden size={16} /> {w.schemaMaken}
             </Link>
           )}
-          {rechten.rooster && (
+          {rechten.bewerk.rooster && (
             <Link href={`${lidKaartPad(lid.id, vestiging, 'planning')}#les-boeken`} className="club-knop">
               <CalendarPlus aria-hidden size={16} /> {w.lesBoeken}
             </Link>
           )}
-          {rechten.afspraken && (
+          {rechten.bewerk.afspraken && (
             <Link href={`${lidKaartPad(lid.id, vestiging, 'planning')}#afspraken`} className="club-knop">
               <CalendarClock aria-hidden size={16} /> {w.afspraak}
             </Link>
           )}
-          <Link href={`${lidKaartPad(lid.id, vestiging, 'contact')}#notities`} className="club-knop">
-            <StickyNote aria-hidden size={16} /> {w.notitie}
-          </Link>
+          {rechten.bewerk.leden && (
+            <Link href={`${lidKaartPad(lid.id, vestiging, 'contact')}#notities`} className="club-knop">
+              <StickyNote aria-hidden size={16} /> {w.notitie}
+            </Link>
+          )}
+          {!rechten.bewerk.leden && <span className="club-chip club-chip--geen">{w.leesmodus}</span>}
           {rechten.checkin && <InCheckKnop lidId={lid.id} voornaam={lid.voornaam} vestiging={vestiging} />}
         </nav>
       </div>
