@@ -179,7 +179,8 @@ export function leesAntwoorden(ruw: unknown, toestemming: boolean): Uitslag<Antw
       minutenPerSessie: minuten,
       voorkeuren: VOORKEUREN.filter((v) => voorkeuren.includes(v)),
       motivatie: korteTekst(ruw.motivatie, 500),
-      gezondheid: toestemming ? leesGezondheid(ruw.gezondheid) : null,
+      // Geen gezondheidsblok (bijvoorbeeld overgeslagen door het lid): null, nooit "overal nee".
+      gezondheid: toestemming && isRij(ruw.gezondheid) ? leesGezondheid(ruw.gezondheid) : null,
       eigen: eigenUitOpslag(ruw.eigen, toestemming),
     },
   }

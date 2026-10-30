@@ -10,6 +10,7 @@ import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
+import { NIEUWE_LEDEN } from '@/lib/aiyourgym/taal/woorden/club/nieuwe-leden'
 import { InCheckKnop } from './hub/InCheckKnop'
 import { Avatar } from '@/components/club/ontwerp/Avatar'
 
@@ -24,6 +25,8 @@ interface LidKopProps {
   vestigingNaam: string
   coachNaam: string | null
   rechten: KaartRechten
+  /** Zelf aangemeld via een aanmeldlink van de sportschool: wanneer (migratie 480). */
+  aangemeldOp?: string | null
 }
 
 function Feit({ label, waarde, onbekend }: { label: string; waarde: string | null; onbekend: string }) {
@@ -35,7 +38,7 @@ function Feit({ label, waarde, onbekend }: { label: string; waarde: string | nul
   )
 }
 
-export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten }: LidKopProps) {
+export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten, aangemeldOp = null }: LidKopProps) {
   const taal = await getTaal()
   const w = tekst(LEDENKAART, taal).kop
   const datum = (d: string | null) => (d ? formatDatum(d, taal, 'kort') : null)
@@ -58,6 +61,7 @@ export async function LidKop({ lid, vestiging, vestigingNaam, coachNaam, rechten
               <span className="club-chip club-chip--geen">{lid.abonnement}</span>
             ) : null}
             {coachNaam ? <span className="club-chip club-chip--geen">{w.coach(coachNaam)}</span> : null}
+            {aangemeldOp ? <span className="club-chip club-chip--info">{tekst(NIEUWE_LEDEN, taal).kaart.aangemeld(formatDatum(aangemeldOp, taal, 'kort'))}</span> : null}
             {lid.einddatum ? <span className="club-chip club-chip--let-op">{w.tot(datum(lid.einddatum) ?? '')}</span> : null}
           </div>
         </div>

@@ -58,6 +58,8 @@ import { WelkomKaarten } from '@/components/club/welkom/WelkomKaarten'
 import { WELKOM } from '@/lib/aiyourgym/taal/woorden/club/welkom'
 import { ledenWelkomSleutel, uitlegCode } from '@/lib/club/rollen/welkom'
 import { haalGezien } from '@/lib/club/uitleg/opslag'
+import { haalLaatsteIntake } from '@/lib/club/nieuwe-leden/intake-opslag'
+import { IntakeKaart } from '@/components/club/aanmelden/IntakeKaart'
 
 // /mijn: de ledenapp. Het lid komt uit de eigen sessie; alleen Kane kan met
 // ?lid=<id> meekijken als voorvertoning. Wie geen van beide is: met de
@@ -139,6 +141,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   // Profielfoto: zette de sportschool hem (met toestemming), dan zegt het profiel dat.
   const fotoInfo = tab === 'profiel' && lid.foto ? await haalFotoInfo(admin, { userId, soort: 'lid', id: lid.id }) : null
   const coach = !apart && tab === 'home' ? await haalMedewerkerKaartje(admin, userId, lid.coachId) : null
+  // Nog geen intake (pakket Training en coaching): op Home de kaart om hem zelf in te vullen.
+  const intakeOpen = !apart && tab === 'home' && pakketZichtbaar(org.uit, 'training') ? (await haalLaatsteIntake(admin, userId, lid.id)) === null : false
+  const intakePad = l.voorvertoning ? `/mijn/intake?lid=${encodeURIComponent(lid.id)}` : '/mijn/intake'
   const fotoBron = { waar: 'lid' as const, voor: l.voorvertoning ? lid.id : null }
 
   return (
@@ -192,6 +197,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
           {!apart && tab === 'home' && (
             <>
               {/* Eerste keer: drie korte kaarten (Lessen, Schema, Profiel); een tabblad dat uit staat valt weg. */}
+              {intakeOpen && <IntakeKaart href={intakePad} taal={taal} />}
               {!uitlegGezien && <WelkomKaarten
                 sleutel={ledenWelkomSleutel(lid.id)}
                 opslaan={l.voorvertoning ? null : { url: '/api/club/lid/uitleg', code: uitlegCode('leden') }}

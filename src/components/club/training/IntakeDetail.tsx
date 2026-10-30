@@ -5,6 +5,7 @@ import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { INTAKE, sectieInTaal } from '@/lib/aiyourgym/taal/woorden/club/intake'
 import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
+import { NIEUWE_LEDEN } from '@/lib/aiyourgym/taal/woorden/club/nieuwe-leden'
 import { toonDatumLang } from '@/lib/club/training/weergave'
 import { toonWaarde, type EigenAntwoord } from '@/lib/club/intakevragen/eigen'
 
@@ -39,12 +40,14 @@ export function IntakeDetail({ intake, trainer }: IntakeDetailProps) {
   const taal = useTaal()
   const t = useTekst(INTAKE).detail
   const l = useTekst(TRAINING_LABELS)
+  const doorLid = useTekst(NIEUWE_LEDEN).kaart.doorLid
   const getal = (n: number | undefined, eenheid: string) => (n === undefined ? t.nietGemeten : `${formatGetal(n, taal)} ${eenheid}`)
   return (
     <div className="club-training-intakedetail">
       <p className="club-hint">
         {toonDatumLang(intake.datum, taal)}
         {trainer ? t.afgenomenDoor(trainer) : ''}
+        {intake.bron === 'lid' ? ` · ${doorLid}` : ''}
       </p>
       {a ? (
         <dl className="club-training-defs">

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nieuw lid van A tot Z</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0B09; --card: #141513; --raised: #1B1C1A; --line: #262724; --line-strong: #34352F;
+  --t1: #F1F0EC; --t2: #B6B5AE; --t3: #84837C;
+  --brand: #4C8DF6; --brand-soft: rgba(76, 141, 246, 0.14); --brand-ink: #0A0B09;
+  --info: #7DB4FF; --letop: #F47C66; --ok: #5BD08B;
+  --kop: 'Oswald', 'Arial Narrow', sans-serif; --tekst: 'Roboto', system-ui, sans-serif;
+  --r: 18px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--t1); font-family: var(--tekst); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+h1, h2, h3 { font-family: var(--kop); text-transform: uppercase; letter-spacing: 0.01em; line-height: 0.98; margin: 0; }
+p { margin: 0; }
+.wrap { width: min(1180px, 100%); margin: 0 auto; padding: 0 16px; }
+
+/* Kop */
+.hero { position: relative; padding: 72px 0 48px; border-bottom: 1px solid var(--line); overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: -40% 30% auto -10%; height: 520px; background: radial-gradient(closest-side, rgba(76, 141, 246, 0.22), transparent 70%); pointer-events: none; }
+.boven { font-family: var(--kop); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
+.hero h1 { font-size: clamp(44px, 9vw, 104px); margin: 12px 0 18px; }
+.hero h1 span { color: var(--brand); }
+.hero p.lead { max-width: 720px; color: var(--t2); font-size: 18px; }
+.wegen { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 32px; }
+.weg { padding: 20px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
+.weg b { display: block; font-family: var(--kop); font-size: 22px; text-transform: uppercase; margin-bottom: 6px; }
+.weg small { color: var(--t3); }
+.regel { margin-top: 18px; padding: 12px 16px; border-radius: 14px; background: var(--brand-soft); color: var(--t1); font-size: 14.5px; }
+
+/* Hoofdstukken en stappen */
+.hoofdstuk { padding: 64px 0 8px; }
+.hoofdstuk h2 { font-size: clamp(32px, 6vw, 56px); }
+.hoofdstuk > .wrap > p { color: var(--t2); margin-top: 8px; max-width: 680px; }
+.stap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; padding: 40px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 860px) { .stap { grid-template-columns: 1fr; gap: 24px; } }
+.nr { display: inline-grid; place-items: center; min-width: 46px; height: 46px; padding: 0 10px; border-radius: 999px; background: var(--brand); color: var(--brand-ink); font-family: var(--kop); font-size: 18px; font-weight: 700; }
+.uitleg h3 { font-size: 30px; margin: 14px 0 10px; }
+.uitleg p { color: var(--t2); }
+.feiten { display: grid; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; }
+.feiten li { display: flex; gap: 10px; color: var(--t2); }
+.feiten b { min-width: 74px; color: var(--t3); font-weight: 500; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.1em; padding-top: 2px; }
+code { font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 13px; color: var(--t1); background: var(--raised); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+
+/* Mockups */
+.beeld { display: flex; justify-content: center; }
+.club { width: 100%; max-width: 640px; border: 1px solid var(--line-strong); border-radius: 22px; background: var(--card); box-shadow: 0 40px 80px -40px rgba(0,0,0,0.9); overflow: hidden; }
+.club-balk { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #0F100E; font-size: 12px; color: var(--t3); }
+.club-balk i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.club-balk span { margin-left: 8px; font-family: var(--kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--t2); }
+.club-in { padding: 22px; display: grid; gap: 14px; }
+.club-in h4 { margin: 0; font-family: var(--kop); font-size: 26px; text-transform: uppercase; }
+.club-in .zacht { color: var(--t2); font-size: 14px; }
+.venster { border: 1px solid var(--line-strong); border-radius: 18px; background: var(--raised); padding: 18px; display: grid; gap: 12px; }
+
+.tel { width: 300px; max-width: 100%; border-radius: 42px; padding: 12px; background: #050504; border: 1px solid var(--line-strong); box-shadow: 0 40px 80px -40px rgba(0,0,0,0.95), inset 0 0 0 2px #1d1e1b; }
+.scherm { position: relative; min-height: 560px; border-radius: 32px; background: var(--bg); padding: 22px 18px 20px; display: grid; align-content: start; gap: 12px; overflow: hidden; }
+.scherm::before { content: ''; position: absolute; inset: -30% -40% auto; height: 300px; background: radial-gradient(closest-side, rgba(76,141,246,0.18), transparent 70%); pointer-events: none; }
+.scherm > * { position: relative; }
+.merk { text-align: center; font-family: var(--kop); font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t2); }
+.kaart { border: 1px solid var(--line); border-radius: 24px; background: var(--card); padding: 18px 16px; display: grid; gap: 10px; }
+.kaart h5, .scherm h5 { margin: 0; font-family: var(--kop); font-size: 28px; line-height: 0.95; text-transform: uppercase; }
+.scherm .zacht, .kaart .zacht { color: var(--t2); font-size: 13px; line-height: 1.45; }
+.mini { font-family: var(--kop); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); }
+.balk { display: flex; gap: 5px; align-items: center; }
+.balk span { flex: 1; height: 4px; border-radius: 9px; background: var(--line); }
+.balk span.af { background: var(--brand); }
+.balk small { margin-left: 4px; color: var(--t3); font-size: 11px; }
+.veld { display: grid; gap: 5px; }
+.veld label { font-size: 11.5px; font-weight: 500; color: var(--t2); }
+.veld div { min-height: 40px; display: flex; align-items: center; padding: 0 12px; border-radius: 13px; border: 1px solid var(--line-strong); background: var(--bg); font-size: 14px; color: var(--t1); }
+.veld div.leeg { color: var(--t3); }
+.twee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vink { display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 12px; line-height: 1.4; }
+.vink i { width: 18px; height: 18px; border-radius: 5px; background: var(--brand); display: grid; place-items: center; color: var(--brand-ink); font-style: normal; font-size: 12px; font-weight: 700; }
+.vink i.uit { background: transparent; border: 1.5px solid var(--line-strong); }
+.knop { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--raised); color: var(--t1); font: 700 13.5px/1 var(--tekst); white-space: nowrap; }
+.knop.prim { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); box-shadow: 0 10px 24px -14px var(--brand); }
+.knop.stil { background: transparent; color: var(--t2); }
+.knop.breed { width: 100%; min-height: 50px; font-family: var(--kop); font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; }
+.knop.klein { min-height: 32px; padding: 0 12px; font-size: 12.5px; }
+.rij-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
+.link { color: var(--brand); font-size: 12.5px; font-weight: 600; }
+.vorm { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; padding: 12px; border-radius: 16px; border: 1px solid var(--line-strong); background: var(--bg); }
+.vorm.aan { border-color: var(--brand); background: var(--brand-soft); }
+.vorm i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-strong); }
+.vorm.aan i { background: var(--brand); border-color: var(--brand); }
+.vorm b { display: block; font-size: 14px; }
+.vorm small { color: var(--t3); font-size: 11.5px; }
+.code { display: flex; justify-content: center; gap: 6px; }
+.code span { width: 32px; height: 42px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); font-family: var(--kop); font-size: 22px; }
+.mail { max-width: 260px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #F4F3EF; color: #1A1A17; font-size: 12px; line-height: 1.45; box-shadow: 0 20px 40px -24px #000; }
+.mail b { display: block; font-size: 12.5px; }
+.mail .cijfers { font-family: var(--kop); font-size: 24px; letter-spacing: 0.3em; margin: 6px 0; }
+.stapel { display: grid; gap: 16px; justify-items: center; }
+.stapel.duo { grid-template-columns: auto auto; align-items: center; gap: 22px; }
+@media (max-width: 560px) { .stapel.duo { grid-template-columns: 1fr; } }
+
+/* Intake */
+.in-kop { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; }
+.in-kop .terug { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.in-kop .lijn { height: 5px; border-radius: 9px; background: var(--line); overflow: hidden; }
+.in-kop .lijn span { display: block; height: 100%; background: var(--brand); }
+.in-kop small { color: var(--t3); font-size: 11.5px; font-weight: 600; }
+.tegels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tegel { min-height: 58px; display: flex; align-items: center; padding: 10px 12px; border-radius: 16px; border: 1px solid var(--line-strong); background: var(--card); font-family: var(--kop); font-size: 15px; text-transform: uppercase; }
+.tegel.aan { border-color: var(--brand); background: var(--brand-soft); }
+.maten { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.maat { padding: 10px 12px; border-radius: 16px; border: 1px solid var(--line-strong); background: var(--card); }
+.maat small { display: block; color: var(--t3); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.maat b { font-family: var(--kop); font-size: 34px; line-height: 1.1; }
+.maat em { font-style: normal; color: var(--t3); font-size: 13px; margin-left: 4px; }
+.vraag { padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); display: grid; gap: 7px; font-size: 12px; }
+.vraag.ja { border-color: rgba(244, 124, 102, 0.55); }
+.janee { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.janee span { min-height: 28px; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line-strong); font-weight: 700; font-size: 12px; }
+.janee span.aan { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.pillen { display: flex; flex-wrap: wrap; gap: 6px; }
+.pil { min-height: 30px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--card); font-size: 12px; font-weight: 600; }
+.pil.aan { border-color: var(--brand); background: var(--brand-soft); }
+.label-klein { color: var(--t2); font-size: 12px; font-weight: 600; margin-top: 2px; }
+.klaar-icoon { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font-size: 28px; font-weight: 700; margin-top: 40px; }
+
+/* QR en poster */
+.qr { padding: 10px; border-radius: 16px; background: #fff; width: 190px; height: 190px; }
+.qr svg { display: block; width: 100%; height: 100%; }
+.qr-paneel { display: grid; justify-items: center; gap: 12px; padding: 18px; border-radius: 16px; background: #1A1B19; }
+.poster { width: 210px; aspect-ratio: 210 / 297; background: #fff; color: #0a0b09; border-radius: 6px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; box-shadow: 0 30px 60px -30px #000; }
+.poster .band { padding: 12px 14px; background: #0a0b09; color: #fff; border-bottom: 4px solid var(--brand); font-family: var(--kop); letter-spacing: 0.1em; text-transform: uppercase; font-size: 14px; }
+.poster .bin { padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.poster .bin small { color: #2563EB; font-family: var(--kop); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; }
+.poster .bin strong { font-family: var(--kop); font-size: 25px; line-height: 0.9; text-transform: uppercase; }
+.poster .pqr { display: grid; grid-template-columns: 70px 1fr; gap: 8px; align-items: center; margin-top: 6px; }
+.poster .pqr svg { width: 70px; height: 70px; border: 1.5px solid #0a0b09; border-radius: 6px; padding: 3px; }
+.poster ol { margin: 0; padding-left: 14px; font-size: 7.5px; line-height: 1.4; }
+.poster .voet { padding: 6px 14px 10px; border-top: 1px solid #e4e2dc; font-size: 7px; color: #55554f; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Club: lijsten en chips */
+.lijst { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.lrij { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--card); }
+.lrij:last-child { border-bottom: 0; }
+.lrij .ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); font-weight: 700; }
+.lrij .ic.info { background: rgba(125, 180, 255, 0.12); color: var(--info); }
+.lrij b { display: block; font-size: 14.5px; }
+.lrij small { color: var(--t3); font-size: 12px; }
+.lrij small strong { color: var(--t1); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid var(--line-strong); color: var(--t2); }
+.chip.info { border-color: transparent; background: rgba(125, 180, 255, 0.14); color: var(--info); }
+.chip.ok { border-color: transparent; background: rgba(91, 208, 139, 0.14); color: var(--ok); }
+.chip.proef { border-color: transparent; background: rgba(244, 196, 102, 0.14); color: #F2C46A; }
+.tabs { display: flex; gap: 18px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--t3); }
+.tabs span { padding: 8px 0; }
+.tabs span.aan { color: var(--t1); box-shadow: inset 0 -2px 0 var(--brand); }
+.avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); font-family: var(--kop); font-size: 20px; }
+.datum { min-width: 46px; text-align: center; font-family: var(--kop); font-size: 12px; line-height: 1.1; color: var(--t2); text-transform: uppercase; }
+.datum b { display: block; font-size: 20px; color: var(--t1); }
+.form-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 520px) { .form-twee { grid-template-columns: 1fr; } }
+.cveld { display: grid; gap: 5px; }
+.cveld label { font-family: var(--kop); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+.cveld label em { font-style: normal; text-transform: none; letter-spacing: 0; font-family: var(--tekst); margin-left: 4px; }
+.cveld div { min-height: 38px; display: flex; align-items: center; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--bg); font-size: 14px; }
+.ctegel { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--bg); }
+.ctegel.aan { border-color: var(--brand); background: var(--brand-soft); }
+.ctegel b { display: block; font-size: 14px; }
+.ctegel small { color: var(--t3); font-size: 12px; }
+.klein-kop { font-family: var(--kop); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t3); }
+
+/* Slot */
+.tabel { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 15px; }
+.tabel th, .tabel td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tabel th { font-family: var(--kop); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t3); font-weight: 500; }
+.tabel td b { font-family: var(--kop); font-size: 22px; color: var(--brand); }
+.taak { display: grid; gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; }
+.taak li { padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); color: var(--t2); }
+.taak li strong { display: block; color: var(--t1); margin-bottom: 4px; }
+footer { padding: 48px 0 64px; color: var(--t3); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="qr" viewBox="0 0 29 29">
+      <g fill="#0A0B09">
+        <path d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2z" fill-rule="evenodd"/>
+        <path d="M22 0h7v7h-7zm1 1v5h5V1zm1 1h3v3h-3z" fill-rule="evenodd"/>
+        <path d="M0 22h7v7H0zm1 1v5h5v-5zm1 1h3v3H2z" fill-rule="evenodd"/>
+        <rect x="9" y="0" width="1" height="2"/><rect x="11" y="1" width="2" height="1"/><rect x="14" y="0" width="1" height="3"/><rect x="16" y="2" width="3" height="1"/><rect x="19" y="0" width="1" height="1"/>
+        <rect x="9" y="4" width="2" height="1"/><rect x="12" y="4" width="1" height="3"/><rect x="15" y="5" width="2" height="1"/><rect x="18" y="4" width="1" height="2"/><rect x="10" y="6" width="1" height="1"/>
+        <rect x="0" y="9" width="2" height="1"/><rect x="3" y="8" width="1" height="3"/><rect x="5" y="10" width="2" height="1"/><rect x="8" y="9" width="3" height="1"/><rect x="12" y="8" width="1" height="2"/>
+        <rect x="14" y="9" width="2" height="2"/><rect x="17" y="8" width="1" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="23" y="8" width="1" height="2"/><rect x="25" y="9" width="2" height="1"/><rect x="28" y="8" width="1" height="3"/>
+        <rect x="1" y="12" width="1" height="2"/><rect x="4" y="13" width="3" height="1"/><rect x="9" y="12" width="1" height="3"/><rect x="11" y="13" width="2" height="1"/><rect x="16" y="12" width="1" height="2"/><rect x="18" y="13" width="2" height="1"/>
+        <rect x="21" y="12" width="1" height="1"/><rect x="24" y="13" width="2" height="2"/><rect x="27" y="12" width="1" height="1"/><rect x="0" y="16" width="3" height="1"/><rect x="5" y="15" width="1" height="2"/><rect x="7" y="17" width="2" height="1"/>
+        <rect x="11" y="16" width="1" height="3"/><rect x="13" y="15" width="3" height="1"/><rect x="14" y="17" width="2" height="1"/><rect x="19" y="16" width="1" height="2"/><rect x="21" y="15" width="2" height="1"/><rect x="25" y="16" width="1" height="3"/><rect x="27" y="17" width="2" height="1"/>
+        <rect x="2" y="19" width="2" height="1"/><rect x="6" y="20" width="1" height="1"/><rect x="9" y="19" width="1" height="2"/><rect x="13" y="20" width="2" height="1"/><rect x="17" y="19" width="1" height="3"/><rect x="20" y="20" width="3" height="1"/><rect x="24" y="21" width="1" height="1"/><rect x="26" y="20" width="2" height="1"/>
+        <rect x="9" y="23" width="2" height="1"/><rect x="12" y="22" width="1" height="2"/><rect x="14" y="24" width="3" height="1"/><rect x="18" y="23" width="1" height="1"/><rect x="20" y="22" width="1" height="3"/><rect x="22" y="23" width="2" height="2"/><rect x="25" y="24" width="1" height="1"/><rect x="27" y="22" width="1" height="2"/>
+        <rect x="10" y="26" width="1" height="2"/><rect x="12" y="27" width="2" height="1"/><rect x="15" y="26" width="1" height="3"/><rect x="17" y="27" width="3" height="1"/><rect x="21" y="26" width="1" height="1"/><rect x="23" y="27" width="2" height="1"/><rect x="26" y="26" width="1" height="3"/><rect x="28" y="27" width="1" height="1"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="boven">AI Your Gym · Club en ledenapp · 30-10-2026</p>
+    <h1>Nieuw lid van <span>A tot Z</span></h1>
+    <p class="lead">Van de eerste klik aan de balie tot een lid dat zijn intake heeft ingevuld en een startschema maakt. Alle schermen hieronder zijn nagebouwd met fictieve gegevens: sportschool Kernhal, vestiging Centrum, lid Noor de Vries en medewerker Sanne.</p>
+    <div class="wegen">
+      <div class="weg"><b>Route A · De sportschool voegt toe</b>Naam en e-mail, klaar. Het lid krijgt meteen een uitnodiging per mail of scant de QR aan de balie.<br><small>2 klikken voor de medewerker</small></div>
+      <div class="weg"><b>Route B · Aanmelden met een link</b>De sportschool maakt een aanmeldlink of QR (balie, flyer, website). Het lid meldt zich zelf aan in hoogstens 3 stappen.<br><small>Eenmalig of herbruikbaar, altijd in te trekken</small></div>
+    </div>
+    <p class="regel">Besluit Kane: leden melden zich nooit aan via een openbare pagina. Alleen via een link of QR van de sportschool, of de sportschool voegt ze toe. Zonder geldige code ziet iemand een gewone 404 en niets van de sportschool.</p>
+  </div>
+</header>
+
+<!-- ─── ROUTE A ─────────────────────────────────────────────── -->
+<section class="hoofdstuk" aria-labelledby="route-a">
+  <div class="wrap">
+    <p class="boven">Route A</p>
+    <h2 id="route-a">De sportschool voegt het lid toe</h2>
+    <p>Voor wie aan de balie staat of belt. Twee klikken, daarna doet het lid de rest zelf.</p>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">A1</span>
+        <h3>Twee knoppen, overal waar je ze zoekt</h3>
+        <p>Boven de ledenlijst en op Vandaag staan dezelfde knoppen. Een klik opent het venster.</p>
+        <ul class="feiten"><li><b>Wie</b>Medewerker (recht Leden bewerken)</li><li><b>Adres</b><code>/club/leden</code> of <code>/club</code> (Vandaag)</li><li><b>Klikken</b>1</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Kernhal · Leden</span></div>
+          <div class="club-in">
+            <p class="mini">Centrum</p>
+            <h4>Leden</h4>
+            <p class="zacht">412 leden in deze vestiging.</p>
+            <div class="rij-knoppen">
+              <span class="knop prim">＋ Lid toevoegen</span>
+              <span class="knop">▦ Aanmeldlink</span>
+              <span class="knop">Leden uitnodigen voor de app</span>
+              <span class="knop stil">Inlezen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">A2</span>
+        <h3>Lid toevoegen</h3>
+        <p>Voornaam, achternaam en e-mail zijn verplicht. Telefoon en lidmaatschap mogen leeg. Het vinkje voor de uitnodiging staat al aan. Staat het adres al bij een ander lid, dan zegt Club dat en opent het met een klik dat lid.</p>
+        <ul class="feiten"><li><b>Wie</b>Medewerker</li><li><b>Klikken</b>2 (Toevoegen)</li><li><b>Status</b>Actief, lid sinds vandaag</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Lid toevoegen</span></div>
+          <div class="club-in">
+            <h4>Lid toevoegen</h4>
+            <p class="zacht">Naam en e-mail is genoeg. Het lid krijgt meteen een uitnodiging voor de app.</p>
+            <div class="form-twee">
+              <div class="cveld"><label>Voornaam</label><div>Noor</div></div>
+              <div class="cveld"><label>Achternaam</label><div>de Vries</div></div>
+            </div>
+            <div class="cveld"><label>E-mailadres</label><div>noor.de.vries@voorbeeld.nl</div></div>
+            <div class="form-twee">
+              <div class="cveld"><label>Telefoon <em>niet verplicht</em></label><div>06 12345678</div></div>
+              <div class="cveld"><label>Lidmaatschap <em>niet verplicht</em></label><div>Onbeperkt ▾</div></div>
+            </div>
+            <div class="vink"><i>✓</i><span>Stuur meteen een uitnodiging voor de app</span></div>
+            <div class="rij-knoppen" style="justify-content:flex-end"><span class="knop prim">＋ Toevoegen</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">A3</span>
+        <h3>Klaar, met QR erbij</h3>
+        <p>De uitnodiging staat in de wachtrij en gaat binnen een paar minuten per mail. Staat het lid voor je neus, dan scant het de QR nu. Beide openen <code>aiyourgym.com/kernhal/mijn/start/&lt;code&gt;</code>: e-mail bevestigen, wachtwoord kiezen, meteen in de app. Daarna start de intake vanuit de kaart op Home.</p>
+        <ul class="feiten"><li><b>Lid</b>1 scherm tot de app</li><li><b>Link</b>Eenmalig, 7 dagen geldig</li><li><b>Mail uit?</b>Dan zegt Club eerlijk: laat de QR scannen</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Lid toevoegen</span></div>
+          <div class="club-in">
+            <h4>＋ Noor is toegevoegd</h4>
+            <p class="zacht">✉ De uitnodiging gaat binnen een paar minuten per mail.</p>
+            <p class="zacht">Of laat het lid deze QR nu scannen.</p>
+            <div class="qr-paneel">
+              <div class="qr"><svg><use href="#qr"/></svg></div>
+              <code>https://aiyourgym.com/kernhal/mijn/start/Xp3k…</code>
+              <div class="rij-knoppen"><span class="knop klein">Kopieer link</span><span class="knop klein">Delen</span><span class="knop klein">Download PNG</span></div>
+            </div>
+            <div class="rij-knoppen" style="justify-content:flex-end"><span class="knop stil">Nog een lid</span><span class="knop prim">Open de ledenkaart</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─── ROUTE B ─────────────────────────────────────────────── -->
+<section class="hoofdstuk" aria-labelledby="route-b">
+  <div class="wrap">
+    <p class="boven">Route B</p>
+    <h2 id="route-b">Aanmelden met een link of QR</h2>
+    <p>De sportschool maakt de link een keer (bijvoorbeeld voor de balie) en hergebruikt hem. Het lid doet de rest zelf, op de eigen telefoon.</p>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">B1</span>
+        <h3>Aanmeldlink maken</h3>
+        <p>Voor een persoon (werkt een keer, standaard 7 dagen) of voor iedereen met de link (standaard 90 dagen, of tot je hem intrekt). Het lidmaatschap kan vastliggen; dan slaat het lid die stap over. De link hoort bij een vestiging en heeft een geheime code van 24 tekens.</p>
+        <ul class="feiten"><li><b>Wie</b>Medewerker</li><li><b>Klikken</b>2 (knop, Maak link en QR)</li><li><b>Beheer</b><code>/club/leden/aanmeldlinks</code>: stand, gebruik, intrekken</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Aanmeldlink maken</span></div>
+          <div class="club-in">
+            <h4>Aanmeldlink maken</h4>
+            <p class="zacht">Met deze link of QR meldt iemand zich zelf aan in drie korte stappen en komt meteen in de app.</p>
+            <p class="klein-kop">Voor wie</p>
+            <div class="form-twee">
+              <div class="ctegel aan"><b>Iedereen met de link</b><small>Voor de balie, een flyer of je website</small></div>
+              <div class="ctegel"><b>Een persoon</b><small>Werkt een keer</small></div>
+            </div>
+            <p class="klein-kop">Geldig</p>
+            <div class="pillen"><span class="pil">7 dagen</span><span class="pil">30 dagen</span><span class="pil aan">90 dagen</span><span class="pil">Tot je hem intrekt</span></div>
+            <div class="form-twee">
+              <div class="cveld"><label>Lidmaatschap</label><div>Het lid kiest zelf ▾</div></div>
+              <div class="cveld"><label>Naam van de link</label><div>Balie</div></div>
+            </div>
+            <p class="zacht">Wie zich aanmeldt start als proeflid. Jullie zien een melding en zetten het lidmaatschap daarna definitief.</p>
+            <div class="rij-knoppen" style="justify-content:flex-end"><span class="knop prim">▦ Maak link en QR</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">B2</span>
+        <h3>QR tonen, delen, downloaden, printen</h3>
+        <p>Club maakt de QR zelf. Tik erop en hij staat schermvullend, wit op zwart, om aan de balie te scannen. Download als PNG, deel met de deelknop van de telefoon, of print de A4-poster in de huisstijl met logo, naam en "Scan en meld je aan". Trek je de link in, dan werkt de QR ook niet meer.</p>
+        <ul class="feiten"><li><b>Adres</b><code>aiyourgym.com/kernhal/mijn/aanmelden/&lt;code&gt;</code></li><li><b>Poster</b><code>/club/leden/aanmeldlinks/&lt;id&gt;/poster</code></li></ul>
+      </div>
+      <div class="beeld">
+        <div class="stapel duo">
+          <div class="qr-paneel">
+            <div class="qr" style="width:210px;height:210px"><svg><use href="#qr"/></svg></div>
+            <code>aiyourgym.com/kernhal/mijn/aanmelden/q7Lm…</code>
+            <div class="rij-knoppen" style="justify-content:center"><span class="knop klein">Kopieer link</span><span class="knop klein">Delen</span><span class="knop klein">Download PNG</span><span class="knop klein">Print A4</span></div>
+          </div>
+          <div class="poster" aria-label="Voorbeeld van de A4-poster">
+            <div class="band">Kernhal</div>
+            <div class="bin">
+              <small>Nieuw lid?</small>
+              <strong>Scan en<br>meld je aan</strong>
+              <div class="pqr"><svg><use href="#qr"/></svg>
+                <ol><li><b>Scan de code</b></li><li><b>Vul je gegevens in</b></li><li><b>Kies een wachtwoord</b></li></ol>
+              </div>
+            </div>
+            <div class="voet">Vragen? Loop even langs de balie.</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">B3</span>
+        <h3>Stap 1 · Over jou</h3>
+        <p>Voornaam, achternaam en e-mail; telefoon en geboortedatum mogen leeg. Het lid vinkt aan dat de sportschool de gegevens mag gebruiken (vastgelegd met tijd en tekstversie). Na Verder gaat er meteen een code van 6 cijfers per mail.</p>
+        <ul class="feiten"><li><b>Wie</b>Het lid, op de eigen telefoon</li><li><b>Rem</b>10 per uur per netwerk, 3 per uur per adres, 60 per uur per link</li><li><b>Privacy</b>Het scherm zegt nooit of een adres al bestaat</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="tel"><div class="scherm">
+          <p class="merk">Kernhal</p>
+          <div class="kaart">
+            <div class="balk"><span class="af"></span><span></span><span></span><small>Stap 1 van 3</small></div>
+            <p class="mini">Aanmelden bij Kernhal</p>
+            <h5>Welkom! Wie ben je?</h5>
+            <p class="zacht">Je bent zo binnen. Daarna zie je meteen de app van je sportschool.</p>
+            <div class="twee"><div class="veld"><label>Voornaam</label><div>Noor</div></div><div class="veld"><label>Achternaam</label><div>de Vries</div></div></div>
+            <div class="veld"><label>E-mailadres</label><div>noor.de.vries@voorbeeld.nl</div></div>
+            <div class="twee"><div class="veld"><label>Telefoon (niet verplicht)</label><div class="leeg">06 ...</div></div><div class="veld"><label>Geboortedatum (niet verplicht)</label><div>12-03-1994</div></div></div>
+            <div class="vink"><i>✓</i><span>Kernhal mag mijn gegevens gebruiken voor mijn lidmaatschap en de ledenapp.</span></div>
+            <span class="knop prim breed">Verder</span>
+          </div>
+        </div></div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">B4</span>
+        <h3>Stap 2 · Lidmaatschap</h3>
+        <p>Alleen als de link het lidmaatschap niet vastlegt en de vestiging vormen heeft. Eerlijk: online betalen zit er nog niet in, het lid start als proeflid en de sportschool bevestigt.</p>
+        <ul class="feiten"><li><b>Waarom proeflid</b>Het lid kan meteen in de app en de intake doen; status proef is zichtbaar en de sportschool zet hem met een klik op actief. Een aanvraag die eerst bevestigd moet worden, zou het lid buitensluiten.</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="tel"><div class="scherm">
+          <p class="merk">Kernhal</p>
+          <div class="kaart">
+            <div class="balk"><span class="af"></span><span class="af"></span><span></span><small>Stap 2 van 3</small></div>
+            <p class="mini">Aanmelden bij Kernhal</p>
+            <h5>Kies je lidmaatschap</h5>
+            <p class="zacht">Je start als proeflid. De sportschool zet je lidmaatschap daarna definitief.</p>
+            <div class="vorm aan"><i></i><span><b>Onbeperkt</b><small>Met groepslessen</small></span></div>
+            <div class="vorm"><i></i><span><b>Daluren</b><small>Vrij trainen · Van 09:00 tot 16:00</small></span></div>
+            <div class="vorm"><i></i><span><b>Weet ik nog niet</b><small>Bespreek het aan de balie.</small></span></div>
+            <p class="zacht">Online betalen zit er nog niet in. De betaling regel je met de sportschool.</p>
+            <span class="knop prim breed">Verder</span>
+          </div>
+        </div></div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">B5</span>
+        <h3>Stap 3 · Code en wachtwoord</h3>
+        <p>De code uit de mail (30 minuten geldig, hooguit 5 pogingen) bewijst dat het adres van het lid is. Daarna een sterk wachtwoord, twee keer. Na "Klaar, open de app" is het lid een proeflid, ingelogd, en opent meteen de intake. Hoorde het adres al bij een lid, dan kreeg dat adres een mail "Je bent al lid" en werkt geen enkele code.</p>
+        <ul class="feiten"><li><b>Lid</b>3 schermen tot de app</li><li><b>Daarna</b><code>/mijn/intake</code></li></ul>
+      </div>
+      <div class="beeld">
+        <div class="stapel">
+          <div class="tel"><div class="scherm">
+            <p class="merk">Kernhal</p>
+            <div class="kaart">
+              <div class="balk"><span class="af"></span><span class="af"></span><span class="af"></span><small>Stap 3 van 3</small></div>
+              <h5>Bijna klaar</h5>
+              <p class="zacht">We stuurden een code van 6 cijfers naar noor.de.vries@voorbeeld.nl. Kijk ook even in je spam.</p>
+              <div class="veld"><label>Code uit de mail</label></div>
+              <div class="code"><span>4</span><span>8</span><span>2</span><span>9</span><span>1</span><span>6</span></div>
+              <div class="veld"><label>Kies een wachtwoord</label><div>••••••••••••••••</div></div>
+              <div class="veld"><label>Herhaal je wachtwoord</label><div>••••••••••••••••</div></div>
+              <span class="knop prim breed">Klaar, open de app</span>
+              <span class="link">Geen code gekregen? Stuur hem opnieuw</span>
+            </div>
+          </div></div>
+          <div class="mail"><b>482916 is je code voor Kernhal</b>Hoi Noor, je meldt je aan bij Kernhal. Vul deze code in de app in:<div class="cijfers">482916</div>De code werkt 30 minuten.</div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─── INTAKE ──────────────────────────────────────────────── -->
+<section class="hoofdstuk" aria-labelledby="intake">
+  <div class="wrap">
+    <p class="boven">Beide routes</p>
+    <h2 id="intake">De intake, door het lid zelf</h2>
+    <p>Vier korte schermen, grote knoppen, slimme standaarden. Na aanmelden opent hij meteen; anders staat er een kaart op Home zolang er nog geen intake is. Hoort bij het pakket Training en coaching.</p>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">I1</span>
+        <h3>Doel</h3>
+        <p>Een of meer doelen, met een tik. Verplicht, want daar stemt de trainer alles op af.</p>
+        <ul class="feiten"><li><b>Adres</b><code>/mijn/intake</code></li></ul>
+      </div>
+      <div class="beeld"><div class="tel"><div class="scherm">
+        <div class="in-kop"><span class="terug"></span><div class="lijn"><span style="width:25%"></span></div><small>Later</small></div>
+        <h5>Wat wil je bereiken?</h5>
+        <p class="zacht">Kies er een of meer. Je trainer stemt je schema hierop af.</p>
+        <div class="tegels"><span class="tegel aan">Afvallen ✓</span><span class="tegel">Spiermassa</span><span class="tegel">Kracht</span><span class="tegel">Conditie</span><span class="tegel">Gezond en fit</span><span class="tegel">Revalidatie</span><span class="tegel">Sportprestatie</span></div>
+        <span class="knop prim breed">Verder</span>
+      </div></div></div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">I2</span>
+        <h3>Gewicht en lengte</h3>
+        <p>Optioneel en alleen met het vinkje: zonder toestemming bewaren we niets (ook de server weigert het). Grote cijfers, numeriek toetsenbord. Over te slaan.</p>
+        <ul class="feiten"><li><b>AVG</b>Toestemming met tijd en tekstversie in club_intakes</li></ul>
+      </div>
+      <div class="beeld"><div class="tel"><div class="scherm">
+        <div class="in-kop"><span class="terug"></span><div class="lijn"><span style="width:50%"></span></div><small>Later</small></div>
+        <h5>Gewicht en lengte</h5>
+        <p class="zacht">Handig om je voortgang te zien. Niet verplicht.</p>
+        <div class="vink"><i>✓</i><span>Mijn trainer mag mijn gewicht, lengte en antwoorden over mijn gezondheid bewaren om mij veilig te begeleiden.</span></div>
+        <div class="maten"><div class="maat"><small>Gewicht</small><b>72,5</b><em>kg</em></div><div class="maat"><small>Lengte</small><b>171</b><em>cm</em></div></div>
+        <div class="twee"><span class="knop">Sla over</span><span class="knop prim">Verder</span></div>
+      </div></div></div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">I3</span>
+        <h3>Gezondheid</h3>
+        <p>De bestaande gezondheidsvragen als ja of nee. "Overal nee" in een tik. Bij ja verschijnt een tekstveld, bij blessures ook de plek (knie, rug, schouder...). Overgeslagen is echt leeg, nooit "overal nee".</p>
+        <ul class="feiten"><li><b>Vragen</b>Hart, borstpijn, duizelig, blessure, medicijnen voor bloeddruk of hart, zwanger, anders</li></ul>
+      </div>
+      <div class="beeld"><div class="tel"><div class="scherm">
+        <div class="in-kop"><span class="terug"></span><div class="lijn"><span style="width:75%"></span></div><small>Later</small></div>
+        <h5>Je gezondheid</h5>
+        <span class="pil" style="justify-self:start;border-style:dashed">Overal nee</span>
+        <div class="vraag"><span>Heeft een arts ooit gezegd dat je iets aan je hart hebt of alleen onder toezicht mag sporten?</span><div class="janee"><span class="aan">Nee</span><span>Ja</span></div></div>
+        <div class="vraag ja"><span>Heb je een blessure of last van je botten of gewrichten?</span><div class="janee"><span>Nee</span><span class="aan">Ja</span></div><div class="pillen"><span class="pil aan">Knie</span><span class="pil">Rug</span><span class="pil">Schouder</span></div><div class="veld"><div>Rechterknie, na voetbal</div></div></div>
+        <div class="vraag"><span>Ben je zwanger of net bevallen?</span><div class="janee"><span class="aan">Nee</span><span>Ja</span></div></div>
+      </div></div></div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">I4</span>
+        <h3>Ervaring en tijd</h3>
+        <p>Alles staat al ingevuld met een veilige keuze (beginner, 3 dagen, 60 minuten, in de club). Wie niets wil kiezen, tikt meteen op Klaar.</p>
+      </div>
+      <div class="beeld"><div class="tel"><div class="scherm">
+        <div class="in-kop"><span class="terug"></span><div class="lijn"><span style="width:100%"></span></div><small>Later</small></div>
+        <h5>Ervaring en tijd</h5>
+        <p class="label-klein">Hoeveel ervaring heb je met krachttraining?</p>
+        <div class="vorm aan"><i></i><span><b>Beginner</b><small>Net begonnen of lang geleden</small></span></div>
+        <div class="vorm"><i></i><span><b>Gemiddeld</b><small>Train al een tijdje</small></span></div>
+        <p class="label-klein">Hoeveel dagen per week wil je trainen?</p>
+        <div class="pillen"><span class="pil">1</span><span class="pil">2</span><span class="pil aan">3</span><span class="pil">4</span><span class="pil">5</span><span class="pil">6</span></div>
+        <p class="label-klein">Hoe lang per keer?</p>
+        <div class="pillen"><span class="pil">30 min</span><span class="pil aan">45 min</span><span class="pil">60 min</span><span class="pil">90 min</span></div>
+        <p class="label-klein">Waar train je het liefst?</p>
+        <div class="pillen"><span class="pil aan">Vrij trainen in de club</span><span class="pil">Groepslessen</span><span class="pil">Ook thuis</span></div>
+        <span class="knop prim breed">Klaar</span>
+      </div></div></div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">I5</span>
+        <h3>Meteen een startschema</h3>
+        <p>"Maak mijn startschema" opent het schematabblad met de snelle start al ingevuld uit de intake (doel, dagen, niveau, thuis of club). Alleen oefeningen met een eigen render en coaching.</p>
+        <ul class="feiten"><li><b>Adres</b><code>/mijn?tab=schema&amp;start=intake&amp;doel=afvallen&amp;dagen=3…</code></li></ul>
+      </div>
+      <div class="beeld"><div class="tel"><div class="scherm">
+        <span class="klaar-icoon">✓</span>
+        <h5>Top, Noor!</h5>
+        <p class="zacht">Je intake staat bij je trainer. Zin om meteen te beginnen?</p>
+        <span class="knop prim breed">✦ Maak mijn startschema</span>
+        <p class="zacht">Een voorstel op basis van je antwoorden, alleen met oefeningen met uitleg.</p>
+        <span class="link">Naar de app</span>
+      </div></div></div>
+    </article>
+  </div>
+</section>
+
+<!-- ─── TEAM ────────────────────────────────────────────────── -->
+<section class="hoofdstuk" aria-labelledby="team">
+  <div class="wrap">
+    <p class="boven">Het team</p>
+    <h2 id="team">Wat de medewerker ziet</h2>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">T1</span>
+        <h3>Vandaag · Nieuwe leden</h3>
+        <p>Een eigen sectie op Vandaag: de knoppen Lid toevoegen en Aanmeldlink, en de meldingen "Nieuwe aanmelding via link" en "Intake ingevuld". Een naam opent de ledenkaart, Gezien haalt de melding weg voor het hele team.</p>
+        <ul class="feiten"><li><b>Adres</b><code>/club#nieuwe-leden</code></li><li><b>Wie</b>Iedereen die Leden ziet</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Kernhal · Vandaag</span></div>
+          <div class="club-in">
+            <h4>Nieuwe leden</h4>
+            <p class="zacht">Toevoegen, aanmeldlink en wat leden zelf deden</p>
+            <div class="rij-knoppen"><span class="knop prim">＋ Lid toevoegen</span><span class="knop">▦ Aanmeldlink</span><span class="knop stil">Aanmeldlinks</span></div>
+            <div class="lijst">
+              <div class="lrij"><span class="ic">＋</span><span><b>Noor de Vries</b><small><strong>Nieuwe aanmelding via link</strong> · Proeflid · Onbeperkt · 30 okt. 10:04</small></span><span class="knop klein stil">✓ Gezien</span></div>
+              <div class="lrij"><span class="ic info">▤</span><span><b>Noor de Vries</b><small><strong>Intake ingevuld</strong> · 30 okt. 10:06</small></span><span class="knop klein stil">✓ Gezien</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="stap">
+      <div class="uitleg">
+        <span class="nr">T2</span>
+        <h3>De ledenkaart</h3>
+        <p>In de kop: status Proeflid, het gekozen lidmaatschap en "Aangemeld via link op". Op het tabblad Training staat de intake als een gewone intake met de chip "Ingevuld door lid", gewicht en BMI, en de knop voor een schemavoorstel.</p>
+        <ul class="feiten"><li><b>Adres</b><code>/club/leden/&lt;id&gt;?tab=training</code></li><li><b>Bevestigen</b>Tabblad Lidmaatschap: proef naar actief</li></ul>
+      </div>
+      <div class="beeld">
+        <div class="club">
+          <div class="club-balk"><i></i><i></i><i></i><span>Kernhal · Ledenkaart</span></div>
+          <div class="club-in">
+            <div style="display:flex;gap:14px;align-items:center"><span class="avatar">NV</span><div><p class="mini">Centrum</p><h4>Noor de Vries</h4></div></div>
+            <div class="chips"><span class="chip proef">Proeflid</span><span class="chip">Onbeperkt</span><span class="chip info">Aangemeld via link op 30 okt. 2026</span></div>
+            <div class="tabs"><span>Overzicht</span><span class="aan">Training</span><span>Lidmaatschap</span><span>Planning</span><span>Contact</span></div>
+            <div class="lijst">
+              <div class="lrij" style="grid-template-columns:46px 1fr auto"><span class="datum"><b>30</b>okt</span><span><b>Afvallen</b><small>72,5 kg · BMI 24,8</small><span class="chips" style="margin-top:6px"><span class="chip info">Ingevuld door lid</span><span class="chip ok">AVG</span></span></span><span class="knop klein">Schemavoorstel</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─── SLOT ────────────────────────────────────────────────── -->
+<section class="hoofdstuk" aria-labelledby="tellen">
+  <div class="wrap">
+    <h2 id="tellen">Tellen</h2>
+    <table class="tabel">
+      <thead><tr><th>Wie</th><th>Wat</th><th>Hoeveel</th></tr></thead>
+      <tbody>
+        <tr><td>Medewerker, route A</td><td>Lid toevoegen, gegevens, Toevoegen</td><td><b>2</b> klikken</td></tr>
+        <tr><td>Medewerker, route B</td><td>Aanmeldlink, Maak link en QR (een balie-link maak je een keer en hergebruik je)</td><td><b>2</b> klikken</td></tr>
+        <tr><td>Lid, route A</td><td>Mail of QR, wachtwoord kiezen</td><td><b>1</b> scherm tot de app</td></tr>
+        <tr><td>Lid, route B</td><td>Gegevens, lidmaatschap (als het niet vastligt), code en wachtwoord</td><td><b>3</b> schermen tot de app</td></tr>
+        <tr><td>Lid, intake</td><td>Doel, gewicht en lengte, gezondheid, ervaring en tijd</td><td><b>4</b> korte schermen</td></tr>
+        <tr><td>Doel</td><td>Van scannen tot ingelogd in de app</td><td><b>&lt; 3</b> minuten</td></tr>
+      </tbody>
+    </table>
+
+    <h2 style="margin-top:56px">Wat Kane moet aanzetten of testen</h2>
+    <ul class="taak">
+      <li><strong>Mail voor aanmeldcodes</strong>AIYOURGYM_RESEND_FROM en RESEND_API_KEY moeten in Render staan (dezelfde als de uitnodigingen van medewerkers). Zonder die mail werkt aanmelden via een link niet; de pagina en het venster zeggen dat eerlijk.</li>
+      <li><strong>Mail voor uitnodigingen bij Lid toevoegen</strong>CLUB_MAILS_ACTIEF=1 met CLUB_RESEND_API_KEY en CLUB_RESEND_FROM. Anders toont Club de QR om aan de balie te scannen.</li>
+      <li><strong>Al geregeld</strong>CLUB_LEDEN_LOGIN staat aan. Migratie 480 is uitgevoerd op de database.</li>
+      <li><strong>Zelf testen</strong>Test Gym, Leden, Aanmeldlink maken, QR scannen met je telefoon, aanmelden met een eigen tweede e-mailadres, intake invullen, en dan op Vandaag de twee meldingen bekijken.</li>
+    </ul>
+  </div>
+</section>
+
+<footer><div class="wrap">Nagebouwde schermen met fictieve gegevens. Echte schermen volgen de huisstijl van elke sportschool. AI Your Gym · 30-10-2026</div></footer>
+</body>
+</html>

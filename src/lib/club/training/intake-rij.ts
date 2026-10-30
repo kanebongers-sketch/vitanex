@@ -14,10 +14,12 @@ export interface Intake {
   metingen: Metingen
   toestemmingGezondheid: boolean
   notitie: string | null
+  /** Wie de intake invulde: de trainer, of het lid zelf in de ledenapp (migratie 480). */
+  bron: 'trainer' | 'lid'
 }
 
 export const INTAKE_KOLOMMEN =
-  'id, lid_id, medewerker_id, datum, antwoorden, metingen, toestemming_gezondheid, notitie, club_leden(voornaam, achternaam)'
+  'id, lid_id, medewerker_id, datum, antwoorden, metingen, toestemming_gezondheid, notitie, bron, club_leden(voornaam, achternaam)'
 
 function metingenUitRij(ruw: unknown, toestemming: boolean): Metingen {
   // Metingen zijn gezondheidsgegevens: zonder vastgelegde toestemming niet tonen.
@@ -51,5 +53,6 @@ export function intakeUitRij(rij: unknown): Intake | null {
     metingen: metingenUitRij(rij.metingen, toestemming),
     toestemmingGezondheid: toestemming,
     notitie: tekstOfNull(rij.notitie),
+    bron: rij.bron === 'lid' ? 'lid' : 'trainer',
   }
 }

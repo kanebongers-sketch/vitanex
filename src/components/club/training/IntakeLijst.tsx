@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
-import { ChevronRight, ShieldCheck } from 'lucide-react'
+import { ChevronRight, ShieldCheck, Smartphone } from 'lucide-react'
 import { berekenBmi } from '@/lib/club/training/intake'
 import type { Intake } from '@/lib/club/training/intake-rij'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { INTAKE } from '@/lib/aiyourgym/taal/woorden/club/intake'
 import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
+import { NIEUWE_LEDEN } from '@/lib/aiyourgym/taal/woorden/club/nieuwe-leden'
 import { toonDatum } from '@/lib/club/training/weergave'
 import { IntakeDetail } from './IntakeDetail'
 import { VoorstelKnop } from './VoorstelKnop'
@@ -30,6 +31,7 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
   const taal = useTaal()
   const t = useTekst(INTAKE).lijst
   const l = useTekst(TRAINING_LABELS)
+  const doorLid = useTekst(NIEUWE_LEDEN).kaart.doorLid
   const sluit = useCallback(() => setOpen(null), [])
 
   return (
@@ -53,6 +55,11 @@ export function IntakeLijst({ intakes, trainers, editorHref, lidHref, toonLid }:
                   ].filter(Boolean).join(' · ')}
                 </span>
               </button>
+              {i.bron === 'lid' && (
+                <span className="club-chip club-chip--info club-training-avgchip">
+                  <Smartphone aria-hidden size={13} /> {doorLid}
+                </span>
+              )}
               {i.toestemmingGezondheid && (
                 <span className="club-chip club-chip--ok club-chip--geen club-training-avgchip" title={t.avgTitel}>
                   <ShieldCheck aria-hidden size={13} /> {t.avg}

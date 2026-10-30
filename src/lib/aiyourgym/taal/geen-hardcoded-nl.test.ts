@@ -58,6 +58,11 @@ export const CLUB_KLAAR = [
   'src/components/club/ledenlogin',
   'src/components/club/ledenapp-pwa',
   'src/components/club/training/repspeler',
+  // Nieuwe leden van A tot Z (30-10-2026): toevoegen, aanmeldlinks en QR, aanmelden en de intake van het lid.
+  'src/components/club/nieuwe-leden',
+  'src/components/club/aanmelden',
+  'src/app/(aiyourgym)/(club)/mijn/aanmelden',
+  'src/app/(aiyourgym)/(club)/mijn/intake',
   'src/app/(aiyourgym)/(club)/mijn/page.tsx',
   'src/app/(aiyourgym)/(club)/mijn/layout.tsx',
   'src/app/(aiyourgym)/(club)/mijn/inloggen',

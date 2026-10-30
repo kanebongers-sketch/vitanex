@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { leesSnelleStart } from '@/lib/club/training/lid-schemas/regels'
 import { Layers, ListPlus, Sparkles, UserRound } from 'lucide-react'
 import type { Maker } from '@/lib/club/training/lid-schemas/regels'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
@@ -28,7 +29,13 @@ export function EigenSchema({ maker }: Props) {
   const api = useLedenappApi()
   const router = useRouter()
   const t = useTekst(EIGEN_SCHEMA)
-  const [open, setOpen] = useState<Open>(null)
+  const zoek = useSearchParams()
+  // Na de intake (?start=intake&doel=...): meteen de snelle start, al ingevuld met de antwoorden.
+  const [open, setOpen] = useState<Open>(() => {
+    if (zoek?.get('start') !== 'intake') return null
+    const begin = leesSnelleStart({ doel: zoek.get('doel'), dagen: zoek.get('dagen'), materiaal: zoek.get('materiaal'), niveau: zoek.get('niveau') })
+    return begin ? { soort: 'maker', start: { soort: 'snel', begin } } : null
+  })
   const sluit = useCallback(() => setOpen(null), [])
   const ververs = useCallback(() => router.refresh(), [router])
   const bouw = api.lidTraining

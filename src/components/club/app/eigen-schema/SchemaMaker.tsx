@@ -20,7 +20,8 @@ import { SnelleStartVragen, STANDAARD_START } from './SnelleStartVragen'
 //   bewerk: een bestaand schema laden en aanpassen.
 // Pas bij Opslaan gaat er iets naar de server.
 
-export type MakerStart = { soort: 'snel' } | { soort: 'leeg' } | { soort: 'bewerk'; id: string }
+/** snel: met `begin` al ingevuld (bijvoorbeeld uit de intake van het lid). */
+export type MakerStart = { soort: 'snel'; begin?: SnelleStart } | { soort: 'leeg' } | { soort: 'bewerk'; id: string }
 
 interface Props {
   start: MakerStart
@@ -88,7 +89,7 @@ export function SchemaMaker({ start, url, onKlaar, onSluit }: Props) {
   if (start.soort === 'snel') {
     return (
       <EditorScherm titel={es.vragen.kop} gewijzigd={false} onSluit={onSluit}>
-        <SnelleStartVragen begin={STANDAARD_START} bezig={bezig} fout={fout} onMaak={(k) => void maakVoorstel(k)} />
+        <SnelleStartVragen begin={start.begin ?? STANDAARD_START} bezig={bezig} fout={fout} onMaak={(k) => void maakVoorstel(k)} />
       </EditorScherm>
     )
   }

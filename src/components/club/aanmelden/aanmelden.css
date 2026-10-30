@@ -1,0 +1,127 @@
+/* ─── Ledenapp: zelf aanmelden (club-am-*) en de intake van het lid (club-in-*) ──
+   Mobiel eerst, in de huisstijl van de sportschool (tokens uit club.css en
+   app.css: --brand, --bg-card, --line, --text-*). Grote tikvlakken (min 48px),
+   een voortgangsbalk die alleen met transform beweegt, rustige overgangen. */
+
+/* ── Aanmelden ───────────────────────────────────────────────────────────── */
+.club-am .club-mijn-inlog-kaart { width: min(100%, 440px); }
+.club-am-voortgang { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.club-am-voortgang span { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; position: relative; }
+.club-am-voortgang span[data-af]::after { content: ''; position: absolute; inset: 0; background: var(--brand); border-radius: inherit; animation: club-am-vul 420ms var(--ease) both; transform-origin: left; }
+.club-am-voortgang small { flex: none; margin-left: 6px; color: var(--text-3); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+@keyframes club-am-vul { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.club-am-twee { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 380px) { .club-am-twee { grid-template-columns: 1fr 1fr; } }
+.club-am-twee .club-mijn-email input { min-width: 0; }
+
+.club-am-pot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+
+.club-am-akkoord { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: var(--bg-app); cursor: pointer; font-size: 14.5px; line-height: 1.45; color: var(--text-1); }
+.club-am-akkoord input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--brand); }
+.club-am-akkoord small { display: block; margin-top: 4px; color: var(--text-3); font-size: 12.5px; }
+.club-am-akkoord:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-am-vast { padding: 10px 14px; border-radius: 14px; background: var(--brand-soft); color: var(--text-1) !important; font-weight: 600; }
+
+.club-am-vormen { display: grid; gap: 10px; }
+.club-am-vorm {
+  display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: center; min-height: 64px; padding: 14px 16px;
+  border-radius: 18px; border: 1px solid var(--line-strong); background: var(--bg-app); color: var(--text-1); text-align: left; font: inherit; cursor: pointer;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease), transform 140ms var(--ease);
+}
+.club-am-vorm:active { transform: scale(0.985); }
+.club-am-vorm strong { display: block; font-size: 16px; }
+.club-am-vorm small { display: block; margin-top: 3px; color: var(--text-3); font-size: 13px; line-height: 1.4; }
+.club-am-vorm[aria-checked='true'] { border-color: var(--brand); background: var(--brand-soft); }
+.club-am-vorm--stil strong { color: var(--text-2); }
+.club-am-vorm:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-am-vorm-vink { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; border: 1.5px solid var(--line-strong); color: var(--brand-inkt, var(--bg-app)); }
+.club-am-vorm[aria-checked='true'] .club-am-vorm-vink { background: var(--brand); border-color: var(--brand); }
+
+.club-am-code input { font-family: var(--ff-kop); font-size: 28px !important; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
+.club-am-onder { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; }
+.club-am-onder button, .club-am-terug { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; }
+.club-am-terug { margin-top: 4px; }
+
+/* ── Intake van het lid ──────────────────────────────────────────────────── */
+.club-in-pagina { align-content: start; }
+.club-in, .club-in-klaar { width: min(100%, 480px); display: grid; gap: 22px; }
+.club-in-kop { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 14px; }
+.club-in-terug { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--bg-card); color: var(--text-1); cursor: pointer; }
+.club-in-terug:focus-visible, .club-in-later:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-in-balk { position: relative; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.club-in-balk span { position: absolute; inset: 0; background: var(--brand); border-radius: inherit; transform-origin: left; transition: transform 360ms var(--ease); }
+.club-in-later { color: var(--text-3); font-size: 14px; font-weight: 600; text-decoration: none; }
+
+.club-in-scherm { display: grid; gap: 14px; animation: club-lidapp-in 320ms var(--ease) both; }
+.club-in-scherm h1, .club-in-klaar h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(32px, 10vw, 42px); line-height: 0.95; font-weight: 700; text-transform: uppercase; }
+.club-in-scherm > p, .club-in-klaar > p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 1.5; }
+
+.club-in-keuze {
+  position: relative; display: grid; align-content: center; gap: 2px; min-height: 52px; padding: 12px 16px; border-radius: 18px;
+  border: 1px solid var(--line-strong); background: var(--bg-card); color: var(--text-1); font: inherit; font-size: 15.5px; font-weight: 600; text-align: left; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), transform 140ms var(--ease);
+}
+.club-in-keuze:active { transform: scale(0.97); }
+.club-in-keuze small { color: var(--text-3); font-size: 13px; font-weight: 500; }
+.club-in-keuze[aria-pressed='true'] { border-color: var(--brand); background: var(--brand-soft); }
+.club-in-keuze:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-in-keuze--groot { min-height: 76px; font-family: var(--ff-kop); font-size: 19px; letter-spacing: 0.02em; text-transform: uppercase; }
+.club-in-vink { position: absolute; top: 10px; right: 10px; color: var(--brand-tekst, var(--brand)); }
+.club-in-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.club-in-lijst { display: grid; gap: 8px; }
+.club-in-getallen { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 8px; }
+.club-in-getallen .club-in-keuze { justify-items: center; text-align: center; font-variant-numeric: tabular-nums; }
+.club-in-getallen .club-in-vink { display: none; }
+.club-in-pillen { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-in-pillen .club-in-keuze { min-height: 44px; padding: 8px 16px; border-radius: 999px; font-size: 14.5px; }
+.club-in-pillen .club-in-vink { display: none; }
+.club-in-groep { display: grid; gap: 10px; margin: 6px 0 0; padding: 0; border: 0; }
+.club-in-groep legend { margin-bottom: 10px; color: var(--text-2); font-size: 14px; font-weight: 600; }
+
+.club-in-maten { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; transition: opacity 160ms var(--ease); }
+.club-in-maten[aria-disabled='true'] { opacity: 0.45; }
+.club-in-maat { display: grid; gap: 8px; padding: 14px 16px; border-radius: 20px; border: 1px solid var(--line-strong); background: var(--bg-card); }
+.club-in-maat > span:first-child { color: var(--text-3); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.club-in-maat-veld { display: flex; align-items: baseline; gap: 6px; }
+.club-in-maat input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--text-1); font-family: var(--ff-kop); font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; caret-color: var(--brand); }
+.club-in-maat input:focus { outline: none; }
+.club-in-maat:focus-within { border-color: var(--brand); }
+.club-in-maat small { color: var(--text-3); font-size: 15px; }
+.club-in-toestemming { background: var(--bg-card); }
+
+.club-in-allesnee { justify-self: start; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px dashed var(--line-strong); background: transparent; color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.club-in-allesnee:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-in-vragen { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.club-in-vraag { display: grid; gap: 10px; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--bg-card); transition: border-color 160ms var(--ease); }
+.club-in-vraag[data-ja] { border-color: color-mix(in srgb, var(--club-let-op) 55%, transparent); }
+.club-in-vraag p { margin: 0; font-size: 15px; line-height: 1.45; }
+.club-in-janee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.club-in-janee button { min-height: 44px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-1); font: inherit; font-weight: 700; cursor: pointer; transition: background-color 160ms var(--ease), border-color 160ms var(--ease); }
+.club-in-janee button[aria-pressed='true'] { background: var(--brand); border-color: var(--brand); color: var(--brand-inkt, var(--bg-app)); }
+.club-in-janee button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-in-uitleg { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--bg-app); color: var(--text-1); font: inherit; font-size: 15px; resize: vertical; }
+.club-in-uitleg:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.club-in-voet { position: sticky; bottom: 0; display: flex; gap: 10px; padding: 12px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); background: linear-gradient(to top, var(--bg-app) 70%, transparent); }
+.club-in-voet .club-lidapp-knop { min-height: 56px; }
+.club-in-verder { flex: 1; font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; }
+.club-in-overslaan { flex: none; }
+
+.club-in-klaar { justify-items: start; padding-top: 12vh; animation: club-lidapp-in 420ms var(--ease) both; }
+.club-in-klaar-icoon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); box-shadow: 0 16px 40px -18px var(--brand-glow); }
+
+/* De kaart op Home zolang er nog geen intake is. */
+.club-in-kaart {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px 16px; align-items: start; padding: 20px; border-radius: var(--lidapp-radius, 24px);
+  border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line)); background: linear-gradient(160deg, var(--brand-soft), var(--bg-card) 70%);
+}
+.club-in-kaart h2 { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 22px; line-height: 1; text-transform: uppercase; }
+.club-in-kaart p { margin: 0; color: var(--text-2); font-size: 14.5px; line-height: 1.45; }
+.club-in-kaart .club-lidapp-knop { grid-column: 1 / -1; min-height: 50px; }
+.club-in-kaart-icoon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--brand); color: var(--brand-inkt, var(--bg-app)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-am-voortgang span[data-af]::after, .club-in-scherm, .club-in-klaar { animation: none; }
+  .club-in-balk span, .club-in-keuze, .club-am-vorm { transition: none; }
+}

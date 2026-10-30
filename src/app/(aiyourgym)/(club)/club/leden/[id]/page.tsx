@@ -22,6 +22,7 @@ import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LidKop } from '@/components/club/leden/LidKop'
+import { haalAanmeldInfo } from '@/lib/club/nieuwe-leden/meldingen'
 import { BehoudKaart } from '@/components/club/leden/BehoudKaart'
 import { Bezoekpatroon } from '@/components/club/leden/Bezoekpatroon'
 import { LidGegevens } from '@/components/club/leden/LidGegevens'
@@ -147,10 +148,11 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   const nu = new Date()
   const taal = await getTaal()
   const kb = LIDKAART_BLOKKEN[taal].kaart
-  const [gelezen, verzoek, betalen] = await Promise.all([
+  const [gelezen, verzoek, betalen, aanmelding] = await Promise.all([
     haalLidKaart(t.admin, t.userId, id, nu, taal),
     haalVerwijderverzoek(t.admin, t.userId, id),
     lidgeldOpen(t),
+    haalAanmeldInfo(t.admin, t.userId, id),
   ])
   // Een lid van een vestiging die niet van deze persoon is: dezelfde 404 als een onbekend lid.
   const kaart = gelezen && binnenVestigingen(t.vestigingen, gelezen.lid) ? gelezen : null
@@ -167,7 +169,7 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
 
   return (
     <div className="club-lidhub">
-      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} rechten={rechten} />
+      <LidKop lid={lid} vestiging={vestiging} vestigingNaam={naamVan(t.vestigingen, lid.vestiging)} coachNaam={coach?.naam ?? null} rechten={rechten} aangemeldOp={aanmelding?.op ?? null} />
       <LidTabs lidId={lid.id} vestiging={vestiging} actief={tab} zichtbaar={tabs} />
       {verzoek ? (
         <p className="club-melding club-melding--fout" role="status">

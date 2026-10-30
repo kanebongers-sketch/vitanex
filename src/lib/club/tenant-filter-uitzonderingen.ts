@@ -29,6 +29,8 @@ export const TENANT_UITZONDERINGEN: readonly TenantUitzondering[] = [
   { bestand: 'src/lib/club/medewerker-login/opslag.ts', tabel: 'club_medewerker_sessies', reden: SESSIE },
   { bestand: 'src/lib/club/ledenlogin/opslag.ts', tabel: 'club_lid_toegang', reden: LOGIN },
   { bestand: 'src/lib/club/ledenlogin/opslag.ts', tabel: 'club_lid_sessies', reden: SESSIE },
+  { bestand: 'src/lib/club/nieuwe-leden/links-opslag.ts', tabel: 'club_aanmeldlinks', reden: 'Aanmelden via een link: de link opzoeken op zijn geheime code, de sportschool volgt uit de gevonden rij.' },
+  { bestand: 'src/lib/club/nieuwe-leden/aanmelden-opslag.ts', tabel: 'club_aanmeldingen', reden: 'Aanmelden via een link: zoekt op tokenhash, telt de rem op IP-, adres- en linkhash en ruimt rijen ouder dan een dag op.' },
   { bestand: 'src/lib/club/platform-login/opslag.ts', tabel: 'club_platform_accounts', reden: 'Platform-account (Kane) heeft geen sportschool; opgezocht op linkhash, e-mail of id van de sessie.' },
   { bestand: 'src/lib/club/platform-login/opslag.ts', tabel: 'club_platform_sessies', reden: SESSIE },
 

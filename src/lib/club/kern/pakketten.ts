@@ -152,6 +152,8 @@ export const LID_API_PAKKET: Readonly<Record<string, PakketSleutel>> = {
   coaching: 'training',
   voeding: 'training',
   health: 'training',
+  // De intake die het lid zelf invult (migratie 480): hoort bij Training en coaching.
+  intake: 'training',
   challenges: 'groei',
   community: 'groei',
   'checkin-code': 'administratie',

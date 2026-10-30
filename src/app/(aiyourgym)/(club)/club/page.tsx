@@ -40,6 +40,7 @@ import { startDoorverwijzing } from '@/lib/club/rollen/model'
 import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
 import { ikAlsAfvinker } from '@/lib/club/taken/ik'
 import { isLeiding } from '@/lib/club/rollen/wie'
+import { NieuweLedenSectie } from '@/components/club/nieuwe-leden/NieuweLedenSectie'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
@@ -166,6 +167,13 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
           {mag('agenda') && <AgendaVandaag items={agendaVandaag} vestiging={vestiging} />}
         </div>
       </div>
+
+      {/* Nieuwe leden: toevoegen, aanmeldlink en wat leden zelf deden (aanmelding via link, intake). */}
+      {zie('leden') && (
+        <Suspense fallback={null}>
+          <NieuweLedenSectie t={t} vestiging={vestiging} />
+        </Suspense>
+      )}
 
       {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} />}
 
