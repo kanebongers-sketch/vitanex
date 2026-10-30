@@ -90,3 +90,7 @@
   .club-bedrijf-lidapp-blok summary svg { transition: none; }
 }
 .club-bedrijf-overnemen { justify-self: start; margin-top: 4px; }
+/* Vinkje KOR onder KvK en btw: btw is dan niet verplicht. */
+.club-bedrijf-kor { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; cursor: pointer; max-width: 64ch; }
+.club-bedrijf-kor input { margin-top: 3px; accent-color: var(--brand); width: 18px; height: 18px; }
+.club-bedrijf-kor > .club-hint { grid-column: 2; }

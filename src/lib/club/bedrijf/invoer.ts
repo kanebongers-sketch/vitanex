@@ -3,7 +3,7 @@
 // { soort: 'teksten', huisregels, voorwaarden, privacy }. Alles is `unknown`
 // tot het hier is gecontroleerd; foutteksten kunnen zo in de interface.
 
-import { GEGEVENS_VELDEN, MAX_TEKST, SOCIALS, SOCIAL_LABEL, TEKSTEN, TEKST_LABEL, type Gegevens, type Teksten } from './model'
+import { GEGEVENS_VELDEN, MAX_TEKST, bedrijfCompleet, SOCIALS, SOCIAL_LABEL, TEKSTEN, TEKST_LABEL, type Gegevens, type Teksten } from './model'
 import {
   isEmail,
   isTekstTeLang,
@@ -18,7 +18,7 @@ import {
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; fout: string; veld?: string }
 
-export type BedrijfInvoer = { soort: 'gegevens'; gegevens: Gegevens } | { soort: 'teksten'; teksten: Teksten }
+export type BedrijfInvoer = { soort: 'gegevens'; gegevens: Gegevens; kor: boolean } | { soort: 'teksten'; teksten: Teksten }
 
 const goed = <T>(waarde: T): Uitkomst<T> => ({ ok: true, waarde })
 const fout = <T>(tekst: string, veld?: string): Uitkomst<T> => ({ ok: false, fout: tekst, veld })
@@ -70,6 +70,17 @@ export function leesGegevens(r: Record<string, unknown>): Uitkomst<Gegevens> {
   return goed(uit as Gegevens)
 }
 
+export const VERPLICHT_MELDING = {
+  kvk: 'Vul het KvK-nummer in. Dat is verplicht.',
+  btw: 'Vul het btw-nummer in, of vink aan dat je de kleineondernemersregeling (KOR) gebruikt.',
+} as const
+
+/** KvK altijd, btw tenzij KOR. Na leesGegevens: de vorm klopt dan al. */
+export function controleerVerplicht(g: Gegevens, kor: boolean): Uitkomst<Gegevens> {
+  if (bedrijfCompleet(g, kor)) return goed(g)
+  return g.kvk ? fout(VERPLICHT_MELDING.btw, 'btw') : fout(VERPLICHT_MELDING.kvk, 'kvk')
+}
+
 export function leesTeksten(r: Record<string, unknown>): Uitkomst<Teksten> {
   const uit: Partial<Teksten> = {}
   for (const soort of TEKSTEN) {
@@ -86,8 +97,12 @@ export function leesBedrijfInvoer(body: unknown): Uitkomst<BedrijfInvoer> {
   const r = obj(body)
   if (!r) return fout('Onleesbare invoer.')
   if (r.soort === 'gegevens') {
+    if (r.kor !== undefined && typeof r.kor !== 'boolean') return fout('Onleesbare invoer.', 'kor')
+    const kor = r.kor === true
     const u = leesGegevens(r)
-    return u.ok ? goed({ soort: 'gegevens', gegevens: u.waarde }) : u
+    if (!u.ok) return u
+    const v = controleerVerplicht(u.waarde, kor)
+    return v.ok ? goed({ soort: 'gegevens', gegevens: v.waarde, kor }) : v
   }
   if (r.soort === 'teksten') {
     const u = leesTeksten(r)

@@ -49,7 +49,7 @@ export async function haalVestigingContact(admin: SupabaseClient, userId: string
  * opruimactie voor demodata zijn eigen tekst nooit weghaalt.
  */
 export async function bewaarBedrijf(admin: SupabaseClient, userId: string, invoer: BedrijfInvoer): Promise<boolean> {
-  const velden = invoer.soort === 'gegevens' ? invoer.gegevens : invoer.teksten
+  const velden = invoer.soort === 'gegevens' ? { ...invoer.gegevens, kor: invoer.kor } : invoer.teksten
   const { error } = await admin
     .from('club_bedrijfsgegevens')
     .upsert({ user_id: userId, ...velden, demo: false, bijgewerkt_op: new Date().toISOString() }, { onConflict: 'user_id' })

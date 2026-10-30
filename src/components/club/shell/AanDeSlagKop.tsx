@@ -5,6 +5,7 @@ import { TE_DOEN_IDS, type TeDoenId } from '@/lib/club/kern/instel-te-doen'
 import { nodigeStappen, startPad, stappenStand, toonStartKaart } from '@/lib/club/start/stappen'
 import { haalStartFeiten, haalStartVoorPagina } from '@/lib/club/start/opslag'
 import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
+import { bedrijfCompleet } from '@/lib/club/bedrijf/model'
 import { aanDeSlagStand, aanDeSlagStappen } from '@/lib/club/menu/aan-de-slag'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { AanDeSlag } from './AanDeSlag'
@@ -31,7 +32,7 @@ async function teDoenKlaar(t: ClubToegang, ids: readonly TeDoenId[]): Promise<Pa
     huisstijl: Boolean(org.logo),
     adres: Boolean(org.slug),
   }
-  if (bedrijf) uit.bedrijf = Boolean(bedrijf.gegevens.kvk)
+  if (bedrijf) uit.bedrijf = bedrijfCompleet(bedrijf.gegevens, bedrijf.kor)
   return uit
 }
 

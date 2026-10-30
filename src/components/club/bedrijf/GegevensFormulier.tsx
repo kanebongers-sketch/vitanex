@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Gegevens } from '@/lib/club/bedrijf/model'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { BEDRIJF } from '@/lib/aiyourgym/taal/woorden/club/bedrijf'
-import { leesGegevens } from '@/lib/club/bedrijf/invoer'
+import { controleerVerplicht, leesGegevens } from '@/lib/club/bedrijf/invoer'
 import { stuur } from '@/components/club/leden/stuur'
 import { bedrijfsnaamVoorstel } from '@/lib/club/kern/sportschool-naam'
 
@@ -14,7 +14,7 @@ const SOCIAL_NAAM = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'Tik
 
 // Tabblad Gegevens: de officiele gegevens van de sportschool. Eerst in de
 // browser gecontroleerd (zelfde regels als de server), zodat de fout bij het
-// juiste veld staat.
+// juiste veld staat. KvK is verplicht, btw ook tenzij het vinkje KOR aan staat.
 
 type Veld = keyof Gegevens
 
@@ -30,7 +30,7 @@ interface VeldInfo {
 
 type BedrijfTekst = (typeof BEDRIJF)['nl']
 
-function groepenVan(t: BedrijfTekst, sportschool: string): { titel: string; uitleg: string; velden: VeldInfo[] }[] {
+function groepenVan(t: BedrijfTekst, sportschool: string, kor: boolean): { titel: string; uitleg: string; velden: VeldInfo[] }[] {
   const v = t.velden
   return [
     {
@@ -38,7 +38,7 @@ function groepenVan(t: BedrijfTekst, sportschool: string): { titel: string; uitl
       velden: [
         { veld: 'bedrijfsnaam', label: v.bedrijfsnaam.label, placeholder: sportschool || v.bedrijfsnaam.placeholder, hint: v.bedrijfsnaam.hint(sportschool), breed: true, auto: 'organization' },
         { veld: 'kvk', label: v.kvk.label, placeholder: v.kvk.placeholder, hint: v.kvk.hint },
-        { veld: 'btw', label: v.btw.label, placeholder: 'NL123456789B01', hint: v.btw.hint },
+        { veld: 'btw', label: v.btw.label, placeholder: 'NL123456789B01', hint: kor ? v.btw.hintKor : v.btw.hint },
       ],
     },
     {
@@ -75,13 +75,15 @@ function naarTekst(g: Gegevens): Record<Veld, string> {
 
 interface GegevensFormulierProps {
   begin: Gegevens
+  beginKor: boolean
   /** De naam van de sportschool (Huisstijl): voorstel voor een lege bedrijfsnaam. */
   sportschool: string
 }
 
-export function GegevensFormulier({ begin, sportschool }: GegevensFormulierProps) {
+export function GegevensFormulier({ begin, beginKor, sportschool }: GegevensFormulierProps) {
   const router = useRouter()
   const [waarden, setWaarden] = useState<Record<Veld, string>>(() => naarTekst(begin))
+  const [kor, setKor] = useState(beginKor)
   const [foutVeld, setFoutVeld] = useState<{ veld: string | null; tekst: string } | null>(null)
   const [bezig, setBezig] = useState(false)
   const [opgeslagen, setOpgeslagen] = useState(false)
@@ -90,11 +92,12 @@ export function GegevensFormulier({ begin, sportschool }: GegevensFormulierProps
   async function bewaar(e: FormEvent) {
     e.preventDefault()
     setOpgeslagen(false)
-    const controle = leesGegevens(waarden)
+    const vorm = leesGegevens(waarden)
+    const controle = vorm.ok ? controleerVerplicht(vorm.waarde, kor) : vorm
     if (!controle.ok) return setFoutVeld({ veld: controle.veld ?? null, tekst: controle.fout })
     setFoutVeld(null)
     setBezig(true)
-    const uit = await stuur('/api/club/bedrijf', 'PATCH', { soort: 'gegevens', ...waarden })
+    const uit = await stuur('/api/club/bedrijf', 'PATCH', { soort: 'gegevens', ...waarden, kor })
     setBezig(false)
     if (!uit.ok) return setFoutVeld({ veld: null, tekst: uit.fout })
     // De nette vorm (bijvoorbeeld 1234 AB of NL...B01) direct terug in de velden.
@@ -105,7 +108,7 @@ export function GegevensFormulier({ begin, sportschool }: GegevensFormulierProps
 
   return (
     <form className="club-bedrijf-formulier" onSubmit={(e) => void bewaar(e)} noValidate>
-      {groepenVan(t, sportschool).map((groep) => (
+      {groepenVan(t, sportschool, kor).map((groep, i) => (
         <fieldset key={groep.titel} className="club-bedrijf-groep">
           <legend>{groep.titel}</legend>
           <p className="club-hint">{groep.uitleg}</p>
@@ -141,6 +144,13 @@ export function GegevensFormulier({ begin, sportschool }: GegevensFormulierProps
               )
             })}
           </div>
+          {i === 0 && (
+            <label className="club-bedrijf-kor" htmlFor="bedrijf-kor">
+              <input id="bedrijf-kor" type="checkbox" checked={kor} aria-describedby="bedrijf-kor-hint" onChange={(e) => setKor(e.target.checked)} />
+              <span>{t.velden.kor.label}</span>
+              <small id="bedrijf-kor-hint" className="club-hint">{t.velden.kor.hint}</small>
+            </label>
+          )}
         </fieldset>
       ))}
 

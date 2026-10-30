@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { leesBedrijfInvoer } from './invoer'
-import { bedrijfUitRij, ingevuldeTeksten, MAX_TEKST } from './model'
+import { bedrijfCompleet, bedrijfUitRij, ingevuldeTeksten, MAX_TEKST } from './model'
 
 describe('leesBedrijfInvoer: gegevens', () => {
   it('normaliseert en maakt lege velden null', () => {
     // Arrange
-    const body = { soort: 'gegevens', bedrijfsnaam: '  Voorbeeld  Gym B.V. ', kvk: '1234 5678', postcode: '1234ab', email: 'INFO@voorbeeld.nl', website: 'www.voorbeeld.nl', btw: '' }
+    const body = { soort: 'gegevens', bedrijfsnaam: '  Voorbeeld  Gym B.V. ', kvk: '1234 5678', postcode: '1234ab', email: 'INFO@voorbeeld.nl', website: 'www.voorbeeld.nl', btw: '', kor: true }
     // Act
     const u = leesBedrijfInvoer(body)
     // Assert
@@ -20,6 +20,7 @@ describe('leesBedrijfInvoer: gegevens', () => {
         btw: null,
         instagram: null,
       }),
+      kor: true,
     })
   })
 
@@ -65,5 +66,37 @@ describe('bedrijfUitRij en ingevuldeTeksten', () => {
       { soort: 'huisregels', tekst: 'H' },
       { soort: 'privacy', tekst: 'P' },
     ])
+  })
+})
+
+describe('leesBedrijfInvoer: verplicht (KvK altijd, btw tenzij KOR)', () => {
+  it('weigert zonder KvK-nummer', () => {
+    expect(leesBedrijfInvoer({ soort: 'gegevens', btw: '' })).toMatchObject({ ok: false, veld: 'kvk' })
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kor: true })).toMatchObject({ ok: false, veld: 'kvk' })
+  })
+  it('weigert zonder btw-nummer als de KOR niet aan staat', () => {
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kvk: '12345678' })).toMatchObject({ ok: false, veld: 'btw' })
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kvk: '12345678', kor: false })).toMatchObject({ ok: false, veld: 'btw' })
+  })
+  it('KOR: btw mag leeg, mag ook ingevuld', () => {
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kvk: '12345678', kor: true })).toMatchObject({ ok: true, waarde: { kor: true } })
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kvk: '12345678', kor: true, btw: 'NL000099998B57' })).toMatchObject({ ok: true })
+  })
+  it('KOR moet een ja of nee zijn', () => {
+    expect(leesBedrijfInvoer({ soort: 'gegevens', kvk: '12345678', kor: 'ja' })).toMatchObject({ ok: false, veld: 'kor' })
+  })
+})
+
+describe('bedrijfCompleet', () => {
+  it('KvK altijd, btw tenzij KOR', () => {
+    expect(bedrijfCompleet({ kvk: null, btw: 'NL000099998B57' }, false)).toBe(false)
+    expect(bedrijfCompleet({ kvk: '12345678', btw: null }, false)).toBe(false)
+    expect(bedrijfCompleet({ kvk: '12345678', btw: null }, true)).toBe(true)
+    expect(bedrijfCompleet({ kvk: '12345678', btw: 'NL000099998B57' }, false)).toBe(true)
+  })
+  it('leest kor uit de rij, standaard nee', () => {
+    expect(bedrijfUitRij({ kor: true }).kor).toBe(true)
+    expect(bedrijfUitRij({ kor: 'true' }).kor).toBe(false)
+    expect(bedrijfUitRij(null).kor).toBe(false)
   })
 })
