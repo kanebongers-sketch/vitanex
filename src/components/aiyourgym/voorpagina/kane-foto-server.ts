@@ -9,7 +9,7 @@ import { KANE_FOTO_PAD, jpegMaat, type KaneFoto } from './kane-foto'
 export function kaneFoto(): KaneFoto | null {
   let bytes: Uint8Array
   try {
-    bytes = new Uint8Array(readFileSync(join(process.cwd(), 'public', ...KANE_FOTO_PAD.split('/').filter(Boolean))))
+    bytes = new Uint8Array(readFileSync(join(process.cwd(), 'public', 'aiyourgym', 'kane.jpg')))
   } catch {
     // Nog geen foto: dat is de normale stand tot Kane er een aanlevert.
     return null
