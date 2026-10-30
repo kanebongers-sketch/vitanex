@@ -17,6 +17,12 @@ export interface RenderTiming {
   heenIs: HeenIs
   soort: RenderSoort
   woorden?: FaseWoorden
+  /**
+   * Alleen bij een wisselende render (besluit Kane 30-10-2026): de fases van de
+   * herhaling rechts; `fases` is dan de herhaling links. Elke kant telt als een
+   * herhaling, het tempo blijft 1 seconde heen en 1 seconde terug.
+   */
+  fasesRechts?: FrameFases
 }
 
 /** Wat het schema voorschrijft voor een set. */
@@ -32,7 +38,7 @@ export function planVoor(render: RenderTiming, set: SetVoorschrift): RepPlan {
     const doel = doelVan({ soort: 'vasthouden', herhalingen: set.herhalingen, tijdSec: set.tijdSec, repDuur: 0 })
     return maakVasthoudPlan({ frames: render.frames, fps: render.fps, doelSec: doel.soort === 'vasthouden' ? doel.sec : 30 })
   }
-  const basis = { fases: render.fases, frames: render.frames, heenIs: render.heenIs, tempo: AFSPEEL_TEMPO, woorden: render.woorden }
+  const basis = { fases: render.fases, fasesRechts: render.fasesRechts, frames: render.frames, heenIs: render.heenIs, tempo: AFSPEEL_TEMPO, woorden: render.woorden }
   const eenRep = maakHerhalingPlan({ ...basis, reps: 1 })
   const doel = doelVan({ soort: 'herhaling', herhalingen: set.herhalingen, tijdSec: set.tijdSec, repDuur: eenRep.repDuur })
   return maakHerhalingPlan({ ...basis, reps: doel.soort === 'herhaling' ? doel.reps : 10 })

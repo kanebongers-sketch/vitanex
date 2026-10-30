@@ -32,7 +32,9 @@ const PUBLIC = join(process.cwd(), 'public')
  * Lossless is gemeten en te zwaar (ruim 7 MB voor 940 px). Een langere lus
  * (meer beelden) mag niet zomaar boven deze grenzen: dan eerst de kwaliteit
  * in scripts/oefenbeelden-web.mjs afwegen. Het script zakt zelf in kwaliteit
- * (stappen van 2, niet onder 76) tot een lus binnen deze grenzen past.
+ * (stappen van 2, niet onder 66) tot een lus binnen deze grenzen past. Een
+ * wisselende lus (30-10-2026) kan langer zijn dan 120 beelden; dan groeit de
+ * grens van de bewegende lussen naar rato mee (`grens`, zelfde regel als het script).
  */
 const MAX_KB = {
   lusHd: 3072,
@@ -43,6 +45,14 @@ const MAX_KB = {
   beginKlein: 40,
   piekKlein: 40,
 } as const
+
+const LUSSEN = new Set<keyof typeof MAX_KB>(['lusHd', 'lus', 'lusKlein'])
+
+/** Grens in KB; bewegende lussen boven 120 beelden naar rato, met 6 procent ruimte (zelfde regel als het script). */
+function grens(sleutel: keyof typeof MAX_KB, beelden: number): number {
+  const factor = beelden > 120 ? (beelden / 120) * 1.06 : 1
+  return LUSSEN.has(sleutel) ? MAX_KB[sleutel] * factor : MAX_KB[sleutel]
+}
 
 /**
  * Losse beelden voor de rep-speler, bovengrens in MB per maat (alle beelden van
@@ -85,7 +95,7 @@ describe('oefenrenders', () => {
         expect(b.src, `${r.slug} ${sleutel}`).toMatch(/^\/oefenbeelden\/[a-z0-9-]+\/[a-z-]+\.webp\?v=[0-9a-f]{8}$/)
         expect(existsSync(pad(b.src)), b.src).toBe(true)
         expect(statSync(pad(b.src)).size, b.src).toBe(b.bytes)
-        expect(b.bytes / 1024, b.src).toBeLessThan(MAX_KB[sleutel])
+        expect(b.bytes / 1024, b.src).toBeLessThan(grens(sleutel, r.frames?.aantal ?? 0))
         expect(b.breedte).toBeGreaterThan(0)
         expect(b.hoogte).toBeGreaterThan(0)
       }
@@ -135,12 +145,16 @@ describe('oefenrenders', () => {
     for (const r of OEFENRENDERS) {
       const f = r.frames
       if (!f) continue
+      // Wisselend (30-10-2026): links in de eerste helft, rechts in de tweede; samen de hele lus.
+      const reeksen = f.fasenRechts ? [f.fasen, f.fasenRechts] : [f.fasen]
       let vorige = 0
-      for (const naam of FASE_VOLGORDE) {
-        const [van, tot] = f.fasen[naam]
-        expect(van, `${r.slug} ${naam}`).toBe(vorige)
-        expect(tot, `${r.slug} ${naam}`).toBeGreaterThanOrEqual(van)
-        vorige = tot
+      for (const fasen of reeksen) {
+        for (const naam of FASE_VOLGORDE) {
+          const [van, tot] = fasen[naam]
+          expect(van, `${r.slug} ${naam}`).toBe(vorige)
+          expect(tot, `${r.slug} ${naam}`).toBeGreaterThanOrEqual(van)
+          vorige = tot
+        }
       }
       expect(vorige, r.slug).toBe(f.aantal)
       // Een rep heeft echt een heen- en terugbeweging
@@ -153,6 +167,7 @@ describe('oefenrenders', () => {
     if (soort('plank')) expect(soort('plank')?.soort).toBe('vasthouden')
     if (soort('front-squat')) expect(soort('front-squat')?.heenIs).toBe('excentrisch')
     if (soort('barbell-curl')) expect(soort('barbell-curl')?.heenIs).toBe('concentrisch')
+    if (soort('bird-dog')) expect(soort('bird-dog')?.fasenRechts, 'bird-dog wisselt af').not.toBeNull()
   })
 
   it('vloerlijn ligt laag in beeld: geen lege band onder de voeten', () => {

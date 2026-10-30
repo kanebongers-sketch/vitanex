@@ -138,6 +138,14 @@
 }
 
 .club-rep-tempo { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-2); font-size: 14px; }
+.club-rep-perkant { display: block; margin-top: 2px; color: var(--text-3, var(--text-2)); font-size: 13px; }
+
+/* Wisselende oefening (30-10-2026): de kant van deze herhaling boven het fasewoord */
+.club-rep-kant {
+  margin: 0;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-2);
+}
 .club-rep-tempo svg { flex: none; color: var(--brand-tekst, var(--brand)); }
 
 /* Klein voorbeeld in een lijst: de poster, op hover de lus */

@@ -11,73 +11,96 @@ export const OEFENRENDER_DATA = [
     "spierenSecundair": [
       "hamstring"
     ],
-    "breedte": 1331,
-    "hoogte": 1331,
+    "breedte": 1332,
+    "hoogte": 1332,
     "fps": 24,
     "beelden": 96,
     "maten": {
-      "lus-hd": 1331,
+      "lus-hd": 1332,
       "lus": 720,
       "lus-klein": 480,
-      "begin": 1331,
-      "piek": 1331,
+      "begin": 1332,
+      "piek": 1332,
       "begin-klein": 480,
       "piek-klein": 480
     },
     "vloer_y": 0.9602,
-    "versie": "11760f1a",
+    "versie": "57194b03",
     "bytes": {
-      "lus-hd": 2793300,
-      "lus": 2074666,
-      "lus-klein": 1151010,
-      "begin": 35908,
-      "piek": 36736,
-      "begin-klein": 13266,
-      "piek-klein": 12976
+      "lus-hd": 2749286,
+      "lus": 2061646,
+      "lus-klein": 1189102,
+      "begin": 36166,
+      "piek": 36666,
+      "begin-klein": 13240,
+      "piek-klein": 12886
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "f22a94c2",
+      "versie": "880b4263",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1293722
+          "bytes": 1227586
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2257710
+          "bytes": 2133602
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3581292
+          "bytes": 3421410
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          14
+          1
         ],
         "heen": [
-          14,
-          44
+          1,
+          24
         ],
         "houden_ver": [
-          44,
-          52
+          24,
+          25
         ],
         "terug": [
-          52,
-          80
+          25,
+          48
         ],
         "rust_eind": [
-          80,
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
           96
         ]
       },
@@ -442,59 +465,82 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9599,
-    "versie": "a3bdf05e",
+    "versie": "aae09bb3",
     "bytes": {
-      "lus-hd": 1223416,
-      "lus": 967816,
-      "lus-klein": 564696,
-      "begin": 26612,
-      "piek": 30106,
-      "begin-klein": 9642,
-      "piek-klein": 12106
+      "lus-hd": 1933054,
+      "lus": 1534428,
+      "lus-klein": 899664,
+      "begin": 26606,
+      "piek": 30110,
+      "begin-klein": 9626,
+      "piek-klein": 12080
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "38be3e83",
+      "versie": "396f3166",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1068542
+          "bytes": 1060452
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1829358
+          "bytes": 1823796
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 2960680
+          "bytes": 2949172
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          6
+          1
         ],
         "heen": [
-          6,
+          1,
           24
         ],
         "houden_ver": [
           24,
-          36
+          25
         ],
         "terug": [
-          36,
-          46
+          25,
+          48
         ],
         "rust_eind": [
-          46,
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
           96
         ]
       },
@@ -760,7 +806,7 @@ export const OEFENRENDER_DATA = [
     "breedte": 1343,
     "hoogte": 1343,
     "fps": 24,
-    "beelden": 120,
+    "beelden": 96,
     "maten": {
       "lus-hd": 1343,
       "lus": 720,
@@ -771,60 +817,83 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9598,
-    "versie": "a42e2408",
+    "versie": "13b661b1",
     "bytes": {
-      "lus-hd": 2435850,
-      "lus": 1753378,
-      "lus-klein": 976754,
+      "lus-hd": 2443774,
+      "lus": 1769894,
+      "lus-klein": 995144,
       "begin": 31718,
-      "piek": 39648,
+      "piek": 39582,
       "begin-klein": 11310,
-      "piek-klein": 14704
+      "piek-klein": 14696
     },
     "frames": {
-      "aantal": 120,
+      "aantal": 96,
       "fps": 24,
-      "versie": "4b041c2f",
+      "versie": "a257fdcf",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1459744
+          "bytes": 1166426
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2478064
+          "bytes": 1983298
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4001896
+          "bytes": 3203400
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          6
+          1
         ],
         "heen": [
-          6,
-          28
+          1,
+          24
         ],
         "houden_ver": [
-          28,
-          36
+          24,
+          25
         ],
         "terug": [
-          36,
-          58
+          25,
+          48
         ],
         "rust_eind": [
-          58,
-          120
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
         ]
       },
       "heen_is": "concentrisch",
@@ -842,7 +911,7 @@ export const OEFENRENDER_DATA = [
     "breedte": 1352,
     "hoogte": 1352,
     "fps": 24,
-    "beelden": 120,
+    "beelden": 96,
     "maten": {
       "lus-hd": 1352,
       "lus": 720,
@@ -853,60 +922,83 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9601,
-    "versie": "6b719548",
+    "versie": "a9c2c253",
     "bytes": {
-      "lus-hd": 1902778,
-      "lus": 1477360,
-      "lus-klein": 871988,
-      "begin": 26766,
-      "piek": 30024,
-      "begin-klein": 10014,
-      "piek-klein": 11474
+      "lus-hd": 1996770,
+      "lus": 1563908,
+      "lus-klein": 908658,
+      "begin": 26908,
+      "piek": 29312,
+      "begin-klein": 10016,
+      "piek-klein": 11864
     },
     "frames": {
-      "aantal": 120,
+      "aantal": 96,
       "fps": 24,
-      "versie": "2c3df011",
+      "versie": "efc9f394",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1324874
+          "bytes": 1063646
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2304634
+          "bytes": 1847188
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3696090
+          "bytes": 2966784
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          8
+          1
         ],
         "heen": [
-          8,
-          32
+          1,
+          24
         ],
         "houden_ver": [
-          32,
-          40
+          24,
+          25
         ],
         "terug": [
-          40,
-          60
+          25,
+          48
         ],
         "rust_eind": [
-          60,
-          120
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
         ]
       },
       "heen_is": "excentrisch",
@@ -1011,7 +1103,7 @@ export const OEFENRENDER_DATA = [
     "breedte": 1338,
     "hoogte": 1338,
     "fps": 24,
-    "beelden": 72,
+    "beelden": 96,
     "maten": {
       "lus-hd": 1338,
       "lus": 720,
@@ -1022,60 +1114,83 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9596,
-    "versie": "648affa9",
+    "versie": "2c99df30",
     "bytes": {
-      "lus-hd": 1552972,
-      "lus": 1176082,
-      "lus-klein": 688142,
-      "begin": 38338,
-      "piek": 30308,
-      "begin-klein": 14826,
-      "piek-klein": 11298
+      "lus-hd": 2457418,
+      "lus": 1869652,
+      "lus-klein": 1087668,
+      "begin": 30512,
+      "piek": 38214,
+      "begin-klein": 10714,
+      "piek-klein": 14792
     },
     "frames": {
-      "aantal": 72,
+      "aantal": 96,
       "fps": 24,
-      "versie": "64b96fb4",
+      "versie": "ec920136",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 890654
+          "bytes": 1133592
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1525576
+          "bytes": 1953430
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 2442230
+          "bytes": 3126102
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          8
+          1
         ],
         "heen": [
-          8,
-          36
+          1,
+          24
         ],
         "houden_ver": [
-          36,
-          44
+          24,
+          25
         ],
         "terug": [
-          44,
-          72
+          25,
+          48
         ],
         "rust_eind": [
-          72,
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
           72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
         ]
       },
       "heen_is": "concentrisch",
@@ -1258,74 +1373,97 @@ export const OEFENRENDER_DATA = [
       "hamstring",
       "romp"
     ],
-    "breedte": 1354,
-    "hoogte": 1354,
+    "breedte": 1353,
+    "hoogte": 1353,
     "fps": 24,
-    "beelden": 120,
+    "beelden": 136,
     "maten": {
-      "lus-hd": 1354,
+      "lus-hd": 1353,
       "lus": 720,
       "lus-klein": 480,
-      "begin": 1354,
-      "piek": 1354,
+      "begin": 1353,
+      "piek": 1353,
       "begin-klein": 480,
       "piek-klein": 480
     },
     "vloer_y": 0.9601,
-    "versie": "37424930",
+    "versie": "6ef2d192",
     "bytes": {
-      "lus-hd": 2313054,
-      "lus": 1771836,
-      "lus-klein": 1029446,
-      "begin": 37750,
-      "piek": 41574,
-      "begin-klein": 13806,
-      "piek-klein": 16520
+      "lus-hd": 3717302,
+      "lus": 2778290,
+      "lus-klein": 1630540,
+      "begin": 37758,
+      "piek": 41446,
+      "begin-klein": 13812,
+      "piek-klein": 16488
     },
     "frames": {
-      "aantal": 120,
+      "aantal": 136,
       "fps": 24,
-      "versie": "3126aed0",
+      "versie": "f02f75f2",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1856516
+          "bytes": 2021288
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 3138834
+          "bytes": 3449584
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4981590
+          "bytes": 5497724
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          6
+          1
         ],
         "heen": [
-          6,
-          30
+          1,
+          24
         ],
         "houden_ver": [
-          30,
-          70
+          24,
+          25
         ],
         "terug": [
-          70,
-          114
+          25,
+          68
         ],
         "rust_eind": [
-          114,
-          120
+          68,
+          68
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          68,
+          69
+        ],
+        "heen": [
+          69,
+          92
+        ],
+        "houden_ver": [
+          92,
+          93
+        ],
+        "terug": [
+          93,
+          136
+        ],
+        "rust_eind": [
+          136,
+          136
         ]
       },
       "heen_is": "concentrisch",
@@ -1605,59 +1743,82 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9597,
-    "versie": "e3006bb0",
+    "versie": "bf01e71a",
     "bytes": {
-      "lus-hd": 2686868,
-      "lus": 1979604,
-      "lus-klein": 1144320,
-      "begin": 44386,
-      "piek": 42074,
-      "begin-klein": 16894,
-      "piek-klein": 14968
+      "lus-hd": 3101168,
+      "lus": 2310606,
+      "lus-klein": 1349578,
+      "begin": 44610,
+      "piek": 45140,
+      "begin-klein": 16774,
+      "piek-klein": 16356
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "23502310",
+      "versie": "a8850e90",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1503614
+          "bytes": 1568070
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2606398
+          "bytes": 2721988
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4111006
+          "bytes": 4301522
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          8
+          1
         ],
         "heen": [
-          8,
-          52
+          1,
+          24
         ],
         "houden_ver": [
-          52,
-          58
+          24,
+          25
         ],
         "terug": [
-          58,
-          88
+          25,
+          48
         ],
         "rust_eind": [
-          88,
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
           96
         ]
       },
@@ -1677,7 +1838,7 @@ export const OEFENRENDER_DATA = [
     "breedte": 1346,
     "hoogte": 1346,
     "fps": 24,
-    "beelden": 40,
+    "beelden": 96,
     "maten": {
       "lus-hd": 1346,
       "lus": 720,
@@ -1688,60 +1849,83 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9599,
-    "versie": "3a14efc4",
+    "versie": "7de460bb",
     "bytes": {
-      "lus-hd": 1058996,
-      "lus": 812120,
-      "lus-klein": 470254,
-      "begin": 35492,
-      "piek": 37240,
-      "begin-klein": 13818,
-      "piek-klein": 14592
+      "lus-hd": 2854918,
+      "lus": 2163860,
+      "lus-klein": 1262084,
+      "begin": 35486,
+      "piek": 38128,
+      "begin-klein": 13914,
+      "piek-klein": 14742
     },
     "frames": {
-      "aantal": 40,
+      "aantal": 96,
       "fps": 24,
-      "versie": "c5f1a6bf",
+      "versie": "31186823",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 579778
+          "bytes": 1385946
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 995754
+          "bytes": 2380890
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 1607894
+          "bytes": 3841596
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          0
+          1
         ],
         "heen": [
-          0,
-          10
+          1,
+          24
         ],
         "houden_ver": [
-          10,
-          13
+          24,
+          25
         ],
         "terug": [
-          13,
-          21
+          25,
+          48
         ],
         "rust_eind": [
-          21,
-          40
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
         ]
       },
       "heen_is": "concentrisch",
@@ -2426,7 +2610,7 @@ export const OEFENRENDER_DATA = [
     "breedte": 1346,
     "hoogte": 1346,
     "fps": 24,
-    "beelden": 80,
+    "beelden": 96,
     "maten": {
       "lus-hd": 1346,
       "lus": 720,
@@ -2437,60 +2621,83 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9599,
-    "versie": "000990e2",
+    "versie": "a94b845b",
     "bytes": {
-      "lus-hd": 1818480,
-      "lus": 1302768,
-      "lus-klein": 755052,
-      "begin": 38382,
-      "piek": 38980,
-      "begin-klein": 12460,
-      "piek-klein": 12648
+      "lus-hd": 2605816,
+      "lus": 1867702,
+      "lus-klein": 1077166,
+      "begin": 38480,
+      "piek": 38954,
+      "begin-klein": 12690,
+      "piek-klein": 12580
     },
     "frames": {
-      "aantal": 80,
+      "aantal": 96,
       "fps": 24,
-      "versie": "25648e71",
+      "versie": "106cbe3b",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 941406
+          "bytes": 1152942
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1633320
+          "bytes": 2003780
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 2613058
+          "bytes": 3201542
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          8
+          1
         ],
         "heen": [
-          8,
-          40
+          1,
+          24
         ],
         "houden_ver": [
-          40,
-          48
+          24,
+          25
         ],
         "terug": [
-          48,
-          80
+          25,
+          48
         ],
         "rust_eind": [
-          80,
-          80
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
         ]
       },
       "heen_is": "concentrisch",
@@ -2590,74 +2797,97 @@ export const OEFENRENDER_DATA = [
       "hamstring"
     ],
     "spierenSecundair": [],
-    "breedte": 1344,
-    "hoogte": 1344,
+    "breedte": 1328,
+    "hoogte": 1328,
     "fps": 24,
-    "beelden": 72,
+    "beelden": 120,
     "maten": {
-      "lus-hd": 1344,
+      "lus-hd": 1328,
       "lus": 720,
       "lus-klein": 480,
-      "begin": 1344,
-      "piek": 1344,
+      "begin": 1328,
+      "piek": 1328,
       "begin-klein": 480,
       "piek-klein": 480
     },
-    "vloer_y": 0.9598,
-    "versie": "4a3bdb66",
+    "vloer_y": 0.9601,
+    "versie": "a8d1f85f",
     "bytes": {
-      "lus-hd": 2496870,
-      "lus": 1763932,
-      "lus-klein": 997924,
-      "begin": 44820,
-      "piek": 42762,
-      "begin-klein": 15764,
-      "piek-klein": 14966
+      "lus-hd": 3053676,
+      "lus": 2298008,
+      "lus-klein": 1344348,
+      "begin": 38586,
+      "piek": 36198,
+      "begin-klein": 13506,
+      "piek-klein": 12856
     },
     "frames": {
-      "aantal": 72,
+      "aantal": 120,
       "fps": 24,
-      "versie": "9074a93a",
+      "versie": "0a68c146",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1122612
+          "bytes": 1521822
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 1949670
+          "bytes": 2645982
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3109268
+          "bytes": 4232102
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          6
+          1
         ],
         "heen": [
-          6,
-          32
+          1,
+          24
         ],
         "houden_ver": [
-          32,
-          40
+          24,
+          25
         ],
         "terug": [
-          40,
-          66
+          25,
+          60
         ],
         "rust_eind": [
-          66,
-          72
+          60,
+          60
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          60,
+          61
+        ],
+        "heen": [
+          61,
+          84
+        ],
+        "houden_ver": [
+          84,
+          85
+        ],
+        "terug": [
+          85,
+          120
+        ],
+        "rust_eind": [
+          120,
+          120
         ]
       },
       "heen_is": "excentrisch",
@@ -3112,38 +3342,38 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9597,
-    "versie": "e92c67d3",
+    "versie": "4df3315a",
     "bytes": {
-      "lus-hd": 3090350,
-      "lus": 2298210,
-      "lus-klein": 1360822,
-      "begin": 34854,
-      "piek": 32570,
-      "begin-klein": 12780,
-      "piek-klein": 11316
+      "lus-hd": 3062998,
+      "lus": 2349004,
+      "lus-klein": 1348874,
+      "begin": 34834,
+      "piek": 37214,
+      "begin-klein": 12792,
+      "piek-klein": 12900
     },
     "frames": {
       "aantal": 120,
       "fps": 24,
-      "versie": "850e65ba",
+      "versie": "a5bd7f58",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1491356
+          "bytes": 1491470
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2592914
+          "bytes": 2592510
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 4144842
+          "bytes": 4144876
         }
       },
       "fasen": {
@@ -3161,10 +3391,33 @@ export const OEFENRENDER_DATA = [
         ],
         "terug": [
           30,
-          48
+          60
         ],
         "rust_eind": [
-          48,
+          60,
+          60
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          60,
+          66
+        ],
+        "heen": [
+          66,
+          85
+        ],
+        "houden_ver": [
+          85,
+          90
+        ],
+        "terug": [
+          90,
+          120
+        ],
+        "rust_eind": [
+          120,
           120
         ]
       },
@@ -3277,59 +3530,82 @@ export const OEFENRENDER_DATA = [
       "piek-klein": 480
     },
     "vloer_y": 0.9598,
-    "versie": "92b21477",
+    "versie": "769d9ca7",
     "bytes": {
-      "lus-hd": 3104122,
-      "lus": 2216922,
-      "lus-klein": 1273326,
-      "begin": 43458,
-      "piek": 40750,
-      "begin-klein": 14790,
-      "piek-klein": 13904
+      "lus-hd": 2696778,
+      "lus": 1929208,
+      "lus-klein": 1121650,
+      "begin": 34334,
+      "piek": 33002,
+      "begin-klein": 12230,
+      "piek-klein": 11234
     },
     "frames": {
       "aantal": 96,
       "fps": 24,
-      "versie": "1cc98426",
+      "versie": "a383245a",
       "maten": {
         "480": {
           "pad": "frames/480/f{nnn}.webp",
           "breedte": 480,
           "hoogte": 480,
-          "bytes": 1375634
+          "bytes": 1152406
         },
         "720": {
           "pad": "frames/720/f{nnn}.webp",
           "breedte": 720,
           "hoogte": 720,
-          "bytes": 2390958
+          "bytes": 2000042
         },
         "1080": {
           "pad": "frames/1080/f{nnn}.webp",
           "breedte": 1080,
           "hoogte": 1080,
-          "bytes": 3820252
+          "bytes": 3205572
         }
       },
       "fasen": {
         "rust_begin": [
           0,
-          12
+          1
         ],
         "heen": [
-          12,
-          42
+          1,
+          24
         ],
         "houden_ver": [
-          42,
-          52
+          24,
+          25
         ],
         "terug": [
-          52,
-          80
+          25,
+          48
         ],
         "rust_eind": [
-          80,
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
           96
         ]
       },

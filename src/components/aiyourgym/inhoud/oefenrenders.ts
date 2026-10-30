@@ -105,6 +105,12 @@ export interface OefenFrames {
   fasen: Readonly<Record<FaseNaam, FaseReeks>>
   heenIs: HeenIs
   soort: BewegingSoort
+  /**
+   * Wisselende render (besluit Kane 30-10-2026): de lus is een herhaling links
+   * (`fasen`) en daarna een herhaling rechts (`fasenRechts`). null bij een
+   * gewone render.
+   */
+  fasenRechts: Readonly<Record<FaseNaam, FaseReeks>> | null
 }
 
 type Data = (typeof OEFENRENDER_DATA)[number]
@@ -137,6 +143,12 @@ interface FramesData {
   fasen: Readonly<Record<FaseNaam, readonly number[]>>
   heen_is: string
   soort: string
+  wisselend?: boolean
+  fasen_rechts?: Readonly<Record<FaseNaam, readonly number[]>>
+}
+
+function fasenVan(f: Readonly<Record<FaseNaam, readonly number[]>>): Record<FaseNaam, FaseReeks> {
+  return Object.fromEntries(FASE_VOLGORDE.map((n) => [n, [f[n][0], f[n][1]] as const])) as Record<FaseNaam, FaseReeks>
 }
 
 function framesVan(d: Data): OefenFrames | null {
@@ -149,12 +161,10 @@ function framesVan(d: Data): OefenFrames | null {
     maten: Object.entries(f.maten)
       .map(([maat, m]) => ({ maat: Number(maat), breedte: m.breedte, hoogte: m.hoogte, bytes: m.bytes }))
       .sort((a, b) => a.maat - b.maat),
-    fasen: Object.fromEntries(FASE_VOLGORDE.map((n) => [n, [f.fasen[n][0], f.fasen[n][1]] as const])) as Record<
-      FaseNaam,
-      FaseReeks
-    >,
+    fasen: fasenVan(f.fasen),
     heenIs: f.heen_is as HeenIs,
     soort: f.soort as BewegingSoort,
+    fasenRechts: f.wisselend && f.fasen_rechts ? fasenVan(f.fasen_rechts) : null,
   }
 }
 

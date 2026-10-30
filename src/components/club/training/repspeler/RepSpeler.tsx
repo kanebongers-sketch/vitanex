@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pause, Play, RotateCcw, Timer, Volume2, VolumeX } from 'lucide-react'
 import { herstart, nieuweKlok, pauzeer, start, tijdVan, type Klok } from '@/lib/club/training/repspeler/klok'
 import { planVoor, schemaTempoUitleg } from '@/lib/club/training/repspeler/plan'
-import { opPiek, standOp } from '@/lib/club/training/repspeler/tijdlijn'
+import { opPiek, perKant, standOp } from '@/lib/club/training/repspeler/tijdlijn'
 import type { Stand } from '@/lib/club/training/repspeler/typen'
 import { kiesMaat, type RepMaat, type RepRender } from './render-bron'
 import { RepBeeld } from './RepBeeld'
@@ -42,11 +42,17 @@ export interface RepSpelerProps {
 type Status = 'wacht' | 'loopt' | 'pauze' | 'klaar'
 
 function weergaveVan(s: Stand): Weergave {
-  return { rep: s.rep, gedaan: s.gedaan, label: s.label, segment: s.segment, segmentIndex: s.segmentIndex, overSec: Math.ceil(s.over), piek: opPiek(s) }
+  return { rep: s.rep, gedaan: s.gedaan, label: s.label, segment: s.segment, kant: s.kant, segmentIndex: s.segmentIndex, overSec: Math.ceil(s.over), piek: opPiek(s) }
 }
 
 function zelfde(a: Weergave, b: Weergave): boolean {
-  return a.rep === b.rep && a.gedaan === b.gedaan && a.segmentIndex === b.segmentIndex && a.overSec === b.overSec && a.piek === b.piek && a.label === b.label
+  return a.rep === b.rep && a.gedaan === b.gedaan && a.segmentIndex === b.segmentIndex && a.overSec === b.overSec && a.piek === b.piek && a.label === b.label && a.kant === b.kant
+}
+
+/** "10 totaal, 5 per kant" bij een wisselende render (elke kant telt als een herhaling). */
+function kantTekst(reps: number, t: (typeof REPSPELER)['nl']): string {
+  const k = perKant(reps)
+  return t.perKant(reps, k.links, k.rechts)
 }
 
 /** Breedte van het beeld in css-px, gemeten; de maat van de frames volgt daaruit (en uit de pixeldichtheid). */
@@ -214,6 +220,7 @@ export function RepSpeler(p: RepSpelerProps) {
         <span>
           <span className="club-sr">{t.tempoSr}</span>
           {schemaTempoUitleg(render, { herhalingen: p.herhalingen, tijdSec: p.tijdSec, tempo: p.tempo }, (w) => faseWoord(w, t.fase))}
+          {plan.soort === 'herhaling' && plan.segmentenRechts ? <span className="club-rep-perkant">{kantTekst(plan.reps, t)}</span> : null}
         </span>
       </figcaption>
     </figure>

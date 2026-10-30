@@ -72,3 +72,33 @@ describe('renders uit de website', () => {
     expect(repRenderVoor('Bestaat niet')).toBeNull()
   })
 })
+
+describe('wisselende render (besluit Kane 30-10-2026)', () => {
+  const basis = OEFENRENDERS.find((r) => r.frames !== null && r.frames.fasenRechts === null)
+  const fasenRechts = {
+    rust_begin: [48, 49], heen: [49, 72], houden_ver: [72, 73], terug: [73, 95], rust_eind: [95, 96],
+  } as const
+
+  it('fasen rechts komen inclusief mee; zonder kanten blijft fasesRechts weg', () => {
+    if (!basis?.frames) throw new Error('geen render met losse beelden')
+    expect(leesRepRender(basis)?.fasesRechts).toBeUndefined()
+    const wissel = { ...basis, frames: { ...basis.frames, aantal: 96, fasenRechts } }
+    const rep = leesRepRender(wissel)
+    expect(rep?.fasesRechts).toEqual({ rust_begin: [48, 48], heen: [49, 71], houden_ver: [72, 72], terug: [73, 94], rust_eind: [95, 95] })
+  })
+
+  it.each(OEFENRENDERS.filter((r) => r.frames?.fasenRechts).map((r) => [r.naam, r] as const))(
+    '%s: links in de eerste helft, rechts in de tweede',
+    (_naam, r) => {
+      const f = r.frames
+      if (!f?.fasenRechts) throw new Error('geen wisselende render')
+      const half = f.aantal / 2
+      expect(Number.isInteger(half)).toBe(true)
+      expect(f.fasen.rust_eind[1]).toBe(half)
+      expect(f.fasenRechts.rust_begin[0]).toBe(half)
+      expect(f.fasenRechts.rust_eind[1]).toBe(f.aantal)
+      const plan = planVoor(leesRepRender(r)!, { herhalingen: '10', tijdSec: null, tempo: null })
+      expect(plan.soort === 'herhaling' && plan.segmentenRechts !== undefined).toBe(true)
+    },
+  )
+})

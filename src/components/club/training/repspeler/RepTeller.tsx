@@ -2,7 +2,7 @@
 
 import type { RefObject } from 'react'
 import { toonKlok } from '@/lib/club/app/sets'
-import type { RepPlan, SegmentSoort } from '@/lib/club/training/repspeler/typen'
+import type { Kant, RepPlan, SegmentSoort } from '@/lib/club/training/repspeler/typen'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
 
@@ -16,6 +16,8 @@ export interface Weergave {
   gedaan: number
   label: string
   segment: SegmentSoort
+  /** Kant bij een wisselende render (links, rechts), anders null. */
+  kant: Kant | null
   segmentIndex: number
   overSec: number
   piek: boolean
@@ -46,6 +48,7 @@ function meldingVan(plan: RepPlan, w: Weergave, status: RepTellerProps['status']
     return w.overSec % 10 === 0 ? t.teller.nogSeconden(w.overSec) : ''
   }
   if (status === 'klaar') return t.teller.setKlaar(plan.reps)
+  if (w.kant) return t.teller.herhalingKant(w.rep, plan.reps, t.kant[w.kant])
   return t.teller.herhaling(w.rep, plan.reps)
 }
 
@@ -80,6 +83,9 @@ export function RepTeller({ plan, weergave: w, status, ring, setNr, sets }: RepT
           )}
         </p>
       </div>
+      {w.kant && status !== 'wacht' && status !== 'klaar' ? (
+        <p className="club-rep-kant" data-kant={w.kant} aria-hidden>{t.kant[w.kant]}</p>
+      ) : null}
       <p className="club-rep-fase" aria-hidden>{woord(status, w.label, t)}</p>
       <p className="club-sr" aria-live="polite" aria-atomic="true">{meldingVan(plan, w, status, t)}</p>
     </div>

@@ -10,7 +10,7 @@
 // speelt dan als rustige lus op zijn eigen snelheid.
 
 import { secTekst } from './tempo'
-import type { FaseWoorden, FrameBereik, FrameFases, HeenIs, HerhalingPlan, RepPlan, Segment, Stand, Tempo, VasthoudPlan } from './typen'
+import type { FaseWoorden, FrameBereik, FrameFases, HeenIs, HerhalingPlan, Kant, RepPlan, Segment, Stand, Tempo, VasthoudPlan } from './typen'
 
 export function standaardWoorden(heenIs: HeenIs): FaseWoorden {
   return heenIs === 'excentrisch' ? { heen: 'omlaag', terug: 'omhoog', vast: 'vast' } : { heen: 'omhoog', terug: 'omlaag', vast: 'vast' }
@@ -35,23 +35,50 @@ export interface HerhalingInvoer {
   tempo: Tempo
   reps: number
   woorden?: FaseWoorden
+  /** Alleen bij een wisselende render: de fases van de herhaling rechts (de linkerkant staat in `fases`). */
+  fasesRechts?: FrameFases
+}
+
+function segmentenVan(fases: FrameFases, frames: number, exc: boolean, t: Tempo, w: FaseWoorden): Segment[] {
+  const kandidaten: Segment[] = [
+    { soort: 'heen', label: w.heen, duur: exc ? t.excentrisch : t.concentrisch, frames: binnen(fases.heen, frames) },
+    { soort: 'houden', label: w.vast, duur: exc ? t.pauzeGerekt : t.pauzeSamen, frames: binnen(fases.houden_ver, frames) },
+    { soort: 'terug', label: w.terug, duur: exc ? t.concentrisch : t.excentrisch, frames: binnen(fases.terug, frames) },
+    { soort: 'rust', label: w.vast, duur: exc ? t.pauzeSamen : t.pauzeGerekt, frames: binnen(fases.rust_eind, frames) },
+  ]
+  return kandidaten.filter((s) => Number.isFinite(s.duur) && s.duur > 0)
 }
 
 export function maakHerhalingPlan(inv: HerhalingInvoer): HerhalingPlan {
   const frames = Math.max(1, Math.floor(inv.frames))
   const w = inv.woorden ?? standaardWoorden(inv.heenIs)
   const exc = inv.heenIs === 'excentrisch'
-  const t = inv.tempo
-  const kandidaten: Segment[] = [
-    { soort: 'heen', label: w.heen, duur: exc ? t.excentrisch : t.concentrisch, frames: binnen(inv.fases.heen, frames) },
-    { soort: 'houden', label: w.vast, duur: exc ? t.pauzeGerekt : t.pauzeSamen, frames: binnen(inv.fases.houden_ver, frames) },
-    { soort: 'terug', label: w.terug, duur: exc ? t.concentrisch : t.excentrisch, frames: binnen(inv.fases.terug, frames) },
-    { soort: 'rust', label: w.vast, duur: exc ? t.pauzeSamen : t.pauzeGerekt, frames: binnen(inv.fases.rust_eind, frames) },
-  ]
-  const segmenten = kandidaten.filter((s) => Number.isFinite(s.duur) && s.duur > 0)
+  const segmenten = segmentenVan(inv.fases, frames, exc, inv.tempo, w)
   const repDuur = segmenten.reduce((som, s) => som + s.duur, 0)
   const reps = Math.max(1, Math.floor(Number.isFinite(inv.reps) ? inv.reps : 1))
-  return { soort: 'herhaling', reps, segmenten, repDuur, totaal: reps * repDuur, frames }
+  const plan: HerhalingPlan = { soort: 'herhaling', reps, segmenten, repDuur, totaal: reps * repDuur, frames }
+  if (!inv.fasesRechts) return plan
+  return { ...plan, segmentenRechts: segmentenVan(inv.fasesRechts, frames, exc, inv.tempo, w) }
+}
+
+/** Kant van herhaling `repIndex` (0 is de eerste): bij een wisselende render links, rechts, links, ... */
+export function kantVan(plan: HerhalingPlan, repIndex: number): Kant | null {
+  if (!plan.segmentenRechts) return null
+  return repIndex % 2 === 0 ? 'links' : 'rechts'
+}
+
+function segmentenVoor(plan: HerhalingPlan, repIndex: number): readonly Segment[] {
+  return kantVan(plan, repIndex) === 'rechts' && plan.segmentenRechts ? plan.segmentenRechts : plan.segmenten
+}
+
+/**
+ * Herhalingen per kant bij een wisselende render. Elke kant telt als een
+ * herhaling, zoals trainers afwisselende oefeningen tellen ("20 lunges, 10 per
+ * been"): 10 is 5 links en 5 rechts, 9 is 5 links en 4 rechts (links begint).
+ */
+export function perKant(reps: number): { links: number; rechts: number } {
+  const n = Math.max(0, Math.floor(Number.isFinite(reps) ? reps : 0))
+  return { links: Math.ceil(n / 2), rechts: Math.floor(n / 2) }
 }
 
 export interface VasthoudInvoer {
@@ -72,24 +99,27 @@ function frameIn(bereik: FrameBereik, deel: number): number {
 }
 
 function herhalingStand(plan: HerhalingPlan, t: number): Stand {
-  const laatste = plan.segmenten[plan.segmenten.length - 1]
+  const eindKant = kantVan(plan, plan.reps - 1)
+  const eindSegmenten = segmentenVoor(plan, plan.reps - 1)
+  const laatste = eindSegmenten[eindSegmenten.length - 1]
   if (!laatste || plan.repDuur <= 0) {
-    return { frame: 0, rep: plan.reps, gedaan: plan.reps, label: '', segment: 'rust', segmentIndex: 0, deel: 1, voortgang: 1, over: 0, klaar: true }
+    return { frame: 0, rep: plan.reps, gedaan: plan.reps, label: '', segment: 'rust', kant: eindKant, segmentIndex: 0, deel: 1, voortgang: 1, over: 0, klaar: true }
   }
   if (t >= plan.totaal) {
-    const i = plan.segmenten.length - 1
-    return { frame: laatste.frames[1], rep: plan.reps, gedaan: plan.reps, label: laatste.label, segment: laatste.soort, segmentIndex: i, deel: 1, voortgang: 1, over: 0, klaar: true }
+    const i = eindSegmenten.length - 1
+    return { frame: laatste.frames[1], rep: plan.reps, gedaan: plan.reps, label: laatste.label, segment: laatste.soort, kant: eindKant, segmentIndex: i, deel: 1, voortgang: 1, over: 0, klaar: true }
   }
   const tijd = Math.max(0, t)
   const repIndex = Math.min(plan.reps - 1, Math.floor(tijd / plan.repDuur))
   const binnenRep = tijd - repIndex * plan.repDuur
+  const segmenten = segmentenVoor(plan, repIndex)
   let begin = 0
   let index = 0
-  while (index < plan.segmenten.length - 1 && binnenRep >= begin + plan.segmenten[index].duur) {
-    begin += plan.segmenten[index].duur
+  while (index < segmenten.length - 1 && binnenRep >= begin + segmenten[index].duur) {
+    begin += segmenten[index].duur
     index += 1
   }
-  const seg = plan.segmenten[index]
+  const seg = segmenten[index]
   const deel = klem((binnenRep - begin) / seg.duur, 0, 1)
   return {
     frame: klem(frameIn(seg.frames, deel), 0, plan.frames - 1),
@@ -97,6 +127,7 @@ function herhalingStand(plan: HerhalingPlan, t: number): Stand {
     gedaan: repIndex,
     label: seg.label,
     segment: seg.soort,
+    kant: kantVan(plan, repIndex),
     segmentIndex: index,
     deel,
     voortgang: klem(binnenRep / plan.repDuur, 0, 1),
@@ -116,6 +147,7 @@ function vasthoudStand(plan: VasthoudPlan, t: number): Stand {
     gedaan: klaar ? 1 : 0,
     label: plan.label,
     segment: 'houden',
+    kant: null,
     segmentIndex: 0,
     deel: 0,
     voortgang: klem(tijd / plan.totaal, 0, 1),

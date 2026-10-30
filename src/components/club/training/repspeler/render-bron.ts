@@ -63,6 +63,7 @@ export function leesRepRender(r: OefenRender): RepRender | null {
     fases: fasesVan(f.fasen, f.aantal),
     heenIs: f.heenIs,
     soort: f.soort,
+    ...(f.fasenRechts ? { fasesRechts: fasesVan(f.fasenRechts, f.aantal) } : {}),
     maten: [...f.maten].sort((a, b) => a.maat - b.maat).map((m) => ({ breedte: m.maat })),
     poster: r.begin.src,
     posterKlein: r.beginKlein.src,

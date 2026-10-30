@@ -24,6 +24,10 @@ export const REPSPELER = woordenboek({
       vast: 'vast',
       vasthouden: 'vasthouden',
     },
+    kant: { links: 'links', rechts: 'rechts' },
+    // Wisselende oefening (besluit Kane 30-10-2026): elke kant telt als een herhaling.
+    perKant: (reps: number, links: number, rechts: number) =>
+      links === rechts ? `${reps} totaal, ${links} per kant` : `${reps} totaal: ${links} links, ${rechts} rechts`,
     teller: {
       klaarVraag: 'Klaar?',
       klaar: 'Klaar',
@@ -32,6 +36,7 @@ export const REPSPELER = woordenboek({
       nogSeconden: (sec: number) => `Nog ${sec} seconden`,
       setKlaar: (reps: number) => `${reps} van ${reps}, set klaar`,
       herhaling: (rep: number, reps: number) => `Herhaling ${rep} van ${reps}`,
+      herhalingKant: (rep: number, reps: number, kant: string) => `Herhaling ${rep} van ${reps}, ${kant}`,
       set: (nr: number) => `Set ${nr}`,
       van: (sets: number) => ` van ${sets}`,
     },
@@ -71,6 +76,9 @@ export const REPSPELER = woordenboek({
       vast: 'hold',
       vasthouden: 'hold',
     },
+    kant: { links: 'left', rechts: 'right' },
+    perKant: (reps: number, links: number, rechts: number) =>
+      links === rechts ? `${reps} in total, ${links} per side` : `${reps} in total: ${links} left, ${rechts} right`,
     teller: {
       klaarVraag: 'Ready?',
       klaar: 'Done',
@@ -79,6 +87,7 @@ export const REPSPELER = woordenboek({
       nogSeconden: (sec: number) => `${sec} seconds to go`,
       setKlaar: (reps: number) => `${reps} of ${reps}, set done`,
       herhaling: (rep: number, reps: number) => `Rep ${rep} of ${reps}`,
+      herhalingKant: (rep: number, reps: number, kant: string) => `Rep ${rep} of ${reps}, ${kant}`,
       set: (nr: number) => `Set ${nr}`,
       van: (sets: number) => ` of ${sets}`,
     },

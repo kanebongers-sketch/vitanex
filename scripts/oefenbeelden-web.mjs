@@ -17,7 +17,9 @@
 //                    toont deze beelden een voor een op het tempo van het schema.
 // Daarnaast leidt het script uit "tempo" (of "sleutels" bij de hinge) in
 // poses/<slug>.json de fasen van de beweging af (rust_begin, heen, houden_ver,
-// terug, rust_eind) en schrijft die met heen_is en soort in de data.
+// terug, rust_eind) en schrijft die met heen_is en soort in de data. Een
+// wisselende pose ("wisselend": true) krijgt ook wisselend en fasen_rechts: de
+// lus is dan eerst een herhaling links, daarna een herhaling rechts.
 // Alle lussen houden de volle 24 beelden per seconde van de render: met 12
 // haperde de beweging zichtbaar.
 //
@@ -234,9 +236,18 @@ function wachttijden(aantal) {
  * Bovengrens per lus in bytes, gelijk aan MAX_KB in oefenrenders.test.ts. Een
  * lange lus (96 tot 120 beelden, zoals de walking lunge) kan erboven komen; dan
  * zakt de kwaliteit in stappen van 2 tot hij past, nooit onder LUS_MIN_KWALITEIT.
+ * Wisselende lussen (30-10-2026) zijn twee herhalingen lang (96 tot 136 beelden,
+ * de barbell lunge met bewegende schijven het zwaarst); daarvoor mag de bewegende
+ * lus tot 66 zakken, en boven 120 beelden groeit de grens naar rato mee
+ * (`lusGrens`, zelfde regel als in de test). De stills en de losse beelden van de
+ * rep-speler houden hun eigen kwaliteit.
  */
 const LUS_MAX_BYTES = { hd: 3072 * 1024, middel: 2304 * 1024, klein: 1330 * 1024 }
-const LUS_MIN_KWALITEIT = 76
+const LUS_MIN_KWALITEIT = 66
+const LUS_BEELDEN_BASIS = 120
+// boven 120 beelden naar rato, met 6 procent ruimte (de glute bridge op een been, 136 beelden met een wissel van het been, is per beeld het zwaarst)
+const lusFactor = (beelden) => (beelden > LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.06 : 1)
+const lusGrens = (bytes, beelden) => Math.round(bytes * lusFactor(beelden))
 
 async function maakLus(frames, snij, maat, opties, doel, maxBytes = Infinity) {
   const bufs = []
@@ -332,6 +343,26 @@ function fasenUitTempo(tempo, aantal) {
   return Object.fromEntries(namen.map((n, i) => [n, [grens[i], grens[i + 1]]]))
 }
 
+/**
+ * Fasen van de render. Een wisselende pose ("wisselend": true, besluit Kane
+ * 30-10-2026) heeft een lus van twee herhalingen: eerst links (eerste helft),
+ * dan rechts (tweede helft). Alleen de tempo-sleutels van de eerste helft tellen
+ * (links); rechts is dezelfde herhaling, een halve lus later. Zie de README van oefenbeelden,
+ * kopje "Wisselend".
+ */
+export function fasenVoorPose(pose, aantal) {
+  if (!pose.wisselend) return { fasen: fasenUitTempo(tempoVan(pose), aantal) }
+  if (aantal % 2 !== 0) throw new Error(`wisselende render met een oneven aantal beelden (${aantal})`)
+  const half = aantal / 2
+  // Bij "wissel": "apart" loopt tempo over de hele lus; alleen de eerste helft is links.
+  const tempo = fasenUitTempo(tempoVan(pose).filter(([f]) => f <= half), half)
+  // De wissel naar de andere kant (stand of been wisselen) zit in de rust aan het eind van de helft.
+  // Die hoort bij de terugweg: de speler slaat rust over, en zonder deze frames zou het beeld springen.
+  const links = { ...tempo, terug: [tempo.terug[0], half], rust_eind: [half, half] }
+  const rechts = Object.fromEntries(Object.entries(links).map(([n, [van, tot]]) => [n, [van + half, tot + half]]))
+  return { fasen: links, wisselend: true, fasen_rechts: rechts }
+}
+
 function poseVan(bron, slug) {
   const pose = join(bron, '..', 'poses', `${slug}.json`)
   if (!existsSync(pose)) throw new Error(`geen pose ${pose}: nodig voor de fasen`)
@@ -352,9 +383,10 @@ async function maakBestanden(bron, slug, uit) {
     'begin-klein': Math.min(KLEIN, hd),
     'piek-klein': Math.min(KLEIN, hd),
   }
-  await maakLus(frames, snij, maten['lus-hd'], WEBP.hd, join(uit, 'lus-hd.webp'), LUS_MAX_BYTES.hd)
-  await maakLus(frames, snij, maten.lus, WEBP.middel, join(uit, 'lus.webp'), LUS_MAX_BYTES.middel)
-  await maakLus(frames, snij, maten['lus-klein'], WEBP.klein, join(uit, 'lus-klein.webp'), LUS_MAX_BYTES.klein)
+  const n = frames.length
+  await maakLus(frames, snij, maten['lus-hd'], WEBP.hd, join(uit, 'lus-hd.webp'), lusGrens(LUS_MAX_BYTES.hd, n))
+  await maakLus(frames, snij, maten.lus, WEBP.middel, join(uit, 'lus.webp'), lusGrens(LUS_MAX_BYTES.middel, n))
+  await maakLus(frames, snij, maten['lus-klein'], WEBP.klein, join(uit, 'lus-klein.webp'), lusGrens(LUS_MAX_BYTES.klein, n))
   const stil = stilFrames(bron, slug, frames.length)
   for (const stand of ['begin', 'piek']) {
     const frame = frames[stil[stand]]
@@ -421,7 +453,7 @@ async function verwerk(bron, slug) {
   if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
   const pose = poseVan(bron, slug)
   const { losseMaten, ...maat } = await maakBestanden(bron, slug, uit)
-  const fasen = fasenUitTempo(tempoVan(pose), maat.beelden)
+  const fasen = fasenVoorPose(pose, maat.beelden)
   const bytes = Object.fromEntries(BESTANDEN.map((b) => [b, statSync(join(uit, `${b}.webp`)).size]))
   const hash = createHash('sha1')
   for (const b of BESTANDEN) hash.update(readFileSync(join(uit, `${b}.webp`)))
@@ -435,7 +467,7 @@ async function verwerk(bron, slug) {
     fps: FPS,
     versie: frameHash.digest('hex').slice(0, 8),
     maten: losseMaten,
-    fasen,
+    ...fasen,
     heen_is: beweging.heen_is,
     soort: beweging.soort,
   }
@@ -471,12 +503,14 @@ async function hoofd() {
     const fr = Object.entries(r.frames.maten).map(([m, v]) => `frames ${m} ${(v.bytes / 1048576).toFixed(2)} MB`).join(', ')
     console.log(`${slug} (${r.naam}, ${r.breedte} px, ${r.beelden} beelden): ${kb}, ${fr}`)
     console.log(`  fasen ${JSON.stringify(r.frames.fasen)}, vloer_y ${r.vloer_y}`)
+    if (r.frames.wisselend) console.log(`  wisselend, fasen rechts ${JSON.stringify(r.frames.fasen_rechts)}`)
   }
   schrijfData([...data.values()])
   console.log(`Klaar: ${kies.length} oefening(en) in public/oefenbeelden, gegevens in ${DATA}`)
 }
 
-hoofd().catch((fout) => {
+const direct = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+if (direct) hoofd().catch((fout) => {
   console.error(`Fout: ${fout instanceof Error ? fout.message : String(fout)}`)
   process.exit(1)
 })

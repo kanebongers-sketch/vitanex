@@ -40,6 +40,12 @@ export interface FaseWoorden {
 
 export type SegmentSoort = 'heen' | 'houden' | 'terug' | 'rust'
 
+/**
+ * Kant bij een wisselende render (besluit Kane 30-10-2026): eenzijdige oefeningen
+ * wisselen af, eerst een herhaling links, dan rechts. Elke kant telt als een herhaling.
+ */
+export type Kant = 'links' | 'rechts'
+
 export interface Segment {
   soort: SegmentSoort
   /** Woord voor in beeld: "omlaag", "vast", "omhoog". */
@@ -54,8 +60,13 @@ export interface HerhalingPlan {
   soort: 'herhaling'
   /** Aantal herhalingen (minstens 1). */
   reps: number
-  /** Segmenten van een herhaling, in afspeelvolgorde. */
+  /** Segmenten van een herhaling, in afspeelvolgorde (bij een wisselende render: de linkerkant). */
   segmenten: readonly Segment[]
+  /**
+   * Alleen bij een wisselende render: de segmenten van de rechterkant (zelfde
+   * duur, andere frames). Herhaling 1, 3, 5 is links, 2, 4, 6 rechts.
+   */
+  segmentenRechts?: readonly Segment[]
   /** Duur van een herhaling in seconden. */
   repDuur: number
   /** Duur van de hele set: reps maal repDuur. */
@@ -88,6 +99,8 @@ export interface Stand {
   /** Fasewoord: "omlaag", "vast", "omhoog". */
   label: string
   segment: SegmentSoort
+  /** Kant van deze herhaling bij een wisselende render, anders null. */
+  kant: Kant | null
   /** Index van het segment binnen de herhaling (voor het tikje bij een nieuwe fase). */
   segmentIndex: number
   /** 0 tot 1: hoe ver in het huidige segment. */
