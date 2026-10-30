@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
 import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
-import { LOGO_FIT_FACTORY, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
+import { LOGO_FIT_FACTORY, huisstijlExtra, moduleAan, type Organisatie } from '@/lib/club/kern/organisatie'
 import { adresVan, sportschoolUrl } from '@/lib/club/kern/subdomein'
 import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { haalInstellingen } from '@/lib/club/instellingen/opslag'
@@ -167,7 +167,7 @@ async function Lessen({ t, voet, soort, waarden, geenVasteLessen }: Pick<StapPro
 async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum, voortgang, taal }: StapProps) {
   const bevestigd = voortgang?.bevestigd ?? []
   const org = t.organisatie
-  const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, uit: org.eigenUit }
+  const waarden: HuisstijlWaarden = { naam: org.naam, slogan: org.slogan, kleurAccent: org.kleurAccent, thema: org.thema, kleurTweede: org.kleurTweede, kleurTint: org.kleurTint, variant: org.variant, uit: org.eigenUit }
   const vestiging = voet.vestiging
   switch (voet.sleutel) {
     case 'soort': {
@@ -225,6 +225,7 @@ async function StapInhoud({ t, voet, soort, afgerond, feiten, stand, streefdatum
             naam={org.naam}
             kleur={org.kleurAccent}
             thema={org.thema}
+            extra={huisstijlExtra(org)}
             logo={logoAdres(org)}
             acties={liveActies(feiten.uit, vestiging, taal)}
           />

@@ -8,8 +8,8 @@ import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { verborgenSleutel, type AanDeSlagStand } from '@/lib/club/menu/aan-de-slag'
 
-// "Aan de slag" in de kop: een kleine ring met de stand ("4 van 8") en een
-// link naar de volgende stap. Het kruisje verbergt het voor deze persoon in
+// "Aan de slag" in de kop: een kleine ring met de stand ("4 van 8"), de naam
+// van de volgende stap en een link ernaartoe. Het kruisje verbergt het voor deze persoon in
 // deze browser (localStorage); lukt opslaan niet, dan verbergt het alleen tot
 // de volgende pagina. Op de server en bij de eerste weergave staat er niets,
 // zodat een weggeklikt blok nooit even knippert.
@@ -79,6 +79,7 @@ export function AanDeSlag({ stand, persoon, sportschool, nietOpVandaag }: Props)
       <Ring af={af} totaal={totaal} />
       <span className="club-ads-label">{t.label}</span>
       <span className="club-ads-stand" aria-hidden>{t.stand(af, totaal)}</span>
+      <span className="club-ads-volgende" aria-hidden>{t.kort(volgende.titel)}</span>
       <span className="club-sr">{`${t.voortgang(af, totaal)}. ${uitleg}`}</span>
       {volgende.href && <ArrowRight aria-hidden size={14} className="club-ads-pijl" />}
     </>

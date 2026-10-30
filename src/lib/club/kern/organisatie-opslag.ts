@@ -40,6 +40,9 @@ export async function bewaarHuisstijl(t: ClubToegang, invoer: HuisstijlInvoer): 
       slogan: invoer.slogan,
       kleur_accent: invoer.kleurAccent,
       thema: invoer.thema,
+      kleur_tweede: invoer.kleurTweede,
+      kleur_tint: invoer.kleurTint,
+      thema_variant: invoer.variant,
       modules: modulesNaarJson(invoer.uit),
       bijgewerkt_op: new Date().toISOString(),
     })

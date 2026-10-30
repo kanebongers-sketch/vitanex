@@ -1,13 +1,19 @@
 // Rollen v2 in de echte poort: clubToegang en vereisClubToegang met een
 // nep-database, en de API's voor Team en Rechten per rol (geen escalatie, de
 // laatste eigenaar). Met de schakelaar aan (Voorbeeld Gym staat in de lijst)
-// en uit (een sportschool buiten de lijst werkt zoals voor 29-10-2026).
+// en uit (een sportschool buiten de lijst werkt zoals voor 29-10-2026). Sinds
+// 30-10-2026 staat v2 overal aan; hier staat CLUB_ROLLEN_V2_OVERAL uit, zodat
+// ook het terugdraaipad getest blijft.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
 const stand = vi.hoisted(() => ({ cookies: new Map<string, string>(), host: 'fitfactorypt.nl' }))
 vi.mock('@/lib/club/beheerders/schakelaar', () => ({ CLUB_EIGEN_LOGIN: true }))
+vi.mock('@/lib/club/rollen/schakelaar', async (orig) => {
+  const echt = await orig<typeof import('@/lib/club/rollen/schakelaar')>()
+  return { ...echt, CLUB_ROLLEN_V2_OVERAL: false, rollenV2Aan: (id: string) => echt.CLUB_ROLLEN_V2_ORGS.includes(id) }
+})
 vi.mock('next/headers', () => ({
   cookies: async () => ({ get: (naam: string) => (stand.cookies.has(naam) ? { value: stand.cookies.get(naam) } : undefined) }),
   headers: async () => new Headers({ host: stand.host }),

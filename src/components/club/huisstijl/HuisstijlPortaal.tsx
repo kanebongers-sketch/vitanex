@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import type { Thema } from '@/lib/club/kern/huisstijl'
+import { themaVan, type Thema, type Variant } from '@/lib/club/kern/huisstijl'
 import type { Module } from '@/lib/club/kern/organisatie'
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import { MAX_NAAM, MAX_SLOGAN } from '@/lib/club/kern/organisatie-invoer'
@@ -23,8 +23,29 @@ export interface HuisstijlWaarden {
   naam: string
   slogan: string | null
   kleurAccent: string
+  /** Afgeleid van variant (licht of donker). */
   thema: Thema
+  kleurTweede: string | null
+  kleurTint: string | null
+  variant: Variant
   uit: Module[]
+}
+
+/** De kleurvelden van het KleurBlok, gekoppeld aan de waarden (portaal en startwizard). */
+export function kleurProps(waarden: HuisstijlWaarden, zet: <K extends keyof HuisstijlWaarden>(veld: K, waarde: HuisstijlWaarden[K]) => void) {
+  return {
+    kleur: waarden.kleurAccent,
+    tweede: waarden.kleurTweede,
+    tint: waarden.kleurTint,
+    variant: waarden.variant,
+    onKleur: (k: string) => zet('kleurAccent', k),
+    onTweede: (k: string | null) => zet('kleurTweede', k),
+    onTint: (k: string | null) => zet('kleurTint', k),
+    onVariant: (v: Variant) => {
+      zet('variant', v)
+      zet('thema', themaVan(v))
+    },
+  }
 }
 
 interface HuisstijlPortaalProps {
@@ -92,7 +113,7 @@ export function HuisstijlPortaal({ organisatie, logoUrl, ingebouwdLogo, adres, a
           <LogoBlok logoUrl={logoUrl} ingebouwd={ingebouwdLogo} naam={waarden.naam} />
         </section>
 
-        <KleurBlok kleur={waarden.kleurAccent} thema={waarden.thema} onKleur={(k) => zet('kleurAccent', k)} onThema={(t) => zet('thema', t)} />
+        <KleurBlok {...kleurProps(waarden, zet)} />
 
         <ModulesBlok uit={waarden.uit} onWijzig={(uit) => zet('uit', uit)} afgenomen={afgenomen} />
 

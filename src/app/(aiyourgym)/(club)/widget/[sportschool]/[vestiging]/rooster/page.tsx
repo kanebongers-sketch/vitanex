@@ -70,7 +70,10 @@ export default async function WidgetRoosterPagina({ params, searchParams }: Pagi
   const nu = new Date()
   const lessen = await haalWidgetLessen(db, c.organisatie.id, c.vestiging, c.instellingen.lestypeIds, nu)
   const thema = themaVan(c, voorbeeld, zoek.modus)
-  const stijl = huisstijlVariabelen(c.organisatie.kleurAccent, thema) as CSSProperties
+  // De drie kleuren van de sportschool; het thema van de sportschool alleen als de widget de huisstijl volgt (Automatisch kan niet in een iframe van een andere site: dan licht of donker).
+  const o = c.organisatie
+  const variant = thema === o.thema && o.variant !== 'auto' ? o.variant : thema
+  const stijl = huisstijlVariabelen(o.kleurAccent, thema, { tweede: o.kleurTweede, tint: o.kleurTint, variant }) as CSSProperties
   const slug = c.organisatie.slug
   // De ledenapp op het adres van de sportschool (aiyourgym.com/<slug>/mijn, of het subdomein).
   const ledenappUrl = slug ? sportschoolUrl(slug, subdomeinenActief(), '/mijn') : '/mijn'

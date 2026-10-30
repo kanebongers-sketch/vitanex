@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Check, Globe, Printer, ScanLine, Send } from 'lucide-react'
 import type { LiveActie } from '@/lib/club/start/eerste-dag'
-import type { Thema } from '@/lib/club/kern/huisstijl'
+import type { HuisstijlExtra, Thema } from '@/lib/club/kern/huisstijl'
 import { KopieerKnop } from './KopieerKnop'
 import { LedenappVoorbeeld } from './LedenappVoorbeeld'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
@@ -45,6 +45,7 @@ interface StapLiveProps {
   naam: string
   kleur: string
   thema: Thema
+  extra?: HuisstijlExtra
   logo: string | null
   /** De les in het voorbeeld van de ledenapp. */
   voorbeeldLes: string
@@ -129,7 +130,7 @@ function kopTekst(afgerond: boolean, klaar: boolean, af: number, totaal: number,
   return { boven: t.stappenAf(af, totaal), kop: t.nietLive(wie), intro: t.nietLiveIntro }
 }
 
-export async function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, logo, voorbeeldLes, acties }: StapLiveProps) {
+export async function StapLive({ afgerond, open, af, totaal, adressen, adresKiezenPad, naam, kleur, thema, extra, logo, voorbeeldLes, acties }: StapLiveProps) {
   const t = (await clubTekst(START)).live
   const klaar = open.length === 0
   const live = afgerond && klaar
@@ -163,7 +164,7 @@ export async function StapLive({ afgerond, open, af, totaal, adressen, adresKiez
           )}
         </div>
         <div className="club-start-live-tel">
-          <LedenappVoorbeeld naam={naam} kleur={kleur} thema={thema} logo={logo} les={voorbeeldLes} />
+          <LedenappVoorbeeld naam={naam} kleur={kleur} thema={thema} extra={extra} logo={logo} les={voorbeeldLes} />
         </div>
       </section>
       {live && <DagEen acties={acties} t={t} />}

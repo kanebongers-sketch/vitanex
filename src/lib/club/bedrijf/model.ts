@@ -57,6 +57,8 @@ export type Teksten = Record<TekstSoort, string | null>
 
 export interface Bedrijf {
   gegevens: Gegevens
+  /** Kleineondernemersregeling: dan is een btw-nummer niet verplicht (migratie 478). */
+  kor: boolean
   teksten: Teksten
 }
 
@@ -64,10 +66,11 @@ export const GEGEVENS_VELDEN = [
   'bedrijfsnaam', 'kvk', 'btw', 'adres', 'postcode', 'plaats', 'telefoon', 'email', 'website', ...SOCIALS,
 ] as const satisfies readonly (keyof Gegevens)[]
 
-export const BEDRIJF_KOLOMMEN = [...GEGEVENS_VELDEN, ...TEKSTEN].join(', ')
+export const BEDRIJF_KOLOMMEN = [...GEGEVENS_VELDEN, 'kor', ...TEKSTEN].join(', ')
 
 export const LEEG_BEDRIJF: Bedrijf = {
   gegevens: Object.fromEntries(GEGEVENS_VELDEN.map((v) => [v, null])) as unknown as Gegevens,
+  kor: false,
   teksten: { huisregels: null, voorwaarden: null, privacy: null },
 }
 
@@ -81,7 +84,15 @@ export function bedrijfUitRij(rij: unknown): Bedrijf {
   const r = rij as Record<string, unknown>
   const gegevens = Object.fromEntries(GEGEVENS_VELDEN.map((v) => [v, tekstOfNull(r[v])])) as unknown as Gegevens
   const teksten = Object.fromEntries(TEKSTEN.map((v) => [v, tekstOfNull(r[v])])) as Teksten
-  return { gegevens, teksten }
+  return { gegevens, kor: r.kor === true, teksten }
+}
+
+/**
+ * Zijn de verplichte gegevens er (besluit Kane 30-10-2026)? Altijd een
+ * KvK-nummer, en een btw-nummer tenzij de sportschool de KOR gebruikt.
+ */
+export function bedrijfCompleet(gegevens: Pick<Gegevens, 'kvk' | 'btw'>, kor: boolean): boolean {
+  return Boolean(gegevens.kvk) && (kor || Boolean(gegevens.btw))
 }
 
 /** De teksten die ingevuld zijn, in vaste volgorde (voor de ledenapp). */

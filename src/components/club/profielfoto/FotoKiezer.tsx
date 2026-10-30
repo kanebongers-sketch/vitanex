@@ -8,8 +8,9 @@ import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
 import { uitsnede } from '@/lib/club/profielfoto/model'
 import { leesBeeld, maakFotos, tekenUitsnede, type Beeld } from './bijsnijden'
+import { WebcamOpname, webcamMogelijk } from './WebcamOpname'
 
-// Een profielfoto kiezen of maken, vierkant bijsnijden (slepen en zoomen in
+// Een profielfoto uploaden of maken (webcam of camera van telefoon en tablet), vierkant bijsnijden (slepen en zoomen in
 // een rond masker) en bewaren. Voor het lid in de ledenapp, de medewerker bij
 // het eigen profiel en de sportschool bij een lid (dan met toestemmingsvinkje).
 
@@ -45,6 +46,7 @@ export function FotoKiezer({ naam, initialen, foto, adres, waar, voor, balie = f
   const router = useRouter()
   const [versie, setVersie] = useState<string | null>(foto.versie ?? null)
   const [beeld, setBeeld] = useState<Beeld | null>(null)
+  const [webcam, setWebcam] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [plek, setPlek] = useState({ x: 0, y: 0 })
   const [toestemming, setToestemming] = useState(false)
@@ -63,7 +65,7 @@ export function FotoKiezer({ naam, initialen, foto, adres, waar, voor, balie = f
   }, [beeld, zoom, plek])
 
   const kiesBestand = useCallback(
-    async (bestand: File | undefined) => {
+    async (bestand: Blob | undefined) => {
       if (!bestand) return
       setMelding(null)
       const nieuw = await leesBeeld(bestand)
@@ -75,6 +77,13 @@ export function FotoKiezer({ naam, initialen, foto, adres, waar, voor, balie = f
     },
     [t],
   )
+
+  // Webcam in de pagina waar de browser dat kan; anders de camera-app van de telefoon.
+  function maakFoto() {
+    setMelding(null)
+    if (webcamMogelijk()) setWebcam(true)
+    else maak.current?.click()
+  }
 
   function begin(e: ReactPointerEvent<HTMLDivElement>) {
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -148,12 +157,12 @@ export function FotoKiezer({ naam, initialen, foto, adres, waar, voor, balie = f
     <div className="club-fotokiezer">
       <div className="club-fotokiezer-kop">
         {zonderAvatar ? null : <Avatar naam={naam} initialen={initialen} foto={huidig} maat={maat} waar={waar} voor={voor} className={avatarKlasse} decoratief={false} />}
-        {!alleenLezen && !beeld ? (
+        {!alleenLezen && !beeld && !webcam ? (
           <div className="club-fotokiezer-knoppen">
             <button type="button" className="club-knop" onClick={() => kies.current?.click()} disabled={bezig}>
               <ImagePlus aria-hidden size={16} /> {versie ? t.vervangen : t.kiezen}
             </button>
-            <button type="button" className="club-knop club-knop--stil" onClick={() => maak.current?.click()} disabled={bezig}>
+            <button type="button" className="club-knop club-knop--stil" onClick={maakFoto} disabled={bezig}>
               <Camera aria-hidden size={16} /> {t.maken}
             </button>
             {versie ? (
@@ -166,6 +175,13 @@ export function FotoKiezer({ naam, initialen, foto, adres, waar, voor, balie = f
       </div>
       <input ref={kies} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; void kiesBestand(f) }} />
       <input ref={maak} type="file" accept="image/*" capture="user" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; void kiesBestand(f) }} />
+      {webcam && !beeld ? (
+        <WebcamOpname
+          onFoto={(f) => { setWebcam(false); void kiesBestand(f) }}
+          onStop={() => setWebcam(false)}
+          onKiesBestand={() => { setWebcam(false); kies.current?.click() }}
+        />
+      ) : null}
       {beeld ? (
         <div className="club-fotokiezer-snij">
           <div className="club-fotokiezer-venster" onPointerDown={begin} onPointerMove={beweeg} onPointerUp={() => (sleep.current = null)} onPointerCancel={() => (sleep.current = null)}>

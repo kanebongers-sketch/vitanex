@@ -1,7 +1,7 @@
 // ─── Club: invoer van het huisstijl-portaal (PUUR) ──────────────────────────
 // Systeemgrens: wat er van de pagina binnenkomt wordt hier gecontroleerd.
 
-import { HEX, THEMAS, type Thema } from './huisstijl'
+import { HEX, isVariant, themaVan, type Thema, type Variant } from './huisstijl'
 import { MODULES, type Module } from './organisatie'
 import { MAX_NAAM, leesSportschoolNaam, type NaamFout } from './sportschool-naam'
 
@@ -14,7 +14,13 @@ export interface HuisstijlInvoer {
   naam: string
   slogan: string | null
   kleurAccent: string
+  /** Afgeleid van het thema: licht of donker. */
   thema: Thema
+  /** Tweede kleur; null = de hoofdkleur. */
+  kleurTweede: string | null
+  /** Achtergrondtint; null = neutraal. */
+  kleurTint: string | null
+  variant: Variant
   /** Onderdelen die uit staan. */
   uit: Module[]
 }
@@ -43,11 +49,22 @@ export function leesHuisstijl(body: unknown): HuisstijlUitslag {
   const slogan = typeof o.slogan === 'string' ? o.slogan.trim().replace(/\s+/g, ' ') : ''
   if (slogan.length > MAX_SLOGAN) return { ok: false, fout: `De slogan mag maximaal ${MAX_SLOGAN} tekens zijn.` }
   if (typeof o.kleurAccent !== 'string' || !HEX.test(o.kleurAccent)) return { ok: false, fout: 'Kies een geldige kleur (bijvoorbeeld #B58E5C).' }
-  if (!(THEMAS as readonly unknown[]).includes(o.thema)) return { ok: false, fout: 'Kies donker of licht.' }
+  // Het thema: variant (nieuw) of thema (licht of donker, oude pagina's).
+  const variant = isVariant(o.variant) ? o.variant : o.thema === 'licht' || o.thema === 'donker' ? o.thema : null
+  if (!variant) return { ok: false, fout: 'Kies een thema.' }
+  const tweede = leesOptioneleKleur(o.kleurTweede)
+  const tint = leesOptioneleKleur(o.kleurTint)
+  if (tweede === undefined || tint === undefined) return { ok: false, fout: 'Kies een geldige kleur (bijvoorbeeld #B58E5C).' }
   if (!Array.isArray(o.uit) || !o.uit.every((m) => (MODULES as readonly unknown[]).includes(m))) return { ok: false, fout: 'Onbekend onderdeel.' }
   const uit = [...new Set(o.uit as Module[])]
   if (uit.length === MODULES.length) return { ok: false, fout: 'Laat minstens een onderdeel aan staan.' }
-  return { ok: true, waarde: { naam, slogan: slogan || null, kleurAccent: o.kleurAccent.toUpperCase(), thema: o.thema as Thema, uit } }
+  return { ok: true, waarde: { naam, slogan: slogan || null, kleurAccent: o.kleurAccent.toUpperCase(), thema: themaVan(variant), kleurTweede: tweede, kleurTint: tint, variant, uit } }
+}
+
+/** Een kleur die mag ontbreken: null (leeg of niet meegestuurd), de kleur, of undefined (fout). */
+function leesOptioneleKleur(v: unknown): string | null | undefined {
+  if (v === undefined || v === null || v === '') return null
+  return typeof v === 'string' && HEX.test(v) ? v.toUpperCase() : undefined
 }
 
 /** De jsonb voor de database: { lessen: false, ... } met alleen de onderdelen die uit staan. */

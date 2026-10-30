@@ -5,6 +5,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
+import { huisstijlExtra } from '@/lib/club/kern/organisatie'
+import { HuisstijlAuto, autoAttribuut } from '@/components/club/shell/HuisstijlAuto'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
 import { vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
@@ -53,10 +55,11 @@ export default async function ClubInloggenPagina({ params }: PaginaProps) {
   // Uitnodiging al gebruikt: gewoon inloggen.
   if (b.wachtwoordHash) redirect('/inloggen')
 
-  const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema) as CSSProperties
+  const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema, huisstijlExtra(organisatie)) as CSSProperties
   const t = await clubTekst(CLUB_INLOGGEN)
   return (
-    <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema}>
+    <div className="club-app club-inlog" style={stijl} data-thema={organisatie.thema} {...autoAttribuut(organisatie)}>
+      <HuisstijlAuto org={organisatie} />
       <main className="club-inlog-vlak">
         <WachtwoordKiezen
           api={`/api/club/inloggen/${encodeURIComponent(b.code)}/wachtwoord`}

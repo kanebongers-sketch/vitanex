@@ -24,6 +24,7 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
+import { bedrijfCompleet } from '@/lib/club/bedrijf/model'
 import { haalRegels } from '@/lib/club/automatisering/opslag'
 import { haalBeheerders } from '@/lib/club/beheerders/beheerder-opslag'
 import { haalStart } from '@/lib/club/start/opslag'
@@ -91,7 +92,7 @@ async function standen(t: ClubToegang, ziet: (id: string) => boolean, taal: Taal
   return {
     huisstijl: nogDoen(Boolean(org.logo)),
     adres: nogDoen(Boolean(org.slug)),
-    bedrijf: bedrijf === null ? { stand: null, onbekend: true } : nogDoen(Boolean(bedrijf.gegevens.kvk)),
+    bedrijf: bedrijf === null ? { stand: null, onbekend: true } : nogDoen(bedrijfCompleet(bedrijf.gegevens, bedrijf.kor)),
     vestigingen: t.vestigingen.length === 0 ? { stand: s.nogDoen, let: true } : tal(t.vestigingen.length, s.vestigingen),
     zalen: tal(zalen, s.zalen),
     medewerkers: tal(medewerkers, s.medewerkers),

@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { CalendarDays, Dumbbell, Home, QrCode, User } from 'lucide-react'
-import { HEX, huisstijlVariabelen, type Thema } from '@/lib/club/kern/huisstijl'
+import { HEX, huisstijlVariabelen, type HuisstijlExtra, type Thema } from '@/lib/club/kern/huisstijl'
 import { NEUTRALE_LES } from '@/lib/club/start/soorten'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { START } from '@/lib/aiyourgym/taal/woorden/club/start'
@@ -15,17 +15,23 @@ interface LedenappVoorbeeldProps {
   naam: string
   kleur: string
   thema: Thema
+  /** Tweede kleur, achtergrondtint en thema (ongeldige kleuren tellen niet). */
+  extra?: HuisstijlExtra
   /** Het logo (adres of tijdelijke voorvertoning), of null: dan de naam als woordmerk. */
   logo: string | null
   /** De les in het voorbeeld: het eerste lestype van de sportschool, of een die bij de soort past. */
   les?: string
 }
 
-export function LedenappVoorbeeld({ naam, kleur, thema, logo, les }: LedenappVoorbeeldProps) {
+export function LedenappVoorbeeld({ naam, kleur, thema, extra, logo, les }: LedenappVoorbeeldProps) {
   const t = useTekst(START).voorbeeldApp
   // Zonder eigen lestype de neutrale les in de taal van de pagina; een echt lestype blijft zijn eigen naam.
   const lesNaam = !les || les === NEUTRALE_LES ? t.neutraleLes : les
-  const stijl: CSSProperties = huisstijlVariabelen(HEX.test(kleur) ? kleur : '#B58E5C', thema) as CSSProperties
+  const stijl: CSSProperties = huisstijlVariabelen(HEX.test(kleur) ? kleur : '#B58E5C', thema, {
+    tweede: extra?.tweede && HEX.test(extra.tweede) ? extra.tweede : null,
+    tint: extra?.tint && HEX.test(extra.tint) ? extra.tint : null,
+    variant: extra?.variant ?? null,
+  }) as CSSProperties
   return (
     <figure className="club-start-telefoon-wrap" aria-label={t.label}>
       <div className="club-start-telefoon" style={stijl}>

@@ -1,0 +1,21 @@
+/* Testen als rol: smalle balk boven Club, alleen voor het master account. */
+.club-testrol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding: 8px var(--ff-rand, 16px);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand) 6%, var(--bg-app));
+  font-size: 13px; color: var(--text-2);
+}
+.club-testrol[data-actief] {
+  background: color-mix(in srgb, var(--club-let-op) 14%, var(--bg-app));
+  border-bottom-color: color-mix(in srgb, var(--club-let-op) 50%, var(--line));
+  color: var(--text-1);
+}
+.club-testrol-tekst { display: flex; align-items: center; gap: 8px; margin: 0; flex: 1 1 320px; min-width: 0; line-height: 1.4; }
+.club-testrol-tekst svg { flex: none; }
+.club-testrol-keus { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.club-testrol-rol { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; min-height: 32px; }
+.club-testrol-rol input { accent-color: var(--brand); width: 16px; height: 16px; margin: 0; }
+.club-testrol-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
+.club-testrol-melding { margin: 0; flex-basis: 100%; color: var(--text-2); }
+@media (pointer: coarse) { .club-testrol-rol { min-height: 40px; } }

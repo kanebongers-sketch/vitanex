@@ -5,7 +5,7 @@ import { bewaarHuisstijl } from '@/lib/club/kern/organisatie-opslag'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { HUISSTIJL } from '@/lib/aiyourgym/taal/woorden/club/huisstijl'
 
-// PATCH /api/club/organisatie  { naam, slogan, kleurAccent, thema, uit: Module[] }
+// PATCH /api/club/organisatie  { naam, slogan, kleurAccent, kleurTweede, kleurTint, variant, uit: Module[] }
 // De naam, huisstijl en onderdelen van de sportschool die nu open staat. Alleen
 // Kane en de eigenaar (onderdeel huisstijl; nooit een clubmanager of medewerker).
 // Het adres (slug) verandert hier nooit mee: dat is PATCH /api/club/organisatie/adres.

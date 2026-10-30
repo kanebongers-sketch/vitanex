@@ -7,8 +7,8 @@
 .club-teller {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
-  background: var(--brand-soft, color-mix(in srgb, var(--brand) 16%, transparent));
-  color: var(--club-merk-inkt, var(--brand));
+  background: var(--brand-2-soft, var(--brand-soft, color-mix(in srgb, var(--brand) 16%, transparent)));
+  color: var(--brand-2-tekst, var(--club-merk-inkt, var(--brand)));
   font-family: var(--ff-inter), system-ui, sans-serif; font-size: 11.5px; font-weight: 700; letter-spacing: 0; line-height: 1;
   font-variant-numeric: tabular-nums; text-transform: none;
   animation: club-teller-in 200ms var(--ease) both;
@@ -84,11 +84,15 @@ a.club-ads-link:hover { background: var(--club-vlak-hover); }
 a.club-ads-link:focus-visible, .club-ads-weg:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .club-ads-label { font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .club-ads-stand { font-size: 12.5px; font-weight: 600; color: var(--club-merk-inkt, var(--brand)); font-variant-numeric: tabular-nums; }
+.club-ads-volgende {
+  font-size: 12.5px; color: var(--text-2); max-width: 22ch; overflow: hidden; text-overflow: ellipsis;
+  padding-left: 8px; border-left: 1px solid var(--line);
+}
 .club-ads-pijl { color: var(--text-3); transition: transform 160ms var(--ease); }
 a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
 .club-ads-ring { flex: none; }
 .club-ads-ring-spoor { fill: none; stroke: var(--line-strong); stroke-width: 2.5; }
-.club-ads-ring-deel { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linecap: round; }
+.club-ads-ring-deel { fill: none; stroke: var(--club-data-vlak, var(--brand)); stroke-width: 2.5; stroke-linecap: round; }
 .club-ads-weg {
   display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 999px;
   background: transparent; color: var(--text-3); cursor: pointer; transition: color 160ms var(--ease), background-color 160ms var(--ease);
@@ -97,7 +101,11 @@ a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
 @media (pointer: coarse) { .club-ads-weg { width: 40px; height: 40px; } .club-ads-link { min-height: 40px; } }
 /* Telefoon: alleen de ring en de stand, de naam staat in de title en voor de screenreader. */
 @media (max-width: 699px) {
-  .club-ads-label, .club-ads-pijl { display: none; }
+  .club-ads-label, .club-ads-pijl, .club-ads-volgende { display: none; }
+}
+/* Smalle pc of tablet: de naam van de stap gaat voor het woord Aan de slag. */
+@media (min-width: 700px) and (max-width: 1099px) {
+  .club-ads-label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .club-teller, .club-ads, .club-kop .club-nav a[aria-current='page']::after { animation: none; }
