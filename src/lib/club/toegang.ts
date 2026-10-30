@@ -43,7 +43,8 @@ import { bouwProfiel, rolVanBeheerder } from '@/lib/club/rollen/profiel'
 import { haalProfiel, profielIdVanBeheerder } from '@/lib/club/rollen/opslag'
 import { magApiV2 } from '@/lib/club/rollen/api'
 import { isMedewerkerSessie, v2Minstens, type ProfielToegang } from '@/lib/club/rollen/wie'
-import type { Niveau } from '@/lib/club/rollen/typen'
+import type { Niveau, Rol } from '@/lib/club/rollen/typen'
+import { TESTROL_COOKIE, alsTestRol, leesTestRollen, magTestRol } from '@/lib/club/rollen/testrol'
 
 /** Wie er binnen is: de platform-eigenaar (rol beheerder), een eigenaar of clubmanager van een sportschool, of een medewerker. */
 export type ClubRol = 'beheerder' | BeheerderRol | 'medewerker'
@@ -85,6 +86,11 @@ export interface ClubToegang {
    * null) = het oude model; voor Kane altijd leeg.
    */
   profiel?: ProfielToegang | null
+  /**
+   * Het master account test als deze rollen (rollen/testrol.ts): de rest van
+   * de toegang rekent dan als die rollen. Ontbreekt = geen testmodus.
+   */
+  testAls?: readonly Rol[] | null
 }
 
 /** Zonder migratie 401 of bij een leesfout: Fit Factory zoals altijd. */
@@ -119,8 +125,29 @@ async function haalVestigingen(admin: SupabaseClient, organisatieId: string): Pr
   return vestigingenUitRijen(data ?? [])
 }
 
-/** De platform-eigenaar: een geldige sessie van het master account (e-mailadres en wachtwoord). */
+/**
+ * De platform-eigenaar. Test hij als een rol (cookie, rollen/testrol.ts), dan
+ * de toegang van die rollen in deze sportschool; nooit in de eigen omgeving.
+ */
 async function toegangVoorPlatform(admin: SupabaseClient): Promise<ClubToegang | null> {
+  const t = await echtePlatform(admin)
+  if (!t) return null
+  const rollen = leesTestRollen((await cookies()).get(TESTROL_COOKIE)?.value)
+  if (!rollen || !magTestRol(t.organisatie, t.beheerderId)) return t
+  return { ...t, ...alsTestRol(t, rollen) }
+}
+
+/** Het master account zelf, ook in testmodus (alleen om de testmodus te wisselen). */
+export const echtePlatformToegang = cache(async (): Promise<ClubToegang | null> => {
+  try {
+    return await echtePlatform(clubDatabase())
+  } catch {
+    return null
+  }
+})
+
+/** Een geldige sessie van het master account (e-mailadres en wachtwoord). */
+async function echtePlatform(admin: SupabaseClient): Promise<ClubToegang | null> {
   const token = (await cookies()).get(platformCookie())?.value
   if (!token) return null
   const account = await platformVanSessie(admin, token, new Date())

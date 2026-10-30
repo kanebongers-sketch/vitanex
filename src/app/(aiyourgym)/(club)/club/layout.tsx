@@ -23,6 +23,8 @@ import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { ONDERDELEN, isZichtbaar } from '@/components/club/shell/onderdelen'
 import { AanDeSlagKop } from '@/components/club/shell/AanDeSlagKop'
 import { tellerRechten, welkeTellers } from '@/lib/club/menu/tellers'
+import { magTestRol } from '@/lib/club/rollen/testrol'
+import { TestRolBalk } from '@/components/club/testrol/TestRolBalk'
 import './club.css'
 import '@/components/club/ontwerp/ontwerp.css'
 
@@ -77,8 +79,11 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
     return o !== undefined && isZichtbaar(o, org.uit, t.onderdelen)
   }
   const tellers = welkeTellers(tellerRechten(zie)).length > 0
+  // Testen als rol: alleen het master account (ook als hij al test), nooit in de eigen omgeving.
+  const testRol = (t.isPlatformEigenaar || Boolean(t.testAls)) && magTestRol(org, t.beheerderId)
   return (
     <div className="club-app" style={stijl} data-thema={org.thema}>
+      {testRol && <TestRolBalk actief={t.testAls ?? []} />}
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>
           {poortDicht ? (
