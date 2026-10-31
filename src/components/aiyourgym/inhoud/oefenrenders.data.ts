@@ -109,6 +109,195 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "achterwaartse-lunge-met-dumbbells",
+    "naam": "Achterwaartse lunge met dumbbells",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1331,
+    "hoogte": 1331,
+    "fps": 24,
+    "beelden": 96,
+    "maten": {
+      "lus-hd": 1331,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1331,
+      "piek": 1331,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "0671bd81",
+    "bytes": {
+      "lus-hd": 2748708,
+      "lus": 2008952,
+      "lus-klein": 1158850,
+      "begin": 37660,
+      "piek": 35394,
+      "begin-klein": 13556,
+      "piek-klein": 12042
+    },
+    "frames": {
+      "aantal": 96,
+      "fps": 24,
+      "versie": "893db8b5",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1202078
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2089386
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3342696
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          48
+        ],
+        "rust_eind": [
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "arnold-press",
+    "naam": "Arnold press",
+    "spieren": [
+      "schouder"
+    ],
+    "spierenSecundair": [
+      "bovenarm",
+      "romp"
+    ],
+    "breedte": 1313,
+    "hoogte": 1313,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1313,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1313,
+      "piek": 1313,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9596,
+    "versie": "b880b9cd",
+    "bytes": {
+      "lus-hd": 1040048,
+      "lus": 762836,
+      "lus-klein": 440244,
+      "begin": 48252,
+      "piek": 52962,
+      "begin-klein": 17242,
+      "piek-klein": 20080
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "c62c9702",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1195598
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2052746
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3229584
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "back-squat",
     "naam": "Back squat",
     "spieren": [
@@ -549,6 +738,108 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "bulgarian-split-squat",
+    "naam": "Bulgarian split squat",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [
+      "hamstring",
+      "romp"
+    ],
+    "breedte": 1340,
+    "hoogte": 1340,
+    "fps": 24,
+    "beelden": 136,
+    "maten": {
+      "lus-hd": 1340,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1340,
+      "piek": 1340,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9597,
+    "versie": "f8ce38aa",
+    "bytes": {
+      "lus-hd": 3706880,
+      "lus": 2788088,
+      "lus-klein": 1627236,
+      "begin": 49046,
+      "piek": 49308,
+      "begin-klein": 18134,
+      "piek-klein": 17710
+    },
+    "frames": {
+      "aantal": 136,
+      "fps": 24,
+      "versie": "81f45a82",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 2290960
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 4014648
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          68
+        ],
+        "rust_eind": [
+          68,
+          68
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          68,
+          69
+        ],
+        "heen": [
+          69,
+          92
+        ],
+        "houden_ver": [
+          92,
+          93
+        ],
+        "terug": [
+          93,
+          136
+        ],
+        "rust_eind": [
+          136,
+          136
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "burpee",
     "naam": "Burpee",
     "spieren": [
@@ -901,6 +1192,172 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "curl-met-ez-stang",
+    "naam": "Curl met EZ-stang",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [
+      "onderarm"
+    ],
+    "breedte": 1354,
+    "hoogte": 1354,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1354,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1354,
+      "piek": 1354,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "fde3c255",
+    "bytes": {
+      "lus-hd": 1075474,
+      "lus": 725188,
+      "lus-klein": 408236,
+      "begin": 42838,
+      "piek": 42562,
+      "begin-klein": 15282,
+      "piek-klein": 15072
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "fb875a19",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 968406
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1676602
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2624428
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "curl-op-een-schuine-bank",
+    "naam": "Curl op een schuine bank",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [
+      "onderarm"
+    ],
+    "breedte": 1335,
+    "hoogte": 1335,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1335,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1335,
+      "piek": 1335,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9603,
+    "versie": "7b395470",
+    "bytes": {
+      "lus-hd": 1261128,
+      "lus": 852154,
+      "lus-klein": 458138,
+      "begin": 59890,
+      "piek": 58376,
+      "begin-klein": 21620,
+      "piek-klein": 20466
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "2e943deb",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1333854
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2310818
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3680654
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "dead-bug",
     "naam": "Dead bug",
     "spieren": [
@@ -1093,6 +1550,422 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "deadlift-met-kettlebell",
+    "naam": "Deadlift met kettlebell",
+    "spieren": [
+      "bil",
+      "hamstring"
+    ],
+    "spierenSecundair": [
+      "onderrug",
+      "dij"
+    ],
+    "breedte": 1342,
+    "hoogte": 1342,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1342,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1342,
+      "piek": 1342,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "36739fce",
+    "bytes": {
+      "lus-hd": 1591300,
+      "lus": 1144836,
+      "lus-klein": 650000,
+      "begin": 35728,
+      "piek": 37660,
+      "begin-klein": 11950,
+      "piek-klein": 13128
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "54ed2ef1",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 899000
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1574788
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2505638
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          8
+        ],
+        "heen": [
+          8,
+          34
+        ],
+        "houden_ver": [
+          34,
+          40
+        ],
+        "terug": [
+          40,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "dumbbell-curl",
+    "naam": "Dumbbell curl",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1352,
+    "hoogte": 1352,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1352,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1352,
+      "piek": 1352,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "671208ca",
+    "bytes": {
+      "lus-hd": 903656,
+      "lus": 618712,
+      "lus-klein": 353450,
+      "begin": 38958,
+      "piek": 38990,
+      "begin-klein": 14536,
+      "piek-klein": 14114
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "adef7c8f",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 910814
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1562798
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2477470
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "dumbbell-fly",
+    "naam": "Dumbbell fly",
+    "spieren": [
+      "borst"
+    ],
+    "spierenSecundair": [
+      "schouder"
+    ],
+    "breedte": 1326,
+    "hoogte": 1326,
+    "fps": 24,
+    "beelden": 60,
+    "maten": {
+      "lus-hd": 1326,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1326,
+      "piek": 1326,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.96,
+    "versie": "4a2ba1bd",
+    "bytes": {
+      "lus-hd": 1343388,
+      "lus": 928328,
+      "lus-klein": 497548,
+      "begin": 56772,
+      "piek": 56530,
+      "begin-klein": 22170,
+      "piek-klein": 21656
+    },
+    "frames": {
+      "aantal": 60,
+      "fps": 24,
+      "versie": "a8e60aed",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1371258
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2363722
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3714702
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          27
+        ],
+        "houden_ver": [
+          27,
+          33
+        ],
+        "terug": [
+          33,
+          57
+        ],
+        "rust_eind": [
+          57,
+          60
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "dumbbell-shoulder-press",
+    "naam": "Dumbbell shoulder press",
+    "spieren": [
+      "schouder"
+    ],
+    "spierenSecundair": [
+      "bovenarm",
+      "romp"
+    ],
+    "breedte": 1313,
+    "hoogte": 1313,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1313,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1313,
+      "piek": 1313,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9596,
+    "versie": "bb59b6e8",
+    "bytes": {
+      "lus-hd": 1112240,
+      "lus": 830188,
+      "lus-klein": 488258,
+      "begin": 52140,
+      "piek": 53310,
+      "begin-klein": 19616,
+      "piek-klein": 20160
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "b8c8c285",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1274948
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2189570
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3453022
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "farmer-walk",
+    "naam": "Farmer walk",
+    "spieren": [
+      "onderarm",
+      "rug",
+      "romp"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1341,
+    "hoogte": 1341,
+    "fps": 24,
+    "beelden": 48,
+    "maten": {
+      "lus-hd": 1341,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1341,
+      "piek": 1341,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9597,
+    "versie": "b6c1065f",
+    "bytes": {
+      "lus-hd": 1416498,
+      "lus": 1057810,
+      "lus-klein": 616548,
+      "begin": 36310,
+      "piek": 37596,
+      "begin-klein": 12842,
+      "piek-klein": 13864
+    },
+    "frames": {
+      "aantal": 48,
+      "fps": 24,
+      "versie": "f3c4a2e6",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 623664
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1085120
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 1733860
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          47
+        ],
+        "rust_eind": [
+          47,
+          48
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "vasthouden"
+    }
+  },
+  {
     "slug": "fietsende-crunch",
     "naam": "Fietsende crunch",
     "spieren": [
@@ -1191,6 +2064,87 @@ export const OEFENRENDER_DATA = [
         "rust_eind": [
           96,
           96
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "front-raise-met-dumbbells",
+    "naam": "Front raise met dumbbells",
+    "spieren": [
+      "schouder"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1357,
+    "hoogte": 1357,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1357,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1357,
+      "piek": 1357,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "22b2deed",
+    "bytes": {
+      "lus-hd": 1607324,
+      "lus": 1154304,
+      "lus-klein": 685792,
+      "begin": 38832,
+      "piek": 37278,
+      "begin-klein": 14168,
+      "piek-klein": 14076
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "7f436609",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 917716
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1573330
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2477162
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
         ]
       },
       "heen_is": "concentrisch",
@@ -1471,6 +2425,92 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "goblet-squat",
+    "naam": "Goblet squat",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [
+      "romp",
+      "onderrug",
+      "hamstring"
+    ],
+    "breedte": 1345,
+    "hoogte": 1345,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1345,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1345,
+      "piek": 1345,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9599,
+    "versie": "d00646f5",
+    "bytes": {
+      "lus-hd": 2093758,
+      "lus": 1413328,
+      "lus-klein": 812484,
+      "begin": 40090,
+      "piek": 33680,
+      "begin-klein": 13646,
+      "piek-klein": 11076
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "23d65fd2",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 910802
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1598896
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2540360
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          34
+        ],
+        "houden_ver": [
+          34,
+          42
+        ],
+        "terug": [
+          42,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "good-morning",
     "naam": "Good morning",
     "spieren": [
@@ -1555,6 +2595,88 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "hammer-curl",
+    "naam": "Hammer curl",
+    "spieren": [
+      "bovenarm",
+      "onderarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1353,
+    "hoogte": 1353,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1353,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1353,
+      "piek": 1353,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "99752e76",
+    "bytes": {
+      "lus-hd": 987692,
+      "lus": 665886,
+      "lus-klein": 377864,
+      "begin": 38742,
+      "piek": 41024,
+      "begin-klein": 14520,
+      "piek-klein": 14454
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "9931eafc",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 927470
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1591962
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2548934
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "hollow-hold",
     "naam": "Hollow hold",
     "spieren": [
@@ -1634,6 +2756,170 @@ export const OEFENRENDER_DATA = [
       },
       "heen_is": "concentrisch",
       "soort": "vasthouden"
+    }
+  },
+  {
+    "slug": "kettlebell-swing",
+    "naam": "Kettlebell swing",
+    "spieren": [
+      "bil",
+      "rug",
+      "dij"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1334,
+    "hoogte": 1334,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1334,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1334,
+      "piek": 1334,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9603,
+    "versie": "9c3617d1",
+    "bytes": {
+      "lus-hd": 1925386,
+      "lus": 1401634,
+      "lus-klein": 791368,
+      "begin": 34182,
+      "piek": 36356,
+      "begin-klein": 11476,
+      "piek-klein": 13586
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "e7ab0c5a",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 908632
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1581214
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2502210
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          34
+        ],
+        "houden_ver": [
+          34,
+          40
+        ],
+        "terug": [
+          40,
+          68
+        ],
+        "rust_eind": [
+          68,
+          72
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "lateral-raise",
+    "naam": "Lateral raise",
+    "spieren": [
+      "schouder"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1347,
+    "hoogte": 1347,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1347,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1347,
+      "piek": 1347,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9599,
+    "versie": "4c653655",
+    "bytes": {
+      "lus-hd": 1766808,
+      "lus": 1312284,
+      "lus-klein": 731240,
+      "begin": 38906,
+      "piek": 39398,
+      "begin-klein": 15204,
+      "piek-klein": 15846
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "be8c884f",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1018686
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1748468
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2739316
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
     }
   },
   {
@@ -1775,6 +3061,111 @@ export const OEFENRENDER_DATA = [
           "breedte": 1080,
           "hoogte": 1080,
           "bytes": 4301522
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          48
+        ],
+        "rust_eind": [
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "lunge-met-dumbbells",
+    "naam": "Lunge met dumbbells",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1344,
+    "hoogte": 1344,
+    "fps": 24,
+    "beelden": 96,
+    "maten": {
+      "lus-hd": 1344,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1344,
+      "piek": 1344,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "f5972b9e",
+    "bytes": {
+      "lus-hd": 2926668,
+      "lus": 2157288,
+      "lus-klein": 1250520,
+      "begin": 38748,
+      "piek": 36672,
+      "begin-klein": 14158,
+      "piek-klein": 12630
+    },
+    "frames": {
+      "aantal": 96,
+      "fps": 24,
+      "versie": "27645661",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1284790
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2229378
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3562140
         }
       },
       "fasen": {
@@ -2178,6 +3569,91 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "pullover-met-dumbbell",
+    "naam": "Pullover met dumbbell",
+    "spieren": [
+      "borst",
+      "rug"
+    ],
+    "spierenSecundair": [
+      "bovenarm",
+      "romp"
+    ],
+    "breedte": 1365,
+    "hoogte": 1365,
+    "fps": 24,
+    "beelden": 60,
+    "maten": {
+      "lus-hd": 1365,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1365,
+      "piek": 1365,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9597,
+    "versie": "8f7c1204",
+    "bytes": {
+      "lus-hd": 891024,
+      "lus": 619626,
+      "lus-klein": 347388,
+      "begin": 53754,
+      "piek": 51310,
+      "begin-klein": 19780,
+      "piek-klein": 18292
+    },
+    "frames": {
+      "aantal": 60,
+      "fps": 24,
+      "versie": "4b678b81",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1165272
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2039416
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3196594
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          27
+        ],
+        "houden_ver": [
+          27,
+          33
+        ],
+        "terug": [
+          33,
+          57
+        ],
+        "rust_eind": [
+          57,
+          60
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "push-up",
     "naam": "Push-up",
     "spieren": [
@@ -2515,6 +3991,90 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "reverse-fly",
+    "naam": "Reverse fly",
+    "spieren": [
+      "schouder",
+      "rug"
+    ],
+    "spierenSecundair": [
+      "onderrug"
+    ],
+    "breedte": 1357,
+    "hoogte": 1357,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1357,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1357,
+      "piek": 1357,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "c9301ed0",
+    "bytes": {
+      "lus-hd": 2263796,
+      "lus": 1617048,
+      "lus-klein": 886576,
+      "begin": 37052,
+      "piek": 42750,
+      "begin-klein": 13228,
+      "piek-klein": 16352
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "3442859b",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1089838
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1888144
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2976296
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          30
+        ],
+        "houden_ver": [
+          30,
+          38
+        ],
+        "terug": [
+          38,
+          64
+        ],
+        "rust_eind": [
+          64,
+          72
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "roemeense-deadlift-met-barbell",
     "naam": "Roemeense deadlift met barbell",
     "spieren": [
@@ -2596,6 +4156,173 @@ export const OEFENRENDER_DATA = [
         ]
       },
       "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "roemeense-deadlift-met-dumbbells",
+    "naam": "Roemeense deadlift met dumbbells",
+    "spieren": [
+      "bil",
+      "dij",
+      "rug"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1342,
+    "hoogte": 1342,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1342,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1342,
+      "piek": 1342,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "6ac39377",
+    "bytes": {
+      "lus-hd": 1553354,
+      "lus": 1154644,
+      "lus-klein": 665898,
+      "begin": 35790,
+      "piek": 35660,
+      "begin-klein": 13198,
+      "piek-klein": 12898
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "1a7d1673",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 937864
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1616970
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2568112
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          8
+        ],
+        "heen": [
+          8,
+          34
+        ],
+        "houden_ver": [
+          34,
+          40
+        ],
+        "terug": [
+          40,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "row-op-een-schuine-bank",
+    "naam": "Row op een schuine bank",
+    "spieren": [
+      "rug",
+      "bovenarm"
+    ],
+    "spierenSecundair": [
+      "schouder"
+    ],
+    "breedte": 1333,
+    "hoogte": 1333,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1333,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1333,
+      "piek": 1333,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "22ecfa0c",
+    "bytes": {
+      "lus-hd": 2109276,
+      "lus": 926480,
+      "lus-klein": 861700,
+      "begin": 65712,
+      "piek": 56126,
+      "begin-klein": 24308,
+      "piek-klein": 21214
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "961a4999",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1639616
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2815002
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 4446690
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          30
+        ],
+        "houden_ver": [
+          30,
+          38
+        ],
+        "terug": [
+          38,
+          64
+        ],
+        "rust_eind": [
+          64,
+          72
+        ]
+      },
+      "heen_is": "concentrisch",
       "soort": "herhaling"
     }
   },
@@ -2789,6 +4516,254 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "schouders-ophalen-met-dumbbells",
+    "naam": "Schouders ophalen met dumbbells",
+    "spieren": [
+      "rug"
+    ],
+    "spierenSecundair": [
+      "schouder",
+      "onderarm"
+    ],
+    "breedte": 1347,
+    "hoogte": 1347,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1347,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1347,
+      "piek": 1347,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9599,
+    "versie": "f75baa1f",
+    "bytes": {
+      "lus-hd": 1203930,
+      "lus": 868572,
+      "lus-klein": 494852,
+      "begin": 41634,
+      "piek": 41354,
+      "begin-klein": 16054,
+      "piek-klein": 16142
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "e01088db",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1027284
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1773148
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2763290
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "schuine-dumbbell-fly",
+    "naam": "Schuine dumbbell fly",
+    "spieren": [
+      "borst"
+    ],
+    "spierenSecundair": [
+      "schouder"
+    ],
+    "breedte": 1324,
+    "hoogte": 1324,
+    "fps": 24,
+    "beelden": 60,
+    "maten": {
+      "lus-hd": 1324,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1324,
+      "piek": 1324,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.96,
+    "versie": "0799f9f6",
+    "bytes": {
+      "lus-hd": 1153630,
+      "lus": 818388,
+      "lus-klein": 464516,
+      "begin": 63370,
+      "piek": 59428,
+      "begin-klein": 23966,
+      "piek-klein": 22352
+    },
+    "frames": {
+      "aantal": 60,
+      "fps": 24,
+      "versie": "0ba4fcdd",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1457170
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2498426
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3943032
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          27
+        ],
+        "houden_ver": [
+          27,
+          33
+        ],
+        "terug": [
+          33,
+          57
+        ],
+        "rust_eind": [
+          57,
+          60
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "skull-crusher",
+    "naam": "Skull crusher",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1350,
+    "hoogte": 1350,
+    "fps": 24,
+    "beelden": 60,
+    "maten": {
+      "lus-hd": 1350,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1350,
+      "piek": 1350,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.96,
+    "versie": "9bc21ac9",
+    "bytes": {
+      "lus-hd": 1273702,
+      "lus": 867876,
+      "lus-klein": 470050,
+      "begin": 55710,
+      "piek": 50514,
+      "begin-klein": 21216,
+      "piek-klein": 18094
+    },
+    "frames": {
+      "aantal": 60,
+      "fps": 24,
+      "versie": "aae3ef50",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1211186
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2087032
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3315952
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          27
+        ],
+        "houden_ver": [
+          27,
+          33
+        ],
+        "terug": [
+          33,
+          57
+        ],
+        "rust_eind": [
+          57,
+          60
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "split-squat",
     "naam": "Split squat",
     "spieren": [
@@ -2843,6 +4818,111 @@ export const OEFENRENDER_DATA = [
           "breedte": 1080,
           "hoogte": 1080,
           "bytes": 4232102
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          60
+        ],
+        "rust_eind": [
+          60,
+          60
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          60,
+          61
+        ],
+        "heen": [
+          61,
+          84
+        ],
+        "houden_ver": [
+          84,
+          85
+        ],
+        "terug": [
+          85,
+          120
+        ],
+        "rust_eind": [
+          120,
+          120
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "split-squat-met-dumbbells",
+    "naam": "Split squat met dumbbells",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1328,
+    "hoogte": 1328,
+    "fps": 24,
+    "beelden": 120,
+    "maten": {
+      "lus-hd": 1328,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1328,
+      "piek": 1328,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "9b7e93d6",
+    "bytes": {
+      "lus-hd": 3079650,
+      "lus": 2330566,
+      "lus-klein": 1356096,
+      "begin": 36328,
+      "piek": 36064,
+      "begin-klein": 12744,
+      "piek-klein": 12126
+    },
+    "frames": {
+      "aantal": 120,
+      "fps": 24,
+      "versie": "f8d4a738",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1494120
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2605062
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 4157042
         }
       },
       "fasen": {
@@ -2979,6 +5059,92 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "squat-met-dumbbells",
+    "naam": "Squat met dumbbells",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [
+      "hamstring",
+      "onderrug",
+      "kuit"
+    ],
+    "breedte": 1344,
+    "hoogte": 1344,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1344,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1344,
+      "piek": 1344,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "df686197",
+    "bytes": {
+      "lus-hd": 2297526,
+      "lus": 1641708,
+      "lus-klein": 922580,
+      "begin": 43516,
+      "piek": 35484,
+      "begin-klein": 16234,
+      "piek-klein": 12284
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "6c1f6321",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1041150
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1794098
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2861770
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          34
+        ],
+        "houden_ver": [
+          34,
+          42
+        ],
+        "terug": [
+          42,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "squat-met-lichaamsgewicht",
     "naam": "Squat met lichaamsgewicht",
     "spieren": [
@@ -3053,6 +5219,91 @@ export const OEFENRENDER_DATA = [
         ],
         "terug": [
           44,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "squat-naar-een-bank",
+    "naam": "Squat naar een bank",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [
+      "hamstring",
+      "romp"
+    ],
+    "breedte": 1353,
+    "hoogte": 1353,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1353,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1353,
+      "piek": 1353,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "c66ff465",
+    "bytes": {
+      "lus-hd": 2576736,
+      "lus": 1805504,
+      "lus-klein": 969276,
+      "begin": 54202,
+      "piek": 51334,
+      "begin-klein": 19026,
+      "piek-klein": 17780
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "a01a55de",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1338802
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2329738
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3708240
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          34
+        ],
+        "houden_ver": [
+          34,
+          42
+        ],
+        "terug": [
+          42,
           66
         ],
         "rust_eind": [
@@ -3146,6 +5397,91 @@ export const OEFENRENDER_DATA = [
         ]
       },
       "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "sumo-squat-met-dumbbell",
+    "naam": "Sumo squat met dumbbell",
+    "spieren": [
+      "dij",
+      "bil"
+    ],
+    "spierenSecundair": [
+      "hamstring",
+      "romp"
+    ],
+    "breedte": 1342,
+    "hoogte": 1342,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1342,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1342,
+      "piek": 1342,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "bd086b47",
+    "bytes": {
+      "lus-hd": 2267508,
+      "lus": 1584362,
+      "lus-klein": 870404,
+      "begin": 42074,
+      "piek": 39842,
+      "begin-klein": 14596,
+      "piek-klein": 14096
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "7a8dc916",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1040920
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1805116
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2855128
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          34
+        ],
+        "houden_ver": [
+          34,
+          42
+        ],
+        "terug": [
+          42,
+          66
+        ],
+        "rust_eind": [
+          66,
+          72
+        ]
+      },
+      "heen_is": "excentrisch",
       "soort": "herhaling"
     }
   },
@@ -3316,6 +5652,415 @@ export const OEFENRENDER_DATA = [
         ]
       },
       "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "triceps-extension-boven-het-hoofd",
+    "naam": "Triceps extension boven het hoofd",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1337,
+    "hoogte": 1337,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1337,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1337,
+      "piek": 1337,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9604,
+    "versie": "77d43d66",
+    "bytes": {
+      "lus-hd": 715366,
+      "lus": 505948,
+      "lus-klein": 292564,
+      "begin": 31098,
+      "piek": 32786,
+      "begin-klein": 11088,
+      "piek-klein": 12152
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "3cd5e6ab",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 750188
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1299442
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2089784
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "triceps-extension-liggend-met-dumbbell",
+    "naam": "Triceps extension liggend met dumbbell",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1365,
+    "hoogte": 1365,
+    "fps": 24,
+    "beelden": 60,
+    "maten": {
+      "lus-hd": 1365,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1365,
+      "piek": 1365,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9597,
+    "versie": "47d5f1ec",
+    "bytes": {
+      "lus-hd": 1025278,
+      "lus": 719888,
+      "lus-klein": 386858,
+      "begin": 56400,
+      "piek": 52662,
+      "begin-klein": 20364,
+      "piek-klein": 18156
+    },
+    "frames": {
+      "aantal": 60,
+      "fps": 24,
+      "versie": "27e762f9",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1210256
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 2157338
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3401374
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          27
+        ],
+        "houden_ver": [
+          27,
+          33
+        ],
+        "terug": [
+          33,
+          57
+        ],
+        "rust_eind": [
+          57,
+          60
+        ]
+      },
+      "heen_is": "excentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "triceps-kickback",
+    "naam": "Triceps kickback",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1334,
+    "hoogte": 1334,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1334,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1334,
+      "piek": 1334,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9603,
+    "versie": "c225d618",
+    "bytes": {
+      "lus-hd": 1043462,
+      "lus": 750078,
+      "lus-klein": 436782,
+      "begin": 38944,
+      "piek": 43424,
+      "begin-klein": 14404,
+      "piek-klein": 16926
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "8ad1ec8d",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1005454
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1725256
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2724890
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "upright-row-met-dumbbells",
+    "naam": "Upright row met dumbbells",
+    "spieren": [
+      "schouder"
+    ],
+    "spierenSecundair": [
+      "rug",
+      "bovenarm"
+    ],
+    "breedte": 1352,
+    "hoogte": 1352,
+    "fps": 24,
+    "beelden": 64,
+    "maten": {
+      "lus-hd": 1352,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1352,
+      "piek": 1352,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "176223da",
+    "bytes": {
+      "lus-hd": 1130276,
+      "lus": 792568,
+      "lus-klein": 454916,
+      "begin": 40478,
+      "piek": 41232,
+      "begin-klein": 14852,
+      "piek-klein": 15296
+    },
+    "frames": {
+      "aantal": 64,
+      "fps": 24,
+      "versie": "e244095b",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 988140
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1695288
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2688380
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          5
+        ],
+        "heen": [
+          5,
+          29
+        ],
+        "houden_ver": [
+          29,
+          35
+        ],
+        "terug": [
+          35,
+          59
+        ],
+        "rust_eind": [
+          59,
+          64
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "voorovergebogen-row-met-dumbbells",
+    "naam": "Voorovergebogen row met dumbbells",
+    "spieren": [
+      "rug",
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1347,
+    "hoogte": 1347,
+    "fps": 24,
+    "beelden": 72,
+    "maten": {
+      "lus-hd": 1347,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1347,
+      "piek": 1347,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9599,
+    "versie": "e889d985",
+    "bytes": {
+      "lus-hd": 2379712,
+      "lus": 1724754,
+      "lus-klein": 989008,
+      "begin": 41870,
+      "piek": 43776,
+      "begin-klein": 15286,
+      "piek-klein": 15922
+    },
+    "frames": {
+      "aantal": 72,
+      "fps": 24,
+      "versie": "43eab4ba",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1117508
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1923202
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 3040898
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          30
+        ],
+        "houden_ver": [
+          30,
+          38
+        ],
+        "terug": [
+          38,
+          64
+        ],
+        "rust_eind": [
+          64,
+          72
+        ]
+      },
+      "heen_is": "concentrisch",
       "soort": "herhaling"
     }
   },

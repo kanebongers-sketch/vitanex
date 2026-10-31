@@ -253,8 +253,8 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     stappen: [
       'Begin met je armen gestrekt naast de bank.',
-      'Krul een dumbbell naar je schouder terwijl je bovenarm stil blijft hangen.',
-      'Laat hem langzaam zakken tot je arm weer gestrekt is en wissel van kant.',
+      'Krul beide dumbbells tegelijk naar je schouders terwijl je bovenarmen stil blijven hangen.',
+      'Laat ze langzaam zakken tot je armen weer gestrekt zijn.',
     ],
     fouten: [
       { fout: 'Elleboog schuift naar voren', beter: 'Houd je bovenarm verticaal. Stop bovenin net voordat je elleboog gaat bewegen.' },
@@ -264,7 +264,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ademhaling: 'Adem uit tijdens het krullen en adem in terwijl de dumbbell zakt.',
     tempo: '1 tel omhoog, kort stil, 3 tellen omlaag.',
     makkelijker: 'Zet de bank rechter, dan is de rek onderin minder groot.',
-    zwaarder: 'Krul beide armen tegelijk of houd bovenin 2 tellen vast.',
+    zwaarder: 'Houd bovenin 2 tellen vast of laat de dumbbells in 4 tellen zakken.',
   },
 
   'Dumbbell curl': {

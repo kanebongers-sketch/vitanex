@@ -63,6 +63,20 @@ describe('koppeling render en oefening', () => {
     }
   })
 
+  it('golf 2 (31-10-2026): de 32 renders met dumbbells, kettlebell en banken zijn kiesbaar, en migratie 487 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/487_club_oefeningen_golf2_uit_archief.sql'), 'utf8')
+    const golf2 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf2).toHaveLength(32)
+    expect(sql).not.toMatch(/\b(delete|drop|truncate)\b/i)
+    expect(golf2.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf2) {
+      expect(isStandaardOefening(naam), naam).toBe(true)
+      const o = oefeningUitRij({ id: 'g', naam, spiergroep: 'benen', actief: true, gearchiveerd: true, beeld_start: null, beeld_eind: null })
+      expect(o?.actief, naam).toBe(true)
+      expect(o?.gearchiveerd, naam).toBe(false)
+    }
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
@@ -126,11 +140,12 @@ describe('voorstel met alleen de Blender-oefeningen', () => {
     for (const o of gekozen) expect(o?.niveau, o?.naam).toBe(1)
   })
 
-  it('een beginner thuis krijgt een schema zonder materiaal uit de renders', () => {
+  it('een beginner thuis krijgt een schema met alleen thuismateriaal uit de renders', () => {
     const v = stelSchemaVoor({ doelen: ['gezondheid'], niveau: 1, dagenPerWeek: 2, minutenPerSessie: 45, voorkeuren: ['thuis'], gezondheid: null }, BIB)
     const gekozen = v.dagen.flatMap((d) => d.regels.map((r) => BIB.find((o) => o.id === r.oefeningId)))
     expect(v.dagen.every((d) => d.regels.length >= 3)).toBe(true)
-    for (const o of gekozen) expect(o?.materiaal, o?.naam).toBe('geen')
+    // Thuis: lichaamsgewicht, elastiek, dumbbells en kettlebell (THUIS_MATERIAAL in voorstel-regels.ts).
+    for (const o of gekozen) expect(['geen', 'band', 'dumbbell', 'kettlebell'], o?.naam).toContain(o?.materiaal)
   })
 })
 

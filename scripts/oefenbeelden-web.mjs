@@ -74,6 +74,18 @@ const ALFA_DREMPEL = 16
 const FRAME_MATEN = [480, 720, 1080]
 /** 1080 valt weg als alle beelden op die maat samen zwaarder zijn dan dit (MB). */
 const FRAMES_1080_MAX_MB = 6
+/**
+ * Bovengrens van alle losse beelden samen per maat, net onder MAX_FRAMES_MB in
+ * oefenrenders.test.ts. Boven 120 beelden (lange wisselende lussen) groeit hij
+ * mee met het aantal beelden (framesBudget).
+ */
+const FRAMES_MAX_BYTES = { 480: 1.95 * 1048576, 720: 3.45 * 1048576 }
+const FRAMES_BUDGET_BEELDEN = 120
+
+/** Het budget voor een maat bij dit aantal beelden. */
+function framesBudget(m, aantal) {
+  return FRAMES_MAX_BYTES[m] * Math.max(1, aantal / FRAMES_BUDGET_BEELDEN)
+}
 
 /**
  * Welke kant de heen-beweging (tempo 0 naar 1) op gaat, per oefening.
@@ -131,6 +143,51 @@ const BEWEGING = {
   'crunch-met-draai': { heen_is: 'concentrisch', soort: 'herhaling' },
   'fietsende-crunch': { heen_is: 'concentrisch', soort: 'herhaling' },
   'russian-twist': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 2, dumbbells, kettlebell en banken (30 en 31-10-2026).
+  // Squat en lunge met los gewicht: eerst zakken.
+  'goblet-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'squat-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'sumo-squat-met-dumbbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'squat-naar-een-bank': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'lunge-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'achterwaartse-lunge-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'split-squat-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'bulgarian-split-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Hinge: de RDL begint rechtop, de deadlift en de swing beginnen onderin.
+  'roemeense-deadlift-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'deadlift-met-kettlebell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'kettlebell-swing': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Op de bank: begint met gestrekte armen boven de borst, eerst zakken of openen.
+  'dumbbell-fly': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'schuine-dumbbell-fly': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'pullover-met-dumbbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'skull-crusher': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'triceps-extension-liggend-met-dumbbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Schouders, armen en roeien: eerst tillen, drukken of trekken.
+  'dumbbell-shoulder-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'arnold-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'lateral-raise': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'front-raise-met-dumbbells': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'upright-row-met-dumbbells': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'schouders-ophalen-met-dumbbells': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'dumbbell-curl': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hammer-curl': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'curl-op-een-schuine-bank': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'curl-met-ez-stang': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // De render begint met de dumbbells achter het hoofd: eerst strekken.
+  'triceps-extension-boven-het-hoofd': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'triceps-kickback': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'voorovergebogen-row-met-dumbbells': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'row-op-een-schuine-bank': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'reverse-fly': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Farmer walk: dragen op tijd of afstand, geen herhalingen. De lus is twee
+  // passen (links 0 tot 24, rechts 24 tot 48); de pose heeft geen tempo, dus
+  // staat het hier: een pas heen, een pas terug.
+  'farmer-walk': {
+    heen_is: 'concentrisch',
+    soort: 'vasthouden',
+    tempo: [[0, 0], [1, 0], [24, 1], [25, 1], [47, 0], [48, 0]],
+  },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -300,15 +357,42 @@ async function maakFrames(frames, snij, uit) {
   const uitkomst = {}
   for (const m of maten) {
     const dir = join(map, String(m))
-    const bytes = readdirSync(dir).reduce((som, f) => som + statSync(join(dir, f)).size, 0)
+    let bytes = mapBytes(dir)
     if (m === 1080 && bytes > FRAMES_1080_MAX_MB * 1024 * 1024) {
       console.log(`  1080 valt weg: ${(bytes / 1048576).toFixed(1)} MB boven ${FRAMES_1080_MAX_MB} MB`)
       rmSync(dir, { recursive: true, force: true })
       continue
     }
+    if (FRAMES_MAX_BYTES[m] && bytes > framesBudget(m, frames.length)) bytes = await framesLichter(frames, snij, dir, m, bytes)
     uitkomst[m] = { pad: `frames/${m}/f{nnn}.webp`, breedte: m, hoogte: m, bytes }
   }
   return uitkomst
+}
+
+/** Alle bytes van de webp-beelden in een map. */
+function mapBytes(dir) {
+  return readdirSync(dir).reduce((som, f) => som + statSync(join(dir, f)).size, 0)
+}
+
+/**
+ * Losse beelden boven het budget (lange wisselende lussen, zoals de Bulgarian
+ * split squat met 136 beelden): opnieuw met een kwaliteit 4 lager tot ze passen,
+ * nooit onder LUS_MIN_KWALITEIT. Zelfde grenzen als MAX_FRAMES_MB in oefenrenders.test.ts.
+ */
+async function framesLichter(frames, snij, dir, m, bytes) {
+  for (let quality = WEBP[`frame${m}`].quality - 4; quality >= LUS_MIN_KWALITEIT; quality -= 4) {
+    console.log(`  frames ${m}: ${(bytes / 1048576).toFixed(2)} MB te zwaar, opnieuw op kwaliteit ${quality}`)
+    for (let i = 0; i < frames.length; i++) {
+      const vol = await (await uitsnede(frames[i], snij)).png({ compressionLevel: 1 }).toBuffer()
+      await sharp(vol)
+        .resize(m, m, { kernel: 'lanczos3' })
+        .webp({ ...WEBP[`frame${m}`], quality })
+        .toFile(join(dir, `f${nummer(i)}.webp`))
+    }
+    bytes = mapBytes(dir)
+    if (bytes <= framesBudget(m, frames.length)) return bytes
+  }
+  throw new Error(`frames ${m} blijven boven ${(framesBudget(m, frames.length) / 1048576).toFixed(2)} MB`)
 }
 
 /** De tempo-sleutels [[frame, 0..1], ...] uit de pose: "tempo", of "sleutels" (h) bij de hinge. */
@@ -451,7 +535,9 @@ async function verwerk(bron, slug) {
   const bib = uitBibliotheek(slug, bron)
   const beweging = BEWEGING[slug]
   if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
-  const pose = poseVan(bron, slug)
+  const losePose = poseVan(bron, slug)
+  // Een pose zonder tempo of sleutels (farmer walk) krijgt het tempo uit BEWEGING.
+  const pose = losePose.tempo || losePose.sleutels || !beweging.tempo ? losePose : { ...losePose, tempo: beweging.tempo }
   const { losseMaten, ...maat } = await maakBestanden(bron, slug, uit)
   const fasen = fasenVoorPose(pose, maat.beelden)
   const bytes = Object.fromEntries(BESTANDEN.map((b) => [b, statSync(join(uit, `${b}.webp`)).size]))

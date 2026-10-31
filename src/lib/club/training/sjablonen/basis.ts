@@ -48,14 +48,14 @@ const FULL_BODY: BasisSjabloon = {
   niveau: 1,
   weken: 8,
   perWeek: '2 keer per week, A en B om en om',
-  uitleg: 'Het hele lichaam in elke training: een squat of heupscharnier, duwen, trekken en de romp. Licht beginnen, de techniek eerst.',
+  uitleg: 'Het hele lichaam in elke training: een squat of heupscharnier, duwen, trekken en de romp. Met dumbbells en een kettlebell, licht beginnen en de techniek eerst.',
   dagen: [
     {
       titel: 'Full body A',
       regels: [
-        r('Back squat', 3, '8-10', 120, { rir: 3, tempo: '3110', notitie: 'Begin met de lege stang.' }),
-        r('Push-up', 3, '8-12', 90, { rir: 3 }),
-        r('Barbell row', 3, '10-12', 90, { rir: 3 }),
+        r('Goblet squat', 3, '8-12', 90, { rir: 3, tempo: '3110', notitie: 'Gewicht tegen je borst, licht beginnen.' }),
+        r('Push-up', 3, '8-12', 90, { rir: 3, notitie: 'Gaat het nog niet, doe dan de push-up op knieen.' }),
+        r('Row op een schuine bank', 3, '10-12', 90, { rir: 3 }),
         r('Glute bridge', 3, '12-15', 60),
         t('Zijplank', 2, 20, 30, { notitie: 'Per kant.' }),
       ],
@@ -63,10 +63,10 @@ const FULL_BODY: BasisSjabloon = {
     {
       titel: 'Full body B',
       regels: [
-        r('Roemeense deadlift met barbell', 3, '8-10', 120, { rir: 3, tempo: '3110', notitie: 'Licht beginnen, de techniek eerst.' }),
-        r('Overhead press', 3, '8-10', 90, { rir: 3 }),
-        r('Achterwaartse lunge', 2, '8-10', 90, { rir: 3, notitie: 'Per been.' }),
-        r('Barbell curl', 2, '10-12', 60, { rir: 3 }),
+        r('Deadlift met kettlebell', 3, '8-10', 90, { rir: 3, notitie: 'Licht beginnen, de techniek eerst.' }),
+        r('Dumbbell shoulder press', 3, '8-12', 90, { rir: 3 }),
+        r('Achterwaartse lunge met dumbbells', 2, '8-10', 90, { rir: 3, notitie: 'Per been.' }),
+        r('Dumbbell curl', 2, '10-12', 60, { rir: 3 }),
         r('Bird dog', 2, '6-8', 45, { notitie: 'Per kant.' }),
         t('Plank', 3, 30, 45),
       ],
@@ -88,9 +88,10 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Overhead press', 4, '6-8', 150, { rir: 2 }),
         r('Barbell row', 4, '8-10', 120, { rir: 2 }),
-        r('Push-up met smalle handen', 3, '8-12', 0, { groep: 1 }),
+        r('Dumbbell fly', 3, '10-12', 75, { rir: 2, tempo: '3010' }),
+        r('Lateral raise', 3, '12-15', 0, { groep: 1 }),
         r('Barbell curl', 3, '10-12', 75, { groep: 1 }),
-        r('Schouders ophalen met barbell', 3, '10-12', 60),
+        r('Schouders ophalen met dumbbells', 3, '10-12', 60),
       ],
     },
     {
@@ -98,7 +99,7 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Back squat', 4, '6-8', 180, { rir: 2, tempo: '3110' }),
         r('Roemeense deadlift met barbell', 3, '8-10', 120, { rir: 2, tempo: '3110' }),
-        r('Split squat', 3, '8-10', 75, { rir: 2, notitie: 'Per been.' }),
+        r('Bulgarian split squat', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
         r('Calf raise met lichaamsgewicht', 3, '15-20', 0, { groep: 1, tempo: '1130' }),
         t('Plank', 3, 40, 60, { groep: 1 }),
       ],
@@ -108,9 +109,10 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Barbell row met onderhandse greep', 4, '6-8', 120, { rir: 2 }),
         r('Push-up', 4, '8-15', 90, { tempo: '3110' }),
-        r('Overhead press', 3, '8-10', 0, { rir: 2, groep: 1 }),
-        r('Barbell curl', 3, '8-10', 75, { groep: 1 }),
-        r('Leg raise liggend', 3, '8-12', 60, { tempo: '2030' }),
+        r('Arnold press', 3, '8-10', 90, { rir: 2 }),
+        r('Skull crusher', 3, '10-12', 0, { groep: 1 }),
+        r('Hammer curl', 3, '10-12', 75, { groep: 1 }),
+        r('Reverse fly', 3, '12-15', 60),
       ],
     },
     {
@@ -118,6 +120,7 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Deadlift', 4, '5-6', 180, { rir: 2 }),
         r('Front squat', 3, '6-8', 150, { rir: 2 }),
+        r('Lunge met dumbbells', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
         r('Glute bridge op een been', 3, '10-12', 0, { groep: 1, notitie: 'Per been.' }),
         t('Zijplank', 3, 30, 60, { groep: 1, notitie: 'Per kant.' }),
       ],
@@ -132,14 +135,15 @@ const PPL: BasisSjabloon = {
   niveau: 3,
   weken: 12,
   perWeek: '3 keer per week, of 6 keer voor gevorderden met goed herstel',
-  uitleg: 'Per dag een bewegingsgroep, met zware basisoefeningen met de barbell. Voor wie de techniek goed beheerst.',
+  uitleg: 'Per dag een bewegingsgroep: eerst een zware basisoefening met de barbell, daarna aanvullend werk met dumbbells. Voor wie de techniek goed beheerst.',
   dagen: [
     {
       titel: 'Duwen',
       regels: [
         r('Overhead press', 5, '3-5', 180, { rir: 2 }),
+        r('Schuine dumbbell fly', 3, '8-12', 90, { rir: 2, tempo: '3010' }),
         r('Push-up met smalle handen', 3, '8-12', 90, { tempo: '3110' }),
-        r('Pike push-up', 3, '6-10', 90, { rir: 2 }),
+        r('Triceps extension boven het hoofd', 3, '8-12', 75, { rir: 2 }),
         t('Plank', 3, 45, 60),
       ],
     },
@@ -148,6 +152,7 @@ const PPL: BasisSjabloon = {
       regels: [
         r('Deadlift', 4, '3-5', 180, { rir: 2 }),
         r('Barbell row', 4, '6-8', 120, { rir: 2 }),
+        r('Reverse fly', 3, '12-15', 60),
         r('Schouders ophalen met barbell', 3, '8-10', 75),
         r('Barbell curl', 3, '8-10', 75),
         r('Russian twist', 3, '16-20', 60, { notitie: 'Totaal, links en rechts samen.' }),

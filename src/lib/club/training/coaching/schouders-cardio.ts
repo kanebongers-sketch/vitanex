@@ -146,19 +146,19 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       'Sta rechtop met je voeten op heupbreedte en een dumbbell voor elk bovenbeen, handpalmen naar je benen. Buik licht aangespannen.',
     ],
     stappen: [
-      'Til een arm met een kleine buiging in de elleboog naar voren op tot net boven schouderhoogte.',
-      'Houd kort stil en laat hem langzaam zakken tot voor je bovenbeen.',
-      'Wissel van arm.',
+      'Til beide armen met een kleine buiging in de ellebogen naar voren op tot net boven schouderhoogte.',
+      'Houd kort stil met de dumbbells naast elkaar.',
+      'Laat ze langzaam zakken tot voor je bovenbenen.',
     ],
     fouten: [
-      { fout: 'Zwaaien vanuit de heupen', beter: 'Kies een lichter gewicht en span je billen en buik aan. Alleen je arm beweegt.' },
-      { fout: 'Schouder trekt op naar het oor', beter: 'Houd je schouder laag en je nek lang terwijl je de arm optilt.' },
+      { fout: 'Zwaaien vanuit de heupen', beter: 'Kies een lichter gewicht en span je billen en buik aan. Alleen je armen bewegen.' },
+      { fout: 'Schouders trekken op naar je oren', beter: 'Houd je schouders laag en je nek lang terwijl je de armen optilt.' },
       { fout: 'Te hoog tillen', beter: 'Stop op ooghoogte. Hoger is niet beter voor deze oefening.' },
     ],
-    ademhaling: 'Adem uit terwijl je de dumbbell optilt, adem in terwijl hij zakt.',
+    ademhaling: 'Adem uit terwijl je de dumbbells optilt, adem in terwijl ze zakken.',
     tempo: '1 tel omhoog, kort stil, 2 tellen omlaag.',
-    makkelijker: 'Gebruik een lichtere dumbbell of doe de oefening zittend zodat je niet kunt zwaaien.',
-    zwaarder: 'Til beide armen tegelijk of gebruik een halterschijf met twee handen.',
+    makkelijker: 'Til een arm tegelijk, om en om, of doe de oefening zittend zodat je niet kunt zwaaien.',
+    zwaarder: 'Houd bovenin 2 tellen stil of gebruik een halterschijf met twee handen.',
   },
 
   'Hardlopen op de loopband': {
